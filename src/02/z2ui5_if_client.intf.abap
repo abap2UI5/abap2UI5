@@ -105,7 +105,7 @@ INTERFACE z2ui5_if_client
 
   METHODS message_box_display
     IMPORTING
-      text              TYPE clike
+      text              TYPE any
       type              TYPE clike DEFAULT `information`
       title             TYPE clike OPTIONAL
       styleclass        TYPE clike OPTIONAL
@@ -140,6 +140,7 @@ INTERFACE z2ui5_if_client
       val           TYPE clike        OPTIONAL
       t_arg         TYPE string_table OPTIONAL
       s_ctrl        TYPE z2ui5_if_types=>ty_s_event_control OPTIONAL
+      r_data        type data optional
         PREFERRED PARAMETER val
     RETURNING
       VALUE(result) TYPE string.

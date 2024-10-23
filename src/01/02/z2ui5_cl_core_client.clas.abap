@@ -44,6 +44,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
       s_draft                = CORRESPONDING #( mo_action->mo_app->ms_draft )
       check_on_navigated     = mo_action->ms_actual-check_on_navigated
       s_config               = CORRESPONDING #( mo_action->mo_http_post->ms_request-s_front )
+      r_event_data           = mo_action->ms_actual-r_data
       ).
 
     TRY.
@@ -87,9 +88,18 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~message_box_display.
 
+    IF z2ui5_cl_util=>rtti_check_clike( text ) = abap_false.
+      DATA(lt_msg) = z2ui5_cl_util=>msg_get( text ).
+      DATA(lv_text) = lt_msg[ 1 ]-text.
+      DATA(lv_type) = lt_msg[ 1 ]-type.
+    ELSE.
+      lv_text = text.
+      lv_type = type.
+    ENDIF.
+
     mo_action->ms_next-s_set-s_msg_box = VALUE #(
-                                                  text              = text
-                                                  type              = type
+                                                  text              = lv_text
+                                                  type              = lv_type
                                                   title             = title
                                                   styleclass        = styleclass
                                                   onclose           = onclose
@@ -330,6 +340,11 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
          val   = val
          t_arg = t_arg
          s_cnt = s_ctrl ).
+
+    IF r_data IS NOT INITIAL.
+      CREATE DATA mo_action->ms_next-r_data LIKE r_data.
+      mo_action->ms_next-r_data = z2ui5_cl_util=>conv_copy_ref_data( r_data ).
+    ENDIF.
 
   ENDMETHOD.
 

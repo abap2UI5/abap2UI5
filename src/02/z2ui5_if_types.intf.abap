@@ -46,11 +46,11 @@ INTERFACE z2ui5_if_types
       s_draft                TYPE ty_s_draft,
       s_config               TYPE ty_s_config,
       t_comp_params          TYPE ty_t_name_value,
+      r_event_data           type ref to data,
     END OF ty_s_get.
 
   TYPES:
     BEGIN OF ty_s_event_control,
-*      check_view_destroy    TYPE abap_bool,
       check_allow_multi_req TYPE abap_bool,
     END OF ty_s_event_control.
 

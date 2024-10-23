@@ -176,6 +176,16 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     result->ms_next-s_set-s_view_nest2-check_update_model = abap_false.
     result->ms_next-s_set-s_popup-check_update_model = abap_false.
     result->ms_next-s_set-s_popover-check_update_model = abap_false.
+
+
+    IF ms_next-s_set-s_follow_up_action IS NOT INITIAL.
+*        .eB(['POPUP_CONFIRM'])
+      SPLIT ms_next-s_set-s_follow_up_action-custom_js AT `.eB(['` INTO DATA(lv_dummy)
+          result->ms_actual-event.
+      SPLIT result->ms_actual-event AT `']` INTO result->ms_actual-event lv_dummy.
+    ENDIF.
+    result->ms_actual-r_data = ms_next-r_data.
+
     CLEAR result->ms_next-s_set-s_msg_box.
     CLEAR result->ms_next-s_set-s_msg_toast.
 

@@ -14,6 +14,8 @@ CLASS z2ui5_cl_pop_to_confirm DEFINITION
         i_icon                TYPE string DEFAULT 'sap-icon://question-mark'
         i_button_text_confirm TYPE string DEFAULT `OK`
         i_button_text_cancel  TYPE string DEFAULT `Cancel`
+        i_event_confirm       TYPE string DEFAULT  `POPUP_CONFIRM_OK`
+        i_event_cancel        TYPE string DEFAULT  `POPUP_CONFIRM_CANCEL`
       RETURNING
         VALUE(r_result)       TYPE REF TO z2ui5_cl_pop_to_confirm.
 
@@ -31,6 +33,8 @@ CLASS z2ui5_cl_pop_to_confirm DEFINITION
     DATA button_text_cancel TYPE string.
     DATA check_initialized TYPE abap_bool.
     DATA check_result_confirmed TYPE abap_bool.
+    DATA event_confirm TYPE string.
+    DATA event_canceled TYPE string.
     METHODS view_display.
   PRIVATE SECTION.
 ENDCLASS.
@@ -56,6 +60,9 @@ CLASS z2ui5_cl_pop_to_confirm IMPLEMENTATION.
     r_result->question_text = i_question_text.
     r_result->button_text_confirm = i_button_text_confirm.
     r_result->button_text_cancel = i_button_text_cancel.
+    r_result->event_confirm = i_event_confirm.
+    r_result->event_canceled = i_event_cancel.
+
 
   ENDMETHOD.
 
@@ -98,11 +105,14 @@ CLASS z2ui5_cl_pop_to_confirm IMPLEMENTATION.
       WHEN `BUTTON_CONFIRM`.
         check_result_confirmed = abap_true.
         client->popup_destroy( ).
-        client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+        client->nav_app_leave( client->get_app_prev( ) ).
+        client->follow_up_action( client->_event( event_confirm ) ).
+
       WHEN `BUTTON_CANCEL`.
+        client->follow_up_action( client->_event( event_canceled ) ).
         check_result_confirmed = abap_false.
         client->popup_destroy( ).
-        client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+        client->nav_app_leave( client->get_app_prev( ) ).
     ENDCASE.
 
   ENDMETHOD.

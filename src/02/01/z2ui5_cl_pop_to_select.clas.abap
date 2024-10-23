@@ -28,6 +28,9 @@ CLASS z2ui5_cl_pop_to_select DEFINITION
         !i_contentheight    TYPE clike OPTIONAL
         !i_growingthreshold TYPE clike OPTIONAL
         !i_multiselect      TYPE abap_bool OPTIONAL
+        i_event_canceled    TYPE string OPTIONAL
+        i_event_confirmed   TYPE string OPTIONAL
+        check_preselect_all TYPE string OPTIONAL
       RETURNING
         VALUE(r_result)     TYPE REF TO z2ui5_cl_pop_to_select .
     METHODS result
@@ -46,6 +49,8 @@ CLASS z2ui5_cl_pop_to_select DEFINITION
     DATA growing_threshold TYPE string .
     DATA descending TYPE abap_bool .
     DATA multiselect TYPE abap_bool.
+    DATA event_confirmed TYPE string.
+    DATA event_canceled TYPE string.
 
     METHODS on_event .
     METHODS display .
@@ -63,13 +68,21 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
   METHOD factory.
 
     r_result = NEW #( ).
-    r_result->title = i_title.
+    IF i_title IS INITIAL.
+      r_result->title = COND #(
+                                             WHEN i_multiselect = abap_true
+                                             THEN `Multi select`
+                                             ELSE `Single select` ).
+    ENDIF.
+
     r_result->sort_field = i_sort_field.
     r_result->descending = i_descending.
     r_result->content_height = i_contentheight.
     r_result->content_width = i_contentwidth.
     r_result->growing_threshold = i_growingthreshold.
     r_result->multiselect = i_multiselect.
+    r_result->event_confirmed = i_event_confirmed.
+    r_result->event_canceled = i_event_canceled.
 
     r_result->mr_tab = z2ui5_cl_util=>conv_copy_ref_data( i_tab ).
     CREATE DATA r_result->ms_result-row LIKE LINE OF i_tab.
@@ -151,9 +164,11 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
         ms_result-check_confirmed = abap_true.
         on_event_confirm( ).
 
+
       WHEN 'CANCEL'.
         client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+        client->follow_up_action( client->_event( event_canceled ) ).
 
       WHEN 'SEARCH'.
         on_event_search( ).
@@ -253,6 +268,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
       ENDIF.
 
       IF multiselect = abap_false.
+        INSERT <row_result> INTO TABLE <table_result>.
         EXIT.
       ELSE.
         INSERT <row_result> INTO TABLE <table_result>.
@@ -263,6 +279,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
     client->popup_destroy( ).
     client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+    client->follow_up_action( client->_event( val = event_confirmed r_data = <table_result> ) ).
 
   ENDMETHOD.
 

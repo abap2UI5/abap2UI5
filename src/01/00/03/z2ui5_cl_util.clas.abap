@@ -58,6 +58,21 @@ CLASS z2ui5_cl_util DEFINITION
         t_filter       TYPE ty_t_filter_multi,
       END OF ty_s_sql.
 
+    TYPES:
+      BEGIN OF ty_S_msg,
+        text TYPE string,
+        id   TYPE string,
+        no   TYPE string,
+        type TYPE string,
+      END OF ty_s_msg,
+      ty_T_msg TYPE STANDARD TABLE OF ty_S_msg WITH EMPTY KEY.
+
+    CLASS-METHODS msg_get
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE ty_T_msg.
+
     CLASS-METHODS rtti_get_t_attri_by_include
       IMPORTING
         type          TYPE REF TO cl_abap_datadescr
@@ -425,6 +440,11 @@ CLASS z2ui5_cl_util DEFINITION
         VALUE(result) TYPE string.
 
     CLASS-METHODS check_raise_srtti_installed.
+    CLASS-METHODS rtti_check_clike
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -1294,10 +1314,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     IF rtti_check_class_exists( 'ZCL_SRTTI_TYPEDESCR' ) = abap_false.
 
-      DATA(lv_link) = `https://github.com/sandraros/S-RTTI`.
-      DATA(lv_text) = `<p>Please install the open-source project S-RTTI by sandraros and try again: <a href="` &&
-                       lv_link && `" style="color:blue; font-weight:600;" target="_blank">(link)</a></p>`.
-
+      DATA(lv_text) = `UNSUPPORTED_FEATURE - Please install the open-source project S-RTTI by sandraros and try again: https://github.com/sandraros/S-RTTI`.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING
           val = lv_text.
@@ -1416,6 +1433,52 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
           ir_range     = REF #( ls_filter-t_range ).
 
     ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD msg_get.
+
+    DATA(lv_kind) = z2ui5_cl_util=>rtti_get_type_kind( val ).
+    CASE lv_kind.
+
+      WHEN cl_abap_datadescr=>typekind_struct1 OR cl_abap_datadescr=>typekind_struct2.
+
+      WHEN cl_abap_datadescr=>typekind_dref.
+        TRY.
+            DATA(lx) = CAST cx_root( val ).
+            INSERT VALUE #(
+              type = 'E'
+              text = lx->get_text( )
+             )
+             INTO TABLE result.
+
+          CATCH cx_root.
+        ENDTRY.
+
+      WHEN OTHERS.
+
+        IF rtti_check_clike( val ).
+          INSERT VALUE #(
+           text = val
+          )
+      INTO TABLE result.
+        ENDIF.
+    ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD rtti_check_clike.
+
+    DATA(lv_type) = rtti_get_type_kind( val ).
+    CASE lv_type.
+      WHEN cl_abap_datadescr=>typekind_char OR
+          cl_abap_datadescr=>typekind_clike OR
+          cl_abap_datadescr=>typekind_csequence OR
+          cl_abap_datadescr=>typekind_string.
+        result = abap_true.
+    ENDCASE.
 
   ENDMETHOD.
 

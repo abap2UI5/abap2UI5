@@ -141,6 +141,7 @@ INTERFACE z2ui5_if_core_types
       o_app_call  TYPE REF TO z2ui5_if_app,
       o_app_leave TYPE REF TO z2ui5_if_app,
       s_set       TYPE ty_s_next_frontend,
+      r_data      TYPE REF TO data,
     END OF ty_s_next.
 
   TYPES:
@@ -199,6 +200,7 @@ INTERFACE z2ui5_if_core_types
       view               TYPE string,
       s_draft            TYPE ty_s_draft,
       s_config           TYPE ty_s_config,
+      r_data             TYPE REF TO data,
     END OF ty_s_actual.
 
   TYPES ty_s_db TYPE z2ui5_t_01.

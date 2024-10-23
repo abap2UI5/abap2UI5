@@ -40,13 +40,7 @@ CLASS z2ui5_cl_core_event_srv IMPLEMENTATION.
     result = |{ z2ui5_if_core_types=>cs_ui5-event_backend_function }(['{ val }'|.
 
     IF s_cnt-check_allow_multi_req = abap_true.
-*      IF s_cnt-check_view_destroy = abap_true.
-*        result = result && `,true,true`.
-*      ELSE.
-        result = result && `,false,true`.
-*      ENDIF.
-*    ELSEIF s_cnt-check_view_destroy = abap_true.
-*      result = result && `,true`.
+      result = result && `,false,true`.
     ENDIF.
 
     result = result && `]` && get_t_arg( t_arg ).
