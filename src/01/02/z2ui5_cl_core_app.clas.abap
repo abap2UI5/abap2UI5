@@ -150,6 +150,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
     IF mo_app IS BOUND.
       CAST z2ui5_if_app( mo_app )->id_draft = ms_draft-id.
+      CAST z2ui5_if_app( mo_app )->check_initialized = abap_true.
     ENDIF.
 
     DATA(lo_db) = NEW z2ui5_cl_core_draft_srv( ).

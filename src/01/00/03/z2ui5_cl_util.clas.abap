@@ -58,6 +58,31 @@ CLASS z2ui5_cl_util DEFINITION
         t_filter       TYPE ty_t_filter_multi,
       END OF ty_s_sql.
 
+    TYPES:
+      BEGIN OF ty_S_msg,
+        text TYPE string,
+        id   TYPE string,
+        no   TYPE string,
+        type TYPE string,
+        v1   TYPE string,
+        v2   TYPE string,
+        v3   TYPE string,
+        v4   TYPE string,
+      END OF ty_s_msg,
+      ty_T_msg TYPE STANDARD TABLE OF ty_S_msg WITH EMPTY KEY.
+
+    CLASS-METHODS ui5_get_msg_type
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS msg_get
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE ty_T_msg.
+
     CLASS-METHODS rtti_get_t_attri_by_include
       IMPORTING
         type          TYPE REF TO cl_abap_datadescr
@@ -425,6 +450,11 @@ CLASS z2ui5_cl_util DEFINITION
         VALUE(result) TYPE string.
 
     CLASS-METHODS check_raise_srtti_installed.
+    CLASS-METHODS rtti_check_clike
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -1294,10 +1324,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     IF rtti_check_class_exists( 'ZCL_SRTTI_TYPEDESCR' ) = abap_false.
 
-      DATA(lv_link) = `https://github.com/sandraros/S-RTTI`.
-      DATA(lv_text) = `<p>Please install the open-source project S-RTTI by sandraros and try again: <a href="` &&
-                       lv_link && `" style="color:blue; font-weight:600;" target="_blank">(link)</a></p>`.
-
+      DATA(lv_text) = `UNSUPPORTED_FEATURE - Please install the open-source project S-RTTI by sandraros and try again: https://github.com/sandraros/S-RTTI`.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING
           val = lv_text.
@@ -1416,6 +1443,138 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
           ir_range     = REF #( ls_filter-t_range ).
 
     ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD msg_get.
+
+    DATA(lv_kind) = z2ui5_cl_util=>rtti_get_type_kind( val ).
+    CASE lv_kind.
+
+      WHEN cl_abap_datadescr=>typekind_table.
+        FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+        ASSIGN val TO <tab>.
+        LOOP AT <tab> ASSIGNING FIELD-SYMBOL(<row>).
+          DATA(lt_tab) = msg_get( <row> ).
+          INSERT LINES OF lt_tab INTO TABLE result.
+        ENDLOOP.
+
+      WHEN cl_abap_datadescr=>typekind_struct1 OR cl_abap_datadescr=>typekind_struct2.
+
+        IF val IS INITIAL.
+          RETURN.
+        ENDIF.
+
+        DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_any( val ).
+
+        DATA(ls_result) = VALUE ty_s_msg( ).
+        LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
+          DATA(lv_name) = 'VAL-' && ls_attri->name.
+          ASSIGN (lv_name) TO FIELD-SYMBOL(<comp>).
+          CASE ls_attri->name.
+            WHEN 'ID' OR 'MSGID'.
+              ls_result-id = <comp>.
+            WHEN 'NO' OR 'NUMBER' OR 'MSGNO'.
+              ls_result-no = <comp>.
+            WHEN 'MESSAGE' OR 'TEXT'.
+              ls_result-text = <comp>.
+            WHEN 'TYPE' OR 'MSGTY'.
+              ls_result-type = <comp>.
+            WHEN 'MESSAGE_V1' OR 'MSGV1' OR 'V1'.
+              ls_result-v1 = <comp>.
+            WHEN 'MESSAGE_V2' OR 'MSGV2' OR 'V2'.
+              ls_result-v2 = <comp>.
+            WHEN 'MESSAGE_V3' OR 'MSGV3' OR 'V3'.
+              ls_result-v3 = <comp>.
+            WHEN 'MESSAGE_V4' OR 'MSGV4' OR 'V4'.
+              ls_result-v4 = <comp>.
+          ENDCASE.
+        ENDLOOP.
+        IF ls_result-text IS INITIAL AND ls_result-id IS NOT INITIAL.
+          MESSAGE ID ls_result-id TYPE 'I' NUMBER ls_result-no
+          WITH ls_result-v1 ls_result-v2 ls_result-v3 ls_result-v4
+          INTO ls_result-text.
+        ENDIF.
+        INSERT ls_result INTO TABLE result.
+
+      WHEN cl_abap_datadescr=>typekind_oref.
+        TRY.
+            DATA(lx) = CAST cx_root( val ).
+            ls_result = VALUE #(
+                type = 'E'
+                text = lx->get_text( )
+               ).
+
+            DATA(lt_attri_o) = z2ui5_cl_util=>rtti_get_t_attri_by_oref( val ).
+            LOOP AT lt_attri_o REFERENCE INTO DATA(ls_attri_o)
+         WHERE  visibility = 'U'.
+              CASE ls_attri_o->name.
+                WHEN 'ID' OR 'MSGID'.
+                  ASSIGN val->(ls_attri_o->name) TO <comp>.
+                  ls_result-id = <comp>.
+                WHEN 'NO' OR 'NUMBER' OR 'MSGNO'.
+                  ASSIGN val->(ls_attri_o->name) TO <comp>.
+                  ls_result-no = <comp>.
+                WHEN 'MESSAGE'.
+                  ASSIGN val->(ls_attri_o->name) TO <comp>.
+                  ls_result-text = <comp>.
+                WHEN 'TYPE' OR 'MSGTY'.
+                  ASSIGN val->(ls_attri_o->name) TO <comp>.
+                  ls_result-type = <comp>.
+                WHEN 'MESSAGE_V1' OR 'MSGV1'.
+                  ASSIGN val->(ls_attri_o->name) TO <comp>.
+                  ls_result-v1 = <comp>.
+                WHEN 'MESSAGE_V2' OR 'MSGV2'.
+                  ASSIGN val->(ls_attri_o->name) TO <comp>.
+                  ls_result-v2 = <comp>.
+                WHEN 'MESSAGE_V3' OR 'MSGV3'.
+                  ASSIGN val->(ls_attri_o->name) TO <comp>.
+                  ls_result-v3 = <comp>.
+                WHEN 'MESSAGE_V4' OR 'MSGV4'.
+                  ASSIGN val->(ls_attri_o->name) TO <comp>.
+                  ls_result-v4 = <comp>.
+              ENDCASE.
+
+            ENDLOOP.
+*            IF ls_result-text IS INITIAL AND ls_result-id IS NOT INITIAL.
+*              MESSAGE ID ls_result-id TYPE 'I' NUMBER ls_result-no INTO ls_result-text.
+*            ENDIF.
+            INSERT ls_result INTO TABLE result.
+          CATCH cx_root.
+        ENDTRY.
+
+      WHEN OTHERS.
+
+        IF rtti_check_clike( val ).
+          INSERT VALUE #(
+           text = val
+          )
+      INTO TABLE result.
+        ENDIF.
+    ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD rtti_check_clike.
+
+    DATA(lv_type) = rtti_get_type_kind( val ).
+    CASE lv_type.
+      WHEN cl_abap_datadescr=>typekind_char OR
+          cl_abap_datadescr=>typekind_clike OR
+          cl_abap_datadescr=>typekind_csequence OR
+          cl_abap_datadescr=>typekind_string.
+        result = abap_true.
+    ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD ui5_get_msg_type.
+
+    result = SWITCH #( val WHEN 'E' THEN `Error`
+                            WHEN 'S' THEN `Success` WHEN `W` THEN `Warning`
+                                  WHEN 'I' THEN `Information` ).
 
   ENDMETHOD.
 

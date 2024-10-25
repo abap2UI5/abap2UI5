@@ -44,6 +44,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
       s_draft                = CORRESPONDING #( mo_action->mo_app->ms_draft )
       check_on_navigated     = mo_action->ms_actual-check_on_navigated
       s_config               = CORRESPONDING #( mo_action->mo_http_post->ms_request-s_front )
+      r_event_data           = mo_action->ms_actual-r_data
       ).
 
     TRY.
@@ -87,20 +88,53 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~message_box_display.
 
+    IF z2ui5_cl_util=>rtti_check_clike( text ) = abap_false.
+      DATA(lt_msg) = z2ui5_cl_util=>msg_get( text ).
+      IF lines( lt_msg ) = 1.
+        DATA(lv_text) = lt_msg[ 1 ]-text.
+
+        DATA(lv_type) = z2ui5_cl_util=>ui5_get_msg_type( lt_msg[ 1 ]-type ).
+        lv_type = to_lower( lv_type ).
+        DATA(lv_title) = SWITCH #( lt_msg[ 1 ]-type WHEN 'E' THEN `Error`
+                             WHEN 'S' THEN `Success` WHEN `W` THEN `Warning`
+                                   else `Information` ).
+
+      ELSEIF lines( lt_msg ) > 1.
+        lv_text = | { lines( lt_msg ) } Messages found: |.
+        DATA(lv_details) = `<ul>`.
+        LOOP AT lt_msg REFERENCE INTO DATA(lr_msg).
+          lv_details = lv_details && |<li>|  && lr_msg->text && |</li>|.
+        ENDLOOP.
+        lv_details = lv_details && |</ul>|.
+        IF title IS INITIAL.
+          lv_title = SWITCH #( lt_msg[ 1 ]-type WHEN 'E' THEN `Error`
+                             WHEN 'S' THEN `Success` WHEN `W` THEN `Warning`
+                                   else `Information` ).
+        ENDIF.
+      ELSE.
+        RETURN.
+      ENDIF.
+    ELSE.
+      lv_text = text.
+      lv_type = type.
+      lv_title = title.
+      lv_details = details.
+    ENDIF.
+
     mo_action->ms_next-s_set-s_msg_box = VALUE #(
-                                                  text              = text
-                                                  type              = type
-                                                  title             = title
-                                                  styleclass        = styleclass
-                                                  onclose           = onclose
-                                                  actions           = actions
-                                                  emphasizedaction  = emphasizedaction
-                                                  initialfocus      = initialfocus
-                                                  textdirection     = textdirection
-                                                  icon              = icon
-                                                  details           = details
-                                                  closeonnavigation = closeonnavigation
-                                                ).
+                                                 text              = lv_text
+                                                 type              = lv_type
+                                                 title             = lv_title
+                                                 styleclass        = styleclass
+                                                 onclose           = onclose
+                                                 actions           = actions
+                                                 emphasizedaction  = emphasizedaction
+                                                 initialfocus      = initialfocus
+                                                 textdirection     = textdirection
+                                                 icon              = icon
+                                                 details           = lv_details
+                                                 closeonnavigation = closeonnavigation
+                                               ).
 
   ENDMETHOD.
 
@@ -331,6 +365,11 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
          t_arg = t_arg
          s_cnt = s_ctrl ).
 
+    IF r_data IS NOT INITIAL.
+      CREATE DATA mo_action->ms_next-r_data LIKE r_data.
+      mo_action->ms_next-r_data = z2ui5_cl_util=>conv_copy_ref_data( r_data ).
+    ENDIF.
+
   ENDMETHOD.
 
 
@@ -353,7 +392,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
           val = `STATEFUL_ALREADY_ACTIVATED_ERROR`.
     ENDIF.
     IF stateful = abap_true.
-*       mo_action->ms_next-s_set-handler_attrs-
       mo_action->ms_next-s_set-s_stateful-active = 1.
       CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky = abap_true.
     ELSE.
@@ -363,4 +401,32 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     mo_action->ms_next-s_set-s_stateful-switched = abap_true.
 
   ENDMETHOD.
+
+  METHOD z2ui5_if_client~check_app_prev_stack.
+
+    DATA(ls_get) = z2ui5_if_client~get( ).
+    result = xsdbool( ls_get-s_draft-id_prev_app_stack IS NOT INITIAL ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~check_on_init.
+
+    result = xsdbool( CAST z2ui5_if_app(  mo_action->mo_app->mo_app )->check_initialized = abap_false ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~check_on_navigated.
+
+    DATA(ls_get) = z2ui5_if_client~get( ).
+    result = ls_get-check_on_navigated.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~get_app_prev.
+
+    DATA(ls_get) = z2ui5_if_client~get( ).
+    result = z2ui5_if_client~get_app( ls_get-s_draft-id_prev_app ).
+
+  ENDMETHOD.
+
 ENDCLASS.

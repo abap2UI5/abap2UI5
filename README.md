@@ -52,15 +52,15 @@ This project greatly benefits from its [contributors](https://github.com/abap2UI
 * Developed on an [ABAP Cloud Dev Trial 2022](https://hub.docker.com/r/sapse/abap-cloud-developer-trial) [(hosted by Nuve Platform)](https://www.nuveplatform.com/)
 
 #### What's Next? 
-* [Quickstart](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/get_started/quickstart.md) –  Install and get started with your first abap2UI5 app
-* [Samples](https://github.com/abap2UI5/abap2UI5-samples) – Learn through hands-on examples and start building your own apps
-* [Addons](https://github.com/abap2UI5-addons) – Expand abap2UI5’s capabilities to fit your needs
-* [Apps](https://github.com/abap2UI5-apps) – Discover and try out abap2UI5 apps 
+* [Quickstart](https://abap2ui5.github.io/docs/get_started/quickstart.html) –  Install and get started with your first abap2UI5 app
+* [Samples](https://abap2ui5.github.io/docs/get_started/sample_apps.html) – Learn through hands-on examples and start building your own apps
+* [Addons](https://abap2ui5.github.io/docs/addons/addons.html) – Expand abap2UI5’s capabilities to fit your needs
+* [Apps](https://abap2ui5.github.io/docs/addons/apps.html) – Discover and try out abap2UI5 apps 
 
 #### Get Involved
-* Questions, feedback or bugs? Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/), [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md) or create an [issue.](https://github.com/abap2UI5/abap2UI5/issues)
-* Want to help out? Review our [contribution guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md) to get started.
-* Stay updated! Follow us on [LinkedIn.](https://www.linkedin.com/company/abap2ui5)
+* Questions, feedback or bugs? Check out the [documentation](https://abap2ui5.github.io/docs/) or create an [issue.](https://github.com/abap2UI5/abap2UI5/issues)
+* Want to help out? Review our [contribution guidelines](https://abap2ui5.github.io/docs/resources/contribution.html) to get started.
+* Follow us on [LinkedIn](https://www.linkedin.com/company/abap2ui5) and [sponsor](https://abap2ui5.github.io/docs/resources/sponsor.html) our dedicated developers.
 
 _We welcome all contributions! Share your knowledge, hunt for or fix bugs, submit a PR, write a comment, give us a like, or simply tell your friends how much you love abap2UI5. This project thrives on your support! 🚀_ 
 
