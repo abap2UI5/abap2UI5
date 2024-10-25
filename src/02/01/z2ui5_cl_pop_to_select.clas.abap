@@ -30,7 +30,6 @@ CLASS z2ui5_cl_pop_to_select DEFINITION
         !i_multiselect      TYPE abap_bool OPTIONAL
         i_event_canceled    TYPE string OPTIONAL
         i_event_confirmed   TYPE string OPTIONAL
-        check_preselect_all TYPE string OPTIONAL
       RETURNING
         VALUE(r_result)     TYPE REF TO z2ui5_cl_pop_to_select .
     METHODS result
@@ -267,11 +266,10 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
         <row_result> = CORRESPONDING #( <row_selected> ).
       ENDIF.
 
+      INSERT <row_result> INTO TABLE <table_result>.
       IF multiselect = abap_false.
-        INSERT <row_result> INTO TABLE <table_result>.
         EXIT.
       ELSE.
-        INSERT <row_result> INTO TABLE <table_result>.
         CLEAR <row_result>.
       ENDIF.
 

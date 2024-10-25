@@ -1470,30 +1470,24 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
         DATA(ls_result) = VALUE ty_s_msg( ).
         LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
+          DATA(lv_name) = 'VAL-' && ls_attri->name.
+          ASSIGN (lv_name) TO FIELD-SYMBOL(<comp>).
           CASE ls_attri->name.
             WHEN 'ID' OR 'MSGID'.
-              ASSIGN val-(ls_attri->name) TO FIELD-SYMBOL(<comp>).
               ls_result-id = <comp>.
             WHEN 'NO' OR 'NUMBER' OR 'MSGNO'.
-              ASSIGN val-(ls_attri->name) TO <comp>.
               ls_result-no = <comp>.
             WHEN 'MESSAGE' OR 'TEXT'.
-              ASSIGN val-(ls_attri->name) TO <comp>.
               ls_result-text = <comp>.
             WHEN 'TYPE' OR 'MSGTY'.
-              ASSIGN val-(ls_attri->name) TO <comp>.
               ls_result-type = <comp>.
             WHEN 'MESSAGE_V1' OR 'MSGV1' OR 'V1'.
-              ASSIGN val-(ls_attri->name) TO <comp>.
               ls_result-v1 = <comp>.
             WHEN 'MESSAGE_V2' OR 'MSGV2' OR 'V2'.
-              ASSIGN val-(ls_attri->name) TO <comp>.
               ls_result-v2 = <comp>.
             WHEN 'MESSAGE_V3' OR 'MSGV3' OR 'V3'.
-              ASSIGN val-(ls_attri->name) TO <comp>.
               ls_result-v3 = <comp>.
             WHEN 'MESSAGE_V4' OR 'MSGV4' OR 'V4'.
-              ASSIGN val-(ls_attri->name) TO <comp>.
               ls_result-v4 = <comp>.
           ENDCASE.
         ENDLOOP.
