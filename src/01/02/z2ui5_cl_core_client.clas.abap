@@ -90,27 +90,51 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     IF z2ui5_cl_util=>rtti_check_clike( text ) = abap_false.
       DATA(lt_msg) = z2ui5_cl_util=>msg_get( text ).
-      DATA(lv_text) = lt_msg[ 1 ]-text.
-      DATA(lv_type) = lt_msg[ 1 ]-type.
+      IF lines( lt_msg ) = 1.
+        DATA(lv_text) = lt_msg[ 1 ]-text.
+
+        DATA(lv_type) = z2ui5_cl_util=>ui5_get_msg_type( lt_msg[ 1 ]-type ).
+        lv_type = to_lower( lv_type ).
+        DATA(lv_title) = SWITCH #( lt_msg[ 1 ]-type WHEN 'E' THEN `Error`
+                             WHEN 'S' THEN `Success` WHEN `W` THEN `Warning`
+                                   else `Information` ).
+
+      ELSEIF lines( lt_msg ) > 1.
+        lv_text = | { lines( lt_msg ) } Messages found: |.
+        DATA(lv_details) = `<ul>`.
+        LOOP AT lt_msg REFERENCE INTO DATA(lr_msg).
+          lv_details = lv_details && |<li>|  && lr_msg->text && |</li>|.
+        ENDLOOP.
+        lv_details = lv_details && |</ul>|.
+        IF title IS INITIAL.
+          lv_title = SWITCH #( lt_msg[ 1 ]-type WHEN 'E' THEN `Error`
+                             WHEN 'S' THEN `Success` WHEN `W` THEN `Warning`
+                                   else `Information` ).
+        ENDIF.
+      ELSE.
+        RETURN.
+      ENDIF.
     ELSE.
       lv_text = text.
       lv_type = type.
+      lv_title = title.
+      lv_details = details.
     ENDIF.
 
     mo_action->ms_next-s_set-s_msg_box = VALUE #(
-                                                  text              = lv_text
-                                                  type              = lv_type
-                                                  title             = title
-                                                  styleclass        = styleclass
-                                                  onclose           = onclose
-                                                  actions           = actions
-                                                  emphasizedaction  = emphasizedaction
-                                                  initialfocus      = initialfocus
-                                                  textdirection     = textdirection
-                                                  icon              = icon
-                                                  details           = details
-                                                  closeonnavigation = closeonnavigation
-                                                ).
+                                                 text              = lv_text
+                                                 type              = lv_type
+                                                 title             = lv_title
+                                                 styleclass        = styleclass
+                                                 onclose           = onclose
+                                                 actions           = actions
+                                                 emphasizedaction  = emphasizedaction
+                                                 initialfocus      = initialfocus
+                                                 textdirection     = textdirection
+                                                 icon              = icon
+                                                 details           = lv_details
+                                                 closeonnavigation = closeonnavigation
+                                               ).
 
   ENDMETHOD.
 

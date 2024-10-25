@@ -64,8 +64,18 @@ CLASS z2ui5_cl_util DEFINITION
         id   TYPE string,
         no   TYPE string,
         type TYPE string,
+        v1   TYPE string,
+        v2   TYPE string,
+        v3   TYPE string,
+        v4   TYPE string,
       END OF ty_s_msg,
       ty_T_msg TYPE STANDARD TABLE OF ty_S_msg WITH EMPTY KEY.
+
+    CLASS-METHODS ui5_get_msg_type
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
 
     CLASS-METHODS msg_get
       IMPORTING
@@ -1442,17 +1452,101 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     DATA(lv_kind) = z2ui5_cl_util=>rtti_get_type_kind( val ).
     CASE lv_kind.
 
+      WHEN cl_abap_datadescr=>typekind_table.
+        FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+        ASSIGN val TO <tab>.
+        LOOP AT <tab> ASSIGNING FIELD-SYMBOL(<row>).
+          DATA(lt_tab) = msg_get( <row> ).
+          INSERT LINES OF lt_tab INTO TABLE result.
+        ENDLOOP.
+
       WHEN cl_abap_datadescr=>typekind_struct1 OR cl_abap_datadescr=>typekind_struct2.
 
-      WHEN cl_abap_datadescr=>typekind_dref.
+        IF val IS INITIAL.
+          RETURN.
+        ENDIF.
+
+        DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_any( val ).
+
+        DATA(ls_result) = VALUE ty_s_msg( ).
+        LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
+          CASE ls_attri->name.
+            WHEN 'ID' OR 'MSGID'.
+              ASSIGN val-(ls_attri->name) TO FIELD-SYMBOL(<comp>).
+              ls_result-id = <comp>.
+            WHEN 'NO' OR 'NUMBER' OR 'MSGNO'.
+              ASSIGN val-(ls_attri->name) TO <comp>.
+              ls_result-no = <comp>.
+            WHEN 'MESSAGE' OR 'TEXT'.
+              ASSIGN val-(ls_attri->name) TO <comp>.
+              ls_result-text = <comp>.
+            WHEN 'TYPE' OR 'MSGTY'.
+              ASSIGN val-(ls_attri->name) TO <comp>.
+              ls_result-type = <comp>.
+            WHEN 'MESSAGE_V1' OR 'MSGV1' OR 'V1'.
+              ASSIGN val-(ls_attri->name) TO <comp>.
+              ls_result-v1 = <comp>.
+            WHEN 'MESSAGE_V2' OR 'MSGV2' OR 'V2'.
+              ASSIGN val-(ls_attri->name) TO <comp>.
+              ls_result-v2 = <comp>.
+            WHEN 'MESSAGE_V3' OR 'MSGV3' OR 'V3'.
+              ASSIGN val-(ls_attri->name) TO <comp>.
+              ls_result-v3 = <comp>.
+            WHEN 'MESSAGE_V4' OR 'MSGV4' OR 'V4'.
+              ASSIGN val-(ls_attri->name) TO <comp>.
+              ls_result-v4 = <comp>.
+          ENDCASE.
+        ENDLOOP.
+        IF ls_result-text IS INITIAL AND ls_result-id IS NOT INITIAL.
+          MESSAGE ID ls_result-id TYPE 'I' NUMBER ls_result-no
+          WITH ls_result-v1 ls_result-v2 ls_result-v3 ls_result-v4
+          INTO ls_result-text.
+        ENDIF.
+        INSERT ls_result INTO TABLE result.
+
+      WHEN cl_abap_datadescr=>typekind_oref.
         TRY.
             DATA(lx) = CAST cx_root( val ).
-            INSERT VALUE #(
-              type = 'E'
-              text = lx->get_text( )
-             )
-             INTO TABLE result.
+            ls_result = VALUE #(
+                type = 'E'
+                text = lx->get_text( )
+               ).
 
+            DATA(lt_attri_o) = z2ui5_cl_util=>rtti_get_t_attri_by_oref( val ).
+            LOOP AT lt_attri_o REFERENCE INTO DATA(ls_attri_o)
+         WHERE  visibility = 'U'.
+              CASE ls_attri_o->name.
+                WHEN 'ID' OR 'MSGID'.
+                  ASSIGN val->(ls_attri_o->name) TO <comp>.
+                  ls_result-id = <comp>.
+                WHEN 'NO' OR 'NUMBER' OR 'MSGNO'.
+                  ASSIGN val->(ls_attri_o->name) TO <comp>.
+                  ls_result-no = <comp>.
+                WHEN 'MESSAGE'.
+                  ASSIGN val->(ls_attri_o->name) TO <comp>.
+                  ls_result-text = <comp>.
+                WHEN 'TYPE' OR 'MSGTY'.
+                  ASSIGN val->(ls_attri_o->name) TO <comp>.
+                  ls_result-type = <comp>.
+                WHEN 'MESSAGE_V1' OR 'MSGV1'.
+                  ASSIGN val->(ls_attri_o->name) TO <comp>.
+                  ls_result-v1 = <comp>.
+                WHEN 'MESSAGE_V2' OR 'MSGV2'.
+                  ASSIGN val->(ls_attri_o->name) TO <comp>.
+                  ls_result-v2 = <comp>.
+                WHEN 'MESSAGE_V3' OR 'MSGV3'.
+                  ASSIGN val->(ls_attri_o->name) TO <comp>.
+                  ls_result-v3 = <comp>.
+                WHEN 'MESSAGE_V4' OR 'MSGV4'.
+                  ASSIGN val->(ls_attri_o->name) TO <comp>.
+                  ls_result-v4 = <comp>.
+              ENDCASE.
+
+            ENDLOOP.
+*            IF ls_result-text IS INITIAL AND ls_result-id IS NOT INITIAL.
+*              MESSAGE ID ls_result-id TYPE 'I' NUMBER ls_result-no INTO ls_result-text.
+*            ENDIF.
+            INSERT ls_result INTO TABLE result.
           CATCH cx_root.
         ENDTRY.
 
@@ -1479,6 +1573,14 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
           cl_abap_datadescr=>typekind_string.
         result = abap_true.
     ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD ui5_get_msg_type.
+
+    result = SWITCH #( val WHEN 'E' THEN `Error`
+                            WHEN 'S' THEN `Success` WHEN `W` THEN `Warning`
+                                  WHEN 'I' THEN `Information` ).
 
   ENDMETHOD.
 
