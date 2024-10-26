@@ -97,7 +97,8 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
         lv_type = to_lower( lv_type ).
         DATA(lv_title) = SWITCH #( lt_msg[ 1 ]-type WHEN 'E' THEN `Error`
                              WHEN 'S' THEN `Success` WHEN `W` THEN `Warning`
-                                   else `Information` ).
+                                   ELSE `Information` ).
+
 
       ELSEIF lines( lt_msg ) > 1.
         lv_text = | { lines( lt_msg ) } Messages found: |.
@@ -109,8 +110,9 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
         IF title IS INITIAL.
           lv_title = SWITCH #( lt_msg[ 1 ]-type WHEN 'E' THEN `Error`
                              WHEN 'S' THEN `Success` WHEN `W` THEN `Warning`
-                                   else `Information` ).
+                                   ELSE `Information` ).
         ENDIF.
+        lv_type = z2ui5_cl_util=>ui5_get_msg_type( lt_msg[ 1 ]-type ).
       ELSE.
         RETURN.
       ENDIF.
@@ -119,7 +121,15 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
       lv_type = type.
       lv_title = title.
       lv_details = details.
+
+      IF lv_type = 'information'.
+        lv_type = 'show'.
+      ENDIF.
     ENDIF.
+
+    if lv_type = ''.
+      lv_type = 'show'.
+    endif.
 
     mo_action->ms_next-s_set-s_msg_box = VALUE #(
                                                  text              = lv_text
