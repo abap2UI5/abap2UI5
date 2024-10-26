@@ -329,6 +329,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `      debugger;` && |\n| &&
              `      let oDevice = z2ui5.oView.getModel("device").oData;` && |\n| &&
+             `      oControl.setProperty("ui5_version", sap.ui.version);` && |\n| &&
              `      oControl.setProperty("device_phone", oDevice.system.phone);` && |\n| &&
              `      oControl.setProperty("device_desktop", oDevice.system.desktop);` && |\n| &&
              `      oControl.setProperty("device_tablet", oDevice.system.tablet);` && |\n| &&

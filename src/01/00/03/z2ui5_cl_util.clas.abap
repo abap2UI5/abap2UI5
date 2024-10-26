@@ -1574,7 +1574,8 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     result = SWITCH #( val WHEN 'E' THEN `Error`
                             WHEN 'S' THEN `Success` WHEN `W` THEN `Warning`
-                                  WHEN 'I' THEN `Information` ).
+                                else `Information`
+                                  ).
 
   ENDMETHOD.
 

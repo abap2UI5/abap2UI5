@@ -124,12 +124,15 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
       IF lv_type = 'information'.
         lv_type = 'show'.
+        IF lv_title IS INITIAL.
+          lv_title = 'Information'.
+        ENDIF.
       ENDIF.
     ENDIF.
 
-    if lv_type = ''.
+    IF lv_type = ''.
       lv_type = 'show'.
-    endif.
+    ENDIF.
 
     mo_action->ms_next-s_set-s_msg_box = VALUE #(
                                                  text              = lv_text
