@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_core_http_post DEFINITION
+CLASS z2ui5_cl_core_handler DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -34,7 +34,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
+CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
 
   METHOD constructor.

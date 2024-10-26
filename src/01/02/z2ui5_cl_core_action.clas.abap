@@ -5,7 +5,7 @@ CLASS z2ui5_cl_core_action DEFINITION
 
   PUBLIC SECTION.
 
-    DATA mo_http_post TYPE REF TO z2ui5_cl_core_http_post.
+    DATA mo_http_post TYPE REF TO z2ui5_cl_core_handler.
     DATA mo_app       TYPE REF TO z2ui5_cl_core_app.
 
     DATA ms_actual TYPE z2ui5_if_core_types=>ty_s_actual.
@@ -33,7 +33,7 @@ CLASS z2ui5_cl_core_action DEFINITION
 
     METHODS constructor
       IMPORTING
-        val TYPE REF TO z2ui5_cl_core_http_post.
+        val TYPE REF TO z2ui5_cl_core_handler.
 
   PROTECTED SECTION.
 
