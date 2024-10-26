@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_core_http_post DEFINITION
+CLASS z2ui5_cl_core_handler DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -7,8 +7,8 @@ CLASS z2ui5_cl_core_http_post DEFINITION
 
     DATA mo_action       TYPE REF TO z2ui5_cl_core_action.
     DATA mv_request_json TYPE string.
-    DATA ms_request      TYPE z2ui5_if_core_types=>ty_s_http_request_post.
-    DATA ms_response     TYPE z2ui5_if_core_types=>ty_s_http_response_post.
+    DATA ms_request      TYPE z2ui5_if_core_types=>ty_s_request.
+    DATA ms_response     TYPE z2ui5_if_core_types=>ty_s_response.
     DATA mv_response     TYPE string.
 
     METHODS constructor
@@ -34,7 +34,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
+CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -65,14 +65,14 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
   METHOD main_begin.
     TRY.
 
-        DATA(lo_json_mapper) = NEW z2ui5_cl_core_json_srv( ).
+        DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_json( ).
         ms_request = lo_json_mapper->request_json_to_abap( mv_request_json ).
 
         IF ms_request-s_front-id IS NOT INITIAL.
           mo_action = mo_action->factory_by_frontend( ).
 
         ELSEIF ms_request-s_control-app_start IS NOT INITIAL.
-          NEW z2ui5_cl_core_draft_srv( )->cleanup( ).
+          NEW z2ui5_cl_core_srv_draft( )->cleanup( ).
           mo_action = mo_action->factory_first_start( ).
 
         ELSE.
@@ -104,7 +104,7 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
     OR ms_response-s_front-params-s_popup-xml IS NOT INITIAL
     OR ms_response-s_front-params-s_popover-xml IS NOT INITIAL.
 
-      DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
+      DATA(lo_model) = NEW z2ui5_cl_core_srv_attri(
        attri = mo_action->mo_app->mt_attri
        app   = mo_action->mo_app->mo_app ).
       lo_model->attri_refs_update( ).
@@ -114,7 +114,7 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
       ms_response-model = `{}`.
     ENDIF.
 
-    DATA(lo_json_mapper) = NEW z2ui5_cl_core_json_srv( ).
+    DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_json( ).
     mv_response = lo_json_mapper->response_abap_to_json( ms_response ).
 
     CLEAR mo_action->ms_next.

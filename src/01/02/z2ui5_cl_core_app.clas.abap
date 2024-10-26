@@ -69,7 +69,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
     TRY.
 
-        DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
+        DATA(lo_model) = NEW z2ui5_cl_core_srv_attri(
           attri = mt_attri
           app   = mo_app ).
         lo_model->attri_before_save( ).
@@ -82,13 +82,13 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
             CLEAR mt_attri->*.
 
-            DATA(lo_dissolver) = NEW z2ui5_cl_core_diss_srv(
+            DATA(lo_dissolver) = NEW z2ui5_cl_core_srv_diss(
               attri = mt_attri
               app   = mo_app ).
 
             lo_dissolver->main( ).
             lo_dissolver->main( ).
-            lo_model = NEW z2ui5_cl_core_attri_srv(
+            lo_model = NEW z2ui5_cl_core_srv_attri(
               attri = mt_attri
               app   = mo_app ).
             lo_model->attri_before_save( ).
@@ -116,11 +116,11 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD db_load.
 
-    DATA(lo_db) = NEW z2ui5_cl_core_draft_srv( ).
+    DATA(lo_db) = NEW z2ui5_cl_core_srv_draft( ).
     DATA(ls_db) = lo_db->read_draft( id ).
     result = all_xml_parse( ls_db-data ).
 
-    DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri(
        attri = result->mt_attri
        app   = result->mo_app ).
 
@@ -131,13 +131,13 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD db_load_by_app.
 
-    DATA(lo_db) = NEW z2ui5_cl_core_draft_srv( ).
+    DATA(lo_db) = NEW z2ui5_cl_core_srv_draft( ).
     DATA(ls_db) = lo_db->read_draft( app->id_draft ).
     result = all_xml_parse( ls_db-data ).
 
     result->mo_app = app.
 
-    DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri(
         attri = result->mt_attri
         app   = result->mo_app ).
 
@@ -153,7 +153,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
       CAST z2ui5_if_app( mo_app )->check_initialized = abap_true.
     ENDIF.
 
-    DATA(lo_db) = NEW z2ui5_cl_core_draft_srv( ).
+    DATA(lo_db) = NEW z2ui5_cl_core_srv_draft( ).
     lo_db->create(
         draft     = ms_draft
         model_xml = all_xml_stringify( ) ).
@@ -163,7 +163,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD model_json_parse.
 
-    DATA(lo_json_mapper) = NEW z2ui5_cl_core_json_srv( ).
+    DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_json( ).
     lo_json_mapper->model_front_to_back(
         view    = iv_view
         t_attri = mt_attri
@@ -174,7 +174,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD model_json_stringify.
 
-    DATA(lo_json_mapper) = NEW z2ui5_cl_core_json_srv( ).
+    DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_json( ).
     result = lo_json_mapper->model_back_to_front( mt_attri ).
 
   ENDMETHOD.

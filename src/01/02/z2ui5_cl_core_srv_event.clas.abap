@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_core_event_srv DEFINITION
+CLASS z2ui5_cl_core_srv_event DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -33,7 +33,7 @@ CLASS z2ui5_cl_core_event_srv DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_core_event_srv IMPLEMENTATION.
+CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
 
   METHOD get_event.
 

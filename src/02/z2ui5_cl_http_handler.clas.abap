@@ -69,7 +69,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
   PROTECTED SECTION.
 
-    CLASS-DATA so_sticky_handler TYPE REF TO z2ui5_cl_core_http_post.
+    CLASS-DATA so_sticky_handler TYPE REF TO z2ui5_cl_core_handler.
     DATA mo_server TYPE REF TO z2ui5_cl_abap_api_http.
 
     DATA ms_req TYPE z2ui5_if_core_types=>ty_s_http_req.
@@ -258,7 +258,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
   METHOD _http_post.
 
     IF so_sticky_handler IS NOT BOUND.
-      DATA(lo_post) = NEW z2ui5_cl_core_http_post( is_req-body ).
+      DATA(lo_post) = NEW z2ui5_cl_core_handler( is_req-body ).
     ELSE.
       lo_post = so_sticky_handler.
       lo_post->mv_request_json = is_req-body.
