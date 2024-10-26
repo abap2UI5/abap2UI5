@@ -1845,7 +1845,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 !width                TYPE clike OPTIONAL
                 showsortmenuentry     TYPE clike OPTIONAL
                 sortproperty          TYPE clike OPTIONAL
-                autoresizable         TYPE clike OPTIONAL
+                autoResizable         TYPE clike OPTIONAL
                 filterproperty        TYPE clike OPTIONAL
                 showfiltermenuentry   TYPE clike OPTIONAL
                 defaultfilteroperator TYPE clike OPTIONAL
