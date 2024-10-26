@@ -11,11 +11,11 @@ CLASS z2ui5_cl_core_srv_json DEFINITION
       IMPORTING
         val           TYPE string
       RETURNING
-        VALUE(result) TYPE z2ui5_if_core_types=>ty_s_http_request_post .
+        VALUE(result) TYPE z2ui5_if_core_types=>ty_s_request .
 
     METHODS response_abap_to_json
       IMPORTING
-        val           TYPE z2ui5_if_core_types=>ty_s_http_response_post
+        val           TYPE z2ui5_if_core_types=>ty_s_response
       RETURNING
         VALUE(result) TYPE string .
 

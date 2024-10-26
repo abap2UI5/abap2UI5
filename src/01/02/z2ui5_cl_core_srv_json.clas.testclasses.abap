@@ -18,7 +18,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(lo_mapper) = NEW z2ui5_cl_core_srv_json( ).
     DATA(ls_result) = lo_mapper->request_json_to_abap( lv_payload ).
 
-    DATA(ls_exp) = VALUE z2ui5_if_core_types=>ty_s_http_request_post(
+    DATA(ls_exp) = VALUE z2ui5_if_core_types=>ty_s_request(
         s_front = VALUE #(
         id       = `ID_NR`
         view     = `MAIN`

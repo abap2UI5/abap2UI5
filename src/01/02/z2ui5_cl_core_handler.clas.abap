@@ -7,8 +7,8 @@ CLASS z2ui5_cl_core_handler DEFINITION
 
     DATA mo_action       TYPE REF TO z2ui5_cl_core_action.
     DATA mv_request_json TYPE string.
-    DATA ms_request      TYPE z2ui5_if_core_types=>ty_s_http_request_post.
-    DATA ms_response     TYPE z2ui5_if_core_types=>ty_s_http_response_post.
+    DATA ms_request      TYPE z2ui5_if_core_types=>ty_s_request.
+    DATA ms_response     TYPE z2ui5_if_core_types=>ty_s_response.
     DATA mv_response     TYPE string.
 
     METHODS constructor
