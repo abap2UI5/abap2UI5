@@ -128,7 +128,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     ENDIF.
 
     if lv_type = ''.
-        lv_type = 'show'.
+      lv_type = 'show'.
     endif.
 
     mo_action->ms_next-s_set-s_msg_box = VALUE #(
