@@ -1,6 +1,6 @@
 
 CLASS ltcl_test_bind DEFINITION DEFERRED.
-CLASS z2ui5_cl_core_bind_srv DEFINITION LOCAL FRIENDS ltcl_test_bind.
+CLASS z2ui5_cl_core_srv_bind DEFINITION LOCAL FRIENDS ltcl_test_bind.
 
 CLASS ltcl_test_app DEFINITION FINAL FOR TESTING
   DURATION MEDIUM
@@ -64,7 +64,7 @@ CLASS ltcl_test_bind IMPLEMENTATION.
     DATA(lo_app) = NEW z2ui5_cl_core_app( ).
     lo_app->mo_app = lo_app_client.
 
-    DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
+    DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
 
     TRY.
         lo_bind->main(
@@ -84,7 +84,7 @@ CLASS ltcl_test_bind IMPLEMENTATION.
     DATA(lo_app) = NEW z2ui5_cl_core_app( ).
     lo_app->mo_app = lo_app_client.
 
-    DATA(lo_bind) = NEW z2ui5_cl_core_bind_srv( lo_app ).
+    DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( lo_app ).
 
     DATA(lv_bind) = lo_bind->main(
         val  = REF #( lo_app_client->mv_value )
@@ -102,7 +102,7 @@ CLASS ltcl_test_bind IMPLEMENTATION.
     DATA(lo_app) = NEW z2ui5_cl_core_app( ).
     lo_app->mo_app = lo_app_client.
 
-    DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
+    DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
 
     lo_bind->main(
        val  = REF #( lo_app_client->mv_value )
@@ -131,7 +131,7 @@ CLASS ltcl_test_bind IMPLEMENTATION.
     DATA(lo_app) = NEW z2ui5_cl_core_app( ).
     lo_app->mo_app = lo_app_client.
 
-    DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
+    DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
 
     DATA(lv_bind) = lo_bind->main(
         val  = REF #( lo_app_client->mv_value )
@@ -155,7 +155,7 @@ CLASS ltcl_test_bind IMPLEMENTATION.
     DATA(lo_app) = NEW z2ui5_cl_core_app( ).
     lo_app->mo_app = lo_app_client.
 
-    DATA(lo_bind) = NEW z2ui5_cl_core_bind_srv( lo_app ).
+    DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( lo_app ).
 
     DATA(lv_bind) = lo_bind->main_local( lo_app_client->mv_value ).
 
@@ -169,7 +169,7 @@ CLASS ltcl_test_bind IMPLEMENTATION.
     DATA(lo_app) = NEW z2ui5_cl_core_app( ).
     lo_app->mo_app = lo_app_client.
 
-    DATA(lo_bind) = NEW z2ui5_cl_core_bind_srv( lo_app ).
+    DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( lo_app ).
 
     DATA(lv_bind) = lo_bind->main_local( lo_app_client->mv_value ).
 
@@ -226,7 +226,7 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
     DATA(lo_app) = NEW z2ui5_cl_core_app( ).
     lo_app->mo_app = lo_test_app.
 
-    DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
+    DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
     DATA(lv_result) = lo_bind->main(
         val  = REF #( lo_test_app->ms_struc-input )
         type = z2ui5_if_core_types=>cs_bind_type-one_way ).
@@ -252,7 +252,7 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
     DATA(lo_app) = NEW z2ui5_cl_core_app( ).
     lo_app->mo_app = lo_test_app.
 
-    DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
+    DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
     DATA(lv_result) = lo_bind->main(
         val  = REF #( lo_test_app->ms_struc-s_02-input )
         type = z2ui5_if_core_types=>cs_bind_type-one_way ).
@@ -269,7 +269,7 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
     DATA(lo_app) = NEW z2ui5_cl_core_app( ).
     lo_app->mo_app = lo_test_app.
 
-    DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
+    DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
     DATA(lv_result) = lo_bind->main(
         val  = REF #( lo_test_app->ms_struc-s_02-s_03-input )
         type = z2ui5_if_core_types=>cs_bind_type-one_way ).
@@ -286,7 +286,7 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
     DATA(lo_app) = NEW z2ui5_cl_core_app( ).
     lo_app->mo_app = lo_test_app.
 
-    DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
+    DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
     DATA(lv_result) = lo_bind->main(
         val  = REF #( lo_test_app->ms_struc-s_02-s_03-s_04-input )
         type = z2ui5_if_core_types=>cs_bind_type-one_way ).
@@ -343,7 +343,7 @@ CLASS ltcl_test_main_object IMPLEMENTATION.
     DATA(lo_app) = NEW z2ui5_cl_core_app( ).
     lo_app->mo_app = lo_test_app.
 
-    DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
+    DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
     DATA(lv_result) = lo_bind->main(
         val  = REF #( lo_test_app->mo_obj->mv_value )
         type = z2ui5_if_core_types=>cs_bind_type-one_way ).
@@ -361,7 +361,7 @@ CLASS ltcl_test_main_object IMPLEMENTATION.
     DATA(lo_app) = NEW z2ui5_cl_core_app( ).
     lo_app->mo_app = lo_test_app.
 
-    DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
+    DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
     DATA(lv_result) = lo_bind->main(
         val  = REF #( lo_test_app->mo_obj->ms_struc-input )
         type = z2ui5_if_core_types=>cs_bind_type-one_way ).

@@ -322,7 +322,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind.
 
-    DATA(lo_bind) = NEW z2ui5_cl_core_bind_srv( mo_action->mo_app ).
+    DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( mo_action->mo_app ).
     result = lo_bind->main(
       val    = z2ui5_cl_util=>conv_get_as_data_ref( val )
       type   = z2ui5_if_core_types=>cs_bind_type-one_way
@@ -338,7 +338,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_edit.
 
-    DATA(lo_bind) = NEW z2ui5_cl_core_bind_srv( mo_action->mo_app ).
+    DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( mo_action->mo_app ).
     result = lo_bind->main(
       val    = z2ui5_cl_util=>conv_get_as_data_ref( val )
       type   = z2ui5_if_core_types=>cs_bind_type-two_way
@@ -356,7 +356,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_local.
 
-    DATA(lo_bind) = NEW z2ui5_cl_core_bind_srv( mo_action->mo_app ).
+    DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( mo_action->mo_app ).
     result = lo_bind->main_local(
       val    = val
       config = VALUE #(
@@ -369,7 +369,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_event.
 
-    DATA(lo_ui5) = NEW z2ui5_cl_core_event_srv( ).
+    DATA(lo_ui5) = NEW z2ui5_cl_core_srv_event( ).
     result = lo_ui5->get_event(
          val   = val
          t_arg = t_arg
@@ -385,7 +385,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_event_client.
 
-    DATA(lo_ui5) = NEW z2ui5_cl_core_event_srv( ).
+    DATA(lo_ui5) = NEW z2ui5_cl_core_srv_event( ).
     result = lo_ui5->get_event_client(
          val   = val
          t_arg = t_arg ).

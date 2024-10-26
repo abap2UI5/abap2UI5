@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_core_json_srv DEFINITION
+CLASS z2ui5_cl_core_srv_json DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -37,7 +37,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
+CLASS z2ui5_cl_core_srv_json IMPLEMENTATION.
 
 
   METHOD model_front_to_back.
@@ -192,7 +192,7 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
           ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
 
         ajson_result->set( iv_path = `/` iv_val = val-s_front ).
-        ajson_result = ajson_result->filter( NEW z2ui5_cl_core_json_srv( ) ).
+        ajson_result = ajson_result->filter( NEW z2ui5_cl_core_srv_json( ) ).
         DATA(lv_frontend) = ajson_result->stringify( ).
 
         result = `{` &&

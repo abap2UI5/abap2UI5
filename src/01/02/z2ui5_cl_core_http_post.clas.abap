@@ -65,7 +65,7 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
   METHOD main_begin.
     TRY.
 
-        DATA(lo_json_mapper) = NEW z2ui5_cl_core_json_srv( ).
+        DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_json( ).
         ms_request = lo_json_mapper->request_json_to_abap( mv_request_json ).
 
         IF ms_request-s_front-id IS NOT INITIAL.
@@ -104,7 +104,7 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
     OR ms_response-s_front-params-s_popup-xml IS NOT INITIAL
     OR ms_response-s_front-params-s_popover-xml IS NOT INITIAL.
 
-      DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
+      DATA(lo_model) = NEW z2ui5_cl_core_srv_attri(
        attri = mo_action->mo_app->mt_attri
        app   = mo_action->mo_app->mo_app ).
       lo_model->attri_refs_update( ).
@@ -114,7 +114,7 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
       ms_response-model = `{}`.
     ENDIF.
 
-    DATA(lo_json_mapper) = NEW z2ui5_cl_core_json_srv( ).
+    DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_json( ).
     mv_response = lo_json_mapper->response_abap_to_json( ms_response ).
 
     CLEAR mo_action->ms_next.

@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_core_diss_srv DEFINITION
+CLASS z2ui5_cl_core_srv_diss DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -46,7 +46,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_core_diss_srv IMPLEMENTATION.
+CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -61,7 +61,7 @@ CLASS z2ui5_cl_core_diss_srv IMPLEMENTATION.
 
     result  = VALUE z2ui5_if_core_types=>ty_s_attri( ).
     result-name        = name.
-    DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri(
       attri = mt_attri
       app   = mo_app ).
     result-r_ref       = lo_model->attri_get_val_ref( name ).
@@ -93,7 +93,7 @@ CLASS z2ui5_cl_core_diss_srv IMPLEMENTATION.
       WHEN OTHERS.
 
         ls_attri2-name  = ir_attri->name && `->*`.
-        DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
+        DATA(lo_model) = NEW z2ui5_cl_core_srv_attri(
             attri = mt_attri
             app   = mo_app ).
         ls_attri2-r_ref = lo_model->attri_get_val_ref( ls_attri2-name ).

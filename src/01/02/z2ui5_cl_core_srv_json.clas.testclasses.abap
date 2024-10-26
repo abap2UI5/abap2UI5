@@ -15,7 +15,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(lv_payload) = `{"XX":{"NAME":"test"},"S_FRONT":{"ID":"ID_NR","EDIT":{"NAME":"test"},"ORIGIN":"ORIGIN","PATHNAME":"PATHNAME","SEARCH":"SEARCH"` &&
             `,"VIEW":"MAIN","EVENT":"BUTTON_POST","T_EVENT_ARG":[]}}`.
 
-    DATA(lo_mapper) = NEW z2ui5_cl_core_json_srv( ).
+    DATA(lo_mapper) = NEW z2ui5_cl_core_srv_json( ).
     DATA(ls_result) = lo_mapper->request_json_to_abap( lv_payload ).
 
     DATA(ls_exp) = VALUE z2ui5_if_core_types=>ty_s_http_request_post(

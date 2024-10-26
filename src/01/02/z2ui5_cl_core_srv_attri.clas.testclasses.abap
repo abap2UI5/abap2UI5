@@ -35,7 +35,7 @@ CLASS ltcl_test_search_attri DEFINITION FINAL FOR TESTING
 
 ENDCLASS.
 
-CLASS z2ui5_cl_core_attri_srv DEFINITION LOCAL FRIENDS ltcl_test_search_attri.
+CLASS z2ui5_cl_core_srv_attri DEFINITION LOCAL FRIENDS ltcl_test_search_attri.
 
 CLASS ltcl_test_search_attri IMPLEMENTATION.
 
@@ -50,7 +50,7 @@ CLASS ltcl_test_search_attri IMPLEMENTATION.
         o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_value )
          ) ).
 
-    DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri(
       attri = REF #( lt_attri )
       app   = lo_app_client ).
 
@@ -73,7 +73,7 @@ CLASS ltcl_test_search_attri IMPLEMENTATION.
           o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_value )
          ) ).
 
-    DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri(
       attri = REF #( lt_attri )
       app   = lo_app_client ).
 
@@ -174,7 +174,7 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
 
     DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
 
-    DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri(
       attri = REF #( lt_attri )
       app   = lo_app_client ).
 
@@ -192,7 +192,7 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
     CREATE DATA lo_app_client->mr_value.
 
     DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri(
       attri = REF #( lt_attri )
       app   = lo_app_client ).
 
@@ -209,7 +209,7 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
     DATA(lo_app_client) = NEW ltcl_test_app3( ).
 
     DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri(
       attri = REF #( lt_attri )
       app   = lo_app_client ).
 
@@ -227,7 +227,7 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
     CREATE DATA lo_app_client->mo_app->mr_value.
 
     DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri(
       attri = REF #( lt_attri )
       app   = lo_app_client ).
 

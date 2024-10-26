@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_core_bind_srv DEFINITION
+CLASS z2ui5_cl_core_srv_bind DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -63,7 +63,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
+CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
 
   METHOD bind_tab_cell.
@@ -211,7 +211,7 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
     ms_config = config.
     mv_type   = type.
 
-    DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri(
         attri = mo_app->mt_attri
         app   = mo_app->mo_app ).
 
@@ -246,7 +246,7 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
     ms_config = config.
     mv_type   = type.
 
-    DATA(lo_bind) = NEW z2ui5_cl_core_bind_srv( mo_app ).
+    DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( mo_app ).
     result = lo_bind->main( val = config-tab type = type config = VALUE #( path_only = abap_true ) ).
 
     result = bind_tab_cell(

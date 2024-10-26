@@ -1,5 +1,5 @@
 CLASS ltcl_test_dissolve DEFINITION DEFERRED.
-CLASS z2ui5_cl_core_diss_srv DEFINITION LOCAL FRIENDS ltcl_test_dissolve.
+CLASS z2ui5_cl_core_srv_diss DEFINITION LOCAL FRIENDS ltcl_test_dissolve.
 
 CLASS ltcl_test_dissolve DEFINITION FINAL FOR TESTING
   DURATION SHORT
@@ -56,7 +56,7 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     DATA(lo_app)  = NEW ltcl_test_dissolve( ).
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_diss_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss(
       attri = REF #( lt_attri )
       app   = lo_app ).
 
@@ -76,7 +76,7 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     DATA(lo_app)  = NEW ltcl_test_dissolve( ).
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_diss_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss(
       attri = REF #( lt_attri )
       app   = lo_app ).
 
@@ -98,7 +98,7 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     CREATE DATA lo_app->mr_value TYPE string.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_diss_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss(
       attri = REF #( lt_attri )
       app   = lo_app ).
 
@@ -120,7 +120,7 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     CREATE DATA lo_app->mo_app->mr_value TYPE string.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_diss_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss(
       attri = REF #( lt_attri )
       app   = lo_app2 ).
 
@@ -139,7 +139,7 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
 
     DATA(lo_app)    = NEW ltcl_test_dissolve( ).
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_diss_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss(
       attri = REF #( lt_attri )
       app   = lo_app ).
 
@@ -165,7 +165,7 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     CREATE DATA lo_app->mr_struc.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_diss_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss(
       attri = REF #( lt_attri )
       app   = lo_app ).
 
@@ -189,7 +189,7 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     CREATE DATA lo_app2->mr_value TYPE string.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_diss_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss(
       attri = REF #( lt_attri )
       app   = lo_app ).
 
@@ -211,7 +211,7 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     CREATE DATA lo_app->mo_app->mr_struc.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_diss_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss(
       attri = REF #( lt_attri )
       app   = lo_app ).
 
@@ -234,7 +234,7 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     CREATE DATA lo_app->mo_app->ms_struc2-r_ref TYPE string.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_diss_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss(
       attri = REF #( lt_attri )
       app   = lo_app ).
 

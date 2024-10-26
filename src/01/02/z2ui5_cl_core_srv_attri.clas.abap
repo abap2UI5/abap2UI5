@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_core_attri_srv DEFINITION
+CLASS z2ui5_cl_core_srv_attri DEFINITION
   PUBLIC FINAL
   CREATE PUBLIC.
 
@@ -40,7 +40,7 @@ CLASS z2ui5_cl_core_attri_srv DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_core_attri_srv IMPLEMENTATION.
+CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
 
   METHOD attri_after_load.
 
@@ -104,7 +104,7 @@ CLASS z2ui5_cl_core_attri_srv IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lo_dissolve) = NEW z2ui5_cl_core_diss_srv(
+    DATA(lo_dissolve) = NEW z2ui5_cl_core_srv_diss(
        attri = mt_attri
        app   = mo_app ).
 
