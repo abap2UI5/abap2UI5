@@ -307,8 +307,8 @@ sap.ui.define("z2ui5/Info", ["sap/ui/core/Control", "sap/ui/VersionInfo", "sap/u
 
     async renderer(oRm, oControl) {
 
-      debugger;
       let oDevice = z2ui5.oView.getModel("device").oData;
+      oControl.setProperty("ui5_version", sap.ui.version);
       oControl.setProperty("device_phone", oDevice.system.phone);
       oControl.setProperty("device_desktop", oDevice.system.desktop);
       oControl.setProperty("device_tablet", oDevice.system.tablet);
