@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_core_draft_srv DEFINITION
+CLASS z2ui5_cl_core_srv_draft DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -42,7 +42,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_core_draft_srv IMPLEMENTATION.
+CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
 
 
   METHOD cleanup.

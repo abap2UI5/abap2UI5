@@ -122,7 +122,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
     "check for new app?
     TRY.
-        DATA(lo_draft) = NEW z2ui5_cl_core_draft_srv( ).
+        DATA(lo_draft) = NEW z2ui5_cl_core_srv_draft( ).
         DATA(ls_draft) = lo_draft->read_info( ms_next-o_app_leave->id_draft ).
       CATCH cx_root.
         result->mo_app->ms_draft-id_prev_app_stack = mo_app->ms_draft-id_prev_app_stack.

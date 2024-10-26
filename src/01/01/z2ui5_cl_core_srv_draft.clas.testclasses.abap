@@ -20,7 +20,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_create.
 
-    DATA(lo_draft) = NEW z2ui5_cl_core_draft_srv( ).
+    DATA(lo_draft) = NEW z2ui5_cl_core_srv_draft( ).
 
     lo_draft->create(
         draft     = VALUE #( id = `TEST_ID` )

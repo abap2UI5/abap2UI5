@@ -72,7 +72,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
           mo_action = mo_action->factory_by_frontend( ).
 
         ELSEIF ms_request-s_control-app_start IS NOT INITIAL.
-          NEW z2ui5_cl_core_draft_srv( )->cleanup( ).
+          NEW z2ui5_cl_core_srv_draft( )->cleanup( ).
           mo_action = mo_action->factory_first_start( ).
 
         ELSE.

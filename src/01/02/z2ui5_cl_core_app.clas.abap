@@ -116,7 +116,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD db_load.
 
-    DATA(lo_db) = NEW z2ui5_cl_core_draft_srv( ).
+    DATA(lo_db) = NEW z2ui5_cl_core_srv_draft( ).
     DATA(ls_db) = lo_db->read_draft( id ).
     result = all_xml_parse( ls_db-data ).
 
@@ -131,7 +131,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD db_load_by_app.
 
-    DATA(lo_db) = NEW z2ui5_cl_core_draft_srv( ).
+    DATA(lo_db) = NEW z2ui5_cl_core_srv_draft( ).
     DATA(ls_db) = lo_db->read_draft( app->id_draft ).
     result = all_xml_parse( ls_db-data ).
 
@@ -153,7 +153,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
       CAST z2ui5_if_app( mo_app )->check_initialized = abap_true.
     ENDIF.
 
-    DATA(lo_db) = NEW z2ui5_cl_core_draft_srv( ).
+    DATA(lo_db) = NEW z2ui5_cl_core_srv_draft( ).
     lo_db->create(
         draft     = ms_draft
         model_xml = all_xml_stringify( ) ).

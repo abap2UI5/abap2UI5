@@ -272,7 +272,7 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
     simple_form2->label( `ABAP for Cloud` ).
     simple_form2->checkbox( enabled = abap_false selected = z2ui5_cl_util=>context_check_abap_cloud( ) ).
 
-    DATA(lv_count) = CONV string( NEW z2ui5_cl_core_draft_srv( )->count_entries( ) ).
+    DATA(lv_count) = CONV string( NEW z2ui5_cl_core_srv_draft( )->count_entries( ) ).
     simple_form2->toolbar( )->title( `abap2UI5` ).
     simple_form2->label( `Version ` ).
     simple_form2->text( z2ui5_if_app=>version ).
