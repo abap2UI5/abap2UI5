@@ -1,8 +1,7 @@
 CLASS z2ui5_cx_util_error DEFINITION
   PUBLIC
-  INHERITING FROM cx_no_check
-  FINAL
-  CREATE PUBLIC .
+  INHERITING FROM cx_no_check FINAL
+  CREATE PUBLIC.
 
   PUBLIC SECTION.
 
@@ -11,26 +10,23 @@ CLASS z2ui5_cx_util_error DEFINITION
         x_root TYPE REF TO cx_root,
         uuid   TYPE string,
         text   TYPE string,
-      END OF ms_error .
+      END OF ms_error.
 
     METHODS constructor
       IMPORTING
-        !val      TYPE any OPTIONAL
+        val       TYPE any            OPTIONAL
         !previous TYPE REF TO cx_root OPTIONAL
           PREFERRED PARAMETER val.
 
-    METHODS if_message~get_text
-        REDEFINITION.
+    METHODS if_message~get_text REDEFINITION.
 
   PROTECTED SECTION.
+
   PRIVATE SECTION.
 ENDCLASS.
 
 
-
 CLASS z2ui5_cx_util_error IMPLEMENTATION.
-
-
   METHOD constructor ##ADT_SUPPRESS_GENERATION.
 
     super->constructor( previous = previous ).
@@ -44,7 +40,6 @@ CLASS z2ui5_cx_util_error IMPLEMENTATION.
     ms_error-uuid = z2ui5_cl_util=>uuid_get_c32( ).
 
   ENDMETHOD.
-
 
   METHOD if_message~get_text.
 

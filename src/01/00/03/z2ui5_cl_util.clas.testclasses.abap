@@ -21,6 +21,7 @@ CLASS ltcl_test_app DEFINITION FOR TESTING.
     CLASS-DATA sv_var TYPE string.
     CLASS-DATA ss_tab TYPE ty_row.
     CLASS-DATA st_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+
     CLASS-METHODS class_constructor.
 
     DATA mv_val TYPE string ##NEEDED.
@@ -28,11 +29,12 @@ CLASS ltcl_test_app DEFINITION FOR TESTING.
     DATA mt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY ##NEEDED.
 
   PROTECTED SECTION.
+
   PRIVATE SECTION.
 ENDCLASS.
 
-CLASS ltcl_test_app IMPLEMENTATION.
 
+CLASS ltcl_test_app IMPLEMENTATION.
   METHOD class_constructor.
 
     sv_var = 1.
@@ -42,9 +44,9 @@ CLASS ltcl_test_app IMPLEMENTATION.
   ENDMETHOD.
 ENDCLASS.
 
-CLASS ltcl_unit_test_abap_api DEFINITION FINAL FOR TESTING
-  DURATION SHORT
-  RISK LEVEL HARMLESS.
+
+CLASS ltcl_unit_test_abap_api DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
   PRIVATE SECTION.
 
@@ -54,41 +56,40 @@ CLASS ltcl_unit_test_abap_api DEFINITION FINAL FOR TESTING
       RETURNING
         VALUE(result) TYPE abap_bool.
 
-    METHODS test_assign             FOR TESTING RAISING cx_static_check.
-    METHODS test_eledescr_rel_name  FOR TESTING RAISING cx_static_check.
-    METHODS test_classdescr         FOR TESTING RAISING cx_static_check.
-    METHODS test_substring_after    FOR TESTING RAISING cx_static_check.
-    METHODS test_substring_before   FOR TESTING RAISING cx_static_check.
-    METHODS test_string_shift       FOR TESTING RAISING cx_static_check.
-    METHODS test_string_replace     FOR TESTING RAISING cx_static_check.
-    METHODS test_raise_error        FOR TESTING RAISING cx_static_check.
-    METHODS test_xsdbool            FOR TESTING RAISING cx_static_check.
-    METHODS test_xsdbool_nested     FOR TESTING RAISING cx_static_check.
+    METHODS test_assign            FOR TESTING RAISING cx_static_check.
+    METHODS test_eledescr_rel_name FOR TESTING RAISING cx_static_check.
+    METHODS test_classdescr        FOR TESTING RAISING cx_static_check.
+    METHODS test_substring_after   FOR TESTING RAISING cx_static_check.
+    METHODS test_substring_before  FOR TESTING RAISING cx_static_check.
+    METHODS test_string_shift      FOR TESTING RAISING cx_static_check.
+    METHODS test_string_replace    FOR TESTING RAISING cx_static_check.
+    METHODS test_raise_error       FOR TESTING RAISING cx_static_check.
+    METHODS test_xsdbool           FOR TESTING RAISING cx_static_check.
+    METHODS test_xsdbool_nested    FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
-CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
-  DURATION MEDIUM
-  RISK LEVEL HARMLESS.
+
+CLASS ltcl_unit_test DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
 
   PRIVATE SECTION.
 
-    METHODS test_create               FOR TESTING RAISING cx_static_check.
+    METHODS test_create                    FOR TESTING RAISING cx_static_check.
 
-    METHODS test_boolean_abap_2_json  FOR TESTING RAISING cx_static_check.
-    METHODS test_boolean_check        FOR TESTING RAISING cx_static_check.
+    METHODS test_boolean_abap_2_json       FOR TESTING RAISING cx_static_check.
+    METHODS test_boolean_check             FOR TESTING RAISING cx_static_check.
 
-    METHODS test_c_trim                 FOR TESTING RAISING cx_static_check.
-    METHODS test_c_trim_lower           FOR TESTING RAISING cx_static_check.
-    METHODS test_c_trim_upper           FOR TESTING RAISING cx_static_check.
-    METHODS test_c_trim_horizontal_tab  FOR TESTING RAISING cx_static_check.
+    METHODS test_c_trim                    FOR TESTING RAISING cx_static_check.
+    METHODS test_c_trim_lower              FOR TESTING RAISING cx_static_check.
+    METHODS test_c_trim_upper              FOR TESTING RAISING cx_static_check.
+    METHODS test_c_trim_horizontal_tab     FOR TESTING RAISING cx_static_check.
 
     METHODS test_time_get_timestampl       FOR TESTING RAISING cx_static_check.
     METHODS test_time_substract_seconds    FOR TESTING RAISING cx_static_check.
     METHODS test_func_get_user_tech        FOR TESTING RAISING cx_static_check.
 
-
-    METHODS test_rtti_get_t_attri_by_incl FOR TESTING RAISING cx_static_check.
+    METHODS test_rtti_get_t_attri_by_incl  FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_classname_by_ref FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_type_name        FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_type_kind        FOR TESTING RAISING cx_static_check.
@@ -96,32 +97,31 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
     METHODS test_rtti_get_t_attri_by_obj   FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_t_comp_by_struc  FOR TESTING RAISING cx_static_check.
 
-    METHODS test_trans_json_any_2__w_struc  FOR TESTING RAISING cx_static_check.
-    METHODS test_trans_xml_any_2__w_obj  FOR TESTING RAISING cx_static_check.
-    METHODS test_trans_xml_any_2__w_data FOR TESTING RAISING cx_static_check.
-    METHODS test_trans_xml_2_any__w_obj  FOR TESTING RAISING cx_static_check.
-    METHODS test_trans_xml_2_any__w_data FOR TESTING RAISING cx_static_check.
+    METHODS test_trans_json_any_2__w_struc FOR TESTING RAISING cx_static_check.
+    METHODS test_trans_xml_any_2__w_obj    FOR TESTING RAISING cx_static_check.
+    METHODS test_trans_xml_any_2__w_data   FOR TESTING RAISING cx_static_check.
+    METHODS test_trans_xml_2_any__w_obj    FOR TESTING RAISING cx_static_check.
+    METHODS test_trans_xml_2_any__w_data   FOR TESTING RAISING cx_static_check.
 
-    METHODS test_url_param_create_url FOR TESTING RAISING cx_static_check.
-    METHODS test_url_param_get        FOR TESTING RAISING cx_static_check.
-    METHODS test_url_param_get_tab    FOR TESTING RAISING cx_static_check.
-    METHODS test_url_param_set        FOR TESTING RAISING cx_static_check.
+    METHODS test_url_param_create_url      FOR TESTING RAISING cx_static_check.
+    METHODS test_url_param_get             FOR TESTING RAISING cx_static_check.
+    METHODS test_url_param_get_tab         FOR TESTING RAISING cx_static_check.
+    METHODS test_url_param_set             FOR TESTING RAISING cx_static_check.
 
-    METHODS test_x_check_raise        FOR TESTING RAISING cx_static_check.
-    METHODS test_x_check_raise_not    FOR TESTING RAISING cx_static_check.
-    METHODS test_x_raise              FOR TESTING RAISING cx_static_check.
-    METHODS test_check_unassign_inital FOR TESTING RAISING cx_static_check.
-    METHODS conv_copy_ref_data FOR TESTING RAISING cx_static_check.
-    METHODS rtti_check_ref_data FOR TESTING RAISING cx_static_check.
-    METHODS test_check_bound_a_not_inital FOR TESTING RAISING cx_static_check.
-    METHODS test_sql_get_by_string FOR TESTING RAISING cx_static_check.
-    METHODS test_get_token_t_by_r_t FOR TESTING RAISING cx_static_check.
+    METHODS test_x_check_raise             FOR TESTING RAISING cx_static_check.
+    METHODS test_x_check_raise_not         FOR TESTING RAISING cx_static_check.
+    METHODS test_x_raise                   FOR TESTING RAISING cx_static_check.
+    METHODS test_check_unassign_inital     FOR TESTING RAISING cx_static_check.
+    METHODS conv_copy_ref_data             FOR TESTING RAISING cx_static_check.
+    METHODS rtti_check_ref_data            FOR TESTING RAISING cx_static_check.
+    METHODS test_check_bound_a_not_inital  FOR TESTING RAISING cx_static_check.
+    METHODS test_sql_get_by_string         FOR TESTING RAISING cx_static_check.
+    METHODS test_get_token_t_by_r_t        FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
+
 CLASS ltcl_unit_test_abap_api IMPLEMENTATION.
-
-
   METHOD test_assign.
 
     DATA(lo_app) = NEW ltcl_test_app( ).
@@ -129,16 +129,14 @@ CLASS ltcl_unit_test_abap_api IMPLEMENTATION.
 
     lo_app->mv_val = `ABC`.
 
-    DATA(lv_assign) = `LO_APP->` && 'MV_VAL'.
+    DATA(lv_assign) = |LO_APP->MV_VAL|.
     ASSIGN (lv_assign) TO <any>.
     ASSERT sy-subrc = 0.
 
-    cl_abap_unit_assert=>assert_equals(
-        act = <any>
-        exp = `ABC` ).
+    cl_abap_unit_assert=>assert_equals( exp = `ABC`
+                                        act = <any> ).
 
   ENDMETHOD.
-
 
   METHOD test_classdescr.
 
@@ -146,6 +144,7 @@ CLASS ltcl_unit_test_abap_api IMPLEMENTATION.
 
     DATA(lt_attri) = CAST cl_abap_classdescr( cl_abap_objectdescr=>describe_by_object_ref( lo_app ) )->attributes.
 
+    " TODO: variable is assigned but never used (ABAP cleaner)
     DATA(lv_test) = lt_attri[ name = `MS_TAB` ].
     lv_test = lt_attri[ name = `MT_TAB` ].
     lv_test = lt_attri[ name = `MV_VAL` ].
@@ -160,33 +159,32 @@ CLASS ltcl_unit_test_abap_api IMPLEMENTATION.
 
     DATA(lo_ele) = CAST cl_abap_elemdescr( cl_abap_elemdescr=>describe_by_data( abap_true ) ).
 
-    cl_abap_unit_assert=>assert_equals(
-      act = lo_ele->get_relative_name( )
-      exp = `ABAP_BOOL` ).
+    cl_abap_unit_assert=>assert_equals( exp = `ABAP_BOOL`
+                                        act = lo_ele->get_relative_name( ) ).
 
   ENDMETHOD.
 
   METHOD test_substring_after.
 
-    cl_abap_unit_assert=>assert_equals(
-      act = substring_after( val = 'this is a string' sub = 'a' )
-      exp = ` string` ).
+    cl_abap_unit_assert=>assert_equals( exp = ` string`
+                                        act = substring_after( val = 'this is a string'
+                                                               sub = 'a' ) ).
 
   ENDMETHOD.
 
   METHOD test_substring_before.
 
-    cl_abap_unit_assert=>assert_equals(
-      act = substring_before( val = 'this is a string' sub = 'a' )
-      exp = `this is ` ).
+    cl_abap_unit_assert=>assert_equals( exp = `this is `
+                                        act = substring_before( val = 'this is a string'
+                                                                sub = 'a' ) ).
 
   ENDMETHOD.
 
   METHOD test_string_shift.
 
-    cl_abap_unit_assert=>assert_equals(
-      act = shift_left( shift_right( val = `   string   ` sub = ` ` ) )
-      exp = `string` ).
+    cl_abap_unit_assert=>assert_equals( exp = `string`
+                                        act = shift_left( shift_right( val = `   string   `
+                                                                       sub = ` ` ) ) ).
 
   ENDMETHOD.
 
@@ -197,9 +195,11 @@ CLASS ltcl_unit_test_abap_api IMPLEMENTATION.
                                with = 'ABC'
                                occ  = 0 ) ##NEEDED.
 
-    cl_abap_unit_assert=>assert_equals(
-      act = replace( val  = `one two three` sub  = `two` with = 'ABC' occ  = 0 )
-      exp = `one ABC three` ).
+    cl_abap_unit_assert=>assert_equals( exp = `one ABC three`
+                                        act = replace( val  = `one two three`
+                                                       sub  = `two`
+                                                       with = 'ABC'
+                                                       occ  = 0 ) ).
 
   ENDMETHOD.
 
@@ -221,9 +221,7 @@ CLASS ltcl_unit_test_abap_api IMPLEMENTATION.
 
     DATA(lv_xsdbool) = xsdbool( 1 = 1 ).
     IF lv_xsdbool = abap_false.
-      cl_abap_unit_assert=>assert_equals(
-          act = lv_xsdbool
-          exp = abap_false ).
+      cl_abap_unit_assert=>assert_false( lv_xsdbool ).
     ENDIF.
 
     IF xsdbool( 1 = 1 ) = abap_false.
@@ -236,9 +234,7 @@ CLASS ltcl_unit_test_abap_api IMPLEMENTATION.
 
     DATA(lv_xsdbool) = check_input( xsdbool( 1 = 1 ) ).
     IF lv_xsdbool = abap_false.
-      cl_abap_unit_assert=>assert_equals(
-        act = lv_xsdbool
-        exp = abap_false ).
+      cl_abap_unit_assert=>assert_false( lv_xsdbool ).
     ENDIF.
 
     IF check_input( abap_false ).
@@ -256,30 +252,21 @@ CLASS ltcl_unit_test_abap_api IMPLEMENTATION.
     result = val.
 
   ENDMETHOD.
-
 ENDCLASS.
 
-CLASS ltcl_unit_test IMPLEMENTATION.
 
+CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_boolean_check.
 
     DATA(lv_bool) = xsdbool( 1 = 1 ).
-    cl_abap_unit_assert=>assert_equals(
-        act = z2ui5_cl_util=>boolean_check_by_data( lv_bool )
-        exp = abap_true ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>boolean_check_by_data( lv_bool ) ).
 
     lv_bool = xsdbool( 1 = 2 ).
-    cl_abap_unit_assert=>assert_equals(
-        act = z2ui5_cl_util=>boolean_check_by_data( lv_bool )
-        exp = abap_true ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>boolean_check_by_data( lv_bool ) ).
 
-    cl_abap_unit_assert=>assert_equals(
-        act = z2ui5_cl_util=>boolean_check_by_data( abap_true )
-        exp = abap_true ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>boolean_check_by_data( abap_true ) ).
 
-    cl_abap_unit_assert=>assert_equals(
-        act = z2ui5_cl_util=>boolean_check_by_data( abap_false )
-        exp = abap_true ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>boolean_check_by_data( abap_false ) ).
 
   ENDMETHOD.
 
@@ -341,13 +328,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lr_data TYPE REF TO data.
     GET REFERENCE OF lv_test INTO lr_data.
 
-    cl_abap_unit_assert=>assert_equals(
-      act = z2ui5_cl_util=>rtti_check_ref_data( lr_data )
-      exp = abap_true ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>rtti_check_ref_data( lr_data ) ).
 
-    cl_abap_unit_assert=>assert_equals(
-      act = z2ui5_cl_util=>rtti_check_ref_data( lv_test )
-      exp = abap_false ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_util=>rtti_check_ref_data( lv_test ) ).
 
   ENDMETHOD.
 
@@ -362,17 +345,15 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     FIELD-SYMBOLS <result> TYPE data.
     ASSIGN lr_test2->* TO <result>.
 
-    cl_abap_unit_assert=>assert_equals(
-       act = <result>
-       exp = lv_test ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_test
+                                        act = <result> ).
 
   ENDMETHOD.
 
   METHOD test_boolean_abap_2_json.
 
-    cl_abap_unit_assert=>assert_equals(
-       act = z2ui5_cl_util=>boolean_abap_2_json( `{ABCD}` )
-       exp = `{ABCD}` ).
+    cl_abap_unit_assert=>assert_equals( exp = `{ABCD}`
+                                        act = z2ui5_cl_util=>boolean_abap_2_json( `{ABCD}` ) ).
 
   ENDMETHOD.
 
@@ -380,9 +361,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lv_time) = z2ui5_cl_util=>time_get_timestampl( ).
 
-    DATA(lv_time2) = z2ui5_cl_util=>time_substract_seconds(
-         time    = lv_time
-         seconds = 60 * 60 * 4 ).
+    DATA(lv_time2) = z2ui5_cl_util=>time_substract_seconds( time    = lv_time
+                                                            seconds = 60 * 60 * 4 ).
 
     IF lv_time IS INITIAL OR lv_time2 IS INITIAL.
       cl_abap_unit_assert=>fail( ).
@@ -411,33 +391,29 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_c_trim.
 
-    cl_abap_unit_assert=>assert_equals(
-        act = z2ui5_cl_util=>c_trim( ` JsadfHHs  ` )
-        exp = `JsadfHHs` ).
+    cl_abap_unit_assert=>assert_equals( exp = `JsadfHHs`
+                                        act = z2ui5_cl_util=>c_trim( ` JsadfHHs  ` ) ).
 
   ENDMETHOD.
 
   METHOD test_c_trim_lower.
 
-    cl_abap_unit_assert=>assert_equals(
-        act = z2ui5_cl_util=>c_trim_lower( ` JsadfHHs  ` )
-        exp = `jsadfhhs` ).
+    cl_abap_unit_assert=>assert_equals( exp = `jsadfhhs`
+                                        act = z2ui5_cl_util=>c_trim_lower( ` JsadfHHs  ` ) ).
 
   ENDMETHOD.
 
   METHOD test_c_trim_upper.
 
-    cl_abap_unit_assert=>assert_equals(
-        act = z2ui5_cl_util=>c_trim_upper( ` JsadfHHs  ` )
-        exp = `JSADFHHS` ).
+    cl_abap_unit_assert=>assert_equals( exp = `JSADFHHS`
+                                        act = z2ui5_cl_util=>c_trim_upper( ` JsadfHHs  ` ) ).
 
   ENDMETHOD.
 
   METHOD test_func_get_user_tech.
 
-    cl_abap_unit_assert=>assert_equals(
-      act = sy-uname
-      exp = z2ui5_cl_util=>context_get_user_tech( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_util=>context_get_user_tech( )
+                                        act = sy-uname ).
 
     cl_abap_unit_assert=>assert_not_initial( z2ui5_cl_util=>context_get_user_tech( ) ).
 
@@ -452,7 +428,6 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
-
 
   METHOD test_x_check_raise.
 
@@ -470,7 +445,6 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD test_trans_json_any_2__w_struc.
 
     TYPES:
@@ -479,62 +453,58 @@ CLASS ltcl_unit_test IMPLEMENTATION.
         value    TYPE string,
         selected TYPE abap_bool,
       END OF ty_row.
+
     DATA(ls_row) = VALUE ty_row( title = `test` ).
 
-    cl_abap_unit_assert=>assert_equals(
-        act = z2ui5_cl_util=>json_stringify( ls_row )
-        exp = `{"selected":false,"title":"test","value":""}` ).
+    cl_abap_unit_assert=>assert_equals( exp = `{"selected":false,"title":"test","value":""}`
+                                        act = z2ui5_cl_util=>json_stringify( ls_row ) ).
 
   ENDMETHOD.
 
-
   METHOD test_url_param_create_url.
 
-    DATA(lt_param) = z2ui5_cl_util=>url_param_get_tab( `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
+    DATA(lt_param) = z2ui5_cl_util=>url_param_get_tab(
+                         `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
     DATA(lv_url) = z2ui5_cl_util=>url_param_create_url( lt_param ).
 
-    cl_abap_unit_assert=>assert_equals(
-        act = lv_url
-        exp = `sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
+    cl_abap_unit_assert=>assert_equals( exp = `sap-client=100&app_start=z2ui5_cl_app_hello_world`
+                                        act = lv_url ).
 
   ENDMETHOD.
 
   METHOD test_url_param_get.
 
     DATA(lv_param) = z2ui5_cl_util=>url_param_get(
-        val = `app_start`
-        url = `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
+                         val = `app_start`
+                         url = `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
 
-    cl_abap_unit_assert=>assert_equals(
-        act = lv_param
-        exp = `z2ui5_cl_app_hello_world` ).
+    cl_abap_unit_assert=>assert_equals( exp = `z2ui5_cl_app_hello_world`
+                                        act = lv_param ).
 
   ENDMETHOD.
 
   METHOD test_url_param_get_tab.
 
-    DATA(lt_param) = z2ui5_cl_util=>url_param_get_tab( `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
+    DATA(lt_param) = z2ui5_cl_util=>url_param_get_tab(
+                         `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
 
-    cl_abap_unit_assert=>assert_equals(
-          act = lt_param[ n = `sap-client` ]-v
-          exp = `100` ).
+    cl_abap_unit_assert=>assert_equals( exp = `100`
+                                        act = lt_param[ n = `sap-client` ]-v ).
 
-    cl_abap_unit_assert=>assert_equals(
-       act = lt_param[ n = `app_start` ]-v
-       exp = `z2ui5_cl_app_hello_world` ).
+    cl_abap_unit_assert=>assert_equals( exp = `z2ui5_cl_app_hello_world`
+                                        act = lt_param[ n = `app_start` ]-v ).
 
   ENDMETHOD.
 
   METHOD test_url_param_set.
 
     DATA(lv_param) = z2ui5_cl_util=>url_param_set(
-         name  = `app_start`
-         value = `z2ui5_cl_app_hello_world2`
-         url   = `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
+                         name  = `app_start`
+                         value = `z2ui5_cl_app_hello_world2`
+                         url   = `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
 
-    cl_abap_unit_assert=>assert_equals(
-          act = lv_param
-          exp = `sap-client=100&app_start=z2ui5_cl_app_hello_world2` ).
+    cl_abap_unit_assert=>assert_equals( exp = `sap-client=100&app_start=z2ui5_cl_app_hello_world2`
+                                        act = lv_param ).
 
   ENDMETHOD.
 
@@ -551,9 +521,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lv_xsdbool) = VALUE xsdboolean( ).
     DATA(lv_name) = z2ui5_cl_util=>rtti_get_type_name( lv_xsdbool ).
-    cl_abap_unit_assert=>assert_equals(
-        act = lv_name
-        exp = `XSDBOOLEAN` ).
+    cl_abap_unit_assert=>assert_equals( exp = `XSDBOOLEAN`
+                                        act = lv_name ).
 
   ENDMETHOD.
 
@@ -563,16 +532,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lv_type_kind) = z2ui5_cl_util=>rtti_get_type_kind( lv_string ).
     DATA lr_string TYPE REF TO string.
-    cl_abap_unit_assert=>assert_equals(
-        act = lv_type_kind
-        exp = cl_abap_typedescr=>typekind_string ).
-
+    cl_abap_unit_assert=>assert_equals( exp = cl_abap_typedescr=>typekind_string
+                                        act = lv_type_kind ).
 
     CREATE DATA lr_string.
     lv_type_kind = z2ui5_cl_util=>rtti_get_type_kind( lr_string ).
-    cl_abap_unit_assert=>assert_equals(
-        act = lv_type_kind
-        exp = cl_abap_typedescr=>typekind_dref ).
+    cl_abap_unit_assert=>assert_equals( exp = cl_abap_typedescr=>typekind_dref
+                                        act = lv_type_kind ).
 
   ENDMETHOD.
 
@@ -580,15 +546,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lv_string) = VALUE string( ).
     DATA lr_string TYPE REF TO string.
-    cl_abap_unit_assert=>assert_equals(
-        act = z2ui5_cl_util=>rtti_check_type_kind_dref( lv_string )
-        exp = abap_false ).
-
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_util=>rtti_check_type_kind_dref( lv_string ) ).
 
     CREATE DATA lr_string.
-    cl_abap_unit_assert=>assert_equals(
-        act = z2ui5_cl_util=>rtti_check_type_kind_dref( lr_string )
-        exp = abap_true ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>rtti_check_type_kind_dref( lr_string ) ).
 
   ENDMETHOD.
 
@@ -605,15 +566,21 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       cl_abap_unit_assert=>fail( ).
     ENDIF.
 
-    IF NOT line_exists( lt_attri[ name = `SS_TAB` type_kind = `v` ] ).
+    IF NOT line_exists( lt_attri[ name      = `SS_TAB`
+                                  type_kind = `v` ] ).
       cl_abap_unit_assert=>fail( ).
     ENDIF.
 
-    IF NOT line_exists( lt_attri[ name = `SV_VAR` type_kind = `g` is_class = abap_true ] ).
+    IF NOT line_exists( lt_attri[ name      = `SV_VAR`
+                                  type_kind = `g`
+                                  is_class  = abap_true ] ).
       cl_abap_unit_assert=>fail( ).
     ENDIF.
 
-    IF NOT line_exists( lt_attri[ name = `SV_STATUS` type_kind = `g` is_class = abap_true is_constant = `X` ] ).
+    IF NOT line_exists( lt_attri[ name        = `SV_STATUS`
+                                  type_kind   = `g`
+                                  is_class    = abap_true
+                                  is_constant = `X` ] ).
       cl_abap_unit_assert=>fail( ).
     ENDIF.
 
@@ -680,11 +647,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(lv_xml) = z2ui5_cl_util=>xml_stringify( lo_obj ).
 
     CLEAR lo_obj.
-    z2ui5_cl_util=>xml_parse(
-      EXPORTING
-        xml = lv_xml
-      IMPORTING
-        any = lo_obj ).
+    z2ui5_cl_util=>xml_parse( EXPORTING xml = lv_xml
+                              IMPORTING any = lo_obj ).
 
     IF lo_obj IS NOT BOUND.
       cl_abap_unit_assert=>fail( ).
@@ -735,18 +699,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lv_xml) = z2ui5_cl_util=>xml_stringify( ls_row ).
 
-    z2ui5_cl_util=>xml_parse(
-      EXPORTING
-        xml = lv_xml
-      IMPORTING
-        any = ls_row2 ).
+    z2ui5_cl_util=>xml_parse( EXPORTING xml = lv_xml
+                              IMPORTING any = ls_row2 ).
 
-    cl_abap_unit_assert=>assert_equals(
-        act = ls_row
-        exp = ls_row2 ).
+    cl_abap_unit_assert=>assert_equals( exp = ls_row2
+                                        act = ls_row ).
 
   ENDMETHOD.
-
 
   METHOD test_c_trim_horizontal_tab.
 
@@ -761,19 +720,17 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_get_token_t_by_r_t.
 
-    DATA(lt_range) = VALUE z2ui5_cl_util=>ty_t_range(
-        ( sign = 'I' option = 'EQ' low = `table` high = `` )
+    DATA(lt_range) = VALUE z2ui5_cl_util=>ty_t_range( ( sign = 'I' option = 'EQ' low = `table` high = `` )
      ).
 
     DATA(lt_result) = z2ui5_cl_util=>filter_get_token_t_by_range_t( lt_range ).
 
     DATA(lt_exp) = VALUE z2ui5_cl_util=>ty_t_token(
-        ( key = `=table` text = `=table` visible = 'X' selkz = '' editable = 'X' )
+                             ( key = `=table` text = `=table` visible = 'X' selkz = '' editable = 'X' )
     ).
 
-    cl_abap_unit_assert=>assert_equals(
-        act                  = lt_result
-        exp                  = lt_exp
+    cl_abap_unit_assert=>assert_equals( exp = lt_exp
+                                        act = lt_result
     ).
 
   ENDMETHOD.
@@ -798,11 +755,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
         value2 TYPE string,
       END OF ty_struc.
 
-    DATA
-      BEGIN OF ms_struc2.
-    INCLUDE TYPE ty_struc.
-    INCLUDE TYPE ty_struc_incl.
-    DATA  END OF ms_struc2.
+    DATA BEGIN OF ms_struc2.
+           INCLUDE TYPE ty_struc.
+           INCLUDE TYPE ty_struc_incl.
+    DATA END OF ms_struc2.
 
     DATA(lo_datadescr) = cl_abap_typedescr=>describe_by_data( ms_struc2 ).
     DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_include( CAST #( lo_datadescr ) ).
@@ -812,5 +768,4 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
-
 ENDCLASS.

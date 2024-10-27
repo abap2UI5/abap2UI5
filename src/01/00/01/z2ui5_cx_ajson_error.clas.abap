@@ -1,137 +1,131 @@
-class z2ui5_cx_ajson_error definition
-  public
-  inheriting from CX_STATIC_CHECK
-  final
-  create public .
+CLASS z2ui5_cx_ajson_error DEFINITION
+  PUBLIC
+  INHERITING FROM cx_static_check FINAL
+  CREATE PUBLIC.
 
-public section.
+  PUBLIC SECTION.
 
-  interfaces IF_T100_MESSAGE .
+    INTERFACES if_t100_message.
 
-  types:
-    ty_rc type c length 4 .
+    TYPES ty_rc TYPE c LENGTH 4.
 
-  constants:
-    begin of ZCX_AJSON_ERROR,
-      msgid type symsgid value '00',
-      msgno type symsgno value '001',
-      attr1 type scx_attrname value 'A1',
-      attr2 type scx_attrname value 'A2',
-      attr3 type scx_attrname value 'A3',
-      attr4 type scx_attrname value 'A4',
-    end of ZCX_AJSON_ERROR .
-  data RC type TY_RC read-only .
-  data MESSAGE type STRING read-only .
-  data LOCATION type STRING read-only .
-  data A1 type SYMSGV read-only .
-  data A2 type SYMSGV read-only .
-  data A3 type SYMSGV read-only .
-  data A4 type SYMSGV read-only .
+    CONSTANTS:
+      BEGIN OF zcx_ajson_error,
+        msgid TYPE symsgid      VALUE '00',
+        msgno TYPE symsgno      VALUE '001',
+        attr1 TYPE scx_attrname VALUE 'A1',
+        attr2 TYPE scx_attrname VALUE 'A2',
+        attr3 TYPE scx_attrname VALUE 'A3',
+        attr4 TYPE scx_attrname VALUE 'A4',
+      END OF zcx_ajson_error.
 
-  methods CONSTRUCTOR
-    importing
-      !TEXTID like IF_T100_MESSAGE=>T100KEY optional
-      !PREVIOUS like PREVIOUS optional
-      !RC type TY_RC optional
-      !MESSAGE type STRING optional
-      !LOCATION type STRING optional
-      !A1 type SYMSGV optional
-      !A2 type SYMSGV optional
-      !A3 type SYMSGV optional
-      !A4 type SYMSGV optional .
-  class-methods RAISE
-    importing
-      !IV_MSG type STRING
-      !IV_LOCATION type STRING optional
-      !IS_NODE type ANY optional
-    raising
-      z2ui5_cx_ajson_error .
-  methods SET_LOCATION
-    importing
-      !IV_LOCATION type STRING optional
-      !IS_NODE type ANY optional
-    preferred parameter IV_LOCATION .
-protected section.
-private section.
-  types:
-    begin of ty_message_parts,
-      a1 like a1,
-      a2 like a1,
-      a3 like a1,
-      a4 like a1,
-    end of ty_message_parts.
+    DATA rc       TYPE ty_rc  READ-ONLY.
+    DATA message  TYPE string READ-ONLY.
+    DATA location TYPE string READ-ONLY.
+    DATA a1       TYPE symsgv READ-ONLY.
+    DATA a2       TYPE symsgv READ-ONLY.
+    DATA a3       TYPE symsgv READ-ONLY.
+    DATA a4       TYPE symsgv READ-ONLY.
+
+    METHODS constructor
+      IMPORTING
+        textid    LIKE if_t100_message=>t100key OPTIONAL
+        !previous LIKE previous                 OPTIONAL
+        !rc       TYPE ty_rc                    OPTIONAL
+        !message  TYPE string                   OPTIONAL
+        location  TYPE string                   OPTIONAL
+        a1        TYPE symsgv                   OPTIONAL
+        a2        TYPE symsgv                   OPTIONAL
+        a3        TYPE symsgv                   OPTIONAL
+        a4        TYPE symsgv                   OPTIONAL.
+
+    CLASS-METHODS raise
+      IMPORTING
+        iv_msg      TYPE string
+        iv_location TYPE string OPTIONAL
+        is_node     TYPE any    OPTIONAL
+      RAISING
+        z2ui5_cx_ajson_error.
+
+    METHODS set_location
+      IMPORTING
+        iv_location TYPE string OPTIONAL
+        is_node     TYPE any    OPTIONAL
+      PREFERRED PARAMETER iv_location.
+
+  PROTECTED SECTION.
+
+  PRIVATE SECTION.
+    TYPES:
+      BEGIN OF ty_message_parts,
+        a1 LIKE a1,
+        a2 LIKE a1,
+        a3 LIKE a1,
+        a4 LIKE a1,
+      END OF ty_message_parts.
 ENDCLASS.
 
 
-
 CLASS z2ui5_cx_ajson_error IMPLEMENTATION.
+  METHOD constructor.
+    super->constructor( previous = previous ).
+    me->rc       = rc.
+    me->message  = message.
+    me->location = location.
+    me->a1       = a1.
+    me->a2       = a2.
+    me->a3       = a3.
+    me->a4       = a4.
+    CLEAR me->textid.
+    IF textid IS INITIAL.
+      if_t100_message~t100key = zcx_ajson_error.
+    ELSE.
+      if_t100_message~t100key = textid.
+    ENDIF.
+  ENDMETHOD.
 
+  METHOD raise.
 
-method CONSTRUCTOR.
-CALL METHOD SUPER->CONSTRUCTOR
-EXPORTING
-PREVIOUS = PREVIOUS
-.
-me->RC = RC .
-me->MESSAGE = MESSAGE .
-me->LOCATION = LOCATION .
-me->A1 = A1 .
-me->A2 = A2 .
-me->A3 = A3 .
-me->A4 = A4 .
-clear me->textid.
-if textid is initial.
-  IF_T100_MESSAGE~T100KEY = ZCX_AJSON_ERROR .
-else.
-  IF_T100_MESSAGE~T100KEY = TEXTID.
-endif.
-endmethod.
+    DATA lx TYPE REF TO z2ui5_cx_ajson_error.
 
+    lx = NEW #( message = iv_msg ).
+    lx->set_location( iv_location = iv_location
+                      is_node     = is_node ).
+    RAISE EXCEPTION lx.
 
-method raise.
+  ENDMETHOD.
 
-  data lx type ref to z2ui5_cx_ajson_error.
+  METHOD set_location.
 
-  create object lx exporting message = iv_msg.
-  lx->set_location(
-    iv_location = iv_location
-    is_node     = is_node ).
-  raise exception lx.
+    DATA ls_msg      TYPE ty_message_parts.
+    DATA lv_location TYPE string.
+    DATA lv_tmp      TYPE string.
+    FIELD-SYMBOLS <path> TYPE string.
+    FIELD-SYMBOLS <name> TYPE string.
 
-endmethod.
+    IF iv_location IS NOT INITIAL.
+      lv_location = iv_location.
+    ELSEIF is_node IS NOT INITIAL.
+      ASSIGN COMPONENT 'PATH' OF STRUCTURE is_node TO <path>.
+      ASSIGN COMPONENT 'NAME' OF STRUCTURE is_node TO <name>.
+      IF <path> IS ASSIGNED AND <name> IS ASSIGNED.
+        lv_location = <path> && <name>.
+      ENDIF.
+    ENDIF.
 
+    IF lv_location IS NOT INITIAL.
+      lv_tmp = |{ message } @{ lv_location }|.
+    ELSE.
+      lv_tmp = message.
+    ENDIF.
 
-method set_location.
+    ls_msg = lv_tmp.
 
-  data ls_msg type ty_message_parts.
-  data lv_location type string.
-  data lv_tmp type string.
-  field-symbols <path> type string.
-  field-symbols <name> type string.
+    location = lv_location.
+    a1       = ls_msg-a1.
+    a2       = ls_msg-a2.
+    a3       = ls_msg-a3.
+    a4       = ls_msg-a4.
 
-  if iv_location is not initial.
-    lv_location = iv_location.
-  elseif is_node is not initial.
-    assign component 'PATH' of structure is_node to <path>.
-    assign component 'NAME' of structure is_node to <name>.
-    if <path> is assigned and <name> is assigned.
-      lv_location = <path> && <name>.
-    endif.
-  endif.
-
-  if lv_location is not initial.
-    lv_tmp = message && | @{ lv_location }|.
-  else.
-    lv_tmp = message.
-  endif.
-
-  ls_msg = lv_tmp.
-
-  location = lv_location.
-  a1       = ls_msg-a1.
-  a2       = ls_msg-a2.
-  a3       = ls_msg-a3.
-  a4       = ls_msg-a4.
-
-endmethod.
+  ENDMETHOD.
 ENDCLASS.

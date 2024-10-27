@@ -1,7 +1,6 @@
 CLASS z2ui5_cl_pop_to_confirm DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+  PUBLIC FINAL
+  CREATE PUBLIC.
 
   PUBLIC SECTION.
 
@@ -30,72 +29,64 @@ CLASS z2ui5_cl_pop_to_confirm DEFINITION
         VALUE(result) TYPE abap_bool.
 
   PROTECTED SECTION.
-    DATA client TYPE REF TO z2ui5_if_client.
+    DATA client                 TYPE REF TO z2ui5_if_client.
 
-    DATA title TYPE string.
-    DATA icon TYPE string.
-    DATA question_text TYPE string.
-    DATA button_text_confirm TYPE string.
-    DATA button_text_cancel TYPE string.
-    DATA check_initialized TYPE abap_bool.
+    DATA title                  TYPE string.
+    DATA icon                   TYPE string.
+    DATA question_text          TYPE string.
+    DATA button_text_confirm    TYPE string.
+    DATA button_text_cancel     TYPE string.
+    DATA check_initialized      TYPE abap_bool.
     DATA check_result_confirmed TYPE abap_bool.
-    DATA event_confirm TYPE string.
-    DATA event_canceled TYPE string.
+    DATA event_confirm          TYPE string.
+    DATA event_canceled         TYPE string.
+
     METHODS view_display.
+
   PRIVATE SECTION.
 ENDCLASS.
 
 
-
 CLASS z2ui5_cl_pop_to_confirm IMPLEMENTATION.
-
-
   METHOD result.
 
     result = check_result_confirmed.
 
   ENDMETHOD.
 
-
   METHOD factory.
 
     r_result = NEW #( ).
 
-    r_result->title = i_title.
-    r_result->icon = i_icon.
-    r_result->question_text = i_question_text.
+    r_result->title               = i_title.
+    r_result->icon                = i_icon.
+    r_result->question_text       = i_question_text.
     r_result->button_text_confirm = i_button_text_confirm.
-    r_result->button_text_cancel = i_button_text_cancel.
-    r_result->event_confirm = i_event_confirm.
-    r_result->event_canceled = i_event_cancel.
-
+    r_result->button_text_cancel  = i_button_text_cancel.
+    r_result->event_confirm       = i_event_confirm.
+    r_result->event_canceled      = i_event_cancel.
 
   ENDMETHOD.
 
-
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog(
-                  title       = title
-                  icon        = icon
-                   afterclose = client->_event( 'BUTTON_CANCEL' )
+    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
+                                                               icon       = icon
+                                                               afterclose = client->_event( 'BUTTON_CANCEL' )
               )->content(
                   )->vbox( 'sapUiMediumMargin'
                       )->text( question_text
               )->get_parent( )->get_parent(
               )->buttons(
-                  )->button(
-                      text  = button_text_cancel
-                      press = client->_event( 'BUTTON_CANCEL' )
-                  )->button(
-                      text  = button_text_confirm
-                      press = client->_event( 'BUTTON_CONFIRM' )
-                      type  = 'Emphasized' ).
+                  )->button( text  = button_text_cancel
+                             press = client->_event( 'BUTTON_CANCEL' )
+                  )->button( text  = button_text_confirm
+                             press = client->_event( 'BUTTON_CONFIRM' )
+                             type  = 'Emphasized' ).
 
     client->popup_display( popup->stringify( ) ).
 
   ENDMETHOD.
-
 
   METHOD z2ui5_if_app~main.
 

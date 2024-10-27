@@ -40,13 +40,10 @@ CLASS lcl_range_to_sql DEFINITION
       RETURNING
         VALUE(out) TYPE string.
 
-
-
 ENDCLASS.
 
 
 CLASS lcl_range_to_sql IMPLEMENTATION.
-
   METHOD constructor.
 
     mr_range = ir_range.
@@ -118,5 +115,4 @@ CLASS lcl_range_to_sql IMPLEMENTATION.
                        with = `''`
                        occ  = 0 ) }'|.
   ENDMETHOD.
-
 ENDCLASS.

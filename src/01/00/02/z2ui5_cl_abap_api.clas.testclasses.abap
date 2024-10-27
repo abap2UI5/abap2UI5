@@ -1,26 +1,23 @@
-CLASS ltcl_test DEFINITION FINAL FOR TESTING
-  DURATION SHORT
-  RISK LEVEL HARMLESS.
+CLASS ltcl_test DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
   PRIVATE SECTION.
-    METHODS test_func_get_uuid_32 FOR TESTING RAISING cx_static_check.
-    METHODS test_func_get_uuid_22 FOR TESTING RAISING cx_static_check.
-    METHODS test_encoding         FOR TESTING RAISING cx_static_check.
-    METHODS test_element_text     FOR TESTING RAISING cx_static_check.
-    METHODS test_classes_impl_intf  FOR TESTING RAISING cx_static_check.
+    METHODS test_func_get_uuid_32  FOR TESTING RAISING cx_static_check.
+    METHODS test_func_get_uuid_22  FOR TESTING RAISING cx_static_check.
+    METHODS test_encoding          FOR TESTING RAISING cx_static_check.
+    METHODS test_element_text      FOR TESTING RAISING cx_static_check.
+    METHODS test_classes_impl_intf FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
 
 CLASS ltcl_test IMPLEMENTATION.
-
   METHOD test_func_get_uuid_32.
 
     DATA(lv_uuid) = z2ui5_cl_abap_api=>uuid_get_c32( ).
     cl_abap_unit_assert=>assert_not_initial( lv_uuid ).
-    cl_abap_unit_assert=>assert_equals(
-        act = 32
-        exp = strlen( lv_uuid ) ).
+    cl_abap_unit_assert=>assert_equals( exp = strlen( lv_uuid )
+                                        act = 32 ).
 
   ENDMETHOD.
 
@@ -28,9 +25,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA(lv_uuid) = z2ui5_cl_abap_api=>uuid_get_c22( ).
     cl_abap_unit_assert=>assert_not_initial( lv_uuid ).
-    cl_abap_unit_assert=>assert_equals(
-        act = 22
-        exp = strlen( lv_uuid ) ).
+    cl_abap_unit_assert=>assert_equals( exp = strlen( lv_uuid )
+                                        act = 22 ).
 
   ENDMETHOD.
 
@@ -42,9 +38,8 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(lv_xstring2) = z2ui5_cl_abap_api=>conv_decode_x_base64( lv_string2 ).
     DATA(lv_string3)  = z2ui5_cl_abap_api=>conv_get_string_by_xstring( lv_xstring2 ).
 
-    cl_abap_unit_assert=>assert_equals(
-        act = lv_string3
-        exp = lv_string ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_string
+                                        act = lv_string3 ).
 
   ENDMETHOD.
 
@@ -69,5 +64,4 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_not_initial( mt_classes ).
 
   ENDMETHOD.
-
 ENDCLASS.

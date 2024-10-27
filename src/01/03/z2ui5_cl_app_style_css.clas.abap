@@ -1,7 +1,6 @@
 CLASS z2ui5_cl_app_style_css DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+  PUBLIC FINAL
+  CREATE PUBLIC.
 
   PUBLIC SECTION.
 
@@ -10,17 +9,16 @@ CLASS z2ui5_cl_app_style_css DEFINITION
         VALUE(result) TYPE string.
 
   PROTECTED SECTION.
+
   PRIVATE SECTION.
 ENDCLASS.
 
 
 CLASS z2ui5_cl_app_style_css IMPLEMENTATION.
-
   METHOD get.
 
-    result = `/* Enter your custom styles here */` &&
-              ``.
+    result = |/* Enter your custom styles here */| &&
+              ||.
 
   ENDMETHOD.
-
 ENDCLASS.

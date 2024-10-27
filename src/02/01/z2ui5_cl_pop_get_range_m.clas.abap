@@ -24,9 +24,10 @@ CLASS z2ui5_cl_pop_get_range_m DEFINITION
         VALUE(result) TYPE ty_s_result.
 
   PROTECTED SECTION.
-    DATA client                 TYPE REF TO z2ui5_if_client.
-    DATA check_initialized      TYPE abap_bool.
-    DATA mv_popup_name TYPE LINE OF string_table.
+    DATA client            TYPE REF TO z2ui5_if_client.
+    DATA check_initialized TYPE abap_bool.
+    DATA mv_popup_name     TYPE LINE OF string_table.
+
     METHODS popup_display.
 
     METHODS init.
@@ -35,9 +36,7 @@ CLASS z2ui5_cl_pop_get_range_m DEFINITION
 ENDCLASS.
 
 
-
-CLASS Z2UI5_CL_POP_GET_RANGE_M IMPLEMENTATION.
-
+CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
   METHOD factory.
 
     r_result = NEW #( ).
@@ -45,13 +44,11 @@ CLASS Z2UI5_CL_POP_GET_RANGE_M IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD init.
 
     popup_display( ).
 
   ENDMETHOD.
-
 
   METHOD popup_display.
 
@@ -72,9 +69,10 @@ CLASS Z2UI5_CL_POP_GET_RANGE_M IMPLEMENTATION.
     DATA(grid) = item->grid( class = `sapUiSmallMarginTop sapUiSmallMarginBottom sapUiSmallMarginBegin` ).
     grid->text( `{NAME}` ).
 
-    grid->multi_input( tokens = `{T_TOKEN}`
-        enabled               = abap_false
-             valuehelprequest = client->_event( val = `LIST_OPEN` t_arg = VALUE #( ( `${NAME}` ) ) )
+    grid->multi_input( tokens           = `{T_TOKEN}`
+                       enabled          = abap_false
+                       valuehelprequest = client->_event( val   = `LIST_OPEN`
+                                                          t_arg = VALUE #( ( `${NAME}` ) ) )
             )->tokens(
                  )->token( key      = `{KEY}`
                            text     = `{TEXT}`
@@ -83,11 +81,13 @@ CLASS Z2UI5_CL_POP_GET_RANGE_M IMPLEMENTATION.
                            editable = `{EDITABLE}` ).
 
     grid->button( text  = `Select`
-                  press = client->_event( val = `LIST_OPEN` t_arg = VALUE #( ( `${NAME}` ) ) ) ).
+                  press = client->_event( val   = `LIST_OPEN`
+                                          t_arg = VALUE #( ( `${NAME}` ) ) ) ).
     grid->button( icon  = 'sap-icon://delete'
                   type  = `Transparent`
                   text  = `Clear`
-                  press = client->_event( val = `LIST_DELETE` t_arg = VALUE #( ( `${NAME}` ) ) ) ).
+                  press = client->_event( val   = `LIST_DELETE`
+                                          t_arg = VALUE #( ( `${NAME}` ) ) ) ).
 
     lo_popup->buttons(
         )->button( text  = `Clear All`

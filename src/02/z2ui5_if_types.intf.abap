@@ -46,7 +46,7 @@ INTERFACE z2ui5_if_types
       s_draft                TYPE ty_s_draft,
       s_config               TYPE ty_s_config,
       t_comp_params          TYPE ty_t_name_value,
-      r_event_data           type ref to data,
+      r_event_data           TYPE REF TO data,
     END OF ty_s_get.
 
   TYPES:

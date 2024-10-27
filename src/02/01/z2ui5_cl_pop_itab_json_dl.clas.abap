@@ -1,7 +1,6 @@
 CLASS z2ui5_cl_pop_itab_json_dl DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+  PUBLIC FINAL
+  CREATE PUBLIC.
 
   PUBLIC SECTION.
 
@@ -24,13 +23,13 @@ CLASS z2ui5_cl_pop_itab_json_dl DEFINITION
     DATA mr_itab TYPE REF TO data.
 
   PROTECTED SECTION.
-    DATA client TYPE REF TO z2ui5_if_client.
+    DATA client                 TYPE REF TO z2ui5_if_client.
 
-    DATA title TYPE string.
-    DATA icon TYPE string.
+    DATA title                  TYPE string.
+    DATA icon                   TYPE string.
 
-    DATA button_text_confirm TYPE string.
-    DATA button_text_cancel TYPE string.
+    DATA button_text_confirm    TYPE string.
+    DATA button_text_cancel     TYPE string.
 
     DATA check_result_confirmed TYPE abap_bool.
 
@@ -38,30 +37,25 @@ CLASS z2ui5_cl_pop_itab_json_dl DEFINITION
 ENDCLASS.
 
 
-
-CLASS Z2UI5_CL_POP_ITAB_JSON_DL IMPLEMENTATION.
-
-
+CLASS z2ui5_cl_pop_itab_json_dl IMPLEMENTATION.
   METHOD factory.
 
     r_result = NEW #( ).
-    r_result->mr_itab = z2ui5_cl_util=>conv_copy_ref_data( itab ).
+    r_result->mr_itab             = z2ui5_cl_util=>conv_copy_ref_data( itab ).
 
-    r_result->title = i_title.
-    r_result->icon = i_icon.
+    r_result->title               = i_title.
+    r_result->icon                = i_icon.
 
     r_result->button_text_confirm = i_button_text_confirm.
-    r_result->button_text_cancel = i_button_text_cancel.
+    r_result->button_text_cancel  = i_button_text_cancel.
 
   ENDMETHOD.
-
 
   METHOD result.
 
     result = check_result_confirmed.
 
   ENDMETHOD.
-
 
   METHOD z2ui5_if_app~main.
     DATA app TYPE REF TO object.
@@ -73,8 +67,8 @@ CLASS Z2UI5_CL_POP_ITAB_JSON_DL IMPLEMENTATION.
         IF z2ui5_cl_util=>rtti_check_class_exists( `z2ui5_dbt_cl_app_03` ) = abap_false.
 
           DATA(lv_link) = `https://github.com/oblomov-dev/a2UI5-db_table_loader`.
-          DATA(lv_text) = `<p>Please install the open-source project a2UI5-db_table_loader and try again: <a href="` &&
-                           lv_link && `" style="color:blue; font-weight:600;" target="_blank">(link)</a></p>`.
+          DATA(lv_text) = |<p>Please install the open-source project a2UI5-db_table_loader and try again: <a href="| &&
+                           |{ lv_link }" style="color:blue; font-weight:600;" target="_blank">(link)</a></p>|.
 
           DATA(lx) = NEW z2ui5_cx_util_error( val = lv_text ).
           client->nav_app_leave( z2ui5_cl_pop_error=>factory( lx ) ).
@@ -83,10 +77,8 @@ CLASS Z2UI5_CL_POP_ITAB_JSON_DL IMPLEMENTATION.
 
           DATA(lv_classname) = `Z2UI5_DBT_CL_APP_03`.
           CALL METHOD (lv_classname)=>('FACTORY_POPUP_BY_ITAB')
-            EXPORTING
-              itab   = mr_itab
-            RECEIVING
-              result = app.
+            EXPORTING itab   = mr_itab
+            RECEIVING result = app.
 
           client->nav_app_leave( CAST #( app ) ).
 

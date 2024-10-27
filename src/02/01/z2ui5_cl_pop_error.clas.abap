@@ -1,7 +1,6 @@
 CLASS z2ui5_cl_pop_error DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+  PUBLIC FINAL
+  CREATE PUBLIC.
 
   PUBLIC SECTION.
 
@@ -14,18 +13,17 @@ CLASS z2ui5_cl_pop_error DEFINITION
         VALUE(r_result) TYPE REF TO z2ui5_cl_pop_error.
 
   PROTECTED SECTION.
-    DATA client TYPE REF TO z2ui5_if_client.
-    DATA error TYPE REF TO cx_root.
+    DATA client            TYPE REF TO z2ui5_if_client.
+    DATA error             TYPE REF TO cx_root.
     DATA check_initialized TYPE abap_bool.
+
     METHODS view_display.
 
   PRIVATE SECTION.
 ENDCLASS.
 
 
-
 CLASS z2ui5_cl_pop_error IMPLEMENTATION.
-
   METHOD factory.
 
     r_result = NEW #( ).
@@ -33,26 +31,22 @@ CLASS z2ui5_cl_pop_error IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog(
-                  title      = `Error View`
-                  afterclose = client->_event( 'BUTTON_CONFIRM' )
+    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = `Error View`
+                                                               afterclose = client->_event( 'BUTTON_CONFIRM' )
               )->content(
                   )->vbox( 'sapUiMediumMargin'
                       )->text( error->get_text( )
               )->get_parent( )->get_parent(
               )->buttons(
-                  )->button(
-                      text  = `OK`
-                      press = client->_event( 'BUTTON_CONFIRM' )
-                      type  = 'Emphasized' ).
+                  )->button( text  = `OK`
+                             press = client->_event( 'BUTTON_CONFIRM' )
+                             type  = 'Emphasized' ).
 
     client->popup_display( popup->stringify( ) ).
 
   ENDMETHOD.
-
 
   METHOD z2ui5_if_app~main.
 

@@ -1,14 +1,13 @@
-CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
-  DURATION MEDIUM
-  RISK LEVEL DANGEROUS.
+CLASS ltcl_unit_test DEFINITION FINAL
+  FOR TESTING RISK LEVEL DANGEROUS DURATION MEDIUM.
 
   PRIVATE SECTION.
-    METHODS test_create     FOR TESTING RAISING cx_static_check.
+    METHODS test_create FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
-CLASS ltcl_unit_test IMPLEMENTATION.
 
+CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_create.
 
     DATA(lo_view) = z2ui5_cl_xml_view=>factory( ).
@@ -19,5 +18,4 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
-
 ENDCLASS.

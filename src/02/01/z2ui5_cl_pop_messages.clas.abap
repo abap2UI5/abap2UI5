@@ -1,7 +1,6 @@
 CLASS z2ui5_cl_pop_messages DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+  PUBLIC FINAL
+  CREATE PUBLIC.
 
   PUBLIC SECTION.
 
@@ -22,6 +21,7 @@ CLASS z2ui5_cl_pop_messages DEFINITION
         group      TYPE string,
       END OF ty_s_msg.
     TYPES ty_t_msg TYPE STANDARD TABLE OF ty_s_msg.
+
     DATA mt_msg TYPE ty_t_msg.
 
     CLASS-METHODS factory
@@ -32,19 +32,17 @@ CLASS z2ui5_cl_pop_messages DEFINITION
         VALUE(r_result) TYPE REF TO z2ui5_cl_pop_messages.
 
   PROTECTED SECTION.
-    DATA client TYPE REF TO z2ui5_if_client.
-    DATA title TYPE string.
+    DATA client            TYPE REF TO z2ui5_if_client.
+    DATA title             TYPE string.
     DATA check_initialized TYPE abap_bool.
 
     METHODS view_display.
+
   PRIVATE SECTION.
 ENDCLASS.
 
 
-
 CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
-
-
   METHOD factory.
 
     r_result = NEW #( ).
@@ -53,11 +51,11 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
     LOOP AT lt_msg REFERENCE INTO DATA(lr_row).
 
       DATA(ls_row) = VALUE ty_s_msg( ).
-      ls_row-type = z2ui5_cl_util=>ui5_get_msg_type( lr_row->type ).
-      ls_row-title = lr_row->text.
+      ls_row-type     = z2ui5_cl_util=>ui5_get_msg_type( lr_row->type ).
+      ls_row-title    = lr_row->text.
 *      lr_row->title = `title`.
 *      lr_row->message = `message`.
-      ls_row-subtitle = lr_row->id && ` ` && lr_row->no.
+      ls_row-subtitle = |{ lr_row->id } { lr_row->no }|.
 *      lr_row->group = `001`.
 
       INSERT ls_row INTO TABLE r_result->mt_msg.
@@ -67,41 +65,33 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD view_display.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
-    popup = popup->dialog(
-          title = `Messages`
-          contentheight = '50%'
-          contentwidth = '50%'
-          verticalScrolling = abap_false
-          afterclose = client->_event( 'BUTTON_CONTINUE' )
+    popup = popup->dialog( title             = `Messages`
+                           contentheight     = '50%'
+                           contentwidth      = '50%'
+                           verticalScrolling = abap_false
+                           afterclose        = client->_event( 'BUTTON_CONTINUE' )
          ).
 
-    popup->message_view(
-            items = client->_bind( mt_msg  )
-*            groupitems = abap_true
-        )->message_item(
-            type        = `{TYPE}`
-            title       = `{TITLE}`
-            subtitle    = `{SUBTITLE}`
-*            description = `{MESSAGE}`
-*            groupname   = `{GROUP}`
+    popup->message_view( items = client->_bind( mt_msg  )
+*                         groupitems = abap_true
+        )->message_item( type     = `{TYPE}`
+                         title    = `{TITLE}`
+                         subtitle = `{SUBTITLE}`
+*                         description = `{MESSAGE}`
+*                         groupname = `{GROUP}`
             ).
 
     popup->buttons(
-       )->button(
-                    text  = 'continue'
-                    press = client->_event( 'BUTTON_CONTINUE' )
-                    type  = 'Emphasized' ).
-
+       )->button( text  = 'continue'
+                  press = client->_event( 'BUTTON_CONTINUE' )
+                  type  = 'Emphasized' ).
 
     client->popup_display( popup->stringify( ) ).
 
-
   ENDMETHOD.
-
 
   METHOD z2ui5_if_app~main.
 
