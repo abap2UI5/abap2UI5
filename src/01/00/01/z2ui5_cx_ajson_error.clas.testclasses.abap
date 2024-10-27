@@ -1,100 +1,113 @@
-CLASS ltcl_error DEFINITION FINAL
-  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+class ltcl_error definition
+  for testing
+  risk level harmless
+  duration short
+  final.
 
-  PRIVATE SECTION.
+  private section.
 
-    METHODS raise            FOR TESTING.
-    METHODS raise_w_location FOR TESTING.
-    METHODS raise_w_node     FOR TESTING.
-    METHODS set_location     FOR TESTING.
+    methods raise for testing.
+    methods raise_w_location for testing.
+    methods raise_w_node for testing.
+    methods set_location for testing.
 
-ENDCLASS.
+endclass.
 
+class ltcl_error implementation.
 
-CLASS ltcl_error IMPLEMENTATION.
-  METHOD raise.
+  method raise.
 
-    DATA lx     TYPE REF TO z2ui5_cx_ajson_error.
-    DATA lv_msg TYPE string.
+    data lx type ref to z2ui5_cx_ajson_error.
+    data lv_msg type string.
 
     lv_msg = repeat( val = 'a'
                      occ = 50 ) && repeat( val = 'b'
-                                           occ = 50 ) && |123|.
+                                           occ = 50 ) && '123'.
 
-    TRY.
-        z2ui5_cx_ajson_error=>raise( lv_msg ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH z2ui5_cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals( exp = lv_msg
-                                            act = lx->get_text( ) ).
-    ENDTRY.
+    try.
+      z2ui5_cx_ajson_error=>raise( lv_msg ).
+      cl_abap_unit_assert=>fail( ).
+    catch z2ui5_cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        exp = lv_msg
+        act = lx->get_text( ) ).
+    endtry.
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD raise_w_location.
+  method raise_w_location.
 
-    DATA lx TYPE REF TO z2ui5_cx_ajson_error.
+    data lx type ref to z2ui5_cx_ajson_error.
 
-    TRY.
-        z2ui5_cx_ajson_error=>raise( iv_msg      = 'a'
-                                     iv_location = 'b' ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH z2ui5_cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals( exp = 'a @b'
-                                            act = lx->get_text( ) ).
-    ENDTRY.
+    try.
+      z2ui5_cx_ajson_error=>raise( iv_msg = 'a'
+                                   iv_location = 'b' ).
+      cl_abap_unit_assert=>fail( ).
+    catch z2ui5_cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        exp = 'a @b'
+        act = lx->get_text( ) ).
+    endtry.
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD raise_w_node.
+  method raise_w_node.
 
-    DATA lx      TYPE REF TO z2ui5_cx_ajson_error.
-    DATA ls_node TYPE z2ui5_if_ajson_types=>ty_node.
+    data lx type ref to z2ui5_cx_ajson_error.
+    data ls_node type z2ui5_if_ajson_types=>ty_node.
 
     ls_node-path = '/x/'.
     ls_node-name = 'y'.
 
-    TRY.
-        z2ui5_cx_ajson_error=>raise( iv_msg  = 'a'
-                                     is_node = ls_node ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH z2ui5_cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals( exp = 'a @/x/y'
-                                            act = lx->get_text( ) ).
-    ENDTRY.
+    try.
+      z2ui5_cx_ajson_error=>raise( iv_msg = 'a'
+                                   is_node = ls_node ).
+      cl_abap_unit_assert=>fail( ).
+    catch z2ui5_cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        exp = 'a @/x/y'
+        act = lx->get_text( ) ).
+    endtry.
 
-  ENDMETHOD.
+  endmethod.
 
-  METHOD set_location.
+  method set_location.
 
-    DATA lx TYPE REF TO z2ui5_cx_ajson_error.
+    data lx type ref to z2ui5_cx_ajson_error.
 
-    TRY.
-        z2ui5_cx_ajson_error=>raise( iv_msg      = 'a'
-                                     iv_location = 'b' ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH z2ui5_cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals( exp = lx->location
-                                            act = 'b' ).
-        lx->set_location( 'c' ).
-        cl_abap_unit_assert=>assert_equals( exp = lx->location
-                                            act = 'c' ).
-        cl_abap_unit_assert=>assert_equals( exp = 'a @c'
-                                            act = lx->get_text( ) ).
-    ENDTRY.
+    try.
+      z2ui5_cx_ajson_error=>raise( iv_msg = 'a'
+                                   iv_location = 'b' ).
+      cl_abap_unit_assert=>fail( ).
+    catch z2ui5_cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        exp = lx->location
+        act = 'b' ).
+      lx->set_location( 'c' ).
+      cl_abap_unit_assert=>assert_equals(
+        exp = lx->location
+        act = 'c' ).
+      cl_abap_unit_assert=>assert_equals(
+        exp = 'a @c'
+        act = lx->get_text( ) ).
+    endtry.
 
-    TRY.
-        z2ui5_cx_ajson_error=>raise( iv_msg = 'a' ).
-        cl_abap_unit_assert=>fail( ).
-      CATCH z2ui5_cx_ajson_error INTO lx.
-        cl_abap_unit_assert=>assert_equals( exp = lx->location
-                                            act = '' ).
-        lx->set_location( 'c' ).
-        cl_abap_unit_assert=>assert_equals( exp = lx->location
-                                            act = 'c' ).
-        cl_abap_unit_assert=>assert_equals( exp = 'a @c'
-                                            act = lx->get_text( ) ).
-    ENDTRY.
+    try.
+      z2ui5_cx_ajson_error=>raise( iv_msg = 'a' ).
+      cl_abap_unit_assert=>fail( ).
+    catch z2ui5_cx_ajson_error into lx.
+      cl_abap_unit_assert=>assert_equals(
+        exp = lx->location
+        act = '' ).
+      lx->set_location( 'c' ).
+      cl_abap_unit_assert=>assert_equals(
+        exp = lx->location
+        act = 'c' ).
+      cl_abap_unit_assert=>assert_equals(
+        exp = 'a @c'
+        act = lx->get_text( ) ).
+    endtry.
 
-  ENDMETHOD.
-ENDCLASS.
+  endmethod.
+
+endclass.

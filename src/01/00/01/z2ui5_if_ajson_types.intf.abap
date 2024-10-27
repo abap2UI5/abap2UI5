@@ -1,7 +1,8 @@
 INTERFACE z2ui5_if_ajson_types
   PUBLIC.
 
-  TYPES ty_node_type TYPE string.
+  TYPES:
+    ty_node_type TYPE string.
 
   CONSTANTS:
     BEGIN OF node_type,
@@ -15,19 +16,21 @@ INTERFACE z2ui5_if_ajson_types
 
   TYPES:
     BEGIN OF ty_node,
-      path     TYPE string,
-      name     TYPE string,
-      type     TYPE ty_node_type,
-      value    TYPE string,
-      index    TYPE i,
-      order    TYPE i,
+      path TYPE string,
+      name TYPE string,
+      type TYPE ty_node_type,
+      value TYPE string,
+      index TYPE i,
+      order TYPE i,
       children TYPE i,
     END OF ty_node.
-  TYPES ty_nodes_tt TYPE STANDARD TABLE OF ty_node WITH KEY path name.
-  TYPES ty_nodes_ts TYPE SORTED TABLE OF ty_node
-          WITH UNIQUE KEY path name
-          WITH NON-UNIQUE SORTED KEY array_index COMPONENTS path index
-          WITH NON-UNIQUE SORTED KEY item_order COMPONENTS path order.
+  TYPES:
+    ty_nodes_tt TYPE STANDARD TABLE OF ty_node WITH KEY path name.
+  TYPES:
+    ty_nodes_ts TYPE SORTED TABLE OF ty_node
+      WITH UNIQUE KEY path name
+      WITH NON-UNIQUE SORTED KEY array_index COMPONENTS path index
+      WITH NON-UNIQUE SORTED KEY item_order COMPONENTS path order.
 
   TYPES:
     BEGIN OF ty_path_name,

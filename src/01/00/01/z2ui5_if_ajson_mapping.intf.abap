@@ -13,31 +13,32 @@ INTERFACE z2ui5_if_ajson_mapping
   TYPES:
     BEGIN OF ty_rename,
       from TYPE string,
-      to   TYPE string,
+      to TYPE string,
     END OF ty_rename,
     tty_rename_map TYPE STANDARD TABLE OF ty_rename
       WITH UNIQUE SORTED KEY by_name COMPONENTS from.
 
-  TYPES ty_table_of TYPE STANDARD TABLE OF REF TO z2ui5_if_ajson_mapping.
+  TYPES:
+    ty_table_of TYPE STANDARD TABLE OF REF TO z2ui5_if_ajson_mapping.
 
   METHODS to_abap " deprecated, will be removed
     IMPORTING
-      iv_path          TYPE string
-      iv_name          TYPE string
+      !iv_path         TYPE string
+      !iv_name         TYPE string
     RETURNING
       VALUE(rv_result) TYPE string.
 
   METHODS to_json " deprecated, will be removed
     IMPORTING
-      iv_path          TYPE string
-      iv_name          TYPE string
+      !iv_path         TYPE string
+      !iv_name         TYPE string
     RETURNING
       VALUE(rv_result) TYPE string.
 
   METHODS rename_node
     IMPORTING
-      is_node TYPE z2ui5_if_ajson_types=>ty_node
+      !is_node TYPE z2ui5_if_ajson_types=>ty_node
     CHANGING
-      cv_name TYPE z2ui5_if_ajson_types=>ty_node-name.
+      !cv_name TYPE z2ui5_if_ajson_types=>ty_node-name.
 
 ENDINTERFACE.
