@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_core_app_startup DEFINITION
+CLASS z2ui5_cl_app_startup DEFINITION
   PUBLIC
   FINAL
   CREATE PROTECTED .
@@ -26,7 +26,7 @@ CLASS z2ui5_cl_core_app_startup DEFINITION
 
     CLASS-METHODS factory
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_core_app_startup.
+        VALUE(result) TYPE REF TO z2ui5_cl_app_startup.
 
     METHODS z2ui5_on_init.
     METHODS z2ui5_on_event.
@@ -41,7 +41,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
+CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
 
   METHOD factory.
@@ -65,7 +65,7 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
         ms_home-class_value_state = `Success`.
         ms_home-class_editable    = abap_false.
 
-        ms_home-url = z2ui5_cl_core_util_srv=>app_get_url(
+        ms_home-url = z2ui5_cl_core_srv_util=>app_get_url(
                    client    = client
                    classname = ms_home-classname ).
 
@@ -150,7 +150,7 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
              enabled = `{= $` && client->_bind( val = ms_home-class_editable ) && ` === false }` ).
 
 
-    DATA(lv_url_samples2) = z2ui5_cl_core_util_srv=>app_get_url(
+    DATA(lv_url_samples2) = z2ui5_cl_core_srv_util=>app_get_url(
                   client    = client
                   classname = 'z2ui5_cl_demo_app_000' ).
 
@@ -335,7 +335,7 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
     ms_home-btn_event_id   = `BUTTON_CHECK`.
     ms_home-class_editable = abap_true.
     ms_home-btn_icon       = `sap-icon://validate`.
-    ms_home-classname      = z2ui5_cl_util=>rtti_get_classname_by_ref( NEW z2ui5_cl_hello_world( ) ).
+    ms_home-classname      = z2ui5_cl_util=>rtti_get_classname_by_ref( NEW z2ui5_cl_app_hello_world( ) ).
 
   ENDMETHOD.
 ENDCLASS.
