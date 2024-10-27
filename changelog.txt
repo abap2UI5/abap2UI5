@@ -8,6 +8,16 @@ Legend
 + : added
 - : removed
 
+2024-10-27 v1.135.0
+-------------------
+
++ Stateful Session Handling
++ Object List Item now supports “type” attribute
++ Message Strip with formatted text options
++ Customizable Icons for Links, Expandable Text with class attributes
++ Improved Frontend File Organization
+* Various Bugfixes For Launchpad Compatibility
+
 
 2024-09-22 v1.134.0
 -------------------
