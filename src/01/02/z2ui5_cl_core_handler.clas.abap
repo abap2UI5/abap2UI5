@@ -1,7 +1,6 @@
 CLASS z2ui5_cl_core_handler DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+  PUBLIC FINAL
+  CREATE PUBLIC.
 
   PUBLIC SECTION.
 
@@ -33,17 +32,13 @@ CLASS z2ui5_cl_core_handler DEFINITION
 ENDCLASS.
 
 
-
 CLASS z2ui5_cl_core_handler IMPLEMENTATION.
-
-
   METHOD constructor.
 
     mv_request_json = val.
     mo_action = NEW z2ui5_cl_core_action( me ).
 
   ENDMETHOD.
-
 
   METHOD main.
 
@@ -54,13 +49,11 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       ENDIF.
     ENDDO.
 
-    result = VALUE #(
-        body = mv_response
-        s_stateful = ms_response-s_front-params-s_stateful
+    result = VALUE #( body       = mv_response
+                      s_stateful = ms_response-s_front-params-s_stateful
     ).
 
   ENDMETHOD.
-
 
   METHOD main_begin.
     TRY.
@@ -84,29 +77,26 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     ENDTRY.
   ENDMETHOD.
 
-
   METHOD main_end.
 
-    ms_response = VALUE #(
-        s_front-params = mo_action->ms_next-s_set
-        s_front-id     = mo_action->mo_app->ms_draft-id
-        s_front-app    = z2ui5_cl_util=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app )
+    ms_response = VALUE #( s_front-params = mo_action->ms_next-s_set
+                           s_front-id     = mo_action->mo_app->ms_draft-id
+                           s_front-app    = z2ui5_cl_util=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app )
         ).
 
-    IF ms_response-s_front-params-s_view-check_update_model = abap_true
-    OR ms_response-s_front-params-s_view_nest-check_update_model = abap_true
-    OR ms_response-s_front-params-s_view_nest2-check_update_model = abap_true
-    OR ms_response-s_front-params-s_popup-check_update_model = abap_true
-    OR ms_response-s_front-params-s_popover-check_update_model = abap_true
-    OR ms_response-s_front-params-s_view-xml IS NOT INITIAL
-    OR ms_response-s_front-params-s_view_nest-xml IS NOT INITIAL
-    OR ms_response-s_front-params-s_view_nest2-xml IS NOT INITIAL
-    OR ms_response-s_front-params-s_popup-xml IS NOT INITIAL
-    OR ms_response-s_front-params-s_popover-xml IS NOT INITIAL.
+    IF    ms_response-s_front-params-s_view-check_update_model        = abap_true
+       OR ms_response-s_front-params-s_view_nest-check_update_model   = abap_true
+       OR ms_response-s_front-params-s_view_nest2-check_update_model  = abap_true
+       OR ms_response-s_front-params-s_popup-check_update_model       = abap_true
+       OR ms_response-s_front-params-s_popover-check_update_model     = abap_true
+       OR ms_response-s_front-params-s_view-xml IS NOT INITIAL
+       OR ms_response-s_front-params-s_view_nest-xml                 IS NOT INITIAL
+       OR ms_response-s_front-params-s_view_nest2-xml                IS NOT INITIAL
+       OR ms_response-s_front-params-s_popup-xml IS NOT INITIAL
+       OR ms_response-s_front-params-s_popover-xml                   IS NOT INITIAL.
 
-      DATA(lo_model) = NEW z2ui5_cl_core_srv_attri(
-       attri = mo_action->mo_app->mt_attri
-       app   = mo_action->mo_app->mo_app ).
+      DATA(lo_model) = NEW z2ui5_cl_core_srv_attri( attri = mo_action->mo_app->mt_attri
+                                                    app   = mo_action->mo_app->mo_app ).
       lo_model->attri_refs_update( ).
       ms_response-model = mo_action->mo_app->model_json_stringify( ).
 
@@ -124,7 +114,6 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
-
 
   METHOD main_process.
     TRY.

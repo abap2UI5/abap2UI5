@@ -1,7 +1,6 @@
 CLASS z2ui5_cl_pop_to_inform DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+  PUBLIC FINAL
+  CREATE PUBLIC.
 
   PUBLIC SECTION.
 
@@ -17,51 +16,47 @@ CLASS z2ui5_cl_pop_to_inform DEFINITION
         VALUE(r_result) TYPE REF TO z2ui5_cl_pop_to_inform.
 
   PROTECTED SECTION.
-    DATA client TYPE REF TO z2ui5_if_client.
-    DATA title TYPE string.
-    DATA icon TYPE string.
-    DATA question_text TYPE string.
+    DATA client              TYPE REF TO z2ui5_if_client.
+    DATA title               TYPE string.
+    DATA icon                TYPE string.
+    DATA question_text       TYPE string.
     DATA button_text_confirm TYPE string.
-    DATA check_initialized TYPE abap_bool.
+    DATA check_initialized   TYPE abap_bool.
+
     METHODS view_display.
+
   PRIVATE SECTION.
 ENDCLASS.
 
 
-
 CLASS z2ui5_cl_pop_to_inform IMPLEMENTATION.
-
   METHOD factory.
 
     r_result = NEW #( ).
-    r_result->title = i_title.
-    r_result->icon = i_icon.
-    r_result->question_text = i_text.
+    r_result->title               = i_title.
+    r_result->icon                = i_icon.
+    r_result->question_text       = i_text.
     r_result->button_text_confirm = i_button_text.
 
   ENDMETHOD.
 
-
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog(
-                  title      = title
-                  icon       = icon
-                  afterclose = client->_event( 'BUTTON_CONFIRM' )
+    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
+                                                               icon       = icon
+                                                               afterclose = client->_event( 'BUTTON_CONFIRM' )
               )->content(
                   )->vbox( 'sapUiMediumMargin'
                       )->text( question_text
               )->get_parent( )->get_parent(
               )->buttons(
-                  )->button(
-                      text  = button_text_confirm
-                      press = client->_event( 'BUTTON_CONFIRM' )
-                      type  = 'Emphasized' ).
+                  )->button( text  = button_text_confirm
+                             press = client->_event( 'BUTTON_CONFIRM' )
+                             type  = 'Emphasized' ).
 
     client->popup_display( popup->stringify( ) ).
 
   ENDMETHOD.
-
 
   METHOD z2ui5_if_app~main.
 

@@ -35,7 +35,7 @@ CLASS z2ui5_cl_abap_api_http DEFINITION PUBLIC.
 
     METHODS set_status
       IMPORTING
-        code   TYPE i
+        !code  TYPE i
         reason TYPE clike.
 
     METHODS set_session_stateful
@@ -54,19 +54,20 @@ CLASS z2ui5_cl_abap_api_http DEFINITION PUBLIC.
 
     METHODS set_header_field
       IMPORTING
-        n TYPE clike
-        v TYPE clike.
+        !n TYPE clike
+        v  TYPE clike.
 
-    DATA mo_server_onprem TYPE REF TO object.
-    DATA mo_request_cloud TYPE REF TO object.
+    DATA mo_server_onprem  TYPE REF TO object.
+    DATA mo_request_cloud  TYPE REF TO object.
     DATA mo_response_cloud TYPE REF TO object.
 
   PROTECTED SECTION.
+
   PRIVATE SECTION.
 ENDCLASS.
 
-CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
 
+CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
   METHOD delete_response_cookie.
 
     DATA(lv_val) = CONV string( val ).
@@ -80,8 +81,7 @@ CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
       object = <any>.
 
       CALL METHOD object->('DELETE_COOKIE')
-        EXPORTING
-          name = lv_val.
+        EXPORTING name = lv_val.
 
     ELSE.
 
@@ -97,6 +97,7 @@ CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
 
     DATA object TYPE REF TO object.
     FIELD-SYMBOLS <any> TYPE any.
+
     DATA(lv_val) = CONV string( val ).
 
     IF mo_server_onprem IS BOUND.
@@ -105,10 +106,8 @@ CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
       object = <any>.
 
       CALL METHOD object->('GET_COOKIE')
-        EXPORTING
-          name  = lv_val
-        IMPORTING
-          value = result.
+        EXPORTING name  = lv_val
+        IMPORTING value = result.
 
     ELSE.
 
@@ -126,6 +125,7 @@ CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
 
     DATA object TYPE REF TO object.
     FIELD-SYMBOLS <any> TYPE any.
+
     DATA(lv_val) = CONV string( val ).
 
     IF mo_server_onprem IS BOUND.
@@ -134,18 +134,14 @@ CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
       object = <any>.
 
       CALL METHOD object->('GET_HEADER_FIELD')
-        EXPORTING
-          name  = lv_val
-        RECEIVING
-          value = result.
+        EXPORTING name  = lv_val
+        RECEIVING value = result.
 
     ELSE.
 
       CALL METHOD mo_request_cloud->('IF_WEB_HTTP_REQUEST~GET_HEADER_FIELD')
-        EXPORTING
-          i_name  = lv_val
-        RECEIVING
-          r_value = result.
+        EXPORTING i_name  = lv_val
+        RECEIVING r_value = result.
 
     ENDIF.
 
@@ -164,16 +160,14 @@ CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
       object = <any>.
 
       CALL METHOD object->('SET_HEADER_FIELD')
-        EXPORTING
-          name  = lv_n
-          value = lv_v.
+        EXPORTING name  = lv_n
+                  value = lv_v.
 
     ELSE.
 
       CALL METHOD mo_response_cloud->('IF_WEB_HTTP_RESPONSE~SET_HEADER_FIELD')
-        EXPORTING
-          i_name  = lv_n
-          i_value = lv_v.
+        EXPORTING i_name  = lv_n
+                  i_value = lv_v.
 
     ENDIF.
 
@@ -205,14 +199,12 @@ CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
       object = <any>.
 
       CALL METHOD object->('GET_CDATA')
-        RECEIVING
-          data = result.
+        RECEIVING data = result.
 
     ELSE.
 
       CALL METHOD mo_request_cloud->('IF_WEB_HTTP_REQUEST~GET_TEXT')
-        RECEIVING
-          r_value = result.
+        RECEIVING r_value = result.
 
     ENDIF.
 
@@ -229,14 +221,12 @@ CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
       object = <any>.
 
       CALL METHOD object->('IF_HTTP_REQUEST~GET_METHOD')
-        RECEIVING
-          method = result.
+        RECEIVING method = result.
 
     ELSE.
 
       CALL METHOD mo_request_cloud->('IF_WEB_HTTP_REQUEST~GET_METHOD')
-        RECEIVING
-          r_value = result.
+        RECEIVING r_value = result.
 
     ENDIF.
 
@@ -253,14 +243,12 @@ CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
       object = <any>.
 
       CALL METHOD object->('SET_CDATA')
-        EXPORTING
-          data = val.
+        EXPORTING data = val.
 
     ELSE.
 
       CALL METHOD mo_response_cloud->('IF_WEB_HTTP_RESPONSE~SET_TEXT')
-        EXPORTING
-          i_text = val.
+        EXPORTING i_text = val.
 
     ENDIF.
 
@@ -270,6 +258,7 @@ CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
 
     DATA object TYPE REF TO object.
     FIELD-SYMBOLS <any> TYPE any.
+
     DATA(lv_reason) = CONV string( reason ).
 
     IF mo_server_onprem IS BOUND.
@@ -278,16 +267,14 @@ CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
       object = <any>.
 
       CALL METHOD object->('IF_HTTP_RESPONSE~SET_STATUS')
-        EXPORTING
-          code   = code
-          reason = lv_reason.
+        EXPORTING code   = code
+                  reason = lv_reason.
 
     ELSE.
 
       CALL METHOD mo_response_cloud->('IF_WEB_HTTP_RESPONSE~SET_STATUS')
-        EXPORTING
-          i_code   = code
-          i_reason = lv_reason.
+        EXPORTING i_code   = code
+                  i_reason = lv_reason.
 
     ENDIF.
 
@@ -298,8 +285,7 @@ CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
     IF mo_server_onprem IS BOUND.
 
       CALL METHOD mo_server_onprem->('SET_SESSION_STATEFUL')
-        EXPORTING
-          stateful = val.
+        EXPORTING stateful = val.
 
     ELSE.
 
@@ -308,5 +294,4 @@ CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
-
 ENDCLASS.
