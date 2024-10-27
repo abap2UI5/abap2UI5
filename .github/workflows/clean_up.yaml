@@ -1,0 +1,36 @@
+name: Clean-up ABAP Files
+
+on:
+  push:
+   branches: ["main"]
+  # pull_request:
+  #   branches: ["main"]
+
+  workflow_dispatch:
+
+jobs:
+  Code-Cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: git config --global core.autocrlf true
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Download ABAP Cleaner (latest version)
+        run: |
+          mkdir .cleanup
+          cd .cleanup
+          wget -q -c https://github.com/SAP/abap-cleaner/releases/latest/download/com.sap.adt.abapcleaner.app-linux.gtk.x86_64.tar.gz -O - | tar -xz
+          cd ..
+
+      - name: Clean-up files in /src
+        run: ./.cleanup/abapcleaner/abap-cleaner --sourcedir src --recursive --overwrite --profile cleaner-profile.cfj --release 750 --stats --usedrules
+
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          default_author: github_actions
+          message: "style: code cleanup with ABAP cleaner"
+          add: "src"

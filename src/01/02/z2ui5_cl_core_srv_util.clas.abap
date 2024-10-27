@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_core_util_srv DEFINITION
+CLASS z2ui5_cl_core_srv_util DEFINITION
   PUBLIC
   INHERITING FROM z2ui5_cl_util
   CREATE PUBLIC .
@@ -24,7 +24,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_core_util_srv IMPLEMENTATION.
+CLASS z2ui5_cl_core_srv_util IMPLEMENTATION.
 
 
   METHOD app_get_url.

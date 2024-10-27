@@ -32,7 +32,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
       act = lo_post->ms_request-s_front-pathname
       exp = `PATHNAME` ).
 
-    DATA(lo_startup) = CAST z2ui5_cl_core_app_startup( lo_post->mo_action->mo_app->mo_app ) ##NEEDED.
+    DATA(lo_startup) = CAST z2ui5_cl_app_startup( lo_post->mo_action->mo_app->mo_app ) ##NEEDED.
 
   ENDMETHOD.
 
