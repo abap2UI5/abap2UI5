@@ -121,7 +121,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
       )->label(
       )->link( text = `(Example)`
              target = `_blank`
-             href   = `https://github.com/abap2UI5/abap2UI5/blob/main/src/02/z2ui5_cl_hello_world.clas.abap`
+             href   = `https://github.com/abap2UI5/abap2UI5/blob/main/src/02/z2ui5_cl_app_hello_world.clas.abap`
       )->label( `Step 4` ).
 
     IF ms_home-class_editable = abap_true.
