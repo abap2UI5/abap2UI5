@@ -33,7 +33,7 @@
         "RemoveIncludeWarnings": "1",
         "RemoveEmptyLineAboveEndClass": "0",
         "AddEmptyLineAboveSections": "1",
-        "RemoveEmptyLineBelowSections": "1",
+        "RemoveEmptyLineBelowSections": "0",
         "MaxEmptyLines": "1",
         "AddLineBetweenDefTypes": "2"
       }
