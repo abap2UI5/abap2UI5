@@ -1213,7 +1213,8 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     DATA rtti_type TYPE REF TO cl_abap_typedescr.
     CALL METHOD srtti->('GET_RTTI')
-      RECEIVING rtti = rtti_type.
+      RECEIVING
+        rtti = rtti_type.
 
     DATA lo_datadescr TYPE REF TO cl_abap_datadescr.
     lo_datadescr ?= rtti_type.
@@ -1231,8 +1232,10 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     DATA srtti TYPE REF TO object.
     DATA(lv_classname) = 'ZCL_SRTTI_TYPEDESCR'.
     CALL METHOD (lv_classname)=>('CREATE_BY_DATA_OBJECT')
-      EXPORTING data_object = data
-      RECEIVING srtti       = srtti.
+      EXPORTING
+        data_object = data
+      RECEIVING
+        srtti       = srtti.
 
     CALL TRANSFORMATION id SOURCE srtti = srtti dobj = data RESULT XML result.
 
@@ -1251,7 +1254,8 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     IF when = abap_true.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = v.
+        EXPORTING
+          val = v.
     ENDIF.
 
   ENDMETHOD.
@@ -1276,7 +1280,8 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   METHOD x_raise.
 
     RAISE EXCEPTION TYPE z2ui5_cx_util_error
-      EXPORTING val = v.
+      EXPORTING
+        val = v.
 
   ENDMETHOD.
 
@@ -1286,7 +1291,8 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
       DATA(lv_text) = `UNSUPPORTED_FEATURE - Please install the open-source project S-RTTI by sandraros and try again: https://github.com/sandraros/S-RTTI`.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = lv_text.
+        EXPORTING
+          val = lv_text.
 
     ENDIF.
 
@@ -1296,7 +1302,8 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     IF table_name IS INITIAL.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = 'TABLE_NAME_INITIAL_ERROR'.
+        EXPORTING
+          val = 'TABLE_NAME_INITIAL_ERROR'.
     ENDIF.
 
     TRY.
@@ -1308,7 +1315,8 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
         IF sy-subrc <> 0.
           RAISE EXCEPTION TYPE z2ui5_cx_util_error
-            EXPORTING val = |TABLE_NOT_FOUD_NAME___{ table_name }|.
+            EXPORTING
+              val = |TABLE_NOT_FOUD_NAME___{ table_name }|.
         ENDIF.
         DATA(lo_struct) = CAST cl_abap_structdescr( lo_obj ).
 
@@ -1322,7 +1330,8 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
             ).
             IF sy-subrc <> 0.
               RAISE EXCEPTION TYPE z2ui5_cx_util_error
-                EXPORTING val = |TABLE_NOT_FOUD_NAME___{ table_name }|.
+                EXPORTING
+                  val = |TABLE_NOT_FOUD_NAME___{ table_name }|.
             ENDIF.
 
             DATA(lo_tab) = CAST cl_abap_tabledescr( lo_obj ).
@@ -1442,44 +1451,32 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
       WHEN cl_abap_datadescr=>typekind_oref.
         TRY.
             DATA(lx) = CAST cx_root( val ).
-            ls_result = VALUE #( type = 'E'
-                                 text = lx->get_text( )
-               ).
-
+            ls_result = VALUE #( type = 'E' text = lx->get_text( ) ).
             DATA(lt_attri_o) = z2ui5_cl_util=>rtti_get_t_attri_by_oref( val ).
             LOOP AT lt_attri_o REFERENCE INTO DATA(ls_attri_o)
                  WHERE visibility = 'U'.
+              lv_name = |VAL->{ ls_attri_o->name }|.
+              ASSIGN (lv_name) TO <comp>.
               CASE ls_attri_o->name.
                 WHEN 'ID' OR 'MSGID'.
-                  ASSIGN val->(ls_attri_o->name) TO <comp>.
                   ls_result-id = <comp>.
                 WHEN 'NO' OR 'NUMBER' OR 'MSGNO'.
-                  ASSIGN val->(ls_attri_o->name) TO <comp>.
                   ls_result-no = <comp>.
                 WHEN 'MESSAGE'.
-                  ASSIGN val->(ls_attri_o->name) TO <comp>.
                   ls_result-text = <comp>.
                 WHEN 'TYPE' OR 'MSGTY'.
-                  ASSIGN val->(ls_attri_o->name) TO <comp>.
                   ls_result-type = <comp>.
                 WHEN 'MESSAGE_V1' OR 'MSGV1'.
-                  ASSIGN val->(ls_attri_o->name) TO <comp>.
                   ls_result-v1 = <comp>.
                 WHEN 'MESSAGE_V2' OR 'MSGV2'.
-                  ASSIGN val->(ls_attri_o->name) TO <comp>.
                   ls_result-v2 = <comp>.
                 WHEN 'MESSAGE_V3' OR 'MSGV3'.
-                  ASSIGN val->(ls_attri_o->name) TO <comp>.
                   ls_result-v3 = <comp>.
                 WHEN 'MESSAGE_V4' OR 'MSGV4'.
-                  ASSIGN val->(ls_attri_o->name) TO <comp>.
                   ls_result-v4 = <comp>.
               ENDCASE.
 
             ENDLOOP.
-*            IF ls_result-text IS INITIAL AND ls_result-id IS NOT INITIAL.
-*              MESSAGE ID ls_result-id TYPE 'I' NUMBER ls_result-no INTO ls_result-text.
-*            ENDIF.
             INSERT ls_result INTO TABLE result.
           CATCH cx_root.
         ENDTRY.
