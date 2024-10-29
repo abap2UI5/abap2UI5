@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>Z2UI5_CL_CORE_SRV_BIND</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>abap2UI5 - frontend data binding</DESCRIPT>
+    <DESCRIPT>abap2UI5 - data binding</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

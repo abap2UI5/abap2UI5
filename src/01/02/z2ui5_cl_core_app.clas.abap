@@ -51,6 +51,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_core_app IMPLEMENTATION.
+
   METHOD all_xml_parse.
 
     z2ui5_cl_util=>xml_parse( EXPORTING xml = xml

@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>Z2UI5_CL_CORE_SRV_DISS</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>abap2UI5 - backend attri dissolver</DESCRIPT>
+    <DESCRIPT>abap2UI5 - attribute dissolver</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

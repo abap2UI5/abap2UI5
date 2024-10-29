@@ -33,6 +33,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_core_handler IMPLEMENTATION.
+
   METHOD constructor.
 
     mv_request_json = val.

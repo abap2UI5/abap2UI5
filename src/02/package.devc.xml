@@ -3,7 +3,7 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <DEVC>
-    <CTEXT>abap2UI5 - external / released APIs</CTEXT>
+    <CTEXT>abap2UI5 - released APIs</CTEXT>
    </DEVC>
   </asx:values>
  </asx:abap>
