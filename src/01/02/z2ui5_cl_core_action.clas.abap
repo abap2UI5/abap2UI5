@@ -3,7 +3,6 @@ CLASS z2ui5_cl_core_action DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-
     DATA mo_http_post TYPE REF TO z2ui5_cl_core_handler.
     DATA mo_app       TYPE REF TO z2ui5_cl_core_app.
 
@@ -35,7 +34,6 @@ CLASS z2ui5_cl_core_action DEFINITION
         val TYPE REF TO z2ui5_cl_core_handler.
 
   PROTECTED SECTION.
-
     METHODS prepare_app_stack
       IMPORTING
         val           TYPE z2ui5_if_core_types=>ty_s_next-o_app_leave
@@ -47,6 +45,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_core_action IMPLEMENTATION.
+
   METHOD constructor.
 
     mo_http_post = val.
@@ -179,4 +178,5 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     CLEAR result->ms_next-s_set-s_msg_toast.
 
   ENDMETHOD.
+
 ENDCLASS.

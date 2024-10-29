@@ -33,6 +33,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
+
   METHOD get_event.
 
     result = |{ z2ui5_if_core_types=>cs_ui5-event_backend_function }(['{ val }'|.

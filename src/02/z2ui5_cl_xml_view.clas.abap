@@ -23,10 +23,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS horizontal_layout
       IMPORTING
-        !class        TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
         allowwrapping TYPE clike OPTIONAL
-        !id           TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -34,11 +34,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         src                   TYPE clike OPTIONAL
         press                 TYPE clike OPTIONAL
-        !size                 TYPE clike OPTIONAL
-        !color                TYPE clike OPTIONAL
-        !class                TYPE clike OPTIONAL
-        !id                   TYPE clike OPTIONAL
-        !width                TYPE clike OPTIONAL
+        size                  TYPE clike OPTIONAL
+        color                 TYPE clike OPTIONAL
+        class                 TYPE clike OPTIONAL
+        id                    TYPE clike OPTIONAL
+        width                 TYPE clike OPTIONAL
         useicontooltip        TYPE clike OPTIONAL
         notabstop             TYPE clike OPTIONAL
         hovercolor            TYPE clike OPTIONAL
@@ -49,7 +49,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         alt                   TYPE clike OPTIONAL
         activecolor           TYPE clike OPTIONAL
         activebackgroundcolor TYPE clike OPTIONAL
-        !visible              TYPE clike OPTIONAL
+        visible               TYPE clike OPTIONAL
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
@@ -59,7 +59,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         showfooter               TYPE clike OPTIONAL
         headerpinned             TYPE clike OPTIONAL
         toggleheaderontitleclick TYPE clike OPTIONAL
-        !class                   TYPE clike OPTIONAL
+        class                    TYPE clike OPTIONAL
       RETURNING
         VALUE(result)            TYPE REF TO z2ui5_cl_xml_view.
 
@@ -79,8 +79,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         afterrendering  TYPE clike OPTIONAL
         preferdom       TYPE clike OPTIONAL
         sanitizecontent TYPE clike OPTIONAL
-        !visible        TYPE clike OPTIONAL
-        !id             TYPE clike OPTIONAL
+        visible         TYPE clike OPTIONAL
+        id              TYPE clike OPTIONAL
                   PREFERRED PARAMETER content
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
@@ -90,23 +90,23 @@ CLASS z2ui5_cl_xml_view DEFINITION
         enableverticalresponsiveness TYPE clike OPTIONAL
         enableformattedtext          TYPE clike OPTIONAL
         illustrationtype             TYPE clike OPTIONAL
-        !title                       TYPE clike OPTIONAL
-        !description                 TYPE clike OPTIONAL
+        title                        TYPE clike OPTIONAL
+        description                  TYPE clike OPTIONAL
         illustrationsize             TYPE clike OPTIONAL
       RETURNING
         VALUE(result)                TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS p_cell_selector
       IMPORTING
-        !id           TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS p_copy_provider
       IMPORTING
-        !id           TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
         extract_data  TYPE clike OPTIONAL
-        !copy         TYPE clike OPTIONAL
+        copy          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -116,28 +116,28 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS flex_box
       IMPORTING
-        !class           TYPE clike OPTIONAL
+        class            TYPE clike OPTIONAL
         rendertype       TYPE clike OPTIONAL
-        !width           TYPE clike OPTIONAL
+        width            TYPE clike OPTIONAL
         fitcontainer     TYPE clike OPTIONAL
         height           TYPE clike OPTIONAL
         alignitems       TYPE clike OPTIONAL
         justifycontent   TYPE clike OPTIONAL
-        !wrap            TYPE clike OPTIONAL
-        !visible         TYPE clike OPTIONAL
+        wrap             TYPE clike OPTIONAL
+        visible          TYPE clike OPTIONAL
         direction        TYPE clike OPTIONAL
         displayinline    TYPE clike OPTIONAL
         backgrounddesign TYPE clike OPTIONAL
         aligncontent     TYPE clike OPTIONAL
         items            TYPE clike OPTIONAL
-        !id              TYPE clike OPTIONAL
+        id               TYPE clike OPTIONAL
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS popover
       IMPORTING
-        !title              TYPE clike OPTIONAL
-        !class              TYPE clike OPTIONAL
+        title               TYPE clike OPTIONAL
+        class               TYPE clike OPTIONAL
         placement           TYPE clike OPTIONAL
         initialfocus        TYPE clike OPTIONAL
         contentwidth        TYPE clike OPTIONAL
@@ -148,7 +148,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         modal               TYPE clike OPTIONAL
         horizontalscrolling TYPE clike OPTIONAL
         verticalscrolling   TYPE clike OPTIONAL
-        !visible            TYPE clike OPTIONAL
+        visible             TYPE clike OPTIONAL
         offsetx             TYPE clike OPTIONAL
         offsety             TYPE clike OPTIONAL
         contentminwidth     TYPE clike OPTIONAL
@@ -162,27 +162,27 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS list_item
       IMPORTING
-        !text          TYPE clike OPTIONAL
+        text           TYPE clike OPTIONAL
         additionaltext TYPE clike OPTIONAL
-        !key           TYPE clike OPTIONAL
-        !icon          TYPE clike OPTIONAL
-        !enabled       TYPE clike OPTIONAL
+        key            TYPE clike OPTIONAL
+        icon           TYPE clike OPTIONAL
+        enabled        TYPE clike OPTIONAL
         textdirection  TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS table
       IMPORTING
-        !id                 TYPE clike OPTIONAL
+        id                  TYPE clike OPTIONAL
         items               TYPE clike OPTIONAL
-        !class              TYPE clike OPTIONAL
+        class               TYPE clike OPTIONAL
         growing             TYPE clike OPTIONAL
         growingthreshold    TYPE clike OPTIONAL
         growingscrolltoload TYPE clike OPTIONAL
         headertext          TYPE clike OPTIONAL
         sticky              TYPE clike OPTIONAL
-        !mode               TYPE clike OPTIONAL
-        !width              TYPE clike OPTIONAL
+        mode                TYPE clike OPTIONAL
+        width               TYPE clike OPTIONAL
         selectionchange     TYPE clike OPTIONAL
         alternaterowcolors  TYPE clike OPTIONAL
         autopopinmode       TYPE clike OPTIONAL
@@ -193,63 +193,63 @@ CLASS z2ui5_cl_xml_view DEFINITION
         popinlayout         TYPE clike OPTIONAL
         fixedlayout         TYPE clike OPTIONAL
         backgrounddesign    TYPE clike OPTIONAL
-        !visible            TYPE clike OPTIONAL
+        visible             TYPE clike OPTIONAL
                   PREFERRED PARAMETER items
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS analytical_table
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
         selectionmode TYPE clike OPTIONAL
         rowmode       TYPE clike OPTIONAL
         toolbar       TYPE clike OPTIONAL
-        !columns      TYPE clike OPTIONAL
+        columns       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS rowmode
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS breadcrumbs
       IMPORTING
-        !ns           TYPE clike OPTIONAL
-        !link         TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
+        link          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS current_location
       IMPORTING
-        !ns           TYPE clike OPTIONAL
-        !link         TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
+        link          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS color_palette
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
         colorselect   TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS auto
       IMPORTING
-        !ns              TYPE clike OPTIONAL
+        ns               TYPE clike OPTIONAL
         rowcontentheight TYPE clike OPTIONAL
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS message_strip
       IMPORTING
-        !text               TYPE clike OPTIONAL
-        !type               TYPE clike OPTIONAL
+        text                TYPE clike OPTIONAL
+        type                TYPE clike OPTIONAL
         showicon            TYPE clike OPTIONAL
         customicon          TYPE clike OPTIONAL
-        !class              TYPE clike OPTIONAL
-        !visible            TYPE clike OPTIONAL
+        class               TYPE clike OPTIONAL
+        visible             TYPE clike OPTIONAL
         showclosebutton     TYPE clike OPTIONAL
         enableformattedtext TYPE clike OPTIONAL
                   PREFERRED PARAMETER text
@@ -258,17 +258,17 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS footer
       IMPORTING
-        !ns           TYPE string OPTIONAL
+        ns            TYPE string OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS message_page
       IMPORTING
         show_header         TYPE clike OPTIONAL
-        !text               TYPE clike OPTIONAL
+        text                TYPE clike OPTIONAL
         enableformattedtext TYPE clike OPTIONAL
-        !description        TYPE clike OPTIONAL
-        !icon               TYPE clike OPTIONAL
+        description         TYPE clike OPTIONAL
+        icon                TYPE clike OPTIONAL
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
@@ -294,7 +294,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         toggleheaderontitleclick       TYPE clike OPTIONAL
         useicontabbar                  TYPE clike OPTIONAL
         usetwocolumnsforlargescreen    TYPE clike OPTIONAL
-        !visible                       TYPE clike OPTIONAL
+        visible                        TYPE clike OPTIONAL
         backgrounddesignanchorbar      TYPE clike OPTIONAL
         height                         TYPE clike OPTIONAL
         sectiontitlelevel              TYPE clike OPTIONAL
@@ -304,7 +304,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         sectionchange                  TYPE clike OPTIONAL
         subsectionvisibilitychange     TYPE clike OPTIONAL
         toggleanchorbar                TYPE clike OPTIONAL
-        !class                         TYPE clike OPTIONAL
+        class                          TYPE clike OPTIONAL
       RETURNING
         VALUE(result)                  TYPE REF TO z2ui5_cl_xml_view.
 
@@ -328,7 +328,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         showmarkers                   TYPE clike OPTIONAL
         showplaceholder               TYPE clike OPTIONAL
         showtitleselector             TYPE clike OPTIONAL
-        !visible                      TYPE clike OPTIONAL
+        visible                       TYPE clike OPTIONAL
         markchangespress              TYPE clike OPTIONAL
         marklockedpress               TYPE clike OPTIONAL
         titleselectorpress            TYPE clike OPTIONAL
@@ -339,18 +339,18 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         activeicon       TYPE clike OPTIONAL
         ariahaspopup     TYPE clike OPTIONAL
-        !enabled         TYPE clike OPTIONAL
+        enabled          TYPE clike OPTIONAL
         hideicon         TYPE clike OPTIONAL
         hidetext         TYPE clike OPTIONAL
-        !icon            TYPE clike OPTIONAL
+        icon             TYPE clike OPTIONAL
         icondensityaware TYPE clike OPTIONAL
         iconfirst        TYPE clike OPTIONAL
         importance       TYPE clike OPTIONAL
-        !text            TYPE clike OPTIONAL
+        text             TYPE clike OPTIONAL
         textdirection    TYPE clike OPTIONAL
-        !visible         TYPE clike OPTIONAL
-        !width           TYPE clike OPTIONAL
-        !type            TYPE clike OPTIONAL
+        visible          TYPE clike OPTIONAL
+        width            TYPE clike OPTIONAL
+        type             TYPE clike OPTIONAL
         press            TYPE clike OPTIONAL
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
@@ -361,10 +361,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS generic_tile
       IMPORTING
-        !class                 TYPE clike OPTIONAL
-        !id                    TYPE clike OPTIONAL
-        !header                TYPE clike OPTIONAL
-        !mode                  TYPE clike OPTIONAL
+        class                  TYPE clike OPTIONAL
+        id                     TYPE clike OPTIONAL
+        header                 TYPE clike OPTIONAL
+        mode                   TYPE clike OPTIONAL
         additionaltooltip      TYPE clike OPTIONAL
         appshortcut            TYPE clike OPTIONAL
         backgroundcolor        TYPE clike OPTIONAL
@@ -374,19 +374,19 @@ CLASS z2ui5_cl_xml_view DEFINITION
         frametype              TYPE clike OPTIONAL
         failedtext             TYPE clike OPTIONAL
         headerimage            TYPE clike OPTIONAL
-        !scope                 TYPE clike OPTIONAL
+        scope                  TYPE clike OPTIONAL
         sizebehavior           TYPE clike OPTIONAL
-        !state                 TYPE clike OPTIONAL
+        state                  TYPE clike OPTIONAL
         systeminfo             TYPE clike OPTIONAL
         tilebadge              TYPE clike OPTIONAL
         tileicon               TYPE clike OPTIONAL
         url                    TYPE clike OPTIONAL
         valuecolor             TYPE clike OPTIONAL
-        !width                 TYPE clike OPTIONAL
+        width                  TYPE clike OPTIONAL
         wrappingtype           TYPE clike OPTIONAL
         imagedescription       TYPE clike OPTIONAL
         navigationbuttontext   TYPE clike OPTIONAL
-        !visible               TYPE clike OPTIONAL
+        visible                TYPE clike OPTIONAL
         renderonthemechange    TYPE clike OPTIONAL
         enablenavigationbutton TYPE clike OPTIONAL
         pressenabled           TYPE clike OPTIONAL
@@ -397,8 +397,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS numeric_content
       IMPORTING
-        !value            TYPE clike OPTIONAL
-        !icon             TYPE clike OPTIONAL
+        value             TYPE clike OPTIONAL
+        icon              TYPE clike OPTIONAL
         withmargin        TYPE clike OPTIONAL
         adaptivefontsize  TYPE clike OPTIONAL
         animatetextchange TYPE clike OPTIONAL
@@ -407,12 +407,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
         indicator         TYPE clike OPTIONAL
         nullifyvalue      TYPE clike OPTIONAL
         scale             TYPE clike OPTIONAL
-        !state            TYPE clike OPTIONAL
+        state             TYPE clike OPTIONAL
         truncatevalueto   TYPE clike OPTIONAL
         valuecolor        TYPE clike OPTIONAL
-        !visible          TYPE clike OPTIONAL
-        !width            TYPE clike OPTIONAL
-        !class            TYPE clike OPTIONAL
+        visible           TYPE clike OPTIONAL
+        width             TYPE clike OPTIONAL
+        class             TYPE clike OPTIONAL
         press             TYPE clike OPTIONAL
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
@@ -429,26 +429,26 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS image_content
       IMPORTING
         src           TYPE clike OPTIONAL
-        !description  TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
+        description   TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS tile_content
       IMPORTING
-        !unit         TYPE clike OPTIONAL
+        unit          TYPE clike OPTIONAL
         footercolor   TYPE clike OPTIONAL
-        !blocked      TYPE clike OPTIONAL
+        blocked       TYPE clike OPTIONAL
         frametype     TYPE clike OPTIONAL
-        !priority     TYPE clike OPTIONAL
+        priority      TYPE clike OPTIONAL
         prioritytext  TYPE clike OPTIONAL
-        !state        TYPE clike OPTIONAL
-        !disabled     TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        state         TYPE clike OPTIONAL
+        disabled      TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
         footer        TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -462,25 +462,25 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS expanded_content
       IMPORTING
-        !ns           TYPE clike
+        ns            TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS snapped_content
       IMPORTING
-        !ns           TYPE clike
+        ns            TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS heading
       IMPORTING
-        !ns           TYPE clike
+        ns            TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS actions
       IMPORTING
-        !ns           TYPE clike
+        ns            TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -490,7 +490,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS header
       IMPORTING
-        !ns           TYPE clike DEFAULT `f`
+        ns            TYPE clike DEFAULT `f`
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -500,9 +500,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS avatar
       IMPORTING
-        !ns               TYPE clike OPTIONAL
+        ns                TYPE clike OPTIONAL
         src               TYPE clike OPTIONAL
-        !class            TYPE clike OPTIONAL
+        class             TYPE clike OPTIONAL
         displaysize       TYPE clike OPTIONAL
         ariahaspopup      TYPE clike OPTIONAL
         backgroundcolor   TYPE clike OPTIONAL
@@ -517,7 +517,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         initials          TYPE clike OPTIONAL
         showborder        TYPE clike OPTIONAL
         decorative        TYPE clike OPTIONAL
-        !enabled          TYPE clike OPTIONAL
+        enabled           TYPE clike OPTIONAL
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
@@ -532,12 +532,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS object_page_section
       IMPORTING
         titleuppercase       TYPE clike OPTIONAL
-        !title               TYPE clike OPTIONAL
+        title                TYPE clike OPTIONAL
         importance           TYPE clike OPTIONAL
-        !id                  TYPE clike OPTIONAL
+        id                   TYPE clike OPTIONAL
         titlelevel           TYPE clike OPTIONAL
         showtitle            TYPE clike OPTIONAL
-        !visible             TYPE clike OPTIONAL
+        visible              TYPE clike OPTIONAL
         wraptitle            TYPE clike OPTIONAL
         anchorbarbuttoncolor TYPE clike OPTIONAL
         titlevisible         TYPE clike OPTIONAL
@@ -550,21 +550,21 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS object_page_sub_section
       IMPORTING
-        !id            TYPE clike OPTIONAL
-        !title         TYPE clike OPTIONAL
-        !mode          TYPE clike OPTIONAL
+        id             TYPE clike OPTIONAL
+        title          TYPE clike OPTIONAL
+        mode           TYPE clike OPTIONAL
         importance     TYPE clike OPTIONAL
         titlelevel     TYPE clike OPTIONAL
         showtitle      TYPE clike OPTIONAL
         titleuppercase TYPE clike OPTIONAL
-        !visible       TYPE clike OPTIONAL
+        visible        TYPE clike OPTIONAL
         titlevisible   TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS shell
       IMPORTING
-        !ns             TYPE clike OPTIONAL
+        ns              TYPE clike OPTIONAL
         appwidthlimited TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
@@ -581,7 +581,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         shownotifications      TYPE abap_bool OPTIONAL
         showproductswitcher    TYPE abap_bool OPTIONAL
         showsearch             TYPE abap_bool OPTIONAL
-        !title                 TYPE clike     OPTIONAL
+        title                  TYPE clike     OPTIONAL
         avatarpressed          TYPE clike     OPTIONAL
         copilotpressed         TYPE clike     OPTIONAL
         homeiconpressed        TYPE clike     OPTIONAL
@@ -599,7 +599,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS layout_data
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -609,17 +609,17 @@ CLASS z2ui5_cl_xml_view DEFINITION
         basesize         TYPE clike OPTIONAL
         backgrounddesign TYPE clike OPTIONAL
         styleclass       TYPE clike OPTIONAL
-        !order           TYPE clike OPTIONAL
+        order            TYPE clike OPTIONAL
         shrinkfactor     TYPE clike OPTIONAL
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS code_editor
       IMPORTING
-        !value        TYPE clike OPTIONAL
-        !type         TYPE clike OPTIONAL
+        value         TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
         height        TYPE clike OPTIONAL
-        !width        TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
         editable      TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -630,10 +630,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS suggestion_item
       IMPORTING
-        !description  TYPE clike OPTIONAL
-        !icon         TYPE clike OPTIONAL
-        !key          TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
+        description   TYPE clike OPTIONAL
+        icon          TYPE clike OPTIONAL
+        key           TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
         textdirection TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -648,11 +648,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS vertical_layout
       IMPORTING
-        !class        TYPE clike OPTIONAL
-        !width        TYPE clike OPTIONAL
-        !enabled      TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
-        !id           TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
+        enabled       TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -660,19 +660,19 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         showclearicon    TYPE clike OPTIONAL
         showvaluehelp    TYPE clike OPTIONAL
-        !name            TYPE clike OPTIONAL
+        name             TYPE clike OPTIONAL
         suggestionitems  TYPE clike OPTIONAL
         tokenupdate      TYPE clike OPTIONAL
-        !width           TYPE clike OPTIONAL
-        !id              TYPE clike OPTIONAL
-        !value           TYPE clike OPTIONAL
-        !tokens          TYPE clike OPTIONAL
-        !submit          TYPE clike OPTIONAL
+        width            TYPE clike OPTIONAL
+        id               TYPE clike OPTIONAL
+        value            TYPE clike OPTIONAL
+        tokens           TYPE clike OPTIONAL
+        submit           TYPE clike OPTIONAL
         valuehelprequest TYPE clike OPTIONAL
-        !enabled         TYPE clike OPTIONAL
-        !class           TYPE clike OPTIONAL
-        !change          TYPE clike OPTIONAL
-        !required        TYPE clike OPTIONAL
+        enabled          TYPE clike OPTIONAL
+        class            TYPE clike OPTIONAL
+        change           TYPE clike OPTIONAL
+        required         TYPE clike OPTIONAL
         valuestate       TYPE clike OPTIONAL
         valuestatetext   TYPE clike OPTIONAL
         placeholder      TYPE clike OPTIONAL
@@ -682,50 +682,50 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS tokens
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS token
       IMPORTING
-        !key          TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
+        key           TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
         selected      TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
         editable      TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS input
       IMPORTING
-        !id                           TYPE clike OPTIONAL
-        !value                        TYPE clike OPTIONAL
+        id                            TYPE clike OPTIONAL
+        value                         TYPE clike OPTIONAL
         placeholder                   TYPE clike OPTIONAL
-        !type                         TYPE clike OPTIONAL
+        type                          TYPE clike OPTIONAL
         showclearicon                 TYPE clike OPTIONAL
         valuestate                    TYPE clike OPTIONAL
         valuestatetext                TYPE clike OPTIONAL
         showtablesuggestionvaluehelp  TYPE clike OPTIONAL
-        !description                  TYPE clike OPTIONAL
+        description                   TYPE clike OPTIONAL
         editable                      TYPE clike OPTIONAL
-        !enabled                      TYPE clike OPTIONAL
+        enabled                       TYPE clike OPTIONAL
         suggestionitems               TYPE clike OPTIONAL
         suggestionrows                TYPE clike OPTIONAL
         showsuggestion                TYPE clike OPTIONAL
         showvaluehelp                 TYPE clike OPTIONAL
         valuehelprequest              TYPE clike OPTIONAL
-        !required                     TYPE clike OPTIONAL
+        required                      TYPE clike OPTIONAL
         suggest                       TYPE clike OPTIONAL
-        !class                        TYPE clike OPTIONAL
-        !visible                      TYPE clike OPTIONAL
-        !submit                       TYPE clike OPTIONAL
+        class                         TYPE clike OPTIONAL
+        visible                       TYPE clike OPTIONAL
+        submit                        TYPE clike OPTIONAL
         valueliveupdate               TYPE clike OPTIONAL
         autocomplete                  TYPE clike OPTIONAL
         maxsuggestionwidth            TYPE clike OPTIONAL
         fieldwidth                    TYPE clike OPTIONAL
         valuehelponly                 TYPE clike OPTIONAL
-        !width                        TYPE clike OPTIONAL
-        !change                       TYPE clike OPTIONAL
+        width                         TYPE clike OPTIONAL
+        change                        TYPE clike OPTIONAL
         valuehelpiconsrc              TYPE clike OPTIONAL
         textformatter                 TYPE clike OPTIONAL
         textformatmode                TYPE clike OPTIONAL
@@ -741,8 +741,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS dialog
       IMPORTING
-        !title              TYPE clike OPTIONAL
-        !icon               TYPE clike OPTIONAL
+        title               TYPE clike OPTIONAL
+        icon                TYPE clike OPTIONAL
         showheader          TYPE clike OPTIONAL
         stretch             TYPE clike OPTIONAL
         contentheight       TYPE clike OPTIONAL
@@ -757,9 +757,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
         draggable           TYPE clike OPTIONAL
         closeonnavigation   TYPE clike OPTIONAL
         escapehandler       TYPE clike OPTIONAL
-        !type               TYPE clike OPTIONAL
+        type                TYPE clike OPTIONAL
         titlealignment      TYPE clike OPTIONAL
-        !state              TYPE clike OPTIONAL
+        state               TYPE clike OPTIONAL
                   PREFERRED PARAMETER title
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
@@ -767,17 +767,17 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS carousel
       IMPORTING
         height                        TYPE clike OPTIONAL
-        !class                        TYPE clike OPTIONAL
-        !loop                         TYPE clike OPTIONAL
-        !id                           TYPE clike OPTIONAL
+        class                         TYPE clike OPTIONAL
+        loop                          TYPE clike OPTIONAL
+        id                            TYPE clike OPTIONAL
         arrowsplacement               TYPE clike OPTIONAL
         backgrounddesign              TYPE clike OPTIONAL
         pageindicatorbackgrounddesign TYPE clike OPTIONAL
         pageindicatorborderdesign     TYPE clike OPTIONAL
         pageindicatorplacement        TYPE clike OPTIONAL
-        !width                        TYPE clike OPTIONAL
+        width                         TYPE clike OPTIONAL
         showpageindicator             TYPE clike OPTIONAL
-        !visible                      TYPE clike OPTIONAL
+        visible                       TYPE clike OPTIONAL
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
@@ -795,36 +795,36 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS get
       IMPORTING
-        !name         TYPE string OPTIONAL
+        name          TYPE string OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS get_child
       IMPORTING
-        !index        TYPE i DEFAULT 1
+        index         TYPE i DEFAULT 1
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS columns
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS analytical_column
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS column
       IMPORTING
-        !width            TYPE clike OPTIONAL
-        !id               TYPE clike OPTIONAL
+        width             TYPE clike OPTIONAL
+        id                TYPE clike OPTIONAL
         minscreenwidth    TYPE clike OPTIONAL
         demandpopin       TYPE clike OPTIONAL
         halign            TYPE clike OPTIONAL
-        !visible          TYPE clike OPTIONAL
+        visible           TYPE clike OPTIONAL
         valign            TYPE clike OPTIONAL
         styleclass        TYPE clike OPTIONAL
         sortindicator     TYPE clike OPTIONAL
@@ -833,7 +833,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         mergeduplicates   TYPE clike OPTIONAL
         importance        TYPE clike OPTIONAL
         autopopinwidth    TYPE clike OPTIONAL
-        !class            TYPE clike OPTIONAL
+        class             TYPE clike OPTIONAL
         headermenu        TYPE clike OPTIONAL
                   PREFERRED PARAMETER width
       RETURNING
@@ -841,7 +841,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS items
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -865,10 +865,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS interact_donut_chart_segment
       IMPORTING
         label          TYPE clike OPTIONAL
-        !value         TYPE clike OPTIONAL
+        value          TYPE clike OPTIONAL
         displayedvalue TYPE clike OPTIONAL
         selected       TYPE clike OPTIONAL
-        !color         TYPE clike OPTIONAL
+        color          TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
@@ -883,8 +883,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         showerror         TYPE clike OPTIONAL
         displayedbars     TYPE clike OPTIONAL
         bars              TYPE clike OPTIONAL
-        !max              TYPE clike OPTIONAL
-        !min              TYPE clike OPTIONAL
+        max               TYPE clike OPTIONAL
+        min               TYPE clike OPTIONAL
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
@@ -895,10 +895,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS interact_bar_chart_bar
       IMPORTING
         label          TYPE clike OPTIONAL
-        !value         TYPE clike OPTIONAL
+        value          TYPE clike OPTIONAL
         displayedvalue TYPE clike OPTIONAL
         selected       TYPE clike OPTIONAL
-        !color         TYPE clike OPTIONAL
+        color          TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
@@ -924,7 +924,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS interact_line_chart_point
       IMPORTING
         label          TYPE clike OPTIONAL
-        !value         TYPE clike OPTIONAL
+        value          TYPE clike OPTIONAL
         secondarylabel TYPE clike OPTIONAL
         displayedvalue TYPE clike OPTIONAL
         selected       TYPE clike OPTIONAL
@@ -933,8 +933,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS radial_micro_chart
       IMPORTING
-        !size         TYPE clike OPTIONAL
-        !percentage   TYPE clike OPTIONAL
+        size          TYPE clike OPTIONAL
+        percentage    TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
         valuecolor    TYPE clike OPTIONAL
         height        TYPE clike OPTIONAL
@@ -945,25 +945,25 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS column_list_item
       IMPORTING
-        !id           TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
         valign        TYPE clike OPTIONAL
         selected      TYPE clike OPTIONAL
-        !type         TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
         counter       TYPE clike OPTIONAL
         highlight     TYPE clike OPTIONAL
         highlighttext TYPE clike OPTIONAL
         navigated     TYPE clike OPTIONAL
         unread        TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
         detailpress   TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS action_list_item
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -989,15 +989,15 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS content_areas
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS field
       IMPORTING
-        !ns                TYPE clike OPTIONAL
-        !id                TYPE clike OPTIONAL
-        !value             TYPE clike OPTIONAL
+        ns                 TYPE clike OPTIONAL
+        id                 TYPE clike OPTIONAL
+        value              TYPE clike OPTIONAL
         editmode           TYPE clike OPTIONAL
         showemptyindicator TYPE clike OPTIONAL
       RETURNING
@@ -1009,62 +1009,62 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS header_content
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS sub_header
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS custom_data
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS core_custom_data
       IMPORTING
-        !key          TYPE clike OPTIONAL
-        !value        TYPE clike OPTIONAL
+        key           TYPE clike OPTIONAL
+        value         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS badge_custom_data
       IMPORTING
-        !key          TYPE clike OPTIONAL
-        !value        TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        key           TYPE clike OPTIONAL
+        value         TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS toggle_button
       IMPORTING
-        !text         TYPE clike OPTIONAL
-        !icon         TYPE clike OPTIONAL
-        !type         TYPE clike OPTIONAL
-        !enabled      TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
+        icon          TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
+        enabled       TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
         pressed       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS button
       IMPORTING
-        !text            TYPE clike OPTIONAL
-        !icon            TYPE clike OPTIONAL
-        !type            TYPE clike OPTIONAL
-        !enabled         TYPE clike OPTIONAL
-        !visible         TYPE clike OPTIONAL
+        text             TYPE clike OPTIONAL
+        icon             TYPE clike OPTIONAL
+        type             TYPE clike OPTIONAL
+        enabled          TYPE clike OPTIONAL
+        visible          TYPE clike OPTIONAL
         press            TYPE clike OPTIONAL
-        !class           TYPE clike OPTIONAL
-        !id              TYPE clike OPTIONAL
-        !ns              TYPE clike OPTIONAL
+        class            TYPE clike OPTIONAL
+        id               TYPE clike OPTIONAL
+        ns               TYPE clike OPTIONAL
         tooltip          TYPE clike OPTIONAL
-        !width           TYPE clike OPTIONAL
+        width            TYPE clike OPTIONAL
         iconfirst        TYPE clike OPTIONAL
         icondensityaware TYPE clike OPTIONAL
         ariahaspopup     TYPE clike OPTIONAL
@@ -1086,21 +1086,21 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS search_field
       IMPORTING
-        !search           TYPE clike OPTIONAL
-        !width            TYPE clike OPTIONAL
-        !value            TYPE clike OPTIONAL
-        !id               TYPE clike OPTIONAL
-        !class            TYPE clike OPTIONAL
-        !change           TYPE clike OPTIONAL
+        search            TYPE clike OPTIONAL
+        width             TYPE clike OPTIONAL
+        value             TYPE clike OPTIONAL
+        id                TYPE clike OPTIONAL
+        class             TYPE clike OPTIONAL
+        change            TYPE clike OPTIONAL
         livechange        TYPE clike OPTIONAL
         suggest           TYPE clike OPTIONAL
-        !enabled          TYPE clike OPTIONAL
+        enabled           TYPE clike OPTIONAL
         enablesuggestions TYPE clike OPTIONAL
         maxlength         TYPE clike OPTIONAL
         placeholder       TYPE clike OPTIONAL
         showrefreshbutton TYPE clike OPTIONAL
         showsearchbutton  TYPE clike OPTIONAL
-        !visible          TYPE clike OPTIONAL
+        visible           TYPE clike OPTIONAL
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1113,7 +1113,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS barcode_scanner_button
       IMPORTING
-        !id             TYPE clike OPTIONAL
+        id              TYPE clike OPTIONAL
         scansuccess     TYPE clike OPTIONAL
         scanfail        TYPE clike OPTIONAL
         inputliveupdate TYPE clike OPTIONAL
@@ -1136,10 +1136,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS message_item
       IMPORTING
-        !type             TYPE clike OPTIONAL
-        !title            TYPE clike OPTIONAL
+        type              TYPE clike OPTIONAL
+        title             TYPE clike OPTIONAL
         subtitle          TYPE clike OPTIONAL
-        !description      TYPE clike OPTIONAL
+        description       TYPE clike OPTIONAL
         groupname         TYPE clike OPTIONAL
         markupdescription TYPE clike OPTIONAL
         textdirection     TYPE clike OPTIONAL
@@ -1151,13 +1151,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS page
       IMPORTING
-        !title           TYPE clike OPTIONAL
+        title            TYPE clike OPTIONAL
         navbuttonpress   TYPE clike OPTIONAL
         shownavbutton    TYPE clike OPTIONAL
         showheader       TYPE clike OPTIONAL
-        !id              TYPE clike OPTIONAL
-        !class           TYPE clike OPTIONAL
-        !ns              TYPE clike OPTIONAL
+        id               TYPE clike OPTIONAL
+        class            TYPE clike OPTIONAL
+        ns               TYPE clike OPTIONAL
         backgrounddesign TYPE clike OPTIONAL
         contentonlybusy  TYPE clike OPTIONAL
         enablescrolling  TYPE clike OPTIONAL
@@ -1173,11 +1173,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS menu_button
       IMPORTING
-        !text         TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
         activeicon    TYPE clike OPTIONAL
         buttonmode    TYPE clike OPTIONAL
-        !type         TYPE clike OPTIONAL
-        !enabled      TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
+        enabled       TYPE clike OPTIONAL
         defaultaction TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -1189,78 +1189,78 @@ CLASS z2ui5_cl_xml_view DEFINITION
         headertext       TYPE clike OPTIONAL
         stickyheader     TYPE clike OPTIONAL
         height           TYPE clike OPTIONAL
-        !class           TYPE clike OPTIONAL
-        !id              TYPE clike OPTIONAL
-        !width           TYPE clike OPTIONAL
+        class            TYPE clike OPTIONAL
+        id               TYPE clike OPTIONAL
+        width            TYPE clike OPTIONAL
         backgrounddesign TYPE clike OPTIONAL
         expandanimation  TYPE clike OPTIONAL
-        !visible         TYPE clike OPTIONAL
-        !expand          TYPE clike OPTIONAL
+        visible          TYPE clike OPTIONAL
+        expand           TYPE clike OPTIONAL
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS vbox
       IMPORTING
-        !id              TYPE clike OPTIONAL
+        id               TYPE clike OPTIONAL
         height           TYPE clike OPTIONAL
         justifycontent   TYPE clike OPTIONAL
-        !class           TYPE clike OPTIONAL
+        class            TYPE clike OPTIONAL
         rendertype       TYPE clike OPTIONAL
         aligncontent     TYPE clike OPTIONAL
         direction        TYPE clike OPTIONAL
         alignitems       TYPE clike OPTIONAL
-        !width           TYPE clike OPTIONAL
-        !wrap            TYPE clike OPTIONAL
+        width            TYPE clike OPTIONAL
+        wrap             TYPE clike OPTIONAL
         backgrounddesign TYPE clike OPTIONAL
         displayinline    TYPE clike OPTIONAL
         fitcontainer     TYPE clike OPTIONAL
-        !visible         TYPE clike OPTIONAL
+        visible          TYPE clike OPTIONAL
           PREFERRED PARAMETER class
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS hbox
       IMPORTING
-        !id              TYPE clike OPTIONAL
-        !class           TYPE clike OPTIONAL
+        id               TYPE clike OPTIONAL
+        class            TYPE clike OPTIONAL
         justifycontent   TYPE clike OPTIONAL
         aligncontent     TYPE clike OPTIONAL
         alignitems       TYPE clike OPTIONAL
-        !width           TYPE clike OPTIONAL
+        width            TYPE clike OPTIONAL
         height           TYPE clike OPTIONAL
         rendertype       TYPE clike OPTIONAL
-        !wrap            TYPE clike OPTIONAL
+        wrap             TYPE clike OPTIONAL
         backgrounddesign TYPE clike OPTIONAL
         direction        TYPE clike OPTIONAL
         displayinline    TYPE clike OPTIONAL
         fitcontainer     TYPE clike OPTIONAL
-        !visible         TYPE clike OPTIONAL
+        visible          TYPE clike OPTIONAL
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS scroll_container
       IMPORTING
         height        TYPE clike OPTIONAL
-        !width        TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
         vertical      TYPE clike OPTIONAL
         horizontal    TYPE clike OPTIONAL
-        !id           TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
         focusable     TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
                   PREFERRED PARAMETER height
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS simple_form
       IMPORTING
-        !title                  TYPE clike OPTIONAL
-        !layout                 TYPE clike OPTIONAL
-        !class                  TYPE clike OPTIONAL
+        title                   TYPE clike OPTIONAL
+        layout                  TYPE clike OPTIONAL
+        class                   TYPE clike OPTIONAL
         editable                TYPE clike OPTIONAL
         columnsxl               TYPE clike OPTIONAL
         columnsl                TYPE clike OPTIONAL
         columnsm                TYPE clike OPTIONAL
-        !id                     TYPE clike OPTIONAL
+        id                      TYPE clike OPTIONAL
         adjustlabelspan         TYPE clike OPTIONAL
         backgrounddesign        TYPE clike OPTIONAL
         breakpointl             TYPE clike OPTIONAL
@@ -1277,8 +1277,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         maxcontainercols        TYPE clike OPTIONAL
         minwidth                TYPE clike OPTIONAL
         singlecontainerfullsize TYPE clike OPTIONAL
-        !visible                TYPE clike OPTIONAL
-        !width                  TYPE clike OPTIONAL
+        visible                 TYPE clike OPTIONAL
+        width                   TYPE clike OPTIONAL
                   PREFERRED PARAMETER title
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
@@ -1291,24 +1291,24 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS content
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS title
       IMPORTING
-        !ns           TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
         wrapping      TYPE clike OPTIONAL
-        !level        TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
-        !id           TYPE clike OPTIONAL
+        level         TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
         textalign     TYPE clike OPTIONAL
         textdirection TYPE clike OPTIONAL
         titlestyle    TYPE clike OPTIONAL
-        !width        TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
         wrappingtype  TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
                   PREFERRED PARAMETER text
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -1319,7 +1319,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS tab
       IMPORTING
-        !text         TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
         selected      TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -1327,27 +1327,27 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS overflow_toolbar
       IMPORTING
         press         TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
         active        TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
         asyncmode     TYPE clike OPTIONAL
-        !enabled      TYPE clike OPTIONAL
+        enabled       TYPE clike OPTIONAL
         design        TYPE clike OPTIONAL
-        !type         TYPE clike OPTIONAL
-        !style        TYPE clike OPTIONAL
-        !width        TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
+        style         TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
         height        TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
-        !id           TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS overflow_toolbar_toggle_button
       IMPORTING
-        !text         TYPE clike OPTIONAL
-        !icon         TYPE clike OPTIONAL
-        !type         TYPE clike OPTIONAL
-        !enabled      TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
+        icon          TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
+        enabled       TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
         tooltip       TYPE clike OPTIONAL
       RETURNING
@@ -1355,11 +1355,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS overflow_toolbar_button
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
-        !icon         TYPE clike OPTIONAL
-        !type         TYPE clike OPTIONAL
-        !enabled      TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
+        icon          TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
+        enabled       TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
         tooltip       TYPE clike OPTIONAL
       RETURNING
@@ -1367,11 +1367,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS overflow_toolbar_menu_button
       IMPORTING
-        !text         TYPE clike OPTIONAL
-        !icon         TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
+        icon          TYPE clike OPTIONAL
         buttonmode    TYPE clike OPTIONAL
-        !type         TYPE clike OPTIONAL
-        !enabled      TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
+        enabled       TYPE clike OPTIONAL
         tooltip       TYPE clike OPTIONAL
         defaultaction TYPE clike OPTIONAL
       RETURNING
@@ -1380,34 +1380,34 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS menu_item
       IMPORTING
         press         TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
-        !icon         TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
+        icon          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS toolbar_spacer
       IMPORTING
-        !ns           TYPE clike OPTIONAL
-        !width        TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS label
       IMPORTING
-        !text         TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
         labelfor      TYPE clike OPTIONAL
         design        TYPE clike OPTIONAL
         displayonly   TYPE clike OPTIONAL
-        !required     TYPE clike OPTIONAL
+        required      TYPE clike OPTIONAL
         showcolon     TYPE clike OPTIONAL
         textalign     TYPE clike OPTIONAL
         textdirection TYPE clike OPTIONAL
         valign        TYPE clike OPTIONAL
-        !width        TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
         wrapping      TYPE clike OPTIONAL
         wrappingtype  TYPE clike OPTIONAL
-        !id           TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
                   PREFERRED PARAMETER text
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -1415,11 +1415,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS image
       IMPORTING
         src                TYPE clike OPTIONAL
-        !class             TYPE clike OPTIONAL
+        class              TYPE clike OPTIONAL
         height             TYPE clike OPTIONAL
-        !width             TYPE clike OPTIONAL
+        width              TYPE clike OPTIONAL
         usemap             TYPE clike OPTIONAL
-        !mode              TYPE clike OPTIONAL
+        mode               TYPE clike OPTIONAL
         lazyloading        TYPE clike OPTIONAL
         densityaware       TYPE clike OPTIONAL
         decorative         TYPE clike OPTIONAL
@@ -1430,39 +1430,39 @@ CLASS z2ui5_cl_xml_view DEFINITION
         alt                TYPE clike OPTIONAL
         activesrc          TYPE clike OPTIONAL
         press              TYPE clike OPTIONAL
-        !load              TYPE clike OPTIONAL
-        !error             TYPE clike OPTIONAL
-        !id                TYPE clike OPTIONAL
+        load               TYPE clike OPTIONAL
+        error              TYPE clike OPTIONAL
+        id                 TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS date_picker
       IMPORTING
-        !value                  TYPE clike OPTIONAL
+        value                   TYPE clike OPTIONAL
         placeholder             TYPE clike OPTIONAL
         displayformat           TYPE clike OPTIONAL
         valueformat             TYPE clike OPTIONAL
-        !required               TYPE clike OPTIONAL
+        required                TYPE clike OPTIONAL
         valuestate              TYPE clike OPTIONAL
         valuestatetext          TYPE clike OPTIONAL
-        !enabled                TYPE clike OPTIONAL
+        enabled                 TYPE clike OPTIONAL
         showcurrentdatebutton   TYPE clike OPTIONAL
-        !change                 TYPE clike OPTIONAL
+        change                  TYPE clike OPTIONAL
         hideinput               TYPE clike OPTIONAL
         showfooter              TYPE clike OPTIONAL
-        !visible                TYPE clike OPTIONAL
+        visible                 TYPE clike OPTIONAL
         showvaluestatemessage   TYPE clike OPTIONAL
         mindate                 TYPE clike OPTIONAL
         maxdate                 TYPE clike OPTIONAL
         editable                TYPE clike OPTIONAL
-        !width                  TYPE clike OPTIONAL
-        !id                     TYPE clike OPTIONAL
+        width                   TYPE clike OPTIONAL
+        id                      TYPE clike OPTIONAL
         calendarweeknumbering   TYPE clike OPTIONAL
         displayformattype       TYPE clike OPTIONAL
-        !class                  TYPE clike OPTIONAL
+        class                   TYPE clike OPTIONAL
         textdirection           TYPE clike OPTIONAL
         textalign               TYPE clike OPTIONAL
-        !name                   TYPE clike OPTIONAL
+        name                    TYPE clike OPTIONAL
         datevalue               TYPE clike OPTIONAL
         initialfocuseddatevalue TYPE clike OPTIONAL
                   PREFERRED PARAMETER value
@@ -1471,35 +1471,35 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS time_picker
       IMPORTING
-        !value                  TYPE clike OPTIONAL
+        value                   TYPE clike OPTIONAL
         placeholder             TYPE clike OPTIONAL
-        !enabled                TYPE clike OPTIONAL
+        enabled                 TYPE clike OPTIONAL
         valuestate              TYPE clike OPTIONAL
         displayformat           TYPE clike OPTIONAL
         valueformat             TYPE clike OPTIONAL
-        !required               TYPE clike OPTIONAL
-        !width                  TYPE clike OPTIONAL
+        required                TYPE clike OPTIONAL
+        width                   TYPE clike OPTIONAL
         datevalue               TYPE clike OPTIONAL
         localeid                TYPE clike OPTIONAL
-        !mask                   TYPE clike OPTIONAL
+        mask                    TYPE clike OPTIONAL
         maskmode                TYPE clike OPTIONAL
         minutesstep             TYPE clike OPTIONAL
-        !name                   TYPE clike OPTIONAL
+        name                    TYPE clike OPTIONAL
         placeholdersymbol       TYPE clike OPTIONAL
         secondsstep             TYPE clike OPTIONAL
         textalign               TYPE clike OPTIONAL
         textdirection           TYPE clike OPTIONAL
-        !title                  TYPE clike OPTIONAL
+        title                   TYPE clike OPTIONAL
         showcurrenttimebutton   TYPE clike OPTIONAL
         showvaluestatemessage   TYPE clike OPTIONAL
         support2400             TYPE clike OPTIONAL
         initialfocuseddatevalue TYPE clike OPTIONAL
         hideinput               TYPE clike OPTIONAL
         editable                TYPE clike OPTIONAL
-        !visible                TYPE clike OPTIONAL
+        visible                 TYPE clike OPTIONAL
         valuestatetext          TYPE clike OPTIONAL
         livechange              TYPE clike OPTIONAL
-        !change                 TYPE clike OPTIONAL
+        change                  TYPE clike OPTIONAL
         aftervaluehelpopen      TYPE clike OPTIONAL
         aftervaluehelpclose     TYPE clike OPTIONAL
                   PREFERRED PARAMETER value
@@ -1508,9 +1508,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS date_time_picker
       IMPORTING
-        !value        TYPE clike OPTIONAL
+        value         TYPE clike OPTIONAL
         placeholder   TYPE clike OPTIONAL
-        !enabled      TYPE clike OPTIONAL
+        enabled       TYPE clike OPTIONAL
         valuestate    TYPE clike OPTIONAL
                   PREFERRED PARAMETER value
       RETURNING
@@ -1518,15 +1518,15 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS link
       IMPORTING
-        !text              TYPE clike OPTIONAL
+        text               TYPE clike OPTIONAL
         href               TYPE clike OPTIONAL
-        !target            TYPE clike OPTIONAL
-        !enabled           TYPE clike OPTIONAL
+        target             TYPE clike OPTIONAL
+        enabled            TYPE clike OPTIONAL
         press              TYPE clike OPTIONAL
-        !id                TYPE clike OPTIONAL
-        !ns                TYPE clike OPTIONAL
+        id                 TYPE clike OPTIONAL
+        ns                 TYPE clike OPTIONAL
         wrapping           TYPE clike OPTIONAL
-        !width             TYPE clike OPTIONAL
+        width              TYPE clike OPTIONAL
         validateurl        TYPE clike OPTIONAL
         textdirection      TYPE clike OPTIONAL
         textalign          TYPE clike OPTIONAL
@@ -1536,9 +1536,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
         emphasized         TYPE clike OPTIONAL
         ariahaspopup       TYPE clike OPTIONAL
         accessiblerole     TYPE clike OPTIONAL
-        !class             TYPE clike OPTIONAL
+        class              TYPE clike OPTIONAL
         endicon            TYPE clike OPTIONAL
-        !icon              TYPE clike OPTIONAL
+        icon               TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1546,7 +1546,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         headertext             TYPE clike OPTIONAL
         items                  TYPE clike OPTIONAL
-        !mode                  TYPE clike OPTIONAL
+        mode                   TYPE clike OPTIONAL
         selectionchange        TYPE clike OPTIONAL
         showseparators         TYPE clike OPTIONAL
         footertext             TYPE clike OPTIONAL
@@ -1565,13 +1565,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
         backgrounddesign       TYPE clike OPTIONAL
         rememberselections     TYPE clike OPTIONAL
         showunread             TYPE clike OPTIONAL
-        !visible               TYPE clike OPTIONAL
+        visible                TYPE clike OPTIONAL
         nodata                 TYPE clike OPTIONAL
-        !id                    TYPE clike OPTIONAL
+        id                     TYPE clike OPTIONAL
         itempress              TYPE clike OPTIONAL
-        !select                TYPE clike OPTIONAL
-        !delete                TYPE clike OPTIONAL
-        !class                 TYPE clike OPTIONAL
+        select                 TYPE clike OPTIONAL
+        delete                 TYPE clike OPTIONAL
+        class                  TYPE clike OPTIONAL
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1587,12 +1587,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS standard_list_item
       IMPORTING
-        !title            TYPE clike OPTIONAL
-        !description      TYPE clike OPTIONAL
-        !icon             TYPE clike OPTIONAL
+        title             TYPE clike OPTIONAL
+        description       TYPE clike OPTIONAL
+        icon              TYPE clike OPTIONAL
         info              TYPE clike OPTIONAL
         press             TYPE clike OPTIONAL
-        !type             TYPE clike OPTIONAL
+        type              TYPE clike OPTIONAL
         selected          TYPE clike OPTIONAL
         counter           TYPE clike OPTIONAL
         wrapping          TYPE clike OPTIONAL
@@ -1609,20 +1609,20 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS item
       IMPORTING
-        !key          TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
+        key           TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS segmented_button_item
       IMPORTING
-        !icon         TYPE clike OPTIONAL
-        !key          TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
-        !width        TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        icon          TYPE clike OPTIONAL
+        key           TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
         textdirection TYPE clike OPTIONAL
-        !enabled      TYPE clike OPTIONAL
+        enabled       TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -1634,25 +1634,25 @@ CLASS z2ui5_cl_xml_view DEFINITION
         selectionchange       TYPE clike OPTIONAL
         selecteditem          TYPE clike OPTIONAL
         items                 TYPE clike OPTIONAL
-        !change               TYPE clike OPTIONAL
-        !width                TYPE clike OPTIONAL
+        change                TYPE clike OPTIONAL
+        width                 TYPE clike OPTIONAL
         showsecondaryvalues   TYPE clike OPTIONAL
         placeholder           TYPE clike OPTIONAL
         selecteditemid        TYPE clike OPTIONAL
-        !name                 TYPE clike OPTIONAL
-        !value                TYPE clike OPTIONAL
+        name                  TYPE clike OPTIONAL
+        value                 TYPE clike OPTIONAL
         valuestate            TYPE clike OPTIONAL
         valuestatetext        TYPE clike OPTIONAL
         textalign             TYPE clike OPTIONAL
-        !visible              TYPE clike OPTIONAL
+        visible               TYPE clike OPTIONAL
         showvaluestatemessage TYPE clike OPTIONAL
         showbutton            TYPE clike OPTIONAL
-        !required             TYPE clike OPTIONAL
+        required              TYPE clike OPTIONAL
         editable              TYPE clike OPTIONAL
-        !enabled              TYPE clike OPTIONAL
+        enabled               TYPE clike OPTIONAL
         filtersecondaryvalues TYPE clike OPTIONAL
-        !id                   TYPE clike OPTIONAL
-        !class                TYPE clike OPTIONAL
+        id                    TYPE clike OPTIONAL
+        class                 TYPE clike OPTIONAL
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1663,38 +1663,38 @@ CLASS z2ui5_cl_xml_view DEFINITION
         selecteditems         TYPE clike OPTIONAL
         items                 TYPE clike OPTIONAL
         selectionfinish       TYPE clike OPTIONAL
-        !width                TYPE clike OPTIONAL
+        width                 TYPE clike OPTIONAL
         showclearicon         TYPE clike OPTIONAL
         showsecondaryvalues   TYPE clike OPTIONAL
         placeholder           TYPE clike OPTIONAL
         selecteditemid        TYPE clike OPTIONAL
         selectedkey           TYPE clike OPTIONAL
-        !name                 TYPE clike OPTIONAL
-        !value                TYPE clike OPTIONAL
+        name                  TYPE clike OPTIONAL
+        value                 TYPE clike OPTIONAL
         valuestate            TYPE clike OPTIONAL
         valuestatetext        TYPE clike OPTIONAL
         textalign             TYPE clike OPTIONAL
-        !visible              TYPE clike OPTIONAL
+        visible               TYPE clike OPTIONAL
         showvaluestatemessage TYPE clike OPTIONAL
         showbutton            TYPE clike OPTIONAL
-        !required             TYPE clike OPTIONAL
+        required              TYPE clike OPTIONAL
         editable              TYPE clike OPTIONAL
-        !enabled              TYPE clike OPTIONAL
+        enabled               TYPE clike OPTIONAL
         filtersecondaryvalues TYPE clike OPTIONAL
         showselectall         TYPE clike OPTIONAL
-        !id                   TYPE clike OPTIONAL
-        !class                TYPE clike OPTIONAL
+        id                    TYPE clike OPTIONAL
+        class                 TYPE clike OPTIONAL
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS grid
       IMPORTING
-        !class         TYPE clike OPTIONAL
+        class          TYPE clike OPTIONAL
         default_span   TYPE clike OPTIONAL
         containerquery TYPE clike OPTIONAL
         hspacing       TYPE clike OPTIONAL
         vspacing       TYPE clike OPTIONAL
-        !width         TYPE clike OPTIONAL
+        width          TYPE clike OPTIONAL
                   PREFERRED PARAMETER default_span
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
@@ -1711,19 +1711,19 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS text_area
       IMPORTING
-        !value                TYPE clike OPTIONAL
-        !rows                 TYPE clike OPTIONAL
+        value                 TYPE clike OPTIONAL
+        rows                  TYPE clike OPTIONAL
         cols                  TYPE clike OPTIONAL
         height                TYPE clike OPTIONAL
-        !class                TYPE clike OPTIONAL
-        !width                TYPE clike OPTIONAL
+        class                 TYPE clike OPTIONAL
+        width                 TYPE clike OPTIONAL
         valueliveupdate       TYPE clike OPTIONAL
         editable              TYPE clike OPTIONAL
-        !enabled              TYPE clike OPTIONAL
+        enabled               TYPE clike OPTIONAL
         growing               TYPE clike OPTIONAL
         growingmaxlines       TYPE clike OPTIONAL
-        !id                   TYPE clike OPTIONAL
-        !required             TYPE clike OPTIONAL
+        id                    TYPE clike OPTIONAL
+        required              TYPE clike OPTIONAL
         placeholder           TYPE clike OPTIONAL
         valuestate            TYPE clike OPTIONAL
         valuestatetext        TYPE clike OPTIONAL
@@ -1739,30 +1739,30 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS range_slider
       IMPORTING
-        !max          TYPE clike OPTIONAL
-        !min          TYPE clike OPTIONAL
-        !step         TYPE clike OPTIONAL
+        max           TYPE clike OPTIONAL
+        min           TYPE clike OPTIONAL
+        step          TYPE clike OPTIONAL
         startvalue    TYPE clike OPTIONAL
         endvalue      TYPE clike OPTIONAL
         showtickmarks TYPE clike OPTIONAL
         labelinterval TYPE clike OPTIONAL
-        !width        TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
-        !id           TYPE clike OPTIONAL
-        !value        TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        value         TYPE clike OPTIONAL
         value2        TYPE clike OPTIONAL
-        !change       TYPE clike OPTIONAL
+        change        TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS generic_tag
       IMPORTING
-        !id            TYPE clike OPTIONAL
+        id             TYPE clike OPTIONAL
         arialabelledby TYPE clike OPTIONAL
-        !text          TYPE clike OPTIONAL
+        text           TYPE clike OPTIONAL
         design         TYPE clike OPTIONAL
-        !status        TYPE clike OPTIONAL
-        !class         TYPE clike OPTIONAL
+        status         TYPE clike OPTIONAL
+        class          TYPE clike OPTIONAL
         press          TYPE clike OPTIONAL
         valuestate     TYPE clike OPTIONAL
       RETURNING
@@ -1770,56 +1770,56 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS object_attribute
       IMPORTING
-        !title        TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
+        title         TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
         active        TYPE clike OPTIONAL
         ariahaspopup  TYPE clike OPTIONAL
         textdirection TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS object_number
       IMPORTING
-        !state             TYPE clike OPTIONAL
+        state              TYPE clike OPTIONAL
         emphasized         TYPE clike OPTIONAL
-        !number            TYPE clike OPTIONAL
+        number             TYPE clike OPTIONAL
         textdirection      TYPE clike OPTIONAL
         textalign          TYPE clike OPTIONAL
         numberunit         TYPE clike OPTIONAL
-        !inverted          TYPE clike OPTIONAL
+        inverted           TYPE clike OPTIONAL
         emptyindicatormode TYPE clike OPTIONAL
         active             TYPE clike OPTIONAL
-        !unit              TYPE clike OPTIONAL
-        !visible           TYPE clike OPTIONAL
-        !class             TYPE clike OPTIONAL
-        !id                TYPE clike OPTIONAL
+        unit               TYPE clike OPTIONAL
+        visible            TYPE clike OPTIONAL
+        class              TYPE clike OPTIONAL
+        id                 TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS switch
       IMPORTING
-        !state        TYPE clike OPTIONAL
+        state         TYPE clike OPTIONAL
         customtexton  TYPE clike OPTIONAL
         customtextoff TYPE clike OPTIONAL
-        !enabled      TYPE clike OPTIONAL
-        !change       TYPE clike OPTIONAL
-        !type         TYPE clike OPTIONAL
+        enabled       TYPE clike OPTIONAL
+        change        TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS step_input
       IMPORTING
-        !id                   TYPE clike OPTIONAL
-        !value                TYPE clike OPTIONAL
-        !min                  TYPE clike OPTIONAL
-        !max                  TYPE clike OPTIONAL
-        !step                 TYPE clike OPTIONAL
-        !width                TYPE clike OPTIONAL
+        id                    TYPE clike OPTIONAL
+        value                 TYPE clike OPTIONAL
+        min                   TYPE clike OPTIONAL
+        max                   TYPE clike OPTIONAL
+        step                  TYPE clike OPTIONAL
+        width                 TYPE clike OPTIONAL
         valuestate            TYPE clike OPTIONAL
-        !enabled              TYPE clike OPTIONAL
-        !description          TYPE clike OPTIONAL
+        enabled               TYPE clike OPTIONAL
+        description           TYPE clike OPTIONAL
         displayvalueprecision TYPE clike OPTIONAL
         largerstep            TYPE clike OPTIONAL
         stepmode              TYPE clike OPTIONAL
@@ -1827,18 +1827,18 @@ CLASS z2ui5_cl_xml_view DEFINITION
         fieldwidth            TYPE clike OPTIONAL
         textalign             TYPE clike OPTIONAL
         validationmode        TYPE clike OPTIONAL
-        !change               TYPE clike OPTIONAL
+        change                TYPE clike OPTIONAL
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS progress_indicator
       IMPORTING
-        !class        TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
         percentvalue  TYPE clike OPTIONAL
         displayvalue  TYPE clike OPTIONAL
         showvalue     TYPE clike OPTIONAL
-        !state        TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        state         TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1846,34 +1846,34 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         selected_key     TYPE clike OPTIONAL
         selection_change TYPE clike OPTIONAL
-        !id              TYPE clike OPTIONAL
-        !visible         TYPE clike OPTIONAL
-        !enabled         TYPE clike OPTIONAL
+        id               TYPE clike OPTIONAL
+        visible          TYPE clike OPTIONAL
+        enabled          TYPE clike OPTIONAL
                   PREFERRED PARAMETER selected_key
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS checkbox
       IMPORTING
-        !text             TYPE clike OPTIONAL
+        text              TYPE clike OPTIONAL
         selected          TYPE clike OPTIONAL
-        !enabled          TYPE clike OPTIONAL
-        !select           TYPE clike OPTIONAL
-        !id               TYPE clike OPTIONAL
-        !class            TYPE clike OPTIONAL
+        enabled           TYPE clike OPTIONAL
+        select            TYPE clike OPTIONAL
+        id                TYPE clike OPTIONAL
+        class             TYPE clike OPTIONAL
         textalign         TYPE clike OPTIONAL
         textdirection     TYPE clike OPTIONAL
-        !width            TYPE clike OPTIONAL
+        width             TYPE clike OPTIONAL
         activehandling    TYPE clike OPTIONAL
-        !visible          TYPE clike OPTIONAL
+        visible           TYPE clike OPTIONAL
         displayonly       TYPE clike OPTIONAL
         editable          TYPE clike OPTIONAL
         partiallyselected TYPE clike OPTIONAL
         useentirewidth    TYPE clike OPTIONAL
         wrapping          TYPE clike OPTIONAL
-        !name             TYPE clike OPTIONAL
+        name              TYPE clike OPTIONAL
         valuestate        TYPE clike OPTIONAL
-        !required         TYPE clike OPTIONAL
+        required          TYPE clike OPTIONAL
                   PREFERRED PARAMETER selected
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
@@ -1884,35 +1884,35 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS toolbar
       IMPORTING
-        !ns           TYPE clike OPTIONAL
-        !id           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
-        !width        TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
         active        TYPE clike OPTIONAL
         ariahaspopup  TYPE clike OPTIONAL
         design        TYPE clike OPTIONAL
-        !enabled      TYPE clike OPTIONAL
+        enabled       TYPE clike OPTIONAL
         height        TYPE clike OPTIONAL
-        !style        TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        style         TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS text
       IMPORTING
-        !text              TYPE clike OPTIONAL
-        !class             TYPE clike OPTIONAL
-        !ns                TYPE clike OPTIONAL
+        text               TYPE clike OPTIONAL
+        class              TYPE clike OPTIONAL
+        ns                 TYPE clike OPTIONAL
         emptyindicatormode TYPE clike OPTIONAL
         maxlines           TYPE clike OPTIONAL
         renderwhitespace   TYPE clike OPTIONAL
         textalign          TYPE clike OPTIONAL
         textdirection      TYPE clike OPTIONAL
-        !width             TYPE clike OPTIONAL
+        width              TYPE clike OPTIONAL
         wrapping           TYPE clike OPTIONAL
         wrappingtype       TYPE clike OPTIONAL
-        !id                TYPE clike OPTIONAL
-        !visible           TYPE clike OPTIONAL
+        id                 TYPE clike OPTIONAL
+        visible            TYPE clike OPTIONAL
                   PREFERRED PARAMETER text
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
@@ -1925,19 +1925,19 @@ CLASS z2ui5_cl_xml_view DEFINITION
         height                      TYPE clike OPTIONAL
         textalign                   TYPE clike OPTIONAL
         textdirection               TYPE clike OPTIONAL
-        !visible                    TYPE clike OPTIONAL
-        !width                      TYPE clike OPTIONAL
-        !id                         TYPE clike OPTIONAL
-        !class                      TYPE clike OPTIONAL
-        !controls                   TYPE clike OPTIONAL
+        visible                     TYPE clike OPTIONAL
+        width                       TYPE clike OPTIONAL
+        id                          TYPE clike OPTIONAL
+        class                       TYPE clike OPTIONAL
+        controls                    TYPE clike OPTIONAL
                   PREFERRED PARAMETER htmltext
       RETURNING
         VALUE(result)               TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS _generic
       IMPORTING
-        !name         TYPE clike
-        !ns           TYPE clike                           OPTIONAL
+        name          TYPE clike
+        ns            TYPE clike                           OPTIONAL
         t_prop        TYPE z2ui5_if_types=>ty_t_name_value OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -1958,14 +1958,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS tree_table
       IMPORTING
-        !rows                  TYPE clike OPTIONAL
+        rows                   TYPE clike OPTIONAL
         selectionmode          TYPE clike OPTIONAL
         enablecolumnreordering TYPE clike OPTIONAL
         expandfirstlevel       TYPE clike OPTIONAL
         columnselect           TYPE clike OPTIONAL
         rowselectionchange     TYPE clike OPTIONAL
         selectionbehavior      TYPE clike OPTIONAL
-        !id                    TYPE clike OPTIONAL
+        id                     TYPE clike OPTIONAL
         alternaterowcolors     TYPE clike OPTIONAL
         columnheadervisible    TYPE clike OPTIONAL
         enablecellfilter       TYPE clike OPTIONAL
@@ -1974,12 +1974,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
         enableselectall        TYPE clike OPTIONAL
         shownodata             TYPE clike OPTIONAL
         showoverlay            TYPE clike OPTIONAL
-        !visible               TYPE clike OPTIONAL
+        visible                TYPE clike OPTIONAL
         columnheaderheight     TYPE clike OPTIONAL
         firstvisiblerow        TYPE clike OPTIONAL
         fixedcolumncount       TYPE clike OPTIONAL
         threshold              TYPE clike OPTIONAL
-        !width                 TYPE clike OPTIONAL
+        width                  TYPE clike OPTIONAL
         usegroupmode           TYPE clike OPTIONAL
         groupheaderproperty    TYPE clike OPTIONAL
         rowactioncount         TYPE clike OPTIONAL
@@ -2013,24 +2013,24 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS filter_bar
       IMPORTING
         usetoolbar                   TYPE clike DEFAULT 'false'
-        !search                      TYPE clike OPTIONAL
-        !id                          TYPE clike OPTIONAL
+        search                       TYPE clike OPTIONAL
+        id                           TYPE clike OPTIONAL
         persistencykey               TYPE clike OPTIONAL
         aftervariantload             TYPE clike OPTIONAL
         aftervariantsave             TYPE clike OPTIONAL
         assignedfilterschanged       TYPE clike OPTIONAL
         beforevariantfetch           TYPE clike OPTIONAL
         cancel                       TYPE clike OPTIONAL
-        !clear                       TYPE clike OPTIONAL
+        clear                        TYPE clike OPTIONAL
         filterchange                 TYPE clike OPTIONAL
         filtersdialogbeforeopen      TYPE clike OPTIONAL
         filtersdialogcancel          TYPE clike OPTIONAL
         filtersdialogclosed          TYPE clike OPTIONAL
         initialise                   TYPE clike OPTIONAL
         initialized                  TYPE clike OPTIONAL
-        !reset                       TYPE clike OPTIONAL
+        reset                        TYPE clike OPTIONAL
         filtercontainerwidth         TYPE clike OPTIONAL
-        !header                      TYPE clike OPTIONAL
+        header                       TYPE clike OPTIONAL
         advancedmode                 TYPE clike OPTIONAL
         isrunninginvaluehelpdialog   TYPE clike OPTIONAL
         showallfilters               TYPE clike OPTIONAL
@@ -2054,7 +2054,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS filter_group_item
       IMPORTING
-        !name              TYPE clike OPTIONAL
+        name               TYPE clike OPTIONAL
         label              TYPE clike OPTIONAL
         groupname          TYPE clike OPTIONAL
         visibleinfilterbar TYPE clike OPTIONAL
@@ -2065,8 +2065,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         grouptitle         TYPE clike OPTIONAL
         hiddenfilter       TYPE clike OPTIONAL
         labeltooltip       TYPE clike OPTIONAL
-        !visible           TYPE clike OPTIONAL
-        !change            TYPE clike OPTIONAL
+        visible            TYPE clike OPTIONAL
+        change             TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2076,15 +2076,15 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS flexible_column_layout
       IMPORTING
-        !layout                       TYPE clike
-        !id                           TYPE clike
+        layout                        TYPE clike
+        id                            TYPE clike
         backgrounddesign              TYPE clike OPTIONAL
         defaulttransitionnamebegincol TYPE clike OPTIONAL
         defaulttransitionnameendcol   TYPE clike OPTIONAL
         defaulttransitionnamemidcol   TYPE clike OPTIONAL
         autofocus                     TYPE clike OPTIONAL
         restorefocusonbacknavigation  TYPE clike OPTIONAL
-        !class                        TYPE clike OPTIONAL
+        class                         TYPE clike OPTIONAL
         afterbegincolumnnavigate      TYPE clike OPTIONAL
         afterendcolumnnavigate        TYPE clike OPTIONAL
         aftermidcolumnnavigate        TYPE clike OPTIONAL
@@ -2102,7 +2102,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS mid_column_pages
       IMPORTING
-        !id           TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2112,10 +2112,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS ui_table
       IMPORTING
-        !rows                    TYPE clike OPTIONAL
+        rows                     TYPE clike OPTIONAL
         columnheadervisible      TYPE clike OPTIONAL
         editable                 TYPE clike OPTIONAL
-        !class                   TYPE clike OPTIONAL
+        class                    TYPE clike OPTIONAL
         enablecellfilter         TYPE clike OPTIONAL
         enablegrouping           TYPE clike OPTIONAL
         enableselectall          TYPE clike OPTIONAL
@@ -2135,11 +2135,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
         visiblerowcountmode      TYPE clike OPTIONAL
         alternaterowcolors       TYPE clike OPTIONAL
         footer                   TYPE clike OPTIONAL
-        !filter                  TYPE clike OPTIONAL
-        !sort                    TYPE clike OPTIONAL
+        filter                   TYPE clike OPTIONAL
+        sort                     TYPE clike OPTIONAL
         rowselectionchange       TYPE clike OPTIONAL
         customfilter             TYPE clike OPTIONAL
-        !id                      TYPE clike OPTIONAL
+        id                       TYPE clike OPTIONAL
         flex                     TYPE clike OPTIONAL
         selectionbehavior        TYPE clike OPTIONAL
         rowmode                  TYPE clike OPTIONAL
@@ -2149,8 +2149,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS ui_column
       IMPORTING
-        !id                   TYPE clike OPTIONAL
-        !width                TYPE clike OPTIONAL
+        id                    TYPE clike OPTIONAL
+        width                 TYPE clike OPTIONAL
         showsortmenuentry     TYPE clike OPTIONAL
         sortproperty          TYPE clike OPTIONAL
         autoResizable         TYPE clike OPTIONAL
@@ -2161,7 +2161,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         halign                TYPE clike OPTIONAL
         minwidth              TYPE clike OPTIONAL
         resizable             TYPE clike OPTIONAL
-        !visible              TYPE clike OPTIONAL
+        visible               TYPE clike OPTIONAL
                   PREFERRED PARAMETER width
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
@@ -2184,8 +2184,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS currency
       IMPORTING
-        !value        TYPE clike OPTIONAL
-        !currency     TYPE clike OPTIONAL
+        value         TYPE clike OPTIONAL
+        currency      TYPE clike OPTIONAL
         usesymbol     TYPE clike OPTIONAL
         maxprecision  TYPE clike OPTIONAL
         stringvalue   TYPE clike OPTIONAL
@@ -2202,51 +2202,51 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS ui_row_action_item
       IMPORTING
-        !icon         TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
-        !type         TYPE clike OPTIONAL
+        icon          TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS radio_button
       IMPORTING
-        !id            TYPE clike OPTIONAL
+        id             TYPE clike OPTIONAL
         activehandling TYPE clike OPTIONAL
         editable       TYPE clike OPTIONAL
-        !enabled       TYPE clike OPTIONAL
+        enabled        TYPE clike OPTIONAL
         groupname      TYPE clike OPTIONAL
         selected       TYPE clike OPTIONAL
-        !text          TYPE clike OPTIONAL
+        text           TYPE clike OPTIONAL
         textalign      TYPE clike OPTIONAL
         textdirection  TYPE clike OPTIONAL
         useentirewidth TYPE clike OPTIONAL
         valuestate     TYPE clike OPTIONAL
-        !width         TYPE clike OPTIONAL
-        !select        TYPE clike OPTIONAL
+        width          TYPE clike OPTIONAL
+        select         TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS radio_button_group
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !columns      TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        columns       TYPE clike OPTIONAL
         editable      TYPE clike OPTIONAL
-        !enabled      TYPE clike OPTIONAL
+        enabled       TYPE clike OPTIONAL
         selectedindex TYPE clike OPTIONAL
         textdirection TYPE clike OPTIONAL
         valuestate    TYPE clike OPTIONAL
-        !width        TYPE clike OPTIONAL
-        !select       TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
+        select        TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS dynamic_side_content
       IMPORTING
-        !id                   TYPE clike OPTIONAL
-        !class                TYPE clike OPTIONAL
+        id                    TYPE clike OPTIONAL
+        class                 TYPE clike OPTIONAL
         sidecontentvisibility TYPE clike OPTIONAL
         showsidecontent       TYPE clike OPTIONAL
         containerquery        TYPE clike OPTIONAL
@@ -2256,16 +2256,16 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS side_content
       IMPORTING
-        !width        TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
                   PREFERRED PARAMETER width
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS planning_calendar
       IMPORTING
-        !rows                         TYPE clike OPTIONAL
-        !id                           TYPE clike OPTIONAL
-        !class                        TYPE clike OPTIONAL
+        rows                          TYPE clike OPTIONAL
+        id                            TYPE clike OPTIONAL
+        class                         TYPE clike OPTIONAL
         startdate                     TYPE clike OPTIONAL
         appointmentsvisualization     TYPE clike OPTIONAL
         appointmentselect             TYPE clike OPTIONAL
@@ -2293,7 +2293,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         viewchange                    TYPE clike OPTIONAL
         stickyheader                  TYPE clike OPTIONAL
         viewkey                       TYPE clike OPTIONAL
-        !width                        TYPE clike OPTIONAL
+        width                         TYPE clike OPTIONAL
         singleselection               TYPE clike OPTIONAL
         showrowheaders                TYPE clike OPTIONAL
         multipleappointmentsselection TYPE clike OPTIONAL
@@ -2305,14 +2305,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS planning_calendar_view
       IMPORTING
         appointmentheight      TYPE clike OPTIONAL
-        !description           TYPE clike OPTIONAL
+        description            TYPE clike OPTIONAL
         intervallabelformatter TYPE clike OPTIONAL
         intervalsize           TYPE clike OPTIONAL
         intervalsl             TYPE clike OPTIONAL
         intervalsm             TYPE clike OPTIONAL
         intervalss             TYPE clike OPTIONAL
         intervaltype           TYPE clike OPTIONAL
-        !key                   TYPE clike OPTIONAL
+        key                    TYPE clike OPTIONAL
         relative               TYPE clike OPTIONAL
         showsubintervals       TYPE clike OPTIONAL
       RETURNING
@@ -2322,10 +2322,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         appointments                  TYPE clike OPTIONAL
         intervalheaders               TYPE clike OPTIONAL
-        !icon                         TYPE clike OPTIONAL
-        !title                        TYPE clike OPTIONAL
-        !key                          TYPE clike OPTIONAL
-        !text                         TYPE clike OPTIONAL
+        icon                          TYPE clike OPTIONAL
+        title                         TYPE clike OPTIONAL
+        key                           TYPE clike OPTIONAL
+        text                          TYPE clike OPTIONAL
         enableappointmentscreate      TYPE clike OPTIONAL
         enableappointmentsdraganddrop TYPE clike OPTIONAL
         enableappointmentsresize      TYPE clike OPTIONAL
@@ -2338,8 +2338,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         appointmentdragenter          TYPE clike OPTIONAL
         appointmentdrop               TYPE clike OPTIONAL
         appointmentresize             TYPE clike OPTIONAL
-        !id                           TYPE clike OPTIONAL
-        !class                        TYPE clike OPTIONAL
+        id                            TYPE clike OPTIONAL
+        class                         TYPE clike OPTIONAL
                   PREFERRED PARAMETER appointments
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
@@ -2347,21 +2347,21 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS planning_calendar_legend
       IMPORTING
         items            TYPE clike OPTIONAL
-        !id              TYPE clike OPTIONAL
+        id               TYPE clike OPTIONAL
         appointmentitems TYPE clike OPTIONAL
         standarditems    TYPE clike OPTIONAL
         columnwidth      TYPE clike OPTIONAL
-        !visible         TYPE clike OPTIONAL
+        visible          TYPE clike OPTIONAL
                   PREFERRED PARAMETER items
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS calendar_legend_item
       IMPORTING
-        !text         TYPE clike OPTIONAL
-        !type         TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
         tooltip       TYPE clike OPTIONAL
-        !color        TYPE clike OPTIONAL
+        color         TYPE clike OPTIONAL
                   PREFERRED PARAMETER text
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -2372,16 +2372,16 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS info_label
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
         rendermode    TYPE clike OPTIONAL
         colorscheme   TYPE clike OPTIONAL
-        !icon         TYPE clike OPTIONAL
+        icon          TYPE clike OPTIONAL
         displayonly   TYPE clike OPTIONAL
         textdirection TYPE clike OPTIONAL
-        !width        TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
                   PREFERRED PARAMETER text
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -2398,12 +2398,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         startdate     TYPE clike OPTIONAL
         enddate       TYPE clike OPTIONAL
-        !icon         TYPE clike OPTIONAL
-        !title        TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
-        !type         TYPE clike OPTIONAL
+        icon          TYPE clike OPTIONAL
+        title         TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
         tentative     TYPE clike OPTIONAL
-        !key          TYPE clike OPTIONAL
+        key           TYPE clike OPTIONAL
         selected      TYPE clike OPTIONAL
                   PREFERRED PARAMETER startdate
       RETURNING
@@ -2415,15 +2415,15 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS block_layout
       IMPORTING
-        !background   TYPE clike OPTIONAL
-        !id           TYPE clike OPTIONAL
+        background    TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS block_layout_row
       IMPORTING
         rowcolorset   TYPE clike OPTIONAL
-        !id           TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2431,23 +2431,23 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         backgroundcolorset   TYPE clike OPTIONAL
         backgroundcolorshade TYPE clike OPTIONAL
-        !title               TYPE clike OPTIONAL
+        title                TYPE clike OPTIONAL
         titlealignment       TYPE clike OPTIONAL
         titlelevel           TYPE clike OPTIONAL
-        !width               TYPE clike OPTIONAL
-        !class               TYPE clike OPTIONAL
-        !id                  TYPE clike OPTIONAL
+        width                TYPE clike OPTIONAL
+        class                TYPE clike OPTIONAL
+        id                   TYPE clike OPTIONAL
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS object_identifier
       IMPORTING
         emptyindicatormode TYPE clike OPTIONAL
-        !text              TYPE clike OPTIONAL
+        text               TYPE clike OPTIONAL
         textdirection      TYPE clike OPTIONAL
-        !title             TYPE clike OPTIONAL
+        title              TYPE clike OPTIONAL
         titleactive        TYPE clike OPTIONAL
-        !visible           TYPE clike OPTIONAL
+        visible            TYPE clike OPTIONAL
         titlepress         TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
@@ -2456,36 +2456,36 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         active                TYPE clike OPTIONAL
         emptyindicatormode    TYPE clike OPTIONAL
-        !icon                 TYPE clike OPTIONAL
+        icon                  TYPE clike OPTIONAL
         icondensityaware      TYPE clike OPTIONAL
-        !inverted             TYPE clike OPTIONAL
-        !state                TYPE clike OPTIONAL
+        inverted              TYPE clike OPTIONAL
+        state                 TYPE clike OPTIONAL
         stateannouncementtext TYPE clike OPTIONAL
-        !text                 TYPE clike OPTIONAL
+        text                  TYPE clike OPTIONAL
         textdirection         TYPE clike OPTIONAL
-        !title                TYPE clike OPTIONAL
+        title                 TYPE clike OPTIONAL
         press                 TYPE clike OPTIONAL
-        !visible              TYPE clike OPTIONAL
-        !id                   TYPE clike OPTIONAL
-        !class                TYPE clike OPTIONAL
+        visible               TYPE clike OPTIONAL
+        id                    TYPE clike OPTIONAL
+        class                 TYPE clike OPTIONAL
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS tree
       IMPORTING
-        !id                    TYPE clike     OPTIONAL
+        id                     TYPE clike     OPTIONAL
         items                  TYPE clike     OPTIONAL
         headertext             TYPE clike     OPTIONAL
         headerlevel            TYPE clike     OPTIONAL
         footertext             TYPE clike     OPTIONAL
-        !mode                  TYPE clike     OPTIONAL
+        mode                   TYPE clike     OPTIONAL
         includeiteminselection TYPE abap_bool OPTIONAL
         inset                  TYPE abap_bool OPTIONAL
-        !width                 TYPE clike     OPTIONAL
+        width                  TYPE clike     OPTIONAL
         toggleopenstate        TYPE clike     OPTIONAL
         selectionchange        TYPE clike     OPTIONAL
         itempress              TYPE clike     OPTIONAL
-        !select                TYPE clike     OPTIONAL
+        select                 TYPE clike     OPTIONAL
         multiselectmode        TYPE clike     OPTIONAL
         nodatatext             TYPE clike     OPTIONAL
         shownodata             TYPE clike     OPTIONAL
@@ -2494,11 +2494,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS standard_tree_item
       IMPORTING
-        !title        TYPE clike OPTIONAL
-        !icon         TYPE clike OPTIONAL
+        title         TYPE clike OPTIONAL
+        icon          TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
         detailpress   TYPE clike OPTIONAL
-        !type         TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
         selected      TYPE clike OPTIONAL
         counter       TYPE clike OPTIONAL
         tooltip       TYPE clike OPTIONAL
@@ -2507,9 +2507,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS icon_tab_bar
       IMPORTING
-        !class                 TYPE clike OPTIONAL
-        !select                TYPE clike OPTIONAL
-        !expand                TYPE clike OPTIONAL
+        class                  TYPE clike OPTIONAL
+        select                 TYPE clike OPTIONAL
+        expand                 TYPE clike OPTIONAL
         expandable             TYPE clike OPTIONAL
         expanded               TYPE clike OPTIONAL
         selectedkey            TYPE clike OPTIONAL
@@ -2525,7 +2525,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         applycontentpadding    TYPE clike OPTIONAL
         items                  TYPE clike OPTIONAL
         content                TYPE clike OPTIONAL
-        !id                    TYPE clike OPTIONAL
+        id                     TYPE clike OPTIONAL
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2533,27 +2533,27 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         items            TYPE clike OPTIONAL
         showall          TYPE clike OPTIONAL
-        !icon            TYPE clike OPTIONAL
+        icon             TYPE clike OPTIONAL
         iconcolor        TYPE clike OPTIONAL
-        !count           TYPE clike OPTIONAL
-        !text            TYPE clike OPTIONAL
-        !key             TYPE clike OPTIONAL
+        count            TYPE clike OPTIONAL
+        text             TYPE clike OPTIONAL
+        key              TYPE clike OPTIONAL
         design           TYPE clike OPTIONAL
         icondensityaware TYPE clike OPTIONAL
-        !visible         TYPE clike OPTIONAL
+        visible          TYPE clike OPTIONAL
         textdirection    TYPE clike OPTIONAL
-        !class           TYPE clike OPTIONAL
-        !id              TYPE clike OPTIONAL
+        class            TYPE clike OPTIONAL
+        id               TYPE clike OPTIONAL
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS icon_tab_separator
       IMPORTING
-        !icon            TYPE clike OPTIONAL
+        icon             TYPE clike OPTIONAL
         icondensityaware TYPE clike OPTIONAL
-        !visible         TYPE clike OPTIONAL
-        !id              TYPE clike OPTIONAL
-        !class           TYPE clike OPTIONAL
+        visible          TYPE clike OPTIONAL
+        id               TYPE clike OPTIONAL
+        class            TYPE clike OPTIONAL
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2585,7 +2585,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS gantt_chart_with_table
       IMPORTING
-        !id                       TYPE clike OPTIONAL
+        id                        TYPE clike OPTIONAL
         shapeselectionmode        TYPE clike OPTIONAL
         isconnectordetailsvisible TYPE clike OPTIONAL
       RETURNING
@@ -2639,12 +2639,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS task
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !type         TYPE clike OPTIONAL
-        !color        TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
+        color         TYPE clike OPTIONAL
         endtime       TYPE clike OPTIONAL
-        !time         TYPE clike OPTIONAL
-        !title        TYPE clike OPTIONAL
+        time          TYPE clike OPTIONAL
+        title         TYPE clike OPTIONAL
         showtitle     TYPE clike OPTIONAL
         connectable   TYPE clike OPTIONAL
       RETURNING
@@ -2657,14 +2657,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS rating_indicator
       IMPORTING
         maxvalue      TYPE clike OPTIONAL
-        !enabled      TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
-        !value        TYPE clike OPTIONAL
+        enabled       TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
+        value         TYPE clike OPTIONAL
         iconsize      TYPE clike OPTIONAL
         tooltip       TYPE clike OPTIONAL
         displayonly   TYPE clike OPTIONAL
-        !change       TYPE clike OPTIONAL
-        !id           TYPE clike OPTIONAL
+        change        TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
         editable      TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -2675,21 +2675,21 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS base_rectangle
       IMPORTING
-        !time                   TYPE clike OPTIONAL
+        time                    TYPE clike OPTIONAL
         shapeid                 TYPE clike OPTIONAL
         endtime                 TYPE clike OPTIONAL
         selectable              TYPE clike OPTIONAL
         selectedfill            TYPE clike OPTIONAL
-        !fill                   TYPE clike OPTIONAL
+        fill                    TYPE clike OPTIONAL
         height                  TYPE clike OPTIONAL
-        !title                  TYPE clike OPTIONAL
+        title                   TYPE clike OPTIONAL
         animationsettings       TYPE clike OPTIONAL
         alignshape              TYPE clike OPTIONAL
-        !color                  TYPE clike OPTIONAL
+        color                   TYPE clike OPTIONAL
         fontsize                TYPE clike OPTIONAL
         connectable             TYPE clike OPTIONAL
         fontfamily              TYPE clike OPTIONAL
-        !filter                 TYPE clike OPTIONAL
+        filter                  TYPE clike OPTIONAL
         transform               TYPE clike OPTIONAL
         countinbirdeye          TYPE clike OPTIONAL
         fontweight              TYPE clike OPTIONAL
@@ -2714,28 +2714,28 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         selectedkey         TYPE clike OPTIONAL
         items               TYPE clike OPTIONAL
-        !select             TYPE clike OPTIONAL
-        !mode               TYPE clike OPTIONAL
+        select              TYPE clike OPTIONAL
+        mode                TYPE clike OPTIONAL
         ariatexts           TYPE clike OPTIONAL
         backgrounddesign    TYPE clike OPTIONAL
         enabletabreordering TYPE clike OPTIONAL
         maxnestinglevel     TYPE clike OPTIONAL
         tabdensitymode      TYPE clike OPTIONAL
         tabsoverflowmode    TYPE clike OPTIONAL
-        !visible            TYPE clike OPTIONAL
-        !id                 TYPE clike OPTIONAL
+        visible             TYPE clike OPTIONAL
+        id                  TYPE clike OPTIONAL
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS nav_container
       IMPORTING
         initialpage           TYPE clike OPTIONAL
-        !id                   TYPE clike OPTIONAL
+        id                    TYPE clike OPTIONAL
         defaulttransitionname TYPE clike OPTIONAL
         autofocus             TYPE clike OPTIONAL
         height                TYPE clike OPTIONAL
-        !width                TYPE clike OPTIONAL
-        !visible              TYPE clike OPTIONAL
+        width                 TYPE clike OPTIONAL
+        visible               TYPE clike OPTIONAL
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2761,13 +2761,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
         resizable          TYPE clike OPTIONAL
         searchplaceholder  TYPE clike OPTIONAL
         showclearbutton    TYPE clike OPTIONAL
-        !title             TYPE clike OPTIONAL
+        title              TYPE clike OPTIONAL
         titlealignment     TYPE clike OPTIONAL
-        !visible           TYPE clike OPTIONAL
+        visible            TYPE clike OPTIONAL
         items              TYPE clike OPTIONAL
         livechange         TYPE clike OPTIONAL
         cancel             TYPE clike OPTIONAL
-        !search            TYPE clike OPTIONAL
+        search             TYPE clike OPTIONAL
         confirm            TYPE clike OPTIONAL
         selectionchange    TYPE clike OPTIONAL
       RETURNING
@@ -2775,43 +2775,43 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS process_flow
       IMPORTING
-        !id           TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
         foldedcorners TYPE clike OPTIONAL
         scrollable    TYPE clike OPTIONAL
         showlabels    TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
         wheelzoomable TYPE clike OPTIONAL
         headerpress   TYPE clike OPTIONAL
         labelpress    TYPE clike OPTIONAL
         nodepress     TYPE clike OPTIONAL
         onerror       TYPE clike OPTIONAL
         lanes         TYPE clike OPTIONAL
-        !nodes        TYPE clike OPTIONAL
+        nodes         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS nodes
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS node
       IMPORTING
-        !id                   TYPE clike OPTIONAL
-        !class                TYPE clike OPTIONAL
+        id                    TYPE clike OPTIONAL
+        class                 TYPE clike OPTIONAL
         alttext               TYPE clike OPTIONAL
         collapsed             TYPE clike OPTIONAL
         corenodesize          TYPE clike OPTIONAL
-        !description          TYPE clike OPTIONAL
+        description           TYPE clike OPTIONAL
         descriptionlinesize   TYPE clike OPTIONAL
-        !group                TYPE clike OPTIONAL
+        group                 TYPE clike OPTIONAL
         headercheckboxstate   TYPE clike OPTIONAL
         height                TYPE clike OPTIONAL
-        !title                TYPE clike OPTIONAL
-        !icon                 TYPE clike OPTIONAL
+        title                 TYPE clike OPTIONAL
+        icon                  TYPE clike OPTIONAL
         iconsize              TYPE clike OPTIONAL
-        !key                  TYPE clike OPTIONAL
+        key                   TYPE clike OPTIONAL
         maxwidth              TYPE clike OPTIONAL
         selected              TYPE clike OPTIONAL
         shape                 TYPE clike OPTIONAL
@@ -2820,26 +2820,26 @@ CLASS z2ui5_cl_xml_view DEFINITION
         showexpandbutton      TYPE clike OPTIONAL
         statusicon            TYPE clike OPTIONAL
         titlelinesize         TYPE clike OPTIONAL
-        !visible              TYPE clike OPTIONAL
-        !width                TYPE clike OPTIONAL
-        !x                    TYPE clike OPTIONAL
+        visible               TYPE clike OPTIONAL
+        width                 TYPE clike OPTIONAL
+        x                     TYPE clike OPTIONAL
         y                     TYPE clike OPTIONAL
         collapseexpand        TYPE clike OPTIONAL
         headercheckboxpress   TYPE clike OPTIONAL
         hover                 TYPE clike OPTIONAL
         press                 TYPE clike OPTIONAL
-        !attributes           TYPE clike OPTIONAL
+        attributes            TYPE clike OPTIONAL
         actionbuttons         TYPE clike OPTIONAL
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS node_image
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
         height        TYPE clike OPTIONAL
         src           TYPE clike OPTIONAL
-        !width        TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2851,17 +2851,17 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         laneid            TYPE clike OPTIONAL
         nodeid            TYPE clike OPTIONAL
-        !title            TYPE clike OPTIONAL
+        title             TYPE clike OPTIONAL
         titleabbreviation TYPE clike OPTIONAL
         children          TYPE clike OPTIONAL
-        !state            TYPE clike OPTIONAL
+        state             TYPE clike OPTIONAL
         statetext         TYPE clike OPTIONAL
         texts             TYPE clike OPTIONAL
         highlighted       TYPE clike OPTIONAL
         focused           TYPE clike OPTIONAL
         selected          TYPE clike OPTIONAL
         tag               TYPE clike OPTIONAL
-        !type             TYPE clike OPTIONAL
+        type              TYPE clike OPTIONAL
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2869,9 +2869,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         iconsrc       TYPE clike OPTIONAL
         laneid        TYPE clike OPTIONAL
-        !position     TYPE clike OPTIONAL
-        !state        TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
+        position      TYPE clike OPTIONAL
+        state         TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
         zoomlevel     TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -2881,12 +2881,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
         confirm                  TYPE clike OPTIONAL
         cancel                   TYPE clike OPTIONAL
         filterdetailpageopened   TYPE clike OPTIONAL
-        !reset                   TYPE clike OPTIONAL
+        reset                    TYPE clike OPTIONAL
         resetfilters             TYPE clike OPTIONAL
         filtersearchoperator     TYPE clike OPTIONAL
         groupdescending          TYPE clike OPTIONAL
         sortdescending           TYPE clike OPTIONAL
-        !title                   TYPE clike OPTIONAL
+        title                    TYPE clike OPTIONAL
         titlealignment           TYPE clike OPTIONAL
         selectedgroupitem        TYPE clike OPTIONAL
         selectedpresetfilteritem TYPE clike OPTIONAL
@@ -2911,21 +2911,21 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS view_settings_filter_item
       IMPORTING
-        !enabled      TYPE clike OPTIONAL
-        !key          TYPE clike OPTIONAL
+        enabled       TYPE clike OPTIONAL
+        key           TYPE clike OPTIONAL
         multiselect   TYPE clike OPTIONAL
         selected      TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
         textdirection TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS view_settings_item
       IMPORTING
-        !enabled      TYPE clike OPTIONAL
-        !key          TYPE clike OPTIONAL
+        enabled       TYPE clike OPTIONAL
+        key           TYPE clike OPTIONAL
         selected      TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
         textdirection TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -2933,7 +2933,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS variant_management
       IMPORTING
         defaultvariantkey      TYPE clike OPTIONAL
-        !enabled               TYPE clike OPTIONAL
+        enabled                TYPE clike OPTIONAL
         inerrorstate           TYPE clike OPTIONAL
         initialselectionkey    TYPE clike OPTIONAL
         lifecyclesupport       TYPE clike OPTIONAL
@@ -2945,13 +2945,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
         standarditemauthor     TYPE clike OPTIONAL
         standarditemtext       TYPE clike OPTIONAL
         usefavorites           TYPE clike OPTIONAL
-        !visible               TYPE clike OPTIONAL
+        visible                TYPE clike OPTIONAL
         variantitems           TYPE clike OPTIONAL
         manage                 TYPE clike OPTIONAL
-        !save                  TYPE clike OPTIONAL
-        !select                TYPE clike OPTIONAL
+        save                   TYPE clike OPTIONAL
+        select                 TYPE clike OPTIONAL
         uservarcreate          TYPE clike OPTIONAL
-        !id                    TYPE clike OPTIONAL
+        id                     TYPE clike OPTIONAL
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2962,7 +2962,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS variant_item
       IMPORTING
         executeonselection      TYPE clike OPTIONAL
-        !global                 TYPE clike OPTIONAL
+        global                  TYPE clike OPTIONAL
         labelreadonly           TYPE clike OPTIONAL
         lifecyclepackage        TYPE clike OPTIONAL
         lifecycletransportid    TYPE clike OPTIONAL
@@ -2971,19 +2971,19 @@ CLASS z2ui5_cl_xml_view DEFINITION
         executeonselect         TYPE clike OPTIONAL
         author                  TYPE clike OPTIONAL
         changeable              TYPE clike OPTIONAL
-        !enabled                TYPE clike OPTIONAL
+        enabled                 TYPE clike OPTIONAL
         favorite                TYPE clike OPTIONAL
-        !key                    TYPE clike OPTIONAL
-        !text                   TYPE clike OPTIONAL
-        !title                  TYPE clike OPTIONAL
+        key                     TYPE clike OPTIONAL
+        text                    TYPE clike OPTIONAL
+        title                   TYPE clike OPTIONAL
         textdirection           TYPE clike OPTIONAL
         originaltitle           TYPE clike OPTIONAL
         originalexecuteonselect TYPE clike OPTIONAL
         remove                  TYPE clike OPTIONAL
-        !rename                 TYPE clike OPTIONAL
+        rename                  TYPE clike OPTIONAL
         originalfavorite        TYPE clike OPTIONAL
-        !sharing                TYPE clike OPTIONAL
-        !change                 TYPE clike OPTIONAL
+        sharing                 TYPE clike OPTIONAL
+        change                  TYPE clike OPTIONAL
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2992,7 +2992,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         creationallowed           TYPE clike OPTIONAL
         defaultkey                TYPE clike OPTIONAL
         inerrorstate              TYPE clike OPTIONAL
-        !level                    TYPE clike OPTIONAL
+        level                     TYPE clike OPTIONAL
         maxwidth                  TYPE clike OPTIONAL
         modified                  TYPE clike OPTIONAL
         popovertitle              TYPE clike OPTIONAL
@@ -3005,14 +3005,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
         supportfavorites          TYPE clike OPTIONAL
         supportpublic             TYPE clike OPTIONAL
         titlestyle                TYPE clike OPTIONAL
-        !visible                  TYPE clike OPTIONAL
+        visible                   TYPE clike OPTIONAL
         items                     TYPE clike OPTIONAL
         cancel                    TYPE clike OPTIONAL
         manage                    TYPE clike OPTIONAL
         managecancel              TYPE clike OPTIONAL
-        !save                     TYPE clike OPTIONAL
-        !select                   TYPE clike OPTIONAL
-        !id                       TYPE clike OPTIONAL
+        save                      TYPE clike OPTIONAL
+        select                    TYPE clike OPTIONAL
+        id                        TYPE clike OPTIONAL
       RETURNING
         VALUE(result)             TYPE REF TO z2ui5_cl_xml_view.
 
@@ -3020,41 +3020,41 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         author          TYPE clike OPTIONAL
         changeable      TYPE clike OPTIONAL
-        !contexts       TYPE clike OPTIONAL
+        contexts        TYPE clike OPTIONAL
         executeonselect TYPE clike OPTIONAL
         favorite        TYPE clike OPTIONAL
-        !key            TYPE clike OPTIONAL
+        key             TYPE clike OPTIONAL
         remove          TYPE clike OPTIONAL
-        !rename         TYPE clike OPTIONAL
-        !sharing        TYPE clike OPTIONAL
-        !title          TYPE clike OPTIONAL
-        !visible        TYPE clike OPTIONAL
-        !id             TYPE clike OPTIONAL
+        rename          TYPE clike OPTIONAL
+        sharing         TYPE clike OPTIONAL
+        title           TYPE clike OPTIONAL
+        visible         TYPE clike OPTIONAL
+        id              TYPE clike OPTIONAL
         textdirection   TYPE clike OPTIONAL
-        !text           TYPE clike OPTIONAL
-        !enabled        TYPE clike OPTIONAL
+        text            TYPE clike OPTIONAL
+        enabled         TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS feed_input
       IMPORTING
         buttontooltip    TYPE clike OPTIONAL
-        !enabled         TYPE clike OPTIONAL
+        enabled          TYPE clike OPTIONAL
         growing          TYPE clike OPTIONAL
         growingmaxlines  TYPE clike OPTIONAL
-        !icon            TYPE clike OPTIONAL
+        icon             TYPE clike OPTIONAL
         icondensityaware TYPE clike OPTIONAL
         icondisplayshape TYPE clike OPTIONAL
         iconinitials     TYPE clike OPTIONAL
         iconsize         TYPE clike OPTIONAL
         maxlength        TYPE clike OPTIONAL
         placeholder      TYPE clike OPTIONAL
-        !rows            TYPE clike OPTIONAL
+        rows             TYPE clike OPTIONAL
         showexceededtext TYPE clike OPTIONAL
         showicon         TYPE clike OPTIONAL
-        !value           TYPE clike OPTIONAL
+        value            TYPE clike OPTIONAL
         post             TYPE clike OPTIONAL
-        !class           TYPE clike OPTIONAL
+        class            TYPE clike OPTIONAL
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
@@ -3063,7 +3063,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         activeicon                  TYPE clike OPTIONAL
         convertedlinksdefaulttarget TYPE clike OPTIONAL
         convertlinkstoanchortags    TYPE clike OPTIONAL
-        !icon                       TYPE clike OPTIONAL
+        icon                        TYPE clike OPTIONAL
         iconactive                  TYPE clike OPTIONAL
         icondensityaware            TYPE clike OPTIONAL
         icondisplayshape            TYPE clike OPTIONAL
@@ -3076,8 +3076,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         sender                      TYPE clike OPTIONAL
         senderactive                TYPE clike OPTIONAL
         showicon                    TYPE clike OPTIONAL
-        !text                       TYPE clike OPTIONAL
-        !timestamp                  TYPE clike OPTIONAL
+        text                        TYPE clike OPTIONAL
+        timestamp                   TYPE clike OPTIONAL
         iconpress                   TYPE clike OPTIONAL
         senderpress                 TYPE clike OPTIONAL
       RETURNING
@@ -3085,11 +3085,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS feed_list_item_action
       IMPORTING
-        !enabled      TYPE clike OPTIONAL
-        !icon         TYPE clike OPTIONAL
-        !key          TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        enabled       TYPE clike OPTIONAL
+        icon          TYPE clike OPTIONAL
+        key           TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -3098,8 +3098,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         contenttext   TYPE clike OPTIONAL
         subheader     TYPE clike OPTIONAL
-        !value        TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
+        value         TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -3116,7 +3116,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         colorstring   TYPE clike
         displaymode   TYPE clike OPTIONAL
-        !change       TYPE clike OPTIONAL
+        change        TYPE clike OPTIONAL
         livechange    TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -3124,22 +3124,22 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS mask_input
       IMPORTING
         placeholder           TYPE clike OPTIONAL
-        !mask                 TYPE clike OPTIONAL
-        !name                 TYPE clike OPTIONAL
+        mask                  TYPE clike OPTIONAL
+        name                  TYPE clike OPTIONAL
         textalign             TYPE clike OPTIONAL
         textdirection         TYPE clike OPTIONAL
-        !value                TYPE clike OPTIONAL
-        !width                TYPE clike OPTIONAL
+        value                 TYPE clike OPTIONAL
+        width                 TYPE clike OPTIONAL
         valuestate            TYPE clike OPTIONAL
         valuestatetext        TYPE clike OPTIONAL
         placeholdersymbol     TYPE clike OPTIONAL
-        !required             TYPE clike OPTIONAL
+        required              TYPE clike OPTIONAL
         showclearicon         TYPE clike OPTIONAL
         showvaluestatemessage TYPE clike OPTIONAL
-        !visible              TYPE clike OPTIONAL
+        visible               TYPE clike OPTIONAL
         fieldwidth            TYPE clike OPTIONAL
         livechange            TYPE clike OPTIONAL
-        !change               TYPE clike OPTIONAL
+        change                TYPE clike OPTIONAL
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
@@ -3147,7 +3147,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         defaultpane   TYPE clike OPTIONAL
         height        TYPE clike OPTIONAL
-        !width        TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -3155,35 +3155,35 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         height        TYPE clike OPTIONAL
         orientation   TYPE clike OPTIONAL
-        !width        TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS invisible_text
       IMPORTING
-        !ns           TYPE clike
-        !id           TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
+        ns            TYPE clike
+        id            TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS fix_flex
       IMPORTING
-        !ns            TYPE clike OPTIONAL
-        !class         TYPE clike OPTIONAL
+        ns             TYPE clike OPTIONAL
+        class          TYPE clike OPTIONAL
         fixcontentsize TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS fix_content
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS flex_content
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -3196,14 +3196,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS split_pane
       IMPORTING
-        !id                 TYPE clike OPTIONAL
+        id                  TYPE clike OPTIONAL
         requiredparentwidth TYPE clike OPTIONAL
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS splitter_layout_data
       IMPORTING
-        !size         TYPE clike OPTIONAL
+        size          TYPE clike OPTIONAL
         minsize       TYPE clike OPTIONAL
         resizable     TYPE clike OPTIONAL
       RETURNING
@@ -3211,7 +3211,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS toolbar_layout_data
       IMPORTING
-        !id           TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
         maxwidth      TYPE clike OPTIONAL
         minwidth      TYPE clike OPTIONAL
         shrinkable    TYPE clike OPTIONAL
@@ -3223,7 +3223,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         backgrounddesign     TYPE clike OPTIONAL
         condensed            TYPE clike OPTIONAL
         fullscreenoptimized  TYPE clike OPTIONAL
-        !icon                TYPE clike OPTIONAL
+        icon                 TYPE clike OPTIONAL
         iconactive           TYPE clike OPTIONAL
         iconalt              TYPE clike OPTIONAL
         icondensityaware     TYPE clike OPTIONAL
@@ -3234,13 +3234,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
         introhref            TYPE clike OPTIONAL
         introtarget          TYPE clike OPTIONAL
         introtextdirection   TYPE clike OPTIONAL
-        !number              TYPE clike OPTIONAL
+        number               TYPE clike OPTIONAL
         numberstate          TYPE clike OPTIONAL
         numbertextdirection  TYPE clike OPTIONAL
         numberunit           TYPE clike OPTIONAL
         responsive           TYPE clike OPTIONAL
         showtitleselector    TYPE clike OPTIONAL
-        !title               TYPE clike OPTIONAL
+        title                TYPE clike OPTIONAL
         titleactive          TYPE clike OPTIONAL
         titlehref            TYPE clike OPTIONAL
         titlelevel           TYPE clike OPTIONAL
@@ -3251,7 +3251,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         intropress           TYPE clike OPTIONAL
         titlepress           TYPE clike OPTIONAL
         titleselectorpress   TYPE clike OPTIONAL
-        !class               TYPE clike OPTIONAL
+        class                TYPE clike OPTIONAL
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
@@ -3270,20 +3270,20 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS markers
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS statuses
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS status
       IMPORTING
-        !id                         TYPE clike OPTIONAL
-        !class                      TYPE clike OPTIONAL
+        id                          TYPE clike OPTIONAL
+        class                       TYPE clike OPTIONAL
         backgroundcolor             TYPE clike OPTIONAL
         bordercolor                 TYPE clike OPTIONAL
         borderstyle                 TYPE clike OPTIONAL
@@ -3293,14 +3293,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
         hoverbackgroundcolor        TYPE clike OPTIONAL
         hoverbordercolor            TYPE clike OPTIONAL
         hovercontentcolor           TYPE clike OPTIONAL
-        !key                        TYPE clike OPTIONAL
+        key                         TYPE clike OPTIONAL
         legendcolor                 TYPE clike OPTIONAL
         selectedbackgroundcolor     TYPE clike OPTIONAL
         selectedbordercolor         TYPE clike OPTIONAL
         selectedcontentcolor        TYPE clike OPTIONAL
-        !title                      TYPE clike OPTIONAL
+        title                       TYPE clike OPTIONAL
         usefocuscolorascontentcolor TYPE clike OPTIONAL
-        !visible                    TYPE clike OPTIONAL
+        visible                     TYPE clike OPTIONAL
       RETURNING
         VALUE(result)               TYPE REF TO z2ui5_cl_xml_view.
 
@@ -3315,9 +3315,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS object_marker
       IMPORTING
         additionalinfo TYPE clike OPTIONAL
-        !type          TYPE clike OPTIONAL
+        type           TYPE clike OPTIONAL
         visibility     TYPE clike OPTIONAL
-        !visible       TYPE clike OPTIONAL
+        visible        TYPE clike OPTIONAL
         press          TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
@@ -3325,19 +3325,19 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS object_list_item
       IMPORTING
         activeicon          TYPE clike OPTIONAL
-        !icon               TYPE clike OPTIONAL
+        icon                TYPE clike OPTIONAL
         icondensityaware    TYPE clike OPTIONAL
         intro               TYPE clike OPTIONAL
         introtextdirection  TYPE clike OPTIONAL
-        !number             TYPE clike OPTIONAL
+        number              TYPE clike OPTIONAL
         numberstate         TYPE clike OPTIONAL
         numbertextdirection TYPE clike OPTIONAL
         numberunit          TYPE clike OPTIONAL
-        !title              TYPE clike OPTIONAL
+        title               TYPE clike OPTIONAL
         titletextdirection  TYPE clike OPTIONAL
         press               TYPE clike OPTIONAL
         selected            TYPE clike OPTIONAL
-        !type               TYPE clike OPTIONAL
+        type                TYPE clike OPTIONAL
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
@@ -3347,9 +3347,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS light_box
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -3358,13 +3358,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
         alt           TYPE clike OPTIONAL
         imagesrc      TYPE clike OPTIONAL
         subtitle      TYPE clike OPTIONAL
-        !title        TYPE clike OPTIONAL
+        title         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS line_micro_chart
       IMPORTING
-        !color                TYPE clike OPTIONAL
+        color                 TYPE clike OPTIONAL
         height                TYPE clike OPTIONAL
         leftbottomlabel       TYPE clike OPTIONAL
         lefttoplabel          TYPE clike OPTIONAL
@@ -3373,10 +3373,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
         minyvalue             TYPE clike OPTIONAL
         rightbottomlabel      TYPE clike OPTIONAL
         righttoplabel         TYPE clike OPTIONAL
-        !size                 TYPE clike OPTIONAL
+        size                  TYPE clike OPTIONAL
         threshold             TYPE clike OPTIONAL
         thresholddisplayvalue TYPE clike OPTIONAL
-        !width                TYPE clike OPTIONAL
+        width                 TYPE clike OPTIONAL
         press                 TYPE clike OPTIONAL
         hideonnodata          TYPE clike OPTIONAL
         showbottomlabels      TYPE clike OPTIONAL
@@ -3391,23 +3391,23 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS line_micro_chart_line
       IMPORTING
         points        TYPE clike OPTIONAL
-        !color        TYPE clike OPTIONAL
-        !type         TYPE clike OPTIONAL
+        color         TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS line_micro_chart_point
       IMPORTING
-        !x            TYPE clike OPTIONAL
+        x             TYPE clike OPTIONAL
         y             TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS line_micro_chart_empszd_point
       IMPORTING
-        !x            TYPE clike OPTIONAL
+        x             TYPE clike OPTIONAL
         y             TYPE clike OPTIONAL
-        !color        TYPE clike OPTIONAL
+        color         TYPE clike OPTIONAL
         show          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -3418,19 +3418,19 @@ CLASS z2ui5_cl_xml_view DEFINITION
         press            TYPE clike OPTIONAL
         maxvalue         TYPE clike OPTIONAL
         precision        TYPE clike OPTIONAL
-        !size            TYPE clike OPTIONAL
+        size             TYPE clike OPTIONAL
         hideonnodata     TYPE clike OPTIONAL
         displayzerovalue TYPE clike OPTIONAL
         showlabels       TYPE clike OPTIONAL
-        !width           TYPE clike OPTIONAL
+        width            TYPE clike OPTIONAL
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS column_micro_chart
       IMPORTING
-        !width            TYPE clike OPTIONAL
+        width             TYPE clike OPTIONAL
         press             TYPE clike OPTIONAL
-        !size             TYPE clike OPTIONAL
+        size              TYPE clike OPTIONAL
         aligncontent      TYPE clike OPTIONAL
         hideonnodata      TYPE clike OPTIONAL
         allowcolumnlabels TYPE clike OPTIONAL
@@ -3442,10 +3442,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS column_micro_chart_data
       IMPORTING
-        !value        TYPE clike OPTIONAL
+        value         TYPE clike OPTIONAL
         label         TYPE clike OPTIONAL
         displayvalue  TYPE clike OPTIONAL
-        !color        TYPE clike OPTIONAL
+        color         TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -3454,12 +3454,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         colorpalette  TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
-        !size         TYPE clike OPTIONAL
+        size          TYPE clike OPTIONAL
         height        TYPE clike OPTIONAL
         maxvalue      TYPE clike OPTIONAL
         minvalue      TYPE clike OPTIONAL
         scale         TYPE clike OPTIONAL
-        !width        TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
         hideonnodata  TYPE clike OPTIONAL
         shrinkable    TYPE clike OPTIONAL
         view          TYPE clike OPTIONAL
@@ -3468,11 +3468,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS delta_micro_chart
       IMPORTING
-        !color            TYPE clike OPTIONAL
+        color             TYPE clike OPTIONAL
         press             TYPE clike OPTIONAL
-        !size             TYPE clike OPTIONAL
+        size              TYPE clike OPTIONAL
         height            TYPE clike OPTIONAL
-        !width            TYPE clike OPTIONAL
+        width             TYPE clike OPTIONAL
         deltadisplayvalue TYPE clike OPTIONAL
         displayvalue1     TYPE clike OPTIONAL
         displayvalue2     TYPE clike OPTIONAL
@@ -3489,13 +3489,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         actualvaluelabel  TYPE clike OPTIONAL
         press             TYPE clike OPTIONAL
-        !size             TYPE clike OPTIONAL
+        size              TYPE clike OPTIONAL
         height            TYPE clike OPTIONAL
-        !width            TYPE clike OPTIONAL
+        width             TYPE clike OPTIONAL
         deltavaluelabel   TYPE clike OPTIONAL
         maxvalue          TYPE clike OPTIONAL
         minvalue          TYPE clike OPTIONAL
-        !mode             TYPE clike OPTIONAL
+        mode              TYPE clike OPTIONAL
         scale             TYPE clike OPTIONAL
         targetvalue       TYPE clike OPTIONAL
         targetvaluelabel  TYPE clike OPTIONAL
@@ -3516,10 +3516,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         colorpalette   TYPE clike OPTIONAL
         press          TYPE clike OPTIONAL
-        !size          TYPE clike OPTIONAL
+        size           TYPE clike OPTIONAL
         height         TYPE clike OPTIONAL
-        !width         TYPE clike OPTIONAL
-        !total         TYPE clike OPTIONAL
+        width          TYPE clike OPTIONAL
+        total          TYPE clike OPTIONAL
         totallabel     TYPE clike OPTIONAL
         aligncontent   TYPE clike OPTIONAL
         hideonnodata   TYPE clike OPTIONAL
@@ -3534,7 +3534,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         colorpalette  TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
-        !size         TYPE clike OPTIONAL
+        size          TYPE clike OPTIONAL
         height        TYPE clike OPTIONAL
         maxxvalue     TYPE clike OPTIONAL
         maxyvalue     TYPE clike OPTIONAL
@@ -3544,7 +3544,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         aligncontent  TYPE clike OPTIONAL
         hideonnodata  TYPE clike OPTIONAL
         showlabel     TYPE clike OPTIONAL
-        !width        TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -3560,7 +3560,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         editortype         TYPE clike OPTIONAL
         height             TYPE clike OPTIONAL
         plugins            TYPE clike OPTIONAL
-        !required          TYPE clike OPTIONAL
+        required           TYPE clike OPTIONAL
         sanitizevalue      TYPE clike OPTIONAL
         showgroupclipboard TYPE clike OPTIONAL
         showgroupfont      TYPE clike OPTIONAL
@@ -3572,11 +3572,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
         showgroupundo      TYPE clike OPTIONAL
         textdirection      TYPE clike OPTIONAL
         uselegacytheme     TYPE clike OPTIONAL
-        !value             TYPE clike OPTIONAL
-        !width             TYPE clike OPTIONAL
+        value              TYPE clike OPTIONAL
+        width              TYPE clike OPTIONAL
         wrapping           TYPE clike OPTIONAL
         beforeeditorinit   TYPE clike OPTIONAL
-        !change            TYPE clike OPTIONAL
+        change             TYPE clike OPTIONAL
         ready              TYPE clike OPTIONAL
         readyrecurring     TYPE clike OPTIONAL
       RETURNING
@@ -3584,16 +3584,16 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS slider
       IMPORTING
-        !max                TYPE clike OPTIONAL
-        !min                TYPE clike OPTIONAL
-        !step               TYPE clike OPTIONAL
-        !value              TYPE clike OPTIONAL
+        max                 TYPE clike OPTIONAL
+        min                 TYPE clike OPTIONAL
+        step                TYPE clike OPTIONAL
+        value               TYPE clike OPTIONAL
         enabletickmarks     TYPE clike OPTIONAL
-        !width              TYPE clike OPTIONAL
-        !class              TYPE clike OPTIONAL
-        !id                 TYPE clike OPTIONAL
-        !enabled            TYPE clike OPTIONAL
-        !change             TYPE clike OPTIONAL
+        width               TYPE clike OPTIONAL
+        class               TYPE clike OPTIONAL
+        id                  TYPE clike OPTIONAL
+        enabled             TYPE clike OPTIONAL
+        change              TYPE clike OPTIONAL
         inputsastooltips    TYPE clike OPTIONAL
         showadvancedtooltip TYPE clike OPTIONAL
         showhandletooltip   TYPE clike OPTIONAL
@@ -3602,7 +3602,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS upload_set
       IMPORTING
-        !id                     TYPE clike OPTIONAL
+        id                      TYPE clike OPTIONAL
         instantupload           TYPE clike OPTIONAL
         showicons               TYPE clike OPTIONAL
         uploadenabled           TYPE clike OPTIONAL
@@ -3613,14 +3613,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
         mediatypes              TYPE clike OPTIONAL
         uploadurl               TYPE clike OPTIONAL
         items                   TYPE clike OPTIONAL
-        !mode                   TYPE clike OPTIONAL
+        mode                    TYPE clike OPTIONAL
         selectionchanged        TYPE clike OPTIONAL
         uploadcompleted         TYPE clike OPTIONAL
         afteritemadded          TYPE clike OPTIONAL
         samefilenameallowed     TYPE clike OPTIONAL
         uploadbuttoninvisible   TYPE clike OPTIONAL
-        !directory              TYPE clike OPTIONAL
-        !multiple               TYPE clike OPTIONAL
+        directory               TYPE clike OPTIONAL
+        multiple                TYPE clike OPTIONAL
         dragdropdescription     TYPE clike OPTIONAL
         dragdroptext            TYPE clike OPTIONAL
         nodatatext              TYPE clike OPTIONAL
@@ -3679,7 +3679,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS mask_input_rule
       IMPORTING
         maskformatsymbol TYPE clike OPTIONAL
-        !regex           TYPE clike OPTIONAL
+        regex            TYPE clike OPTIONAL
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
@@ -3700,10 +3700,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS side_panel_item
       IMPORTING
-        !icon         TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
-        !key          TYPE clike OPTIONAL
-        !enabled      TYPE clike OPTIONAL
+        icon          TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
+        key           TYPE clike OPTIONAL
+        enabled       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -3714,7 +3714,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS quick_view
       IMPORTING
         placement     TYPE clike OPTIONAL
-        !width        TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
         afterclose    TYPE clike OPTIONAL
         afteropen     TYPE clike OPTIONAL
         beforeclose   TYPE clike OPTIONAL
@@ -3724,10 +3724,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS quick_view_page
       IMPORTING
-        !description  TYPE clike OPTIONAL
-        !header       TYPE clike OPTIONAL
+        description   TYPE clike OPTIONAL
+        header        TYPE clike OPTIONAL
         pageid        TYPE clike OPTIONAL
-        !title        TYPE clike OPTIONAL
+        title         TYPE clike OPTIONAL
         titleurl      TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -3738,8 +3738,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS quick_view_group
       IMPORTING
-        !heading      TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        heading       TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -3748,41 +3748,41 @@ CLASS z2ui5_cl_xml_view DEFINITION
         emailsubject  TYPE clike OPTIONAL
         label         TYPE clike OPTIONAL
         pagelinkid    TYPE clike OPTIONAL
-        !target       TYPE clike OPTIONAL
-        !type         TYPE clike OPTIONAL
+        target        TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
         url           TYPE clike OPTIONAL
-        !value        TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        value         TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS date_range_selection
       IMPORTING
-        !value                  TYPE clike OPTIONAL
+        value                   TYPE clike OPTIONAL
         placeholder             TYPE clike OPTIONAL
         displayformat           TYPE clike OPTIONAL
         valueformat             TYPE clike OPTIONAL
-        !required               TYPE clike OPTIONAL
+        required                TYPE clike OPTIONAL
         valuestate              TYPE clike OPTIONAL
         valuestatetext          TYPE clike OPTIONAL
-        !enabled                TYPE clike OPTIONAL
+        enabled                 TYPE clike OPTIONAL
         showcurrentdatebutton   TYPE clike OPTIONAL
-        !change                 TYPE clike OPTIONAL
+        change                  TYPE clike OPTIONAL
         hideinput               TYPE clike OPTIONAL
         showfooter              TYPE clike OPTIONAL
-        !visible                TYPE clike OPTIONAL
+        visible                 TYPE clike OPTIONAL
         showvaluestatemessage   TYPE clike OPTIONAL
         mindate                 TYPE clike OPTIONAL
         maxdate                 TYPE clike OPTIONAL
         editable                TYPE clike OPTIONAL
-        !width                  TYPE clike OPTIONAL
-        !id                     TYPE clike OPTIONAL
+        width                   TYPE clike OPTIONAL
+        id                      TYPE clike OPTIONAL
         calendarweeknumbering   TYPE clike OPTIONAL
         displayformattype       TYPE clike OPTIONAL
-        !class                  TYPE clike OPTIONAL
+        class                   TYPE clike OPTIONAL
         textdirection           TYPE clike OPTIONAL
         textalign               TYPE clike OPTIONAL
-        !name                   TYPE clike OPTIONAL
+        name                    TYPE clike OPTIONAL
         datevalue               TYPE clike OPTIONAL
         seconddatevalue         TYPE clike OPTIONAL
         initialfocuseddatevalue TYPE clike OPTIONAL
@@ -3804,12 +3804,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
         showsetasdefault              TYPE clike OPTIONAL
         titlestyle                    TYPE clike OPTIONAL
         updatevariantinurl            TYPE clike OPTIONAL
-        !for                          TYPE clike OPTIONAL
+        for                           TYPE clike OPTIONAL
         cancel                        TYPE clike OPTIONAL
         initialized                   TYPE clike OPTIONAL
         manage                        TYPE clike OPTIONAL
-        !save                         TYPE clike OPTIONAL
-        !select                       TYPE clike OPTIONAL
+        save                          TYPE clike OPTIONAL
+        select                        TYPE clike OPTIONAL
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
@@ -3826,7 +3826,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS smart_variant_management
       IMPORTING
-        !id                    TYPE clike OPTIONAL
+        id                     TYPE clike OPTIONAL
         showexecuteonselection TYPE clike OPTIONAL
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
@@ -3837,16 +3837,16 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS paging_button
       IMPORTING
-        !count                TYPE clike OPTIONAL
+        count                 TYPE clike OPTIONAL
         nextbuttontooltip     TYPE clike OPTIONAL
         previousbuttontooltip TYPE clike OPTIONAL
-        !position             TYPE clike OPTIONAL
+        position              TYPE clike OPTIONAL
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS timeline
       IMPORTING
-        !id               TYPE clike OPTIONAL
+        id                TYPE clike OPTIONAL
         enabledoublesided TYPE clike OPTIONAL
         groupby           TYPE clike OPTIONAL
         growingthreshold  TYPE clike OPTIONAL
@@ -3858,7 +3858,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         enablemodelfilter TYPE clike OPTIONAL
         enablescroll      TYPE clike OPTIONAL
         forcegrowing      TYPE clike OPTIONAL
-        !group            TYPE clike OPTIONAL
+        group             TYPE clike OPTIONAL
         lazyloading       TYPE clike OPTIONAL
         showheaderbar     TYPE clike OPTIONAL
         showicons         TYPE clike OPTIONAL
@@ -3866,10 +3866,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
         showsearch        TYPE clike OPTIONAL
         showsort          TYPE clike OPTIONAL
         showtimefilter    TYPE clike OPTIONAL
-        !sort             TYPE clike OPTIONAL
+        sort              TYPE clike OPTIONAL
         groupbytype       TYPE clike OPTIONAL
         textheight        TYPE clike OPTIONAL
-        !width            TYPE clike OPTIONAL
+        width             TYPE clike OPTIONAL
         height            TYPE clike OPTIONAL
         nodatatext        TYPE clike OPTIONAL
         filterlist        TYPE clike OPTIONAL
@@ -3879,15 +3879,15 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS timeline_item
       IMPORTING
-        !id                 TYPE clike OPTIONAL
+        id                  TYPE clike OPTIONAL
         datetime            TYPE clike OPTIONAL
-        !title              TYPE clike OPTIONAL
+        title               TYPE clike OPTIONAL
         usernameclickable   TYPE clike OPTIONAL
         useicontooltip      TYPE clike OPTIONAL
         usernameclicked     TYPE clike OPTIONAL
-        !select             TYPE clike OPTIONAL
+        select              TYPE clike OPTIONAL
         userpicture         TYPE clike OPTIONAL
-        !text               TYPE clike OPTIONAL
+        text                TYPE clike OPTIONAL
         username            TYPE clike OPTIONAL
         filtervalue         TYPE clike OPTIONAL
         icondisplayshape    TYPE clike OPTIONAL
@@ -3896,18 +3896,18 @@ CLASS z2ui5_cl_xml_view DEFINITION
         icontooltip         TYPE clike OPTIONAL
         maxcharacters       TYPE clike OPTIONAL
         replycount          TYPE clike OPTIONAL
-        !status             TYPE clike OPTIONAL
+        status              TYPE clike OPTIONAL
         customactionclicked TYPE clike OPTIONAL
         press               TYPE clike OPTIONAL
         replylistopen       TYPE clike OPTIONAL
         replypost           TYPE clike OPTIONAL
-        !icon               TYPE clike OPTIONAL
+        icon                TYPE clike OPTIONAL
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS split_container
       IMPORTING
-        !id                         TYPE clike OPTIONAL
+        id                          TYPE clike OPTIONAL
         initialdetail               TYPE clike OPTIONAL
         initialmaster               TYPE clike OPTIONAL
         backgroundcolor             TYPE clike OPTIONAL
@@ -3918,7 +3918,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         defaulttransitionnamemaster TYPE clike OPTIONAL
         masterbuttontext            TYPE clike OPTIONAL
         masterbuttontooltip         TYPE clike OPTIONAL
-        !mode                       TYPE clike OPTIONAL
+        mode                        TYPE clike OPTIONAL
         afterdetailnavigate         TYPE clike OPTIONAL
         aftermasterclose            TYPE clike OPTIONAL
         aftermasternavigate         TYPE clike OPTIONAL
@@ -3941,36 +3941,36 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS container_content
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !title        TYPE clike OPTIONAL
-        !icon         TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        title         TYPE clike OPTIONAL
+        icon          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS map_container
       IMPORTING
-        !id              TYPE clike OPTIONAL
+        id               TYPE clike OPTIONAL
         autoadjustheight TYPE clike OPTIONAL
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS spot
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !position     TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        position      TYPE clike OPTIONAL
         contentoffset TYPE clike OPTIONAL
-        !type         TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
         scale         TYPE clike OPTIONAL
         tooltip       TYPE clike OPTIONAL
         image         TYPE clike OPTIONAL
-        !icon         TYPE clike OPTIONAL
+        icon          TYPE clike OPTIONAL
         click         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS analytic_map
       IMPORTING
-        !id             TYPE clike OPTIONAL
+        id              TYPE clike OPTIONAL
         initialposition TYPE clike OPTIONAL
         initialzoom     TYPE clike OPTIONAL
       RETURNING
@@ -3978,7 +3978,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS spots
       IMPORTING
-        !id           TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
         items         TYPE clike OPTIONAL
                   PREFERRED PARAMETER items
       RETURNING
@@ -3990,66 +3990,66 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS action_sheet
       IMPORTING
-        !id               TYPE clike OPTIONAL
+        id                TYPE clike OPTIONAL
         cancelbuttontext  TYPE clike OPTIONAL
         placement         TYPE clike OPTIONAL
         showcancelbutton  TYPE clike OPTIONAL
-        !title            TYPE clike OPTIONAL
+        title             TYPE clike OPTIONAL
         afterclose        TYPE clike OPTIONAL
         afteropen         TYPE clike OPTIONAL
         beforeclose       TYPE clike OPTIONAL
         beforeopen        TYPE clike OPTIONAL
         cancelbuttonpress TYPE clike OPTIONAL
-        !visible          TYPE clike OPTIONAL
-        !class            TYPE clike OPTIONAL
+        visible           TYPE clike OPTIONAL
+        class             TYPE clike OPTIONAL
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS expandable_text
       IMPORTING
-        !id                TYPE clike OPTIONAL
+        id                 TYPE clike OPTIONAL
         emptyindicatormode TYPE clike OPTIONAL
         maxcharacters      TYPE clike OPTIONAL
         overflowmode       TYPE clike OPTIONAL
         renderwhitespace   TYPE clike OPTIONAL
-        !text              TYPE clike OPTIONAL
+        text               TYPE clike OPTIONAL
         textalign          TYPE clike OPTIONAL
         textdirection      TYPE clike OPTIONAL
-        !visible           TYPE clike OPTIONAL
+        visible            TYPE clike OPTIONAL
         wrappingtype       TYPE clike OPTIONAL
-        !class             TYPE clike OPTIONAL
+        class              TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS select
       IMPORTING
-        !id                 TYPE clike OPTIONAL
+        id                  TYPE clike OPTIONAL
         autoadjustwidth     TYPE clike OPTIONAL
         columnratio         TYPE clike OPTIONAL
         editable            TYPE clike OPTIONAL
-        !enabled            TYPE clike OPTIONAL
+        enabled             TYPE clike OPTIONAL
         forceselection      TYPE clike OPTIONAL
-        !icon               TYPE clike OPTIONAL
+        icon                TYPE clike OPTIONAL
         maxwidth            TYPE clike OPTIONAL
-        !name               TYPE clike OPTIONAL
-        !required           TYPE clike OPTIONAL
+        name                TYPE clike OPTIONAL
+        required            TYPE clike OPTIONAL
         resetonmissingkey   TYPE clike OPTIONAL
         selecteditemid      TYPE clike OPTIONAL
         selectedkey         TYPE clike OPTIONAL
         showsecondaryvalues TYPE clike OPTIONAL
         textalign           TYPE clike OPTIONAL
         textdirection       TYPE clike OPTIONAL
-        !type               TYPE clike OPTIONAL
+        type                TYPE clike OPTIONAL
         valuestate          TYPE clike OPTIONAL
         valuestatetext      TYPE clike OPTIONAL
-        !visible            TYPE clike OPTIONAL
-        !width              TYPE clike OPTIONAL
+        visible             TYPE clike OPTIONAL
+        width               TYPE clike OPTIONAL
         wrapitemstext       TYPE clike OPTIONAL
         items               TYPE clike OPTIONAL
         selecteditem        TYPE clike OPTIONAL
-        !change             TYPE clike OPTIONAL
+        change              TYPE clike OPTIONAL
         livechange          TYPE clike OPTIONAL
-        !class              TYPE clike OPTIONAL
+        class               TYPE clike OPTIONAL
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
@@ -4068,35 +4068,35 @@ CLASS z2ui5_cl_xml_view DEFINITION
         scrolltime       TYPE clike OPTIONAL
         showdividers     TYPE clike OPTIONAL
         showoverflowitem TYPE clike OPTIONAL
-        !visible         TYPE clike OPTIONAL
-        !width           TYPE clike OPTIONAL
-        !id              TYPE clike OPTIONAL
-        !scroll          TYPE clike OPTIONAL
+        visible          TYPE clike OPTIONAL
+        width            TYPE clike OPTIONAL
+        id               TYPE clike OPTIONAL
+        scroll           TYPE clike OPTIONAL
         snaptorow        TYPE clike OPTIONAL
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS dependents
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS card
       IMPORTING
-        !id            TYPE clike OPTIONAL
-        !class         TYPE clike OPTIONAL
+        id             TYPE clike OPTIONAL
+        class          TYPE clike OPTIONAL
         headerposition TYPE clike OPTIONAL
         height         TYPE clike OPTIONAL
-        !visible       TYPE clike OPTIONAL
-        !width         TYPE clike OPTIONAL
+        visible        TYPE clike OPTIONAL
+        width          TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS card_header
       IMPORTING
-        !id                 TYPE clike OPTIONAL
-        !class              TYPE clike OPTIONAL
+        id                  TYPE clike OPTIONAL
+        class               TYPE clike OPTIONAL
         iconalt             TYPE clike OPTIONAL
         iconbackgroundcolor TYPE clike OPTIONAL
         icondisplayshape    TYPE clike OPTIONAL
@@ -4108,9 +4108,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
         statusvisible       TYPE clike OPTIONAL
         subtitle            TYPE clike OPTIONAL
         subtitlemaxlines    TYPE clike OPTIONAL
-        !title              TYPE clike OPTIONAL
+        title               TYPE clike OPTIONAL
         titlemaxlines       TYPE clike OPTIONAL
-        !visible            TYPE clike OPTIONAL
+        visible             TYPE clike OPTIONAL
         datatimestamp       TYPE clike OPTIONAL
         press               TYPE clike OPTIONAL
       RETURNING
@@ -4118,9 +4118,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS numeric_header
       IMPORTING
-        !id                     TYPE clike OPTIONAL
-        !class                  TYPE clike OPTIONAL
-        !visible                TYPE clike OPTIONAL
+        id                      TYPE clike OPTIONAL
+        class                   TYPE clike OPTIONAL
+        visible                 TYPE clike OPTIONAL
         datatimestamp           TYPE clike OPTIONAL
         press                   TYPE clike OPTIONAL
         details                 TYPE clike OPTIONAL
@@ -4133,17 +4133,17 @@ CLASS z2ui5_cl_xml_view DEFINITION
         iconsize                TYPE clike OPTIONAL
         iconsrc                 TYPE clike OPTIONAL
         iconvisible             TYPE clike OPTIONAL
-        !number                 TYPE clike OPTIONAL
+        number                  TYPE clike OPTIONAL
         numbersize              TYPE clike OPTIONAL
         numbervisible           TYPE clike OPTIONAL
         scale                   TYPE clike OPTIONAL
         sideindicatorsalignment TYPE clike OPTIONAL
-        !state                  TYPE clike OPTIONAL
+        state                   TYPE clike OPTIONAL
         statustext              TYPE clike OPTIONAL
         statusvisible           TYPE clike OPTIONAL
         subtitle                TYPE clike OPTIONAL
         subtitlemaxlines        TYPE clike OPTIONAL
-        !title                  TYPE clike OPTIONAL
+        title                   TYPE clike OPTIONAL
         titlemaxlines           TYPE clike OPTIONAL
         trend                   TYPE clike OPTIONAL
         unitofmeasurement       TYPE clike OPTIONAL
@@ -4152,13 +4152,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS numeric_side_indicator
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
-        !number       TYPE clike OPTIONAL
-        !state        TYPE clike OPTIONAL
-        !title        TYPE clike OPTIONAL
-        !unit         TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
+        number        TYPE clike OPTIONAL
+        state         TYPE clike OPTIONAL
+        title         TYPE clike OPTIONAL
+        unit          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -4166,13 +4166,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         displaytime    TYPE clike OPTIONAL
         height         TYPE clike OPTIONAL
-        !visible       TYPE clike OPTIONAL
-        !scope         TYPE clike OPTIONAL
+        visible        TYPE clike OPTIONAL
+        scope          TYPE clike OPTIONAL
         sizebehavior   TYPE clike OPTIONAL
         transitiontime TYPE clike OPTIONAL
         press          TYPE clike OPTIONAL
-        !width         TYPE clike OPTIONAL
-        !class         TYPE clike OPTIONAL
+        width          TYPE clike OPTIONAL
+        class          TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
@@ -4182,17 +4182,17 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS busy_indicator
       IMPORTING
-        !id                     TYPE clike OPTIONAL
-        !class                  TYPE clike OPTIONAL
+        id                      TYPE clike OPTIONAL
+        class                   TYPE clike OPTIONAL
         customicon              TYPE clike OPTIONAL
         customiconheight        TYPE clike OPTIONAL
         customiconrotationspeed TYPE clike OPTIONAL
         customiconwidth         TYPE clike OPTIONAL
-        !size                   TYPE clike OPTIONAL
-        !text                   TYPE clike OPTIONAL
+        size                    TYPE clike OPTIONAL
+        text                    TYPE clike OPTIONAL
         textdirection           TYPE clike OPTIONAL
         customicondensityaware  TYPE clike OPTIONAL
-        !visible                TYPE clike OPTIONAL
+        visible                 TYPE clike OPTIONAL
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
@@ -4208,25 +4208,25 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS facet_filter
       IMPORTING
-        !id                 TYPE clike OPTIONAL
-        !class              TYPE clike OPTIONAL
+        id                  TYPE clike OPTIONAL
+        class               TYPE clike OPTIONAL
         livesearch          TYPE clike OPTIONAL
         showpersonalization TYPE clike OPTIONAL
         showpopoverokbutton TYPE clike OPTIONAL
         showreset           TYPE clike OPTIONAL
         showsummarybar      TYPE clike OPTIONAL
-        !type               TYPE clike OPTIONAL
-        !visible            TYPE clike OPTIONAL
+        type                TYPE clike OPTIONAL
+        visible             TYPE clike OPTIONAL
         confirm             TYPE clike OPTIONAL
-        !reset              TYPE clike OPTIONAL
+        reset               TYPE clike OPTIONAL
         lists               TYPE clike OPTIONAL
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS facet_filter_list
       IMPORTING
-        !id                         TYPE clike OPTIONAL
-        !class                      TYPE clike OPTIONAL
+        id                          TYPE clike OPTIONAL
+        class                       TYPE clike OPTIONAL
         active                      TYPE clike OPTIONAL
         allcount                    TYPE clike OPTIONAL
         backgrounddesign            TYPE clike OPTIONAL
@@ -4243,49 +4243,49 @@ CLASS z2ui5_cl_xml_view DEFINITION
         headertext                  TYPE clike OPTIONAL
         includeiteminselection      TYPE clike OPTIONAL
         inset                       TYPE clike OPTIONAL
-        !key                        TYPE clike OPTIONAL
+        key                         TYPE clike OPTIONAL
         keyboardmode                TYPE clike OPTIONAL
-        !mode                       TYPE clike OPTIONAL
+        mode                        TYPE clike OPTIONAL
         modeanimationon             TYPE clike OPTIONAL
         multiselectmode             TYPE clike OPTIONAL
         nodatatext                  TYPE clike OPTIONAL
         rememberselections          TYPE clike OPTIONAL
         retainlistsequence          TYPE clike OPTIONAL
-        !sequence                   TYPE clike OPTIONAL
+        sequence                    TYPE clike OPTIONAL
         shownodata                  TYPE clike OPTIONAL
         showremovefaceticon         TYPE clike OPTIONAL
         showseparators              TYPE clike OPTIONAL
         showunread                  TYPE clike OPTIONAL
         sticky                      TYPE clike OPTIONAL
         swipedirection              TYPE clike OPTIONAL
-        !title                      TYPE clike OPTIONAL
-        !visible                    TYPE clike OPTIONAL
-        !width                      TYPE clike OPTIONAL
+        title                       TYPE clike OPTIONAL
+        visible                     TYPE clike OPTIONAL
+        width                       TYPE clike OPTIONAL
         wordwrap                    TYPE clike OPTIONAL
         listclose                   TYPE clike OPTIONAL
         listopen                    TYPE clike OPTIONAL
-        !search                     TYPE clike OPTIONAL
+        search                      TYPE clike OPTIONAL
         selectionchange             TYPE clike OPTIONAL
-        !delete                     TYPE clike OPTIONAL
+        delete                      TYPE clike OPTIONAL
         items                       TYPE clike OPTIONAL
       RETURNING
         VALUE(result)               TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS facet_filter_item
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
-        !count        TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
+        count         TYPE clike OPTIONAL
         counter       TYPE clike OPTIONAL
         highlight     TYPE clike OPTIONAL
         highlighttext TYPE clike OPTIONAL
-        !key          TYPE clike OPTIONAL
+        key           TYPE clike OPTIONAL
         navigated     TYPE clike OPTIONAL
         selected      TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
-        !type         TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
         unread        TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
         detailpress   TYPE clike OPTIONAL
       RETURNING
@@ -4293,29 +4293,29 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS draft_indicator
       IMPORTING
-        !id            TYPE clike OPTIONAL
-        !class         TYPE clike OPTIONAL
+        id             TYPE clike OPTIONAL
+        class          TYPE clike OPTIONAL
         mindisplaytime TYPE clike OPTIONAL
-        !state         TYPE clike OPTIONAL
-        !visible       TYPE clike OPTIONAL
+        state          TYPE clike OPTIONAL
+        visible        TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS html_map
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
-        !name         TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
+        name          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS html_area
       IMPORTING
-        !id           TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
         shape         TYPE clike OPTIONAL
         coords        TYPE clike OPTIONAL
         alt           TYPE clike OPTIONAL
-        !target       TYPE clike OPTIONAL
+        target        TYPE clike OPTIONAL
         href          TYPE clike OPTIONAL
         onclick       TYPE clike OPTIONAL
       RETURNING
@@ -4323,18 +4323,18 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS html_canvas
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !width        TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
         height        TYPE clike OPTIONAL
-        !style        TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
+        style         TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS notification_list
       IMPORTING
-        !id                    TYPE clike OPTIONAL
-        !class                 TYPE clike OPTIONAL
+        id                     TYPE clike OPTIONAL
+        class                  TYPE clike OPTIONAL
         footertext             TYPE clike OPTIONAL
         growing                TYPE clike OPTIONAL
         growingdirection       TYPE clike OPTIONAL
@@ -4346,7 +4346,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         includeiteminselection TYPE clike OPTIONAL
         inset                  TYPE clike OPTIONAL
         keyboardmode           TYPE clike OPTIONAL
-        !mode                  TYPE clike OPTIONAL
+        mode                   TYPE clike OPTIONAL
         modeanimationon        TYPE clike OPTIONAL
         multiselectmode        TYPE clike OPTIONAL
         nodatatext             TYPE clike OPTIONAL
@@ -4356,14 +4356,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
         showunread             TYPE clike OPTIONAL
         sticky                 TYPE clike OPTIONAL
         swipedirection         TYPE clike OPTIONAL
-        !visible               TYPE clike OPTIONAL
-        !width                 TYPE clike OPTIONAL
+        visible                TYPE clike OPTIONAL
+        width                  TYPE clike OPTIONAL
         beforeopencontextmenu  TYPE clike OPTIONAL
-        !delete                TYPE clike OPTIONAL
+        delete                 TYPE clike OPTIONAL
         growingfinished        TYPE clike OPTIONAL
         growingstarted         TYPE clike OPTIONAL
         itempress              TYPE clike OPTIONAL
-        !select                TYPE clike OPTIONAL
+        select                 TYPE clike OPTIONAL
         selectionchange        TYPE clike OPTIONAL
         swipe                  TYPE clike OPTIONAL
         updatefinished         TYPE clike OPTIONAL
@@ -4373,38 +4373,38 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS notification_list_group
       IMPORTING
-        !id                           TYPE clike OPTIONAL
+        id                            TYPE clike OPTIONAL
         autopriority                  TYPE clike OPTIONAL
         collapsed                     TYPE clike OPTIONAL
         enablecollapsebuttonwhenempty TYPE clike OPTIONAL
         highlight                     TYPE clike OPTIONAL
         highlighttext                 TYPE clike OPTIONAL
         navigated                     TYPE clike OPTIONAL
-        !priority                     TYPE clike OPTIONAL
+        priority                      TYPE clike OPTIONAL
         selected                      TYPE clike OPTIONAL
         showbuttons                   TYPE clike OPTIONAL
         showclosebutton               TYPE clike OPTIONAL
         showemptygroup                TYPE clike OPTIONAL
         showitemscounter              TYPE clike OPTIONAL
-        !title                        TYPE clike OPTIONAL
-        !type                         TYPE clike OPTIONAL
+        title                         TYPE clike OPTIONAL
+        type                          TYPE clike OPTIONAL
         unread                        TYPE clike OPTIONAL
-        !visible                      TYPE clike OPTIONAL
-        !class                        TYPE clike OPTIONAL
+        visible                       TYPE clike OPTIONAL
+        class                         TYPE clike OPTIONAL
         oncollapse                    TYPE clike OPTIONAL
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS notification_list_item
       IMPORTING
-        !id                TYPE clike OPTIONAL
-        !visible           TYPE clike OPTIONAL
-        !class             TYPE clike OPTIONAL
+        id                 TYPE clike OPTIONAL
+        visible            TYPE clike OPTIONAL
+        class              TYPE clike OPTIONAL
         authoravatarcolor  TYPE clike OPTIONAL
         authorinitials     TYPE clike OPTIONAL
-        !description       TYPE clike OPTIONAL
+        description        TYPE clike OPTIONAL
         hideshowmorebutton TYPE clike OPTIONAL
-        !truncate          TYPE clike OPTIONAL
+        truncate           TYPE clike OPTIONAL
         authorname         TYPE clike OPTIONAL
         authorpicture      TYPE clike OPTIONAL
         counter            TYPE clike OPTIONAL
@@ -4412,14 +4412,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
         highlight          TYPE clike OPTIONAL
         highlighttext      TYPE clike OPTIONAL
         navigated          TYPE clike OPTIONAL
-        !priority          TYPE clike OPTIONAL
+        priority           TYPE clike OPTIONAL
         selected           TYPE clike OPTIONAL
         showbuttons        TYPE clike OPTIONAL
         showclosebutton    TYPE clike OPTIONAL
-        !title             TYPE clike OPTIONAL
-        !type              TYPE clike OPTIONAL
+        title              TYPE clike OPTIONAL
+        type               TYPE clike OPTIONAL
         unread             TYPE clike OPTIONAL
-        !close             TYPE clike OPTIONAL
+        close              TYPE clike OPTIONAL
         detailpress        TYPE clike OPTIONAL
         press              TYPE clike OPTIONAL
       RETURNING
@@ -4427,8 +4427,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS wizard
       IMPORTING
-        !id                TYPE clike OPTIONAL
-        !class             TYPE clike OPTIONAL
+        id                 TYPE clike OPTIONAL
+        class              TYPE clike OPTIONAL
         backgrounddesign   TYPE clike OPTIONAL
         busy               TYPE clike OPTIONAL
         busyindicatordelay TYPE clike OPTIONAL
@@ -4440,8 +4440,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         rendermode         TYPE clike OPTIONAL
         shownextbutton     TYPE clike OPTIONAL
         steptitlelevel     TYPE clike OPTIONAL
-        !visible           TYPE clike OPTIONAL
-        !width             TYPE clike OPTIONAL
+        visible            TYPE clike OPTIONAL
+        width              TYPE clike OPTIONAL
         complete           TYPE clike OPTIONAL
         navigationchange   TYPE clike OPTIONAL
         stepactivate       TYPE clike OPTIONAL
@@ -4450,16 +4450,16 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS wizard_step
       IMPORTING
-        !id                TYPE clike OPTIONAL
+        id                 TYPE clike OPTIONAL
         busy               TYPE clike OPTIONAL
         busyindicatordelay TYPE clike OPTIONAL
         busyindicatorsize  TYPE clike OPTIONAL
         fieldgroupids      TYPE clike OPTIONAL
-        !icon              TYPE clike OPTIONAL
+        icon               TYPE clike OPTIONAL
         !optional          TYPE clike OPTIONAL
-        !title             TYPE clike OPTIONAL
+        title              TYPE clike OPTIONAL
         validated          TYPE clike OPTIONAL
-        !visible           TYPE clike OPTIONAL
+        visible            TYPE clike OPTIONAL
         activate           TYPE clike OPTIONAL
         subsequentsteps    TYPE clike OPTIONAL
         nextstep           TYPE clike OPTIONAL
@@ -4469,22 +4469,22 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS template_repeat
       IMPORTING
-        !list         TYPE clike OPTIONAL
-        !var          TYPE clike OPTIONAL
+        list          TYPE clike OPTIONAL
+        var           TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS template_with
       IMPORTING
-        !path         TYPE clike OPTIONAL
+        path          TYPE clike OPTIONAL
         helper        TYPE clike OPTIONAL
-        !var          TYPE clike OPTIONAL
+        var           TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS template_if
       IMPORTING
-        !test         TYPE clike OPTIONAL
+        test          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -4498,14 +4498,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS template_elseif
       IMPORTING
-        !test         TYPE clike OPTIONAL
+        test          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS relationship
       IMPORTING
         shapeid       TYPE clike OPTIONAL
-        !type         TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
         successor     TYPE clike OPTIONAL
         predecessor   TYPE clike OPTIONAL
       RETURNING
@@ -4517,31 +4517,31 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS no_data
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS lines
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS line
       IMPORTING
-        !id              TYPE clike OPTIONAL
-        !class           TYPE clike OPTIONAL
+        id               TYPE clike OPTIONAL
+        class            TYPE clike OPTIONAL
         arroworientation TYPE clike OPTIONAL
         arrowposition    TYPE clike OPTIONAL
-        !description     TYPE clike OPTIONAL
-        !from            TYPE clike OPTIONAL
+        description      TYPE clike OPTIONAL
+        from             TYPE clike OPTIONAL
         linetype         TYPE clike OPTIONAL
         selected         TYPE clike OPTIONAL
-        !status          TYPE clike OPTIONAL
+        status           TYPE clike OPTIONAL
         stretchtocenter  TYPE clike OPTIONAL
-        !title           TYPE clike OPTIONAL
-        !to              TYPE clike OPTIONAL
-        !visible         TYPE clike OPTIONAL
+        title            TYPE clike OPTIONAL
+        to               TYPE clike OPTIONAL
+        visible          TYPE clike OPTIONAL
         press            TYPE clike OPTIONAL
         hover            TYPE clike OPTIONAL
       RETURNING
@@ -4549,24 +4549,24 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS groups
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS group
       IMPORTING
-        !id                 TYPE clike OPTIONAL
-        !class              TYPE clike OPTIONAL
+        id                  TYPE clike OPTIONAL
+        class               TYPE clike OPTIONAL
         collapsed           TYPE clike OPTIONAL
-        !description        TYPE clike OPTIONAL
+        description         TYPE clike OPTIONAL
         headercheckboxstate TYPE clike OPTIONAL
-        !icon               TYPE clike OPTIONAL
-        !key                TYPE clike OPTIONAL
+        icon                TYPE clike OPTIONAL
+        key                 TYPE clike OPTIONAL
         minwidth            TYPE clike OPTIONAL
         parentgroupkey      TYPE clike OPTIONAL
-        !status             TYPE clike OPTIONAL
-        !title              TYPE clike OPTIONAL
-        !visible            TYPE clike OPTIONAL
+        status              TYPE clike OPTIONAL
+        title               TYPE clike OPTIONAL
+        visible             TYPE clike OPTIONAL
         collapseexpand      TYPE clike OPTIONAL
         headercheckboxpress TYPE clike OPTIONAL
         showdetail          TYPE clike OPTIONAL
@@ -4575,14 +4575,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS network_graph
       IMPORTING
-        !id             TYPE clike OPTIONAL
-        !class          TYPE clike OPTIONAL
-        !layout         TYPE clike OPTIONAL
+        id              TYPE clike OPTIONAL
+        class           TYPE clike OPTIONAL
+        layout          TYPE clike OPTIONAL
         height          TYPE clike OPTIONAL
-        !width          TYPE clike OPTIONAL
-        !nodes          TYPE clike OPTIONAL
-        !lines          TYPE clike OPTIONAL
-        !groups         TYPE clike OPTIONAL
+        width           TYPE clike OPTIONAL
+        nodes           TYPE clike OPTIONAL
+        lines           TYPE clike OPTIONAL
+        groups          TYPE clike OPTIONAL
         backgroundcolor TYPE clike OPTIONAL
         backgroundimage TYPE clike OPTIONAL
         nodatatext      TYPE clike OPTIONAL
@@ -4591,12 +4591,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
         enablewheelzoom TYPE clike OPTIONAL
         enablezoom      TYPE clike OPTIONAL
         nodata          TYPE clike OPTIONAL
-        !visible        TYPE clike OPTIONAL
+        visible         TYPE clike OPTIONAL
         afterlayouting  TYPE clike OPTIONAL
         beforelayouting TYPE clike OPTIONAL
         failure         TYPE clike OPTIONAL
         graphready      TYPE clike OPTIONAL
-        !search         TYPE clike OPTIONAL
+        search          TYPE clike OPTIONAL
         searchsuggest   TYPE clike OPTIONAL
         selectionchange TYPE clike OPTIONAL
         zoomchanged     TYPE clike OPTIONAL
@@ -4609,8 +4609,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS layered_layout
       IMPORTING
-        !id               TYPE clike OPTIONAL
-        !class            TYPE clike OPTIONAL
+        id                TYPE clike OPTIONAL
+        class             TYPE clike OPTIONAL
         linespacingfactor TYPE clike OPTIONAL
         mergeedges        TYPE clike OPTIONAL
         nodeplacement     TYPE clike OPTIONAL
@@ -4620,9 +4620,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS force_based_layout
       IMPORTING
-        !id             TYPE clike OPTIONAL
-        !class          TYPE clike OPTIONAL
-        !alpha          TYPE clike OPTIONAL
+        id              TYPE clike OPTIONAL
+        class           TYPE clike OPTIONAL
+        alpha           TYPE clike OPTIONAL
         charge          TYPE clike OPTIONAL
         friction        TYPE clike OPTIONAL
         maximumduration TYPE clike OPTIONAL
@@ -4631,8 +4631,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS force_directed_layout
       IMPORTING
-        !id                     TYPE clike OPTIONAL
-        !class                  TYPE clike OPTIONAL
+        id                      TYPE clike OPTIONAL
+        class                   TYPE clike OPTIONAL
         cooldownstep            TYPE clike OPTIONAL
         initialtemperature      TYPE clike OPTIONAL
         maxiterations           TYPE clike OPTIONAL
@@ -4656,39 +4656,39 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS attributes
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS element_attribute
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
         label         TYPE clike OPTIONAL
-        !value        TYPE clike OPTIONAL
+        value         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS action_buttons
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS action_button
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
-        !enabled      TYPE clike OPTIONAL
-        !icon         TYPE clike OPTIONAL
-        !position     TYPE clike OPTIONAL
-        !title        TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
+        enabled       TYPE clike OPTIONAL
+        icon          TYPE clike OPTIONAL
+        position      TYPE clike OPTIONAL
+        title         TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS routes
       IMPORTING
-        !id           TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
         items         TYPE clike OPTIONAL
                   PREFERRED PARAMETER items
       RETURNING
@@ -4700,16 +4700,16 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS legenditem
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
-        !color        TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
+        color         TYPE clike OPTIONAL
                   PREFERRED PARAMETER text
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS legend
       IMPORTING
-        !id           TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
         items         TYPE clike OPTIONAL
         caption       TYPE clike OPTIONAL
                   PREFERRED PARAMETER items
@@ -4718,11 +4718,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS route
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !position     TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        position      TYPE clike OPTIONAL
         routetype     TYPE clike OPTIONAL
         linedash      TYPE clike OPTIONAL
-        !color        TYPE clike OPTIONAL
+        color         TYPE clike OPTIONAL
         colorborder   TYPE clike OPTIONAL
         linewidth     TYPE clike OPTIONAL
       RETURNING
@@ -4730,9 +4730,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS column_menu
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
         afterclose    TYPE clike OPTIONAL
         beforeopen    TYPE clike OPTIONAL
       RETURNING
@@ -4740,133 +4740,133 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS column_menu_item
       IMPORTING
-        !id                TYPE clike OPTIONAL
-        !class             TYPE clike OPTIONAL
-        !icon              TYPE clike OPTIONAL
+        id                 TYPE clike OPTIONAL
+        class              TYPE clike OPTIONAL
+        icon               TYPE clike OPTIONAL
         label              TYPE clike OPTIONAL
         resetbuttonenabled TYPE clike OPTIONAL
         showcancelbutton   TYPE clike OPTIONAL
         showconfirmbutton  TYPE clike OPTIONAL
         showresetbutton    TYPE clike OPTIONAL
-        !visible           TYPE clike OPTIONAL
+        visible            TYPE clike OPTIONAL
         cancel             TYPE clike OPTIONAL
         confirm            TYPE clike OPTIONAL
-        !reset             TYPE clike OPTIONAL
+        reset              TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS column_menu_action_item
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
-        !icon         TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
+        icon          TYPE clike OPTIONAL
         label         TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS column_menu_quick_action
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
         category      TYPE clike OPTIONAL
         label         TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS column_menu_quick_action_item
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
-        !key          TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
+        key           TYPE clike OPTIONAL
         label         TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS column_menu_quick_group
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
-        !change       TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
+        change        TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS column_menu_quick_group_item
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
         grouped       TYPE clike OPTIONAL
-        !key          TYPE clike OPTIONAL
+        key           TYPE clike OPTIONAL
         label         TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS column_menu_quick_sort
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
-        !change       TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
+        change        TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS column_menu_quick_sort_item
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
         sortorder     TYPE clike OPTIONAL
-        !key          TYPE clike OPTIONAL
+        key           TYPE clike OPTIONAL
         label         TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS column_menu_quick_total
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
-        !change       TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
+        change        TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS column_menu_quick_total_item
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
         totaled       TYPE clike OPTIONAL
-        !key          TYPE clike OPTIONAL
+        key           TYPE clike OPTIONAL
         label         TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS micro_process_flow
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
         arialabel     TYPE clike OPTIONAL
-        !width        TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
         rendertype    TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS micro_process_flow_item
       IMPORTING
-        !id              TYPE clike OPTIONAL
-        !class           TYPE clike OPTIONAL
-        !icon            TYPE clike OPTIONAL
-        !key             TYPE clike OPTIONAL
+        id               TYPE clike OPTIONAL
+        class            TYPE clike OPTIONAL
+        icon             TYPE clike OPTIONAL
+        key              TYPE clike OPTIONAL
         showintermediary TYPE clike OPTIONAL
         showseparator    TYPE clike OPTIONAL
-        !state           TYPE clike OPTIONAL
+        state            TYPE clike OPTIONAL
         stepwidth        TYPE clike OPTIONAL
-        !title           TYPE clike OPTIONAL
+        title            TYPE clike OPTIONAL
         press            TYPE clike OPTIONAL
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
@@ -4881,24 +4881,24 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS responsive_scale
       IMPORTING
-        !id                    TYPE clike OPTIONAL
-        !class                 TYPE clike OPTIONAL
+        id                     TYPE clike OPTIONAL
+        class                  TYPE clike OPTIONAL
         tickmarksbetweenlabels TYPE clike OPTIONAL
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS status_indicator
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
         height        TYPE clike OPTIONAL
         labelposition TYPE clike OPTIONAL
         showlabel     TYPE clike OPTIONAL
-        !size         TYPE clike OPTIONAL
-        !value        TYPE clike OPTIONAL
+        size          TYPE clike OPTIONAL
+        value         TYPE clike OPTIONAL
         viewbox       TYPE clike OPTIONAL
-        !width        TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -4909,12 +4909,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS property_threshold
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
         fillcolor     TYPE clike OPTIONAL
         tovalue       TYPE clike OPTIONAL
         arialabel     TYPE clike OPTIONAL
-        !visible      TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -4924,10 +4924,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS library_shape
       IMPORTING
-        !id                 TYPE clike OPTIONAL
-        !class              TYPE clike OPTIONAL
+        id                  TYPE clike OPTIONAL
+        class               TYPE clike OPTIONAL
         animationonchange   TYPE clike OPTIONAL
-        !definition         TYPE clike OPTIONAL
+        definition          TYPE clike OPTIONAL
         fillcolor           TYPE clike OPTIONAL
         fillingangle        TYPE clike OPTIONAL
         fillingdirection    TYPE clike OPTIONAL
@@ -4938,9 +4938,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
         strokecolor         TYPE clike OPTIONAL
         strokewidth         TYPE clike OPTIONAL
         verticalalignment   TYPE clike OPTIONAL
-        !visible            TYPE clike OPTIONAL
-        !width              TYPE clike OPTIONAL
-        !x                  TYPE clike OPTIONAL
+        visible             TYPE clike OPTIONAL
+        width               TYPE clike OPTIONAL
+        x                   TYPE clike OPTIONAL
         y                   TYPE clike OPTIONAL
         aftershapeloaded    TYPE clike OPTIONAL
       RETURNING
@@ -4948,12 +4948,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS tile_info
       IMPORTING
-        !id             TYPE clike OPTIONAL
-        !class          TYPE clike OPTIONAL
+        id              TYPE clike OPTIONAL
+        class           TYPE clike OPTIONAL
         backgroundcolor TYPE clike OPTIONAL
         bordercolor     TYPE clike OPTIONAL
         src             TYPE clike OPTIONAL
-        !text           TYPE clike OPTIONAL
+        text            TYPE clike OPTIONAL
         textcolor       TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
@@ -4964,8 +4964,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS side_navigation
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
         selectedkey   TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -4976,11 +4976,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS navigation_list_item
       IMPORTING
-        !text         TYPE clike OPTIONAL
-        !icon         TYPE clike OPTIONAL
-        !select       TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
+        icon          TYPE clike OPTIONAL
+        select        TYPE clike OPTIONAL
         href          TYPE clike OPTIONAL
-        !key          TYPE clike OPTIONAL
+        key           TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -5004,6 +5004,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+
   METHOD actions.
     result = _generic( name = `actions`
                        ns   = ns ).
@@ -10443,4 +10444,5 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        name   = `ColorPalette`
                        t_prop = VALUE #( ( n = `colorSelect`           v = colorselect ) ) ).
   ENDMETHOD.
+
 ENDCLASS.

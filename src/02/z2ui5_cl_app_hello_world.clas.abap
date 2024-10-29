@@ -15,6 +15,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
+
   METHOD z2ui5_if_app~main.
 
     IF check_initialized = abap_false.
@@ -41,4 +42,5 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
+
 ENDCLASS.

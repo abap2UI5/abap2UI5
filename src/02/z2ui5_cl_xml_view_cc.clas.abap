@@ -7,7 +7,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
       IMPORTING
         multiinputid   TYPE clike OPTIONAL
         multiinputname TYPE clike OPTIONAL
-        !change        TYPE clike OPTIONAL
+        change         TYPE clike OPTIONAL
         addedtokens    TYPE clike OPTIONAL
         removedtokens  TYPE clike OPTIONAL
       RETURNING
@@ -21,8 +21,8 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
 
     METHODS camera_picture
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !value        TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        value         TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
         autoplay      TYPE clike OPTIONAL
         onphoto       TYPE clike OPTIONAL
@@ -32,7 +32,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
     METHODS bwip_js
       IMPORTING
         bcid          TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
         scale         TYPE clike OPTIONAL
         height        TYPE clike OPTIONAL
       RETURNING
@@ -62,7 +62,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
         accuracy           TYPE any   OPTIONAL
         altitudeaccuracy   TYPE any   OPTIONAL
         speed              TYPE any   OPTIONAL
-        !heading           TYPE any   OPTIONAL
+        heading            TYPE any   OPTIONAL
         enablehighaccuracy TYPE any   OPTIONAL
         timeout            TYPE any   OPTIONAL
       RETURNING
@@ -90,9 +90,9 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
     METHODS spreadsheet_export
       IMPORTING
         tableid       TYPE clike
-        !type         TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
-        !icon         TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
+        icon          TYPE clike OPTIONAL
         tooltip       TYPE clike OPTIONAL
         columnconfig  TYPE clike OPTIONAL
       RETURNING
@@ -100,8 +100,8 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
 
     METHODS file_uploader
       IMPORTING
-        !value            TYPE clike OPTIONAL
-        !path             TYPE clike OPTIONAL
+        value             TYPE clike OPTIONAL
+        path              TYPE clike OPTIONAL
         placeholder       TYPE clike OPTIONAL
         upload            TYPE clike OPTIONAL
         icononly          TYPE clike OPTIONAL
@@ -110,8 +110,8 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
         uploadbuttontext  TYPE clike OPTIONAL
         checkdirectupload TYPE clike OPTIONAL
         filetype          TYPE clike OPTIONAL
-        !icon             TYPE clike OPTIONAL
-        !enabled          TYPE clike OPTIONAL
+        icon              TYPE clike OPTIONAL
+        enabled           TYPE clike OPTIONAL
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
@@ -129,7 +129,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
 
     METHODS title
       IMPORTING
-        !title        TYPE clike OPTIONAL
+        title         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -141,13 +141,13 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
 
     METHODS lp_title
       IMPORTING
-        !title        TYPE clike OPTIONAL
+        title         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS history
       IMPORTING
-        !search       TYPE clike OPTIONAL
+        search        TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -170,9 +170,9 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
 
     METHODS websocket
       IMPORTING
-        !value        TYPE clike OPTIONAL
-        !received     TYPE clike OPTIONAL
-        !path         TYPE clike OPTIONAL
+        value         TYPE clike OPTIONAL
+        received      TYPE clike OPTIONAL
+        path          TYPE clike OPTIONAL
         checkrepeat   TYPE clike OPTIONAL
         checkactive   TYPE clike OPTIONAL
           PREFERRED PARAMETER received
@@ -182,7 +182,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
     METHODS binding_update
       IMPORTING
         changed       TYPE clike OPTIONAL
-        !path         TYPE clike OPTIONAL
+        path          TYPE clike OPTIONAL
           PREFERRED PARAMETER changed
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -193,8 +193,8 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
         view          TYPE clike OPTIONAL
         config        TYPE clike OPTIONAL
         height        TYPE clike OPTIONAL
-        !width        TYPE clike OPTIONAL
-        !style        TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
+        style         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -207,8 +207,8 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
     METHODS approve_popover
       IMPORTING
         placement     TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
         btn_txt       TYPE clike OPTIONAL
         btn_type      TYPE clike OPTIONAL
         btn_icon      TYPE clike OPTIONAL
@@ -228,7 +228,9 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
+
   METHOD approve_popover.
+
     result = mo_view.
 
     mo_view->popover( showheader = abap_false
@@ -272,6 +274,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD chartjs.
+
     result = mo_view.
     mo_view->_generic( name   = `chartjs`
                        ns     = `z2ui5`
@@ -291,9 +294,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD demo_output.
+
     DATA lv_style TYPE string.
 
-    " make it run without syntax error also when CC are deleted (for example for downports))
     mo_view->_generic( ns   = `html`
                        name = `style` ).
 
@@ -534,4 +537,5 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                           ) ).
 
   ENDMETHOD.
+
 ENDCLASS.

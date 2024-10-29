@@ -3,14 +3,13 @@ CLASS z2ui5_cl_core_client DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-
     INTERFACES z2ui5_if_client.
 
     DATA mo_action TYPE REF TO z2ui5_cl_core_action.
 
     METHODS constructor
       IMPORTING
-        !action TYPE REF TO z2ui5_cl_core_action.
+        action TYPE REF TO z2ui5_cl_core_action.
 
   PROTECTED SECTION.
 
@@ -19,6 +18,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_core_client IMPLEMENTATION.
+
   METHOD constructor.
 
     mo_action = action.
@@ -404,4 +404,5 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     result = z2ui5_if_client~get_app( ls_get-s_draft-id_prev_app ).
 
   ENDMETHOD.
+
 ENDCLASS.

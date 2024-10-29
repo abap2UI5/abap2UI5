@@ -21,7 +21,7 @@
       "settingCount": 3,
       "settings": {
         "EmptyLinesBetweenClasses": "2",
-        "EmptyLinesBetweenClassAndMethod": "0",
+        "EmptyLinesBetweenClassAndMethod": "1",
         "EmptyLinesBetweenMethods": "1"
       }
     },
@@ -33,7 +33,7 @@
         "RemoveIncludeWarnings": "1",
         "RemoveEmptyLineAboveEndClass": "0",
         "AddEmptyLineAboveSections": "1",
-        "RemoveEmptyLineBelowSections": "0",
+        "RemoveEmptyLineBelowSections": "1",
         "MaxEmptyLines": "1",
         "AddLineBetweenDefTypes": "2"
       }
@@ -220,7 +220,7 @@
       "isActive": true,
       "settingCount": 1,
       "settings": {
-        "UseEscapeCharForParams": "2"
+        "UseEscapeCharForParams": "3"
       }
     },
     {
