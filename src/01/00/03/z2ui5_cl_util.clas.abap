@@ -48,9 +48,10 @@ CLASS z2ui5_cl_util DEFINITION
     TYPES ty_t_filter_multi TYPE STANDARD TABLE OF ty_s_filter_multi WITH EMPTY KEY.
 
     TYPES:
-      BEGIN OF ty_S_sql,
+      BEGIN OF ty_s_sql,
         tabname        TYPE string,
         check_autoload TYPE abap_bool,
+        layout_name    TYPE string,
         layout_id      TYPE string,
         count          TYPE i,
         t_ref          TYPE REF TO data,
