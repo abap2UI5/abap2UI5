@@ -175,13 +175,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                        target = `_blank`
                        href   = `https://github.com/abap2UI5/abap2UI5/pulls` ).
 
-    simple_form->toolbar( )->title( `Social Media` ).
 
-    simple_form->label( ).
-    simple_form->link( text   = `Follow us on LinkedIn`
-                       target = `_blank`
-                       href   = `https://www.linkedin.com/company/abap2ui5` ).
-
+    simple_form->toolbar( )->title( `More` ).
     simple_form->label( ).
     simple_form->link( text   = `www.abap2UI5.org`
                        target = `_blank`
