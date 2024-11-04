@@ -597,6 +597,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS more_blocks
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS layout_data
       IMPORTING
         ns            TYPE clike OPTIONAL
@@ -5200,6 +5204,11 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD blocks.
     result = _generic( name = `blocks`
+                       ns   = `uxap` ).
+  ENDMETHOD.
+
+  METHOD more_blocks.
+    result = _generic( name = `moreBlocks`
                        ns   = `uxap` ).
   ENDMETHOD.
 
