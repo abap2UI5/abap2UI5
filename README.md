@@ -53,7 +53,7 @@ This project greatly benefits from its [contributors](https://github.com/abap2UI
 
 #### What's Next? 
 * [Quickstart](https://abap2ui5.github.io/docs/get_started/quickstart.html) –  Install and get started with your first abap2UI5 app
-* [Samples](https://abap2ui5.github.io/docs/get_started/sample_apps.html) – Learn through hands-on examples and start building your own apps
+* [Samples](https://abap2ui5.github.io/docs/get_started/samples.html) – Learn through hands-on examples and start building your own apps
 * [Addons](https://abap2ui5.github.io/docs/addons/addons.html) – Expand abap2UI5’s capabilities to fit your needs
 * [Apps](https://abap2ui5.github.io/docs/addons/apps.html) – Discover and try out abap2UI5 apps 
 
