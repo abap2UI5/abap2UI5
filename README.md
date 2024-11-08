@@ -37,6 +37,7 @@
 * Running abap2UI5 Backend in Browser [(LinkedIn - 02.04.2024)](https://www.linkedin.com/pulse/running-abap2ui5-backend-browser-lars-hvam-petersen-l8zff/?trackingId=4mhMb1v%2FSoa8SmDSiuCEpg%3D%3D)
 * Check out Cust&Code Videos with abap2UI5 [(youtube - 20.05.2024)](https://www.youtube.com/watch?v=SD1vIt_ty0k)
 * Featured on SAP Developer News [(youtube - 14.06.2024)](https://youtu.be/7n16u-Rx8IY?t=7)
+* Webinar on creating UI5 apps with abap2UI5 [(youtube - 07.11.2024)](https://www.youtube.com/watch?v=0izPA2xrPPI)
   
 #### Credits
 This project greatly benefits from its [contributors](https://github.com/abap2UI5/abap2UI5/graphs/contributors) and supporting tools:
