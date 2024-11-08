@@ -17,6 +17,8 @@
 
 *...offers a pure ABAP approach for developing UI5 apps - entirely without JavaScript, OData or RAP. Just like in classic ABAP, when a few lines of code were enough to display input forms and tables using Selection Screens & ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
 
+Explore all project information in this [**guide. 🚀**](http://abap2UI5.org)
+
 #### Key Features
 * **100% ABAP:** Developing purely in ABAP (no JavaScript, DDL, EML or Customizing)
 * **User-Friendly:** Implement a single interface to create a standalone UI5 application
@@ -37,7 +39,7 @@
 * Running abap2UI5 Backend in Browser [(LinkedIn - 02.04.2024)](https://www.linkedin.com/pulse/running-abap2ui5-backend-browser-lars-hvam-petersen-l8zff/?trackingId=4mhMb1v%2FSoa8SmDSiuCEpg%3D%3D)
 * Check out Cust&Code Videos with abap2UI5 [(youtube - 20.05.2024)](https://www.youtube.com/watch?v=SD1vIt_ty0k)
 * Featured on SAP Developer News [(youtube - 14.06.2024)](https://youtu.be/7n16u-Rx8IY?t=7)
-* Webinar on creating UI5 apps with abap2UI5 [(youtube - 07.11.2024)](https://www.youtube.com/watch?v=0izPA2xrPPI)
+* Webinar on developing UI5 apps with abap2UI5 [(youtube - 07.11.2024)](https://www.youtube.com/watch?v=0izPA2xrPPI)
   
 #### Credits
 This project greatly benefits from its [contributors](https://github.com/abap2UI5/abap2UI5/graphs/contributors) and supporting tools:
@@ -53,15 +55,15 @@ This project greatly benefits from its [contributors](https://github.com/abap2UI
 * Developed on an [ABAP Cloud Dev Trial 2022](https://hub.docker.com/r/sapse/abap-cloud-developer-trial) [(hosted by Nuve Platform)](https://www.nuveplatform.com/)
 
 #### What's Next? 
-* [Quickstart](https://abap2ui5.github.io/docs/get_started/quickstart.html) –  Install and get started with your first abap2UI5 app.
-* [Samples](https://abap2ui5.github.io/docs/get_started/samples.html) – Learn through hands-on examples and start building your own apps.
-* [Addons](https://abap2ui5.github.io/docs/addons/addons.html) – Extend abap2UI5’s capabilities to fit your needs.
-* [Apps](https://abap2ui5.github.io/docs/addons/apps.html) – Discover and try out abap2UI5 apps.
+* [Quickstart](https://abap2ui5.github.io/docs/get_started/quickstart.html) –  Install and get started with your first abap2UI5 app
+* [Samples](https://abap2ui5.github.io/docs/get_started/samples.html) – Learn through hands-on examples and start building your own apps
+* [Addons](https://abap2ui5.github.io/docs/addons/addons.html) – Extend abap2UI5’s capabilities to fit your needs
+* [Apps](https://abap2ui5.github.io/docs/addons/apps.html) – Discover and try out abap2UI5 apps
 
 #### Get Involved
-* Have questions, feedback, or bugs to report? Check out the [documentation](https://abap2ui5.github.io/docs/) or create an [issue.](https://github.com/abap2UI5/abap2UI5/issues)
-* Interested in contributing? Review our [contribution guidelines](https://abap2ui5.github.io/docs/resources/contribution.html) to get started.
-* Follow us on [LinkedIn](https://www.linkedin.com/company/abap2ui5) and consider [sponsoring](https://abap2ui5.github.io/docs/resources/sponsor.html) our dedicated developer.
+* Have questions, feedback, or bugs to report? Check out the [documentation](https://abap2ui5.github.io/docs/) or create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
+* Interested in contributing? Review our [contribution guidelines](https://abap2ui5.github.io/docs/resources/contribution.html) to get started
+* Follow us on [LinkedIn](https://www.linkedin.com/company/abap2ui5) and consider [sponsoring](https://abap2ui5.github.io/docs/resources/sponsor.html) our dedicated developer
 
 _We welcome all contributions! Share your knowledge, hunt for bugs, submit a PR, write a comment, give us a like, or simply tell your friends about abap2UI5. This project thrives with your support! 🚀_
 
