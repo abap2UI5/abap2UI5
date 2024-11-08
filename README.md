@@ -17,7 +17,7 @@
 
 *...offers a pure ABAP approach for developing UI5 apps - entirely without JavaScript, OData or RAP. Just like in classic ABAP, when a few lines of code were enough to display input forms and tables using Selection Screens & ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
 
-Explore all project information in this [**guide. 🚀**](http://abap2UI5.org)
+Explore all project information in this [**guide.**](http://abap2UI5.org) 🚀
 
 #### Key Features
 * **100% ABAP:** Developing purely in ABAP (no JavaScript, DDL, EML or Customizing)
