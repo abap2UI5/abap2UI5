@@ -681,6 +681,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         valuestatetext   TYPE clike OPTIONAL
         placeholder      TYPE clike OPTIONAL
         showsuggestion   TYPE clike OPTIONAL
+        VISIBLE          type CLIKE optional
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
@@ -7514,6 +7515,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                           ( n = `change` v = change )
                           ( n = `valueHelpRequest` v = valuehelprequest )
                           ( n = `class` v = class )
+                          ( n = `visible` v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
                           ( n = `required` v = required )
                           ( n = `valueState` v = valuestate )
                           ( n = `valueStateText` v = valuestatetext )
