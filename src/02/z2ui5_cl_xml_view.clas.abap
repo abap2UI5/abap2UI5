@@ -1117,14 +1117,19 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS barcode_scanner_button
-      IMPORTING
-        id              TYPE clike OPTIONAL
-        scansuccess     TYPE clike OPTIONAL
-        scanfail        TYPE clike OPTIONAL
-        inputliveupdate TYPE clike OPTIONAL
-        dialogtitle     TYPE clike OPTIONAL
-      RETURNING
-        VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING !id                       TYPE clike OPTIONAL
+                scansuccess               TYPE clike OPTIONAL
+                scanfail                  TYPE clike OPTIONAL
+                inputliveupdate           TYPE clike OPTIONAL
+                dialogtitle               TYPE clike OPTIONAL
+                disableBarcodeInputDialog TYPE clike OPTIONAL
+                frameRate                 TYPE clike OPTIONAL
+                keepCameraScan            TYPE clike OPTIONAL
+                preferFrontCamera         TYPE clike OPTIONAL
+                provideFallback           TYPE clike OPTIONAL
+                !width                    TYPE clike OPTIONAL
+                zoom                      TYPE clike OPTIONAL
+      RETURNING VALUE(result)             TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS message_popover
       IMPORTING
@@ -5146,12 +5151,18 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD barcode_scanner_button.
     result = _generic( name   = `BarcodeScannerButton`
                        ns     = 'ndc'
-                       t_prop = VALUE #( ( n = `id`                              v = id )
-                                         ( n = `scanSuccess`                           v = scansuccess )
-                                         ( n = `scanFail`           v = scanfail )
-                                         ( n = `inputLiveUpdate`                 v = inputliveupdate )
-                                         ( n = `dialogTitle`                  v = dialogtitle ) ) ).
-
+                       t_prop = VALUE #( ( n = `id`                        v = id )
+                                         ( n = `scanSuccess`               v = scansuccess )
+                                         ( n = `scanFail`                  v = scanfail )
+                                         ( n = `inputLiveUpdate`           v = inputliveupdate )
+                                         ( n = `dialogTitle`               v = dialogtitle )
+                                         ( n = `disableBarcodeInputDialog` v = disableBarcodeInputDialog )
+                                         ( n = `frameRate`                 v = frameRate )
+                                         ( n = `keepCameraScan`            v = keepCameraScan )
+                                         ( n = `preferFrontCamera`         v = preferFrontCamera )
+                                         ( n = `provideFallback`           v = provideFallback )
+                                         ( n = `width`                     v = width )
+                                         ( n = `zoom`                      v = zoom ) ) ).
   ENDMETHOD.
 
   METHOD bars.
