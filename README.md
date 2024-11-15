@@ -68,5 +68,5 @@ Get involved:
 * [LinkedIn](https://www.linkedin.com/company/abap2ui5) - Follow us for updates, insights, and community highlights
 * [Sponsorship](https://abap2ui5.github.io/docs/resources/sponsor.html) - Support our dedicated developer and help drive innovation
 
-_We welcome all contributions! Share your knowledge, hunt for bugs, submit a PR, write a comment, give us a like, or simply tell your friends about abap2UI5. This project thrives on your support! 🙏_
+_We welcome all contributions! Share your knowledge, hunt for bugs, submit a PR, write a comment, give us a like, or simply tell your friends about abap2UI5. This project thrives on your support!_ 🙏
 
