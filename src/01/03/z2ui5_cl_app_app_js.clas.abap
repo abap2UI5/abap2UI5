@@ -545,7 +545,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        style: oControl.getProperty("style"),` && |\n| &&
              `        fileType: oControl.getProperty("fileType"),` && |\n| &&
              `        visible: oControl.getProperty("visible"),` && |\n| &&
-             `        uploadOnChange: true,` && |\n| &&
+             `        uploadOnChange: oControl.getProperty("checkDirectUpload"),` && |\n| &&
              `        enabled: oControl.getProperty("enabled"),` && |\n| &&
              `        value: oControl.getProperty("path"),` && |\n| &&
              `        placeholder: oControl.getProperty("placeholder"),` && |\n| &&

@@ -523,7 +523,7 @@ sap.ui.define("z2ui5/FileUploader", ["sap/ui/core/Control", "sap/m/Button", "sap
         style: oControl.getProperty("style"),
         fileType: oControl.getProperty("fileType"),
         visible: oControl.getProperty("visible"),
-        uploadOnChange: true,
+        uploadOnChange: oControl.getProperty("checkDirectUpload"),
         enabled: oControl.getProperty("enabled"),
         value: oControl.getProperty("path"),
         placeholder: oControl.getProperty("placeholder"),
