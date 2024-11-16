@@ -20,13 +20,19 @@
 Explore all project information in this [**guide.**](http://abap2UI5.org) 🚀
 
 #### Key Features
-* **100% ABAP:** Developing purely in ABAP (no JavaScript, DDL, EML or Customizing)
-* **User-Friendly:** Implement a single interface to create a standalone UI5 application
-* **Minimal System Footprint:** Uses a simple HTTP handler (no BSP, OData, CDS or RAP)
-* **Cloud & On-Premise Ready:** Supports both ABAP Cloud and Standard ABAP
-* **Broad System Compatibility:** Runs on all ABAP releases (from NW 7.02 to ABAP Cloud)
-* **Easy Installation:** Install via abapGit, no additional app deployment required
+* **100% ABAP:** Developing purely in ABAP (no JavaScript, DDL, or EML)
+* **User-Friendly:** Implement a single interface for standalone UI5 apps
+* **Minimal System Footprint:** Requires only a simple HTTP handler (no BSP, OData, CDS or RAP)
+* **Cloud & On-Premise Ready:** Fully compatible with ABAP Cloud and Standard ABAP
+* **Broad Compatibility:** Supports all ABAP releases from NW 7.02 to ABAP Cloud
+* **Easy Installation:** Install via abapGit - no extra app deployment needed
 
+#### Ready to explore?
+* [Quickstart](https://abap2ui5.github.io/docs/get_started/quickstart.html) –  Install and develop your first abap2UI5 app
+* [Guide](https://abap2ui5.github.io/docs/) - Explore comprehensive documentation for deeper insights
+* [Addons](https://abap2ui5.github.io/docs/addons/addons.html) –  Extend abap2UI5 to fit your unique requirements
+* [Apps](https://abap2ui5.github.io/docs/addons/apps.html) – Check out community-developed applications
+  
 #### References
 * Find abap2UI5 on ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
 * Featured on SAP Developer News [(YouTube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
@@ -55,18 +61,11 @@ This project greatly benefits from its [contributors](https://github.com/abap2UI
 * Live demos running via [web-abap2ui5-samples](https://github.com/abap2UI5/web-abap2ui5-samples) [(larshp)](https://github.com/larshp)
 * Developed on an [ABAP Cloud Dev Trial 2022](https://hub.docker.com/r/sapse/abap-cloud-developer-trial) [(hosted by Nuve Platform)](https://www.nuveplatform.com/)
 
-#### What's Next? 
-Start exploring abap2UI5:
-* [Quickstart](https://abap2ui5.github.io/docs/get_started/quickstart.html) –  Install and get started with your first abap2UI5 app
-* [Guide](https://abap2ui5.github.io/docs/) - Find answers to your questions or dive deeper into the project
-* [Addons](https://abap2ui5.github.io/docs/addons/addons.html) – Extend abap2UI5’s capabilities to fit your needs
-* [Apps](https://abap2ui5.github.io/docs/addons/apps.html) – Discover and try out abap2UI5 apps
-
-Get involved:
-* [Issues](https://github.com/abap2UI5/abap2UI5/issues) - Report bugs or provide feedback to improve abap2UI5
-* [Contribution](https://abap2ui5.github.io/docs/resources/contribution.html) - Get started with contributing to the project
-* [LinkedIn](https://www.linkedin.com/company/abap2ui5) - Follow us for updates, insights, and community highlights
-* [Sponsor](https://abap2ui5.github.io/docs/resources/sponsor.html) - Support our dedicated developer and help drive innovation
+#### Get involved!
+* [Issues](https://github.com/abap2UI5/abap2UI5/issues) - Report issues and provide feedback
+* [Contribution](https://abap2ui5.github.io/docs/resources/contribution.html) - Contribute code and documentation
+* [LinkedIn](https://www.linkedin.com/company/abap2ui5) - Follow abap2UI5 for updates, insights, and community highlights
+* [Sponsor](https://abap2ui5.github.io/docs/resources/sponsor.html) - Sponsor our work to support ongoing innovation
 
 _We welcome all contributions! Share your knowledge, hunt for bugs, submit a PR, write a comment, give us a like, or simply tell your friends about abap2UI5. This project thrives on your support!_ 🙏
 
