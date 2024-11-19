@@ -50,6 +50,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
         selectionstart TYPE clike OPTIONAL
         selectionend   TYPE clike OPTIONAL
         setupdate      TYPE clike OPTIONAL
+        PREFERRED PARAMETER focusid
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
