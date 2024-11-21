@@ -7040,7 +7040,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `design`   v = design )
                                 ( n = `id`   v = id )
                                 ( n = `class`   v = class )
-                                ( n = `labelFor` v = labelfor ) ) ).
+                                ( n = `labelFor` v = labelfor )
+                                ( n = `visible`   v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )) ).
   ENDMETHOD.
 
   METHOD lanes.
