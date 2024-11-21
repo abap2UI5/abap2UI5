@@ -137,6 +137,13 @@ sap.ui.define(["sap/ui/core/Control", "sap/ui/core/Fragment", "sap/ui/model/json
             this.oDialog.addStyleClass('dbg-ltr');
             this.oDialog.setModel(oModel);
             this.oDialog.open();
+        },
+
+        async close(){
+            if (this.oDialog){
+                this.oDialog.close();
+                this.oDialog.destry();
+            }
         }
     });
 });

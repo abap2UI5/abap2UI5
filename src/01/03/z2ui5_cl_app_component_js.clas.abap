@@ -57,7 +57,13 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n| &&
              `            document.addEventListener("keydown", function (zEvent) {` && |\n| &&
              `                if (zEvent?.ctrlKey && zEvent?.key === "F12") {` && |\n| &&
-             `                    new z2ui5.cc.DebugTool().show();` && |\n| &&
+             `                   if (!z2ui5.debugTool){` && |\n| &&
+             `                     z2ui5.debugTool = new z2ui5.cc.DebugTool();` && |\n| &&
+             `                     z2ui5.debugTool.show();` && |\n| &&
+             `                   } else {` && |\n| &&
+             `                     z2ui5.debugTool.close();` && |\n| &&
+             `                     z2ui5.debugTool = null;` && |\n| &&
+             `                   }` && |\n| &&
              `                }` && |\n| &&
              `            });` && |\n| &&
              `        },` && |\n| &&
