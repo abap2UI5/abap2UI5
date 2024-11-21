@@ -23,7 +23,7 @@ jobs:
         external_repository: abap2UI5/frontend
         user_name: 'github-actions[bot]'
         user_email: 'github-actions[bot]@users.noreply.github.com'
-        publish_branch: classic
+        publish_branch: standard
         publish_dir: output
         deploy_key: ${{ secrets.ACTION_KEY_FRONTEND }}
         destination_dir: src/02
