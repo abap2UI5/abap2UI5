@@ -36,7 +36,7 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models",
             }
 
             document.addEventListener("keydown", function (zEvent) {
-                if (zEvent?.key === "F12" && zEvent?.ctrlKey) {
+                if (zEvent?.ctrlKey && zEvent?.key === "F12") {
                     new z2ui5.cc.DebugTool().show();
                 }
             });
