@@ -29,7 +29,7 @@ Explore all project information in this [**guide.**](http://abap2UI5.org) 🚀
 
 #### Ready to explore?
 * [Quickstart](https://abap2ui5.github.io/docs/get_started/quickstart.html) –  Install and develop your first abap2UI5 app
-* [Guide](https://abap2ui5.github.io/docs/) - Explore comprehensive documentation for deeper insights
+* [Guide](https://abap2ui5.github.io/docs/) - Explore the documentation for deeper insights
 * [Addons](https://abap2ui5.github.io/docs/addons/addons.html) –  Extend abap2UI5 to fit your unique requirements
 * [Apps](https://abap2ui5.github.io/docs/addons/apps.html) – Discover ready-to-use applications
   
