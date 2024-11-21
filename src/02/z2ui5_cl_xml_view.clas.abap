@@ -1419,6 +1419,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         wrappingtype  TYPE clike OPTIONAL
         id            TYPE clike OPTIONAL
         class         TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
                   PREFERRED PARAMETER text
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -7040,7 +7041,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `design`   v = design )
                                 ( n = `id`   v = id )
                                 ( n = `class`   v = class )
-                                ( n = `labelFor` v = labelfor ) ) ).
+                                ( n = `labelFor` v = labelfor ) 
+                                ( n = `visible`   v = z2ui5_cl_util=>boolean_abap_2_json( visible ) ) ) ).
   ENDMETHOD.
 
   METHOD lanes.
