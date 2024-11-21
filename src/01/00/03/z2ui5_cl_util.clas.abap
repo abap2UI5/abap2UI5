@@ -60,7 +60,7 @@ CLASS z2ui5_cl_util DEFINITION
       END OF ty_s_sql.
 
     TYPES:
-      BEGIN OF ty_S_msg,
+      BEGIN OF ty_s_msg,
         text TYPE string,
         id   TYPE string,
         no   TYPE string,
@@ -69,8 +69,9 @@ CLASS z2ui5_cl_util DEFINITION
         v2   TYPE string,
         v3   TYPE string,
         v4   TYPE string,
+        timestampl type timestampl,
       END OF ty_s_msg,
-      ty_T_msg TYPE STANDARD TABLE OF ty_S_msg WITH EMPTY KEY.
+      ty_t_msg TYPE STANDARD TABLE OF ty_S_msg WITH EMPTY KEY.
 
     CLASS-METHODS ui5_get_msg_type
       IMPORTING
@@ -82,7 +83,7 @@ CLASS z2ui5_cl_util DEFINITION
       IMPORTING
         val           TYPE any
       RETURNING
-        VALUE(result) TYPE ty_T_msg.
+        VALUE(result) TYPE ty_t_msg.
 
     CLASS-METHODS rtti_get_t_attri_by_include
       IMPORTING
@@ -458,6 +459,13 @@ CLASS z2ui5_cl_util DEFINITION
         VALUE(result) TYPE abap_bool.
 
   PROTECTED SECTION.
+    CLASS-METHODS msg_map
+      IMPORTING
+        name          TYPE clike
+        val           TYPE data
+        is_msg        TYPE z2ui5_cl_util=>ty_s_msg
+      RETURNING
+        VALUE(result) TYPE z2ui5_cl_util=>ty_s_msg.
 
   PRIVATE SECTION.
 
@@ -1404,7 +1412,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     CASE lv_kind.
 
       WHEN cl_abap_datadescr=>typekind_table.
-        FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+        FIELD-SYMBOLS <tab> TYPE ANY TABLE.
         ASSIGN val TO <tab>.
         LOOP AT <tab> ASSIGNING FIELD-SYMBOL(<row>).
           DATA(lt_tab) = msg_get( <row> ).
@@ -1423,24 +1431,15 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
           DATA(lv_name) = |VAL-{ ls_attri->name }|.
           ASSIGN (lv_name) TO FIELD-SYMBOL(<comp>).
-          CASE ls_attri->name.
-            WHEN 'ID' OR 'MSGID'.
-              ls_result-id = <comp>.
-            WHEN 'NO' OR 'NUMBER' OR 'MSGNO'.
-              ls_result-no = <comp>.
-            WHEN 'MESSAGE' OR 'TEXT'.
-              ls_result-text = <comp>.
-            WHEN 'TYPE' OR 'MSGTY'.
-              ls_result-type = <comp>.
-            WHEN 'MESSAGE_V1' OR 'MSGV1' OR 'V1'.
-              ls_result-v1 = <comp>.
-            WHEN 'MESSAGE_V2' OR 'MSGV2' OR 'V2'.
-              ls_result-v2 = <comp>.
-            WHEN 'MESSAGE_V3' OR 'MSGV3' OR 'V3'.
-              ls_result-v3 = <comp>.
-            WHEN 'MESSAGE_V4' OR 'MSGV4' OR 'V4'.
-              ls_result-v4 = <comp>.
-          ENDCASE.
+
+          IF ls_attri->name = 'ITEM'.
+            lt_tab = msg_get( <comp> ).
+            INSERT LINES OF lt_tab INTO TABLE result.
+            RETURN.
+          ELSE.
+            ls_result = msg_map( name = ls_attri->name val = <comp> is_msg = ls_result ).
+          ENDIF.
+
         ENDLOOP.
         IF ls_result-text IS INITIAL AND ls_result-id IS NOT INITIAL.
           MESSAGE ID ls_result-id TYPE 'I' NUMBER ls_result-no
@@ -1458,28 +1457,55 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
                  WHERE visibility = 'U'.
               lv_name = |VAL->{ ls_attri_o->name }|.
               ASSIGN (lv_name) TO <comp>.
-              CASE ls_attri_o->name.
-                WHEN 'ID' OR 'MSGID'.
-                  ls_result-id = <comp>.
-                WHEN 'NO' OR 'NUMBER' OR 'MSGNO'.
-                  ls_result-no = <comp>.
-                WHEN 'MESSAGE'.
-                  ls_result-text = <comp>.
-                WHEN 'TYPE' OR 'MSGTY'.
-                  ls_result-type = <comp>.
-                WHEN 'MESSAGE_V1' OR 'MSGV1'.
-                  ls_result-v1 = <comp>.
-                WHEN 'MESSAGE_V2' OR 'MSGV2'.
-                  ls_result-v2 = <comp>.
-                WHEN 'MESSAGE_V3' OR 'MSGV3'.
-                  ls_result-v3 = <comp>.
-                WHEN 'MESSAGE_V4' OR 'MSGV4'.
-                  ls_result-v4 = <comp>.
-              ENDCASE.
-
+              ls_result = msg_map( name = ls_attri_o->name val = <comp> is_msg = ls_result ).
             ENDLOOP.
             INSERT ls_result INTO TABLE result.
           CATCH cx_root.
+
+            DATA obj TYPE REF TO object.
+            obj = val.
+
+            TRY.
+
+                DATA lr_tab TYPE REF TO data.
+                CREATE DATA lr_tab TYPE ('if_bali_log=>ty_item_table').
+                ASSIGN lr_tab->* TO FIELD-SYMBOL(<tab2>).
+
+                CALL METHOD obj->(`IF_BALI_LOG~GET_ALL_ITEMS`)
+                  RECEIVING
+                    item_table = <tab2>.
+
+                DATA(lt_tab2) = msg_get( <tab2> ).
+                INSERT LINES OF lt_tab2 INTO TABLE result.
+
+              CATCH cx_root.
+
+                TRY.
+
+                    CREATE DATA lr_tab TYPE ('BAPIRETTAB').
+                    ASSIGN lr_tab->* TO <tab2>.
+
+                    CALL METHOD obj->(`ZIF_LOGGER~EXPORT_TO_TABLE`)
+                      RECEIVING
+                        rt_bapiret = <tab2>.
+
+                    lt_tab2 = msg_get( <tab2> ).
+                    INSERT LINES OF lt_tab2 INTO TABLE result.
+
+                  CATCH cx_root INTO DATA(lx2).
+
+
+                    lt_attri_o = z2ui5_cl_util=>rtti_get_t_attri_by_oref( val ).
+                    LOOP AT lt_attri_o REFERENCE INTO ls_attri_o
+                         WHERE visibility = 'U'.
+                      lv_name = |OBJ->{ ls_attri_o->name }|.
+                      ASSIGN (lv_name) TO <comp>.
+                      ls_result = msg_map( name = ls_attri_o->name val = <comp> is_msg = ls_result ).
+                    ENDLOOP.
+                    INSERT ls_result INTO TABLE result.
+
+                ENDTRY.
+            ENDTRY.
         ENDTRY.
 
       WHEN OTHERS.
@@ -1516,4 +1542,29 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
                                   ).
 
   ENDMETHOD.
+
+  METHOD msg_map.
+
+    result = is_msg.
+    CASE name.
+      WHEN 'ID' OR 'MSGID'.
+        result-id = val.
+      WHEN 'NO' OR 'NUMBER' OR 'MSGNO'.
+        result-no = val.
+      WHEN 'MESSAGE' OR 'TEXT'.
+        result-text = val.
+      WHEN 'TYPE' OR 'MSGTY'.
+        result-type = val.
+      WHEN 'MESSAGE_V1' OR 'MSGV1' OR 'V1'.
+        result-v1 = val.
+      WHEN 'MESSAGE_V2' OR 'MSGV2' OR 'V2'.
+        result-v2 = val.
+      WHEN 'MESSAGE_V3' OR 'MSGV3' OR 'V3'.
+        result-v3 = val.
+      WHEN 'MESSAGE_V4' OR 'MSGV4' OR 'V4'.
+        result-v4 = val.
+    ENDCASE.
+
+  ENDMETHOD.
+
 ENDCLASS.
