@@ -1419,6 +1419,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         wrappingtype  TYPE clike OPTIONAL
         id            TYPE clike OPTIONAL
         class         TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
                   PREFERRED PARAMETER text
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
