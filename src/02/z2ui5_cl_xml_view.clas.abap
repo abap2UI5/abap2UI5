@@ -1034,6 +1034,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         key           TYPE clike OPTIONAL
         value         TYPE clike OPTIONAL
+        writetodom    TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -5757,7 +5758,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     _generic( name   = `CustomData`
               ns     = `core`
               t_prop = VALUE #( ( n = `value` v = value )
-                                ( n = `key` v = key ) ) ).
+                                ( n = `key` v = key )
+                                ( n = `writeToDom` v = writetodom ) ) ).
 
   ENDMETHOD.
 
