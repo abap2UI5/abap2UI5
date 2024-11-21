@@ -5760,7 +5760,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
               ns     = `core`
               t_prop = VALUE #( ( n = `value` v = value )
                                 ( n = `key` v = key )
-                                ( n = `writeToDom` v = writetodom ) ) ).
+                                ( n = `writeToDom` v = z2ui5_cl_util=>boolean_abap_2_json( writetodom ) ) ) ).
 
   ENDMETHOD.
 
@@ -7041,7 +7041,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `design`   v = design )
                                 ( n = `id`   v = id )
                                 ( n = `class`   v = class )
-                                ( n = `labelFor` v = labelfor ) 
+                                ( n = `labelFor` v = labelfor )
                                 ( n = `visible`   v = z2ui5_cl_util=>boolean_abap_2_json( visible ) ) ) ).
   ENDMETHOD.
 
