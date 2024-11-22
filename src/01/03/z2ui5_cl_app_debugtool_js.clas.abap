@@ -157,6 +157,13 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `            this.oDialog.addStyleClass('dbg-ltr');` && |\n| &&
              `            this.oDialog.setModel(oModel);` && |\n| &&
              `            this.oDialog.open();` && |\n| &&
+             `        },` && |\n| &&
+             `` && |\n| &&
+             `        async close(){` && |\n| &&
+             `            if (this.oDialog){` && |\n| &&
+             `                this.oDialog.close();` && |\n| &&
+             `                this.oDialog.destry();` && |\n| &&
+             `            }` && |\n| &&
              `        }` && |\n| &&
              `    });` && |\n| &&
              `});` && |\n| &&
