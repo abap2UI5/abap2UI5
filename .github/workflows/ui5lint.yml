@@ -16,4 +16,4 @@ jobs:
       with:
         node-version: '16'
     - run: cd app && npm i
-    - run: ui5lint
+    - run: npm install --global @ui5/linter && ui5lint --details
