@@ -1,37 +1,37 @@
-name: js_transform
+name: Node.js CI
 
 on:
   push:
-    branches: ["main"]
-  workflow_dispatch:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  Code-Cleanup:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Set Up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18' # Use Node.js version >= 18
+        cache: 'npm'
 
-      - name: Install Dependencies
-        run: |
-          cd app
-          npm install
-          npm install --global abaplint
+    - name: Install dependencies
+      run: npm ci
 
-      - name: Run JS Transformation
-        run: |
-          cd app
-          npm run transform
+    - name: Run npm audit fix (optional, to fix vulnerabilities)
+      run: npm audit fix || echo "Some issues require manual fixing."
 
-      - name: Commit Changes
-        uses: EndBug/add-and-commit@v9
-        with:
-          default_author: github_actions
-          message: "abap js files created"
-          add: "src"
+    - name: Lint and build
+      run: |
+        npm run lint # Ensure this script exists in your package.json
+        npm run build # Ensure this script exists in your package.json
+
+    - name: Run tests
+      run: npm test
