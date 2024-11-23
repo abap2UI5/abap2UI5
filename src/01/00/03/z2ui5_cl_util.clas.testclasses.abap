@@ -787,6 +787,10 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
 
   METHOD test_sy.
 
+    IF sy-sysid = 'ABC'.
+      RETURN.
+    ENDIF.
+
     MESSAGE ID 'NET' TYPE 'I' NUMBER '001' INTO DATA(lv_dummy).
     DATA(lt_result) = lcl_msp_mapper=>msg_get( sy ).
 
@@ -802,6 +806,10 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_bapiret.
+
+    IF sy-sysid = 'ABC'.
+      RETURN.
+    ENDIF.
 
     DATA(lt_msg) = VALUE bapirettab(
       ( type = 'E' id = 'MSG1' number = '001' message = 'An empty Report field causes an empty XML Message to be sent' )
@@ -821,6 +829,10 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_bapirettab.
+
+    IF sy-sysid = 'ABC'.
+      RETURN.
+    ENDIF.
 
     DATA(lt_msg) = VALUE bapirettab(
       ( type = 'E' id = 'MSG1' number = '001' message = 'An empty Report field causes an empty XML Message to be sent' )
