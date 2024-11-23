@@ -77,21 +77,29 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
   METHOD view_display.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
-    popup = popup->dialog( title             = `Messages`
+    popup = popup->dialog( title             = `Business Application Log`
                            contentheight     = '50%'
                            contentwidth      = '50%'
                            verticalScrolling = abap_false
-                           afterclose        = client->_event( 'BUTTON_CONTINUE' )
-         ).
+                           afterclose        = client->_event( 'BUTTON_CONTINUE' ) ).
 
-    popup->message_view( items = client->_bind( mt_msg  )
-*                         groupitems = abap_true
-        )->message_item( type     = `{TYPE}`
-                         title    = `{TITLE}`
-                         subtitle = `{SUBTITLE}`
-*                         description = `{MESSAGE}`
-*                         groupname = `{GROUP}`
-            ).
+    DATA(table) = popup->table( client->_bind( mt_msg ) ).
+    table->columns(
+         )->column( )->text( 'Date' )->get_parent(
+         )->column( )->text( 'Time' )->get_parent(
+         )->column( )->text( 'Type' )->get_parent(
+         )->column( )->text( 'ID' )->get_parent(
+         )->column( )->text( 'No' )->get_parent(
+         )->column( )->text( 'Message' ).
+
+    table->items( )->column_list_item( )->cells(
+       )->text( '{DATE}'
+       )->text( '{TIME}'
+       )->text( '{TYPE}'
+       )->text( '{ID}'
+       )->text( '{NUMBER}'
+       )->text( '{MESSAGE}'
+        ).
 
     popup->buttons(
        )->button( text  = 'continue'
