@@ -775,6 +775,7 @@ CLASS ltcl_unit_test_msg_mapper DEFINITION FINAL
 
   PRIVATE SECTION.
 
+    METHODS test_bal            FOR TESTING RAISING cx_static_check.
     METHODS test_cx            FOR TESTING RAISING cx_static_check.
     METHODS test_bapiret       FOR TESTING RAISING cx_static_check.
     METHODS test_bapirettab       FOR TESTING RAISING cx_static_check.
@@ -864,5 +865,32 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
 
 
   ENDMETHOD.
+
+  method test_bal.
+
+  TYPES: BEGIN OF ty_log_entry,
+         msgnumber   TYPE n LENGTH 6,      " Application Log: Internal Message Serial Number
+         msgty       TYPE c LENGTH 1,      " Message Type
+         msgid       TYPE c LENGTH 20,     " Message Class
+         msgno       TYPE n LENGTH 3,      " Message Number
+         msgv1       TYPE c LENGTH 50,     " Message Variable
+         msgv2       TYPE c LENGTH 50,     " Message Variable
+         msgv3       TYPE c LENGTH 50,     " Message Variable
+         msgv4       TYPE c LENGTH 50,     " Message Variable
+         msgv1_src   TYPE c LENGTH 15,     " Origin of a Message Variable
+         msgv2_src   TYPE c LENGTH 15,     " Origin of a Message Variable
+         msgv3_src   TYPE c LENGTH 15,     " Origin of a Message Variable
+         msgv4_src   TYPE c LENGTH 15,     " Origin of a Message Variable
+         detlevel    TYPE c LENGTH 1,      " Level of Detail
+         probclass   TYPE c LENGTH 1,      " Problem Class
+         alsort      TYPE c LENGTH 3,      " Sort Criterion/Grouping
+         time_stmp   TYPE p LENGTH 8 DECIMALS 7, " Message Time Stamp
+         msg_count   TYPE i,               " Cumulated Message Count
+         context     TYPE c LENGTH 255,    " Context (Generic Placeholder)
+         params      TYPE c LENGTH 255,    " Parameters (Generic Placeholder)
+         msg_txt     TYPE string,          " Message Text
+       END OF ty_log_entry.
+
+  endmethod.
 
 ENDCLASS.
