@@ -18,10 +18,8 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models",` && |\n| &&
-             `      "z2ui5/cc/DebugTool","z2ui5/cc/Server", "sap/base/Log","sap/ui/VersionInfo"` && |\n| &&
-             `` && |\n| &&
-             `    ], function (UIComponent, models, DebugTool, Server, Log, VersionInfo) {` && |\n| &&
+    result = `sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models","z2ui5/cc/Server", "sap/ui/VersionInfo"` && |\n| &&
+             `    ], function (UIComponent, Models, Server, VersionInfo) {` && |\n| &&
              `    return UIComponent.extend("z2ui5.Component", {` && |\n| &&
              `        metadata: {` && |\n| &&
              `            manifest: "json"` && |\n| &&
@@ -32,8 +30,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n| &&
              `            this.getRouter().initialize();` && |\n| &&
              `            z2ui5.oRouter = this.getRouter();` && |\n| &&
-             `            this.setModel(models.createDeviceModel(), "device");` && |\n| &&
-             `            this._oLogger = Log.getLogger("abap2UI5");` && |\n| &&
+             `            this.setModel(Models.createDeviceModel(), "device");` && |\n| &&
              `` && |\n| &&
              `            z2ui5.oConfig = {};` && |\n| &&
              `            z2ui5.oConfig.ComponentData = this.getComponentData();` && |\n| &&

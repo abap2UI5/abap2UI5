@@ -272,7 +272,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `` && |\n| &&
              `` && |\n| &&
-             `sap.ui.define("z2ui5/Info", ["sap/ui/core/Control", "sap/ui/VersionInfo", "sap/ui/Device"], (Control, VersionInfo, Device) => {` && |\n| &&
+             `sap.ui.define("z2ui5/Info", ["sap/ui/core/Control", "sap/ui/VersionInfo", "sap/ui/Device"], (Control) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
              `  return Control.extend("z2ui5.Info", {` && |\n| &&
@@ -325,10 +325,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    onAfterRendering() {` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             `    async renderer(oRm, oControl) {` && |\n| &&
+             `    async renderer(_, oControl) {` && |\n| &&
              `` && |\n| &&
              `      let oDevice = z2ui5.oView.getModel("device").oData;` && |\n| &&
-             `      oControl.setProperty("ui5_version", sap.ui.version);` && |\n| &&
+             `      oControl.setProperty("ui5_version", z2ui5.oConfig.UI5VersionInfo.version);` && |\n| &&
              `      oControl.setProperty("device_phone", oDevice.system.phone);` && |\n| &&
              `      oControl.setProperty("device_desktop", oDevice.system.desktop);` && |\n| &&
              `      oControl.setProperty("device_tablet", oDevice.system.tablet);` && |\n| &&
@@ -337,7 +337,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      oControl.setProperty("device_width", oDevice.resize.width);` && |\n| &&
              `      oControl.setProperty("device_os", oDevice.os.name);` && |\n| &&
              `      oControl.setProperty("device_browser", oDevice.browser.name);` && |\n| &&
-             `       oControl.fireFinished();` && |\n| &&
+             `      oControl.fireFinished();` && |\n| &&
              `` && |\n| &&
              `    }` && |\n| &&
              `  });` && |\n| &&
@@ -397,7 +397,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `    callbackPosition(position) {` && |\n| &&
              `` && |\n| &&
-             `      var test = position.coords.longitude` && |\n| &&
              `      this.setProperty("longitude", position.coords.longitude, true);` && |\n| &&
              `      this.setProperty("latitude", position.coords.latitude, true);` && |\n| &&
              `      this.setProperty("altitude", position.coords.altitude, true);` && |\n| &&
@@ -406,24 +405,22 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      this.setProperty("speed", position.coords.speed, true);` && |\n| &&
              `      this.setProperty("heading", position.coords.heading, true);` && |\n| &&
              `      this.fireFinished();` && |\n| &&
-             `      //this.getParent().getParent().getModel().refresh();` && |\n| &&
              `` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    async init() {` && |\n| &&
              `` && |\n| &&
              `      navigator.geolocation.getCurrentPosition(this.callbackPosition.bind(this));` && |\n| &&
-             `      //navigator.geolocation.watchPosition(this.callbackPosition.bind(this));` && |\n| &&
              `` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             `    exit() {//clearWatch` && |\n| &&
+             `    exit() {` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    onAfterRendering() {` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             `    renderer(oRm, oControl) {` && |\n| &&
+             `    renderer() {` && |\n| &&
              `    }` && |\n| &&
              `  });` && |\n| &&
              `}` && |\n| &&
@@ -518,11 +515,11 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `            this.setProperty("path", this.oFileUploader.getProperty("value"));` && |\n| &&
              `` && |\n| &&
-             |\n|.
-    result = result &&
              `            var file = z2ui5.oUpload.oFileUpload.files[0];` && |\n| &&
              `            var reader = new FileReader();` && |\n| &&
              `` && |\n| &&
+             |\n|.
+    result = result &&
              `            reader.onload = function (evt) {` && |\n| &&
              `              var vContent = evt.currentTarget.result;` && |\n| &&
              `              this.setProperty("value", vContent);` && |\n| &&
@@ -692,6 +689,110 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `}` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&
+             `sap.ui.define("z2ui5/CameraPicture" , [` && |\n| &&
+             `  "sap/ui/core/Control"` && |\n| &&
+             `], function (Control) {` && |\n| &&
+             `  "use strict";` && |\n| &&
+             `  return Control.extend("z2ui5.CameraPicture", {` && |\n| &&
+             `      metadata: {` && |\n| &&
+             `          properties: {` && |\n| &&
+             `              id: { type: "string" },` && |\n| &&
+             `              value: { type: "string" },` && |\n| &&
+             `              press: { type: "string" },` && |\n| &&
+             `              autoplay: { type: "boolean", defaultValue: true }` && |\n| &&
+             `          },` && |\n| &&
+             `          events: {` && |\n| &&
+             `              "OnPhoto": {` && |\n| &&
+             `                  allowPreventDefault: true,` && |\n| &&
+             `                  parameters: {` && |\n| &&
+             `                      "photo": {` && |\n| &&
+             `                          type: "string"` && |\n| &&
+             `                      }` && |\n| &&
+             `                  }` && |\n| &&
+             `              }` && |\n| &&
+             `          },` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      capture: function (oEvent) {` && |\n| &&
+             `` && |\n| &&
+             `          var video = document.querySelector("#zvideo");` && |\n| &&
+             `          var canvas = document.getElementById('zcanvas');` && |\n| &&
+             `          var resultb64 = "";` && |\n| &&
+             `          canvas.width = 200;` && |\n| &&
+             `          canvas.height = 200;` && |\n| &&
+             `          canvas.getContext('2d').drawImage(video, 0, 0, 200, 200);` && |\n| &&
+             `          resultb64 = canvas.toDataURL();` && |\n| &&
+             `          this.setProperty("value", resultb64);` && |\n| &&
+             `          this.fireOnPhoto({` && |\n| &&
+             `              "photo": resultb64` && |\n| &&
+             `          });` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      onPicture: function (oEvent) {` && |\n| &&
+             `` && |\n| &&
+             `          if (!this._oScanDialog) {` && |\n| &&
+             `              this._oScanDialog = new sap.m.Dialog({` && |\n| &&
+             `                  title: "Device Photo Function",` && |\n| &&
+             `                  contentWidth: "640px",` && |\n| &&
+             `                  contentHeight: "480px",` && |\n| &&
+             `                  horizontalScrolling: false,` && |\n| &&
+             `                  verticalScrolling: false,` && |\n| &&
+             `                  stretchOnPhone: true,` && |\n| &&
+             `                  content: [` && |\n| &&
+             `                      new sap.ui.core.HTML({` && |\n| &&
+             `                          id: this.getId() + 'PictureContainer',` && |\n| &&
+             `                          content: '<video width="600px" height="400px" autoplay="true" id="zvideo">'` && |\n| &&
+             `                      }),` && |\n| &&
+             `                      new sap.m.Button({` && |\n| &&
+             `                          text: "Capture",` && |\n| &&
+             `                          press: function (oEvent) {` && |\n| &&
+             `                              this.capture();` && |\n| &&
+             `                              this._oScanDialog.close();` && |\n| &&
+             `                          }.bind(this)` && |\n| &&
+             `                      }),` && |\n| &&
+             `                      new sap.ui.core.HTML({` && |\n| &&
+             `                          content: '<canvas hidden id="zcanvas" style="overflow:auto"></canvas>'` && |\n| &&
+             `                      }),` && |\n| &&
+             `                  ],` && |\n| &&
+             `                  endButton: new sap.m.Button({` && |\n| &&
+             `                      text: "Cancel",` && |\n| &&
+             `                      press: function (oEvent) {` && |\n| &&
+             `                          this._oScanDialog.close();` && |\n| &&
+             `                      }.bind(this)` && |\n| &&
+             `                  }),` && |\n| &&
+             `              });` && |\n| &&
+             `          }` && |\n| &&
+             `` && |\n| &&
+             `          this._oScanDialog.open();` && |\n| &&
+             `` && |\n| &&
+             `          setTimeout(function () {` && |\n| &&
+             `              var video = document.querySelector('#zvideo');` && |\n| &&
+             `              if (navigator.mediaDevices.getUserMedia) {` && |\n| &&
+             `                 navigator.mediaDevices.getUserMedia({video: { facingMode: { exact: "environment" } } })` && |\n| &&
+             `                      .then(function (stream) {` && |\n| &&
+             `                          video.srcObject = stream;` && |\n| &&
+             `                      })` && |\n| &&
+             `                      .catch(function (error) {` && |\n| &&
+             `                          console.log("Something went wrong!");` && |\n| &&
+             `                      });` && |\n| &&
+             `              }` && |\n| &&
+             `          }.bind(this), 300);` && |\n| &&
+             `` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      renderer: function (oRM, oControl) {` && |\n| &&
+             `` && |\n| &&
+             `          var oButton = new sap.m.Button({` && |\n| &&
+             `              icon: "sap-icon://camera",` && |\n| &&
+             `              text: "Camera",` && |\n| &&
+             `              press: oControl.onPicture.bind(oControl),` && |\n| &&
+             `          });` && |\n| &&
+             `          oRM.renderControl(oButton);` && |\n| &&
+             `` && |\n| &&
+             `      },` && |\n| &&
+             `  });` && |\n| &&
+             `});` && |\n| &&
+             `` && |\n| &&
              `sap.ui.define("z2ui5/UITableExt", ["sap/ui/core/Control"], (Control) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
@@ -735,11 +836,11 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `}` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&
-             `sap.ui.define("z2ui5/Util", [], () => {` && |\n| &&
+             `sap.ui.define("z2ui5/Util", ["sap/gantt/misc/Format/abapTimestampToDate"], (abapTimestampToDate) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `  return {` && |\n| &&
              `    DateCreateObject: (s) => new Date(s),` && |\n| &&
-             `    DateAbapTimestampToDate: (sTimestamp) => new sap.gantt.misc.Format.abapTimestampToDate(sTimestamp),` && |\n| &&
+             `    DateAbapTimestampToDate: (sTimestamp) => new abapTimestampToDate(sTimestamp),` && |\n| &&
              `    DateAbapDateToDateObject: (d) => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8)),` && |\n| &&
              `    DateAbapDateTimeToDateObject: (d, t = '000000') => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8), t.slice(0, 2), t.slice(2, 4), t.slice(4, 6)),` && |\n| &&
              `  };` && |\n| &&

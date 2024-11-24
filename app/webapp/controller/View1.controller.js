@@ -248,12 +248,10 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         a.click();
                         break;
                     case 'CROSS_APP_NAV_TO_PREV_APP':
-                        // oCrossAppNavigator = Container.getService("CrossApplicationNavigation");
                         oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");
                         oCrossAppNavigator.backToPreviousApp();
                         break;
                     case 'CROSS_APP_NAV_TO_EXT':
-                        // oCrossAppNavigator = Container.getService("CrossApplicationNavigation");
                         oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");
                         const hash = (oCrossAppNavigator.hrefForExternal({
                             target: args[1],

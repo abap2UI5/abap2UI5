@@ -164,6 +164,8 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `                this.oDialog.close();` && |\n| &&
              `                this.oDialog.destry();` && |\n| &&
              `            }` && |\n| &&
+             `        },` && |\n| &&
+             `        renderer(){` && |\n| &&
              `        }` && |\n| &&
              `    });` && |\n| &&
              `});` && |\n| &&

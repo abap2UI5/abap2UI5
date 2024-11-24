@@ -252,7 +252,7 @@ sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {
 
 
 
-sap.ui.define("z2ui5/Info", ["sap/ui/core/Control", "sap/ui/VersionInfo", "sap/ui/Device"], (Control, VersionInfo, Device) => {
+sap.ui.define("z2ui5/Info", ["sap/ui/core/Control", "sap/ui/VersionInfo", "sap/ui/Device"], (Control) => {
   "use strict";
 
   return Control.extend("z2ui5.Info", {
@@ -305,10 +305,10 @@ sap.ui.define("z2ui5/Info", ["sap/ui/core/Control", "sap/ui/VersionInfo", "sap/u
     onAfterRendering() {
     },
 
-    async renderer(oRm, oControl) {
+    async renderer(_, oControl) {
 
       let oDevice = z2ui5.oView.getModel("device").oData;
-      oControl.setProperty("ui5_version", sap.ui.version);
+      oControl.setProperty("ui5_version", z2ui5.oConfig.UI5VersionInfo.version);
       oControl.setProperty("device_phone", oDevice.system.phone);
       oControl.setProperty("device_desktop", oDevice.system.desktop);
       oControl.setProperty("device_tablet", oDevice.system.tablet);
@@ -317,7 +317,7 @@ sap.ui.define("z2ui5/Info", ["sap/ui/core/Control", "sap/ui/VersionInfo", "sap/u
       oControl.setProperty("device_width", oDevice.resize.width);
       oControl.setProperty("device_os", oDevice.os.name);
       oControl.setProperty("device_browser", oDevice.browser.name);
-       oControl.fireFinished();
+      oControl.fireFinished();
 
     }
   });
@@ -377,7 +377,6 @@ sap.ui.define("z2ui5/Geolocation", ["sap/ui/core/Control"], (Control) => {
 
     callbackPosition(position) {
 
-      var test = position.coords.longitude
       this.setProperty("longitude", position.coords.longitude, true);
       this.setProperty("latitude", position.coords.latitude, true);
       this.setProperty("altitude", position.coords.altitude, true);
@@ -386,24 +385,22 @@ sap.ui.define("z2ui5/Geolocation", ["sap/ui/core/Control"], (Control) => {
       this.setProperty("speed", position.coords.speed, true);
       this.setProperty("heading", position.coords.heading, true);
       this.fireFinished();
-      //this.getParent().getParent().getModel().refresh();
 
     },
 
     async init() {
 
       navigator.geolocation.getCurrentPosition(this.callbackPosition.bind(this));
-      //navigator.geolocation.watchPosition(this.callbackPosition.bind(this));
 
     },
 
-    exit() {//clearWatch
+    exit() {
     },
 
     onAfterRendering() {
     },
 
-    renderer(oRm, oControl) {
+    renderer() {
     }
   });
 }
@@ -670,6 +667,110 @@ sap.ui.define("z2ui5/MultiInputExt", ["sap/ui/core/Control", "sap/m/Token", "sap
 }
 );
 
+sap.ui.define("z2ui5/CameraPicture" , [
+  "sap/ui/core/Control"
+], function (Control) {
+  "use strict";
+  return Control.extend("z2ui5.CameraPicture", {
+      metadata: {
+          properties: {
+              id: { type: "string" },
+              value: { type: "string" },
+              press: { type: "string" },
+              autoplay: { type: "boolean", defaultValue: true }
+          },
+          events: {
+              "OnPhoto": {
+                  allowPreventDefault: true,
+                  parameters: {
+                      "photo": {
+                          type: "string"
+                      }
+                  }
+              }
+          },
+      },
+
+      capture: function (oEvent) {
+
+          var video = document.querySelector("#zvideo");
+          var canvas = document.getElementById('zcanvas');
+          var resultb64 = "";
+          canvas.width = 200;
+          canvas.height = 200;
+          canvas.getContext('2d').drawImage(video, 0, 0, 200, 200);
+          resultb64 = canvas.toDataURL();
+          this.setProperty("value", resultb64);
+          this.fireOnPhoto({
+              "photo": resultb64
+          });
+      },
+
+      onPicture: function (oEvent) {
+
+          if (!this._oScanDialog) {
+              this._oScanDialog = new sap.m.Dialog({
+                  title: "Device Photo Function",
+                  contentWidth: "640px",
+                  contentHeight: "480px",
+                  horizontalScrolling: false,
+                  verticalScrolling: false,
+                  stretchOnPhone: true,
+                  content: [
+                      new sap.ui.core.HTML({
+                          id: this.getId() + 'PictureContainer',
+                          content: '<video width="600px" height="400px" autoplay="true" id="zvideo">'
+                      }),
+                      new sap.m.Button({
+                          text: "Capture",
+                          press: function (oEvent) {
+                              this.capture();
+                              this._oScanDialog.close();
+                          }.bind(this)
+                      }),
+                      new sap.ui.core.HTML({
+                          content: '<canvas hidden id="zcanvas" style="overflow:auto"></canvas>'
+                      }),
+                  ],
+                  endButton: new sap.m.Button({
+                      text: "Cancel",
+                      press: function (oEvent) {
+                          this._oScanDialog.close();
+                      }.bind(this)
+                  }),
+              });
+          }
+
+          this._oScanDialog.open();
+
+          setTimeout(function () {
+              var video = document.querySelector('#zvideo');
+              if (navigator.mediaDevices.getUserMedia) {
+                 navigator.mediaDevices.getUserMedia({video: { facingMode: { exact: "environment" } } })
+                      .then(function (stream) {
+                          video.srcObject = stream;
+                      })
+                      .catch(function (error) {
+                          console.log("Something went wrong!");
+                      });
+              }
+          }.bind(this), 300);
+
+      },
+
+      renderer: function (oRM, oControl) {
+
+          var oButton = new sap.m.Button({
+              icon: "sap-icon://camera",
+              text: "Camera",
+              press: oControl.onPicture.bind(oControl),
+          });
+          oRM.renderControl(oButton);
+
+      },
+  });
+});
+
 sap.ui.define("z2ui5/UITableExt", ["sap/ui/core/Control"], (Control) => {
   "use strict";
 
@@ -713,11 +814,11 @@ sap.ui.define("z2ui5/UITableExt", ["sap/ui/core/Control"], (Control) => {
 }
 );
 
-sap.ui.define("z2ui5/Util", [], () => {
+sap.ui.define("z2ui5/Util", ["sap/gantt/misc/Format/abapTimestampToDate"], (abapTimestampToDate) => {
   "use strict";
   return {
     DateCreateObject: (s) => new Date(s),
-    DateAbapTimestampToDate: (sTimestamp) => new sap.gantt.misc.Format.abapTimestampToDate(sTimestamp),
+    DateAbapTimestampToDate: (sTimestamp) => new abapTimestampToDate(sTimestamp),
     DateAbapDateToDateObject: (d) => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8)),
     DateAbapDateTimeToDateObject: (d, t = '000000') => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8), t.slice(0, 2), t.slice(2, 4), t.slice(4, 6)),
   };

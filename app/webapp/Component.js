@@ -1,7 +1,5 @@
-sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models",
-      "z2ui5/cc/DebugTool","z2ui5/cc/Server", "sap/base/Log","sap/ui/VersionInfo"
-  
-    ], function (UIComponent, models, DebugTool, Server, Log, VersionInfo) {
+sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models","z2ui5/cc/Server", "sap/ui/VersionInfo"
+    ], function (UIComponent, Models, Server, VersionInfo) {
     return UIComponent.extend("z2ui5.Component", {
         metadata: {
             manifest: "json"
@@ -12,8 +10,7 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models",
 
             this.getRouter().initialize();
             z2ui5.oRouter = this.getRouter();
-            this.setModel(models.createDeviceModel(), "device");
-            this._oLogger = Log.getLogger("abap2UI5");
+            this.setModel(Models.createDeviceModel(), "device");
 
             z2ui5.oConfig = {};
             z2ui5.oConfig.ComponentData = this.getComponentData();
