@@ -162,7 +162,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        async close(){` && |\n| &&
              `            if (this.oDialog){` && |\n| &&
              `                this.oDialog.close();` && |\n| &&
-             `                this.oDialog.destry();` && |\n| &&
+             `                this.oDialog.destroy();` && |\n| &&
              `            }` && |\n| &&
              `        },` && |\n| &&
              `        renderer(){` && |\n| &&

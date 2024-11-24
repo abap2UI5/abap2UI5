@@ -205,6 +205,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `  });` && |\n| &&
              `}` && |\n| &&
              `);` && |\n| &&
+             `` && |\n| &&
              `sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
@@ -227,12 +228,12 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      if (items) {` && |\n| &&
              `        items.forEach(item => {` && |\n| &&
              `          try {` && |\n| &&
-             `            const scrollDelegate = z2ui5.oView.byId(item.ID).getScrollDelegate();` && |\n| &&
-             `            item.SCROLLTO = scrollDelegate ? scrollDelegate.getScrollTop() : 0;` && |\n| &&
+             `            const scrollDelegate = z2ui5.oView.byId(item.N).getScrollDelegate();` && |\n| &&
+             `            item.V = scrollDelegate ? scrollDelegate.getScrollTop() : 0;` && |\n| &&
              `          } catch {` && |\n| &&
              `            try {` && |\n| &&
              `              const element = document.getElementById(``${z2ui5.oView.byId(item.ID).getId()}-inner``);` && |\n| &&
-             `              item.SCROLLTO = element ? element.scrollTop : 0;` && |\n| &&
+             `              item.V = element ? element.scrollTop : 0;` && |\n| &&
              `            } catch {}` && |\n| &&
              `          }` && |\n| &&
              `        });` && |\n| &&
@@ -253,14 +254,14 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      setTimeout(() => {` && |\n| &&
              `        items.forEach(item => {` && |\n| &&
              `          try {` && |\n| &&
-             `            z2ui5.oView.byId(item.ID).scrollTo(item.SCROLLTO);` && |\n| &&
+             `            z2ui5.oView.byId(item.N).scrollTo(item.V);` && |\n| &&
              `          } catch {` && |\n| &&
              `            try {` && |\n| &&
              `              const element = document.getElementById(``${z2ui5.oView.byId(item.ID).getId()}-inner``);` && |\n| &&
-             `              if (element) element.scrollTop = item.SCROLLTO;` && |\n| &&
+             `              if (element) element.scrollTop = item.V;` && |\n| &&
              `            } catch {` && |\n| &&
              `              setTimeout(() => {` && |\n| &&
-             `                z2ui5.oView.byId(item.ID).scrollTo(item.SCROLLTO);` && |\n| &&
+             `                z2ui5.oView.byId(item.N).scrollTo(item.V);` && |\n| &&
              `              }, 1);` && |\n| &&
              `            }` && |\n| &&
              `          }` && |\n| &&
@@ -269,8 +270,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    }` && |\n| &&
              `  });` && |\n| &&
              `});` && |\n| &&
-             `` && |\n| &&
-             `` && |\n| &&
              `` && |\n| &&
              `sap.ui.define("z2ui5/Info", ["sap/ui/core/Control", "sap/ui/VersionInfo", "sap/ui/Device"], (Control) => {` && |\n| &&
              `  "use strict";` && |\n| &&
@@ -518,9 +517,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            var file = z2ui5.oUpload.oFileUpload.files[0];` && |\n| &&
              `            var reader = new FileReader();` && |\n| &&
              `` && |\n| &&
+             `            reader.onload = function (evt) {` && |\n| &&
              |\n|.
     result = result &&
-             `            reader.onload = function (evt) {` && |\n| &&
              `              var vContent = evt.currentTarget.result;` && |\n| &&
              `              this.setProperty("value", vContent);` && |\n| &&
              `              this.fireUpload();` && |\n| &&

@@ -185,6 +185,7 @@ sap.ui.define("z2ui5/History", ["sap/ui/core/Control"], (Control) => {
   });
 }
 );
+
 sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {
   "use strict";
 
@@ -207,12 +208,12 @@ sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {
       if (items) {
         items.forEach(item => {
           try {
-            const scrollDelegate = z2ui5.oView.byId(item.ID).getScrollDelegate();
-            item.SCROLLTO = scrollDelegate ? scrollDelegate.getScrollTop() : 0;
+            const scrollDelegate = z2ui5.oView.byId(item.N).getScrollDelegate();
+            item.V = scrollDelegate ? scrollDelegate.getScrollTop() : 0;
           } catch {
             try {
               const element = document.getElementById(`${z2ui5.oView.byId(item.ID).getId()}-inner`);
-              item.SCROLLTO = element ? element.scrollTop : 0;
+              item.V = element ? element.scrollTop : 0;
             } catch {}
           }
         });
@@ -233,14 +234,14 @@ sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {
       setTimeout(() => {
         items.forEach(item => {
           try {
-            z2ui5.oView.byId(item.ID).scrollTo(item.SCROLLTO);
+            z2ui5.oView.byId(item.N).scrollTo(item.V);
           } catch {
             try {
               const element = document.getElementById(`${z2ui5.oView.byId(item.ID).getId()}-inner`);
-              if (element) element.scrollTop = item.SCROLLTO;
+              if (element) element.scrollTop = item.V;
             } catch {
               setTimeout(() => {
-                z2ui5.oView.byId(item.ID).scrollTo(item.SCROLLTO);
+                z2ui5.oView.byId(item.N).scrollTo(item.V);
               }, 1);
             }
           }
@@ -249,8 +250,6 @@ sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {
     }
   });
 });
-
-
 
 sap.ui.define("z2ui5/Info", ["sap/ui/core/Control", "sap/ui/VersionInfo", "sap/ui/Device"], (Control) => {
   "use strict";
