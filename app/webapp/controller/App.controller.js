@@ -252,7 +252,7 @@ sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {
 
 
 
-sap.ui.define("z2ui5/Info", ["sap/ui/core/Control", "sap/ui/VersionInfo", "sap/ui/Device"], (Control, VersionInfo, Device) => {
+sap.ui.define("z2ui5/Info", ["sap/ui/core/Control", "sap/ui/VersionInfo", "sap/ui/Device"], (Control) => {
   "use strict";
 
   return Control.extend("z2ui5.Info", {
@@ -305,10 +305,10 @@ sap.ui.define("z2ui5/Info", ["sap/ui/core/Control", "sap/ui/VersionInfo", "sap/u
     onAfterRendering() {
     },
 
-    async renderer(oRm, oControl) {
+    async renderer(_, oControl) {
 
       let oDevice = z2ui5.oView.getModel("device").oData;
-      oControl.setProperty("ui5_version", sap.ui.version);
+      oControl.setProperty("ui5_version", z2ui5.oConfig.UI5VersionInfo.version);
       oControl.setProperty("device_phone", oDevice.system.phone);
       oControl.setProperty("device_desktop", oDevice.system.desktop);
       oControl.setProperty("device_tablet", oDevice.system.tablet);
@@ -317,7 +317,7 @@ sap.ui.define("z2ui5/Info", ["sap/ui/core/Control", "sap/ui/VersionInfo", "sap/u
       oControl.setProperty("device_width", oDevice.resize.width);
       oControl.setProperty("device_os", oDevice.os.name);
       oControl.setProperty("device_browser", oDevice.browser.name);
-       oControl.fireFinished();
+      oControl.fireFinished();
 
     }
   });
@@ -377,7 +377,6 @@ sap.ui.define("z2ui5/Geolocation", ["sap/ui/core/Control"], (Control) => {
 
     callbackPosition(position) {
 
-      var test = position.coords.longitude
       this.setProperty("longitude", position.coords.longitude, true);
       this.setProperty("latitude", position.coords.latitude, true);
       this.setProperty("altitude", position.coords.altitude, true);
@@ -386,24 +385,22 @@ sap.ui.define("z2ui5/Geolocation", ["sap/ui/core/Control"], (Control) => {
       this.setProperty("speed", position.coords.speed, true);
       this.setProperty("heading", position.coords.heading, true);
       this.fireFinished();
-      //this.getParent().getParent().getModel().refresh();
 
     },
 
     async init() {
 
       navigator.geolocation.getCurrentPosition(this.callbackPosition.bind(this));
-      //navigator.geolocation.watchPosition(this.callbackPosition.bind(this));
 
     },
 
-    exit() {//clearWatch
+    exit() {
     },
 
     onAfterRendering() {
     },
 
-    renderer(oRm, oControl) {
+    renderer() {
     }
   });
 }

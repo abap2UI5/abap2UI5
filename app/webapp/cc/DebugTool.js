@@ -144,6 +144,12 @@ sap.ui.define(["sap/ui/core/Control", "sap/ui/core/Fragment", "sap/ui/model/json
                 this.oDialog.close();
                 this.oDialog.destry();
             }
+        },
+        renderer(){
+            if (this.oDialog){
+                this.oDialog.close();
+                this.oDialog.destry();
+            }
         }
     });
 });
