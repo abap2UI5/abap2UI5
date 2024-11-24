@@ -146,10 +146,6 @@ sap.ui.define(["sap/ui/core/Control", "sap/ui/core/Fragment", "sap/ui/model/json
             }
         },
         renderer(){
-            if (this.oDialog){
-                this.oDialog.close();
-                this.oDialog.destry();
-            }
         }
     });
 });

@@ -34,13 +34,13 @@ CLASS z2ui5_cl_app_index_html IMPLEMENTATION.
              `        id="sap-ui-bootstrap"` &&
              `        src="https://openui5.hana.ondemand.com/resources/sap-ui-core.js"` &&
              `        data-sap-ui-theme="sap_horizon"` &&
-             `        data-sap-ui-resourceroots='{` &&
+             `        data-sap-ui-resource-roots='{` &&
              `            "z2ui5": "./"` &&
              `        }'` &&
-             `        data-sap-ui-oninit="module:sap/ui/core/ComponentSupport"` &&
-             `        data-sap-ui-compatVersion="edge"` &&
+             `        data-sap-ui-on-init="module:sap/ui/core/ComponentSupport"` &&
+             `        data-sap-ui-compat-version="edge"` &&
              `        data-sap-ui-async="true"` &&
-             `        data-sap-ui-frameOptions="trusted"` &&
+             `        data-sap-ui-frame-options="trusted"` &&
              `    ></script>` &&
              `</head>` &&
              `<body class="sapUiBody sapUiSizeCompact" id="content">` &&

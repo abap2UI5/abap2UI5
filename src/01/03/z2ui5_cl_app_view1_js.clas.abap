@@ -268,12 +268,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        a.click();` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'CROSS_APP_NAV_TO_PREV_APP':` && |\n| &&
-             `                        // oCrossAppNavigator = Container.getService("CrossApplicationNavigation");` && |\n| &&
              `                        oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");` && |\n| &&
              `                        oCrossAppNavigator.backToPreviousApp();` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'CROSS_APP_NAV_TO_EXT':` && |\n| &&
-             `                        // oCrossAppNavigator = Container.getService("CrossApplicationNavigation");` && |\n| &&
              `                        oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");` && |\n| &&
              `                        const hash = (oCrossAppNavigator.hrefForExternal({` && |\n| &&
              `                            target: args[1],` && |\n| &&
