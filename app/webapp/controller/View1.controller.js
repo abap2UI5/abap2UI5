@@ -1,9 +1,9 @@
 sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/model/json/JSONModel",
     "sap/ui/core/BusyIndicator", "sap/m/MessageBox", "sap/m/MessageToast", "sap/ui/core/Fragment", "sap/m/BusyDialog",
-    "sap/ui/VersionInfo", "z2ui5/cc/Server",
+    "sap/ui/VersionInfo", "z2ui5/cc/Server",  "z2ui5/cc/DebugTool",
 ],
     function (Controller, XMLView, JSONModel, BusyIndicator, MessageBox, MessageToast, Fragment, mBusyDialog, VersionInfo,
-        Server) {
+        Server, DebugTool) {
         "use strict";
         return Controller.extend("z2ui5.controller.View1", {
 

@@ -142,7 +142,7 @@ sap.ui.define(["sap/ui/core/Control", "sap/ui/core/Fragment", "sap/ui/model/json
         async close(){
             if (this.oDialog){
                 this.oDialog.close();
-                this.oDialog.destry();
+                this.oDialog.destroy();
             }
         },
         renderer(){
