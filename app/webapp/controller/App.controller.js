@@ -667,6 +667,110 @@ sap.ui.define("z2ui5/MultiInputExt", ["sap/ui/core/Control", "sap/m/Token", "sap
 }
 );
 
+sap.ui.define("z2ui5/CameraPicture" , [
+  "sap/ui/core/Control"
+], function (Control) {
+  "use strict";
+  return Control.extend("z2ui5.CameraPicture", {
+      metadata: {
+          properties: {
+              id: { type: "string" },
+              value: { type: "string" },
+              press: { type: "string" },
+              autoplay: { type: "boolean", defaultValue: true }
+          },
+          events: {
+              "OnPhoto": {
+                  allowPreventDefault: true,
+                  parameters: {
+                      "photo": {
+                          type: "string"
+                      }
+                  }
+              }
+          },
+      },
+
+      capture: function (oEvent) {
+
+          var video = document.querySelector("#zvideo");
+          var canvas = document.getElementById('zcanvas');
+          var resultb64 = "";
+          canvas.width = 200;
+          canvas.height = 200;
+          canvas.getContext('2d').drawImage(video, 0, 0, 200, 200);
+          resultb64 = canvas.toDataURL();
+          this.setProperty("value", resultb64);
+          this.fireOnPhoto({
+              "photo": resultb64
+          });
+      },
+
+      onPicture: function (oEvent) {
+
+          if (!this._oScanDialog) {
+              this._oScanDialog = new sap.m.Dialog({
+                  title: "Device Photo Function",
+                  contentWidth: "640px",
+                  contentHeight: "480px",
+                  horizontalScrolling: false,
+                  verticalScrolling: false,
+                  stretchOnPhone: true,
+                  content: [
+                      new sap.ui.core.HTML({
+                          id: this.getId() + 'PictureContainer',
+                          content: '<video width="600px" height="400px" autoplay="true" id="zvideo">'
+                      }),
+                      new sap.m.Button({
+                          text: "Capture",
+                          press: function (oEvent) {
+                              this.capture();
+                              this._oScanDialog.close();
+                          }.bind(this)
+                      }),
+                      new sap.ui.core.HTML({
+                          content: '<canvas hidden id="zcanvas" style="overflow:auto"></canvas>'
+                      }),
+                  ],
+                  endButton: new sap.m.Button({
+                      text: "Cancel",
+                      press: function (oEvent) {
+                          this._oScanDialog.close();
+                      }.bind(this)
+                  }),
+              });
+          }
+
+          this._oScanDialog.open();
+
+          setTimeout(function () {
+              var video = document.querySelector('#zvideo');
+              if (navigator.mediaDevices.getUserMedia) {
+                 navigator.mediaDevices.getUserMedia({video: { facingMode: { exact: "environment" } } })
+                      .then(function (stream) {
+                          video.srcObject = stream;
+                      })
+                      .catch(function (error) {
+                          console.log("Something went wrong!");
+                      });
+              }
+          }.bind(this), 300);
+
+      },
+
+      renderer: function (oRM, oControl) {
+
+          var oButton = new sap.m.Button({
+              icon: "sap-icon://camera",
+              text: "Camera",
+              press: oControl.onPicture.bind(oControl),
+          });
+          oRM.renderControl(oButton);
+
+      },
+  });
+});
+
 sap.ui.define("z2ui5/UITableExt", ["sap/ui/core/Control"], (Control) => {
   "use strict";
 
