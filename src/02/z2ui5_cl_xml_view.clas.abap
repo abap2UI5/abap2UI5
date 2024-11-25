@@ -1711,6 +1711,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS grid_box_layout
+      IMPORTING boxMinWidth   TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS grid_data
       IMPORTING
         span          TYPE clike OPTIONAL
@@ -1720,6 +1724,63 @@ CLASS z2ui5_cl_xml_view DEFINITION
                   PREFERRED PARAMETER span
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS grid_drop_info
+      IMPORTING targetAggregation TYPE clike OPTIONAL
+                dropPosition      TYPE clike OPTIONAL
+                dropLayout        TYPE clike OPTIONAL
+                drop              TYPE clike OPTIONAL
+                dragEnter         TYPE clike OPTIONAL
+                dragOver          TYPE clike OPTIONAL
+      RETURNING VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS grid_list
+      IMPORTING !id                    TYPE clike     OPTIONAL
+                busy                   TYPE abap_bool OPTIONAL
+                busyIndicatorDelay     TYPE clike     OPTIONAL
+                busyIndicatorSize      TYPE clike     OPTIONAL
+                enableBusyIndicator    TYPE abap_bool OPTIONAL
+                fieldGroupIds          TYPE clike     OPTIONAL
+                footerText             TYPE clike     OPTIONAL
+                growing                TYPE abap_bool OPTIONAL
+                growingDirection       TYPE clike     OPTIONAL
+                growingScrollToLoad    TYPE abap_bool OPTIONAL
+                growingThreshold       TYPE clike     OPTIONAL
+                growingTriggerText     TYPE clike     OPTIONAL
+                headerLevel            TYPE clike     OPTIONAL
+                headerText             TYPE clike     OPTIONAL
+                includeItemInSelection TYPE abap_bool OPTIONAL
+                inset                  TYPE abap_bool OPTIONAL
+                keyboardMode           TYPE clike     OPTIONAL
+                !mode                  TYPE clike     OPTIONAL
+                modeAnimationOn        TYPE abap_bool OPTIONAL
+                multiSelectMode        TYPE clike     OPTIONAL
+                noDataText             TYPE clike     OPTIONAL
+                rememberSelections     TYPE abap_bool OPTIONAL
+                showNoData             TYPE abap_bool OPTIONAL
+                showSeparators         TYPE clike     OPTIONAL
+                showUnread             TYPE abap_bool OPTIONAL
+                sticky                 TYPE clike     OPTIONAL
+                swipeDirection         TYPE clike     OPTIONAL
+                !visible               TYPE abap_bool default abap_true
+                !width                 TYPE clike     OPTIONAL
+                items                  TYPE clike     OPTIONAL
+      RETURNING VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS grid_list_item
+      IMPORTING busy               TYPE clike OPTIONAL
+                busyIndicatorDelay TYPE clike OPTIONAL
+                busyIndicatorSize  TYPE clike OPTIONAL
+                counter            TYPE clike OPTIONAL
+                fieldGroupIds      TYPE clike OPTIONAL
+                highlight          TYPE clike OPTIONAL
+                highlightText      TYPE clike OPTIONAL
+                navigated          TYPE clike OPTIONAL
+                selected           TYPE clike OPTIONAL
+                !type              TYPE clike OPTIONAL
+                unread             TYPE clike OPTIONAL
+                !visible           TYPE clike OPTIONAL
+      RETURNING VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS text_area
       IMPORTING
@@ -4209,6 +4270,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS custom_layout
+      IMPORTING
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -4312,6 +4375,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
         visible        TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS drag_info
+      IMPORTING sourceAggregation TYPE clike OPTIONAL
+      RETURNING VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS drag_drop_config
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS html_map
       IMPORTING
@@ -5790,7 +5860,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD custom_layout.
-    result = _generic( `customLayout` ).
+    result = _generic( name = `customLayout`
+                       ns   = ns  ).
   ENDMETHOD.
 
   METHOD custom_list_item.
@@ -5909,6 +5980,18 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `minDisplayTime`  v = mindisplaytime )
                                          ( n = `state`  v = state )
                                          ( n = `visible` v = z2ui5_cl_util=>boolean_abap_2_json( visible ) ) ) ).
+  ENDMETHOD.
+
+  METHOD drag_info.
+    result = me.
+    _generic( name   = `DragInfo`
+              ns     = `dnd`
+              t_prop = VALUE #( ( n = `sourceAggregation`  v = sourceAggregation ) ) ).
+  ENDMETHOD.
+
+  METHOD drag_drop_config.
+    result = _generic( name = `dragDropConfig`
+                       ns   = `f` ).
   ENDMETHOD.
 
   METHOD dynamic_page.
@@ -6518,6 +6601,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                    ( n = `width`          v = width ) ) ).
   ENDMETHOD.
 
+  METHOD grid_box_layout.
+    result = me.
+    _generic( name   = `GridBoxLayout`
+              ns     = `grid`
+              t_prop = VALUE #( ( n = `boxMinWidth`   v = boxMinWidth ) ) ).
+  ENDMETHOD.
+
   METHOD grid_data.
     result = me.
     _generic( name   = `GridData`
@@ -6526,6 +6616,72 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `linebreak` v = z2ui5_cl_util=>boolean_abap_2_json( linebreak ) )
                                 ( n = `indentL`   v = indentl )
                                 ( n = `indentM`   v = indentm ) ) ).
+  ENDMETHOD.
+
+  METHOD grid_drop_info.
+    result = me.
+    _generic( name   = `GridDropInfo`
+              ns     = `dnd-grid`
+              t_prop = VALUE #( ( n = `targetAggregation`      v = targetAggregation )
+                                ( n = `dropPosition` v = dropPosition )
+                                ( n = `dropLayout` v = dropLayout )
+                                ( n = `drop`   v = drop )
+                                ( n = `dragEnter`   v = dragEnter )
+                                ( n = `dragOver`   v = dragOver ) ) ).
+  ENDMETHOD.
+
+  METHOD grid_list.
+    result = _generic(
+                 name   = `GridList`
+                 ns     = `f`
+                 t_prop = VALUE #(
+                     ( n = `id`      v = id )
+                     ( n = `busy` v = z2ui5_cl_util=>boolean_abap_2_json( busy ) )
+                     ( n = `busyIndicatorDelay` v = busyIndicatorDelay )
+                     ( n = `busyIndicatorSize` v = busyIndicatorSize )
+                     ( n = `enableBusyIndicator` v = z2ui5_cl_util=>boolean_abap_2_json( enableBusyIndicator ) )
+                     ( n = `fieldGroupIds` v = fieldGroupIds )
+                     ( n = `footerText` v = footerText )
+                     ( n = `growing` v = z2ui5_cl_util=>boolean_abap_2_json( growing ) )
+                     ( n = `growingDirection` v = growingDirection )
+                     ( n = `growingScrollToLoad` v = z2ui5_cl_util=>boolean_abap_2_json( growingScrollToLoad ) )
+                     ( n = `growingThreshold` v = growingThreshold )
+                     ( n = `growingTriggerText` v = growingTriggerText )
+                     ( n = `headerLevel` v = headerLevel )
+                     ( n = `headerText` v = headerText )
+                     ( n = `includeItemInSelection` v = z2ui5_cl_util=>boolean_abap_2_json( includeItemInSelection ) )
+                     ( n = `inset` v = z2ui5_cl_util=>boolean_abap_2_json( inset ) )
+                     ( n = `keyboardMode` v = keyboardMode )
+                     ( n = `mode` v = mode )
+                     ( n = `modeAnimationOn` v = modeAnimationOn )
+                     ( n = `multiSelectMode` v = multiSelectMode )
+                     ( n = `noDataText` v = noDataText )
+                     ( n = `rememberSelections` v = z2ui5_cl_util=>boolean_abap_2_json( rememberSelections ) )
+                     ( n = `showNoData` v = z2ui5_cl_util=>boolean_abap_2_json( showNoData ) )
+                     ( n = `showSeparators` v = showSeparators )
+                     ( n = `showUnread` v = z2ui5_cl_util=>boolean_abap_2_json( showUnread ) )
+                     ( n = `sticky` v = sticky )
+                     ( n = `swipeDirection` v = swipeDirection )
+                     ( n = `visible` v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                     ( n = `width` v = width )
+                     ( n = `items`   v = items ) ) ).
+  ENDMETHOD.
+
+  METHOD grid_list_item.
+    result = _generic( name   = `GridListItem`
+                       ns     = `f`
+                       t_prop = VALUE #( ( n = `busy`      v = z2ui5_cl_util=>boolean_abap_2_json( busy ) )
+                                         ( n = `busyIndicatorDelay` v = busyIndicatorDelay )
+                                         ( n = `busyIndicatorSize` v = busyIndicatorSize )
+                                         ( n = `counter` v = counter )
+                                         ( n = `fieldGroupIds` v = fieldGroupIds )
+                                         ( n = `highlight` v = highlight )
+                                         ( n = `highlightText` v = highlightText )
+                                         ( n = `navigated` v = z2ui5_cl_util=>boolean_abap_2_json( navigated ) )
+                                         ( n = `selected` v = z2ui5_cl_util=>boolean_abap_2_json( selected ) )
+                                         ( n = `type` v = type )
+                                         ( n = `unread` v = z2ui5_cl_util=>boolean_abap_2_json( unread ) )
+                                         ( n = `visible`   v = z2ui5_cl_util=>boolean_abap_2_json( visible ) ) ) ).
   ENDMETHOD.
 
   METHOD group.
@@ -10132,6 +10288,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
           ( n = `f`                 v = `sap.f` )
           ( n = `columnmenu`        v = `sap.m.table.columnmenu` )
           ( n = `card`              v = `sap.f.cards` )
+          ( n = `dnd`               v = `sap.ui.core.dnd` )
+          ( n = `dnd-grid`          v = `sap.f.dnd` )
+          ( n = `grid`              v = `sap.ui.layout.cssgrid` )
           ( n = `form`              v = `sap.ui.layout.form` )
           ( n = `editor`            v = `sap.ui.codeeditor` )
           ( n = `mchart`            v = `sap.suite.ui.microchart` )
