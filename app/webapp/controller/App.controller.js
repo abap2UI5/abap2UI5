@@ -667,8 +667,10 @@ sap.ui.define("z2ui5/MultiInputExt", ["sap/ui/core/Control", "sap/m/Token", "sap
 );
 
 sap.ui.define("z2ui5/CameraPicture" , [
-  "sap/ui/core/Control"
-], function (Control) {
+  "sap/ui/core/Control",
+  "sap/m/Dialog",
+  "sap/m/Button"
+], function (Control, Dialog, Button) {
   "use strict";
   return Control.extend("z2ui5.CameraPicture", {
       metadata: {
@@ -708,30 +710,30 @@ sap.ui.define("z2ui5/CameraPicture" , [
       onPicture: function (oEvent) {
 
           if (!this._oScanDialog) {
-              this._oScanDialog = new sap.m.Dialog({
+              this._oScanDialog = new Dialog({
                   title: "Device Photo Function",
                   contentWidth: "640px",
                   contentHeight: "480px",
                   horizontalScrolling: false,
                   verticalScrolling: false,
-                  stretchOnPhone: true,
+                  stretch: true,
                   content: [
-                      new sap.ui.core.HTML({
+                      new HTML({
                           id: this.getId() + 'PictureContainer',
                           content: '<video width="600px" height="400px" autoplay="true" id="zvideo">'
                       }),
-                      new sap.m.Button({
+                      new Button({
                           text: "Capture",
                           press: function (oEvent) {
                               this.capture();
                               this._oScanDialog.close();
                           }.bind(this)
                       }),
-                      new sap.ui.core.HTML({
+                      new HTML({
                           content: '<canvas hidden id="zcanvas" style="overflow:auto"></canvas>'
                       }),
                   ],
-                  endButton: new sap.m.Button({
+                  endButton: new Button({
                       text: "Cancel",
                       press: function (oEvent) {
                           this._oScanDialog.close();
@@ -759,7 +761,7 @@ sap.ui.define("z2ui5/CameraPicture" , [
 
       renderer: function (oRM, oControl) {
 
-          var oButton = new sap.m.Button({
+          var oButton = new Button({
               icon: "sap-icon://camera",
               text: "Camera",
               press: oControl.onPicture.bind(oControl),

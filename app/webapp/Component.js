@@ -16,8 +16,17 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models","z2ui5/cc/Server"
             z2ui5.oConfig.ComponentData = this.getComponentData();
 
             try {                                                                                                                                                                                                                                           
-                z2ui5.oLaunchpadService = await this.getService("ShellUIService");  
-                z2ui5.oCrossAppNavigator = await sap.ushell.Container.getServiceAsync("CrossApplicationNavigation");                                                                                                                                                                                                                                                                                                                                                                                  
+                z2ui5.oLaunchpadService = await this.getService("ShellUIService");
+                sap.ui.require([
+                    "sap/ushell/Container"
+                  ], async (ushellContainer)  => {
+                  //  try{
+                   // z2ui5.oCrossAppNavigator = await ushellContainer.getServiceAsync("CrossApplicationNavigation");     
+                  // }catch (e){
+                    z2ui5.oCrossAppNavigator = ushellContainer.getService("CrossApplicationNavigation"); 
+                   // }
+                  });
+               // z2ui5.oCrossAppNavigator = await sap.ushell.Container.getServiceAsync("CrossApplicationNavigation");                                                                                                                                                                                                                                                                                                                                                                                  
              } catch (e) {}  
              
             let oVersionInfo = await VersionInfo.load();

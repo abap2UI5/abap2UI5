@@ -689,8 +689,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `);` && |\n|  &&
              `` && |\n|  &&
              `sap.ui.define("z2ui5/CameraPicture" , [` && |\n|  &&
-             `  "sap/ui/core/Control"` && |\n|  &&
-             `], function (Control) {` && |\n|  &&
+             `  "sap/ui/core/Control",` && |\n|  &&
+             `  "sap/m/Dialog",` && |\n|  &&
+             `  "sap/m/Button"` && |\n|  &&
+             `], function (Control, Dialog, Button) {` && |\n|  &&
              `  "use strict";` && |\n|  &&
              `  return Control.extend("z2ui5.CameraPicture", {` && |\n|  &&
              `      metadata: {` && |\n|  &&
@@ -730,30 +732,30 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      onPicture: function (oEvent) {` && |\n|  &&
              `` && |\n|  &&
              `          if (!this._oScanDialog) {` && |\n|  &&
-             `              this._oScanDialog = new sap.m.Dialog({` && |\n|  &&
+             `              this._oScanDialog = new Dialog({` && |\n|  &&
              `                  title: "Device Photo Function",` && |\n|  &&
              `                  contentWidth: "640px",` && |\n|  &&
              `                  contentHeight: "480px",` && |\n|  &&
              `                  horizontalScrolling: false,` && |\n|  &&
              `                  verticalScrolling: false,` && |\n|  &&
-             `                  stretchOnPhone: true,` && |\n|  &&
+             `                  stretch: true,` && |\n|  &&
              `                  content: [` && |\n|  &&
-             `                      new sap.ui.core.HTML({` && |\n|  &&
+             `                      new HTML({` && |\n|  &&
              `                          id: this.getId() + 'PictureContainer',` && |\n|  &&
              `                          content: '<video width="600px" height="400px" autoplay="true" id="zvideo">'` && |\n|  &&
              `                      }),` && |\n|  &&
-             `                      new sap.m.Button({` && |\n|  &&
+             `                      new Button({` && |\n|  &&
              `                          text: "Capture",` && |\n|  &&
              `                          press: function (oEvent) {` && |\n|  &&
              `                              this.capture();` && |\n|  &&
              `                              this._oScanDialog.close();` && |\n|  &&
              `                          }.bind(this)` && |\n|  &&
              `                      }),` && |\n|  &&
-             `                      new sap.ui.core.HTML({` && |\n|  &&
+             `                      new HTML({` && |\n|  &&
              `                          content: '<canvas hidden id="zcanvas" style="overflow:auto"></canvas>'` && |\n|  &&
              `                      }),` && |\n|  &&
              `                  ],` && |\n|  &&
-             `                  endButton: new sap.m.Button({` && |\n|  &&
+             `                  endButton: new Button({` && |\n|  &&
              `                      text: "Cancel",` && |\n|  &&
              `                      press: function (oEvent) {` && |\n|  &&
              `                          this._oScanDialog.close();` && |\n|  &&
@@ -781,7 +783,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n|  &&
              `      renderer: function (oRM, oControl) {` && |\n|  &&
              `` && |\n|  &&
-             `          var oButton = new sap.m.Button({` && |\n|  &&
+             `          var oButton = new Button({` && |\n|  &&
              `              icon: "sap-icon://camera",` && |\n|  &&
              `              text: "Camera",` && |\n|  &&
              `              press: oControl.onPicture.bind(oControl),` && |\n|  &&

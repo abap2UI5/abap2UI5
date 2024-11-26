@@ -37,7 +37,16 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n|  &&
              `            try {` && |\n|  &&
              `                z2ui5.oLaunchpadService = await this.getService("ShellUIService");` && |\n|  &&
-             `                z2ui5.oCrossAppNavigator = await sap.ushell.Container.getServiceAsync("CrossApplicationNavigation");` && |\n|  &&
+             `                sap.ui.require([` && |\n|  &&
+             `                    "sap/ushell/Container"` && |\n|  &&
+             `                  ], async (ushellContainer)  => {` && |\n|  &&
+             `                  //  try{` && |\n|  &&
+             `                   // z2ui5.oCrossAppNavigator = await ushellContainer.getServiceAsync("CrossApplicationNavigation");` && |\n|  &&
+             `                  // }catch (e){` && |\n|  &&
+             `                    z2ui5.oCrossAppNavigator = ushellContainer.getService("CrossApplicationNavigation");` && |\n|  &&
+             `                   // }` && |\n|  &&
+             `                  });` && |\n|  &&
+             `               // z2ui5.oCrossAppNavigator = await sap.ushell.Container.getServiceAsync("CrossApplicationNavigation");` && |\n|  &&
              `             } catch (e) {}` && |\n|  &&
              `` && |\n|  &&
              `            let oVersionInfo = await VersionInfo.load();` && |\n|  &&
