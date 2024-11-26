@@ -248,26 +248,40 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         a.click();
                         break;
                     case 'CROSS_APP_NAV_TO_PREV_APP':
-                        oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");
-                        oCrossAppNavigator.backToPreviousApp();
+                            sap.ui.require([
+                                "sap/ushell/Container"
+                              ], async (ushellContainer)  => {
+                               // z2ui5.oCrossAppNavigator = await ushellContainer.getServiceAsync("CrossApplicationNavigation");     
+                                z2ui5.oCrossAppNavigator = ushellContainer.getService("CrossApplicationNavigation"); 
+                                z2ui5.oCrossAppNavigator.backToPreviousApp();
+                              });
+                 
+                        //oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");
+                        
                         break;
                     case 'CROSS_APP_NAV_TO_EXT':
-                        oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");
-                        const hash = (oCrossAppNavigator.hrefForExternal({
-                            target: args[1],
-                            params: args[2]
-                        })) || "";
-                        if (args[3] === 'EXT') {
-                            let url = window.location.href.split('#')[0] + hash;
-                            //todo
-                            //URLHelper.redirect(url, true);
-                        } else {
-                            oCrossAppNavigator.toExternal({
-                                target: {
-                                    shellHash: hash
-                                }
-                            });
-                        }
+                        z2ui5.args = args;
+                        sap.ui.require([
+                            "sap/ushell/Container"
+                          ], async (ushellContainer)  => {
+                           // z2ui5.oCrossAppNavigator = await ushellContainer.getServiceAsync("CrossApplicationNavigation");     
+                            z2ui5.oCrossAppNavigator = ushellContainer.getService("CrossApplicationNavigation"); 
+                            const hash = (z2ui5.oCrossAppNavigator.hrefForExternal({
+                                target: z2ui5.args[1],
+                                params: z2ui5.args[2]
+                            })) || "";
+                            if (z2ui5.args[3] === 'EXT') {
+                                let url = window.location.href.split('#')[0] + hash;
+                                //todo
+                                //URLHelper.redirect(url, true);
+                            } else {
+                                z2ui5.oCrossAppNavigator.toExternal({
+                                    target: {
+                                        shellHash: hash
+                                    }
+                                });
+                            }
+                          });
                         break;
                     case 'LOCATION_RELOAD':
                         window.location = args[1];

@@ -268,26 +268,40 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        a.click();` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'CROSS_APP_NAV_TO_PREV_APP':` && |\n| &&
-             `                        oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");` && |\n| &&
-             `                        oCrossAppNavigator.backToPreviousApp();` && |\n| &&
+             `                            sap.ui.require([` && |\n| &&
+             `                                "sap/ushell/Container"` && |\n| &&
+             `                              ], async (ushellContainer)  => {` && |\n| &&
+             `                               // z2ui5.oCrossAppNavigator = await ushellContainer.getServiceAsync("CrossApplicationNavigation");` && |\n| &&
+             `                                z2ui5.oCrossAppNavigator = ushellContainer.getService("CrossApplicationNavigation");` && |\n| &&
+             `                                z2ui5.oCrossAppNavigator.backToPreviousApp();` && |\n| &&
+             `                              });` && |\n| &&
+             `` && |\n| &&
+             `                        //oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");` && |\n| &&
+             `` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'CROSS_APP_NAV_TO_EXT':` && |\n| &&
-             `                        oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");` && |\n| &&
-             `                        const hash = (oCrossAppNavigator.hrefForExternal({` && |\n| &&
-             `                            target: args[1],` && |\n| &&
-             `                            params: args[2]` && |\n| &&
-             `                        })) || "";` && |\n| &&
-             `                        if (args[3] === 'EXT') {` && |\n| &&
-             `                            let url = window.location.href.split('#')[0] + hash;` && |\n| &&
-             `                            //todo` && |\n| &&
-             `                            //URLHelper.redirect(url, true);` && |\n| &&
-             `                        } else {` && |\n| &&
-             `                            oCrossAppNavigator.toExternal({` && |\n| &&
-             `                                target: {` && |\n| &&
-             `                                    shellHash: hash` && |\n| &&
-             `                                }` && |\n| &&
-             `                            });` && |\n| &&
-             `                        }` && |\n| &&
+             `                        z2ui5.args = args;` && |\n| &&
+             `                        sap.ui.require([` && |\n| &&
+             `                            "sap/ushell/Container"` && |\n| &&
+             `                          ], async (ushellContainer)  => {` && |\n| &&
+             `                           // z2ui5.oCrossAppNavigator = await ushellContainer.getServiceAsync("CrossApplicationNavigation");` && |\n| &&
+             `                            z2ui5.oCrossAppNavigator = ushellContainer.getService("CrossApplicationNavigation");` && |\n| &&
+             `                            const hash = (z2ui5.oCrossAppNavigator.hrefForExternal({` && |\n| &&
+             `                                target: z2ui5.args[1],` && |\n| &&
+             `                                params: z2ui5.args[2]` && |\n| &&
+             `                            })) || "";` && |\n| &&
+             `                            if (z2ui5.args[3] === 'EXT') {` && |\n| &&
+             `                                let url = window.location.href.split('#')[0] + hash;` && |\n| &&
+             `                                //todo` && |\n| &&
+             `                                //URLHelper.redirect(url, true);` && |\n| &&
+             `                            } else {` && |\n| &&
+             `                                z2ui5.oCrossAppNavigator.toExternal({` && |\n| &&
+             `                                    target: {` && |\n| &&
+             `                                        shellHash: hash` && |\n| &&
+             `                                    }` && |\n| &&
+             `                                });` && |\n| &&
+             `                            }` && |\n| &&
+             `                          });` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'LOCATION_RELOAD':` && |\n| &&
              `                        window.location = args[1];` && |\n| &&
@@ -504,6 +518,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    }` && |\n| &&
              `                });` && |\n| &&
              `                z2ui5.oView.setModel(z2ui5.oDeviceModel, "device");` && |\n| &&
+             |\n|.
+    result = result &&
              `                this._oApp.removeAllPages();` && |\n| &&
              `                this._oApp.insertPage(z2ui5.oView);` && |\n| &&
              `            },` && |\n| &&

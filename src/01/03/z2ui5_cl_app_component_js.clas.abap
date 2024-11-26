@@ -37,7 +37,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n| &&
              `            try {` && |\n| &&
              `                z2ui5.oLaunchpadService = await this.getService("ShellUIService");` && |\n| &&
-             `             } catch (e) {}` && |\n| &&
+             `            } catch (e) {}` && |\n| &&
              `` && |\n| &&
              `            let oVersionInfo = await VersionInfo.load();` && |\n| &&
              `            z2ui5.oConfig.UI5VersionInfo = {` && |\n| &&

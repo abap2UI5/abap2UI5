@@ -16,9 +16,9 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models","z2ui5/cc/Server"
             z2ui5.oConfig.ComponentData = this.getComponentData();
 
             try {                                                                                                                                                                                                                                           
-                z2ui5.oLaunchpadService = await this.getService("ShellUIService");                                                                                                                                                                                                                                                                                                                                                                                       
-             } catch (e) {}  
-             
+                z2ui5.oLaunchpadService = await this.getService("ShellUIService");
+            } catch (e) {}  
+            
             let oVersionInfo = await VersionInfo.load();
             z2ui5.oConfig.UI5VersionInfo = {
                 version : oVersionInfo.version,
