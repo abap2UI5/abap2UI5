@@ -18,19 +18,7 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models","z2ui5/cc/Server"
             try {                                                                                                                                                                                                                                           
                 z2ui5.oLaunchpadService = await this.getService("ShellUIService");
             } catch (e) {}  
-            try{
-                sap.ui.require([
-                    "sap/ushell/Container"
-                  ], async (ushellContainer)  => {
-                   // try{
-                   // z2ui5.oCrossAppNavigator = await ushellContainer.getServiceAsync("CrossApplicationNavigation");     
-                  // }catch (e){
-                    z2ui5.oCrossAppNavigator = ushellContainer.getService("CrossApplicationNavigation"); 
-                   // }
-                  });
-               // z2ui5.oCrossAppNavigator = await sap.ushell.Container.getServiceAsync("CrossApplicationNavigation");                                                                                                                                                                                                                                                                                                                                                                                  
-             } catch (e) {}  
-             
+            
             let oVersionInfo = await VersionInfo.load();
             z2ui5.oConfig.UI5VersionInfo = {
                 version : oVersionInfo.version,
