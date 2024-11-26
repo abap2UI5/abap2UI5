@@ -1,9 +1,7 @@
 name: js_transform
-on: 
-  push:
-    branches: 
-      - "main"
-  workflow_dispatch:
+
+on:
+  pull_request:
 
 jobs:
   Code-Cleanup:
