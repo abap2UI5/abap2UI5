@@ -1,0 +1,25 @@
+name: js_transform
+on: 
+  push:
+    branches: 
+      - "main"
+  workflow_dispatch:
+
+jobs:
+  Code-Cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Run JSTransformation
+        run: |
+          cd app
+          npm run transform
+
+      - name: Commit Changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          default_author: github_actions
+          message: "add frontend files as abap class"
+          add: "src"
