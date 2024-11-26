@@ -82,7 +82,7 @@
     "commented_code": false,
     "constant_classes": true,
     "constructor_visibility_public": true,
-    "contains_tab": true,
+    "contains_tab": false,
     "cyclic_oo": false,
     "cyclomatic_complexity": {
       "exclude": [],
