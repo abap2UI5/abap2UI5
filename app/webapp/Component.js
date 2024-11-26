@@ -16,7 +16,8 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models","z2ui5/cc/Server"
             z2ui5.oConfig.ComponentData = this.getComponentData();
 
             try {                                                                                                                                                                                                                                           
-                z2ui5.oLaunchpadService = await this.getService("ShellUIService");                                                                                                                                                                                                                                                                                                                                                                                       
+                z2ui5.oLaunchpadService = await this.getService("ShellUIService");  
+                z2ui5.oCrossAppNavigator = await sap.ushell.Container.getServiceAsync("CrossApplicationNavigation");                                                                                                                                                                                                                                                                                                                                                                                  
              } catch (e) {}  
              
             let oVersionInfo = await VersionInfo.load();
