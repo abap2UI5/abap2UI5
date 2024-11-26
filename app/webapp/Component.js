@@ -17,10 +17,12 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models","z2ui5/cc/Server"
 
             try {                                                                                                                                                                                                                                           
                 z2ui5.oLaunchpadService = await this.getService("ShellUIService");
+            } catch (e) {}  
+            try{
                 sap.ui.require([
                     "sap/ushell/Container"
                   ], async (ushellContainer)  => {
-                  //  try{
+                   // try{
                    // z2ui5.oCrossAppNavigator = await ushellContainer.getServiceAsync("CrossApplicationNavigation");     
                   // }catch (e){
                     z2ui5.oCrossAppNavigator = ushellContainer.getService("CrossApplicationNavigation"); 
