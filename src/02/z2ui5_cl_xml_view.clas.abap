@@ -1890,7 +1890,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         fractionScale TYPE clike OPTIONAL
        class          TYPE clike OPTIONAL
        RETURNING
-        VALUE(result) TYPE REF TO /tcon/mmve_cl_xml_view..
+        VALUE(result) TYPE REF TO /tcon/mmve_cl_xml_view.
 
     METHODS step_input
       IMPORTING
