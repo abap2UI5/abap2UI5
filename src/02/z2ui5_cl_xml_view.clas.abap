@@ -1882,6 +1882,16 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+ METHODS harveyballmicrochartitem
+       IMPORTING
+        id               TYPE clike OPTIONAL
+        color            TYPE clike OPTIONAL
+        fraction         TYPE clike OPTIONAL
+        fractionScale    TYPE clike OPTIONAL
+       class            TYPE clike OPTIONAL
+       RETURNING
+        VALUE(result) TYPE REF TO /tcon/mmve_cl_xml_view..
+
     METHODS step_input
       IMPORTING
         id                    TYPE clike OPTIONAL
@@ -10630,4 +10640,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `colorSelect`           v = colorselect ) ) ).
   ENDMETHOD.
 
+  METHOD HarveyBallMicroChartItem.
+    result = _generic( name   = `HarveyBallMicroChartItem`
+                       ns     = `mchart`
+                       t_prop = VALUE #( ( n = `id`  v = id )
+                                         ( n = `class`  v = class )
+                                         ( n = `fraction`  v = fraction )
+                                         ( n = `color`  v = color )
+                                         ( n = `fractionScale` v = fractionScale ) ) ).
+  ENDMETHOD.
 ENDCLASS.
