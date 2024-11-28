@@ -1882,7 +1882,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
- METHODS harveyballmicrochartitem
+    METHODS harveyballmicrochartitem
        IMPORTING
         id            TYPE clike OPTIONAL
         color         TYPE clike OPTIONAL
