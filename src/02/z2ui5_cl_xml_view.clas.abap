@@ -6724,8 +6724,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD harvey_ball_micro_chart.
-    result = me.
-    _generic( name   = `HarveyBallMicroChart`
+
+    result = _generic( name   = `HarveyBallMicroChart`
               ns     = `mchart`
               t_prop = VALUE #( ( n = `colorPalette`  v = colorpalette )
                                 ( n = `press`       v = press )
