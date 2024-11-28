@@ -1712,8 +1712,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS grid_box_layout
-      IMPORTING boxMinWidth   TYPE clike OPTIONAL
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING boxesperrowconfig TYPE clike OPTIONAL
+                boxMinWidth       TYPE clike OPTIONAL
+                boxWidth          TYPE clike OPTIONAL
+      RETURNING VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS grid_data
       IMPORTING
@@ -1762,7 +1764,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 showUnread             TYPE abap_bool OPTIONAL
                 sticky                 TYPE clike     OPTIONAL
                 swipeDirection         TYPE clike     OPTIONAL
-                !visible               TYPE abap_bool default abap_true
+                !visible               TYPE abap_bool DEFAULT abap_true
                 !width                 TYPE clike     OPTIONAL
                 items                  TYPE clike     OPTIONAL
       RETURNING VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
@@ -1779,7 +1781,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 selected           TYPE clike OPTIONAL
                 !type              TYPE clike OPTIONAL
                 unread             TYPE clike OPTIONAL
-                !visible           TYPE clike OPTIONAL
+                !visible           TYPE clike DEFAULT `true`
+                detailPress        TYPE clike OPTIONAL
+                detailTap          TYPE clike OPTIONAL
+                press              TYPE clike OPTIONAL
+                tap                TYPE clike OPTIONAL
       RETURNING VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS text_area
@@ -6615,7 +6621,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = me.
     _generic( name   = `GridBoxLayout`
               ns     = `grid`
-              t_prop = VALUE #( ( n = `boxMinWidth`   v = boxMinWidth ) ) ).
+              t_prop = VALUE #( ( n = `boxesPerRowConfig`   v = boxesPerRowConfig )
+                                ( n = `boxMinWidth`   v = boxMinWidth )
+                                ( n = `boxWidth`   v = boxWidth ) ) ).
   ENDMETHOD.
 
   METHOD grid_data.
@@ -6680,18 +6688,22 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD grid_list_item.
     result = _generic( name   = `GridListItem`
                        ns     = `f`
-                       t_prop = VALUE #( ( n = `busy`      v = z2ui5_cl_util=>boolean_abap_2_json( busy ) )
+                       t_prop = VALUE #( ( n = `busy`      v = busy )
                                          ( n = `busyIndicatorDelay` v = busyIndicatorDelay )
                                          ( n = `busyIndicatorSize` v = busyIndicatorSize )
                                          ( n = `counter` v = counter )
                                          ( n = `fieldGroupIds` v = fieldGroupIds )
                                          ( n = `highlight` v = highlight )
                                          ( n = `highlightText` v = highlightText )
-                                         ( n = `navigated` v = z2ui5_cl_util=>boolean_abap_2_json( navigated ) )
-                                         ( n = `selected` v = z2ui5_cl_util=>boolean_abap_2_json( selected ) )
+                                         ( n = `navigated` v = navigated )
+                                         ( n = `selected` v = selected )
                                          ( n = `type` v = type )
-                                         ( n = `unread` v = z2ui5_cl_util=>boolean_abap_2_json( unread ) )
-                                         ( n = `visible`   v = z2ui5_cl_util=>boolean_abap_2_json( visible ) ) ) ).
+                                         ( n = `unread` v = unread )
+                                         ( n = `visible`   v = visible )
+                                         ( n = `detailPress` v = detailPress )
+                                         ( n = `detailTap` v = detailTap )
+                                         ( n = `press` v = press )
+                                         ( n = `tap` v = tap ) ) ).
   ENDMETHOD.
 
   METHOD group.
