@@ -1884,7 +1884,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
  METHODS harveyballmicrochartitem
        IMPORTING
-        id               TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
         color            TYPE clike OPTIONAL
         fraction         TYPE clike OPTIONAL
         fractionScale    TYPE clike OPTIONAL
