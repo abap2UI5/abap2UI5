@@ -3555,6 +3555,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS comparison_micro_chart_Data
+      IMPORTING !color        TYPE clike OPTIONAL
+                press         TYPE clike OPTIONAL
+                displayvalue  TYPE clike OPTIONAL
+                !title        TYPE clike OPTIONAL
+                !value        TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS delta_micro_chart
       IMPORTING
         color             TYPE clike OPTIONAL
@@ -5771,22 +5779,30 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD comparison_micro_chart.
-    result = me.
-    _generic( name   = `ComparisonMicroChart`
-              ns     = `mchart`
-              t_prop = VALUE #( ( n = `colorPalette`  v = colorpalette )
-                                ( n = `press`       v = press )
-                                ( n = `size`        v = size )
-                                ( n = `height`      v = height )
-                                ( n = `maxValue`      v = maxvalue )
-                                ( n = `minValue`      v = minvalue )
-                                ( n = `scale`      v = scale )
-                                ( n = `width`      v = width )
-                                ( n = `hideOnNoData`    v = z2ui5_cl_util=>boolean_abap_2_json( hideonnodata ) )
-                                ( n = `shrinkable`    v = z2ui5_cl_util=>boolean_abap_2_json( shrinkable ) )
-                                ( n = `view`  v = view ) ) ).
+    result = _generic( name   = `ComparisonMicroChart`
+                      ns     = `mchart`
+                      t_prop = VALUE #( ( n = `colorPalette`  v = colorpalette )
+                                        ( n = `press`       v = press )
+                                        ( n = `size`        v = size )
+                                        ( n = `height`      v = height )
+                                        ( n = `maxValue`      v = maxvalue )
+                                        ( n = `minValue`      v = minvalue )
+                                        ( n = `scale`      v = scale )
+                                        ( n = `width`      v = width )
+                                        ( n = `hideOnNoData`    v = z2ui5_cl_util=>boolean_abap_2_json( hideonnodata ) )
+                                        ( n = `shrinkable`    v = z2ui5_cl_util=>boolean_abap_2_json( shrinkable ) )
+                                        ( n = `view`  v = view ) ) ).
   ENDMETHOD.
 
+  METHOD comparison_micro_chart_data.
+    result = _generic( name   = `ComparisonMicroChartData`
+                       ns     = `mchart`
+                       t_prop = VALUE #( ( n = `color`  v = color )
+                                         ( n = `press`       v = press )
+                                         ( n = `displayValue`        v = displayValue )
+                                         ( n = `title`      v = title )
+                                         ( n = `value`      v = value )  ) ).
+  ENDMETHOD.
   METHOD constructor.
 
   ENDMETHOD.
