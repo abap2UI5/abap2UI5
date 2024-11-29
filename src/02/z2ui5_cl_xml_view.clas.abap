@@ -4063,7 +4063,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 initialposition TYPE clike OPTIONAL
                 height          TYPE clike OPTIONAL
                 lassoSelection  TYPE clike OPTIONAL
-                visible          TYPE clike OPTIONAL
+                visible         TYPE clike OPTIONAL
                 width          TYPE clike OPTIONAL
                 initialzoom     TYPE clike OPTIONAL
       RETURNING
