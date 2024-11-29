@@ -5803,6 +5803,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `title`      v = title )
                                          ( n = `value`      v = value )  ) ).
   ENDMETHOD.
+
   METHOD constructor.
 
   ENDMETHOD.
