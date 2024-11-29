@@ -4040,6 +4040,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         id               TYPE clike OPTIONAL
         autoadjustheight TYPE clike OPTIONAL
+        showHome         TYPE clike OPTIONAL
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
@@ -7498,7 +7499,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        ns     = `vk`
                        t_prop = VALUE #(
                            ( n = `id`  v = id )
-                           ( n = `autoAdjustHeight`  v = z2ui5_cl_util=>boolean_abap_2_json( autoadjustheight ) ) ) ).
+                           ( n = `autoAdjustHeight`  v = z2ui5_cl_util=>boolean_abap_2_json( autoadjustheight ) ) 
+                           ( n = `showHome`  v = z2ui5_cl_util=>boolean_abap_2_json( showHome )  )  ) ).
 
   ENDMETHOD.
 
