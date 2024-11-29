@@ -4067,7 +4067,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 width           TYPE clike OPTIONAL
                 initialzoom     TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS spots
       IMPORTING
