@@ -4064,7 +4064,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 height          TYPE clike OPTIONAL
                 lassoSelection  TYPE clike OPTIONAL
                 visible         TYPE clike OPTIONAL
-                width          TYPE clike OPTIONAL
+                width           TYPE clike OPTIONAL
                 initialzoom     TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
