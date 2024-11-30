@@ -28,6 +28,9 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n|  &&
              `            UIComponent.prototype.init.apply(this, arguments);` && |\n|  &&
              `` && |\n|  &&
+             `            if (typeof z2ui5 == 'undefined'){` && |\n|  &&
+             `              z2ui5 = {};` && |\n|  &&
+             `            }` && |\n|  &&
              `            this.getRouter().initialize();` && |\n|  &&
              `            z2ui5.oRouter = this.getRouter();` && |\n|  &&
              `            this.setModel(Models.createDeviceModel(), "device");` && |\n|  &&
