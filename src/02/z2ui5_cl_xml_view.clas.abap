@@ -4063,6 +4063,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         image         TYPE clike OPTIONAL
         icon          TYPE clike OPTIONAL
         click         TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -9163,6 +9164,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `tooltip`  v = tooltip )
                                 ( n = `image`  v = image )
                                 ( n = `icon`  v = icon )
+                                ( n = `text`  v = text )
                                 ( n = `click`  v = click ) ) ).
 
   ENDMETHOD.
