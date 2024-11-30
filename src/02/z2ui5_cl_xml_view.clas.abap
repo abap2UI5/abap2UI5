@@ -4067,12 +4067,15 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS analytic_map
-      IMPORTING
-        id              TYPE clike OPTIONAL
-        initialposition TYPE clike OPTIONAL
-        initialzoom     TYPE clike OPTIONAL
+      IMPORTING !id             TYPE clike OPTIONAL
+                initialposition TYPE clike OPTIONAL
+                height          TYPE clike OPTIONAL
+                lassoSelection  TYPE clike OPTIONAL
+                visible         TYPE clike OPTIONAL
+                width           TYPE clike OPTIONAL
+                initialzoom     TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS spots
       IMPORTING
@@ -5165,6 +5168,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        ns     = `vbm`
                        t_prop = VALUE #( ( n = `id`  v = id )
                                          ( n = `initialPosition`  v = initialposition )
+                                         ( n = `lassoSelection`  v = lassoSelection )
+                                         ( n = `height`  v = height )
+                                         ( n = `visible`  v = visible )
+                                         ( n = `width`  v = width )
                                          ( n = `initialZoom`  v = initialzoom ) ) ).
 
   ENDMETHOD.
