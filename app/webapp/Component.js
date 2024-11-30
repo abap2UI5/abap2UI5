@@ -8,6 +8,9 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models","z2ui5/cc/Server"
 
             UIComponent.prototype.init.apply(this, arguments);
 
+            if (typeof z2ui5 == 'undefined'){
+              z2ui5 = {};
+            }
             this.getRouter().initialize();
             z2ui5.oRouter = this.getRouter();
             this.setModel(Models.createDeviceModel(), "device");
