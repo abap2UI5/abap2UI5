@@ -5099,7 +5099,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-METHODS viz_frame
+    METHODS viz_frame
       IMPORTING
         !id                TYPE clike OPTIONAL
         !legendvisible     TYPE clike OPTIONAL
