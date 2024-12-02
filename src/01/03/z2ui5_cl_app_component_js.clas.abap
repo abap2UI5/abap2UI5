@@ -18,8 +18,8 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
 
   METHOD get.
 
-    result =              `sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models","z2ui5/cc/Server", "sap/ui/VersionInfo"` && |\n|  &&
-             `    ], function (UIComponent, Models, Server, VersionInfo) {` && |\n|  &&
+    result =              `sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models","z2ui5/cc/Server", "sap/ui/VersionInfo", "z2ui5/cc/DebugTool"` && |\n|  &&
+             `    ], function (UIComponent, Models, Server, VersionInfo, DebugTool) {` && |\n|  &&
              `    return UIComponent.extend("z2ui5.Component", {` && |\n|  &&
              `        metadata: {` && |\n|  &&
              `            manifest: "json"` && |\n|  &&
@@ -28,6 +28,9 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n|  &&
              `            UIComponent.prototype.init.apply(this, arguments);` && |\n|  &&
              `` && |\n|  &&
+             `            if (typeof z2ui5 == 'undefined'){` && |\n|  &&
+             `              z2ui5 = {};` && |\n|  &&
+             `            }` && |\n|  &&
              `            this.getRouter().initialize();` && |\n|  &&
              `            z2ui5.oRouter = this.getRouter();` && |\n|  &&
              `            this.setModel(Models.createDeviceModel(), "device");` && |\n|  &&
@@ -55,7 +58,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `            document.addEventListener("keydown", function (zEvent) {` && |\n|  &&
              `                if (zEvent?.ctrlKey && zEvent?.key === "F12") {` && |\n|  &&
              `                   if (!z2ui5.debugTool){` && |\n|  &&
-             `                     z2ui5.debugTool = new z2ui5.cc.DebugTool();` && |\n|  &&
+             `                     z2ui5.debugTool = new DebugTool();` && |\n|  &&
              `                     z2ui5.debugTool.show();` && |\n|  &&
              `                   } else {` && |\n|  &&
              `                     z2ui5.debugTool.close();` && |\n|  &&

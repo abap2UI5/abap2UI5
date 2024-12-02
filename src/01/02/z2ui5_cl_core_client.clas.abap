@@ -291,6 +291,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   METHOD z2ui5_if_client~view_display.
 
     mo_action->ms_next-s_set-s_view-xml = val.
+    mo_action->ms_next-s_set-s_view-switchDefaultModel = switchDefaultModel.
 
   ENDMETHOD.
 
@@ -309,7 +310,10 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                                               custom_filter = custom_filter
                                               custom_mapper = custom_mapper
                                               tab           = z2ui5_cl_util=>conv_get_as_data_ref( tab )
-                                              tab_index     = tab_index ) ).
+                                              tab_index     = tab_index
+                                              switchDefaultModel = switchDefaultModel ) ).
+
+
 
   ENDMETHOD.
 
@@ -324,7 +328,8 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                                               custom_mapper      = custom_mapper
                                               custom_mapper_back = custom_mapper_back
                                               tab                = z2ui5_cl_util=>conv_get_as_data_ref( tab )
-                                              tab_index          = tab_index ) ).
+                                              tab_index          = tab_index
+                                              switchDefaultModel = switchDefaultModel ) ).
 
   ENDMETHOD.
 
@@ -334,7 +339,8 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     result = lo_bind->main_local( val    = val
                                   config = VALUE #( path_only     = path
                                                     custom_mapper = custom_mapper
-                                                    custom_filter = custom_filter ) ).
+                                                    custom_filter = custom_filter
+                                                     switchDefaultModel = switchDefaultModel ) ).
 
   ENDMETHOD.
 
@@ -365,7 +371,8 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     DATA(lv_check_sticky) = CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky.
     IF lv_check_sticky = abap_true AND stateful = abap_true.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = `STATEFUL_ALREADY_ACTIVATED_ERROR`.
+        EXPORTING
+          val = `STATEFUL_ALREADY_ACTIVATED_ERROR`.
     ENDIF.
     IF stateful = abap_true.
       mo_action->ms_next-s_set-s_stateful-active = 1.
