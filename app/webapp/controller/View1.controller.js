@@ -241,6 +241,14 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                                 break;
                         }
                         break;
+                    case 'SET_ODATA_MODEL':
+                        sap.ui.require([
+                            "sap/ui/model/odata/v2/ODataModel"
+                          ], async (ODataModel)  => {
+                        var oModel = new ODataModel({  serviceUrl : args[1] });
+                        z2ui5.oView.setModel( oModel , args[2] );
+                    });
+                        break;
                     case 'DOWNLOAD_B64_FILE':
                         var a = document.createElement("a");
                         a.href = args[1];
@@ -337,11 +345,13 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 z2ui5.isBusy = true;
                 BusyIndicator.show();
                 z2ui5.oBody = {};
-                if (args[0][3]) {
-                    z2ui5.oBody.XX = z2ui5.oView.getModel().getData().XX;
-                    z2ui5.oBody.VIEWNAME = 'MAIN';
-                } else if (z2ui5.oController == this) {
-                    z2ui5.oBody.XX = z2ui5.oView.getModel().getData().XX;
+                if (args[0][3] || z2ui5.oController == this ) {
+                    if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL == true ){
+                        var oModel = z2ui5.oView.getModel( "http");
+                    }else{ 
+                        oModel = z2ui5.oView.getModel();
+                    }
+                    z2ui5.oBody.XX = oModel.getData().XX;
                     z2ui5.oBody.VIEWNAME = 'MAIN';
                 } else if (z2ui5.oControllerPopup == this) {
                     if (z2ui5.oViewPopup) {
@@ -364,9 +374,6 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     }
                 }
                 )
-                //       if (args[0][1]) {
-                //          z2ui5.oController.ViewDestroy();
-                //      }
                 z2ui5.oBody.ID = z2ui5.oResponse.ID;
                 z2ui5.oBody.ARGUMENTS = args;
                 z2ui5.oBody.ARGUMENTS.forEach((item, i) => {
@@ -445,48 +452,21 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         };
                         if ( oParams.icon = 'None' ) { delete oParams.icon };
                         MessageBox[params[msgType].TYPE](params[msgType].TEXT, oParams);
-                        return;
-                        
-                        switch (params[msgType].TYPE) {
-                            case 'error':
-                                MessageBox.error(params[msgType].TEXT, oParams);
-                                break;
-                            case 'warning':
-                                MessageBox.error(params[msgType].TEXT, oParams);
-                                break;
-                            default:
-                                MessageBox.shwo(params[msgType].TEXT, oParams);
-                                break;
                         }
-                        return;
-
-                        if (params[msgType].TYPE) {
-                            MessageBox[params[msgType].TYPE](params[msgType].TEXT);
-                        } else {
-                            MessageBox.show(params[msgType].TEXT, {
-                                styleClass: params[msgType].STYLECLASS ? params[msgType].STYLECLASS : '',
-                                title: params[msgType].TITLE ? params[msgType].TITLE : '',
-                                onClose: params[msgType].ONCLOSE ? Function("sAction", "return " + params[msgType].ONCLOSE) : null,
-                                actions: params[msgType].ACTIONS ? params[msgType].ACTIONS : 'OK',
-                                emphasizedAction: params[msgType].EMPHASIZEDACTION ? params[msgType].EMPHASIZEDACTION : 'OK',
-                                initialFocus: params[msgType].INITIALFOCUS ? params[msgType].INITIALFOCUS : null,
-                                textDirection: params[msgType].TEXTDIRECTION ? params[msgType].TEXTDIRECTION : 'Inherit',
-                                icon: params[msgType].ICON ? params[msgType].ICON : 'NONE',
-                                details: params[msgType].DETAILS ? params[msgType].DETAILS : '',
-                                closeOnNavigation: params[msgType].CLOSEONNAVIGATION ? true : false
-                            })
-                        }
-                    }
                 }
             },
             setApp(oApp) {
                 this._oApp = oApp;
             },
             async displayView(xml, viewModel) {
-                let oview_model = new JSONModel(viewModel);
+                 let oview_model = new JSONModel(viewModel);
+                 var oModel = oview_model;
+                   if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL == true){
+                    oModel = z2ui5.oModel2;
+                    }
                 z2ui5.oView = await XMLView.create({
                     definition: xml,
-                    models: oview_model,
+                    models: oModel,
                     controller: z2ui5.oController,
                     id: 'mainView',
                     preprocessors: {
@@ -498,6 +478,9 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     }
                 });
                 z2ui5.oView.setModel(z2ui5.oDeviceModel, "device");
+                if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL == true){
+                  z2ui5.oView.setModel(oview_model, "http");
+                    }
                 this._oApp.removeAllPages();
                 this._oApp.insertPage(z2ui5.oView);
             },
