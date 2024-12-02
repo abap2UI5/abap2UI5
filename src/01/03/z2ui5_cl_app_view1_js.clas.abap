@@ -404,8 +404,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n|  &&
              `            },` && |\n|  &&
              `` && |\n|  &&
-
-             `            updateModelIfRequired(paramKey, oView) {` && |\n|  &&
+`            updateModelIfRequired(paramKey, oView) {` && |\n|  &&
              `                if (z2ui5.oResponse.PARAMS == undefined) {` && |\n|  &&
              `                    return;` && |\n|  &&
              `                }` && |\n|  &&
