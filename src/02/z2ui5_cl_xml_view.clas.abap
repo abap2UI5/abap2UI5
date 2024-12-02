@@ -10803,7 +10803,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD viz_frame.
-    DATA: lv_vizproperties TYPE stringval.
+    DATA lv_vizproperties TYPE stringval.
 
     IF vizproperties IS INITIAL.
       lv_vizproperties = `{` && |\n|  &&
