@@ -306,6 +306,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    case 'LOCATION_RELOAD':` && |\n|  &&
              `                        window.location = args[1];` && |\n|  &&
              `                        break;` && |\n|  &&
+             `                    case 'SET_ODATA_MODEL':` && |\n|  &&
+             `                        var oModel = new sap.ui.model.odata.v2.ODataModel({  serviceUrl : args[1] });` && |\n|  &&
+             `                        z2ui5.oView.setModel( oModel , args[2] );` && |\n|  &&
+             `                        break;` && |\n|  &&
              `                    case 'OPEN_NEW_TAB':` && |\n|  &&
              `                        window.open(args[1], '_blank');` && |\n|  &&
              `                        break;` && |\n|  &&
