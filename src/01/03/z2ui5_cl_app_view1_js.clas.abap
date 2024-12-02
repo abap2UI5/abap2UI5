@@ -357,11 +357,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                z2ui5.isBusy = true;` && |\n|  &&
              `                BusyIndicator.show();` && |\n|  &&
              `                z2ui5.oBody = {};` && |\n|  &&
-             `                if (args[0][3]) {` && |\n|  &&
-             `                    z2ui5.oBody.XX = z2ui5.oView.getModel().getData().XX;` && |\n|  &&
-             `                    z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n|  &&
-             `                } else if (z2ui5.oController == this) {` && |\n|  &&
-             `                    z2ui5.oBody.XX = z2ui5.oView.getModel().getData().XX;` && |\n|  &&
+             `                debugger;` && |\n|  &&
+             `                if (args[0][3] || z2ui5.oController == this) {` && |\n|  &&
+             `                    if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL == true ){` && |\n|  &&
+             `                    var oModel = z2ui5.oView.getModel( "http");` && |\n|  &&
+             `                    }else{ oModel = z2ui5.oView.getModel(); }` && |\n|  &&
+             `                    z2ui5.oBody.XX = oModel.getData().XX;` && |\n|  &&
              `                    z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n|  &&
              `                } else if (z2ui5.oControllerPopup == this) {` && |\n|  &&
              `                    if (z2ui5.oViewPopup) {` && |\n|  &&
@@ -403,6 +404,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n|  &&
              `            },` && |\n|  &&
              `` && |\n|  &&
+
              `            updateModelIfRequired(paramKey, oView) {` && |\n|  &&
              `                if (z2ui5.oResponse.PARAMS == undefined) {` && |\n|  &&
              `                    return;` && |\n|  &&
@@ -503,10 +505,16 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                this._oApp = oApp;` && |\n|  &&
              `            },` && |\n|  &&
              `            async displayView(xml, viewModel) {` && |\n|  &&
+             `                ` && |\n|  &&
              `                let oview_model = new JSONModel(viewModel);` && |\n|  &&
+             `                var oModel = oview_model;` && |\n|  &&
+             `                if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL == true){` && |\n|  &&
+             `                  oModel = z2ui5.oModel2;` && |\n|  &&
+             `                }` && |\n|  &&
+             `                debugger;` && |\n|  &&
              `                z2ui5.oView = await XMLView.create({` && |\n|  &&
              `                    definition: xml,` && |\n|  &&
-             `                    models: oview_model,` && |\n|  &&
+             `                    models: oModel,` && |\n|  &&
              `                    controller: z2ui5.oController,` && |\n|  &&
              `                    id: 'mainView',` && |\n|  &&
              `                    preprocessors: {` && |\n|  &&
@@ -518,6 +526,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    }` && |\n|  &&
              `                });` && |\n|  &&
              `                z2ui5.oView.setModel(z2ui5.oDeviceModel, "device");` && |\n|  &&
+             `                if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL == true){` && |\n|  &&
+             `                    z2ui5.oView.setModel(oview_model, "http");` && |\n|  &&
+             `                }` && |\n|  &&
              |\n|.
     result = result &&
              `                this._oApp.removeAllPages();` && |\n|  &&

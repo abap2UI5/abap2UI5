@@ -30,7 +30,8 @@ INTERFACE z2ui5_if_client
 
   METHODS view_display
     IMPORTING
-      val TYPE clike.
+      val                TYPE clike
+      switchDefaultModel TYPE abap_bool DEFAULT abap_false.
 
   METHODS view_model_update.
 
@@ -154,14 +155,15 @@ INTERFACE z2ui5_if_client
 
   METHODS _bind
     IMPORTING
-      val           TYPE data
-      !path         TYPE abap_bool                     DEFAULT abap_false
-      custom_mapper TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
-      custom_filter TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
-      !tab          TYPE data                          OPTIONAL
-      tab_index     TYPE i                             OPTIONAL
+      val                TYPE data
+      !path              TYPE abap_bool                     DEFAULT abap_false
+      custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
+      custom_filter      TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
+      !tab               TYPE data                          OPTIONAL
+      tab_index          TYPE i                             OPTIONAL
+      switchDefaultModel TYPE abap_bool DEFAULT abap_false
     RETURNING
-      VALUE(result) TYPE string.
+      VALUE(result)      TYPE string.
 
   METHODS _bind_edit
     IMPORTING
@@ -174,17 +176,19 @@ INTERFACE z2ui5_if_client
       custom_filter_back TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
       !tab               TYPE data                          OPTIONAL
       tab_index          TYPE i                             OPTIONAL
+      switchDefaultModel TYPE abap_bool DEFAULT abap_false
     RETURNING
       VALUE(result)      TYPE string.
 
   METHODS _bind_local
     IMPORTING
-      val           TYPE data
-      !path         TYPE abap_bool                     DEFAULT abap_false
-      custom_mapper TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
-      custom_filter TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
+      val                TYPE data
+      !path              TYPE abap_bool                     DEFAULT abap_false
+      custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
+      custom_filter      TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
+      switchDefaultModel TYPE abap_bool DEFAULT abap_false
     RETURNING
-      VALUE(result) TYPE string.
+      VALUE(result)      TYPE string.
 
   METHODS follow_up_action
     IMPORTING
