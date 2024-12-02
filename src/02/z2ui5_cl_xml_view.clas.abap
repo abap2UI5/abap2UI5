@@ -10422,6 +10422,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
           ( n = `si`                v = `sap.suite.ui.commons.statusindicator` )
           ( n = `vm`                v = `sap.ui.comp.variants` )
           ( n = `viz`               v = `sap.viz.ui5.controls` )
+          ( n = `xmlns:viz.data`    v = `sap.viz.ui5.data` )
+          ( n = `xmlns:viz.feeds`   v = `sap.viz.ui5.controls.common.feeds` )
           ( n = `vk`                v = `sap.ui.vk` )
           ( n = `vbm`               v = `sap.ui.vbm` )
           ( n = `ndc`               v = `sap.ndc` )
