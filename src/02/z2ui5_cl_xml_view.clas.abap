@@ -10754,7 +10754,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `fractionScale` v = fractionScale ) ) ).
   ENDMETHOD.
 
-METHOD viz_dataset.
+  METHOD viz_dataset.
     result = _generic( name   = 'dataset'
                        ns     = 'viz' ).
   ENDMETHOD.
