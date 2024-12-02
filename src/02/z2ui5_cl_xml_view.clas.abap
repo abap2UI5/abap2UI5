@@ -5138,6 +5138,68 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS viz_frame
+      IMPORTING
+        !id                TYPE clike OPTIONAL
+        !legendvisible     TYPE clike OPTIONAL
+        !vizcustomizations TYPE clike OPTIONAL
+        !vizproperties     TYPE clike OPTIONAL
+        !vizscales         TYPE clike OPTIONAL
+        !viztype           TYPE clike OPTIONAL
+        !height            TYPE clike OPTIONAL
+        !width             TYPE clike OPTIONAL
+        !uiconfig          TYPE clike DEFAULT `{applicationSet:'fiori'}`
+        !visible           TYPE clike OPTIONAL
+        !selectdata        TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
+    METHODS viz_dataset
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS viz_flattened_dataset
+      IMPORTING
+        !data         TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS viz_dimensions
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS viz_dimension_definition
+      IMPORTING
+        !axis         TYPE clike OPTIONAL
+        !datatype     TYPE clike OPTIONAL
+        !displayvalue TYPE clike OPTIONAL
+        !identity     TYPE clike OPTIONAL
+        !name         TYPE clike OPTIONAL
+        !sorter       TYPE clike OPTIONAL
+        !value        TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS viz_measures
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS viz_measure_definition
+      IMPORTING
+        !format       TYPE clike OPTIONAL
+        !group        TYPE clike OPTIONAL
+        !identity     TYPE clike OPTIONAL
+        !name         TYPE clike OPTIONAL
+        !range        TYPE clike OPTIONAL
+        !unit         TYPE clike OPTIONAL
+        !value        TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS viz_feeds
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS viz_feed_item
+      IMPORTING
+        !id           TYPE clike OPTIONAL
+        !uid          TYPE clike OPTIONAL
+        !type         TYPE clike OPTIONAL
+        !values       TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
   PROTECTED SECTION.
     DATA mv_name     TYPE string.
     DATA mv_ns       TYPE string.
@@ -10401,6 +10463,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
           ( n = `si`                v = `sap.suite.ui.commons.statusindicator` )
           ( n = `vm`                v = `sap.ui.comp.variants` )
           ( n = `viz`               v = `sap.viz.ui5.controls` )
+          ( n = `xmlns:viz.data`    v = `sap.viz.ui5.data` )
+          ( n = `xmlns:viz.feeds`   v = `sap.viz.ui5.controls.common.feeds` )
           ( n = `vk`                v = `sap.ui.vk` )
           ( n = `vbm`               v = `sap.ui.vbm` )
           ( n = `ndc`               v = `sap.ndc` )
@@ -10785,4 +10849,117 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD viz_dataset.
+    result = _generic( name   = 'dataset'
+                       ns     = 'viz' ).
+  ENDMETHOD.
+
+
+  METHOD viz_dimensions.
+    result = _generic( name   = 'dimensions'
+                       ns     = 'viz.data' ).
+  ENDMETHOD.
+
+
+  METHOD viz_dimension_definition.
+    result = _generic( name   = 'DimensionDefinition'
+                       ns     = 'viz.data'
+                       t_prop = VALUE #(  ( n = `axis`          v = axis )
+                                          ( n = `dataType`      v = datatype )
+                                          ( n = `displayValue`  v = displayvalue )
+                                          ( n = `identity`      v = identity )
+                                          ( n = `name`          v = name )
+                                          ( n = `sorter`        v = sorter )
+                                          ( n = `value`         v = value ) ) ).
+  ENDMETHOD.
+
+
+  METHOD viz_feeds.
+    result = _generic( name   = 'feeds'
+                       ns     = 'viz' ).
+  ENDMETHOD.
+
+
+  METHOD viz_feed_item.
+    result = _generic( name   = 'FeedItem'
+                       ns     = 'viz.feeds'
+                       t_prop = VALUE #(  ( n = `id`      v = id )
+                                          ( n = `uid`     v = uid )
+                                          ( n = `type`    v = type )
+                                          ( n = `values ` v = values ) ) ).
+  ENDMETHOD.
+
+
+  METHOD viz_flattened_dataset.
+    result = _generic( name   = 'FlattenedDataset'
+                       ns     = 'viz.data'
+                       t_prop = VALUE #( ( n = `data` v = data ) ) ).
+  ENDMETHOD.
+
+
+  METHOD viz_frame.
+    data(lv_vizproperties) = ``.
+    IF vizproperties IS INITIAL.
+      lv_vizproperties = `{` && |\n|  &&
+      `"plotArea": {` && |\n|  &&
+          `"dataLabel": {` && |\n|  &&
+              `"formatString": "",` && |\n|  &&
+              `"visible": false` && |\n|  &&
+          `}` && |\n|  &&
+      `},` && |\n|  &&
+      `"valueAxis": {` && |\n|  &&
+          `"label": {` && |\n|  &&
+              `"formatString": ""` && |\n|  &&
+          `},` && |\n|  &&
+          `"title": {` && |\n|  &&
+              `"visible": false` && |\n|  &&
+          `}` && |\n|  &&
+      `},` && |\n|  &&
+      `"categoryAxis": {` && |\n|  &&
+          `"title": {` && |\n|  &&
+              `"visible": false` && |\n|  &&
+          `}` && |\n|  &&
+      `},` && |\n|  &&
+      `"title": {` && |\n|  &&
+          `"visible": false,` && |\n|  &&
+          `"text": ""` && |\n|  &&
+      `}` && |\n|  &&
+  `}`.
+    ELSE.
+      lv_vizproperties = vizproperties.
+    ENDIF.
+
+    result = _generic(  name   = 'VizFrame'
+                        ns     = 'viz'
+                        t_prop = VALUE #( ( n = `id`                v = id )
+                                          ( n = `legendVisible`     v = legendvisible )
+                                          ( n = `vizCustomizations` v = vizcustomizations )
+                                          ( n = `vizProperties`     v = lv_vizproperties )
+                                          ( n = `vizScales`         v = vizscales )
+                                          ( n = `vizType`           v = viztype )
+                                          ( n = `height`            v = height )
+                                          ( n = `width`             v = width )
+                                          ( n = `uiConfig`          v = uiconfig )
+                                          ( n = `visible`           v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                                          ( n = `selectData`        v = selectdata ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD viz_measures.
+    result = _generic( name   = 'measures'
+                       ns     = 'viz.data' ).
+  ENDMETHOD.
+
+  METHOD viz_measure_definition.
+    result = _generic( name   = 'MeasureDefinition'
+                       ns     = 'viz.data'
+                       t_prop = VALUE #(  ( n = `format`    v = format )
+                                          ( n = `group`     v = group )
+                                          ( n = `identity`  v = identity )
+                                          ( n = `name`      v = name )
+                                          ( n = `range`     v = range )
+                                          ( n = `unit`      v = unit )
+                                          ( n = `value`     v = value ) ) ).
+  ENDMETHOD.
 ENDCLASS.
