@@ -518,9 +518,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            var file = z2ui5.oUpload.oFileUpload.files[0];` && |\n|  &&
              `            var reader = new FileReader();` && |\n|  &&
              `` && |\n|  &&
-             `            reader.onload = function (evt) {` && |\n|  &&
              |\n|.
     result = result &&
+             `            reader.onload = function (evt) {` && |\n|  &&
              `              var vContent = evt.currentTarget.result;` && |\n|  &&
              `              this.setProperty("value", vContent);` && |\n|  &&
              `              this.fireUpload();` && |\n|  &&

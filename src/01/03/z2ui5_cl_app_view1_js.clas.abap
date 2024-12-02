@@ -261,6 +261,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                                break;` && |\n|  &&
              `                        }` && |\n|  &&
              `                        break;` && |\n|  &&
+             `                    case 'SET_ODATA_MODEL':` && |\n|  &&
+             `                        var oModel = new sap.ui.model.odata.v2.ODataModel({  serviceUrl : args[1] });` && |\n|  &&
+             `                        z2ui5.oView.setModel( oModel , args[2] );` && |\n|  &&
+             `                        break;` && |\n|  &&
              `                    case 'DOWNLOAD_B64_FILE':` && |\n|  &&
              `                        var a = document.createElement("a");` && |\n|  &&
              `                        a.href = args[1];` && |\n|  &&
@@ -305,10 +309,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        break;` && |\n|  &&
              `                    case 'LOCATION_RELOAD':` && |\n|  &&
              `                        window.location = args[1];` && |\n|  &&
-             `                        break;` && |\n|  &&
-             `                    case 'SET_ODATA_MODEL':` && |\n|  &&
-             `                        var oModel = new sap.ui.model.odata.v2.ODataModel({  serviceUrl : args[1] });` && |\n|  &&
-             `                        z2ui5.oView.setModel( oModel , args[2] );` && |\n|  &&
              `                        break;` && |\n|  &&
              `                    case 'OPEN_NEW_TAB':` && |\n|  &&
              `                        window.open(args[1], '_blank');` && |\n|  &&
@@ -361,11 +361,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                z2ui5.isBusy = true;` && |\n|  &&
              `                BusyIndicator.show();` && |\n|  &&
              `                z2ui5.oBody = {};` && |\n|  &&
-             `                debugger;` && |\n|  &&
-             `                if (args[0][3] || z2ui5.oController == this) {` && |\n|  &&
+             `                if (args[0][3] || z2ui5.oController == this ) {` && |\n|  &&
              `                    if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL == true ){` && |\n|  &&
-             `                    var oModel = z2ui5.oView.getModel( "http");` && |\n|  &&
-             `                    }else{ oModel = z2ui5.oView.getModel(); }` && |\n|  &&
+             `                        var oModel = z2ui5.oView.getModel( "http");` && |\n|  &&
+             `                    }else{` && |\n|  &&
+             `                        oModel = z2ui5.oView.getModel();` && |\n|  &&
+             `                    }` && |\n|  &&
              `                    z2ui5.oBody.XX = oModel.getData().XX;` && |\n|  &&
              `                    z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n|  &&
              `                } else if (z2ui5.oControllerPopup == this) {` && |\n|  &&
@@ -389,9 +390,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    }` && |\n|  &&
              `                }` && |\n|  &&
              `                )` && |\n|  &&
-             `                //       if (args[0][1]) {` && |\n|  &&
-             `                //          z2ui5.oController.ViewDestroy();` && |\n|  &&
-             `                //      }` && |\n|  &&
              `                z2ui5.oBody.ID = z2ui5.oResponse.ID;` && |\n|  &&
              `                z2ui5.oBody.ARGUMENTS = args;` && |\n|  &&
              `                z2ui5.oBody.ARGUMENTS.forEach((item, i) => {` && |\n|  &&
@@ -408,7 +406,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n|  &&
              `            },` && |\n|  &&
              `` && |\n|  &&
-`            updateModelIfRequired(paramKey, oView) {` && |\n|  &&
+             `            updateModelIfRequired(paramKey, oView) {` && |\n|  &&
              `                if (z2ui5.oResponse.PARAMS == undefined) {` && |\n|  &&
              `                    return;` && |\n|  &&
              `                }` && |\n|  &&
@@ -470,51 +468,18 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        };` && |\n|  &&
              `                        if ( oParams.icon = 'None' ) { delete oParams.icon };` && |\n|  &&
              `                        MessageBox[params[msgType].TYPE](params[msgType].TEXT, oParams);` && |\n|  &&
-             `                        return;` && |\n|  &&
-             `` && |\n|  &&
-             `                        switch (params[msgType].TYPE) {` && |\n|  &&
-             `                            case 'error':` && |\n|  &&
-             `                                MessageBox.error(params[msgType].TEXT, oParams);` && |\n|  &&
-             `                                break;` && |\n|  &&
-             `                            case 'warning':` && |\n|  &&
-             `                                MessageBox.error(params[msgType].TEXT, oParams);` && |\n|  &&
-             `                                break;` && |\n|  &&
-             `                            default:` && |\n|  &&
-             `                                MessageBox.shwo(params[msgType].TEXT, oParams);` && |\n|  &&
-             `                                break;` && |\n|  &&
              `                        }` && |\n|  &&
-             `                        return;` && |\n|  &&
-             `` && |\n|  &&
-             `                        if (params[msgType].TYPE) {` && |\n|  &&
-             `                            MessageBox[params[msgType].TYPE](params[msgType].TEXT);` && |\n|  &&
-             `                        } else {` && |\n|  &&
-             `                            MessageBox.show(params[msgType].TEXT, {` && |\n|  &&
-             `                                styleClass: params[msgType].STYLECLASS ? params[msgType].STYLECLASS : '',` && |\n|  &&
-             `                                title: params[msgType].TITLE ? params[msgType].TITLE : '',` && |\n|  &&
-             `                                onClose: params[msgType].ONCLOSE ? Function("sAction", "return " + params[msgType].ONCLOSE) : null,` && |\n|  &&
-             `                                actions: params[msgType].ACTIONS ? params[msgType].ACTIONS : 'OK',` && |\n|  &&
-             `                                emphasizedAction: params[msgType].EMPHASIZEDACTION ? params[msgType].EMPHASIZEDACTION : 'OK',` && |\n|  &&
-             `                                initialFocus: params[msgType].INITIALFOCUS ? params[msgType].INITIALFOCUS : null,` && |\n|  &&
-             `                                textDirection: params[msgType].TEXTDIRECTION ? params[msgType].TEXTDIRECTION : 'Inherit',` && |\n|  &&
-             `                                icon: params[msgType].ICON ? params[msgType].ICON : 'NONE',` && |\n|  &&
-             `                                details: params[msgType].DETAILS ? params[msgType].DETAILS : '',` && |\n|  &&
-             `                                closeOnNavigation: params[msgType].CLOSEONNAVIGATION ? true : false` && |\n|  &&
-             `                            })` && |\n|  &&
-             `                        }` && |\n|  &&
-             `                    }` && |\n|  &&
              `                }` && |\n|  &&
              `            },` && |\n|  &&
              `            setApp(oApp) {` && |\n|  &&
              `                this._oApp = oApp;` && |\n|  &&
              `            },` && |\n|  &&
              `            async displayView(xml, viewModel) {` && |\n|  &&
-             `                ` && |\n|  &&
-             `                let oview_model = new JSONModel(viewModel);` && |\n|  &&
-             `                var oModel = oview_model;` && |\n|  &&
-             `                if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL == true){` && |\n|  &&
-             `                  oModel = z2ui5.oModel2;` && |\n|  &&
-             `                }` && |\n|  &&
-             `                debugger;` && |\n|  &&
+             `                 let oview_model = new JSONModel(viewModel);` && |\n|  &&
+             `                 var oModel = oview_model;` && |\n|  &&
+             `                   if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL == true){` && |\n|  &&
+             `                    oModel = z2ui5.oModel2;` && |\n|  &&
+             `                    }` && |\n|  &&
              `                z2ui5.oView = await XMLView.create({` && |\n|  &&
              `                    definition: xml,` && |\n|  &&
              `                    models: oModel,` && |\n|  &&
@@ -530,10 +495,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                });` && |\n|  &&
              `                z2ui5.oView.setModel(z2ui5.oDeviceModel, "device");` && |\n|  &&
              `                if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL == true){` && |\n|  &&
-             `                    z2ui5.oView.setModel(oview_model, "http");` && |\n|  &&
-             `                }` && |\n|  &&
-             |\n|.
-    result = result &&
+             `                  z2ui5.oView.setModel(oview_model, "http");` && |\n|  &&
+             `                    }` && |\n|  &&
              `                this._oApp.removeAllPages();` && |\n|  &&
              `                this._oApp.insertPage(z2ui5.oView);` && |\n|  &&
              `            },` && |\n|  &&

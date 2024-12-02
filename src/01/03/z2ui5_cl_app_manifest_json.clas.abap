@@ -103,13 +103,13 @@ CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
              `      }` &&
              `    },` &&
              `    "models": {` &&
-             `      "http": {` &&
-             `        "dataSource": "http",` &&
+             `      "": {` &&
+             `        "dataSource": "mainService",` &&
              `        "preload": true,` &&
              `        "settings": {}` &&
              `      },` &&
-             `      "": {` &&
-             `        "dataSource": "mainService",` &&
+             `      "http": {` &&
+             `        "dataSource": "http",` &&
              `        "preload": true,` &&
              `        "settings": {}` &&
              `      }` &&
