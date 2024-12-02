@@ -70,6 +70,8 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
                                              WHEN i_multiselect = abap_true
                                              THEN `Multi select`
                                              ELSE `Single select` ).
+    ELSE.
+      r_result->title = i_title.
     ENDIF.
 
     r_result->sort_field        = i_sort_field.
