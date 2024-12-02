@@ -243,9 +243,9 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         break;
                     case 'SET_ODATA_MODEL':
                         sap.ui.require([
-                            "sap/ui/model/odata/v2"
-                          ], async (Model)  => {
-                        var oModel = new Model({  serviceUrl : args[1] });
+                            "sap/ui/model/odata/v2/ODataModel"
+                          ], async (ODataModel)  => {
+                        var oModel = new ODataModel({  serviceUrl : args[1] });
                         z2ui5.oView.setModel( oModel , args[2] );
                     });
                         break;

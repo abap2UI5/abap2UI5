@@ -263,9 +263,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        break;` && |\n|  &&
              `                    case 'SET_ODATA_MODEL':` && |\n|  &&
              `                        sap.ui.require([` && |\n|  &&
-             `                            "sap/ui/model/odata/v2"` && |\n|  &&
-             `                          ], async (Model)  => {` && |\n|  &&
-             `                        var oModel = new Model({  serviceUrl : args[1] });` && |\n|  &&
+             `                            "sap/ui/model/odata/v2/ODataModel"` && |\n|  &&
+             `                          ], async (ODataModel)  => {` && |\n|  &&
+             `                        var oModel = new ODataModel({  serviceUrl : args[1] });` && |\n|  &&
              `                        z2ui5.oView.setModel( oModel , args[2] );` && |\n|  &&
              `                    });` && |\n|  &&
              `                        break;` && |\n|  &&
