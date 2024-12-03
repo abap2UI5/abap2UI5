@@ -68,7 +68,7 @@ INTERFACE z2ui5_if_core_types
     BEGIN OF ty_s_next_frontend,
       BEGIN OF s_view,
         xml                TYPE string,
-        switchDefaultModel TYPE abap_bool,
+        switchDefaultModel TYPE string,
         check_destroy      TYPE abap_bool,
         check_update_model TYPE abap_bool,
       END OF s_view,
