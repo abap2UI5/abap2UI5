@@ -346,7 +346,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 BusyIndicator.show();
                 z2ui5.oBody = {};
                 if (args[0][3] || z2ui5.oController == this ) {
-                    if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL == true ){
+                    if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL){
                         var oModel = z2ui5.oView.getModel( "http");
                     }else{ 
                         oModel = z2ui5.oView.getModel();
@@ -461,8 +461,8 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
             async displayView(xml, viewModel) {
                  let oview_model = new JSONModel(viewModel);
                  var oModel = oview_model;
-                   if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL == true){
-                    oModel = z2ui5.oModel2;
+                   if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL){
+                    oModel = z2ui5.oOwnerComponent.getModel(z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL);
                     }
                 z2ui5.oView = await XMLView.create({
                     definition: xml,
@@ -478,7 +478,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     }
                 });
                 z2ui5.oView.setModel(z2ui5.oDeviceModel, "device");
-                if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL == true){
+                if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL){
                   z2ui5.oView.setModel(oview_model, "http");
                     }
                 this._oApp.removeAllPages();

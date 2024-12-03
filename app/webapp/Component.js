@@ -13,7 +13,8 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models","z2ui5/cc/Server"
             }
             this.getRouter().initialize();
             z2ui5.oRouter = this.getRouter();
-            this.setModel(Models.createDeviceModel(), "device");
+            z2ui5.oDeviceModel = Models.createDeviceModel();
+            this.setModel(z2ui5.oDeviceModel, "device");
 
             z2ui5.oConfig = {};
             z2ui5.oConfig.ComponentData = this.getComponentData();

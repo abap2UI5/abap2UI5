@@ -366,7 +366,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                BusyIndicator.show();` && |\n|  &&
              `                z2ui5.oBody = {};` && |\n|  &&
              `                if (args[0][3] || z2ui5.oController == this ) {` && |\n|  &&
-             `                   if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL){` && |\n|  &&
+             `                    if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL){` && |\n|  &&
              `                        var oModel = z2ui5.oView.getModel( "http");` && |\n|  &&
              `                    }else{` && |\n|  &&
              `                        oModel = z2ui5.oView.getModel();` && |\n|  &&

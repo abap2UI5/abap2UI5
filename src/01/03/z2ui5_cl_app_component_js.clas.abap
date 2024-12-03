@@ -34,7 +34,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `            this.getRouter().initialize();` && |\n|  &&
              `            z2ui5.oRouter = this.getRouter();` && |\n|  &&
              `            z2ui5.oDeviceModel = Models.createDeviceModel();` && |\n|  &&
-             `           // this.setModel(Models.createDeviceModel(), "device");` && |\n|  &&
+             `            this.setModel(z2ui5.oDeviceModel, "device");` && |\n|  &&
              `` && |\n|  &&
              `            z2ui5.oConfig = {};` && |\n|  &&
              `            z2ui5.oConfig.ComponentData = this.getComponentData();` && |\n|  &&

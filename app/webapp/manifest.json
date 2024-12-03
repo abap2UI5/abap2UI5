@@ -15,7 +15,7 @@
       "toolsId": "3a966e20-9635-4c28-8861-d1b66f79f1de"
     },
     "dataSources": {
-      "mainService": {
+      "test": {
         "uri": "/sap/opu/odata/DMO/API_TRAVEL_U_V2/",
         "type": "OData",
         "settings": {
@@ -83,8 +83,8 @@
       }                                                                                                                                                                                                                                                        
     },          
     "models": {
-      "": {
-        "dataSource": "mainService",
+      "test": {
+        "dataSource": "test",
         "preload": true,
         "settings": {}
       },
