@@ -12,7 +12,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller",
       };
       
       z2ui5.oController = new Controller();
-      z2ui5.oController.setApp(this.getView().byId("app"));
+      z2ui5.oApp = this.getView().byId("app");
 
       z2ui5.oControllerNest = new Controller();
       z2ui5.oControllerNest2 = new Controller();
