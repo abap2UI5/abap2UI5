@@ -32,7 +32,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      };` && |\n|  &&
              `` && |\n|  &&
              `      z2ui5.oController = new Controller();` && |\n|  &&
-             `      z2ui5.oController.setApp(this.getView().byId("app"));` && |\n|  &&
+             `      z2ui5.oApp = this.getView().byId("app");` && |\n|  &&
              `` && |\n|  &&
              `      z2ui5.oControllerNest = new Controller();` && |\n|  &&
              `      z2ui5.oControllerNest2 = new Controller();` && |\n|  &&

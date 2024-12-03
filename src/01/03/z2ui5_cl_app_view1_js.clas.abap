@@ -20,10 +20,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
 
     result =              `sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/model/json/JSONModel",` && |\n|  &&
              `    "sap/ui/core/BusyIndicator", "sap/m/MessageBox", "sap/m/MessageToast", "sap/ui/core/Fragment", "sap/m/BusyDialog",` && |\n|  &&
-             `    "sap/ui/VersionInfo", "z2ui5/cc/Server",` && |\n|  &&
+             `    "sap/ui/VersionInfo", "z2ui5/cc/Server",  "sap/ui/model/odata/v2/ODataModel",` && |\n|  &&
              `],` && |\n|  &&
              `    function (Controller, XMLView, JSONModel, BusyIndicator, MessageBox, MessageToast, Fragment, mBusyDialog, VersionInfo,` && |\n|  &&
-             `        Server) {` && |\n|  &&
+             `        Server,  ODataModel) {` && |\n|  &&
              `        "use strict";` && |\n|  &&
              `        return Controller.extend("z2ui5.controller.View1", {` && |\n|  &&
              `` && |\n|  &&
@@ -262,12 +262,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        }` && |\n|  &&
              `                        break;` && |\n|  &&
              `                    case 'SET_ODATA_MODEL':` && |\n|  &&
-             `                        sap.ui.require([` && |\n|  &&
-             `                            "sap/ui/model/odata/v2/ODataModel"` && |\n|  &&
-             `                          ], async (ODataModel)  => {` && |\n|  &&
+             `                    //    sap.ui.require([` && |\n|  &&
+             `                     //       "sap/ui/model/odata/v2/ODataModel"` && |\n|  &&
+             `                      //    ], async (ODataModel)  => {` && |\n|  &&
              `                        var oModel = new ODataModel({  serviceUrl : args[1] });` && |\n|  &&
              `                        z2ui5.oView.setModel( oModel , args[2] );` && |\n|  &&
-             `                    });` && |\n|  &&
+             `                 //   });` && |\n|  &&
              `                        break;` && |\n|  &&
              `                    case 'DOWNLOAD_B64_FILE':` && |\n|  &&
              `                        var a = document.createElement("a");` && |\n|  &&
@@ -475,14 +475,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        }` && |\n|  &&
              `                }` && |\n|  &&
              `            },` && |\n|  &&
-             `            setApp(oApp) {` && |\n|  &&
-             `                this._oApp = oApp;` && |\n|  &&
-             `            },` && |\n|  &&
              `            async displayView(xml, viewModel) {` && |\n|  &&
              `                 let oview_model = new JSONModel(viewModel);` && |\n|  &&
              `                 var oModel = oview_model;` && |\n|  &&
              `                   if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL){` && |\n|  &&
-             `                    oModel = z2ui5.oOwnerComponent.getModel(z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL);` && |\n|  &&
+             `                    oModel = new ODataModel({  serviceUrl : z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL });` && |\n|  &&
+             `                  //  oModel = z2ui5.oOwnerComponent.getModel(z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL);` && |\n|  &&
              `                    }` && |\n|  &&
              `                z2ui5.oView = await XMLView.create({` && |\n|  &&
              `                    definition: xml,` && |\n|  &&
@@ -501,8 +499,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL){` && |\n|  &&
              `                  z2ui5.oView.setModel(oview_model, "http");` && |\n|  &&
              `                    }` && |\n|  &&
-             `                this._oApp.removeAllPages();` && |\n|  &&
-             `                this._oApp.insertPage(z2ui5.oView);` && |\n|  &&
+             `                z2ui5.oApp.removeAllPages();` && |\n|  &&
+             `                z2ui5.oApp.insertPage(z2ui5.oView);` && |\n|  &&
              `            },` && |\n|  &&
              `        })` && |\n|  &&
              `    });` && |\n|  &&

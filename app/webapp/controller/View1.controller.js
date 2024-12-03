@@ -1,9 +1,9 @@
 sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/model/json/JSONModel",
     "sap/ui/core/BusyIndicator", "sap/m/MessageBox", "sap/m/MessageToast", "sap/ui/core/Fragment", "sap/m/BusyDialog",
-    "sap/ui/VersionInfo", "z2ui5/cc/Server",
+    "sap/ui/VersionInfo", "z2ui5/cc/Server",  "sap/ui/model/odata/v2/ODataModel",
 ],
     function (Controller, XMLView, JSONModel, BusyIndicator, MessageBox, MessageToast, Fragment, mBusyDialog, VersionInfo,
-        Server) {
+        Server,  ODataModel) {
         "use strict";
         return Controller.extend("z2ui5.controller.View1", {
 
@@ -242,12 +242,12 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         }
                         break;
                     case 'SET_ODATA_MODEL':
-                        sap.ui.require([
-                            "sap/ui/model/odata/v2/ODataModel"
-                          ], async (ODataModel)  => {
+                    //    sap.ui.require([
+                     //       "sap/ui/model/odata/v2/ODataModel"
+                      //    ], async (ODataModel)  => {
                         var oModel = new ODataModel({  serviceUrl : args[1] });
                         z2ui5.oView.setModel( oModel , args[2] );
-                    });
+                 //   });
                         break;
                     case 'DOWNLOAD_B64_FILE':
                         var a = document.createElement("a");
@@ -455,14 +455,12 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         }
                 }
             },
-            setApp(oApp) {
-                this._oApp = oApp;
-            },
             async displayView(xml, viewModel) {
                  let oview_model = new JSONModel(viewModel);
                  var oModel = oview_model;
                    if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL){
-                    oModel = z2ui5.oOwnerComponent.getModel(z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL);
+                    oModel = new ODataModel({  serviceUrl : z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL });
+                  //  oModel = z2ui5.oOwnerComponent.getModel(z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL);
                     }
                 z2ui5.oView = await XMLView.create({
                     definition: xml,
@@ -481,8 +479,8 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL){
                   z2ui5.oView.setModel(oview_model, "http");
                     }
-                this._oApp.removeAllPages();
-                this._oApp.insertPage(z2ui5.oView);
+                z2ui5.oApp.removeAllPages();
+                z2ui5.oApp.insertPage(z2ui5.oView);
             },
         })
     });

@@ -35,15 +35,6 @@ CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
              `      "toolsId": "3a966e20-9635-4c28-8861-d1b66f79f1de"` &&
              `    },` &&
              `    "dataSources": {` &&
-             `      "test": {` &&
-             `        "uri": "/sap/opu/odata/DMO/API_TRAVEL_U_V2/",` &&
-             `        "type": "OData",` &&
-             `        "settings": {` &&
-             `          "annotations": [],` &&
-             `          "localUri": "localService/metadata.xml",` &&
-             `          "odataVersion": "2.0"` &&
-             `        }` &&
-             `      },` &&
              `      "http": {` &&
              `        "uri": "/sap/bc/z2ui5",` &&
              `        "type": "OData",` &&
@@ -103,11 +94,6 @@ CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
              `      }` &&
              `    },` &&
              `    "models": {` &&
-             `      "test": {` &&
-             `        "dataSource": "test",` &&
-             `        "preload": true,` &&
-             `        "settings": {}` &&
-             `      },` &&
              `      "http": {` &&
              `        "dataSource": "http",` &&
              `        "preload": true,` &&
