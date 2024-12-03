@@ -132,7 +132,7 @@ INTERFACE z2ui5_if_core_types
         closeonbrowsernavigation TYPE string,
       END OF s_msg_toast,
       BEGIN OF s_follow_up_action,
-        custom_js TYPE string,
+        custom_js TYPE string_table,
       END OF s_follow_up_action,
 *      handler_attrs TYPE ty_s_http_handler_attributes,
       s_stateful TYPE ty_s_http_res-s_stateful,
