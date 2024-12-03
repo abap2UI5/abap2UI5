@@ -2314,6 +2314,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         valuestate     TYPE clike OPTIONAL
         width          TYPE clike OPTIONAL
         select         TYPE clike OPTIONAL
+        visible        TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
@@ -8782,7 +8783,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                    ( n = `groupName`       v = groupname )
                                    ( n = `valueState`      v = valuestate )
                                    ( n = `width`           v = width )
-                                   ( n = `select`          v = select ) ) ).
+                                   ( n = `select`          v = select )
+                                   ( n = `visible`         v = z2ui5_cl_util=>boolean_abap_2_json( visible ) ) ) ).
   ENDMETHOD.
 
   METHOD radio_button_group.
