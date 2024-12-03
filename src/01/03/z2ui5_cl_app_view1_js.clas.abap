@@ -366,7 +366,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                BusyIndicator.show();` && |\n|  &&
              `                z2ui5.oBody = {};` && |\n|  &&
              `                if (args[0][3] || z2ui5.oController == this ) {` && |\n|  &&
-             `                    if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL == true ){` && |\n|  &&
+             `                    if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL){` && |\n|  &&
              `                        var oModel = z2ui5.oView.getModel( "http");` && |\n|  &&
              `                    }else{` && |\n|  &&
              `                        oModel = z2ui5.oView.getModel();` && |\n|  &&
@@ -481,8 +481,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            async displayView(xml, viewModel) {` && |\n|  &&
              `                 let oview_model = new JSONModel(viewModel);` && |\n|  &&
              `                 var oModel = oview_model;` && |\n|  &&
-             `                   if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL == true){` && |\n|  &&
-             `                    oModel = z2ui5.oModel2;` && |\n|  &&
+             `                   if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL){` && |\n|  &&
+             `                    oModel = z2ui5.oOwnerComponent.getModel(z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL);` && |\n|  &&
              `                    }` && |\n|  &&
              `                z2ui5.oView = await XMLView.create({` && |\n|  &&
              `                    definition: xml,` && |\n|  &&
@@ -498,7 +498,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    }` && |\n|  &&
              `                });` && |\n|  &&
              `                z2ui5.oView.setModel(z2ui5.oDeviceModel, "device");` && |\n|  &&
-             `                if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL == true){` && |\n|  &&
+             `                if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL){` && |\n|  &&
              `                  z2ui5.oView.setModel(oview_model, "http");` && |\n|  &&
              `                    }` && |\n|  &&
              `                this._oApp.removeAllPages();` && |\n|  &&

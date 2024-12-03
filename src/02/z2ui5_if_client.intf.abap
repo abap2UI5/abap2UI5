@@ -32,7 +32,7 @@ INTERFACE z2ui5_if_client
   METHODS view_display
     IMPORTING
       val                TYPE clike
-      switchDefaultModel TYPE abap_bool DEFAULT abap_false.
+      switchDefaultModel TYPE string OPTIONAL.
 
   METHODS view_model_update.
 
