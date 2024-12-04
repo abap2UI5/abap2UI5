@@ -16,6 +16,7 @@ INTERFACE z2ui5_if_client
       download_b64_file         TYPE string VALUE `DOWNLOAD_B64_FILE`,
       set_size_limit            TYPE string VALUE `SET_SIZE_LIMIT`,
       set_odata_model           TYPE string VALUE `SET_ODATA_MODEL`,
+      urlhelper                 TYPE string VALUE `URLHELPER`,
     END OF cs_event.
 
   CONSTANTS:

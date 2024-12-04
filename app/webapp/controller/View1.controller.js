@@ -1,9 +1,9 @@
 sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/model/json/JSONModel",
     "sap/ui/core/BusyIndicator", "sap/m/MessageBox", "sap/m/MessageToast", "sap/ui/core/Fragment", "sap/m/BusyDialog",
-    "sap/ui/VersionInfo", "z2ui5/cc/Server",  "sap/ui/model/odata/v2/ODataModel",
+    "sap/ui/VersionInfo", "z2ui5/cc/Server",  "sap/ui/model/odata/v2/ODataModel", "sap/m/library"
 ],
     function (Controller, XMLView, JSONModel, BusyIndicator, MessageBox, MessageToast, Fragment, mBusyDialog, VersionInfo,
-        Server,  ODataModel) {
+        Server,  ODataModel, mobileLibrary) {
         "use strict";
         return Controller.extend("z2ui5.controller.View1", {
 
@@ -322,6 +322,24 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         navCon = Fragment.byId("popupId", args[1]);
                         navConTo = Fragment.byId("popupId", args[2]);
                         navCon.to(navConTo);
+                        break;
+                    case 'URLHELPER':
+                        var URLHelper = mobileLibrary.URLHelper;
+                        var obj = JSON.parse(JSON.stringify(args[2]));
+                        switch (args[1]) {
+                            case 'REDIRECT':
+                              URLHelper.redirect(obj.url, obj.newWindow);
+                              break;
+                            case 'TRIGGER_EMAIL':
+                              URLHelper.triggerEmail(obj.email, obj.subject, obj.body, obj.cc, obj.bcc, obj.newWindow);
+                              break;
+                            case 'TRIGGER_SMS':
+                              URLHelper.triggerSms(obj.tel);
+                              break;
+                            case 'TRIGGER_TEL':
+                              URLHelper.triggerTel(obj.tel);
+                              break;
+                        }
                         break;
                 }
             },

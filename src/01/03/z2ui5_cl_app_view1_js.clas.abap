@@ -20,10 +20,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
 
     result =              `sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/model/json/JSONModel",` && |\n|  &&
              `    "sap/ui/core/BusyIndicator", "sap/m/MessageBox", "sap/m/MessageToast", "sap/ui/core/Fragment", "sap/m/BusyDialog",` && |\n|  &&
-             `    "sap/ui/VersionInfo", "z2ui5/cc/Server",  "sap/ui/model/odata/v2/ODataModel",` && |\n|  &&
+             `    "sap/ui/VersionInfo", "z2ui5/cc/Server",  "sap/ui/model/odata/v2/ODataModel",  "sap/m/library",` && |\n|  &&
              `],` && |\n|  &&
              `    function (Controller, XMLView, JSONModel, BusyIndicator, MessageBox, MessageToast, Fragment, mBusyDialog, VersionInfo,` && |\n|  &&
-             `        Server,  ODataModel) {` && |\n|  &&
+             `        Server,  ODataModel, mobileLibrary) {` && |\n|  &&
              `        "use strict";` && |\n|  &&
              `        return Controller.extend("z2ui5.controller.View1", {` && |\n|  &&
              `` && |\n|  &&
@@ -310,6 +310,24 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                                });` && |\n|  &&
              `                            }` && |\n|  &&
              `                          });` && |\n|  &&
+             `                        break;` && |\n|  &&
+             `                    case 'URLHELPER':` && |\n|  &&
+             `                        var URLHelper = mobileLibrary.URLHelper;` && |\n|  &&
+             `                        var obj = JSON.parse(JSON.stringify(args[2]));` && |\n|  &&
+             `                        switch (args[1]) {` && |\n|  &&
+             `                            case 'REDIRECT':` && |\n|  &&
+             `                              URLHelper.redirect(obj.url, obj.newWindow);` && |\n|  &&
+             `                              break;` && |\n|  &&
+             `                            case 'TRIGGER_EMAIL':` && |\n|  &&
+             `                              URLHelper.triggerEmail(obj.email, obj.subject, obj.body, obj.cc, obj.bcc, obj.newWindow);` && |\n|  &&
+             `                              break;` && |\n|  &&
+             `                            case 'TRIGGER_SMS':` && |\n|  &&
+             `                              URLHelper.triggerSms(obj.tel);` && |\n|  &&
+             `                              break;` && |\n|  &&
+             `                            case 'TRIGGER_TEL':` && |\n|  &&
+             `                              URLHelper.triggerTel(obj.tel);` && |\n|  &&
+             `                              break;` && |\n|  &&
+             `                        }` && |\n|  &&
              `                        break;` && |\n|  &&
              `                    case 'LOCATION_RELOAD':` && |\n|  &&
              `                        window.location = args[1];` && |\n|  &&
