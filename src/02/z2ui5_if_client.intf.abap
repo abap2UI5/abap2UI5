@@ -31,34 +31,39 @@ INTERFACE z2ui5_if_client
   METHODS view_destroy.
 
   METHODS view_display
-    IMPORTING val                TYPE clike
-              switchDefaultModel TYPE string OPTIONAL.
+    IMPORTING
+      val                TYPE clike
+      switchDefaultModel TYPE string OPTIONAL.
 
   METHODS view_model_update.
 
   METHODS set_session_stateful
-    IMPORTING stateful TYPE abap_bool DEFAULT abap_true.
+    IMPORTING
+      stateful TYPE abap_bool DEFAULT abap_true.
 
   METHODS nest_view_display
-    IMPORTING val            TYPE clike
-              !id            TYPE clike
-              method_insert  TYPE clike
-              method_destroy TYPE clike OPTIONAL.
+    IMPORTING
+      val            TYPE clike
+      !id            TYPE clike
+      method_insert  TYPE clike
+      method_destroy TYPE clike OPTIONAL.
 
   METHODS nest_view_destroy.
   METHODS nest_view_model_update.
 
   METHODS nest2_view_display
-    IMPORTING val            TYPE clike
-              !id            TYPE clike
-              method_insert  TYPE clike
-              method_destroy TYPE clike OPTIONAL.
+    IMPORTING
+      val            TYPE clike
+      !id            TYPE clike
+      method_insert  TYPE clike
+      method_destroy TYPE clike OPTIONAL.
 
   METHODS nest2_view_destroy.
   METHODS nest2_view_model_update.
 
   METHODS popup_display
-    IMPORTING val TYPE clike.
+    IMPORTING
+      val TYPE clike.
 
   METHODS popup_model_update.
 
@@ -67,117 +72,144 @@ INTERFACE z2ui5_if_client
   METHODS popover_model_update.
 
   METHODS popover_display
-    IMPORTING !xml  TYPE clike
-              by_id TYPE clike.
+    IMPORTING
+      !xml  TYPE clike
+      by_id TYPE clike.
 
   METHODS popover_destroy.
 
   METHODS get
-    RETURNING VALUE(result) TYPE z2ui5_if_types=>ty_s_get.
+    RETURNING
+      VALUE(result) TYPE z2ui5_if_types=>ty_s_get.
 
   METHODS get_event_arg
-    IMPORTING v             TYPE i DEFAULT 1
-    RETURNING VALUE(result) TYPE string.
+    IMPORTING
+      v             TYPE i DEFAULT 1
+    RETURNING
+      VALUE(result) TYPE string.
 
   METHODS get_app
-    IMPORTING !id           TYPE clike OPTIONAL
-    RETURNING VALUE(result) TYPE REF TO z2ui5_if_app.
+    IMPORTING
+      !id           TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_if_app.
 
   METHODS nav_app_leave
-    IMPORTING VALUE(app)    TYPE REF TO z2ui5_if_app OPTIONAL
-    RETURNING VALUE(result) TYPE string.
+    IMPORTING
+      VALUE(app)    TYPE REF TO z2ui5_if_app OPTIONAL
+    RETURNING
+      VALUE(result) TYPE string.
 
   METHODS nav_app_call
-    IMPORTING app           TYPE REF TO z2ui5_if_app
-    RETURNING VALUE(result) TYPE string.
+    IMPORTING
+      app           TYPE REF TO z2ui5_if_app
+    RETURNING
+      VALUE(result) TYPE string.
 
   METHODS message_box_display
-    IMPORTING !text             TYPE any
-              !type             TYPE clike        DEFAULT `information`
-              !title            TYPE clike        OPTIONAL
-              styleclass        TYPE clike        OPTIONAL
-              onclose           TYPE clike        OPTIONAL
-              actions           TYPE string_table OPTIONAL
-              emphasizedaction  TYPE clike        OPTIONAL
-              initialfocus      TYPE clike        OPTIONAL
-              textdirection     TYPE clike        OPTIONAL
-              !icon             TYPE clike        OPTIONAL
-              details           TYPE clike        OPTIONAL
-              closeonnavigation TYPE abap_bool    DEFAULT abap_true.
+    IMPORTING
+      !text             TYPE any
+      !type             TYPE clike        DEFAULT `information`
+      !title            TYPE clike        OPTIONAL
+      styleclass        TYPE clike        OPTIONAL
+      onclose           TYPE clike        OPTIONAL
+      actions           TYPE string_table OPTIONAL
+      emphasizedaction  TYPE clike        OPTIONAL
+      initialfocus      TYPE clike        OPTIONAL
+      textdirection     TYPE clike        OPTIONAL
+      !icon             TYPE clike        OPTIONAL
+      details           TYPE clike        OPTIONAL
+      closeonnavigation TYPE abap_bool    DEFAULT abap_true.
 
   METHODS message_toast_display
-    IMPORTING !text                    TYPE clike
-              !duration                TYPE clike     OPTIONAL
-              !width                   TYPE clike     OPTIONAL
-              my                       TYPE clike     OPTIONAL
-              !at                      TYPE clike     OPTIONAL
-              !of                      TYPE clike     OPTIONAL
-              !offset                  TYPE clike     OPTIONAL
-              collision                TYPE clike     OPTIONAL
-              onclose                  TYPE clike     DEFAULT ``
-              autoclose                TYPE abap_bool DEFAULT abap_true
-              animationtimingfunction  TYPE clike     OPTIONAL
-              animationduration        TYPE clike     OPTIONAL
-              closeonbrowsernavigation TYPE abap_bool DEFAULT abap_true
-              !class                   TYPE clike     OPTIONAL.
+    IMPORTING
+      !text                    TYPE clike
+      !duration                TYPE clike     OPTIONAL
+      !width                   TYPE clike     OPTIONAL
+      my                       TYPE clike     OPTIONAL
+      !at                      TYPE clike     OPTIONAL
+      !of                      TYPE clike     OPTIONAL
+      !offset                  TYPE clike     OPTIONAL
+      collision                TYPE clike     OPTIONAL
+      onclose                  TYPE clike     DEFAULT ``
+      autoclose                TYPE abap_bool DEFAULT abap_true
+      animationtimingfunction  TYPE clike     OPTIONAL
+      animationduration        TYPE clike     OPTIONAL
+      closeonbrowsernavigation TYPE abap_bool DEFAULT abap_true
+      !class                   TYPE clike     OPTIONAL.
 
   METHODS _event
-    IMPORTING val           TYPE clike                              OPTIONAL
-              t_arg         TYPE string_table                       OPTIONAL
-              s_ctrl        TYPE z2ui5_if_types=>ty_s_event_control OPTIONAL
-              r_data        TYPE data                               OPTIONAL
+    IMPORTING
+      val           TYPE clike                              OPTIONAL
+      t_arg         TYPE string_table                       OPTIONAL
+      s_ctrl        TYPE z2ui5_if_types=>ty_s_event_control OPTIONAL
+      r_data        TYPE data                               OPTIONAL
         PREFERRED PARAMETER val
-    RETURNING VALUE(result) TYPE string.
+    RETURNING
+      VALUE(result) TYPE string.
 
   METHODS _event_client
-    IMPORTING val           TYPE clike
-              t_arg         TYPE string_table OPTIONAL
-    RETURNING VALUE(result) TYPE string.
+    IMPORTING
+      val           TYPE clike
+      t_arg         TYPE string_table OPTIONAL
+    RETURNING
+      VALUE(result) TYPE string.
 
   METHODS _bind
-    IMPORTING val                TYPE data
-              !path              TYPE abap_bool                     DEFAULT abap_false
-              custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
-              custom_filter      TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
-              !tab               TYPE data                          OPTIONAL
-              tab_index          TYPE i                             OPTIONAL
-              switchDefaultModel TYPE abap_bool                     DEFAULT abap_false
-    RETURNING VALUE(result)      TYPE string.
+    IMPORTING
+      val                TYPE data
+      !path              TYPE abap_bool                     DEFAULT abap_false
+      custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
+      custom_filter      TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
+      !tab               TYPE data                          OPTIONAL
+      tab_index          TYPE i                             OPTIONAL
+      switchDefaultModel TYPE abap_bool DEFAULT abap_false
+    RETURNING
+      VALUE(result)      TYPE string.
 
   METHODS _bind_edit
-    IMPORTING val                TYPE data
-              !path              TYPE abap_bool                     DEFAULT abap_false
-              view               TYPE string                        DEFAULT z2ui5_if_client=>cs_view-main
-              custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
-              custom_mapper_back TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
-              custom_filter      TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
-              custom_filter_back TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
-              !tab               TYPE data                          OPTIONAL
-              tab_index          TYPE i                             OPTIONAL
-              switchDefaultModel TYPE abap_bool                     DEFAULT abap_false
-    RETURNING VALUE(result)      TYPE string.
+    IMPORTING
+      val                TYPE data
+      !path              TYPE abap_bool                     DEFAULT abap_false
+      view               TYPE string                        DEFAULT z2ui5_if_client=>cs_view-main
+      custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
+      custom_mapper_back TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
+      custom_filter      TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
+      custom_filter_back TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
+      !tab               TYPE data                          OPTIONAL
+      tab_index          TYPE i                             OPTIONAL
+      switchDefaultModel TYPE abap_bool DEFAULT abap_false
+    RETURNING
+      VALUE(result)      TYPE string.
 
   METHODS _bind_local
-    IMPORTING val                TYPE data
-              !path              TYPE abap_bool                     DEFAULT abap_false
-              custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
-              custom_filter      TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
-              switchDefaultModel TYPE abap_bool                     DEFAULT abap_false
-    RETURNING VALUE(result)      TYPE string.
+    IMPORTING
+      val                TYPE data
+      !path              TYPE abap_bool                     DEFAULT abap_false
+      custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
+      custom_filter      TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
+      switchDefaultModel TYPE abap_bool DEFAULT abap_false
+    RETURNING
+      VALUE(result)      TYPE string.
 
   METHODS follow_up_action
-    IMPORTING val TYPE string.
+    IMPORTING
+      val TYPE string.
 
   METHODS check_on_init
-    RETURNING VALUE(result) TYPE abap_bool.
+    RETURNING
+      VALUE(result) TYPE abap_bool.
 
   METHODS check_app_prev_stack
-    RETURNING VALUE(result) TYPE abap_bool.
+    RETURNING
+      VALUE(result) TYPE abap_bool.
 
   METHODS check_on_navigated
-    RETURNING VALUE(result) TYPE abap_bool.
+    RETURNING
+      VALUE(result) TYPE abap_bool.
 
   METHODS get_app_prev
-    RETURNING VALUE(result) TYPE REF TO z2ui5_if_app.
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_if_app.
 
 ENDINTERFACE.
