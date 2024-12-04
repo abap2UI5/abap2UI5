@@ -325,19 +325,19 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         break;
                     case 'URLHELPER':
                         var URLHelper = mobileLibrary.URLHelper;
-                        var obj = JSON.parse(JSON.stringify(args[2]));
+                        var params = args[2];
                         switch (args[1]) {
                             case 'REDIRECT':
-                              URLHelper.redirect(obj.url, obj.newWindow);
+                              URLHelper.redirect(params.URL, params.NEW_WINDOW);
                               break;
                             case 'TRIGGER_EMAIL':
-                              URLHelper.triggerEmail(obj.email, obj.subject, obj.body, obj.cc, obj.bcc, obj.newWindow);
+                              URLHelper.triggerEmail(params.EMAIL, params.SUBJECT, params.BODY, params.CC, params.BCC, params.NEW_WINDOW);
                               break;
                             case 'TRIGGER_SMS':
-                              URLHelper.triggerSms(obj.tel);
+                              URLHelper.triggerSms(params);
                               break;
                             case 'TRIGGER_TEL':
-                              URLHelper.triggerTel(obj.tel);
+                              URLHelper.triggerTel(params);
                               break;
                         }
                         break;
