@@ -348,16 +348,16 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        var obj = JSON.parse(JSON.stringify(args[2]));` && |\n|  &&
              `                        switch (args[1]) {` && |\n|  &&
              `                            case 'REDIRECT':` && |\n|  &&
-             `                              URLHelper.redirect(obj.url, obj.newWindow);` && |\n|  &&
+             `                              URLHelper.redirect(obj.URL, obj.NEW_WINDOW);` && |\n|  &&
              `                              break;` && |\n|  &&
              `                            case 'TRIGGER_EMAIL':` && |\n|  &&
-             `                              URLHelper.triggerEmail(obj.email, obj.subject, obj.body, obj.cc, obj.bcc, obj.newWindow);` && |\n|  &&
+             `                              URLHelper.triggerEmail(obj.EMAIL, obj.SUBJECT, obj.BODY, obj.CC, obj.BCC, obj.NEW_WINDOW);` && |\n|  &&
              `                              break;` && |\n|  &&
              `                            case 'TRIGGER_SMS':` && |\n|  &&
-             `                              URLHelper.triggerSms(obj.tel);` && |\n|  &&
+             `                              URLHelper.triggerSms(args[2]);` && |\n|  &&
              `                              break;` && |\n|  &&
              `                            case 'TRIGGER_TEL':` && |\n|  &&
-             `                              URLHelper.triggerTel(obj.tel);` && |\n|  &&
+             `                              URLHelper.triggerTel(args[2]);` && |\n|  &&
              `                              break;` && |\n|  &&
              `                        }` && |\n|  &&
              `                        break;` && |\n|  &&
