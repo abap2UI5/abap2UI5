@@ -323,6 +323,24 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         navConTo = Fragment.byId("popupId", args[2]);
                         navCon.to(navConTo);
                         break;
+                    case 'URLHELPER':
+                        var URLHelper = mobileLibrary.URLHelper;
+                        var obj = JSON.parse(JSON.stringify(args[2]));
+                        switch (args[1]) {
+                            case 'REDIRECT':
+                              URLHelper.redirect(obj.url, obj.newWindow);
+                              break;
+                            case 'TRIGGER_EMAIL':
+                              URLHelper.triggerEmail(obj.email, obj.subject, obj.body, obj.cc, obj.bcc, obj.newWindow);
+                              break;
+                            case 'TRIGGER_SMS':
+                              URLHelper.triggerSms(obj.tel);
+                              break;
+                            case 'TRIGGER_TEL':
+                              URLHelper.triggerTel(obj.tel);
+                              break;
+                        }
+                        break;
                 }
             },
             eB(...args) {
