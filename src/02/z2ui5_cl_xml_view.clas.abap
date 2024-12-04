@@ -3926,6 +3926,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         id                     TYPE clike OPTIONAL
         showexecuteonselection TYPE clike OPTIONAL
+        persistencyKey         TYPE clike OPTIONAL
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
@@ -9183,12 +9184,16 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD smart_variant_management.
-    result = _generic(
+    result = me.
+     _generic(
         name   = `SmartVariantManagement`
-        ns     = `svm`
+        ns     = `smartVariantManagement`
         t_prop = VALUE #(
             ( n = `id`      v = id )
-            ( n = `showExecuteOnSelection`  v = z2ui5_cl_util=>boolean_abap_2_json( showexecuteonselection ) ) ) ).
+            ( n = `showExecuteOnSelection`  v = z2ui5_cl_util=>boolean_abap_2_json( showexecuteonselection ) )
+            ( n = `persistencyKey`  v = persistencyKey )
+             ) ).
+
   ENDMETHOD.
 
   METHOD snapped_content.
@@ -10448,6 +10453,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
           ( n = `editor`            v = `sap.ui.codeeditor` )
           ( n = `mchart`            v = `sap.suite.ui.microchart` )
           ( n = `smartFilterBar`    v = `sap.ui.comp.smartfilterbar` )
+          ( n = `smartVariantManagement`    v = `sap.ui.comp.smartvariants` )
           ( n = `smartTable`        v = `sap.ui.comp.smarttable` )
           ( n = `webc`              v = `sap.ui.webc.main` )
           ( n = `uxap`              v = `sap.uxap` )
@@ -10964,4 +10970,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                           ( n = `unit`      v = unit )
                                           ( n = `value`     v = value ) ) ).
   ENDMETHOD.
+
+
+
 ENDCLASS.
