@@ -9185,7 +9185,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD smart_variant_management.
     result = me.
-     _generic(
+    _generic(
         name   = `SmartVariantManagement`
         ns     = `smartVariantManagement`
         t_prop = VALUE #(
