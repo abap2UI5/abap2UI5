@@ -328,16 +328,16 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         var obj = JSON.parse(JSON.stringify(args[2]));
                         switch (args[1]) {
                             case 'REDIRECT':
-                              URLHelper.redirect(obj.url, obj.newWindow);
+                              URLHelper.redirect(obj.URL, obj.NEW_WINDOW);
                               break;
                             case 'TRIGGER_EMAIL':
-                              URLHelper.triggerEmail(obj.email, obj.subject, obj.body, obj.cc, obj.bcc, obj.newWindow);
+                              URLHelper.triggerEmail(obj.EMAIL, obj.SUBJECT, obj.BODY, obj.CC, obj.BCC, obj.NEW_WINDOW);
                               break;
                             case 'TRIGGER_SMS':
-                              URLHelper.triggerSms(obj.tel);
+                              URLHelper.triggerSms(args[2]);
                               break;
                             case 'TRIGGER_TEL':
-                              URLHelper.triggerTel(obj.tel);
+                              URLHelper.triggerTel(args[2]);
                               break;
                         }
                         break;
