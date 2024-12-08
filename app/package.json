@@ -9,11 +9,11 @@
   ],
   "main": "webapp/index.html",
   "devDependencies": {
-    "@abaplint/cli": "^2.113.67",
+    "@abaplint/cli": "^2.113.68",
     "@sap/ui5-builder-webide-extension": "^1.1.9",
-    "@sap/ux-ui5-tooling": "1.15.4",
-    "@ui5/cli": "^4.0.10",
-    "@ui5/linter": "^1.3.1",
+    "@sap/ux-ui5-tooling": "1.15.6",
+    "@ui5/cli": "^4.0.11",
+    "@ui5/linter": "^1.4.1",
     "mbt": "^1.2.33",
     "rimraf": "^6.0.1",
     "ui5-task-zipper": "^3.3.1"

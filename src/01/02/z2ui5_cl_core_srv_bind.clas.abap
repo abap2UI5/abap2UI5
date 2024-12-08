@@ -97,7 +97,8 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
     IF mr_attri->bind_type <> mv_type.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = |<p>Binding Error - Two different binding types for same attribute used ({ mr_attri->name }).|.
+        EXPORTING
+          val = |<p>Binding Error - Two different binding types for same attribute used ({ mr_attri->name }).|.
     ENDIF.
 
     IF mr_attri->custom_mapper IS BOUND.
@@ -106,18 +107,21 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
       DATA(lv_name2) = z2ui5_cl_util=>rtti_get_classname_by_ref( ms_config-custom_mapper ).
       IF lv_name1 <> lv_name2.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
-          EXPORTING val = |<p>Binding Error - Two different mapper for same attribute used ({ mr_attri->name }).|.
+          EXPORTING
+            val = |<p>Binding Error - Two different mapper for same attribute used ({ mr_attri->name }).|.
       ENDIF.
     ENDIF.
 
     IF mr_attri->custom_mapper_back IS BOUND AND mr_attri->custom_mapper_back <> ms_config-custom_mapper_back.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = |<p>Binding Error - Two different mapper back for same attribute used ({ mr_attri->name }).|.
+        EXPORTING
+          val = |<p>Binding Error - Two different mapper back for same attribute used ({ mr_attri->name }).|.
     ENDIF.
 
     IF mr_attri->custom_filter IS BOUND AND mr_attri->custom_filter <> ms_config-custom_filter.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = |<p>Binding Error - Two different filter for same attribute used ({ mr_attri->name }).|.
+        EXPORTING
+          val = |<p>Binding Error - Two different filter for same attribute used ({ mr_attri->name }).|.
     ENDIF.
 
   ENDMETHOD.
@@ -129,7 +133,8 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
           DATA(lo_dummy) = CAST if_serializable_object( mr_attri->custom_filter_back ) ##NEEDED.
         CATCH cx_root.
           RAISE EXCEPTION TYPE z2ui5_cx_util_error
-            EXPORTING val = `<p>custom_filter_back used but it is not serializable, please use if_serializable_object`.
+            EXPORTING
+              val = `<p>custom_filter_back used but it is not serializable, please use if_serializable_object`.
 
       ENDTRY.
     ENDIF.
@@ -220,8 +225,13 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
     IF |/{ z2ui5_if_core_types=>cs_ui5-two_way_model }| = result.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = `<p>Name of variable not allowed - x is reserved word - use anoter name for your attribute`.
+        EXPORTING
+          val = `<p>Name of variable not allowed - x is reserved word - use anoter name for your attribute`.
 
+    ENDIF.
+
+    IF ms_config-switchdefaultmodel = abap_true.
+      result = |http>{ result }|.
     ENDIF.
 
     IF ms_config-path_only = abap_false.
@@ -276,6 +286,10 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
                INTO TABLE mo_app->mt_attri->*.
 
         result = |/{ lv_id }|.
+
+        IF ms_config-switchdefaultmodel = abap_true.
+          result = |http>{ result }|.
+        ENDIF.
 
         IF config-path_only = abap_false.
           result = |\{{ result }\}|.

@@ -1,0 +1,23 @@
+name: js_transform
+on: 
+  push:
+    branches: 
+      - "main"
+  workflow_dispatch:
+
+jobs:
+  Code-Cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: run transformation
+        run: |
+          cd app
+          npm run transform
+
+      - name: Open PR
+        uses: peter-evans/create-pull-request@v4
+        with:
+          title: js files as abap classes

@@ -1,5 +1,5 @@
-sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models","z2ui5/cc/Server", "sap/ui/VersionInfo"
-    ], function (UIComponent, Models, Server, VersionInfo) {
+sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models","z2ui5/cc/Server", "sap/ui/VersionInfo", "z2ui5/cc/DebugTool"
+    ], function (UIComponent, Models, Server, VersionInfo, DebugTool) {
     return UIComponent.extend("z2ui5.Component", {
         metadata: {
             manifest: "json"
@@ -8,9 +8,13 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models","z2ui5/cc/Server"
 
             UIComponent.prototype.init.apply(this, arguments);
 
+            if (typeof z2ui5 == 'undefined'){
+              z2ui5 = {};
+            }
             this.getRouter().initialize();
             z2ui5.oRouter = this.getRouter();
-            this.setModel(Models.createDeviceModel(), "device");
+            z2ui5.oDeviceModel = Models.createDeviceModel();
+            this.setModel(z2ui5.oDeviceModel, "device");
 
             z2ui5.oConfig = {};
             z2ui5.oConfig.ComponentData = this.getComponentData();
@@ -35,7 +39,7 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models","z2ui5/cc/Server"
             document.addEventListener("keydown", function (zEvent) {
                 if (zEvent?.ctrlKey && zEvent?.key === "F12") {
                    if (!z2ui5.debugTool){
-                     z2ui5.debugTool = new z2ui5.cc.DebugTool();
+                     z2ui5.debugTool = new DebugTool();
                      z2ui5.debugTool.show();
                    } else { 
                      z2ui5.debugTool.close();

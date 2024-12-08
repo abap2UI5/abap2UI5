@@ -18,7 +18,7 @@ CLASS z2ui5_cl_app_view1_xml IMPLEMENTATION.
 
   METHOD get.
 
-    result = `<mvc:View controllerName="z2ui5.controller.View1"` &&
+    result =              `<mvc:View controllerName="z2ui5.controller.View1"` &&
              `    xmlns:mvc="sap.ui.core.mvc" displayBlock="true"` &&
              `    xmlns="sap.m">` &&
              `</mvc:View>` &&

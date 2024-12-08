@@ -43,6 +43,7 @@ INTERFACE z2ui5_if_core_types
       custom_filter_back TYPE REF TO z2ui5_if_ajson_filter,
       tab                TYPE REF TO data,
       tab_index          TYPE i,
+      switchDefaultModel TYPE abap_bool,
     END OF ty_s_bind_config.
 
   TYPES:
@@ -67,6 +68,7 @@ INTERFACE z2ui5_if_core_types
     BEGIN OF ty_s_next_frontend,
       BEGIN OF s_view,
         xml                TYPE string,
+        switchDefaultModel TYPE string,
         check_destroy      TYPE abap_bool,
         check_update_model TYPE abap_bool,
       END OF s_view,
@@ -130,7 +132,7 @@ INTERFACE z2ui5_if_core_types
         closeonbrowsernavigation TYPE string,
       END OF s_msg_toast,
       BEGIN OF s_follow_up_action,
-        custom_js TYPE string,
+        custom_js TYPE string_table,
       END OF s_follow_up_action,
 *      handler_attrs TYPE ty_s_http_handler_attributes,
       s_stateful TYPE ty_s_http_res-s_stateful,

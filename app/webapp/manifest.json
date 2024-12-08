@@ -15,7 +15,7 @@
       "toolsId": "3a966e20-9635-4c28-8861-d1b66f79f1de"
     },
     "dataSources": {
-      "mainService": {
+      "http": {
         "uri": "/sap/bc/z2ui5",
         "type": "OData",
         "settings": {
@@ -74,8 +74,8 @@
       }                                                                                                                                                                                                                                                        
     },          
     "models": {
-      "": {
-        "dataSource": "mainService",
+      "http": {
+        "dataSource": "http",
         "preload": true,
         "settings": {}
       }

@@ -105,12 +105,14 @@ sap.ui.define(["sap/ui/core/BusyIndicator", "sap/m/MessageBox"
                     }
                     ; if (z2ui5.oResponse.PARAMS?.S_FOLLOW_UP_ACTION?.CUSTOM_JS) {
                         setTimeout(() => {
-                            let mParams = z2ui5.oResponse?.PARAMS.S_FOLLOW_UP_ACTION.CUSTOM_JS.split("'");
+                            for ( let i = 0; i < z2ui5.oResponse?.PARAMS.S_FOLLOW_UP_ACTION.CUSTOM_JS.length ; i++ ){
+                            let mParams = z2ui5.oResponse?.PARAMS.S_FOLLOW_UP_ACTION.CUSTOM_JS[i].split("'");
                             let mParamsEF = mParams.filter((val, index) => index % 2)
                             if (mParamsEF.length) {
                                 z2ui5.oController.eF.apply(undefined, mParamsEF);
                             } else {
                                 Function("return " + mParams[0])();
+                            }
                             }
                         }, 100);
                     };
