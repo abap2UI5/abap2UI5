@@ -187,6 +187,34 @@ sap.ui.define("z2ui5/History", ["sap/ui/core/Control"], (Control) => {
 }
 );
 
+sap.ui.define("z2ui5/Tree", ["sap/ui/core/Control"], (Control) => {
+  "use strict";
+
+  return Control.extend("z2ui5.Tree", {
+    metadata: {
+      properties: {
+        tree_id: {
+          type: "string"
+        }
+      }
+    },
+
+    setBackend() {
+      z2ui5.treeState = z2ui5.oView.byId( this.getProperty("tree_id") ).getBinding('items').getCurrentTreeState();
+    },
+
+    init() {
+      z2ui5.onBeforeRoundtrip.push(this.setBackend.bind(this));
+    },
+
+    renderer(oRm, oControl) {
+      setTimeout(() => {
+        z2ui5.oView.byId( this.getProperty("tree_id") ).setTreeState( z2ui5.treeState );
+      }, 100);
+    }
+  });
+});
+
 sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {
   "use strict";
 
