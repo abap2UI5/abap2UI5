@@ -207,11 +207,10 @@ sap.ui.define("z2ui5/Tree", ["sap/ui/core/Control"], (Control) => {
       z2ui5.onBeforeRoundtrip.push(this.setBackend.bind(this));
     },
 
-    renderer(oRm, oControl) {
-      setTimeout(() => {
-        z2ui5.oView.byId( this.getProperty("tree_id") ).setTreeState( z2ui5.treeState );
-      }, 100);
-    }
+    if (!z2ui5.treeState) return;
+      setTimeout((id) => {
+      z2ui5.oView.byId( id ).getBinding('items').setTreeState( z2ui5.treeState );
+    }, 100, oControl.getProperty("tree_id") );
   });
 });
 
