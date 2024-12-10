@@ -493,7 +493,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                 let oview_model = new JSONModel(viewModel);` && |\n|  &&
              `                 var oModel = oview_model;` && |\n|  &&
              `                   if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH){` && |\n|  &&
-             `                    oModel = new ODataModel({  serviceUrl : z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH, annotationURI: z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODELANNOURI });` && |\n|  &&
+             `                     oModel = new ODataModel({  serviceUrl : z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH, annotationURI: z2ui5.oResponse.PARAMS.S_VIEW?.` && |\n|  &&
              `                    }` && |\n|  &&
              `                z2ui5.oView = await XMLView.create({` && |\n|  &&
              `                    definition: xml,` && |\n|  &&
