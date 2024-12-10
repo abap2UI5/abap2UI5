@@ -207,6 +207,34 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `}` && |\n|  &&
              `);` && |\n|  &&
              `` && |\n|  &&
+             `sap.ui.define("z2ui5/Tree", ["sap/ui/core/Control"], (Control) => {` && |\n|  &&
+             `  "use strict";` && |\n|  &&
+             `` && |\n|  &&
+             `  return Control.extend("z2ui5.Tree", {` && |\n|  &&
+             `    metadata: {` && |\n|  &&
+             `      properties: {` && |\n|  &&
+             `        tree_id: {` && |\n|  &&
+             `          type: "string"` && |\n|  &&
+             `        }` && |\n|  &&
+             `      }` && |\n|  &&
+             `    },` && |\n|  &&
+             `` && |\n|  &&
+             `    setBackend() {` && |\n|  &&
+             `      z2ui5.treeState = z2ui5.oView.byId( this.getProperty("tree_id") ).getBinding('items').getCurrentTreeState();` && |\n|  &&
+             `    },` && |\n|  &&
+             `` && |\n|  &&
+             `    init() {` && |\n|  &&
+             `      z2ui5.onBeforeRoundtrip.push(this.setBackend.bind(this));` && |\n|  &&
+             `    },` && |\n|  &&
+             `` && |\n|  &&
+             `  renderer(oRm, oControl) {` && |\n|  &&
+             `    if (!z2ui5.treeState) return;` && |\n|  &&
+             `      setTimeout((id) => {` && |\n|  &&
+             `      z2ui5.oView.byId( id ).getBinding('items').setTreeState( z2ui5.treeState );` && |\n|  &&
+             `    }, 100, oControl.getProperty("tree_id") );` && |\n|  &&
+             `  } });` && |\n|  &&
+             `});` && |\n|  &&
+             `` && |\n|  &&
              `sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {` && |\n|  &&
              `  "use strict";` && |\n|  &&
              `` && |\n|  &&
@@ -490,6 +518,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          defaultValue: true` && |\n|  &&
              `        },` && |\n|  &&
              `        checkDirectUpload: {` && |\n|  &&
+             |\n|.
+    result = result &&
              `          type: "boolean",` && |\n|  &&
              `          defaultValue: false` && |\n|  &&
              `        }` && |\n|  &&
@@ -518,8 +548,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            var file = z2ui5.oUpload.oFileUpload.files[0];` && |\n|  &&
              `            var reader = new FileReader();` && |\n|  &&
              `` && |\n|  &&
-             |\n|.
-    result = result &&
              `            reader.onload = function (evt) {` && |\n|  &&
              `              var vContent = evt.currentTarget.result;` && |\n|  &&
              `              this.setProperty("value", vContent);` && |\n|  &&

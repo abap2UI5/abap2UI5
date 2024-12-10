@@ -2579,6 +2579,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         multiselectmode        TYPE clike     OPTIONAL
         nodatatext             TYPE clike     OPTIONAL
         shownodata             TYPE clike     OPTIONAL
+          PREFERRED PARAMETER items
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
@@ -4450,8 +4451,20 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING sourceAggregation TYPE clike OPTIONAL
       RETURNING VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS Drag_Drop_Info
+      IMPORTING
+        sourceAggregation TYPE clike OPTIONAL
+        targetAggregation TYPE clike OPTIONAL
+        dragStart         TYPE clike OPTIONAL
+        drop              TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS drag_drop_config
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING
+        ns            TYPE clike DEFAULT `f`
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS html_map
       IMPORTING
@@ -6140,6 +6153,18 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `visible` v = z2ui5_cl_util=>boolean_abap_2_json( visible ) ) ) ).
   ENDMETHOD.
 
+  METHOD Drag_Drop_Info.
+    result = me.
+    _generic( name   = `DragDropInfo`
+              ns     = `dnd`
+              t_prop = VALUE #(
+                ( n = `sourceAggregation`  v = sourceAggregation )
+                ( n = `targetAggregation`  v = targetAggregation )
+                ( n = `dragStart`          v = dragStart )
+                ( n = `drop`               v = drop )
+                 ) ).
+  ENDMETHOD.
+
   METHOD drag_info.
     result = me.
     _generic( name   = `DragInfo`
@@ -6149,7 +6174,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD drag_drop_config.
     result = _generic( name = `dragDropConfig`
-                       ns   = `f` ).
+                          ns   = ns
+                       ).
   ENDMETHOD.
 
   METHOD dynamic_page.
@@ -10920,7 +10946,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD viz_frame.
-    data(lv_vizproperties) = ``.
+    DATA(lv_vizproperties) = ``.
     IF vizproperties IS INITIAL.
       lv_vizproperties = `{` && |\n|  &&
       `"plotArea": {` && |\n|  &&

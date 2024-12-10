@@ -262,12 +262,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        }` && |\n|  &&
              `                        break;` && |\n|  &&
              `                    case 'SET_ODATA_MODEL':` && |\n|  &&
-             `                    //    sap.ui.require([` && |\n|  &&
-             `                     //       "sap/ui/model/odata/v2/ODataModel"` && |\n|  &&
-             `                      //    ], async (ODataModel)  => {` && |\n|  &&
              `                        var oModel = new ODataModel({  serviceUrl : args[1], annotationURI: (args.length > 3 ? args[3] : '') });` && |\n|  &&
              `                        z2ui5.oView.setModel( oModel , args[2] );` && |\n|  &&
-             `                 //   });` && |\n|  &&
              `                        break;` && |\n|  &&
              `                    case 'DOWNLOAD_B64_FILE':` && |\n|  &&
              `                        var a = document.createElement("a");` && |\n|  &&
@@ -384,7 +380,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                BusyIndicator.show();` && |\n|  &&
              `                z2ui5.oBody = {};` && |\n|  &&
              `                if (args[0][3] || z2ui5.oController == this ) {` && |\n|  &&
-             `                    if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL){` && |\n|  &&
+             `                    if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH){` && |\n|  &&
              `                        var oModel = z2ui5.oView.getModel( "http");` && |\n|  &&
              `                    }else{` && |\n|  &&
              `                        oModel = z2ui5.oView.getModel();` && |\n|  &&
@@ -496,9 +492,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            async displayView(xml, viewModel) {` && |\n|  &&
              `                 let oview_model = new JSONModel(viewModel);` && |\n|  &&
              `                 var oModel = oview_model;` && |\n|  &&
-             `                   if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL){` && |\n|  &&
-             `                    oModel = new ODataModel({  serviceUrl : z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL, annotationURI: z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODELANNOURI });` && |\n|  &&
-             `                  //  oModel = z2ui5.oOwnerComponent.getModel(z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL);` && |\n|  &&
+             `                   if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH){` && |\n|  &&
+             `                    oModel = new ODataModel({  serviceUrl : z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH, annotationURI: z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODELANNOURI });` && |\n|  &&
              `                    }` && |\n|  &&
              `                z2ui5.oView = await XMLView.create({` && |\n|  &&
              `                    definition: xml,` && |\n|  &&
@@ -514,17 +509,17 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    }` && |\n|  &&
              `                });` && |\n|  &&
              `                z2ui5.oView.setModel(z2ui5.oDeviceModel, "device");` && |\n|  &&
-             `                if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL){` && |\n|  &&
+             `                if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH){` && |\n|  &&
              `                  z2ui5.oView.setModel(oview_model, "http");` && |\n|  &&
              `                    }` && |\n|  &&
              `                z2ui5.oApp.removeAllPages();` && |\n|  &&
-             |\n|.
-    result = result &&
              `                z2ui5.oApp.insertPage(z2ui5.oView);` && |\n|  &&
              `            },` && |\n|  &&
              `        })` && |\n|  &&
              `    });` && |\n|  &&
              `` && |\n|  &&
+             |\n|.
+    result = result &&
               ``.
 
   ENDMETHOD.
