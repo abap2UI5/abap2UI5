@@ -242,7 +242,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         }
                         break;
                     case 'SET_ODATA_MODEL':
-                        var oModel = new ODataModel({  serviceUrl : args[1] });
+                        var oModel = new ODataModel({  serviceUrl : args[1], annotationURI: (args.length > 3 ? args[3] : '') });
                         z2ui5.oView.setModel( oModel , args[2] );
                         break;
                     case 'DOWNLOAD_B64_FILE':
@@ -473,7 +473,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                  let oview_model = new JSONModel(viewModel);
                  var oModel = oview_model;
                    if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH){
-                    oModel = new ODataModel({  serviceUrl : z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH });
+                     oModel = new ODataModel({  serviceUrl : z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH, annotationURI: z2ui5.oResponse.PARAMS.S_VIEW?.
                     }
                 z2ui5.oView = await XMLView.create({
                     definition: xml,
