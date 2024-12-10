@@ -292,7 +292,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   METHOD z2ui5_if_client~view_display.
 
     mo_action->ms_next-s_set-s_view-xml = val.
-    mo_action->ms_next-s_set-s_view-switchDefaultModelPath = switchDefaultModelPath.
+    mo_action->ms_next-s_set-s_view-switch_default_model_path = switch_default_model_path.
 
   ENDMETHOD.
 
@@ -312,8 +312,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                                               custom_mapper = custom_mapper
                                               tab           = z2ui5_cl_util=>conv_get_as_data_ref( tab )
                                               tab_index     = tab_index
-                                              switchDefaultModel = switchDefaultModel ) ).
-
+                                              switch_default_model = switch_Default_Model ) ).
 
 
   ENDMETHOD.
@@ -330,7 +329,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                                               custom_mapper_back = custom_mapper_back
                                               tab                = z2ui5_cl_util=>conv_get_as_data_ref( tab )
                                               tab_index          = tab_index
-                                              switchDefaultModel = switchDefaultModel ) ).
+                                              switch_default_model = switch_Default_Model ) ).
 
   ENDMETHOD.
 
@@ -341,7 +340,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                                   config = VALUE #( path_only     = path
                                                     custom_mapper = custom_mapper
                                                     custom_filter = custom_filter
-                                                     switchDefaultModel = switchDefaultModel ) ).
+                                                    switch_default_model = switch_Default_Model ) ).
 
   ENDMETHOD.
 
