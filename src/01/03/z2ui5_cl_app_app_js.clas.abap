@@ -717,6 +717,85 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `}` && |\n|  &&
              `);` && |\n|  &&
              `` && |\n|  &&
+             `sap.ui.define("z2ui5/SmartMultiInputExt", ["sap/ui/core/Control", "sap/m/Token", "sap/ui/core/Core", "sap/ui/core/Element"], (Control) => {` && |\n|  &&
+             `  "use strict";` && |\n|  &&
+             `  ` && |\n|  &&
+             `  return Control.extend("z2ui5.SmartMultiInputExt", {` && |\n|  &&
+             `    metadata: {` && |\n|  &&
+             `      properties: {` && |\n|  &&
+             `        multiInputId: {` && |\n|  &&
+             `          type: "String"` && |\n|  &&
+             `        },` && |\n|  &&
+             `        addedTokens: {` && |\n|  &&
+             `          type: "Array"` && |\n|  &&
+             `        },` && |\n|  &&
+             `        removedTokens: {` && |\n|  &&
+             `          type: "Array"` && |\n|  &&
+             `        },` && |\n|  &&
+             `        rangeData: {` && |\n|  &&
+             `          type: "Array"` && |\n|  &&
+             `        },` && |\n|  &&
+             `        checkInit: {` && |\n|  &&
+             `          type: "Boolean",` && |\n|  &&
+             `          defaultValue: false` && |\n|  &&
+             `        }` && |\n|  &&
+             `      },` && |\n|  &&
+             `      events: {` && |\n|  &&
+             `        "change": {` && |\n|  &&
+             `          allowPreventDefault: true,` && |\n|  &&
+             `          parameters: {}` && |\n|  &&
+             `        }` && |\n|  &&
+             `      },` && |\n|  &&
+             `    },` && |\n|  &&
+             `  ` && |\n|  &&
+             `    init() {` && |\n|  &&
+             `      z2ui5.onAfterRendering.push(this.setControl.bind(this));` && |\n|  &&
+             `    },` && |\n|  &&
+             `  ` && |\n|  &&
+             `    onTokenUpdate(oEvent) {` && |\n|  &&
+             `      this.setProperty("addedTokens", []);` && |\n|  &&
+             `      this.setProperty("removedTokens", []);` && |\n|  &&
+             `  ` && |\n|  &&
+             `      if (oEvent.mParameters.type == "removed") {` && |\n|  &&
+             `        let removedTokens = [];` && |\n|  &&
+             `        oEvent.mParameters.removedTokens.forEach((item) => {` && |\n|  &&
+             `          removedTokens.push({` && |\n|  &&
+             `            KEY: item.getKey(),` && |\n|  &&
+             `            TEXT: item.getText()` && |\n|  &&
+             `          });` && |\n|  &&
+             `        }` && |\n|  &&
+             `        );` && |\n|  &&
+             `        this.setProperty("removedTokens", removedTokens);` && |\n|  &&
+             `      } else {` && |\n|  &&
+             `        let addedTokens = [];` && |\n|  &&
+             `        oEvent.mParameters.addedTokens.forEach((item) => {` && |\n|  &&
+             `          addedTokens.push({` && |\n|  &&
+             `            KEY: item.getKey(),` && |\n|  &&
+             `            TEXT: item.getText()` && |\n|  &&
+             `          });` && |\n|  &&
+             `        }` && |\n|  &&
+             `        );` && |\n|  &&
+             `        this.setProperty("addedTokens", addedTokens);` && |\n|  &&
+             `      }` && |\n|  &&
+             `      this.setProperty("rangeData", oEvent.getSource().getRangeData());` && |\n|  &&
+             `      this.fireChange();` && |\n|  &&
+             `    },` && |\n|  &&
+             `    renderer(oRm, oControl) { },` && |\n|  &&
+             `    setControl() {` && |\n|  &&
+             `      const input = z2ui5.oView.byId(this.getProperty("multiInputId"));` && |\n|  &&
+             `      if (!input) {` && |\n|  &&
+             `        return;` && |\n|  &&
+             `      }` && |\n|  &&
+             `      if (this.getProperty("checkInit") == true) {` && |\n|  &&
+             `        return;` && |\n|  &&
+             `      }` && |\n|  &&
+             `      this.setProperty("checkInit", true);` && |\n|  &&
+             `      input.attachTokenUpdate(this.onTokenUpdate.bind(this));` && |\n|  &&
+             `    }` && |\n|  &&
+             `  });` && |\n|  &&
+             `}` && |\n|  &&
+             `);` && |\n|  &&
+             `` && |\n|  &&
              `sap.ui.define("z2ui5/CameraPicture" , [` && |\n|  &&
              `  "sap/ui/core/Control",` && |\n|  &&
              `  "sap/m/Dialog",` && |\n|  &&

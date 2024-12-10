@@ -695,6 +695,85 @@ sap.ui.define("z2ui5/MultiInputExt", ["sap/ui/core/Control", "sap/m/Token", "sap
 }
 );
 
+sap.ui.define("z2ui5/SmartMultiInputExt", ["sap/ui/core/Control", "sap/m/Token", "sap/ui/core/Core", "sap/ui/core/Element"], (Control) => {
+  "use strict";
+  
+  return Control.extend("z2ui5.SmartMultiInputExt", {
+    metadata: {
+      properties: {
+        multiInputId: {
+          type: "String"
+        },
+        addedTokens: {
+          type: "Array"
+        },
+        removedTokens: {
+          type: "Array"
+        },
+        rangeData: {
+          type: "Array"
+        },
+        checkInit: {
+          type: "Boolean",
+          defaultValue: false
+        }
+      },
+      events: {
+        "change": {
+          allowPreventDefault: true,
+          parameters: {}
+        }
+      },
+    },
+  
+    init() {
+      z2ui5.onAfterRendering.push(this.setControl.bind(this));
+    },
+  
+    onTokenUpdate(oEvent) {
+      this.setProperty("addedTokens", []);
+      this.setProperty("removedTokens", []);
+  
+      if (oEvent.mParameters.type == "removed") {
+        let removedTokens = [];
+        oEvent.mParameters.removedTokens.forEach((item) => {
+          removedTokens.push({
+            KEY: item.getKey(),
+            TEXT: item.getText()
+          });
+        }
+        );
+        this.setProperty("removedTokens", removedTokens);
+      } else {
+        let addedTokens = [];
+        oEvent.mParameters.addedTokens.forEach((item) => {
+          addedTokens.push({
+            KEY: item.getKey(),
+            TEXT: item.getText()
+          });
+        }
+        );
+        this.setProperty("addedTokens", addedTokens);
+      }
+      this.setProperty("rangeData", oEvent.getSource().getRangeData());
+      this.fireChange();
+    },
+    renderer(oRm, oControl) { },
+    setControl() {
+      const input = z2ui5.oView.byId(this.getProperty("multiInputId"));
+      if (!input) {
+        return;
+      }
+      if (this.getProperty("checkInit") == true) {
+        return;
+      }
+      this.setProperty("checkInit", true);
+      input.attachTokenUpdate(this.onTokenUpdate.bind(this));
+    }
+  });
+}
+);
+
 sap.ui.define("z2ui5/CameraPicture" , [
   "sap/ui/core/Control",
   "sap/m/Dialog",

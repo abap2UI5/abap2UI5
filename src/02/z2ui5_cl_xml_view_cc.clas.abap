@@ -3,6 +3,16 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
+    METHODS smartmultiinput_ext
+      IMPORTING
+        multiinputid  TYPE clike OPTIONAL
+        change        TYPE clike OPTIONAL
+        rangeData     TYPE clike OPTIONAL
+        addedtokens   TYPE clike OPTIONAL
+        removedtokens TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS multiinput_ext
       IMPORTING
         multiinputid   TYPE clike OPTIONAL
@@ -553,6 +563,19 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                                 ns     = `z2ui5`
                                 t_prop = VALUE #( ( n = `tableId` v = tableid )
                           ) ).
+
+  ENDMETHOD.
+
+  METHOD smartmultiinput_ext.
+
+    result = mo_view.
+    mo_view->_generic( name   = `SmartMultiInputExt`
+                       ns     = `z2ui5`
+                       t_prop = VALUE #( ( n = `multiInputId`  v = multiInputId )
+                                         ( n = `rangeData`     v = rangeData )
+                                         ( n = `change`        v = change )
+                                         ( n = `addedTokens`   v = addedTokens )
+                                         ( n = `removedTokens` v = removedTokens ) ) ).
 
   ENDMETHOD.
 

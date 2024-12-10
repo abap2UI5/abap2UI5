@@ -5215,6 +5215,19 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !values       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS smart_multi_input
+      IMPORTING
+        id                   TYPE clike OPTIONAL
+        entitySet            TYPE clike OPTIONAL
+        value                TYPE clike OPTIONAL
+        supportranges        TYPE clike DEFAULT 'false'
+        enableodataselect    TYPE clike DEFAULT 'false'
+        requestatleastfields TYPE clike OPTIONAL
+        singletokenmode      TYPE clike DEFAULT 'false'
+        supportmultiselect   TYPE clike DEFAULT 'true'
+        textseparator        TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
   PROTECTED SECTION.
     DATA mv_name     TYPE string.
     DATA mv_ns       TYPE string.
@@ -10510,7 +10523,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
           ( n = `plugins`           v = `sap.m.plugins` )
           ( n = `tnt`               v = `sap.tnt` )
           ( n = `mdc`               v = `sap.ui.mdc` )
-          ( n = `trm`               v = `sap.ui.table.rowmodes` ) ).
+          ( n = `trm`               v = `sap.ui.table.rowmodes` )
+          ( n = `smi`               v = `sap.ui.comp.smartmultiinput` ) ).
 
       LOOP AT mt_ns REFERENCE INTO DATA(lr_ns) WHERE     table_line IS NOT INITIAL
                                                      AND table_line <> `mvc`
@@ -10997,5 +11011,20 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                           ( n = `value`     v = value ) ) ).
   ENDMETHOD.
 
+  METHOD smart_multi_input.
+
+    result = _generic( name   = 'SmartMultiInput'
+                       ns     = 'smi'
+                       t_prop = VALUE #( ( n = 'id'                   v = id )
+                                         ( n = 'value'                v = value )
+                                         ( n = 'entitySet'            v = entityset )
+                                         ( n = 'supportRanges'        v = supportranges )
+                                         ( n = 'enableODataSelect'    v = enableodataselect )
+                                         ( n = 'requestAtLeastFields' v = requestatleastfields )
+                                         ( n = 'singleTokenMode'      v = singletokenmode )
+                                         ( n = 'supportMultiSelect'   v = supportmultiselect )
+                                         ( n = 'textSeparator'        v = textseparator ) ) ).
+
+  ENDMETHOD.
 
 ENDCLASS.
