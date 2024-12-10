@@ -50,7 +50,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
         selectionstart TYPE clike OPTIONAL
         selectionend   TYPE clike OPTIONAL
         setupdate      TYPE clike OPTIONAL
-        PREFERRED PARAMETER focusid
+          PREFERRED PARAMETER focusid
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
@@ -156,6 +156,12 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
       IMPORTING
         setupdate     TYPE clike OPTIONAL
         items         TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS tree
+      IMPORTING
+        tree_id       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -303,7 +309,8 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
 
     DATA(lv_class) = 'Z2UI5_CL_CC_DEMO_OUT'.
     CALL METHOD (lv_class)=>('GET_STYLE')
-      RECEIVING result = lv_style.
+      RECEIVING
+        result = lv_style.
     result = mo_view->_cc_plain_xml( lv_style )->html( val ).
 
   ENDMETHOD.
@@ -432,6 +439,16 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                                          ( n = `change` v = change )
                                          ( n = `addedTokens` v = addedtokens )
                                          ( n = `removedTokens` v = removedtokens ) ) ).
+
+  ENDMETHOD.
+
+  METHOD tree.
+
+    result = mo_view.
+    mo_view->_generic( name   = `Tree`
+                       ns     = `z2ui5`
+                       t_prop = VALUE #( ( n = `tree_id`   v = tree_id )
+         ) ).
 
   ENDMETHOD.
 
