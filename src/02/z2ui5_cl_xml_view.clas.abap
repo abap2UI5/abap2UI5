@@ -2579,7 +2579,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         multiselectmode        TYPE clike     OPTIONAL
         nodatatext             TYPE clike     OPTIONAL
         shownodata             TYPE clike     OPTIONAL
-        PREFERRED PARAMETER items
+          PREFERRED PARAMETER items
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
@@ -4461,8 +4461,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS drag_drop_config
-    importing
-        ns type clike default `f`
+      IMPORTING
+        ns            TYPE clike DEFAULT `f`
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -10932,7 +10932,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD viz_frame.
-    data(lv_vizproperties) = ``.
+    DATA(lv_vizproperties) = ``.
     IF vizproperties IS INITIAL.
       lv_vizproperties = `{` && |\n|  &&
       `"plotArea": {` && |\n|  &&
