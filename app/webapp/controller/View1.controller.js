@@ -242,12 +242,8 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         }
                         break;
                     case 'SET_ODATA_MODEL':
-                    //    sap.ui.require([
-                     //       "sap/ui/model/odata/v2/ODataModel"
-                      //    ], async (ODataModel)  => {
                         var oModel = new ODataModel({  serviceUrl : args[1] });
                         z2ui5.oView.setModel( oModel , args[2] );
-                 //   });
                         break;
                     case 'DOWNLOAD_B64_FILE':
                         var a = document.createElement("a");
@@ -364,7 +360,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 BusyIndicator.show();
                 z2ui5.oBody = {};
                 if (args[0][3] || z2ui5.oController == this ) {
-                    if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL){
+                    if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH){
                         var oModel = z2ui5.oView.getModel( "http");
                     }else{ 
                         oModel = z2ui5.oView.getModel();
@@ -476,9 +472,8 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
             async displayView(xml, viewModel) {
                  let oview_model = new JSONModel(viewModel);
                  var oModel = oview_model;
-                   if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL){
-                    oModel = new ODataModel({  serviceUrl : z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL });
-                  //  oModel = z2ui5.oOwnerComponent.getModel(z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL);
+                   if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH){
+                    oModel = new ODataModel({  serviceUrl : z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH });
                     }
                 z2ui5.oView = await XMLView.create({
                     definition: xml,
@@ -494,7 +489,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     }
                 });
                 z2ui5.oView.setModel(z2ui5.oDeviceModel, "device");
-                if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL){
+                if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH){
                   z2ui5.oView.setModel(oview_model, "http");
                     }
                 z2ui5.oApp.removeAllPages();
