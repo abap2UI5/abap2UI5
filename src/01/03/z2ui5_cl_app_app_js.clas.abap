@@ -228,9 +228,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n|  &&
              `` && |\n|  &&
              `    renderer(oRm, oControl) {` && |\n|  &&
-             `      setTimeout(() => {` && |\n|  &&
-             `        z2ui5.oView.byId( this.getProperty("tree_id") ).setTreeState( z2ui5.treeState );` && |\n|  &&
-             `      }, 100);` && |\n|  &&
+             `      if (!z2ui5.treeState) return;` && |\n|  &&
+             `      setTimeout((id) => {` && |\n|  &&
+             `        z2ui5.oView.byId( id ).getBinding('items').setTreeState( z2ui5.treeState );` && |\n|  &&
+             `      }, 100, oControl.getProperty("tree_id") );` && |\n|  &&
              `    }` && |\n|  &&
              `  });` && |\n|  &&
              `});` && |\n|  &&

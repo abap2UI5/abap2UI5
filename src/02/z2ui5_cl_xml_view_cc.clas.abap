@@ -159,6 +159,12 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS tree
+      IMPORTING
+        tree_id     TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS timer
       IMPORTING
         finished      TYPE clike OPTIONAL
@@ -432,6 +438,16 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                                          ( n = `change` v = change )
                                          ( n = `addedTokens` v = addedtokens )
                                          ( n = `removedTokens` v = removedtokens ) ) ).
+
+  ENDMETHOD.
+
+  METHOD tree.
+
+    result = mo_view.
+    mo_view->_generic( name   = `Tree`
+                       ns     = `z2ui5`
+                       t_prop = VALUE #( ( n = `tree_id`   v = tree_id )
+         ) ).
 
   ENDMETHOD.
 
