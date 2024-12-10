@@ -32,8 +32,9 @@ INTERFACE z2ui5_if_client
 
   METHODS view_display
     IMPORTING
-      val                TYPE clike
-      switchDefaultModel TYPE string OPTIONAL.
+      val                       TYPE clike
+      switchDefaultModel        TYPE string OPTIONAL
+      switchDefaultModelAnnoURI TYPE string OPTIONAL.
 
   METHODS view_model_update.
 

@@ -293,6 +293,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     mo_action->ms_next-s_set-s_view-xml = val.
     mo_action->ms_next-s_set-s_view-switchDefaultModel = switchDefaultModel.
+    mo_action->ms_next-s_set-s_view-switchDefaultModelAnnoURI = switchDefaultModelAnnoURI.
 
   ENDMETHOD.
 
