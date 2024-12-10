@@ -473,8 +473,11 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                  let oview_model = new JSONModel(viewModel);
                  var oModel = oview_model;
                    if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH){
-                     oModel = new ODataModel({  serviceUrl : z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH, annotationURI: z2ui5.oResponse.PARAMS.S_VIEW?.
-                    }
+                     oModel = new ODataModel({  
+                         serviceUrl : z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH, 
+                         annotationURI: z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODELANNOURI
+                    });
+                   }
                 z2ui5.oView = await XMLView.create({
                     definition: xml,
                     models: oModel,
