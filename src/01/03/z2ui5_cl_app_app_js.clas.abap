@@ -227,11 +227,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      z2ui5.onBeforeRoundtrip.push(this.setBackend.bind(this));` && |\n|  &&
              `    },` && |\n|  &&
              `` && |\n|  &&
-             `    renderer(oRm, oControl) {` && |\n|  &&
-             `      setTimeout(() => {` && |\n|  &&
-             `        z2ui5.oView.byId( this.getProperty("tree_id") ).setTreeState( z2ui5.treeState );` && |\n|  &&
-             `      }, 100);` && |\n|  &&
-             `    }` && |\n|  &&
+             `    if (!z2ui5.treeState) return;` && |\n|  &&
+             `      setTimeout((id) => {` && |\n|  &&
+             `      z2ui5.oView.byId( id ).getBinding('items').setTreeState( z2ui5.treeState );` && |\n|  &&
+             `    }, 100, oControl.getProperty("tree_id") );` && |\n|  &&
              `  });` && |\n|  &&
              `});` && |\n|  &&
              `` && |\n|  &&
@@ -518,9 +517,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          defaultValue: true` && |\n|  &&
              `        },` && |\n|  &&
              `        checkDirectUpload: {` && |\n|  &&
+             `          type: "boolean",` && |\n|  &&
              |\n|.
     result = result &&
-             `          type: "boolean",` && |\n|  &&
              `          defaultValue: false` && |\n|  &&
              `        }` && |\n|  &&
              `      },` && |\n|  &&
