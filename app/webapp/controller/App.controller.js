@@ -212,7 +212,7 @@ sap.ui.define("z2ui5/Tree", ["sap/ui/core/Control"], (Control) => {
       setTimeout((id) => {
       z2ui5.oView.byId( id ).getBinding('items').setTreeState( z2ui5.treeState );
     }, 100, oControl.getProperty("tree_id") );
-  });
+  } });
 });
 
 sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {
