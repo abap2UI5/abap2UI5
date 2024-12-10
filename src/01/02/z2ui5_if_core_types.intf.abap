@@ -35,13 +35,13 @@ INTERFACE z2ui5_if_core_types
 
   TYPES:
     BEGIN OF ty_s_bind_config,
-      path_only          TYPE abap_bool,
-      view               TYPE string,
-      custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping,
-      custom_mapper_back TYPE REF TO z2ui5_if_ajson_mapping,
-      custom_filter      TYPE REF TO z2ui5_if_ajson_filter,
-      custom_filter_back TYPE REF TO z2ui5_if_ajson_filter,
-      tab                TYPE REF TO data,
+      path_only            TYPE abap_bool,
+      view                 TYPE string,
+      custom_mapper        TYPE REF TO z2ui5_if_ajson_mapping,
+      custom_mapper_back   TYPE REF TO z2ui5_if_ajson_mapping,
+      custom_filter        TYPE REF TO z2ui5_if_ajson_filter,
+      custom_filter_back   TYPE REF TO z2ui5_if_ajson_filter,
+      tab                  TYPE REF TO data,
       tab_index            TYPE i,
       switch_default_model TYPE abap_bool,
     END OF ty_s_bind_config.

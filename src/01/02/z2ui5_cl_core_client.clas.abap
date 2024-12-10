@@ -28,7 +28,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   METHOD z2ui5_if_client~follow_up_action.
 
 *    mo_action->ms_next-s_set-s_follow_up_action-custom_js = val.
-    insert val into table mo_action->ms_next-s_set-s_follow_up_action-custom_js.
+    INSERT val INTO TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js.
 
   ENDMETHOD.
 
