@@ -719,7 +719,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n|  &&
              `sap.ui.define("z2ui5/SmartMultiInputExt", ["sap/ui/core/Control", "sap/m/Token", "sap/ui/core/Core", "sap/ui/core/Element"], (Control) => {` && |\n|  &&
              `  "use strict";` && |\n|  &&
-             `  ` && |\n|  &&
+             `` && |\n|  &&
              `  return Control.extend("z2ui5.SmartMultiInputExt", {` && |\n|  &&
              `    metadata: {` && |\n|  &&
              `      properties: {` && |\n|  &&
@@ -747,15 +747,15 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        }` && |\n|  &&
              `      },` && |\n|  &&
              `    },` && |\n|  &&
-             `  ` && |\n|  &&
+             `` && |\n|  &&
              `    init() {` && |\n|  &&
              `      z2ui5.onAfterRendering.push(this.setControl.bind(this));` && |\n|  &&
              `    },` && |\n|  &&
-             `  ` && |\n|  &&
+             `` && |\n|  &&
              `    onTokenUpdate(oEvent) {` && |\n|  &&
              `      this.setProperty("addedTokens", []);` && |\n|  &&
              `      this.setProperty("removedTokens", []);` && |\n|  &&
-             `  ` && |\n|  &&
+             `` && |\n|  &&
              `      if (oEvent.mParameters.type == "removed") {` && |\n|  &&
              `        let removedTokens = [];` && |\n|  &&
              `        oEvent.mParameters.removedTokens.forEach((item) => {` && |\n|  &&
