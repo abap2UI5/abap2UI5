@@ -243,7 +243,8 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         break;
                     case 'SET_ODATA_MODEL':
                         var oModel = new ODataModel({  serviceUrl : args[1], annotationURI: (args.length > 3 ? args[3] : '') });
-                        z2ui5.oView.setModel( oModel , args[2] );
+                    
+                        z2ui5.oView.setModel(oModel, args[2] ? args[2] : undefined);
                         break;
                     case 'DOWNLOAD_B64_FILE':
                         var a = document.createElement("a");
