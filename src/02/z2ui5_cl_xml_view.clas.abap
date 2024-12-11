@@ -216,10 +216,15 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS breadcrumbs
       IMPORTING
-        ns            TYPE clike OPTIONAL
-        link          TYPE clike OPTIONAL
+        ns                  TYPE clike OPTIONAL
+        link                TYPE clike OPTIONAL
+        ID                  type CLIKE optional 
+        CLASS               type CLIKE optional
+        CURRENTLOCATIONTEXT type CLIKE optional
+        SEPARATORSTYLE      type CLIKE optional
+        VISIBLE             type CLIKE optional
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS current_location
       IMPORTING
@@ -10818,7 +10823,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD breadcrumbs.
     result = _generic( ns     = ns
                        name   = `Breadcrumbs`
-                       t_prop = VALUE #( ( n = `link`           v = link ) ) ).
+                       t_prop = VALUE #( ( n = `link`                    v = link )
+                                         ( n = `id`                      v = id )
+                                         ( n = `class`                   v = class )
+                                         ( n = `currentLocationText`     v = currentlocationtext )
+                                         ( n = `separatorStyle`          v = separatorStyle )
+                                         ( n = `visible`                 v = z2ui5_cl_util=>boolean_abap_2_json( visible ) ) ) ).
   ENDMETHOD.
 
   METHOD current_location.
