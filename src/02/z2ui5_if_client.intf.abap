@@ -32,7 +32,7 @@ INTERFACE z2ui5_if_client
 
   METHODS view_display
     IMPORTING
-      val                       TYPE clike
+      val                           TYPE clike
       switch_default_model_anno_uri TYPE string OPTIONAL
       switch_default_model_path TYPE string OPTIONAL.
 
