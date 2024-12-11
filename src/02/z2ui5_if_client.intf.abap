@@ -34,7 +34,7 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val                           TYPE clike
       switch_default_model_anno_uri TYPE string OPTIONAL
-      switch_default_model_path TYPE string OPTIONAL.
+      switch_default_model_path     TYPE string OPTIONAL.
 
   METHODS view_model_update.
 
