@@ -13,6 +13,7 @@ INTERFACE z2ui5_if_client
       cross_app_nav_to_ext      TYPE string VALUE `CROSS_APP_NAV_TO_EXT`,
       cross_app_nav_to_prev_app TYPE string VALUE `CROSS_APP_NAV_TO_PREV_APP`,
       popup_nav_container_to    TYPE string VALUE `POPUP_NAV_CONTAINER_TO`,
+      popover_nav_container_to  TYPE string VALUE `POPOVER_NAV_CONTAINER_TO`,
       download_b64_file         TYPE string VALUE `DOWNLOAD_B64_FILE`,
       set_size_limit            TYPE string VALUE `SET_SIZE_LIMIT`,
       set_odata_model           TYPE string VALUE `SET_ODATA_MODEL`,

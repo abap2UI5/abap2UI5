@@ -320,6 +320,11 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         navConTo = Fragment.byId("popupId", args[2]);
                         navCon.to(navConTo);
                         break;
+                    case 'POPOVER_NAV_CONTAINER_TO':
+                        navCon = Fragment.byId("popoverId", args[1]);
+                        navConTo = Fragment.byId("popoverId", args[2]);
+                        navCon.to(navConTo);
+                        break;
                     case 'URLHELPER':
                         var URLHelper = mobileLibrary.URLHelper;
                         var params = args[2];
