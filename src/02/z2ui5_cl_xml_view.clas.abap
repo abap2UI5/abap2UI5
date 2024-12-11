@@ -224,7 +224,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         SEPARATORSTYLE      type CLIKE optional
         VISIBLE             type CLIKE optional
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS current_location
       IMPORTING
