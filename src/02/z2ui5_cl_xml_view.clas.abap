@@ -218,7 +218,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         ns                  TYPE clike OPTIONAL
         link                TYPE clike OPTIONAL
-        ID                  type CLIKE optional 
+        ID                  type CLIKE optional
         CLASS               type CLIKE optional
         CURRENTLOCATIONTEXT type CLIKE optional
         SEPARATORSTYLE      type CLIKE optional
