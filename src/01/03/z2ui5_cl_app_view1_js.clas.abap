@@ -263,7 +263,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        break;` && |\n|  &&
              `                    case 'SET_ODATA_MODEL':` && |\n|  &&
              `                        var oModel = new ODataModel({  serviceUrl : args[1], annotationURI: (args.length > 3 ? args[3] : '') });` && |\n|  &&
-             `                        z2ui5.oView.setModel( oModel , args[2] );` && |\n|  &&
+             `` && |\n|  &&
+             `                        z2ui5.oView.setModel(oModel, args[2] ? args[2] : undefined);` && |\n|  &&
              `                        break;` && |\n|  &&
              `                    case 'DOWNLOAD_B64_FILE':` && |\n|  &&
              `                        var a = document.createElement("a");` && |\n|  &&
@@ -517,9 +518,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    }` && |\n|  &&
              `                z2ui5.oApp.removeAllPages();` && |\n|  &&
              `                z2ui5.oApp.insertPage(z2ui5.oView);` && |\n|  &&
-             `            },` && |\n|  &&
              |\n|.
     result = result &&
+             `            },` && |\n|  &&
              `        })` && |\n|  &&
              `    });` && |\n|  &&
              `` && |\n|  &&

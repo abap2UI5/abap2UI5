@@ -93,13 +93,6 @@ CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
              `        "factoryName": "sap.ushell.ui5service.ShellUIService"` &&
              `      }` &&
              `    },` &&
-             `    "models": {` &&
-             `      "http": {` &&
-             `        "dataSource": "http",` &&
-             `        "preload": true,` &&
-             `        "settings": {}` &&
-             `      }` &&
-             `    },` &&
              `    "resources": {` &&
              `      "css": [` &&
              `        {` &&

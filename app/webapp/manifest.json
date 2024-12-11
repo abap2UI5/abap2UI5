@@ -72,13 +72,6 @@
       "ShellUIService": {                                                                                                                                                                                                                                      
         "factoryName": "sap.ushell.ui5service.ShellUIService"                                                                                                                                                                                                  
       }                                                                                                                                                                                                                                                        
-    },          
-    "models": {
-      "http": {
-        "dataSource": "http",
-        "preload": true,
-        "settings": {}
-      }
     },
     "resources": {
       "css": [

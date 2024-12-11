@@ -6,11 +6,11 @@ sap.ui.define(["sap/ui/core/mvc/Controller",
     onInit: async function () {
 
       z2ui5.oOwnerComponent = this.getOwnerComponent();
-      z2ui5.oConfig.pathname = this.getView().getModel("http").sServiceUrl;
-      if (z2ui5?.checkLocal == true ) { 
-          z2ui5.oConfig.pathname = window.location.href; 
+      z2ui5.oConfig.pathname = z2ui5.oOwnerComponent.getManifest()["sap.app"].dataSources.http.uri;
+      if (z2ui5?.checkLocal == true) {
+        z2ui5.oConfig.pathname = window.location.href;
       };
-      
+
       z2ui5.oController = new Controller();
       z2ui5.oApp = this.getView().byId("app");
 
@@ -200,19 +200,20 @@ sap.ui.define("z2ui5/Tree", ["sap/ui/core/Control"], (Control) => {
     },
 
     setBackend() {
-      z2ui5.treeState = z2ui5.oView.byId( this.getProperty("tree_id") ).getBinding('items').getCurrentTreeState();
+      z2ui5.treeState = z2ui5.oView.byId(this.getProperty("tree_id")).getBinding('items').getCurrentTreeState();
     },
 
     init() {
       z2ui5.onBeforeRoundtrip.push(this.setBackend.bind(this));
     },
 
-  renderer(oRm, oControl) {
-    if (!z2ui5.treeState) return;
+    renderer(oRm, oControl) {
+      if (!z2ui5.treeState) return;
       setTimeout((id) => {
-      z2ui5.oView.byId( id ).getBinding('items').setTreeState( z2ui5.treeState );
-    }, 100, oControl.getProperty("tree_id") );
-  } });
+        z2ui5.oView.byId(id).getBinding('items').setTreeState(z2ui5.treeState);
+      }, 100, oControl.getProperty("tree_id"));
+    }
+  });
 });
 
 sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {
@@ -243,7 +244,7 @@ sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {
             try {
               const element = document.getElementById(`${z2ui5.oView.byId(item.ID).getId()}-inner`);
               item.V = element ? element.scrollTop : 0;
-            } catch {}
+            } catch { }
           }
         });
       }
@@ -668,7 +669,7 @@ sap.ui.define("z2ui5/MultiInputExt", ["sap/ui/core/Control", "sap/m/Token", "sap
       let table = z2ui5.oView.byId(this.getProperty("MultiInputId"));
       if (!table) {
         try {
-         // table = Core.byId(Element.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('-inner', ''));
+          // table = Core.byId(Element.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('-inner', ''));
         } catch (e) {
           return;
         }
@@ -697,7 +698,7 @@ sap.ui.define("z2ui5/MultiInputExt", ["sap/ui/core/Control", "sap/m/Token", "sap
 
 sap.ui.define("z2ui5/SmartMultiInputExt", ["sap/ui/core/Control", "sap/m/Token", "sap/ui/core/Core", "sap/ui/core/Element"], (Control) => {
   "use strict";
-  
+
   return Control.extend("z2ui5.SmartMultiInputExt", {
     metadata: {
       properties: {
@@ -711,7 +712,8 @@ sap.ui.define("z2ui5/SmartMultiInputExt", ["sap/ui/core/Control", "sap/m/Token",
           type: "Array"
         },
         rangeData: {
-          type: "Array"
+          type: "Array",
+          defaultValue: []
         },
         checkInit: {
           type: "Boolean",
@@ -725,15 +727,15 @@ sap.ui.define("z2ui5/SmartMultiInputExt", ["sap/ui/core/Control", "sap/m/Token",
         }
       },
     },
-  
+
     init() {
       z2ui5.onAfterRendering.push(this.setControl.bind(this));
     },
-  
+
     onTokenUpdate(oEvent) {
       this.setProperty("addedTokens", []);
       this.setProperty("removedTokens", []);
-  
+
       if (oEvent.mParameters.type == "removed") {
         let removedTokens = [];
         oEvent.mParameters.removedTokens.forEach((item) => {
@@ -755,8 +757,32 @@ sap.ui.define("z2ui5/SmartMultiInputExt", ["sap/ui/core/Control", "sap/m/Token",
         );
         this.setProperty("addedTokens", addedTokens);
       }
-      this.setProperty("rangeData", oEvent.getSource().getRangeData());
+      const aTokens = oEvent.getSource().getTokens();
+      this.setProperty("rangeData", oEvent.getSource().getRangeData().map((oRangeData, iIndex) => {
+        oRangeData.tokenText = aTokens[iIndex].getText();
+        return oRangeData;
+      }));
       this.fireChange();
+    },
+    setRangeData(aRangeData) {
+      this.setProperty("rangeData", aRangeData);
+      this.inputInitialized().then((input) => {
+        input.setRangeData(aRangeData.map((oRangeData) => {
+          const oRangeDataNew = {};
+          Object.entries(oRangeData).forEach((aEntry) => {
+            const sKeyNameNew = aEntry[0].toLowerCase();
+            oRangeDataNew[(sKeyNameNew === "keyfield" ? "keyField" : sKeyNameNew)] = aEntry[1];
+          });
+          return oRangeDataNew;
+        }));
+        //we need to set token text explicitly, as setRangeData does no recalculation
+        input.getTokens().forEach((token, index) => {
+          const sTokenText = aRangeData[index].TOKENTEXT;
+          if (sTokenText) {
+            token.setText(sTokenText);
+          }
+        });
+      });
     },
     renderer(oRm, oControl) { },
     setControl() {
@@ -769,114 +795,134 @@ sap.ui.define("z2ui5/SmartMultiInputExt", ["sap/ui/core/Control", "sap/m/Token",
       }
       this.setProperty("checkInit", true);
       input.attachTokenUpdate(this.onTokenUpdate.bind(this));
+      input.attachInnerControlsCreated(this.onInnerControlsCreated.bind(this));
+    },
+    inputInitialized(input) {
+      return new Promise((resolve, reject) => {
+        if (this._bInnerControlsCreated) {
+          resolve(input); //resolve immediately
+        } else {
+          this._oPendingInnerControlsCreated = resolve; //resolve later
+        }
+      });
+    },
+    _oPendingInnerControlsCreated: null,
+    _bInnerControlsCreated: false,
+    onInnerControlsCreated(oEvent) {
+      const input = oEvent.getSource();
+      if (this._oPendingInnerControlsCreated) {
+        this._oPendingInnerControlsCreated(input);
+      }
+      this._oPendingInnerControlsCreated = null;
+      this._bInnerControlsCreated = true;
     }
   });
 }
 );
 
-sap.ui.define("z2ui5/CameraPicture" , [
+sap.ui.define("z2ui5/CameraPicture", [
   "sap/ui/core/Control",
   "sap/m/Dialog",
   "sap/m/Button"
 ], function (Control, Dialog, Button) {
   "use strict";
   return Control.extend("z2ui5.CameraPicture", {
-      metadata: {
-          properties: {
-              id: { type: "string" },
-              value: { type: "string" },
-              press: { type: "string" },
-              autoplay: { type: "boolean", defaultValue: true }
-          },
-          events: {
-              "OnPhoto": {
-                  allowPreventDefault: true,
-                  parameters: {
-                      "photo": {
-                          type: "string"
-                      }
-                  }
-              }
-          },
+    metadata: {
+      properties: {
+        id: { type: "string" },
+        value: { type: "string" },
+        press: { type: "string" },
+        autoplay: { type: "boolean", defaultValue: true }
       },
-
-      capture: function (oEvent) {
-
-          var video = document.querySelector("#zvideo");
-          var canvas = document.getElementById('zcanvas');
-          var resultb64 = "";
-          canvas.width = 200;
-          canvas.height = 200;
-          canvas.getContext('2d').drawImage(video, 0, 0, 200, 200);
-          resultb64 = canvas.toDataURL();
-          this.setProperty("value", resultb64);
-          this.fireOnPhoto({
-              "photo": resultb64
-          });
-      },
-
-      onPicture: function (oEvent) {
-
-          if (!this._oScanDialog) {
-              this._oScanDialog = new Dialog({
-                  title: "Device Photo Function",
-                  contentWidth: "640px",
-                  contentHeight: "480px",
-                  horizontalScrolling: false,
-                  verticalScrolling: false,
-                  stretch: true,
-                  content: [
-                      new HTML({
-                          id: this.getId() + 'PictureContainer',
-                          content: '<video width="600px" height="400px" autoplay="true" id="zvideo">'
-                      }),
-                      new Button({
-                          text: "Capture",
-                          press: function (oEvent) {
-                              this.capture();
-                              this._oScanDialog.close();
-                          }.bind(this)
-                      }),
-                      new HTML({
-                          content: '<canvas hidden id="zcanvas" style="overflow:auto"></canvas>'
-                      }),
-                  ],
-                  endButton: new Button({
-                      text: "Cancel",
-                      press: function (oEvent) {
-                          this._oScanDialog.close();
-                      }.bind(this)
-                  }),
-              });
+      events: {
+        "OnPhoto": {
+          allowPreventDefault: true,
+          parameters: {
+            "photo": {
+              type: "string"
+            }
           }
-
-          this._oScanDialog.open();
-
-          setTimeout(function () {
-              var video = document.querySelector('#zvideo');
-              if (navigator.mediaDevices.getUserMedia) {
-                 navigator.mediaDevices.getUserMedia({video: { facingMode: { exact: "environment" } } })
-                      .then(function (stream) {
-                          video.srcObject = stream;
-                      })
-                      .catch(function (error) {
-                          console.log("Something went wrong!");
-                      });
-              }
-          }.bind(this), 300);
-
+        }
       },
+    },
 
-      renderer: function (oRM, oControl) {
+    capture: function (oEvent) {
 
-          var oButton = new Button({
-              icon: "sap-icon://camera",
-              text: "Camera",
-              press: oControl.onPicture.bind(oControl),
-          });
-          oRM.renderControl(oButton);
+      var video = document.querySelector("#zvideo");
+      var canvas = document.getElementById('zcanvas');
+      var resultb64 = "";
+      canvas.width = 200;
+      canvas.height = 200;
+      canvas.getContext('2d').drawImage(video, 0, 0, 200, 200);
+      resultb64 = canvas.toDataURL();
+      this.setProperty("value", resultb64);
+      this.fireOnPhoto({
+        "photo": resultb64
+      });
+    },
 
-      },
+    onPicture: function (oEvent) {
+
+      if (!this._oScanDialog) {
+        this._oScanDialog = new Dialog({
+          title: "Device Photo Function",
+          contentWidth: "640px",
+          contentHeight: "480px",
+          horizontalScrolling: false,
+          verticalScrolling: false,
+          stretch: true,
+          content: [
+            new HTML({
+              id: this.getId() + 'PictureContainer',
+              content: '<video width="600px" height="400px" autoplay="true" id="zvideo">'
+            }),
+            new Button({
+              text: "Capture",
+              press: function (oEvent) {
+                this.capture();
+                this._oScanDialog.close();
+              }.bind(this)
+            }),
+            new HTML({
+              content: '<canvas hidden id="zcanvas" style="overflow:auto"></canvas>'
+            }),
+          ],
+          endButton: new Button({
+            text: "Cancel",
+            press: function (oEvent) {
+              this._oScanDialog.close();
+            }.bind(this)
+          }),
+        });
+      }
+
+      this._oScanDialog.open();
+
+      setTimeout(function () {
+        var video = document.querySelector('#zvideo');
+        if (navigator.mediaDevices.getUserMedia) {
+          navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } })
+            .then(function (stream) {
+              video.srcObject = stream;
+            })
+            .catch(function (error) {
+              console.log("Something went wrong!");
+            });
+        }
+      }.bind(this), 300);
+
+    },
+
+    renderer: function (oRM, oControl) {
+
+      var oButton = new Button({
+        icon: "sap-icon://camera",
+        text: "Camera",
+        press: oControl.onPicture.bind(oControl),
+      });
+      oRM.renderControl(oButton);
+
+    },
   });
 });
 
@@ -927,7 +973,7 @@ sap.ui.define("z2ui5/Util", [], () => {
   "use strict";
   return {
     DateCreateObject: (s) => new Date(s),
-  //  DateAbapTimestampToDate: (sTimestamp) => new sap.gantt.misc.Format.abapTimestampToDate(sTimestamp), commented for UI5 2.x compatibility
+    //  DateAbapTimestampToDate: (sTimestamp) => new sap.gantt.misc.Format.abapTimestampToDate(sTimestamp), commented for UI5 2.x compatibility
     DateAbapDateToDateObject: (d) => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8)),
     DateAbapDateTimeToDateObject: (d, t = '000000') => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8), t.slice(0, 2), t.slice(2, 4), t.slice(4, 6)),
   };
