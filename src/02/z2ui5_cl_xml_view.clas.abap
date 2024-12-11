@@ -136,6 +136,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS popover
       IMPORTING
+        !id                 TYPE clike OPTIONAL
         title               TYPE clike OPTIONAL
         class               TYPE clike OPTIONAL
         placement           TYPE clike OPTIONAL
@@ -523,8 +524,39 @@ CLASS z2ui5_cl_xml_view DEFINITION
         showborder        TYPE clike OPTIONAL
         decorative        TYPE clike OPTIONAL
         enabled           TYPE clike OPTIONAL
+        press             TYPE clike OPTIONAL
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS avatar_group
+      IMPORTING !id                     TYPE clike     OPTIONAL
+                avatarCustomDisplaySize TYPE clike     OPTIONAL
+                avatarCustomFontSize    TYPE clike     OPTIONAL
+                avatarDisplaySize       TYPE clike     OPTIONAL
+                !blocked                TYPE abap_bool OPTIONAL
+                busy                    TYPE abap_bool OPTIONAL
+                busyIndicatorDelay      TYPE clike     OPTIONAL
+                busyIndicatorSize       TYPE clike     OPTIONAL
+                fieldGroupIds           TYPE clike     OPTIONAL
+                groupType               TYPE clike     OPTIONAL
+                !visible                TYPE abap_bool DEFAULT abap_true
+                tooltip                 TYPE clike     OPTIONAL
+                items                   TYPE clike     OPTIONAL
+                press                   TYPE clike     OPTIONAL
+      RETURNING VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS avatar_group_item
+      IMPORTING !id                TYPE clike OPTIONAL
+                busy               TYPE clike DEFAULT `false`
+                busyIndicatorDelay TYPE clike OPTIONAL
+                busyIndicatorSize  TYPE clike OPTIONAL
+                fallbackIcon       TYPE clike OPTIONAL
+                fieldGroupIds      TYPE clike OPTIONAL
+                initials           TYPE clike OPTIONAL
+                src                TYPE clike OPTIONAL
+                !visible           TYPE clike DEFAULT `true`
+                tooltip            TYPE clike OPTIONAL
+      RETURNING VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS header_title
       RETURNING
@@ -1712,6 +1744,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         hspacing       TYPE clike OPTIONAL
         vspacing       TYPE clike OPTIONAL
         width          TYPE clike OPTIONAL
+        content        TYPE clike OPTIONAL
           PREFERRED PARAMETER default_span
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
@@ -3701,6 +3734,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         inputsastooltips    TYPE clike OPTIONAL
         showadvancedtooltip TYPE clike OPTIONAL
         showhandletooltip   TYPE clike OPTIONAL
+        liveChange          TYPE clike OPTIONAL
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
@@ -5363,7 +5397,42 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `showBorder`       v = z2ui5_cl_util=>boolean_abap_2_json( showborder ) )
                                 ( n = `decorative`       v = z2ui5_cl_util=>boolean_abap_2_json( decorative ) )
                                 ( n = `enabled`       v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
-                                ( n = `displaySize` v = displaysize ) ) ).
+                                ( n = `displaySize` v = displaysize )
+                                ( n = `press` v = press ) ) ).
+  ENDMETHOD.
+
+  METHOD avatar_group.
+    result = _generic( name   = `AvatarGroup`
+                       ns     = `f`
+                       t_prop = VALUE #( ( n = `id` v = id )
+                                         ( n = `avatarCustomDisplaySize` v = avatarCustomDisplaySize )
+                                         ( n = `avatarCustomDispavatarCustomFontSizelaySize` v = avatarCustomFontSize )
+                                         ( n = `avatarDisplaySize` v = avatarDisplaySize )
+                                         ( n = `blocked` v = z2ui5_cl_util=>boolean_abap_2_json( blocked ) )
+                                         ( n = `busy` v = z2ui5_cl_util=>boolean_abap_2_json( busy ) )
+                                         ( n = `busyIndicatorDelay` v = busyIndicatorDelay )
+                                         ( n = `busyIndicatorSize` v = busyIndicatorSize )
+                                         ( n = `fieldGroupIds` v = fieldGroupIds )
+                                         ( n = `groupType` v = groupType )
+                                         ( n = `visible` v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                                         ( n = `tooltip` v =  tooltip )
+                                         ( n = `items` v = items )
+                                         ( n = `press` v = press ) ) ).
+  ENDMETHOD.
+
+  METHOD avatar_group_item.
+    result = _generic( name   = `AvatarGroupItem`
+                       ns     = `f`
+                       t_prop = VALUE #( ( n = `id` v = id )
+                                         ( n = `busy` v = busy )
+                                         ( n = `busyIndicatorDelay` v = busyIndicatorDelay )
+                                         ( n = `busyIndicatorSize` v = busyIndicatorSize )
+                                         ( n = `fallbackIcon` v = fallbackIcon )
+                                         ( n = `fieldGroupIds` v = fieldGroupIds )
+                                         ( n = `initials` v = initials )
+                                         ( n = `src` v = src )
+                                         ( n = `visible` v =  visible )
+                                         ( n = `tooltip` v =  tooltip ) ) ).
   ENDMETHOD.
 
   METHOD axis_time_strategy.
@@ -6787,7 +6856,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                    ( n = `containerQuery` v = z2ui5_cl_util=>boolean_abap_2_json( containerquery ) )
                                    ( n = `hSpacing`       v = hspacing )
                                    ( n = `vSpacing`       v = vspacing )
-                                   ( n = `width`          v = width ) ) ).
+                                   ( n = `width`          v = width )
+                                   ( n = `content`        v = content ) ) ).
   ENDMETHOD.
 
   METHOD grid_box_layout.
@@ -8651,7 +8721,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD popover.
     result = _generic(
         name   = `Popover`
-        t_prop = VALUE #( ( n = `title`         v = title )
+        t_prop = VALUE #( ( n = `id`         v = id )
+                          ( n = `title`         v = title )
                           ( n = `class`         v = class )
                           ( n = `placement`     v = placement )
                           ( n = `initialFocus`  v = initialfocus )
@@ -8671,8 +8742,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                           ( n = `afterClose`  v = afterclose )
                           ( n = `afterOpen`  v = afteropen )
                           ( n = `beforeClose`  v = beforeclose )
-                          ( n = `beforeOpen`  v = beforeopen )
-                        ) ).
+                          ( n = `beforeOpen`  v = beforeopen ) ) ).
   ENDMETHOD.
 
   METHOD process_flow.
@@ -9197,7 +9267,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD slider.
     result = me.
     _generic( name   = `Slider`
-*              ns     = `webc`
               t_prop = VALUE #( ( n = `class`           v = class )
                                 ( n = `id`          v = id )
                                 ( n = `max`   v = max )
@@ -9210,7 +9279,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `width`   v = width )
                                 ( n = `inputsAsTooltips`   v = inputsastooltips )
                                 ( n = `showAdvancedTooltip`   v = showadvancedtooltip )
-                                ( n = `showHandleTooltip`   v = showhandletooltip ) ) ).
+                                ( n = `showHandleTooltip`   v = showhandletooltip )
+                                ( n = `liveChange` v = liveChange ) ) ).
   ENDMETHOD.
 
   METHOD slide_tile.
