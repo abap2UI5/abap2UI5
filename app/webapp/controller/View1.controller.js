@@ -110,8 +110,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     } else if (z2ui5.oViewNest2?.byId(openById)) {
                         oControl = z2ui5.oViewNest2.byId(openById);
                     } else {
-                        if (sapUiCore.byId(openById)) {
-                            //   oControl = sapUiCore.byId(openById);
+                        if (Element.getElementById(openById)) {
                             oControl = Element.getElementById(openById);
                         } else {
                             oControl = null;
