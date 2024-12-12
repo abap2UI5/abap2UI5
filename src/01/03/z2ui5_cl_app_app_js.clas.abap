@@ -23,7 +23,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `], function (BaseController, Controller) {` && |\n|  &&
              `  return BaseController.extend("z2ui5.controller.App", {` && |\n|  &&
              `` && |\n|  &&
-             `    onInit: async function () {` && |\n|  &&
+             `    onInit() {` && |\n|  &&
              `` && |\n|  &&
              `      z2ui5.oOwnerComponent = this.getOwnerComponent();` && |\n|  &&
              `      z2ui5.oConfig.pathname = z2ui5.oOwnerComponent.getManifest()["sap.app"].dataSources.http.uri;` && |\n|  &&

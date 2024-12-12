@@ -26,8 +26,8 @@ CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
              `    "applicationVersion": {` &&
              `      "version": "0.0.1"` &&
              `    },` &&
-             `    "title": "{{appTitle}}",` &&
-             `    "description": "{{appDescription}}",` &&
+             `    "title": "",` &&
+             `    "description": "",` &&
              `    "resources": "resources.json",` &&
              `    "sourceTemplate": {` &&
              `      "id": "@sap/generator-fiori:basic",` &&
@@ -50,7 +50,7 @@ CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
              `        "z2ui5-display": {` &&
              `          "semanticObject": "z2ui5",` &&
              `          "action": "display",` &&
-             `          "title": "{{flpTitle}}",` &&
+             `          "title": "",` &&
              `          "signature": {` &&
              `            "parameters": {},` &&
              `            "additionalParameters": "allowed"` &&

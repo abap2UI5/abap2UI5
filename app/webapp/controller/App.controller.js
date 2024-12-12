@@ -3,7 +3,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller",
 ], function (BaseController, Controller) {
   return BaseController.extend("z2ui5.controller.App", {
 
-    onInit: async function () {
+    onInit() {
 
       z2ui5.oOwnerComponent = this.getOwnerComponent();
       z2ui5.oConfig.pathname = z2ui5.oOwnerComponent.getManifest()["sap.app"].dataSources.http.uri;

@@ -6,8 +6,8 @@
     "applicationVersion": {
       "version": "0.0.1"
     },
-    "title": "{{appTitle}}",
-    "description": "{{appDescription}}",
+    "title": "",
+    "description": "",
     "resources": "resources.json",
     "sourceTemplate": {
       "id": "@sap/generator-fiori:basic",
@@ -30,7 +30,7 @@
         "z2ui5-display": {
           "semanticObject": "z2ui5",
           "action": "display",
-          "title": "{{flpTitle}}",
+          "title": "",
           "signature": {
             "parameters": {},
             "additionalParameters": "allowed"
