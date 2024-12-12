@@ -36,7 +36,7 @@ Explore all project information in this [**guide.**](http://abap2UI5.org) 🚀
 #### References
 * Find abap2UI5 on ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
 * Featured on SAP Developer News [(YouTube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
-* Highlighted in the Boring Enterprise Nerdletter [(Newsletter - 08.03.2023)](https://boringenterprisenerds.substack.com/p/34-abap2ui5-sap-cva-burnout-c2c-shortwave)[(YouTube)](https://www.youtube.com/watch?v=G62exySitCo&list=PLlxj8-g1r2GlVYXVQnnV5izKwKtEn6KIp&t=1008s)
+* Highlighted in the Boring Enterprise Nerdletter [(YouTube)](https://www.youtube.com/watch?v=G62exySitCo&list=PLlxj8-g1r2GlVYXVQnnV5izKwKtEn6KIp&t=1008s)[(Newsletter - 08.03.2023)](https://boringenterprisenerds.substack.com/p/34-abap2ui5-sap-cva-burnout-c2c-shortwave)
 * Blog Series about abap2UI5 [(SAP Community - 22.02.2024)](https://community.sap.com/t5/technology-blogs-by-members/abap2ui5-1-introduction-developing-ui5-apps-purely-in-abap/ba-p/13567635)
 * Part of the SAP Developer Code Challenge [(SAP Community - 17.05.2023)](https://groups.community.sap.com/t5/application-development/sap-developer-code-challenge-open-source-abap-week-2/m-p/260727#M1372)
 * Showcased at SAP TechEd 2023 [(YouTube - 02.11.2023)](https://www.youtube.com/watch?v=kLbF0ooStZs&t=3052s)
@@ -47,7 +47,7 @@ Explore all project information in this [**guide.**](http://abap2UI5.org) 🚀
 * Check out Cust&Code Videos with abap2UI5 [(YouTube - 20.05.2024)](https://www.youtube.com/watch?v=SD1vIt_ty0k)
 * Featured on SAP Developer News [(YouTube - 14.06.2024)](https://youtu.be/7n16u-Rx8IY?t=7)
 * Webinar on developing UI5 apps with abap2UI5 [(YouTube - 07.11.2024)](https://www.youtube.com/watch?v=0izPA2xrPPI)
-* Highlighted in the Boring Enterprise Nerdletter [(Newsletter - 11.12.2024)](https://boringenterprisenerds.substack.com/p/72-abap2ui5-aancos-crystal-ball-sapta)[(YouTube)](https://www.youtube.com/watch?v=I81z6W_BTIA&t=1010s)
+* Highlighted in the Boring Enterprise Nerdletter [(YouTube)](https://www.youtube.com/watch?v=I81z6W_BTIA&t=1010s)[(Newsletter - 11.12.2024)](https://boringenterprisenerds.substack.com/p/72-abap2ui5-aancos-crystal-ball-sapta)
   
 #### Credits
 This project greatly benefits from its [contributors](https://github.com/abap2UI5/abap2UI5/graphs/contributors) and supporting tools:
