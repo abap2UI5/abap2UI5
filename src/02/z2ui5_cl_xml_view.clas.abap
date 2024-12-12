@@ -5265,6 +5265,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
         singletokenmode      TYPE clike DEFAULT 'false'
         supportmultiselect   TYPE clike DEFAULT 'true'
         textseparator        TYPE clike OPTIONAL
+        textlabel            TYPE clike OPTIONAL
+        tooltiplabel         TYPE clike OPTIONAL
+        textineditmodesource TYPE clike DEFAULT 'None'
+        mandatory            TYPE clike DEFAULT 'false'
+        maxlength            TYPE clike DEFAULT '0'
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
   PROTECTED SECTION.
@@ -11104,7 +11109,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = 'requestAtLeastFields' v = requestatleastfields )
                                          ( n = 'singleTokenMode'      v = singletokenmode )
                                          ( n = 'supportMultiSelect'   v = supportmultiselect )
-                                         ( n = 'textSeparator'        v = textseparator ) ) ).
+                                         ( n = 'textSeparator'        v = textseparator )
+                                         ( n = 'textLabel'            v = textlabel )
+                                         ( n = 'tooltipLabel'         v = tooltiplabel )
+                                         ( n = 'textInEditModeSource' v = textineditmodesource )
+                                         ( n = 'mandatory'         v = mandatory )
+                                         ( n = 'maxLength'         v = maxlength ) ) ).
 
   ENDMETHOD.
 
