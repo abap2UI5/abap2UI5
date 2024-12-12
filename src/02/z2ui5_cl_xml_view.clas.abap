@@ -5421,7 +5421,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD avatar_group_item.
-    result = _generic( name   = `AvatarGroupItem`
+    result = me.
+    _generic( name   = `AvatarGroupItem`
                        ns     = `f`
                        t_prop = VALUE #( ( n = `id` v = id )
                                          ( n = `busy` v = busy )
