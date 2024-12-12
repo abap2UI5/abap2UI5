@@ -130,8 +130,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    } else if (z2ui5.oViewNest2?.byId(openById)) {` && |\n|  &&
              `                        oControl = z2ui5.oViewNest2.byId(openById);` && |\n|  &&
              `                    } else {` && |\n|  &&
-             `                        if (sapUiCore.byId(openById)) {` && |\n|  &&
-             `                            //   oControl = sapUiCore.byId(openById);` && |\n|  &&
+             `                        if (Element.getElementById(openById)) {` && |\n|  &&
              `                            oControl = Element.getElementById(openById);` && |\n|  &&
              `                        } else {` && |\n|  &&
              `                            oControl = null;` && |\n|  &&
@@ -518,9 +517,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    }` && |\n|  &&
              `                });` && |\n|  &&
              `                z2ui5.oView.setModel(z2ui5.oDeviceModel, "device");` && |\n|  &&
+             `                if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH){` && |\n|  &&
              |\n|.
     result = result &&
-             `                if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH){` && |\n|  &&
              `                  z2ui5.oView.setModel(oview_model, "http");` && |\n|  &&
              `                    }` && |\n|  &&
              `                z2ui5.oApp.removeAllPages();` && |\n|  &&
