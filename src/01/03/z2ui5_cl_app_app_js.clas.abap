@@ -174,6 +174,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        title: {` && |\n|  &&
              `          type: "string"` && |\n|  &&
              `        },` && |\n|  &&
+             `        ApplicationFullWidth:{` && |\n|  &&
+             `          type : "boolean"` && |\n|  &&
+             `        }` && |\n|  &&
              `      }` && |\n|  &&
              `    },` && |\n|  &&
              `    setTitle(val) {` && |\n|  &&
@@ -184,6 +187,18 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        console.error("Launchpad Service to set Title not found");` && |\n|  &&
              `      }` && |\n|  &&
              `    },` && |\n|  &&
+             `` && |\n|  &&
+             `    setApplicationFullWidth(val) {` && |\n|  &&
+             `      this.setProperty("ApplicationFullWidth", val);` && |\n|  &&
+             `      z2ui5.ApplicationFullWidth = val;` && |\n|  &&
+             `    sap.ui.require([` && |\n|  &&
+             `      "sap/ushell/services/AppConfiguration"` && |\n|  &&
+             `    ], async (AppConfiguration)  => {` && |\n|  &&
+             `      AppConfiguration.setApplicationFullWidth(z2ui5.ApplicationFullWidth);` && |\n|  &&
+             `    });` && |\n|  &&
+             `` && |\n|  &&
+             `  },` && |\n|  &&
+             `` && |\n|  &&
              `    renderer(oRm, oControl) { }` && |\n|  &&
              `  });` && |\n|  &&
              `}` && |\n|  &&
@@ -503,6 +518,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          defaultValue: "sap-icon://browse-folder"` && |\n|  &&
              `        },` && |\n|  &&
              `        iconOnly: {` && |\n|  &&
+             |\n|.
+    result = result &&
              `          type: "boolean",` && |\n|  &&
              `          defaultValue: false` && |\n|  &&
              `        },` && |\n|  &&
@@ -518,8 +535,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          type: "boolean",` && |\n|  &&
              `          defaultValue: true` && |\n|  &&
              `        },` && |\n|  &&
-             |\n|.
-    result = result &&
              `        checkDirectUpload: {` && |\n|  &&
              `          type: "boolean",` && |\n|  &&
              `          defaultValue: false` && |\n|  &&
@@ -1005,6 +1020,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `  z2ui5.Util = Util;` && |\n|  &&
              `}` && |\n|  &&
              `);` && |\n|  &&
+             |\n|.
+    result = result &&
              `` && |\n|  &&
              `sap.ui.define("z2ui5/Favicon", ["sap/ui/core/Control"], (Control) => {` && |\n|  &&
              `  "use strict";` && |\n|  &&
@@ -1020,8 +1037,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      this.setProperty("favicon", val);` && |\n|  &&
              `      let headTitle = document.querySelector('head');` && |\n|  &&
              `      let setFavicon = document.createElement('link');` && |\n|  &&
-             |\n|.
-    result = result &&
              `      setFavicon.setAttribute('rel', 'shortcut icon');` && |\n|  &&
              `      setFavicon.setAttribute('href', val);` && |\n|  &&
              `      headTitle.appendChild(setFavicon);` && |\n|  &&
