@@ -155,7 +155,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
         title                TYPE clike OPTIONAL
         ApplicationFullWidth TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS history
       IMPORTING
