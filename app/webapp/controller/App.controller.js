@@ -154,6 +154,9 @@ sap.ui.define("z2ui5/LPTitle", ["sap/ui/core/Control"], (Control) => {
         title: {
           type: "string"
         },
+        ApplicationFullWidth:{
+          type : "boolean"
+        }
       }
     },
     setTitle(val) {
@@ -164,6 +167,18 @@ sap.ui.define("z2ui5/LPTitle", ["sap/ui/core/Control"], (Control) => {
         console.error("Launchpad Service to set Title not found");
       }
     },
+
+    setApplicationFullWidth(val) {
+      this.setProperty("ApplicationFullWidth", val);
+      z2ui5.ApplicationFullWidth = val;
+    sap.ui.require([
+      "sap/ushell/services/AppConfiguration"
+    ], async (AppConfiguration)  => {   
+      AppConfiguration.setApplicationFullWidth(z2ui5.ApplicationFullWidth);
+    });
+
+  },
+
     renderer(oRm, oControl) { }
   });
 }
