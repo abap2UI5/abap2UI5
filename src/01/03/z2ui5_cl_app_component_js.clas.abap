@@ -24,8 +24,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        metadata: {` && |\n|  &&
              `            manifest: "json"` && |\n|  &&
              `        },` && |\n|  &&
-             `         init: async function () {` && |\n|  &&
-             `` && |\n|  &&
+             `        async init() {` && |\n|  &&
              `            UIComponent.prototype.init.apply(this, arguments);` && |\n|  &&
              `` && |\n|  &&
              `            if (typeof z2ui5 == 'undefined'){` && |\n|  &&

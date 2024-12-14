@@ -3,6 +3,16 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
+    METHODS smartmultiinput_ext
+      IMPORTING
+        multiinputid  TYPE clike OPTIONAL
+        change        TYPE clike OPTIONAL
+        rangeData     TYPE clike OPTIONAL
+        addedtokens   TYPE clike OPTIONAL
+        removedtokens TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS multiinput_ext
       IMPORTING
         multiinputid   TYPE clike OPTIONAL
@@ -50,7 +60,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
         selectionstart TYPE clike OPTIONAL
         selectionend   TYPE clike OPTIONAL
         setupdate      TYPE clike OPTIONAL
-        PREFERRED PARAMETER focusid
+          PREFERRED PARAMETER focusid
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
@@ -142,9 +152,11 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
 
     METHODS lp_title
       IMPORTING
-        title         TYPE clike OPTIONAL
+        title                TYPE clike OPTIONAL
+        ApplicationFullWidth TYPE clike OPTIONAL
+        PREFERRED PARAMETER title
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS history
       IMPORTING
@@ -156,6 +168,12 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
       IMPORTING
         setupdate     TYPE clike OPTIONAL
         items         TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS tree
+      IMPORTING
+        tree_id       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -303,7 +321,8 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
 
     DATA(lv_class) = 'Z2UI5_CL_CC_DEMO_OUT'.
     CALL METHOD (lv_class)=>('GET_STYLE')
-      RECEIVING result = lv_style.
+      RECEIVING
+        result = lv_style.
     result = mo_view->_cc_plain_xml( lv_style )->html( val ).
 
   ENDMETHOD.
@@ -435,6 +454,16 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD tree.
+
+    result = mo_view.
+    mo_view->_generic( name   = `Tree`
+                       ns     = `z2ui5`
+                       t_prop = VALUE #( ( n = `tree_id`   v = tree_id )
+         ) ).
+
+  ENDMETHOD.
+
   METHOD scrolling.
 
     result = mo_view.
@@ -508,7 +537,10 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     result = mo_view.
     mo_view->_generic( name   = `LPTitle`
                        ns     = `z2ui5`
-                       t_prop = VALUE #( ( n = `title`  v = title ) ) ).
+                       t_prop = VALUE #(
+                        ( n = `title`  v = title )
+                        ( n = `ApplicationFullWidth`  v = z2ui5_cl_util=>boolean_abap_2_json( ApplicationFullWidth )  ) )
+                         ).
 
   ENDMETHOD.
 
@@ -536,6 +568,19 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                                 ns     = `z2ui5`
                                 t_prop = VALUE #( ( n = `tableId` v = tableid )
                           ) ).
+
+  ENDMETHOD.
+
+  METHOD smartmultiinput_ext.
+
+    result = mo_view.
+    mo_view->_generic( name   = `SmartMultiInputExt`
+                       ns     = `z2ui5`
+                       t_prop = VALUE #( ( n = `multiInputId`  v = multiInputId )
+                                         ( n = `rangeData`     v = rangeData )
+                                         ( n = `change`        v = change )
+                                         ( n = `addedTokens`   v = addedTokens )
+                                         ( n = `removedTokens` v = removedTokens ) ) ).
 
   ENDMETHOD.
 

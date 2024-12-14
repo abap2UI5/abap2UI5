@@ -130,8 +130,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    } else if (z2ui5.oViewNest2?.byId(openById)) {` && |\n|  &&
              `                        oControl = z2ui5.oViewNest2.byId(openById);` && |\n|  &&
              `                    } else {` && |\n|  &&
-             `                        if (sapUiCore.byId(openById)) {` && |\n|  &&
-             `                            //   oControl = sapUiCore.byId(openById);` && |\n|  &&
+             `                        if (Element.getElementById(openById)) {` && |\n|  &&
              `                            oControl = Element.getElementById(openById);` && |\n|  &&
              `                        } else {` && |\n|  &&
              `                            oControl = null;` && |\n|  &&
@@ -262,12 +261,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        }` && |\n|  &&
              `                        break;` && |\n|  &&
              `                    case 'SET_ODATA_MODEL':` && |\n|  &&
-             `                    //    sap.ui.require([` && |\n|  &&
-             `                     //       "sap/ui/model/odata/v2/ODataModel"` && |\n|  &&
-             `                      //    ], async (ODataModel)  => {` && |\n|  &&
-             `                        var oModel = new ODataModel({  serviceUrl : args[1] });` && |\n|  &&
-             `                        z2ui5.oView.setModel( oModel , args[2] );` && |\n|  &&
-             `                 //   });` && |\n|  &&
+             `                        var oModel = new ODataModel({  serviceUrl : args[1], annotationURI: (args.length > 3 ? args[3] : '') });` && |\n|  &&
+             `` && |\n|  &&
+             `                        z2ui5.oView.setModel(oModel, args[2] ? args[2] : undefined);` && |\n|  &&
              `                        break;` && |\n|  &&
              `                    case 'DOWNLOAD_B64_FILE':` && |\n|  &&
              `                        var a = document.createElement("a");` && |\n|  &&
@@ -343,6 +339,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        navConTo = Fragment.byId("popupId", args[2]);` && |\n|  &&
              `                        navCon.to(navConTo);` && |\n|  &&
              `                        break;` && |\n|  &&
+             `                    case 'POPOVER_NAV_CONTAINER_TO':` && |\n|  &&
+             `                        navCon = Fragment.byId("popoverId", args[1]);` && |\n|  &&
+             `                        navConTo = Fragment.byId("popoverId", args[2]);` && |\n|  &&
+             `                        navCon.to(navConTo);` && |\n|  &&
+             `                        break;` && |\n|  &&
              `                    case 'URLHELPER':` && |\n|  &&
              `                        var URLHelper = mobileLibrary.URLHelper;` && |\n|  &&
              `                        var params = args[2];` && |\n|  &&
@@ -384,7 +385,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                BusyIndicator.show();` && |\n|  &&
              `                z2ui5.oBody = {};` && |\n|  &&
              `                if (args[0][3] || z2ui5.oController == this ) {` && |\n|  &&
-             `                    if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL){` && |\n|  &&
+             `                    if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH){` && |\n|  &&
              `                        var oModel = z2ui5.oView.getModel( "http");` && |\n|  &&
              `                    }else{` && |\n|  &&
              `                        oModel = z2ui5.oView.getModel();` && |\n|  &&
@@ -496,10 +497,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            async displayView(xml, viewModel) {` && |\n|  &&
              `                 let oview_model = new JSONModel(viewModel);` && |\n|  &&
              `                 var oModel = oview_model;` && |\n|  &&
-             `                   if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL){` && |\n|  &&
-             `                    oModel = new ODataModel({  serviceUrl : z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL });` && |\n|  &&
-             `                  //  oModel = z2ui5.oOwnerComponent.getModel(z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL);` && |\n|  &&
-             `                    }` && |\n|  &&
+             `                   if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH){` && |\n|  &&
+             `                     oModel = new ODataModel({` && |\n|  &&
+             `                         serviceUrl : z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH,` && |\n|  &&
+             `                         annotationURI: z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODELANNOURI` && |\n|  &&
+             `                    });` && |\n|  &&
+             `                   }` && |\n|  &&
              `                z2ui5.oView = await XMLView.create({` && |\n|  &&
              `                    definition: xml,` && |\n|  &&
              `                    models: oModel,` && |\n|  &&
@@ -514,12 +517,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    }` && |\n|  &&
              `                });` && |\n|  &&
              `                z2ui5.oView.setModel(z2ui5.oDeviceModel, "device");` && |\n|  &&
-             `                if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL){` && |\n|  &&
+             `                if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH){` && |\n|  &&
+             |\n|.
+    result = result &&
              `                  z2ui5.oView.setModel(oview_model, "http");` && |\n|  &&
              `                    }` && |\n|  &&
              `                z2ui5.oApp.removeAllPages();` && |\n|  &&
-             |\n|.
-    result = result &&
              `                z2ui5.oApp.insertPage(z2ui5.oView);` && |\n|  &&
              `            },` && |\n|  &&
              `        })` && |\n|  &&

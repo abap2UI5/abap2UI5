@@ -4,8 +4,7 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models","z2ui5/cc/Server"
         metadata: {
             manifest: "json"
         },
-         init: async function () {
-
+        async init() {
             UIComponent.prototype.init.apply(this, arguments);
 
             if (typeof z2ui5 == 'undefined'){

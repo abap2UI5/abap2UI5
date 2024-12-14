@@ -35,15 +35,15 @@ INTERFACE z2ui5_if_core_types
 
   TYPES:
     BEGIN OF ty_s_bind_config,
-      path_only          TYPE abap_bool,
-      view               TYPE string,
-      custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping,
-      custom_mapper_back TYPE REF TO z2ui5_if_ajson_mapping,
-      custom_filter      TYPE REF TO z2ui5_if_ajson_filter,
-      custom_filter_back TYPE REF TO z2ui5_if_ajson_filter,
-      tab                TYPE REF TO data,
-      tab_index          TYPE i,
-      switchDefaultModel TYPE abap_bool,
+      path_only            TYPE abap_bool,
+      view                 TYPE string,
+      custom_mapper        TYPE REF TO z2ui5_if_ajson_mapping,
+      custom_mapper_back   TYPE REF TO z2ui5_if_ajson_mapping,
+      custom_filter        TYPE REF TO z2ui5_if_ajson_filter,
+      custom_filter_back   TYPE REF TO z2ui5_if_ajson_filter,
+      tab                  TYPE REF TO data,
+      tab_index            TYPE i,
+      switch_default_model TYPE abap_bool,
     END OF ty_s_bind_config.
 
   TYPES:
@@ -67,10 +67,11 @@ INTERFACE z2ui5_if_core_types
   TYPES:
     BEGIN OF ty_s_next_frontend,
       BEGIN OF s_view,
-        xml                TYPE string,
-        switchDefaultModel TYPE string,
-        check_destroy      TYPE abap_bool,
-        check_update_model TYPE abap_bool,
+        xml                       TYPE string,
+        switchDefaultModelAnnoURI TYPE string,
+        switch_default_model_path TYPE string,
+        check_destroy             TYPE abap_bool,
+        check_update_model        TYPE abap_bool,
       END OF s_view,
       BEGIN OF s_view_nest,
         xml                TYPE string,

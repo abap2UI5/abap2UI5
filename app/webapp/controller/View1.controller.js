@@ -110,8 +110,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     } else if (z2ui5.oViewNest2?.byId(openById)) {
                         oControl = z2ui5.oViewNest2.byId(openById);
                     } else {
-                        if (sapUiCore.byId(openById)) {
-                            //   oControl = sapUiCore.byId(openById);
+                        if (Element.getElementById(openById)) {
                             oControl = Element.getElementById(openById);
                         } else {
                             oControl = null;
@@ -242,12 +241,9 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         }
                         break;
                     case 'SET_ODATA_MODEL':
-                    //    sap.ui.require([
-                     //       "sap/ui/model/odata/v2/ODataModel"
-                      //    ], async (ODataModel)  => {
-                        var oModel = new ODataModel({  serviceUrl : args[1] });
-                        z2ui5.oView.setModel( oModel , args[2] );
-                 //   });
+                        var oModel = new ODataModel({  serviceUrl : args[1], annotationURI: (args.length > 3 ? args[3] : '') });
+                    
+                        z2ui5.oView.setModel(oModel, args[2] ? args[2] : undefined);
                         break;
                     case 'DOWNLOAD_B64_FILE':
                         var a = document.createElement("a");
@@ -323,6 +319,11 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         navConTo = Fragment.byId("popupId", args[2]);
                         navCon.to(navConTo);
                         break;
+                    case 'POPOVER_NAV_CONTAINER_TO':
+                        navCon = Fragment.byId("popoverId", args[1]);
+                        navConTo = Fragment.byId("popoverId", args[2]);
+                        navCon.to(navConTo);
+                        break;
                     case 'URLHELPER':
                         var URLHelper = mobileLibrary.URLHelper;
                         var params = args[2];
@@ -364,7 +365,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 BusyIndicator.show();
                 z2ui5.oBody = {};
                 if (args[0][3] || z2ui5.oController == this ) {
-                    if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL){
+                    if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH){
                         var oModel = z2ui5.oView.getModel( "http");
                     }else{ 
                         oModel = z2ui5.oView.getModel();
@@ -476,10 +477,12 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
             async displayView(xml, viewModel) {
                  let oview_model = new JSONModel(viewModel);
                  var oModel = oview_model;
-                   if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL){
-                    oModel = new ODataModel({  serviceUrl : z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL });
-                  //  oModel = z2ui5.oOwnerComponent.getModel(z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL);
-                    }
+                   if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH){
+                     oModel = new ODataModel({  
+                         serviceUrl : z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH, 
+                         annotationURI: z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODELANNOURI
+                    });
+                   }
                 z2ui5.oView = await XMLView.create({
                     definition: xml,
                     models: oModel,
@@ -494,7 +497,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     }
                 });
                 z2ui5.oView.setModel(z2ui5.oDeviceModel, "device");
-                if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCHDEFAULTMODEL){
+                if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH){
                   z2ui5.oView.setModel(oview_model, "http");
                     }
                 z2ui5.oApp.removeAllPages();
