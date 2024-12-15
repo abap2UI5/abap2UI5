@@ -126,7 +126,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        },` && |\n|  &&
              `` && |\n|  &&
              `        onClose: function () {` && |\n|  &&
-             `            this.oDialog.close();` && |\n|  &&
+             `            this.close();` && |\n|  &&
              `        },` && |\n|  &&
              `` && |\n|  &&
              `        async show() {` && |\n|  &&
@@ -163,8 +163,18 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `            if (this.oDialog){` && |\n|  &&
              `                this.oDialog.close();` && |\n|  &&
              `                this.oDialog.destroy();` && |\n|  &&
+             `                this.oDialog = null;` && |\n|  &&
              `            }` && |\n|  &&
              `        },` && |\n|  &&
+             `` && |\n|  &&
+             `        async toggle(){` && |\n|  &&
+             `            if (this.oDialog){` && |\n|  &&
+             `                this.close()` && |\n|  &&
+             `            } else {` && |\n|  &&
+             `                this.show()` && |\n|  &&
+             `            }` && |\n|  &&
+             `        },` && |\n|  &&
+             `` && |\n|  &&
              `        renderer(){` && |\n|  &&
              `        }` && |\n|  &&
              `    });` && |\n|  &&
