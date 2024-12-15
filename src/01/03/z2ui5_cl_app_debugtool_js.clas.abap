@@ -76,7 +76,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `                    displayEditor(oEvent, JSON.stringify(z2ui5.oViewPopup.getModel().getData(), null, 3), 'json');` && |\n|  &&
              `                    break;` && |\n|  &&
              `                case 'POPOVER':` && |\n|  &&
-             `                    displayEditor(oEvent, oResponse?.PARAMS?.S_POPOVER?.XML, 'xml');` && |\n|  &&
+             `                    displayEditor(oEvent, this.prettifyXml(oResponse?.PARAMS?.S_POPOVER?.XML), 'xml');` && |\n|  &&
              `                    break;` && |\n|  &&
              `                case 'POPOVER_MODEL':` && |\n|  &&
              `                    displayEditor(oEvent, JSON.stringify(z2ui5?.oViewPopover?.getModel()?.getData(), null, 3), 'json');` && |\n|  &&
