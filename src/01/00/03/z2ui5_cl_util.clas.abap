@@ -1154,7 +1154,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     lv_search = shift_left( val = lv_search
                             sub = `?` ).
-    lv_search = c_trim_lower( lv_search ).
+*    lv_search = c_trim_lower( lv_search ).
 
     DATA(lv_search2) = substring_after( val = lv_search
                                         sub = `&sap-startup-params=` ).
@@ -1170,8 +1170,10 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     LOOP AT lt_param REFERENCE INTO DATA(lr_param).
       SPLIT lr_param->* AT `=` INTO DATA(lv_name) DATA(lv_value).
-      INSERT VALUE #( n = c_trim_lower( lv_name )
-                      v = c_trim_lower( lv_value ) ) INTO TABLE rt_params.
+*      INSERT VALUE #( n = c_trim_lower( lv_name )
+*                      v = c_trim_lower( lv_value ) ) INTO TABLE rt_params.
+      INSERT VALUE #( n = lv_name
+                      v = lv_value ) INTO TABLE rt_params.
     ENDLOOP.
 
   ENDMETHOD.
