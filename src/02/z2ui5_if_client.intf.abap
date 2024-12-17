@@ -41,7 +41,11 @@ INTERFACE z2ui5_if_client
 
   METHODS set_session_stateful
     IMPORTING
-      stateful TYPE abap_bool DEFAULT abap_true.
+      val TYPE abap_bool DEFAULT abap_true.
+
+  METHODS set_app_state_active
+    IMPORTING
+      val TYPE abap_bool DEFAULT abap_true.
 
   METHODS nest_view_display
     IMPORTING
