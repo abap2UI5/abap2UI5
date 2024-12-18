@@ -86,11 +86,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    if (SET_APP_STATE_ACTIVE) {` && |\n|  &&
              `                        let urlObj = new URL(window.location.href);` && |\n|  &&
              `                        urlObj.searchParams.set("z2ui5-xapp-state", z2ui5.oResponse.ID);` && |\n|  &&
-             `                        history.replaceState(oState, null, urlObj.pathname + urlObj.search);` && |\n|  &&
+             `                        history.replaceState(oState, null, urlObj.pathname + urlObj.search + urlObj.hash);` && |\n|  &&
              `                    } else {` && |\n|  &&
              `                        let urlObj = new URL(window.location.href);` && |\n|  &&
              `                        urlObj.searchParams.delete("z2ui5-xapp-state");` && |\n|  &&
-             `                        history.replaceState(oState, null, urlObj.pathname + urlObj.search);` && |\n|  &&
+             `                        history.replaceState(oState, null, urlObj.pathname + urlObj.search + urlObj.hash);` && |\n|  &&
              `                    }` && |\n|  &&
              `` && |\n|  &&
              `` && |\n|  &&
