@@ -214,17 +214,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      }` && |\n|  &&
              `    },` && |\n|  &&
              `    setSearch(val) {` && |\n|  &&
-             `      window.addEventListener("popstate", (event) => {` && |\n|  &&
-             `  // If a state has been provided, we have a "simulated" page` && |\n|  &&
-             `  // and we update the current page.` && |\n|  &&
-             `  if (event.state) {` && |\n|  &&
-             `    // Simulate the loading of the previous page` && |\n|  &&
-             `    displayContent(event.state);` && |\n|  &&
-             `  }` && |\n|  &&
-             `});` && |\n|  &&
              `      this.setProperty("search", val);` && |\n|  &&
-             `      // history.replaceState(null, null, window.location.pathname + val);` && |\n|  &&
-             `      history.pushState(null, null, window.location.pathname + val);` && |\n|  &&
+             `      history.replaceState(null, null, window.location.pathname + val);` && |\n|  &&
              `    },` && |\n|  &&
              `    renderer(oRm, oControl) { }` && |\n|  &&
              `  });` && |\n|  &&
