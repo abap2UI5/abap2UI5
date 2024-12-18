@@ -136,7 +136,10 @@ INTERFACE z2ui5_if_core_types
         custom_js TYPE string_table,
       END OF s_follow_up_action,
 *      handler_attrs TYPE ty_s_http_handler_attributes,
-      s_stateful TYPE ty_s_http_res-s_stateful,
+      set_app_state_active TYPE abap_bool,
+      set_push_state       TYPE abap_bool,
+      set_nav_back         TYPE abap_bool,
+      s_stateful           TYPE ty_s_http_res-s_stateful,
     END OF ty_s_next_frontend.
 
   TYPES:
@@ -175,6 +178,7 @@ INTERFACE z2ui5_if_core_types
       BEGIN OF s_control,
         check_launchpad TYPE abap_bool,
         app_start       TYPE string,
+        app_start_draft TYPE string,
       END OF s_control,
     END OF ty_s_request.
 
