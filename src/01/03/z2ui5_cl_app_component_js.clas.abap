@@ -72,6 +72,10 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `                    z2ui5.oController.ViewDestroy();` && |\n|  &&
              `                    z2ui5.oResponse = event.state.response;` && |\n|  &&
              `                    z2ui5.oController.displayView(event.state.view, event.state.model);` && |\n|  &&
+             `                }else{` && |\n|  &&
+             `                    let urlObj = new URL(window.location.href);` && |\n|  &&
+             `                    urlObj.searchParams.delete("z2ui5-xapp-state");` && |\n|  &&
+             `                    history.replaceState(null, null, urlObj.pathname + urlObj.search + urlObj.hash);` && |\n|  &&
              `                }` && |\n|  &&
              `            });` && |\n|  &&
              `        },` && |\n|  &&
