@@ -66,11 +66,11 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     if (SET_APP_STATE_ACTIVE) {
                         let urlObj = new URL(window.location.href);
                         urlObj.searchParams.set("z2ui5-xapp-state", z2ui5.oResponse.ID);
-                        history.replaceState(oState, null, urlObj.pathname + urlObj.search);
+                        history.replaceState(oState, null, urlObj.pathname + urlObj.search + urlObj.hash);
                     } else {
                         let urlObj = new URL(window.location.href);
                         urlObj.searchParams.delete("z2ui5-xapp-state");
-                        history.replaceState(oState, null, urlObj.pathname + urlObj.search);
+                        history.replaceState(oState, null, urlObj.pathname + urlObj.search + urlObj.hash);
                     }
 
              

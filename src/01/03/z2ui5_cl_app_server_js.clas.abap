@@ -52,7 +52,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `                };` && |\n|  &&
              `` && |\n|  &&
              `                try{` && |\n|  &&
-             `                debugger;` && |\n|  &&
              `                let oState = JSON.parse(JSON.stringify({ view: z2ui5.oView.mProperties.viewContent, model: z2ui5.oView.getModel().getData(), response: z2ui5.oResponse }));` && |\n|  &&
              `                history.replaceState(oState, "", window.location.href );` && |\n|  &&
              `                }catch(e){}` && |\n|  &&

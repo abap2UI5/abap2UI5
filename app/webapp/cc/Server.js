@@ -32,7 +32,6 @@ sap.ui.define(["sap/ui/core/BusyIndicator", "sap/m/MessageBox"
                 };
 
                 try{
-                debugger;
                 let oState = JSON.parse(JSON.stringify({ view: z2ui5.oView.mProperties.viewContent, model: z2ui5.oView.getModel().getData(), response: z2ui5.oResponse }));
                 history.replaceState(oState, "", window.location.href );
                 }catch(e){}
