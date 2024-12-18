@@ -52,6 +52,10 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models", "z2ui5/cc/Server
                     z2ui5.oController.ViewDestroy();
                     z2ui5.oResponse = event.state.response;
                     z2ui5.oController.displayView(event.state.view, event.state.model);
+                }else{
+                    let urlObj = new URL(window.location.href);
+                    urlObj.searchParams.delete("z2ui5-xapp-state");
+                    history.replaceState(null, null, urlObj.pathname + urlObj.search + urlObj.hash);
                 }
             });
         },
