@@ -87,6 +87,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
               DATA(lo_app) = z2ui5_cl_core_app=>db_load( mo_http_post->ms_request-s_control-app_start_draft ).
               result->mo_app = lo_app.
               result->ms_actual-check_on_navigated = abap_true.
+              result->mo_app->ms_draft-id_prev_app_stack = ''.
               " check for new app?
 *              TRY.
 *                  DATA(lo_draft) = NEW z2ui5_cl_core_srv_draft( ).

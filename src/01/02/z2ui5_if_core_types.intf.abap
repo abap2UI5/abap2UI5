@@ -137,6 +137,8 @@ INTERFACE z2ui5_if_core_types
       END OF s_follow_up_action,
 *      handler_attrs TYPE ty_s_http_handler_attributes,
       set_app_state_active      TYPE abap_bool,
+      set_push_state            TYPE abap_bool,
+      set_nav_back              TYPE abap_bool,
       s_stateful TYPE ty_s_http_res-s_stateful,
     END OF ty_s_next_frontend.
 

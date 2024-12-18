@@ -367,6 +367,19 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD z2ui5_if_client~set_nav_back.
+
+    mo_action->ms_next-s_set-set_nav_back = val.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~set_push_state.
+
+    mo_action->ms_next-s_set-set_push_state = val.
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_client~set_app_state_active.
 
     mo_action->ms_next-s_set-set_app_state_active = val.

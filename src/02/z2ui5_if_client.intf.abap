@@ -18,6 +18,7 @@ INTERFACE z2ui5_if_client
       set_size_limit            TYPE string VALUE `SET_SIZE_LIMIT`,
       set_odata_model           TYPE string VALUE `SET_ODATA_MODEL`,
       urlhelper                 TYPE string VALUE `URLHELPER`,
+      history_back              TYPE string VALUE `HISTORY_BACK`,
     END OF cs_event.
 
   CONSTANTS:
@@ -44,6 +45,14 @@ INTERFACE z2ui5_if_client
       val TYPE abap_bool DEFAULT abap_true.
 
   METHODS set_app_state_active
+    IMPORTING
+      val TYPE abap_bool DEFAULT abap_true.
+
+  METHODS set_push_state
+    IMPORTING
+      val TYPE abap_bool DEFAULT abap_true.
+
+  METHODS set_nav_back
     IMPORTING
       val TYPE abap_bool DEFAULT abap_true.
 
