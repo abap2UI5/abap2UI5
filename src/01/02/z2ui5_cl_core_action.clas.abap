@@ -105,7 +105,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 *              ENDIF.
 
               RETURN.
-            CATCH cx_root INTO DATA(lx).
+            CATCH cx_root.
           ENDTRY.
         ENDIF.
 
