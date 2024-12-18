@@ -66,9 +66,6 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n|  &&
              `            // Handle forward/back buttons` && |\n|  &&
              `            window.addEventListener("popstate", (event) => {` && |\n|  &&
-             `                // If a state has been provided, we have a "simulated" page` && |\n|  &&
-             `                // and we update the current page.` && |\n|  &&
-             `                debugger;` && |\n|  &&
              `                delete event.state.response.PARAMS?.SET_PUSH_STATE;` && |\n|  &&
              `                delete event.state.response.PARAMS?.SET_APP_STATE_ACTIVE;` && |\n|  &&
              `                if (event.state?.view) {` && |\n|  &&

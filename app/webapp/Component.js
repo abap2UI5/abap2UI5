@@ -46,9 +46,6 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models", "z2ui5/cc/Server
 
             // Handle forward/back buttons
             window.addEventListener("popstate", (event) => {
-                // If a state has been provided, we have a "simulated" page
-                // and we update the current page.
-                debugger;
                 delete event.state.response.PARAMS?.SET_PUSH_STATE;
                 delete event.state.response.PARAMS?.SET_APP_STATE_ACTIVE;
                 if (event.state?.view) {
