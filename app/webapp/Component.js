@@ -46,9 +46,9 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models", "z2ui5/cc/Server
 
             // Handle forward/back buttons
             window.addEventListener("popstate", (event) => {
-                delete event.state.response.PARAMS?.SET_PUSH_STATE;
-                delete event.state.response.PARAMS?.SET_APP_STATE_ACTIVE;
-                if (event.state?.view) {
+                delete event?.state?.response?.PARAMS?.SET_PUSH_STATE;
+                delete event?.state?.response?.PARAMS?.SET_APP_STATE_ACTIVE;
+                if (event?.state?.view) {
                     z2ui5.oController.ViewDestroy();
                     z2ui5.oResponse = event.state.response;
                     z2ui5.oController.displayView(event.state.view, event.state.model);
