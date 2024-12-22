@@ -176,7 +176,7 @@ CLASS Z2UI5_CL_CORE_SRV_JSON IMPLEMENTATION.
             result-s_control-app_start_draft = z2ui5_cl_util=>c_trim_upper(
                                            z2ui5_cl_util=>url_param_get( val = `z2ui5-xapp-state`
                                                                          url = lv_hash ) ).
-catch cx_root.
+          catch cx_root.
 endtry.
         IF result-s_control-app_start IS NOT INITIAL.
           IF result-s_control-app_start(1) = `-`.
