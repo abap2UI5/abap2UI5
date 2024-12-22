@@ -168,7 +168,7 @@ CLASS Z2UI5_CL_CORE_SRV_JSON IMPLEMENTATION.
           CATCH cx_root.
         ENDTRY.
 
-    try.
+        try.
     "   result-s_control-app_start_draft = z2ui5_cl_util=>c_trim_upper(
     "                                         z2ui5_cl_util=>url_param_get( val = `z2ui5-xapp-state`
     "                                                                       url = result-s_front-search ) ).
