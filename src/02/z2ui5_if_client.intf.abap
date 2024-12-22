@@ -50,7 +50,7 @@ INTERFACE z2ui5_if_client
 
   METHODS set_push_state
     IMPORTING
-      val TYPE abap_bool DEFAULT abap_true.
+      val TYPE string optional.
 
   METHODS set_nav_back
     IMPORTING
