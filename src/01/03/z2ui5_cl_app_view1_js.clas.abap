@@ -300,37 +300,36 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        history.back();` && |\n|  &&
              `                        break;` && |\n|  &&
              `                    case 'CLIPBOARD_APP_STATE':` && |\n|  &&
-             `function copyToClipboard(textToCopy) {` && |\n|  &&
-             `    // Prüft, ob die moderne Clipboard API unterstützt wird` && |\n|  &&
-             `    if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {` && |\n|  &&
-             `        navigator.clipboard.writeText(textToCopy)` && |\n|  &&
-             `            .then(() => {` && |\n|  &&
-             `                console.log("Text copied to clipboard:", textToCopy);` && |\n|  &&
-             `            })` && |\n|  &&
-             `            .catch(err => {` && |\n|  &&
-             `                console.error("Failed to copy text using Clipboard API:", err);` && |\n|  &&
-             `            });` && |\n|  &&
-             `    } else {` && |\n|  &&
-             `        // Fallback für ältere Browser` && |\n|  &&
-             `        const tempTextArea = document.createElement("textarea");` && |\n|  &&
-             `        tempTextArea.value = textToCopy;` && |\n|  &&
-             `        document.body.appendChild(tempTextArea);` && |\n|  &&
-             |\n|  &&
-             `        tempTextArea.select();` && |\n|  &&
-             `        try {` && |\n|  &&
-             `            document.execCommand("copy");` && |\n|  &&
-             `            console.log("Text copied to clipboard (fallback):", textToCopy);` && |\n|  &&
-             `        } catch (err) {` && |\n|  &&
-             `            console.error("Failed to copy text using fallback:", err);` && |\n|  &&
-             `        }` && |\n|  &&
-             |\n|  &&
-             `        // Das temporäre Element entfernen` && |\n|  &&
-             `        document.body.removeChild(tempTextArea);` && |\n|  &&
-             `    }` && |\n|  &&
-             `}`  && |\n|  &&
-             `                        debugger; ` && |\n|  &&
-             `                        copyToClipboard(window.location.href + '#/z2ui5-xapp-state=' + z2ui5.oResponse.ID );` && |\n|  &&
-             `                        break;` && |\n|  &&
+             `                            function copyToClipboard(textToCopy) {` && |\n|  &&
+             `                                // Prüft, ob die moderne Clipboard API unterstützt wird` && |\n|  &&
+             `                                if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {` && |\n|  &&
+             `                                    navigator.clipboard.writeText(textToCopy)` && |\n|  &&
+             `                                        .then(() => {` && |\n|  &&
+             `` && |\n|  &&
+             `                                        })` && |\n|  &&
+             `                                        .catch(err => {` && |\n|  &&
+             `` && |\n|  &&
+             `                                        });` && |\n|  &&
+             `                                } else {` && |\n|  &&
+             `                                    // Fallback für ältere Browser` && |\n|  &&
+             `                                    const tempTextArea = document.createElement("textarea");` && |\n|  &&
+             `                                    tempTextArea.value = textToCopy;` && |\n|  &&
+             `                                    document.body.appendChild(tempTextArea);` && |\n|  &&
+             `` && |\n|  &&
+             `                                    tempTextArea.select();` && |\n|  &&
+             `                                    try {` && |\n|  &&
+             `                                        document.execCommand("copy");` && |\n|  &&
+             `` && |\n|  &&
+             `                                    } catch (err) {` && |\n|  &&
+             `` && |\n|  &&
+             `                                    }` && |\n|  &&
+             `` && |\n|  &&
+             `                                    // Das temporäre Element entfernen` && |\n|  &&
+             `                                    document.body.removeChild(tempTextArea);` && |\n|  &&
+             `                                }` && |\n|  &&
+             `                            }` && |\n|  &&
+             `                                                    copyToClipboard(window.location.href + '#/z2ui5-xapp-state=' + z2ui5.oResponse.ID );` && |\n|  &&
+             `                                                    break;` && |\n|  &&
              `                    case 'SET_ODATA_MODEL':` && |\n|  &&
              `                        var oModel = new ODataModel({ serviceUrl: args[1], annotationURI: (args.length > 3 ? args[3] : '') });` && |\n|  &&
              `                        z2ui5.oView.setModel(oModel, args[2] ? args[2] : undefined);` && |\n|  &&
@@ -519,6 +518,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                }` && |\n|  &&
              `                ; MessageBox.error(err.toLocaleString());` && |\n|  &&
              `            },` && |\n|  &&
+             |\n|.
+    result = result &&
              `            showMessage(msgType, params) {` && |\n|  &&
              `                if (params == undefined) {` && |\n|  &&
              `                    return;` && |\n|  &&
@@ -550,8 +551,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                            onClose: params[msgType].ONCLOSE ? Function("sAction", "return " + params[msgType].ONCLOSE) : null,` && |\n|  &&
              `                            actions: params[msgType].ACTIONS ? params[msgType].ACTIONS : 'OK',` && |\n|  &&
              `                            emphasizedAction: params[msgType].EMPHASIZEDACTION ? params[msgType].EMPHASIZEDACTION : 'OK',` && |\n|  &&
-             |\n|.
-    result = result &&
              `                            initialFocus: params[msgType].INITIALFOCUS ? params[msgType].INITIALFOCUS : null,` && |\n|  &&
              `                            textDirection: params[msgType].TEXTDIRECTION ? params[msgType].TEXTDIRECTION : 'Inherit',` && |\n|  &&
              `                            icon: params[msgType].ICON ? params[msgType].ICON : 'NONE',` && |\n|  &&
