@@ -33,6 +33,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `            if (typeof z2ui5 == 'undefined') {` && |\n|  &&
              `                z2ui5 = {};` && |\n|  &&
              `            }` && |\n|  &&
+             `            z2ui5 = {};` && |\n|  &&
              `` && |\n|  &&
              `            z2ui5.oRouter = this.getRouter();` && |\n|  &&
              `            z2ui5.oRouter.initialize();` && |\n|  &&

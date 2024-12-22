@@ -172,7 +172,11 @@ CLASS Z2UI5_CL_CORE_SRV_JSON IMPLEMENTATION.
     "   result-s_control-app_start_draft = z2ui5_cl_util=>c_trim_upper(
     "                                         z2ui5_cl_util=>url_param_get( val = `z2ui5-xapp-state`
     "                                                                       url = result-s_front-search ) ).
-            data(lv_hash) = result-s_front-hash+2.
+            data(lv_hash) = result-s_front-hash.
+            split lv_hash at '&' into data(lv_dummy) lv_hash.
+            if lv_hash is initial.
+              lv_hash = result-s_front-hash+2.
+            endif.
             result-s_control-app_start_draft = z2ui5_cl_util=>c_trim_upper(
                                            z2ui5_cl_util=>url_param_get( val = `z2ui5-xapp-state`
                                                                          url = lv_hash ) ).
