@@ -279,6 +279,33 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     case 'HISTORY_BACK':
                         history.back();
                         break;
+                    case 'CLIPBOARD_APP_STATE':
+                            function copyToClipboard(textToCopy) {
+                                if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+                                    navigator.clipboard.writeText(textToCopy)
+                                        .then(() => {
+                                          
+                                        })
+                                        .catch(err => {
+                                        
+                                        });
+                                } else {
+                                    const tempTextArea = document.createElement("textarea");
+                                    tempTextArea.value = textToCopy;
+                                    document.body.appendChild(tempTextArea);
+                            
+                                    tempTextArea.select();
+                                    try {
+                                        document.execCommand("copy");
+                                      
+                                    } catch (err) {
+                                      
+                                    }
+                                    document.body.removeChild(tempTextArea);
+                                }
+                            }
+                                                    copyToClipboard(window.location.href + '#/z2ui5-xapp-state=' + z2ui5.oResponse.ID );
+                                                    break;
                     case 'SET_ODATA_MODEL':
                         var oModel = new ODataModel({ serviceUrl: args[1], annotationURI: (args.length > 3 ? args[3] : '') });
                         z2ui5.oView.setModel(oModel, args[2] ? args[2] : undefined);

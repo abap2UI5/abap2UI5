@@ -19,6 +19,7 @@ INTERFACE z2ui5_if_client
       set_odata_model           TYPE string VALUE `SET_ODATA_MODEL`,
       urlhelper                 TYPE string VALUE `URLHELPER`,
       history_back              TYPE string VALUE `HISTORY_BACK`,
+      CLIPBOARD_APP_STATE       TYPE string VALUE `CLIPBOARD_APP_STATE`,
     END OF cs_event.
 
   CONSTANTS:
