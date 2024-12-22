@@ -281,7 +281,6 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         break;
                     case 'CLIPBOARD_APP_STATE':
                             function copyToClipboard(textToCopy) {
-                                // Prüft, ob die moderne Clipboard API unterstützt wird
                                 if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
                                     navigator.clipboard.writeText(textToCopy)
                                         .then(() => {
@@ -291,7 +290,6 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                                         
                                         });
                                 } else {
-                                    // Fallback für ältere Browser
                                     const tempTextArea = document.createElement("textarea");
                                     tempTextArea.value = textToCopy;
                                     document.body.appendChild(tempTextArea);
@@ -303,8 +301,6 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                                     } catch (err) {
                                       
                                     }
-                            
-                                    // Das temporäre Element entfernen
                                     document.body.removeChild(tempTextArea);
                                 }
                             }

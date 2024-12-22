@@ -301,7 +301,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        break;` && |\n|  &&
              `                    case 'CLIPBOARD_APP_STATE':` && |\n|  &&
              `                            function copyToClipboard(textToCopy) {` && |\n|  &&
-             `                                // Prüft, ob die moderne Clipboard API unterstützt wird` && |\n|  &&
              `                                if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {` && |\n|  &&
              `                                    navigator.clipboard.writeText(textToCopy)` && |\n|  &&
              `                                        .then(() => {` && |\n|  &&
@@ -311,7 +310,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n|  &&
              `                                        });` && |\n|  &&
              `                                } else {` && |\n|  &&
-             `                                    // Fallback für ältere Browser` && |\n|  &&
              `                                    const tempTextArea = document.createElement("textarea");` && |\n|  &&
              `                                    tempTextArea.value = textToCopy;` && |\n|  &&
              `                                    document.body.appendChild(tempTextArea);` && |\n|  &&
@@ -323,8 +321,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                                    } catch (err) {` && |\n|  &&
              `` && |\n|  &&
              `                                    }` && |\n|  &&
-             `` && |\n|  &&
-             `                                    // Das temporäre Element entfernen` && |\n|  &&
              `                                    document.body.removeChild(tempTextArea);` && |\n|  &&
              `                                }` && |\n|  &&
              `                            }` && |\n|  &&
@@ -518,12 +514,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                }` && |\n|  &&
              `                ; MessageBox.error(err.toLocaleString());` && |\n|  &&
              `            },` && |\n|  &&
-             |\n|.
-    result = result &&
              `            showMessage(msgType, params) {` && |\n|  &&
              `                if (params == undefined) {` && |\n|  &&
              `                    return;` && |\n|  &&
              `                }` && |\n|  &&
+             |\n|.
+    result = result &&
              `                if (params[msgType]?.TEXT !== undefined) {` && |\n|  &&
              `                    if (msgType === 'S_MSG_TOAST') {` && |\n|  &&
              `                        MessageToast.show(params[msgType].TEXT, {` && |\n|  &&
