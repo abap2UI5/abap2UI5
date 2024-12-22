@@ -77,20 +77,31 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    }` && |\n|  &&
              `` && |\n|  &&
              `                    let oState = JSON.parse(JSON.stringify({ view: z2ui5.oView.mProperties.viewContent, model: z2ui5.oView.getModel().getData(), response: z2ui5.oResponse }));` && |\n|  &&
-             `                    if (SET_PUSH_STATE) {` && |\n|  &&
-             `                        history.pushState(oState, "", window.location.href );` && |\n|  &&
-             `                    }else{` && |\n|  &&
+             `                   if (SET_PUSH_STATE) {` && |\n|  &&
+             `                     // sap.ui.core.routing.HashChanger.getInstance().setHash("423143124");` && |\n|  &&
+             `                     // sap.ui.core.routing.HashChanger.getInstance().replaceHash("423143124");` && |\n|  &&
+             `                      //history.go(-1);` && |\n|  &&
+             `                        let urlObj = new URL(window.location.href);` && |\n|  &&
+             `                        let hash = sap.ui.core.routing.HashChanger.getInstance().getHash();` && |\n|  &&
+             `                        if (!hash){` && |\n|  &&
+             `                        hash = '#';` && |\n|  &&
+             `                        }` && |\n|  &&
+             `                        history.pushState(oState, "", urlObj.pathname + urlObj.search + hash + SET_PUSH_STATE);` && |\n|  &&
+             `                     }else{` && |\n|  &&
+             `                     //  debugger;` && |\n|  &&
              `                        history.replaceState(oState, "", window.location.href );` && |\n|  &&
              `                    }` && |\n|  &&
              `` && |\n|  &&
              `                    if (SET_APP_STATE_ACTIVE) {` && |\n|  &&
-             `                        let urlObj = new URL(window.location.href);` && |\n|  &&
-             `                        urlObj.searchParams.set("z2ui5-xapp-state", z2ui5.oResponse.ID);` && |\n|  &&
-             `                        history.replaceState(oState, null, urlObj.pathname + urlObj.search + urlObj.hash);` && |\n|  &&
+             `                      sap.ui.core.routing.HashChanger.getInstance().replaceHash("z2ui5-xapp-state=" + z2ui5.oResponse.ID );` && |\n|  &&
+             `                      //  let urlObj = new URL(window.location.href);` && |\n|  &&
+             `                      //  urlObj.searchParams.set("z2ui5-xapp-state", z2ui5.oResponse.ID);` && |\n|  &&
+             `                      //  history.replaceState(oState, null, urlObj.pathname + urlObj.search + urlObj.hash);` && |\n|  &&
              `                    } else {` && |\n|  &&
-             `                        let urlObj = new URL(window.location.href);` && |\n|  &&
-             `                        urlObj.searchParams.delete("z2ui5-xapp-state");` && |\n|  &&
-             `                        history.replaceState(oState, null, urlObj.pathname + urlObj.search + urlObj.hash);` && |\n|  &&
+             `                       sap.ui.core.routing.HashChanger.getInstance().replaceHash("");` && |\n|  &&
+             `                      //  let urlObj = new URL(window.location.href);` && |\n|  &&
+             `                      //  urlObj.searchParams.delete("z2ui5-xapp-state");` && |\n|  &&
+             `                      //  history.replaceState(oState, null, urlObj.pathname + urlObj.search + urlObj.hash);` && |\n|  &&
              `                    }` && |\n|  &&
              `` && |\n|  &&
              `` && |\n|  &&
@@ -507,6 +518,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                            onClose: params[msgType].ONCLOSE ? Function("sAction", "return " + params[msgType].ONCLOSE) : null,` && |\n|  &&
              `                            actions: params[msgType].ACTIONS ? params[msgType].ACTIONS : 'OK',` && |\n|  &&
              `                            emphasizedAction: params[msgType].EMPHASIZEDACTION ? params[msgType].EMPHASIZEDACTION : 'OK',` && |\n|  &&
+             |\n|.
+    result = result &&
              `                            initialFocus: params[msgType].INITIALFOCUS ? params[msgType].INITIALFOCUS : null,` && |\n|  &&
              `                            textDirection: params[msgType].TEXTDIRECTION ? params[msgType].TEXTDIRECTION : 'Inherit',` && |\n|  &&
              `                            icon: params[msgType].ICON ? params[msgType].ICON : 'NONE',` && |\n|  &&
@@ -518,8 +531,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    }` && |\n|  &&
              `                }` && |\n|  &&
              `            },` && |\n|  &&
-             |\n|.
-    result = result &&
              `            async displayView(xml, viewModel) {` && |\n|  &&
              `                let oview_model = new JSONModel(viewModel);` && |\n|  &&
              `                var oModel = oview_model;` && |\n|  &&
@@ -551,7 +562,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            },` && |\n|  &&
              `        })` && |\n|  &&
              `    });` && |\n|  &&
-             `` && |\n|  &&
               ``.
 
   ENDMETHOD.

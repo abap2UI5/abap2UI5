@@ -1,6 +1,7 @@
 sap.ui.define(["sap/ui/core/mvc/Controller",
   "z2ui5/controller/View1.controller",
-], function (BaseController, Controller) {
+  "z2ui5/cc/Server"
+], function (BaseController, Controller, Server) {
   return BaseController.extend("z2ui5.controller.App", {
 
     onInit() {
@@ -25,6 +26,12 @@ sap.ui.define(["sap/ui/core/mvc/Controller",
       z2ui5.onAfterRoundtrip = [];
 
       z2ui5.checkNestAfter = false;
+
+    //  if (sap.ui.core.routing.HashChanger.getInstance().getHash().includes("z2ui5-xapp-state")){
+       if (sap.ui.core.routing.HashChanger.getInstance().getHash()){
+          z2ui5.checkInit = true;
+          Server.Roundtrip();
+      }
 
     }
   });
@@ -173,7 +180,7 @@ sap.ui.define("z2ui5/LPTitle", ["sap/ui/core/Control"], (Control) => {
       z2ui5.ApplicationFullWidth = val;
     sap.ui.require([
       "sap/ushell/services/AppConfiguration"
-    ], async (AppConfiguration)  => {   
+    ], async (AppConfiguration)  => {
       AppConfiguration.setApplicationFullWidth(z2ui5.ApplicationFullWidth);
     });
 
