@@ -1,9 +1,9 @@
 sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/model/json/JSONModel",
     "sap/ui/core/BusyIndicator", "sap/m/MessageBox", "sap/m/MessageToast", "sap/ui/core/Fragment", "sap/m/BusyDialog",
-    "sap/ui/VersionInfo", "z2ui5/cc/Server", "sap/ui/model/odata/v2/ODataModel", "sap/m/library"
+    "sap/ui/VersionInfo", "z2ui5/cc/Server", "sap/ui/model/odata/v2/ODataModel", "sap/m/library",   "sap/ui/core/routing/HashChanger"
 ],
     function (Controller, XMLView, JSONModel, BusyIndicator, MessageBox, MessageToast, Fragment, mBusyDialog, VersionInfo,
-        Server, ODataModel, mobileLibrary) {
+        Server, ODataModel, mobileLibrary, HashChanger) {
         "use strict";
         return Controller.extend("z2ui5.controller.View1", {
 
@@ -57,23 +57,34 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     }
 
                     let oState = JSON.parse(JSON.stringify({ view: z2ui5.oView.mProperties.viewContent, model: z2ui5.oView.getModel().getData(), response: z2ui5.oResponse }));
-                    if (SET_PUSH_STATE) {
-                        history.pushState(oState, "", window.location.href );
-                    }else{
+                   if (SET_PUSH_STATE) {
+                     // sap.ui.core.routing.HashChanger.getInstance().setHash("423143124");
+                     // sap.ui.core.routing.HashChanger.getInstance().replaceHash("423143124");
+                      //history.go(-1);
+                        let urlObj = new URL(window.location.href);
+                        let hash = HashChanger.getInstance().getHash();
+                        if (!hash){
+                        hash = '#';
+                        }
+                        history.pushState(oState, "", urlObj.pathname + urlObj.search + hash + SET_PUSH_STATE);
+                     }else{
+                     //  debugger;
                         history.replaceState(oState, "", window.location.href );
                     }
-                    
+
                     if (SET_APP_STATE_ACTIVE) {
-                        let urlObj = new URL(window.location.href);
-                        urlObj.searchParams.set("z2ui5-xapp-state", z2ui5.oResponse.ID);
-                        history.replaceState(oState, null, urlObj.pathname + urlObj.search + urlObj.hash);
+                      HashChanger.getInstance().replaceHash("z2ui5-xapp-state=" + z2ui5.oResponse.ID );
+                      //  let urlObj = new URL(window.location.href);
+                      //  urlObj.searchParams.set("z2ui5-xapp-state", z2ui5.oResponse.ID);
+                      //  history.replaceState(oState, null, urlObj.pathname + urlObj.search + urlObj.hash);
                     } else {
-                        let urlObj = new URL(window.location.href);
-                        urlObj.searchParams.delete("z2ui5-xapp-state");
-                        history.replaceState(oState, null, urlObj.pathname + urlObj.search + urlObj.hash);
+                       HashChanger.getInstance().replaceHash("");
+                      //  let urlObj = new URL(window.location.href);
+                      //  urlObj.searchParams.delete("z2ui5-xapp-state");
+                      //  history.replaceState(oState, null, urlObj.pathname + urlObj.search + urlObj.hash);
                     }
 
-             
+
 
                     if (SET_NAV_BACK) {
                         history.back();
@@ -282,7 +293,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         sap.ui.require([
                             "sap/ushell/Container"
                         ], async (ushellContainer) => {
-                            // z2ui5.oCrossAppNavigator = await ushellContainer.getServiceAsync("CrossApplicationNavigation");     
+                            // z2ui5.oCrossAppNavigator = await ushellContainer.getServiceAsync("CrossApplicationNavigation");
                             z2ui5.oCrossAppNavigator = ushellContainer.getService("CrossApplicationNavigation");
                             z2ui5.oCrossAppNavigator.backToPreviousApp();
                         });
@@ -292,7 +303,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         sap.ui.require([
                             "sap/ushell/Container"
                         ], async (ushellContainer) => {
-                            // z2ui5.oCrossAppNavigator = await ushellContainer.getServiceAsync("CrossApplicationNavigation");     
+                            // z2ui5.oCrossAppNavigator = await ushellContainer.getServiceAsync("CrossApplicationNavigation");
                             z2ui5.oCrossAppNavigator = ushellContainer.getService("CrossApplicationNavigation");
                             const hash = (z2ui5.oCrossAppNavigator.hrefForExternal({
                                 target: z2ui5.args[1],

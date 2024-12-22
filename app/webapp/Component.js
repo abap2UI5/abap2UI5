@@ -2,7 +2,10 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models", "z2ui5/cc/Server
 ], function (UIComponent, Models, Server, VersionInfo, DebugTool) {
     return UIComponent.extend("z2ui5.Component", {
         metadata: {
-            manifest: "json"
+            manifest: "json",
+            interfaces: [
+                "sap.ui.core.IAsyncContentCreation"
+            ]
         },
         async init() {
             UIComponent.prototype.init.apply(this, arguments);
@@ -10,8 +13,11 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models", "z2ui5/cc/Server
             if (typeof z2ui5 == 'undefined') {
                 z2ui5 = {};
             }
-            this.getRouter().initialize();
+
             z2ui5.oRouter = this.getRouter();
+            z2ui5.oRouter.initialize();
+            z2ui5.oRouter.stop();
+
             z2ui5.oDeviceModel = Models.createDeviceModel();
             this.setModel(z2ui5.oDeviceModel, "device");
 
@@ -44,7 +50,6 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models", "z2ui5/cc/Server
                 }
             });
 
-            // Handle forward/back buttons
             window.addEventListener("popstate", (event) => {
                 delete event?.state?.response?.PARAMS?.SET_PUSH_STATE;
                 delete event?.state?.response?.PARAMS?.SET_APP_STATE_ACTIVE;
@@ -52,10 +57,6 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models", "z2ui5/cc/Server
                     z2ui5.oController.ViewDestroy();
                     z2ui5.oResponse = event.state.response;
                     z2ui5.oController.displayView(event.state.view, event.state.model);
-                }else{
-                    let urlObj = new URL(window.location.href);
-                    urlObj.searchParams.delete("z2ui5-xapp-state");
-                    history.replaceState(null, null, urlObj.pathname + urlObj.search + urlObj.hash);
                 }
             });
         },

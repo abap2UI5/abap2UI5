@@ -22,7 +22,10 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `], function (UIComponent, Models, Server, VersionInfo, DebugTool) {` && |\n|  &&
              `    return UIComponent.extend("z2ui5.Component", {` && |\n|  &&
              `        metadata: {` && |\n|  &&
-             `            manifest: "json"` && |\n|  &&
+             `            manifest: "json",` && |\n|  &&
+             `            interfaces: [` && |\n|  &&
+             `                "sap.ui.core.IAsyncContentCreation"` && |\n|  &&
+             `            ]` && |\n|  &&
              `        },` && |\n|  &&
              `        async init() {` && |\n|  &&
              `            UIComponent.prototype.init.apply(this, arguments);` && |\n|  &&
@@ -30,8 +33,11 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `            if (typeof z2ui5 == 'undefined') {` && |\n|  &&
              `                z2ui5 = {};` && |\n|  &&
              `            }` && |\n|  &&
-             `            this.getRouter().initialize();` && |\n|  &&
+             `` && |\n|  &&
              `            z2ui5.oRouter = this.getRouter();` && |\n|  &&
+             `            z2ui5.oRouter.initialize();` && |\n|  &&
+             `            z2ui5.oRouter.stop();` && |\n|  &&
+             `` && |\n|  &&
              `            z2ui5.oDeviceModel = Models.createDeviceModel();` && |\n|  &&
              `            this.setModel(z2ui5.oDeviceModel, "device");` && |\n|  &&
              `` && |\n|  &&
@@ -64,7 +70,6 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `                }` && |\n|  &&
              `            });` && |\n|  &&
              `` && |\n|  &&
-             `            // Handle forward/back buttons` && |\n|  &&
              `            window.addEventListener("popstate", (event) => {` && |\n|  &&
              `                delete event?.state?.response?.PARAMS?.SET_PUSH_STATE;` && |\n|  &&
              `                delete event?.state?.response?.PARAMS?.SET_APP_STATE_ACTIVE;` && |\n|  &&
@@ -72,10 +77,6 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `                    z2ui5.oController.ViewDestroy();` && |\n|  &&
              `                    z2ui5.oResponse = event.state.response;` && |\n|  &&
              `                    z2ui5.oController.displayView(event.state.view, event.state.model);` && |\n|  &&
-             `                }else{` && |\n|  &&
-             `                    let urlObj = new URL(window.location.href);` && |\n|  &&
-             `                    urlObj.searchParams.delete("z2ui5-xapp-state");` && |\n|  &&
-             `                    history.replaceState(null, null, urlObj.pathname + urlObj.search + urlObj.hash);` && |\n|  &&
              `                }` && |\n|  &&
              `            });` && |\n|  &&
              `        },` && |\n|  &&
@@ -96,7 +97,6 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        },` && |\n|  &&
              `    });` && |\n|  &&
              `});` && |\n|  &&
-             `` && |\n|  &&
               ``.
 
   ENDMETHOD.
