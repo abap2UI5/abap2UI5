@@ -1,9 +1,9 @@
 sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/model/json/JSONModel",
     "sap/ui/core/BusyIndicator", "sap/m/MessageBox", "sap/m/MessageToast", "sap/ui/core/Fragment", "sap/m/BusyDialog",
-    "sap/ui/VersionInfo", "z2ui5/cc/Server", "sap/ui/model/odata/v2/ODataModel", "sap/m/library"
+    "sap/ui/VersionInfo", "z2ui5/cc/Server", "sap/ui/model/odata/v2/ODataModel", "sap/m/library",   "sap/ui/core/routing/HashChanger"
 ],
     function (Controller, XMLView, JSONModel, BusyIndicator, MessageBox, MessageToast, Fragment, mBusyDialog, VersionInfo,
-        Server, ODataModel, mobileLibrary) {
+        Server, ODataModel, mobileLibrary, HashChanger) {
         "use strict";
         return Controller.extend("z2ui5.controller.View1", {
 
@@ -62,7 +62,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                      // sap.ui.core.routing.HashChanger.getInstance().replaceHash("423143124");
                       //history.go(-1);
                         let urlObj = new URL(window.location.href);
-                        let hash = sap.ui.core.routing.HashChanger.getInstance().getHash();
+                        let hash = HashChanger.getInstance().getHash();
                         if (!hash){
                         hash = '#';
                         }
@@ -73,12 +73,12 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     }
 
                     if (SET_APP_STATE_ACTIVE) {
-                      sap.ui.core.routing.HashChanger.getInstance().replaceHash("z2ui5-xapp-state=" + z2ui5.oResponse.ID );
+                      HashChanger.getInstance().replaceHash("z2ui5-xapp-state=" + z2ui5.oResponse.ID );
                       //  let urlObj = new URL(window.location.href);
                       //  urlObj.searchParams.set("z2ui5-xapp-state", z2ui5.oResponse.ID);
                       //  history.replaceState(oState, null, urlObj.pathname + urlObj.search + urlObj.hash);
                     } else {
-                       sap.ui.core.routing.HashChanger.getInstance().replaceHash("");
+                       HashChanger.getInstance().replaceHash("");
                       //  let urlObj = new URL(window.location.href);
                       //  urlObj.searchParams.delete("z2ui5-xapp-state");
                       //  history.replaceState(oState, null, urlObj.pathname + urlObj.search + urlObj.hash);

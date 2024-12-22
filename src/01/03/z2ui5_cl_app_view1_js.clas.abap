@@ -20,10 +20,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
 
     result =              `sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/model/json/JSONModel",` && |\n|  &&
              `    "sap/ui/core/BusyIndicator", "sap/m/MessageBox", "sap/m/MessageToast", "sap/ui/core/Fragment", "sap/m/BusyDialog",` && |\n|  &&
-             `    "sap/ui/VersionInfo", "z2ui5/cc/Server", "sap/ui/model/odata/v2/ODataModel", "sap/m/library"` && |\n|  &&
+             `    "sap/ui/VersionInfo", "z2ui5/cc/Server", "sap/ui/model/odata/v2/ODataModel", "sap/m/library",   "sap/ui/core/routing/HashChanger"` && |\n|  &&
              `],` && |\n|  &&
              `    function (Controller, XMLView, JSONModel, BusyIndicator, MessageBox, MessageToast, Fragment, mBusyDialog, VersionInfo,` && |\n|  &&
-             `        Server, ODataModel, mobileLibrary) {` && |\n|  &&
+             `        Server, ODataModel, mobileLibrary, HashChanger) {` && |\n|  &&
              `        "use strict";` && |\n|  &&
              `        return Controller.extend("z2ui5.controller.View1", {` && |\n|  &&
              `` && |\n|  &&
@@ -82,7 +82,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                     // sap.ui.core.routing.HashChanger.getInstance().replaceHash("423143124");` && |\n|  &&
              `                      //history.go(-1);` && |\n|  &&
              `                        let urlObj = new URL(window.location.href);` && |\n|  &&
-             `                        let hash = sap.ui.core.routing.HashChanger.getInstance().getHash();` && |\n|  &&
+             `                        let hash = HashChanger.getInstance().getHash();` && |\n|  &&
              `                        if (!hash){` && |\n|  &&
              `                        hash = '#';` && |\n|  &&
              `                        }` && |\n|  &&
@@ -93,12 +93,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    }` && |\n|  &&
              `` && |\n|  &&
              `                    if (SET_APP_STATE_ACTIVE) {` && |\n|  &&
-             `                      sap.ui.core.routing.HashChanger.getInstance().replaceHash("z2ui5-xapp-state=" + z2ui5.oResponse.ID );` && |\n|  &&
+             `                      HashChanger.getInstance().replaceHash("z2ui5-xapp-state=" + z2ui5.oResponse.ID );` && |\n|  &&
              `                      //  let urlObj = new URL(window.location.href);` && |\n|  &&
              `                      //  urlObj.searchParams.set("z2ui5-xapp-state", z2ui5.oResponse.ID);` && |\n|  &&
              `                      //  history.replaceState(oState, null, urlObj.pathname + urlObj.search + urlObj.hash);` && |\n|  &&
              `                    } else {` && |\n|  &&
-             `                       sap.ui.core.routing.HashChanger.getInstance().replaceHash("");` && |\n|  &&
+             `                       HashChanger.getInstance().replaceHash("");` && |\n|  &&
              `                      //  let urlObj = new URL(window.location.href);` && |\n|  &&
              `                      //  urlObj.searchParams.delete("z2ui5-xapp-state");` && |\n|  &&
              `                      //  history.replaceState(oState, null, urlObj.pathname + urlObj.search + urlObj.hash);` && |\n|  &&
