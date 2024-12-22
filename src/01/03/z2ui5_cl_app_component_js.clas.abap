@@ -22,7 +22,10 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `], function (UIComponent, Models, Server, VersionInfo, DebugTool) {` && |\n|  &&
              `    return UIComponent.extend("z2ui5.Component", {` && |\n|  &&
              `        metadata: {` && |\n|  &&
-             `            manifest: "json"` && |\n|  &&
+             `            manifest: "json",` && |\n|  &&
+             `            interfaces: [` && |\n|  &&
+             `                "sap.ui.core.IAsyncContentCreation"` && |\n|  &&
+             `            ]` && |\n|  &&
              `        },` && |\n|  &&
              `        async init() {` && |\n|  &&
              `            UIComponent.prototype.init.apply(this, arguments);` && |\n|  &&

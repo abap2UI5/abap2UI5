@@ -2,7 +2,10 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models", "z2ui5/cc/Server
 ], function (UIComponent, Models, Server, VersionInfo, DebugTool) {
     return UIComponent.extend("z2ui5.Component", {
         metadata: {
-            manifest: "json"
+            manifest: "json",
+            interfaces: [
+                "sap.ui.core.IAsyncContentCreation"
+            ]
         },
         async init() {
             UIComponent.prototype.init.apply(this, arguments);
