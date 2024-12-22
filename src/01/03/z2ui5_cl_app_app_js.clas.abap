@@ -20,8 +20,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
 
     result =              `sap.ui.define(["sap/ui/core/mvc/Controller",` && |\n|  &&
              `  "z2ui5/controller/View1.controller",` && |\n|  &&
-             `  "z2ui5/cc/Server"` && |\n|  &&
-             `], function (BaseController, Controller, Server) {` && |\n|  &&
+             `  "z2ui5/cc/Server",` && |\n|  &&
+             `  "sap/ui/core/routing/HashChanger"` && |\n|  &&
+             `], function (BaseController, Controller, Server, HashChanger) {` && |\n|  &&
              `  return BaseController.extend("z2ui5.controller.App", {` && |\n|  &&
              `` && |\n|  &&
              `    onInit() {` && |\n|  &&
@@ -48,7 +49,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      z2ui5.checkNestAfter = false;` && |\n|  &&
              `` && |\n|  &&
              `    //  if (sap.ui.core.routing.HashChanger.getInstance().getHash().includes("z2ui5-xapp-state")){` && |\n|  &&
-             `       if (sap.ui.core.routing.HashChanger.getInstance().getHash()){` && |\n|  &&
+             `       if (HashChanger.getInstance().getHash()){` && |\n|  &&
              `          z2ui5.checkInit = true;` && |\n|  &&
              `          Server.Roundtrip();` && |\n|  &&
              `      }` && |\n|  &&
@@ -517,9 +518,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          defaultValue: "Upload"` && |\n|  &&
              `        },` && |\n|  &&
              `        enabled: {` && |\n|  &&
-             `          type: "boolean",` && |\n|  &&
              |\n|.
     result = result &&
+             `          type: "boolean",` && |\n|  &&
              `          defaultValue: true` && |\n|  &&
              `        },` && |\n|  &&
              `        icon: {` && |\n|  &&
@@ -1019,9 +1020,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    DateCreateObject: (s) => new Date(s),` && |\n|  &&
              `    //  DateAbapTimestampToDate: (sTimestamp) => new sap.gantt.misc.Format.abapTimestampToDate(sTimestamp), commented for UI5 2.x compatibility` && |\n|  &&
              `    DateAbapDateToDateObject: (d) => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8)),` && |\n|  &&
-             `    DateAbapDateTimeToDateObject: (d, t = '000000') => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8), t.slice(0, 2), t.slice(2, 4), t.slice(4, 6)),` && |\n|  &&
              |\n|.
     result = result &&
+             `    DateAbapDateTimeToDateObject: (d, t = '000000') => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8), t.slice(0, 2), t.slice(2, 4), t.slice(4, 6)),` && |\n|  &&
              `  };` && |\n|  &&
              `}` && |\n|  &&
              `);` && |\n|  &&

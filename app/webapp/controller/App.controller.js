@@ -1,7 +1,8 @@
 sap.ui.define(["sap/ui/core/mvc/Controller",
   "z2ui5/controller/View1.controller",
-  "z2ui5/cc/Server"
-], function (BaseController, Controller, Server) {
+  "z2ui5/cc/Server",
+  "sap/ui/core/routing/HashChanger"
+], function (BaseController, Controller, Server, HashChanger) {
   return BaseController.extend("z2ui5.controller.App", {
 
     onInit() {
@@ -28,7 +29,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller",
       z2ui5.checkNestAfter = false;
 
     //  if (sap.ui.core.routing.HashChanger.getInstance().getHash().includes("z2ui5-xapp-state")){
-       if (sap.ui.core.routing.HashChanger.getInstance().getHash()){
+       if (HashChanger.getInstance().getHash()){
           z2ui5.checkInit = true;
           Server.Roundtrip();
       }
