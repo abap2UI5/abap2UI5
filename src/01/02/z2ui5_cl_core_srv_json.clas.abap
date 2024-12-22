@@ -177,7 +177,7 @@ CLASS Z2UI5_CL_CORE_SRV_JSON IMPLEMENTATION.
                                            z2ui5_cl_util=>url_param_get( val = `z2ui5-xapp-state`
                                                                          url = lv_hash ) ).
           catch cx_root.
-endtry.
+        endtry.
         IF result-s_control-app_start IS NOT INITIAL.
           IF result-s_control-app_start(1) = `-`.
             REPLACE FIRST OCCURRENCE OF `-` IN result-s_control-app_start WITH `/`.
