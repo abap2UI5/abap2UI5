@@ -37,7 +37,6 @@ CLASS z2ui5_cl_pop_input_val DEFINITION
     DATA button_text_confirm    TYPE string.
     DATA button_text_cancel     TYPE string.
     DATA check_initialized      TYPE abap_bool.
-    DATA check_result_confirmed TYPE abap_bool.
 
     METHODS view_display.
 
@@ -98,11 +97,11 @@ CLASS z2ui5_cl_pop_input_val IMPLEMENTATION.
 
     CASE client->get( )-event.
       WHEN `BUTTON_CONFIRM`.
-        check_result_confirmed = abap_true.
+        ms_result-check_confirmed = abap_true.
         client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
       WHEN `BUTTON_CANCEL`.
-        check_result_confirmed = abap_false.
+        ms_result-check_confirmed = abap_false.
         client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
     ENDCASE.
