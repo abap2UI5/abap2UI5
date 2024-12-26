@@ -31,7 +31,7 @@ Find all project information in the [**documentation.**](http://abap2UI5.org) �
 * [Quickstart](https://abap2ui5.github.io/docs/get_started/quickstart.html) –  Install and develop your first abap2UI5 app
 * [Guide](https://abap2ui5.github.io/docs/) - Explore the documentation for deeper insights
 * [Addons](https://abap2ui5.github.io/docs/addons/addons.html) –  Extend abap2UI5 to fit your unique requirements
-* [Apps](https://abap2ui5.github.io/docs/addons/apps.html) – Discover ready-to-use applications
+* [More](https://abap2ui5.github.io/docs/resources/who_uses.html) – Discover apps, use cases and companies using abap2UI5
   
 #### References
 * Find abap2UI5 on ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
