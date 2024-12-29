@@ -13,7 +13,9 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models", "z2ui5/cc/Server
             if (typeof z2ui5 == 'undefined') {
                 z2ui5 = {};
             }
+            if (z2ui5?.checkLocal == false) {
             z2ui5 = {};
+            }
             
             z2ui5.oRouter = this.getRouter();
             z2ui5.oRouter.initialize();
