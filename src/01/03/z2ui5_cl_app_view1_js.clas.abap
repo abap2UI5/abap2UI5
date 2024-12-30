@@ -418,6 +418,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                                break;` && |\n|  &&
              `                            case 'TRIGGER_SMS':` && |\n|  &&
              `                                URLHelper.triggerSms(params);` && |\n|  &&
+             |\n|.
+    result = result &&
              `                                break;` && |\n|  &&
              `                            case 'TRIGGER_TEL':` && |\n|  &&
              `                                URLHelper.triggerTel(params);` && |\n|  &&
@@ -518,8 +520,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                if (params == undefined) {` && |\n|  &&
              `                    return;` && |\n|  &&
              `                }` && |\n|  &&
-             |\n|.
-    result = result &&
              `                if (params[msgType]?.TEXT !== undefined) {` && |\n|  &&
              `                    if (msgType === 'S_MSG_TOAST') {` && |\n|  &&
              `                        MessageToast.show(params[msgType].TEXT, {` && |\n|  &&
