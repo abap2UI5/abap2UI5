@@ -418,6 +418,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          type: "string",` && |\n|  &&
              `          defaultValue: ""` && |\n|  &&
              `        },` && |\n|  &&
+             |\n|.
+    result = result &&
              `        altitudeAccuracy: {` && |\n|  &&
              `          type: "string",` && |\n|  &&
              `          defaultValue: ""` && |\n|  &&
@@ -518,8 +520,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          defaultValue: "Upload"` && |\n|  &&
              `        },` && |\n|  &&
              `        enabled: {` && |\n|  &&
-             |\n|.
-    result = result &&
              `          type: "boolean",` && |\n|  &&
              `          defaultValue: true` && |\n|  &&
              `        },` && |\n|  &&
@@ -820,6 +820,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          });` && |\n|  &&
              `          return oRangeDataNew;` && |\n|  &&
              `        }));` && |\n|  &&
+             |\n|.
+    result = result &&
              `        //we need to set token text explicitly, as setRangeData does no recalculation` && |\n|  &&
              `        input.getTokens().forEach((token, index) => {` && |\n|  &&
              `          const sTokenText = aRangeData[index].TOKENTEXT;` && |\n|  &&
@@ -1020,8 +1022,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    DateCreateObject: (s) => new Date(s),` && |\n|  &&
              `    //  DateAbapTimestampToDate: (sTimestamp) => new sap.gantt.misc.Format.abapTimestampToDate(sTimestamp), commented for UI5 2.x compatibility` && |\n|  &&
              `    DateAbapDateToDateObject: (d) => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8)),` && |\n|  &&
-             |\n|.
-    result = result &&
              `    DateAbapDateTimeToDateObject: (d, t = '000000') => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8), t.slice(0, 2), t.slice(2, 4), t.slice(4, 6)),` && |\n|  &&
              `  };` && |\n|  &&
              `}` && |\n|  &&
