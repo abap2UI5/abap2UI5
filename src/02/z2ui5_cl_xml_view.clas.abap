@@ -3591,6 +3591,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         width         TYPE clike OPTIONAL
         hideonnodata  TYPE clike OPTIONAL
         shrinkable    TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
         view          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -6008,6 +6009,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                         ( n = `width`      v = width )
                                         ( n = `hideOnNoData`    v = z2ui5_cl_util=>boolean_abap_2_json( hideonnodata ) )
                                         ( n = `shrinkable`    v = z2ui5_cl_util=>boolean_abap_2_json( shrinkable ) )
+                                        ( n = `visible`    v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
                                         ( n = `view`  v = view ) ) ).
   ENDMETHOD.
 
