@@ -782,7 +782,9 @@ sap.ui.define("z2ui5/SmartMultiInputExt", ["sap/ui/core/Control", "sap/m/Token",
       }
       const aTokens = oEvent.getSource().getTokens();
       this.setProperty("rangeData", oEvent.getSource().getRangeData().map((oRangeData, iIndex) => {
-        oRangeData.tokenText = aTokens[iIndex].getText();
+        const oToken = aTokens[iIndex];
+        oRangeData.tokenText = oToken.getText();
+        oRangeData.tokenLongKey = oToken.data("longKey");
         return oRangeData;
       }));
       this.fireChange();
@@ -800,7 +802,10 @@ sap.ui.define("z2ui5/SmartMultiInputExt", ["sap/ui/core/Control", "sap/m/Token",
         }));
         //we need to set token text explicitly, as setRangeData does no recalculation
         input.getTokens().forEach((token, index) => {
-          const sTokenText = aRangeData[index].TOKENTEXT;
+          const oRangeData = aRangeData[index];
+          token.data("longKey", oRangeData.TOKENLONGKEY);
+          token.data("range", null);
+          const sTokenText = oRangeData.TOKENTEXT;
           if (sTokenText) {
             token.setText(sTokenText);
           }
