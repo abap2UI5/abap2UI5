@@ -804,7 +804,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      }` && |\n|  &&
              `      const aTokens = oEvent.getSource().getTokens();` && |\n|  &&
              `      this.setProperty("rangeData", oEvent.getSource().getRangeData().map((oRangeData, iIndex) => {` && |\n|  &&
-             `        oRangeData.tokenText = aTokens[iIndex].getText();` && |\n|  &&
+             `        const oToken = aTokens[iIndex];` && |\n|  &&
+             `        oRangeData.tokenText = oToken.getText();` && |\n|  &&
+             `        oRangeData.tokenLongKey = oToken.data("longKey");` && |\n|  &&
              `        return oRangeData;` && |\n|  &&
              `      }));` && |\n|  &&
              `      this.fireChange();` && |\n|  &&
@@ -818,13 +820,16 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            const sKeyNameNew = aEntry[0].toLowerCase();` && |\n|  &&
              `            oRangeDataNew[(sKeyNameNew === "keyfield" ? "keyField" : sKeyNameNew)] = aEntry[1];` && |\n|  &&
              `          });` && |\n|  &&
-             `          return oRangeDataNew;` && |\n|  &&
-             `        }));` && |\n|  &&
              |\n|.
     result = result &&
+             `          return oRangeDataNew;` && |\n|  &&
+             `        }));` && |\n|  &&
              `        //we need to set token text explicitly, as setRangeData does no recalculation` && |\n|  &&
              `        input.getTokens().forEach((token, index) => {` && |\n|  &&
-             `          const sTokenText = aRangeData[index].TOKENTEXT;` && |\n|  &&
+             `          const oRangeData = aRangeData[index];` && |\n|  &&
+             `          token.data("longKey", oRangeData.TOKENLONGKEY);` && |\n|  &&
+             `          token.data("range", null);` && |\n|  &&
+             `          const sTokenText = oRangeData.TOKENTEXT;` && |\n|  &&
              `          if (sTokenText) {` && |\n|  &&
              `            token.setText(sTokenText);` && |\n|  &&
              `          }` && |\n|  &&
