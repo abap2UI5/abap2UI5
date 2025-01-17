@@ -321,7 +321,12 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                             "sap/ushell/Container"
                         ], async (ushellContainer) => {
                             // z2ui5.oCrossAppNavigator = await ushellContainer.getServiceAsync("CrossApplicationNavigation");
-                            z2ui5.oCrossAppNavigator = ushellContainer.getService("CrossApplicationNavigation");
+                            if (ushellContainer){
+                                z2ui5.oCrossAppNavigator = ushellContainer.getService("CrossApplicationNavigation");
+                            } else {
+                                // fallback needed for UI5 version < 1.120
+                                z2ui5.oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");
+                            }
                             z2ui5.oCrossAppNavigator.backToPreviousApp();
                         });
                         break;
@@ -331,7 +336,12 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                             "sap/ushell/Container"
                         ], async (ushellContainer) => {
                             // z2ui5.oCrossAppNavigator = await ushellContainer.getServiceAsync("CrossApplicationNavigation");
-                            z2ui5.oCrossAppNavigator = ushellContainer.getService("CrossApplicationNavigation");
+                            if (ushellContainer){
+                                z2ui5.oCrossAppNavigator = ushellContainer.getService("CrossApplicationNavigation");
+                            } else {
+                                // fallback needed for UI5 version < 1.120
+                                z2ui5.oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");
+                            }
                             const hash = (z2ui5.oCrossAppNavigator.hrefForExternal({
                                 target: z2ui5.args[1],
                                 params: z2ui5.args[2]
