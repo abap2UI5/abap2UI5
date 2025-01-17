@@ -317,6 +317,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         a.click();
                         break;
                     case 'CROSS_APP_NAV_TO_PREV_APP':
+                        oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");
                         sap.ui.require([
                             "sap/ushell/Container"
                         ], async (ushellContainer) => {
