@@ -84,7 +84,6 @@
       "config": {
         "routerClass": "sap.m.routing.Router",
         "viewType": "XML",
-        "async": true,
         "viewPath": "z2ui5.view",
         "controlAggregation": "pages",
         "controlId": "app",
@@ -126,7 +125,6 @@
     "rootView": {
       "viewName": "z2ui5.view.App",
       "type": "XML",
-      "async": true,
       "id": "App"
     }
   },
