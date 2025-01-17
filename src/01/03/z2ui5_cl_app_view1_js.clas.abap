@@ -418,6 +418,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        break;` && |\n|  &&
              `                    case 'URLHELPER':` && |\n|  &&
              `                        var URLHelper = mobileLibrary.URLHelper;` && |\n|  &&
+             |\n|.
+    result = result &&
              `                        var params = args[2];` && |\n|  &&
              `                        switch (args[1]) {` && |\n|  &&
              `                            case 'REDIRECT':` && |\n|  &&
@@ -428,8 +430,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                                break;` && |\n|  &&
              `                            case 'TRIGGER_SMS':` && |\n|  &&
              `                                URLHelper.triggerSms(params);` && |\n|  &&
-             |\n|.
-    result = result &&
              `                                break;` && |\n|  &&
              `                            case 'TRIGGER_TEL':` && |\n|  &&
              `                                URLHelper.triggerTel(params);` && |\n|  &&
