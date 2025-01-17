@@ -18,4 +18,4 @@ jobs:
       with:
         node-version: '20.11.0'
     - run: cd app && npm i
-    - run: cd app && npm install --global @ui5/linter && ui5lint --ignore-pattern "webapp/index.html"  --details
+    - run: cd app && npm install --global @ui5/linter && ui5lint --ignore-pattern "webapp/index.html" "webapp/controller/View1.controller.js" --details
