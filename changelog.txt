@@ -9,6 +9,17 @@ Legend
 - : removed
 
 
+2025-01-26 v1.137.0
+-------------------
+
++ Introduced App State feature
++ Added App State Persistence for Navigation
+* Fixed long string bugs for older releases
+* Resolved popup_get_value issues
+* Ensured Launchpad compatibility with OpenUI5 2.x
+* Multiple Bugfixes and new Properties added
+
+
 2024-12-15 v1.136.0
 -------------------
 
@@ -18,7 +29,7 @@ Legend
 + Navigation Container in Popover
 + New UI Controls: AvatarGroup, Viz Charts, and more
 + SetMaxWidth for Launchpads
-* Multiple Bugfixes and new Properties added
+
 
 
 2024-10-27 v1.135.0
