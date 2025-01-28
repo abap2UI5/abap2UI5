@@ -17,7 +17,7 @@
 
 *...offers a pure ABAP approach for developing UI5 apps - entirely without JavaScript, OData or RAP. Just like in classic ABAP, when a few lines of code were enough to display input forms and tables using Selection Screens & ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
 
-Find all project information in the [**documentation.**](http://abap2UI5.org) 🚀
+Ready to explore? Find all project information in the [**documentation.**](http://abap2UI5.org) 🚀
 
 #### Key Features
 * **100% ABAP:** Developing purely in ABAP (no JavaScript, DDL, or EML)
@@ -26,12 +26,6 @@ Find all project information in the [**documentation.**](http://abap2UI5.org) �
 * **Cloud & On-Premise Ready:** Fully compatible with ABAP Cloud and Standard ABAP
 * **Broad Compatibility:** Supports all ABAP releases from NW 7.02 to ABAP Cloud
 * **Easy Installation:** Install via abapGit - no extra app deployment needed
-
-#### Ready to explore?
-* [Quickstart](https://abap2ui5.github.io/docs/get_started/quickstart.html) –  Install and develop your first abap2UI5 app
-* [Guide](https://abap2ui5.github.io/docs/) - Explore the documentation for deeper insights
-* [Addons](https://abap2ui5.github.io/docs/addons/addons.html) –  Extend abap2UI5 to fit your unique requirements
-* [More](https://abap2ui5.github.io/docs/resources/who_uses.html) – Discover apps and more use cases for abap2UI5
   
 #### References
 * Find abap2UI5 on ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
