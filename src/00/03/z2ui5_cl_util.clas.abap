@@ -450,8 +450,6 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    CLASS-METHODS check_raise_srtti_installed.
-
     CLASS-METHODS rtti_check_clike
       IMPORTING
         val           TYPE any
@@ -1210,8 +1208,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD xml_srtti_parse.
 
-*    check_raise_srtti_installed( ).
-
     DATA srtti TYPE REF TO object.
     CALL TRANSFORMATION id SOURCE XML rtti_data RESULT srtti = srtti.
 
@@ -1231,14 +1227,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD xml_srtti_stringify.
 
-    TRY.
-        DATA(lv_check_srtti_installed) = abap_true.
-        check_raise_srtti_installed( ).
-      CATCH cx_root.
-        lv_check_srtti_installed = abap_false.
-    ENDTRY.
-
-    IF lv_check_srtti_installed = abap_true.
+    IF rtti_check_class_exists( 'ZCL_SRTTI_TYPEDESCR' ) = abap_true.
 
       DATA srtti TYPE REF TO object.
       DATA(lv_classname) = `ZCL_SRTTI_TYPEDESCR`.
@@ -1250,7 +1239,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
       CALL TRANSFORMATION id SOURCE srtti = srtti dobj = data RESULT XML result.
 
-    ELSE.
+    ELSEIF rtti_check_class_exists( 'Z2UI5_CL_SRTTI_TYPEDESCR' ) = abap_true..
 
       "DATA srtti TYPE REF TO object.
       lv_classname = 'Z2UI5_CL_SRTTI_TYPEDESCR'.
@@ -1262,7 +1251,11 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
       CALL TRANSFORMATION id SOURCE srtti = srtti dobj = data RESULT XML result.
 
-
+    ELSE.
+      DATA(lv_text) = `UNSUPPORTED_FEATURE - Please install the open-source project S-RTTI by sandraros and try again: https://github.com/sandraros/S-RTTI`.
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING
+          val = lv_text.
     ENDIF.
 
   ENDMETHOD.
@@ -1311,18 +1304,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD check_raise_srtti_installed.
-
-    IF rtti_check_class_exists( 'ZCL_SRTTI_TYPEDESCR' ) = abap_false.
-
-      DATA(lv_text) = `UNSUPPORTED_FEATURE - Please install the open-source project S-RTTI by sandraros and try again: https://github.com/sandraros/S-RTTI`.
-      RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING
-          val = lv_text.
-
-    ENDIF.
-
-  ENDMETHOD.
 
   METHOD rtti_get_t_attri_by_table_name.
 
