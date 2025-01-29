@@ -103,7 +103,7 @@ CLASS Z2UI5_CL_CORE_SRV_JSON IMPLEMENTATION.
               IF sy-subrc <> 0.
                 CONTINUE.
               ENDIF.
-*              ASSERT sy-subrc = 0.
+
               ajson->set( iv_ignore_empty = abap_false
                           iv_path         = `/`
                           iv_val          = <attribute> ).
