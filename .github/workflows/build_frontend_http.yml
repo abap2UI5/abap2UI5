@@ -1,4 +1,4 @@
-name: js_transform
+name: build_frontend_http
 on: 
   push:
     branches: 
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  Code-Cleanup:
+  build_frontend_http:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
