@@ -1,7 +1,7 @@
 "! <p class="shorttext synchronized" lang="en">Serializable RTTI table</p>
-CLASS z2ui5_cl_srtti_tabledescr DEFINITION
+CLASS z2ui5_cl_srt_tabledescr DEFINITION
   PUBLIC
-  INHERITING FROM z2ui5_cl_srtti_complexdescr
+  INHERITING FROM z2ui5_cl_srt_complexdescr
   CREATE PUBLIC.
 
   PUBLIC SECTION.
@@ -11,7 +11,7 @@ CLASS z2ui5_cl_srtti_tabledescr DEFINITION
     DATA key_defkind    LIKE cl_abap_tabledescr=>key_defkind.
     DATA has_unique_key LIKE cl_abap_tabledescr=>has_unique_key.
     DATA table_kind     LIKE cl_abap_tabledescr=>table_kind.
-    DATA line_type      TYPE REF TO z2ui5_cl_srtti_datadescr.
+    DATA line_type      TYPE REF TO z2ui5_cl_srt_datadescr.
 
     METHODS constructor
       IMPORTING
@@ -24,7 +24,7 @@ CLASS z2ui5_cl_srtti_tabledescr DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_srtti_tabledescr IMPLEMENTATION.
+CLASS z2ui5_cl_srt_tabledescr IMPLEMENTATION.
   METHOD constructor.
     super->constructor( rtti ).
     key            = rtti->key.
@@ -33,7 +33,7 @@ CLASS z2ui5_cl_srtti_tabledescr IMPLEMENTATION.
     has_unique_key = rtti->has_unique_key.
     table_kind     = rtti->table_kind.
 
-    line_type ?= z2ui5_cl_srtti_typedescr=>create_by_rtti( rtti->get_table_line_type( ) ).
+    line_type ?= z2ui5_cl_srt_typedescr=>create_by_rtti( rtti->get_table_line_type( ) ).
     IF line_type->not_serializable = abap_true.
       not_serializable = abap_true.
     ENDIF.
@@ -63,7 +63,7 @@ CLASS z2ui5_cl_srtti_tabledescr IMPLEMENTATION.
                                            p_key_kind   = key_defkind ).
 
       CATCH cx_sy_table_creation INTO lo_error.
-        RAISE EXCEPTION TYPE z2ui5_cx_srtti
+        RAISE EXCEPTION TYPE z2ui5_cx_srt
           EXPORTING previous = lo_error.
     ENDTRY.
   ENDMETHOD.

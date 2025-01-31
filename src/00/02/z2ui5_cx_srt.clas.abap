@@ -1,4 +1,4 @@
-class z2ui5_cx_srtti definition
+class z2ui5_cx_srt definition
   public
   inheriting from CX_NO_CHECK
   final
@@ -18,7 +18,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cx_srtti IMPLEMENTATION.
+CLASS z2ui5_cx_srt IMPLEMENTATION.
 
 
   METHOD constructor ##ADT_SUPPRESS_GENERATION.

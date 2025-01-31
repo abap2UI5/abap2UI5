@@ -3,9 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>Z2UI5_CL_SRTTI_CLASSDESCR</CLSNAME>
+    <CLSNAME>Z2UI5_CL_SRT_INTFDESCR</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>Serializable RTTI class</DESCRIPT>
+    <DESCRIPT>Serializable RTTI interface</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

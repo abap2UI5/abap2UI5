@@ -1,7 +1,7 @@
 "! <p class="shorttext synchronized" lang="en">Serializable RTTI elementary type</p>
-CLASS z2ui5_cl_srtti_elemdescr DEFINITION
+CLASS z2ui5_cl_srt_elemdescr DEFINITION
   PUBLIC
-  INHERITING FROM z2ui5_cl_srtti_datadescr
+  INHERITING FROM z2ui5_cl_srt_datadescr
   CREATE PUBLIC.
 
   PUBLIC SECTION.
@@ -27,7 +27,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_srtti_elemdescr IMPLEMENTATION.
+CLASS z2ui5_cl_srt_elemdescr IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -89,7 +89,7 @@ CLASS z2ui5_cl_srtti_elemdescr IMPLEMENTATION.
       WHEN cl_abap_typedescr=>typekind_decfloat34.
         rtti = cl_abap_elemdescr=>get_decfloat34( ).
       WHEN OTHERS.
-        RAISE EXCEPTION TYPE z2ui5_cx_srtti.
+        RAISE EXCEPTION TYPE z2ui5_cx_srt.
     ENDCASE.
   ENDMETHOD.
 ENDCLASS.

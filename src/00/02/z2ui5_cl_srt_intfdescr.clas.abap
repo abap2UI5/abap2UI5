@@ -1,7 +1,7 @@
 "! <p class="shorttext synchronized" lang="en">Serializable RTTI interface</p>
-CLASS z2ui5_cl_srtti_intfdescr DEFINITION
+CLASS z2ui5_cl_srt_intfdescr DEFINITION
   PUBLIC
-  INHERITING FROM z2ui5_cl_srtti_objectdescr
+  INHERITING FROM z2ui5_cl_srt_objectdescr
   CREATE PUBLIC.
 
   PUBLIC SECTION.
@@ -16,7 +16,7 @@ CLASS z2ui5_cl_srtti_intfdescr DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_srtti_intfdescr IMPLEMENTATION.
+CLASS z2ui5_cl_srt_intfdescr IMPLEMENTATION.
   METHOD constructor.
     super->constructor( rtti ).
     intf_kind = rtti->intf_kind.

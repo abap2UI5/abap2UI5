@@ -3,7 +3,7 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>Z2UI5_CL_SRTTI_OBJECTDESCR</CLSNAME>
+    <CLSNAME>Z2UI5_CL_SRT_OBJECTDESCR</CLSNAME>
     <LANGU>E</LANGU>
     <DESCRIPT>Serializable RTTI object type</DESCRIPT>
     <STATE>1</STATE>

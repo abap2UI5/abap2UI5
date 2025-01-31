@@ -1,6 +1,6 @@
 *"* use this source file for your ABAP unit test classes
 
-CLASS ltc_subclass DEFINITION INHERITING FROM z2ui5_cl_srtti_elemdescr.
+CLASS ltc_subclass DEFINITION INHERITING FROM z2ui5_cl_srt_elemdescr.
   PUBLIC SECTION.
     METHODS get_rtti_by_type_kind_2
       IMPORTING
@@ -38,7 +38,7 @@ CLASS ltc_main IMPLEMENTATION.
     DATA variable TYPE c LENGTH 20.
 
     variable = 'Hello World'.
-    z2ui5_cl_srtti_aunit=>serialize_deserialize( variable ).
+    z2ui5_cl_srt_aunit=>serialize_deserialize( variable ).
   ENDMETHOD.
 
   METHOD get_rtti_by_type_kind_assert.

@@ -1,7 +1,7 @@
 "! <p class="shorttext synchronized" lang="en">Serializable RTTI complex type</p>
-CLASS z2ui5_cl_srtti_complexdescr DEFINITION
+CLASS z2ui5_cl_srt_complexdescr DEFINITION
   PUBLIC
-  INHERITING FROM z2ui5_cl_srtti_datadescr
+  INHERITING FROM z2ui5_cl_srt_datadescr
   CREATE PUBLIC .
 
   PUBLIC SECTION.
@@ -11,5 +11,5 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_srtti_complexdescr IMPLEMENTATION.
+CLASS z2ui5_cl_srt_complexdescr IMPLEMENTATION.
 ENDCLASS.

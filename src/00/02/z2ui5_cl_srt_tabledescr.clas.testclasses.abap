@@ -14,7 +14,7 @@ CLASS ltc_main DEFINITION
 
     METHODS assert_copy_equals_original
       IMPORTING
-        srtti    TYPE REF TO z2ui5_cl_srtti_typedescr
+        srtti    TYPE REF TO z2ui5_cl_srt_typedescr
         original TYPE ty_std_table_comps_default_key.
 ENDCLASS.
 
@@ -41,7 +41,7 @@ CLASS ltc_main IMPLEMENTATION.
     DATA components                  TYPE abap_component_tab.
     DATA rtti                        TYPE REF TO cl_abap_tabledescr.
     DATA dref                        TYPE REF TO data.
-    DATA srtti                       TYPE REF TO z2ui5_cl_srtti_typedescr.
+    DATA srtti                       TYPE REF TO z2ui5_cl_srt_typedescr.
 
     FIELD-SYMBOLS <original_table>       TYPE ANY TABLE.
     FIELD-SYMBOLS <original_line>        TYPE any.
@@ -68,7 +68,7 @@ CLASS ltc_main IMPLEMENTATION.
       INSERT <original_line> INTO TABLE <original_table>.
     ENDLOOP.
 
-    srtti = z2ui5_cl_srtti_typedescr=>create_by_data_object( <original_table> ).
+    srtti = z2ui5_cl_srt_typedescr=>create_by_data_object( <original_table> ).
 
     assert_copy_equals_original( srtti    = srtti
                                  original = <original_table> ).
@@ -80,11 +80,11 @@ CLASS ltc_main IMPLEMENTATION.
     DATA struct_rtti TYPE REF TO cl_abap_structdescr.
     DATA table_rtti  TYPE REF TO cl_abap_tabledescr.
     DATA dref        TYPE REF TO data.
-    DATA srtti       TYPE REF TO z2ui5_cl_srtti_typedescr.
-    DATA test        TYPE REF TO z2ui5_cl_srtti_tabledescr.
-    DATA srtti_tab   TYPE REF TO z2ui5_cl_srtti_tabledescr.
-    DATA srtti2      TYPE REF TO z2ui5_cl_srtti_typedescr.
-    DATA test2       TYPE REF TO z2ui5_cl_srtti_structdescr.
+    DATA srtti       TYPE REF TO z2ui5_cl_srt_typedescr.
+    DATA test        TYPE REF TO z2ui5_cl_srt_tabledescr.
+    DATA srtti_tab   TYPE REF TO z2ui5_cl_srt_tabledescr.
+    DATA srtti2      TYPE REF TO z2ui5_cl_srt_typedescr.
+    DATA test2       TYPE REF TO z2ui5_cl_srt_structdescr.
 
     FIELD-SYMBOLS <original> TYPE any.
 
@@ -97,7 +97,7 @@ CLASS ltc_main IMPLEMENTATION.
     CREATE DATA dref TYPE HANDLE table_rtti.
     ASSIGN dref->* TO <original>.
 
-    srtti = z2ui5_cl_srtti_typedescr=>create_by_data_object( <original> ).
+    srtti = z2ui5_cl_srt_typedescr=>create_by_data_object( <original> ).
 
     TRY.
         test ?= srtti.

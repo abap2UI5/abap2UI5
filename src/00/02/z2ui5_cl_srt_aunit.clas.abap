@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_srtti_aunit DEFINITION
+CLASS z2ui5_cl_srt_aunit DEFINITION
   PUBLIC
   FOR TESTING
   FINAL
@@ -12,15 +12,15 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_srtti_aunit IMPLEMENTATION.
+CLASS z2ui5_cl_srt_aunit IMPLEMENTATION.
 
   METHOD serialize_deserialize.
     " Serialize: both type and value at the same time.
     FIELD-SYMBOLS <variable1> TYPE any.
     DATA rtti1 TYPE REF TO cl_abap_typedescr.
-    DATA srtti1 TYPE REF TO z2ui5_cl_srtti_typedescr.
+    DATA srtti1 TYPE REF TO z2ui5_cl_srt_typedescr.
     DATA xstring TYPE xstring.
-    DATA srtti2 TYPE REF TO z2ui5_cl_srtti_typedescr.
+    DATA srtti2 TYPE REF TO z2ui5_cl_srt_typedescr.
     DATA temp1 TYPE REF TO cl_abap_datadescr.
     DATA rtti2 LIKE temp1.
     DATA ref_variable2 TYPE REF TO data.
@@ -29,7 +29,7 @@ CLASS z2ui5_cl_srtti_aunit IMPLEMENTATION.
 
     rtti1 = cl_abap_typedescr=>describe_by_data( <variable1> ).
 
-    srtti1 = z2ui5_cl_srtti_typedescr=>create_by_data_object( <variable1> ).
+    srtti1 = z2ui5_cl_srt_typedescr=>create_by_data_object( <variable1> ).
 
     CALL TRANSFORMATION id
         SOURCE  srtti = srtti1

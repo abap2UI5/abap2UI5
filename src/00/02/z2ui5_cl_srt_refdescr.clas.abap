@@ -1,12 +1,12 @@
 "! <p class="shorttext synchronized" lang="en">Serializable RTTI reference</p>
-CLASS z2ui5_cl_srtti_refdescr DEFINITION
+CLASS z2ui5_cl_srt_refdescr DEFINITION
   PUBLIC
-  INHERITING FROM z2ui5_cl_srtti_datadescr
+  INHERITING FROM z2ui5_cl_srt_datadescr
   CREATE PUBLIC.
 
   PUBLIC SECTION.
 
-    DATA referenced_type TYPE REF TO z2ui5_cl_srtti_typedescr.
+    DATA referenced_type TYPE REF TO z2ui5_cl_srt_typedescr.
 
     METHODS constructor
       IMPORTING
@@ -19,10 +19,10 @@ CLASS z2ui5_cl_srtti_refdescr DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_srtti_refdescr IMPLEMENTATION.
+CLASS z2ui5_cl_srt_refdescr IMPLEMENTATION.
   METHOD constructor.
     super->constructor( rtti ).
-    CREATE OBJECT referenced_type TYPE z2ui5_cl_srtti_typedescr
+    CREATE OBJECT referenced_type TYPE z2ui5_cl_srt_typedescr
       EXPORTING rtti = rtti->get_referenced_type( ).
     IF referenced_type->not_serializable = abap_true.
       not_serializable = abap_true.

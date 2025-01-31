@@ -1,7 +1,7 @@
 "! <p class="shorttext synchronized" lang="en">Serializable RTTI class</p>
-CLASS z2ui5_cl_srtti_classdescr DEFINITION
+CLASS z2ui5_cl_srt_classdescr DEFINITION
   PUBLIC
-  INHERITING FROM z2ui5_cl_srtti_objectdescr
+  INHERITING FROM z2ui5_cl_srt_objectdescr
   CREATE PUBLIC.
 
   PUBLIC SECTION.
@@ -17,7 +17,7 @@ CLASS z2ui5_cl_srtti_classdescr DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_srtti_classdescr IMPLEMENTATION.
+CLASS z2ui5_cl_srt_classdescr IMPLEMENTATION.
   METHOD constructor.
     super->constructor( rtti ).
     class_kind        = rtti->class_kind.
