@@ -25,8 +25,8 @@ jobs:
       run: |
         git clone https://github.com/abap2UI5/ajson_mirror.git
         ls -l
-        rm src/01/00/01/z*
-        cp ajson_mirror/src/z* src/01/00/01/
+        rm src/00/01/z*
+        cp ajson_mirror/src/z* src/00/01/
         rm -rf ajson_mirror
         git status
     - name: Open PR
