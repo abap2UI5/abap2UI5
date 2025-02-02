@@ -22,7 +22,7 @@ CLASS z2ui5_cl_pop_bal DEFINITION
         message_v4 TYPE string,
         group      TYPE string,
       END OF ty_s_msg.
-    TYPES ty_t_msg TYPE STANDARD TABLE OF ty_s_msg with default key.
+    TYPES ty_t_msg TYPE STANDARD TABLE OF ty_s_msg WITH EMPTY KEY.
 
     DATA mt_msg TYPE ty_t_msg.
 
