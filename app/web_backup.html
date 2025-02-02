@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com openui5.hana.ondemand.com *.openui5.hana.ondemand.com sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>abap2UI5</title>
+    <style>
+        html, body, body > div, #container, #container-uiarea {
+            height: 100%;
+        }
+        .dbg-ltr {
+            direction: ltr !important;
+        }
+    </style>     <script id="sap-ui-bootstrap" src="https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js" data-sap-ui-theme="sap_horizon" data-sap-ui-async="true" data-sap-ui-bindingSyntax="complex" data-sap-ui-frameOptions="trusted" data-sap-ui-compatVersion="edge" ></script></head>
+<body class="sapUiBody sapUiSizeCompact" >
+    <div id="content"  data-handle-validation="true" ></div>
+<abc/>
+<script> sap.z2ui5 = sap.z2ui5 || {};
+sap.ui.define("z2ui5/Controller", ["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/model/json/JSONModel", "sap/ui/core/BusyIndicator", "sap/m/MessageBox", "sap/m/MessageToast", "sap/ui/core/Fragment", "sap/m/BusyDialog" ], function(Controller, XMLView, JSONModel, BusyIndicator, MessageBox, MessageToast, Fragment, mBusyDialog ) {
+    "use strict";
+    return Controller.extend("z2ui5.Controller", {
+        async onAfterRendering() {
+         try{
+            if (!sap.z2ui5.oResponse.PARAMS) {
+            BusyIndicator.hide();
+                sap.z2ui5.isBusy = false;
+                return;
+            }
+            const {S_POPUP, S_VIEW_NEST, S_VIEW_NEST2, S_POPOVER} = sap.z2ui5.oResponse.PARAMS;
+            if (S_POPUP?.CHECK_DESTROY) {
+                sap.z2ui5.oController.PopupDestroy();
+            }
+            if (S_POPOVER?.CHECK_DESTROY) {
+                sap.z2ui5.oController.PopoverDestroy();
+            }
+            if (S_POPUP?.XML) {
+                sap.z2ui5.oController.PopupDestroy();
+                await this.displayFragment(S_POPUP.XML, 'oViewPopup');
+            }
+            if (!sap.z2ui5.checkNestAfter) {
+                if (S_VIEW_NEST?.XML) {
+                    sap.z2ui5.oController.NestViewDestroy();
+                    await this.displayNestedView(S_VIEW_NEST.XML, 'oViewNest', 'S_VIEW_NEST');
+                    sap.z2ui5.checkNestAfter = true;
+                }
+            }
+            if (!sap.z2ui5.checkNestAfter2) {
+                if (S_VIEW_NEST2?.XML) {
+                    sap.z2ui5.oController.NestViewDestroy2();
+                    await this.displayNestedView2(S_VIEW_NEST2.XML, 'oViewNest2', 'S_VIEW_NEST2');
+                    sap.z2ui5.checkNestAfter2 = true;
+                }
+            }
+            if (S_POPOVER?.XML) {
+                await this.displayPopover(S_POPOVER.XML, 'oViewPopover', S_POPOVER.OPEN_BY_ID);
+            }
+            BusyIndicator.hide();
+            sap.z2ui5.isBusy = false;
+            sap.z2ui5.onAfterRendering.forEach(item=>{
+                if (item !== undefined) {
+                    item();
+                }
+            }
+            )
+           }catch(e){ BusyIndicator.hide(); sap.z2ui5.isBusy = false; MessageBox.error( e.toLocaleString() , { title : "Unexpected Error Occured - App Terminated" , actions : [ ] , onClose :  () => {  new mBusyDialog({ text : "Please Restart the App" }).open();  } } ) }
+        },
+
+        async displayFragment(xml, viewProp) {
+            let oview_model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);
+            const oFragment = await Fragment.load({
+                definition: xml,
+                controller: sap.z2ui5.oControllerPopup,
+                id: "popupId"
+            });
+            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);
+            oFragment.setModel(oview_model);
+            sap.z2ui5[viewProp] = oFragment;
+            sap.z2ui5[viewProp].Fragment = Fragment;
+                oFragment.open();
+        },
+        async displayPopover(xml, viewProp, openById) {
+            let sapUiCore = sap.ui.require('sap/ui/core/Core');
+            const oFragment = await Fragment.load({
+                definition: xml,
+                controller: sap.z2ui5.oControllerPopover,
+                 id: "popoverId"
+            });
+            let oview_model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);
+            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);
+            oFragment.setModel(oview_model);
+            sap.z2ui5[viewProp] = oFragment;
+            sap.z2ui5[viewProp].Fragment = Fragment;
+            let oControl = {};
+            if( sap.z2ui5.oView?.byId(openById) ) {
+              oControl = sap.z2ui5.oView.byId(openById);
+            } else if ( sap.z2ui5.oViewPopup?.Fragment.byId('popupId',openById) ) {
+              oControl = sap.z2ui5.oViewPopup.Fragment.byId('popupId',openById);
+            } else if ( sap.z2ui5.oViewNest?.byId(openById) ) {
+              oControl = sap.z2ui5.oViewNest.byId(openById);
+            } else if ( sap.z2ui5.oViewNest2?.byId(openById) ) {
+              oControl = sap.z2ui5.oViewNest2.byId(openById);
+            } else {
+                if(sapUiCore.byId(openById)) {
+                  oControl = sapUiCore.byId(openById);
+                } else {
+                  oControl = null;
+                };
+            }
+             oFragment.openBy(oControl);
+        },
+        async displayNestedView(xml, viewProp, viewNestId) {
+            let oview_model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);
+            const oView = await XMLView.create({
+                definition: xml,
+                controller: sap.z2ui5.oControllerNest,
+                preprocessors: { xml: { models: { template: oview_model } } }
+            });
+            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);
+            oView.setModel(oview_model);
+            let oParent = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS[viewNestId].ID);
+            if (oParent) {
+                try {
+                    oParent[sap.z2ui5.oResponse.PARAMS[viewNestId].METHOD_DESTROY]();
+                } catch {}
+                oParent[sap.z2ui5.oResponse.PARAMS[viewNestId].METHOD_INSERT](oView);
+            }
+            sap.z2ui5[viewProp] = oView;
+        },
+        async displayNestedView2(xml, viewProp, viewNestId) {
+            let oview_model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);
+            const oView = await XMLView.create({
+                definition: xml,
+                controller: sap.z2ui5.oControllerNest2,
+                preprocessors: { xml: { models: { template: oview_model } } }
+            });
+            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);
+            oView.setModel(oview_model);
+            let oParent = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS[viewNestId].ID);
+            if (oParent) {
+                try {
+                    oParent[sap.z2ui5.oResponse.PARAMS[viewNestId].METHOD_DESTROY]();
+                } catch {}
+                oParent[sap.z2ui5.oResponse.PARAMS[viewNestId].METHOD_INSERT](oView);
+            }
+            sap.z2ui5[viewProp] = oView;
+        },
+        PopupDestroy() {
+            if (!sap.z2ui5.oViewPopup) {
+                return;
+            }
+            if (sap.z2ui5.oViewPopup.close) {
+                try {
+                    sap.z2ui5.oViewPopup.close();
+                } catch {}
+            }
+            sap.z2ui5.oViewPopup.destroy();
+        },
+        PopoverDestroy() {
+            if (!sap.z2ui5.oViewPopover) {
+                return;
+            }
+            if (sap.z2ui5.oViewPopover.close) {
+                try {
+                    sap.z2ui5.oViewPopover.close();
+                } catch {}
+            }
+            sap.z2ui5.oViewPopover.destroy();
+        },
+        NestViewDestroy() {
+            if (!sap.z2ui5.oViewNest) {
+                return;
+            }
+            sap.z2ui5.oViewNest.destroy();
+        },
+        NestViewDestroy2() {
+            if (!sap.z2ui5.oViewNest2) {
+                return;
+            }
+            sap.z2ui5.oViewNest2.destroy();
+        },
+        ViewDestroy() {
+            if (!sap.z2ui5.oView) {
+                return;
+            }
+            sap.z2ui5.oView.destroy();
+        },
+        eF(...args) {
+            sap.z2ui5.onBeforeEventFrontend.forEach(item => {
+                if (item !== undefined) {
+                    item(args);
+                }
+              }
+            )
+            let oCrossAppNavigator;
+            switch (args[0]) {
+            case 'CROSS_APP_NAV_TO_PREV_APP':
+                oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");
+                oCrossAppNavigator.backToPreviousApp();
+                break;
+            case 'CROSS_APP_NAV_TO_EXT':
+                oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");
+                const hash = (oCrossAppNavigator.hrefForExternal({
+                    target: args[1],
+                    params: args[2]
+                })) || "";
+                if (args[3] === 'EXT') {
+                    let url = window.location.href.split('#')[0] + hash;
+                    sap.m.URLHelper.redirect(url, true);
+                } else {
+                    oCrossAppNavigator.toExternal({
+                        target: {
+                            shellHash: hash
+                        }
+                    });
+                }
+                break;
+            case 'LOCATION_RELOAD':
+                window.location = args[1];
+                break;
+            case 'OPEN_NEW_TAB':
+                window.open(args[1], '_blank');
+                break;
+            case 'POPUP_CLOSE':
+                sap.z2ui5.oController.PopupDestroy();
+                break;
+            case 'POPOVER_CLOSE':
+                sap.z2ui5.oController.PopoverDestroy();
+                break;
+            case 'NAV_CONTAINER_TO':
+                var navCon = sap.z2ui5.oView.byId(args[1]);
+                var navConTo = sap.z2ui5.oView.byId(args[2]);
+                navCon.to(navConTo);
+                break;
+            case 'NEST_NAV_CONTAINER_TO':
+                navCon = sap.z2ui5.oViewNest.byId(args[1]);
+                navConTo = sap.z2ui5.oViewNest.byId(args[2]);
+                navCon.to(navConTo);
+                break;
+            case 'NEST2_NAV_CONTAINER_TO':
+                navCon = sap.z2ui5.oViewNest2.byId(args[1]);
+                navConTo = sap.z2ui5.oViewNest2.byId(args[2]);
+                navCon.to(navConTo);
+                break;
+            case 'POPUP_NAV_CONTAINER_TO':
+                navCon = Fragment.byId("popupId",args[1]);
+                navConTo = Fragment.byId("popupId",args[2]);
+                navCon.to(navConTo);
+                break;
+            }
+        },
+        eB(...args) {
+            if (!window.navigator.onLine) {
+                MessageBox.alert('No internet connection! Please reconnect to the server and try again.');
+                return;
+            }
+           if (sap.z2ui5.isBusy == true) {
+             if (!args[0][2]) {
+                   let oBusyDialog = new mBusyDialog();
+                   oBusyDialog.open();
+                setTimeout( (oBusyDialog) => { oBusyDialog.close() } , 100 , oBusyDialog );
+                    return;
+                 }
+                }
+            sap.z2ui5.isBusy = true;
+             BusyIndicator.show();
+            sap.z2ui5.oBody = {};
+            if ( args[0][3] ) {
+                sap.z2ui5.oBody.XX = sap.z2ui5.oView.getModel().getData().XX;
+                sap.z2ui5.oBody.VIEWNAME = 'MAIN';
+            }
+            else if ( sap.z2ui5.oController == this ) {
+                sap.z2ui5.oBody.XX = sap.z2ui5.oView.getModel().getData().XX;
+                sap.z2ui5.oBody.VIEWNAME = 'MAIN';
+            }else if
+               (  sap.z2ui5.oControllerPopup == this ) {
+                    if (sap.z2ui5.oViewPopup){
+                    sap.z2ui5.oBody.XX = sap.z2ui5.oViewPopup.getModel().getData().XX;
+                   }
+                    sap.z2ui5.oBody.VIEWNAME = 'MAIN';
+                }else if (
+                sap.z2ui5.oControllerPopover == this ) {
+                            sap.z2ui5.oBody.XX = sap.z2ui5.oViewPopover.getModel().getData().XX;
+                            sap.z2ui5.oBody.VIEWNAME = 'MAIN';
+                }else if (
+                sap.z2ui5.oControllerNest == this ) {
+                    sap.z2ui5.oBody.XX = sap.z2ui5.oViewNest.getModel().getData().XX;
+                    sap.z2ui5.oBody.VIEWNAME = 'NEST';
+                }else if (
+                sap.z2ui5.oControllerNest2 == this ) {
+                    sap.z2ui5.oBody.XX = sap.z2ui5.oViewNest2.getModel().getData().XX;
+                    sap.z2ui5.oBody.VIEWNAME = 'NEST2';
+                }
+            sap.z2ui5.onBeforeRoundtrip.forEach(item=>{
+                if (item !== undefined) {
+                    item();
+                }})
+            if (args[0][1]) {
+                sap.z2ui5.oController.ViewDestroy();
+            }
+            sap.z2ui5.oBody.ID = sap.z2ui5.oResponse.ID;
+            sap.z2ui5.oBody.ARGUMENTS = args;
+            sap.z2ui5.oResponseOld = sap.z2ui5.oResponse;
+            sap.z2ui5.oController.Roundtrip();
+        },
+        responseError(response) {
+            document.write(response);
+        },
+        updateModelIfRequired(paramKey, oView) {
+            if (sap.z2ui5.oResponse.PARAMS == undefined) { return; }
+            if (sap.z2ui5.oResponse.PARAMS[paramKey]?.CHECK_UPDATE_MODEL) {
+                let model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);
+                model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);
+                oView.setModel(model);
+            }
+        },
+        async responseSuccess(response) {
+         try{
+            sap.z2ui5.oResponse = response;
+            if (sap.z2ui5.oResponse.PARAMS?.S_VIEW?.CHECK_DESTROY) {
+                sap.z2ui5.oController.ViewDestroy();
+            };
+            if(sap.z2ui5.oResponse.PARAMS?.S_FOLLOW_UP_ACTION?.CUSTOM_JS) {
+              setTimeout(() => {
+                  let mParams = sap.z2ui5.oResponse?.PARAMS.S_FOLLOW_UP_ACTION.CUSTOM_JS.split("'");
+                  let mParamsEF = mParams.filter((val, index) => index % 2)
+                  if(mParamsEF.length) {
+                    sap.z2ui5.oController.eF.apply( undefined , mParamsEF);
+                  } else {
+                    Function("return " + mParams[0])();
+                  }
+                },100);
+              };
+
+            sap.z2ui5.oController.showMessage('S_MSG_TOAST', sap.z2ui5.oResponse.PARAMS);
+            sap.z2ui5.oController.showMessage('S_MSG_BOX', sap.z2ui5.oResponse.PARAMS);
+            if (sap.z2ui5.oResponse.PARAMS?.S_VIEW?.XML) { if ( sap.z2ui5.oResponse.PARAMS?.S_VIEW?.XML !== '') {
+                sap.z2ui5.oController.ViewDestroy();
+               await sap.z2ui5.oController.createView(sap.z2ui5.oResponse.PARAMS.S_VIEW.XML, sap.z2ui5.oResponse.OVIEWMODEL);
+            return;  } }
+                this.updateModelIfRequired('S_VIEW', sap.z2ui5.oView);
+                this.updateModelIfRequired('S_VIEW_NEST', sap.z2ui5.oViewNest);
+                this.updateModelIfRequired('S_VIEW_NEST2', sap.z2ui5.oViewNest2);
+                this.updateModelIfRequired('S_POPUP', sap.z2ui5.oViewPopup);
+                this.updateModelIfRequired('S_POPOVER', sap.z2ui5.oViewPopover);
+                sap.z2ui5.oController.onAfterRendering();
+           }catch(e){ BusyIndicator.hide(); MessageBox.error(e.toLocaleString()); }
+        },
+        showMessage(msgType, params) {
+            if (params == undefined) { return; }
+            if (params[msgType]?.TEXT !== undefined) {
+                if (msgType === 'S_MSG_TOAST') {
+                    MessageToast.show(params[msgType].TEXT);
+                } else if (msgType === 'S_MSG_BOX') {
+                    MessageBox[params[msgType].TYPE](params[msgType].TEXT);
+                }
+            }
+        },
+        async createView(xml, viewModel) {
+            let oview_model = new JSONModel(viewModel);
+            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);
+          sap.z2ui5.oView = await XMLView.create({
+                definition: xml,
+                models: oview_model,
+                controller: sap.z2ui5.oController,
+                id: 'mainView',
+                preprocessors: { xml: { models: { template: oview_model } } }
+            });
+            sap.z2ui5.oView.setModel(sap.z2ui5.oDeviceModel, "device");
+            if (sap.z2ui5.oParent) {
+                sap.z2ui5.oParent.removeAllPages();
+                sap.z2ui5.oParent.insertPage(sap.z2ui5.oView);
+            } else {
+                sap.z2ui5.oView.placeAt("content");
+            }
+        },
+        async readHttp() {
+            const response = await fetch(sap.z2ui5.pathname, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(sap.z2ui5.oBody)
+            });
+            if (!response.ok) {
+                const responseText = await response.text();
+                sap.z2ui5.oController.responseError(responseText);
+            } else {
+                const responseData = await response.json();
+                sap.z2ui5.responseData = responseData;
+                sap.z2ui5.oController.responseSuccess({
+                   ID : responseData.S_FRONT.ID,
+                   PARAMS : responseData.S_FRONT.PARAMS,
+                   OVIEWMODEL : responseData.MODEL,
+                 });
+            }
+        },
+        Roundtrip() {
+            sap.z2ui5.checkTimerActive = false;
+            sap.z2ui5.checkNestAfter = false;
+            sap.z2ui5.checkNestAfter2 = false;
+       let event =  (args) => { if ( args != undefined  ) { return args[0][0]; } };
+            sap.z2ui5.oBody.S_FRONT = {
+                ID: sap.z2ui5?.oBody?.ID,
+                COMPDATA: (sap.z2ui5.ComponentData) ? sap.z2ui5.ComponentData : {} ,
+                XX: sap.z2ui5?.oBody?.XX,
+                ORIGIN: window.location.origin,
+                PATHNAME: window.location.pathname, // sap.z2ui5.pathname,
+                SEARCH: (sap.z2ui5.search) ?  sap.z2ui5.search : window.location.search,
+                VIEW: sap.z2ui5.oBody?.VIEWNAME,
+                T_STARTUP_PARAMETERS: sap.z2ui5.startupParameters,
+                   EVENT:  event(sap.z2ui5.oBody?.ARGUMENTS),
+            };
+   if (  sap.z2ui5.oBody?.ARGUMENTS != undefined  ) { if ( sap.z2ui5.oBody?.ARGUMENTS.length > 0 ) { sap.z2ui5.oBody?.ARGUMENTS.shift(); } }
+             sap.z2ui5.oBody.S_FRONT.T_EVENT_ARG = sap.z2ui5.oBody?.ARGUMENTS;
+            delete sap.z2ui5.oBody.ID;
+            delete sap.z2ui5.oBody?.VIEWNAME;
+            delete sap.z2ui5.oBody?.S_FRONT.XX;
+            delete sap.z2ui5.oBody?.ARGUMENTS;
+            if  (!sap.z2ui5.oBody.S_FRONT.T_EVENT_ARG) { delete sap.z2ui5.oBody.S_FRONT.T_EVENT_ARG; }
+            if  (sap.z2ui5.oBody.S_FRONT.T_EVENT_ARG) { if (sap.z2ui5.oBody.S_FRONT.T_EVENT_ARG.length == 0 ) { delete sap.z2ui5.oBody.S_FRONT.T_EVENT_ARG; } }
+            if  (sap.z2ui5.oBody.S_FRONT.T_STARTUP_PARAMETERS == undefined) { delete sap.z2ui5.oBody.S_FRONT.T_STARTUP_PARAMETERS; }
+            if ( sap.z2ui5.oBody.S_FRONT.SEARCH == '' ){ delete sap.z2ui5.oBody.S_FRONT.SEARCH; }
+            if (!sap.z2ui5.oBody.XX){ delete sap.z2ui5.oBody.XX; }
+           sap.z2ui5.oController.readHttp();
+        },
+    })
+});
+sap.ui.require(["z2ui5/Controller", "sap/ui/core/BusyIndicator", "sap/ui/model/json/JSONModel", "sap/ui/core/mvc/XMLView", "sap/ui/core/Fragment", "sap/m/MessageToast", "sap/m/MessageBox"], (Controller,BusyIndicator, JSONModel)=>{
+    BusyIndicator.show();
+    sap.z2ui5.oController = new Controller();
+    sap.z2ui5.oControllerNest = new Controller();
+    sap.z2ui5.oControllerNest2 = new Controller();
+    sap.z2ui5.oControllerPopup = new Controller();
+    sap.z2ui5.oControllerPopover = new Controller();
+    sap.z2ui5.pathname = sap.z2ui5.pathname ||  window.location.pathname;
+    sap.z2ui5.checkNestAfter = false;
+    sap.z2ui5.oBody = {
+    };
+    sap.z2ui5.oController.Roundtrip();
+    sap.z2ui5.onBeforeRoundtrip = [];
+    sap.z2ui5.onAfterRendering = [];
+    sap.z2ui5.onBeforeEventFrontend = [];
+    sap.z2ui5.onAfterRoundtrip = [];
+
+    }
+);
+ sap.ui.define("z2ui5/Timer" , [
+   "sap/ui/core/Control"
+], (Control) => {
+   "use strict";
+
+   return Control.extend("z2ui5.Timer", {
+       metadata : {
+           properties: {
+                delayMS: {
+                    type: "string",
+                    defaultValue: ""
+                },
+                checkActive: {
+                    type: "boolean",
+                    defaultValue: true
+                },
+                checkRepeat: {
+                    type: "boolean",
+                    defaultValue: false
+                },
+            },
+            events: {
+                 "finished": {
+                        allowPreventDefault: true,
+                        parameters: {},
+                 }
+            }
+       },
+       onAfterRendering() {
+       },
+       delayedCall( oControl){
+
+          if ( oControl.getProperty("checkActive") == false ){ return; }
+            setTimeout((oControl) => {
+               oControl.setProperty( "checkActive", false )
+                oControl.fireFinished();
+              if ( oControl.getProperty( "checkRepeat" ) ) { oControl.delayedCall( oControl ); }
+              }, parseInt( oControl.getProperty("delayMS") ), oControl );
+       },
+       renderer(oRm, oControl) {
+        oControl.delayedCall( oControl );
+        }
+   });
+});sap.ui.define("z2ui5/Focus", [
+  "sap/ui/core/Control",
+], (Control) => {
+  "use strict";
+
+  return Control.extend("z2ui5.Focus", {
+      metadata: {
+          properties: {
+              setUpdate : { type: "boolean", defaultValue: true },
+              focusId: { type: "string" },
+              selectionStart: { type: "string", defaultValue: "0" },
+              selectionEnd: { type: "string", defaultValue: "0" },
+          }
+      },
+
+      init() {
+      },
+
+      renderer(oRm, oControl) {
+
+        if (!oControl.getProperty("setUpdate")){ return; }
+            oControl.setProperty("setUpdate", false);
+
+          setTimeout((oControl) => {
+
+              var oElement = sap.z2ui5.oView.byId(oControl.getProperty("focusId"));
+              var oFocus = oElement.getFocusInfo();
+              oFocus.selectionStart = parseInt(oControl.getProperty("selectionStart"));
+              oFocus.selectionEnd = parseInt(oControl.getProperty("selectionEnd"));
+              oElement.applyFocusInfo(oFocus);
+
+          }, 100, oControl);
+
+      }
+  });
+});sap.ui.define("z2ui5/Title" , ["sap/ui/core/Control"], (Control)=>{
+        "use strict";
+        return Control.extend("z2ui5.Title", {
+            metadata: {
+                properties: {
+                    title: {
+                        type: "string"
+                    },
+                }
+            },
+            setTitle(val) {
+                this.setProperty("title", val);
+                document.title = val;
+            },
+            renderer(oRm, oControl) {}
+        });
+  });sap.ui.define("z2ui5/History",["sap/ui/core/Control"], (Control)=>{
+        "use strict";
+        return Control.extend("z2ui5.History", {
+            metadata: {
+                properties: {
+                    search: {
+                        type: "string"
+                    },
+                }
+            },
+            setSearch(val) {
+                this.setProperty("search", val);
+                history.replaceState(null, null, window.location.pathname + val );
+            },
+            renderer(oRm, oControl) {}
+        });
+  });sap.ui.define("z2ui5/Scrolling", [
+  "sap/ui/core/Control",
+], (Control) => {
+  "use strict";
+
+  return Control.extend("z2ui5.Scrolling", {
+      metadata: {
+          properties: {
+              setUpdate: { type: "boolean" , defaultValue: true},
+              items: { type: "Array" },
+          }
+      },
+
+      setBackend() {
+   if (this.mProperties.items){ this.mProperties.items.forEach(item => {
+                        try {
+                            item.SCROLLTO = sap.z2ui5.oView.byId(item.ID).getScrollDelegate().getScrollTop();
+                        } catch (e) {
+                            try {
+                                var ele = '#' + sap.z2ui5.oView.byId(item.ID).getId() + '-inner';
+                                item.SCROLLTO = $(ele).scrollTop();
+                            } catch (e) { }
+                        }
+                    });
+  } },
+      init() {    sap.z2ui5.onBeforeRoundtrip.push( this.setBackend.bind(this) );   },
+      renderer(oRm, oControl) {
+
+
+            if (!oControl.getProperty("setUpdate")){ return; }
+
+            oControl.setProperty("setUpdate", false);
+          var items = oControl.getProperty("items");
+          if(!items){return;};
+
+            setTimeout( (oControl) => {
+              var items = oControl.getProperty("items");
+              items.forEach(item => {
+                  try {
+                      sap.z2ui5.oView.byId(item.ID).scrollTo(item.SCROLLTO);
+                  } catch {
+                      try {
+                          var ele = '#' + sap.z2ui5.oView.byId(item.ID).getId() + '-inner';
+                          $(ele).scrollTop(item.SCROLLTO);
+                      } catch { setTimeout( function( item ) { sap.z2ui5.oView.byId(item.ID).scrollTo(item.SCROLLTO); } , 1 , item);}
+                  }
+              }
+              );
+
+            } , 50 , oControl );
+      }
+  });
+});  sap.ui.require([
+    "sap/ui/VersionInfo",
+    "sap/base/util/Version"
+], function(VersionInfo, VersionUtil) {
+    //access the OpenUI5 version at runtime
+    VersionInfo.load().then(function(oCurrentVersionInfo) {
+        sap.z2ui5.oCurrentVersionInfo = oCurrentVersionInfo;
+    });
+});
+ sap.ui.define("z2ui5/Info",[
+   "sap/ui/core/Control"
+], (Control ) => {
+   "use strict";
+
+   return Control.extend("z2ui5.Info", {
+       metadata : {
+           properties: {
+                ui5_version: {
+                    type: "string"
+                },
+                ui5_gav: {
+                    type: "string"
+                },
+                ui5_theme: {
+                    type: "string"
+                },
+                device_os: {
+                    type: "string"
+                },
+                device_systemtype: {
+                    type: "string"
+                },
+                device_browser: {
+                    type: "string"
+                },
+            },
+            events: {
+                 "finished": {
+                        allowPreventDefault: true,
+                        parameters: {},
+                 }
+            }
+       },
+
+       init () {  },
+
+       onAfterRendering() {
+
+       },
+      onEvent(oControl) { oControl.fireFinished( );  },
+       renderer(oRm, oControl) {
+
+            oControl.setProperty( "ui5_version" , sap.z2ui5.oCurrentVersionInfo.version );
+            oControl.setProperty( "ui5_gav" ,  sap.z2ui5.oCurrentVersionInfo.gav  );
+            oControl.setProperty( "device_os" ,  sap.ui.Device.os.name );
+          oControl.setProperty( "device_browser" ,  sap.ui.Device.browser.name );
+          setTimeout( oControl.onEvent , 1000 , oControl );
+
+        }
+   });
+});sap.ui.define("z2ui5/Geolocation" , [
+   "sap/ui/core/Control"
+], (Control) => {
+   "use strict";
+
+   return Control.extend("z2ui5.Geolocation", {
+       metadata : {
+           properties: {
+                longitude: {
+                    type: "string",
+                    defaultValue: ""
+                },
+               latitude: {
+                    type: "string",
+                    defaultValue: ""
+                },
+               altitude: {
+                    type: "string",
+                    defaultValue: ""
+                },
+               accuracy: {
+                    type: "string",
+                    defaultValue: ""
+                },
+               altitudeAccuracy: {
+                    type: "string",
+                    defaultValue: ""
+                },
+               speed: {
+                    type: "string",
+                    defaultValue: false
+                },
+               heading: {
+                    type: "string",
+                    defaultValue: false
+                },
+               enableHighAccuracy: {
+                    type: "boolean",
+                    defaultValue: false
+                },
+               timeout: {
+                    type: "string",
+                    defaultValue: "5000"
+                }
+           },
+           events: {
+               "finished": {
+                      allowPreventDefault: true,
+                      parameters: {},
+               }
+          }
+       },
+
+       callbackPosition(position){
+
+           var test = position.coords.longitude
+           this.setProperty("longitude", position.coords.longitude , true);
+           this.setProperty("latitude", position.coords.latitude , true);
+           this.setProperty("altitude", position.coords.altitude , true);
+           this.setProperty("accuracy", position.coords.accuracy , true);
+           this.setProperty("altitudeAccuracy", position.coords.altitudeAccuracy , true);
+           this.setProperty("speed", position.coords.speed , true);
+           this.setProperty("heading", position.coords.heading , true);
+           this.fireFinished();
+           //this.getParent().getParent().getModel().refresh();
+
+       },
+
+       async init(){
+
+           navigator.geolocation.getCurrentPosition(this.callbackPosition.bind(this));
+           //navigator.geolocation.watchPosition(this.callbackPosition.bind(this));
+
+       },
+
+        exit () {
+           //clearWatch
+        },
+
+       onAfterRendering() {
+
+
+       },
+
+       renderer(oRm, oControl) {
+
+        }
+   });
+}); sap.ui.define("z2ui5/FileUploader",[
+            "sap/ui/core/Control",
+            "sap/m/Button",
+            "sap/ui/unified/FileUploader"
+        ], function (Control, Button, FileUploader) {
+            "use strict";
+
+            return Control.extend("z2ui5.FileUploader", {
+
+                metadata: {
+                    properties: {
+                        value: {
+                            type: "string",
+                            defaultValue: ""
+                        },
+                        path: {
+                            type: "string",
+                            defaultValue: ""
+                        },
+                        tooltip: {
+                            type: "string",
+                            defaultValue: ""
+                        },
+                        fileType: {
+                            type: "string",
+                            defaultValue: ""
+                        },
+                        placeholder: {
+                            type: "string",
+                            defaultValue: ""
+                        },
+                        buttonText: {
+                            type: "string",
+                            defaultValue: ""
+                        },
+                        style: {
+                            type: "string",
+                            defaultValue: ""
+                        },
+                        uploadButtonText: {
+                            type: "string",
+                            defaultValue: "Upload"
+                        },
+                        enabled: {
+                            type: "boolean",
+                            defaultValue: true
+                        },
+                        icon: {
+                            type: "string",
+                            defaultValue: "sap-icon://browse-folder"
+                        },
+                        iconOnly: {
+                            type: "boolean",
+                            defaultValue: false
+                        },
+                        buttonOnly: {
+                            type: "boolean",
+                            defaultValue: false
+                        },
+                        multiple: {
+                            type: "boolean",
+                            defaultValue: false
+                        },
+                        visible: {
+                            type: "boolean",
+                            defaultValue: true
+                        },
+                        checkDirectUpload: {
+                            type: "boolean",
+                            defaultValue: false
+                        }
+                    },
+
+
+                    aggregations: {
+                    },
+                    events: {
+                        "upload": {
+                            allowPreventDefault: true,
+                            parameters: {}
+                        }
+                    },
+                    renderer: null
+                },
+
+                renderer: function (oRm, oControl) {
+
+                    if (!oControl.getProperty("checkDirectUpload")) {
+                     oControl.oUploadButton = new Button({
+                        text: oControl.getProperty("uploadButtonText"),
+                        enabled: oControl.getProperty("path") !== "",
+                        press: function (oEvent) {
+
+                            this.setProperty("path", this.oFileUploader.getProperty("value"));
+
+                            var file = sap.z2ui5.oUpload.oFileUpload.files[0];
+                            var reader = new FileReader();
+
+                            reader.onload = function (evt) {
+                                var vContent = evt.currentTarget.result;
+                                this.setProperty("value", vContent);
+                                this.fireUpload();
+                                //this.getView().byId('picture' ).getDomRef().src = vContent;
+                            }.bind(this)
+
+                            reader.readAsDataURL(file);
+                        }.bind(oControl)
+                     });
+                    }
+
+                    oControl.oFileUploader = new FileUploader({
+                        icon: oControl.getProperty("icon"),
+                        iconOnly: oControl.getProperty("iconOnly"),
+                        buttonOnly: oControl.getProperty("buttonOnly"),
+                        buttonText: oControl.getProperty("buttonText"),
+                        style: oControl.getProperty("style"),
+                        fileType: oControl.getProperty("fileType"),
+                        visible: oControl.getProperty("visible"),
+                        uploadOnChange: true,
+                        value: oControl.getProperty("path"),
+                        placeholder: oControl.getProperty("placeholder"),
+                        change: function (oEvent) {
+                           if (oControl.getProperty("checkDirectUpload")) {
+                             return;
+                           }
+
+                            var value = oEvent.getSource().getProperty("value");
+                            this.setProperty("path", value);
+                            if (value) {
+                                this.oUploadButton.setEnabled();
+                            } else {
+                                this.oUploadButton.setEnabled(false);
+                            }
+                            this.oUploadButton.rerender();
+                            sap.z2ui5.oUpload = oEvent.oSource;
+                        }.bind(oControl),
+                        uploadComplete: function (oEvent) {
+                           if (!oControl.getProperty("checkDirectUpload")) {
+                             return;
+                           }
+
+                            var value = oEvent.getSource().getProperty("value");
+                            this.setProperty("path", value);
+
+                            var file = oEvent.oSource.oFileUpload.files[0];
+                            var reader = new FileReader();
+
+                            reader.onload = function (evt) {
+                                var vContent = evt.currentTarget.result;
+                                this.setProperty("value", vContent);
+                                this.fireUpload();
+                            }.bind(this)
+
+                            reader.readAsDataURL(file);
+                        }.bind(oControl)
+                    });
+
+                    var hbox = new sap.m.HBox();
+                    hbox.addItem(oControl.oFileUploader);
+                    hbox.addItem(oControl.oUploadButton);
+                    oRm.renderControl(hbox);
+                }
+            });
+        }); sap.ui.define( "z2ui5/MultiInputExt" , ["sap/ui/core/Control", "sap/m/Token"
+], (Control, Token) => {
+  "use strict";
+
+  return Control.extend("z2ui5.MultiInputExt", {
+      metadata: {
+          properties: {
+              MultiInputId: { type: "String" },
+              addedTokens: { type: "Array" },
+              checkInit: { type: "Boolean", defaultValue : false },
+              removedTokens: { type: "Array" }
+          },
+                    events: {
+                        "change": {
+                            allowPreventDefault: true,
+                            parameters: {}
+                        }
+                    },
+      },
+
+      init() {
+  sap.z2ui5.onAfterRendering.push( this.setControl.bind(this) );
+      },
+
+      onTokenUpdate(oEvent) {
+          this.setProperty("addedTokens", []);
+          this.setProperty("removedTokens", []);
+
+          if (oEvent.mParameters.type == "removed") {
+              let removedTokens = [];
+              oEvent.mParameters.removedTokens.forEach((item) => {
+                  removedTokens.push({ KEY: item.getKey(), TEXT: item.getText() });
+              });
+              this.setProperty("removedTokens", removedTokens);
+          } else {
+              let addedTokens = [];
+              oEvent.mParameters.addedTokens.forEach((item) => {
+                  addedTokens.push({ KEY: item.getKey(), TEXT: item.getText() });
+              });
+              this.setProperty("addedTokens", addedTokens);
+          }
+      this.fireChange();
+      },
+      setControl(){ let table = sap.z2ui5.oView.byId( this.getProperty("MultiInputId"));
+         if ( this.getProperty("checkInit") == true ){ return; }
+         this.setProperty( "checkInit" , true );
+          table.attachTokenUpdate(this.onTokenUpdate.bind(this));
+          var fnValidator = function (args) {
+              var text = args.text;
+              return new Token({ key: text, text: text });
+          };
+          table.addValidator(fnValidator); },
+      renderer(oRM, oControl) {
+      }
+  });
+});sap.ui.define("z2ui5/UITableExt" , [
+  "sap/ui/core/Control"
+], (Control) => {
+  "use strict";
+
+  return Control.extend("z2ui5.UITableExt", {
+      metadata: {
+          properties: {
+              tableId: { type: "String" }
+          }
+      },
+
+      init() {
+          sap.z2ui5.onBeforeRoundtrip.push(this.readFilter.bind(this));
+          sap.z2ui5.onAfterRoundtrip.push(this.setFilter.bind(this));
+      },
+
+      readFilter() {
+          try {
+              let id = this.getProperty("tableId");
+              let oTable = sap.z2ui5.oView.byId(id);
+              this.aFilters = oTable.getBinding().aFilters;
+          } catch (e) { };
+      },
+
+      setFilter() {
+          try {
+            setTimeout( (aFilters) => { let id = this.getProperty("tableId");
+              let oTable = sap.z2ui5.oView.byId(id);
+              oTable.getBinding().filter(aFilters);
+        } , 100 , this.aFilters);  } catch (e) { };
+      },
+
+      renderer(oRM, oControl) {
+      }
+  });
+});sap.ui.define("z2ui5/Util" , ["sap/ui/core/Control"], (Control)=>{
+        "use strict";
+        return {
+        DateCreateObject: (s) => new Date(s),
+        DateAbapTimestampToDate: (sTimestamp) => new sap.gantt.misc.Format.abapTimestampToDate(sTimestamp),
+        DateAbapDateToDateObject: (d) => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8)),
+        DateAbapDateTimeToDateObject: (d, t = '000000') => new Date(d.slice(0, 4),
+                   parseInt(d.slice(4, 6)) - 1, d.slice(6, 8), t.slice(0, 2), t.slice(2, 4), t.slice(4, 6)),
+      };
+  });sap.ui.define("z2ui5/Favicon" , ["sap/ui/core/Control"], (Control)=>{
+        "use strict";
+        return Control.extend("z2ui5.Favicon", {
+            metadata: {
+                properties: {
+                    favicon: {
+                        type: "string"
+                    },
+                }
+            },
+            setFavicon(val) {
+                this.setProperty("favicon", val);
+                let headTitle = document.querySelector('head');
+                let setFavicon = document.createElement('link');
+                setFavicon.setAttribute('rel','shortcut icon');
+                setFavicon.setAttribute('href',val);
+                headTitle.appendChild(setFavicon);
+            },
+            renderer(oRm, oControl) {}
+        });
+  });
+          sap.z2ui5.JSON_MODEL_LIMIT = 100 ;
+sap.ui.define( "z2ui5/DebuggingTools" ,[
+    "sap/ui/core/Control",
+     "sap/ui/core/Fragment",
+     "sap/ui/model/json/JSONModel"
+], (Control, Fragment, JSONModel) => {
+    "use strict";
+
+    return Control.extend("project1.control.DebuggingTools", {
+        metadata: {
+            properties: {
+                checkLoggingActive: {
+                    type: "boolean",
+                    defaultValue: ""
+                }
+            },
+            events: {
+                "finished": {
+                    allowPreventDefault: true,
+                    parameters: {},
+                }
+            }
+        },
+
+        async show() {
+
+            var oFragmentController = {
+   prettifyXml: function (sourceXml) {
+                    var xmlDoc = new DOMParser().parseFromString(sourceXml, 'application/xml');
+                        // describes how we want to modify the XML - indent everything
+                     var sParse =   unescape( '%3Cxsl%3Astylesheet%20xmlns%3Axsl%3D%22http%3A//www.w3.org/1999/XSL/Transform%22%3E%0A%20%20%3Cxsl%3Astrip-space%20elements%3D%22*%22/%3E%0A%20%20%3Cxsl%3Atemplate%20match%3D%22para%5Bcontent-style%5D%5Bnot%28text%28%29%29%5D%22%3E%0A%20%20%20%20%3Cxsl%3Avalue-of%20select%3D%22normalize-space%28.%29%22/%3E%0A%20%20%3C/xsl%3Atemplate%3E%0A%20%20%3Cxsl%3Atemplate%20match%3D%22node%28%29%7C@*%22%3E%0A%20%20%20%20%3Cxsl%3Acopy%3E%3Cxsl%3Aapply-templates%20select%3D%22node%28%29%7C@*%22/%3E%3C/xsl%3Acopy%3E%0A%20%20%3C/xsl%3Atemplate%3E%0A%20%20%3Cxsl%3Aoutput%20indent%3D%22yes%22/%3E%0A%3C/xsl%3Astylesheet%3E' )
+                    var xsltDoc = new DOMParser().parseFromString(sParse , 'application/xml');
+
+                    var xsltProcessor = new XSLTProcessor();
+                    xsltProcessor.importStylesheet(xsltDoc);
+                    var resultDoc = xsltProcessor.transformToDocument(xmlDoc);
+                    var resultXml = new XMLSerializer().serializeToString(resultDoc);
+                    return resultXml.replace(/&gt;/g, ">");
+                },
+              onItemSelect: function (oEvent) {
+                        let selItem = oEvent.getSource().getSelectedItem();
+
+                        if (selItem == 'MODEL') {
+                           this.displayEditor( oEvent, JSON.stringify( sap?.z2ui5?.oView?.getModel()?.getData(), null, 3) , 'json' );
+                            return;
+                        }
+                        if (selItem == 'VIEW') {
+                           if( sap?.z2ui5?.oView?.mProperties?.viewContent !== undefined ) {
+                              this.displayEditor( oEvent, this.prettifyXml( sap?.z2ui5?.oView?.mProperties?.viewContent ) , 'xml', this.prettifyXml( sap?.z2ui5?.oView?._xContent.outerHTML) );
+                           } else {
+                              this.displayEditor( oEvent, this.prettifyXml( sap.z2ui5.responseData.S_FRONT.PARAMS.S_VIEW.XML ), 'xml', this.prettifyXml( sap?.z2ui5?.oView?._xContent.outerHTML) );
+                           }
+                           return;
+                        }
+                        if (selItem == 'PLAIN') {
+                            this.displayEditor( oEvent, JSON.stringify(sap.z2ui5.responseData, null, 3) , 'json' );
+                            return;
+                        }
+                        if (selItem == 'REQUEST') {
+                            this.displayEditor( oEvent, JSON.stringify(sap.z2ui5.oBody, null, 3) , 'json' );
+                            return;
+                        }
+                        if (selItem == 'POPUP') {
+                            this.displayEditor( oEvent, this.prettifyXml( sap?.z2ui5?.oResponse?.PARAMS?.S_POPUP?.XML ) , 'xml' );
+                            return;
+                        }
+                        if (selItem == 'POPUP_MODEL') {
+                            this.displayEditor( oEvent, JSON.stringify( sap.z2ui5.oViewPopup.getModel().getData(), null, 3) , 'json' );
+                            return;
+                        }
+                        if (selItem == 'POPOVER') {
+                            this.displayEditor( oEvent,  sap?.z2ui5?.oResponse?.PARAMS?.S_POPOVER?.XML  , 'xml' );
+                            return;
+                        }
+                        if (selItem == 'POPOVER_MODEL') {
+                            this.displayEditor( oEvent, JSON.stringify( sap?.z2ui5?.oViewPopover?.getModel( )?.getData( ) , null, 3) , 'json' );
+                            return;
+                        }
+                        if (selItem == 'NEST1') {
+                            this.displayEditor(  oEvent, this.prettifyXml( sap?.z2ui5?.oViewNest?.mProperties?.viewContent ) , 'xml' , this.prettifyXml( sap?.z2ui5?.oViewNest?._xContent.outerHTML) );
+                            return;
+                        }
+                        if (selItem == 'NEST1_MODEL') {
+                            this.displayEditor( oEvent, JSON.stringify( sap?.z2ui5?.oViewNest?.getModel( )?.getData( ) , null, 3) , 'json' );
+                            return;
+                        }
+                        if (selItem == 'NEST2') {
+                            this.displayEditor( oEvent, this.prettifyXml( sap?.z2ui5?.oViewNest2?.mProperties?.viewContent ) , 'xml' , this.prettifyXml( sap?.z2ui5?.oViewNest2?._xContent.outerHTML) );
+                            return;
+                        }
+                        if (selItem == 'NEST2_MODEL') {
+                            this.displayEditor( oEvent, JSON.stringify( sap?.z2ui5?.oViewNest2?.getModel( )?.getData( ) , null, 3) , 'json' );
+                            return;
+                        }
+                        if (selItem == 'SOURCE') {
+                            let content= oEvent.getSource().getParent().getItems()[1].getItems()[0].getProperty( "content");
+                            let url = window.location.origin + "/sap/bc/adt/oo/classes/" + sap.z2ui5.responseData.S_FRONT.APP + "/source/main";
+                            content = atob( 'PGlmcmFtZSBpZD0idGVzdCIgc3JjPSInICsgdXJsICsgJyIgaGVpZ2h0PSI4MDBweCIgd2lkdGg9IjEyMDBweCIgLz4=' );
+                            content = content.replace( "' + url + '" , url );
+                            oEvent.getSource().getParent().getItems()[1].getItems()[0].setProperty( "content" , content );
+                            oEvent.getSource().getModel().oData.editor_visible = false;
+                            oEvent.getSource().getModel().oData.source_visible = true;
+                            oEvent.getSource().getModel().refresh();
+                           // this.displayEditor(  oEvent, JSON.stringify( sap?.z2ui5?.oViewNest2?.getModel( )?.getData( ) , null, 3) , 'json' );
+                            return;
+                        }
+
+                    },
+                    displayEditor (oEvent, content, type, xcontent = "") {
+                        oEvent.getSource().getModel().oData.editor_visible = true;
+                        oEvent.getSource().getModel().oData.source_visible = false;
+                        oEvent.getSource().getModel().oData.isTemplating = content?.includes("xmlns:template") ? true : false;
+                        oEvent.getSource().getModel().oData.value = content;
+                        oEvent.getSource().getModel().oData.previousValue = content;
+                        oEvent.getSource().getModel().oData.xContent = xcontent;
+                        oEvent.getSource().getModel().oData.type = type;
+                        oEvent.getSource().getModel().refresh();
+                    },
+                    onTemplatingPress: function (oEvent) {
+                      if (oEvent.getSource().getPressed()) {
+                          oEvent.getSource().getModel().oData.value = oEvent.getSource().getModel().oData.xContent;
+                          oEvent.getSource().getModel().refresh();
+                      } else {
+                          oEvent.getSource().getModel().oData.value = oEvent.getSource().getModel().oData.previousValue;
+                          oEvent.getSource().getModel().refresh();
+                      }
+                    },
+                    onClose: function () {
+                        this.oDialog.close();
+
+                    }
+                };
+              let  XMLDef = 'PGNvcmU6RnJhZ21lbnREZWZpbml0aW9uCgoJeG1sbnM9InNhcC5tIgoKCXhtbG5zOm12Yz0ic2FwLnVpLmNvcmUubXZjIgoKCXhtbG5zOmNvcmU9InNhcC51aS5jb3JlIgoKCXhtbG5zOnRudD0ic2FwLnRudCIKCgl4bWxuczpodG1sPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hodG1sIgoKCXhtbG5zOmVkaXRvcj0ic2FwLnVpLmNvZGVlZGl0b3IiPgogICAgICAgICAgICAgICAgICAgICAgCgk8RGlhbG9nIHRpdGxlPSJhYmFwMlVJNSAtIERlYnVnZ2luZyBUb29scyIgc3RyZXRjaD0idHJ1ZSI+CiAgICAgICAgICAgICAgICAgICAgICAKCQk8SEJveD4KICAgICAgICAgICAgICAgICAgICAKCQkJPHRudDpTaWRlTmF2aWdhdGlvbiBpZD0ic2lkZU5hdmlnYXRpb24iIHNlbGVjdGVkS2V5PSJQTEFJTiIgaXRlbVNlbGVjdD0ib25JdGVtU2VsZWN0Ij4KICAgICAgICAgICAgICAgICAgICAgICAgCgkJCQk8dG50Ok5hdmlnYXRpb25MaXN0PgogICAgICAgICAgICAgICAgICAgICAgICAgICAgCgkJCQkJPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iQ29tbXVuaWNhdGlvbiIgaWNvbj0ic2FwLWljb246Ly9lbXBsb3llZSI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCgkJCQkJCTx0bnQ6TmF2aWdhdGlvbkxpc3RJdGVtIHRleHQ9IlByZXZpb3VzIFJlcXVlc3QiIGlkPSJSRVFVRVNUIiBrZXk9IlJFUVVFU1QiIC8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCgkJCQkJCTx0bnQ6TmF2aWdhdGlvbkxpc3RJdGVtIHRleHQ9IlJlc3BvbnNlIiAgICAgICAgICAgICAgICBpZD0iUExBSU4iICAgICAgICAga2V5PSJQTEFJTiIvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAoJCQkJCQk8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJTb3VyY2UgQ29kZSAoQUJBUCkiICAgICAgICAgICAgICBpZD0iU09VUkNFIiAgICAgICAgIGtleT0iU09VUkNFIi8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3RudDpOYXZpZ2F0aW9uTGlzdEl0ZW0+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAKCQkJCQk8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJWaWV3IiBpY29uPSJzYXAtaWNvbjovL2VtcGxveWVlIj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKCQkJCQkJPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iVmlldyAoWE1MKSIgICAgICAgICAgIGlkPSJWSUVXIiAgICAgICAgICBrZXk9IlZJRVciLz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKCQkJCQkJPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iVmlldyBNb2RlbCAoSlNPTikiICAgIGlkPSJNT0RFTCIgICAgICAgICBrZXk9Ik1PREVMIiAgLz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKCQkJCQkJPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iUG9wdXAgKFhNTCkiICAgICAgICAgIGlkPSJQT1BVUCIgICAgICAgICBrZXk9IlBPUFVQIiAgICAgICAgICBlbmFibGVkPSJ7L2FjdGl2ZVBvcHVwfSIvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAoJCQkJCQk8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJQb3B1cCBNb2RlbCAoSlNPTikiICAgaWQ9IlBPUFVQX01PREVMIiAgIGtleT0iUE9QVVBfTU9ERUwiICAgIGVuYWJsZWQ9InsvYWN0aXZlUG9wdXB9Ii8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCgkJCQkJCTx0bnQ6TmF2aWdhdGlvbkxpc3RJdGVtIHRleHQ9IlBvcG92ZXIgKFhNTCkiICAgICAgICBpZD0iUE9QT1ZFUiIgICAgICAga2V5PSJQT1BPVkVSIiAgICAgICAgZW5hYmxlZD0iey9hY3RpdmVQb3BvdmVyfSIvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAoJCQkJCQk8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJQb3BvdmVyIE1vZGVsIChKU09OKSIgaWQ9IlBPUE9WRVJfTU9ERUwiIGtleT0iUE9QT1ZFUl9NT0RFTCIgIGVuYWJsZWQ9InsvYWN0aXZlUG9wb3Zlcn0iLz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKCQkJCQkJPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iTmVzdDEgKFhNTCkiICAgICAgICAgIGlkPSJORVNUMSIgICAgICAgICBrZXk9Ik5FU1QxIiAgICAgICAgICBlbmFibGVkPSJ7L2FjdGl2ZU5lc3QxfSIvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAoJCQkJCQk8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJOZXN0MSBNb2RlbCAoSlNPTikiICAgaWQ9Ik5FU1QxX01PREVMIiAgIGtleT0iTkVTVDFfTU9ERUwiICAgIGVuYWJsZWQ9InsvYWN0aXZlTmVzdDF9Ii8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCgkJCQkJCTx0bnQ6TmF2aWdhdGlvbkxpc3RJdGVtIHRleHQ9Ik5lc3QyIChYTUwpIiAgICAgICAgICBpZD0iTkVTVDIiICAgICAgICAga2V5PSJORVNUMiIgICAgICAgICAgZW5hYmxlZD0iey9hY3RpdmVOZXN0Mn0iLz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKCQkJCQkJPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iTmVzdDIgTW9kZWwgKEpTT04pIiAgIGlkPSJORVNUMl9NT0RFTCIgICBrZXk9Ik5FU1QyX01PREVMIiAgICBlbmFibGVkPSJ7L2FjdGl2ZU5lc3QyfSIvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPC90bnQ6TmF2aWdhdGlvbkxpc3RJdGVtPgogICAgICAgICAgICAgICAgICAgICAgICAKCQkJCTwvdG50Ok5hdmlnYXRpb25MaXN0PgogICAgICAgICAgICAgICAgICAgIAoJCQk8L3RudDpTaWRlTmF2aWdhdGlvbj4KCQkJPFZCb3ggdmlzaWJsZT0iey9zb3VyY2VfdmlzaWJsZX0iIGlkPSJ0ZXN0MiI+CiAgICAgICAgICAgICAgICAgICAgICAgIAoJCQkJPGNvcmU6SFRNTC8+CiAgICAgICAgICAgICAgICAgICAgICAgIAoJCQk8L1ZCb3g+CgkJCTxWQm94PgoJCQkJPFRvZ2dsZUJ1dHRvbiB0ZXh0PSJTb3VyY2UgWE1MIGFmdGVyIFRlbXBsYXRpbmciIHZpc2libGU9InsvaXNUZW1wbGF0aW5nfSIgcHJlc3NlZD0iey90ZW1wbGF0aW5nU291cmNlfSIgcHJlc3M9Im9uVGVtcGxhdGluZ1ByZXNzIiAvPgoJCQkJPGVkaXRvcjpDb2RlRWRpdG9yCiAgICAgICAgICAgICAgICAgICAgICAgIHR5cGU9InsvdHlwZX0iCiAgICAgICAgICAgICAgICAgICAgICAgIHZhbHVlPSd7L3ZhbHVlfScKICAgICAgICAgICAgICAgICAgICBoZWlnaHQ9IjgwMHB4IiB3aWR0aD0iMTIwMHB4IiB2aXNpYmxlPSJ7L2VkaXRvcl92aXNpYmxlfSIvPgoJCQk8L1ZCb3g+CgkJPC9IQm94PgogICAgICAgICAgICAgICAgICAgCgkJPGVuZEJ1dHRvbj4KCQkJCTxCdXR0b24gdGV4dD0iQ2xvc2UiIHByZXNzPSJvbkNsb3NlIi8+CgkJPC9lbmRCdXR0b24+CiAgICAgICAgICAgICAgICAgICAKCTwvRGlhbG9nPgogICAgICAgICAgICAgICAgCjwvY29yZTpGcmFnbWVudERlZmluaXRpb24+';   XMLDef = atob(  XMLDef  );
+        if(this.oFragment) {
+                    this.oFragment.close();
+                    this.oFragment.destroy();
+                }
+                this.oFragment = await Fragment.load({
+                    definition: XMLDef,
+                    controller: oFragmentController,
+                 //   id : "debugId"
+                });
+
+                oFragmentController.oDialog = this.oFragment;
+                oFragmentController.oDialog.addStyleClass('dbg-ltr');
+
+                let value = JSON.stringify(sap.z2ui5.responseData, null, 3);
+                   let oData = {
+                    type: 'json',
+                    source_visible : false,
+                    editor_visible : true,
+                    value: value,
+                    xContent: '',
+                    previousValue: value,
+                    isTemplating  : false,
+                    templatingSource : false,
+                    activeNest1   : sap?.z2ui5?.oViewNest?.mProperties?.viewContent !== undefined,
+                    activeNest2   : sap?.z2ui5?.oViewNest2?.mProperties?.viewContent !== undefined,
+                    activePopup   : sap?.z2ui5?.oResponse?.PARAMS?.S_POPUP?.XML !== undefined,
+                    activePopover : sap?.z2ui5?.oResponse?.PARAMS?.S_POPOVER?.XML !== undefined,
+                };
+                var oModel = new JSONModel(oData);
+                this.oFragment.setModel(oModel);
+                this.oFragment.open();
+
+            },
+
+            async init() {
+
+                document.addEventListener("keydown", function (zEvent) {
+                    if (zEvent.ctrlKey ) { if ( zEvent.key === "F12") {  // case sensitive
+                        sap.z2ui5.DebuggingTools.show();
+                    } }
+                });
+
+            },
+
+            renderer(oRm, oControl) {
+            },
+        });
+    });   sap.ui.require(["z2ui5/DebuggingTools","z2ui5/Controller"], (DebuggingTools) => { sap.z2ui5.DebuggingTools = new DebuggingTools();
+ });
+</script>
+<abc/></body></html>

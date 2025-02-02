@@ -1,0 +1,55 @@
+{
+  "name": "abap2ui5",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Developing UI5 Apps purely in ABAP.",
+  "scripts": {
+    "clone1": "rm -rf abap2UI5 && git clone --depth=1 https://github.com/abap2UI5/abap2UI5 && cp -r abap2UI5/src src",
+    "clone2": "rm -rf abap2UI5-samples && git clone --depth=1 https://github.com/abap2UI5/abap2UI5-samples && cp -r abap2UI5-samples/src src/samples",
+    "clone": "rm -rf src && npm run clone1 && npm run clone2",
+    "init_abap2ui5": "rm -rf src && rm -rf abap2UI5 &&  mkdir src && git clone --depth=1 https://github.com/abap2UI5/abap2UI5.git && cp -r abap2UI5/src/* src/",
+    "init_samples": "rm -rf abap2UI5-samples && git clone --depth=1 https://github.com/abap2UI5/abap2UI5-samples && cp -r abap2UI5-samples/src src/samples",
+    "init" : "npm run init_abap2ui5 && npm run init_samples",
+    "syfixes": "find . -type f -name '*.abap' -exec sed -i -e 's/ RAISE EXCEPTION TYPE cx_sy_itab_line_not_found/ ASSERT 1 = 0/g' {} + ",
+    "downport": "rm -rf downport && cp -r src downport && abaplint --fix ./ci/abaplint-downport.jsonc && npm run syfixes",
+    "downport_samples": "rm -rf downport && cp -r src downport && abaplint --fix ./ci/abaplint-downport-samples.jsonc && npm run syfixes",
+    "unit": "echo RUNNING && node output/index.mjs",
+    "transpile": "rm -rf output && cp srv/*.abap downport && abap_transpile ./ci/abap_transpile.json",
+    "test": "npm run downport && npm run transpile && npm run unit",
+    "cleanup": "rm -rf input && rm -rf output",
+    "express": "node srv/express.mjs",
+    "webpack:run": "webpack serve --mode development --env development",
+    "webpack:build": "webpack --mode development --env development",
+    "build" : "npm ci && npm run downport && npm run transpile && rm -rf src",
+    "express_play": "node abap2UI5-transpiled/srv/express.mjs",
+    "init_play": "git clone https://github.com/abap2UI5/abap2UI5-transpiled && cd abap2UI5-transpiled && npm run init && npm run build && cd .."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abap2UI5/abap2UI5.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/abap2UI5/abap2UI5/issues"
+  },
+  "homepage": "https://github.com/abap2UI5/abap2UI5#readme",
+  "devDependencies": {
+    "@abaplint/cli": "^2.113.86",
+    "@abaplint/database-sqlite": "^2.10.20",
+    "@abaplint/runtime": "^2.10.23",
+    "@abaplint/transpiler-cli": "^2.10.23",
+    "@types/node": "^22.10.5",
+    "buffer": "^6.0.3",
+    "copy-webpack-plugin": "^12.0.2",
+    "express": "^4.21.2",
+    "html-webpack-plugin": "^5.6.3",
+    "path-browserify": "^1.0.1",
+    "web-encoding": "^1.1.5",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.0",
+    "@playwright/test": "^1.49.1"
+  },
+  "dependencies": {
+    "npm-check-updates": "^17.1.13"
+  }
+}
