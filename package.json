@@ -11,7 +11,7 @@
     "init_samples": "rm -rf abap2UI5-samples && git clone --depth=1 https://github.com/abap2UI5/abap2UI5-samples && cp -r abap2UI5-samples/src src/samples",
     "init" : "npm run init_abap2ui5 && npm run init_samples",
     "syfixes": "find . -type f -name '*.abap' -exec sed -i -e 's/ RAISE EXCEPTION TYPE cx_sy_itab_line_not_found/ ASSERT 1 = 0/g' {} + ",
-    "downport": "git clone https://github.com/abap2UI5/abap2UI5.git && rm -rf src/* && cp -r abap2UI5/src src && abaplint --fix ./abaplint-downport.jsonc && npm run syfixes && rm -rf abap2UI5",
+    "downport": "git clone https://github.com/abap2UI5/abap2UI5.git && rm -rf src/* && cp -r abap2UI5/src/* src && abaplint --fix ./abaplint-downport.jsonc && npm run syfixes && rm -rf abap2UI5",
     "downport_samples": "rm -rf downport && cp -r src downport && abaplint --fix ./ci/abaplint-downport-samples.jsonc && npm run syfixes",
     "unit": "echo RUNNING && node output/index.mjs",
     "transpile": "rm -rf output && cp srv/*.abap downport && abap_transpile ./ci/abap_transpile.json",
