@@ -1,0 +1,33 @@
+name: build_web
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 8 * * *'
+
+jobs:
+  build_web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+    - run: npm ci
+    - run: npm run clone
+    - run: npm run build && node output/index.mjs
+    - run: npm run webpack:build
+    - name: deploy to web-abap2ui5-samples
+      uses: peaceiris/actions-gh-pages@v4
+      if: github.ref == 'refs/heads/main' && github.repository == 'abap2UI5/abap2UI5-web'
+      with:
+        deploy_key: ${{ secrets.DEPLOY_WEB }}
+        external_repository: abap2UI5/web-abap2ui5-samples
+        user_name: 'github-actions[bot]'
+        user_email: 'github-actions[bot]@users.noreply.github.com'
+        publish_branch: main
+        force_orphan: true
+        publish_dir: ./build
