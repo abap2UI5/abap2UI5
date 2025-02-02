@@ -4,9 +4,6 @@ on:
   push:
     branches: [main]
 
-permissions:
-  contents: write
-
 jobs:
   build_downpor_branch:
     runs-on: ubuntu-latest
@@ -16,6 +13,12 @@ jobs:
       uses: actions/checkout@v3
       with:
         ref: 702
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+        
     - run: git clone https://github.com/abap2UI5/abap2UI5-setup.git && cp -r abap2UI5-setup/* . && npm i
     - run: npm ci
     - run: npm run downport
