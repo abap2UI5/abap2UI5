@@ -1,4 +1,0 @@
-<mvc:View controllerName="z2ui5.controller.View1"
-    xmlns:mvc="sap.ui.core.mvc" displayBlock="true"
-    xmlns="sap.m">
-</mvc:View>
