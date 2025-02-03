@@ -121,11 +121,9 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
 
   METHOD count_entries.
 
-  data lt_tab type standard table of z2ui5_t_01 with DEFAULT key.
-    SELECT id
+    SELECT COUNT( * )
       FROM z2ui5_t_01
-      INTO corresponding fields of table result.
-  result = lines( lt_tab ).
+      INTO result.
 
   ENDMETHOD.
 ENDCLASS.
