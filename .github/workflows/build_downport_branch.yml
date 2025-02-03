@@ -25,9 +25,9 @@ jobs:
       id: cpr
       uses: peter-evans/create-pull-request@v5
       with:
-        branch: auto-update
-        title: "Automatic Update"
-        commit-message: "Automated changes"
+        branch: auto-update-downport
+        title: "Auto Update Downport"
+        commit-message: "Auto Update Downport"
         body: "This PR contains automated changes."
         labels: "auto-merge"
     - name: Enable Pull Request Automerge
