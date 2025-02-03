@@ -31,6 +31,7 @@ jobs:
         body: "This PR contains automated changes."
         labels: "auto-merge"
     - name: Enable Pull Request Automerge
+      if: steps.changes.outputs.changes == 'true'
       uses: peter-evans/enable-pull-request-automerge@v3
       with:
         pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
