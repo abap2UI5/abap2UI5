@@ -19,7 +19,6 @@ jobs:
       with:
         node-version: '16'
         
-    - run: git clone https://github.com/abap2UI5/abap2UI5-setup.git && cp -r abap2UI5-setup/* . && npm i
     - run: npm ci
     - run: npm run downport
     - name: Create Pull Request
