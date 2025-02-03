@@ -964,7 +964,8 @@ DATA lt_cols TYPE temp2.
       DATA lv_name TYPE string.
       DATA temp18 TYPE abap_componentdescr.
     DATA struc TYPE REF TO cl_abap_structdescr.
-    DATA temp19 TYPE REF TO cl_abap_typedescr.
+    DATA temp19 TYPE REF TO cl_abap_datadescr.
+    DATA data LIKE temp19.
     DATA o_table_desc TYPE REF TO cl_abap_tabledescr.
     DATA temp20 LIKE LINE OF lt_rows.
     DATA lr_rows LIKE REF TO temp20.
@@ -1003,7 +1004,9 @@ DATA lt_cols TYPE temp2.
     
     temp19 ?= struc.
     
-    o_table_desc = cl_abap_tabledescr=>create( p_line_type  = temp19
+    data = temp19.
+    
+    o_table_desc = cl_abap_tabledescr=>create( p_line_type  = data
                                                      p_table_kind = cl_abap_tabledescr=>tablekind_std
                                                      p_unique     = abap_false ).
 
