@@ -13,7 +13,7 @@
     "@sap/ui5-builder-webide-extension": "^1.1.9",
     "@sap/ux-ui5-tooling": "1.16.2",
     "@ui5/cli": "^4.0.13",
-    "@ui5/linter": "^1.7.0",
+    "@ui5/linter": "^1.8.0",
     "mbt": "^1.2.34",
     "rimraf": "^6.0.1",
     "ui5-task-zipper": "^3.3.1"
