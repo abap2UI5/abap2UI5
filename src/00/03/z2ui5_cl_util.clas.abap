@@ -802,7 +802,8 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDLOOP.
 
     DATA(struc) = cl_abap_structdescr=>get( lt_comp ).
-    DATA(o_table_desc) = cl_abap_tabledescr=>create( p_line_type  = CAST #( struc )
+    DATA(data) = CAST cl_abap_datadescr( struc ).
+    DATA(o_table_desc) = cl_abap_tabledescr=>create( p_line_type  = data
                                                      p_table_kind = cl_abap_tabledescr=>tablekind_std
                                                      p_unique     = abap_false ).
 
