@@ -4,25 +4,9 @@
   "version": "1.0.0",
   "description": "Developing UI5 Apps purely in ABAP.",
   "scripts": {
-    "clone1": "rm -rf abap2UI5 && git clone --depth=1 https://github.com/abap2UI5/abap2UI5 && cp -r abap2UI5/src src",
-    "clone2": "rm -rf abap2UI5-samples && git clone --depth=1 https://github.com/abap2UI5/abap2UI5-samples && cp -r abap2UI5-samples/src src/samples",
-    "clone": "rm -rf src && npm run clone1 && npm run clone2",
-    "init_abap2ui5": "rm -rf src && rm -rf abap2UI5 &&  mkdir src && git clone --depth=1 https://github.com/abap2UI5/abap2UI5.git && cp -r abap2UI5/src/* src/",
-    "init_samples": "rm -rf abap2UI5-samples && git clone --depth=1 https://github.com/abap2UI5/abap2UI5-samples && cp -r abap2UI5-samples/src src/samples",
-    "init" : "npm run init_abap2ui5 && npm run init_samples",
     "syfixes": "find . -type f -name '*.abap' -exec sed -i -e 's/ RAISE EXCEPTION TYPE cx_sy_itab_line_not_found/ ASSERT 1 = 0/g' {} + ",
     "downport": "git clone https://github.com/abap2UI5/abap2UI5.git && rm -rf src/* && cp -r abap2UI5/src/* src && abaplint --fix ./abaplint-downport.jsonc && npm run syfixes && rm -rf abap2UI5",
-    "downport_samples": "rm -rf downport && cp -r src downport && abaplint --fix ./ci/abaplint-downport-samples.jsonc && npm run syfixes",
-    "unit": "echo RUNNING && node output/index.mjs",
-    "transpile": "rm -rf output && cp srv/*.abap downport && abap_transpile ./ci/abap_transpile.json",
-    "test": "npm run downport && npm run transpile && npm run unit",
-    "cleanup": "rm -rf input && rm -rf output",
-    "express": "node srv/express.mjs",
-    "webpack:run": "webpack serve --mode development --env development",
-    "webpack:build": "webpack --mode development --env development",
-    "build" : "npm ci && npm run downport && npm run transpile && rm -rf src",
-    "express_play": "node abap2UI5-transpiled/srv/express.mjs",
-    "init_play": "git clone https://github.com/abap2UI5/abap2UI5-transpiled && cd abap2UI5-transpiled && npm run init && npm run build && cd .."
+    "cleanup": "rm -rf input && rm -rf output"
   },
   "repository": {
     "type": "git",
