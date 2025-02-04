@@ -44,24 +44,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
     TRY.
 
-*        DATA(lv_payload) = |\{"S_FRONT":\{"CONFIG":\{"UI5VersionInfo":\{"version":"1.132.1","buildTimestamp":"202501211848","gav":"com.sap.openui5.dist:sdk:1.132.1:war"\},"pathname":"https://solid-robot-xgqpgj6wjqwfvw96-3000.app.github.dev/"\},"ORIG| &&
-*|IN":"https://solid-robot-xgqpgj6wjqwfvw96-3000.app.github.dev","PATHNAME":"/","HASH":""\}\}|.
-*
-*        DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( lv_payload ) ).
-*
-*        DATA(ls_result) =  VALUE z2ui5_if_core_types=>ty_s_request( ).
-*
-*        lo_ajson = lo_ajson->slice( `/S_FRONT` ).
-*        lo_ajson->to_abap( EXPORTING iv_corresponding = abap_true
-*                           IMPORTING ev_container     = ls_result-s_front ).
-*
-*        ls_result-s_front-o_comp_data = lo_ajson->slice( `/CONFIG/ComponentData` ).
-*
-*        DATA(lo_comp) = ls_result-s_front-o_comp_data.
-*        DATA(lo_comp2) = ls_result-s_front-o_comp_data.
-        data lo_comp2 type ref to z2ui5_if_ajson.
-        DATA(lv_app_start) = lo_comp2->get( `/startupParameters/app_start/1` ).
-
+        DATA lo_comp2 TYPE REF TO z2ui5_if_ajson.
+        DATA(lv_dummy) = lo_comp2->get( `/startupParameters/app_start/1` ) ##NEEDED.
         cl_abap_unit_assert=>abort( ).
 
       CATCH cx_root.
