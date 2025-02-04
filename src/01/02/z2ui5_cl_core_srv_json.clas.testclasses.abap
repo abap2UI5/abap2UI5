@@ -40,7 +40,6 @@ CLASS ltcl_test IMPLEMENTATION.
   ENDMETHOD.
 
 
-
   METHOD test_empty_app.
 
     TRY.
@@ -52,12 +51,12 @@ CLASS ltcl_test IMPLEMENTATION.
         DATA(ls_result) = lo_mapper->request_json_to_abap( lv_payload ).
 
         DATA(lo_comp) = ls_result-s_front-o_comp_data.
-        DATA(lv_app_start) = lo_comp->get( `/startupParameters/app_start/1` ).
+        DATA(lv_app_start) = lo_comp->get( `/startupParameters/app_start/1` ) ##NEEDED.
 
         cl_abap_unit_assert=>abort( ).
 
       CATCH cx_root.
-        "exception is fine when there is no ap_start parameter
+        "exception is expected when there is no app_start parameter
     ENDTRY.
 
 
