@@ -3,11 +3,13 @@ CLASS ltcl_test DEFINITION FINAL
 
   PRIVATE SECTION.
     METHODS request_json_to_abap FOR TESTING RAISING cx_static_check.
+    METHODS test_empty_app FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
 
 CLASS ltcl_test IMPLEMENTATION.
+
   METHOD request_json_to_abap.
 
     DATA(lv_payload) = |\{"XX":\{"NAME":"test"\},"S_FRONT":\{"ID":"ID_NR","EDIT":\{"NAME":"test"\},"ORIGIN":"ORIGIN","PATHNAME":"PATHNAME","SEARCH":"SEARCH"| &&
@@ -36,4 +38,29 @@ CLASS ltcl_test IMPLEMENTATION.
                                         act = lines( lt_tree ) ).
 
   ENDMETHOD.
+
+
+
+  METHOD test_empty_app.
+
+    TRY.
+
+        DATA(lv_payload) = |\{"S_FRONT":\{"CONFIG":\{"UI5VersionInfo":\{"version":"1.132.1","buildTimestamp":"202501211848","gav":"com.sap.openui5.dist:sdk:1.132.1:war"\},"pathname":"https://solid-robot-xgqpgj6wjqwfvw96-3000.app.github.dev/"\},"ORIG| &&
+|IN":"https://solid-robot-xgqpgj6wjqwfvw96-3000.app.github.dev","PATHNAME":"/","HASH":""\}\}|.
+
+        DATA(lo_mapper) = NEW z2ui5_cl_core_srv_json( ).
+        DATA(ls_result) = lo_mapper->request_json_to_abap( lv_payload ).
+
+        DATA(lo_comp) = ls_result-s_front-o_comp_data.
+        DATA(lv_app_start) = lo_comp->get( `/startupParameters/app_start/1` ).
+
+        cl_abap_unit_assert=>abort( ).
+
+      CATCH cx_root.
+        "exception is fine when there is no ap_start parameter
+    ENDTRY.
+
+
+  ENDMETHOD.
+
 ENDCLASS.
