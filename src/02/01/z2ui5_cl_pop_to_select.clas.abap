@@ -106,9 +106,9 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
     DATA ls_comp LIKE LINE OF lt_comp.
     DATA columns TYPE REF TO z2ui5_cl_xml_view.
       DATA temp4 TYPE REF TO cl_abap_elemdescr.
-      DATA temp5 TYPE z2ui5_cl_abap_api=>ty_s_data_element_text-medium.
+      DATA temp5 TYPE z2ui5_cl_util_abap=>ty_s_data_element_text-medium.
       DATA data_element_name TYPE string.
-      DATA medium_label TYPE z2ui5_cl_abap_api=>ty_s_data_element_text-medium.
+      DATA medium_label TYPE z2ui5_cl_util_abap=>ty_s_data_element_text-medium.
       DATA text LIKE temp5.
 
     ASSIGN mr_tab_popup->* TO <tab_out>.

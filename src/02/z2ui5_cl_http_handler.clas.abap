@@ -69,7 +69,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
   PROTECTED SECTION.
     CLASS-DATA so_sticky_handler TYPE REF TO z2ui5_cl_core_handler.
 
-    DATA mo_server TYPE REF TO z2ui5_cl_abap_api_http.
+    DATA mo_server TYPE REF TO z2ui5_cl_util_abap_http.
 
     DATA ms_req    TYPE z2ui5_if_core_types=>ty_s_http_req.
     DATA ms_res    TYPE z2ui5_if_core_types=>ty_s_http_res.
@@ -109,7 +109,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     CREATE OBJECT result.
 
     IF server IS BOUND.
-      result->mo_server = z2ui5_cl_abap_api_http=>factory( server ).
+      result->mo_server = z2ui5_cl_util_abap_http=>factory( server ).
     ELSEIF req IS BOUND AND res IS BOUND.
       result = factory_cloud( req = req
                               res = res ).
@@ -122,7 +122,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
   METHOD factory_cloud.
 
     CREATE OBJECT result.
-    result->mo_server = z2ui5_cl_abap_api_http=>factory_cloud( req = req
+    result->mo_server = z2ui5_cl_util_abap_http=>factory_cloud( req = req
                                                                res = res ).
 
   ENDMETHOD.

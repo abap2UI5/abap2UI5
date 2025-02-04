@@ -37,7 +37,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CORE_SRV_JSON IMPLEMENTATION.
+CLASS z2ui5_cl_core_srv_json IMPLEMENTATION.
 
 
   METHOD model_front_to_back.
@@ -182,6 +182,7 @@ CLASS Z2UI5_CL_CORE_SRV_JSON IMPLEMENTATION.
         DATA lo_model TYPE REF TO z2ui5_if_ajson.
         DATA temp1 TYPE xsdboolean.
             DATA lo_comp LIKE result-s_front-o_comp_data.
+            DATA lv_app_start TYPE string.
             DATA lv_hash LIKE result-s_front-hash.
             DATA lv_dummy TYPE string.
         DATA x TYPE REF TO cx_root.
@@ -218,27 +219,27 @@ CLASS Z2UI5_CL_CORE_SRV_JSON IMPLEMENTATION.
         TRY.
             
             lo_comp = result-s_front-o_comp_data.
-            result-s_control-app_start = lo_comp->get( `/startupParameters/app_start/1` ).
+            
+            lv_app_start = lo_comp->get( `/startupParameters/app_start/1` ).
+
+            result-s_control-app_start = lv_app_start.
             result-s_control-app_start = z2ui5_cl_util=>c_trim_upper( result-s_control-app_start ).
           CATCH cx_root.
         ENDTRY.
 
-        try.
-    "   result-s_control-app_start_draft = z2ui5_cl_util=>c_trim_upper(
-    "                                         z2ui5_cl_util=>url_param_get( val = `z2ui5-xapp-state`
-    "                                                                       url = result-s_front-search ) ).
+        TRY.
             
             lv_hash = result-s_front-hash.
             
-            split lv_hash at '&/' into lv_dummy lv_hash.
-            if lv_hash is initial.
+            SPLIT lv_hash AT '&/' INTO lv_dummy lv_hash.
+            IF lv_hash IS INITIAL.
               lv_hash = result-s_front-hash+2.
-            endif.
+            ENDIF.
             result-s_control-app_start_draft = z2ui5_cl_util=>c_trim_upper(
                                            z2ui5_cl_util=>url_param_get( val = `z2ui5-xapp-state`
                                                                          url = lv_hash ) ).
-          catch cx_root.
-        endtry.
+          CATCH cx_root.
+        ENDTRY.
         IF result-s_control-app_start IS NOT INITIAL.
           IF result-s_control-app_start(1) = `-`.
             REPLACE FIRST OCCURRENCE OF `-` IN result-s_control-app_start WITH `/`.
