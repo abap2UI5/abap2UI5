@@ -49,7 +49,7 @@ CLASS ltcl_test IMPLEMENTATION.
         cl_abap_unit_assert=>abort( ).
 
       CATCH cx_root.
-        "exception is expected when there is no app_start parameter
+        "exception is expected when lo_comp2 is not bound
     ENDTRY.
 
 
