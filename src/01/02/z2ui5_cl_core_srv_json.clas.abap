@@ -182,7 +182,7 @@ CLASS z2ui5_cl_core_srv_json IMPLEMENTATION.
         DATA lo_model TYPE REF TO z2ui5_if_ajson.
         DATA temp1 TYPE xsdboolean.
             DATA lo_comp LIKE result-s_front-o_comp_data.
-            DATA lv_app_start TYPE string.
+              DATA lv_app_start TYPE string.
             DATA lv_hash LIKE result-s_front-hash.
             DATA lv_dummy TYPE string.
         DATA x TYPE REF TO cx_root.
@@ -219,11 +219,13 @@ CLASS z2ui5_cl_core_srv_json IMPLEMENTATION.
         TRY.
             
             lo_comp = result-s_front-o_comp_data.
-            
-            lv_app_start = lo_comp->get( `/startupParameters/app_start/1` ).
+            if lo_comp is bound.
+              
+              lv_app_start = lo_comp->get( `/startupParameters/app_start/1` ).
 
-            result-s_control-app_start = lv_app_start.
-            result-s_control-app_start = z2ui5_cl_util=>c_trim_upper( result-s_control-app_start ).
+              result-s_control-app_start = lv_app_start.
+              result-s_control-app_start = z2ui5_cl_util=>c_trim_upper( result-s_control-app_start ).
+            endif.
           CATCH cx_root.
         ENDTRY.
 
