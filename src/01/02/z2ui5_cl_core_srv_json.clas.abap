@@ -163,10 +163,12 @@ CLASS z2ui5_cl_core_srv_json IMPLEMENTATION.
 
         TRY.
             DATA(lo_comp) = result-s_front-o_comp_data.
-            DATA(lv_app_start) = lo_comp->get( `/startupParameters/app_start/1` ).
+            if lo_comp is bound.
+              DATA(lv_app_start) = lo_comp->get( `/startupParameters/app_start/1` ).
 
-            result-s_control-app_start = lv_app_start.
-            result-s_control-app_start = z2ui5_cl_util=>c_trim_upper( result-s_control-app_start ).
+              result-s_control-app_start = lv_app_start.
+              result-s_control-app_start = z2ui5_cl_util=>c_trim_upper( result-s_control-app_start ).
+            endif.
           CATCH cx_root.
         ENDTRY.
 
