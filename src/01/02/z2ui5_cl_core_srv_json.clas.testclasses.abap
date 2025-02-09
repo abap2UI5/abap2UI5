@@ -63,4 +63,5 @@ CLASS ltcl_test IMPLEMENTATION.
                                         act = lines( lt_tree ) ).
 
   ENDMETHOD.
+
 ENDCLASS.
