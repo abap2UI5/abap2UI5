@@ -3,6 +3,7 @@ CLASS ltcl_test DEFINITION FINAL
 
   PRIVATE SECTION.
     METHODS request_json_to_abap FOR TESTING RAISING cx_static_check.
+    METHODS request_json_to_abap2 FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -34,6 +35,22 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = 3
                                         act = lines( lt_tree ) ).
+
+  ENDMETHOD.
+
+
+  METHOD request_json_to_abap2.
+
+    DATA lo_test TYPE REF TO ltcl_test.
+
+    TRY.
+
+        lo_test->request_json_to_abap( ).
+        cl_abap_unit_assert=>abort( ).
+
+      CATCH cx_root.
+        "exception is expected when lo_comp2 is not bound
+    ENDTRY.
 
   ENDMETHOD.
 ENDCLASS.
