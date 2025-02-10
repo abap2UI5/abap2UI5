@@ -16,7 +16,7 @@
     "@ui5/linter": "^1.8.0",
     "mbt": "^1.2.34",
     "rimraf": "^6.0.1",
-    "ui5-task-zipper": "^3.3.3"
+    "ui5-task-zipper": "^3.4.0"
   },
   "scripts": {
     "start": "fiori run --open \"test/flpSandbox.html?sap-ui-xx-viewCache=false#z2ui5-display\"",
