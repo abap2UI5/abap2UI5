@@ -76,7 +76,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        await this.displayPopover(S_POPOVER.XML, 'oViewPopover', S_POPOVER.OPEN_BY_ID);` && |\n|  &&
              `                    }` && |\n|  &&
              `` && |\n|  &&
-             `                    let oState = JSON.parse(JSON.stringify({ view: z2ui5.oView.mProperties.viewContent, model: z2ui5.oView.getModel().getData(), response: z2ui5.oResponse }));` && |\n|  &&
+             `                   if (z2ui5.oView) {    var oState = JSON.parse(JSON.stringify({ view: z2ui5.oView.mProperties.viewContent, model: z2ui5.oView.getModel().getData(), response: z2ui5.oResponse })); }else{ oState = {}; }` && |\n|  &&
              `                   if (SET_PUSH_STATE) {` && |\n|  &&
              `                     // sap.ui.core.routing.HashChanger.getInstance().setHash("423143124");` && |\n|  &&
              `                     // sap.ui.core.routing.HashChanger.getInstance().replaceHash("423143124");` && |\n|  &&
@@ -599,6 +599,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            },` && |\n|  &&
              `        })` && |\n|  &&
              `    });` && |\n|  &&
+             `` && |\n|  &&
               ``.
 
   ENDMETHOD.
