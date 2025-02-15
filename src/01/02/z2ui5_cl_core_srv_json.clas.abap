@@ -74,7 +74,9 @@ CLASS z2ui5_cl_core_srv_json IMPLEMENTATION.
           lo_val_front->to_abap( IMPORTING ev_container = <val> ).
 
         CATCH cx_root INTO DATA(x).
-          z2ui5_cl_util=>x_raise( |JSON_PARSING_ERROR: { x->get_text( ) } | ).
+          RAISE EXCEPTION TYPE z2ui5_cx_util_error
+            EXPORTING
+              val = |JSON_PARSING_ERROR: { x->get_text( ) } |.
       ENDTRY.
     ENDLOOP.
 
