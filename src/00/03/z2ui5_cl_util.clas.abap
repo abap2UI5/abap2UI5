@@ -1398,10 +1398,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     LOOP AT val INTO DATA(ls_filter).
 
-      " TODO: variable is assigned but never used (ABAP cleaner)
-      DATA lo_range TYPE REF TO lcl_range_to_sql.
-
-      lo_range = NEW #( iv_fieldname = ls_filter-name
+      DATA(lo_range) = NEW z2ui5_cl_util_range( iv_fieldname = ls_filter-name
                         ir_range     = REF #( ls_filter-t_range ) ).
 
     ENDLOOP.
@@ -1410,7 +1407,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD msg_get.
 
-    result = lcl_msp_mapper=>msg_get( val ).
+    result = z2ui5_cl_util_msg=>msg_get( val ).
 
   ENDMETHOD.
 
