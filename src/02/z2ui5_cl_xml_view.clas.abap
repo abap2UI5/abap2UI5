@@ -219,11 +219,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         ns                  TYPE clike OPTIONAL
         link                TYPE clike OPTIONAL
-        ID                  type CLIKE optional
-        CLASS               type CLIKE optional
-        CURRENTLOCATIONTEXT type CLIKE optional
-        SEPARATORSTYLE      type CLIKE optional
-        VISIBLE             type CLIKE optional
+        id                  TYPE clike OPTIONAL
+        class               TYPE clike OPTIONAL
+        currentlocationtext TYPE clike OPTIONAL
+        separatorstyle      TYPE clike OPTIONAL
+        visible             TYPE clike OPTIONAL
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
@@ -18108,7 +18108,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
             temp556-v = ls_prop-v.
             INSERT temp556 INTO TABLE mt_prop.
           CATCH cx_root.
-            z2ui5_cl_util=>x_raise( |XML_VIEW_ERROR_NO_NAMESPACE_FOUND_FOR:  { lr_ns->* }| ).
+            RAISE EXCEPTION TYPE z2ui5_cx_util_error
+              EXPORTING
+                val = |XML_VIEW_ERROR_NO_NAMESPACE_FOUND_FOR:  { lr_ns->* }|.
         ENDTRY.
       ENDLOOP.
 

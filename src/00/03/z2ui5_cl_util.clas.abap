@@ -1810,16 +1810,14 @@ DATA lt_param TYPE temp3.
   METHOD filter_get_sql_where.
 
     DATA ls_filter LIKE LINE OF val.
-      DATA lo_range TYPE REF TO lcl_range_to_sql.
       DATA temp52 LIKE REF TO ls_filter-t_range.
+DATA lo_range TYPE REF TO z2ui5_cl_util_range.
     LOOP AT val INTO ls_filter.
-
-      " TODO: variable is assigned but never used (ABAP cleaner)
-      
 
       
       GET REFERENCE OF ls_filter-t_range INTO temp52.
-CREATE OBJECT lo_range EXPORTING iv_fieldname = ls_filter-name ir_range = temp52.
+
+CREATE OBJECT lo_range TYPE z2ui5_cl_util_range EXPORTING iv_fieldname = ls_filter-name ir_range = temp52.
 
     ENDLOOP.
 
@@ -1827,7 +1825,7 @@ CREATE OBJECT lo_range EXPORTING iv_fieldname = ls_filter-name ir_range = temp52
 
   METHOD msg_get.
 
-    result = lcl_msp_mapper=>msg_get( val ).
+    result = z2ui5_cl_util_msg=>msg_get( val ).
 
   ENDMETHOD.
 
