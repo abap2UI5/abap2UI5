@@ -4,6 +4,8 @@ CLASS z2ui5_cl_core_srv_draft DEFINITION
 
   PUBLIC SECTION.
 
+    TYPES ty_s_db TYPE z2ui5_t_01.
+
     METHODS count_entries
       RETURNING
         VALUE(result) TYPE i.
@@ -17,7 +19,7 @@ CLASS z2ui5_cl_core_srv_draft DEFINITION
       IMPORTING
         !id           TYPE clike
       RETURNING
-        VALUE(result) TYPE z2ui5_if_core_types=>ty_s_db.
+        VALUE(result) TYPE ty_s_db.
 
     METHODS read_info
       IMPORTING
@@ -34,7 +36,7 @@ CLASS z2ui5_cl_core_srv_draft DEFINITION
         !id            TYPE clike
         check_load_app TYPE abap_bool DEFAULT abap_true
       RETURNING
-        VALUE(result)  TYPE z2ui5_if_core_types=>ty_s_db.
+        VALUE(result)  TYPE ty_s_db.
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -53,7 +55,7 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD create.
-    DATA temp1 TYPE z2ui5_if_core_types=>ty_s_db.
+    DATA temp1 TYPE ty_s_db.
     DATA ls_db LIKE temp1.
 
     ASSERT draft-id IS NOT INITIAL.
@@ -73,7 +75,8 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
     MODIFY z2ui5_t_01 FROM ls_db.
     IF sy-subrc <> 0.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = `CREATE_OF_DRAFT_ENTRY_ON_DATABASE_FAILED`.
+        EXPORTING
+          val = `CREATE_OF_DRAFT_ENTRY_ON_DATABASE_FAILED`.
     ENDIF.
     COMMIT WORK AND WAIT.
 
@@ -90,7 +93,7 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
     ELSE.
 
       SELECT SINGLE id id_prev id_prev_app id_prev_app_stack
-        FROM z2ui5_t_01 INTO CORRESPONDING FIELDS OF result
+       FROM z2ui5_t_01 INTO CORRESPONDING FIELDS OF result
         WHERE id = id
          ##SUBRC_OK.
 
@@ -98,7 +101,8 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
 
     IF sy-subrc <> 0.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
+        EXPORTING
+          val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
     ENDIF.
 
   ENDMETHOD.
