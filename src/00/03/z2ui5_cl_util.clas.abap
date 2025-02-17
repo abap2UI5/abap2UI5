@@ -351,6 +351,12 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE abap_bool.
 
+    CLASS-METHODS rtti_create_tab_by_name
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE REF TO data.
+
     CLASS-METHODS rtti_check_type_kind_dref
       IMPORTING
         val           TYPE any
@@ -1857,6 +1863,20 @@ CREATE OBJECT lo_range TYPE z2ui5_cl_util_range EXPORTING iv_fieldname = ls_filt
         temp53 = `Information`.
     ENDCASE.
     result = temp53.
+
+  ENDMETHOD.
+
+  METHOD rtti_create_tab_by_name.
+
+    DATA struct_desc TYPE REF TO cl_abap_typedescr.
+    DATA temp54 TYPE REF TO cl_abap_typedescr.
+    DATA gr_dyntable_typ TYPE REF TO cl_abap_tabledescr.
+    struct_desc = cl_abap_structdescr=>describe_by_name( val ).
+    
+    temp54 ?= struct_desc.
+    
+    gr_dyntable_typ = cl_abap_tabledescr=>create( temp54 ).
+    CREATE DATA result TYPE HANDLE gr_dyntable_typ.
 
   ENDMETHOD.
 
