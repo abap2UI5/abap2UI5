@@ -37,16 +37,13 @@ CLASS z2ui5_cl_util_sql IMPLEMENTATION.
     "Variante lesen
     "SQL Select machen
 
-    DATA lv_result TYPE string.
-
-    FIELD-SYMBOLS <table> TYPE ANY TABLE.
-    ASSIGN ms_sql-t_ref->* TO <table>.
+*    DATA lv_result TYPE string.
 
     SELECT FROM (ms_sql-tabname)
      FIELDS
      *
 *     WHERE (lv_result)
-     INTO TABLE @<table>
+     INTO TABLE @ms_sql-t_ref->*
      UP TO @ms_sql-count ROWS.
 
 
@@ -63,7 +60,7 @@ CLASS z2ui5_cl_util_sql IMPLEMENTATION.
     "Variante lesen
     "SQL Select machen
 
-    DATA lv_result TYPE string.
+*    DATA lv_result TYPE string.
 
     SELECT FROM (ms_sql-tabname)
      FIELDS
