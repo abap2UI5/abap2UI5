@@ -3,13 +3,6 @@ CLASS z2ui5_cl_util_sql DEFINITION PUBLIC.
 
     INTERFACES if_serializable_object.
 
-    TYPES:
-      BEGIN OF t_go_button,
-        event_name TYPE string,
-        icon_name  TYPE string,
-        text       TYPE string,
-      END OF t_go_button.
-
     CLASS-METHODS factory
       IMPORTING
         i_sql           TYPE z2ui5_cl_util=>ty_s_sql OPTIONAL
@@ -52,7 +45,7 @@ CLASS z2ui5_cl_util_sql IMPLEMENTATION.
     SELECT FROM (ms_sql-tabname)
      FIELDS
      *
-     WHERE (lv_result)
+*     WHERE (lv_result)
      INTO TABLE @<table>
      UP TO @ms_sql-count ROWS.
 
@@ -75,7 +68,7 @@ CLASS z2ui5_cl_util_sql IMPLEMENTATION.
     SELECT FROM (ms_sql-tabname)
      FIELDS
      COUNT( * )
-     WHERE (lv_result)
+*     WHERE (lv_result)
      INTO @ms_sql-count.
 
   ENDMETHOD.
