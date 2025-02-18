@@ -312,11 +312,11 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( mo_action->mo_app ).
     result = lo_bind->main( val    = z2ui5_cl_util=>conv_get_as_data_ref( val )
                             type   = z2ui5_if_core_types=>cs_bind_type-one_way
-                            config = VALUE #( path_only     = path
-                                              custom_filter = custom_filter
-                                              custom_mapper = custom_mapper
-                                              tab           = z2ui5_cl_util=>conv_get_as_data_ref( tab )
-                                              tab_index     = tab_index
+                            config = VALUE #( path_only            = path
+                                              custom_filter        = custom_filter
+                                              custom_mapper        = custom_mapper
+                                              tab                  = z2ui5_cl_util=>conv_get_as_data_ref( tab )
+                                              tab_index            = tab_index
                                               switch_default_model = switch_Default_Model ) ).
 
 
@@ -327,13 +327,13 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( mo_action->mo_app ).
     result = lo_bind->main( val    = z2ui5_cl_util=>conv_get_as_data_ref( val )
                             type   = z2ui5_if_core_types=>cs_bind_type-two_way
-                            config = VALUE #( path_only          = path
-                                              custom_filter      = custom_filter
-                                              custom_filter_back = custom_filter_back
-                                              custom_mapper      = custom_mapper
-                                              custom_mapper_back = custom_mapper_back
-                                              tab                = z2ui5_cl_util=>conv_get_as_data_ref( tab )
-                                              tab_index          = tab_index
+                            config = VALUE #( path_only            = path
+                                              custom_filter        = custom_filter
+                                              custom_filter_back   = custom_filter_back
+                                              custom_mapper        = custom_mapper
+                                              custom_mapper_back   = custom_mapper_back
+                                              tab                  = z2ui5_cl_util=>conv_get_as_data_ref( tab )
+                                              tab_index            = tab_index
                                               switch_default_model = switch_Default_Model ) ).
 
   ENDMETHOD.
@@ -342,9 +342,9 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( mo_action->mo_app ).
     result = lo_bind->main_local( val    = val
-                                  config = VALUE #( path_only     = path
-                                                    custom_mapper = custom_mapper
-                                                    custom_filter = custom_filter
+                                  config = VALUE #( path_only            = path
+                                                    custom_mapper        = custom_mapper
+                                                    custom_filter        = custom_filter
                                                     switch_default_model = switch_Default_Model ) ).
 
   ENDMETHOD.

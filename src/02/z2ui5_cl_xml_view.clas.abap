@@ -5428,7 +5428,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD avatar_group_item.
     result = me.
-    _generic( name   = `AvatarGroupItem`
+    _generic( name            = `AvatarGroupItem`
                        ns     = `f`
                        t_prop = VALUE #( ( n = `id` v = id )
                                          ( n = `busy` v = busy )
@@ -5997,7 +5997,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD comparison_micro_chart.
-    result = _generic( name   = `ComparisonMicroChart`
+    result = _generic( name  = `ComparisonMicroChart`
                       ns     = `mchart`
                       t_prop = VALUE #( ( n = `colorPalette`  v = colorpalette )
                                         ( n = `press`       v = press )
@@ -6255,8 +6255,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD drag_drop_config.
-    result = _generic( name = `dragDropConfig`
-                          ns   = ns
+    result = _generic( name  = `dragDropConfig`
+                          ns = ns
                        ).
   ENDMETHOD.
 
@@ -6988,9 +6988,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD harvey_ball_micro_chart.
 
-    result = _generic( name   = `HarveyBallMicroChart`
-              ns     = `mchart`
-              t_prop = VALUE #( ( n = `colorPalette`  v = colorpalette )
+    result = _generic( name = `HarveyBallMicroChart`
+              ns            = `mchart`
+              t_prop        = VALUE #( ( n = `colorPalette`  v = colorpalette )
                                 ( n = `press`       v = press )
                                 ( n = `size`        v = size )
                                 ( n = `height`      v = height )
@@ -10947,7 +10947,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD control_configuration.
 
     result = me.
-    _generic( name   = `ControlConfiguration`
+    _generic( name             = `ControlConfiguration`
                         ns     = `smartFilterBar`
                         t_prop = VALUE #( ( n = `id`  v = id )
                                           ( n = `key`  v = key )
@@ -10959,7 +10959,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD smart_table.
 
-    result = _generic( name   = `SmartTable`
+    result = _generic( name    = `SmartTable`
                         ns     = `smartTable`
                         t_prop = VALUE #(
                         ( n = `id`  v = id )
@@ -10981,21 +10981,21 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD _control_configuration.
 
-    result = _generic( name   = `controlConfiguration`
-                        ns     = `smartFilterBar`
+    result = _generic( name = `controlConfiguration`
+                        ns  = `smartFilterBar`
                       ).
 
   ENDMETHOD.
 
   METHOD viz_dataset.
-    result = _generic( name   = 'dataset'
-                       ns     = 'viz' ).
+    result = _generic( name = 'dataset'
+                       ns   = 'viz' ).
   ENDMETHOD.
 
 
   METHOD viz_dimensions.
-    result = _generic( name   = 'dimensions'
-                       ns     = 'viz.data' ).
+    result = _generic( name = 'dimensions'
+                       ns   = 'viz.data' ).
   ENDMETHOD.
 
 
@@ -11013,8 +11013,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD viz_feeds.
-    result = _generic( name   = 'feeds'
-                       ns     = 'viz' ).
+    result = _generic( name = 'feeds'
+                       ns   = 'viz' ).
   ENDMETHOD.
 
 
@@ -11085,8 +11085,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD viz_measures.
-    result = _generic( name   = 'measures'
-                       ns     = 'viz.data' ).
+    result = _generic( name = 'measures'
+                       ns   = 'viz.data' ).
   ENDMETHOD.
 
   METHOD viz_measure_definition.

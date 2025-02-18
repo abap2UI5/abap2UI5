@@ -123,7 +123,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     result = NEW #( ).
     result->mo_server = z2ui5_cl_util_abap_http=>factory_cloud( req = req
-                                                               res = res ).
+                                                               res  = res ).
 
   ENDMETHOD.
 

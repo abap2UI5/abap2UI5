@@ -1,0 +1,22 @@
+name: auto_abaplint
+on: 
+  push:
+    branches: 
+      - "main"
+  workflow_dispatch:
+
+jobs:
+  auto_abaplint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: run transformation
+        run: |
+          npx abaplint .github/abaplint/abaplint_fix.jsonc --fix
+
+      - name: Open PR
+        uses: peter-evans/create-pull-request@v4
+        with:
+          title: abaplint auto fixes
