@@ -14,7 +14,8 @@ jobs:
 
       - name: run transformation
         run: |
-          npx abaplint .github/abaplint/abaplint_fix.jsonc --fix
+          npm ci
+          abaplint .github/abaplint/abaplint_fix.jsonc --fix
 
       - name: Open PR
         uses: peter-evans/create-pull-request@v4
