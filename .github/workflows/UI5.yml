@@ -1,4 +1,4 @@
-name: UI5_2.x
+name: UI5_2X
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  UI5_2.x:
+  UI5_2X:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
