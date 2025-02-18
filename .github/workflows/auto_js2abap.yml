@@ -16,6 +16,7 @@ jobs:
         run: |
           cd app
           npm run transform
+          npm ci
           npm run auto_abaplint
 
       - name: Open PR
