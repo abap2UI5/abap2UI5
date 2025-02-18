@@ -1,4 +1,4 @@
-name: ajson mirror
+name: mirror_ajson
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  pr_ajson_changes:
+  mirror_ajson:
     # Origin repo only
     permissions:
       contents: write  # for peter-evans/create-pull-request to create branch
