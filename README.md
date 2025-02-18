@@ -13,12 +13,6 @@
 [![mirror_ajson](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_ajson.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_ajson.yaml)
 [![mirror_srtti](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_srtti.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_srtti.yaml)
 <br>
-<a href="https://github.com/abap2ui5/abap2ui5/releases/"><img src="https://img.shields.io/github/v/release/abap2ui5/abap2ui5"></a>
-<a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg"></a>
-   <a href="https://abap2ui5.github.io/docs/resources/contribution.html"><img src="https://img.shields.io/badge/PRs-welcome-orange"></a>
-<a href="https://github.com/abap2UI5/abap2UI5/graphs/contributors"><img src="https://img.shields.io/github/contributors/abap2ui5/abap2ui5"></a>
-<a href="https://communityinviter.com/apps/abapgit/abap"><img src="https://img.shields.io/badge/Join-Slack-blue"></a>
-<a href="https://www.linkedin.com/company/abap2ui5"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white"></a>
 
 # <p align="center"><a href="http://www.abap2ui5.org" target="_blank"><img src="https://github.com/abap2UI5/abap2UI5/assets/102328295/52ac0bb6-a219-4e9d-9e4f-62698dab3063" width="200"></a></p>
 
