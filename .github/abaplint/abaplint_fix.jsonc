@@ -294,7 +294,7 @@
     "use_line_exists": true,
     "use_new": true,
     "when_others_last": true,
-    "whitespace_end": false,
+    "whitespace_end": true,
     "xml_consistency": true,
     "forbidden_void_type": {
       "check": [
