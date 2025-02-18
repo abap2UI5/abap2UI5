@@ -198,7 +198,7 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
          WHERE o_typedescr IS BOUND.
 
-      IF     lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_elem
+      IF lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_elem
          AND lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_struct
          AND lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_table.
         CONTINUE.

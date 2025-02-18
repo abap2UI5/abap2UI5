@@ -95,7 +95,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                                    WHEN 'E' THEN `Error`
                                    WHEN 'S' THEN `Success`
                                    WHEN `W` THEN `Warning`
-                                   ELSE          `Information` ).
+                                   ELSE `Information` ).
 
       ELSEIF lines( lt_msg ) > 1.
         lv_text = | { lines( lt_msg ) } Messages found: |.
@@ -109,7 +109,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                                WHEN 'E' THEN `Error`
                                WHEN 'S' THEN `Success`
                                WHEN `W` THEN `Warning`
-                               ELSE          `Information` ).
+                               ELSE `Information` ).
         ENDIF.
         lv_type = z2ui5_cl_util=>ui5_get_msg_type( lt_msg[ 1 ]-type ).
       ELSE.
@@ -418,7 +418,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~check_on_init.
 
-    result = xsdbool( CAST z2ui5_if_app(  mo_action->mo_app->mo_app )->check_initialized = abap_false ).
+    result = xsdbool( CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_initialized = abap_false ).
 
   ENDMETHOD.
 

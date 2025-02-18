@@ -172,7 +172,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
              |      "z2ui5/css/style.css": '{ lv_style_css }',| && |\n| &&
              |      "z2ui5/manifest.json": '{ z2ui5_cl_app_manifest_json=>get( ) }',| && |\n| &&
              |      "z2ui5/Component.js": function()\{{ z2ui5_cl_app_component_js=>get( ) }{ is_config-custom_js }\},| && |\n| &&
-             |      "z2ui5/model/models.js": function()\{{  z2ui5_cl_app_models_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/model/models.js": function()\{{ z2ui5_cl_app_models_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/view/App.view.xml": '{ z2ui5_cl_app_app_xml=>get( ) }',| && |\n| &&
              |      "z2ui5/controller/App.controller.js": function()\{{ z2ui5_cl_app_app_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/view/View1.view.xml": '{ z2ui5_cl_app_view1_xml=>get( ) }',| && |\n| &&
@@ -230,7 +230,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     " transform cookie to header based contextid handling
     IF ms_res-s_stateful-switched = abap_true.
-      mo_server->set_session_stateful( ms_res-s_stateful-active  ).
+      mo_server->set_session_stateful( ms_res-s_stateful-active ).
       IF mo_server->get_header_field( 'sap-contextid-accept' ) = 'header'.
         DATA(lv_contextid) = mo_server->get_response_cookie( 'sap-contextid' ).
         IF lv_contextid IS NOT INITIAL.
@@ -312,7 +312,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     " transform cookie to header based contextid handling
     IF is_res-s_stateful-switched = abap_true.
-      lo_handler->mo_server->set_session_stateful( is_res-s_stateful-active  ).
+      lo_handler->mo_server->set_session_stateful( is_res-s_stateful-active ).
       IF lo_handler->mo_server->get_header_field( 'sap-contextid-accept' ) = 'header'.
         DATA(lv_contextid) = lo_handler->mo_server->get_response_cookie( 'sap-contextid' ).
         IF lv_contextid IS NOT INITIAL.
