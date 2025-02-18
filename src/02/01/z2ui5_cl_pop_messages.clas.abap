@@ -75,7 +75,7 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
                            afterclose        = client->_event( 'BUTTON_CONTINUE' )
          ).
 
-    popup->message_view( items = client->_bind( mt_msg  )
+    popup->message_view( items = client->_bind( mt_msg )
 *                         groupitems = abap_true
         )->message_item( type     = `{TYPE}`
                          title    = `{TITLE}`

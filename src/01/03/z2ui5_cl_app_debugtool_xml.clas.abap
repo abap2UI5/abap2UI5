@@ -18,7 +18,7 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
 
   METHOD get.
 
-    result =              `<core:FragmentDefinition` &&
+    result = `<core:FragmentDefinition` &&
              `    xmlns="sap.m"` &&
              `    xmlns:mvc="sap.ui.core.mvc"` &&
              `    xmlns:core="sap.ui.core"` &&
