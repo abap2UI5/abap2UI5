@@ -1,10 +1,3 @@
-<p align="center"><a href="http://www.abap2ui5.org" target="_blank"><img src="https://github.com/abap2UI5/abap2UI5/assets/102328295/52ac0bb6-a219-4e9d-9e4f-62698dab3063" width="200"></a></p>
-
-*...offers a pure ABAP approach for developing UI5 apps - entirely without JavaScript, OData or RAP. Just like in classic ABAP, when a few lines of code were enough to display input forms and tables using Selection Screens & ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
-
-Ready to explore? Find all project information in the [**documentation.**](http://abap2UI5.org) 🚀
-
-#### Status
 [![ABAP_702](https://github.com/abap2UI5/abap2UI5/actions/workflows/ABAP_702.yaml/badge.svg?branch=702)](https://github.com/abap2UI5/abap2UI5/actions/workflows/ABAP_702.yaml)
 [![ABAP_STANDARD](https://github.com/abap2UI5/abap2UI5/actions/workflows/ABAP_STANDARD.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/ABAP_STANDARD.yaml)
 [![ABAP_CLOUD](https://github.com/abap2UI5/abap2UI5/actions/workflows/ABAP_CLOUD.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/ABAP_CLOUD.yaml)
@@ -26,6 +19,12 @@ Ready to explore? Find all project information in the [**documentation.**](http:
 <a href="https://github.com/abap2UI5/abap2UI5/graphs/contributors"><img src="https://img.shields.io/github/contributors/abap2ui5/abap2ui5"></a>
 <a href="https://communityinviter.com/apps/abapgit/abap"><img src="https://img.shields.io/badge/Join-Slack-blue"></a>
 <a href="https://www.linkedin.com/company/abap2ui5"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white"></a>
+
+# <p align="center"><a href="http://www.abap2ui5.org" target="_blank"><img src="https://github.com/abap2UI5/abap2UI5/assets/102328295/52ac0bb6-a219-4e9d-9e4f-62698dab3063" width="200"></a></p>
+
+*...offers a pure ABAP approach for developing UI5 apps - entirely without JavaScript, OData or RAP. Just like in classic ABAP, when a few lines of code were enough to display input forms and tables using Selection Screens & ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
+
+Ready to explore? Find all project information in the [**documentation.**](http://abap2UI5.org) 🚀
 
 #### Key Features
 * **100% ABAP:** Developing purely in ABAP (no JavaScript, DDL, or EML)
