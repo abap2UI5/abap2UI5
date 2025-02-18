@@ -6,6 +6,7 @@
 [![auto_downport](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_downport.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_downport.yaml)
 [![auto_js2abap](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_js2abap.yml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_js2abap.yml)
 [![auto_frontend](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_frontend.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_frontend.yaml)
+[![auto_abaplint](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_abaplint.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_abaplint.yaml)
 <br>
 [![unit_test](https://github.com/abap2UI5/abap2UI5/actions/workflows/unit_test.yml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/unit_test.yml)
 [![rename_test](https://github.com/abap2UI5/abap2UI5/actions/workflows/rename_test.yml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/rename_test.yml)
