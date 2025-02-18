@@ -85,7 +85,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
                            s_front-app    = z2ui5_cl_util=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app )
         ).
 
-    IF    ms_response-s_front-params-s_view-check_update_model        = abap_true
+    IF ms_response-s_front-params-s_view-check_update_model        = abap_true
        OR ms_response-s_front-params-s_view_nest-check_update_model   = abap_true
        OR ms_response-s_front-params-s_view_nest2-check_update_model  = abap_true
        OR ms_response-s_front-params-s_popup-check_update_model       = abap_true

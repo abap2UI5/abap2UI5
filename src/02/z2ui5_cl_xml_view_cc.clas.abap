@@ -539,7 +539,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                        ns     = `z2ui5`
                        t_prop = VALUE #(
                         ( n = `title`  v = title )
-                        ( n = `ApplicationFullWidth`  v = z2ui5_cl_util=>boolean_abap_2_json( ApplicationFullWidth )  ) )
+                        ( n = `ApplicationFullWidth`  v = z2ui5_cl_util=>boolean_abap_2_json( ApplicationFullWidth ) ) )
                          ).
 
   ENDMETHOD.
