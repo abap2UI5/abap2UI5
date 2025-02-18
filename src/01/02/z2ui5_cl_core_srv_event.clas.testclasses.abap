@@ -14,8 +14,10 @@ ENDCLASS.
 CLASS ltcl_test IMPLEMENTATION.
   METHOD event.
 
-    DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
-    DATA(lv_event) = lo_event->get_event( `POST` ).
+    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    CREATE OBJECT lo_event TYPE z2ui5_cl_core_srv_event.
+    DATA lv_event TYPE string.
+    lv_event = lo_event->get_event( `POST` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `.eB(['POST'])`
                                         act = lv_event ).
@@ -24,8 +26,10 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD event_backend.
 
-    DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
-    DATA(lv_event) = lo_event->get_event_client( z2ui5_if_client=>cs_event-popover_close ).
+    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    CREATE OBJECT lo_event TYPE z2ui5_cl_core_srv_event.
+    DATA lv_event TYPE string.
+    lv_event = lo_event->get_event_client( z2ui5_if_client=>cs_event-popover_close ).
 
     cl_abap_unit_assert=>assert_equals( exp = `.eF('POPOVER_CLOSE')`
                                         act = lv_event ).

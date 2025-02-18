@@ -19,14 +19,17 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
   METHOD msg_get.
 
 
-    DATA(lv_kind) = z2ui5_cl_util=>rtti_get_type_kind( val ).
+    DATA lv_kind TYPE string.
+    lv_kind = z2ui5_cl_util=>rtti_get_type_kind( val ).
     CASE lv_kind.
 
       WHEN cl_abap_datadescr=>typekind_table.
         FIELD-SYMBOLS <tab> TYPE ANY TABLE.
         ASSIGN val TO <tab>.
-        LOOP AT <tab> ASSIGNING FIELD-SYMBOL(<row>).
-          DATA(lt_tab) = msg_get( <row> ).
+        FIELD-SYMBOLS <row> TYPE ANY.
+        LOOP AT <tab> ASSIGNING <row>.
+          DATA lt_tab TYPE z2ui5_cl_util=>ty_t_msg.
+          lt_tab = msg_get( <row> ).
           INSERT LINES OF lt_tab INTO TABLE result.
         ENDLOOP.
 
@@ -36,12 +39,20 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
           RETURN.
         ENDIF.
 
-        DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_any( val ).
+        DATA lt_attri TYPE abap_component_tab.
+        lt_attri = z2ui5_cl_util=>rtti_get_t_attri_by_any( val ).
 
-        DATA(ls_result) = VALUE z2ui5_cl_util=>ty_s_msg( ).
-        LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
-          DATA(lv_name) = |VAL-{ ls_attri->name }|.
-          ASSIGN (lv_name) TO FIELD-SYMBOL(<comp>).
+        DATA temp1 TYPE z2ui5_cl_util=>ty_s_msg.
+        CLEAR temp1.
+        DATA ls_result LIKE temp1.
+        ls_result = temp1.
+        DATA temp2 LIKE LINE OF lt_attri.
+        DATA ls_attri LIKE REF TO temp2.
+        LOOP AT lt_attri REFERENCE INTO ls_attri.
+          DATA lv_name TYPE string.
+          lv_name = |VAL-{ ls_attri->name }|.
+          FIELD-SYMBOLS <comp> TYPE any.
+          ASSIGN (lv_name) TO <comp>.
 
           IF ls_attri->name = 'ITEM'.
             lt_tab = msg_get( <comp> ).
@@ -61,10 +72,18 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
       WHEN cl_abap_datadescr=>typekind_oref.
         TRY.
-            DATA(lx) = CAST cx_root( val ).
-            ls_result = VALUE #( type = 'E' text = lx->get_text( ) ).
-            DATA(lt_attri_o) = z2ui5_cl_util=>rtti_get_t_attri_by_oref( val ).
-            LOOP AT lt_attri_o REFERENCE INTO DATA(ls_attri_o)
+            DATA temp3 TYPE REF TO cx_root.
+            temp3 ?= val.
+            DATA lx LIKE temp3.
+            lx = temp3.
+            CLEAR ls_result.
+            ls_result-type = 'E'.
+            ls_result-text = lx->get_text( ).
+            DATA lt_attri_o TYPE abap_attrdescr_tab.
+            lt_attri_o = z2ui5_cl_util=>rtti_get_t_attri_by_oref( val ).
+            DATA temp4 LIKE LINE OF lt_attri_o.
+            DATA ls_attri_o LIKE REF TO temp4.
+            LOOP AT lt_attri_o REFERENCE INTO ls_attri_o
                  WHERE visibility = 'U'.
               lv_name = |VAL->{ ls_attri_o->name }|.
               ASSIGN (lv_name) TO <comp>.
@@ -80,13 +99,15 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
                 DATA lr_tab TYPE REF TO data.
                 CREATE DATA lr_tab TYPE ('if_bali_log=>ty_item_table').
-                ASSIGN lr_tab->* TO FIELD-SYMBOL(<tab2>).
+                FIELD-SYMBOLS <tab2> TYPE data.
+                ASSIGN lr_tab->* TO <tab2>.
 
                 CALL METHOD obj->(`IF_BALI_LOG~GET_ALL_ITEMS`)
                   RECEIVING
                     item_table = <tab2>.
 
-                DATA(lt_tab2) = msg_get( <tab2> ).
+                DATA lt_tab2 TYPE z2ui5_cl_util=>ty_t_msg.
+                lt_tab2 = msg_get( <tab2> ).
                 INSERT LINES OF lt_tab2 INTO TABLE result.
 
               CATCH cx_root.
@@ -103,7 +124,8 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
                     lt_tab2 = msg_get( <tab2> ).
                     INSERT LINES OF lt_tab2 INTO TABLE result.
 
-                  CATCH cx_root INTO DATA(lx2).
+                    DATA lx2 TYPE REF TO cx_root.
+                  CATCH cx_root INTO lx2.
 
 
                     lt_attri_o = z2ui5_cl_util=>rtti_get_t_attri_by_oref( val ).
@@ -121,9 +143,11 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
       WHEN OTHERS.
 
-        IF z2ui5_cl_util=>rtti_check_clike( val ).
-          INSERT VALUE #( text = val
-          )
+        IF z2ui5_cl_util=>rtti_check_clike( val ) IS NOT INITIAL.
+          DATA temp5 TYPE z2ui5_cl_util=>ty_s_msg.
+          CLEAR temp5.
+          temp5-text = val.
+          INSERT temp5
                  INTO TABLE result.
         ENDIF.
     ENDCASE.
