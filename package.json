@@ -1,0 +1,38 @@
+{
+    "name": "abap2ui5-layout-variant-management",
+    "private": true,
+    "version": "1.0.0",
+    "description": "Layout Management for abap2UI5.",
+    "scripts": {
+      "syfixes": "find . -type f -name '*.abap' -exec sed -i -e 's/ RAISE EXCEPTION TYPE cx_sy_itab_line_not_found/ ASSERT 1 = 0/g' {} + ",
+      "downport": "abaplint --fix .github/abaplint/abap_702.jsonc && npm run syfixes"
+    },
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/abap2UI5-addons/layout-management.git"
+    },
+    "license": "MIT",
+    "bugs": {
+      "url": "https://github.com/abap2UI5-addons/layout-management.git"
+    },
+    "homepage": "https://github.com/abap2UI5-addons/layout-management#readme",
+    "devDependencies": {
+      "@abaplint/cli": "^2.113.86",
+      "@abaplint/database-sqlite": "^2.10.20",
+      "@abaplint/runtime": "^2.10.23",
+      "@abaplint/transpiler-cli": "^2.10.23",
+      "@types/node": "^22.10.5",
+      "buffer": "^6.0.3",
+      "copy-webpack-plugin": "^12.0.2",
+      "express": "^4.21.2",
+      "html-webpack-plugin": "^5.6.3",
+      "path-browserify": "^1.0.1",
+      "web-encoding": "^1.1.5",
+      "webpack-cli": "^6.0.1",
+      "webpack-dev-server": "^5.2.0",
+      "@playwright/test": "^1.49.1"
+    },
+    "dependencies": {
+      "npm-check-updates": "^17.1.13"
+    }
+  }
