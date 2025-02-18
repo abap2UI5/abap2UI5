@@ -7,9 +7,11 @@
 [![auto_js2abap](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_js2abap.yml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_js2abap.yml)
 [![auto_frontend](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_frontend.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_frontend.yaml)
 <br>
+[![unit_test](https://github.com/abap2UI5/abap2UI5/actions/workflows/unit_test.yml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/unit_test.yml)
 [![rename_test](https://github.com/abap2UI5/abap2UI5/actions/workflows/rename_test.yml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/rename_test.yml)
-[![downport-unit-tests](https://github.com/abap2UI5/abap2UI5/actions/workflows/unit_test.yml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/unit_test.yml)
 <br>
+[![mirror_ajson](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_ajson.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_ajson.yaml)
+[![mirror_srtti](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_srtti.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_srtti.yaml)
 
 
 <p align="center"><a href="http://www.abap2ui5.org" target="_blank"><img src="https://github.com/abap2UI5/abap2UI5/assets/102328295/52ac0bb6-a219-4e9d-9e4f-62698dab3063" width="200"></a></p>
