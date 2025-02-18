@@ -1,4 +1,4 @@
-name: auto_abaplint
+name: auto_abaplint_fix
 on: 
   push:
     branches: 
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  auto_abaplint:
+  auto_abaplint_fix:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -20,4 +20,4 @@ jobs:
       - name: Open PR
         uses: peter-evans/create-pull-request@v4
         with:
-          title: abaplint auto fixes
+          title: abaplint-auto-fixes
