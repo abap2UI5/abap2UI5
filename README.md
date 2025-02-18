@@ -18,14 +18,9 @@
    <a href="https://abap2ui5.github.io/docs/resources/contribution.html"><img src="https://img.shields.io/badge/PRs-welcome-orange"></a>
 <a href="https://github.com/abap2UI5/abap2UI5/graphs/contributors"><img src="https://img.shields.io/github/contributors/abap2ui5/abap2ui5"></a>
 <a href="https://communityinviter.com/apps/abapgit/abap"><img src="https://img.shields.io/badge/Join-Slack-blue"></a>
-
+<a href="https://www.linkedin.com/company/abap2ui5"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white"></a>
 
 <p align="center"><a href="http://www.abap2ui5.org" target="_blank"><img src="https://github.com/abap2UI5/abap2UI5/assets/102328295/52ac0bb6-a219-4e9d-9e4f-62698dab3063" width="200"></a></p>
-
-<p align="center">
-   <br>
-<a href="https://www.linkedin.com/company/abap2ui5"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white"></a>
-</p>
 
 *...offers a pure ABAP approach for developing UI5 apps - entirely without JavaScript, OData or RAP. Just like in classic ABAP, when a few lines of code were enough to display input forms and tables using Selection Screens & ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
 
