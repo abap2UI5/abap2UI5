@@ -1,0 +1,23 @@
+name: ABAP_702
+
+on:
+  push:
+    branches: [702]
+
+permissions:
+  contents: read
+
+jobs:
+  ABAP_702:
+    needs: auto_downport
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: 702
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 20
+    - run: npm ci
+    - run: npx abaplint .github/abaplint/abap_702.jsonc

@@ -2,7 +2,7 @@ name: auto_downport
 
 on:
   push:
-    branches: [standard]
+    branches: [main]
 
 jobs:
   auto_downport:
