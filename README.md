@@ -12,7 +12,7 @@
 <br>
 [![mirror_ajson](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_ajson.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_ajson.yaml)
 [![mirror_srtti](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_srtti.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_srtti.yaml)
-<br><br>
+<br>
 <a href="https://github.com/abap2ui5/abap2ui5/releases/"><img src="https://img.shields.io/github/v/release/abap2ui5/abap2ui5"></a>
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg"></a>
    <a href="https://abap2ui5.github.io/docs/resources/contribution.html"><img src="https://img.shields.io/badge/PRs-welcome-orange"></a>
