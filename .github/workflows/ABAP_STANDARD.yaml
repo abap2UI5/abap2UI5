@@ -1,4 +1,4 @@
-name: ABAP_CLOUD
+name: ABAP_STANDARD
 
 on:
   push:
@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  ABAP_CLOUD:
+  ABAP_STANDARD:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

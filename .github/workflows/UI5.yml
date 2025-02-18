@@ -1,4 +1,4 @@
-name: UI5_LINT
+name: UI5_2.x
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  UI5_LINT:
+  UI5_2.x:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
