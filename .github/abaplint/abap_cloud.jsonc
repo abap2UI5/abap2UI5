@@ -1,0 +1,37 @@
+{
+    "global": {
+      "files": "/../../src/**/*.*"
+    },
+    "dependencies": [
+      {
+        "url": "https://github.com/abapedia/steampunk-2305-api-intersect-702",
+        "folder": "/deps",
+        "files": "/src/**/*.*"
+      },
+      {
+        "url": "https://github.com/abap2UI5/abap2UI5",
+        "folder": "/abap2UI5",
+        "files": "/src/**/*.*"
+      }
+    ],
+    "syntax": {
+      "version": "Cloud",
+      "errorNamespace": "."
+    },
+    "rules": {
+      "downport": true,
+      "begin_end_names": true,
+      "check_ddic": true,
+      "check_include": true,
+      "check_syntax": true,
+      "global_class": true,
+      "definitions_top": false,
+      "implement_methods": true,
+      "method_implemented_twice": true,
+      "parser_error": true,
+      "superclass_final": true,
+      "unknown_types": true,
+      "xml_consistency": true
+    }
+  }
+  

@@ -1,4 +1,4 @@
-name: build_frontend_http
+name: auto_js2abap
 on: 
   push:
     branches: 
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build_frontend_http:
+  auto_js2abap:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository

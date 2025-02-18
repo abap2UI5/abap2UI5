@@ -1,4 +1,4 @@
-name: build_frontend_cloud
+name: auto_frontend
 
 on:
   push:
@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  build_frontend_cloud:
+  auto_frontend:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
