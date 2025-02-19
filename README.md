@@ -10,8 +10,6 @@
 <br>
 [![unit_test](https://github.com/abap2UI5/abap2UI5/actions/workflows/unit_test.yml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/unit_test.yml)
 [![rename_test](https://github.com/abap2UI5/abap2UI5/actions/workflows/rename_test.yml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/rename_test.yml)
-[![app_test](https://github.com/abap2UI5/abap2UI5/actions/workflows/app_test.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/app_test.yaml)
-
 <br>
 [![mirror_ajson](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_ajson.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_ajson.yaml)
 [![mirror_srtti](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_srtti.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_srtti.yaml)
