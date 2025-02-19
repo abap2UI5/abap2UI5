@@ -1,4 +1,4 @@
-name: rename_test
+name: test_rename
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  rename_test:
+  test_rename:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

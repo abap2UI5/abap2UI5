@@ -1,10 +1,10 @@
-name: app_test
+name: check_app
 
 on:
   pull_request:
 
 jobs:
-  app_test:
+  check_app:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository

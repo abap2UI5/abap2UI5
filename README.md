@@ -8,13 +8,15 @@
 [![auto_frontend](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_frontend.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_frontend.yaml)
 [![auto_abaplint_fix](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_abaplint_fix.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_abaplint_fix.yaml)
 <br>
-[![unit_test](https://github.com/abap2UI5/abap2UI5/actions/workflows/unit_test.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/unit_test.yaml)
-[![rename_test](https://github.com/abap2UI5/abap2UI5/actions/workflows/rename_test.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/rename_test.yaml)
-[![app_test](https://github.com/abap2UI5/abap2UI5/actions/workflows/app_test.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/app_test.yaml)
+[![test_unit](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_unit.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_unit.yaml)
+[![test_rename](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_rename.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_rename.yaml)
+[![test_node](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_node.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_node.yaml)
+[![test_browser](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_browser.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_browser.yaml)
 <br>
 [![mirror_ajson](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_ajson.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_ajson.yaml)
 [![mirror_srtti](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_srtti.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_srtti.yaml)
 <br>
+[![check_app](https://github.com/abap2UI5/abap2UI5/actions/workflows/check_app.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/check_app.yaml)
 
 <p align="center"><a href="http://www.abap2ui5.org" target="_blank"><img src="https://github.com/abap2UI5/abap2UI5/assets/102328295/52ac0bb6-a219-4e9d-9e4f-62698dab3063" width="200"></a></p>
 

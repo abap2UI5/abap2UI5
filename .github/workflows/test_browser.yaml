@@ -1,10 +1,10 @@
-name: playwright-browser-test
+name: test_browser
 on:
   pull_request:
 permissions:
   contents: read
 jobs:
-  test:
+  test_browser:
     timeout-minutes: 60
     runs-on: ubuntu-latest
     steps:

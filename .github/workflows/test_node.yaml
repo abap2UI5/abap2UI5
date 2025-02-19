@@ -1,0 +1,21 @@
+name: test_unit
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test_unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+    - run: npm ci
+    - run: npm run auto_downport
+    - run: npm run auto_transpile
+    - run: cd node && npm run express
