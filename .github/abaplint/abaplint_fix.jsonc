@@ -20,6 +20,7 @@
     "align_type_expressions" : true,
     "keyword_case": true,    
     "contains_tab": true,
+    "colon_missing_space" : true,
     "commented_code": false,
 
   }
