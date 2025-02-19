@@ -8,13 +8,12 @@
     "auto_downport": "abaplint --fix .github/abaplint/abap_702.jsonc && npm run syfixes",
     "auto_app2abap": "node .github/app2abap/trans2abap.js",
     "auto_abaplint": "npx abaplint .github/abaplint/auto_abaplint_fix.jsonc --fix",
-    "auto_transpile": "cp node/srv/*.abap src && mkdir -p node/src && abap_transpile .github/abaplint/auto_transpile.jsonc ",
     "rename": "npm ci && abaplint .github/abaplint/rename_test.jsonc --rename",
     "express": "node node/srv/express.mjs",
 
     "unit": "echo RUNNING && node output/index.mjs",
     "downport": "rm -rf node/downport && cp -r src node/downport && abaplint --fix ./node/ci/abaplint-downport.jsonc && npm run syfixes",
-    "transpile": "rm -rf node/output && cp node/srv/*.abap node/downport && abap_transpile ./node/ci/abap_transpile.json",
+    "auto_transpile": "rm -rf node/output && cp node/srv/*.abap node/downport && abap_transpile ./node/ci/abap_transpile.json",
     "build" : "npm ci && npm run downport && npm run transpile && rm -rf src"
   },
   "repository": {
