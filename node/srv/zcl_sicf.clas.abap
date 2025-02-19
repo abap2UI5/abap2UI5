@@ -10,7 +10,9 @@ CLASS zcl_sicf IMPLEMENTATION.
 
   METHOD if_http_extension~handle_request.
 
-    z2ui5_cl_http_handler=>run( server )
+   data lo_server type ref to z2ui5_cl_http_handler.
+   lo_server = z2ui5_cl_http_handler=>factory( server ).
+   lo_server->main( ).
 
   ENDMETHOD.
 
