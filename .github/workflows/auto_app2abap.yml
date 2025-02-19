@@ -22,5 +22,5 @@ jobs:
       - name: Open PR
         uses: peter-evans/create-pull-request@v4
         with:
-          title: auto-js2abap
-          branch: auto-js2abap
+          title: auto-app2abap
+          branch: auto-app2abap
