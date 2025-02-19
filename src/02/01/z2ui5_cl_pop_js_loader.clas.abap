@@ -64,7 +64,7 @@ CLASS z2ui5_cl_pop_js_loader IMPLEMENTATION.
 
     IF js IS NOT INITIAL.
       popup->_z2ui5( )->timer( client->_event( 'TIMER_FINISHED' )
-      )->_generic( ns   = `html`
+        )->_generic( ns = `html`
                    name = `script` )->_cc_plain_xml( js ).
     ENDIF.
 

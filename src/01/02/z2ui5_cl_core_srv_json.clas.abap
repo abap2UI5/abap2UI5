@@ -99,7 +99,7 @@ CLASS z2ui5_cl_core_srv_json IMPLEMENTATION.
 
           CASE lr_attri->bind_type.
             WHEN z2ui5_if_core_types=>cs_bind_type-one_way
-            OR z2ui5_if_core_types=>cs_bind_type-two_way.
+                OR z2ui5_if_core_types=>cs_bind_type-two_way.
 
               ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<attribute>).
               IF sy-subrc <> 0.

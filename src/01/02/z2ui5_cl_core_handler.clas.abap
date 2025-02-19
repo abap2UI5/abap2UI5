@@ -52,7 +52,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
     result = VALUE #( body       = mv_response
                       s_stateful = ms_response-s_front-params-s_stateful
-    ).
+      ).
 
   ENDMETHOD.
 
@@ -86,15 +86,15 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         ).
 
     IF ms_response-s_front-params-s_view-check_update_model        = abap_true
-       OR ms_response-s_front-params-s_view_nest-check_update_model   = abap_true
-       OR ms_response-s_front-params-s_view_nest2-check_update_model  = abap_true
-       OR ms_response-s_front-params-s_popup-check_update_model       = abap_true
-       OR ms_response-s_front-params-s_popover-check_update_model     = abap_true
-       OR ms_response-s_front-params-s_view-xml IS NOT INITIAL
-       OR ms_response-s_front-params-s_view_nest-xml                 IS NOT INITIAL
-       OR ms_response-s_front-params-s_view_nest2-xml                IS NOT INITIAL
-       OR ms_response-s_front-params-s_popup-xml IS NOT INITIAL
-       OR ms_response-s_front-params-s_popover-xml                   IS NOT INITIAL.
+        OR ms_response-s_front-params-s_view_nest-check_update_model   = abap_true
+        OR ms_response-s_front-params-s_view_nest2-check_update_model  = abap_true
+        OR ms_response-s_front-params-s_popup-check_update_model       = abap_true
+        OR ms_response-s_front-params-s_popover-check_update_model     = abap_true
+        OR ms_response-s_front-params-s_view-xml IS NOT INITIAL
+        OR ms_response-s_front-params-s_view_nest-xml                 IS NOT INITIAL
+        OR ms_response-s_front-params-s_view_nest2-xml                IS NOT INITIAL
+        OR ms_response-s_front-params-s_popup-xml IS NOT INITIAL
+        OR ms_response-s_front-params-s_popover-xml                   IS NOT INITIAL.
 
       DATA(lo_model) = NEW z2ui5_cl_core_srv_attri( attri = mo_action->mo_app->mt_attri
                                                     app   = mo_action->mo_app->mo_app ).
