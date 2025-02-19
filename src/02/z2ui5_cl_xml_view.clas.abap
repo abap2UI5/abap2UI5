@@ -11039,30 +11039,30 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA(lv_vizproperties) = ``.
     IF vizproperties IS INITIAL.
       lv_vizproperties = `{` && |\n| &&
-      `"plotArea": {` && |\n| &&
+        `"plotArea": {` && |\n| &&
           `"dataLabel": {` && |\n| &&
               `"formatString": "",` && |\n| &&
               `"visible": false` && |\n| &&
           `}` && |\n| &&
-      `},` && |\n| &&
-      `"valueAxis": {` && |\n| &&
+        `},` && |\n| &&
+        `"valueAxis": {` && |\n| &&
           `"label": {` && |\n| &&
               `"formatString": ""` && |\n| &&
           `},` && |\n| &&
           `"title": {` && |\n| &&
               `"visible": false` && |\n| &&
           `}` && |\n| &&
-      `},` && |\n| &&
-      `"categoryAxis": {` && |\n| &&
+        `},` && |\n| &&
+        `"categoryAxis": {` && |\n| &&
           `"title": {` && |\n| &&
               `"visible": false` && |\n| &&
           `}` && |\n| &&
-      `},` && |\n| &&
-      `"title": {` && |\n| &&
+        `},` && |\n| &&
+        `"title": {` && |\n| &&
           `"visible": false,` && |\n| &&
           `"text": ""` && |\n| &&
-      `}` && |\n| &&
-  `}`.
+        `}` && |\n| &&
+        `}`.
     ELSE.
       lv_vizproperties = vizproperties.
     ENDIF.

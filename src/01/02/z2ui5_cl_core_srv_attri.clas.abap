@@ -199,8 +199,8 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
          WHERE o_typedescr IS BOUND.
 
       IF lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_elem
-         AND lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_struct
-         AND lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_table.
+          AND lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_struct
+          AND lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_table.
         CONTINUE.
       ENDIF.
 
