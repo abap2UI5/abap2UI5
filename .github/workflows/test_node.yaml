@@ -18,4 +18,13 @@ jobs:
     - run: npm ci
     - run: npm run auto_downport
     - run: npm run auto_transpile
-    - run: npm run express
+    - run: npm run express &
+    - name: Check for errors
+      run: |
+        sleep 10
+        if ! curl -s http://localhost:3000 | grep -q "Error"; then
+          echo "No errors detected, stopping the workflow."
+          exit 0
+        else
+          echo "Errors detected, continuing the workflow."
+        fi

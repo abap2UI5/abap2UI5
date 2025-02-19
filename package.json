@@ -12,7 +12,7 @@
 
     "rename": "npm ci && abaplint .github/abaplint/rename_test.jsonc --rename",
     "express": "node node/srv/express.mjs",
-    "unit": "echo RUNNING && node output/index.mjs"
+    "unit": "echo RUNNING && node node/output/index.mjs"
 
   },
   "repository": {
@@ -25,11 +25,11 @@
   },
   "homepage": "wwww.abap2UI5.org",
   "devDependencies": {
-    "@abaplint/cli": "^2.113.86",
-    "@abaplint/database-sqlite": "^2.10.20",
-    "@abaplint/runtime": "^2.10.23",
-    "@abaplint/transpiler-cli": "^2.10.23",
-    "@types/node": "^22.10.5",
+    "@abaplint/cli": "^2.113.104",
+    "@abaplint/database-sqlite": "^2.10.24",
+    "@abaplint/runtime": "^2.10.24",
+    "@abaplint/transpiler-cli": "^2.10.24",
+    "@types/node": "^22.13.4",
     "buffer": "^6.0.3",
     "copy-webpack-plugin": "^12.0.2",
     "express": "^4.21.2",
@@ -38,9 +38,9 @@
     "web-encoding": "^1.1.5",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.0",
-    "@playwright/test": "^1.49.1"
+    "@playwright/test": "^1.50.1"
   },
   "dependencies": {
-    "npm-check-updates": "^17.1.13"
+    "npm-check-updates": "^17.1.14"
   }
 }
