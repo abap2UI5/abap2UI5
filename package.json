@@ -8,7 +8,7 @@
       "auto_downport": "abaplint --fix .github/abaplint/abap_702.jsonc && npm run syfixes",
       "auto_app2abap": "node .github/app2abap/trans2abap.js",
       "auto_abaplint" : "npx abaplint .github/abaplint/auto_abaplint_fix.jsonc --fix",
-      "rename" : "npm ci && abaplint .github/abaplint/rename_test.jsonc --rename",
+      "rename" : "npm ci && abaplint .github/abaplint/rename_test.jsonc --rename"
     },
     "repository": {
       "type": "git",
