@@ -21,8 +21,7 @@
     "keyword_case": true,    
     "contains_tab": true,
     "line_length": false,
-    "line_only_punc": true,
-    "indentation": false,
+    "indentation": true,
     "commented_code": false,
 
   }
