@@ -21,6 +21,9 @@
     "keyword_case": true,    
     "contains_tab": true,
     "colon_missing_space" : true,
+    "line_break_multiple_parameters" : true,
+    "line_break_style": true,
+    "keep_single_parameter_on_one_line" : true,
     "commented_code": false,
 
   }
