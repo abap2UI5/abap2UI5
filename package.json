@@ -1,8 +1,8 @@
 {
-    "name": "abap2ui5-layout-variant-management",
+    "name": "abap2ui5",
     "private": true,
     "version": "1.0.0",
-    "description": "Layout Management for abap2UI5.",
+    "description": "Developing UI5 Apps Purely in ABAP.",
     "scripts": {
       "syfixes": "find . -type f -name '*.abap' -exec sed -i -e 's/ RAISE EXCEPTION TYPE cx_sy_itab_line_not_found/ ASSERT 1 = 0/g' {} + ",
       "auto_downport": "abaplint --fix .github/abaplint/abap_702.jsonc && npm run syfixes",
@@ -12,13 +12,13 @@
     },
     "repository": {
       "type": "git",
-      "url": "git+https://github.com/abap2UI5-addons/layout-management.git"
+      "url": "git+https://github.com/abap2UI5/abap2UI5.git"
     },
     "license": "MIT",
     "bugs": {
-      "url": "https://github.com/abap2UI5-addons/layout-management.git"
+      "url": "https://github.com/abap2UI5/abap2UI5"
     },
-    "homepage": "https://github.com/abap2UI5-addons/layout-management#readme",
+    "homepage": "wwww.abap2UI5.org",
     "devDependencies": {
       "@abaplint/cli": "^2.113.86",
       "@abaplint/database-sqlite": "^2.10.20",
