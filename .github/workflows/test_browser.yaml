@@ -12,10 +12,8 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version: lts/*
-    - name: Setup
-      run: git clone https://github.com/abap2UI5/abap2UI5-setup.git && cp -r abap2UI5-setup/* . && npm i
     - name: Install dependencies
-      run: npm run build
+      run: npm run auto_downport && npm run auto_transpile
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
 #    - name: Run Playwright tests
