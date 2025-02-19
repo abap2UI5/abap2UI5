@@ -71,7 +71,7 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
     popup = popup->dialog( title             = `Messages`
                            contentheight     = '50%'
                            contentwidth      = '50%'
-                           verticalScrolling = abap_false
+                           verticalscrolling = abap_false
                            afterclose        = client->_event( 'BUTTON_CONTINUE' )
          ).
 

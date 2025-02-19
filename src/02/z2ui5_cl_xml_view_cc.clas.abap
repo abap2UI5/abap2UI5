@@ -7,7 +7,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
       IMPORTING
         multiinputid  TYPE clike OPTIONAL
         change        TYPE clike OPTIONAL
-        rangeData     TYPE clike OPTIONAL
+        rangedata     TYPE clike OPTIONAL
         addedtokens   TYPE clike OPTIONAL
         removedtokens TYPE clike OPTIONAL
       RETURNING
@@ -153,7 +153,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
     METHODS lp_title
       IMPORTING
         title                TYPE clike OPTIONAL
-        ApplicationFullWidth TYPE clike OPTIONAL
+        applicationfullwidth TYPE clike OPTIONAL
         PREFERRED PARAMETER title
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
@@ -539,7 +539,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                        ns     = `z2ui5`
                        t_prop = VALUE #(
                         ( n = `title`  v = title )
-                        ( n = `ApplicationFullWidth`  v = z2ui5_cl_util=>boolean_abap_2_json( ApplicationFullWidth ) ) )
+                        ( n = `ApplicationFullWidth`  v = z2ui5_cl_util=>boolean_abap_2_json( applicationfullwidth ) ) )
                          ).
 
   ENDMETHOD.
@@ -576,11 +576,11 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     result = mo_view.
     mo_view->_generic( name   = `SmartMultiInputExt`
                        ns     = `z2ui5`
-                       t_prop = VALUE #( ( n = `multiInputId`  v = multiInputId )
-                                         ( n = `rangeData`     v = rangeData )
+                       t_prop = VALUE #( ( n = `multiInputId`  v = multiinputid )
+                                         ( n = `rangeData`     v = rangedata )
                                          ( n = `change`        v = change )
-                                         ( n = `addedTokens`   v = addedTokens )
-                                         ( n = `removedTokens` v = removedTokens ) ) ).
+                                         ( n = `addedTokens`   v = addedtokens )
+                                         ( n = `removedTokens` v = removedtokens ) ) ).
 
   ENDMETHOD.
 
