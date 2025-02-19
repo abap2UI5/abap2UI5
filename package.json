@@ -13,8 +13,8 @@
     "express": "node node/srv/express.mjs",
 
     "unit": "echo RUNNING && node output/index.mjs",
-    "downport": "rm -rf downport && cp -r src downport && abaplint --fix ./ci/abaplint-downport.jsonc && npm run syfixes",
-    "transpile": "rm -rf output && cp srv/*.abap downport && abap_transpile ./ci/abap_transpile.json",
+    "downport": "rm -rf node/downport && cp src node/downport && abaplint --fix ./node/ci/abaplint-downport.jsonc && npm run syfixes",
+    "transpile": "rm -rf node/output && cp node/srv/*.abap node/downport && abap_transpile .node//ci/abap_transpile.json",
     "build" : "npm ci && npm run downport && npm run transpile && rm -rf src"
   },
   "repository": {
