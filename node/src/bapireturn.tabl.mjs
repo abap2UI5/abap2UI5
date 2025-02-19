@@ -1,5 +1,0 @@
-abap.DDIC["BAPIRETURN"] = {
-  "objectType": "TABL",
-  "type": new abap.types.Structure({"type": new abap.types.Character(1, {"qualifiedName":"BAPI_MTYPE","ddicName":"BAPI_MTYPE","description":"BAPI_MTYPE"}), "code": new abap.types.Character(5, {"qualifiedName":"BAPI_RCODE","ddicName":"BAPI_RCODE","description":""}), "message": new abap.types.Character(220, {"qualifiedName":"BAPI_MSG","ddicName":"BAPI_MSG","description":""}), "log_no": new abap.types.Character(20, {"qualifiedName":"BALOGNR","ddicName":"BALOGNR","description":"BALOGNR"}), "log_msg_no": new abap.types.Numc({length: 6, qualifiedName: "BALMNR"}), "message_v1": new abap.types.Character(50, {"qualifiedName":"SYMSGV","ddicName":"SYMSGV","description":"SYMSGV"}), "message_v2": new abap.types.Character(50, {"qualifiedName":"SYMSGV","ddicName":"SYMSGV","description":"SYMSGV"}), "message_v3": new abap.types.Character(50, {"qualifiedName":"SYMSGV","ddicName":"SYMSGV","description":"SYMSGV"}), "message_v4": new abap.types.Character(50, {"qualifiedName":"SYMSGV","ddicName":"SYMSGV","description":"SYMSGV"})}, "BAPIRETURN", "BAPIRETURN", {}, {}),
-  "keyFields": [],
-};
