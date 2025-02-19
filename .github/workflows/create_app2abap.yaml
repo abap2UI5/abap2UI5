@@ -1,11 +1,11 @@
-name: auto_app2abap
+name: create_app2abap
 
 on:
   push:
     branches: [main]
 
 jobs:
-  auto_app2abap:
+  create_app2abap:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository

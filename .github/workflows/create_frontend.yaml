@@ -1,4 +1,4 @@
-name: auto_frontend
+name: create_frontend
 
 on:
   push:
@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  auto_frontend:
+  create_frontend:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
