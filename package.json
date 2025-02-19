@@ -13,7 +13,7 @@
 
     "unit": "echo RUNNING && node output/index.mjs",
     "downport_backup": "rm -rf node/downport && cp -r src node/downport && abaplint --fix ./node/ci/abaplint-downport.jsonc && npm run syfixes",
-    "auto_transpile": "rm -rf node/output && cp node/srv/*.abap node/downport && abap_transpile ./node/ci/abap_transpile.json",
+    "auto_transpile": "rm -rf node/output && cp node/srv/*.abap node/downport && abap_transpile ./node/ci/abap_transpile.json"
 
   },
   "repository": {
