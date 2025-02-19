@@ -12,7 +12,7 @@
 
     "rename": "npm ci && abaplint .github/abaplint/rename_test.jsonc --rename",
     "express": "node node/srv/express.mjs",
-    "unit": "echo RUNNING && node output/index.mjs"
+    "unit": "echo RUNNING && node node/output/index.mjs"
 
   },
   "repository": {
