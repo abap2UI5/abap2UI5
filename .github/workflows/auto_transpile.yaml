@@ -16,5 +16,5 @@ jobs:
       with:
         node-version: '16'
     - run: npm ci
-    - run: npm run downport
+    - run: npm run auto_downport
     - run: npm run auto_transpile
