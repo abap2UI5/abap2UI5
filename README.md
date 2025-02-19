@@ -4,15 +4,16 @@
 [![UI5_2X](https://github.com/abap2UI5/abap2UI5/actions/workflows/UI5.yml/badge.svg?branch=main)](https://github.com/abap2UI5/abap2UI5/actions/workflows/UI5.yml)
 <br>
 [![auto_downport](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_downport.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_downport.yaml)
-[![auto_app2abap](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_app2abap.yml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_app2abap.yml)
+[![auto_app2abap](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_app2abap.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_app2abap.yaml)
 [![auto_frontend](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_frontend.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_frontend.yaml)
 [![auto_abaplint_fix](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_abaplint_fix.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_abaplint_fix.yaml)
 <br>
-[![unit_test](https://github.com/abap2UI5/abap2UI5/actions/workflows/unit_test.yml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/unit_test.yml)
-[![rename_test](https://github.com/abap2UI5/abap2UI5/actions/workflows/rename_test.yml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/rename_test.yml)
+[![unit_test](https://github.com/abap2UI5/abap2UI5/actions/workflows/unit_test.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/unit_test.yaml)
+[![rename_test](https://github.com/abap2UI5/abap2UI5/actions/workflows/rename_test.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/rename_test.yaml)
 <br>
 [![mirror_ajson](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_ajson.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_ajson.yaml)
 [![mirror_srtti](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_srtti.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_srtti.yaml)
+[![app_test](https://github.com/abap2UI5/abap2UI5/actions/workflows/app_test.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/app_test.yaml)
 <br>
 
 <p align="center"><a href="http://www.abap2ui5.org" target="_blank"><img src="https://github.com/abap2UI5/abap2UI5/assets/102328295/52ac0bb6-a219-4e9d-9e4f-62698dab3063" width="200"></a></p>
