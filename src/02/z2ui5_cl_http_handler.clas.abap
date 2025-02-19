@@ -145,8 +145,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     IF is_config-content_security_policy IS INITIAL.
       is_config-content_security_policy = |<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: | &&
-     |ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com openui5.hana.ondemand.com *.openui5.hana.ondemand.com | &&
-     |sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas; worker-src 'self' blob:; "/>|.
+        |ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com openui5.hana.ondemand.com *.openui5.hana.ondemand.com | &&
+        |sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas; worker-src 'self' blob:; "/>|.
     ENDIF.
 
     IF is_config-styles_css IS INITIAL.
@@ -290,7 +290,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     DATA(lo_handler) = factory( server = server
                                 req    = req
                                 res    = res
-     ).
+      ).
 
     result-body   = lo_handler->mo_server->get_cdata( ).
     result-method = lo_handler->mo_server->get_method( ).
@@ -302,7 +302,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     DATA(lo_handler) = factory( server = server
                                 req    = req
                                 res    = res
-     ).
+      ).
 
     lo_handler->mo_server->set_cdata( is_res-body ).
     lo_handler->mo_server->set_header_field( n = `cache-control`

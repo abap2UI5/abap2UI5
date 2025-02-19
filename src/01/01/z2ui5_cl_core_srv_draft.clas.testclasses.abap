@@ -23,7 +23,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     lo_draft->create( draft     = VALUE #( id = `TEST_ID` )
                       model_xml = `my xml`
-    ).
+      ).
 
     DATA(ls_db) = lo_draft->read_draft( `TEST_ID` ).
 
