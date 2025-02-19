@@ -1,6 +1,6 @@
 {
-  "input_folder": "../downport",
-  "output_folder": "../output",
+  "input_folder": "node/downport",
+  "output_folder": "node/output",
   "libs": [
     {
       "url": "https://github.com/open-abap/open-abap-core"

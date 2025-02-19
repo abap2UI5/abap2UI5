@@ -16,5 +16,6 @@ jobs:
       with:
         node-version: '16'
     - run: npm ci
-    - run: npm run build
+    - run: npm run downport
+    - run: npm run transpile
     - run: npm run unit
