@@ -13,8 +13,8 @@ jobs:
 
       - name: run transformation
         run: |
-          npm run auto_app2abap
           npm ci
+          npm run auto_app2abap
           npm run auto_abaplint
 
       - name: Open PR
