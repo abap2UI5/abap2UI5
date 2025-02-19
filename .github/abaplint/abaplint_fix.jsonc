@@ -20,8 +20,6 @@
     "align_type_expressions" : true,
     "keyword_case": true,    
     "contains_tab": true,
-    "line_length": false,
-    "indentation": true,
     "commented_code": false,
 
   }
