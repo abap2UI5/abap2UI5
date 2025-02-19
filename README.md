@@ -9,7 +9,7 @@
 <br>
 [![test_unit](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_unit.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_unit.yaml)
 [![test_node](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_node.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_node.yaml)
-[![test_browser](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_browser.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_browser.yaml)
+[![test_browser](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_browser.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_browser2.yaml)
 [![test_rename](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_rename.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_rename.yaml)
 <br>
 [![create_app2abap](https://github.com/abap2UI5/abap2UI5/actions/workflows/create_app2abap.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/create_app2abap.yaml)
