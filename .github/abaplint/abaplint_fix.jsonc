@@ -19,7 +19,7 @@
     "double_space": true,
     "align_type_expressions" : true,
     "keyword_case": true,    
-    "contains_tab": false,
+    "contains_tab": true,
     "line_length": false,
     "line_only_punc": false,
     "indentation": false,
