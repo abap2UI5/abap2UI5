@@ -15,6 +15,4 @@ jobs:
     - uses: actions/setup-node@v3
       with:
         node-version: '16'
-    - run: git clone https://github.com/abap2UI5/abap2UI5-renamed.git
-    - run: mkdir abap2UI5-renamed/input && mkdir abap2UI5-renamed/input/abap2UI5 && cp -r src abap2UI5-renamed/input/abap2UI5/src && cp -r abap2UI5-renamed/* . && npm i && rm -rf src/*
-    - run: npm run main
+    - run: npm run rename
