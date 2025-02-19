@@ -1,4 +1,4 @@
-name: test_unit
+name: test_node
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  test_unit:
+  test_node:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
