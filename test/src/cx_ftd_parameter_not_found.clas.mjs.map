@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cx_ftd_parameter_not_found.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;;AAIA;;;;;;;;;;;;;;;AAEA",
+  "file": "cx_ftd_parameter_not_found.clas.mjs",
+  "sourceRoot": ""
+}

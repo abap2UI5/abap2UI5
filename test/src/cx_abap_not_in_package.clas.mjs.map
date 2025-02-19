@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cx_abap_not_in_package.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;;AAIA;;;;;;;;;;;;;;;AAEA",
+  "file": "cx_abap_not_in_package.clas.mjs",
+  "sourceRoot": ""
+}

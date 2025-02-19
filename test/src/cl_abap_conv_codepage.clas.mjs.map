@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cl_abap_conv_codepage.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;;AAsBA;;;;;;;;;;;;;;;EAEE;;;;;;;;;IAEA;;EAEA;;;;;;;;;IAEA;;AAEF",
+  "file": "cl_abap_conv_codepage.clas.mjs",
+  "sourceRoot": ""
+}

@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cl_abap_dyn_prg.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;AA+CA;;;;;;;;;;;;;;;;;;;EAEE;;;;;;;;;IAEE,YAAU,GAAG;IACf;;EAEA;;;;;;;IAEE,YAAU,GAAG;IACf;;EAEA;;;;;;IACE,oCAAS,GAAF,4BAAI,wCAAM;IACnB;;EAEA;;;;;;IACE,oCAAS,GAAF,4BAAI,wCAAM;IACnB;;EAEA;;;;;;IACE,oCAAS,GAAF,4BAAI,wCAAM;IACnB;;EAEA;;;;;;IACE,oCAAS,GAAF,4BAAI,wCAAM;IACnB;;AAEF",
+  "file": "cl_abap_dyn_prg.clas.mjs",
+  "sourceRoot": ""
+}

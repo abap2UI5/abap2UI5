@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "kernel_lock.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;AAcA;;;;;;;;;;;;;;;EAEE;;;;;IAEE,eAAE,MAAC,WAAQ,0BAAC;IACd;;EAEA;;;;;IAEE,eAAE,MAAC,WAAQ,0BAAC;EACd;AAEF",
+  "file": "kernel_lock.clas.mjs",
+  "sourceRoot": ""
+}

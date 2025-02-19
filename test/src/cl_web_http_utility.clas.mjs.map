@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cl_web_http_utility.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;AAmCA;;;;;;;;;;;;;;;;;;EAEE;;;;;;;;IACE,aAAU,2IAA6E;IACzF;;EAEA;;;;;;;;IACE,aAAU,6IAA6E;IACzF;;EAEA;;;;;;;;;;IACE,eAAY,yGAES;IACvB;;EAEA;;;;;;;;IACE,aAAU,0EAA2C;IACvD;;EAEA;;;;;;;;IACE,aAAU,8EAA6C;IACzD;;AAEF",
+  "file": "cl_web_http_utility.clas.mjs",
+  "sourceRoot": ""
+}

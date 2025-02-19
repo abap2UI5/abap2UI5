@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cl_abap_memory_utilities.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;AA6BA;;;;;;;;;;;;;;;;;EACE;;;;;IACE;EACF;EAEA;;;;IACE;EACF;EAEA;;;;;IACE;EACF;EAEA;;;;;;;;;;;;;;;;IACE;EACF;AAEF",
+  "file": "cl_abap_memory_utilities.clas.mjs",
+  "sourceRoot": ""
+}

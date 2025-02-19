@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cx_xslt_system_error.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;;AAIA;;;;;;;;;;;;;;;AAEA",
+  "file": "cx_xslt_system_error.clas.mjs",
+  "sourceRoot": ""
+}

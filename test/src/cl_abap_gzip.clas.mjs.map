@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cl_abap_gzip.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;AAyDA;;;;;;;;;;;;;;;;;;EACE;;;;;;;;IAEE;IACA;IACA;IAEA;EACF;EAEA;;;;;;;;;;;;;IACE,oCAAS,GAAF,4BAAI,wCAAM;EACnB;EAEA;;;;;;;;;;;;;;;;IACE,oCAAS,GAAF,4BAAI,wCAAM;EACnB;EAEA;;;;;;;;;IACE;IACA;IACA;IAEA;IACA,gBAAc,2BAAS,SAAS;EAClC;EAEA;;;;;;;;;;;IAEE;IACA;IACA;IAEA;IACA,iBAAe,2BAAS,UAAU;EACpC;AACF",
+  "file": "cl_abap_gzip.clas.mjs",
+  "sourceRoot": ""
+}

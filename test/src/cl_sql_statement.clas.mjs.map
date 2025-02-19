@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cl_sql_statement.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;AA8BA;;;;;;;;;;;;;;EAEE;;;IACE,yBAAG,QAAkB;MACnB,uBAAgB,0CAAS;IAC3B;MACE,wBAAgB,mCAAwB;IAC1C;IAEA,4CAAO,6BAA4B;IACrC;;EAEA;;;;IACE,oCAAS,GAAF,4BAAI,kDAAe;EAC5B;EAEA;;;;QAEO,iEAA0B;IAE/B,4CAAO,oBAAwB;IAE/B;MACA,mBAAiB,uDAAqB;IACtC;IACA,yBAAG,yBAA6B;MAC9B;;;IACF;IAEA;MACA;IACA;MACA;IACA;IACA,yBAAG,yBAA6B;MAC9B;;;IACF;EAEF;EAEA;;;;;QACO,sIAAuD;QACvD,iEAA0B;IAE/B,4CAAO,oBAAwB;IAC/B,4CAAO,6BAA4B;IAEnC;MACA,mBAAiB,uDAAqB;IACtC;IACA,yBAAG,yBAA6B;MAC9B;;;IACF;;IAIA;MACI;MAEA;;;;;;;;;;IAGJ;IAEF;;AAEF",
+  "file": "cl_sql_statement.clas.mjs",
+  "sourceRoot": ""
+}

@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cx_shm_secondary_commit.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;;AAIA;;;;;;;;;;;;;;;AAEA",
+  "file": "cx_shm_secondary_commit.clas.mjs",
+  "sourceRoot": ""
+}

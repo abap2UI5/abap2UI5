@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cx_sy_dyn_call_parameter_error.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;;AAKA;;;;;;;;;;;;;;;;AAEA",
+  "file": "cx_sy_dyn_call_parameter_error.clas.mjs",
+  "sourceRoot": ""
+}

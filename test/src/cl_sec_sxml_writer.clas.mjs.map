@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cl_sec_sxml_writer.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;AAgBA;;;;;;;;;;;;;;;;;;;EAEE;;;;;;;;;;;;;;;;;QACO,0DAAmB;IAExB,IACE,OAEA,KAHG,SAAL;;MAEI,YAAU,+CAAa;;MAEvB,YAAU,+CAAa;;MAEvB,oCAAS,GAAF,4BAAI,wCAAM;;IAGrB;IAEA;IACA;IACA;IAEA;IACA;IAEA;EACF;AAEF",
+  "file": "cl_sec_sxml_writer.clas.mjs",
+  "sourceRoot": ""
+}

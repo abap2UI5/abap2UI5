@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cl_abap_tstmp.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;AA8EA;;;;;;;;;;;;;;;;;;;;;;EAEE;;;;;;;;;;;;;;;;;IACE,oCAAS,GAAF,4BAAI,wCAAM;EACnB;EAEA;;;;;;;;;IACE,oCAAS,GAAF,4BAAI,wCAAM;EACnB;EAEA;;;;;;;IAGE,cAAY,SAAS;EACvB;EAEA;;;;;;;;;;;IAEE,yBAAG,UAAoB;MACrB;;;IACF;IAEA,uHAAwC;EAC1C;EAEA;;;;;;;;;QACO,sDAAoB;QACpB,2DAAoB;IACzB,6FAAkC;IAClC,iBAAO,GAAJ,KAAO,qCAAG;MACX;IACF;IACA;IACA,6FAAkC;IAClC,iBAAO,GAAJ,KAAO,qCAAG;MACX;IACF;IACA;IACA;IACF;;EAEA;;;;;;;;;;;;QACO,sDAAoB;QACpB,2DAAoB;IACzB,4FAAiC;IACjC,iBAAO,GAAJ,KAAO,qCAAG;MACX;IACF;IACA;IACA;IACA;IACF;;EAEA;;;;;;;;;;;;QACO,sDAAc;IACnB,YAAe,wBAAL,KAAO,4BAAE;IACnB,UAAO,8CAEY;IACrB;;EAEA;;;;;;;;iEAK6B;IAC7B;;EAEA;;;;;;;;;;;;;;;;;QACO,wFAAwB;QACxB,wFAAwB;;;IAK7B,cAAW,4DAEW;EACxB;AACF",
+  "file": "cl_abap_tstmp.clas.mjs",
+  "sourceRoot": ""
+}

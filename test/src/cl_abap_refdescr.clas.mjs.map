@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cl_abap_refdescr.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;;AAuBA;;;;;;;;;;;;;;;;;;;EAEE;;;;;IAEA;;EAEA;;;;;;;;IAEA;;EAEA;;IACE,SAAO,eAAU;IACnB;;EAEA;;;;;QACO,+DAAoB;+BACzB,WAAY,wEAA0C;IACxD;;AACF",
+  "file": "cl_abap_refdescr.clas.mjs",
+  "sourceRoot": ""
+}

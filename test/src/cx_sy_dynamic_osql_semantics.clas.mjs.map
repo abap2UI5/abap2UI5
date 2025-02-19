@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cx_sy_dynamic_osql_semantics.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;;AAOA;;;;;;;;;;;EACE;;;8CACuC;IACvC;;AACF",
+  "file": "cx_sy_dynamic_osql_semantics.clas.mjs",
+  "sourceRoot": ""
+}

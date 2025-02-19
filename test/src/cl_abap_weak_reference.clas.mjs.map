@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cl_abap_weak_reference.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;AAaA;;;;;;;;;;;;EACE;;;IACE,4CAAO,eAAmB;IAE1B;IACF;;EAEA;;IACE;IACF;;AACF",
+  "file": "cl_abap_weak_reference.clas.mjs",
+  "sourceRoot": ""
+}

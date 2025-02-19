@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cl_apc_wsp_ext_stateless_base.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;AAKA;;;;;;;;;;;;;;EACE;;;;;;;IACE;EACF;EAEA;;;;;;;;;;IACE;EACF;AACF",
+  "file": "cl_apc_wsp_ext_stateless_base.clas.mjs",
+  "sourceRoot": ""
+}

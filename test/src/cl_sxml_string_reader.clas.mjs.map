@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cl_sxml_string_reader.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;;AASA;;;;;;;;;;;;;;EACE;;;;;;;;;IAIA;;AACF",
+  "file": "cl_sxml_string_reader.clas.mjs",
+  "sourceRoot": ""
+}

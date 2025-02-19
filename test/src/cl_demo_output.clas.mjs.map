@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cl_demo_output.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;AAqBA;;;;;;;;;;;;;;;;;EACE;;;;;;;IACE,oCAAS,GAAF,4BAAI,kDAAe;EAC5B;EAEA;;IACE,oCAAS,GAAF,4BAAI,kDAAe;EAC5B;EAEA;;;;;IACE,oCAAS,GAAF,4BAAI,kDAAe;IAC5B;;EAEA;;;;IACE,oCAAS,GAAF,4BAAI,kDAAe;EAC5B;EAEA;;;;;;;IACE,oCAAS,GAAF,4BAAI,kDAAe;EAC5B;EAEA;IACE,oCAAS,GAAF,4BAAI,kDAAe;EAC5B;AACF",
+  "file": "cl_demo_output.clas.mjs",
+  "sourceRoot": ""
+}

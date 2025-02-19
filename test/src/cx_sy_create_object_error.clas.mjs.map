@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cx_sy_create_object_error.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;;AAaA;;;;;;;;;;;;;EAEE;;;;;;;kEAGyB;IACvB,OAAE,OAAE,cAAY,SAAS;IAC3B;;EAEA;;IACE,WAAS,kGAAgE;IAC3E;;AAEF",
+  "file": "cx_sy_create_object_error.clas.mjs",
+  "sourceRoot": ""
+}

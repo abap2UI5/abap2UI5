@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cl_cam_address_bcs.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;AAiBA;;;;;;;;;;;;;;EAEE;;;;;;;;;IACE,oCAAS,GAAF,4BAAI,wCAAM;IACnB;;AAEF",
+  "file": "cl_cam_address_bcs.clas.mjs",
+  "sourceRoot": ""
+}

@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cl_icf_tree.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;AAKA;;;;;;;;;;;;;;EACE;;;;;;;;;;;;;;;;;IAEE;IACF;;AACF",
+  "file": "cl_icf_tree.clas.mjs",
+  "sourceRoot": ""
+}

@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cl_mime_repository_api.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;AAOA;;;;;;;;;;;;;;;EAEE;;;;;;;;;;;;IACE,oCAAS,GAAF,4BAAI,wCAAM;EACnB;EAEA;;;;IACE,oCAAS,GAAF,4BAAI,wCAAM;EACnB;EAEA;;;;;;;IACE,oCAAS,GAAF,4BAAI,wCAAM;IACnB;;EAEA;;;;;;;;;;;;IACE,oCAAS,GAAF,4BAAI,wCAAM;EACnB;EAEA;;;;;;;;;;;;;;;;;;;;;;;;;IACE,oCAAS,GAAF,4BAAI,wCAAM;EACnB;EAEA;;;;;;;;;;;;;;;;;;;;;;;;;;IACE,oCAAS,GAAF,4BAAI,wCAAM;EACnB;EAEA;;;;;;;;;;;;IACE,oCAAS,GAAF,4BAAI,wCAAM;EACnB;EAEA;;;;;;;;;IACE,oCAAS,GAAF,4BAAI,wCAAM;EACnB;EAEA;;;;;;;;;;;;;;IACE,oCAAS,GAAF,4BAAI,wCAAM;EACnB;EAEA;;;;IACE,oCAAS,GAAF,4BAAI,wCAAM;EACnB;AACF",
+  "file": "cl_mime_repository_api.clas.mjs",
+  "sourceRoot": ""
+}

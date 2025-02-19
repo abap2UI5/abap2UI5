@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cl_abap_conv_codepage.clas.locals_imp.abap"
+  ],
+  "names": [],
+  "mappings": ";;AAQA;;;;;;;;;;;EACE;;;;IACE,qBAAc,QAAQ;IACxB;;EAEA;;;;;QACO,+GAAmC;IACxC,UAAO,8EAAoD;2DAKvC;IACtB;;AACF;;AAYA;;;;;;;;;;;EACE;;;;IACE,qBAAc,QAAQ;IACxB;;EAEA;;;;;QACO,iHAAoC;IACzC,UAAO,+EAAqD;4DAKvC;IACvB;;AACF",
+  "file": "cl_abap_conv_codepage.clas.locals.mjs",
+  "sourceRoot": ""
+}

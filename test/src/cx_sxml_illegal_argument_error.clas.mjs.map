@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cx_sxml_illegal_argument_error.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;;AAIA;;;;;;;;;;;;;;;AAEA",
+  "file": "cx_sxml_illegal_argument_error.clas.mjs",
+  "sourceRoot": ""
+}

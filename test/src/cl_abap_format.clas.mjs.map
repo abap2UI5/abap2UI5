@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cl_abap_format.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;AAYA;;;;;;;;;;;;;;;;;;;;;;;;;;;;;AAEA",
+  "file": "cl_abap_format.clas.mjs",
+  "sourceRoot": ""
+}

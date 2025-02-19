@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cl_system_uuid.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;AAWA;;;;;;;;;;;;;;;;EAEE;;;;;IAEE;IACA;MACA;IACA;MACA;IACA;IACF;;EAEA;;;;;QACO,yDAAkB;IACvB,YAAS,oBAAS;IAClB,uIAAgD;IAChD;IACA,SAAO,8BAAU;IACnB;;EAEA;;;;;QACO,yDAAkB;IACvB,YAAS,oBAAS;IAClB,uIAAgD;IAChD,SAAO,8BAAU;IACjB;IACF;;EAEA;;;;;;;;IACE,oCAAe,GAAR,SAAU,2BAAC;IAClB,UAAO,oBAAS;IAClB;;EAEA;;;;;QACO,yDAAkB;IACvB,YAAS,oBAAS;IAClB,uIAAgD;IAChD,SAAO,8BAAU;IACnB;;AAEF",
+  "file": "cl_system_uuid.clas.mjs",
+  "sourceRoot": ""
+}

@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cx_sy_invalid_regex.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;;AAIA;;;;;;;;;;;;;;;AAEA",
+  "file": "cx_sy_invalid_regex.clas.mjs",
+  "sourceRoot": ""
+}

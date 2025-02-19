@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cl_abap_codepage.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;AAuBA;;;;;;;;;;;;;;;;EACE;;;;;;;;;;;QACO,iHAAoC;IACzC,UAAO,uEAAkD;4DAEf;IAC5C;;EAEA;;;;;;;;;;;QACO,+GAAmC;QACnC,uDAAgB;IACrB,UAAO,sEAAiD;2DAG7B;IAC7B;;EAEA;;;;;;;;IACE,oCAAgB,GAAT,UAAW,4CAAU;IAC5B,aAAW,uCAAM;IACnB;;AACF",
+  "file": "cl_abap_codepage.clas.mjs",
+  "sourceRoot": ""
+}

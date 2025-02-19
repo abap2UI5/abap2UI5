@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cx_sy_conversion_no_number.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;;AAOA;;;;;;;;;;;;;;;EAEE;;IACE,WAAS,wDAAsB;IACjC;;AAEF",
+  "file": "cx_sy_conversion_no_number.clas.mjs",
+  "sourceRoot": ""
+}

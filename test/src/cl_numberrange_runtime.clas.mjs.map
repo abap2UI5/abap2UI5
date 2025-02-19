@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cl_numberrange_runtime.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;AAiBA;;;;;;;;;;;;;;EAEE;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;MAiBE,iBAAY,GAAT,eAAE,MAAC,QAAS,2BAAC;QACd;MACF;IAEF;EAEF",
+  "file": "cl_numberrange_runtime.clas.mjs",
+  "sourceRoot": ""
+}

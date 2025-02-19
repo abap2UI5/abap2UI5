@@ -1,0 +1,5 @@
+abap.DDIC["TDEVC"] = {
+  "objectType": "TABL",
+  "type": new abap.types.Structure({"devclass": new abap.types.Character(30, {"qualifiedName":"DEVCLASS","ddicName":"DEVCLASS","description":"DEVCLASS"}), "dlvunit": new abap.types.Character(30, {"description":"DLVUNIT"}), "component": new abap.types.Character(20, {"description":"COMPONENT"}), "parentcl": new abap.types.Character(30, {"description":"PARENTCL"}), "as4user": new abap.types.Character(12, {"description":"AS4USER"}), "created_by": new abap.types.Character(12, {"description":"CREATED_BY"}), "created_on": new abap.types.Date(), "ctext": new abap.types.Character(60, {"description":"CTEXT"}), "changed_by": new abap.types.Character(12, {"description":"CHANGED_BY"}), "changed_on": new abap.types.Date(), "namespace": new abap.types.Character(10, {"description":"NAMESPACE"})}, "TDEVC", "TDEVC", {}, {}),
+  "keyFields": ["DEVCLASS"],
+};

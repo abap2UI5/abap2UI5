@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cl_abap_intfdescr.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;;AAOA;;;;;;;;;;;;;;;;AAEA",
+  "file": "cl_abap_intfdescr.clas.mjs",
+  "sourceRoot": ""
+}

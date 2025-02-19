@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cx_oa2c.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;;AAIA;;;;;;;;;;;;;;;AAEA",
+  "file": "cx_oa2c.clas.mjs",
+  "sourceRoot": ""
+}

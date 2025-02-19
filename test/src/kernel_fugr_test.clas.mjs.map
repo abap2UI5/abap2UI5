@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "kernel_fugr_test.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;AAIA;;;;;;;;;;;;;;AAEA",
+  "file": "kernel_fugr_test.clas.mjs",
+  "sourceRoot": ""
+}

@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cx_sy_range_out_of_bounds.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;;AAOA;;;;;;;;;;;;;;;EAEE;;IACE,WAAS,uDAAqB;IAChC;;AAEF",
+  "file": "cx_sy_range_out_of_bounds.clas.mjs",
+  "sourceRoot": ""
+}

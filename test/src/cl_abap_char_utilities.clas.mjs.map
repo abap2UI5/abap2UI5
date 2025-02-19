@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cl_abap_char_utilities.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;AA2BA;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;EAEE;;;;IACE;IACA;EACF;EAEA;;;;;IACE,sCAAY,kCAAI,uCAAe,qCAAa,gCAAQ,qDAAS,2CAAe,KAAK;IACnF;;AAEF",
+  "file": "cl_abap_char_utilities.clas.mjs",
+  "sourceRoot": ""
+}

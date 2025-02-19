@@ -1,0 +1,4 @@
+abap.DDIC["ABAP_CALLSTACK"] = {
+  "objectType": "TTYP",
+  "type": abap.types.TableFactory.construct(new abap.types.Structure({"mainprogram": new abap.types.Character(40, {}), "include": new abap.types.Character(40, {}), "line": new abap.types.Integer({qualifiedName: "I"}), "blocktype": new abap.types.Character(12, {}), "blockname": new abap.types.String({qualifiedName: "STRING"})}, "ABAP_CALLSTACK_LINE", "ABAP_CALLSTACK_LINE", {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "ABAP_CALLSTACK"),
+};

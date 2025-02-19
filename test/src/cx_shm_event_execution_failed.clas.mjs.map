@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cx_shm_event_execution_failed.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;;AAIA;;;;;;;;;;;;;;;AAEA",
+  "file": "cx_shm_event_execution_failed.clas.mjs",
+  "sourceRoot": ""
+}

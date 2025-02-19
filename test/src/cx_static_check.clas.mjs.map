@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cx_static_check.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;AASA;;;;;;;;;;;EAEE;;;;;kEAGyB;IACzB;;AAEF",
+  "file": "cx_static_check.clas.mjs",
+  "sourceRoot": ""
+}

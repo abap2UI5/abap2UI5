@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cx_sxml_parse_error.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;;AAWA;;;;;;;;;;;;;;;;;;;;EACE;;;;8BACuB;IACrB,OAAE,OAAE,eAAa,UAAU;IAC7B;;AACF",
+  "file": "cx_sxml_parse_error.clas.mjs",
+  "sourceRoot": ""
+}

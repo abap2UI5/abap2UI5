@@ -1,0 +1,16 @@
+// if_http_utility.intf.abap
+class if_http_utility {
+  static INTERNAL_TYPE = 'INTF';
+  static ATTRIBUTES = {};
+  static METHODS = {"STRING_TO_FIELDS": {"visibility": "U", "parameters": {"FIELDS": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({"name": new abap.types.String({qualifiedName: "STRING"}), "value": new abap.types.String({qualifiedName: "STRING"})}, "IHTTPNVP", "IHTTPNVP", {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "TIHTTPNVP");}, "is_optional": " "}, "STRING": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "IGNORE_PARENTHESIS": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "is_optional": " "}}},
+  "GET_LAST_ERROR": {"visibility": "U", "parameters": {"RC": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "is_optional": " "}}},
+  "UNESCAPE_URL": {"visibility": "U", "parameters": {"UNESCAPED": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "ESCAPED": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "OPTIONS": {"type": () => {return new abap.types.Integer({qualifiedName: "I"});}, "is_optional": " "}}},
+  "ESCAPE_URL": {"visibility": "U", "parameters": {"ESCAPED": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "UNESCAPED": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}}},
+  "ENCODE_BASE64": {"visibility": "U", "parameters": {"ENCODED": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "UNENCODED": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}}},
+  "FIELDS_TO_STRING": {"visibility": "U", "parameters": {"STRING": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "FIELDS": {"type": () => {return abap.types.TableFactory.construct(new abap.types.Structure({"name": new abap.types.String({qualifiedName: "STRING"}), "value": new abap.types.String({qualifiedName: "STRING"})}, "IHTTPNVP", "IHTTPNVP", {}, {}), {"withHeader":false,"keyType":"DEFAULT","primaryKey":{"isUnique":false,"type":"STANDARD","keyFields":[],"name":"primary_key"},"secondary":[]}, "TIHTTPNVP");}, "is_optional": " "}}},
+  "DECODE_BASE64": {"visibility": "U", "parameters": {"DECODED": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "ENCODED": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}}},
+  "NORMALIZE_URL": {"visibility": "U", "parameters": {"NORMALIZED": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}, "UNNORMALIZED": {"type": () => {return new abap.types.String({qualifiedName: "STRING"});}, "is_optional": " "}}}};
+}
+abap.Classes['IF_HTTP_UTILITY'] = if_http_utility;
+export {if_http_utility};
+//# sourceMappingURL=if_http_utility.intf.mjs.map

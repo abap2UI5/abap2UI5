@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cx_sy_zerodivide.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;;AAKA;;;;;;;;;;;;;;;EAEE;;IACE,WAAS,qDAAmB;IAC9B;;AAEF",
+  "file": "cx_sy_zerodivide.clas.mjs",
+  "sourceRoot": ""
+}

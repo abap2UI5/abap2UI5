@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "sources": [
+    "cx_sql_exception.clas.abap"
+  ],
+  "names": [],
+  "mappings": ";;;AAWA;;;;;;;;;;;;EACE;;;;;;;kEAGyB;IAEvB,OAAE,OAAE,gBAAc,WAAW;IAC/B;;AAEF",
+  "file": "cx_sql_exception.clas.mjs",
+  "sourceRoot": ""
+}
