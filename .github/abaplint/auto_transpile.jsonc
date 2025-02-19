@@ -1,6 +1,6 @@
 {
-  "input_folder": "../../src",
-  "output_folder": "./node/src",
+  "input_folder": "src",
+  "output_folder": "./node/output",
   "libs": [
     {
       "url": "https://github.com/open-abap/open-abap-core"
