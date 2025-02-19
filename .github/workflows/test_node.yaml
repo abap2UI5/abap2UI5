@@ -27,3 +27,4 @@ jobs:
           exit 0
         else
           echo "Errors detected, continuing the workflow."
+        fi
