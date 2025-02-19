@@ -17,7 +17,7 @@ jobs:
           npm run transform
           cd .. 
           npm ci
-          npm run auto_abaplint
+          npm run auto_app2abap
 
       - name: Open PR
         uses: peter-evans/create-pull-request@v4
