@@ -18,4 +18,4 @@ jobs:
     - run: npm ci
     - run: npm run auto_downport
     - run: npm run auto_transpile
-    - run: cd node && npm run express
+    - run: npm run express
