@@ -1,11 +1,10 @@
-name: test_app
+name: app_test
 
 on:
   pull_request:
-    types: [opened, synchronize]
 
 jobs:
-  test_app:
+  app_test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
