@@ -20,10 +20,10 @@
     "align_type_expressions" : true,
     "keyword_case": true,    
     "contains_tab": true,
-    "colon_missing_space" : true,
-    "line_break_multiple_parameters" : true,
-    "line_break_style": true,
-    "keep_single_parameter_on_one_line" : true,
+    "colon_missing_space": true,
+    "line_break_multiple_parameters": true,
+    "keep_single_parameter_on_one_line": true,
+    "max_one_method_parameter_per_line": true,
     "commented_code": false,
 
   }
