@@ -7,7 +7,7 @@ CLASS z2ui5_cl_pop_to_confirm DEFINITION
     INTERFACES z2ui5_if_app.
 
     CONSTANTS:
-      BEGIN OF CS_event,
+      BEGIN OF cs_event,
         confirmed TYPE string VALUE 'z2ui5_cl_pop_to_confirm_confirmed',
         canceled  TYPE string VALUE 'z2ui5_cl_pop_to_confirm_canceled',
       END OF cs_event.
@@ -19,8 +19,8 @@ CLASS z2ui5_cl_pop_to_confirm DEFINITION
         i_icon                TYPE string DEFAULT 'sap-icon://question-mark'
         i_button_text_confirm TYPE string DEFAULT `OK`
         i_button_text_cancel  TYPE string DEFAULT `Cancel`
-        i_event_confirm       TYPE string DEFAULT  CS_event-confirmed
-        i_event_cancel        TYPE string DEFAULT  CS_event-canceled
+        i_event_confirm       TYPE string DEFAULT  cs_event-confirmed
+        i_event_cancel        TYPE string DEFAULT  cs_event-canceled
       RETURNING
         VALUE(r_result)       TYPE REF TO z2ui5_cl_pop_to_confirm.
 

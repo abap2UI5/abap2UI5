@@ -19,7 +19,7 @@ INTERFACE z2ui5_if_client
       set_odata_model           TYPE string VALUE `SET_ODATA_MODEL`,
       urlhelper                 TYPE string VALUE `URLHELPER`,
       history_back              TYPE string VALUE `HISTORY_BACK`,
-      CLIPBOARD_APP_STATE       TYPE string VALUE `CLIPBOARD_APP_STATE`,
+      clipboard_app_state       TYPE string VALUE `CLIPBOARD_APP_STATE`,
     END OF cs_event.
 
   CONSTANTS:
@@ -51,7 +51,7 @@ INTERFACE z2ui5_if_client
 
   METHODS set_push_state
     IMPORTING
-      val TYPE string optional.
+      val TYPE string OPTIONAL.
 
   METHODS set_nav_back
     IMPORTING
@@ -179,7 +179,7 @@ INTERFACE z2ui5_if_client
       custom_filter        TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
       !tab                 TYPE data                          OPTIONAL
       tab_index            TYPE i                             OPTIONAL
-      switch_Default_Model TYPE abap_bool DEFAULT abap_false
+      switch_default_model TYPE abap_bool DEFAULT abap_false
     RETURNING
       VALUE(result)        TYPE string.
 
@@ -204,7 +204,7 @@ INTERFACE z2ui5_if_client
       !path                TYPE abap_bool                     DEFAULT abap_false
       custom_mapper        TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
       custom_filter        TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
-      switch_default_Model TYPE abap_bool DEFAULT abap_false
+      switch_default_model TYPE abap_bool DEFAULT abap_false
     RETURNING
       VALUE(result)        TYPE string.
 
