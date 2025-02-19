@@ -13,9 +13,7 @@ jobs:
 
       - name: run transformation
         run: |
-          cd app
           npm run auto_app2abap
-          cd .. 
           npm ci
           npm run auto_abaplint
 
