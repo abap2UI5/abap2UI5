@@ -70,10 +70,7 @@ ENDCLASS.
 CLASS z2ui5_cl_util_abap_http IMPLEMENTATION.
   METHOD delete_response_cookie.
 
-    DATA temp1 TYPE string.
-    temp1 = val.
-    DATA lv_val LIKE temp1.
-    lv_val = temp1.
+    DATA(lv_val) = CONV string( val ).
 
     IF mo_server_onprem IS BOUND.
 
@@ -101,10 +98,7 @@ CLASS z2ui5_cl_util_abap_http IMPLEMENTATION.
     DATA object TYPE REF TO object.
     FIELD-SYMBOLS <any> TYPE any.
 
-    DATA temp2 TYPE string.
-    temp2 = val.
-    DATA lv_val LIKE temp2.
-    lv_val = temp2.
+    DATA(lv_val) = CONV string( val ).
 
     IF mo_server_onprem IS BOUND.
 
@@ -132,10 +126,7 @@ CLASS z2ui5_cl_util_abap_http IMPLEMENTATION.
     DATA object TYPE REF TO object.
     FIELD-SYMBOLS <any> TYPE any.
 
-    DATA temp3 TYPE string.
-    temp3 = val.
-    DATA lv_val LIKE temp3.
-    lv_val = temp3.
+    DATA(lv_val) = CONV string( val ).
 
     IF mo_server_onprem IS BOUND.
 
@@ -161,14 +152,8 @@ CLASS z2ui5_cl_util_abap_http IMPLEMENTATION.
     DATA object TYPE REF TO object.
     FIELD-SYMBOLS <any> TYPE any.
 
-    DATA temp4 TYPE string.
-    temp4 = n.
-    DATA lv_n LIKE temp4.
-    lv_n = temp4.
-    DATA temp5 TYPE string.
-    temp5 = v.
-    DATA lv_v LIKE temp5.
-    lv_v = temp5.
+    DATA(lv_n) = CONV string( n ).
+    DATA(lv_v) = CONV string( v ).
     IF mo_server_onprem IS BOUND.
 
       ASSIGN mo_server_onprem->('RESPONSE') TO <any>.
@@ -190,14 +175,14 @@ CLASS z2ui5_cl_util_abap_http IMPLEMENTATION.
 
   METHOD factory.
 
-    CREATE OBJECT result.
+    result = NEW #( ).
     result->mo_server_onprem = server.
 
   ENDMETHOD.
 
   METHOD factory_cloud.
 
-    CREATE OBJECT result.
+    result = NEW #( ).
     result->mo_request_cloud  = req.
     result->mo_response_cloud = res.
 
@@ -274,10 +259,7 @@ CLASS z2ui5_cl_util_abap_http IMPLEMENTATION.
     DATA object TYPE REF TO object.
     FIELD-SYMBOLS <any> TYPE any.
 
-    DATA temp6 TYPE string.
-    temp6 = reason.
-    DATA lv_reason LIKE temp6.
-    lv_reason = temp6.
+    DATA(lv_reason) = CONV string( reason ).
 
     IF mo_server_onprem IS BOUND.
 

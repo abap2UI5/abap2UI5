@@ -106,7 +106,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD factory.
 
-    CREATE OBJECT result.
+    result = NEW #( ).
 
     IF server IS BOUND.
       result->mo_server = z2ui5_cl_util_abap_http=>factory( server ).
@@ -121,7 +121,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD factory_cloud.
 
-    CREATE OBJECT result.
+    result = NEW #( ).
     result->mo_server = z2ui5_cl_util_abap_http=>factory_cloud( req = req
                                                                res  = res ).
 
@@ -150,8 +150,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     ENDIF.
 
     IF is_config-styles_css IS INITIAL.
-      DATA lv_style_css TYPE string.
-      lv_style_css = z2ui5_cl_app_style_css=>get( ).
+      DATA(lv_style_css) = z2ui5_cl_app_style_css=>get( ).
     ELSE.
       lv_style_css = is_config-styles_css.
     ENDIF.
@@ -191,9 +190,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                  |data-sap-ui-compatVersion="edge" data-sap-ui-async="true" data-sap-ui-frameOptions="trusted" data-sap-ui-bindingSyntax="complex"| && |\n| &&
                  |data-sap-ui-theme="{ is_config-theme  }" src=" { is_config-src }"   |.
 
-    DATA temp1 LIKE LINE OF is_config-t_add_config.
-    DATA lr_config LIKE REF TO temp1.
-    LOOP AT is_config-t_add_config REFERENCE INTO lr_config.
+    LOOP AT is_config-t_add_config REFERENCE INTO DATA(lr_config).
       result = |{ result } { lr_config->n }='{ lr_config->v }'|.
     ENDLOOP.
 
@@ -207,8 +204,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD run.
 
-    DATA lo_handler TYPE REF TO z2ui5_cl_http_handler.
-    lo_handler = factory( server = server
+    DATA(lo_handler) = factory( server = server
                                 req    = req
                                 res    = res
          ).
@@ -236,8 +232,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     IF ms_res-s_stateful-switched = abap_true.
       mo_server->set_session_stateful( ms_res-s_stateful-active ).
       IF mo_server->get_header_field( 'sap-contextid-accept' ) = 'header'.
-        DATA lv_contextid TYPE string.
-        lv_contextid = mo_server->get_response_cookie( 'sap-contextid' ).
+        DATA(lv_contextid) = mo_server->get_response_cookie( 'sap-contextid' ).
         IF lv_contextid IS NOT INITIAL.
           mo_server->delete_response_cookie( 'sap-contextid' ).
           mo_server->set_header_field( n = 'sap-contextid'
@@ -257,8 +252,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
   METHOD _http_post.
 
     IF so_sticky_handler IS NOT BOUND.
-      DATA lo_post TYPE REF TO z2ui5_cl_core_handler.
-      CREATE OBJECT lo_post TYPE z2ui5_cl_core_handler EXPORTING VAL = is_req-body.
+      DATA(lo_post) = NEW z2ui5_cl_core_handler( is_req-body ).
     ELSE.
       lo_post = so_sticky_handler.
       lo_post->mv_request_json = is_req-body.
@@ -268,10 +262,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     TRY.
         IF lo_post IS BOUND.
-          DATA temp2 TYPE REF TO z2ui5_if_app.
-          temp2 ?= lo_post->mo_action->mo_app->mo_app.
-          DATA li_app LIKE temp2.
-          li_app = temp2.
+          DATA(li_app) = CAST z2ui5_if_app( lo_post->mo_action->mo_app->mo_app ).
           IF li_app->check_sticky = abap_true.
             so_sticky_handler = lo_post.
           ELSE.
@@ -296,8 +287,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD get_request.
 
-    DATA lo_handler TYPE REF TO z2ui5_cl_http_handler.
-    lo_handler = factory( server = server
+    DATA(lo_handler) = factory( server = server
                                 req    = req
                                 res    = res
       ).
@@ -309,8 +299,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD get_response.
 
-    DATA lo_handler TYPE REF TO z2ui5_cl_http_handler.
-    lo_handler = factory( server = server
+    DATA(lo_handler) = factory( server = server
                                 req    = req
                                 res    = res
       ).
@@ -325,8 +314,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     IF is_res-s_stateful-switched = abap_true.
       lo_handler->mo_server->set_session_stateful( is_res-s_stateful-active ).
       IF lo_handler->mo_server->get_header_field( 'sap-contextid-accept' ) = 'header'.
-        DATA lv_contextid TYPE string.
-        lv_contextid = lo_handler->mo_server->get_response_cookie( 'sap-contextid' ).
+        DATA(lv_contextid) = lo_handler->mo_server->get_response_cookie( 'sap-contextid' ).
         IF lv_contextid IS NOT INITIAL.
           lo_handler->mo_server->delete_response_cookie( 'sap-contextid' ).
           lo_handler->mo_server->set_header_field( n = 'sap-contextid'

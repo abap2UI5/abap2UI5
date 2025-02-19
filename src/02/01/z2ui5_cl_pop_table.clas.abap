@@ -46,31 +46,24 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
 
     ASSIGN mr_tab->* TO <tab_out>.
 
-    DATA popup TYPE REF TO z2ui5_cl_xml_view.
-    popup = z2ui5_cl_xml_view=>factory_popup( )->dialog( afterclose = client->_event( 'BUTTON_CONFIRM' )
+    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( afterclose = client->_event( 'BUTTON_CONFIRM' )
                                                                stretch    = abap_true
                                                                title      = title
 *                                                               icon       = 'sap-icon://edit'
           )->content( ).
 
-    DATA tab TYPE REF TO z2ui5_cl_xml_view.
-    tab = popup->table( client->_bind( <tab_out> ) ).
+    DATA(tab) = popup->table( client->_bind( <tab_out> ) ).
 
-    DATA lt_comp TYPE abap_component_tab.
-    lt_comp = z2ui5_cl_util=>rtti_get_t_attri_by_any( <tab_out> ).
+    DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_any( <tab_out> ).
 
-    DATA list TYPE REF TO z2ui5_cl_xml_view.
-    list = tab->column_list_item( valign = `Top` ).
-    DATA cells TYPE REF TO z2ui5_cl_xml_view.
-    cells = list->cells( ).
+    DATA(list) = tab->column_list_item( valign = `Top` ).
+    DATA(cells) = list->cells( ).
 
-    DATA ls_comp LIKE LINE OF lt_comp.
-    LOOP AT lt_comp INTO ls_comp.
+    LOOP AT lt_comp INTO DATA(ls_comp).
       cells->text( |\{{ ls_comp-name }\}| ).
     ENDLOOP.
 
-    DATA columns TYPE REF TO z2ui5_cl_xml_view.
-    columns = tab->columns( ).
+    DATA(columns) = tab->columns( ).
     LOOP AT lt_comp INTO ls_comp.
       columns->column( '8rem' )->header( `` )->text( ls_comp-name ).
     ENDLOOP.
@@ -88,7 +81,7 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
   METHOD factory.
     FIELD-SYMBOLS <tab> TYPE any.
 
-    CREATE OBJECT r_result.
+    r_result = NEW #( ).
     IF i_title IS NOT INITIAL.
       r_result->title = i_title.
     ENDIF.

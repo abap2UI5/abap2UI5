@@ -43,16 +43,13 @@ ENDCLASS.
 CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
   METHOD attri_after_load.
 
-    DATA temp1 LIKE LINE OF mt_attri->*.
-    DATA lr_attri LIKE REF TO temp1.
-    LOOP AT mt_attri->* REFERENCE INTO lr_attri.
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
       TRY.
           lr_attri->r_ref       = attri_get_val_ref( lr_attri->name ).
           lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
 
           IF lr_attri->srtti_data IS NOT INITIAL.
-            FIELD-SYMBOLS <val> TYPE data.
-            ASSIGN lr_attri->r_ref->* TO <val>.
+            ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val>).
             <val> = z2ui5_cl_util=>xml_srtti_parse( lr_attri->srtti_data ).
             CLEAR lr_attri->srtti_data.
           ENDIF.
@@ -65,9 +62,7 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
 
   METHOD attri_before_save.
 
-    DATA temp2 LIKE LINE OF mt_attri->*.
-    DATA lr_attri LIKE REF TO temp2.
-    LOOP AT mt_attri->* REFERENCE INTO lr_attri.
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
 
       IF lr_attri->o_typedescr IS NOT BOUND.
         CONTINUE.
@@ -87,11 +82,9 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-      FIELD-SYMBOLS <val_ref> TYPE data.
-      ASSIGN lr_attri->r_ref->* TO <val_ref>.
+      ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref>).
       IF <val_ref> IS NOT INITIAL.
-        FIELD-SYMBOLS <val> TYPE data.
-        ASSIGN <val_ref>->* TO <val>.
+        ASSIGN <val_ref>->* TO FIELD-SYMBOL(<val>).
         lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <val> ).
         CLEAR <val>.
       ENDIF.
@@ -110,8 +103,8 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA lo_dissolve TYPE REF TO z2ui5_cl_core_srv_diss.
-    CREATE OBJECT lo_dissolve TYPE z2ui5_cl_core_srv_diss EXPORTING attri = mt_attri app = mo_app.
+    DATA(lo_dissolve) = NEW z2ui5_cl_core_srv_diss( attri = mt_attri
+                                                    app   = mo_app ).
 
     DO 5 TIMES.
 
@@ -122,10 +115,7 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-      DATA temp3 LIKE sy-subrc.
-      READ TABLE mt_attri->* WITH KEY check_dissolved = abap_false TRANSPORTING NO FIELDS.
-      temp3 = sy-subrc.
-      IF temp3 = 0.
+      IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
         CONTINUE.
       ENDIF.
 
@@ -133,8 +123,7 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
     ENDDO.
 
     """"" new
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    lt_attri = mt_attri->*.
+    DATA(lt_attri) = mt_attri->*.
     DELETE lt_attri WHERE bind_type IS INITIAL.
     CLEAR mt_attri->*.
     DO 5 TIMES.
@@ -143,50 +132,18 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
 
       result = attri_search( val ).
       IF result IS BOUND.
-        FIELD-SYMBOLS <ls_attri> LIKE LINE OF mt_attri->*.
-        LOOP AT mt_attri->* ASSIGNING <ls_attri>.
-          DATA lv_name LIKE <ls_attri>-name.
-          lv_name = <ls_attri>-name.
-          DATA temp4 LIKE sy-subrc.
-          READ TABLE lt_attri WITH KEY name = lv_name TRANSPORTING NO FIELDS.
-          temp4 = sy-subrc.
-          IF temp4 = 0.
-            DATA temp5 LIKE LINE OF lt_attri.
-            DATA temp6 LIKE sy-tabix.
-            temp6 = sy-tabix.
-            READ TABLE lt_attri WITH KEY name = lv_name INTO temp5.
-            sy-tabix = temp6.
-            IF sy-subrc <> 0.
-              ASSERT 1 = 0.
-            ENDIF.
-            <ls_attri>-bind_type   = temp5-bind_type.
-            DATA temp7 LIKE LINE OF lt_attri.
-            DATA temp8 LIKE sy-tabix.
-            temp8 = sy-tabix.
-            READ TABLE lt_attri WITH KEY name = lv_name INTO temp7.
-            sy-tabix = temp8.
-            IF sy-subrc <> 0.
-              ASSERT 1 = 0.
-            ENDIF.
-            <ls_attri>-name_client = temp7-name_client.
-            DATA temp9 LIKE LINE OF lt_attri.
-            DATA temp10 LIKE sy-tabix.
-            temp10 = sy-tabix.
-            READ TABLE lt_attri WITH KEY name = lv_name INTO temp9.
-            sy-tabix = temp10.
-            IF sy-subrc <> 0.
-              ASSERT 1 = 0.
-            ENDIF.
-            <ls_attri>-view        = temp9-view.
+        LOOP AT mt_attri->* ASSIGNING FIELD-SYMBOL(<ls_attri>).
+          DATA(lv_name) = <ls_attri>-name.
+          IF line_exists( lt_attri[ name = lv_name ] ).
+            <ls_attri>-bind_type   = lt_attri[ name = lv_name ]-bind_type.
+            <ls_attri>-name_client = lt_attri[ name = lv_name ]-name_client.
+            <ls_attri>-view        = lt_attri[ name = lv_name ]-view.
           ENDIF.
         ENDLOOP.
         RETURN.
       ENDIF.
 
-      DATA temp11 LIKE sy-subrc.
-      READ TABLE mt_attri->* WITH KEY check_dissolved = abap_false TRANSPORTING NO FIELDS.
-      temp11 = sy-subrc.
-      IF temp11 = 0.
+      IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
         CONTINUE.
       ENDIF.
 
@@ -203,8 +160,7 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
 
   METHOD attri_get_val_ref.
 
-    FIELD-SYMBOLS <attri> TYPE any.
-    ASSIGN mo_app->(iv_path) TO <attri>.
+    ASSIGN mo_app->(iv_path) TO FIELD-SYMBOL(<attri>).
 
     IF sy-subrc <> 0.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
@@ -220,9 +176,7 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
 
   METHOD attri_refs_update.
 
-    DATA temp12 LIKE LINE OF mt_attri->*.
-    DATA lr_attri LIKE REF TO temp12.
-    LOOP AT mt_attri->* REFERENCE INTO lr_attri.
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
       TRY.
           lr_attri->r_ref       = attri_get_val_ref( lr_attri->name ).
           lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
@@ -241,9 +195,7 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
 
   METHOD attri_search.
 
-    DATA temp13 LIKE LINE OF mt_attri->*.
-    DATA lr_attri LIKE REF TO temp13.
-    LOOP AT mt_attri->* REFERENCE INTO lr_attri
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
          WHERE o_typedescr IS BOUND.
 
       IF lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_elem

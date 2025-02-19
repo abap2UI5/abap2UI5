@@ -40,7 +40,7 @@ ENDCLASS.
 CLASS z2ui5_cl_pop_itab_json_dl IMPLEMENTATION.
   METHOD factory.
 
-    CREATE OBJECT r_result.
+    r_result = NEW #( ).
     r_result->mr_itab             = z2ui5_cl_util=>conv_copy_ref_data( itab ).
 
     r_result->title               = i_title.
@@ -66,32 +66,25 @@ CLASS z2ui5_cl_pop_itab_json_dl IMPLEMENTATION.
 
         IF z2ui5_cl_util=>rtti_check_class_exists( `z2ui5_dbt_cl_app_03` ) = abap_false.
 
-          DATA lv_link TYPE string.
-          lv_link = `https://github.com/oblomov-dev/a2UI5-db_table_loader`.
-          DATA lv_text TYPE string.
-          lv_text = |<p>Please install the open-source project a2UI5-db_table_loader and try again: <a href="| &&
+          DATA(lv_link) = `https://github.com/oblomov-dev/a2UI5-db_table_loader`.
+          DATA(lv_text) = |<p>Please install the open-source project a2UI5-db_table_loader and try again: <a href="| &&
                            |{ lv_link }" style="color:blue; font-weight:600;" target="_blank">(link)</a></p>|.
 
-          DATA lx TYPE REF TO z2ui5_cx_util_error.
-          CREATE OBJECT lx TYPE z2ui5_cx_util_error EXPORTING val = lv_text.
+          DATA(lx) = NEW z2ui5_cx_util_error( val = lv_text ).
           client->nav_app_leave( z2ui5_cl_pop_error=>factory( lx ) ).
 
         ELSE.
 
-          DATA lv_classname TYPE string.
-          lv_classname = `Z2UI5_DBT_CL_APP_03`.
+          DATA(lv_classname) = `Z2UI5_DBT_CL_APP_03`.
           CALL METHOD (lv_classname)=>('FACTORY_POPUP_BY_ITAB')
             EXPORTING itab   = mr_itab
             RECEIVING result = app.
 
-          DATA temp1 TYPE REF TO z2ui5_if_app.
-          temp1 ?= app.
-          client->nav_app_leave( temp1 ).
+          client->nav_app_leave( CAST #( app ) ).
 
         ENDIF.
 
-        DATA x TYPE REF TO cx_root.
-      CATCH cx_root INTO x.
+      CATCH cx_root INTO DATA(x).
         client->nav_app_leave( z2ui5_cl_pop_to_inform=>factory( x->get_text( ) ) ).
     ENDTRY.
   ENDMETHOD.

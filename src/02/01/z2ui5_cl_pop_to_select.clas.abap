@@ -64,15 +64,12 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
   METHOD factory.
 
-    CREATE OBJECT r_result.
+    r_result = NEW #( ).
     IF i_title IS INITIAL.
-      DATA temp1 TYPE string.
-      IF i_multiselect = abap_true.
-        temp1 = `Multi select`.
-      ELSE.
-        temp1 = `Single select`.
-      ENDIF.
-      r_result->title = temp1.
+      r_result->title = COND #(
+                                             WHEN i_multiselect = abap_true
+                                             THEN `Multi select`
+                                             ELSE `Single select` ).
     ELSE.
       r_result->title = i_title.
     ENDIF.
@@ -98,17 +95,8 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
     ASSIGN mr_tab_popup->* TO <tab_out>.
 
-    DATA popup TYPE REF TO z2ui5_cl_xml_view.
-    popup = z2ui5_cl_xml_view=>factory_popup( ).
-    DATA temp2 TYPE string_table.
-    CLEAR temp2.
-    INSERT `${$parameters>/value}` INTO TABLE temp2.
-    INSERT `${$parameters>/clearButtonPressed}` INTO TABLE temp2.
-    DATA temp1 TYPE string_table.
-    CLEAR temp1.
-    INSERT `${$parameters>/selectedContexts[0]/sPath}` INTO TABLE temp1.
-    DATA tab TYPE REF TO z2ui5_cl_xml_view.
-    tab = popup->table_select_dialog(
+    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
+    DATA(tab) = popup->table_select_dialog(
         items            = |\{path:'|
                           && client->_bind_edit( val  = <tab_out>
                                                  path = abap_true )
@@ -118,9 +106,9 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
         cancel           = client->_event( 'CANCEL' )
         search           = client->_event(
                                val   = 'SEARCH'
-                               t_arg = temp2 )
+                               t_arg = VALUE #( ( `${$parameters>/value}` ) ( `${$parameters>/clearButtonPressed}` ) ) )
         confirm          = client->_event( val   = 'CONFIRM'
-                                           t_arg = temp1 )
+                                           t_arg = VALUE #( ( `${$parameters>/selectedContexts[0]/sPath}` ) ) )
         growing          = abap_true
         contentwidth     = content_width
         contentheight    = content_height
@@ -128,38 +116,27 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
         title            = title
         multiselect      = multiselect ).
 
-    DATA lt_comp TYPE abap_component_tab.
-    lt_comp = z2ui5_cl_util=>rtti_get_t_attri_by_any( <tab_out> ).
+    DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_any( <tab_out> ).
     DELETE lt_comp WHERE name = 'ZZSELKZ'.
 
-    DATA list TYPE REF TO z2ui5_cl_xml_view.
-    list = tab->column_list_item( valign   = `Top`
+    DATA(list) = tab->column_list_item( valign   = `Top`
                                         selected = `{ZZSELKZ}` ).
-    DATA cells TYPE REF TO z2ui5_cl_xml_view.
-    cells = list->cells( ).
+    DATA(cells) = list->cells( ).
 
-    DATA ls_comp LIKE LINE OF lt_comp.
-    LOOP AT lt_comp INTO ls_comp.
+    LOOP AT lt_comp INTO DATA(ls_comp).
       cells->text( |\{{ ls_comp-name }\}| ).
     ENDLOOP.
 
-    DATA columns TYPE REF TO z2ui5_cl_xml_view.
-    columns = tab->columns( ).
+    DATA(columns) = tab->columns( ).
     LOOP AT lt_comp INTO ls_comp.
-      DATA temp4 TYPE REF TO cl_abap_elemdescr.
-      temp4 ?= ls_comp-type.
-      DATA temp5 TYPE z2ui5_cl_util_abap=>ty_s_data_element_text-medium.
-      DATA data_element_name TYPE string.
-      data_element_name = substring_after( val = temp4->absolute_name sub = '\TYPE=' ).
-      DATA medium_label TYPE z2ui5_cl_util_abap=>ty_s_data_element_text-medium.
-      medium_label = z2ui5_cl_util=>rtti_get_data_element_texts( data_element_name )-medium.
-      IF medium_label IS NOT INITIAL.
-        temp5 = medium_label.
-      ELSE.
-        temp5 = ls_comp-name.
-      ENDIF.
-      DATA text LIKE temp5.
-      text = temp5.
+      DATA(text) = COND #(
+                     LET data_element_name = substring_after(
+                                                 val = CAST cl_abap_elemdescr( ls_comp-type )->absolute_name
+                                                 sub = '\TYPE=' )
+                         medium_label = z2ui5_cl_util=>rtti_get_data_element_texts( data_element_name )-medium IN
+                     WHEN medium_label IS NOT INITIAL
+                     THEN medium_label
+                     ELSE ls_comp-name ).
       columns->column( '8rem' )->header( `` )->text( text ).
     ENDLOOP.
 
@@ -220,53 +197,26 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
     ASSIGN mr_tab->* TO <tab>.
 
-    DATA lo_type TYPE REF TO cl_abap_typedescr.
-    lo_type = cl_abap_structdescr=>describe_by_data( <tab> ).
-    DATA temp5 TYPE REF TO cl_abap_tabledescr.
-    temp5 ?= lo_type.
-    DATA lo_table LIKE temp5.
-    lo_table = temp5.
+    DATA(lo_type) = cl_abap_structdescr=>describe_by_data( <tab> ).
+    DATA(lo_table) = CAST cl_abap_tabledescr( lo_type ).
     TRY.
-        DATA temp6 TYPE REF TO cl_abap_structdescr.
-        temp6 ?= lo_table->get_table_line_type( ).
-        DATA lo_struct LIKE temp6.
-        lo_struct = temp6.
-        DATA lt_comp TYPE abap_component_tab.
-        lt_comp = lo_struct->get_components( ).
+        DATA(lo_struct) = CAST cl_abap_structdescr( lo_table->get_table_line_type( ) ).
+        DATA(lt_comp) = lo_struct->get_components( ).
       CATCH cx_root.
         check_table_line = abap_true.
-        DATA temp7 TYPE REF TO cl_abap_elemdescr.
-        temp7 ?= lo_table->get_table_line_type( ).
-        DATA lo_elem LIKE temp7.
-        lo_elem = temp7.
-        DATA temp8 TYPE abap_componentdescr.
-        CLEAR temp8.
-        temp8-name = 'TAB_LINE'.
-        DATA temp11 TYPE REF TO cl_abap_datadescr.
-        temp11 ?= lo_elem.
-        temp8-type = temp11.
-        INSERT temp8 INTO TABLE lt_comp.
+        DATA(lo_elem) = CAST cl_abap_elemdescr( lo_table->get_table_line_type( ) ).
+        INSERT VALUE #( name = 'TAB_LINE'
+                        type = CAST #( lo_elem ) ) INTO TABLE lt_comp.
     ENDTRY.
 
-    DATA temp9 LIKE sy-subrc.
-    READ TABLE lt_comp WITH KEY name = `ZZSELKZ` TRANSPORTING NO FIELDS.
-    temp9 = sy-subrc.
-    IF NOT temp9 = 0.
-      DATA lo_type_bool TYPE REF TO cl_abap_typedescr.
-      lo_type_bool = cl_abap_structdescr=>describe_by_name( 'ABAP_BOOL' ).
-      DATA temp10 TYPE abap_componentdescr.
-      CLEAR temp10.
-      temp10-name = `ZZSELKZ`.
-      DATA temp12 TYPE REF TO cl_abap_datadescr.
-      temp12 ?= lo_type_bool.
-      temp10-type = temp12.
-      INSERT temp10 INTO TABLE lt_comp.
+    IF NOT line_exists( lt_comp[ name = `ZZSELKZ` ] ).
+      DATA(lo_type_bool) = cl_abap_structdescr=>describe_by_name( 'ABAP_BOOL' ).
+      INSERT VALUE #( name = `ZZSELKZ`
+                      type = CAST #( lo_type_bool ) ) INTO TABLE lt_comp.
     ENDIF.
 
-    DATA lo_line_type TYPE REF TO cl_abap_structdescr.
-    lo_line_type = cl_abap_structdescr=>create( lt_comp ).
-    DATA lo_tab_type TYPE REF TO cl_abap_tabledescr.
-    lo_tab_type = cl_abap_tabledescr=>create( lo_line_type ).
+    DATA(lo_line_type) = cl_abap_structdescr=>create( lt_comp ).
+    DATA(lo_tab_type) = cl_abap_tabledescr=>create( lo_line_type ).
 
     CREATE DATA mr_tab_popup TYPE HANDLE lo_tab_type.
     CREATE DATA mr_tab_popup_backup TYPE HANDLE lo_tab_type.
@@ -282,7 +232,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
         ASSERT sy-subrc = 0.
         <field> = <row>.
       ELSE.
-        MOVE-CORRESPONDING <row> TO <row2>.
+        <row2> = CORRESPONDING #( <row> ).
       ENDIF.
       INSERT <row2> INTO TABLE <tab_out>.
 
@@ -318,7 +268,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
         ASSERT sy-subrc = 0.
         <row_result> = <table_line_selected>.
       ELSE.
-        MOVE-CORRESPONDING <row_selected> TO <row_result>.
+        <row_result> = CORRESPONDING #( <row_selected> ).
       ENDIF.
 
       INSERT <row_result> INTO TABLE <table_result>.
@@ -344,10 +294,8 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
     FIELD-SYMBOLS <row2>           TYPE any.
     FIELD-SYMBOLS <field2>         TYPE any.
 
-    DATA lt_arg TYPE string_table.
-    lt_arg = client->get( )-t_event_arg.
-    DATA ls_arg TYPE string.
-    READ TABLE lt_arg INTO ls_arg INDEX 1.
+    DATA(lt_arg) = client->get( )-t_event_arg.
+    READ TABLE lt_arg INTO DATA(ls_arg) INDEX 1.
     ASSERT sy-subrc = 0.
 
     ASSIGN mr_tab_popup->* TO <tab_out>.
@@ -355,15 +303,11 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
     <tab_out> = <tab_out_backup>.
 
-    DATA lt_comp TYPE abap_component_tab.
-    lt_comp = z2ui5_cl_util=>rtti_get_t_attri_by_any( <tab_out> ).
+    DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_any( <tab_out> ).
     LOOP AT <tab_out> ASSIGNING <row2>.
-      DATA lv_check_continue LIKE abap_false.
-      lv_check_continue = abap_false.
-      DATA ls_comp LIKE LINE OF lt_comp.
-      LOOP AT lt_comp INTO ls_comp.
-        DATA lv_assign TYPE string.
-        lv_assign = |<ROW2>-{ ls_comp-name }|.
+      DATA(lv_check_continue) = abap_false.
+      LOOP AT lt_comp INTO DATA(ls_comp).
+        DATA(lv_assign) = |<ROW2>-{ ls_comp-name }|.
         ASSIGN (lv_assign) TO <field2>.
         ASSERT sy-subrc = 0.
         IF to_upper( <field2> ) CS to_upper( ls_arg ).
