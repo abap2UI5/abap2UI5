@@ -4,7 +4,7 @@
 [![UI5_2X](https://github.com/abap2UI5/abap2UI5/actions/workflows/UI5.yml/badge.svg?branch=main)](https://github.com/abap2UI5/abap2UI5/actions/workflows/UI5.yml)
 <br>
 [![auto_downport](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_downport.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_downport.yaml)
-[![auto_js2abap](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_js2abap.yml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_js2abap.yml)
+[![auto_app2abap](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_app2abap.yml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_app2abap.yml)
 [![auto_frontend](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_frontend.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_frontend.yaml)
 [![auto_abaplint_fix](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_abaplint_fix.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_abaplint_fix.yaml)
 <br>

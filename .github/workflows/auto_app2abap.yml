@@ -1,12 +1,11 @@
-name: auto_js2abap
-on: 
+name: auto_app2abap
+
+on:
   push:
-    branches: 
-      - "main"
-  workflow_dispatch:
+    branches: [main]
 
 jobs:
-  auto_js2abap:
+  auto_app2abap:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository

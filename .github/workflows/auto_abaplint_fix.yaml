@@ -1,9 +1,8 @@
 name: auto_abaplint_fix
-on: 
+
+on:
   push:
-    branches: 
-      - "main"
-  workflow_dispatch:
+    branches: [main]
 
 jobs:
   auto_abaplint_fix:
