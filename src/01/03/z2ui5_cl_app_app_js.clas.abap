@@ -33,6 +33,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        z2ui5.oConfig.pathname = window.location.href;` && |\n| &&
              `      };` && |\n| &&
              `` && |\n| &&
+  `      // test` && |\n| &&
              `      z2ui5.oController = new Controller();` && |\n| &&
              `      z2ui5.oApp = this.getView().byId("app");` && |\n| &&
              `` && |\n| &&
