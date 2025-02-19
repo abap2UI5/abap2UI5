@@ -9,9 +9,9 @@
 [![auto_abaplint_fix](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_abaplint_fix.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_abaplint_fix.yaml)
 <br>
 [![test_unit](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_unit.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_unit.yaml)
-[![test_rename](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_rename.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_rename.yaml)
 [![test_node](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_node.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_node.yaml)
 [![test_browser](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_browser.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_browser.yaml)
+[![test_rename](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_rename.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_rename.yaml)
 <br>
 [![mirror_ajson](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_ajson.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_ajson.yaml)
 [![mirror_srtti](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_srtti.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_srtti.yaml)
