@@ -22,7 +22,7 @@ CLASS z2ui5_cl_pop_bal DEFINITION
         message_v4 TYPE string,
         group      TYPE string,
       END OF ty_s_msg.
-    TYPES ty_t_msg TYPE STANDARD TABLE OF ty_s_msg WITH EMPTY KEY.
+    TYPES ty_t_msg TYPE STANDARD TABLE OF ty_s_msg WITH DEFAULT KEY.
 
     DATA mt_msg TYPE ty_t_msg.
 
@@ -47,17 +47,23 @@ ENDCLASS.
 CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
   METHOD factory.
 
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
 
     "read log infos
     "handle
     "..
 
     "read messages..
-    DATA(lt_msg) = z2ui5_cl_util=>msg_get( i_messages ).
-    LOOP AT lt_msg REFERENCE INTO DATA(lr_row).
+    DATA lt_msg TYPE z2ui5_cl_util=>ty_t_msg.
+    lt_msg = z2ui5_cl_util=>msg_get( i_messages ).
+    DATA temp1 LIKE LINE OF lt_msg.
+    DATA lr_row LIKE REF TO temp1.
+    LOOP AT lt_msg REFERENCE INTO lr_row.
 
-      DATA(ls_row) = VALUE ty_s_msg( ).
+      DATA temp2 TYPE ty_s_msg.
+      CLEAR temp2.
+      DATA ls_row LIKE temp2.
+      ls_row = temp2.
       ls_row-type     = z2ui5_cl_util=>ui5_get_msg_type( lr_row->type ).
       ls_row-title    = lr_row->text.
 *      lr_row->title = `title`.
@@ -76,14 +82,16 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
+    DATA popup TYPE REF TO z2ui5_cl_xml_view.
+    popup = z2ui5_cl_xml_view=>factory_popup( ).
     popup = popup->dialog( title             = `Business Application Log`
                            contentheight     = '50%'
                            contentwidth      = '50%'
                            verticalscrolling = abap_false
                            afterclose        = client->_event( 'BUTTON_CONTINUE' ) ).
 
-    DATA(table) = popup->table( client->_bind( mt_msg ) ).
+    DATA table TYPE REF TO z2ui5_cl_xml_view.
+    table = popup->table( client->_bind( mt_msg ) ).
     table->columns(
          )->column( )->text( 'Date' )->get_parent(
          )->column( )->text( 'Time' )->get_parent(

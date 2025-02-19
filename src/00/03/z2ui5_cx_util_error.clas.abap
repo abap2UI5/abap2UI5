@@ -45,13 +45,20 @@ CLASS z2ui5_cx_util_error IMPLEMENTATION.
 
     IF ms_error-x_root IS NOT INITIAL.
       result = ms_error-x_root->get_text( ).
-      DATA(error) = abap_true.
+      DATA error LIKE abap_true.
+      error = abap_true.
     ELSEIF ms_error-text IS NOT INITIAL.
       result = ms_error-text.
       error = abap_true.
     ENDIF.
 
-    result = COND #( WHEN error = abap_true AND result IS INITIAL THEN `unknown error` ELSE result ).
+    DATA temp1 TYPE string.
+    IF error = abap_true AND result IS INITIAL.
+      temp1 = `unknown error`.
+    ELSE.
+      temp1 = result.
+    ENDIF.
+    result = temp1.
 
   ENDMETHOD.
 ENDCLASS.

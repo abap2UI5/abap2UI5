@@ -52,18 +52,25 @@ CLASS z2ui5_cl_util_range IMPLEMENTATION.
 
     ASSIGN me->mr_range->* TO <lt_range>.
 
-    IF xsdbool( <lt_range> IS INITIAL ) = abap_true.
+    DATA temp1 TYPE xsdboolean.
+    temp1 = boolc( <lt_range> IS INITIAL ).
+    IF temp1 = abap_true.
       RETURN.
     ENDIF.
 
     result = `(`.
 
-    LOOP AT <lt_range> ASSIGNING FIELD-SYMBOL(<ls_range_item>).
+    FIELD-SYMBOLS <ls_range_item> TYPE ANY.
+    LOOP AT <lt_range> ASSIGNING <ls_range_item>.
 
-      ASSIGN COMPONENT 'SIGN' OF STRUCTURE <ls_range_item> TO FIELD-SYMBOL(<lv_sign>).
-      ASSIGN COMPONENT 'OPTION' OF STRUCTURE <ls_range_item> TO FIELD-SYMBOL(<lv_option>).
-      ASSIGN COMPONENT 'LOW' OF STRUCTURE <ls_range_item> TO FIELD-SYMBOL(<lv_low>).
-      ASSIGN COMPONENT 'HIGH' OF STRUCTURE <ls_range_item> TO FIELD-SYMBOL(<lv_high>).
+      FIELD-SYMBOLS <lv_sign> TYPE any.
+      ASSIGN COMPONENT 'SIGN' OF STRUCTURE <ls_range_item> TO <lv_sign>.
+      FIELD-SYMBOLS <lv_option> TYPE any.
+      ASSIGN COMPONENT 'OPTION' OF STRUCTURE <ls_range_item> TO <lv_option>.
+      FIELD-SYMBOLS <lv_low> TYPE any.
+      ASSIGN COMPONENT 'LOW' OF STRUCTURE <ls_range_item> TO <lv_low>.
+      FIELD-SYMBOLS <lv_high> TYPE any.
+      ASSIGN COMPONENT 'HIGH' OF STRUCTURE <ls_range_item> TO <lv_high>.
 
       IF sy-tabix <> 1.
         result = |{ result } OR|.
