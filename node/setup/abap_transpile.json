@@ -15,7 +15,7 @@
     "ignoreSyntaxCheck": false,
     "addFilenames": true,
     "addCommonJS": true,
-    "extraSetup": "setup.mjs",
+    "extraSetup": "../setup/setup.mjs",
     "unknownTypes": "runtimeError",
     "skipReposrc": true,
     "keywords": ["return", "in", "class", "for", "delete", "var"],
