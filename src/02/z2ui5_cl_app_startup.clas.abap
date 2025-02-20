@@ -176,7 +176,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                        href   = `https://github.com/abap2UI5/abap2UI5/pulls` ).
 
 
-    simple_form->toolbar( )->title( `More` ).
+    simple_form->toolbar( )->title( `Documentation` ).
     simple_form->label( ).
     simple_form->link( text   = `www.abap2UI5.org`
                        target = `_blank`
