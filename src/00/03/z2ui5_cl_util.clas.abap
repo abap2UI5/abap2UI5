@@ -1443,7 +1443,8 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   METHOD rtti_create_tab_by_name.
 
     DATA(struct_desc) = cl_abap_structdescr=>describe_by_name( val ).
-    DATA(gr_dyntable_typ) = cl_abap_tabledescr=>create( CAST #( struct_desc ) ).
+    DATA(data_desc) = CAST cl_abap_datadescr( struct_desc ).
+    DATA(gr_dyntable_typ) = cl_abap_tabledescr=>create( data_desc ).
     CREATE DATA result TYPE HANDLE gr_dyntable_typ.
 
   ENDMETHOD.
