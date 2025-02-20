@@ -66,7 +66,7 @@ This project greatly benefits from its [contributors](https://github.com/abap2UI
 * Developed on [ABAP Cloud Dev Trial 2022](https://hub.docker.com/r/sapse/abap-cloud-developer-trial) [(hosted by Nuve Platform)](https://www.nuveplatform.com/)
 * Documentation created with [VitePress](https://vitepress.dev/) [(contributors)](https://github.com/vuejs/vitepress/graphs/contributors)
 
-#### Get involved!
+#### Get involved
 * [Quickstart](https://abap2ui5.github.io/docs/get_started/quickstart.html) - Develop your first abap2UI5 app
 * [Issues](https://github.com/abap2UI5/abap2UI5/issues) - Report issues and provide feedback
 * [Contribution](https://abap2ui5.github.io/docs/resources/contribution.html) - Contribute code and documentation
