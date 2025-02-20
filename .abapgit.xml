@@ -5,16 +5,6 @@
    <MASTER_LANGUAGE>E</MASTER_LANGUAGE>
    <STARTING_FOLDER>/src/</STARTING_FOLDER>
    <FOLDER_LOGIC>PREFIX</FOLDER_LOGIC>
-   <IGNORE>
-    <item>/.gitignore</item>
-    <item>/LICENSE</item>
-    <item>/README.md</item>
-    <item>/package.json</item>
-    <item>/.travis.yml</item>
-    <item>/.gitlab-ci.yml</item>
-    <item>/abaplint.json</item>
-    <item>/azure-pipelines.yml</item>
-   </IGNORE>
    <VERSION_CONSTANT>Z2UI5_IF_APP=&gt;VERSION</VERSION_CONSTANT>
   </DATA>
  </asx:values>
