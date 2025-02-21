@@ -11,14 +11,14 @@ assignees: ''
 Which ABAP system are you using?  
 
 #### UI5 Version  
-Which UI5 version are you using?  
+Which UI5 version are you using? 
 
 #### Sample
-Can you provide a small **abap2UI5** sample app that reproduces the problem?  
+Can you provide a small **abap2UI5** sample app that reproduces the problem? 
 
 ```abap
-" Add minimal example code here
-
+" Add minimal sample code here
 ```
+
 #### Description
 What did you expect to happen?
