@@ -7,16 +7,18 @@ assignees: ''
 
 ---
 
-Which ABAP System are you using?
+#### ABAP System  
+Which ABAP system are you using?  
 
+#### UI5 Version  
+Which UI5 version are you using?  
 
+#### Sample
+Can you provide a small **abap2UI5** sample app that reproduces the problem?  
 
-Which UI5 version are you using?
-
-
-Can you provide a small abap2UI5 sample app which reproduces the problem?
 ```abap
+" Add minimal example code here
 
 ```
-
-Description:
+#### Description
+What did you expect to happen?
