@@ -900,7 +900,7 @@ sap.ui.define("z2ui5/CameraPicture", [
           verticalScrolling: false,
           stretch: true,
           content: [
-            new HTML({
+            new sap.ui.core.HTML({
               id: this.getId() + 'PictureContainer',
               content: '<video width="600px" height="400px" autoplay="true" id="zvideo">'
             }),
@@ -911,7 +911,7 @@ sap.ui.define("z2ui5/CameraPicture", [
                 this._oScanDialog.close();
               }.bind(this)
             }),
-            new HTML({
+            new sap.ui.core.HTML({
               content: '<canvas hidden id="zcanvas" style="overflow:auto"></canvas>'
             }),
           ],
