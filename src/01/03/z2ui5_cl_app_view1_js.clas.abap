@@ -299,6 +299,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    case 'HISTORY_BACK':` && |\n| &&
              `                        history.back();` && |\n| &&
              `                        break;` && |\n| &&
+             `                   case 'CLIPBOARD_COPY':` && |\n| &&
+             `                        copyToClipboard( args[1] );` && |\n| &&
+             `                        break;` && |\n| &&
              `                    case 'CLIPBOARD_APP_STATE':` && |\n| &&
              `                            function copyToClipboard(textToCopy) {` && |\n| &&
              `                                if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {` && |\n| &&
@@ -415,11 +418,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        navCon = Fragment.byId("popoverId", args[1]);` && |\n| &&
              `                        navConTo = Fragment.byId("popoverId", args[2]);` && |\n| &&
              `                        navCon.to(navConTo);` && |\n| &&
+             |\n|.
+    result = result &&
              `                        break;` && |\n| &&
              `                    case 'URLHELPER':` && |\n| &&
              `                        var URLHelper = mobileLibrary.URLHelper;` && |\n| &&
-             |\n|.
-    result = result &&
              `                        var params = args[2];` && |\n| &&
              `                        switch (args[1]) {` && |\n| &&
              `                            case 'REDIRECT':` && |\n| &&
