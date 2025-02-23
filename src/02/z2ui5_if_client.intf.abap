@@ -20,6 +20,7 @@ INTERFACE z2ui5_if_client
       urlhelper                 TYPE string VALUE `URLHELPER`,
       history_back              TYPE string VALUE `HISTORY_BACK`,
       clipboard_app_state       TYPE string VALUE `CLIPBOARD_APP_STATE`,
+      clipboard_copy            TYPE string VALUE `CLIPBOARD_COPY`,
     END OF cs_event.
 
   CONSTANTS:
