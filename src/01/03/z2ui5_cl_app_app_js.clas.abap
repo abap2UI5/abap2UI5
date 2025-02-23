@@ -924,7 +924,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          verticalScrolling: false,` && |\n| &&
              `          stretch: true,` && |\n| &&
              `          content: [` && |\n| &&
-             `            new HTML({` && |\n| &&
+             `            new sap.ui.core.HTML({` && |\n| &&
              `              id: this.getId() + 'PictureContainer',` && |\n| &&
              `              content: '<video width="600px" height="400px" autoplay="true" id="zvideo">'` && |\n| &&
              `            }),` && |\n| &&
@@ -935,7 +935,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `                this._oScanDialog.close();` && |\n| &&
              `              }.bind(this)` && |\n| &&
              `            }),` && |\n| &&
-             `            new HTML({` && |\n| &&
+             `            new sap.ui.core.HTML({` && |\n| &&
              `              content: '<canvas hidden id="zcanvas" style="overflow:auto"></canvas>'` && |\n| &&
              `            }),` && |\n| &&
              `          ],` && |\n| &&
@@ -1084,6 +1084,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `  });` && |\n| &&
              `}` && |\n| &&
              `);` && |\n| &&
+             `` && |\n| &&
               ``.
 
   ENDMETHOD.
