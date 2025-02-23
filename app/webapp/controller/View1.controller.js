@@ -279,6 +279,9 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     case 'HISTORY_BACK':
                         history.back();
                         break;
+                   case 'CLIPBOARD_COPY':
+                        copyToClipboard( args[1] );
+                        break;
                     case 'CLIPBOARD_APP_STATE':
                             function copyToClipboard(textToCopy) {
                                 if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
