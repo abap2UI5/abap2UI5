@@ -79,11 +79,17 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    CLASS-METHODS msg_get
+    CLASS-METHODS msg_get_t
       IMPORTING
-        val           TYPE any
+        VALUE(val)    TYPE any
       RETURNING
         VALUE(result) TYPE ty_t_msg.
+
+    CLASS-METHODS msg_get
+      IMPORTING
+        VALUE(val)    TYPE any
+      RETURNING
+        VALUE(result) TYPE ty_s_msg.
 
     CLASS-METHODS rtti_get_t_attri_by_include
       IMPORTING
@@ -1411,7 +1417,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD msg_get.
+  METHOD msg_get_t.
 
     result = z2ui5_cl_util_msg=>msg_get( val ).
 
@@ -1446,6 +1452,13 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     DATA(data_desc) = CAST cl_abap_datadescr( struct_desc ).
     DATA(gr_dyntable_typ) = cl_abap_tabledescr=>create( data_desc ).
     CREATE DATA result TYPE HANDLE gr_dyntable_typ.
+
+  ENDMETHOD.
+
+  METHOD msg_get.
+
+    DATA(lt_msg) = msg_get_t( val ).
+    result = lt_msg[ 0 ].
 
   ENDMETHOD.
 

@@ -46,7 +46,7 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
   METHOD factory.
 
     r_result = NEW #( ).
-    DATA(lt_msg) = z2ui5_cl_util=>msg_get( i_messages ).
+    DATA(lt_msg) = z2ui5_cl_util=>msg_get_t( i_messages ).
 
     LOOP AT lt_msg REFERENCE INTO DATA(lr_row).
 
