@@ -16,81 +16,230 @@ ENDCLASS.
 CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
 
   METHOD test_sy.
+    DATA lv_dummy TYPE string.
+    DATA lt_result TYPE z2ui5_cl_util=>ty_t_msg.
+   DATA temp6 LIKE LINE OF lt_result.
+   DATA temp7 LIKE sy-tabix.
+    DATA temp8 LIKE LINE OF lt_result.
+    DATA temp9 LIKE sy-tabix.
+    DATA temp10 LIKE LINE OF lt_result.
+    DATA temp11 LIKE sy-tabix.
 
     IF sy-sysid = 'ABC'.
       RETURN.
     ENDIF.
 
-    MESSAGE ID 'NET' TYPE 'I' NUMBER '001' INTO DATA(lv_dummy).
-    DATA(lt_result) = z2ui5_cl_util_msg=>msg_get( sy ).
+    
+    MESSAGE ID 'NET' TYPE 'I' NUMBER '001' INTO lv_dummy.
+    
+    lt_result = z2ui5_cl_util_msg=>msg_get( sy ).
 
+   
+   
+   temp7 = sy-tabix.
+   READ TABLE lt_result INDEX 1 INTO temp6.
+   sy-tabix = temp7.
+   IF sy-subrc <> 0.
+     ASSERT 1 = 0.
+   ENDIF.
    cl_abap_unit_assert=>assert_equals( exp = `NET`
-                                        act = lt_result[ 1 ]-id ).
+                                        act = temp6-id ).
 
+    
+    
+    temp9 = sy-tabix.
+    READ TABLE lt_result INDEX 1 INTO temp8.
+    sy-tabix = temp9.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `001`
-                                    act = lt_result[ 1 ]-no ).
+                                    act = temp8-no ).
 
+    
+    
+    temp11 = sy-tabix.
+    READ TABLE lt_result INDEX 1 INTO temp10.
+    sy-tabix = temp11.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `I`
-                                        act = lt_result[ 1 ]-type ).
+                                        act = temp10-type ).
 
   ENDMETHOD.
 
   METHOD test_bapiret.
+    DATA temp12 TYPE bapirettab.
+    DATA temp13 LIKE LINE OF temp12.
+    DATA lt_msg LIKE temp12.
+    DATA lt_result TYPE z2ui5_cl_util=>ty_t_msg.
+    DATA temp1 LIKE LINE OF lt_msg.
+    DATA temp2 LIKE sy-tabix.
+    DATA temp14 LIKE LINE OF lt_result.
+    DATA temp15 LIKE sy-tabix.
+    DATA temp16 LIKE LINE OF lt_result.
+    DATA temp17 LIKE sy-tabix.
+    DATA temp18 LIKE LINE OF lt_result.
+    DATA temp19 LIKE sy-tabix.
 
     IF sy-sysid = 'ABC'.
       RETURN.
     ENDIF.
 
-    DATA(lt_msg) = VALUE bapirettab(
-      ( type = 'E' id = 'MSG1' number = '001' message = 'An empty Report field causes an empty XML Message to be sent' )
-     ).
+    
+    CLEAR temp12.
+    
+    temp13-type = 'E'.
+    temp13-id = 'MSG1'.
+    temp13-number = '001'.
+    temp13-message = 'An empty Report field causes an empty XML Message to be sent'.
+    INSERT temp13 INTO TABLE temp12.
+    
+    lt_msg = temp12.
 
-    DATA(lt_result) = z2ui5_cl_util_msg=>msg_get( lt_msg[ 1 ] ).
+    
+    
+    
+    temp2 = sy-tabix.
+    READ TABLE lt_msg INDEX 1 INTO temp1.
+    sy-tabix = temp2.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
+    lt_result = z2ui5_cl_util_msg=>msg_get( temp1 ).
 
+    
+    
+    temp15 = sy-tabix.
+    READ TABLE lt_result INDEX 1 INTO temp14.
+    sy-tabix = temp15.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `MSG1`
-                                        act = lt_result[ 1 ]-id ).
+                                        act = temp14-id ).
 
+    
+    
+    temp17 = sy-tabix.
+    READ TABLE lt_result INDEX 1 INTO temp16.
+    sy-tabix = temp17.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `001`
-                                    act = lt_result[ 1 ]-no ).
+                                    act = temp16-no ).
 
+    
+    
+    temp19 = sy-tabix.
+    READ TABLE lt_result INDEX 1 INTO temp18.
+    sy-tabix = temp19.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `E`
-                                        act = lt_result[ 1 ]-type ).
+                                        act = temp18-type ).
 
   ENDMETHOD.
 
   METHOD test_bapirettab.
+    DATA temp20 TYPE bapirettab.
+    DATA temp21 LIKE LINE OF temp20.
+    DATA lt_msg LIKE temp20.
+    DATA lt_result TYPE z2ui5_cl_util=>ty_t_msg.
+   DATA temp22 LIKE LINE OF lt_result.
+   DATA temp23 LIKE sy-tabix.
+    DATA temp24 LIKE LINE OF lt_result.
+    DATA temp25 LIKE sy-tabix.
+    DATA temp26 LIKE LINE OF lt_result.
+    DATA temp27 LIKE sy-tabix.
 
     IF sy-sysid = 'ABC'.
       RETURN.
     ENDIF.
 
-    DATA(lt_msg) = VALUE bapirettab(
-      ( type = 'E' id = 'MSG1' number = '001' message = 'An empty Report field causes an empty XML Message to be sent' )
-      ( type = 'I' id = 'MSG2' number = '002' message = 'Product already in use' ) ).
+    
+    CLEAR temp20.
+    
+    temp21-type = 'E'.
+    temp21-id = 'MSG1'.
+    temp21-number = '001'.
+    temp21-message = 'An empty Report field causes an empty XML Message to be sent'.
+    INSERT temp21 INTO TABLE temp20.
+    temp21-type = 'I'.
+    temp21-id = 'MSG2'.
+    temp21-number = '002'.
+    temp21-message = 'Product already in use'.
+    INSERT temp21 INTO TABLE temp20.
+    
+    lt_msg = temp20.
 
-    DATA(lt_result) = z2ui5_cl_util_msg=>msg_get( lt_msg ).
+    
+    lt_result = z2ui5_cl_util_msg=>msg_get( lt_msg ).
 
+   
+   
+   temp23 = sy-tabix.
+   READ TABLE lt_result INDEX 1 INTO temp22.
+   sy-tabix = temp23.
+   IF sy-subrc <> 0.
+     ASSERT 1 = 0.
+   ENDIF.
    cl_abap_unit_assert=>assert_equals( exp = `MSG1`
-                                        act = lt_result[ 1 ]-id ).
+                                        act = temp22-id ).
 
+    
+    
+    temp25 = sy-tabix.
+    READ TABLE lt_result INDEX 1 INTO temp24.
+    sy-tabix = temp25.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `001`
-                                    act = lt_result[ 1 ]-no ).
+                                    act = temp24-no ).
 
+    
+    
+    temp27 = sy-tabix.
+    READ TABLE lt_result INDEX 1 INTO temp26.
+    sy-tabix = temp27.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `E`
-                                        act = lt_result[ 1 ]-type ).
+                                        act = temp26-type ).
 
   ENDMETHOD.
 
   METHOD test_cx.
+        DATA lv_val TYPE i.
+        DATA lx TYPE REF TO cx_root.
+        DATA lt_result TYPE z2ui5_cl_util=>ty_t_msg.
+    DATA temp28 LIKE LINE OF lt_result.
+    DATA temp29 LIKE sy-tabix.
 
     TRY.
-        DATA(lv_val) = 1 / 0.
-      CATCH cx_root INTO DATA(lx).
-        DATA(lt_result) = z2ui5_cl_util_msg=>msg_get( lx ).
+        
+        lv_val = 1 / 0.
+        
+      CATCH cx_root INTO lx.
+        
+        lt_result = z2ui5_cl_util_msg=>msg_get( lx ).
     ENDTRY.
 
+    
+    
+    temp29 = sy-tabix.
+    READ TABLE lt_result INDEX 1 INTO temp28.
+    sy-tabix = temp29.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `E`
-                                        act = lt_result[ 1 ]-type ).
+                                        act = temp28-type ).
 
 
   ENDMETHOD.
