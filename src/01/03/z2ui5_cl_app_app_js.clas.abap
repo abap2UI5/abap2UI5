@@ -875,8 +875,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `sap.ui.define("z2ui5/CameraPicture", [` && |\n| &&
              `  "sap/ui/core/Control",` && |\n| &&
              `  "sap/m/Dialog",` && |\n| &&
-             `  "sap/m/Button"` && |\n| &&
-             `], function (Control, Dialog, Button) {` && |\n| &&
+             `  "sap/m/Button",` && |\n| &&
+             `  "sap/ui/core/HTML"` && |\n| &&
+             `], function (Control, Dialog, Button, HTML) {` && |\n| &&
              `  "use strict";` && |\n| &&
              `  return Control.extend("z2ui5.CameraPicture", {` && |\n| &&
              `    metadata: {` && |\n| &&
@@ -924,7 +925,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          verticalScrolling: false,` && |\n| &&
              `          stretch: true,` && |\n| &&
              `          content: [` && |\n| &&
-             `            new sap.ui.core.HTML({` && |\n| &&
+             `            new HTML({` && |\n| &&
              `              id: this.getId() + 'PictureContainer',` && |\n| &&
              `              content: '<video width="600px" height="400px" autoplay="true" id="zvideo">'` && |\n| &&
              `            }),` && |\n| &&
@@ -935,7 +936,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `                this._oScanDialog.close();` && |\n| &&
              `              }.bind(this)` && |\n| &&
              `            }),` && |\n| &&
-             `            new sap.ui.core.HTML({` && |\n| &&
+             `            new HTML({` && |\n| &&
              `              content: '<canvas hidden id="zcanvas" style="overflow:auto"></canvas>'` && |\n| &&
              `            }),` && |\n| &&
              `          ],` && |\n| &&
