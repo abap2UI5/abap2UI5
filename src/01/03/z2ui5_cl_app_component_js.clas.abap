@@ -28,6 +28,9 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `            ]` && |\n| &&
              `        },` && |\n| &&
              `        async init() {` && |\n| &&
+             `` && |\n| &&
+             `            z2ui5.oConfig = {};` && |\n| &&
+             `` && |\n| &&
              `            UIComponent.prototype.init.apply(this, arguments);` && |\n| &&
              `` && |\n| &&
              `            if (typeof z2ui5 == 'undefined') {` && |\n| &&
@@ -44,7 +47,6 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `            z2ui5.oDeviceModel = Models.createDeviceModel();` && |\n| &&
              `            this.setModel(z2ui5.oDeviceModel, "device");` && |\n| &&
              `` && |\n| &&
-             `            z2ui5.oConfig = {};` && |\n| &&
              `            z2ui5.oConfig.ComponentData = this.getComponentData();` && |\n| &&
              `` && |\n| &&
              `            try {` && |\n| &&
@@ -100,6 +102,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        },` && |\n| &&
              `    });` && |\n| &&
              `});` && |\n| &&
+             `` && |\n| &&
               ``.
 
   ENDMETHOD.
