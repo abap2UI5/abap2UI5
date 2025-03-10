@@ -851,8 +851,9 @@ sap.ui.define("z2ui5/SmartMultiInputExt", ["sap/ui/core/Control", "sap/m/Token",
 sap.ui.define("z2ui5/CameraPicture", [
   "sap/ui/core/Control",
   "sap/m/Dialog",
-  "sap/m/Button"
-], function (Control, Dialog, Button) {
+  "sap/m/Button", 
+  "sap/ui/core/HTML"
+], function (Control, Dialog, Button, HTML) {
   "use strict";
   return Control.extend("z2ui5.CameraPicture", {
     metadata: {
@@ -900,7 +901,7 @@ sap.ui.define("z2ui5/CameraPicture", [
           verticalScrolling: false,
           stretch: true,
           content: [
-            new sap.ui.core.HTML({
+            new HTML({
               id: this.getId() + 'PictureContainer',
               content: '<video width="600px" height="400px" autoplay="true" id="zvideo">'
             }),
@@ -911,7 +912,7 @@ sap.ui.define("z2ui5/CameraPicture", [
                 this._oScanDialog.close();
               }.bind(this)
             }),
-            new sap.ui.core.HTML({
+            new HTML({
               content: '<canvas hidden id="zcanvas" style="overflow:auto"></canvas>'
             }),
           ],
