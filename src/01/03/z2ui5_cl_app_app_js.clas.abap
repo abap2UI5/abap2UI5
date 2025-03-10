@@ -1059,7 +1059,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `}` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&
-             `sap.ui.define("z2ui5/Dirty", ["sap/ui/core/Control", "sap/ushell/Container"], (Control, Container) => {` && |\n| &&
+             `sap.ui.define("z2ui5/Dirty", ["sap/ui/core/Control"], (Control) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `  return Control.extend("z2ui5.Dirty", {` && |\n| &&
              `    metadata: {` && |\n| &&
@@ -1070,15 +1070,22 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    },` && |\n| &&
              `    setIsDirty(val) {` && |\n| &&
-             `      if (Container) {` && |\n| &&
-             `        Container.setDirtyFlag(val);` && |\n| &&
-             `      } else {` && |\n| &&
-             `        window.onbeforeunload = function (e) {` && |\n| &&
+             `` && |\n| &&
+             `      sap.ui.require([ "sap/ushell/Container"` && |\n| &&
+             `      ], async (Container) => {` && |\n| &&
+             `` && |\n| &&
+             `        if (Container) {` && |\n| &&
+             `          Container.setDirtyFlag(val);` && |\n| &&
+             `        } else {` && |\n| &&
+             `          window.onbeforeunload = function (e) {` && |\n| &&
              `          if (val) {` && |\n| &&
              `            e.preventDefault();` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
+             `` && |\n| &&
+             `     });` && |\n| &&
+             `` && |\n| &&
              `    },` && |\n| &&
              `    renderer(oRm, oControl) { }` && |\n| &&
              `  });` && |\n| &&
