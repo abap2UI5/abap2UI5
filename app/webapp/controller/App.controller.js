@@ -1035,7 +1035,7 @@ sap.ui.define("z2ui5/Favicon", ["sap/ui/core/Control"], (Control) => {
 }
 );
 
-sap.ui.define("z2ui5/Dirty", ["sap/ui/core/Control", "sap/ushell/Container"], (Control, Container) => {
+sap.ui.define("z2ui5/Dirty", ["sap/ui/core/Control"], (Control) => {
   "use strict";
   return Control.extend("z2ui5.Dirty", {
     metadata: {
@@ -1046,15 +1046,22 @@ sap.ui.define("z2ui5/Dirty", ["sap/ui/core/Control", "sap/ushell/Container"], (C
       }
     },
     setIsDirty(val) {
-      if (Container) {
-        Container.setDirtyFlag(val);
-      } else {
-        window.onbeforeunload = function (e) {
+
+      sap.ui.require([ "sap/ushell/Container"
+      ], async (Container) => {
+      
+        if (Container) {
+          Container.setDirtyFlag(val);
+        } else {
+          window.onbeforeunload = function (e) {
           if (val) {
             e.preventDefault();
           }
         }
       }
+        
+     });
+      
     },
     renderer(oRm, oControl) { }
   });
