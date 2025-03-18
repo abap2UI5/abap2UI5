@@ -875,8 +875,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `sap.ui.define("z2ui5/CameraPicture", [` && |\n| &&
              `  "sap/ui/core/Control",` && |\n| &&
              `  "sap/m/Dialog",` && |\n| &&
-             `  "sap/m/Button"` && |\n| &&
-             `], function (Control, Dialog, Button) {` && |\n| &&
+             `  "sap/m/Button",` && |\n| &&
+             `  "sap/ui/core/HTML"` && |\n| &&
+             `], function (Control, Dialog, Button, HTML) {` && |\n| &&
              `  "use strict";` && |\n| &&
              `  return Control.extend("z2ui5.CameraPicture", {` && |\n| &&
              `    metadata: {` && |\n| &&
@@ -924,7 +925,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          verticalScrolling: false,` && |\n| &&
              `          stretch: true,` && |\n| &&
              `          content: [` && |\n| &&
-             `            new sap.ui.core.HTML({` && |\n| &&
+             `            new HTML({` && |\n| &&
              `              id: this.getId() + 'PictureContainer',` && |\n| &&
              `              content: '<video width="600px" height="400px" autoplay="true" id="zvideo">'` && |\n| &&
              `            }),` && |\n| &&
@@ -935,7 +936,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `                this._oScanDialog.close();` && |\n| &&
              `              }.bind(this)` && |\n| &&
              `            }),` && |\n| &&
-             `            new sap.ui.core.HTML({` && |\n| &&
+             `            new HTML({` && |\n| &&
              `              content: '<canvas hidden id="zcanvas" style="overflow:auto"></canvas>'` && |\n| &&
              `            }),` && |\n| &&
              `          ],` && |\n| &&
@@ -1059,7 +1060,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `}` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&
-             `sap.ui.define("z2ui5/Dirty", ["sap/ui/core/Control", "sap/ushell/Container"], (Control, Container) => {` && |\n| &&
+             `sap.ui.define("z2ui5/Dirty", ["sap/ui/core/Control"], (Control) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `  return Control.extend("z2ui5.Dirty", {` && |\n| &&
              `    metadata: {` && |\n| &&
@@ -1070,15 +1071,22 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    },` && |\n| &&
              `    setIsDirty(val) {` && |\n| &&
-             `      if (Container) {` && |\n| &&
-             `        Container.setDirtyFlag(val);` && |\n| &&
-             `      } else {` && |\n| &&
-             `        window.onbeforeunload = function (e) {` && |\n| &&
+             `` && |\n| &&
+             `      sap.ui.require([ "sap/ushell/Container"` && |\n| &&
+             `      ], async (Container) => {` && |\n| &&
+             `` && |\n| &&
+             `        if (Container) {` && |\n| &&
+             `          Container.setDirtyFlag(val);` && |\n| &&
+             `        } else {` && |\n| &&
+             `          window.onbeforeunload = function (e) {` && |\n| &&
              `          if (val) {` && |\n| &&
              `            e.preventDefault();` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
+             `` && |\n| &&
+             `     });` && |\n| &&
+             `` && |\n| &&
              `    },` && |\n| &&
              `    renderer(oRm, oControl) { }` && |\n| &&
              `  });` && |\n| &&

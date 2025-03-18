@@ -31,7 +31,7 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `    >` &&
              `        <IconTabHeader` &&
              `            selectedKey="PLAIN"` &&
-             `            select="onItemSelect"` &&
+             `            select=".onItemSelect"` &&
              `        >` &&
              `            <items>` &&
              `         <IconTabFilter` &&
@@ -103,7 +103,7 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `            </items>` &&
              `        </IconTabHeader>` &&
              ` <VBox>` &&
-             ` <ToggleButton text="Source XML after Templating" visible="{/isTemplating}" pressed="{/templatingSource}" press="onTemplatingPress" />` &&
+             ` <ToggleButton text="Source XML after Templating" visible="{/isTemplating}" pressed="{/templatingSource}" press=".onTemplatingPress" />` &&
              `        <ce:CodeEditor` &&
              `            type="{/type}"` &&
              `            value="{/value}"` &&
@@ -117,7 +117,7 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `        <endButton>` &&
              `            <Button` &&
              `                text="Close"` &&
-             `                press="onClose"` &&
+             `                press=".onClose"` &&
              `            />` &&
              `        </endButton>` &&
              `    </Dialog>` &&

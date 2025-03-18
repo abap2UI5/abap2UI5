@@ -85,7 +85,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   METHOD z2ui5_if_client~message_box_display.
 
     IF z2ui5_cl_util=>rtti_check_clike( text ) = abap_false.
-      DATA(lt_msg) = z2ui5_cl_util=>msg_get( text ).
+      DATA(lt_msg) = z2ui5_cl_util=>msg_get_t( text ).
       IF lines( lt_msg ) = 1.
         DATA(lv_text) = lt_msg[ 1 ]-text.
 

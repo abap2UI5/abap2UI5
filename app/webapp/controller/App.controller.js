@@ -851,8 +851,9 @@ sap.ui.define("z2ui5/SmartMultiInputExt", ["sap/ui/core/Control", "sap/m/Token",
 sap.ui.define("z2ui5/CameraPicture", [
   "sap/ui/core/Control",
   "sap/m/Dialog",
-  "sap/m/Button"
-], function (Control, Dialog, Button) {
+  "sap/m/Button", 
+  "sap/ui/core/HTML"
+], function (Control, Dialog, Button, HTML) {
   "use strict";
   return Control.extend("z2ui5.CameraPicture", {
     metadata: {
@@ -900,7 +901,7 @@ sap.ui.define("z2ui5/CameraPicture", [
           verticalScrolling: false,
           stretch: true,
           content: [
-            new sap.ui.core.HTML({
+            new HTML({
               id: this.getId() + 'PictureContainer',
               content: '<video width="600px" height="400px" autoplay="true" id="zvideo">'
             }),
@@ -911,7 +912,7 @@ sap.ui.define("z2ui5/CameraPicture", [
                 this._oScanDialog.close();
               }.bind(this)
             }),
-            new sap.ui.core.HTML({
+            new HTML({
               content: '<canvas hidden id="zcanvas" style="overflow:auto"></canvas>'
             }),
           ],
@@ -1035,7 +1036,7 @@ sap.ui.define("z2ui5/Favicon", ["sap/ui/core/Control"], (Control) => {
 }
 );
 
-sap.ui.define("z2ui5/Dirty", ["sap/ui/core/Control", "sap/ushell/Container"], (Control, Container) => {
+sap.ui.define("z2ui5/Dirty", ["sap/ui/core/Control"], (Control) => {
   "use strict";
   return Control.extend("z2ui5.Dirty", {
     metadata: {
@@ -1046,15 +1047,22 @@ sap.ui.define("z2ui5/Dirty", ["sap/ui/core/Control", "sap/ushell/Container"], (C
       }
     },
     setIsDirty(val) {
-      if (Container) {
-        Container.setDirtyFlag(val);
-      } else {
-        window.onbeforeunload = function (e) {
+
+      sap.ui.require([ "sap/ushell/Container"
+      ], async (Container) => {
+      
+        if (Container) {
+          Container.setDirtyFlag(val);
+        } else {
+          window.onbeforeunload = function (e) {
           if (val) {
             e.preventDefault();
           }
         }
       }
+        
+     });
+      
     },
     renderer(oRm, oControl) { }
   });

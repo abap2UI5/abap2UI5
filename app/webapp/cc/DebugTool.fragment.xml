@@ -11,7 +11,7 @@
     >
         <IconTabHeader
             selectedKey="PLAIN"
-            select="onItemSelect"
+            select=".onItemSelect"
         >
             <items>
 		        <IconTabFilter
@@ -83,7 +83,7 @@
             </items>
         </IconTabHeader>
 			<VBox>
-				<ToggleButton text="Source XML after Templating" visible="{/isTemplating}" pressed="{/templatingSource}" press="onTemplatingPress" />
+				<ToggleButton text="Source XML after Templating" visible="{/isTemplating}" pressed="{/templatingSource}" press=".onTemplatingPress" />
         <ce:CodeEditor
             type="{/type}"
             value="{/value}"
@@ -97,7 +97,7 @@
         <endButton>
             <Button
                 text="Close"
-                press="onClose"
+                press=".onClose"
             />
         </endButton>
     </Dialog>
