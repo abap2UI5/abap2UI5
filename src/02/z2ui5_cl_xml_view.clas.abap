@@ -3739,6 +3739,15 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
+
+
+    METHODS overflow_toolbar_layout_data
+      IMPORTING
+        priority                   TYPE clike OPTIONAL
+        group                      TYPE clike OPTIONAL
+        closeOverflowOnInteraction TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
     METHODS upload_set
       IMPORTING
         id                      TYPE clike OPTIONAL
@@ -9270,6 +9279,17 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
             ( n = `columnsL`   v = columnsl )
             ( n = `columnsM`   v = columnsm )
             ( n = `editable` v = z2ui5_cl_util=>boolean_abap_2_json( editable ) ) ) ).
+  ENDMETHOD.
+
+  METHOD overflow_toolbar_layout_data.
+
+    result = _generic(
+        name   = `OverflowToolbarLayoutData`
+        t_prop = VALUE #(
+            ( n = `closeOverflowOnInteraction` v = z2ui5_cl_util=>boolean_abap_2_json( closeOverflowOnInteraction ) )
+            ( n = `group`                      v = group )
+            ( n = `priority`                   v = priority ) ) ).
+
   ENDMETHOD.
 
   METHOD slider.
