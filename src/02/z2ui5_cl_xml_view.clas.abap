@@ -3747,7 +3747,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         group                      TYPE clike OPTIONAL
         closeOverflowOnInteraction TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)              TYPE REF TO z2ui5_cl_xml_view.
     METHODS upload_set
       IMPORTING
         id                      TYPE clike OPTIONAL
