@@ -58,13 +58,18 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
     LOOP AT lt_msg REFERENCE INTO DATA(lr_row).
 
       DATA(ls_row) = VALUE ty_s_msg( ).
-      ls_row-type     = z2ui5_cl_util=>ui5_get_msg_type( lr_row->type ).
-      ls_row-title    = lr_row->text.
-*      lr_row->title = `title`.
-*      lr_row->message = `message`.
-      ls_row-subtitle = |{ lr_row->id } { lr_row->no }|.
-      ls_row-date = z2ui5_cl_util=>time_get_date_by_stampl( lr_row->timestampl ).
-      ls_row-time = z2ui5_cl_util=>time_get_time_by_stampl( lr_row->timestampl ).
+      ls_row-type       = z2ui5_cl_util=>ui5_get_msg_type( lr_row->type ).
+      ls_row-title      = lr_row->text.
+      ls_row-id         = lr_row->id.
+      ls_row-number     = lr_row->no.
+      ls_row-message_v1 = lr_row->v1.
+      ls_row-message_v2 = lr_row->v2.
+      ls_row-message_v3 = lr_row->v3.
+      ls_row-message_v4 = lr_row->v4.
+      ls_row-message    = lr_row->text.
+      ls_row-subtitle   = |{ lr_row->id } { lr_row->no }|.
+      ls_row-date       = z2ui5_cl_util=>time_get_date_by_stampl( lr_row->timestampl ).
+      ls_row-time       = z2ui5_cl_util=>time_get_time_by_stampl( lr_row->timestampl ).
 *      lr_row->group = `001`.
 
       INSERT ls_row INTO TABLE r_result->mt_msg.
