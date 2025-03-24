@@ -1,5 +1,5 @@
 {
-  "name": "abap2ui5",
+  "name": "abap2UI5",
   "private": true,
   "version": "1.0.0",
   "description": "Developing UI5 Apps Purely in ABAP.",
@@ -23,7 +23,7 @@
   "bugs": {
     "url": "https://github.com/abap2UI5/abap2UI5"
   },
-  "homepage": "wwww.abap2UI5.org",
+  "homepage": "www.abap2UI5.org",
   "devDependencies": {
     "@abaplint/cli": "^2.113.104",
     "@abaplint/database-sqlite": "^2.10.24",
