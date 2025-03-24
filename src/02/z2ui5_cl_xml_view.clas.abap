@@ -176,7 +176,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         priority                   TYPE clike OPTIONAL
         group                      TYPE clike OPTIONAL
-        closeOverflowOnInteraction TYPE clike OPTIONAL
+        closeoverflowoninteraction TYPE clike OPTIONAL
       RETURNING
         VALUE(result)              TYPE REF TO z2ui5_cl_xml_view.
 
@@ -11135,7 +11135,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic(
         name   = `OverflowToolbarLayoutData`
         t_prop = VALUE #(
-            ( n = `closeOverflowOnInteraction` v = z2ui5_cl_util=>boolean_abap_2_json( closeOverflowOnInteraction ) )
+            ( n = `closeOverflowOnInteraction` v = z2ui5_cl_util=>boolean_abap_2_json( closeoverflowoninteraction ) )
             ( n = `group`                      v = group )
             ( n = `priority`                   v = priority ) ) ).
 
