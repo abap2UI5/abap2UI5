@@ -985,15 +985,16 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         ENDTRY.
     ENDTRY.
 
-    result = lo_struct->get_components( ).
+    DATA(comps) = lo_struct->get_components( ).
 
-    LOOP AT result REFERENCE INTO DATA(lr_comp)
-         WHERE as_include = abap_true.
+    LOOP AT comps REFERENCE INTO DATA(lr_comp).
 
-      DATA(lt_attri) = rtti_get_t_attri_by_include( lr_comp->type ).
-
-      DELETE result.
-      INSERT LINES OF lt_attri INTO TABLE result.
+      IF lr_comp->as_include = abap_false.
+        APPEND lr_comp->* TO result.
+      ELSE.
+        DATA(lt_attri) = rtti_get_t_attri_by_include( lr_comp->type ).
+        APPEND LINES OF lt_attri TO result.
+      ENDIF.
     ENDLOOP.
 
   ENDMETHOD.
