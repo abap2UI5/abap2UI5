@@ -73,6 +73,16 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
+       "extra case - conversion exit alpha numeric
+      IF lr_attri->bind_type = z2ui5_if_core_types=>cs_bind_type-two_way AND (
+        lr_attri->o_typedescr->type_kind <> cl_abap_classdescr=>typekind_num or
+         lr_attri->o_typedescr->type_kind <> cl_abap_classdescr=>typekind_numeric
+        ).
+        CLEAR lr_attri->r_ref->*.
+        CLEAR lr_attri->r_ref.
+        CONTINUE.
+      ENDIF.
+
       IF lr_attri->o_typedescr->type_kind <> cl_abap_classdescr=>typekind_dref.
         CLEAR lr_attri->r_ref.
         CONTINUE.
@@ -164,7 +174,8 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
 
     IF sy-subrc <> 0.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = `DEREF_FAILED_TARGET_INITIAL`.
+        EXPORTING
+          val = `DEREF_FAILED_TARGET_INITIAL`.
     ENDIF.
 
     GET REFERENCE OF <attri> INTO result.
