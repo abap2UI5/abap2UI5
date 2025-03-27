@@ -37,7 +37,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
   METHOD constructor.
 
     mv_request_json = val.
-    mo_action = NEW z2ui5_cl_core_action( me ).
+    CREATE OBJECT mo_action TYPE z2ui5_cl_core_action EXPORTING VAL = me.
 
   ENDMETHOD.
 
@@ -45,45 +45,55 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
     main_begin( ).
     DO.
-      IF main_process( ).
+      IF main_process( ) IS NOT INITIAL.
         EXIT.
       ENDIF.
     ENDDO.
 
-    result = VALUE #( body       = mv_response
-                      s_stateful = ms_response-s_front-params-s_stateful
-      ).
+    CLEAR result.
+    result-body = mv_response.
+    result-s_stateful = ms_response-s_front-params-s_stateful.
 
   ENDMETHOD.
 
   METHOD main_begin.
+        DATA lo_json_mapper TYPE REF TO z2ui5_cl_core_srv_json.
+          DATA temp1 TYPE REF TO z2ui5_cl_core_srv_draft.
+        DATA x TYPE REF TO cx_root.
     TRY.
 
-        DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_json( ).
+        
+        CREATE OBJECT lo_json_mapper TYPE z2ui5_cl_core_srv_json.
         ms_request = lo_json_mapper->request_json_to_abap( mv_request_json ).
 
         IF ms_request-s_front-id IS NOT INITIAL.
           mo_action = mo_action->factory_by_frontend( ).
 
         ELSEIF ms_request-s_control-app_start IS NOT INITIAL.
-          NEW z2ui5_cl_core_srv_draft( )->cleanup( ).
+          
+          CREATE OBJECT temp1 TYPE z2ui5_cl_core_srv_draft.
+          temp1->cleanup( ).
           mo_action = mo_action->factory_first_start( ).
 
         ELSE.
           mo_action = mo_action->factory_system_startup( ).
         ENDIF.
 
-      CATCH cx_root INTO DATA(x).
+        
+      CATCH cx_root INTO x.
         ASSERT x->get_text( ) = 1.
     ENDTRY.
   ENDMETHOD.
 
   METHOD main_end.
+      DATA lo_model TYPE REF TO z2ui5_cl_core_srv_attri.
+    DATA lo_json_mapper TYPE REF TO z2ui5_cl_core_srv_json.
+    DATA temp2 TYPE REF TO z2ui5_if_app.
 
-    ms_response = VALUE #( s_front-params = mo_action->ms_next-s_set
-                           s_front-id     = mo_action->mo_app->ms_draft-id
-                           s_front-app    = z2ui5_cl_util=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app )
-        ).
+    CLEAR ms_response.
+    ms_response-s_front-params = mo_action->ms_next-s_set.
+    ms_response-s_front-id = mo_action->mo_app->ms_draft-id.
+    ms_response-s_front-app = z2ui5_cl_util=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app ).
 
     IF ms_response-s_front-params-s_view-check_update_model        = abap_true
         OR ms_response-s_front-params-s_view_nest-check_update_model   = abap_true
@@ -96,8 +106,8 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         OR ms_response-s_front-params-s_popup-xml IS NOT INITIAL
         OR ms_response-s_front-params-s_popover-xml                   IS NOT INITIAL.
 
-      DATA(lo_model) = NEW z2ui5_cl_core_srv_attri( attri = mo_action->mo_app->mt_attri
-                                                    app   = mo_action->mo_app->mo_app ).
+      
+      CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_attri EXPORTING attri = mo_action->mo_app->mt_attri app = mo_action->mo_app->mo_app.
       lo_model->attri_refs_update( ).
       ms_response-model = mo_action->mo_app->model_json_stringify( ).
 
@@ -105,22 +115,33 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       ms_response-model = `{}`.
     ENDIF.
 
-    DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_json( ).
+    
+    CREATE OBJECT lo_json_mapper TYPE z2ui5_cl_core_srv_json.
     mv_response = lo_json_mapper->response_abap_to_json( ms_response ).
 
     CLEAR mo_action->ms_next.
 
-    IF CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky = abap_false.
+    
+    temp2 ?= mo_action->mo_app->mo_app.
+    IF temp2->check_sticky = abap_false.
       mo_action->mo_app->db_save( ).
     ENDIF.
 
   ENDMETHOD.
 
   METHOD main_process.
+        DATA li_client TYPE REF TO z2ui5_cl_core_client.
+        DATA temp3 TYPE REF TO z2ui5_if_app.
+        DATA li_app LIKE temp3.
+        DATA x TYPE REF TO cx_root.
     TRY.
 
-        DATA(li_client) = NEW z2ui5_cl_core_client( mo_action ).
-        DATA(li_app)    = CAST z2ui5_if_app( mo_action->mo_app->mo_app ).
+        
+        CREATE OBJECT li_client TYPE z2ui5_cl_core_client EXPORTING ACTION = mo_action.
+        
+        temp3 ?= mo_action->mo_app->mo_app.
+        
+        li_app = temp3.
 
         IF li_app->check_sticky = abap_false.
           ROLLBACK WORK.
@@ -141,7 +162,8 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
           check_go_client = abap_true.
         ENDIF.
 
-      CATCH cx_root INTO DATA(x).
+        
+      CATCH cx_root INTO x.
         ASSERT x->get_text( ) = 1.
     ENDTRY.
   ENDMETHOD.
