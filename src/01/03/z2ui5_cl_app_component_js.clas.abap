@@ -40,10 +40,6 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `            z2ui5 = {};` && |\n| &&
              `            }` && |\n| &&
              `` && |\n| &&
-             `            z2ui5.oRouter = this.getRouter();` && |\n| &&
-             `            z2ui5.oRouter.initialize();` && |\n| &&
-             `            z2ui5.oRouter.stop();` && |\n| &&
-             `` && |\n| &&
              `            z2ui5.oDeviceModel = Models.createDeviceModel();` && |\n| &&
              `            this.setModel(z2ui5.oDeviceModel, "device");` && |\n| &&
              `` && |\n| &&
@@ -84,6 +80,11 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `                    z2ui5.oController.displayView(event.state.view, event.state.model);` && |\n| &&
              `                }` && |\n| &&
              `            });` && |\n| &&
+             `` && |\n| &&
+             `            z2ui5.oRouter = this.getRouter();` && |\n| &&
+             `            z2ui5.oRouter.initialize();` && |\n| &&
+             `            z2ui5.oRouter.stop();` && |\n| &&
+             `` && |\n| &&
              `        },` && |\n| &&
              `` && |\n| &&
              `        __beforeunload: function () {` && |\n| &&
