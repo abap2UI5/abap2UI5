@@ -5,15 +5,14 @@
   "description": "Developing UI5 Apps Purely in ABAP.",
   "scripts": {
     "syfixes": "find . -type f -name '*.abap' -exec sed -i -e 's/ RAISE EXCEPTION TYPE cx_sy_itab_line_not_found/ ASSERT 1 = 0/g' {} + ",
-    "auto_downport": "abaplint --fix .github/abaplint/abap_702.jsonc && npm run syfixes && cp -r src node/downport &&  cp -f .github/abaplint/abap_702.jsonc abaplint.jsonc",
+    "abaplintpathfix": "sed -i 's|\"files\": \"/\\.\\.\\/\\.\\.\\/src\\/\\*\\*\\/\\*\\.\\*\"|\"files\": \"/src/**/*.*\"|g' abaplint.jsonc",
+    "auto_downport": "abaplint --fix .github/abaplint/abap_702.jsonc && npm run syfixes && cp -r src node/downport &&  cp -f .github/abaplint/abap_702.jsonc abaplint.jsonc && npm run abaplintpathfix",  
     "auto_app2abap": "node .github/app2abap/trans2abap.js",
     "auto_abaplint": "npx abaplint .github/abaplint/auto_abaplint_fix.jsonc --fix",
     "auto_transpile": "rm -rf node/output && cp node/srv/*.abap node/downport && abap_transpile ./node/setup/abap_transpile.json",
-
     "rename": "npm ci && abaplint .github/abaplint/rename_test.jsonc --rename",
     "express": "node node/srv/express.mjs",
     "unit": "echo RUNNING && node node/output/index.mjs"
-
   },
   "repository": {
     "type": "git",
