@@ -933,7 +933,11 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD rtti_get_t_attri_by_include.
 
-    DATA(sdescr) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_name( type->absolute_name ) ).
+    cl_abap_typedescr=>describe_by_name( EXPORTING  p_name         = type->absolute_name
+                                         RECEIVING  p_descr_ref    = DATA(type_desc)
+                                         EXCEPTIONS type_not_found = 1 ).
+
+    DATA(sdescr) = CAST cl_abap_structdescr( type_desc ).
     DATA(comps) = sdescr->get_components( ).
 
     LOOP AT comps REFERENCE INTO DATA(lr_comp).
