@@ -46,7 +46,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD on_event_check.
-    
+
     TRY.
         DATA li_app_test TYPE REF TO z2ui5_if_app.
         ms_home-classname = z2ui5_cl_util=>c_trim_upper( ms_home-classname ).
