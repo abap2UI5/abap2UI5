@@ -19,7 +19,6 @@
     "in_statement_indentation": true,
     "indentation" : true,
     "double_space": true,
-    "align_type_expressions": true,
     "align_parameters": true,
     "align_pseudo_comments": true,
     "align_type_expressions": true,
