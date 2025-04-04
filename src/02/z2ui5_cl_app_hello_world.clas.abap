@@ -4,7 +4,7 @@ CLASS z2ui5_cl_app_hello_world DEFINITION
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
-    DATA name              TYPE string.
+    DATA name TYPE string.
 
   PROTECTED SECTION.
 
