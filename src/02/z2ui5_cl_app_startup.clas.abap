@@ -18,9 +18,7 @@ CLASS z2ui5_cl_app_startup DEFINITION
       END OF ms_home.
 
     DATA mv_ui5_version       TYPE string.
-
     DATA client               TYPE REF TO z2ui5_if_client.
-    DATA mv_check_initialized TYPE abap_bool.
 
     CLASS-METHODS factory
       RETURNING
@@ -48,10 +46,9 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD on_event_check.
-    " TODO: variable is assigned but never used (ABAP cleaner)
-    DATA li_app_test TYPE REF TO z2ui5_if_app.
-
+    
     TRY.
+        DATA li_app_test TYPE REF TO z2ui5_if_app.
         ms_home-classname = z2ui5_cl_util=>c_trim_upper( ms_home-classname ).
         CREATE OBJECT li_app_test TYPE (ms_home-classname).
 
@@ -190,8 +187,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     me->client = client.
 
-    IF mv_check_initialized = abap_false.
-      mv_check_initialized = abap_true.
+    IF client->check_on_init( ).
       z2ui5_on_init( ).
       view_display_start( ).
       RETURN.
