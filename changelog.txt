@@ -9,6 +9,15 @@ Legend
 - : removed
 
 
+2025-03-31 v1.138.0
+-------------------
++ Introduced a Copy to Clipboard feature for improved usability
++ Enhanced the BAL message popup with multiple improvements
+* Resolved serialization issues for numeric values
+* Fixed Launchpad compatibility problems with older UI5 versions
++ Updated the bundled ajson library to the latest version
+
+
 2025-01-26 v1.137.0
 -------------------
 
