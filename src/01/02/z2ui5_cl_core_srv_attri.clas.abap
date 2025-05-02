@@ -78,7 +78,8 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
           lr_attri->o_typedescr->type_kind = cl_abap_classdescr=>typekind_num OR
           lr_attri->o_typedescr->type_kind = cl_abap_classdescr=>typekind_numeric
           ).
-        CLEAR lr_attri->r_ref->*.
+        ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref2>).
+        CLEAR <val_ref2>.
         CLEAR lr_attri->r_ref.
         CONTINUE.
       ENDIF.

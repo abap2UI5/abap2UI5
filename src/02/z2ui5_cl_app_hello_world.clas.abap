@@ -4,12 +4,9 @@ CLASS z2ui5_cl_app_hello_world DEFINITION
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
-
-    DATA name              TYPE string.
-    DATA check_initialized TYPE abap_bool.
+    DATA name TYPE string.
 
   PROTECTED SECTION.
-
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -18,8 +15,7 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
 
-    IF check_initialized = abap_false.
-      check_initialized = abap_true.
+    IF client->check_on_init( ).
 
       client->view_display( z2ui5_cl_xml_view=>factory(
         )->shell(
