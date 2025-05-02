@@ -75,4 +75,3 @@ This project greatly benefits from its [contributors](https://github.com/abap2UI
 * [Sponsor](https://abap2ui5.github.io/docs/resources/sponsor.html) - Sponsor our work to support ongoing innovation
 
 _We welcome all contributions! Share your knowledge, hunt for bugs, submit a PR, write a comment, give us a like, or simply tell your friends about abap2UI5. This project thrives on your support!_ 🙏
-
