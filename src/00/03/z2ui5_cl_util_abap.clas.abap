@@ -494,13 +494,13 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
         ASSIGN obj->('IF_XCO_AO_INTERFACE~IMPLEMENTATIONS') TO <any>.
         IF sy-subrc <> 0.
-          RAISE EXCEPTION NEW cx_sy_dyn_call_illegal_class( ).
+          RAISE EXCEPTION TYPE cx_sy_dyn_call_illegal_class.
         ENDIF.
         obj = <any>.
 
         ASSIGN obj->('IF_XCO_INTF_IMPLEMENTATIONS_FC~ALL') TO <any>.
         IF sy-subrc <> 0.
-          RAISE EXCEPTION NEW cx_sy_dyn_call_illegal_class( ).
+          RAISE EXCEPTION TYPE cx_sy_dyn_call_illegal_class.
         ENDIF.
         obj = <any>.
 
@@ -826,7 +826,9 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
         IF tabname IS INITIAL.
 
-          RAISE EXCEPTION NEW z2ui5_cx_util_error( val = `RTTI_BY_NAME_TAB_INITIAL` ).
+          RAISE EXCEPTION TYPE z2ui5_cx_util_error
+            EXPORTING
+              val = `RTTI_BY_NAME_TAB_INITIAL`.
         ENDIF.
 
         structdescr ?= cl_abap_structdescr=>describe_by_name( tabname ).
