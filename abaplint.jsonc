@@ -19,7 +19,7 @@
     "abapdoc": false,
     "sql_value_conversion" : true,
     "select_single_full_key" : true,
-    "strict_sql" : false,
+    "strict_sql" : true,
     "easy_to_find_messages" : true,
     "fully_type_itabs" : true,
     "align_parameters": false,
