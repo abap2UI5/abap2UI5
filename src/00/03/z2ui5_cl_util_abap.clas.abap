@@ -1020,9 +1020,9 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
       DATA(lv_tabname) = `dd02t`.
       SELECT SINGLE ddtext FROM (lv_tabname)
-        INTO @ddtext
         WHERE tabname    = @tabname
-          AND ddlanguage = @lan.
+          AND ddlanguage = @lan
+         INTO @ddtext.
 
     ENDIF.
 
