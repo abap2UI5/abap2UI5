@@ -440,7 +440,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 BusyIndicator.show();
                 z2ui5.oBody = {};
                 if (args[0][3] || z2ui5.oController == this) {
-                    if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH) {
+                    if (z2ui5.oResponse.PARAMS?.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH) {
                         var oModel = z2ui5.oView.getModel("http");
                     } else {
                         oModel = z2ui5.oView.getModel();
