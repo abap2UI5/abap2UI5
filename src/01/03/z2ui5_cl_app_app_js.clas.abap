@@ -21,7 +21,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
     result = `sap.ui.define(["sap/ui/core/mvc/Controller",` && |\n| &&
              `  "z2ui5/controller/View1.controller",` && |\n| &&
              `  "z2ui5/cc/Server",` && |\n| &&
-             `  "sap/ui/core/routing/HashChanger",` && |\n| &&
+             `  "sap/ui/core/routing/HashChanger"` && |\n| &&
              `], function (BaseController, Controller, Server, HashChanger) {` && |\n| &&
              `  return BaseController.extend("z2ui5.controller.App", {` && |\n| &&
              `` && |\n| &&
