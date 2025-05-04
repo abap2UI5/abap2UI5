@@ -533,15 +533,13 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      if (storedValue == null) {` && |\n| &&
              `        storedValue = "";` && |\n| &&
              `      }` && |\n| &&
-             `      if (storedValue !== storageValue) {` && |\n| &&
-             `        oControl.setProperty("value", storedValue);` && |\n| &&
-             `        oControl.fireFinished({` && |\n| &&
-             `          "type": storageType,` && |\n| &&
-             `          "prefix": storageKeyPrefix,` && |\n| &&
-             `          "key": storageKey,` && |\n| &&
-             `          "value": storedValue` && |\n| &&
-             `        });` && |\n| &&
-             `      }` && |\n| &&
+             `      oControl.setProperty("value", storedValue);` && |\n| &&
+             `      oControl.fireFinished({` && |\n| &&
+             `        "type": storageType,` && |\n| &&
+             `        "prefix": storageKeyPrefix,` && |\n| &&
+             `        "key": storageKey,` && |\n| &&
+             `        "value": storedValue` && |\n| &&
+             `      });` && |\n| &&
              `    },` && |\n| &&
              `    onAfterRendering() { },` && |\n| &&
              `    init() { }` && |\n| &&
@@ -820,10 +818,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        },` && |\n| &&
              `        addedTokens: {` && |\n| &&
              `          type: "Array"` && |\n| &&
-             |\n|.
-    result = result &&
              `        },` && |\n| &&
              `        removedTokens: {` && |\n| &&
+             |\n|.
+    result = result &&
              `          type: "Array"` && |\n| &&
              `        },` && |\n| &&
              `        rangeData: {` && |\n| &&
