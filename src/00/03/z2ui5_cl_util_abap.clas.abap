@@ -1005,24 +1005,28 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
   METHOD rtti_get_table_desrc.
 
     DATA ddtext TYPE c LENGTH 60.
+      DATA lan LIKE sy-langu.
+      DATA lv_tabname TYPE string.
 
     IF langu IS NOT SUPPLIED.
-      DATA(lan) = sy-langu.
+      
+      lan = sy-langu.
     ELSE.
       lan = langu.
     ENDIF.
 
-    IF context_check_abap_cloud( ).
+    IF context_check_abap_cloud( ) IS NOT INITIAL.
 
       ddtext = tabname.
 
     ELSE.
 
-      DATA(lv_tabname) = `dd02t`.
-      SELECT SINGLE ddtext FROM (lv_tabname)
-        WHERE tabname    = @tabname
-          AND ddlanguage = @lan
-         INTO @ddtext.
+      
+      lv_tabname = `dd02t`.
+      SELECT SINGLE ddtext FROM (lv_tabname) INTO ddtext
+        WHERE tabname    = tabname
+          AND ddlanguage = lan
+         .
 
     ENDIF.
 

@@ -42,18 +42,31 @@ CLASS z2ui5_cl_core_srv_json IMPLEMENTATION.
 
   METHOD model_front_to_back.
 
-    IF line_exists( t_attri->*[ view = view ] ).
-      DATA(lv_view) = view.
+    DATA temp1 LIKE sy-subrc.
+      DATA lv_view LIKE view.
+    DATA temp2 LIKE LINE OF t_attri->*.
+    DATA lr_attri LIKE REF TO temp2.
+          DATA lo_val_front TYPE REF TO z2ui5_if_ajson.
+          FIELD-SYMBOLS <val> TYPE data.
+          DATA x TYPE REF TO cx_root.
+    READ TABLE t_attri->* WITH KEY view = view TRANSPORTING NO FIELDS.
+    temp1 = sy-subrc.
+    IF temp1 = 0.
+      
+      lv_view = view.
     ELSE.
       lv_view = z2ui5_if_client=>cs_view-main.
     ENDIF.
 
-    LOOP AT t_attri->* REFERENCE INTO DATA(lr_attri)
+    
+    
+    LOOP AT t_attri->* REFERENCE INTO lr_attri
          WHERE bind_type = z2ui5_if_core_types=>cs_bind_type-two_way
                AND view      = lv_view.
       TRY.
 
-          DATA(lo_val_front) = model->slice( lr_attri->name_client ).
+          
+          lo_val_front = model->slice( lr_attri->name_client ).
           IF lo_val_front IS NOT BOUND.
             CONTINUE.
           ENDIF.
@@ -66,14 +79,16 @@ CLASS z2ui5_cl_core_srv_json IMPLEMENTATION.
             lo_val_front = lo_val_front->filter( lr_attri->custom_filter_back ).
           ENDIF.
 
-          ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val>).
+          
+          ASSIGN lr_attri->r_ref->* TO <val>.
           IF sy-subrc <> 0.
             CONTINUE.
           ENDIF.
 
           lo_val_front->to_abap( IMPORTING ev_container = <val> ).
 
-        CATCH cx_root INTO DATA(x).
+          
+        CATCH cx_root INTO x.
           RAISE EXCEPTION TYPE z2ui5_cx_util_error
             EXPORTING
               val = |JSON_PARSING_ERROR: { x->get_text( ) } |.
@@ -84,24 +99,43 @@ CLASS z2ui5_cl_core_srv_json IMPLEMENTATION.
 
 
   METHOD model_back_to_front.
+        DATA temp3 TYPE REF TO z2ui5_if_ajson.
+        DATA ajson_result LIKE temp3.
+        DATA temp4 LIKE LINE OF t_attri->*.
+        DATA lr_attri LIKE REF TO temp4.
+            DATA temp5 TYPE REF TO z2ui5_if_ajson.
+            DATA ajson LIKE temp5.
+            DATA temp6 TYPE REF TO z2ui5_if_ajson.
+              FIELD-SYMBOLS <attribute> TYPE data.
+        DATA temp7 TYPE string.
+        DATA x TYPE REF TO cx_root.
     TRY.
 
-        DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
-        LOOP AT t_attri->* REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
+        
+        temp3 ?= z2ui5_cl_ajson=>create_empty( ).
+        
+        ajson_result = temp3.
+        
+        
+        LOOP AT t_attri->* REFERENCE INTO lr_attri WHERE bind_type <> ``.
 
           IF lr_attri->custom_mapper IS BOUND.
-            DATA(ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
-                                                   ii_custom_mapping = lr_attri->custom_mapper ) ).
+            
+            temp5 ?= z2ui5_cl_ajson=>create_empty( ii_custom_mapping = lr_attri->custom_mapper ).
+            
+            ajson = temp5.
           ELSE.
-            ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
-                                             ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
+            
+            temp6 ?= z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ).
+            ajson = temp6.
           ENDIF.
 
           CASE lr_attri->bind_type.
             WHEN z2ui5_if_core_types=>cs_bind_type-one_way
                 OR z2ui5_if_core_types=>cs_bind_type-two_way.
 
-              ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<attribute>).
+              
+              ASSIGN lr_attri->r_ref->* TO <attribute>.
               IF sy-subrc <> 0.
                 CONTINUE.
               ENDIF.
@@ -128,23 +162,45 @@ CLASS z2ui5_cl_core_srv_json IMPLEMENTATION.
         ENDLOOP.
 
         result = ajson_result->stringify( ).
-        result = COND #( WHEN result IS INITIAL THEN `{}` ELSE result ).
+        
+        IF result IS INITIAL.
+          temp7 = `{}`.
+        ELSE.
+          temp7 = result.
+        ENDIF.
+        result = temp7.
 
-      CATCH cx_root INTO DATA(x).
+        
+      CATCH cx_root INTO x.
         ASSERT x IS NOT BOUND.
     ENDTRY.
   ENDMETHOD.
 
 
   METHOD request_json_to_abap.
+        DATA temp8 TYPE REF TO z2ui5_if_ajson.
+        DATA lo_ajson LIKE temp8.
+        DATA lv_model_edit_name TYPE string.
+        DATA lo_model TYPE REF TO z2ui5_if_ajson.
+        DATA temp1 TYPE xsdboolean.
+              DATA lo_comp LIKE result-s_front-o_comp_data.
+              DATA lv_app_start TYPE string.
+            DATA lv_hash LIKE result-s_front-hash.
+            DATA lv_dummy TYPE string.
+        DATA x TYPE REF TO cx_root.
     TRY.
 
-        DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( val ) ).
+        
+        temp8 ?= z2ui5_cl_ajson=>parse( val ).
+        
+        lo_ajson = temp8.
 
-        DATA(lv_model_edit_name) = |/{ z2ui5_if_core_types=>cs_ui5-two_way_model }|.
+        
+        lv_model_edit_name = |/{ z2ui5_if_core_types=>cs_ui5-two_way_model }|.
 
         result-o_model = z2ui5_cl_ajson=>create_empty( ).
-        DATA(lo_model) = lo_ajson->slice( lv_model_edit_name ).
+        
+        lo_model = lo_ajson->slice( lv_model_edit_name ).
         result-o_model->set( iv_path = lv_model_edit_name
                              iv_val  = lo_model ).
         lo_ajson->delete( lv_model_edit_name ).
@@ -155,18 +211,19 @@ CLASS z2ui5_cl_core_srv_json IMPLEMENTATION.
 
         result-s_front-o_comp_data = lo_ajson->slice( `/CONFIG/ComponentData` ).
 
-        result-s_control-check_launchpad = xsdbool( result-s_front-search   CS `scenario=LAUNCHPAD`
-                                                    OR result-s_front-pathname CS `/ui2/flp`
-                                                    OR result-s_front-pathname CS `test/flpSandbox`
-             ).
+        
+        temp1 = boolc( result-s_front-search CS `scenario=LAUNCHPAD` OR result-s_front-pathname CS `/ui2/flp` OR result-s_front-pathname CS `test/flpSandbox` ).
+        result-s_control-check_launchpad = temp1.
         IF result-s_front-id IS NOT INITIAL.
           RETURN.
         ENDIF.
 
         TRY.
             IF result-s_front-o_comp_data IS BOUND.
-              DATA(lo_comp) = result-s_front-o_comp_data.
-              DATA(lv_app_start) = lo_comp->get( `/startupParameters/app_start/1` ).
+              
+              lo_comp = result-s_front-o_comp_data.
+              
+              lv_app_start = lo_comp->get( `/startupParameters/app_start/1` ).
               result-s_control-app_start = lv_app_start.
               result-s_control-app_start = z2ui5_cl_util=>c_trim_upper( result-s_control-app_start ).
             ENDIF.
@@ -174,8 +231,10 @@ CLASS z2ui5_cl_core_srv_json IMPLEMENTATION.
         ENDTRY.
 
         TRY.
-            DATA(lv_hash) = result-s_front-hash.
-            SPLIT lv_hash AT '&/' INTO DATA(lv_dummy) lv_hash.
+            
+            lv_hash = result-s_front-hash.
+            
+            SPLIT lv_hash AT '&/' INTO lv_dummy lv_hash.
             IF lv_hash IS INITIAL.
               lv_hash = result-s_front-hash+2.
             ENDIF.
@@ -197,7 +256,8 @@ CLASS z2ui5_cl_core_srv_json IMPLEMENTATION.
                                                                        url = result-s_front-search ) ).
 
 
-      CATCH cx_root INTO DATA(x).
+        
+      CATCH cx_root INTO x.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
           EXPORTING
             val = x.
@@ -206,22 +266,33 @@ CLASS z2ui5_cl_core_srv_json IMPLEMENTATION.
 
 
   METHOD response_abap_to_json.
+        DATA temp9 TYPE REF TO z2ui5_if_ajson.
+        DATA ajson_result LIKE temp9.
+        DATA temp10 TYPE REF TO z2ui5_cl_core_srv_json.
+        DATA lv_frontend TYPE string.
+        DATA x TYPE REF TO cx_root.
     TRY.
 
-        DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
-                                                      ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
+        
+        temp9 ?= z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ).
+        
+        ajson_result = temp9.
 
         ajson_result->set( iv_path = `/`
                            iv_val  = val-s_front ).
-        ajson_result = ajson_result->filter( NEW z2ui5_cl_core_srv_json( ) ).
-        DATA(lv_frontend) = ajson_result->stringify( ).
+        
+        CREATE OBJECT temp10 TYPE z2ui5_cl_core_srv_json.
+        ajson_result = ajson_result->filter( temp10 ).
+        
+        lv_frontend = ajson_result->stringify( ).
 
         result = |\{| &&
             |"S_FRONT":{ lv_frontend },| &&
             |"MODEL":{ val-model }| &&
           |\}|.
 
-      CATCH cx_root INTO DATA(x).
+        
+      CATCH cx_root INTO x.
         ASSERT x IS NOT BOUND.
     ENDTRY.
   ENDMETHOD.
