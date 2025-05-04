@@ -21,7 +21,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
     result = `sap.ui.define(["sap/ui/core/mvc/Controller",` && |\n| &&
              `  "z2ui5/controller/View1.controller",` && |\n| &&
              `  "z2ui5/cc/Server",` && |\n| &&
-             `  "sap/ui/core/routing/HashChanger"` && |\n| &&
+             `  "sap/ui/core/routing/HashChanger",` && |\n| &&
              `], function (BaseController, Controller, Server, HashChanger) {` && |\n| &&
              `  return BaseController.extend("z2ui5.controller.App", {` && |\n| &&
              `` && |\n| &&
@@ -480,6 +480,74 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `}` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&
+             `sap.ui.define("z2ui5/Storage", ["sap/ui/core/Control", "sap/ui/util/Storage"], (Control, Storage) => {` && |\n| &&
+             `  "use strict";` && |\n| &&
+             `` && |\n| &&
+             `  return Control.extend("z2ui5.Storage", {` && |\n| &&
+             `    metadata: {` && |\n| &&
+             `      properties: {` && |\n| &&
+             `        type: {` && |\n| &&
+             `          type: "string",` && |\n| &&
+             `          defaultValue: "session"` && |\n| &&
+             `        },` && |\n| &&
+             `        prefix: {` && |\n| &&
+             `          type: "string",` && |\n| &&
+             `          defaultValue: ""` && |\n| &&
+             `        },` && |\n| &&
+             `        key: {` && |\n| &&
+             `          type: "string",` && |\n| &&
+             `          defaultValue: ""` && |\n| &&
+             `        },` && |\n| &&
+             `        value: {` && |\n| &&
+             `          type: "any",` && |\n| &&
+             `          defaultValue: ""` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `      events: {` && |\n| &&
+             `        "finished": {` && |\n| &&
+             `          parameters: {` && |\n| &&
+             `            type: {` && |\n| &&
+             `              type: "string",` && |\n| &&
+             `            },` && |\n| &&
+             `            prefix: {` && |\n| &&
+             `              type: "string",` && |\n| &&
+             `            },` && |\n| &&
+             `            key: {` && |\n| &&
+             `              type: "string",` && |\n| &&
+             `            },` && |\n| &&
+             `            value: {` && |\n| &&
+             `              type: "any",` && |\n| &&
+             `            }` && |\n| &&
+             `          }` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    async renderer(_, oControl) {` && |\n| &&
+             `      let storageType = oControl.getProperty("type");` && |\n| &&
+             `      let storageKeyPrefix = oControl.getProperty("prefix");` && |\n| &&
+             `      let storageKey  = oControl.getProperty("key");` && |\n| &&
+             `      let storageValue = oControl.getProperty("value");` && |\n| &&
+             `      let oStorage = new Storage(storageType, storageKeyPrefix);` && |\n| &&
+             `      let storedValue = oStorage.get(storageKey);` && |\n| &&
+             `      if (storedValue == null) {` && |\n| &&
+             `        storedValue = "";` && |\n| &&
+             `      }` && |\n| &&
+             `      if (storedValue !== storageValue) {` && |\n| &&
+             `        oControl.setProperty("value", storedValue);` && |\n| &&
+             `        oControl.fireFinished({` && |\n| &&
+             `          "type": storageType,` && |\n| &&
+             `          "prefix": storageKeyPrefix,` && |\n| &&
+             `          "key": storageKey,` && |\n| &&
+             `          "value": storedValue` && |\n| &&
+             `        });` && |\n| &&
+             `      }` && |\n| &&
+             `    },` && |\n| &&
+             `    onAfterRendering() { },` && |\n| &&
+             `    init() { }` && |\n| &&
+             `  });` && |\n| &&
+             `});` && |\n| &&
+             `` && |\n| &&
              `sap.ui.define("z2ui5/FileUploader", ["sap/ui/core/Control", "sap/m/Button", "sap/ui/unified/FileUploader", "sap/m/HBox"], function (Control, Button, FileUploader, HBox) {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
@@ -752,6 +820,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        },` && |\n| &&
              `        addedTokens: {` && |\n| &&
              `          type: "Array"` && |\n| &&
+             |\n|.
+    result = result &&
              `        },` && |\n| &&
              `        removedTokens: {` && |\n| &&
              `          type: "Array"` && |\n| &&
@@ -820,8 +890,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            const sKeyNameNew = aEntry[0].toLowerCase();` && |\n| &&
              `            oRangeDataNew[(sKeyNameNew === "keyfield" ? "keyField" : sKeyNameNew)] = aEntry[1];` && |\n| &&
              `          });` && |\n| &&
-             |\n|.
-    result = result &&
              `          return oRangeDataNew;` && |\n| &&
              `        }));` && |\n| &&
              `        //we need to set token text explicitly, as setRangeData does no recalculation` && |\n| &&
