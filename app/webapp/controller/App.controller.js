@@ -511,13 +511,15 @@ sap.ui.define("z2ui5/Storage", ["sap/ui/core/Control", "sap/ui/util/Storage"], (
       if (storedValue == null) {
         storedValue = "";
       }
-      oControl.setProperty("value", storedValue);
-      oControl.fireFinished({
-        "type": storageType,
-        "prefix": storageKeyPrefix,
-        "key": storageKey,
-        "value": storedValue
-      });
+      if (storedValue !== storageValue) {
+         oControl.setProperty("value", storedValue);
+         oControl.fireFinished({
+           "type": storageType,
+           "prefix": storageKeyPrefix,
+           "key": storageKey,
+           "value": storedValue
+         });
+       }
     },
     onAfterRendering() { },
     init() { }
