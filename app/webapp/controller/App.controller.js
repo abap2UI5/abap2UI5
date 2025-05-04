@@ -458,6 +458,74 @@ sap.ui.define("z2ui5/Geolocation", ["sap/ui/core/Control"], (Control) => {
 }
 );
 
+sap.ui.define("z2ui5/Storage", ["sap/ui/core/Control", "sap/ui/util/Storage"], (Control, Storage) => {
+  "use strict";
+
+  return Control.extend("z2ui5.Storage", {
+    metadata: {
+      properties: {
+        type: {
+          type: "string",
+          defaultValue: "session"
+        },
+        prefix: {
+          type: "string",
+          defaultValue: ""
+        },
+        key: {
+          type: "string",
+          defaultValue: ""
+        },
+        value: {
+          type: "any",
+          defaultValue: ""
+        }
+      },
+      events: {
+        "finished": {
+          parameters: {
+            type: {
+              type: "string",
+            },
+            prefix: {
+              type: "string",
+            },
+            key: {
+              type: "string",
+            },
+            value: {
+              type: "any",
+            }
+          }
+        }
+      }
+    },
+
+    async renderer(_, oControl) {
+      let storageType = oControl.getProperty("type");
+      let storageKeyPrefix = oControl.getProperty("prefix");
+      let storageKey  = oControl.getProperty("key");
+      let storageValue = oControl.getProperty("value");
+      let oStorage = new Storage(storageType, storageKeyPrefix);
+      let storedValue = oStorage.get(storageKey);
+      if (storedValue == null) {
+        storedValue = "";
+      }
+      if (storedValue !== storageValue) {
+         oControl.setProperty("value", storedValue);
+         oControl.fireFinished({
+           "type": storageType,
+           "prefix": storageKeyPrefix,
+           "key": storageKey,
+           "value": storedValue
+         });
+       }
+    },
+    onAfterRendering() { },
+    init() { }
+  });
+});
+
 sap.ui.define("z2ui5/FileUploader", ["sap/ui/core/Control", "sap/m/Button", "sap/ui/unified/FileUploader", "sap/m/HBox"], function (Control, Button, FileUploader, HBox) {
   "use strict";
 

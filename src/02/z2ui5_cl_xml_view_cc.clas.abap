@@ -158,6 +158,14 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS storage
+      IMPORTING finished      TYPE clike OPTIONAL
+                !type         TYPE clike OPTIONAL
+                prefix        TYPE clike OPTIONAL
+                !key          TYPE clike OPTIONAL
+                value         TYPE any   OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS history
       IMPORTING
         search        TYPE clike OPTIONAL
@@ -388,6 +396,17 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                            ( n = `timeout`  v = timeout )
                 ) ).
 
+  ENDMETHOD.
+
+  METHOD storage.
+    result = mo_view.
+    mo_view->_generic( name   = `Storage`
+                       ns     = `z2ui5`
+                       t_prop = VALUE #( ( n = `finished`  v = finished )
+                                         ( n = `type`  v = type )
+                                         ( n = `prefix`  v = prefix )
+                                         ( n = `key`  v = key )
+                                         ( n = `value`  v = value ) ) ).
   ENDMETHOD.
 
   METHOD history.

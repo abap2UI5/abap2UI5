@@ -20,10 +20,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
 
     result = `sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/model/json/JSONModel",` && |\n| &&
              `    "sap/ui/core/BusyIndicator", "sap/m/MessageBox", "sap/m/MessageToast", "sap/ui/core/Fragment", "sap/m/BusyDialog",` && |\n| &&
-             `    "sap/ui/VersionInfo", "z2ui5/cc/Server", "sap/ui/model/odata/v2/ODataModel", "sap/m/library",   "sap/ui/core/routing/HashChanger"` && |\n| &&
+             `    "sap/ui/VersionInfo", "z2ui5/cc/Server", "sap/ui/model/odata/v2/ODataModel", "sap/m/library", "sap/ui/core/routing/HashChanger", "sap/ui/util/Storage"` && |\n| &&
              `],` && |\n| &&
              `    function (Controller, XMLView, JSONModel, BusyIndicator, MessageBox, MessageToast, Fragment, mBusyDialog, VersionInfo,` && |\n| &&
-             `        Server, ODataModel, mobileLibrary, HashChanger) {` && |\n| &&
+             `        Server, ODataModel, mobileLibrary, HashChanger, Storage) {` && |\n| &&
              `        "use strict";` && |\n| &&
              `        return Controller.extend("z2ui5.controller.View1", {` && |\n| &&
              `` && |\n| &&
@@ -333,6 +333,24 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        var oModel = new ODataModel({ serviceUrl: args[1], annotationURI: (args.length > 3 ? args[3] : '') });` && |\n| &&
              `                        z2ui5.oView.setModel(oModel, args[2] ? args[2] : undefined);` && |\n| &&
              `                        break;` && |\n| &&
+             `                    case 'STORE_DATA':` && |\n| &&
+             `                        let storageParams = args[1];` && |\n| &&
+             `                        let storageType = Storage.Type.session;` && |\n| &&
+             `                        switch (storageParams.TYPE) {` && |\n| &&
+             `                            case 'session':` && |\n| &&
+             `                                storageType = Storage.Type.session;` && |\n| &&
+             `                                break;` && |\n| &&
+             `                            case 'local':` && |\n| &&
+             `                                storageType = Storage.Type.local;` && |\n| &&
+             `                                break;` && |\n| &&
+             `                        }` && |\n| &&
+             `                        let oStorage = new Storage(storageType, storageParams.PREFIX);` && |\n| &&
+             `                        if (storageParams.VALUE == "" || storageParams.VALUE == null) {` && |\n| &&
+             `                            oStorage.remove(storageParams.KEY);` && |\n| &&
+             `                        } else {` && |\n| &&
+             `                            oStorage.put(storageParams.KEY, storageParams.VALUE);` && |\n| &&
+             `                        }` && |\n| &&
+             `                        break;` && |\n| &&
              `                    case 'DOWNLOAD_B64_FILE':` && |\n| &&
              `                        var a = document.createElement("a");` && |\n| &&
              `                        a.href = args[1];` && |\n| &&
@@ -400,6 +418,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        navCon.to(navConTo);` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'NEST_NAV_CONTAINER_TO':` && |\n| &&
+             |\n|.
+    result = result &&
              `                        navCon = z2ui5.oViewNest.byId(args[1]);` && |\n| &&
              `                        navConTo = z2ui5.oViewNest.byId(args[2]);` && |\n| &&
              `                        navCon.to(navConTo);` && |\n| &&
@@ -418,8 +438,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        navCon = Fragment.byId("popoverId", args[1]);` && |\n| &&
              `                        navConTo = Fragment.byId("popoverId", args[2]);` && |\n| &&
              `                        navCon.to(navConTo);` && |\n| &&
-             |\n|.
-    result = result &&
              `                        break;` && |\n| &&
              `                    case 'URLHELPER':` && |\n| &&
              `                        var URLHelper = mobileLibrary.URLHelper;` && |\n| &&

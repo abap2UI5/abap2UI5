@@ -1,9 +1,9 @@
 sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/model/json/JSONModel",
     "sap/ui/core/BusyIndicator", "sap/m/MessageBox", "sap/m/MessageToast", "sap/ui/core/Fragment", "sap/m/BusyDialog",
-    "sap/ui/VersionInfo", "z2ui5/cc/Server", "sap/ui/model/odata/v2/ODataModel", "sap/m/library",   "sap/ui/core/routing/HashChanger"
+    "sap/ui/VersionInfo", "z2ui5/cc/Server", "sap/ui/model/odata/v2/ODataModel", "sap/m/library", "sap/ui/core/routing/HashChanger", "sap/ui/util/Storage"
 ],
     function (Controller, XMLView, JSONModel, BusyIndicator, MessageBox, MessageToast, Fragment, mBusyDialog, VersionInfo,
-        Server, ODataModel, mobileLibrary, HashChanger) {
+        Server, ODataModel, mobileLibrary, HashChanger, Storage) {
         "use strict";
         return Controller.extend("z2ui5.controller.View1", {
 
@@ -313,6 +313,24 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         var oModel = new ODataModel({ serviceUrl: args[1], annotationURI: (args.length > 3 ? args[3] : '') });
                         z2ui5.oView.setModel(oModel, args[2] ? args[2] : undefined);
                         break;
+                    case 'STORE_DATA':
+                        let storageParams = args[1];
+                        let storageType = Storage.Type.session;
+                        switch (storageParams.TYPE) {
+                            case 'session':
+                                storageType = Storage.Type.session;
+                                break;
+                            case 'local':
+                                storageType = Storage.Type.local;
+                                break;
+                        }
+                        let oStorage = new Storage(storageType, storageParams.PREFIX);
+                        if (storageParams.VALUE == "" || storageParams.VALUE == null) {
+                            oStorage.remove(storageParams.KEY);
+                        } else {
+                            oStorage.put(storageParams.KEY, storageParams.VALUE);
+                        }
+                        break;                        
                     case 'DOWNLOAD_B64_FILE':
                         var a = document.createElement("a");
                         a.href = args[1];

@@ -21,6 +21,7 @@ INTERFACE z2ui5_if_client
       history_back              TYPE string VALUE `HISTORY_BACK`,
       clipboard_app_state       TYPE string VALUE `CLIPBOARD_APP_STATE`,
       clipboard_copy            TYPE string VALUE `CLIPBOARD_COPY`,
+      store_data                TYPE string VALUE `STORE_DATA`,
     END OF cs_event.
 
   CONSTANTS:
