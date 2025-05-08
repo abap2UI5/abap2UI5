@@ -28,6 +28,9 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models", "z2ui5/cc/Server
             z2ui5.oDeviceModel = Models.createDeviceModel();
             this.setModel(z2ui5.oDeviceModel, "device");
 
+            z2ui5.oStorageModel = Models.createStorageModel();
+            this.setModel(z2ui5.oStorageModel, "storage");            
+
             z2ui5.oConfig.ComponentData = this.getComponentData();
 
             try {
