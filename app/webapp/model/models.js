@@ -1,8 +1,9 @@
 sap.ui.define([
     "sap/ui/model/json/JSONModel",
-    "sap/ui/Device"
+    "sap/ui/Device",
+    "sap/ui/util/Storage"
 ], 
-function (JSONModel, Device) {
+function (JSONModel, Device, Storage) {
     "use strict";
 
     return {
@@ -13,7 +14,12 @@ function (JSONModel, Device) {
             var oModel = new JSONModel(Device);
             oModel.setDefaultBindingMode("OneWay");
             return oModel;
-        }
+        },
+        createStorageModel: function () {
+            var oModel = new JSONModel(Storage);
+            oModel.setDefaultBindingMode("TwoWay");
+            return oModel;
+        }        
     };
 
 });
