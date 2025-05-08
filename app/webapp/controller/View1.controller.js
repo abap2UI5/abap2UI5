@@ -590,6 +590,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     }
                 });
                 z2ui5.oView.setModel(z2ui5.oDeviceModel, "device");
+                z2ui5.oView.setModel(z2ui5.oStorageModel, "storage");
                 if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH) {
                     z2ui5.oView.setModel(oview_model, "http");
                 }
