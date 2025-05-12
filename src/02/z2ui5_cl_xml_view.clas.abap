@@ -2145,6 +2145,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS tree_extension
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS filter_bar
       IMPORTING
         usetoolbar                   TYPE clike DEFAULT 'false'
@@ -10095,6 +10099,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        ns   = `table` ).
 
   ENDMETHOD.
+
+  METHOD tree_extension.
+    result = _generic( ns   = `table`
+                       name = `extension` ).
+  ENDMETHOD.
+
 
   METHOD two_columns_layout.
     result = _generic( name = `TwoColumnsLayout`
