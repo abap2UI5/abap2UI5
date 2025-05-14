@@ -515,6 +515,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS avatar
       IMPORTING
         ns                TYPE clike OPTIONAL
+        !id               TYPE clike OPTIONAL
         src               TYPE clike OPTIONAL
         class             TYPE clike OPTIONAL
         displaysize       TYPE clike OPTIONAL
@@ -5399,7 +5400,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = me.
     _generic( name   = `Avatar`
               ns     = ns
-              t_prop = VALUE #( ( n = `src`         v = src )
+              t_prop = VALUE #( ( n = `id` v = id )
+                                ( n = `src`         v = src )
                                 ( n = `class`       v = class )
                                 ( n = `ariaHasPopup`       v = ariahaspopup )
                                 ( n = `backgroundColor`       v = backgroundcolor )
