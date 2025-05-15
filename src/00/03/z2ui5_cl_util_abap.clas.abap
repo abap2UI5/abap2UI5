@@ -1398,7 +1398,8 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
       CREATE DATA mt_data TYPE HANDLE tabdescr.
     ENDIF.
 
-    ASSIGN mt_data->* TO FIELD-SYMBOL(<fs_target_tab>).
+    FIELD-SYMBOLS <fs_target_tab> TYPE STANDARD TABLE.
+    ASSIGN mt_data->* TO <fs_target_tab>.
 
     CLEAR <fs_target_tab>.
 
@@ -1424,7 +1425,7 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
         IF result_desc-leng < result_desc-intlen.
           " interne Darstellung anders als externe Darstellung
           " UNICODE, offset halbieren
-          result_desc-offset /= 2.
+          result_desc-offset = result_desc-offset / 2.
         ENDIF.
 
         TRY.
