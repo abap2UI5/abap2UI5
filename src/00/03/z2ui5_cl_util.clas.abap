@@ -85,6 +85,12 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE ty_t_msg.
 
+    CLASS-METHODS rtti_get_data_element_text_l
+      IMPORTING
+        VALUE(val)    TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS msg_get
       IMPORTING
         VALUE(val)    TYPE any
@@ -146,6 +152,14 @@ CLASS z2ui5_cl_util DEFINITION
         it_source     TYPE string_table
       RETURNING
         VALUE(result) TYPE string.
+
+    CLASS-METHODS tab_get_where_by_dfies
+      IMPORTING
+        mv_check_tab_field TYPE string
+        ms_data_row        TYPE REF TO data
+        it_dfies           TYPE z2ui5_cl_util=>ty_t_dfies
+      RETURNING
+        VALUE(result)      TYPE string.
 
     CLASS-METHODS itab_get_itab_by_csv
       IMPORTING
@@ -791,6 +805,48 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         result = |{ result }{ <field> };|.
       ENDDO.
       result = result && cl_abap_char_utilities=>cr_lf.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD tab_get_where_by_dfies.
+
+    DATA val TYPE string.
+
+    LOOP AT it_dfies REFERENCE INTO DATA(dfies).
+
+      IF NOT ( dfies->keyflag = abap_true OR dfies->fieldname = mv_check_tab_field ).
+        CONTINUE.
+      ENDIF.
+
+      ASSIGN ms_data_row->* TO FIELD-SYMBOL(<row>).
+
+      ASSIGN COMPONENT dfies->fieldname OF STRUCTURE <row> TO FIELD-SYMBOL(<value>).
+      IF <value> IS NOT ASSIGNED.
+        CONTINUE.
+      ENDIF.
+      IF <value> IS INITIAL.
+        CONTINUE.
+      ENDIF.
+
+      IF result IS NOT INITIAL.
+        DATA(and) = ` AND `.
+      ENDIF.
+
+      IF <value> CA `_`.
+        DATA(escape) = `ESCAPE '#'`.
+      ELSE.
+        CLEAR escape.
+      ENDIF.
+
+      val = <value>.
+
+      IF val CA `_`.
+        REPLACE ALL OCCURRENCES OF `_` IN val WITH `#_`.
+      ENDIF.
+
+      result = |{ result }{ and } ( { dfies->fieldname } LIKE '%{ val }%' { escape } )|.
+
     ENDLOOP.
 
   ENDMETHOD.
@@ -1464,6 +1520,12 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     DATA(lt_msg) = msg_get_t( val ).
     result = lt_msg[ 0 ].
+
+  ENDMETHOD.
+
+  METHOD rtti_get_data_element_text_l.
+
+    result = z2ui5_cl_util=>rtti_get_data_element_texts( val )-long.
 
   ENDMETHOD.
 

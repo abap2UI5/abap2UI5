@@ -101,7 +101,7 @@ CLASS z2ui5_cl_util_abap DEFINITION
 
     CLASS-METHODS rtti_get_data_element_texts
       IMPORTING
-        i_data_element_name TYPE string
+        i_data_element_name TYPE clike
       RETURNING
         VALUE(result)       TYPE ty_s_data_element_text.
 
@@ -584,7 +584,7 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
           END OF ddic.
     DATA exists            TYPE abap_bool.
 
-    DATA data_element_name LIKE i_data_element_name.
+    DATA data_element_name type string.
     DATA temp7             TYPE REF TO cl_abap_structdescr.
     DATA struct_desrc      LIKE temp7.
     FIELD-SYMBOLS <ddic> TYPE data.
