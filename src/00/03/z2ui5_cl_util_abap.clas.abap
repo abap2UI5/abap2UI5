@@ -1255,7 +1255,8 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
     data lr_shlp type ref to data.
     data(lv_type) = 'SHLP_DESCR'.
     create data lr_shlp type (lv_type).
-    assign lr_shlp->* to field-symbol(<shlp>).
+    field-symbols <shlp> type any.
+    assign lr_shlp->* to <shlp>.
 
     data lv_tabname type c length 30.
     data lv_fieldname type c length 30.
