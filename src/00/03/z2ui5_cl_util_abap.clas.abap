@@ -11,6 +11,28 @@ CLASS z2ui5_cl_util_abap DEFINITION
       END OF ty_s_fix_val.
     TYPES ty_t_fix_val TYPE STANDARD TABLE OF ty_s_fix_val WITH DEFAULT KEY.
 
+    TYPES: BEGIN OF ty_usr01,
+             mandt         TYPE c LENGTH 3,     " Client
+             bname         TYPE c LENGTH 12,    " User Name
+             stcod         TYPE c LENGTH 20,    " Start Menu (old)
+             spld          TYPE c LENGTH 4,     " Output Device
+             splg          TYPE c LENGTH 1,     " Print Parameter 1
+             spdb          TYPE c LENGTH 1,     " Print Parameter 2
+             spda          TYPE c LENGTH 1,     " Print Parameter 3
+             datfm         TYPE c LENGTH 1,     " Date Format
+             dcpfm         TYPE c LENGTH 1,     " Decimal Format
+             hdest         TYPE c LENGTH 8,     " Host Destination
+             hmand         TYPE c LENGTH 3,     " Default Host Client
+             hname         TYPE c LENGTH 12,    " Default Host Username
+             menon         TYPE c LENGTH 1,     " Automatic Start
+             menue         TYPE c LENGTH 20,    " Menu Name
+             strtt         TYPE c LENGTH 20,    " Start Menu (again)
+             langu         TYPE c LENGTH 1,     " Logon Language
+             cattkennz     TYPE c LENGTH 1,     " CATT Test Status
+             timefm        TYPE c LENGTH 1,     " Time Format (12h/24h)
+             ianatzonecode TYPE n LENGTH 4,     " IANA Timezone Code
+           END OF ty_usr01.
+
     TYPES:
       BEGIN OF ty_s_dfies,
         tabname     TYPE c LENGTH 30,
