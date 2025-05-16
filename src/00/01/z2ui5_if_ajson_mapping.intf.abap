@@ -1,6 +1,8 @@
 INTERFACE z2ui5_if_ajson_mapping
   PUBLIC.
 
+  INTERFACES if_serializable_object.
+
   TYPES:
     BEGIN OF ty_mapping_field, " deprecated, will be removed
       abap TYPE string,
@@ -13,7 +15,7 @@ INTERFACE z2ui5_if_ajson_mapping
   TYPES:
     BEGIN OF ty_rename,
       from TYPE string,
-      to TYPE string,
+      to   TYPE string,
     END OF ty_rename,
     tty_rename_map TYPE STANDARD TABLE OF ty_rename
       WITH UNIQUE SORTED KEY by_name COMPONENTS from.

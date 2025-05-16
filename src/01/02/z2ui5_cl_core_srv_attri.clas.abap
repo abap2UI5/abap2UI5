@@ -41,6 +41,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
+
   METHOD attri_after_load.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
