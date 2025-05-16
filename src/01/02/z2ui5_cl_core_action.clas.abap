@@ -160,12 +160,10 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
     IF val->id_draft IS INITIAL.
       val->id_draft = z2ui5_cl_util=>uuid_get_c32( ).
+    ELSEIF  ms_next-o_app_leave IS BOUND.
+      val->id_draft = ms_next-o_app_leave->id_draft.
     ELSE.
-      IF ms_next-o_app_leave IS BOUND.
-        val->id_draft = ms_next-o_app_leave->id_draft.
-      ELSE.
-        val->id_draft = ms_next-o_app_call->id_draft.
-      ENDIF.
+      val->id_draft = ms_next-o_app_call->id_draft.
     ENDIF.
 
 *    val->id_draft = COND string( WHEN val->id_draft IS INITIAL
