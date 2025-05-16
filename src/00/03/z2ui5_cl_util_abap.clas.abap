@@ -155,7 +155,7 @@ CLASS z2ui5_cl_util_abap DEFINITION
       RETURNING
         VALUE(result) TYPE string ##NEEDED.
 
-  TYPES trobj_name     TYPE c LENGTH 120.
+    TYPES trobj_name     TYPE c LENGTH 120.
     TYPES sxco_transport TYPE c LENGTH 20.
     TYPES:
       BEGIN OF ty_s_transport,
@@ -169,140 +169,139 @@ CLASS z2ui5_cl_util_abap DEFINITION
 
     TYPES:
       BEGIN OF ty_s_dfies_2,
-        tabname     TYPE c LENGTH 30,    " Table Name
-        fieldname   TYPE c LENGTH 30,    " Field Name
-        langu       TYPE c LENGTH 1,     " Language Key
-        position    TYPE n LENGTH 4,     " Position of the field in the table
-        offset      TYPE n LENGTH 6,     " Offset of a field
-        domname     TYPE c LENGTH 30,    " Domain name
-        rollname    TYPE c LENGTH 30,    " Data element (semantic domain)
-        checktable  TYPE c LENGTH 30,    " Check Table
-        leng        TYPE n LENGTH 6,     " Length (Characters)
-        intlen      TYPE n LENGTH 6,     " Internal Length (Bytes)
-        outputlen   TYPE n LENGTH 6,     " Output Length
-        decimals    TYPE n LENGTH 6,     " Number of Decimal Places
-        datatype    TYPE c LENGTH 4,     " Dynpro Data Type
-        inttype     TYPE c LENGTH 1,     " ABAP Data Type (C,D,N,...)
-        reftable    TYPE c LENGTH 30,    " Reference Table
-        reffield    TYPE c LENGTH 30,    " Reference Field
-        precfield   TYPE c LENGTH 30,    " Included Table Name
-        authorid    TYPE c LENGTH 3,     " Authorization Class
-        memoryid    TYPE c LENGTH 20,    " Set/Get Parameter ID
-        logflag     TYPE c LENGTH 1,     " Change Documents Indicator
-        mask        TYPE c LENGTH 20,    " Template
-        masklen     TYPE n LENGTH 4,     " Template Length
-        convexit    TYPE c LENGTH 5,     " Conversion Routine
-        headlen     TYPE n LENGTH 2,     " Heading Length
-        scrlen1     TYPE n LENGTH 2,     " Short Field Label Length
-        scrlen2     TYPE n LENGTH 2,     " Medium Field Label Length
-        scrlen3     TYPE n LENGTH 2,     " Long Field Label Length
-        fieldtext   TYPE c LENGTH 60,    " Short Description
-        reptext     TYPE c LENGTH 55,    " Heading
-        scrtext_s   TYPE c LENGTH 10,    " Short Field Label
-        scrtext_m   TYPE c LENGTH 20,    " Medium Field Label
-        scrtext_l   TYPE c LENGTH 40,    " Long Field Label
-        keyflag     TYPE c LENGTH 1,     " Key Field Indicator
-        lowercase   TYPE c LENGTH 1,     " Lowercase Allowed
-        mac         TYPE c LENGTH 1,     " Search Help Attached
-        genkey      TYPE c LENGTH 1,     " Flag (X or Blank)
-        noforkey    TYPE c LENGTH 1,     " Flag (X or Blank)
-        valexi      TYPE c LENGTH 1,     " Fixed Values Exist
-        noauthch    TYPE c LENGTH 1,     " Flag (X or Blank)
-        sign        TYPE c LENGTH 1,     " Sign Flag
-        dynpfld     TYPE c LENGTH 1,     " Field Displayed on Dynpro
-        f4availabl  TYPE c LENGTH 1,     " Input Help Available
-        comptype    TYPE c LENGTH 1,     " Component Type
-        lfieldname  TYPE c LENGTH 132,   " Long Field Name
-        ltrflddis   TYPE c LENGTH 1,     " Left-to-Right Write Direction
-        bidictrlc   TYPE c LENGTH 1,     " No BIDI Character Filtering
-        outputstyle TYPE n LENGTH 2,     " Output Style (Decfloat Types)
-        nohistory   TYPE c LENGTH 1,     " Input History Deactivated
-        ampmformat  TYPE c LENGTH 1,     " AM/PM Time Format Indicator
+        tabname     TYPE c LENGTH 30,  " Table Name
+        fieldname   TYPE c LENGTH 30,  " Field Name
+        langu       TYPE c LENGTH 1,   " Language Key
+        position    TYPE n LENGTH 4,   " Position of the field in the table
+        offset      TYPE n LENGTH 6,   " Offset of a field
+        domname     TYPE c LENGTH 30,  " Domain name
+        rollname    TYPE c LENGTH 30,  " Data element (semantic domain)
+        checktable  TYPE c LENGTH 30,  " Check Table
+        leng        TYPE n LENGTH 6,   " Length (Characters)
+        intlen      TYPE n LENGTH 6,   " Internal Length (Bytes)
+        outputlen   TYPE n LENGTH 6,   " Output Length
+        decimals    TYPE n LENGTH 6,   " Number of Decimal Places
+        datatype    TYPE c LENGTH 4,   " Dynpro Data Type
+        inttype     TYPE c LENGTH 1,   " ABAP Data Type (C,D,N,...)
+        reftable    TYPE c LENGTH 30,  " Reference Table
+        reffield    TYPE c LENGTH 30,  " Reference Field
+        precfield   TYPE c LENGTH 30,  " Included Table Name
+        authorid    TYPE c LENGTH 3,   " Authorization Class
+        memoryid    TYPE c LENGTH 20,  " Set/Get Parameter ID
+        logflag     TYPE c LENGTH 1,   " Change Documents Indicator
+        mask        TYPE c LENGTH 20,  " Template
+        masklen     TYPE n LENGTH 4,   " Template Length
+        convexit    TYPE c LENGTH 5,   " Conversion Routine
+        headlen     TYPE n LENGTH 2,   " Heading Length
+        scrlen1     TYPE n LENGTH 2,   " Short Field Label Length
+        scrlen2     TYPE n LENGTH 2,   " Medium Field Label Length
+        scrlen3     TYPE n LENGTH 2,   " Long Field Label Length
+        fieldtext   TYPE c LENGTH 60,  " Short Description
+        reptext     TYPE c LENGTH 55,  " Heading
+        scrtext_s   TYPE c LENGTH 10,  " Short Field Label
+        scrtext_m   TYPE c LENGTH 20,  " Medium Field Label
+        scrtext_l   TYPE c LENGTH 40,  " Long Field Label
+        keyflag     TYPE c LENGTH 1,   " Key Field Indicator
+        lowercase   TYPE c LENGTH 1,   " Lowercase Allowed
+        mac         TYPE c LENGTH 1,   " Search Help Attached
+        genkey      TYPE c LENGTH 1,   " Flag (X or Blank)
+        noforkey    TYPE c LENGTH 1,   " Flag (X or Blank)
+        valexi      TYPE c LENGTH 1,   " Fixed Values Exist
+        noauthch    TYPE c LENGTH 1,   " Flag (X or Blank)
+        sign        TYPE c LENGTH 1,   " Sign Flag
+        dynpfld     TYPE c LENGTH 1,   " Field Displayed on Dynpro
+        f4availabl  TYPE c LENGTH 1,   " Input Help Available
+        comptype    TYPE c LENGTH 1,   " Component Type
+        lfieldname  TYPE c LENGTH 132, " Long Field Name
+        ltrflddis   TYPE c LENGTH 1,   " Left-to-Right Write Direction
+        bidictrlc   TYPE c LENGTH 1,   " No BIDI Character Filtering
+        outputstyle TYPE n LENGTH 2,   " Output Style (Decfloat Types)
+        nohistory   TYPE c LENGTH 1,   " Input History Deactivated
+        ampmformat  TYPE c LENGTH 1,   " AM/PM Time Format Indicator
       END OF ty_s_dfies_2.
     TYPES ty_t_dfies_2 TYPE STANDARD TABLE OF ty_s_dfies_2 WITH EMPTY KEY.
 
     TYPES:
       BEGIN OF ty_shlp_intdescr,
-        issimple         TYPE c LENGTH 1,    " Elementary Search Help Flag
-        hotkey           TYPE c LENGTH 1,    " Hot Key
-        selmtype         TYPE c LENGTH 1,    " Category of Selection Method
-        selmethod        TYPE c LENGTH 30,   " Selection Method Name
-        texttab          TYPE c LENGTH 30,   " Text Table Name
-        selmexit         TYPE c LENGTH 30,   " Search Help Exit
-        dialogtype       TYPE c LENGTH 1,    " Dialog Type
-        ddlanguage       TYPE c LENGTH 1,    " Language Key
-        ddtext           TYPE c LENGTH 60,   " Short Text
-        dialoginfo       TYPE c LENGTH 1,    " Flag: SELFIELDS/LISTFIELDS read
-        f4state          TYPE c LENGTH 1,    " Internal Usage Only
-        tabname          TYPE c LENGTH 30,   " Table Name
-        fieldname        TYPE c LENGTH 30,   " Field Name
-        title            TYPE c LENGTH 60,   " Title Text
-        history          TYPE c LENGTH 1,    " Deprecated Usage
-        handle           TYPE int4,             " Reference Handle (int4)
-        autosuggest      TYPE c LENGTH 1,    " Autosuggest Flag
-        fuzzy_search     TYPE c LENGTH 1,    " Fuzzy Search Flag
-        fuzzy_similarity TYPE p DECIMALS 1 LENGTH 2,  " Accuracy for Fuzzy Search (DEC 2,1)
+        issimple         TYPE c LENGTH 1,   " Elementary Search Help Flag
+        hotkey           TYPE c LENGTH 1,   " Hot Key
+        selmtype         TYPE c LENGTH 1,   " Category of Selection Method
+        selmethod        TYPE c LENGTH 30,  " Selection Method Name
+        texttab          TYPE c LENGTH 30,  " Text Table Name
+        selmexit         TYPE c LENGTH 30,  " Search Help Exit
+        dialogtype       TYPE c LENGTH 1,   " Dialog Type
+        ddlanguage       TYPE c LENGTH 1,   " Language Key
+        ddtext           TYPE c LENGTH 60,  " Short Text
+        dialoginfo       TYPE c LENGTH 1,   " Flag: SELFIELDS/LISTFIELDS read
+        f4state          TYPE c LENGTH 1,   " Internal Usage Only
+        tabname          TYPE c LENGTH 30,  " Table Name
+        fieldname        TYPE c LENGTH 30,  " Field Name
+        title            TYPE c LENGTH 60,  " Title Text
+        history          TYPE c LENGTH 1,   " Deprecated Usage
+        handle           TYPE int4,         " Reference Handle (int4)
+        autosuggest      TYPE c LENGTH 1,   " Autosuggest Flag
+        fuzzy_search     TYPE c LENGTH 1,   " Fuzzy Search Flag
+        fuzzy_similarity TYPE p DECIMALS 1 LENGTH 2, " Accuracy for Fuzzy Search (DEC 2,1)
       END OF ty_shlp_intdescr.
 
     TYPES:
       BEGIN OF ty_ddshiface,
-        shlpfield  TYPE c LENGTH 30,    " Field Name for Pass by Value to F4 Help
-        valtabname TYPE c LENGTH 30,    " Structure Name for Input Help Assignment
-        valfield   TYPE c LENGTH 132,   " Field for Input Help Assignment
-        value      TYPE c LENGTH 132,   " Field Content from Dynpro
-        internal   TYPE c LENGTH 1,     " Flag: Internal Representation
-        dispfield  TYPE c LENGTH 1,     " Display-Only Field Flag
-        f4field    TYPE c LENGTH 1,     " F4 Pressed Flag
-        topshlpnam TYPE c LENGTH 30,    " Higher-Level Search Help Name
-        topshlpfld TYPE c LENGTH 30,    " Field of Higher-Level Search Help
+        shlpfield  TYPE c LENGTH 30,  " Field Name for Pass by Value to F4 Help
+        valtabname TYPE c LENGTH 30,  " Structure Name for Input Help Assignment
+        valfield   TYPE c LENGTH 132, " Field for Input Help Assignment
+        value      TYPE c LENGTH 132, " Field Content from Dynpro
+        internal   TYPE c LENGTH 1,   " Flag: Internal Representation
+        dispfield  TYPE c LENGTH 1,   " Display-Only Field Flag
+        f4field    TYPE c LENGTH 1,   " F4 Pressed Flag
+        topshlpnam TYPE c LENGTH 30,  " Higher-Level Search Help Name
+        topshlpfld TYPE c LENGTH 30,  " Field of Higher-Level Search Help
       END OF ty_ddshiface.
 
     TYPES:
       BEGIN OF ty_ddshfprop,
-        fieldname  TYPE c LENGTH 30,   " Name of Search Help Parameter
-        shlpinput  TYPE c LENGTH 1,    " IMPORT Parameter Flag
-        shlpoutput TYPE c LENGTH 1,    " EXPORT Parameter Flag
-        shlpselpos TYPE n LENGTH 2,    " Position in Dialog Box
-        shlplispos TYPE n LENGTH 2,    " Position in Hit List
-        shlpseldis TYPE c LENGTH 1,    " Display Field in Dialog Box
-        defaultval TYPE c LENGTH 21,   " Default Value
+        fieldname  TYPE c LENGTH 30, " Name of Search Help Parameter
+        shlpinput  TYPE c LENGTH 1,  " IMPORT Parameter Flag
+        shlpoutput TYPE c LENGTH 1,  " EXPORT Parameter Flag
+        shlpselpos TYPE n LENGTH 2,  " Position in Dialog Box
+        shlplispos TYPE n LENGTH 2,  " Position in Hit List
+        shlpseldis TYPE c LENGTH 1,  " Display Field in Dialog Box
+        defaultval TYPE c LENGTH 21, " Default Value
       END OF ty_ddshfprop.
 
     TYPES:
       BEGIN OF ty_ddshselopt,
-        shlpname  TYPE c LENGTH 30,   " Name of Search Help
-        shlpfield TYPE c LENGTH 30,   " Name of Search Help Parameter
-        sign      TYPE c LENGTH 1,    " Include/Exclude Flag (I/E)
-        option    TYPE c LENGTH 2,    " Selection Option (EQ/BT/CP/..)
-        low       TYPE c LENGTH 45,   " Low Value for Selection
-        high      TYPE c LENGTH 45,   " High Value for Selection
+        shlpname  TYPE c LENGTH 30, " Name of Search Help
+        shlpfield TYPE c LENGTH 30, " Name of Search Help Parameter
+        sign      TYPE c LENGTH 1,  " Include/Exclude Flag (I/E)
+        option    TYPE c LENGTH 2,  " Selection Option (EQ/BT/CP/..)
+        low       TYPE c LENGTH 45, " Low Value for Selection
+        high      TYPE c LENGTH 45, " High Value for Selection
       END OF ty_ddshselopt.
 
     TYPES:
       BEGIN OF ty_ddshtextsearch_field,
-        fieldname TYPE c LENGTH 30,    " Name of a searchable field (frei gewählt, da nicht spezifiziert)
+        fieldname TYPE c LENGTH 30, " Name of a searchable field (frei gewählt, da nicht spezifiziert)
       END OF ty_ddshtextsearch_field.
 
-    TYPES: tt_ddshtextsearch_fields TYPE STANDARD TABLE OF ty_ddshtextsearch_field WITH DEFAULT KEY.
+    TYPES tt_ddshtextsearch_fields TYPE STANDARD TABLE OF ty_ddshtextsearch_field WITH DEFAULT KEY.
 
     TYPES:
       BEGIN OF ty_ddshtextsearch,
-        request TYPE c LENGTH 60,               " Text Search Request
-        fields  TYPE tt_ddshtextsearch_fields,  " Fields eligible for text search
+        request TYPE c LENGTH 60,              " Text Search Request
+        fields  TYPE tt_ddshtextsearch_fields, " Fields eligible for text search
       END OF ty_ddshtextsearch.
 
     TYPES:
       BEGIN OF ty_shlp_descr,
-        shlpname   TYPE c LENGTH 30,  " Name of a Search Help
-        shlptype   TYPE c LENGTH 2,   " Type of an input help (fixed values)
+        shlpname   TYPE c LENGTH 30,       " Name of a Search Help
+        shlptype   TYPE c LENGTH 2,        " Type of an input help (fixed values)
         intdescr   TYPE ty_shlp_intdescr,  " Placeholder for Internal Info of Search Help
-        interface  TYPE STANDARD TABLE OF ty_ddshiface WITH EMPTY KEY,  " Placeholder for Interface of Search Help
+        interface  TYPE STANDARD TABLE OF ty_ddshiface WITH EMPTY KEY,                      " Placeholder for Interface of Search Help
         fielddescr TYPE STANDARD TABLE OF ty_s_dfies_2 WITH EMPTY KEY,
         fieldprop  TYPE STANDARD TABLE OF ty_ddshfprop WITH EMPTY KEY,
         selopt     TYPE STANDARD TABLE OF ty_ddshselopt WITH EMPTY KEY,
         textsearch TYPE ty_ddshtextsearch,
       END OF ty_shlp_descr.
-
 
     CLASS-METHODS bus_tr_read
       RETURNING
@@ -327,9 +326,7 @@ CLASS z2ui5_cl_util_abap DEFINITION
         mt_data        TYPE REF TO data
         ms_data_row    TYPE REF TO data.
 
-
   PROTECTED SECTION.
-
     CLASS-METHODS _set_e071k
       IMPORTING
         ir_data       TYPE REF TO data
@@ -347,7 +344,7 @@ CLASS z2ui5_cl_util_abap DEFINITION
 
     CLASS-METHODS _get_e071k_tabkey
       IMPORTING
-        !line            TYPE any
+        line             TYPE any
         dfies            TYPE z2ui5_cl_util=>ty_t_dfies
       RETURNING
         VALUE(rv_tabkey) TYPE trobj_name.
@@ -359,7 +356,6 @@ CLASS z2ui5_cl_util_abap DEFINITION
     CLASS-METHODS set_mandt
       IMPORTING
         ir_data TYPE REF TO data.
-
 
     CLASS-METHODS rtti_get_class_descr_on_cloud
       IMPORTING
@@ -789,7 +785,7 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
           END OF ddic.
     DATA exists            TYPE abap_bool.
 
-    DATA data_element_name type string.
+    DATA data_element_name TYPE string.
     DATA temp7             TYPE REF TO cl_abap_structdescr.
     DATA struct_desrc      LIKE temp7.
     FIELD-SYMBOLS <ddic> TYPE data.
@@ -1224,10 +1220,11 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
     ELSE.
 
       DATA(lv_tabname) = `dd02t`.
-      SELECT SINGLE ddtext FROM (lv_tabname)
+      SELECT SINGLE ddtext
+        FROM (lv_tabname)
         WHERE tabname    = @tabname
           AND ddlanguage = @lan
-         INTO @ddtext.
+        INTO @ddtext.
 
     ENDIF.
 
@@ -1239,10 +1236,7 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-
   METHOD bus_search_help_read.
-
 
     DATA lt_result_tab TYPE TABLE OF string.
     DATA ls_comp       TYPE abap_componentdescr.
@@ -1250,22 +1244,23 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
     DATA lo_datadescr  TYPE REF TO cl_abap_datadescr.
     DATA lr_line       TYPE REF TO data.
 
-*    data ls_shlp type shlp_descr.
+    " data ls_shlp type shlp_descr.
 
-    data lr_shlp type ref to data.
-    data(lv_type) = 'SHLP_DESCR'.
-    create data lr_shlp type (lv_type).
-    field-symbols <shlp> type any.
-    assign lr_shlp->* to <shlp>.
+    DATA lr_shlp       TYPE REF TO data.
 
-    data lv_tabname type c length 30.
-    data lv_fieldname type c length 30.
+    DATA(lv_type) = 'SHLP_DESCR'.
+    CREATE DATA lr_shlp TYPE (lv_type).
+    FIELD-SYMBOLS <shlp> TYPE any.
+    ASSIGN lr_shlp->* TO <shlp>.
+
+    DATA lv_tabname   TYPE c LENGTH 30.
+    DATA lv_fieldname TYPE c LENGTH 30.
     lv_tabname = mv_table.
     lv_fieldname = mv_fname.
 
     IF ms_shlp IS INITIAL.
       " Suchhilfe lesen
-      data(lv_fm) = 'F4IF_DETERMINE_SEARCHHELP'.
+      DATA(lv_fm) = 'F4IF_DETERMINE_SEARCHHELP'.
       CALL FUNCTION lv_fm
         EXPORTING
           tabname           = lv_tabname
@@ -1280,19 +1275,18 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
       IF sy-subrc <> 0.
         " FEHLER
       ENDIF.
-        ms_shlp = CORRESPONDING #( <shlp> ).
+      ms_shlp = CORRESPONDING #( <shlp> ).
 
       IF ms_shlp-intdescr-issimple = abap_false.
 
 *      DATA lt_shlp       TYPE shlp_desct.
-      data lr_t_shlp type ref to data.
-      data(lv_type2) = 'SHLP_DESCT'.
-      create data lr_t_shlp type (lv_type2).
-      field-symbols <shlp2> type STANDARD TABLE.
-      assign lr_t_shlp->* to <shlp2>.
+        DATA lr_t_shlp TYPE REF TO data.
+        DATA(lv_type2) = 'SHLP_DESCT'.
+        CREATE DATA lr_t_shlp TYPE (lv_type2).
+        FIELD-SYMBOLS <shlp2> TYPE STANDARD TABLE.
+        ASSIGN lr_t_shlp->* TO <shlp2>.
 
-
-      lv_fm = 'F4IF_EXPAND_SEARCHHELP'.
+        lv_fm = 'F4IF_EXPAND_SEARCHHELP'.
         CALL FUNCTION lv_fm
           EXPORTING
             shlp_top = ms_shlp
@@ -1300,7 +1294,9 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
             shlp_tab = <shlp2>.
 
 *        DATA(ls_row) = CORRESPONDING #( <shlp2>[ 1 ] OPTIONAL ).
-        ms_shlp = CORRESPONDING #( <shlp2>[ 1 ] ).
+        FIELD-SYMBOLS <row2> TYPE any.
+        ASSIGN  <shlp2>[ 1 ] TO <row2>.
+        ms_shlp = CORRESPONDING #( <row2> ).
       ENDIF.
     ENDIF.
 
@@ -1358,8 +1354,8 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
     ENDLOOP.
 
-    create data lr_shlp type (lv_type).
-    assign lr_shlp->* to <shlp>.
+    CREATE DATA lr_shlp TYPE (lv_type).
+    ASSIGN lr_shlp->* TO <shlp>.
     <shlp> = CORRESPONDING #( ms_shlp ).
 
     lv_fm = 'F4IF_SELECT_VALUES'.
@@ -1495,8 +1491,6 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-
   METHOD _get_e071k_tabkey.
 
     DATA lv_type       TYPE c LENGTH 1.
@@ -1543,17 +1537,9 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
   METHOD bus_tr_add.
 
-
     IF z2ui5_cl_util=>context_check_abap_cloud( ).
 
-
-
-
-
-
-
     ELSE.
-
 
       FIELD-SYMBOLS <e071>    TYPE any.
       FIELD-SYMBOLS <t_e071k> TYPE STANDARD TABLE.
@@ -1563,15 +1549,15 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
       set_mandt( ir_data ).
 
       DATA(r_e071k) = _set_e071k( ir_data      = ir_data
-                                 iv_tabname   = iv_tabname
-                                 is_transport = is_transport ).
+                                  iv_tabname   = iv_tabname
+                                  is_transport = is_transport ).
       ASSIGN r_e071k->* TO <e071>.
       IF <e071> IS INITIAL.
         RETURN.
       ENDIF.
 
       DATA(r_e071) = _set_e071( iv_tabname   = iv_tabname
-                               is_transport = is_transport ).
+                                is_transport = is_transport ).
 
       ASSIGN r_e071k->* TO <t_e071k>.
       ASSIGN r_e071->* TO <t_e071>.
@@ -1607,8 +1593,6 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
-
-
 
   METHOD _set_e071k.
 
@@ -1701,7 +1685,7 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
         RETURN.
       ELSE.
         <value> = _get_e071k_tabkey( dfies = dfies
-                                    line  = <line> ).
+                                     line  = <line> ).
       ENDIF.
 
       APPEND <s_e071k> TO <t_e071k>.
@@ -1857,7 +1841,6 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
   METHOD bus_tr_read.
 
-
     IF z2ui5_cl_util=>context_check_abap_cloud( ).
 
 *          data(lo_current_user) = xco_cp=>sy->user( ).
@@ -1996,6 +1979,5 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
-
 
 ENDCLASS.
