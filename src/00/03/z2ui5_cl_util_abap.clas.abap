@@ -102,6 +102,13 @@ CLASS z2ui5_cl_util_abap DEFINITION
       END OF ty_s_class_descr.
     TYPES ty_t_classes TYPE STANDARD TABLE OF ty_s_class_descr WITH NON-UNIQUE DEFAULT KEY.
 
+    CLASS-METHODS conv_exit
+      IMPORTING
+        name   TYPE ty_s_dfies
+        val    TYPE data
+      CHANGING
+        result TYPE data.
+
     CLASS-METHODS context_check_abap_cloud
       RETURNING
         VALUE(result) TYPE abap_bool.
@@ -1999,6 +2006,39 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
       ENDIF.
     ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD conv_exit.
+
+    IF z2ui5_cl_util=>context_check_abap_cloud( ).
+
+    ELSE.
+
+      DATA(conv) = |CONVERSION_EXIT_{ name-convexit }_INPUT|.
+      DATA conex TYPE c LENGTH 30.
+      DATA(lv_tab) = 'TFDIR'.
+
+      SELECT SINGLE funcname FROM (lv_tab)
+        WHERE funcname = @conv
+        INTO @conex.
+
+      IF sy-subrc = 0.
+
+        CALL FUNCTION conex
+          EXPORTING
+            input  = val
+          IMPORTING
+            output = result
+          EXCEPTIONS
+            OTHERS = 99.
+        IF sy-subrc <> 0.
+
+        ENDIF.
+
+      ENDIF.
+
+    ENDIF.
 
   ENDMETHOD.
 
