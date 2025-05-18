@@ -710,7 +710,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         showclearicon    TYPE clike OPTIONAL
         showvaluehelp    TYPE clike OPTIONAL
-        valueHelpOnly    TYPE clike OPTIONAL
+        valuehelponly    TYPE clike OPTIONAL
         name             TYPE clike OPTIONAL
         suggestionitems  TYPE clike OPTIONAL
         tokenupdate      TYPE clike OPTIONAL
@@ -7964,7 +7964,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
         t_prop = VALUE #( ( n = `tokens` v = tokens )
                           ( n = `showClearIcon` v = z2ui5_cl_util=>boolean_abap_2_json( showclearicon ) )
                           ( n = `name` v = name )
-                          ( n = `valueHelpOnly` v = z2ui5_cl_util=>boolean_abap_2_json( valueHelpOnly ) )
+                          ( n = `valueHelpOnly` v = z2ui5_cl_util=>boolean_abap_2_json( valuehelponly ) )
                           ( n = `showValueHelp` v = z2ui5_cl_util=>boolean_abap_2_json( showvaluehelp ) )
                           ( n = `enabled` v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
                           ( n = `suggestionItems` v = suggestionitems )
