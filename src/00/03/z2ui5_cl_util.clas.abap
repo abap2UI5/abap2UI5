@@ -1469,12 +1469,52 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD filter_get_sql_where.
 
-    LOOP AT val INTO DATA(ls_filter).
 
-      DATA(lo_range) = NEW z2ui5_cl_util_range( iv_fieldname = ls_filter-name
-                        ir_range     = REF #( ls_filter-t_range ) ).
+    IF context_check_abap_cloud( ).
 
-    ENDLOOP.
+
+    ELSE.
+
+      TYPES: BEGIN OF ty_rscedst,
+               fnam   TYPE c LENGTH 30, " Field Name
+               sign   TYPE c LENGTH 1,  " Selection criteria: SIGN
+               option TYPE c LENGTH 2,  " Selection criteria: OPTION
+               low    TYPE c LENGTH 45, " From value
+               high   TYPE c LENGTH 45, " To value
+             END OF ty_rscedst.
+
+      DATA lt_range TYPE STANDARD TABLE OF ty_rscedst.
+
+      LOOP AT val INTO DATA(ls_filter).
+        LOOP AT ls_filter-t_range INTO DATA(ls_range).
+
+          INSERT VALUE #(
+              fnam = ls_filter-name
+              sign = ls_range-sign
+              option = ls_range-option
+              low = ls_range-low
+              high = ls_range-high
+           ) INTO TABLE lt_range.
+
+        ENDLOOP.
+      ENDLOOP.
+
+*      DATA result TYPE string.
+*    DATA lt_where TYPE rsdmd_t_where.
+      DATA(lv_fm) = 'RSDS_RANGE_TO_WHERE'.
+      CALL FUNCTION lv_fm
+        EXPORTING
+          i_t_range      = lt_range
+*         i_th_range     =
+*         i_r_renderer   =
+        IMPORTING
+          e_where        = result
+*         e_t_where      = lt_where
+        EXCEPTIONS
+          internal_error = 1
+          OTHERS         = 2.
+
+    ENDIF.
 
   ENDMETHOD.
 
