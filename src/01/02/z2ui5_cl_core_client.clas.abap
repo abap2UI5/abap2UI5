@@ -45,11 +45,11 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     TRY.
 
-       DATA(foo) = mo_action->mo_http_post->ms_request-s_front-o_comp_data.
-        IF foo IS NOT BOUND.
+        DATA(lo_comp) = mo_action->mo_http_post->ms_request-s_front-o_comp_data.
+        IF lo_comp IS NOT BOUND.
           RETURN.
         ENDIF.
-        DATA(lo_params) = foo->slice( `/startupParameters/` ).
+        DATA(lo_params) = lo_comp->slice( `/startupParameters/` ).
 
         IF lo_params IS NOT BOUND.
           RETURN.
