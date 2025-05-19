@@ -1274,6 +1274,10 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD xml_parse.
 
+    IF xml IS INITIAL.
+      RETURN.
+    ENDIF.
+
     CALL TRANSFORMATION id
          SOURCE XML xml
          RESULT data = any.
