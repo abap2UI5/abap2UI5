@@ -295,7 +295,17 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~view_display.
 
-    mo_action->ms_next-s_set-s_view-xml = val.
+    IF z2ui5_cl_util=>rtti_check_clike( val ).
+      mo_action->ms_next-s_set-s_view-xml = val.
+    ELSE.
+
+      DATA lo_object TYPE REF TO object.
+      lo_object ?= val.
+      CALL METHOD lo_object->('STRINGIFY')
+        RECEIVING
+          result = mo_action->ms_next-s_set-s_view-xml.
+    ENDIF.
+
     mo_action->ms_next-s_set-s_view-switchdefaultmodelannouri = switch_default_model_anno_uri.
     mo_action->ms_next-s_set-s_view-switch_default_model_path = switch_default_model_path.
 
