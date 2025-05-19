@@ -44,7 +44,12 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
       ).
 
     TRY.
+
+        IF mo_action->mo_http_post->ms_request-s_front-o_comp_data IS NOT BOUND.
+          RETURN.
+        ENDIF.
         DATA(lo_params) = mo_action->mo_http_post->ms_request-s_front-o_comp_data->slice( `/startupParameters/` ).
+
         IF lo_params IS NOT BOUND.
           RETURN.
         ENDIF.
