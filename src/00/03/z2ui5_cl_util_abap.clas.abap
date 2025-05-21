@@ -1333,7 +1333,10 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
       " Values from Caller app to Interface Values
       LOOP AT ms_shlp-interface REFERENCE INTO DATA(r_interface) WHERE value IS INITIAL.
 
-        ASSIGN COMPONENT r_interface->shlpfield OF STRUCTURE mr_data->* TO FIELD-SYMBOL(<value>).
+        FIELD-SYMBOLS <any> type any.
+        assign mr_data->* to <any>.
+        FIELD-SYMBOLS <value> type any.
+        ASSIGN COMPONENT r_interface->shlpfield OF STRUCTURE <any> TO <value>.
 
         IF sy-subrc <> 0.
           CONTINUE.
@@ -1477,7 +1480,9 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
       IF interface-value IS NOT INITIAL.
 
-        ASSIGN COMPONENT interface-shlpfield OF STRUCTURE ms_data_row->* TO <value>.
+        UNASSIGN <any>.
+        assign ms_data_row->* to <any>.
+        ASSIGN COMPONENT interface-shlpfield OF STRUCTURE <any> TO <value>.
 
         IF sy-subrc <> 0.
           CONTINUE.
@@ -1592,7 +1597,6 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
       ASSIGN r_e071->* TO <t_e071>.
 
       DATA(fb1) = 'TR_APPEND_TO_COMM_OBJS_KEYS'.
-
       CALL FUNCTION fb1
         EXPORTING
           wi_trkorr = is_transport-transport
