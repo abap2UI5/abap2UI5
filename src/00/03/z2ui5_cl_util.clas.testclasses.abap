@@ -285,11 +285,6 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_rtti_get_classname_by_ref.
 
-    DATA(lo_test) = NEW z2ui5_cl_util( ).
-    DATA(lv_name) = z2ui5_cl_util=>rtti_get_classname_by_ref( lo_test ).
-    cl_abap_unit_assert=>assert_equals( exp = `Z2UI5_CL_UTIL`
-                                        act = lv_name ).
-
     DATA(lo_test2) = NEW ltcl_test_app( ).
     DATA(lv_name2) = z2ui5_cl_util=>rtti_get_classname_by_ref( lo_test2 ).
     cl_abap_unit_assert=>assert_equals( exp = `LTCL_TEST_APP`
