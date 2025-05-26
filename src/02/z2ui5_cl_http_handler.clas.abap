@@ -206,8 +206,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     DATA(lo_handler) = factory( server = server
                                 req    = req
-                                res    = res
-         ).
+                                res    = res ).
 
     lo_handler->main( config ).
 
@@ -289,8 +288,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     DATA(lo_handler) = factory( server = server
                                 req    = req
-                                res    = res
-      ).
+                                res    = res ).
 
     result-body   = lo_handler->mo_server->get_cdata( ).
     result-method = lo_handler->mo_server->get_method( ).
@@ -301,8 +299,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     DATA(lo_handler) = factory( server = server
                                 req    = req
-                                res    = res
-      ).
+                                res    = res ).
 
     lo_handler->mo_server->set_cdata( is_res-body ).
     lo_handler->mo_server->set_header_field( n = `cache-control`

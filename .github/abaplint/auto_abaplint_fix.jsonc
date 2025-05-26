@@ -26,12 +26,14 @@
     "contains_tab": true,
     "colon_missing_space": true,
     "line_break_multiple_parameters": true,
+    "line_only_punc": true,
     "max_one_method_parameter_per_line": true,
     "sequential_blank": true,
     "whitespace_end": true,
     "space_before_colon": true,
     "space_before_dot": true,
-    "commented_code": false,
+    "keep_single_parameter_on_one_line": true,
+    "commented_code": false
 
   }
 }

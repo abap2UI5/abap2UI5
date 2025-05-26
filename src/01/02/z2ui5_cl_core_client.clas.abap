@@ -40,8 +40,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                       s_draft                = CORRESPONDING #( mo_action->mo_app->ms_draft )
                       check_on_navigated     = mo_action->ms_actual-check_on_navigated
                       s_config               = CORRESPONDING #( mo_action->mo_http_post->ms_request-s_front )
-                      r_event_data           = mo_action->ms_actual-r_data
-      ).
+                      r_event_data           = mo_action->ms_actual-r_data ).
 
     TRY.
 
@@ -150,8 +149,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                                                   textdirection     = textdirection
                                                   icon              = icon
                                                   details           = lv_details
-                                                  closeonnavigation = closeonnavigation
-                                               ).
+                                                  closeonnavigation = closeonnavigation ).
 
   ENDMETHOD.
 
@@ -170,8 +168,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                                                     animationtimingfunction  = animationtimingfunction
                                                     animationduration        = animationduration
                                                     closeonbrowsernavigation = closeonbrowsernavigation
-                                                    class                    = class
-                                                  ).
+                                                    class                    = class ).
 
   ENDMETHOD.
 

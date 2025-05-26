@@ -72,20 +72,15 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
                            contentheight     = '50%'
                            contentwidth      = '50%'
                            verticalscrolling = abap_false
-                           afterclose        = client->_event( 'BUTTON_CONTINUE' )
-         ).
+                           afterclose        = client->_event( 'BUTTON_CONTINUE' ) ).
 
     popup->message_view( items = client->_bind( mt_msg )
 *                         groupitems = abap_true
         )->message_item( type     = `{TYPE}`
                          title    = `{TITLE}`
-                         subtitle = `{SUBTITLE}`
-*                         description = `{MESSAGE}`
-*                         groupname = `{GROUP}`
-            ).
+                         subtitle = `{SUBTITLE}`  ).
 
-    popup->buttons(
-       )->button( text  = 'continue'
+    popup->buttons( )->button( text  = 'continue'
                   press = client->_event( 'BUTTON_CONTINUE' )
                   type  = 'Emphasized' ).
 
