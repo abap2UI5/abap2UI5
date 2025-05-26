@@ -59,8 +59,7 @@ CLASS z2ui5_cl_pop_js_loader IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( `Setup UI...`
-        )->content( ).
+    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( `Setup UI...` )->content( ).
 
     IF js IS NOT INITIAL.
       popup->_z2ui5( )->timer( client->_event( 'TIMER_FINISHED' )

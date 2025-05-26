@@ -77,8 +77,7 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
        "extra case - conversion exit alpha numeric
       IF lr_attri->bind_type = z2ui5_if_core_types=>cs_bind_type-two_way AND (
           lr_attri->o_typedescr->type_kind = cl_abap_classdescr=>typekind_num OR
-          lr_attri->o_typedescr->type_kind = cl_abap_classdescr=>typekind_numeric
-          ).
+          lr_attri->o_typedescr->type_kind = cl_abap_classdescr=>typekind_numeric ).
         ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref2>).
         CLEAR <val_ref2>.
         CLEAR lr_attri->r_ref.

@@ -22,8 +22,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(lo_draft) = NEW z2ui5_cl_core_srv_draft( ).
 
     lo_draft->create( draft     = VALUE #( id = `TEST_ID` )
-                      model_xml = `my xml`
-      ).
+                      model_xml = `my xml` ).
 
     DATA(ls_db) = lo_draft->read_draft( `TEST_ID` ).
 

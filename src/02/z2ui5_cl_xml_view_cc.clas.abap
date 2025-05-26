@@ -435,8 +435,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                                          ( n = `device_tablet`   v = device_tablet )
                                          ( n = `device_combi`   v = device_combi )
                                          ( n = `device_height`   v = device_height )
-                                         ( n = `device_width`   v = device_width ) )
-               ).
+                                         ( n = `device_width`   v = device_width ) ) ).
 
   ENDMETHOD.
 
@@ -558,8 +557,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                        ns     = `z2ui5`
                        t_prop = VALUE #(
                         ( n = `title`  v = title )
-                        ( n = `ApplicationFullWidth`  v = z2ui5_cl_util=>boolean_abap_2_json( applicationfullwidth ) ) )
-                         ).
+                        ( n = `ApplicationFullWidth`  v = z2ui5_cl_util=>boolean_abap_2_json( applicationfullwidth ) ) ) ).
 
   ENDMETHOD.
 

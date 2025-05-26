@@ -92,6 +92,7 @@
     "dangerous_statement": {
   "exclude": [],
   "severity": "Error",
+  "insertTextpool": true,
   "execSQL": true,
   "kernelCall": true,
   "systemCall": true,

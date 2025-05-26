@@ -51,8 +51,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     ENDDO.
 
     result = VALUE #( body       = mv_response
-                      s_stateful = ms_response-s_front-params-s_stateful
-      ).
+                      s_stateful = ms_response-s_front-params-s_stateful ).
 
   ENDMETHOD.
 
@@ -82,8 +81,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
     ms_response = VALUE #( s_front-params = mo_action->ms_next-s_set
                            s_front-id     = mo_action->mo_app->ms_draft-id
-                           s_front-app    = z2ui5_cl_util=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app )
-        ).
+                           s_front-app    = z2ui5_cl_util=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app ) ).
 
     IF ms_response-s_front-params-s_view-check_update_model        = abap_true
         OR ms_response-s_front-params-s_view_nest-check_update_model   = abap_true

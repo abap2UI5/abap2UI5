@@ -6271,8 +6271,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD drag_drop_config.
     result = _generic( name  = `dragDropConfig`
-                          ns = ns
-                       ).
+                          ns = ns ).
   ENDMETHOD.
 
   METHOD dynamic_page.
@@ -11004,8 +11003,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD _control_configuration.
 
     result = _generic( name = `controlConfiguration`
-                        ns  = `smartFilterBar`
-                      ).
+                        ns  = `smartFilterBar` ).
 
   ENDMETHOD.
 

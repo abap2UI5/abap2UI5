@@ -103,8 +103,7 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
        )->text( '{TYPE}'
        )->text( '{ID}'
        )->text( '{NUMBER}'
-       )->text( '{MESSAGE}'
-        ).
+       )->text( '{MESSAGE}' ).
 
     popup->buttons(
        )->button( text  = 'continue'

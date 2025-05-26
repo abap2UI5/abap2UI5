@@ -157,8 +157,7 @@ CLASS z2ui5_cl_core_srv_json IMPLEMENTATION.
 
         result-s_control-check_launchpad = xsdbool( result-s_front-search   CS `scenario=LAUNCHPAD`
                                                     OR result-s_front-pathname CS `/ui2/flp`
-                                                    OR result-s_front-pathname CS `test/flpSandbox`
-             ).
+                                                    OR result-s_front-pathname CS `test/flpSandbox` ).
         IF result-s_front-id IS NOT INITIAL.
           RETURN.
         ENDIF.
