@@ -78,11 +78,11 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
 *                         groupitems = abap_true
         )->message_item( type     = `{TYPE}`
                          title    = `{TITLE}`
-                         subtitle = `{SUBTITLE}`  ).
+                         subtitle = `{SUBTITLE}` ).
 
-    popup->buttons( )->button( text  = 'continue'
-                  press = client->_event( 'BUTTON_CONTINUE' )
-                  type  = 'Emphasized' ).
+    popup->buttons( )->button( text = 'continue'
+                  press             = client->_event( 'BUTTON_CONTINUE' )
+                  type              = 'Emphasized' ).
 
     client->popup_display( popup->stringify( ) ).
 
