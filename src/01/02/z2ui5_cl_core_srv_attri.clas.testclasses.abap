@@ -37,19 +37,38 @@ CLASS z2ui5_cl_core_srv_attri DEFINITION LOCAL FRIENDS ltcl_test_search_attri.
 CLASS ltcl_test_search_attri IMPLEMENTATION.
   METHOD first_test.
 
-    DATA(lo_app_client) = NEW ltcl_test_app2( ).
+    DATA lo_app_client TYPE REF TO ltcl_test_app2.
     DATA lr_value TYPE REF TO data.
+    DATA temp1 TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA temp2 LIKE LINE OF temp1.
+    DATA lt_attri LIKE temp1.
+    DATA temp3 LIKE REF TO lt_attri.
+DATA lo_model TYPE REF TO z2ui5_cl_core_srv_attri.
+    DATA temp4 LIKE REF TO lo_app_client->mv_value.
+DATA lr_attri TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
+    CREATE OBJECT lo_app_client TYPE ltcl_test_app2.
+    
     GET REFERENCE OF lo_app_client->mv_value INTO lr_value.
 
-    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ( r_ref       = lr_value
-                                                              o_typedescr = cl_abap_datadescr=>describe_by_data_ref(
-                                                                                lr_value )
-         ) ).
+    
+    CLEAR temp1.
+    
+    temp2-r_ref = lr_value.
+    temp2-o_typedescr = cl_abap_datadescr=>describe_by_data_ref(
+lr_value ).
+    INSERT temp2 INTO TABLE temp1.
+    
+    lt_attri = temp1.
 
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri( attri = REF #( lt_attri )
-                                                  app   = lo_app_client ).
+    
+    GET REFERENCE OF lt_attri INTO temp3.
 
-    DATA(lr_attri) = lo_model->attri_search_a_dissolve( REF #( lo_app_client->mv_value ) ).
+CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_attri EXPORTING attri = temp3 app = lo_app_client.
+
+    
+    GET REFERENCE OF lo_app_client->mv_value INTO temp4.
+
+lr_attri = lo_model->attri_search_a_dissolve( temp4 ).
 
     IF lr_attri->r_ref <> lr_value.
       cl_abap_unit_assert=>abort( ).
@@ -59,19 +78,41 @@ CLASS ltcl_test_search_attri IMPLEMENTATION.
 
   METHOD second_test.
 
-    DATA(lo_app_client) = NEW ltcl_test_app2( ).
+    DATA lo_app_client TYPE REF TO ltcl_test_app2.
     DATA lr_value TYPE REF TO data.
+    DATA temp5 LIKE REF TO lo_app_client->mv_value.
+DATA temp1 TYPE z2ui5_if_core_types=>ty_t_attri.
+DATA temp2 LIKE LINE OF temp1.
+DATA lt_attri LIKE temp1.
+    DATA temp6 LIKE REF TO lt_attri.
+DATA lo_model TYPE REF TO z2ui5_cl_core_srv_attri.
+    DATA temp7 LIKE REF TO lo_app_client->mv_value.
+DATA lr_attri TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
+    CREATE OBJECT lo_app_client TYPE ltcl_test_app2.
+    
     GET REFERENCE OF lo_app_client->mv_value INTO lr_value.
 
-    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ( r_ref       = REF #( lo_app_client->mv_value )
-                                                              o_typedescr = cl_abap_datadescr=>describe_by_data_ref(
-                                                                                lr_value )
-         ) ).
+    
+    GET REFERENCE OF lo_app_client->mv_value INTO temp5.
 
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri( attri = REF #( lt_attri )
-                                                  app   = lo_app_client ).
+CLEAR temp1.
 
-    DATA(lr_attri) = lo_model->attri_search_a_dissolve( REF #( lo_app_client->mv_value ) ).
+temp2-r_ref = temp5.
+temp2-o_typedescr = cl_abap_datadescr=>describe_by_data_ref(
+lr_value ).
+INSERT temp2 INTO TABLE temp1.
+
+lt_attri = temp1.
+
+    
+    GET REFERENCE OF lt_attri INTO temp6.
+
+CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_attri EXPORTING attri = temp6 app = lo_app_client.
+
+    
+    GET REFERENCE OF lo_app_client->mv_value INTO temp7.
+
+lr_attri = lo_model->attri_search_a_dissolve( temp7 ).
 
     IF lr_attri->r_ref <> lr_value.
       cl_abap_unit_assert=>abort( ).
@@ -81,18 +122,56 @@ CLASS ltcl_test_search_attri IMPLEMENTATION.
 
   METHOD third_test.
 
-    DATA(lo_app_client) = NEW ltcl_test_app2( ).
+    DATA lo_app_client TYPE REF TO ltcl_test_app2.
     DATA lr_value TYPE REF TO data.
+    DATA temp8 LIKE REF TO lo_app_client->mv_value.
+DATA temp3 LIKE REF TO lo_app_client->mo_app.
+DATA temp1 LIKE REF TO lo_app_client->mr_value2.
+DATA temp2 LIKE REF TO lo_app_client->mr_value.
+DATA temp4 TYPE z2ui5_if_core_types=>ty_t_attri.
+DATA temp5 LIKE LINE OF temp4.
+DATA lt_attri LIKE temp4.
+    FIELD-SYMBOLS <temp9> TYPE z2ui5_if_core_types=>ty_s_attri.
+DATA lr_attri LIKE REF TO <temp9>.
+    CREATE OBJECT lo_app_client TYPE ltcl_test_app2.
+    
     GET REFERENCE OF lo_app_client->mv_value INTO lr_value.
 
-    lo_app_client->mo_app = NEW #( ).
+    CREATE OBJECT lo_app_client->mo_app.
 
-    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ( name = `1` r_ref = REF #( lo_app_client->mr_value ) )
-                                                            ( name = `4` r_ref = REF #( lo_app_client->mr_value2 ) )
-                                                            ( name = `2` r_ref = REF #( lo_app_client->mo_app ) )
-                                                            ( name = `3` r_ref = REF #( lo_app_client->mv_value ) ) ).
+    
+    GET REFERENCE OF lo_app_client->mv_value INTO temp8.
 
-    DATA(lr_attri) = REF #( lt_attri[ r_ref = lr_value ] ).
+GET REFERENCE OF lo_app_client->mo_app INTO temp3.
+
+GET REFERENCE OF lo_app_client->mr_value2 INTO temp1.
+
+GET REFERENCE OF lo_app_client->mr_value INTO temp2.
+
+CLEAR temp4.
+
+temp5-name = `1`.
+temp5-r_ref = temp2.
+INSERT temp5 INTO TABLE temp4.
+temp5-name = `4`.
+temp5-r_ref = temp1.
+INSERT temp5 INTO TABLE temp4.
+temp5-name = `2`.
+temp5-r_ref = temp3.
+INSERT temp5 INTO TABLE temp4.
+temp5-name = `3`.
+temp5-r_ref = temp8.
+INSERT temp5 INTO TABLE temp4.
+
+lt_attri = temp4.
+
+    
+    READ TABLE lt_attri WITH KEY r_ref = lr_value ASSIGNING <temp9>.
+IF sy-subrc <> 0.
+  ASSERT 1 = 0.
+ENDIF.
+
+GET REFERENCE OF <temp9> INTO lr_attri.
     IF lr_attri->r_ref <> lr_value.
       cl_abap_unit_assert=>abort( ).
     ENDIF.
@@ -137,7 +216,7 @@ ENDCLASS.
 
 CLASS ltcl_test_app3 IMPLEMENTATION.
   METHOD constructor.
-    mo_app = NEW #( ).
+    CREATE OBJECT mo_app.
   ENDMETHOD.
 ENDCLASS.
 
@@ -157,19 +236,35 @@ ENDCLASS.
 CLASS ltcl_test_get_attri IMPLEMENTATION.
   METHOD first_test.
 
-    DATA(lo_app_client) = NEW ltcl_test_app3( ).
-    " TODO: variable is assigned but never used (ABAP cleaner)
+    DATA lo_app_client TYPE REF TO ltcl_test_app3.
     DATA lr_value TYPE REF TO data.
+    DATA temp10 TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA lt_attri LIKE temp10.
+    DATA temp11 LIKE REF TO lt_attri.
+DATA lo_model TYPE REF TO z2ui5_cl_core_srv_attri.
+    DATA lr_attri TYPE REF TO data.
+    DATA temp12 LIKE REF TO lo_app_client->mv_value.
+    CREATE OBJECT lo_app_client TYPE ltcl_test_app3.
+    " TODO: variable is assigned but never used (ABAP cleaner)
+    
     GET REFERENCE OF lo_app_client->mv_value INTO lr_value.
 
-    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
+    
+    CLEAR temp10.
+    
+    lt_attri = temp10.
 
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri( attri = REF #( lt_attri )
-                                                  app   = lo_app_client ).
+    
+    GET REFERENCE OF lt_attri INTO temp11.
 
-    DATA(lr_attri) = lo_model->attri_get_val_ref( `MV_VALUE` ).
+CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_attri EXPORTING attri = temp11 app = lo_app_client.
 
-    IF REF #( lo_app_client->mv_value ) <> lr_attri.
+    
+    lr_attri = lo_model->attri_get_val_ref( `MV_VALUE` ).
+
+    
+    GET REFERENCE OF lo_app_client->mv_value INTO temp12.
+IF temp12 <> lr_attri.
       cl_abap_unit_assert=>abort( ).
     ENDIF.
 
@@ -177,14 +272,26 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
 
   METHOD second_test.
 
-    DATA(lo_app_client) = NEW ltcl_test_app3( ).
+    DATA lo_app_client TYPE REF TO ltcl_test_app3.
+    DATA temp13 TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA lt_attri LIKE temp13.
+    DATA temp14 LIKE REF TO lt_attri.
+DATA lo_model TYPE REF TO z2ui5_cl_core_srv_attri.
+    DATA lr_attri TYPE REF TO data.
+    CREATE OBJECT lo_app_client TYPE ltcl_test_app3.
     CREATE DATA lo_app_client->mr_value.
 
-    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri( attri = REF #( lt_attri )
-                                                  app   = lo_app_client ).
+    
+    CLEAR temp13.
+    
+    lt_attri = temp13.
+    
+    GET REFERENCE OF lt_attri INTO temp14.
 
-    DATA(lr_attri) = lo_model->attri_get_val_ref( `MR_VALUE->*` ).
+CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_attri EXPORTING attri = temp14 app = lo_app_client.
+
+    
+    lr_attri = lo_model->attri_get_val_ref( `MR_VALUE->*` ).
 
     IF lr_attri <> lo_app_client->mr_value.
       cl_abap_unit_assert=>abort( ).
@@ -194,15 +301,30 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
 
   METHOD third_test.
 
-    DATA(lo_app_client) = NEW ltcl_test_app3( ).
+    DATA lo_app_client TYPE REF TO ltcl_test_app3.
+    DATA temp15 TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA lt_attri LIKE temp15.
+    DATA temp16 LIKE REF TO lt_attri.
+DATA lo_model TYPE REF TO z2ui5_cl_core_srv_attri.
+    DATA lr_attri TYPE REF TO data.
+    DATA temp17 LIKE REF TO lo_app_client->mo_app->mv_value.
+    CREATE OBJECT lo_app_client TYPE ltcl_test_app3.
 
-    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri( attri = REF #( lt_attri )
-                                                  app   = lo_app_client ).
+    
+    CLEAR temp15.
+    
+    lt_attri = temp15.
+    
+    GET REFERENCE OF lt_attri INTO temp16.
 
-    DATA(lr_attri) = lo_model->attri_get_val_ref( `MO_APP->MV_VALUE` ).
+CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_attri EXPORTING attri = temp16 app = lo_app_client.
 
-    IF REF #( lo_app_client->mo_app->mv_value ) <> lr_attri.
+    
+    lr_attri = lo_model->attri_get_val_ref( `MO_APP->MV_VALUE` ).
+
+    
+    GET REFERENCE OF lo_app_client->mo_app->mv_value INTO temp17.
+IF temp17 <> lr_attri.
       cl_abap_unit_assert=>abort( ).
     ENDIF.
 
@@ -210,14 +332,26 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
 
   METHOD test4.
 
-    DATA(lo_app_client) = NEW ltcl_test_app3( ).
+    DATA lo_app_client TYPE REF TO ltcl_test_app3.
+    DATA temp18 TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA lt_attri LIKE temp18.
+    DATA temp19 LIKE REF TO lt_attri.
+DATA lo_model TYPE REF TO z2ui5_cl_core_srv_attri.
+    DATA lr_attri TYPE REF TO data.
+    CREATE OBJECT lo_app_client TYPE ltcl_test_app3.
     CREATE DATA lo_app_client->mo_app->mr_value.
 
-    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri( attri = REF #( lt_attri )
-                                                  app   = lo_app_client ).
+    
+    CLEAR temp18.
+    
+    lt_attri = temp18.
+    
+    GET REFERENCE OF lt_attri INTO temp19.
 
-    DATA(lr_attri) = lo_model->attri_get_val_ref( `MO_APP->MR_VALUE->*` ).
+CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_attri EXPORTING attri = temp19 app = lo_app_client.
+
+    
+    lr_attri = lo_model->attri_get_val_ref( `MO_APP->MR_VALUE->*` ).
 
     IF lr_attri <> lo_app_client->mo_app->mr_value.
       cl_abap_unit_assert=>abort( ).
