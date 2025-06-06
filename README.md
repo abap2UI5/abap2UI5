@@ -59,7 +59,7 @@ This project greatly benefits from its [contributors](https://github.com/abap2UI
 * JSON handling through [ajson](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
 * Runtime serialization using [S-RTTI](https://github.com/sandraros/S-RTTI) [(sandrarossi)](https://github.com/sandraros)
 * ABAP Cloud & Standard compatibility with [Steampunkification](https://github.com/heliconialabs/steampunkification) [(contributors)](https://github.com/heliconialabs/steampunkification/graphs/contributors)
-* Syntax downporting via the [downported repositories](https://github.com/abap2UI5-downported) by [abaplint](https://abaplint.org/) [(larshp)](https://github.com/larshp)
+* Syntax downporting via the [downport branch](https://github.com/abap2UI5/abap2UI5/tree/702) by [abaplint](https://abaplint.org/) [(larshp)](https://github.com/larshp)
 * Namespace renaming via the [renamed repository](https://github.com/abap2UI5/abap2UI5-mirror-renamed) by [abaplint](https://abaplint.org/) [(larshp)](https://github.com/larshp)
 * Browser testing with [Playwright](https://playwright.dev/) [(contributors)](https://github.com/microsoft/playwright/graphs/contributors)
 * Live demos running via [web-abap2ui5-samples](https://github.com/abap2UI5/web-abap2ui5-samples) [(larshp)](https://github.com/larshp)
