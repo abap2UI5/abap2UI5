@@ -14,7 +14,9 @@ CLASS z2ui5_cl_app_app_js DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
+
+CLASS Z2UI5_CL_APP_APP_JS IMPLEMENTATION.
+
 
   METHOD get.
 
@@ -1055,13 +1057,15 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      properties: {` && |\n| &&
              `        tableId: {` && |\n| &&
              `          type: "String"` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `    },` && |\n| &&
+             `        },` && |\n| &&
+             `      },` && |\n| &&
+             `  },` && |\n| &&
              `` && |\n| &&
              `    init() {` && |\n| &&
              `      z2ui5.onBeforeRoundtrip.push(this.readFilter.bind(this));` && |\n| &&
+             `      z2ui5.onBeforeRoundtrip.push(this.readSort.bind(this));` && |\n| &&
              `      z2ui5.onAfterRoundtrip.push(this.setFilter.bind(this));` && |\n| &&
+             `      z2ui5.onAfterRoundtrip.push(this.setSort.bind(this));` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    readFilter() {` && |\n| &&
@@ -1079,8 +1083,67 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          let id = this.getProperty("tableId");` && |\n| &&
              `          let oTable = z2ui5.oView.byId(id);` && |\n| &&
              `          oTable.getBinding().filter(aFilters);` && |\n| &&
+             `          var opSymbols = { EQ: "", NE: "!", LT: "<", LE: "<=", GT: ">", GE: ">=", BT: "...", Contains: "*", StartsWith: "^", EndsWith: "$" };` && |\n| &&
+             `          aFilters.forEach(function(oFilter) {` && |\n| &&
+             `            var sProperty = oFilter.sPath || oFilter.aFilters?.[0]?.sPath;` && |\n| &&
+             `            if (!sProperty) return;` && |\n| &&
+             `            oTable.getColumns().forEach(function(oCol) {` && |\n| &&
+             `              if (oCol.getFilterProperty && oCol.getFilterProperty() === sProperty) {` && |\n| &&
+             `                var operator = oFilter.sOperator;` && |\n| &&
+             `                var vValue = oFilter.oValue1 !== undefined ? oFilter.oValue1 : oFilter.oValue2;` && |\n| &&
+             `                if (vValue === undefined && oFilter.aFilters && oFilter.aFilters[0].oValue1 !== undefined) {` && |\n| &&
+             `                  vValue = oFilter.aFilters[0].oValue1;` && |\n| &&
+             `                }` && |\n| &&
+             `                var display;` && |\n| &&
+             `                if (operator === "BT") {` && |\n| &&
+             `                  var vValue2 = oFilter.oValue2 !== undefined ? oFilter.oValue2 : "";` && |\n| &&
+             `                  display = (vValue != null ? vValue : "") + opSymbols["BT"] + (vValue2 != null ? vValue2 : "");` && |\n| &&
+             `                } else if (operator === "Contains") {` && |\n| &&
+             `                  display = "*" + (vValue != null ? vValue : "") + "*";` && |\n| &&
+             `                } else if (operator === "StartsWith") {` && |\n| &&
+             `                  display = "^" + (vValue != null ? vValue : "");` && |\n| &&
+             `                } else if (operator === "EndsWith") {` && |\n| &&
+             `                  display = (vValue != null ? vValue : "") + "$";` && |\n| &&
+             `                } else {` && |\n| &&
+             `                  display = (opSymbols[operator] || "") + (vValue != null ? vValue : "");` && |\n| &&
+             `                }` && |\n| &&
+             `                oCol.setFilterValue(display);` && |\n| &&
+             `                oCol.setFiltered(!!display);` && |\n| &&
+             `             }` && |\n| &&
+             `           });` && |\n| &&
+             `         });` && |\n| &&
              `        }` && |\n| &&
              `          , 100, this.aFilters);` && |\n| &&
+             `      } catch (e) { }` && |\n| &&
+             `      ;` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    readSort() {` && |\n| &&
+             `      try {` && |\n| &&
+             `        let id = this.getProperty("tableId");` && |\n| &&
+             `        let oTable = z2ui5.oView.byId(id);` && |\n| &&
+             `        this.aSorters = oTable.getBinding().aSorters;` && |\n| &&
+             `      } catch (e) { }` && |\n| &&
+             `      ;` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    setSort() {` && |\n| &&
+             `      try {` && |\n| &&
+             `        setTimeout((aSorters) => {` && |\n| &&
+             `          let id = this.getProperty("tableId");` && |\n| &&
+             `          let oTable = z2ui5.oView.byId(id);` && |\n| &&
+             `          oTable.getBinding().sort(aSorters);` && |\n| &&
+             `          aSorters.forEach(function(srt, idx) {` && |\n| &&
+             `             oTable.getColumns().forEach(function(oCol) {` && |\n| &&
+             `               if (oCol.getSortProperty && oCol.getSortProperty() === srt.sPath) {` && |\n| &&
+             `                 oCol.setSorted(true);` && |\n| &&
+             `                 oCol.setSortOrder(srt.bDescending ? "Descending" : "Ascending");` && |\n| &&
+             `                 if (oCol.setSortIndex) oCol.setSortIndex(idx);` && |\n| &&
+             `               }` && |\n| &&
+             `             });` && |\n| &&
+             `           });` && |\n| &&
+             `          }` && |\n| &&
+             `          , 100, this.aSorters);` && |\n| &&
              `      } catch (e) { }` && |\n| &&
              `      ;` && |\n| &&
              `    },` && |\n| &&
@@ -1164,5 +1227,4 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
               ``.
 
   ENDMETHOD.
-
 ENDCLASS.
