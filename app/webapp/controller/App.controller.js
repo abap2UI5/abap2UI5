@@ -1031,13 +1031,15 @@ sap.ui.define("z2ui5/UITableExt", ["sap/ui/core/Control"], (Control) => {
       properties: {
         tableId: {
           type: "String"
-        }
-      }
+        },
+      },
     },
 
     init() {
       z2ui5.onBeforeRoundtrip.push(this.readFilter.bind(this));
+      z2ui5.onBeforeRoundtrip.push(this.readSort.bind(this));
       z2ui5.onAfterRoundtrip.push(this.setFilter.bind(this));
+      z2ui5.onAfterRoundtrip.push(this.setSort.bind(this));
     },
 
     readFilter() {
@@ -1055,12 +1057,84 @@ sap.ui.define("z2ui5/UITableExt", ["sap/ui/core/Control"], (Control) => {
           let id = this.getProperty("tableId");
           let oTable = z2ui5.oView.byId(id);
           oTable.getBinding().filter(aFilters);
+          var opSymbols = {
+  EQ: "",
+  NE: "!",
+  LT: "<",
+  LE: "<=",
+  GT: ">",
+  GE: ">=",
+  BT: "...",
+  Contains: "*",
+  StartsWith: "^",
+  EndsWith: "$"
+};
+
+aFilters.forEach(function(oFilter) {
+  var sProperty = oFilter.sPath || oFilter.aFilters?.[0]?.sPath;
+  if (!sProperty) return;
+
+  oTable.getColumns().forEach(function(oCol) {
+    if (oCol.getFilterProperty && oCol.getFilterProperty() === sProperty) {
+      var operator = oFilter.sOperator;
+      var vValue = oFilter.oValue1 !== undefined ? oFilter.oValue1 : oFilter.oValue2;
+
+      if (vValue === undefined && oFilter.aFilters && oFilter.aFilters[0].oValue1 !== undefined) {
+        vValue = oFilter.aFilters[0].oValue1;
+      }
+
+      var display;
+      if (operator === "BT") {
+        var vValue2 = oFilter.oValue2 !== undefined ? oFilter.oValue2 : "";
+        display = (vValue != null ? vValue : "") + opSymbols["BT"] + (vValue2 != null ? vValue2 : "");
+      } else if (operator === "Contains") {
+        display = "*" + (vValue != null ? vValue : "") + "*";
+      } else if (operator === "StartsWith") {
+        display = "^" + (vValue != null ? vValue : "");
+      } else if (operator === "EndsWith") {
+        display = (vValue != null ? vValue : "") + "$";
+      } else {
+        display = (opSymbols[operator] || "") + (vValue != null ? vValue : "");
+      }
+
+      oCol.setFilterValue(display);
+      oCol.setFiltered(!!display);
+    }
+  });
+});
+
         }
           , 100, this.aFilters);
       } catch (e) { }
       ;
     },
+readSort() {
+  try {
+    let id = this.getProperty("tableId");
+    let oTable = z2ui5.oView.byId(id);
+    this.aSorters = oTable.getBinding().aSorters;
+  } catch (e) {}
+},
 
+setSort() {
+  try {
+    setTimeout((aSorters) => {
+      let id = this.getProperty("tableId");
+      let oTable = z2ui5.oView.byId(id);
+      oTable.getBinding().sort(aSorters);
+
+      aSorters.forEach(function(srt, idx) {
+        oTable.getColumns().forEach(function(oCol) {
+          if (oCol.getSortProperty && oCol.getSortProperty() === srt.sPath) {
+            oCol.setSorted(true);
+            oCol.setSortOrder(srt.bDescending ? "Descending" : "Ascending");
+            if (oCol.setSortIndex) oCol.setSortIndex(idx);
+          }
+        });
+      });
+    }, 100, this.aSorters);
+  } catch (e) {}
+},
     renderer(oRM, oControl) { }
   });
 }
