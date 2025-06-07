@@ -14,7 +14,9 @@ CLASS z2ui5_cl_app_view1_js DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
+
+CLASS Z2UI5_CL_APP_VIEW1_JS IMPLEMENTATION.
+
 
   METHOD get.
 
@@ -521,6 +523,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                );` && |\n| &&
              `                z2ui5.oResponseOld = z2ui5.oResponse;` && |\n| &&
              `                Server.Roundtrip();` && |\n| &&
+             `                z2ui5.onAfterRoundtrip.forEach(item => {` && |\n| &&
+             `                    if (item !== undefined) {` && |\n| &&
+             `                        item();` && |\n| &&
+             `                    }` && |\n| &&
+             `                }` && |\n| &&
+             `                )` && |\n| &&
              `` && |\n| &&
              `            },` && |\n| &&
              `` && |\n| &&
@@ -624,5 +632,4 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
               ``.
 
   ENDMETHOD.
-
 ENDCLASS.
