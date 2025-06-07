@@ -499,6 +499,12 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 );
                 z2ui5.oResponseOld = z2ui5.oResponse;
                 Server.Roundtrip();
+                z2ui5.onAfterRoundtrip.forEach(item => {
+                    if (item !== undefined) {
+                        item();
+                    }
+                    }
+                    )
 
             },
 
