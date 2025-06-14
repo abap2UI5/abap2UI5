@@ -340,9 +340,7 @@ CLASS z2ui5_cl_util_abap DEFINITION
       IMPORTING
         ir_data      TYPE REF TO data
         iv_tabname   TYPE string
-        is_transport TYPE ty_s_transport
-      EXCEPTIONS
-        ob_check_obj_error.
+        is_transport TYPE ty_s_transport.
 
     CLASS-METHODS bus_search_help_read
       CHANGING
@@ -1333,9 +1331,9 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
       " Values from Caller app to Interface Values
       LOOP AT ms_shlp-interface REFERENCE INTO DATA(r_interface) WHERE value IS INITIAL.
 
-        FIELD-SYMBOLS <any> type any.
-        assign mr_data->* to <any>.
-        FIELD-SYMBOLS <value> type any.
+        FIELD-SYMBOLS <any> TYPE any.
+        ASSIGN mr_data->* TO <any>.
+        FIELD-SYMBOLS <value> TYPE any.
         ASSIGN COMPONENT r_interface->shlpfield OF STRUCTURE <any> TO <value>.
 
         IF sy-subrc <> 0.
@@ -1481,7 +1479,7 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
       IF interface-value IS NOT INITIAL.
 
         UNASSIGN <any>.
-        assign ms_data_row->* to <any>.
+        ASSIGN ms_data_row->* TO <any>.
         ASSIGN COMPONENT interface-shlpfield OF STRUCTURE <any> TO <value>.
 
         IF sy-subrc <> 0.
@@ -1599,24 +1597,25 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
       DATA(fb1) = 'TR_APPEND_TO_COMM_OBJS_KEYS'.
       CALL FUNCTION fb1
         EXPORTING
-          wi_trkorr = is_transport-transport
-          iv_dialog = abap_false
+          wi_trkorr     = is_transport-transport
+          iv_dialog     = abap_false
         TABLES
-          wt_e071   = <t_e071>
-          wt_e071k  = <t_e071k>
+          wt_e071       = <t_e071>
+          wt_e071k      = <t_e071k>
         EXCEPTIONS
-          OTHERS    = 1.
+          error_message = 1
+          OTHERS        = 2.
       IF sy-subrc <> 0.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error.
       ENDIF.
 
       DATA(fb2) = 'TR_SORT_AND_COMPRESS_COMM'.
-
       CALL FUNCTION fb2
         EXPORTING
-          iv_trkorr = is_transport-task
+          iv_trkorr     = is_transport-task
         EXCEPTIONS
-          OTHERS    = 1.
+          error_message = 1
+          OTHERS        = 2.
       IF sy-subrc <> 0.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error.
       ELSE.

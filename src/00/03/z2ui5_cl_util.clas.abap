@@ -97,6 +97,17 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE ty_s_msg.
 
+    CLASS-METHODS msg_get_by_msg
+      IMPORTING
+        id         TYPE any
+        no         TYPE any
+        v1         TYPE any optional
+        v2         TYPE any optional
+        v3         TYPE any optional
+        v4         TYPE any optional
+      RETURNING
+        VALUE(result) TYPE ty_s_msg.
+
     CLASS-METHODS rtti_get_t_attri_by_include
       IMPORTING
         !type         TYPE REF TO cl_abap_datadescr
@@ -245,7 +256,7 @@ CLASS z2ui5_cl_util DEFINITION
     CLASS-METHODS x_check_raise
       IMPORTING
         v     TYPE clike DEFAULT `CX_SY_SUBRC`
-        !when TYPE xfeld.
+        !when TYPE abap_bool.
 
     CLASS-METHODS x_raise
       IMPORTING
@@ -1571,6 +1582,10 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   METHOD rtti_get_data_element_text_l.
 
     result = z2ui5_cl_util=>rtti_get_data_element_texts( val )-long.
+
+  ENDMETHOD.
+
+  METHOD msg_get_by_msg.
 
   ENDMETHOD.
 
