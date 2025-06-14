@@ -109,9 +109,21 @@ CLASS z2ui5_cl_util_abap DEFINITION
       CHANGING
         result TYPE data.
 
+    CLASS-METHODS context_get_callstack
+      RETURNING
+        VALUE(result) TYPE string_table.
+
+    CLASS-METHODS context_get_tenant
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS context_check_abap_cloud
       RETURNING
         VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS context_get_user_tech
+      RETURNING
+        VALUE(result) TYPE string.
 
     CLASS-METHODS source_get_method
       IMPORTING
@@ -157,6 +169,18 @@ CLASS z2ui5_cl_util_abap DEFINITION
         val           TYPE string
       RETURNING
         VALUE(result) TYPE xstring.
+
+    CLASS-METHODS conv_get_xlsx_by_itab
+      IMPORTING
+        val           TYPE ANY TABLE
+      RETURNING
+        VALUE(result) TYPE xstring.
+
+    CLASS-METHODS conv_get_itab_by_xlsx
+      IMPORTING
+        val    TYPE xstring
+      EXPORTING
+        result TYPE REF TO data.
 
     CLASS-METHODS rtti_get_classes_impl_intf
       IMPORTING
@@ -340,9 +364,7 @@ CLASS z2ui5_cl_util_abap DEFINITION
       IMPORTING
         ir_data      TYPE REF TO data
         iv_tabname   TYPE string
-        is_transport TYPE ty_s_transport
-      EXCEPTIONS
-        ob_check_obj_error.
+        is_transport TYPE ty_s_transport.
 
     CLASS-METHODS bus_search_help_read
       CHANGING
@@ -410,6 +432,10 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_util_abap IMPLEMENTATION.
+
+  METHOD context_get_user_tech.
+    result = sy-uname.
+  ENDMETHOD.
 
   METHOD context_check_abap_cloud.
 
@@ -1333,9 +1359,9 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
       " Values from Caller app to Interface Values
       LOOP AT ms_shlp-interface REFERENCE INTO DATA(r_interface) WHERE value IS INITIAL.
 
-        FIELD-SYMBOLS <any> type any.
-        assign mr_data->* to <any>.
-        FIELD-SYMBOLS <value> type any.
+        FIELD-SYMBOLS <any> TYPE any.
+        ASSIGN mr_data->* TO <any>.
+        FIELD-SYMBOLS <value> TYPE any.
         ASSIGN COMPONENT r_interface->shlpfield OF STRUCTURE <any> TO <value>.
 
         IF sy-subrc <> 0.
@@ -1481,7 +1507,7 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
       IF interface-value IS NOT INITIAL.
 
         UNASSIGN <any>.
-        assign ms_data_row->* to <any>.
+        ASSIGN ms_data_row->* TO <any>.
         ASSIGN COMPONENT interface-shlpfield OF STRUCTURE <any> TO <value>.
 
         IF sy-subrc <> 0.
@@ -1599,24 +1625,25 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
       DATA(fb1) = 'TR_APPEND_TO_COMM_OBJS_KEYS'.
       CALL FUNCTION fb1
         EXPORTING
-          wi_trkorr = is_transport-transport
-          iv_dialog = abap_false
+          wi_trkorr     = is_transport-transport
+          iv_dialog     = abap_false
         TABLES
-          wt_e071   = <t_e071>
-          wt_e071k  = <t_e071k>
+          wt_e071       = <t_e071>
+          wt_e071k      = <t_e071k>
         EXCEPTIONS
-          OTHERS    = 1.
+          error_message = 1
+          OTHERS        = 2.
       IF sy-subrc <> 0.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error.
       ENDIF.
 
       DATA(fb2) = 'TR_SORT_AND_COMPRESS_COMM'.
-
       CALL FUNCTION fb2
         EXPORTING
-          iv_trkorr = is_transport-task
+          iv_trkorr     = is_transport-task
         EXCEPTIONS
-          OTHERS    = 1.
+          error_message = 1
+          OTHERS        = 2.
       IF sy-subrc <> 0.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error.
       ELSE.
@@ -2043,6 +2070,54 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
       ENDIF.
 
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD context_get_tenant.
+
+    "DATA(tenant_info) = xco_cp=>current->tenant( ).
+    "DATA(account_id) = tenant_info->get_global_account_id( ).
+
+  ENDMETHOD.
+
+  METHOD context_get_callstack.
+
+*    "callstack
+*    DATA(stack) = xco_cp=>current->call_stack.
+*    DATA(full_stack) = stack->full( ).
+*    DATA(format_source) = xco_cp_call_stack=>format->adt( )->with_line_number_flavor(
+*        xco_cp_call_stack=>line_number_flavor->source ).
+*
+*    LOOP AT full_stack->as_text( format_source )->get_lines( )->value INTO DATA(text).
+*      INSERT text INTO TABLE result.
+*    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD conv_get_xlsx_by_itab.
+
+*    DATA(write_access) = xco_cp_xlsx=>document->empty( )->write_access( ).
+*    DATA(worksheet) = write_access->get_workbook( )->worksheet->at_position( 1 ).
+*    DATA(selection_pattern) = xco_cp_xlsx_selection=>pattern_builder->simple_from_to( )->get_pattern( ).
+*    worksheet->select( selection_pattern
+*               )->row_stream(
+*               )->operation->write_from( REF #( val )
+*               )->execute( ).
+*    result = write_access->get_file_content( ).
+
+  ENDMETHOD.
+
+  METHOD conv_get_itab_by_xlsx.
+
+*    CLEAR result.
+*    DATA(document) = xco_cp_xlsx=>document->for_file_content( val )->read_access( ).
+*    DATA(sheet) = document->get_workbook( )->worksheet->at_position( 1 ).
+*    DATA(pattern) = xco_cp_xlsx_selection=>pattern_builder->simple_from_to( )->get_pattern( ).
+*    sheet->select( pattern
+*            )->row_stream(
+*            )->operation->write_to( REF #( result )
+*            )->set_value_transformation( xco_cp_xlsx_read_access=>value_transformation->string_value
+*            )->execute( ).
 
   ENDMETHOD.
 

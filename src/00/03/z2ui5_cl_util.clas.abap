@@ -97,6 +97,17 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE ty_s_msg.
 
+    CLASS-METHODS msg_get_by_msg
+      IMPORTING
+        id            TYPE any
+        no            TYPE any
+        v1            TYPE any OPTIONAL
+        v2            TYPE any OPTIONAL
+        v3            TYPE any OPTIONAL
+        v4            TYPE any OPTIONAL
+      RETURNING
+        VALUE(result) TYPE ty_s_msg.
+
     CLASS-METHODS rtti_get_t_attri_by_include
       IMPORTING
         !type         TYPE REF TO cl_abap_datadescr
@@ -245,16 +256,12 @@ CLASS z2ui5_cl_util DEFINITION
     CLASS-METHODS x_check_raise
       IMPORTING
         v     TYPE clike DEFAULT `CX_SY_SUBRC`
-        !when TYPE xfeld.
+        !when TYPE abap_bool.
 
     CLASS-METHODS x_raise
       IMPORTING
         v TYPE clike DEFAULT `CX_SY_SUBRC`
           PREFERRED PARAMETER v.
-
-    CLASS-METHODS context_get_user_tech
-      RETURNING
-        VALUE(result) TYPE string.
 
     CLASS-METHODS json_stringify
       IMPORTING
@@ -1268,10 +1275,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD context_get_user_tech.
-    result = sy-uname.
-  ENDMETHOD.
-
   METHOD xml_parse.
 
     IF xml IS INITIAL.
@@ -1571,6 +1574,19 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   METHOD rtti_get_data_element_text_l.
 
     result = z2ui5_cl_util=>rtti_get_data_element_texts( val )-long.
+
+  ENDMETHOD.
+
+  METHOD msg_get_by_msg.
+
+    DATA(ls_msg) = VALUE z2ui5_cl_util=>ty_s_msg(
+      id         = id
+      no         = no
+      v1         = v1
+      v2         = v2
+      v3         = v3
+      v4         = v4 ).
+    result = msg_get( ls_msg ).
 
   ENDMETHOD.
 
