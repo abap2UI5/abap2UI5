@@ -263,10 +263,6 @@ CLASS z2ui5_cl_util DEFINITION
         v TYPE clike DEFAULT `CX_SY_SUBRC`
           PREFERRED PARAMETER v.
 
-    CLASS-METHODS context_get_user_tech
-      RETURNING
-        VALUE(result) TYPE string.
-
     CLASS-METHODS json_stringify
       IMPORTING
         !any          TYPE any
@@ -1277,10 +1273,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     result = url_param_create_url( lt_params ).
 
-  ENDMETHOD.
-
-  METHOD context_get_user_tech.
-    result = sy-uname.
   ENDMETHOD.
 
   METHOD xml_parse.

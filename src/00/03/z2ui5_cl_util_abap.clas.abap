@@ -109,9 +109,21 @@ CLASS z2ui5_cl_util_abap DEFINITION
       CHANGING
         result TYPE data.
 
+    CLASS-METHODS context_get_callstack
+      RETURNING
+        VALUE(result) TYPE string_table.
+
+    CLASS-METHODS context_get_tenant
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS context_check_abap_cloud
       RETURNING
         VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS context_get_user_tech
+      RETURNING
+        VALUE(result) TYPE string.
 
     CLASS-METHODS source_get_method
       IMPORTING
@@ -157,6 +169,18 @@ CLASS z2ui5_cl_util_abap DEFINITION
         val           TYPE string
       RETURNING
         VALUE(result) TYPE xstring.
+
+    CLASS-METHODS conv_get_xlsx_by_itab
+      IMPORTING
+        val           TYPE ANY TABLE
+      RETURNING
+        VALUE(result) TYPE xstring.
+
+    CLASS-METHODS conv_get_itab_by_xlsx
+      IMPORTING
+        val    TYPE xstring
+      EXPORTING
+        result TYPE REF TO data.
 
     CLASS-METHODS rtti_get_classes_impl_intf
       IMPORTING
@@ -408,6 +432,10 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_util_abap IMPLEMENTATION.
+
+  METHOD context_get_user_tech.
+    result = sy-uname.
+  ENDMETHOD.
 
   METHOD context_check_abap_cloud.
 
@@ -2042,6 +2070,54 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
       ENDIF.
 
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD context_get_tenant.
+
+    "DATA(tenant_info) = xco_cp=>current->tenant( ).
+    "DATA(account_id) = tenant_info->get_global_account_id( ).
+
+  ENDMETHOD.
+
+  METHOD context_get_callstack.
+
+*    "callstack
+*    DATA(stack) = xco_cp=>current->call_stack.
+*    DATA(full_stack) = stack->full( ).
+*    DATA(format_source) = xco_cp_call_stack=>format->adt( )->with_line_number_flavor(
+*        xco_cp_call_stack=>line_number_flavor->source ).
+*
+*    LOOP AT full_stack->as_text( format_source )->get_lines( )->value INTO DATA(text).
+*      INSERT text INTO TABLE result.
+*    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD conv_get_xlsx_by_itab.
+
+*    DATA(write_access) = xco_cp_xlsx=>document->empty( )->write_access( ).
+*    DATA(worksheet) = write_access->get_workbook( )->worksheet->at_position( 1 ).
+*    DATA(selection_pattern) = xco_cp_xlsx_selection=>pattern_builder->simple_from_to( )->get_pattern( ).
+*    worksheet->select( selection_pattern
+*               )->row_stream(
+*               )->operation->write_from( REF #( val )
+*               )->execute( ).
+*    result = write_access->get_file_content( ).
+
+  ENDMETHOD.
+
+  METHOD conv_get_itab_by_xlsx.
+
+*    CLEAR result.
+*    DATA(document) = xco_cp_xlsx=>document->for_file_content( val )->read_access( ).
+*    DATA(sheet) = document->get_workbook( )->worksheet->at_position( 1 ).
+*    DATA(pattern) = xco_cp_xlsx_selection=>pattern_builder->simple_from_to( )->get_pattern( ).
+*    sheet->select( pattern
+*            )->row_stream(
+*            )->operation->write_to( REF #( result )
+*            )->set_value_transformation( xco_cp_xlsx_read_access=>value_transformation->string_value
+*            )->execute( ).
 
   ENDMETHOD.
 
