@@ -99,12 +99,12 @@ CLASS z2ui5_cl_util DEFINITION
 
     CLASS-METHODS msg_get_by_msg
       IMPORTING
-        id         TYPE any
-        no         TYPE any
-        v1         TYPE any optional
-        v2         TYPE any optional
-        v3         TYPE any optional
-        v4         TYPE any optional
+        id            TYPE any
+        no            TYPE any
+        v1            TYPE any OPTIONAL
+        v2            TYPE any OPTIONAL
+        v3            TYPE any OPTIONAL
+        v4            TYPE any OPTIONAL
       RETURNING
         VALUE(result) TYPE ty_s_msg.
 
@@ -1586,6 +1586,15 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD msg_get_by_msg.
+
+    DATA(ls_msg) = VALUE z2ui5_cl_util=>ty_s_msg(
+      id         = id
+      no         = no
+      v1         = v1
+      v2         = v2
+      v3         = v3
+      v4         = v4 ).
+    result = msg_get( ls_msg ).
 
   ENDMETHOD.
 
