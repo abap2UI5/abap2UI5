@@ -45,18 +45,19 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
   METHOD attri_after_load.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
-      TRY.
-          lr_attri->r_ref       = attri_get_val_ref( lr_attri->name ).
-          lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
+*      TRY.
+      lr_attri->r_ref       = attri_get_val_ref( lr_attri->name ).
+      lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
 
-          IF lr_attri->srtti_data IS NOT INITIAL.
-            ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val>).
-            <val> = z2ui5_cl_util=>xml_srtti_parse( lr_attri->srtti_data ).
+      IF lr_attri->srtti_data IS NOT INITIAL.
+        ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val>).
+        <val> = z2ui5_cl_util=>xml_srtti_parse( lr_attri->srtti_data ).
             CLEAR lr_attri->srtti_data.
           ENDIF.
 
-        CATCH cx_root.
-      ENDTRY.
+*        CATCH cx_root INTO DATA(x).
+*          ASSERT `` = x->get_text( ).
+*      ENDTRY.
     ENDLOOP.
 
   ENDMETHOD.
@@ -74,7 +75,7 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-       "extra case - conversion exit alpha numeric
+      "extra case - conversion exit alpha numeric
       IF lr_attri->bind_type = z2ui5_if_core_types=>cs_bind_type-two_way AND (
           lr_attri->o_typedescr->type_kind = cl_abap_classdescr=>typekind_num OR
           lr_attri->o_typedescr->type_kind = cl_abap_classdescr=>typekind_numeric ).

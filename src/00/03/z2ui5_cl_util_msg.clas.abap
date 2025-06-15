@@ -53,6 +53,7 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
         ENDLOOP.
         IF ls_result-text IS INITIAL AND ls_result-id IS NOT INITIAL.
+        ls_result-id = TO_UPPER( ls_result-id ).
           MESSAGE ID ls_result-id TYPE 'I' NUMBER ls_result-no
                   WITH ls_result-v1 ls_result-v2 ls_result-v3 ls_result-v4
                   INTO ls_result-text.

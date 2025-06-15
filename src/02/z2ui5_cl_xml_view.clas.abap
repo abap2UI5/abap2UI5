@@ -1631,6 +1631,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         select                 TYPE clike OPTIONAL
         delete                 TYPE clike OPTIONAL
         class                  TYPE clike OPTIONAL
+       PREFERRED PARAMETER items
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
