@@ -1046,8 +1046,12 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
                 DATA(lo_ref) = cl_abap_typedescr=>describe_by_data_ref( val ).
                 lo_struct = CAST cl_abap_structdescr( lo_ref ).
               CATCH cx_root.
-                lo_tab = CAST cl_abap_tabledescr( lo_ref ).
-                lo_struct = CAST cl_abap_structdescr( lo_tab->get_table_line_type( ) ).
+                TRY.
+                    lo_tab = CAST cl_abap_tabledescr( lo_ref ).
+                    lo_struct = CAST cl_abap_structdescr( lo_tab->get_table_line_type( ) ).
+                  CATCH cx_root.
+                    lo_struct ?= cl_abap_structdescr=>describe_by_name( val ).
+                ENDTRY.
             ENDTRY.
         ENDTRY.
     ENDTRY.
@@ -1567,7 +1571,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   METHOD msg_get.
 
     DATA(lt_msg) = msg_get_t( val ).
-    result = lt_msg[ 0 ].
+    result = lt_msg[ 1 ].
 
   ENDMETHOD.
 
