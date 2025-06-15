@@ -49,7 +49,7 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
       lr_attri->r_ref       = attri_get_val_ref( lr_attri->name ).
       lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
 
-          IF lr_attri->srtti_data IS NOT INITIAL.
+      IF lr_attri->srtti_data IS NOT INITIAL.
             ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val>).
             <val> = z2ui5_cl_util=>xml_srtti_parse( lr_attri->srtti_data ).
             CLEAR lr_attri->srtti_data.
