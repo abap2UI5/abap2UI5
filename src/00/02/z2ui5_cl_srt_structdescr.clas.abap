@@ -76,12 +76,15 @@ CLASS z2ui5_cl_srt_structdescr IMPLEMENTATION.
 
       TRY.
           component_rtti-type       ?= <component>-type->get_rtti( ).
-        CATCH cx_sy_rtti_type_not_released INTO DATA(x).
-          component_rtti-type = cl_abap_elemdescr=>get_by_kind(
-                          p_type_kind =  <component>-type->type_kind
-                          p_length    = <component>-type->length
-                          p_decimals  = <component>-type->decimals
-                        ).
+        CATCH cx_root INTO DATA(x).
+          DATA(lv_method) = 'GET_BY_KIND'.
+          CALL METHOD cl_abap_elemdescr=>(lv_method)
+            EXPORTING
+              p_type_kind = <component>-type->type_kind
+              p_length    = <component>-type->length
+              p_decimals  = <component>-type->decimals
+            RECEIVING
+              p_result    = component_rtti-type.
       ENDTRY.
       component_rtti-as_include  = <component>-as_include.
       component_rtti-suffix      = <component>-suffix.
