@@ -35,9 +35,9 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
     CLASS-METHODS _http_get
       IMPORTING
-        is_config TYPE  z2ui5_if_types=>ty_s_http_config
+        is_config     TYPE  z2ui5_if_types=>ty_s_http_config
       RETURNING
-        VALUE(result)    TYPE string.
+        VALUE(result) TYPE string.
 
     METHODS main
       IMPORTING
@@ -129,7 +129,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD _http_get.
 
-    data(ls_config) = is_config.
+    DATA(ls_config) = is_config.
 
     IF ls_config-title IS INITIAL.
       ls_config-title = `abap2UI5`.
