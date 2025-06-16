@@ -862,7 +862,6 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
     DATA lo_typedescr           TYPE REF TO cl_abap_typedescr.
     DATA temp8                  TYPE REF TO cl_abap_datadescr.
     DATA data_descr             LIKE temp8.
-    DATA xco_cp_abap_dictionary TYPE c LENGTH 22.
 
     data_element_name = val.
 
@@ -908,9 +907,9 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
       CATCH cx_root.
         TRY.
-
-            xco_cp_abap_dictionary = 'XCO_CP_ABAP_DICTIONARY'.
-            CALL METHOD (xco_cp_abap_dictionary)=>('DATA_ELEMENT')
+            DATA lv_xco_cp_abap_dictionary TYPE string.
+            lv_xco_cp_abap_dictionary = 'XCO_CP_ABAP_DICTIONARY'.
+            CALL METHOD (lv_xco_cp_abap_dictionary)=>('DATA_ELEMENT')
               EXPORTING
                 iv_name         = data_element_name
               RECEIVING
@@ -1211,7 +1210,7 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
     TRY.
         TRY.
-            CALL METHOD ('XCO_CP_ABAP_DICTIONARY')=>database_table
+            CALL METHOD ('XCO_CP_ABAP_DICTIONARY')=>('DATABASE_TABLE')
               EXPORTING
                 iv_name           = lv_tabname
               RECEIVING
