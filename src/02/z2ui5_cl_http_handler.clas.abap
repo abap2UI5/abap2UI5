@@ -35,7 +35,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
     CLASS-METHODS _http_get
       IMPORTING
-        VALUE(is_config) TYPE  z2ui5_if_types=>ty_s_http_config
+        is_config TYPE  z2ui5_if_types=>ty_s_http_config
       RETURNING
         VALUE(result)    TYPE string.
 
