@@ -1210,7 +1210,8 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
     TRY.
         TRY.
-            CALL METHOD ('XCO_CP_ABAP_DICTIONARY')=>('DATABASE_TABLE')
+            DATA(lv_method2) = `XCO_CP_ABAP_DICTIONARY`.
+            CALL METHOD (lv_method2)=>('DATABASE_TABLE')
               EXPORTING
                 iv_name           = lv_tabname
               RECEIVING
