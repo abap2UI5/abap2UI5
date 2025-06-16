@@ -40,7 +40,7 @@ ENDCLASS.
 CLASS z2ui5_cl_pop_itab_json_dl IMPLEMENTATION.
   METHOD factory.
 
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
     r_result->mr_itab             = z2ui5_cl_util=>conv_copy_ref_data( itab ).
 
     r_result->title               = i_title.
@@ -59,6 +59,12 @@ CLASS z2ui5_cl_pop_itab_json_dl IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
     DATA app TYPE REF TO object.
+          DATA lv_link TYPE string.
+          DATA lv_text TYPE string.
+          DATA lx TYPE REF TO z2ui5_cx_util_error.
+          DATA lv_classname TYPE string.
+          DATA temp1 TYPE REF TO z2ui5_if_app.
+        DATA x TYPE REF TO cx_root.
 
     me->client = client.
 
@@ -66,25 +72,32 @@ CLASS z2ui5_cl_pop_itab_json_dl IMPLEMENTATION.
 
         IF z2ui5_cl_util=>rtti_check_class_exists( `z2ui5_dbt_cl_app_03` ) = abap_false.
 
-          DATA(lv_link) = `https://github.com/oblomov-dev/a2UI5-db_table_loader`.
-          DATA(lv_text) = |<p>Please install the open-source project a2UI5-db_table_loader and try again: <a href="| &&
+          
+          lv_link = `https://github.com/oblomov-dev/a2UI5-db_table_loader`.
+          
+          lv_text = |<p>Please install the open-source project a2UI5-db_table_loader and try again: <a href="| &&
                            |{ lv_link }" style="color:blue; font-weight:600;" target="_blank">(link)</a></p>|.
 
-          DATA(lx) = NEW z2ui5_cx_util_error( val = lv_text ).
+          
+          CREATE OBJECT lx TYPE z2ui5_cx_util_error EXPORTING val = lv_text.
           client->nav_app_leave( z2ui5_cl_pop_error=>factory( lx ) ).
 
         ELSE.
 
-          DATA(lv_classname) = `Z2UI5_DBT_CL_APP_03`.
+          
+          lv_classname = `Z2UI5_DBT_CL_APP_03`.
           CALL METHOD (lv_classname)=>('FACTORY_POPUP_BY_ITAB')
             EXPORTING itab   = mr_itab
             RECEIVING result = app.
 
-          client->nav_app_leave( CAST #( app ) ).
+          
+          temp1 ?= app.
+          client->nav_app_leave( temp1 ).
 
         ENDIF.
 
-      CATCH cx_root INTO DATA(x).
+        
+      CATCH cx_root INTO x.
         client->nav_app_leave( z2ui5_cl_pop_to_inform=>factory( x->get_text( ) ) ).
     ENDTRY.
   ENDMETHOD.

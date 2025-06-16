@@ -233,7 +233,7 @@ CLASS z2ui5_cl_util_abap DEFINITION
         selkz             TYPE abap_bool,
       END OF ty_s_transport.
 
-    TYPES ty_t_data TYPE STANDARD TABLE OF ty_s_transport WITH EMPTY KEY.
+    TYPES ty_t_data TYPE STANDARD TABLE OF ty_s_transport WITH DEFAULT KEY.
 
     TYPES:
       BEGIN OF ty_s_dfies_2,
@@ -287,7 +287,7 @@ CLASS z2ui5_cl_util_abap DEFINITION
         nohistory   TYPE c LENGTH 1,   " Input History Deactivated
         ampmformat  TYPE c LENGTH 1,   " AM/PM Time Format Indicator
       END OF ty_s_dfies_2.
-    TYPES ty_t_dfies_2 TYPE STANDARD TABLE OF ty_s_dfies_2 WITH EMPTY KEY.
+    TYPES ty_t_dfies_2 TYPE STANDARD TABLE OF ty_s_dfies_2 WITH DEFAULT KEY.
 
     TYPES:
       BEGIN OF ty_shlp_intdescr,
@@ -364,10 +364,10 @@ CLASS z2ui5_cl_util_abap DEFINITION
         shlpname   TYPE c LENGTH 30,       " Name of a Search Help
         shlptype   TYPE c LENGTH 2,        " Type of an input help (fixed values)
         intdescr   TYPE ty_shlp_intdescr,  " Placeholder for Internal Info of Search Help
-        interface  TYPE STANDARD TABLE OF ty_ddshiface WITH EMPTY KEY,                      " Placeholder for Interface of Search Help
-        fielddescr TYPE STANDARD TABLE OF ty_s_dfies_2 WITH EMPTY KEY,
-        fieldprop  TYPE STANDARD TABLE OF ty_ddshfprop WITH EMPTY KEY,
-        selopt     TYPE STANDARD TABLE OF ty_ddshselopt WITH EMPTY KEY,
+        interface  TYPE STANDARD TABLE OF ty_ddshiface WITH DEFAULT KEY,                      " Placeholder for Interface of Search Help
+        fielddescr TYPE STANDARD TABLE OF ty_s_dfies_2 WITH DEFAULT KEY,
+        fieldprop  TYPE STANDARD TABLE OF ty_ddshfprop WITH DEFAULT KEY,
+        selopt     TYPE STANDARD TABLE OF ty_ddshselopt WITH DEFAULT KEY,
         textsearch TYPE ty_ddshtextsearch,
       END OF ty_shlp_descr.
 
@@ -862,6 +862,7 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
     DATA lo_typedescr           TYPE REF TO cl_abap_typedescr.
     DATA temp8                  TYPE REF TO cl_abap_datadescr.
     DATA data_descr             LIKE temp8.
+            DATA lv_xco_cp_abap_dictionary TYPE string.
 
     data_element_name = val.
 
@@ -907,7 +908,7 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
       CATCH cx_root.
         TRY.
-            DATA lv_xco_cp_abap_dictionary TYPE string.
+            
             lv_xco_cp_abap_dictionary = 'XCO_CP_ABAP_DICTIONARY'.
             CALL METHOD (lv_xco_cp_abap_dictionary)=>('DATA_ELEMENT')
               EXPORTING
@@ -1200,17 +1201,27 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
     DATA lv_tabname TYPE c LENGTH 16.
     DATA lr_ddfields TYPE REF TO data.
     TYPES ty_c30 TYPE c LENGTH 30.
-    DATA names TYPE STANDARD TABLE OF ty_c30 WITH EMPTY KEY.
+    DATA names TYPE STANDARD TABLE OF ty_c30 WITH DEFAULT KEY.
     FIELD-SYMBOLS <any> TYPE any.
     FIELD-SYMBOLS <field> TYPE simple.
     FIELD-SYMBOLS <ddfields> TYPE ANY TABLE.
+            DATA lv_method2 TYPE string.
+            DATA workaround TYPE c LENGTH 8.
+            DATA temp1 TYPE REF TO cl_abap_structdescr.
+    DATA lt_comp TYPE abap_component_tab.
+    DATA temp2 LIKE LINE OF lt_comp.
+    DATA lr_comp LIKE REF TO temp2.
+      DATA lv_check_key LIKE abap_false.
+      DATA temp3 LIKE sy-subrc.
+      DATA temp4 TYPE z2ui5_cl_util_abap=>ty_s_dfies.
 
 * convert to correct type,
     lv_tabname = tabname.
 
     TRY.
         TRY.
-            DATA(lv_method2) = `XCO_CP_ABAP_DICTIONARY`.
+            
+            lv_method2 = `XCO_CP_ABAP_DICTIONARY`.
             CALL METHOD (lv_method2)=>('DATABASE_TABLE')
               EXPORTING
                 iv_name           = lv_tabname
@@ -1226,12 +1237,14 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
               RECEIVING
                 rt_names = names.
           CATCH cx_sy_dyn_call_illegal_class.
-            DATA(workaround) = 'DDFIELDS'.
+            
+            workaround = 'DDFIELDS'.
             CREATE DATA lr_ddfields TYPE (workaround).
             ASSIGN lr_ddfields->* TO <ddfields>.
             ASSERT sy-subrc = 0.
-            <ddfields> = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_name(
-              lv_tabname ) )->get_ddic_field_list( ).
+            
+            temp1 ?= cl_abap_typedescr=>describe_by_name( lv_tabname ).
+            <ddfields> = temp1->get_ddic_field_list( ).
             LOOP AT <ddfields> ASSIGNING <any>.
               ASSIGN COMPONENT 'KEYFLAG' OF STRUCTURE <any> TO <field>.
               IF sy-subrc <> 0 OR <field> <> abap_true.
@@ -1246,22 +1259,30 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
     ENDTRY.
 
 
-    DATA(lt_comp)  =  z2ui5_cl_util=>rtti_get_t_attri_by_any( tabname ).
-    LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
+    
+    lt_comp  =  z2ui5_cl_util=>rtti_get_t_attri_by_any( tabname ).
+    
+    
+    LOOP AT lt_comp REFERENCE INTO lr_comp.
 
-      DATA(lv_check_key) = abap_false.
-      IF line_exists( names[ table_line = lr_comp->name ] ).
+      
+      lv_check_key = abap_false.
+      
+      READ TABLE names WITH KEY table_line = lr_comp->name TRANSPORTING NO FIELDS.
+      temp3 = sy-subrc.
+      IF temp3 = 0.
         lv_check_key = abap_true.
       ENDIF.
 
-      INSERT VALUE #(
-          fieldname = lr_comp->name
-          rollname  = lr_comp->name
-          keyflag = lv_check_key
-        scrtext_s =  lr_comp->name
-        scrtext_m =  lr_comp->name
-        scrtext_l =  lr_comp->name
-       ) INTO TABLE result.
+      
+      CLEAR temp4.
+      temp4-fieldname = lr_comp->name.
+      temp4-rollname = lr_comp->name.
+      temp4-keyflag = lv_check_key.
+      temp4-scrtext_s = lr_comp->name.
+      temp4-scrtext_m = lr_comp->name.
+      temp4-scrtext_l = lr_comp->name.
+      INSERT temp4 INTO TABLE result.
 
     ENDLOOP.
 *            structdescr->
@@ -1433,25 +1454,29 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
   METHOD rtti_get_table_desrc.
 
     DATA ddtext TYPE c LENGTH 60.
+      DATA lan LIKE sy-langu.
+      DATA lv_tabname TYPE string.
 
     IF langu IS NOT SUPPLIED.
-      DATA(lan) = sy-langu.
+      
+      lan = sy-langu.
     ELSE.
       lan = langu.
     ENDIF.
 
-    IF context_check_abap_cloud( ).
+    IF context_check_abap_cloud( ) IS NOT INITIAL.
 
       ddtext = tabname.
 
     ELSE.
 
-      DATA(lv_tabname) = `dd02t`.
+      
+      lv_tabname = `dd02t`.
       SELECT SINGLE ddtext
-        FROM (lv_tabname)
-        WHERE tabname    = @tabname
-          AND ddlanguage = @lan
-        INTO @ddtext.
+        FROM (lv_tabname) INTO ddtext
+        WHERE tabname    = tabname
+          AND ddlanguage = lan
+        .
 
     ENDIF.
 
@@ -1475,19 +1500,57 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
     DATA lr_shlp       TYPE REF TO data.
 
-    DATA(lv_type) = 'SHLP_DESCR'.
-    CREATE DATA lr_shlp TYPE (lv_type).
+    DATA lv_type TYPE c LENGTH 10.
     FIELD-SYMBOLS <shlp> TYPE any.
+    DATA lv_tabname TYPE c LENGTH 30.
+    DATA lv_fieldname TYPE c LENGTH 30.
+      DATA lv_fm TYPE c LENGTH 25.
+        DATA lr_t_shlp TYPE REF TO data.
+        DATA lv_type2 TYPE c LENGTH 10.
+        FIELD-SYMBOLS <shlp2> TYPE STANDARD TABLE.
+        FIELD-SYMBOLS <row2> TYPE any.
+      DATA temp5 LIKE LINE OF ms_shlp-interface.
+      DATA r_interface LIKE REF TO temp5.
+        FIELD-SYMBOLS <any> TYPE any.
+        FIELD-SYMBOLS <value> TYPE any.
+    DATA interface LIKE LINE OF ms_shlp-interface.
+        DATA temp6 TYPE z2ui5_cl_util_abap=>ty_shlp_descr-selopt.
+        DATA temp7 LIKE LINE OF temp6.
+        DATA temp1 TYPE z2ui5_cl_util_abap=>ty_ddshselopt-option.
+    DATA fieldrop LIKE LINE OF ms_shlp-fieldprop.
+      DATA valule LIKE fieldrop-defaultval.
+      DATA temp8 TYPE z2ui5_cl_util_abap=>ty_shlp_descr-selopt.
+      DATA temp9 LIKE LINE OF temp8.
+      DATA temp2 TYPE z2ui5_cl_util_abap=>ty_ddshselopt-option.
+    DATA field_props LIKE LINE OF ms_shlp-fieldprop.
+      DATA temp10 TYPE z2ui5_cl_util_abap=>ty_s_dfies_2.
+      DATA temp11 TYPE z2ui5_cl_util_abap=>ty_s_dfies_2.
+      DATA descption LIKE temp10.
+    DATA temp12 LIKE sy-subrc.
+    DATA strucdescr TYPE REF TO cl_abap_structdescr.
+    DATA tabdescr TYPE REF TO cl_abap_tabledescr.
+    FIELD-SYMBOLS <fs_target_tab> TYPE STANDARD TABLE.
+    DATA result_line LIKE LINE OF lt_result_tab.
+      FIELD-SYMBOLS <fs_line> TYPE data.
+      DATA result_desc LIKE LINE OF mt_result_desc.
+        FIELD-SYMBOLS <line_content> TYPE any.
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <line> TYPE any.
+      FIELD-SYMBOLS <row> TYPE any.
+    lv_type = 'SHLP_DESCR'.
+    CREATE DATA lr_shlp TYPE (lv_type).
+    
     ASSIGN lr_shlp->* TO <shlp>.
 
-    DATA lv_tabname   TYPE c LENGTH 30.
-    DATA lv_fieldname TYPE c LENGTH 30.
+    
+    
     lv_tabname = mv_table.
     lv_fieldname = mv_fname.
 
     IF ms_shlp IS INITIAL.
       " Suchhilfe lesen
-      DATA(lv_fm) = 'F4IF_DETERMINE_SEARCHHELP'.
+      
+      lv_fm = 'F4IF_DETERMINE_SEARCHHELP'.
       CALL FUNCTION lv_fm
         EXPORTING
           tabname           = lv_tabname
@@ -1502,15 +1565,16 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
       IF sy-subrc <> 0.
         " FEHLER
       ENDIF.
-      ms_shlp = CORRESPONDING #( <shlp> ).
+      MOVE-CORRESPONDING <shlp> TO ms_shlp.
 
       IF ms_shlp-intdescr-issimple = abap_false.
 
 *      DATA lt_shlp       TYPE shlp_desct.
-        DATA lr_t_shlp TYPE REF TO data.
-        DATA(lv_type2) = 'SHLP_DESCT'.
+        
+        
+        lv_type2 = 'SHLP_DESCT'.
         CREATE DATA lr_t_shlp TYPE (lv_type2).
-        FIELD-SYMBOLS <shlp2> TYPE STANDARD TABLE.
+        
         ASSIGN lr_t_shlp->* TO <shlp2>.
 
         lv_fm = 'F4IF_EXPAND_SEARCHHELP'.
@@ -1521,19 +1585,21 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
             shlp_tab = <shlp2>.
 
 *        DATA(ls_row) = CORRESPONDING #( <shlp2>[ 1 ] OPTIONAL ).
-        FIELD-SYMBOLS <row2> TYPE any.
-        ASSIGN  <shlp2>[ 1 ] TO <row2>.
-        ms_shlp = CORRESPONDING #( <row2> ).
+        
+        READ TABLE <shlp2> INDEX 1 ASSIGNING <row2>.
+        MOVE-CORRESPONDING <row2> TO ms_shlp.
       ENDIF.
     ENDIF.
 
     IF mr_data IS BOUND.
       " Values from Caller app to Interface Values
-      LOOP AT ms_shlp-interface REFERENCE INTO DATA(r_interface) WHERE value IS INITIAL.
+      
+      
+      LOOP AT ms_shlp-interface REFERENCE INTO r_interface WHERE value IS INITIAL.
 
-        FIELD-SYMBOLS <any> TYPE any.
+        
         ASSIGN mr_data->* TO <any>.
-        FIELD-SYMBOLS <value> TYPE any.
+        
         ASSIGN COMPONENT r_interface->shlpfield OF STRUCTURE <any> TO <value>.
 
         IF sy-subrc <> 0.
@@ -1546,7 +1612,8 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
     ENDIF.
 
     " Interface Fixed Values to Selopt
-    LOOP AT ms_shlp-interface INTO DATA(interface).
+    
+    LOOP AT ms_shlp-interface INTO interface.
 
       " Match the name of the SH Field to the Input field name
       IF interface-valfield = mv_fname.
@@ -1555,38 +1622,61 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
       IF interface-value IS NOT INITIAL.
 
-        ms_shlp-selopt = VALUE #( BASE ms_shlp-selopt
-                                  ( shlpfield = interface-shlpfield
-                                    shlpname  = interface-valtabname
-                                    option    = COND #( WHEN interface-value CA `*` THEN 'CP' ELSE 'EQ' )
-                                    sign      = 'I'
-                                    low       = interface-value  ) ).
+        
+        CLEAR temp6.
+        temp6 = ms_shlp-selopt.
+        
+        temp7-shlpfield = interface-shlpfield.
+        temp7-shlpname = interface-valtabname.
+        
+        IF interface-value CA `*`.
+          temp1 = 'CP'.
+        ELSE.
+          temp1 = 'EQ'.
+        ENDIF.
+        temp7-option = temp1.
+        temp7-sign = 'I'.
+        temp7-low = interface-value.
+        INSERT temp7 INTO TABLE temp6.
+        ms_shlp-selopt = temp6.
 
       ENDIF.
 
     ENDLOOP.
 
-    LOOP AT ms_shlp-fieldprop INTO DATA(fieldrop).
+    
+    LOOP AT ms_shlp-fieldprop INTO fieldrop.
 
       IF fieldrop-defaultval IS INITIAL.
         CONTINUE.
       ENDIF.
 
-      DATA(valule) = fieldrop-defaultval.
+      
+      valule = fieldrop-defaultval.
       REPLACE ALL OCCURRENCES OF `'` IN valule WITH ``.
 
-      ms_shlp-selopt = VALUE #( BASE ms_shlp-selopt
-                                ( shlpfield = fieldrop-fieldname
-*                                  shlpname  =
-                                  option    = COND #( WHEN fieldrop-defaultval CA `*` THEN 'CP' ELSE 'EQ' )
-                                  sign      = 'I'
-                                  low       = valule  ) ).
+      
+      CLEAR temp8.
+      temp8 = ms_shlp-selopt.
+      
+      temp9-shlpfield = fieldrop-fieldname.
+      
+      IF fieldrop-defaultval CA `*`.
+        temp2 = 'CP'.
+      ELSE.
+        temp2 = 'EQ'.
+      ENDIF.
+      temp9-option = temp2.
+      temp9-sign = 'I'.
+      temp9-low = valule.
+      INSERT temp9 INTO TABLE temp8.
+      ms_shlp-selopt = temp8.
 
     ENDLOOP.
 
     CREATE DATA lr_shlp TYPE (lv_type).
     ASSIGN lr_shlp->* TO <shlp>.
-    <shlp> = CORRESPONDING #( ms_shlp ).
+    MOVE-CORRESPONDING ms_shlp TO <shlp>.
 
     lv_fm = 'F4IF_SELECT_VALUES'.
     CALL FUNCTION lv_fm
@@ -1600,9 +1690,18 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
     SORT ms_shlp-fieldprop BY shlplispos ASCENDING.
 
-    LOOP AT ms_shlp-fieldprop INTO DATA(field_props) WHERE shlplispos IS NOT INITIAL.
+    
+    LOOP AT ms_shlp-fieldprop INTO field_props WHERE shlplispos IS NOT INITIAL.
 
-      DATA(descption) = VALUE #( mt_result_desc[ fieldname = field_props-fieldname ] OPTIONAL ).
+      
+      CLEAR temp10.
+      
+      READ TABLE mt_result_desc INTO temp11 WITH KEY fieldname = field_props-fieldname.
+      IF sy-subrc = 0.
+        temp10 = temp11.
+      ENDIF.
+      
+      descption = temp10.
 
       ls_comp-name  = descption-fieldname.
       ls_comp-type ?= cl_abap_datadescr=>describe_by_name( descption-rollname ).
@@ -1610,22 +1709,27 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
     ENDLOOP.
 
-    IF NOT line_exists( lt_comps[ name = 'ROW_ID' ] ).
+    
+    READ TABLE lt_comps WITH KEY name = 'ROW_ID' TRANSPORTING NO FIELDS.
+    temp12 = sy-subrc.
+    IF NOT temp12 = 0.
       lo_datadescr ?= cl_abap_datadescr=>describe_by_name( 'INT4' ).
       ls_comp-name  = 'ROW_ID'.
       ls_comp-type ?= lo_datadescr.
       APPEND ls_comp TO lt_comps.
     ENDIF.
 
-    DATA(strucdescr) = cl_abap_structdescr=>create( p_components = lt_comps ).
+    
+    strucdescr = cl_abap_structdescr=>create( p_components = lt_comps ).
 
-    DATA(tabdescr) = cl_abap_tabledescr=>create( p_line_type = strucdescr ).
+    
+    tabdescr = cl_abap_tabledescr=>create( p_line_type = strucdescr ).
 
     IF mt_data IS NOT BOUND.
       CREATE DATA mt_data TYPE HANDLE tabdescr.
     ENDIF.
 
-    FIELD-SYMBOLS <fs_target_tab> TYPE STANDARD TABLE.
+    
     ASSIGN mt_data->* TO <fs_target_tab>.
 
     CLEAR <fs_target_tab>.
@@ -1635,15 +1739,19 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
       CREATE DATA ms_data_row TYPE HANDLE strucdescr.
     ENDIF.
 
-    LOOP AT lt_result_tab INTO DATA(result_line).
+    
+    LOOP AT lt_result_tab INTO result_line.
 
       CREATE DATA lr_line TYPE HANDLE strucdescr.
-      ASSIGN lr_line->* TO FIELD-SYMBOL(<fs_line>).
+      
+      ASSIGN lr_line->* TO <fs_line>.
 
-      LOOP AT mt_result_desc INTO DATA(result_desc).
+      
+      LOOP AT mt_result_desc INTO result_desc.
 
+        
         ASSIGN COMPONENT result_desc-fieldname OF STRUCTURE <fs_line>
-               TO FIELD-SYMBOL(<line_content>).
+               TO <line_content>.
 
         IF sy-subrc <> 0.
           CONTINUE.
@@ -1708,14 +1816,15 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
 *    set_row_id( ).
 
-    FIELD-SYMBOLS <tab>  TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <line> TYPE any.
+    
+    
 
     ASSIGN mt_data->* TO <tab>.
 
     LOOP AT <tab> ASSIGNING <line>.
 
-      ASSIGN COMPONENT 'ROW_ID' OF STRUCTURE <line> TO FIELD-SYMBOL(<row>).
+      
+      ASSIGN COMPONENT 'ROW_ID' OF STRUCTURE <line> TO <row>.
       IF <row> IS ASSIGNED.
         <row> = sy-tabix.
       ENDIF.
@@ -1731,9 +1840,12 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
     DATA lv_field_len  TYPE i.
     DATA lv_offset     TYPE i.
 
-    LOOP AT dfies INTO DATA(s_dfies) WHERE keyflag = abap_true.
+    DATA s_dfies LIKE LINE OF dfies.
+      FIELD-SYMBOLS <value> TYPE any.
+    LOOP AT dfies INTO s_dfies WHERE keyflag = abap_true.
 
-      ASSIGN COMPONENT s_dfies-fieldname OF STRUCTURE line TO FIELD-SYMBOL(<value>).
+      
+      ASSIGN COMPONENT s_dfies-fieldname OF STRUCTURE line TO <value>.
       IF <value> IS NOT ASSIGNED.
         CONTINUE.
       ENDIF.
@@ -1768,19 +1880,27 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD bus_tr_add.
+      FIELD-SYMBOLS <e071> TYPE any.
+      FIELD-SYMBOLS <t_e071k> TYPE STANDARD TABLE.
+      FIELD-SYMBOLS <t_e071> TYPE STANDARD TABLE.
+      DATA r_e071k TYPE REF TO data.
+      DATA r_e071 TYPE REF TO data.
+      DATA fb1 TYPE c LENGTH 27.
+      DATA fb2 TYPE c LENGTH 25.
 
-    IF z2ui5_cl_util=>context_check_abap_cloud( ).
+    IF z2ui5_cl_util=>context_check_abap_cloud( ) IS NOT INITIAL.
 
     ELSE.
 
-      FIELD-SYMBOLS <e071>    TYPE any.
-      FIELD-SYMBOLS <t_e071k> TYPE STANDARD TABLE.
-      FIELD-SYMBOLS <t_e071>  TYPE STANDARD TABLE.
+      
+      
+      
 
       " We need to set the MANDT is necessary
       set_mandt( ir_data ).
 
-      DATA(r_e071k) = _set_e071k( ir_data      = ir_data
+      
+      r_e071k = _set_e071k( ir_data      = ir_data
                                   iv_tabname   = iv_tabname
                                   is_transport = is_transport ).
       ASSIGN r_e071k->* TO <e071>.
@@ -1788,13 +1908,15 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-      DATA(r_e071) = _set_e071( iv_tabname   = iv_tabname
+      
+      r_e071 = _set_e071( iv_tabname   = iv_tabname
                                 is_transport = is_transport ).
 
       ASSIGN r_e071k->* TO <t_e071k>.
       ASSIGN r_e071->* TO <t_e071>.
 
-      DATA(fb1) = 'TR_APPEND_TO_COMM_OBJS_KEYS'.
+      
+      fb1 = 'TR_APPEND_TO_COMM_OBJS_KEYS'.
       CALL FUNCTION fb1
         EXPORTING
           wi_trkorr     = is_transport-transport
@@ -1809,7 +1931,8 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error.
       ENDIF.
 
-      DATA(fb2) = 'TR_SORT_AND_COMPRESS_COMM'.
+      
+      fb2 = 'TR_SORT_AND_COMPRESS_COMM'.
       CALL FUNCTION fb2
         EXPORTING
           iv_trkorr     = is_transport-task
@@ -1837,13 +1960,19 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
     FIELD-SYMBOLS <tab>     TYPE STANDARD TABLE.
     FIELD-SYMBOLS <line>    TYPE any.
 
-    DATA(t_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_table_name( 'E071K' ).
+    DATA t_comp TYPE abap_component_tab.
+        DATA struct_desc TYPE REF TO cl_abap_structdescr.
+        DATA table_desc TYPE REF TO cl_abap_tabledescr.
+    DATA dfies TYPE z2ui5_cl_util_abap=>ty_t_dfies.
+    t_comp = z2ui5_cl_util=>rtti_get_t_attri_by_table_name( 'E071K' ).
 
     TRY.
 
-        DATA(struct_desc) = cl_abap_structdescr=>create( t_comp ).
+        
+        struct_desc = cl_abap_structdescr=>create( t_comp ).
 
-        DATA(table_desc) = cl_abap_tabledescr=>create( p_line_type  = struct_desc
+        
+        table_desc = cl_abap_tabledescr=>create( p_line_type  = struct_desc
                                                        p_table_kind = cl_abap_tabledescr=>tablekind_std ).
 
         CREATE DATA t_e071k TYPE HANDLE table_desc.
@@ -1856,7 +1985,8 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
     ENDTRY.
 
-    DATA(dfies) = z2ui5_cl_util=>rtti_get_t_dfies_by_table_name( iv_tabname ).
+    
+    dfies = z2ui5_cl_util=>rtti_get_t_dfies_by_table_name( iv_tabname ).
 
 *   is_transport-transport = assign_value( component = 'TRKORR'
 *                                          structure = <s_e071k> ).                                         )
@@ -1937,13 +2067,18 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
     FIELD-SYMBOLS <s_e071> TYPE any.
     FIELD-SYMBOLS <value>  TYPE any.
 
-    DATA(t_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_table_name( 'E071' ).
+    DATA t_comp TYPE abap_component_tab.
+        DATA struct_desc_new TYPE REF TO cl_abap_structdescr.
+        DATA table_desc_new TYPE REF TO cl_abap_tabledescr.
+    t_comp = z2ui5_cl_util=>rtti_get_t_attri_by_table_name( 'E071' ).
 
     TRY.
 
-        DATA(struct_desc_new) = cl_abap_structdescr=>create( t_comp ).
+        
+        struct_desc_new = cl_abap_structdescr=>create( t_comp ).
 
-        DATA(table_desc_new) = cl_abap_tabledescr=>create( p_line_type  = struct_desc_new
+        
+        table_desc_new = cl_abap_tabledescr=>create( p_line_type  = struct_desc_new
                                                            p_table_kind = cl_abap_tabledescr=>tablekind_std ).
 
         CREATE DATA t_e071 TYPE HANDLE table_desc_new.
@@ -2008,14 +2143,22 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
     FIELD-SYMBOLS <line>  TYPE any.
     FIELD-SYMBOLS <value> TYPE any.
 
-    DATA(table_name) = 'E070'.
+    DATA table_name TYPE c LENGTH 4.
+        DATA t_comp TYPE abap_component_tab.
+        DATA new_struct_desc TYPE REF TO cl_abap_structdescr.
+        DATA new_table_desc TYPE REF TO cl_abap_tabledescr.
+        DATA where TYPE string.
+    table_name = 'E070'.
 
     TRY.
-        DATA(t_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_table_name( table_name ).
+        
+        t_comp = z2ui5_cl_util=>rtti_get_t_attri_by_table_name( table_name ).
 
-        DATA(new_struct_desc) = cl_abap_structdescr=>create( t_comp ).
+        
+        new_struct_desc = cl_abap_structdescr=>create( t_comp ).
 
-        DATA(new_table_desc) = cl_abap_tabledescr=>create( p_line_type  = new_struct_desc
+        
+        new_table_desc = cl_abap_tabledescr=>create( p_line_type  = new_struct_desc
                                                            p_table_kind = cl_abap_tabledescr=>tablekind_std ).
 
         CREATE DATA lo_tab TYPE HANDLE new_table_desc.
@@ -2024,21 +2167,22 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
         ASSIGN lo_tab->* TO <table>.
         ASSIGN lo_line->* TO <line>.
 
-        DATA(where) =
+        
+        where =
         |( TRFUNCTION EQ 'Q' ) AND ( TRSTATUS EQ 'D' ) AND ( KORRDEV EQ 'CUST' ) AND ( AS4USER EQ '{ sy-uname }' )|.
 
-        SELECT trkorr,
-               trfunction,
-               trstatus,
-               tarsystem,
-               korrdev,
-               as4user,
-               as4date,
-               as4time,
+        SELECT trkorr
+               trfunction
+               trstatus
+               tarsystem
+               korrdev
+               as4user
+               as4date
+               as4time
                strkorr
-          FROM (table_name)
+          FROM (table_name) INTO TABLE <table>
           WHERE (where)
-          INTO TABLE @<table>.
+          .
         IF sy-subrc <> 0.
           RETURN.
         ENDIF.
@@ -2072,8 +2216,21 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD bus_tr_read.
+      DATA lo_tab TYPE REF TO data.
+      DATA lo_line TYPE REF TO data.
+      FIELD-SYMBOLS <table> TYPE STANDARD TABLE.
+      FIELD-SYMBOLS <line> TYPE any.
+      FIELD-SYMBOLS <value> TYPE any.
+      DATA table_name TYPE c LENGTH 4.
+          DATA t_comp TYPE abap_component_tab.
+          DATA new_struct_desc TYPE REF TO cl_abap_structdescr.
+          DATA new_table_desc TYPE REF TO cl_abap_tabledescr.
+          DATA index TYPE i.
+          DATA line LIKE LINE OF mt_data.
+              DATA where TYPE string.
+          DATA data TYPE REF TO z2ui5_cl_util_abap=>ty_s_transport.
 
-    IF z2ui5_cl_util=>context_check_abap_cloud( ).
+    IF z2ui5_cl_util=>context_check_abap_cloud( ) IS NOT INITIAL.
 
 *          data(lo_current_user) = xco_cp=>sy->user( ).
 *
@@ -2111,23 +2268,27 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
     ELSE.
 
-      DATA lo_tab  TYPE REF TO data.
-      DATA lo_line TYPE REF TO data.
+      
+      
 
-      FIELD-SYMBOLS <table> TYPE STANDARD TABLE.
-      FIELD-SYMBOLS <line>  TYPE any.
-      FIELD-SYMBOLS <value> TYPE any.
+      
+      
+      
 
       _read_e070( CHANGING mt_data = mt_data ).
 
-      DATA(table_name) = 'E07T'.
+      
+      table_name = 'E07T'.
 
       TRY.
-          DATA(t_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_table_name( table_name ).
+          
+          t_comp = z2ui5_cl_util=>rtti_get_t_attri_by_table_name( table_name ).
 
-          DATA(new_struct_desc) = cl_abap_structdescr=>create( t_comp ).
+          
+          new_struct_desc = cl_abap_structdescr=>create( t_comp ).
 
-          DATA(new_table_desc) = cl_abap_tabledescr=>create( p_line_type  = new_struct_desc
+          
+          new_table_desc = cl_abap_tabledescr=>create( p_line_type  = new_struct_desc
                                                              p_table_kind = cl_abap_tabledescr=>tablekind_std ).
 
           CREATE DATA lo_tab TYPE HANDLE new_table_desc.
@@ -2136,24 +2297,27 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
           ASSIGN lo_tab->* TO <table>.
           ASSIGN lo_line->* TO <line>.
 
-          DATA(index) = 0.
+          
+          index = 0.
 
-          LOOP AT mt_data INTO DATA(line).
+          
+          LOOP AT mt_data INTO line.
             index = index + 1.
             IF index = 1.
-              DATA(where) = |TRKORR EQ '{ line-task }'|.
+              
+              where = |TRKORR EQ '{ line-task }'|.
             ELSE.
               where = |{ where }OR TRKORR EQ '{ line-task }'|.
             ENDIF.
             where = |( { where } )|.
           ENDLOOP.
 
-          SELECT trkorr,
-                 langu,
+          SELECT trkorr
+                 langu
                  as4text
-            FROM (table_name)
+            FROM (table_name) INTO TABLE <table>
             WHERE (where)
-            INTO TABLE @<table>.
+            .
           IF sy-subrc <> 0.
             RETURN.
           ENDIF.
@@ -2168,7 +2332,8 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
           CONTINUE.
         ELSE.
 
-          READ TABLE mt_data REFERENCE INTO DATA(data) WITH KEY task = <value>.
+          
+          READ TABLE mt_data REFERENCE INTO data WITH KEY task = <value>.
           IF sy-subrc = 0.
 
             ASSIGN COMPONENT 'AS4TEXT' OF STRUCTURE <line> TO <value>.
@@ -2194,12 +2359,14 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
     FIELD-SYMBOLS <tab>  TYPE STANDARD TABLE.
     FIELD-SYMBOLS <line> TYPE any.
+      FIELD-SYMBOLS <row> TYPE any.
 
     ASSIGN ir_data->* TO <tab>.
 
     LOOP AT <tab> ASSIGNING <line>.
 
-      ASSIGN COMPONENT `MANDT` OF STRUCTURE <line> TO FIELD-SYMBOL(<row>).
+      
+      ASSIGN COMPONENT `MANDT` OF STRUCTURE <line> TO <row>.
       IF <row> IS ASSIGNED.
 
         TRY.
@@ -2213,18 +2380,23 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD conv_exit.
+      DATA conv TYPE string.
+      DATA conex TYPE c LENGTH 30.
+      DATA lv_tab TYPE c LENGTH 5.
 
-    IF z2ui5_cl_util=>context_check_abap_cloud( ).
+    IF z2ui5_cl_util=>context_check_abap_cloud( ) IS NOT INITIAL.
 
     ELSE.
 
-      DATA(conv) = |CONVERSION_EXIT_{ name-convexit }_INPUT|.
-      DATA conex TYPE c LENGTH 30.
-      DATA(lv_tab) = 'TFDIR'.
+      
+      conv = |CONVERSION_EXIT_{ name-convexit }_INPUT|.
+      
+      
+      lv_tab = 'TFDIR'.
 
-      SELECT SINGLE funcname FROM (lv_tab)
-        WHERE funcname = @conv
-        INTO @conex.
+      SELECT SINGLE funcname FROM (lv_tab) INTO conex
+        WHERE funcname = conv
+        .
 
       IF sy-subrc = 0.
 
