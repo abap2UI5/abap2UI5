@@ -35,7 +35,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
     CLASS-METHODS _http_get
       IMPORTING
-        VALUE(is_config) TYPE  z2ui5_if_types=>ty_s_http_config
+        is_config TYPE  z2ui5_if_types=>ty_s_http_config
       RETURNING
         VALUE(result)    TYPE string.
 
@@ -129,40 +129,42 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD _http_get.
 
-    IF is_config-title IS INITIAL.
-      is_config-title = `abap2UI5`.
+    data(ls_config) = is_config.
+
+    IF ls_config-title IS INITIAL.
+      ls_config-title = `abap2UI5`.
     ENDIF.
 
-    IF is_config-theme IS INITIAL.
-      is_config-theme = `sap_horizon`.
+    IF ls_config-theme IS INITIAL.
+      ls_config-theme = `sap_horizon`.
     ENDIF.
 
-    IF is_config-src IS INITIAL.
-      is_config-src = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js`.
+    IF ls_config-src IS INITIAL.
+      ls_config-src = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js`.
 *      ms_req_config-src     = `https://sdk.openui5.org/1.71.67/resources/sap-ui-core.js`.
 *      ms_req_config-src     = `https://sdk.openui5.org/nightly/2/resources/sap-ui-core.js`.
     ENDIF.
 
-    IF is_config-content_security_policy IS INITIAL.
-      is_config-content_security_policy = |<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: | &&
+    IF ls_config-content_security_policy IS INITIAL.
+      ls_config-content_security_policy = |<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: | &&
         |ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com openui5.hana.ondemand.com *.openui5.hana.ondemand.com | &&
         |sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas; worker-src 'self' blob:; "/>|.
     ENDIF.
 
-    IF is_config-styles_css IS INITIAL.
+    IF ls_config-styles_css IS INITIAL.
       DATA(lv_style_css) = z2ui5_cl_app_style_css=>get( ).
     ELSE.
-      lv_style_css = is_config-styles_css.
+      lv_style_css = ls_config-styles_css.
     ENDIF.
 
     result = |<!DOCTYPE html>| && |\n| &&
                |<html lang="en">| && |\n| &&
                |<head>| && |\n| &&
-                  |{ is_config-content_security_policy }\n| &&
+                  |{ ls_config-content_security_policy }\n| &&
                |    <meta charset="UTF-8">| && |\n| &&
                |    <meta name="viewport" content="width=device-width, initial-scale=1.0">| && |\n| &&
                |    <meta http-equiv="X-UA-Compatible" content="IE=edge">| && |\n| &&
-                | <title> { is_config-title }</title> \n| &&
+                | <title> { ls_config-title }</title> \n| &&
                 | <style>        html, body, body > div, #container, #container-uiarea \{\n| &
                 |            height: 100%;\n| &
                 |        \}</style> \n| &&
@@ -171,7 +173,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
              |    sap.ui.require.preload(\{| && |\n| &&
              |      "z2ui5/css/style.css": '{ lv_style_css }',| && |\n| &&
              |      "z2ui5/manifest.json": '{ z2ui5_cl_app_manifest_json=>get( ) }',| && |\n| &&
-             |      "z2ui5/Component.js": function()\{{ z2ui5_cl_app_component_js=>get( ) }{ is_config-custom_js }\},| && |\n| &&
+             |      "z2ui5/Component.js": function()\{{ z2ui5_cl_app_component_js=>get( ) }{ ls_config-custom_js }\},| && |\n| &&
              |      "z2ui5/model/models.js": function()\{{ z2ui5_cl_app_models_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/view/App.view.xml": '{ z2ui5_cl_app_app_xml=>get( ) }',| && |\n| &&
              |      "z2ui5/controller/App.controller.js": function()\{{ z2ui5_cl_app_app_js=>get( ) }\},| && |\n| &&
@@ -188,9 +190,9 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
              |</script>| && |\n| &&
                 |<script id="sap-ui-bootstrap" data-sap-ui-resourceroots='\{ "z2ui5": "./" \}' data-sap-ui-oninit="onInitComponent" | && |\n| &&
                  |data-sap-ui-compatVersion="edge" data-sap-ui-async="true" data-sap-ui-frameOptions="trusted" data-sap-ui-bindingSyntax="complex"| && |\n| &&
-                 |data-sap-ui-theme="{ is_config-theme  }" src=" { is_config-src }"   |.
+                 |data-sap-ui-theme="{ ls_config-theme  }" src=" { ls_config-src }"   |.
 
-    LOOP AT is_config-t_add_config REFERENCE INTO DATA(lr_config).
+    LOOP AT ls_config-t_add_config REFERENCE INTO DATA(lr_config).
       result = |{ result } { lr_config->n }='{ lr_config->v }'|.
     ENDLOOP.
 
