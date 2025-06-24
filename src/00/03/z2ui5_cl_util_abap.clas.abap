@@ -231,6 +231,7 @@ CLASS z2ui5_cl_util_abap DEFINITION
         transport         TYPE sxco_transport,
         task              TYPE sxco_transport,
         selkz             TYPE abap_bool,
+        locl              type abap_bool,
       END OF ty_s_transport.
 
     TYPES ty_t_data TYPE STANDARD TABLE OF ty_s_transport WITH EMPTY KEY.
