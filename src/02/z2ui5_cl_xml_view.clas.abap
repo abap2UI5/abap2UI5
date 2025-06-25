@@ -5288,6 +5288,15 @@ CLASS z2ui5_cl_xml_view DEFINITION
         maxlength            TYPE clike DEFAULT '0'
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS row_settings
+      IMPORTING
+        highlight     TYPE clike OPTIONAL
+        highlighttext TYPE clike OPTIONAL
+        navigated     TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
   PROTECTED SECTION.
     DATA mv_name     TYPE string.
     DATA mv_ns       TYPE string.
@@ -11154,4 +11163,11 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD row_settings.
+    result = _generic( name = `RowSettings`
+                       ns   = `table`
+                        t_prop = VALUE #( ( n = `highlight`       v = highlight )
+                                          ( n = `highlightText`   v = highlighttext )
+                                          ( n = `navigated`       v = z2ui5_cl_util=>boolean_abap_2_json( navigated ) ) ) ).
+  ENDMETHOD.
 ENDCLASS.
