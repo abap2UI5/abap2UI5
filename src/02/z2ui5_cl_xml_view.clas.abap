@@ -11164,8 +11164,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD row_settings.
-    result = _generic( name = `RowSettings`
-                       ns   = `table`
+    result = _generic( name    = `RowSettings`
+                       ns      = `table`
                         t_prop = VALUE #( ( n = `highlight`       v = highlight )
                                           ( n = `highlightText`   v = highlighttext )
                                           ( n = `navigated`       v = z2ui5_cl_util=>boolean_abap_2_json( navigated ) ) ) ).
