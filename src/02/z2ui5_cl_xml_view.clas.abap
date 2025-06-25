@@ -5295,7 +5295,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         highlighttext TYPE clike OPTIONAL
         navigated     TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
   PROTECTED SECTION.
     DATA mv_name     TYPE string.
