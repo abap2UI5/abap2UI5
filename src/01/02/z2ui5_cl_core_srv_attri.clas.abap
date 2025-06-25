@@ -55,7 +55,7 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
             CLEAR lr_attri->srtti_data.
           ENDIF.
 
-        CATCH cx_root INTO DATA(x).
+        CATCH cx_root.
 *          ASSERT `` = x->get_text( ).
       ENDTRY.
     ENDLOOP.
