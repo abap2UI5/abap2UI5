@@ -45,7 +45,7 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
   METHOD attri_after_load.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
-*      TRY.
+      TRY.
       lr_attri->r_ref       = attri_get_val_ref( lr_attri->name ).
       lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
 
@@ -55,9 +55,9 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
         CLEAR lr_attri->srtti_data.
       ENDIF.
 
-*        CATCH cx_root INTO DATA(x).
+        CATCH cx_root INTO DATA(x).
 *          ASSERT `` = x->get_text( ).
-*      ENDTRY.
+      ENDTRY.
     ENDLOOP.
 
   ENDMETHOD.
