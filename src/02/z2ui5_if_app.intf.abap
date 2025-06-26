@@ -1,9 +1,9 @@
 INTERFACE z2ui5_if_app PUBLIC.
   INTERFACES if_serializable_object.
 
-  CONSTANTS version TYPE string VALUE '1.139.0'.
+  CONSTANTS version TYPE string VALUE '1.140.0'.
   CONSTANTS origin  TYPE string VALUE 'https://github.com/abap2UI5/abap2UI5'.
-  CONSTANTS author  TYPE string VALUE 'https://github.com/oblomov-dev'.
+  CONSTANTS author  TYPE string VALUE 'https://github.com/abap2UI5/abap2UI5/graphs/contributors'.
   CONSTANTS license TYPE string VALUE 'MIT'.
 
   DATA id_draft          TYPE string.
@@ -13,6 +13,6 @@ INTERFACE z2ui5_if_app PUBLIC.
 
   METHODS main
     IMPORTING
-      !client TYPE REF TO z2ui5_if_client.
+      client TYPE REF TO z2ui5_if_client.
 
 ENDINTERFACE.
