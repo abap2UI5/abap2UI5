@@ -496,7 +496,10 @@ CLASS z2ui5_cl_util DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_util IMPLEMENTATION.
+
+CLASS Z2UI5_CL_UTIL IMPLEMENTATION.
+
+
   METHOD boolean_abap_2_json.
 
     IF boolean_check_by_data( val ).
@@ -507,6 +510,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD boolean_check_by_data.
 
     TRY.
@@ -516,6 +520,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
+
 
   METHOD boolean_check_by_name.
 
@@ -534,6 +539,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD check_bound_a_not_inital.
 
     IF val IS NOT BOUND.
@@ -543,6 +549,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     result = xsdbool( check_unassign_inital( val ) = abap_false ).
 
   ENDMETHOD.
+
 
   METHOD check_unassign_inital.
 
@@ -557,6 +564,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     result = xsdbool( <any> IS INITIAL ).
 
   ENDMETHOD.
+
 
   METHOD conv_copy_ref_data.
 
@@ -575,11 +583,13 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD conv_get_as_data_ref.
 
     GET REFERENCE OF val INTO result.
 
   ENDMETHOD.
+
 
   METHOD c_trim.
 
@@ -592,17 +602,20 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD c_trim_lower.
 
     result = to_lower( c_trim( CONV string( val ) ) ).
 
   ENDMETHOD.
 
+
   METHOD c_trim_upper.
 
     result = to_upper( c_trim( CONV string( val ) ) ).
 
   ENDMETHOD.
+
 
   METHOD filter_itab.
 
@@ -627,6 +640,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD filter_get_multi_by_data.
 
     LOOP AT rtti_get_t_attri_by_any( val ) REFERENCE INTO DATA(lr_comp).
@@ -634,6 +648,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
+
 
   METHOD filter_get_range_by_token.
 
@@ -688,6 +703,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD filter_update_tokens.
 
     result = val.
@@ -713,6 +729,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD filter_get_range_t_by_token_t.
 
     LOOP AT val INTO DATA(ls_token).
@@ -720,6 +737,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
+
 
   METHOD filter_get_token_range_mapping.
 
@@ -735,6 +753,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
                       (   n = `<leer>` v = `<leer>` ) ).
 
   ENDMETHOD.
+
 
   METHOD filter_get_token_t_by_range_t.
 
@@ -760,6 +779,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD itab_filter_by_val.
 
     FIELD-SYMBOLS <row> TYPE any.
@@ -782,6 +802,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
+
 
   METHOD itab_get_csv_by_itab.
 
@@ -815,6 +836,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
+
 
   METHOD tab_get_where_by_dfies.
 
@@ -857,6 +879,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
+
 
   METHOD itab_get_itab_by_csv.
 
@@ -903,6 +926,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD json_parse.
     TRY.
 
@@ -913,6 +937,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         ASSERT x IS NOT BOUND.
     ENDTRY.
   ENDMETHOD.
+
 
   METHOD json_stringify.
     TRY.
@@ -925,6 +950,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         ASSERT x IS NOT BOUND.
     ENDTRY.
   ENDMETHOD.
+
 
   METHOD rtti_check_class_exists.
 
@@ -941,6 +967,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD rtti_check_ref_data.
 
     TRY.
@@ -952,12 +979,14 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD rtti_check_type_kind_dref.
 
     DATA(lv_type_kind) = cl_abap_datadescr=>get_data_type_kind( val ).
     result = xsdbool( lv_type_kind = cl_abap_typedescr=>typekind_dref ).
 
   ENDMETHOD.
+
 
   METHOD rtti_get_classname_by_ref.
 
@@ -966,6 +995,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
                               sub = `\CLASS=` ).
 
   ENDMETHOD.
+
 
   METHOD rtti_get_intfname_by_ref.
 
@@ -977,11 +1007,13 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD rtti_get_type_kind.
 
     result = cl_abap_datadescr=>get_data_type_kind( val ).
 
   ENDMETHOD.
+
 
   METHOD rtti_get_type_name.
     TRY.
@@ -993,6 +1025,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
   ENDMETHOD.
+
 
   METHOD rtti_get_t_attri_by_include.
 
@@ -1025,12 +1058,14 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD rtti_get_t_attri_by_oref.
 
     DATA(lo_obj_ref) = cl_abap_objectdescr=>describe_by_object_ref( val ).
     result = CAST cl_abap_classdescr( lo_obj_ref )->attributes.
 
   ENDMETHOD.
+
 
   METHOD rtti_get_t_attri_by_any.
 
@@ -1070,6 +1105,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD rtti_get_t_ddic_fixed_values.
 
     IF rollname IS INITIAL.
@@ -1095,6 +1131,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
+
 
   METHOD rtti_tab_get_relative_name.
 
@@ -1122,6 +1159,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD source_get_file_types.
 
     DATA(lv_types) = |abap, abc, actionscript, ada, apache_conf, applescript, asciidoc, assembly_x86, autohotkey, batchfile, bro, c9search, c_cpp, cirru, clojure, cobol, coffee, coldfusion, csharp, css, curly, d, dart, diff, django, dockerfile, | &&
@@ -1135,6 +1173,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD source_get_method2.
 
     DATA(lt_source) = source_get_method( iv_classname  = iv_classname
@@ -1143,6 +1182,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     result = source_method_to_file( lt_source ).
 
   ENDMETHOD.
+
 
   METHOD source_method_to_file.
 
@@ -1154,6 +1194,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
+
 
   METHOD filter_get_sql_by_sql_string.
 
@@ -1167,25 +1208,30 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD time_get_date_by_stampl.
     " TODO: variable is assigned but never used (ABAP cleaner)
     CONVERT TIME STAMP val TIME ZONE sy-zonlo INTO DATE result TIME DATA(lv_dummy).
   ENDMETHOD.
 
+
   METHOD time_get_timestampl.
     GET TIME STAMP FIELD result.
   ENDMETHOD.
+
 
   METHOD time_get_time_by_stampl.
     " TODO: variable is assigned but never used (ABAP cleaner)
     CONVERT TIME STAMP val TIME ZONE sy-zonlo INTO DATE DATA(lv_dummy) TIME result.
   ENDMETHOD.
 
+
   METHOD time_substract_seconds.
 
     result = cl_abap_tstmp=>subtractsecs( tstmp = time
                                           secs  = seconds ).
   ENDMETHOD.
+
 
   METHOD unassign_data.
 
@@ -1196,6 +1242,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD unassign_object.
 
     FIELD-SYMBOLS <unassign> TYPE any.
@@ -1204,6 +1251,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     result = <unassign>.
 
   ENDMETHOD.
+
 
   METHOD url_param_create_url.
 
@@ -1215,6 +1263,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD url_param_get.
 
     DATA(lt_params) = url_param_get_tab( url ).
@@ -1222,6 +1271,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     result = VALUE #( lt_params[ n = lv_val ]-v OPTIONAL ).
 
   ENDMETHOD.
+
 
   METHOD url_param_get_tab.
 
@@ -1261,6 +1311,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD url_param_set.
 
     DATA(lt_params) = url_param_get_tab( url ).
@@ -1279,6 +1330,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD xml_parse.
 
     IF xml IS INITIAL.
@@ -1291,6 +1343,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
          RESULT data = any.
 
   ENDMETHOD.
+
 
   METHOD xml_srtti_parse.
 
@@ -1310,6 +1363,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     CALL TRANSFORMATION id SOURCE XML rtti_data RESULT dobj = <variable>.
 
   ENDMETHOD.
+
 
   METHOD xml_srtti_stringify.
 
@@ -1349,6 +1403,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD xml_stringify.
 
     CALL TRANSFORMATION id
@@ -1357,6 +1412,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
          OPTIONS data_refs = `heap-or-create`.
 
   ENDMETHOD.
+
 
   METHOD x_check_raise.
 
@@ -1367,6 +1423,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
+
 
   METHOD x_get_last_t100.
 
@@ -1384,6 +1441,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     result = x->get_text( ).
 
   ENDMETHOD.
+
 
   METHOD x_raise.
 
@@ -1451,6 +1509,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD itab_corresponding.
 
     FIELD-SYMBOLS <row_in>  TYPE any.
@@ -1471,13 +1530,16 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD itab_filter_by_t_range.
 
   ENDMETHOD.
 
+
   METHOD filter_get_data_by_multi.
 
   ENDMETHOD.
+
 
   METHOD filter_get_sql_where.
 
@@ -1530,11 +1592,13 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD msg_get_t.
 
     result = z2ui5_cl_util_msg=>msg_get( val ).
 
   ENDMETHOD.
+
 
   METHOD rtti_check_clike.
 
@@ -1549,6 +1613,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD ui5_get_msg_type.
 
     result = SWITCH #( val
@@ -1559,6 +1624,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD rtti_create_tab_by_name.
 
     DATA(struct_desc) = cl_abap_structdescr=>describe_by_name( val ).
@@ -1568,6 +1634,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD msg_get.
 
     DATA(lt_msg) = msg_get_t( val ).
@@ -1575,11 +1642,13 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD rtti_get_data_element_text_l.
 
     result = z2ui5_cl_util=>rtti_get_data_element_texts( val )-long.
 
   ENDMETHOD.
+
 
   METHOD msg_get_by_msg.
 
@@ -1593,5 +1662,4 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     result = msg_get( ls_msg ).
 
   ENDMETHOD.
-
 ENDCLASS.

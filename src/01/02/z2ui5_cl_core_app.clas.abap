@@ -65,6 +65,14 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
         DATA(lo_model) = NEW z2ui5_cl_core_srv_attri( attri = mt_attri
                                                       app   = mo_app ).
+
+
+        "new
+        DATA(lo_dissolver2) = NEW z2ui5_cl_core_srv_diss( attri = mt_attri
+                                                         app   = mo_app ).
+        lo_dissolver2->main( ).
+        lo_dissolver2->main( ).
+
         lo_model->attri_before_save( ).
         result = z2ui5_cl_util=>xml_stringify( me ).
 
@@ -80,6 +88,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
             lo_dissolver->main( ).
             lo_dissolver->main( ).
+
             lo_model = NEW z2ui5_cl_core_srv_attri( attri = mt_attri
                                                     app   = mo_app ).
             lo_model->attri_before_save( ).

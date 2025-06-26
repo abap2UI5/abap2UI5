@@ -55,8 +55,24 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
             CLEAR lr_attri->srtti_data.
           ENDIF.
 
-        CATCH cx_root.
+        CATCH cx_root INTO DATA(x).
 *          ASSERT `` = x->get_text( ).
+      ENDTRY.
+    ENDLOOP.
+
+    LOOP AT mt_attri->* REFERENCE INTO lr_attri
+       WHERE name_ref IS NOT INITIAL.
+      TRY.
+
+          DATA(lr_attri_deref) = mt_attri->*[ name = lr_attri->name_ref ].
+          ASSIGN lr_attri_deref-r_ref->* TO <val>.
+
+          DATA(lv_length) = strlen( lr_attri->name ) - 3.
+          DATA(lr_attri_orig) = mt_attri->*[ name = lr_attri->name(lv_length) ].
+          ASSIGN lr_attri_orig-r_ref->* TO FIELD-SYMBOL(<val_orig>).
+          get reference of <val> into <val_orig>.
+
+        CATCH cx_root.
       ENDTRY.
     ENDLOOP.
 
@@ -91,6 +107,16 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
       ENDIF.
 
       IF lr_attri->r_ref IS NOT BOUND.
+        CONTINUE.
+      ENDIF.
+
+
+      "refs to already existing data
+      DATA(lr_deref) = REF #( mt_attri->*[ name = lr_attri->name && '->*' ] OPTIONAL ).
+      IF lr_deref->name_ref IS NOT INITIAL.
+        ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref3>).
+        CLEAR <val_ref3>.
+        CLEAR lr_attri->r_ref.
         CONTINUE.
       ENDIF.
 
@@ -196,6 +222,47 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
         CATCH cx_root.
       ENDTRY.
     ENDLOOP.
+
+
+*    "check for some references
+*    LOOP AT mt_attri->* REFERENCE INTO lr_attri
+*        WHERE check_dissolved = abap_false.
+*      TRY.
+*          CAST cl_abap_refdescr(  lr_attri->o_typedescr ).
+*        CATCH cx_root.
+*          CONTINUE.
+*      ENDTRY.
+*      TRY.
+*          DATA(lv_tabix) = sy-tabix.
+*          LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri2)
+*            WHERE check_dissolved = abap_false.
+*
+*            IF lr_attri->name = lr_attri2->name.
+*              CONTINUE.
+*            ENDIF.
+**            IF sy-tabix = lv_tabix.
+**              EXIT.
+**            ENDIF.
+*
+*            TRY.
+*                CAST cl_abap_refdescr(  lr_attri2->o_typedescr ).
+*                IF lr_attri->r_ref->* = lr_attri2->r_ref->*.
+*                  lr_attri->name_ref = lr_attri2->name.
+*                  EXIT.
+*                ENDIF.
+*
+*              CATCH cx_root.
+*                IF lr_attri->r_ref->* = lr_attri2->r_ref.
+*                  lr_attri->name_ref = lr_attri2->name.
+*                  EXIT.
+*                ENDIF.
+*            ENDTRY.
+*
+*
+*          ENDLOOP.
+*        CATCH cx_root.
+*      ENDTRY.
+*    ENDLOOP.
 
   ENDMETHOD.
 
