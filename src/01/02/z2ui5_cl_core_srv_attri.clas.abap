@@ -55,7 +55,7 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
             CLEAR lr_attri->srtti_data.
           ENDIF.
 
-        CATCH cx_root INTO DATA(x).
+        CATCH cx_root.
 *          ASSERT `` = x->get_text( ).
       ENDTRY.
     ENDLOOP.
@@ -70,6 +70,7 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
           DATA(lv_length) = strlen( lr_attri->name ) - 3.
           DATA(lr_attri_orig) = mt_attri->*[ name = lr_attri->name(lv_length) ].
           ASSIGN lr_attri_orig-r_ref->* TO FIELD-SYMBOL(<val_orig>).
+*          <val_orig> = z2ui5_cl_util=>conv_get_as_data_ref( <val> ).
           GET REFERENCE OF <val> INTO <val_orig>.
 
         CATCH cx_root.
@@ -110,16 +111,13 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-
       "refs to already existing data
       DATA(lr_deref) = REF #( mt_attri->*[ name = lr_attri->name && '->*' ] OPTIONAL ).
-      IF lr_deref IS BOUND.
-        IF lr_deref->name_ref IS NOT INITIAL.
-          ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref3>).
-          CLEAR <val_ref3>.
-          CLEAR lr_attri->r_ref.
-          CONTINUE.
-        ENDIF.
+      IF lr_deref IS BOUND AND lr_deref->name_ref IS NOT INITIAL.
+        ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref3>).
+        CLEAR <val_ref3>.
+        CLEAR lr_attri->r_ref.
+        CONTINUE.
       ENDIF.
 
       ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref>).
@@ -162,7 +160,6 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
       EXIT.
     ENDDO.
 
-    """"" new
     DATA(lt_attri) = mt_attri->*.
     DELETE lt_attri WHERE bind_type IS INITIAL.
     CLEAR mt_attri->*.
@@ -190,8 +187,6 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
       EXIT.
     ENDDO.
 
-    """""
-
     RAISE EXCEPTION TYPE z2ui5_cx_util_error
       EXPORTING
         val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class or switch to bind_local`.
@@ -209,6 +204,7 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
     ENDIF.
 
     GET REFERENCE OF <attri> INTO result.
+*    result = z2ui5_cl_util=>conv_get_as_data_ref( <attri> ).
     IF sy-subrc <> 0.
       ASSERT 1 = 0.
     ENDIF.
@@ -224,47 +220,6 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
         CATCH cx_root.
       ENDTRY.
     ENDLOOP.
-
-
-*    "check for some references
-*    LOOP AT mt_attri->* REFERENCE INTO lr_attri
-*        WHERE check_dissolved = abap_false.
-*      TRY.
-*          CAST cl_abap_refdescr(  lr_attri->o_typedescr ).
-*        CATCH cx_root.
-*          CONTINUE.
-*      ENDTRY.
-*      TRY.
-*          DATA(lv_tabix) = sy-tabix.
-*          LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri2)
-*            WHERE check_dissolved = abap_false.
-*
-*            IF lr_attri->name = lr_attri2->name.
-*              CONTINUE.
-*            ENDIF.
-**            IF sy-tabix = lv_tabix.
-**              EXIT.
-**            ENDIF.
-*
-*            TRY.
-*                CAST cl_abap_refdescr(  lr_attri2->o_typedescr ).
-*                IF lr_attri->r_ref->* = lr_attri2->r_ref->*.
-*                  lr_attri->name_ref = lr_attri2->name.
-*                  EXIT.
-*                ENDIF.
-*
-*              CATCH cx_root.
-*                IF lr_attri->r_ref->* = lr_attri2->r_ref.
-*                  lr_attri->name_ref = lr_attri2->name.
-*                  EXIT.
-*                ENDIF.
-*            ENDTRY.
-*
-*
-*          ENDLOOP.
-*        CATCH cx_root.
-*      ENDTRY.
-*    ENDLOOP.
 
   ENDMETHOD.
 
