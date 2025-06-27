@@ -70,7 +70,7 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
           DATA(lv_length) = strlen( lr_attri->name ) - 3.
           DATA(lr_attri_orig) = mt_attri->*[ name = lr_attri->name(lv_length) ].
           ASSIGN lr_attri_orig-r_ref->* TO FIELD-SYMBOL(<val_orig>).
-          get reference of <val> into <val_orig>.
+          GET REFERENCE OF <val> INTO <val_orig>.
 
         CATCH cx_root.
       ENDTRY.
@@ -113,14 +113,14 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
 
       "refs to already existing data
       DATA(lr_deref) = REF #( mt_attri->*[ name = lr_attri->name && '->*' ] OPTIONAL ).
-      IF lr_deref is BOUND.
-      IF lr_deref->name_ref IS NOT INITIAL.
-        ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref3>).
-        CLEAR <val_ref3>.
-        CLEAR lr_attri->r_ref.
-        CONTINUE.
+      IF lr_deref IS BOUND.
+        IF lr_deref->name_ref IS NOT INITIAL.
+          ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref3>).
+          CLEAR <val_ref3>.
+          CLEAR lr_attri->r_ref.
+          CONTINUE.
+        ENDIF.
       ENDIF.
-      endif.
 
       ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref>).
       IF <val_ref> IS NOT INITIAL.
