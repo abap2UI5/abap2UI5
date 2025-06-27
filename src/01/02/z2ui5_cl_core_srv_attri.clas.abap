@@ -113,12 +113,14 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
 
       "refs to already existing data
       DATA(lr_deref) = REF #( mt_attri->*[ name = lr_attri->name && '->*' ] OPTIONAL ).
+      IF lr_deref is BOUND.
       IF lr_deref->name_ref IS NOT INITIAL.
         ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref3>).
         CLEAR <val_ref3>.
         CLEAR lr_attri->r_ref.
         CONTINUE.
       ENDIF.
+      endif.
 
       ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref>).
       IF <val_ref> IS NOT INITIAL.
