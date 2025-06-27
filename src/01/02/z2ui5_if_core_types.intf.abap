@@ -52,6 +52,7 @@ INTERFACE z2ui5_if_core_types
       name_client        TYPE string,
       bind_type          TYPE string,
       srtti_data         TYPE string,
+      name_ref           TYPE string,
       check_dissolved    TYPE abap_bool,
       view               TYPE string,
       json_bind_local    TYPE REF TO z2ui5_if_ajson,

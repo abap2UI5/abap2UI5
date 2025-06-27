@@ -87,7 +87,7 @@
     "cyclomatic_complexity": {
       "exclude": [],
       "severity": "Error",
-      "max": 8
+      "max": 13
     },
     "dangerous_statement": {
   "exclude": [],

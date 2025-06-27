@@ -60,6 +60,23 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
       ENDTRY.
     ENDLOOP.
 
+    LOOP AT mt_attri->* REFERENCE INTO lr_attri
+       WHERE name_ref IS NOT INITIAL.
+      TRY.
+
+          DATA(lr_attri_deref) = mt_attri->*[ name = lr_attri->name_ref ].
+          ASSIGN lr_attri_deref-r_ref->* TO <val>.
+
+          DATA(lv_length) = strlen( lr_attri->name ) - 3.
+          DATA(lr_attri_orig) = mt_attri->*[ name = lr_attri->name(lv_length) ].
+          ASSIGN lr_attri_orig-r_ref->* TO FIELD-SYMBOL(<val_orig>).
+*          <val_orig> = z2ui5_cl_util=>conv_get_as_data_ref( <val> ).
+          GET REFERENCE OF <val> INTO <val_orig>.
+
+        CATCH cx_root.
+      ENDTRY.
+    ENDLOOP.
+
   ENDMETHOD.
 
   METHOD attri_before_save.
@@ -91,6 +108,15 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
       ENDIF.
 
       IF lr_attri->r_ref IS NOT BOUND.
+        CONTINUE.
+      ENDIF.
+
+      "refs to already existing data
+      DATA(lr_deref) = REF #( mt_attri->*[ name = lr_attri->name && '->*' ] OPTIONAL ).
+      IF lr_deref IS BOUND AND lr_deref->name_ref IS NOT INITIAL.
+        ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref3>).
+        CLEAR <val_ref3>.
+        CLEAR lr_attri->r_ref.
         CONTINUE.
       ENDIF.
 
@@ -134,7 +160,6 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
       EXIT.
     ENDDO.
 
-    """"" new
     DATA(lt_attri) = mt_attri->*.
     DELETE lt_attri WHERE bind_type IS INITIAL.
     CLEAR mt_attri->*.
@@ -162,8 +187,6 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
       EXIT.
     ENDDO.
 
-    """""
-
     RAISE EXCEPTION TYPE z2ui5_cx_util_error
       EXPORTING
         val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class or switch to bind_local`.
@@ -181,6 +204,7 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
     ENDIF.
 
     GET REFERENCE OF <attri> INTO result.
+*    result = z2ui5_cl_util=>conv_get_as_data_ref( <attri> ).
     IF sy-subrc <> 0.
       ASSERT 1 = 0.
     ENDIF.

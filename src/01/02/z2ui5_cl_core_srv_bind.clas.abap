@@ -215,6 +215,10 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
     mr_attri = lo_model->attri_search_a_dissolve( val ).
 
+    IF mr_attri->name_ref IS NOT INITIAL.
+      mr_attri = REF #( mo_app->mt_attri->*[ name = mr_attri->name_ref ] ).
+    ENDIF.
+
     IF mr_attri->bind_type IS NOT INITIAL.
       check_raise_existing( ).
     ELSE.
