@@ -143,22 +143,76 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
   METHOD main.
 
-    TRY.
+    main_init( ).
 
-        main_init( ).
+    DO 5 TIMES.
+      TRY.
 
-        IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
-          main_run( ).
+          IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
+            main_run( ).
+          ELSE.
+            EXIT.
+          ENDIF.
+
+        CATCH cx_root.
+          CLEAR mt_attri->*.
+          main_init( ).
+
+          IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
+            main_run( ).
+          ENDIF.
+      ENDTRY.
+
+    ENDDO.
+
+
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
+    WHERE check_dissolved = abap_true AND
+           name_client IS INITIAL.
+
+      DATA(lv_length) = strlen( lr_attri->name ) - 1.
+*      IF lr_attri->name+lv_length <> `*`.
+*        CONTINUE.
+*      ENDIF.
+
+      LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri2)
+        WHERE check_dissolved = abap_true.
+
+        IF lr_attri->name = lr_attri2->name.
+          CONTINUE.
         ENDIF.
 
-      CATCH cx_root.
-        CLEAR mt_attri->*.
-        main_init( ).
+        DATA(lv_length2) = strlen( lr_attri2->name ) - 1.
 
-        IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
-          main_run( ).
+*        IF lr_attri2->name+lv_length2 <> `*`.
+*          CONTINUE.
+*        ENDIF.
+
+        IF lv_length2 > lv_length.
+          CONTINUE.
         ENDIF.
-    ENDTRY.
+
+        IF lr_attri2->o_typedescr = lr_attri->o_typedescr.
+          lr_attri->name_ref = lr_attri2->name.
+          EXIT.
+        ENDIF.
+
+*        TRY.
+*            CAST cl_abap_refdescr( lr_attri2->o_typedescr ).
+*            IF lr_attri->r_ref->* = lr_attri2->r_ref->*.
+*              lr_attri->name_ref = lr_attri2->name.
+*              EXIT.
+*            ENDIF.
+*
+*          CATCH cx_root.
+*            IF lr_attri->r_ref = lr_attri2->r_ref.
+*              lr_attri->name_ref = lr_attri2->name.
+*              EXIT.
+*            ENDIF.
+*        ENDTRY.
+
+      ENDLOOP.
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -226,49 +280,6 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
     INSERT LINES OF lt_attri_new INTO TABLE mt_attri->*.
 
-
-
-    LOOP AT mt_attri->* REFERENCE INTO lr_attri
-        WHERE check_dissolved = abap_true.
-
-      DATA(lv_length) = strlen( lr_attri->name ) - 1.
-      IF lr_attri->name+lv_length <> `*`.
-        CONTINUE.
-      ENDIF.
-
-      LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri2)
-        WHERE check_dissolved = abap_true.
-
-        IF lr_attri->name = lr_attri2->name.
-          CONTINUE.
-        ENDIF.
-
-        DATA(lv_length2) = strlen( lr_attri2->name ) - 1.
-
-        IF lr_attri2->name+lv_length2 <> `*`.
-          CONTINUE.
-        ENDIF.
-
-        IF lv_length2 > lv_length.
-          CONTINUE.
-        ENDIF.
-
-        TRY.
-            CAST cl_abap_refdescr( lr_attri2->o_typedescr ).
-            IF lr_attri->r_ref->* = lr_attri2->r_ref->*.
-              lr_attri->name_ref = lr_attri2->name.
-              EXIT.
-            ENDIF.
-
-          CATCH cx_root.
-            IF lr_attri->r_ref = lr_attri2->r_ref.
-              lr_attri->name_ref = lr_attri2->name.
-              EXIT.
-            ENDIF.
-        ENDTRY.
-
-      ENDLOOP.
-    ENDLOOP.
 
   ENDMETHOD.
 ENDCLASS.
