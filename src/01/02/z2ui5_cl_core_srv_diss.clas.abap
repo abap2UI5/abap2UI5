@@ -192,7 +192,7 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
           CONTINUE.
         ENDIF.
 
-        IF lr_attri2->o_typedescr = lr_attri->o_typedescr.
+        IF lr_attri2->o_typedescr = lr_attri->o_typedescr AND lr_attri->r_ref = lr_attri2->r_ref.
           lr_attri->name_ref = lr_attri2->name.
           EXIT.
         ENDIF.
