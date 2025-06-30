@@ -146,12 +146,12 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
 
 *    DO 5 TIMES.
 
-      lo_dissolve->main( ).
+    lo_dissolve->main( ).
 
-      result = attri_search( val ).
-      IF result IS BOUND.
-        RETURN.
-      ENDIF.
+    result = attri_search( val ).
+    IF result IS BOUND.
+      RETURN.
+    ENDIF.
 
 *      IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
 *        CONTINUE.
@@ -165,19 +165,19 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
     CLEAR mt_attri->*.
 *    DO 5 TIMES.
 
-      lo_dissolve->main( ).
+    lo_dissolve->main( ).
 
-      result = attri_search( val ).
+    result = attri_search( val ).
 *      IF result IS BOUND.
-        LOOP AT mt_attri->* ASSIGNING FIELD-SYMBOL(<ls_attri>).
-          DATA(lv_name) = <ls_attri>-name.
-          IF line_exists( lt_attri[ name = lv_name ] ).
-            <ls_attri>-bind_type   = lt_attri[ name = lv_name ]-bind_type.
-            <ls_attri>-name_client = lt_attri[ name = lv_name ]-name_client.
-            <ls_attri>-view        = lt_attri[ name = lv_name ]-view.
-          ENDIF.
-        ENDLOOP.
-        RETURN.
+    LOOP AT mt_attri->* ASSIGNING FIELD-SYMBOL(<ls_attri>).
+      DATA(lv_name) = <ls_attri>-name.
+      IF line_exists( lt_attri[ name = lv_name ] ).
+        <ls_attri>-bind_type   = lt_attri[ name = lv_name ]-bind_type.
+        <ls_attri>-name_client = lt_attri[ name = lv_name ]-name_client.
+        <ls_attri>-view        = lt_attri[ name = lv_name ]-view.
+      ENDIF.
+    ENDLOOP.
+    RETURN.
 *     ENDIF.
 
 *      IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
@@ -233,7 +233,13 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
   METHOD attri_search.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
-         WHERE o_typedescr IS BOUND.
+         WHERE o_typedescr IS BOUND AND
+                name_ref IS INITIAL.
+*                 AND (
+*                o_typedescr->kind = cl_abap_typedescr=>kind_elem OR
+*                o_typedescr->kind = cl_abap_typedescr=>kind_struct  OR
+*                o_typedescr->kind <> cl_abap_typedescr=>kind_table
+*                ).
 
       IF lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_elem
           AND lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_struct
