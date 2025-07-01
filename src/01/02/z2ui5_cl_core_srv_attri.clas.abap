@@ -61,7 +61,7 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
     ENDLOOP.
 
     LOOP AT mt_attri->* REFERENCE INTO lr_attri
-       WHERE name_ref IS NOT INITIAL.
+         WHERE name_ref IS NOT INITIAL.
       TRY.
 
           DATA(lr_attri_deref) = mt_attri->*[ name = lr_attri->name_ref ].
@@ -72,10 +72,19 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
 *          ASSIGN lr_attri_orig-r_ref->* TO FIELD-SYMBOL(<val_orig>).
           ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_orig>).
 
+          IF <val_orig> IS NOT ASSIGNED.
+            ASSIGN lr_attri->r_ref TO <val_orig>.
+          ENDIF.
+
+
+
           GET REFERENCE OF <val> INTO <val_orig>.
 
         CATCH cx_root.
       ENDTRY.
+
+      UNASSIGN <val_orig>.
+
     ENDLOOP.
 
   ENDMETHOD.
@@ -281,4 +290,3 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
 
   ENDMETHOD.
 ENDCLASS.
-
