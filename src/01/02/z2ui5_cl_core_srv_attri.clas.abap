@@ -67,10 +67,11 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
           DATA(lr_attri_deref) = mt_attri->*[ name = lr_attri->name_ref ].
           ASSIGN lr_attri_deref-r_ref->* TO <val>.
 
-          DATA(lv_length) = strlen( lr_attri->name ) - 3.
-          DATA(lr_attri_orig) = mt_attri->*[ name = lr_attri->name(lv_length) ].
-          ASSIGN lr_attri_orig-r_ref->* TO FIELD-SYMBOL(<val_orig>).
-*          <val_orig> = z2ui5_cl_util=>conv_get_as_data_ref( <val> ).
+*          DATA(lv_length) = strlen( lr_attri->name ) - 3.
+*          DATA(lr_attri_orig) = mt_attri->*[ name = lr_attri->name(lv_length) ].
+*          ASSIGN lr_attri_orig-r_ref->* TO FIELD-SYMBOL(<val_orig>).
+          ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_orig>).
+
           GET REFERENCE OF <val> INTO <val_orig>.
 
         CATCH cx_root.
@@ -112,13 +113,38 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
       ENDIF.
 
       "refs to already existing data
-      DATA(lr_deref) = REF #( mt_attri->*[ name = lr_attri->name && '->*' ] OPTIONAL ).
-      IF lr_deref IS BOUND AND lr_deref->name_ref IS NOT INITIAL.
-        ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref3>).
-        CLEAR <val_ref3>.
-        CLEAR lr_attri->r_ref.
+*      DATA(lr_deref) = REF #( mt_attri->*[ name = lr_attri->name && '->*' ] OPTIONAL ).
+      LOOP AT mt_attri->* REFERENCE INTO DATA(lr_dref).
+        DATA(lv_check_ref) = abap_false.
+        IF lr_attri->name = lr_dref->name.
+          CONTINUE.
+        ENDIF.
+        DATA(lv_length) = strlen( lr_attri->name ).
+        IF strlen( lr_dref->name ) <= lv_length.
+          CONTINUE.
+        ENDIF.
+        IF lr_dref->name(lv_length) <> lr_attri->name.
+          CONTINUE.
+        ENDIF.
+        IF  lr_dref->name_ref IS NOT INITIAL.
+          ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref3>).
+          CLEAR <val_ref3>.
+          CLEAR lr_attri->r_ref.
+          split lr_dref->name_ref at '-' into data(lv_name_ref) data(lv_dummy).
+          lr_attri->name_ref = lv_name_ref.
+          lv_check_ref = abap_true.
+          EXIT.
+        ENDIF.
+      ENDLOOP.
+      IF lv_check_ref = abap_true.
         CONTINUE.
       ENDIF.
+*      IF lr_dref IS BOUND AND lr_dref->name_ref IS NOT INITIAL.
+*        ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref3>).
+*        CLEAR <val_ref3>.
+*        CLEAR lr_attri->r_ref.
+*        CONTINUE.
+*      ENDIF.
 
       ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref>).
       IF <val_ref> IS NOT INITIAL.
