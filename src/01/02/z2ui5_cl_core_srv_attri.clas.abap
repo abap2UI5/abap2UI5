@@ -76,9 +76,9 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
             ASSIGN lr_attri->r_ref TO <val_orig>.
           ENDIF.
 
-
-
-          GET REFERENCE OF <val> INTO <val_orig>.
+          IF ref #( <val_orig>  ) <> ref #( <val_orig>  ).
+            GET REFERENCE OF <val> INTO <val_orig>.
+          ENDIF.
 
         CATCH cx_root.
       ENDTRY.
@@ -139,7 +139,7 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
           ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref3>).
           CLEAR <val_ref3>.
           CLEAR lr_attri->r_ref.
-          split lr_dref->name_ref at '-' into data(lv_name_ref) data(lv_dummy).
+          SPLIT lr_dref->name_ref AT '-' INTO DATA(lv_name_ref) DATA(lv_dummy).
           lr_attri->name_ref = lv_name_ref.
           lv_check_ref = abap_true.
           EXIT.

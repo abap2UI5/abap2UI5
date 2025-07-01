@@ -171,9 +171,6 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
            name_client IS INITIAL.
 
       DATA(lv_length) = strlen( lr_attri->name ) - 1.
-*      IF lr_attri->name+lv_length <> `*`.
-*        CONTINUE.
-*      ENDIF.
 
       LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri2)
         WHERE check_dissolved = abap_true.
@@ -184,10 +181,6 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
         DATA(lv_length2) = strlen( lr_attri2->name ) - 1.
 
-*        IF lr_attri2->name+lv_length2 <> `*`.
-*          CONTINUE.
-*        ENDIF.
-
         IF lv_length2 > lv_length.
           CONTINUE.
         ENDIF.
@@ -197,21 +190,25 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
           EXIT.
         ENDIF.
 
-*        TRY.
-*            CAST cl_abap_refdescr( lr_attri2->o_typedescr ).
-*            IF lr_attri->r_ref->* = lr_attri2->r_ref->*.
-*              lr_attri->name_ref = lr_attri2->name.
-*              EXIT.
-*            ENDIF.
-*
-*          CATCH cx_root.
-*            IF lr_attri->r_ref = lr_attri2->r_ref.
-*              lr_attri->name_ref = lr_attri2->name.
-*              EXIT.
-*            ENDIF.
-*        ENDTRY.
-
       ENDLOOP.
+    ENDLOOP.
+
+    LOOP AT mt_attri->* REFERENCE INTO lr_attri
+    WHERE name_ref IS NOT INITIAL.
+
+      DATA(lv_name_ref) = lr_attri->name_ref.
+      TRY.
+          DO.
+            DATA(lr_attri_new) = REF #( mt_attri->*[ name = lv_name_ref ] ).
+            lv_name_ref = lr_attri_new->name_ref.
+          ENDDO.
+        CATCH cx_root.
+      ENDTRY.
+
+      IF lr_attri_new IS BOUND.
+        lr_attri->name_ref = lr_attri_new->name.
+      ENDIF.
+      CLEAR lr_attri_new.
     ENDLOOP.
 
   ENDMETHOD.
