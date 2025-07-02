@@ -146,23 +146,16 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
     main_init( ).
 
     DO 5 TIMES.
-      TRY.
-
-          IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
+      IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
+        TRY.
             main_run( ).
-          ELSE.
-            EXIT.
-          ENDIF.
-
-        CATCH cx_root.
-          CLEAR mt_attri->*.
-          main_init( ).
-
-          IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
-            main_run( ).
-          ENDIF.
-      ENDTRY.
-
+          CATCH cx_root.
+            CLEAR mt_attri->*.
+            main_init( ).
+        ENDTRY.
+        CONTINUE.
+      ENDIF.
+      EXIT.
     ENDDO.
 
 
@@ -190,18 +183,11 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
           EXIT.
         ENDIF.
 
-*        IF lr_attri2->o_typedescr <> lr_attri->o_typedescr.
-*          assign lr_attri->* to FIELD-SYMBOL(<test>).
-*          if <test> = lr_attri2->r_ref->*.
-*            lr_attri->name_ref = lr_attri2->name.
-*          EXIT.
-*          endif.
-*        endif.
-
-
       ENDLOOP.
     ENDLOOP.
 
+
+    "check for root data
     LOOP AT mt_attri->* REFERENCE INTO lr_attri
     WHERE name_ref IS NOT INITIAL.
 
@@ -218,6 +204,33 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
         lr_attri->name_ref = lr_attri_new->name.
       ENDIF.
       CLEAR lr_attri_new.
+    ENDLOOP.
+
+
+    "check for root of struct and tables
+    LOOP AT mt_attri->* REFERENCE INTO lr_attri
+     WHERE name_ref IS INITIAL.
+
+      DATA(length) = strlen( lr_attri->name ).
+
+      LOOP AT mt_attri->* REFERENCE INTO DATA(lr_dref)
+       WHERE name_ref IS NOT INITIAL.
+        IF lr_dref->name_ref CS '-'.
+          TRY.
+              DATA(lv_name) = lr_dref->name(length).
+              IF  lr_attri->name = lv_name.
+                length = length + 1.
+                SPLIT lr_dref->name+length AT '-' INTO DATA(lv_dummy4) DATA(lv_dummy).
+                IF lv_dummy IS INITIAL.
+                  SPLIT lr_dref->name_ref AT '-' INTO lr_attri->name_ref DATA(lv_dummy2).
+                  EXIT.
+                ENDIF.
+
+              ENDIF.
+            CATCH cx_root.
+          ENDTRY.
+        ENDIF.
+      ENDLOOP.
     ENDLOOP.
 
   ENDMETHOD.
