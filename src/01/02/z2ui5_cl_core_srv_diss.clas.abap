@@ -168,7 +168,7 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
     WHERE check_dissolved = abap_true AND
-           name_client IS INITIAL.
+           name_ref IS INITIAL.
 
       DATA(lv_length) = strlen( lr_attri->name ) - 1.
 
@@ -189,6 +189,15 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
           lr_attri->name_ref = lr_attri2->name.
           EXIT.
         ENDIF.
+
+*        IF lr_attri2->o_typedescr <> lr_attri->o_typedescr.
+*          assign lr_attri->* to FIELD-SYMBOL(<test>).
+*          if <test> = lr_attri2->r_ref->*.
+*            lr_attri->name_ref = lr_attri2->name.
+*          EXIT.
+*          endif.
+*        endif.
+
 
       ENDLOOP.
     ENDLOOP.
