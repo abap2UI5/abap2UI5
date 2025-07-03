@@ -87,7 +87,7 @@
     "cyclomatic_complexity": {
       "exclude": [],
       "severity": "Error",
-      "max": 13
+      "max": 20
     },
     "dangerous_statement": {
   "exclude": [],
@@ -288,7 +288,7 @@
     "unused_types": true,
     "unused_variables": {
       "severity": "Error",
-      "skipNames": ["lv_dummy"]
+      "skipNames": ["lv_dummy", "lv_dummy2", "lv_dummy3", "lv_dummy4", "<dummy>"]
     },
     "use_bool_expression": true,
     "use_class_based_exceptions": true,

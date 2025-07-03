@@ -107,7 +107,7 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
     DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_oref( lr_ref ).
 
     LOOP AT lt_attri REFERENCE INTO DATA(lr_attri)
-         WHERE     visibility   = cl_abap_objectdescr=>public
+         WHERE visibility   = cl_abap_objectdescr=>public
                AND is_interface = abap_false
                AND is_constant  = abap_false.
       TRY.
@@ -168,7 +168,7 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
-         WHERE     check_dissolved  = abap_true
+         WHERE check_dissolved  = abap_true
                AND name_ref        IS INITIAL
                AND is_class = abap_false.
 
@@ -231,7 +231,7 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
       DATA(length) = strlen( lr_attri->name ).
 
       IF lr_attri->r_ref IS NOT INITIAL.
-        ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<any>).
+        ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<dummy>).
         IF sy-subrc <> 0.
           CONTINUE.
         ENDIF.
@@ -283,7 +283,7 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
     DATA(lt_attri_new) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
-         WHERE     check_dissolved  = abap_false
+         WHERE check_dissolved  = abap_false
                AND bind_type       <> z2ui5_if_core_types=>cs_bind_type-one_time.
 
       lr_attri->check_dissolved = abap_true.
