@@ -113,9 +113,8 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
       TRY.
           DATA(lv_name) = COND #( WHEN ir_attri->name IS NOT INITIAL THEN |{ ir_attri->name }->| ) && lr_attri->name.
           DATA(ls_new) = create_new_entry( lv_name ).
-          IF lr_attri->is_class = abap_true.
-            ls_new-type_info = 'CLASS_ATTRIBUTE'.
-          ENDIF.
+          ls_new-is_class = lr_attri->is_class.
+          ls_new-type_kind = lr_attri->type_kind.
           INSERT ls_new INTO TABLE result.
 
         CATCH cx_root.
@@ -170,8 +169,8 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
          WHERE     check_dissolved  = abap_true
-               AND name_ref        IS INITIAL and
-               type_info is INITIAL.
+               AND name_ref        IS INITIAL AND
+               is_class = abap_false.
 
       DATA(lv_length) = strlen( lr_attri->name ) - 1.
 
