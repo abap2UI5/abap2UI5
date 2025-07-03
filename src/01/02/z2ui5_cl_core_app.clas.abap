@@ -60,16 +60,19 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD all_xml_stringify.
+        DATA lo_model TYPE REF TO z2ui5_cl_core_srv_attri.
+        DATA lo_dissolver2 TYPE REF TO z2ui5_cl_core_srv_diss.
+        DATA x TYPE REF TO cx_root.
 
     TRY.
 
-        DATA(lo_model) = NEW z2ui5_cl_core_srv_attri( attri = mt_attri
-                                                      app   = mo_app ).
+        
+        CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_attri EXPORTING attri = mt_attri app = mo_app.
 
 
         "new
-        DATA(lo_dissolver2) = NEW z2ui5_cl_core_srv_diss( attri = mt_attri
-                                                         app    = mo_app ).
+        
+        CREATE OBJECT lo_dissolver2 TYPE z2ui5_cl_core_srv_diss EXPORTING attri = mt_attri app = mo_app.
 
 *        DO 5 TIMES.
         lo_dissolver2->main( ).
@@ -78,7 +81,8 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
         lo_model->attri_before_save( ).
         result = z2ui5_cl_util=>xml_stringify( me ).
 
-      CATCH cx_root INTO DATA(x).
+        
+      CATCH cx_root INTO x.
 *        TRY.
 *
 *            lo_model->attri_refs_update( ).
@@ -117,12 +121,16 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD db_load.
 
-    DATA(lo_db) = NEW z2ui5_cl_core_srv_draft( ).
-    DATA(ls_db) = lo_db->read_draft( id ).
+    DATA lo_db TYPE REF TO z2ui5_cl_core_srv_draft.
+    DATA ls_db TYPE z2ui5_t_01.
+    DATA lo_model TYPE REF TO z2ui5_cl_core_srv_attri.
+    CREATE OBJECT lo_db TYPE z2ui5_cl_core_srv_draft.
+    
+    ls_db = lo_db->read_draft( id ).
     result = all_xml_parse( ls_db-data ).
 
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri( attri = result->mt_attri
-                                                  app   = result->mo_app ).
+    
+    CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_attri EXPORTING attri = result->mt_attri app = result->mo_app.
 
     lo_model->attri_after_load( ).
 
@@ -130,27 +138,39 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD db_load_by_app.
 
-    DATA(lo_db) = NEW z2ui5_cl_core_srv_draft( ).
-    DATA(ls_db) = lo_db->read_draft( app->id_draft ).
+    DATA lo_db TYPE REF TO z2ui5_cl_core_srv_draft.
+    DATA ls_db TYPE z2ui5_t_01.
+    DATA lo_model TYPE REF TO z2ui5_cl_core_srv_attri.
+    CREATE OBJECT lo_db TYPE z2ui5_cl_core_srv_draft.
+    
+    ls_db = lo_db->read_draft( app->id_draft ).
     result = all_xml_parse( ls_db-data ).
 
     result->mo_app = app.
 
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri( attri = result->mt_attri
-                                                  app   = result->mo_app ).
+    
+    CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_attri EXPORTING attri = result->mt_attri app = result->mo_app.
 
     lo_model->attri_refs_update( ).
 
   ENDMETHOD.
 
   METHOD db_save.
+      DATA temp2 TYPE REF TO z2ui5_if_app.
+      DATA temp3 TYPE REF TO z2ui5_if_app.
+    DATA lo_db TYPE REF TO z2ui5_cl_core_srv_draft.
 
     IF mo_app IS BOUND.
-      CAST z2ui5_if_app( mo_app )->id_draft = ms_draft-id.
-      CAST z2ui5_if_app( mo_app )->check_initialized = abap_true.
+      
+      temp2 ?= mo_app.
+      temp2->id_draft = ms_draft-id.
+      
+      temp3 ?= mo_app.
+      temp3->check_initialized = abap_true.
     ENDIF.
 
-    DATA(lo_db) = NEW z2ui5_cl_core_srv_draft( ).
+    
+    CREATE OBJECT lo_db TYPE z2ui5_cl_core_srv_draft.
     lo_db->create( draft     = ms_draft
                    model_xml = all_xml_stringify( ) ).
 
@@ -158,7 +178,8 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD model_json_parse.
 
-    DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_json( ).
+    DATA lo_json_mapper TYPE REF TO z2ui5_cl_core_srv_json.
+    CREATE OBJECT lo_json_mapper TYPE z2ui5_cl_core_srv_json.
     lo_json_mapper->model_front_to_back( view    = iv_view
                                          t_attri = mt_attri
                                          model   = io_model ).
@@ -167,7 +188,8 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD model_json_stringify.
 
-    DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_json( ).
+    DATA lo_json_mapper TYPE REF TO z2ui5_cl_core_srv_json.
+    CREATE OBJECT lo_json_mapper TYPE z2ui5_cl_core_srv_json.
     result = lo_json_mapper->model_back_to_front( mt_attri ).
 
   ENDMETHOD.

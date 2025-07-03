@@ -69,19 +69,26 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     DATA lr_ref_in TYPE REF TO data.
 
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    DATA lt_attri TYPE abap_component_tab.
+    FIELD-SYMBOLS <comp> LIKE LINE OF lt_attri.
+        DATA temp15 TYPE string.
 
     ASSIGN ms_config-tab->* TO <tab>.
-    ASSIGN <tab>[ ms_config-tab_index ] TO <row>.
+    READ TABLE <tab> INDEX ms_config-tab_index ASSIGNING <row>.
 
-    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_any( ms_config-tab ).
-    LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
+    
+    lt_attri = z2ui5_cl_util=>rtti_get_t_attri_by_any( ms_config-tab ).
+    
+    LOOP AT lt_attri ASSIGNING <comp>.
 
       ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
       ASSERT sy-subrc = 0.
-      lr_ref_in = REF #( <ele> ).
+      GET REFERENCE OF <ele> INTO lr_ref_in.
 
       IF i_val = lr_ref_in.
-        result = |{ iv_name }/{ shift_right( CONV string( ms_config-tab_index - 1 ) ) }/{ <comp>-name }|.
+        
+        temp15 = ms_config-tab_index - 1.
+        result = |{ iv_name }/{ shift_right( temp15 ) }/{ <comp>-name }|.
         RETURN.
       ENDIF.
 
@@ -94,6 +101,8 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD check_raise_existing.
+      DATA lv_name1 TYPE string.
+      DATA lv_name2 TYPE string.
 
     IF mr_attri->bind_type <> mv_type.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
@@ -103,8 +112,10 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
     IF mr_attri->custom_mapper IS BOUND.
 
-      DATA(lv_name1) = z2ui5_cl_util=>rtti_get_classname_by_ref( mr_attri->custom_mapper ).
-      DATA(lv_name2) = z2ui5_cl_util=>rtti_get_classname_by_ref( ms_config-custom_mapper ).
+      
+      lv_name1 = z2ui5_cl_util=>rtti_get_classname_by_ref( mr_attri->custom_mapper ).
+      
+      lv_name2 = z2ui5_cl_util=>rtti_get_classname_by_ref( ms_config-custom_mapper ).
       IF lv_name1 <> lv_name2.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
           EXPORTING
@@ -127,10 +138,17 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD check_raise_new.
+          DATA temp16 TYPE REF TO if_serializable_object.
+          DATA lo_dummy LIKE temp16.
+          DATA temp17 TYPE REF TO if_serializable_object.
+          DATA lo_dummy2 LIKE temp17.
 
     IF mr_attri->custom_filter_back IS BOUND.
       TRY.
-          DATA(lo_dummy) = CAST if_serializable_object( mr_attri->custom_filter_back ) ##NEEDED.
+          
+          temp16 ?= mr_attri->custom_filter_back.
+          
+          lo_dummy = temp16.
         CATCH cx_root.
           RAISE EXCEPTION TYPE z2ui5_cx_util_error
             EXPORTING
@@ -141,7 +159,10 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
     IF mr_attri->custom_filter_back IS BOUND.
       TRY.
-          DATA(lo_dummy2) = CAST if_serializable_object( mr_attri->custom_mapper_back ) ##NEEDED.
+          
+          temp17 ?= mr_attri->custom_mapper_back.
+          
+          lo_dummy2 = temp17.
         CATCH cx_root.
           RAISE EXCEPTION TYPE z2ui5_cx_util_error
             EXPORTING
@@ -153,16 +174,62 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD clear.
+        DATA lv_path TYPE string.
+        FIELD-SYMBOLS <temp18> LIKE LINE OF mo_app->mt_attri->*.
+        DATA temp19 LIKE sy-tabix.
+        FIELD-SYMBOLS <temp20> LIKE LINE OF mo_app->mt_attri->*.
+        DATA temp21 LIKE sy-tabix.
+        FIELD-SYMBOLS <temp22> LIKE LINE OF mo_app->mt_attri->*.
+        DATA temp23 LIKE sy-tabix.
+        FIELD-SYMBOLS <temp24> LIKE LINE OF mo_app->mt_attri->*.
+        DATA temp25 LIKE sy-tabix.
+        DATA temp26 LIKE LINE OF mo_app->mt_attri->*.
+        DATA lr_bind2 LIKE REF TO temp26.
 
     TRY.
-        DATA(lv_path) = shift_right( val = val
+        
+        lv_path = shift_right( val = val
                                      sub = `->*` ).
-        mo_app->mt_attri->*[ name = lv_path ]-check_dissolved = abap_false.
-        mo_app->mt_attri->*[ name = val ]-check_dissolved = abap_false.
-        mo_app->mt_attri->*[ name = lv_path ]-name_client = ``.
-        mo_app->mt_attri->*[ name = lv_path ]-bind_type = ``.
+        
+        
+        temp19 = sy-tabix.
+        READ TABLE mo_app->mt_attri->* WITH KEY name = lv_path ASSIGNING <temp18>.
+        sy-tabix = temp19.
+        IF sy-subrc <> 0.
+          ASSERT 1 = 0.
+        ENDIF.
+        <temp18>-check_dissolved = abap_false.
+        
+        
+        temp21 = sy-tabix.
+        READ TABLE mo_app->mt_attri->* WITH KEY name = val ASSIGNING <temp20>.
+        sy-tabix = temp21.
+        IF sy-subrc <> 0.
+          ASSERT 1 = 0.
+        ENDIF.
+        <temp20>-check_dissolved = abap_false.
+        
+        
+        temp23 = sy-tabix.
+        READ TABLE mo_app->mt_attri->* WITH KEY name = lv_path ASSIGNING <temp22>.
+        sy-tabix = temp23.
+        IF sy-subrc <> 0.
+          ASSERT 1 = 0.
+        ENDIF.
+        <temp22>-name_client = ``.
+        
+        
+        temp25 = sy-tabix.
+        READ TABLE mo_app->mt_attri->* WITH KEY name = lv_path ASSIGNING <temp24>.
+        sy-tabix = temp25.
+        IF sy-subrc <> 0.
+          ASSERT 1 = 0.
+        ENDIF.
+        <temp24>-bind_type = ``.
 
-        LOOP AT mo_app->mt_attri->* REFERENCE INTO DATA(lr_bind2)
+        
+        
+        LOOP AT mo_app->mt_attri->* REFERENCE INTO lr_bind2
              WHERE name = lv_path.
           CLEAR lr_bind2->r_ref.
         ENDLOOP.
@@ -179,6 +246,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_client_name.
+    DATA temp27 TYPE string.
 
     result = replace( val  = mr_attri->name
                       sub  = `-`
@@ -188,15 +256,22 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
                       sub  = `>`
                       with = ``
                       occ  = 0 ).
-    result = COND #( WHEN mv_type = z2ui5_if_core_types=>cs_bind_type-two_way
-                     THEN |/{ z2ui5_if_core_types=>cs_ui5-two_way_model }| )
+    
+    IF mv_type = z2ui5_if_core_types=>cs_bind_type-two_way.
+      temp27 = |/{ z2ui5_if_core_types=>cs_ui5-two_way_model }|.
+    ELSE.
+      CLEAR temp27.
+    ENDIF.
+    result = temp27
         && |/{ result }|.
 
   ENDMETHOD.
 
   METHOD main.
+    DATA lo_model TYPE REF TO z2ui5_cl_core_srv_attri.
+      FIELD-SYMBOLS <temp28> TYPE z2ui5_if_core_types=>ty_s_attri.
 
-    IF z2ui5_cl_util=>check_bound_a_not_inital( config-tab ).
+    IF z2ui5_cl_util=>check_bound_a_not_inital( config-tab ) IS NOT INITIAL.
 
       result = main_cell( val    = val
                           type   = type
@@ -208,15 +283,20 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     ms_config = config.
     mv_type   = type.
 
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri( attri = mo_app->mt_attri
-                                                  app   = mo_app->mo_app ).
+    
+    CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_attri EXPORTING attri = mo_app->mt_attri app = mo_app->mo_app.
 
     lo_model->attri_refs_update( ).
 
     mr_attri = lo_model->attri_search_a_dissolve( val ).
 
     IF mr_attri->name_ref IS NOT INITIAL.
-      mr_attri = REF #( mo_app->mt_attri->*[ name = mr_attri->name_ref ] ).
+      
+      READ TABLE mo_app->mt_attri->* WITH KEY name = mr_attri->name_ref ASSIGNING <temp28>.
+IF sy-subrc <> 0.
+  ASSERT 1 = 0.
+ENDIF.
+GET REFERENCE OF <temp28> INTO mr_attri.
     ENDIF.
 
     IF mr_attri->bind_type IS NOT INITIAL.
@@ -245,14 +325,20 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD main_cell.
+    DATA lo_bind TYPE REF TO z2ui5_cl_core_srv_bind.
+    DATA temp29 TYPE z2ui5_if_core_types=>ty_s_bind_config.
 
     ms_config = config.
     mv_type   = type.
 
-    DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( mo_app ).
+    
+    CREATE OBJECT lo_bind TYPE z2ui5_cl_core_srv_bind EXPORTING APP = mo_app.
+    
+    CLEAR temp29.
+    temp29-path_only = abap_true.
     result = lo_bind->main( val    = config-tab
                             type   = type
-                            config = VALUE #( path_only = abap_true ) ).
+                            config = temp29 ).
 
     result = bind_tab_cell( iv_name = result
                             i_val   = val ).
@@ -264,9 +350,17 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD main_local.
+        DATA temp30 TYPE REF TO z2ui5_if_ajson.
+        DATA lo_json LIKE temp30.
+        DATA lv_id TYPE string.
+        DATA temp31 TYPE z2ui5_if_core_types=>ty_s_attri.
+        DATA x TYPE REF TO cx_root.
     TRY.
 
-        DATA(lo_json) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>new( ) ).
+        
+        temp30 ?= z2ui5_cl_ajson=>new( ).
+        
+        lo_json = temp30.
         lo_json->set( iv_path = `/`
                       iv_val  = val ).
 
@@ -282,11 +376,15 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
           lo_json = lo_json->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
         ENDIF.
 
-        DATA(lv_id) = to_upper( z2ui5_cl_util=>uuid_get_c22( ) ).
-        INSERT VALUE #( name_client     = |/{ lv_id }|
-                        name            = lv_id
-                        json_bind_local = lo_json
-                        bind_type       = z2ui5_if_core_types=>cs_bind_type-one_time )
+        
+        lv_id = to_upper( z2ui5_cl_util=>uuid_get_c22( ) ).
+        
+        CLEAR temp31.
+        temp31-name_client = |/{ lv_id }|.
+        temp31-name = lv_id.
+        temp31-json_bind_local = lo_json.
+        temp31-bind_type = z2ui5_if_core_types=>cs_bind_type-one_time.
+        INSERT temp31
                INTO TABLE mo_app->mt_attri->*.
 
         result = |/{ lv_id }|.
@@ -299,12 +397,14 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
           result = |\{{ result }\}|.
         ENDIF.
 
-      CATCH cx_root INTO DATA(x).
+        
+      CATCH cx_root INTO x.
         ASSERT x IS NOT BOUND.
     ENDTRY.
   ENDMETHOD.
 
   METHOD update_model_attri.
+    DATA temp32 TYPE z2ui5_if_core_types=>ty_s_attri-view.
 
     mr_attri->bind_type          = mv_type.
     mr_attri->view               = ms_config-view.
@@ -312,9 +412,13 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     mr_attri->custom_filter_back = ms_config-custom_filter_back.
     mr_attri->custom_mapper      = ms_config-custom_mapper.
     mr_attri->custom_mapper_back = ms_config-custom_mapper_back.
-    mr_attri->view               = COND #( WHEN ms_config-view IS INITIAL
-                                           THEN z2ui5_if_client=>cs_view-main
-                                           ELSE ms_config-view ).
+    
+    IF ms_config-view IS INITIAL.
+      temp32 = z2ui5_if_client=>cs_view-main.
+    ELSE.
+      temp32 = ms_config-view.
+    ENDIF.
+    mr_attri->view               = temp32.
     mr_attri->name_client        = get_client_name( ).
 
   ENDMETHOD.
