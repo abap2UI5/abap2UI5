@@ -169,8 +169,13 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
          WHERE     check_dissolved  = abap_true
-               AND name_ref        IS INITIAL AND
-               is_class = abap_false.
+               AND name_ref        IS INITIAL
+               AND is_class = abap_false.
+
+      IF lr_attri->type_kind <> cl_abap_typedescr=>typekind_dref AND
+          lr_attri->type_kind IS NOT INITIAL.
+        CONTINUE.
+      ENDIF.
 
       DATA(lv_length) = strlen( lr_attri->name ) - 1.
 
@@ -216,7 +221,12 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
     " check for root of struct and tables
     LOOP AT mt_attri->* REFERENCE INTO lr_attri
-         WHERE name_ref IS INITIAL.
+         WHERE name_ref IS INITIAL
+            AND is_class = abap_false.
+
+      IF lr_attri->type_kind <> cl_abap_typedescr=>typekind_dref.
+        CONTINUE.
+      ENDIF.
 
       DATA(length) = strlen( lr_attri->name ).
 
@@ -252,6 +262,7 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
+
   METHOD main_init.
 
     IF mt_attri->* IS NOT INITIAL.

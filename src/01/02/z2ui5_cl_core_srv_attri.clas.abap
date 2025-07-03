@@ -204,7 +204,9 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
         ENDIF.
 
         ASSIGN mo_app->(lr_attri->name) TO FIELD-SYMBOL(<ref>).
-        CLEAR <ref>.
+        IF sy-subrc = 0.
+          CLEAR <ref>.
+        ENDIF.
 
       ENDIF.
 
