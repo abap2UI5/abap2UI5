@@ -65,7 +65,12 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
       TRY.
 
           ASSIGN mt_attri->* TO FIELD-SYMBOL(<table>).
-          DATA(lr_attri_deref)  = <table>[ name = lr_attri->name_ref ].
+          READ TABLE <table> INTO DATA(lr_attri_deref)
+            WITH KEY name = lr_attri->name_ref.
+          IF sy-subrc <> 0.
+            CONTINUE.
+          ENDIF.
+*          DATA(lr_attri_deref)  = <table>[ name = lr_attri->name_ref ].
           DATA(lr_val)      = attri_get_val_ref( lr_attri_deref-name ).
 
           ASSIGN mo_app->(lr_attri->name) TO FIELD-SYMBOL(<val4>).
@@ -73,12 +78,12 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
             DATA(lo_test) = cl_abap_datadescr=>describe_by_data( <val4> ).
           ENDIF.
           TRY.
-              CAST cl_abap_refdescr( lo_test ).
+              DATA(lv_dummy) = CAST cl_abap_refdescr( lo_test ).
               FIELD-SYMBOLS <any> TYPE any.
               ASSIGN lr_val->* TO <any>.
               DATA(lo_test2) = cl_abap_datadescr=>describe_by_data( <any> ).
               TRY.
-                  CAST cl_abap_refdescr( lo_test2 ).
+                  DATA(lv_dummy2) = CAST cl_abap_refdescr( lo_test2 ).
                   <val4> =  lr_val->* .
                   lr_attri->r_ref = lr_val.
                 CATCH cx_root.
