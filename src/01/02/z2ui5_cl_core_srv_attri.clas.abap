@@ -57,7 +57,6 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
           ENDIF.
 
         CATCH cx_root.
-*          ASSERT `` = x->get_text( ).
       ENDTRY.
     ENDLOOP.
 
@@ -67,19 +66,11 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
 
           DATA(lr_attri_deref)  = REF #( mt_attri->*[ name = lr_attri->name_ref ] ).
           DATA(lr_val)      = attri_get_val_ref( lr_attri_deref->name ).
-*          assign lr_attri->r_ref->*  to FIELD-SYMBOL(<val4>).
 
           ASSIGN mo_app->(lr_attri->name) TO FIELD-SYMBOL(<val4>).
           DATA(lo_test) = cl_abap_datadescr=>describe_by_data( <val4> ).
           TRY.
               CAST cl_abap_refdescr( lo_test ).
-
-*              DATA(lv_length) = strlen( lr_attri->name ) - 1.
-*              IF lr_attri->name+lv_length = `*`.
-*                ASSIGN lr_val->* TO <val4>.x
-*                 lr_attri->r_ref = <val4>.
-*              ELSE.
-*                get reference of lr_val->* inTO <val4>.
               DATA(lo_test2) = cl_abap_datadescr=>describe_by_data( lr_val->* ).
               TRY.
                   CAST cl_abap_refdescr( lo_test2 ).
@@ -90,45 +81,13 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
                   lr_attri->r_ref = lr_val.
               ENDTRY.
 
-*              ENDIF.
-
-
             CATCH cx_root.
               lr_attri->r_ref = REF #( <val4> ).
           ENDTRY.
-
           lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref  ).
-
-*          <val4>  = ref #( lr_val->* ).
-
-*          lr_attri->r_ref       = ref #( lr_attri->r_ref->* ).
-*          lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref  ).
-
-*          ASSIGN lr_attri_deref-r_ref->* TO <val>.
-*          ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_orig>).
-*          <val_orig> = <val>.
-*          lr_attri->r_ref = lr_attri_deref-r_ref.
-          CONTINUE.
-
-
-*          DATA(lv_length) = strlen( lr_attri->name ) - 3.
-*          DATA(lr_attri_orig) = mt_attri->*[ name = lr_attri->name(lv_length) ].
-*          ASSIGN lr_attri_orig-r_ref->* TO FIELD-SYMBOL(<val_orig>).
-
-
-*          IF <val_orig> IS NOT ASSIGNED.
-*            ASSIGN lr_attri->r_ref TO <val_orig>.
-*          ENDIF.
-*
-*          IF ref #( <val_orig>  ) <> ref #( <val_orig>  ).
-*            GET REFERENCE OF <val> INTO <val_orig>.
-*          ENDIF.
 
         CATCH cx_root.
       ENDTRY.
-
-*      UNASSIGN <val_orig>.
-
     ENDLOOP.
 
   ENDMETHOD.
@@ -165,33 +124,6 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-      "refs to already existing data
-*      LOOP AT mt_attri->* REFERENCE INTO DATA(lr_dref).
-*        DATA(lv_check_ref) = abap_false.
-*        IF lr_attri->name = lr_dref->name.
-*          CONTINUE.
-*        ENDIF.
-*        DATA(lv_length) = strlen( lr_attri->name ).
-*        IF strlen( lr_dref->name ) <= lv_length.
-*          CONTINUE.
-*        ENDIF.
-*        IF lr_dref->name(lv_length) <> lr_attri->name.
-*          CONTINUE.
-*        ENDIF.
-*        IF  lr_dref->name_ref IS NOT INITIAL.
-*          ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref3>).
-*          CLEAR <val_ref3>.
-*          CLEAR lr_attri->r_ref.
-*          SPLIT lr_dref->name_ref AT '-' INTO DATA(lv_name_ref) DATA(lv_dummy).
-*          lr_attri->name_ref = lv_name_ref.
-*          lv_check_ref = abap_true.
-*          EXIT.
-*        ENDIF.
-*      ENDLOOP.
-*      IF lv_check_ref = abap_true.
-*        CONTINUE.
-*      ENDIF.
-
       ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref>).
       IF <val_ref> IS NOT INITIAL.
         ASSIGN <val_ref>->* TO FIELD-SYMBOL(<val>).
@@ -207,12 +139,7 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
         IF sy-subrc = 0.
           CLEAR <ref>.
         ENDIF.
-
       ENDIF.
-
-
-
-
     ENDLOOP.
 
   ENDMETHOD.
@@ -227,8 +154,6 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
     DATA(lo_dissolve) = NEW z2ui5_cl_core_srv_diss( attri = mt_attri
                                                     app   = mo_app ).
 
-*    DO 5 TIMES.
-
     lo_dissolve->main( ).
 
     result = attri_search( val ).
@@ -236,22 +161,13 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-*      IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
-*        CONTINUE.
-*      ENDIF.
-
-*      EXIT.
-*    ENDDO.
-
     DATA(lt_attri) = mt_attri->*.
     DELETE lt_attri WHERE bind_type IS INITIAL.
     CLEAR mt_attri->*.
-*    DO 5 TIMES.
 
     lo_dissolve->main( ).
 
     result = attri_search( val ).
-*      IF result IS BOUND.
     LOOP AT mt_attri->* ASSIGNING FIELD-SYMBOL(<ls_attri>).
       DATA(lv_name) = <ls_attri>-name.
       IF line_exists( lt_attri[ name = lv_name ] ).
@@ -261,14 +177,6 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
       ENDIF.
     ENDLOOP.
     RETURN.
-*     ENDIF.
-
-*      IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
-*        CONTINUE.
-*      ENDIF.
-
-*      EXIT.
-*    ENDDO.
 
     RAISE EXCEPTION TYPE z2ui5_cx_util_error
       EXPORTING
@@ -287,7 +195,6 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
     ENDIF.
 
     GET REFERENCE OF <attri> INTO result.
-*    result = z2ui5_cl_util=>conv_get_as_data_ref( <attri> ).
     IF sy-subrc <> 0.
       ASSERT 1 = 0.
     ENDIF.
@@ -318,11 +225,6 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
          WHERE o_typedescr IS BOUND AND
                 name_ref IS INITIAL.
-*                 AND (
-*                o_typedescr->kind = cl_abap_typedescr=>kind_elem OR
-*                o_typedescr->kind = cl_abap_typedescr=>kind_struct  OR
-*                o_typedescr->kind <> cl_abap_typedescr=>kind_table
-*                ).
 
       IF lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_elem
           AND lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_struct

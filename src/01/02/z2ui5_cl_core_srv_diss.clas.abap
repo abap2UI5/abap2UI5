@@ -270,9 +270,6 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
            WHERE bind_type <> z2ui5_if_core_types=>cs_bind_type-one_time.
         RETURN.
       ENDLOOP.
-*      IF sy-subrc = 0.
-*        RETURN.
-*      ENDIF.
     ENDIF.
 
     DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri( r_ref = REF #( mo_app ) ).
@@ -321,12 +318,7 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
     ENDLOOP.
 
-    IF lt_attri_new IS INITIAL.
-      RETURN.
-    ENDIF.
-
     INSERT LINES OF lt_attri_new INTO TABLE mt_attri->*.
-
 
   ENDMETHOD.
 
