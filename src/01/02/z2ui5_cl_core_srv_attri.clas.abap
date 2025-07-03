@@ -64,8 +64,8 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
          WHERE name_ref IS NOT INITIAL.
       TRY.
 
-          DATA(lr_attri_deref)  = REF #( mt_attri->*[ name = lr_attri->name_ref ] ).
-          DATA(lr_val)      = attri_get_val_ref( lr_attri_deref->name ).
+          DATA(lr_attri_deref)  = mt_attri->*[ name = lr_attri->name_ref ].
+          DATA(lr_val)      = attri_get_val_ref( lr_attri_deref-name ).
 
           ASSIGN mo_app->(lr_attri->name) TO FIELD-SYMBOL(<val4>).
           IF sy-subrc = 0.
