@@ -84,7 +84,7 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
               DATA(lo_test2) = cl_abap_datadescr=>describe_by_data( <any> ).
               TRY.
                   DATA(lv_dummy2) = CAST cl_abap_refdescr( lo_test2 ).
-                  <val4> =  lr_val->* .
+                  <val4> =  lr_val->*.
                   lr_attri->r_ref = lr_val.
                 CATCH cx_root.
                   <val4> = lr_val.
