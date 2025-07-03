@@ -74,7 +74,9 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
           ENDIF.
           TRY.
               CAST cl_abap_refdescr( lo_test ).
-              DATA(lo_test2) = cl_abap_datadescr=>describe_by_data( lr_val->* ).
+              FIELD-SYMBOLS <any> TYPE any.
+              ASSIGN lr_val->* TO <any>.
+              DATA(lo_test2) = cl_abap_datadescr=>describe_by_data( <any> ).
               TRY.
                   CAST cl_abap_refdescr( lo_test2 ).
                   <val4> =  lr_val->* .
@@ -97,7 +99,8 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
 
   METHOD attri_before_save.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
+    ASSIGN mt_attri->* TO FIELD-SYMBOL(<tab>).
+    LOOP AT <tab> REFERENCE INTO DATA(lr_attri).
 
       IF lr_attri->o_typedescr IS NOT BOUND.
         CONTINUE.
@@ -172,12 +175,12 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
 
     result = attri_search( val ).
     ASSIGN mt_attri->* TO FIELD-SYMBOL(<tab>).
-    LOOP AT <tab> ASSIGNING FIELD-SYMBOL(<ls_attri>).
-      DATA(lv_name) = <ls_attri>-name.
+    LOOP AT <tab> REFERENCE INTO DATA(lr_attri).
+      DATA(lv_name) = lr_attri->name.
       IF line_exists( lt_attri[ name = lv_name ] ).
-        <ls_attri>-bind_type   = lt_attri[ name = lv_name ]-bind_type.
-        <ls_attri>-name_client = lt_attri[ name = lv_name ]-name_client.
-        <ls_attri>-view        = lt_attri[ name = lv_name ]-view.
+        lr_attri->bind_type   = lt_attri[ name = lv_name ]-bind_type.
+        lr_attri->name_client = lt_attri[ name = lv_name ]-name_client.
+        lr_attri->view        = lt_attri[ name = lv_name ]-view.
       ENDIF.
     ENDLOOP.
     RETURN.
