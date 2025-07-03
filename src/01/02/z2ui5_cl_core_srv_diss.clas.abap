@@ -40,6 +40,8 @@ CLASS z2ui5_cl_core_srv_diss DEFINITION
         !name         TYPE string
       RETURNING
         VALUE(result) TYPE z2ui5_if_core_types=>ty_s_attri.
+
+    METHODS main_update_refs.
 ENDCLASS.
 
 
@@ -111,6 +113,9 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
       TRY.
           DATA(lv_name) = COND #( WHEN ir_attri->name IS NOT INITIAL THEN |{ ir_attri->name }->| ) && lr_attri->name.
           DATA(ls_new) = create_new_entry( lv_name ).
+          IF lr_attri->is_class = abap_true.
+            ls_new-type_info = 'CLASS_ATTRIBUTE'.
+          ENDIF.
           INSERT ls_new INTO TABLE result.
 
         CATCH cx_root.
@@ -155,9 +160,18 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
       EXIT.
     ENDDO.
 
+    main_update_refs( ).
+
+  ENDMETHOD.
+
+
+  METHOD main_update_refs.
+
+
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
          WHERE     check_dissolved  = abap_true
-               AND name_ref        IS INITIAL.
+               AND name_ref        IS INITIAL and
+               type_info is INITIAL.
 
       DATA(lv_length) = strlen( lr_attri->name ) - 1.
 
@@ -239,7 +253,6 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
-
   METHOD main_init.
 
     IF mt_attri->* IS NOT INITIAL.
@@ -303,6 +316,7 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
     ENDIF.
 
     INSERT LINES OF lt_attri_new INTO TABLE mt_attri->*.
+
 
   ENDMETHOD.
 
