@@ -44,7 +44,8 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
 
   METHOD attri_after_load.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
+        WHERE name_ref IS INITIAL.
       TRY.
           lr_attri->r_ref       = attri_get_val_ref( lr_attri->name ).
           lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
@@ -56,7 +57,46 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
           ENDIF.
 
         CATCH cx_root.
-*          ASSERT `` = x->get_text( ).
+      ENDTRY.
+    ENDLOOP.
+
+    LOOP AT mt_attri->* REFERENCE INTO lr_attri
+         WHERE name_ref IS NOT INITIAL.
+      TRY.
+
+          ASSIGN mt_attri->* TO FIELD-SYMBOL(<table>).
+          READ TABLE <table> INTO DATA(lr_attri_deref)
+            WITH KEY name = lr_attri->name_ref.
+          IF sy-subrc <> 0.
+            CONTINUE.
+          ENDIF.
+*          DATA(lr_attri_deref)  = <table>[ name = lr_attri->name_ref ].
+          DATA(lr_val)      = attri_get_val_ref( lr_attri_deref-name ).
+
+          ASSIGN mo_app->(lr_attri->name) TO FIELD-SYMBOL(<val4>).
+          IF sy-subrc = 0.
+            DATA(lo_test) = cl_abap_datadescr=>describe_by_data( <val4> ).
+          ENDIF.
+          TRY.
+              DATA(lv_dummy) = CAST cl_abap_refdescr( lo_test ).
+              FIELD-SYMBOLS <any> TYPE any.
+              ASSIGN lr_val->* TO <any>.
+              DATA(lo_test2) = cl_abap_datadescr=>describe_by_data( <any> ).
+              TRY.
+                  DATA(lv_dummy2) = CAST cl_abap_refdescr( lo_test2 ).
+                  <val4> =  lr_val->*.
+                  lr_attri->r_ref = lr_val.
+                CATCH cx_root.
+                  <val4> = lr_val.
+                  lr_attri->r_ref = lr_val.
+              ENDTRY.
+
+            CATCH cx_root.
+              lr_attri->r_ref = REF #( <val4> ).
+          ENDTRY.
+          lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
+
+        CATCH cx_root.
       ENDTRY.
     ENDLOOP.
 
@@ -64,7 +104,8 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
 
   METHOD attri_before_save.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
+    ASSIGN mt_attri->* TO FIELD-SYMBOL(<tab>).
+    LOOP AT <tab> REFERENCE INTO DATA(lr_attri).
 
       IF lr_attri->o_typedescr IS NOT BOUND.
         CONTINUE.
@@ -97,13 +138,19 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
       ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref>).
       IF <val_ref> IS NOT INITIAL.
         ASSIGN <val_ref>->* TO FIELD-SYMBOL(<val>).
-        lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <val> ).
-        CLEAR <val>.
+        IF lr_attri->name_ref IS INITIAL.
+          lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <val> ).
+          CLEAR <val>.
+          CLEAR <val_ref>.
+          CLEAR lr_attri->r_ref.
+          CONTINUE.
+        ENDIF.
+
+        ASSIGN mo_app->(lr_attri->name) TO FIELD-SYMBOL(<ref>).
+        IF sy-subrc = 0.
+          CLEAR <ref>.
+        ENDIF.
       ENDIF.
-
-      CLEAR <val_ref>.
-      CLEAR lr_attri->r_ref.
-
     ENDLOOP.
 
   ENDMETHOD.
@@ -118,51 +165,30 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
     DATA(lo_dissolve) = NEW z2ui5_cl_core_srv_diss( attri = mt_attri
                                                     app   = mo_app ).
 
-    DO 5 TIMES.
+    lo_dissolve->main( ).
 
-      lo_dissolve->main( ).
+    result = attri_search( val ).
+    IF result IS BOUND.
+      RETURN.
+    ENDIF.
 
-      result = attri_search( val ).
-      IF result IS BOUND.
-        RETURN.
-      ENDIF.
-
-      IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
-        CONTINUE.
-      ENDIF.
-
-      EXIT.
-    ENDDO.
-
-    """"" new
     DATA(lt_attri) = mt_attri->*.
     DELETE lt_attri WHERE bind_type IS INITIAL.
     CLEAR mt_attri->*.
-    DO 5 TIMES.
 
-      lo_dissolve->main( ).
+    lo_dissolve->main( ).
 
-      result = attri_search( val ).
-      IF result IS BOUND.
-        LOOP AT mt_attri->* ASSIGNING FIELD-SYMBOL(<ls_attri>).
-          DATA(lv_name) = <ls_attri>-name.
-          IF line_exists( lt_attri[ name = lv_name ] ).
-            <ls_attri>-bind_type   = lt_attri[ name = lv_name ]-bind_type.
-            <ls_attri>-name_client = lt_attri[ name = lv_name ]-name_client.
-            <ls_attri>-view        = lt_attri[ name = lv_name ]-view.
-          ENDIF.
-        ENDLOOP.
-        RETURN.
+    result = attri_search( val ).
+    ASSIGN mt_attri->* TO FIELD-SYMBOL(<tab>).
+    LOOP AT <tab> REFERENCE INTO DATA(lr_attri).
+      DATA(lv_name) = lr_attri->name.
+      IF line_exists( lt_attri[ name = lv_name ] ).
+        lr_attri->bind_type   = lt_attri[ name = lv_name ]-bind_type.
+        lr_attri->name_client = lt_attri[ name = lv_name ]-name_client.
+        lr_attri->view        = lt_attri[ name = lv_name ]-view.
       ENDIF.
-
-      IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
-        CONTINUE.
-      ENDIF.
-
-      EXIT.
-    ENDDO.
-
-    """""
+    ENDLOOP.
+    RETURN.
 
     RAISE EXCEPTION TYPE z2ui5_cx_util_error
       EXPORTING
@@ -209,7 +235,8 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
   METHOD attri_search.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
-         WHERE o_typedescr IS BOUND.
+         WHERE o_typedescr IS BOUND AND
+                name_ref IS INITIAL.
 
       IF lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_elem
           AND lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_struct
@@ -225,4 +252,3 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
 
   ENDMETHOD.
 ENDCLASS.
-
