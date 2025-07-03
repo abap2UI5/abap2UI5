@@ -3,7 +3,6 @@ CLASS z2ui5_cl_core_srv_diss DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-
     METHODS constructor
       IMPORTING
         attri TYPE REF TO z2ui5_if_core_types=>ty_t_attri
@@ -12,7 +11,6 @@ CLASS z2ui5_cl_core_srv_diss DEFINITION
     METHODS main.
 
   PROTECTED SECTION.
-
     DATA mt_attri TYPE REF TO z2ui5_if_core_types=>ty_t_attri.
     DATA mo_app   TYPE REF TO object.
 
@@ -42,12 +40,11 @@ CLASS z2ui5_cl_core_srv_diss DEFINITION
         !name         TYPE string
       RETURNING
         VALUE(result) TYPE z2ui5_if_core_types=>ty_s_attri.
-
-  PRIVATE SECTION.
 ENDCLASS.
 
 
 CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
+
   METHOD constructor.
 
     mt_attri = attri.
@@ -108,7 +105,7 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
     DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_oref( lr_ref ).
 
     LOOP AT lt_attri REFERENCE INTO DATA(lr_attri)
-         WHERE visibility   = cl_abap_objectdescr=>public
+         WHERE     visibility   = cl_abap_objectdescr=>public
                AND is_interface = abap_false
                AND is_constant  = abap_false.
       TRY.
@@ -158,15 +155,14 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
       EXIT.
     ENDDO.
 
-
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
-    WHERE check_dissolved = abap_true AND
-           name_ref IS INITIAL.
+         WHERE     check_dissolved  = abap_true
+               AND name_ref        IS INITIAL.
 
       DATA(lv_length) = strlen( lr_attri->name ) - 1.
 
       LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri2)
-        WHERE check_dissolved = abap_true.
+           WHERE check_dissolved = abap_true.
 
         IF lr_attri->name = lr_attri2->name.
           CONTINUE.
@@ -186,10 +182,9 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
       ENDLOOP.
     ENDLOOP.
 
-
-    "check for root data
+    " check for root data
     LOOP AT mt_attri->* REFERENCE INTO lr_attri
-    WHERE name_ref IS NOT INITIAL.
+         WHERE name_ref IS NOT INITIAL.
 
       DATA(lv_name_ref) = lr_attri->name_ref.
       TRY.
@@ -206,30 +201,40 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
       CLEAR lr_attri_new.
     ENDLOOP.
 
-
-    "check for root of struct and tables
+    " check for root of struct and tables
     LOOP AT mt_attri->* REFERENCE INTO lr_attri
-     WHERE name_ref IS INITIAL.
+         WHERE name_ref IS INITIAL.
 
       DATA(length) = strlen( lr_attri->name ).
 
-      LOOP AT mt_attri->* REFERENCE INTO DATA(lr_dref)
-       WHERE name_ref IS NOT INITIAL.
-        IF lr_dref->name_ref CS '-'.
-          TRY.
-              DATA(lv_name) = lr_dref->name(length).
-              IF  lr_attri->name = lv_name.
-                length = length + 1.
-                SPLIT lr_dref->name+length AT '-' INTO DATA(lv_dummy4) DATA(lv_dummy).
-                IF lv_dummy IS INITIAL.
-                  SPLIT lr_dref->name_ref AT '-' INTO lr_attri->name_ref DATA(lv_dummy2).
-                  EXIT.
-                ENDIF.
-
-              ENDIF.
-            CATCH cx_root.
-          ENDTRY.
+      IF lr_attri->r_ref IS NOT INITIAL.
+        ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<any>).
+        IF sy-subrc <> 0.
+          CONTINUE.
         ENDIF.
+      ENDIF.
+
+
+      LOOP AT mt_attri->* REFERENCE INTO DATA(lr_dref)
+           WHERE name_ref IS NOT INITIAL.
+        IF lr_dref->name_ref NS '-'.
+          CONTINUE.
+        ENDIF.
+
+        TRY.
+            DATA(lv_name) = lr_dref->name(length).
+            IF lr_attri->name = lv_name.
+              length = length + 1.
+              SPLIT lr_dref->name+length AT '-' INTO DATA(lv_dummy4) DATA(lv_dummy).
+              IF lv_dummy IS INITIAL.
+                " TODO: variable is assigned but never used (ABAP cleaner)
+                SPLIT lr_dref->name_ref AT '-' INTO lr_attri->name_ref DATA(lv_dummy2).
+                EXIT.
+              ENDIF.
+
+            ENDIF.
+          CATCH cx_root.
+        ENDTRY.
       ENDLOOP.
     ENDLOOP.
 
@@ -258,7 +263,7 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
     DATA(lt_attri_new) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
-         WHERE check_dissolved  = abap_false
+         WHERE     check_dissolved  = abap_false
                AND bind_type       <> z2ui5_if_core_types=>cs_bind_type-one_time.
 
       lr_attri->check_dissolved = abap_true.
@@ -299,6 +304,6 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
     INSERT LINES OF lt_attri_new INTO TABLE mt_attri->*.
 
-
   ENDMETHOD.
+
 ENDCLASS.
