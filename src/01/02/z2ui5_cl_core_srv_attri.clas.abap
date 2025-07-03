@@ -64,7 +64,8 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
          WHERE name_ref IS NOT INITIAL.
       TRY.
 
-          DATA(lr_attri_deref)  = mt_attri->*[ name = lr_attri->name_ref ].
+          ASSIGN mt_attri->* TO FIELD-SYMBOL(<table>).
+          DATA(lr_attri_deref)  = <table>[ name = lr_attri->name_ref ].
           DATA(lr_val)      = attri_get_val_ref( lr_attri_deref-name ).
 
           ASSIGN mo_app->(lr_attri->name) TO FIELD-SYMBOL(<val4>).
@@ -76,7 +77,7 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
               DATA(lo_test2) = cl_abap_datadescr=>describe_by_data( lr_val->* ).
               TRY.
                   CAST cl_abap_refdescr( lo_test2 ).
-                  <val4> = lr_val->*.
+                  <val4> =  lr_val->* .
                   lr_attri->r_ref = lr_val.
                 CATCH cx_root.
                   <val4> = lr_val.
@@ -170,7 +171,8 @@ CLASS z2ui5_cl_core_srv_attri IMPLEMENTATION.
     lo_dissolve->main( ).
 
     result = attri_search( val ).
-    LOOP AT mt_attri->* ASSIGNING FIELD-SYMBOL(<ls_attri>).
+    ASSIGN mt_attri->* TO FIELD-SYMBOL(<tab>).
+    LOOP AT <tab> ASSIGNING FIELD-SYMBOL(<ls_attri>).
       DATA(lv_name) = <ls_attri>-name.
       IF line_exists( lt_attri[ name = lv_name ] ).
         <ls_attri>-bind_type   = lt_attri[ name = lv_name ]-bind_type.
