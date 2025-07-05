@@ -60,53 +60,20 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD all_xml_stringify.
-
     TRY.
 
-        DATA(lo_model) = NEW z2ui5_cl_core_srv_attri( attri = mt_attri
-                                                      app   = mo_app ).
 
-
-        "new
-        DATA(lo_dissolver2) = NEW z2ui5_cl_core_srv_diss( attri = mt_attri
+        DATA(lo_dissolver) = NEW z2ui5_cl_core_srv_diss( attri = mt_attri
                                                          app    = mo_app ).
 
-*        DO 5 TIMES.
-        lo_dissolver2->main( ).
-*        ENDDO.
-
-        lo_model->attri_before_save( ).
+        lo_dissolver->main_attri_db_before_save( ).
         result = z2ui5_cl_util=>xml_stringify( me ).
 
       CATCH cx_root INTO DATA(x).
-*        TRY.
-*
-*            lo_model->attri_refs_update( ).
-*
-*            CLEAR mt_attri->*.
-*
-*            DATA(lo_dissolver) = NEW z2ui5_cl_core_srv_diss( attri = mt_attri
-*                                                             app   = mo_app ).
-*
-*            lo_dissolver->main( ).
-*            lo_dissolver->main( ).
-*
-*            lo_model = NEW z2ui5_cl_core_srv_attri( attri = mt_attri
-*                                                    app   = mo_app ).
-*            lo_model->attri_before_save( ).
-*
-*            result = z2ui5_cl_util=>xml_stringify( me ).
-*
-*          CATCH cx_root INTO DATA(cx).
-
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
-              EXPORTING
-*                val = |<p>{ x->get_text( ) }<p>{ x2->get_text( ) } or <p> Please check if all generic data references are public attributes of your class|.
-                val = |<p>{ x->get_text( ) } or <p> Please check if all generic data references are public attributes of your class|.
-
-*        ENDTRY.
+          EXPORTING
+            val = |<p>{ x->get_text( ) } or <p> Please check if all generic data references are public attributes of your class|.
     ENDTRY.
-
   ENDMETHOD.
 
   METHOD constructor.
@@ -121,10 +88,10 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
     DATA(ls_db) = lo_db->read_draft( id ).
     result = all_xml_parse( ls_db-data ).
 
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri( attri = result->mt_attri
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = result->mt_attri
                                                   app   = result->mo_app ).
 
-    lo_model->attri_after_load( ).
+    lo_model->main_attri_db_after_load( ).
 
   ENDMETHOD.
 
@@ -136,10 +103,10 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
     result->mo_app = app.
 
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri( attri = result->mt_attri
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = result->mt_attri
                                                   app   = result->mo_app ).
 
-    lo_model->attri_refs_update( ).
+    lo_model->main_attri_db_after_load( ).
 
   ENDMETHOD.
 

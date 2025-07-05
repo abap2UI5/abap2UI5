@@ -208,12 +208,10 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     ms_config = config.
     mv_type   = type.
 
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri( attri = mo_app->mt_attri
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = mo_app->mt_attri
                                                   app   = mo_app->mo_app ).
 
-    lo_model->attri_refs_update( ).
-
-    mr_attri = lo_model->attri_search_a_dissolve( val ).
+    mr_attri = lo_model->main_attri_search( val ).
 
     IF mr_attri->name_ref IS NOT INITIAL.
       mr_attri = REF #( mo_app->mt_attri->*[ name = mr_attri->name_ref ] ).
