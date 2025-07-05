@@ -12,7 +12,6 @@ CLASS z2ui5_cl_core_client DEFINITION
         action TYPE REF TO z2ui5_cl_core_action.
 
   PROTECTED SECTION.
-
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -27,7 +26,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~follow_up_action.
 
-*    mo_action->ms_next-s_set-s_follow_up_action-custom_js = val.
     INSERT val INTO TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js.
 
   ENDMETHOD.

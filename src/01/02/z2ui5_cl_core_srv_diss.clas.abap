@@ -21,7 +21,8 @@ CLASS z2ui5_cl_core_srv_diss DEFINITION
 
   PROTECTED SECTION.
 
-    METHODS dissolve.
+    DATA mt_attri TYPE REF TO z2ui5_if_core_types=>ty_t_attri.
+    DATA mo_app   TYPE REF TO object.
 
     METHODS attri_update_entry_refs.
     METHODS attri_init_entry.
@@ -32,15 +33,13 @@ CLASS z2ui5_cl_core_srv_diss DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO data.
 
-    DATA mt_attri TYPE REF TO z2ui5_if_core_types=>ty_t_attri.
-    DATA mo_app   TYPE REF TO object.
-
     METHODS attri_search
       IMPORTING
         val           TYPE REF TO data
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
 
+    METHODS dissolve.
     METHODS dissolve_run.
     METHODS dissolve_init.
 
@@ -68,8 +67,7 @@ CLASS z2ui5_cl_core_srv_diss DEFINITION
       RETURNING
         VALUE(result) TYPE z2ui5_if_core_types=>ty_s_attri.
 
-
-
+  PRIVATE SECTION.
 ENDCLASS.
 
 
@@ -77,8 +75,6 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
 
   METHOD main_attri_db_after_load.
-
-    dissolve( ).
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
         WHERE name_ref IS INITIAL.
@@ -267,8 +263,6 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
     result = VALUE z2ui5_if_core_types=>ty_s_attri( ).
     result-name = name.
-*    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri( attri = mt_attri
-*                                                  app   = mo_app ).
     result-r_ref       = attri_get_val_ref( name ).
     result-o_typedescr = cl_abap_datadescr=>describe_by_data_ref( result-r_ref ).
 
@@ -297,8 +291,6 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
       WHEN OTHERS.
 
         ls_attri2-name = |{ ir_attri->name }->*|.
-*        DATA(lo_model) = NEW z2ui5_cl_core_srv_attri( attri = mt_attri
-*                                                      app   = mo_app ).
         ls_attri2-r_ref = attri_get_val_ref( ls_attri2-name ).
         INSERT ls_attri2 INTO TABLE result.
 
@@ -452,7 +444,6 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
           CONTINUE.
         ENDIF.
       ENDIF.
-
 
       LOOP AT mt_attri->* REFERENCE INTO DATA(lr_dref)
            WHERE name_ref IS NOT INITIAL.
