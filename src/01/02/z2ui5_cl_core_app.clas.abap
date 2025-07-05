@@ -62,7 +62,6 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
   METHOD all_xml_stringify.
     TRY.
 
-
         DATA(lo_dissolver) = NEW z2ui5_cl_core_srv_diss( attri = mt_attri
                                                          app    = mo_app ).
 
@@ -102,7 +101,6 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
     result = all_xml_parse( ls_db-data ).
 
     result->mo_app = app.
-
     DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = result->mt_attri
                                                   app   = result->mo_app ).
 
