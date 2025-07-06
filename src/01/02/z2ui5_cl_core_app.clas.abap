@@ -65,8 +65,13 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
         DATA(lo_dissolver) = NEW z2ui5_cl_core_srv_diss( attri = mt_attri
                                                          app    = mo_app ).
 
-        lo_dissolver->main_attri_db_before_save( ).
-        result = z2ui5_cl_util=>xml_stringify( me ).
+        TRY.
+            lo_dissolver->main_attri_db_before_save( ).
+            result = z2ui5_cl_util=>xml_stringify( me ).
+          CATCH cx_root.
+            lo_dissolver->main_attri_db_save_srtti( ).
+            result = z2ui5_cl_util=>xml_stringify( me ).
+        ENDTRY.
 
       CATCH cx_root INTO DATA(x).
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
