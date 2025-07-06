@@ -164,20 +164,20 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
     ENDLOOP.
 
 
-    LOOP AT mt_attri->* REFERENCE INTO lr_attri
-         WHERE name_ref IS INITIAL AND
-         type_kind = cl_abap_datadescr=>typekind_table OR
-         type_kind = cl_abap_datadescr=>typekind_struct1 OR
-         type_kind = cl_abap_datadescr=>typekind_struct2.
-
-      IF lr_attri->bind_type = z2ui5_if_core_types=>cs_bind_type-two_way.
-        ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref2>).
-        CLEAR <val_ref2>.
-      ENDIF.
-      CLEAR lr_attri->r_ref.
-      CONTINUE.
-
-    ENDLOOP.
+*    LOOP AT mt_attri->* REFERENCE INTO lr_attri
+*         WHERE name_ref IS INITIAL AND
+*         type_kind = cl_abap_datadescr=>typekind_table OR
+*         type_kind = cl_abap_datadescr=>typekind_struct1 OR
+*         type_kind = cl_abap_datadescr=>typekind_struct2.
+*
+*      IF lr_attri->bind_type = z2ui5_if_core_types=>cs_bind_type-two_way.
+*        ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref2>).
+*        CLEAR <val_ref2>.
+*      ENDIF.
+*      CLEAR lr_attri->r_ref.
+*      CONTINUE.
+*
+*    ENDLOOP.
 
   ENDMETHOD.
 
@@ -416,10 +416,8 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
           CONTINUE.
         ENDIF.
 
-        LOOP AT mt_attri->* REFERENCE INTO lr_attri_child
-         WHERE name_parent = lr_attri->name.
-          lr_attri_child->name_ref = lr_attri_ref->name.
-        ENDLOOP.
+        lr_attri->name_ref = lr_attri_ref->name.
+
       ENDLOOP.
     ENDLOOP.
 
@@ -559,10 +557,6 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
   METHOD main_attri_db_before_save.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
-      IF lr_attri->bind_type = z2ui5_if_core_types=>cs_bind_type-two_way.
-        ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<data>).
-        CLEAR <data>.
-      ENDIF.
       CLEAR lr_attri->r_ref.
     ENDLOOP.
 

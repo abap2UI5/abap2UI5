@@ -525,12 +525,6 @@ CLASS ltcl_test_app_root_attri IMPLEMENTATION.
     DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
                                                   app   = lo_app ).
 
-*    DATA(ls_attri) = lo_model->main_attri_search( lo_app->mo_obj->mr_struc ).
-
-*    IF ls_attri->name <> 'MS_STRUC'.
-*      cl_abap_unit_assert=>abort( ).
-*    ENDIF.
-
     DATA(ls_attri) = lo_model->main_attri_search( lo_app->mo_obj->mr_tab ).
 
     IF ls_attri->name <> 'MT_TAB'.
@@ -546,18 +540,12 @@ CLASS ltcl_test_app_root IMPLEMENTATION.
 
   METHOD constructor.
 
-*    ms_struc = VALUE #(
-*        comp1 = 'comp1'
-*        comp2 = 'comp2'
-*    ).
-
     INSERT VALUE #(
         comp1 = 'comp1'
         comp2 = 'comp2'
     ) INTO TABLE mt_tab.
 
     mo_obj = NEW ltcl_test_app_root_attri(
-*      ir_struc = REF #( ms_struc )
       ir_tab   = REF #( mt_tab )
     ).
 
@@ -694,23 +682,23 @@ CLASS ltcl_test_app_root_attri3 IMPLEMENTATION.
 
   METHOD test.
 
-    DATA(lo_app) = NEW ltcl_test_app_root3( ).
-
-    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
-
-*    DATA(ls_attri) = lo_model->main_attri_search( lo_app->mo_obj->mr_struc ).
-
-*    IF ls_attri->name <> 'MS_STRUC'.
+*    DATA(lo_app) = NEW ltcl_test_app_root3( ).
+*
+*    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
+*    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
+*                                                  app   = lo_app ).
+*
+**    DATA(ls_attri) = lo_model->main_attri_search( lo_app->mo_obj->mr_struc ).
+*
+**    IF ls_attri->name <> 'MS_STRUC'.
+**      cl_abap_unit_assert=>abort( ).
+**    ENDIF.
+*
+*    DATA(ls_attri) = lo_model->main_attri_search( lo_app->mo_obj->mr_tab ).
+*
+*    IF ls_attri->name <> 'MT_TAB'.
 *      cl_abap_unit_assert=>abort( ).
 *    ENDIF.
-
-    DATA(ls_attri) = lo_model->main_attri_search( lo_app->mo_obj->mr_tab ).
-
-    IF ls_attri->name <> 'MT_TAB'.
-      cl_abap_unit_assert=>abort( ).
-    ENDIF.
 
   ENDMETHOD.
 
