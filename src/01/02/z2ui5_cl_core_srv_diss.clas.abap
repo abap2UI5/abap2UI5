@@ -142,42 +142,34 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
         WHERE name_ref IS INITIAL AND
         type_kind = cl_abap_datadescr=>typekind_dref.
 
-      ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref>).
-      IF <val_ref> IS NOT INITIAL.
-        ASSIGN <val_ref>->* TO FIELD-SYMBOL(<val>).
-        IF lr_attri->name_ref IS INITIAL.
-          IF lr_attri->bind_type = z2ui5_if_core_types=>cs_bind_type-two_way.
-            CLEAR <val>.
-          ENDIF.
-          lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <val> ).
-          CLEAR <val>.
-          CLEAR <val_ref>.
-          CLEAR lr_attri->r_ref.
-          CONTINUE.
-        ENDIF.
+      ASSIGN mo_app->(lr_attri->name) TO FIELD-SYMBOL(<ref>).
+      ASSIGN mo_app->(lr_attri->name)->* TO FIELD-SYMBOL(<val1>).
+      DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <val1> ).
 
-        ASSIGN mo_app->(lr_attri->name) TO FIELD-SYMBOL(<ref>).
-        IF sy-subrc = 0.
-          CLEAR <ref>.
-        ENDIF.
-      ENDIF.
+      CASE lo_descr->type_kind.
+
+        WHEN cl_abap_datadescr=>typekind_table.
+
+          LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_child)
+           WHERE name_ref IS INITIAL AND
+               type_kind = cl_abap_datadescr=>typekind_table AND
+               name_parent = lr_attri->name.
+
+            ASSIGN mo_app->(lr_attri_child->name) TO FIELD-SYMBOL(<val_ref>).
+            lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <val_ref> ).
+            CLEAR <val_ref>.
+
+            EXIT.
+          ENDLOOP.
+
+        WHEN cl_abap_datadescr=>typekind_struct1 OR cl_abap_datadescr=>typekind_struct2.
+          lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <val1> ).
+
+      ENDCASE.
+
+      CLEAR <val1>.
+      CLEAR <ref>.
     ENDLOOP.
-
-
-*    LOOP AT mt_attri->* REFERENCE INTO lr_attri
-*         WHERE name_ref IS INITIAL AND
-*         type_kind = cl_abap_datadescr=>typekind_table OR
-*         type_kind = cl_abap_datadescr=>typekind_struct1 OR
-*         type_kind = cl_abap_datadescr=>typekind_struct2.
-*
-*      IF lr_attri->bind_type = z2ui5_if_core_types=>cs_bind_type-two_way.
-*        ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref2>).
-*        CLEAR <val_ref2>.
-*      ENDIF.
-*      CLEAR lr_attri->r_ref.
-*      CONTINUE.
-*
-*    ENDLOOP.
 
   ENDMETHOD.
 
