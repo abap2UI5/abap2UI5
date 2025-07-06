@@ -745,7 +745,6 @@ CLASS ltcl_test_app_root4 IMPLEMENTATION.
 
     DATA(lo_app) = NEW ltcl_test_app_root4( ).
 
-
     TYPES:
       BEGIN OF ty_S_row,
         comp1 TYPE string,
