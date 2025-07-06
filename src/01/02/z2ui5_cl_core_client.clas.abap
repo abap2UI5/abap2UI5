@@ -351,12 +351,12 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_local.
 
-    DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( mo_action->mo_app ).
-    result = lo_bind->main_local( val    = val
-                                  config = VALUE #( path_only            = path
-                                                    custom_mapper        = custom_mapper
-                                                    custom_filter        = custom_filter
-                                                    switch_default_model = switch_default_model ) ).
+*    DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( mo_action->mo_app ).
+*    result = lo_bind->main_local( val    = val
+*                                  config = VALUE #( path_only            = path
+*                                                    custom_mapper        = custom_mapper
+*                                                    custom_filter        = custom_filter
+*                                                    switch_default_model = switch_default_model ) ).
 
   ENDMETHOD.
 

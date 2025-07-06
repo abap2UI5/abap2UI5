@@ -25,7 +25,7 @@ CLASS z2ui5_cl_core_srv_diss DEFINITION
     DATA mo_app   TYPE REF TO object.
 
     METHODS attri_update_entry_refs.
-    METHODS attri_init_entry.
+    METHODS dissolve_run_init.
 
     METHODS attri_get_val_ref
       IMPORTING
@@ -41,7 +41,6 @@ CLASS z2ui5_cl_core_srv_diss DEFINITION
 
     METHODS dissolve.
     METHODS dissolve_run.
-    METHODS dissolve_init.
 
     METHODS diss_struc
       IMPORTING
@@ -201,7 +200,7 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    attri_init_entry( ).
+    dissolve_run_init( ).
     result = attri_search( val ).
     IF result IS BOUND.
       RETURN.
@@ -265,6 +264,9 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
     result-name = name.
     result-r_ref       = attri_get_val_ref( name ).
     result-o_typedescr = cl_abap_datadescr=>describe_by_data_ref( result-r_ref ).
+    result-type_kind   =  result-o_typedescr->type_kind.
+    result-kind         =  result-o_typedescr->kind.
+    result-o_typedescr = cl_abap_datadescr=>describe_by_data_ref( result-r_ref ).
 
   ENDMETHOD.
 
@@ -315,7 +317,6 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
           DATA(lv_name) = COND #( WHEN ir_attri->name IS NOT INITIAL THEN |{ ir_attri->name }->| ) && lr_attri->name.
           DATA(ls_new) = create_new_entry( lv_name ).
           ls_new-is_class = lr_attri->is_class.
-          ls_new-type_kind = lr_attri->type_kind.
           INSERT ls_new INTO TABLE result.
 
         CATCH cx_root.
@@ -345,22 +346,19 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
   METHOD dissolve.
 
-    dissolve_init( ).
+    WHILE line_exists( mt_attri->*[ check_dissolved = abap_false ] ) OR mt_attri->* IS INITIAL.
 
-    DO 5 TIMES.
-      IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
-        TRY.
-            dissolve_run( ).
-          CATCH cx_root.
-            CLEAR mt_attri->*.
-            dissolve_init( ).
-        ENDTRY.
-        CONTINUE.
+      IF sy-index = 5.
+        RETURN.
       ENDIF.
-      EXIT.
-    ENDDO.
 
-    attri_update_entry_refs( ).
+      TRY.
+          dissolve_run( ).
+        CATCH cx_root.
+          dissolve_run_init( ).
+      ENDTRY.
+
+    ENDWHILE.
 
   ENDMETHOD.
 
@@ -470,28 +468,19 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD dissolve_init.
-
-    IF mt_attri->* IS NOT INITIAL.
-      LOOP AT mt_attri->* TRANSPORTING NO FIELDS
-           WHERE bind_type <> z2ui5_if_core_types=>cs_bind_type-one_time.
-        RETURN.
-      ENDLOOP.
-    ENDIF.
-
-    DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri( r_ref = REF #( mo_app ) ).
-    DATA(lt_init) = diss_oref( REF #( ls_attri ) ).
-    INSERT LINES OF lt_init INTO TABLE mt_attri->*.
-
-  ENDMETHOD.
-
   METHOD dissolve_run.
+
+    IF mt_attri->* IS INITIAL.
+      DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri( r_ref = REF #( mo_app ) ).
+      DATA(lt_init) = diss_oref( REF #( ls_attri ) ).
+      INSERT LINES OF lt_init INTO TABLE mt_attri->*.
+    ENDIF.
 
     DATA(lt_attri_new) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
-         WHERE check_dissolved  = abap_false
-               AND bind_type       <> z2ui5_if_core_types=>cs_bind_type-one_time.
+         WHERE check_dissolved  = abap_false.
+*               AND bind_type <> z2ui5_if_core_types=>cs_bind_type-one_time.
 
       lr_attri->check_dissolved = abap_true.
 
@@ -526,10 +515,11 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
     ENDLOOP.
 
     INSERT LINES OF lt_attri_new INTO TABLE mt_attri->*.
+    attri_update_entry_refs( ).
 
   ENDMETHOD.
 
-  METHOD attri_init_entry.
+  METHOD dissolve_run_init.
 
     DATA(lt_attri) = mt_attri->*.
     DELETE lt_attri WHERE bind_type IS INITIAL.
