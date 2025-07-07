@@ -114,6 +114,9 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
           ENDIF.
 
           ASSIGN mo_app->(lr_attri_parent->name) TO FIELD-SYMBOL(<val4>).
+          IF <val4> is not ASSIGNED.
+          CONTINUE.
+          endif.
           GET REFERENCE OF lr_attri->r_ref->* INTO <val4>.
           lr_attri_parent->r_ref       = REF #( <val4> ).
           lr_attri_parent->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri_parent->r_ref ).
@@ -135,6 +138,8 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
       ENDCASE.
 
+
+ UNASSIGN <val4>.
     ENDLOOP.
 
   ENDMETHOD.
@@ -148,8 +153,15 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
          AND type_kind = cl_abap_datadescr=>typekind_dref.
 
       ASSIGN mo_app->(lr_attri->name) TO FIELD-SYMBOL(<ref>).
+      If <ref> is not ASSIGNED.
+      CONTINUE.
+      endif.
+
       DATA(lv_name) = |MO_APP->{ lr_attri->name }->*|.
       ASSIGN (lv_name) TO FIELD-SYMBOL(<val1>).
+      IF <val1> is not ASSIGNED.
+      CONTINUE.
+      endif.
       DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <val1> ).
 
       CASE lo_descr->type_kind.
@@ -173,6 +185,8 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
       CLEAR <val1>.
       CLEAR <ref>.
+      UNASSIGN <val1>.
+      UNASSIGN <ref>.
     ENDLOOP.
 
   ENDMETHOD.
