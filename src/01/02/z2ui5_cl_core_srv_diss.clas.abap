@@ -92,43 +92,47 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
       ENDTRY.
     ENDLOOP.
 
+
+    ASSIGN mt_attri->* TO FIELD-SYMBOL(<table>).
     LOOP AT mt_attri->* REFERENCE INTO lr_attri
          WHERE name_ref IS NOT INITIAL.
-      TRY.
 
-          ASSIGN mt_attri->* TO FIELD-SYMBOL(<table>).
-          READ TABLE <table> INTO DATA(lr_attri_deref)
-            WITH KEY name = lr_attri->name_ref.
+      CASE lr_attri->type_kind.
+
+        WHEN cl_abap_datadescr=>typekind_table.
+
+          lr_attri->r_ref       = attri_get_val_ref( lr_attri->name_ref ).
+          lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
+
+          READ TABLE <table> REFERENCE INTO DATA(lr_attri_parent)
+            WITH KEY name = lr_attri->name_parent.
           IF sy-subrc <> 0.
             CONTINUE.
           ENDIF.
-          DATA(lr_val)      = attri_get_val_ref( lr_attri_deref-name ).
 
-          ASSIGN mo_app->(lr_attri->name) TO FIELD-SYMBOL(<val4>).
-          IF sy-subrc = 0.
-            DATA(lo_test) = cl_abap_datadescr=>describe_by_data( <val4> ).
-          ENDIF.
-          TRY.
-              DATA(lv_dummy) = CAST cl_abap_refdescr( lo_test ).
-              FIELD-SYMBOLS <any> TYPE any.
-              ASSIGN lr_val->* TO <any>.
-              DATA(lo_test2) = cl_abap_datadescr=>describe_by_data( <any> ).
-              TRY.
-                  DATA(lv_dummy2) = CAST cl_abap_refdescr( lo_test2 ).
-                  <val4> = lr_val->*.
-                  lr_attri->r_ref = lr_val.
-                CATCH cx_root.
-                  <val4> = lr_val.
-                  lr_attri->r_ref = lr_val.
-              ENDTRY.
+          ASSIGN mo_app->(lr_attri_parent->name) TO FIELD-SYMBOL(<val4>).
+          GET REFERENCE OF lr_attri->r_ref INTO <val4>.
+          lr_attri_parent->r_ref       = <val4>.
+          lr_attri_parent->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri_parent->r_ref ).
 
-            CATCH cx_root.
-              lr_attri->r_ref = REF #( <val4> ).
-          ENDTRY.
+        WHEN cl_abap_datadescr=>typekind_dref.
+*        WHEN cl_abap_datadescr=>typekind_struct1 OR cl_abap_datadescr=>typekind_struct2.
+
+          ASSIGN mo_app->(lr_attri->name_ref) TO FIELD-SYMBOL(<val5>).
+          ASSIGN mo_app->(lr_attri->name) TO <val4>.
+          GET REFERENCE OF <val5> INTO <val4>.
+
+          lr_attri->r_ref       = <val4>.
           lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
 
-        CATCH cx_root.
-      ENDTRY.
+          LOOP AT  mt_attri->* REFERENCE INTO DATA(lr_child) WHERE
+            name_parent = lr_attri->name.
+            lr_child->r_ref       = attri_get_val_ref( lr_child->name ).
+            lr_child->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_child->r_ref ).
+          ENDLOOP.
+
+      ENDCASE.
+
     ENDLOOP.
 
   ENDMETHOD.
