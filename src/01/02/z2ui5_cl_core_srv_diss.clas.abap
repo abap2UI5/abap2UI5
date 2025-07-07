@@ -403,6 +403,11 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
         WHEN cl_abap_typedescr=>typekind_dref.
 
           DATA lr_ref TYPE REF TO data.
+
+          IF lr_attri->r_ref is INITIAL.
+CONTINUE.
+          endif.
+
           lr_ref = lr_attri->r_ref->*.
 
           LOOP AT mt_attri->* REFERENCE INTO lr_attri_ref
