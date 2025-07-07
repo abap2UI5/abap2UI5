@@ -29,7 +29,7 @@ CLASS z2ui5_cl_core_srv_json DEFINITION
         io_app        TYPE REF TO object
         t_attri       TYPE REF TO z2ui5_if_core_types=>ty_t_attri
       RETURNING
-        VALUE(result) TYPE string.
+        VALUE(result) TYPE string ##NEEDED.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -72,10 +72,10 @@ CLASS z2ui5_cl_core_srv_json IMPLEMENTATION.
           ENDIF.
 
           lo_val_front->to_abap(
-            exporting
+            EXPORTING
                 iv_corresponding = abap_true
             IMPORTING
-                ev_container = <val> ).
+                ev_container     = <val> ).
 
         CATCH cx_root INTO DATA(x).
           RAISE EXCEPTION TYPE z2ui5_cx_util_error

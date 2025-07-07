@@ -289,7 +289,7 @@ CLASS ltcl_test_search_attri IMPLEMENTATION.
          ) ).
 
     DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
-                                                  app   = lo_app_client ).
+                                                  app  = lo_app_client ).
 
     DATA(lr_attri) = lo_model->main_attri_search( REF #( lo_app_client->mv_value ) ).
 
@@ -311,7 +311,7 @@ CLASS ltcl_test_search_attri IMPLEMENTATION.
          ) ).
 
     DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
-                                                  app   = lo_app_client ).
+                                                  app  = lo_app_client ).
 
     DATA(lr_attri) = lo_model->main_attri_search( REF #( lo_app_client->mv_value ) ).
 
@@ -408,7 +408,7 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
     DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
 
     DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
-                                                  app   = lo_app_client ).
+                                                  app  = lo_app_client ).
 
     DATA(lr_attri) = lo_model->attri_get_val_ref( `MV_VALUE` ).
 
@@ -425,7 +425,7 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
 
     DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
     DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
-                                                  app   = lo_app_client ).
+                                                  app  = lo_app_client ).
 
     DATA(lr_attri) = lo_model->attri_get_val_ref( `MR_VALUE->*` ).
 
@@ -441,7 +441,7 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
 
     DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
     DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
-                                                  app   = lo_app_client ).
+                                                  app  = lo_app_client ).
 
     DATA(lr_attri) = lo_model->attri_get_val_ref( `MO_APP->MV_VALUE` ).
 
@@ -458,7 +458,7 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
 
     DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
     DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
-                                                  app   = lo_app_client ).
+                                                  app  = lo_app_client ).
 
     DATA(lr_attri) = lo_model->attri_get_val_ref( `MO_APP->MR_VALUE->*` ).
 
@@ -476,13 +476,11 @@ CLASS ltcl_test_app_root_attri DEFINITION FINAL
 
   PUBLIC SECTION.
 
-*    DATA mr_struc TYPE REF TO data.
     DATA mr_tab TYPE REF TO data.
 
     METHODS constructor
       IMPORTING
-        ir_struc TYPE REF TO data OPTIONAL
-        ir_tab   TYPE REF TO data OPTIONAL.
+        ir_tab TYPE REF TO data OPTIONAL.
 
     METHODS test_obj_tab_ref       FOR TESTING RAISING cx_static_check.
 
@@ -494,13 +492,13 @@ CLASS ltcl_test_app_root DEFINITION FINAL
   PUBLIC SECTION.
 
     TYPES:
-      BEGIN OF ty_S_row,
+      BEGIN OF ty_s_row,
         comp1 TYPE string,
         comp2 TYPE string,
-      END OF ty_S_row.
-    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_S_row WITH EMPTY KEY.
+      END OF ty_s_row.
+    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
 
-    DATA mt_tab  TYPE ty_T_tab.
+    DATA mt_tab  TYPE ty_t_tab.
 *    DATA ms_struc TYPE ty_s_row.
     DATA mo_obj TYPE REF TO ltcl_test_app_root_attri.
 
@@ -523,7 +521,7 @@ CLASS ltcl_test_app_root_attri IMPLEMENTATION.
 
     DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
     DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+                                                  app  = lo_app ).
 
     DATA(ls_attri) = lo_model->main_attri_search( lo_app->mo_obj->mr_tab ).
 
@@ -543,11 +541,10 @@ CLASS ltcl_test_app_root IMPLEMENTATION.
     INSERT VALUE #(
         comp1 = 'comp1'
         comp2 = 'comp2'
-    ) INTO TABLE mt_tab.
+      ) INTO TABLE mt_tab.
 
     mo_obj = NEW ltcl_test_app_root_attri(
-      ir_tab   = REF #( mt_tab )
-    ).
+      ir_tab = REF #( mt_tab ) ).
 
   ENDMETHOD.
 ENDCLASS.
@@ -574,11 +571,10 @@ CLASS ltcl_test_app_root2 DEFINITION FINAL
   PUBLIC SECTION.
 
     TYPES:
-      BEGIN OF ty_S_row,
+      BEGIN OF ty_s_row,
         comp1 TYPE string,
         comp2 TYPE string,
-      END OF ty_S_row.
-    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_S_row WITH EMPTY KEY.
+      END OF ty_s_row.
 
     DATA ms_struc TYPE ty_s_row.
     DATA mo_obj TYPE REF TO ltcl_test_app_root_attri2.
@@ -601,7 +597,7 @@ CLASS ltcl_test_app_root_attri2 IMPLEMENTATION.
 
     DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
     DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+                                                  app  = lo_app ).
 
     DATA(ls_attri) = lo_model->main_attri_search( lo_app->mo_obj->mr_struc ).
 
@@ -621,13 +617,11 @@ CLASS ltcl_test_app_root2 IMPLEMENTATION.
 
     ms_struc = VALUE #(
         comp1 = 'comp1'
-        comp2 = 'comp2'
-    ).
+        comp2 = 'comp2' ).
 
 
     mo_obj = NEW ltcl_test_app_root_attri2(
-      ir_struc = REF #( ms_struc )
-    ).
+      ir_struc = REF #( ms_struc ) ).
 
   ENDMETHOD.
 ENDCLASS.
@@ -639,13 +633,11 @@ CLASS ltcl_test_app_root_attri3 DEFINITION FINAL
 
   PUBLIC SECTION.
 
-*    DATA mr_struc TYPE REF TO data.
     DATA mr_tab TYPE REF TO data.
 
     METHODS constructor
       IMPORTING
-        ir_struc TYPE REF TO data OPTIONAL
-        ir_tab   TYPE REF TO data OPTIONAL.
+        ir_tab TYPE REF TO data OPTIONAL.
 
     METHODS test       FOR TESTING RAISING cx_static_check.
 
@@ -657,13 +649,13 @@ CLASS ltcl_test_app_root3 DEFINITION FINAL
   PUBLIC SECTION.
 
     TYPES:
-      BEGIN OF ty_S_row,
+      BEGIN OF ty_s_row,
         comp1 TYPE string,
         comp2 TYPE string,
-      END OF ty_S_row.
-    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_S_row WITH EMPTY KEY.
+      END OF ty_s_row.
+    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
 
-    DATA mt_tab  TYPE ty_T_tab.
+    DATA mt_tab  TYPE ty_t_tab.
 *    DATA ms_struc TYPE ty_s_row.
     DATA mo_obj TYPE REF TO ltcl_test_app_root_attri3.
 
@@ -716,12 +708,11 @@ CLASS ltcl_test_app_root3 IMPLEMENTATION.
     INSERT VALUE #(
         comp1 = 'comp1'
         comp2 = 'comp2'
-    ) INTO TABLE mt_tab.
+      ) INTO TABLE mt_tab.
 
     mo_obj = NEW ltcl_test_app_root_attri3(
 *      ir_struc = REF #( ms_struc )
-      ir_tab   = REF #( mt_tab )
-    ).
+      ir_tab = REF #( mt_tab ) ).
 
   ENDMETHOD.
 ENDCLASS.
@@ -746,21 +737,23 @@ CLASS ltcl_test_app_root4 IMPLEMENTATION.
     DATA(lo_app) = NEW ltcl_test_app_root4( ).
 
     TYPES:
-      BEGIN OF ty_S_row,
+      BEGIN OF ty_s_row,
         comp1 TYPE string,
         comp2 TYPE string,
-      END OF ty_S_row.
-    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_S_row WITH EMPTY KEY.
+      END OF ty_s_row.
+    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
 
     lo_app->mr_tab = NEW ty_t_tab( ).
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN lo_app->mr_tab->* TO <tab>.
     INSERT VALUE ty_s_row(
       comp1 = 'comp1'
       comp2 = 'comp2'
-  ) INTO TABLE lo_app->mr_tab->*.
+      ) INTO TABLE <tab>.
 
     DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
     DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+                                                  app  = lo_app ).
 
     DATA(ls_attri) = lo_model->main_attri_search( lo_app->mr_tab ).
 
@@ -770,8 +763,8 @@ CLASS ltcl_test_app_root4 IMPLEMENTATION.
 
     lo_model->main_attri_db_save_srtti( ).
     lo_app = NEW ltcl_test_app_root4( ).
-    lo_model = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    lo_model = NEW z2ui5_cl_core_srv_diss( attri      = REF #( lt_attri )
+                                                  app = lo_app ).
     lo_model->main_attri_db_load( ).
 
     IF lo_app->mr_tab IS NOT BOUND.

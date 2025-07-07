@@ -50,7 +50,7 @@ INTERFACE z2ui5_if_core_types
     BEGIN OF ty_s_attri,
       name               TYPE string,
       name_client        TYPE string,
-      name_parent        type string,
+      name_parent        TYPE string,
       name_ref           TYPE string,
       bind_type          TYPE string,
       srtti_data         TYPE string,

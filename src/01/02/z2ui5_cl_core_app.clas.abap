@@ -66,7 +66,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
   METHOD all_xml_stringify.
 
     DATA(lo_dissolver) = NEW z2ui5_cl_core_srv_diss( attri = mt_attri
-                                                     app    = mo_app ).
+                                                     app   = mo_app ).
 
     TRY.
         lo_dissolver->main_attri_db_save( check_clear_two_way_data ).
@@ -88,7 +88,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
         lo_dissolver->main_attri_db_save_srtti( ).
         result = z2ui5_cl_util=>xml_stringify( me ).
         RETURN.
-      CATCH cx_root into data(x).
+      CATCH cx_root INTO DATA(x).
     ENDTRY.
 
     RAISE EXCEPTION TYPE z2ui5_cx_util_error
@@ -110,7 +110,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
     result = all_xml_parse( ls_db-data ).
 
     DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = result->mt_attri
-                                                  app   = result->mo_app ).
+                                                  app  = result->mo_app ).
 
     lo_model->main_attri_db_load( ).
 
@@ -124,7 +124,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
     result->mo_app = app.
     DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = result->mt_attri
-                                                  app   = result->mo_app ).
+                                                  app  = result->mo_app ).
 
     lo_model->main_attri_db_load( ).
 
@@ -157,8 +157,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
     DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_json( ).
     result = lo_json_mapper->model_back_to_front(
                io_app  = mo_app
-               t_attri = mt_attri
-             ).
+               t_attri = mt_attri ).
 
   ENDMETHOD.
 ENDCLASS.

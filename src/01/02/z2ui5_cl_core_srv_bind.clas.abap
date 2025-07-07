@@ -18,7 +18,7 @@ CLASS z2ui5_cl_core_srv_bind DEFINITION
         val           TYPE data
         config        TYPE z2ui5_if_core_types=>ty_s_bind_config OPTIONAL
       RETURNING
-        VALUE(result) TYPE string.
+        VALUE(result) TYPE string ##NEEDED.
 
     METHODS main
       IMPORTING
@@ -209,7 +209,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     mv_type   = type.
 
     DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = mo_app->mt_attri
-                                                  app   = mo_app->mo_app ).
+                                                  app  = mo_app->mo_app ).
 
     mr_attri = lo_model->main_attri_search( val ).
 
