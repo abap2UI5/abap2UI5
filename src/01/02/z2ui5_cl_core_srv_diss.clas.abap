@@ -111,12 +111,11 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
           ENDIF.
 
           ASSIGN mo_app->(lr_attri_parent->name) TO FIELD-SYMBOL(<val4>).
-          GET REFERENCE OF lr_attri->r_ref INTO <val4>.
+          GET REFERENCE OF lr_attri->r_ref->* INTO <val4>.
           lr_attri_parent->r_ref       = <val4>.
           lr_attri_parent->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri_parent->r_ref ).
 
         WHEN cl_abap_datadescr=>typekind_dref.
-*        WHEN cl_abap_datadescr=>typekind_struct1 OR cl_abap_datadescr=>typekind_struct2.
 
           ASSIGN mo_app->(lr_attri->name_ref) TO FIELD-SYMBOL(<val5>).
           ASSIGN mo_app->(lr_attri->name) TO <val4>.
