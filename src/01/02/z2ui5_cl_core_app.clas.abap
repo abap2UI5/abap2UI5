@@ -66,7 +66,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
                                                          app    = mo_app ).
 
         TRY.
-            lo_dissolver->main_attri_db_before_save( ).
+            lo_dissolver->main_attri_db_save( ).
             result = z2ui5_cl_util=>xml_stringify( me ).
           CATCH cx_root.
             lo_dissolver->main_attri_db_save_srtti( ).
@@ -95,7 +95,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
     DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = result->mt_attri
                                                   app   = result->mo_app ).
 
-    lo_model->main_attri_db_after_load( ).
+    lo_model->main_attri_db_load( ).
 
   ENDMETHOD.
 
@@ -109,7 +109,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
     DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = result->mt_attri
                                                   app   = result->mo_app ).
 
-    lo_model->main_attri_db_after_load( ).
+    lo_model->main_attri_db_load( ).
 
   ENDMETHOD.
 

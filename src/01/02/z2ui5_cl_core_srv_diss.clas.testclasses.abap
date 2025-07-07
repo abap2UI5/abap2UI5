@@ -772,7 +772,7 @@ CLASS ltcl_test_app_root4 IMPLEMENTATION.
     lo_app = NEW ltcl_test_app_root4( ).
     lo_model = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
                                                   app   = lo_app ).
-    lo_model->main_attri_db_after_load( ).
+    lo_model->main_attri_db_load( ).
 
     IF lo_app->mr_tab IS NOT BOUND.
       cl_abap_unit_assert=>abort( ).
