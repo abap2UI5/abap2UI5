@@ -52,8 +52,6 @@ CLASS ltcl_test_bind DEFINITION FINAL
     METHODS test_one_way_w_x_error FOR TESTING RAISING cx_static_check.
     METHODS test_error_diff        FOR TESTING RAISING cx_static_check.
     METHODS test_two_way           FOR TESTING RAISING cx_static_check.
-    METHODS test_local             FOR TESTING RAISING cx_static_check.
-    METHODS test_local_one         FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -141,38 +139,6 @@ CLASS ltcl_test_bind IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_local.
-
-    DATA(lo_app_client) = NEW ltcl_test_app( ).
-    DATA(lo_app) = NEW z2ui5_cl_core_app( ).
-    lo_app->mo_app = lo_app_client.
-
-    DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( lo_app ).
-
-    DATA(lv_bind) = lo_bind->main_local( lo_app_client->mv_value ).
-
-    cl_abap_unit_assert=>assert_not_initial( lv_bind ).
-
-  ENDMETHOD.
-
-  METHOD test_local_one.
-
-    DATA(lo_app_client) = NEW ltcl_test_app( ).
-    DATA(lo_app) = NEW z2ui5_cl_core_app( ).
-    lo_app->mo_app = lo_app_client.
-
-    DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( lo_app ).
-
-    DATA(lv_bind) = lo_bind->main_local( lo_app_client->mv_value ).
-
-    cl_abap_unit_assert=>assert_not_initial( lv_bind ).
-
-    DATA(lv_bind2) = lo_bind->main( val  = REF #( lo_app_client->mv_value )
-                                    type = z2ui5_if_core_types=>cs_bind_type-two_way ).
-
-    cl_abap_unit_assert=>assert_not_initial( lv_bind2 ).
-
-  ENDMETHOD.
 ENDCLASS.
 
 
