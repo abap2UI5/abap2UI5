@@ -65,7 +65,7 @@ INTERFACE z2ui5_if_core_types
       o_typedescr        TYPE REF TO cl_abap_typedescr,
       type_kind          TYPE string,
       kind               TYPE string,
-      is_class           TYPE abap_bool,
+*      is_class           TYPE abap_bool,
     END OF ty_s_attri.
   TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
 

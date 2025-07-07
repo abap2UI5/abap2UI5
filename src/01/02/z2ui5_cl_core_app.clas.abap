@@ -22,8 +22,8 @@ CLASS z2ui5_cl_core_app DEFINITION
     METHODS all_xml_stringify
       IMPORTING
         check_clear_two_way_data TYPE abap_bool DEFAULT abap_false
-    returning
-      value(result) type string.
+      RETURNING
+        VALUE(result)            TYPE string.
 
     CLASS-METHODS all_xml_parse
       IMPORTING
@@ -64,24 +64,37 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD all_xml_stringify.
+
+    DATA(lo_dissolver) = NEW z2ui5_cl_core_srv_diss( attri = mt_attri
+                                                     app    = mo_app ).
+
     TRY.
-
-        DATA(lo_dissolver) = NEW z2ui5_cl_core_srv_diss( attri = mt_attri
-                                                         app    = mo_app ).
-
-        TRY.
-            lo_dissolver->main_attri_db_save( check_clear_two_way_data ).
-            result = z2ui5_cl_util=>xml_stringify( me ).
-          CATCH cx_root.
-            lo_dissolver->main_attri_db_save_srtti( ).
-            result = z2ui5_cl_util=>xml_stringify( me ).
-        ENDTRY.
-
-      CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error
-          EXPORTING
-            val = |<p>{ x->get_text( ) } or <p> Please check if all generic data references are public attributes of your class|.
+        lo_dissolver->main_attri_db_save( check_clear_two_way_data ).
+        result = z2ui5_cl_util=>xml_stringify( me ).
+        RETURN.
+      CATCH cx_root.
     ENDTRY.
+
+    TRY.
+        lo_dissolver->main_attri_db_save_srtti( ).
+        result = z2ui5_cl_util=>xml_stringify( me ).
+        RETURN.
+      CATCH cx_root.
+    ENDTRY.
+
+    TRY.
+        lo_dissolver->main_attri_refresh( ).
+        lo_dissolver->main_attri_db_save( check_clear_two_way_data ).
+        lo_dissolver->main_attri_db_save_srtti( ).
+        result = z2ui5_cl_util=>xml_stringify( me ).
+        RETURN.
+      CATCH cx_root into data(x).
+    ENDTRY.
+
+    RAISE EXCEPTION TYPE z2ui5_cx_util_error
+      EXPORTING
+        val = |<p>{ x->get_text( ) } or <p> Please check if all generic data references are public attributes of your class|.
+
   ENDMETHOD.
 
   METHOD constructor.

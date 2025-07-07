@@ -71,7 +71,11 @@ CLASS z2ui5_cl_core_srv_json IMPLEMENTATION.
             CONTINUE.
           ENDIF.
 
-          lo_val_front->to_abap( IMPORTING ev_container = <val> ).
+          lo_val_front->to_abap(
+            exporting
+                iv_corresponding = abap_true
+            IMPORTING
+                ev_container = <val> ).
 
         CATCH cx_root INTO DATA(x).
           RAISE EXCEPTION TYPE z2ui5_cx_util_error
