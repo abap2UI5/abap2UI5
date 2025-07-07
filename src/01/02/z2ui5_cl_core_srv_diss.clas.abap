@@ -115,7 +115,7 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
           ASSIGN mo_app->(lr_attri_parent->name) TO FIELD-SYMBOL(<val4>).
           GET REFERENCE OF lr_attri->r_ref->* INTO <val4>.
-          lr_attri_parent->r_ref       = ref #( <val4> ).
+          lr_attri_parent->r_ref       = REF #( <val4> ).
           lr_attri_parent->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri_parent->r_ref ).
 
         WHEN cl_abap_datadescr=>typekind_dref.
@@ -148,7 +148,8 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
          AND type_kind = cl_abap_datadescr=>typekind_dref.
 
       ASSIGN mo_app->(lr_attri->name) TO FIELD-SYMBOL(<ref>).
-      ASSIGN mo_app->(lr_attri->name)->* TO FIELD-SYMBOL(<val1>).
+      DATA(lv_name) = |MO_APP->{ lr_attri->name }->*|.
+      ASSIGN (lv_name) TO FIELD-SYMBOL(<val1>).
       DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <val1> ).
 
       CASE lo_descr->type_kind.
@@ -486,9 +487,9 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
       DATA(lv_name) = lr_attri->name.
       IF line_exists( lt_attri[ name = lv_name ] ).
 *        IF  lr_attri->type_kind <> cl_abap_datadescr=>typekind_dref.
-          lr_attri->bind_type   = lt_attri[ name = lv_name ]-bind_type.
-          lr_attri->name_client = lt_attri[ name = lv_name ]-name_client.
-          lr_attri->view        = lt_attri[ name = lv_name ]-view.
+        lr_attri->bind_type   = lt_attri[ name = lv_name ]-bind_type.
+        lr_attri->name_client = lt_attri[ name = lv_name ]-name_client.
+        lr_attri->view        = lt_attri[ name = lv_name ]-view.
 *        ENDIF.
       ENDIF.
     ENDLOOP.
