@@ -62,9 +62,9 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `            }` && |\n| &&
              `` && |\n| &&
              `            if (/iPad|iPhone/.test(navigator.platform)) {` && |\n| &&
-             `                window.addEventListener("__pagehide", this.__pagehide.bind(this));` && |\n| &&
+             `                window.addEventListener("pagehide", this.__pagehide.bind(this));` && |\n| &&
              `            } else {` && |\n| &&
-             `                window.addEventListener("__beforeunload", this.__beforeunload.bind(this));` && |\n| &&
+             `                window.addEventListener("beforeunload", this.__beforeunload.bind(this));` && |\n| &&
              `            }` && |\n| &&
              `` && |\n| &&
              `            document.addEventListener("keydown", function (zEvent) {` && |\n| &&

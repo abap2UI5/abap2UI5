@@ -42,9 +42,9 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models", "z2ui5/cc/Server
             }
 
             if (/iPad|iPhone/.test(navigator.platform)) {
-                window.addEventListener("__pagehide", this.__pagehide.bind(this));
+                window.addEventListener("pagehide", this.__pagehide.bind(this));
             } else {
-                window.addEventListener("__beforeunload", this.__beforeunload.bind(this));
+                window.addEventListener("beforeunload", this.__beforeunload.bind(this));
             }
 
             document.addEventListener("keydown", function (zEvent) {
