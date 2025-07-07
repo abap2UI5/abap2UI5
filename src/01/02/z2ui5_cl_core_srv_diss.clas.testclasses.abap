@@ -743,7 +743,7 @@ CLASS ltcl_test_app_root4 IMPLEMENTATION.
       END OF ty_s_row.
     TYPES ty_t_tab TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
 
-    lo_app->mr_tab = NEW ty_t_tab( ).
+    CREATE DATA lo_app->mr_tab TYPE ty_t_tab.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     ASSIGN lo_app->mr_tab->* TO <tab>.
     INSERT VALUE ty_s_row(

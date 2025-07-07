@@ -200,16 +200,6 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result)        TYPE string.
 
-  METHODS _bind_local
-    IMPORTING
-      val                  TYPE data
-      !path                TYPE abap_bool                     DEFAULT abap_false
-      custom_mapper        TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
-      custom_filter        TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
-      switch_default_model TYPE abap_bool DEFAULT abap_false
-    RETURNING
-      VALUE(result)        TYPE string.
-
   METHODS follow_up_action
     IMPORTING
       val TYPE string.
