@@ -405,8 +405,9 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
         WHEN cl_abap_typedescr=>typekind_dref.
 
-          DATA lr_ref TYPE REF TO data.
-          lr_ref = lr_attri->r_ref->*.
+          "DATA lr_ref TYPE REF TO data.
+          "lr_ref = lr_attri->r_ref->*.
+          ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<ref>).
 
           LOOP AT mt_attri->* REFERENCE INTO lr_attri_ref
               WHERE check_dissolved  = abap_true AND
@@ -415,7 +416,7 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
                     AND ( type_kind = cl_abap_typedescr=>typekind_struct1 OR
                      type_kind = cl_abap_typedescr=>typekind_struct2 ).
 
-            IF lr_ref <> lr_attri_ref->r_ref.
+            IF <ref> <> lr_attri_ref->r_ref.
               CONTINUE.
             ENDIF.
 
