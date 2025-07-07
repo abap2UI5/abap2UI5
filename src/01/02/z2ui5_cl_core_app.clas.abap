@@ -138,7 +138,10 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
   METHOD model_json_stringify.
 
     DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_json( ).
-    result = lo_json_mapper->model_back_to_front( mt_attri ).
+    result = lo_json_mapper->model_back_to_front(
+               io_app  = mo_app
+               t_attri = mt_attri
+             ).
 
   ENDMETHOD.
 ENDCLASS.

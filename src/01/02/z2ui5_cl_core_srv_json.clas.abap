@@ -26,6 +26,7 @@ CLASS z2ui5_cl_core_srv_json DEFINITION
 
     METHODS model_back_to_front
       IMPORTING
+        io_app        TYPE REF TO object
         t_attri       TYPE REF TO z2ui5_if_core_types=>ty_t_attri
       RETURNING
         VALUE(result) TYPE string.
@@ -96,27 +97,15 @@ CLASS z2ui5_cl_core_srv_json IMPLEMENTATION.
                                              ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
           ENDIF.
 
-          CASE lr_attri->bind_type.
-            WHEN z2ui5_if_core_types=>cs_bind_type-one_way
-                OR z2ui5_if_core_types=>cs_bind_type-two_way.
+          DATA(lv_name) = |IO_APP->{ lr_attri->name }|.
+          ASSIGN (lv_name) TO FIELD-SYMBOL(<attribute>).
+          IF sy-subrc <> 0.
+            CONTINUE.
+          ENDIF.
 
-              ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<attribute>).
-              IF sy-subrc <> 0.
-                CONTINUE.
-              ENDIF.
-
-              ajson->set( iv_ignore_empty = abap_false
-                          iv_path         = `/`
-                          iv_val          = <attribute> ).
-
-            WHEN z2ui5_if_core_types=>cs_bind_type-one_time.
-              ajson->set( iv_ignore_empty = abap_false
-                          iv_path         = `/`
-                          iv_val          = lr_attri->json_bind_local ).
-
-            WHEN OTHERS.
-              ASSERT `` = `ERROR_UNKNOWN_BIND_MODE`.
-          ENDCASE.
+          ajson->set( iv_ignore_empty = abap_false
+                      iv_path         = `/`
+                      iv_val          = <attribute> ).
 
           IF lr_attri->custom_filter IS BOUND.
             ajson = ajson->filter( lr_attri->custom_filter ).

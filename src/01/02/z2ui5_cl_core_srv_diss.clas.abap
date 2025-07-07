@@ -137,10 +137,9 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
     dissolve( ).
 
-    "check for generics and save type
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
-        WHERE name_ref IS INITIAL AND
-        type_kind = cl_abap_datadescr=>typekind_dref.
+        WHERE name_ref IS INITIAL
+         AND type_kind = cl_abap_datadescr=>typekind_dref.
 
       ASSIGN mo_app->(lr_attri->name) TO FIELD-SYMBOL(<ref>).
       ASSIGN mo_app->(lr_attri->name)->* TO FIELD-SYMBOL(<val1>).
@@ -154,11 +153,9 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
            WHERE name_ref IS INITIAL AND
                type_kind = cl_abap_datadescr=>typekind_table AND
                name_parent = lr_attri->name.
-
             ASSIGN mo_app->(lr_attri_child->name) TO FIELD-SYMBOL(<val_ref>).
             lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <val_ref> ).
             CLEAR <val_ref>.
-
             EXIT.
           ENDLOOP.
 
@@ -225,8 +222,8 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
   METHOD attri_search.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
-         WHERE o_typedescr IS BOUND AND
-                name_ref IS INITIAL.
+         WHERE o_typedescr IS BOUND
+             AND   name_ref IS INITIAL.
 
       IF lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_elem
           AND lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_struct
