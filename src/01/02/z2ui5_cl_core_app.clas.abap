@@ -20,8 +20,10 @@ CLASS z2ui5_cl_core_app DEFINITION
         io_model TYPE REF TO z2ui5_if_ajson.
 
     METHODS all_xml_stringify
-      RETURNING
-        VALUE(result) TYPE string.
+      IMPORTING
+        check_clear_two_way_data TYPE abap_bool DEFAULT abap_false
+    returning
+      value(result) type string.
 
     CLASS-METHODS all_xml_parse
       IMPORTING
@@ -42,7 +44,9 @@ CLASS z2ui5_cl_core_app DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_core_app.
 
     METHODS constructor.
-    METHODS db_save.
+    METHODS db_save
+      IMPORTING
+        check_clear_two_way_data TYPE abap_bool DEFAULT abap_false.
 
   PROTECTED SECTION.
 
@@ -66,7 +70,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
                                                          app    = mo_app ).
 
         TRY.
-            lo_dissolver->main_attri_db_save( ).
+            lo_dissolver->main_attri_db_save( check_clear_two_way_data ).
             result = z2ui5_cl_util=>xml_stringify( me ).
           CATCH cx_root.
             lo_dissolver->main_attri_db_save_srtti( ).
@@ -122,7 +126,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
     DATA(lo_db) = NEW z2ui5_cl_core_srv_draft( ).
     lo_db->create( draft     = ms_draft
-                   model_xml = all_xml_stringify( ) ).
+                   model_xml = all_xml_stringify( check_clear_two_way_data ) ).
 
   ENDMETHOD.
 

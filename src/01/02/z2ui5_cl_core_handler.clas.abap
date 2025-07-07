@@ -106,7 +106,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     CLEAR mo_action->ms_next.
 
     IF CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky = abap_false.
-      mo_action->mo_app->db_save( ).
+      mo_action->mo_app->db_save( abap_true ).
     ENDIF.
 
   ENDMETHOD.

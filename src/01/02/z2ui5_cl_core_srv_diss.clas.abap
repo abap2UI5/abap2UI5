@@ -16,8 +16,11 @@ CLASS z2ui5_cl_core_srv_diss DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
 
+    METHODS main_attri_db_save
+      IMPORTING
+        check_clear_two_way_data TYPE abap_bool DEFAULT abap_false.
+
     METHODS main_attri_db_save_srtti.
-    METHODS main_attri_db_save.
     METHODS main_attri_db_load.
 
   PROTECTED SECTION.
@@ -493,6 +496,11 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
   METHOD main_attri_db_save.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
+
+      IF  check_clear_two_way_data = abap_true AND lr_attri->bind_type = z2ui5_if_core_types=>cs_bind_type-two_way.
+        ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<data>).
+        CLEAR <data>.
+      ENDIF.
       CLEAR lr_attri->r_ref.
     ENDLOOP.
 
