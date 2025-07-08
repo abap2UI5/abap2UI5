@@ -1190,20 +1190,26 @@ sap.ui.define("z2ui5/Dirty", ["sap/ui/core/Control"], (Control) => {
     },
     setIsDirty(val) {
 
-      sap.ui.require([ "sap/ushell/Container"
-      ], async (Container) => {
+      sap.ui.require([ "sap/ushell/Container" ], async (Container) => {
       
         if (Container) {
           Container.setDirtyFlag(val);
         } else {
           window.onbeforeunload = function (e) {
+            if (val) {
+              e.preventDefault();
+            }
+          }
+        }
+        
+      }, () => {
+        // Fallback if ushell is not available (OpenUI5)
+        window.onbeforeunload = function (e) {
           if (val) {
             e.preventDefault();
           }
         }
-      }
-        
-     });
+      });
       
     },
     renderer(oRm, oControl) { }
