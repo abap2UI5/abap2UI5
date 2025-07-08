@@ -1203,7 +1203,7 @@ sap.ui.define("z2ui5/Dirty", ["sap/ui/core/Control"], (Control) => {
         }
         
       }, () => {
-          // Fallback if ushell is not available (OpenUI5)
+        // Fallback if ushell is not available (OpenUI5)
         window.onbeforeunload = function (e) {
           if (val) {
             e.preventDefault();
