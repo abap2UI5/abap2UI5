@@ -1214,22 +1214,28 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n| &&
              `    setIsDirty(val) {` && |\n| &&
              `` && |\n| &&
-             `      sap.ui.require([ "sap/ushell/Container"` && |\n| &&
-             `      ], async (Container) => {` && |\n| &&
+             `      sap.ui.require([ "sap/ushell/Container" ], async (Container) => {` && |\n| &&
              `` && |\n| &&
              `        if (Container) {` && |\n| &&
              `          Container.setDirtyFlag(val);` && |\n| &&
              `        } else {` && |\n| &&
              `          window.onbeforeunload = function (e) {` && |\n| &&
-             `          if (val) {` && |\n| &&
+             `            if (val) {` && |\n| &&
+             `              e.preventDefault();` && |\n| &&
              |\n|.
     result = result &&
+             `            }` && |\n| &&
+             `          }` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `      }, () => {` && |\n| &&
+             `        // Fallback if ushell is not available (OpenUI5)` && |\n| &&
+             `        window.onbeforeunload = function (e) {` && |\n| &&
+             `          if (val) {` && |\n| &&
              `            e.preventDefault();` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
-             `      }` && |\n| &&
-             `` && |\n| &&
-             `     });` && |\n| &&
+             `      });` && |\n| &&
              `` && |\n| &&
              `    },` && |\n| &&
              `    renderer(oRm, oControl) { }` && |\n| &&
