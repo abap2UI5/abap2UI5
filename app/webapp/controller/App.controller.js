@@ -1189,27 +1189,27 @@ sap.ui.define("z2ui5/Dirty", ["sap/ui/core/Control"], (Control) => {
       }
     },
     setIsDirty(val) {
-
-      sap.ui.require([ "sap/ushell/Container" ], async (Container) => {
       
-        if (Container) {
-          Container.setDirtyFlag(val);
-        } else {
-          window.onbeforeunload = function (e) {
-            if (val) {
-              e.preventDefault();
-            }
-          }
-        }
-        
-      }, () => {
-        // Fallback if ushell is not available (OpenUI5)
+      const fallback = () => {
         window.onbeforeunload = function (e) {
           if (val) {
             e.preventDefault();
           }
         }
-      });
+      }
+
+      // Container can be loaded (only available in SAPUI5, not in OpenUI5) and we are in Fiori Launchpad?
+      //   Yes: We can use the containers ability to prevent data loss
+      //   No: We fallback to window.onbeforeunload event
+      sap.ui.require([ "sap/ushell/Container" ], async (Container) => {
+        
+        if (Container && z2ui5.oLaunchpadService) {          
+          Container.setDirtyFlag(val);
+        } else {
+          fallback();
+        }
+        
+      }, fallback);
       
     },
     renderer(oRm, oControl) { }
