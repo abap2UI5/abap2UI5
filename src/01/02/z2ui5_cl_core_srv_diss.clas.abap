@@ -103,7 +103,7 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
         WHEN cl_abap_datadescr=>typekind_table.
 
-          DATA(lr_ref2) =  attri_get_val_ref( lr_attri->name ).
+          DATA(lr_ref2) =  attri_get_val_ref( lr_attri->name_ref ).
 *          lr_attri->r_ref       = attri_get_val_ref( lr_attri->name_ref ).
           lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref2 ).
 *          lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
