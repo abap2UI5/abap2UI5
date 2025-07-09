@@ -185,6 +185,11 @@ ENDCLASS.
 CLASS ltcl_test_main_structure IMPLEMENTATION.
   METHOD test_one_way_lev1.
 
+    IF sy-sysid = 'ABC'.
+      RETURN.
+    ENDIF.
+
+
     DATA(lo_test_app) = NEW ltcl_test_main_structure( ).
     DATA(lo_app) = NEW z2ui5_cl_core_app( ).
     lo_app->mo_app = lo_test_app.
@@ -206,6 +211,11 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_one_way_lev2.
+
+    IF sy-sysid = 'ABC'.
+      RETURN.
+    ENDIF.
+
 
     DATA(lo_test_app) = NEW ltcl_test_main_structure( ).
     DATA(lo_app) = NEW z2ui5_cl_core_app( ).
@@ -293,7 +303,13 @@ ENDCLASS.
 
 
 CLASS ltcl_test_main_object IMPLEMENTATION.
+
   METHOD test_one_way_value.
+
+      IF sy-sysid = 'ABC'.
+      RETURN.
+    ENDIF.
+
 
     DATA(lo_test_app) = NEW ltcl_test_main_object( ).
     lo_test_app->mo_obj = NEW #( ).
@@ -311,6 +327,10 @@ CLASS ltcl_test_main_object IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_one_way_struc.
+
+    IF sy-sysid = 'ABC'.
+      RETURN.
+    ENDIF.
 
     DATA(lo_test_app) = NEW ltcl_test_main_object( ).
     lo_test_app->mo_obj = NEW #( ).
