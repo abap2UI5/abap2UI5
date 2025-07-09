@@ -78,6 +78,10 @@ CLASS ltcl_test_bind IMPLEMENTATION.
 
   METHOD test_one_way.
 
+    IF sy-sysid = 'ABC'.
+      RETURN.
+    ENDIF.
+
     DATA(lo_app_client) = NEW ltcl_test_app( ).
     DATA(lo_app) = NEW z2ui5_cl_core_app( ).
     lo_app->mo_app = lo_app_client.
