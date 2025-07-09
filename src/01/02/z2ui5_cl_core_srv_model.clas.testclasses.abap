@@ -1,5 +1,5 @@
 CLASS ltcl_test_dissolve DEFINITION DEFERRED.
-CLASS z2ui5_cl_core_srv_diss DEFINITION LOCAL FRIENDS ltcl_test_dissolve.
+CLASS z2ui5_cl_core_srv_model DEFINITION LOCAL FRIENDS ltcl_test_dissolve.
 
 
 
@@ -56,7 +56,7 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     DATA(lo_app) = NEW ltcl_test_dissolve( ).
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
                                                  app   = lo_app ).
 
     lo_model->dissolve( ).
@@ -75,7 +75,7 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     DATA(lo_app) = NEW ltcl_test_dissolve( ).
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
                                                  app   = lo_app ).
 
     lo_model->dissolve( ).
@@ -96,7 +96,7 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     CREATE DATA lo_app->mr_value TYPE string.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
                                                  app   = lo_app ).
 
     lo_model->dissolve( ).
@@ -117,7 +117,7 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     CREATE DATA lo_app->mo_app->mr_value TYPE string.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
                                                  app   = lo_app2 ).
 
     lo_model->dissolve( ).
@@ -135,7 +135,7 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
 
     DATA(lo_app) = NEW ltcl_test_dissolve( ).
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
                                                  app   = lo_app ).
 
     lo_model->dissolve( ).
@@ -160,7 +160,7 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     CREATE DATA lo_app->mr_struc.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
                                                  app   = lo_app ).
 
     lo_model->dissolve( ).
@@ -183,7 +183,7 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     CREATE DATA lo_app2->mr_value TYPE string.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
                                                  app   = lo_app ).
 
     lo_model->dissolve( ).
@@ -204,7 +204,7 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     CREATE DATA lo_app->mo_app->mr_struc.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
                                                  app   = lo_app ).
 
     lo_model->dissolve( ).
@@ -225,7 +225,7 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     CREATE DATA lo_app->mo_app->ms_struc2-r_ref TYPE string.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
                                                  app   = lo_app ).
 
     lo_model->dissolve( ).
@@ -274,7 +274,7 @@ CLASS ltcl_test_search_attri DEFINITION FINAL
 ENDCLASS.
 
 
-CLASS z2ui5_cl_core_srv_diss DEFINITION LOCAL FRIENDS ltcl_test_search_attri.
+CLASS z2ui5_cl_core_srv_model DEFINITION LOCAL FRIENDS ltcl_test_search_attri.
 
 CLASS ltcl_test_search_attri IMPLEMENTATION.
   METHOD first_test.
@@ -393,7 +393,7 @@ CLASS ltcl_test_get_attri DEFINITION FINAL
 
 ENDCLASS.
 
-CLASS z2ui5_cl_core_srv_diss DEFINITION LOCAL FRIENDS ltcl_test_get_attri.
+CLASS z2ui5_cl_core_srv_model DEFINITION LOCAL FRIENDS ltcl_test_get_attri.
 
 
 CLASS ltcl_test_get_attri IMPLEMENTATION.
@@ -407,7 +407,7 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
 
     DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
 
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
                                                   app  = lo_app_client ).
 
     DATA(lr_attri) = lo_model->attri_get_val_ref( `MV_VALUE` ).
@@ -424,7 +424,7 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
     CREATE DATA lo_app_client->mr_value.
 
     DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
                                                   app  = lo_app_client ).
 
     DATA(lr_attri) = lo_model->attri_get_val_ref( `MR_VALUE->*` ).
@@ -440,7 +440,7 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
     DATA(lo_app_client) = NEW ltcl_test_app3( ).
 
     DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
                                                   app  = lo_app_client ).
 
     DATA(lr_attri) = lo_model->attri_get_val_ref( `MO_APP->MV_VALUE` ).
@@ -457,7 +457,7 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
     CREATE DATA lo_app_client->mo_app->mr_value.
 
     DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
                                                   app  = lo_app_client ).
 
     DATA(lr_attri) = lo_model->attri_get_val_ref( `MO_APP->MR_VALUE->*` ).
@@ -520,7 +520,7 @@ CLASS ltcl_test_app_root_attri IMPLEMENTATION.
     DATA(lo_app) = NEW ltcl_test_app_root( ).
 
     DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
                                                   app  = lo_app ).
 
     DATA(ls_attri) = lo_model->main_attri_search( lo_app->mo_obj->mr_tab ).
@@ -596,7 +596,7 @@ CLASS ltcl_test_app_root_attri2 IMPLEMENTATION.
     DATA(lo_app) = NEW ltcl_test_app_root2( ).
 
     DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
                                                   app  = lo_app ).
 
     DATA(ls_attri) = lo_model->main_attri_search( lo_app->mo_obj->mr_struc ).
@@ -752,7 +752,7 @@ CLASS ltcl_test_app_root4 IMPLEMENTATION.
       ) INTO TABLE <tab>.
 
     DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
                                                   app  = lo_app ).
 
     DATA(ls_attri) = lo_model->main_attri_search( lo_app->mr_tab ).
@@ -763,7 +763,7 @@ CLASS ltcl_test_app_root4 IMPLEMENTATION.
 
     lo_model->main_attri_db_save_srtti( ).
     lo_app = NEW ltcl_test_app_root4( ).
-    lo_model = NEW z2ui5_cl_core_srv_diss( attri      = REF #( lt_attri )
+    lo_model = NEW z2ui5_cl_core_srv_model( attri      = REF #( lt_attri )
                                                   app = lo_app ).
     lo_model->main_attri_db_load( ).
 

@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_core_srv_diss DEFINITION
+CLASS z2ui5_cl_core_srv_model DEFINITION
   PUBLIC FINAL
   CREATE PUBLIC.
 
@@ -18,6 +18,15 @@ CLASS z2ui5_cl_core_srv_diss DEFINITION
     METHODS main_attri_db_save_srtti.
     METHODS main_attri_db_load.
     METHODS main_attri_refresh.
+
+    METHODS main_json_to_attri
+      IMPORTING
+        view    TYPE string
+        model   TYPE REF TO z2ui5_if_ajson.
+
+    METHODS main_json_stringify
+      RETURNING
+        VALUE(result) TYPE string ##NEEDED.
 
   PROTECTED SECTION.
 
@@ -60,7 +69,7 @@ CLASS z2ui5_cl_core_srv_diss DEFINITION
       RETURNING
         VALUE(result) TYPE z2ui5_if_core_types=>ty_t_attri.
 
-    METHODS create_new_entry
+    METHODS attri_create_new
       IMPORTING
         !name         TYPE string
       RETURNING
@@ -70,8 +79,97 @@ CLASS z2ui5_cl_core_srv_diss DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
+CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
+
+  METHOD main_json_to_attri.
+
+    IF line_exists( mt_attri->*[ view = view ] ).
+      DATA(lv_view) = view.
+    ELSE.
+      lv_view = z2ui5_if_client=>cs_view-main.
+    ENDIF.
+
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
+         WHERE bind_type = z2ui5_if_core_types=>cs_bind_type-two_way
+               AND view      = lv_view.
+      TRY.
+
+          DATA(lo_val_front) = model->slice( lr_attri->name_client ).
+          IF lo_val_front IS NOT BOUND.
+            CONTINUE.
+          ENDIF.
+
+          IF lr_attri->custom_mapper_back IS BOUND.
+            lo_val_front = lo_val_front->map( lr_attri->custom_mapper_back ).
+          ENDIF.
+
+          IF lr_attri->custom_filter_back IS BOUND.
+            lo_val_front = lo_val_front->filter( lr_attri->custom_filter_back ).
+          ENDIF.
+
+          DATA(lv_name) = |MO_APP->{ lr_attri->name }|.
+          ASSIGN (lv_name) TO FIELD-SYMBOL(<val>).
+*          ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val>).
+          IF sy-subrc <> 0.
+            CONTINUE.
+          ENDIF.
+
+          lo_val_front->to_abap(
+            EXPORTING
+                iv_corresponding = abap_true
+            IMPORTING
+                ev_container     = <val> ).
+
+        CATCH cx_root INTO DATA(x).
+          RAISE EXCEPTION TYPE z2ui5_cx_util_error
+            EXPORTING
+              val = |JSON_PARSING_ERROR: { x->get_text( ) } |.
+      ENDTRY.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD main_json_stringify.
+    TRY.
+
+        DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+        LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
+
+          IF lr_attri->custom_mapper IS BOUND.
+            DATA(ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
+                                                   ii_custom_mapping = lr_attri->custom_mapper ) ).
+          ELSE.
+            ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
+                                             ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
+          ENDIF.
+
+          DATA(lv_name) = |MO_APP->{ lr_attri->name }|.
+          ASSIGN (lv_name) TO FIELD-SYMBOL(<attribute>).
+          IF sy-subrc <> 0.
+            CONTINUE.
+          ENDIF.
+
+          ajson->set( iv_ignore_empty = abap_false
+                      iv_path         = `/`
+                      iv_val          = <attribute> ).
+
+          IF lr_attri->custom_filter IS BOUND.
+            ajson = ajson->filter( lr_attri->custom_filter ).
+          ENDIF.
+
+          ajson_result->set( iv_path = lr_attri->name_client
+                             iv_val  = ajson ).
+        ENDLOOP.
+
+        result = ajson_result->stringify( ).
+        result = COND #( WHEN result IS INITIAL THEN `{}` ELSE result ).
+
+      CATCH cx_root INTO DATA(x).
+        ASSERT x IS NOT BOUND.
+    ENDTRY.
+  ENDMETHOD.
 
   METHOD main_attri_db_load.
 
@@ -276,7 +374,7 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD create_new_entry.
+  METHOD attri_create_new.
 
     result = VALUE z2ui5_if_core_types=>ty_s_attri( ).
     result-name = name.
@@ -345,7 +443,7 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
             AND is_constant  = abap_false.
       TRY.
           DATA(lv_name) = COND #( WHEN ir_attri->name IS NOT INITIAL THEN |{ ir_attri->name }->| ) && lr_attri->name.
-          DATA(ls_new) = create_new_entry( lv_name ).
+          DATA(ls_new) = attri_create_new( lv_name ).
           ls_new-name_parent = ir_attri->name.
           INSERT ls_new INTO TABLE result.
 
@@ -373,7 +471,7 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
       DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_any( lr_ref ).
 
       LOOP AT lt_attri INTO DATA(ls_attri).
-        DATA(ls_new) = create_new_entry( lv_name && ls_attri-name ).
+        DATA(ls_new) = attri_create_new( lv_name && ls_attri-name ).
         ls_new-name_parent = ir_attri->name.
         INSERT ls_new INTO TABLE result.
       ENDLOOP.
@@ -488,7 +586,7 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
       lr_attri->check_dissolved = abap_true.
 
       IF lr_attri->o_typedescr IS NOT BOUND.
-        DATA(ls_entry) = create_new_entry( lr_attri->name ).
+        DATA(ls_entry) = attri_create_new( lr_attri->name ).
         lr_attri->o_typedescr = ls_entry-o_typedescr.
 *        lr_attri->r_ref       = ls_entry-r_ref.
       ENDIF.

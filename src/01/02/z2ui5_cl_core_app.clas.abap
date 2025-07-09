@@ -65,7 +65,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD all_xml_stringify.
 
-    DATA(lo_dissolver) = NEW z2ui5_cl_core_srv_diss( attri = mt_attri
+    DATA(lo_dissolver) = NEW z2ui5_cl_core_srv_model( attri = mt_attri
                                                      app   = mo_app ).
 
     TRY.
@@ -107,7 +107,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
     DATA(ls_db) = lo_db->read_draft( id ).
     result = all_xml_parse( ls_db-data ).
 
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = result->mt_attri
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = result->mt_attri
                                                   app  = result->mo_app ).
 
     lo_model->main_attri_db_load( ).
@@ -121,7 +121,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
     result = all_xml_parse( ls_db-data ).
 
     result->mo_app = app.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = result->mt_attri
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = result->mt_attri
                                                   app  = result->mo_app ).
 
     lo_model->main_attri_db_load( ).
@@ -143,21 +143,24 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD model_json_parse.
 
-    DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_json( ).
-    lo_json_mapper->model_front_to_back(
-        io_app = mo_app
+    DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_model(
+      attri = mt_attri
+      app   = mo_app
+    ).
+    lo_json_mapper->main_json_to_attri(
         view    = iv_view
-                                         t_attri = mt_attri
-                                         model   = io_model ).
+        model   = io_model ).
 
   ENDMETHOD.
 
   METHOD model_json_stringify.
 
-    DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_json( ).
-    result = lo_json_mapper->model_back_to_front(
-               io_app  = mo_app
-               t_attri = mt_attri ).
+    DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_model(
+    attri = mt_attri
+    app   = mo_app
+    ).
+
+    result = lo_json_mapper->main_json_stringify( ).
 
   ENDMETHOD.
 ENDCLASS.

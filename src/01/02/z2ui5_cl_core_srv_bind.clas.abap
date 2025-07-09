@@ -177,7 +177,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     ms_config = config.
     mv_type   = type.
 
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = mo_app->mt_attri
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = mo_app->mt_attri
                                                   app  = mo_app->mo_app ).
 
     mr_attri = lo_model->main_attri_search( val ).
