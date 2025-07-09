@@ -40,13 +40,13 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                       s_config               = CORRESPONDING #( mo_action->mo_http_post->ms_request-s_front )
                       r_event_data           = mo_action->ms_actual-r_data ).
 
+
     IF mo_action->ms_next-o_app_call IS NOT INITIAL.
       result-_s_nav-check_call = abap_true.
     ENDIF.
     IF mo_action->ms_next-o_app_leave IS NOT INITIAL.
       result-_s_nav-check_leave = abap_true.
     ENDIF.
-
 
     TRY.
 

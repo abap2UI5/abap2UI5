@@ -35,7 +35,6 @@ CLASS z2ui5_cl_core_srv_model DEFINITION
 
     METHODS attri_update_entry_refs.
 
-
     METHODS attri_get_val_ref
       IMPORTING
         iv_path       TYPE clike
