@@ -61,7 +61,7 @@ INTERFACE z2ui5_if_core_types
       custom_filter_back TYPE REF TO z2ui5_if_ajson_filter,
       custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping,
       custom_mapper_back TYPE REF TO z2ui5_if_ajson_mapping,
-      r_ref              TYPE REF TO data,
+*      r_ref              TYPE REF TO data,
       o_typedescr        TYPE REF TO cl_abap_typedescr,
       type_kind          TYPE string,
       kind               TYPE string,

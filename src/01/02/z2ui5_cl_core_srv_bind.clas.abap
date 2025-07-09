@@ -29,10 +29,6 @@ CLASS z2ui5_cl_core_srv_bind DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    METHODS clear
-      IMPORTING
-        val TYPE string.
-
     METHODS bind_tab_cell
       IMPORTING
         iv_name       TYPE string
@@ -142,26 +138,6 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
       ENDTRY.
     ENDIF.
-
-  ENDMETHOD.
-
-  METHOD clear.
-
-    TRY.
-        DATA(lv_path) = shift_right( val = val
-                                     sub = `->*` ).
-        mo_app->mt_attri->*[ name = lv_path ]-check_dissolved = abap_false.
-        mo_app->mt_attri->*[ name = val ]-check_dissolved = abap_false.
-        mo_app->mt_attri->*[ name = lv_path ]-name_client = ``.
-        mo_app->mt_attri->*[ name = lv_path ]-bind_type = ``.
-
-        LOOP AT mo_app->mt_attri->* REFERENCE INTO DATA(lr_bind2)
-             WHERE name = lv_path.
-          CLEAR lr_bind2->r_ref.
-        ENDLOOP.
-
-      CATCH cx_root.
-    ENDTRY.
 
   ENDMETHOD.
 

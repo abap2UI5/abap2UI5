@@ -15,10 +15,6 @@ CLASS z2ui5_cl_core_srv_diss DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
 
-    METHODS main_attri_db_save
-      IMPORTING
-        check_clear_two_way_data TYPE abap_bool DEFAULT abap_false.
-
     METHODS main_attri_db_save_srtti.
     METHODS main_attri_db_load.
     METHODS main_attri_refresh.
@@ -82,11 +78,14 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
         WHERE name_ref IS INITIAL.
       TRY.
-          lr_attri->r_ref       = attri_get_val_ref( lr_attri->name ).
-          lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
+          DATA(lr_ref) =  attri_get_val_ref( lr_attri->name ).
+*          lr_attri->r_ref       = attri_get_val_ref( lr_attri->name ).
+*          lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
+          lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref ).
 
           IF lr_attri->srtti_data IS NOT INITIAL.
-            ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val>).
+*            ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val>).
+            ASSIGN lr_ref->* TO FIELD-SYMBOL(<val>).
             <val> = z2ui5_cl_util=>xml_srtti_parse( lr_attri->srtti_data ).
             CLEAR lr_attri->srtti_data.
           ENDIF.
@@ -104,8 +103,10 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
         WHEN cl_abap_datadescr=>typekind_table.
 
-          lr_attri->r_ref       = attri_get_val_ref( lr_attri->name_ref ).
-          lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
+          DATA(lr_ref2) =  attri_get_val_ref( lr_attri->name ).
+*          lr_attri->r_ref       = attri_get_val_ref( lr_attri->name_ref ).
+          lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref2 ).
+*          lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
 
           READ TABLE <table> REFERENCE INTO DATA(lr_attri_parent)
             WITH KEY name = lr_attri->name_parent.
@@ -117,9 +118,11 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
           IF sy-subrc <> 0.
             CONTINUE.
           ENDIF.
-          GET REFERENCE OF lr_attri->r_ref->* INTO <val4>.
-          lr_attri_parent->r_ref       = REF #( <val4> ).
-          lr_attri_parent->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri_parent->r_ref ).
+*          GET REFERENCE OF lr_attri->r_ref->* INTO <val4>.
+          GET REFERENCE OF lr_ref2->* INTO <val4>.
+*          lr_attri_parent->r_ref       = REF #( <val4> ).
+        DATA(lr_ref_parent) =  REF #( <val4> ).
+          lr_attri_parent->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref_parent ).
 
         WHEN cl_abap_datadescr=>typekind_dref.
 
@@ -133,13 +136,15 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
           ENDIF.
           GET REFERENCE OF <val5> INTO <val4>.
 
-          lr_attri->r_ref       = <val4>.
-          lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
+*          lr_attri->r_ref       = <val4>.
+*          lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
+          lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( <val4> ).
 
           LOOP AT mt_attri->* REFERENCE INTO DATA(lr_child) WHERE
               name_parent = lr_attri->name.
-            lr_child->r_ref       = attri_get_val_ref( lr_child->name ).
-            lr_child->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_child->r_ref ).
+*            lr_child->r_ref       = attri_get_val_ref( lr_child->name ).
+            data(lr_child_ref) = attri_get_val_ref( lr_child->name ).
+            lr_child->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_child_ref ).
           ENDLOOP.
 
       ENDCASE.
@@ -222,7 +227,12 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
   METHOD attri_get_val_ref.
 
-    ASSIGN mo_app->(iv_path) TO FIELD-SYMBOL(<attri>).
+    FIELD-SYMBOLS <attri> TYPE any.
+    IF iv_path IS INITIAL.
+      ASSIGN mo_app TO <attri>.
+    ELSE.
+      ASSIGN mo_app->(iv_path) TO <attri>.
+    ENDIF.
 
     IF sy-subrc <> 0.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
@@ -270,8 +280,8 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
     result = VALUE z2ui5_if_core_types=>ty_s_attri( ).
     result-name = name.
-    result-r_ref       = attri_get_val_ref( name ).
-    result-o_typedescr = cl_abap_datadescr=>describe_by_data_ref( result-r_ref ).
+*    result-r_ref       = attri_get_val_ref( name ).
+    result-o_typedescr = cl_abap_datadescr=>describe_by_data_ref( attri_get_val_ref( name ) ).
     result-type_kind   = result-o_typedescr->type_kind.
     result-kind        = result-o_typedescr->kind.
 
@@ -280,11 +290,15 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
   METHOD diss_dref.
 
-    IF z2ui5_cl_util=>check_unassign_inital( ir_attri->r_ref ).
+    DATA(lr_ref_tmp) = attri_get_val_ref( ir_attri->name ).
+
+*    IF z2ui5_cl_util=>check_unassign_inital( ir_attri->r_ref ).
+    IF z2ui5_cl_util=>check_unassign_inital( lr_ref_tmp ).
       RETURN.
     ENDIF.
 
-    DATA(lr_ref) = z2ui5_cl_util=>unassign_data( ir_attri->r_ref ).
+*    DATA(lr_ref) = z2ui5_cl_util=>unassign_data( ir_attri->r_ref ).
+    DATA(lr_ref) = z2ui5_cl_util=>unassign_data( lr_ref_tmp ).
     IF lr_ref IS INITIAL.
       RETURN.
     ENDIF.
@@ -301,7 +315,7 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
       WHEN OTHERS.
 
         ls_attri2-name = |{ ir_attri->name }->*|.
-        ls_attri2-r_ref = attri_get_val_ref( ls_attri2-name ).
+*        ls_attri2-r_ref = attri_get_val_ref( ls_attri2-name ).
         ls_attri2-name_parent = ir_attri->name.
         ls_attri2-type_kind   = ls_attri2-o_typedescr->type_kind.
         ls_attri2-kind        = ls_attri2-o_typedescr->kind.
@@ -313,12 +327,15 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
   METHOD diss_oref.
 
-    IF z2ui5_cl_util=>check_unassign_inital( ir_attri->r_ref ).
+    DATA(lr_ref_tmp) = attri_get_val_ref( ir_attri->name ).
+
+    IF z2ui5_cl_util=>check_unassign_inital( lr_ref_tmp ).
+*    IF z2ui5_cl_util=>check_unassign_inital( ir_attri->r_ref ).
       RETURN.
     ENDIF.
 
-*    DATA(lr_ref) = z2ui5_cl_util=>unassign_object( attri_get_val_ref( ir_attri->name ) ).
-    DATA(lr_ref) = z2ui5_cl_util=>unassign_object( ir_attri->r_ref ).
+    DATA(lr_ref) = z2ui5_cl_util=>unassign_object( lr_ref_tmp ).
+*    DATA(lr_ref) = z2ui5_cl_util=>unassign_object( ir_attri->r_ref ).
     DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_oref( lr_ref ).
 
     LOOP AT lt_attri REFERENCE INTO DATA(lr_attri)
@@ -329,7 +346,6 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
       TRY.
           DATA(lv_name) = COND #( WHEN ir_attri->name IS NOT INITIAL THEN |{ ir_attri->name }->| ) && lr_attri->name.
           DATA(ls_new) = create_new_entry( lv_name ).
-*          ls_new-is_class = lr_attri->is_class.
           ls_new-name_parent = ir_attri->name.
           INSERT ls_new INTO TABLE result.
 
@@ -341,12 +357,16 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
   METHOD diss_struc.
 
+    DATA(lr_ref_tmp) = attri_get_val_ref( ir_attri->name ).
+
     IF ir_attri->o_typedescr->kind = cl_abap_typedescr=>kind_ref.
       DATA(lv_name) = |{ ir_attri->name }->|.
-      DATA(lr_ref) = z2ui5_cl_util=>unassign_data( ir_attri->r_ref ).
+      DATA(lr_ref) = z2ui5_cl_util=>unassign_data( lr_ref_tmp ).
+*      DATA(lr_ref) = z2ui5_cl_util=>unassign_data( ir_attri->r_ref ).
     ELSE.
       lv_name = |{ ir_attri->name }-|.
-      lr_ref = ir_attri->r_ref.
+*      lr_ref = ir_attri->r_ref.
+      lr_ref = lr_ref_tmp.
     ENDIF.
 
     IF lr_ref IS BOUND.
@@ -454,7 +474,8 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
   METHOD dissolve_run.
 
     IF mt_attri->* IS INITIAL.
-      DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri( r_ref = REF #( mo_app ) ).
+*      DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri( r_ref = REF #( mo_app ) ).
+      DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri(  ).
       DATA(lt_init) = diss_oref( REF #( ls_attri ) ).
       INSERT LINES OF lt_init INTO TABLE mt_attri->*.
     ENDIF.
@@ -469,7 +490,7 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
       IF lr_attri->o_typedescr IS NOT BOUND.
         DATA(ls_entry) = create_new_entry( lr_attri->name ).
         lr_attri->o_typedescr = ls_entry-o_typedescr.
-        lr_attri->r_ref       = ls_entry-r_ref.
+*        lr_attri->r_ref       = ls_entry-r_ref.
       ENDIF.
 
       CASE lr_attri->o_typedescr->kind.
@@ -519,19 +540,6 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
         lr_attri->view        = lt_attri[ name = lv_name ]-view.
 *        ENDIF.
       ENDIF.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-  METHOD main_attri_db_save.
-
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
-
-      IF check_clear_two_way_data = abap_true AND lr_attri->bind_type = z2ui5_if_core_types=>cs_bind_type-two_way.
-        ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<data>).
-        CLEAR <data>.
-      ENDIF.
-      CLEAR lr_attri->r_ref.
     ENDLOOP.
 
   ENDMETHOD.

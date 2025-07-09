@@ -69,7 +69,6 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
                                                      app   = mo_app ).
 
     TRY.
-        lo_dissolver->main_attri_db_save( check_clear_two_way_data ).
         result = z2ui5_cl_util=>xml_stringify( me ).
         RETURN.
       CATCH cx_root.
@@ -84,7 +83,6 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
     TRY.
         lo_dissolver->main_attri_refresh( ).
-        lo_dissolver->main_attri_db_save( check_clear_two_way_data ).
         lo_dissolver->main_attri_db_save_srtti( ).
         result = z2ui5_cl_util=>xml_stringify( me ).
         RETURN.
@@ -146,7 +144,9 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
   METHOD model_json_parse.
 
     DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_json( ).
-    lo_json_mapper->model_front_to_back( view    = iv_view
+    lo_json_mapper->model_front_to_back(
+        io_app = mo_app
+        view    = iv_view
                                          t_attri = mt_attri
                                          model   = io_model ).
 

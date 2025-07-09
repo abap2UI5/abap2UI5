@@ -21,6 +21,7 @@ CLASS z2ui5_cl_core_srv_json DEFINITION
     METHODS model_front_to_back
       IMPORTING
         view    TYPE string
+        io_app  TYPE REF TO object
         t_attri TYPE REF TO z2ui5_if_core_types=>ty_t_attri
         model   TYPE REF TO z2ui5_if_ajson.
 
@@ -66,7 +67,9 @@ CLASS z2ui5_cl_core_srv_json IMPLEMENTATION.
             lo_val_front = lo_val_front->filter( lr_attri->custom_filter_back ).
           ENDIF.
 
-          ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val>).
+          DATA(lv_name) = |IO_APP->{ lr_attri->name }|.
+          ASSIGN (lv_name) TO FIELD-SYMBOL(<val>).
+*          ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val>).
           IF sy-subrc <> 0.
             CONTINUE.
           ENDIF.
