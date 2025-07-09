@@ -246,17 +246,19 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
   METHOD attri_search.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
-         WHERE o_typedescr IS BOUND
-             AND name_ref IS INITIAL.
+    DATA(lo_datadescr) = cl_abap_datadescr=>describe_by_data_ref( val ).
 
-      IF lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_elem
-          AND lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_struct
-          AND lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_table.
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
+       WHERE name_ref IS INITIAL
+       AND type_kind = lo_datadescr->type_kind
+       AND kind = lo_datadescr->kind.
+
+      IF lr_attri->o_typedescr <> lo_datadescr.
         CONTINUE.
       ENDIF.
 
-      IF lr_attri->r_ref = val.
+      DATA(lr_ref) =  attri_get_val_ref( lr_attri->name ).
+      IF lr_ref = val.
         result = lr_attri.
         RETURN.
       ENDIF.
@@ -274,6 +276,7 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
     result-kind        = result-o_typedescr->kind.
 
   ENDMETHOD.
+
 
   METHOD diss_dref.
 
@@ -314,6 +317,7 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+*    DATA(lr_ref) = z2ui5_cl_util=>unassign_object( attri_get_val_ref( ir_attri->name ) ).
     DATA(lr_ref) = z2ui5_cl_util=>unassign_object( ir_attri->r_ref ).
     DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_oref( lr_ref ).
 
@@ -345,14 +349,15 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
       lr_ref = ir_attri->r_ref.
     ENDIF.
 
-    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_any( lr_ref ).
+    IF lr_ref IS BOUND.
+      DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_any( lr_ref ).
 
-    LOOP AT lt_attri INTO DATA(ls_attri).
-      DATA(ls_new) = create_new_entry( lv_name && ls_attri-name ).
-      ls_new-name_parent = ir_attri->name.
-      INSERT ls_new INTO TABLE result.
-    ENDLOOP.
-
+      LOOP AT lt_attri INTO DATA(ls_attri).
+        DATA(ls_new) = create_new_entry( lv_name && ls_attri-name ).
+        ls_new-name_parent = ir_attri->name.
+        INSERT ls_new INTO TABLE result.
+      ENDLOOP.
+    ENDIF.
   ENDMETHOD.
 
   METHOD dissolve.
@@ -385,6 +390,8 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
          WHERE check_dissolved  = abap_true
                AND name_ref        IS INITIAL.
 
+      DATA(lr_ref) =  attri_get_val_ref( lr_attri->name ).
+
       CASE lr_attri->type_kind.
 
         WHEN cl_abap_typedescr=>typekind_table.
@@ -395,7 +402,9 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
                 AND name_ref IS INITIAL
                 AND type_kind = cl_abap_typedescr=>typekind_table.
 
-            IF lr_attri->r_ref <> lr_attri_ref->r_ref.
+            DATA(lr_attri_ref_ref) =  attri_get_val_ref( lr_attri_ref->name ).
+
+            IF lr_ref <> lr_attri_ref_ref.
               CONTINUE.
             ENDIF.
 
@@ -405,9 +414,7 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
 
         WHEN cl_abap_typedescr=>typekind_dref.
 
-          "DATA lr_ref TYPE REF TO data.
-          "lr_ref = lr_attri->r_ref->*.
-          ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<ref>).
+          ASSIGN lr_ref->* TO FIELD-SYMBOL(<ref>).
 
           LOOP AT mt_attri->* REFERENCE INTO lr_attri_ref
               WHERE check_dissolved  = abap_true AND
@@ -416,7 +423,9 @@ CLASS z2ui5_cl_core_srv_diss IMPLEMENTATION.
                     AND ( type_kind = cl_abap_typedescr=>typekind_struct1 OR
                      type_kind = cl_abap_typedescr=>typekind_struct2 ).
 
-            IF <ref> <> lr_attri_ref->r_ref.
+            lr_attri_ref_ref =  attri_get_val_ref( lr_attri_ref->name ).
+
+            IF <ref> <> lr_attri_ref_ref.
               CONTINUE.
             ENDIF.
 

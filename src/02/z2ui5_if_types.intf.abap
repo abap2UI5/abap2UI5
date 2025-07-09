@@ -47,10 +47,6 @@ INTERFACE z2ui5_if_types
       s_config               TYPE ty_s_config,
       t_comp_params          TYPE ty_t_name_value,
       r_event_data           TYPE REF TO data,
-      BEGIN OF _s_next,
-        check_leave type abap_bool,
-        check_call type abap_bool,
-        END OF _s_next,
     END OF ty_s_get.
 
   TYPES:
