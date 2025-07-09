@@ -1214,22 +1214,28 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n| &&
              `    setIsDirty(val) {` && |\n| &&
              `` && |\n| &&
-             `      sap.ui.require([ "sap/ushell/Container"` && |\n| &&
-             `      ], async (Container) => {` && |\n| &&
-             `` && |\n| &&
-             `        if (Container) {` && |\n| &&
-             `          Container.setDirtyFlag(val);` && |\n| &&
-             `        } else {` && |\n| &&
-             `          window.onbeforeunload = function (e) {` && |\n| &&
+             `      const fallback = () => {` && |\n| &&
+             `        window.onbeforeunload = function (e) {` && |\n| &&
              `          if (val) {` && |\n| &&
-             |\n|.
-    result = result &&
              `            e.preventDefault();` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
-             `     });` && |\n| &&
+             |\n|.
+    result = result &&
+             `      // Container can be loaded (only available in SAPUI5, not in OpenUI5) and we are in Fiori Launchpad?` && |\n| &&
+             `      //   Yes: We can use the containers ability to prevent data loss` && |\n| &&
+             `      //   No: We fallback to window.onbeforeunload event` && |\n| &&
+             `      sap.ui.require([ "sap/ushell/Container" ], async (Container) => {` && |\n| &&
+             `` && |\n| &&
+             `        if (Container && z2ui5.oLaunchpadService) {` && |\n| &&
+             `          Container.setDirtyFlag(val);` && |\n| &&
+             `        } else {` && |\n| &&
+             `          fallback();` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `      }, fallback);` && |\n| &&
              `` && |\n| &&
              `    },` && |\n| &&
              `    renderer(oRm, oControl) { }` && |\n| &&
