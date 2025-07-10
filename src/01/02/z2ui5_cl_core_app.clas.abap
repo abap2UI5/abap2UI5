@@ -21,7 +21,7 @@ CLASS z2ui5_cl_core_app DEFINITION
 
     METHODS all_xml_stringify
       RETURNING
-        VALUE(result)            TYPE string.
+        VALUE(result) TYPE string.
 
     CLASS-METHODS all_xml_parse
       IMPORTING
@@ -42,9 +42,7 @@ CLASS z2ui5_cl_core_app DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_core_app.
 
     METHODS constructor.
-    METHODS db_save
-      IMPORTING
-        check_clear_two_way_data TYPE abap_bool DEFAULT abap_false.
+    METHODS db_save.
 
   PROTECTED SECTION.
 

@@ -306,7 +306,7 @@ CLASS ltcl_test_main_object IMPLEMENTATION.
 
   METHOD test_one_way_value.
 
-      IF sy-sysid = 'ABC'.
+    IF sy-sysid = 'ABC'.
       RETURN.
     ENDIF.
 

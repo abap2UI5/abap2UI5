@@ -107,7 +107,6 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
                                          z2ui5_cl_util=>url_param_get( val = `app_start`
                                                                        url = result-s_front-search ) ).
 
-
       CATCH cx_root INTO DATA(x).
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
           EXPORTING
@@ -195,7 +194,6 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
   METHOD main_begin.
     TRY.
 
-*        DATA(lo_json_mapper) = NEW z2ui5_cl_core_handler( ).
         ms_request = request_json_to_abap( mv_request_json ).
 
         IF ms_request-s_front-id IS NOT INITIAL.
@@ -237,13 +235,12 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       ms_response-model = `{}`.
     ENDIF.
 
-*    DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_json( ).
     mv_response = response_abap_to_json( ms_response ).
 
     CLEAR mo_action->ms_next.
 
     IF CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky = abap_false.
-      mo_action->mo_app->db_save( abap_true ).
+      mo_action->mo_app->db_save( ).
     ENDIF.
 
   ENDMETHOD.
