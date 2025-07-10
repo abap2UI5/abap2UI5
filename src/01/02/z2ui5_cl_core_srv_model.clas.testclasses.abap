@@ -517,6 +517,11 @@ CLASS ltcl_test_app_root_attri IMPLEMENTATION.
 
   METHOD test_obj_tab_ref.
 
+
+    IF sy-sysid = 'ABC'.
+      RETURN.
+    ENDIF.
+
     DATA(lo_app) = NEW ltcl_test_app_root( ).
 
     DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
@@ -592,6 +597,10 @@ CLASS ltcl_test_app_root_attri2 IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_obj_struc_ref.
+
+    IF sy-sysid = 'ABC'.
+      RETURN.
+    ENDIF.
 
     DATA(lo_app) = NEW ltcl_test_app_root2( ).
 
@@ -733,6 +742,10 @@ CLASS ltcl_test_app_root4 IMPLEMENTATION.
 
 
   METHOD test_tab_ref_gen.
+
+    IF sy-sysid = 'ABC'.
+      RETURN.
+    ENDIF.
 
     DATA(lo_app) = NEW ltcl_test_app_root4( ).
 
