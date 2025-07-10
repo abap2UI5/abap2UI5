@@ -195,10 +195,10 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
         WHEN cl_abap_datadescr=>typekind_table.
 
-          DATA(lr_ref2) =  attri_get_val_ref( lr_attri->name_ref ).
+          DATA(lr_ref2) = attri_get_val_ref( lr_attri->name_ref ).
           lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref2 ).
 
-          READ TABLE  mt_attri->* REFERENCE INTO DATA(lr_attri_parent)
+          READ TABLE mt_attri->* REFERENCE INTO DATA(lr_attri_parent)
             WITH KEY name = lr_attri->name_parent.
           IF sy-subrc <> 0.
             CONTINUE.
@@ -211,7 +211,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
           ENDIF.
           GET REFERENCE OF lr_ref2->* INTO <val4>.
 
-          DATA(lr_ref_parent) =  REF #( <val4> ).
+          DATA(lr_ref_parent) = REF #( <val4> ).
           lr_attri_parent->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref_parent ).
 
         WHEN cl_abap_datadescr=>typekind_dref.
@@ -385,7 +385,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     DATA(lo_datadescr) = cl_abap_datadescr=>describe_by_data_ref( val ).
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
-         WHERE     name_ref  IS INITIAL
+         WHERE name_ref  IS INITIAL
                AND type_kind  = lo_datadescr->type_kind
                AND kind       = lo_datadescr->kind.
 
@@ -533,7 +533,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
          WHERE check_dissolved  = abap_true
                AND name_ref        IS INITIAL.
 
-      DATA(lr_ref) =  attri_get_val_ref( lr_attri->name ).
+      DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
 
       CASE lr_attri->type_kind.
 
@@ -565,7 +565,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
                     AND ( type_kind = cl_abap_typedescr=>typekind_struct1 OR
                      type_kind = cl_abap_typedescr=>typekind_struct2 ).
 
-            lr_attri_ref_ref =  attri_get_val_ref( lr_attri_ref->name ).
+            lr_attri_ref_ref = attri_get_val_ref( lr_attri_ref->name ).
 
             IF <ref> <> lr_attri_ref_ref.
               CONTINUE.
@@ -596,7 +596,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
   METHOD dissolve_run.
 
     IF mt_attri->* IS INITIAL.
-      DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri(  ).
+      DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri( ).
       DATA(lt_init) = diss_oref( REF #( ls_attri ) ).
       INSERT LINES OF lt_init INTO TABLE mt_attri->*.
     ENDIF.
@@ -650,7 +650,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
     dissolve( ).
 
-    LOOP AT mt_attri->*  REFERENCE INTO DATA(lr_attri).
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
       DATA(lv_name) = lr_attri->name.
       IF line_exists( lt_attri[ name = lv_name ] ).
         lr_attri->bind_type   = lt_attri[ name = lv_name ]-bind_type.
