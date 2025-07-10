@@ -274,17 +274,35 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
             ENDIF.
             lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <val_ref> ).
             CLEAR <val_ref>.
+
+            CLEAR <val1>.
+            CLEAR <ref>.
+
+            LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_ref)
+              WHERE name_ref = lr_attri_child->name.
+
+              READ TABLE mt_attri->* REFERENCE INTO DATA(lr_attri_ref_parent)
+                WITH KEY name = lr_attri_ref->name_parent.
+              IF sy-subrc <> 0.
+                CONTINUE.
+              ENDIF.
+              DATA(lv_name7) = |MO_APP->{ lr_attri_ref_parent->name }|.
+              ASSIGN (lv_name7) TO FIELD-SYMBOL(<val7>).
+              CLEAR <val7>.
+            ENDLOOP.
             EXIT.
           ENDLOOP.
 
         WHEN cl_abap_datadescr=>typekind_struct1 OR cl_abap_datadescr=>typekind_struct2.
           lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <val1> ).
 
+          CLEAR <val1>.
+          CLEAR <ref>.
       ENDCASE.
 
-      CLEAR <val1>.
-      CLEAR <ref>.
     ENDLOOP.
+
+
 
   ENDMETHOD.
 

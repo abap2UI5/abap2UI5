@@ -172,6 +172,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
       CATCH cx_root.
         result->mo_app->mo_app = val.
     ENDTRY.
+
     result->mo_app->ms_draft-id          = val->id_draft.
 
     result->mo_app->ms_draft-id_prev     = mo_app->ms_draft-id.

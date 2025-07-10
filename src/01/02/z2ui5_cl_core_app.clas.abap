@@ -73,6 +73,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
     TRY.
         lo_dissolver->main_attri_db_save_srtti( ).
         result = z2ui5_cl_util=>xml_stringify( me ).
+        lo_dissolver->main_attri_db_load( ).
         RETURN.
       CATCH cx_root.
     ENDTRY.
@@ -81,6 +82,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
         lo_dissolver->main_attri_refresh( ).
         lo_dissolver->main_attri_db_save_srtti( ).
         result = z2ui5_cl_util=>xml_stringify( me ).
+        lo_dissolver->main_attri_db_load( ).
         RETURN.
       CATCH cx_root INTO DATA(x).
     ENDTRY.
