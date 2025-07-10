@@ -12,7 +12,6 @@ CLASS z2ui5_cl_core_client DEFINITION
         action TYPE REF TO z2ui5_cl_core_action.
 
   PROTECTED SECTION.
-
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -27,7 +26,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~follow_up_action.
 
-*    mo_action->ms_next-s_set-s_follow_up_action-custom_js = val.
     INSERT val INTO TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js.
 
   ENDMETHOD.
@@ -41,6 +39,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                       check_on_navigated     = mo_action->ms_actual-check_on_navigated
                       s_config               = CORRESPONDING #( mo_action->mo_http_post->ms_request-s_front )
                       r_event_data           = mo_action->ms_actual-r_data ).
+
+
+    IF mo_action->ms_next-o_app_call IS NOT INITIAL.
+      result-_s_nav-check_call = abap_true.
+    ENDIF.
+    IF mo_action->ms_next-o_app_leave IS NOT INITIAL.
+      result-_s_nav-check_leave = abap_true.
+    ENDIF.
 
     TRY.
 
@@ -348,17 +354,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                                               tab                  = z2ui5_cl_util=>conv_get_as_data_ref( tab )
                                               tab_index            = tab_index
                                               switch_default_model = switch_default_model ) ).
-
-  ENDMETHOD.
-
-  METHOD z2ui5_if_client~_bind_local.
-
-    DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( mo_action->mo_app ).
-    result = lo_bind->main_local( val    = val
-                                  config = VALUE #( path_only            = path
-                                                    custom_mapper        = custom_mapper
-                                                    custom_filter        = custom_filter
-                                                    switch_default_model = switch_default_model ) ).
 
   ENDMETHOD.
 

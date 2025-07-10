@@ -61,51 +61,39 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD all_xml_stringify.
 
+    DATA(lo_dissolver) = NEW z2ui5_cl_core_srv_model( attri = mt_attri
+                                                     app   = mo_app ).
+
     TRY.
-
-        DATA(lo_model) = NEW z2ui5_cl_core_srv_attri( attri = mt_attri
-                                                      app   = mo_app ).
-
-
-        "new
-        DATA(lo_dissolver2) = NEW z2ui5_cl_core_srv_diss( attri = mt_attri
-                                                         app    = mo_app ).
-
-*        DO 5 TIMES.
-        lo_dissolver2->main( ).
-*        ENDDO.
-
-        lo_model->attri_before_save( ).
         result = z2ui5_cl_util=>xml_stringify( me ).
-
-      CATCH cx_root INTO DATA(x).
-*        TRY.
-*
-*            lo_model->attri_refs_update( ).
-*
-*            CLEAR mt_attri->*.
-*
-*            DATA(lo_dissolver) = NEW z2ui5_cl_core_srv_diss( attri = mt_attri
-*                                                             app   = mo_app ).
-*
-*            lo_dissolver->main( ).
-*            lo_dissolver->main( ).
-*
-*            lo_model = NEW z2ui5_cl_core_srv_attri( attri = mt_attri
-*                                                    app   = mo_app ).
-*            lo_model->attri_before_save( ).
-*
-*            result = z2ui5_cl_util=>xml_stringify( me ).
-*
-*          CATCH cx_root INTO DATA(cx).
-
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error
-              EXPORTING
-*                val = |<p>{ x->get_text( ) }<p>{ x2->get_text( ) } or <p> Please check if all generic data references are public attributes of your class|.
-                val = |<p>{ x->get_text( ) } or <p> Please check if all generic data references are public attributes of your class|.
-
-*        ENDTRY.
+        RETURN.
+      CATCH cx_root.
     ENDTRY.
+
+    TRY.
+        lo_dissolver->main_attri_db_save_srtti( ).
+        result = z2ui5_cl_util=>xml_stringify( me ).
+*        if mo_app->client->ms_next-o_app_call.
+        lo_dissolver->main_attri_db_load( ).
+*        endif.
+        RETURN.
+      CATCH cx_root.
+    ENDTRY.
+
+    TRY.
+        lo_dissolver->main_attri_refresh( ).
+        lo_dissolver->main_attri_db_save_srtti( ).
+        result = z2ui5_cl_util=>xml_stringify( me ).
+*         if mo_app->client->ms_next-o_app_call.
+        lo_dissolver->main_attri_db_load( ).
+*        endif.
+        RETURN.
+      CATCH cx_root INTO DATA(x).
+    ENDTRY.
+
+    RAISE EXCEPTION TYPE z2ui5_cx_util_error
+      EXPORTING
+        val = |<p>{ x->get_text( ) } or <p> Please check if all generic data references are public attributes of your class|.
 
   ENDMETHOD.
 
@@ -121,10 +109,10 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
     DATA(ls_db) = lo_db->read_draft( id ).
     result = all_xml_parse( ls_db-data ).
 
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri( attri = result->mt_attri
-                                                  app   = result->mo_app ).
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = result->mt_attri
+                                                  app  = result->mo_app ).
 
-    lo_model->attri_after_load( ).
+    lo_model->main_attri_db_load( ).
 
   ENDMETHOD.
 
@@ -135,11 +123,10 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
     result = all_xml_parse( ls_db-data ).
 
     result->mo_app = app.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = result->mt_attri
+                                                  app  = result->mo_app ).
 
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri( attri = result->mt_attri
-                                                  app   = result->mo_app ).
-
-    lo_model->attri_refs_update( ).
+    lo_model->main_attri_db_load( ).
 
   ENDMETHOD.
 
@@ -158,17 +145,24 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD model_json_parse.
 
-    DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_json( ).
-    lo_json_mapper->model_front_to_back( view    = iv_view
-                                         t_attri = mt_attri
-                                         model   = io_model ).
+    DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_model(
+      attri = mt_attri
+      app   = mo_app
+    ).
+    lo_json_mapper->main_json_to_attri(
+        view    = iv_view
+        model   = io_model ).
 
   ENDMETHOD.
 
   METHOD model_json_stringify.
 
-    DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_json( ).
-    result = lo_json_mapper->model_back_to_front( mt_attri ).
+    DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_model(
+    attri = mt_attri
+    app   = mo_app
+    ).
+
+    result = lo_json_mapper->main_json_stringify( ).
 
   ENDMETHOD.
 ENDCLASS.

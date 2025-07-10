@@ -50,9 +50,10 @@ INTERFACE z2ui5_if_core_types
     BEGIN OF ty_s_attri,
       name               TYPE string,
       name_client        TYPE string,
+      name_parent        TYPE string,
+      name_ref           TYPE string,
       bind_type          TYPE string,
       srtti_data         TYPE string,
-      name_ref           TYPE string,
       check_dissolved    TYPE abap_bool,
       view               TYPE string,
       json_bind_local    TYPE REF TO z2ui5_if_ajson,
@@ -60,10 +61,11 @@ INTERFACE z2ui5_if_core_types
       custom_filter_back TYPE REF TO z2ui5_if_ajson_filter,
       custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping,
       custom_mapper_back TYPE REF TO z2ui5_if_ajson_mapping,
-      r_ref              TYPE REF TO data,
+*      r_ref              TYPE REF TO data,
       o_typedescr        TYPE REF TO cl_abap_typedescr,
       type_kind          TYPE string,
-      is_class           TYPE abap_bool,
+      kind               TYPE string,
+*      is_class           TYPE abap_bool,
     END OF ty_s_attri.
   TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
 

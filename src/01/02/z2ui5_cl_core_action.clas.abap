@@ -166,16 +166,13 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
       val->id_draft = ms_next-o_app_call->id_draft.
     ENDIF.
 
-*    val->id_draft = COND string( WHEN val->id_draft IS INITIAL
-*                                 THEN z2ui5_cl_util=>uuid_get_c32( )
-*                                 ELSE ms_next-o_app_leave->id_draft ).
-
     result = NEW #( mo_http_post ).
     TRY.
         result->mo_app = z2ui5_cl_core_app=>db_load_by_app( val ).
       CATCH cx_root.
         result->mo_app->mo_app = val.
     ENDTRY.
+
     result->mo_app->ms_draft-id          = val->id_draft.
 
     result->mo_app->ms_draft-id_prev     = mo_app->ms_draft-id.

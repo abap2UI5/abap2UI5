@@ -13,13 +13,6 @@ CLASS z2ui5_cl_core_srv_bind DEFINITION
       IMPORTING
         app TYPE REF TO z2ui5_cl_core_app.
 
-    METHODS main_local
-      IMPORTING
-        val           TYPE data
-        config        TYPE z2ui5_if_core_types=>ty_s_bind_config OPTIONAL
-      RETURNING
-        VALUE(result) TYPE string.
-
     METHODS main
       IMPORTING
         val           TYPE REF TO data
@@ -35,10 +28,6 @@ CLASS z2ui5_cl_core_srv_bind DEFINITION
         config        TYPE z2ui5_if_core_types=>ty_s_bind_config OPTIONAL
       RETURNING
         VALUE(result) TYPE string.
-
-    METHODS clear
-      IMPORTING
-        val TYPE string.
 
     METHODS bind_tab_cell
       IMPORTING
@@ -152,26 +141,6 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD clear.
-
-    TRY.
-        DATA(lv_path) = shift_right( val = val
-                                     sub = `->*` ).
-        mo_app->mt_attri->*[ name = lv_path ]-check_dissolved = abap_false.
-        mo_app->mt_attri->*[ name = val ]-check_dissolved = abap_false.
-        mo_app->mt_attri->*[ name = lv_path ]-name_client = ``.
-        mo_app->mt_attri->*[ name = lv_path ]-bind_type = ``.
-
-        LOOP AT mo_app->mt_attri->* REFERENCE INTO DATA(lr_bind2)
-             WHERE name = lv_path.
-          CLEAR lr_bind2->r_ref.
-        ENDLOOP.
-
-      CATCH cx_root.
-    ENDTRY.
-
-  ENDMETHOD.
-
   METHOD constructor.
 
     mo_app = app.
@@ -208,12 +177,10 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     ms_config = config.
     mv_type   = type.
 
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_attri( attri = mo_app->mt_attri
-                                                  app   = mo_app->mo_app ).
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = mo_app->mt_attri
+                                                  app  = mo_app->mo_app ).
 
-    lo_model->attri_refs_update( ).
-
-    mr_attri = lo_model->attri_search_a_dissolve( val ).
+    mr_attri = lo_model->main_attri_search( val ).
 
     IF mr_attri->name_ref IS NOT INITIAL.
       mr_attri = REF #( mo_app->mt_attri->*[ name = mr_attri->name_ref ] ).
@@ -263,46 +230,6 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD main_local.
-    TRY.
-
-        DATA(lo_json) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>new( ) ).
-        lo_json->set( iv_path = `/`
-                      iv_val  = val ).
-
-        IF config-custom_mapper IS BOUND.
-          lo_json = lo_json->map( config-custom_mapper ).
-        ELSE.
-          lo_json = lo_json->map( z2ui5_cl_ajson_mapping=>create_upper_case( ) ).
-        ENDIF.
-
-        IF config-custom_filter IS BOUND.
-          lo_json = lo_json->filter( config-custom_filter ).
-        ELSE.
-          lo_json = lo_json->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
-        ENDIF.
-
-        DATA(lv_id) = to_upper( z2ui5_cl_util=>uuid_get_c22( ) ).
-        INSERT VALUE #( name_client     = |/{ lv_id }|
-                        name            = lv_id
-                        json_bind_local = lo_json
-                        bind_type       = z2ui5_if_core_types=>cs_bind_type-one_time )
-               INTO TABLE mo_app->mt_attri->*.
-
-        result = |/{ lv_id }|.
-
-        IF ms_config-switch_default_model = abap_true.
-          result = |http>{ result }|.
-        ENDIF.
-
-        IF config-path_only = abap_false.
-          result = |\{{ result }\}|.
-        ENDIF.
-
-      CATCH cx_root INTO DATA(x).
-        ASSERT x IS NOT BOUND.
-    ENDTRY.
-  ENDMETHOD.
 
   METHOD update_model_attri.
 
