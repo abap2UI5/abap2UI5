@@ -143,7 +143,11 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
                                              ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
           ENDIF.
 
-          DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
+          TRY.
+              DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
+            CATCH cx_root.
+              CONTINUE.
+          ENDTRY.
 
           ajson->set( iv_ignore_empty = abap_false
                       iv_path         = `/`
@@ -170,7 +174,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
         WHERE name_ref IS INITIAL.
       TRY.
-          DATA(lr_ref) =  attri_get_val_ref( lr_attri->name ).
+          DATA(lr_ref)       = attri_get_val_ref( lr_attri->name ).
           lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref ).
 
           IF lr_attri->srtti_data IS NOT INITIAL.
@@ -302,7 +306,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri2)
 *        WHERE name_ref IS INITIAL
-         where type_kind = cl_abap_datadescr=>typekind_dref.
+         WHERE type_kind = cl_abap_datadescr=>typekind_dref.
 
       DATA(lv_name8) = |MO_APP->{ lr_attri2->name }|.
       ASSIGN (lv_name8) TO FIELD-SYMBOL(<ref2>).
