@@ -184,7 +184,6 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     ENDLOOP.
 
 
-    ASSIGN mt_attri->* TO FIELD-SYMBOL(<table>).
     LOOP AT mt_attri->* REFERENCE INTO lr_attri
          WHERE name_ref IS NOT INITIAL.
 
@@ -195,14 +194,13 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
           DATA(lr_ref2) =  attri_get_val_ref( lr_attri->name_ref ).
           lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref2 ).
 
-          READ TABLE <table> REFERENCE INTO DATA(lr_attri_parent)
+          READ TABLE  mt_attri->* REFERENCE INTO DATA(lr_attri_parent)
             WITH KEY name = lr_attri->name_parent.
           IF sy-subrc <> 0.
             CONTINUE.
           ENDIF.
 
           DATA(lv_name) = |MO_APP->{ lr_attri_parent->name }|.
-*          ASSIGN mo_app->(lr_attri_parent->name) TO FIELD-SYMBOL(<val4>).
           ASSIGN (lv_name) TO FIELD-SYMBOL(<val4>).
           IF sy-subrc <> 0.
             CONTINUE.
@@ -216,14 +214,12 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
           DATA(lv_name2) = |MO_APP->{ lr_attri->name_ref }|.
           ASSIGN (lv_name2) TO FIELD-SYMBOL(<val5>).
-*          ASSIGN mo_app->(lr_attri->name_ref) TO FIELD-SYMBOL(<val5>).
           IF sy-subrc <> 0.
             CONTINUE.
           ENDIF.
 
           DATA(lv_name3) = |MO_APP->{ lr_attri->name }|.
           ASSIGN (lv_name3) TO <val4>.
-*          ASSIGN mo_app->(lr_attri->name) TO <val4>.
           IF sy-subrc <> 0.
             CONTINUE.
           ENDIF.
@@ -250,7 +246,8 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
         WHERE name_ref IS INITIAL
          AND type_kind = cl_abap_datadescr=>typekind_dref.
 
-      ASSIGN mo_app->(lr_attri->name) TO FIELD-SYMBOL(<ref>).
+      DATA(lv_name5) = |MO_APP->{ lr_attri->name }|.
+      ASSIGN (lv_name5) TO FIELD-SYMBOL(<ref>).
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
@@ -269,7 +266,9 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
               WHERE name_ref IS INITIAL AND
                type_kind = cl_abap_datadescr=>typekind_table AND
                name_parent = lr_attri->name.
-            ASSIGN mo_app->(lr_attri_child->name) TO FIELD-SYMBOL(<val_ref>).
+
+            DATA(lv_name6) = |MO_APP->{ lr_attri_child->name }|.
+            ASSIGN (lv_name6) TO FIELD-SYMBOL(<val_ref>).
             IF sy-subrc <> 0.
               CONTINUE.
             ENDIF.
@@ -320,7 +319,8 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     IF iv_path IS INITIAL.
       ASSIGN mo_app TO <attri>.
     ELSE.
-      ASSIGN mo_app->(iv_path) TO <attri>.
+      DATA(lv_name) = |MO_APP->{ iv_path }|.
+      ASSIGN (lv_name) TO <attri>.
     ENDIF.
 
     IF sy-subrc <> 0.
@@ -503,8 +503,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
                 AND name_ref IS INITIAL
                 AND type_kind = cl_abap_typedescr=>typekind_table.
 
-            DATA(lr_attri_ref_ref) =  attri_get_val_ref( lr_attri_ref->name ).
-
+            DATA(lr_attri_ref_ref) = attri_get_val_ref( lr_attri_ref->name ).
             IF lr_ref <> lr_attri_ref_ref.
               CONTINUE.
             ENDIF.
