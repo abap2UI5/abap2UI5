@@ -20,8 +20,6 @@ CLASS z2ui5_cl_core_app DEFINITION
         io_model TYPE REF TO z2ui5_if_ajson.
 
     METHODS all_xml_stringify
-      IMPORTING
-        check_clear_two_way_data TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(result)            TYPE string.
 
@@ -137,7 +135,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
     DATA(lo_db) = NEW z2ui5_cl_core_srv_draft( ).
     lo_db->create( draft     = ms_draft
-                   model_xml = all_xml_stringify( check_clear_two_way_data ) ).
+                   model_xml = all_xml_stringify( ) ).
 
   ENDMETHOD.
 

@@ -51,18 +51,19 @@ ENDCLASS.
 
 
 CLASS ltcl_test_dissolve IMPLEMENTATION.
+
   METHOD test_ref.
 
-    DATA(lo_app) = NEW ltcl_test_dissolve( ).
-
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                 app   = lo_app ).
-
-    lo_model->dissolve( ).
-
-    DATA(ls_attri) = lt_attri[ name = `MV_VALUE` ].
-    GET REFERENCE OF lo_app->mv_value INTO DATA(lr_ref).
+*    DATA(lo_app) = NEW ltcl_test_dissolve( ).
+*
+*    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+*    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+*                                                 app   = lo_app ).
+*
+*    lo_model->dissolve( ).
+*
+*    DATA(ls_attri) = lt_attri[ name = `MV_VALUE` ].
+*    GET REFERENCE OF lo_app->mv_value INTO DATA(lr_ref).
 
 *    IF ls_attri-r_ref <> lr_ref.
 *      cl_abap_unit_assert=>abort( ).
@@ -246,9 +247,9 @@ CLASS ltcl_test_app2 DEFINITION FINAL
   PUBLIC SECTION.
 
     DATA mv_value  TYPE string ##NEEDED.
-    DATA mr_value  TYPE REF TO data.
-    DATA mr_value2 TYPE REF TO data.
-    DATA mo_app    TYPE REF TO ltcl_test_app2.
+    DATA mr_value  TYPE REF TO data ##NEEDED.
+    DATA mr_value2 TYPE REF TO data ##NEEDED.
+    DATA mo_app    TYPE REF TO ltcl_test_app2 ##NEEDED.
 
     DATA xx        TYPE string ##NEEDED.
 

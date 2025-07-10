@@ -19,7 +19,6 @@ CLASS z2ui5_cl_core_handler DEFINITION
       RETURNING
         VALUE(result) TYPE z2ui5_if_core_types=>ty_s_http_res.
 
-
   PROTECTED SECTION.
 
     METHODS main_begin.
