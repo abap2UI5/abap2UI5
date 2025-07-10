@@ -385,15 +385,20 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     DATA(lo_datadescr) = cl_abap_datadescr=>describe_by_data_ref( val ).
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
-       WHERE name_ref IS INITIAL
-       AND type_kind = lo_datadescr->type_kind
-       AND kind = lo_datadescr->kind.
+         WHERE     name_ref  IS INITIAL
+               AND type_kind  = lo_datadescr->type_kind
+               AND kind       = lo_datadescr->kind.
 
       IF lr_attri->o_typedescr <> lo_datadescr.
         CONTINUE.
       ENDIF.
 
-      DATA(lr_ref) =  attri_get_val_ref( lr_attri->name ).
+      TRY.
+          DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
+        CATCH cx_root.
+          CONTINUE.
+      ENDTRY.
+
       IF lr_ref = val.
         result = lr_attri.
         RETURN.
