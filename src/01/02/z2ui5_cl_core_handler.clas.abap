@@ -235,6 +235,10 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       ms_response-model = `{}`.
     ENDIF.
 
+    IF ms_response-s_front-params-s_popup-xml IS NOT INITIAL.
+      ms_response-s_front-params-s_popup-check_update_model = abap_false.
+    ENDIF.
+
     mv_response = response_abap_to_json( ms_response ).
 
     CLEAR mo_action->ms_next.

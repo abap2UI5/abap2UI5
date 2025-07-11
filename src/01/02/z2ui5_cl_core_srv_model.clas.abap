@@ -133,7 +133,10 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     TRY.
 
         DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
-        LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
+        LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
+             WHERE bind_type <> ``
+              AND type_kind <> cl_abap_datadescr=>typekind_dref
+              AND type_kind <> cl_abap_datadescr=>typekind_oref.
 
           IF lr_attri->custom_mapper IS BOUND.
             DATA(ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
