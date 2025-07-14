@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_MSAG" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <T100A>
+    <ARBGB>Z2UI5_CONF</ARBGB>
+    <MASTERLANG>E</MASTERLANG>
+    <STEXT>Custom Exception messages for abap2ui5 configuration</STEXT>
+   </T100A>
+   <T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>Z2UI5_CONF</ARBGB>
+     <MSGNR>001</MSGNR>
+     <TEXT>Configuration is locked by master-user</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>Z2UI5_CONF</ARBGB>
+     <MSGNR>002</MSGNR>
+     <TEXT>Failed to save configuration to database</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>Z2UI5_CONF</ARBGB>
+     <MSGNR>003</MSGNR>
+    </T100>
+   </T100>
+  </asx:values>
+ </asx:abap>
+</abapGit>
