@@ -395,7 +395,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
     IF lo_datadescr->type_kind = cl_abap_typedescr=>typekind_dref
       OR lo_datadescr->type_kind = cl_abap_typedescr=>typekind_oref.
-    RAISE EXCEPTION TYPE z2ui5_cx_util_error
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
             EXPORTING
               val = |NO DATA REFERENCES FOR BINDING ALLOWED: DEREFERENCE YOUR DATA FIRST|.
     ENDIF.
