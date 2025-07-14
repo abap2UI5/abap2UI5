@@ -387,6 +387,13 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
     DATA(lo_datadescr) = cl_abap_datadescr=>describe_by_data_ref( val ).
 
+    IF lo_datadescr->type_kind = cl_abap_typedescr=>typekind_dref
+      OR lo_datadescr->type_kind = cl_abap_typedescr=>typekind_oref.
+    RAISE EXCEPTION TYPE z2ui5_cx_util_error
+            EXPORTING
+              val = |NO DATA REFERENCES FOR BINDING ALLOWED: DEREFERENCE YOUR DATA FIRST|.
+    ENDIF.
+
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
          WHERE name_ref  IS INITIAL
                AND type_kind  = lo_datadescr->type_kind
