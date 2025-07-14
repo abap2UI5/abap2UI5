@@ -84,7 +84,12 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD save_all_configs.
     TRY.
-        client->follow_up_action( |sap.ui.getCore().applyTheme("{ ms_config-theme }");| ).
+        " Save theme from bound form field
+        IF ms_config-app_title IS NOT INITIAL.
+          client->follow_up_action( |sap.ui.getCore().applyTheme("{ ms_config-theme }");| ).
+          z2ui5_cl_config_service=>set_config( iv_key   = 'THEME'
+                                               iv_value = ms_config-theme ).
+        ENDIF.
 
         " Save debug mode from bound form field
         DATA lv_debug_string TYPE string.
