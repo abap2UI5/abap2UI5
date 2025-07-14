@@ -113,11 +113,13 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
               CONTINUE.
           ENDTRY.
 
+          ASSIGN lr_ref->* TO FIELD-SYMBOL(<val>).
+
           lo_val_front->to_abap(
             EXPORTING
                 iv_corresponding = abap_true
             IMPORTING
-                ev_container     = lr_ref->* ).
+                ev_container     = <val> ).
 
         CATCH cx_root INTO DATA(x).
           RAISE EXCEPTION TYPE z2ui5_cx_util_error
@@ -152,9 +154,11 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
               CONTINUE.
           ENDTRY.
 
+          ASSIGN lr_ref->* TO FIELD-SYMBOL(<val>).
+
           ajson->set( iv_ignore_empty = abap_false
                       iv_path         = `/`
-                      iv_val          = lr_ref->* ).
+                      iv_val          = <val> ).
 
           IF lr_attri->custom_filter IS BOUND.
             ajson = ajson->filter( lr_attri->custom_filter ).
@@ -212,7 +216,9 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
           IF sy-subrc <> 0.
             CONTINUE.
           ENDIF.
-          GET REFERENCE OF lr_ref2->* INTO <val4>.
+
+          ASSIGN lr_ref2->* TO FIELD-SYMBOL(<val3>).
+          GET REFERENCE OF <val3> INTO <val4>.
 
           DATA(lr_ref_parent) = REF #( <val4> ).
           lr_attri_parent->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref_parent ).
@@ -386,6 +392,13 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
   METHOD attri_search.
 
     DATA(lo_datadescr) = cl_abap_datadescr=>describe_by_data_ref( val ).
+
+    IF lo_datadescr->type_kind = cl_abap_typedescr=>typekind_dref
+      OR lo_datadescr->type_kind = cl_abap_typedescr=>typekind_oref.
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+            EXPORTING
+              val = |NO DATA REFERENCES FOR BINDING ALLOWED: DEREFERENCE YOUR DATA FIRST|.
+    ENDIF.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
          WHERE name_ref  IS INITIAL
