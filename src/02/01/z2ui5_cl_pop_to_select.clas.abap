@@ -232,7 +232,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
         ASSERT sy-subrc = 0.
         <field> = <row>.
       ELSE.
-        CLEAR: <row2>.
+        CLEAR <row2>.
         MOVE-CORRESPONDING <row> TO <row2>.
       ENDIF.
       INSERT <row2> INTO TABLE <tab_out>.
