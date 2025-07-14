@@ -1631,7 +1631,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         select                 TYPE clike OPTIONAL
         delete                 TYPE clike OPTIONAL
         class                  TYPE clike OPTIONAL
-       PREFERRED PARAMETER items
+          PREFERRED PARAMETER items
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
@@ -10657,7 +10657,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     ENDIF.
 
     DATA(lv_tmp2) = COND #( WHEN mv_ns <> `` THEN |{ mv_ns }:| ).
-    DATA(lv_tmp3) = REDUCE #( INIT val = `` FOR row IN mt_prop WHERE ( v <> `` )
+    DATA(lv_tmp3) = REDUCE string( INIT val = `` FOR row IN mt_prop WHERE ( v <> `` )
                           NEXT val = |{ val } { row-n }="{ escape( val    = COND string( WHEN row-v = abap_true
                                                                                          THEN `true`
                                                                                          ELSE row-v )

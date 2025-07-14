@@ -231,7 +231,7 @@ CLASS z2ui5_cl_util_abap DEFINITION
         transport         TYPE sxco_transport,
         task              TYPE sxco_transport,
         selkz             TYPE abap_bool,
-        locl              type abap_bool,
+        locl              TYPE abap_bool,
       END OF ty_s_transport.
 
     TYPES ty_t_data TYPE STANDARD TABLE OF ty_s_transport WITH EMPTY KEY.
@@ -1587,7 +1587,8 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
     CREATE DATA lr_shlp TYPE (lv_type).
     ASSIGN lr_shlp->* TO <shlp>.
-    <shlp> = CORRESPONDING #( ms_shlp ).
+    CLEAR: <shlp>.
+    MOVE-CORRESPONDING ms_shlp TO <shlp>.
 
     lv_fm = 'F4IF_SELECT_VALUES'.
     CALL FUNCTION lv_fm
