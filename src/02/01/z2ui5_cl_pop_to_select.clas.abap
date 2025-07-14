@@ -269,7 +269,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
         ASSERT sy-subrc = 0.
         <row_result> = <table_line_selected>.
       ELSE.
-        CLEAR: <row_result>.
+        CLEAR <row_result>.
         MOVE-CORRESPONDING <row_selected> TO <row_result>.
       ENDIF.
 
