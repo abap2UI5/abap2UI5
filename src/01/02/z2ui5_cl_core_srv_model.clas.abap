@@ -322,13 +322,17 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
+      CLEAR <ref2>.
+
+      IF lr_attri2->name_ref IS NOT INITIAL.
+        CONTINUE.
+      ENDIF.
+
       DATA(lv_name10) = |MO_APP->{ lr_attri2->name }->*|.
       ASSIGN (lv_name10) TO FIELD-SYMBOL(<val8>).
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-
-      CLEAR <ref2>.
       CLEAR <val8>.
     ENDLOOP.
 
@@ -396,8 +400,8 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     IF lo_datadescr->type_kind = cl_abap_typedescr=>typekind_dref
         OR lo_datadescr->type_kind = cl_abap_typedescr=>typekind_oref.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-            EXPORTING
-              val = |NO DATA REFERENCES FOR BINDING ALLOWED: DEREFERENCE YOUR DATA FIRST|.
+        EXPORTING
+          val = |NO DATA REFERENCES FOR BINDING ALLOWED: DEREFERENCE YOUR DATA FIRST|.
     ENDIF.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
