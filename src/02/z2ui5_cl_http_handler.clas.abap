@@ -130,7 +130,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
   METHOD _http_get.
 
     DATA ls_config LIKE is_config.
-      DATA lv_style_css TYPE string.
+    DATA lv_style_css TYPE string.
     DATA temp1 LIKE LINE OF ls_config-t_add_config.
     DATA lr_config LIKE REF TO temp1.
     ls_config = is_config.
