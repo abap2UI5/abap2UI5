@@ -286,7 +286,7 @@ CLASS z2ui5_cl_app_icf_config IMPLEMENTATION.
     client->popup_display( page2->stringify( ) ).
   ENDMETHOD.
 
- METHOD z2ui5_if_app~main.
+  METHOD z2ui5_if_app~main.
     me->client = client.
 
     IF client->check_on_init( ) IS NOT INITIAL.
