@@ -77,14 +77,19 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                      title         = `abap2UI5 - Developing UI5 Apps Purely in ABAP`
                      shownavbutton = abap_false ).
 
-    page->header_content(
-      )->toolbar_spacer(
-      )->button( text  = `Debugging Tools`
-                 icon  = `sap-icon://enablement`
-                 press = client->_event( `OPEN_DEBUG` )
-      )->button( text  = `System`
-                 icon  = `sap-icon://information`
-                 press = client->_event( `OPEN_INFO` ) ).
+    DATA(toolbar) = page->header_content( ).
+    toolbar->toolbar_spacer(
+    )->button( text  = `Debugging Tools`
+               icon  = `sap-icon://enablement`
+               press = client->_event( `OPEN_DEBUG` )
+    )->button( text  = `System`
+               icon  = `sap-icon://information`
+               press = client->_event( `OPEN_INFO` ) ).
+    IF z2ui5_cl_util=>rtti_check_class_exists( 'z2ui5_cl_app_icf_config' ).
+      toolbar->button( text  = 'Config'
+                  icon  = 'sap-icon://settings'
+                  press = client->_event( 'SET_CONFIG' ) ).
+    ENDIF.
 
     DATA(simple_form) = page->simple_form( editable                = abap_true
                                            layout                  = `ResponsiveGridLayout`
@@ -272,6 +277,11 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     DATA li_app TYPE REF TO z2ui5_if_app.
 
     CASE client->get( )-event.
+
+      WHEN `SET_CONFIG`.
+        DATA lo_app TYPE REF TO z2ui5_if_app.
+        CREATE OBJECT lo_app TYPE ('Z2UI5_CL_APP_ICF_CONFIG').
+        client->nav_app_call( lo_app ).
 
       WHEN `CLOSE`.
         client->popup_destroy( ).
