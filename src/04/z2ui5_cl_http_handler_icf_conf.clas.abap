@@ -214,9 +214,9 @@ CLASS z2ui5_cl_http_handler_icf_conf IMPLEMENTATION.
   METHOD run.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_http_handler_icf_conf.
-    lo_handler = factory( server = server
-                                req    = req
-                                res    = res ).
+    lo_handler = factory( server    = server
+                                req = req
+                                res = res ).
 
     lo_handler->main( config ).
 
@@ -230,7 +230,7 @@ CLASS z2ui5_cl_http_handler_icf_conf IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD set_response.
-        DATA lv_contextid TYPE string.
+    DATA lv_contextid TYPE string.
 
     mo_server->set_cdata( ms_res-body ).
     mo_server->set_header_field( n = `cache-control`
@@ -261,13 +261,13 @@ CLASS z2ui5_cl_http_handler_icf_conf IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD _http_post.
-      DATA lo_post TYPE REF TO z2ui5_cl_core_handler.
-          DATA temp2 TYPE REF TO z2ui5_if_app.
-          DATA li_app LIKE temp2.
+    DATA lo_post TYPE REF TO z2ui5_cl_core_handler.
+    DATA temp2 TYPE REF TO z2ui5_if_app.
+    DATA li_app LIKE temp2.
 
     IF so_sticky_handler IS NOT BOUND.
 
-      CREATE OBJECT lo_post TYPE z2ui5_cl_core_handler EXPORTING VAL = is_req-body.
+      CREATE OBJECT lo_post TYPE z2ui5_cl_core_handler EXPORTING val = is_req-body.
     ELSE.
       lo_post = so_sticky_handler.
       lo_post->mv_request_json = is_req-body.
@@ -306,9 +306,9 @@ CLASS z2ui5_cl_http_handler_icf_conf IMPLEMENTATION.
   METHOD get_request.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_http_handler_icf_conf.
-    lo_handler = factory( server = server
-                                req    = req
-                                res    = res ).
+    lo_handler = factory( server    = server
+                                req = req
+                                res = res ).
 
     result-body   = lo_handler->mo_server->get_cdata( ).
     result-method = lo_handler->mo_server->get_method( ).
@@ -318,10 +318,10 @@ CLASS z2ui5_cl_http_handler_icf_conf IMPLEMENTATION.
   METHOD get_response.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_http_handler_icf_conf.
-        DATA lv_contextid TYPE string.
-    lo_handler = factory( server = server
-                                req    = req
-                                res    = res ).
+    DATA lv_contextid TYPE string.
+    lo_handler = factory( server    = server
+                                req = req
+                                res = res ).
 
     lo_handler->mo_server->set_cdata( is_res-body ).
     lo_handler->mo_server->set_header_field( n = `cache-control`
