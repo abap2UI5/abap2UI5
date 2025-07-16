@@ -12,16 +12,16 @@ CREATE PUBLIC.
     CLASS-DATA gt_config_cache TYPE ty_t_config.
 
     CLASS-METHODS get_config
-      IMPORTING iv_key          TYPE char50
-                iv_user_id      TYPE syuname DEFAULT sy-uname
+      IMPORTING iv_key          TYPE clike
+                iv_user_id      TYPE clike DEFAULT sy-uname
       RETURNING VALUE(rv_value) TYPE string.
 
     CLASS-METHODS set_config
-      IMPORTING iv_key         TYPE char50
-                iv_value       TYPE string
-                iv_user_id     TYPE syuname DEFAULT sy-uname
-                iv_description TYPE char100 OPTIONAL
-                iv_type        TYPE char20  DEFAULT 'STRING'
+      IMPORTING iv_key         TYPE clike
+                iv_value       TYPE clike
+                iv_user_id     TYPE clike DEFAULT sy-uname
+                iv_description TYPE clike OPTIONAL
+                iv_type        TYPE clike  DEFAULT 'STRING'
       RAISING   z2ui5_cx_config_error.
 
     CLASS-METHODS get_all_configs
@@ -29,23 +29,23 @@ CREATE PUBLIC.
       RETURNING VALUE(rt_config) TYPE ty_t_config.
 
     CLASS-METHODS get_theme_list
-      IMPORTING iv_ui5_version   TYPE string " DEFAULT z2ui5_cl_app_startup=>mv_ui5_version
+      IMPORTING iv_ui5_version   TYPE clike " DEFAULT z2ui5_cl_app_startup=>mv_ui5_version
       RETURNING VALUE(rt_themes) TYPE ty_t_themes.
 
     CLASS-METHODS get_current_theme
-      IMPORTING iv_user_id      TYPE syuname DEFAULT sy-uname
+      IMPORTING iv_user_id      TYPE clike DEFAULT sy-uname
       RETURNING VALUE(rv_theme) TYPE string.
 
     CLASS-METHODS is_master_user
       RETURNING VALUE(rv_is_master) TYPE boolean.
 
     CLASS-METHODS check_config_authority
-      IMPORTING iv_config_key        TYPE char50
-                iv_activity          TYPE char2 DEFAULT '02'
-      RETURNING VALUE(rv_authorized) TYPE boolean.
+      IMPORTING iv_config_key        TYPE clike
+                iv_activity          TYPE clike DEFAULT '02'
+      RETURNING VALUE(rv_authorized) TYPE abap_bool.
 
     CLASS-METHODS initialize_default_configs
-      IMPORTING iv_force_refresh TYPE abap_bool DEFAULT abap_false.
+      IMPORTING iv_force_refresh TYPE clike DEFAULT abap_false.
 
     CLASS-METHODS load_config_cache.
 
