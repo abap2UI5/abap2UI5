@@ -79,16 +79,16 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     DATA(toolbar) = page->header_content( ).
     toolbar->toolbar_spacer(
-    )->button( text  = `Debugging Tools`
-               icon  = `sap-icon://enablement`
-               press = client->_event( `OPEN_DEBUG` )
-    )->button( text  = `System`
-               icon  = `sap-icon://information`
-               press = client->_event( `OPEN_INFO` ) ).
+      )->button( text = `Debugging Tools`
+               icon   = `sap-icon://enablement`
+               press  = client->_event( `OPEN_DEBUG` )
+      )->button( text = `System`
+               icon   = `sap-icon://information`
+               press  = client->_event( `OPEN_INFO` ) ).
     IF z2ui5_cl_util=>rtti_check_class_exists( 'z2ui5_cl_app_icf_config' ).
-      toolbar->button( text  = 'Config'
-                  icon  = 'sap-icon://settings'
-                  press = client->_event( 'SET_CONFIG' ) ).
+      toolbar->button( text = 'Config'
+                  icon      = 'sap-icon://settings'
+                  press     = client->_event( 'SET_CONFIG' ) ).
     ENDIF.
 
     DATA(simple_form) = page->simple_form( editable                = abap_true
