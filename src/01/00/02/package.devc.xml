@@ -4,8 +4,6 @@
   <asx:values>
    <DEVC>
     <CTEXT>abap api - https://github.com/oblomov-dev/abap-api</CTEXT>
-    <COMP_POSID>CA</COMP_POSID>
-    <COMPONENT>HLB0009110</COMPONENT>
    </DEVC>
   </asx:values>
  </asx:abap>

@@ -32,7 +32,7 @@ CLASS z2ui5_cl_app_icf_config DEFINITION
     DATA mt_all_configs TYPE z2ui5_cl_config_service=>ty_t_config.
 
     CLASS-METHODS factory
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_app_startup.
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_app_icf_config.
 
     METHODS z2ui5_on_init.
     METHODS z2ui5_on_event.

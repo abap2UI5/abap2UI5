@@ -60,8 +60,8 @@ CLASS z2ui5_cl_config_service IMPLEMENTATION.
   METHOD load_config_cache.
     CLEAR gt_config_cache.
     SELECT * FROM z2ui5_config
-      INTO CORRESPONDING FIELDS OF TABLE gt_config_cache
-      WHERE is_active = 'X'.
+      WHERE is_active = 'X'
+       INTO CORRESPONDING FIELDS OF TABLE @gt_config_cache.
   ENDMETHOD.
 
   METHOD get_config.
@@ -140,7 +140,7 @@ CLASS z2ui5_cl_config_service IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD save_config_to_db.
-    MODIFY z2ui5_config FROM is_config.
+    MODIFY z2ui5_config FROM @is_config.
     IF sy-subrc <> 0.
       z2ui5_cx_config_error=>raise_save_failed( ).
     ENDIF.
@@ -187,16 +187,16 @@ CLASS z2ui5_cl_config_service IMPLEMENTATION.
 
     " Try exact version match
     SELECT theme FROM z2ui5_themes
-      INTO TABLE rt_themes
-      WHERE ui5_version = lv_ui5_version
-        AND is_active   = 'X'.
+      WHERE ui5_version = @lv_ui5_version
+        AND is_active   = 'X'
+        INTO TABLE @rt_themes.
 
     " Fallback to broader version match (e.g., '1.71%' or '1%')
     IF rt_themes IS INITIAL.
       SELECT theme FROM z2ui5_themes
-        INTO TABLE rt_themes
-        WHERE ui5_version LIKE lv_ui5_version
-          AND is_active      = 'X'.
+        WHERE ui5_version LIKE @lv_ui5_version
+          AND is_active      = 'X'
+           INTO TABLE @rt_themes.
     ENDIF.
 
     " Fallback to default themes if none found
@@ -239,7 +239,7 @@ CLASS z2ui5_cl_config_service IMPLEMENTATION.
 
     " Check if already initialized (unless force refresh)
     IF iv_force_refresh = abap_false.
-      SELECT COUNT(*) FROM z2ui5_config INTO lv_count.
+      SELECT COUNT(*) FROM z2ui5_config INTO @lv_count.
       IF lv_count > 0.
         RETURN. " Already initialized
       ENDIF.
@@ -312,7 +312,7 @@ CLASS z2ui5_cl_config_service IMPLEMENTATION.
 
     " Insert configurations
     LOOP AT lt_default_configs INTO ls_config.
-      MODIFY z2ui5_config FROM ls_config.
+      MODIFY z2ui5_config FROM @ls_config.
     ENDLOOP.
 
     " Initialize themes based on UI5 compatibility matrix
@@ -328,7 +328,7 @@ CLASS z2ui5_cl_config_service IMPLEMENTATION.
     ls_theme_entry-changed_by  = sy-uname.
     ls_theme_entry-created_at  = lv_timestamp.
     ls_theme_entry-changed_at  = lv_timestamp.
-    MODIFY z2ui5_themes FROM ls_theme_entry.
+    MODIFY z2ui5_themes FROM @ls_theme_entry.
 
     CLEAR ls_theme_entry.
     ls_theme_entry-ui5_version = '1.101'.
@@ -338,7 +338,7 @@ CLASS z2ui5_cl_config_service IMPLEMENTATION.
     ls_theme_entry-changed_by  = sy-uname.
     ls_theme_entry-created_at  = lv_timestamp.
     ls_theme_entry-changed_at  = lv_timestamp.
-    MODIFY z2ui5_themes FROM ls_theme_entry.
+    MODIFY z2ui5_themes FROM @ls_theme_entry.
 
     CLEAR ls_theme_entry.
     ls_theme_entry-ui5_version = '1.120'.
@@ -348,7 +348,7 @@ CLASS z2ui5_cl_config_service IMPLEMENTATION.
     ls_theme_entry-changed_by  = sy-uname.
     ls_theme_entry-created_at  = lv_timestamp.
     ls_theme_entry-changed_at  = lv_timestamp.
-    MODIFY z2ui5_themes FROM ls_theme_entry.
+    MODIFY z2ui5_themes FROM @ls_theme_entry.
 
     CLEAR ls_theme_entry.
     ls_theme_entry-ui5_version = '1.136'.
@@ -358,7 +358,7 @@ CLASS z2ui5_cl_config_service IMPLEMENTATION.
     ls_theme_entry-changed_by  = sy-uname.
     ls_theme_entry-created_at  = lv_timestamp.
     ls_theme_entry-changed_at  = lv_timestamp.
-    MODIFY z2ui5_themes FROM ls_theme_entry.
+    MODIFY z2ui5_themes FROM @ls_theme_entry.
 
     " sap_horizon_dark themes (UI5 1.101+)
     CLEAR ls_theme_entry.
@@ -369,7 +369,7 @@ CLASS z2ui5_cl_config_service IMPLEMENTATION.
     ls_theme_entry-changed_by  = sy-uname.
     ls_theme_entry-created_at  = lv_timestamp.
     ls_theme_entry-changed_at  = lv_timestamp.
-    MODIFY z2ui5_themes FROM ls_theme_entry.
+    MODIFY z2ui5_themes FROM @ls_theme_entry.
 
     CLEAR ls_theme_entry.
     ls_theme_entry-ui5_version = '1.120'.
@@ -379,7 +379,7 @@ CLASS z2ui5_cl_config_service IMPLEMENTATION.
     ls_theme_entry-changed_by  = sy-uname.
     ls_theme_entry-created_at  = lv_timestamp.
     ls_theme_entry-changed_at  = lv_timestamp.
-    MODIFY z2ui5_themes FROM ls_theme_entry.
+    MODIFY z2ui5_themes FROM @ls_theme_entry.
 
     CLEAR ls_theme_entry.
     ls_theme_entry-ui5_version = '1.136'.
@@ -389,7 +389,7 @@ CLASS z2ui5_cl_config_service IMPLEMENTATION.
     ls_theme_entry-changed_by  = sy-uname.
     ls_theme_entry-created_at  = lv_timestamp.
     ls_theme_entry-changed_at  = lv_timestamp.
-    MODIFY z2ui5_themes FROM ls_theme_entry.
+    MODIFY z2ui5_themes FROM @ls_theme_entry.
 
     " sap_horizon_hcb themes (UI5 1.101+)
     CLEAR ls_theme_entry.
@@ -400,7 +400,7 @@ CLASS z2ui5_cl_config_service IMPLEMENTATION.
     ls_theme_entry-changed_by  = sy-uname.
     ls_theme_entry-created_at  = lv_timestamp.
     ls_theme_entry-changed_at  = lv_timestamp.
-    MODIFY z2ui5_themes FROM ls_theme_entry.
+    MODIFY z2ui5_themes FROM @ls_theme_entry.
 
     CLEAR ls_theme_entry.
     ls_theme_entry-ui5_version = '1.120'.
@@ -410,7 +410,7 @@ CLASS z2ui5_cl_config_service IMPLEMENTATION.
     ls_theme_entry-changed_by  = sy-uname.
     ls_theme_entry-created_at  = lv_timestamp.
     ls_theme_entry-changed_at  = lv_timestamp.
-    MODIFY z2ui5_themes FROM ls_theme_entry.
+    MODIFY z2ui5_themes FROM @ls_theme_entry.
 
     CLEAR ls_theme_entry.
     ls_theme_entry-ui5_version = '1.136'.
@@ -420,7 +420,7 @@ CLASS z2ui5_cl_config_service IMPLEMENTATION.
     ls_theme_entry-changed_by  = sy-uname.
     ls_theme_entry-created_at  = lv_timestamp.
     ls_theme_entry-changed_at  = lv_timestamp.
-    MODIFY z2ui5_themes FROM ls_theme_entry.
+    MODIFY z2ui5_themes FROM @ls_theme_entry.
 
     " sap_horizon_hcw themes (UI5 1.101+)
     CLEAR ls_theme_entry.
@@ -431,7 +431,7 @@ CLASS z2ui5_cl_config_service IMPLEMENTATION.
     ls_theme_entry-changed_by  = sy-uname.
     ls_theme_entry-created_at  = lv_timestamp.
     ls_theme_entry-changed_at  = lv_timestamp.
-    MODIFY z2ui5_themes FROM ls_theme_entry.
+    MODIFY z2ui5_themes FROM @ls_theme_entry.
 
     CLEAR ls_theme_entry.
     ls_theme_entry-ui5_version = '1.120'.
@@ -441,7 +441,7 @@ CLASS z2ui5_cl_config_service IMPLEMENTATION.
     ls_theme_entry-changed_by  = sy-uname.
     ls_theme_entry-created_at  = lv_timestamp.
     ls_theme_entry-changed_at  = lv_timestamp.
-    MODIFY z2ui5_themes FROM ls_theme_entry.
+    MODIFY z2ui5_themes FROM @ls_theme_entry.
 
     CLEAR ls_theme_entry.
     ls_theme_entry-ui5_version = '1.136'.
@@ -451,7 +451,7 @@ CLASS z2ui5_cl_config_service IMPLEMENTATION.
     ls_theme_entry-changed_by  = sy-uname.
     ls_theme_entry-created_at  = lv_timestamp.
     ls_theme_entry-changed_at  = lv_timestamp.
-    MODIFY z2ui5_themes FROM ls_theme_entry.
+    MODIFY z2ui5_themes FROM @ls_theme_entry.
 
     " sap_fiori_3 themes (UI5 1.65+)
     CLEAR ls_theme_entry.
@@ -462,7 +462,7 @@ CLASS z2ui5_cl_config_service IMPLEMENTATION.
     ls_theme_entry-changed_by  = sy-uname.
     ls_theme_entry-created_at  = lv_timestamp.
     ls_theme_entry-changed_at  = lv_timestamp.
-    MODIFY z2ui5_themes FROM ls_theme_entry.
+    MODIFY z2ui5_themes FROM @ls_theme_entry.
 
     " sap_fiori_3 themes (UI5 1.69+)
     CLEAR ls_theme_entry.
@@ -473,7 +473,7 @@ CLASS z2ui5_cl_config_service IMPLEMENTATION.
     ls_theme_entry-changed_by  = sy-uname.
     ls_theme_entry-created_at  = lv_timestamp.
     ls_theme_entry-changed_at  = lv_timestamp.
-    MODIFY z2ui5_themes FROM ls_theme_entry.
+    MODIFY z2ui5_themes FROM @ls_theme_entry.
 
     " Continue with other themes following the same pattern...
     " (Expand this for all themes and versions as required)
