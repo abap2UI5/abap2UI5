@@ -31,16 +31,16 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
       ri_exit = gi_me.
     ENDIF.
 
-    DATA(exit_classes) = z2ui5_cl_util_abap=>rtti_get_classes_impl_intf( val = 'Z2UI5_IF_EXIT' ).
+    DATA(exit_classes) = z2ui5_cl_util_abap=>rtti_get_classes_impl_intf( 'Z2UI5_IF_EXIT' ).
     DELETE exit_classes WHERE classname = 'Z2UI5_CL_EXIT'.
 
     TRY.
         lv_class_name = exit_classes[ 1 ]-classname.
         CREATE OBJECT gi_user_exit TYPE (lv_class_name).
-      CATCH cx_sy_itab_line_not_found cx_sy_create_object_error ##NO_HANDLER.
+      CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
-    CREATE OBJECT gi_me TYPE z2ui5_cl_exit.
+    gi_me = new z2ui5_cl_exit( ).
 
     ri_exit = gi_me.
 
