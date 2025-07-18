@@ -373,7 +373,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
       ASSIGN (lv_name) TO <attri>.
     ENDIF.
 
-    IF <attri> IS ASSIGNED.
+    IF <attri> IS NOT ASSIGNED.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING
           val = `DEREF_FAILED_TARGET_INITIAL`.
