@@ -287,22 +287,8 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
             ENDIF.
             lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <val_ref> ).
             CLEAR <val_ref>.
-
             CLEAR <val1>.
             CLEAR <ref>.
-
-*            LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_ref)
-*              WHERE name_ref = lr_attri_child->name.
-*
-*              READ TABLE mt_attri->* REFERENCE INTO DATA(lr_attri_ref_parent)
-*                WITH KEY name = lr_attri_ref->name_parent.
-*              IF sy-subrc <> 0.
-*                CONTINUE.
-*              ENDIF.
-*              DATA(lv_name7) = |MO_APP->{ lr_attri_ref_parent->name }|.
-*              ASSIGN (lv_name7) TO FIELD-SYMBOL(<val7>).
-*              CLEAR <val7>.
-*            ENDLOOP.
             EXIT.
           ENDLOOP.
 
@@ -314,7 +300,6 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     ENDLOOP.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri2)
-*        WHERE name_ref IS INITIAL
          WHERE type_kind = cl_abap_datadescr=>typekind_dref.
 
       DATA(lv_name8) = |MO_APP->{ lr_attri2->name }|.
@@ -373,17 +358,15 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
       ASSIGN (lv_name) TO <attri>.
     ENDIF.
 
-    IF <attri> IS NOT ASSIGNED.
+    IF sy-subrc <> 0.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING
-          val = `ATTRI_GET_VAL_REF_ERROR`.
+          val = `DEREF_FAILED_TARGET_INITIAL`.
     ENDIF.
 
     GET REFERENCE OF <attri> INTO result.
-    IF result IS NOT BOUND.
-      RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING
-          val = `ATTRI_GET_VAL_REF_ERROR`.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
     ENDIF.
 
   ENDMETHOD.

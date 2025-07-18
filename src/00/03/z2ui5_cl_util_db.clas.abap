@@ -151,6 +151,4 @@ CLASS z2ui5_cl_util_db IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-
 ENDCLASS.

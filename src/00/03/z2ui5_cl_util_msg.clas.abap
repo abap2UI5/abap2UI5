@@ -1,6 +1,7 @@
 CLASS z2ui5_cl_util_msg DEFINITION PUBLIC
   FINAL CREATE PUBLIC.
   PUBLIC SECTION.
+
     CLASS-METHODS msg_map
       IMPORTING
         name          TYPE clike
@@ -8,16 +9,18 @@ CLASS z2ui5_cl_util_msg DEFINITION PUBLIC
         is_msg        TYPE z2ui5_cl_util=>ty_s_msg
       RETURNING
         VALUE(result) TYPE z2ui5_cl_util=>ty_s_msg.
+
     CLASS-METHODS msg_get
       IMPORTING
         val           TYPE any
       RETURNING
         VALUE(result) TYPE z2ui5_cl_util=>ty_t_msg.
+
 ENDCLASS.
 
 CLASS z2ui5_cl_util_msg IMPLEMENTATION.
-  METHOD msg_get.
 
+  METHOD msg_get.
 
     DATA(lv_kind) = z2ui5_cl_util=>rtti_get_type_kind( val ).
     CASE lv_kind.
@@ -53,7 +56,7 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
         ENDLOOP.
         IF ls_result-text IS INITIAL AND ls_result-id IS NOT INITIAL.
-        ls_result-id = TO_UPPER( ls_result-id ).
+          ls_result-id = to_upper( ls_result-id ).
           MESSAGE ID ls_result-id TYPE 'I' NUMBER ls_result-no
                   WITH ls_result-v1 ls_result-v2 ls_result-v3 ls_result-v4
                   INTO ls_result-text.
@@ -131,8 +134,8 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
 
   ENDMETHOD.
-  METHOD msg_map.
 
+  METHOD msg_map.
 
     result = is_msg.
     CASE name.
@@ -155,7 +158,6 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
       WHEN 'TIME_STMP'.
         result-timestampl = val.
     ENDCASE.
-
 
   ENDMETHOD.
 ENDCLASS.
