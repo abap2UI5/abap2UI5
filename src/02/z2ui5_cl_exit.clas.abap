@@ -4,11 +4,9 @@ CLASS z2ui5_cl_exit DEFINITION
   CREATE PUBLIC .
 
   PUBLIC SECTION.
-    INTERFACES:
-      z2ui5_if_exit.
+    INTERFACES z2ui5_if_exit.
 
-    CLASS-METHODS:
-      get_instance
+    CLASS-METHODS get_instance
         RETURNING
           VALUE(ri_exit) TYPE REF TO z2ui5_if_exit.
 
