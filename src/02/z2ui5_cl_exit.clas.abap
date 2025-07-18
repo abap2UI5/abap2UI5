@@ -38,7 +38,7 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
-    gi_me = new z2ui5_cl_exit( ).
+    gi_me = NEW z2ui5_cl_exit( ).
 
     ri_exit = gi_me.
 

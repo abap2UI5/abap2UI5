@@ -48,7 +48,7 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
     DATA(lv_draft_exp_time_in_hours) = z2ui5_cl_exit=>get_instance( )->get_draft_exp_time_in_hours( ).
 
     IF lv_draft_exp_time_in_hours IS INITIAL
-    OR lv_draft_exp_time_in_hours <= 0.
+        OR lv_draft_exp_time_in_hours <= 0.
       lv_draft_exp_time_in_hours = c_default_exp_time_in_hours.
     ENDIF.
 
