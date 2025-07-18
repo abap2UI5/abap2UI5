@@ -67,7 +67,7 @@ CLASS lcl_test_01 IMPLEMENTATION.
 
     lo_app = NEW lcl_app_01( ).
     lo_model = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                            app = lo_app ).
+                                            app   = lo_app ).
     lo_model->main_attri_db_load( ).
 
     IF lo_app->mr_tab IS NOT BOUND.
