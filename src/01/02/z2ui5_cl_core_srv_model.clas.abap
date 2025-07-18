@@ -358,15 +358,17 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
       ASSIGN (lv_name) TO <attri>.
     ENDIF.
 
-    IF sy-subrc <> 0.
+    IF <attri> IS NOT ASSIGNED.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING
-          val = `DEREF_FAILED_TARGET_INITIAL`.
+          val = `ATTRI_GET_VAL_REF_ERROR`.
     ENDIF.
 
     GET REFERENCE OF <attri> INTO result.
-    IF sy-subrc <> 0.
-      ASSERT 1 = 0.
+    IF result IS NOT BOUND.
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING
+          val = `ATTRI_GET_VAL_REF_ERROR`.
     ENDIF.
 
   ENDMETHOD.
