@@ -615,8 +615,6 @@ CLASS ltcl_test_app_root_attri2 IMPLEMENTATION.
       cl_abap_unit_assert=>abort( ).
     ENDIF.
 
-
-
   ENDMETHOD.
 
 ENDCLASS.
@@ -629,100 +627,8 @@ CLASS ltcl_test_app_root2 IMPLEMENTATION.
         comp1 = 'comp1'
         comp2 = 'comp2' ).
 
-
     mo_obj = NEW ltcl_test_app_root_attri2(
       ir_struc = REF #( ms_struc ) ).
-
-  ENDMETHOD.
-ENDCLASS.
-
-
-
-CLASS ltcl_test_app_root_attri3 DEFINITION FINAL
-  FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
-
-  PUBLIC SECTION.
-
-    DATA mr_tab TYPE REF TO data.
-
-    METHODS constructor
-      IMPORTING
-        ir_tab TYPE REF TO data OPTIONAL.
-
-    METHODS test       FOR TESTING RAISING cx_static_check.
-
-ENDCLASS.
-
-CLASS ltcl_test_app_root3 DEFINITION FINAL
-  FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
-
-  PUBLIC SECTION.
-
-    TYPES:
-      BEGIN OF ty_s_row,
-        comp1 TYPE string,
-        comp2 TYPE string,
-      END OF ty_s_row.
-    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
-
-    DATA mt_tab  TYPE ty_t_tab.
-*    DATA ms_struc TYPE ty_s_row.
-    DATA mo_obj TYPE REF TO ltcl_test_app_root_attri3.
-
-    METHODS constructor.
-ENDCLASS.
-
-
-CLASS ltcl_test_app_root_attri3 IMPLEMENTATION.
-
-  METHOD constructor.
-
-*    mr_struc = ir_struc.
-    mr_tab = ir_tab.
-
-  ENDMETHOD.
-
-  METHOD test.
-
-*    DATA(lo_app) = NEW ltcl_test_app_root3( ).
-*
-*    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-*    DATA(lo_model) = NEW z2ui5_cl_core_srv_diss( attri = REF #( lt_attri )
-*                                                  app   = lo_app ).
-*
-**    DATA(ls_attri) = lo_model->main_attri_search( lo_app->mo_obj->mr_struc ).
-*
-**    IF ls_attri->name <> 'MS_STRUC'.
-**      cl_abap_unit_assert=>abort( ).
-**    ENDIF.
-*
-*    DATA(ls_attri) = lo_model->main_attri_search( lo_app->mo_obj->mr_tab ).
-*
-*    IF ls_attri->name <> 'MT_TAB'.
-*      cl_abap_unit_assert=>abort( ).
-*    ENDIF.
-
-  ENDMETHOD.
-
-ENDCLASS.
-
-CLASS ltcl_test_app_root3 IMPLEMENTATION.
-
-  METHOD constructor.
-
-*    ms_struc = VALUE #(
-*        comp1 = 'comp1'
-*        comp2 = 'comp2'
-*    ).
-
-    INSERT VALUE #(
-        comp1 = 'comp1'
-        comp2 = 'comp2'
-      ) INTO TABLE mt_tab.
-
-    mo_obj = NEW ltcl_test_app_root_attri3(
-*      ir_struc = REF #( ms_struc )
-      ir_tab = REF #( mt_tab ) ).
 
   ENDMETHOD.
 ENDCLASS.
@@ -734,13 +640,12 @@ CLASS ltcl_test_app_root4 DEFINITION FINAL
   PUBLIC SECTION.
 
     DATA mr_tab  TYPE REF TO data.
-    METHODS test_tab_ref_gen       FOR TESTING RAISING cx_static_check.
+    METHODS test_tab_ref_gen FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
 
 CLASS ltcl_test_app_root4 IMPLEMENTATION.
-
 
   METHOD test_tab_ref_gen.
 
@@ -748,6 +653,9 @@ CLASS ltcl_test_app_root4 IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+
+
+    "create data
     DATA(lo_app) = NEW ltcl_test_app_root4( ).
 
     TYPES:
@@ -765,6 +673,9 @@ CLASS ltcl_test_app_root4 IMPLEMENTATION.
       comp2 = 'comp2'
       ) INTO TABLE <tab>.
 
+
+
+    "test find binding
     DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
     DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
                                                   app   = lo_app ).
@@ -775,10 +686,14 @@ CLASS ltcl_test_app_root4 IMPLEMENTATION.
       cl_abap_unit_assert=>abort( ).
     ENDIF.
 
+
+
+    "test frontend backend draft
     lo_model->main_attri_db_save_srtti( ).
+
     lo_app = NEW ltcl_test_app_root4( ).
-    lo_model = NEW z2ui5_cl_core_srv_model( attri     = REF #( lt_attri )
-                                                  app = lo_app ).
+    lo_model = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                            app   = lo_app ).
     lo_model->main_attri_db_load( ).
 
     IF lo_app->mr_tab IS NOT BOUND.

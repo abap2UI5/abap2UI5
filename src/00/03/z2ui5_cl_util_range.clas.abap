@@ -1,55 +1,61 @@
 CLASS z2ui5_cl_util_range DEFINITION PUBLIC
   FINAL CREATE PUBLIC.
   PUBLIC SECTION.
-    CONSTANTS: BEGIN OF signs,
-                 including TYPE string VALUE 'I',
-                 excluding TYPE string VALUE 'E',
-               END OF signs.
-    CONSTANTS: BEGIN OF options,
-                 equal                TYPE string VALUE 'EQ',
-                 not_equal            TYPE string VALUE 'NE',
-                 between              TYPE string VALUE 'BT',
-                 not_between          TYPE string VALUE 'NB',
-                 contains_pattern     TYPE string VALUE 'CP',
-                 not_contains_pattern TYPE string VALUE 'NP',
-                 greater_than         TYPE string VALUE 'GT',
-                 greater_equal        TYPE string VALUE 'GE',
-                 less_equal           TYPE string VALUE 'LE',
-                 less_than            TYPE string VALUE 'LT',
-               END OF options.
+
+    CONSTANTS:
+      BEGIN OF signs,
+        including TYPE string VALUE 'I',
+        excluding TYPE string VALUE 'E',
+      END OF signs.
+
+    CONSTANTS:
+      BEGIN OF options,
+        equal                TYPE string VALUE 'EQ',
+        not_equal            TYPE string VALUE 'NE',
+        between              TYPE string VALUE 'BT',
+        not_between          TYPE string VALUE 'NB',
+        contains_pattern     TYPE string VALUE 'CP',
+        not_contains_pattern TYPE string VALUE 'NP',
+        greater_than         TYPE string VALUE 'GT',
+        greater_equal        TYPE string VALUE 'GE',
+        less_equal           TYPE string VALUE 'LE',
+        less_than            TYPE string VALUE 'LT',
+      END OF options.
+
     METHODS constructor
       IMPORTING
         iv_fieldname TYPE clike
         ir_range     TYPE REF TO data.
+
     METHODS get_sql
       RETURNING
         VALUE(result) TYPE string.
+
   PROTECTED SECTION.
+
     DATA mv_fieldname TYPE string.
     DATA mr_range     TYPE REF TO data.
+
     CLASS-METHODS quote
       IMPORTING
         val        TYPE clike
       RETURNING
         VALUE(out) TYPE string.
+
 ENDCLASS.
 
 CLASS z2ui5_cl_util_range IMPLEMENTATION.
+
   METHOD constructor.
 
-
     mr_range = ir_range.
     mv_fieldname = |{ to_upper( iv_fieldname ) }|.
 
-
-    mr_range = ir_range.
-    mv_fieldname = |{ to_upper( iv_fieldname ) }|.
   ENDMETHOD.
+
   METHOD get_sql.
 
-
     FIELD-SYMBOLS <lt_range> TYPE STANDARD TABLE.
-
     ASSIGN me->mr_range->* TO <lt_range>.
 
     IF xsdbool( <lt_range> IS INITIAL ) = abap_true.
@@ -102,16 +108,15 @@ CLASS z2ui5_cl_util_range IMPLEMENTATION.
 
     result = |{ result } )|.
 
-
   ENDMETHOD.
-  METHOD quote.
 
+  METHOD quote.
 
     out = |'{ replace( val  = val
                        sub  = `'`
                        with = `''`
                        occ  = 0 ) }'|.
 
-
   ENDMETHOD.
+
 ENDCLASS.

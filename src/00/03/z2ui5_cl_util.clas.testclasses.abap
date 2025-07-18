@@ -45,7 +45,7 @@ CLASS ltcl_test_app IMPLEMENTATION.
 ENDCLASS.
 
 
-CLASS ltcl_unit_test_abap_api DEFINITION FINAL
+CLASS ltcl_unit_test_open_abap DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
   PRIVATE SECTION.
@@ -121,7 +121,7 @@ CLASS ltcl_unit_test DEFINITION FINAL
 ENDCLASS.
 
 
-CLASS ltcl_unit_test_abap_api IMPLEMENTATION.
+CLASS ltcl_unit_test_open_abap IMPLEMENTATION.
   METHOD test_assign.
 
     DATA(lo_app) = NEW ltcl_test_app( ).
