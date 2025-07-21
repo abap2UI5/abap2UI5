@@ -125,6 +125,9 @@ sap.ui.define("z2ui5/Focus", ["sap/ui/core/Control",], (Control) => {
       oControl.setProperty("setUpdate", false);
       setTimeout((oControl) => {
         var oElement = z2ui5.oView.byId(oControl.getProperty("focusId"));
+        if (!oElement){
+          return
+        }
         var oFocus = oElement.getFocusInfo();
         oFocus.selectionStart = parseInt(oControl.getProperty("selectionStart"));
         oFocus.selectionEnd = parseInt(oControl.getProperty("selectionEnd"));

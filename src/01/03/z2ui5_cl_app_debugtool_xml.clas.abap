@@ -18,7 +18,7 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
 
   METHOD get.
 
-    result = `<core:FragmentDefinition` &&
+    result =              `<core:FragmentDefinition` &&
              `    xmlns="sap.m"` &&
              `    xmlns:mvc="sap.ui.core.mvc"` &&
              `    xmlns:core="sap.ui.core"` &&
@@ -34,15 +34,15 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `            select=".onItemSelect"` &&
              `        >` &&
              `            <items>` &&
-             `         <IconTabFilter` &&
+             `		        <IconTabFilter` &&
              `                    text="Config"` &&
              `                    key="CONFIG"` &&
-             ` enabled="true"` &&
+             `					enabled="true"` &&
              `                />` &&
              `                <IconTabFilter` &&
              `                    text="Previous Request"` &&
              `                    key="REQUEST"` &&
-             ` enabled="true"` &&
+             `					enabled="true"` &&
              `                />` &&
              `                <IconTabFilter` &&
              `                    text="Response"` &&
@@ -63,47 +63,47 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `                <IconTabFilter` &&
              `                    text="Popup"` &&
              `                    key="POPUP"` &&
-             ` enabled="{/activePopup}"` &&
+             `					enabled="{/activePopup}"` &&
              `                />` &&
              `                <IconTabFilter` &&
              `                    text="Popup Model"` &&
              `                    key="POPUP_MODEL"` &&
-             ` enabled="{/activePopup}"` &&
+             `					enabled="{/activePopup}"` &&
              `                />` &&
              `                <IconTabFilter` &&
              `                    text="Popover"` &&
              `                    key="POPOVER"` &&
-             ` enabled="{/activePopover}"` &&
+             `					enabled="{/activePopover}"` &&
              `                />` &&
              `                <IconTabFilter` &&
              `                    text="Popover Model"` &&
              `                    key="POPOVER_MODEL"` &&
-             ` enabled="{/activePopover}"` &&
+             `					enabled="{/activePopover}"` &&
              `                />` &&
              `                <IconTabFilter` &&
              `                    text="Nest1"` &&
              `                    key="NEST1"` &&
-             ` enabled="{/activeNest1}"` &&
+             `					enabled="{/activeNest1}"` &&
              `                />` &&
              `                <IconTabFilter` &&
              `                    text="Nest1 Model"` &&
              `                    key="NEST1_MODEL"` &&
-             ` enabled="{/activeNest1}"` &&
+             `					enabled="{/activeNest1}"` &&
              `                />` &&
              `                <IconTabFilter` &&
              `                    text="Nest2"` &&
              `                    key="NEST2"` &&
-             ` enabled="{/activeNest2}"` &&
+             `					enabled="{/activeNest2}"` &&
              `                />` &&
              `                <IconTabFilter` &&
              `                    text="Nest2 Model"` &&
              `                    key="NEST2_MODEL"` &&
-             ` enabled="{/activeNest2}"` &&
+             `					enabled="{/activeNest2}"` &&
              `                />` &&
              `            </items>` &&
              `        </IconTabHeader>` &&
-             ` <VBox>` &&
-             ` <ToggleButton text="Source XML after Templating" visible="{/isTemplating}" pressed="{/templatingSource}" press=".onTemplatingPress" />` &&
+             `			<VBox>` &&
+             `				<ToggleButton text="Source XML after Templating" visible="{/isTemplating}" pressed="{/templatingSource}" press=".onTemplatingPress" />` &&
              `        <ce:CodeEditor` &&
              `            type="{/type}"` &&
              `            value="{/value}"` &&
@@ -111,9 +111,9 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `            width="10000px"` &&
              `            visible="{/editor_visible}"` &&
              `        /></VBox>` &&
-             ` <VBox visible="{/source_visible}">` &&
-             ` <core:HTML/>` &&
-             ` </VBox>` &&
+             `		<VBox visible="{/source_visible}">` &&
+             `				<core:HTML/>` &&
+             `			</VBox>` &&
              `        <endButton>` &&
              `            <Button` &&
              `                text="Close"` &&
