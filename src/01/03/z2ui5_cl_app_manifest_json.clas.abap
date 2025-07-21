@@ -18,7 +18,7 @@ CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
 
   METHOD get.
 
-    result = `{` &&
+    result =              `{` &&
              `  "_version": "1.65.0",` &&
              `  "sap.app": {` &&
              `    "id": "z2ui5",` &&
