@@ -7,8 +7,8 @@ CLASS z2ui5_cl_exit DEFINITION
     INTERFACES z2ui5_if_exit.
 
     CLASS-METHODS get_instance
-        RETURNING
-          VALUE(ri_exit) TYPE REF TO z2ui5_if_exit.
+      RETURNING
+        VALUE(ri_exit) TYPE REF TO z2ui5_if_exit.
 
   PRIVATE SECTION.
     CLASS-DATA:
@@ -32,11 +32,13 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
     DATA(exit_classes) = z2ui5_cl_util_abap=>rtti_get_classes_impl_intf( 'Z2UI5_IF_EXIT' ).
     DELETE exit_classes WHERE classname = 'Z2UI5_CL_EXIT'.
 
-    TRY.
-        lv_class_name = exit_classes[ 1 ]-classname.
-        CREATE OBJECT gi_user_exit TYPE (lv_class_name).
-      CATCH cx_root ##NO_HANDLER.
-    ENDTRY.
+    IF exit_classes IS NOT INITIAL.
+      lv_class_name = exit_classes[ 1 ]-classname.
+      TRY.
+          CREATE OBJECT gi_user_exit TYPE (lv_class_name).
+        CATCH cx_root ##NO_HANDLER.
+      ENDTRY.
+    ENDIF.
 
     gi_me = NEW z2ui5_cl_exit( ).
 
