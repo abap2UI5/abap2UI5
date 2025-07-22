@@ -55,4 +55,14 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD z2ui5_if_exit~adjust_config.
+
+    IF gi_user_exit IS NOT INITIAL.
+      gi_user_exit->adjust_config(
+        CHANGING
+          cs_config = cs_config ).
+    ENDIF.
+  ENDMETHOD.
+
 ENDCLASS.
