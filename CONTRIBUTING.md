@@ -1,14 +1,14 @@
 # Contributing to abap2UI5
 
-Thank you for your interest in contributing to abap2UI5! This guide will help you get started with contributing to our project, whether you're new to open source or git.
+Thank you for your interest in contributing to abap2UI5! This guide helps ABAP developers get started with open source contributions, whether you're new to Git or experienced with development workflows.
 
 ## Table of Contents
 
 - [Getting Started](#getting-started)
 - [Development Environment Setup](#development-environment-setup)
-- [Making Your First Contribution](#making-your-first-contribution)
-- [Development Workflow](#development-workflow)
+- [ABAP Development with abapGit](#abap-development-with-abapgit)
 - [Code Quality and Testing](#code-quality-and-testing)
+- [Making Your First Contribution](#making-your-first-contribution)
 - [Submitting Changes](#submitting-changes)
 - [Community Guidelines](#community-guidelines)
 
@@ -16,75 +16,152 @@ Thank you for your interest in contributing to abap2UI5! This guide will help yo
 
 ### What is abap2UI5?
 
-abap2UI5 is a framework for developing UI5 applications purely in ABAP, without JavaScript, OData, or RAP. [4](#0-3)  It supports both cloud and on-premise environments and works with all ABAP releases from NW 7.02 to ABAP Cloud. [5](#0-4) 
+abap2UI5 is a framework for developing UI5 applications purely in ABAP, without JavaScript, OData, or RAP. [1](#4-0)  It supports all ABAP releases from NW 7.02 to ABAP Cloud and works in both cloud and on-premise environments. [2](#4-1) 
 
 ### Prerequisites
 
-Before contributing, you'll need:
+**Required:**
+1. **GitHub Account** - [Create a free account](https://github.com/join)
+2. **Git** - [Download and install Git](https://git-scm.com/downloads) (for beginners: [Git Tutorial](https://git-scm.com/docs/gittutorial))
 
-1. **Git** - [Download and install Git](https://git-scm.com/downloads)
-2. **GitHub Account** - [Create a free account](https://github.com/join)
-3. **Node.js** (for transpilation features) - [Download Node.js](https://nodejs.org/)
-4. **ABAP Development Environment** (optional, for testing)
+**For ABAP Development:**
+3. **abapGit** - [Install abapGit](https://abapgit.org/) in your ABAP system
+4. **ABAP Development Environment** - SE80, ADT, or your preferred ABAP editor
 
-### Understanding the Project Structure
+**For Node.js Development (Optional):**
+5. **Node.js** - [Download Node.js](https://nodejs.org/) (only needed for transpilation testing)
 
-The repository contains:
-- `src/` - Core ABAP framework classes [6](#0-5) 
-- `node/` - Node.js transpilation setup and output
+### Understanding the Project
+
+The repository structure: [3](#4-2) 
+- `src/` - Core ABAP framework classes
+- `node/` - Node.js transpilation setup
 - `.github/` - CI/CD workflows and configurations
-- `package.json` - Node.js dependencies and scripts [7](#0-6) 
+- `package.json` - Node.js dependencies and build scripts
 
 ## Development Environment Setup
 
-### 1. Fork the Repository
-
-1. Go to [https://github.com/abap2UI5/abap2UI5](https://github.com/abap2UI5/abap2UI5)
-2. Click the "Fork" button in the top-right corner
-3. This creates your own copy of the repository
-
-### 2. Clone Your Fork
+### 1. Fork and Clone the Repository
 
 ```bash
-# Clone your fork to your local machine
+# 1. Fork the repository on GitHub (click "Fork" button)
+# 2. Clone your fork
 git clone https://github.com/YOUR_USERNAME/abap2UI5.git
-
-# Navigate to the project directory
 cd abap2UI5
 
-# Add the original repository as upstream
+# 3. Add upstream remote
 git remote add upstream https://github.com/abap2UI5/abap2UI5.git
 ```
 
-### 3. Install Dependencies
+### 2. Install Dependencies (Optional)
+
+Only needed if you plan to run transpilation tests locally:
 
 ```bash
-# Install Node.js dependencies
 npm install
 ```
 
-### 4. Verify Your Setup
+This installs abaplint-cli and other tools automatically. [4](#4-3) 
+
+## ABAP Development with abapGit
+
+### Installation in ABAP System
+
+The framework supports easy installation via abapGit with no extra deployment needed. [5](#4-4) 
+
+1. **Install in Your ABAP System:**
+   - Open abapGit in your ABAP system (SE80 → Utilities → abapGit)
+   - Click "New Online" repository
+   - Enter your fork URL: `https://github.com/YOUR_USERNAME/abap2UI5.git`
+   - Choose package name (e.g., `$ZABAP2UI5` or `ZABAP2UI5`)
+   - Install the repository
+
+### Development Workflow
+
+**For ABAP Developers (Recommended Path):**
+
+1. **Make Changes in ABAP:**
+   - Use SE80, ADT, or your preferred ABAP editor
+   - Modify classes in the installed package (e.g., `z2ui5_cl_*` classes)
+   - Test your changes in the ABAP system
+
+2. **Export Changes via abapGit:**
+   - Return to abapGit in your ABAP system
+   - Select your repository
+   - Click "Stage" to see your changes
+   - Export changes to update local files in the `src/` directory
+
+3. **Commit and Push:**
+   ```bash
+   # In your local repository directory
+   git add .
+   git commit -m "feat: describe your changes"
+   git push origin feature/your-feature-name
+   ```
+
+## Code Quality and Testing
+
+### Local Code Quality Checks
+
+#### abaplint-cli Usage
+
+abaplint-cli is automatically installed with `npm install`. [4](#4-3)  Use these commands:
 
 ```bash
-# Check that all npm scripts work
+# Check code quality with main rules
+npx abaplint
+
+# Apply automatic formatting fixes
+npx abaplint .github/abaplint/auto_abaplint_fix.jsonc --fix
+
+# Check NetWeaver 7.02 compatibility
+npx abaplint .github/abaplint/abap_702.jsonc --fix
+```
+
+#### abaplint Configuration
+
+The project uses multiple configurations: [6](#4-5) 
+- `abaplint.jsonc` - Main quality rules (v750 syntax)
+- `.github/abaplint/auto_abaplint_fix.jsonc` - Automatic formatting fixes [7](#4-6) 
+- `.github/abaplint/abap_702.jsonc` - NetWeaver 7.02 compatibility [8](#4-7) 
+
+For rule customization, see [abaplint documentation](https://abaplint.org/).
+
+### When to Run Local Tests
+
+**For ABAP System Development:**
+- ✅ **Always run:** `npx abaplint` (catches syntax and style issues)
+- ⚠️ **Optional:** Transpilation tests (GitHub Actions handles this automatically)
+- ✅ **For complex changes:** Run full pipeline to catch issues early
+
+**Quick validation commands:**
+```bash
+# Recommended for all changes
+npx abaplint .github/abaplint/auto_abaplint_fix.jsonc --fix
+
+# Optional - only for complex changes or debugging
 npm run auto_downport
 npm run auto_transpile
-npm run express &
-curl -s http://localhost:3000
 npm run unit
 ```
 
-These commands test the transpilation pipeline that converts ABAP code to JavaScript. [8](#0-7) 
+### Automated Testing
+
+The project uses comprehensive automated testing: [9](#4-8) 
+- **abaplint** - Static code analysis
+- **Transpilation Tests** - ABAP to JavaScript conversion
+- **Unit Tests** - Functionality validation
+- **Browser Tests** - End-to-end testing with Playwright
 
 ## Making Your First Contribution
 
-### Types of Contributions Welcome
+### Types of Contributions
 
-1. **Bug Reports** - Found an issue? [Open an issue](https://github.com/abap2UI5/abap2UI5/issues) [9](#0-8) 
-2. **Feature Requests** - Have an idea? Discuss it in issues first
-3. **Documentation** - Improve README, wiki, or code comments
-4. **Code Contributions** - Bug fixes, new features, or improvements
-5. **Testing** - Add test cases or improve existing ones
+1. **Bug Reports** - [Open an issue](https://github.com/abap2UI5/abap2UI5/issues) [10](#4-9) 
+2. **Feature Requests** - Discuss in issues first
+3. **Documentation** - Improve guides, comments, or examples
+4. **Code Contributions** - Bug fixes, new features, improvements
+5. **Testing** - Add test cases or improve coverage
 
 ### Good First Issues
 
@@ -93,195 +170,116 @@ Look for issues labeled:
 - `help wanted`
 - `documentation`
 
-## Development Workflow
+### Development Workflow
 
-### 1. Create a Feature Branch
+1. **Create a Feature Branch:**
+   ```bash
+   git checkout main
+   git pull upstream main
+   git checkout -b feature/your-feature-name
+   ```
 
-```bash
-# Make sure you're on main and up to date
-git checkout main
-git pull upstream main
+2. **Make Your Changes:**
+   - **ABAP Changes:** Use abapGit workflow (recommended)
+   - **Node.js Changes:** Edit files directly and test with `npm run auto_transpile`
 
-# Create a new branch for your feature
-git checkout -b feature/your-feature-name
-```
+3. **Test Your Changes:**
+   ```bash
+   # Always run (catches most issues)
+   npx abaplint
 
-### 2. Make Your Changes
+   # Optional (GitHub Actions will run these)
+   npm run auto_downport
+   npm run auto_transpile
+   ```
 
-#### For ABAP Code Changes:
-- Follow the existing code style and patterns
-- Ensure compatibility with ABAP 7.02+ [10](#0-9) 
-- Add appropriate documentation
+4. **Commit Your Changes:**
+   ```bash
+   git add .
+   git commit -m "feat: add new feature for XYZ
 
-#### For Node.js/Transpilation Changes:
-- Test your changes with `npm run auto_transpile`
-- Ensure the Express server starts correctly with `npm run express`
+   - Detailed description of changes
+   - Why the change was needed
+   - Any breaking changes"
+   ```
 
-### 3. Test Your Changes
-
-```bash
-# Run the full test suite
-npm run auto_downport
-npm run auto_transpile
-npm run unit
-
-# Test the web server
-npm run express &
-# Test in browser at http://localhost:3000
-```
-
-### 4. Commit Your Changes
-
-```bash
-# Stage your changes
-git add .
-
-# Commit with a descriptive message
-git commit -m "feat: add new feature for XYZ
-
-- Detailed description of what was added
-- Why it was needed
-- Any breaking changes"
-```
-
-#### Commit Message Guidelines:
-- Use conventional commits format: `type: description`
+#### Commit Message Guidelines
+- Use [conventional commits](https://www.conventionalcommits.org/): `type: description`
 - Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
-- Keep the first line under 50 characters
-- Add detailed description if needed
-
-## Code Quality and Testing
-
-### Automated Checks
-
-The project uses several automated tools: [11](#0-10) 
-
-1. **abaplint** - Static code analysis for ABAP [12](#0-11) 
-2. **Transpilation Tests** - Ensures ABAP code converts to JavaScript
-3. **Unit Tests** - Validates functionality
-4. **Browser Tests** - End-to-end testing with Playwright [13](#0-12) 
-
-### Running Quality Checks Locally
-
-```bash
-# Run abaplint checks
-npx abaplint
-
-# Run transpilation
-npm run auto_transpile
-
-# Run unit tests
-npm run unit
-
-# Run all checks (what CI does)
-npm run auto_downport && npm run auto_transpile && npm run unit
-```
-
-### Code Style Guidelines
-
-- Follow existing ABAP naming conventions
-- Use meaningful variable and method names
-- Add comments for complex logic
-- Ensure ABAP Cloud compatibility where possible [14](#0-13) 
+- Keep first line under 50 characters
+- Add detailed description for complex changes
 
 ## Submitting Changes
 
 ### 1. Push Your Branch
-
 ```bash
-# Push your feature branch to your fork
 git push origin feature/your-feature-name
 ```
 
 ### 2. Create a Pull Request
-
 1. Go to your fork on GitHub
 2. Click "Compare & pull request"
-3. Fill out the PR template with:
+3. Fill out the PR template:
    - Clear description of changes
    - Why the change is needed
    - How to test the changes
-   - Any breaking changes
+   - Whether changes were made via abapGit
 
 ### 3. PR Review Process
-
-1. **Automated Checks** - CI will run all tests automatically
-2. **Code Review** - Maintainers will review your code
+1. **Automated Checks** - CI runs all tests automatically
+2. **Code Review** - Maintainers review your code
 3. **Feedback** - Address any requested changes
 4. **Approval** - Once approved, your PR will be merged
 
-### 4. After Your PR is Merged
-
+### 4. After Merge
 ```bash
-# Switch back to main
+# Update your local repository
 git checkout main
-
-# Pull the latest changes
 git pull upstream main
-
-# Delete your feature branch
 git branch -d feature/your-feature-name
-git push origin --delete feature/your-feature-name
+
+# Update your abapGit repository
+# In abapGit: pull latest changes to your ABAP system
 ```
 
 ## Community Guidelines
 
 ### Code of Conduct
-
-Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md). [3](#0-2) 
+Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ### Getting Help
-
-- **Issues**: [GitHub Issues](https://github.com/abap2UI5/abap2UI5/issues) [9](#0-8) 
-- **Discussions**: Use GitHub Discussions for questions
-- **Documentation**: [www.abap2UI5.org](http://www.abap2UI5.org) [15](#0-14) 
+- **Issues:** [GitHub Issues](https://github.com/abap2UI5/abap2UI5/issues)
+- **Documentation:** [abap2UI5.org](http://abap2UI5.org) [11](#4-10) 
+- **Git Help:** [Git Documentation](https://git-scm.com/doc)
+- **abapGit Help:** [abapGit Documentation](https://docs.abapgit.org/)
 
 ### Recognition
-
-Contributors are recognized in:
-- GitHub contributors page [16](#0-15) 
-- Project documentation
-- Release notes for significant contributions
+Contributors are recognized in the [GitHub contributors page](https://github.com/abap2UI5/abap2UI5/graphs/contributors) and project documentation. [12](#4-11) 
 
 ## Advanced Topics
 
-### Working with the Transpilation System
-
-The project includes a sophisticated transpilation system that converts ABAP to JavaScript: [17](#0-16) 
-
-```bash
-# Understanding the transpilation pipeline
-npm run auto_downport    # Ensures ABAP 7.02 compatibility
-npm run auto_transpile   # Converts ABAP to JavaScript
-npm run express         # Runs the Node.js server
-```
-
-### Testing in Different Environments
-
-The project supports multiple ABAP environments:
+### Multi-Environment Support
+The framework supports multiple ABAP environments: [2](#4-1) 
 - ABAP Cloud
-- ABAP Standard  
-- ABAP 7.02+ [5](#0-4) 
+- ABAP Standard
+- NetWeaver 7.02+
 
-### Release Process
+### abapGit Best Practices
+- Test changes in your ABAP system before exporting
+- Export changes frequently to avoid conflicts
+- Keep your local repository and ABAP system synchronized
+- Use meaningful commit messages
 
-Releases follow semantic versioning and include:
-- Feature additions
-- Bug fixes
-- Compatibility improvements [18](#0-17) 
+### Build Pipeline
+The project uses sophisticated build automation: [13](#4-12) 
+- Automatic downporting for NetWeaver 7.02 compatibility
+- ABAP to JavaScript transpilation
+- Comprehensive quality checks
 
 ## Thank You!
 
-Your contributions help make abap2UI5 better for everyone. Whether you're fixing a typo, adding a feature, or helping with documentation, every contribution matters! [19](#0-18) 
+Your contributions help make abap2UI5 better for the entire ABAP community. Whether you're fixing a bug, adding a feature, or improving documentation, every contribution matters!
 
 ---
 
-*For more information, visit [www.abap2UI5.org](http://www.abap2UI5.org) or check out our [sample applications](https://github.com/abap2UI5/abap2UI5-samples).* [20](#0-19) 
-```
-
-## Notes
-
-This contributing guide is tailored specifically for the abap2UI5 project based on its unique characteristics as an ABAP framework with Node.js transpilation capabilities. The guide incorporates the project's existing tooling, CI/CD workflows, and community resources while providing comprehensive guidance for newcomers to both open source and git workflows.
-
-Wiki pages you might want to explore:
-- [Node.js Transpilation (abap2UI5/abap2UI5)](/wiki/abap2UI5/abap2UI5#4.2)
+*For more information, visit [abap2UI5.org](http://abap2UI5.org) or explore our [sample applications](https://github.com/abap2UI5/abap2UI5-samples).*
