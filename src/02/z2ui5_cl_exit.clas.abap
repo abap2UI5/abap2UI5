@@ -63,6 +63,7 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
         CHANGING
           cs_config = cs_config ).
     ENDIF.
+
   ENDMETHOD.
 
 ENDCLASS.
