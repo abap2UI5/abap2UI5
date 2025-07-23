@@ -941,7 +941,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
       APPEND ls_comp TO lt_comps.
     ENDIF.
 
-    DATA(strucdescr) = cl_abap_structdescr=>create( lt_comps ).
+    DATA(strucdescr) = cl_abap_structdescr=>create( p_components = lt_comps ).
 
     DATA(tabdescr) = cl_abap_tabledescr=>create( p_line_type = strucdescr ).
 
