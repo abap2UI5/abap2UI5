@@ -810,75 +810,75 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
     FIELD-SYMBOLS <source> TYPE any.
     FIELD-SYMBOLS <value> TYPE any.
 
-    TRY.
-
-        DATA(lv_assign) = `XCO_CP_CALL_STACK=>LINE_NUMBER_FLAVOR->SOURCE`.
-        ASSIGN (lv_assign) TO <format>.
-
-
-
-        lv_assign = `XCO_CP_CALL_STACK=>FORMAT`.
-        ASSIGN (lv_assign) TO <format2>.
-        format_obj2 = <format2>.
-
-        CALL METHOD format_obj2->('IF_XCO_CP_CS_FORMAT_FACTORY~ADT')
-          RECEIVING
-            ro_adt = format_obj3.
-
-        CALL METHOD format_obj3->('WITH_LINE_NUMBER_FLAVOR')
-          EXPORTING
-            io_line_number_flavor = <format>
-          RECEIVING
-            ro_me                 = format_source.
-
-
-        lv_xco_cp = 'XCO_CP'.
-        ASSIGN (lv_xco_cp)=>('CURRENT') TO <current>.
-        current_obj = <current>.
-
-        ASSIGN current_obj->('IF_XCO_CP_STD_CURRENT~CALL_STACK') TO <call_stack>.
-        stack = <call_stack>.
-
-        CALL METHOD stack->('IF_XCO_CP_STD_CUR_API_CLL_STCK~FULL')
-          RECEIVING
-            ro_full = full_stack.
-
-
-
-
-        DATA(format_source4) = xco_cp_call_stack=>format->adt( )->with_line_number_flavor(
-        xco_cp_call_stack=>line_number_flavor->source ).
-
-        DATA(stack2) = xco_cp=>current->call_stack.
-        DATA(full_stack2) = stack2->full( ).
-
-        DATA(li_test) = CAST if_xco_cs_format( format_source ).
-        ASSIGN format_source TO <any>.
-
-        DATA(lt_stack2) = full_stack2->as_text( io_format = li_test ).
-
-
-        CALL METHOD full_stack->('IF_XCO_CP_CALL_STACK~AS_TEXT')
-          EXPORTING
-            io_format = <any>
-          RECEIVING
-            ro_text   = text_obj.
+*    TRY.
 *
-*        CALL METHOD text_obj->('GET_LINES')
+*        DATA(lv_assign) = `XCO_CP_CALL_STACK=>LINE_NUMBER_FLAVOR->SOURCE`.
+*        ASSIGN (lv_assign) TO <format>.
+*
+*
+*
+*        lv_assign = `XCO_CP_CALL_STACK=>FORMAT`.
+*        ASSIGN (lv_assign) TO <format2>.
+*        format_obj2 = <format2>.
+*
+*        CALL METHOD format_obj2->('IF_XCO_CP_CS_FORMAT_FACTORY~ADT')
 *          RECEIVING
-*            ro_lines = lines_obj.
+*            ro_adt = format_obj3.
 *
-*        ASSIGN lines_obj->('VALUE') TO <value>.
-*        lt_stack = <value>.
-
-
-
-
-      CATCH cx_root INTO DATA(x).
-        DATA(lv_dummy) = x->get_text( ).
-        " Fallback - could implement alternative call stack retrieval here
-        CLEAR lt_stack.
-    ENDTRY.
+*        CALL METHOD format_obj3->('WITH_LINE_NUMBER_FLAVOR')
+*          EXPORTING
+*            io_line_number_flavor = <format>
+*          RECEIVING
+*            ro_me                 = format_source.
+*
+*
+*        lv_xco_cp = 'XCO_CP'.
+*        ASSIGN (lv_xco_cp)=>('CURRENT') TO <current>.
+*        current_obj = <current>.
+*
+*        ASSIGN current_obj->('IF_XCO_CP_STD_CURRENT~CALL_STACK') TO <call_stack>.
+*        stack = <call_stack>.
+*
+*        CALL METHOD stack->('IF_XCO_CP_STD_CUR_API_CLL_STCK~FULL')
+*          RECEIVING
+*            ro_full = full_stack.
+*
+*
+*
+*
+*        DATA(format_source4) = xco_cp_call_stack=>format->adt( )->with_line_number_flavor(
+*        xco_cp_call_stack=>line_number_flavor->source ).
+*
+*        DATA(stack2) = xco_cp=>current->call_stack.
+*        DATA(full_stack2) = stack2->full( ).
+*
+*        DATA(li_test) = CAST if_xco_cs_format( format_source ).
+*        ASSIGN format_source TO <any>.
+*
+*        DATA(lt_stack2) = full_stack2->as_text( io_format = li_test ).
+*
+*
+*        CALL METHOD full_stack->('IF_XCO_CP_CALL_STACK~AS_TEXT')
+*          EXPORTING
+*            io_format = <any>
+*          RECEIVING
+*            ro_text   = text_obj.
+**
+**        CALL METHOD text_obj->('GET_LINES')
+**          RECEIVING
+**            ro_lines = lines_obj.
+**
+**        ASSIGN lines_obj->('VALUE') TO <value>.
+**        lt_stack = <value>.
+*
+*
+*
+*
+*      CATCH cx_root INTO DATA(x).
+*        DATA(lv_dummy) = x->get_text( ).
+*        " Fallback - could implement alternative call stack retrieval here
+*        CLEAR lt_stack.
+*    ENDTRY.
 
 
     DELETE lt_stack INDEX 1.
