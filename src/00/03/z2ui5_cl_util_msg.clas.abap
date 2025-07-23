@@ -43,8 +43,8 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
         DATA(ls_result) = VALUE z2ui5_cl_util=>ty_s_msg( ).
         LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
-          DATA(lv_name) = ls_attri->name.
-          ASSIGN val-(lv_name) TO FIELD-SYMBOL(<comp>).
+          DATA(lv_name) = |VAL-{ ls_attri->name }|.
+          ASSIGN (lv_name) TO FIELD-SYMBOL(<comp>).
 
           IF ls_attri->name = 'ITEM'.
             lt_tab = msg_get( <comp> ).
