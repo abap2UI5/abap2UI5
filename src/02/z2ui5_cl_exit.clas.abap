@@ -9,6 +9,9 @@ CLASS z2ui5_cl_exit DEFINITION
     CLASS-METHODS get_instance
       RETURNING
         VALUE(ri_exit) TYPE REF TO z2ui5_if_exit.
+    CLASS-METHODS get_user_exit_class
+      RETURNING
+        VALUE(r_class_name) TYPE string.
 
   PRIVATE SECTION.
     CLASS-DATA:
@@ -23,17 +26,14 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
 
   METHOD get_instance.
 
-    DATA lv_class_name TYPE string.
-
     IF gi_me IS NOT INITIAL.
       ri_exit = gi_me.
+      RETURN.
     ENDIF.
 
-    DATA(exit_classes) = z2ui5_cl_util_abap=>rtti_get_classes_impl_intf( 'Z2UI5_IF_EXIT' ).
-    DELETE exit_classes WHERE classname = 'Z2UI5_CL_EXIT'.
+    DATA(lv_class_name) = get_user_exit_class( ).
 
-    IF exit_classes IS NOT INITIAL.
-      lv_class_name = exit_classes[ 1 ]-classname.
+    IF lv_class_name IS NOT INITIAL.
       TRY.
           CREATE OBJECT gi_user_exit TYPE (lv_class_name).
         CATCH cx_root ##NO_HANDLER.
@@ -59,7 +59,21 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
   METHOD z2ui5_if_exit~adjust_config.
 
     IF gi_user_exit IS NOT INITIAL.
-      gi_user_exit->adjust_config( CHANGING cs_config = cs_config ).
+      gi_user_exit->adjust_config(
+        CHANGING
+          cs_config = cs_config ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD get_user_exit_class.
+
+    DATA(exit_classes) = z2ui5_cl_util_abap=>rtti_get_classes_impl_intf( 'Z2UI5_IF_EXIT' ).
+    DELETE exit_classes WHERE classname = 'Z2UI5_CL_EXIT'.
+
+    IF exit_classes IS NOT INITIAL.
+      r_class_name = exit_classes[ 1 ]-classname.
     ENDIF.
 
   ENDMETHOD.
