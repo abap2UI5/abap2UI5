@@ -43,8 +43,8 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
         DATA(ls_result) = VALUE z2ui5_cl_util=>ty_s_msg( ).
         LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
-          DATA(lv_name) = |VAL-{ ls_attri->name }|.
-          ASSIGN (lv_name) TO FIELD-SYMBOL(<comp>).
+          DATA(lv_name) = ls_attri->name.
+          ASSIGN val-(lv_name) TO FIELD-SYMBOL(<comp>).
 
           IF ls_attri->name = 'ITEM'.
             lt_tab = msg_get( <comp> ).
@@ -70,8 +70,8 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
             DATA(lt_attri_o) = z2ui5_cl_util=>rtti_get_t_attri_by_oref( val ).
             LOOP AT lt_attri_o REFERENCE INTO DATA(ls_attri_o)
                  WHERE visibility = 'U'.
-              lv_name = |VAL->{ ls_attri_o->name }|.
-              ASSIGN (lv_name) TO <comp>.
+              lv_name = ls_attri_o->name.
+              ASSIGN val->(lv_name) TO <comp>.
               ls_result = msg_map( name = ls_attri_o->name val = <comp> is_msg = ls_result ).
             ENDLOOP.
             INSERT ls_result INTO TABLE result.
@@ -113,8 +113,8 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
                     lt_attri_o = z2ui5_cl_util=>rtti_get_t_attri_by_oref( val ).
                     LOOP AT lt_attri_o REFERENCE INTO ls_attri_o
                          WHERE visibility = 'U'.
-                      lv_name = |OBJ->{ ls_attri_o->name }|.
-                      ASSIGN (lv_name) TO <comp>.
+                      lv_name = ls_attri_o->name.
+                      ASSIGN obj->(lv_name) TO <comp>.
                       ls_result = msg_map( name = ls_attri_o->name val = <comp> is_msg = ls_result ).
                     ENDLOOP.
                     INSERT ls_result INTO TABLE result.
