@@ -131,26 +131,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     DATA(ls_config) = is_config.
 
-    IF ls_config-title IS INITIAL.
-      ls_config-title = `abap2UI5`.
-    ENDIF.
-
-    IF ls_config-theme IS INITIAL.
-      ls_config-theme = `sap_horizon`.
-    ENDIF.
-
-    IF ls_config-src IS INITIAL.
-      ls_config-src = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js`.
-*      ms_req_config-src     = `https://sdk.openui5.org/1.71.67/resources/sap-ui-core.js`.
-*      ms_req_config-src     = `https://sdk.openui5.org/nightly/2/resources/sap-ui-core.js`.
-    ENDIF.
-
-    IF ls_config-content_security_policy IS INITIAL.
-      ls_config-content_security_policy = |<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: | &&
-        |ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com openui5.hana.ondemand.com *.openui5.hana.ondemand.com | &&
-        |sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas; worker-src 'self' blob:; "/>|.
-    ENDIF.
-
     IF ls_config-styles_css IS INITIAL.
       DATA(lv_style_css) = z2ui5_cl_app_style_css=>get( ).
     ELSE.

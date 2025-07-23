@@ -22,7 +22,6 @@ CLASS z2ui5_cl_pop_data DEFINITION
   PRIVATE SECTION.
 ENDCLASS.
 
-
 CLASS z2ui5_cl_pop_data IMPLEMENTATION.
 
   METHOD display.
@@ -43,6 +42,9 @@ CLASS z2ui5_cl_pop_data IMPLEMENTATION.
         LOOP AT lt_attri REFERENCE INTO DATA(lr_attri).
 
           ASSIGN COMPONENT lr_attri->name OF STRUCTURE <data> TO FIELD-SYMBOL(<component>).
+          IF sy-subrc <> 0.
+            CONTINUE.
+          ENDIF.
 
           CASE z2ui5_cl_util=>rtti_get_type_kind( <component> ).
 
@@ -59,7 +61,6 @@ CLASS z2ui5_cl_pop_data IMPLEMENTATION.
         client->nav_app_call( z2ui5_cl_pop_table=>factory( lt_result ) ).
 
     ENDCASE.
-
 
   ENDMETHOD.
 

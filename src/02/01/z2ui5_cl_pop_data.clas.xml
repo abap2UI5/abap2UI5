@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>Z2UI5_CL_POP_DATA</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>ui - popup table</DESCRIPT>
+    <DESCRIPT>ui - display any data</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
