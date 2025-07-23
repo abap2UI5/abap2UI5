@@ -68,6 +68,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_util_abap_http IMPLEMENTATION.
+
   METHOD delete_response_cookie.
 
     DATA(lv_val) = CONV string( val ).

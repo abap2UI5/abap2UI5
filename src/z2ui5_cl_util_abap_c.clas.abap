@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_util_abap DEFINITION
+CLASS z2ui5_cl_util_abap_c DEFINITION
   PUBLIC
   CREATE PUBLIC.
 
@@ -25,16 +25,7 @@ CLASS z2ui5_cl_util_abap DEFINITION
         classname   TYPE string,
         description TYPE string,
       END OF ty_s_class_descr.
-    TYPES ty_t_classes TYPE STANDARD TABLE OF ty_s_class_descr WITH DEFAULT KEY.
-
-    TYPES:
-      BEGIN OF ty_s_stack,
-        class   TYPE string,
-        include TYPE string,
-        method  TYPE string,
-        line    TYPE string,
-      END OF ty_s_stack.
-    TYPES ty_t_stack TYPE STANDARD TABLE OF ty_s_stack WITH DEFAULT KEY.
+    TYPES ty_t_classes TYPE STANDARD TABLE OF ty_s_class_descr WITH NON-UNIQUE DEFAULT KEY.
 
     CLASS-METHODS bal_read
       IMPORTING
@@ -53,15 +44,15 @@ CLASS z2ui5_cl_util_abap DEFINITION
 
     CLASS-METHODS context_get_callstack
       RETURNING
-        VALUE(result) TYPE ty_t_stack.
-
-    CLASS-METHODS context_get_tenant
-      RETURNING
-        VALUE(result) TYPE string.
+        VALUE(result) TYPE z2ui5_cl_util_abap=>ty_t_stack.
 
     CLASS-METHODS context_check_abap_cloud
       RETURNING
         VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS context_get_tenant
+      RETURNING
+        VALUE(result) TYPE string.
 
     CLASS-METHODS context_get_user_tech
       RETURNING
@@ -158,17 +149,28 @@ CLASS z2ui5_cl_util_abap DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_util_abap IMPLEMENTATION.
+CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
 
   METHOD context_get_user_tech.
+    TRY.
 
-    IF context_check_abap_cloud( ).
-      result = z2ui5_cl_util_abap_c=>context_get_user_tech( ).
-    ELSE.
-      result = z2ui5_cl_util_abap_s=>context_get_user_tech( ).
-    ENDIF.
+        DATA(lv_result) = VALUE string( ).
+        DATA(lv_class) = 'CL_ABAP_CONTEXT_INFO'.
+        CALL METHOD (lv_class)=>('GET_USER_BUSINESS_PARTNER_ID')
+          RECEIVING
+            rv_business_partner_id = lv_result.
+
+        result = lv_result.
+
+      CATCH cx_root INTO DATA(x).
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING
+            previous = x.
+    ENDTRY.
+
 
   ENDMETHOD.
+
 
   METHOD context_check_abap_cloud.
 
@@ -180,6 +182,7 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
+
 
   METHOD rtti_get_t_fixvalues.
 
@@ -506,61 +509,8 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
         ENDLOOP.
         result = temp3.
 
-      CATCH cx_root.
-
-        ls_key-intkey = val.
-
-        lv_fm = `SEO_INTERFACE_IMPLEM_GET_ALL`.
-        CALL FUNCTION lv_fm
-          EXPORTING
-            intkey        = ls_key
-          IMPORTING
-            impkeys       = lt_impl
-          EXCEPTIONS
-            error_message = 1
-            OTHERS        = 2.
-        IF sy-subrc <> 0.
-          RETURN.
-        ENDIF.
-
-        type = 'SEOC_CLASS_R'.
-        CREATE DATA class TYPE (type).
-
-        ASSIGN class->* TO <class>.
-
-        LOOP AT lt_impl REFERENCE INTO lr_impl.
-
-          CLEAR <class>.
-
-          ls_clskey-clsname = lr_impl->clsname.
-
-          lv_fm = `SEO_CLASS_READ`.
-          CALL FUNCTION lv_fm
-            EXPORTING
-              clskey        = ls_clskey
-            IMPORTING
-              class         = <class>
-            EXCEPTIONS
-              error_message = 1
-              OTHERS        = 2.
-          IF sy-subrc <> 0.
-            RAISE EXCEPTION TYPE z2ui5_cx_util_error.
-          ENDIF.
-
-          ASSIGN
-            COMPONENT 'DESCRIPT'
-            OF STRUCTURE <class>
-            TO <description>.
-          ASSERT sy-subrc = 0.
-
-          CLEAR temp6.
-          temp6-classname   = lr_impl->clsname.
-          temp6-description = <description>.
-          INSERT
-            temp6
-            INTO TABLE result.
-        ENDLOOP.
-
+      CATCH cx_root INTO DATA(x).
+        DATA(lv_dummy) = x->get_text( ).
     ENDTRY.
 
   ENDMETHOD.
@@ -761,27 +711,33 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
   METHOD rtti_get_class_descr_on_cloud.
 
-    DATA obj          TYPE REF TO object.
-    DATA content      TYPE REF TO object.
-    DATA lv_classname TYPE c LENGTH 30.
-    DATA xco_cp_abap  TYPE c LENGTH 11.
+    TRY.
 
-    lv_classname = i_classname.
+        DATA obj          TYPE REF TO object.
+        DATA content      TYPE REF TO object.
+        DATA lv_classname TYPE c LENGTH 30.
+        DATA xco_cp_abap  TYPE c LENGTH 11.
 
-    xco_cp_abap = 'XCO_CP_ABAP'.
-    CALL METHOD (xco_cp_abap)=>('CLASS')
-      EXPORTING
-        iv_name  = lv_classname
-      RECEIVING
-        ro_class = obj.
+        lv_classname = i_classname.
 
-    CALL METHOD obj->('IF_XCO_AO_CLASS~CONTENT')
-      RECEIVING
-        ro_content = content.
+        xco_cp_abap = 'XCO_CP_ABAP'.
+        CALL METHOD (xco_cp_abap)=>('CLASS')
+          EXPORTING
+            iv_name  = lv_classname
+          RECEIVING
+            ro_class = obj.
 
-    CALL METHOD content->('IF_XCO_CLAS_CONTENT~GET_SHORT_DESCRIPTION')
-      RECEIVING
-        rv_short_description = result.
+        CALL METHOD obj->('IF_XCO_AO_CLASS~CONTENT')
+          RECEIVING
+            ro_content = content.
+
+        CALL METHOD content->('IF_XCO_CLAS_CONTENT~GET_SHORT_DESCRIPTION')
+          RECEIVING
+            rv_short_description = result.
+
+      CATCH cx_root INTO DATA(x).
+        DATA(lv_dummy) = x->get_text( ).
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -827,15 +783,111 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
   METHOD context_get_callstack.
 
-*    "callstack
-*    DATA(stack) = xco_cp=>current->call_stack.
-*    DATA(full_stack) = stack->full( ).
-*    DATA(format_source) = xco_cp_call_stack=>format->adt( )->with_line_number_flavor(
-*        xco_cp_call_stack=>line_number_flavor->source ).
+
+    DATA current_obj TYPE REF TO object.
+    DATA stack TYPE REF TO object.
+    DATA full_stack TYPE REF TO object.
+    DATA format_source TYPE REF TO object.
+    DATA format_source2 TYPE REF TO object.
+    DATA format_obj2 TYPE REF TO object.
+    DATA format_obj TYPE REF TO object.
+    DATA format_obj3 TYPE REF TO object.
+    DATA flavor_obj TYPE REF TO object.
+    DATA flavor_obj2 TYPE REF TO object.
+    DATA flavor_obj3 TYPE REF TO object.
+    DATA source_flavor TYPE REF TO object.
+    DATA text_obj TYPE REF TO object.
+    DATA lines_obj TYPE REF TO object.
+    DATA lt_stack TYPE string_table.
+    DATA lv_xco_cp TYPE c LENGTH 6.
+    DATA lv_xco_cp_call_stack TYPE c LENGTH 20.
+    FIELD-SYMBOLS <current> TYPE any.
+    FIELD-SYMBOLS <any> TYPE any.
+    FIELD-SYMBOLS <call_stack> TYPE any.
+    FIELD-SYMBOLS <format> TYPE any.
+    FIELD-SYMBOLS <format2> TYPE any.
+    FIELD-SYMBOLS <line_number_flavor> TYPE any.
+    FIELD-SYMBOLS <source> TYPE any.
+    FIELD-SYMBOLS <value> TYPE any.
+
+    TRY.
+
+        DATA(lv_assign) = `XCO_CP_CALL_STACK=>LINE_NUMBER_FLAVOR->SOURCE`.
+        ASSIGN (lv_assign) TO <format>.
+
+
+
+        lv_assign = `XCO_CP_CALL_STACK=>FORMAT`.
+        ASSIGN (lv_assign) TO <format2>.
+        format_obj2 = <format2>.
+
+        CALL METHOD format_obj2->('IF_XCO_CP_CS_FORMAT_FACTORY~ADT')
+          RECEIVING
+            ro_adt = format_obj3.
+
+        CALL METHOD format_obj3->('WITH_LINE_NUMBER_FLAVOR')
+          EXPORTING
+            io_line_number_flavor = <format>
+          RECEIVING
+            ro_me                 = format_source.
+
+
+        lv_xco_cp = 'XCO_CP'.
+        ASSIGN (lv_xco_cp)=>('CURRENT') TO <current>.
+        current_obj = <current>.
+
+        ASSIGN current_obj->('IF_XCO_CP_STD_CURRENT~CALL_STACK') TO <call_stack>.
+        stack = <call_stack>.
+
+        CALL METHOD stack->('IF_XCO_CP_STD_CUR_API_CLL_STCK~FULL')
+          RECEIVING
+            ro_full = full_stack.
+
+
+
+
+        DATA(format_source4) = xco_cp_call_stack=>format->adt( )->with_line_number_flavor(
+        xco_cp_call_stack=>line_number_flavor->source ).
+
+        DATA(stack2) = xco_cp=>current->call_stack.
+        DATA(full_stack2) = stack2->full( ).
+
+        DATA(li_test) = CAST if_xco_cs_format( format_source ).
+        ASSIGN format_source TO <any>.
+
+        DATA(lt_stack2) = full_stack2->as_text( io_format = li_test ).
+
+
+        CALL METHOD full_stack->('IF_XCO_CP_CALL_STACK~AS_TEXT')
+          EXPORTING
+            io_format = <any>
+          RECEIVING
+            ro_text   = text_obj.
 *
-*    LOOP AT full_stack->as_text( format_source )->get_lines( )->value INTO DATA(text).
-*      INSERT text INTO TABLE result.
-*    ENDLOOP.
+*        CALL METHOD text_obj->('GET_LINES')
+*          RECEIVING
+*            ro_lines = lines_obj.
+*
+*        ASSIGN lines_obj->('VALUE') TO <value>.
+*        lt_stack = <value>.
+
+
+
+
+      CATCH cx_root INTO DATA(x).
+        DATA(lv_dummy) = x->get_text( ).
+        " Fallback - could implement alternative call stack retrieval here
+        CLEAR lt_stack.
+    ENDTRY.
+
+
+    DELETE lt_stack INDEX 1.
+
+    LOOP AT lt_stack INTO DATA(text).
+      DATA(ls_stack) = VALUE z2ui5_cl_util_abap=>ty_S_stack( ).
+      SPLIT text AT ` ` INTO ls_stack-class ls_stack-include ls_stack-method.
+      INSERT ls_stack INTO TABLE result.
+    ENDLOOP.
 
   ENDMETHOD.
 
