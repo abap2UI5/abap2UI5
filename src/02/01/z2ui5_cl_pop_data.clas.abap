@@ -48,7 +48,7 @@ CLASS z2ui5_cl_pop_data IMPLEMENTATION.
 
           CASE z2ui5_cl_util=>rtti_get_type_kind( <component> ).
 
-            WHEN  cl_abap_typedescr=>typekind_table.
+            WHEN cl_abap_typedescr=>typekind_table.
 
             WHEN OTHERS.
               INSERT VALUE #(

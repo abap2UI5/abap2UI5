@@ -266,7 +266,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     simple_form2->label( `Userexit` ).
     simple_form2->text( z2ui5_cl_exit=>get_user_exit_class( ) ).
-    simple_form2->button( text = `Show Config` press = client->_event( 'POPUP_INFO_CONFIG' ) ).
+    simple_form2->button( text  = `Show Config`
+                          press = client->_event( 'POPUP_INFO_CONFIG' ) ).
 
     DATA(lv_count) = CONV string( NEW z2ui5_cl_core_srv_draft( )->count_entries( ) ).
     simple_form2->toolbar( )->title( `abap2UI5` ).
@@ -294,8 +295,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         DATA(ls_config) = VALUE z2ui5_if_types=>ty_s_http_config( ).
         z2ui5_cl_exit=>get_instance( )->adjust_config(
           CHANGING
-            cs_config = ls_config
-        ).
+            cs_config = ls_config ).
 
         client->nav_app_call( z2ui5_cl_pop_data=>factory( ls_config ) ).
 
