@@ -32,7 +32,6 @@
     "whitespace_end": true,
     "space_before_colon": true,
     "space_before_dot": true,
-    "keep_single_parameter_on_one_line": true,
     "commented_code": false
 
   }
