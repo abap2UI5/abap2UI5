@@ -9,6 +9,7 @@ CLASS z2ui5_cl_exit DEFINITION
     CLASS-METHODS get_instance
       RETURNING
         VALUE(ri_exit) TYPE REF TO z2ui5_if_exit.
+
     CLASS-METHODS get_user_exit_class
       RETURNING
         VALUE(r_class_name) TYPE string.
@@ -49,8 +50,15 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
 
   METHOD z2ui5_if_exit~get_draft_exp_time_in_hours.
 
+    CONSTANTS cv_draft_exp_time_in_hours TYPE string VALUE 4.
+
     IF gi_user_exit IS NOT INITIAL.
       rv_draft_exp_time_in_hours = gi_user_exit->get_draft_exp_time_in_hours( ).
+    ENDIF.
+
+    IF rv_draft_exp_time_in_hours IS INITIAL
+        OR rv_draft_exp_time_in_hours <= 0.
+      rv_draft_exp_time_in_hours = cv_draft_exp_time_in_hours.
     ENDIF.
 
   ENDMETHOD.
@@ -58,10 +66,28 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
 
   METHOD z2ui5_if_exit~adjust_config.
 
+    IF cs_config-title IS INITIAL.
+      cs_config-title = `abap2UI5`.
+    ENDIF.
+
+    IF cs_config-theme IS INITIAL.
+      cs_config-theme = `sap_horizon`.
+    ENDIF.
+
+    IF cs_config-src IS INITIAL.
+      cs_config-src = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js`.
+*      ms_req_config-src     = `https://sdk.openui5.org/1.71.67/resources/sap-ui-core.js`.
+*      ms_req_config-src     = `https://sdk.openui5.org/nightly/2/resources/sap-ui-core.js`.
+    ENDIF.
+
+    IF cs_config-content_security_policy IS INITIAL.
+      cs_config-content_security_policy = |<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: | &&
+        |ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com openui5.hana.ondemand.com *.openui5.hana.ondemand.com | &&
+        |sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas; worker-src 'self' blob:; "/>|.
+    ENDIF.
+
     IF gi_user_exit IS NOT INITIAL.
-      gi_user_exit->adjust_config(
-        CHANGING
-          cs_config = cs_config ).
+      gi_user_exit->adjust_config( CHANGING cs_config = cs_config ).
     ENDIF.
 
   ENDMETHOD.
