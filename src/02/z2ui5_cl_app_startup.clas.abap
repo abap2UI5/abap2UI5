@@ -257,9 +257,6 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     simple_form2->checkbox( enabled  = abap_false
                             selected = z2ui5_cl_util=>context_check_abap_cloud( ) ).
 
-    simple_form2->label( `Userexit` ).
-    simple_form2->text( z2ui5_cl_exit=>get_user_exit_class( ) ).
-
     DATA(lv_count) = CONV string( NEW z2ui5_cl_core_srv_draft( )->count_entries( ) ).
     simple_form2->toolbar( )->title( `abap2UI5` ).
     simple_form2->label( `Version ` ).
