@@ -9,6 +9,13 @@ INTERFACE z2ui5_if_types
   TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
 
   TYPES:
+    BEGIN OF ty_s_http_context,
+      path         TYPE string,
+      app_start    TYPE string,
+      t_url_params TYPE z2ui5_if_types=>ty_t_name_value,
+    END OF ty_s_http_context.
+
+  TYPES:
     BEGIN OF ty_s_draft,
       id                TYPE string,
       id_prev           TYPE string,

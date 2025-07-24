@@ -45,7 +45,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
     CLASS-METHODS _main
       IMPORTING
-        is_config     TYPE  z2ui5_if_types=>ty_s_http_config
+        is_config     TYPE z2ui5_if_types=>ty_s_http_config
         is_req        TYPE z2ui5_if_core_types=>ty_s_http_req
       RETURNING
         VALUE(result) TYPE z2ui5_if_core_types=>ty_s_http_res.
