@@ -9,6 +9,14 @@ INTERFACE z2ui5_if_types
   TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
 
   TYPES:
+    BEGIN OF ty_s_draft,
+      id                TYPE string,
+      id_prev           TYPE string,
+      id_prev_app       TYPE string,
+      id_prev_app_stack TYPE string,
+    END OF ty_s_draft.
+
+  TYPES:
     BEGIN OF ty_s_http_config,
       src                     TYPE string,
       theme                   TYPE string,
@@ -20,12 +28,9 @@ INTERFACE z2ui5_if_types
     END OF ty_s_http_config.
 
   TYPES:
-    BEGIN OF ty_s_draft,
-      id                TYPE string,
-      id_prev           TYPE string,
-      id_prev_app       TYPE string,
-      id_prev_app_stack TYPE string,
-    END OF ty_s_draft.
+    BEGIN OF ty_s_http_config_post,
+      draft_exp_time_in_hours TYPE i,
+    END OF ty_s_http_config_post.
 
   TYPES:
     BEGIN OF ty_s_config,

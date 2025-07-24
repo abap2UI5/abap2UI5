@@ -88,7 +88,9 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
   METHOD main.
 
     ms_config = s_config.
-    z2ui5_cl_exit=>get_instance( )->adjust_config( CHANGING cs_config = ms_config ).
+    IF ms_config IS INITIAL.
+      ms_config = z2ui5_cl_exit=>get_instance( )->set_config_http_get( ).
+    ENDIF.
     set_request( ).
 
     CASE ms_req-method.

@@ -827,15 +827,17 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
 
   METHOD context_get_callstack.
 
-*    "callstack
-*    DATA(stack) = xco_cp=>current->call_stack.
-*    DATA(full_stack) = stack->full( ).
-*    DATA(format_source) = xco_cp_call_stack=>format->adt( )->with_line_number_flavor(
-*        xco_cp_call_stack=>line_number_flavor->source ).
-*
-*    LOOP AT full_stack->as_text( format_source )->get_lines( )->value INTO DATA(text).
-*      INSERT text INTO TABLE result.
-*    ENDLOOP.
+    DATA lo_util TYPE REF TO object.
+    IF context_check_abap_cloud( ).
+
+      CREATE OBJECT lo_util TYPE ('Z2UI5_CL_UTIL_ABAP_C').
+      CALL METHOD lo_util->('CONTEXT_GET_CALLSTACK')
+        RECEIVING
+          result = result.
+
+    ELSE.
+
+    ENDIF.
 
   ENDMETHOD.
 

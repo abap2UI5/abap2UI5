@@ -291,12 +291,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     CASE client->get( )-event.
 
       WHEN `POPUP_INFO_CONFIG`.
-
-        DATA(ls_config) = VALUE z2ui5_if_types=>ty_s_http_config( ).
-        z2ui5_cl_exit=>get_instance( )->adjust_config(
-          CHANGING
-            cs_config = ls_config ).
-
+        DATA(ls_config) = z2ui5_cl_exit=>get_instance( )->set_config_http_get( ).
         client->nav_app_call( z2ui5_cl_pop_data=>factory( ls_config ) ).
 
       WHEN `SET_CONFIG`.

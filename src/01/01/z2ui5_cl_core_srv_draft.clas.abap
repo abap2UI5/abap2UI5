@@ -43,17 +43,11 @@ ENDCLASS.
 CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
 
   METHOD cleanup.
-    CONSTANTS c_default_exp_time_in_hours TYPE i VALUE 4.
 
-    DATA(lv_draft_exp_time_in_hours) = z2ui5_cl_exit=>get_instance( )->get_draft_exp_time_in_hours( ).
-
-    IF lv_draft_exp_time_in_hours IS INITIAL
-        OR lv_draft_exp_time_in_hours <= 0.
-      lv_draft_exp_time_in_hours = c_default_exp_time_in_hours.
-    ENDIF.
+    DATA(ls_config) = z2ui5_cl_exit=>get_instance( )->set_config_http_post( ).
 
     DATA(lv_n_hours_ago) = z2ui5_cl_util=>time_substract_seconds( time    = z2ui5_cl_util=>time_get_timestampl( )
-                                                                  seconds = 60 * 60 * c_default_exp_time_in_hours ).
+                                                                  seconds = 60 * 60 * ls_config-draft_exp_time_in_hours ).
 
     DELETE FROM z2ui5_t_01 WHERE timestampl < @lv_n_hours_ago.
     COMMIT WORK.

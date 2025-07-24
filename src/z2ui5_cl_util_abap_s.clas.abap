@@ -412,7 +412,7 @@ CLASS z2ui5_cl_util_abap_s DEFINITION
     CLASS-METHODS _get_e071k_tabkey
       IMPORTING
         line             TYPE any
-        dfies            TYPE z2ui5_cl_util=>ty_t_dfies
+        dfies            TYPE ty_t_dfies
       RETURNING
         VALUE(rv_tabkey) TYPE trobj_name.
 
@@ -1866,7 +1866,7 @@ CLASS z2ui5_cl_util_abap_s IMPLEMENTATION.
         DATA(error) = x->get_text( ).
     ENDTRY.
 
-    DATA(dfies) = z2ui5_cl_util=>rtti_get_t_dfies_by_table_name( iv_tabname ).
+    DATA(dfies) = rtti_get_t_dfies_by_table_name( iv_tabname ).
 
 *   is_transport-transport = assign_value( component = 'TRKORR'
 *                                          structure = <s_e071k> ).                                         )
