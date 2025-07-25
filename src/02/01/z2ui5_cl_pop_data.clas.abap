@@ -71,6 +71,4 @@ CLASS z2ui5_cl_pop_data IMPLEMENTATION.
   ENDMETHOD.
 
 
-
-
 ENDCLASS.
