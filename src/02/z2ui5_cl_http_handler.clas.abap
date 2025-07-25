@@ -260,6 +260,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     z2ui5_cl_exit=>init_context( is_req ).
 
+
     CASE is_req-method.
       WHEN `GET`.
         result-body = _http_get( is_config ).

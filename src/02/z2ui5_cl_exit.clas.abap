@@ -98,6 +98,7 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
 
   METHOD z2ui5_if_exit~set_config_http_post.
 
+
     cs_config-draft_exp_time_in_hours = 4.
 
     IF gi_user_exit IS NOT INITIAL.
