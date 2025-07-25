@@ -759,6 +759,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA END OF ms_struc2.
 
     DATA(lo_datadescr) = cl_abap_typedescr=>describe_by_data( ms_struc2 ).
+
+    IF z2ui5_cl_util=>context_check_abap_cloud( ).
+      RETURN.
+    ENDIF.
     DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_include( CAST #( lo_datadescr ) ).
 
     IF lines( lt_attri ) <> 6.

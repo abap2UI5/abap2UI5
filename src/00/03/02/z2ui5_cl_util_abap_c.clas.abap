@@ -133,7 +133,7 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
 
         DATA(lv_result) = VALUE string( ).
         DATA(lv_class) = 'CL_ABAP_CONTEXT_INFO'.
-        CALL METHOD (lv_class)=>('GET_USER_BUSINESS_PARTNER_ID')
+        CALL METHOD (lv_class)=>('GET_USER_TECHNICAL_NAME')
           RECEIVING
             rv_business_partner_id = lv_result.
 
