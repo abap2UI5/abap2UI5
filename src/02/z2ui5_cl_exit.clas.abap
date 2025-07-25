@@ -6,6 +6,10 @@ CLASS z2ui5_cl_exit DEFINITION
   PUBLIC SECTION.
     INTERFACES z2ui5_if_exit.
 
+    CLASS-METHODS init_context
+      IMPORTING
+        http_info TYPE z2ui5_cl_util_abap_http=>ty_s_http_req.
+
     CLASS-METHODS get_instance
       RETURNING
         VALUE(ri_exit) TYPE REF TO z2ui5_if_exit.
@@ -17,6 +21,7 @@ CLASS z2ui5_cl_exit DEFINITION
   PROTECTED SECTION.
     CLASS-DATA  gi_me        TYPE REF TO z2ui5_if_exit.
     CLASS-DATA  gi_user_exit TYPE REF TO z2ui5_if_exit.
+    CLASS-DATA  context TYPE z2ui5_if_types=>ty_s_http_context.
 
 ENDCLASS.
 
@@ -59,42 +64,66 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
 
   METHOD z2ui5_if_exit~set_config_http_get.
 
-    IF gi_user_exit IS NOT INITIAL.
-      result = gi_user_exit->set_config_http_get( ).
+    IF cs_config-title IS INITIAL.
+      cs_config-title = `abap2UI5`.
     ENDIF.
 
-    IF result-title IS INITIAL.
-      result-title = `abap2UI5`.
+    IF cs_config-theme IS INITIAL.
+      cs_config-theme = `sap_horizon`.
     ENDIF.
 
-    IF result-theme IS INITIAL.
-      result-theme = `sap_horizon`.
-    ENDIF.
-
-    IF result-src IS INITIAL.
-      result-src = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js`.
+    IF cs_config-src IS INITIAL.
+      cs_config-src = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js`.
 *      ms_req_config-src     = `https://sdk.openui5.org/1.71.67/resources/sap-ui-core.js`.
 *      ms_req_config-src     = `https://sdk.openui5.org/nightly/2/resources/sap-ui-core.js`.
     ENDIF.
 
-    IF result-content_security_policy IS INITIAL.
-      result-content_security_policy = |<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: | &&
+    IF cs_config-content_security_policy IS INITIAL.
+      cs_config-content_security_policy = |<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: | &&
         |ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com openui5.hana.ondemand.com *.openui5.hana.ondemand.com | &&
         |sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas; worker-src 'self' blob:; "/>|.
+    ENDIF.
+
+
+    IF gi_user_exit IS NOT INITIAL.
+      gi_user_exit->set_config_http_get(
+        EXPORTING
+          is_context = me->context
+        CHANGING
+          cs_config  = cs_config
+      ).
     ENDIF.
 
   ENDMETHOD.
 
   METHOD z2ui5_if_exit~set_config_http_post.
 
+    cs_config-draft_exp_time_in_hours = 4.
+
     IF gi_user_exit IS NOT INITIAL.
-      result = gi_user_exit->set_config_http_post( ).
+      gi_user_exit->set_config_http_post(
+        EXPORTING
+          is_context = me->context
+        CHANGING
+          cs_config  = cs_config
+      ).
     ENDIF.
 
-    IF result-draft_exp_time_in_hours IS INITIAL
-        OR result-draft_exp_time_in_hours <= 0.
-      result-draft_exp_time_in_hours = 4.
+    IF cs_config-draft_exp_time_in_hours IS INITIAL
+        OR cs_config-draft_exp_time_in_hours <= 0.
+      cs_config-draft_exp_time_in_hours = 4.
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD init_context.
+
+*    DATA(ls_context) = VALUE z2ui5_if_types=>ty_s_http_context( ).
+*    DATA(ls_req) = mo_server->get_req_info( ).
+    context = CORRESPONDING #( http_info ).
+    context-app_start = VALUE #( http_info-t_params[ n = `app_start` ]-v OPTIONAL ).
+
 
   ENDMETHOD.
 

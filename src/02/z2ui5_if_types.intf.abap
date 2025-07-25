@@ -12,7 +12,7 @@ INTERFACE z2ui5_if_types
     BEGIN OF ty_s_http_context,
       path         TYPE string,
       app_start    TYPE string,
-      t_url_params TYPE z2ui5_if_types=>ty_t_name_value,
+      t_params TYPE z2ui5_if_types=>ty_t_name_value,
     END OF ty_s_http_context.
 
   TYPES:

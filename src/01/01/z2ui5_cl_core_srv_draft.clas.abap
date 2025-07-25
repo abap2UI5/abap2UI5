@@ -44,7 +44,8 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
 
   METHOD cleanup.
 
-    DATA(ls_config) = z2ui5_cl_exit=>get_instance( )->set_config_http_post( ).
+    DATA(ls_config) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
+    z2ui5_cl_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config ).
 
     DATA(lv_n_hours_ago) = z2ui5_cl_util=>time_substract_seconds( time    = z2ui5_cl_util=>time_get_timestampl( )
                                                                   seconds = 60 * 60 * ls_config-draft_exp_time_in_hours ).
