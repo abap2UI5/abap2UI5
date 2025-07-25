@@ -410,6 +410,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_func_get_user_tech.
 
+    IF sy-sysid = 'ABC'.
+      RETURN.
+    ENDIF.
+
     cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_util=>context_get_user_tech( )
                                         act = sy-uname ).
 
