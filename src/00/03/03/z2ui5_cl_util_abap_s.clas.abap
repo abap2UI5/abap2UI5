@@ -1,31 +1,8 @@
-CLASS z2ui5_cl_util_abap_c DEFINITION
+CLASS z2ui5_cl_util_abap_s DEFINITION
   PUBLIC
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-
-    TYPES:
-      BEGIN OF ty_s_fix_val,
-        low   TYPE string,
-        high  TYPE string,
-        descr TYPE string,
-      END OF ty_s_fix_val.
-    TYPES ty_t_fix_val TYPE STANDARD TABLE OF ty_s_fix_val WITH DEFAULT KEY.
-
-    TYPES:
-      BEGIN OF ty_s_data_element_text,
-        header TYPE string,
-        short  TYPE string,
-        medium TYPE string,
-        long   TYPE string,
-      END OF ty_s_data_element_text.
-
-    TYPES:
-      BEGIN OF ty_s_class_descr,
-        classname   TYPE string,
-        description TYPE string,
-      END OF ty_s_class_descr.
-    TYPES ty_t_classes TYPE STANDARD TABLE OF ty_s_class_descr WITH NON-UNIQUE DEFAULT KEY.
 
     CLASS-METHODS bal_read
       IMPORTING
@@ -44,7 +21,7 @@ CLASS z2ui5_cl_util_abap_c DEFINITION
 
     CLASS-METHODS context_get_callstack
       RETURNING
-        VALUE(result) TYPE z2ui5_cl_util_abap=>ty_t_stack.
+        VALUE(result) TYPE z2ui5_cl_util=>ty_t_stack.
 
     CLASS-METHODS context_check_abap_cloud
       RETURNING
@@ -77,7 +54,7 @@ CLASS z2ui5_cl_util_abap_c DEFINITION
       IMPORTING
         val           TYPE clike
       RETURNING
-        VALUE(result) TYPE ty_s_data_element_text.
+        VALUE(result) TYPE z2ui5_cl_util=>ty_s_data_element_text.
 
     CLASS-METHODS conv_decode_x_base64
       IMPORTING
@@ -119,14 +96,14 @@ CLASS z2ui5_cl_util_abap_c DEFINITION
       IMPORTING
         val           TYPE clike
       RETURNING
-        VALUE(result) TYPE ty_t_classes.
+        VALUE(result) TYPE z2ui5_cl_util=>ty_t_classes.
 
     CLASS-METHODS rtti_get_t_fixvalues
       IMPORTING
         elemdescr     TYPE REF TO cl_abap_elemdescr
         langu         TYPE clike
       RETURNING
-        VALUE(result) TYPE ty_t_fix_val.
+        VALUE(result) TYPE z2ui5_cl_util=>ty_t_fix_val.
 
     CLASS-METHODS rtti_get_table_desrc
       IMPORTING
@@ -149,7 +126,7 @@ CLASS z2ui5_cl_util_abap_c DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
+CLASS z2ui5_cl_util_abap_s IMPLEMENTATION.
 
   METHOD context_get_user_tech.
     TRY.
@@ -784,7 +761,7 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
   METHOD context_get_callstack.
 
 
-   TRY.
+    TRY.
 
         DATA current_obj TYPE REF TO object.
         DATA stack TYPE REF TO object.

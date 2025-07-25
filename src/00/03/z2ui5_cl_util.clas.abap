@@ -987,10 +987,17 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD rtti_get_t_attri_by_include.
 
-    cl_abap_typedescr=>describe_by_name( EXPORTING  p_name         = type->absolute_name
-                                         RECEIVING  p_descr_ref    = DATA(type_desc)
-                                         EXCEPTIONS type_not_found = 1 ).
+    TRY.
 
+        cl_abap_typedescr=>describe_by_name( EXPORTING  p_name         = type->absolute_name
+                                             RECEIVING  p_descr_ref    = DATA(type_desc)
+                                             EXCEPTIONS type_not_found = 1 ).
+
+      CATCH cx_root INTO DATA(x).
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING
+            previous = x.
+    ENDTRY.
     DATA(sdescr) = CAST cl_abap_structdescr( type_desc ).
     DATA(comps) = sdescr->get_components( ).
 
