@@ -48,6 +48,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_pop_to_confirm IMPLEMENTATION.
+
   METHOD result.
 
     result = check_result_confirmed.
@@ -92,8 +93,7 @@ CLASS z2ui5_cl_pop_to_confirm IMPLEMENTATION.
 
     me->client = client.
 
-    IF check_initialized = abap_false.
-      check_initialized = abap_true.
+    IF client->check_on_init( ).
       view_display( ).
       RETURN.
     ENDIF.

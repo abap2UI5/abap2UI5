@@ -24,13 +24,10 @@ CLASS z2ui5_cl_pop_itab_json_dl DEFINITION
 
   PROTECTED SECTION.
     DATA client                 TYPE REF TO z2ui5_if_client.
-
     DATA title                  TYPE string.
     DATA icon                   TYPE string.
-
     DATA button_text_confirm    TYPE string.
     DATA button_text_cancel     TYPE string.
-
     DATA check_result_confirmed TYPE abap_bool.
 
   PRIVATE SECTION.

@@ -37,7 +37,6 @@ CLASS z2ui5_cl_pop_to_select DEFINITION
         VALUE(result) TYPE ty_s_result.
 
   PROTECTED SECTION.
-    DATA check_initialized TYPE abap_bool.
     DATA check_table_line  TYPE abap_bool.
     DATA client            TYPE REF TO z2ui5_if_client.
     DATA title             TYPE string.
@@ -148,8 +147,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
     me->client = client.
 
-    IF check_initialized = abap_false.
-      check_initialized = abap_true.
+    IF client->check_on_init( ).
       set_output_table( ).
       display( ).
       RETURN.

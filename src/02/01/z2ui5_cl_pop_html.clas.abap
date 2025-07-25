@@ -21,7 +21,6 @@ CLASS z2ui5_cl_pop_html DEFINITION
     DATA icon                TYPE string.
     DATA html                TYPE string.
     DATA button_text_confirm TYPE string.
-    DATA check_initialized   TYPE abap_bool.
 
     METHODS view_display.
 
@@ -62,8 +61,7 @@ CLASS z2ui5_cl_pop_html IMPLEMENTATION.
 
     me->client = client.
 
-    IF check_initialized = abap_false.
-      check_initialized = abap_true.
+    IF client->check_on_init( ).
       view_display( ).
       RETURN.
     ENDIF.
