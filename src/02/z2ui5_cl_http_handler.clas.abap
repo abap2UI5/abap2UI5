@@ -133,7 +133,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
   METHOD _http_get.
 
     DATA(ls_config) = is_config.
-    z2ui5_cl_exit=>get_instance( )->set_config_http_get( CHANGING cs_config  = ls_config  ).
+    z2ui5_cl_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
 
     IF ls_config-styles_css IS INITIAL.
       DATA(lv_style_css) = z2ui5_cl_app_style_css=>get( ).

@@ -19,9 +19,9 @@ CLASS z2ui5_cl_exit DEFINITION
         VALUE(r_class_name) TYPE string.
 
   PROTECTED SECTION.
-    CLASS-DATA  gi_me        TYPE REF TO z2ui5_if_exit.
-    CLASS-DATA  gi_user_exit TYPE REF TO z2ui5_if_exit.
-    CLASS-DATA  context TYPE z2ui5_if_types=>ty_s_http_context.
+    CLASS-DATA gi_me        TYPE REF TO z2ui5_if_exit.
+    CLASS-DATA gi_user_exit TYPE REF TO z2ui5_if_exit.
+    CLASS-DATA context TYPE z2ui5_if_types=>ty_s_http_context.
 
 ENDCLASS.
 
@@ -90,8 +90,7 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
         EXPORTING
           is_context = me->context
         CHANGING
-          cs_config  = cs_config
-      ).
+          cs_config  = cs_config ).
     ENDIF.
 
   ENDMETHOD.
@@ -106,8 +105,7 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
         EXPORTING
           is_context = me->context
         CHANGING
-          cs_config  = cs_config
-      ).
+          cs_config  = cs_config ).
     ENDIF.
 
     IF cs_config-draft_exp_time_in_hours IS INITIAL
