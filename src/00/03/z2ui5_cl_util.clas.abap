@@ -441,6 +441,12 @@ CLASS z2ui5_cl_util DEFINITION
       CHANGING
         !tab TYPE STANDARD TABLE.
 
+    CLASS-METHODS itab_get_by_struc
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE z2ui5_cl_util=>ty_t_name_value.
+
     CLASS-METHODS itab_filter_by_t_range
       IMPORTING
         val  TYPE ty_t_filter_multi
@@ -1484,6 +1490,32 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD itab_get_by_struc.
+
+    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_any( val ).
+*    result  = VALUE z2ui5_cl_util=>ty_t_name_value( ).
+    LOOP AT lt_attri REFERENCE INTO DATA(lr_attri).
+
+      ASSIGN COMPONENT lr_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<component>).
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
+
+      CASE z2ui5_cl_util=>rtti_get_type_kind( <component> ).
+
+        WHEN cl_abap_typedescr=>typekind_table.
+
+        WHEN OTHERS.
+          INSERT VALUE #(
+            n = lr_attri->name
+            v = <component>
+            ) INTO TABLE result.
+      ENDCASE.
+
+    ENDLOOP.
+
+  ENDMETHOD.
 
   METHOD itab_filter_by_t_range.
 

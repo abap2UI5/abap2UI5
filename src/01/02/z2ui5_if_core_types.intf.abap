@@ -16,12 +16,6 @@ INTERFACE z2ui5_if_core_types
     END OF cs_bind_type.
 
   TYPES:
-    BEGIN OF ty_s_http_req,
-      method TYPE string,
-      body   TYPE string,
-    END OF ty_s_http_req.
-
-  TYPES:
     BEGIN OF ty_s_http_res,
       body          TYPE string,
       status_code   TYPE i,

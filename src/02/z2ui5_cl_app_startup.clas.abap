@@ -211,13 +211,6 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
           ENDIF.
         CATCH cx_root.
       ENDTRY.
-
-      TRY.
-          DATA(lv_dummy) = CAST z2ui5_cl_pop_data( client->get_app_prev( ) ).
-          view_display_popup( ).
-        CATCH cx_root.
-      ENDTRY.
-
     ENDIF.
 
     z2ui5_on_event( ).
@@ -266,8 +259,6 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     simple_form2->label( `Userexit` ).
     simple_form2->text( z2ui5_cl_exit=>get_user_exit_class( ) ).
-    simple_form2->button( text  = `Show Config`
-                          press = client->_event( 'POPUP_INFO_CONFIG' ) ).
 
     DATA(lv_count) = CONV string( NEW z2ui5_cl_core_srv_draft( )->count_entries( ) ).
     simple_form2->toolbar( )->title( `abap2UI5` ).
@@ -290,15 +281,6 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     CASE client->get( )-event.
 
-      WHEN `POPUP_INFO_CONFIG`.
-
-        DATA(ls_config) = VALUE z2ui5_if_types=>ty_s_http_config( ).
-        z2ui5_cl_exit=>get_instance( )->adjust_config(
-          CHANGING
-            cs_config = ls_config ).
-
-        client->nav_app_call( z2ui5_cl_pop_data=>factory( ls_config ) ).
-
       WHEN `SET_CONFIG`.
         DATA lo_app TYPE REF TO z2ui5_if_app.
         CREATE OBJECT lo_app TYPE ('Z2UI5_CL_APP_ICF_CONFIG').
@@ -311,7 +293,6 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         client->message_box_display( `Press CTRL+F12 to open the debugging tools` ).
       WHEN `OPEN_INFO`.
         view_display_popup( ).
-*        client->nav_app_call( z2ui5_cl_core_app_info=>factory( ) ).
         RETURN.
 
       WHEN `BUTTON_CHECK`.

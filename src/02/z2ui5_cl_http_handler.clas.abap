@@ -29,7 +29,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
     CLASS-METHODS _http_post
       IMPORTING
-        is_req        TYPE z2ui5_if_core_types=>ty_s_http_req
+        is_req        TYPE z2ui5_cl_util_abap_http=>ty_s_http_req
       RETURNING
         VALUE(result) TYPE z2ui5_if_core_types=>ty_s_http_res.
 
@@ -45,8 +45,8 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
     CLASS-METHODS _main
       IMPORTING
-        is_config     TYPE  z2ui5_if_types=>ty_s_http_config
-        is_req        TYPE z2ui5_if_core_types=>ty_s_http_req
+        is_config     TYPE z2ui5_if_types=>ty_s_http_config
+        is_req        TYPE z2ui5_cl_util_abap_http=>ty_s_http_req
       RETURNING
         VALUE(result) TYPE z2ui5_if_core_types=>ty_s_http_res.
 
@@ -57,7 +57,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
         res           TYPE REF TO object OPTIONAL
           PREFERRED PARAMETER server
       RETURNING
-        VALUE(result) TYPE z2ui5_if_core_types=>ty_s_http_req.
+        VALUE(result) TYPE z2ui5_cl_util_abap_http=>ty_s_http_req.
 
     CLASS-METHODS get_response
       IMPORTING
@@ -71,11 +71,10 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
     DATA mo_server TYPE REF TO z2ui5_cl_util_abap_http.
 
-    DATA ms_req    TYPE z2ui5_if_core_types=>ty_s_http_req.
+    DATA ms_req    TYPE z2ui5_cl_util_abap_http=>ty_s_http_req.
     DATA ms_res    TYPE z2ui5_if_core_types=>ty_s_http_res.
     DATA ms_config TYPE z2ui5_if_types=>ty_s_http_config.
 
-    METHODS set_request.
     METHODS set_response.
 
   PRIVATE SECTION.
@@ -83,13 +82,14 @@ CLASS z2ui5_cl_http_handler DEFINITION
 ENDCLASS.
 
 
+
 CLASS z2ui5_cl_http_handler IMPLEMENTATION.
+
 
   METHOD main.
 
     ms_config = s_config.
-    z2ui5_cl_exit=>get_instance( )->adjust_config( CHANGING cs_config = ms_config ).
-    set_request( ).
+    ms_req = mo_server->get_req_info( ).
 
     CASE ms_req-method.
       WHEN `HEAD`.
@@ -103,6 +103,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     set_response( ).
 
   ENDMETHOD.
+
 
   METHOD factory.
 
@@ -119,6 +120,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD factory_cloud.
 
     result = NEW #( ).
@@ -127,9 +129,11 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD _http_get.
 
     DATA(ls_config) = is_config.
+    z2ui5_cl_exit=>get_instance( )->set_config_http_get( CHANGING cs_config  = ls_config  ).
 
     IF ls_config-styles_css IS INITIAL.
       DATA(lv_style_css) = z2ui5_cl_app_style_css=>get( ).
@@ -184,6 +188,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD run.
 
     DATA(lo_handler) = factory( server = server
@@ -194,12 +199,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD set_request.
-
-    ms_req-body   = mo_server->get_cdata( ).
-    ms_req-method = mo_server->get_method( ).
-
-  ENDMETHOD.
 
   METHOD set_response.
 
@@ -230,6 +229,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD _http_post.
 
     IF so_sticky_handler IS NOT BOUND.
@@ -255,7 +255,11 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD _main.
+
+    z2ui5_cl_exit=>init_context( is_req ).
+
 
     CASE is_req-method.
       WHEN `GET`.
@@ -265,6 +269,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
+
 
   METHOD get_request.
 
@@ -276,6 +281,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     result-method = lo_handler->mo_server->get_method( ).
 
   ENDMETHOD.
+
 
   METHOD get_response.
 
@@ -309,5 +315,4 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
-
 ENDCLASS.

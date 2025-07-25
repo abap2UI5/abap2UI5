@@ -25,7 +25,6 @@ CLASS z2ui5_cl_pop_js_loader DEFINITION
     DATA ui5_gav        TYPE string.
 
   PROTECTED SECTION.
-    DATA check_initialized TYPE abap_bool.
     DATA client            TYPE REF TO z2ui5_if_client.
     DATA js                TYPE string.
     DATA user_command      TYPE string.
@@ -80,8 +79,7 @@ CLASS z2ui5_cl_pop_js_loader IMPLEMENTATION.
 
     me->client = client.
 
-    IF check_initialized = abap_false.
-      check_initialized = abap_true.
+    IF client->check_on_init( ).
       view_display( ).
       RETURN.
     ENDIF.

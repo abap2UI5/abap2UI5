@@ -38,8 +38,6 @@ CLASS z2ui5_cl_pop_get_range DEFINITION
   PROTECTED SECTION.
 
     DATA client            TYPE REF TO z2ui5_if_client.
-    DATA check_initialized TYPE abap_bool.
-
     METHODS view_display.
 
   PRIVATE SECTION.
@@ -120,9 +118,7 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
 
     me->client = client.
 
-    IF check_initialized = abap_false.
-      check_initialized = abap_true.
-
+    IF client->check_on_init( ).
       mt_mapping = z2ui5_cl_util=>filter_get_token_range_mapping( ).
 
       CLEAR mt_filter.

@@ -2,6 +2,14 @@ CLASS z2ui5_cl_util_abap_http DEFINITION PUBLIC.
 
   PUBLIC SECTION.
 
+    TYPES:
+      BEGIN OF ty_s_http_req,
+        method   TYPE string,
+        body     TYPE string,
+        path     TYPE string,
+        t_params TYPE z2ui5_cl_util=>ty_t_name_value,
+      END OF ty_s_http_req.
+
     CLASS-METHODS factory
       IMPORTING
         server        TYPE REF TO object
@@ -14,6 +22,10 @@ CLASS z2ui5_cl_util_abap_http DEFINITION PUBLIC.
         res           TYPE REF TO object
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_util_abap_http.
+
+    METHODS get_req_info
+      RETURNING
+        VALUE(result) TYPE ty_s_http_req.
 
     METHODS get_header_field
       IMPORTING
@@ -68,6 +80,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_util_abap_http IMPLEMENTATION.
+
   METHOD delete_response_cookie.
 
     DATA(lv_val) = CONV string( val ).
@@ -81,7 +94,8 @@ CLASS z2ui5_cl_util_abap_http IMPLEMENTATION.
       object = <any>.
 
       CALL METHOD object->('DELETE_COOKIE')
-        EXPORTING name = lv_val.
+        EXPORTING
+          name = lv_val.
 
     ELSE.
 
@@ -106,8 +120,10 @@ CLASS z2ui5_cl_util_abap_http IMPLEMENTATION.
       object = <any>.
 
       CALL METHOD object->('GET_COOKIE')
-        EXPORTING name  = lv_val
-        IMPORTING value = result.
+        EXPORTING
+          name  = lv_val
+        IMPORTING
+          value = result.
 
     ELSE.
 
@@ -134,14 +150,18 @@ CLASS z2ui5_cl_util_abap_http IMPLEMENTATION.
       object = <any>.
 
       CALL METHOD object->('GET_HEADER_FIELD')
-        EXPORTING name  = lv_val
-        RECEIVING value = result.
+        EXPORTING
+          name  = lv_val
+        RECEIVING
+          value = result.
 
     ELSE.
 
       CALL METHOD mo_request_cloud->('IF_WEB_HTTP_REQUEST~GET_HEADER_FIELD')
-        EXPORTING i_name  = lv_val
-        RECEIVING r_value = result.
+        EXPORTING
+          i_name  = lv_val
+        RECEIVING
+          r_value = result.
 
     ENDIF.
 
@@ -160,14 +180,16 @@ CLASS z2ui5_cl_util_abap_http IMPLEMENTATION.
       object = <any>.
 
       CALL METHOD object->('SET_HEADER_FIELD')
-        EXPORTING name  = lv_n
-                  value = lv_v.
+        EXPORTING
+          name  = lv_n
+          value = lv_v.
 
     ELSE.
 
       CALL METHOD mo_response_cloud->('IF_WEB_HTTP_RESPONSE~SET_HEADER_FIELD')
-        EXPORTING i_name  = lv_n
-                  i_value = lv_v.
+        EXPORTING
+          i_name  = lv_n
+          i_value = lv_v.
 
     ENDIF.
 
@@ -199,12 +221,14 @@ CLASS z2ui5_cl_util_abap_http IMPLEMENTATION.
       object = <any>.
 
       CALL METHOD object->('GET_CDATA')
-        RECEIVING data = result.
+        RECEIVING
+          data = result.
 
     ELSE.
 
       CALL METHOD mo_request_cloud->('IF_WEB_HTTP_REQUEST~GET_TEXT')
-        RECEIVING r_value = result.
+        RECEIVING
+          r_value = result.
 
     ENDIF.
 
@@ -221,12 +245,14 @@ CLASS z2ui5_cl_util_abap_http IMPLEMENTATION.
       object = <any>.
 
       CALL METHOD object->('IF_HTTP_REQUEST~GET_METHOD')
-        RECEIVING method = result.
+        RECEIVING
+          method = result.
 
     ELSE.
 
       CALL METHOD mo_request_cloud->('IF_WEB_HTTP_REQUEST~GET_METHOD')
-        RECEIVING r_value = result.
+        RECEIVING
+          r_value = result.
 
     ENDIF.
 
@@ -243,12 +269,14 @@ CLASS z2ui5_cl_util_abap_http IMPLEMENTATION.
       object = <any>.
 
       CALL METHOD object->('SET_CDATA')
-        EXPORTING data = val.
+        EXPORTING
+          data = val.
 
     ELSE.
 
       CALL METHOD mo_response_cloud->('IF_WEB_HTTP_RESPONSE~SET_TEXT')
-        EXPORTING i_text = val.
+        EXPORTING
+          i_text = val.
 
     ENDIF.
 
@@ -267,14 +295,16 @@ CLASS z2ui5_cl_util_abap_http IMPLEMENTATION.
       object = <any>.
 
       CALL METHOD object->('IF_HTTP_RESPONSE~SET_STATUS')
-        EXPORTING code   = code
-                  reason = lv_reason.
+        EXPORTING
+          code   = code
+          reason = lv_reason.
 
     ELSE.
 
       CALL METHOD mo_response_cloud->('IF_WEB_HTTP_RESPONSE~SET_STATUS')
-        EXPORTING i_code   = code
-                  i_reason = lv_reason.
+        EXPORTING
+          i_code   = code
+          i_reason = lv_reason.
 
     ENDIF.
 
@@ -285,7 +315,8 @@ CLASS z2ui5_cl_util_abap_http IMPLEMENTATION.
     IF mo_server_onprem IS BOUND.
 
       CALL METHOD mo_server_onprem->('SET_SESSION_STATEFUL')
-        EXPORTING stateful = val.
+        EXPORTING
+          stateful = val.
 
     ELSE.
 
@@ -295,4 +326,21 @@ CLASS z2ui5_cl_util_abap_http IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
+
+  METHOD get_req_info.
+
+    result-body   = get_cdata( ).
+    result-method = get_method( ).
+
+    IF mo_request_cloud IS BOUND.
+      result-path = get_header_field( `~path` ).
+      result-t_params = z2ui5_cl_util=>url_param_get_tab( get_header_field( `~request_uri` ) ).
+    ELSE.
+      "todo are the names the same in on premise??
+      result-path = get_header_field( `~path` ).
+      result-t_params = z2ui5_cl_util=>url_param_get_tab( get_header_field( `~request_uri` ) ).
+    ENDIF.
+
+  ENDMETHOD.
+
 ENDCLASS.

@@ -34,7 +34,6 @@ CLASS z2ui5_cl_pop_messages DEFINITION
   PROTECTED SECTION.
     DATA client            TYPE REF TO z2ui5_if_client.
     DATA title             TYPE string.
-    DATA check_initialized TYPE abap_bool.
 
     METHODS view_display.
 
@@ -92,8 +91,7 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
 
     me->client = client.
 
-    IF check_initialized = abap_false.
-      check_initialized = abap_true.
+    IF client->check_on_init( ).
       view_display( ).
       RETURN.
     ENDIF.

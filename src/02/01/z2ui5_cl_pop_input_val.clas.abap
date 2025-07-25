@@ -36,7 +36,6 @@ CLASS z2ui5_cl_pop_input_val DEFINITION
     DATA question_text          TYPE string.
     DATA button_text_confirm    TYPE string.
     DATA button_text_cancel     TYPE string.
-    DATA check_initialized      TYPE abap_bool.
 
     METHODS view_display.
 
@@ -45,6 +44,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_pop_input_val IMPLEMENTATION.
+
   METHOD factory.
 
     r_result = NEW #( ).
@@ -89,8 +89,7 @@ CLASS z2ui5_cl_pop_input_val IMPLEMENTATION.
 
     me->client = client.
 
-    IF check_initialized = abap_false.
-      check_initialized = abap_true.
+    IF client->check_on_init( ).
       view_display( ).
       RETURN.
     ENDIF.

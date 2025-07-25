@@ -27,7 +27,6 @@ CLASS z2ui5_cl_pop_table DEFINITION
     DATA mr_tab TYPE REF TO data.
 
   PROTECTED SECTION.
-    DATA check_initialized TYPE abap_bool.
     DATA title             TYPE string VALUE 'Table View'.
     DATA client            TYPE REF TO z2ui5_if_client.
 
@@ -126,8 +125,7 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
 
     me->client = client.
 
-    IF check_initialized = abap_false.
-      check_initialized = abap_true.
+    IF client->check_on_init( ).
       display( ).
       RETURN.
     ENDIF.

@@ -25,7 +25,6 @@ CLASS z2ui5_cl_pop_get_range_m DEFINITION
 
   PROTECTED SECTION.
     DATA client            TYPE REF TO z2ui5_if_client.
-    DATA check_initialized TYPE abap_bool.
     DATA mv_popup_name     TYPE LINE OF string_table.
 
     METHODS popup_display.
@@ -110,8 +109,7 @@ CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
   METHOD z2ui5_if_app~main.
     me->client = client.
 
-    IF check_initialized = abap_false.
-      check_initialized = abap_true.
+    IF client->check_on_init( ).
       init( ).
       RETURN.
     ENDIF.

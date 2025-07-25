@@ -35,7 +35,6 @@ CLASS z2ui5_cl_pop_file_dl DEFINITION
     DATA question_text       TYPE string.
     DATA button_text_confirm TYPE string.
     DATA button_text_cancel  TYPE string.
-    DATA check_initialized   TYPE abap_bool.
 
     METHODS view_display.
 
@@ -109,8 +108,7 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
 
     me->client = client.
 
-    IF check_initialized = abap_false.
-      check_initialized = abap_true.
+    IF client->check_on_init( ).
       view_display( ).
       RETURN.
     ENDIF.

@@ -58,7 +58,7 @@
     "reduce_procedural_code" : true,
     "tables_declared_locally" : true,
     "unused_macros" : true,
-    "align_type_expressions" : true,
+    "align_type_expressions" : false,
     "no_prefixes" : false,
     "begin_single_include": true,
     "call_transaction_authority_check": true,

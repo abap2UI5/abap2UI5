@@ -19,7 +19,6 @@ CLASS z2ui5_cl_pop_textedit DEFINITION
     DATA mv_stretch_active TYPE abap_bool.
     DATA mv_title          TYPE string.
     DATA mv_check_editable TYPE abap_bool.
-    DATA check_initialized TYPE abap_bool.
 
     TYPES:
       BEGIN OF ty_s_result,
@@ -30,7 +29,6 @@ CLASS z2ui5_cl_pop_textedit DEFINITION
     DATA ms_result TYPE ty_s_result.
 
     METHODS display.
-
     METHODS result
       RETURNING
         VALUE(result) TYPE ty_s_result.
@@ -78,8 +76,7 @@ CLASS z2ui5_cl_pop_textedit IMPLEMENTATION.
 
     me->client = client.
 
-    IF check_initialized = abap_false.
-      check_initialized = abap_true.
+    IF client->check_on_init( ).
       display( ).
       RETURN.
     ENDIF.
