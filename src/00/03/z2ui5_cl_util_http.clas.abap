@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_util_abap_http DEFINITION PUBLIC.
+CLASS z2ui5_cl_util_http DEFINITION PUBLIC.
 
   PUBLIC SECTION.
 
@@ -14,14 +14,14 @@ CLASS z2ui5_cl_util_abap_http DEFINITION PUBLIC.
       IMPORTING
         server        TYPE REF TO object
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_util_abap_http.
+        VALUE(result) TYPE REF TO z2ui5_cl_util_http.
 
     CLASS-METHODS factory_cloud
       IMPORTING
         req           TYPE REF TO object
         res           TYPE REF TO object
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_util_abap_http.
+        VALUE(result) TYPE REF TO z2ui5_cl_util_http.
 
     METHODS get_req_info
       RETURNING
@@ -79,7 +79,7 @@ CLASS z2ui5_cl_util_abap_http DEFINITION PUBLIC.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_util_abap_http IMPLEMENTATION.
+CLASS z2ui5_cl_util_http IMPLEMENTATION.
 
   METHOD delete_response_cookie.
 
