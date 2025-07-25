@@ -23,6 +23,20 @@ ENDCLASS.
 CLASS lcl_test_01 IMPLEMENTATION.
 
   METHOD tab_ref_gen.
+    DATA lo_app TYPE REF TO lcl_app_01.
+TYPES BEGIN OF ty_s_row.
+TYPES comp1 TYPE string.
+TYPES comp2 TYPE string.
+TYPES END OF ty_s_row.
+    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_s_row WITH DEFAULT KEY.
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    DATA temp1 TYPE ty_s_row.
+    DATA temp2 TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA lt_attri LIKE temp2.
+    DATA temp3 LIKE REF TO lt_attri.
+DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
+    DATA ls_attri TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
+    DATA temp4 LIKE REF TO lt_attri.
 
     IF sy-sysid = 'ABC'.
       RETURN.
@@ -30,31 +44,35 @@ CLASS lcl_test_01 IMPLEMENTATION.
 
 
     "create data
-    DATA(lo_app) = NEW lcl_app_01( ).
+    
+    CREATE OBJECT lo_app TYPE lcl_app_01.
 
-    TYPES:
-      BEGIN OF ty_s_row,
-        comp1 TYPE string,
-        comp2 TYPE string,
-      END OF ty_s_row.
-    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+    
+    
 
     CREATE DATA lo_app->mr_tab TYPE ty_t_tab.
-    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    
     ASSIGN lo_app->mr_tab->* TO <tab>.
-    INSERT VALUE ty_s_row(
-      comp1 = 'comp1'
-      comp2 = 'comp2'
-      ) INTO TABLE <tab>.
+    
+    CLEAR temp1.
+    temp1-comp1 = 'comp1'.
+    temp1-comp2 = 'comp2'.
+    INSERT temp1 INTO TABLE <tab>.
 
 
 
     "test find binding
-    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    
+    CLEAR temp2.
+    
+    lt_attri = temp2.
+    
+    GET REFERENCE OF lt_attri INTO temp3.
 
-    DATA(ls_attri) = lo_model->main_attri_search( lo_app->mr_tab ).
+CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp3 app = lo_app.
+
+    
+    ls_attri = lo_model->main_attri_search( lo_app->mr_tab ).
 
     IF ls_attri->name <> 'MR_TAB->*'.
       cl_abap_unit_assert=>abort( ).
@@ -65,9 +83,10 @@ CLASS lcl_test_01 IMPLEMENTATION.
     "test frontend backend draft
     lo_model->main_attri_db_save_srtti( ).
 
-    lo_app = NEW lcl_app_01( ).
-    lo_model = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                            app   = lo_app ).
+    CREATE OBJECT lo_app TYPE lcl_app_01.
+    
+    GET REFERENCE OF lt_attri INTO temp4.
+CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp4 app = lo_app.
     lo_model->main_attri_db_load( ).
 
     IF lo_app->mr_tab IS NOT BOUND.
