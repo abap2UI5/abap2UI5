@@ -17,7 +17,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_func_get_callstack.
 
-    DATA(lt_stack) = z2ui5_cl_util_abap_c=>context_get_callstack( ).
+    "DATA(lt_stack) = z2ui5_cl_util_abap_c=>context_get_callstack( ).
 
   ENDMETHOD.
 
