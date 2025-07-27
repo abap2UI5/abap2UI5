@@ -414,11 +414,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
       CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky = abap_false.
     ENDIF.
 
-    IF mo_action->ms_next-s_set-s_stateful-switched = abap_false.
-      mo_action->ms_next-s_set-s_stateful-switched = abap_true.
-    ELSE.
-      mo_action->ms_next-s_set-s_stateful-switched = abap_false.
-    ENDIF.
+    mo_action->ms_next-s_set-s_stateful-switched = xsdbool( mo_action->ms_next-s_set-s_stateful-switched = abap_false ).
 
   ENDMETHOD.
 
