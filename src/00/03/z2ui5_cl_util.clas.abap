@@ -13,11 +13,11 @@ CLASS z2ui5_cl_util DEFINITION
 
     CONSTANTS:
       BEGIN OF cs_ui5_msg_type,
-        e TYPE string VALUE `Error`,
-        s TYPE string VALUE `Success`,
-        w TYPE string VALUE `Warning`,
-        i TYPE string VALUE `Information`,
-      END OF cs_ui5_msg_type ##NO_TEXT.
+        e TYPE string VALUE `Error` ##NO_TEXT,
+        s TYPE string VALUE `Success` ##NO_TEXT,
+        w TYPE string VALUE `Warning` ##NO_TEXT,
+        i TYPE string VALUE `Information` ##NO_TEXT,
+      END OF cs_ui5_msg_type.
 
     TYPES:
       BEGIN OF ty_s_name_value,

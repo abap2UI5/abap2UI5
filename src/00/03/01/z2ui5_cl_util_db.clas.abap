@@ -69,25 +69,23 @@ CLASS z2ui5_cl_util_db IMPLEMENTATION.
 
     DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_91 WITH EMPTY KEY.
 
-    SELECT data
+    SELECT SINGLE data
       FROM z2ui5_t_91
        WHERE
         uname = @uname
         AND handle = @handle
         AND handle2 = @handle2
-        AND handle3 = @handle3
-      INTO CORRESPONDING FIELDS OF TABLE @lt_db.
+        AND handle3 = @handle3 "#EC WARNOK
+      INTO @DATA(lv_data).
     IF sy-subrc <> 0.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING
-          val = `No entry for handle exists`.
+          val = `NO_ENTRY_FOR_HANDLE_EXISTS`.
     ENDIF.
-
-    DATA(ls_db) = lt_db[ 1 ].
 
     z2ui5_cl_util=>xml_parse(
       EXPORTING
-        xml = ls_db-data
+        xml = lv_data
       IMPORTING
         any = result ).
 
@@ -98,17 +96,15 @@ CLASS z2ui5_cl_util_db IMPLEMENTATION.
 
     DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_91 WITH EMPTY KEY.
 
-    SELECT data
+    SELECT SINGLE data
       FROM z2ui5_t_91
-      WHERE id = @id
-      INTO CORRESPONDING FIELDS OF TABLE @lt_db.
+      WHERE id = @id  "#EC WARNOK
+      INTO @DATA(lv_data).
     ASSERT sy-subrc = 0.
-
-    DATA(ls_db) = lt_db[ 1 ].
 
     z2ui5_cl_util=>xml_parse(
       EXPORTING
-        xml = ls_db-data
+        xml = lv_data
       IMPORTING
         any = result ).
 
@@ -118,14 +114,14 @@ CLASS z2ui5_cl_util_db IMPLEMENTATION.
   METHOD save.
 
     DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_91 WITH EMPTY KEY.
-    SELECT id
+    SELECT SINGLE id
       FROM z2ui5_t_91
        WHERE
         uname = @uname
         AND handle = @handle
-        AND handle2 = @handle2
+        AND handle2 = @handle2 "#EC WARNOK
         AND handle3 = @handle3
-      INTO CORRESPONDING FIELDS OF TABLE @lt_db ##SUBRC_OK.
+      INTO @DATA(lv_id) ##SUBRC_OK.
 
     DATA(ls_db) = VALUE z2ui5_t_91(
         uname   = uname
@@ -134,11 +130,11 @@ CLASS z2ui5_cl_util_db IMPLEMENTATION.
         handle3 = handle3
         data    = z2ui5_cl_util=>xml_stringify( data ) ).
 
-    TRY.
-        ls_db-id = lt_db[ 1 ]-id.
-      CATCH cx_root.
-        ls_db-id = z2ui5_cl_util=>uuid_get_c32( ).
-    ENDTRY.
+    IF lv_id IS NOT INITIAL.
+      ls_db-id = lv_id.
+    ELSE.
+      ls_db-id = z2ui5_cl_util=>uuid_get_c32( ).
+    ENDIF.
 
     MODIFY z2ui5_t_91 FROM @ls_db.
     ASSERT sy-subrc = 0.
