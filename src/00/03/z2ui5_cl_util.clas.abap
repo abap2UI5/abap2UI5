@@ -11,6 +11,14 @@ CLASS z2ui5_cl_util DEFINITION
     " author: https://github.com/oblomov-dev
     " license: MIT.
 
+    CONSTANTS:
+      BEGIN OF cs_ui5_msg_type,
+        e TYPE string VALUE `Error`,
+        s TYPE string VALUE `Success`,
+        w TYPE string VALUE `Warning`,
+        i TYPE string VALUE `Information`,
+      END OF cs_ui5_msg_type ##NO_TEXT.
+
     TYPES:
       BEGIN OF ty_s_name_value,
         n TYPE string,
@@ -415,7 +423,7 @@ CLASS z2ui5_cl_util DEFINITION
 
     CLASS-METHODS filter_get_range_by_token
       IMPORTING
-        VALUE(value)  TYPE string
+        val           TYPE string
       RETURNING
         VALUE(result) TYPE ty_s_range.
 
@@ -514,7 +522,8 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     TRY.
         DATA(lv_type_name) = rtti_get_type_name( val ).
         result = boolean_check_by_name( lv_type_name ).
-      CATCH cx_root.
+      CATCH cx_root INTO DATA(x).
+        DATA(lv_error) = x->get_text( ).
     ENDTRY.
 
   ENDMETHOD.
@@ -651,51 +660,53 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD filter_get_range_by_token.
 
-    DATA(lv_length) = strlen( value ) - 1.
-    CASE value(1).
+    DATA(lv_value) = val.
+    DATA(lv_length) = strlen( lv_value ) - 1.
+
+    CASE lv_value(1).
 
       WHEN `=`.
         result = VALUE #( sign   = `I`
                           option = `EQ`
-                          low    = value+1 ).
+                          low    = lv_value+1 ).
       WHEN `<`.
-        IF value+1(1) = `=`.
+        IF lv_value+1(1) = `=`.
           result = VALUE #( sign   = `I`
                             option = `LE`
-                            low    = value+2 ).
+                            low    = lv_value+2 ).
         ELSE.
           result = VALUE #( sign   = `I`
                             option = `LT`
-                            low    = value+1 ).
+                            low    = lv_value+1 ).
         ENDIF.
       WHEN `>`.
-        IF value+1(1) = `=`.
+        IF lv_value+1(1) = `=`.
           result = VALUE #( sign   = `I`
                             option = `GE`
-                            low    = value+2 ).
+                            low    = lv_value+2 ).
         ELSE.
           result = VALUE #( sign   = `I`
                             option = `GT`
-                            low    = value+1 ).
+                            low    = lv_value+1 ).
         ENDIF.
 
       WHEN `*`.
-        IF value+lv_length(1) = `*`.
-          SHIFT value RIGHT DELETING TRAILING `*`.
-          SHIFT value LEFT DELETING LEADING `*`.
+        IF lv_value+lv_length(1) = `*`.
+          SHIFT lv_value RIGHT DELETING TRAILING `*`.
+          SHIFT lv_value LEFT DELETING LEADING `*`.
           result = VALUE #( sign   = `I`
                             option = `CP`
-                            low    = value ).
+                            low    = lv_value ).
         ENDIF.
 
       WHEN OTHERS.
-        IF value CP `...`.
-          SPLIT value AT `...` INTO result-low result-high.
+        IF lv_value CP `...`.
+          SPLIT lv_value AT `...` INTO result-low result-high.
           result-option = `BT`.
         ELSE.
           result = VALUE #( sign   = `I`
                             option = `EQ`
-                            low    = value ).
+                            low    = lv_value ).
         ENDIF.
 
     ENDCASE.
@@ -919,8 +930,8 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
           result = abap_true.
         ENDIF.
 
-      CATCH cx_root.
-        " cx_sy_rtti_syntax_error
+      CATCH cx_root INTO DATA(x).
+        DATA(lv_error) = x->get_text( ).
     ENDTRY.
 
   ENDMETHOD.
@@ -932,7 +943,8 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         DATA(lo_typdescr) = cl_abap_typedescr=>describe_by_data( val ).
         DATA(lo_ref) = CAST cl_abap_refdescr( lo_typdescr ) ##NEEDED.
         result = abap_true.
-      CATCH cx_root.
+      CATCH cx_root INTO DATA(x).
+        DATA(lv_error) = x->get_text( ).
     ENDTRY.
 
   ENDMETHOD.
@@ -980,7 +992,8 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         DATA(lo_ele) = CAST cl_abap_elemdescr( lo_descr ).
         result = lo_ele->get_relative_name( ).
 
-      CATCH cx_root.
+      CATCH cx_root INTO DATA(x).
+        DATA(lv_error) = x->get_text( ).
     ENDTRY.
   ENDMETHOD.
 
@@ -1092,7 +1105,8 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         result = rtti_get_t_fixvalues( elemdescr = elemdescr
                                        langu     = langu ).
 
-      CATCH cx_root.
+      CATCH cx_root INTO DATA(x).
+        DATA(lv_error) = x->get_text( ).
     ENDTRY.
 
   ENDMETHOD.
@@ -1119,7 +1133,8 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
             result = rtti_tab_get_relative_name( <table> ).
 
         ENDCASE.
-      CATCH cx_root.
+      CATCH cx_root INTO DATA(x).
+        DATA(lv_error) = x->get_text( ).
     ENDTRY.
 
   ENDMETHOD.
@@ -1133,7 +1148,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 |pt, json, jsoniq, jsp, jsx, julia, kotlin, latex, lean, less, liquid, lisp, live_script, livescript, logiql, lsl, lua, luapage, lucene, makefile, markdown, mask, matlab, mavens_mate_log, maze, mel, mips_assembler, mipsassembler, mushcode, mysql, ni| &&
 |x, nsis, objectivec, ocaml, pascal, perl, pgsql, php, plain_text, powershell, praat, prolog, properties, protobuf, python, r, razor, rdoc, rhtml, rst, ruby, rust, sass, scad, scala, scheme, scss, sh, sjs, smarty, snippets, soy_template, space, sql,| &&
       | sqlserver, stylus, svg, swift, swig, tcl, tex, text, textile, toml, tsx, twig, typescript, vala, vbscript, velocity, verilog, vhdl, wollok, xml, xquery, terraform, slim, redshift, red, puppet, php_laravel_blade, mixal, jssm, fsharp, edifact,| &&
-      | csp, cssound_score, cssound_orchestra, cssound_document|.
+      | csp, cssound_score, cssound_orchestra, cssound_document| ##NO_TEXT.
     SPLIT lv_types AT ',' INTO TABLE result.
 
   ENDMETHOD.
@@ -1154,7 +1169,8 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     LOOP AT it_source INTO DATA(lv_source).
       TRY.
           result = result && lv_source+1 && cl_abap_char_utilities=>newline.
-        CATCH cx_root.
+        CATCH cx_root INTO DATA(x).
+          DATA(lv_error) = x->get_text( ).
       ENDTRY.
     ENDLOOP.
 
@@ -1342,7 +1358,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
           data_object = data
         RECEIVING
           srtti       = srtti.
-
       CALL TRANSFORMATION id SOURCE srtti = srtti dobj = data RESULT XML result.
 
     ELSE.
@@ -1353,18 +1368,16 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
               data_object = data
             RECEIVING
               srtti       = srtti.
-
           CALL TRANSFORMATION id SOURCE srtti = srtti dobj = data RESULT XML result.
 
         CATCH cx_root.
 
-          DATA(lv_text) = `UNSUPPORTED_FEATURE - Please install the open-source project S-RTTI by sandraros and try again: https://github.com/sandraros/S-RTTI`.
+          DATA(lv_text) = `UNSUPPORTED_FEATURE`.
           RAISE EXCEPTION TYPE z2ui5_cx_util_error
             EXPORTING
               val = lv_text.
 
       ENDTRY.
-
     ENDIF.
 
   ENDMETHOD.
@@ -1580,6 +1593,11 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         EXCEPTIONS
           internal_error = 1
           OTHERS         = 2.
+      IF sy-subrc <> 0.
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING
+            val = z2ui5_cl_util=>context_get_sy( ).
+      ENDIF.
 
     ENDIF.
 
@@ -1610,10 +1628,10 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   METHOD ui5_get_msg_type.
 
     result = SWITCH #( val
-                       WHEN 'E' THEN `Error`
-                       WHEN 'S' THEN `Success`
-                       WHEN `W` THEN `Warning`
-                       ELSE `Information` ).
+                       WHEN 'E' THEN cs_ui5_msg_type-e
+                       WHEN 'S' THEN cs_ui5_msg_type-s
+                       WHEN `W` THEN cs_ui5_msg_type-w
+                       ELSE cs_ui5_msg_type-i ).
 
   ENDMETHOD.
 
