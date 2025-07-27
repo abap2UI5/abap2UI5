@@ -51,7 +51,7 @@ CLASS z2ui5_cx_util_error IMPLEMENTATION.
       error = abap_true.
     ENDIF.
 
-    result = COND #( WHEN error = abap_true AND result IS INITIAL THEN `unknown error` ELSE result ).
+    result = COND #( WHEN error = abap_true AND result IS INITIAL THEN `UNKNOWN_ERROR` ELSE result ).
 
   ENDMETHOD.
 ENDCLASS.

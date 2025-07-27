@@ -16,9 +16,18 @@ CLASS z2ui5_cl_util_msg DEFINITION PUBLIC
       RETURNING
         VALUE(result) TYPE z2ui5_cl_util=>ty_t_msg.
 
+    CLASS-METHODS msg_get_by_sy
+      RETURNING
+        VALUE(result) TYPE z2ui5_cl_util=>ty_t_msg.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 
+
+
 CLASS z2ui5_cl_util_msg IMPLEMENTATION.
+
 
   METHOD msg_get.
 
@@ -136,6 +145,7 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD msg_map.
 
     result = is_msg.
@@ -161,4 +171,11 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
+
+  METHOD msg_get_by_sy.
+
+    result = msg_get( z2ui5_cl_util=>context_get_sy( ) ).
+
+  ENDMETHOD.
+
 ENDCLASS.

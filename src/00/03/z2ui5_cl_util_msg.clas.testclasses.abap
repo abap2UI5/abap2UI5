@@ -23,7 +23,7 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
 
     data(lv_dummy2) = 'NET'.
     MESSAGE ID lv_dummy2 TYPE 'I' NUMBER '001' INTO DATA(lv_dummy).
-    DATA(lt_result) = z2ui5_cl_util_msg=>msg_get( sy ).
+    DATA(lt_result) = z2ui5_cl_util_msg=>msg_get_by_sy( ).
 
    cl_abap_unit_assert=>assert_equals( exp = `NET`
                                         act = lt_result[ 1 ]-id ).
