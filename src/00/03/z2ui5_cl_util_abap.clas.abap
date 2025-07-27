@@ -13,6 +13,181 @@ CLASS z2ui5_cl_util_abap DEFINITION
     TYPES ty_t_fix_val TYPE STANDARD TABLE OF ty_s_fix_val WITH DEFAULT KEY.
 
     TYPES:
+      BEGIN OF ty_syst,
+        index TYPE i,
+        pagno TYPE i,
+        tabix TYPE i,
+        tfill TYPE i,
+        tlopc TYPE i,
+        tmaxl TYPE i,
+        toccu TYPE i,
+        ttabc TYPE i,
+        tstis TYPE i,
+        ttabi TYPE i,
+        dbcnt TYPE i,
+        fdpos TYPE i,
+        colno TYPE i,
+        linct TYPE i,
+        linno TYPE i,
+        linsz TYPE i,
+        pagct TYPE i,
+        macol TYPE i,
+        marow TYPE i,
+        tleng TYPE i,
+        sfoff TYPE i,
+        willi TYPE i,
+        lilli TYPE i,
+        subrc TYPE i,
+        fleng TYPE i,
+        cucol TYPE i,
+        curow TYPE i,
+        lsind TYPE i,
+        listi TYPE i,
+        stepl TYPE i,
+        tpagi TYPE i,
+        winx1 TYPE i,
+        winy1 TYPE i,
+        winx2 TYPE i,
+        winy2 TYPE i,
+        winco TYPE i,
+        winro TYPE i,
+        windi TYPE i,
+        srows TYPE i,
+        scols TYPE i,
+        loopc TYPE i,
+        folen TYPE i,
+        fodec TYPE i,
+        tzone TYPE i,
+        dayst TYPE c LENGTH 1,
+        ftype TYPE c LENGTH 1,
+        appli TYPE x LENGTH 2,
+        fdayw TYPE int1,
+        ccurs TYPE p LENGTH 9 DECIMALS 0,
+        ccurt TYPE p LENGTH 9 DECIMALS 0,
+        debug TYPE c LENGTH 1,
+        ctype TYPE c LENGTH 1,
+        input TYPE c LENGTH 1,
+        langu TYPE c LENGTH 1,
+        modno TYPE i,
+        batch TYPE c LENGTH 1,
+        binpt TYPE c LENGTH 1,
+        calld TYPE c LENGTH 1,
+        dynnr TYPE c LENGTH 4,
+        dyngr TYPE c LENGTH 4,
+        newpa TYPE c LENGTH 1,
+        pri40 TYPE c LENGTH 1,
+        rstrt TYPE c LENGTH 1,
+        wtitl TYPE c LENGTH 1,
+        cpage TYPE i,
+        dbnam TYPE c LENGTH 20,
+        mandt TYPE c LENGTH 3,
+        prefx TYPE c LENGTH 3,
+        fmkey TYPE c LENGTH 3,
+        pexpi TYPE n LENGTH 1,
+        prini TYPE n LENGTH 1,
+        primm TYPE c LENGTH 1,
+        prrel TYPE c LENGTH 1,
+        playo TYPE c LENGTH 5,
+        prbig TYPE c LENGTH 1,
+        playp TYPE c LENGTH 1,
+        prnew TYPE c LENGTH 1,
+        prlog TYPE c LENGTH 1,
+        pdest TYPE c LENGTH 4,
+        plist TYPE c LENGTH 12,
+        pauth TYPE n LENGTH 2,
+        prdsn TYPE c LENGTH 6,
+        pnwpa TYPE c LENGTH 1,
+        callr TYPE c LENGTH 8,
+        repi2 TYPE c LENGTH 40,
+        rtitl TYPE c LENGTH 70,
+        prrec TYPE c LENGTH 12,
+        prtxt TYPE c LENGTH 68,
+        prabt TYPE c LENGTH 12,
+        lpass TYPE c LENGTH 4,
+        nrpag TYPE c LENGTH 1,
+        paart TYPE c LENGTH 16,
+        prcop TYPE n LENGTH 3,
+        batzs TYPE c LENGTH 1,
+        bspld TYPE c LENGTH 1,
+        brep4 TYPE c LENGTH 4,
+        batzo TYPE c LENGTH 1,
+        batzd TYPE c LENGTH 1,
+        batzw TYPE c LENGTH 1,
+        batzm TYPE c LENGTH 1,
+        ctabl TYPE c LENGTH 4,
+        dbsys TYPE c LENGTH 10,
+        dcsys TYPE c LENGTH 4,
+        macdb TYPE c LENGTH 4,
+        sysid TYPE c LENGTH 8,
+        opsys TYPE c LENGTH 10,
+        pfkey TYPE c LENGTH 20,
+        saprl TYPE c LENGTH 4,
+        tcode TYPE c LENGTH 20,
+        ucomm TYPE c LENGTH 70,
+        cfwae TYPE c LENGTH 5,
+        chwae TYPE c LENGTH 5,
+        spono TYPE n LENGTH 10,
+        sponr TYPE n LENGTH 10,
+        waers TYPE c LENGTH 5,
+        cdate TYPE d,
+        datum TYPE d,
+        slset TYPE c LENGTH 14,
+        subty TYPE x LENGTH 1,
+        subcs TYPE c LENGTH 1,
+        group TYPE c LENGTH 1,
+        ffile TYPE c LENGTH 8,
+        uzeit TYPE t,
+        dsnam TYPE c LENGTH 8,
+        tabid TYPE c LENGTH 8,
+        tfdsn TYPE c LENGTH 8,
+        uname TYPE c LENGTH 12,
+        lstat TYPE c LENGTH 16,
+        abcde TYPE c LENGTH 26,
+        marky TYPE c LENGTH 1,
+        sfnam TYPE c LENGTH 30,
+        tname TYPE c LENGTH 30,
+        msgli TYPE c LENGTH 60,
+        title TYPE c LENGTH 70,
+        entry TYPE c LENGTH 72,
+        lisel TYPE c LENGTH 255,
+        uline TYPE c LENGTH 255,
+        xcode TYPE c LENGTH 70,
+        cprog TYPE c LENGTH 40,
+        xprog TYPE c LENGTH 40,
+        xform TYPE c LENGTH 30,
+        ldbpg TYPE c LENGTH 40,
+        tvar0 TYPE c LENGTH 20,
+        tvar1 TYPE c LENGTH 20,
+        tvar2 TYPE c LENGTH 20,
+        tvar3 TYPE c LENGTH 20,
+        tvar4 TYPE c LENGTH 20,
+        tvar5 TYPE c LENGTH 20,
+        tvar6 TYPE c LENGTH 20,
+        tvar7 TYPE c LENGTH 20,
+        tvar8 TYPE c LENGTH 20,
+        tvar9 TYPE c LENGTH 20,
+        msgid TYPE c LENGTH 20,
+        msgty TYPE c LENGTH 1,
+        msgno TYPE n LENGTH 3,
+        msgv1 TYPE c LENGTH 50,
+        msgv2 TYPE c LENGTH 50,
+        msgv3 TYPE c LENGTH 50,
+        msgv4 TYPE c LENGTH 50,
+        oncom TYPE c LENGTH 1,
+        vline TYPE c LENGTH 1,
+        winsl TYPE c LENGTH 79,
+        staco TYPE i,
+        staro TYPE i,
+        datar TYPE c LENGTH 1,
+        host  TYPE c LENGTH 32,
+        locdb TYPE c LENGTH 1,
+        locop TYPE c LENGTH 1,
+        datlo TYPE d,
+        timlo TYPE t,
+        zonlo TYPE c LENGTH 6,
+      END OF ty_syst.
+
+    TYPES:
       BEGIN OF ty_s_data_element_text,
         header TYPE string,
         short  TYPE string,
@@ -58,6 +233,10 @@ CLASS z2ui5_cl_util_abap DEFINITION
     CLASS-METHODS context_get_tenant
       RETURNING
         VALUE(result) TYPE string.
+
+    CLASS-METHODS context_get_sy
+      RETURNING
+        VALUE(result) TYPE ty_syst.
 
     CLASS-METHODS context_check_abap_cloud
       RETURNING
@@ -785,9 +964,9 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
           RECEIVING
             rv_short_description = result.
 
-      CATCH cx_root.
+      CATCH cx_root INTO DATA(x).
+        DATA(lv_error) = x->get_text( ).
     ENDTRY.
-
   ENDMETHOD.
 
   METHOD rtti_get_table_desrc.
@@ -905,6 +1084,12 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD bal_save.
+
+  ENDMETHOD.
+
+  METHOD context_get_sy.
+
+    result = CORRESPONDING #( sy ).
 
   ENDMETHOD.
 

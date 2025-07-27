@@ -760,82 +760,82 @@ CLASS z2ui5_cl_util_abap_s IMPLEMENTATION.
 
   METHOD context_get_callstack.
 
-
-    TRY.
-
-        DATA current_obj TYPE REF TO object.
-        DATA stack TYPE REF TO object.
-        DATA full_stack TYPE REF TO object.
-        DATA format_source TYPE REF TO object.
-        DATA format_obj2 TYPE REF TO object.
-        DATA format_obj3 TYPE REF TO object.
-        DATA text_obj TYPE REF TO object.
-        DATA lv_xco_cp TYPE c LENGTH 6.
-        DATA ro_lines TYPE REF TO object.
-        FIELD-SYMBOLS <current> TYPE any.
-        FIELD-SYMBOLS <any> TYPE any.
-        FIELD-SYMBOLS <call_stack> TYPE any.
-        FIELD-SYMBOLS <format> TYPE any.
-        FIELD-SYMBOLS <format2> TYPE any.
-
-        "1 format source
-        DATA(lv_assign) = `XCO_CP_CALL_STACK=>LINE_NUMBER_FLAVOR->SOURCE`.
-        ASSIGN (lv_assign) TO <format>.
-
-        lv_assign = `XCO_CP_CALL_STACK=>FORMAT`.
-        ASSIGN (lv_assign) TO <format2>.
-        format_obj2 = <format2>.
-
-        CALL METHOD format_obj2->('IF_XCO_CP_CS_FORMAT_FACTORY~ADT')
-          RECEIVING
-            ro_adt = format_obj3.
-
-        CALL METHOD format_obj3->('WITH_LINE_NUMBER_FLAVOR')
-          EXPORTING
-            io_line_number_flavor = <format>
-          RECEIVING
-            ro_me                 = format_source.
-
-        lv_xco_cp = 'XCO_CP'.
-        ASSIGN (lv_xco_cp)=>('CURRENT') TO <current>.
-        current_obj = <current>.
-
-        ASSIGN current_obj->('IF_XCO_CP_STD_CURRENT~CALL_STACK') TO <call_stack>.
-        stack = <call_stack>.
-
-        CALL METHOD stack->('IF_XCO_CP_STD_CUR_API_CLL_STCK~FULL')
-          RECEIVING
-            ro_full = full_stack.
-
-        DATA r TYPE REF TO data.
-        CREATE DATA r TYPE REF TO ('IF_XCO_CS_FORMAT').
-        ASSIGN r->* TO <any>.
-        <any> ?= format_source.
-
-        CALL METHOD full_stack->('IF_XCO_CP_CALL_STACK~AS_TEXT')
-          EXPORTING
-            io_format = <any>
-          RECEIVING
-            ro_text   = text_obj.
-
-        CALL METHOD text_obj->('IF_XCO_TEXT~GET_LINES')
-          RECEIVING
-            ro_lines = ro_lines.
-
-        FIELD-SYMBOLS <lt_lines> TYPE string_table.
-        ASSIGN ro_lines->('IF_XCO_STRINGS~VALUE') TO <lt_lines>.
-
-      CATCH cx_root INTO DATA(x).
-        "TODO ABAP Standard
-    ENDTRY.
-
-    DELETE <lt_lines> INDEX 1.
-
-    LOOP AT <lt_lines> INTO DATA(text).
-      DATA(ls_stack) = VALUE z2ui5_cl_util_abap=>ty_S_stack( ).
-      SPLIT text AT ` ` INTO ls_stack-class ls_stack-include ls_stack-method.
-      INSERT ls_stack INTO TABLE result.
-    ENDLOOP.
+*
+*    TRY.
+*
+*        DATA current_obj TYPE REF TO object.
+*        DATA stack TYPE REF TO object.
+*        DATA full_stack TYPE REF TO object.
+*        DATA format_source TYPE REF TO object.
+*        DATA format_obj2 TYPE REF TO object.
+*        DATA format_obj3 TYPE REF TO object.
+*        DATA text_obj TYPE REF TO object.
+*        DATA lv_xco_cp TYPE c LENGTH 6.
+*        DATA ro_lines TYPE REF TO object.
+*        FIELD-SYMBOLS <current> TYPE any.
+*        FIELD-SYMBOLS <any> TYPE any.
+*        FIELD-SYMBOLS <call_stack> TYPE any.
+*        FIELD-SYMBOLS <format> TYPE any.
+*        FIELD-SYMBOLS <format2> TYPE any.
+*
+*        "1 format source
+*        DATA(lv_assign) = `XCO_CP_CALL_STACK=>LINE_NUMBER_FLAVOR->SOURCE`.
+*        ASSIGN (lv_assign) TO <format>.
+*
+*        lv_assign = `XCO_CP_CALL_STACK=>FORMAT`.
+*        ASSIGN (lv_assign) TO <format2>.
+*        format_obj2 = <format2>.
+*
+*        CALL METHOD format_obj2->('IF_XCO_CP_CS_FORMAT_FACTORY~ADT')
+*          RECEIVING
+*            ro_adt = format_obj3.
+*
+*        CALL METHOD format_obj3->('WITH_LINE_NUMBER_FLAVOR')
+*          EXPORTING
+*            io_line_number_flavor = <format>
+*          RECEIVING
+*            ro_me                 = format_source.
+*
+*        lv_xco_cp = 'XCO_CP'.
+*        ASSIGN (lv_xco_cp)=>('CURRENT') TO <current>.
+*        current_obj = <current>.
+*
+*        ASSIGN current_obj->('IF_XCO_CP_STD_CURRENT~CALL_STACK') TO <call_stack>.
+*        stack = <call_stack>.
+*
+*        CALL METHOD stack->('IF_XCO_CP_STD_CUR_API_CLL_STCK~FULL')
+*          RECEIVING
+*            ro_full = full_stack.
+*
+*        DATA r TYPE REF TO data.
+*        CREATE DATA r TYPE REF TO ('IF_XCO_CS_FORMAT').
+*        ASSIGN r->* TO <any>.
+*        <any> ?= format_source.
+*
+*        CALL METHOD full_stack->('IF_XCO_CP_CALL_STACK~AS_TEXT')
+*          EXPORTING
+*            io_format = <any>
+*          RECEIVING
+*            ro_text   = text_obj.
+*
+*        CALL METHOD text_obj->('IF_XCO_TEXT~GET_LINES')
+*          RECEIVING
+*            ro_lines = ro_lines.
+*
+*        FIELD-SYMBOLS <lt_lines> TYPE string_table.
+*        ASSIGN ro_lines->('IF_XCO_STRINGS~VALUE') TO <lt_lines>.
+*
+*      CATCH cx_root INTO DATA(x).
+*        "TODO ABAP Standard
+*    ENDTRY.
+*
+*    DELETE <lt_lines> INDEX 1.
+*
+*    LOOP AT <lt_lines> INTO DATA(text).
+*      DATA(ls_stack) = VALUE z2ui5_cl_util_abap=>ty_S_stack( ).
+*      SPLIT text AT ` ` INTO ls_stack-class ls_stack-include ls_stack-method.
+*      INSERT ls_stack INTO TABLE result.
+*    ENDLOOP.
 
   ENDMETHOD.
 
