@@ -124,8 +124,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
   METHOD factory_cloud.
 
     result = NEW #( ).
-    result->mo_server = z2ui5_cl_util_http=>factory_cloud( req = req
-                                                               res  = res ).
+    result->mo_server = z2ui5_cl_util_http=>factory_cloud( req     = req
+                                                               res = res ).
 
   ENDMETHOD.
 
