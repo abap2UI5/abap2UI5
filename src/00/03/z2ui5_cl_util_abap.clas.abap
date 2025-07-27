@@ -461,7 +461,7 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
     DATA temp3               TYPE z2ui5_cl_util_abap=>ty_t_classes.
     DATA implementation_name LIKE LINE OF lt_implementation_names.
     DATA temp4               LIKE LINE OF temp3.
-    DATA lv_fm               TYPE string.
+
     DATA type                TYPE c LENGTH 12.
     FIELD-SYMBOLS <class> TYPE data.
     DATA temp5   LIKE LINE OF lt_impl.
@@ -469,99 +469,100 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
     FIELD-SYMBOLS <description> TYPE any.
     DATA temp6 TYPE z2ui5_cl_util_abap=>ty_s_class_descr.
 
-    TRY.
+    IF context_check_abap_cloud( ).
 
-        ls_clskey-clsname = val.
+      ls_clskey-clsname = val.
 
-        xco_cp_abap = 'XCO_CP_ABAP'.
-        CALL METHOD (xco_cp_abap)=>interface
-          EXPORTING
-            iv_name      = ls_clskey-clsname
-          RECEIVING
-            ro_interface = obj.
+      xco_cp_abap = 'XCO_CP_ABAP'.
+      CALL METHOD (xco_cp_abap)=>interface
+        EXPORTING
+          iv_name      = ls_clskey-clsname
+        RECEIVING
+          ro_interface = obj.
 
-        ASSIGN obj->('IF_XCO_AO_INTERFACE~IMPLEMENTATIONS') TO <any>.
-        IF sy-subrc <> 0.
-          RAISE EXCEPTION TYPE cx_sy_dyn_call_illegal_class.
-        ENDIF.
-        obj = <any>.
+      ASSIGN obj->('IF_XCO_AO_INTERFACE~IMPLEMENTATIONS') TO <any>.
+      IF sy-subrc <> 0.
+        RAISE EXCEPTION TYPE cx_sy_dyn_call_illegal_class.
+      ENDIF.
+      obj = <any>.
 
-        ASSIGN obj->('IF_XCO_INTF_IMPLEMENTATIONS_FC~ALL') TO <any>.
-        IF sy-subrc <> 0.
-          RAISE EXCEPTION TYPE cx_sy_dyn_call_illegal_class.
-        ENDIF.
-        obj = <any>.
+      ASSIGN obj->('IF_XCO_INTF_IMPLEMENTATIONS_FC~ALL') TO <any>.
+      IF sy-subrc <> 0.
+        RAISE EXCEPTION TYPE cx_sy_dyn_call_illegal_class.
+      ENDIF.
+      obj = <any>.
 
-        CALL METHOD obj->('IF_XCO_INTF_IMPLEMENTATIONS~GET_NAMES')
-          RECEIVING
-            rt_names = lt_implementation_names.
+      CALL METHOD obj->('IF_XCO_INTF_IMPLEMENTATIONS~GET_NAMES')
+        RECEIVING
+          rt_names = lt_implementation_names.
 
-        CLEAR temp3.
+      CLEAR temp3.
 
-        LOOP AT lt_implementation_names INTO implementation_name.
+      LOOP AT lt_implementation_names INTO implementation_name.
 
-          temp4-classname   = implementation_name.
-          temp4-description = rtti_get_class_descr_on_cloud( implementation_name ).
-          INSERT temp4 INTO TABLE temp3.
-        ENDLOOP.
-        result = temp3.
+        temp4-classname   = implementation_name.
+        temp4-description = rtti_get_class_descr_on_cloud( implementation_name ).
+        INSERT temp4 INTO TABLE temp3.
+      ENDLOOP.
+      result = temp3.
 
-      CATCH cx_root.
+    ELSE.
 
-        ls_key-intkey = val.
+      ls_key-intkey = val.
 
-        lv_fm = `SEO_INTERFACE_IMPLEM_GET_ALL`.
+      DATA lv_fm               TYPE string.
+      lv_fm = `SEO_INTERFACE_IMPLEM_GET_ALL`.
+      CALL FUNCTION lv_fm
+        EXPORTING
+          intkey        = ls_key
+        IMPORTING
+          impkeys       = lt_impl
+        EXCEPTIONS
+          error_message = 1
+          OTHERS        = 2.
+      IF sy-subrc <> 0.
+        RETURN.
+      ENDIF.
+
+      type = 'SEOC_CLASS_R'.
+      CREATE DATA class TYPE (type).
+
+      ASSIGN class->* TO <class>.
+
+      LOOP AT lt_impl REFERENCE INTO lr_impl.
+
+        CLEAR <class>.
+
+        ls_clskey-clsname = lr_impl->clsname.
+
+        lv_fm = `SEO_CLASS_READ`.
         CALL FUNCTION lv_fm
           EXPORTING
-            intkey        = ls_key
+            clskey        = ls_clskey
           IMPORTING
-            impkeys       = lt_impl
+            class         = <class>
           EXCEPTIONS
             error_message = 1
             OTHERS        = 2.
         IF sy-subrc <> 0.
-          RETURN.
+          RAISE EXCEPTION TYPE z2ui5_cx_util_error.
         ENDIF.
 
-        type = 'SEOC_CLASS_R'.
-        CREATE DATA class TYPE (type).
+        ASSIGN
+          COMPONENT 'DESCRIPT'
+          OF STRUCTURE <class>
+          TO <description>.
+        ASSERT sy-subrc = 0.
 
-        ASSIGN class->* TO <class>.
+        CLEAR temp6.
+        temp6-classname   = lr_impl->clsname.
+        temp6-description = <description>.
+        INSERT
+          temp6
+          INTO TABLE result.
+      ENDLOOP.
 
-        LOOP AT lt_impl REFERENCE INTO lr_impl.
-
-          CLEAR <class>.
-
-          ls_clskey-clsname = lr_impl->clsname.
-
-          lv_fm = `SEO_CLASS_READ`.
-          CALL FUNCTION lv_fm
-            EXPORTING
-              clskey        = ls_clskey
-            IMPORTING
-              class         = <class>
-            EXCEPTIONS
-              error_message = 1
-              OTHERS        = 2.
-          IF sy-subrc <> 0.
-            RAISE EXCEPTION TYPE z2ui5_cx_util_error.
-          ENDIF.
-
-          ASSIGN
-            COMPONENT 'DESCRIPT'
-            OF STRUCTURE <class>
-            TO <description>.
-          ASSERT sy-subrc = 0.
-
-          CLEAR temp6.
-          temp6-classname   = lr_impl->clsname.
-          temp6-description = <description>.
-          INSERT
-            temp6
-            INTO TABLE result.
-        ENDLOOP.
-
-    ENDTRY.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -760,28 +761,32 @@ CLASS z2ui5_cl_util_abap IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD rtti_get_class_descr_on_cloud.
+    TRY.
 
-    DATA obj          TYPE REF TO object.
-    DATA content      TYPE REF TO object.
-    DATA lv_classname TYPE c LENGTH 30.
-    DATA xco_cp_abap  TYPE c LENGTH 11.
+        DATA obj          TYPE REF TO object.
+        DATA content      TYPE REF TO object.
+        DATA lv_classname TYPE c LENGTH 30.
+        DATA xco_cp_abap  TYPE c LENGTH 11.
 
-    lv_classname = i_classname.
+        lv_classname = i_classname.
 
-    xco_cp_abap = 'XCO_CP_ABAP'.
-    CALL METHOD (xco_cp_abap)=>('CLASS')
-      EXPORTING
-        iv_name  = lv_classname
-      RECEIVING
-        ro_class = obj.
+        xco_cp_abap = 'XCO_CP_ABAP'.
+        CALL METHOD (xco_cp_abap)=>('CLASS')
+          EXPORTING
+            iv_name  = lv_classname
+          RECEIVING
+            ro_class = obj.
 
-    CALL METHOD obj->('IF_XCO_AO_CLASS~CONTENT')
-      RECEIVING
-        ro_content = content.
+        CALL METHOD obj->('IF_XCO_AO_CLASS~CONTENT')
+          RECEIVING
+            ro_content = content.
 
-    CALL METHOD content->('IF_XCO_CLAS_CONTENT~GET_SHORT_DESCRIPTION')
-      RECEIVING
-        rv_short_description = result.
+        CALL METHOD content->('IF_XCO_CLAS_CONTENT~GET_SHORT_DESCRIPTION')
+          RECEIVING
+            rv_short_description = result.
+
+      CATCH cx_root.
+    ENDTRY.
 
   ENDMETHOD.
 
