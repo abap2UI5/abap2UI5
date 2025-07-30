@@ -389,8 +389,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                            })) || "";` && |\n| &&
              `                            if (z2ui5.args[3] === 'EXT') {` && |\n| &&
              `                                let url = window.location.href.split('#')[0] + hash;` && |\n| &&
-             `                                //todo` && |\n| &&
-             `                                //URLHelper.redirect(url, true);` && |\n| &&
+             `                                sap.m.URLHelper.redirect(url, true);` && |\n| &&
              `                            } else {` && |\n| &&
              `                                z2ui5.oCrossAppNavigator.toExternal({` && |\n| &&
              `                                    target: {` && |\n| &&
@@ -418,9 +417,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        navCon.to(navConTo);` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'NEST_NAV_CONTAINER_TO':` && |\n| &&
+             `                        navCon = z2ui5.oViewNest.byId(args[1]);` && |\n| &&
              |\n|.
     result = result &&
-             `                        navCon = z2ui5.oViewNest.byId(args[1]);` && |\n| &&
              `                        navConTo = z2ui5.oViewNest.byId(args[2]);` && |\n| &&
              `                        navCon.to(navConTo);` && |\n| &&
              `                        break;` && |\n| &&
