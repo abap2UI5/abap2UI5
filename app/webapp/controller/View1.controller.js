@@ -369,8 +369,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                             })) || "";
                             if (z2ui5.args[3] === 'EXT') {
                                 let url = window.location.href.split('#')[0] + hash;
-                                //todo
-                                //URLHelper.redirect(url, true);
+                                sap.m.URLHelper.redirect(url, true);
                             } else {
                                 z2ui5.oCrossAppNavigator.toExternal({
                                     target: {
