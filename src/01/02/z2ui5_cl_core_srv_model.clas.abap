@@ -540,7 +540,11 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
          WHERE check_dissolved  = abap_true
                AND name_ref        IS INITIAL.
 
-      DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
+      TRY.
+          DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
+        CATCH cx_root.
+          CONTINUE.
+      ENDTRY.
 
       CASE lr_attri->type_kind.
 
@@ -552,7 +556,12 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
                 AND name_ref IS INITIAL
                 AND type_kind = cl_abap_typedescr=>typekind_table.
 
-            DATA(lr_attri_ref_ref) = attri_get_val_ref( lr_attri_ref->name ).
+            TRY.
+                DATA(lr_attri_ref_ref) = attri_get_val_ref( lr_attri_ref->name ).
+              CATCH cx_root.
+                CONTINUE.
+            ENDTRY.
+
             IF lr_ref <> lr_attri_ref_ref.
               CONTINUE.
             ENDIF.
@@ -572,7 +581,11 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
                     AND ( type_kind = cl_abap_typedescr=>typekind_struct1 OR
                      type_kind = cl_abap_typedescr=>typekind_struct2 ).
 
-            lr_attri_ref_ref = attri_get_val_ref( lr_attri_ref->name ).
+            TRY.
+                lr_attri_ref_ref = attri_get_val_ref( lr_attri_ref->name ).
+              CATCH cx_root.
+                CONTINUE.
+            ENDTRY.
 
             IF <ref> <> lr_attri_ref_ref.
               CONTINUE.
