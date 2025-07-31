@@ -1,8 +1,9 @@
 name: auto_abaplint_fix
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 1'
 
 jobs:
   auto_abaplint_fix:
@@ -19,5 +20,5 @@ jobs:
       - name: Open PR
         uses: peter-evans/create-pull-request@v4
         with:
-          title: abaplint-auto-fixes
-          branch: abaplint-auto-fixes
+          title: abaplint-auto-fixes-formatting
+          branch: abaplint-auto-fixes-formatting
