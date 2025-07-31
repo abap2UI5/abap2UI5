@@ -172,6 +172,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            },` && |\n| &&
              `        };` && |\n| &&
              `    });` && |\n| &&
+             `` && |\n| &&
               ``.
 
   ENDMETHOD.
