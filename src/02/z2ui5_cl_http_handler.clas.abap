@@ -8,6 +8,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
         server TYPE REF TO object                    OPTIONAL
         req    TYPE REF TO object                    OPTIONAL
         res    TYPE REF TO object                    OPTIONAL
+        "obsolete, implement z2ui5_if_exit instead
         config TYPE z2ui5_if_types=>ty_s_http_config OPTIONAL
           PREFERRED PARAMETER server.
 
