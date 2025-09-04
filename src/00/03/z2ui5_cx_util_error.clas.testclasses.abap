@@ -8,13 +8,15 @@ ENDCLASS.
 
 CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_raise.
+        DATA lx TYPE REF TO z2ui5_cx_util_error.
 
     TRY.
 
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
           EXPORTING val = `this is an error text`.
 
-      CATCH z2ui5_cx_util_error INTO DATA(lx).
+        
+      CATCH z2ui5_cx_util_error INTO lx.
         cl_abap_unit_assert=>assert_equals( exp = `this is an error text`
                                             act = lx->get_text( ) ).
     ENDTRY.
