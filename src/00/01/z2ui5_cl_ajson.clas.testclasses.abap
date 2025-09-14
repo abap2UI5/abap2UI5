@@ -175,10 +175,11 @@ CLASS ltcl_parser_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD parse_string.
+    DATA lt_act TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
 
-    DATA lt_act TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
+    
     lt_act = mo_cut->parse( '{"string": "abc"}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -186,10 +187,11 @@ CLASS ltcl_parser_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD parse_number.
+    DATA lt_act TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |number   |num    |123                     |  |0' ).
 
-    DATA lt_act TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
+    
     lt_act = mo_cut->parse( '{"number": 123}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -197,10 +199,11 @@ CLASS ltcl_parser_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD parse_float.
+    DATA lt_act TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |float    |num    |123.45                  |  |0' ).
 
-    DATA lt_act TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
+    
     CREATE OBJECT mo_cut.
     lt_act = mo_cut->parse( '{"float": 123.45}' ).
     cl_abap_unit_assert=>assert_equals(
@@ -209,10 +212,11 @@ CLASS ltcl_parser_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD parse_boolean.
+    DATA lt_act TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |boolean  |bool   |true                    |  |0' ).
 
-    DATA lt_act TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
+    
     lt_act = mo_cut->parse( '{"boolean": true}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -220,10 +224,11 @@ CLASS ltcl_parser_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD parse_false.
+    DATA lt_act TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |false    |bool   |false                   |  |0' ).
 
-    DATA lt_act TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
+    
     lt_act = mo_cut->parse( '{"false": false}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -231,10 +236,11 @@ CLASS ltcl_parser_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD parse_null.
+    DATA lt_act TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |null     |null   |                        |  |0' ).
 
-    DATA lt_act TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
+    
     lt_act = mo_cut->parse( '{"null": null}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -242,10 +248,11 @@ CLASS ltcl_parser_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD parse_date.
+    DATA lt_act TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |date     |str    |2020-03-15              |  |0' ).
 
-    DATA lt_act TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
+    
     lt_act = mo_cut->parse( '{"date": "2020-03-15"}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -253,11 +260,13 @@ CLASS ltcl_parser_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD parse_input_xstring.
+    DATA lt_act TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
+    DATA lv_xstr TYPE xstring.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
 
-    DATA lt_act TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
-    DATA lv_xstr TYPE xstring.
+    
+    
 
     lv_xstr = '7B22737472696E67223A2022616263227D0A'.
     lt_act = mo_cut->parse( lv_xstr ).
@@ -267,11 +276,13 @@ CLASS ltcl_parser_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD parse_input_string.
+    DATA lt_act TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
+    DATA lv_str TYPE string.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
 
-    DATA lt_act TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
-    DATA lv_str TYPE string.
+    
+    
 
     lv_str = `{"string": "abc"}`.
     lt_act = mo_cut->parse( lv_str ).
@@ -281,12 +292,14 @@ CLASS ltcl_parser_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD parse_input_string_table.
+    DATA lt_act TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
+    DATA lt_json TYPE string_table.
     mo_nodes->add( '                 |         |object |                        |  |2' ).
     mo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
     mo_nodes->add( '/                |number   |num    |123                     |  |0' ).
 
-    DATA lt_act TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
-    DATA lt_json TYPE string_table.
+    
+    
 
     INSERT `{` INTO TABLE lt_json.
     INSERT `"string": "abc",` INTO TABLE lt_json.
@@ -1371,6 +1384,7 @@ CLASS ltcl_reader_test IMPLEMENTATION.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
     DATA lt_act TYPE string_table.
     DATA lt_exp TYPE string_table.
+    DATA lx TYPE REF TO z2ui5_cx_ajson_error.
 
     CREATE OBJECT lo_nodes.
     lo_nodes->add( '  |         |array  |                        | |6' ).
@@ -1397,7 +1411,7 @@ CLASS ltcl_reader_test IMPLEMENTATION.
       exp = lt_exp ).
 
     " negative
-    DATA lx TYPE REF TO z2ui5_cx_ajson_error.
+    
 
     CREATE OBJECT lo_nodes.
     lo_nodes->add( '  |         |object |                        | |1' ).
@@ -1640,6 +1654,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     DATA lo_cut TYPE REF TO lcl_json_to_abap.
     DATA lv_mock TYPE t.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
+    DATA lv_mock_init TYPE t.
 
     CREATE OBJECT lo_nodes.
     lo_nodes->add( '       |           |str    |11:11:11| ' ).
@@ -1655,7 +1670,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
       act = lv_mock
       exp = '111111' ).
 
-    DATA lv_mock_init TYPE t.
+    
 
     CREATE OBJECT lo_nodes.
     lo_nodes->add( '       |           |str    || ' ).
@@ -1823,6 +1838,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     DATA ls_mock TYPE ty_complex.
     DATA ls_exp  TYPE ty_complex.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
+    DATA ls_elem LIKE LINE OF ls_exp-tab.
 
     CREATE OBJECT lo_nodes.
     lo_nodes->add( '       |           |object |                          | ' ).
@@ -1839,7 +1855,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
       CHANGING
         c_container = ls_mock ).
 
-    DATA ls_elem LIKE LINE OF ls_exp-tab.
+    
     ls_elem-a = 'One'.
     APPEND ls_elem TO ls_exp-tab.
     ls_elem-a = 'Two'.
@@ -1915,6 +1931,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     DATA lt_exp  TYPE tty_struc_hashed.
 
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
+    DATA ls_elem LIKE LINE OF lt_exp.
     CREATE OBJECT lo_nodes.
     lo_nodes->add( '              |           |array  |                          | ' ).
     lo_nodes->add( '/             |1          |object |                          |1' ).
@@ -1931,7 +1948,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
       CHANGING
         c_container = lt_mock ).
 
-    DATA ls_elem LIKE LINE OF lt_exp.
+    
     ls_elem-a = 'One'.
     ls_elem-b = 1.
     INSERT ls_elem INTO TABLE lt_exp.
@@ -1952,6 +1969,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     DATA lt_exp  TYPE tty_struc_sorted.
 
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
+    DATA ls_elem LIKE LINE OF lt_exp.
     CREATE OBJECT lo_nodes.
     lo_nodes->add( '              |           |array  |                          | ' ).
     lo_nodes->add( '/             |1          |object |                          |1' ).
@@ -1968,7 +1986,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
       CHANGING
         c_container = lt_mock ).
 
-    DATA ls_elem LIKE LINE OF lt_exp.
+    
     ls_elem-a = 'One'.
     ls_elem-b = 1.
     INSERT ls_elem INTO TABLE lt_exp.
@@ -1987,10 +2005,15 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     DATA lo_cut TYPE REF TO lcl_json_to_abap.
     DATA lx TYPE REF TO z2ui5_cx_ajson_error.
     DATA ls_mock TYPE ty_complex.
+    DATA lo_nodes TYPE REF TO lcl_nodes_helper.
+        DATA lt_str TYPE string_table.
+        DATA lr_obj TYPE REF TO object.
+        DATA lr_data TYPE REF TO data.
+        DATA lt_hashed TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
 
     CREATE OBJECT lo_cut.
 
-    DATA lo_nodes TYPE REF TO lcl_nodes_helper.
+    
 
     TRY.
         CREATE OBJECT lo_nodes.
@@ -2078,7 +2101,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        DATA lt_str TYPE string_table.
+        
         CREATE OBJECT lo_nodes.
         lo_nodes->add( '      |     |array  |      | ' ).
         lo_nodes->add( '/     |a    |str    |hello |1' ).
@@ -2096,7 +2119,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        DATA lr_obj TYPE REF TO object.
+        
         CREATE OBJECT lo_nodes.
         lo_nodes->add( '      |     |str  |hello      | ' ).
 
@@ -2113,7 +2136,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        DATA lr_data TYPE REF TO data.
+        
         CREATE OBJECT lo_nodes.
         lo_nodes->add( '      |     |str  |hello      | ' ).
 
@@ -2130,7 +2153,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        DATA lt_hashed TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
+        
         CREATE OBJECT lo_nodes.
         lo_nodes->add( '            |           |array  |                          | ' ).
         lo_nodes->add( '/           |1          |str    |One                       |1' ).
@@ -2933,6 +2956,9 @@ CLASS ltcl_writer_test IMPLEMENTATION.
     DATA lo_cut TYPE REF TO z2ui5_cl_ajson.
     DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
     DATA li_writer TYPE REF TO z2ui5_if_ajson.
+DATA BEGIN OF ls_dummy.
+DATA x TYPE string VALUE 'world'.
+DATA END OF ls_dummy.
 
     lo_cut = z2ui5_cl_ajson=>create_empty( ).
     li_writer = lo_cut.
@@ -2970,10 +2996,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
     lo_nodes_exp->add( '/a/     |2     |object |     |2|1' ).
     lo_nodes_exp->add( '/a/2/   |x     |str    |world| |0' ).
 
-    DATA:
-      BEGIN OF ls_dummy,
-        x TYPE string VALUE 'world',
-      END OF ls_dummy.
+    
 
     li_writer->push(
       iv_path = '/a'
@@ -3028,6 +3051,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     DATA lo_cut TYPE REF TO z2ui5_cl_ajson.
     DATA li_writer TYPE REF TO z2ui5_if_ajson.
+    DATA lx TYPE REF TO z2ui5_cx_ajson_error.
 
     lo_cut = z2ui5_cl_ajson=>create_empty( ).
     li_writer = lo_cut.
@@ -3038,7 +3062,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
       iv_val = 123 ).
 
     " touch another node
-    DATA lx TYPE REF TO z2ui5_cx_ajson_error.
+    
     TRY.
         li_writer->touch_array( iv_path = '/a/1' ).
         cl_abap_unit_assert=>fail( ).
@@ -3860,6 +3884,7 @@ CLASS ltcl_integrated IMPLEMENTATION.
     DATA lv_exp TYPE string.
 
     DATA lv_src TYPE string.
+    DATA li_reader TYPE REF TO z2ui5_if_ajson.
     lv_src = '['.
     DO 10 TIMES.
       IF sy-index <> 1.
@@ -3871,7 +3896,7 @@ CLASS ltcl_integrated IMPLEMENTATION.
     ENDDO.
     lv_src = lv_src && ']'.
 
-    DATA li_reader TYPE REF TO z2ui5_if_ajson.
+    
     li_reader = z2ui5_cl_ajson=>parse( lv_src ).
     li_reader->to_abap( IMPORTING ev_container = lt_act ).
 
@@ -3888,6 +3913,7 @@ CLASS ltcl_integrated IMPLEMENTATION.
     DATA ls_exp TYPE ty_loc.
 
     DATA lv_src TYPE string.
+    DATA li_reader TYPE REF TO z2ui5_if_ajson.
     lv_src = '['.
     DO 10 TIMES.
       IF sy-index <> 1.
@@ -3899,7 +3925,7 @@ CLASS ltcl_integrated IMPLEMENTATION.
     ENDDO.
     lv_src = lv_src && ']'.
 
-    DATA li_reader TYPE REF TO z2ui5_if_ajson.
+    
     li_reader = z2ui5_cl_ajson=>parse( lv_src ).
     li_reader->to_abap( IMPORTING ev_container = lt_act ).
 
@@ -3913,6 +3939,9 @@ CLASS ltcl_integrated IMPLEMENTATION.
 
     DATA lv_source TYPE string.
     DATA li_reader TYPE REF TO z2ui5_if_ajson.
+    DATA ls_act TYPE ty_target.
+    DATA ls_exp TYPE ty_target.
+    FIELD-SYMBOLS <i> LIKE LINE OF ls_exp-issues.
 
     lv_source = ltcl_parser_test=>sample_json( ).
     li_reader = z2ui5_cl_ajson=>parse( lv_source ).
@@ -3921,9 +3950,9 @@ CLASS ltcl_integrated IMPLEMENTATION.
       act = li_reader->get( '/string' )
       exp = 'abc' ).
 
-    DATA ls_act TYPE ty_target.
-    DATA ls_exp TYPE ty_target.
-    FIELD-SYMBOLS <i> LIKE LINE OF ls_exp-issues.
+    
+    
+    
 
     ls_exp-string = 'abc'.
     ls_exp-number = 123.
@@ -4235,6 +4264,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
 
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
     DATA lo_src TYPE REF TO z2ui5_cl_ajson.
+    DATA lt_nodes TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
     lo_src = z2ui5_cl_ajson=>create_empty( ).
 
     CREATE OBJECT lo_nodes.
@@ -4244,7 +4274,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
     lo_nodes->add( '/a/b/   |c     |object |     ||0' ).
     lo_src->mt_json_tree = lo_nodes->mt_nodes.
 
-    DATA lt_nodes TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
+    
     lt_nodes = lcl_abap_to_json=>convert( iv_data = lo_src ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -4538,6 +4568,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
 
     DATA lt_tab TYPE TABLE OF ty_struc.
     FIELD-SYMBOLS <s> LIKE LINE OF lt_tab.
+    DATA lt_strtab TYPE string_table.
 
     APPEND INITIAL LINE TO lt_tab ASSIGNING <s>.
     <s>-a = 'abc'.
@@ -4565,7 +4596,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
       act = lt_nodes
       exp = lo_nodes_exp->mt_nodes ).
 
-    DATA lt_strtab TYPE string_table.
+    
     APPEND 'abc' TO lt_strtab.
     APPEND 'bcd' TO lt_strtab.
 
