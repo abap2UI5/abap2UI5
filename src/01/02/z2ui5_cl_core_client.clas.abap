@@ -402,9 +402,16 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     DATA(lv_check_sticky) = CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky.
     IF lv_check_sticky = abap_true AND val = abap_true.
-      RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING
-          val = `STATEFUL_ALREADY_ACTIVATED_ERROR`.
+      RETURN.
+      " RAISE EXCEPTION TYPE z2ui5_cx_util_error
+      "  EXPORTING
+      "    val = `STATEFUL_ALREADY_ACTIVATED_ERROR`.
+    ENDIF.
+    IF lv_check_sticky = abap_false AND val = abap_false.
+      RETURN.
+      "RAISE EXCEPTION TYPE z2ui5_cx_util_error
+      "  EXPORTING
+      "    val = `STATEFUL_WAS_NOT_ACTIVATED_ERROR`.
     ENDIF.
     IF val = abap_true.
       mo_action->ms_next-s_set-s_stateful-active = 1.
