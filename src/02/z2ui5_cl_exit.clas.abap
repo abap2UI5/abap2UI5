@@ -30,13 +30,15 @@ ENDCLASS.
 CLASS z2ui5_cl_exit IMPLEMENTATION.
 
   METHOD get_instance.
+    DATA lv_class_name TYPE string.
 
     IF gi_me IS NOT INITIAL.
       ri_exit = gi_me.
       RETURN.
     ENDIF.
 
-    DATA(lv_class_name) = get_user_exit_class( ).
+    
+    lv_class_name = get_user_exit_class( ).
 
     IF lv_class_name IS NOT INITIAL.
       TRY.
@@ -45,7 +47,7 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
       ENDTRY.
     ENDIF.
 
-    gi_me = NEW z2ui5_cl_exit( ).
+    CREATE OBJECT gi_me TYPE z2ui5_cl_exit.
     ri_exit = gi_me.
 
   ENDMETHOD.
@@ -53,11 +55,22 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
 
   METHOD get_user_exit_class.
 
-    DATA(exit_classes) = z2ui5_cl_util_abap=>rtti_get_classes_impl_intf( 'Z2UI5_IF_EXIT' ).
+    DATA exit_classes TYPE z2ui5_cl_util_abap=>ty_t_classes.
+      DATA temp1 LIKE LINE OF exit_classes.
+      DATA temp2 LIKE sy-tabix.
+    exit_classes = z2ui5_cl_util_abap=>rtti_get_classes_impl_intf( 'Z2UI5_IF_EXIT' ).
     DELETE exit_classes WHERE classname = 'Z2UI5_CL_EXIT'.
 
     IF exit_classes IS NOT INITIAL.
-      r_class_name = exit_classes[ 1 ]-classname.
+      
+      
+      temp2 = sy-tabix.
+      READ TABLE exit_classes INDEX 1 INTO temp1.
+      sy-tabix = temp2.
+      IF sy-subrc <> 0.
+        ASSERT 1 = 0.
+      ENDIF.
+      r_class_name = temp1-classname.
     ENDIF.
 
   ENDMETHOD.
@@ -117,11 +130,20 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
 
 
   METHOD init_context.
+    DATA temp3 TYPE z2ui5_if_types=>ty_s_http_context-app_start.
+    DATA temp4 TYPE z2ui5_cl_util=>ty_s_name_value.
 
 *    DATA(ls_context) = VALUE z2ui5_if_types=>ty_s_http_context( ).
 *    DATA(ls_req) = mo_server->get_req_info( ).
-    context = CORRESPONDING #( http_info ).
-    context-app_start = VALUE #( http_info-t_params[ n = `app_start` ]-v OPTIONAL ).
+    MOVE-CORRESPONDING http_info TO context.
+    
+    CLEAR temp3.
+    
+    READ TABLE http_info-t_params INTO temp4 WITH KEY n = `app_start`.
+    IF sy-subrc = 0.
+      temp3 = temp4-v.
+    ENDIF.
+    context-app_start = temp3.
 
 
   ENDMETHOD.
