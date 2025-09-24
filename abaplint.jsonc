@@ -1,7 +1,9 @@
 {
   "global": {
     "files": "/src/**/*.*",
-    "noIssues": [ "/src/00" ]
+    "noIssues": [
+      "/src/00"
+    ]
   },
   "dependencies": [
     {
@@ -17,11 +19,11 @@
   "rules": {
     "7bit_ascii": true,
     "abapdoc": false,
-    "sql_value_conversion" : true,
-    "select_single_full_key" : true,
-    "strict_sql" : true,
-    "easy_to_find_messages" : true,
-    "fully_type_itabs" : true,
+    "sql_value_conversion": true,
+    "select_single_full_key": true,
+    "strict_sql": true,
+    "easy_to_find_messages": true,
+    "fully_type_itabs": true,
     "align_parameters": false,
     "smim_consistency": true,
     "allowed_object_naming": true,
@@ -30,36 +32,36 @@
         "CLAS",
         "DEVC",
         "INTF",
-        "TABL",
+        "TABL"
       ]
     },
     "ambiguous_statement": true,
     "avoid_use": {
-  "severity": "Error",
-  "skipQuickFix": false,
-  "define": true,
-  "statics": true,
-  "defaultKey": true,
-  "break": true,
-  "testSeams": true,
-  "describeLines": true,
-  "exportToMemory": true,
-  "exportToDatabase": true
-},
+      "severity": "Error",
+      "skipQuickFix": false,
+      "define": true,
+      "statics": true,
+      "defaultKey": true,
+      "break": true,
+      "testSeams": true,
+      "describeLines": true,
+      "exportToMemory": true,
+      "exportToDatabase": true
+    },
     "begin_end_names": true,
-    "align_pseudo_comments" : true,
-    "dynpro_checks" : true,
-    "empty_event" : true,
-    "invalid_table_index" : true,
-    "macro_naming" : true,
-    "prefer_pragmas" : true,
-    "add_test_attributes" : true,
-    "implicit_start_of_selection" : true,
-    "reduce_procedural_code" : true,
-    "tables_declared_locally" : true,
-    "unused_macros" : true,
-    "align_type_expressions" : false,
-    "no_prefixes" : false,
+    "align_pseudo_comments": true,
+    "dynpro_checks": true,
+    "empty_event": true,
+    "invalid_table_index": true,
+    "macro_naming": true,
+    "prefer_pragmas": true,
+    "add_test_attributes": true,
+    "implicit_start_of_selection": true,
+    "reduce_procedural_code": true,
+    "tables_declared_locally": true,
+    "unused_macros": true,
+    "align_type_expressions": false,
+    "no_prefixes": false,
     "begin_single_include": true,
     "call_transaction_authority_check": true,
     "cds_comment_style": true,
@@ -90,22 +92,22 @@
       "max": 20
     },
     "dangerous_statement": {
-  "exclude": [],
-  "severity": "Error",
-  "insertTextpool": true,
-  "execSQL": true,
-  "kernelCall": true,
-  "systemCall": true,
-  "insertReport": true,
-  "generateDynpro": true,
-  "generateReport": true,
-  "generateSubroutine": true,
-  "deleteReport": true,
-  "deleteTextpool": true,
-  "deleteDynpro": true,
-  "exportDynpro": true,
-  "dynamicSQL": true
-},
+      "exclude": [],
+      "severity": "Error",
+      "insertTextpool": true,
+      "execSQL": true,
+      "kernelCall": true,
+      "systemCall": true,
+      "insertReport": true,
+      "generateDynpro": true,
+      "generateReport": true,
+      "generateSubroutine": true,
+      "deleteReport": true,
+      "deleteTextpool": true,
+      "deleteDynpro": true,
+      "exportDynpro": true,
+      "dynamicSQL": true
+    },
     "db_operation_in_loop": true,
     "definitions_top": false,
     "description_empty": true,
@@ -171,17 +173,19 @@
     "message_exists": true,
     "method_implemented_twice": true,
     "method_length": {
-  "exclude": [],
-  "severity": "Error",
-  "statements": 100,
-  "errorWhenEmpty": false,
-  "ignoreTestClasses": true,
-  "checkForms": true
+      "exclude": [],
+      "severity": "Error",
+      "statements": 100,
+      "errorWhenEmpty": false,
+      "ignoreTestClasses": true,
+      "checkForms": true
     },
     "method_overwrites_builtin": {
-  "exclude": [ "z2ui5_cl_xml_view" ],
-  "severity": "Error"
-},
+      "exclude": [
+        "z2ui5_cl_xml_view"
+      ],
+      "severity": "Error"
+    },
     "method_parameter_names": false,
     "mix_returning": false,
     "modify_only_own_db_tables": {
@@ -288,7 +292,13 @@
     "unused_types": true,
     "unused_variables": {
       "severity": "Error",
-      "skipNames": ["lv_dummy", "lv_dummy2", "lv_dummy3", "lv_dummy4", "<dummy>"]
+      "skipNames": [
+        "lv_dummy",
+        "lv_dummy2",
+        "lv_dummy3",
+        "lv_dummy4",
+        "<dummy>"
+      ]
     },
     "use_bool_expression": true,
     "use_class_based_exceptions": true,
@@ -353,8 +363,8 @@
         "^syuzeit$",
         "^xubname$",
         "^feld$",
-        "^abap_boolean$",
+        "^abap_boolean$"
       ]
-    },
+    }
   }
 }
