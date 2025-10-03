@@ -3,9 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>Z2UI5_CL_UTIL_RANGE</CLSNAME>
+    <CLSNAME>Z2UI5_CL_UTIL_LOG</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>util - range</DESCRIPT>
+    <DESCRIPT>util - log</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

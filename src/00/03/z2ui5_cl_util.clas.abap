@@ -204,7 +204,7 @@ CLASS z2ui5_cl_util DEFINITION
 
     CLASS-METHODS filter_get_sql_where
       IMPORTING
-        val           TYPE  z2ui5_cl_util=>ty_t_filter_multi
+        val           TYPE ty_t_filter_multi
       RETURNING
         VALUE(result) TYPE string.
 
