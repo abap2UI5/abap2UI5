@@ -956,7 +956,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        id: { type: "string" },` && |\n| &&
              `        value: { type: "string" },` && |\n| &&
              `        press: { type: "string" },` && |\n| &&
-             `        autoplay: { type: "boolean", defaultValue: true }` && |\n| &&
+             `        autoplay: { type: "boolean", defaultValue: true },` && |\n| &&
+             `        facingMode: { type: "string", defaultValue: "environment" }` && |\n| &&
              `      },` && |\n| &&
              `      events: {` && |\n| &&
              `        "OnPhoto": {` && |\n| &&
@@ -1025,12 +1026,12 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      setTimeout(function () {` && |\n| &&
              `        var video = document.querySelector('#zvideo');` && |\n| &&
              `        if (navigator.mediaDevices.getUserMedia) {` && |\n| &&
-             `          navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } })` && |\n| &&
+             `          navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: this.getProperty("facingMode") } } })` && |\n| &&
              `            .then(function (stream) {` && |\n| &&
              `              video.srcObject = stream;` && |\n| &&
              `            })` && |\n| &&
              `            .catch(function (error) {` && |\n| &&
-             `              console.log("Something went wrong!");` && |\n| &&
+             `              console.log("Something went wrong! " + error );` && |\n| &&
              `            });` && |\n| &&
              `        }` && |\n| &&
              `      }.bind(this), 300);` && |\n| &&
@@ -1221,9 +1222,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        window.onbeforeunload = function (e) {` && |\n| &&
              `          if (val) {` && |\n| &&
              `            e.preventDefault();` && |\n| &&
-             `          }` && |\n| &&
              |\n|.
     result = result &&
+             `          }` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
