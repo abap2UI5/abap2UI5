@@ -932,7 +932,8 @@ sap.ui.define("z2ui5/CameraPicture", [
         id: { type: "string" },
         value: { type: "string" },
         press: { type: "string" },
-        autoplay: { type: "boolean", defaultValue: true }
+        autoplay: { type: "boolean", defaultValue: true },
+        facingMode: { type: "string", defaultValue: "environment" }
       },
       events: {
         "OnPhoto": {
@@ -1001,12 +1002,12 @@ sap.ui.define("z2ui5/CameraPicture", [
       setTimeout(function () {
         var video = document.querySelector('#zvideo');
         if (navigator.mediaDevices.getUserMedia) {
-          navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } })
+          navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: this.getProperty("facingMode") } } })
             .then(function (stream) {
               video.srcObject = stream;
             })
             .catch(function (error) {
-              console.log("Something went wrong!");
+              console.log("Something went wrong! " + error );
             });
         }
       }.bind(this), 300);
