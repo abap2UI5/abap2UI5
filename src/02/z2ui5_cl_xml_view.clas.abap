@@ -10638,7 +10638,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
           ( n = `tnt`               v = `sap.tnt` )
           ( n = `mdc`               v = `sap.ui.mdc` )
           ( n = `trm`               v = `sap.ui.table.rowmodes` )
-          ( n = `smi`               v = `sap.ui.comp.smartmultiinput` ) ).
+          ( n = `smi`               v = `sap.ui.comp.smartmultiinput` )
+          ( n = `ie`                v = `sap.suite.ui.commons.imageeditor` )
+        ).
 
       LOOP AT mt_ns REFERENCE INTO DATA(lr_ns) WHERE table_line IS NOT INITIAL
                                                      AND table_line <> `mvc`
