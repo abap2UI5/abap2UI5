@@ -36,6 +36,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
         press         TYPE clike OPTIONAL
         autoplay      TYPE clike OPTIONAL
         onphoto       TYPE clike OPTIONAL
+        facingmode    TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -296,6 +297,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                                          ( n = `press`    v = press )
                                          ( n = `OnPhoto`    v = onphoto )
                                          ( n = `autoplay` v = z2ui5_cl_util=>boolean_abap_2_json( autoplay ) )
+                                         ( n = `facingMode` v = facingmode )
          ) ).
 
   ENDMETHOD.
