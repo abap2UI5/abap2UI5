@@ -366,7 +366,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
             (  n = `placeholder`         v = placeholder )
             (  n = `change`        v = change ) ) ).
 
-  endmethod.
+  ENDMETHOD.
 
 
   METHOD chartjs.
