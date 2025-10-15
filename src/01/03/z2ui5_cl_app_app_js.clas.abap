@@ -957,7 +957,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        value: { type: "string" },` && |\n| &&
              `        press: { type: "string" },` && |\n| &&
              `        autoplay: { type: "boolean", defaultValue: true },` && |\n| &&
-             `        facingMode: { type: "string", defaultValue: "environment" }` && |\n| &&
+             `        facingMode: { type: "string" },` && |\n| &&
+             `        deviceId: { type: "string" }` && |\n| &&
              `      },` && |\n| &&
              `      events: {` && |\n| &&
              `        "OnPhoto": {` && |\n| &&
@@ -1026,12 +1027,23 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      setTimeout(function () {` && |\n| &&
              `        var video = document.querySelector('#zvideo');` && |\n| &&
              `        if (navigator.mediaDevices.getUserMedia) {` && |\n| &&
-             `          navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: this.getProperty("facingMode") } } })` && |\n| &&
+             `          const facingMode = this.getProperty("facingMode");` && |\n| &&
+             `          const deviceId = this.getProperty("deviceId");` && |\n| &&
+             `` && |\n| &&
+             `          let options = { video: {} };` && |\n| &&
+             `          if (deviceId) {` && |\n| &&
+             `            options.video.deviceId = deviceId;` && |\n| &&
+             `          }` && |\n| &&
+             `          if (facingMode) {` && |\n| &&
+             `            options.video.facingMode = { exact: facingMode };` && |\n| &&
+             `          }` && |\n| &&
+             `` && |\n| &&
+             `          navigator.mediaDevices.getUserMedia(options)` && |\n| &&
              `            .then(function (stream) {` && |\n| &&
              `              video.srcObject = stream;` && |\n| &&
              `            })` && |\n| &&
              `            .catch(function (error) {` && |\n| &&
-             `              console.log("Something went wrong! " + error );` && |\n| &&
+             `              console.log("Something went wrong! " + error);` && |\n| &&
              `            });` && |\n| &&
              `        }` && |\n| &&
              `      }.bind(this), 300);` && |\n| &&
@@ -1050,6 +1062,40 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n| &&
              `  });` && |\n| &&
              `});` && |\n| &&
+             `` && |\n| &&
+             `sap.ui.define("z2ui5/CameraSelector", [` && |\n| &&
+             `  "sap/m/ComboBox",` && |\n| &&
+             `  "sap/ui/core/Item"` && |\n| &&
+             `], function (ComboBox, Item) {` && |\n| &&
+             `  "use strict";` && |\n| &&
+             `  return ComboBox.extend("z2ui5.CameraSelector", {` && |\n| &&
+             `` && |\n| &&
+             `    init: function () {` && |\n| &&
+             `` && |\n| &&
+             `      ComboBox.prototype.init.apply(this, arguments);` && |\n| &&
+             `` && |\n| &&
+             `      navigator.mediaDevices` && |\n| &&
+             `        .enumerateDevices()` && |\n| &&
+             `        .then((devices) => {` && |\n| &&
+             `          devices.forEach((device) => {` && |\n| &&
+             `            if (device.kind === "videoinput") {` && |\n| &&
+             `              this.addItem(new Item({` && |\n| &&
+             `                key: device.deviceId,` && |\n| &&
+             `                text: device.label` && |\n| &&
+             `              }));` && |\n| &&
+             `            }` && |\n| &&
+             `          });` && |\n| &&
+             `        })` && |\n| &&
+             `        .catch((err) => {` && |\n| &&
+             `          console.error(``${err.name}: ${err.message}``);` && |\n| &&
+             `        });` && |\n| &&
+             `` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    renderer: {}` && |\n| &&
+             `  });` && |\n| &&
+             `});` && |\n| &&
+             `` && |\n| &&
              `` && |\n| &&
              `sap.ui.define("z2ui5/UITableExt", ["sap/ui/core/Control"], (Control) => {` && |\n| &&
              `  "use strict";` && |\n| &&
@@ -1176,6 +1222,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    DateAbapDateToDateObject: (d) => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8)),` && |\n| &&
              `    DateAbapDateTimeToDateObject: (d, t = '000000') => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8), t.slice(0, 2), t.slice(2, 4), t.slice(4, 6)),` && |\n| &&
              `  };` && |\n| &&
+             |\n|.
+    result = result &&
              `}` && |\n| &&
              `);` && |\n| &&
              `sap.ui.require(["z2ui5/Util"], (Util) => {` && |\n| &&
@@ -1222,8 +1270,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        window.onbeforeunload = function (e) {` && |\n| &&
              `          if (val) {` && |\n| &&
              `            e.preventDefault();` && |\n| &&
-             |\n|.
-    result = result &&
              `          }` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
