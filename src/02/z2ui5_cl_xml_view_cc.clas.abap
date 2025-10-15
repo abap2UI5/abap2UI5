@@ -37,8 +37,38 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
         autoplay      TYPE clike OPTIONAL
         onphoto       TYPE clike OPTIONAL
         facingmode    TYPE clike OPTIONAL
+        deviceid      TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS camera_selector
+      IMPORTING
+        selectedkey           TYPE clike OPTIONAL
+        showclearicon         TYPE clike OPTIONAL
+        selectionchange       TYPE clike OPTIONAL
+        selecteditem          TYPE clike OPTIONAL
+        items                 TYPE clike OPTIONAL
+        change                TYPE clike OPTIONAL
+        width                 TYPE clike OPTIONAL
+        showsecondaryvalues   TYPE clike OPTIONAL
+        placeholder           TYPE clike OPTIONAL
+        selecteditemid        TYPE clike OPTIONAL
+        name                  TYPE clike OPTIONAL
+        value                 TYPE clike OPTIONAL
+        valuestate            TYPE clike OPTIONAL
+        valuestatetext        TYPE clike OPTIONAL
+        textalign             TYPE clike OPTIONAL
+        visible               TYPE clike OPTIONAL
+        showvaluestatemessage TYPE clike OPTIONAL
+        showbutton            TYPE clike OPTIONAL
+        required              TYPE clike OPTIONAL
+        editable              TYPE clike OPTIONAL
+        enabled               TYPE clike OPTIONAL
+        filtersecondaryvalues TYPE clike OPTIONAL
+        id                    TYPE clike OPTIONAL
+        class                 TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS bwip_js
       IMPORTING
@@ -155,7 +185,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
       IMPORTING
         title                TYPE clike OPTIONAL
         applicationfullwidth TYPE clike OPTIONAL
-        PREFERRED PARAMETER title
+          PREFERRED PARAMETER title
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
@@ -298,9 +328,46 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                                          ( n = `OnPhoto`    v = onphoto )
                                          ( n = `autoplay` v = z2ui5_cl_util=>boolean_abap_2_json( autoplay ) )
                                          ( n = `facingMode` v = facingmode )
+                                         ( n = `deviceId` v = deviceid )
          ) ).
 
   ENDMETHOD.
+
+
+  METHOD camera_selector.
+
+    result = mo_view.
+    mo_view->_generic(
+        name   = `CameraSelector`
+        ns     = `z2ui5`
+        t_prop = VALUE #(
+            (  n = `showClearIcon` v = z2ui5_cl_util=>boolean_abap_2_json( showclearicon ) )
+            (  n = `selectedKey`   v = selectedkey )
+            (  n = `items`         v = items )
+            (  n = `id`         v = id )
+            (  n = `class`         v = class )
+            (  n = `selectionchange`         v = selectionchange )
+            (  n = `selectedItem`         v = selecteditem )
+            (  n = `selectedItemId`         v = selecteditemid )
+            (  n = `name`         v = name )
+            (  n = `value`         v = value )
+            (  n = `valueState`         v = valuestate )
+            (  n = `valueStateText`         v = valuestatetext )
+            (  n = `textAlign`         v = textalign )
+            (  n = `showSecondaryValues`         v = z2ui5_cl_util=>boolean_abap_2_json( showsecondaryvalues ) )
+            (  n = `visible`         v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+            (  n = `showValueStateMessage`         v = z2ui5_cl_util=>boolean_abap_2_json( showvaluestatemessage ) )
+            (  n = `showButton`         v = z2ui5_cl_util=>boolean_abap_2_json( showbutton ) )
+            (  n = `required`         v = z2ui5_cl_util=>boolean_abap_2_json( required ) )
+            (  n = `editable`         v = z2ui5_cl_util=>boolean_abap_2_json( editable ) )
+            (  n = `enabled`         v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
+            (  n = `filterSecondaryValues`         v = z2ui5_cl_util=>boolean_abap_2_json( filtersecondaryvalues ) )
+            (  n = `width`         v = width )
+            (  n = `placeholder`         v = placeholder )
+            (  n = `change`        v = change ) ) ).
+
+  endmethod.
+
 
   METHOD chartjs.
 
