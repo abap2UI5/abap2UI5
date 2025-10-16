@@ -5316,7 +5316,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         enabledbuttons TYPE clike OPTIONAL
         mode           TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
   PROTECTED SECTION.
     DATA mv_name     TYPE string.
@@ -11194,22 +11194,22 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD image_editor.
-    result = _generic( name    = `ImageEditor`
-                       ns      = `ie`
+    result = _generic( name   = `ImageEditor`
+                       ns     = `ie`
                        t_prop = VALUE #( ( n = 'id'                    v = id )
-                                         ( n = `customShapeSrc`        v = customShapeSrc       )
-                                         ( n = `keepCropAspectRatio`   v = z2ui5_cl_util=>boolean_abap_2_json( keepCropAspectRatio )  )
-                                         ( n = `keepResizeAspectRatio` v = z2ui5_cl_util=>boolean_abap_2_json( keepResizeAspectRatio ) )
-                                         ( n = `scaleCropArea`         v = scaleCropArea )
-                                         ( n = `customShapeSrcType`    v = customShapeSrcType )
+                                         ( n = `customShapeSrc`        v = customshapesrc )
+                                         ( n = `keepCropAspectRatio`   v = z2ui5_cl_util=>boolean_abap_2_json( keepcropaspectratio ) )
+                                         ( n = `keepResizeAspectRatio` v = z2ui5_cl_util=>boolean_abap_2_json( keepresizeaspectratio ) )
+                                         ( n = `scaleCropArea`         v = scalecroparea )
+                                         ( n = `customShapeSrcType`    v = customshapesrctype )
                                          ( n = `src`                   v = src ) ) ).
   ENDMETHOD.
 
   METHOD image_editor_container.
-    result = _generic( name    = `ImageEditorContainer`
-                       ns      = `ie`
+    result = _generic( name   = `ImageEditorContainer`
+                       ns     = `ie`
                        t_prop = VALUE #( ( n = 'id'             v = id )
-                                         ( n = `enabledButtons` v = enabledButtons       )
+                                         ( n = `enabledButtons` v = enabledbuttons )
                                          ( n = `mode`           v = mode ) ) ).
   ENDMETHOD.
 
