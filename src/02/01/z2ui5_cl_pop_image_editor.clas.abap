@@ -58,11 +58,11 @@ CLASS z2ui5_cl_pop_image_editor IMPLEMENTATION.
   METHOD factory.
 
     result = NEW #( ).
-    result->mv_image       = iv_image.
-    result->mv_title       = iv_title.
-    result->mv_cancel_text = iv_cancel_text.
-    result->mv_save_text   = iv_save_text.
-    result->mv_customshapesrc        = iv_customshapesrc            .
+    result->mv_image                 = iv_image.
+    result->mv_title                 = iv_title.
+    result->mv_cancel_text           = iv_cancel_text.
+    result->mv_save_text             = iv_save_text.
+    result->mv_customshapesrc        = iv_customshapesrc.
     result->mv_keepcropaspectratio   = iv_keepcropaspectratio.
     result->mv_keepresizeaspectratio = iv_keepresizeaspectratio.
     result->mv_scalecroparea         = iv_scalecroparea.
