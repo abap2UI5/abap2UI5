@@ -456,6 +456,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                                break;` && |\n| &&
              `                        }` && |\n| &&
              `                        break;` && |\n| &&
+             `                    case 'Z2UI5':` && |\n| &&
+             `                        z2ui5[args[1]](args.slice(2));` && |\n| &&
+             `                        break;` && |\n| &&
              `                }` && |\n| &&
              `            },` && |\n| &&
              `            eB(...args) {` && |\n| &&
