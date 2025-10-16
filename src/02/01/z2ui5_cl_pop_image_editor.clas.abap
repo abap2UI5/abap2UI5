@@ -114,14 +114,13 @@ CLASS z2ui5_cl_pop_image_editor IMPLEMENTATION.
             enabledbuttons = mv_enabledbuttons
             mode           = mv_mode
         )->image_editor(
-            id                     = 'imageEditor'
-            src                    = mv_image
-            customshapesrc         = mv_customshapesrc
-            keepcropaspectratio    = mv_keepcropaspectratio
-            keepresizeaspectratio  = mv_keepresizeaspectratio
-            scalecroparea          = mv_scalecroparea
-            customshapesrctype     = mv_customshapesrctype
-        ).
+            id                    = 'imageEditor'
+            src                   = mv_image
+            customshapesrc        = mv_customshapesrc
+            keepcropaspectratio   = mv_keepcropaspectratio
+            keepresizeaspectratio = mv_keepresizeaspectratio
+            scalecroparea         = mv_scalecroparea
+            customshapesrctype    = mv_customshapesrctype ).
 
     popup->footer( )->overflow_toolbar(
       )->button(
@@ -141,8 +140,7 @@ CLASS z2ui5_cl_pop_image_editor IMPLEMENTATION.
            '  const image = sap.ui.core.Fragment.byId("popupId", "imageEditor").getImagePngDataURL();' &&
            '  z2ui5.oController.PopupDestroy();' && |\n| &&
            '  z2ui5.oController.eB([`SAVE`],image);' &&
-           '}'
-         ).
+           '}' ).
 
     client->popup_display( popup->stringify( ) ).
 
