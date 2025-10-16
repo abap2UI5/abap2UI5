@@ -5297,6 +5297,27 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS image_editor
+      IMPORTING
+        id                    TYPE clike OPTIONAL
+        customshapesrc        TYPE clike OPTIONAL
+        keepcropaspectratio   TYPE clike OPTIONAL
+        keepresizeaspectratio TYPE clike OPTIONAL
+        scalecroparea         TYPE clike OPTIONAL
+        customshapesrctype    TYPE clike OPTIONAL
+        src                   TYPE clike OPTIONAL
+          PREFERRED PARAMETER src
+      RETURNING
+        VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS image_editor_container
+      IMPORTING
+        id             TYPE clike OPTIONAL
+        enabledbuttons TYPE clike OPTIONAL
+        mode           TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
   PROTECTED SECTION.
     DATA mv_name     TYPE string.
     DATA mv_ns       TYPE string.
@@ -11171,4 +11192,25 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                           ( n = `highlightText`   v = highlighttext )
                                           ( n = `navigated`       v = z2ui5_cl_util=>boolean_abap_2_json( navigated ) ) ) ).
   ENDMETHOD.
+
+  METHOD image_editor.
+    result = _generic( name    = `ImageEditor`
+                       ns      = `ie`
+                       t_prop = VALUE #( ( n = 'id'                    v = id )
+                                         ( n = `customShapeSrc`        v = customShapeSrc       )
+                                         ( n = `keepCropAspectRatio`   v = z2ui5_cl_util=>boolean_abap_2_json( keepCropAspectRatio )  )
+                                         ( n = `keepResizeAspectRatio` v = z2ui5_cl_util=>boolean_abap_2_json( keepResizeAspectRatio ) )
+                                         ( n = `scaleCropArea`         v = scaleCropArea )
+                                         ( n = `customShapeSrcType`    v = customShapeSrcType )
+                                         ( n = `src`                   v = src ) ) ).
+  ENDMETHOD.
+
+  METHOD image_editor_container.
+    result = _generic( name    = `ImageEditorContainer`
+                       ns      = `ie`
+                       t_prop = VALUE #( ( n = 'id'             v = id )
+                                         ( n = `enabledButtons` v = enabledButtons       )
+                                         ( n = `mode`           v = mode ) ) ).
+  ENDMETHOD.
+
 ENDCLASS.
