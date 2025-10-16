@@ -434,6 +434,9 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                                 break;
                         }
                         break;
+                    case 'Z2UI5':
+                        z2ui5[args[1]](args.slice(2));
+                        break;
                 }
             },
             eB(...args) {
