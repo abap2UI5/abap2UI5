@@ -111,8 +111,8 @@ CLASS z2ui5_cl_pop_image_editor IMPLEMENTATION.
                                       contentwidth  = `80%` ).
 
     popup->image_editor_container(
-           enabledbuttons = mv_enabledbuttons
-           mode           = mv_mode
+            enabledbuttons = mv_enabledbuttons
+            mode           = mv_mode
         )->image_editor(
             id                    = 'imageEditor'
             src                   = mv_image
