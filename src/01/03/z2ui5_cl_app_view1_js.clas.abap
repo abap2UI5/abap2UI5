@@ -456,6 +456,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                                break;` && |\n| &&
              `                        }` && |\n| &&
              `                        break;` && |\n| &&
+             `                    case 'IMAGE_EDITOR_POPUP_CLOSE':` && |\n| &&
+             `                        const image = sap.ui.core.Fragment.byId("popupId", "imageEditor").getImagePngDataURL();` && |\n| &&
+             `                        z2ui5.oController.PopupDestroy();` && |\n| &&
+             `                        z2ui5.oController.eB([``SAVE``], image);` && |\n| &&
+             `                        break;` && |\n| &&
              `                    case 'Z2UI5':` && |\n| &&
              `                        z2ui5[args[1]](args.slice(2));` && |\n| &&
              `                        break;` && |\n| &&
