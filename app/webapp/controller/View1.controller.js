@@ -434,6 +434,11 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                                 break;
                         }
                         break;
+                    case 'IMAGE_EDITOR_POPUP_CLOSE':            
+                        const image = sap.ui.core.Fragment.byId("popupId", "imageEditor").getImagePngDataURL();
+                        z2ui5.oController.PopupDestroy();
+                        z2ui5.oController.eB([`SAVE`], image);  
+                        break;
                     case 'Z2UI5':
                         z2ui5[args[1]](args.slice(2));
                         break;

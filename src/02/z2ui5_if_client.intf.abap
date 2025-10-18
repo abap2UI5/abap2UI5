@@ -22,6 +22,7 @@ INTERFACE z2ui5_if_client
       clipboard_app_state       TYPE string VALUE `CLIPBOARD_APP_STATE`,
       clipboard_copy            TYPE string VALUE `CLIPBOARD_COPY`,
       store_data                TYPE string VALUE `STORE_DATA`,
+      image_editor_popup_close  TYPE string VALUE `IMAGE_EDITOR_POPUP_CLOSE`,
     END OF cs_event.
 
   CONSTANTS:

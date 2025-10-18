@@ -35,7 +35,6 @@ CLASS z2ui5_cl_pop_image_editor DEFINITION
   PROTECTED SECTION.
     DATA:
       client                   TYPE REF TO z2ui5_if_client,
-      mv_image                 TYPE string,
       mv_title                 TYPE string,
       mv_confirmed             TYPE abap_bool,
       mv_cancel_text           TYPE string,
@@ -46,7 +45,8 @@ CLASS z2ui5_cl_pop_image_editor DEFINITION
       mv_scalecroparea         TYPE string,
       mv_customshapesrctype    TYPE string,
       mv_enabledbuttons        TYPE string,
-      mv_mode                  TYPE string.
+      mv_mode                  TYPE string,
+      mv_image                 TYPE string.
 
     METHODS display.
 
@@ -122,25 +122,15 @@ CLASS z2ui5_cl_pop_image_editor IMPLEMENTATION.
             scalecroparea         = mv_scalecroparea
             customshapesrctype    = mv_customshapesrctype ).
 
-    popup->footer( )->overflow_toolbar(
-      )->button(
-          text  = mv_cancel_text
-          type  = 'Reject'
-          press = client->_event( `CANCEL` )
-      )->toolbar_spacer(
-      )->button(
-          text  = mv_save_text
-          type  = 'Emphasized'
-          press = client->_event_client( val = `Z2UI5` t_arg = VALUE #( ( `sendImage` ) ) ) ).
-
-    popup->_generic( name = `script`
-                     ns   = `html`
-         )->_cc_plain_xml(
-           'z2ui5.sendImage = () => { ' &&
-           '  const image = sap.ui.core.Fragment.byId("popupId", "imageEditor").getImagePngDataURL();' &&
-           '  z2ui5.oController.PopupDestroy();' && |\n| &&
-           '  z2ui5.oController.eB([`SAVE`],image);' &&
-           '}' ).
+    popup->buttons(
+        )->button(
+            text  = mv_cancel_text
+            type  = 'Reject'
+            press = client->_event( `CANCEL` )
+        )->button(
+            text  = mv_save_text
+            type  = 'Emphasized'
+            press = client->_event_client( client->cs_event-image_editor_popup_close ) ).
 
     client->popup_display( popup->stringify( ) ).
 
