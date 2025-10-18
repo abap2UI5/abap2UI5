@@ -57,7 +57,7 @@ CLASS z2ui5_cl_pop_image_editor IMPLEMENTATION.
 
   METHOD factory.
 
-    result = NEW #( ).
+    CREATE OBJECT result.
     result->mv_image                 = iv_image.
     result->mv_title                 = iv_title.
     result->mv_cancel_text           = iv_cancel_text.
@@ -74,10 +74,13 @@ CLASS z2ui5_cl_pop_image_editor IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~main.
+        DATA args TYPE string_table.
+        DATA temp1 LIKE LINE OF args.
+        DATA temp2 LIKE sy-tabix.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       display( ).
       RETURN.
     ENDIF.
@@ -86,8 +89,17 @@ CLASS z2ui5_cl_pop_image_editor IMPLEMENTATION.
       WHEN 'SAVE'.
 
         mv_confirmed = abap_true.
-        DATA(args) = client->get( )-t_event_arg.
-        mv_image = args[ 1 ].
+        
+        args = client->get( )-t_event_arg.
+        
+        
+        temp2 = sy-tabix.
+        READ TABLE args INDEX 1 INTO temp1.
+        sy-tabix = temp2.
+        IF sy-subrc <> 0.
+          ASSERT 1 = 0.
+        ENDIF.
+        mv_image = temp1.
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
 
       WHEN 'CANCEL'.
@@ -103,7 +115,8 @@ CLASS z2ui5_cl_pop_image_editor IMPLEMENTATION.
 
   METHOD display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup(
+    DATA popup TYPE REF TO z2ui5_cl_xml_view.
+    popup = z2ui5_cl_xml_view=>factory_popup(
                                   )->dialog(
                                       title         = mv_title
                                       icon          = 'sap-icon://edit'
