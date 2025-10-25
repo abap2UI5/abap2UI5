@@ -187,8 +187,19 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       ENDIF.
     ENDDO.
 
+    " Security: Add HTTP Security Headers
+    DATA(lt_security_headers) = VALUE z2ui5_if_types=>ty_t_name_value(
+      ( n = 'X-Frame-Options'         v = 'SAMEORIGIN' )
+      ( n = 'X-Content-Type-Options'  v = 'nosniff' )
+      ( n = 'X-XSS-Protection'        v = '1; mode=block' )
+      ( n = 'Referrer-Policy'         v = 'strict-origin-when-cross-origin' )
+      ( n = 'Permissions-Policy'      v = 'geolocation=(), microphone=(), camera=()' )
+      ( n = 'Strict-Transport-Security' v = 'max-age=31536000; includeSubDomains' )
+    ).
+
     result = VALUE #( body       = mv_response
-                      s_stateful = ms_response-s_front-params-s_stateful ).
+                      s_stateful = ms_response-s_front-params-s_stateful
+                      t_header   = lt_security_headers ).
 
   ENDMETHOD.
 

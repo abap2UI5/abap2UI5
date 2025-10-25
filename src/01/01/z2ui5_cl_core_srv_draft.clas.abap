@@ -59,12 +59,15 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
 
     ASSERT draft-id IS NOT INITIAL.
 
+    " Security: Encrypt sensitive session data before storing
+    DATA(lv_encrypted_data) = z2ui5_cl_util_security=>encrypt_data( CONV string( model_xml ) ).
+
     DATA(ls_db) = VALUE ty_s_db( id                = draft-id
                                  id_prev           = draft-id_prev
                                  id_prev_app       = draft-id_prev_app
                                  id_prev_app_stack = draft-id_prev_app_stack
                                  timestampl        = z2ui5_cl_util=>time_get_timestampl( )
-                                 data              = model_xml ).
+                                 data              = lv_encrypted_data ).
 
     MODIFY z2ui5_t_01 FROM @ls_db.
     IF sy-subrc <> 0.
@@ -83,6 +86,11 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
       SELECT SINGLE * FROM z2ui5_t_01
         WHERE id = @id
         INTO @result ##SUBRC_OK.
+
+      " Security: Decrypt session data after reading from database
+      IF sy-subrc = 0 AND result-data IS NOT INITIAL.
+        result-data = z2ui5_cl_util_security=>decrypt_data( CONV string( result-data ) ).
+      ENDIF.
 
     ELSE.
 

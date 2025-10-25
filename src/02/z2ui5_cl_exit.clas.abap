@@ -79,9 +79,26 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
     ENDIF.
 
     IF cs_config-content_security_policy IS INITIAL.
-      cs_config-content_security_policy = |<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: | &&
-        |ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com openui5.hana.ondemand.com *.openui5.hana.ondemand.com | &&
-        |sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas; worker-src 'self' blob:; "/>|.
+      " Security: Improved Content Security Policy
+      " Note: 'unsafe-eval' is required by UI5 framework for dynamic code execution
+      " 'unsafe-inline' is restricted to styles only for UI5 compatibility
+      cs_config-content_security_policy = |<meta http-equiv="Content-Security-Policy" content="| &&
+        |default-src 'self'; | &&
+        |script-src 'self' 'unsafe-eval' ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com | &&
+        |openui5.hana.ondemand.com *.openui5.hana.ondemand.com sdk.openui5.org *.sdk.openui5.org | &&
+        |cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com; | &&
+        |style-src 'self' 'unsafe-inline' ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com | &&
+        |openui5.hana.ondemand.com *.openui5.hana.ondemand.com sdk.openui5.org *.sdk.openui5.org; | &&
+        |img-src 'self' data: ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com | &&
+        |openui5.hana.ondemand.com *.openui5.hana.ondemand.com sdk.openui5.org *.sdk.openui5.org; | &&
+        |font-src 'self' data: ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com | &&
+        |openui5.hana.ondemand.com *.openui5.hana.ondemand.com sdk.openui5.org *.sdk.openui5.org; | &&
+        |connect-src 'self'; | &&
+        |frame-ancestors 'self'; | &&
+        |base-uri 'self'; | &&
+        |form-action 'self'; | &&
+        |object-src 'none'; | &&
+        |worker-src 'self' blob:; "/>|.
     ENDIF.
 
 
@@ -97,8 +114,9 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
 
   METHOD z2ui5_if_exit~set_config_http_post.
 
-
-    cs_config-draft_exp_time_in_hours = 4.
+    " Security: Set session timeout to 1 hour (more secure than 4 hours)
+    " Users can override this in their custom exit implementation
+    cs_config-draft_exp_time_in_hours = 1.
 
     IF gi_user_exit IS NOT INITIAL.
       gi_user_exit->set_config_http_post(
@@ -110,7 +128,8 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
 
     IF cs_config-draft_exp_time_in_hours IS INITIAL
         OR cs_config-draft_exp_time_in_hours <= 0.
-      cs_config-draft_exp_time_in_hours = 4.
+      " Security: Default to 1 hour if not set or invalid
+      cs_config-draft_exp_time_in_hours = 1.
     ENDIF.
 
   ENDMETHOD.
