@@ -1065,8 +1065,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `sap.ui.define("z2ui5/CameraSelector", [` && |\n| &&
              `  "sap/m/ComboBox",` && |\n| &&
-             `  "sap/ui/core/Item"` && |\n| &&
-             `], function (ComboBox, Item) {` && |\n| &&
+             `  "sap/ui/core/Item",` && |\n| &&
+             `  "sap.m.ComboBoxRenderer"` && |\n| &&
+             `], function (ComboBox, Item, ComboBoxRenderer) {` && |\n| &&
              `  "use strict";` && |\n| &&
              `  return ComboBox.extend("z2ui5.CameraSelector", {` && |\n| &&
              `` && |\n| &&
@@ -1092,7 +1093,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             `    renderer: {}` && |\n| &&
+             `    renderer: ComboBoxRenderer` && |\n| &&
              `  });` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
@@ -1221,9 +1222,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    //  DateAbapTimestampToDate: (sTimestamp) => new sap.gantt.misc.Format.abapTimestampToDate(sTimestamp), commented for UI5 2.x compatibility` && |\n| &&
              `    DateAbapDateToDateObject: (d) => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8)),` && |\n| &&
              `    DateAbapDateTimeToDateObject: (d, t = '000000') => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8), t.slice(0, 2), t.slice(2, 4), t.slice(4, 6)),` && |\n| &&
-             `  };` && |\n| &&
              |\n|.
     result = result &&
+             `  };` && |\n| &&
              `}` && |\n| &&
              `);` && |\n| &&
              `sap.ui.require(["z2ui5/Util"], (Util) => {` && |\n| &&
