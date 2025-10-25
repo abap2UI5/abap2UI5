@@ -1041,8 +1041,9 @@ sap.ui.define("z2ui5/CameraPicture", [
 
 sap.ui.define("z2ui5/CameraSelector", [
   "sap/m/ComboBox",
-  "sap/ui/core/Item"
-], function (ComboBox, Item) {
+  "sap/ui/core/Item",
+  "sap.m.ComboBoxRenderer"
+], function (ComboBox, Item, ComboBoxRenderer) {
   "use strict";
   return ComboBox.extend("z2ui5.CameraSelector", {
 
@@ -1068,7 +1069,7 @@ sap.ui.define("z2ui5/CameraSelector", [
 
     },
 
-    renderer: {}
+    renderer: ComboBoxRenderer
   });
 });
 
