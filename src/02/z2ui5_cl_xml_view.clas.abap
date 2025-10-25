@@ -5297,6 +5297,27 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS image_editor
+      IMPORTING
+        id                    TYPE clike OPTIONAL
+        customshapesrc        TYPE clike OPTIONAL
+        keepcropaspectratio   TYPE clike OPTIONAL
+        keepresizeaspectratio TYPE clike OPTIONAL
+        scalecroparea         TYPE clike OPTIONAL
+        customshapesrctype    TYPE clike OPTIONAL
+        src                   TYPE clike OPTIONAL
+          PREFERRED PARAMETER src
+      RETURNING
+        VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS image_editor_container
+      IMPORTING
+        id             TYPE clike OPTIONAL
+        enabledbuttons TYPE clike OPTIONAL
+        mode           TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
+
   PROTECTED SECTION.
     DATA mv_name     TYPE string.
     DATA mv_ns       TYPE string.
@@ -10638,7 +10659,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
           ( n = `tnt`               v = `sap.tnt` )
           ( n = `mdc`               v = `sap.ui.mdc` )
           ( n = `trm`               v = `sap.ui.table.rowmodes` )
-          ( n = `smi`               v = `sap.ui.comp.smartmultiinput` ) ).
+          ( n = `smi`               v = `sap.ui.comp.smartmultiinput` )
+          ( n = `ie`                v = `sap.suite.ui.commons.imageeditor` ) ).
 
       LOOP AT mt_ns REFERENCE INTO DATA(lr_ns) WHERE table_line IS NOT INITIAL
                                                      AND table_line <> `mvc`
@@ -11170,4 +11192,25 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                           ( n = `highlightText`   v = highlighttext )
                                           ( n = `navigated`       v = z2ui5_cl_util=>boolean_abap_2_json( navigated ) ) ) ).
   ENDMETHOD.
+
+  METHOD image_editor.
+    result = _generic( name   = `ImageEditor`
+                       ns     = `ie`
+                       t_prop = VALUE #( ( n = 'id'                    v = id )
+                                         ( n = `customShapeSrc`        v = customshapesrc )
+                                         ( n = `keepCropAspectRatio`   v = z2ui5_cl_util=>boolean_abap_2_json( keepcropaspectratio ) )
+                                         ( n = `keepResizeAspectRatio` v = z2ui5_cl_util=>boolean_abap_2_json( keepresizeaspectratio ) )
+                                         ( n = `scaleCropArea`         v = scalecroparea )
+                                         ( n = `customShapeSrcType`    v = customshapesrctype )
+                                         ( n = `src`                   v = src ) ) ).
+  ENDMETHOD.
+
+  METHOD image_editor_container.
+    result = _generic( name   = `ImageEditorContainer`
+                       ns     = `ie`
+                       t_prop = VALUE #( ( n = 'id'             v = id )
+                                         ( n = `enabledButtons` v = enabledbuttons )
+                                         ( n = `mode`           v = mode ) ) ).
+  ENDMETHOD.
+
 ENDCLASS.

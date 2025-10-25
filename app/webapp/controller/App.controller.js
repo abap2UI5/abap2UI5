@@ -932,7 +932,9 @@ sap.ui.define("z2ui5/CameraPicture", [
         id: { type: "string" },
         value: { type: "string" },
         press: { type: "string" },
-        autoplay: { type: "boolean", defaultValue: true }
+        autoplay: { type: "boolean", defaultValue: true },
+        facingMode: { type: "string" },
+        deviceId: { type: "string" }
       },
       events: {
         "OnPhoto": {
@@ -1001,12 +1003,23 @@ sap.ui.define("z2ui5/CameraPicture", [
       setTimeout(function () {
         var video = document.querySelector('#zvideo');
         if (navigator.mediaDevices.getUserMedia) {
-          navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } })
+          const facingMode = this.getProperty("facingMode");
+          const deviceId = this.getProperty("deviceId");
+
+          let options = { video: {} };
+          if (deviceId) {
+            options.video.deviceId = deviceId;
+          }
+          if (facingMode) {
+            options.video.facingMode = { exact: facingMode };
+          }
+
+          navigator.mediaDevices.getUserMedia(options)
             .then(function (stream) {
               video.srcObject = stream;
             })
             .catch(function (error) {
-              console.log("Something went wrong!");
+              console.log("Something went wrong! " + error);
             });
         }
       }.bind(this), 300);
@@ -1025,6 +1038,41 @@ sap.ui.define("z2ui5/CameraPicture", [
     },
   });
 });
+
+sap.ui.define("z2ui5/CameraSelector", [
+  "sap/m/ComboBox",
+  "sap/ui/core/Item",
+  "sap.m.ComboBoxRenderer"
+], function (ComboBox, Item, ComboBoxRenderer) {
+  "use strict";
+  return ComboBox.extend("z2ui5.CameraSelector", {
+
+    init: function () {
+
+      ComboBox.prototype.init.apply(this, arguments);
+
+      navigator.mediaDevices
+        .enumerateDevices()
+        .then((devices) => {
+          devices.forEach((device) => {
+            if (device.kind === "videoinput") {
+              this.addItem(new Item({
+                key: device.deviceId,
+                text: device.label
+              }));
+            }
+          });
+        })
+        .catch((err) => {
+          console.error(`${err.name}: ${err.message}`);
+        });
+
+    },
+
+    renderer: ComboBoxRenderer
+  });
+});
+
 
 sap.ui.define("z2ui5/UITableExt", ["sap/ui/core/Control"], (Control) => {
   "use strict";
