@@ -148,7 +148,23 @@ sap.ui.define(["sap/ui/core/BusyIndicator", "sap/m/MessageBox"
                 }
             },
             responseError(response) {
-                document.write(response);
+                // Security: Never use document.write() with untrusted content (XSS risk)
+                // Use MessageBox.error() which properly escapes HTML content
+                BusyIndicator.hide();
+
+                // Limit response length to prevent UI issues
+                const maxLength = 5000;
+                let errorMessage = String(response);
+
+                if (errorMessage.length > maxLength) {
+                    errorMessage = errorMessage.substring(0, maxLength) + '\n\n[Message truncated - too long]';
+                }
+
+                MessageBox.error(errorMessage, {
+                    title: "Server Error",
+                    details: errorMessage,
+                    styleClass: "sapUiSizeCompact"
+                });
             },
         };
     });
