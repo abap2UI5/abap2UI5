@@ -1066,7 +1066,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `sap.ui.define("z2ui5/CameraSelector", [` && |\n| &&
              `  "sap/m/ComboBox",` && |\n| &&
              `  "sap/ui/core/Item",` && |\n| &&
-             `  "sap.m.ComboBoxRenderer"` && |\n| &&
+             `  "sap/m/ComboBoxRenderer"` && |\n| &&
              `], function (ComboBox, Item, ComboBoxRenderer) {` && |\n| &&
              `  "use strict";` && |\n| &&
              `  return ComboBox.extend("z2ui5.CameraSelector", {` && |\n| &&
