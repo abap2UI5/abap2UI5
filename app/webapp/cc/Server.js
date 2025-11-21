@@ -202,8 +202,7 @@ sap.ui.define(
         // Create header and iframe for safe HTML rendering
         errorContainer.innerHTML = `
     <div style="padding: 15px; background: #d32f2f; color: white; display: flex; justify-content: space-between; align-items: center;">
-        <h3 style="margin: 0;">Server Error</h3>
-        <button id="closeErrorBtn" style="background: white; color: #d32f2f; border: none; padding: 8px 16px; cursor: pointer; border-radius: 4px; font-weight: bold;">Close</button>
+        <h3 style="margin: 0;">Server Error - Please Restart The App</h3>
     </div>
     <iframe id="errorIframe" style="width: 100%; height: 100%; border: none; flex: 1;" sandbox="allow-same-origin"></iframe>
 `;
@@ -214,12 +213,6 @@ sap.ui.define(
         iframe.contentDocument.write(errorMessage);
         iframe.contentDocument.close();
 
-        // Add close functionality
-        document
-          .getElementById("closeErrorBtn")
-          .addEventListener("click", () => {
-            errorContainer.remove();
-          });
       },
     };
   }
