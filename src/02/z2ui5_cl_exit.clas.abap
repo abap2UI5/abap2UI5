@@ -79,9 +79,31 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
     ENDIF.
 
     IF cs_config-content_security_policy IS INITIAL.
-      cs_config-content_security_policy = |<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: | &&
-        |ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com openui5.hana.ondemand.com *.openui5.hana.ondemand.com | &&
-        |sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas; worker-src 'self' blob:; "/>|.
+
+    "before 21.11.2025
+*      cs_config-content_security_policy = |<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: | &&
+*        |ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com openui5.hana.ondemand.com *.openui5.hana.ondemand.com | &&
+*        |sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas; worker-src 'self' blob:; "/>|.
+
+    "after 21.11.2025 unsafe-inline, unsafe-eval deleted
+    cs_config-content_security_policy =
+      |<meta http-equiv="Content-Security-Policy" | &&
+      |content="default-src 'self' 'unsafe-inline' data: | &&
+      |ui5.sap.com *.ui5.sap.com | &&
+      |sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com | &&
+      |openui5.hana.ondemand.com *.openui5.hana.ondemand.com | &&
+      |sdk.openui5.org *.sdk.openui5.org | &&
+      |cdn.jsdelivr.net *.cdn.jsdelivr.net | &&
+      |cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas; | &&
+      |connect-src 'self' | &&
+      |  ui5.sap.com *.ui5.sap.com | &&
+      |  sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com | &&
+      |  openui5.hana.ondemand.com *.openui5.hana.ondemand.com | &&
+      |  sdk.openui5.org *.sdk.openui5.org | &&
+      |  cdn.jsdelivr.net *.cdn.jsdelivr.net | &&
+      |  cdnjs.cloudflare.com *.cdnjs.cloudflare.com; | &&
+      |worker-src 'self' blob:; "/>|.
+
     ENDIF.
 
 
