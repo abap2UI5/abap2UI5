@@ -250,6 +250,34 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     }
                 }
                 )
+
+                // Security: URL validation function to prevent open redirect attacks
+                function isValidRedirectURL(url) {
+                    if (!url) return false;
+
+                    try {
+                        // Parse URL relative to current origin
+                        const parsed = new URL(url, window.location.origin);
+
+                        // Only allow same-origin URLs (relative or absolute to same domain)
+                        if (parsed.origin !== window.location.origin) {
+                            console.error('Security: Blocked redirect to different origin:', url);
+                            return false;
+                        }
+
+                        // Block dangerous protocols
+                        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+                            console.error('Security: Blocked redirect with invalid protocol:', parsed.protocol);
+                            return false;
+                        }
+
+                        return true;
+                    } catch (e) {
+                        console.error('Security: Invalid URL format:', url, e);
+                        return false;
+                    }
+                }
+
                 let oCrossAppNavigator;
                 switch (args[0]) {
                     case 'SET_SIZE_LIMIT':
@@ -380,10 +408,24 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         });
                         break;
                     case 'LOCATION_RELOAD':
-                        window.location = args[1];
+                        // Security: Validate URL before redirect
+                        if (isValidRedirectURL(args[1])) {
+                            window.location = args[1];
+                        } else {
+                            sap.m.MessageBox.error('Invalid redirect URL. Only relative URLs to the same domain are allowed.');
+                        }
                         break;
                     case 'OPEN_NEW_TAB':
-                        window.open(args[1], '_blank');
+                        // Security: Validate URL before opening new tab
+                        if (isValidRedirectURL(args[1])) {
+                            const newWindow = window.open(args[1], '_blank');
+                            // Security: Prevent window.opener exploit
+                            if (newWindow) {
+                                newWindow.opener = null;
+                            }
+                        } else {
+                            sap.m.MessageBox.error('Invalid URL. Only relative URLs to the same domain are allowed.');
+                        }
                         break;
                     case 'POPUP_CLOSE':
                         z2ui5.oController.PopupDestroy();
