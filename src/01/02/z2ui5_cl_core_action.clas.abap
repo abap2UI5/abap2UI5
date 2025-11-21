@@ -97,9 +97,10 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
         result->mo_app->ms_draft-id = z2ui5_cl_util=>uuid_get_c32( ).
 
-        CREATE OBJECT result->mo_app->mo_app TYPE (mo_http_post->ms_request-s_control-app_start).
-
-        DATA(li_app) = CAST z2ui5_if_app( result->mo_app->mo_app ).
+        DATA li_app type ref to z2ui5_if_app.
+        CREATE OBJECT li_app TYPE (mo_http_post->ms_request-s_control-app_start).
+        result->mo_app->mo_app = li_app.
+*        DATA(li_app) = CAST z2ui5_if_app( result->mo_app->mo_app ).
         li_app->id_draft = result->mo_app->ms_draft-id.
 
         result->ms_actual-check_on_navigated = abap_true.
