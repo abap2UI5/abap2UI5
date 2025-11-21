@@ -43,7 +43,10 @@ CLASS z2ui5_cl_pop_bal DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
+
+CLASS Z2UI5_CL_POP_BAL IMPLEMENTATION.
+
+
   METHOD factory.
 
     r_result = NEW #( ).
@@ -77,6 +80,7 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
     r_result->title = i_title.
 
   ENDMETHOD.
+
 
   METHOD view_display.
 
@@ -112,6 +116,7 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
     client->popup_display( popup->stringify( ) ).
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_app~main.
 

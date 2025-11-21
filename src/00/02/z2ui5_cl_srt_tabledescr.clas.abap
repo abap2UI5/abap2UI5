@@ -24,7 +24,10 @@ CLASS z2ui5_cl_srt_tabledescr DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_srt_tabledescr IMPLEMENTATION.
+
+CLASS Z2UI5_CL_SRT_TABLEDESCR IMPLEMENTATION.
+
+
   METHOD constructor.
     super->constructor( rtti ).
     key            = rtti->key.
@@ -38,6 +41,7 @@ CLASS z2ui5_cl_srt_tabledescr IMPLEMENTATION.
       not_serializable = abap_true.
     ENDIF.
   ENDMETHOD.
+
 
   METHOD get_rtti.
     DATA lt_empty_key TYPE abap_keydescr_tab.

@@ -23,7 +23,10 @@ CLASS z2ui5_cl_core_srv_util DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_core_srv_util IMPLEMENTATION.
+
+CLASS Z2UI5_CL_CORE_SRV_UTIL IMPLEMENTATION.
+
+
   METHOD app_get_url.
 
     IF classname IS INITIAL.
@@ -39,6 +42,7 @@ CLASS z2ui5_cl_core_srv_util IMPLEMENTATION.
     result = lv_url && url_param_create_url( lt_param ) && client->get( )-s_config-hash.
 
   ENDMETHOD.
+
 
   METHOD app_get_url_source_code.
 

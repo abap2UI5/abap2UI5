@@ -17,7 +17,10 @@ CLASS z2ui5_cl_srt_classdescr DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_srt_classdescr IMPLEMENTATION.
+
+CLASS Z2UI5_CL_SRT_CLASSDESCR IMPLEMENTATION.
+
+
   METHOD constructor.
     super->constructor( rtti ).
     class_kind        = rtti->class_kind.

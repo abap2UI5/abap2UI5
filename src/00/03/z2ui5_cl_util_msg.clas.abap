@@ -26,7 +26,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_util_msg IMPLEMENTATION.
+CLASS Z2UI5_CL_UTIL_MSG IMPLEMENTATION.
 
 
   METHOD msg_get.
@@ -172,10 +172,10 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD msg_get_by_sy.
 
     result = msg_get( z2ui5_cl_util=>context_get_sy( ) ).
 
   ENDMETHOD.
-
 ENDCLASS.

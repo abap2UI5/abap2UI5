@@ -89,7 +89,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_ajson_utilities IMPLEMENTATION.
+CLASS Z2UI5_CL_AJSON_UTILITIES IMPLEMENTATION.
 
 
   METHOD delete_empty_nodes.

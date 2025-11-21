@@ -44,7 +44,10 @@ CLASS z2ui5_cl_pop_get_range DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
+
+CLASS Z2UI5_CL_POP_GET_RANGE IMPLEMENTATION.
+
+
   METHOD factory.
 
     r_result = NEW #( ).
@@ -56,11 +59,13 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD result.
 
     result = ms_result.
 
   ENDMETHOD.
+
 
   METHOD view_display.
 
@@ -113,6 +118,7 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
     client->popup_display( lo_popup->stringify( ) ).
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_app~main.
 

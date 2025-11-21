@@ -19,7 +19,10 @@ CLASS z2ui5_cl_srt_refdescr DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_srt_refdescr IMPLEMENTATION.
+
+CLASS Z2UI5_CL_SRT_REFDESCR IMPLEMENTATION.
+
+
   METHOD constructor.
     super->constructor( rtti ).
     CREATE OBJECT referenced_type TYPE z2ui5_cl_srt_typedescr
@@ -28,6 +31,7 @@ CLASS z2ui5_cl_srt_refdescr IMPLEMENTATION.
       not_serializable = abap_true.
     ENDIF.
   ENDMETHOD.
+
 
   METHOD get_rtti.
     IF referenced_type->type_kind = cl_abap_typedescr=>typekind_data.

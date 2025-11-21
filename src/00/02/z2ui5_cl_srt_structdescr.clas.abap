@@ -30,7 +30,10 @@ CLASS z2ui5_cl_srt_structdescr DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_srt_structdescr IMPLEMENTATION.
+
+CLASS Z2UI5_CL_SRT_STRUCTDESCR IMPLEMENTATION.
+
+
   METHOD constructor.
     DATA components_rtti TYPE abap_component_tab.
     DATA scomponent      TYPE sabap_componentdescr.
@@ -61,6 +64,7 @@ CLASS z2ui5_cl_srt_structdescr IMPLEMENTATION.
       ENDIF.
     ENDLOOP.
   ENDMETHOD.
+
 
   METHOD get_rtti.
     DATA components_rtti TYPE cl_abap_structdescr=>component_table.

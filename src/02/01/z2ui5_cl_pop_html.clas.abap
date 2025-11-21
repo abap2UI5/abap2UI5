@@ -28,7 +28,10 @@ CLASS z2ui5_cl_pop_html DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_pop_html IMPLEMENTATION.
+
+CLASS Z2UI5_CL_POP_HTML IMPLEMENTATION.
+
+
   METHOD factory.
 
     r_result = NEW #( ).
@@ -38,6 +41,7 @@ CLASS z2ui5_cl_pop_html IMPLEMENTATION.
     r_result->button_text_confirm = i_button_text.
 
   ENDMETHOD.
+
 
   METHOD view_display.
 
@@ -56,6 +60,7 @@ CLASS z2ui5_cl_pop_html IMPLEMENTATION.
     client->popup_display( popup->stringify( ) ).
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_app~main.
 

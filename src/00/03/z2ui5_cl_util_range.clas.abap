@@ -42,9 +42,13 @@ CLASS z2ui5_cl_util_range DEFINITION PUBLIC
       RETURNING
         VALUE(out) TYPE string.
 
+private section.
 ENDCLASS.
 
-CLASS z2ui5_cl_util_range IMPLEMENTATION.
+
+
+CLASS Z2UI5_CL_UTIL_RANGE IMPLEMENTATION.
+
 
   METHOD constructor.
 
@@ -52,6 +56,7 @@ CLASS z2ui5_cl_util_range IMPLEMENTATION.
     mv_fieldname = |{ to_upper( iv_fieldname ) }|.
 
   ENDMETHOD.
+
 
   METHOD get_sql.
 
@@ -110,6 +115,7 @@ CLASS z2ui5_cl_util_range IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD quote.
 
     out = |'{ replace( val  = val
@@ -118,5 +124,4 @@ CLASS z2ui5_cl_util_range IMPLEMENTATION.
                        occ  = 0 ) }'|.
 
   ENDMETHOD.
-
 ENDCLASS.

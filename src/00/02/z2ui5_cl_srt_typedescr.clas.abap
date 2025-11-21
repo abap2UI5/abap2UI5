@@ -40,7 +40,10 @@ CLASS z2ui5_cl_srt_typedescr DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_srt_typedescr IMPLEMENTATION.
+
+CLASS Z2UI5_CL_SRT_TYPEDESCR IMPLEMENTATION.
+
+
   METHOD constructor.
     absolute_name = rtti->absolute_name.
     type_kind     = rtti->type_kind.
@@ -53,9 +56,11 @@ CLASS z2ui5_cl_srt_typedescr IMPLEMENTATION.
     ENDIF.
   ENDMETHOD.
 
+
   METHOD create_by_data_object.
     srtti = create_by_rtti( cl_abap_typedescr=>describe_by_data( data_object ) ).
   ENDMETHOD.
+
 
   METHOD create_by_rtti.
     DATA elem_rtti   TYPE REF TO cl_abap_elemdescr.
@@ -107,6 +112,7 @@ CLASS z2ui5_cl_srt_typedescr IMPLEMENTATION.
         RAISE EXCEPTION TYPE z2ui5_cx_srt.
     ENDCASE.
   ENDMETHOD.
+
 
   METHOD get_rtti.
     " default behavior

@@ -41,7 +41,8 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_util_log IMPLEMENTATION.
+CLASS Z2UI5_CL_UTIL_LOG IMPLEMENTATION.
+
 
   METHOD add.
 
@@ -49,6 +50,14 @@ CLASS z2ui5_cl_util_log IMPLEMENTATION.
     INSERT LINES OF lt_msg INTO TABLE mt_log.
 
   ENDMETHOD.
+
+
+  METHOD to_csv.
+
+    result = z2ui5_cl_util=>itab_get_csv_by_itab( mt_log ).
+
+  ENDMETHOD.
+
 
   METHOD bal_read.
 
@@ -60,6 +69,21 @@ CLASS z2ui5_cl_util_log IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD to_xlsx.
+
+    result = z2ui5_cl_util=>conv_get_xlsx_by_itab( mt_log ).
+
+  ENDMETHOD.
+
+
+  METHOD to_msg.
+
+    result = mt_log.
+
+  ENDMETHOD.
+
+
   METHOD bal_save.
 
     z2ui5_cl_util=>bal_save(
@@ -69,23 +93,4 @@ CLASS z2ui5_cl_util_log IMPLEMENTATION.
         t_log     = mt_log ).
 
   ENDMETHOD.
-
-  METHOD to_csv.
-
-    result = z2ui5_cl_util=>itab_get_csv_by_itab( mt_log ).
-
-  ENDMETHOD.
-
-  METHOD to_xlsx.
-
-    result = z2ui5_cl_util=>conv_get_xlsx_by_itab( mt_log ).
-
-  ENDMETHOD.
-
-  METHOD to_msg.
-
-    result = mt_log.
-
-  ENDMETHOD.
-
 ENDCLASS.

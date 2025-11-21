@@ -33,7 +33,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_ajson_filter_lib IMPLEMENTATION.
+CLASS Z2UI5_CL_AJSON_FILTER_LIB IMPLEMENTATION.
 
 
   METHOD create_and_filter.

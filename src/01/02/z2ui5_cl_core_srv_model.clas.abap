@@ -78,7 +78,8 @@ CLASS z2ui5_cl_core_srv_model DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
+
+CLASS Z2UI5_CL_CORE_SRV_MODEL IMPLEMENTATION.
 
 
   METHOD main_json_to_attri.
@@ -176,6 +177,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     ENDTRY.
   ENDMETHOD.
 
+
   METHOD main_attri_db_load.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
@@ -251,6 +253,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD main_attri_db_save_srtti.
 
     dissolve( ).
@@ -323,6 +326,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD main_attri_search.
 
     result = attri_search( val ).
@@ -347,6 +351,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
         val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class or switch to bind_local`.
 
   ENDMETHOD.
+
 
   METHOD attri_get_val_ref.
 
@@ -373,12 +378,14 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD constructor.
 
     mt_attri = attri.
     mo_app = app.
 
   ENDMETHOD.
+
 
   METHOD attri_search.
 
@@ -413,6 +420,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
+
 
   METHOD attri_create_new.
 
@@ -459,6 +467,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD diss_oref.
 
     DATA(lr_ref_tmp) = attri_get_val_ref( ir_attri->name ).
@@ -487,6 +496,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD diss_struc.
 
     DATA(lr_ref_tmp) = attri_get_val_ref( ir_attri->name ).
@@ -509,6 +519,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
       ENDLOOP.
     ENDIF.
   ENDMETHOD.
+
 
   METHOD dissolve.
 
@@ -613,6 +624,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD dissolve_run.
 
     IF mt_attri->* IS INITIAL.
@@ -662,6 +674,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD main_attri_refresh.
 
     DATA(lt_attri) = mt_attri->*.
@@ -680,5 +693,4 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
-
 ENDCLASS.

@@ -26,7 +26,10 @@ CLASS z2ui5_cx_util_error DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cx_util_error IMPLEMENTATION.
+
+CLASS Z2UI5_CX_UTIL_ERROR IMPLEMENTATION.
+
+
   METHOD constructor ##ADT_SUPPRESS_GENERATION.
 
     super->constructor( previous = previous ).
@@ -40,6 +43,7 @@ CLASS z2ui5_cx_util_error IMPLEMENTATION.
     ms_error-uuid = z2ui5_cl_util=>uuid_get_c32( ).
 
   ENDMETHOD.
+
 
   METHOD if_message~get_text.
 

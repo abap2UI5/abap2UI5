@@ -41,7 +41,10 @@ CLASS z2ui5_cl_pop_messages DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
+
+CLASS Z2UI5_CL_POP_MESSAGES IMPLEMENTATION.
+
+
   METHOD factory.
 
     r_result = NEW #( ).
@@ -63,6 +66,7 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
     r_result->title = i_title.
 
   ENDMETHOD.
+
 
   METHOD view_display.
 
@@ -86,6 +90,7 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
     client->popup_display( popup->stringify( ) ).
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_app~main.
 

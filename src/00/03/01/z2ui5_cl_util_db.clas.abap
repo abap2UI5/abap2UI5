@@ -45,8 +45,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_util_db IMPLEMENTATION.
-
+CLASS Z2UI5_CL_UTIL_DB IMPLEMENTATION.
 
 
   METHOD delete_by_handle.
@@ -146,5 +145,4 @@ CLASS z2ui5_cl_util_db IMPLEMENTATION.
     result = ls_db-id.
 
   ENDMETHOD.
-
 ENDCLASS.

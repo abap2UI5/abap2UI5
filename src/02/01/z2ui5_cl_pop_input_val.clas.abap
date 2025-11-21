@@ -43,7 +43,9 @@ CLASS z2ui5_cl_pop_input_val DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_pop_input_val IMPLEMENTATION.
+
+CLASS Z2UI5_CL_POP_INPUT_VAL IMPLEMENTATION.
+
 
   METHOD factory.
 
@@ -57,11 +59,13 @@ CLASS z2ui5_cl_pop_input_val IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD result.
 
     result = ms_result.
 
   ENDMETHOD.
+
 
   METHOD view_display.
 
@@ -84,6 +88,7 @@ CLASS z2ui5_cl_pop_input_val IMPLEMENTATION.
     client->popup_display( popup->stringify( ) ).
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_app~main.
 

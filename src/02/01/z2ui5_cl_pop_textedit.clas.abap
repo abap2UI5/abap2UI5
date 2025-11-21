@@ -39,7 +39,10 @@ CLASS z2ui5_cl_pop_textedit DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_pop_textedit IMPLEMENTATION.
+
+CLASS Z2UI5_CL_POP_TEXTEDIT IMPLEMENTATION.
+
+
   METHOD factory.
 
     r_result = NEW #( ).
@@ -49,6 +52,7 @@ CLASS z2ui5_cl_pop_textedit IMPLEMENTATION.
     r_result->mv_check_editable = i_check_editable.
 
   ENDMETHOD.
+
 
   METHOD display.
 
@@ -72,6 +76,7 @@ CLASS z2ui5_cl_pop_textedit IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_app~main.
 
     me->client = client.
@@ -94,6 +99,7 @@ CLASS z2ui5_cl_pop_textedit IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
+
 
   METHOD result.
     result = ms_result.

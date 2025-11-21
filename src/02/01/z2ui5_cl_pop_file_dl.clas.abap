@@ -42,7 +42,10 @@ CLASS z2ui5_cl_pop_file_dl DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
+
+CLASS Z2UI5_CL_POP_FILE_DL IMPLEMENTATION.
+
+
   METHOD factory.
 
     r_result = NEW #( ).
@@ -57,11 +60,13 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD result.
 
     result = check_confirmed.
 
   ENDMETHOD.
+
 
   METHOD view_display.
 
@@ -103,6 +108,7 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
     client->popup_display( popup->stringify( ) ).
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_app~main.
 

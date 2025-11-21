@@ -12,7 +12,8 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_srt_aunit IMPLEMENTATION.
+CLASS Z2UI5_CL_SRT_AUNIT IMPLEMENTATION.
+
 
   METHOD serialize_deserialize.
     " Serialize: both type and value at the same time.
@@ -57,5 +58,4 @@ CLASS z2ui5_cl_srt_aunit IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = rtti1 act = rtti2 ).
     cl_abap_unit_assert=>assert_equals( exp = <variable1> act = <variable2> ).
   ENDMETHOD.
-
 ENDCLASS.

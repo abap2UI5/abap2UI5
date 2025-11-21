@@ -50,7 +50,10 @@ CLASS z2ui5_cl_core_srv_bind DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
+
+CLASS Z2UI5_CL_CORE_SRV_BIND IMPLEMENTATION.
+
+
   METHOD bind_tab_cell.
 
     FIELD-SYMBOLS <ele> TYPE any.
@@ -81,6 +84,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
         val = `BINDING_ERROR_TAB_CELL_LEVEL - No class attribute for binding found - Please check if the binded values are public attributes of your class`.
 
   ENDMETHOD.
+
 
   METHOD check_raise_existing.
 
@@ -115,6 +119,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD check_raise_new.
 
     IF mr_attri->custom_filter_back IS BOUND.
@@ -141,11 +146,13 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD constructor.
 
     mo_app = app.
 
   ENDMETHOD.
+
 
   METHOD get_client_name.
 
@@ -162,6 +169,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
         && |/{ result }|.
 
   ENDMETHOD.
+
 
   METHOD main.
 
@@ -210,6 +218,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
+
 
   METHOD main_cell.
 

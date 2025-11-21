@@ -503,7 +503,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_util IMPLEMENTATION.
+CLASS Z2UI5_CL_UTIL IMPLEMENTATION.
 
 
   METHOD boolean_abap_2_json.
@@ -846,8 +846,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
-
-
 
 
   METHOD itab_get_itab_by_csv.
@@ -1536,6 +1534,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
+
 
   METHOD itab_filter_by_t_range.
 

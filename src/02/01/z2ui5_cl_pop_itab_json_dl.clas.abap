@@ -34,7 +34,10 @@ CLASS z2ui5_cl_pop_itab_json_dl DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_pop_itab_json_dl IMPLEMENTATION.
+
+CLASS Z2UI5_CL_POP_ITAB_JSON_DL IMPLEMENTATION.
+
+
   METHOD factory.
 
     r_result = NEW #( ).
@@ -48,11 +51,13 @@ CLASS z2ui5_cl_pop_itab_json_dl IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD result.
 
     result = check_result_confirmed.
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_app~main.
     DATA app TYPE REF TO object.

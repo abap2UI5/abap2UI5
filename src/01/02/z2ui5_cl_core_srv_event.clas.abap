@@ -32,7 +32,9 @@ CLASS z2ui5_cl_core_srv_event DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
+
+CLASS Z2UI5_CL_CORE_SRV_EVENT IMPLEMENTATION.
+
 
   METHOD get_event.
 
@@ -46,12 +48,14 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD get_event_client.
 
     result = |{ z2ui5_if_core_types=>cs_ui5-event_frontend_function }('{ val }'|.
     result = result && get_t_arg( t_arg ).
 
   ENDMETHOD.
+
 
   METHOD get_t_arg.
 

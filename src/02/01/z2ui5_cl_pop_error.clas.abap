@@ -22,13 +22,17 @@ CLASS z2ui5_cl_pop_error DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_pop_error IMPLEMENTATION.
+
+CLASS Z2UI5_CL_POP_ERROR IMPLEMENTATION.
+
+
   METHOD factory.
 
     r_result = NEW #( ).
     r_result->error = x_root.
 
   ENDMETHOD.
+
 
   METHOD view_display.
 
@@ -46,6 +50,7 @@ CLASS z2ui5_cl_pop_error IMPLEMENTATION.
     client->popup_display( popup->stringify( ) ).
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_app~main.
 

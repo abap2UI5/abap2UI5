@@ -72,7 +72,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_ajson_mapping IMPLEMENTATION.
+CLASS Z2UI5_CL_AJSON_MAPPING IMPLEMENTATION.
 
 
   METHOD create_camel_case.

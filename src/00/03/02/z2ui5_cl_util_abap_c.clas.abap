@@ -126,7 +126,9 @@ CLASS z2ui5_cl_util_abap_c DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
+
+CLASS Z2UI5_CL_UTIL_ABAP_C IMPLEMENTATION.
+
 
   METHOD context_get_user_tech.
     TRY.
@@ -205,6 +207,7 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD conv_decode_x_base64.
     DATA lv_web_http_name TYPE c LENGTH 19.
     DATA classname        TYPE c LENGTH 15.
@@ -231,6 +234,7 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD conv_encode_x_base64.
     DATA lv_web_http_name TYPE c LENGTH 19.
     DATA classname        TYPE c LENGTH 15.
@@ -256,6 +260,7 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
+
 
   METHOD conv_get_string_by_xstring.
 
@@ -294,6 +299,7 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD conv_get_xstring_by_string.
 
     DATA conv           TYPE REF TO object.
@@ -330,6 +336,7 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
+
 
   METHOD source_get_method.
 
@@ -419,6 +426,7 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD rtti_get_classes_impl_intf.
 
     DATA obj TYPE REF TO object.
@@ -491,6 +499,7 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
+
 
   METHOD rtti_get_data_element_texts.
 
@@ -607,6 +616,7 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD uuid_get_c22.
 
     DATA lv_uuid      TYPE c LENGTH 22.
@@ -656,6 +666,7 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD uuid_get_c32.
     DATA lv_uuid      TYPE c LENGTH 32.
     DATA lv_classname TYPE string.
@@ -685,6 +696,7 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
         ASSERT 1 = 0.
     ENDTRY.
   ENDMETHOD.
+
 
   METHOD rtti_get_class_descr_on_cloud.
 
@@ -717,6 +729,7 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
+
 
   METHOD rtti_get_table_desrc.
 
@@ -751,12 +764,14 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD context_get_tenant.
 
     "DATA(tenant_info) = xco_cp=>current->tenant( ).
     "DATA(account_id) = tenant_info->get_global_account_id( ).
 
   ENDMETHOD.
+
 
   METHOD context_get_callstack.
 
@@ -838,6 +853,7 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD conv_get_xlsx_by_itab.
 
 *    DATA(write_access) = xco_cp_xlsx=>document->empty( )->write_access( ).
@@ -850,6 +866,7 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
 *    result = write_access->get_file_content( ).
 
   ENDMETHOD.
+
 
   METHOD conv_get_itab_by_xlsx.
 
@@ -864,6 +881,7 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
 *            )->execute( ).
 
   ENDMETHOD.
+
 
   METHOD bal_read.
 
@@ -896,8 +914,8 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD bal_save.
 
   ENDMETHOD.
-
 ENDCLASS.

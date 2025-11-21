@@ -79,7 +79,9 @@ CLASS z2ui5_cl_util_http DEFINITION PUBLIC.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_util_http IMPLEMENTATION.
+
+CLASS Z2UI5_CL_UTIL_HTTP IMPLEMENTATION.
+
 
   METHOD delete_response_cookie.
 
@@ -106,6 +108,7 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
+
 
   METHOD get_response_cookie.
 
@@ -137,6 +140,7 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD get_header_field.
 
     DATA object TYPE REF TO object.
@@ -167,6 +171,7 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD set_header_field.
 
     DATA object TYPE REF TO object.
@@ -195,12 +200,14 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD factory.
 
     result = NEW #( ).
     result->mo_server_onprem = server.
 
   ENDMETHOD.
+
 
   METHOD factory_cloud.
 
@@ -209,6 +216,7 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
     result->mo_response_cloud = res.
 
   ENDMETHOD.
+
 
   METHOD get_cdata.
 
@@ -234,6 +242,7 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD get_method.
 
     DATA object TYPE REF TO object.
@@ -258,6 +267,7 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD set_cdata.
 
     DATA object TYPE REF TO object.
@@ -281,6 +291,7 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
+
 
   METHOD set_status.
 
@@ -310,6 +321,7 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD set_session_stateful.
 
     IF mo_server_onprem IS BOUND.
@@ -327,6 +339,7 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD get_req_info.
 
     result-body   = get_cdata( ).
@@ -342,5 +355,4 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
-
 ENDCLASS.

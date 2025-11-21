@@ -38,7 +38,10 @@ CLASS z2ui5_cl_pop_table DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_pop_table IMPLEMENTATION.
+
+CLASS Z2UI5_CL_POP_TABLE IMPLEMENTATION.
+
+
   METHOD display.
 
     FIELD-SYMBOLS <tab_out> TYPE STANDARD TABLE.
@@ -77,6 +80,7 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD factory.
     FIELD-SYMBOLS <tab> TYPE any.
 
@@ -91,6 +95,7 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
     <tab> = i_tab.
 
   ENDMETHOD.
+
 
   METHOD on_event.
 
@@ -108,6 +113,7 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD on_event_confirm.
 
     client->popup_destroy( ).
@@ -115,11 +121,13 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD result.
 
     result = ms_result.
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_app~main.
 

@@ -23,7 +23,10 @@ CLASS z2ui5_cl_pop_data DEFINITION
   PRIVATE SECTION.
 ENDCLASS.
 
-CLASS z2ui5_cl_pop_data IMPLEMENTATION.
+
+
+CLASS Z2UI5_CL_POP_DATA IMPLEMENTATION.
+
 
   METHOD display.
 
@@ -43,6 +46,7 @@ CLASS z2ui5_cl_pop_data IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
+
 
   METHOD factory.
 
@@ -69,6 +73,4 @@ CLASS z2ui5_cl_pop_data IMPLEMENTATION.
     client->nav_app_leave( ).
 
   ENDMETHOD.
-
-
 ENDCLASS.

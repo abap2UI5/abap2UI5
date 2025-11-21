@@ -46,13 +46,16 @@ CLASS z2ui5_cl_pop_to_confirm DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_pop_to_confirm IMPLEMENTATION.
+
+CLASS Z2UI5_CL_POP_TO_CONFIRM IMPLEMENTATION.
+
 
   METHOD result.
 
     result = check_result_confirmed.
 
   ENDMETHOD.
+
 
   METHOD factory.
 
@@ -67,6 +70,7 @@ CLASS z2ui5_cl_pop_to_confirm IMPLEMENTATION.
     r_result->event_canceled      = i_event_cancel.
 
   ENDMETHOD.
+
 
   METHOD view_display.
 
@@ -87,6 +91,7 @@ CLASS z2ui5_cl_pop_to_confirm IMPLEMENTATION.
     client->popup_display( popup->stringify( ) ).
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_app~main.
 

@@ -36,7 +36,10 @@ CLASS z2ui5_cl_pop_js_loader DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_pop_js_loader IMPLEMENTATION.
+
+CLASS Z2UI5_CL_POP_JS_LOADER IMPLEMENTATION.
+
+
   METHOD factory.
 
     r_result = NEW #( ).
@@ -45,16 +48,19 @@ CLASS z2ui5_cl_pop_js_loader IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD factory_check_open_ui5.
     r_result = NEW #( ).
     r_result->check_open_ui5 = abap_true.
   ENDMETHOD.
+
 
   METHOD result.
 
     result3 = user_command.
 
   ENDMETHOD.
+
 
   METHOD view_display.
 
@@ -74,6 +80,7 @@ CLASS z2ui5_cl_pop_js_loader IMPLEMENTATION.
     client->popup_display( popup->stringify( ) ).
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_app~main.
 

@@ -16,7 +16,10 @@ CLASS z2ui5_cl_srt_intfdescr DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_srt_intfdescr IMPLEMENTATION.
+
+CLASS Z2UI5_CL_SRT_INTFDESCR IMPLEMENTATION.
+
+
   METHOD constructor.
     super->constructor( rtti ).
     intf_kind = rtti->intf_kind.

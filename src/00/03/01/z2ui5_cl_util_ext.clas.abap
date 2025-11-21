@@ -354,7 +354,9 @@ CLASS z2ui5_cl_util_ext DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_util_ext IMPLEMENTATION.
+
+CLASS Z2UI5_CL_UTIL_EXT IMPLEMENTATION.
+
 
  METHOD rtti_get_class_descr_on_cloud.
 
@@ -381,6 +383,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
         rv_short_description = result.
 
   ENDMETHOD.
+
 
   METHOD rtti_get_t_attri_on_prem.
 
@@ -515,6 +518,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
+
 
   METHOD rtti_get_t_attri_on_cloud.
 
@@ -743,6 +747,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD rtti_get_t_dfies_by_table_name.
 
     IF z2ui5_CL_UTIL=>context_check_abap_cloud( ) IS NOT INITIAL.
@@ -752,6 +757,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
+
 
   METHOD rtti_get_table_desrc.
 
@@ -785,6 +791,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
+
 
   METHOD bus_search_help_read.
 
@@ -1048,7 +1055,6 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
   ENDMETHOD.
 
 
-
   METHOD tab_get_where_by_dfies.
 
     DATA val TYPE string.
@@ -1090,6 +1096,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
+
 
   METHOD _get_e071k_tabkey.
 
@@ -1134,6 +1141,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
     ENDIF.
     rv_tabkey = lv_tabkey.
   ENDMETHOD.
+
 
   METHOD bus_tr_add.
 
@@ -1193,6 +1201,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
+
 
   METHOD _set_e071k.
 
@@ -1296,6 +1305,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD _set_e071.
 
     DATA t_e071 TYPE REF TO data.
@@ -1365,6 +1375,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
     result = t_e071.
 
   ENDMETHOD.
+
 
   METHOD _read_e070.
 
@@ -1439,6 +1450,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
+
 
   METHOD bus_tr_read.
 
@@ -1560,6 +1572,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD set_mandt.
 
     FIELD-SYMBOLS <tab>  TYPE STANDARD TABLE.
@@ -1582,6 +1595,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
+
 
   METHOD conv_exit.
 
@@ -1617,5 +1631,4 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
-
 ENDCLASS.

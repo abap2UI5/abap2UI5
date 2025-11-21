@@ -4,6 +4,8 @@
   <asx:values>
    <DEVC>
     <CTEXT>abap-util - https://github.com/oblomov-dev/abap-util</CTEXT>
+    <LANGUAGE>E</LANGUAGE>
+    <MASTERLANG>E</MASTERLANG>
    </DEVC>
   </asx:values>
  </asx:abap>

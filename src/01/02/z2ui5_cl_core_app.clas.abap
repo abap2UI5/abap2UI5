@@ -50,7 +50,9 @@ CLASS z2ui5_cl_core_app DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_core_app IMPLEMENTATION.
+
+CLASS Z2UI5_CL_CORE_APP IMPLEMENTATION.
+
 
   METHOD all_xml_parse.
 
@@ -58,6 +60,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
                               IMPORTING any = result ).
 
   ENDMETHOD.
+
 
   METHOD all_xml_stringify.
 
@@ -97,11 +100,13 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD constructor.
 
     CREATE DATA mt_attri.
 
   ENDMETHOD.
+
 
   METHOD db_load.
 
@@ -115,6 +120,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
     lo_model->main_attri_db_load( ).
 
   ENDMETHOD.
+
 
   METHOD db_load_by_app.
 
@@ -130,6 +136,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD db_save.
 
     IF mo_app IS BOUND.
@@ -143,6 +150,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD model_json_parse.
 
     DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_model(
@@ -153,6 +161,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
         model = io_model ).
 
   ENDMETHOD.
+
 
   METHOD model_json_stringify.
 
