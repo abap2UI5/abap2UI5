@@ -270,6 +270,34 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    }` && |\n| &&
              `                }` && |\n| &&
              `                )` && |\n| &&
+             `` && |\n| &&
+             `                // Security: URL validation function to prevent open redirect attacks` && |\n| &&
+             `                function isValidRedirectURL(url) {` && |\n| &&
+             `                    if (!url) return false;` && |\n| &&
+             `` && |\n| &&
+             `                    try {` && |\n| &&
+             `                        // Parse URL relative to current origin` && |\n| &&
+             `                        const parsed = new URL(url, window.location.origin);` && |\n| &&
+             `` && |\n| &&
+             `                        // Only allow same-origin URLs (relative or absolute to same domain)` && |\n| &&
+             `                        if (parsed.origin !== window.location.origin) {` && |\n| &&
+             `                            console.error('Security: Blocked redirect to different origin:', url);` && |\n| &&
+             `                            return false;` && |\n| &&
+             `                        }` && |\n| &&
+             `` && |\n| &&
+             `                        // Block dangerous protocols` && |\n| &&
+             `                        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {` && |\n| &&
+             `                            console.error('Security: Blocked redirect with invalid protocol:', parsed.protocol);` && |\n| &&
+             `                            return false;` && |\n| &&
+             `                        }` && |\n| &&
+             `` && |\n| &&
+             `                        return true;` && |\n| &&
+             `                    } catch (e) {` && |\n| &&
+             `                        console.error('Security: Invalid URL format:', url, e);` && |\n| &&
+             `                        return false;` && |\n| &&
+             `                    }` && |\n| &&
+             `                }` && |\n| &&
+             `` && |\n| &&
              `                let oCrossAppNavigator;` && |\n| &&
              `                switch (args[0]) {` && |\n| &&
              `                    case 'SET_SIZE_LIMIT':` && |\n| &&
@@ -390,6 +418,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                            if (z2ui5.args[3] === 'EXT') {` && |\n| &&
              `                                let url = window.location.href.split('#')[0] + hash;` && |\n| &&
              `                                sap.m.URLHelper.redirect(url, true);` && |\n| &&
+             |\n|.
+    result = result &&
              `                            } else {` && |\n| &&
              `                                z2ui5.oCrossAppNavigator.toExternal({` && |\n| &&
              `                                    target: {` && |\n| &&
@@ -400,10 +430,24 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        });` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'LOCATION_RELOAD':` && |\n| &&
-             `                        window.location = args[1];` && |\n| &&
+             `                        // Security: Validate URL before redirect` && |\n| &&
+             `                        if (isValidRedirectURL(args[1])) {` && |\n| &&
+             `                            window.location = args[1];` && |\n| &&
+             `                        } else {` && |\n| &&
+             `                            sap.m.MessageBox.error('Invalid redirect URL. Only relative URLs to the same domain are allowed.');` && |\n| &&
+             `                        }` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'OPEN_NEW_TAB':` && |\n| &&
-             `                        window.open(args[1], '_blank');` && |\n| &&
+             `                        // Security: Validate URL before opening new tab` && |\n| &&
+             `                        if (isValidRedirectURL(args[1])) {` && |\n| &&
+             `                            const newWindow = window.open(args[1], '_blank');` && |\n| &&
+             `                            // Security: Prevent window.opener exploit` && |\n| &&
+             `                            if (newWindow) {` && |\n| &&
+             `                                newWindow.opener = null;` && |\n| &&
+             `                            }` && |\n| &&
+             `                        } else {` && |\n| &&
+             `                            sap.m.MessageBox.error('Invalid URL. Only relative URLs to the same domain are allowed.');` && |\n| &&
+             `                        }` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'POPUP_CLOSE':` && |\n| &&
              `                        z2ui5.oController.PopupDestroy();` && |\n| &&
@@ -418,8 +462,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        break;` && |\n| &&
              `                    case 'NEST_NAV_CONTAINER_TO':` && |\n| &&
              `                        navCon = z2ui5.oViewNest.byId(args[1]);` && |\n| &&
-             |\n|.
-    result = result &&
              `                        navConTo = z2ui5.oViewNest.byId(args[2]);` && |\n| &&
              `                        navCon.to(navConTo);` && |\n| &&
              `                        break;` && |\n| &&
