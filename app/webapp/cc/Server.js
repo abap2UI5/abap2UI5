@@ -148,7 +148,55 @@ sap.ui.define(["sap/ui/core/BusyIndicator", "sap/m/MessageBox"
                 }
             },
             responseError(response) {
-                document.write(response);
+                 // Security: Display HTML response in iframe for safe rendering
+        BusyIndicator.hide();
+
+        // Limit response length to prevent UI issues
+        const maxLength = 50000; // Increased for HTML content
+        let errorMessage = String(response);
+        if (errorMessage.length > maxLength) {
+          errorMessage =
+            errorMessage.substring(0, maxLength) +
+            "\n\n<!-- Content truncated - too long -->";
+        }
+
+        // Create or get existing error container
+        let errorContainer = document.getElementById("serverErrorContainer");
+        if (!errorContainer) {
+          errorContainer = document.createElement("div");
+          errorContainer.id = "serverErrorContainer";
+          errorContainer.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 90%;
+        height: 90%;
+        background: white;
+        border: 2px solid #d32f2f;
+        border-radius: 4px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+    `;
+          document.body.appendChild(errorContainer);
+        }
+
+        // Create header and iframe for safe HTML rendering
+        errorContainer.innerHTML = `
+    <div style="padding: 15px; background: #d32f2f; color: white; display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0;">Server Error - Please Restart The App</h3>
+    </div>
+    <iframe id="errorIframe" style="width: 100%; height: 100%; border: none; flex: 1;" sandbox="allow-same-origin"></iframe>
+`;
+
+        // Render HTML in iframe (sandbox for security)
+        const iframe = document.getElementById("errorIframe");
+        iframe.contentDocument.open();
+        iframe.contentDocument.write(errorMessage);
+        iframe.contentDocument.close();
+
             },
         };
     });
