@@ -270,7 +270,8 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
             ENDIF.
           CATCH cx_root INTO DATA(lx).
 
-            DATA(lx2) = NEW z2ui5_cx_util_error( val = `UNCAUGHT EXCEPTION - Please Restart App:` previous = lx ).
+            DATA(lx2) = NEW z2ui5_cx_util_error( val      = `UNCAUGHT EXCEPTION - Please Restart App:`
+                                                 previous = lx ).
             li_client2->nav_app_leave( z2ui5_cl_pop_error=>factory( lx2 ) ).
         ENDTRY.
         IF li_app->check_sticky = abap_false.

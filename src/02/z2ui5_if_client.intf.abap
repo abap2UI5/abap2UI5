@@ -115,7 +115,7 @@ INTERFACE z2ui5_if_client
 
   METHODS _event_nav_app_leave
     RETURNING
-      VALUE(result)              TYPE string.
+      VALUE(result) TYPE string.
 
   METHODS nav_app_leave
     IMPORTING
