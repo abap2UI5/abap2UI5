@@ -190,7 +190,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
             CLEAR lr_attri->srtti_data.
           ENDIF.
 
-        CATCH cx_root.
+        CATCH cx_root ##NO_HANDLER.
       ENDTRY.
     ENDLOOP.
 
@@ -481,7 +481,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
           ls_new-name_parent = ir_attri->name.
           INSERT ls_new INTO TABLE result.
 
-        CATCH cx_root.
+        CATCH cx_root ##NO_HANDLER.
       ENDTRY.
     ENDLOOP.
 

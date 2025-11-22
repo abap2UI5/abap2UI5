@@ -67,7 +67,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
     TRY.
         result = z2ui5_cl_util=>xml_stringify( me ).
         RETURN.
-      CATCH cx_root.
+      CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
     TRY.
@@ -77,7 +77,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
         lo_dissolver->main_attri_db_load( ).
 *        endif.
         RETURN.
-      CATCH cx_root.
+      CATCH cx_root INTO DATA(x) ##NO_HANDLER.
     ENDTRY.
 
     TRY.
@@ -88,7 +88,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
         lo_dissolver->main_attri_db_load( ).
 *        endif.
         RETURN.
-      CATCH cx_root INTO DATA(x).
+      CATCH cx_root INTO x ##NO_HANDLER.
     ENDTRY.
 
     RAISE EXCEPTION TYPE z2ui5_cx_util_error

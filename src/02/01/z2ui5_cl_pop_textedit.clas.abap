@@ -85,11 +85,11 @@ CLASS z2ui5_cl_pop_textedit IMPLEMENTATION.
       WHEN `BUTTON_TEXTAREA_CONFIRM`.
         ms_result-check_confirmed = abap_true.
         client->popup_destroy( ).
-        client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+        client->nav_app_leave( ).
 
       WHEN `BUTTON_TEXTAREA_CANCEL`.
         client->popup_destroy( ).
-        client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+        client->nav_app_leave( ).
 
     ENDCASE.
 

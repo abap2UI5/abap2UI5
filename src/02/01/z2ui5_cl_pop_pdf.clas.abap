@@ -102,11 +102,11 @@ CLASS z2ui5_cl_pop_pdf IMPLEMENTATION.
       WHEN `BUTTON_CONFIRM`.
         check_result_confirmed = abap_true.
         client->popup_destroy( ).
-        client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+        client->nav_app_leave( ).
       WHEN `BUTTON_CANCEL`.
         check_result_confirmed = abap_false.
         client->popup_destroy( ).
-        client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+        client->nav_app_leave( ).
     ENDCASE.
 
   ENDMETHOD.

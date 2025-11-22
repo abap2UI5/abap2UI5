@@ -91,7 +91,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
               result->mo_app->ms_draft-id_prev_app_stack = ''.
               result->mo_app->ms_draft-id = z2ui5_cl_util=>uuid_get_c32( ).
               RETURN.
-            CATCH cx_root.
+            CATCH cx_root ##NO_HANDLER.
           ENDTRY.
         ENDIF.
 

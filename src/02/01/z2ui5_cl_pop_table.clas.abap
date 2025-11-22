@@ -102,7 +102,7 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
 
       WHEN 'CANCEL'.
         client->popup_destroy( ).
-        client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+        client->nav_app_leave( ).
 
     ENDCASE.
 
@@ -111,7 +111,7 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
   METHOD on_event_confirm.
 
     client->popup_destroy( ).
-    client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+    client->nav_app_leave( ).
 
   ENDMETHOD.
 

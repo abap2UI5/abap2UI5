@@ -90,11 +90,11 @@ CLASS z2ui5_cl_pop_js_loader IMPLEMENTATION.
           mv_is_open_ui5 = abap_true.
         ENDIF.
         client->popup_destroy( ).
-        client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+        client->nav_app_leave( ).
 
       WHEN `TIMER_FINISHED`.
         client->popup_destroy( ).
-        client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+        client->nav_app_leave( ).
       WHEN OTHERS.
     ENDCASE.
 

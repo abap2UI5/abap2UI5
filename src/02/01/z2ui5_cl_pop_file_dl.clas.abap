@@ -118,7 +118,7 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
       WHEN `CALLBACK_DOWNLOAD`.
         check_confirmed = abap_true.
         client->popup_destroy( ).
-        client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+        client->nav_app_leave( ).
 
       WHEN `BUTTON_CONFIRM`.
         mv_check_download = abap_true.
@@ -126,7 +126,7 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
 
       WHEN `BUTTON_CANCEL`.
         client->popup_destroy( ).
-        client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+        client->nav_app_leave( ).
     ENDCASE.
 
   ENDMETHOD.
