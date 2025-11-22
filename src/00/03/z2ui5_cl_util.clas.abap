@@ -1191,8 +1191,8 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
 
   METHOD time_get_date_by_stampl.
-    " TODO: variable is assigned but never used (ABAP cleaner)
-    CONVERT TIME STAMP val TIME ZONE sy-zonlo INTO DATE result TIME DATA(lv_dummy).
+    DATA(ls_sy) = z2ui5_cl_util=>context_get_sy( ).
+    CONVERT TIME STAMP val TIME ZONE ls_sy-zonlo INTO DATE result TIME DATA(lv_dummy).
   ENDMETHOD.
 
 
@@ -1202,8 +1202,8 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
 
   METHOD time_get_time_by_stampl.
-    " TODO: variable is assigned but never used (ABAP cleaner)
-    CONVERT TIME STAMP val TIME ZONE sy-zonlo INTO DATE DATA(lv_dummy) TIME result.
+    DATA(ls_sy) = z2ui5_cl_util=>context_get_sy( ).
+    CONVERT TIME STAMP val TIME ZONE ls_sy-zonlo INTO DATE DATA(lv_dummy) TIME result.
   ENDMETHOD.
 
 
