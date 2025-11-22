@@ -82,7 +82,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
               result-s_control-app_start = lv_app_start.
               result-s_control-app_start = z2ui5_cl_util=>c_trim_upper( result-s_control-app_start ).
             ENDIF.
-          CATCH cx_root.
+          CATCH cx_root ##NO_HANDLER.
         ENDTRY.
 
         TRY.
@@ -94,7 +94,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
             result-s_control-app_start_draft = z2ui5_cl_util=>c_trim_upper(
                                            z2ui5_cl_util=>url_param_get( val = `z2ui5-xapp-state`
                                                                          url = lv_hash ) ).
-          CATCH cx_root.
+          CATCH cx_root ##NO_HANDLER.
         ENDTRY.
         IF result-s_control-app_start IS NOT INITIAL.
           IF result-s_control-app_start(1) = `-`.
