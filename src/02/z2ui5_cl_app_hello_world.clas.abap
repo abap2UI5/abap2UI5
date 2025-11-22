@@ -19,9 +19,9 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
 
         DATA(view) = z2ui5_cl_xml_view=>factory(
           )->shell(
-          )->page( title = |abap2UI5 - Hello World|
+          )->page( |abap2UI5 - Hello World|
           )->simple_form( editable = abap_true
-              )->content( ns = |form|
+              )->content( |form|
                   )->title( |Make an input here and send it to the server...|
                   )->label( |Name|
                   )->input( client->_bind_edit( name )
@@ -31,6 +31,7 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
 
       WHEN client->check_on_event( |BUTTON_POST| ).
         client->message_box_display( |Your name is { name }| ).
+
 
     ENDCASE.
 
