@@ -19,12 +19,19 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_create.
 
-    DATA(lo_draft) = NEW z2ui5_cl_core_srv_draft( ).
+    DATA lo_draft TYPE REF TO z2ui5_cl_core_srv_draft.
+    DATA temp1 TYPE z2ui5_if_types=>ty_s_draft.
+    DATA ls_db TYPE z2ui5_t_01.
+    CREATE OBJECT lo_draft TYPE z2ui5_cl_core_srv_draft.
 
-    lo_draft->create( draft     = VALUE #( id = `TEST_ID` )
+    
+    CLEAR temp1.
+    temp1-id = `TEST_ID`.
+    lo_draft->create( draft     = temp1
                       model_xml = `my xml` ).
 
-    DATA(ls_db) = lo_draft->read_draft( `TEST_ID` ).
+    
+    ls_db = lo_draft->read_draft( `TEST_ID` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `my xml`
                                         act = ls_db-data ).
