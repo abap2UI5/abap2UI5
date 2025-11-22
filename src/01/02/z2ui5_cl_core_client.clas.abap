@@ -68,7 +68,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                                           sub = `/` )
                           v = lr_comp->value ) INTO TABLE result-t_comp_params.
         ENDLOOP.
-      CATCH cx_root.
+      CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
   ENDMETHOD.
@@ -77,7 +77,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     TRY.
         result = mo_action->ms_actual-t_event_arg[ v ].
-      CATCH cx_root.
+      CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
   ENDMETHOD.

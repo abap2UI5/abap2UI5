@@ -10715,7 +10715,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     TRY.
         INSERT CONV #( ns ) INTO TABLE mo_root->mt_ns.
-      CATCH cx_root.
+      CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
     DATA(result2) = NEW z2ui5_cl_xml_view( ).

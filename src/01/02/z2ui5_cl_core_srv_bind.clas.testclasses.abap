@@ -71,7 +71,7 @@ CLASS ltcl_test_bind IMPLEMENTATION.
 
         cl_abap_unit_assert=>abort( ).
 
-      CATCH cx_root.
+      CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
   ENDMETHOD.
@@ -118,7 +118,7 @@ CLASS ltcl_test_bind IMPLEMENTATION.
 
         cl_abap_unit_assert=>abort( ).
 
-      CATCH cx_root.
+      CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
   ENDMETHOD.

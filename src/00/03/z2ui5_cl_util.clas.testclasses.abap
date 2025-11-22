@@ -426,7 +426,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     TRY.
         z2ui5_cl_util=>x_raise( ).
         cl_abap_unit_assert=>fail( ).
-      CATCH cx_root.
+      CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
   ENDMETHOD.
@@ -436,7 +436,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     TRY.
         z2ui5_cl_util=>x_check_raise( xsdbool( 1 = 1 ) ).
         cl_abap_unit_assert=>fail( ).
-      CATCH cx_root.
+      CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
     TRY.
