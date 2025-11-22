@@ -39,7 +39,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
-  
+
   METHOD z2ui5_if_client~get.
 
     result = VALUE #( event                  = mo_action->ms_actual-event
