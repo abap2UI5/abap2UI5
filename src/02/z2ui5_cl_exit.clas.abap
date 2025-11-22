@@ -1,7 +1,4 @@
-CLASS z2ui5_cl_exit DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+CLASS z2ui5_cl_exit DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_exit.
@@ -80,12 +77,12 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
 
     IF cs_config-content_security_policy IS INITIAL.
 
-    "before 21.11.2025
+      "before 21.11.2025
 *      cs_config-content_security_policy = |<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: | &&
 *        |ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com openui5.hana.ondemand.com *.openui5.hana.ondemand.com | &&
 *        |sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas; worker-src 'self' blob:; "/>|.
 
-    "after 21.11.2025 unsafe-inline, unsafe-eval deleted
+      "after 21.11.2025 unsafe-inline, unsafe-eval deleted
       cs_config-content_security_policy =
         |<meta http-equiv="Content-Security-Policy" | &&
         |content="default-src 'self' 'unsafe-inline' data: | &&
@@ -106,6 +103,19 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
 
     ENDIF.
 
+    IF cs_config-t_security_header IS INITIAL.
+
+      cs_config-t_security_header = VALUE #(
+        ( n = 'cache-control'          v = 'no-cache, no-store, must-revalidate' )
+        ( n = 'Pragma'                 v = 'no-cache' )
+        ( n = 'Expires'                v = '0' )
+        ( n = 'X-Content-Type-Options' v = 'nosniff' )
+        ( n = 'X-Frame-Options'        v = 'SAMEORIGIN' )
+        ( n = 'Referrer-Policy'        v = 'strict-origin-when-cross-origin' )
+        ( n = 'Permissions-Policy'     v = 'geolocation=(self), microphone=(self), camera=(self), payment=(), usb=()' )
+      ).
+
+    ENDIF.
 
     IF gi_user_exit IS NOT INITIAL.
       gi_user_exit->set_config_http_get(
@@ -118,7 +128,6 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD z2ui5_if_exit~set_config_http_post.
-
 
     cs_config-draft_exp_time_in_hours = 4.
 

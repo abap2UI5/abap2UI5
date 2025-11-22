@@ -32,6 +32,7 @@ INTERFACE z2ui5_if_types
       title                   TYPE string,
       t_add_config            TYPE ty_t_name_value,
       custom_js               TYPE string,
+      t_security_header       TYPE ty_t_name_value,
     END OF ty_s_http_config.
 
   TYPES:
