@@ -144,11 +144,11 @@ CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
       WHEN `BUTTON_CONFIRM`.
         ms_result-check_confirmed = abap_true.
         client->popup_destroy( ).
-        client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+        client->nav_app_leave( ).
 
       WHEN `BUTTON_CANCEL`.
         client->popup_destroy( ).
-        client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+        client->nav_app_leave( ).
 
       WHEN `POPUP_DELETE_ALL`.
         LOOP AT ms_result-t_filter REFERENCE INTO DATA(lr_sql).

@@ -167,7 +167,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
       WHEN 'CANCEL'.
         client->popup_destroy( ).
-        client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+        client->nav_app_leave( ).
         client->follow_up_action( client->_event( event_canceled ) ).
 
       WHEN 'SEARCH'.
@@ -281,7 +281,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
     ENDLOOP.
 
     client->popup_destroy( ).
-    client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+    client->nav_app_leave( ).
     client->follow_up_action( client->_event( val    = event_confirmed
                                               r_data = <table_result> ) ).
 
