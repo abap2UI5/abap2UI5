@@ -30,6 +30,16 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD z2ui5_if_client~check_on_event.
+
+    IF val IS NOT INITIAL.
+      result = xsdbool( z2ui5_if_client~get( )-event = val ).
+    ELSE.
+      result = xsdbool( z2ui5_if_client~get( )-event <> `` ).
+    ENDIF.
+
+  ENDMETHOD.
+  
   METHOD z2ui5_if_client~get.
 
     result = VALUE #( event                  = mo_action->ms_actual-event
