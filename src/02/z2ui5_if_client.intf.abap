@@ -205,6 +205,12 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val TYPE string.
 
+  METHODS check_on_event
+    IMPORTING
+      val           TYPE string
+    RETURNING
+      VALUE(result) TYPE abap_bool.
+      
   METHODS check_on_init
     RETURNING
       VALUE(result) TYPE abap_bool.
