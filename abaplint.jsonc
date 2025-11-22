@@ -49,7 +49,7 @@
       "exportToDatabase": true
     },
     "begin_end_names": true,
-    "align_pseudo_comments": true,
+    "align_pseudo_comments": false,
     "dynpro_checks": true,
     "empty_event": true,
     "invalid_table_index": true,
