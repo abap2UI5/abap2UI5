@@ -286,13 +286,30 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD get_response.
 
-    DATA(lo_handler) = factory( server = server
-                                req    = req
-                                res    = res ).
+    mo_server->set_cdata( ms_res-body ).
 
-    lo_handler->mo_server->set_cdata( is_res-body ).
-    lo_handler->mo_server->set_header_field( n = `cache-control`
-                                             v = `no-cache` ).
+*    mo_server->set_header_field( n = `cache-control`
+*                                 v = `no-cache` ).
+
+    " Security Headers
+    mo_server->set_header_field( n = `cache-control`
+                                 v = `no-cache, no-store, must-revalidate` ).
+    mo_server->set_header_field( n = `Pragma`
+                                 v = `no-cache` ).
+    mo_server->set_header_field( n = `Expires`
+                                 v = `0` ).
+    mo_server->set_header_field( n = `X-Content-Type-Options`
+                                 v = `nosniff` ).
+    mo_server->set_header_field( n = `X-Frame-Options`
+                                 v = `SAMEORIGIN` ).
+    mo_server->set_header_field( n = `Referrer-Policy`
+                                 v = `strict-origin-when-cross-origin` ).
+    mo_server->set_header_field( n = `Permissions-Policy`
+                                 v = `geolocation=(self), microphone=(self), camera=(self), payment=(), usb=()` ).
+
+    " Optional: Strict-Transport-Security (only if HTTPS is used)
+    mo_server->set_header_field( n = `Strict-Transport-Security`
+                                 v = `max-age=31536000; includeSubDomains` ).
     lo_handler->mo_server->set_status( code   = 200
                                        reason = `success` ).
 
