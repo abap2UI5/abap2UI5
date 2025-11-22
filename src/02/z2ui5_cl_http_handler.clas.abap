@@ -125,8 +125,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
   METHOD factory_cloud.
 
     result = NEW #( ).
-    result->mo_server = z2ui5_cl_util_http=>factory_cloud( req     = req
-                                                               res = res ).
+    result->mo_server = z2ui5_cl_util_http=>factory_cloud( req = req
+                                                           res = res ).
 
   ENDMETHOD.
 
@@ -205,28 +205,17 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     mo_server->set_cdata( ms_res-body ).
 
+
+    DATA(ls_config) = VALUE z2ui5_if_types=>ty_s_http_config( ).
+    z2ui5_cl_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
+
 *    mo_server->set_header_field( n = `cache-control`
 *                                 v = `no-cache` ).
 
-    " Security Headers
-    mo_server->set_header_field( n = `cache-control`
-                                 v = `no-cache, no-store, must-revalidate` ).
-    mo_server->set_header_field( n = `Pragma`
-                                 v = `no-cache` ).
-    mo_server->set_header_field( n = `Expires`
-                                 v = `0` ).
-    mo_server->set_header_field( n = `X-Content-Type-Options`
-                                 v = `nosniff` ).
-    mo_server->set_header_field( n = `X-Frame-Options`
-                                 v = `SAMEORIGIN` ).
-    mo_server->set_header_field( n = `Referrer-Policy`
-                                 v = `strict-origin-when-cross-origin` ).
-    mo_server->set_header_field( n = `Permissions-Policy`
-                                 v = `geolocation=(self), microphone=(self), camera=(self), payment=(), usb=()` ).
-
-    " Optional: Strict-Transport-Security (only if HTTPS is used)
-    mo_server->set_header_field( n = `Strict-Transport-Security`
-                                 v = `max-age=31536000; includeSubDomains` ).
+    LOOP AT ls_config-t_security_header INTO DATA(ls_header).
+      mo_server->set_header_field( n = ls_header-n
+                                   v = ls_header-v ).
+    ENDLOOP.
 
     mo_server->set_status( code   = 200
                            reason = `success` ).

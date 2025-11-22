@@ -113,6 +113,10 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_app.
 
+  METHODS _event_nav_app_leave
+    RETURNING
+      VALUE(result)              TYPE string.
+
   METHODS nav_app_leave
     IMPORTING
       VALUE(app)    TYPE REF TO z2ui5_if_app OPTIONAL
