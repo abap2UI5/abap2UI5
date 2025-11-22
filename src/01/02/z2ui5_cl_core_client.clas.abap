@@ -464,7 +464,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_event_nav_app_leave.
 
-      result = z2ui5_if_client~_event( `___ZZZ_NAL` ).
+    result = z2ui5_if_client~_event( `___ZZZ_NAL` ).
 
   ENDMETHOD.
 
