@@ -342,9 +342,9 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
   METHOD context_get_user_tech.
 
     IF context_check_abap_cloud( ).
-      result = z2ui5_cl_util_abap_c=>context_get_user_tech( ).
+      result = z2ui5_cl_util_api_c=>context_get_user_tech( ).
     ELSE.
-      result = z2ui5_cl_util_abap_s=>context_get_user_tech( ).
+      result = z2ui5_cl_util_api_s=>context_get_user_tech( ).
     ENDIF.
 
   ENDMETHOD.
