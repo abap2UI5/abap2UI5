@@ -168,54 +168,84 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `                }` && |\n| &&
              `            },` && |\n| &&
              `            responseError(response) {` && |\n| &&
-             `                 // Security: Display HTML response in iframe for safe rendering` && |\n| &&
-             `        BusyIndicator.hide();` && |\n| &&
              `` && |\n| &&
-             `        // Limit response length to prevent UI issues` && |\n| &&
-             `        const maxLength = 50000; // Increased for HTML content` && |\n| &&
-             `        let errorMessage = String(response);` && |\n| &&
-             `        if (errorMessage.length > maxLength) {` && |\n| &&
-             `          errorMessage =` && |\n| &&
-             `            errorMessage.substring(0, maxLength) +` && |\n| &&
-             `            "\n\n<!-- Content truncated - too long -->";` && |\n| &&
-             `        }` && |\n| &&
+             `                // Security: Display HTML response in iframe for safe rendering` && |\n| &&
+             `                BusyIndicator.hide();` && |\n| &&
              `` && |\n| &&
-             `        // Create or get existing error container` && |\n| &&
-             `        let errorContainer = document.getElementById("serverErrorContainer");` && |\n| &&
-             `        if (!errorContainer) {` && |\n| &&
-             `          errorContainer = document.createElement("div");` && |\n| &&
-             `          errorContainer.id = "serverErrorContainer";` && |\n| &&
-             `          errorContainer.style.cssText = ``` && |\n| &&
-             `        position: fixed;` && |\n| &&
-             `        top: 50%;` && |\n| &&
-             `        left: 50%;` && |\n| &&
-             `        transform: translate(-50%, -50%);` && |\n| &&
-             `        width: 90%;` && |\n| &&
-             `        height: 90%;` && |\n| &&
-             `        background: white;` && |\n| &&
-             `        border: 2px solid #d32f2f;` && |\n| &&
-             `        border-radius: 4px;` && |\n| &&
-             `        box-shadow: 0 4px 6px rgba(0,0,0,0.3);` && |\n| &&
-             `        z-index: 9999;` && |\n| &&
-             `        display: flex;` && |\n| &&
-             `        flex-direction: column;` && |\n| &&
-             `    ``;` && |\n| &&
-             `          document.body.appendChild(errorContainer);` && |\n| &&
-             `        }` && |\n| &&
+             `                // Limit response length to prevent UI issues` && |\n| &&
+             `                const maxLength = 50000;` && |\n| &&
+             `                let errorMessage = String(response);` && |\n| &&
+             `                if (errorMessage.length > maxLength) {` && |\n| &&
+             `                    errorMessage = errorMessage.substring(0, maxLength) +` && |\n| &&
+             `                        "\n\n<!-- Content truncated - too long -->";` && |\n| &&
+             `                }` && |\n| &&
              `` && |\n| &&
-             `        // Create header and iframe for safe HTML rendering` && |\n| &&
-             `        errorContainer.innerHTML = ``` && |\n| &&
-             `    <div style="padding: 15px; background: #d32f2f; color: white; display: flex; justify-content: space-between; align-items: center;">` && |\n| &&
-             `        <h3 style="margin: 0;">Server Error - Please Restart The App</h3>` && |\n| &&
-             `    </div>` && |\n| &&
-             `    <iframe id="errorIframe" style="width: 100%; height: 100%; border: none; flex: 1;" sandbox="allow-same-origin"></iframe>` && |\n| &&
-             ```;` && |\n| &&
+             `                // Create or get existing error container` && |\n| &&
+             `                let errorContainer = document.getElementById("serverErrorContainer");` && |\n| &&
+             `                if (!errorContainer) {` && |\n| &&
+             `                    errorContainer = document.createElement("div");` && |\n| &&
+             `                    errorContainer.id = "serverErrorContainer";` && |\n| &&
+             `                    errorContainer.style.cssText = ``` && |\n| &&
+             `                        position: fixed;` && |\n| &&
+             `                        top: 50%;` && |\n| &&
+             `                        left: 50%;` && |\n| &&
+             `                        transform: translate(-50%, -50%);` && |\n| &&
+             `                        width: 90%;` && |\n| &&
+             `                        height: 90%;` && |\n| &&
+             `                        background: white;` && |\n| &&
+             `                        border: 2px solid #d32f2f;` && |\n| &&
+             `                        border-radius: 4px;` && |\n| &&
+             `                        box-shadow: 0 4px 6px rgba(0,0,0,0.3);` && |\n| &&
+             `                        z-index: 9999;` && |\n| &&
+             `                        display: flex;` && |\n| &&
+             `                        flex-direction: column;` && |\n| &&
+             `                    ``;` && |\n| &&
+             `                    document.body.appendChild(errorContainer);` && |\n| &&
+             `                }` && |\n| &&
              `` && |\n| &&
-             `        // Render HTML in iframe (sandbox for security)` && |\n| &&
-             `        const iframe = document.getElementById("errorIframe");` && |\n| &&
-             `        iframe.contentDocument.open();` && |\n| &&
-             `        iframe.contentDocument.write(errorMessage);` && |\n| &&
-             `        iframe.contentDocument.close();` && |\n| &&
+             `                // Create header with close button and iframe for safe HTML rendering` && |\n| &&
+             `                errorContainer.innerHTML = ``` && |\n| &&
+             `                    <div style="padding: 15px; background: #d32f2f; color: white; display: flex; justify-content: space-between; align-items: center;">` && |\n| &&
+             `                        <h3 style="margin: 0;">Server Error - Please Restart The App</h3>` && |\n| &&
+             `                        <button id="errorCloseBtn" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid white; padding: 5px 15px; cursor: pointer; border-radius: 3px; font-size: 16px;">` && |\n| &&
+             `                            ✕ Close` && |\n| &&
+             `                        </button>` && |\n| &&
+             `                    </div>` && |\n| &&
+             `                    <iframe id="errorIframe" style="width: 100%; height: 100%; border: none; flex: 1;" sandbox=""></iframe>` && |\n| &&
+             `                ``;` && |\n| &&
+             `` && |\n| &&
+             `                // Get iframe element` && |\n| &&
+             `                const iframe = document.getElementById("errorIframe");` && |\n| &&
+             `                const closeBtn = document.getElementById("errorCloseBtn");` && |\n| &&
+             `` && |\n| &&
+             `                // Render HTML in iframe with strictest sandbox (no permissions)` && |\n| &&
+             `                try {` && |\n| &&
+             `                    iframe.contentDocument.open();` && |\n| &&
+             `                    iframe.contentDocument.write(errorMessage);` && |\n| &&
+             `                    iframe.contentDocument.close();` && |\n| &&
+             `                } catch (e) {` && |\n| &&
+             `                    // Fallback: If iframe fails, show error message` && |\n| &&
+             `                    console.error('Could not render error in iframe:', e);` && |\n| &&
+             `                    iframe.style.display = 'none';` && |\n| &&
+             `                    const errorDiv = document.createElement('div');` && |\n| &&
+             `                    errorDiv.style.cssText = 'padding: 20px; overflow: auto; flex: 1;';` && |\n| &&
+             `                    errorDiv.textContent = 'Error rendering server response. Check console for details.';` && |\n| &&
+             `                    errorContainer.appendChild(errorDiv);` && |\n| &&
+             `                }` && |\n| &&
+             `` && |\n| &&
+             `                // Close button handler` && |\n| &&
+             `                closeBtn.addEventListener('click', function() {` && |\n| &&
+             `                    errorContainer.remove();` && |\n| &&
+             `                });` && |\n| &&
+             `` && |\n| &&
+             `                // Close on Escape key` && |\n| &&
+             `                const escapeHandler = function(event) {` && |\n| &&
+             `                    if (event.key === 'Escape') {` && |\n| &&
+             `                        errorContainer.remove();` && |\n| &&
+             `                        document.removeEventListener('keydown', escapeHandler);` && |\n| &&
+             `                    }` && |\n| &&
+             `                };` && |\n| &&
+             `                document.addEventListener('keydown', escapeHandler);` && |\n| &&
              `` && |\n| &&
              `            },` && |\n| &&
              `        };` && |\n| &&
