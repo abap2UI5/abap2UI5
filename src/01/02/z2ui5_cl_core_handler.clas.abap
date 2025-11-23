@@ -180,16 +180,16 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   METHOD main.
 
-        main_begin( ).
-        DO.
-          IF main_process( ).
-            EXIT.
-          ENDIF.
-        ENDDO.
+    main_begin( ).
+    DO.
+      IF main_process( ).
+        EXIT.
+      ENDIF.
+    ENDDO.
 
-        result = VALUE #( body       = mv_response
-                          s_stateful = ms_response-s_front-params-s_stateful
-                          status_code = 200
+    result = VALUE #( body              = mv_response
+                          s_stateful    = ms_response-s_front-params-s_stateful
+                          status_code   = 200
                           status_reason = `success` ).
 
   ENDMETHOD.
