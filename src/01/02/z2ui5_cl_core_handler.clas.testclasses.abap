@@ -15,7 +15,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lv_payload) = `{"S_FRONT":{"ORIGIN":"ORIGIN","PATHNAME":"PATHNAME","SEARCH":""}}`.
+    DATA(lv_payload) = `{"value" : { "S_FRONT":{"ORIGIN":"ORIGIN","PATHNAME":"PATHNAME","SEARCH":""}}}`.
     DATA(lo_post) = NEW z2ui5_cl_core_handler( lv_payload ).
     lo_post->main_begin( ).
 
