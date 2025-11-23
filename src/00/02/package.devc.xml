@@ -4,8 +4,6 @@
   <asx:values>
    <DEVC>
     <CTEXT>srtti - https://github.com/sandraros/S-RTTI</CTEXT>
-    <LANGUAGE>E</LANGUAGE>
-    <MASTERLANG>E</MASTERLANG>
    </DEVC>
   </asx:values>
  </asx:abap>
