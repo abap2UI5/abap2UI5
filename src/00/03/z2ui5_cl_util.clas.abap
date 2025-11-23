@@ -1,6 +1,6 @@
 CLASS z2ui5_cl_util DEFINITION
   PUBLIC
-  INHERITING FROM z2ui5_cl_util_abap
+  INHERITING FROM z2ui5_cl_util_api
   CREATE PUBLIC.
 
   PUBLIC SECTION.
@@ -127,7 +127,7 @@ CLASS z2ui5_cl_util DEFINITION
         rollname      TYPE clike
         langu         TYPE clike DEFAULT sy-langu
       RETURNING
-        VALUE(result) TYPE z2ui5_cl_util_abap=>ty_t_fix_val ##NEEDED.
+        VALUE(result) TYPE z2ui5_cl_util_api=>ty_t_fix_val ##NEEDED.
 
     CLASS-METHODS source_get_method2
       IMPORTING

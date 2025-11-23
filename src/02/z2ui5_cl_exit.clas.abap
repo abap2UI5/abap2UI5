@@ -50,7 +50,7 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
 
   METHOD get_user_exit_class.
 
-    DATA(exit_classes) = z2ui5_cl_util_abap=>rtti_get_classes_impl_intf( 'Z2UI5_IF_EXIT' ).
+    DATA(exit_classes) = z2ui5_cl_util=>rtti_get_classes_impl_intf( 'Z2UI5_IF_EXIT' ).
     DELETE exit_classes WHERE classname = 'Z2UI5_CL_EXIT'.
 
     IF exit_classes IS NOT INITIAL.
@@ -112,7 +112,8 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
         ( n = 'X-Content-Type-Options' v = 'nosniff' )
         ( n = 'X-Frame-Options'        v = 'SAMEORIGIN' )
         ( n = 'Referrer-Policy'        v = 'strict-origin-when-cross-origin' )
-        ( n = 'Permissions-Policy'     v = 'geolocation=(self), microphone=(self), camera=(self), payment=(), usb=()' ) ).
+        ( n = 'Permissions-Policy'     v = 'geolocation=(self), microphone=(self), camera=(self), payment=(), usb=()' )
+      ).
 
     ENDIF.
 

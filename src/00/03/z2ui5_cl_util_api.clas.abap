@@ -1,8 +1,215 @@
-CLASS z2ui5_cl_util_abap_c DEFINITION
+CLASS z2ui5_cl_util_api DEFINITION
   PUBLIC
   CREATE PUBLIC.
 
   PUBLIC SECTION.
+
+    TYPES:
+      BEGIN OF ty_s_fix_val,
+        low   TYPE string,
+        high  TYPE string,
+        descr TYPE string,
+      END OF ty_s_fix_val.
+    TYPES ty_t_fix_val TYPE STANDARD TABLE OF ty_s_fix_val WITH DEFAULT KEY.
+
+    TYPES:
+      BEGIN OF ty_syst,
+        index TYPE i,
+        pagno TYPE i,
+        tabix TYPE i,
+        tfill TYPE i,
+        tlopc TYPE i,
+        tmaxl TYPE i,
+        toccu TYPE i,
+        ttabc TYPE i,
+        tstis TYPE i,
+        ttabi TYPE i,
+        dbcnt TYPE i,
+        fdpos TYPE i,
+        colno TYPE i,
+        linct TYPE i,
+        linno TYPE i,
+        linsz TYPE i,
+        pagct TYPE i,
+        macol TYPE i,
+        marow TYPE i,
+        tleng TYPE i,
+        sfoff TYPE i,
+        willi TYPE i,
+        lilli TYPE i,
+        subrc TYPE i,
+        fleng TYPE i,
+        cucol TYPE i,
+        curow TYPE i,
+        lsind TYPE i,
+        listi TYPE i,
+        stepl TYPE i,
+        tpagi TYPE i,
+        winx1 TYPE i,
+        winy1 TYPE i,
+        winx2 TYPE i,
+        winy2 TYPE i,
+        winco TYPE i,
+        winro TYPE i,
+        windi TYPE i,
+        srows TYPE i,
+        scols TYPE i,
+        loopc TYPE i,
+        folen TYPE i,
+        fodec TYPE i,
+        tzone TYPE i,
+        dayst TYPE c LENGTH 1,
+        ftype TYPE c LENGTH 1,
+        appli TYPE x LENGTH 2,
+        fdayw TYPE int1,
+        ccurs TYPE p LENGTH 9 DECIMALS 0,
+        ccurt TYPE p LENGTH 9 DECIMALS 0,
+        debug TYPE c LENGTH 1,
+        ctype TYPE c LENGTH 1,
+        input TYPE c LENGTH 1,
+        langu TYPE c LENGTH 1,
+        modno TYPE i,
+        batch TYPE c LENGTH 1,
+        binpt TYPE c LENGTH 1,
+        calld TYPE c LENGTH 1,
+        dynnr TYPE c LENGTH 4,
+        dyngr TYPE c LENGTH 4,
+        newpa TYPE c LENGTH 1,
+        pri40 TYPE c LENGTH 1,
+        rstrt TYPE c LENGTH 1,
+        wtitl TYPE c LENGTH 1,
+        cpage TYPE i,
+        dbnam TYPE c LENGTH 20,
+        mandt TYPE c LENGTH 3,
+        prefx TYPE c LENGTH 3,
+        fmkey TYPE c LENGTH 3,
+        pexpi TYPE n LENGTH 1,
+        prini TYPE n LENGTH 1,
+        primm TYPE c LENGTH 1,
+        prrel TYPE c LENGTH 1,
+        playo TYPE c LENGTH 5,
+        prbig TYPE c LENGTH 1,
+        playp TYPE c LENGTH 1,
+        prnew TYPE c LENGTH 1,
+        prlog TYPE c LENGTH 1,
+        pdest TYPE c LENGTH 4,
+        plist TYPE c LENGTH 12,
+        pauth TYPE n LENGTH 2,
+        prdsn TYPE c LENGTH 6,
+        pnwpa TYPE c LENGTH 1,
+        callr TYPE c LENGTH 8,
+        repi2 TYPE c LENGTH 40,
+        rtitl TYPE c LENGTH 70,
+        prrec TYPE c LENGTH 12,
+        prtxt TYPE c LENGTH 68,
+        prabt TYPE c LENGTH 12,
+        lpass TYPE c LENGTH 4,
+        nrpag TYPE c LENGTH 1,
+        paart TYPE c LENGTH 16,
+        prcop TYPE n LENGTH 3,
+        batzs TYPE c LENGTH 1,
+        bspld TYPE c LENGTH 1,
+        brep4 TYPE c LENGTH 4,
+        batzo TYPE c LENGTH 1,
+        batzd TYPE c LENGTH 1,
+        batzw TYPE c LENGTH 1,
+        batzm TYPE c LENGTH 1,
+        ctabl TYPE c LENGTH 4,
+        dbsys TYPE c LENGTH 10,
+        dcsys TYPE c LENGTH 4,
+        macdb TYPE c LENGTH 4,
+        sysid TYPE c LENGTH 8,
+        opsys TYPE c LENGTH 10,
+        pfkey TYPE c LENGTH 20,
+        saprl TYPE c LENGTH 4,
+        tcode TYPE c LENGTH 20,
+        ucomm TYPE c LENGTH 70,
+        cfwae TYPE c LENGTH 5,
+        chwae TYPE c LENGTH 5,
+        spono TYPE n LENGTH 10,
+        sponr TYPE n LENGTH 10,
+        waers TYPE c LENGTH 5,
+        cdate TYPE d,
+        datum TYPE d,
+        slset TYPE c LENGTH 14,
+        subty TYPE x LENGTH 1,
+        subcs TYPE c LENGTH 1,
+        group TYPE c LENGTH 1,
+        ffile TYPE c LENGTH 8,
+        uzeit TYPE t,
+        dsnam TYPE c LENGTH 8,
+        tabid TYPE c LENGTH 8,
+        tfdsn TYPE c LENGTH 8,
+        uname TYPE c LENGTH 12,
+        lstat TYPE c LENGTH 16,
+        abcde TYPE c LENGTH 26,
+        marky TYPE c LENGTH 1,
+        sfnam TYPE c LENGTH 30,
+        tname TYPE c LENGTH 30,
+        msgli TYPE c LENGTH 60,
+        title TYPE c LENGTH 70,
+        entry TYPE c LENGTH 72,
+        lisel TYPE c LENGTH 255,
+        uline TYPE c LENGTH 255,
+        xcode TYPE c LENGTH 70,
+        cprog TYPE c LENGTH 40,
+        xprog TYPE c LENGTH 40,
+        xform TYPE c LENGTH 30,
+        ldbpg TYPE c LENGTH 40,
+        tvar0 TYPE c LENGTH 20,
+        tvar1 TYPE c LENGTH 20,
+        tvar2 TYPE c LENGTH 20,
+        tvar3 TYPE c LENGTH 20,
+        tvar4 TYPE c LENGTH 20,
+        tvar5 TYPE c LENGTH 20,
+        tvar6 TYPE c LENGTH 20,
+        tvar7 TYPE c LENGTH 20,
+        tvar8 TYPE c LENGTH 20,
+        tvar9 TYPE c LENGTH 20,
+        msgid TYPE c LENGTH 20,
+        msgty TYPE c LENGTH 1,
+        msgno TYPE n LENGTH 3,
+        msgv1 TYPE c LENGTH 50,
+        msgv2 TYPE c LENGTH 50,
+        msgv3 TYPE c LENGTH 50,
+        msgv4 TYPE c LENGTH 50,
+        oncom TYPE c LENGTH 1,
+        vline TYPE c LENGTH 1,
+        winsl TYPE c LENGTH 79,
+        staco TYPE i,
+        staro TYPE i,
+        datar TYPE c LENGTH 1,
+        host  TYPE c LENGTH 32,
+        locdb TYPE c LENGTH 1,
+        locop TYPE c LENGTH 1,
+        datlo TYPE d,
+        timlo TYPE t,
+        zonlo TYPE c LENGTH 6,
+      END OF ty_syst.
+
+    TYPES:
+      BEGIN OF ty_s_data_element_text,
+        header TYPE string,
+        short  TYPE string,
+        medium TYPE string,
+        long   TYPE string,
+      END OF ty_s_data_element_text.
+
+    TYPES:
+      BEGIN OF ty_s_class_descr,
+        classname   TYPE string,
+        description TYPE string,
+      END OF ty_s_class_descr.
+    TYPES ty_t_classes TYPE STANDARD TABLE OF ty_s_class_descr WITH DEFAULT KEY.
+
+    TYPES:
+      BEGIN OF ty_s_stack,
+        class   TYPE string,
+        include TYPE string,
+        method  TYPE string,
+        line    TYPE string,
+      END OF ty_s_stack.
+    TYPES ty_t_stack TYPE STANDARD TABLE OF ty_s_stack WITH DEFAULT KEY.
 
     CLASS-METHODS bal_read
       IMPORTING
@@ -21,15 +228,19 @@ CLASS z2ui5_cl_util_abap_c DEFINITION
 
     CLASS-METHODS context_get_callstack
       RETURNING
-        VALUE(result) TYPE z2ui5_cl_util=>ty_t_stack.
-
-    CLASS-METHODS context_check_abap_cloud
-      RETURNING
-        VALUE(result) TYPE abap_bool.
+        VALUE(result) TYPE ty_t_stack.
 
     CLASS-METHODS context_get_tenant
       RETURNING
         VALUE(result) TYPE string.
+
+    CLASS-METHODS context_get_sy
+      RETURNING
+        VALUE(result) TYPE ty_syst.
+
+    CLASS-METHODS context_check_abap_cloud
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
     CLASS-METHODS context_get_user_tech
       RETURNING
@@ -54,7 +265,7 @@ CLASS z2ui5_cl_util_abap_c DEFINITION
       IMPORTING
         val           TYPE clike
       RETURNING
-        VALUE(result) TYPE z2ui5_cl_util=>ty_s_data_element_text.
+        VALUE(result) TYPE ty_s_data_element_text.
 
     CLASS-METHODS conv_decode_x_base64
       IMPORTING
@@ -96,14 +307,14 @@ CLASS z2ui5_cl_util_abap_c DEFINITION
       IMPORTING
         val           TYPE clike
       RETURNING
-        VALUE(result) TYPE z2ui5_cl_util=>ty_t_classes.
+        VALUE(result) TYPE ty_t_classes.
 
     CLASS-METHODS rtti_get_t_fixvalues
       IMPORTING
         elemdescr     TYPE REF TO cl_abap_elemdescr
         langu         TYPE clike
       RETURNING
-        VALUE(result) TYPE z2ui5_cl_util=>ty_t_fix_val.
+        VALUE(result) TYPE ty_t_fix_val.
 
     CLASS-METHODS rtti_get_table_desrc
       IMPORTING
@@ -126,28 +337,17 @@ CLASS z2ui5_cl_util_abap_c DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
+CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   METHOD context_get_user_tech.
-    TRY.
 
-        DATA(lv_result) = VALUE string( ).
-        DATA(lv_class) = 'CL_ABAP_CONTEXT_INFO'.
-        CALL METHOD (lv_class)=>('GET_USER_TECHNICAL_NAME')
-          RECEIVING
-            rv_business_partner_id = lv_result.
-
-        result = lv_result.
-
-      CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error
-          EXPORTING
-            previous = x.
-    ENDTRY.
-
+    IF context_check_abap_cloud( ).
+      result = z2ui5_cl_util_abap_c=>context_get_user_tech( ).
+    ELSE.
+      result = z2ui5_cl_util_abap_s=>context_get_user_tech( ).
+    ENDIF.
 
   ENDMETHOD.
-
 
   METHOD context_check_abap_cloud.
 
@@ -159,7 +359,6 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
-
 
   METHOD rtti_get_t_fixvalues.
 
@@ -177,7 +376,7 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
     DATA lv_langu  TYPE c LENGTH 1.
     DATA temp1     LIKE LINE OF lt_values.
     DATA lr_fix    LIKE REF TO temp1.
-    DATA temp2     TYPE z2ui5_cl_util_abap=>ty_s_fix_val.
+    DATA temp2     TYPE z2ui5_cl_util_api=>ty_s_fix_val.
 
     lv_langu = ' '.
     lv_langu = langu.
@@ -438,57 +637,111 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
     DATA END OF ls_clskey.
     DATA class               TYPE REF TO data.
     DATA xco_cp_abap         TYPE c LENGTH 11.
-    DATA temp3               TYPE z2ui5_cl_util_abap=>ty_t_classes.
+    DATA temp3               TYPE z2ui5_cl_util_api=>ty_t_classes.
     DATA implementation_name LIKE LINE OF lt_implementation_names.
     DATA temp4               LIKE LINE OF temp3.
-    DATA lv_fm               TYPE string.
+
     DATA type                TYPE c LENGTH 12.
     FIELD-SYMBOLS <class> TYPE data.
     DATA temp5   LIKE LINE OF lt_impl.
     DATA lr_impl LIKE REF TO temp5.
     FIELD-SYMBOLS <description> TYPE any.
-    DATA temp6 TYPE z2ui5_cl_util_abap=>ty_s_class_descr.
+    DATA temp6 TYPE z2ui5_cl_util_api=>ty_s_class_descr.
 
-    TRY.
+    IF context_check_abap_cloud( ).
 
-        ls_clskey-clsname = val.
+      ls_clskey-clsname = val.
 
-        xco_cp_abap = 'XCO_CP_ABAP'.
-        CALL METHOD (xco_cp_abap)=>interface
+      xco_cp_abap = 'XCO_CP_ABAP'.
+      CALL METHOD (xco_cp_abap)=>interface
+        EXPORTING
+          iv_name      = ls_clskey-clsname
+        RECEIVING
+          ro_interface = obj.
+
+      ASSIGN obj->('IF_XCO_AO_INTERFACE~IMPLEMENTATIONS') TO <any>.
+      IF sy-subrc <> 0.
+        RAISE EXCEPTION TYPE cx_sy_dyn_call_illegal_class.
+      ENDIF.
+      obj = <any>.
+
+      ASSIGN obj->('IF_XCO_INTF_IMPLEMENTATIONS_FC~ALL') TO <any>.
+      IF sy-subrc <> 0.
+        RAISE EXCEPTION TYPE cx_sy_dyn_call_illegal_class.
+      ENDIF.
+      obj = <any>.
+
+      CALL METHOD obj->('IF_XCO_INTF_IMPLEMENTATIONS~GET_NAMES')
+        RECEIVING
+          rt_names = lt_implementation_names.
+
+      CLEAR temp3.
+
+      LOOP AT lt_implementation_names INTO implementation_name.
+
+        temp4-classname   = implementation_name.
+        temp4-description = rtti_get_class_descr_on_cloud( implementation_name ).
+        INSERT temp4 INTO TABLE temp3.
+      ENDLOOP.
+      result = temp3.
+
+    ELSE.
+
+      ls_key-intkey = val.
+
+      DATA lv_fm               TYPE string.
+      lv_fm = `SEO_INTERFACE_IMPLEM_GET_ALL`.
+      CALL FUNCTION lv_fm
+        EXPORTING
+          intkey        = ls_key
+        IMPORTING
+          impkeys       = lt_impl
+        EXCEPTIONS
+          error_message = 1
+          OTHERS        = 2.
+      IF sy-subrc <> 0.
+        RETURN.
+      ENDIF.
+
+      type = 'SEOC_CLASS_R'.
+      CREATE DATA class TYPE (type).
+
+      ASSIGN class->* TO <class>.
+
+      LOOP AT lt_impl REFERENCE INTO lr_impl.
+
+        CLEAR <class>.
+
+        ls_clskey-clsname = lr_impl->clsname.
+
+        lv_fm = `SEO_CLASS_READ`.
+        CALL FUNCTION lv_fm
           EXPORTING
-            iv_name      = ls_clskey-clsname
-          RECEIVING
-            ro_interface = obj.
-
-        ASSIGN obj->('IF_XCO_AO_INTERFACE~IMPLEMENTATIONS') TO <any>.
+            clskey        = ls_clskey
+          IMPORTING
+            class         = <class>
+          EXCEPTIONS
+            error_message = 1
+            OTHERS        = 2.
         IF sy-subrc <> 0.
-          RAISE EXCEPTION TYPE cx_sy_dyn_call_illegal_class.
+          RAISE EXCEPTION TYPE z2ui5_cx_util_error.
         ENDIF.
-        obj = <any>.
 
-        ASSIGN obj->('IF_XCO_INTF_IMPLEMENTATIONS_FC~ALL') TO <any>.
-        IF sy-subrc <> 0.
-          RAISE EXCEPTION TYPE cx_sy_dyn_call_illegal_class.
-        ENDIF.
-        obj = <any>.
+        ASSIGN
+          COMPONENT 'DESCRIPT'
+          OF STRUCTURE <class>
+          TO <description>.
+        ASSERT sy-subrc = 0.
 
-        CALL METHOD obj->('IF_XCO_INTF_IMPLEMENTATIONS~GET_NAMES')
-          RECEIVING
-            rt_names = lt_implementation_names.
+        CLEAR temp6.
+        temp6-classname   = lr_impl->clsname.
+        temp6-description = <description>.
+        INSERT
+          temp6
+          INTO TABLE result.
+      ENDLOOP.
 
-        CLEAR temp3.
-
-        LOOP AT lt_implementation_names INTO implementation_name.
-
-          temp4-classname   = implementation_name.
-          temp4-description = rtti_get_class_descr_on_cloud( implementation_name ).
-          INSERT temp4 INTO TABLE temp3.
-        ENDLOOP.
-        result = temp3.
-
-      CATCH cx_root INTO DATA(x).
-        DATA(lv_dummy) = x->get_text( ).
-    ENDTRY.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -687,7 +940,6 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD rtti_get_class_descr_on_cloud.
-
     TRY.
 
         DATA obj          TYPE REF TO object.
@@ -713,9 +965,8 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
             rv_short_description = result.
 
       CATCH cx_root INTO DATA(x).
-        DATA(lv_dummy) = x->get_text( ).
+        DATA(lv_error) = x->get_text( ).
     ENDTRY.
-
   ENDMETHOD.
 
   METHOD rtti_get_table_desrc.
@@ -760,81 +1011,17 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
 
   METHOD context_get_callstack.
 
+    DATA lo_util TYPE REF TO object.
     IF context_check_abap_cloud( ).
 
-      DATA current_obj TYPE REF TO object.
-      DATA stack TYPE REF TO object.
-      DATA full_stack TYPE REF TO object.
-      DATA format_source TYPE REF TO object.
-      DATA format_obj2 TYPE REF TO object.
-      DATA format_obj3 TYPE REF TO object.
-      DATA text_obj TYPE REF TO object.
-      DATA lv_xco_cp TYPE c LENGTH 6.
-      DATA ro_lines TYPE REF TO object.
-      FIELD-SYMBOLS <current> TYPE any.
-      FIELD-SYMBOLS <any> TYPE any.
-      FIELD-SYMBOLS <call_stack> TYPE any.
-      FIELD-SYMBOLS <format> TYPE any.
-      FIELD-SYMBOLS <format2> TYPE any.
-
-      "1 format source
-      DATA(lv_assign) = `XCO_CP_CALL_STACK=>LINE_NUMBER_FLAVOR->SOURCE`.
-      ASSIGN (lv_assign) TO <format>.
-
-      lv_assign = `XCO_CP_CALL_STACK=>FORMAT`.
-      ASSIGN (lv_assign) TO <format2>.
-      format_obj2 = <format2>.
-
-      CALL METHOD format_obj2->('IF_XCO_CP_CS_FORMAT_FACTORY~ADT')
+      CREATE OBJECT lo_util TYPE ('Z2UI5_CL_UTIL_ABAP_C').
+      CALL METHOD lo_util->('CONTEXT_GET_CALLSTACK')
         RECEIVING
-          ro_adt = format_obj3.
-
-      CALL METHOD format_obj3->('WITH_LINE_NUMBER_FLAVOR')
-        EXPORTING
-          io_line_number_flavor = <format>
-        RECEIVING
-          ro_me                 = format_source.
-
-      lv_xco_cp = 'XCO_CP'.
-      ASSIGN (lv_xco_cp)=>('CURRENT') TO <current>.
-      current_obj = <current>.
-
-      ASSIGN current_obj->('IF_XCO_CP_STD_CURRENT~CALL_STACK') TO <call_stack>.
-      stack = <call_stack>.
-
-      CALL METHOD stack->('IF_XCO_CP_STD_CUR_API_CLL_STCK~FULL')
-        RECEIVING
-          ro_full = full_stack.
-
-      DATA r TYPE REF TO data.
-      CREATE DATA r TYPE REF TO ('IF_XCO_CS_FORMAT').
-      ASSIGN r->* TO <any>.
-      <any> ?= format_source.
-
-      CALL METHOD full_stack->('IF_XCO_CP_CALL_STACK~AS_TEXT')
-        EXPORTING
-          io_format = <any>
-        RECEIVING
-          ro_text   = text_obj.
-
-      CALL METHOD text_obj->('IF_XCO_TEXT~GET_LINES')
-        RECEIVING
-          ro_lines = ro_lines.
-
-      FIELD-SYMBOLS <lt_lines> TYPE string_table.
-      ASSIGN ro_lines->('IF_XCO_STRINGS~VALUE') TO <lt_lines>.
+          result = result.
 
     ELSE.
 
     ENDIF.
-
-    DELETE <lt_lines> INDEX 1.
-
-    LOOP AT <lt_lines> INTO DATA(text).
-      DATA(ls_stack) = VALUE z2ui5_cl_util_abap=>ty_S_stack( ).
-      SPLIT text AT ` ` INTO ls_stack-class ls_stack-include ls_stack-method.
-      INSERT ls_stack INTO TABLE result.
-    ENDLOOP.
 
   ENDMETHOD.
 
@@ -897,6 +1084,12 @@ CLASS z2ui5_cl_util_abap_c IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD bal_save.
+
+  ENDMETHOD.
+
+  METHOD context_get_sy.
+
+    result = CORRESPONDING #( sy ).
 
   ENDMETHOD.
 
