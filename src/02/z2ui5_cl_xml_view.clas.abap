@@ -10662,7 +10662,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
           ( n = `smi`               v = `sap.ui.comp.smartmultiinput` )
           ( n = `ie`                v = `sap.suite.ui.commons.imageeditor` ) ).
 
-      LOOP AT mt_ns REFERENCE INTO DATA(lr_ns) WHERE table_line IS NOT INITIAL
+      LOOP AT mt_ns REFERENCE INTO DATA(lr_ns) WHERE table_line IS NOT INITIAL  "#EC CI_SORTSEQ
                                                      AND table_line <> `mvc`
                                                      AND table_line <> `core`.
         TRY.
@@ -10679,7 +10679,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     ENDIF.
 
     DATA(lv_tmp2) = COND #( WHEN mv_ns <> `` THEN |{ mv_ns }:| ).
-    DATA(lv_tmp3) = REDUCE string( INIT val = `` FOR row IN mt_prop WHERE ( v <> `` )
+    DATA(lv_tmp3) = REDUCE string( INIT val = `` FOR row IN mt_prop WHERE ( v <> `` ) "#EC CI_SORTSEQ
                           NEXT val = |{ val } { row-n }="{ escape( val    = COND string( WHEN row-v = abap_true
                                                                                          THEN `true`
                                                                                          ELSE row-v )
