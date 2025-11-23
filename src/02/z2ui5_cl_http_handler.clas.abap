@@ -269,8 +269,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
       CATCH cx_root INTO DATA(x).
 *        ASSERT x->get_text( ) = 1.
 
-        result = VALUE #( body = `abap2UI5 Error:` && x->get_text( )
-                  status_code = 500
+        result = VALUE #( body  = `abap2UI5 Error:` && x->get_text( )
+                  status_code   = 500
                   status_reason = `error` ).
     ENDTRY.
   ENDMETHOD.
