@@ -112,8 +112,7 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
         ( n = 'X-Content-Type-Options' v = 'nosniff' )
         ( n = 'X-Frame-Options'        v = 'SAMEORIGIN' )
         ( n = 'Referrer-Policy'        v = 'strict-origin-when-cross-origin' )
-        ( n = 'Permissions-Policy'     v = 'geolocation=(self), microphone=(self), camera=(self), payment=(), usb=()' )
-      ).
+        ( n = 'Permissions-Policy'     v = 'geolocation=(self), microphone=(self), camera=(self), payment=(), usb=()' ) ).
 
     ENDIF.
 
