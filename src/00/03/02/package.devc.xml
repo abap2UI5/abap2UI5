@@ -3,7 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <DEVC>
-    <CTEXT>abap cloud only</CTEXT>
+    <CTEXT>abap-util - api</CTEXT>
+    <LANGUAGE>E</LANGUAGE>
+    <MASTERLANG>E</MASTERLANG>
    </DEVC>
   </asx:values>
  </asx:abap>

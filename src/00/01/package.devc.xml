@@ -4,6 +4,8 @@
   <asx:values>
    <DEVC>
     <CTEXT>ajson - https://github.com/sbcgua/ajson</CTEXT>
+    <LANGUAGE>E</LANGUAGE>
+    <MASTERLANG>E</MASTERLANG>
    </DEVC>
   </asx:values>
  </asx:abap>
