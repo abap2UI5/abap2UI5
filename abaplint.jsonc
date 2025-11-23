@@ -266,7 +266,7 @@
     "short_case": true,
     "sicf_consistency": true,
     "slow_parameter_passing": true,
-    "space_before_colon": true,
+    "space_before_colon": false,
     "space_before_dot": false,
     "sql_escape_host_variables": true,
     "start_at_tab": false,
