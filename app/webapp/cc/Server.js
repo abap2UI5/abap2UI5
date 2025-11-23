@@ -148,54 +148,84 @@ sap.ui.define(["sap/ui/core/BusyIndicator", "sap/m/MessageBox"
                 }
             },
             responseError(response) {
-                 // Security: Display HTML response in iframe for safe rendering
-        BusyIndicator.hide();
+            
+                // Security: Display HTML response in iframe for safe rendering
+                BusyIndicator.hide();
 
-        // Limit response length to prevent UI issues
-        const maxLength = 50000; // Increased for HTML content
-        let errorMessage = String(response);
-        if (errorMessage.length > maxLength) {
-          errorMessage =
-            errorMessage.substring(0, maxLength) +
-            "\n\n<!-- Content truncated - too long -->";
-        }
+                // Limit response length to prevent UI issues
+                const maxLength = 50000;
+                let errorMessage = String(response);
+                if (errorMessage.length > maxLength) {
+                    errorMessage = errorMessage.substring(0, maxLength) +
+                        "\n\n<!-- Content truncated - too long -->";
+                }
 
-        // Create or get existing error container
-        let errorContainer = document.getElementById("serverErrorContainer");
-        if (!errorContainer) {
-          errorContainer = document.createElement("div");
-          errorContainer.id = "serverErrorContainer";
-          errorContainer.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 90%;
-        height: 90%;
-        background: white;
-        border: 2px solid #d32f2f;
-        border-radius: 4px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        z-index: 9999;
-        display: flex;
-        flex-direction: column;
-    `;
-          document.body.appendChild(errorContainer);
-        }
+                // Create or get existing error container
+                let errorContainer = document.getElementById("serverErrorContainer");
+                if (!errorContainer) {
+                    errorContainer = document.createElement("div");
+                    errorContainer.id = "serverErrorContainer";
+                    errorContainer.style.cssText = `
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        width: 90%;
+                        height: 90%;
+                        background: white;
+                        border: 2px solid #d32f2f;
+                        border-radius: 4px;
+                        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+                        z-index: 9999;
+                        display: flex;
+                        flex-direction: column;
+                    `;
+                    document.body.appendChild(errorContainer);
+                }
 
-        // Create header and iframe for safe HTML rendering
-        errorContainer.innerHTML = `
-    <div style="padding: 15px; background: #d32f2f; color: white; display: flex; justify-content: space-between; align-items: center;">
-        <h3 style="margin: 0;">Server Error - Please Restart The App</h3>
-    </div>
-    <iframe id="errorIframe" style="width: 100%; height: 100%; border: none; flex: 1;" sandbox="allow-same-origin"></iframe>
-`;
+                // Create header with close button and iframe for safe HTML rendering
+                errorContainer.innerHTML = `
+                    <div style="padding: 15px; background: #d32f2f; color: white; display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0;">Server Error - Please Restart The App</h3>
+                        <button id="errorCloseBtn" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid white; padding: 5px 15px; cursor: pointer; border-radius: 3px; font-size: 16px;">
+                            ✕ Close
+                        </button>
+                    </div>
+                    <iframe id="errorIframe" style="width: 100%; height: 100%; border: none; flex: 1;" sandbox=""></iframe>
+                `;
 
-        // Render HTML in iframe (sandbox for security)
-        const iframe = document.getElementById("errorIframe");
-        iframe.contentDocument.open();
-        iframe.contentDocument.write(errorMessage);
-        iframe.contentDocument.close();
+                // Get iframe element
+                const iframe = document.getElementById("errorIframe");
+                const closeBtn = document.getElementById("errorCloseBtn");
+
+                // Render HTML in iframe with strictest sandbox (no permissions)
+                try {
+                    iframe.contentDocument.open();
+                    iframe.contentDocument.write(errorMessage);
+                    iframe.contentDocument.close();
+                } catch (e) {
+                    // Fallback: If iframe fails, show error message
+                    console.error('Could not render error in iframe:', e);
+                    iframe.style.display = 'none';
+                    const errorDiv = document.createElement('div');
+                    errorDiv.style.cssText = 'padding: 20px; overflow: auto; flex: 1;';
+                    errorDiv.textContent = 'Error rendering server response. Check console for details.';
+                    errorContainer.appendChild(errorDiv);
+                }
+
+                // Close button handler
+                closeBtn.addEventListener('click', function() {
+                    errorContainer.remove();
+                });
+
+                // Close on Escape key
+                const escapeHandler = function(event) {
+                    if (event.key === 'Escape') {
+                        errorContainer.remove();
+                        document.removeEventListener('keydown', escapeHandler);
+                    }
+                };
+                document.addEventListener('keydown', escapeHandler);
 
             },
         };
