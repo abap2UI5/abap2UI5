@@ -83,14 +83,14 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   METHOD main_json_to_attri.
 
-    IF line_exists( mt_attri->*[ view = view ] ) . "#EC CI_SORTSEQ
+    IF line_exists( mt_attri->*[ view = view ] ) .      "#EC CI_SORTSEQ
       DATA(lv_view) = view.
     ELSE.
       lv_view = z2ui5_if_client=>cs_view-main.
     ENDIF.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
-         WHERE bind_type = z2ui5_if_core_types=>cs_bind_type-two_way "#EC CI_SORTSEQ
+         WHERE bind_type = z2ui5_if_core_types=>cs_bind_"#EC CI_SORTSEQ
                AND view      = lv_view.
       TRY.
 
@@ -178,7 +178,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   METHOD main_attri_db_load.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
         WHERE name_ref IS INITIAL.
       TRY.
           DATA(lr_ref)       = attri_get_val_ref( lr_attri->name ).
@@ -195,7 +195,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     ENDLOOP.
 
 
-    LOOP AT mt_attri->* REFERENCE INTO lr_attri "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO lr_attri         "#EC CI_SORTSEQ
          WHERE name_ref IS NOT INITIAL.
 
       CASE lr_attri->type_kind.
@@ -255,7 +255,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
     dissolve( ).
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
         WHERE name_ref IS INITIAL
          AND type_kind = cl_abap_datadescr=>typekind_dref.
 
@@ -275,7 +275,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
         WHEN cl_abap_datadescr=>typekind_table.
 
-          LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_child) "#EC CI_SORTSEQ
+          LOOP AT mt_attri->* REFERENCE INTO DATA(lr_att"#EC CI_SORTSEQ
               WHERE name_ref IS INITIAL AND
                type_kind = cl_abap_datadescr=>typekind_table AND
                name_parent = lr_attri->name.
@@ -299,7 +299,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
     ENDLOOP.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri2) "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri2)  "#EC CI_SORTSEQ
          WHERE type_kind = cl_abap_datadescr=>typekind_dref.
 
       DATA(lv_name8) = |MO_APP->{ lr_attri2->name }|.
@@ -391,7 +391,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
           val = |NO DATA REFERENCES FOR BINDING ALLOWED: DEREFERENCE YOUR DATA FIRST|.
     ENDIF.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE name_ref  IS INITIAL
                AND type_kind  = lo_datadescr->type_kind
                AND kind       = lo_datadescr->kind.
@@ -536,7 +536,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   METHOD attri_update_entry_refs.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE check_dissolved  = abap_true
                AND name_ref        IS INITIAL.
 
@@ -550,7 +550,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
         WHEN cl_abap_typedescr=>typekind_table.
 
-          LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_ref) "#EC CI_SORTSEQ
+          LOOP AT mt_attri->* REFERENCE INTO DATA(lr_att"#EC CI_SORTSEQ
               WHERE check_dissolved  = abap_true AND
               name <> lr_attri->name
                 AND name_ref IS INITIAL
@@ -574,7 +574,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
           ASSIGN lr_ref->* TO FIELD-SYMBOL(<ref>).
 
-          LOOP AT mt_attri->* REFERENCE INTO lr_attri_ref "#EC CI_SORTSEQ
+          LOOP AT mt_attri->* REFERENCE INTO lr_attri_re"#EC CI_SORTSEQ
               WHERE check_dissolved  = abap_true AND
                 name <> lr_attri->name
                     AND name_ref IS INITIAL
@@ -597,7 +597,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
             lr_attri->name_ref = lr_attri_ref->name.
 
-            LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_child) "#EC CI_SORTSEQ
+            LOOP AT mt_attri->* REFERENCE INTO DATA(lr_a"#EC CI_SORTSEQ
                 WHERE name_parent = lr_attri->name.
 
               DATA(lv_name) = shift_left( val = lr_attri_child->name
@@ -665,7 +665,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
   METHOD main_attri_refresh.
 
     DATA(lt_attri) = mt_attri->*.
-    DELETE lt_attri WHERE bind_type IS INITIAL. "#EC CI_SORTSEQ
+    DELETE lt_attri WHERE bind_type IS INITIAL.         "#EC CI_SORTSEQ
     CLEAR mt_attri->*.
 
     dissolve( ).

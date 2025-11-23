@@ -69,7 +69,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
         IF lo_params IS NOT BOUND.
           RETURN.
         ENDIF.
-        LOOP AT lo_params->mt_json_tree "#EC CI_SORTSEQ
+        LOOP AT lo_params->mt_json_tree                 "#EC CI_SORTSEQ
              REFERENCE INTO DATA(lr_comp)
              WHERE name = `1`.
 
