@@ -83,7 +83,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   METHOD main_json_to_attri.
 
-    IF line_exists( mt_attri->*[ view = view ] ) . "#EC CI_SORTSEQ
+    IF line_exists( mt_attri->*[ view = view ] ). "#EC CI_SORTSEQ
       DATA(lv_view) = view.
     ELSE.
       lv_view = z2ui5_if_client=>cs_view-main.
