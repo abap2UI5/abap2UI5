@@ -180,37 +180,39 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   METHOD main.
 
-    main_begin( ).
-    DO.
-      IF main_process( ).
-        EXIT.
-      ENDIF.
-    ENDDO.
+        main_begin( ).
+        DO.
+          IF main_process( ).
+            EXIT.
+          ENDIF.
+        ENDDO.
 
-    result = VALUE #( body       = mv_response
-                      s_stateful = ms_response-s_front-params-s_stateful ).
+        result = VALUE #( body       = mv_response
+                          s_stateful = ms_response-s_front-params-s_stateful
+                          status_code = 200
+                          status_reason = `success` ).
 
   ENDMETHOD.
 
   METHOD main_begin.
-    TRY.
+*   try
 
-        ms_request = request_json_to_abap( mv_request_json ).
+    ms_request = request_json_to_abap( mv_request_json ).
 
-        IF ms_request-s_front-id IS NOT INITIAL.
-          mo_action = mo_action->factory_by_frontend( ).
+    IF ms_request-s_front-id IS NOT INITIAL.
+      mo_action = mo_action->factory_by_frontend( ).
 
-        ELSEIF ms_request-s_control-app_start IS NOT INITIAL.
-          NEW z2ui5_cl_core_srv_draft( )->cleanup( ).
-          mo_action = mo_action->factory_first_start( ).
+    ELSEIF ms_request-s_control-app_start IS NOT INITIAL.
+      NEW z2ui5_cl_core_srv_draft( )->cleanup( ).
+      mo_action = mo_action->factory_first_start( ).
 
-        ELSE.
-          mo_action = mo_action->factory_system_startup( ).
-        ENDIF.
+    ELSE.
+      mo_action = mo_action->factory_system_startup( ).
+    ENDIF.
 
-      CATCH cx_root INTO DATA(x).
-        ASSERT x->get_text( ) = 1.
-    ENDTRY.
+*      CATCH cx_root INTO DATA(x).
+*        ASSERT x->get_text( ) = 1.
+*    ENDTRY.
   ENDMETHOD.
 
   METHOD main_end.
@@ -251,46 +253,46 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD main_process.
+*    TRY.
+
+    DATA(li_client) = NEW z2ui5_cl_core_client( mo_action ).
+    DATA(li_app)    = CAST z2ui5_if_app( mo_action->mo_app->mo_app ).
+
+    IF li_app->check_sticky = abap_false.
+      ROLLBACK WORK.
+    ENDIF.
     TRY.
+        DATA(li_client2) = CAST z2ui5_if_client( li_client ).
 
-        DATA(li_client) = NEW z2ui5_cl_core_client( mo_action ).
-        DATA(li_app)    = CAST z2ui5_if_app( mo_action->mo_app->mo_app ).
-
-        IF li_app->check_sticky = abap_false.
-          ROLLBACK WORK.
-        ENDIF.
-        TRY.
-            DATA(li_client2) = CAST z2ui5_if_client( li_client ).
-
-            IF li_client2->get( )-event = '___ZZZ_NAL'.
-              li_client2->popup_destroy( ).
-              li_client2->nav_app_leave( ).
-            ELSE.
-              li_app->main( li_client ).
-            ENDIF.
-          CATCH cx_root INTO DATA(lx).
-
-            DATA(lx2) = NEW z2ui5_cx_util_error( val      = `UNCAUGHT EXCEPTION - Please Restart App:`
-                                                 previous = lx ).
-            li_client2->nav_app_leave( z2ui5_cl_pop_error=>factory( lx2 ) ).
-        ENDTRY.
-        IF li_app->check_sticky = abap_false.
-          ROLLBACK WORK.
-        ENDIF.
-
-        IF mo_action->ms_next-o_app_leave IS NOT INITIAL.
-          mo_action = mo_action->factory_stack_leave( ).
-
-        ELSEIF mo_action->ms_next-o_app_call IS NOT INITIAL.
-          mo_action = mo_action->factory_stack_call( ).
-
+        IF li_client2->get( )-event = '___ZZZ_NAL'.
+          li_client2->popup_destroy( ).
+          li_client2->nav_app_leave( ).
         ELSE.
-          main_end( ).
-          check_go_client = abap_true.
+          li_app->main( li_client ).
         ENDIF.
+      CATCH cx_root INTO DATA(lx).
 
-      CATCH cx_root INTO DATA(x).
-        ASSERT x->get_text( ) = 1.
+        DATA(lx2) = NEW z2ui5_cx_util_error( val      = `UNCAUGHT EXCEPTION - Please Restart App:`
+                                             previous = lx ).
+        li_client2->nav_app_leave( z2ui5_cl_pop_error=>factory( lx2 ) ).
     ENDTRY.
+    IF li_app->check_sticky = abap_false.
+      ROLLBACK WORK.
+    ENDIF.
+
+    IF mo_action->ms_next-o_app_leave IS NOT INITIAL.
+      mo_action = mo_action->factory_stack_leave( ).
+
+    ELSEIF mo_action->ms_next-o_app_call IS NOT INITIAL.
+      mo_action = mo_action->factory_stack_call( ).
+
+    ELSE.
+      main_end( ).
+      check_go_client = abap_true.
+    ENDIF.
+
+*      CATCH cx_root INTO DATA(x).
+*        ASSERT x->get_text( ) = 1.
+*    ENDTRY.
   ENDMETHOD.
 ENDCLASS.

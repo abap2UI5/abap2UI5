@@ -38,7 +38,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
       IMPORTING
         is_config     TYPE  z2ui5_if_types=>ty_s_http_config
       RETURNING
-        VALUE(result) TYPE string.
+        VALUE(result) TYPE z2ui5_if_core_types=>ty_s_http_res.
 
     METHODS main
       IMPORTING
@@ -59,13 +59,6 @@ CLASS z2ui5_cl_http_handler DEFINITION
           PREFERRED PARAMETER server
       RETURNING
         VALUE(result) TYPE z2ui5_cl_util_http=>ty_s_http_req.
-
-    CLASS-METHODS get_response
-      IMPORTING
-        server TYPE REF TO object OPTIONAL
-        req    TYPE REF TO object OPTIONAL
-        res    TYPE REF TO object OPTIONAL
-        is_res TYPE z2ui5_if_core_types=>ty_s_http_res.
 
   PROTECTED SECTION.
     CLASS-DATA so_sticky_handler TYPE REF TO z2ui5_cl_core_handler.
@@ -142,7 +135,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
       lv_style_css = ls_config-styles_css.
     ENDIF.
 
-    result = |<!DOCTYPE html>| && |\n| &&
+    result-body = |<!DOCTYPE html>| && |\n| &&
                |<html lang="en">| && |\n| &&
                |<head>| && |\n| &&
                   |{ ls_config-content_security_policy }\n| &&
@@ -178,14 +171,17 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                  |data-sap-ui-theme="{ ls_config-theme  }" src=" { ls_config-src }"   |.
 
     LOOP AT ls_config-t_add_config REFERENCE INTO DATA(lr_config).
-      result = |{ result } { lr_config->n }='{ lr_config->v }'|.
+      result-body = |{ result-body } { lr_config->n }='{ lr_config->v }'|.
     ENDLOOP.
 
-    result = result &&
+    result-body = result-body &&
         | ></script></head>| && |\n| &&
         |<body class="sapUiBody sapUiSizeCompact" id="content">| && |\n| &&
         |    <div data-sap-ui-component data-name="z2ui5" data-id="container" data-settings='\{"id" : "z2ui5"\}' data-handle-validation="true"></div>| && |\n| &&
         | </body></html>|.
+
+    result-status_code = 200.
+    result-status_reason = `success`.
 
   ENDMETHOD.
 
@@ -217,8 +213,11 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                                    v = ls_header-v ).
     ENDLOOP.
 
-    mo_server->set_status( code   = 200
-                           reason = `success` ).
+*    mo_server->set_status( code   = 200
+*                           reason = `success` ).
+
+    mo_server->set_status( code   = ms_res-status_code
+                           reason = ms_res-status_reason ).
 
     " transform cookie to header based contextid handling
     IF ms_res-s_stateful-switched = abap_true.
@@ -243,28 +242,37 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
 
   METHOD _http_post.
-
-    IF so_sticky_handler IS NOT BOUND.
-      DATA(lo_post) = NEW z2ui5_cl_core_handler( is_req-body ).
-    ELSE.
-      lo_post = so_sticky_handler.
-      lo_post->mv_request_json = is_req-body.
-    ENDIF.
-
-    result = lo_post->main( ).
-
     TRY.
-        IF lo_post IS BOUND.
-          DATA(li_app) = CAST z2ui5_if_app( lo_post->mo_action->mo_app->mo_app ).
-          IF li_app->check_sticky = abap_true.
-            so_sticky_handler = lo_post.
-          ELSE.
-            CLEAR so_sticky_handler.
-          ENDIF.
-        ENDIF.
-      CATCH cx_root ##NO_HANDLER.
-    ENDTRY.
 
+        IF so_sticky_handler IS NOT BOUND.
+          DATA(lo_post) = NEW z2ui5_cl_core_handler( is_req-body ).
+        ELSE.
+          lo_post = so_sticky_handler.
+          lo_post->mv_request_json = is_req-body.
+        ENDIF.
+
+        result = lo_post->main( ).
+
+        TRY.
+            IF lo_post IS BOUND.
+              DATA(li_app) = CAST z2ui5_if_app( lo_post->mo_action->mo_app->mo_app ).
+              IF li_app->check_sticky = abap_true.
+                so_sticky_handler = lo_post.
+              ELSE.
+                CLEAR so_sticky_handler.
+              ENDIF.
+            ENDIF.
+          CATCH cx_root ##NO_HANDLER.
+        ENDTRY.
+
+
+      CATCH cx_root INTO DATA(x).
+*        ASSERT x->get_text( ) = 1.
+
+        result = VALUE #( body = `abap2UI5 Error:` && x->get_text( )
+                  status_code = 500
+                  status_reason = `error` ).
+    ENDTRY.
   ENDMETHOD.
 
 
@@ -275,7 +283,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     CASE is_req-method.
       WHEN `GET`.
-        result-body = _http_get( is_config ).
+        result = _http_get( is_config ).
       WHEN `POST`.
         result = _http_post( is_req ).
     ENDCASE.
@@ -295,36 +303,4 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_response.
-
-    DATA(lo_handler) = factory( server = server
-                                req    = req
-                                res    = res ).
-
-    lo_handler->mo_server->set_cdata( is_res-body ).
-    lo_handler->mo_server->set_header_field( n = `cache-control`
-                                             v = `no-cache` ).
-    lo_handler->mo_server->set_status( code   = 200
-                                       reason = `success` ).
-
-    " transform cookie to header based contextid handling
-    IF is_res-s_stateful-switched = abap_true.
-      lo_handler->mo_server->set_session_stateful( is_res-s_stateful-active ).
-      IF lo_handler->mo_server->get_header_field( 'sap-contextid-accept' ) = 'header'.
-        DATA(lv_contextid) = lo_handler->mo_server->get_response_cookie( 'sap-contextid' ).
-        IF lv_contextid IS NOT INITIAL.
-          lo_handler->mo_server->delete_response_cookie( 'sap-contextid' ).
-          lo_handler->mo_server->set_header_field( n = 'sap-contextid'
-                                                   v = lv_contextid ).
-        ENDIF.
-      ENDIF.
-    ELSE.
-      lv_contextid = lo_handler->mo_server->get_header_field( 'sap-contextid' ).
-      IF lv_contextid IS NOT INITIAL.
-        lo_handler->mo_server->set_header_field( n = 'sap-contextid'
-                                                 v = lv_contextid ).
-      ENDIF.
-    ENDIF.
-
-  ENDMETHOD.
 ENDCLASS.
