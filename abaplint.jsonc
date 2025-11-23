@@ -267,7 +267,7 @@
     "sicf_consistency": true,
     "slow_parameter_passing": true,
     "space_before_colon": true,
-    "space_before_dot": true,
+    "space_before_dot": false,
     "sql_escape_host_variables": true,
     "start_at_tab": false,
     "static_call_via_instance": {
