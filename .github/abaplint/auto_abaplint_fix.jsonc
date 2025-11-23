@@ -20,7 +20,7 @@
     "indentation" : true,
     "double_space": true,
     "align_parameters": true,
-    "align_pseudo_comments": true,
+    "align_pseudo_comments": false,
     "align_type_expressions": true,
     "keyword_case": true,    
     "contains_tab": true,
