@@ -123,7 +123,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    BusyIndicator.hide();` && |\n| &&
              `                    z2ui5.isBusy = false;` && |\n| &&
              `                    MessageBox.error(e.toLocaleString(), {` && |\n| &&
-             `                        title: "Unexpected Error Occured - App Terminated",` && |\n| &&
+             `                        title: "Unexpected Error Occurred - App Terminated",` && |\n| &&
              `                        actions: [],` && |\n| &&
              `                        onClose: () => {` && |\n| &&
              `                            new mBusyDialog({` && |\n| &&
