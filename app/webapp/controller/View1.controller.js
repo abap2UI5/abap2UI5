@@ -103,7 +103,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     BusyIndicator.hide();
                     z2ui5.isBusy = false;
                     MessageBox.error(e.toLocaleString(), {
-                        title: "Unexpected Error Occured - App Terminated",
+                        title: "Unexpected Error Occurred - App Terminated",
                         actions: [],
                         onClose: () => {
                             new mBusyDialog({

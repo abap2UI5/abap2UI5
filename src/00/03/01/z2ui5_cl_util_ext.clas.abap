@@ -954,7 +954,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
     CLEAR <fs_target_tab>.
 
-    " we dont want to loose all inputs in row ...
+    " we don't want to lose all inputs in row ...
     IF ms_data_row IS NOT BOUND.
       CREATE DATA ms_data_row TYPE HANDLE strucdescr.
     ENDIF.
