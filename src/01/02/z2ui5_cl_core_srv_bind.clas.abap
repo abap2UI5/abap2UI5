@@ -78,7 +78,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
     RAISE EXCEPTION TYPE z2ui5_cx_util_error
       EXPORTING
-        val = `BINDING_ERROR_TAB_CELL_LEVEL - No class attribute for binding found - Please check if the binded values are public attributes of your class`.
+        val = `BINDING_ERROR_TAB_CELL_LEVEL - No class attribute for binding found - Please check if the bound values are public attributes of your class`.
 
   ENDMETHOD.
 
@@ -197,7 +197,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     IF |/{ z2ui5_if_core_types=>cs_ui5-two_way_model }| = result.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING
-          val = `<p>Name of variable not allowed - x is reserved word - use anoter name for your attribute`.
+          val = `<p>Name of variable not allowed - x is reserved word - use another name for your attribute`.
 
     ENDIF.
 
