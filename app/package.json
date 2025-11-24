@@ -9,14 +9,14 @@
   ],
   "main": "webapp/index.html",
   "devDependencies": {
-    "@abaplint/cli": "^2.113.108",
+    "@abaplint/cli": "^2.113.245",
     "@sap/ui5-builder-webide-extension": "^1.1.9",
-    "@sap/ux-ui5-tooling": "1.17.1",
-    "@ui5/cli": "^4.0.14",
-    "@ui5/linter": "^1.12.0",
+    "@sap/ux-ui5-tooling": "1.19.5",
+    "@ui5/cli": "^4.0.36",
+    "@ui5/linter": "^1.20.5",
     "mbt": "^1.2.34",
-    "rimraf": "^6.0.1",
-    "ui5-task-zipper": "^3.4.1"
+    "rimraf": "^6.1.2",
+    "ui5-task-zipper": "^3.4.4"
   },
   "scripts": {
     "start": "fiori run --open \"test/flpSandbox.html?sap-ui-xx-viewCache=false#z2ui5-display\"",
