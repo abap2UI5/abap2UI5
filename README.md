@@ -71,7 +71,7 @@ CLASS zcl_my_app IMPLEMENTATION.
 ENDCLASS.
 ```
 
-That's it – your first UI5 app is ready! abap2UI5 handles the rest.
+That's it – your first UI5 app is ready and abap2UI5 handles the rest! 🎉
 
 #### References
 * Featured on SAP Developer News [(YouTube - 21.03.2025)](https://www.youtube.com/watch?v=vKrpkDe2mkU&list=PL6RpkC85SLQAVBSQXN9522_1jNvPavBgg&t=90s)
