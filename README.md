@@ -47,9 +47,8 @@
 </p>
 
 #### Key Features
-* **100% ABAP** - No JavaScript, DDL, or EML – just pure ABAP
-* **User-Friendly** - Just implement one interface for a standalone UI5 app
-* **Minimal Footprint** - Needs only a simple HTTP handler (no BSP, OData, CDS, or RAP)
+* **User-Friendly** - Just implement one interface for a standalone UI5 app – all purely in ABAP
+* **Minimal Footprint** - Needs only a simple HTTP handler - no BSP, OData, CDS, or RAP
 * **Cloud & On-Premise Ready** - Works with ABAP Cloud and Standard ABAP
 * **Broad Compatibility** - Supports all ABAP releases from NW 7.02 to ABAP Cloud
 * **Easy Installation** - Install via abapGit – no extra app deployment needed
@@ -57,7 +56,7 @@
 
 #### Quick Start
 
-Ready to build your first app? Check out the [Getting Started Guide](https://abap2ui5.github.io/docs/get_started/quickstart.html)!
+Ready to build your first app? Check out the [Getting Started Guide](https://abap2ui5.github.io/docs/get_started/quickstart.html). Or jump in with the following code:
 
 ```abap
 CLASS zcl_my_app DEFINITION PUBLIC.
@@ -72,7 +71,7 @@ CLASS zcl_my_app IMPLEMENTATION.
 ENDCLASS.
 ```
 
-That's it – your first UI5 app in pure ABAP! 🎉
+That's it – your first UI5 app is ready and abap2UI5 handles the rest! 🎉
 
 #### References
 * Featured on SAP Developer News [(YouTube - 21.03.2025)](https://www.youtube.com/watch?v=vKrpkDe2mkU&list=PL6RpkC85SLQAVBSQXN9522_1jNvPavBgg&t=90s)
