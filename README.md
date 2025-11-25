@@ -41,8 +41,8 @@
   <a href="http://abap2UI5.org">📚 Documentation</a> •
   <a href="https://github.com/abap2UI5/abap2UI5-samples">🎯 Samples</a> •
   <a href="https://github.com/abap2UI5/abap2UI5/issues">💬 Issues</a> •
-  <a href="https://www.linkedin.com/company/abap2ui5">🔗 LinkedIn</a>
-  <a href="https://communityinviter.com/apps/abapgit/abap">👥 Slack</a>
+  <a href="https://www.linkedin.com/company/abap2ui5">🔗 LinkedIn</a> •
+  <a href="https://communityinviter.com/apps/abapgit/abap">👥 Slack</a> •
   <a href="https://abap2ui5.github.io/docs/resources/sponsor.html">💖 Sponsor</a>
 </p>
 
