@@ -45,7 +45,7 @@
 </p>
 
 #### Key Features
-* **100% ABAP:** Developing purely in ABAP
+* **100% ABAP** - Developing purely in ABAP
 * **User-Friendly** - Just implement one interface for standalone UI5 apps
 * **Minimal Footprint** - Needs only a simple HTTP handler (no BSP, OData, CDS, or RAP)
 * **Cloud & On-Premise Ready** - Works with ABAP Cloud and Standard ABAP
