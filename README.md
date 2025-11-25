@@ -56,7 +56,7 @@
 
 #### Quick Start
 
-Ready to build your first app? Check out the [Getting Started Guide](https://abap2ui5.github.io/docs/get_started/quickstart.html). Or jump in with the following code:
+Ready to build your first app? Check out the [Getting Started Guide](https://abap2ui5.github.io/docs/get_started/quickstart.html) and jump in with the following code:
 
 ```abap
 CLASS zcl_my_app DEFINITION PUBLIC.
