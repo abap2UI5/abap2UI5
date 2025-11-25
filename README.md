@@ -57,7 +57,22 @@
 
 #### Quick Start
 
-Ready to build your first app? Check out the [Getting Started Guide](https://abap2ui5.github.io/docs/get_started/quickstart.html) and create your first UI5 app in minutes!
+Ready to build your first app? Check out the [Getting Started Guide](https://abap2ui5.github.io/docs/get_started/quickstart.html)!
+
+```abap
+CLASS zcl_my_app DEFINITION PUBLIC.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+ENDCLASS.
+
+CLASS zcl_my_app IMPLEMENTATION.
+  METHOD z2ui5_if_app~main.
+    client->message_box_display( |Hello World| ).
+  ENDMETHOD.
+ENDCLASS.
+```
+
+That's it – your first UI5 app in pure ABAP! 🎉
 
 #### References
 * Featured on SAP Developer News [(YouTube - 21.03.2025)](https://www.youtube.com/watch?v=vKrpkDe2mkU&list=PL6RpkC85SLQAVBSQXN9522_1jNvPavBgg&t=90s)
