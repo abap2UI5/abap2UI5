@@ -66,7 +66,7 @@ ENDCLASS.
 
 CLASS zcl_my_app IMPLEMENTATION.
   METHOD z2ui5_if_app~main.
-    client->message_box_display( |Hello World| ).
+    client->message_box_display( `Hello World` ).
   ENDMETHOD.
 ENDCLASS.
 ```
