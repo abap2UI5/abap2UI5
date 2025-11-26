@@ -19,17 +19,17 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
 
         DATA(view) = z2ui5_cl_xml_view=>factory(
           )->shell(
-          )->page( |abap2UI5 - Hello World|
+          )->page( `abap2UI5 - Hello World`
           )->simple_form( editable = abap_true
-              )->content( |form|
-                  )->title( |Make an input here and send it to the server...|
-                  )->label( |Name|
+              )->content( `form`
+                  )->title( `Make an input here and send it to the server...`
+                  )->label( `Name`
                   )->input( client->_bind_edit( name )
-                  )->button( text  = |SEND|
-                             press = client->_event( |BUTTON_POST| ) ).
+                  )->button( text  = `SEND`
+                             press = client->_event( `BUTTON_POST` ) ).
         client->view_display( view->stringify( ) ).
 
-      WHEN client->check_on_event( |BUTTON_POST| ).
+      WHEN client->check_on_event( `BUTTON_POST` ).
         client->message_box_display( |Your name is { name }| ).
 
 
