@@ -32,7 +32,6 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
       WHEN client->check_on_event( `BUTTON_POST` ).
         client->message_box_display( |Your name is { name }| ).
 
-
     ENDCASE.
 
   ENDMETHOD.
