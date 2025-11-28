@@ -67,7 +67,7 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
                                                                icon       = icon
-                                                               afterclose = client->_event( 'BUTTON_CANCEL' )
+                                                               afterclose = client->_event( `BUTTON_CANCEL` )
               )->content( ).
 
     IF mv_check_download = abap_true.
@@ -82,7 +82,7 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
 
     ENDIF.
 
-    popup->vbox( 'sapUiMediumMargin'
+    popup->vbox( `sapUiMediumMargin`
       )->label( `Name`
       )->input( value   = mv_name
                 enabled = abap_false
@@ -95,10 +95,10 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
       )->get_parent( )->get_parent(
       )->buttons(
       )->button( text  = button_text_cancel
-                 press = client->_event( 'BUTTON_CANCEL' )
+                 press = client->_event( `BUTTON_CANCEL` )
       )->button( text  = `Download`
-                 press = client->_event( 'BUTTON_CONFIRM' )
-                 type  = 'Emphasized' ).
+                 press = client->_event( `BUTTON_CONFIRM` )
+                 type  = `Emphasized` ).
 
     client->popup_display( popup->stringify( ) ).
 

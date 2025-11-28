@@ -102,11 +102,11 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
                           && |', sorter : \{ path : '{ to_upper( sort_field ) }', descending : |
                           && z2ui5_cl_util=>boolean_abap_2_json( me->descending )
                           && | \} \}|
-        cancel           = client->_event( 'CANCEL' )
+        cancel           = client->_event( `CANCEL` )
         search           = client->_event(
-                               val   = 'SEARCH'
+                               val   = `SEARCH`
                                t_arg = VALUE #( ( `${$parameters>/value}` ) ( `${$parameters>/clearButtonPressed}` ) ) )
-        confirm          = client->_event( val   = 'CONFIRM'
+        confirm          = client->_event( val   = `CONFIRM`
                                            t_arg = VALUE #( ( `${$parameters>/selectedContexts[0]/sPath}` ) ) )
         growing          = abap_true
         contentwidth     = content_width
@@ -116,7 +116,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
         multiselect      = multiselect ).
 
     DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_any( <tab_out> ).
-    DELETE lt_comp WHERE name = 'ZZSELKZ'.
+    DELETE lt_comp WHERE name = `ZZSELKZ`.
 
     DATA(list) = tab->column_list_item( valign   = `Top`
                                         selected = `{ZZSELKZ}` ).
@@ -131,12 +131,12 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
       DATA(text) = COND #(
                      LET data_element_name = substring_after(
                                                  val = CAST cl_abap_elemdescr( ls_comp-type )->absolute_name
-                                                 sub = '\TYPE=' )
+                                                 sub = `\TYPE=` )
                          medium_label = z2ui5_cl_util=>rtti_get_data_element_texts( data_element_name )-medium IN
                      WHEN medium_label IS NOT INITIAL
                      THEN medium_label
                      ELSE ls_comp-name ).
-      columns->column( '8rem' )->header( `` )->text( text ).
+      columns->column( `8rem` )->header( `` )->text( text ).
     ENDLOOP.
 
     client->popup_display( popup->stringify( ) ).
@@ -161,16 +161,16 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
     CASE client->get( )-event.
 
-      WHEN 'CONFIRM'.
+      WHEN `CONFIRM`.
         ms_result-check_confirmed = abap_true.
         on_event_confirm( ).
 
-      WHEN 'CANCEL'.
+      WHEN `CANCEL`.
         client->popup_destroy( ).
         client->nav_app_leave( ).
         client->follow_up_action( client->_event( event_canceled ) ).
 
-      WHEN 'SEARCH'.
+      WHEN `SEARCH`.
         on_event_search( ).
 
     ENDCASE.
@@ -204,12 +204,12 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
       CATCH cx_root.
         check_table_line = abap_true.
         DATA(lo_elem) = CAST cl_abap_elemdescr( lo_table->get_table_line_type( ) ).
-        INSERT VALUE #( name = 'TAB_LINE'
+        INSERT VALUE #( name = `TAB_LINE`
                         type = CAST #( lo_elem ) ) INTO TABLE lt_comp.
     ENDTRY.
 
     IF NOT line_exists( lt_comp[ name = `ZZSELKZ` ] ).
-      DATA(lo_type_bool) = cl_abap_structdescr=>describe_by_name( 'ABAP_BOOL' ).
+      DATA(lo_type_bool) = cl_abap_structdescr=>describe_by_name( `ABAP_BOOL` ).
       INSERT VALUE #( name = `ZZSELKZ`
                       type = CAST #( lo_type_bool ) ) INTO TABLE lt_comp.
     ENDIF.
@@ -227,7 +227,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
       CREATE DATA lr_row LIKE LINE OF <tab_out>.
       ASSIGN lr_row->* TO <row2>.
       IF check_table_line = abap_true.
-        ASSIGN lr_row->('TAB_LINE') TO <field>.
+        ASSIGN lr_row->(`TAB_LINE`) TO <field>.
         ASSERT sy-subrc = 0.
         <field> = <row>.
       ELSE.
@@ -256,7 +256,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
     LOOP AT <tab> ASSIGNING <row_selected>.
 
-      ASSIGN ('<ROW_SELECTED>-ZZSELKZ') TO <selkz>.
+      ASSIGN (`<ROW_SELECTED>-ZZSELKZ`) TO <selkz>.
       ASSERT sy-subrc = 0.
       IF <selkz> = abap_false.
         CONTINUE.
@@ -264,7 +264,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
       ASSIGN ms_result-row->* TO <row_result>.
       IF check_table_line = abap_true.
-        ASSIGN ('<ROW_SELECTED>-TAB_LINE') TO <table_line_selected>.
+        ASSIGN (`<ROW_SELECTED>-TAB_LINE`) TO <table_line_selected>.
         ASSERT sy-subrc = 0.
         <row_result> = <table_line_selected>.
       ELSE.

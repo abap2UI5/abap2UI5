@@ -519,7 +519,7 @@ CLASS ltcl_test_app_root_attri IMPLEMENTATION.
   METHOD test_obj_tab_ref.
 
 
-    IF sy-sysid = 'ABC'.
+    IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 
@@ -531,7 +531,7 @@ CLASS ltcl_test_app_root_attri IMPLEMENTATION.
 
     DATA(ls_attri) = lo_model->main_attri_search( lo_app->mo_obj->mr_tab ).
 
-    IF ls_attri->name <> 'MT_TAB'.
+    IF ls_attri->name <> `MT_TAB`.
       cl_abap_unit_assert=>abort( ).
     ENDIF.
 
@@ -545,8 +545,8 @@ CLASS ltcl_test_app_root IMPLEMENTATION.
   METHOD constructor.
 
     INSERT VALUE #(
-        comp1 = 'comp1'
-        comp2 = 'comp2'
+        comp1 = `comp1`
+        comp2 = `comp2`
       ) INTO TABLE mt_tab.
 
     mo_obj = NEW ltcl_test_app_root_attri(
@@ -599,7 +599,7 @@ CLASS ltcl_test_app_root_attri2 IMPLEMENTATION.
 
   METHOD test_obj_struc_ref.
 
-    IF sy-sysid = 'ABC'.
+    IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 
@@ -611,7 +611,7 @@ CLASS ltcl_test_app_root_attri2 IMPLEMENTATION.
 
     DATA(ls_attri) = lo_model->main_attri_search( lo_app->mo_obj->mr_struc ).
 
-    IF ls_attri->name <> 'MS_STRUC'.
+    IF ls_attri->name <> `MS_STRUC`.
       cl_abap_unit_assert=>abort( ).
     ENDIF.
 
@@ -624,8 +624,8 @@ CLASS ltcl_test_app_root2 IMPLEMENTATION.
   METHOD constructor.
 
     ms_struc = VALUE #(
-        comp1 = 'comp1'
-        comp2 = 'comp2' ).
+        comp1 = `comp1`
+        comp2 = `comp2` ).
 
     mo_obj = NEW ltcl_test_app_root_attri2(
       ir_struc = REF #( ms_struc ) ).
@@ -649,7 +649,7 @@ CLASS ltcl_test_app_root4 IMPLEMENTATION.
 
   METHOD test_tab_ref_gen.
 
-    IF sy-sysid = 'ABC'.
+    IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 
@@ -669,8 +669,8 @@ CLASS ltcl_test_app_root4 IMPLEMENTATION.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     ASSIGN lo_app->mr_tab->* TO <tab>.
     INSERT VALUE ty_s_row(
-      comp1 = 'comp1'
-      comp2 = 'comp2'
+      comp1 = `comp1`
+      comp2 = `comp2`
       ) INTO TABLE <tab>.
 
 
@@ -682,7 +682,7 @@ CLASS ltcl_test_app_root4 IMPLEMENTATION.
 
     DATA(ls_attri) = lo_model->main_attri_search( lo_app->mr_tab ).
 
-    IF ls_attri->name <> 'MR_TAB->*'.
+    IF ls_attri->name <> `MR_TAB->*`.
       cl_abap_unit_assert=>abort( ).
     ENDIF.
 

@@ -86,10 +86,10 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
       )->button( text  = `System`
                  icon  = `sap-icon://information`
                  press = client->_event( `OPEN_INFO` ) ).
-    IF z2ui5_cl_util=>rtti_check_class_exists( 'z2ui5_cl_app_icf_config' ).
-      toolbar->button( text  = 'Config'
-                       icon  = 'sap-icon://settings'
-                       press = client->_event( 'SET_CONFIG' ) ).
+    IF z2ui5_cl_util=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ).
+      toolbar->button( text  = `Config`
+                       icon  = `sap-icon://settings`
+                       press = client->_event( `SET_CONFIG` ) ).
     ENDIF.
 
     DATA(simple_form) = page->simple_form( editable                = abap_true
@@ -128,7 +128,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                           enabled          = client->_bind( ms_home-class_editable )
                           value            = client->_bind_edit( ms_home-classname )
                           submit           = client->_event( ms_home-btn_event_id )
-                          valuehelprequest = client->_event( 'VALUE_HELP' )
+                          valuehelprequest = client->_event( `VALUE_HELP` )
                           showvaluehelp    = abap_true
                           width            = `70%` ).
 
@@ -148,7 +148,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                enabled = |\{= ${ client->_bind( val = ms_home-class_editable ) } === false \}| ).
 
     DATA(lv_url_samples2) = z2ui5_cl_core_srv_util=>app_get_url( client    = client
-                                                                 classname = 'z2ui5_cl_demo_app_000' ).
+                                                                 classname = `z2ui5_cl_demo_app_000` ).
 
     simple_form->toolbar( )->title( `What's next?` ).
 
@@ -267,9 +267,9 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     simple_form2->label( `Draft Entries ` ).
     simple_form2->text( lv_count ).
 
-    page2->end_button( )->button( text  = 'close'
-                                  press = client->_event( 'CLOSE' )
-                                  type  = 'Emphasized' ).
+    page2->end_button( )->button( text  = `close`
+                                  press = client->_event( `CLOSE` )
+                                  type  = `Emphasized` ).
 
     client->popup_display( page2->stringify( ) ).
 
@@ -283,7 +283,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     CASE client->get( )-event.
 
       WHEN `SET_CONFIG`.
-        CREATE OBJECT lo_app TYPE ('Z2UI5_CL_APP_ICF_CONFIG').
+        CREATE OBJECT lo_app TYPE (`Z2UI5_CL_APP_ICF_CONFIG`).
         client->nav_app_call( lo_app ).
 
       WHEN `CLOSE`.
@@ -307,7 +307,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         ENDIF.
         client->view_model_update( ).
 
-      WHEN 'VALUE_HELP'.
+      WHEN `VALUE_HELP`.
         TRY.
             mt_classes = z2ui5_cl_util=>rtti_get_classes_impl_intf( z2ui5_cl_util=>rtti_get_intfname_by_ref( li_app ) ).
           CATCH cx_root.

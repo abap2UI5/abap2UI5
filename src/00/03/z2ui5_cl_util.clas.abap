@@ -6,7 +6,7 @@ CLASS z2ui5_cl_util DEFINITION
   PUBLIC SECTION.
 
     " abap-toolkit - Utility Functions for ABAP Cloud & Standard ABAP
-    " version: '0.0.1'.
+    " version: `0.0.1`.
     " origin: https://github.com/oblomov-dev/abap-toolkit
     " author: https://github.com/oblomov-dev
     " license: MIT.
@@ -532,15 +532,15 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   METHOD boolean_check_by_name.
 
     CASE val.
-      WHEN 'ABAP_BOOL'
-          OR 'XSDBOOLEAN'
-          OR 'FLAG'
-          OR 'XFLAG'
-          OR 'XFELD'
-          OR 'ABAP_BOOLEAN'
-          OR 'WDY_BOOLEAN'
-          OR 'BOOLE_D'
-          OR 'OS_BOOLEAN'.
+      WHEN `ABAP_BOOL`
+          OR `XSDBOOLEAN`
+          OR `FLAG`
+          OR `XFLAG`
+          OR `XFELD`
+          OR `ABAP_BOOLEAN`
+          OR `WDY_BOOLEAN`
+          OR `BOOLE_D`
+          OR `OS_BOOLEAN`.
         result = abap_true.
     ENDCASE.
 
@@ -855,7 +855,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     DATA lr_row TYPE REF TO data.
 
     SPLIT val AT cl_abap_char_utilities=>newline INTO TABLE DATA(lt_rows).
-    SPLIT lt_rows[ 1 ] AT ';' INTO TABLE DATA(lt_cols).
+    SPLIT lt_rows[ 1 ] AT `;` INTO TABLE DATA(lt_cols).
 
     LOOP AT lt_cols REFERENCE INTO DATA(lr_col).
 
@@ -878,7 +878,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     LOOP AT lt_rows REFERENCE INTO DATA(lr_rows) FROM 2.
 
-      SPLIT lr_rows->* AT ';' INTO TABLE lt_cols.
+      SPLIT lr_rows->* AT `;` INTO TABLE lt_cols.
       CREATE DATA lr_row TYPE HANDLE struc.
 
       LOOP AT lt_cols REFERENCE INTO lr_col.
@@ -1147,7 +1147,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 |x, nsis, objectivec, ocaml, pascal, perl, pgsql, php, plain_text, powershell, praat, prolog, properties, protobuf, python, r, razor, rdoc, rhtml, rst, ruby, rust, sass, scad, scala, scheme, scss, sh, sjs, smarty, snippets, soy_template, space, sql,| &&
       | sqlserver, stylus, svg, swift, swig, tcl, tex, text, textile, toml, tsx, twig, typescript, vala, vbscript, velocity, verilog, vhdl, wollok, xml, xquery, terraform, slim, redshift, red, puppet, php_laravel_blade, mixal, jssm, fsharp, edifact,| &&
       | csp, cssound_score, cssound_orchestra, cssound_document| ##NO_TEXT.
-    SPLIT lv_types AT ',' INTO TABLE result.
+    SPLIT lv_types AT `,` INTO TABLE result.
 
   ENDMETHOD.
 
@@ -1180,7 +1180,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     DATA(lv_sql) = CONV string( val ).
     REPLACE ALL OCCURRENCES OF ` ` IN lv_sql WITH ``.
     lv_sql = to_upper( lv_sql ).
-    SPLIT lv_sql AT 'SELECTFROM' INTO DATA(lv_dummy) DATA(lv_tab).
+    SPLIT lv_sql AT `SELECTFROM` INTO DATA(lv_dummy) DATA(lv_tab).
     SPLIT lv_tab AT `FIELDS` INTO lv_tab lv_dummy.
 
     result-tabname = lv_tab.
@@ -1257,12 +1257,12 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     DATA(lv_search) = replace( val  = i_val
                                sub  = `%3D`
-                               with = '='
+                               with = `=`
                                occ  = 0 ).
 
     lv_search = replace( val  = lv_search
                          sub  = `%26`
-                         with = '&'
+                         with = `&`
                          occ  = 0 ).
 
     lv_search = shift_left( val = lv_search
@@ -1331,7 +1331,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     CALL TRANSFORMATION id SOURCE XML rtti_data RESULT srtti = srtti.
 
     DATA rtti_type TYPE REF TO cl_abap_typedescr.
-    CALL METHOD srtti->('GET_RTTI')
+    CALL METHOD srtti->(`GET_RTTI`)
       RECEIVING
         rtti = rtti_type.
 
@@ -1347,11 +1347,11 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD xml_srtti_stringify.
 
-    IF rtti_check_class_exists( 'ZCL_SRTTI_TYPEDESCR' ) = abap_true.
+    IF rtti_check_class_exists( `ZCL_SRTTI_TYPEDESCR` ) = abap_true.
 
       DATA srtti TYPE REF TO object.
       DATA(lv_classname) = `ZCL_SRTTI_TYPEDESCR`.
-      CALL METHOD (lv_classname)=>('CREATE_BY_DATA_OBJECT')
+      CALL METHOD (lv_classname)=>(`CREATE_BY_DATA_OBJECT`)
         EXPORTING
           data_object = data
         RECEIVING
@@ -1361,7 +1361,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ELSE.
 
       TRY.
-          CALL METHOD z2ui5_cl_srt_typedescr=>('CREATE_BY_DATA_OBJECT')
+          CALL METHOD z2ui5_cl_srt_typedescr=>(`CREATE_BY_DATA_OBJECT`)
             EXPORTING
               data_object = data
             RECEIVING
@@ -1434,7 +1434,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     IF table_name IS INITIAL.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING
-          val = 'TABLE_NAME_INITIAL_ERROR'.
+          val = `TABLE_NAME_INITIAL_ERROR`.
     ENDIF.
 
     TRY.
@@ -1579,7 +1579,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
 *      DATA result TYPE string.
 *    DATA lt_where TYPE rsdmd_t_where.
-      DATA(lv_fm) = 'RSDS_RANGE_TO_WHERE'.
+      DATA(lv_fm) = `RSDS_RANGE_TO_WHERE`.
       CALL FUNCTION lv_fm
         EXPORTING
           i_t_range      = lt_range
@@ -1626,8 +1626,8 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   METHOD ui5_get_msg_type.
 
     result = SWITCH #( val
-                       WHEN 'E' THEN cs_ui5_msg_type-e
-                       WHEN 'S' THEN cs_ui5_msg_type-s
+                       WHEN `E` THEN cs_ui5_msg_type-e
+                       WHEN `S` THEN cs_ui5_msg_type-s
                        WHEN `W` THEN cs_ui5_msg_type-w
                        ELSE cs_ui5_msg_type-i ).
 

@@ -33,15 +33,15 @@ CLASS z2ui5_cl_pop_error IMPLEMENTATION.
   METHOD view_display.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = `Error View`
-                                                               afterclose = client->_event( 'BUTTON_CONFIRM' )
+                                                               afterclose = client->_event( `BUTTON_CONFIRM` )
               )->content(
-                  )->vbox( 'sapUiMediumMargin'
+                  )->vbox( `sapUiMediumMargin`
                       )->text( error->get_text( )
               )->get_parent( )->get_parent(
               )->buttons(
                   )->button( text  = `OK`
-                             press = client->_event( 'BUTTON_CONFIRM' )
-                             type  = 'Emphasized' ).
+                             press = client->_event( `BUTTON_CONFIRM` )
+                             type  = `Emphasized` ).
 
     client->popup_display( popup->stringify( ) ).
 

@@ -7,15 +7,15 @@ CLASS z2ui5_cl_pop_to_confirm DEFINITION
 
     CONSTANTS:
       BEGIN OF cs_event,
-        confirmed TYPE string VALUE 'z2ui5_cl_pop_to_confirm_confirmed',
-        canceled  TYPE string VALUE 'z2ui5_cl_pop_to_confirm_canceled',
+        confirmed TYPE string VALUE `z2ui5_cl_pop_to_confirm_confirmed`,
+        canceled  TYPE string VALUE `z2ui5_cl_pop_to_confirm_canceled`,
       END OF cs_event.
 
     CLASS-METHODS factory
       IMPORTING
         i_question_text       TYPE string
         i_title               TYPE string DEFAULT `Popup To Confirm`
-        i_icon                TYPE string DEFAULT 'sap-icon://question-mark'
+        i_icon                TYPE string DEFAULT `sap-icon://question-mark`
         i_button_text_confirm TYPE string DEFAULT `OK`
         i_button_text_cancel  TYPE string DEFAULT `Cancel`
         i_event_confirm       TYPE string DEFAULT  cs_event-confirmed
@@ -71,17 +71,17 @@ CLASS z2ui5_cl_pop_to_confirm IMPLEMENTATION.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
                                                                icon       = icon
-                                                               afterclose = client->_event( 'BUTTON_CANCEL' )
+                                                               afterclose = client->_event( `BUTTON_CANCEL` )
               )->content(
-                  )->vbox( 'sapUiMediumMargin'
+                  )->vbox( `sapUiMediumMargin`
                       )->text( question_text
               )->get_parent( )->get_parent(
               )->buttons(
                   )->button( text  = button_text_cancel
-                             press = client->_event( 'BUTTON_CANCEL' )
+                             press = client->_event( `BUTTON_CANCEL` )
                   )->button( text  = button_text_confirm
-                             press = client->_event( 'BUTTON_CONFIRM' )
-                             type  = 'Emphasized' ).
+                             press = client->_event( `BUTTON_CONFIRM` )
+                             type  = `Emphasized` ).
 
     client->popup_display( popup->stringify( ) ).
 

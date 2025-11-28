@@ -2154,7 +2154,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         label         TYPE clike
         template      TYPE clike OPTIONAL
-        halign        TYPE clike DEFAULT 'Begin'
+        halign        TYPE clike DEFAULT `Begin`
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2168,7 +2168,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS filter_bar
       IMPORTING
-        usetoolbar                   TYPE clike DEFAULT 'false'
+        usetoolbar                   TYPE clike DEFAULT `false`
         search                       TYPE clike OPTIONAL
         id                           TYPE clike OPTIONAL
         persistencykey               TYPE clike OPTIONAL
@@ -5303,17 +5303,17 @@ CLASS z2ui5_cl_xml_view DEFINITION
         id                   TYPE clike OPTIONAL
         entityset            TYPE clike OPTIONAL
         value                TYPE clike OPTIONAL
-        supportranges        TYPE clike DEFAULT 'false'
-        enableodataselect    TYPE clike DEFAULT 'false'
+        supportranges        TYPE clike DEFAULT `false`
+        enableodataselect    TYPE clike DEFAULT `false`
         requestatleastfields TYPE clike OPTIONAL
-        singletokenmode      TYPE clike DEFAULT 'false'
-        supportmultiselect   TYPE clike DEFAULT 'true'
+        singletokenmode      TYPE clike DEFAULT `false`
+        supportmultiselect   TYPE clike DEFAULT `true`
         textseparator        TYPE clike OPTIONAL
         textlabel            TYPE clike OPTIONAL
         tooltiplabel         TYPE clike OPTIONAL
-        textineditmodesource TYPE clike DEFAULT 'None'
-        mandatory            TYPE clike DEFAULT 'false'
-        maxlength            TYPE clike DEFAULT '0'
+        textineditmodesource TYPE clike DEFAULT `None`
+        mandatory            TYPE clike DEFAULT `false`
+        maxlength            TYPE clike DEFAULT `0`
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
@@ -5382,7 +5382,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD action_buttons.
     result = _generic( name = `actionButtons`
-                       ns   = SWITCH #( ns WHEN '' THEN `networkgraph` ELSE ns ) ).
+                       ns   = SWITCH #( ns WHEN `` THEN `networkgraph` ELSE ns ) ).
   ENDMETHOD.
 
   METHOD action_sheet.
@@ -5453,7 +5453,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD attributes.
     result = _generic( name = `attributes`
-                       ns   = SWITCH #( ns WHEN '' THEN `networkgraph` ELSE ns ) ).
+                       ns   = SWITCH #( ns WHEN `` THEN `networkgraph` ELSE ns ) ).
   ENDMETHOD.
 
   METHOD avatar.
@@ -5539,7 +5539,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD barcode_scanner_button.
     result = _generic( name   = `BarcodeScannerButton`
-                       ns     = 'ndc'
+                       ns     = `ndc`
                        t_prop = VALUE #( ( n = `id`                        v = id )
                                          ( n = `scanSuccess`               v = scansuccess )
                                          ( n = `scanFail`                  v = scanfail )
@@ -5563,7 +5563,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     result = _generic(
         name   = `BaseRectangle`
-        ns     = 'gantt'
+        ns     = `gantt`
         t_prop = VALUE #( ( n = `time`                      v = time )
                           ( n = `endTime`                   v = endtime )
                           ( n = `selectable`                v = z2ui5_cl_util=>boolean_abap_2_json( selectable ) )
@@ -6164,7 +6164,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD currency.
     result = _generic( name   = `Currency`
-                       ns     = 'u'
+                       ns     = `u`
                        t_prop = VALUE #( ( n = `value`        v = value )
                                          ( n = `currency`     v = currency )
                                          ( n = `useSymbol`    v = z2ui5_cl_util=>boolean_abap_2_json( usesymbol ) )
@@ -6358,7 +6358,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD dynamic_side_content.
     result = _generic( name   = `DynamicSideContent`
-                       ns     = 'layout'
+                       ns     = `layout`
                        t_prop = VALUE #( ( n = `id`                              v = id )
                                          ( n = `class`                           v = class )
                                          ( n = `sideContentVisibility`           v = sidecontentvisibility )
@@ -6369,7 +6369,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD element_attribute.
     result = _generic( name   = `ElementAttribute`
-                       ns     = SWITCH #( ns WHEN '' THEN `networkgraph` ELSE ns )
+                       ns     = SWITCH #( ns WHEN `` THEN `networkgraph` ELSE ns )
                        t_prop = VALUE #( ( n = `label`  v = label )
                                          ( n = `value`  v = value ) ) ).
   ENDMETHOD.
@@ -6511,8 +6511,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     ENDIF.
 
     result->mt_prop   = VALUE #( BASE result->mt_prop
-                                 (  n = 'displayBlock'   v = 'true' )
-                                 (  n = 'height'         v = '100%' ) ).
+                                 (  n = `displayBlock`   v = `true` )
+                                 (  n = `height`         v = `100%` ) ).
 
     result->mv_name   = `View`.
     result->mv_ns     = `mvc`.
@@ -6625,73 +6625,73 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     result = _generic(
         name   = `FilterBar`
-        ns     = 'fb'
+        ns     = `fb`
         t_prop = VALUE #(
-            ( n = 'useToolbar'     v = z2ui5_cl_util=>boolean_abap_2_json( usetoolbar ) )
-            ( n = 'search'         v = search )
-            ( n = 'id'             v = id )
-            ( n = 'persistencyKey' v = persistencykey )
-            ( n = 'afterVariantLoad' v = aftervariantload )
-            ( n = 'afterVariantSave' v = aftervariantsave )
-            ( n = 'assignedFiltersChanged' v = assignedfilterschanged )
-            ( n = 'beforeVariantFetch' v = beforevariantfetch )
-            ( n = 'cancel' v = cancel )
-            ( n = 'clear' v = clear )
-            ( n = 'filtersDialogBeforeOpen' v = filtersdialogbeforeopen )
-            ( n = 'filtersDialogCancel' v = filtersdialogcancel )
-            ( n = 'filtersDialogClosed' v = filtersdialogclosed )
-            ( n = 'initialise' v = initialise )
-            ( n = 'initialized' v = initialized )
-            ( n = 'reset' v = reset )
-            ( n = 'filterContainerWidth' v = filtercontainerwidth )
-            ( n = 'header' v = header )
-            ( n = 'advancedMode' v = z2ui5_cl_util=>boolean_abap_2_json( advancedmode ) )
-            ( n = 'isRunningInValueHelpDialog' v = z2ui5_cl_util=>boolean_abap_2_json( isrunninginvaluehelpdialog ) )
-            ( n = 'showAllFilters' v = z2ui5_cl_util=>boolean_abap_2_json( showallfilters ) )
-            ( n = 'showClearOnFB' v = z2ui5_cl_util=>boolean_abap_2_json( showclearonfb ) )
-            ( n = 'showFilterConfiguration' v = z2ui5_cl_util=>boolean_abap_2_json( showfilterconfiguration ) )
-            ( n = 'showGoOnFB' v = z2ui5_cl_util=>boolean_abap_2_json( showgoonfb ) )
-            ( n = 'showRestoreButton' v = z2ui5_cl_util=>boolean_abap_2_json( showrestorebutton ) )
-            ( n = 'showRestoreOnFB' v = z2ui5_cl_util=>boolean_abap_2_json( showrestoreonfb ) )
-            ( n = 'useSnapshot' v = z2ui5_cl_util=>boolean_abap_2_json( usesnapshot ) )
-            ( n = 'searchEnabled' v = z2ui5_cl_util=>boolean_abap_2_json( searchenabled ) )
-            ( n = 'considerGroupTitle' v = z2ui5_cl_util=>boolean_abap_2_json( considergrouptitle ) )
-            ( n = 'deltaVariantMode' v = z2ui5_cl_util=>boolean_abap_2_json( deltavariantmode ) )
-            ( n = 'disableSearchMatchesPatternWarning'
+            ( n = `useToolbar`     v = z2ui5_cl_util=>boolean_abap_2_json( usetoolbar ) )
+            ( n = `search`         v = search )
+            ( n = `id`             v = id )
+            ( n = `persistencyKey` v = persistencykey )
+            ( n = `afterVariantLoad` v = aftervariantload )
+            ( n = `afterVariantSave` v = aftervariantsave )
+            ( n = `assignedFiltersChanged` v = assignedfilterschanged )
+            ( n = `beforeVariantFetch` v = beforevariantfetch )
+            ( n = `cancel` v = cancel )
+            ( n = `clear` v = clear )
+            ( n = `filtersDialogBeforeOpen` v = filtersdialogbeforeopen )
+            ( n = `filtersDialogCancel` v = filtersdialogcancel )
+            ( n = `filtersDialogClosed` v = filtersdialogclosed )
+            ( n = `initialise` v = initialise )
+            ( n = `initialized` v = initialized )
+            ( n = `reset` v = reset )
+            ( n = `filterContainerWidth` v = filtercontainerwidth )
+            ( n = `header` v = header )
+            ( n = `advancedMode` v = z2ui5_cl_util=>boolean_abap_2_json( advancedmode ) )
+            ( n = `isRunningInValueHelpDialog` v = z2ui5_cl_util=>boolean_abap_2_json( isrunninginvaluehelpdialog ) )
+            ( n = `showAllFilters` v = z2ui5_cl_util=>boolean_abap_2_json( showallfilters ) )
+            ( n = `showClearOnFB` v = z2ui5_cl_util=>boolean_abap_2_json( showclearonfb ) )
+            ( n = `showFilterConfiguration` v = z2ui5_cl_util=>boolean_abap_2_json( showfilterconfiguration ) )
+            ( n = `showGoOnFB` v = z2ui5_cl_util=>boolean_abap_2_json( showgoonfb ) )
+            ( n = `showRestoreButton` v = z2ui5_cl_util=>boolean_abap_2_json( showrestorebutton ) )
+            ( n = `showRestoreOnFB` v = z2ui5_cl_util=>boolean_abap_2_json( showrestoreonfb ) )
+            ( n = `useSnapshot` v = z2ui5_cl_util=>boolean_abap_2_json( usesnapshot ) )
+            ( n = `searchEnabled` v = z2ui5_cl_util=>boolean_abap_2_json( searchenabled ) )
+            ( n = `considerGroupTitle` v = z2ui5_cl_util=>boolean_abap_2_json( considergrouptitle ) )
+            ( n = `deltaVariantMode` v = z2ui5_cl_util=>boolean_abap_2_json( deltavariantmode ) )
+            ( n = `disableSearchMatchesPatternWarning`
               v = z2ui5_cl_util=>boolean_abap_2_json( disablesearchmatchespatternw ) )
-            ( n = 'filterBarExpanded' v = z2ui5_cl_util=>boolean_abap_2_json( filterbarexpanded ) )
-            ( n = 'filterChange'   v = filterchange ) ) ).
+            ( n = `filterBarExpanded` v = z2ui5_cl_util=>boolean_abap_2_json( filterbarexpanded ) )
+            ( n = `filterChange`   v = filterchange ) ) ).
   ENDMETHOD.
 
   METHOD filter_control.
     result = _generic( name = `control`
-                       ns   = 'fb' ).
+                       ns   = `fb` ).
   ENDMETHOD.
 
   METHOD filter_group_item.
     result = _generic(
         name   = `FilterGroupItem`
-        ns     = 'fb'
-        t_prop = VALUE #( ( n = 'name'                v  = name )
-                          ( n = 'label'               v  = label )
-                          ( n = 'groupName'           v  = groupname )
-                          ( n = 'controlTooltip'           v  = controltooltip )
-                          ( n = 'entitySetName'           v  = entitysetname )
-                          ( n = 'entityTypeName'           v  = entitytypename )
-                          ( n = 'groupTitle'           v  = grouptitle )
-                          ( n = 'labelTooltip'           v  = labeltooltip )
-                          ( n = 'change'           v  = change )
-                          ( n = 'visibleInFilterBar'  v  = z2ui5_cl_util=>boolean_abap_2_json( visibleinfilterbar ) )
-                          ( n = 'mandatory'  v  = z2ui5_cl_util=>boolean_abap_2_json( mandatory ) )
-                          ( n = 'hiddenFilter'  v  = z2ui5_cl_util=>boolean_abap_2_json( hiddenfilter ) )
-                          ( n = 'visible'  v  = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+        ns     = `fb`
+        t_prop = VALUE #( ( n = `name`                v  = name )
+                          ( n = `label`               v  = label )
+                          ( n = `groupName`           v  = groupname )
+                          ( n = `controlTooltip`           v  = controltooltip )
+                          ( n = `entitySetName`           v  = entitysetname )
+                          ( n = `entityTypeName`           v  = entitytypename )
+                          ( n = `groupTitle`           v  = grouptitle )
+                          ( n = `labelTooltip`           v  = labeltooltip )
+                          ( n = `change`           v  = change )
+                          ( n = `visibleInFilterBar`  v  = z2ui5_cl_util=>boolean_abap_2_json( visibleinfilterbar ) )
+                          ( n = `mandatory`  v  = z2ui5_cl_util=>boolean_abap_2_json( mandatory ) )
+                          ( n = `hiddenFilter`  v  = z2ui5_cl_util=>boolean_abap_2_json( hiddenfilter ) )
+                          ( n = `visible`  v  = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
                         ) ).
 
   ENDMETHOD.
 
   METHOD filter_group_items.
     result = _generic( name = `filterGroupItems`
-                       ns   = 'fb' ).
+                       ns   = `fb` ).
   ENDMETHOD.
 
   METHOD filter_items.
@@ -6841,7 +6841,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD gantt_toolbar.
     result = _generic( name = `toolbar`
-                       ns   = 'gantt' ).
+                       ns   = `gantt` ).
   ENDMETHOD.
 
   METHOD generic_tag.
@@ -7172,18 +7172,18 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( name   = `HTML`
                        ns     = `core`
                        t_prop = VALUE #(
-                           ( n = 'id' v = id )
-                           ( n = 'content' v = content )
-                           ( n = 'afterRendering' v = afterrendering )
-                           ( n = 'preferDOM' v = z2ui5_cl_util=>boolean_abap_2_json( preferdom ) )
-                           ( n = 'sanitizeContent' v = z2ui5_cl_util=>boolean_abap_2_json( sanitizecontent ) )
-                           ( n = 'visible' v = z2ui5_cl_util=>boolean_abap_2_json( visible ) ) ) ).
+                           ( n = `id` v = id )
+                           ( n = `content` v = content )
+                           ( n = `afterRendering` v = afterrendering )
+                           ( n = `preferDOM` v = z2ui5_cl_util=>boolean_abap_2_json( preferdom ) )
+                           ( n = `sanitizeContent` v = z2ui5_cl_util=>boolean_abap_2_json( sanitizecontent ) )
+                           ( n = `visible` v = z2ui5_cl_util=>boolean_abap_2_json( visible ) ) ) ).
 
   ENDMETHOD.
 
   METHOD html_area.
     result = _generic( name   = `area`
-                       ns     = 'html'
+                       ns     = `html`
                        t_prop = VALUE #( ( n = `id`  v = id )
                                          ( n = `shape`  v = shape )
                                          ( n = `coords`  v = coords )
@@ -7205,7 +7205,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD html_map.
     result = _generic( name   = `map`
-                       ns     = 'html'
+                       ns     = `html`
                        t_prop = VALUE #( ( n = `id`  v = id )
                                          ( n = `class`  v = class )
                                          ( n = `name`  v = name ) ) ).
@@ -7363,7 +7363,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD info_label.
     result = _generic( name   = `InfoLabel`
-                       ns     = 'tnt'
+                       ns     = `tnt`
                        t_prop = VALUE #(
                            ( n = `id`               v = id )
                            ( n = `class`               v = class )
@@ -7665,7 +7665,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD lines.
     result = _generic( name = `lines`
-                       ns   = SWITCH #( ns WHEN '' THEN `networkgraph` ELSE ns ) ).
+                       ns   = SWITCH #( ns WHEN `` THEN `networkgraph` ELSE ns ) ).
   ENDMETHOD.
 
   METHOD line_micro_chart.
@@ -8829,7 +8829,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD process_flow.
     result = _generic(
                  name   = `ProcessFlow`
-                 ns     = 'commons'
+                 ns     = `commons`
                  t_prop = VALUE #( ( n = `id`               v = id )
                                    ( n = `foldedCorners`    v = z2ui5_cl_util=>boolean_abap_2_json( foldedcorners ) )
                                    ( n = `scrollable`       v = z2ui5_cl_util=>boolean_abap_2_json( scrollable ) )
@@ -8847,7 +8847,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD process_flow_lane_header.
 
     result = _generic( name   = `ProcessFlowLaneHeader`
-                       ns     = 'commons'
+                       ns     = `commons`
                        t_prop = VALUE #( ( n = `iconSrc`          v = iconsrc )
                                          ( n = `laneId`           v = laneid )
                                          ( n = `position`         v = position )
@@ -8859,7 +8859,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD process_flow_node.
     result = _generic(
                  name   = `ProcessFlowNode`
-                 ns     = 'commons'
+                 ns     = `commons`
                  t_prop = VALUE #( ( n = `laneId`               v = laneid )
                                    ( n = `nodeId`               v = nodeid )
                                    ( n = `title`                v = title )
@@ -9269,20 +9269,20 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                            ( n = `showProductSwitcher`  v = z2ui5_cl_util=>boolean_abap_2_json( showproductswitcher ) )
                            ( n = `showSearch`  v = z2ui5_cl_util=>boolean_abap_2_json( showsearch ) )
                            ( n = `notificationsNumber`  v = notificationsnumber )
-                           ( n = 'avatarPressed' v = avatarpressed )
-                           ( n = 'copilotPressed' v = copilotpressed )
-                           ( n = 'homeIconPressed' v = homeiconpressed )
-                           ( n = 'menuButtonPressed' v = menubuttonpressed )
-                           ( n = 'navButtonPressed' v = navbuttonpressed )
-                           ( n = 'notificationsPressed' v = notificationspressed )
-                           ( n = 'productSwitcherPressed' v = productswitcherpressed )
-                           ( n = 'searchButtonPressed' v = searchbuttonpressed ) ) ).
+                           ( n = `avatarPressed` v = avatarpressed )
+                           ( n = `copilotPressed` v = copilotpressed )
+                           ( n = `homeIconPressed` v = homeiconpressed )
+                           ( n = `menuButtonPressed` v = menubuttonpressed )
+                           ( n = `navButtonPressed` v = navbuttonpressed )
+                           ( n = `notificationsPressed` v = notificationspressed )
+                           ( n = `productSwitcherPressed` v = productswitcherpressed )
+                           ( n = `searchButtonPressed` v = searchbuttonpressed ) ) ).
 
   ENDMETHOD.
 
   METHOD side_content.
     result = _generic( name   = `sideContent`
-                       ns     = 'layout'
+                       ns     = `layout`
                        t_prop = VALUE #( ( n = `width`                           v = width ) ) ).
 
   ENDMETHOD.
@@ -9563,7 +9563,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD statuses.
     result = _generic( name = `statuses`
-                       ns   = SWITCH #( ns WHEN '' THEN `networkgraph` ELSE ns ) ).
+                       ns   = SWITCH #( ns WHEN `` THEN `networkgraph` ELSE ns ) ).
   ENDMETHOD.
 
   METHOD status_indicator.
@@ -9870,65 +9870,65 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     result = _generic(
         name   = `Timeline`
-        ns     = 'commons'
-        t_prop = VALUE #( ( n = 'id'                 v = id )
-                          ( n = 'enableDoubleSided'  v = z2ui5_cl_util=>boolean_abap_2_json( enabledoublesided ) )
-                          ( n = 'groupBy'            v = groupby )
-                          ( n = 'growingThreshold'   v = growingthreshold )
-                          ( n = 'filterTitle'        v = filtertitle )
-                          ( n = 'sortOldestFirst'    v = z2ui5_cl_util=>boolean_abap_2_json( sortoldestfirst ) )
-                          ( n = 'enableModelFilter'  v = z2ui5_cl_util=>boolean_abap_2_json( enablemodelfilter ) )
-                          ( n = 'enableScroll'       v = z2ui5_cl_util=>boolean_abap_2_json( enablescroll ) )
-                          ( n = 'forceGrowing'       v = z2ui5_cl_util=>boolean_abap_2_json( forcegrowing ) )
-                          ( n = 'group'              v = z2ui5_cl_util=>boolean_abap_2_json( group ) )
-                          ( n = 'lazyLoading'        v = z2ui5_cl_util=>boolean_abap_2_json( lazyloading ) )
-                          ( n = 'showHeaderBar'      v = z2ui5_cl_util=>boolean_abap_2_json( showheaderbar ) )
-                          ( n = 'showIcons'          v = z2ui5_cl_util=>boolean_abap_2_json( showicons ) )
-                          ( n = 'showItemFilter'     v = z2ui5_cl_util=>boolean_abap_2_json( showitemfilter ) )
-                          ( n = 'showSearch'         v = z2ui5_cl_util=>boolean_abap_2_json( showsearch ) )
-                          ( n = 'showSort'           v = z2ui5_cl_util=>boolean_abap_2_json( showsort ) )
-                          ( n = 'showTimeFilter'     v = z2ui5_cl_util=>boolean_abap_2_json( showtimefilter ) )
-                          ( n = 'sort'               v = z2ui5_cl_util=>boolean_abap_2_json( sort ) )
-                          ( n = 'groupByType'        v = groupbytype )
-                          ( n = 'textHeight'         v = textheight )
-                          ( n = 'width'              v = width )
-                          ( n = 'height'             v = height )
-                          ( n = 'noDataText'         v = nodatatext )
-                          ( n = 'alignment'          v = alignment )
-                          ( n = 'axisOrientation'    v = axisorientation )
-                          ( n = 'filterList'         v = filterlist )
-                          ( n = 'customFilter'       v = customfilter )
-                          ( n = 'content'            v = content ) ) ).
+        ns     = `commons`
+        t_prop = VALUE #( ( n = `id`                 v = id )
+                          ( n = `enableDoubleSided`  v = z2ui5_cl_util=>boolean_abap_2_json( enabledoublesided ) )
+                          ( n = `groupBy`            v = groupby )
+                          ( n = `growingThreshold`   v = growingthreshold )
+                          ( n = `filterTitle`        v = filtertitle )
+                          ( n = `sortOldestFirst`    v = z2ui5_cl_util=>boolean_abap_2_json( sortoldestfirst ) )
+                          ( n = `enableModelFilter`  v = z2ui5_cl_util=>boolean_abap_2_json( enablemodelfilter ) )
+                          ( n = `enableScroll`       v = z2ui5_cl_util=>boolean_abap_2_json( enablescroll ) )
+                          ( n = `forceGrowing`       v = z2ui5_cl_util=>boolean_abap_2_json( forcegrowing ) )
+                          ( n = `group`              v = z2ui5_cl_util=>boolean_abap_2_json( group ) )
+                          ( n = `lazyLoading`        v = z2ui5_cl_util=>boolean_abap_2_json( lazyloading ) )
+                          ( n = `showHeaderBar`      v = z2ui5_cl_util=>boolean_abap_2_json( showheaderbar ) )
+                          ( n = `showIcons`          v = z2ui5_cl_util=>boolean_abap_2_json( showicons ) )
+                          ( n = `showItemFilter`     v = z2ui5_cl_util=>boolean_abap_2_json( showitemfilter ) )
+                          ( n = `showSearch`         v = z2ui5_cl_util=>boolean_abap_2_json( showsearch ) )
+                          ( n = `showSort`           v = z2ui5_cl_util=>boolean_abap_2_json( showsort ) )
+                          ( n = `showTimeFilter`     v = z2ui5_cl_util=>boolean_abap_2_json( showtimefilter ) )
+                          ( n = `sort`               v = z2ui5_cl_util=>boolean_abap_2_json( sort ) )
+                          ( n = `groupByType`        v = groupbytype )
+                          ( n = `textHeight`         v = textheight )
+                          ( n = `width`              v = width )
+                          ( n = `height`             v = height )
+                          ( n = `noDataText`         v = nodatatext )
+                          ( n = `alignment`          v = alignment )
+                          ( n = `axisOrientation`    v = axisorientation )
+                          ( n = `filterList`         v = filterlist )
+                          ( n = `customFilter`       v = customfilter )
+                          ( n = `content`            v = content ) ) ).
   ENDMETHOD.
 
   METHOD timeline_item.
 
     result = _generic(
         name   = `TimelineItem`
-        ns     = 'commons'
-        t_prop = VALUE #( ( n = 'id'                     v = id )
-                          ( n = 'dateTime'               v = datetime )
-                          ( n = 'title'                  v = title )
-                          ( n = 'userNameClickable'      v = z2ui5_cl_util=>boolean_abap_2_json( usernameclickable ) )
-                          ( n = 'useIconTooltip'         v = z2ui5_cl_util=>boolean_abap_2_json( useicontooltip ) )
-                          ( n = 'userNameClicked'        v = usernameclicked )
-                          ( n = 'userPicture'            v = userpicture )
-                          ( n = 'select'                 v = select )
-                          ( n = 'text'                   v = text )
-                          ( n = 'userName'               v = username )
-                          ( n = 'filterValue'            v = filtervalue )
-                          ( n = 'iconDisplayShape'       v = icondisplayshape )
-                          ( n = 'iconInitials'           v = iconinitials )
-                          ( n = 'iconSize'               v = iconsize )
-                          ( n = 'iconTooltip'            v = icontooltip )
-                          ( n = 'maxCharacters'          v = maxcharacters )
-                          ( n = 'replyCount'             v = replycount )
-                          ( n = 'status'                 v = status )
-                          ( n = 'customActionClicked'    v = customactionclicked )
-                          ( n = 'press'                  v = press )
-                          ( n = 'replyListOpen'          v = replylistopen )
-                          ( n = 'replyPost'              v = replypost )
-                          ( n = 'icon'                   v = icon ) ) ).
+        ns     = `commons`
+        t_prop = VALUE #( ( n = `id`                     v = id )
+                          ( n = `dateTime`               v = datetime )
+                          ( n = `title`                  v = title )
+                          ( n = `userNameClickable`      v = z2ui5_cl_util=>boolean_abap_2_json( usernameclickable ) )
+                          ( n = `useIconTooltip`         v = z2ui5_cl_util=>boolean_abap_2_json( useicontooltip ) )
+                          ( n = `userNameClicked`        v = usernameclicked )
+                          ( n = `userPicture`            v = userpicture )
+                          ( n = `select`                 v = select )
+                          ( n = `text`                   v = text )
+                          ( n = `userName`               v = username )
+                          ( n = `filterValue`            v = filtervalue )
+                          ( n = `iconDisplayShape`       v = icondisplayshape )
+                          ( n = `iconInitials`           v = iconinitials )
+                          ( n = `iconSize`               v = iconsize )
+                          ( n = `iconTooltip`            v = icontooltip )
+                          ( n = `maxCharacters`          v = maxcharacters )
+                          ( n = `replyCount`             v = replycount )
+                          ( n = `status`                 v = status )
+                          ( n = `customActionClicked`    v = customactionclicked )
+                          ( n = `press`                  v = press )
+                          ( n = `replyListOpen`          v = replylistopen )
+                          ( n = `replyPost`              v = replypost )
+                          ( n = `icon`                   v = icon ) ) ).
   ENDMETHOD.
 
   METHOD time_horizon.
@@ -9976,7 +9976,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD title.
-    DATA(lv_name) = COND #( WHEN ns = 'f' THEN 'title' ELSE `Title` ).
+    DATA(lv_name) = COND #( WHEN ns = `f` THEN `title` ELSE `Title` ).
 
     result = me.
     _generic( ns     = ns
@@ -10027,8 +10027,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD toolbar.
     DATA(lv_name) = COND #(
-        WHEN ns = 'table' THEN 'toolbar'
-        WHEN ns = 'form'  THEN 'toolbar'
+        WHEN ns = `table` THEN `toolbar`
+        WHEN ns = `form`  THEN `toolbar`
         ELSE `Toolbar` ).
     result = _generic( name   = lv_name
                        ns     = ns
@@ -10172,7 +10172,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD ui_column.
     result = _generic( name   = `Column`
-                       ns     = 'table'
+                       ns     = `table`
                        t_prop = VALUE #(
                            ( n = `id` v = id )
                            ( n = `width` v = width )
@@ -10191,18 +10191,18 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD ui_columns.
     result = _generic( name = `columns`
-                       ns   = 'table' ).
+                       ns   = `table` ).
   ENDMETHOD.
 
   METHOD ui_custom_data.
     result = _generic( name = `customData`
-                       ns   = 'table' ).
+                       ns   = `table` ).
   ENDMETHOD.
 
   METHOD ui_extension.
 
     result = _generic( name = `extension`
-                       ns   = 'table' ).
+                       ns   = `table` ).
   ENDMETHOD.
 
   METHOD ui_row_action.
@@ -10268,14 +10268,14 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD ui_template.
 
     result = _generic( name = `template`
-                       ns   = 'table' ).
+                       ns   = `table` ).
 
   ENDMETHOD.
 
   METHOD upload_set.
     result = _generic(
                  name   = `UploadSet`
-                 ns     = 'upload'
+                 ns     = `upload`
                  t_prop = VALUE #(
                      ( n = `id`                       v = id )
                      ( n = `instantUpload`            v = z2ui5_cl_util=>boolean_abap_2_json( instantupload ) )
@@ -10320,7 +10320,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD upload_set_item.
     result = _generic( name   = `UploadSetItem`
-                       ns     = 'upload'
+                       ns     = `upload`
                        t_prop = VALUE #( ( n = `fileName`      v = filename )
                                          ( n = `mediaType`     v = mediatype )
                                          ( n = `url`           v = url )
@@ -11069,18 +11069,18 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD viz_dataset.
-    result = _generic( name = 'dataset'
-                       ns   = 'viz' ).
+    result = _generic( name = `dataset`
+                       ns   = `viz` ).
   ENDMETHOD.
 
   METHOD viz_dimensions.
-    result = _generic( name = 'dimensions'
-                       ns   = 'viz.data' ).
+    result = _generic( name = `dimensions`
+                       ns   = `viz.data` ).
   ENDMETHOD.
 
   METHOD viz_dimension_definition.
-    result = _generic( name   = 'DimensionDefinition'
-                       ns     = 'viz.data'
+    result = _generic( name   = `DimensionDefinition`
+                       ns     = `viz.data`
                        t_prop = VALUE #( ( n = `axis`          v = axis )
                                          ( n = `dataType`      v = datatype )
                                          ( n = `displayValue`  v = displayvalue )
@@ -11091,13 +11091,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD viz_feeds.
-    result = _generic( name = 'feeds'
-                       ns   = 'viz' ).
+    result = _generic( name = `feeds`
+                       ns   = `viz` ).
   ENDMETHOD.
 
   METHOD viz_feed_item.
-    result = _generic( name   = 'FeedItem'
-                       ns     = 'viz.feeds'
+    result = _generic( name   = `FeedItem`
+                       ns     = `viz.feeds`
                        t_prop = VALUE #( ( n = `id`      v = id )
                                          ( n = `uid`     v = uid )
                                          ( n = `type`    v = type )
@@ -11105,8 +11105,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD viz_flattened_dataset.
-    result = _generic( name   = 'FlattenedDataset'
-                       ns     = 'viz.data'
+    result = _generic( name   = `FlattenedDataset`
+                       ns     = `viz.data`
                        t_prop = VALUE #( ( n = `data` v = data ) ) ).
   ENDMETHOD.
 
@@ -11142,8 +11142,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
       lv_vizproperties = vizproperties.
     ENDIF.
 
-    result = _generic( name   = 'VizFrame'
-                       ns     = 'viz'
+    result = _generic( name   = `VizFrame`
+                       ns     = `viz`
                        t_prop = VALUE #( ( n = `id`                v = id )
                                          ( n = `legendVisible`     v = legendvisible )
                                          ( n = `vizCustomizations` v = vizcustomizations )
@@ -11159,13 +11159,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD viz_measures.
-    result = _generic( name = 'measures'
-                       ns   = 'viz.data' ).
+    result = _generic( name = `measures`
+                       ns   = `viz.data` ).
   ENDMETHOD.
 
   METHOD viz_measure_definition.
-    result = _generic( name   = 'MeasureDefinition'
-                       ns     = 'viz.data'
+    result = _generic( name   = `MeasureDefinition`
+                       ns     = `viz.data`
                        t_prop = VALUE #( ( n = `format`    v = format )
                                          ( n = `group`     v = group )
                                          ( n = `identity`  v = identity )
@@ -11177,22 +11177,22 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD smart_multi_input.
 
-    result = _generic( name   = 'SmartMultiInput'
-                       ns     = 'smi'
-                       t_prop = VALUE #( ( n = 'id'                   v = id )
-                                         ( n = 'value'                v = value )
-                                         ( n = 'entitySet'            v = entityset )
-                                         ( n = 'supportRanges'        v = supportranges )
-                                         ( n = 'enableODataSelect'    v = enableodataselect )
-                                         ( n = 'requestAtLeastFields' v = requestatleastfields )
-                                         ( n = 'singleTokenMode'      v = singletokenmode )
-                                         ( n = 'supportMultiSelect'   v = supportmultiselect )
-                                         ( n = 'textSeparator'        v = textseparator )
-                                         ( n = 'textLabel'            v = textlabel )
-                                         ( n = 'tooltipLabel'         v = tooltiplabel )
-                                         ( n = 'textInEditModeSource' v = textineditmodesource )
-                                         ( n = 'mandatory'         v = mandatory )
-                                         ( n = 'maxLength'         v = maxlength ) ) ).
+    result = _generic( name   = `SmartMultiInput`
+                       ns     = `smi`
+                       t_prop = VALUE #( ( n = `id`                   v = id )
+                                         ( n = `value`                v = value )
+                                         ( n = `entitySet`            v = entityset )
+                                         ( n = `supportRanges`        v = supportranges )
+                                         ( n = `enableODataSelect`    v = enableodataselect )
+                                         ( n = `requestAtLeastFields` v = requestatleastfields )
+                                         ( n = `singleTokenMode`      v = singletokenmode )
+                                         ( n = `supportMultiSelect`   v = supportmultiselect )
+                                         ( n = `textSeparator`        v = textseparator )
+                                         ( n = `textLabel`            v = textlabel )
+                                         ( n = `tooltipLabel`         v = tooltiplabel )
+                                         ( n = `textInEditModeSource` v = textineditmodesource )
+                                         ( n = `mandatory`         v = mandatory )
+                                         ( n = `maxLength`         v = maxlength ) ) ).
 
   ENDMETHOD.
 
@@ -11221,7 +11221,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                  name   = `ImageEditor`
                  ns     = `ie`
                  t_prop = VALUE #(
-                     ( n = 'id'                    v = id )
+                     ( n = `id`                    v = id )
                      ( n = `customShapeSrc`        v = customshapesrc )
                      ( n = `keepCropAspectRatio`   v = z2ui5_cl_util=>boolean_abap_2_json( keepcropaspectratio ) )
                      ( n = `keepResizeAspectRatio` v = z2ui5_cl_util=>boolean_abap_2_json( keepresizeaspectratio ) )
@@ -11233,7 +11233,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD image_editor_container.
     result = _generic( name   = `ImageEditorContainer`
                        ns     = `ie`
-                       t_prop = VALUE #( ( n = 'id'             v = id )
+                       t_prop = VALUE #( ( n = `id`             v = id )
                                          ( n = `enabledButtons` v = enabledbuttons )
                                          ( n = `mode`           v = mode ) ) ).
   ENDMETHOD.

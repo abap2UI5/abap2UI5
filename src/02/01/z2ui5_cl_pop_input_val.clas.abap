@@ -66,19 +66,19 @@ CLASS z2ui5_cl_pop_input_val IMPLEMENTATION.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
                                                                icon       = icon
-                                                               afterclose = client->_event( 'BUTTON_CANCEL' )
+                                                               afterclose = client->_event( `BUTTON_CANCEL` )
               )->content(
-                  )->vbox( 'sapUiMediumMargin'
+                  )->vbox( `sapUiMediumMargin`
                   )->label( question_text
                   )->input( value  = client->_bind_edit( ms_result-value )
-                            submit = client->_event( 'BUTTON_CONFIRM' )
+                            submit = client->_event( `BUTTON_CONFIRM` )
               )->get_parent( )->get_parent(
               )->buttons(
                   )->button( text  = button_text_cancel
-                             press = client->_event( 'BUTTON_CANCEL' )
+                             press = client->_event( `BUTTON_CANCEL` )
                   )->button( text  = button_text_confirm
-                             press = client->_event( 'BUTTON_CONFIRM' )
-                             type  = 'Emphasized' ).
+                             press = client->_event( `BUTTON_CONFIRM` )
+                             type  = `Emphasized` ).
 
     client->popup_display( popup->stringify( ) ).
 

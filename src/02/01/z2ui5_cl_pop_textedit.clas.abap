@@ -54,21 +54,21 @@ CLASS z2ui5_cl_pop_textedit IMPLEMENTATION.
 
   METHOD display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( afterclose = client->_event( 'BUTTON_TEXTAREA_CANCEL' )
+    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( afterclose = client->_event( `BUTTON_TEXTAREA_CANCEL` )
                                                                stretch    = mv_stretch_active
                                                                title      = mv_title
-                                                               icon       = 'sap-icon://edit'
+                                                               icon       = `sap-icon://edit`
           )->content(
               )->text_area( growing  = abap_true
                             editable = mv_check_editable
                             value    = client->_bind_edit( ms_result-text )
           )->get_parent(
           )->buttons(
-              )->button( text  = 'Cancel'
-                         press = client->_event( 'BUTTON_TEXTAREA_CANCEL' )
-              )->button( text  = 'Confirm'
-                         press = client->_event( 'BUTTON_TEXTAREA_CONFIRM' )
-                         type  = 'Emphasized' ).
+              )->button( text  = `Cancel`
+                         press = client->_event( `BUTTON_TEXTAREA_CANCEL` )
+              )->button( text  = `Confirm`
+                         press = client->_event( `BUTTON_TEXTAREA_CONFIRM` )
+                         type  = `Emphasized` ).
 
     client->popup_display( popup->stringify( ) ).
 

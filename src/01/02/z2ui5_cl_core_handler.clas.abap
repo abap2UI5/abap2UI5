@@ -51,7 +51,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     TRY.
 
         DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( val ) ).
-        lo_ajson = lo_ajson->slice( 'value' ).
+        lo_ajson = lo_ajson->slice( `value` ).
 
         DATA(lv_model_edit_name) = |/{ z2ui5_if_core_types=>cs_ui5-two_way_model }|.
 
@@ -87,7 +87,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         TRY.
             DATA(lv_hash) = result-s_front-hash.
 
-            SPLIT lv_hash AT '&/' INTO DATA(lv_dummy) lv_hash.
+            SPLIT lv_hash AT `&/` INTO DATA(lv_dummy) lv_hash.
             IF lv_hash IS INITIAL.
               lv_hash = result-s_front-hash+2.
             ENDIF.
@@ -256,7 +256,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     TRY.
         DATA(li_client2) = CAST z2ui5_if_client( li_client ).
 
-        IF li_client2->get( )-event = '___ZZZ_NAL'.
+        IF li_client2->get( )-event = `___ZZZ_NAL`.
           li_client2->popup_destroy( ).
           li_client2->nav_app_leave( ).
         ELSE.

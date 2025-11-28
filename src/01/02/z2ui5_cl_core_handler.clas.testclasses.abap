@@ -11,7 +11,7 @@ CLASS z2ui5_cl_core_handler DEFINITION LOCAL FRIENDS ltcl_test_handler_post.
 CLASS ltcl_test_handler_post IMPLEMENTATION.
   METHOD load_startup_app.
 
-    IF sy-sysid = 'ABC'.
+    IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 

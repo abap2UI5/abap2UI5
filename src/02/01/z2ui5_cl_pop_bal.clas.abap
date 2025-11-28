@@ -82,32 +82,32 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
     popup = popup->dialog( title             = `Business Application Log`
-                           contentheight     = '50%'
-                           contentwidth      = '50%'
+                           contentheight     = `50%`
+                           contentwidth      = `50%`
                            verticalscrolling = abap_false
-                           afterclose        = client->_event( 'BUTTON_CONTINUE' ) ).
+                           afterclose        = client->_event( `BUTTON_CONTINUE` ) ).
 
     DATA(table) = popup->table( client->_bind( mt_msg ) ).
     table->columns(
-         )->column( )->text( 'Date' )->get_parent(
-         )->column( )->text( 'Time' )->get_parent(
-         )->column( )->text( 'Type' )->get_parent(
-         )->column( )->text( 'ID' )->get_parent(
-         )->column( )->text( 'No' )->get_parent(
-         )->column( )->text( 'Message' ).
+         )->column( )->text( `Date` )->get_parent(
+         )->column( )->text( `Time` )->get_parent(
+         )->column( )->text( `Type` )->get_parent(
+         )->column( )->text( `ID` )->get_parent(
+         )->column( )->text( `No` )->get_parent(
+         )->column( )->text( `Message` ).
 
     table->items( )->column_list_item( )->cells(
-       )->text( '{DATE}'
-       )->text( '{TIME}'
-       )->text( '{TYPE}'
-       )->text( '{ID}'
-       )->text( '{NUMBER}'
-       )->text( '{MESSAGE}' ).
+       )->text( `{DATE}`
+       )->text( `{TIME}`
+       )->text( `{TYPE}`
+       )->text( `{ID}`
+       )->text( `{NUMBER}`
+       )->text( `{MESSAGE}` ).
 
     popup->buttons(
-       )->button( text  = 'continue'
-                  press = client->_event( 'BUTTON_CONTINUE' )
-                  type  = 'Emphasized' ).
+       )->button( text  = `continue`
+                  press = client->_event( `BUTTON_CONTINUE` )
+                  type  = `Emphasized` ).
 
     client->popup_display( popup->stringify( ) ).
 

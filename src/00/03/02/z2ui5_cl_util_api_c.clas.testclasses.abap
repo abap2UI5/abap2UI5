@@ -54,7 +54,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_element_text.
 
-    IF sy-sysid = 'ABC'.
+    IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 
@@ -69,7 +69,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     RETURN.
 
-    IF sy-sysid = 'ABC'.
+    IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 

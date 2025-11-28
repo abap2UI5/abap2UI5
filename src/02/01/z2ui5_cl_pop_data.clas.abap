@@ -15,7 +15,7 @@ CLASS z2ui5_cl_pop_data DEFINITION
     DATA mr_data TYPE REF TO data.
 
   PROTECTED SECTION.
-    DATA title  TYPE string VALUE 'Table View'.
+    DATA title  TYPE string VALUE `Table View`.
     DATA client TYPE REF TO z2ui5_if_client.
 
     METHODS display.
