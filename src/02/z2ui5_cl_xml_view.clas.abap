@@ -136,7 +136,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS popover
       IMPORTING
-        !id                 TYPE clike OPTIONAL
+        id                  TYPE clike OPTIONAL
         title               TYPE clike OPTIONAL
         class               TYPE clike OPTIONAL
         placement           TYPE clike OPTIONAL
@@ -515,7 +515,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS avatar
       IMPORTING
         ns                TYPE clike OPTIONAL
-        !id               TYPE clike OPTIONAL
+        id                TYPE clike OPTIONAL
         src               TYPE clike OPTIONAL
         class             TYPE clike OPTIONAL
         displaysize       TYPE clike OPTIONAL
@@ -538,34 +538,38 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS avatar_group
-      IMPORTING !id                     TYPE clike     OPTIONAL
-                avatarcustomdisplaysize TYPE clike     OPTIONAL
-                avatarcustomfontsize    TYPE clike     OPTIONAL
-                avatardisplaysize       TYPE clike     OPTIONAL
-                !blocked                TYPE abap_bool OPTIONAL
-                busy                    TYPE abap_bool OPTIONAL
-                busyindicatordelay      TYPE clike     OPTIONAL
-                busyindicatorsize       TYPE clike     OPTIONAL
-                fieldgroupids           TYPE clike     OPTIONAL
-                grouptype               TYPE clike     OPTIONAL
-                !visible                TYPE abap_bool DEFAULT abap_true
-                tooltip                 TYPE clike     OPTIONAL
-                items                   TYPE clike     OPTIONAL
-                press                   TYPE clike     OPTIONAL
-      RETURNING VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING
+        id                      TYPE clike     OPTIONAL
+        avatarcustomdisplaysize TYPE clike     OPTIONAL
+        avatarcustomfontsize    TYPE clike     OPTIONAL
+        avatardisplaysize       TYPE clike     OPTIONAL
+        blocked                 TYPE abap_bool OPTIONAL
+        busy                    TYPE abap_bool OPTIONAL
+        busyindicatordelay      TYPE clike     OPTIONAL
+        busyindicatorsize       TYPE clike     OPTIONAL
+        fieldgroupids           TYPE clike     OPTIONAL
+        grouptype               TYPE clike     OPTIONAL
+        visible                 TYPE abap_bool DEFAULT abap_true
+        tooltip                 TYPE clike     OPTIONAL
+        items                   TYPE clike     OPTIONAL
+        press                   TYPE clike     OPTIONAL
+      RETURNING
+        VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS avatar_group_item
-      IMPORTING !id                TYPE clike OPTIONAL
-                busy               TYPE clike DEFAULT `false`
-                busyindicatordelay TYPE clike OPTIONAL
-                busyindicatorsize  TYPE clike OPTIONAL
-                fallbackicon       TYPE clike OPTIONAL
-                fieldgroupids      TYPE clike OPTIONAL
-                initials           TYPE clike OPTIONAL
-                src                TYPE clike OPTIONAL
-                !visible           TYPE clike DEFAULT `true`
-                tooltip            TYPE clike OPTIONAL
-      RETURNING VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING
+        id                 TYPE clike OPTIONAL
+        busy               TYPE clike DEFAULT `false`
+        busyindicatordelay TYPE clike OPTIONAL
+        busyindicatorsize  TYPE clike OPTIONAL
+        fallbackicon       TYPE clike OPTIONAL
+        fieldgroupids      TYPE clike OPTIONAL
+        initials           TYPE clike OPTIONAL
+        src                TYPE clike OPTIONAL
+        visible            TYPE clike DEFAULT `true`
+        tooltip            TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS header_title
       RETURNING
@@ -1165,19 +1169,21 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS barcode_scanner_button
-      IMPORTING !id                       TYPE clike OPTIONAL
-                scansuccess               TYPE clike OPTIONAL
-                scanfail                  TYPE clike OPTIONAL
-                inputliveupdate           TYPE clike OPTIONAL
-                dialogtitle               TYPE clike OPTIONAL
-                disablebarcodeinputdialog TYPE clike OPTIONAL
-                framerate                 TYPE clike OPTIONAL
-                keepcamerascan            TYPE clike OPTIONAL
-                preferfrontcamera         TYPE clike OPTIONAL
-                providefallback           TYPE clike OPTIONAL
-                !width                    TYPE clike OPTIONAL
-                zoom                      TYPE clike OPTIONAL
-      RETURNING VALUE(result)             TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING
+        id                        TYPE clike OPTIONAL
+        scansuccess               TYPE clike OPTIONAL
+        scanfail                  TYPE clike OPTIONAL
+        inputliveupdate           TYPE clike OPTIONAL
+        dialogtitle               TYPE clike OPTIONAL
+        disablebarcodeinputdialog TYPE clike OPTIONAL
+        framerate                 TYPE clike OPTIONAL
+        keepcamerascan            TYPE clike OPTIONAL
+        preferfrontcamera         TYPE clike OPTIONAL
+        providefallback           TYPE clike OPTIONAL
+        width                     TYPE clike OPTIONAL
+        zoom                      TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)             TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS message_popover
       IMPORTING
@@ -1761,10 +1767,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS grid_box_layout
-      IMPORTING boxesperrowconfig TYPE clike OPTIONAL
-                boxminwidth       TYPE clike OPTIONAL
-                boxwidth          TYPE clike OPTIONAL
-      RETURNING VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING
+        boxesperrowconfig TYPE clike OPTIONAL
+        boxminwidth       TYPE clike OPTIONAL
+        boxwidth          TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS grid_data
       IMPORTING
@@ -1777,65 +1785,71 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS grid_drop_info
-      IMPORTING targetaggregation TYPE clike OPTIONAL
-                dropposition      TYPE clike OPTIONAL
-                droplayout        TYPE clike OPTIONAL
-                drop              TYPE clike OPTIONAL
-                dragenter         TYPE clike OPTIONAL
-                dragover          TYPE clike OPTIONAL
-      RETURNING VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING
+        targetaggregation TYPE clike OPTIONAL
+        dropposition      TYPE clike OPTIONAL
+        droplayout        TYPE clike OPTIONAL
+        drop              TYPE clike OPTIONAL
+        dragenter         TYPE clike OPTIONAL
+        dragover          TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS grid_list
-      IMPORTING !id                    TYPE clike     OPTIONAL
-                busy                   TYPE abap_bool OPTIONAL
-                busyindicatordelay     TYPE clike     OPTIONAL
-                busyindicatorsize      TYPE clike     OPTIONAL
-                enablebusyindicator    TYPE abap_bool OPTIONAL
-                fieldgroupids          TYPE clike     OPTIONAL
-                footertext             TYPE clike     OPTIONAL
-                growing                TYPE abap_bool OPTIONAL
-                growingdirection       TYPE clike     OPTIONAL
-                growingscrolltoload    TYPE abap_bool OPTIONAL
-                growingthreshold       TYPE clike     OPTIONAL
-                growingtriggertext     TYPE clike     OPTIONAL
-                headerlevel            TYPE clike     OPTIONAL
-                headertext             TYPE clike     OPTIONAL
-                includeiteminselection TYPE abap_bool OPTIONAL
-                inset                  TYPE abap_bool OPTIONAL
-                keyboardmode           TYPE clike     OPTIONAL
-                !mode                  TYPE clike     OPTIONAL
-                modeanimationon        TYPE abap_bool OPTIONAL
-                multiselectmode        TYPE clike     OPTIONAL
-                nodatatext             TYPE clike     OPTIONAL
-                rememberselections     TYPE abap_bool OPTIONAL
-                shownodata             TYPE abap_bool OPTIONAL
-                showseparators         TYPE clike     OPTIONAL
-                showunread             TYPE abap_bool OPTIONAL
-                sticky                 TYPE clike     OPTIONAL
-                swipedirection         TYPE clike     OPTIONAL
-                !visible               TYPE abap_bool DEFAULT abap_true
-                !width                 TYPE clike     OPTIONAL
-                items                  TYPE clike     OPTIONAL
-      RETURNING VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING
+        id                     TYPE clike     OPTIONAL
+        busy                   TYPE abap_bool OPTIONAL
+        busyindicatordelay     TYPE clike     OPTIONAL
+        busyindicatorsize      TYPE clike     OPTIONAL
+        enablebusyindicator    TYPE abap_bool OPTIONAL
+        fieldgroupids          TYPE clike     OPTIONAL
+        footertext             TYPE clike     OPTIONAL
+        growing                TYPE abap_bool OPTIONAL
+        growingdirection       TYPE clike     OPTIONAL
+        growingscrolltoload    TYPE abap_bool OPTIONAL
+        growingthreshold       TYPE clike     OPTIONAL
+        growingtriggertext     TYPE clike     OPTIONAL
+        headerlevel            TYPE clike     OPTIONAL
+        headertext             TYPE clike     OPTIONAL
+        includeiteminselection TYPE abap_bool OPTIONAL
+        inset                  TYPE abap_bool OPTIONAL
+        keyboardmode           TYPE clike     OPTIONAL
+        mode                   TYPE clike     OPTIONAL
+        modeanimationon        TYPE abap_bool OPTIONAL
+        multiselectmode        TYPE clike     OPTIONAL
+        nodatatext             TYPE clike     OPTIONAL
+        rememberselections     TYPE abap_bool OPTIONAL
+        shownodata             TYPE abap_bool OPTIONAL
+        showseparators         TYPE clike     OPTIONAL
+        showunread             TYPE abap_bool OPTIONAL
+        sticky                 TYPE clike     OPTIONAL
+        swipedirection         TYPE clike     OPTIONAL
+        visible                TYPE abap_bool DEFAULT abap_true
+        width                  TYPE clike     OPTIONAL
+        items                  TYPE clike     OPTIONAL
+      RETURNING
+        VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS grid_list_item
-      IMPORTING busy               TYPE clike OPTIONAL
-                busyindicatordelay TYPE clike OPTIONAL
-                busyindicatorsize  TYPE clike OPTIONAL
-                counter            TYPE clike OPTIONAL
-                fieldgroupids      TYPE clike OPTIONAL
-                highlight          TYPE clike OPTIONAL
-                highlighttext      TYPE clike OPTIONAL
-                navigated          TYPE clike OPTIONAL
-                selected           TYPE clike OPTIONAL
-                !type              TYPE clike OPTIONAL
-                unread             TYPE clike OPTIONAL
-                !visible           TYPE clike DEFAULT `true`
-                detailpress        TYPE clike OPTIONAL
-                detailtap          TYPE clike OPTIONAL
-                press              TYPE clike OPTIONAL
-                tap                TYPE clike OPTIONAL
-      RETURNING VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING
+        busy               TYPE clike OPTIONAL
+        busyindicatordelay TYPE clike OPTIONAL
+        busyindicatorsize  TYPE clike OPTIONAL
+        counter            TYPE clike OPTIONAL
+        fieldgroupids      TYPE clike OPTIONAL
+        highlight          TYPE clike OPTIONAL
+        highlighttext      TYPE clike OPTIONAL
+        navigated          TYPE clike OPTIONAL
+        selected           TYPE clike OPTIONAL
+        type               TYPE clike OPTIONAL
+        unread             TYPE clike OPTIONAL
+        visible            TYPE clike DEFAULT `true`
+        detailpress        TYPE clike OPTIONAL
+        detailtap          TYPE clike OPTIONAL
+        press              TYPE clike OPTIONAL
+        tap                TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS text_area
       IMPORTING
@@ -3612,12 +3626,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS comparison_micro_chart_data
-      IMPORTING !color        TYPE clike OPTIONAL
-                press         TYPE clike OPTIONAL
-                displayvalue  TYPE clike OPTIONAL
-                !title        TYPE clike OPTIONAL
-                !value        TYPE clike OPTIONAL
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING
+        color         TYPE clike OPTIONAL
+        press         TYPE clike OPTIONAL
+        displayvalue  TYPE clike OPTIONAL
+        title         TYPE clike OPTIONAL
+        value         TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS delta_micro_chart
       IMPORTING
@@ -4165,15 +4181,16 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS analytic_map
-      IMPORTING !id             TYPE clike OPTIONAL
-                initialposition TYPE clike OPTIONAL
-                height          TYPE clike OPTIONAL
-                lassoselection  TYPE clike OPTIONAL
-                visible         TYPE clike OPTIONAL
-                width           TYPE clike OPTIONAL
-                initialzoom     TYPE clike OPTIONAL
+      IMPORTING
+        id              TYPE clike OPTIONAL
+        initialposition TYPE clike OPTIONAL
+        height          TYPE clike OPTIONAL
+        lassoselection  TYPE clike OPTIONAL
+        visible         TYPE clike OPTIONAL
+        width           TYPE clike OPTIONAL
+        initialzoom     TYPE clike OPTIONAL
       RETURNING
-                VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS spots
       IMPORTING
@@ -4503,8 +4520,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS drag_info
-      IMPORTING sourceaggregation TYPE clike OPTIONAL
-      RETURNING VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING
+        sourceaggregation TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS drag_drop_info
       IMPORTING
@@ -5210,66 +5229,75 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS viz_frame
       IMPORTING
-        !id                TYPE clike OPTIONAL
-        !legendvisible     TYPE clike OPTIONAL
-        !vizcustomizations TYPE clike OPTIONAL
-        !vizproperties     TYPE clike OPTIONAL
-        !vizscales         TYPE clike OPTIONAL
-        !viztype           TYPE clike OPTIONAL
-        !height            TYPE clike OPTIONAL
-        !width             TYPE clike OPTIONAL
-        !uiconfig          TYPE clike DEFAULT `{applicationSet:'fiori'}`
-        !visible           TYPE clike OPTIONAL
-        !selectdata        TYPE clike OPTIONAL
+        id                TYPE clike OPTIONAL
+        legendvisible     TYPE clike OPTIONAL
+        vizcustomizations TYPE clike OPTIONAL
+        vizproperties     TYPE clike OPTIONAL
+        vizscales         TYPE clike OPTIONAL
+        viztype           TYPE clike OPTIONAL
+        height            TYPE clike OPTIONAL
+        width             TYPE clike OPTIONAL
+        uiconfig          TYPE clike DEFAULT `{applicationSet:'fiori'}`
+        visible           TYPE clike OPTIONAL
+        selectdata        TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS viz_dataset
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS viz_flattened_dataset
       IMPORTING
-        !data         TYPE clike OPTIONAL
+        data          TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS viz_dimensions
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS viz_dimension_definition
       IMPORTING
-        !axis         TYPE clike OPTIONAL
-        !datatype     TYPE clike OPTIONAL
-        !displayvalue TYPE clike OPTIONAL
-        !identity     TYPE clike OPTIONAL
-        !name         TYPE clike OPTIONAL
-        !sorter       TYPE clike OPTIONAL
-        !value        TYPE clike OPTIONAL
+        axis          TYPE clike OPTIONAL
+        datatype      TYPE clike OPTIONAL
+        displayvalue  TYPE clike OPTIONAL
+        identity      TYPE clike OPTIONAL
+        name          TYPE clike OPTIONAL
+        sorter        TYPE clike OPTIONAL
+        value         TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS viz_measures
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS viz_measure_definition
       IMPORTING
-        !format       TYPE clike OPTIONAL
-        !group        TYPE clike OPTIONAL
-        !identity     TYPE clike OPTIONAL
-        !name         TYPE clike OPTIONAL
-        !range        TYPE clike OPTIONAL
-        !unit         TYPE clike OPTIONAL
-        !value        TYPE clike OPTIONAL
+        format        TYPE clike OPTIONAL
+        group         TYPE clike OPTIONAL
+        identity      TYPE clike OPTIONAL
+        name          TYPE clike OPTIONAL
+        range         TYPE clike OPTIONAL
+        unit          TYPE clike OPTIONAL
+        value         TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS viz_feeds
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS viz_feed_item
       IMPORTING
-        !id           TYPE clike OPTIONAL
-        !uid          TYPE clike OPTIONAL
-        !type         TYPE clike OPTIONAL
-        !values       TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        uid           TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
+        values        TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS smart_multi_input
       IMPORTING
         id                   TYPE clike OPTIONAL
@@ -5474,18 +5502,18 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD avatar_group_item.
     result = me.
-    _generic( name            = `AvatarGroupItem`
-                       ns     = `f`
-                       t_prop = VALUE #( ( n = `id` v = id )
-                                         ( n = `busy` v = busy )
-                                         ( n = `busyIndicatorDelay` v = busyindicatordelay )
-                                         ( n = `busyIndicatorSize` v = busyindicatorsize )
-                                         ( n = `fallbackIcon` v = fallbackicon )
-                                         ( n = `fieldGroupIds` v = fieldgroupids )
-                                         ( n = `initials` v = initials )
-                                         ( n = `src` v = src )
-                                         ( n = `visible` v = visible )
-                                         ( n = `tooltip` v = tooltip ) ) ).
+    _generic( name   = `AvatarGroupItem`
+              ns     = `f`
+              t_prop = VALUE #( ( n = `id` v = id )
+                                ( n = `busy` v = busy )
+                                ( n = `busyIndicatorDelay` v = busyindicatordelay )
+                                ( n = `busyIndicatorSize` v = busyindicatorsize )
+                                ( n = `fallbackIcon` v = fallbackicon )
+                                ( n = `fieldGroupIds` v = fieldgroupids )
+                                ( n = `initials` v = initials )
+                                ( n = `src` v = src )
+                                ( n = `visible` v = visible )
+                                ( n = `tooltip` v = tooltip ) ) ).
   ENDMETHOD.
 
   METHOD axis_time_strategy.
@@ -6043,20 +6071,21 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD comparison_micro_chart.
-    result = _generic( name  = `ComparisonMicroChart`
-                      ns     = `mchart`
-                      t_prop = VALUE #( ( n = `colorPalette`  v = colorpalette )
-                                        ( n = `press`       v = press )
-                                        ( n = `size`        v = size )
-                                        ( n = `height`      v = height )
-                                        ( n = `maxValue`      v = maxvalue )
-                                        ( n = `minValue`      v = minvalue )
-                                        ( n = `scale`      v = scale )
-                                        ( n = `width`      v = width )
-                                        ( n = `hideOnNoData`    v = z2ui5_cl_util=>boolean_abap_2_json( hideonnodata ) )
-                                        ( n = `shrinkable`    v = z2ui5_cl_util=>boolean_abap_2_json( shrinkable ) )
-                                        ( n = `visible`    v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
-                                        ( n = `view`  v = view ) ) ).
+    result = _generic(
+                 name   = `ComparisonMicroChart`
+                 ns     = `mchart`
+                 t_prop = VALUE #( ( n = `colorPalette`  v = colorpalette )
+                                   ( n = `press`       v = press )
+                                   ( n = `size`        v = size )
+                                   ( n = `height`      v = height )
+                                   ( n = `maxValue`      v = maxvalue )
+                                   ( n = `minValue`      v = minvalue )
+                                   ( n = `scale`      v = scale )
+                                   ( n = `width`      v = width )
+                                   ( n = `hideOnNoData`    v = z2ui5_cl_util=>boolean_abap_2_json( hideonnodata ) )
+                                   ( n = `shrinkable`    v = z2ui5_cl_util=>boolean_abap_2_json( shrinkable ) )
+                                   ( n = `visible`    v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                                   ( n = `view`  v = view ) ) ).
   ENDMETHOD.
 
   METHOD comparison_micro_chart_data.
@@ -6285,11 +6314,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = me.
     _generic( name   = `DragDropInfo`
               ns     = `dnd`
-              t_prop = VALUE #(
-                ( n = `sourceAggregation`  v = sourceaggregation )
-                ( n = `targetAggregation`  v = targetaggregation )
-                ( n = `dragStart`          v = dragstart )
-                ( n = `drop`               v = drop )
+              t_prop = VALUE #( ( n = `sourceAggregation`  v = sourceaggregation )
+                                ( n = `targetAggregation`  v = targetaggregation )
+                                ( n = `dragStart`          v = dragstart )
+                                ( n = `drop`               v = drop )
                  ) ).
   ENDMETHOD.
 
@@ -6301,8 +6329,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD drag_drop_config.
-    result = _generic( name  = `dragDropConfig`
-                          ns = ns ).
+    result = _generic( name = `dragDropConfig`
+                       ns   = ns ).
   ENDMETHOD.
 
   METHOD dynamic_page.
@@ -7033,21 +7061,22 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD harvey_ball_micro_chart.
 
-    result = _generic( name = `HarveyBallMicroChart`
-              ns            = `mchart`
-              t_prop        = VALUE #( ( n = `colorPalette`  v = colorpalette )
-                                ( n = `press`       v = press )
-                                ( n = `size`        v = size )
-                                ( n = `height`      v = height )
-                                ( n = `width`      v = width )
-                                ( n = `total`      v = total )
-                                ( n = `totalLabel`      v = totallabel )
-                                ( n = `alignContent`      v = aligncontent )
-                                ( n = `hideOnNoData`    v = z2ui5_cl_util=>boolean_abap_2_json( hideonnodata ) )
-                                ( n = `formattedLabel`    v = z2ui5_cl_util=>boolean_abap_2_json( formattedlabel ) )
-                                ( n = `showFractions`    v = z2ui5_cl_util=>boolean_abap_2_json( showfractions ) )
-                                ( n = `showTotal`    v = z2ui5_cl_util=>boolean_abap_2_json( showtotal ) )
-                                ( n = `totalScale`  v = totalscale ) ) ).
+    result = _generic( name   = `HarveyBallMicroChart`
+                       ns     = `mchart`
+                       t_prop = VALUE #(
+                           ( n = `colorPalette`  v = colorpalette )
+                           ( n = `press`       v = press )
+                           ( n = `size`        v = size )
+                           ( n = `height`      v = height )
+                           ( n = `width`      v = width )
+                           ( n = `total`      v = total )
+                           ( n = `totalLabel`      v = totallabel )
+                           ( n = `alignContent`      v = aligncontent )
+                           ( n = `hideOnNoData`    v = z2ui5_cl_util=>boolean_abap_2_json( hideonnodata ) )
+                           ( n = `formattedLabel`    v = z2ui5_cl_util=>boolean_abap_2_json( formattedlabel ) )
+                           ( n = `showFractions`    v = z2ui5_cl_util=>boolean_abap_2_json( showfractions ) )
+                           ( n = `showTotal`    v = z2ui5_cl_util=>boolean_abap_2_json( showtotal ) )
+                           ( n = `totalScale`  v = totalscale ) ) ).
   ENDMETHOD.
 
   METHOD hbox.
@@ -9353,14 +9382,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD smart_variant_management.
     result = me.
-    _generic(
-        name   = `SmartVariantManagement`
-        ns     = `smartVariantManagement`
-        t_prop = VALUE #(
-            ( n = `id`      v = id )
-            ( n = `showExecuteOnSelection`  v = z2ui5_cl_util=>boolean_abap_2_json( showexecuteonselection ) )
-            ( n = `persistencyKey`  v = persistencykey )
-             ) ).
+    _generic( name   = `SmartVariantManagement`
+              ns     = `smartVariantManagement`
+              t_prop = VALUE #(
+                  ( n = `id`      v = id )
+                  ( n = `showExecuteOnSelection`  v = z2ui5_cl_util=>boolean_abap_2_json( showexecuteonselection ) )
+                  ( n = `persistencyKey`  v = persistencykey )
+                   ) ).
 
   ENDMETHOD.
 
@@ -10003,7 +10031,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA(lv_name) = COND #(
         WHEN ns = 'table' THEN 'toolbar'
         WHEN ns = 'form'  THEN 'toolbar'
-        ELSE `Toolbar` ).
+        ELSE                   `Toolbar` ).
     result = _generic( name   = lv_name
                        ns     = ns
                        t_prop = VALUE #( ( n = `active`  v = z2ui5_cl_util=>boolean_abap_2_json( active ) )
@@ -10138,7 +10166,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( ns   = `table`
                        name = `extension` ).
   ENDMETHOD.
-
 
   METHOD two_columns_layout.
     result = _generic( name = `TwoColumnsLayout`
@@ -10598,6 +10625,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD xml_get.
 
+    DATA lt_prop TYPE HASHED TABLE OF z2ui5_if_types=>ty_s_name_value WITH UNIQUE KEY n.
+
     CASE mv_name.
       WHEN `ZZPLAIN`.
         result = mt_prop[ n = `VALUE` ]-v.
@@ -10607,7 +10636,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     IF me = mo_root.
 
-      DATA lt_prop TYPE HASHED TABLE OF z2ui5_if_types=>ty_s_name_value WITH UNIQUE KEY n.
       lt_prop = VALUE #(
           ( n = `z2ui5`             v = `z2ui5` )
           ( n = `layout`            v = `sap.ui.layout` )
@@ -10662,7 +10690,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
           ( n = `smi`               v = `sap.ui.comp.smartmultiinput` )
           ( n = `ie`                v = `sap.suite.ui.commons.imageeditor` ) ).
 
-      LOOP AT mt_ns REFERENCE INTO DATA(lr_ns) WHERE table_line IS NOT INITIAL  "#EC CI_SORTSEQ
+      LOOP AT mt_ns REFERENCE INTO DATA(lr_ns) WHERE     table_line IS NOT INITIAL  "#EC CI_SORTSEQ
                                                      AND table_line <> `mvc`
                                                      AND table_line <> `core`.
         TRY.
@@ -10671,8 +10699,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                             v = ls_prop-v ) INTO TABLE mt_prop.
           CATCH cx_root.
             RAISE EXCEPTION TYPE z2ui5_cx_util_error
-              EXPORTING
-                val = |XML_VIEW_ERROR_NO_NAMESPACE_FOUND_FOR:  { lr_ns->* }|.
+              EXPORTING val = |XML_VIEW_ERROR_NO_NAMESPACE_FOUND_FOR:  { lr_ns->* }|.
         ENDTRY.
       ENDLOOP.
 
@@ -10954,14 +10981,15 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD breadcrumbs.
-    result = _generic( ns     = ns
-                       name   = `Breadcrumbs`
-                       t_prop = VALUE #( ( n = `link`                    v = link )
-                                         ( n = `id`                      v = id )
-                                         ( n = `class`                   v = class )
-                                         ( n = `currentLocationText`     v = currentlocationtext )
-                                         ( n = `separatorStyle`          v = separatorstyle )
-                                         ( n = `visible`                 v = z2ui5_cl_util=>boolean_abap_2_json( visible ) ) ) ).
+    result = _generic(
+        ns     = ns
+        name   = `Breadcrumbs`
+        t_prop = VALUE #( ( n = `link`                    v = link )
+                          ( n = `id`                      v = id )
+                          ( n = `class`                   v = class )
+                          ( n = `currentLocationText`     v = currentlocationtext )
+                          ( n = `separatorStyle`          v = separatorstyle )
+                          ( n = `visible`                 v = z2ui5_cl_util=>boolean_abap_2_json( visible ) ) ) ).
   ENDMETHOD.
 
   METHOD current_location.
@@ -11000,42 +11028,45 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD control_configuration.
 
     result = me.
-    _generic( name             = `ControlConfiguration`
-                        ns     = `smartFilterBar`
-                        t_prop = VALUE #( ( n = `id`  v = id )
-                                          ( n = `key`  v = key )
-                                          ( n = `visibleInAdvancedArea`  v = z2ui5_cl_util=>boolean_abap_2_json( visibleinadvancedarea ) )
-                                          ( n = `preventInitialDataFetchInValueHelpDialog`  v = z2ui5_cl_util=>boolean_abap_2_json( previnitdatafetchinvalhelpdia ) )
-                                          ) ).
+    _generic( name   = `ControlConfiguration`
+              ns     = `smartFilterBar`
+              t_prop = VALUE #(
+                  ( n = `id`  v = id )
+                  ( n = `key`  v = key )
+                  ( n = `visibleInAdvancedArea`  v = z2ui5_cl_util=>boolean_abap_2_json( visibleinadvancedarea ) )
+                  ( n = `preventInitialDataFetchInValueHelpDialog`
+                    v = z2ui5_cl_util=>boolean_abap_2_json( previnitdatafetchinvalhelpdia ) )
+                                ) ).
 
   ENDMETHOD.
 
   METHOD smart_table.
 
-    result = _generic( name    = `SmartTable`
-                        ns     = `smartTable`
-                        t_prop = VALUE #(
-                        ( n = `id`  v = id )
-                        ( n = `smartFilterId`  v = smartfilterid )
-                                          ( n = `tableType`  v = tabletype )
-                                          ( n = `editable`  v = z2ui5_cl_util=>boolean_abap_2_json( editable ) )
-                                          ( n = `initiallyVisibleFields`  v = initiallyvisiblefields )
-                                          ( n = `entitySet`  v = entityset )
-                                          ( n = `useVariantManagement`  v = z2ui5_cl_util=>boolean_abap_2_json( usevariantmanagement ) )
-                                          ( n = `useExportToExcel`  v = z2ui5_cl_util=>boolean_abap_2_json( useexporttoexcel ) )
-                                          ( n = `useTablePersonalisation`  v = z2ui5_cl_util=>boolean_abap_2_json( usetablepersonalisation ) )
-                                          ( n = `header`  v = header )
-                                          ( n = `showRowCount`  v = z2ui5_cl_util=>boolean_abap_2_json( showrowcount ) )
-                                          ( n = `enableExport`  v = z2ui5_cl_util=>boolean_abap_2_json( enableexport ) )
-                                          ( n = `enableAutoBinding`  v = z2ui5_cl_util=>boolean_abap_2_json( enableautobinding ) )
-                                          ) ).
+    result = _generic(
+        name   = `SmartTable`
+        ns     = `smartTable`
+        t_prop = VALUE #(
+            ( n = `id`  v = id )
+            ( n = `smartFilterId`  v = smartfilterid )
+            ( n = `tableType`  v = tabletype )
+            ( n = `editable`  v = z2ui5_cl_util=>boolean_abap_2_json( editable ) )
+            ( n = `initiallyVisibleFields`  v = initiallyvisiblefields )
+            ( n = `entitySet`  v = entityset )
+            ( n = `useVariantManagement`  v = z2ui5_cl_util=>boolean_abap_2_json( usevariantmanagement ) )
+            ( n = `useExportToExcel`  v = z2ui5_cl_util=>boolean_abap_2_json( useexporttoexcel ) )
+            ( n = `useTablePersonalisation`  v = z2ui5_cl_util=>boolean_abap_2_json( usetablepersonalisation ) )
+            ( n = `header`  v = header )
+            ( n = `showRowCount`  v = z2ui5_cl_util=>boolean_abap_2_json( showrowcount ) )
+            ( n = `enableExport`  v = z2ui5_cl_util=>boolean_abap_2_json( enableexport ) )
+            ( n = `enableAutoBinding`  v = z2ui5_cl_util=>boolean_abap_2_json( enableautobinding ) )
+                          ) ).
 
   ENDMETHOD.
 
   METHOD _control_configuration.
 
     result = _generic( name = `controlConfiguration`
-                        ns  = `smartFilterBar` ).
+                       ns   = `smartFilterBar` ).
 
   ENDMETHOD.
 
@@ -11044,41 +11075,36 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        ns   = 'viz' ).
   ENDMETHOD.
 
-
   METHOD viz_dimensions.
     result = _generic( name = 'dimensions'
                        ns   = 'viz.data' ).
   ENDMETHOD.
 
-
   METHOD viz_dimension_definition.
     result = _generic( name   = 'DimensionDefinition'
                        ns     = 'viz.data'
                        t_prop = VALUE #( ( n = `axis`          v = axis )
-                                          ( n = `dataType`      v = datatype )
-                                          ( n = `displayValue`  v = displayvalue )
-                                          ( n = `identity`      v = identity )
-                                          ( n = `name`          v = name )
-                                          ( n = `sorter`        v = sorter )
-                                          ( n = `value`         v = value ) ) ).
+                                         ( n = `dataType`      v = datatype )
+                                         ( n = `displayValue`  v = displayvalue )
+                                         ( n = `identity`      v = identity )
+                                         ( n = `name`          v = name )
+                                         ( n = `sorter`        v = sorter )
+                                         ( n = `value`         v = value ) ) ).
   ENDMETHOD.
-
 
   METHOD viz_feeds.
     result = _generic( name = 'feeds'
                        ns   = 'viz' ).
   ENDMETHOD.
 
-
   METHOD viz_feed_item.
     result = _generic( name   = 'FeedItem'
                        ns     = 'viz.feeds'
                        t_prop = VALUE #( ( n = `id`      v = id )
-                                          ( n = `uid`     v = uid )
-                                          ( n = `type`    v = type )
-                                          ( n = `values ` v = values ) ) ).
+                                         ( n = `uid`     v = uid )
+                                         ( n = `type`    v = type )
+                                         ( n = `values ` v = values ) ) ).
   ENDMETHOD.
-
 
   METHOD viz_flattened_dataset.
     result = _generic( name   = 'FlattenedDataset'
@@ -11086,55 +11112,53 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `data` v = data ) ) ).
   ENDMETHOD.
 
-
   METHOD viz_frame.
     DATA(lv_vizproperties) = ``.
     IF vizproperties IS INITIAL.
-      lv_vizproperties = `{` && |\n| &&
-        `"plotArea": {` && |\n| &&
-          `"dataLabel": {` && |\n| &&
-              `"formatString": "",` && |\n| &&
-              `"visible": false` && |\n| &&
-          `}` && |\n| &&
-        `},` && |\n| &&
-        `"valueAxis": {` && |\n| &&
-          `"label": {` && |\n| &&
-              `"formatString": ""` && |\n| &&
-          `},` && |\n| &&
-          `"title": {` && |\n| &&
-              `"visible": false` && |\n| &&
-          `}` && |\n| &&
-        `},` && |\n| &&
-        `"categoryAxis": {` && |\n| &&
-          `"title": {` && |\n| &&
-              `"visible": false` && |\n| &&
-          `}` && |\n| &&
-        `},` && |\n| &&
-        `"title": {` && |\n| &&
-          `"visible": false,` && |\n| &&
-          `"text": ""` && |\n| &&
-        `}` && |\n| &&
-        `}`.
+      lv_vizproperties = |\{| && |\n| &&
+        |"plotArea": \{| && |\n| &&
+          |"dataLabel": \{| && |\n| &&
+              |"formatString": "",| && |\n| &&
+              |"visible": false| && |\n| &&
+          |\}| && |\n| &&
+        |\},| && |\n| &&
+        |"valueAxis": \{| && |\n| &&
+          |"label": \{| && |\n| &&
+              |"formatString": ""| && |\n| &&
+          |\},| && |\n| &&
+          |"title": \{| && |\n| &&
+              |"visible": false| && |\n| &&
+          |\}| && |\n| &&
+        |\},| && |\n| &&
+        |"categoryAxis": \{| && |\n| &&
+          |"title": \{| && |\n| &&
+              |"visible": false| && |\n| &&
+          |\}| && |\n| &&
+        |\},| && |\n| &&
+        |"title": \{| && |\n| &&
+          |"visible": false,| && |\n| &&
+          |"text": ""| && |\n| &&
+        |\}| && |\n| &&
+        |\}|.
     ELSE.
       lv_vizproperties = vizproperties.
     ENDIF.
 
-    result = _generic( name    = 'VizFrame'
-                        ns     = 'viz'
-                        t_prop = VALUE #( ( n = `id`                v = id )
-                                          ( n = `legendVisible`     v = legendvisible )
-                                          ( n = `vizCustomizations` v = vizcustomizations )
-                                          ( n = `vizProperties`     v = lv_vizproperties )
-                                          ( n = `vizScales`         v = vizscales )
-                                          ( n = `vizType`           v = viztype )
-                                          ( n = `height`            v = height )
-                                          ( n = `width`             v = width )
-                                          ( n = `uiConfig`          v = uiconfig )
-                                          ( n = `visible`           v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
-                                          ( n = `selectData`        v = selectdata ) ) ).
+    result = _generic( name   = 'VizFrame'
+                       ns     = 'viz'
+                       t_prop = VALUE #( ( n = `id`                v = id )
+                                         ( n = `legendVisible`     v = legendvisible )
+                                         ( n = `vizCustomizations` v = vizcustomizations )
+                                         ( n = `vizProperties`     v = lv_vizproperties )
+                                         ( n = `vizScales`         v = vizscales )
+                                         ( n = `vizType`           v = viztype )
+                                         ( n = `height`            v = height )
+                                         ( n = `width`             v = width )
+                                         ( n = `uiConfig`          v = uiconfig )
+                                         ( n = `visible`           v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                                         ( n = `selectData`        v = selectdata ) ) ).
 
   ENDMETHOD.
-
 
   METHOD viz_measures.
     result = _generic( name = 'measures'
@@ -11145,12 +11169,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( name   = 'MeasureDefinition'
                        ns     = 'viz.data'
                        t_prop = VALUE #( ( n = `format`    v = format )
-                                          ( n = `group`     v = group )
-                                          ( n = `identity`  v = identity )
-                                          ( n = `name`      v = name )
-                                          ( n = `range`     v = range )
-                                          ( n = `unit`      v = unit )
-                                          ( n = `value`     v = value ) ) ).
+                                         ( n = `group`     v = group )
+                                         ( n = `identity`  v = identity )
+                                         ( n = `name`      v = name )
+                                         ( n = `range`     v = range )
+                                         ( n = `unit`      v = unit )
+                                         ( n = `value`     v = value ) ) ).
   ENDMETHOD.
 
   METHOD smart_multi_input.
@@ -11186,23 +11210,26 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD row_settings.
-    result = _generic( name    = `RowSettings`
-                       ns      = `table`
-                        t_prop = VALUE #( ( n = `highlight`       v = highlight )
-                                          ( n = `highlightText`   v = highlighttext )
-                                          ( n = `navigated`       v = z2ui5_cl_util=>boolean_abap_2_json( navigated ) ) ) ).
+    result = _generic(
+                 name   = `RowSettings`
+                 ns     = `table`
+                 t_prop = VALUE #( ( n = `highlight`       v = highlight )
+                                   ( n = `highlightText`   v = highlighttext )
+                                   ( n = `navigated`       v = z2ui5_cl_util=>boolean_abap_2_json( navigated ) ) ) ).
   ENDMETHOD.
 
   METHOD image_editor.
-    result = _generic( name   = `ImageEditor`
-                       ns     = `ie`
-                       t_prop = VALUE #( ( n = 'id'                    v = id )
-                                         ( n = `customShapeSrc`        v = customshapesrc )
-                                         ( n = `keepCropAspectRatio`   v = z2ui5_cl_util=>boolean_abap_2_json( keepcropaspectratio ) )
-                                         ( n = `keepResizeAspectRatio` v = z2ui5_cl_util=>boolean_abap_2_json( keepresizeaspectratio ) )
-                                         ( n = `scaleCropArea`         v = scalecroparea )
-                                         ( n = `customShapeSrcType`    v = customshapesrctype )
-                                         ( n = `src`                   v = src ) ) ).
+    result = _generic(
+                 name   = `ImageEditor`
+                 ns     = `ie`
+                 t_prop = VALUE #(
+                     ( n = 'id'                    v = id )
+                     ( n = `customShapeSrc`        v = customshapesrc )
+                     ( n = `keepCropAspectRatio`   v = z2ui5_cl_util=>boolean_abap_2_json( keepcropaspectratio ) )
+                     ( n = `keepResizeAspectRatio` v = z2ui5_cl_util=>boolean_abap_2_json( keepresizeaspectratio ) )
+                     ( n = `scaleCropArea`         v = scalecroparea )
+                     ( n = `customShapeSrcType`    v = customshapesrctype )
+                     ( n = `src`                   v = src ) ) ).
   ENDMETHOD.
 
   METHOD image_editor_container.

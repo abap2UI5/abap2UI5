@@ -8,7 +8,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
         server TYPE REF TO object                    OPTIONAL
         req    TYPE REF TO object                    OPTIONAL
         res    TYPE REF TO object                    OPTIONAL
-        "obsolete, implement z2ui5_if_exit instead
+        " obsolete, implement z2ui5_if_exit instead
         config TYPE z2ui5_if_types=>ty_s_http_config OPTIONAL
           PREFERRED PARAMETER server.
 
@@ -76,9 +76,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
 ENDCLASS.
 
 
-
 CLASS z2ui5_cl_http_handler IMPLEMENTATION.
-
 
   METHOD main.
 
@@ -98,7 +96,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD factory.
 
     result = NEW #( ).
@@ -114,7 +111,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD factory_cloud.
 
     result = NEW #( ).
@@ -122,7 +118,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                                                            res = res ).
 
   ENDMETHOD.
-
 
   METHOD _http_get.
 
@@ -174,17 +169,16 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
       result-body = |{ result-body } { lr_config->n }='{ lr_config->v }'|.
     ENDLOOP.
 
-    result-body = result-body &&
-        | ></script></head>| && |\n| &&
-        |<body class="sapUiBody sapUiSizeCompact" id="content">| && |\n| &&
-        |    <div data-sap-ui-component data-name="z2ui5" data-id="container" data-settings='\{"id" : "z2ui5"\}' data-handle-validation="true"></div>| && |\n| &&
-        | </body></html>|.
+    result-body          = result-body &&
+                 | ></script></head>| && |\n| &&
+                 |<body class="sapUiBody sapUiSizeCompact" id="content">| && |\n| &&
+                 |    <div data-sap-ui-component data-name="z2ui5" data-id="container" data-settings='\{"id" : "z2ui5"\}' data-handle-validation="true"></div>| && |\n| &&
+                 | </body></html>|.
 
-    result-status_code = 200.
+    result-status_code   = 200.
     result-status_reason = `success`.
 
   ENDMETHOD.
-
 
   METHOD run.
 
@@ -196,11 +190,9 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD set_response.
 
     mo_server->set_cdata( ms_res-body ).
-
 
     DATA(ls_config) = VALUE z2ui5_if_types=>ty_s_http_config( ).
     z2ui5_cl_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
@@ -240,7 +232,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD _http_post.
     TRY.
 
@@ -265,21 +256,18 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
           CATCH cx_root ##NO_HANDLER.
         ENDTRY.
 
-
       CATCH cx_root INTO DATA(x).
 *        ASSERT x->get_text( ) = 1.
 
-        result = VALUE #( body  = `abap2UI5 Error:` && x->get_text( )
-                  status_code   = 500
-                  status_reason = `error` ).
+        result = VALUE #( body          = |abap2UI5 Error:{ x->get_text( ) }|
+                          status_code   = 500
+                          status_reason = `error` ).
     ENDTRY.
   ENDMETHOD.
-
 
   METHOD _main.
 
     z2ui5_cl_exit=>init_context( is_req ).
-
 
     CASE is_req-method.
       WHEN `GET`.
@@ -289,7 +277,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
-
 
   METHOD get_request.
 
@@ -301,6 +288,5 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     result-method = lo_handler->mo_server->get_method( ).
 
   ENDMETHOD.
-
 
 ENDCLASS.
