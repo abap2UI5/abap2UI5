@@ -56,7 +56,7 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
           ASSIGN COMPONENT ls_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<comp>).
 *          ASSIGN (lv_name) TO FIELD-SYMBOL(<comp>).
 
-          IF ls_attri->name = 'ITEM'.
+          IF ls_attri->name = `ITEM`.
             lt_tab = msg_get( <comp> ).
             INSERT LINES OF lt_tab INTO TABLE result.
             RETURN.
@@ -67,7 +67,7 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
         ENDLOOP.
         IF ls_result-text IS INITIAL AND ls_result-id IS NOT INITIAL.
           ls_result-id = to_upper( ls_result-id ).
-          MESSAGE ID ls_result-id TYPE 'I' NUMBER ls_result-no
+          MESSAGE ID ls_result-id TYPE `I` NUMBER ls_result-no
                   WITH ls_result-v1 ls_result-v2 ls_result-v3 ls_result-v4
                   INTO ls_result-text.
         ENDIF.
@@ -76,10 +76,10 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
       WHEN cl_abap_datadescr=>typekind_oref.
         TRY.
             DATA(lx) = CAST cx_root( val ).
-            ls_result = VALUE #( type = 'E' text = lx->get_text( ) ).
+            ls_result = VALUE #( type = `E` text = lx->get_text( ) ).
             DATA(lt_attri_o) = z2ui5_cl_util=>rtti_get_t_attri_by_oref( val ).
             LOOP AT lt_attri_o REFERENCE INTO DATA(ls_attri_o)
-                 WHERE visibility = 'U'.
+                 WHERE visibility = `U`.
               DATA(lv_name) = ls_attri_o->name.
               ASSIGN val->(lv_name) TO <comp>.
               ls_result = msg_map( name = ls_attri_o->name val = <comp> is_msg = ls_result ).
@@ -93,7 +93,7 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
             TRY.
 
                 DATA lr_tab TYPE REF TO data.
-                CREATE DATA lr_tab TYPE ('if_bali_log=>ty_item_table').
+                CREATE DATA lr_tab TYPE (`if_bali_log=>ty_item_table`).
                 ASSIGN lr_tab->* TO FIELD-SYMBOL(<tab2>).
 
                 CALL METHOD obj->(`IF_BALI_LOG~GET_ALL_ITEMS`)
@@ -107,7 +107,7 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
                 TRY.
 
-                    CREATE DATA lr_tab TYPE ('BAPIRETTAB').
+                    CREATE DATA lr_tab TYPE (`BAPIRETTAB`).
                     ASSIGN lr_tab->* TO <tab2>.
 
                     CALL METHOD obj->(`ZIF_LOGGER~EXPORT_TO_TABLE`)
@@ -122,7 +122,7 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
                     lt_attri_o = z2ui5_cl_util=>rtti_get_t_attri_by_oref( val ).
                     LOOP AT lt_attri_o REFERENCE INTO ls_attri_o
-                         WHERE visibility = 'U'.
+                         WHERE visibility = `U`.
                       lv_name = ls_attri_o->name.
                       ASSIGN obj->(lv_name) TO <comp>.
                       ls_result = msg_map( name = ls_attri_o->name val = <comp> is_msg = ls_result ).
@@ -150,23 +150,23 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
     result = is_msg.
     CASE name.
-      WHEN 'ID' OR 'MSGID'.
+      WHEN `ID` OR `MSGID`.
         result-id = val.
-      WHEN 'NO' OR 'NUMBER' OR 'MSGNO'.
+      WHEN `NO` OR `NUMBER` OR `MSGNO`.
         result-no = val.
-      WHEN 'MESSAGE' OR 'TEXT'.
+      WHEN `MESSAGE` OR `TEXT`.
         result-text = val.
-      WHEN 'TYPE' OR 'MSGTY'.
+      WHEN `TYPE` OR `MSGTY`.
         result-type = val.
-      WHEN 'MESSAGE_V1' OR 'MSGV1' OR 'V1'.
+      WHEN `MESSAGE_V1` OR `MSGV1` OR `V1`.
         result-v1 = val.
-      WHEN 'MESSAGE_V2' OR 'MSGV2' OR 'V2'.
+      WHEN `MESSAGE_V2` OR `MSGV2` OR `V2`.
         result-v2 = val.
-      WHEN 'MESSAGE_V3' OR 'MSGV3' OR 'V3'.
+      WHEN `MESSAGE_V3` OR `MSGV3` OR `V3`.
         result-v3 = val.
-      WHEN 'MESSAGE_V4' OR 'MSGV4' OR 'V4'.
+      WHEN `MESSAGE_V4` OR `MSGV4` OR `V4`.
         result-v4 = val.
-      WHEN 'TIME_STMP'.
+      WHEN `TIME_STMP`.
         result-timestampl = val.
     ENDCASE.
 

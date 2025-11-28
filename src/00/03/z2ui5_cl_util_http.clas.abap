@@ -90,16 +90,16 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
       DATA object TYPE REF TO object.
       FIELD-SYMBOLS <any> TYPE any.
 
-      ASSIGN mo_server_onprem->('RESPONSE') TO <any>.
+      ASSIGN mo_server_onprem->(`RESPONSE`) TO <any>.
       object = <any>.
 
-      CALL METHOD object->('DELETE_COOKIE')
+      CALL METHOD object->(`DELETE_COOKIE`)
         EXPORTING
           name = lv_val.
 
     ELSE.
 
-*      CALL METHOD mo_response_cloud->('DELETE_COOKIE_AT_CLIENT')
+*      CALL METHOD mo_response_cloud->(`DELETE_COOKIE_AT_CLIENT`)
 *        EXPORTING
 *          name = lv_val.
 
@@ -116,10 +116,10 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
 
     IF mo_server_onprem IS BOUND.
 
-      ASSIGN mo_server_onprem->('RESPONSE') TO <any>.
+      ASSIGN mo_server_onprem->(`RESPONSE`) TO <any>.
       object = <any>.
 
-      CALL METHOD object->('GET_COOKIE')
+      CALL METHOD object->(`GET_COOKIE`)
         EXPORTING
           name  = lv_val
         IMPORTING
@@ -127,7 +127,7 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
 
     ELSE.
 
-*      CALL METHOD mo_request_cloud->('GET_COOKIE')
+*      CALL METHOD mo_request_cloud->(`GET_COOKIE`)
 *        EXPORTING
 *          i_name  = lv_val
 *        RECEIVING
@@ -146,10 +146,10 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
 
     IF mo_server_onprem IS BOUND.
 
-      ASSIGN mo_server_onprem->('REQUEST') TO <any>.
+      ASSIGN mo_server_onprem->(`REQUEST`) TO <any>.
       object = <any>.
 
-      CALL METHOD object->('GET_HEADER_FIELD')
+      CALL METHOD object->(`GET_HEADER_FIELD`)
         EXPORTING
           name  = lv_val
         RECEIVING
@@ -157,7 +157,7 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
 
     ELSE.
 
-      CALL METHOD mo_request_cloud->('IF_WEB_HTTP_REQUEST~GET_HEADER_FIELD')
+      CALL METHOD mo_request_cloud->(`IF_WEB_HTTP_REQUEST~GET_HEADER_FIELD`)
         EXPORTING
           i_name  = lv_val
         RECEIVING
@@ -176,17 +176,17 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
     DATA(lv_v) = CONV string( v ).
     IF mo_server_onprem IS BOUND.
 
-      ASSIGN mo_server_onprem->('RESPONSE') TO <any>.
+      ASSIGN mo_server_onprem->(`RESPONSE`) TO <any>.
       object = <any>.
 
-      CALL METHOD object->('SET_HEADER_FIELD')
+      CALL METHOD object->(`SET_HEADER_FIELD`)
         EXPORTING
           name  = lv_n
           value = lv_v.
 
     ELSE.
 
-      CALL METHOD mo_response_cloud->('IF_WEB_HTTP_RESPONSE~SET_HEADER_FIELD')
+      CALL METHOD mo_response_cloud->(`IF_WEB_HTTP_RESPONSE~SET_HEADER_FIELD`)
         EXPORTING
           i_name  = lv_n
           i_value = lv_v.
@@ -217,16 +217,16 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
 
     IF mo_server_onprem IS BOUND.
 
-      ASSIGN mo_server_onprem->('REQUEST') TO <any>.
+      ASSIGN mo_server_onprem->(`REQUEST`) TO <any>.
       object = <any>.
 
-      CALL METHOD object->('GET_CDATA')
+      CALL METHOD object->(`GET_CDATA`)
         RECEIVING
           data = result.
 
     ELSE.
 
-      CALL METHOD mo_request_cloud->('IF_WEB_HTTP_REQUEST~GET_TEXT')
+      CALL METHOD mo_request_cloud->(`IF_WEB_HTTP_REQUEST~GET_TEXT`)
         RECEIVING
           r_value = result.
 
@@ -241,16 +241,16 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
 
     IF mo_server_onprem IS BOUND.
 
-      ASSIGN mo_server_onprem->('REQUEST') TO <any>.
+      ASSIGN mo_server_onprem->(`REQUEST`) TO <any>.
       object = <any>.
 
-      CALL METHOD object->('IF_HTTP_REQUEST~GET_METHOD')
+      CALL METHOD object->(`IF_HTTP_REQUEST~GET_METHOD`)
         RECEIVING
           method = result.
 
     ELSE.
 
-      CALL METHOD mo_request_cloud->('IF_WEB_HTTP_REQUEST~GET_METHOD')
+      CALL METHOD mo_request_cloud->(`IF_WEB_HTTP_REQUEST~GET_METHOD`)
         RECEIVING
           r_value = result.
 
@@ -265,16 +265,16 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
 
     IF mo_server_onprem IS BOUND.
 
-      ASSIGN mo_server_onprem->('RESPONSE') TO <any>.
+      ASSIGN mo_server_onprem->(`RESPONSE`) TO <any>.
       object = <any>.
 
-      CALL METHOD object->('SET_CDATA')
+      CALL METHOD object->(`SET_CDATA`)
         EXPORTING
           data = val.
 
     ELSE.
 
-      CALL METHOD mo_response_cloud->('IF_WEB_HTTP_RESPONSE~SET_TEXT')
+      CALL METHOD mo_response_cloud->(`IF_WEB_HTTP_RESPONSE~SET_TEXT`)
         EXPORTING
           i_text = val.
 
@@ -291,17 +291,17 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
 
     IF mo_server_onprem IS BOUND.
 
-      ASSIGN mo_server_onprem->('RESPONSE') TO <any>.
+      ASSIGN mo_server_onprem->(`RESPONSE`) TO <any>.
       object = <any>.
 
-      CALL METHOD object->('IF_HTTP_RESPONSE~SET_STATUS')
+      CALL METHOD object->(`IF_HTTP_RESPONSE~SET_STATUS`)
         EXPORTING
           code   = code
           reason = lv_reason.
 
     ELSE.
 
-      CALL METHOD mo_response_cloud->('IF_WEB_HTTP_RESPONSE~SET_STATUS')
+      CALL METHOD mo_response_cloud->(`IF_WEB_HTTP_RESPONSE~SET_STATUS`)
         EXPORTING
           i_code   = code
           i_reason = lv_reason.
@@ -314,14 +314,14 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
 
     IF mo_server_onprem IS BOUND.
 
-      CALL METHOD mo_server_onprem->('SET_SESSION_STATEFUL')
+      CALL METHOD mo_server_onprem->(`SET_SESSION_STATEFUL`)
         EXPORTING
           stateful = val.
 
     ELSE.
 
       "FEATURE IN CLOUD NOT RELEASED
-*      ASSERT 1 = 'NO_STATEFUL_FEATURE_IN_CLOUD_ERROR'.
+*      ASSERT 1 = `NO_STATEFUL_FEATURE_IN_CLOUD_ERROR`.
 
     ENDIF.
 

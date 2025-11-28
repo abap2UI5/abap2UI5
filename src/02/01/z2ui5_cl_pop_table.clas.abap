@@ -27,7 +27,7 @@ CLASS z2ui5_cl_pop_table DEFINITION
     DATA mr_tab TYPE REF TO data.
 
   PROTECTED SECTION.
-    DATA title  TYPE string VALUE 'Table View'.
+    DATA title  TYPE string VALUE `Table View`.
     DATA client TYPE REF TO z2ui5_if_client.
 
     METHODS on_event.
@@ -46,10 +46,10 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
 
     ASSIGN mr_tab->* TO <tab_out>.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( afterclose = client->_event( 'BUTTON_CONFIRM' )
+    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( afterclose = client->_event( `BUTTON_CONFIRM` )
                                                                stretch    = abap_true
                                                                title      = title
-*                                                               icon       = 'sap-icon://edit'
+*                                                               icon       = `sap-icon://edit`
           )->content( ).
 
     DATA(tab) = popup->table( client->_bind( <tab_out> ) ).
@@ -65,14 +65,14 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
 
     DATA(columns) = tab->columns( ).
     LOOP AT lt_comp INTO ls_comp.
-      columns->column( '8rem' )->header( `` )->text( ls_comp-name ).
+      columns->column( `8rem` )->header( `` )->text( ls_comp-name ).
     ENDLOOP.
 
     popup->get_parent(
         )->buttons(
-            )->button( text  = 'OK'
-                       press = client->_event( 'BUTTON_CONFIRM' )
-                       type  = 'Emphasized' ).
+            )->button( text  = `OK`
+                       press = client->_event( `BUTTON_CONFIRM` )
+                       type  = `Emphasized` ).
 
     client->popup_display( popup->stringify( ) ).
 
@@ -97,11 +97,11 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
 
     CASE client->get( )-event.
 
-      WHEN 'BUTTON_CONFIRM'.
+      WHEN `BUTTON_CONFIRM`.
         ms_result-check_confirmed = abap_true.
         on_event_confirm( ).
 
-      WHEN 'CANCEL'.
+      WHEN `CANCEL`.
         client->popup_destroy( ).
         client->nav_app_leave( ).
 

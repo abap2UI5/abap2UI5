@@ -80,14 +80,14 @@ CLASS z2ui5_cl_pop_image_editor IMPLEMENTATION.
     ENDIF.
 
     CASE client->get( )-event.
-      WHEN 'SAVE'.
+      WHEN `SAVE`.
 
         mv_confirmed = abap_true.
         DATA(args) = client->get( )-t_event_arg.
         mv_image = args[ 1 ].
         client->nav_app_leave( ).
 
-      WHEN 'CANCEL'.
+      WHEN `CANCEL`.
 
         mv_confirmed = abap_false.
         client->popup_destroy( ).
@@ -101,13 +101,13 @@ CLASS z2ui5_cl_pop_image_editor IMPLEMENTATION.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup(
                                   )->dialog( title         = mv_title
-                                             icon          = 'sap-icon://edit'
+                                             icon          = `sap-icon://edit`
                                              contentheight = `80%`
                                              contentwidth  = `80%` ).
 
     popup->image_editor_container( enabledbuttons = mv_enabledbuttons
                                    mode           = mv_mode
-        )->image_editor( id                    = 'imageEditor'
+        )->image_editor( id                    = `imageEditor`
                          src                   = mv_image
                          customshapesrc        = mv_customshapesrc
                          keepcropaspectratio   = mv_keepcropaspectratio
@@ -117,10 +117,10 @@ CLASS z2ui5_cl_pop_image_editor IMPLEMENTATION.
 
     popup->buttons(
         )->button( text  = mv_cancel_text
-                   type  = 'Reject'
+                   type  = `Reject`
                    press = client->_event( `CANCEL` )
         )->button( text  = mv_save_text
-                   type  = 'Emphasized'
+                   type  = `Emphasized`
                    press = client->_event_client( client->cs_event-image_editor_popup_close ) ).
 
     client->popup_display( popup->stringify( ) ).

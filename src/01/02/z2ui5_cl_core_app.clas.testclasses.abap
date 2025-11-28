@@ -42,7 +42,7 @@ CLASS ltcl_test_db IMPLEMENTATION.
 
   METHOD test_db_save.
 
-    IF sy-sysid = 'ABC'.
+    IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 

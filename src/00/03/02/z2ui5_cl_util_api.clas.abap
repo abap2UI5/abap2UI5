@@ -352,7 +352,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
   METHOD context_check_abap_cloud.
 
     TRY.
-        cl_abap_typedescr=>describe_by_name( 'T100' ).
+        cl_abap_typedescr=>describe_by_name( `T100` ).
         result = abap_false.
       CATCH cx_root.
         result = abap_true.
@@ -378,10 +378,10 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
     DATA lr_fix    LIKE REF TO temp1.
     DATA temp2     TYPE z2ui5_cl_util_api=>ty_s_fix_val.
 
-    lv_langu = ' '.
+    lv_langu = ` `.
     lv_langu = langu.
 
-    CALL METHOD elemdescr->('GET_DDIC_FIXED_VALUES')
+    CALL METHOD elemdescr->(`GET_DDIC_FIXED_VALUES`)
       EXPORTING
         p_langu        = lv_langu
       RECEIVING
@@ -410,8 +410,8 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
     TRY.
 
-        lv_web_http_name = 'CL_WEB_HTTP_UTILITY'.
-        CALL METHOD (lv_web_http_name)=>('DECODE_X_BASE64')
+        lv_web_http_name = `CL_WEB_HTTP_UTILITY`.
+        CALL METHOD (lv_web_http_name)=>(`DECODE_X_BASE64`)
           EXPORTING
             encoded = val
           RECEIVING
@@ -419,8 +419,8 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
       CATCH cx_root.
 
-        classname = 'CL_HTTP_UTILITY'.
-        CALL METHOD (classname)=>('DECODE_X_BASE64')
+        classname = `CL_HTTP_UTILITY`.
+        CALL METHOD (classname)=>(`DECODE_X_BASE64`)
           EXPORTING
             encoded = val
           RECEIVING
@@ -436,8 +436,8 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
     TRY.
 
-        lv_web_http_name = 'CL_WEB_HTTP_UTILITY'.
-        CALL METHOD (lv_web_http_name)=>('ENCODE_X_BASE64')
+        lv_web_http_name = `CL_WEB_HTTP_UTILITY`.
+        CALL METHOD (lv_web_http_name)=>(`ENCODE_X_BASE64`)
           EXPORTING
             unencoded = val
           RECEIVING
@@ -445,8 +445,8 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
       CATCH cx_root.
 
-        classname = 'CL_HTTP_UTILITY'.
-        CALL METHOD (classname)=>('ENCODE_X_BASE64')
+        classname = `CL_HTTP_UTILITY`.
+        CALL METHOD (classname)=>(`ENCODE_X_BASE64`)
           EXPORTING
             unencoded = val
           RECEIVING
@@ -464,12 +464,12 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
     TRY.
 
-        conv_codepage = 'CL_ABAP_CONV_CODEPAGE'.
+        conv_codepage = `CL_ABAP_CONV_CODEPAGE`.
         CALL METHOD (conv_codepage)=>create_in
           RECEIVING
             instance = conv.
 
-        CALL METHOD conv->('IF_ABAP_CONV_IN~CONVERT')
+        CALL METHOD conv->(`IF_ABAP_CONV_IN~CONVERT`)
           EXPORTING
             source = val
           RECEIVING
@@ -477,14 +477,14 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
       CATCH cx_root.
 
-        conv_in_class = 'CL_ABAP_CONV_IN_CE'.
+        conv_in_class = `CL_ABAP_CONV_IN_CE`.
         CALL METHOD (conv_in_class)=>create
           EXPORTING
-            encoding = 'UTF-8'
+            encoding = `UTF-8`
           RECEIVING
             conv     = conv.
 
-        CALL METHOD conv->('CONVERT')
+        CALL METHOD conv->(`CONVERT`)
           EXPORTING
             input = val
           IMPORTING
@@ -501,12 +501,12 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
     TRY.
 
-        conv_codepage = 'CL_ABAP_CONV_CODEPAGE'.
+        conv_codepage = `CL_ABAP_CONV_CODEPAGE`.
         CALL METHOD (conv_codepage)=>create_out
           RECEIVING
             instance = conv.
 
-        CALL METHOD conv->('IF_ABAP_CONV_OUT~CONVERT')
+        CALL METHOD conv->(`IF_ABAP_CONV_OUT~CONVERT`)
           EXPORTING
             source = val
           RECEIVING
@@ -514,14 +514,14 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
       CATCH cx_root.
 
-        conv_out_class = 'CL_ABAP_CONV_OUT_CE'.
+        conv_out_class = `CL_ABAP_CONV_OUT_CE`.
         CALL METHOD (conv_out_class)=>create
           EXPORTING
-            encoding = 'UTF-8'
+            encoding = `UTF-8`
           RECEIVING
             conv     = conv.
 
-        CALL METHOD conv->('CONVERT')
+        CALL METHOD conv->(`CONVERT`)
           EXPORTING
             data   = val
           IMPORTING
@@ -549,45 +549,45 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
         lv_class  = to_upper( iv_classname ).
         lv_method = to_upper( iv_methodname ).
 
-        xco_cp_abap = 'XCO_CP_ABAP'.
-        CALL METHOD (xco_cp_abap)=>('CLASS')
+        xco_cp_abap = `XCO_CP_ABAP`.
+        CALL METHOD (xco_cp_abap)=>(`CLASS`)
           EXPORTING
             iv_name  = lv_class
           RECEIVING
             ro_class = object.
 
-        ASSIGN object->('IF_XCO_AO_CLASS~IMPLEMENTATION') TO <any>.
+        ASSIGN object->(`IF_XCO_AO_CLASS~IMPLEMENTATION`) TO <any>.
         ASSERT sy-subrc = 0.
         object = <any>.
 
-        CALL METHOD object->('IF_XCO_CLAS_IMPLEMENTATION~METHOD')
+        CALL METHOD object->(`IF_XCO_CLAS_IMPLEMENTATION~METHOD`)
           EXPORTING
             iv_name   = lv_method
           RECEIVING
             ro_method = object.
 
-        CALL METHOD object->('IF_XCO_CLAS_I_METHOD~CONTENT')
+        CALL METHOD object->(`IF_XCO_CLAS_I_METHOD~CONTENT`)
           RECEIVING
             ro_content = object.
 
-        CALL METHOD object->('IF_XCO_CLAS_I_METHOD_CONTENT~GET_SOURCE')
+        CALL METHOD object->(`IF_XCO_CLAS_I_METHOD_CONTENT~GET_SOURCE`)
           RECEIVING
             rt_source = result.
 
       CATCH cx_root.
 
-        lv_name = 'CL_OO_FACTORY'.
-        CALL METHOD (lv_name)=>('CREATE_INSTANCE')
+        lv_name = `CL_OO_FACTORY`.
+        CALL METHOD (lv_name)=>(`CREATE_INSTANCE`)
           RECEIVING
             result = object.
 
-        CALL METHOD object->('IF_OO_CLIF_SOURCE_FACTORY~CREATE_CLIF_SOURCE')
+        CALL METHOD object->(`IF_OO_CLIF_SOURCE_FACTORY~CREATE_CLIF_SOURCE`)
           EXPORTING
             clif_name = lv_class
           RECEIVING
             result    = object.
 
-        CALL METHOD object->('IF_OO_CLIF_SOURCE~GET_SOURCE')
+        CALL METHOD object->(`IF_OO_CLIF_SOURCE~GET_SOURCE`)
           IMPORTING
             source = lt_source.
 
@@ -652,26 +652,26 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
       ls_clskey-clsname = val.
 
-      xco_cp_abap = 'XCO_CP_ABAP'.
+      xco_cp_abap = `XCO_CP_ABAP`.
       CALL METHOD (xco_cp_abap)=>interface
         EXPORTING
           iv_name      = ls_clskey-clsname
         RECEIVING
           ro_interface = obj.
 
-      ASSIGN obj->('IF_XCO_AO_INTERFACE~IMPLEMENTATIONS') TO <any>.
+      ASSIGN obj->(`IF_XCO_AO_INTERFACE~IMPLEMENTATIONS`) TO <any>.
       IF sy-subrc <> 0.
         RAISE EXCEPTION TYPE cx_sy_dyn_call_illegal_class.
       ENDIF.
       obj = <any>.
 
-      ASSIGN obj->('IF_XCO_INTF_IMPLEMENTATIONS_FC~ALL') TO <any>.
+      ASSIGN obj->(`IF_XCO_INTF_IMPLEMENTATIONS_FC~ALL`) TO <any>.
       IF sy-subrc <> 0.
         RAISE EXCEPTION TYPE cx_sy_dyn_call_illegal_class.
       ENDIF.
       obj = <any>.
 
-      CALL METHOD obj->('IF_XCO_INTF_IMPLEMENTATIONS~GET_NAMES')
+      CALL METHOD obj->(`IF_XCO_INTF_IMPLEMENTATIONS~GET_NAMES`)
         RECEIVING
           rt_names = lt_implementation_names.
 
@@ -703,7 +703,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-      type = 'SEOC_CLASS_R'.
+      type = `SEOC_CLASS_R`.
       CREATE DATA class TYPE (type).
 
       ASSIGN class->* TO <class>.
@@ -728,7 +728,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
         ENDIF.
 
         ASSIGN
-          COMPONENT 'DESCRIPT'
+          COMPONENT `DESCRIPT`
           OF STRUCTURE <class>
           TO <description>.
         ASSERT sy-subrc = 0.
@@ -769,9 +769,9 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
     data_element_name = val.
 
     TRY.
-        cl_abap_typedescr=>describe_by_name( 'T100' ).
+        cl_abap_typedescr=>describe_by_name( `T100` ).
 
-        temp7 ?= cl_abap_structdescr=>describe_by_name( 'DFIES' ).
+        temp7 ?= cl_abap_structdescr=>describe_by_name( `DFIES` ).
 
         struct_desrc = temp7.
 
@@ -791,7 +791,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
         data_descr = temp8.
 
-        CALL METHOD data_descr->('GET_DDIC_FIELD')
+        CALL METHOD data_descr->(`GET_DDIC_FIELD`)
           RECEIVING
             p_flddescr   = <ddic>
           EXCEPTIONS
@@ -811,14 +811,14 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
       CATCH cx_root.
         TRY.
             DATA lv_xco_cp_abap_dictionary TYPE string.
-            lv_xco_cp_abap_dictionary = 'XCO_CP_ABAP_DICTIONARY'.
-            CALL METHOD (lv_xco_cp_abap_dictionary)=>('DATA_ELEMENT')
+            lv_xco_cp_abap_dictionary = `XCO_CP_ABAP_DICTIONARY`.
+            CALL METHOD (lv_xco_cp_abap_dictionary)=>(`DATA_ELEMENT`)
               EXPORTING
                 iv_name         = data_element_name
               RECEIVING
                 ro_data_element = data_element.
 
-            CALL METHOD data_element->('IF_XCO_AD_DATA_ELEMENT~EXISTS')
+            CALL METHOD data_element->(`IF_XCO_AD_DATA_ELEMENT~EXISTS`)
               RECEIVING
                 rv_exists = exists.
 
@@ -826,23 +826,23 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
               RETURN.
             ENDIF.
 
-            CALL METHOD data_element->('IF_XCO_AD_DATA_ELEMENT~CONTENT')
+            CALL METHOD data_element->(`IF_XCO_AD_DATA_ELEMENT~CONTENT`)
               RECEIVING
                 ro_content = content.
 
-            CALL METHOD content->('IF_XCO_DTEL_CONTENT~GET_HEADING_FIELD_LABEL')
+            CALL METHOD content->(`IF_XCO_DTEL_CONTENT~GET_HEADING_FIELD_LABEL`)
               RECEIVING
                 rs_heading_field_label = result-header.
 
-            CALL METHOD content->('IF_XCO_DTEL_CONTENT~GET_SHORT_FIELD_LABEL')
+            CALL METHOD content->(`IF_XCO_DTEL_CONTENT~GET_SHORT_FIELD_LABEL`)
               RECEIVING
                 rs_short_field_label = result-short.
 
-            CALL METHOD content->('IF_XCO_DTEL_CONTENT~GET_MEDIUM_FIELD_LABEL')
+            CALL METHOD content->(`IF_XCO_DTEL_CONTENT~GET_MEDIUM_FIELD_LABEL`)
               RECEIVING
                 rs_medium_field_label = result-medium.
 
-            CALL METHOD content->('IF_XCO_DTEL_CONTENT~GET_LONG_FIELD_LABEL')
+            CALL METHOD content->(`IF_XCO_DTEL_CONTENT~GET_LONG_FIELD_LABEL`)
               RECEIVING
                 rs_long_field_label = result-long.
 
@@ -949,18 +949,18 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
         lv_classname = i_classname.
 
-        xco_cp_abap = 'XCO_CP_ABAP'.
-        CALL METHOD (xco_cp_abap)=>('CLASS')
+        xco_cp_abap = `XCO_CP_ABAP`.
+        CALL METHOD (xco_cp_abap)=>(`CLASS`)
           EXPORTING
             iv_name  = lv_classname
           RECEIVING
             ro_class = obj.
 
-        CALL METHOD obj->('IF_XCO_AO_CLASS~CONTENT')
+        CALL METHOD obj->(`IF_XCO_AO_CLASS~CONTENT`)
           RECEIVING
             ro_content = content.
 
-        CALL METHOD content->('IF_XCO_CLAS_CONTENT~GET_SHORT_DESCRIPTION')
+        CALL METHOD content->(`IF_XCO_CLAS_CONTENT~GET_SHORT_DESCRIPTION`)
           RECEIVING
             rv_short_description = result.
 
@@ -1014,8 +1014,8 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
     DATA lo_util TYPE REF TO object.
     IF context_check_abap_cloud( ).
 
-      CREATE OBJECT lo_util TYPE ('Z2UI5_CL_UTIL_ABAP_C').
-      CALL METHOD lo_util->('CONTEXT_GET_CALLSTACK')
+      CREATE OBJECT lo_util TYPE (`Z2UI5_CL_UTIL_ABAP_C`).
+      CALL METHOD lo_util->(`CONTEXT_GET_CALLSTACK`)
         RECEIVING
           result = result.
 
@@ -1057,8 +1057,8 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 *" Create and set header
 *
 *
-*DATA(lo_header) = cl_bali_header_setter=>create( object      = 'ZBS_DEMO_LOG_OBJECT'
-*                                                 subobject   = 'TEST'
+*DATA(lo_header) = cl_bali_header_setter=>create( object      = `ZBS_DEMO_LOG_OBJECT`
+*                                                 subobject   = `TEST`
 *                                                 external_id = cl_system_uuid=>create_uuid_c32_static( )
 *                                                 ).
 *
@@ -1067,7 +1067,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 *
 *lo_ohandler->read_object(
 *  EXPORTING
-*    iv_object      = 'TEST'
+*    iv_object      = `TEST`
 *  IMPORTING
 **    ev_object_text =
 *    et_subobjects  = data(lo_obj)

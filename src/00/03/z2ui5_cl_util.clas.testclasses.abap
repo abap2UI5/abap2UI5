@@ -167,16 +167,16 @@ CLASS ltcl_unit_test_open_abap IMPLEMENTATION.
   METHOD test_substring_after.
 
     cl_abap_unit_assert=>assert_equals( exp = ` string`
-                                        act = substring_after( val = 'this is a string'
-                                                               sub = 'a' ) ).
+                                        act = substring_after( val = `this is a string`
+                                                               sub = `a` ) ).
 
   ENDMETHOD.
 
   METHOD test_substring_before.
 
     cl_abap_unit_assert=>assert_equals( exp = `this is `
-                                        act = substring_before( val = 'this is a string'
-                                                                sub = 'a' ) ).
+                                        act = substring_before( val = `this is a string`
+                                                                sub = `a` ) ).
 
   ENDMETHOD.
 
@@ -192,13 +192,13 @@ CLASS ltcl_unit_test_open_abap IMPLEMENTATION.
 
     DATA(lv_search) = replace( val  = `one two three`
                                sub  = `two`
-                               with = 'ABC'
+                               with = `ABC`
                                occ  = 0 ) ##NEEDED.
 
     cl_abap_unit_assert=>assert_equals( exp = `one ABC three`
                                         act = replace( val  = `one two three`
                                                        sub  = `two`
-                                                       with = 'ABC'
+                                                       with = `ABC`
                                                        occ  = 0 ) ).
 
   ENDMETHOD.
@@ -409,7 +409,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_func_get_user_tech.
 
-    IF sy-sysid = 'ABC'.
+    IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 
@@ -721,13 +721,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_get_token_t_by_r_t.
 
-    DATA(lt_range) = VALUE z2ui5_cl_util=>ty_t_range( ( sign = 'I' option = 'EQ' low = `table` high = `` )
+    DATA(lt_range) = VALUE z2ui5_cl_util=>ty_t_range( ( sign = `I` option = `EQ` low = `table` high = `` )
      ).
 
     DATA(lt_result) = z2ui5_cl_util=>filter_get_token_t_by_range_t( lt_range ).
 
     DATA(lt_exp) = VALUE z2ui5_cl_util=>ty_t_token(
-                             ( key = `=table` text = `=table` visible = 'X' selkz = '' editable = 'X' )
+                             ( key = `=table` text = `=table` visible = `X` selkz = `` editable = `X` )
     ).
 
     cl_abap_unit_assert=>assert_equals( exp = lt_exp
@@ -738,7 +738,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_rtti_get_t_attri_by_incl.
 
-    IF sy-sysid = 'ABC'.
+    IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 

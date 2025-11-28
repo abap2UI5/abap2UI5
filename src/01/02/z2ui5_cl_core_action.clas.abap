@@ -88,7 +88,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
               result->mo_app = lo_app.
               result->ms_actual-check_on_navigated = abap_true.
               result->ms_next-s_set-set_app_state_active = abap_true.
-              result->mo_app->ms_draft-id_prev_app_stack = ''.
+              result->mo_app->ms_draft-id_prev_app_stack = ``.
               result->mo_app->ms_draft-id = z2ui5_cl_util=>uuid_get_c32( ).
               RETURN.
             CATCH cx_root ##NO_HANDLER.

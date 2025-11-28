@@ -4,22 +4,22 @@ CLASS z2ui5_cl_util_range DEFINITION PUBLIC
 
     CONSTANTS:
       BEGIN OF signs,
-        including TYPE string VALUE 'I',
-        excluding TYPE string VALUE 'E',
+        including TYPE string VALUE `I`,
+        excluding TYPE string VALUE `E`,
       END OF signs.
 
     CONSTANTS:
       BEGIN OF options,
-        equal                TYPE string VALUE 'EQ',
-        not_equal            TYPE string VALUE 'NE',
-        between              TYPE string VALUE 'BT',
-        not_between          TYPE string VALUE 'NB',
-        contains_pattern     TYPE string VALUE 'CP',
-        not_contains_pattern TYPE string VALUE 'NP',
-        greater_than         TYPE string VALUE 'GT',
-        greater_equal        TYPE string VALUE 'GE',
-        less_equal           TYPE string VALUE 'LE',
-        less_than            TYPE string VALUE 'LT',
+        equal                TYPE string VALUE `EQ`,
+        not_equal            TYPE string VALUE `NE`,
+        between              TYPE string VALUE `BT`,
+        not_between          TYPE string VALUE `NB`,
+        contains_pattern     TYPE string VALUE `CP`,
+        not_contains_pattern TYPE string VALUE `NP`,
+        greater_than         TYPE string VALUE `GT`,
+        greater_equal        TYPE string VALUE `GE`,
+        less_equal           TYPE string VALUE `LE`,
+        less_than            TYPE string VALUE `LT`,
       END OF options.
 
     METHODS constructor
@@ -66,10 +66,10 @@ CLASS z2ui5_cl_util_range IMPLEMENTATION.
 
     LOOP AT <lt_range> ASSIGNING FIELD-SYMBOL(<ls_range_item>).
 
-      ASSIGN COMPONENT 'SIGN' OF STRUCTURE <ls_range_item> TO FIELD-SYMBOL(<lv_sign>).
-      ASSIGN COMPONENT 'OPTION' OF STRUCTURE <ls_range_item> TO FIELD-SYMBOL(<lv_option>).
-      ASSIGN COMPONENT 'LOW' OF STRUCTURE <ls_range_item> TO FIELD-SYMBOL(<lv_low>).
-      ASSIGN COMPONENT 'HIGH' OF STRUCTURE <ls_range_item> TO FIELD-SYMBOL(<lv_high>).
+      ASSIGN COMPONENT `SIGN` OF STRUCTURE <ls_range_item> TO FIELD-SYMBOL(<lv_sign>).
+      ASSIGN COMPONENT `OPTION` OF STRUCTURE <ls_range_item> TO FIELD-SYMBOL(<lv_option>).
+      ASSIGN COMPONENT `LOW` OF STRUCTURE <ls_range_item> TO FIELD-SYMBOL(<lv_low>).
+      ASSIGN COMPONENT `HIGH` OF STRUCTURE <ls_range_item> TO FIELD-SYMBOL(<lv_high>).
 
       IF sy-tabix <> 1.
         result = |{ result } OR|.
@@ -97,11 +97,11 @@ CLASS z2ui5_cl_util_range IMPLEMENTATION.
           result = |{ result } NOT BETWEEN { quote( <lv_low> ) } AND { quote( <lv_high> ) }|.
 
         WHEN options-contains_pattern.
-          TRANSLATE <lv_low> USING '*%'.
+          TRANSLATE <lv_low> USING `*%`.
           result = |{ result } LIKE { quote( <lv_low> ) }|.
 
         WHEN options-not_contains_pattern.
-          TRANSLATE <lv_low> USING '*%'.
+          TRANSLATE <lv_low> USING `*%`.
           result = |{ result } NOT LIKE { quote( <lv_low> ) }|.
       ENDCASE.
     ENDLOOP.

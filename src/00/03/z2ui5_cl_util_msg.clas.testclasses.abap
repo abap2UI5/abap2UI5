@@ -17,12 +17,12 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
 
   METHOD test_sy.
 
-    IF sy-sysid = 'ABC'.
+    IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 
-    data(lv_dummy2) = 'NET'.
-    MESSAGE ID lv_dummy2 TYPE 'I' NUMBER '001' INTO DATA(lv_dummy).
+    data(lv_dummy2) = `NET`.
+    MESSAGE ID lv_dummy2 TYPE `I` NUMBER `001` INTO DATA(lv_dummy).
     DATA(lt_result) = z2ui5_cl_util_msg=>msg_get_by_sy( ).
 
    cl_abap_unit_assert=>assert_equals( exp = `NET`
@@ -38,12 +38,12 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
 
   METHOD test_bapiret.
 
-    IF sy-sysid = 'ABC'.
+    IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 
     DATA(lt_msg) = VALUE bapirettab(
-      ( type = 'E' id = 'MSG1' number = '001' message = 'An empty Report field causes an empty XML Message to be sent' )
+      ( type = `E` id = `MSG1` number = `001` message = `An empty Report field causes an empty XML Message to be sent` )
      ).
 
     DATA(lt_result) = z2ui5_cl_util_msg=>msg_get( lt_msg[ 1 ] ).
@@ -61,13 +61,13 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
 
   METHOD test_bapirettab.
 
-    IF sy-sysid = 'ABC'.
+    IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 
     DATA(lt_msg) = VALUE bapirettab(
-      ( type = 'E' id = 'MSG1' number = '001' message = 'An empty Report field causes an empty XML Message to be sent' )
-      ( type = 'I' id = 'MSG2' number = '002' message = 'Product already in use' ) ).
+      ( type = `E` id = `MSG1` number = `001` message = `An empty Report field causes an empty XML Message to be sent` )
+      ( type = `I` id = `MSG2` number = `002` message = `Product already in use` ) ).
 
     DATA(lt_result) = z2ui5_cl_util_msg=>msg_get( lt_msg ).
 

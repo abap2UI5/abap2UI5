@@ -78,7 +78,7 @@ CLASS ltcl_test_bind IMPLEMENTATION.
 
   METHOD test_one_way.
 
-    IF sy-sysid = 'ABC'.
+    IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 
@@ -98,7 +98,7 @@ CLASS ltcl_test_bind IMPLEMENTATION.
 
   METHOD test_error_diff.
 
-    IF sy-sysid = 'ABC'.
+    IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 
@@ -125,7 +125,7 @@ CLASS ltcl_test_bind IMPLEMENTATION.
 
   METHOD test_two_way.
 
-    IF sy-sysid = 'ABC'.
+    IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 
@@ -185,7 +185,7 @@ ENDCLASS.
 CLASS ltcl_test_main_structure IMPLEMENTATION.
   METHOD test_one_way_lev1.
 
-    IF sy-sysid = 'ABC'.
+    IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 
@@ -212,7 +212,7 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
 
   METHOD test_one_way_lev2.
 
-    IF sy-sysid = 'ABC'.
+    IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 
@@ -232,7 +232,7 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
 
   METHOD test_one_way_lev3.
 
-    IF sy-sysid = 'ABC'.
+    IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 
@@ -251,7 +251,7 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
 
   METHOD test_one_way_lev4_long_name.
 
-    IF sy-sysid = 'ABC'.
+    IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 
@@ -306,7 +306,7 @@ CLASS ltcl_test_main_object IMPLEMENTATION.
 
   METHOD test_one_way_value.
 
-    IF sy-sysid = 'ABC'.
+    IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 
@@ -328,7 +328,7 @@ CLASS ltcl_test_main_object IMPLEMENTATION.
 
   METHOD test_one_way_struc.
 
-    IF sy-sysid = 'ABC'.
+    IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 

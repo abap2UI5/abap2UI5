@@ -112,8 +112,8 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
         DATA(lv_type) = z2ui5_cl_util=>ui5_get_msg_type( lt_msg[ 1 ]-type ).
         lv_type = to_lower( lv_type ).
         DATA(lv_title) = SWITCH #( lt_msg[ 1 ]-type
-                                   WHEN 'E' THEN `Error`
-                                   WHEN 'S' THEN `Success`
+                                   WHEN `E` THEN `Error`
+                                   WHEN `S` THEN `Success`
                                    WHEN `W` THEN `Warning`
                                    ELSE `Information` ).
 
@@ -126,8 +126,8 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
         lv_details = |{ lv_details }</ul>|.
         IF title IS INITIAL.
           lv_title = SWITCH #( lt_msg[ 1 ]-type
-                               WHEN 'E' THEN `Error`
-                               WHEN 'S' THEN `Success`
+                               WHEN `E` THEN `Error`
+                               WHEN `S` THEN `Success`
                                WHEN `W` THEN `Warning`
                                ELSE `Information` ).
         ENDIF.
@@ -141,16 +141,16 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
       lv_title = title.
       lv_details = details.
 
-      IF lv_type = 'information'.
-        lv_type = 'show'.
+      IF lv_type = `information`.
+        lv_type = `show`.
         IF lv_title IS INITIAL.
-          lv_title = 'Information'.
+          lv_title = `Information`.
         ENDIF.
       ENDIF.
     ENDIF.
 
-    IF lv_type = ''.
-      lv_type = 'show'.
+    IF lv_type = ``.
+      lv_type = `show`.
     ENDIF.
 
     mo_action->ms_next-s_set-s_msg_box = VALUE #( text              = lv_text
@@ -316,7 +316,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     ELSE.
 
       DATA(lo_object) = CAST object( val ).
-      CALL METHOD lo_object->('STRINGIFY')
+      CALL METHOD lo_object->(`STRINGIFY`)
         RECEIVING result = mo_action->ms_next-s_set-s_view-xml.
     ENDIF.
 

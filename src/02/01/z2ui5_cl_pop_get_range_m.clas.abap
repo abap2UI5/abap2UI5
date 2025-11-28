@@ -53,17 +53,17 @@ CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
   METHOD popup_display.
 
     DATA(lo_popup) = z2ui5_cl_xml_view=>factory_popup( ).
-    lo_popup = lo_popup->dialog( afterclose    = client->_event( 'BUTTON_CANCEL' )
+    lo_popup = lo_popup->dialog( afterclose    = client->_event( `BUTTON_CANCEL` )
                                  contentheight = `50%`
                                  contentwidth  = `50%`
-                                 title         = 'Define Filter Conditons' ).
+                                 title         = `Define Filter Conditons` ).
 
     DATA(vbox) = lo_popup->vbox( height         = `100%`
-                                 justifycontent = 'SpaceBetween' ).
+                                 justifycontent = `SpaceBetween` ).
 
     DATA(item) = vbox->list( nodata          = `no conditions defined`
                              items           = client->_bind( ms_result-t_filter )
-                             selectionchange = client->_event( 'SELCHANGE' )
+                             selectionchange = client->_event( `SELCHANGE` )
                 )->custom_list_item( ).
 
     DATA(grid) = item->grid( class = `sapUiSmallMarginTop sapUiSmallMarginBottom sapUiSmallMarginBegin` ).
@@ -83,7 +83,7 @@ CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
     grid->button( text  = `Select`
                   press = client->_event( val   = `LIST_OPEN`
                                           t_arg = VALUE #( ( `${NAME}` ) ) ) ).
-    grid->button( icon  = 'sap-icon://delete'
+    grid->button( icon  = `sap-icon://delete`
                   type  = `Transparent`
                   text  = `Clear`
                   press = client->_event( val   = `LIST_DELETE`
@@ -91,14 +91,14 @@ CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
 
     lo_popup->buttons(
         )->button( text  = `Clear All`
-                   icon  = 'sap-icon://delete'
+                   icon  = `sap-icon://delete`
                    type  = `Transparent`
                    press = client->_event( val = `POPUP_DELETE_ALL` )
-       )->button( text  = 'Cancel'
-                  press = client->_event( 'BUTTON_CANCEL' )
-       )->button( text  = 'OK'
-                  press = client->_event( 'BUTTON_CONFIRM' )
-                  type  = 'Emphasized' ).
+       )->button( text  = `Cancel`
+                  press = client->_event( `BUTTON_CANCEL` )
+       )->button( text  = `OK`
+                  press = client->_event( `BUTTON_CONFIRM` )
+                  type  = `Emphasized` ).
 
     client->popup_display( lo_popup->stringify( ) ).
   ENDMETHOD.
@@ -129,14 +129,14 @@ CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
 
     CASE client->get( )-event.
 
-      WHEN 'LIST_DELETE'.
+      WHEN `LIST_DELETE`.
         DATA(lt_event) = client->get( )-t_event_arg.
         ASSIGN ms_result-t_filter[ name = lt_event[ 1 ] ] TO <tab>.
         CLEAR <tab>-t_token.
         CLEAR <tab>-t_range.
         client->popup_model_update( ).
 
-      WHEN 'LIST_OPEN'.
+      WHEN `LIST_OPEN`.
         lt_event = client->get( )-t_event_arg.
         mv_popup_name = lt_event[ 1 ].
         DATA(ls_sql) = ms_result-t_filter[ name = mv_popup_name ].

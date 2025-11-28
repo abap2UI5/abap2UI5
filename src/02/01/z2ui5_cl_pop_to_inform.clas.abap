@@ -9,7 +9,7 @@ CLASS z2ui5_cl_pop_to_inform DEFINITION
       IMPORTING
         i_text          TYPE string
         i_title         TYPE string DEFAULT `Title`
-        i_icon          TYPE string DEFAULT 'sap-icon://question-mark'
+        i_icon          TYPE string DEFAULT `sap-icon://question-mark`
         i_button_text   TYPE string DEFAULT `OK`
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_pop_to_inform.
@@ -43,15 +43,15 @@ CLASS z2ui5_cl_pop_to_inform IMPLEMENTATION.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
                                                                icon       = icon
-                                                               afterclose = client->_event( 'BUTTON_CONFIRM' )
+                                                               afterclose = client->_event( `BUTTON_CONFIRM` )
               )->content(
-                  )->vbox( 'sapUiMediumMargin'
+                  )->vbox( `sapUiMediumMargin`
                       )->text( question_text
               )->get_parent( )->get_parent(
               )->buttons(
                   )->button( text  = button_text_confirm
-                             press = client->_event( 'BUTTON_CONFIRM' )
-                             type  = 'Emphasized' ).
+                             press = client->_event( `BUTTON_CONFIRM` )
+                             type  = `Emphasized` ).
 
     client->popup_display( popup->stringify( ) ).
 

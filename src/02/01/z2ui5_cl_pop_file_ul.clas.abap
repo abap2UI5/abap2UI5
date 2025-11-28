@@ -68,22 +68,22 @@ CLASS z2ui5_cl_pop_file_ul IMPLEMENTATION.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
                                                                icon       = icon
-                                                               afterclose = client->_event( 'BUTTON_CANCEL' )
+                                                               afterclose = client->_event( `BUTTON_CANCEL` )
               )->content(
-                  )->vbox( 'sapUiMediumMargin'
+                  )->vbox( `sapUiMediumMargin`
                   )->label( question_text
                   )->_z2ui5( )->file_uploader( value       = client->_bind_edit( mv_value )
                                                path        = client->_bind_edit( mv_path )
-                                               placeholder = 'filepath here...'
-                                               upload      = client->_event( 'UPLOAD' )
+                                               placeholder = `filepath here...`
+                                               upload      = client->_event( `UPLOAD` )
               )->get_parent( )->get_parent(
               )->buttons(
                   )->button( text  = button_text_cancel
-                             press = client->_event( 'BUTTON_CANCEL' )
+                             press = client->_event( `BUTTON_CANCEL` )
                   )->button( text    = button_text_confirm
-                             press   = client->_event( 'BUTTON_CONFIRM' )
+                             press   = client->_event( `BUTTON_CONFIRM` )
                              enabled = client->_bind( check_confirm_enabled )
-                             type    = 'Emphasized' ).
+                             type    = `Emphasized` ).
 
     client->popup_display( popup->stringify( ) ).
 

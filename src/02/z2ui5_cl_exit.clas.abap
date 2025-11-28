@@ -49,8 +49,8 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
 
   METHOD get_user_exit_class.
 
-    DATA(exit_classes) = z2ui5_cl_util=>rtti_get_classes_impl_intf( 'Z2UI5_IF_EXIT' ).
-    DELETE exit_classes WHERE classname = 'Z2UI5_CL_EXIT'.
+    DATA(exit_classes) = z2ui5_cl_util=>rtti_get_classes_impl_intf( `Z2UI5_IF_EXIT` ).
+    DELETE exit_classes WHERE classname = `Z2UI5_CL_EXIT`.
 
     IF exit_classes IS NOT INITIAL.
       r_class_name = exit_classes[ 1 ]-classname.
@@ -105,13 +105,13 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
     IF cs_config-t_security_header IS INITIAL.
 
       cs_config-t_security_header = VALUE #(
-          ( n = 'cache-control'          v = 'no-cache, no-store, must-revalidate' )
-          ( n = 'Pragma'                 v = 'no-cache' )
-          ( n = 'Expires'                v = '0' )
-          ( n = 'X-Content-Type-Options' v = 'nosniff' )
-          ( n = 'X-Frame-Options'        v = 'SAMEORIGIN' )
-          ( n = 'Referrer-Policy'        v = 'strict-origin-when-cross-origin' )
-          ( n = 'Permissions-Policy'     v = 'geolocation=(self), microphone=(self), camera=(self), payment=(), usb=()' ) ).
+          ( n = `cache-control`          v = `no-cache, no-store, must-revalidate` )
+          ( n = `Pragma`                 v = `no-cache` )
+          ( n = `Expires`                v = `0` )
+          ( n = `X-Content-Type-Options` v = `nosniff` )
+          ( n = `X-Frame-Options`        v = `SAMEORIGIN` )
+          ( n = `Referrer-Policy`        v = `strict-origin-when-cross-origin` )
+          ( n = `Permissions-Policy`     v = `geolocation=(self), microphone=(self), camera=(self), payment=(), usb=()` ) ).
 
     ENDIF.
 
