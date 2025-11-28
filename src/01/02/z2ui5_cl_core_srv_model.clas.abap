@@ -87,7 +87,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     ENDIF.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
-         WHERE     bind_type = z2ui5_if_core_types=>cs_bind_type-two_way "#EC CI_SORTSEQ
+         WHERE bind_type = z2ui5_if_core_types=>cs_bind_type-two_way "#EC CI_SORTSEQ
                AND view      = lv_view.
       TRY.
 
@@ -128,7 +128,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
         DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
         LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
-             WHERE     bind_type <> ``
+             WHERE bind_type <> ``
                    AND type_kind <> cl_abap_datadescr=>typekind_dref
                    AND type_kind <> cl_abap_datadescr=>typekind_oref.
 
@@ -247,7 +247,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     dissolve( ).
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
-         WHERE     name_ref  IS INITIAL
+         WHERE name_ref  IS INITIAL
                AND type_kind  = cl_abap_datadescr=>typekind_dref.
 
       DATA(lv_name5) = |MO_APP->{ lr_attri->name }|.
@@ -267,7 +267,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
         WHEN cl_abap_datadescr=>typekind_table.
 
           LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_child) "#EC CI_SORTSEQ
-               WHERE     name_ref    IS INITIAL
+               WHERE name_ref    IS INITIAL
                      AND type_kind    = cl_abap_datadescr=>typekind_table
                      AND name_parent  = lr_attri->name.
 
@@ -374,14 +374,14 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
     DATA(lo_datadescr) = cl_abap_datadescr=>describe_by_data_ref( val ).
 
-    IF    lo_datadescr->type_kind = cl_abap_typedescr=>typekind_dref
-       OR lo_datadescr->type_kind = cl_abap_typedescr=>typekind_oref.
+    IF lo_datadescr->type_kind = cl_abap_typedescr=>typekind_dref
+        OR lo_datadescr->type_kind = cl_abap_typedescr=>typekind_oref.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING val = |NO DATA REFERENCES FOR BINDING ALLOWED: DEREFERENCE YOUR DATA FIRST|.
     ENDIF.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
-         WHERE     name_ref  IS INITIAL
+         WHERE name_ref  IS INITIAL
                AND type_kind  = lo_datadescr->type_kind
                AND kind       = lo_datadescr->kind.
 
@@ -459,7 +459,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_oref( lr_ref ).
 
     LOOP AT lt_attri REFERENCE INTO DATA(lr_attri)
-         WHERE     visibility   = cl_abap_objectdescr=>public
+         WHERE visibility   = cl_abap_objectdescr=>public
                AND is_interface = abap_false
                AND is_class     = abap_false
                AND is_constant  = abap_false.
@@ -524,7 +524,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
   METHOD attri_update_entry_refs.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
-         WHERE     check_dissolved  = abap_true
+         WHERE check_dissolved  = abap_true
                AND name_ref        IS INITIAL.
 
       TRY.
@@ -538,7 +538,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
         WHEN cl_abap_typedescr=>typekind_table.
 
           LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_ref) "#EC CI_SORTSEQ
-               WHERE     check_dissolved  = abap_true
+               WHERE check_dissolved  = abap_true
                      AND name            <> lr_attri->name
                      AND name_ref        IS INITIAL
                      AND type_kind        = cl_abap_typedescr=>typekind_table.
@@ -561,7 +561,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
           ASSIGN lr_ref->* TO FIELD-SYMBOL(<ref>).
 
           LOOP AT mt_attri->* REFERENCE INTO lr_attri_ref "#EC CI_SORTSEQ
-               WHERE     check_dissolved  = abap_true
+               WHERE check_dissolved  = abap_true
                      AND name            <> lr_attri->name
                      AND name_ref        IS INITIAL
                      AND (    type_kind = cl_abap_typedescr=>typekind_struct1

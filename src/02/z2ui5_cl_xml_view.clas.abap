@@ -10031,7 +10031,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA(lv_name) = COND #(
         WHEN ns = 'table' THEN 'toolbar'
         WHEN ns = 'form'  THEN 'toolbar'
-        ELSE                   `Toolbar` ).
+        ELSE `Toolbar` ).
     result = _generic( name   = lv_name
                        ns     = ns
                        t_prop = VALUE #( ( n = `active`  v = z2ui5_cl_util=>boolean_abap_2_json( active ) )
@@ -10690,7 +10690,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
           ( n = `smi`               v = `sap.ui.comp.smartmultiinput` )
           ( n = `ie`                v = `sap.suite.ui.commons.imageeditor` ) ).
 
-      LOOP AT mt_ns REFERENCE INTO DATA(lr_ns) WHERE     table_line IS NOT INITIAL  "#EC CI_SORTSEQ
+      LOOP AT mt_ns REFERENCE INTO DATA(lr_ns) WHERE table_line IS NOT INITIAL  "#EC CI_SORTSEQ
                                                      AND table_line <> `mvc`
                                                      AND table_line <> `core`.
         TRY.

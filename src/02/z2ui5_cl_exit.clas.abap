@@ -132,8 +132,8 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
                                           CHANGING  cs_config  = cs_config ).
     ENDIF.
 
-    IF    cs_config-draft_exp_time_in_hours IS INITIAL
-       OR cs_config-draft_exp_time_in_hours <= 0.
+    IF cs_config-draft_exp_time_in_hours IS INITIAL
+        OR cs_config-draft_exp_time_in_hours <= 0.
       cs_config-draft_exp_time_in_hours = 4.
     ENDIF.
 

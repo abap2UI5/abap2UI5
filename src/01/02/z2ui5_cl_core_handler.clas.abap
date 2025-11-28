@@ -66,7 +66,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
         result-s_front-o_comp_data = lo_ajson->slice( `/CONFIG/ComponentData` ).
 
-        result-s_control-check_launchpad = xsdbool(    result-s_front-search   CS `scenario=LAUNCHPAD`
+        result-s_control-check_launchpad = xsdbool( result-s_front-search   CS `scenario=LAUNCHPAD`
                                                     OR result-s_front-pathname CS `/ui2/flp`
                                                     OR result-s_front-pathname CS `test/flpSandbox` ).
         IF result-s_front-id IS NOT INITIAL.
@@ -217,16 +217,16 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
                            s_front-id     = mo_action->mo_app->ms_draft-id
                            s_front-app    = z2ui5_cl_util=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app ) ).
 
-    IF    ms_response-s_front-params-s_view-check_update_model        = abap_true
-       OR ms_response-s_front-params-s_view_nest-check_update_model   = abap_true
-       OR ms_response-s_front-params-s_view_nest2-check_update_model  = abap_true
-       OR ms_response-s_front-params-s_popup-check_update_model       = abap_true
-       OR ms_response-s_front-params-s_popover-check_update_model     = abap_true
-       OR ms_response-s_front-params-s_view-xml IS NOT INITIAL
-       OR ms_response-s_front-params-s_view_nest-xml                 IS NOT INITIAL
-       OR ms_response-s_front-params-s_view_nest2-xml                IS NOT INITIAL
-       OR ms_response-s_front-params-s_popup-xml IS NOT INITIAL
-       OR ms_response-s_front-params-s_popover-xml                   IS NOT INITIAL.
+    IF ms_response-s_front-params-s_view-check_update_model        = abap_true
+        OR ms_response-s_front-params-s_view_nest-check_update_model   = abap_true
+        OR ms_response-s_front-params-s_view_nest2-check_update_model  = abap_true
+        OR ms_response-s_front-params-s_popup-check_update_model       = abap_true
+        OR ms_response-s_front-params-s_popover-check_update_model     = abap_true
+        OR ms_response-s_front-params-s_view-xml IS NOT INITIAL
+        OR ms_response-s_front-params-s_view_nest-xml                 IS NOT INITIAL
+        OR ms_response-s_front-params-s_view_nest2-xml                IS NOT INITIAL
+        OR ms_response-s_front-params-s_popup-xml IS NOT INITIAL
+        OR ms_response-s_front-params-s_popover-xml                   IS NOT INITIAL.
 
       ms_response-model = mo_action->mo_app->model_json_stringify( ).
 
