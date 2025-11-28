@@ -15,19 +15,21 @@ CLASS z2ui5_cl_pop_data DEFINITION
     DATA mr_data TYPE REF TO data.
 
   PROTECTED SECTION.
-    DATA title             TYPE string VALUE 'Table View'.
-    DATA client            TYPE REF TO z2ui5_if_client.
-    METHODS display.
+    DATA title  TYPE string VALUE 'Table View'.
+    DATA client TYPE REF TO z2ui5_if_client.
 
+    METHODS display.
 
   PRIVATE SECTION.
 ENDCLASS.
+
 
 CLASS z2ui5_cl_pop_data IMPLEMENTATION.
 
   METHOD display.
 
     FIELD-SYMBOLS <data> TYPE any.
+
     ASSIGN mr_data->* TO <data>.
 
     CASE z2ui5_cl_util=>rtti_get_type_kind( <data> ).
@@ -46,18 +48,18 @@ CLASS z2ui5_cl_pop_data IMPLEMENTATION.
 
   METHOD factory.
 
+    FIELD-SYMBOLS <data> TYPE any.
+
     r_result = NEW #( ).
     IF title IS NOT INITIAL.
       r_result->title = title.
     ENDIF.
     CREATE DATA r_result->mr_data LIKE val.
 
-    FIELD-SYMBOLS <data> TYPE any.
     ASSIGN r_result->mr_data->* TO <data>.
     <data> = val.
 
   ENDMETHOD.
-
 
   METHOD z2ui5_if_app~main.
 
@@ -69,6 +71,5 @@ CLASS z2ui5_cl_pop_data IMPLEMENTATION.
     client->nav_app_leave( ).
 
   ENDMETHOD.
-
 
 ENDCLASS.

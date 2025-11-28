@@ -29,6 +29,7 @@ CLASS z2ui5_cl_pop_textedit DEFINITION
     DATA ms_result TYPE ty_s_result.
 
     METHODS display.
+
     METHODS result
       RETURNING
         VALUE(result) TYPE ty_s_result.
@@ -40,6 +41,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_pop_textedit IMPLEMENTATION.
+
   METHOD factory.
 
     r_result = NEW #( ).
@@ -98,4 +100,5 @@ CLASS z2ui5_cl_pop_textedit IMPLEMENTATION.
   METHOD result.
     result = ms_result.
   ENDMETHOD.
+
 ENDCLASS.

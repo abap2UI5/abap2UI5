@@ -3,7 +3,6 @@ CLASS z2ui5_cl_core_srv_bind DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-
     DATA mo_app    TYPE REF TO z2ui5_cl_core_app.
     DATA mr_attri  TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
     DATA ms_config TYPE z2ui5_if_core_types=>ty_s_bind_config.
@@ -16,7 +15,7 @@ CLASS z2ui5_cl_core_srv_bind DEFINITION
     METHODS main
       IMPORTING
         val           TYPE REF TO data
-        !type         TYPE string
+        type          TYPE string
         config        TYPE z2ui5_if_core_types=>ty_s_bind_config OPTIONAL
       RETURNING
         VALUE(result) TYPE string.
@@ -24,7 +23,7 @@ CLASS z2ui5_cl_core_srv_bind DEFINITION
     METHODS main_cell
       IMPORTING
         val           TYPE data
-        !type         TYPE string
+        type          TYPE string
         config        TYPE z2ui5_if_core_types=>ty_s_bind_config OPTIONAL
       RETURNING
         VALUE(result) TYPE string.
@@ -37,7 +36,6 @@ CLASS z2ui5_cl_core_srv_bind DEFINITION
         VALUE(result) TYPE string.
 
   PROTECTED SECTION.
-
     METHODS get_client_name
       RETURNING
         VALUE(result) TYPE string.
@@ -51,13 +49,14 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
+
   METHOD bind_tab_cell.
 
-    FIELD-SYMBOLS <ele> TYPE any.
-    FIELD-SYMBOLS <row> TYPE any.
     DATA lr_ref_in TYPE REF TO data.
 
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <row> TYPE any.
+    FIELD-SYMBOLS <ele> TYPE any.
 
     ASSIGN ms_config-tab->* TO <tab>.
     ASSIGN <tab>[ ms_config-tab_index ] TO <row>.
@@ -86,8 +85,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
     IF mr_attri->bind_type <> mv_type.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING
-          val = |<p>Binding Error - Two different binding types for same attribute used ({ mr_attri->name }).|.
+        EXPORTING val = |<p>Binding Error - Two different binding types for same attribute used ({ mr_attri->name }).|.
     ENDIF.
 
     IF mr_attri->custom_mapper IS BOUND.
@@ -96,21 +94,18 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
       DATA(lv_name2) = z2ui5_cl_util=>rtti_get_classname_by_ref( ms_config-custom_mapper ).
       IF lv_name1 <> lv_name2.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
-          EXPORTING
-            val = |<p>Binding Error - Two different mapper for same attribute used ({ mr_attri->name }).|.
+          EXPORTING val = |<p>Binding Error - Two different mapper for same attribute used ({ mr_attri->name }).|.
       ENDIF.
     ENDIF.
 
     IF mr_attri->custom_mapper_back IS BOUND AND mr_attri->custom_mapper_back <> ms_config-custom_mapper_back.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING
-          val = |<p>Binding Error - Two different mapper back for same attribute used ({ mr_attri->name }).|.
+        EXPORTING val = |<p>Binding Error - Two different mapper back for same attribute used ({ mr_attri->name }).|.
     ENDIF.
 
     IF mr_attri->custom_filter IS BOUND AND mr_attri->custom_filter <> ms_config-custom_filter.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING
-          val = |<p>Binding Error - Two different filter for same attribute used ({ mr_attri->name }).|.
+        EXPORTING val = |<p>Binding Error - Two different filter for same attribute used ({ mr_attri->name }).|.
     ENDIF.
 
   ENDMETHOD.
@@ -122,8 +117,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
           DATA(lo_dummy) = CAST if_serializable_object( mr_attri->custom_filter_back ) ##NEEDED.
         CATCH cx_root.
           RAISE EXCEPTION TYPE z2ui5_cx_util_error
-            EXPORTING
-              val = `<p>custom_filter_back used but it is not serializable, please use if_serializable_object`.
+            EXPORTING val = `<p>custom_filter_back used but it is not serializable, please use if_serializable_object`.
 
       ENDTRY.
     ENDIF.
@@ -196,8 +190,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
     IF |/{ z2ui5_if_core_types=>cs_ui5-two_way_model }| = result.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING
-          val = `<p>Name of variable not allowed - x is reserved word - use another name for your attribute`.
+        EXPORTING val = `<p>Name of variable not allowed - x is reserved word - use another name for your attribute`.
 
     ENDIF.
 
@@ -230,7 +223,6 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD update_model_attri.
 
     mr_attri->bind_type          = mv_type.
@@ -245,4 +237,5 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     mr_attri->name_client        = get_client_name( ).
 
   ENDMETHOD.
+
 ENDCLASS.

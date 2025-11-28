@@ -20,7 +20,6 @@ CLASS z2ui5_cl_core_handler DEFINITION
         VALUE(result) TYPE z2ui5_if_core_types=>ty_s_http_res.
 
   PROTECTED SECTION.
-
     METHODS main_begin.
 
     METHODS main_process
@@ -47,7 +46,6 @@ ENDCLASS.
 
 CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
-
   METHOD request_json_to_abap.
     TRY.
 
@@ -68,7 +66,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
         result-s_front-o_comp_data = lo_ajson->slice( `/CONFIG/ComponentData` ).
 
-        result-s_control-check_launchpad = xsdbool( result-s_front-search   CS `scenario=LAUNCHPAD`
+        result-s_control-check_launchpad = xsdbool(    result-s_front-search   CS `scenario=LAUNCHPAD`
                                                     OR result-s_front-pathname CS `/ui2/flp`
                                                     OR result-s_front-pathname CS `test/flpSandbox` ).
         IF result-s_front-id IS NOT INITIAL.
@@ -87,13 +85,14 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
         TRY.
             DATA(lv_hash) = result-s_front-hash.
+            " TODO: variable is assigned but never used (ABAP cleaner)
             SPLIT lv_hash AT '&/' INTO DATA(lv_dummy) lv_hash.
             IF lv_hash IS INITIAL.
               lv_hash = result-s_front-hash+2.
             ENDIF.
             result-s_control-app_start_draft = z2ui5_cl_util=>c_trim_upper(
-                                           z2ui5_cl_util=>url_param_get( val = `z2ui5-xapp-state`
-                                                                         url = lv_hash ) ).
+                                                   z2ui5_cl_util=>url_param_get( val = `z2ui5-xapp-state`
+                                                                                 url = lv_hash ) ).
           CATCH cx_root ##NO_HANDLER.
         ENDTRY.
         IF result-s_control-app_start IS NOT INITIAL.
@@ -110,11 +109,9 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
       CATCH cx_root INTO DATA(x).
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
-          EXPORTING
-            val = x.
+          EXPORTING val = x.
     ENDTRY.
   ENDMETHOD.
-
 
   METHOD response_abap_to_json.
     TRY.
@@ -136,7 +133,6 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         ASSERT x IS NOT BOUND.
     ENDTRY.
   ENDMETHOD.
-
 
   METHOD z2ui5_if_ajson_filter~keep_node.
 
@@ -187,15 +183,15 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       ENDIF.
     ENDDO.
 
-    result = VALUE #( body              = mv_response
-                          s_stateful    = ms_response-s_front-params-s_stateful
-                          status_code   = 200
-                          status_reason = `success` ).
+    result = VALUE #( body          = mv_response
+                      s_stateful    = ms_response-s_front-params-s_stateful
+                      status_code   = 200
+                      status_reason = `success` ).
 
   ENDMETHOD.
 
   METHOD main_begin.
-*   try
+    " try
 
     ms_request = request_json_to_abap( mv_request_json ).
 
@@ -221,16 +217,16 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
                            s_front-id     = mo_action->mo_app->ms_draft-id
                            s_front-app    = z2ui5_cl_util=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app ) ).
 
-    IF ms_response-s_front-params-s_view-check_update_model        = abap_true
-        OR ms_response-s_front-params-s_view_nest-check_update_model   = abap_true
-        OR ms_response-s_front-params-s_view_nest2-check_update_model  = abap_true
-        OR ms_response-s_front-params-s_popup-check_update_model       = abap_true
-        OR ms_response-s_front-params-s_popover-check_update_model     = abap_true
-        OR ms_response-s_front-params-s_view-xml IS NOT INITIAL
-        OR ms_response-s_front-params-s_view_nest-xml                 IS NOT INITIAL
-        OR ms_response-s_front-params-s_view_nest2-xml                IS NOT INITIAL
-        OR ms_response-s_front-params-s_popup-xml IS NOT INITIAL
-        OR ms_response-s_front-params-s_popover-xml                   IS NOT INITIAL.
+    IF    ms_response-s_front-params-s_view-check_update_model        = abap_true
+       OR ms_response-s_front-params-s_view_nest-check_update_model   = abap_true
+       OR ms_response-s_front-params-s_view_nest2-check_update_model  = abap_true
+       OR ms_response-s_front-params-s_popup-check_update_model       = abap_true
+       OR ms_response-s_front-params-s_popover-check_update_model     = abap_true
+       OR ms_response-s_front-params-s_view-xml IS NOT INITIAL
+       OR ms_response-s_front-params-s_view_nest-xml                 IS NOT INITIAL
+       OR ms_response-s_front-params-s_view_nest2-xml                IS NOT INITIAL
+       OR ms_response-s_front-params-s_popup-xml IS NOT INITIAL
+       OR ms_response-s_front-params-s_popover-xml                   IS NOT INITIAL.
 
       ms_response-model = mo_action->mo_app->model_json_stringify( ).
 
@@ -295,4 +291,5 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 *        ASSERT x->get_text( ) = 1.
 *    ENDTRY.
   ENDMETHOD.
+
 ENDCLASS.

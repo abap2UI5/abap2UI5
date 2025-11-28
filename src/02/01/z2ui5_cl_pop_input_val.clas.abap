@@ -3,14 +3,13 @@ CLASS z2ui5_cl_pop_input_val DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-
     INTERFACES z2ui5_if_app.
 
     CLASS-METHODS factory
       IMPORTING
-        !text               TYPE string DEFAULT `Enter New Value`
+        text                TYPE string DEFAULT `Enter New Value`
         val                 TYPE string OPTIONAL
-        !title              TYPE string DEFAULT `Popup Input Value`
+        title               TYPE string DEFAULT `Popup Input Value`
         button_text_confirm TYPE string DEFAULT `OK`
         button_text_cancel  TYPE string DEFAULT `Cancel`
           PREFERRED PARAMETER val
@@ -30,12 +29,12 @@ CLASS z2ui5_cl_pop_input_val DEFINITION
         VALUE(result) TYPE ty_s_result.
 
   PROTECTED SECTION.
-    DATA client                 TYPE REF TO z2ui5_if_client.
-    DATA title                  TYPE string.
-    DATA icon                   TYPE string.
-    DATA question_text          TYPE string.
-    DATA button_text_confirm    TYPE string.
-    DATA button_text_cancel     TYPE string.
+    DATA client              TYPE REF TO z2ui5_if_client.
+    DATA title               TYPE string.
+    DATA icon                TYPE string.
+    DATA question_text       TYPE string.
+    DATA button_text_confirm TYPE string.
+    DATA button_text_cancel  TYPE string.
 
     METHODS view_display.
 
@@ -106,4 +105,5 @@ CLASS z2ui5_cl_pop_input_val IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
+
 ENDCLASS.

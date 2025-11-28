@@ -47,8 +47,9 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
     DATA(ls_config) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
     z2ui5_cl_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config ).
 
-    DATA(lv_n_hours_ago) = z2ui5_cl_util=>time_substract_seconds( time    = z2ui5_cl_util=>time_get_timestampl( )
-                                                                  seconds = 60 * 60 * ls_config-draft_exp_time_in_hours ).
+    DATA(lv_n_hours_ago) = z2ui5_cl_util=>time_substract_seconds(
+                               time    = z2ui5_cl_util=>time_get_timestampl( )
+                               seconds = 60 * 60 * ls_config-draft_exp_time_in_hours ).
 
     DELETE FROM z2ui5_t_01 WHERE timestampl < @lv_n_hours_ago.
     COMMIT WORK.
@@ -69,8 +70,7 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
     MODIFY z2ui5_t_01 FROM @ls_db.
     IF sy-subrc <> 0.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING
-          val = `CREATE_OF_DRAFT_ENTRY_ON_DATABASE_FAILED`.
+        EXPORTING val = `CREATE_OF_DRAFT_ENTRY_ON_DATABASE_FAILED`.
     ENDIF.
     COMMIT WORK AND WAIT.
 
@@ -95,8 +95,7 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
 
     IF sy-subrc <> 0.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING
-          val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
+        EXPORTING val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
     ENDIF.
 
   ENDMETHOD.

@@ -27,8 +27,8 @@ CLASS z2ui5_cl_pop_table DEFINITION
     DATA mr_tab TYPE REF TO data.
 
   PROTECTED SECTION.
-    DATA title             TYPE string VALUE 'Table View'.
-    DATA client            TYPE REF TO z2ui5_if_client.
+    DATA title  TYPE string VALUE 'Table View'.
+    DATA client TYPE REF TO z2ui5_if_client.
 
     METHODS on_event.
     METHODS display.
@@ -39,6 +39,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_pop_table IMPLEMENTATION.
+
   METHOD display.
 
     FIELD-SYMBOLS <tab_out> TYPE STANDARD TABLE.
@@ -133,4 +134,5 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
     on_event( ).
 
   ENDMETHOD.
+
 ENDCLASS.
