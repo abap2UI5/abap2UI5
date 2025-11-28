@@ -21,7 +21,6 @@ CLASS z2ui5_cl_exit DEFINITION PUBLIC FINAL.
     CLASS-DATA context      TYPE z2ui5_if_types=>ty_s_http_context.
 
   PRIVATE SECTION.
-
 ENDCLASS.
 
 
@@ -141,8 +140,6 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
 
   METHOD init_context.
 
-*    DATA(ls_context) = VALUE z2ui5_if_types=>ty_s_http_context( ).
-*    DATA(ls_req) = mo_server->get_req_info( ).
     context = CORRESPONDING #( http_info ).
     context-app_start = VALUE #( http_info-t_params[ n = `app_start` ]-v OPTIONAL ).
 

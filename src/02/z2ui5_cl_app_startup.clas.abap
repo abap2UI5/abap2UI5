@@ -34,7 +34,6 @@ CLASS z2ui5_cl_app_startup DEFINITION
     DATA mt_classes TYPE z2ui5_cl_util=>ty_t_classes.
 
   PRIVATE SECTION.
-
 ENDCLASS.
 
 

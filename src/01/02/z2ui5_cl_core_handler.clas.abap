@@ -20,6 +20,7 @@ CLASS z2ui5_cl_core_handler DEFINITION
         VALUE(result) TYPE z2ui5_if_core_types=>ty_s_http_res.
 
   PROTECTED SECTION.
+
     METHODS main_begin.
 
     METHODS main_process
@@ -191,7 +192,6 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD main_begin.
-    " try
 
     ms_request = request_json_to_abap( mv_request_json ).
 
@@ -206,9 +206,6 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       mo_action = mo_action->factory_system_startup( ).
     ENDIF.
 
-*      CATCH cx_root INTO DATA(x).
-*        ASSERT x->get_text( ) = 1.
-*    ENDTRY.
   ENDMETHOD.
 
   METHOD main_end.
@@ -249,7 +246,6 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD main_process.
-*    TRY.
 
     DATA(li_client) = NEW z2ui5_cl_core_client( mo_action ).
     DATA(li_app)    = CAST z2ui5_if_app( mo_action->mo_app->mo_app ).
@@ -287,9 +283,6 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       check_go_client = abap_true.
     ENDIF.
 
-*      CATCH cx_root INTO DATA(x).
-*        ASSERT x->get_text( ) = 1.
-*    ENDTRY.
   ENDMETHOD.
 
 ENDCLASS.

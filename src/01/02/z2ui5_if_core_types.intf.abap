@@ -55,11 +55,9 @@ INTERFACE z2ui5_if_core_types
       custom_filter_back TYPE REF TO z2ui5_if_ajson_filter,
       custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping,
       custom_mapper_back TYPE REF TO z2ui5_if_ajson_mapping,
-*      r_ref              TYPE REF TO data,
       o_typedescr        TYPE REF TO cl_abap_typedescr,
       type_kind          TYPE string,
       kind               TYPE string,
-*      is_class           TYPE abap_bool,
     END OF ty_s_attri.
   TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
 
@@ -134,7 +132,6 @@ INTERFACE z2ui5_if_core_types
       BEGIN OF s_follow_up_action,
         custom_js TYPE string_table,
       END OF s_follow_up_action,
-*      handler_attrs TYPE ty_s_http_handler_attributes,
       set_app_state_active TYPE abap_bool,
       set_push_state       TYPE string,
       set_nav_back         TYPE abap_bool,
