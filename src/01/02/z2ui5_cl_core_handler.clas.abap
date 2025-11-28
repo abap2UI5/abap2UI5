@@ -20,7 +20,6 @@ CLASS z2ui5_cl_core_handler DEFINITION
         VALUE(result) TYPE z2ui5_if_core_types=>ty_s_http_res.
 
   PROTECTED SECTION.
-
     METHODS main_begin.
 
     METHODS main_process
@@ -46,7 +45,6 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_core_handler IMPLEMENTATION.
-
 
   METHOD request_json_to_abap.
     TRY.
@@ -87,13 +85,14 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
         TRY.
             DATA(lv_hash) = result-s_front-hash.
+            " TODO: variable is assigned but never used (ABAP cleaner)
             SPLIT lv_hash AT '&/' INTO DATA(lv_dummy) lv_hash.
             IF lv_hash IS INITIAL.
               lv_hash = result-s_front-hash+2.
             ENDIF.
             result-s_control-app_start_draft = z2ui5_cl_util=>c_trim_upper(
-                                           z2ui5_cl_util=>url_param_get( val = `z2ui5-xapp-state`
-                                                                         url = lv_hash ) ).
+                                                   z2ui5_cl_util=>url_param_get( val = `z2ui5-xapp-state`
+                                                                                 url = lv_hash ) ).
           CATCH cx_root ##NO_HANDLER.
         ENDTRY.
         IF result-s_control-app_start IS NOT INITIAL.
@@ -110,11 +109,9 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
       CATCH cx_root INTO DATA(x).
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
-          EXPORTING
-            val = x.
+          EXPORTING val = x.
     ENDTRY.
   ENDMETHOD.
-
 
   METHOD response_abap_to_json.
     TRY.
@@ -136,7 +133,6 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         ASSERT x IS NOT BOUND.
     ENDTRY.
   ENDMETHOD.
-
 
   METHOD z2ui5_if_ajson_filter~keep_node.
 
@@ -187,15 +183,15 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       ENDIF.
     ENDDO.
 
-    result = VALUE #( body              = mv_response
-                          s_stateful    = ms_response-s_front-params-s_stateful
-                          status_code   = 200
-                          status_reason = `success` ).
+    result = VALUE #( body          = mv_response
+                      s_stateful    = ms_response-s_front-params-s_stateful
+                      status_code   = 200
+                      status_reason = `success` ).
 
   ENDMETHOD.
 
   METHOD main_begin.
-*   try
+    " try
 
     ms_request = request_json_to_abap( mv_request_json ).
 
@@ -295,4 +291,5 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 *        ASSERT x->get_text( ) = 1.
 *    ENDTRY.
   ENDMETHOD.
+
 ENDCLASS.

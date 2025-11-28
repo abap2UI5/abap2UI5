@@ -3,7 +3,6 @@ CLASS z2ui5_cl_pop_to_confirm DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-
     INTERFACES z2ui5_if_app.
 
     CONSTANTS:
@@ -112,4 +111,5 @@ CLASS z2ui5_cl_pop_to_confirm IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
+
 ENDCLASS.

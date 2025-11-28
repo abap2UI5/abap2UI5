@@ -3,7 +3,6 @@ CLASS z2ui5_cl_core_srv_event DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-
     METHODS get_event
       IMPORTING
         val           TYPE clike                              OPTIONAL
@@ -21,7 +20,6 @@ CLASS z2ui5_cl_core_srv_event DEFINITION
         VALUE(result) TYPE string.
 
   PROTECTED SECTION.
-
     METHODS get_t_arg
       IMPORTING
         val           TYPE string_table
@@ -73,4 +71,5 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
     result = |{ result })|.
 
   ENDMETHOD.
+
 ENDCLASS.

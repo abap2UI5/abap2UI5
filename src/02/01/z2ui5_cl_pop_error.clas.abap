@@ -3,7 +3,6 @@ CLASS z2ui5_cl_pop_error DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-
     INTERFACES z2ui5_if_app.
 
     CLASS-METHODS factory
@@ -13,8 +12,8 @@ CLASS z2ui5_cl_pop_error DEFINITION
         VALUE(r_result) TYPE REF TO z2ui5_cl_pop_error.
 
   PROTECTED SECTION.
-    DATA client            TYPE REF TO z2ui5_if_client.
-    DATA error             TYPE REF TO cx_root.
+    DATA client TYPE REF TO z2ui5_if_client.
+    DATA error  TYPE REF TO cx_root.
 
     METHODS view_display.
 
@@ -23,6 +22,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_pop_error IMPLEMENTATION.
+
   METHOD factory.
 
     r_result = NEW #( ).
@@ -64,4 +64,5 @@ CLASS z2ui5_cl_pop_error IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
+
 ENDCLASS.

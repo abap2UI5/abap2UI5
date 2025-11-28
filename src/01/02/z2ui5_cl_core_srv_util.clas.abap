@@ -24,6 +24,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_core_srv_util IMPLEMENTATION.
+
   METHOD app_get_url.
 
     IF classname IS INITIAL.
@@ -47,4 +48,5 @@ CLASS z2ui5_cl_core_srv_util IMPLEMENTATION.
        && |{ rtti_get_classname_by_ref( client->get_app( ) ) }/source/main|.
 
   ENDMETHOD.
+
 ENDCLASS.

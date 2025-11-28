@@ -12,6 +12,7 @@ CLASS z2ui5_cl_core_client DEFINITION
         action TYPE REF TO z2ui5_cl_core_action.
 
   PROTECTED SECTION.
+
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -49,7 +50,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                       check_on_navigated     = mo_action->ms_actual-check_on_navigated
                       s_config               = CORRESPONDING #( mo_action->mo_http_post->ms_request-s_front )
                       r_event_data           = mo_action->ms_actual-r_data ).
-
 
     IF mo_action->ms_next-o_app_call IS NOT INITIAL.
       result-_s_nav-check_call = abap_true.
@@ -192,8 +192,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     IF app IS NOT BOUND.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING
-          val = `NAV_APP_LEAVE_TO_INITIAL_APP_ERROR`.
+        EXPORTING val = `NAV_APP_LEAVE_TO_INITIAL_APP_ERROR`.
     ENDIF.
 
     mo_action->ms_next-o_app_call = app.
@@ -212,8 +211,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     IF app IS NOT BOUND.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING
-          val = `NAV_APP_LEAVE_TO_INITIAL_APP_ERROR`.
+        EXPORTING val = `NAV_APP_LEAVE_TO_INITIAL_APP_ERROR`.
     ENDIF.
 
     mo_action->ms_next-o_app_leave = app.
@@ -314,15 +312,15 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~view_display.
 
+    DATA lo_object TYPE REF TO object.
+
     IF z2ui5_cl_util=>rtti_check_clike( val ).
       mo_action->ms_next-s_set-s_view-xml = val.
     ELSE.
 
-      DATA lo_object TYPE REF TO object.
       lo_object ?= val.
       CALL METHOD lo_object->('STRINGIFY')
-        RECEIVING
-          result = mo_action->ms_next-s_set-s_view-xml.
+        RECEIVING result = mo_action->ms_next-s_set-s_view-xml.
     ENDIF.
 
     mo_action->ms_next-s_set-s_view-switchdefaultmodelannouri = switch_default_model_anno_uri.
@@ -347,7 +345,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                                               tab                  = z2ui5_cl_util=>conv_get_as_data_ref( tab )
                                               tab_index            = tab_index
                                               switch_default_model = switch_default_model ) ).
-
 
   ENDMETHOD.
 
@@ -401,7 +398,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD z2ui5_if_client~set_app_state_active.
 
     mo_action->ms_next-s_set-set_app_state_active = val.
@@ -419,7 +415,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     ENDIF.
     IF lv_check_sticky = abap_false AND val = abap_false.
       RETURN.
-      "RAISE EXCEPTION TYPE z2ui5_cx_util_error
+      " RAISE EXCEPTION TYPE z2ui5_cx_util_error
       "  EXPORTING
       "    val = `STATEFUL_WAS_NOT_ACTIVATED_ERROR`.
     ENDIF.

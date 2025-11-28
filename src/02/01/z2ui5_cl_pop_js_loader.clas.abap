@@ -3,7 +3,6 @@ CLASS z2ui5_cl_pop_js_loader DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-
     INTERFACES z2ui5_if_app.
 
     CLASS-METHODS factory
@@ -25,10 +24,10 @@ CLASS z2ui5_cl_pop_js_loader DEFINITION
     DATA ui5_gav        TYPE string.
 
   PROTECTED SECTION.
-    DATA client            TYPE REF TO z2ui5_if_client.
-    DATA js                TYPE string.
-    DATA user_command      TYPE string.
-    DATA check_open_ui5    TYPE abap_bool.
+    DATA client         TYPE REF TO z2ui5_if_client.
+    DATA js             TYPE string.
+    DATA user_command   TYPE string.
+    DATA check_open_ui5 TYPE abap_bool.
 
     METHODS view_display.
 
@@ -37,6 +36,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_pop_js_loader IMPLEMENTATION.
+
   METHOD factory.
 
     r_result = NEW #( ).
@@ -62,8 +62,8 @@ CLASS z2ui5_cl_pop_js_loader IMPLEMENTATION.
 
     IF js IS NOT INITIAL.
       popup->_z2ui5( )->timer( client->_event( 'TIMER_FINISHED' )
-        )->_generic( ns = `html`
-                   name = `script` )->_cc_plain_xml( js ).
+        )->_generic( ns   = `html`
+                     name = `script` )->_cc_plain_xml( js ).
     ENDIF.
 
     IF check_open_ui5 = abap_true.
@@ -99,4 +99,5 @@ CLASS z2ui5_cl_pop_js_loader IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
+
 ENDCLASS.

@@ -3,7 +3,6 @@ CLASS z2ui5_cl_pop_messages DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-
     INTERFACES z2ui5_if_app.
 
     TYPES:
@@ -32,8 +31,8 @@ CLASS z2ui5_cl_pop_messages DEFINITION
         VALUE(r_result) TYPE REF TO z2ui5_cl_pop_messages.
 
   PROTECTED SECTION.
-    DATA client            TYPE REF TO z2ui5_if_client.
-    DATA title             TYPE string.
+    DATA client TYPE REF TO z2ui5_if_client.
+    DATA title  TYPE string.
 
     METHODS view_display.
 
@@ -42,6 +41,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
+
   METHOD factory.
 
     r_result = NEW #( ).
@@ -79,9 +79,9 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
                          title    = `{TITLE}`
                          subtitle = `{SUBTITLE}` ).
 
-    popup->buttons( )->button( text = 'continue'
-                  press             = client->_event( 'BUTTON_CONTINUE' )
-                  type              = 'Emphasized' ).
+    popup->buttons( )->button( text  = 'continue'
+                               press = client->_event( 'BUTTON_CONTINUE' )
+                               type  = 'Emphasized' ).
 
     client->popup_display( popup->stringify( ) ).
 
@@ -104,4 +104,5 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
+
 ENDCLASS.

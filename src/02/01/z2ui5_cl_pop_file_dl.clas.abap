@@ -3,7 +3,6 @@ CLASS z2ui5_cl_pop_file_dl DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-
     INTERFACES z2ui5_if_app.
 
     CLASS-METHODS factory
@@ -43,6 +42,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
+
   METHOD factory.
 
     r_result = NEW #( ).
@@ -130,4 +130,5 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
+
 ENDCLASS.

@@ -185,13 +185,14 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
   METHOD set_output_table.
 
-    FIELD-SYMBOLS <row>      TYPE any.
-    FIELD-SYMBOLS <row2>     TYPE any.
+    DATA lr_row TYPE REF TO data.
+
     FIELD-SYMBOLS <tab>      TYPE STANDARD TABLE.
     FIELD-SYMBOLS <tab_out>  TYPE STANDARD TABLE.
     FIELD-SYMBOLS <tab_out2> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <row>      TYPE any.
+    FIELD-SYMBOLS <row2>     TYPE any.
     FIELD-SYMBOLS <field>    TYPE any.
-    DATA lr_row TYPE REF TO data.
 
     ASSIGN mr_tab->* TO <tab>.
 
@@ -244,10 +245,10 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
   METHOD on_event_confirm.
 
     FIELD-SYMBOLS <tab>                 TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <table_result>        TYPE ANY TABLE.
     FIELD-SYMBOLS <row_selected>        TYPE any.
     FIELD-SYMBOLS <selkz>               TYPE any.
     FIELD-SYMBOLS <row_result>          TYPE any.
-    FIELD-SYMBOLS <table_result>        TYPE ANY TABLE.
     FIELD-SYMBOLS <table_line_selected> TYPE any.
 
     ASSIGN mr_tab_popup->* TO <tab>.

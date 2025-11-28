@@ -24,8 +24,8 @@ CLASS z2ui5_cl_pop_get_range_m DEFINITION
         VALUE(result) TYPE ty_s_result.
 
   PROTECTED SECTION.
-    DATA client            TYPE REF TO z2ui5_if_client.
-    DATA mv_popup_name     TYPE LINE OF string_table.
+    DATA client        TYPE REF TO z2ui5_if_client.
+    DATA mv_popup_name TYPE LINE OF string_table.
 
     METHODS popup_display.
 
@@ -36,6 +36,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
+
   METHOD factory.
 
     r_result = NEW #( ).
@@ -159,4 +160,5 @@ CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
 
     ENDCASE.
   ENDMETHOD.
+
 ENDCLASS.

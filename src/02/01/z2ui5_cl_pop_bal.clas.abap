@@ -3,7 +3,6 @@ CLASS z2ui5_cl_pop_bal DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-
     INTERFACES z2ui5_if_app.
 
     TYPES:
@@ -34,8 +33,8 @@ CLASS z2ui5_cl_pop_bal DEFINITION
         VALUE(r_result) TYPE REF TO z2ui5_cl_pop_bal.
 
   PROTECTED SECTION.
-    DATA client            TYPE REF TO z2ui5_if_client.
-    DATA title             TYPE string.
+    DATA client TYPE REF TO z2ui5_if_client.
+    DATA title  TYPE string.
 
     METHODS view_display.
 
@@ -44,15 +43,16 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
+
   METHOD factory.
 
     r_result = NEW #( ).
 
-    "read log infos
-    "handle
+    " read log infos
+    " handle
     "..
 
-    "read messages..
+    " read messages..
     DATA(lt_msg) = z2ui5_cl_util=>msg_get_t( i_messages ).
     LOOP AT lt_msg REFERENCE INTO DATA(lr_row).
 
@@ -130,4 +130,5 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
+
 ENDCLASS.

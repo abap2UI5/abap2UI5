@@ -17,8 +17,8 @@ CLASS z2ui5_cl_app_startup DEFINITION
         class_editable         TYPE abap_bool VALUE abap_true,
       END OF ms_home.
 
-    DATA mv_ui5_version       TYPE string.
-    DATA client               TYPE REF TO z2ui5_if_client.
+    DATA mv_ui5_version TYPE string.
+    DATA client         TYPE REF TO z2ui5_if_client.
 
     CLASS-METHODS factory
       RETURNING
@@ -34,6 +34,7 @@ CLASS z2ui5_cl_app_startup DEFINITION
     DATA mt_classes TYPE z2ui5_cl_util=>ty_t_classes.
 
   PRIVATE SECTION.
+
 ENDCLASS.
 
 
@@ -47,8 +48,10 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD on_event_check.
 
+    " TODO: variable is assigned but never used (ABAP cleaner)
+    DATA li_app_test TYPE REF TO z2ui5_if_app.
+
     TRY.
-        DATA li_app_test TYPE REF TO z2ui5_if_app.
         ms_home-classname = z2ui5_cl_util=>c_trim_upper( ms_home-classname ).
         CREATE OBJECT li_app_test TYPE (ms_home-classname).
 
@@ -79,16 +82,16 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     DATA(toolbar) = page->header_content( ).
     toolbar->toolbar_spacer(
-      )->button( text = `Debugging Tools`
-               icon   = `sap-icon://enablement`
-               press  = client->_event( `OPEN_DEBUG` )
-      )->button( text = `System`
-               icon   = `sap-icon://information`
-               press  = client->_event( `OPEN_INFO` ) ).
+      )->button( text  = `Debugging Tools`
+                 icon  = `sap-icon://enablement`
+                 press = client->_event( `OPEN_DEBUG` )
+      )->button( text  = `System`
+                 icon  = `sap-icon://information`
+                 press = client->_event( `OPEN_INFO` ) ).
     IF z2ui5_cl_util=>rtti_check_class_exists( 'z2ui5_cl_app_icf_config' ).
-      toolbar->button( text = 'Config'
-                  icon      = 'sap-icon://settings'
-                  press     = client->_event( 'SET_CONFIG' ) ).
+      toolbar->button( text  = 'Config'
+                       icon  = 'sap-icon://settings'
+                       press = client->_event( 'SET_CONFIG' ) ).
     ENDIF.
 
     DATA(simple_form) = page->simple_form( editable                = abap_true
@@ -176,7 +179,6 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     simple_form->link( text   = `You added a new feature or fixed a bug?`
                        target = `_blank`
                        href   = `https://github.com/abap2UI5/abap2UI5/pulls` ).
-
 
     simple_form->toolbar( )->title( `Documentation` ).
     simple_form->label( ).
@@ -277,12 +279,12 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD z2ui5_on_event.
 
+    DATA lo_app TYPE REF TO z2ui5_if_app.
     DATA li_app TYPE REF TO z2ui5_if_app.
 
     CASE client->get( )-event.
 
       WHEN `SET_CONFIG`.
-        DATA lo_app TYPE REF TO z2ui5_if_app.
         CREATE OBJECT lo_app TYPE ('Z2UI5_CL_APP_ICF_CONFIG').
         client->nav_app_call( lo_app ).
 

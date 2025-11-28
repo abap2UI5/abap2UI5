@@ -36,8 +36,8 @@ CLASS z2ui5_cl_pop_get_range DEFINITION
     DATA mt_mapping TYPE z2ui5_if_types=>ty_t_name_value.
 
   PROTECTED SECTION.
+    DATA client TYPE REF TO z2ui5_if_client.
 
-    DATA client            TYPE REF TO z2ui5_if_client.
     METHODS view_display.
 
   PRIVATE SECTION.
@@ -45,6 +45,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
+
   METHOD factory.
 
     r_result = NEW #( ).
@@ -174,4 +175,5 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
+
 ENDCLASS.

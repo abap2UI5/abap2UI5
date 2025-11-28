@@ -3,7 +3,6 @@ CLASS z2ui5_cl_pop_pdf DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-
     INTERFACES z2ui5_if_app.
 
     CLASS-METHODS factory
@@ -45,6 +44,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_pop_pdf IMPLEMENTATION.
+
   METHOD factory.
 
     r_result = NEW #( ).
@@ -110,4 +110,5 @@ CLASS z2ui5_cl_pop_pdf IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
+
 ENDCLASS.

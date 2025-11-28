@@ -190,12 +190,14 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS storage
-      IMPORTING finished      TYPE clike OPTIONAL
-                !type         TYPE clike OPTIONAL
-                prefix        TYPE clike OPTIONAL
-                !key          TYPE clike OPTIONAL
-                value         TYPE any   OPTIONAL
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING
+        finished      TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
+        prefix        TYPE clike OPTIONAL
+        key           TYPE clike OPTIONAL
+        value         TYPE any   OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS history
       IMPORTING
@@ -333,7 +335,6 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD camera_selector.
 
     result = mo_view.
@@ -368,7 +369,6 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD chartjs.
 
     result = mo_view.
@@ -398,8 +398,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
 
     DATA(lv_class) = 'Z2UI5_CL_CC_DEMO_OUT'.
     CALL METHOD (lv_class)=>('GET_STYLE')
-      RECEIVING
-        result = lv_style.
+      RECEIVING result = lv_style.
     result = mo_view->_cc_plain_xml( lv_style )->html( val ).
 
   ENDMETHOD.
@@ -622,11 +621,11 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
   METHOD lp_title.
 
     result = mo_view.
-    mo_view->_generic( name   = `LPTitle`
-                       ns     = `z2ui5`
-                       t_prop = VALUE #(
-                        ( n = `title`  v = title )
-                        ( n = `ApplicationFullWidth`  v = z2ui5_cl_util=>boolean_abap_2_json( applicationfullwidth ) ) ) ).
+    mo_view->_generic(
+        name   = `LPTitle`
+        ns     = `z2ui5`
+        t_prop = VALUE #( ( n = `title`  v = title )
+                          ( n = `ApplicationFullWidth`  v = z2ui5_cl_util=>boolean_abap_2_json( applicationfullwidth ) ) ) ).
 
   ENDMETHOD.
 
