@@ -732,8 +732,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     CLEAR lr_filter->t_token_removed.
     CLEAR lr_filter->t_token_added.
 
-    " TODO: variable is assigned but never used (ABAP cleaner)
-    DATA(lt_token) = result[ name = name ]-t_token.
     DATA(lt_range) = z2ui5_cl_util=>filter_get_range_t_by_token_t( result[ name = name ]-t_token ).
     lr_filter->t_range = lt_range.
 

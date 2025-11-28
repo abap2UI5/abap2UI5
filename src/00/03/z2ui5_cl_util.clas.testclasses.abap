@@ -145,7 +145,6 @@ CLASS ltcl_unit_test_open_abap IMPLEMENTATION.
 
     DATA(lt_attri) = CAST cl_abap_classdescr( cl_abap_objectdescr=>describe_by_object_ref( lo_app ) )->attributes.
 
-    " TODO: variable is assigned but never used (ABAP cleaner)
     DATA(lv_test) = lt_attri[ name = `MS_TAB` ].
     lv_test = lt_attri[ name = `MT_TAB` ].
     lv_test = lt_attri[ name = `MV_VAL` ].

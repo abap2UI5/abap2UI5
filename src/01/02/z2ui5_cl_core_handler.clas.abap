@@ -86,7 +86,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
         TRY.
             DATA(lv_hash) = result-s_front-hash.
-            " TODO: variable is assigned but never used (ABAP cleaner)
+
             SPLIT lv_hash AT '&/' INTO DATA(lv_dummy) lv_hash.
             IF lv_hash IS INITIAL.
               lv_hash = result-s_front-hash+2.
