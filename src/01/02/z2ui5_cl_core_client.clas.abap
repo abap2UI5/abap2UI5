@@ -12,7 +12,6 @@ CLASS z2ui5_cl_core_client DEFINITION
         action TYPE REF TO z2ui5_cl_core_action.
 
   PROTECTED SECTION.
-
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -312,13 +311,11 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~view_display.
 
-    DATA lo_object TYPE REF TO object.
-
     IF z2ui5_cl_util=>rtti_check_clike( val ).
       mo_action->ms_next-s_set-s_view-xml = val.
     ELSE.
 
-      lo_object ?= val.
+      DATA(lo_object) = CAST object( val ).
       CALL METHOD lo_object->('STRINGIFY')
         RECEIVING result = mo_action->ms_next-s_set-s_view-xml.
     ENDIF.
@@ -409,15 +406,9 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     DATA(lv_check_sticky) = CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky.
     IF lv_check_sticky = abap_true AND val = abap_true.
       RETURN.
-      " RAISE EXCEPTION TYPE z2ui5_cx_util_error
-      "  EXPORTING
-      "    val = `STATEFUL_ALREADY_ACTIVATED_ERROR`.
     ENDIF.
     IF lv_check_sticky = abap_false AND val = abap_false.
       RETURN.
-      " RAISE EXCEPTION TYPE z2ui5_cx_util_error
-      "  EXPORTING
-      "    val = `STATEFUL_WAS_NOT_ACTIVATED_ERROR`.
     ENDIF.
     IF val = abap_true.
       mo_action->ms_next-s_set-s_stateful-active = 1.

@@ -5597,7 +5597,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD begin_column_pages.
-    " todo, implement method
+
     result = _generic( name = `beginColumnPages`
                        ns   = `f` ).
 
@@ -6386,7 +6386,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD end_column_pages.
-    " todo, implement method
     result = me.
   ENDMETHOD.
 
@@ -6641,7 +6640,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
             ( n = 'filtersDialogBeforeOpen' v = filtersdialogbeforeopen )
             ( n = 'filtersDialogCancel' v = filtersdialogcancel )
             ( n = 'filtersDialogClosed' v = filtersdialogclosed )
-            " TODO: check spelling: initialise (BE) -> initialize (ABAP cleaner)
             ( n = 'initialise' v = initialise )
             ( n = 'initialized' v = initialized )
             ( n = 'reset' v = reset )

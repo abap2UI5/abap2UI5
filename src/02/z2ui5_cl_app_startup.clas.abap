@@ -34,7 +34,6 @@ CLASS z2ui5_cl_app_startup DEFINITION
     DATA mt_classes TYPE z2ui5_cl_util=>ty_t_classes.
 
   PRIVATE SECTION.
-
 ENDCLASS.
 
 
@@ -48,7 +47,6 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD on_event_check.
 
-    " TODO: variable is assigned but never used (ABAP cleaner)
     DATA li_app_test TYPE REF TO z2ui5_if_app.
 
     TRY.

@@ -197,16 +197,10 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     DATA(ls_config) = VALUE z2ui5_if_types=>ty_s_http_config( ).
     z2ui5_cl_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
 
-*    mo_server->set_header_field( n = `cache-control`
-*                                 v = `no-cache` ).
-
     LOOP AT ls_config-t_security_header INTO DATA(ls_header).
       mo_server->set_header_field( n = ls_header-n
                                    v = ls_header-v ).
     ENDLOOP.
-
-*    mo_server->set_status( code   = 200
-*                           reason = `success` ).
 
     mo_server->set_status( code   = ms_res-status_code
                            reason = ms_res-status_reason ).
@@ -257,7 +251,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
         ENDTRY.
 
       CATCH cx_root INTO DATA(x).
-*        ASSERT x->get_text( ) = 1.
 
         result = VALUE #( body          = |abap2UI5 Error:{ x->get_text( ) }|
                           status_code   = 500
