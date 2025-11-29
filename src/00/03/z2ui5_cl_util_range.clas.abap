@@ -56,20 +56,33 @@ CLASS z2ui5_cl_util_range IMPLEMENTATION.
   METHOD get_sql.
 
     FIELD-SYMBOLS <lt_range> TYPE STANDARD TABLE.
+    DATA temp1 TYPE xsdboolean.
+    FIELD-SYMBOLS <ls_range_item> TYPE ANY.
+      FIELD-SYMBOLS <lv_sign> TYPE any.
+      FIELD-SYMBOLS <lv_option> TYPE any.
+      FIELD-SYMBOLS <lv_low> TYPE any.
+      FIELD-SYMBOLS <lv_high> TYPE any.
     ASSIGN me->mr_range->* TO <lt_range>.
 
-    IF xsdbool( <lt_range> IS INITIAL ) = abap_true.
+    
+    temp1 = boolc( <lt_range> IS INITIAL ).
+    IF temp1 = abap_true.
       RETURN.
     ENDIF.
 
     result = `(`.
 
-    LOOP AT <lt_range> ASSIGNING FIELD-SYMBOL(<ls_range_item>).
+    
+    LOOP AT <lt_range> ASSIGNING <ls_range_item>.
 
-      ASSIGN COMPONENT `SIGN` OF STRUCTURE <ls_range_item> TO FIELD-SYMBOL(<lv_sign>).
-      ASSIGN COMPONENT `OPTION` OF STRUCTURE <ls_range_item> TO FIELD-SYMBOL(<lv_option>).
-      ASSIGN COMPONENT `LOW` OF STRUCTURE <ls_range_item> TO FIELD-SYMBOL(<lv_low>).
-      ASSIGN COMPONENT `HIGH` OF STRUCTURE <ls_range_item> TO FIELD-SYMBOL(<lv_high>).
+      
+      ASSIGN COMPONENT `SIGN` OF STRUCTURE <ls_range_item> TO <lv_sign>.
+      
+      ASSIGN COMPONENT `OPTION` OF STRUCTURE <ls_range_item> TO <lv_option>.
+      
+      ASSIGN COMPONENT `LOW` OF STRUCTURE <ls_range_item> TO <lv_low>.
+      
+      ASSIGN COMPONENT `HIGH` OF STRUCTURE <ls_range_item> TO <lv_high>.
 
       IF sy-tabix <> 1.
         result = |{ result } OR|.

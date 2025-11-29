@@ -26,16 +26,24 @@ ENDCLASS.
 CLASS z2ui5_cl_core_srv_util IMPLEMENTATION.
 
   METHOD app_get_url.
+    DATA lv_url TYPE string.
+    DATA lt_param TYPE z2ui5_cl_util=>ty_t_name_value.
+    DATA temp1 TYPE z2ui5_cl_util=>ty_s_name_value.
 
     IF classname IS INITIAL.
       classname = rtti_get_classname_by_ref( client->get_app( ) ).
     ENDIF.
 
-    DATA(lv_url) = |{ client->get( )-s_config-origin }{ client->get( )-s_config-pathname }?|.
-    DATA(lt_param) = url_param_get_tab( client->get( )-s_config-search ).
+    
+    lv_url = |{ client->get( )-s_config-origin }{ client->get( )-s_config-pathname }?|.
+    
+    lt_param = url_param_get_tab( client->get( )-s_config-search ).
     DELETE lt_param WHERE n = `app_start`.
-    INSERT VALUE #( n = `app_start`
-                    v = to_lower( classname ) ) INTO TABLE lt_param.
+    
+    CLEAR temp1.
+    temp1-n = `app_start`.
+    temp1-v = to_lower( classname ).
+    INSERT temp1 INTO TABLE lt_param.
 
     result = lv_url && url_param_create_url( lt_param ) && client->get( )-s_config-hash.
 
@@ -43,7 +51,8 @@ CLASS z2ui5_cl_core_srv_util IMPLEMENTATION.
 
   METHOD app_get_url_source_code.
 
-    DATA(ls_config) = client->get( )-s_config.
+    DATA ls_config TYPE z2ui5_if_types=>ty_s_config.
+    ls_config = client->get( )-s_config.
     result = |{ ls_config-origin }/sap/bc/adt/oo/classes/|
        && |{ rtti_get_classname_by_ref( client->get_app( ) ) }/source/main|.
 
