@@ -107,7 +107,6 @@ This project thrives thanks to its [contributors](https://github.com/abap2UI5/ab
 
 #### Get involved
 We welcome all contributions! Here's how you can help:
-* [Quickstart](https://abap2ui5.github.io/docs/get_started/quickstart.html) - Develop your first abap2UI5 app
 * [Issues](https://github.com/abap2UI5/abap2UI5/issues) - Report issues and provide feedback
 * [Contribution](https://abap2ui5.github.io/docs/resources/contribution.html) - Contribute code and documentation
 * [LinkedIn](https://www.linkedin.com/company/abap2ui5) - Follow abap2UI5 for updates and community highlights
