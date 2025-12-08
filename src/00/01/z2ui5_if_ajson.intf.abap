@@ -1,7 +1,7 @@
 INTERFACE z2ui5_if_ajson
   PUBLIC.
 
-  CONSTANTS version TYPE string VALUE 'v1.1.11'. "#EC NOTEXT
+  CONSTANTS version TYPE string VALUE 'v1.1.13'. "#EC NOTEXT
   CONSTANTS origin TYPE string VALUE 'https://github.com/sbcgua/ajson'. "#EC NOTEXT
   CONSTANTS license TYPE string VALUE 'MIT'. "#EC NOTEXT
 
@@ -119,6 +119,12 @@ INTERFACE z2ui5_if_ajson
     RETURNING
       VALUE(rv_value) TYPE timestamp.
 
+  METHODS get_timestampl
+    IMPORTING
+      iv_path TYPE string
+    RETURNING
+      VALUE(rv_value) TYPE timestampl.
+
   METHODS get_string
     IMPORTING
       iv_path TYPE string
@@ -134,6 +140,7 @@ INTERFACE z2ui5_if_ajson
   METHODS to_abap
     IMPORTING
       iv_corresponding TYPE abap_bool DEFAULT abap_false
+      ii_refs_initiator TYPE REF TO z2ui5_if_ajson_ref_initializer OPTIONAL
     EXPORTING
       ev_container TYPE any
     RAISING
@@ -212,6 +219,15 @@ INTERFACE z2ui5_if_ajson
     IMPORTING
       iv_path TYPE string
       iv_val TYPE timestamp
+    RETURNING
+      VALUE(ri_json) TYPE REF TO z2ui5_if_ajson
+    RAISING
+      z2ui5_cx_ajson_error.
+
+  METHODS set_timestampl
+    IMPORTING
+      iv_path TYPE string
+      iv_val TYPE timestampl
     RETURNING
       VALUE(ri_json) TYPE REF TO z2ui5_if_ajson
     RAISING
