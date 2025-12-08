@@ -140,7 +140,7 @@ INTERFACE z2ui5_if_ajson
   METHODS to_abap
     IMPORTING
       iv_corresponding TYPE abap_bool DEFAULT abap_false
-      ii_refs_initiator TYPE REF TO z2ui5_if_ajson_ref_initializer OPTIONAL
+      ii_refs_initiator TYPE REF TO z2ui5_if_ajson_ref_init OPTIONAL
     EXPORTING
       ev_container TYPE any
     RAISING

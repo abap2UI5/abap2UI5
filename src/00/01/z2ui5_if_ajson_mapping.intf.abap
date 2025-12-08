@@ -1,8 +1,6 @@
 INTERFACE z2ui5_if_ajson_mapping
   PUBLIC.
 
-  INTERFACES if_serializable_object.
-
   TYPES:
     BEGIN OF ty_mapping_field, " deprecated, will be removed
       abap TYPE string,

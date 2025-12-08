@@ -7,9 +7,9 @@ CLASS z2ui5_cl_ajson_ref_init_lib DEFINITION
 
     CLASS-METHODS create_path_refs_init
       IMPORTING
-        !it_data_refs       TYPE z2ui5_if_ajson_ref_initializer=>tty_data_refs
+        !it_data_refs       TYPE z2ui5_if_ajson_ref_init=>tty_data_refs
       RETURNING
-        VALUE(ri_refs_init) TYPE REF TO z2ui5_if_ajson_ref_initializer
+        VALUE(ri_refs_init) TYPE REF TO z2ui5_if_ajson_ref_init
       RAISING
         z2ui5_cx_ajson_error.
 

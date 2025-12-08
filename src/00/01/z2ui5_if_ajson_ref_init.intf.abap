@@ -1,4 +1,4 @@
-INTERFACE z2ui5_if_ajson_ref_initializer PUBLIC.
+INTERFACE z2ui5_if_ajson_ref_init PUBLIC.
 
   TYPES:
     BEGIN OF ty_data_ref,

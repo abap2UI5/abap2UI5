@@ -799,7 +799,7 @@ CLASS lcl_json_to_abap DEFINITION FINAL.
       IMPORTING
         !iv_corresponding  TYPE abap_bool DEFAULT abap_false
         !ii_custom_mapping TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
-        !ii_refs_initiator TYPE REF TO z2ui5_if_ajson_ref_initializer OPTIONAL.
+        !ii_refs_initiator TYPE REF TO z2ui5_if_ajson_ref_init OPTIONAL.
 
     METHODS to_abap
       IMPORTING
@@ -855,7 +855,7 @@ CLASS lcl_json_to_abap DEFINITION FINAL.
 
     DATA mr_nodes TYPE REF TO z2ui5_if_ajson_types=>ty_nodes_ts.
     DATA mi_custom_mapping TYPE REF TO z2ui5_if_ajson_mapping.
-    DATA mi_refs_initiator TYPE REF TO z2ui5_if_ajson_ref_initializer.
+    DATA mi_refs_initiator TYPE REF TO z2ui5_if_ajson_ref_init.
     DATA mv_corresponding TYPE abap_bool.
 
     METHODS any_to_abap

@@ -4,14 +4,14 @@
 
 CLASS lcl_path_refs_init DEFINITION.
   PUBLIC SECTION.
-    INTERFACES z2ui5_if_ajson_ref_initializer.
+    INTERFACES z2ui5_if_ajson_ref_init.
 
     METHODS constructor
       IMPORTING
-        !it_data_refs TYPE z2ui5_if_ajson_ref_initializer~tty_data_refs.
+        !it_data_refs TYPE z2ui5_if_ajson_ref_init~tty_data_refs.
 
   PRIVATE SECTION.
-    DATA mt_data_refs TYPE z2ui5_if_ajson_ref_initializer~tty_data_refs.
+    DATA mt_data_refs TYPE z2ui5_if_ajson_ref_init~tty_data_refs.
 ENDCLASS.
 
 CLASS lcl_path_refs_init IMPLEMENTATION.
@@ -20,7 +20,7 @@ CLASS lcl_path_refs_init IMPLEMENTATION.
     mt_data_refs = it_data_refs.
   ENDMETHOD.
 
-  METHOD z2ui5_if_ajson_ref_initializer~get_data_ref.
+  METHOD z2ui5_if_ajson_ref_init~get_data_ref.
 
     FIELD-SYMBOLS <data_ref> LIKE LINE OF mt_data_refs.
 

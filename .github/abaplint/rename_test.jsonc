@@ -10,7 +10,23 @@
   ],
   "rename": {
     "output": "output",
-    "patterns": [{"type": "CLAS|INTF", "oldName": "Z2UI5_CL_AJSON_REF_INIT_LIB", "newName": "ZABAP2UI5_CL_AJSON_REF_INIT_LIB"},{"type": "CLAS|INTF", "oldName": "z2ui5_(.*)", "newName": "zabap2ui5_$1"}]
+    "patterns": [
+      {
+        "type": "CLAS|INTF",
+        "oldName": "Z2UI5_CL_AJSON_REF_INIT_LIB",
+        "newName": "ZABAP2UI5_CL_AJSON_REF_INIT_LIB"
+      },
+      {
+        "type": "CLAS|INTF",
+        "oldName": "Z2UI5_IF_AJSON_REF_INIT",
+        "newName": "ZABAP2UI5_IF_AJSON_REF_INIT"
+      },
+      {
+        "type": "CLAS|INTF",
+        "oldName": "z(.*)_ajson",
+        "newName": "z2ui5_$1_ajson"
+      }
+    ]
   },
   "syntax": {
     "version": "v750",
@@ -18,7 +34,12 @@
   },
   "rules": {
     "allowed_object_types": {
-      "allowed": ["CLAS", "DEVC", "INTF", "TABL"]
+      "allowed": [
+        "CLAS",
+        "DEVC",
+        "INTF",
+        "TABL"
+      ]
     },
     "allowed_object_naming": true,
     "begin_end_names": true,
