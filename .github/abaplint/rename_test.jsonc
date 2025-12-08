@@ -10,13 +10,7 @@
   ],
   "rename": {
     "output": "output",
-    "patterns": [
-      {
-        "type": "CLAS|INTF|TABL",
-        "oldName": "z2ui5_(.*)",
-        "newName": "zabap2ui5_$1"
-      }
-    ]
+    "patterns": [{"type": "CLAS|INTF", "oldName": "Z2UI5_CL_AJSON_REF_INIT_LIB", "newName": "ZABAP2UI5_CL_AJSON_REF_INIT_LIB"},{"type": "CLAS|INTF", "oldName": "z2ui5_(.*)", "newName": "zabap2ui5_$1"}]
   },
   "syntax": {
     "version": "v750",
