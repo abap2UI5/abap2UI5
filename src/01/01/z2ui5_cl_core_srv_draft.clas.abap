@@ -51,7 +51,7 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
                                time    = z2ui5_cl_util=>time_get_timestampl( )
                                seconds = 60 * 60 * ls_config-draft_exp_time_in_hours ).
 
-    DELETE FROM z2ui5_t_01 WHERE timestampl < @lv_n_hours_ago.
+    DELETE FROM z2ui5_t_01 WHERE timestampl < @lv_n_hours_ago ##SUBRC_OK.
     COMMIT WORK.
 
   ENDMETHOD.
