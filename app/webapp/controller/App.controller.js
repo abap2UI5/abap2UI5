@@ -922,7 +922,7 @@ sap.ui.define("z2ui5/SmartMultiInputExt", ["sap/ui/core/Control", "sap/m/Token",
 sap.ui.define("z2ui5/CameraPicture", [
   "sap/ui/core/Control",
   "sap/m/Dialog",
-  "sap/m/Button", 
+  "sap/m/Button",
   "sap/ui/core/HTML"
 ], function (Control, Dialog, Button, HTML) {
   "use strict";
@@ -932,6 +932,8 @@ sap.ui.define("z2ui5/CameraPicture", [
         id: { type: "string" },
         value: { type: "string" },
         press: { type: "string" },
+        width: { type: "string" , defaultValue: 200 },
+        height: { type: "string" , defaultValue: 200 },
         autoplay: { type: "boolean", defaultValue: true },
         facingMode: { type: "string" },
         deviceId: { type: "string" }
@@ -953,8 +955,8 @@ sap.ui.define("z2ui5/CameraPicture", [
       var video = document.querySelector("#zvideo");
       var canvas = document.getElementById('zcanvas');
       var resultb64 = "";
-      canvas.width = 200;
-      canvas.height = 200;
+      canvas.width = parseInt( this.getProperty("width") );
+      canvas.height = parseInt( this.getProperty("height") );
       canvas.getContext('2d').drawImage(video, 0, 0, 200, 200);
       resultb64 = canvas.toDataURL();
       this.setProperty("value", resultb64);
@@ -976,7 +978,7 @@ sap.ui.define("z2ui5/CameraPicture", [
           content: [
             new HTML({
               id: this.getId() + 'PictureContainer',
-              content: '<video width="600px" height="400px" autoplay="true" id="zvideo">'
+              content: '<video width="' + this.getProperty("width") + 'px" height="' + this.getProperty("height")  + 'px" autoplay="true" id="zvideo">'
             }),
             new Button({
               text: "Capture",
@@ -1038,6 +1040,7 @@ sap.ui.define("z2ui5/CameraPicture", [
     },
   });
 });
+
 
 sap.ui.define("z2ui5/CameraSelector", [
   "sap/m/ComboBox",

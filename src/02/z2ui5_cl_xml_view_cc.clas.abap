@@ -33,6 +33,8 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
       IMPORTING
         id            TYPE clike OPTIONAL
         value         TYPE clike OPTIONAL
+        height        TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
         autoplay      TYPE clike OPTIONAL
         onphoto       TYPE clike OPTIONAL
@@ -327,6 +329,8 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `id`       v = id )
                                          ( n = `value`    v = value )
                                          ( n = `press`    v = press )
+                                         ( n = `height`    v = height )
+                                         ( n = `width`    v = width )
                                          ( n = `OnPhoto`    v = onphoto )
                                          ( n = `autoplay` v = z2ui5_cl_util=>boolean_abap_2_json( autoplay ) )
                                          ( n = `facingMode` v = facingmode )
