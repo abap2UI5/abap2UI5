@@ -956,6 +956,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        id: { type: "string" },` && |\n| &&
              `        value: { type: "string" },` && |\n| &&
              `        press: { type: "string" },` && |\n| &&
+             `        width: { type: "string" , defaultValue: 200 },` && |\n| &&
+             `        height: { type: "string" , defaultValue: 200 },` && |\n| &&
              `        autoplay: { type: "boolean", defaultValue: true },` && |\n| &&
              `        facingMode: { type: "string" },` && |\n| &&
              `        deviceId: { type: "string" }` && |\n| &&
@@ -977,8 +979,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      var video = document.querySelector("#zvideo");` && |\n| &&
              `      var canvas = document.getElementById('zcanvas');` && |\n| &&
              `      var resultb64 = "";` && |\n| &&
-             `      canvas.width = 200;` && |\n| &&
-             `      canvas.height = 200;` && |\n| &&
+             `      canvas.width = parseInt( this.getProperty("width") );` && |\n| &&
+             `      canvas.height = parseInt( this.getProperty("height") );` && |\n| &&
              `      canvas.getContext('2d').drawImage(video, 0, 0, 200, 200);` && |\n| &&
              `      resultb64 = canvas.toDataURL();` && |\n| &&
              `      this.setProperty("value", resultb64);` && |\n| &&
@@ -1000,7 +1002,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          content: [` && |\n| &&
              `            new HTML({` && |\n| &&
              `              id: this.getId() + 'PictureContainer',` && |\n| &&
-             `              content: '<video width="600px" height="400px" autoplay="true" id="zvideo">'` && |\n| &&
+             `              content: '<video width="' + this.getProperty("width") + 'px" height="' + this.getProperty("height")  + 'px" autoplay="true" id="zvideo">'` && |\n| &&
              `            }),` && |\n| &&
              `            new Button({` && |\n| &&
              `              text: "Capture",` && |\n| &&
@@ -1062,6 +1064,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n| &&
              `  });` && |\n| &&
              `});` && |\n| &&
+             `` && |\n| &&
              `` && |\n| &&
              `sap.ui.define("z2ui5/CameraSelector", [` && |\n| &&
              `  "sap/m/ComboBox",` && |\n| &&
@@ -1219,11 +1222,11 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `  "use strict";` && |\n| &&
              `  return {` && |\n| &&
              `    DateCreateObject: (s) => new Date(s),` && |\n| &&
+             |\n|.
+    result = result &&
              `    //  DateAbapTimestampToDate: (sTimestamp) => new sap.gantt.misc.Format.abapTimestampToDate(sTimestamp), commented for UI5 2.x compatibility` && |\n| &&
              `    DateAbapDateToDateObject: (d) => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8)),` && |\n| &&
              `    DateAbapDateTimeToDateObject: (d, t = '000000') => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8), t.slice(0, 2), t.slice(2, 4), t.slice(4, 6)),` && |\n| &&
-             |\n|.
-    result = result &&
              `  };` && |\n| &&
              `}` && |\n| &&
              `);` && |\n| &&
