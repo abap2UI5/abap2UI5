@@ -12,12 +12,14 @@ ENDCLASS.
 CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
+        DATA view TYPE REF TO z2ui5_cl_xml_view.
 
     CASE abap_true.
 
       WHEN client->check_on_init( ).
 
-        DATA(view) = z2ui5_cl_xml_view=>factory(
+        
+        view = z2ui5_cl_xml_view=>factory(
           )->shell(
           )->page( `abap2UI5 - Hello World`
           )->simple_form( editable = abap_true

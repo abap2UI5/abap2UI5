@@ -48,7 +48,7 @@ CLASS z2ui5_cl_pop_file_ul IMPLEMENTATION.
 
   METHOD factory.
 
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
     r_result->title               = i_title.
 
     r_result->question_text       = i_text.
@@ -66,7 +66,8 @@ CLASS z2ui5_cl_pop_file_ul IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
+    DATA popup TYPE REF TO z2ui5_cl_xml_view.
+    popup = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
                                                                icon       = icon
                                                                afterclose = client->_event( `BUTTON_CANCEL` )
               )->content(
@@ -90,10 +91,13 @@ CLASS z2ui5_cl_pop_file_ul IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD z2ui5_if_app~main.
+        DATA lv_dummy TYPE string.
+        DATA lv_data TYPE string.
+        DATA lv_data2 TYPE xstring.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       view_display( ).
       RETURN.
     ENDIF.
@@ -102,10 +106,13 @@ CLASS z2ui5_cl_pop_file_ul IMPLEMENTATION.
 
       WHEN `UPLOAD`.
 
-        SPLIT mv_value AT `;` INTO DATA(lv_dummy) DATA(lv_data).
+        
+        
+        SPLIT mv_value AT `;` INTO lv_dummy lv_data.
         SPLIT lv_data AT `,` INTO lv_dummy lv_data.
 
-        DATA(lv_data2) = z2ui5_cl_util=>conv_decode_x_base64( lv_data ).
+        
+        lv_data2 = z2ui5_cl_util=>conv_decode_x_base64( lv_data ).
         ms_result-value = z2ui5_cl_util=>conv_get_string_by_xstring( lv_data2 ).
         check_confirm_enabled = abap_true.
 
