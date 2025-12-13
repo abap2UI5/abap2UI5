@@ -1,6 +1,6 @@
 <details>
   
-<summary>📊 Status</summary>
+<summary>🚦</summary>
 <br>
 
 [![ABAP_702](https://github.com/abap2UI5/abap2UI5/actions/workflows/ABAP_702.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/ABAP_702.yaml)
