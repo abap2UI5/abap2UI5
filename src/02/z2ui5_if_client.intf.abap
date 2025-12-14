@@ -38,9 +38,9 @@ INTERFACE z2ui5_if_client
 
   METHODS view_display
     IMPORTING
-      val                           TYPE any
-      switch_default_model_anno_uri TYPE string OPTIONAL
-      switch_default_model_path     TYPE string OPTIONAL.
+      val                           TYPE clike
+      switch_default_model_anno_uri TYPE clike OPTIONAL
+      switch_default_model_path     TYPE clike OPTIONAL.
 
   METHODS view_model_update.
 
@@ -194,7 +194,7 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val                  TYPE data
       path                 TYPE abap_bool                     DEFAULT abap_false
-      view                 TYPE string                        DEFAULT cs_view-main
+      view                 TYPE clike                         DEFAULT cs_view-main
       custom_mapper        TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
       custom_mapper_back   TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
       custom_filter        TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
