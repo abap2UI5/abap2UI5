@@ -27,6 +27,7 @@ ENDCLASS.
 CLASS lcl_node_iterator IMPLEMENTATION.
 
   METHOD constructor.
+    DATA lv_node_type LIKE mv_node_type.
 
     IF NOT ( iv_node_type = z2ui5_if_ajson_types=>node_type-array OR iv_node_type = z2ui5_if_ajson_types=>node_type-object ).
       z2ui5_cx_ajson_error=>raise( |Iterator can iterate arrays or objects only ("{ iv_node_type }" passed)| ).
@@ -36,7 +37,7 @@ CLASS lcl_node_iterator IMPLEMENTATION.
     mv_node_type = iv_node_type.
     mi_json      = ii_json.
 
-    DATA lv_node_type LIKE mv_node_type.
+    
     lv_node_type = ii_json->get_node_type( mv_base_path ).
 
     IF lv_node_type IS INITIAL.

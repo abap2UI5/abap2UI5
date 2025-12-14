@@ -46,7 +46,7 @@ CLASS z2ui5_cl_pop_input_val IMPLEMENTATION.
 
   METHOD factory.
 
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
     r_result->title               = title.
 
     r_result->question_text       = text.
@@ -64,7 +64,8 @@ CLASS z2ui5_cl_pop_input_val IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
+    DATA popup TYPE REF TO z2ui5_cl_xml_view.
+    popup = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
                                                                icon       = icon
                                                                afterclose = client->_event( `BUTTON_CANCEL` )
               )->content(
@@ -88,7 +89,7 @@ CLASS z2ui5_cl_pop_input_val IMPLEMENTATION.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       view_display( ).
       RETURN.
     ENDIF.

@@ -83,12 +83,18 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
 
   METHOD delete_response_cookie.
 
-    DATA(lv_val) = CONV string( val ).
+    DATA temp1 TYPE string.
+    DATA lv_val LIKE temp1.
+      DATA object TYPE REF TO object.
+      FIELD-SYMBOLS <any> TYPE any.
+    temp1 = val.
+    
+    lv_val = temp1.
 
     IF mo_server_onprem IS BOUND.
 
-      DATA object TYPE REF TO object.
-      FIELD-SYMBOLS <any> TYPE any.
+      
+      
 
       ASSIGN mo_server_onprem->(`RESPONSE`) TO <any>.
       object = <any>.
@@ -112,7 +118,11 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
     DATA object TYPE REF TO object.
     FIELD-SYMBOLS <any> TYPE any.
 
-    DATA(lv_val) = CONV string( val ).
+    DATA temp2 TYPE string.
+    DATA lv_val LIKE temp2.
+    temp2 = val.
+    
+    lv_val = temp2.
 
     IF mo_server_onprem IS BOUND.
 
@@ -142,7 +152,11 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
     DATA object TYPE REF TO object.
     FIELD-SYMBOLS <any> TYPE any.
 
-    DATA(lv_val) = CONV string( val ).
+    DATA temp3 TYPE string.
+    DATA lv_val LIKE temp3.
+    temp3 = val.
+    
+    lv_val = temp3.
 
     IF mo_server_onprem IS BOUND.
 
@@ -172,8 +186,17 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
     DATA object TYPE REF TO object.
     FIELD-SYMBOLS <any> TYPE any.
 
-    DATA(lv_n) = CONV string( n ).
-    DATA(lv_v) = CONV string( v ).
+    DATA temp4 TYPE string.
+    DATA lv_n LIKE temp4.
+    DATA temp5 TYPE string.
+    DATA lv_v LIKE temp5.
+    temp4 = n.
+    
+    lv_n = temp4.
+    
+    temp5 = v.
+    
+    lv_v = temp5.
     IF mo_server_onprem IS BOUND.
 
       ASSIGN mo_server_onprem->(`RESPONSE`) TO <any>.
@@ -197,14 +220,14 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
 
   METHOD factory.
 
-    result = NEW #( ).
+    CREATE OBJECT result.
     result->mo_server_onprem = server.
 
   ENDMETHOD.
 
   METHOD factory_cloud.
 
-    result = NEW #( ).
+    CREATE OBJECT result.
     result->mo_request_cloud  = req.
     result->mo_response_cloud = res.
 
@@ -287,7 +310,11 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
     DATA object TYPE REF TO object.
     FIELD-SYMBOLS <any> TYPE any.
 
-    DATA(lv_reason) = CONV string( reason ).
+    DATA temp6 TYPE string.
+    DATA lv_reason LIKE temp6.
+    temp6 = reason.
+    
+    lv_reason = temp6.
 
     IF mo_server_onprem IS BOUND.
 

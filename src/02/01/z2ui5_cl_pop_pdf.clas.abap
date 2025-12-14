@@ -47,7 +47,7 @@ CLASS z2ui5_cl_pop_pdf IMPLEMENTATION.
 
   METHOD factory.
 
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
     r_result->title               = i_title.
     r_result->button_text_confirm = i_button_text_confirm.
     r_result->button_text_cancel  = i_button_text_cancel.
@@ -63,7 +63,22 @@ CLASS z2ui5_cl_pop_pdf IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
+    DATA temp1 TYPE z2ui5_if_types=>ty_t_name_value.
+    DATA temp2 LIKE LINE OF temp1.
+    DATA popup TYPE REF TO z2ui5_cl_xml_view.
+    CLEAR temp1.
+    
+    temp2-n = `src`.
+    temp2-v = mv_pdf.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-n = `height`.
+    temp2-v = `800px`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-n = `width`.
+    temp2-v = `99%`.
+    INSERT temp2 INTO TABLE temp1.
+    
+    popup = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
                                                                icon       = icon
                                                                stretch    = abap_true
                                                                afterclose = client->_event( `BUTTON_CANCEL` )
@@ -72,10 +87,7 @@ CLASS z2ui5_cl_pop_pdf IMPLEMENTATION.
                   )->label( question_text
                   )->_generic( ns     = `html`
                                name   = `iframe`
-                               t_prop = VALUE #( ( n = `src`    v = mv_pdf )
-                                                 ( n = `height` v = `800px` )
-                                                 ( n = `width`  v = `99%` )
-                           )
+                               t_prop = temp1
               )->get_parent( )->get_parent( )->get_parent(
               )->buttons(
                   )->button( text  = button_text_cancel
@@ -92,7 +104,7 @@ CLASS z2ui5_cl_pop_pdf IMPLEMENTATION.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       view_display( ).
       RETURN.
     ENDIF.

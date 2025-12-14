@@ -447,6 +447,11 @@ CLASS lcl_json_parser IMPLEMENTATION.
     DATA lr_stack_top LIKE LINE OF mt_stack.
     DATA lo_node TYPE REF TO if_sxml_node.
     FIELD-SYMBOLS <item> LIKE LINE OF rt_json_tree.
+          DATA lt_attributes TYPE if_sxml_attribute=>attributes.
+          DATA lo_attr LIKE LINE OF lt_attributes.
+          DATA lo_open TYPE REF TO if_sxml_open_element.
+          DATA lo_close TYPE REF TO if_sxml_close_element.
+          DATA lo_value TYPE REF TO if_sxml_value_node.
 
     CLEAR mt_stack.
     CLEAR mv_stack_path.
@@ -466,9 +471,9 @@ CLASS lcl_json_parser IMPLEMENTATION.
 
       CASE lo_node->type.
         WHEN if_sxml_node=>co_nt_element_open.
-          DATA lt_attributes TYPE if_sxml_attribute=>attributes.
-          DATA lo_attr LIKE LINE OF lt_attributes.
-          DATA lo_open TYPE REF TO if_sxml_open_element.
+          
+          
+          
           lo_open ?= lo_node.
 
           APPEND INITIAL LINE TO rt_json_tree ASSIGNING <item>.
@@ -510,7 +515,7 @@ CLASS lcl_json_parser IMPLEMENTATION.
             && '/'.
 
         WHEN if_sxml_node=>co_nt_element_close.
-          DATA lo_close TYPE REF TO if_sxml_close_element.
+          
           lo_close ?= lo_node.
 
           READ TABLE mt_stack INDEX 1 INTO lr_stack_top.
@@ -523,7 +528,7 @@ CLASS lcl_json_parser IMPLEMENTATION.
           mv_stack_path = substring( val = mv_stack_path
                                      len = find( val = mv_stack_path sub = '/' occ = -2 ) + 1 ).
         WHEN if_sxml_node=>co_nt_value.
-          DATA lo_value TYPE REF TO if_sxml_value_node.
+          
           lo_value ?= lo_node.
 
           <item>-value = lo_value->get_value( ).
@@ -643,6 +648,8 @@ CLASS lcl_json_serializer IMPLEMENTATION.
 
     DATA lv_item TYPE string.
     DATA lv_indent_prefix TYPE string.
+      DATA lv_children_path TYPE string.
+      DATA lv_tail TYPE string.
 
     IF mv_indent_step > 0.
       lv_indent_prefix = repeat( val = ` `
@@ -687,8 +694,8 @@ CLASS lcl_json_serializer IMPLEMENTATION.
     " finish complex item
 
     IF is_node-type = z2ui5_if_ajson_types=>node_type-array OR is_node-type = z2ui5_if_ajson_types=>node_type-object.
-      DATA lv_children_path TYPE string.
-      DATA lv_tail TYPE string.
+      
+      
 
       lv_children_path = is_node-path && is_node-name && '/'. " for root: path = '' and name = '', so result is '/'
 

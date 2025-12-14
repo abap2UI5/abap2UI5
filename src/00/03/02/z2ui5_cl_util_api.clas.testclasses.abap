@@ -15,7 +15,8 @@ ENDCLASS.
 CLASS ltcl_test IMPLEMENTATION.
   METHOD test_func_get_uuid_32.
 
-    DATA(lv_uuid) = z2ui5_cl_util_api=>uuid_get_c32( ).
+    DATA lv_uuid TYPE string.
+    lv_uuid = z2ui5_cl_util_api=>uuid_get_c32( ).
     cl_abap_unit_assert=>assert_not_initial( lv_uuid ).
     cl_abap_unit_assert=>assert_equals( exp = strlen( lv_uuid )
                                         act = 32 ).
@@ -24,7 +25,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_func_get_uuid_22.
 
-    DATA(lv_uuid) = z2ui5_cl_util_api=>uuid_get_c22( ).
+    DATA lv_uuid TYPE string.
+    lv_uuid = z2ui5_cl_util_api=>uuid_get_c22( ).
     cl_abap_unit_assert=>assert_not_initial( lv_uuid ).
     cl_abap_unit_assert=>assert_equals( exp = strlen( lv_uuid )
                                         act = 22 ).
@@ -33,11 +35,20 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_encoding.
 
-    DATA(lv_string)   = `my string`.
-    DATA(lv_xstring)  = z2ui5_cl_util_api=>conv_get_xstring_by_string( lv_string ).
-    DATA(lv_string2)  = z2ui5_cl_util_api=>conv_encode_x_base64( lv_xstring ).
-    DATA(lv_xstring2) = z2ui5_cl_util_api=>conv_decode_x_base64( lv_string2 ).
-    DATA(lv_string3)  = z2ui5_cl_util_api=>conv_get_string_by_xstring( lv_xstring2 ).
+    DATA lv_string TYPE string.
+    DATA lv_xstring TYPE xstring.
+    DATA lv_string2 TYPE string.
+    DATA lv_xstring2 TYPE xstring.
+    DATA lv_string3 TYPE string.
+    lv_string   = `my string`.
+    
+    lv_xstring  = z2ui5_cl_util_api=>conv_get_xstring_by_string( lv_string ).
+    
+    lv_string2  = z2ui5_cl_util_api=>conv_encode_x_base64( lv_xstring ).
+    
+    lv_xstring2 = z2ui5_cl_util_api=>conv_decode_x_base64( lv_string2 ).
+    
+    lv_string3  = z2ui5_cl_util_api=>conv_get_string_by_xstring( lv_xstring2 ).
 
     cl_abap_unit_assert=>assert_equals( exp = lv_string
                                         act = lv_string3 ).
@@ -45,12 +56,14 @@ CLASS ltcl_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_element_text.
+    DATA ls_result TYPE z2ui5_cl_util_api=>ty_s_data_element_text.
 
     IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 
-    DATA(ls_result) = z2ui5_cl_util_api=>rtti_get_data_element_texts( `UNAME` ).
+    
+    ls_result = z2ui5_cl_util_api=>rtti_get_data_element_texts( `UNAME` ).
     IF z2ui5_CL_util=>context_check_abap_cloud( ) = abap_false.
       cl_abap_unit_assert=>assert_not_initial( ls_result ).
     ENDIF.
@@ -58,12 +71,14 @@ CLASS ltcl_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_classes_impl_intf.
+    DATA mt_classes TYPE z2ui5_cl_util_api=>ty_t_classes.
 
     IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 
-    DATA(mt_classes) = z2ui5_cl_util_api=>rtti_get_classes_impl_intf( `IF_SERIALIZABLE_OBJECT`  ).
+    
+    mt_classes = z2ui5_cl_util_api=>rtti_get_classes_impl_intf( `IF_SERIALIZABLE_OBJECT`  ).
     cl_abap_unit_assert=>assert_not_initial( mt_classes ).
 
   ENDMETHOD.

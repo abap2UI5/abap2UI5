@@ -43,27 +43,41 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
   METHOD display.
 
     FIELD-SYMBOLS <tab_out> TYPE STANDARD TABLE.
+    DATA popup TYPE REF TO z2ui5_cl_xml_view.
+    DATA tab TYPE REF TO z2ui5_cl_xml_view.
+    DATA lt_comp TYPE abap_component_tab.
+    DATA list TYPE REF TO z2ui5_cl_xml_view.
+    DATA cells TYPE REF TO z2ui5_cl_xml_view.
+    DATA ls_comp LIKE LINE OF lt_comp.
+    DATA columns TYPE REF TO z2ui5_cl_xml_view.
 
     ASSIGN mr_tab->* TO <tab_out>.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( afterclose = client->_event( `BUTTON_CONFIRM` )
+    
+    popup = z2ui5_cl_xml_view=>factory_popup( )->dialog( afterclose = client->_event( `BUTTON_CONFIRM` )
                                                                stretch    = abap_true
                                                                title      = title
 *                                                               icon       = `sap-icon://edit`
           )->content( ).
 
-    DATA(tab) = popup->table( client->_bind( <tab_out> ) ).
+    
+    tab = popup->table( client->_bind( <tab_out> ) ).
 
-    DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_any( <tab_out> ).
+    
+    lt_comp = z2ui5_cl_util=>rtti_get_t_attri_by_any( <tab_out> ).
 
-    DATA(list) = tab->column_list_item( valign = `Top` ).
-    DATA(cells) = list->cells( ).
+    
+    list = tab->column_list_item( valign = `Top` ).
+    
+    cells = list->cells( ).
 
-    LOOP AT lt_comp INTO DATA(ls_comp).
+    
+    LOOP AT lt_comp INTO ls_comp.
       cells->text( |\{{ ls_comp-name }\}| ).
     ENDLOOP.
 
-    DATA(columns) = tab->columns( ).
+    
+    columns = tab->columns( ).
     LOOP AT lt_comp INTO ls_comp.
       columns->column( `8rem` )->header( `` )->text( ls_comp-name ).
     ENDLOOP.
@@ -81,7 +95,7 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
   METHOD factory.
     FIELD-SYMBOLS <tab> TYPE any.
 
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
     IF i_title IS NOT INITIAL.
       r_result->title = i_title.
     ENDIF.
@@ -126,7 +140,7 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       display( ).
       RETURN.
     ENDIF.
