@@ -60,63 +60,48 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
 
   METHOD z2ui5_if_exit~set_config_http_get.
 
-    IF cs_config-title IS INITIAL.
-      cs_config-title = `abap2UI5`.
-    ENDIF.
+    cs_config-title = `abap2UI5`.
+    cs_config-theme = `sap_horizon`.
 
-    IF cs_config-theme IS INITIAL.
-      cs_config-theme = `sap_horizon`.
-    ENDIF.
-
-    IF cs_config-src IS INITIAL.
-      cs_config-src = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js`.
+    cs_config-src = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js`.
 *      ms_req_config-src     = `https://sdk.openui5.org/1.71.67/resources/sap-ui-core.js`.
 *      ms_req_config-src     = `https://sdk.openui5.org/nightly/2/resources/sap-ui-core.js`.
-    ENDIF.
 
-    IF cs_config-content_security_policy IS INITIAL.
-
-      " before 21.11.2025
+    " before 21.11.2025
 *      cs_config-content_security_policy = |<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: | &&
 *        |ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com openui5.hana.ondemand.com *.openui5.hana.ondemand.com | &&
 *        |sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas; worker-src 'self' blob:; "/>|.
 
-      " after 21.11.2025 unsafe-inline, unsafe-eval deleted
-      cs_config-content_security_policy =
-        |<meta http-equiv="Content-Security-Policy" | &&
-        |content="default-src 'self' 'unsafe-inline' data: | &&
-        |ui5.sap.com *.ui5.sap.com | &&
-        |sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com | &&
-        |openui5.hana.ondemand.com *.openui5.hana.ondemand.com | &&
-        |sdk.openui5.org *.sdk.openui5.org | &&
-        |cdn.jsdelivr.net *.cdn.jsdelivr.net | &&
-        |cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas; | &&
-        |connect-src 'self' | &&
-        |  ui5.sap.com *.ui5.sap.com | &&
-        |  sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com | &&
-        |  openui5.hana.ondemand.com *.openui5.hana.ondemand.com | &&
-        |  sdk.openui5.org *.sdk.openui5.org | &&
-        |  cdn.jsdelivr.net *.cdn.jsdelivr.net | &&
-        |  cdnjs.cloudflare.com *.cdnjs.cloudflare.com; | &&
-        |worker-src 'self' blob:; "/>|.
+    " after 21.11.2025 unsafe-inline, unsafe-eval deleted
+    cs_config-content_security_policy =
+      |<meta http-equiv="Content-Security-Policy" | &&
+      |content="default-src 'self' 'unsafe-inline' data: | &&
+      |ui5.sap.com *.ui5.sap.com | &&
+      |sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com | &&
+      |openui5.hana.ondemand.com *.openui5.hana.ondemand.com | &&
+      |sdk.openui5.org *.sdk.openui5.org | &&
+      |cdn.jsdelivr.net *.cdn.jsdelivr.net | &&
+      |cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas; | &&
+      |connect-src 'self' | &&
+      |  ui5.sap.com *.ui5.sap.com | &&
+      |  sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com | &&
+      |  openui5.hana.ondemand.com *.openui5.hana.ondemand.com | &&
+      |  sdk.openui5.org *.sdk.openui5.org | &&
+      |  cdn.jsdelivr.net *.cdn.jsdelivr.net | &&
+      |  cdnjs.cloudflare.com *.cdnjs.cloudflare.com; | &&
+      |worker-src 'self' blob:; "/>|.
 
-    ENDIF.
-
-    IF cs_config-t_security_header IS INITIAL.
-
-      cs_config-t_security_header = VALUE #(
-          ( n = `cache-control`          v = `no-cache, no-store, must-revalidate` )
-          ( n = `Pragma`                 v = `no-cache` )
-          ( n = `Expires`                v = `0` )
-          ( n = `X-Content-Type-Options` v = `nosniff` )
-          ( n = `X-Frame-Options`        v = `SAMEORIGIN` )
-          ( n = `Referrer-Policy`        v = `strict-origin-when-cross-origin` )
-          ( n = `Permissions-Policy`     v = `geolocation=(self), microphone=(self), camera=(self), payment=(), usb=()` ) ).
-
-    ENDIF.
+    cs_config-t_security_header = VALUE #(
+        ( n = `cache-control`          v = `no-cache, no-store, must-revalidate` )
+        ( n = `Pragma`                 v = `no-cache` )
+        ( n = `Expires`                v = `0` )
+        ( n = `X-Content-Type-Options` v = `nosniff` )
+        ( n = `X-Frame-Options`        v = `SAMEORIGIN` )
+        ( n = `Referrer-Policy`        v = `strict-origin-when-cross-origin` )
+        ( n = `Permissions-Policy`     v = `geolocation=(self), microphone=(self), camera=(self), payment=(), usb=()` ) ).
 
     IF gi_user_exit IS NOT INITIAL.
-      gi_user_exit->set_config_http_get( EXPORTING is_context = me->context
+      gi_user_exit->set_config_http_get( EXPORTING is_context = context
                                          CHANGING  cs_config  = cs_config ).
     ENDIF.
 

@@ -68,7 +68,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
         IF lo_params IS NOT BOUND.
           RETURN.
         ENDIF.
-        LOOP AT lo_params->mt_json_tree "#EC CI_SORTSEQ
+        LOOP AT lo_params->mt_json_tree                 "#EC CI_SORTSEQ
              REFERENCE INTO DATA(lr_comp)
              WHERE name = `1`.
 
@@ -191,7 +191,8 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     IF app IS NOT BOUND.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = `NAV_APP_LEAVE_TO_INITIAL_APP_ERROR`.
+        EXPORTING
+          val = `NAV_APP_LEAVE_TO_INITIAL_APP_ERROR`.
     ENDIF.
 
     mo_action->ms_next-o_app_call = app.
@@ -210,7 +211,8 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     IF app IS NOT BOUND.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = `NAV_APP_LEAVE_TO_INITIAL_APP_ERROR`.
+        EXPORTING
+          val = `NAV_APP_LEAVE_TO_INITIAL_APP_ERROR`.
     ENDIF.
 
     mo_action->ms_next-o_app_leave = app.
@@ -311,15 +313,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~view_display.
 
-    IF z2ui5_cl_util=>rtti_check_clike( val ).
-      mo_action->ms_next-s_set-s_view-xml = val.
-    ELSE.
-
-      DATA(lo_object) = CAST object( val ).
-      CALL METHOD lo_object->(`STRINGIFY`)
-        RECEIVING result = mo_action->ms_next-s_set-s_view-xml.
-    ENDIF.
-
+    mo_action->ms_next-s_set-s_view-xml = val.
     mo_action->ms_next-s_set-s_view-switchdefaultmodelannouri = switch_default_model_anno_uri.
     mo_action->ms_next-s_set-s_view-switch_default_model_path = switch_default_model_path.
 
