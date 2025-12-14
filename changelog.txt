@@ -9,6 +9,20 @@ Legend
 - : removed
 
 
+2025-12-14 v1.141.0
+-------------------
++ Added Image Editor popup for image manipulation
++ Added Camera Selector control with facing mode support
++ Added Camera Picture control with configurable height/width
+! Implemented security headers in HTTP response handling
++ Added experimental check_on_event method for improved event handling
++ Added experimental _event_nav_app_leave method for navigation
+! Improved error handling with enhanced error popup
+! Updated ajson library to latest version
+* Code quality improvements: refactoring, formatting, and ABAP Cloud ATC findings
+* Various bug fixes and performance improvements
+
+
 2025-09-15 v1.140.0
 -------------------
 + New User Exit Logic with greater customization options
