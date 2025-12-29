@@ -53,10 +53,10 @@ CLASS z2ui5_cl_util_db IMPLEMENTATION.
 
     DELETE FROM z2ui5_t_91
         WHERE
-           uname = @uname
-            AND handle = @handle
-            AND handle2 = @handle2
-            AND handle3 = @handle3.
+           uname = uname
+            AND handle = handle
+            AND handle2 = handle2
+            AND handle3 = handle3.
 
     IF check_commit = abap_true.
       COMMIT WORK AND WAIT.
@@ -67,16 +67,17 @@ CLASS z2ui5_cl_util_db IMPLEMENTATION.
 
   METHOD load_by_handle.
 
-    DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_91 WITH EMPTY KEY.
+    DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_91 WITH DEFAULT KEY.
 
+    DATA lv_data TYPE z2ui5_t_91-data.
     SELECT SINGLE data
-      FROM z2ui5_t_91
+      FROM z2ui5_t_91 INTO lv_data
        WHERE
-        uname = @uname
-        AND handle = @handle
-        AND handle2 = @handle2
-        AND handle3 = @handle3 "#EC WARNOK
-      INTO @DATA(lv_data).
+        uname = uname
+        AND handle = handle
+        AND handle2 = handle2
+        AND handle3 = handle3 "#EC WARNOK
+      .
     IF sy-subrc <> 0.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING
@@ -94,12 +95,13 @@ CLASS z2ui5_cl_util_db IMPLEMENTATION.
 
   METHOD load_by_id.
 
-    DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_91 WITH EMPTY KEY.
+    DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_91 WITH DEFAULT KEY.
 
+    DATA lv_data TYPE z2ui5_t_91-data.
     SELECT SINGLE data
-      FROM z2ui5_t_91
-      WHERE id = @id  "#EC WARNOK
-      INTO @DATA(lv_data).
+      FROM z2ui5_t_91 INTO lv_data
+      WHERE id = id  "#EC WARNOK
+      .
     ASSERT sy-subrc = 0.
 
     z2ui5_cl_util=>xml_parse(
@@ -113,22 +115,28 @@ CLASS z2ui5_cl_util_db IMPLEMENTATION.
 
   METHOD save.
 
-    DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_91 WITH EMPTY KEY.
+    DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_91 WITH DEFAULT KEY.
+    DATA lv_id TYPE z2ui5_t_91-id.
+    DATA temp1 TYPE z2ui5_t_91.
+    DATA ls_db LIKE temp1.
     SELECT SINGLE id
-      FROM z2ui5_t_91
+      FROM z2ui5_t_91 INTO lv_id
        WHERE
-        uname = @uname
-        AND handle = @handle
-        AND handle2 = @handle2 "#EC WARNOK
-        AND handle3 = @handle3
-      INTO @DATA(lv_id) ##SUBRC_OK.
+        uname = uname
+        AND handle = handle
+        AND handle2 = handle2 "#EC WARNOK
+        AND handle3 = handle3
+       ##SUBRC_OK.
 
-    DATA(ls_db) = VALUE z2ui5_t_91(
-        uname   = uname
-        handle  = handle
-        handle2 = handle2
-        handle3 = handle3
-        data    = z2ui5_cl_util=>xml_stringify( data ) ).
+    
+    CLEAR temp1.
+    temp1-uname = uname.
+    temp1-handle = handle.
+    temp1-handle2 = handle2.
+    temp1-handle3 = handle3.
+    temp1-data = z2ui5_cl_util=>xml_stringify( data ).
+    
+    ls_db = temp1.
 
     IF lv_id IS NOT INITIAL.
       ls_db-id = lv_id.
@@ -136,7 +144,7 @@ CLASS z2ui5_cl_util_db IMPLEMENTATION.
       ls_db-id = z2ui5_cl_util=>uuid_get_c32( ).
     ENDIF.
 
-    MODIFY z2ui5_t_91 FROM @ls_db.
+    MODIFY z2ui5_t_91 FROM ls_db.
     ASSERT sy-subrc = 0.
 
     IF check_commit = abap_true.

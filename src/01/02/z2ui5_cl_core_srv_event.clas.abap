@@ -52,11 +52,17 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_t_arg.
+      DATA temp1 LIKE LINE OF val.
+      DATA lr_arg LIKE REF TO temp1.
+        DATA lv_new TYPE string.
 
     IF val IS NOT INITIAL.
 
-      LOOP AT val REFERENCE INTO DATA(lr_arg).
-        DATA(lv_new) = lr_arg->*.
+      
+      
+      LOOP AT val REFERENCE INTO lr_arg.
+        
+        lv_new = lr_arg->*.
         IF lv_new IS INITIAL.
           CONTINUE.
         ENDIF.

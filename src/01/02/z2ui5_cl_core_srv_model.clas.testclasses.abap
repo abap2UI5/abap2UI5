@@ -73,71 +73,184 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
 
   METHOD test_init.
 
-    DATA(lo_app) = NEW ltcl_test_dissolve( ).
-
+    DATA lo_app TYPE REF TO ltcl_test_dissolve.
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                 app    = lo_app ).
+    DATA temp1 LIKE REF TO lt_attri.
+DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
+    DATA temp2 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp3 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp4 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp5 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp6 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp7 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp8 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp9 TYPE z2ui5_if_core_types=>ty_s_attri.
+    CREATE OBJECT lo_app TYPE ltcl_test_dissolve.
+
+    
+    
+    GET REFERENCE OF lt_attri INTO temp1.
+
+CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp1 app = lo_app.
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MR_STRUC` ] OPTIONAL ) ).
-    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MR_VALUE` ] OPTIONAL ) ).
-    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MS_STRUC` ] OPTIONAL ) ).
-    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MV_VALUE` ] OPTIONAL ) ).
+    
+    CLEAR temp2.
+    
+    READ TABLE lt_attri INTO temp3 WITH KEY name = `MR_STRUC`.
+    IF sy-subrc = 0.
+      temp2 = temp3.
+    ENDIF.
+    cl_abap_unit_assert=>assert_not_initial( temp2 ).
+    
+    CLEAR temp4.
+    
+    READ TABLE lt_attri INTO temp5 WITH KEY name = `MR_VALUE`.
+    IF sy-subrc = 0.
+      temp4 = temp5.
+    ENDIF.
+    cl_abap_unit_assert=>assert_not_initial( temp4 ).
+    
+    CLEAR temp6.
+    
+    READ TABLE lt_attri INTO temp7 WITH KEY name = `MS_STRUC`.
+    IF sy-subrc = 0.
+      temp6 = temp7.
+    ENDIF.
+    cl_abap_unit_assert=>assert_not_initial( temp6 ).
+    
+    CLEAR temp8.
+    
+    READ TABLE lt_attri INTO temp9 WITH KEY name = `MV_VALUE`.
+    IF sy-subrc = 0.
+      temp8 = temp9.
+    ENDIF.
+    cl_abap_unit_assert=>assert_not_initial( temp8 ).
 
   ENDMETHOD.
 
   METHOD test_dref.
 
-    DATA(lo_app) = NEW ltcl_test_dissolve( ).
+    DATA lo_app TYPE REF TO ltcl_test_dissolve.
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA temp10 LIKE REF TO lt_attri.
+DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
+    DATA temp11 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp12 TYPE z2ui5_if_core_types=>ty_s_attri.
+    CREATE OBJECT lo_app TYPE ltcl_test_dissolve.
     CREATE DATA lo_app->mr_struc.
     CREATE DATA lo_app->mr_value TYPE string.
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                 app    = lo_app ).
+    
+    
+    GET REFERENCE OF lt_attri INTO temp10.
+
+CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp10 app = lo_app.
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MR_VALUE->*` ] OPTIONAL ) ).
+    
+    CLEAR temp11.
+    
+    READ TABLE lt_attri INTO temp12 WITH KEY name = `MR_VALUE->*`.
+    IF sy-subrc = 0.
+      temp11 = temp12.
+    ENDIF.
+    cl_abap_unit_assert=>assert_not_initial( temp11 ).
 
   ENDMETHOD.
 
   METHOD test_oref.
 
-    DATA(lo_app) = NEW ltcl_test_dissolve( ).
-    lo_app->mo_app = NEW #( ).
-    DATA(lo_app2) = NEW ltcl_test_dissolve( ).
+    DATA lo_app TYPE REF TO ltcl_test_dissolve.
+    DATA lo_app2 TYPE REF TO ltcl_test_dissolve.
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA temp13 LIKE REF TO lt_attri.
+DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
+    DATA temp14 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp15 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp16 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp17 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp18 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp19 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp20 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp21 TYPE z2ui5_if_core_types=>ty_s_attri.
+    CREATE OBJECT lo_app TYPE ltcl_test_dissolve.
+    CREATE OBJECT lo_app->mo_app.
+    
+    CREATE OBJECT lo_app2 TYPE ltcl_test_dissolve.
     lo_app2->mo_app = lo_app.
 
     CREATE DATA lo_app->mo_app->mr_struc.
     CREATE DATA lo_app->mo_app->mr_value TYPE string.
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                 app    = lo_app2 ).
+    
+    
+    GET REFERENCE OF lt_attri INTO temp13.
+
+CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp13 app = lo_app2.
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MO_APP->MV_VALUE` ] OPTIONAL ) ).
-    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MO_APP->MR_STRUC` ] OPTIONAL ) ).
-    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MO_APP->MR_VALUE` ] OPTIONAL ) ).
-    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MO_APP->MS_STRUC` ] OPTIONAL ) ).
+    
+    CLEAR temp14.
+    
+    READ TABLE lt_attri INTO temp15 WITH KEY name = `MO_APP->MV_VALUE`.
+    IF sy-subrc = 0.
+      temp14 = temp15.
+    ENDIF.
+    cl_abap_unit_assert=>assert_not_initial( temp14 ).
+    
+    CLEAR temp16.
+    
+    READ TABLE lt_attri INTO temp17 WITH KEY name = `MO_APP->MR_STRUC`.
+    IF sy-subrc = 0.
+      temp16 = temp17.
+    ENDIF.
+    cl_abap_unit_assert=>assert_not_initial( temp16 ).
+    
+    CLEAR temp18.
+    
+    READ TABLE lt_attri INTO temp19 WITH KEY name = `MO_APP->MR_VALUE`.
+    IF sy-subrc = 0.
+      temp18 = temp19.
+    ENDIF.
+    cl_abap_unit_assert=>assert_not_initial( temp18 ).
+    
+    CLEAR temp20.
+    
+    READ TABLE lt_attri INTO temp21 WITH KEY name = `MO_APP->MS_STRUC`.
+    IF sy-subrc = 0.
+      temp20 = temp21.
+    ENDIF.
+    cl_abap_unit_assert=>assert_not_initial( temp20 ).
 
   ENDMETHOD.
 
   METHOD test_struc.
 
-    DATA(lo_app) = NEW ltcl_test_dissolve( ).
+    DATA lo_app TYPE REF TO ltcl_test_dissolve.
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                 app    = lo_app ).
+    DATA temp22 LIKE REF TO lt_attri.
+DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
+    DATA temp23 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp24 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp25 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp26 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp27 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp28 TYPE z2ui5_if_core_types=>ty_s_attri.
+    CREATE OBJECT lo_app TYPE ltcl_test_dissolve.
+    
+    
+    GET REFERENCE OF lt_attri INTO temp22.
+
+CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp22 app = lo_app.
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -145,97 +258,229 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MS_STRUC-INPUT` ] OPTIONAL ) ).
-    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MS_STRUC-S_02-INPUT` ] OPTIONAL ) ).
-    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MS_STRUC-S_02-S_03-S_04-INPUT` ] OPTIONAL ) ).
+    
+    CLEAR temp23.
+    
+    READ TABLE lt_attri INTO temp24 WITH KEY name = `MS_STRUC-INPUT`.
+    IF sy-subrc = 0.
+      temp23 = temp24.
+    ENDIF.
+    cl_abap_unit_assert=>assert_not_initial( temp23 ).
+    
+    CLEAR temp25.
+    
+    READ TABLE lt_attri INTO temp26 WITH KEY name = `MS_STRUC-S_02-INPUT`.
+    IF sy-subrc = 0.
+      temp25 = temp26.
+    ENDIF.
+    cl_abap_unit_assert=>assert_not_initial( temp25 ).
+    
+    CLEAR temp27.
+    
+    READ TABLE lt_attri INTO temp28 WITH KEY name = `MS_STRUC-S_02-S_03-S_04-INPUT`.
+    IF sy-subrc = 0.
+      temp27 = temp28.
+    ENDIF.
+    cl_abap_unit_assert=>assert_not_initial( temp27 ).
 
   ENDMETHOD.
 
   METHOD test_dref_struc.
 
-    DATA(lo_app) = NEW ltcl_test_dissolve( ).
-    lo_app->mo_app = NEW #( ).
-    DATA(lo_app2) = NEW ltcl_test_dissolve( ).
+    DATA lo_app TYPE REF TO ltcl_test_dissolve.
+    DATA lo_app2 TYPE REF TO ltcl_test_dissolve.
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA temp29 LIKE REF TO lt_attri.
+DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
+    DATA temp30 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp31 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp32 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp33 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp34 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp35 TYPE z2ui5_if_core_types=>ty_s_attri.
+    CREATE OBJECT lo_app TYPE ltcl_test_dissolve.
+    CREATE OBJECT lo_app->mo_app.
+    
+    CREATE OBJECT lo_app2 TYPE ltcl_test_dissolve.
     lo_app2->mo_app = lo_app.
 
     CREATE DATA lo_app->mr_struc.
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                 app    = lo_app ).
+    
+    
+    GET REFERENCE OF lt_attri INTO temp29.
+
+CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp29 app = lo_app.
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MR_STRUC` ] OPTIONAL ) ).
-    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MR_STRUC->INPUT` ] OPTIONAL ) ).
-    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MR_STRUC->S_02-INPUT` ] OPTIONAL ) ).
+    
+    CLEAR temp30.
+    
+    READ TABLE lt_attri INTO temp31 WITH KEY name = `MR_STRUC`.
+    IF sy-subrc = 0.
+      temp30 = temp31.
+    ENDIF.
+    cl_abap_unit_assert=>assert_not_initial( temp30 ).
+    
+    CLEAR temp32.
+    
+    READ TABLE lt_attri INTO temp33 WITH KEY name = `MR_STRUC->INPUT`.
+    IF sy-subrc = 0.
+      temp32 = temp33.
+    ENDIF.
+    cl_abap_unit_assert=>assert_not_initial( temp32 ).
+    
+    CLEAR temp34.
+    
+    READ TABLE lt_attri INTO temp35 WITH KEY name = `MR_STRUC->S_02-INPUT`.
+    IF sy-subrc = 0.
+      temp34 = temp35.
+    ENDIF.
+    cl_abap_unit_assert=>assert_not_initial( temp34 ).
 
   ENDMETHOD.
 
   METHOD test_oref_dref.
 
-    DATA(lo_app) = NEW ltcl_test_dissolve( ).
-    lo_app->mo_app = NEW #( ).
-    DATA(lo_app2) = NEW ltcl_test_dissolve( ).
+    DATA lo_app TYPE REF TO ltcl_test_dissolve.
+    DATA lo_app2 TYPE REF TO ltcl_test_dissolve.
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA temp36 LIKE REF TO lt_attri.
+DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
+    DATA temp37 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp38 TYPE z2ui5_if_core_types=>ty_s_attri.
+    CREATE OBJECT lo_app TYPE ltcl_test_dissolve.
+    CREATE OBJECT lo_app->mo_app.
+    
+    CREATE OBJECT lo_app2 TYPE ltcl_test_dissolve.
     lo_app->mo_app = lo_app2.
 
     CREATE DATA lo_app2->mr_value TYPE string.
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                 app    = lo_app ).
+    
+    
+    GET REFERENCE OF lt_attri INTO temp36.
+
+CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp36 app = lo_app.
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MO_APP->MR_VALUE->*` ] OPTIONAL ) ).
+    
+    CLEAR temp37.
+    
+    READ TABLE lt_attri INTO temp38 WITH KEY name = `MO_APP->MR_VALUE->*`.
+    IF sy-subrc = 0.
+      temp37 = temp38.
+    ENDIF.
+    cl_abap_unit_assert=>assert_not_initial( temp37 ).
 
   ENDMETHOD.
 
   METHOD test_oref_dref_struc.
 
-    DATA(lo_app) = NEW ltcl_test_dissolve( ).
-    lo_app->mo_app = NEW #( ).
-    DATA(lo_app2) = NEW ltcl_test_dissolve( ).
+    DATA lo_app TYPE REF TO ltcl_test_dissolve.
+    DATA lo_app2 TYPE REF TO ltcl_test_dissolve.
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA temp39 LIKE REF TO lt_attri.
+DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
+    DATA temp40 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp41 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp42 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp43 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp44 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp45 TYPE z2ui5_if_core_types=>ty_s_attri.
+    CREATE OBJECT lo_app TYPE ltcl_test_dissolve.
+    CREATE OBJECT lo_app->mo_app.
+    
+    CREATE OBJECT lo_app2 TYPE ltcl_test_dissolve.
     lo_app->mo_app = lo_app2.
 
     CREATE DATA lo_app->mo_app->mr_struc.
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                 app    = lo_app ).
+    
+    
+    GET REFERENCE OF lt_attri INTO temp39.
+
+CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp39 app = lo_app.
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MO_APP->MR_STRUC` ] OPTIONAL ) ).
-    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MO_APP->MR_STRUC->INPUT` ] OPTIONAL ) ).
-    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MO_APP->MR_STRUC->S_02-INPUT` ] OPTIONAL ) ).
+    
+    CLEAR temp40.
+    
+    READ TABLE lt_attri INTO temp41 WITH KEY name = `MO_APP->MR_STRUC`.
+    IF sy-subrc = 0.
+      temp40 = temp41.
+    ENDIF.
+    cl_abap_unit_assert=>assert_not_initial( temp40 ).
+    
+    CLEAR temp42.
+    
+    READ TABLE lt_attri INTO temp43 WITH KEY name = `MO_APP->MR_STRUC->INPUT`.
+    IF sy-subrc = 0.
+      temp42 = temp43.
+    ENDIF.
+    cl_abap_unit_assert=>assert_not_initial( temp42 ).
+    
+    CLEAR temp44.
+    
+    READ TABLE lt_attri INTO temp45 WITH KEY name = `MO_APP->MR_STRUC->S_02-INPUT`.
+    IF sy-subrc = 0.
+      temp44 = temp45.
+    ENDIF.
+    cl_abap_unit_assert=>assert_not_initial( temp44 ).
 
   ENDMETHOD.
 
   METHOD test_struc_dref.
 
-    DATA(lo_app) = NEW ltcl_test_dissolve( ).
-    lo_app->mo_app = NEW #( ).
+    DATA lo_app TYPE REF TO ltcl_test_dissolve.
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA temp46 LIKE REF TO lt_attri.
+DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
+    DATA temp47 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp48 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp49 TYPE z2ui5_if_core_types=>ty_s_attri.
+    DATA temp50 TYPE z2ui5_if_core_types=>ty_s_attri.
+    CREATE OBJECT lo_app TYPE ltcl_test_dissolve.
+    CREATE OBJECT lo_app->mo_app.
     CREATE DATA lo_app->mo_app->ms_struc2-r_ref TYPE string.
 
-    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                 app    = lo_app ).
+    
+    
+    GET REFERENCE OF lt_attri INTO temp46.
+
+CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp46 app = lo_app.
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MO_APP->MS_STRUC2-R_REF` ] OPTIONAL ) ).
-    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MO_APP->MS_STRUC2-R_REF->*` ] OPTIONAL ) ).
+    
+    CLEAR temp47.
+    
+    READ TABLE lt_attri INTO temp48 WITH KEY name = `MO_APP->MS_STRUC2-R_REF`.
+    IF sy-subrc = 0.
+      temp47 = temp48.
+    ENDIF.
+    cl_abap_unit_assert=>assert_not_initial( temp47 ).
+    
+    CLEAR temp49.
+    
+    READ TABLE lt_attri INTO temp50 WITH KEY name = `MO_APP->MS_STRUC2-R_REF->*`.
+    IF sy-subrc = 0.
+      temp49 = temp50.
+    ENDIF.
+    cl_abap_unit_assert=>assert_not_initial( temp49 ).
 
   ENDMETHOD.
 ENDCLASS.
@@ -378,7 +623,7 @@ ENDCLASS.
 
 CLASS ltcl_test_app3 IMPLEMENTATION.
   METHOD constructor.
-    mo_app = NEW #( ).
+    CREATE OBJECT mo_app.
   ENDMETHOD.
 ENDCLASS.
 
@@ -401,19 +646,35 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
 
   METHOD first_test.
 
-    DATA(lo_app_client) = NEW ltcl_test_app3( ).
-
+    DATA lo_app_client TYPE REF TO ltcl_test_app3.
     DATA lr_value TYPE REF TO data.
+    DATA temp51 TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA lt_attri LIKE temp51.
+    DATA temp52 LIKE REF TO lt_attri.
+DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
+    DATA lr_attri TYPE REF TO data.
+    DATA temp53 LIKE REF TO lo_app_client->mv_value.
+    CREATE OBJECT lo_app_client TYPE ltcl_test_app3.
+
+    
     GET REFERENCE OF lo_app_client->mv_value INTO lr_value.
 
-    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
+    
+    CLEAR temp51.
+    
+    lt_attri = temp51.
 
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app_client ).
+    
+    GET REFERENCE OF lt_attri INTO temp52.
 
-    DATA(lr_attri) = lo_model->attri_get_val_ref( `MV_VALUE` ).
+CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp52 app = lo_app_client.
 
-    IF REF #( lo_app_client->mv_value ) <> lr_attri.
+    
+    lr_attri = lo_model->attri_get_val_ref( `MV_VALUE` ).
+
+    
+    GET REFERENCE OF lo_app_client->mv_value INTO temp53.
+IF temp53 <> lr_attri.
       cl_abap_unit_assert=>abort( ).
     ENDIF.
 
@@ -421,14 +682,26 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
 
   METHOD second_test.
 
-    DATA(lo_app_client) = NEW ltcl_test_app3( ).
+    DATA lo_app_client TYPE REF TO ltcl_test_app3.
+    DATA temp54 TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA lt_attri LIKE temp54.
+    DATA temp55 LIKE REF TO lt_attri.
+DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
+    DATA lr_attri TYPE REF TO data.
+    CREATE OBJECT lo_app_client TYPE ltcl_test_app3.
     CREATE DATA lo_app_client->mr_value.
 
-    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app_client ).
+    
+    CLEAR temp54.
+    
+    lt_attri = temp54.
+    
+    GET REFERENCE OF lt_attri INTO temp55.
 
-    DATA(lr_attri) = lo_model->attri_get_val_ref( `MR_VALUE->*` ).
+CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp55 app = lo_app_client.
+
+    
+    lr_attri = lo_model->attri_get_val_ref( `MR_VALUE->*` ).
 
     IF lr_attri <> lo_app_client->mr_value.
       cl_abap_unit_assert=>abort( ).
@@ -438,15 +711,30 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
 
   METHOD third_test.
 
-    DATA(lo_app_client) = NEW ltcl_test_app3( ).
+    DATA lo_app_client TYPE REF TO ltcl_test_app3.
+    DATA temp56 TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA lt_attri LIKE temp56.
+    DATA temp57 LIKE REF TO lt_attri.
+DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
+    DATA lr_attri TYPE REF TO data.
+    DATA temp58 LIKE REF TO lo_app_client->mo_app->mv_value.
+    CREATE OBJECT lo_app_client TYPE ltcl_test_app3.
 
-    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app_client ).
+    
+    CLEAR temp56.
+    
+    lt_attri = temp56.
+    
+    GET REFERENCE OF lt_attri INTO temp57.
 
-    DATA(lr_attri) = lo_model->attri_get_val_ref( `MO_APP->MV_VALUE` ).
+CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp57 app = lo_app_client.
 
-    IF REF #( lo_app_client->mo_app->mv_value ) <> lr_attri.
+    
+    lr_attri = lo_model->attri_get_val_ref( `MO_APP->MV_VALUE` ).
+
+    
+    GET REFERENCE OF lo_app_client->mo_app->mv_value INTO temp58.
+IF temp58 <> lr_attri.
       cl_abap_unit_assert=>abort( ).
     ENDIF.
 
@@ -454,14 +742,26 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
 
   METHOD test4.
 
-    DATA(lo_app_client) = NEW ltcl_test_app3( ).
+    DATA lo_app_client TYPE REF TO ltcl_test_app3.
+    DATA temp59 TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA lt_attri LIKE temp59.
+    DATA temp60 LIKE REF TO lt_attri.
+DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
+    DATA lr_attri TYPE REF TO data.
+    CREATE OBJECT lo_app_client TYPE ltcl_test_app3.
     CREATE DATA lo_app_client->mo_app->mr_value.
 
-    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app_client ).
+    
+    CLEAR temp59.
+    
+    lt_attri = temp59.
+    
+    GET REFERENCE OF lt_attri INTO temp60.
 
-    DATA(lr_attri) = lo_model->attri_get_val_ref( `MO_APP->MR_VALUE->*` ).
+CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp60 app = lo_app_client.
+
+    
+    lr_attri = lo_model->attri_get_val_ref( `MO_APP->MR_VALUE->*` ).
 
     IF lr_attri <> lo_app_client->mo_app->mr_value.
       cl_abap_unit_assert=>abort( ).
@@ -497,7 +797,7 @@ CLASS ltcl_test_app_root DEFINITION FINAL
         comp1 TYPE string,
         comp2 TYPE string,
       END OF ty_s_row.
-    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_s_row WITH DEFAULT KEY.
 
     DATA mt_tab  TYPE ty_t_tab.
 *    DATA ms_struc TYPE ty_s_row.
@@ -517,19 +817,32 @@ CLASS ltcl_test_app_root_attri IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_obj_tab_ref.
+    DATA lo_app TYPE REF TO ltcl_test_app_root.
+    DATA temp61 TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA lt_attri LIKE temp61.
+    DATA temp62 LIKE REF TO lt_attri.
+DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
+    DATA ls_attri TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
 
 
     IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 
-    DATA(lo_app) = NEW ltcl_test_app_root( ).
+    
+    CREATE OBJECT lo_app TYPE ltcl_test_app_root.
 
-    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    
+    CLEAR temp61.
+    
+    lt_attri = temp61.
+    
+    GET REFERENCE OF lt_attri INTO temp62.
 
-    DATA(ls_attri) = lo_model->main_attri_search( lo_app->mo_obj->mr_tab ).
+CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp62 app = lo_app.
+
+    
+    ls_attri = lo_model->main_attri_search( lo_app->mo_obj->mr_tab ).
 
     IF ls_attri->name <> `MT_TAB`.
       cl_abap_unit_assert=>abort( ).
@@ -544,13 +857,16 @@ CLASS ltcl_test_app_root IMPLEMENTATION.
 
   METHOD constructor.
 
-    INSERT VALUE #(
-        comp1 = `comp1`
-        comp2 = `comp2`
-      ) INTO TABLE mt_tab.
+    DATA temp63 TYPE ltcl_test_app_root=>ty_s_row.
+    DATA temp64 LIKE REF TO mt_tab.
+    CLEAR temp63.
+    temp63-comp1 = `comp1`.
+    temp63-comp2 = `comp2`.
+    INSERT temp63 INTO TABLE mt_tab.
 
-    mo_obj = NEW ltcl_test_app_root_attri(
-      ir_tab = REF #( mt_tab ) ).
+    
+    GET REFERENCE OF mt_tab INTO temp64.
+CREATE OBJECT mo_obj TYPE ltcl_test_app_root_attri EXPORTING ir_tab = temp64.
 
   ENDMETHOD.
 ENDCLASS.
@@ -598,18 +914,31 @@ CLASS ltcl_test_app_root_attri2 IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_obj_struc_ref.
+    DATA lo_app TYPE REF TO ltcl_test_app_root2.
+    DATA temp65 TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA lt_attri LIKE temp65.
+    DATA temp66 LIKE REF TO lt_attri.
+DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
+    DATA ls_attri TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
 
     IF sy-sysid = `ABC`.
       RETURN.
     ENDIF.
 
-    DATA(lo_app) = NEW ltcl_test_app_root2( ).
+    
+    CREATE OBJECT lo_app TYPE ltcl_test_app_root2.
 
-    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    
+    CLEAR temp65.
+    
+    lt_attri = temp65.
+    
+    GET REFERENCE OF lt_attri INTO temp66.
 
-    DATA(ls_attri) = lo_model->main_attri_search( lo_app->mo_obj->mr_struc ).
+CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp66 app = lo_app.
+
+    
+    ls_attri = lo_model->main_attri_search( lo_app->mo_obj->mr_struc ).
 
     IF ls_attri->name <> `MS_STRUC`.
       cl_abap_unit_assert=>abort( ).
@@ -622,13 +951,15 @@ ENDCLASS.
 CLASS ltcl_test_app_root2 IMPLEMENTATION.
 
   METHOD constructor.
+    DATA temp67 LIKE REF TO ms_struc.
 
-    ms_struc = VALUE #(
-        comp1 = `comp1`
-        comp2 = `comp2` ).
+    CLEAR ms_struc.
+    ms_struc-comp1 = `comp1`.
+    ms_struc-comp2 = `comp2`.
 
-    mo_obj = NEW ltcl_test_app_root_attri2(
-      ir_struc = REF #( ms_struc ) ).
+    
+    GET REFERENCE OF ms_struc INTO temp67.
+CREATE OBJECT mo_obj TYPE ltcl_test_app_root_attri2 EXPORTING ir_struc = temp67.
 
   ENDMETHOD.
 ENDCLASS.
@@ -648,6 +979,20 @@ ENDCLASS.
 CLASS ltcl_test_app_root4 IMPLEMENTATION.
 
   METHOD test_tab_ref_gen.
+    DATA lo_app TYPE REF TO ltcl_test_app_root4.
+TYPES BEGIN OF ty_s_row.
+TYPES comp1 TYPE string.
+TYPES comp2 TYPE string.
+TYPES END OF ty_s_row.
+    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_s_row WITH DEFAULT KEY.
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    DATA temp68 TYPE ty_s_row.
+    DATA temp69 TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA lt_attri LIKE temp69.
+    DATA temp70 LIKE REF TO lt_attri.
+DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
+    DATA ls_attri TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
+    DATA temp71 LIKE REF TO lt_attri.
 
     IF sy-sysid = `ABC`.
       RETURN.
@@ -656,31 +1001,35 @@ CLASS ltcl_test_app_root4 IMPLEMENTATION.
 
 
     "create data
-    DATA(lo_app) = NEW ltcl_test_app_root4( ).
+    
+    CREATE OBJECT lo_app TYPE ltcl_test_app_root4.
 
-    TYPES:
-      BEGIN OF ty_s_row,
-        comp1 TYPE string,
-        comp2 TYPE string,
-      END OF ty_s_row.
-    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+    
+    
 
     CREATE DATA lo_app->mr_tab TYPE ty_t_tab.
-    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    
     ASSIGN lo_app->mr_tab->* TO <tab>.
-    INSERT VALUE ty_s_row(
-      comp1 = `comp1`
-      comp2 = `comp2`
-      ) INTO TABLE <tab>.
+    
+    CLEAR temp68.
+    temp68-comp1 = `comp1`.
+    temp68-comp2 = `comp2`.
+    INSERT temp68 INTO TABLE <tab>.
 
 
 
     "test find binding
-    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                  app   = lo_app ).
+    
+    CLEAR temp69.
+    
+    lt_attri = temp69.
+    
+    GET REFERENCE OF lt_attri INTO temp70.
 
-    DATA(ls_attri) = lo_model->main_attri_search( lo_app->mr_tab ).
+CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp70 app = lo_app.
+
+    
+    ls_attri = lo_model->main_attri_search( lo_app->mr_tab ).
 
     IF ls_attri->name <> `MR_TAB->*`.
       cl_abap_unit_assert=>abort( ).
@@ -691,9 +1040,10 @@ CLASS ltcl_test_app_root4 IMPLEMENTATION.
     "test frontend backend draft
     lo_model->main_attri_db_save_srtti( ).
 
-    lo_app = NEW ltcl_test_app_root4( ).
-    lo_model = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                            app   = lo_app ).
+    CREATE OBJECT lo_app TYPE ltcl_test_app_root4.
+    
+    GET REFERENCE OF lt_attri INTO temp71.
+CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp71 app = lo_app.
     lo_model->main_attri_db_load( ).
 
     IF lo_app->mr_tab IS NOT BOUND.

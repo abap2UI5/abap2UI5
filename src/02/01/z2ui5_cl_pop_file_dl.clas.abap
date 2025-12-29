@@ -45,7 +45,7 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
 
   METHOD factory.
 
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
     r_result->title               = i_title.
 
     r_result->question_text       = i_text.
@@ -65,18 +65,33 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
+    DATA popup TYPE REF TO z2ui5_cl_xml_view.
+      DATA lv_csv_x TYPE xstring.
+      DATA lv_base64 TYPE string.
+      DATA temp1 TYPE z2ui5_if_types=>ty_t_name_value.
+      DATA temp2 LIKE LINE OF temp1.
+    popup = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
                                                                icon       = icon
                                                                afterclose = client->_event( `BUTTON_CANCEL` )
               )->content( ).
 
     IF mv_check_download = abap_true.
-      DATA(lv_csv_x) = z2ui5_cl_util=>conv_get_xstring_by_string( mv_value ).
-      DATA(lv_base64) = z2ui5_cl_util=>conv_encode_x_base64( lv_csv_x ).
+      
+      lv_csv_x = z2ui5_cl_util=>conv_get_xstring_by_string( mv_value ).
+      
+      lv_base64 = z2ui5_cl_util=>conv_encode_x_base64( lv_csv_x ).
+      
+      CLEAR temp1.
+      
+      temp2-n = `src`.
+      temp2-v = mv_type && lv_base64.
+      INSERT temp2 INTO TABLE temp1.
+      temp2-n = `hidden`.
+      temp2-v = `hidden`.
+      INSERT temp2 INTO TABLE temp1.
       popup->_generic( ns     = `html`
                        name   = `iframe`
-                       t_prop = VALUE #( ( n = `src` v = mv_type && lv_base64 )
-                                         ( n = `hidden` v = `hidden` ) ) ).
+                       t_prop = temp1 ).
 
       popup->_z2ui5( )->timer( client->_event( `CALLBACK_DOWNLOAD` ) ).
 
@@ -108,7 +123,7 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       view_display( ).
       RETURN.
     ENDIF.
