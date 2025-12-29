@@ -34,7 +34,7 @@
 </p>
 
 <p align="center">
-  Just like the good old days when Selection Screens & ALVs could create full UIs with a few lines of code. Designed with a minimal system footprint, it works in both on-premise and cloud environments.
+  Just like the good old days when Selection Screens & ALVs could create full UIs with a few lines of ABAP code. Designed with a minimal system footprint, it works in both on-premise and cloud environments.
 </p>
 
 <p align="center">
