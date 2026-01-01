@@ -206,7 +206,7 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
 
     IF rs_top_node-children > 0. " only for objects and arrays
       lv_parent_path = iv_path && iv_name && '/*'.
-      DELETE mt_json_tree WHERE path CP lv_parent_path. "#EC CI_SORTSEQ
+      DELETE mt_json_tree WHERE path CP lv_parent_path.
     ENDIF.
 
     " decrement parent children
