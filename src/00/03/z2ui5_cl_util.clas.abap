@@ -749,16 +749,18 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD filter_get_token_range_mapping.
 
-    result = VALUE #( (   n = `EQ`     v = `={LOW}` )
-                      (   n = `LT`     v = `<{LOW}` )
-                      (   n = `LE`     v = `<={LOW}` )
-                      (   n = `GT`     v = `>{LOW}` )
-                      (   n = `GE`     v = `>={LOW}` )
-                      (   n = `CP`     v = `*{LOW}*` )
-                      (   n = `BT`     v = `{LOW}...{HIGH}` )
-                      (   n = `NE`     v = `!(={LOW})` )
-                      (   n = `NE`     v = `!(<leer>)` )
-                      (   n = `<leer>` v = `<leer>` ) ).
+    result = VALUE #( (   n = `EQ`      v = `={LOW}` )
+                      (   n = `LT`      v = `<{LOW}` )
+                      (   n = `LE`      v = `<={LOW}` )
+                      (   n = `GT`      v = `>{LOW}` )
+                      (   n = `GE`      v = `>={LOW}` )
+                      (   n = `CP`      v = `*{LOW}*` )
+                      (   n = `BT`      v = `{LOW}...{HIGH}` )
+                      (   n = `NB`      v = `!({LOW}...{HIGH})` )
+                      (   n = `NE`      v = `!(={LOW})` )
+                      (   n = `NP`      v = `!(*{LOW}*)` )
+                      (   n = `!<leer>` v = `!(<leer>)` )
+                      (   n = `<leer>`  v = `<leer>` ) ).
 
   ENDMETHOD.
 
