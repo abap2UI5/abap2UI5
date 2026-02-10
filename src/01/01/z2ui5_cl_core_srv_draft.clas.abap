@@ -53,9 +53,8 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
 
     SELECT id FROM z2ui5_t_01
       WHERE timestampl < @lv_n_hours_ago
-      INTO TABLE @DATA(lt_expired) ##SUBRC_OK.
-
-    IF lt_expired IS NOT INITIAL.
+      INTO TABLE @DATA(lt_expired).
+    IF sy-subrc = 0.
       DELETE z2ui5_t_01 FROM TABLE @lt_expired.
       COMMIT WORK.
     ENDIF.
