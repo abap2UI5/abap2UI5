@@ -51,8 +51,15 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
                                time    = z2ui5_cl_util=>time_get_timestampl( )
                                seconds = 60 * 60 * ls_config-draft_exp_time_in_hours ).
 
-    DELETE FROM z2ui5_t_01 WHERE timestampl < @lv_n_hours_ago ##SUBRC_OK.
-    COMMIT WORK.
+    SELECT id FROM z2ui5_t_01
+      WHERE timestampl < @lv_n_hours_ago
+      INTO TABLE @DATA(lt_expired)
+      UP TO 500 ROWS ##SUBRC_OK.
+
+    IF lt_expired IS NOT INITIAL.
+      DELETE z2ui5_t_01 FROM TABLE @lt_expired.
+      COMMIT WORK.
+    ENDIF.
 
   ENDMETHOD.
 
