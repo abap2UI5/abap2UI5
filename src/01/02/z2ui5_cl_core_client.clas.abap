@@ -7,6 +7,13 @@ CLASS z2ui5_cl_core_client DEFINITION
 
     DATA mo_action TYPE REF TO z2ui5_cl_core_action.
 
+    TYPES:
+      BEGIN OF ty_S_buffer,
+        id  TYPE string,
+        app TYPE REF TO z2ui5_if_app,
+      END OF ty_s_buffer.
+    CLASS-DATA st_buffer TYPE HASHED TABLE OF ty_S_buffer WITH UNIQUE KEY id.
+
     METHODS constructor
       IMPORTING
         action TYPE REF TO z2ui5_cl_core_action.
@@ -94,8 +101,17 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   METHOD z2ui5_if_client~get_app.
 
     IF id IS NOT INITIAL.
-      DATA(lo_app) = z2ui5_cl_core_app=>db_load( id ).
-      result = CAST #( lo_app->mo_app ).
+
+      TRY.
+          DATA(ls_buffer) = st_buffer[ id = id ].
+          result = ls_buffer-app.
+
+        CATCH cx_root.
+          DATA(lo_app) = z2ui5_cl_core_app=>db_load( id ).
+          result = CAST #( lo_app->mo_app ).
+          INSERT VALUE #( id = id app = result ) INTO TABLE st_buffer.
+      ENDTRY.
+
     ELSE.
       result = CAST #( mo_action->mo_app->mo_app ).
     ENDIF.
