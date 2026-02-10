@@ -56,7 +56,9 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
       INTO TABLE @DATA(lt_expired).
     IF sy-subrc = 0.
       DELETE z2ui5_t_01 FROM TABLE @lt_expired.
-      COMMIT WORK.
+      IF sy-subrc = 0.
+        COMMIT WORK.
+      ENDIF.
     ENDIF.
 
   ENDMETHOD.
