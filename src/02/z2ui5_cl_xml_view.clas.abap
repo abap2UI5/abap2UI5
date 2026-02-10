@@ -5352,6 +5352,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     DATA mt_prop     TYPE SORTED TABLE OF z2ui5_if_types=>ty_s_name_value WITH NON-UNIQUE KEY n.
 
     DATA mt_ns       TYPE SORTED TABLE OF string WITH UNIQUE KEY table_line.
+    DATA mt_xml_buf  TYPE string_table.
     DATA mo_root     TYPE REF TO z2ui5_cl_xml_view.
     DATA mo_previous TYPE REF TO z2ui5_cl_xml_view.
     DATA mo_parent   TYPE REF TO z2ui5_cl_xml_view.
@@ -10625,9 +10626,15 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     DATA lt_prop TYPE HASHED TABLE OF z2ui5_if_types=>ty_s_name_value WITH UNIQUE KEY n.
 
+    DATA(lv_is_entry) = xsdbool( mo_root->mt_xml_buf IS INITIAL ).
+
     CASE mv_name.
       WHEN `ZZPLAIN`.
-        result = mt_prop[ n = `VALUE` ]-v.
+        IF lv_is_entry = abap_true.
+          result = mt_prop[ n = `VALUE` ]-v.
+        ELSE.
+          APPEND mt_prop[ n = `VALUE` ]-v TO mo_root->mt_xml_buf.
+        ENDIF.
         RETURN.
       WHEN OTHERS.
     ENDCASE.
@@ -10710,21 +10717,21 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                                                                          ELSE row-v )
                                                                    format = cl_abap_format=>e_xml_attr ) }"| ).
 
-    result = |{ result } <{ lv_tmp2 }{ mv_name }{ lv_tmp3 }|.
-
     IF mt_child IS INITIAL.
-      result = |{ result }/>|.
-      RETURN.
+      APPEND | <{ lv_tmp2 }{ mv_name }{ lv_tmp3 }/>| TO mo_root->mt_xml_buf.
+    ELSE.
+      APPEND | <{ lv_tmp2 }{ mv_name }{ lv_tmp3 }>| TO mo_root->mt_xml_buf.
+      LOOP AT mt_child INTO DATA(lr_child).
+        CAST z2ui5_cl_xml_view( lr_child )->xml_get( ).
+      ENDLOOP.
+      DATA(lv_ns) = COND #( WHEN mv_ns <> || THEN |{ mv_ns }:| ).
+      APPEND |</{ lv_ns }{ mv_name }>| TO mo_root->mt_xml_buf.
     ENDIF.
 
-    result = |{ result }>|.
-
-    LOOP AT mt_child INTO DATA(lr_child).
-      result = result && CAST z2ui5_cl_xml_view( lr_child )->xml_get( ).
-    ENDLOOP.
-
-    DATA(lv_ns) = COND #( WHEN mv_ns <> || THEN |{ mv_ns }:| ).
-    result = |{ result }</{ lv_ns }{ mv_name }>|.
+    IF lv_is_entry = abap_true.
+      result = concat_lines_of( table = mo_root->mt_xml_buf sep = `` ).
+      CLEAR mo_root->mt_xml_buf.
+    ENDIF.
 
   ENDMETHOD.
 
