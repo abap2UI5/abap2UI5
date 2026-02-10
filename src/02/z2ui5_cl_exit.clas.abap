@@ -15,6 +15,8 @@ CLASS z2ui5_cl_exit DEFINITION PUBLIC FINAL.
       RETURNING
         VALUE(r_class_name) TYPE string.
 
+    CONSTANTS c_draft_exp_hours TYPE i VALUE 4.
+
   PROTECTED SECTION.
     CLASS-DATA gi_me        TYPE REF TO z2ui5_if_exit.
     CLASS-DATA gi_user_exit TYPE REF TO z2ui5_if_exit.
@@ -109,7 +111,7 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
 
   METHOD z2ui5_if_exit~set_config_http_post.
 
-    cs_config-draft_exp_time_in_hours = 4.
+    cs_config-draft_exp_time_in_hours = c_draft_exp_hours.
 
     IF gi_user_exit IS NOT INITIAL.
       gi_user_exit->set_config_http_post( EXPORTING is_context = me->context
@@ -118,7 +120,7 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
 
     IF cs_config-draft_exp_time_in_hours IS INITIAL
         OR cs_config-draft_exp_time_in_hours <= 0.
-      cs_config-draft_exp_time_in_hours = 4.
+      cs_config-draft_exp_time_in_hours = c_draft_exp_hours.
     ENDIF.
 
   ENDMETHOD.
