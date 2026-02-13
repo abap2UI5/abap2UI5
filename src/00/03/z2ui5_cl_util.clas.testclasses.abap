@@ -161,6 +161,58 @@ CLASS ltcl_unit_test DEFINITION FINAL
 
     METHODS test_filter_itab               FOR TESTING RAISING cx_static_check.
 
+    METHODS test_unassign_data             FOR TESTING RAISING cx_static_check.
+    METHODS test_unassign_object           FOR TESTING RAISING cx_static_check.
+
+    METHODS test_source_method_to_file     FOR TESTING RAISING cx_static_check.
+
+    METHODS test_itab_get_itab_by_csv      FOR TESTING RAISING cx_static_check.
+    METHODS test_itab_corresponding        FOR TESTING RAISING cx_static_check.
+
+    METHODS test_rtti_tab_get_rel_name     FOR TESTING RAISING cx_static_check.
+    METHODS test_rtti_get_intfname_by_ref  FOR TESTING RAISING cx_static_check.
+
+    METHODS test_filter_update_tokens      FOR TESTING RAISING cx_static_check.
+    METHODS test_filter_get_range_t_by_tt  FOR TESTING RAISING cx_static_check.
+
+    METHODS test_msg_get                   FOR TESTING RAISING cx_static_check.
+    METHODS test_msg_get_t                 FOR TESTING RAISING cx_static_check.
+    METHODS test_msg_get_by_msg            FOR TESTING RAISING cx_static_check.
+
+    METHODS test_context_get_sy            FOR TESTING RAISING cx_static_check.
+    METHODS test_context_check_abap_cloud  FOR TESTING RAISING cx_static_check.
+
+    METHODS test_uuid_get_c32              FOR TESTING RAISING cx_static_check.
+    METHODS test_uuid_get_c22              FOR TESTING RAISING cx_static_check.
+
+    METHODS test_conv_xstring_roundtrip    FOR TESTING RAISING cx_static_check.
+    METHODS test_conv_base64_roundtrip     FOR TESTING RAISING cx_static_check.
+
+    METHODS test_x_raise_with_text         FOR TESTING RAISING cx_static_check.
+    METHODS test_x_check_raise_with_text   FOR TESTING RAISING cx_static_check.
+
+    METHODS test_json_stringify_table      FOR TESTING RAISING cx_static_check.
+    METHODS test_json_parse_to_table       FOR TESTING RAISING cx_static_check.
+
+    METHODS test_xml_parse_empty           FOR TESTING RAISING cx_static_check.
+
+    METHODS test_rtti_get_type_name_string FOR TESTING RAISING cx_static_check.
+    METHODS test_rtti_get_type_kind_struct FOR TESTING RAISING cx_static_check.
+    METHODS test_rtti_get_type_kind_table  FOR TESTING RAISING cx_static_check.
+
+    METHODS test_rtti_check_clike_char     FOR TESTING RAISING cx_static_check.
+
+    METHODS test_boolean_check_by_data_str FOR TESTING RAISING cx_static_check.
+
+    METHODS test_itab_filter_by_val_no_hit FOR TESTING RAISING cx_static_check.
+
+    METHODS test_conv_copy_ref_data_struc  FOR TESTING RAISING cx_static_check.
+
+    METHODS test_url_param_get_encoded     FOR TESTING RAISING cx_static_check.
+
+    METHODS test_filter_itab_no_match      FOR TESTING RAISING cx_static_check.
+    METHODS test_filter_itab_multi_filter  FOR TESTING RAISING cx_static_check.
+
 ENDCLASS.
 
 
@@ -934,9 +986,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
         col2 TYPE string,
       END OF ty_row.
 
-    DATA(lt_data) = VALUE STANDARD TABLE OF ty_row(
-        ( col1 = `A` col2 = `B` )
-        ( col1 = `C` col2 = `D` ) ).
+    DATA lt_data TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    lt_data = VALUE #( ( col1 = `A` col2 = `B` )
+                       ( col1 = `C` col2 = `D` ) ).
 
     DATA(lv_csv) = z2ui5_cl_util=>itab_get_csv_by_itab( lt_data ).
 
@@ -1237,6 +1289,564 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = `Item3`
                                         act = lt_data[ 2 ]-name ).
+
+  ENDMETHOD.
+
+  METHOD test_unassign_data.
+
+    DATA(lv_val) = `test_unassign`.
+    DATA lr TYPE REF TO data.
+    DATA lr2 TYPE REF TO data.
+    lr = REF #( lv_val ).
+    lr2 = REF #( lr ).
+
+    DATA(lr_result) = z2ui5_cl_util=>unassign_data( lr2 ).
+
+    cl_abap_unit_assert=>assert_bound( lr_result ).
+
+    FIELD-SYMBOLS <any> TYPE any.
+    ASSIGN lr_result->* TO <any>.
+    cl_abap_unit_assert=>assert_equals( exp = `test_unassign`
+                                        act = <any> ).
+
+  ENDMETHOD.
+
+  METHOD test_unassign_object.
+
+    DATA(lo_obj) = NEW ltcl_test_app( ).
+    DATA lr TYPE REF TO object.
+    DATA lr2 TYPE REF TO data.
+    lr = lo_obj.
+    lr2 = REF #( lr ).
+
+    DATA(lo_result) = z2ui5_cl_util=>unassign_object( lr2 ).
+
+    cl_abap_unit_assert=>assert_bound( lo_result ).
+
+  ENDMETHOD.
+
+  METHOD test_source_method_to_file.
+
+    DATA(lt_source) = VALUE string_table(
+        ( ` line one` )
+        ( ` line two` )
+        ( ` line three` ) ).
+
+    DATA(lv_result) = z2ui5_cl_util=>source_method_to_file( lt_source ).
+
+    cl_abap_unit_assert=>assert_not_initial( lv_result ).
+    cl_abap_unit_assert=>assert_char_cp( act = lv_result
+                                          exp = `*line one*` ).
+    cl_abap_unit_assert=>assert_char_cp( act = lv_result
+                                          exp = `*line two*` ).
+    cl_abap_unit_assert=>assert_char_cp( act = lv_result
+                                          exp = `*line three*` ).
+
+  ENDMETHOD.
+
+  METHOD test_itab_get_itab_by_csv.
+
+    DATA(lv_csv) = |COL1;COL2| && cl_abap_char_utilities=>newline &&
+                   |A;B| && cl_abap_char_utilities=>newline &&
+                   |C;D|.
+
+    DATA(lr_result) = z2ui5_cl_util=>itab_get_itab_by_csv( lv_csv ).
+
+    cl_abap_unit_assert=>assert_bound( lr_result ).
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN lr_result->* TO <tab>.
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( <tab> ) ).
+
+  ENDMETHOD.
+
+  METHOD test_itab_corresponding.
+
+    TYPES:
+      BEGIN OF ty_src,
+        name  TYPE string,
+        value TYPE string,
+        extra TYPE string,
+      END OF ty_src.
+
+    TYPES:
+      BEGIN OF ty_tgt,
+        name  TYPE string,
+        value TYPE string,
+      END OF ty_tgt.
+
+    DATA lt_src TYPE STANDARD TABLE OF ty_src WITH EMPTY KEY.
+    lt_src = VALUE #( ( name = `A` value = `1` extra = `x` )
+                      ( name = `B` value = `2` extra = `y` ) ).
+
+    DATA lt_tgt TYPE STANDARD TABLE OF ty_tgt WITH EMPTY KEY.
+
+    z2ui5_cl_util=>itab_corresponding( EXPORTING val = lt_src
+                                       CHANGING  tab = lt_tgt ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lt_tgt ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `A`
+                                        act = lt_tgt[ 1 ]-name ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `2`
+                                        act = lt_tgt[ 2 ]-value ).
+
+  ENDMETHOD.
+
+  METHOD test_rtti_tab_get_rel_name.
+
+    TYPES:
+      BEGIN OF ty_line,
+        field1 TYPE string,
+        field2 TYPE string,
+      END OF ty_line.
+
+    DATA lt_tab TYPE STANDARD TABLE OF ty_line WITH EMPTY KEY.
+
+    DATA(lv_name) = z2ui5_cl_util=>rtti_tab_get_relative_name( lt_tab ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `TY_LINE`
+                                        act = lv_name ).
+
+  ENDMETHOD.
+
+  METHOD test_rtti_get_intfname_by_ref.
+
+    DATA lr_intf TYPE REF TO if_serializable_object.
+    lr_intf = NEW ltcl_test_app( ).
+
+    DATA(lv_name) = z2ui5_cl_util=>rtti_get_intfname_by_ref( lr_intf ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `IF_SERIALIZABLE_OBJECT`
+                                        act = lv_name ).
+
+  ENDMETHOD.
+
+  METHOD test_filter_update_tokens.
+
+    DATA(lt_filter) = VALUE z2ui5_cl_util=>ty_t_filter_multi(
+        ( name = `STATUS`
+          t_token = VALUE #( ( key = `=A` text = `=A` visible = abap_true editable = abap_true ) )
+          t_token_added = VALUE #( ( key = `=B` text = `=B` visible = abap_true editable = abap_true ) )
+          t_token_removed = VALUE #( )
+        ) ).
+
+    DATA(lt_result) = z2ui5_cl_util=>filter_update_tokens( val = lt_filter
+                                                            name = `STATUS` ).
+
+    DATA(ls_filter) = lt_result[ name = `STATUS` ].
+
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( ls_filter-t_token ) ).
+
+    " token_added and token_removed should be cleared
+    cl_abap_unit_assert=>assert_initial( ls_filter-t_token_added ).
+    cl_abap_unit_assert=>assert_initial( ls_filter-t_token_removed ).
+
+  ENDMETHOD.
+
+  METHOD test_filter_get_range_t_by_tt.
+
+    DATA(lt_tokens) = VALUE z2ui5_cl_util=>ty_t_token(
+        ( key = `=A` text = `=A` visible = abap_true editable = abap_true )
+        ( key = `>10` text = `>10` visible = abap_true editable = abap_true ) ).
+
+    DATA(lt_range) = z2ui5_cl_util=>filter_get_range_t_by_token_t( lt_tokens ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lt_range ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `EQ`
+                                        act = lt_range[ 1 ]-option ).
+    cl_abap_unit_assert=>assert_equals( exp = `A`
+                                        act = lt_range[ 1 ]-low ).
+    cl_abap_unit_assert=>assert_equals( exp = `GT`
+                                        act = lt_range[ 2 ]-option ).
+    cl_abap_unit_assert=>assert_equals( exp = `10`
+                                        act = lt_range[ 2 ]-low ).
+
+  ENDMETHOD.
+
+  METHOD test_msg_get.
+
+    DATA(ls_msg) = z2ui5_cl_util=>msg_get( `test message text` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `test message text`
+                                        act = ls_msg-text ).
+
+  ENDMETHOD.
+
+  METHOD test_msg_get_t.
+
+    DATA(lt_msg) = z2ui5_cl_util=>msg_get_t( `message via msg_get_t` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lt_msg ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `message via msg_get_t`
+                                        act = lt_msg[ 1 ]-text ).
+
+  ENDMETHOD.
+
+  METHOD test_msg_get_by_msg.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    DATA(ls_msg) = z2ui5_cl_util=>msg_get_by_msg( id = `NET`
+                                                    no = `001` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `NET`
+                                        act = ls_msg-id ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `001`
+                                        act = ls_msg-no ).
+
+  ENDMETHOD.
+
+  METHOD test_context_get_sy.
+
+    DATA(ls_sy) = z2ui5_cl_util=>context_get_sy( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = sy-uname
+                                        act = ls_sy-uname ).
+
+    cl_abap_unit_assert=>assert_equals( exp = sy-datum
+                                        act = ls_sy-datum ).
+
+  ENDMETHOD.
+
+  METHOD test_context_check_abap_cloud.
+
+    " Just ensure it returns a valid boolean
+    DATA(lv_result) = z2ui5_cl_util=>context_check_abap_cloud( ).
+
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( lv_result = abap_true OR lv_result = abap_false ) ).
+
+  ENDMETHOD.
+
+  METHOD test_uuid_get_c32.
+
+    DATA(lv_uuid1) = z2ui5_cl_util=>uuid_get_c32( ).
+    DATA(lv_uuid2) = z2ui5_cl_util=>uuid_get_c32( ).
+
+    cl_abap_unit_assert=>assert_not_initial( lv_uuid1 ).
+    cl_abap_unit_assert=>assert_not_initial( lv_uuid2 ).
+
+    " UUIDs must be unique
+    cl_abap_unit_assert=>assert_differs( exp = lv_uuid2
+                                          act = lv_uuid1 ).
+
+    " UUID must be 32 chars
+    cl_abap_unit_assert=>assert_equals( exp = 32
+                                        act = strlen( lv_uuid1 ) ).
+
+  ENDMETHOD.
+
+  METHOD test_uuid_get_c22.
+
+    DATA(lv_uuid1) = z2ui5_cl_util=>uuid_get_c22( ).
+    DATA(lv_uuid2) = z2ui5_cl_util=>uuid_get_c22( ).
+
+    cl_abap_unit_assert=>assert_not_initial( lv_uuid1 ).
+    cl_abap_unit_assert=>assert_not_initial( lv_uuid2 ).
+
+    " UUIDs must be unique
+    cl_abap_unit_assert=>assert_differs( exp = lv_uuid2
+                                          act = lv_uuid1 ).
+
+    " UUID must be 22 chars
+    cl_abap_unit_assert=>assert_equals( exp = 22
+                                        act = strlen( lv_uuid1 ) ).
+
+  ENDMETHOD.
+
+  METHOD test_conv_xstring_roundtrip.
+
+    DATA(lv_string) = `Hello World UTF-8`.
+
+    DATA(lv_xstring) = z2ui5_cl_util=>conv_get_xstring_by_string( lv_string ).
+    cl_abap_unit_assert=>assert_not_initial( lv_xstring ).
+
+    DATA(lv_back) = z2ui5_cl_util=>conv_get_string_by_xstring( lv_xstring ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_string
+                                        act = lv_back ).
+
+  ENDMETHOD.
+
+  METHOD test_conv_base64_roundtrip.
+
+    DATA(lv_string) = `Base64 test content`.
+    DATA(lv_xstring) = z2ui5_cl_util=>conv_get_xstring_by_string( lv_string ).
+
+    DATA(lv_encoded) = z2ui5_cl_util=>conv_encode_x_base64( lv_xstring ).
+    cl_abap_unit_assert=>assert_not_initial( lv_encoded ).
+
+    DATA(lv_decoded) = z2ui5_cl_util=>conv_decode_x_base64( lv_encoded ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_xstring
+                                        act = lv_decoded ).
+
+    " Also check that converting back to string works
+    DATA(lv_back) = z2ui5_cl_util=>conv_get_string_by_xstring( lv_decoded ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_string
+                                        act = lv_back ).
+
+  ENDMETHOD.
+
+  METHOD test_x_raise_with_text.
+
+    TRY.
+        z2ui5_cl_util=>x_raise( `custom error text` ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH z2ui5_cx_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_char_cp(
+            act = lx->get_text( )
+            exp = `*custom error text*` ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD test_x_check_raise_with_text.
+
+    TRY.
+        z2ui5_cl_util=>x_check_raise( when = xsdbool( 1 = 1 )
+                                       v    = `conditional error` ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH z2ui5_cx_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_char_cp(
+            act = lx->get_text( )
+            exp = `*conditional error*` ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD test_json_stringify_table.
+
+    TYPES:
+      BEGIN OF ty_item,
+        id   TYPE string,
+        name TYPE string,
+      END OF ty_item.
+
+    DATA lt_data TYPE STANDARD TABLE OF ty_item WITH EMPTY KEY.
+    lt_data = VALUE #( ( id = `1` name = `First` )
+                       ( id = `2` name = `Second` ) ).
+
+    DATA(lv_json) = z2ui5_cl_util=>json_stringify( lt_data ).
+
+    cl_abap_unit_assert=>assert_not_initial( lv_json ).
+    cl_abap_unit_assert=>assert_char_cp( act = lv_json
+                                          exp = `*First*` ).
+    cl_abap_unit_assert=>assert_char_cp( act = lv_json
+                                          exp = `*Second*` ).
+
+  ENDMETHOD.
+
+  METHOD test_json_parse_to_table.
+
+    TYPES:
+      BEGIN OF ty_item,
+        id   TYPE string,
+        name TYPE string,
+      END OF ty_item.
+
+    DATA lt_data TYPE STANDARD TABLE OF ty_item WITH EMPTY KEY.
+
+    z2ui5_cl_util=>json_parse( EXPORTING val  = `[{"id":"1","name":"A"},{"id":"2","name":"B"}]`
+                               CHANGING  data = lt_data ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lt_data ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `1`
+                                        act = lt_data[ 1 ]-id ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `B`
+                                        act = lt_data[ 2 ]-name ).
+
+  ENDMETHOD.
+
+  METHOD test_xml_parse_empty.
+
+    TYPES:
+      BEGIN OF ty_data,
+        name TYPE string,
+      END OF ty_data.
+
+    DATA ls_data TYPE ty_data.
+    DATA(lv_xml) = z2ui5_cl_util=>xml_stringify( ls_data ).
+
+    cl_abap_unit_assert=>assert_not_initial( lv_xml ).
+
+    DATA ls_data2 TYPE ty_data.
+    z2ui5_cl_util=>xml_parse( EXPORTING xml = lv_xml
+                              IMPORTING any = ls_data2 ).
+
+    cl_abap_unit_assert=>assert_equals( exp = ls_data
+                                        act = ls_data2 ).
+
+  ENDMETHOD.
+
+  METHOD test_rtti_get_type_name_string.
+
+    DATA(lv_string) = VALUE string( ).
+    cl_abap_unit_assert=>assert_equals( exp = `STRING`
+                                        act = z2ui5_cl_util=>rtti_get_type_name( lv_string ) ).
+
+  ENDMETHOD.
+
+  METHOD test_rtti_get_type_kind_struct.
+
+    TYPES:
+      BEGIN OF ty_s,
+        f1 TYPE string,
+      END OF ty_s.
+
+    DATA(ls_struct) = VALUE ty_s( ).
+    DATA(lv_kind) = z2ui5_cl_util=>rtti_get_type_kind( ls_struct ).
+
+    cl_abap_unit_assert=>assert_equals( exp = cl_abap_typedescr=>typekind_struct1
+                                        act = lv_kind ).
+
+  ENDMETHOD.
+
+  METHOD test_rtti_get_type_kind_table.
+
+    DATA lt_tab TYPE STANDARD TABLE OF string WITH EMPTY KEY.
+    DATA(lv_kind) = z2ui5_cl_util=>rtti_get_type_kind( lt_tab ).
+
+    cl_abap_unit_assert=>assert_equals( exp = cl_abap_typedescr=>typekind_table
+                                        act = lv_kind ).
+
+  ENDMETHOD.
+
+  METHOD test_rtti_check_clike_char.
+
+    DATA lv_char TYPE c LENGTH 10.
+    lv_char = `test`.
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>rtti_check_clike( lv_char ) ).
+
+  ENDMETHOD.
+
+  METHOD test_boolean_check_by_data_str.
+
+    DATA(lv_string) = `not a boolean`.
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_util=>boolean_check_by_data( lv_string ) ).
+
+  ENDMETHOD.
+
+  METHOD test_itab_filter_by_val_no_hit.
+
+    TYPES:
+      BEGIN OF ty_row,
+        col1 TYPE string,
+      END OF ty_row.
+
+    DATA lt_data TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    lt_data = VALUE #( ( col1 = `A` )
+                       ( col1 = `B` ) ).
+
+    z2ui5_cl_util=>itab_filter_by_val( EXPORTING val = `NONE`
+                                       CHANGING  tab = lt_data ).
+
+    cl_abap_unit_assert=>assert_initial( lt_data ).
+
+  ENDMETHOD.
+
+  METHOD test_conv_copy_ref_data_struc.
+
+    TYPES:
+      BEGIN OF ty_row,
+        name  TYPE string,
+        value TYPE string,
+      END OF ty_row.
+
+    DATA(ls_row) = VALUE ty_row( name = `hello` value = `world` ).
+    DATA lr_data TYPE REF TO data.
+    lr_data = REF #( ls_row ).
+
+    DATA(lr_copy) = z2ui5_cl_util=>conv_copy_ref_data( lr_data ).
+    cl_abap_unit_assert=>assert_bound( lr_copy ).
+
+    FIELD-SYMBOLS <copy> TYPE ty_row.
+    ASSIGN lr_copy->* TO <copy>.
+
+    cl_abap_unit_assert=>assert_equals( exp = `hello`
+                                        act = <copy>-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `world`
+                                        act = <copy>-value ).
+
+  ENDMETHOD.
+
+  METHOD test_url_param_get_encoded.
+
+    DATA(lv_param) = z2ui5_cl_util=>url_param_get(
+        val = `sap-client`
+        url = `?sap-client=100&view=main` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `100`
+                                        act = lv_param ).
+
+  ENDMETHOD.
+
+  METHOD test_filter_itab_no_match.
+
+    TYPES:
+      BEGIN OF ty_row,
+        status TYPE string,
+        name   TYPE string,
+      END OF ty_row.
+
+    DATA lt_data TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    lt_data = VALUE #( ( status = `A` name = `Item1` )
+                       ( status = `B` name = `Item2` ) ).
+
+    DATA(lt_filter) = VALUE z2ui5_cl_util=>ty_t_filter_multi(
+        ( name = `STATUS` t_range = VALUE #( ( sign = `I` option = `EQ` low = `Z` ) ) )
+    ).
+
+    z2ui5_cl_util=>filter_itab( EXPORTING filter = lt_filter
+                                CHANGING  val    = lt_data ).
+
+    cl_abap_unit_assert=>assert_initial( lt_data ).
+
+  ENDMETHOD.
+
+  METHOD test_filter_itab_multi_filter.
+
+    TYPES:
+      BEGIN OF ty_row,
+        status TYPE string,
+        name   TYPE string,
+      END OF ty_row.
+
+    DATA lt_data TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    lt_data = VALUE #( ( status = `A` name = `Apple` )
+                       ( status = `A` name = `Banana` )
+                       ( status = `B` name = `Apple` )
+                       ( status = `B` name = `Cherry` ) ).
+
+    DATA(lt_filter) = VALUE z2ui5_cl_util=>ty_t_filter_multi(
+        ( name = `STATUS` t_range = VALUE #( ( sign = `I` option = `EQ` low = `A` ) ) )
+        ( name = `NAME` t_range = VALUE #( ( sign = `I` option = `EQ` low = `Apple` ) ) )
+    ).
+
+    z2ui5_cl_util=>filter_itab( EXPORTING filter = lt_filter
+                                CHANGING  val    = lt_data ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lt_data ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `Apple`
+                                        act = lt_data[ 1 ]-name ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `A`
+                                        act = lt_data[ 1 ]-status ).
 
   ENDMETHOD.
 
