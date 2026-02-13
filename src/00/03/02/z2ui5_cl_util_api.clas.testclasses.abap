@@ -14,6 +14,11 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_context_get_user     FOR TESTING RAISING cx_static_check.
     METHODS test_element_text         FOR TESTING RAISING cx_static_check.
     METHODS test_classes_impl_intf    FOR TESTING RAISING cx_static_check.
+    METHODS test_context_get_callstack FOR TESTING RAISING cx_static_check.
+    METHODS test_source_get_method     FOR TESTING RAISING cx_static_check.
+    METHODS test_rtti_get_t_fixvalues  FOR TESTING RAISING cx_static_check.
+    METHODS test_rtti_get_table_desrc  FOR TESTING RAISING cx_static_check.
+    METHODS test_context_get_tenant    FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -158,6 +163,81 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA(mt_classes) = z2ui5_cl_util_api=>rtti_get_classes_impl_intf( `IF_SERIALIZABLE_OBJECT` ).
     cl_abap_unit_assert=>assert_not_initial( mt_classes ).
+
+  ENDMETHOD.
+
+  METHOD test_context_get_callstack.
+
+    DATA(lt_stack) = z2ui5_cl_util_api=>context_get_callstack( ).
+
+    " callstack may be empty on on-prem without cloud implementation
+    IF z2ui5_cl_util_api=>context_check_abap_cloud( ).
+      cl_abap_unit_assert=>assert_not_initial( lt_stack ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_source_get_method.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    TRY.
+        DATA(lt_source) = z2ui5_cl_util_api=>source_get_method(
+            iv_classname  = `Z2UI5_CL_UTIL`
+            iv_methodname = `C_TRIM` ) ##NEEDED.
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD test_rtti_get_t_fixvalues.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    TRY.
+        DATA(lo_typedescr) = cl_abap_typedescr=>describe_by_name( `ABAP_BOOL` ).
+        DATA(lo_elemdescr) = CAST cl_abap_elemdescr( lo_typedescr ).
+
+        DATA(lt_result) = z2ui5_cl_util_api=>rtti_get_t_fixvalues(
+            elemdescr = lo_elemdescr
+            langu     = sy-langu ).
+
+        cl_abap_unit_assert=>assert_not_initial( lt_result ).
+
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD test_rtti_get_table_desrc.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    IF z2ui5_cl_util_api=>context_check_abap_cloud( ).
+
+      DATA(lv_result) = z2ui5_cl_util_api=>rtti_get_table_desrc( `T100` ).
+      cl_abap_unit_assert=>assert_not_initial( lv_result ).
+
+    ELSE.
+
+      lv_result = z2ui5_cl_util_api=>rtti_get_table_desrc( tabname = `T100`
+                                                            langu   = sy-langu ).
+      cl_abap_unit_assert=>assert_not_initial( lv_result ).
+
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_context_get_tenant.
+
+    " context_get_tenant has an empty implementation - just verify no dump
+    DATA(lv_tenant) = z2ui5_cl_util_api=>context_get_tenant( ) ##NEEDED.
 
   ENDMETHOD.
 
