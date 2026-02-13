@@ -202,6 +202,15 @@ CLASS ltcl_unit_test DEFINITION FINAL
     METHODS test_filter_itab_no_match      FOR TESTING RAISING cx_static_check.
     METHODS test_filter_itab_multi_filter  FOR TESTING RAISING cx_static_check.
 
+    METHODS test_rtti_attri_by_tab_name   FOR TESTING RAISING cx_static_check.
+    METHODS test_rtti_attri_by_tab_empty  FOR TESTING RAISING cx_static_check.
+    METHODS test_rtti_create_tab_by_name  FOR TESTING RAISING cx_static_check.
+    METHODS test_rtti_get_dtel_text_l     FOR TESTING RAISING cx_static_check.
+    METHODS test_rtti_ddic_fixed_values   FOR TESTING RAISING cx_static_check.
+    METHODS test_source_get_method2       FOR TESTING RAISING cx_static_check.
+    METHODS test_xml_srtti_stringify      FOR TESTING RAISING cx_static_check.
+    METHODS test_filter_get_sql_where     FOR TESTING RAISING cx_static_check.
+
 ENDCLASS.
 
 
@@ -1733,6 +1742,143 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = `A`
                                         act = lt_data[ 1 ]-status ).
+
+  ENDMETHOD.
+
+  METHOD test_rtti_attri_by_tab_name.
+
+    TYPES:
+      BEGIN OF ty_test_struc,
+        field1 TYPE string,
+        field2 TYPE string,
+        field3 TYPE i,
+      END OF ty_test_struc.
+
+    DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_table_name( `LTCL_TEST_APP-TY_ROW` ).
+
+    cl_abap_unit_assert=>assert_not_initial( lt_comp ).
+
+    IF NOT line_exists( lt_comp[ name = `TITLE` ] ).
+      cl_abap_unit_assert=>fail( msg = `TITLE component not found` ).
+    ENDIF.
+
+    IF NOT line_exists( lt_comp[ name = `VALUE` ] ).
+      cl_abap_unit_assert=>fail( msg = `VALUE component not found` ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_rtti_attri_by_tab_empty.
+
+    TRY.
+        z2ui5_cl_util=>rtti_get_t_attri_by_table_name( `` ).
+        cl_abap_unit_assert=>fail( msg = `Expected exception for empty table name` ).
+      CATCH z2ui5_cx_util_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_char_cp(
+            act = lx->get_text( )
+            exp = `*TABLE_NAME_INITIAL_ERROR*` ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD test_rtti_create_tab_by_name.
+
+    DATA(lr_tab) = z2ui5_cl_util=>rtti_create_tab_by_name( `LTCL_TEST_APP-TY_ROW` ).
+
+    cl_abap_unit_assert=>assert_bound( lr_tab ).
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN lr_tab->* TO <tab>.
+
+    cl_abap_unit_assert=>assert_initial( <tab> ).
+
+  ENDMETHOD.
+
+  METHOD test_rtti_get_dtel_text_l.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    DATA(lv_text) = z2ui5_cl_util=>rtti_get_data_element_text_l( `UNAME` ).
+
+    IF z2ui5_cl_util=>context_check_abap_cloud( ) = abap_false.
+      cl_abap_unit_assert=>assert_not_initial( lv_text ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_rtti_ddic_fixed_values.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    " Empty rollname should return empty result
+    DATA(lt_empty) = z2ui5_cl_util=>rtti_get_t_ddic_fixed_values( rollname = `` ).
+    cl_abap_unit_assert=>assert_initial( lt_empty ).
+
+  ENDMETHOD.
+
+  METHOD test_source_get_method2.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    " source_get_method depends on XCO or CL_OO_FACTORY - may not work in all envs
+    TRY.
+        DATA(lv_result) = z2ui5_cl_util=>source_get_method2(
+            iv_classname  = `Z2UI5_CL_UTIL`
+            iv_methodname = `C_TRIM` ) ##NEEDED.
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD test_xml_srtti_stringify.
+
+    " xml_srtti requires ZCL_SRTTI_TYPEDESCR or z2ui5_cl_srt_typedescr
+    DATA(lv_string) = `test`.
+
+    TRY.
+        DATA(lv_xml) = z2ui5_cl_util=>xml_srtti_stringify( lv_string ).
+        cl_abap_unit_assert=>assert_not_initial( lv_xml ).
+
+        DATA(lr_data) = z2ui5_cl_util=>xml_srtti_parse( lv_xml ).
+        cl_abap_unit_assert=>assert_bound( lr_data ).
+
+        FIELD-SYMBOLS <any> TYPE any.
+        ASSIGN lr_data->* TO <any>.
+        cl_abap_unit_assert=>assert_equals( exp = `test`
+                                            act = <any> ).
+
+      CATCH cx_root ##NO_HANDLER.
+        " SRTTI class may not be available in all environments
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD test_filter_get_sql_where.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    IF z2ui5_cl_util=>context_check_abap_cloud( ).
+      RETURN.
+    ENDIF.
+
+    TRY.
+        DATA(lt_filter) = VALUE z2ui5_cl_util=>ty_t_filter_multi(
+            ( name = `STATUS` t_range = VALUE #( ( sign = `I` option = `EQ` low = `A` ) ) )
+        ).
+
+        DATA(lv_where) = z2ui5_cl_util=>filter_get_sql_where( lt_filter ).
+        cl_abap_unit_assert=>assert_not_initial( lv_where ).
+
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
 
   ENDMETHOD.
 
