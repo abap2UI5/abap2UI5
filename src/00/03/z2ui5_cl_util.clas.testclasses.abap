@@ -210,6 +210,8 @@ CLASS ltcl_unit_test DEFINITION FINAL
     METHODS test_source_get_method2       FOR TESTING RAISING cx_static_check.
     METHODS test_xml_srtti_stringify      FOR TESTING RAISING cx_static_check.
     METHODS test_filter_get_sql_where     FOR TESTING RAISING cx_static_check.
+    METHODS test_itab_filter_by_t_range   FOR TESTING RAISING cx_static_check.
+    METHODS test_filter_get_data_by_multi FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -1879,6 +1881,47 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD test_itab_filter_by_t_range.
+
+    TYPES:
+      BEGIN OF ty_row,
+        name   TYPE string,
+        status TYPE string,
+      END OF ty_row.
+
+    DATA lt_data TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
+    lt_data = VALUE #(
+        ( name = `Apple`  status = `A` )
+        ( name = `Banana` status = `B` )
+        ( name = `Cherry` status = `A` )
+    ).
+
+    DATA(lt_filter) = VALUE z2ui5_cl_util=>ty_t_filter_multi(
+        ( name = `STATUS` t_range = VALUE #( ( sign = `I` option = `EQ` low = `A` ) ) )
+    ).
+
+    " empty implementation - table should remain unchanged
+    z2ui5_cl_util=>itab_filter_by_t_range( EXPORTING val = lt_filter
+                                            CHANGING  tab = lt_data ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lines( lt_data ) ).
+
+  ENDMETHOD.
+
+  METHOD test_filter_get_data_by_multi.
+
+    DATA(lt_filter) = VALUE z2ui5_cl_util=>ty_t_filter_multi(
+        ( name = `STATUS` t_range = VALUE #( ( sign = `I` option = `EQ` low = `A` ) ) )
+    ).
+
+    " empty implementation - result should be initial
+    DATA(lt_result) = z2ui5_cl_util=>filter_get_data_by_multi( lt_filter ).
+
+    cl_abap_unit_assert=>assert_initial( lt_result ).
 
   ENDMETHOD.
 
