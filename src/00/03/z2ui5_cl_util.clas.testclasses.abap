@@ -118,6 +118,49 @@ CLASS ltcl_unit_test DEFINITION FINAL
     METHODS test_sql_get_by_string         FOR TESTING RAISING cx_static_check.
     METHODS test_get_token_t_by_r_t        FOR TESTING RAISING cx_static_check.
 
+    METHODS test_boolean_check_by_name     FOR TESTING RAISING cx_static_check.
+    METHODS test_boolean_abap_2_json_true  FOR TESTING RAISING cx_static_check.
+    METHODS test_boolean_abap_2_json_false FOR TESTING RAISING cx_static_check.
+
+    METHODS test_ui5_get_msg_type_e        FOR TESTING RAISING cx_static_check.
+    METHODS test_ui5_get_msg_type_s        FOR TESTING RAISING cx_static_check.
+    METHODS test_ui5_get_msg_type_w        FOR TESTING RAISING cx_static_check.
+    METHODS test_ui5_get_msg_type_i        FOR TESTING RAISING cx_static_check.
+    METHODS test_ui5_get_msg_type_default  FOR TESTING RAISING cx_static_check.
+
+    METHODS test_rtti_check_clike_string   FOR TESTING RAISING cx_static_check.
+    METHODS test_rtti_check_clike_int      FOR TESTING RAISING cx_static_check.
+    METHODS test_rtti_check_class_exists   FOR TESTING RAISING cx_static_check.
+    METHODS test_rtti_check_class_no_exist FOR TESTING RAISING cx_static_check.
+
+    METHODS test_conv_get_as_data_ref      FOR TESTING RAISING cx_static_check.
+    METHODS test_itab_csv_roundtrip        FOR TESTING RAISING cx_static_check.
+    METHODS test_itab_get_by_struc         FOR TESTING RAISING cx_static_check.
+    METHODS test_itab_filter_by_val        FOR TESTING RAISING cx_static_check.
+
+    METHODS test_filter_get_range_by_eq    FOR TESTING RAISING cx_static_check.
+    METHODS test_filter_get_range_by_lt    FOR TESTING RAISING cx_static_check.
+    METHODS test_filter_get_range_by_le    FOR TESTING RAISING cx_static_check.
+    METHODS test_filter_get_range_by_gt    FOR TESTING RAISING cx_static_check.
+    METHODS test_filter_get_range_by_ge    FOR TESTING RAISING cx_static_check.
+    METHODS test_filter_get_range_by_cp    FOR TESTING RAISING cx_static_check.
+    METHODS test_filter_get_range_by_bt    FOR TESTING RAISING cx_static_check.
+    METHODS test_filter_get_range_default  FOR TESTING RAISING cx_static_check.
+
+    METHODS test_filter_get_multi_by_data  FOR TESTING RAISING cx_static_check.
+    METHODS test_filter_get_token_mapping  FOR TESTING RAISING cx_static_check.
+
+    METHODS test_x_get_last_t100           FOR TESTING RAISING cx_static_check.
+    METHODS test_source_get_file_types     FOR TESTING RAISING cx_static_check.
+    METHODS test_json_parse                FOR TESTING RAISING cx_static_check.
+    METHODS test_c_trim_empty              FOR TESTING RAISING cx_static_check.
+    METHODS test_url_param_set_new         FOR TESTING RAISING cx_static_check.
+
+    METHODS test_time_get_date_by_stampl   FOR TESTING RAISING cx_static_check.
+    METHODS test_time_get_time_by_stampl   FOR TESTING RAISING cx_static_check.
+
+    METHODS test_filter_itab               FOR TESTING RAISING cx_static_check.
+
 ENDCLASS.
 
 
@@ -773,4 +816,428 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
+
+  METHOD test_boolean_check_by_name.
+
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>boolean_check_by_name( `ABAP_BOOL` ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>boolean_check_by_name( `XSDBOOLEAN` ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>boolean_check_by_name( `FLAG` ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>boolean_check_by_name( `XFLAG` ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>boolean_check_by_name( `XFELD` ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>boolean_check_by_name( `ABAP_BOOLEAN` ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>boolean_check_by_name( `WDY_BOOLEAN` ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>boolean_check_by_name( `BOOLE_D` ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>boolean_check_by_name( `OS_BOOLEAN` ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_util=>boolean_check_by_name( `STRING` ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_util=>boolean_check_by_name( `INTEGER` ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_util=>boolean_check_by_name( `` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_boolean_abap_2_json_true.
+
+    cl_abap_unit_assert=>assert_equals( exp = `true`
+                                        act = z2ui5_cl_util=>boolean_abap_2_json( abap_true ) ).
+
+  ENDMETHOD.
+
+  METHOD test_boolean_abap_2_json_false.
+
+    cl_abap_unit_assert=>assert_equals( exp = `false`
+                                        act = z2ui5_cl_util=>boolean_abap_2_json( abap_false ) ).
+
+  ENDMETHOD.
+
+  METHOD test_ui5_get_msg_type_e.
+
+    cl_abap_unit_assert=>assert_equals( exp = `Error`
+                                        act = z2ui5_cl_util=>ui5_get_msg_type( `E` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_ui5_get_msg_type_s.
+
+    cl_abap_unit_assert=>assert_equals( exp = `Success`
+                                        act = z2ui5_cl_util=>ui5_get_msg_type( `S` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_ui5_get_msg_type_w.
+
+    cl_abap_unit_assert=>assert_equals( exp = `Warning`
+                                        act = z2ui5_cl_util=>ui5_get_msg_type( `W` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_ui5_get_msg_type_i.
+
+    cl_abap_unit_assert=>assert_equals( exp = `Information`
+                                        act = z2ui5_cl_util=>ui5_get_msg_type( `I` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_ui5_get_msg_type_default.
+
+    cl_abap_unit_assert=>assert_equals( exp = `Information`
+                                        act = z2ui5_cl_util=>ui5_get_msg_type( `X` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_rtti_check_clike_string.
+
+    DATA(lv_string) = `test`.
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>rtti_check_clike( lv_string ) ).
+
+  ENDMETHOD.
+
+  METHOD test_rtti_check_clike_int.
+
+    DATA(lv_int) = 42.
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_util=>rtti_check_clike( lv_int ) ).
+
+  ENDMETHOD.
+
+  METHOD test_rtti_check_class_exists.
+
+    cl_abap_unit_assert=>assert_true(
+        z2ui5_cl_util=>rtti_check_class_exists( `Z2UI5_CL_UTIL` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_rtti_check_class_no_exist.
+
+    cl_abap_unit_assert=>assert_false(
+        z2ui5_cl_util=>rtti_check_class_exists( `ZZZZ_NON_EXISTENT_CLASS_99` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_conv_get_as_data_ref.
+
+    DATA(lv_val) = `hello`.
+    DATA(lr_ref) = z2ui5_cl_util=>conv_get_as_data_ref( lv_val ).
+
+    cl_abap_unit_assert=>assert_bound( lr_ref ).
+
+    FIELD-SYMBOLS <any> TYPE data.
+    ASSIGN lr_ref->* TO <any>.
+
+    cl_abap_unit_assert=>assert_equals( exp = `hello`
+                                        act = <any> ).
+
+  ENDMETHOD.
+
+  METHOD test_itab_csv_roundtrip.
+
+    TYPES:
+      BEGIN OF ty_row,
+        col1 TYPE string,
+        col2 TYPE string,
+      END OF ty_row.
+
+    DATA(lt_data) = VALUE STANDARD TABLE OF ty_row(
+        ( col1 = `A` col2 = `B` )
+        ( col1 = `C` col2 = `D` ) ).
+
+    DATA(lv_csv) = z2ui5_cl_util=>itab_get_csv_by_itab( lt_data ).
+
+    cl_abap_unit_assert=>assert_not_initial( lv_csv ).
+    cl_abap_unit_assert=>assert_char_cp( act = lv_csv
+                                          exp = `*COL1*` ).
+    cl_abap_unit_assert=>assert_char_cp( act = lv_csv
+                                          exp = `*COL2*` ).
+
+  ENDMETHOD.
+
+  METHOD test_itab_get_by_struc.
+
+    TYPES:
+      BEGIN OF ty_struc,
+        name  TYPE string,
+        value TYPE string,
+      END OF ty_struc.
+
+    DATA(ls_struc) = VALUE ty_struc( name = `test_name` value = `test_value` ).
+
+    DATA(lt_result) = z2ui5_cl_util=>itab_get_by_struc( ls_struc ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lt_result ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `NAME`
+                                        act = lt_result[ 1 ]-n ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `test_name`
+                                        act = lt_result[ 1 ]-v ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `VALUE`
+                                        act = lt_result[ 2 ]-n ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `test_value`
+                                        act = lt_result[ 2 ]-v ).
+
+  ENDMETHOD.
+
+  METHOD test_itab_filter_by_val.
+
+    TYPES:
+      BEGIN OF ty_row,
+        col1 TYPE string,
+        col2 TYPE string,
+      END OF ty_row.
+
+    DATA lt_data TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    lt_data = VALUE #( ( col1 = `Apple`  col2 = `Fruit` )
+                       ( col1 = `Carrot` col2 = `Vegetable` )
+                       ( col1 = `Banana` col2 = `Fruit` ) ).
+
+    z2ui5_cl_util=>itab_filter_by_val( EXPORTING val = `Fruit`
+                                       CHANGING  tab = lt_data ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lt_data ) ).
+
+  ENDMETHOD.
+
+  METHOD test_filter_get_range_by_eq.
+
+    DATA(ls_range) = z2ui5_cl_util=>filter_get_range_by_token( `=100` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `I`  act = ls_range-sign ).
+    cl_abap_unit_assert=>assert_equals( exp = `EQ` act = ls_range-option ).
+    cl_abap_unit_assert=>assert_equals( exp = `100` act = ls_range-low ).
+
+  ENDMETHOD.
+
+  METHOD test_filter_get_range_by_lt.
+
+    DATA(ls_range) = z2ui5_cl_util=>filter_get_range_by_token( `<50` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `I`  act = ls_range-sign ).
+    cl_abap_unit_assert=>assert_equals( exp = `LT` act = ls_range-option ).
+    cl_abap_unit_assert=>assert_equals( exp = `50` act = ls_range-low ).
+
+  ENDMETHOD.
+
+  METHOD test_filter_get_range_by_le.
+
+    DATA(ls_range) = z2ui5_cl_util=>filter_get_range_by_token( `<=50` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `I`  act = ls_range-sign ).
+    cl_abap_unit_assert=>assert_equals( exp = `LE` act = ls_range-option ).
+    cl_abap_unit_assert=>assert_equals( exp = `50` act = ls_range-low ).
+
+  ENDMETHOD.
+
+  METHOD test_filter_get_range_by_gt.
+
+    DATA(ls_range) = z2ui5_cl_util=>filter_get_range_by_token( `>99` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `I`  act = ls_range-sign ).
+    cl_abap_unit_assert=>assert_equals( exp = `GT` act = ls_range-option ).
+    cl_abap_unit_assert=>assert_equals( exp = `99` act = ls_range-low ).
+
+  ENDMETHOD.
+
+  METHOD test_filter_get_range_by_ge.
+
+    DATA(ls_range) = z2ui5_cl_util=>filter_get_range_by_token( `>=10` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `I`  act = ls_range-sign ).
+    cl_abap_unit_assert=>assert_equals( exp = `GE` act = ls_range-option ).
+    cl_abap_unit_assert=>assert_equals( exp = `10` act = ls_range-low ).
+
+  ENDMETHOD.
+
+  METHOD test_filter_get_range_by_cp.
+
+    DATA(ls_range) = z2ui5_cl_util=>filter_get_range_by_token( `*test*` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `I`  act = ls_range-sign ).
+    cl_abap_unit_assert=>assert_equals( exp = `CP` act = ls_range-option ).
+
+  ENDMETHOD.
+
+  METHOD test_filter_get_range_by_bt.
+
+    DATA(ls_range) = z2ui5_cl_util=>filter_get_range_by_token( `100...200` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `BT`  act = ls_range-option ).
+    cl_abap_unit_assert=>assert_equals( exp = `100` act = ls_range-low ).
+    cl_abap_unit_assert=>assert_equals( exp = `200` act = ls_range-high ).
+
+  ENDMETHOD.
+
+  METHOD test_filter_get_range_default.
+
+    DATA(ls_range) = z2ui5_cl_util=>filter_get_range_by_token( `plain_value` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `I`  act = ls_range-sign ).
+    cl_abap_unit_assert=>assert_equals( exp = `EQ` act = ls_range-option ).
+    cl_abap_unit_assert=>assert_equals( exp = `plain_value` act = ls_range-low ).
+
+  ENDMETHOD.
+
+  METHOD test_filter_get_multi_by_data.
+
+    TYPES:
+      BEGIN OF ty_row,
+        col1 TYPE string,
+        col2 TYPE string,
+      END OF ty_row.
+
+    DATA(ls_row) = VALUE ty_row( ).
+    DATA(lt_filter) = z2ui5_cl_util=>filter_get_multi_by_data( ls_row ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lt_filter ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `COL1`
+                                        act = lt_filter[ 1 ]-name ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `COL2`
+                                        act = lt_filter[ 2 ]-name ).
+
+  ENDMETHOD.
+
+  METHOD test_filter_get_token_mapping.
+
+    DATA(lt_mapping) = z2ui5_cl_util=>filter_get_token_range_mapping( ).
+
+    cl_abap_unit_assert=>assert_not_initial( lt_mapping ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `={LOW}`
+                                        act = lt_mapping[ n = `EQ` ]-v ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `<{LOW}`
+                                        act = lt_mapping[ n = `LT` ]-v ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `>{LOW}`
+                                        act = lt_mapping[ n = `GT` ]-v ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `{LOW}...{HIGH}`
+                                        act = lt_mapping[ n = `BT` ]-v ).
+
+  ENDMETHOD.
+
+  METHOD test_x_get_last_t100.
+
+    TRY.
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING val = `inner error`.
+      CATCH z2ui5_cx_util_error INTO DATA(lx).
+        DATA(lv_text) = z2ui5_cl_util=>x_get_last_t100( lx ).
+        cl_abap_unit_assert=>assert_char_cp(
+            act = lv_text
+            exp = `*inner error*` ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD test_source_get_file_types.
+
+    DATA(lt_types) = z2ui5_cl_util=>source_get_file_types( ).
+
+    cl_abap_unit_assert=>assert_not_initial( lt_types ).
+
+    IF lines( lt_types ) < 10.
+      cl_abap_unit_assert=>fail( msg = `Expected many file types` ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_json_parse.
+
+    TYPES:
+      BEGIN OF ty_data,
+        name  TYPE string,
+        value TYPE string,
+      END OF ty_data.
+
+    DATA ls_data TYPE ty_data.
+    z2ui5_cl_util=>json_parse( EXPORTING val  = `{"name":"hello","value":"world"}`
+                               CHANGING  data = ls_data ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `hello`
+                                        act = ls_data-name ).
+    cl_abap_unit_assert=>assert_equals( exp = `world`
+                                        act = ls_data-value ).
+
+  ENDMETHOD.
+
+  METHOD test_c_trim_empty.
+
+    cl_abap_unit_assert=>assert_equals( exp = ``
+                                        act = z2ui5_cl_util=>c_trim( `` ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = ``
+                                        act = z2ui5_cl_util=>c_trim( `   ` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_url_param_set_new.
+
+    DATA(lv_result) = z2ui5_cl_util=>url_param_set(
+        name  = `new_param`
+        value = `new_value`
+        url   = `https://example.com?existing=1` ).
+
+    cl_abap_unit_assert=>assert_char_cp(
+        act = lv_result
+        exp = `*new_param=new_value*` ).
+
+    cl_abap_unit_assert=>assert_char_cp(
+        act = lv_result
+        exp = `*existing=1*` ).
+
+  ENDMETHOD.
+
+  METHOD test_time_get_date_by_stampl.
+
+    DATA(lv_ts) = z2ui5_cl_util=>time_get_timestampl( ).
+    DATA(lv_date) = z2ui5_cl_util=>time_get_date_by_stampl( lv_ts ).
+
+    cl_abap_unit_assert=>assert_not_initial( lv_date ).
+
+  ENDMETHOD.
+
+  METHOD test_time_get_time_by_stampl.
+
+    DATA(lv_ts) = z2ui5_cl_util=>time_get_timestampl( ).
+    DATA(lv_time) = z2ui5_cl_util=>time_get_time_by_stampl( lv_ts ).
+
+    cl_abap_unit_assert=>assert_not_initial( lv_time ).
+
+  ENDMETHOD.
+
+  METHOD test_filter_itab.
+
+    TYPES:
+      BEGIN OF ty_row,
+        status TYPE string,
+        name   TYPE string,
+      END OF ty_row.
+
+    DATA lt_data TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    lt_data = VALUE #( ( status = `A` name = `Item1` )
+                       ( status = `B` name = `Item2` )
+                       ( status = `A` name = `Item3` ) ).
+
+    DATA(lt_filter) = VALUE z2ui5_cl_util=>ty_t_filter_multi(
+        ( name = `STATUS` t_range = VALUE #( ( sign = `I` option = `EQ` low = `A` ) ) )
+    ).
+
+    z2ui5_cl_util=>filter_itab( EXPORTING filter = lt_filter
+                                CHANGING  val    = lt_data ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lt_data ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `Item1`
+                                        act = lt_data[ 1 ]-name ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `Item3`
+                                        act = lt_data[ 2 ]-name ).
+
+  ENDMETHOD.
+
 ENDCLASS.
