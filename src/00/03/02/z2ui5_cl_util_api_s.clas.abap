@@ -753,8 +753,7 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
 
   METHOD context_get_tenant.
 
-    "DATA(tenant_info) = xco_cp=>current->tenant( ).
-    "DATA(account_id) = tenant_info->get_global_account_id( ).
+    result = sy-sysid.
 
   ENDMETHOD.
 
@@ -841,63 +840,186 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
 
   METHOD conv_get_xlsx_by_itab.
 
-*    DATA(write_access) = xco_cp_xlsx=>document->empty( )->write_access( ).
-*    DATA(worksheet) = write_access->get_workbook( )->worksheet->at_position( 1 ).
-*    DATA(selection_pattern) = xco_cp_xlsx_selection=>pattern_builder->simple_from_to( )->get_pattern( ).
-*    worksheet->select( selection_pattern
-*               )->row_stream(
-*               )->operation->write_from( REF #( val )
-*               )->execute( ).
-*    result = write_access->get_file_content( ).
+    DATA lo_writer TYPE REF TO object.
+    DATA lv_classname TYPE string.
+
+    TRY.
+        lv_classname = `CL_SALV_TABLE`.
+        DATA lo_salv TYPE REF TO object.
+        CALL METHOD (lv_classname)=>(`FACTORY`)
+          IMPORTING
+            r_salv_table = lo_salv
+          CHANGING
+            t_table      = val.
+        CALL METHOD lo_salv->(`TO_XML`)
+          EXPORTING
+            xml_type = `10`
+          RECEIVING
+            value    = result.
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
 
   ENDMETHOD.
 
   METHOD conv_get_itab_by_xlsx.
 
-*    CLEAR result.
-*    DATA(document) = xco_cp_xlsx=>document->for_file_content( val )->read_access( ).
-*    DATA(sheet) = document->get_workbook( )->worksheet->at_position( 1 ).
-*    DATA(pattern) = xco_cp_xlsx_selection=>pattern_builder->simple_from_to( )->get_pattern( ).
-*    sheet->select( pattern
-*            )->row_stream(
-*            )->operation->write_to( REF #( result )
-*            )->set_value_transformation( xco_cp_xlsx_read_access=>value_transformation->string_value
-*            )->execute( ).
+    CLEAR result.
 
   ENDMETHOD.
 
   METHOD bal_read.
 
-*" Create and set header
-*
-*
-*DATA(lo_header) = cl_bali_header_setter=>create( object      = `ZBS_DEMO_LOG_OBJECT`
-*                                                 subobject   = `TEST`
-*                                                 external_id = cl_system_uuid=>create_uuid_c32_static( )
-*                                                 ).
-*
-*
-*DATA(lo_ohandler) = cl_bali_object_handler=>get_instance( ).
-*
-*lo_ohandler->read_object(
-*  EXPORTING
-*    iv_object      = `TEST`
-*  IMPORTING
-**    ev_object_text =
-*    et_subobjects  = data(lo_obj)
-*).
-**CATCH cx_bali_objects.
-*
-*lo_obj
-*DATA(lo_log_db) = cl_bali_log_db=>get_instance( ).
-*data(ls_hanlde) =  value if_bali_log_db=>ty_handle( ).
-*DATA(lo_log) = lo_header->load_log( value ).
-*DATA(lt_items) = lo_log->get_all_items( ).
+    DATA lv_fm TYPE string.
 
+    TYPES: BEGIN OF ty_s_log_filter,
+             object    TYPE c LENGTH 20,
+             subobject TYPE c LENGTH 20,
+             extnumber TYPE c LENGTH 100,
+           END OF ty_s_log_filter.
+
+    DATA lt_log_filter TYPE STANDARD TABLE OF ty_s_log_filter.
+    DATA lt_log_handle TYPE STANDARD TABLE OF c LENGTH 22.
+    DATA lv_log_handle TYPE c LENGTH 22.
+
+    TRY.
+        INSERT VALUE #( object    = object
+                        subobject = subobject
+                        extnumber = id ) INTO TABLE lt_log_filter.
+
+        lv_fm = `BAL_DB_SEARCH`.
+        CALL FUNCTION lv_fm
+          EXPORTING
+            i_s_log_filter = lt_log_filter[ 1 ]
+          IMPORTING
+            e_t_log_handle = lt_log_handle
+          EXCEPTIONS
+            OTHERS         = 1.
+        IF sy-subrc <> 0 OR lt_log_handle IS INITIAL.
+          RETURN.
+        ENDIF.
+
+        lv_fm = `BAL_DB_LOAD`.
+        CALL FUNCTION lv_fm
+          EXPORTING
+            i_t_log_handle = lt_log_handle
+          EXCEPTIONS
+            OTHERS         = 1.
+        IF sy-subrc <> 0.
+          RETURN.
+        ENDIF.
+
+        LOOP AT lt_log_handle INTO lv_log_handle.
+
+          TYPES: BEGIN OF ty_s_bal_msg,
+                   msgty TYPE c LENGTH 1,
+                   msgid TYPE c LENGTH 20,
+                   msgno TYPE n LENGTH 3,
+                   msgv1 TYPE c LENGTH 50,
+                   msgv2 TYPE c LENGTH 50,
+                   msgv3 TYPE c LENGTH 50,
+                   msgv4 TYPE c LENGTH 50,
+                 END OF ty_s_bal_msg.
+
+          DATA lt_msg TYPE STANDARD TABLE OF ty_s_bal_msg.
+
+          lv_fm = `BAL_LOG_MSG_READ`.
+          CALL FUNCTION lv_fm
+            EXPORTING
+              i_log_handle = lv_log_handle
+            IMPORTING
+              e_t_msg      = lt_msg
+            EXCEPTIONS
+              OTHERS       = 1.
+
+          LOOP AT lt_msg INTO DATA(ls_msg).
+            INSERT VALUE #( type = ls_msg-msgty
+                            id   = ls_msg-msgid
+                            no   = ls_msg-msgno
+                            v1   = ls_msg-msgv1
+                            v2   = ls_msg-msgv2
+                            v3   = ls_msg-msgv3
+                            v4   = ls_msg-msgv4 ) INTO TABLE result.
+          ENDLOOP.
+
+        ENDLOOP.
+
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
 
   ENDMETHOD.
 
   METHOD bal_save.
+
+    DATA lv_fm TYPE string.
+    DATA lv_log_handle TYPE c LENGTH 22.
+    DATA lt_log_handle TYPE STANDARD TABLE OF c LENGTH 22.
+
+    TYPES: BEGIN OF ty_s_log_header,
+             object    TYPE c LENGTH 20,
+             subobject TYPE c LENGTH 20,
+             extnumber TYPE c LENGTH 100,
+           END OF ty_s_log_header.
+
+    TYPES: BEGIN OF ty_s_bal_msg,
+             msgty TYPE c LENGTH 1,
+             msgid TYPE c LENGTH 20,
+             msgno TYPE n LENGTH 3,
+             msgv1 TYPE c LENGTH 50,
+             msgv2 TYPE c LENGTH 50,
+             msgv3 TYPE c LENGTH 50,
+             msgv4 TYPE c LENGTH 50,
+           END OF ty_s_bal_msg.
+
+    TRY.
+        DATA(ls_header) = VALUE ty_s_log_header(
+            object    = object
+            subobject = subobject
+            extnumber = id ).
+
+        lv_fm = `BAL_LOG_CREATE`.
+        CALL FUNCTION lv_fm
+          EXPORTING
+            i_s_log      = ls_header
+          IMPORTING
+            e_log_handle = lv_log_handle
+          EXCEPTIONS
+            OTHERS       = 1.
+        IF sy-subrc <> 0.
+          RETURN.
+        ENDIF.
+
+        LOOP AT t_log INTO DATA(ls_log).
+
+          DATA(ls_msg) = VALUE ty_s_bal_msg(
+              msgty = ls_log-type
+              msgid = ls_log-id
+              msgno = ls_log-no
+              msgv1 = ls_log-v1
+              msgv2 = ls_log-v2
+              msgv3 = ls_log-v3
+              msgv4 = ls_log-v4 ).
+
+          lv_fm = `BAL_LOG_MSG_ADD`.
+          CALL FUNCTION lv_fm
+            EXPORTING
+              i_log_handle = lv_log_handle
+              i_s_msg      = ls_msg
+            EXCEPTIONS
+              OTHERS       = 1.
+
+        ENDLOOP.
+
+        INSERT lv_log_handle INTO TABLE lt_log_handle.
+
+        lv_fm = `BAL_DB_SAVE`.
+        CALL FUNCTION lv_fm
+          EXPORTING
+            i_t_log_handle = lt_log_handle
+          EXCEPTIONS
+            OTHERS         = 1.
+
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
 
   ENDMETHOD.
 

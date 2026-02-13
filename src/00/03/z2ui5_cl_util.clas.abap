@@ -172,13 +172,13 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    CLASS-METHODS itab_get_itab_by_csv
+    CLASS-METHODS csv_parse
       IMPORTING
         val           TYPE string
       RETURNING
         VALUE(result) TYPE REF TO data.
 
-    CLASS-METHODS itab_get_csv_by_itab
+    CLASS-METHODS csv_stringify
       IMPORTING
         val           TYPE any
       RETURNING
@@ -494,6 +494,30 @@ CLASS z2ui5_cl_util DEFINITION
         val           TYPE any
       RETURNING
         VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS url_decode
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS url_encode
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS conv_string_to_date
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE d.
+
+    CLASS-METHODS conv_string_to_timestamp
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE timestampl.
 
   PROTECTED SECTION.
 
@@ -814,7 +838,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD itab_get_csv_by_itab.
+  METHOD csv_stringify.
 
     FIELD-SYMBOLS <tab> TYPE table.
 
@@ -850,7 +874,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
 
 
-  METHOD itab_get_itab_by_csv.
+  METHOD csv_parse.
 
     DATA lt_comp TYPE cl_abap_structdescr=>component_table.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
@@ -1539,10 +1563,18 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD itab_filter_by_t_range.
 
+    filter_itab( EXPORTING filter = val
+                 CHANGING  val    = tab ).
+
   ENDMETHOD.
 
 
   METHOD filter_get_data_by_multi.
+
+    result = val.
+    LOOP AT result REFERENCE INTO DATA(lr_filter).
+      lr_filter->t_range = filter_get_range_t_by_token_t( lr_filter->t_token ).
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -1673,4 +1705,105 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     result = msg_get( ls_msg ).
 
   ENDMETHOD.
+
+
+  METHOD url_decode.
+
+    DATA lv_classname TYPE string.
+
+    TRY.
+        lv_classname = `CL_WEB_HTTP_UTILITY`.
+        CALL METHOD (lv_classname)=>(`DECODE_URL`)
+          EXPORTING
+            encoded = CONV string( val )
+          RECEIVING
+            decoded = result.
+      CATCH cx_root.
+        TRY.
+            lv_classname = `CL_HTTP_UTILITY`.
+            CALL METHOD (lv_classname)=>(`UNESCAPE_URL`)
+              EXPORTING
+                unescaped = CONV string( val )
+              RECEIVING
+                escaped   = result.
+          CATCH cx_root.
+            result = val.
+            REPLACE ALL OCCURRENCES OF `%20` IN result WITH ` `.
+            REPLACE ALL OCCURRENCES OF `%3D` IN result WITH `=`.
+            REPLACE ALL OCCURRENCES OF `%26` IN result WITH `&`.
+            REPLACE ALL OCCURRENCES OF `%3F` IN result WITH `?`.
+            REPLACE ALL OCCURRENCES OF `%2F` IN result WITH `/`.
+            REPLACE ALL OCCURRENCES OF `%23` IN result WITH `#`.
+            REPLACE ALL OCCURRENCES OF `%25` IN result WITH `%`.
+        ENDTRY.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD url_encode.
+
+    DATA lv_classname TYPE string.
+
+    TRY.
+        lv_classname = `CL_WEB_HTTP_UTILITY`.
+        CALL METHOD (lv_classname)=>(`ENCODE_URL`)
+          EXPORTING
+            unencoded = CONV string( val )
+          RECEIVING
+            encoded   = result.
+      CATCH cx_root.
+        TRY.
+            lv_classname = `CL_HTTP_UTILITY`.
+            CALL METHOD (lv_classname)=>(`ESCAPE_URL`)
+              EXPORTING
+                unescaped = CONV string( val )
+              RECEIVING
+                escaped   = result.
+          CATCH cx_root.
+            result = val.
+            REPLACE ALL OCCURRENCES OF `%` IN result WITH `%25`.
+            REPLACE ALL OCCURRENCES OF ` ` IN result WITH `%20`.
+            REPLACE ALL OCCURRENCES OF `=` IN result WITH `%3D`.
+            REPLACE ALL OCCURRENCES OF `&` IN result WITH `%26`.
+            REPLACE ALL OCCURRENCES OF `?` IN result WITH `%3F`.
+            REPLACE ALL OCCURRENCES OF `/` IN result WITH `%2F`.
+            REPLACE ALL OCCURRENCES OF `#` IN result WITH `%23`.
+        ENDTRY.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD conv_string_to_date.
+
+    DATA(lv_val) = c_trim( val ).
+
+    REPLACE ALL OCCURRENCES OF `-` IN lv_val WITH ``.
+    REPLACE ALL OCCURRENCES OF `.` IN lv_val WITH ``.
+    REPLACE ALL OCCURRENCES OF `/` IN lv_val WITH ``.
+
+    TRY.
+        result = lv_val(8).
+      CATCH cx_root.
+        CLEAR result.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD conv_string_to_timestamp.
+
+    TRY.
+        DATA(lv_date) = conv_string_to_date( val ).
+        IF lv_date IS NOT INITIAL.
+          DATA(ls_sy) = z2ui5_cl_util=>context_get_sy( ).
+          CONVERT DATE lv_date TIME `000000` INTO TIME STAMP result TIME ZONE ls_sy-zonlo.
+        ENDIF.
+      CATCH cx_root.
+        CLEAR result.
+    ENDTRY.
+
+  ENDMETHOD.
+
 ENDCLASS.

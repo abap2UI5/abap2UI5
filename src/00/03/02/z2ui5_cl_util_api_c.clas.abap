@@ -753,8 +753,16 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
 
   METHOD context_get_tenant.
 
-    "DATA(tenant_info) = xco_cp=>current->tenant( ).
-    "DATA(account_id) = tenant_info->get_global_account_id( ).
+    DATA lv_classname TYPE string.
+
+    TRY.
+        lv_classname = `CL_ABAP_CONTEXT_INFO`.
+        CALL METHOD (lv_classname)=>(`GET_SYSTEM_URL`)
+          RECEIVING
+            rv_system_url = result.
+      CATCH cx_root.
+        result = sy-sysid.
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -840,63 +848,301 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
 
   METHOD conv_get_xlsx_by_itab.
 
-*    DATA(write_access) = xco_cp_xlsx=>document->empty( )->write_access( ).
-*    DATA(worksheet) = write_access->get_workbook( )->worksheet->at_position( 1 ).
-*    DATA(selection_pattern) = xco_cp_xlsx_selection=>pattern_builder->simple_from_to( )->get_pattern( ).
-*    worksheet->select( selection_pattern
-*               )->row_stream(
-*               )->operation->write_from( REF #( val )
-*               )->execute( ).
-*    result = write_access->get_file_content( ).
+    DATA lo_document TYPE REF TO object.
+    DATA lo_write    TYPE REF TO object.
+    DATA lo_workbook TYPE REF TO object.
+    DATA lo_worksheet TYPE REF TO object.
+    DATA lo_pattern  TYPE REF TO object.
+    DATA lo_sel      TYPE REF TO object.
+    DATA lo_stream   TYPE REF TO object.
+    DATA lo_op       TYPE REF TO object.
+    FIELD-SYMBOLS <any> TYPE any.
+
+    TRY.
+        DATA(lv_cls) = `XCO_CP_XLSX`.
+        ASSIGN (lv_cls)=>(`DOCUMENT`) TO <any>.
+        lo_document = <any>.
+
+        CALL METHOD lo_document->(`EMPTY`)
+          RECEIVING
+            ro_document = lo_document.
+        CALL METHOD lo_document->(`WRITE_ACCESS`)
+          RECEIVING
+            ro_write_access = lo_write.
+
+        CALL METHOD lo_write->(`GET_WORKBOOK`)
+          RECEIVING
+            ro_workbook = lo_workbook.
+        ASSIGN lo_workbook->(`WORKSHEET`) TO <any>.
+        lo_worksheet = <any>.
+        CALL METHOD lo_worksheet->(`AT_POSITION`)
+          EXPORTING
+            iv_position  = 1
+          RECEIVING
+            ro_worksheet = lo_worksheet.
+
+        lv_cls = `XCO_CP_XLSX_SELECTION`.
+        ASSIGN (lv_cls)=>(`PATTERN_BUILDER`) TO <any>.
+        lo_pattern = <any>.
+        CALL METHOD lo_pattern->(`SIMPLE_FROM_TO`)
+          RECEIVING
+            ro_simple_from_to = lo_pattern.
+        CALL METHOD lo_pattern->(`GET_PATTERN`)
+          RECEIVING
+            ro_pattern = lo_pattern.
+
+        CALL METHOD lo_worksheet->(`SELECT`)
+          EXPORTING
+            io_pattern = lo_pattern
+          RECEIVING
+            ro_selection = lo_sel.
+        CALL METHOD lo_sel->(`ROW_STREAM`)
+          RECEIVING
+            ro_row_stream = lo_stream.
+        ASSIGN lo_stream->(`OPERATION`) TO <any>.
+        lo_op = <any>.
+        CALL METHOD lo_op->(`WRITE_FROM`)
+          EXPORTING
+            ir_table = REF #( val )
+          RECEIVING
+            ro_write_operation = lo_op.
+        CALL METHOD lo_op->(`EXECUTE`).
+
+        CALL METHOD lo_write->(`GET_FILE_CONTENT`)
+          RECEIVING
+            rv_file_content = result.
+
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
 
   ENDMETHOD.
 
   METHOD conv_get_itab_by_xlsx.
 
-*    CLEAR result.
-*    DATA(document) = xco_cp_xlsx=>document->for_file_content( val )->read_access( ).
-*    DATA(sheet) = document->get_workbook( )->worksheet->at_position( 1 ).
-*    DATA(pattern) = xco_cp_xlsx_selection=>pattern_builder->simple_from_to( )->get_pattern( ).
-*    sheet->select( pattern
-*            )->row_stream(
-*            )->operation->write_to( REF #( result )
-*            )->set_value_transformation( xco_cp_xlsx_read_access=>value_transformation->string_value
-*            )->execute( ).
+    DATA lo_document TYPE REF TO object.
+    DATA lo_read     TYPE REF TO object.
+    DATA lo_workbook TYPE REF TO object.
+    DATA lo_worksheet TYPE REF TO object.
+    DATA lo_pattern  TYPE REF TO object.
+    DATA lo_sel      TYPE REF TO object.
+    DATA lo_stream   TYPE REF TO object.
+    DATA lo_op       TYPE REF TO object.
+    DATA lo_transform TYPE REF TO object.
+    FIELD-SYMBOLS <any> TYPE any.
+
+    TRY.
+        CLEAR result.
+        DATA(lv_cls) = `XCO_CP_XLSX`.
+        ASSIGN (lv_cls)=>(`DOCUMENT`) TO <any>.
+        lo_document = <any>.
+
+        CALL METHOD lo_document->(`FOR_FILE_CONTENT`)
+          EXPORTING
+            iv_file_content = val
+          RECEIVING
+            ro_document     = lo_document.
+        CALL METHOD lo_document->(`READ_ACCESS`)
+          RECEIVING
+            ro_read_access = lo_read.
+
+        CALL METHOD lo_read->(`GET_WORKBOOK`)
+          RECEIVING
+            ro_workbook = lo_workbook.
+        ASSIGN lo_workbook->(`WORKSHEET`) TO <any>.
+        lo_worksheet = <any>.
+        CALL METHOD lo_worksheet->(`AT_POSITION`)
+          EXPORTING
+            iv_position  = 1
+          RECEIVING
+            ro_worksheet = lo_worksheet.
+
+        lv_cls = `XCO_CP_XLSX_SELECTION`.
+        ASSIGN (lv_cls)=>(`PATTERN_BUILDER`) TO <any>.
+        lo_pattern = <any>.
+        CALL METHOD lo_pattern->(`SIMPLE_FROM_TO`)
+          RECEIVING
+            ro_simple_from_to = lo_pattern.
+        CALL METHOD lo_pattern->(`GET_PATTERN`)
+          RECEIVING
+            ro_pattern = lo_pattern.
+
+        CALL METHOD lo_worksheet->(`SELECT`)
+          EXPORTING
+            io_pattern = lo_pattern
+          RECEIVING
+            ro_selection = lo_sel.
+        CALL METHOD lo_sel->(`ROW_STREAM`)
+          RECEIVING
+            ro_row_stream = lo_stream.
+        ASSIGN lo_stream->(`OPERATION`) TO <any>.
+        lo_op = <any>.
+
+        CALL METHOD lo_op->(`WRITE_TO`)
+          EXPORTING
+            ir_table = REF #( result )
+          RECEIVING
+            ro_read_operation = lo_op.
+
+        lv_cls = `XCO_CP_XLSX_READ_ACCESS`.
+        ASSIGN (lv_cls)=>(`VALUE_TRANSFORMATION`) TO <any>.
+        lo_transform = <any>.
+        ASSIGN lo_transform->(`STRING_VALUE`) TO <any>.
+        lo_transform = <any>.
+
+        CALL METHOD lo_op->(`SET_VALUE_TRANSFORMATION`)
+          EXPORTING
+            io_value_transformation = lo_transform
+          RECEIVING
+            ro_read_operation       = lo_op.
+        CALL METHOD lo_op->(`EXECUTE`).
+
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
 
   ENDMETHOD.
 
   METHOD bal_read.
 
-*" Create and set header
-*
-*
-*DATA(lo_header) = cl_bali_header_setter=>create( object      = `ZBS_DEMO_LOG_OBJECT`
-*                                                 subobject   = `TEST`
-*                                                 external_id = cl_system_uuid=>create_uuid_c32_static( )
-*                                                 ).
-*
-*
-*DATA(lo_ohandler) = cl_bali_object_handler=>get_instance( ).
-*
-*lo_ohandler->read_object(
-*  EXPORTING
-*    iv_object      = `TEST`
-*  IMPORTING
-**    ev_object_text =
-*    et_subobjects  = data(lo_obj)
-*).
-**CATCH cx_bali_objects.
-*
-*lo_obj
-*DATA(lo_log_db) = cl_bali_log_db=>get_instance( ).
-*data(ls_hanlde) =  value if_bali_log_db=>ty_handle( ).
-*DATA(lo_log) = lo_header->load_log( value ).
-*DATA(lt_items) = lo_log->get_all_items( ).
+    DATA lo_log_db  TYPE REF TO object.
+    DATA lo_filter  TYPE REF TO object.
+    DATA lo_log     TYPE REF TO object.
+    DATA lt_log_tab TYPE STANDARD TABLE OF REF TO object.
+    DATA lo_item    TYPE REF TO object.
+    DATA lt_items   TYPE STANDARD TABLE OF REF TO object.
+    DATA lv_cls     TYPE string.
+    FIELD-SYMBOLS <any> TYPE any.
 
+    TRY.
+        lv_cls = `CL_BALI_LOG_DB`.
+        CALL METHOD (lv_cls)=>(`GET_INSTANCE`)
+          RECEIVING
+            ro_instance = lo_log_db.
+
+        lv_cls = `CL_BALI_LOG_FILTER`.
+        CALL METHOD (lv_cls)=>(`CREATE`)
+          RECEIVING
+            ro_filter = lo_filter.
+
+        CALL METHOD lo_filter->(`SET_CREATE_INFO`)
+          EXPORTING
+            iv_object    = CONV string( object )
+            iv_subobject = CONV string( subobject )
+          RECEIVING
+            ro_filter    = lo_filter.
+
+        CALL METHOD lo_filter->(`SET_EXTERNAL_ID`)
+          EXPORTING
+            iv_external_id = CONV string( id )
+          RECEIVING
+            ro_filter      = lo_filter.
+
+        CALL METHOD lo_log_db->(`LOAD_LOGS_W_ITEMS_VIA_FILTER`)
+          EXPORTING
+            io_filter  = lo_filter
+          IMPORTING
+            et_log     = lt_log_tab.
+
+        LOOP AT lt_log_tab INTO lo_log.
+
+          CALL METHOD lo_log->(`GET_ALL_ITEMS`)
+            RECEIVING
+              rt_item = lt_items.
+
+          LOOP AT lt_items INTO lo_item.
+            DATA lv_msgty TYPE c LENGTH 1.
+            DATA lv_msgid TYPE c LENGTH 20.
+            DATA lv_msgno TYPE n LENGTH 3.
+            DATA lv_msgv1 TYPE c LENGTH 50.
+            DATA lv_msgv2 TYPE c LENGTH 50.
+            DATA lv_msgv3 TYPE c LENGTH 50.
+            DATA lv_msgv4 TYPE c LENGTH 50.
+
+            ASSIGN lo_item->(`CATEGORY`) TO <any>.
+            IF <any> = `1`. " message
+              ASSIGN lo_item->(`MESSAGE_CLASS`) TO <any>.  lv_msgid = <any>.
+              ASSIGN lo_item->(`MESSAGE_NUMBER`) TO <any>. lv_msgno = <any>.
+              ASSIGN lo_item->(`SEVERITY`) TO <any>.       lv_msgty = <any>.
+              ASSIGN lo_item->(`VARIABLE_1`) TO <any>.     lv_msgv1 = <any>.
+              ASSIGN lo_item->(`VARIABLE_2`) TO <any>.     lv_msgv2 = <any>.
+              ASSIGN lo_item->(`VARIABLE_3`) TO <any>.     lv_msgv3 = <any>.
+              ASSIGN lo_item->(`VARIABLE_4`) TO <any>.     lv_msgv4 = <any>.
+
+              INSERT VALUE #( type = lv_msgty
+                              id   = lv_msgid
+                              no   = lv_msgno
+                              v1   = lv_msgv1
+                              v2   = lv_msgv2
+                              v3   = lv_msgv3
+                              v4   = lv_msgv4 ) INTO TABLE result.
+            ENDIF.
+
+          ENDLOOP.
+
+        ENDLOOP.
+
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
 
   ENDMETHOD.
 
   METHOD bal_save.
+
+    DATA lo_log TYPE REF TO object.
+    DATA lo_header TYPE REF TO object.
+    DATA lo_item TYPE REF TO object.
+    DATA lo_log_db TYPE REF TO object.
+    DATA lv_cls TYPE string.
+
+    TRY.
+        lv_cls = `CL_BALI_HEADER_SETTER`.
+        CALL METHOD (lv_cls)=>(`CREATE`)
+          EXPORTING
+            iv_object      = CONV string( object )
+            iv_subobject   = CONV string( subobject )
+            iv_external_id = CONV string( id )
+          RECEIVING
+            ro_instance    = lo_header.
+
+        lv_cls = `CL_BALI_LOG`.
+        CALL METHOD (lv_cls)=>(`CREATE_WITH_HEADER`)
+          EXPORTING
+            io_header  = lo_header
+          RECEIVING
+            ro_log     = lo_log.
+
+        LOOP AT t_log INTO DATA(ls_log).
+
+          lv_cls = `CL_BALI_MESSAGE_SETTER`.
+          CALL METHOD (lv_cls)=>(`CREATE`)
+            EXPORTING
+              iv_severity        = CONV string( ls_log-type )
+              iv_id              = CONV string( ls_log-id )
+              iv_number          = CONV string( ls_log-no )
+              iv_variable_1      = CONV string( ls_log-v1 )
+              iv_variable_2      = CONV string( ls_log-v2 )
+              iv_variable_3      = CONV string( ls_log-v3 )
+              iv_variable_4      = CONV string( ls_log-v4 )
+            RECEIVING
+              ro_instance        = lo_item.
+
+          CALL METHOD lo_log->(`ADD_ITEM`)
+            EXPORTING
+              io_item = lo_item.
+
+        ENDLOOP.
+
+        lv_cls = `CL_BALI_LOG_DB`.
+        CALL METHOD (lv_cls)=>(`GET_INSTANCE`)
+          RECEIVING
+            ro_instance = lo_log_db.
+
+        CALL METHOD lo_log_db->(`SAVE_LOG`)
+          EXPORTING
+            io_log         = lo_log
+            iv_save_all_before_db_commit = abap_true.
+
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
 
   ENDMETHOD.
 

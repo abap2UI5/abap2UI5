@@ -236,8 +236,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_context_get_tenant.
 
-    " context_get_tenant has an empty implementation - just verify no dump
-    DATA(lv_tenant) = z2ui5_cl_util_api=>context_get_tenant( ) ##NEEDED.
+    DATA(lv_tenant) = z2ui5_cl_util_api=>context_get_tenant( ).
+    cl_abap_unit_assert=>assert_not_initial( lv_tenant ).
 
   ENDMETHOD.
 

@@ -132,7 +132,7 @@ CLASS ltcl_unit_test DEFINITION FINAL
     METHODS test_rtti_check_class_no_exist FOR TESTING RAISING cx_static_check.
 
     METHODS test_conv_get_as_data_ref      FOR TESTING RAISING cx_static_check.
-    METHODS test_itab_csv_roundtrip        FOR TESTING RAISING cx_static_check.
+    METHODS test_csv_roundtrip              FOR TESTING RAISING cx_static_check.
     METHODS test_itab_get_by_struc         FOR TESTING RAISING cx_static_check.
     METHODS test_itab_filter_by_val        FOR TESTING RAISING cx_static_check.
 
@@ -164,7 +164,7 @@ CLASS ltcl_unit_test DEFINITION FINAL
 
     METHODS test_source_method_to_file     FOR TESTING RAISING cx_static_check.
 
-    METHODS test_itab_get_itab_by_csv      FOR TESTING RAISING cx_static_check.
+    METHODS test_csv_parse                  FOR TESTING RAISING cx_static_check.
     METHODS test_itab_corresponding        FOR TESTING RAISING cx_static_check.
 
     METHODS test_rtti_tab_get_rel_name     FOR TESTING RAISING cx_static_check.
@@ -212,6 +212,11 @@ CLASS ltcl_unit_test DEFINITION FINAL
     METHODS test_filter_get_sql_where     FOR TESTING RAISING cx_static_check.
     METHODS test_itab_filter_by_t_range   FOR TESTING RAISING cx_static_check.
     METHODS test_filter_get_data_by_multi FOR TESTING RAISING cx_static_check.
+
+    METHODS test_url_decode               FOR TESTING RAISING cx_static_check.
+    METHODS test_url_encode               FOR TESTING RAISING cx_static_check.
+    METHODS test_conv_string_to_date      FOR TESTING RAISING cx_static_check.
+    METHODS test_conv_string_to_timestamp FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -965,7 +970,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_itab_csv_roundtrip.
+  METHOD test_csv_roundtrip.
 
     TYPES:
       BEGIN OF ty_row,
@@ -977,7 +982,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     lt_data = VALUE #( ( col1 = `A` col2 = `B` )
                        ( col1 = `C` col2 = `D` ) ).
 
-    DATA(lv_csv) = z2ui5_cl_util=>itab_get_csv_by_itab( lt_data ).
+    DATA(lv_csv) = z2ui5_cl_util=>csv_stringify( lt_data ).
 
     cl_abap_unit_assert=>assert_not_initial( lv_csv ).
     cl_abap_unit_assert=>assert_char_cp( act = lv_csv
@@ -1331,13 +1336,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_itab_get_itab_by_csv.
+  METHOD test_csv_parse.
 
     DATA(lv_csv) = |COL1;COL2| && cl_abap_char_utilities=>newline &&
                    |A;B| && cl_abap_char_utilities=>newline &&
                    |C;D|.
 
-    DATA(lr_result) = z2ui5_cl_util=>itab_get_itab_by_csv( lv_csv ).
+    DATA(lr_result) = z2ui5_cl_util=>csv_parse( lv_csv ).
 
     cl_abap_unit_assert=>assert_bound( lr_result ).
 
@@ -1903,25 +1908,90 @@ CLASS ltcl_unit_test IMPLEMENTATION.
         ( name = `STATUS` t_range = VALUE #( ( sign = `I` option = `EQ` low = `A` ) ) )
     ).
 
-    " empty implementation - table should remain unchanged
     z2ui5_cl_util=>itab_filter_by_t_range( EXPORTING val = lt_filter
                                             CHANGING  tab = lt_data ).
 
-    cl_abap_unit_assert=>assert_equals( exp = 3
+    cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( lt_data ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `Apple`
+                                        act = lt_data[ 1 ]-name ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `Cherry`
+                                        act = lt_data[ 2 ]-name ).
 
   ENDMETHOD.
 
   METHOD test_filter_get_data_by_multi.
 
     DATA(lt_filter) = VALUE z2ui5_cl_util=>ty_t_filter_multi(
-        ( name = `STATUS` t_range = VALUE #( ( sign = `I` option = `EQ` low = `A` ) ) )
+        ( name = `STATUS`
+          t_token = VALUE #( ( key = `=A` text = `=A` visible = abap_true editable = abap_true ) ) )
     ).
 
-    " empty implementation - result should be initial
     DATA(lt_result) = z2ui5_cl_util=>filter_get_data_by_multi( lt_filter ).
 
-    cl_abap_unit_assert=>assert_initial( lt_result ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lt_result ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lt_result[ 1 ]-t_range ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `EQ`
+                                        act = lt_result[ 1 ]-t_range[ 1 ]-option ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `A`
+                                        act = lt_result[ 1 ]-t_range[ 1 ]-low ).
+
+  ENDMETHOD.
+
+  METHOD test_url_decode.
+
+    cl_abap_unit_assert=>assert_equals( exp = `hello world`
+                                        act = z2ui5_cl_util=>url_decode( `hello%20world` ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `a=b&c=d`
+                                        act = z2ui5_cl_util=>url_decode( `a%3Db%26c%3Dd` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_url_encode.
+
+    DATA(lv_encoded) = z2ui5_cl_util=>url_encode( `hello world` ).
+    cl_abap_unit_assert=>assert_not_initial( lv_encoded ).
+
+    " encoded should not contain raw spaces
+    cl_abap_unit_assert=>assert_true(
+        xsdbool( lv_encoded NS ` ` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_conv_string_to_date.
+
+    DATA(lv_date) = z2ui5_cl_util=>conv_string_to_date( `20240115` ).
+    cl_abap_unit_assert=>assert_equals( exp = `20240115`
+                                        act = lv_date ).
+
+    lv_date = z2ui5_cl_util=>conv_string_to_date( `2024-01-15` ).
+    cl_abap_unit_assert=>assert_equals( exp = `20240115`
+                                        act = lv_date ).
+
+    lv_date = z2ui5_cl_util=>conv_string_to_date( `2024.01.15` ).
+    cl_abap_unit_assert=>assert_equals( exp = `20240115`
+                                        act = lv_date ).
+
+    lv_date = z2ui5_cl_util=>conv_string_to_date( `` ).
+    cl_abap_unit_assert=>assert_initial( lv_date ).
+
+  ENDMETHOD.
+
+  METHOD test_conv_string_to_timestamp.
+
+    DATA(lv_ts) = z2ui5_cl_util=>conv_string_to_timestamp( `20240115` ).
+    cl_abap_unit_assert=>assert_not_initial( lv_ts ).
+
+    lv_ts = z2ui5_cl_util=>conv_string_to_timestamp( `` ).
+    cl_abap_unit_assert=>assert_initial( lv_ts ).
 
   ENDMETHOD.
 

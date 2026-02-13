@@ -1004,8 +1004,11 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   METHOD context_get_tenant.
 
-    "DATA(tenant_info) = xco_cp=>current->tenant( ).
-    "DATA(account_id) = tenant_info->get_global_account_id( ).
+    IF context_check_abap_cloud( ).
+      result = z2ui5_cl_util_api_c=>context_get_tenant( ).
+    ELSE.
+      result = z2ui5_cl_util_api_s=>context_get_tenant( ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -1027,63 +1030,53 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   METHOD conv_get_xlsx_by_itab.
 
-*    DATA(write_access) = xco_cp_xlsx=>document->empty( )->write_access( ).
-*    DATA(worksheet) = write_access->get_workbook( )->worksheet->at_position( 1 ).
-*    DATA(selection_pattern) = xco_cp_xlsx_selection=>pattern_builder->simple_from_to( )->get_pattern( ).
-*    worksheet->select( selection_pattern
-*               )->row_stream(
-*               )->operation->write_from( REF #( val )
-*               )->execute( ).
-*    result = write_access->get_file_content( ).
+    IF context_check_abap_cloud( ).
+      result = z2ui5_cl_util_api_c=>conv_get_xlsx_by_itab( val ).
+    ELSE.
+      result = z2ui5_cl_util_api_s=>conv_get_xlsx_by_itab( val ).
+    ENDIF.
 
   ENDMETHOD.
 
   METHOD conv_get_itab_by_xlsx.
 
-*    CLEAR result.
-*    DATA(document) = xco_cp_xlsx=>document->for_file_content( val )->read_access( ).
-*    DATA(sheet) = document->get_workbook( )->worksheet->at_position( 1 ).
-*    DATA(pattern) = xco_cp_xlsx_selection=>pattern_builder->simple_from_to( )->get_pattern( ).
-*    sheet->select( pattern
-*            )->row_stream(
-*            )->operation->write_to( REF #( result )
-*            )->set_value_transformation( xco_cp_xlsx_read_access=>value_transformation->string_value
-*            )->execute( ).
+    IF context_check_abap_cloud( ).
+      z2ui5_cl_util_api_c=>conv_get_itab_by_xlsx( EXPORTING val = val
+                                                    IMPORTING result = result ).
+    ELSE.
+      z2ui5_cl_util_api_s=>conv_get_itab_by_xlsx( EXPORTING val = val
+                                                    IMPORTING result = result ).
+    ENDIF.
 
   ENDMETHOD.
 
   METHOD bal_read.
 
-*" Create and set header
-*
-*
-*DATA(lo_header) = cl_bali_header_setter=>create( object      = `ZBS_DEMO_LOG_OBJECT`
-*                                                 subobject   = `TEST`
-*                                                 external_id = cl_system_uuid=>create_uuid_c32_static( )
-*                                                 ).
-*
-*
-*DATA(lo_ohandler) = cl_bali_object_handler=>get_instance( ).
-*
-*lo_ohandler->read_object(
-*  EXPORTING
-*    iv_object      = `TEST`
-*  IMPORTING
-**    ev_object_text =
-*    et_subobjects  = data(lo_obj)
-*).
-**CATCH cx_bali_objects.
-*
-*lo_obj
-*DATA(lo_log_db) = cl_bali_log_db=>get_instance( ).
-*data(ls_hanlde) =  value if_bali_log_db=>ty_handle( ).
-*DATA(lo_log) = lo_header->load_log( value ).
-*DATA(lt_items) = lo_log->get_all_items( ).
-
+    IF context_check_abap_cloud( ).
+      result = z2ui5_cl_util_api_c=>bal_read( object    = object
+                                               subobject = subobject
+                                               id        = id ).
+    ELSE.
+      result = z2ui5_cl_util_api_s=>bal_read( object    = object
+                                               subobject = subobject
+                                               id        = id ).
+    ENDIF.
 
   ENDMETHOD.
 
   METHOD bal_save.
+
+    IF context_check_abap_cloud( ).
+      z2ui5_cl_util_api_c=>bal_save( object    = object
+                                      subobject = subobject
+                                      id        = id
+                                      t_log     = t_log ).
+    ELSE.
+      z2ui5_cl_util_api_s=>bal_save( object    = object
+                                      subobject = subobject
+                                      id        = id
+                                      t_log     = t_log ).
+    ENDIF.
 
   ENDMETHOD.
 

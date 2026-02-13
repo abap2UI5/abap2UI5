@@ -72,7 +72,7 @@ CLASS z2ui5_cl_util_log IMPLEMENTATION.
 
   METHOD to_csv.
 
-    result = z2ui5_cl_util=>itab_get_csv_by_itab( mt_log ).
+    result = z2ui5_cl_util=>csv_stringify( mt_log ).
 
   ENDMETHOD.
 
