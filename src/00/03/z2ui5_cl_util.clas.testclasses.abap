@@ -213,6 +213,14 @@ CLASS ltcl_unit_test DEFINITION FINAL
     METHODS test_filter_itab_no_match      FOR TESTING RAISING cx_static_check.
     METHODS test_filter_itab_multi_filter  FOR TESTING RAISING cx_static_check.
 
+    "! Tests moved from z2ui5_cl_util_api
+    METHODS test_api_encoding              FOR TESTING RAISING cx_static_check.
+    METHODS test_api_uuid_c32              FOR TESTING RAISING cx_static_check.
+    METHODS test_api_uuid_c22              FOR TESTING RAISING cx_static_check.
+    METHODS test_api_element_text          FOR TESTING RAISING cx_static_check.
+    METHODS test_api_classes_impl_intf     FOR TESTING RAISING cx_static_check.
+    METHODS test_api_context_get_sy        FOR TESTING RAISING cx_static_check.
+
 ENDCLASS.
 
 
@@ -1847,6 +1855,72 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = `A`
                                         act = lt_data[ 1 ]-status ).
+
+  ENDMETHOD.
+
+  METHOD test_api_encoding.
+
+    DATA(lv_string)   = `my string`.
+    DATA(lv_xstring)  = z2ui5_cl_util=>conv_get_xstring_by_string( lv_string ).
+    DATA(lv_string2)  = z2ui5_cl_util=>conv_encode_x_base64( lv_xstring ).
+    DATA(lv_xstring2) = z2ui5_cl_util=>conv_decode_x_base64( lv_string2 ).
+    DATA(lv_string3)  = z2ui5_cl_util=>conv_get_string_by_xstring( lv_xstring2 ).
+
+    cl_abap_unit_assert=>assert_equals( exp = lv_string
+                                        act = lv_string3 ).
+
+  ENDMETHOD.
+
+  METHOD test_api_uuid_c32.
+
+    DATA(lv_uuid) = z2ui5_cl_util=>uuid_get_c32( ).
+    cl_abap_unit_assert=>assert_not_initial( lv_uuid ).
+    cl_abap_unit_assert=>assert_equals( exp = strlen( lv_uuid )
+                                        act = 32 ).
+
+  ENDMETHOD.
+
+  METHOD test_api_uuid_c22.
+
+    DATA(lv_uuid) = z2ui5_cl_util=>uuid_get_c22( ).
+    cl_abap_unit_assert=>assert_not_initial( lv_uuid ).
+    cl_abap_unit_assert=>assert_equals( exp = strlen( lv_uuid )
+                                        act = 22 ).
+
+  ENDMETHOD.
+
+  METHOD test_api_element_text.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    DATA(ls_result) = z2ui5_cl_util=>rtti_get_data_element_texts( `UNAME` ).
+    IF z2ui5_cl_util=>context_check_abap_cloud( ) = abap_false.
+      cl_abap_unit_assert=>assert_not_initial( ls_result ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_api_classes_impl_intf.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    DATA(mt_classes) = z2ui5_cl_util=>rtti_get_classes_impl_intf( `IF_SERIALIZABLE_OBJECT` ).
+    cl_abap_unit_assert=>assert_not_initial( mt_classes ).
+
+  ENDMETHOD.
+
+  METHOD test_api_context_get_sy.
+
+    DATA(ls_sy) = z2ui5_cl_util=>context_get_sy( ).
+
+    cl_abap_unit_assert=>assert_not_initial( ls_sy-sysid ).
+    cl_abap_unit_assert=>assert_not_initial( ls_sy-datum ).
+    cl_abap_unit_assert=>assert_equals( exp = sy-mandt
+                                        act = ls_sy-mandt ).
 
   ENDMETHOD.
 
