@@ -522,6 +522,11 @@ CLASS z2ui5_cl_util DEFINITION
   PROTECTED SECTION.
 
   PRIVATE SECTION.
+    TYPES: BEGIN OF ty_s_bool_cache,
+             abs_name TYPE string,
+             is_bool  TYPE abap_bool,
+           END OF ty_s_bool_cache.
+    CLASS-DATA mt_bool_cache TYPE HASHED TABLE OF ty_s_bool_cache WITH UNIQUE KEY abs_name.
 
 ENDCLASS.
 
@@ -544,8 +549,18 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   METHOD boolean_check_by_data.
 
     TRY.
-        DATA(lv_type_name) = rtti_get_type_name( val ).
-        result = boolean_check_by_name( lv_type_name ).
+        DATA(lo_descr) = cl_abap_elemdescr=>describe_by_data( val ).
+        DATA(lv_abs) = CONV string( lo_descr->absolute_name ).
+
+        READ TABLE mt_bool_cache WITH TABLE KEY abs_name = lv_abs REFERENCE INTO DATA(lr_cached).
+        IF sy-subrc = 0.
+          result = lr_cached->is_bool.
+          RETURN.
+        ENDIF.
+
+        DATA(lo_ele) = CAST cl_abap_elemdescr( lo_descr ).
+        result = boolean_check_by_name( lo_ele->get_relative_name( ) ).
+        INSERT VALUE #( abs_name = lv_abs is_bool = result ) INTO TABLE mt_bool_cache.
       CATCH cx_root INTO DATA(x).
         DATA(lv_error) = x->get_text( ).
     ENDTRY.
