@@ -95,6 +95,7 @@ sap.ui.define(["sap/ui/core/BusyIndicator", "sap/m/MessageBox"
                 } else {
                     const responseData = await response.json();
                     z2ui5.responseData = responseData;
+                    z2ui5.xxSnapshot = JSON.stringify(responseData.MODEL?.XX);
                     this.responseSuccess({
                         ID: responseData.S_FRONT.ID,
                         PARAMS: responseData.S_FRONT.PARAMS,

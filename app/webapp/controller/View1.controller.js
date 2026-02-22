@@ -113,14 +113,8 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     })
                 }
             },
-            _snapshotModelXX(model) {
-                if (model?.getData) {
-                    model._z2ui5_xxSnapshot = JSON.stringify(model.getData()?.XX);
-                }
-            },
             async displayFragment(xml, viewProp) {
                 let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);
-                this._snapshotModelXX(oview_model);
                 const oFragment = await Fragment.load({
                     definition: xml,
                     controller: z2ui5.oControllerPopup,
@@ -132,7 +126,6 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 oFragment.open();
             },
             async displayPopover(xml, viewProp, openById) {
-                var self = this;
                 sap.ui.require(["sap/ui/core/Element"], async function (Element) {
                     const oFragment = await Fragment.load({
                         definition: xml,
@@ -140,7 +133,6 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         id: "popoverId"
                     });
                     let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);
-                    self._snapshotModelXX(oview_model);
                     oFragment.setModel(oview_model);
                     z2ui5[viewProp] = oFragment;
                     z2ui5[viewProp].Fragment = Fragment;
@@ -166,7 +158,6 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
             },
             async displayNestedView(xml, viewProp, viewNestId) {
                 let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);
-                this._snapshotModelXX(oview_model);
                 const oView = await XMLView.create({
                     definition: xml,
                     controller: z2ui5.oControllerNest,
@@ -190,7 +181,6 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
             },
             async displayNestedView2(xml, viewProp, viewNestId) {
                 let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);
-                this._snapshotModelXX(oview_model);
                 const oView = await XMLView.create({
                     definition: xml,
                     controller: z2ui5.oControllerNest2,
@@ -543,7 +533,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     let xx = oModel.getData()?.XX;
                     if (xx) {
                         let xxStr = JSON.stringify(xx);
-                        if (xxStr !== oModel._z2ui5_xxSnapshot) {
+                        if (xxStr !== z2ui5.xxSnapshot) {
                             z2ui5.oBody.XX = xx;
                         }
                     }
@@ -582,7 +572,6 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 }
                 if (z2ui5.oResponse.PARAMS[paramKey]?.CHECK_UPDATE_MODEL) {
                     let model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);
-                    this._snapshotModelXX(model);
                     if (oView) {
                         oView.setModel(model);
                     }
@@ -644,7 +633,6 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
             },
             async displayView(xml, viewModel) {
                 let oview_model = new JSONModel(viewModel);
-                this._snapshotModelXX(oview_model);
                 var oModel = oview_model;
                 if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH) {
                     oModel = new ODataModel({
