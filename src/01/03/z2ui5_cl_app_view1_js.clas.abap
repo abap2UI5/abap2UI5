@@ -155,7 +155,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            },` && |\n|  &&
              `            async displayFragment(xml, viewProp) {` && |\n|  &&
              `                let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
-             `                oview_model.attachPropertyChange((e) => { let p = e.getParameter("path"); if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p); });` && |\n|  &&
+             `                oview_model.attachPropertyChange((e) => { let p = e.getParameter("path"); let c = e.getParameter("context"); if (c && !p.startsWith("/")) p = c.getPath() + "/" + p; if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p); });` && |\n|  &&
              `                const oFragment = await Fragment.load({` && |\n|  &&
              `                    definition: xml,` && |\n|  &&
              `                    controller: z2ui5.oControllerPopup,` && |\n|  &&
@@ -174,7 +174,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        id: "popoverId"` && |\n|  &&
              `                    });` && |\n|  &&
              `                    let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
-             `                    oview_model.attachPropertyChange((e) => { let p = e.getParameter("path"); if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p); });` && |\n|  &&
+             `                    oview_model.attachPropertyChange((e) => { let p = e.getParameter("path"); let c = e.getParameter("context"); if (c && !p.startsWith("/")) p = c.getPath() + "/" + p; if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p); });` && |\n|  &&
              `                    oFragment.setModel(oview_model);` && |\n|  &&
              `                    z2ui5[viewProp] = oFragment;` && |\n|  &&
              `                    z2ui5[viewProp].Fragment = Fragment;` && |\n|  &&
@@ -200,7 +200,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            },` && |\n|  &&
              `            async displayNestedView(xml, viewProp, viewNestId) {` && |\n|  &&
              `                let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
-             `                oview_model.attachPropertyChange((e) => { let p = e.getParameter("path"); if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p); });` && |\n|  &&
+             `                oview_model.attachPropertyChange((e) => { let p = e.getParameter("path"); let c = e.getParameter("context"); if (c && !p.startsWith("/")) p = c.getPath() + "/" + p; if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p); });` && |\n|  &&
              `                const oView = await XMLView.create({` && |\n|  &&
              `                    definition: xml,` && |\n|  &&
              `                    controller: z2ui5.oControllerNest,` && |\n|  &&
@@ -224,7 +224,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            },` && |\n|  &&
              `            async displayNestedView2(xml, viewProp, viewNestId) {` && |\n|  &&
              `                let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
-             `                oview_model.attachPropertyChange((e) => { let p = e.getParameter("path"); if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p); });` && |\n|  &&
+             `                oview_model.attachPropertyChange((e) => { let p = e.getParameter("path"); let c = e.getParameter("context"); if (c && !p.startsWith("/")) p = c.getPath() + "/" + p; if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p); });` && |\n|  &&
              `                const oView = await XMLView.create({` && |\n|  &&
              `                    definition: xml,` && |\n|  &&
              `                    controller: z2ui5.oControllerNest2,` && |\n|  &&
@@ -615,7 +615,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                }` && |\n|  &&
              `                if (z2ui5.oResponse.PARAMS[paramKey]?.CHECK_UPDATE_MODEL) {` && |\n|  &&
              `                    let model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
-             `                    model.attachPropertyChange((e) => { let p = e.getParameter("path"); if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p); });` && |\n|  &&
+             `                    model.attachPropertyChange((e) => { let p = e.getParameter("path"); let c = e.getParameter("context"); if (c && !p.startsWith("/")) p = c.getPath() + "/" + p; if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p); });` && |\n|  &&
              `                    if (oView) {` && |\n|  &&
              `                        oView.setModel(model);` && |\n|  &&
              `                    }` && |\n|  &&
@@ -677,7 +677,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            },` && |\n|  &&
              `            async displayView(xml, viewModel) {` && |\n|  &&
              `                let oview_model = new JSONModel(viewModel);` && |\n|  &&
-             `                oview_model.attachPropertyChange((e) => { let p = e.getParameter("path"); if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p); });` && |\n|  &&
+             `                oview_model.attachPropertyChange((e) => { let p = e.getParameter("path"); let c = e.getParameter("context"); if (c && !p.startsWith("/")) p = c.getPath() + "/" + p; if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p); });` && |\n|  &&
              `                var oModel = oview_model;` && |\n|  &&
              `                if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH) {` && |\n|  &&
              `                    oModel = new ODataModel({` && |\n|  &&
