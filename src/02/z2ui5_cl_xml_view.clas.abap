@@ -5357,6 +5357,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
     DATA mo_parent   TYPE REF TO z2ui5_cl_xml_view.
     DATA mt_child    TYPE STANDARD TABLE OF REF TO z2ui5_cl_xml_view WITH EMPTY KEY.
 
+    METHODS xml_get_parts
+      CHANGING
+        ct_parts TYPE string_table.
+
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -9607,7 +9611,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD stringify.
 
-    result = get_root( )->xml_get( ).
+    DATA lt_parts TYPE string_table.
+    get_root( )->xml_get_parts( CHANGING ct_parts = lt_parts ).
+    result = concat_lines_of( lt_parts ).
 
   ENDMETHOD.
 
@@ -10623,11 +10629,20 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD xml_get.
 
+    DATA lt_parts TYPE string_table.
+    xml_get_parts( CHANGING ct_parts = lt_parts ).
+    result = concat_lines_of( lt_parts ).
+
+  ENDMETHOD.
+
+
+  METHOD xml_get_parts.
+
     DATA lt_prop TYPE HASHED TABLE OF z2ui5_if_types=>ty_s_name_value WITH UNIQUE KEY n.
 
     CASE mv_name.
       WHEN `ZZPLAIN`.
-        result = mt_prop[ n = `VALUE` ]-v.
+        APPEND mt_prop[ n = `VALUE` ]-v TO ct_parts.
         RETURN.
       WHEN OTHERS.
     ENDCASE.
@@ -10710,21 +10725,18 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                                                                          ELSE row-v )
                                                                    format = cl_abap_format=>e_xml_attr ) }"| ).
 
-    result = |{ result } <{ lv_tmp2 }{ mv_name }{ lv_tmp3 }|.
-
     IF mt_child IS INITIAL.
-      result = |{ result }/>|.
+      APPEND | <{ lv_tmp2 }{ mv_name }{ lv_tmp3 }/>| TO ct_parts.
       RETURN.
     ENDIF.
 
-    result = |{ result }>|.
+    APPEND | <{ lv_tmp2 }{ mv_name }{ lv_tmp3 }>| TO ct_parts.
 
     LOOP AT mt_child INTO DATA(lr_child).
-      result = result && CAST z2ui5_cl_xml_view( lr_child )->xml_get( ).
+      CAST z2ui5_cl_xml_view( lr_child )->xml_get_parts( CHANGING ct_parts = ct_parts ).
     ENDLOOP.
 
-    DATA(lv_ns) = COND #( WHEN mv_ns <> || THEN |{ mv_ns }:| ).
-    result = |{ result }</{ lv_ns }{ mv_name }>|.
+    APPEND |</{ lv_tmp2 }{ mv_name }>| TO ct_parts.
 
   ENDMETHOD.
 
