@@ -113,6 +113,48 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     })
                 }
             },
+            _computeDelta(snapshot, current) {
+                let delta = {};
+                let hasChanges = false;
+                for (let key in current) {
+                    let curStr = JSON.stringify(current[key]);
+                    let snapStr = JSON.stringify(snapshot?.[key]);
+                    if (curStr === snapStr) continue;
+                    hasChanges = true;
+                    if (Array.isArray(current[key]) && Array.isArray(snapshot?.[key])
+                        && current[key].length === snapshot[key].length) {
+                        let tableDelta = {};
+                        let tableHasChanges = false;
+                        for (let i = 0; i < current[key].length; i++) {
+                            let rowCurStr = JSON.stringify(current[key][i]);
+                            let rowSnapStr = JSON.stringify(snapshot[key][i]);
+                            if (rowCurStr !== rowSnapStr && current[key][i]
+                                && typeof current[key][i] === 'object' && !Array.isArray(current[key][i])) {
+                                let rowDelta = {};
+                                for (let field in current[key][i]) {
+                                    let cv = current[key][i][field];
+                                    let sv = snapshot[key][i]?.[field];
+                                    if (cv !== sv && (typeof cv !== 'object' || JSON.stringify(cv) !== JSON.stringify(sv))) {
+                                        rowDelta[field] = cv;
+                                    }
+                                }
+                                if (Object.keys(rowDelta).length > 0) {
+                                    tableDelta[String(i)] = rowDelta;
+                                    tableHasChanges = true;
+                                }
+                            }
+                        }
+                        if (tableHasChanges) {
+                            delta[key] = { "__delta": tableDelta };
+                        } else {
+                            delta[key] = current[key];
+                        }
+                    } else {
+                        delta[key] = current[key];
+                    }
+                }
+                return hasChanges ? delta : current;
+            },
             async displayFragment(xml, viewProp) {
                 let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);
                 const oFragment = await Fragment.load({
@@ -534,7 +576,15 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     if (xx) {
                         let xxStr = JSON.stringify(xx);
                         if (xxStr !== z2ui5.xxSnapshot) {
-                            z2ui5.oBody.XX = xx;
+                            if (z2ui5.xxSnapshot) {
+                                try {
+                                    z2ui5.oBody.XX = this._computeDelta(JSON.parse(z2ui5.xxSnapshot), xx);
+                                } catch(e) {
+                                    z2ui5.oBody.XX = xx;
+                                }
+                            } else {
+                                z2ui5.oBody.XX = xx;
+                            }
                         }
                     }
                 }
