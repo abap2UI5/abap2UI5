@@ -156,7 +156,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 oFragment.open();
             },
             async displayPopover(xml, viewProp, openById) {
-                sap.ui.require(["sap/ui/core/Element"], async function (Element) {
+                sap.ui.require(["sap/ui/core/Element"], async (Element) => {
                     const oFragment = await Fragment.load({
                         definition: xml,
                         controller: z2ui5.oControllerPopover,

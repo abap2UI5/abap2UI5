@@ -176,7 +176,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                oFragment.open();` && |\n| &&
              `            },` && |\n| &&
              `            async displayPopover(xml, viewProp, openById) {` && |\n| &&
-             `                sap.ui.require(["sap/ui/core/Element"], async function (Element) {` && |\n| &&
+             `                sap.ui.require(["sap/ui/core/Element"], async (Element) => {` && |\n| &&
              `                    const oFragment = await Fragment.load({` && |\n| &&
              `                        definition: xml,` && |\n| &&
              `                        controller: z2ui5.oControllerPopover,` && |\n| &&
