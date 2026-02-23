@@ -113,51 +113,29 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     })
                 }
             },
-            _computeDelta(snapshot, current) {
+            _buildDeltaFromPaths(paths, xx) {
                 let delta = {};
-                let hasChanges = false;
-                for (let key in current) {
-                    let curStr = JSON.stringify(current[key]);
-                    let snapStr = JSON.stringify(snapshot?.[key]);
-                    if (curStr === snapStr) continue;
-                    hasChanges = true;
-                    if (Array.isArray(current[key]) && Array.isArray(snapshot?.[key])
-                        && current[key].length === snapshot[key].length) {
-                        let tableDelta = {};
-                        let tableHasChanges = false;
-                        for (let i = 0; i < current[key].length; i++) {
-                            let rowCurStr = JSON.stringify(current[key][i]);
-                            let rowSnapStr = JSON.stringify(snapshot[key][i]);
-                            if (rowCurStr !== rowSnapStr && current[key][i]
-                                && typeof current[key][i] === 'object' && !Array.isArray(current[key][i])) {
-                                let rowDelta = {};
-                                for (let field in current[key][i]) {
-                                    let cv = current[key][i][field];
-                                    let sv = snapshot[key][i]?.[field];
-                                    if (cv !== sv && (typeof cv !== 'object' || JSON.stringify(cv) !== JSON.stringify(sv))) {
-                                        rowDelta[field] = cv;
-                                    }
-                                }
-                                if (Object.keys(rowDelta).length > 0) {
-                                    tableDelta[String(i)] = rowDelta;
-                                    tableHasChanges = true;
-                                }
-                            }
+                for (let path of paths) {
+                    let parts = path.substring(4).split('/');
+                    let attr = parts[0];
+                    if (parts.length >= 3 && !isNaN(parts[1])) {
+                        if (!delta[attr] || !delta[attr]["__delta"]) {
+                            delta[attr] = { "__delta": {} };
                         }
-                        if (tableHasChanges) {
-                            delta[key] = { "__delta": tableDelta };
-                        } else {
-                            delta[key] = current[key];
+                        let rowIdx = parts[1];
+                        if (!delta[attr]["__delta"][rowIdx]) {
+                            delta[attr]["__delta"][rowIdx] = {};
                         }
+                        delta[attr]["__delta"][rowIdx][parts[2]] = xx[attr]?.[parseInt(rowIdx)]?.[parts[2]];
                     } else {
-                        delta[key] = current[key];
+                        delta[attr] = xx[attr];
                     }
                 }
-                return hasChanges ? delta : current;
+                return delta;
             },
             async displayFragment(xml, viewProp) {
                 let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);
-                oview_model.attachPropertyChange(() => { z2ui5.xxModelDirty = true; });
+                oview_model.attachPropertyChange((e) => { let p = e.getParameter("path"); if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p); });
                 const oFragment = await Fragment.load({
                     definition: xml,
                     controller: z2ui5.oControllerPopup,
@@ -176,7 +154,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         id: "popoverId"
                     });
                     let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);
-                    oview_model.attachPropertyChange(() => { z2ui5.xxModelDirty = true; });
+                    oview_model.attachPropertyChange((e) => { let p = e.getParameter("path"); if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p); });
                     oFragment.setModel(oview_model);
                     z2ui5[viewProp] = oFragment;
                     z2ui5[viewProp].Fragment = Fragment;
@@ -202,7 +180,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
             },
             async displayNestedView(xml, viewProp, viewNestId) {
                 let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);
-                oview_model.attachPropertyChange(() => { z2ui5.xxModelDirty = true; });
+                oview_model.attachPropertyChange((e) => { let p = e.getParameter("path"); if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p); });
                 const oView = await XMLView.create({
                     definition: xml,
                     controller: z2ui5.oControllerNest,
@@ -226,7 +204,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
             },
             async displayNestedView2(xml, viewProp, viewNestId) {
                 let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);
-                oview_model.attachPropertyChange(() => { z2ui5.xxModelDirty = true; });
+                oview_model.attachPropertyChange((e) => { let p = e.getParameter("path"); if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p); });
                 const oView = await XMLView.create({
                     definition: xml,
                     controller: z2ui5.oControllerNest2,
@@ -575,18 +553,10 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     oModel = z2ui5.oViewNest2.getModel();
                     z2ui5.oBody.VIEWNAME = 'NEST2';
                 }
-                if (oModel && z2ui5.xxModelDirty) {
+                if (oModel && z2ui5.xxChangedPaths?.size > 0) {
                     let xx = oModel.getData()?.XX;
                     if (xx) {
-                        if (z2ui5.xxSnapshot) {
-                            try {
-                                z2ui5.oBody.XX = this._computeDelta(JSON.parse(z2ui5.xxSnapshot), xx);
-                            } catch(e) {
-                                z2ui5.oBody.XX = xx;
-                            }
-                        } else {
-                            z2ui5.oBody.XX = xx;
-                        }
+                        z2ui5.oBody.XX = this._buildDeltaFromPaths(z2ui5.xxChangedPaths, xx);
                     }
                 }
                 z2ui5.onBeforeRoundtrip.forEach(item => {
@@ -623,7 +593,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 }
                 if (z2ui5.oResponse.PARAMS[paramKey]?.CHECK_UPDATE_MODEL) {
                     let model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);
-                    model.attachPropertyChange(() => { z2ui5.xxModelDirty = true; });
+                    model.attachPropertyChange((e) => { let p = e.getParameter("path"); if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p); });
                     if (oView) {
                         oView.setModel(model);
                     }
@@ -685,7 +655,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
             },
             async displayView(xml, viewModel) {
                 let oview_model = new JSONModel(viewModel);
-                oview_model.attachPropertyChange(() => { z2ui5.xxModelDirty = true; });
+                oview_model.attachPropertyChange((e) => { let p = e.getParameter("path"); if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p); });
                 var oModel = oview_model;
                 if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH) {
                     oModel = new ODataModel({
