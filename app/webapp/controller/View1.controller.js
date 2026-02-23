@@ -157,6 +157,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
             },
             async displayFragment(xml, viewProp) {
                 let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);
+                oview_model.attachPropertyChange(() => { z2ui5.xxModelDirty = true; });
                 const oFragment = await Fragment.load({
                     definition: xml,
                     controller: z2ui5.oControllerPopup,
@@ -175,6 +176,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         id: "popoverId"
                     });
                     let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);
+                    oview_model.attachPropertyChange(() => { z2ui5.xxModelDirty = true; });
                     oFragment.setModel(oview_model);
                     z2ui5[viewProp] = oFragment;
                     z2ui5[viewProp].Fragment = Fragment;
@@ -200,6 +202,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
             },
             async displayNestedView(xml, viewProp, viewNestId) {
                 let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);
+                oview_model.attachPropertyChange(() => { z2ui5.xxModelDirty = true; });
                 const oView = await XMLView.create({
                     definition: xml,
                     controller: z2ui5.oControllerNest,
@@ -223,6 +226,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
             },
             async displayNestedView2(xml, viewProp, viewNestId) {
                 let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);
+                oview_model.attachPropertyChange(() => { z2ui5.xxModelDirty = true; });
                 const oView = await XMLView.create({
                     definition: xml,
                     controller: z2ui5.oControllerNest2,
@@ -571,20 +575,17 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     oModel = z2ui5.oViewNest2.getModel();
                     z2ui5.oBody.VIEWNAME = 'NEST2';
                 }
-                if (oModel) {
+                if (oModel && z2ui5.xxModelDirty) {
                     let xx = oModel.getData()?.XX;
                     if (xx) {
-                        let xxStr = JSON.stringify(xx);
-                        if (xxStr !== z2ui5.xxSnapshot) {
-                            if (z2ui5.xxSnapshot) {
-                                try {
-                                    z2ui5.oBody.XX = this._computeDelta(JSON.parse(z2ui5.xxSnapshot), xx);
-                                } catch(e) {
-                                    z2ui5.oBody.XX = xx;
-                                }
-                            } else {
+                        if (z2ui5.xxSnapshot) {
+                            try {
+                                z2ui5.oBody.XX = this._computeDelta(JSON.parse(z2ui5.xxSnapshot), xx);
+                            } catch(e) {
                                 z2ui5.oBody.XX = xx;
                             }
+                        } else {
+                            z2ui5.oBody.XX = xx;
                         }
                     }
                 }
@@ -622,6 +623,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 }
                 if (z2ui5.oResponse.PARAMS[paramKey]?.CHECK_UPDATE_MODEL) {
                     let model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);
+                    model.attachPropertyChange(() => { z2ui5.xxModelDirty = true; });
                     if (oView) {
                         oView.setModel(model);
                     }
@@ -683,6 +685,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
             },
             async displayView(xml, viewModel) {
                 let oview_model = new JSONModel(viewModel);
+                oview_model.attachPropertyChange(() => { z2ui5.xxModelDirty = true; });
                 var oModel = oview_model;
                 if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH) {
                     oModel = new ODataModel({
