@@ -185,6 +185,9 @@ npm run unit                          # Run unit tests
 - **`create_app2abap.yaml`** — Converts frontend files to ABAP classes
 - **`create_frontend.yaml`** — Generates frontend artifacts
 
+### Verification Workflows
+- **`check_app.yaml`** — App integrity checks
+
 ### Mirror Workflows
 - **`mirror_ajson.yaml`** / **`mirror_srtti.yaml`** — Sync upstream library changes
 
