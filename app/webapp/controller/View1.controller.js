@@ -7,6 +7,15 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
         "use strict";
         return Controller.extend("z2ui5.controller.View1", {
 
+            _trackChanges(oModel) {
+                oModel.attachPropertyChange((e) => {
+                    let p = e.getParameter("path");
+                    let c = e.getParameter("context");
+                    if (c && !p.startsWith("/")) p = c.getPath() + "/" + p;
+                    if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p);
+                });
+                return oModel;
+            },
             onInit() {
 
                 z2ui5.oRouter.attachRouteMatched(function (oEvent) {
@@ -135,12 +144,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
             },
             async displayFragment(xml, viewProp) {
                 let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);
-                oview_model.attachPropertyChange((e) => {
-                    let p = e.getParameter("path");
-                    let c = e.getParameter("context");
-                    if (c && !p.startsWith("/")) p = c.getPath() + "/" + p;
-                    if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p);
-                });
+                this._trackChanges(oview_model);
                 const oFragment = await Fragment.load({
                     definition: xml,
                     controller: z2ui5.oControllerPopup,
@@ -159,12 +163,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         id: "popoverId"
                     });
                     let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);
-                    oview_model.attachPropertyChange((e) => {
-                    let p = e.getParameter("path");
-                    let c = e.getParameter("context");
-                    if (c && !p.startsWith("/")) p = c.getPath() + "/" + p;
-                    if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p);
-                });
+                    this._trackChanges(oview_model);
                     oFragment.setModel(oview_model);
                     z2ui5[viewProp] = oFragment;
                     z2ui5[viewProp].Fragment = Fragment;
@@ -190,12 +189,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
             },
             async displayNestedView(xml, viewProp, viewNestId) {
                 let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);
-                oview_model.attachPropertyChange((e) => {
-                    let p = e.getParameter("path");
-                    let c = e.getParameter("context");
-                    if (c && !p.startsWith("/")) p = c.getPath() + "/" + p;
-                    if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p);
-                });
+                this._trackChanges(oview_model);
                 const oView = await XMLView.create({
                     definition: xml,
                     controller: z2ui5.oControllerNest,
@@ -219,12 +213,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
             },
             async displayNestedView2(xml, viewProp, viewNestId) {
                 let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);
-                oview_model.attachPropertyChange((e) => {
-                    let p = e.getParameter("path");
-                    let c = e.getParameter("context");
-                    if (c && !p.startsWith("/")) p = c.getPath() + "/" + p;
-                    if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p);
-                });
+                this._trackChanges(oview_model);
                 const oView = await XMLView.create({
                     definition: xml,
                     controller: z2ui5.oControllerNest2,
@@ -613,12 +602,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 }
                 if (z2ui5.oResponse.PARAMS[paramKey]?.CHECK_UPDATE_MODEL) {
                     let model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);
-                    model.attachPropertyChange((e) => {
-                        let p = e.getParameter("path");
-                        let c = e.getParameter("context");
-                        if (c && !p.startsWith("/")) p = c.getPath() + "/" + p;
-                        if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p);
-                    });
+                    this._trackChanges(model);
                     if (oView) {
                         oView.setModel(model);
                     }
@@ -680,12 +664,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
             },
             async displayView(xml, viewModel) {
                 let oview_model = new JSONModel(viewModel);
-                oview_model.attachPropertyChange((e) => {
-                    let p = e.getParameter("path");
-                    let c = e.getParameter("context");
-                    if (c && !p.startsWith("/")) p = c.getPath() + "/" + p;
-                    if (p?.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p);
-                });
+                this._trackChanges(oview_model);
                 var oModel = oview_model;
                 if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH) {
                     oModel = new ODataModel({
