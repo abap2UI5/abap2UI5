@@ -684,7 +684,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
         RETURN.
     ENDTRY.
 
-    FIELD-SYMBOLS <delta_tab> TYPE ANY TABLE.
+    FIELD-SYMBOLS <delta_tab> TYPE STANDARD TABLE.
     ASSIGN lr_ref_d->* TO <delta_tab>.
     IF sy-subrc <> 0.
       RETURN.
