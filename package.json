@@ -24,23 +24,19 @@
   },
   "homepage": "www.abap2UI5.org",
   "devDependencies": {
-    "@abaplint/cli": "^2.114.7",
+    "@abaplint/cli": "^2.115.25",
     "@abaplint/database-sqlite": "^2.11.78",
-    "@abaplint/runtime": "^2.12.16",
-    "@abaplint/transpiler-cli": "^2.12.16",
-    "@playwright/test": "^1.57.0",
-    "@types/node": "^24.10.1",
+    "@abaplint/runtime": "^2.12.28",
+    "@abaplint/transpiler-cli": "^2.12.28",
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^25.3.0",
     "buffer": "^6.0.3",
     "copy-webpack-plugin": "^13.0.1",
     "express": "^5.2.1",
-    "html-webpack-plugin": "^5.6.5",
+    "html-webpack-plugin": "^5.6.6",
     "path-browserify": "^1.0.1",
     "web-encoding": "^1.1.5",
     "webpack-cli": "^6.0.1",
-    "webpack-dev-server": "^5.2.2"
-  },
-  "dependencies": {
-    "claude": "^0.1.2",
-    "npm-check-updates": "^18.0.3"
+    "webpack-dev-server": "^5.2.3"
   }
 }
