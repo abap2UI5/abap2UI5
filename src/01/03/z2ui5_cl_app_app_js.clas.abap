@@ -280,20 +280,29 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `    setBackend() {` && |\n| &&
              `      const items = this.getProperty("items");` && |\n| &&
+             `      if (!items) return;` && |\n| &&
              `` && |\n| &&
-             `      if (items) {` && |\n| &&
-             `        items.forEach(item => {` && |\n| &&
+             `      const bindingInfo = this.getBindingInfo("items");` && |\n| &&
+             `      const bindingPath = bindingInfo?.parts?.[0]?.path || bindingInfo?.path;` && |\n| &&
+             `` && |\n| &&
+             `      items.forEach((item, index) => {` && |\n| &&
+             `        let scrollTop = 0;` && |\n| &&
+             `        try {` && |\n| &&
+             `          const scrollDelegate = z2ui5.oView.byId(item.N).getScrollDelegate();` && |\n| &&
+             `          scrollTop = scrollDelegate ? scrollDelegate.getScrollTop() : 0;` && |\n| &&
+             `        } catch {` && |\n| &&
              `          try {` && |\n| &&
-             `            const scrollDelegate = z2ui5.oView.byId(item.N).getScrollDelegate();` && |\n| &&
-             `            item.V = scrollDelegate ? scrollDelegate.getScrollTop() : 0;` && |\n| &&
-             `          } catch {` && |\n| &&
-             `            try {` && |\n| &&
-             `              const element = document.getElementById(``${z2ui5.oView.byId(item.ID).getId()}-inner``);` && |\n| &&
-             `              item.V = element ? element.scrollTop : 0;` && |\n| &&
-             `            } catch { }` && |\n| &&
+             `            const element = document.getElementById(``${z2ui5.oView.byId(item.ID).getId()}-inner``);` && |\n| &&
+             `            scrollTop = element ? element.scrollTop : 0;` && |\n| &&
+             `          } catch { }` && |\n| &&
+             `        }` && |\n| &&
+             `        if (item.V !== scrollTop) {` && |\n| &&
+             `          item.V = scrollTop;` && |\n| &&
+             `          if (bindingPath && z2ui5.xxChangedPaths) {` && |\n| &&
+             `            z2ui5.xxChangedPaths.add(``${bindingPath}/${index}/V``);` && |\n| &&
              `          }` && |\n| &&
-             `        });` && |\n| &&
-             `      }` && |\n| &&
+             `        }` && |\n| &&
+             `      });` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    init() {` && |\n| &&

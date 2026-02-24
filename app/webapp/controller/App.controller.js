@@ -260,20 +260,29 @@ sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {
 
     setBackend() {
       const items = this.getProperty("items");
+      if (!items) return;
 
-      if (items) {
-        items.forEach(item => {
+      const bindingInfo = this.getBindingInfo("items");
+      const bindingPath = bindingInfo?.parts?.[0]?.path || bindingInfo?.path;
+
+      items.forEach((item, index) => {
+        let scrollTop = 0;
+        try {
+          const scrollDelegate = z2ui5.oView.byId(item.N).getScrollDelegate();
+          scrollTop = scrollDelegate ? scrollDelegate.getScrollTop() : 0;
+        } catch {
           try {
-            const scrollDelegate = z2ui5.oView.byId(item.N).getScrollDelegate();
-            item.V = scrollDelegate ? scrollDelegate.getScrollTop() : 0;
-          } catch {
-            try {
-              const element = document.getElementById(`${z2ui5.oView.byId(item.ID).getId()}-inner`);
-              item.V = element ? element.scrollTop : 0;
-            } catch { }
+            const element = document.getElementById(`${z2ui5.oView.byId(item.ID).getId()}-inner`);
+            scrollTop = element ? element.scrollTop : 0;
+          } catch { }
+        }
+        if (item.V !== scrollTop) {
+          item.V = scrollTop;
+          if (bindingPath && z2ui5.xxChangedPaths) {
+            z2ui5.xxChangedPaths.add(`${bindingPath}/${index}/V`);
           }
-        });
-      }
+        }
+      });
     },
 
     init() {

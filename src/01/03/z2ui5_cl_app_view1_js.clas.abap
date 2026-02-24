@@ -586,18 +586,17 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    oModel = z2ui5.oViewNest2.getModel();` && |\n| &&
              `                    z2ui5.oBody.VIEWNAME = 'NEST2';` && |\n| &&
              `                }` && |\n| &&
+             `                z2ui5.onBeforeRoundtrip.forEach(item => {` && |\n| &&
+             `                    if (item !== undefined) {` && |\n| &&
+             `                        item();` && |\n| &&
+             `                    }` && |\n| &&
+             `                });` && |\n| &&
              `                if (oModel && z2ui5.xxChangedPaths?.size > 0) {` && |\n| &&
              `                    let xx = oModel.getData()?.XX;` && |\n| &&
              `                    if (xx) {` && |\n| &&
              `                        z2ui5.oBody.XX = this._buildDeltaFromPaths(z2ui5.xxChangedPaths, xx);` && |\n| &&
              `                    }` && |\n| &&
              `                }` && |\n| &&
-             `                z2ui5.onBeforeRoundtrip.forEach(item => {` && |\n| &&
-             `                    if (item !== undefined) {` && |\n| &&
-             `                        item();` && |\n| &&
-             `                    }` && |\n| &&
-             `                }` && |\n| &&
-             `                )` && |\n| &&
              `                z2ui5.oBody.ID = z2ui5.oResponse.ID;` && |\n| &&
              `                z2ui5.oBody.ARGUMENTS = args;` && |\n| &&
              `                z2ui5.oBody.ARGUMENTS.forEach((item, i) => {` && |\n| &&
