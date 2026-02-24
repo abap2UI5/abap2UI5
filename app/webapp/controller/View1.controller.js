@@ -531,10 +531,9 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     if (!args[0][2]) {
                         let oBusyDialog = new mBusyDialog();
                         oBusyDialog.open();
-                        setTimeout((oBusyDialog) => {
+                        requestAnimationFrame(() => {
                             oBusyDialog.close()
-                        }
-                            , 100, oBusyDialog);
+                        });
                         return;
                     }
                 }

@@ -110,7 +110,7 @@ sap.ui.define(["sap/ui/core/BusyIndicator", "sap/m/MessageBox"
                         z2ui5.oController.ViewDestroy();
                     }
                     ; if (z2ui5.oResponse.PARAMS?.S_FOLLOW_UP_ACTION?.CUSTOM_JS) {
-                        setTimeout(() => {
+                        requestAnimationFrame(() => {
                             for ( let i = 0; i < z2ui5.oResponse?.PARAMS.S_FOLLOW_UP_ACTION.CUSTOM_JS.length ; i++ ){
                             let mParams = z2ui5.oResponse?.PARAMS.S_FOLLOW_UP_ACTION.CUSTOM_JS[i].split("'");
                             let mParamsEF = mParams.filter((val, index) => index % 2)
@@ -120,7 +120,7 @@ sap.ui.define(["sap/ui/core/BusyIndicator", "sap/m/MessageBox"
                                 Function("return " + mParams[0])();
                             }
                             }
-                        }, 100);
+                        });
                     };
                     z2ui5.oController.showMessage('S_MSG_TOAST', z2ui5.oResponse.PARAMS);
                     z2ui5.oController.showMessage('S_MSG_BOX', z2ui5.oResponse.PARAMS);

@@ -123,7 +123,7 @@ sap.ui.define("z2ui5/Focus", ["sap/ui/core/Control",], (Control) => {
         return;
       }
       oControl.setProperty("setUpdate", false);
-      setTimeout((oControl) => {
+      requestAnimationFrame(() => {
         var oElement = z2ui5.oView.byId(oControl.getProperty("focusId"));
         if (!oElement){
           return
@@ -132,8 +132,7 @@ sap.ui.define("z2ui5/Focus", ["sap/ui/core/Control",], (Control) => {
         oFocus.selectionStart = parseInt(oControl.getProperty("selectionStart"));
         oFocus.selectionEnd = parseInt(oControl.getProperty("selectionEnd"));
         oElement.applyFocusInfo(oFocus);
-      }
-        , 100, oControl);
+      });
     }
   });
 }
@@ -235,9 +234,10 @@ sap.ui.define("z2ui5/Tree", ["sap/ui/core/Control"], (Control) => {
 
     renderer(oRm, oControl) {
       if (!z2ui5.treeState) return;
-      setTimeout((id) => {
+      const id = oControl.getProperty("tree_id");
+      requestAnimationFrame(() => {
         z2ui5.oView.byId(id).getBinding('items').setTreeState(z2ui5.treeState);
-      }, 100, oControl.getProperty("tree_id"));
+      });
     }
   });
 });
@@ -1028,9 +1028,7 @@ sap.ui.define("z2ui5/CameraPicture", [
         });
       }
 
-      this._oScanDialog.open();
-
-      setTimeout(function () {
+      this._oScanDialog.attachEventOnce("afterOpen", function () {
         var video = document.querySelector('#zvideo');
         if (navigator.mediaDevices.getUserMedia) {
           const facingMode = this.getProperty("facingMode");
@@ -1052,7 +1050,8 @@ sap.ui.define("z2ui5/CameraPicture", [
               console.log("Something went wrong! " + error);
             });
         }
-      }.bind(this), 300);
+      }.bind(this));
+      this._oScanDialog.open();
 
     },
 
@@ -1135,7 +1134,8 @@ sap.ui.define("z2ui5/UITableExt", ["sap/ui/core/Control"], (Control) => {
 
     setFilter() {
       try {
-        setTimeout((aFilters) => {
+        const aFilters = this.aFilters;
+        requestAnimationFrame(() => {
           let id = this.getProperty("tableId");
           let oTable = z2ui5.oView.byId(id);
           oTable.getBinding().filter(aFilters);
@@ -1185,8 +1185,7 @@ aFilters.forEach(function(oFilter) {
   });
 });
 
-        }
-          , 100, this.aFilters);
+        });
       } catch (e) { }
       ;
     },
@@ -1200,7 +1199,8 @@ readSort() {
 
 setSort() {
   try {
-    setTimeout((aSorters) => {
+    const aSorters = this.aSorters;
+    requestAnimationFrame(() => {
       let id = this.getProperty("tableId");
       let oTable = z2ui5.oView.byId(id);
       oTable.getBinding().sort(aSorters);
@@ -1214,7 +1214,7 @@ setSort() {
           }
         });
       });
-    }, 100, this.aSorters);
+    });
   } catch (e) {}
 },
     renderer(oRM, oControl) { }
