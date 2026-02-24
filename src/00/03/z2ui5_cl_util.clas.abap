@@ -1160,6 +1160,9 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     TRY.
         lo_type = cl_abap_typedescr=>describe_by_data( val ).
+        IF lo_type->kind = cl_abap_typedescr=>kind_ref.
+          lo_type = cl_abap_typedescr=>describe_by_data_ref( val ).
+        ENDIF.
       CATCH cx_root.
         TRY.
             lo_type = cl_abap_typedescr=>describe_by_data_ref( val ).
