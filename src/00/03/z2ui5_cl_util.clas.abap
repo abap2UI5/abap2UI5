@@ -569,6 +569,20 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE i.
 
+    CLASS-METHODS conv_string_to_date
+      IMPORTING
+        val           TYPE clike
+        format        TYPE clike DEFAULT `YYYY-MM-DD`
+      RETURNING
+        VALUE(result) TYPE d.
+
+    CLASS-METHODS conv_date_to_string
+      IMPORTING
+        val           TYPE d
+        format        TYPE clike DEFAULT `YYYY-MM-DD`
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
 
   PRIVATE SECTION.
@@ -1141,27 +1155,27 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD rtti_get_t_attri_by_any.
 
+    DATA lo_struct TYPE REF TO cl_abap_structdescr.
+    DATA lo_type   TYPE REF TO cl_abap_typedescr.
+
     TRY.
-        DATA(lo_type) = cl_abap_typedescr=>describe_by_data( val ).
-        DATA(lo_struct) = CAST cl_abap_structdescr( lo_type ).
+        lo_type = cl_abap_typedescr=>describe_by_data( val ).
       CATCH cx_root.
         TRY.
-            DATA(lo_tab) = CAST cl_abap_tabledescr( lo_type ).
-            lo_struct = CAST cl_abap_structdescr( lo_tab->get_table_line_type( ) ).
+            lo_type = cl_abap_typedescr=>describe_by_data_ref( val ).
           CATCH cx_root.
-            TRY.
-                DATA(lo_ref) = cl_abap_typedescr=>describe_by_data_ref( val ).
-                lo_struct = CAST cl_abap_structdescr( lo_ref ).
-              CATCH cx_root.
-                TRY.
-                    lo_tab = CAST cl_abap_tabledescr( lo_ref ).
-                    lo_struct = CAST cl_abap_structdescr( lo_tab->get_table_line_type( ) ).
-                  CATCH cx_root.
-                    lo_struct ?= cl_abap_structdescr=>describe_by_name( val ).
-                ENDTRY.
-            ENDTRY.
+            lo_type = cl_abap_structdescr=>describe_by_name( val ).
         ENDTRY.
     ENDTRY.
+
+    CASE lo_type->kind.
+      WHEN cl_abap_typedescr=>kind_struct.
+        lo_struct = CAST #( lo_type ).
+      WHEN cl_abap_typedescr=>kind_table.
+        lo_struct = CAST #( CAST cl_abap_tabledescr( lo_type )->get_table_line_type( ) ).
+      WHEN OTHERS.
+        lo_struct ?= lo_type.
+    ENDCASE.
 
     DATA(comps) = lo_struct->get_components( ).
 
@@ -1909,6 +1923,76 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
                                           tstmp2 = time_from
                                 IMPORTING secs   = DATA(lv_secs) ).
     result = lv_secs.
+
+  ENDMETHOD.
+
+
+  METHOD conv_string_to_date.
+
+    DATA(lv_val) = CONV string( val ).
+    DATA(lv_fmt) = CONV string( format ).
+    DATA(lv_yyyy_off) = find( val = lv_fmt sub = `YYYY` ).
+    DATA(lv_mm_off)   = find( val = lv_fmt sub = `MM` ).
+    DATA(lv_dd_off)   = find( val = lv_fmt sub = `DD` ).
+
+    DATA(lv_clean) = ``.
+    DATA(lv_i) = 0.
+    WHILE lv_i < strlen( lv_val ).
+      DATA(lv_c) = lv_val+lv_i(1).
+      IF lv_c >= `0` AND lv_c <= `9`.
+        lv_clean = lv_clean && lv_c.
+      ENDIF.
+      lv_i = lv_i + 1.
+    ENDWHILE.
+
+    DATA(lv_fmt_clean) = ``.
+    lv_i = 0.
+    WHILE lv_i < strlen( lv_fmt ).
+      lv_c = lv_fmt+lv_i(1).
+      IF lv_c = `Y` OR lv_c = `M` OR lv_c = `D`.
+        lv_fmt_clean = lv_fmt_clean && lv_c.
+      ENDIF.
+      lv_i = lv_i + 1.
+    ENDWHILE.
+
+    DATA(lv_year)  = ``.
+    DATA(lv_month) = ``.
+    DATA(lv_day)   = ``.
+
+    DATA(lv_pos) = 0.
+    lv_i = 0.
+    WHILE lv_i < strlen( lv_fmt_clean ).
+      lv_c = lv_fmt_clean+lv_i(1).
+      CASE lv_c.
+        WHEN `Y`.
+          lv_year = lv_year && lv_clean+lv_pos(1).
+        WHEN `M`.
+          lv_month = lv_month && lv_clean+lv_pos(1).
+        WHEN `D`.
+          lv_day = lv_day && lv_clean+lv_pos(1).
+      ENDCASE.
+      lv_pos = lv_pos + 1.
+      lv_i = lv_i + 1.
+    ENDWHILE.
+
+    result = lv_year && lv_month && lv_day.
+
+  ENDMETHOD.
+
+
+  METHOD conv_date_to_string.
+
+    DATA(lv_fmt) = CONV string( format ).
+    DATA(lv_date) = CONV string( val ).
+
+    DATA(lv_year)  = lv_date(4).
+    DATA(lv_month) = lv_date+4(2).
+    DATA(lv_day)   = lv_date+6(2).
+
+    result = lv_fmt.
+    REPLACE `YYYY` IN result WITH lv_year.
+    REPLACE `MM`   IN result WITH lv_month.
+    REPLACE `DD`   IN result WITH lv_day.
 
   ENDMETHOD.
 ENDCLASS.
