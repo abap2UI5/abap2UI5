@@ -564,18 +564,17 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     oModel = z2ui5.oViewNest2.getModel();
                     z2ui5.oBody.VIEWNAME = 'NEST2';
                 }
+                z2ui5.onBeforeRoundtrip.forEach(item => {
+                    if (item !== undefined) {
+                        item();
+                    }
+                });
                 if (oModel && z2ui5.xxChangedPaths?.size > 0) {
                     let xx = oModel.getData()?.XX;
                     if (xx) {
                         z2ui5.oBody.XX = this._buildDeltaFromPaths(z2ui5.xxChangedPaths, xx);
                     }
                 }
-                z2ui5.onBeforeRoundtrip.forEach(item => {
-                    if (item !== undefined) {
-                        item();
-                    }
-                }
-                )
                 z2ui5.oBody.ID = z2ui5.oResponse.ID;
                 z2ui5.oBody.ARGUMENTS = args;
                 z2ui5.oBody.ARGUMENTS.forEach((item, i) => {

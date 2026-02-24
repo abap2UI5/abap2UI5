@@ -70,8 +70,9 @@
     },
     "services": {                                                                                                                                                                                                                                              
       "ShellUIService": {                                                                                                                                                                                                                                      
-        "factoryName": "sap.ushell.ui5service.ShellUIService"                                                                                                                                                                                                  
-      }                                                                                                                                                                                                                                                        
+        "factoryName": "sap.ushell.ui5service.ShellUIService",
+        "lazy": true
+      }
     },
     "resources": {
       "css": [
