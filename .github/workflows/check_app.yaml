@@ -8,16 +8,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Fetch latest changes
-        run: git fetch origin
-
-      - name: Check for changes in src/01/03
+      - name: Check for manual changes in src/01/03
         run: |
-          if git diff --name-only origin/main | grep '^src/01/03/'; then
-            echo "Error: Changes detected in src/01/03, don't change auto generated files, change files in app folder instead."
-            exit 1
-          else
-            echo "No changes detected in src/01/03."
-          fi
+          git fetch origin main
+          MERGE_BASE=$(git merge-base origin/main HEAD)
+
+          for SHA in $(git rev-list $MERGE_BASE..HEAD); do
+            AUTHOR=$(git log -1 --format='%an' $SHA)
+
+            if [[ "$AUTHOR" == *"[bot]"* ]] || [[ "$AUTHOR" == *"github-actions"* ]]; then
+              continue
+            fi
+
+            if git diff-tree --no-commit-id --name-only -r "$SHA" | grep -q '^src/01/03/'; then
+              echo "Error: Manual changes detected in src/01/03/ in commit $SHA by $AUTHOR."
+              echo "Don't change auto-generated files. Change files in app/ folder instead."
+              exit 1
+            fi
+          done
+
+          echo "No manual changes detected in src/01/03."
