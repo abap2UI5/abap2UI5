@@ -1919,10 +1919,9 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD time_diff_seconds.
 
-    cl_abap_tstmp=>td_subtract( EXPORTING tstmp1 = time_to
-                                          tstmp2 = time_from
-                                IMPORTING secs   = DATA(lv_secs) ).
-    result = lv_secs.
+    DATA(lv_diff) = cl_abap_tstmp=>subtract( tstmp1 = time_to
+                                              tstmp2 = time_from ).
+    result = lv_diff.
 
   ENDMETHOD.
 
