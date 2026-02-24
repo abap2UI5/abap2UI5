@@ -495,6 +495,80 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE abap_bool.
 
+    CLASS-METHODS c_contains
+      IMPORTING
+        val           TYPE clike
+        sub           TYPE clike
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS c_starts_with
+      IMPORTING
+        val           TYPE clike
+        prefix        TYPE clike
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS c_ends_with
+      IMPORTING
+        val           TYPE clike
+        suffix        TYPE clike
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS c_split
+      IMPORTING
+        val           TYPE clike
+        sep           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string_table.
+
+    CLASS-METHODS c_join
+      IMPORTING
+        tab           TYPE string_table
+        sep           TYPE clike DEFAULT ``
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS rtti_check_table
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS rtti_check_structure
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS rtti_check_numeric
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS time_add_seconds
+      IMPORTING
+        !time         TYPE timestampl
+        !seconds      TYPE i
+      RETURNING
+        VALUE(result) TYPE timestampl.
+
+    CLASS-METHODS time_get_stampl_by_date_time
+      IMPORTING
+        !date         TYPE d
+        !time         TYPE t
+      RETURNING
+        VALUE(result) TYPE timestampl.
+
+    CLASS-METHODS time_diff_seconds
+      IMPORTING
+        !time_from    TYPE timestampl
+        !time_to      TYPE timestampl
+      RETURNING
+        VALUE(result) TYPE i.
+
   PROTECTED SECTION.
 
   PRIVATE SECTION.
@@ -721,6 +795,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
       WHEN OTHERS.
         IF lv_value CP `...`.
           SPLIT lv_value AT `...` INTO result-low result-high.
+          result-sign   = `I`.
           result-option = `BT`.
         ELSE.
           result = VALUE #( sign   = `I`
@@ -1514,17 +1589,8 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     FIELD-SYMBOLS <row_out> TYPE any.
 
     LOOP AT val ASSIGNING <row_in>.
-
-      IF lines( tab ) = 0.
-        DATA(lv_lines) = 1.
-      ELSE.
-        lv_lines = lines( tab ).
-      ENDIF.
-
-      INSERT INITIAL LINE INTO tab ASSIGNING <row_out> INDEX lv_lines.
-      CLEAR: <row_out>.
+      APPEND INITIAL LINE TO tab ASSIGNING <row_out>.
       MOVE-CORRESPONDING <row_in> TO <row_out>.
-
     ENDLOOP.
 
   ENDMETHOD.
@@ -1558,10 +1624,38 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD itab_filter_by_t_range.
 
+    DATA ref TYPE REF TO data.
+
+    LOOP AT tab REFERENCE INTO ref.
+      LOOP AT val INTO DATA(ls_filter).
+
+        IF ls_filter-t_range IS INITIAL.
+          CONTINUE.
+        ENDIF.
+
+        ASSIGN ref->(ls_filter-name) TO FIELD-SYMBOL(<field>).
+        IF sy-subrc <> 0.
+          CONTINUE.
+        ENDIF.
+        IF <field> NOT IN ls_filter-t_range.
+          DELETE tab.
+          EXIT.
+        ENDIF.
+
+      ENDLOOP.
+    ENDLOOP.
+
   ENDMETHOD.
 
 
   METHOD filter_get_data_by_multi.
+
+    LOOP AT val INTO DATA(ls_filter).
+      IF ls_filter-t_range IS NOT INITIAL
+        OR ls_filter-t_token IS NOT INITIAL.
+        INSERT ls_filter INTO TABLE result.
+      ENDIF.
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -1690,6 +1784,131 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
       v3         = v3
       v4         = v4 ).
     result = msg_get( ls_msg ).
+
+  ENDMETHOD.
+
+
+  METHOD c_contains.
+
+    result = xsdbool( CONV string( val ) CS sub ).
+
+  ENDMETHOD.
+
+
+  METHOD c_starts_with.
+
+    DATA(lv_val) = CONV string( val ).
+    DATA(lv_prefix) = CONV string( prefix ).
+    DATA(lv_len) = strlen( lv_prefix ).
+
+    IF strlen( lv_val ) < lv_len.
+      result = abap_false.
+      RETURN.
+    ENDIF.
+
+    result = xsdbool( lv_val(lv_len) = lv_prefix ).
+
+  ENDMETHOD.
+
+
+  METHOD c_ends_with.
+
+    DATA(lv_val) = CONV string( val ).
+    DATA(lv_suffix) = CONV string( suffix ).
+    DATA(lv_len_suffix) = strlen( lv_suffix ).
+    DATA(lv_len_val) = strlen( lv_val ).
+
+    IF lv_len_val < lv_len_suffix.
+      result = abap_false.
+      RETURN.
+    ENDIF.
+
+    DATA(lv_off) = lv_len_val - lv_len_suffix.
+    result = xsdbool( lv_val+lv_off(lv_len_suffix) = lv_suffix ).
+
+  ENDMETHOD.
+
+
+  METHOD c_split.
+
+    SPLIT val AT sep INTO TABLE result.
+
+  ENDMETHOD.
+
+
+  METHOD c_join.
+
+    LOOP AT tab INTO DATA(lv_line).
+      IF sy-tabix > 1.
+        result = result && sep.
+      ENDIF.
+      result = result && lv_line.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD rtti_check_table.
+
+    DATA(lv_type_kind) = cl_abap_datadescr=>get_data_type_kind( val ).
+    result = xsdbool( lv_type_kind = cl_abap_typedescr=>typekind_table ).
+
+  ENDMETHOD.
+
+
+  METHOD rtti_check_structure.
+
+    TRY.
+        DATA(lo_type) = cl_abap_typedescr=>describe_by_data( val ).
+        result = xsdbool( lo_type->kind = cl_abap_typedescr=>kind_struct ).
+      CATCH cx_root.
+        result = abap_false.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD rtti_check_numeric.
+
+    DATA(lv_type_kind) = cl_abap_datadescr=>get_data_type_kind( val ).
+    CASE lv_type_kind.
+      WHEN cl_abap_typedescr=>typekind_int
+          OR cl_abap_typedescr=>typekind_int1
+          OR cl_abap_typedescr=>typekind_int2
+          OR cl_abap_typedescr=>typekind_packed
+          OR cl_abap_typedescr=>typekind_float
+          OR cl_abap_typedescr=>typekind_decfloat
+          OR cl_abap_typedescr=>typekind_decfloat16
+          OR cl_abap_typedescr=>typekind_decfloat34
+          OR cl_abap_typedescr=>typekind_num.
+        result = abap_true.
+    ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD time_add_seconds.
+
+    result = cl_abap_tstmp=>add( tstmp = time
+                                 secs  = seconds ).
+
+  ENDMETHOD.
+
+
+  METHOD time_get_stampl_by_date_time.
+
+    DATA(ls_sy) = z2ui5_cl_util=>context_get_sy( ).
+    CONVERT DATE date TIME time INTO TIME STAMP result TIME ZONE ls_sy-zonlo.
+
+  ENDMETHOD.
+
+
+  METHOD time_diff_seconds.
+
+    cl_abap_tstmp=>td_subtract( EXPORTING tstmp1 = time_to
+                                          tstmp2 = time_from
+                                IMPORTING secs   = DATA(lv_secs) ).
+    result = lv_secs.
 
   ENDMETHOD.
 ENDCLASS.
