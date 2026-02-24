@@ -43,10 +43,11 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models", "z2ui5/cc/Server
             }
             })();
 
+            this._boundUnload = this._onUnload.bind(this);
             if (/iPad|iPhone/.test(navigator.platform)) {
-                window.addEventListener("pagehide", this.__pagehide.bind(this));
+                window.addEventListener("pagehide", this._boundUnload);
             } else {
-                window.addEventListener("beforeunload", this.__beforeunload.bind(this));
+                window.addEventListener("beforeunload", this._boundUnload);
             }
 
             document.addEventListener("keydown", function (zEvent) {
@@ -74,12 +75,12 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models", "z2ui5/cc/Server
 
         },
 
-        __beforeunload: function () {
-            window.removeEventListener("__beforeunload", this.__beforeunload.bind(this));
-            this.destroy();
-        },
-        __pagehide: function () {
-            window.removeEventListener("__pagehide", this.__pagehide.bind(this));
+        _onUnload: function () {
+            if (/iPad|iPhone/.test(navigator.platform)) {
+                window.removeEventListener("pagehide", this._boundUnload);
+            } else {
+                window.removeEventListener("beforeunload", this._boundUnload);
+            }
             this.destroy();
         },
 
