@@ -1129,13 +1129,11 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         DATA(incl_comps) = rtti_get_t_attri_by_include( lr_comp->type ).
 
         LOOP AT incl_comps REFERENCE INTO DATA(lr_incl_comp).
-          lr_incl_comp->name = lr_incl_comp->name.
           APPEND lr_incl_comp->* TO result.
         ENDLOOP.
 
       ELSE.
 
-        lr_comp->name = lr_comp->name.
         APPEND lr_comp->* TO result.
 
       ENDIF.
