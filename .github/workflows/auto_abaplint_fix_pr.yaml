@@ -16,12 +16,13 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
-      - name: Run abaplint autofix
+      - name: Run app2abap and abaplint autofix
         run: |
           npm ci
+          npm run auto_app2abap
           npm run auto_abaplint
 
       - name: Commit and push fixes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "abaplint autofix formatting"
+          commit_message: "auto app2abap + abaplint autofix formatting"
