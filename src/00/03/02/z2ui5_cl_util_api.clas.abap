@@ -1004,9 +1004,6 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   METHOD context_get_tenant.
 
-    "DATA(tenant_info) = xco_cp=>current->tenant( ).
-    "DATA(account_id) = tenant_info->get_global_account_id( ).
-
   ENDMETHOD.
 
   METHOD context_get_callstack.
@@ -1027,59 +1024,13 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   METHOD conv_get_xlsx_by_itab.
 
-*    DATA(write_access) = xco_cp_xlsx=>document->empty( )->write_access( ).
-*    DATA(worksheet) = write_access->get_workbook( )->worksheet->at_position( 1 ).
-*    DATA(selection_pattern) = xco_cp_xlsx_selection=>pattern_builder->simple_from_to( )->get_pattern( ).
-*    worksheet->select( selection_pattern
-*               )->row_stream(
-*               )->operation->write_from( REF #( val )
-*               )->execute( ).
-*    result = write_access->get_file_content( ).
-
   ENDMETHOD.
 
   METHOD conv_get_itab_by_xlsx.
 
-*    CLEAR result.
-*    DATA(document) = xco_cp_xlsx=>document->for_file_content( val )->read_access( ).
-*    DATA(sheet) = document->get_workbook( )->worksheet->at_position( 1 ).
-*    DATA(pattern) = xco_cp_xlsx_selection=>pattern_builder->simple_from_to( )->get_pattern( ).
-*    sheet->select( pattern
-*            )->row_stream(
-*            )->operation->write_to( REF #( result )
-*            )->set_value_transformation( xco_cp_xlsx_read_access=>value_transformation->string_value
-*            )->execute( ).
-
   ENDMETHOD.
 
   METHOD bal_read.
-
-*" Create and set header
-*
-*
-*DATA(lo_header) = cl_bali_header_setter=>create( object      = `ZBS_DEMO_LOG_OBJECT`
-*                                                 subobject   = `TEST`
-*                                                 external_id = cl_system_uuid=>create_uuid_c32_static( )
-*                                                 ).
-*
-*
-*DATA(lo_ohandler) = cl_bali_object_handler=>get_instance( ).
-*
-*lo_ohandler->read_object(
-*  EXPORTING
-*    iv_object      = `TEST`
-*  IMPORTING
-**    ev_object_text =
-*    et_subobjects  = data(lo_obj)
-*).
-**CATCH cx_bali_objects.
-*
-*lo_obj
-*DATA(lo_log_db) = cl_bali_log_db=>get_instance( ).
-*data(ls_hanlde) =  value if_bali_log_db=>ty_handle( ).
-*DATA(lo_log) = lo_header->load_log( value ).
-*DATA(lt_items) = lo_log->get_all_items( ).
-
 
   ENDMETHOD.
 

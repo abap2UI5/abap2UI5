@@ -700,7 +700,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD conv_get_as_data_ref.
 
-*    GET REFERENCE OF val INTO result.
     result = REF #( val ).
 
   ENDMETHOD.
@@ -956,8 +955,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   ENDMETHOD.
 
 
-
-
   METHOD itab_get_itab_by_csv.
 
     DATA lt_comp TYPE cl_abap_structdescr=>component_table.
@@ -1129,13 +1126,11 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         DATA(incl_comps) = rtti_get_t_attri_by_include( lr_comp->type ).
 
         LOOP AT incl_comps REFERENCE INTO DATA(lr_incl_comp).
-          lr_incl_comp->name = lr_incl_comp->name.
           APPEND lr_incl_comp->* TO result.
         ENDLOOP.
 
       ELSE.
 
-        lr_comp->name = lr_comp->name.
         APPEND lr_comp->* TO result.
 
       ENDIF.
@@ -1380,8 +1375,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     lv_search = shift_left( val = lv_search
                             sub = `?` ).
-*    lv_search = c_trim_lower( lv_search ).
-
     DATA(lv_search2) = substring_after( val = lv_search
                                         sub = `&sap-startup-params=` ).
     lv_search = COND #( WHEN lv_search2 IS NOT INITIAL THEN lv_search2 ELSE lv_search ).
@@ -1396,8 +1389,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     LOOP AT lt_param REFERENCE INTO DATA(lr_param).
       SPLIT lr_param->* AT `=` INTO DATA(lv_name) DATA(lv_value).
-*      INSERT VALUE #( n = c_trim_lower( lv_name )
-*                      v = c_trim_lower( lv_value ) ) INTO TABLE rt_params.
       INSERT VALUE #( n = lv_name
                       v = lv_value ) INTO TABLE rt_params.
     ENDLOOP.
@@ -1616,7 +1607,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   METHOD itab_get_by_struc.
 
     DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_any( val ).
-*    result  = VALUE z2ui5_cl_util=>ty_t_name_value( ).
     LOOP AT lt_attri REFERENCE INTO DATA(lr_attri).
 
       ASSIGN COMPONENT lr_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<component>).
@@ -1679,9 +1669,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD filter_get_sql_where.
 
-
     IF context_check_abap_cloud( ).
-
 
     ELSE.
 
@@ -1709,17 +1697,12 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         ENDLOOP.
       ENDLOOP.
 
-*      DATA result TYPE string.
-*    DATA lt_where TYPE rsdmd_t_where.
       DATA(lv_fm) = `RSDS_RANGE_TO_WHERE`.
       CALL FUNCTION lv_fm
         EXPORTING
           i_t_range      = lt_range
-*         i_th_range     =
-*         i_r_renderer   =
         IMPORTING
           e_where        = result
-*         e_t_where      = lt_where
         EXCEPTIONS
           internal_error = 1
           OTHERS         = 2.
