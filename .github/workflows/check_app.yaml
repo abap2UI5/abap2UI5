@@ -17,11 +17,12 @@ jobs:
           git fetch origin main
           MERGE_BASE=$(git merge-base origin/main HEAD)
 
-          for SHA in $(git rev-list $MERGE_BASE..HEAD); do
+          for SHA in $(git rev-list --reverse $MERGE_BASE..HEAD); do
             AUTHOR=$(git log -1 --format='%an' $SHA)
 
             if [[ "$AUTHOR" == *"[bot]"* ]] || [[ "$AUTHOR" == *"github-actions"* ]]; then
-              continue
+              echo "Bot commit found ($SHA), skipping remaining commits."
+              break
             fi
 
             if git diff-tree --no-commit-id --name-only -r "$SHA" | grep -q '^src/01/03/'; then
