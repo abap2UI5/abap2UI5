@@ -784,8 +784,7 @@ sap.ui.define("z2ui5/MultiInputExt", ["sap/ui/core/Control", "sap/m/Token", "sap
         });
       };
       table.addValidator(fnValidator);
-    },
-    renderer(oRM, oControl) { }
+    }
   });
 }
 );
@@ -957,7 +956,7 @@ sap.ui.define("z2ui5/CameraPicture", [
       var resultb64 = "";
       canvas.width = parseInt( this.getProperty("width") );
       canvas.height = parseInt( this.getProperty("height") );
-      canvas.getContext('2d').drawImage(video, 0, 0, 200, 200);
+      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
       resultb64 = canvas.toDataURL();
       this.setProperty("value", resultb64);
       this.fireOnPhoto({
