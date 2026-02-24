@@ -32,7 +32,9 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models", "z2ui5/cc/Server
 
             (async () => {
             try {
-                z2ui5.oLaunchpadService = await this.getService("ShellUIService");
+                if (sap.ui.require("sap/ushell/Container")) {
+                    z2ui5.oLaunchpadService = await this.getService("ShellUIService");
+                }
             } catch (e) { }
 
             let oVersionInfo = await VersionInfo.load();

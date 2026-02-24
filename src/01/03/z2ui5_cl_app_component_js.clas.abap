@@ -52,7 +52,9 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n| &&
              `            (async () => {` && |\n| &&
              `            try {` && |\n| &&
-             `                z2ui5.oLaunchpadService = await this.getService("ShellUIService");` && |\n| &&
+             `                if (sap.ui.require("sap/ushell/Container")) {` && |\n| &&
+             `                    z2ui5.oLaunchpadService = await this.getService("ShellUIService");` && |\n| &&
+             `                }` && |\n| &&
              `            } catch (e) { }` && |\n| &&
              `` && |\n| &&
              `            let oVersionInfo = await VersionInfo.load();` && |\n| &&
