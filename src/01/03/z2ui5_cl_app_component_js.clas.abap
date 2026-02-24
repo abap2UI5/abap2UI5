@@ -66,11 +66,8 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `            })();` && |\n| &&
              `` && |\n| &&
              `            this._boundUnload = this._onUnload.bind(this);` && |\n| &&
-             `            if (/iPad|iPhone/.test(navigator.platform)) {` && |\n| &&
-             `                window.addEventListener("pagehide", this._boundUnload);` && |\n| &&
-             `            } else {` && |\n| &&
-             `                window.addEventListener("beforeunload", this._boundUnload);` && |\n| &&
-             `            }` && |\n| &&
+             `            this._unloadEvent = /iPad|iPhone/.test(navigator.platform) ? "pagehide" : "beforeunload";` && |\n| &&
+             `            window.addEventListener(this._unloadEvent, this._boundUnload);` && |\n| &&
              `` && |\n| &&
              `            document.addEventListener("keydown", function (zEvent) {` && |\n| &&
              `                if (zEvent?.ctrlKey && zEvent?.key === "F12") {` && |\n| &&
@@ -98,11 +95,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        },` && |\n| &&
              `` && |\n| &&
              `        _onUnload: function () {` && |\n| &&
-             `            if (/iPad|iPhone/.test(navigator.platform)) {` && |\n| &&
-             `                window.removeEventListener("pagehide", this._boundUnload);` && |\n| &&
-             `            } else {` && |\n| &&
-             `                window.removeEventListener("beforeunload", this._boundUnload);` && |\n| &&
-             `            }` && |\n| &&
+             `            window.removeEventListener(this._unloadEvent, this._boundUnload);` && |\n| &&
              `            this.destroy();` && |\n| &&
              `        },` && |\n| &&
              `` && |\n| &&

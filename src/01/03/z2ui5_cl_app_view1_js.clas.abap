@@ -25,6 +25,67 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    function (Controller, XMLView, JSONModel, BusyIndicator, MessageBox, MessageToast, Fragment, mBusyDialog, VersionInfo,` && |\n| &&
              `        Server, ODataModel, mobileLibrary, HashChanger, Storage) {` && |\n| &&
              `        "use strict";` && |\n| &&
+             `` && |\n| &&
+             `        function runCallbacks(arr, ...args) {` && |\n| &&
+             `            arr.forEach(fn => { if (fn !== undefined) fn(...args); });` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        function isValidRedirectURL(url) {` && |\n| &&
+             `            if (!url) return false;` && |\n| &&
+             `            try {` && |\n| &&
+             `                const parsed = new URL(url, window.location.origin);` && |\n| &&
+             `                if (parsed.origin !== window.location.origin) {` && |\n| &&
+             `                    console.error('Security: Blocked redirect to different origin:', url);` && |\n| &&
+             `                    return false;` && |\n| &&
+             `                }` && |\n| &&
+             `                if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {` && |\n| &&
+             `                    console.error('Security: Blocked redirect with invalid protocol:', parsed.protocol);` && |\n| &&
+             `                    return false;` && |\n| &&
+             `                }` && |\n| &&
+             `                return true;` && |\n| &&
+             `            } catch (e) {` && |\n| &&
+             `                console.error('Security: Invalid URL format:', url, e);` && |\n| &&
+             `                return false;` && |\n| &&
+             `            }` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        function copyToClipboard(textToCopy) {` && |\n| &&
+             `            if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {` && |\n| &&
+             `                navigator.clipboard.writeText(textToCopy)` && |\n| &&
+             `                    .then(() => { })` && |\n| &&
+             `                    .catch(err => { });` && |\n| &&
+             `            } else {` && |\n| &&
+             `                const tempTextArea = document.createElement("textarea");` && |\n| &&
+             `                tempTextArea.value = textToCopy;` && |\n| &&
+             `                document.body.appendChild(tempTextArea);` && |\n| &&
+             `                tempTextArea.select();` && |\n| &&
+             `                try {` && |\n| &&
+             `                    document.execCommand("copy");` && |\n| &&
+             `                } catch (err) { }` && |\n| &&
+             `                document.body.removeChild(tempTextArea);` && |\n| &&
+             `            }` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        function withCrossAppNavigator(callback) {` && |\n| &&
+             `            sap.ui.require([` && |\n| &&
+             `                "sap/ushell/Container"` && |\n| &&
+             `            ], async (ushellContainer) => {` && |\n| &&
+             `                if (ushellContainer) {` && |\n| &&
+             `                    z2ui5.oCrossAppNavigator = ushellContainer.getService("CrossApplicationNavigation");` && |\n| &&
+             `                } else {` && |\n| &&
+             `                    // fallback needed for UI5 version < 1.120` && |\n| &&
+             `                    z2ui5.oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");` && |\n| &&
+             `                }` && |\n| &&
+             `                callback(z2ui5.oCrossAppNavigator);` && |\n| &&
+             `            });` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        function navigateContainer(lookup, args) {` && |\n| &&
+             `            const navCon = lookup(args[1]);` && |\n| &&
+             `            const navConTo = lookup(args[2]);` && |\n| &&
+             `            navCon.to(navConTo);` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
              `        return Controller.extend("z2ui5.controller.View1", {` && |\n| &&
              `` && |\n| &&
              `            _trackChanges(oModel) {` && |\n| &&
@@ -71,14 +132,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    if (!z2ui5.checkNestAfter) {` && |\n| &&
              `                        if (S_VIEW_NEST?.XML) {` && |\n| &&
              `                            z2ui5.oController.NestViewDestroy();` && |\n| &&
-             `                            await this.displayNestedView(S_VIEW_NEST.XML, 'oViewNest', 'S_VIEW_NEST');` && |\n| &&
+             `                            await this.displayNestedView(S_VIEW_NEST.XML, 'oViewNest', 'S_VIEW_NEST', z2ui5.oControllerNest);` && |\n| &&
              `                            z2ui5.checkNestAfter = true;` && |\n| &&
              `                        }` && |\n| &&
              `                    }` && |\n| &&
              `                    if (!z2ui5.checkNestAfter2) {` && |\n| &&
              `                        if (S_VIEW_NEST2?.XML) {` && |\n| &&
              `                            z2ui5.oController.NestViewDestroy2();` && |\n| &&
-             `                            await this.displayNestedView2(S_VIEW_NEST2.XML, 'oViewNest2', 'S_VIEW_NEST2');` && |\n| &&
+             `                            await this.displayNestedView(S_VIEW_NEST2.XML, 'oViewNest2', 'S_VIEW_NEST2', z2ui5.oControllerNest2);` && |\n| &&
              `                            z2ui5.checkNestAfter2 = true;` && |\n| &&
              `                        }` && |\n| &&
              `                    }` && |\n| &&
@@ -86,11 +147,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        await this.displayPopover(S_POPOVER.XML, 'oViewPopover', S_POPOVER.OPEN_BY_ID);` && |\n| &&
              `                    }` && |\n| &&
              `` && |\n| &&
-             `                   if (z2ui5.oView) {    var oState = JSON.parse(JSON.stringify({ view: z2ui5.oView.mProperties.viewContent, model: z2ui5.oView.getModel().getData(), response: z2ui5.oResponse })); }else{ oState = {}; }` && |\n| &&
+             `                   var oState;` && |\n| &&
+             `                   if (z2ui5.oView) {` && |\n| &&
+             `                       oState = JSON.parse(JSON.stringify({ view: z2ui5.oView.mProperties.viewContent, model: z2ui5.oView.getModel().getData(), response: z2ui5.oResponse }));` && |\n| &&
+             `                   } else {` && |\n| &&
+             `                       oState = {};` && |\n| &&
+             `                   }` && |\n| &&
              `                   if (SET_PUSH_STATE) {` && |\n| &&
-             `                     // sap.ui.core.routing.HashChanger.getInstance().setHash("423143124");` && |\n| &&
-             `                     // sap.ui.core.routing.HashChanger.getInstance().replaceHash("423143124");` && |\n| &&
-             `                      //history.go(-1);` && |\n| &&
              `                        let urlObj = new URL(window.location.href);` && |\n| &&
              `                        let hash = HashChanger.getInstance().getHash();` && |\n| &&
              `                        if (!hash){` && |\n| &&
@@ -98,34 +161,20 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        }` && |\n| &&
              `                        history.pushState(oState, "", urlObj.pathname + urlObj.search + hash + SET_PUSH_STATE);` && |\n| &&
              `                     }else{` && |\n| &&
-             `                     //  debugger;` && |\n| &&
              `                        history.replaceState(oState, "", window.location.href );` && |\n| &&
              `                    }` && |\n| &&
              `` && |\n| &&
              `                    if (SET_APP_STATE_ACTIVE) {` && |\n| &&
              `                      HashChanger.getInstance().replaceHash("z2ui5-xapp-state=" + z2ui5.oResponse.ID );` && |\n| &&
-             `                      //  let urlObj = new URL(window.location.href);` && |\n| &&
-             `                      //  urlObj.searchParams.set("z2ui5-xapp-state", z2ui5.oResponse.ID);` && |\n| &&
-             `                      //  history.replaceState(oState, null, urlObj.pathname + urlObj.search + urlObj.hash);` && |\n| &&
              `                    } else {` && |\n| &&
              `                       HashChanger.getInstance().replaceHash("");` && |\n| &&
-             `                      //  let urlObj = new URL(window.location.href);` && |\n| &&
-             `                      //  urlObj.searchParams.delete("z2ui5-xapp-state");` && |\n| &&
-             `                      //  history.replaceState(oState, null, urlObj.pathname + urlObj.search + urlObj.hash);` && |\n| &&
              `                    }` && |\n| &&
-             `` && |\n| &&
-             `` && |\n| &&
              `` && |\n| &&
              `                    if (SET_NAV_BACK) {` && |\n| &&
              `                        history.back();` && |\n| &&
              `                    }` && |\n| &&
              `` && |\n| &&
-             `                    z2ui5.onAfterRendering.forEach(item => {` && |\n| &&
-             `                        if (item !== undefined) {` && |\n| &&
-             `                            item();` && |\n| &&
-             `                        }` && |\n| &&
-             `                    }` && |\n| &&
-             `                    )` && |\n| &&
+             `                    runCallbacks(z2ui5.onAfterRendering);` && |\n| &&
              `` && |\n| &&
              `                    BusyIndicator.hide();` && |\n| &&
              `                    z2ui5.isBusy = false;` && |\n| &&
@@ -189,32 +238,21 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    oFragment.setModel(oview_model);` && |\n| &&
              `                    z2ui5[viewProp] = oFragment;` && |\n| &&
              `                    z2ui5[viewProp].Fragment = Fragment;` && |\n| &&
-             `                    let oControl = {};` && |\n| &&
-             `                    if (z2ui5.oView?.byId(openById)) {` && |\n| &&
-             `                        oControl = z2ui5.oView.byId(openById);` && |\n| &&
-             `                    } else if (z2ui5.oViewPopup?.Fragment.byId('popupId', openById)) {` && |\n| &&
-             `                        oControl = z2ui5.oViewPopup.Fragment.byId('popupId', openById);` && |\n| &&
-             `                    } else if (z2ui5.oViewNest?.byId(openById)) {` && |\n| &&
-             `                        oControl = z2ui5.oViewNest.byId(openById);` && |\n| &&
-             `                    } else if (z2ui5.oViewNest2?.byId(openById)) {` && |\n| &&
-             `                        oControl = z2ui5.oViewNest2.byId(openById);` && |\n| &&
-             `                    } else {` && |\n| &&
-             `                        if (Element.getElementById(openById)) {` && |\n| &&
-             `                            oControl = Element.getElementById(openById);` && |\n| &&
-             `                        } else {` && |\n| &&
-             `                            oControl = null;` && |\n| &&
-             `                        }` && |\n| &&
-             `                        ;` && |\n| &&
-             `                    }` && |\n| &&
+             `                    let oControl = z2ui5.oView?.byId(openById)` && |\n| &&
+             `                        || z2ui5.oViewPopup?.Fragment.byId('popupId', openById)` && |\n| &&
+             `                        || z2ui5.oViewNest?.byId(openById)` && |\n| &&
+             `                        || z2ui5.oViewNest2?.byId(openById)` && |\n| &&
+             `                        || Element.getElementById(openById)` && |\n| &&
+             `                        || null;` && |\n| &&
              `                    oFragment.openBy(oControl);` && |\n| &&
              `                });` && |\n| &&
              `            },` && |\n| &&
-             `            async displayNestedView(xml, viewProp, viewNestId) {` && |\n| &&
+             `            async displayNestedView(xml, viewProp, viewNestId, controller) {` && |\n| &&
              `                let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);` && |\n| &&
              `                this._trackChanges(oview_model);` && |\n| &&
              `                const oView = await XMLView.create({` && |\n| &&
              `                    definition: xml,` && |\n| &&
-             `                    controller: z2ui5.oControllerNest,` && |\n| &&
+             `                    controller: controller,` && |\n| &&
              `                    preprocessors: {` && |\n| &&
              `                        xml: {` && |\n| &&
              `                            models: {` && |\n| &&
@@ -233,132 +271,39 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                }` && |\n| &&
              `                z2ui5[viewProp] = oView;` && |\n| &&
              `            },` && |\n| &&
-             `            async displayNestedView2(xml, viewProp, viewNestId) {` && |\n| &&
-             `                let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);` && |\n| &&
-             `                this._trackChanges(oview_model);` && |\n| &&
-             `                const oView = await XMLView.create({` && |\n| &&
-             `                    definition: xml,` && |\n| &&
-             `                    controller: z2ui5.oControllerNest2,` && |\n| &&
-             `                    preprocessors: {` && |\n| &&
-             `                        xml: {` && |\n| &&
-             `                            models: {` && |\n| &&
-             `                                template: oview_model` && |\n| &&
-             `                            }` && |\n| &&
-             `                        }` && |\n| &&
-             `                    }` && |\n| &&
-             `                });` && |\n| &&
-             `                oView.setModel(oview_model);` && |\n| &&
-             `                let oParent = z2ui5.oView.byId(z2ui5.oResponse.PARAMS[viewNestId].ID);` && |\n| &&
-             `                if (oParent) {` && |\n| &&
-             `                    try {` && |\n| &&
-             `                        oParent[z2ui5.oResponse.PARAMS[viewNestId].METHOD_DESTROY]();` && |\n| &&
-             `                    } catch { }` && |\n| &&
-             `                    oParent[z2ui5.oResponse.PARAMS[viewNestId].METHOD_INSERT](oView);` && |\n| &&
+             `            _destroyView(prop, tryClose) {` && |\n| &&
+             `                const view = z2ui5[prop];` && |\n| &&
+             `                if (!view) return;` && |\n| &&
+             `                if (tryClose && view.close) {` && |\n| &&
+             `                    try { view.close(); } catch { }` && |\n| &&
              `                }` && |\n| &&
-             `                z2ui5[viewProp] = oView;` && |\n| &&
+             `                view.destroy();` && |\n| &&
              `            },` && |\n| &&
-             `            PopupDestroy() {` && |\n| &&
-             `                if (!z2ui5.oViewPopup) {` && |\n| &&
-             `                    return;` && |\n| &&
-             `                }` && |\n| &&
-             `                if (z2ui5.oViewPopup.close) {` && |\n| &&
-             `                    try {` && |\n| &&
-             `                        z2ui5.oViewPopup.close();` && |\n| &&
-             `                    } catch { }` && |\n| &&
-             `                }` && |\n| &&
-             `                z2ui5.oViewPopup.destroy();` && |\n| &&
-             `            },` && |\n| &&
-             `            PopoverDestroy() {` && |\n| &&
-             `                if (!z2ui5.oViewPopover) {` && |\n| &&
-             `                    return;` && |\n| &&
-             `                }` && |\n| &&
-             `                if (z2ui5.oViewPopover.close) {` && |\n| &&
-             `                    try {` && |\n| &&
-             `                        z2ui5.oViewPopover.close();` && |\n| &&
-             `                    } catch { }` && |\n| &&
-             `                }` && |\n| &&
-             `                z2ui5.oViewPopover.destroy();` && |\n| &&
-             `            },` && |\n| &&
-             `            NestViewDestroy() {` && |\n| &&
-             `                if (!z2ui5.oViewNest) {` && |\n| &&
-             `                    return;` && |\n| &&
-             `                }` && |\n| &&
-             `                z2ui5.oViewNest.destroy();` && |\n| &&
-             `            },` && |\n| &&
-             `            NestViewDestroy2() {` && |\n| &&
-             `                if (!z2ui5.oViewNest2) {` && |\n| &&
-             `                    return;` && |\n| &&
-             `                }` && |\n| &&
-             `                z2ui5.oViewNest2.destroy();` && |\n| &&
-             `            },` && |\n| &&
-             `            ViewDestroy() {` && |\n| &&
-             `                if (!z2ui5.oView) {` && |\n| &&
-             `                    return;` && |\n| &&
-             `                }` && |\n| &&
-             `                z2ui5.oView.destroy();` && |\n| &&
-             `            },` && |\n| &&
+             `            PopupDestroy() { this._destroyView('oViewPopup', true); },` && |\n| &&
+             `            PopoverDestroy() { this._destroyView('oViewPopover', true); },` && |\n| &&
+             `            NestViewDestroy() { this._destroyView('oViewNest'); },` && |\n| &&
+             `            NestViewDestroy2() { this._destroyView('oViewNest2'); },` && |\n| &&
+             `            ViewDestroy() { this._destroyView('oView'); },` && |\n| &&
              `            eF(...args) {` && |\n| &&
              `` && |\n| &&
-             `                z2ui5.onBeforeEventFrontend.forEach(item => {` && |\n| &&
-             `                    if (item !== undefined) {` && |\n| &&
-             `                        item(args);` && |\n| &&
-             `                    }` && |\n| &&
-             `                }` && |\n| &&
-             `                )` && |\n| &&
+             `                runCallbacks(z2ui5.onBeforeEventFrontend, args);` && |\n| &&
              `` && |\n| &&
-             `                // Security: URL validation function to prevent open redirect attacks` && |\n| &&
-             `                function isValidRedirectURL(url) {` && |\n| &&
-             `                    if (!url) return false;` && |\n| &&
-             `` && |\n| &&
-             `                    try {` && |\n| &&
-             `                        // Parse URL relative to current origin` && |\n| &&
-             `                        const parsed = new URL(url, window.location.origin);` && |\n| &&
-             `` && |\n| &&
-             `                        // Only allow same-origin URLs (relative or absolute to same domain)` && |\n| &&
-             `                        if (parsed.origin !== window.location.origin) {` && |\n| &&
-             `                            console.error('Security: Blocked redirect to different origin:', url);` && |\n| &&
-             `                            return false;` && |\n| &&
-             `                        }` && |\n| &&
-             `` && |\n| &&
-             `                        // Block dangerous protocols` && |\n| &&
-             `                        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {` && |\n| &&
-             `                            console.error('Security: Blocked redirect with invalid protocol:', parsed.protocol);` && |\n| &&
-             `                            return false;` && |\n| &&
-             `                        }` && |\n| &&
-             `` && |\n| &&
-             `                        return true;` && |\n| &&
-             `                    } catch (e) {` && |\n| &&
-             `                        console.error('Security: Invalid URL format:', url, e);` && |\n| &&
-             `                        return false;` && |\n| &&
-             `                    }` && |\n| &&
-             `                }` && |\n| &&
-             `` && |\n| &&
-             `                let oCrossAppNavigator;` && |\n| &&
              `                switch (args[0]) {` && |\n| &&
-             `                    case 'SET_SIZE_LIMIT':` && |\n| &&
-             `                        switch (args[2]) {` && |\n| &&
-             `                            case 'MAIN':` && |\n| &&
-             `                                z2ui5.oView.getModel().setSizeLimit(parseInt(args[1]));` && |\n| &&
-             `                                z2ui5.oView.getModel().refresh(true);` && |\n| &&
-             `                                break;` && |\n| &&
-             `                            case 'NEST':` && |\n| &&
-             `                                z2ui5.oViewNest.getModel().setSizeLimit(parseInt(args[1]));` && |\n| &&
-             `                                z2ui5.oViewNest.getModel().refresh(true);` && |\n| &&
-             `                                break;` && |\n| &&
-             `                            case 'NEST2':` && |\n| &&
-             `                                z2ui5.oViewNest2.getModel().setSizeLimit(parseInt(args[1]));` && |\n| &&
-             `                                z2ui5.oViewNest2.getModel().refresh(true);` && |\n| &&
-             `                                break;` && |\n| &&
-             `                            case 'POPUP':` && |\n| &&
-             `                                z2ui5.oPopup.getModel().setSizeLimit(parseInt(args[1]));` && |\n| &&
-             `                                z2ui5.oPopup.getModel().refresh(true);` && |\n| &&
-             `                                break;` && |\n| &&
-             `                            case 'POPOVER':` && |\n| &&
-             `                                z2ui5.oPopover.getModel().setSizeLimit(parseInt(args[1]));` && |\n| &&
-             `                                z2ui5.oPopover.getModel().refresh(true);` && |\n| &&
-             `                                break;` && |\n| &&
+             `                    case 'SET_SIZE_LIMIT': {` && |\n| &&
+             `                        const viewMap = {` && |\n| &&
+             `                            'MAIN': z2ui5.oView,` && |\n| &&
+             `                            'NEST': z2ui5.oViewNest,` && |\n| &&
+             `                            'NEST2': z2ui5.oViewNest2,` && |\n| &&
+             `                            'POPUP': z2ui5.oPopup,` && |\n| &&
+             `                            'POPOVER': z2ui5.oPopover,` && |\n| &&
+             `                        };` && |\n| &&
+             `                        const target = viewMap[args[2]];` && |\n| &&
+             `                        if (target) {` && |\n| &&
+             `                            target.getModel().setSizeLimit(parseInt(args[1]));` && |\n| &&
+             `                            target.getModel().refresh(true);` && |\n| &&
              `                        }` && |\n| &&
              `                        break;` && |\n| &&
+             `                    }` && |\n| &&
              `                    case 'HISTORY_BACK':` && |\n| &&
              `                        history.back();` && |\n| &&
              `                        break;` && |\n| &&
@@ -366,37 +311,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        copyToClipboard( args[1] );` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'CLIPBOARD_APP_STATE':` && |\n| &&
-             `                            function copyToClipboard(textToCopy) {` && |\n| &&
-             `                                if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {` && |\n| &&
-             `                                    navigator.clipboard.writeText(textToCopy)` && |\n| &&
-             `                                        .then(() => {` && |\n| &&
-             `` && |\n| &&
-             `                                        })` && |\n| &&
-             `                                        .catch(err => {` && |\n| &&
-             `` && |\n| &&
-             `                                        });` && |\n| &&
-             `                                } else {` && |\n| &&
-             `                                    const tempTextArea = document.createElement("textarea");` && |\n| &&
-             `                                    tempTextArea.value = textToCopy;` && |\n| &&
-             `                                    document.body.appendChild(tempTextArea);` && |\n| &&
-             `` && |\n| &&
-             `                                    tempTextArea.select();` && |\n| &&
-             `                                    try {` && |\n| &&
-             `                                        document.execCommand("copy");` && |\n| &&
-             `` && |\n| &&
-             `                                    } catch (err) {` && |\n| &&
-             `` && |\n| &&
-             `                                    }` && |\n| &&
-             `                                    document.body.removeChild(tempTextArea);` && |\n| &&
-             `                                }` && |\n| &&
-             `                            }` && |\n| &&
-             `                                                    copyToClipboard(window.location.href + '#/z2ui5-xapp-state=' + z2ui5.oResponse.ID );` && |\n| &&
-             `                                                    break;` && |\n| &&
+             `                        copyToClipboard(window.location.href + '#/z2ui5-xapp-state=' + z2ui5.oResponse.ID );` && |\n| &&
+             `                        break;` && |\n| &&
              `                    case 'SET_ODATA_MODEL':` && |\n| &&
              `                        var oModel = new ODataModel({ serviceUrl: args[1], annotationURI: (args.length > 3 ? args[3] : '') });` && |\n| &&
              `                        z2ui5.oView.setModel(oModel, args[2] ? args[2] : undefined);` && |\n| &&
              `                        break;` && |\n| &&
-             `                    case 'STORE_DATA':` && |\n| &&
+             `                    case 'STORE_DATA': {` && |\n| &&
              `                        let storageParams = args[1];` && |\n| &&
              `                        let storageType = Storage.Type.session;` && |\n| &&
              `                        switch (storageParams.TYPE) {` && |\n| &&
@@ -414,41 +335,20 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                            oStorage.put(storageParams.KEY, storageParams.VALUE);` && |\n| &&
              `                        }` && |\n| &&
              `                        break;` && |\n| &&
+             `                    }` && |\n| &&
              `                    case 'DOWNLOAD_B64_FILE':` && |\n| &&
              `                        var a = document.createElement("a");` && |\n| &&
              `                        a.href = args[1];` && |\n| &&
              `                        a.download = args[2];` && |\n| &&
-             |\n|.
-    result = result &&
              `                        a.click();` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'CROSS_APP_NAV_TO_PREV_APP':` && |\n| &&
-             `                        sap.ui.require([` && |\n| &&
-             `                            "sap/ushell/Container"` && |\n| &&
-             `                        ], async (ushellContainer) => {` && |\n| &&
-             `                            // z2ui5.oCrossAppNavigator = await ushellContainer.getServiceAsync("CrossApplicationNavigation");` && |\n| &&
-             `                            if (ushellContainer){` && |\n| &&
-             `                                z2ui5.oCrossAppNavigator = ushellContainer.getService("CrossApplicationNavigation");` && |\n| &&
-             `                            } else {` && |\n| &&
-             `                                // fallback needed for UI5 version < 1.120` && |\n| &&
-             `                                z2ui5.oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");` && |\n| &&
-             `                            }` && |\n| &&
-             `                            z2ui5.oCrossAppNavigator.backToPreviousApp();` && |\n| &&
-             `                        });` && |\n| &&
+             `                        withCrossAppNavigator(nav => nav.backToPreviousApp());` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'CROSS_APP_NAV_TO_EXT':` && |\n| &&
              `                        z2ui5.args = args;` && |\n| &&
-             `                        sap.ui.require([` && |\n| &&
-             `                            "sap/ushell/Container"` && |\n| &&
-             `                        ], async (ushellContainer) => {` && |\n| &&
-             `                            // z2ui5.oCrossAppNavigator = await ushellContainer.getServiceAsync("CrossApplicationNavigation");` && |\n| &&
-             `                            if (ushellContainer){` && |\n| &&
-             `                                z2ui5.oCrossAppNavigator = ushellContainer.getService("CrossApplicationNavigation");` && |\n| &&
-             `                            } else {` && |\n| &&
-             `                                // fallback needed for UI5 version < 1.120` && |\n| &&
-             `                                z2ui5.oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");` && |\n| &&
-             `                            }` && |\n| &&
-             `                            const hash = (z2ui5.oCrossAppNavigator.hrefForExternal({` && |\n| &&
+             `                        withCrossAppNavigator(nav => {` && |\n| &&
+             `                            const hash = (nav.hrefForExternal({` && |\n| &&
              `                                target: z2ui5.args[1],` && |\n| &&
              `                                params: z2ui5.args[2]` && |\n| &&
              `                            })) || "";` && |\n| &&
@@ -456,7 +356,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                                let url = window.location.href.split('#')[0] + hash;` && |\n| &&
              `                                sap.m.URLHelper.redirect(url, true);` && |\n| &&
              `                            } else {` && |\n| &&
-             `                                z2ui5.oCrossAppNavigator.toExternal({` && |\n| &&
+             `                                nav.toExternal({` && |\n| &&
              `                                    target: {` && |\n| &&
              `                                        shellHash: hash` && |\n| &&
              `                                    }` && |\n| &&
@@ -465,7 +365,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        });` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'LOCATION_RELOAD':` && |\n| &&
-             `                        // Security: Validate URL before redirect` && |\n| &&
              `                        if (isValidRedirectURL(args[1])) {` && |\n| &&
              `                            window.location = args[1];` && |\n| &&
              `                        } else {` && |\n| &&
@@ -473,10 +372,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        }` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'OPEN_NEW_TAB':` && |\n| &&
-             `                        // Security: Validate URL before opening new tab` && |\n| &&
              `                        if (isValidRedirectURL(args[1])) {` && |\n| &&
              `                            const newWindow = window.open(args[1], '_blank');` && |\n| &&
-             `                            // Security: Prevent window.opener exploit` && |\n| &&
              `                            if (newWindow) {` && |\n| &&
              `                                newWindow.opener = null;` && |\n| &&
              `                            }` && |\n| &&
@@ -491,31 +388,21 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        z2ui5.oController.PopoverDestroy();` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'NAV_CONTAINER_TO':` && |\n| &&
-             `                        var navCon = z2ui5.oView.byId(args[1]);` && |\n| &&
-             `                        var navConTo = z2ui5.oView.byId(args[2]);` && |\n| &&
-             `                        navCon.to(navConTo);` && |\n| &&
+             `                        navigateContainer(id => z2ui5.oView.byId(id), args);` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'NEST_NAV_CONTAINER_TO':` && |\n| &&
-             `                        navCon = z2ui5.oViewNest.byId(args[1]);` && |\n| &&
-             `                        navConTo = z2ui5.oViewNest.byId(args[2]);` && |\n| &&
-             `                        navCon.to(navConTo);` && |\n| &&
+             `                        navigateContainer(id => z2ui5.oViewNest.byId(id), args);` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'NEST2_NAV_CONTAINER_TO':` && |\n| &&
-             `                        navCon = z2ui5.oViewNest2.byId(args[1]);` && |\n| &&
-             `                        navConTo = z2ui5.oViewNest2.byId(args[2]);` && |\n| &&
-             `                        navCon.to(navConTo);` && |\n| &&
+             `                        navigateContainer(id => z2ui5.oViewNest2.byId(id), args);` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'POPUP_NAV_CONTAINER_TO':` && |\n| &&
-             `                        navCon = Fragment.byId("popupId", args[1]);` && |\n| &&
-             `                        navConTo = Fragment.byId("popupId", args[2]);` && |\n| &&
-             `                        navCon.to(navConTo);` && |\n| &&
+             `                        navigateContainer(id => Fragment.byId("popupId", id), args);` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'POPOVER_NAV_CONTAINER_TO':` && |\n| &&
-             `                        navCon = Fragment.byId("popoverId", args[1]);` && |\n| &&
-             `                        navConTo = Fragment.byId("popoverId", args[2]);` && |\n| &&
-             `                        navCon.to(navConTo);` && |\n| &&
+             `                        navigateContainer(id => Fragment.byId("popoverId", id), args);` && |\n| &&
              `                        break;` && |\n| &&
-             `                    case 'URLHELPER':` && |\n| &&
+             `                    case 'URLHELPER': {` && |\n| &&
              `                        var URLHelper = mobileLibrary.URLHelper;` && |\n| &&
              `                        var params = args[2];` && |\n| &&
              `                        switch (args[1]) {` && |\n| &&
@@ -531,8 +418,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                            case 'TRIGGER_TEL':` && |\n| &&
              `                                URLHelper.triggerTel(params);` && |\n| &&
              `                                break;` && |\n| &&
+             |\n|.
+    result = result &&
              `                        }` && |\n| &&
              `                        break;` && |\n| &&
+             `                    }` && |\n| &&
              `                    case 'IMAGE_EDITOR_POPUP_CLOSE':` && |\n| &&
              `                        const image = sap.ui.core.Fragment.byId("popupId", "imageEditor").getImagePngDataURL();` && |\n| &&
              `                        z2ui5.oController.PopupDestroy();` && |\n| &&
@@ -585,11 +475,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    oModel = z2ui5.oViewNest2.getModel();` && |\n| &&
              `                    z2ui5.oBody.VIEWNAME = 'NEST2';` && |\n| &&
              `                }` && |\n| &&
-             `                z2ui5.onBeforeRoundtrip.forEach(item => {` && |\n| &&
-             `                    if (item !== undefined) {` && |\n| &&
-             `                        item();` && |\n| &&
-             `                    }` && |\n| &&
-             `                });` && |\n| &&
+             `                runCallbacks(z2ui5.onBeforeRoundtrip);` && |\n| &&
              `                if (oModel && z2ui5.xxChangedPaths?.size > 0) {` && |\n| &&
              `                    let xx = oModel.getData()?.XX;` && |\n| &&
              `                    if (xx) {` && |\n| &&
@@ -609,12 +495,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                );` && |\n| &&
              `                z2ui5.oResponseOld = z2ui5.oResponse;` && |\n| &&
              `                Server.Roundtrip();` && |\n| &&
-             `                z2ui5.onAfterRoundtrip.forEach(item => {` && |\n| &&
-             `                    if (item !== undefined) {` && |\n| &&
-             `                        item();` && |\n| &&
-             `                    }` && |\n| &&
-             `                    }` && |\n| &&
-             `                    )` && |\n| &&
+             `                runCallbacks(z2ui5.onAfterRoundtrip);` && |\n| &&
              `` && |\n| &&
              `            },` && |\n| &&
              `` && |\n| &&
@@ -638,9 +519,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        MessageBox.error("openui5 SDK is loaded, module: " + err._modules + " is not availabe in openui5");` && |\n| &&
              `                        return;` && |\n| &&
              `                    }` && |\n| &&
-             `                    ;` && |\n| &&
              `                }` && |\n| &&
-             `                ; MessageBox.error(err.toLocaleString());` && |\n| &&
+             `                MessageBox.error(err.toLocaleString());` && |\n| &&
              `            },` && |\n| &&
              `            showMessage(msgType, params) {` && |\n| &&
              `                if (params == undefined) {` && |\n| &&
@@ -658,13 +538,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                            closeonBrowserNavigation: params[msgType].CLOSEONBROWSERNAVIGATION ? true : false` && |\n| &&
              `                        });` && |\n| &&
              `                        if (params[msgType].CLASS) {` && |\n| &&
-             `                            let mtoast = {};` && |\n| &&
-             `                            mtoast = document.getElementsByClassName("sapMMessageToast")[0];` && |\n| &&
+             `                            let mtoast = document.getElementsByClassName("sapMMessageToast")[0];` && |\n| &&
              `                            if (mtoast) {` && |\n| &&
              `                                mtoast.classList.add(params[msgType].CLASS);` && |\n| &&
              `                            }` && |\n| &&
              `                        }` && |\n| &&
-             `                        ;` && |\n| &&
              `                    } else if (msgType === 'S_MSG_BOX') {` && |\n| &&
              `` && |\n| &&
              `                        let oParams = {` && |\n| &&

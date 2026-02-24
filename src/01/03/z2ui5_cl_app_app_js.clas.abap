@@ -794,34 +794,16 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    onTokenUpdate(oEvent) {` && |\n| &&
              `      this.setProperty("addedTokens", []);` && |\n| &&
              `      this.setProperty("removedTokens", []);` && |\n| &&
-             `` && |\n| &&
-             `      if (oEvent.mParameters.type == "removed") {` && |\n| &&
-             `        let removedTokens = [];` && |\n| &&
-             `        oEvent.mParameters.removedTokens.forEach((item) => {` && |\n| &&
-             `          removedTokens.push({` && |\n| &&
-             `            KEY: item.getKey(),` && |\n| &&
-             `            TEXT: item.getText()` && |\n| &&
-             `          });` && |\n| &&
-             `        }` && |\n| &&
-             `        );` && |\n| &&
-             `        this.setProperty("removedTokens", removedTokens);` && |\n| &&
-             `      } else {` && |\n| &&
-             `        let addedTokens = [];` && |\n| &&
-             `        oEvent.mParameters.addedTokens.forEach((item) => {` && |\n| &&
-             `          addedTokens.push({` && |\n| &&
-             `            KEY: item.getKey(),` && |\n| &&
-             `            TEXT: item.getText()` && |\n| &&
-             `          });` && |\n| &&
-             `        }` && |\n| &&
-             `        );` && |\n| &&
-             `        this.setProperty("addedTokens", addedTokens);` && |\n| &&
-             `      }` && |\n| &&
+             `      const prop = oEvent.mParameters.type === "removed" ? "removedTokens" : "addedTokens";` && |\n| &&
+             `      const tokens = oEvent.mParameters[prop].map(item => ({` && |\n| &&
+             `        KEY: item.getKey(),` && |\n| &&
+             `        TEXT: item.getText()` && |\n| &&
+             `      }));` && |\n| &&
+             `      this.setProperty(prop, tokens);` && |\n| &&
              `      this.fireChange();` && |\n| &&
              `    },` && |\n| &&
              `    renderer(oRm, oControl) {` && |\n| &&
              `      z2ui5.onAfterRendering.push(oControl.setControl.bind(oControl));` && |\n| &&
-             |\n|.
-    result = result &&
              `    },` && |\n| &&
              `    setControl() {` && |\n| &&
              `      let table = z2ui5.oView.byId(this.getProperty("MultiInputId"));` && |\n| &&
@@ -838,6 +820,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      if (this.getProperty("checkInit") == true) {` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
+             |\n|.
+    result = result &&
              `      this.setProperty("checkInit", true);` && |\n| &&
              `      table.attachTokenUpdate(this.onTokenUpdate.bind(this));` && |\n| &&
              `      var fnValidator = function (args) {` && |\n| &&
@@ -892,28 +876,12 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    onTokenUpdate(oEvent) {` && |\n| &&
              `      this.setProperty("addedTokens", []);` && |\n| &&
              `      this.setProperty("removedTokens", []);` && |\n| &&
-             `` && |\n| &&
-             `      if (oEvent.mParameters.type == "removed") {` && |\n| &&
-             `        let removedTokens = [];` && |\n| &&
-             `        oEvent.mParameters.removedTokens.forEach((item) => {` && |\n| &&
-             `          removedTokens.push({` && |\n| &&
-             `            KEY: item.getKey(),` && |\n| &&
-             `            TEXT: item.getText()` && |\n| &&
-             `          });` && |\n| &&
-             `        }` && |\n| &&
-             `        );` && |\n| &&
-             `        this.setProperty("removedTokens", removedTokens);` && |\n| &&
-             `      } else {` && |\n| &&
-             `        let addedTokens = [];` && |\n| &&
-             `        oEvent.mParameters.addedTokens.forEach((item) => {` && |\n| &&
-             `          addedTokens.push({` && |\n| &&
-             `            KEY: item.getKey(),` && |\n| &&
-             `            TEXT: item.getText()` && |\n| &&
-             `          });` && |\n| &&
-             `        }` && |\n| &&
-             `        );` && |\n| &&
-             `        this.setProperty("addedTokens", addedTokens);` && |\n| &&
-             `      }` && |\n| &&
+             `      const prop = oEvent.mParameters.type === "removed" ? "removedTokens" : "addedTokens";` && |\n| &&
+             `      const tokens = oEvent.mParameters[prop].map(item => ({` && |\n| &&
+             `        KEY: item.getKey(),` && |\n| &&
+             `        TEXT: item.getText()` && |\n| &&
+             `      }));` && |\n| &&
+             `      this.setProperty(prop, tokens);` && |\n| &&
              `      const aTokens = oEvent.getSource().getTokens();` && |\n| &&
              `      this.setProperty("rangeData", oEvent.getSource().getRangeData().map((oRangeData, iIndex) => {` && |\n| &&
              `        const oToken = aTokens[iIndex];` && |\n| &&
@@ -1164,118 +1132,101 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        let oTable = z2ui5.oView.byId(id);` && |\n| &&
              `        this.aFilters = oTable.getBinding().aFilters;` && |\n| &&
              `      } catch (e) { }` && |\n| &&
-             `      ;` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    _applyWhenRendered(oTable, fn) {` && |\n| &&
+             `      if (oTable.getDomRef()) {` && |\n| &&
+             `        fn();` && |\n| &&
+             `      } else {` && |\n| &&
+             `        const delegate = {` && |\n| &&
+             `          onAfterRendering: () => {` && |\n| &&
+             `            oTable.removeEventDelegate(delegate);` && |\n| &&
+             `            fn();` && |\n| &&
+             `          }` && |\n| &&
+             `        };` && |\n| &&
+             `        oTable.addEventDelegate(delegate);` && |\n| &&
+             `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    _applyFilters(oTable, aFilters) {` && |\n| &&
              `      oTable.getBinding().filter(aFilters);` && |\n| &&
              `      var opSymbols = {` && |\n| &&
-             `  EQ: "",` && |\n| &&
-             `  NE: "!",` && |\n| &&
-             `  LT: "<",` && |\n| &&
-             `  LE: "<=",` && |\n| &&
-             `  GT: ">",` && |\n| &&
-             `  GE: ">=",` && |\n| &&
-             `  BT: "...",` && |\n| &&
-             `  Contains: "*",` && |\n| &&
-             `  StartsWith: "^",` && |\n| &&
-             `  EndsWith: "$"` && |\n| &&
-             `};` && |\n| &&
+             `        EQ: "", NE: "!", LT: "<", LE: "<=", GT: ">", GE: ">=",` && |\n| &&
+             `        BT: "...", Contains: "*", StartsWith: "^", EndsWith: "$"` && |\n| &&
+             `      };` && |\n| &&
              `` && |\n| &&
-             `aFilters.forEach(function(oFilter) {` && |\n| &&
-             `  var sProperty = oFilter.sPath || oFilter.aFilters?.[0]?.sPath;` && |\n| &&
-             `  if (!sProperty) return;` && |\n| &&
+             `      aFilters.forEach(function(oFilter) {` && |\n| &&
+             `        var sProperty = oFilter.sPath || oFilter.aFilters?.[0]?.sPath;` && |\n| &&
+             `        if (!sProperty) return;` && |\n| &&
              `` && |\n| &&
-             `  oTable.getColumns().forEach(function(oCol) {` && |\n| &&
-             `    if (oCol.getFilterProperty && oCol.getFilterProperty() === sProperty) {` && |\n| &&
-             `      var operator = oFilter.sOperator;` && |\n| &&
-             `      var vValue = oFilter.oValue1 !== undefined ? oFilter.oValue1 : oFilter.oValue2;` && |\n| &&
+             `        oTable.getColumns().forEach(function(oCol) {` && |\n| &&
+             `          if (oCol.getFilterProperty && oCol.getFilterProperty() === sProperty) {` && |\n| &&
+             `            var operator = oFilter.sOperator;` && |\n| &&
+             `            var vValue = oFilter.oValue1 !== undefined ? oFilter.oValue1 : oFilter.oValue2;` && |\n| &&
              `` && |\n| &&
-             `      if (vValue === undefined && oFilter.aFilters && oFilter.aFilters[0].oValue1 !== undefined) {` && |\n| &&
-             `        vValue = oFilter.aFilters[0].oValue1;` && |\n| &&
-             `      }` && |\n| &&
+             `            if (vValue === undefined && oFilter.aFilters && oFilter.aFilters[0].oValue1 !== undefined) {` && |\n| &&
+             `              vValue = oFilter.aFilters[0].oValue1;` && |\n| &&
+             `            }` && |\n| &&
              `` && |\n| &&
-             `      var display;` && |\n| &&
-             `      if (operator === "BT") {` && |\n| &&
-             `        var vValue2 = oFilter.oValue2 !== undefined ? oFilter.oValue2 : "";` && |\n| &&
-             `        display = (vValue != null ? vValue : "") + opSymbols["BT"] + (vValue2 != null ? vValue2 : "");` && |\n| &&
-             `      } else if (operator === "Contains") {` && |\n| &&
-             `        display = "*" + (vValue != null ? vValue : "") + "*";` && |\n| &&
-             `      } else if (operator === "StartsWith") {` && |\n| &&
-             `        display = "^" + (vValue != null ? vValue : "");` && |\n| &&
-             `      } else if (operator === "EndsWith") {` && |\n| &&
-             `        display = (vValue != null ? vValue : "") + "$";` && |\n| &&
-             `      } else {` && |\n| &&
-             `        display = (opSymbols[operator] || "") + (vValue != null ? vValue : "");` && |\n| &&
-             `      }` && |\n| &&
+             `            var display;` && |\n| &&
+             `            if (operator === "BT") {` && |\n| &&
+             `              var vValue2 = oFilter.oValue2 !== undefined ? oFilter.oValue2 : "";` && |\n| &&
+             `              display = (vValue != null ? vValue : "") + opSymbols["BT"] + (vValue2 != null ? vValue2 : "");` && |\n| &&
+             `            } else if (operator === "Contains") {` && |\n| &&
+             `              display = "*" + (vValue != null ? vValue : "") + "*";` && |\n| &&
+             `            } else if (operator === "StartsWith") {` && |\n| &&
+             `              display = "^" + (vValue != null ? vValue : "");` && |\n| &&
+             `            } else if (operator === "EndsWith") {` && |\n| &&
+             `              display = (vValue != null ? vValue : "") + "$";` && |\n| &&
+             `            } else {` && |\n| &&
+             `              display = (opSymbols[operator] || "") + (vValue != null ? vValue : "");` && |\n| &&
+             `            }` && |\n| &&
              `` && |\n| &&
-             `      oCol.setFilterValue(display);` && |\n| &&
-             `      oCol.setFiltered(!!display);` && |\n| &&
-             `    }` && |\n| &&
-             `  });` && |\n| &&
-             `});` && |\n| &&
+             `            oCol.setFilterValue(display);` && |\n| &&
+             `            oCol.setFiltered(!!display);` && |\n| &&
+             `          }` && |\n| &&
+             `        });` && |\n| &&
+             `      });` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    setFilter() {` && |\n| &&
              `      try {` && |\n| &&
-             `        const aFilters = this.aFilters;` && |\n| &&
              `        let oTable = z2ui5.oView.byId(this.getProperty("tableId"));` && |\n| &&
              `        if (!oTable) return;` && |\n| &&
-             `        if (oTable.getDomRef()) {` && |\n| &&
+             `        this._applyWhenRendered(oTable, () => this._applyFilters(oTable, this.aFilters));` && |\n| &&
+             `      } catch (e) { }` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    readSort() {` && |\n| &&
+             `      try {` && |\n| &&
+             `        let id = this.getProperty("tableId");` && |\n| &&
+             `        let oTable = z2ui5.oView.byId(id);` && |\n| &&
+             `        this.aSorters = oTable.getBinding().aSorters;` && |\n| &&
+             `      } catch (e) {}` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    _applySorters(oTable, aSorters) {` && |\n| &&
+             `      oTable.getBinding().sort(aSorters);` && |\n| &&
+             `      aSorters.forEach(function(srt, idx) {` && |\n| &&
+             `        oTable.getColumns().forEach(function(oCol) {` && |\n| &&
+             `          if (oCol.getSortProperty && oCol.getSortProperty() === srt.sPath) {` && |\n| &&
+             `            oCol.setSorted(true);` && |\n| &&
+             `            oCol.setSortOrder(srt.bDescending ? "Descending" : "Ascending");` && |\n| &&
+             `            if (oCol.setSortIndex) oCol.setSortIndex(idx);` && |\n| &&
+             `          }` && |\n| &&
+             `        });` && |\n| &&
+             `      });` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    setSort() {` && |\n| &&
+             `      try {` && |\n| &&
+             `        let oTable = z2ui5.oView.byId(this.getProperty("tableId"));` && |\n| &&
+             `        if (!oTable) return;` && |\n| &&
              |\n|.
     result = result &&
-             `          this._applyFilters(oTable, aFilters);` && |\n| &&
-             `        } else {` && |\n| &&
-             `          const delegate = {` && |\n| &&
-             `            onAfterRendering: () => {` && |\n| &&
-             `              oTable.removeEventDelegate(delegate);` && |\n| &&
-             `              this._applyFilters(oTable, aFilters);` && |\n| &&
-             `            }` && |\n| &&
-             `          };` && |\n| &&
-             `          oTable.addEventDelegate(delegate);` && |\n| &&
-             `        }` && |\n| &&
-             `      } catch (e) { }` && |\n| &&
-             `      ;` && |\n| &&
+             `        this._applyWhenRendered(oTable, () => this._applySorters(oTable, this.aSorters));` && |\n| &&
+             `      } catch (e) {}` && |\n| &&
              `    },` && |\n| &&
-             `readSort() {` && |\n| &&
-             `  try {` && |\n| &&
-             `    let id = this.getProperty("tableId");` && |\n| &&
-             `    let oTable = z2ui5.oView.byId(id);` && |\n| &&
-             `    this.aSorters = oTable.getBinding().aSorters;` && |\n| &&
-             `  } catch (e) {}` && |\n| &&
-             `},` && |\n| &&
-             `` && |\n| &&
-             `_applySorters(oTable, aSorters) {` && |\n| &&
-             `  oTable.getBinding().sort(aSorters);` && |\n| &&
-             `  aSorters.forEach(function(srt, idx) {` && |\n| &&
-             `    oTable.getColumns().forEach(function(oCol) {` && |\n| &&
-             `      if (oCol.getSortProperty && oCol.getSortProperty() === srt.sPath) {` && |\n| &&
-             `        oCol.setSorted(true);` && |\n| &&
-             `        oCol.setSortOrder(srt.bDescending ? "Descending" : "Ascending");` && |\n| &&
-             `        if (oCol.setSortIndex) oCol.setSortIndex(idx);` && |\n| &&
-             `      }` && |\n| &&
-             `    });` && |\n| &&
-             `  });` && |\n| &&
-             `},` && |\n| &&
-             `` && |\n| &&
-             `setSort() {` && |\n| &&
-             `  try {` && |\n| &&
-             `    const aSorters = this.aSorters;` && |\n| &&
-             `    let oTable = z2ui5.oView.byId(this.getProperty("tableId"));` && |\n| &&
-             `    if (!oTable) return;` && |\n| &&
-             `    if (oTable.getDomRef()) {` && |\n| &&
-             `      this._applySorters(oTable, aSorters);` && |\n| &&
-             `    } else {` && |\n| &&
-             `      const delegate = {` && |\n| &&
-             `        onAfterRendering: () => {` && |\n| &&
-             `          oTable.removeEventDelegate(delegate);` && |\n| &&
-             `          this._applySorters(oTable, aSorters);` && |\n| &&
-             `        }` && |\n| &&
-             `      };` && |\n| &&
-             `      oTable.addEventDelegate(delegate);` && |\n| &&
-             `    }` && |\n| &&
-             `  } catch (e) {}` && |\n| &&
-             `},` && |\n| &&
              `    renderer(oRM, oControl) { }` && |\n| &&
              `  });` && |\n| &&
              `}` && |\n| &&

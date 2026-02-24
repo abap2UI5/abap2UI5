@@ -78,13 +78,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `                delete z2ui5.oBody?.VIEWNAME;` && |\n| &&
              `                delete z2ui5.oBody?.S_FRONT.XX;` && |\n| &&
              `                delete z2ui5.oBody?.ARGUMENTS;` && |\n| &&
-             `                if (!z2ui5.oBody.S_FRONT.T_EVENT_ARG) {` && |\n| &&
+             `                if (!z2ui5.oBody.S_FRONT.T_EVENT_ARG || z2ui5.oBody.S_FRONT.T_EVENT_ARG.length === 0) {` && |\n| &&
              `                    delete z2ui5.oBody.S_FRONT.T_EVENT_ARG;` && |\n| &&
-             `                }` && |\n| &&
-             `                if (z2ui5.oBody.S_FRONT.T_EVENT_ARG) {` && |\n| &&
-             `                    if (z2ui5.oBody.S_FRONT.T_EVENT_ARG.length == 0) {` && |\n| &&
-             `                        delete z2ui5.oBody.S_FRONT.T_EVENT_ARG;` && |\n| &&
-             `                    }` && |\n| &&
              `                }` && |\n| &&
              `                if (z2ui5.oBody.S_FRONT.T_STARTUP_PARAMETERS == undefined) {` && |\n| &&
              `                    delete z2ui5.oBody.S_FRONT.T_STARTUP_PARAMETERS;` && |\n| &&
@@ -129,7 +124,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `                    if (z2ui5.oResponse.PARAMS?.S_VIEW?.CHECK_DESTROY) {` && |\n| &&
              `                        z2ui5.oController.ViewDestroy();` && |\n| &&
              `                    }` && |\n| &&
-             `                    ; if (z2ui5.oResponse.PARAMS?.S_FOLLOW_UP_ACTION?.CUSTOM_JS) {` && |\n| &&
+             `                    if (z2ui5.oResponse.PARAMS?.S_FOLLOW_UP_ACTION?.CUSTOM_JS) {` && |\n| &&
              `                        Promise.resolve().then(() => {` && |\n| &&
              `                            for ( let i = 0; i < z2ui5.oResponse?.PARAMS.S_FOLLOW_UP_ACTION.CUSTOM_JS.length ; i++ ){` && |\n| &&
              `                            let mParams = z2ui5.oResponse?.PARAMS.S_FOLLOW_UP_ACTION.CUSTOM_JS[i].split("'");` && |\n| &&
