@@ -273,7 +273,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          defaultValue: true` && |\n| &&
              `        },` && |\n| &&
              `        items: {` && |\n| &&
-             `          type: "Array"` && |\n| &&
+             `          type: "object"` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
@@ -729,14 +729,14 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          type: "String"` && |\n| &&
              `        },` && |\n| &&
              `        addedTokens: {` && |\n| &&
-             `          type: "Array"` && |\n| &&
+             `          type: "object"` && |\n| &&
              `        },` && |\n| &&
              `        checkInit: {` && |\n| &&
              `          type: "Boolean",` && |\n| &&
              `          defaultValue: false` && |\n| &&
              `        },` && |\n| &&
              `        removedTokens: {` && |\n| &&
-             `          type: "Array"` && |\n| &&
+             `          type: "object"` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `      events: {` && |\n| &&
@@ -806,8 +806,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        });` && |\n| &&
              `      };` && |\n| &&
              `      table.addValidator(fnValidator);` && |\n| &&
-             `    },` && |\n| &&
-             `    renderer(oRM, oControl) { }` && |\n| &&
+             `    }` && |\n| &&
              `  });` && |\n| &&
              `}` && |\n| &&
              `);` && |\n| &&
@@ -820,17 +819,17 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      properties: {` && |\n| &&
              `        multiInputId: {` && |\n| &&
              `          type: "String"` && |\n| &&
+             `        },` && |\n| &&
              |\n|.
     result = result &&
-             `        },` && |\n| &&
              `        addedTokens: {` && |\n| &&
-             `          type: "Array"` && |\n| &&
+             `          type: "object"` && |\n| &&
              `        },` && |\n| &&
              `        removedTokens: {` && |\n| &&
-             `          type: "Array"` && |\n| &&
+             `          type: "object"` && |\n| &&
              `        },` && |\n| &&
              `        rangeData: {` && |\n| &&
-             `          type: "Array",` && |\n| &&
+             `          type: "object",` && |\n| &&
              `          defaultValue: []` && |\n| &&
              `        },` && |\n| &&
              `        checkInit: {` && |\n| &&
@@ -981,7 +980,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      var resultb64 = "";` && |\n| &&
              `      canvas.width = parseInt( this.getProperty("width") );` && |\n| &&
              `      canvas.height = parseInt( this.getProperty("height") );` && |\n| &&
-             `      canvas.getContext('2d').drawImage(video, 0, 0, 200, 200);` && |\n| &&
+             `      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);` && |\n| &&
              `      resultb64 = canvas.toDataURL();` && |\n| &&
              `      this.setProperty("value", resultb64);` && |\n| &&
              `      this.fireOnPhoto({` && |\n| &&
@@ -1222,9 +1221,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `  "use strict";` && |\n| &&
              `  return {` && |\n| &&
              `    DateCreateObject: (s) => new Date(s),` && |\n| &&
+             `    //  DateAbapTimestampToDate: (sTimestamp) => new sap.gantt.misc.Format.abapTimestampToDate(sTimestamp), commented for UI5 2.x compatibility` && |\n| &&
              |\n|.
     result = result &&
-             `    //  DateAbapTimestampToDate: (sTimestamp) => new sap.gantt.misc.Format.abapTimestampToDate(sTimestamp), commented for UI5 2.x compatibility` && |\n| &&
              `    DateAbapDateToDateObject: (d) => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8)),` && |\n| &&
              `    DateAbapDateTimeToDateObject: (d, t = '000000') => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8), t.slice(0, 2), t.slice(2, 4), t.slice(4, 6)),` && |\n| &&
              `  };` && |\n| &&

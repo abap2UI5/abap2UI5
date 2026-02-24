@@ -44,12 +44,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                }, this);` && |\n| &&
              `` && |\n| &&
              `            },` && |\n| &&
-             `            async onAfterRendering() {` && |\n| &&
+             `            onAfterRendering() {` && |\n| &&
              `` && |\n| &&
              `                if (!z2ui5.oResponse) {` && |\n| &&
              `                    return;` && |\n| &&
              `                }` && |\n| &&
              `` && |\n| &&
+             `                (async () => {` && |\n| &&
              `                try {` && |\n| &&
              `                    if (!z2ui5.oResponse.PARAMS) {` && |\n| &&
              `                        BusyIndicator.hide();` && |\n| &&
@@ -141,6 +142,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        }` && |\n| &&
              `                    })` && |\n| &&
              `                }` && |\n| &&
+             `                })();` && |\n| &&
              `            },` && |\n| &&
              `            _buildDeltaFromPaths(paths, xx) {` && |\n| &&
              `                let delta = {};` && |\n| &&
@@ -416,10 +418,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        var a = document.createElement("a");` && |\n| &&
              `                        a.href = args[1];` && |\n| &&
              `                        a.download = args[2];` && |\n| &&
-             `                        a.click();` && |\n| &&
-             `                        break;` && |\n| &&
              |\n|.
     result = result &&
+             `                        a.click();` && |\n| &&
+             `                        break;` && |\n| &&
              `                    case 'CROSS_APP_NAV_TO_PREV_APP':` && |\n| &&
              `                        sap.ui.require([` && |\n| &&
              `                            "sap/ushell/Container"` && |\n| &&
@@ -679,7 +681,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                            details: params[msgType].DETAILS ? params[msgType].DETAILS : '',` && |\n| &&
              `                            closeOnNavigation: params[msgType].CLOSEONNAVIGATION ? true : false` && |\n| &&
              `                        };` && |\n| &&
-             `                        if (oParams.icon = 'None') { delete oParams.icon };` && |\n| &&
+             `                        if (oParams.icon === 'None') { delete oParams.icon };` && |\n| &&
              `                        MessageBox[params[msgType].TYPE](params[msgType].TEXT, oParams);` && |\n| &&
              `                    }` && |\n| &&
              `                }` && |\n| &&
