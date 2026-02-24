@@ -5,6 +5,67 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
     function (Controller, XMLView, JSONModel, BusyIndicator, MessageBox, MessageToast, Fragment, mBusyDialog, VersionInfo,
         Server, ODataModel, mobileLibrary, HashChanger, Storage) {
         "use strict";
+
+        function runCallbacks(arr, ...args) {
+            arr.forEach(fn => { if (fn !== undefined) fn(...args); });
+        }
+
+        function isValidRedirectURL(url) {
+            if (!url) return false;
+            try {
+                const parsed = new URL(url, window.location.origin);
+                if (parsed.origin !== window.location.origin) {
+                    console.error('Security: Blocked redirect to different origin:', url);
+                    return false;
+                }
+                if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+                    console.error('Security: Blocked redirect with invalid protocol:', parsed.protocol);
+                    return false;
+                }
+                return true;
+            } catch (e) {
+                console.error('Security: Invalid URL format:', url, e);
+                return false;
+            }
+        }
+
+        function copyToClipboard(textToCopy) {
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+                navigator.clipboard.writeText(textToCopy)
+                    .then(() => { })
+                    .catch(err => { });
+            } else {
+                const tempTextArea = document.createElement("textarea");
+                tempTextArea.value = textToCopy;
+                document.body.appendChild(tempTextArea);
+                tempTextArea.select();
+                try {
+                    document.execCommand("copy");
+                } catch (err) { }
+                document.body.removeChild(tempTextArea);
+            }
+        }
+
+        function withCrossAppNavigator(callback) {
+            sap.ui.require([
+                "sap/ushell/Container"
+            ], async (ushellContainer) => {
+                if (ushellContainer) {
+                    z2ui5.oCrossAppNavigator = ushellContainer.getService("CrossApplicationNavigation");
+                } else {
+                    // fallback needed for UI5 version < 1.120
+                    z2ui5.oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");
+                }
+                callback(z2ui5.oCrossAppNavigator);
+            });
+        }
+
+        function navigateContainer(lookup, args) {
+            const navCon = lookup(args[1]);
+            const navConTo = lookup(args[2]);
+            navCon.to(navConTo);
+        }
+
         return Controller.extend("z2ui5.controller.View1", {
 
             _trackChanges(oModel) {
@@ -51,14 +112,14 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     if (!z2ui5.checkNestAfter) {
                         if (S_VIEW_NEST?.XML) {
                             z2ui5.oController.NestViewDestroy();
-                            await this.displayNestedView(S_VIEW_NEST.XML, 'oViewNest', 'S_VIEW_NEST');
+                            await this.displayNestedView(S_VIEW_NEST.XML, 'oViewNest', 'S_VIEW_NEST', z2ui5.oControllerNest);
                             z2ui5.checkNestAfter = true;
                         }
                     }
                     if (!z2ui5.checkNestAfter2) {
                         if (S_VIEW_NEST2?.XML) {
                             z2ui5.oController.NestViewDestroy2();
-                            await this.displayNestedView2(S_VIEW_NEST2.XML, 'oViewNest2', 'S_VIEW_NEST2');
+                            await this.displayNestedView(S_VIEW_NEST2.XML, 'oViewNest2', 'S_VIEW_NEST2', z2ui5.oControllerNest2);
                             z2ui5.checkNestAfter2 = true;
                         }
                     }
@@ -66,11 +127,13 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         await this.displayPopover(S_POPOVER.XML, 'oViewPopover', S_POPOVER.OPEN_BY_ID);
                     }
 
-                   if (z2ui5.oView) {    var oState = JSON.parse(JSON.stringify({ view: z2ui5.oView.mProperties.viewContent, model: z2ui5.oView.getModel().getData(), response: z2ui5.oResponse })); }else{ oState = {}; }
+                   var oState;
+                   if (z2ui5.oView) {
+                       oState = JSON.parse(JSON.stringify({ view: z2ui5.oView.mProperties.viewContent, model: z2ui5.oView.getModel().getData(), response: z2ui5.oResponse }));
+                   } else {
+                       oState = {};
+                   }
                    if (SET_PUSH_STATE) {
-                     // sap.ui.core.routing.HashChanger.getInstance().setHash("423143124");
-                     // sap.ui.core.routing.HashChanger.getInstance().replaceHash("423143124");
-                      //history.go(-1);
                         let urlObj = new URL(window.location.href);
                         let hash = HashChanger.getInstance().getHash();
                         if (!hash){
@@ -78,34 +141,20 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         }
                         history.pushState(oState, "", urlObj.pathname + urlObj.search + hash + SET_PUSH_STATE);
                      }else{
-                     //  debugger;
                         history.replaceState(oState, "", window.location.href );
                     }
 
                     if (SET_APP_STATE_ACTIVE) {
                       HashChanger.getInstance().replaceHash("z2ui5-xapp-state=" + z2ui5.oResponse.ID );
-                      //  let urlObj = new URL(window.location.href);
-                      //  urlObj.searchParams.set("z2ui5-xapp-state", z2ui5.oResponse.ID);
-                      //  history.replaceState(oState, null, urlObj.pathname + urlObj.search + urlObj.hash);
                     } else {
                        HashChanger.getInstance().replaceHash("");
-                      //  let urlObj = new URL(window.location.href);
-                      //  urlObj.searchParams.delete("z2ui5-xapp-state");
-                      //  history.replaceState(oState, null, urlObj.pathname + urlObj.search + urlObj.hash);
                     }
-
-
 
                     if (SET_NAV_BACK) {
                         history.back();
                     }
 
-                    z2ui5.onAfterRendering.forEach(item => {
-                        if (item !== undefined) {
-                            item();
-                        }
-                    }
-                    )
+                    runCallbacks(z2ui5.onAfterRendering);
 
                     BusyIndicator.hide();
                     z2ui5.isBusy = false;
@@ -169,32 +218,21 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     oFragment.setModel(oview_model);
                     z2ui5[viewProp] = oFragment;
                     z2ui5[viewProp].Fragment = Fragment;
-                    let oControl = {};
-                    if (z2ui5.oView?.byId(openById)) {
-                        oControl = z2ui5.oView.byId(openById);
-                    } else if (z2ui5.oViewPopup?.Fragment.byId('popupId', openById)) {
-                        oControl = z2ui5.oViewPopup.Fragment.byId('popupId', openById);
-                    } else if (z2ui5.oViewNest?.byId(openById)) {
-                        oControl = z2ui5.oViewNest.byId(openById);
-                    } else if (z2ui5.oViewNest2?.byId(openById)) {
-                        oControl = z2ui5.oViewNest2.byId(openById);
-                    } else {
-                        if (Element.getElementById(openById)) {
-                            oControl = Element.getElementById(openById);
-                        } else {
-                            oControl = null;
-                        }
-                        ;
-                    }
+                    let oControl = z2ui5.oView?.byId(openById)
+                        || z2ui5.oViewPopup?.Fragment.byId('popupId', openById)
+                        || z2ui5.oViewNest?.byId(openById)
+                        || z2ui5.oViewNest2?.byId(openById)
+                        || Element.getElementById(openById)
+                        || null;
                     oFragment.openBy(oControl);
                 });
             },
-            async displayNestedView(xml, viewProp, viewNestId) {
+            async displayNestedView(xml, viewProp, viewNestId, controller) {
                 let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);
                 this._trackChanges(oview_model);
                 const oView = await XMLView.create({
                     definition: xml,
-                    controller: z2ui5.oControllerNest,
+                    controller: controller,
                     preprocessors: {
                         xml: {
                             models: {
@@ -213,132 +251,39 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 }
                 z2ui5[viewProp] = oView;
             },
-            async displayNestedView2(xml, viewProp, viewNestId) {
-                let oview_model = new JSONModel(z2ui5.oResponse.OVIEWMODEL);
-                this._trackChanges(oview_model);
-                const oView = await XMLView.create({
-                    definition: xml,
-                    controller: z2ui5.oControllerNest2,
-                    preprocessors: {
-                        xml: {
-                            models: {
-                                template: oview_model
-                            }
-                        }
-                    }
-                });
-                oView.setModel(oview_model);
-                let oParent = z2ui5.oView.byId(z2ui5.oResponse.PARAMS[viewNestId].ID);
-                if (oParent) {
-                    try {
-                        oParent[z2ui5.oResponse.PARAMS[viewNestId].METHOD_DESTROY]();
-                    } catch { }
-                    oParent[z2ui5.oResponse.PARAMS[viewNestId].METHOD_INSERT](oView);
+            _destroyView(prop, tryClose) {
+                const view = z2ui5[prop];
+                if (!view) return;
+                if (tryClose && view.close) {
+                    try { view.close(); } catch { }
                 }
-                z2ui5[viewProp] = oView;
+                view.destroy();
             },
-            PopupDestroy() {
-                if (!z2ui5.oViewPopup) {
-                    return;
-                }
-                if (z2ui5.oViewPopup.close) {
-                    try {
-                        z2ui5.oViewPopup.close();
-                    } catch { }
-                }
-                z2ui5.oViewPopup.destroy();
-            },
-            PopoverDestroy() {
-                if (!z2ui5.oViewPopover) {
-                    return;
-                }
-                if (z2ui5.oViewPopover.close) {
-                    try {
-                        z2ui5.oViewPopover.close();
-                    } catch { }
-                }
-                z2ui5.oViewPopover.destroy();
-            },
-            NestViewDestroy() {
-                if (!z2ui5.oViewNest) {
-                    return;
-                }
-                z2ui5.oViewNest.destroy();
-            },
-            NestViewDestroy2() {
-                if (!z2ui5.oViewNest2) {
-                    return;
-                }
-                z2ui5.oViewNest2.destroy();
-            },
-            ViewDestroy() {
-                if (!z2ui5.oView) {
-                    return;
-                }
-                z2ui5.oView.destroy();
-            },
+            PopupDestroy() { this._destroyView('oViewPopup', true); },
+            PopoverDestroy() { this._destroyView('oViewPopover', true); },
+            NestViewDestroy() { this._destroyView('oViewNest'); },
+            NestViewDestroy2() { this._destroyView('oViewNest2'); },
+            ViewDestroy() { this._destroyView('oView'); },
             eF(...args) {
 
-                z2ui5.onBeforeEventFrontend.forEach(item => {
-                    if (item !== undefined) {
-                        item(args);
-                    }
-                }
-                )
+                runCallbacks(z2ui5.onBeforeEventFrontend, args);
 
-                // Security: URL validation function to prevent open redirect attacks
-                function isValidRedirectURL(url) {
-                    if (!url) return false;
-
-                    try {
-                        // Parse URL relative to current origin
-                        const parsed = new URL(url, window.location.origin);
-
-                        // Only allow same-origin URLs (relative or absolute to same domain)
-                        if (parsed.origin !== window.location.origin) {
-                            console.error('Security: Blocked redirect to different origin:', url);
-                            return false;
-                        }
-
-                        // Block dangerous protocols
-                        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-                            console.error('Security: Blocked redirect with invalid protocol:', parsed.protocol);
-                            return false;
-                        }
-
-                        return true;
-                    } catch (e) {
-                        console.error('Security: Invalid URL format:', url, e);
-                        return false;
-                    }
-                }
-
-                let oCrossAppNavigator;
                 switch (args[0]) {
-                    case 'SET_SIZE_LIMIT':
-                        switch (args[2]) {
-                            case 'MAIN':
-                                z2ui5.oView.getModel().setSizeLimit(parseInt(args[1]));
-                                z2ui5.oView.getModel().refresh(true);
-                                break;
-                            case 'NEST':
-                                z2ui5.oViewNest.getModel().setSizeLimit(parseInt(args[1]));
-                                z2ui5.oViewNest.getModel().refresh(true);
-                                break;
-                            case 'NEST2':
-                                z2ui5.oViewNest2.getModel().setSizeLimit(parseInt(args[1]));
-                                z2ui5.oViewNest2.getModel().refresh(true);
-                                break;
-                            case 'POPUP':
-                                z2ui5.oPopup.getModel().setSizeLimit(parseInt(args[1]));
-                                z2ui5.oPopup.getModel().refresh(true);
-                                break;
-                            case 'POPOVER':
-                                z2ui5.oPopover.getModel().setSizeLimit(parseInt(args[1]));
-                                z2ui5.oPopover.getModel().refresh(true);
-                                break;
+                    case 'SET_SIZE_LIMIT': {
+                        const viewMap = {
+                            'MAIN': z2ui5.oView,
+                            'NEST': z2ui5.oViewNest,
+                            'NEST2': z2ui5.oViewNest2,
+                            'POPUP': z2ui5.oPopup,
+                            'POPOVER': z2ui5.oPopover,
+                        };
+                        const target = viewMap[args[2]];
+                        if (target) {
+                            target.getModel().setSizeLimit(parseInt(args[1]));
+                            target.getModel().refresh(true);
                         }
                         break;
+                    }
                     case 'HISTORY_BACK':
                         history.back();
                         break;
@@ -346,37 +291,13 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         copyToClipboard( args[1] );
                         break;
                     case 'CLIPBOARD_APP_STATE':
-                            function copyToClipboard(textToCopy) {
-                                if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
-                                    navigator.clipboard.writeText(textToCopy)
-                                        .then(() => {
-                                          
-                                        })
-                                        .catch(err => {
-                                        
-                                        });
-                                } else {
-                                    const tempTextArea = document.createElement("textarea");
-                                    tempTextArea.value = textToCopy;
-                                    document.body.appendChild(tempTextArea);
-                            
-                                    tempTextArea.select();
-                                    try {
-                                        document.execCommand("copy");
-                                      
-                                    } catch (err) {
-                                      
-                                    }
-                                    document.body.removeChild(tempTextArea);
-                                }
-                            }
-                                                    copyToClipboard(window.location.href + '#/z2ui5-xapp-state=' + z2ui5.oResponse.ID );
-                                                    break;
+                        copyToClipboard(window.location.href + '#/z2ui5-xapp-state=' + z2ui5.oResponse.ID );
+                        break;
                     case 'SET_ODATA_MODEL':
                         var oModel = new ODataModel({ serviceUrl: args[1], annotationURI: (args.length > 3 ? args[3] : '') });
                         z2ui5.oView.setModel(oModel, args[2] ? args[2] : undefined);
                         break;
-                    case 'STORE_DATA':
+                    case 'STORE_DATA': {
                         let storageParams = args[1];
                         let storageType = Storage.Type.session;
                         switch (storageParams.TYPE) {
@@ -393,7 +314,8 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         } else {
                             oStorage.put(storageParams.KEY, storageParams.VALUE);
                         }
-                        break;                        
+                        break;
+                    }
                     case 'DOWNLOAD_B64_FILE':
                         var a = document.createElement("a");
                         a.href = args[1];
@@ -401,32 +323,12 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         a.click();
                         break;
                     case 'CROSS_APP_NAV_TO_PREV_APP':
-                        sap.ui.require([
-                            "sap/ushell/Container"
-                        ], async (ushellContainer) => {
-                            // z2ui5.oCrossAppNavigator = await ushellContainer.getServiceAsync("CrossApplicationNavigation");
-                            if (ushellContainer){
-                                z2ui5.oCrossAppNavigator = ushellContainer.getService("CrossApplicationNavigation");
-                            } else {
-                                // fallback needed for UI5 version < 1.120
-                                z2ui5.oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");
-                            }
-                            z2ui5.oCrossAppNavigator.backToPreviousApp();
-                        });
+                        withCrossAppNavigator(nav => nav.backToPreviousApp());
                         break;
                     case 'CROSS_APP_NAV_TO_EXT':
                         z2ui5.args = args;
-                        sap.ui.require([
-                            "sap/ushell/Container"
-                        ], async (ushellContainer) => {
-                            // z2ui5.oCrossAppNavigator = await ushellContainer.getServiceAsync("CrossApplicationNavigation");
-                            if (ushellContainer){
-                                z2ui5.oCrossAppNavigator = ushellContainer.getService("CrossApplicationNavigation");
-                            } else {
-                                // fallback needed for UI5 version < 1.120
-                                z2ui5.oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");
-                            }
-                            const hash = (z2ui5.oCrossAppNavigator.hrefForExternal({
+                        withCrossAppNavigator(nav => {
+                            const hash = (nav.hrefForExternal({
                                 target: z2ui5.args[1],
                                 params: z2ui5.args[2]
                             })) || "";
@@ -434,7 +336,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                                 let url = window.location.href.split('#')[0] + hash;
                                 sap.m.URLHelper.redirect(url, true);
                             } else {
-                                z2ui5.oCrossAppNavigator.toExternal({
+                                nav.toExternal({
                                     target: {
                                         shellHash: hash
                                     }
@@ -443,7 +345,6 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         });
                         break;
                     case 'LOCATION_RELOAD':
-                        // Security: Validate URL before redirect
                         if (isValidRedirectURL(args[1])) {
                             window.location = args[1];
                         } else {
@@ -451,10 +352,8 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         }
                         break;
                     case 'OPEN_NEW_TAB':
-                        // Security: Validate URL before opening new tab
                         if (isValidRedirectURL(args[1])) {
                             const newWindow = window.open(args[1], '_blank');
-                            // Security: Prevent window.opener exploit
                             if (newWindow) {
                                 newWindow.opener = null;
                             }
@@ -469,31 +368,21 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         z2ui5.oController.PopoverDestroy();
                         break;
                     case 'NAV_CONTAINER_TO':
-                        var navCon = z2ui5.oView.byId(args[1]);
-                        var navConTo = z2ui5.oView.byId(args[2]);
-                        navCon.to(navConTo);
+                        navigateContainer(id => z2ui5.oView.byId(id), args);
                         break;
                     case 'NEST_NAV_CONTAINER_TO':
-                        navCon = z2ui5.oViewNest.byId(args[1]);
-                        navConTo = z2ui5.oViewNest.byId(args[2]);
-                        navCon.to(navConTo);
+                        navigateContainer(id => z2ui5.oViewNest.byId(id), args);
                         break;
                     case 'NEST2_NAV_CONTAINER_TO':
-                        navCon = z2ui5.oViewNest2.byId(args[1]);
-                        navConTo = z2ui5.oViewNest2.byId(args[2]);
-                        navCon.to(navConTo);
+                        navigateContainer(id => z2ui5.oViewNest2.byId(id), args);
                         break;
                     case 'POPUP_NAV_CONTAINER_TO':
-                        navCon = Fragment.byId("popupId", args[1]);
-                        navConTo = Fragment.byId("popupId", args[2]);
-                        navCon.to(navConTo);
+                        navigateContainer(id => Fragment.byId("popupId", id), args);
                         break;
                     case 'POPOVER_NAV_CONTAINER_TO':
-                        navCon = Fragment.byId("popoverId", args[1]);
-                        navConTo = Fragment.byId("popoverId", args[2]);
-                        navCon.to(navConTo);
+                        navigateContainer(id => Fragment.byId("popoverId", id), args);
                         break;
-                    case 'URLHELPER':
+                    case 'URLHELPER': {
                         var URLHelper = mobileLibrary.URLHelper;
                         var params = args[2];
                         switch (args[1]) {
@@ -511,10 +400,11 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                                 break;
                         }
                         break;
-                    case 'IMAGE_EDITOR_POPUP_CLOSE':            
+                    }
+                    case 'IMAGE_EDITOR_POPUP_CLOSE':
                         const image = sap.ui.core.Fragment.byId("popupId", "imageEditor").getImagePngDataURL();
                         z2ui5.oController.PopupDestroy();
-                        z2ui5.oController.eB([`SAVE`], image);  
+                        z2ui5.oController.eB([`SAVE`], image);
                         break;
                     case 'Z2UI5':
                         z2ui5[args[1]](args.slice(2));
@@ -563,11 +453,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     oModel = z2ui5.oViewNest2.getModel();
                     z2ui5.oBody.VIEWNAME = 'NEST2';
                 }
-                z2ui5.onBeforeRoundtrip.forEach(item => {
-                    if (item !== undefined) {
-                        item();
-                    }
-                });
+                runCallbacks(z2ui5.onBeforeRoundtrip);
                 if (oModel && z2ui5.xxChangedPaths?.size > 0) {
                     let xx = oModel.getData()?.XX;
                     if (xx) {
@@ -587,12 +473,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 );
                 z2ui5.oResponseOld = z2ui5.oResponse;
                 Server.Roundtrip();
-                z2ui5.onAfterRoundtrip.forEach(item => {
-                    if (item !== undefined) {
-                        item();
-                    }
-                    }
-                    )
+                runCallbacks(z2ui5.onAfterRoundtrip);
 
             },
 
@@ -616,9 +497,8 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         MessageBox.error("openui5 SDK is loaded, module: " + err._modules + " is not availabe in openui5");
                         return;
                     }
-                    ;
                 }
-                ; MessageBox.error(err.toLocaleString());
+                MessageBox.error(err.toLocaleString());
             },
             showMessage(msgType, params) {
                 if (params == undefined) {
@@ -636,13 +516,11 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                             closeonBrowserNavigation: params[msgType].CLOSEONBROWSERNAVIGATION ? true : false
                         });
                         if (params[msgType].CLASS) {
-                            let mtoast = {};
-                            mtoast = document.getElementsByClassName("sapMMessageToast")[0];
+                            let mtoast = document.getElementsByClassName("sapMMessageToast")[0];
                             if (mtoast) {
                                 mtoast.classList.add(params[msgType].CLASS);
                             }
                         }
-                        ;
                     } else if (msgType === 'S_MSG_BOX') {
 
                         let oParams = {

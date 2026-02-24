@@ -58,13 +58,8 @@ sap.ui.define(["sap/ui/core/BusyIndicator", "sap/m/MessageBox"
                 delete z2ui5.oBody?.VIEWNAME;
                 delete z2ui5.oBody?.S_FRONT.XX;
                 delete z2ui5.oBody?.ARGUMENTS;
-                if (!z2ui5.oBody.S_FRONT.T_EVENT_ARG) {
+                if (!z2ui5.oBody.S_FRONT.T_EVENT_ARG || z2ui5.oBody.S_FRONT.T_EVENT_ARG.length === 0) {
                     delete z2ui5.oBody.S_FRONT.T_EVENT_ARG;
-                }
-                if (z2ui5.oBody.S_FRONT.T_EVENT_ARG) {
-                    if (z2ui5.oBody.S_FRONT.T_EVENT_ARG.length == 0) {
-                        delete z2ui5.oBody.S_FRONT.T_EVENT_ARG;
-                    }
                 }
                 if (z2ui5.oBody.S_FRONT.T_STARTUP_PARAMETERS == undefined) {
                     delete z2ui5.oBody.S_FRONT.T_STARTUP_PARAMETERS;
@@ -109,7 +104,7 @@ sap.ui.define(["sap/ui/core/BusyIndicator", "sap/m/MessageBox"
                     if (z2ui5.oResponse.PARAMS?.S_VIEW?.CHECK_DESTROY) {
                         z2ui5.oController.ViewDestroy();
                     }
-                    ; if (z2ui5.oResponse.PARAMS?.S_FOLLOW_UP_ACTION?.CUSTOM_JS) {
+                    if (z2ui5.oResponse.PARAMS?.S_FOLLOW_UP_ACTION?.CUSTOM_JS) {
                         Promise.resolve().then(() => {
                             for ( let i = 0; i < z2ui5.oResponse?.PARAMS.S_FOLLOW_UP_ACTION.CUSTOM_JS.length ; i++ ){
                             let mParams = z2ui5.oResponse?.PARAMS.S_FOLLOW_UP_ACTION.CUSTOM_JS[i].split("'");
