@@ -553,7 +553,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    if (!args[0][2]) {` && |\n| &&
              `                        let oBusyDialog = new mBusyDialog();` && |\n| &&
              `                        oBusyDialog.open();` && |\n| &&
-             `                        requestAnimationFrame(() => {` && |\n| &&
+             `                        Promise.resolve().then(() => {` && |\n| &&
              `                            oBusyDialog.close()` && |\n| &&
              `                        });` && |\n| &&
              `                        return;` && |\n| &&
