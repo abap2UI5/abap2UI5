@@ -262,9 +262,8 @@ sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {
       const items = this.getProperty("items");
       if (!items) return;
 
-      const binding = this.getBinding("items");
-      const model = binding?.getModel();
-      const bindingPath = binding?.getPath();
+      const bindingInfo = this.getBindingInfo("items");
+      const bindingPath = bindingInfo?.parts?.[0]?.path || bindingInfo?.path;
 
       items.forEach((item, index) => {
         let scrollTop = 0;
@@ -278,10 +277,9 @@ sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {
           } catch { }
         }
         if (item.V !== scrollTop) {
-          if (model && bindingPath) {
-            model.setProperty(`${bindingPath}/${index}/V`, scrollTop);
-          } else {
-            item.V = scrollTop;
+          item.V = scrollTop;
+          if (bindingPath && z2ui5.xxChangedPaths) {
+            z2ui5.xxChangedPaths.add(`${bindingPath}/${index}/V`);
           }
         }
       });
