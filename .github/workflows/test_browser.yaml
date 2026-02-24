@@ -17,7 +17,7 @@ jobs:
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
     - name: Run Playwright tests
-      run: cd node && npx playwright test buildDeltaFromPaths.spec.js
+      run: cd node && npx playwright test buildDeltaFromPaths.spec.js --config=playwright-unit.config.js
     - uses: actions/upload-artifact@v4
       if: always()
       with:
