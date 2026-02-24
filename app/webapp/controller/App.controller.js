@@ -253,7 +253,7 @@ sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {
           defaultValue: true
         },
         items: {
-          type: "Array"
+          type: "object"
         }
       }
     },
@@ -707,14 +707,14 @@ sap.ui.define("z2ui5/MultiInputExt", ["sap/ui/core/Control", "sap/m/Token", "sap
           type: "String"
         },
         addedTokens: {
-          type: "Array"
+          type: "object"
         },
         checkInit: {
           type: "Boolean",
           defaultValue: false
         },
         removedTokens: {
-          type: "Array"
+          type: "object"
         }
       },
       events: {
@@ -800,13 +800,13 @@ sap.ui.define("z2ui5/SmartMultiInputExt", ["sap/ui/core/Control", "sap/m/Token",
           type: "String"
         },
         addedTokens: {
-          type: "Array"
+          type: "object"
         },
         removedTokens: {
-          type: "Array"
+          type: "object"
         },
         rangeData: {
-          type: "Array",
+          type: "object",
           defaultValue: []
         },
         checkInit: {

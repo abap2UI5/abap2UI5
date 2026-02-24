@@ -7,8 +7,8 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models", "z2ui5/cc/Server
                 "sap.ui.core.IAsyncContentCreation"
             ]
         },
-        async init() {
-            
+        init() {
+
             if (typeof z2ui5 !== 'undefined') {
                 z2ui5.oConfig = {};
             }
@@ -30,6 +30,7 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models", "z2ui5/cc/Server
 
             z2ui5.oConfig.ComponentData = this.getComponentData();
 
+            (async () => {
             try {
                 z2ui5.oLaunchpadService = await this.getService("ShellUIService");
             } catch (e) { }
@@ -40,6 +41,7 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models", "z2ui5/cc/Server
                 buildTimestamp: oVersionInfo.buildTimestamp,
                 gav: oVersionInfo.gav,
             }
+            })();
 
             if (/iPad|iPhone/.test(navigator.platform)) {
                 window.addEventListener("pagehide", this.__pagehide.bind(this));
@@ -69,7 +71,7 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models", "z2ui5/cc/Server
             z2ui5.oRouter = this.getRouter();
             z2ui5.oRouter.initialize();
             z2ui5.oRouter.stop();
-            
+
         },
 
         __beforeunload: function () {
