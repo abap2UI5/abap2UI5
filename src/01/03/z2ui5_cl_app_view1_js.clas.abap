@@ -198,7 +198,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                for (let path of paths) {` && |\n| &&
              `                    let parts = path.substring(4).split('/');` && |\n| &&
              `                    let attr = parts[0];` && |\n| &&
-             `                    if (parts.length >= 3 && !isNaN(parts[1])) {` && |\n| &&
+             `                    if (parts.length === 3 && !isNaN(parts[1])) {` && |\n| &&
              `                        if (!delta[attr] || !delta[attr]["__delta"]) {` && |\n| &&
              `                            delta[attr] = { "__delta": {} };` && |\n| &&
              `                        }` && |\n| &&
