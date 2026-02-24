@@ -178,7 +178,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 for (let path of paths) {
                     let parts = path.substring(4).split('/');
                     let attr = parts[0];
-                    if (parts.length >= 3 && !isNaN(parts[1])) {
+                    if (parts.length === 3 && !isNaN(parts[1])) {
                         if (!delta[attr] || !delta[attr]["__delta"]) {
                             delta[attr] = { "__delta": {} };
                         }
