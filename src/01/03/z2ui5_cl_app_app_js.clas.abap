@@ -282,8 +282,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      const items = this.getProperty("items");` && |\n| &&
              `      if (!items) return;` && |\n| &&
              `` && |\n| &&
-             `      const bindingInfo = this.getBindingInfo("items");` && |\n| &&
-             `      const bindingPath = bindingInfo?.parts?.[0]?.path || bindingInfo?.path;` && |\n| &&
+             `      const binding = this.getBinding("items");` && |\n| &&
+             `      const model = binding?.getModel();` && |\n| &&
+             `      const bindingPath = binding?.getPath();` && |\n| &&
              `` && |\n| &&
              `      items.forEach((item, index) => {` && |\n| &&
              `        let scrollTop = 0;` && |\n| &&
@@ -297,9 +298,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          } catch { }` && |\n| &&
              `        }` && |\n| &&
              `        if (item.V !== scrollTop) {` && |\n| &&
-             `          item.V = scrollTop;` && |\n| &&
-             `          if (bindingPath && z2ui5.xxChangedPaths) {` && |\n| &&
-             `            z2ui5.xxChangedPaths.add(``${bindingPath}/${index}/V``);` && |\n| &&
+             `          if (model && bindingPath) {` && |\n| &&
+             `            model.setProperty(``${bindingPath}/${index}/V``, scrollTop);` && |\n| &&
+             `          } else {` && |\n| &&
+             `            item.V = scrollTop;` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
              `      });` && |\n| &&
@@ -416,10 +418,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      oControl.setProperty("device_phone", oDevice.system.phone);` && |\n| &&
              `      oControl.setProperty("device_desktop", oDevice.system.desktop);` && |\n| &&
              `      oControl.setProperty("device_tablet", oDevice.system.tablet);` && |\n| &&
-             `      oControl.setProperty("device_combi", oDevice.system.combi);` && |\n| &&
-             `      oControl.setProperty("device_height", oDevice.resize.height);` && |\n| &&
              |\n|.
     result = result &&
+             `      oControl.setProperty("device_combi", oDevice.system.combi);` && |\n| &&
+             `      oControl.setProperty("device_height", oDevice.resize.height);` && |\n| &&
              `      oControl.setProperty("device_width", oDevice.resize.width);` && |\n| &&
              `      oControl.setProperty("device_os", oDevice.os.name);` && |\n| &&
              `      oControl.setProperty("device_browser", oDevice.browser.name);` && |\n| &&
@@ -818,10 +820,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        } catch (e) {` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      if (!table) {` && |\n| &&
              |\n|.
     result = result &&
+             `      }` && |\n| &&
+             `      if (!table) {` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      if (this.getProperty("checkInit") == true) {` && |\n| &&
@@ -1220,10 +1222,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    let oTable = z2ui5.oView.byId(id);` && |\n| &&
              `    this.aSorters = oTable.getBinding().aSorters;` && |\n| &&
              `  } catch (e) {}` && |\n| &&
-             `},` && |\n| &&
-             `` && |\n| &&
              |\n|.
     result = result &&
+             `},` && |\n| &&
+             `` && |\n| &&
              `setSort() {` && |\n| &&
              `  try {` && |\n| &&
              `    setTimeout((aSorters) => {` && |\n| &&
