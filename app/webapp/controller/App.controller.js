@@ -730,16 +730,16 @@ sap.ui.define("z2ui5/MultiInputExt", ["sap/ui/core/Control", "sap/m/Token", "sap
     metadata: {
       properties: {
         MultiInputId: {
-          type: "String"
+          type: "string"
         },
         MultiInputName: {
-          type: "String"
+          type: "string"
         },
         addedTokens: {
           type: "object"
         },
         checkInit: {
-          type: "Boolean",
+          type: "boolean",
           defaultValue: false
         },
         removedTokens: {
@@ -786,7 +786,7 @@ sap.ui.define("z2ui5/MultiInputExt", ["sap/ui/core/Control", "sap/m/Token", "sap
       this.fireChange();
     },
     renderer(oRm, oControl) {
-      z2ui5.onAfterRendering.push(this.setControl.bind(oControl));
+      z2ui5.onAfterRendering.push(oControl.setControl.bind(oControl));
     },
     setControl() {
       let table = z2ui5.oView.byId(this.getProperty("MultiInputId"));
@@ -825,7 +825,7 @@ sap.ui.define("z2ui5/SmartMultiInputExt", ["sap/ui/core/Control", "sap/m/Token",
     metadata: {
       properties: {
         multiInputId: {
-          type: "String"
+          type: "string"
         },
         addedTokens: {
           type: "object"
@@ -838,7 +838,7 @@ sap.ui.define("z2ui5/SmartMultiInputExt", ["sap/ui/core/Control", "sap/m/Token",
           defaultValue: []
         },
         checkInit: {
-          type: "Boolean",
+          type: "boolean",
           defaultValue: false
         }
       },
@@ -1112,7 +1112,7 @@ sap.ui.define("z2ui5/UITableExt", ["sap/ui/core/Control"], (Control) => {
     metadata: {
       properties: {
         tableId: {
-          type: "String"
+          type: "string"
         },
       },
     },
