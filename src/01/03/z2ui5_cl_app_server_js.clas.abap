@@ -130,7 +130,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `                        z2ui5.oController.ViewDestroy();` && |\n| &&
              `                    }` && |\n| &&
              `                    ; if (z2ui5.oResponse.PARAMS?.S_FOLLOW_UP_ACTION?.CUSTOM_JS) {` && |\n| &&
-             `                        setTimeout(() => {` && |\n| &&
+             `                        requestAnimationFrame(() => {` && |\n| &&
              `                            for ( let i = 0; i < z2ui5.oResponse?.PARAMS.S_FOLLOW_UP_ACTION.CUSTOM_JS.length ; i++ ){` && |\n| &&
              `                            let mParams = z2ui5.oResponse?.PARAMS.S_FOLLOW_UP_ACTION.CUSTOM_JS[i].split("'");` && |\n| &&
              `                            let mParamsEF = mParams.filter((val, index) => index % 2)` && |\n| &&
@@ -140,7 +140,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `                                Function("return " + mParams[0])();` && |\n| &&
              `                            }` && |\n| &&
              `                            }` && |\n| &&
-             `                        }, 100);` && |\n| &&
+             `                        });` && |\n| &&
              `                    };` && |\n| &&
              `                    z2ui5.oController.showMessage('S_MSG_TOAST', z2ui5.oResponse.PARAMS);` && |\n| &&
              `                    z2ui5.oController.showMessage('S_MSG_BOX', z2ui5.oResponse.PARAMS);` && |\n| &&
