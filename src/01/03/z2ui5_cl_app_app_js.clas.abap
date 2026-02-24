@@ -808,7 +808,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      this.fireChange();` && |\n| &&
              `    },` && |\n| &&
              `    renderer(oRm, oControl) {` && |\n| &&
-             `      z2ui5.onAfterRendering.push(this.setControl.bind(oControl));` && |\n| &&
+             `      z2ui5.onAfterRendering.push(oControl.setControl.bind(oControl));` && |\n| &&
              `    },` && |\n| &&
              `    setControl() {` && |\n| &&
              `      let table = z2ui5.oView.byId(this.getProperty("MultiInputId"));` && |\n| &&

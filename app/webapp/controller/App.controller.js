@@ -786,7 +786,7 @@ sap.ui.define("z2ui5/MultiInputExt", ["sap/ui/core/Control", "sap/m/Token", "sap
       this.fireChange();
     },
     renderer(oRm, oControl) {
-      z2ui5.onAfterRendering.push(this.setControl.bind(oControl));
+      z2ui5.onAfterRendering.push(oControl.setControl.bind(oControl));
     },
     setControl() {
       let table = z2ui5.oView.byId(this.getProperty("MultiInputId"));
