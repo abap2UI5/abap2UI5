@@ -752,16 +752,16 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    metadata: {` && |\n| &&
              `      properties: {` && |\n| &&
              `        MultiInputId: {` && |\n| &&
-             `          type: "String"` && |\n| &&
+             `          type: "string"` && |\n| &&
              `        },` && |\n| &&
              `        MultiInputName: {` && |\n| &&
-             `          type: "String"` && |\n| &&
+             `          type: "string"` && |\n| &&
              `        },` && |\n| &&
              `        addedTokens: {` && |\n| &&
              `          type: "object"` && |\n| &&
              `        },` && |\n| &&
              `        checkInit: {` && |\n| &&
-             `          type: "Boolean",` && |\n| &&
+             `          type: "boolean",` && |\n| &&
              `          defaultValue: false` && |\n| &&
              `        },` && |\n| &&
              `        removedTokens: {` && |\n| &&
@@ -849,7 +849,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    metadata: {` && |\n| &&
              `      properties: {` && |\n| &&
              `        multiInputId: {` && |\n| &&
-             `          type: "String"` && |\n| &&
+             `          type: "string"` && |\n| &&
              `        },` && |\n| &&
              `        addedTokens: {` && |\n| &&
              `          type: "object"` && |\n| &&
@@ -862,7 +862,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          defaultValue: []` && |\n| &&
              `        },` && |\n| &&
              `        checkInit: {` && |\n| &&
-             `          type: "Boolean",` && |\n| &&
+             `          type: "boolean",` && |\n| &&
              `          defaultValue: false` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
@@ -1136,7 +1136,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    metadata: {` && |\n| &&
              `      properties: {` && |\n| &&
              `        tableId: {` && |\n| &&
-             `          type: "String"` && |\n| &&
+             `          type: "string"` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
              `    },` && |\n| &&
