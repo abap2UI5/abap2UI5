@@ -16,8 +16,8 @@ jobs:
       run: npm i && npm run auto_downport && npm run auto_transpile
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
-#    - name: Run Playwright tests
-#      run: npx playwright test
+    - name: Run Playwright tests
+      run: cd node && npx playwright test buildDeltaFromPaths.spec.js --config=playwright-unit.config.js
     - uses: actions/upload-artifact@v4
       if: always()
       with:
