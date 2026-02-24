@@ -137,6 +137,9 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     TRY.
 
         DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+        DATA(lo_upper_mapper) = z2ui5_cl_ajson_mapping=>create_upper_case( ).
+        DATA(ajson_default) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ii_custom_mapping = lo_upper_mapper ) ).
+
         LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
              WHERE bind_type <> ``
                    AND type_kind <> cl_abap_datadescr=>typekind_dref
@@ -146,8 +149,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
             DATA(ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
                                                    ii_custom_mapping = lr_attri->custom_mapper ) ).
           ELSE.
-            ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
-                                             ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
+            ajson = ajson_default.
           ENDIF.
 
           TRY.
@@ -666,11 +668,11 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     dissolve( ).
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
-      DATA(lv_name) = lr_attri->name.
-      IF line_exists( lt_attri[ name = lv_name ] ).
-        lr_attri->bind_type   = lt_attri[ name = lv_name ]-bind_type.
-        lr_attri->name_client = lt_attri[ name = lv_name ]-name_client.
-        lr_attri->view        = lt_attri[ name = lv_name ]-view.
+      READ TABLE lt_attri REFERENCE INTO DATA(lr_old) WITH KEY name = lr_attri->name. "#EC CI_SORTSEQ
+      IF sy-subrc = 0.
+        lr_attri->bind_type   = lr_old->bind_type.
+        lr_attri->name_client = lr_old->name_client.
+        lr_attri->view        = lr_old->view.
       ENDIF.
     ENDLOOP.
 
