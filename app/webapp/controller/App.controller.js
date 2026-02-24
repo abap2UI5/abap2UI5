@@ -289,29 +289,49 @@ sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {
       z2ui5.onBeforeRoundtrip.push(this.setBackend.bind(this));
     },
 
-    renderer(oRm, oControl) {
-      if (!oControl.getProperty("setUpdate")) return;
+    _restoreScrollPosition(item) {
+      try {
+        z2ui5.oView.byId(item.N).scrollTo(item.V);
+      } catch {
+        try {
+          const element = document.getElementById(`${z2ui5.oView.byId(item.ID).getId()}-inner`);
+          if (element) element.scrollTop = item.V;
+        } catch { }
+      }
+    },
 
-      oControl.setProperty("setUpdate", false);
-      const items = oControl.getProperty("items");
+    onAfterRendering() {
+      if (!this._pendingScroll) return;
+      this._pendingScroll = false;
+
+      const items = this.getProperty("items");
       if (!items) return;
 
-      setTimeout(() => {
-        items.forEach(item => {
-          try {
-            z2ui5.oView.byId(item.N).scrollTo(item.V);
-          } catch {
-            try {
-              const element = document.getElementById(`${z2ui5.oView.byId(item.ID).getId()}-inner`);
-              if (element) element.scrollTop = item.V;
-            } catch {
-              setTimeout(() => {
-                z2ui5.oView.byId(item.N).scrollTo(item.V);
-              }, 1);
+      items.forEach(item => {
+        const control = z2ui5.oView.byId(item.N);
+        if (control?.getDomRef()) {
+          this._restoreScrollPosition(item);
+        } else if (control) {
+          const delegate = {
+            onAfterRendering: () => {
+              this._restoreScrollPosition(item);
+              control.removeEventDelegate(delegate);
             }
-          }
-        });
-      }, 100);
+          };
+          control.addEventDelegate(delegate);
+        }
+      });
+    },
+
+    renderer(oRm, oControl) {
+      oRm.openStart("span", oControl);
+      oRm.addStyle("display", "none");
+      oRm.openEnd();
+      oRm.close("span");
+
+      if (!oControl.getProperty("setUpdate")) return;
+      oControl.setProperty("setUpdate", false, true);
+      oControl._pendingScroll = true;
     }
   });
 });
