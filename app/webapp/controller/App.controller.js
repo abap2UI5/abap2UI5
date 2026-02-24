@@ -118,21 +118,24 @@ sap.ui.define("z2ui5/Focus", ["sap/ui/core/Control",], (Control) => {
         oElement.applyFocusInfo(oFocus);
       } catch (e) { }
     },
+    onAfterRendering() {
+      if (!this._pendingFocus) return;
+      this._pendingFocus = false;
+      var oElement = z2ui5.oView.byId(this.getProperty("focusId"));
+      if (!oElement) return;
+      var oFocus = oElement.getFocusInfo();
+      oFocus.selectionStart = parseInt(this.getProperty("selectionStart"));
+      oFocus.selectionEnd = parseInt(this.getProperty("selectionEnd"));
+      oElement.applyFocusInfo(oFocus);
+    },
     renderer(oRm, oControl) {
-      if (!oControl.getProperty("setUpdate")) {
-        return;
-      }
+      oRm.openStart("span", oControl);
+      oRm.addStyle("display", "none");
+      oRm.openEnd();
+      oRm.close("span");
+      if (!oControl.getProperty("setUpdate")) return;
       oControl.setProperty("setUpdate", false);
-      requestAnimationFrame(() => {
-        var oElement = z2ui5.oView.byId(oControl.getProperty("focusId"));
-        if (!oElement){
-          return
-        }
-        var oFocus = oElement.getFocusInfo();
-        oFocus.selectionStart = parseInt(oControl.getProperty("selectionStart"));
-        oFocus.selectionEnd = parseInt(oControl.getProperty("selectionEnd"));
-        oElement.applyFocusInfo(oFocus);
-      });
+      oControl._pendingFocus = true;
     }
   });
 }
@@ -232,12 +235,20 @@ sap.ui.define("z2ui5/Tree", ["sap/ui/core/Control"], (Control) => {
       z2ui5.onBeforeRoundtrip.push(this.setBackend.bind(this));
     },
 
+    onAfterRendering() {
+      if (!this._pendingTreeState) return;
+      this._pendingTreeState = false;
+      const id = this.getProperty("tree_id");
+      z2ui5.oView.byId(id).getBinding('items').setTreeState(z2ui5.treeState);
+    },
+
     renderer(oRm, oControl) {
+      oRm.openStart("span", oControl);
+      oRm.addStyle("display", "none");
+      oRm.openEnd();
+      oRm.close("span");
       if (!z2ui5.treeState) return;
-      const id = oControl.getProperty("tree_id");
-      requestAnimationFrame(() => {
-        z2ui5.oView.byId(id).getBinding('items').setTreeState(z2ui5.treeState);
-      });
+      oControl._pendingTreeState = true;
     }
   });
 });
@@ -1132,14 +1143,9 @@ sap.ui.define("z2ui5/UITableExt", ["sap/ui/core/Control"], (Control) => {
       ;
     },
 
-    setFilter() {
-      try {
-        const aFilters = this.aFilters;
-        requestAnimationFrame(() => {
-          let id = this.getProperty("tableId");
-          let oTable = z2ui5.oView.byId(id);
-          oTable.getBinding().filter(aFilters);
-          var opSymbols = {
+    _applyFilters(oTable, aFilters) {
+      oTable.getBinding().filter(aFilters);
+      var opSymbols = {
   EQ: "",
   NE: "!",
   LT: "<",
@@ -1184,8 +1190,24 @@ aFilters.forEach(function(oFilter) {
     }
   });
 });
+    },
 
-        });
+    setFilter() {
+      try {
+        const aFilters = this.aFilters;
+        let oTable = z2ui5.oView.byId(this.getProperty("tableId"));
+        if (!oTable) return;
+        if (oTable.getDomRef()) {
+          this._applyFilters(oTable, aFilters);
+        } else {
+          const delegate = {
+            onAfterRendering: () => {
+              oTable.removeEventDelegate(delegate);
+              this._applyFilters(oTable, aFilters);
+            }
+          };
+          oTable.addEventDelegate(delegate);
+        }
       } catch (e) { }
       ;
     },
@@ -1197,24 +1219,35 @@ readSort() {
   } catch (e) {}
 },
 
+_applySorters(oTable, aSorters) {
+  oTable.getBinding().sort(aSorters);
+  aSorters.forEach(function(srt, idx) {
+    oTable.getColumns().forEach(function(oCol) {
+      if (oCol.getSortProperty && oCol.getSortProperty() === srt.sPath) {
+        oCol.setSorted(true);
+        oCol.setSortOrder(srt.bDescending ? "Descending" : "Ascending");
+        if (oCol.setSortIndex) oCol.setSortIndex(idx);
+      }
+    });
+  });
+},
+
 setSort() {
   try {
     const aSorters = this.aSorters;
-    requestAnimationFrame(() => {
-      let id = this.getProperty("tableId");
-      let oTable = z2ui5.oView.byId(id);
-      oTable.getBinding().sort(aSorters);
-
-      aSorters.forEach(function(srt, idx) {
-        oTable.getColumns().forEach(function(oCol) {
-          if (oCol.getSortProperty && oCol.getSortProperty() === srt.sPath) {
-            oCol.setSorted(true);
-            oCol.setSortOrder(srt.bDescending ? "Descending" : "Ascending");
-            if (oCol.setSortIndex) oCol.setSortIndex(idx);
-          }
-        });
-      });
-    });
+    let oTable = z2ui5.oView.byId(this.getProperty("tableId"));
+    if (!oTable) return;
+    if (oTable.getDomRef()) {
+      this._applySorters(oTable, aSorters);
+    } else {
+      const delegate = {
+        onAfterRendering: () => {
+          oTable.removeEventDelegate(delegate);
+          this._applySorters(oTable, aSorters);
+        }
+      };
+      oTable.addEventDelegate(delegate);
+    }
   } catch (e) {}
 },
     renderer(oRM, oControl) { }

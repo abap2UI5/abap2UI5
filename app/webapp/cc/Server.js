@@ -110,7 +110,7 @@ sap.ui.define(["sap/ui/core/BusyIndicator", "sap/m/MessageBox"
                         z2ui5.oController.ViewDestroy();
                     }
                     ; if (z2ui5.oResponse.PARAMS?.S_FOLLOW_UP_ACTION?.CUSTOM_JS) {
-                        requestAnimationFrame(() => {
+                        Promise.resolve().then(() => {
                             for ( let i = 0; i < z2ui5.oResponse?.PARAMS.S_FOLLOW_UP_ACTION.CUSTOM_JS.length ; i++ ){
                             let mParams = z2ui5.oResponse?.PARAMS.S_FOLLOW_UP_ACTION.CUSTOM_JS[i].split("'");
                             let mParamsEF = mParams.filter((val, index) => index % 2)
