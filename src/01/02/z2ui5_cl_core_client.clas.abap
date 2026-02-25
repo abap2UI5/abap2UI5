@@ -408,10 +408,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   METHOD z2ui5_if_client~set_session_stateful.
 
     DATA(lv_check_sticky) = CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky.
-    IF lv_check_sticky = abap_true AND val = abap_true.
-      RETURN.
-    ENDIF.
-    IF lv_check_sticky = abap_false AND val = abap_false.
+    IF lv_check_sticky = val.
       RETURN.
     ENDIF.
     IF val = abap_true.
@@ -428,8 +425,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~check_app_prev_stack.
 
-    DATA(ls_get) = z2ui5_if_client~get( ).
-    result = xsdbool( ls_get-s_draft-id_prev_app_stack IS NOT INITIAL ).
+    result = xsdbool( mo_action->mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL ).
 
   ENDMETHOD.
 
@@ -441,15 +437,13 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~check_on_navigated.
 
-    DATA(ls_get) = z2ui5_if_client~get( ).
-    result = ls_get-check_on_navigated.
+    result = mo_action->ms_actual-check_on_navigated.
 
   ENDMETHOD.
 
   METHOD z2ui5_if_client~get_app_prev.
 
-    DATA(ls_get) = z2ui5_if_client~get( ).
-    result = z2ui5_if_client~get_app( ls_get-s_draft-id_prev_app ).
+    result = z2ui5_if_client~get_app( mo_action->mo_app->ms_draft-id_prev_app ).
 
   ENDMETHOD.
 

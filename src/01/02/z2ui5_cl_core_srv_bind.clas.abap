@@ -31,7 +31,7 @@ CLASS z2ui5_cl_core_srv_bind DEFINITION
     METHODS bind_tab_cell
       IMPORTING
         iv_name       TYPE string
-        i_val         TYPE data
+        iv_val        TYPE data
       RETURNING
         VALUE(result) TYPE string.
 
@@ -72,7 +72,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
       ASSERT sy-subrc = 0.
       lr_ref_in = REF #( <ele> ).
 
-      IF i_val = lr_ref_in.
+      IF iv_val = lr_ref_in.
         result = |{ iv_name }/{ shift_right( CONV string( ms_config-tab_index - 1 ) ) }/{ <comp>-name }|.
         RETURN.
       ENDIF.
@@ -217,7 +217,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
                             config = VALUE #( path_only = abap_true ) ).
 
     result = bind_tab_cell( iv_name = result
-                            i_val   = val ).
+                            iv_val  = val ).
 
     IF ms_config-path_only = abap_false.
       result = |\{{ result }\}|.
@@ -228,7 +228,6 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
   METHOD update_model_attri.
 
     mr_attri->bind_type          = mv_type.
-    mr_attri->view               = ms_config-view.
     mr_attri->custom_filter      = ms_config-custom_filter.
     mr_attri->custom_filter_back = ms_config-custom_filter_back.
     mr_attri->custom_mapper      = ms_config-custom_mapper.

@@ -5,6 +5,17 @@ CLASS z2ui5_cl_app_startup DEFINITION
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
 
+    CONSTANTS:
+      BEGIN OF cs_event,
+        button_check  TYPE string VALUE `BUTTON_CHECK`,
+        button_change TYPE string VALUE `BUTTON_CHANGE`,
+        value_help    TYPE string VALUE `VALUE_HELP`,
+        open_debug    TYPE string VALUE `OPEN_DEBUG`,
+        open_info     TYPE string VALUE `OPEN_INFO`,
+        set_config    TYPE string VALUE `SET_CONFIG`,
+        close         TYPE string VALUE `CLOSE`,
+      END OF cs_event.
+
     DATA:
       BEGIN OF ms_home,
         url                    TYPE string,
@@ -34,6 +45,7 @@ CLASS z2ui5_cl_app_startup DEFINITION
     DATA mt_classes TYPE z2ui5_cl_util=>ty_t_classes.
 
   PRIVATE SECTION.
+    METHODS reset_button_state.
 ENDCLASS.
 
 
@@ -42,6 +54,15 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
   METHOD factory.
 
     result = NEW #( ).
+
+  ENDMETHOD.
+
+  METHOD reset_button_state.
+
+    ms_home-btn_text       = `check`.
+    ms_home-btn_event_id   = cs_event-button_check.
+    ms_home-btn_icon       = `sap-icon://validate`.
+    ms_home-class_editable = abap_true.
 
   ENDMETHOD.
 
@@ -55,7 +76,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
         client->message_toast_display( `App is ready to start!` ).
         ms_home-btn_text          = `edit`.
-        ms_home-btn_event_id      = `BUTTON_CHANGE`.
+        ms_home-btn_event_id      = cs_event-button_change.
         ms_home-btn_icon          = `sap-icon://edit`.
         ms_home-class_value_state = `Success`.
         ms_home-class_editable    = abap_false.
@@ -82,14 +103,14 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     toolbar->toolbar_spacer(
       )->button( text  = `Debugging Tools`
                  icon  = `sap-icon://enablement`
-                 press = client->_event( `OPEN_DEBUG` )
+                 press = client->_event( cs_event-open_debug )
       )->button( text  = `System`
                  icon  = `sap-icon://information`
-                 press = client->_event( `OPEN_INFO` ) ).
+                 press = client->_event( cs_event-open_info ) ).
     IF z2ui5_cl_util=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ).
       toolbar->button( text  = `Config`
                        icon  = `sap-icon://settings`
-                       press = client->_event( `SET_CONFIG` ) ).
+                       press = client->_event( cs_event-set_config ) ).
     ENDIF.
 
     DATA(simple_form) = page->simple_form( editable                = abap_true
@@ -128,7 +149,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                           enabled          = client->_bind( ms_home-class_editable )
                           value            = client->_bind_edit( ms_home-classname )
                           submit           = client->_event( ms_home-btn_event_id )
-                          valuehelprequest = client->_event( `VALUE_HELP` )
+                          valuehelprequest = client->_event( cs_event-value_help )
                           showvaluehelp    = abap_true
                           width            = `70%` ).
 
@@ -147,7 +168,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                href    = client->_bind( ms_home-url )
                enabled = |\{= ${ client->_bind( val = ms_home-class_editable ) } === false \}| ).
 
-    DATA(lv_url_samples2) = z2ui5_cl_core_srv_util=>app_get_url( client    = client
+    DATA(lv_url_samples) = z2ui5_cl_core_srv_util=>app_get_url( client    = client
                                                                  classname = `z2ui5_cl_demo_app_000` ).
 
     simple_form->toolbar( )->title( `What's next?` ).
@@ -156,7 +177,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
       simple_form->label( `Start Developing` ).
       simple_form->button( text  = `Explore Code Samples`
                            press = client->_event_client( val   = client->cs_event-open_new_tab
-                                                          t_arg = VALUE #( ( lv_url_samples2 ) ) )
+                                                          t_arg = VALUE #( ( lv_url_samples ) ) )
                            width = `70%` ).
 
     ELSE.
@@ -221,7 +242,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     DATA(page2) = z2ui5_cl_xml_view=>factory_popup(
          )->dialog( title      = `abap2UI5 - System Information`
-                    afterclose = client->_event( `CLOSE` ) ).
+                    afterclose = client->_event( cs_event-close ) ).
 
     DATA(content) = page2->content( ).
     content->_z2ui5( )->info_frontend( ui5_version = client->_bind( mv_ui5_version ) ).
@@ -268,7 +289,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     simple_form2->text( lv_count ).
 
     page2->end_button( )->button( text  = `close`
-                                  press = client->_event( `CLOSE` )
+                                  press = client->_event( cs_event-close )
                                   type  = `Emphasized` ).
 
     client->popup_display( page2->stringify( ) ).
@@ -282,32 +303,29 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     CASE client->get( )-event.
 
-      WHEN `SET_CONFIG`.
+      WHEN cs_event-set_config.
         CREATE OBJECT lo_app TYPE (`Z2UI5_CL_APP_ICF_CONFIG`).
         client->nav_app_call( lo_app ).
 
-      WHEN `CLOSE`.
+      WHEN cs_event-close.
         client->popup_destroy( ).
 
-      WHEN `OPEN_DEBUG`.
+      WHEN cs_event-open_debug.
         client->message_box_display( `Press CTRL+F12 to open the debugging tools` ).
-      WHEN `OPEN_INFO`.
+      WHEN cs_event-open_info.
         view_display_popup( ).
         RETURN.
 
-      WHEN `BUTTON_CHECK`.
+      WHEN cs_event-button_check.
         IF ms_home-class_editable = abap_false.
-          ms_home-btn_text       = `check`.
-          ms_home-btn_event_id   = `BUTTON_CHECK`.
-          ms_home-btn_icon       = `sap-icon://validate`.
-          ms_home-class_editable = abap_true.
+          reset_button_state( ).
 
         ELSE.
           on_event_check( ).
         ENDIF.
         client->view_model_update( ).
 
-      WHEN `VALUE_HELP`.
+      WHEN cs_event-value_help.
         TRY.
             mt_classes = z2ui5_cl_util=>rtti_get_classes_impl_intf( z2ui5_cl_util=>rtti_get_intfname_by_ref( li_app ) ).
           CATCH cx_root.
@@ -321,11 +339,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD z2ui5_on_init.
 
-    ms_home-btn_text       = `check`.
-    ms_home-btn_event_id   = `BUTTON_CHECK`.
-    ms_home-class_editable = abap_true.
-    ms_home-btn_icon       = `sap-icon://validate`.
-    ms_home-classname      = z2ui5_cl_util=>rtti_get_classname_by_ref( NEW z2ui5_cl_app_hello_world( ) ).
+    reset_button_state( ).
+    ms_home-classname = z2ui5_cl_util=>rtti_get_classname_by_ref( NEW z2ui5_cl_app_hello_world( ) ).
 
   ENDMETHOD.
 

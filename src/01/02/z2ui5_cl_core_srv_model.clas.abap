@@ -231,8 +231,8 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
         WHEN cl_abap_datadescr=>typekind_table.
 
-          DATA(lr_ref2) = attri_get_val_ref( lr_attri->name_ref ).
-          lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref2 ).
+          DATA(lr_ref_source) = attri_get_val_ref( lr_attri->name_ref ).
+          lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref_source ).
 
           READ TABLE mt_attri->* REFERENCE INTO DATA(lr_attri_parent)
                WITH KEY name = lr_attri->name_parent.
@@ -240,33 +240,33 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
             CONTINUE.
           ENDIF.
 
-          DATA(lv_name) = |MO_APP->{ lr_attri_parent->name }|.
-          ASSIGN (lv_name) TO FIELD-SYMBOL(<val4>).
+          DATA(lv_parent_path) = |MO_APP->{ lr_attri_parent->name }|.
+          ASSIGN (lv_parent_path) TO FIELD-SYMBOL(<parent_ref>).
           IF sy-subrc <> 0.
             CONTINUE.
           ENDIF.
 
-          ASSIGN lr_ref2->* TO FIELD-SYMBOL(<val3>).
-          GET REFERENCE OF <val3> INTO <val4>.
+          ASSIGN lr_ref_source->* TO FIELD-SYMBOL(<source_value>).
+          GET REFERENCE OF <source_value> INTO <parent_ref>.
 
-          DATA(lr_ref_parent) = REF #( <val4> ).
+          DATA(lr_ref_parent) = REF #( <parent_ref> ).
           lr_attri_parent->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref_parent ).
 
         WHEN cl_abap_datadescr=>typekind_dref.
 
-          DATA(lv_name2) = |MO_APP->{ lr_attri->name_ref }|.
-          ASSIGN (lv_name2) TO FIELD-SYMBOL(<val5>).
+          DATA(lv_source_path) = |MO_APP->{ lr_attri->name_ref }|.
+          ASSIGN (lv_source_path) TO FIELD-SYMBOL(<source_ref>).
           IF sy-subrc <> 0.
             CONTINUE.
           ENDIF.
 
-          DATA(lv_name3) = |MO_APP->{ lr_attri->name }|.
-          ASSIGN (lv_name3) TO <val4>.
+          DATA(lv_target_path) = |MO_APP->{ lr_attri->name }|.
+          ASSIGN (lv_target_path) TO <parent_ref>.
           IF sy-subrc <> 0.
             CONTINUE.
           ENDIF.
-          GET REFERENCE OF <val5> INTO <val4>.
-          lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( <val4> ).
+          GET REFERENCE OF <source_ref> INTO <parent_ref>.
+          lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( <parent_ref> ).
 
           LOOP AT lt_child_idx REFERENCE INTO DATA(lr_child_idx)
                WHERE name_parent = lr_attri->name.
@@ -293,17 +293,17 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
          WHERE name_ref  IS INITIAL
                AND type_kind  = cl_abap_datadescr=>typekind_dref.
 
-      DATA(lv_name5) = |MO_APP->{ lr_attri->name }|.
-      ASSIGN (lv_name5) TO FIELD-SYMBOL(<ref>).
+      DATA(lv_dref_path) = |MO_APP->{ lr_attri->name }|.
+      ASSIGN (lv_dref_path) TO FIELD-SYMBOL(<dref>).
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      DATA(lv_name) = |MO_APP->{ lr_attri->name }->*|.
-      ASSIGN (lv_name) TO FIELD-SYMBOL(<val1>).
+      DATA(lv_deref_path) = |MO_APP->{ lr_attri->name }->*|.
+      ASSIGN (lv_deref_path) TO FIELD-SYMBOL(<dref_value>).
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <val1> ).
+      DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <dref_value> ).
 
       CASE lo_descr->type_kind.
 
@@ -314,45 +314,45 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
                      AND type_kind    = cl_abap_datadescr=>typekind_table
                      AND name_parent  = lr_attri->name.
 
-            DATA(lv_name6) = |MO_APP->{ lr_attri_child->name }|.
-            ASSIGN (lv_name6) TO FIELD-SYMBOL(<val_ref>).
+            DATA(lv_child_path) = |MO_APP->{ lr_attri_child->name }|.
+            ASSIGN (lv_child_path) TO FIELD-SYMBOL(<child_table>).
             IF sy-subrc <> 0.
               CONTINUE.
             ENDIF.
-            lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <val_ref> ).
-            CLEAR <val_ref>.
-            CLEAR <val1>.
-            CLEAR <ref>.
+            lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <child_table> ).
+            CLEAR <child_table>.
+            CLEAR <dref_value>.
+            CLEAR <dref>.
             EXIT.
           ENDLOOP.
 
         WHEN cl_abap_datadescr=>typekind_struct1 OR cl_abap_datadescr=>typekind_struct2.
-          lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <val1> ).
+          lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <dref_value> ).
 
       ENDCASE.
 
     ENDLOOP.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri2) "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_dref_attri) "#EC CI_SORTSEQ
          WHERE type_kind = cl_abap_datadescr=>typekind_dref.
 
-      DATA(lv_name8) = |MO_APP->{ lr_attri2->name }|.
-      ASSIGN (lv_name8) TO FIELD-SYMBOL(<ref2>).
+      DATA(lv_clear_path) = |MO_APP->{ lr_dref_attri->name }|.
+      ASSIGN (lv_clear_path) TO FIELD-SYMBOL(<clear_ref>).
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      CLEAR <ref2>.
+      CLEAR <clear_ref>.
 
-      IF lr_attri2->name_ref IS NOT INITIAL.
+      IF lr_dref_attri->name_ref IS NOT INITIAL.
         CONTINUE.
       ENDIF.
 
-      DATA(lv_name10) = |MO_APP->{ lr_attri2->name }->*|.
-      ASSIGN (lv_name10) TO FIELD-SYMBOL(<val8>).
+      DATA(lv_clear_deref_path) = |MO_APP->{ lr_dref_attri->name }->*|.
+      ASSIGN (lv_clear_deref_path) TO FIELD-SYMBOL(<clear_value>).
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      CLEAR <val8>.
+      CLEAR <clear_value>.
     ENDLOOP.
 
   ENDMETHOD.
@@ -544,7 +544,6 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
   METHOD dissolve.
 
     WHILE line_exists( mt_attri->*[ check_dissolved = abap_false ] ) OR mt_attri->* IS INITIAL. "#EC CI_SORTSEQ
-      DATA(lv_check_update_refs) = abap_true.
 
       IF sy-index = 5.
         RETURN.
@@ -558,9 +557,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
     ENDWHILE.
 
-    IF lv_check_update_refs = abap_true.
-      attri_update_entry_refs( ).
-    ENDIF.
+    attri_update_entry_refs( ).
 
   ENDMETHOD.
 
