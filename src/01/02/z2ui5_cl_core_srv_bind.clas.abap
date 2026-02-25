@@ -130,8 +130,10 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
   METHOD check_raise_new.
 
-    check_serializable( obj = mr_attri->custom_filter_back  field_name = `custom_filter_back` ).
-    check_serializable( obj = mr_attri->custom_mapper_back  field_name = `custom_mapper_back` ).
+    check_serializable( obj        = mr_attri->custom_filter_back
+                        field_name = `custom_filter_back` ).
+    check_serializable( obj        = mr_attri->custom_mapper_back
+                        field_name = `custom_mapper_back` ).
 
   ENDMETHOD.
 

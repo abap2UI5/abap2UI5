@@ -341,9 +341,9 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind.
 
-    result = mo_srv_bind->main( val    = z2ui5_cl_util=>conv_get_as_data_ref( val )
-                            type   = z2ui5_if_core_types=>cs_bind_type-one_way
-                            config = VALUE #( path_only            = path
+    result = mo_srv_bind->main( val = z2ui5_cl_util=>conv_get_as_data_ref( val )
+                            type    = z2ui5_if_core_types=>cs_bind_type-one_way
+                            config  = VALUE #( path_only           = path
                                               custom_filter        = custom_filter
                                               custom_mapper        = custom_mapper
                                               tab                  = z2ui5_cl_util=>conv_get_as_data_ref( tab )
@@ -354,9 +354,9 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_edit.
 
-    result = mo_srv_bind->main( val    = z2ui5_cl_util=>conv_get_as_data_ref( val )
-                            type   = z2ui5_if_core_types=>cs_bind_type-two_way
-                            config = VALUE #( path_only            = path
+    result = mo_srv_bind->main( val = z2ui5_cl_util=>conv_get_as_data_ref( val )
+                            type    = z2ui5_if_core_types=>cs_bind_type-two_way
+                            config  = VALUE #( path_only           = path
                                               custom_filter        = custom_filter
                                               custom_filter_back   = custom_filter_back
                                               custom_mapper        = custom_mapper
@@ -369,9 +369,9 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_event.
 
-    result = mo_srv_event->get_event( val   = val
-                                t_arg = t_arg
-                                s_cnt = s_ctrl ).
+    result = mo_srv_event->get_event( val = val
+                                t_arg     = t_arg
+                                s_cnt     = s_ctrl ).
 
     IF r_data IS NOT INITIAL.
       CREATE DATA mo_action->ms_next-r_data LIKE r_data.
@@ -382,8 +382,8 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_event_client.
 
-    result = mo_srv_event->get_event_client( val   = val
-                                       t_arg = t_arg ).
+    result = mo_srv_event->get_event_client( val = val
+                                       t_arg     = t_arg ).
 
   ENDMETHOD.
 
