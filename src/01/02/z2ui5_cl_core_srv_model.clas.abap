@@ -512,11 +512,8 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   METHOD dissolve.
 
-    DATA(lv_before) = lines( mt_attri->* ).
-
-    WHILE lines( mt_attri->* ) <> lv_before OR mt_attri->* IS INITIAL.
+    WHILE line_exists( mt_attri->*[ check_dissolved = abap_false ] ) OR mt_attri->* IS INITIAL. "#EC CI_SORTSEQ
       DATA(lv_check_update_refs) = abap_true.
-      lv_before = lines( mt_attri->* ).
 
       IF sy-index = 5.
         RETURN.
@@ -538,31 +535,15 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   METHOD attri_update_entry_refs.
 
-    TYPES: BEGIN OF ty_s_ref_cache,
-             name TYPE string,
-             ref  TYPE REF TO data,
-           END OF ty_s_ref_cache.
-    DATA lt_ref_cache TYPE SORTED TABLE OF ty_s_ref_cache WITH UNIQUE KEY name.
-
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_pre) "#EC CI_SORTSEQ
-         WHERE check_dissolved = abap_true
-               AND name_ref IS INITIAL.
-      TRY.
-          INSERT VALUE #( name = lr_pre->name
-                          ref  = attri_get_val_ref( lr_pre->name ) ) INTO TABLE lt_ref_cache.
-        CATCH cx_root ##NO_HANDLER.
-      ENDTRY.
-    ENDLOOP.
-
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
          WHERE check_dissolved  = abap_true
                AND name_ref        IS INITIAL.
 
-      READ TABLE lt_ref_cache REFERENCE INTO DATA(lr_cache_outer) WITH KEY name = lr_attri->name.
-      IF sy-subrc <> 0.
-        CONTINUE.
-      ENDIF.
-      DATA(lr_ref) = lr_cache_outer->ref.
+      TRY.
+          DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
+        CATCH cx_root.
+          CONTINUE.
+      ENDTRY.
 
       CASE lr_attri->type_kind.
 
@@ -574,12 +555,13 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
                      AND name_ref        IS INITIAL
                      AND type_kind        = cl_abap_typedescr=>typekind_table.
 
-            READ TABLE lt_ref_cache REFERENCE INTO DATA(lr_cache_inner) WITH KEY name = lr_attri_ref->name.
-            IF sy-subrc <> 0.
-              CONTINUE.
-            ENDIF.
+            TRY.
+                DATA(lr_attri_ref_ref) = attri_get_val_ref( lr_attri_ref->name ).
+              CATCH cx_root.
+                CONTINUE.
+            ENDTRY.
 
-            IF lr_ref <> lr_cache_inner->ref.
+            IF lr_ref <> lr_attri_ref_ref.
               CONTINUE.
             ENDIF.
 
@@ -597,12 +579,13 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
                      AND (    type_kind = cl_abap_typedescr=>typekind_struct1
                            OR type_kind = cl_abap_typedescr=>typekind_struct2 ).
 
-            READ TABLE lt_ref_cache REFERENCE INTO lr_cache_inner WITH KEY name = lr_attri_ref->name.
-            IF sy-subrc <> 0.
-              CONTINUE.
-            ENDIF.
+            TRY.
+                lr_attri_ref_ref = attri_get_val_ref( lr_attri_ref->name ).
+              CATCH cx_root.
+                CONTINUE.
+            ENDTRY.
 
-            IF <ref> <> lr_cache_inner->ref.
+            IF <ref> <> lr_attri_ref_ref.
               CONTINUE.
             ENDIF.
 
