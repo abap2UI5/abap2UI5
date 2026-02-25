@@ -140,14 +140,28 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
         DATA(lo_upper_mapper) = z2ui5_cl_ajson_mapping=>create_upper_case( ).
         DATA(ajson_default) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ii_custom_mapping = lo_upper_mapper ) ).
 
+        TYPES: BEGIN OF ty_s_mapper_cache,
+                 mapper TYPE REF TO z2ui5_if_ajson_mapping,
+                 ajson  TYPE REF TO z2ui5_if_ajson,
+               END OF ty_s_mapper_cache.
+        DATA lt_mapper_cache TYPE STANDARD TABLE OF ty_s_mapper_cache WITH EMPTY KEY.
+
         LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
              WHERE bind_type <> ``
                    AND type_kind <> cl_abap_datadescr=>typekind_dref
                    AND type_kind <> cl_abap_datadescr=>typekind_oref.
 
           IF lr_attri->custom_mapper IS BOUND.
-            DATA(ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
+            READ TABLE lt_mapper_cache REFERENCE INTO DATA(lr_mapper_cache)
+                 WITH KEY mapper = lr_attri->custom_mapper. "#EC CI_SORTSEQ
+            IF sy-subrc = 0.
+              DATA(ajson) = lr_mapper_cache->ajson.
+            ELSE.
+              ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
                                                    ii_custom_mapping = lr_attri->custom_mapper ) ).
+              INSERT VALUE #( mapper = lr_attri->custom_mapper
+                              ajson  = ajson ) INTO TABLE lt_mapper_cache.
+            ENDIF.
           ELSE.
             ajson = ajson_default.
           ENDIF.
@@ -198,6 +212,18 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
       ENDTRY.
     ENDLOOP.
 
+    TYPES: BEGIN OF ty_s_child_idx,
+             name_parent TYPE string,
+             name        TYPE string,
+           END OF ty_s_child_idx.
+    DATA lt_child_idx TYPE SORTED TABLE OF ty_s_child_idx WITH NON-UNIQUE KEY name_parent.
+
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_pre) "#EC CI_SORTSEQ
+         WHERE name_parent IS NOT INITIAL.
+      INSERT VALUE #( name_parent = lr_pre->name_parent
+                      name        = lr_pre->name ) INTO TABLE lt_child_idx.
+    ENDLOOP.
+
     LOOP AT mt_attri->* REFERENCE INTO lr_attri "#EC CI_SORTSEQ
          WHERE name_ref IS NOT INITIAL.
 
@@ -242,8 +268,13 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
           GET REFERENCE OF <val5> INTO <val4>.
           lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( <val4> ).
 
-          LOOP AT mt_attri->* REFERENCE INTO DATA(lr_child) "#EC CI_SORTSEQ
+          LOOP AT lt_child_idx REFERENCE INTO DATA(lr_child_idx)
                WHERE name_parent = lr_attri->name.
+            READ TABLE mt_attri->* REFERENCE INTO DATA(lr_child)
+                 WITH KEY name = lr_child_idx->name.
+            IF sy-subrc <> 0.
+              CONTINUE.
+            ENDIF.
             DATA(lr_child_ref) = attri_get_val_ref( lr_child->name ).
             lr_child->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_child_ref ).
           ENDLOOP.
@@ -541,6 +572,12 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
            END OF ty_s_ref_cache.
     DATA lt_ref_cache TYPE SORTED TABLE OF ty_s_ref_cache WITH UNIQUE KEY name.
 
+    TYPES: BEGIN OF ty_s_child_entry,
+             name_parent TYPE string,
+             name        TYPE string,
+           END OF ty_s_child_entry.
+    DATA lt_children TYPE SORTED TABLE OF ty_s_child_entry WITH NON-UNIQUE KEY name_parent.
+
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_pre) "#EC CI_SORTSEQ
          WHERE check_dissolved = abap_true
                AND name_ref IS INITIAL.
@@ -549,6 +586,12 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
                           ref  = attri_get_val_ref( lr_pre->name ) ) INTO TABLE lt_ref_cache.
         CATCH cx_root ##NO_HANDLER.
       ENDTRY.
+    ENDLOOP.
+
+    LOOP AT mt_attri->* REFERENCE INTO lr_pre "#EC CI_SORTSEQ
+         WHERE name_parent IS NOT INITIAL.
+      INSERT VALUE #( name_parent = lr_pre->name_parent
+                      name        = lr_pre->name ) INTO TABLE lt_children.
     ENDLOOP.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
@@ -609,11 +652,19 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
             lr_attri->name_ref = lr_attri_ref->name.
 
-            LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_child) "#EC CI_SORTSEQ
+            DATA(lv_parent_prefix) = |{ lr_attri->name }->|.
+
+            LOOP AT lt_children REFERENCE INTO DATA(lr_child_entry)
                  WHERE name_parent = lr_attri->name.
 
+              READ TABLE mt_attri->* REFERENCE INTO DATA(lr_attri_child)
+                   WITH KEY name = lr_child_entry->name.
+              IF sy-subrc <> 0.
+                CONTINUE.
+              ENDIF.
+
               DATA(lv_name) = shift_left( val = lr_attri_child->name
-                                          sub = |{ lr_attri->name }->| ).
+                                          sub = lv_parent_prefix ).
               lr_attri_child->name_ref = |{ lr_attri->name_ref }-{ lv_name }|.
 
             ENDLOOP.
