@@ -28,6 +28,8 @@ CLASS z2ui5_cl_core_srv_model DEFINITION
         VALUE(result) TYPE string ##NEEDED.
 
   PROTECTED SECTION.
+    CONSTANTS max_dissolve_depth TYPE i VALUE 5.
+
     DATA mt_attri TYPE REF TO z2ui5_if_core_types=>ty_t_attri.
     DATA mo_app   TYPE REF TO object.
 
@@ -190,7 +192,8 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
         result = COND #( WHEN result IS INITIAL THEN `{}` ELSE result ).
 
       CATCH cx_root INTO DATA(x).
-        ASSERT x IS NOT BOUND.
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING val = x.
     ENDTRY.
   ENDMETHOD.
 
@@ -458,13 +461,13 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   METHOD diss_dref.
 
-    DATA(lr_ref_tmp) = attri_get_val_ref( ir_attri->name ).
+    DATA(lr_val) = attri_get_val_ref( ir_attri->name ).
 
-    IF z2ui5_cl_util=>check_unassign_inital( lr_ref_tmp ).
+    IF z2ui5_cl_util=>check_unassign_inital( lr_val ).
       RETURN.
     ENDIF.
 
-    DATA(lr_ref) = z2ui5_cl_util=>unassign_data( lr_ref_tmp ).
+    DATA(lr_ref) = z2ui5_cl_util=>unassign_data( lr_val ).
     IF lr_ref IS INITIAL.
       RETURN.
     ENDIF.
@@ -492,13 +495,13 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   METHOD diss_oref.
 
-    DATA(lr_ref_tmp) = attri_get_val_ref( ir_attri->name ).
+    DATA(lr_val) = attri_get_val_ref( ir_attri->name ).
 
-    IF z2ui5_cl_util=>check_unassign_inital( lr_ref_tmp ).
+    IF z2ui5_cl_util=>check_unassign_inital( lr_val ).
       RETURN.
     ENDIF.
 
-    DATA(lr_ref) = z2ui5_cl_util=>unassign_object( lr_ref_tmp ).
+    DATA(lr_ref) = z2ui5_cl_util=>unassign_object( lr_val ).
     DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_oref( lr_ref ).
 
     LOOP AT lt_attri REFERENCE INTO DATA(lr_attri)
@@ -520,14 +523,14 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   METHOD diss_struc.
 
-    DATA(lr_ref_tmp) = attri_get_val_ref( ir_attri->name ).
+    DATA(lr_val) = attri_get_val_ref( ir_attri->name ).
 
     IF ir_attri->o_typedescr->kind = cl_abap_typedescr=>kind_ref.
       DATA(lv_name) = |{ ir_attri->name }->|.
-      DATA(lr_ref) = z2ui5_cl_util=>unassign_data( lr_ref_tmp ).
+      DATA(lr_ref) = z2ui5_cl_util=>unassign_data( lr_val ).
     ELSE.
       lv_name = |{ ir_attri->name }-|.
-      lr_ref = lr_ref_tmp.
+      lr_ref = lr_val.
     ENDIF.
 
     IF lr_ref IS BOUND.
@@ -545,7 +548,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
     WHILE line_exists( mt_attri->*[ check_dissolved = abap_false ] ) OR mt_attri->* IS INITIAL. "#EC CI_SORTSEQ
 
-      IF sy-index = 5.
+      IF sy-index = max_dissolve_depth.
         RETURN.
       ENDIF.
 
@@ -710,7 +713,8 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
               DATA(lt_attri_dref) = diss_dref( lr_attri ).
               INSERT LINES OF lt_attri_dref INTO TABLE lt_attri_new.
             WHEN OTHERS.
-              ASSERT 1 = 0.
+              RAISE EXCEPTION TYPE z2ui5_cx_util_error
+                EXPORTING val = `DISSOLVE_ERROR - Unexpected type_kind for reference type`.
           ENDCASE.
         WHEN OTHERS.
       ENDCASE.

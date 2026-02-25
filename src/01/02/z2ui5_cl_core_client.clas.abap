@@ -27,6 +27,20 @@ CLASS z2ui5_cl_core_client DEFINITION
         type          TYPE string
       RETURNING
         VALUE(result) TYPE string.
+
+    METHODS get_if_app
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_if_app.
+
+    METHODS msg_box_from_bapiret
+      IMPORTING
+        text    TYPE any
+      EXPORTING
+        ev_text    TYPE string
+        ev_type    TYPE string
+        ev_title   TYPE string
+        ev_details TYPE string
+        ev_skip    TYPE abap_bool.
 ENDCLASS.
 
 
@@ -130,28 +144,24 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~message_box_display.
 
+    DATA lv_text    TYPE string.
+    DATA lv_type    TYPE string.
+    DATA lv_title   TYPE string.
+    DATA lv_details TYPE string.
+
     IF z2ui5_cl_util=>rtti_check_clike( text ) = abap_false.
-      DATA(lt_msg) = z2ui5_cl_util=>msg_get_t( text ).
-      IF lines( lt_msg ) = 1.
-        DATA(lv_text) = lt_msg[ 1 ]-text.
-
-        DATA(lv_type) = z2ui5_cl_util=>ui5_get_msg_type( lt_msg[ 1 ]-type ).
-        lv_type = to_lower( lv_type ).
-        DATA(lv_title) = get_msg_title( lt_msg[ 1 ]-type ).
-
-      ELSEIF lines( lt_msg ) > 1.
-        lv_text = | { lines( lt_msg ) } Messages found: |.
-        DATA lt_detail_items TYPE string_table.
-        LOOP AT lt_msg REFERENCE INTO DATA(lr_msg).
-          INSERT |<li>{ lr_msg->text }</li>| INTO TABLE lt_detail_items.
-        ENDLOOP.
-        DATA(lv_details) = `<ul>` && concat_lines_of( lt_detail_items ) && `</ul>`.
-        IF title IS INITIAL.
-          lv_title = get_msg_title( lt_msg[ 1 ]-type ).
-        ENDIF.
-        lv_type = z2ui5_cl_util=>ui5_get_msg_type( lt_msg[ 1 ]-type ).
-      ELSE.
+      DATA(lv_skip) = abap_false.
+      msg_box_from_bapiret( EXPORTING text    = text
+                            IMPORTING ev_text    = lv_text
+                                      ev_type    = lv_type
+                                      ev_title   = lv_title
+                                      ev_details = lv_details
+                                      ev_skip    = lv_skip ).
+      IF lv_skip = abap_true.
         RETURN.
+      ENDIF.
+      IF title IS NOT INITIAL.
+        lv_title = title.
       ENDIF.
     ELSE.
       lv_text = text.
@@ -407,16 +417,16 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~set_session_stateful.
 
-    DATA(lv_check_sticky) = CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky.
-    IF lv_check_sticky = val.
+    DATA(li_app) = get_if_app( ).
+    IF li_app->check_sticky = val.
       RETURN.
     ENDIF.
     IF val = abap_true.
       mo_action->ms_next-s_set-s_stateful-active = 1.
-      CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky = abap_true.
+      li_app->check_sticky = abap_true.
     ELSE.
       mo_action->ms_next-s_set-s_stateful-active = 0.
-      CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky = abap_false.
+      li_app->check_sticky = abap_false.
     ENDIF.
 
     mo_action->ms_next-s_set-s_stateful-switched = xsdbool( mo_action->ms_next-s_set-s_stateful-switched = abap_false ).
@@ -431,7 +441,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~check_on_init.
 
-    result = xsdbool( CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_initialized = abap_false ).
+    result = xsdbool( get_if_app( )->check_initialized = abap_false ).
 
   ENDMETHOD.
 
@@ -449,7 +459,38 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_event_nav_app_leave.
 
-    result = z2ui5_if_client~_event( `___ZZZ_NAL` ).
+    result = z2ui5_if_client~_event( z2ui5_if_core_types=>cs_event_nav_app_leave ).
+
+  ENDMETHOD.
+
+  METHOD get_if_app.
+
+    result = CAST z2ui5_if_app( mo_action->mo_app->mo_app ).
+
+  ENDMETHOD.
+
+  METHOD msg_box_from_bapiret.
+
+    DATA(lt_msg) = z2ui5_cl_util=>msg_get_t( text ).
+
+    IF lines( lt_msg ) = 1.
+      ev_text  = lt_msg[ 1 ]-text.
+      ev_type  = to_lower( z2ui5_cl_util=>ui5_get_msg_type( lt_msg[ 1 ]-type ) ).
+      ev_title = get_msg_title( lt_msg[ 1 ]-type ).
+
+    ELSEIF lines( lt_msg ) > 1.
+      ev_text = | { lines( lt_msg ) } Messages found: |.
+      DATA lt_detail_items TYPE string_table.
+      LOOP AT lt_msg REFERENCE INTO DATA(lr_msg).
+        INSERT |<li>{ lr_msg->text }</li>| INTO TABLE lt_detail_items.
+      ENDLOOP.
+      ev_details = `<ul>` && concat_lines_of( lt_detail_items ) && `</ul>`.
+      ev_title   = get_msg_title( lt_msg[ 1 ]-type ).
+      ev_type    = z2ui5_cl_util=>ui5_get_msg_type( lt_msg[ 1 ]-type ).
+
+    ELSE.
+      ev_skip = abap_true.
+    ENDIF.
 
   ENDMETHOD.
 

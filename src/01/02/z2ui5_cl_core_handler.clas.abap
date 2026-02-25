@@ -134,7 +134,8 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
           |\}|.
 
       CATCH cx_root INTO DATA(x).
-        ASSERT x IS NOT BOUND.
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING val = x.
     ENDTRY.
   ENDMETHOD.
 
@@ -264,7 +265,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     TRY.
         DATA(li_client2) = CAST z2ui5_if_client( li_client ).
 
-        IF li_client2->get( )-event = `___ZZZ_NAL`.
+        IF li_client2->get( )-event = z2ui5_if_core_types=>cs_event_nav_app_leave.
           li_client2->popup_destroy( ).
           li_client2->nav_app_leave( ).
         ELSE.

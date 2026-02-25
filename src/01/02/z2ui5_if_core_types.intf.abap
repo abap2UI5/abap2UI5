@@ -8,6 +8,8 @@ INTERFACE z2ui5_if_core_types
       two_way_model           TYPE string VALUE `XX`,
     END OF cs_ui5.
 
+  CONSTANTS cs_event_nav_app_leave TYPE string VALUE `___ZZZ_NAL`.
+
   CONSTANTS:
     BEGIN OF cs_bind_type,
       one_way  TYPE string VALUE `ONE_WAY`,

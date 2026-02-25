@@ -47,6 +47,9 @@ CLASS z2ui5_cl_core_app DEFINITION
   PROTECTED SECTION.
 
   PRIVATE SECTION.
+    METHODS create_model
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_core_srv_model.
 ENDCLASS.
 
 
@@ -61,8 +64,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD all_xml_stringify.
 
-    DATA(lo_dissolver) = NEW z2ui5_cl_core_srv_model( attri = mt_attri
-                                                     app    = mo_app ).
+    DATA(lo_model) = create_model( ).
 
     TRY.
         result = z2ui5_cl_util=>xml_stringify( me ).
@@ -71,18 +73,18 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        lo_dissolver->main_attri_db_save_srtti( ).
+        lo_model->main_attri_db_save_srtti( ).
         result = z2ui5_cl_util=>xml_stringify( me ).
-        lo_dissolver->main_attri_db_load( ).
+        lo_model->main_attri_db_load( ).
         RETURN.
       CATCH cx_root INTO DATA(x) ##NO_HANDLER.
     ENDTRY.
 
     TRY.
-        lo_dissolver->main_attri_refresh( ).
-        lo_dissolver->main_attri_db_save_srtti( ).
+        lo_model->main_attri_refresh( ).
+        lo_model->main_attri_db_save_srtti( ).
         result = z2ui5_cl_util=>xml_stringify( me ).
-        lo_dissolver->main_attri_db_load( ).
+        lo_model->main_attri_db_load( ).
         RETURN.
       CATCH cx_root INTO x ##NO_HANDLER.
     ENDTRY.
@@ -105,10 +107,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
     DATA(ls_db) = lo_db->read_draft( id ).
     result = all_xml_parse( ls_db-data ).
 
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = result->mt_attri
-                                                  app   = result->mo_app ).
-
-    lo_model->main_attri_db_load( ).
+    result->create_model( )->main_attri_db_load( ).
 
   ENDMETHOD.
 
@@ -119,10 +118,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
     result = all_xml_parse( ls_db-data ).
 
     result->mo_app = app.
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = result->mt_attri
-                                                  app   = result->mo_app ).
-
-    lo_model->main_attri_db_load( ).
+    result->create_model( )->main_attri_db_load( ).
 
   ENDMETHOD.
 
@@ -141,10 +137,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD model_json_parse.
 
-    DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_model(
-      attri = mt_attri
-      app   = mo_app ).
-    lo_json_mapper->main_json_to_attri(
+    create_model( )->main_json_to_attri(
         view  = iv_view
         model = io_model ).
 
@@ -152,11 +145,14 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD model_json_stringify.
 
-    DATA(lo_json_mapper) = NEW z2ui5_cl_core_srv_model(
-      attri = mt_attri
-      app   = mo_app ).
+    result = create_model( )->main_json_stringify( ).
 
-    result = lo_json_mapper->main_json_stringify( ).
+  ENDMETHOD.
+
+  METHOD create_model.
+
+    result = NEW z2ui5_cl_core_srv_model( attri = mt_attri
+                                          app   = mo_app ).
 
   ENDMETHOD.
 ENDCLASS.
