@@ -512,8 +512,11 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   METHOD dissolve.
 
-    WHILE line_exists( mt_attri->*[ check_dissolved = abap_false ] ) OR mt_attri->* IS INITIAL. "#EC CI_SORTSEQ
+    DATA(lv_before) = lines( mt_attri->* ).
+
+    WHILE lines( mt_attri->* ) <> lv_before OR mt_attri->* IS INITIAL.
       DATA(lv_check_update_refs) = abap_true.
+      lv_before = lines( mt_attri->* ).
 
       IF sy-index = 5.
         RETURN.
