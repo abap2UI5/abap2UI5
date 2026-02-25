@@ -13,6 +13,9 @@ CLASS z2ui5_cl_core_client DEFINITION
 
   PROTECTED SECTION.
   PRIVATE SECTION.
+    DATA mo_srv_bind  TYPE REF TO z2ui5_cl_core_srv_bind.
+    DATA mo_srv_event TYPE REF TO z2ui5_cl_core_srv_event.
+
     METHODS nav_app_set_id
       IMPORTING
         app           TYPE REF TO z2ui5_if_app
@@ -32,6 +35,8 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   METHOD constructor.
 
     mo_action = action.
+    mo_srv_bind = NEW #( mo_action->mo_app ).
+    mo_srv_event = NEW #( ).
 
   ENDMETHOD.
 
@@ -336,8 +341,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind.
 
-    DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( mo_action->mo_app ).
-    result = lo_bind->main( val    = z2ui5_cl_util=>conv_get_as_data_ref( val )
+    result = mo_srv_bind->main( val    = z2ui5_cl_util=>conv_get_as_data_ref( val )
                             type   = z2ui5_if_core_types=>cs_bind_type-one_way
                             config = VALUE #( path_only            = path
                                               custom_filter        = custom_filter
@@ -350,8 +354,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_edit.
 
-    DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( mo_action->mo_app ).
-    result = lo_bind->main( val    = z2ui5_cl_util=>conv_get_as_data_ref( val )
+    result = mo_srv_bind->main( val    = z2ui5_cl_util=>conv_get_as_data_ref( val )
                             type   = z2ui5_if_core_types=>cs_bind_type-two_way
                             config = VALUE #( path_only            = path
                                               custom_filter        = custom_filter
@@ -366,8 +369,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_event.
 
-    DATA(lo_ui5) = NEW z2ui5_cl_core_srv_event( ).
-    result = lo_ui5->get_event( val   = val
+    result = mo_srv_event->get_event( val   = val
                                 t_arg = t_arg
                                 s_cnt = s_ctrl ).
 
@@ -380,8 +382,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_event_client.
 
-    DATA(lo_ui5) = NEW z2ui5_cl_core_srv_event( ).
-    result = lo_ui5->get_event_client( val   = val
+    result = mo_srv_event->get_event_client( val   = val
                                        t_arg = t_arg ).
 
   ENDMETHOD.
