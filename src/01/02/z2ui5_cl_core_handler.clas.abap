@@ -42,6 +42,9 @@ CLASS z2ui5_cl_core_handler DEFINITION
         VALUE(result) TYPE string.
 
   PRIVATE SECTION.
+    METHODS check_view_update_needed
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 ENDCLASS.
 
 
@@ -208,13 +211,10 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD main_end.
+  METHOD check_view_update_needed.
 
-    ms_response = VALUE #( s_front-params = mo_action->ms_next-s_set
-                           s_front-id     = mo_action->mo_app->ms_draft-id
-                           s_front-app    = z2ui5_cl_util=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app ) ).
-
-    IF ms_response-s_front-params-s_view-check_update_model        = abap_true
+    result = xsdbool(
+        ms_response-s_front-params-s_view-check_update_model        = abap_true
         OR ms_response-s_front-params-s_view_nest-check_update_model   = abap_true
         OR ms_response-s_front-params-s_view_nest2-check_update_model  = abap_true
         OR ms_response-s_front-params-s_popup-check_update_model       = abap_true
@@ -223,10 +223,18 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         OR ms_response-s_front-params-s_view_nest-xml                 IS NOT INITIAL
         OR ms_response-s_front-params-s_view_nest2-xml                IS NOT INITIAL
         OR ms_response-s_front-params-s_popup-xml IS NOT INITIAL
-        OR ms_response-s_front-params-s_popover-xml                   IS NOT INITIAL.
+        OR ms_response-s_front-params-s_popover-xml                   IS NOT INITIAL ).
 
+  ENDMETHOD.
+
+  METHOD main_end.
+
+    ms_response = VALUE #( s_front-params = mo_action->ms_next-s_set
+                           s_front-id     = mo_action->mo_app->ms_draft-id
+                           s_front-app    = z2ui5_cl_util=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app ) ).
+
+    IF check_view_update_needed( ).
       ms_response-model = mo_action->mo_app->model_json_stringify( ).
-
     ELSE.
       ms_response-model = `{}`.
     ENDIF.

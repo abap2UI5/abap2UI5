@@ -13,6 +13,17 @@ CLASS z2ui5_cl_core_client DEFINITION
 
   PROTECTED SECTION.
   PRIVATE SECTION.
+    METHODS nav_app_set_id
+      IMPORTING
+        app           TYPE REF TO z2ui5_if_app
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS get_msg_title
+      IMPORTING
+        type          TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
 ENDCLASS.
 
 
@@ -102,6 +113,16 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD get_msg_title.
+
+    result = SWITCH #( type
+                       WHEN `E` THEN `Error`
+                       WHEN `S` THEN `Success`
+                       WHEN `W` THEN `Warning`
+                       ELSE `Information` ).
+
+  ENDMETHOD.
+
   METHOD z2ui5_if_client~message_box_display.
 
     IF z2ui5_cl_util=>rtti_check_clike( text ) = abap_false.
@@ -111,11 +132,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
         DATA(lv_type) = z2ui5_cl_util=>ui5_get_msg_type( lt_msg[ 1 ]-type ).
         lv_type = to_lower( lv_type ).
-        DATA(lv_title) = SWITCH #( lt_msg[ 1 ]-type
-                                   WHEN `E` THEN `Error`
-                                   WHEN `S` THEN `Success`
-                                   WHEN `W` THEN `Warning`
-                                   ELSE `Information` ).
+        DATA(lv_title) = get_msg_title( lt_msg[ 1 ]-type ).
 
       ELSEIF lines( lt_msg ) > 1.
         lv_text = | { lines( lt_msg ) } Messages found: |.
@@ -125,11 +142,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
         ENDLOOP.
         lv_details = |{ lv_details }</ul>|.
         IF title IS INITIAL.
-          lv_title = SWITCH #( lt_msg[ 1 ]-type
-                               WHEN `E` THEN `Error`
-                               WHEN `S` THEN `Success`
-                               WHEN `W` THEN `Warning`
-                               ELSE `Information` ).
+          lv_title = get_msg_title( lt_msg[ 1 ]-type ).
         ENDIF.
         lv_type = z2ui5_cl_util=>ui5_get_msg_type( lt_msg[ 1 ]-type ).
       ELSE.
@@ -187,7 +200,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_client~nav_app_call.
+  METHOD nav_app_set_id.
 
     IF app IS NOT BOUND.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
@@ -195,12 +208,18 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
           val = `NAV_APP_LEAVE_TO_INITIAL_APP_ERROR`.
     ENDIF.
 
-    mo_action->ms_next-o_app_call = app.
-
     IF app->id_app IS INITIAL.
       app->id_app = z2ui5_cl_util=>uuid_get_c32( ).
     ENDIF.
     result = app->id_app.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~nav_app_call.
+
+    mo_action->ms_next-o_app_call = app.
+    result = nav_app_set_id( app ).
+
   ENDMETHOD.
 
   METHOD z2ui5_if_client~nav_app_leave.
@@ -209,18 +228,8 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
       app = z2ui5_if_client~get_app( z2ui5_if_client~get( )-s_draft-id_prev_app_stack ).
     ENDIF.
 
-    IF app IS NOT BOUND.
-      RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING
-          val = `NAV_APP_LEAVE_TO_INITIAL_APP_ERROR`.
-    ENDIF.
-
     mo_action->ms_next-o_app_leave = app.
-
-    IF app->id_app IS INITIAL.
-      app->id_app = z2ui5_cl_util=>uuid_get_c32( ).
-    ENDIF.
-    result = app->id_app.
+    result = nav_app_set_id( app ).
 
   ENDMETHOD.
 

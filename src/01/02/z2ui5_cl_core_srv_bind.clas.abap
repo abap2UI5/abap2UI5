@@ -122,7 +122,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
       ENDTRY.
     ENDIF.
 
-    IF mr_attri->custom_filter_back IS BOUND.
+    IF mr_attri->custom_mapper_back IS BOUND.
       TRY.
           DATA(lo_dummy2) = CAST if_serializable_object( mr_attri->custom_mapper_back ) ##NEEDED.
         CATCH cx_root.
