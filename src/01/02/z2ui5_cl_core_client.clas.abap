@@ -141,11 +141,11 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
       ELSEIF lines( lt_msg ) > 1.
         lv_text = | { lines( lt_msg ) } Messages found: |.
-        DATA(lv_details) = `<ul>`.
+        DATA lt_detail_items TYPE string_table.
         LOOP AT lt_msg REFERENCE INTO DATA(lr_msg).
-          lv_details = |{ lv_details }<li>{ lr_msg->text }</li>|.
+          INSERT |<li>{ lr_msg->text }</li>| INTO TABLE lt_detail_items.
         ENDLOOP.
-        lv_details = |{ lv_details }</ul>|.
+        DATA(lv_details) = `<ul>` && concat_lines_of( lt_detail_items ) && `</ul>`.
         IF title IS INITIAL.
           lv_title = get_msg_title( lt_msg[ 1 ]-type ).
         ENDIF.
