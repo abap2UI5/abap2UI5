@@ -799,15 +799,14 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
       WHEN `*`.
         IF lv_value+lv_length(1) = `*`.
-          SHIFT lv_value RIGHT DELETING TRAILING `*`.
-          SHIFT lv_value LEFT DELETING LEADING `*`.
+          lv_value = substring( val = lv_value off = 1 len = lv_length - 1 ).
           result = VALUE #( sign   = `I`
                             option = `CP`
                             low    = lv_value ).
         ENDIF.
 
       WHEN OTHERS.
-        IF lv_value CP `...`.
+        IF lv_value CS `...`.
           SPLIT lv_value AT `...` INTO result-low result-high.
           result-sign   = `I`.
           result-option = `BT`.
@@ -1666,8 +1665,8 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   METHOD filter_get_data_by_multi.
 
     LOOP AT val INTO DATA(ls_filter).
-      IF ls_filter-t_range IS NOT INITIAL
-        OR ls_filter-t_token IS NOT INITIAL.
+      IF lines( ls_filter-t_range ) > 0
+        OR lines( ls_filter-t_token ) > 0.
         INSERT ls_filter INTO TABLE result.
       ENDIF.
     ENDLOOP.

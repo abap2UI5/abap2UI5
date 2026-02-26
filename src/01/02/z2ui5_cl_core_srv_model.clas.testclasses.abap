@@ -862,10 +862,13 @@ CLASS ltcl_test_diss_complex IMPLEMENTATION.
   METHOD test_table_in_dref.
 
     DATA(lo_app) = NEW ltcl_app_complex( ).
-    CREATE DATA lo_app->mr_tab TYPE ltcl_app_complex=>ty_t_tab.
+    CREATE DATA lo_app->mr_tab LIKE lo_app->mt_tab.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     ASSIGN lo_app->mr_tab->* TO <tab>.
-    INSERT VALUE ltcl_app_complex=>ty_s_row( col1 = `X` col2 = `Y` ) INTO TABLE <tab>.
+    DATA ls_row LIKE LINE OF lo_app->mt_tab.
+    ls_row-col1 = `X`.
+    ls_row-col2 = `Y`.
+    INSERT ls_row INTO TABLE <tab>.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
     DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
@@ -889,7 +892,7 @@ CLASS ltcl_test_diss_complex IMPLEMENTATION.
     lo_app->mt_tab = VALUE #( ( col1 = `A` col2 = `1` ) ).
     lo_app->ms_nested-name = `test`.
     lo_app->mo_mid = NEW #( ).
-    CREATE DATA lo_app->mr_tab TYPE ltcl_app_complex=>ty_t_tab.
+    CREATE DATA lo_app->mr_tab LIKE lo_app->mt_tab.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
     DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
@@ -918,6 +921,8 @@ CLASS ltcl_test_diss_complex IMPLEMENTATION.
     DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
                                                    app  = lo_app ).
 
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
     lo_model->dissolve( ).
     DATA(lv_count_1) = lines( lt_attri ).
 
