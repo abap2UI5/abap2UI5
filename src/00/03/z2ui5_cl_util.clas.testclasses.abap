@@ -1356,7 +1356,8 @@ CLASS ltcl_unit_test_conversion IMPLEMENTATION.
         col2 TYPE string,
       END OF ty_row.
 
-    DATA(lt_in) = VALUE STANDARD TABLE OF ty_row WITH EMPTY KEY(
+    DATA lt_in TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    lt_in = VALUE #(
       ( col1 = `A` col2 = `B` )
       ( col1 = `C` col2 = `D` ) ).
 
