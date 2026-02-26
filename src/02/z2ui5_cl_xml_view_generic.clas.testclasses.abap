@@ -8,9 +8,9 @@ CLASS ltcl_unit_test DEFINITION FINAL
     METHODS test_shell_page        FOR TESTING RAISING cx_static_check.
     METHODS test_button            FOR TESTING RAISING cx_static_check.
     METHODS test_input             FOR TESTING RAISING cx_static_check.
-    METHODS test_add_leaf          FOR TESTING RAISING cx_static_check.
+    METHODS test_leaf              FOR TESTING RAISING cx_static_check.
     METHODS test_nested            FOR TESTING RAISING cx_static_check.
-    METHODS test_get_parent        FOR TESTING RAISING cx_static_check.
+    METHODS test_up                FOR TESTING RAISING cx_static_check.
     METHODS test_namespace         FOR TESTING RAISING cx_static_check.
     METHODS test_table             FOR TESTING RAISING cx_static_check.
     METHODS test_simple_form       FOR TESTING RAISING cx_static_check.
@@ -23,8 +23,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_factory.
 
     DATA(lo_view) = z2ui5_cl_xml_view_generic=>factory( ).
-    DATA(lv_xml) = lo_view->add( name = `Page`
-                                 t_prop = VALUE #( ( n = `title` v = `test` ) )
+    DATA(lv_xml) = lo_view->add( n = `Page`
+                                 p = VALUE #( ( n = `title` v = `test` ) )
                                )->stringify( ).
 
     cl_abap_unit_assert=>assert_not_initial( lv_xml ).
@@ -35,8 +35,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_factory_popup.
 
     DATA(lo_popup) = z2ui5_cl_xml_view_generic=>factory_popup( ).
-    DATA(lv_xml) = lo_popup->add( name = `Dialog`
-                                  t_prop = VALUE #( ( n = `title` v = `Test` ) )
+    DATA(lv_xml) = lo_popup->add( n = `Dialog`
+                                  p = VALUE #( ( n = `title` v = `Test` ) )
                                 )->stringify( ).
 
     cl_abap_unit_assert=>assert_not_initial( lv_xml ).
@@ -55,9 +55,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_shell_page.
 
     DATA(lv_xml) = z2ui5_cl_xml_view_generic=>factory(
-      )->add( name = `Shell`
-      )->add( name = `Page`
-              t_prop = VALUE #( ( n = `title` v = `My Page` ) )
+      )->add( n = `Shell`
+      )->add( n = `Page`
+              p = VALUE #( ( n = `title` v = `My Page` ) )
       )->stringify( ).
 
     cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `Shell` ) ).
@@ -69,11 +69,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_button.
 
     DATA(lv_xml) = z2ui5_cl_xml_view_generic=>factory(
-      )->add( name = `Page`
-              t_prop = VALUE #( ( n = `title` v = `Test` ) )
-      )->add_leaf( name = `Button`
-                   t_prop = VALUE #( ( n = `text`  v = `Click Me` )
-                                     ( n = `press` v = `onPress` ) )
+      )->add( n = `Page`
+              p = VALUE #( ( n = `title` v = `Test` ) )
+      )->leaf( n = `Button`
+               p = VALUE #( ( n = `text`  v = `Click Me` )
+                             ( n = `press` v = `onPress` ) )
       )->stringify( ).
 
     cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `Button` ) ).
@@ -84,11 +84,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_input.
 
     DATA(lv_xml) = z2ui5_cl_xml_view_generic=>factory(
-      )->add( name = `Page`
-              t_prop = VALUE #( ( n = `title` v = `Test` ) )
-      )->add_leaf( name = `Input`
-                   t_prop = VALUE #( ( n = `value`       v = `{/NAME}` )
-                                     ( n = `placeholder` v = `Enter name` ) )
+      )->add( n = `Page`
+              p = VALUE #( ( n = `title` v = `Test` ) )
+      )->leaf( n = `Input`
+               p = VALUE #( ( n = `value`       v = `{/NAME}` )
+                             ( n = `placeholder` v = `Enter name` ) )
       )->stringify( ).
 
     cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `Input` ) ).
@@ -96,16 +96,16 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_add_leaf.
+  METHOD test_leaf.
 
     DATA(lo_page) = z2ui5_cl_xml_view_generic=>factory(
-      )->add( name = `Page`
-              t_prop = VALUE #( ( n = `title` v = `Test` ) ) ).
+      )->add( n = `Page`
+              p = VALUE #( ( n = `title` v = `Test` ) ) ).
 
-    lo_page->add_leaf( name = `Button`
-                       t_prop = VALUE #( ( n = `text` v = `Btn1` ) ) ).
-    lo_page->add_leaf( name = `Button`
-                       t_prop = VALUE #( ( n = `text` v = `Btn2` ) ) ).
+    lo_page->leaf( n = `Button`
+                   p = VALUE #( ( n = `text` v = `Btn1` ) ) ).
+    lo_page->leaf( n = `Button`
+                   p = VALUE #( ( n = `text` v = `Btn2` ) ) ).
 
     DATA(lv_xml) = lo_page->stringify( ).
 
@@ -117,13 +117,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_nested.
 
     DATA(lv_xml) = z2ui5_cl_xml_view_generic=>factory(
-      )->add( name = `Shell`
-      )->add( name = `Page`
-              t_prop = VALUE #( ( n = `title` v = `Test` ) )
-      )->add( name = `VBox`
-      )->add( name = `HBox`
-      )->add_leaf( name = `Text`
-                   t_prop = VALUE #( ( n = `text` v = `Nested` ) )
+      )->add( n = `Shell`
+      )->add( n = `Page`
+              p = VALUE #( ( n = `title` v = `Test` ) )
+      )->add( n = `VBox`
+      )->add( n = `HBox`
+      )->leaf( n = `Text`
+               p = VALUE #( ( n = `text` v = `Nested` ) )
       )->stringify( ).
 
     cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `VBox` ) ).
@@ -132,13 +132,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_get_parent.
+  METHOD test_up.
 
     DATA(lo_view) = z2ui5_cl_xml_view_generic=>factory( ).
-    DATA(lo_page) = lo_view->add( name = `Page`
-                                  t_prop = VALUE #( ( n = `title` v = `Test` ) ) ).
-    DATA(lo_vbox) = lo_page->add( name = `VBox` ).
-    DATA(lo_parent) = lo_vbox->get_parent( ).
+    DATA(lo_page) = lo_view->add( n = `Page`
+                                  p = VALUE #( ( n = `title` v = `Test` ) ) ).
+    DATA(lo_vbox) = lo_page->add( n = `VBox` ).
+    DATA(lo_parent) = lo_vbox->up( ).
 
     cl_abap_unit_assert=>assert_bound( lo_parent ).
 
@@ -150,10 +150,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_namespace.
 
     DATA(lv_xml) = z2ui5_cl_xml_view_generic=>factory(
-      )->add( name = `DynamicPage`
-              ns   = `f`
-      )->add( name = `DynamicPageTitle`
-              ns   = `f`
+      )->add( n = `DynamicPage`
+              ns = `f`
+      )->add( n = `DynamicPageTitle`
+              ns = `f`
       )->stringify( ).
 
     cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `f:DynamicPage` ) ).
@@ -165,23 +165,23 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_table.
 
     DATA(lo_page) = z2ui5_cl_xml_view_generic=>factory(
-      )->add( name = `Page`
-              t_prop = VALUE #( ( n = `title` v = `Test` ) ) ).
+      )->add( n = `Page`
+              p = VALUE #( ( n = `title` v = `Test` ) ) ).
 
-    DATA(lo_table) = lo_page->add( name = `Table`
-                                   t_prop = VALUE #( ( n = `items`      v = `{/ITEMS}` )
-                                                     ( n = `headerText` v = `My Table` ) ) ).
+    DATA(lo_table) = lo_page->add( n = `Table`
+                                   p = VALUE #( ( n = `items`      v = `{/ITEMS}` )
+                                                ( n = `headerText` v = `My Table` ) ) ).
 
-    DATA(lo_columns) = lo_table->add( name = `columns` ).
-    DATA(lo_col) = lo_columns->add( name = `Column` ).
-    lo_col->add( name = `header` )->add_leaf( name = `Text`
-                                              t_prop = VALUE #( ( n = `text` v = `Col1` ) ) ).
+    DATA(lo_columns) = lo_table->add( n = `columns` ).
+    DATA(lo_col) = lo_columns->add( n = `Column` ).
+    lo_col->add( n = `header` )->leaf( n = `Text`
+                                       p = VALUE #( ( n = `text` v = `Col1` ) ) ).
 
-    lo_table->add( name = `items`
-      )->add( name = `ColumnListItem`
-      )->add( name = `cells`
-      )->add_leaf( name = `Text`
-                   t_prop = VALUE #( ( n = `text` v = `{COL1}` ) ) ).
+    lo_table->add( n = `items`
+      )->add( n = `ColumnListItem`
+      )->add( n = `cells`
+      )->leaf( n = `Text`
+               p = VALUE #( ( n = `text` v = `{COL1}` ) ) ).
 
     DATA(lv_xml) = lo_page->stringify( ).
 
@@ -196,18 +196,18 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_simple_form.
 
     DATA(lo_form) = z2ui5_cl_xml_view_generic=>factory(
-      )->add( name = `Page`
-              t_prop = VALUE #( ( n = `title` v = `Test` ) )
-      )->add( name   = `SimpleForm`
-              ns     = `form`
-              t_prop = VALUE #( ( n = `editable` v = `true` ) ) ).
+      )->add( n  = `Page`
+              p  = VALUE #( ( n = `title` v = `Test` ) )
+      )->add( n  = `SimpleForm`
+              ns = `form`
+              p  = VALUE #( ( n = `editable` v = `true` ) ) ).
 
-    lo_form->add( name = `content`
-                  ns   = `form`
-      )->add_leaf( name = `Label`
-                   t_prop = VALUE #( ( n = `text` v = `Name` ) )
-      )->add_leaf( name = `Input`
-                   t_prop = VALUE #( ( n = `value` v = `{/NAME}` ) ) ).
+    lo_form->add( n  = `content`
+                  ns = `form`
+      )->leaf( n = `Label`
+               p = VALUE #( ( n = `text` v = `Name` ) )
+      )->leaf( n = `Input`
+               p = VALUE #( ( n = `value` v = `{/NAME}` ) ) ).
 
     DATA(lv_xml) = lo_form->stringify( ).
 

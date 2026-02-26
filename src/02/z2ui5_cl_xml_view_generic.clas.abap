@@ -24,35 +24,35 @@ CLASS z2ui5_cl_xml_view_generic DEFINITION
 
     METHODS add
       IMPORTING
-        name          TYPE clike
+        n             TYPE clike
         ns            TYPE clike                           OPTIONAL
-        t_prop        TYPE z2ui5_if_types=>ty_t_name_value OPTIONAL
+        p             TYPE z2ui5_if_types=>ty_t_name_value OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_generic.
 
-    METHODS add_leaf
+    METHODS leaf
       IMPORTING
-        name          TYPE clike
+        n             TYPE clike
         ns            TYPE clike                           OPTIONAL
-        t_prop        TYPE z2ui5_if_types=>ty_t_name_value OPTIONAL
+        p             TYPE z2ui5_if_types=>ty_t_name_value OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_generic.
 
-    METHODS get_parent
+    METHODS up
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_generic.
 
-    METHODS get_root
+    METHODS root
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_generic.
 
     METHODS get
       IMPORTING
-        name          TYPE clike OPTIONAL
+        n             TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_generic.
 
-    METHODS get_child
+    METHODS child
       IMPORTING
         index         TYPE i
       RETURNING
@@ -156,9 +156,9 @@ CLASS z2ui5_cl_xml_view_generic IMPLEMENTATION.
     ENDTRY.
 
     DATA(lo_child) = NEW z2ui5_cl_xml_view_generic( ).
-    lo_child->mv_name   = name.
+    lo_child->mv_name   = n.
     lo_child->mv_ns     = ns.
-    lo_child->mt_prop   = t_prop.
+    lo_child->mt_prop   = p.
     lo_child->mo_parent = me.
     lo_child->mo_root   = mo_root.
     INSERT lo_child INTO TABLE mt_child.
@@ -168,46 +168,46 @@ CLASS z2ui5_cl_xml_view_generic IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD add_leaf.
+  METHOD leaf.
 
     result = me.
-    add( name   = name
-         ns     = ns
-         t_prop = t_prop ).
+    add( n  = n
+         ns = ns
+         p  = p ).
 
   ENDMETHOD.
 
-  METHOD get_parent.
+  METHOD up.
     result = mo_parent.
   ENDMETHOD.
 
-  METHOD get_root.
+  METHOD root.
     result = mo_root.
   ENDMETHOD.
 
   METHOD get.
 
-    IF name IS INITIAL.
+    IF n IS INITIAL.
       result = mo_root->mo_previous.
       RETURN.
     ENDIF.
 
-    IF mo_parent->mv_name = name.
+    IF mo_parent->mv_name = n.
       result = mo_parent.
     ELSE.
-      result = mo_parent->get( name ).
+      result = mo_parent->get( n ).
     ENDIF.
 
   ENDMETHOD.
 
-  METHOD get_child.
+  METHOD child.
     result = mt_child[ index ].
   ENDMETHOD.
 
   METHOD stringify.
 
     DATA lt_parts TYPE string_table.
-    get_root( )->xml_get_parts( CHANGING ct_parts = lt_parts ).
+    root( )->xml_get_parts( CHANGING ct_parts = lt_parts ).
     result = concat_lines_of( lt_parts ).
 
   ENDMETHOD.
