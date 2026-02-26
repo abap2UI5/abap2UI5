@@ -1290,10 +1290,21 @@ CLASS ltcl_unit_test_filter IMPLEMENTATION.
 
   METHOD test_filter_get_data.
 
-    DATA(lt_filter) = VALUE z2ui5_cl_util=>ty_t_filter_multi(
-      ( name = `F1` t_range = VALUE #( ( sign = `I` option = `EQ` low = `A` ) ) )
-      ( name = `F2` )
-      ( name = `F3` t_token = VALUE #( ( key = `=B` text = `=B` ) ) ) ).
+    DATA lt_filter TYPE z2ui5_cl_util=>ty_t_filter_multi.
+    DATA ls_filter TYPE z2ui5_cl_util=>ty_s_filter_multi.
+
+    ls_filter-name = `F1`.
+    ls_filter-t_range = VALUE #( ( sign = `I` option = `EQ` low = `A` ) ).
+    INSERT ls_filter INTO TABLE lt_filter.
+
+    CLEAR ls_filter.
+    ls_filter-name = `F2`.
+    INSERT ls_filter INTO TABLE lt_filter.
+
+    CLEAR ls_filter.
+    ls_filter-name = `F3`.
+    ls_filter-t_token = VALUE #( ( key = `=B` text = `=B` ) ).
+    INSERT ls_filter INTO TABLE lt_filter.
 
     DATA(lt_result) = z2ui5_cl_util=>filter_get_data_by_multi( lt_filter ).
 
@@ -1356,7 +1367,8 @@ CLASS ltcl_unit_test_conversion IMPLEMENTATION.
         col2 TYPE string,
       END OF ty_row.
 
-    DATA(lt_in) = VALUE STANDARD TABLE OF ty_row WITH EMPTY KEY(
+    DATA lt_in TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    lt_in = VALUE #(
       ( col1 = `A` col2 = `B` )
       ( col1 = `C` col2 = `D` ) ).
 
