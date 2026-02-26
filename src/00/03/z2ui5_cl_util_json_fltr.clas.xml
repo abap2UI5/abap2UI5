@@ -3,9 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>Z2UI5_CL_UTIL_AJSON_FILTER</CLSNAME>
+    <CLSNAME>Z2UI5_CL_UTIL_JSON_FLTR</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>util - ajson filter for empty values</DESCRIPT>
+    <DESCRIPT>util - json filter for empty values</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

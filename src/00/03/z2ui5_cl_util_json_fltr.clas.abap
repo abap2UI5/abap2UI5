@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_util_ajson_filter DEFINITION
+CLASS z2ui5_cl_util_json_fltr DEFINITION
   PUBLIC FINAL
   CREATE PUBLIC.
 
@@ -14,11 +14,11 @@ CLASS z2ui5_cl_util_ajson_filter DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_util_ajson_filter IMPLEMENTATION.
+CLASS z2ui5_cl_util_json_fltr IMPLEMENTATION.
 
   METHOD create_no_empty_values.
 
-    result = NEW z2ui5_cl_util_ajson_filter( ).
+    result = NEW z2ui5_cl_util_json_fltr( ).
 
   ENDMETHOD.
 
