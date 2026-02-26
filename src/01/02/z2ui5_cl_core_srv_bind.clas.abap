@@ -145,11 +145,10 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
   METHOD get_client_name.
 
-    result = replace( val  = mr_attri->name
-                      sub  = `-`
-                      with = `/`
-                      occ  = 0 ).
-    result = replace( val  = result
+    result = replace( val  = replace( val  = mr_attri->name
+                                      sub  = `-`
+                                      with = `/`
+                                      occ  = 0 )
                       sub  = `>`
                       with = ``
                       occ  = 0 ).

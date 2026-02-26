@@ -53,20 +53,16 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
 
   METHOD get_t_arg.
 
-    IF val IS NOT INITIAL.
-
-      LOOP AT val REFERENCE INTO DATA(lr_arg).
-        DATA(lv_new) = lr_arg->*.
-        IF lv_new IS INITIAL.
-          CONTINUE.
-        ENDIF.
-        IF lv_new(1) <> `$` AND lv_new(1) <> `{`.
-          lv_new = |'{ lv_new }'|.
-        ENDIF.
-        result = |{ result }, { lv_new }|.
-      ENDLOOP.
-
-    ENDIF.
+    LOOP AT val REFERENCE INTO DATA(lr_arg).
+      DATA(lv_new) = lr_arg->*.
+      IF lv_new IS INITIAL.
+        CONTINUE.
+      ENDIF.
+      IF lv_new(1) <> `$` AND lv_new(1) <> `{`.
+        lv_new = |'{ lv_new }'|.
+      ENDIF.
+      result = |{ result }, { lv_new }|.
+    ENDLOOP.
 
     result = |{ result })|.
 

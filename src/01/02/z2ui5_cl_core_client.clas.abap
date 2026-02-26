@@ -421,13 +421,8 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     IF li_app->check_sticky = val.
       RETURN.
     ENDIF.
-    IF val = abap_true.
-      mo_action->ms_next-s_set-s_stateful-active = 1.
-      li_app->check_sticky = abap_true.
-    ELSE.
-      mo_action->ms_next-s_set-s_stateful-active = 0.
-      li_app->check_sticky = abap_false.
-    ENDIF.
+    mo_action->ms_next-s_set-s_stateful-active = COND #( WHEN val = abap_true THEN 1 ELSE 0 ).
+    li_app->check_sticky = val.
 
     mo_action->ms_next-s_set-s_stateful-switched = xsdbool( mo_action->ms_next-s_set-s_stateful-switched = abap_false ).
 

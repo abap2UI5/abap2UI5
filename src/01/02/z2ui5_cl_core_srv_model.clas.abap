@@ -451,11 +451,11 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   METHOD attri_create_new.
 
-    result = VALUE z2ui5_if_core_types=>ty_s_attri( ).
-    result-name        = name.
-    result-o_typedescr = cl_abap_datadescr=>describe_by_data_ref( attri_get_val_ref( name ) ).
-    result-type_kind   = result-o_typedescr->type_kind.
-    result-kind        = result-o_typedescr->kind.
+    DATA(lo_descr) = cl_abap_datadescr=>describe_by_data_ref( attri_get_val_ref( name ) ).
+    result = VALUE z2ui5_if_core_types=>ty_s_attri( name        = name
+                                                     o_typedescr = lo_descr
+                                                     type_kind   = lo_descr->type_kind
+                                                     kind        = lo_descr->kind ).
 
   ENDMETHOD.
 
@@ -472,22 +472,22 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(ls_attri2) = VALUE z2ui5_if_core_types=>ty_s_attri( ).
-    ls_attri2-o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref ).
+    DATA(lo_descr) = cl_abap_datadescr=>describe_by_data_ref( lr_ref ).
 
-    CASE ls_attri2-o_typedescr->kind.
+    CASE lo_descr->kind.
 
       WHEN cl_abap_datadescr=>kind_struct.
         DATA(lt_attri) = diss_struc( ir_attri ).
         INSERT LINES OF lt_attri INTO TABLE result.
 
       WHEN OTHERS.
-
-        ls_attri2-name        = |{ ir_attri->name }->*|.
-        ls_attri2-name_parent = ir_attri->name.
-        ls_attri2-type_kind   = ls_attri2-o_typedescr->type_kind.
-        ls_attri2-kind        = ls_attri2-o_typedescr->kind.
-        INSERT ls_attri2 INTO TABLE result.
+        INSERT VALUE z2ui5_if_core_types=>ty_s_attri(
+          name        = |{ ir_attri->name }->*|
+          name_parent = ir_attri->name
+          o_typedescr = lo_descr
+          type_kind   = lo_descr->type_kind
+          kind        = lo_descr->kind
+        ) INTO TABLE result.
 
     ENDCASE.
 

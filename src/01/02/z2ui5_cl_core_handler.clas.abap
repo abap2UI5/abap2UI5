@@ -149,24 +149,15 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
         CASE is_node-type.
           WHEN z2ui5_if_ajson_types=>node_type-boolean.
-            IF is_node-value = `false`.
-              rv_keep = abap_false.
-            ENDIF.
+            rv_keep = xsdbool( is_node-value <> `false` ).
           WHEN z2ui5_if_ajson_types=>node_type-number.
-            IF is_node-value = `0`.
-              rv_keep = abap_false.
-            ENDIF.
+            rv_keep = xsdbool( is_node-value <> `0` ).
           WHEN z2ui5_if_ajson_types=>node_type-string.
-            IF is_node-value = ``.
-              rv_keep = abap_false.
-            ENDIF.
+            rv_keep = xsdbool( is_node-value <> `` ).
         ENDCASE.
 
       WHEN z2ui5_if_ajson_filter=>visit_type-close.
-
-        IF is_node-children = 0.
-          rv_keep = abap_false.
-        ENDIF.
+        rv_keep = xsdbool( is_node-children <> 0 ).
 
     ENDCASE.
 
@@ -256,18 +247,16 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   METHOD main_process.
 
-    DATA(li_client) = NEW z2ui5_cl_core_client( mo_action ).
+    DATA(li_client) = CAST z2ui5_if_client( NEW z2ui5_cl_core_client( mo_action ) ).
     DATA(li_app)    = CAST z2ui5_if_app( mo_action->mo_app->mo_app ).
 
     IF li_app->check_sticky = abap_false.
       ROLLBACK WORK.
     ENDIF.
     TRY.
-        DATA(li_client2) = CAST z2ui5_if_client( li_client ).
-
-        IF li_client2->get( )-event = z2ui5_if_core_types=>cs_event_nav_app_leave.
-          li_client2->popup_destroy( ).
-          li_client2->nav_app_leave( ).
+        IF li_client->get( )-event = z2ui5_if_core_types=>cs_event_nav_app_leave.
+          li_client->popup_destroy( ).
+          li_client->nav_app_leave( ).
         ELSE.
           li_app->main( li_client ).
         ENDIF.
@@ -275,7 +264,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
         DATA(lx2) = NEW z2ui5_cx_util_error( val      = `UNCAUGHT EXCEPTION - Please Restart App:`
                                              previous = lx ).
-        li_client2->nav_app_leave( z2ui5_cl_pop_error=>factory( lx2 ) ).
+        li_client->nav_app_leave( z2ui5_cl_pop_error=>factory( lx2 ) ).
     ENDTRY.
     IF li_app->check_sticky = abap_false.
       ROLLBACK WORK.
