@@ -174,10 +174,10 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     DATA(ls_config2) = client->get( )-s_config.
     DATA(lv_url_samples) = z2ui5_cl_util=>app_get_url( classname = `z2ui5_cl_demo_app_000`
-                                                        origin    = ls_config2-origin
-                                                        pathname  = ls_config2-pathname
-                                                        search    = ls_config2-search
-                                                        hash      = ls_config2-hash ).
+                                                        origin   = ls_config2-origin
+                                                        pathname = ls_config2-pathname
+                                                        search   = ls_config2-search
+                                                        hash     = ls_config2-hash ).
 
     simple_form->toolbar( )->title( `What's next?` ).
 
