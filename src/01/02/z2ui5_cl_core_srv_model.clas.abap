@@ -692,8 +692,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
       lr_attri->check_dissolved = abap_true.
 
       IF lr_attri->o_typedescr IS NOT BOUND.
-        DATA(ls_entry) = attri_create_new( lr_attri->name ).
-        lr_attri->o_typedescr = ls_entry-o_typedescr.
+        lr_attri->o_typedescr = attri_create_new( lr_attri->name )-o_typedescr.
       ENDIF.
 
       CASE lr_attri->o_typedescr->kind.

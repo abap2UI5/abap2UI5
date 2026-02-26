@@ -31,13 +31,13 @@ CLASS z2ui5_cl_core_srv_util IMPLEMENTATION.
       classname = rtti_get_classname_by_ref( client->get_app( ) ).
     ENDIF.
 
-    DATA(lv_url) = |{ client->get( )-s_config-origin }{ client->get( )-s_config-pathname }?|.
-    DATA(lt_param) = url_param_get_tab( client->get( )-s_config-search ).
+    DATA(ls_config) = client->get( )-s_config.
+    DATA(lt_param) = url_param_get_tab( ls_config-search ).
     DELETE lt_param WHERE n = `app_start`.
     INSERT VALUE #( n = `app_start`
                     v = to_lower( classname ) ) INTO TABLE lt_param.
 
-    result = lv_url && url_param_create_url( lt_param ) && client->get( )-s_config-hash.
+    result = |{ ls_config-origin }{ ls_config-pathname }?| && url_param_create_url( lt_param ) && ls_config-hash.
 
   ENDMETHOD.
 
