@@ -32,7 +32,8 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
     lt_tab = VALUE #( ( col = `X` ) ).
 
-    DATA(lo_pop) = z2ui5_cl_pop_table=>factory( i_tab = lt_tab i_title = `Custom Title` ).
+    DATA(lo_pop) = z2ui5_cl_pop_table=>factory( i_tab   = lt_tab
+                                                i_title = `Custom Title` ).
 
     cl_abap_unit_assert=>assert_bound( lo_pop ).
   ENDMETHOD.
@@ -47,7 +48,8 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(lo_pop) = z2ui5_cl_pop_table=>factory( lt_tab ).
     DATA(ls_result) = lo_pop->result( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_false act = ls_result-check_confirmed ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = ls_result-check_confirmed ).
   ENDMETHOD.
 
 ENDCLASS.

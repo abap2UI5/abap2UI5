@@ -15,21 +15,24 @@ CLASS ltcl_test IMPLEMENTATION.
       i_pdf   = `data:application/pdf;base64,AAAA` ).
 
     cl_abap_unit_assert=>assert_bound( lo_pop ).
-    cl_abap_unit_assert=>assert_equals( exp = `data:application/pdf;base64,AAAA` act = lo_pop->mv_pdf ).
+    cl_abap_unit_assert=>assert_equals( exp = `data:application/pdf;base64,AAAA`
+                                        act = lo_pop->mv_pdf ).
   ENDMETHOD.
 
   METHOD test_factory_defaults.
     DATA(lo_pop) = z2ui5_cl_pop_pdf=>factory( `test_data` ).
 
     cl_abap_unit_assert=>assert_bound( lo_pop ).
-    cl_abap_unit_assert=>assert_equals( exp = `test_data` act = lo_pop->mv_pdf ).
+    cl_abap_unit_assert=>assert_equals( exp = `test_data`
+                                        act = lo_pop->mv_pdf ).
   ENDMETHOD.
 
   METHOD test_result_initial.
     DATA(lo_pop) = z2ui5_cl_pop_pdf=>factory( `test` ).
     DATA(ls_result) = lo_pop->result( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_false act = ls_result-check_confirmed ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = ls_result-check_confirmed ).
     cl_abap_unit_assert=>assert_initial( ls_result-text ).
   ENDMETHOD.
 

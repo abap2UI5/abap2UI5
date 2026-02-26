@@ -31,7 +31,8 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(lo_pop) = z2ui5_cl_pop_get_range_m=>factory( lt_filter ).
     DATA(ls_result) = lo_pop->result( ).
     cl_abap_unit_assert=>assert_false( ls_result-check_confirmed ).
-    cl_abap_unit_assert=>assert_equals( exp = 1 act = lines( ls_result-t_filter ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( ls_result-t_filter ) ).
 
   ENDMETHOD.
 

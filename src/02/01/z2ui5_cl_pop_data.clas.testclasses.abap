@@ -43,7 +43,8 @@ CLASS ltcl_test IMPLEMENTATION.
       END OF ty_row.
     DATA lt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
 
-    DATA(lo_pop) = z2ui5_cl_pop_data=>factory( val = lt_tab title = `My Data` ).
+    DATA(lo_pop) = z2ui5_cl_pop_data=>factory( val   = lt_tab
+                                               title = `My Data` ).
 
     cl_abap_unit_assert=>assert_bound( lo_pop ).
   ENDMETHOD.

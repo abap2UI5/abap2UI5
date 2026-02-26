@@ -805,7 +805,7 @@ CLASS ltcl_test_diss_complex IMPLEMENTATION.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
     DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                   app   = lo_app ).
+                                                   app  = lo_app ).
 
     lo_model->dissolve( ).
 
@@ -825,7 +825,7 @@ CLASS ltcl_test_diss_complex IMPLEMENTATION.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
     DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                   app   = lo_app ).
+                                                   app  = lo_app ).
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -846,7 +846,7 @@ CLASS ltcl_test_diss_complex IMPLEMENTATION.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
     DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                   app   = lo_app ).
+                                                   app  = lo_app ).
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -869,7 +869,7 @@ CLASS ltcl_test_diss_complex IMPLEMENTATION.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
     DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                   app   = lo_app ).
+                                                   app  = lo_app ).
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -893,7 +893,7 @@ CLASS ltcl_test_diss_complex IMPLEMENTATION.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
     DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                   app   = lo_app ).
+                                                   app  = lo_app ).
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
@@ -916,7 +916,7 @@ CLASS ltcl_test_diss_complex IMPLEMENTATION.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
     DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                   app   = lo_app ).
+                                                   app  = lo_app ).
 
     lo_model->dissolve( ).
     DATA(lv_count_1) = lines( lt_attri ).
@@ -924,7 +924,8 @@ CLASS ltcl_test_diss_complex IMPLEMENTATION.
     lo_model->dissolve( ).
     DATA(lv_count_2) = lines( lt_attri ).
 
-    cl_abap_unit_assert=>assert_equals( exp = lv_count_1 act = lv_count_2 ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_count_1
+                                        act = lv_count_2 ).
 
   ENDMETHOD.
 
@@ -939,11 +940,12 @@ CLASS ltcl_test_diss_complex IMPLEMENTATION.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
     DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                   app   = lo_app ).
+                                                   app  = lo_app ).
 
     DATA(ls_attri) = lo_model->main_attri_search( REF #( lo_app->mt_tab ) ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `MT_TAB` act = ls_attri->name ).
+    cl_abap_unit_assert=>assert_equals( exp = `MT_TAB`
+                                        act = ls_attri->name ).
 
   ENDMETHOD.
 
@@ -958,11 +960,12 @@ CLASS ltcl_test_diss_complex IMPLEMENTATION.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
     DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                   app   = lo_app ).
+                                                   app  = lo_app ).
 
     DATA(ls_attri) = lo_model->main_attri_search( REF #( lo_app->ms_nested-inner-deep1 ) ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `MS_NESTED-INNER-DEEP1` act = ls_attri->name ).
+    cl_abap_unit_assert=>assert_equals( exp = `MS_NESTED-INNER-DEEP1`
+                                        act = ls_attri->name ).
 
   ENDMETHOD.
 
@@ -974,17 +977,19 @@ CLASS ltcl_test_diss_complex IMPLEMENTATION.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
     DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
-                                                   app   = lo_app ).
+                                                   app  = lo_app ).
 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
     DATA(ls_mid) = VALUE #( lt_attri[ name = `MO_MID->MO_INNER` ] OPTIONAL ).
-    cl_abap_unit_assert=>assert_equals( exp = `MO_MID` act = ls_mid-name_parent ).
+    cl_abap_unit_assert=>assert_equals( exp = `MO_MID`
+                                        act = ls_mid-name_parent ).
 
     DATA(ls_inner) = VALUE #( lt_attri[ name = `MO_MID->MO_INNER->MV_INNER` ] OPTIONAL ).
-    cl_abap_unit_assert=>assert_equals( exp = `MO_MID->MO_INNER` act = ls_inner-name_parent ).
+    cl_abap_unit_assert=>assert_equals( exp = `MO_MID->MO_INNER`
+                                        act = ls_inner-name_parent ).
 
   ENDMETHOD.
 

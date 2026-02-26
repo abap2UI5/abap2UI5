@@ -15,7 +15,8 @@ CLASS ltcl_test IMPLEMENTATION.
       i_result = `DONE` ).
 
     cl_abap_unit_assert=>assert_bound( lo_pop ).
-    cl_abap_unit_assert=>assert_equals( exp = `DONE` act = lo_pop->result( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `DONE`
+                                        act = lo_pop->result( ) ).
   ENDMETHOD.
 
   METHOD test_factory_open_ui5.
@@ -27,7 +28,8 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_result_initial.
     DATA(lo_pop) = z2ui5_cl_pop_js_loader=>factory( `alert(1);` ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `LOADED` act = lo_pop->result( ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `LOADED`
+                                        act = lo_pop->result( ) ).
   ENDMETHOD.
 
 ENDCLASS.

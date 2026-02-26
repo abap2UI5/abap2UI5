@@ -24,7 +24,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA(lo_pop) = z2ui5_cl_pop_messages=>factory( lt_msg ).
     cl_abap_unit_assert=>assert_bound( lo_pop ).
-    cl_abap_unit_assert=>assert_equals( exp = 2 act = lines( lo_pop->mt_msg ) ).
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( lo_pop->mt_msg ) ).
 
   ENDMETHOD.
 

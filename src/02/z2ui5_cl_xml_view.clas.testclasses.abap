@@ -72,7 +72,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lv_xml) = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
-      )->button( text = `Click Me` press = `onPress`
+      )->button( text  = `Click Me`
+                 press = `onPress`
       )->stringify( ).
 
     cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `Button` ) ).
@@ -84,7 +85,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lv_xml) = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
-      )->input( value = `{/NAME}` placeholder = `Enter name`
+      )->input( value       = `{/NAME}`
+                placeholder = `Enter name`
       )->stringify( ).
 
     cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `Input` ) ).
@@ -145,7 +147,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_dialog.
 
     DATA(lv_xml) = z2ui5_cl_xml_view=>factory_popup(
-      )->dialog( title = `Confirm` icon = `sap-icon://hint`
+      )->dialog( title = `Confirm`
+                 icon  = `sap-icon://hint`
       )->stringify( ).
 
     cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `Dialog` ) ).

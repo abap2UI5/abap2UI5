@@ -11,9 +11,9 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory.
     DATA(lo_pop) = z2ui5_cl_pop_image_editor=>factory(
-      iv_image      = `data:image/png;base64,AAAA`
-      iv_title      = `Edit`
-      iv_save_text  = `Done`
+      iv_image       = `data:image/png;base64,AAAA`
+      iv_title       = `Edit`
+      iv_save_text   = `Done`
       iv_cancel_text = `Abort` ).
 
     cl_abap_unit_assert=>assert_bound( lo_pop ).
@@ -29,8 +29,10 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(lo_pop) = z2ui5_cl_pop_image_editor=>factory( `test_img` ).
     DATA(ls_result) = lo_pop->result( ).
 
-    cl_abap_unit_assert=>assert_equals( exp = abap_false act = ls_result-check_confirmed ).
-    cl_abap_unit_assert=>assert_equals( exp = `test_img` act = ls_result-image ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = ls_result-check_confirmed ).
+    cl_abap_unit_assert=>assert_equals( exp = `test_img`
+                                        act = ls_result-image ).
   ENDMETHOD.
 
 ENDCLASS.
