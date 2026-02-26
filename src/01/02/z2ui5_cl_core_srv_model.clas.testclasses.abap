@@ -703,3 +703,294 @@ CLASS ltcl_test_app_root4 IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
+
+
+CLASS ltcl_test_diss_complex DEFINITION DEFERRED.
+CLASS z2ui5_cl_core_srv_model DEFINITION LOCAL FRIENDS ltcl_test_diss_complex.
+
+
+CLASS ltcl_app_inner DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    DATA mv_inner TYPE string ##NEEDED.
+    DATA mr_data  TYPE REF TO data ##NEEDED.
+ENDCLASS.
+
+CLASS ltcl_app_inner IMPLEMENTATION.
+ENDCLASS.
+
+
+CLASS ltcl_app_middle DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    DATA mv_mid    TYPE string ##NEEDED.
+    DATA mo_inner  TYPE REF TO ltcl_app_inner.
+ENDCLASS.
+
+CLASS ltcl_app_middle IMPLEMENTATION.
+ENDCLASS.
+
+
+CLASS ltcl_app_complex DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+
+    TYPES:
+      BEGIN OF ty_s_row,
+        col1 TYPE string,
+        col2 TYPE string,
+      END OF ty_s_row.
+    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+
+    TYPES:
+      BEGIN OF ty_s_nested,
+        name  TYPE string,
+        value TYPE string,
+        BEGIN OF inner,
+          deep1 TYPE string,
+          deep2 TYPE string,
+        END OF inner,
+      END OF ty_s_nested.
+
+    TYPES:
+      BEGIN OF ty_s_with_ref,
+        text  TYPE string,
+        r_tab TYPE REF TO data,
+      END OF ty_s_with_ref.
+
+    DATA mt_tab     TYPE ty_t_tab.
+    DATA ms_nested  TYPE ty_s_nested.
+    DATA mo_mid     TYPE REF TO ltcl_app_middle.
+    DATA ms_ref     TYPE ty_s_with_ref ##NEEDED.
+    DATA mr_tab     TYPE REF TO data.
+    DATA mv_simple  TYPE string ##NEEDED.
+    DATA mv_int     TYPE i ##NEEDED.
+ENDCLASS.
+
+
+CLASS ltcl_app_complex IMPLEMENTATION.
+  METHOD z2ui5_if_app~main ##NEEDED.
+  ENDMETHOD.
+ENDCLASS.
+
+
+CLASS ltcl_test_diss_complex DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    METHODS test_table                FOR TESTING RAISING cx_static_check.
+    METHODS test_nested_struc         FOR TESTING RAISING cx_static_check.
+    METHODS test_oref_chain           FOR TESTING RAISING cx_static_check.
+    METHODS test_table_in_dref        FOR TESTING RAISING cx_static_check.
+    METHODS test_mixed_types          FOR TESTING RAISING cx_static_check.
+    METHODS test_dissolve_idempotent  FOR TESTING RAISING cx_static_check.
+    METHODS test_search_table         FOR TESTING RAISING cx_static_check.
+    METHODS test_search_nested_struc  FOR TESTING RAISING cx_static_check.
+    METHODS test_name_parent_chain    FOR TESTING RAISING cx_static_check.
+
+ENDCLASS.
+
+
+CLASS ltcl_test_diss_complex IMPLEMENTATION.
+
+  METHOD test_table.
+
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    lo_app->mt_tab = VALUE #( ( col1 = `A` col2 = `1` )
+                               ( col1 = `B` col2 = `2` ) ).
+
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                   app  = lo_app ).
+
+    lo_model->dissolve( ).
+
+    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MT_TAB` ] OPTIONAL ) ).
+
+    DATA(ls_attri) = VALUE #( lt_attri[ name = `MT_TAB` ] OPTIONAL ).
+    cl_abap_unit_assert=>assert_equals( exp = cl_abap_datadescr=>typekind_table
+                                        act = ls_attri-type_kind ).
+
+  ENDMETHOD.
+
+  METHOD test_nested_struc.
+
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    lo_app->ms_nested = VALUE #( name = `test` value = `123`
+                                  inner = VALUE #( deep1 = `d1` deep2 = `d2` ) ).
+
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                   app  = lo_app ).
+
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+
+    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MS_NESTED-NAME` ] OPTIONAL ) ).
+    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MS_NESTED-VALUE` ] OPTIONAL ) ).
+    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MS_NESTED-INNER-DEEP1` ] OPTIONAL ) ).
+    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MS_NESTED-INNER-DEEP2` ] OPTIONAL ) ).
+
+  ENDMETHOD.
+
+  METHOD test_oref_chain.
+
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    lo_app->mo_mid = NEW #( ).
+    lo_app->mo_mid->mo_inner = NEW #( ).
+
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                   app  = lo_app ).
+
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+
+    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MO_MID->MV_MID` ] OPTIONAL ) ).
+    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MO_MID->MO_INNER` ] OPTIONAL ) ).
+    cl_abap_unit_assert=>assert_not_initial(
+      VALUE #( lt_attri[ name = `MO_MID->MO_INNER->MV_INNER` ] OPTIONAL ) ).
+
+  ENDMETHOD.
+
+  METHOD test_table_in_dref.
+
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    CREATE DATA lo_app->mr_tab TYPE ltcl_app_complex=>ty_t_tab.
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN lo_app->mr_tab->* TO <tab>.
+    INSERT VALUE ltcl_app_complex=>ty_s_row( col1 = `X` col2 = `Y` ) INTO TABLE <tab>.
+
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                   app  = lo_app ).
+
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+
+    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MR_TAB` ] OPTIONAL ) ).
+    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MR_TAB->*` ] OPTIONAL ) ).
+
+    DATA(ls_tab) = VALUE #( lt_attri[ name = `MR_TAB->*` ] OPTIONAL ).
+    cl_abap_unit_assert=>assert_equals( exp = cl_abap_datadescr=>typekind_table
+                                        act = ls_tab-type_kind ).
+
+  ENDMETHOD.
+
+  METHOD test_mixed_types.
+
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    lo_app->mt_tab = VALUE #( ( col1 = `A` col2 = `1` ) ).
+    lo_app->ms_nested-name = `test`.
+    lo_app->mo_mid = NEW #( ).
+    CREATE DATA lo_app->mr_tab TYPE ltcl_app_complex=>ty_t_tab.
+
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                   app  = lo_app ).
+
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+
+    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MT_TAB` ] OPTIONAL ) ).
+    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MS_NESTED-NAME` ] OPTIONAL ) ).
+    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MO_MID->MV_MID` ] OPTIONAL ) ).
+    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MR_TAB` ] OPTIONAL ) ).
+    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MV_SIMPLE` ] OPTIONAL ) ).
+    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MV_INT` ] OPTIONAL ) ).
+
+  ENDMETHOD.
+
+  METHOD test_dissolve_idempotent.
+
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    lo_app->ms_nested-name = `test`.
+    lo_app->mo_mid = NEW #( ).
+
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                   app  = lo_app ).
+
+    lo_model->dissolve( ).
+    DATA(lv_count_1) = lines( lt_attri ).
+
+    lo_model->dissolve( ).
+    DATA(lv_count_2) = lines( lt_attri ).
+
+    cl_abap_unit_assert=>assert_equals( exp = lv_count_1
+                                        act = lv_count_2 ).
+
+  ENDMETHOD.
+
+  METHOD test_search_table.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    lo_app->mt_tab = VALUE #( ( col1 = `A` col2 = `1` ) ).
+
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                   app  = lo_app ).
+
+    DATA(ls_attri) = lo_model->main_attri_search( REF #( lo_app->mt_tab ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `MT_TAB`
+                                        act = ls_attri->name ).
+
+  ENDMETHOD.
+
+  METHOD test_search_nested_struc.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    lo_app->ms_nested-inner-deep1 = `found`.
+
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                   app  = lo_app ).
+
+    DATA(ls_attri) = lo_model->main_attri_search( REF #( lo_app->ms_nested-inner-deep1 ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `MS_NESTED-INNER-DEEP1`
+                                        act = ls_attri->name ).
+
+  ENDMETHOD.
+
+  METHOD test_name_parent_chain.
+
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    lo_app->mo_mid = NEW #( ).
+    lo_app->mo_mid->mo_inner = NEW #( ).
+
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                   app  = lo_app ).
+
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+
+    DATA(ls_mid) = VALUE #( lt_attri[ name = `MO_MID->MO_INNER` ] OPTIONAL ).
+    cl_abap_unit_assert=>assert_equals( exp = `MO_MID`
+                                        act = ls_mid-name_parent ).
+
+    DATA(ls_inner) = VALUE #( lt_attri[ name = `MO_MID->MO_INNER->MV_INNER` ] OPTIONAL ).
+    cl_abap_unit_assert=>assert_equals( exp = `MO_MID->MO_INNER`
+                                        act = ls_inner-name_parent ).
+
+  ENDMETHOD.
+
+ENDCLASS.
