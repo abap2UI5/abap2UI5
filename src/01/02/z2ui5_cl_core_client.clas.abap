@@ -22,25 +22,10 @@ CLASS z2ui5_cl_core_client DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    METHODS get_msg_title
-      IMPORTING
-        type          TYPE string
-      RETURNING
-        VALUE(result) TYPE string.
-
     METHODS get_if_app
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_app.
 
-    METHODS msg_box_from_bapiret
-      IMPORTING
-        text       TYPE any
-      EXPORTING
-        ev_text    TYPE string
-        ev_type    TYPE string
-        ev_title   TYPE string
-        ev_details TYPE string
-        ev_skip    TYPE abap_bool.
 ENDCLASS.
 
 
@@ -127,16 +112,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD get_msg_title.
-
-    result = SWITCH #( type
-                       WHEN `E` THEN `Error`
-                       WHEN `S` THEN `Success`
-                       WHEN `W` THEN `Warning`
-                       ELSE `Information` ).
-
-  ENDMETHOD.
-
   METHOD z2ui5_if_client~message_box_display.
 
     DATA lv_text    TYPE string.
@@ -145,19 +120,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     DATA lv_details TYPE string.
 
     IF z2ui5_cl_util=>rtti_check_clike( text ) = abap_false.
-      DATA(lv_skip) = abap_false.
-      msg_box_from_bapiret( EXPORTING text       = text
-                            IMPORTING ev_text    = lv_text
-                                      ev_type    = lv_type
-                                      ev_title   = lv_title
-                                      ev_details = lv_details
-                                      ev_skip    = lv_skip ).
-      IF lv_skip = abap_true.
+      DATA(ls_msg_box) = z2ui5_cl_util=>msg_box_format( text ).
+      IF ls_msg_box-skip = abap_true.
         RETURN.
       ENDIF.
-      IF title IS NOT INITIAL.
-        lv_title = title.
-      ENDIF.
+      lv_text    = ls_msg_box-text.
+      lv_type    = ls_msg_box-type.
+      lv_title   = COND #( WHEN title IS NOT INITIAL THEN title ELSE ls_msg_box-title ).
+      lv_details = ls_msg_box-details.
     ELSE.
       lv_text = text.
       lv_type = type.
@@ -456,31 +426,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   METHOD get_if_app.
 
     result = CAST z2ui5_if_app( mo_action->mo_app->mo_app ).
-
-  ENDMETHOD.
-
-  METHOD msg_box_from_bapiret.
-
-    DATA(lt_msg) = z2ui5_cl_util=>msg_get_t( text ).
-
-    IF lines( lt_msg ) = 1.
-      ev_text  = lt_msg[ 1 ]-text.
-      ev_type  = to_lower( z2ui5_cl_util=>ui5_get_msg_type( lt_msg[ 1 ]-type ) ).
-      ev_title = get_msg_title( lt_msg[ 1 ]-type ).
-
-    ELSEIF lines( lt_msg ) > 1.
-      ev_text = | { lines( lt_msg ) } Messages found: |.
-      DATA lt_detail_items TYPE string_table.
-      LOOP AT lt_msg REFERENCE INTO DATA(lr_msg).
-        INSERT |<li>{ lr_msg->text }</li>| INTO TABLE lt_detail_items.
-      ENDLOOP.
-      ev_details = `<ul>` && concat_lines_of( lt_detail_items ) && `</ul>`.
-      ev_title   = get_msg_title( lt_msg[ 1 ]-type ).
-      ev_type    = z2ui5_cl_util=>ui5_get_msg_type( lt_msg[ 1 ]-type ).
-
-    ELSE.
-      ev_skip = abap_true.
-    ENDIF.
 
   ENDMETHOD.
 

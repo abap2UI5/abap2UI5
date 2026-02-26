@@ -1,6 +1,5 @@
 CLASS z2ui5_cl_core_srv_util DEFINITION
-  PUBLIC
-  INHERITING FROM z2ui5_cl_util
+  PUBLIC FINAL
   CREATE PUBLIC.
 
   PUBLIC SECTION.
@@ -28,16 +27,16 @@ CLASS z2ui5_cl_core_srv_util IMPLEMENTATION.
   METHOD app_get_url.
 
     IF classname IS INITIAL.
-      classname = rtti_get_classname_by_ref( client->get_app( ) ).
+      classname = z2ui5_cl_util=>rtti_get_classname_by_ref( client->get_app( ) ).
     ENDIF.
 
     DATA(ls_config) = client->get( )-s_config.
-    DATA(lt_param) = url_param_get_tab( ls_config-search ).
+    DATA(lt_param) = z2ui5_cl_util=>url_param_get_tab( ls_config-search ).
     DELETE lt_param WHERE n = `app_start`.
     INSERT VALUE #( n = `app_start`
                     v = to_lower( classname ) ) INTO TABLE lt_param.
 
-    result = |{ ls_config-origin }{ ls_config-pathname }?| && url_param_create_url( lt_param ) && ls_config-hash.
+    result = |{ ls_config-origin }{ ls_config-pathname }?| && z2ui5_cl_util=>url_param_create_url( lt_param ) && ls_config-hash.
 
   ENDMETHOD.
 
@@ -45,7 +44,7 @@ CLASS z2ui5_cl_core_srv_util IMPLEMENTATION.
 
     DATA(ls_config) = client->get( )-s_config.
     result = |{ ls_config-origin }/sap/bc/adt/oo/classes/|
-       && |{ rtti_get_classname_by_ref( client->get_app( ) ) }/source/main|.
+       && |{ z2ui5_cl_util=>rtti_get_classname_by_ref( client->get_app( ) ) }/source/main|.
 
   ENDMETHOD.
 

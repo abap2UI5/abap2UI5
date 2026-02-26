@@ -3,8 +3,6 @@ CLASS z2ui5_cl_core_handler DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-    INTERFACES z2ui5_if_ajson_filter.
-
     DATA mo_action       TYPE REF TO z2ui5_cl_core_action.
     DATA mv_request_json TYPE string.
     DATA ms_request      TYPE z2ui5_if_core_types=>ty_s_request.
@@ -123,7 +121,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
         ajson_result->set( iv_path = `/`
                            iv_val  = val-s_front ).
-        ajson_result = ajson_result->filter( me ).
+        ajson_result = ajson_result->filter( z2ui5_cl_util_ajson_filter=>create_no_empty_values( ) ).
         DATA(lv_frontend) = ajson_result->stringify( ).
 
         result = |\{| &&
@@ -135,30 +133,6 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
           EXPORTING val = x.
     ENDTRY.
-  ENDMETHOD.
-
-  METHOD z2ui5_if_ajson_filter~keep_node.
-
-    rv_keep = abap_true.
-
-    CASE iv_visit.
-
-      WHEN z2ui5_if_ajson_filter=>visit_type-value.
-
-        CASE is_node-type.
-          WHEN z2ui5_if_ajson_types=>node_type-boolean.
-            rv_keep = xsdbool( is_node-value <> `false` ).
-          WHEN z2ui5_if_ajson_types=>node_type-number.
-            rv_keep = xsdbool( is_node-value <> `0` ).
-          WHEN z2ui5_if_ajson_types=>node_type-string.
-            rv_keep = xsdbool( is_node-value <> `` ).
-        ENDCASE.
-
-      WHEN z2ui5_if_ajson_filter=>visit_type-close.
-        rv_keep = xsdbool( is_node-children <> 0 ).
-
-    ENDCASE.
-
   ENDMETHOD.
 
   METHOD constructor.

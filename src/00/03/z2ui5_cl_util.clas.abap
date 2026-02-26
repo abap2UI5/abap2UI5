@@ -81,11 +81,38 @@ CLASS z2ui5_cl_util DEFINITION
       END OF ty_s_msg,
       ty_t_msg TYPE STANDARD TABLE OF ty_s_msg WITH EMPTY KEY.
 
+    TYPES:
+      BEGIN OF ty_s_msg_box,
+        text    TYPE string,
+        type    TYPE string,
+        title   TYPE string,
+        details TYPE string,
+        skip    TYPE abap_bool,
+      END OF ty_s_msg_box.
+
     CLASS-METHODS ui5_get_msg_type
       IMPORTING
         val           TYPE clike
       RETURNING
         VALUE(result) TYPE string.
+
+    CLASS-METHODS msg_get_title
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS msg_box_format
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE ty_s_msg_box.
+
+    CLASS-METHODS rtti_check_serializable
+      IMPORTING
+        val           TYPE REF TO object
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
     CLASS-METHODS msg_get_t
       IMPORTING
@@ -1992,6 +2019,59 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     REPLACE `YYYY` IN result WITH lv_year.
     REPLACE `MM`   IN result WITH lv_month.
     REPLACE `DD`   IN result WITH lv_day.
+
+  ENDMETHOD.
+
+
+  METHOD msg_get_title.
+
+    result = SWITCH #( val
+                       WHEN `E` THEN `Error`
+                       WHEN `S` THEN `Success`
+                       WHEN `W` THEN `Warning`
+                       ELSE `Information` ).
+
+  ENDMETHOD.
+
+
+  METHOD msg_box_format.
+
+    DATA(lt_msg) = msg_get_t( val ).
+
+    IF lines( lt_msg ) = 1.
+      result-text  = lt_msg[ 1 ]-text.
+      result-type  = to_lower( ui5_get_msg_type( lt_msg[ 1 ]-type ) ).
+      result-title = msg_get_title( lt_msg[ 1 ]-type ).
+
+    ELSEIF lines( lt_msg ) > 1.
+      result-text = | { lines( lt_msg ) } Messages found: |.
+      DATA lt_detail_items TYPE string_table.
+      LOOP AT lt_msg REFERENCE INTO DATA(lr_msg).
+        INSERT |<li>{ lr_msg->text }</li>| INTO TABLE lt_detail_items.
+      ENDLOOP.
+      result-details = `<ul>` && concat_lines_of( lt_detail_items ) && `</ul>`.
+      result-title   = msg_get_title( lt_msg[ 1 ]-type ).
+      result-type    = ui5_get_msg_type( lt_msg[ 1 ]-type ).
+
+    ELSE.
+      result-skip = abap_true.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD rtti_check_serializable.
+
+    IF val IS NOT BOUND.
+      result = abap_true.
+      RETURN.
+    ENDIF.
+    TRY.
+        DATA(lo_dummy) = CAST if_serializable_object( val ) ##NEEDED.
+        result = abap_true.
+      CATCH cx_root.
+        result = abap_false.
+    ENDTRY.
 
   ENDMETHOD.
 ENDCLASS.

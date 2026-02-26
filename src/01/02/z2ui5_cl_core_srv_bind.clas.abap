@@ -45,10 +45,6 @@ CLASS z2ui5_cl_core_srv_bind DEFINITION
     METHODS check_raise_new.
 
   PRIVATE SECTION.
-    METHODS check_serializable
-      IMPORTING
-        obj        TYPE REF TO object
-        field_name TYPE string.
 ENDCLASS.
 
 
@@ -114,26 +110,16 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD check_serializable.
-
-    IF obj IS NOT BOUND.
-      RETURN.
-    ENDIF.
-    TRY.
-        DATA(lo_dummy) = CAST if_serializable_object( obj ) ##NEEDED.
-      CATCH cx_root.
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error
-          EXPORTING val = |<p>{ field_name } used but it is not serializable, please use if_serializable_object|.
-    ENDTRY.
-
-  ENDMETHOD.
-
   METHOD check_raise_new.
 
-    check_serializable( obj        = mr_attri->custom_filter_back
-                        field_name = `custom_filter_back` ).
-    check_serializable( obj        = mr_attri->custom_mapper_back
-                        field_name = `custom_mapper_back` ).
+    IF z2ui5_cl_util=>rtti_check_serializable( mr_attri->custom_filter_back ) = abap_false.
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING val = |<p>custom_filter_back used but it is not serializable, please use if_serializable_object|.
+    ENDIF.
+    IF z2ui5_cl_util=>rtti_check_serializable( mr_attri->custom_mapper_back ) = abap_false.
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING val = |<p>custom_mapper_back used but it is not serializable, please use if_serializable_object|.
+    ENDIF.
 
   ENDMETHOD.
 
