@@ -610,6 +610,23 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    CLASS-METHODS app_get_url
+      IMPORTING
+        VALUE(classname) TYPE clike
+        !origin          TYPE clike
+        !pathname        TYPE clike
+        !search          TYPE clike
+        !hash            TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)    TYPE string.
+
+    CLASS-METHODS app_get_url_source_code
+      IMPORTING
+        !classname    TYPE clike
+        !origin       TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
 
   PRIVATE SECTION.
@@ -2072,6 +2089,25 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
       CATCH cx_root.
         result = abap_false.
     ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD app_get_url.
+
+    DATA(lt_param) = url_param_get_tab( search ).
+    DELETE lt_param WHERE n = `app_start`.
+    INSERT VALUE #( n = `app_start`
+                    v = to_lower( classname ) ) INTO TABLE lt_param.
+
+    result = |{ origin }{ pathname }?| && url_param_create_url( lt_param ) && hash.
+
+  ENDMETHOD.
+
+
+  METHOD app_get_url_source_code.
+
+    result = |{ origin }/sap/bc/adt/oo/classes/{ classname }/source/main|.
 
   ENDMETHOD.
 ENDCLASS.

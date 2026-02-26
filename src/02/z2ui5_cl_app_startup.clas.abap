@@ -81,8 +81,12 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         ms_home-class_value_state = `Success`.
         ms_home-class_editable    = abap_false.
 
-        ms_home-url               = z2ui5_cl_core_srv_util=>app_get_url( client    = client
-                                                                         classname = ms_home-classname ).
+        DATA(ls_config) = client->get( )-s_config.
+        ms_home-url               = z2ui5_cl_util=>app_get_url( classname = ms_home-classname
+                                                                origin    = ls_config-origin
+                                                                pathname  = ls_config-pathname
+                                                                search    = ls_config-search
+                                                                hash      = ls_config-hash ).
 
       CATCH cx_root INTO DATA(lx) ##CATCH_ALL.
         ms_home-class_value_state_text = lx->get_text( ).
@@ -168,8 +172,12 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                href    = client->_bind( ms_home-url )
                enabled = |\{= ${ client->_bind( val = ms_home-class_editable ) } === false \}| ).
 
-    DATA(lv_url_samples) = z2ui5_cl_core_srv_util=>app_get_url( client     = client
-                                                                 classname = `z2ui5_cl_demo_app_000` ).
+    DATA(ls_config2) = client->get( )-s_config.
+    DATA(lv_url_samples) = z2ui5_cl_util=>app_get_url( classname = `z2ui5_cl_demo_app_000`
+                                                        origin    = ls_config2-origin
+                                                        pathname  = ls_config2-pathname
+                                                        search    = ls_config2-search
+                                                        hash      = ls_config2-hash ).
 
     simple_form->toolbar( )->title( `What's next?` ).
 
