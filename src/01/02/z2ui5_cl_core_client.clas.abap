@@ -34,7 +34,7 @@ CLASS z2ui5_cl_core_client DEFINITION
 
     METHODS msg_box_from_bapiret
       IMPORTING
-        text    TYPE any
+        text       TYPE any
       EXPORTING
         ev_text    TYPE string
         ev_type    TYPE string
@@ -151,7 +151,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     IF z2ui5_cl_util=>rtti_check_clike( text ) = abap_false.
       DATA(lv_skip) = abap_false.
-      msg_box_from_bapiret( EXPORTING text    = text
+      msg_box_from_bapiret( EXPORTING text       = text
                             IMPORTING ev_text    = lv_text
                                       ev_type    = lv_type
                                       ev_title   = lv_title

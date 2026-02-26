@@ -168,7 +168,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                href    = client->_bind( ms_home-url )
                enabled = |\{= ${ client->_bind( val = ms_home-class_editable ) } === false \}| ).
 
-    DATA(lv_url_samples) = z2ui5_cl_core_srv_util=>app_get_url( client    = client
+    DATA(lv_url_samples) = z2ui5_cl_core_srv_util=>app_get_url( client     = client
                                                                  classname = `z2ui5_cl_demo_app_000` ).
 
     simple_form->toolbar( )->title( `What's next?` ).
