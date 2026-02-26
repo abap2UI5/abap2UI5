@@ -8,6 +8,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_encoding          FOR TESTING RAISING cx_static_check.
     METHODS test_element_text      FOR TESTING RAISING cx_static_check.
     METHODS test_classes_impl_intf FOR TESTING RAISING cx_static_check.
+    METHODS test_func_get_user_tech FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -51,7 +52,7 @@ CLASS ltcl_test IMPLEMENTATION.
     ENDIF.
 
     DATA(ls_result) = z2ui5_cl_util_api=>rtti_get_data_element_texts( `UNAME` ).
-    IF z2ui5_CL_util=>context_check_abap_cloud( ) = abap_false.
+    IF z2ui5_cl_util_api=>context_check_abap_cloud( ) = abap_false.
       cl_abap_unit_assert=>assert_not_initial( ls_result ).
     ENDIF.
 
@@ -65,6 +66,19 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA(mt_classes) = z2ui5_cl_util_api=>rtti_get_classes_impl_intf( `IF_SERIALIZABLE_OBJECT`  ).
     cl_abap_unit_assert=>assert_not_initial( mt_classes ).
+
+  ENDMETHOD.
+
+  METHOD test_func_get_user_tech.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_util_api=>context_get_user_tech( )
+                                        act = sy-uname ).
+
+    cl_abap_unit_assert=>assert_not_initial( z2ui5_cl_util_api=>context_get_user_tech( ) ).
 
   ENDMETHOD.
 ENDCLASS.

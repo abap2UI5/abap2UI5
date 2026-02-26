@@ -87,8 +87,6 @@ CLASS ltcl_unit_test DEFINITION FINAL
 
     METHODS test_time_get_timestampl       FOR TESTING RAISING cx_static_check.
     METHODS test_time_substract_seconds    FOR TESTING RAISING cx_static_check.
-    METHODS test_func_get_user_tech        FOR TESTING RAISING cx_static_check.
-
     METHODS test_rtti_get_t_attri_by_incl  FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_classname_by_ref FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_type_name        FOR TESTING RAISING cx_static_check.
@@ -404,19 +402,6 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = `JSADFHHS`
                                         act = z2ui5_cl_util=>c_trim_upper( ` JsadfHHs  ` ) ).
-
-  ENDMETHOD.
-
-  METHOD test_func_get_user_tech.
-
-    IF sy-sysid = `ABC`.
-      RETURN.
-    ENDIF.
-
-    cl_abap_unit_assert=>assert_equals( exp = z2ui5_cl_util=>context_get_user_tech( )
-                                        act = sy-uname ).
-
-    cl_abap_unit_assert=>assert_not_initial( z2ui5_cl_util=>context_get_user_tech( ) ).
 
   ENDMETHOD.
 
