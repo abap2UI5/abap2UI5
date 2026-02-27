@@ -539,7 +539,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                             details: params[msgType].DETAILS ? params[msgType].DETAILS : '',
                             closeOnNavigation: params[msgType].CLOSEONNAVIGATION ? true : false
                         };
-                        if (oParams.icon === 'None') { delete oParams.icon };
+                        if (oParams.icon === 'NONE') { delete oParams.icon };
                         MessageBox[params[msgType].TYPE](params[msgType].TEXT, oParams);
                     }
                 }
