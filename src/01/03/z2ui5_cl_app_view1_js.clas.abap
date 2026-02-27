@@ -561,7 +561,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                            details: params[msgType].DETAILS ? params[msgType].DETAILS : '',` && |\n| &&
              `                            closeOnNavigation: params[msgType].CLOSEONNAVIGATION ? true : false` && |\n| &&
              `                        };` && |\n| &&
-             `                        if (oParams.icon === 'None') { delete oParams.icon };` && |\n| &&
+             `                        if (oParams.icon === 'NONE') { delete oParams.icon };` && |\n| &&
              `                        MessageBox[params[msgType].TYPE](params[msgType].TEXT, oParams);` && |\n| &&
              `                    }` && |\n| &&
              `                }` && |\n| &&
