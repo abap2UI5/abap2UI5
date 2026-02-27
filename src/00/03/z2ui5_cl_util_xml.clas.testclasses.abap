@@ -25,6 +25,10 @@ CLASS ltcl_unit_test DEFINITION FINAL
     METHODS test_leaf_if_true      FOR TESTING RAISING cx_static_check.
     METHODS test_leaf_if_false     FOR TESTING RAISING cx_static_check.
     METHODS test_ui5_page_sample   FOR TESTING RAISING cx_static_check.
+    METHODS test_ui5_page_sample_indent FOR TESTING RAISING cx_static_check.
+
+    METHODS build_page_view
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
 
 ENDCLASS.
 
@@ -390,15 +394,15 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_ui5_page_sample.
+  METHOD build_page_view.
 
-    DATA(lo_view) = z2ui5_cl_util_xml=>factory(
+    result = z2ui5_cl_util_xml=>factory(
       )->_( n = `View` ns = `mvc`
             p = VALUE #( ( n = `height`    v = `100%` )
                          ( n = `xmlns:mvc` v = `sap.ui.core.mvc` )
                          ( n = `xmlns`     v = `sap.m` ) ) ).
 
-    DATA(lo_page) = lo_view->_( n = `Page`
+    DATA(lo_page) = result->_( n = `Page`
       p = VALUE #( ( n = `title`         v = `Title` )
                    ( n = `class`         v = `sapUiContentPadding sapUiResponsivePadding--header sapUiResponsivePadding--subHeader sapUiResponsivePadding--content sapUiResponsivePadding--footer` )
                    ( n = `showNavButton` v = `true` ) ) ).
@@ -428,35 +432,81 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     lo_footer_toolbar->__( n = `Button` a = `text` v = `Edit` ).
     lo_footer_toolbar->__( n = `Button` a = `text` v = `Delete` ).
 
-    DATA(lv_xml) = lo_view->stringify( ).
+  ENDMETHOD.
 
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `mvc:View` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `height="100%"` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `xmlns:mvc="sap.ui.core.mvc"` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `xmlns="sap.m"` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `<Page` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `title="Title"` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `showNavButton="true"` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `sapUiContentPadding` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `<headerContent>` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `sap-icon://action` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `tooltip="Share"` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `<subHeader>` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `<OverflowToolbar>` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `SearchField` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `<content>` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `<VBox>` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `Lorem ipsum` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `<footer>` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `ToolbarSpacer` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `text="Accept"` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `type="Accept"` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `text="Reject"` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `type="Reject"` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `text="Edit"` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `text="Delete"` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `</Page>` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `</mvc:View>` ) ).
+  METHOD test_ui5_page_sample.
+
+    DATA(lv_xml) = build_page_view( )->stringify( ).
+
+    DATA(lv_exp) = ` <mvc:View height="100%" xmlns="sap.m" xmlns:mvc="sap.ui.core.mvc">`
+                && ` <Page class="sapUiContentPadding sapUiResponsivePadding--header sapUiResponsivePadding--subHeader sapUiResponsivePadding--content sapUiResponsivePadding--footer" showNavButton="true" title="Title">`
+                && ` <headerContent>`
+                && ` <Button icon="sap-icon://action" tooltip="Share"/>`
+                && `</headerContent>`
+                && ` <subHeader>`
+                && ` <OverflowToolbar>`
+                && ` <SearchField/>`
+                && `</OverflowToolbar>`
+                && `</subHeader>`
+                && ` <content>`
+                && ` <VBox>`
+                && ` <Text text="Lorem ipsum dolor st amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.`
+                && ` At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.`
+                && ` Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.`
+                && ` Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat"/>`
+                && `</VBox>`
+                && `</content>`
+                && ` <footer>`
+                && ` <OverflowToolbar>`
+                && ` <ToolbarSpacer/>`
+                && ` <Button text="Accept" type="Accept"/>`
+                && ` <Button text="Reject" type="Reject"/>`
+                && ` <Button text="Edit"/>`
+                && ` <Button text="Delete"/>`
+                && `</OverflowToolbar>`
+                && `</footer>`
+                && `</Page>`
+                && `</mvc:View>`.
+
+    cl_abap_unit_assert=>assert_equals( exp = lv_exp act = lv_xml ).
+
+  ENDMETHOD.
+
+  METHOD test_ui5_page_sample_indent.
+
+    DATA(lv_xml) = build_page_view( )->stringify( indent = abap_true ).
+
+    DATA(lv_exp) = `<mvc:View height="100%" xmlns="sap.m" xmlns:mvc="sap.ui.core.mvc">` && |\n|
+                && `  <Page class="sapUiContentPadding sapUiResponsivePadding--header sapUiResponsivePadding--subHeader sapUiResponsivePadding--content sapUiResponsivePadding--footer" showNavButton="true" title="Title">` && |\n|
+                && `    <headerContent>` && |\n|
+                && `      <Button icon="sap-icon://action" tooltip="Share"/>` && |\n|
+                && `    </headerContent>` && |\n|
+                && `    <subHeader>` && |\n|
+                && `      <OverflowToolbar>` && |\n|
+                && `        <SearchField/>` && |\n|
+                && `      </OverflowToolbar>` && |\n|
+                && `    </subHeader>` && |\n|
+                && `    <content>` && |\n|
+                && `      <VBox>` && |\n|
+                && `        <Text text="Lorem ipsum dolor st amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.`
+                && ` At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.`
+                && ` Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.`
+                && ` Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat"/>` && |\n|
+                && `      </VBox>` && |\n|
+                && `    </content>` && |\n|
+                && `    <footer>` && |\n|
+                && `      <OverflowToolbar>` && |\n|
+                && `        <ToolbarSpacer/>` && |\n|
+                && `        <Button text="Accept" type="Accept"/>` && |\n|
+                && `        <Button text="Reject" type="Reject"/>` && |\n|
+                && `        <Button text="Edit"/>` && |\n|
+                && `        <Button text="Delete"/>` && |\n|
+                && `      </OverflowToolbar>` && |\n|
+                && `    </footer>` && |\n|
+                && `  </Page>` && |\n|
+                && `</mvc:View>`.
+
+    cl_abap_unit_assert=>assert_equals( exp = lv_exp act = lv_xml ).
 
   ENDMETHOD.
 
