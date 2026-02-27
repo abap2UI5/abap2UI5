@@ -22,6 +22,69 @@ CLASS z2ui5_cl_util_range DEFINITION PUBLIC
         less_than            TYPE string VALUE `LT`,
       END OF options.
 
+    CLASS-METHODS eq
+      IMPORTING
+        val           TYPE clike
+        sign          TYPE clike DEFAULT `I`
+      RETURNING
+        VALUE(result) TYPE z2ui5_cl_util=>ty_s_range.
+
+    CLASS-METHODS ne
+      IMPORTING
+        val           TYPE clike
+        sign          TYPE clike DEFAULT `I`
+      RETURNING
+        VALUE(result) TYPE z2ui5_cl_util=>ty_s_range.
+
+    CLASS-METHODS bt
+      IMPORTING
+        low           TYPE clike
+        high          TYPE clike
+        sign          TYPE clike DEFAULT `I`
+      RETURNING
+        VALUE(result) TYPE z2ui5_cl_util=>ty_s_range.
+
+    CLASS-METHODS cp
+      IMPORTING
+        val           TYPE clike
+        sign          TYPE clike DEFAULT `I`
+      RETURNING
+        VALUE(result) TYPE z2ui5_cl_util=>ty_s_range.
+
+    CLASS-METHODS gt
+      IMPORTING
+        val           TYPE clike
+        sign          TYPE clike DEFAULT `I`
+      RETURNING
+        VALUE(result) TYPE z2ui5_cl_util=>ty_s_range.
+
+    CLASS-METHODS ge
+      IMPORTING
+        val           TYPE clike
+        sign          TYPE clike DEFAULT `I`
+      RETURNING
+        VALUE(result) TYPE z2ui5_cl_util=>ty_s_range.
+
+    CLASS-METHODS lt
+      IMPORTING
+        val           TYPE clike
+        sign          TYPE clike DEFAULT `I`
+      RETURNING
+        VALUE(result) TYPE z2ui5_cl_util=>ty_s_range.
+
+    CLASS-METHODS le
+      IMPORTING
+        val           TYPE clike
+        sign          TYPE clike DEFAULT `I`
+      RETURNING
+        VALUE(result) TYPE z2ui5_cl_util=>ty_s_range.
+
+    CLASS-METHODS get_sql_multi
+      IMPORTING
+        t_sql         TYPE string_table
+      RETURNING
+        VALUE(result) TYPE string.
+
     METHODS constructor
       IMPORTING
         iv_fieldname TYPE clike
@@ -45,6 +108,68 @@ CLASS z2ui5_cl_util_range DEFINITION PUBLIC
 ENDCLASS.
 
 CLASS z2ui5_cl_util_range IMPLEMENTATION.
+
+  METHOD eq.
+
+    result = VALUE #( sign = sign option = `EQ` low = val ).
+
+  ENDMETHOD.
+
+  METHOD ne.
+
+    result = VALUE #( sign = sign option = `NE` low = val ).
+
+  ENDMETHOD.
+
+  METHOD bt.
+
+    result = VALUE #( sign = sign option = `BT` low = low high = high ).
+
+  ENDMETHOD.
+
+  METHOD cp.
+
+    result = VALUE #( sign = sign option = `CP` low = val ).
+
+  ENDMETHOD.
+
+  METHOD gt.
+
+    result = VALUE #( sign = sign option = `GT` low = val ).
+
+  ENDMETHOD.
+
+  METHOD ge.
+
+    result = VALUE #( sign = sign option = `GE` low = val ).
+
+  ENDMETHOD.
+
+  METHOD lt.
+
+    result = VALUE #( sign = sign option = `LT` low = val ).
+
+  ENDMETHOD.
+
+  METHOD le.
+
+    result = VALUE #( sign = sign option = `LE` low = val ).
+
+  ENDMETHOD.
+
+  METHOD get_sql_multi.
+
+    LOOP AT t_sql INTO DATA(lv_sql).
+      IF lv_sql IS INITIAL.
+        CONTINUE.
+      ENDIF.
+      IF result IS NOT INITIAL.
+        result = |{ result } AND |.
+      ENDIF.
+      result = |{ result }{ lv_sql }|.
+    ENDLOOP.
+
+  ENDMETHOD.
 
   METHOD constructor.
 
