@@ -1,5 +1,6 @@
 sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models", "z2ui5/cc/Server", "sap/ui/VersionInfo", "z2ui5/cc/DebugTool"
 ], function (UIComponent, Models, Server, VersionInfo, DebugTool) {
+    "use strict";
     return UIComponent.extend("z2ui5.Component", {
         metadata: {
             manifest: "json",

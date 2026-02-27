@@ -127,7 +127,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         await this.displayPopover(S_POPOVER.XML, 'oViewPopover', S_POPOVER.OPEN_BY_ID);
                     }
 
-                   var oState;
+                   let oState;
                    if (z2ui5.oView) {
                        oState = JSON.parse(JSON.stringify({ view: z2ui5.oView.mProperties.viewContent, model: z2ui5.oView.getModel().getData(), response: z2ui5.oResponse }));
                    } else {
@@ -294,7 +294,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         copyToClipboard(window.location.href + '#/z2ui5-xapp-state=' + z2ui5.oResponse.ID );
                         break;
                     case 'SET_ODATA_MODEL':
-                        var oModel = new ODataModel({ serviceUrl: args[1], annotationURI: (args.length > 3 ? args[3] : '') });
+                        const oModel = new ODataModel({ serviceUrl: args[1], annotationURI: (args.length > 3 ? args[3] : '') });
                         z2ui5.oView.setModel(oModel, args[2] ? args[2] : undefined);
                         break;
                     case 'STORE_DATA': {
@@ -317,7 +317,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         break;
                     }
                     case 'DOWNLOAD_B64_FILE':
-                        var a = document.createElement("a");
+                        const a = document.createElement("a");
                         a.href = args[1];
                         a.download = args[2];
                         a.click();
@@ -334,7 +334,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                             })) || "";
                             if (z2ui5.args[3] === 'EXT') {
                                 let url = window.location.href.split('#')[0] + hash;
-                                sap.m.URLHelper.redirect(url, true);
+                                mobileLibrary.URLHelper.redirect(url, true);
                             } else {
                                 nav.toExternal({
                                     target: {
@@ -348,7 +348,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         if (isValidRedirectURL(args[1])) {
                             window.location = args[1];
                         } else {
-                            sap.m.MessageBox.error('Invalid redirect URL. Only relative URLs to the same domain are allowed.');
+                            MessageBox.error('Invalid redirect URL. Only relative URLs to the same domain are allowed.');
                         }
                         break;
                     case 'OPEN_NEW_TAB':
@@ -358,7 +358,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                                 newWindow.opener = null;
                             }
                         } else {
-                            sap.m.MessageBox.error('Invalid URL. Only relative URLs to the same domain are allowed.');
+                            MessageBox.error('Invalid URL. Only relative URLs to the same domain are allowed.');
                         }
                         break;
                     case 'POPUP_CLOSE':
@@ -383,8 +383,8 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         navigateContainer(id => Fragment.byId("popoverId", id), args);
                         break;
                     case 'URLHELPER': {
-                        var URLHelper = mobileLibrary.URLHelper;
-                        var params = args[2];
+                        const URLHelper = mobileLibrary.URLHelper;
+                        const params = args[2];
                         switch (args[1]) {
                             case 'REDIRECT':
                                 URLHelper.redirect(params.URL, params.NEW_WINDOW);
@@ -402,7 +402,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         break;
                     }
                     case 'IMAGE_EDITOR_POPUP_CLOSE':
-                        const image = sap.ui.core.Fragment.byId("popupId", "imageEditor").getImagePngDataURL();
+                        const image = Fragment.byId("popupId", "imageEditor").getImagePngDataURL();
                         z2ui5.oController.PopupDestroy();
                         z2ui5.oController.eB([`SAVE`], image);
                         break;
@@ -430,7 +430,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 z2ui5.isBusy = true;
                 BusyIndicator.show();
                 z2ui5.oBody = {};
-                var oModel;
+                let oModel;
                 if (args[0][3] || z2ui5.oController == this) {
                     if (z2ui5.oResponse.PARAMS?.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH) {
                         oModel = z2ui5.oView.getModel("http");
@@ -491,7 +491,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
             },
             async checkSDKcompatibility(err) {
                 let oCurrentVersionInfo = await VersionInfo.load();
-                var ui5_sdk = oCurrentVersionInfo.gav.includes('com.sap.ui5') ? true : false;
+                const ui5_sdk = oCurrentVersionInfo.gav.includes('com.sap.ui5') ? true : false;
                 if (!ui5_sdk) {
                     if (err) {
                         MessageBox.error("openui5 SDK is loaded, module: " + err._modules + " is not availabe in openui5");
@@ -543,7 +543,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
             async displayView(xml, viewModel) {
                 let oview_model = new JSONModel(viewModel);
                 this._trackChanges(oview_model);
-                var oModel = oview_model;
+                let oModel = oview_model;
                 if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH) {
                     oModel = new ODataModel({
                         serviceUrl: z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH,
