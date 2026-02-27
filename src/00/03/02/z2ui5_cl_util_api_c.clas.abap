@@ -828,13 +828,13 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
 
     ENDIF.
 
-    DELETE <lt_lines> INDEX 1.
-
     LOOP AT <lt_lines> INTO DATA(text).
       DATA(ls_stack) = VALUE z2ui5_cl_util_api=>ty_S_stack( ).
       SPLIT text AT ` ` INTO ls_stack-class ls_stack-include ls_stack-method.
       INSERT ls_stack INTO TABLE result.
     ENDLOOP.
+
+    DELETE result INDEX 1.
 
   ENDMETHOD.
 

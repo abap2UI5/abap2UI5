@@ -576,41 +576,41 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
       CATCH cx_root.
 
-        lv_name = `CL_OO_FACTORY`.
-        CALL METHOD (lv_name)=>(`CREATE_INSTANCE`)
-          RECEIVING
-            result = object.
-
-        CALL METHOD object->(`IF_OO_CLIF_SOURCE_FACTORY~CREATE_CLIF_SOURCE`)
-          EXPORTING
-            clif_name = lv_class
-          RECEIVING
-            result    = object.
-
-        CALL METHOD object->(`IF_OO_CLIF_SOURCE~GET_SOURCE`)
-          IMPORTING
-            source = lt_source.
-
-        lv_check_method = abap_false.
-
-        LOOP AT lt_source INTO lv_source.
-
-          lv_source_upper = to_upper( lv_source ).
-
-          IF lv_source_upper CS `ENDMETHOD`.
-            lv_check_method = abap_false.
-          ENDIF.
-
-          IF lv_source_upper CS |METHOD { lv_method }|.
-            lv_check_method = abap_true.
-            CONTINUE.
-          ENDIF.
-
-          IF lv_check_method = abap_true.
-            INSERT lv_source INTO TABLE lt_string.
-          ENDIF.
-
-        ENDLOOP.
+*        lv_name = `CL_OO_FACTORY`.
+*        CALL METHOD (lv_name)=>(`CREATE_INSTANCE`)
+*          RECEIVING
+*            result = object.
+*
+*        CALL METHOD object->(`IF_OO_CLIF_SOURCE_FACTORY~CREATE_CLIF_SOURCE`)
+*          EXPORTING
+*            clif_name = lv_class
+*          RECEIVING
+*            result    = object.
+*
+*        CALL METHOD object->(`IF_OO_CLIF_SOURCE~GET_SOURCE`)
+*          IMPORTING
+*            source = lt_source.
+*
+*        lv_check_method = abap_false.
+*
+*        LOOP AT lt_source INTO lv_source.
+*
+*          lv_source_upper = to_upper( lv_source ).
+*
+*          IF lv_source_upper CS `ENDMETHOD`.
+*            lv_check_method = abap_false.
+*          ENDIF.
+*
+*          IF lv_source_upper CS |METHOD { lv_method }|.
+*            lv_check_method = abap_true.
+*            CONTINUE.
+*          ENDIF.
+*
+*          IF lv_check_method = abap_true.
+*            INSERT lv_source INTO TABLE lt_string.
+*          ENDIF.
+*
+*        ENDLOOP.
 
     ENDTRY.
 
@@ -1014,7 +1014,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
     DATA lo_util TYPE REF TO object.
     IF context_check_abap_cloud( ).
 
-      CREATE OBJECT lo_util TYPE (`Z2UI5_CL_UTIL_ABAP_C`).
+      CREATE OBJECT lo_util TYPE (`Z2UI5_CL_UTIL_API_C`).
       CALL METHOD lo_util->(`CONTEXT_GET_CALLSTACK`)
         RECEIVING
           result = result.
