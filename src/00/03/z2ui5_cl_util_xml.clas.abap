@@ -17,7 +17,6 @@ CLASS z2ui5_cl_util_xml DEFINITION
         a             TYPE clike                           OPTIONAL
         v             TYPE clike                           OPTIONAL
         p             TYPE z2ui5_cl_util=>ty_t_name_value OPTIONAL
-          PREFERRED PARAMETER n
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
 
@@ -28,7 +27,6 @@ CLASS z2ui5_cl_util_xml DEFINITION
         a             TYPE clike                           OPTIONAL
         v             TYPE clike                           OPTIONAL
         p             TYPE z2ui5_cl_util=>ty_t_name_value OPTIONAL
-          PREFERRED PARAMETER n
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
 

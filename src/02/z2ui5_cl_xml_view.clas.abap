@@ -2414,7 +2414,6 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS side_content
       IMPORTING
         width         TYPE clike OPTIONAL
-          PREFERRED PARAMETER width
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 

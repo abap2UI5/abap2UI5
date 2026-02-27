@@ -287,8 +287,7 @@ CLASS z2ui5_cl_util DEFINITION
 
     CLASS-METHODS x_raise
       IMPORTING
-        v TYPE clike DEFAULT `CX_SY_SUBRC`
-          PREFERRED PARAMETER v.
+        v TYPE clike DEFAULT `CX_SY_SUBRC`.
 
     CLASS-METHODS json_stringify
       IMPORTING
