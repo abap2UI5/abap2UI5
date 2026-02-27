@@ -24,6 +24,7 @@ CLASS ltcl_unit_test DEFINITION FINAL
     METHODS test_if_false          FOR TESTING RAISING cx_static_check.
     METHODS test_leaf_if_true      FOR TESTING RAISING cx_static_check.
     METHODS test_leaf_if_false     FOR TESTING RAISING cx_static_check.
+    METHODS test_ui5_page_sample   FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -386,6 +387,76 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_false( xsdbool( lv_xml CS `Hidden` ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `Visible` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_ui5_page_sample.
+
+    DATA(lo_view) = z2ui5_cl_util_xml=>factory(
+      )->_( n = `View` ns = `mvc`
+            p = VALUE #( ( n = `height`    v = `100%` )
+                         ( n = `xmlns:mvc` v = `sap.ui.core.mvc` )
+                         ( n = `xmlns`     v = `sap.m` ) ) ).
+
+    DATA(lo_page) = lo_view->_( n = `Page`
+      p = VALUE #( ( n = `title`         v = `Title` )
+                   ( n = `class`         v = `sapUiContentPadding sapUiResponsivePadding--header sapUiResponsivePadding--subHeader sapUiResponsivePadding--content sapUiResponsivePadding--footer` )
+                   ( n = `showNavButton` v = `true` ) ) ).
+
+    lo_page->_( `headerContent`
+      )->__( n = `Button`
+             p = VALUE #( ( n = `icon`    v = `sap-icon://action` )
+                          ( n = `tooltip` v = `Share` ) ) ).
+
+    lo_page->_( `subHeader`
+      )->_( `OverflowToolbar`
+      )->__( `SearchField` ).
+
+    lo_page->_( `content`
+      )->_( `VBox`
+      )->__( n = `Text` a = `text`
+             v = `Lorem ipsum dolor st amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.`
+           && ` At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.`
+           && ` Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.`
+           && ` Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat` ).
+
+    DATA(lo_footer_toolbar) = lo_page->_( `footer`
+      )->_( `OverflowToolbar` ).
+    lo_footer_toolbar->__( `ToolbarSpacer` ).
+    lo_footer_toolbar->__( n = `Button` p = VALUE #( ( n = `text` v = `Accept` ) ( n = `type` v = `Accept` ) ) ).
+    lo_footer_toolbar->__( n = `Button` p = VALUE #( ( n = `text` v = `Reject` ) ( n = `type` v = `Reject` ) ) ).
+    lo_footer_toolbar->__( n = `Button` a = `text` v = `Edit` ).
+    lo_footer_toolbar->__( n = `Button` a = `text` v = `Delete` ).
+
+    DATA(lv_xml) = lo_view->stringify( ).
+
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `mvc:View` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `height="100%"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `xmlns:mvc="sap.ui.core.mvc"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `xmlns="sap.m"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `<Page` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `title="Title"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `showNavButton="true"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `sapUiContentPadding` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `<headerContent>` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `sap-icon://action` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `tooltip="Share"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `<subHeader>` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `<OverflowToolbar>` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `SearchField` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `<content>` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `<VBox>` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `Lorem ipsum` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `<footer>` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `ToolbarSpacer` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `text="Accept"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `type="Accept"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `text="Reject"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `type="Reject"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `text="Edit"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `text="Delete"` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `</Page>` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `</mvc:View>` ) ).
 
   ENDMETHOD.
 
