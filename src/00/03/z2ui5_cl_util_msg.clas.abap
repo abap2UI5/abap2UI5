@@ -2,6 +2,12 @@ CLASS z2ui5_cl_util_msg DEFINITION PUBLIC
   FINAL CREATE PUBLIC.
   PUBLIC SECTION.
 
+    CLASS-METHODS msg_get_text
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS msg_map
       IMPORTING
         name          TYPE clike
@@ -25,9 +31,16 @@ CLASS z2ui5_cl_util_msg DEFINITION PUBLIC
 ENDCLASS.
 
 
-
 CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
+  METHOD msg_get_text.
+
+    DATA(lt_msg) = msg_get( val ).
+    IF lt_msg IS NOT INITIAL.
+      result = lt_msg[ 1 ]-text.
+    ENDIF.
+
+  ENDMETHOD.
 
   METHOD msg_get.
 
@@ -52,9 +65,7 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
         DATA(ls_result) = VALUE z2ui5_cl_util=>ty_s_msg( ).
         LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
-*          DATA(lv_name) = |VAL-{ ls_attri->name }|.
           ASSIGN COMPONENT ls_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<comp>).
-*          ASSIGN (lv_name) TO FIELD-SYMBOL(<comp>).
 
           IF ls_attri->name = `ITEM`.
             lt_tab = msg_get( <comp> ).
@@ -119,7 +130,6 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
                   CATCH cx_root INTO DATA(lx2).
 
-
                     lt_attri_o = z2ui5_cl_util=>rtti_get_t_attri_by_oref( val ).
                     LOOP AT lt_attri_o REFERENCE INTO ls_attri_o
                          WHERE visibility = `U`.
@@ -136,15 +146,11 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
       WHEN OTHERS.
 
         IF z2ui5_cl_util=>rtti_check_clike( val ).
-          INSERT VALUE #( text = val
-          )
-                 INTO TABLE result.
+          INSERT VALUE #( text = val ) INTO TABLE result.
         ENDIF.
     ENDCASE.
 
-
   ENDMETHOD.
-
 
   METHOD msg_map.
 
