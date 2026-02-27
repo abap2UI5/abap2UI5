@@ -26,7 +26,7 @@ sap.ui.define(["sap/ui/core/BusyIndicator", "sap/m/MessageBox"
                 z2ui5.checkNestAfter = false;
                 z2ui5.checkNestAfter2 = false;
                 let event = (args) => {
-                    if (args != undefined) {
+                    if (args !== undefined) {
                         return args[0][0];
                     }
                 };
@@ -48,7 +48,7 @@ sap.ui.define(["sap/ui/core/BusyIndicator", "sap/m/MessageBox"
                     EVENT: event(z2ui5.oBody?.ARGUMENTS),
                     HASH: window.location.hash,
                 };
-                if (z2ui5.oBody?.ARGUMENTS != undefined) {
+                if (z2ui5.oBody?.ARGUMENTS !== undefined) {
                     if (z2ui5.oBody?.ARGUMENTS.length > 0) {
                         z2ui5.oBody?.ARGUMENTS.shift();
                     }
@@ -61,10 +61,10 @@ sap.ui.define(["sap/ui/core/BusyIndicator", "sap/m/MessageBox"
                 if (!z2ui5.oBody.S_FRONT.T_EVENT_ARG || z2ui5.oBody.S_FRONT.T_EVENT_ARG.length === 0) {
                     delete z2ui5.oBody.S_FRONT.T_EVENT_ARG;
                 }
-                if (z2ui5.oBody.S_FRONT.T_STARTUP_PARAMETERS == undefined) {
+                if (z2ui5.oBody.S_FRONT.T_STARTUP_PARAMETERS === undefined) {
                     delete z2ui5.oBody.S_FRONT.T_STARTUP_PARAMETERS;
                 }
-                if (z2ui5.oBody.S_FRONT.SEARCH == '') {
+                if (z2ui5.oBody.S_FRONT.SEARCH === '') {
                     delete z2ui5.oBody.S_FRONT.SEARCH;
                 }
                 if (!z2ui5.oBody.XX) {
@@ -179,16 +179,24 @@ sap.ui.define(["sap/ui/core/BusyIndicator", "sap/m/MessageBox"
           document.body.appendChild(errorContainer);
         }
 
-        // Create header and iframe for safe HTML rendering
-        errorContainer.innerHTML = `
-    <div style="padding: 15px; background: #d32f2f; color: white; display: flex; justify-content: space-between; align-items: center;">
-        <h3 style="margin: 0;">Server Error - Please Restart The App</h3>
-    </div>
-    <iframe id="errorIframe" style="width: 100%; height: 100%; border: none; flex: 1;" sandbox="allow-same-origin"></iframe>
-`;
+        // Create header and iframe for safe HTML rendering using DOM APIs
+        errorContainer.textContent = '';
+
+        var headerDiv = document.createElement('div');
+        headerDiv.style.cssText = 'padding: 15px; background: #d32f2f; color: white; display: flex; justify-content: space-between; align-items: center;';
+        var headerText = document.createElement('h3');
+        headerText.style.margin = '0';
+        headerText.textContent = 'Server Error - Please Restart The App';
+        headerDiv.appendChild(headerText);
+        errorContainer.appendChild(headerDiv);
+
+        var iframe = document.createElement('iframe');
+        iframe.id = 'errorIframe';
+        iframe.style.cssText = 'width: 100%; height: 100%; border: none; flex: 1;';
+        iframe.setAttribute('sandbox', 'allow-same-origin');
+        errorContainer.appendChild(iframe);
 
         // Render HTML in iframe (sandbox for security)
-        const iframe = document.getElementById("errorIframe");
         iframe.contentDocument.open();
         iframe.contentDocument.write(errorMessage);
         iframe.contentDocument.close();

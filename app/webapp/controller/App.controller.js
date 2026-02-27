@@ -10,7 +10,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller",
 
       z2ui5.oOwnerComponent = this.getOwnerComponent();
       z2ui5.oConfig.pathname = z2ui5.oOwnerComponent.getManifest()["sap.app"].dataSources.http.uri;
-      if (z2ui5?.checkLocal == true) {
+      if (z2ui5?.checkLocal === true) {
         z2ui5.oConfig.pathname = window.location.href;
       };
 
@@ -69,7 +69,7 @@ sap.ui.define("z2ui5/Timer", ["sap/ui/core/Control"], (Control) => {
     onAfterRendering() { },
     delayedCall(oControl) {
 
-      if (oControl.getProperty("checkActive") == false) {
+      if (oControl.getProperty("checkActive") === false) {
         return;
       }
       setTimeout((oControl) => {
@@ -189,6 +189,8 @@ sap.ui.define("z2ui5/LPTitle", ["sap/ui/core/Control"], (Control) => {
       "sap/ushell/services/AppConfiguration"
     ], async (AppConfiguration)  => {
       AppConfiguration.setApplicationFullWidth(z2ui5.ApplicationFullWidth);
+    }, function () {
+      console.error("sap/ushell/services/AppConfiguration not available");
     });
 
   },
@@ -486,7 +488,16 @@ sap.ui.define("z2ui5/Geolocation", ["sap/ui/core/Control"], (Control) => {
 
     async init() {
 
-      navigator.geolocation.getCurrentPosition(this.callbackPosition.bind(this));
+      navigator.geolocation.getCurrentPosition(
+        this.callbackPosition.bind(this),
+        function (error) {
+          console.error("Geolocation error (" + error.code + "): " + error.message);
+        },
+        {
+          enableHighAccuracy: this.getProperty("enableHighAccuracy"),
+          timeout: parseInt(this.getProperty("timeout"))
+        }
+      );
 
     },
 
@@ -552,7 +563,7 @@ sap.ui.define("z2ui5/Storage", ["sap/ui/core/Control", "sap/ui/util/Storage"], (
       let storageValue = oControl.getProperty("value");
       let oStorage = new Storage(storageType, storageKeyPrefix);
       let storedValue = oStorage.get(storageKey);
-      if (storedValue == null) {
+      if (storedValue === null || storedValue === undefined) {
         storedValue = "";
       }
       if (storedValue !== storageValue) {
@@ -796,7 +807,7 @@ sap.ui.define("z2ui5/MultiInputExt", ["sap/ui/core/Control", "sap/m/Token", "sap
       if (!table) {
         return;
       }
-      if (this.getProperty("checkInit") == true) {
+      if (this.getProperty("checkInit") === true) {
         return;
       }
       this.setProperty("checkInit", true);
@@ -897,7 +908,7 @@ sap.ui.define("z2ui5/SmartMultiInputExt", ["sap/ui/core/Control", "sap/m/Token",
       if (!input) {
         return;
       }
-      if (this.getProperty("checkInit") == true) {
+      if (this.getProperty("checkInit") === true) {
         return;
       }
       this.setProperty("checkInit", true);

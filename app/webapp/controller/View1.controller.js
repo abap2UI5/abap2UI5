@@ -57,6 +57,8 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     z2ui5.oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");
                 }
                 callback(z2ui5.oCrossAppNavigator);
+            }, function () {
+                console.error("sap/ushell/Container not available - cross-app navigation requires SAP Fiori Launchpad");
             });
         }
 
@@ -225,6 +227,8 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         || Element.getElementById(openById)
                         || null;
                     oFragment.openBy(oControl);
+                }, function () {
+                    console.error("sap/ui/core/Element not available");
                 });
             },
             async displayNestedView(xml, viewProp, viewNestId, controller) {
@@ -309,7 +313,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                                 break;
                         }
                         let oStorage = new Storage(storageType, storageParams.PREFIX);
-                        if (storageParams.VALUE == "" || storageParams.VALUE == null) {
+                        if (storageParams.VALUE === "" || storageParams.VALUE == null) {
                             oStorage.remove(storageParams.KEY);
                         } else {
                             oStorage.put(storageParams.KEY, storageParams.VALUE);
@@ -417,7 +421,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     MessageBox.alert('No internet connection! Please reconnect to the server and try again.');
                     return;
                 }
-                if (z2ui5.isBusy == true) {
+                if (z2ui5.isBusy === true) {
                     if (!args[0][2]) {
                         let oBusyDialog = new mBusyDialog();
                         oBusyDialog.open();
@@ -463,7 +467,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 z2ui5.oBody.ID = z2ui5.oResponse.ID;
                 z2ui5.oBody.ARGUMENTS = args;
                 z2ui5.oBody.ARGUMENTS.forEach((item, i) => {
-                    if (i == 0) {
+                    if (i === 0) {
                         return;
                     }
                     if (typeof item === 'object') {
@@ -478,7 +482,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
             },
 
             updateModelIfRequired(paramKey, oView) {
-                if (z2ui5.oResponse.PARAMS == undefined) {
+                if (z2ui5.oResponse.PARAMS === undefined) {
                     return;
                 }
                 if (z2ui5.oResponse.PARAMS[paramKey]?.CHECK_UPDATE_MODEL) {
@@ -501,7 +505,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 MessageBox.error(err.toLocaleString());
             },
             showMessage(msgType, params) {
-                if (params == undefined) {
+                if (params === undefined) {
                     return;
                 }
                 if (params[msgType]?.TEXT !== undefined) {
