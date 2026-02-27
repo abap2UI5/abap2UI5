@@ -4,22 +4,15 @@ CLASS z2ui5_cl_util_xml DEFINITION
 
   PUBLIC SECTION.
 
-    TYPES:
-      BEGIN OF ty_s_name_value,
-        n TYPE string,
-        v TYPE string,
-      END OF ty_s_name_value.
-    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
-
     CLASS-METHODS factory
       IMPORTING
-        t_ns          TYPE z2ui5_cl_util_xml=>ty_t_name_value OPTIONAL
+        t_ns          TYPE z2ui5_cl_util=>ty_t_name_value OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
 
     CLASS-METHODS factory_popup
       IMPORTING
-        t_ns          TYPE z2ui5_cl_util_xml=>ty_t_name_value OPTIONAL
+        t_ns          TYPE z2ui5_cl_util=>ty_t_name_value OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
 
@@ -35,7 +28,7 @@ CLASS z2ui5_cl_util_xml DEFINITION
         ns            TYPE clike                           OPTIONAL
         a             TYPE clike                           OPTIONAL
         v             TYPE clike                           OPTIONAL
-        p             TYPE z2ui5_cl_util_xml=>ty_t_name_value OPTIONAL
+        p             TYPE z2ui5_cl_util=>ty_t_name_value OPTIONAL
           PREFERRED PARAMETER n
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
@@ -46,7 +39,7 @@ CLASS z2ui5_cl_util_xml DEFINITION
         ns            TYPE clike                           OPTIONAL
         a             TYPE clike                           OPTIONAL
         v             TYPE clike                           OPTIONAL
-        p             TYPE z2ui5_cl_util_xml=>ty_t_name_value OPTIONAL
+        p             TYPE z2ui5_cl_util=>ty_t_name_value OPTIONAL
           PREFERRED PARAMETER n
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
@@ -58,7 +51,7 @@ CLASS z2ui5_cl_util_xml DEFINITION
         ns            TYPE clike                           OPTIONAL
         a             TYPE clike                           OPTIONAL
         v             TYPE clike                           OPTIONAL
-        p             TYPE z2ui5_cl_util_xml=>ty_t_name_value OPTIONAL
+        p             TYPE z2ui5_cl_util=>ty_t_name_value OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
 
@@ -69,7 +62,7 @@ CLASS z2ui5_cl_util_xml DEFINITION
         ns            TYPE clike                           OPTIONAL
         a             TYPE clike                           OPTIONAL
         v             TYPE clike                           OPTIONAL
-        p             TYPE z2ui5_cl_util_xml=>ty_t_name_value OPTIONAL
+        p             TYPE z2ui5_cl_util=>ty_t_name_value OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
 
@@ -104,7 +97,7 @@ CLASS z2ui5_cl_util_xml DEFINITION
 
     DATA mv_name   TYPE string.
     DATA mv_ns     TYPE string.
-    DATA mt_prop   TYPE SORTED TABLE OF z2ui5_cl_util_xml=>ty_s_name_value WITH NON-UNIQUE KEY n.
+    DATA mt_prop   TYPE SORTED TABLE OF z2ui5_cl_util=>ty_s_name_value WITH NON-UNIQUE KEY n.
 
     DATA mo_root   TYPE REF TO z2ui5_cl_util_xml.
     DATA mo_previous TYPE REF TO z2ui5_cl_util_xml.
