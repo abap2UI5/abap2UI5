@@ -44,9 +44,46 @@ CLASS z2ui5_cl_xml_view_generic DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_generic.
 
-    METHODS i
+    METHODS _if
       IMPORTING
-        n             TYPE clike OPTIONAL
+        when          TYPE abap_bool
+        n             TYPE clike
+        ns            TYPE clike                           OPTIONAL
+        a             TYPE clike                           OPTIONAL
+        v             TYPE clike                           OPTIONAL
+        p             TYPE z2ui5_if_types=>ty_t_name_value OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_generic.
+
+    METHODS __if
+      IMPORTING
+        when          TYPE abap_bool
+        n             TYPE clike
+        ns            TYPE clike                           OPTIONAL
+        a             TYPE clike                           OPTIONAL
+        v             TYPE clike                           OPTIONAL
+        p             TYPE z2ui5_if_types=>ty_t_name_value OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_generic.
+
+    METHODS p
+      IMPORTING
+        n             TYPE clike
+        v             TYPE clike
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_generic.
+
+    METHODS n
+      IMPORTING
+        name          TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_generic.
+
+    METHODS n_prev
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_generic.
+
+    METHODS n_root
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_generic.
 
@@ -166,20 +203,66 @@ CLASS z2ui5_cl_xml_view_generic IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD i.
+  METHOD _if.
 
-    IF n IS INITIAL.
+    IF when = abap_true.
+      result = _( n  = n
+                  ns = ns
+                  a  = a
+                  v  = v
+                  p  = p ).
+    ELSE.
+      result = me.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD __if.
+
+    IF when = abap_true.
+      __( n  = n
+          ns = ns
+          a  = a
+          v  = v
+          p  = p ).
+    ENDIF.
+    result = me.
+
+  ENDMETHOD.
+
+  METHOD p.
+
+    INSERT VALUE #( n = n v = v ) INTO TABLE mt_prop.
+    result = me.
+
+  ENDMETHOD.
+
+  METHOD n.
+
+    IF name IS INITIAL.
       result = mo_parent.
       RETURN.
     ENDIF.
 
-    IF mo_parent->mv_name = n.
+    IF mo_parent->mv_name = name.
       result = mo_parent.
     ELSEIF me = mo_root.
       result = me.
     ELSE.
-      result = mo_parent->i( n ).
+      result = mo_parent->n( name ).
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD n_prev.
+
+    result = mo_root->mo_previous.
+
+  ENDMETHOD.
+
+  METHOD n_root.
+
+    result = mo_root.
 
   ENDMETHOD.
 
