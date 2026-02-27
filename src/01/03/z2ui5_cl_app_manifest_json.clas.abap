@@ -81,7 +81,8 @@ CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
              `      "minUI5Version": "1.128.1",` &&
              `      "libs": {` &&
              `        "sap.m": {},` &&
-             `        "sap.ui.core": {}` &&
+             `        "sap.ui.core": {},` &&
+             `        "sap.ui.unified": {}` &&
              `      }` &&
              `    },` &&
              `    "contentDensities": {` &&

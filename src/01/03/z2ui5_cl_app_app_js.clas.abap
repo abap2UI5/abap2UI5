@@ -23,13 +23,14 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `  "z2ui5/cc/Server",` && |\n| &&
              `  "sap/ui/core/routing/HashChanger"` && |\n| &&
              `], function (BaseController, Controller, Server, HashChanger) {` && |\n| &&
+             `  "use strict";` && |\n| &&
              `  return BaseController.extend("z2ui5.controller.App", {` && |\n| &&
              `` && |\n| &&
              `    onInit() {` && |\n| &&
              `` && |\n| &&
              `      z2ui5.oOwnerComponent = this.getOwnerComponent();` && |\n| &&
              `      z2ui5.oConfig.pathname = z2ui5.oOwnerComponent.getManifest()["sap.app"].dataSources.http.uri;` && |\n| &&
-             `      if (z2ui5?.checkLocal == true) {` && |\n| &&
+             `      if (z2ui5?.checkLocal === true) {` && |\n| &&
              `        z2ui5.oConfig.pathname = window.location.href;` && |\n| &&
              `      };` && |\n| &&
              `` && |\n| &&
@@ -88,7 +89,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    onAfterRendering() { },` && |\n| &&
              `    delayedCall(oControl) {` && |\n| &&
              `` && |\n| &&
-             `      if (oControl.getProperty("checkActive") == false) {` && |\n| &&
+             `      if (oControl.getProperty("checkActive") === false) {` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      setTimeout((oControl) => {` && |\n| &&
@@ -133,17 +134,17 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    setFocusId(val) {` && |\n| &&
              `      try {` && |\n| &&
              `        this.setProperty("focusId", val);` && |\n| &&
-             `        var oElement = z2ui5.oView.byId(val);` && |\n| &&
-             `        var oFocus = oElement.getFocusInfo();` && |\n| &&
+             `        const oElement = z2ui5.oView.byId(val);` && |\n| &&
+             `        const oFocus = oElement.getFocusInfo();` && |\n| &&
              `        oElement.applyFocusInfo(oFocus);` && |\n| &&
              `      } catch (e) { }` && |\n| &&
              `    },` && |\n| &&
              `    onAfterRendering() {` && |\n| &&
              `      if (!this._pendingFocus) return;` && |\n| &&
              `      this._pendingFocus = false;` && |\n| &&
-             `      var oElement = z2ui5.oView.byId(this.getProperty("focusId"));` && |\n| &&
+             `      const oElement = z2ui5.oView.byId(this.getProperty("focusId"));` && |\n| &&
              `      if (!oElement) return;` && |\n| &&
-             `      var oFocus = oElement.getFocusInfo();` && |\n| &&
+             `      const oFocus = oElement.getFocusInfo();` && |\n| &&
              `      oFocus.selectionStart = parseInt(this.getProperty("selectionStart"));` && |\n| &&
              `      oFocus.selectionEnd = parseInt(this.getProperty("selectionEnd"));` && |\n| &&
              `      oElement.applyFocusInfo(oFocus);` && |\n| &&
@@ -208,6 +209,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      "sap/ushell/services/AppConfiguration"` && |\n| &&
              `    ], async (AppConfiguration)  => {` && |\n| &&
              `      AppConfiguration.setApplicationFullWidth(z2ui5.ApplicationFullWidth);` && |\n| &&
+             `    }, function () {` && |\n| &&
+             `      console.error("sap/ushell/services/AppConfiguration not available");` && |\n| &&
              `    });` && |\n| &&
              `` && |\n| &&
              `  },` && |\n| &&
@@ -415,11 +418,11 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
+             |\n|.
+    result = result &&
              `    init() { },` && |\n| &&
              `` && |\n| &&
              `    onAfterRendering() {` && |\n| &&
-             |\n|.
-    result = result &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    async renderer(_, oControl) {` && |\n| &&
@@ -507,7 +510,16 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `    async init() {` && |\n| &&
              `` && |\n| &&
-             `      navigator.geolocation.getCurrentPosition(this.callbackPosition.bind(this));` && |\n| &&
+             `      navigator.geolocation.getCurrentPosition(` && |\n| &&
+             `        this.callbackPosition.bind(this),` && |\n| &&
+             `        function (error) {` && |\n| &&
+             `          console.error("Geolocation error (" + error.code + "): " + error.message);` && |\n| &&
+             `        },` && |\n| &&
+             `        {` && |\n| &&
+             `          enableHighAccuracy: this.getProperty("enableHighAccuracy"),` && |\n| &&
+             `          timeout: parseInt(this.getProperty("timeout"))` && |\n| &&
+             `        }` && |\n| &&
+             `      );` && |\n| &&
              `` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
@@ -573,7 +585,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      let storageValue = oControl.getProperty("value");` && |\n| &&
              `      let oStorage = new Storage(storageType, storageKeyPrefix);` && |\n| &&
              `      let storedValue = oStorage.get(storageKey);` && |\n| &&
-             `      if (storedValue == null) {` && |\n| &&
+             `      if (storedValue === null || storedValue === undefined) {` && |\n| &&
              `        storedValue = "";` && |\n| &&
              `      }` && |\n| &&
              `      if (storedValue !== storageValue) {` && |\n| &&
@@ -680,11 +692,11 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `            this.setProperty("path", this.oFileUploader.getProperty("value"));` && |\n| &&
              `` && |\n| &&
-             `            var file = z2ui5.oUpload.oFileUpload.files[0];` && |\n| &&
-             `            var reader = new FileReader();` && |\n| &&
+             `            const file = z2ui5.oUpload.oFileUpload.files[0];` && |\n| &&
+             `            const reader = new FileReader();` && |\n| &&
              `` && |\n| &&
              `            reader.onload = function (evt) {` && |\n| &&
-             `              var vContent = evt.currentTarget.result;` && |\n| &&
+             `              const vContent = evt.currentTarget.result;` && |\n| &&
              `              this.setProperty("value", vContent);` && |\n| &&
              `              this.fireUpload();` && |\n| &&
              `              //this.getView().byId('picture' ).getDomRef().src = vContent;` && |\n| &&
@@ -714,7 +726,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
-             `          var value = oEvent.getSource().getProperty("value");` && |\n| &&
+             `          const value = oEvent.getSource().getProperty("value");` && |\n| &&
              `          this.setProperty("path", value);` && |\n| &&
              `          if (value) {` && |\n| &&
              `            this.oUploadButton.setEnabled();` && |\n| &&
@@ -730,14 +742,14 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
-             `          var value = oEvent.getSource().getProperty("value");` && |\n| &&
+             `          const value = oEvent.getSource().getProperty("value");` && |\n| &&
              `          this.setProperty("path", value);` && |\n| &&
              `` && |\n| &&
-             `          var file = oEvent.oSource.oFileUpload.files[0];` && |\n| &&
-             `          var reader = new FileReader();` && |\n| &&
+             `          const file = oEvent.oSource.oFileUpload.files[0];` && |\n| &&
+             `          const reader = new FileReader();` && |\n| &&
              `` && |\n| &&
              `          reader.onload = function (evt) {` && |\n| &&
-             `            var vContent = evt.currentTarget.result;` && |\n| &&
+             `            const vContent = evt.currentTarget.result;` && |\n| &&
              `            this.setProperty("value", vContent);` && |\n| &&
              `            this.fireUpload();` && |\n| &&
              `          }` && |\n| &&
@@ -748,7 +760,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          .bind(oControl)` && |\n| &&
              `      });` && |\n| &&
              `` && |\n| &&
-             `      var hbox = new HBox();` && |\n| &&
+             `      const hbox = new HBox();` && |\n| &&
              `      hbox.addItem(oControl.oFileUploader);` && |\n| &&
              `      hbox.addItem(oControl.oUploadButton);` && |\n| &&
              `      oRm.renderControl(hbox);` && |\n| &&
@@ -808,6 +820,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    setControl() {` && |\n| &&
              `      let table = z2ui5.oView.byId(this.getProperty("MultiInputId"));` && |\n| &&
              `      if (!table) {` && |\n| &&
+             |\n|.
+    result = result &&
              `        try {` && |\n| &&
              `          // table = Core.byId(Element.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('-inner', ''));` && |\n| &&
              `        } catch (e) {` && |\n| &&
@@ -817,15 +831,13 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      if (!table) {` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      if (this.getProperty("checkInit") == true) {` && |\n| &&
+             `      if (this.getProperty("checkInit") === true) {` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             |\n|.
-    result = result &&
              `      this.setProperty("checkInit", true);` && |\n| &&
              `      table.attachTokenUpdate(this.onTokenUpdate.bind(this));` && |\n| &&
-             `      var fnValidator = function (args) {` && |\n| &&
-             `        var text = args.text;` && |\n| &&
+             `      const fnValidator = function (args) {` && |\n| &&
+             `        const text = args.text;` && |\n| &&
              `        return new Token({` && |\n| &&
              `          key: text,` && |\n| &&
              `          text: text` && |\n| &&
@@ -920,7 +932,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      if (!input) {` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      if (this.getProperty("checkInit") == true) {` && |\n| &&
+             `      if (this.getProperty("checkInit") === true) {` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      this.setProperty("checkInit", true);` && |\n| &&
@@ -983,9 +995,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `    capture: function (oEvent) {` && |\n| &&
              `` && |\n| &&
-             `      var video = document.querySelector("#zvideo");` && |\n| &&
-             `      var canvas = document.getElementById('zcanvas');` && |\n| &&
-             `      var resultb64 = "";` && |\n| &&
+             `      const video = document.querySelector("#zvideo");` && |\n| &&
+             `      const canvas = document.getElementById('zcanvas');` && |\n| &&
+             `      let resultb64 = "";` && |\n| &&
              `      canvas.width = parseInt( this.getProperty("width") );` && |\n| &&
              `      canvas.height = parseInt( this.getProperty("height") );` && |\n| &&
              `      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);` && |\n| &&
@@ -1032,7 +1044,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      }` && |\n| &&
              `` && |\n| &&
              `      this._oScanDialog.attachEventOnce("afterOpen", function () {` && |\n| &&
-             `        var video = document.querySelector('#zvideo');` && |\n| &&
+             `        const video = document.querySelector('#zvideo');` && |\n| &&
              `        if (navigator.mediaDevices.getUserMedia) {` && |\n| &&
              `          const facingMode = this.getProperty("facingMode");` && |\n| &&
              `          const deviceId = this.getProperty("deviceId");` && |\n| &&
@@ -1060,7 +1072,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `    renderer: function (oRM, oControl) {` && |\n| &&
              `` && |\n| &&
-             `      var oButton = new Button({` && |\n| &&
+             `      const oButton = new Button({` && |\n| &&
              `        icon: "sap-icon://camera",` && |\n| &&
              `        text: "Camera",` && |\n| &&
              `        press: oControl.onPicture.bind(oControl),` && |\n| &&
@@ -1150,27 +1162,27 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `    _applyFilters(oTable, aFilters) {` && |\n| &&
              `      oTable.getBinding().filter(aFilters);` && |\n| &&
-             `      var opSymbols = {` && |\n| &&
+             `      const opSymbols = {` && |\n| &&
              `        EQ: "", NE: "!", LT: "<", LE: "<=", GT: ">", GE: ">=",` && |\n| &&
              `        BT: "...", Contains: "*", StartsWith: "^", EndsWith: "$"` && |\n| &&
              `      };` && |\n| &&
              `` && |\n| &&
              `      aFilters.forEach(function(oFilter) {` && |\n| &&
-             `        var sProperty = oFilter.sPath || oFilter.aFilters?.[0]?.sPath;` && |\n| &&
+             `        const sProperty = oFilter.sPath || oFilter.aFilters?.[0]?.sPath;` && |\n| &&
              `        if (!sProperty) return;` && |\n| &&
              `` && |\n| &&
              `        oTable.getColumns().forEach(function(oCol) {` && |\n| &&
              `          if (oCol.getFilterProperty && oCol.getFilterProperty() === sProperty) {` && |\n| &&
-             `            var operator = oFilter.sOperator;` && |\n| &&
-             `            var vValue = oFilter.oValue1 !== undefined ? oFilter.oValue1 : oFilter.oValue2;` && |\n| &&
+             `            const operator = oFilter.sOperator;` && |\n| &&
+             `            let vValue = oFilter.oValue1 !== undefined ? oFilter.oValue1 : oFilter.oValue2;` && |\n| &&
              `` && |\n| &&
              `            if (vValue === undefined && oFilter.aFilters && oFilter.aFilters[0].oValue1 !== undefined) {` && |\n| &&
              `              vValue = oFilter.aFilters[0].oValue1;` && |\n| &&
              `            }` && |\n| &&
              `` && |\n| &&
-             `            var display;` && |\n| &&
+             `            let display;` && |\n| &&
              `            if (operator === "BT") {` && |\n| &&
-             `              var vValue2 = oFilter.oValue2 !== undefined ? oFilter.oValue2 : "";` && |\n| &&
+             `              const vValue2 = oFilter.oValue2 !== undefined ? oFilter.oValue2 : "";` && |\n| &&
              `              display = (vValue != null ? vValue : "") + opSymbols["BT"] + (vValue2 != null ? vValue2 : "");` && |\n| &&
              `            } else if (operator === "Contains") {` && |\n| &&
              `              display = "*" + (vValue != null ? vValue : "") + "*";` && |\n| &&
@@ -1210,6 +1222,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      aSorters.forEach(function(srt, idx) {` && |\n| &&
              `        oTable.getColumns().forEach(function(oCol) {` && |\n| &&
              `          if (oCol.getSortProperty && oCol.getSortProperty() === srt.sPath) {` && |\n| &&
+             |\n|.
+    result = result &&
              `            oCol.setSorted(true);` && |\n| &&
              `            oCol.setSortOrder(srt.bDescending ? "Descending" : "Ascending");` && |\n| &&
              `            if (oCol.setSortIndex) oCol.setSortIndex(idx);` && |\n| &&
@@ -1222,8 +1236,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      try {` && |\n| &&
              `        let oTable = z2ui5.oView.byId(this.getProperty("tableId"));` && |\n| &&
              `        if (!oTable) return;` && |\n| &&
-             |\n|.
-    result = result &&
              `        this._applyWhenRendered(oTable, () => this._applySorters(oTable, this.aSorters));` && |\n| &&
              `      } catch (e) {}` && |\n| &&
              `    },` && |\n| &&

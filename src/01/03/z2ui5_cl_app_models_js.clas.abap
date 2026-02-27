@@ -30,7 +30,7 @@ CLASS z2ui5_cl_app_models_js IMPLEMENTATION.
              `         * Provides runtime info for the device the UI5 app is running on as JSONModel` && |\n| &&
              `         */` && |\n| &&
              `        createDeviceModel: function () {` && |\n| &&
-             `            var oModel = new JSONModel(Device);` && |\n| &&
+             `            const oModel = new JSONModel(Device);` && |\n| &&
              `            oModel.setDefaultBindingMode("OneWay");` && |\n| &&
              `            return oModel;` && |\n| &&
              `        }` && |\n| &&

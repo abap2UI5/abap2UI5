@@ -46,7 +46,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `                z2ui5.checkNestAfter = false;` && |\n| &&
              `                z2ui5.checkNestAfter2 = false;` && |\n| &&
              `                let event = (args) => {` && |\n| &&
-             `                    if (args != undefined) {` && |\n| &&
+             `                    if (args !== undefined) {` && |\n| &&
              `                        return args[0][0];` && |\n| &&
              `                    }` && |\n| &&
              `                };` && |\n| &&
@@ -68,7 +68,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `                    EVENT: event(z2ui5.oBody?.ARGUMENTS),` && |\n| &&
              `                    HASH: window.location.hash,` && |\n| &&
              `                };` && |\n| &&
-             `                if (z2ui5.oBody?.ARGUMENTS != undefined) {` && |\n| &&
+             `                if (z2ui5.oBody?.ARGUMENTS !== undefined) {` && |\n| &&
              `                    if (z2ui5.oBody?.ARGUMENTS.length > 0) {` && |\n| &&
              `                        z2ui5.oBody?.ARGUMENTS.shift();` && |\n| &&
              `                    }` && |\n| &&
@@ -81,10 +81,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `                if (!z2ui5.oBody.S_FRONT.T_EVENT_ARG || z2ui5.oBody.S_FRONT.T_EVENT_ARG.length === 0) {` && |\n| &&
              `                    delete z2ui5.oBody.S_FRONT.T_EVENT_ARG;` && |\n| &&
              `                }` && |\n| &&
-             `                if (z2ui5.oBody.S_FRONT.T_STARTUP_PARAMETERS == undefined) {` && |\n| &&
+             `                if (z2ui5.oBody.S_FRONT.T_STARTUP_PARAMETERS === undefined) {` && |\n| &&
              `                    delete z2ui5.oBody.S_FRONT.T_STARTUP_PARAMETERS;` && |\n| &&
              `                }` && |\n| &&
-             `                if (z2ui5.oBody.S_FRONT.SEARCH == '') {` && |\n| &&
+             `                if (z2ui5.oBody.S_FRONT.SEARCH === '') {` && |\n| &&
              `                    delete z2ui5.oBody.S_FRONT.SEARCH;` && |\n| &&
              `                }` && |\n| &&
              `                if (!z2ui5.oBody.XX) {` && |\n| &&
@@ -199,16 +199,24 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          document.body.appendChild(errorContainer);` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        // Create header and iframe for safe HTML rendering` && |\n| &&
-             `        errorContainer.innerHTML = ``` && |\n| &&
-             `    <div style="padding: 15px; background: #d32f2f; color: white; display: flex; justify-content: space-between; align-items: center;">` && |\n| &&
-             `        <h3 style="margin: 0;">Server Error - Please Restart The App</h3>` && |\n| &&
-             `    </div>` && |\n| &&
-             `    <iframe id="errorIframe" style="width: 100%; height: 100%; border: none; flex: 1;" sandbox="allow-same-origin"></iframe>` && |\n| &&
-             ```;` && |\n| &&
+             `        // Create header and iframe for safe HTML rendering using DOM APIs` && |\n| &&
+             `        errorContainer.textContent = '';` && |\n| &&
+             `` && |\n| &&
+             `        var headerDiv = document.createElement('div');` && |\n| &&
+             `        headerDiv.style.cssText = 'padding: 15px; background: #d32f2f; color: white; display: flex; justify-content: space-between; align-items: center;';` && |\n| &&
+             `        var headerText = document.createElement('h3');` && |\n| &&
+             `        headerText.style.margin = '0';` && |\n| &&
+             `        headerText.textContent = 'Server Error - Please Restart The App';` && |\n| &&
+             `        headerDiv.appendChild(headerText);` && |\n| &&
+             `        errorContainer.appendChild(headerDiv);` && |\n| &&
+             `` && |\n| &&
+             `        var iframe = document.createElement('iframe');` && |\n| &&
+             `        iframe.id = 'errorIframe';` && |\n| &&
+             `        iframe.style.cssText = 'width: 100%; height: 100%; border: none; flex: 1;';` && |\n| &&
+             `        iframe.setAttribute('sandbox', 'allow-same-origin');` && |\n| &&
+             `        errorContainer.appendChild(iframe);` && |\n| &&
              `` && |\n| &&
              `        // Render HTML in iframe (sandbox for security)` && |\n| &&
-             `        const iframe = document.getElementById("errorIframe");` && |\n| &&
              `        iframe.contentDocument.open();` && |\n| &&
              `        iframe.contentDocument.write(errorMessage);` && |\n| &&
              `        iframe.contentDocument.close();` && |\n| &&

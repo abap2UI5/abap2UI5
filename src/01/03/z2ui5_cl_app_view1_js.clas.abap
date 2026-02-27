@@ -77,6 +77,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    z2ui5.oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");` && |\n| &&
              `                }` && |\n| &&
              `                callback(z2ui5.oCrossAppNavigator);` && |\n| &&
+             `            }, function () {` && |\n| &&
+             `                console.error("sap/ushell/Container not available - cross-app navigation requires SAP Fiori Launchpad");` && |\n| &&
              `            });` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -147,7 +149,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        await this.displayPopover(S_POPOVER.XML, 'oViewPopover', S_POPOVER.OPEN_BY_ID);` && |\n| &&
              `                    }` && |\n| &&
              `` && |\n| &&
-             `                   var oState;` && |\n| &&
+             `                   let oState;` && |\n| &&
              `                   if (z2ui5.oView) {` && |\n| &&
              `                       oState = JSON.parse(JSON.stringify({ view: z2ui5.oView.mProperties.viewContent, model: z2ui5.oView.getModel().getData(), response: z2ui5.oResponse }));` && |\n| &&
              `                   } else {` && |\n| &&
@@ -245,6 +247,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        || Element.getElementById(openById)` && |\n| &&
              `                        || null;` && |\n| &&
              `                    oFragment.openBy(oControl);` && |\n| &&
+             `                }, function () {` && |\n| &&
+             `                    console.error("sap/ui/core/Element not available");` && |\n| &&
              `                });` && |\n| &&
              `            },` && |\n| &&
              `            async displayNestedView(xml, viewProp, viewNestId, controller) {` && |\n| &&
@@ -314,7 +318,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        copyToClipboard(window.location.href + '#/z2ui5-xapp-state=' + z2ui5.oResponse.ID );` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'SET_ODATA_MODEL':` && |\n| &&
-             `                        var oModel = new ODataModel({ serviceUrl: args[1], annotationURI: (args.length > 3 ? args[3] : '') });` && |\n| &&
+             `                        const oModel = new ODataModel({ serviceUrl: args[1], annotationURI: (args.length > 3 ? args[3] : '') });` && |\n| &&
              `                        z2ui5.oView.setModel(oModel, args[2] ? args[2] : undefined);` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'STORE_DATA': {` && |\n| &&
@@ -329,7 +333,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                                break;` && |\n| &&
              `                        }` && |\n| &&
              `                        let oStorage = new Storage(storageType, storageParams.PREFIX);` && |\n| &&
-             `                        if (storageParams.VALUE == "" || storageParams.VALUE == null) {` && |\n| &&
+             `                        if (storageParams.VALUE === "" || storageParams.VALUE == null) {` && |\n| &&
              `                            oStorage.remove(storageParams.KEY);` && |\n| &&
              `                        } else {` && |\n| &&
              `                            oStorage.put(storageParams.KEY, storageParams.VALUE);` && |\n| &&
@@ -337,7 +341,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        break;` && |\n| &&
              `                    }` && |\n| &&
              `                    case 'DOWNLOAD_B64_FILE':` && |\n| &&
-             `                        var a = document.createElement("a");` && |\n| &&
+             `                        const a = document.createElement("a");` && |\n| &&
              `                        a.href = args[1];` && |\n| &&
              `                        a.download = args[2];` && |\n| &&
              `                        a.click();` && |\n| &&
@@ -354,7 +358,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                            })) || "";` && |\n| &&
              `                            if (z2ui5.args[3] === 'EXT') {` && |\n| &&
              `                                let url = window.location.href.split('#')[0] + hash;` && |\n| &&
-             `                                sap.m.URLHelper.redirect(url, true);` && |\n| &&
+             `                                mobileLibrary.URLHelper.redirect(url, true);` && |\n| &&
              `                            } else {` && |\n| &&
              `                                nav.toExternal({` && |\n| &&
              `                                    target: {` && |\n| &&
@@ -368,7 +372,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        if (isValidRedirectURL(args[1])) {` && |\n| &&
              `                            window.location = args[1];` && |\n| &&
              `                        } else {` && |\n| &&
-             `                            sap.m.MessageBox.error('Invalid redirect URL. Only relative URLs to the same domain are allowed.');` && |\n| &&
+             `                            MessageBox.error('Invalid redirect URL. Only relative URLs to the same domain are allowed.');` && |\n| &&
              `                        }` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'OPEN_NEW_TAB':` && |\n| &&
@@ -378,7 +382,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                                newWindow.opener = null;` && |\n| &&
              `                            }` && |\n| &&
              `                        } else {` && |\n| &&
-             `                            sap.m.MessageBox.error('Invalid URL. Only relative URLs to the same domain are allowed.');` && |\n| &&
+             `                            MessageBox.error('Invalid URL. Only relative URLs to the same domain are allowed.');` && |\n| &&
              `                        }` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'POPUP_CLOSE':` && |\n| &&
@@ -403,8 +407,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        navigateContainer(id => Fragment.byId("popoverId", id), args);` && |\n| &&
              `                        break;` && |\n| &&
              `                    case 'URLHELPER': {` && |\n| &&
-             `                        var URLHelper = mobileLibrary.URLHelper;` && |\n| &&
-             `                        var params = args[2];` && |\n| &&
+             `                        const URLHelper = mobileLibrary.URLHelper;` && |\n| &&
+             `                        const params = args[2];` && |\n| &&
              `                        switch (args[1]) {` && |\n| &&
              `                            case 'REDIRECT':` && |\n| &&
              `                                URLHelper.redirect(params.URL, params.NEW_WINDOW);` && |\n| &&
@@ -414,17 +418,17 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                                break;` && |\n| &&
              `                            case 'TRIGGER_SMS':` && |\n| &&
              `                                URLHelper.triggerSms(params);` && |\n| &&
+             |\n|.
+    result = result &&
              `                                break;` && |\n| &&
              `                            case 'TRIGGER_TEL':` && |\n| &&
              `                                URLHelper.triggerTel(params);` && |\n| &&
              `                                break;` && |\n| &&
-             |\n|.
-    result = result &&
              `                        }` && |\n| &&
              `                        break;` && |\n| &&
              `                    }` && |\n| &&
              `                    case 'IMAGE_EDITOR_POPUP_CLOSE':` && |\n| &&
-             `                        const image = sap.ui.core.Fragment.byId("popupId", "imageEditor").getImagePngDataURL();` && |\n| &&
+             `                        const image = Fragment.byId("popupId", "imageEditor").getImagePngDataURL();` && |\n| &&
              `                        z2ui5.oController.PopupDestroy();` && |\n| &&
              `                        z2ui5.oController.eB([``SAVE``], image);` && |\n| &&
              `                        break;` && |\n| &&
@@ -439,7 +443,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    MessageBox.alert('No internet connection! Please reconnect to the server and try again.');` && |\n| &&
              `                    return;` && |\n| &&
              `                }` && |\n| &&
-             `                if (z2ui5.isBusy == true) {` && |\n| &&
+             `                if (z2ui5.isBusy === true) {` && |\n| &&
              `                    if (!args[0][2]) {` && |\n| &&
              `                        let oBusyDialog = new mBusyDialog();` && |\n| &&
              `                        oBusyDialog.open();` && |\n| &&
@@ -452,7 +456,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                z2ui5.isBusy = true;` && |\n| &&
              `                BusyIndicator.show();` && |\n| &&
              `                z2ui5.oBody = {};` && |\n| &&
-             `                var oModel;` && |\n| &&
+             `                let oModel;` && |\n| &&
              `                if (args[0][3] || z2ui5.oController == this) {` && |\n| &&
              `                    if (z2ui5.oResponse.PARAMS?.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH) {` && |\n| &&
              `                        oModel = z2ui5.oView.getModel("http");` && |\n| &&
@@ -485,7 +489,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                z2ui5.oBody.ID = z2ui5.oResponse.ID;` && |\n| &&
              `                z2ui5.oBody.ARGUMENTS = args;` && |\n| &&
              `                z2ui5.oBody.ARGUMENTS.forEach((item, i) => {` && |\n| &&
-             `                    if (i == 0) {` && |\n| &&
+             `                    if (i === 0) {` && |\n| &&
              `                        return;` && |\n| &&
              `                    }` && |\n| &&
              `                    if (typeof item === 'object') {` && |\n| &&
@@ -500,7 +504,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            },` && |\n| &&
              `` && |\n| &&
              `            updateModelIfRequired(paramKey, oView) {` && |\n| &&
-             `                if (z2ui5.oResponse.PARAMS == undefined) {` && |\n| &&
+             `                if (z2ui5.oResponse.PARAMS === undefined) {` && |\n| &&
              `                    return;` && |\n| &&
              `                }` && |\n| &&
              `                if (z2ui5.oResponse.PARAMS[paramKey]?.CHECK_UPDATE_MODEL) {` && |\n| &&
@@ -513,7 +517,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            },` && |\n| &&
              `            async checkSDKcompatibility(err) {` && |\n| &&
              `                let oCurrentVersionInfo = await VersionInfo.load();` && |\n| &&
-             `                var ui5_sdk = oCurrentVersionInfo.gav.includes('com.sap.ui5') ? true : false;` && |\n| &&
+             `                const ui5_sdk = oCurrentVersionInfo.gav.includes('com.sap.ui5') ? true : false;` && |\n| &&
              `                if (!ui5_sdk) {` && |\n| &&
              `                    if (err) {` && |\n| &&
              `                        MessageBox.error("openui5 SDK is loaded, module: " + err._modules + " is not availabe in openui5");` && |\n| &&
@@ -523,7 +527,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                MessageBox.error(err.toLocaleString());` && |\n| &&
              `            },` && |\n| &&
              `            showMessage(msgType, params) {` && |\n| &&
-             `                if (params == undefined) {` && |\n| &&
+             `                if (params === undefined) {` && |\n| &&
              `                    return;` && |\n| &&
              `                }` && |\n| &&
              `                if (params[msgType]?.TEXT !== undefined) {` && |\n| &&
@@ -565,7 +569,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            async displayView(xml, viewModel) {` && |\n| &&
              `                let oview_model = new JSONModel(viewModel);` && |\n| &&
              `                this._trackChanges(oview_model);` && |\n| &&
-             `                var oModel = oview_model;` && |\n| &&
+             `                let oModel = oview_model;` && |\n| &&
              `                if (z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH) {` && |\n| &&
              `                    oModel = new ODataModel({` && |\n| &&
              `                        serviceUrl: z2ui5.oResponse.PARAMS.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH,` && |\n| &&
