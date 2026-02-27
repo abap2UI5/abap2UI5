@@ -29,6 +29,14 @@ CLASS z2ui5_cl_core_app DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_core_app.
 
+    TYPES:
+      BEGIN OF ty_s_buffer,
+        id  TYPE string,
+        app TYPE REF TO z2ui5_cl_core_app,
+      END OF ty_s_buffer.
+
+    CLASS-DATA mt_buffer TYPE SORTED TABLE OF ty_s_buffer WITH UNIQUE KEY id.
+
     CLASS-METHODS db_load
       IMPORTING
         !id           TYPE clike
@@ -40,6 +48,8 @@ CLASS z2ui5_cl_core_app DEFINITION
         app           TYPE REF TO z2ui5_if_app
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_core_app.
+
+    CLASS-METHODS db_load_buffer_clear.
 
     METHODS constructor.
     METHODS db_save.
@@ -103,11 +113,27 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD db_load.
 
+    DATA lv_id TYPE string.
+    lv_id = id.
+
+    IF line_exists( mt_buffer[ id = lv_id ] ).
+      result = mt_buffer[ id = lv_id ]-app.
+      RETURN.
+    ENDIF.
+
     DATA(lo_db) = NEW z2ui5_cl_core_srv_draft( ).
     DATA(ls_db) = lo_db->read_draft( id ).
     result = all_xml_parse( ls_db-data ).
 
     result->create_model( )->main_attri_db_load( ).
+
+    INSERT VALUE #( id = lv_id app = result ) INTO TABLE mt_buffer.
+
+  ENDMETHOD.
+
+  METHOD db_load_buffer_clear.
+
+    CLEAR mt_buffer.
 
   ENDMETHOD.
 
