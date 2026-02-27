@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_xml_view_generic DEFINITION
+CLASS z2ui5_cl_util_xml DEFINITION
   PUBLIC FINAL
   CREATE PROTECTED.
 
@@ -8,17 +8,17 @@ CLASS z2ui5_cl_xml_view_generic DEFINITION
       IMPORTING
         t_ns          TYPE z2ui5_if_types=>ty_t_name_value OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_generic.
+        VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
 
     CLASS-METHODS factory_popup
       IMPORTING
         t_ns          TYPE z2ui5_if_types=>ty_t_name_value OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_generic.
+        VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
 
     CLASS-METHODS factory_plain
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_generic.
+        VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
 
     METHODS constructor.
 
@@ -31,7 +31,7 @@ CLASS z2ui5_cl_xml_view_generic DEFINITION
         p             TYPE z2ui5_if_types=>ty_t_name_value OPTIONAL
           PREFERRED PARAMETER n
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_generic.
+        VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
 
     METHODS __
       IMPORTING
@@ -42,7 +42,7 @@ CLASS z2ui5_cl_xml_view_generic DEFINITION
         p             TYPE z2ui5_if_types=>ty_t_name_value OPTIONAL
           PREFERRED PARAMETER n
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_generic.
+        VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
 
     METHODS _if
       IMPORTING
@@ -53,7 +53,7 @@ CLASS z2ui5_cl_xml_view_generic DEFINITION
         v             TYPE clike                           OPTIONAL
         p             TYPE z2ui5_if_types=>ty_t_name_value OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_generic.
+        VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
 
     METHODS __if
       IMPORTING
@@ -64,28 +64,28 @@ CLASS z2ui5_cl_xml_view_generic DEFINITION
         v             TYPE clike                           OPTIONAL
         p             TYPE z2ui5_if_types=>ty_t_name_value OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_generic.
+        VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
 
     METHODS p
       IMPORTING
         n             TYPE clike
         v             TYPE clike
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_generic.
+        VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
 
     METHODS n
       IMPORTING
         name          TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_generic.
+        VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
 
     METHODS n_prev
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_generic.
+        VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
 
     METHODS n_root
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_generic.
+        VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
 
     METHODS stringify
       IMPORTING
@@ -99,10 +99,10 @@ CLASS z2ui5_cl_xml_view_generic DEFINITION
     DATA mv_ns     TYPE string.
     DATA mt_prop   TYPE SORTED TABLE OF z2ui5_if_types=>ty_s_name_value WITH NON-UNIQUE KEY n.
 
-    DATA mo_root   TYPE REF TO z2ui5_cl_xml_view_generic.
-    DATA mo_previous TYPE REF TO z2ui5_cl_xml_view_generic.
-    DATA mo_parent TYPE REF TO z2ui5_cl_xml_view_generic.
-    DATA mt_child  TYPE STANDARD TABLE OF REF TO z2ui5_cl_xml_view_generic WITH EMPTY KEY.
+    DATA mo_root   TYPE REF TO z2ui5_cl_util_xml.
+    DATA mo_previous TYPE REF TO z2ui5_cl_util_xml.
+    DATA mo_parent TYPE REF TO z2ui5_cl_util_xml.
+    DATA mt_child  TYPE STANDARD TABLE OF REF TO z2ui5_cl_util_xml WITH EMPTY KEY.
 
     METHODS xml_get_parts
       CHANGING
@@ -113,7 +113,7 @@ CLASS z2ui5_cl_xml_view_generic DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_xml_view_generic IMPLEMENTATION.
+CLASS z2ui5_cl_util_xml IMPLEMENTATION.
 
   METHOD constructor.
 
@@ -176,7 +176,7 @@ CLASS z2ui5_cl_xml_view_generic IMPLEMENTATION.
 
   METHOD _.
 
-    DATA(lo_child) = NEW z2ui5_cl_xml_view_generic( ).
+    DATA(lo_child) = NEW z2ui5_cl_util_xml( ).
     lo_child->mv_name   = n.
     lo_child->mv_ns     = ns.
     lo_child->mt_prop   = p.
@@ -295,7 +295,7 @@ CLASS z2ui5_cl_xml_view_generic IMPLEMENTATION.
     APPEND | <{ lv_tmp2 }{ mv_name }{ lv_tmp3 }>| TO ct_parts.
 
     LOOP AT mt_child INTO DATA(lr_child).
-      CAST z2ui5_cl_xml_view_generic( lr_child )->xml_get_parts( CHANGING ct_parts = ct_parts ).
+      CAST z2ui5_cl_util_xml( lr_child )->xml_get_parts( CHANGING ct_parts = ct_parts ).
     ENDLOOP.
 
     APPEND |</{ lv_tmp2 }{ mv_name }>| TO ct_parts.

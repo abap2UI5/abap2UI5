@@ -3,9 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>Z2UI5_CL_XML_VIEW_GENERIC</CLSNAME>
+    <CLSNAME>Z2UI5_CL_UTIL_XML</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>abap2UI5 - generic xml view builder</DESCRIPT>
+    <DESCRIPT>util - generic xml builder</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

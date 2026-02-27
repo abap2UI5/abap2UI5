@@ -33,7 +33,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_factory.
 
-    DATA(lo_view) = z2ui5_cl_xml_view_generic=>factory( ).
+    DATA(lo_view) = z2ui5_cl_util_xml=>factory( ).
     DATA(lv_xml) = lo_view->_( n = `Page`
                                 p = VALUE #( ( n = `title` v = `test` ) )
                               )->stringify( ).
@@ -45,7 +45,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_factory_popup.
 
-    DATA(lo_popup) = z2ui5_cl_xml_view_generic=>factory_popup( ).
+    DATA(lo_popup) = z2ui5_cl_util_xml=>factory_popup( ).
     DATA(lv_xml) = lo_popup->_( n = `Dialog`
                                  p = VALUE #( ( n = `title` v = `Test` ) )
                                )->stringify( ).
@@ -57,7 +57,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_factory_plain.
 
-    DATA(lo_view) = z2ui5_cl_xml_view_generic=>factory_plain( ).
+    DATA(lo_view) = z2ui5_cl_util_xml=>factory_plain( ).
 
     cl_abap_unit_assert=>assert_bound( lo_view ).
 
@@ -65,7 +65,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_shell_page.
 
-    DATA(lv_xml) = z2ui5_cl_xml_view_generic=>factory(
+    DATA(lv_xml) = z2ui5_cl_util_xml=>factory(
       )->_( `Shell`
       )->_( n = `Page`
             p = VALUE #( ( n = `title` v = `My Page` ) )
@@ -79,7 +79,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_button.
 
-    DATA(lv_xml) = z2ui5_cl_xml_view_generic=>factory(
+    DATA(lv_xml) = z2ui5_cl_util_xml=>factory(
       )->_( n = `Page` a = `title` v = `Test`
       )->__( n = `Button`
              p = VALUE #( ( n = `text`  v = `Click Me` )
@@ -93,7 +93,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_leaf.
 
-    DATA(lo_page) = z2ui5_cl_xml_view_generic=>factory(
+    DATA(lo_page) = z2ui5_cl_util_xml=>factory(
       )->_( n = `Page` a = `title` v = `Test` ).
 
     lo_page->__( n = `Button` a = `text` v = `Btn1` ).
@@ -108,7 +108,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_nested.
 
-    DATA(lv_xml) = z2ui5_cl_xml_view_generic=>factory(
+    DATA(lv_xml) = z2ui5_cl_util_xml=>factory(
       )->_( `Shell`
       )->_( n = `Page` a = `title` v = `Test`
       )->_( `VBox`
@@ -124,7 +124,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_nav_up.
 
-    DATA(lo_view) = z2ui5_cl_xml_view_generic=>factory( ).
+    DATA(lo_view) = z2ui5_cl_util_xml=>factory( ).
     DATA(lo_page) = lo_view->_( n = `Page` a = `title` v = `Test` ).
     DATA(lo_vbox) = lo_page->_( `VBox` ).
     DATA(lo_parent) = lo_vbox->n( ).
@@ -135,7 +135,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_nav_named.
 
-    DATA(lo_view) = z2ui5_cl_xml_view_generic=>factory( ).
+    DATA(lo_view) = z2ui5_cl_util_xml=>factory( ).
     DATA(lo_page) = lo_view->_( n = `Page` a = `title` v = `Test` ).
     lo_page->_( `VBox`
       )->_( `HBox` ).
@@ -150,7 +150,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_nav_not_found.
 
-    DATA(lo_view) = z2ui5_cl_xml_view_generic=>factory( ).
+    DATA(lo_view) = z2ui5_cl_util_xml=>factory( ).
     DATA(lo_page) = lo_view->_( n = `Page` a = `title` v = `Test` ).
 
     DATA(lo_result) = lo_page->_( `VBox`
@@ -163,7 +163,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_nav_prev.
 
-    DATA(lo_view) = z2ui5_cl_xml_view_generic=>factory( ).
+    DATA(lo_view) = z2ui5_cl_util_xml=>factory( ).
     DATA(lo_page) = lo_view->_( n = `Page` a = `title` v = `Test` ).
     lo_page->__( n = `Button` a = `text` v = `Btn` ).
 
@@ -176,7 +176,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_nav_root.
 
-    DATA(lo_view) = z2ui5_cl_xml_view_generic=>factory( ).
+    DATA(lo_view) = z2ui5_cl_util_xml=>factory( ).
     DATA(lo_deep) = lo_view->_( `Shell`
       )->_( `Page`
       )->_( `VBox` ).
@@ -189,7 +189,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_namespace.
 
-    DATA(lv_xml) = z2ui5_cl_xml_view_generic=>factory(
+    DATA(lv_xml) = z2ui5_cl_util_xml=>factory(
         t_ns = VALUE #( ( n = `xmlns:f` v = `sap.f` ) )
       )->_( n  = `DynamicPage`
             ns = `f`
@@ -205,7 +205,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_table.
 
-    DATA(lo_page) = z2ui5_cl_xml_view_generic=>factory(
+    DATA(lo_page) = z2ui5_cl_util_xml=>factory(
       )->_( n = `Page` a = `title` v = `Test` ).
 
     DATA(lo_table) = lo_page->_( n = `Table`
@@ -233,7 +233,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_simple_form.
 
-    DATA(lo_form) = z2ui5_cl_xml_view_generic=>factory(
+    DATA(lo_form) = z2ui5_cl_util_xml=>factory(
         t_ns = VALUE #( ( n = `xmlns:form` v = `sap.ui.layout.form` ) )
       )->_( n = `Page` a = `title` v = `Test`
       )->_( n  = `SimpleForm`
@@ -256,7 +256,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_preferred_param.
 
-    DATA(lv_xml) = z2ui5_cl_xml_view_generic=>factory(
+    DATA(lv_xml) = z2ui5_cl_util_xml=>factory(
       )->_( `Shell`
       )->_( `Page`
       )->__( `Button`
@@ -270,7 +270,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_shortcut_av.
 
-    DATA(lv_xml) = z2ui5_cl_xml_view_generic=>factory(
+    DATA(lv_xml) = z2ui5_cl_util_xml=>factory(
       )->_( `Shell`
       )->__( n = `Button` a = `text` v = `OK`
       )->stringify( ).
@@ -282,7 +282,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_stringify_subnode.
 
-    DATA(lo_view) = z2ui5_cl_xml_view_generic=>factory( ).
+    DATA(lo_view) = z2ui5_cl_util_xml=>factory( ).
     DATA(lo_page) = lo_view->_( n = `Page` a = `title` v = `Test` ).
     lo_page->__( n = `Button` a = `text` v = `Click` ).
 
@@ -298,7 +298,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_p.
 
-    DATA(lo_view) = z2ui5_cl_xml_view_generic=>factory( ).
+    DATA(lo_view) = z2ui5_cl_util_xml=>factory( ).
     DATA(lo_btn)  = lo_view->_( `Page`
       )->_( n = `Button` a = `text` v = `OK` ).
 
@@ -315,7 +315,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_if_true.
 
-    DATA(lv_xml) = z2ui5_cl_xml_view_generic=>factory(
+    DATA(lv_xml) = z2ui5_cl_util_xml=>factory(
       )->_( `Page`
       )->_if( when = abap_true
               n    = `Panel`
@@ -332,7 +332,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_if_false.
 
-    DATA(lv_xml) = z2ui5_cl_xml_view_generic=>factory(
+    DATA(lv_xml) = z2ui5_cl_util_xml=>factory(
       )->_( `Page`
       )->_if( when = abap_false
               n    = `Panel`
@@ -348,7 +348,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_leaf_if_true.
 
-    DATA(lv_xml) = z2ui5_cl_xml_view_generic=>factory(
+    DATA(lv_xml) = z2ui5_cl_util_xml=>factory(
       )->_( `Page`
       )->__if( when = abap_true
                n    = `Button`
@@ -362,7 +362,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_leaf_if_false.
 
-    DATA(lv_xml) = z2ui5_cl_xml_view_generic=>factory(
+    DATA(lv_xml) = z2ui5_cl_util_xml=>factory(
       )->_( `Page`
       )->__if( when = abap_false
                n    = `Button`
