@@ -5,18 +5,6 @@ CLASS z2ui5_cl_util_xml DEFINITION
   PUBLIC SECTION.
 
     CLASS-METHODS factory
-      IMPORTING
-        t_ns          TYPE z2ui5_cl_util=>ty_t_name_value OPTIONAL
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
-
-    CLASS-METHODS factory_popup
-      IMPORTING
-        t_ns          TYPE z2ui5_cl_util=>ty_t_name_value OPTIONAL
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
-
-    CLASS-METHODS factory_plain
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
 
@@ -120,52 +108,6 @@ CLASS z2ui5_cl_util_xml IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD factory.
-
-    result = NEW #( ).
-
-    IF t_ns IS NOT INITIAL.
-      result->mt_prop = t_ns.
-    ENDIF.
-
-    result->mt_prop   = VALUE #( BASE result->mt_prop
-                                 (  n = `displayBlock`   v = `true` )
-                                 (  n = `height`         v = `100%` ) ).
-
-    result->mv_name   = `View`.
-    result->mv_ns     = `mvc`.
-    result->mo_root   = result.
-    result->mo_parent = result.
-
-    INSERT VALUE #( n = `xmlns`
-                    v = `sap.m` ) INTO TABLE result->mt_prop.
-    INSERT VALUE #( n = `xmlns:mvc`
-                    v = `sap.ui.core.mvc` ) INTO TABLE result->mt_prop.
-    INSERT VALUE #( n = `xmlns:core`
-                    v = `sap.ui.core` ) INTO TABLE result->mt_prop.
-
-  ENDMETHOD.
-
-  METHOD factory_popup.
-
-    result = NEW #( ).
-
-    IF t_ns IS NOT INITIAL.
-      result->mt_prop = t_ns.
-    ENDIF.
-
-    result->mv_name   = `FragmentDefinition`.
-    result->mv_ns     = `core`.
-    result->mo_root   = result.
-    result->mo_parent = result.
-
-    INSERT VALUE #( n = `xmlns`
-                    v = `sap.m` ) INTO TABLE result->mt_prop.
-    INSERT VALUE #( n = `xmlns:core`
-                    v = `sap.ui.core` ) INTO TABLE result->mt_prop.
-
-  ENDMETHOD.
-
-  METHOD factory_plain.
 
     result = NEW #( ).
 
@@ -279,6 +221,13 @@ CLASS z2ui5_cl_util_xml IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD xml_get_parts.
+
+    IF mv_name IS INITIAL.
+      LOOP AT mt_child INTO DATA(lr_root).
+        CAST z2ui5_cl_util_xml( lr_root )->xml_get_parts( CHANGING ct_parts = ct_parts ).
+      ENDLOOP.
+      RETURN.
+    ENDIF.
 
     DATA(lv_tmp2) = COND #( WHEN mv_ns <> `` THEN |{ mv_ns }:| ).
     DATA(lv_tmp3) = REDUCE string( INIT val = `` FOR row IN mt_prop WHERE ( v <> `` ) "#EC CI_SORTSEQ
