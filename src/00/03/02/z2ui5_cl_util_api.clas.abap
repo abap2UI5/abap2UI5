@@ -334,6 +334,9 @@ CLASS z2ui5_cl_util_api DEFINITION
 
   PRIVATE SECTION.
 
+    CLASS-DATA gv_check_cloud TYPE abap_bool.
+    CLASS-DATA gv_check_cloud_cached TYPE abap_bool.
+
 ENDCLASS.
 
 
@@ -351,12 +354,19 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   METHOD context_check_abap_cloud.
 
+    IF gv_check_cloud_cached = abap_true.
+      result = gv_check_cloud.
+      RETURN.
+    ENDIF.
+
     TRY.
         cl_abap_typedescr=>describe_by_name( `T100` ).
-        result = abap_false.
+        gv_check_cloud = abap_false.
       CATCH cx_root.
-        result = abap_true.
+        gv_check_cloud = abap_true.
     ENDTRY.
+    gv_check_cloud_cached = abap_true.
+    result = gv_check_cloud.
 
   ENDMETHOD.
 

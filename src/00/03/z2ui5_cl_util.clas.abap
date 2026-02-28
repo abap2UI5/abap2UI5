@@ -967,21 +967,24 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   METHOD itab_get_csv_by_itab.
 
     FIELD-SYMBOLS <tab> TYPE table.
+    DATA lt_lines TYPE string_table.
+    DATA lv_line TYPE string.
 
     ASSIGN val TO <tab>.
     DATA(tab) = CAST cl_abap_tabledescr( cl_abap_typedescr=>describe_by_data( <tab> ) ).
 
     DATA(struc) = CAST cl_abap_structdescr( tab->get_table_line_type( ) ).
 
+    CLEAR lv_line.
     LOOP AT struc->get_components( ) REFERENCE INTO DATA(lr_comp).
-      result = |{ result }{ lr_comp->name };|.
+      lv_line = |{ lv_line }{ lr_comp->name };|.
     ENDLOOP.
-
-    result = result && cl_abap_char_utilities=>cr_lf.
+    INSERT lv_line INTO TABLE lt_lines.
 
     DATA lr_row TYPE REF TO data.
     LOOP AT <tab> REFERENCE INTO lr_row.
 
+      CLEAR lv_line.
       DATA(lv_index) = 1.
       DO.
         ASSIGN lr_row->* TO FIELD-SYMBOL(<row>).
@@ -990,10 +993,12 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
           EXIT.
         ENDIF.
         lv_index = lv_index + 1.
-        result = |{ result }{ <field> };|.
+        lv_line = |{ lv_line }{ <field> };|.
       ENDDO.
-      result = result && cl_abap_char_utilities=>cr_lf.
+      INSERT lv_line INTO TABLE lt_lines.
     ENDLOOP.
+
+    result = concat_lines_of( table = lt_lines sep = cl_abap_char_utilities=>cr_lf ).
 
   ENDMETHOD.
 

@@ -567,10 +567,13 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
   METHOD attri_update_entry_refs.
 
     TYPES: BEGIN OF ty_s_ref_cache,
-             name TYPE string,
-             ref  TYPE REF TO data,
+             name      TYPE string,
+             ref       TYPE REF TO data,
+             type_kind TYPE string,
            END OF ty_s_ref_cache.
     DATA lt_ref_cache TYPE SORTED TABLE OF ty_s_ref_cache WITH UNIQUE KEY name.
+    DATA lt_tables TYPE STANDARD TABLE OF ty_s_ref_cache WITH EMPTY KEY.
+    DATA lt_structs TYPE STANDARD TABLE OF ty_s_ref_cache WITH EMPTY KEY.
 
     TYPES: BEGIN OF ty_s_child_entry,
              name_parent TYPE string,
@@ -582,8 +585,16 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
          WHERE check_dissolved = abap_true
                AND name_ref IS INITIAL.
       TRY.
-          INSERT VALUE #( name = lr_pre->name
-                          ref  = attri_get_val_ref( lr_pre->name ) ) INTO TABLE lt_ref_cache.
+          DATA(ls_entry) = VALUE ty_s_ref_cache( name      = lr_pre->name
+                                                 ref       = attri_get_val_ref( lr_pre->name )
+                                                 type_kind = lr_pre->type_kind ).
+          INSERT ls_entry INTO TABLE lt_ref_cache.
+          CASE lr_pre->type_kind.
+            WHEN cl_abap_typedescr=>typekind_table.
+              INSERT ls_entry INTO TABLE lt_tables.
+            WHEN cl_abap_typedescr=>typekind_struct1 OR cl_abap_typedescr=>typekind_struct2.
+              INSERT ls_entry INTO TABLE lt_structs.
+          ENDCASE.
         CATCH cx_root ##NO_HANDLER.
       ENDTRY.
     ENDLOOP.
@@ -608,49 +619,32 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
         WHEN cl_abap_typedescr=>typekind_table.
 
-          LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_ref) "#EC CI_SORTSEQ
-               WHERE check_dissolved  = abap_true
-                     AND name            <> lr_attri->name
-                     AND name_ref        IS INITIAL
-                     AND type_kind        = cl_abap_typedescr=>typekind_table.
+          LOOP AT lt_tables REFERENCE INTO DATA(lr_tbl_entry)
+               WHERE name <> lr_attri->name.
 
-            READ TABLE lt_ref_cache REFERENCE INTO DATA(lr_cache_inner) WITH KEY name = lr_attri_ref->name.
-            IF sy-subrc <> 0.
+            IF lr_ref <> lr_tbl_entry->ref.
               CONTINUE.
             ENDIF.
 
-            IF lr_ref <> lr_cache_inner->ref.
-              CONTINUE.
-            ENDIF.
-
-            lr_attri->name_ref = lr_attri_ref->name.
+            lr_attri->name_ref = lr_tbl_entry->name.
           ENDLOOP.
 
         WHEN cl_abap_typedescr=>typekind_dref.
 
           ASSIGN lr_ref->* TO FIELD-SYMBOL(<ref>).
 
-          LOOP AT mt_attri->* REFERENCE INTO lr_attri_ref "#EC CI_SORTSEQ
-               WHERE check_dissolved  = abap_true
-                     AND name            <> lr_attri->name
-                     AND name_ref        IS INITIAL
-                     AND (    type_kind = cl_abap_typedescr=>typekind_struct1
-                           OR type_kind = cl_abap_typedescr=>typekind_struct2 ).
+          LOOP AT lt_structs REFERENCE INTO DATA(lr_struct_entry)
+               WHERE name <> lr_attri->name.
 
-            READ TABLE lt_ref_cache REFERENCE INTO lr_cache_inner WITH KEY name = lr_attri_ref->name.
-            IF sy-subrc <> 0.
+            IF <ref> <> lr_struct_entry->ref.
               CONTINUE.
             ENDIF.
 
-            IF <ref> <> lr_cache_inner->ref.
+            IF lr_attri->name_ref IS NOT INITIAL AND strlen( lr_attri->name_ref ) <= lr_struct_entry->name.
               CONTINUE.
             ENDIF.
 
-            IF lr_attri->name_ref IS NOT INITIAL AND strlen( lr_attri->name_ref ) <= lr_attri_ref->name.
-              CONTINUE.
-            ENDIF.
-
-            lr_attri->name_ref = lr_attri_ref->name.
+            lr_attri->name_ref = lr_struct_entry->name.
 
             DATA(lv_parent_prefix) = |{ lr_attri->name }->|.
 

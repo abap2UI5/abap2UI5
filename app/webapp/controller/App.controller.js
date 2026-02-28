@@ -403,7 +403,7 @@ sap.ui.define("z2ui5/Info", ["sap/ui/core/Control", "sap/ui/VersionInfo", "sap/u
     onAfterRendering() {
     },
 
-    async renderer(_, oControl) {
+    renderer(_, oControl) {
 
       let oDevice = z2ui5.oView.getModel("device").oData;
       oControl.setProperty("ui5_version", z2ui5.oConfig.UI5VersionInfo.version);
@@ -450,11 +450,11 @@ sap.ui.define("z2ui5/Geolocation", ["sap/ui/core/Control"], (Control) => {
         },
         speed: {
           type: "string",
-          defaultValue: false
+          defaultValue: ""
         },
         heading: {
           type: "string",
-          defaultValue: false
+          defaultValue: ""
         },
         enableHighAccuracy: {
           type: "boolean",
@@ -556,7 +556,7 @@ sap.ui.define("z2ui5/Storage", ["sap/ui/core/Control", "sap/ui/util/Storage"], (
       }
     },
 
-    async renderer(_, oControl) {
+    renderer(_, oControl) {
       let storageType = oControl.getProperty("type");
       let storageKeyPrefix = oControl.getProperty("prefix");
       let storageKey  = oControl.getProperty("key");
