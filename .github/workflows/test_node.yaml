@@ -1,0 +1,41 @@
+name: test_node
+
+on:
+  pull_request:
+
+concurrency:
+  group: test_node-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test_node:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    - run: npm ci
+    - run: npm run auto_downport
+    - run: npm run auto_transpile
+    - run: npm run express &
+    - name: Wait for server and check for errors
+      run: |
+        for i in $(seq 1 30); do
+          if curl -s http://localhost:3000 > /dev/null 2>&1; then
+            break
+          fi
+          sleep 1
+        done
+        RESPONSE=$(curl -s http://localhost:3000)
+        if echo "$RESPONSE" | grep -qi "Error"; then
+          echo "::error::Error detected in server response"
+          echo "$RESPONSE"
+          exit 1
+        fi
+        echo "Server started successfully, no errors detected."

@@ -1,0 +1,25 @@
+name: auto_transpile
+
+on:
+  pull_request:
+
+concurrency:
+  group: auto_transpile-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  auto_transpile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    - run: npm ci
+    - run: npm run auto_downport
+    - run: npm run auto_transpile

@@ -1,0 +1,26 @@
+name: test_unit
+
+on:
+  pull_request:
+
+concurrency:
+  group: test_unit-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test_unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    - run: npm ci
+    - run: npm run auto_downport
+    - run: npm run auto_transpile
+    - run: npm run unit

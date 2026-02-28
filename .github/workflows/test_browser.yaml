@@ -1,0 +1,25 @@
+name: test_browser
+
+on:
+  pull_request:
+
+concurrency:
+  group: test_browser-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test_browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    - run: npm ci
+    - name: Run JS unit tests
+      run: cd node && npx playwright test buildDeltaFromPaths.spec.js --config=playwright-unit.config.js
