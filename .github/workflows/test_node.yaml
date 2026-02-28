@@ -24,18 +24,28 @@ jobs:
     - run: npm run auto_downport
     - run: npm run auto_transpile
     - run: npm run express &
-    - name: Wait for server and check for errors
+    - name: Wait for server and verify response
       run: |
         for i in $(seq 1 30); do
-          if curl -s http://localhost:3000 > /dev/null 2>&1; then
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 2>/dev/null) || true
+          if [ "$HTTP_CODE" != "000" ]; then
             break
           fi
           sleep 1
         done
-        RESPONSE=$(curl -s http://localhost:3000)
-        if echo "$RESPONSE" | grep -qi "Error"; then
-          echo "::error::Error detected in server response"
-          echo "$RESPONSE"
+        if [ "$HTTP_CODE" = "000" ]; then
+          echo "::error::Server did not start within 30 seconds"
           exit 1
         fi
-        echo "Server started successfully, no errors detected."
+        if [ "$HTTP_CODE" != "200" ]; then
+          echo "::error::Server returned HTTP $HTTP_CODE"
+          curl -s http://localhost:3000
+          exit 1
+        fi
+        BODY_LENGTH=$(curl -s http://localhost:3000 | wc -c)
+        if [ "$BODY_LENGTH" -lt 1000 ]; then
+          echo "::error::Response body too small ($BODY_LENGTH bytes), likely an error page"
+          curl -s http://localhost:3000
+          exit 1
+        fi
+        echo "Server started successfully (HTTP $HTTP_CODE, $BODY_LENGTH bytes)"

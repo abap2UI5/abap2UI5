@@ -12,7 +12,8 @@ app.use(express.raw({type: "*/*"}));
 
 // ------------------
 
-app.all(["/", "/*"], async function (req, res) {
+app.all(["/", "/{*path}"], async function (req, res) {
+  if (!req.body) { req.body = Buffer.alloc(0); }
   await cl_express_icf_shim.run({req, res, class: "ZCL_SICF"});
 });
 
