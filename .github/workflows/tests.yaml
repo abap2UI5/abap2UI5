@@ -1,0 +1,92 @@
+name: tests
+
+on:
+  pull_request:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    - run: npm ci
+    - run: npm run auto_downport
+    - run: npm run auto_transpile
+    - uses: actions/upload-artifact@v4
+      with:
+        name: build-output
+        path: node/output/
+        retention-days: 1
+
+  test_unit:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    - run: npm ci
+    - uses: actions/download-artifact@v4
+      with:
+        name: build-output
+        path: node/output/
+    - run: npm run unit
+
+  test_node:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    - run: npm ci
+    - uses: actions/download-artifact@v4
+      with:
+        name: build-output
+        path: node/output/
+    - run: npm run express &
+    - name: Wait for server and check for errors
+      run: |
+        for i in $(seq 1 30); do
+          if curl -s http://localhost:3000 > /dev/null 2>&1; then
+            break
+          fi
+          sleep 1
+        done
+        RESPONSE=$(curl -s http://localhost:3000)
+        if echo "$RESPONSE" | grep -qi "Error"; then
+          echo "::error::Error detected in server response"
+          echo "$RESPONSE"
+          exit 1
+        fi
+        echo "Server started successfully, no errors detected."
+
+  test_js_unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    - run: npm ci
+    - name: Run JS unit tests
+      run: cd node && npx playwright test buildDeltaFromPaths.spec.js --config=playwright-unit.config.js

@@ -3,6 +3,10 @@ name: check_app
 on:
   pull_request:
 
+concurrency:
+  group: check_app-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check_app:
     runs-on: ubuntu-latest
