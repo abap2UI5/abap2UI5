@@ -425,7 +425,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    onAfterRendering() {` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             `    async renderer(_, oControl) {` && |\n| &&
+             `    renderer(_, oControl) {` && |\n| &&
              `` && |\n| &&
              `      let oDevice = z2ui5.oView.getModel("device").oData;` && |\n| &&
              `      oControl.setProperty("ui5_version", z2ui5.oConfig.UI5VersionInfo.version);` && |\n| &&
@@ -472,11 +472,11 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        },` && |\n| &&
              `        speed: {` && |\n| &&
              `          type: "string",` && |\n| &&
-             `          defaultValue: false` && |\n| &&
+             `          defaultValue: ""` && |\n| &&
              `        },` && |\n| &&
              `        heading: {` && |\n| &&
              `          type: "string",` && |\n| &&
-             `          defaultValue: false` && |\n| &&
+             `          defaultValue: ""` && |\n| &&
              `        },` && |\n| &&
              `        enableHighAccuracy: {` && |\n| &&
              `          type: "boolean",` && |\n| &&
@@ -578,7 +578,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             `    async renderer(_, oControl) {` && |\n| &&
+             `    renderer(_, oControl) {` && |\n| &&
              `      let storageType = oControl.getProperty("type");` && |\n| &&
              `      let storageKeyPrefix = oControl.getProperty("prefix");` && |\n| &&
              `      let storageKey  = oControl.getProperty("key");` && |\n| &&
