@@ -22,6 +22,8 @@ abap2UI5/
 │   │       ├── z2ui5_cl_util_log.clas.abap  # Logging
 │   │       ├── z2ui5_cl_util_msg.clas.abap  # Messaging
 │   │       ├── z2ui5_cl_util_range.clas.abap # Range utilities
+│   │       ├── z2ui5_cl_util_xml.clas.abap  # Generic XML builder with fluent API
+│   │       ├── z2ui5_cl_util_json_fltr.clas.abap # AJSON filter (remove empty values)
 │   │       ├── z2ui5_cx_util_error.clas.abap # Error exception class
 │   │       ├── 01/                 #   DB & extension utils (z2ui5_cl_util_db, z2ui5_cl_util_ext)
 │   │       └── 02/                 #   API utils (z2ui5_cl_util_api, _api_c, _api_s)
@@ -161,12 +163,13 @@ The client interface provides these method groups:
 | Popovers | `popover_display`, `popover_destroy`, `popover_model_update` | Context popovers |
 | Data binding | `_bind(val)`, `_bind_edit(val)` | Read-only and two-way binding |
 | Events | `_event(val)`, `_event_client(val)`, `check_on_event(val)` | Event registration and checking |
-| Navigation | `nav_app_call(app)`, `nav_app_leave()`, `get_app_prev()` | App stack navigation |
+| Navigation | `nav_app_call(app)`, `nav_app_leave()`, `_event_nav_app_leave()`, `get_app_prev()` | App stack navigation |
 | Lifecycle | `check_on_init()`, `check_on_navigated()`, `check_app_prev_stack()` | State checks |
 | Messages | `message_box_display(text)`, `message_toast_display(text)` | User notifications |
 | Session | `set_session_stateful(val)`, `set_app_state_active(val)` | Session management |
 | Browser | `set_push_state(val)`, `set_nav_back(val)`, `follow_up_action(val)` | Browser interaction |
 | Info | `get()`, `get_event_arg()`, `get_app(id)` | Request/context data |
+| Constants | `cs_event`, `cs_view` | Predefined event IDs and view names |
 
 ### Built-in Popup Apps (`src/02/01/`)
 
@@ -291,7 +294,7 @@ npm run unit                          # Run unit tests
 ## Testing
 
 ### ABAP Unit Tests
-Test classes are embedded alongside source files with the `.testclasses.abap` suffix (about 42 files across all layers). They run via the abaplint transpiler in Node.js.
+Test classes are embedded alongside source files with the `.testclasses.abap` suffix (about 43 files across all layers). They run via the abaplint transpiler in Node.js.
 
 ### Browser Tests
 Playwright tests live in `node/tests/`. They test the full UI5 app in Chromium, Firefox, and WebKit against the Express dev server at `http://localhost:3000`.
@@ -321,6 +324,9 @@ Playwright tests live in `node/tests/`. They test the full UI5 app in Chromium, 
 | `src/01/01/z2ui5_cl_core_srv_draft.clas.abap` | Draft/session persistence |
 | `src/00/01/z2ui5_cl_ajson.clas.abap` | JSON handling (mirrored from external project) |
 | `src/00/03/z2ui5_cl_util.clas.abap` | General utility class |
+| `src/00/03/z2ui5_cl_util_xml.clas.abap` | Generic XML builder with fluent API (`_()`, `__()`, `p()`, `stringify()`) |
+| `src/00/03/z2ui5_cl_util_log.clas.abap` | Fluent logging (info/error/warning/success, BAL, CSV/XLSX export) |
+| `src/00/03/z2ui5_cl_util_range.clas.abap` | Range builder with static shortcuts (eq, ne, bt, cp, gt, ge, lt, le) |
 | `abaplint.jsonc` | Linter rules — source of truth for code standards |
 
 ## Commit Message Style
@@ -328,15 +334,15 @@ Playwright tests live in `node/tests/`. They test the full UI5 app in Chromium, 
 The project uses a concise style with capitalized or lowercase first word. Examples from recent history:
 
 ```
+Code quality improvements: strict mode, comparison operators, and error handling (#2137)
+Add generic XML builder utility class with fluent API (#2136)
+perf: add in-memory buffer cache for db_load in z2ui5_cl_core_app (#2134)
 Refactor code for improved readability and maintainability (#2130)
 add unit tests (#2129)
-improve code clarity (#2127)
 fix downport+unit test (#2128)
 Add comprehensive unit tests for utility and UI5 classes (#2126)
 Refactor: Extract methods and optimize service initialization (#2125)
 Refactor frontend for improved maintainability (#2124)
-fix ushell error in console (#2120)
-perf: optimize table lookups in z2ui5_cl_core_srv_model (#2110)
 ```
 
 When following conventional commits: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`, `perf:`.
@@ -366,3 +372,7 @@ When following conventional commits: `feat:`, `fix:`, `docs:`, `refactor:`, `tes
 11. **The `z2ui5_cl_xml_view` class has a `method_overwrites_builtin` exception** in abaplint because many of its fluent methods intentionally match UI5 control names that may collide with ABAP built-in names.
 
 12. **The `forbidden_void_type` rule blocks many SAP standard types.** If you need types like `flag`, `int4`, `char10`, `abap_boolean`, `stringtab`, etc., use ABAP built-in equivalents instead (e.g., `abap_bool`, `i`, `string`).
+
+13. **`z2ui5_cl_util_xml` provides a generic XML builder** with a minimalistic fluent API (`_()` for container nodes, `__()` for leaf nodes, `p()` for properties). Use it for building arbitrary XML structures outside of UI5 views. It is distinct from `z2ui5_cl_xml_view`, which is specifically for UI5 XML views.
+
+14. **The `z2ui5_if_client` interface defines useful constants.** `cs_event` contains predefined client-side event IDs (e.g., `popup_close`, `download_b64_file`, `location_reload`, `cross_app_nav_to_ext`). `cs_view` contains view type identifiers (`main`, `nested`, `nested2`, `popup`, `popover`).
