@@ -11,8 +11,11 @@ CLASS lcl_empty_filter IMPLEMENTATION.
   METHOD z2ui5_if_ajson_filter~keep_node.
 
     rv_keep = boolc(
-      ( iv_visit = z2ui5_if_ajson_filter=>visit_type-value AND is_node-value IS NOT INITIAL ) OR
-      ( iv_visit <> z2ui5_if_ajson_filter=>visit_type-value AND is_node-children > 0 ) ).
+      ( iv_visit = z2ui5_if_ajson_filter=>visit_type-value AND
+        is_node-type <> z2ui5_if_ajson_types=>node_type-number AND is_node-value IS NOT INITIAL ) OR " string & bool & null
+      ( iv_visit = z2ui5_if_ajson_filter=>visit_type-value AND
+        is_node-type = z2ui5_if_ajson_types=>node_type-number AND is_node-value <> '0' ) OR " num
+      ( iv_visit <> z2ui5_if_ajson_filter=>visit_type-value AND is_node-children > 0 ) ). " array & object
     " children = 0 on open for initially empty nodes and on close for filtered ones
 
   ENDMETHOD.
