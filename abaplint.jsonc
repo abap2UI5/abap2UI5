@@ -138,6 +138,7 @@
       "ignoreGlobalClassDefinition": false,
       "ignoreGlobalInterface": false
     },
+    "fm_global_parameters_obsolete": true,
     "form_tables_obsolete": true,
     "fully_type_constants": {
       "checkData": true
@@ -151,9 +152,11 @@
     "identical_contents": true,
     "identical_descriptions": true,
     "identical_form_names": true,
+    "identical_move": true,
     "if_in_if": true,
     "implement_methods": true,
     "in_statement_indentation": false,
+    "index_completely_contained": true,
     "indentation": false,
     "inline_data_old_versions": true,
     "intf_referencing_clas": false,
@@ -200,6 +203,7 @@
     "newline_between_methods": true,
     "no_aliases": true,
     "no_chained_assignment": true,
+    "no_comments_between_methods": true,
     "no_external_form_calls": true,
     "no_inline_in_optional_branches": false,
     "no_public_attributes": false,
@@ -235,6 +239,7 @@
     "omit_preceding_zeros": true,
     "omit_receiving": true,
     "parser_702_chaining": true,
+    "parser_bad_exceptions": true,
     "parser_error": true,
     "parser_missing_space": true,
     "pragma_style": true,
