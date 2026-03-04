@@ -84,8 +84,17 @@
     "commented_code": false,
     "constant_classes": true,
     "constructor_visibility_public": true,
-    "contains_tab": false,
-    "cyclic_oo": false,
+    "contains_tab": true,
+    "cyclic_oo": {
+      "skip": [
+        "Z2UI5_CL_CORE_ACTION",
+        "Z2UI5_CL_CORE_HANDLER",
+        "Z2UI5_CL_XML_VIEW",
+        "Z2UI5_CL_XML_VIEW_CC",
+        "Z2UI5_IF_APP",
+        "Z2UI5_IF_CLIENT"
+      ]
+    },
     "cyclomatic_complexity": {
       "exclude": [],
       "severity": "Error",
@@ -159,7 +168,11 @@
     "index_completely_contained": true,
     "indentation": false,
     "inline_data_old_versions": true,
-    "intf_referencing_clas": false,
+    "intf_referencing_clas": {
+      "allow": [
+        "^cl_abap_"
+      ]
+    },
     "keep_single_parameter_on_one_line": false,
     "keyword_case": false,
     "line_break_multiple_parameters": false,
@@ -190,7 +203,7 @@
       "severity": "Error"
     },
     "method_parameter_names": false,
-    "mix_returning": false,
+    "mix_returning": true,
     "modify_only_own_db_tables": {
       "reportDynamic": true,
       "ownTables": "^[yz]"
@@ -262,7 +275,7 @@
       "ignoreWorkflow": false
     },
     "rfc_error_handling": true,
-    "select_add_order_by": false,
+    "select_add_order_by": true,
     "select_performance": true,
     "selection_screen_naming": true,
     "sequential_blank": {
@@ -310,7 +323,7 @@
     "use_line_exists": true,
     "use_new": true,
     "when_others_last": true,
-    "whitespace_end": false,
+    "whitespace_end": true,
     "xml_consistency": true,
     "forbidden_void_type": {
       "check": [
