@@ -256,7 +256,7 @@ CLASS z2ui5_cl_util_ext DEFINITION
 
     TYPES:
       BEGIN OF ty_ddshtextsearch_field,
-        fieldname TYPE c LENGTH 30, " Name of a searchable field (frei gewählt, da nicht spezifiziert)
+        fieldname TYPE c LENGTH 30, " Name of a searchable field (freely chosen, not specified by SAP)
       END OF ty_ddshtextsearch_field.
 
     TYPES tt_ddshtextsearch_fields TYPE STANDARD TABLE OF ty_ddshtextsearch_field WITH DEFAULT KEY.

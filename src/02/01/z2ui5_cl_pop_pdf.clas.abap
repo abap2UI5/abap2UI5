@@ -29,13 +29,11 @@ CLASS z2ui5_cl_pop_pdf DEFINITION
         VALUE(result) TYPE ty_s_result.
 
   PROTECTED SECTION.
-    DATA client                 TYPE REF TO z2ui5_if_client.
-    DATA title                  TYPE string.
-    DATA icon                   TYPE string.
-    DATA question_text          TYPE string.
-    DATA button_text_confirm    TYPE string.
-    DATA button_text_cancel     TYPE string.
-    DATA check_result_confirmed TYPE abap_bool.
+    DATA client              TYPE REF TO z2ui5_if_client.
+    DATA title               TYPE string.
+    DATA question_text       TYPE string.
+    DATA button_text_confirm TYPE string.
+    DATA button_text_cancel  TYPE string.
 
     METHODS view_display.
 
@@ -64,7 +62,6 @@ CLASS z2ui5_cl_pop_pdf IMPLEMENTATION.
   METHOD view_display.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
-                                                               icon       = icon
                                                                stretch    = abap_true
                                                                afterclose = client->_event( `BUTTON_CANCEL` )
               )->content(
@@ -100,11 +97,11 @@ CLASS z2ui5_cl_pop_pdf IMPLEMENTATION.
     CASE client->get( )-event.
 
       WHEN `BUTTON_CONFIRM`.
-        check_result_confirmed = abap_true.
+        ms_result-check_confirmed = abap_true.
         client->popup_destroy( ).
         client->nav_app_leave( ).
       WHEN `BUTTON_CANCEL`.
-        check_result_confirmed = abap_false.
+        ms_result-check_confirmed = abap_false.
         client->popup_destroy( ).
         client->nav_app_leave( ).
     ENDCASE.

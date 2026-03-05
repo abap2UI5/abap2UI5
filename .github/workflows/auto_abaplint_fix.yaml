@@ -8,6 +8,7 @@ on:
 jobs:
   auto_abaplint_fix:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -23,7 +24,7 @@ jobs:
           npm run auto_abaplint
 
       - name: Open PR
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v7
         with:
           title: abaplint-auto-fixes-formatting
           branch: abaplint-auto-fixes-formatting

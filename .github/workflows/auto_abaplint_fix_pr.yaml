@@ -13,6 +13,7 @@ permissions:
 jobs:
   auto_abaplint_fix:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     if: github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - name: Checkout PR branch
