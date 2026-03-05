@@ -273,8 +273,9 @@ npm run unit                  # Unit tests
 
 ### Testing
 
-- **Unit tests:** Embedded in source files as `.testclasses.abap` (~43 files), run via abaplint transpiler in Node.js
+- **Unit tests:** Embedded in source files as `.testclasses.abap` (~44 files), run via abaplint transpiler in Node.js
 - **Browser tests:** Playwright in `node/tests/` — Chromium, Firefox, WebKit against localhost:3000
+- **Unit test metadata:** When a class has a `.testclasses.abap` file, its `.clas.xml` **must** contain `<WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>`. When a class has no test file, this flag **must not** be present. Mismatches cause `local_testclass_consistency` lint errors.
 
 ## Key Files
 
