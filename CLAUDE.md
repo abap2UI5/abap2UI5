@@ -9,6 +9,14 @@ abap2UI5 is a framework for building SAP UI5 applications purely in ABAP — no 
 **Homepage:** https://abap2UI5.org
 **Language:** English — all code, comments, commit messages, PRs, issues, documentation, and communication must be in English.
 
+### Related Repositories
+
+| Repository | Purpose |
+|---|---|
+| [abap2UI5](https://github.com/abap2UI5/abap2UI5) | Core framework (this repo) |
+| [abap2UI5-samples](https://github.com/abap2UI5/abap2UI5-samples) | Sample applications and usage examples |
+| [abap2UI5-documentation](https://github.com/abap2UI5/abap2UI5-documentation) | Project documentation |
+
 ## Repository Structure
 
 ```
