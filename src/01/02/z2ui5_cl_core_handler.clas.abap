@@ -17,6 +17,12 @@ CLASS z2ui5_cl_core_handler DEFINITION
       RETURNING
         VALUE(result) TYPE z2ui5_if_core_types=>ty_s_http_res.
 
+    METHODS request_json_to_abap
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_core_types=>ty_s_request.
+
   PROTECTED SECTION.
 
     METHODS main_begin.
@@ -26,12 +32,6 @@ CLASS z2ui5_cl_core_handler DEFINITION
         VALUE(check_go_client) TYPE abap_bool.
 
     METHODS main_end.
-
-    METHODS request_json_to_abap
-      IMPORTING
-        val           TYPE string
-      RETURNING
-        VALUE(result) TYPE z2ui5_if_core_types=>ty_s_request.
 
     METHODS response_abap_to_json
       IMPORTING
