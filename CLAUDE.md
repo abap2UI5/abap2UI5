@@ -348,6 +348,20 @@ Refactor frontend for improved maintainability (#2124)
 
 When following conventional commits: `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`, `perf:`.
 
+## Pull Request Requirements
+
+All pull requests must meet the following criteria before they can be merged:
+
+1. **abaplint must pass.** Run `npx abaplint` and ensure there are no errors. This is a mandatory CI check on every PR.
+2. **All CI test workflows must pass.** This includes unit tests (`test_unit`), node tests (`test_node`), browser tests (`test_browser`), and all compatibility checks (ABAP 7.02, ABAP Standard, ABAP Cloud, UI5). No PR will be merged with failing tests.
+3. **Validate locally before pushing.** Run the full validation sequence to catch issues early:
+   ```bash
+   npx abaplint                          # Lint check
+   npm run auto_downport                 # Downport for 7.02 compat
+   npm run auto_transpile                # Transpile ABAP → JS
+   npm run unit                          # Unit tests
+   ```
+
 ## Important Considerations for AI Assistants
 
 1. **Do not modify `src/00/`** unless explicitly asked. Layer 0 (AJSON, S-RTTI) is mirrored from external projects and synced by automated workflows.

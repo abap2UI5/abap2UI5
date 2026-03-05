@@ -84,7 +84,7 @@
     "commented_code": false,
     "constant_classes": true,
     "constructor_visibility_public": true,
-    "contains_tab": false,
+    "contains_tab": true,
     "cyclic_oo": false,
     "cyclomatic_complexity": {
       "exclude": [],
@@ -138,6 +138,7 @@
       "ignoreGlobalClassDefinition": false,
       "ignoreGlobalInterface": false
     },
+    "fm_global_parameters_obsolete": true,
     "form_tables_obsolete": true,
     "fully_type_constants": {
       "checkData": true
@@ -151,12 +152,18 @@
     "identical_contents": true,
     "identical_descriptions": true,
     "identical_form_names": true,
+    "identical_move": true,
     "if_in_if": true,
     "implement_methods": true,
     "in_statement_indentation": false,
+    "index_completely_contained": true,
     "indentation": false,
     "inline_data_old_versions": true,
-    "intf_referencing_clas": false,
+    "intf_referencing_clas": {
+      "allow": [
+        "^cl_abap_"
+      ]
+    },
     "keep_single_parameter_on_one_line": false,
     "keyword_case": false,
     "line_break_multiple_parameters": false,
@@ -187,7 +194,7 @@
       "severity": "Error"
     },
     "method_parameter_names": false,
-    "mix_returning": false,
+    "mix_returning": true,
     "modify_only_own_db_tables": {
       "reportDynamic": true,
       "ownTables": "^[yz]"
@@ -200,6 +207,7 @@
     "newline_between_methods": true,
     "no_aliases": true,
     "no_chained_assignment": true,
+    "no_comments_between_methods": true,
     "no_external_form_calls": true,
     "no_inline_in_optional_branches": false,
     "no_public_attributes": false,
@@ -235,6 +243,7 @@
     "omit_preceding_zeros": true,
     "omit_receiving": true,
     "parser_702_chaining": true,
+    "parser_bad_exceptions": true,
     "parser_error": true,
     "parser_missing_space": true,
     "pragma_style": true,
@@ -257,7 +266,7 @@
       "ignoreWorkflow": false
     },
     "rfc_error_handling": true,
-    "select_add_order_by": false,
+    "select_add_order_by": true,
     "select_performance": true,
     "selection_screen_naming": true,
     "sequential_blank": {
@@ -305,7 +314,7 @@
     "use_line_exists": true,
     "use_new": true,
     "when_others_last": true,
-    "whitespace_end": false,
+    "whitespace_end": true,
     "xml_consistency": true,
     "forbidden_void_type": {
       "check": [
