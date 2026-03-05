@@ -7,6 +7,7 @@ abap2UI5 is a framework for building SAP UI5 applications purely in ABAP — no 
 **Current version:** 1.142.0 (defined in `src/02/z2ui5_if_app.intf.abap`)
 **License:** MIT
 **Homepage:** https://abap2UI5.org
+**Language:** English — all code, comments, commit messages, PRs, issues, documentation, and communication must be in English.
 
 ## Repository Structure
 
