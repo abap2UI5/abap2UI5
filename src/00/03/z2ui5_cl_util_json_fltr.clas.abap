@@ -18,11 +18,15 @@ CLASS z2ui5_cl_util_json_fltr IMPLEMENTATION.
 
   METHOD create_no_empty_values.
 
-    result = NEW z2ui5_cl_util_json_fltr( ).
+    CREATE OBJECT result TYPE z2ui5_cl_util_json_fltr.
 
   ENDMETHOD.
 
   METHOD z2ui5_if_ajson_filter~keep_node.
+            DATA temp1 TYPE xsdboolean.
+            DATA temp2 TYPE xsdboolean.
+            DATA temp3 TYPE xsdboolean.
+        DATA temp4 TYPE xsdboolean.
 
     rv_keep = abap_true.
 
@@ -32,15 +36,23 @@ CLASS z2ui5_cl_util_json_fltr IMPLEMENTATION.
 
         CASE is_node-type.
           WHEN z2ui5_if_ajson_types=>node_type-boolean.
-            rv_keep = xsdbool( is_node-value <> `false` ).
+            
+            temp1 = boolc( is_node-value <> `false` ).
+            rv_keep = temp1.
           WHEN z2ui5_if_ajson_types=>node_type-number.
-            rv_keep = xsdbool( is_node-value <> `0` ).
+            
+            temp2 = boolc( is_node-value <> `0` ).
+            rv_keep = temp2.
           WHEN z2ui5_if_ajson_types=>node_type-string.
-            rv_keep = xsdbool( is_node-value <> `` ).
+            
+            temp3 = boolc( is_node-value <> `` ).
+            rv_keep = temp3.
         ENDCASE.
 
       WHEN z2ui5_if_ajson_filter=>visit_type-close.
-        rv_keep = xsdbool( is_node-children <> 0 ).
+        
+        temp4 = boolc( is_node-children <> 0 ).
+        rv_keep = temp4.
 
     ENDCASE.
 

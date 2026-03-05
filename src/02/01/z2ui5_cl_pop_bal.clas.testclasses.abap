@@ -9,9 +9,19 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory.
     DATA lt_msg TYPE z2ui5_cl_pop_bal=>ty_t_msg.
-    lt_msg = VALUE #( ( type = `E` title = `Error msg` message = `Something failed` ) ).
+    DATA temp1 TYPE z2ui5_cl_pop_bal=>ty_t_msg.
+    DATA temp2 LIKE LINE OF temp1.
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_bal.
+    CLEAR temp1.
+    
+    temp2-type = `E`.
+    temp2-title = `Error msg`.
+    temp2-message = `Something failed`.
+    INSERT temp2 INTO TABLE temp1.
+    lt_msg = temp1.
 
-    DATA(lo_pop) = z2ui5_cl_pop_bal=>factory( lt_msg ).
+    
+    lo_pop = z2ui5_cl_pop_bal=>factory( lt_msg ).
 
     cl_abap_unit_assert=>assert_bound( lo_pop ).
   ENDMETHOD.

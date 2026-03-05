@@ -323,6 +323,7 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
     DATA lv_normalized_path TYPE string.
     DATA lr_node TYPE REF TO z2ui5_if_ajson_types=>ty_node.
     FIELD-SYMBOLS <item> LIKE LINE OF mt_json_tree.
+          DATA lv_tmp TYPE string.
 
     lv_normalized_path = lcl_utils=>normalize_path( iv_path ).
     lr_node = get_item( iv_path ).
@@ -341,7 +342,7 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
         WHEN z2ui5_if_ajson_types=>node_type-null.
           APPEND '' TO rt_string_table.
         WHEN z2ui5_if_ajson_types=>node_type-boolean.
-          DATA lv_tmp TYPE string.
+          
           IF <item>-value = 'true'.
             lv_tmp = abap_true.
           ELSE.
@@ -371,10 +372,11 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
 
 
   METHOD z2ui5_if_ajson~delete.
+    DATA ls_split_path TYPE z2ui5_if_ajson_types=>ty_path_name.
 
     read_only_watchdog( ).
 
-    DATA ls_split_path TYPE z2ui5_if_ajson_types=>ty_path_name.
+    
     ls_split_path = lcl_utils=>split_path( iv_path ).
 
     delete_subtree(
@@ -583,6 +585,9 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
 
     DATA lr_parent TYPE REF TO z2ui5_if_ajson_types=>ty_node.
     DATA lr_new_node TYPE REF TO z2ui5_if_ajson_types=>ty_node.
+    DATA lt_new_nodes TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
+    DATA ls_new_path TYPE z2ui5_if_ajson_types=>ty_path_name.
+    DATA lv_new_index TYPE i.
 
     read_only_watchdog( ).
 
@@ -596,9 +601,9 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
       z2ui5_cx_ajson_error=>raise( |Path [{ iv_path }] is not array| ).
     ENDIF.
 
-    DATA lt_new_nodes TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
-    DATA ls_new_path TYPE z2ui5_if_ajson_types=>ty_path_name.
-    DATA lv_new_index TYPE i.
+    
+    
+    
 
     lv_new_index     = lr_parent->children + 1.
     ls_new_path-path = lcl_utils=>normalize_path( iv_path ).
@@ -627,6 +632,8 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
     DATA lr_parent TYPE REF TO z2ui5_if_ajson_types=>ty_node.
     DATA ls_deleted_node TYPE z2ui5_if_ajson_types=>ty_node.
     DATA lv_item_order TYPE z2ui5_if_ajson_types=>ty_node-order.
+    DATA lt_new_nodes TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
+    DATA lv_array_index TYPE i.
 
     read_only_watchdog( ).
 
@@ -673,8 +680,8 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
     lv_item_order = ls_deleted_node-order.
 
     " convert to json
-    DATA lt_new_nodes TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
-    DATA lv_array_index TYPE i.
+    
+    
 
     IF lr_parent->type = z2ui5_if_ajson_types=>node_type-array.
       lv_array_index = lcl_utils=>validate_array_index(
@@ -786,10 +793,11 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
 
 
   METHOD z2ui5_if_ajson~set_boolean.
+    DATA lv_bool TYPE abap_bool.
 
     ri_json = me.
 
-    DATA lv_bool TYPE abap_bool.
+    
     lv_bool = boolc( iv_val IS NOT INITIAL ).
     z2ui5_if_ajson~set(
       iv_ignore_empty = abap_false
@@ -800,10 +808,11 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
 
 
   METHOD z2ui5_if_ajson~set_date.
+    DATA lv_val TYPE string.
 
     ri_json = me.
 
-    DATA lv_val TYPE string.
+    
     lv_val = lcl_abap_to_json=>format_date( iv_val ).
 
     z2ui5_if_ajson~set(
@@ -827,10 +836,11 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
 
 
   METHOD z2ui5_if_ajson~set_null.
+    DATA lv_null_ref TYPE REF TO data.
 
     ri_json = me.
 
-    DATA lv_null_ref TYPE REF TO data.
+    
     z2ui5_if_ajson~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
@@ -840,10 +850,11 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
 
 
   METHOD z2ui5_if_ajson~set_string.
+    DATA lv_val TYPE string.
 
     ri_json = me.
 
-    DATA lv_val TYPE string.
+    
     lv_val = iv_val.
     z2ui5_if_ajson~set(
       iv_ignore_empty = abap_false
@@ -854,10 +865,11 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
 
 
   METHOD z2ui5_if_ajson~set_timestamp.
+    DATA lv_timestamp_iso TYPE string.
 
     ri_json = me.
 
-    DATA lv_timestamp_iso TYPE string.
+    
     lv_timestamp_iso = lcl_abap_to_json=>format_timestamp( iv_val ).
 
     z2ui5_if_ajson~set(
@@ -869,10 +881,11 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
 
 
   METHOD z2ui5_if_ajson~set_timestampl.
+    DATA lv_timestamp_iso TYPE string.
 
     ri_json = me.
 
-    DATA lv_timestamp_iso TYPE string.
+    
     lv_timestamp_iso = lcl_abap_to_json=>format_timestampl( iv_val ).
 
     z2ui5_if_ajson~set(
@@ -944,6 +957,7 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
     DATA ls_deleted_node TYPE z2ui5_if_ajson_types=>ty_node.
     DATA ls_new_node LIKE LINE OF mt_json_tree.
     DATA ls_split_path TYPE z2ui5_if_ajson_types=>ty_path_name.
+      DATA lr_parent TYPE REF TO z2ui5_if_ajson_types=>ty_node.
 
     read_only_watchdog( ).
 
@@ -966,7 +980,7 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
 
     IF lr_node IS INITIAL. " Or node was cleared
 
-      DATA lr_parent TYPE REF TO z2ui5_if_ajson_types=>ty_node.
+      
       lr_parent = prove_path_exists( ls_split_path-path ).
       ASSERT lr_parent IS NOT INITIAL.
 

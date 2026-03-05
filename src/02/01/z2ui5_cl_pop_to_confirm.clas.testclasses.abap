@@ -17,21 +17,24 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory.
 
-    DATA(lo_pop) = z2ui5_cl_pop_to_confirm=>factory( `Are you sure?` ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_confirm.
+    lo_pop = z2ui5_cl_pop_to_confirm=>factory( `Are you sure?` ).
     cl_abap_unit_assert=>assert_bound( lo_pop ).
 
   ENDMETHOD.
 
   METHOD test_factory_defaults.
 
-    DATA(lo_pop) = z2ui5_cl_pop_to_confirm=>factory( `Delete?` ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_confirm.
+    lo_pop = z2ui5_cl_pop_to_confirm=>factory( `Delete?` ).
     cl_abap_unit_assert=>assert_false( lo_pop->result( ) ).
 
   ENDMETHOD.
 
   METHOD test_factory_custom.
 
-    DATA(lo_pop) = z2ui5_cl_pop_to_confirm=>factory(
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_confirm.
+    lo_pop = z2ui5_cl_pop_to_confirm=>factory(
       i_question_text       = `Proceed?`
       i_title               = `Custom Title`
       i_icon                = `sap-icon://warning`
@@ -44,7 +47,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_result_initial.
 
-    DATA(lo_pop) = z2ui5_cl_pop_to_confirm=>factory( `Test?` ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_confirm.
+    lo_pop = z2ui5_cl_pop_to_confirm=>factory( `Test?` ).
     cl_abap_unit_assert=>assert_false( lo_pop->result( ) ).
 
   ENDMETHOD.

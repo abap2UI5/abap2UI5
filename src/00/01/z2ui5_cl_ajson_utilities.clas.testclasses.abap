@@ -554,6 +554,8 @@ CLASS ltcl_json_utils IMPLEMENTATION.
     DATA li_cut TYPE REF TO z2ui5_if_ajson.
     DATA li_iterator TYPE REF TO z2ui5_if_ajson_iterator.
     DATA lx TYPE REF TO z2ui5_cx_ajson_error.
+    DATA lt_data TYPE TABLE OF string.
+    DATA li_json_item TYPE REF TO z2ui5_if_ajson.
 
     li_cut = z2ui5_cl_ajson=>create_empty( ).
     li_cut->touch_array( '/a' ).
@@ -579,8 +581,8 @@ CLASS ltcl_json_utils IMPLEMENTATION.
       iv_path = '/c'
       iv_val  = 6 ).
 
-    DATA lt_data TYPE TABLE OF string.
-    DATA li_json_item TYPE REF TO z2ui5_if_ajson.
+    
+    
 
     li_iterator = z2ui5_cl_ajson_utilities=>iterate_array(
       ii_json = li_cut
@@ -638,6 +640,8 @@ CLASS ltcl_json_utils IMPLEMENTATION.
     DATA li_cut TYPE REF TO z2ui5_if_ajson.
     DATA li_iterator TYPE REF TO z2ui5_if_ajson_iterator.
     DATA lx TYPE REF TO z2ui5_cx_ajson_error.
+    DATA lt_data TYPE TABLE OF string.
+    DATA li_json_item TYPE REF TO z2ui5_if_ajson.
 
     li_cut = z2ui5_cl_ajson=>create_empty( ).
     li_cut->touch_array( '/array' ).
@@ -651,8 +655,8 @@ CLASS ltcl_json_utils IMPLEMENTATION.
       iv_path = '/x/y'
       iv_val  = 3 ).
 
-    DATA lt_data TYPE TABLE OF string.
-    DATA li_json_item TYPE REF TO z2ui5_if_ajson.
+    
+    
 
     li_iterator = z2ui5_cl_ajson_utilities=>iterate_object(
       ii_json = li_cut

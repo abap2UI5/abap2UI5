@@ -15,19 +15,23 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory.
 
-    DATA(lo_pop) = z2ui5_cl_pop_input_val=>factory( ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_input_val.
+    lo_pop = z2ui5_cl_pop_input_val=>factory( ).
     cl_abap_unit_assert=>assert_bound( lo_pop ).
 
   ENDMETHOD.
 
   METHOD test_factory_with_val.
 
-    DATA(lo_pop) = z2ui5_cl_pop_input_val=>factory(
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_input_val.
+    DATA ls_result TYPE z2ui5_cl_pop_input_val=>ty_s_result.
+    lo_pop = z2ui5_cl_pop_input_val=>factory(
       val   = `initial value`
       title = `Custom Title`
       text  = `Enter value` ).
 
-    DATA(ls_result) = lo_pop->result( ).
+    
+    ls_result = lo_pop->result( ).
     cl_abap_unit_assert=>assert_equals( exp = `initial value`
                                         act = ls_result-value ).
     cl_abap_unit_assert=>assert_false( ls_result-check_confirmed ).
@@ -36,8 +40,11 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_result_initial.
 
-    DATA(lo_pop) = z2ui5_cl_pop_input_val=>factory( ).
-    DATA(ls_result) = lo_pop->result( ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_input_val.
+    DATA ls_result TYPE z2ui5_cl_pop_input_val=>ty_s_result.
+    lo_pop = z2ui5_cl_pop_input_val=>factory( ).
+    
+    ls_result = lo_pop->result( ).
     cl_abap_unit_assert=>assert_false( ls_result-check_confirmed ).
     cl_abap_unit_assert=>assert_initial( ls_result-value ).
 

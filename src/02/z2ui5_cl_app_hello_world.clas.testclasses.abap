@@ -15,15 +15,18 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_create.
 
-    DATA(lo_app) = NEW z2ui5_cl_app_hello_world( ).
+    DATA lo_app TYPE REF TO z2ui5_cl_app_hello_world.
+    CREATE OBJECT lo_app TYPE z2ui5_cl_app_hello_world.
     cl_abap_unit_assert=>assert_bound( lo_app ).
 
   ENDMETHOD.
 
   METHOD test_implements_app.
 
-    DATA(lo_app) = NEW z2ui5_cl_app_hello_world( ).
+    DATA lo_app TYPE REF TO z2ui5_cl_app_hello_world.
     DATA li_app TYPE REF TO z2ui5_if_app.
+    CREATE OBJECT lo_app TYPE z2ui5_cl_app_hello_world.
+    
     li_app ?= lo_app.
     cl_abap_unit_assert=>assert_bound( li_app ).
 
@@ -31,7 +34,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_name_attribute.
 
-    DATA(lo_app) = NEW z2ui5_cl_app_hello_world( ).
+    DATA lo_app TYPE REF TO z2ui5_cl_app_hello_world.
+    CREATE OBJECT lo_app TYPE z2ui5_cl_app_hello_world.
     lo_app->name = `Test Name`.
     cl_abap_unit_assert=>assert_equals( exp = `Test Name`
                                         act = lo_app->name ).
