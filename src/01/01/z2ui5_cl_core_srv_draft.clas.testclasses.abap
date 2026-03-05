@@ -28,13 +28,13 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA ls_db TYPE z2ui5_t_01.
     CREATE OBJECT lo_draft TYPE z2ui5_cl_core_srv_draft.
 
-    
+
     CLEAR temp1.
     temp1-id = `TEST_ID`.
     lo_draft->create( draft     = temp1
                       model_xml = `my xml` ).
 
-    
+
     ls_db = lo_draft->read_draft( `TEST_ID` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `my xml`
@@ -49,7 +49,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA ls_db TYPE z2ui5_t_01.
     CREATE OBJECT lo_draft TYPE z2ui5_cl_core_srv_draft.
 
-    
+
     CLEAR temp2.
     temp2-id = `TEST_CR`.
     temp2-id_prev = `PREV1`.
@@ -58,7 +58,7 @@ CLASS ltcl_test IMPLEMENTATION.
     lo_draft->create( draft     = temp2
                       model_xml = `<xml>data</xml>` ).
 
-    
+
     ls_db = lo_draft->read_draft( `TEST_CR` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `<xml>data</xml>`
@@ -75,14 +75,14 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA ls_info TYPE z2ui5_if_types=>ty_s_draft.
     CREATE OBJECT lo_draft TYPE z2ui5_cl_core_srv_draft.
 
-    
+
     CLEAR temp3.
     temp3-id = `TEST_INFO`.
     temp3-id_prev_app_stack = `MY_STACK`.
     lo_draft->create( draft     = temp3
                       model_xml = `info test` ).
 
-    
+
     ls_info = lo_draft->read_info( `TEST_INFO` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `TEST_INFO`
@@ -100,15 +100,15 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA ls_second TYPE z2ui5_t_01.
     CREATE OBJECT lo_draft TYPE z2ui5_cl_core_srv_draft.
 
-    
+
     CLEAR temp4.
     temp4-id = `TEST_BUF`.
     lo_draft->create( draft     = temp4
                       model_xml = `buffered data` ).
 
-    
+
     ls_first = lo_draft->read_draft( `TEST_BUF` ).
-    
+
     ls_second = lo_draft->read_draft( `TEST_BUF` ).
 
     cl_abap_unit_assert=>assert_equals( exp = ls_first-data
@@ -124,19 +124,19 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA ls_db TYPE z2ui5_t_01.
     CREATE OBJECT lo_draft TYPE z2ui5_cl_core_srv_draft.
 
-    
+
     CLEAR temp5.
     temp5-id = `TEST_OW`.
     lo_draft->create( draft     = temp5
                       model_xml = `original` ).
 
-    
+
     CLEAR temp6.
     temp6-id = `TEST_OW`.
     lo_draft->create( draft     = temp6
                       model_xml = `updated` ).
 
-    
+
     ls_db = lo_draft->read_draft( `TEST_OW` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `updated`

@@ -58,12 +58,12 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
     DATA lo_test_app TYPE REF TO ltcl_test_app.
-    CREATE OBJECT lo_http TYPE z2ui5_cl_core_handler EXPORTING VAL = ``.
-    CREATE OBJECT mo_action TYPE z2ui5_cl_core_action EXPORTING VAL = lo_http.
+    CREATE OBJECT lo_http TYPE z2ui5_cl_core_handler EXPORTING val = ``.
+    CREATE OBJECT mo_action TYPE z2ui5_cl_core_action EXPORTING val = lo_http.
     CREATE OBJECT lo_test_app TYPE ltcl_test_app.
     lo_test_app->z2ui5_if_app~check_initialized = abap_false.
     mo_action->mo_app->mo_app = lo_test_app.
-    CREATE OBJECT mo_client TYPE z2ui5_cl_core_client EXPORTING ACTION = mo_action.
+    CREATE OBJECT mo_client TYPE z2ui5_cl_core_client EXPORTING action = mo_action.
 
   ENDMETHOD.
 
@@ -81,7 +81,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA temp1 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp1.
     temp1 ?= mo_client.
-    
+
     li_client = temp1.
     li_client->view_display( `<View></View>` ).
 
@@ -95,7 +95,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA temp2 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp2.
     temp2 ?= mo_client.
-    
+
     li_client = temp2.
     li_client->view_destroy( ).
 
@@ -109,7 +109,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA temp3 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp3.
     temp3 ?= mo_client.
-    
+
     li_client = temp3.
     li_client->view_model_update( ).
 
@@ -123,7 +123,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA temp4 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp4.
     temp4 ?= mo_client.
-    
+
     li_client = temp4.
     li_client->popup_display( `<Dialog/>` ).
 
@@ -139,7 +139,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA temp5 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp5.
     temp5 ?= mo_client.
-    
+
     li_client = temp5.
     li_client->popup_destroy( ).
 
@@ -153,7 +153,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA temp6 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp6.
     temp6 ?= mo_client.
-    
+
     li_client = temp6.
     li_client->popup_model_update( ).
 
@@ -167,7 +167,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA temp7 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp7.
     temp7 ?= mo_client.
-    
+
     li_client = temp7.
     li_client->popover_display( xml   = `<Popover/>`
                                 by_id = `btn1` ).
@@ -184,7 +184,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA temp8 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp8.
     temp8 ?= mo_client.
-    
+
     li_client = temp8.
     li_client->popover_destroy( ).
 
@@ -198,7 +198,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA temp9 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp9.
     temp9 ?= mo_client.
-    
+
     li_client = temp9.
     li_client->popover_model_update( ).
 
@@ -212,7 +212,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA temp10 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp10.
     temp10 ?= mo_client.
-    
+
     li_client = temp10.
     li_client->nest_view_display( val            = `<NestView/>`
                                   id             = `nest1`
@@ -233,7 +233,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA temp11 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp11.
     temp11 ?= mo_client.
-    
+
     li_client = temp11.
     li_client->nest_view_destroy( ).
 
@@ -247,7 +247,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA temp12 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp12.
     temp12 ?= mo_client.
-    
+
     li_client = temp12.
     li_client->nest2_view_display( val           = `<Nest2View/>`
                                    id            = `nest2`
@@ -265,7 +265,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA temp13 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp13.
     temp13 ?= mo_client.
-    
+
     li_client = temp13.
     li_client->nest2_view_destroy( ).
 
@@ -279,7 +279,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA temp14 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp14.
     temp14 ?= mo_client.
-    
+
     li_client = temp14.
     li_client->message_box_display( `Hello World` ).
 
@@ -295,7 +295,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA temp15 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp15.
     temp15 ?= mo_client.
-    
+
     li_client = temp15.
     li_client->message_box_display( text = `Error occurred`
                                     type = `error` ).
@@ -312,7 +312,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA temp16 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp16.
     temp16 ?= mo_client.
-    
+
     li_client = temp16.
     li_client->message_toast_display( `Saved` ).
 
@@ -326,7 +326,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA temp17 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp17.
     temp17 ?= mo_client.
-    
+
     li_client = temp17.
     li_client->follow_up_action( `sap.m.MessageToast.show('test')` ).
 
@@ -363,9 +363,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     mo_action->ms_actual-event = `BUTTON_PRESS`.
 
-    
+
     temp21 ?= mo_client.
-    
+
     li_client = temp21.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
@@ -381,9 +381,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     mo_action->ms_actual-event = ``.
 
-    
+
     temp22 ?= mo_client.
-    
+
     li_client = temp22.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_false
@@ -397,9 +397,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     mo_action->ms_actual-check_on_navigated = abap_true.
 
-    
+
     temp23 ?= mo_client.
-    
+
     li_client = temp23.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
@@ -414,12 +414,12 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA li_client LIKE temp24.
     DATA lv_id TYPE string.
     CREATE OBJECT lo_new_app TYPE ltcl_test_app.
-    
+
     temp24 ?= mo_client.
-    
+
     li_client = temp24.
 
-    
+
     lv_id = li_client->nav_app_call( lo_new_app ).
 
     cl_abap_unit_assert=>assert_not_initial( lv_id ).
@@ -432,7 +432,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA temp25 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp25.
     temp25 ?= mo_client.
-    
+
     li_client = temp25.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_false
@@ -450,7 +450,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA temp26 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp26.
     temp26 ?= mo_client.
-    
+
     li_client = temp26.
     li_client->set_push_state( `mystate` ).
 
@@ -464,7 +464,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA temp27 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp27.
     temp27 ?= mo_client.
-    
+
     li_client = temp27.
     li_client->set_nav_back( abap_true ).
 
@@ -483,9 +483,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
     INSERT `arg2` INTO TABLE temp28.
     mo_action->ms_actual-t_event_arg = temp28.
 
-    
+
     temp30 ?= mo_client.
-    
+
     li_client = temp30.
 
     cl_abap_unit_assert=>assert_equals( exp = `arg1`
@@ -500,7 +500,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA temp31 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp31.
     temp31 ?= mo_client.
-    
+
     li_client = temp31.
     li_client->set_app_state_active( abap_true ).
 

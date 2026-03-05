@@ -31,9 +31,9 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
     DATA lo_action TYPE REF TO z2ui5_cl_core_action.
-    CREATE OBJECT lo_http TYPE z2ui5_cl_core_handler EXPORTING VAL = ``.
-    
-    CREATE OBJECT lo_action TYPE z2ui5_cl_core_action EXPORTING VAL = lo_http.
+    CREATE OBJECT lo_http TYPE z2ui5_cl_core_handler EXPORTING val = ``.
+
+    CREATE OBJECT lo_action TYPE z2ui5_cl_core_action EXPORTING val = lo_http.
 
     cl_abap_unit_assert=>assert_bound( lo_action ).
     cl_abap_unit_assert=>assert_bound( lo_action->mo_http_post ).
@@ -50,12 +50,12 @@ CLASS ltcl_test IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    
-    CREATE OBJECT lo_http TYPE z2ui5_cl_core_handler EXPORTING VAL = ``.
-    
-    CREATE OBJECT lo_action TYPE z2ui5_cl_core_action EXPORTING VAL = lo_http.
 
-    
+    CREATE OBJECT lo_http TYPE z2ui5_cl_core_handler EXPORTING val = ``.
+
+    CREATE OBJECT lo_action TYPE z2ui5_cl_core_action EXPORTING val = lo_http.
+
+
     lo_result = lo_action->factory_system_startup( ).
 
     cl_abap_unit_assert=>assert_bound( lo_result ).
@@ -76,15 +76,15 @@ CLASS ltcl_test IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    
+
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_APP_HELLO_WORLD"}}}`.
-    
-    CREATE OBJECT lo_http TYPE z2ui5_cl_core_handler EXPORTING VAL = lv_payload.
+
+    CREATE OBJECT lo_http TYPE z2ui5_cl_core_handler EXPORTING val = lv_payload.
     lo_http->ms_request = lo_http->request_json_to_abap( lv_payload ).
 
-    
-    CREATE OBJECT lo_action TYPE z2ui5_cl_core_action EXPORTING VAL = lo_http.
-    
+
+    CREATE OBJECT lo_action TYPE z2ui5_cl_core_action EXPORTING val = lo_http.
+
     lo_result = lo_action->factory_first_start( ).
 
     cl_abap_unit_assert=>assert_bound( lo_result->mo_app->mo_app ).
@@ -99,22 +99,22 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_payload TYPE string.
     DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
     DATA lo_action TYPE REF TO z2ui5_cl_core_action.
-        DATA lx TYPE REF TO z2ui5_cx_util_error.
-        DATA temp1 TYPE xsdboolean.
+    DATA lx TYPE REF TO z2ui5_cx_util_error.
+    DATA temp1 TYPE xsdboolean.
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=NONEXISTENT_CLASS"}}}`.
-    
-    CREATE OBJECT lo_http TYPE z2ui5_cl_core_handler EXPORTING VAL = lv_payload.
+
+    CREATE OBJECT lo_http TYPE z2ui5_cl_core_handler EXPORTING val = lv_payload.
     lo_http->ms_request = lo_http->request_json_to_abap( lv_payload ).
 
-    
-    CREATE OBJECT lo_action TYPE z2ui5_cl_core_action EXPORTING VAL = lo_http.
+
+    CREATE OBJECT lo_action TYPE z2ui5_cl_core_action EXPORTING val = lo_http.
 
     TRY.
         lo_action->factory_first_start( ).
         cl_abap_unit_assert=>fail( `Expected exception for nonexistent class` ).
-        
+
       CATCH z2ui5_cx_util_error INTO lx.
-        
+
         temp1 = boolc( lx->get_text( ) CS `NONEXISTENT_CLASS` ).
         cl_abap_unit_assert=>assert_true( temp1 ).
     ENDTRY.
@@ -131,14 +131,14 @@ CLASS ltcl_test IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    
+
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":""}}}`.
-    
-    CREATE OBJECT lo_http TYPE z2ui5_cl_core_handler EXPORTING VAL = lv_payload.
+
+    CREATE OBJECT lo_http TYPE z2ui5_cl_core_handler EXPORTING val = lv_payload.
     lo_http->ms_request = lo_http->request_json_to_abap( lv_payload ).
 
-    
-    CREATE OBJECT lo_action TYPE z2ui5_cl_core_action EXPORTING VAL = lo_http.
+
+    CREATE OBJECT lo_action TYPE z2ui5_cl_core_action EXPORTING val = lo_http.
     CREATE OBJECT lo_action->mo_app->mo_app TYPE ltcl_test_app.
     lo_action->mo_app->ms_draft-id = `OLD_DRAFT_ID`.
     lo_http->mo_action = lo_action.
@@ -146,7 +146,7 @@ CLASS ltcl_test IMPLEMENTATION.
     lo_http->ms_request-s_front-id = `OLD_DRAFT_ID`.
     lo_http->ms_request-s_front-event = `MY_EVENT`.
 
-    
+
     lo_result = lo_action->factory_by_frontend( ).
 
     cl_abap_unit_assert=>assert_bound( lo_result->mo_app->mo_app ).
@@ -162,9 +162,9 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
     DATA lo_action TYPE REF TO z2ui5_cl_core_action.
-    CREATE OBJECT lo_http TYPE z2ui5_cl_core_handler EXPORTING VAL = ``.
-    
-    CREATE OBJECT lo_action TYPE z2ui5_cl_core_action EXPORTING VAL = lo_http.
+    CREATE OBJECT lo_http TYPE z2ui5_cl_core_handler EXPORTING val = ``.
+
+    CREATE OBJECT lo_action TYPE z2ui5_cl_core_action EXPORTING val = lo_http.
 
     lo_action->ms_next-s_set-s_view-check_update_model      = abap_true.
     lo_action->ms_next-s_set-s_view_nest-check_update_model  = abap_true.
@@ -197,18 +197,18 @@ CLASS ltcl_test IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    
-    CREATE OBJECT lo_http TYPE z2ui5_cl_core_handler EXPORTING VAL = ``.
-    
-    CREATE OBJECT lo_action TYPE z2ui5_cl_core_action EXPORTING VAL = lo_http.
+
+    CREATE OBJECT lo_http TYPE z2ui5_cl_core_handler EXPORTING val = ``.
+
+    CREATE OBJECT lo_action TYPE z2ui5_cl_core_action EXPORTING val = lo_http.
     CREATE OBJECT lo_action->mo_app->mo_app TYPE ltcl_test_app.
     lo_action->mo_app->ms_draft-id = `CURRENT_DRAFT`.
 
-    
+
     CREATE OBJECT lo_new_app TYPE ltcl_test_app.
     lo_action->ms_next-o_app_call = lo_new_app.
 
-    
+
     lo_result = lo_action->factory_stack_call( ).
 
     cl_abap_unit_assert=>assert_bound( lo_result ).

@@ -82,11 +82,11 @@ CLASS ltcl_test_db IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    
+
     CREATE OBJECT lo_app_user TYPE ltcl_test_db.
     lo_app_user->mv_value = `my value`.
 
-    
+
     CREATE OBJECT lo_app TYPE z2ui5_cl_core_app.
     lo_app->ms_draft-id = `TEST_ID`.
     lo_app->mo_app = lo_app_user.
@@ -94,11 +94,11 @@ CLASS ltcl_test_db IMPLEMENTATION.
     lo_app->db_save( ).
 
     z2ui5_cl_core_app=>db_load_buffer_clear( ).
-    
+
     lo_app_db = z2ui5_cl_core_app=>db_load( `TEST_ID` ).
-    
+
     temp1 ?= lo_app_db->mo_app.
-    
+
     lo_app_user_db = temp1.
 
     cl_abap_unit_assert=>assert_equals( exp = lo_app_user->mv_value
@@ -117,13 +117,13 @@ CLASS ltcl_test_db IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    
+
     CREATE OBJECT lo_app_user TYPE ltcl_test_db.
     lo_app_user->mv_value = `roundtrip value`.
     lo_app_user->mv_name  = `test name`.
     lo_app_user->mv_count = 42.
 
-    
+
     CREATE OBJECT lo_app TYPE z2ui5_cl_core_app.
     lo_app->ms_draft-id = `TEST_ROUNDTRIP`.
     lo_app->mo_app = lo_app_user.
@@ -131,11 +131,11 @@ CLASS ltcl_test_db IMPLEMENTATION.
     lo_app->db_save( ).
 
     z2ui5_cl_core_app=>db_load_buffer_clear( ).
-    
+
     lo_loaded = z2ui5_cl_core_app=>db_load( `TEST_ROUNDTRIP` ).
-    
+
     temp2 ?= lo_loaded->mo_app.
-    
+
     lo_restored = temp2.
 
     cl_abap_unit_assert=>assert_equals( exp = `roundtrip value`
@@ -156,11 +156,11 @@ CLASS ltcl_test_db IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    
+
     CREATE OBJECT lo_app_user TYPE ltcl_test_db.
     lo_app_user->mv_value = `complex`.
 
-    
+
     CREATE OBJECT lo_app TYPE z2ui5_cl_core_app.
     lo_app->ms_draft-id = `TEST_COMPLEX`.
     lo_app->mo_app = lo_app_user.
@@ -169,7 +169,7 @@ CLASS ltcl_test_db IMPLEMENTATION.
 
     lo_app->db_save( ).
 
-    
+
     temp3 ?= lo_app->mo_app.
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = temp3->check_initialized ).
@@ -184,11 +184,11 @@ CLASS ltcl_test_db IMPLEMENTATION.
     CREATE OBJECT lo_app_user TYPE ltcl_test_db.
     lo_app_user->mv_value = `json test`.
 
-    
+
     CREATE OBJECT lo_app TYPE z2ui5_cl_core_app.
     lo_app->mo_app = lo_app_user.
 
-    
+
     lv_json = lo_app->model_json_stringify( ).
 
     cl_abap_unit_assert=>assert_not_initial( lv_json ).

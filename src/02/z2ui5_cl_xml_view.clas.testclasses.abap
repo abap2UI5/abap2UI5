@@ -51,7 +51,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lo_view TYPE REF TO z2ui5_cl_xml_view.
     DATA lv_xml TYPE string.
     lo_view = z2ui5_cl_xml_view=>factory( ).
-    
+
     lv_xml = lo_view->page( `test` )->stringify( ).
 
     IF lv_xml IS INITIAL.
@@ -66,11 +66,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_xml TYPE string.
     DATA temp1 TYPE xsdboolean.
     lo_popup = z2ui5_cl_xml_view=>factory_popup( ).
-    
+
     lv_xml = lo_popup->dialog( `Test` )->stringify( ).
 
     cl_abap_unit_assert=>assert_not_initial( lv_xml ).
-    
+
     temp1 = boolc( lv_xml CS `Dialog` ).
     cl_abap_unit_assert=>assert_true( temp1 ).
 
@@ -87,13 +87,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->page( `My Page`
       )->stringify( ).
 
-    
+
     temp2 = boolc( lv_xml CS `Shell` ).
     cl_abap_unit_assert=>assert_true( temp2 ).
-    
+
     temp3 = boolc( lv_xml CS `Page` ).
     cl_abap_unit_assert=>assert_true( temp3 ).
-    
+
     temp4 = boolc( lv_xml CS `My Page` ).
     cl_abap_unit_assert=>assert_true( temp4 ).
 
@@ -108,7 +108,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->simple_form( editable = abap_true
       )->stringify( ).
 
-    
+
     temp5 = boolc( lv_xml CS `SimpleForm` ).
     cl_abap_unit_assert=>assert_true( temp5 ).
 
@@ -125,10 +125,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                  press = `onPress`
       )->stringify( ).
 
-    
+
     temp6 = boolc( lv_xml CS `Button` ).
     cl_abap_unit_assert=>assert_true( temp6 ).
-    
+
     temp7 = boolc( lv_xml CS `Click Me` ).
     cl_abap_unit_assert=>assert_true( temp7 ).
 
@@ -145,10 +145,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                 placeholder = `Enter name`
       )->stringify( ).
 
-    
+
     temp8 = boolc( lv_xml CS `Input` ).
     cl_abap_unit_assert=>assert_true( temp8 ).
-    
+
     temp9 = boolc( lv_xml CS `Enter name` ).
     cl_abap_unit_assert=>assert_true( temp9 ).
 
@@ -164,10 +164,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->label( `My Label`
       )->stringify( ).
 
-    
+
     temp10 = boolc( lv_xml CS `Label` ).
     cl_abap_unit_assert=>assert_true( temp10 ).
-    
+
     temp11 = boolc( lv_xml CS `My Label` ).
     cl_abap_unit_assert=>assert_true( temp11 ).
 
@@ -183,10 +183,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->text( `Hello World`
       )->stringify( ).
 
-    
+
     temp12 = boolc( lv_xml CS `Text` ).
     cl_abap_unit_assert=>assert_true( temp12 ).
-    
+
     temp13 = boolc( lv_xml CS `Hello World` ).
     cl_abap_unit_assert=>assert_true( temp13 ).
 
@@ -204,10 +204,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
           )->text( `Nested`
       )->stringify( ).
 
-    
+
     temp14 = boolc( lv_xml CS `VBox` ).
     cl_abap_unit_assert=>assert_true( temp14 ).
-    
+
     temp15 = boolc( lv_xml CS `HBox` ).
     cl_abap_unit_assert=>assert_true( temp15 ).
 
@@ -223,10 +223,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->table( headertext = `My Table`
       )->stringify( ).
 
-    
+
     temp16 = boolc( lv_xml CS `Table` ).
     cl_abap_unit_assert=>assert_true( temp16 ).
-    
+
     temp17 = boolc( lv_xml CS `My Table` ).
     cl_abap_unit_assert=>assert_true( temp17 ).
 
@@ -242,10 +242,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                  icon  = `sap-icon://hint`
       )->stringify( ).
 
-    
+
     temp18 = boolc( lv_xml CS `Dialog` ).
     cl_abap_unit_assert=>assert_true( temp18 ).
-    
+
     temp19 = boolc( lv_xml CS `Confirm` ).
     cl_abap_unit_assert=>assert_true( temp19 ).
 
@@ -259,16 +259,16 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lo_parent TYPE REF TO z2ui5_cl_xml_view.
     DATA lv_xml TYPE string.
     lo_view = z2ui5_cl_xml_view=>factory( ).
-    
+
     lo_page = lo_view->page( `Test` ).
-    
+
     lo_vbox = lo_page->vbox( ).
-    
+
     lo_parent = lo_vbox->get_parent( ).
 
     cl_abap_unit_assert=>assert_bound( lo_parent ).
 
-    
+
     lv_xml = lo_parent->stringify( ).
     cl_abap_unit_assert=>assert_not_initial( lv_xml ).
 
@@ -288,13 +288,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
         )->input( `{/NAME}`
       )->stringify( ).
 
-    
+
     temp20 = boolc( lv_xml CS `content` ).
     cl_abap_unit_assert=>assert_true( temp20 ).
-    
+
     temp21 = boolc( lv_xml CS `Label` ).
     cl_abap_unit_assert=>assert_true( temp21 ).
-    
+
     temp22 = boolc( lv_xml CS `Input` ).
     cl_abap_unit_assert=>assert_true( temp22 ).
 
@@ -318,13 +318,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
               )->text( `{COL1}`
       )->stringify( ).
 
-    
+
     temp23 = boolc( lv_xml CS `columns` ).
     cl_abap_unit_assert=>assert_true( temp23 ).
-    
+
     temp24 = boolc( lv_xml CS `Column` ).
     cl_abap_unit_assert=>assert_true( temp24 ).
-    
+
     temp25 = boolc( lv_xml CS `ColumnListItem` ).
     cl_abap_unit_assert=>assert_true( temp25 ).
 
@@ -340,10 +340,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                        description = `Check the URL`
       )->stringify( ).
 
-    
+
     temp26 = boolc( lv_xml CS `MessagePage` ).
     cl_abap_unit_assert=>assert_true( temp26 ).
-    
+
     temp27 = boolc( lv_xml CS `Page not found` ).
     cl_abap_unit_assert=>assert_true( temp27 ).
 
@@ -364,13 +364,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
               )->text( `Content1`
       )->stringify( ).
 
-    
+
     temp28 = boolc( lv_xml CS `IconTabBar` ).
     cl_abap_unit_assert=>assert_true( temp28 ).
-    
+
     temp29 = boolc( lv_xml CS `IconTabFilter` ).
     cl_abap_unit_assert=>assert_true( temp29 ).
-    
+
     temp30 = boolc( lv_xml CS `Tab1` ).
     cl_abap_unit_assert=>assert_true( temp30 ).
 
@@ -387,10 +387,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                  change      = `onSelect`
       )->stringify( ).
 
-    
+
     temp31 = boolc( lv_xml CS `Select` ).
     cl_abap_unit_assert=>assert_true( temp31 ).
-    
+
     temp32 = boolc( lv_xml CS `{/SELECTED}` ).
     cl_abap_unit_assert=>assert_true( temp32 ).
 
@@ -407,10 +407,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                    placeholder = `Choose`
       )->stringify( ).
 
-    
+
     temp33 = boolc( lv_xml CS `ComboBox` ).
     cl_abap_unit_assert=>assert_true( temp33 ).
-    
+
     temp34 = boolc( lv_xml CS `Choose` ).
     cl_abap_unit_assert=>assert_true( temp34 ).
 
@@ -427,10 +427,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                    selected = `{/ACCEPTED}`
       )->stringify( ).
 
-    
+
     temp35 = boolc( lv_xml CS `CheckBox` ).
     cl_abap_unit_assert=>assert_true( temp35 ).
-    
+
     temp36 = boolc( lv_xml CS `Accept` ).
     cl_abap_unit_assert=>assert_true( temp36 ).
 
@@ -447,10 +447,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                       placeholder = `Pick date`
       )->stringify( ).
 
-    
+
     temp37 = boolc( lv_xml CS `DatePicker` ).
     cl_abap_unit_assert=>assert_true( temp37 ).
-    
+
     temp38 = boolc( lv_xml CS `Pick date` ).
     cl_abap_unit_assert=>assert_true( temp38 ).
 
@@ -467,10 +467,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                     rows  = `5`
       )->stringify( ).
 
-    
+
     temp39 = boolc( lv_xml CS `TextArea` ).
     cl_abap_unit_assert=>assert_true( temp39 ).
-    
+
     temp40 = boolc( lv_xml CS `{/NOTES}` ).
     cl_abap_unit_assert=>assert_true( temp40 ).
 
@@ -487,10 +487,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                href = `https://example.com`
       )->stringify( ).
 
-    
+
     temp41 = boolc( lv_xml CS `Link` ).
     cl_abap_unit_assert=>assert_true( temp41 ).
-    
+
     temp42 = boolc( lv_xml CS `Click here` ).
     cl_abap_unit_assert=>assert_true( temp42 ).
 
@@ -506,10 +506,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->title( `My Title`
       )->stringify( ).
 
-    
+
     temp43 = boolc( lv_xml CS `Title` ).
     cl_abap_unit_assert=>assert_true( temp43 ).
-    
+
     temp44 = boolc( lv_xml CS `My Title` ).
     cl_abap_unit_assert=>assert_true( temp44 ).
 
@@ -523,13 +523,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->overflow_toolbar(
-        )->button( text = `Action` press = `onPress`
+        )->button( text  = `Action`
+                   press = `onPress`
       )->stringify( ).
 
-    
+
     temp45 = boolc( lv_xml CS `OverflowToolbar` ).
     cl_abap_unit_assert=>assert_true( temp45 ).
-    
+
     temp46 = boolc( lv_xml CS `Button` ).
     cl_abap_unit_assert=>assert_true( temp46 ).
 
@@ -544,7 +545,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->toolbar_spacer(
       )->stringify( ).
 
-    
+
     temp47 = boolc( lv_xml CS `ToolbarSpacer` ).
     cl_abap_unit_assert=>assert_true( temp47 ).
 
@@ -560,7 +561,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                            vertical = abap_true
       )->stringify( ).
 
-    
+
     temp48 = boolc( lv_xml CS `ScrollContainer` ).
     cl_abap_unit_assert=>assert_true( temp48 ).
 
@@ -579,10 +580,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                                description = `{DESC}`
       )->stringify( ).
 
-    
+
     temp49 = boolc( lv_xml CS `List` ).
     cl_abap_unit_assert=>assert_true( temp49 ).
-    
+
     temp50 = boolc( lv_xml CS `StandardListItem` ).
     cl_abap_unit_assert=>assert_true( temp50 ).
 
@@ -598,7 +599,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                  type  = `AcceptReject`
       )->stringify( ).
 
-    
+
     temp51 = boolc( lv_xml CS `Switch` ).
     cl_abap_unit_assert=>assert_true( temp51 ).
 
@@ -615,10 +616,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                        selected = `{/OPTION_A}`
       )->stringify( ).
 
-    
+
     temp52 = boolc( lv_xml CS `RadioButton` ).
     cl_abap_unit_assert=>assert_true( temp52 ).
-    
+
     temp53 = boolc( lv_xml CS `Option A` ).
     cl_abap_unit_assert=>assert_true( temp53 ).
 
@@ -635,7 +636,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                              state        = `Success`
       )->stringify( ).
 
-    
+
     temp54 = boolc( lv_xml CS `ProgressIndicator` ).
     cl_abap_unit_assert=>assert_true( temp54 ).
 
@@ -652,7 +653,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                  max   = `100`
       )->stringify( ).
 
-    
+
     temp55 = boolc( lv_xml CS `Slider` ).
     cl_abap_unit_assert=>assert_true( temp55 ).
 
@@ -675,19 +676,19 @@ CLASS ltcl_unit_test IMPLEMENTATION.
               )->text( `Level4`
       )->stringify( ).
 
-    
+
     temp56 = boolc( lv_xml CS `Shell` ).
     cl_abap_unit_assert=>assert_true( temp56 ).
-    
+
     temp57 = boolc( lv_xml CS `Page` ).
     cl_abap_unit_assert=>assert_true( temp57 ).
-    
+
     temp58 = boolc( lv_xml CS `VBox` ).
     cl_abap_unit_assert=>assert_true( temp58 ).
-    
+
     temp59 = boolc( lv_xml CS `HBox` ).
     cl_abap_unit_assert=>assert_true( temp59 ).
-    
+
     temp60 = boolc( lv_xml CS `Level4` ).
     cl_abap_unit_assert=>assert_true( temp60 ).
 
@@ -706,28 +707,28 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA temp62 TYPE xsdboolean.
     DATA temp63 TYPE xsdboolean.
     lo_view = z2ui5_cl_xml_view=>factory( ).
-    
+
     lo_page = lo_view->page( `Test` ).
-    
+
     lo_vbox = lo_page->vbox( ).
-    
+
     lo_hbox = lo_vbox->hbox( ).
-    
+
     lo_text = lo_hbox->text( `inner` ).
 
-    
+
     lo_back = lo_text->get_parent( )->get_parent( )->get_parent( ).
 
-    
+
     lv_xml = lo_back->button( text = `Added to page` )->stringify( ).
 
-    
+
     temp61 = boolc( lv_xml CS `VBox` ).
     cl_abap_unit_assert=>assert_true( temp61 ).
-    
+
     temp62 = boolc( lv_xml CS `HBox` ).
     cl_abap_unit_assert=>assert_true( temp62 ).
-    
+
     temp63 = boolc( lv_xml CS `Added to page` ).
     cl_abap_unit_assert=>assert_true( temp63 ).
 
@@ -742,7 +743,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->page( `NS Test`
       )->stringify( ).
 
-    
+
     temp64 = boolc( lv_xml CS `xmlns` ).
     cl_abap_unit_assert=>assert_true( temp64 ).
 
@@ -763,13 +764,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                  enabled = abap_true
       )->stringify( ).
 
-    
+
     temp65 = boolc( lv_xml CS `Save` ).
     cl_abap_unit_assert=>assert_true( temp65 ).
-    
+
     temp66 = boolc( lv_xml CS `sap-icon://save` ).
     cl_abap_unit_assert=>assert_true( temp66 ).
-    
+
     temp67 = boolc( lv_xml CS `Emphasized` ).
     cl_abap_unit_assert=>assert_true( temp67 ).
 
@@ -784,11 +785,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA temp69 TYPE xsdboolean.
     DATA temp70 TYPE xsdboolean.
     CLEAR temp1.
-    
+
     temp2-n = `myProp`.
     temp2-v = `myValue`.
     INSERT temp2 INTO TABLE temp1.
-    
+
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
       )->_generic( name   = `MyCustomControl`
@@ -796,13 +797,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                    t_prop = temp1
       )->stringify( ).
 
-    
+
     temp68 = boolc( lv_xml CS `MyCustomControl` ).
     cl_abap_unit_assert=>assert_true( temp68 ).
-    
+
     temp69 = boolc( lv_xml CS `myProp` ).
     cl_abap_unit_assert=>assert_true( temp69 ).
-    
+
     temp70 = boolc( lv_xml CS `myValue` ).
     cl_abap_unit_assert=>assert_true( temp70 ).
 
@@ -821,10 +822,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                                     text = `Seg1`
       )->stringify( ).
 
-    
+
     temp71 = boolc( lv_xml CS `SegmentedButton` ).
     cl_abap_unit_assert=>assert_true( temp71 ).
-    
+
     temp72 = boolc( lv_xml CS `SegmentedButtonItem` ).
     cl_abap_unit_assert=>assert_true( temp72 ).
 
@@ -837,15 +838,15 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA temp74 TYPE xsdboolean.
     lv_xml = z2ui5_cl_xml_view=>factory(
       )->page( `Test`
-      )->object_header( title    = `Order 123`
-                        number   = `1000`
+      )->object_header( title      = `Order 123`
+                        number     = `1000`
                         numberunit = `EUR`
       )->stringify( ).
 
-    
+
     temp73 = boolc( lv_xml CS `ObjectHeader` ).
     cl_abap_unit_assert=>assert_true( temp73 ).
-    
+
     temp74 = boolc( lv_xml CS `Order 123` ).
     cl_abap_unit_assert=>assert_true( temp74 ).
 
