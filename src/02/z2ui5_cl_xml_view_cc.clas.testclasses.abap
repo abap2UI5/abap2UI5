@@ -29,7 +29,7 @@ CLASS ltcl_test_cc IMPLEMENTATION.
     DATA lo_cc TYPE REF TO z2ui5_cl_xml_view_cc.
     lo_view = z2ui5_cl_xml_view=>factory( )->page( `Test` ).
 
-    CREATE OBJECT lo_cc TYPE z2ui5_cl_xml_view_cc EXPORTING view = lo_view.
+    lo_cc = NEW #( view = lo_view ).
 
     cl_abap_unit_assert=>assert_bound( lo_cc ).
 
@@ -46,7 +46,7 @@ CLASS ltcl_test_cc IMPLEMENTATION.
     DATA temp3 TYPE xsdboolean.
     lo_view = z2ui5_cl_xml_view=>factory( )->page( `Test` ).
 
-    CREATE OBJECT lo_cc TYPE z2ui5_cl_xml_view_cc EXPORTING view = lo_view.
+    lo_cc = NEW #( view = lo_view ).
 
 
     lo_result = lo_cc->timer( finished          = `onTimerFinished`
@@ -58,13 +58,13 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    temp1 = boolc( lv_xml CS `Timer` ).
+    temp1 = xsdbool( lv_xml CS `Timer` ).
     cl_abap_unit_assert=>assert_true( temp1 ).
 
-    temp2 = boolc( lv_xml CS `z2ui5` ).
+    temp2 = xsdbool( lv_xml CS `z2ui5` ).
     cl_abap_unit_assert=>assert_true( temp2 ).
 
-    temp3 = boolc( lv_xml CS `2000` ).
+    temp3 = xsdbool( lv_xml CS `2000` ).
     cl_abap_unit_assert=>assert_true( temp3 ).
 
   ENDMETHOD.
@@ -79,7 +79,7 @@ CLASS ltcl_test_cc IMPLEMENTATION.
     DATA temp5 TYPE xsdboolean.
     lo_view = z2ui5_cl_xml_view=>factory( )->page( `Test` ).
 
-    CREATE OBJECT lo_cc TYPE z2ui5_cl_xml_view_cc EXPORTING view = lo_view.
+    lo_cc = NEW #( view = lo_view ).
 
 
     lo_result = lo_cc->focus( `myInput` ).
@@ -87,10 +87,10 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    temp4 = boolc( lv_xml CS `Focus` ).
+    temp4 = xsdbool( lv_xml CS `Focus` ).
     cl_abap_unit_assert=>assert_true( temp4 ).
 
-    temp5 = boolc( lv_xml CS `myInput` ).
+    temp5 = xsdbool( lv_xml CS `myInput` ).
     cl_abap_unit_assert=>assert_true( temp5 ).
 
   ENDMETHOD.
@@ -105,7 +105,7 @@ CLASS ltcl_test_cc IMPLEMENTATION.
     DATA temp7 TYPE xsdboolean.
     lo_view = z2ui5_cl_xml_view=>factory( )->page( `Test` ).
 
-    CREATE OBJECT lo_cc TYPE z2ui5_cl_xml_view_cc EXPORTING view = lo_view.
+    lo_cc = NEW #( view = lo_view ).
 
 
     lo_result = lo_cc->camera_picture( id             = `cam1`
@@ -115,10 +115,10 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    temp6 = boolc( lv_xml CS `CameraPicture` ).
+    temp6 = xsdbool( lv_xml CS `CameraPicture` ).
     cl_abap_unit_assert=>assert_true( temp6 ).
 
-    temp7 = boolc( lv_xml CS `cam1` ).
+    temp7 = xsdbool( lv_xml CS `cam1` ).
     cl_abap_unit_assert=>assert_true( temp7 ).
 
   ENDMETHOD.
@@ -133,7 +133,7 @@ CLASS ltcl_test_cc IMPLEMENTATION.
     DATA temp9 TYPE xsdboolean.
     lo_view = z2ui5_cl_xml_view=>factory( )->page( `Test` ).
 
-    CREATE OBJECT lo_cc TYPE z2ui5_cl_xml_view_cc EXPORTING view = lo_view.
+    lo_cc = NEW #( view = lo_view ).
 
 
     lo_result = lo_cc->bwip_js( bcid         = `qrcode`
@@ -144,10 +144,10 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    temp8 = boolc( lv_xml CS `bwipjs` ).
+    temp8 = xsdbool( lv_xml CS `bwipjs` ).
     cl_abap_unit_assert=>assert_true( temp8 ).
 
-    temp9 = boolc( lv_xml CS `qrcode` ).
+    temp9 = xsdbool( lv_xml CS `qrcode` ).
     cl_abap_unit_assert=>assert_true( temp9 ).
 
   ENDMETHOD.
@@ -162,7 +162,7 @@ CLASS ltcl_test_cc IMPLEMENTATION.
     DATA temp11 TYPE xsdboolean.
     lo_view = z2ui5_cl_xml_view=>factory( )->page( `Test` ).
 
-    CREATE OBJECT lo_cc TYPE z2ui5_cl_xml_view_cc EXPORTING view = lo_view.
+    lo_cc = NEW #( view = lo_view ).
 
 
     lo_result = lo_cc->geolocation( finished        = `onGeoFinished`
@@ -172,10 +172,10 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    temp10 = boolc( lv_xml CS `Geolocation` ).
+    temp10 = xsdbool( lv_xml CS `Geolocation` ).
     cl_abap_unit_assert=>assert_true( temp10 ).
 
-    temp11 = boolc( lv_xml CS `{/LON}` ).
+    temp11 = xsdbool( lv_xml CS `{/LON}` ).
     cl_abap_unit_assert=>assert_true( temp11 ).
 
   ENDMETHOD.
@@ -190,7 +190,7 @@ CLASS ltcl_test_cc IMPLEMENTATION.
     DATA temp13 TYPE xsdboolean.
     lo_view = z2ui5_cl_xml_view=>factory( )->page( `Test` ).
 
-    CREATE OBJECT lo_cc TYPE z2ui5_cl_xml_view_cc EXPORTING view = lo_view.
+    lo_cc = NEW #( view = lo_view ).
 
 
     lo_result = lo_cc->file_uploader( placeholder      = `Choose file`
@@ -200,10 +200,10 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    temp12 = boolc( lv_xml CS `FileUploader` ).
+    temp12 = xsdbool( lv_xml CS `FileUploader` ).
     cl_abap_unit_assert=>assert_true( temp12 ).
 
-    temp13 = boolc( lv_xml CS `Choose file` ).
+    temp13 = xsdbool( lv_xml CS `Choose file` ).
     cl_abap_unit_assert=>assert_true( temp13 ).
 
   ENDMETHOD.
@@ -218,7 +218,7 @@ CLASS ltcl_test_cc IMPLEMENTATION.
     DATA temp15 TYPE xsdboolean.
     lo_view = z2ui5_cl_xml_view=>factory( )->page( `Test` ).
 
-    CREATE OBJECT lo_cc TYPE z2ui5_cl_xml_view_cc EXPORTING view = lo_view.
+    lo_cc = NEW #( view = lo_view ).
 
 
     lo_result = lo_cc->favicon( `icon.png` ).
@@ -226,10 +226,10 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    temp14 = boolc( lv_xml CS `Favicon` ).
+    temp14 = xsdbool( lv_xml CS `Favicon` ).
     cl_abap_unit_assert=>assert_true( temp14 ).
 
-    temp15 = boolc( lv_xml CS `icon.png` ).
+    temp15 = xsdbool( lv_xml CS `icon.png` ).
     cl_abap_unit_assert=>assert_true( temp15 ).
 
   ENDMETHOD.
@@ -244,7 +244,7 @@ CLASS ltcl_test_cc IMPLEMENTATION.
     DATA temp17 TYPE xsdboolean.
     lo_view = z2ui5_cl_xml_view=>factory( )->page( `Test` ).
 
-    CREATE OBJECT lo_cc TYPE z2ui5_cl_xml_view_cc EXPORTING view = lo_view.
+    lo_cc = NEW #( view = lo_view ).
 
 
     lo_result = lo_cc->title( `My App` ).
@@ -252,10 +252,10 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    temp16 = boolc( lv_xml CS `Title` ).
+    temp16 = xsdbool( lv_xml CS `Title` ).
     cl_abap_unit_assert=>assert_true( temp16 ).
 
-    temp17 = boolc( lv_xml CS `My App` ).
+    temp17 = xsdbool( lv_xml CS `My App` ).
     cl_abap_unit_assert=>assert_true( temp17 ).
 
   ENDMETHOD.
@@ -269,7 +269,7 @@ CLASS ltcl_test_cc IMPLEMENTATION.
     DATA temp18 TYPE xsdboolean.
     lo_view = z2ui5_cl_xml_view=>factory( )->page( `Test` ).
 
-    CREATE OBJECT lo_cc TYPE z2ui5_cl_xml_view_cc EXPORTING view = lo_view.
+    lo_cc = NEW #( view = lo_view ).
 
 
     lo_result = lo_cc->dirty( abap_true ).
@@ -277,7 +277,7 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    temp18 = boolc( lv_xml CS `Dirty` ).
+    temp18 = xsdbool( lv_xml CS `Dirty` ).
     cl_abap_unit_assert=>assert_true( temp18 ).
 
   ENDMETHOD.
@@ -291,7 +291,7 @@ CLASS ltcl_test_cc IMPLEMENTATION.
     DATA temp19 TYPE xsdboolean.
     lo_view = z2ui5_cl_xml_view=>factory( )->page( `Test` ).
 
-    CREATE OBJECT lo_cc TYPE z2ui5_cl_xml_view_cc EXPORTING view = lo_view.
+    lo_cc = NEW #( view = lo_view ).
 
 
     lo_result = lo_cc->history( `{/SEARCH}` ).
@@ -299,7 +299,7 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    temp19 = boolc( lv_xml CS `History` ).
+    temp19 = xsdbool( lv_xml CS `History` ).
     cl_abap_unit_assert=>assert_true( temp19 ).
 
   ENDMETHOD.
@@ -313,7 +313,7 @@ CLASS ltcl_test_cc IMPLEMENTATION.
     DATA temp20 TYPE xsdboolean.
     lo_view = z2ui5_cl_xml_view=>factory( )->page( `Test` ).
 
-    CREATE OBJECT lo_cc TYPE z2ui5_cl_xml_view_cc EXPORTING view = lo_view.
+    lo_cc = NEW #( view = lo_view ).
 
 
     lo_result = lo_cc->messaging( `{/MESSAGES}` ).
@@ -321,7 +321,7 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    temp20 = boolc( lv_xml CS `Messaging` ).
+    temp20 = xsdbool( lv_xml CS `Messaging` ).
     cl_abap_unit_assert=>assert_true( temp20 ).
 
   ENDMETHOD.
@@ -336,7 +336,7 @@ CLASS ltcl_test_cc IMPLEMENTATION.
     DATA temp22 TYPE xsdboolean.
     lo_view = z2ui5_cl_xml_view=>factory( )->page( `Test` ).
 
-    CREATE OBJECT lo_cc TYPE z2ui5_cl_xml_view_cc EXPORTING view = lo_view.
+    lo_cc = NEW #( view = lo_view ).
 
 
     lo_result = lo_cc->storage( finished    = `onStorageDone`
@@ -347,10 +347,10 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    temp21 = boolc( lv_xml CS `Storage` ).
+    temp21 = xsdbool( lv_xml CS `Storage` ).
     cl_abap_unit_assert=>assert_true( temp21 ).
 
-    temp22 = boolc( lv_xml CS `myKey` ).
+    temp22 = xsdbool( lv_xml CS `myKey` ).
     cl_abap_unit_assert=>assert_true( temp22 ).
 
   ENDMETHOD.
@@ -365,7 +365,7 @@ CLASS ltcl_test_cc IMPLEMENTATION.
     DATA temp24 TYPE xsdboolean.
     lo_view = z2ui5_cl_xml_view=>factory( )->page( `Test` ).
 
-    CREATE OBJECT lo_cc TYPE z2ui5_cl_xml_view_cc EXPORTING view = lo_view.
+    lo_cc = NEW #( view = lo_view ).
 
 
     lo_result = lo_cc->info_frontend( `onInfoDone` ).
@@ -373,10 +373,10 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    temp23 = boolc( lv_xml CS `Info` ).
+    temp23 = xsdbool( lv_xml CS `Info` ).
     cl_abap_unit_assert=>assert_true( temp23 ).
 
-    temp24 = boolc( lv_xml CS `onInfoDone` ).
+    temp24 = xsdbool( lv_xml CS `onInfoDone` ).
     cl_abap_unit_assert=>assert_true( temp24 ).
 
   ENDMETHOD.
@@ -391,7 +391,7 @@ CLASS ltcl_test_cc IMPLEMENTATION.
     DATA temp26 TYPE xsdboolean.
     lo_view = z2ui5_cl_xml_view=>factory( )->page( `Test` ).
 
-    CREATE OBJECT lo_cc TYPE z2ui5_cl_xml_view_cc EXPORTING view = lo_view.
+    lo_cc = NEW #( view = lo_view ).
 
 
     lo_result = lo_cc->lp_title( `Launchpad Title` ).
@@ -399,10 +399,10 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    temp25 = boolc( lv_xml CS `LPTitle` ).
+    temp25 = xsdbool( lv_xml CS `LPTitle` ).
     cl_abap_unit_assert=>assert_true( temp25 ).
 
-    temp26 = boolc( lv_xml CS `Launchpad Title` ).
+    temp26 = xsdbool( lv_xml CS `Launchpad Title` ).
     cl_abap_unit_assert=>assert_true( temp26 ).
 
   ENDMETHOD.
@@ -415,7 +415,7 @@ CLASS ltcl_test_cc IMPLEMENTATION.
     DATA temp27 TYPE xsdboolean.
     lo_view = z2ui5_cl_xml_view=>factory( )->page( `Test` ).
 
-    CREATE OBJECT lo_cc TYPE z2ui5_cl_xml_view_cc EXPORTING view = lo_view.
+    lo_cc = NEW #( view = lo_view ).
 
     lo_cc->timer( `onDone` ).
     lo_cc->focus( `id1` ).
@@ -423,7 +423,7 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_view->stringify( ).
 
-    temp27 = boolc( lv_xml CS `z2ui5` ).
+    temp27 = xsdbool( lv_xml CS `z2ui5` ).
     cl_abap_unit_assert=>assert_true( temp27 ).
 
   ENDMETHOD.

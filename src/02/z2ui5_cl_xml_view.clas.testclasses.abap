@@ -71,7 +71,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_not_initial( lv_xml ).
 
-    temp1 = boolc( lv_xml CS `Dialog` ).
+    temp1 = xsdbool( lv_xml CS `Dialog` ).
     cl_abap_unit_assert=>assert_true( temp1 ).
 
   ENDMETHOD.
@@ -88,13 +88,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp2 = boolc( lv_xml CS `Shell` ).
+    temp2 = xsdbool( lv_xml CS `Shell` ).
     cl_abap_unit_assert=>assert_true( temp2 ).
 
-    temp3 = boolc( lv_xml CS `Page` ).
+    temp3 = xsdbool( lv_xml CS `Page` ).
     cl_abap_unit_assert=>assert_true( temp3 ).
 
-    temp4 = boolc( lv_xml CS `My Page` ).
+    temp4 = xsdbool( lv_xml CS `My Page` ).
     cl_abap_unit_assert=>assert_true( temp4 ).
 
   ENDMETHOD.
@@ -109,7 +109,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp5 = boolc( lv_xml CS `SimpleForm` ).
+    temp5 = xsdbool( lv_xml CS `SimpleForm` ).
     cl_abap_unit_assert=>assert_true( temp5 ).
 
   ENDMETHOD.
@@ -126,10 +126,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp6 = boolc( lv_xml CS `Button` ).
+    temp6 = xsdbool( lv_xml CS `Button` ).
     cl_abap_unit_assert=>assert_true( temp6 ).
 
-    temp7 = boolc( lv_xml CS `Click Me` ).
+    temp7 = xsdbool( lv_xml CS `Click Me` ).
     cl_abap_unit_assert=>assert_true( temp7 ).
 
   ENDMETHOD.
@@ -146,10 +146,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp8 = boolc( lv_xml CS `Input` ).
+    temp8 = xsdbool( lv_xml CS `Input` ).
     cl_abap_unit_assert=>assert_true( temp8 ).
 
-    temp9 = boolc( lv_xml CS `Enter name` ).
+    temp9 = xsdbool( lv_xml CS `Enter name` ).
     cl_abap_unit_assert=>assert_true( temp9 ).
 
   ENDMETHOD.
@@ -165,10 +165,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp10 = boolc( lv_xml CS `Label` ).
+    temp10 = xsdbool( lv_xml CS `Label` ).
     cl_abap_unit_assert=>assert_true( temp10 ).
 
-    temp11 = boolc( lv_xml CS `My Label` ).
+    temp11 = xsdbool( lv_xml CS `My Label` ).
     cl_abap_unit_assert=>assert_true( temp11 ).
 
   ENDMETHOD.
@@ -184,10 +184,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp12 = boolc( lv_xml CS `Text` ).
+    temp12 = xsdbool( lv_xml CS `Text` ).
     cl_abap_unit_assert=>assert_true( temp12 ).
 
-    temp13 = boolc( lv_xml CS `Hello World` ).
+    temp13 = xsdbool( lv_xml CS `Hello World` ).
     cl_abap_unit_assert=>assert_true( temp13 ).
 
   ENDMETHOD.
@@ -205,10 +205,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp14 = boolc( lv_xml CS `VBox` ).
+    temp14 = xsdbool( lv_xml CS `VBox` ).
     cl_abap_unit_assert=>assert_true( temp14 ).
 
-    temp15 = boolc( lv_xml CS `HBox` ).
+    temp15 = xsdbool( lv_xml CS `HBox` ).
     cl_abap_unit_assert=>assert_true( temp15 ).
 
   ENDMETHOD.
@@ -224,10 +224,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp16 = boolc( lv_xml CS `Table` ).
+    temp16 = xsdbool( lv_xml CS `Table` ).
     cl_abap_unit_assert=>assert_true( temp16 ).
 
-    temp17 = boolc( lv_xml CS `My Table` ).
+    temp17 = xsdbool( lv_xml CS `My Table` ).
     cl_abap_unit_assert=>assert_true( temp17 ).
 
   ENDMETHOD.
@@ -243,10 +243,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp18 = boolc( lv_xml CS `Dialog` ).
+    temp18 = xsdbool( lv_xml CS `Dialog` ).
     cl_abap_unit_assert=>assert_true( temp18 ).
 
-    temp19 = boolc( lv_xml CS `Confirm` ).
+    temp19 = xsdbool( lv_xml CS `Confirm` ).
     cl_abap_unit_assert=>assert_true( temp19 ).
 
   ENDMETHOD.
@@ -289,13 +289,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp20 = boolc( lv_xml CS `content` ).
+    temp20 = xsdbool( lv_xml CS `content` ).
     cl_abap_unit_assert=>assert_true( temp20 ).
 
-    temp21 = boolc( lv_xml CS `Label` ).
+    temp21 = xsdbool( lv_xml CS `Label` ).
     cl_abap_unit_assert=>assert_true( temp21 ).
 
-    temp22 = boolc( lv_xml CS `Input` ).
+    temp22 = xsdbool( lv_xml CS `Input` ).
     cl_abap_unit_assert=>assert_true( temp22 ).
 
   ENDMETHOD.
@@ -319,13 +319,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp23 = boolc( lv_xml CS `columns` ).
+    temp23 = xsdbool( lv_xml CS `columns` ).
     cl_abap_unit_assert=>assert_true( temp23 ).
 
-    temp24 = boolc( lv_xml CS `Column` ).
+    temp24 = xsdbool( lv_xml CS `Column` ).
     cl_abap_unit_assert=>assert_true( temp24 ).
 
-    temp25 = boolc( lv_xml CS `ColumnListItem` ).
+    temp25 = xsdbool( lv_xml CS `ColumnListItem` ).
     cl_abap_unit_assert=>assert_true( temp25 ).
 
   ENDMETHOD.
@@ -341,10 +341,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp26 = boolc( lv_xml CS `MessagePage` ).
+    temp26 = xsdbool( lv_xml CS `MessagePage` ).
     cl_abap_unit_assert=>assert_true( temp26 ).
 
-    temp27 = boolc( lv_xml CS `Page not found` ).
+    temp27 = xsdbool( lv_xml CS `Page not found` ).
     cl_abap_unit_assert=>assert_true( temp27 ).
 
   ENDMETHOD.
@@ -365,13 +365,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp28 = boolc( lv_xml CS `IconTabBar` ).
+    temp28 = xsdbool( lv_xml CS `IconTabBar` ).
     cl_abap_unit_assert=>assert_true( temp28 ).
 
-    temp29 = boolc( lv_xml CS `IconTabFilter` ).
+    temp29 = xsdbool( lv_xml CS `IconTabFilter` ).
     cl_abap_unit_assert=>assert_true( temp29 ).
 
-    temp30 = boolc( lv_xml CS `Tab1` ).
+    temp30 = xsdbool( lv_xml CS `Tab1` ).
     cl_abap_unit_assert=>assert_true( temp30 ).
 
   ENDMETHOD.
@@ -388,10 +388,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp31 = boolc( lv_xml CS `Select` ).
+    temp31 = xsdbool( lv_xml CS `Select` ).
     cl_abap_unit_assert=>assert_true( temp31 ).
 
-    temp32 = boolc( lv_xml CS `{/SELECTED}` ).
+    temp32 = xsdbool( lv_xml CS `{/SELECTED}` ).
     cl_abap_unit_assert=>assert_true( temp32 ).
 
   ENDMETHOD.
@@ -408,10 +408,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp33 = boolc( lv_xml CS `ComboBox` ).
+    temp33 = xsdbool( lv_xml CS `ComboBox` ).
     cl_abap_unit_assert=>assert_true( temp33 ).
 
-    temp34 = boolc( lv_xml CS `Choose` ).
+    temp34 = xsdbool( lv_xml CS `Choose` ).
     cl_abap_unit_assert=>assert_true( temp34 ).
 
   ENDMETHOD.
@@ -428,10 +428,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp35 = boolc( lv_xml CS `CheckBox` ).
+    temp35 = xsdbool( lv_xml CS `CheckBox` ).
     cl_abap_unit_assert=>assert_true( temp35 ).
 
-    temp36 = boolc( lv_xml CS `Accept` ).
+    temp36 = xsdbool( lv_xml CS `Accept` ).
     cl_abap_unit_assert=>assert_true( temp36 ).
 
   ENDMETHOD.
@@ -448,10 +448,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp37 = boolc( lv_xml CS `DatePicker` ).
+    temp37 = xsdbool( lv_xml CS `DatePicker` ).
     cl_abap_unit_assert=>assert_true( temp37 ).
 
-    temp38 = boolc( lv_xml CS `Pick date` ).
+    temp38 = xsdbool( lv_xml CS `Pick date` ).
     cl_abap_unit_assert=>assert_true( temp38 ).
 
   ENDMETHOD.
@@ -468,10 +468,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp39 = boolc( lv_xml CS `TextArea` ).
+    temp39 = xsdbool( lv_xml CS `TextArea` ).
     cl_abap_unit_assert=>assert_true( temp39 ).
 
-    temp40 = boolc( lv_xml CS `{/NOTES}` ).
+    temp40 = xsdbool( lv_xml CS `{/NOTES}` ).
     cl_abap_unit_assert=>assert_true( temp40 ).
 
   ENDMETHOD.
@@ -488,10 +488,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp41 = boolc( lv_xml CS `Link` ).
+    temp41 = xsdbool( lv_xml CS `Link` ).
     cl_abap_unit_assert=>assert_true( temp41 ).
 
-    temp42 = boolc( lv_xml CS `Click here` ).
+    temp42 = xsdbool( lv_xml CS `Click here` ).
     cl_abap_unit_assert=>assert_true( temp42 ).
 
   ENDMETHOD.
@@ -507,10 +507,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp43 = boolc( lv_xml CS `Title` ).
+    temp43 = xsdbool( lv_xml CS `Title` ).
     cl_abap_unit_assert=>assert_true( temp43 ).
 
-    temp44 = boolc( lv_xml CS `My Title` ).
+    temp44 = xsdbool( lv_xml CS `My Title` ).
     cl_abap_unit_assert=>assert_true( temp44 ).
 
   ENDMETHOD.
@@ -528,10 +528,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp45 = boolc( lv_xml CS `OverflowToolbar` ).
+    temp45 = xsdbool( lv_xml CS `OverflowToolbar` ).
     cl_abap_unit_assert=>assert_true( temp45 ).
 
-    temp46 = boolc( lv_xml CS `Button` ).
+    temp46 = xsdbool( lv_xml CS `Button` ).
     cl_abap_unit_assert=>assert_true( temp46 ).
 
   ENDMETHOD.
@@ -546,7 +546,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp47 = boolc( lv_xml CS `ToolbarSpacer` ).
+    temp47 = xsdbool( lv_xml CS `ToolbarSpacer` ).
     cl_abap_unit_assert=>assert_true( temp47 ).
 
   ENDMETHOD.
@@ -562,7 +562,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp48 = boolc( lv_xml CS `ScrollContainer` ).
+    temp48 = xsdbool( lv_xml CS `ScrollContainer` ).
     cl_abap_unit_assert=>assert_true( temp48 ).
 
   ENDMETHOD.
@@ -581,10 +581,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp49 = boolc( lv_xml CS `List` ).
+    temp49 = xsdbool( lv_xml CS `List` ).
     cl_abap_unit_assert=>assert_true( temp49 ).
 
-    temp50 = boolc( lv_xml CS `StandardListItem` ).
+    temp50 = xsdbool( lv_xml CS `StandardListItem` ).
     cl_abap_unit_assert=>assert_true( temp50 ).
 
   ENDMETHOD.
@@ -600,7 +600,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp51 = boolc( lv_xml CS `Switch` ).
+    temp51 = xsdbool( lv_xml CS `Switch` ).
     cl_abap_unit_assert=>assert_true( temp51 ).
 
   ENDMETHOD.
@@ -617,10 +617,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp52 = boolc( lv_xml CS `RadioButton` ).
+    temp52 = xsdbool( lv_xml CS `RadioButton` ).
     cl_abap_unit_assert=>assert_true( temp52 ).
 
-    temp53 = boolc( lv_xml CS `Option A` ).
+    temp53 = xsdbool( lv_xml CS `Option A` ).
     cl_abap_unit_assert=>assert_true( temp53 ).
 
   ENDMETHOD.
@@ -637,7 +637,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp54 = boolc( lv_xml CS `ProgressIndicator` ).
+    temp54 = xsdbool( lv_xml CS `ProgressIndicator` ).
     cl_abap_unit_assert=>assert_true( temp54 ).
 
   ENDMETHOD.
@@ -654,7 +654,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp55 = boolc( lv_xml CS `Slider` ).
+    temp55 = xsdbool( lv_xml CS `Slider` ).
     cl_abap_unit_assert=>assert_true( temp55 ).
 
   ENDMETHOD.
@@ -677,19 +677,19 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp56 = boolc( lv_xml CS `Shell` ).
+    temp56 = xsdbool( lv_xml CS `Shell` ).
     cl_abap_unit_assert=>assert_true( temp56 ).
 
-    temp57 = boolc( lv_xml CS `Page` ).
+    temp57 = xsdbool( lv_xml CS `Page` ).
     cl_abap_unit_assert=>assert_true( temp57 ).
 
-    temp58 = boolc( lv_xml CS `VBox` ).
+    temp58 = xsdbool( lv_xml CS `VBox` ).
     cl_abap_unit_assert=>assert_true( temp58 ).
 
-    temp59 = boolc( lv_xml CS `HBox` ).
+    temp59 = xsdbool( lv_xml CS `HBox` ).
     cl_abap_unit_assert=>assert_true( temp59 ).
 
-    temp60 = boolc( lv_xml CS `Level4` ).
+    temp60 = xsdbool( lv_xml CS `Level4` ).
     cl_abap_unit_assert=>assert_true( temp60 ).
 
   ENDMETHOD.
@@ -723,13 +723,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     lv_xml = lo_back->button( text = `Added to page` )->stringify( ).
 
 
-    temp61 = boolc( lv_xml CS `VBox` ).
+    temp61 = xsdbool( lv_xml CS `VBox` ).
     cl_abap_unit_assert=>assert_true( temp61 ).
 
-    temp62 = boolc( lv_xml CS `HBox` ).
+    temp62 = xsdbool( lv_xml CS `HBox` ).
     cl_abap_unit_assert=>assert_true( temp62 ).
 
-    temp63 = boolc( lv_xml CS `Added to page` ).
+    temp63 = xsdbool( lv_xml CS `Added to page` ).
     cl_abap_unit_assert=>assert_true( temp63 ).
 
   ENDMETHOD.
@@ -744,7 +744,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp64 = boolc( lv_xml CS `xmlns` ).
+    temp64 = xsdbool( lv_xml CS `xmlns` ).
     cl_abap_unit_assert=>assert_true( temp64 ).
 
   ENDMETHOD.
@@ -765,13 +765,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp65 = boolc( lv_xml CS `Save` ).
+    temp65 = xsdbool( lv_xml CS `Save` ).
     cl_abap_unit_assert=>assert_true( temp65 ).
 
-    temp66 = boolc( lv_xml CS `sap-icon://save` ).
+    temp66 = xsdbool( lv_xml CS `sap-icon://save` ).
     cl_abap_unit_assert=>assert_true( temp66 ).
 
-    temp67 = boolc( lv_xml CS `Emphasized` ).
+    temp67 = xsdbool( lv_xml CS `Emphasized` ).
     cl_abap_unit_assert=>assert_true( temp67 ).
 
   ENDMETHOD.
@@ -798,13 +798,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp68 = boolc( lv_xml CS `MyCustomControl` ).
+    temp68 = xsdbool( lv_xml CS `MyCustomControl` ).
     cl_abap_unit_assert=>assert_true( temp68 ).
 
-    temp69 = boolc( lv_xml CS `myProp` ).
+    temp69 = xsdbool( lv_xml CS `myProp` ).
     cl_abap_unit_assert=>assert_true( temp69 ).
 
-    temp70 = boolc( lv_xml CS `myValue` ).
+    temp70 = xsdbool( lv_xml CS `myValue` ).
     cl_abap_unit_assert=>assert_true( temp70 ).
 
   ENDMETHOD.
@@ -823,10 +823,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp71 = boolc( lv_xml CS `SegmentedButton` ).
+    temp71 = xsdbool( lv_xml CS `SegmentedButton` ).
     cl_abap_unit_assert=>assert_true( temp71 ).
 
-    temp72 = boolc( lv_xml CS `SegmentedButtonItem` ).
+    temp72 = xsdbool( lv_xml CS `SegmentedButtonItem` ).
     cl_abap_unit_assert=>assert_true( temp72 ).
 
   ENDMETHOD.
@@ -844,10 +844,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->stringify( ).
 
 
-    temp73 = boolc( lv_xml CS `ObjectHeader` ).
+    temp73 = xsdbool( lv_xml CS `ObjectHeader` ).
     cl_abap_unit_assert=>assert_true( temp73 ).
 
-    temp74 = boolc( lv_xml CS `Order 123` ).
+    temp74 = xsdbool( lv_xml CS `Order 123` ).
     cl_abap_unit_assert=>assert_true( temp74 ).
 
   ENDMETHOD.

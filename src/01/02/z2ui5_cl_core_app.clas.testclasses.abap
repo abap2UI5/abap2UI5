@@ -13,7 +13,7 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_instantiation.
 
     DATA lo_app TYPE REF TO z2ui5_cl_core_app.
-    CREATE OBJECT lo_app TYPE z2ui5_cl_core_app.
+    lo_app = NEW #( ).
 
     cl_abap_unit_assert=>assert_bound( lo_app ).
     cl_abap_unit_assert=>assert_bound( lo_app->mt_attri ).
@@ -23,7 +23,7 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_attri_initialized.
 
     DATA lo_app TYPE REF TO z2ui5_cl_core_app.
-    CREATE OBJECT lo_app TYPE z2ui5_cl_core_app.
+    lo_app = NEW #( ).
 
     cl_abap_unit_assert=>assert_equals( exp = 0
                                         act = lines( lo_app->mt_attri->* ) ).
@@ -83,11 +83,11 @@ CLASS ltcl_test_db IMPLEMENTATION.
     ENDIF.
 
 
-    CREATE OBJECT lo_app_user TYPE ltcl_test_db.
+    lo_app_user = NEW #( ).
     lo_app_user->mv_value = `my value`.
 
 
-    CREATE OBJECT lo_app TYPE z2ui5_cl_core_app.
+    lo_app = NEW #( ).
     lo_app->ms_draft-id = `TEST_ID`.
     lo_app->mo_app = lo_app_user.
 
@@ -118,13 +118,13 @@ CLASS ltcl_test_db IMPLEMENTATION.
     ENDIF.
 
 
-    CREATE OBJECT lo_app_user TYPE ltcl_test_db.
+    lo_app_user = NEW #( ).
     lo_app_user->mv_value = `roundtrip value`.
     lo_app_user->mv_name  = `test name`.
     lo_app_user->mv_count = 42.
 
 
-    CREATE OBJECT lo_app TYPE z2ui5_cl_core_app.
+    lo_app = NEW #( ).
     lo_app->ms_draft-id = `TEST_ROUNDTRIP`.
     lo_app->mo_app = lo_app_user.
 
@@ -157,11 +157,11 @@ CLASS ltcl_test_db IMPLEMENTATION.
     ENDIF.
 
 
-    CREATE OBJECT lo_app_user TYPE ltcl_test_db.
+    lo_app_user = NEW #( ).
     lo_app_user->mv_value = `complex`.
 
 
-    CREATE OBJECT lo_app TYPE z2ui5_cl_core_app.
+    lo_app = NEW #( ).
     lo_app->ms_draft-id = `TEST_COMPLEX`.
     lo_app->mo_app = lo_app_user.
     lo_app->ms_draft-id_prev = `PREV_ID`.
@@ -181,11 +181,11 @@ CLASS ltcl_test_db IMPLEMENTATION.
     DATA lo_app_user TYPE REF TO ltcl_test_db.
     DATA lo_app TYPE REF TO z2ui5_cl_core_app.
     DATA lv_json TYPE string.
-    CREATE OBJECT lo_app_user TYPE ltcl_test_db.
+    lo_app_user = NEW #( ).
     lo_app_user->mv_value = `json test`.
 
 
-    CREATE OBJECT lo_app TYPE z2ui5_cl_core_app.
+    lo_app = NEW #( ).
     lo_app->mo_app = lo_app_user.
 
 

@@ -26,7 +26,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_draft TYPE REF TO z2ui5_cl_core_srv_draft.
     DATA temp1 TYPE z2ui5_if_types=>ty_s_draft.
     DATA ls_db TYPE z2ui5_t_01.
-    CREATE OBJECT lo_draft TYPE z2ui5_cl_core_srv_draft.
+    lo_draft = NEW #( ).
 
 
     CLEAR temp1.
@@ -47,7 +47,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_draft TYPE REF TO z2ui5_cl_core_srv_draft.
     DATA temp2 TYPE z2ui5_if_types=>ty_s_draft.
     DATA ls_db TYPE z2ui5_t_01.
-    CREATE OBJECT lo_draft TYPE z2ui5_cl_core_srv_draft.
+    lo_draft = NEW #( ).
 
 
     CLEAR temp2.
@@ -73,7 +73,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_draft TYPE REF TO z2ui5_cl_core_srv_draft.
     DATA temp3 TYPE z2ui5_if_types=>ty_s_draft.
     DATA ls_info TYPE z2ui5_if_types=>ty_s_draft.
-    CREATE OBJECT lo_draft TYPE z2ui5_cl_core_srv_draft.
+    lo_draft = NEW #( ).
 
 
     CLEAR temp3.
@@ -98,7 +98,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA temp4 TYPE z2ui5_if_types=>ty_s_draft.
     DATA ls_first TYPE z2ui5_t_01.
     DATA ls_second TYPE z2ui5_t_01.
-    CREATE OBJECT lo_draft TYPE z2ui5_cl_core_srv_draft.
+    lo_draft = NEW #( ).
 
 
     CLEAR temp4.
@@ -122,7 +122,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA temp5 TYPE z2ui5_if_types=>ty_s_draft.
     DATA temp6 TYPE z2ui5_if_types=>ty_s_draft.
     DATA ls_db TYPE z2ui5_t_01.
-    CREATE OBJECT lo_draft TYPE z2ui5_cl_core_srv_draft.
+    lo_draft = NEW #( ).
 
 
     CLEAR temp5.

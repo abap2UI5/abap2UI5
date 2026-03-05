@@ -242,7 +242,7 @@ Additional directories:
 
 - Max 100 statements per method, max cyclomatic complexity 20, max nesting depth 5
 - No aliases, no STATICS, no BREAK-POINT, no DEFINE macros
-- `NEW #()` instead of `CREATE OBJECT`; `xsdbool()` for booleans; `line_exists()` instead of READ TABLE
+- `NEW #()` instead of `CREATE OBJECT`; `xsdbool()` for booleans (NEVER use `boolc()` — the downport pipeline converts `xsdbool` to `boolc` automatically); `line_exists()` instead of READ TABLE
 - Backtick string literals (`` ` ``) preferred over single quotes
 - `IS NOT` over `NOT ... IS`; `RETURNING` over `EXPORTING` for single outputs
 - No `EXPORT TO MEMORY`/`DATABASE`; no test seams; `lines()` instead of `DESCRIBE LINES`

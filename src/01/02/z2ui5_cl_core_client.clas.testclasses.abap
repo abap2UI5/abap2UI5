@@ -58,12 +58,12 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
     DATA lo_test_app TYPE REF TO ltcl_test_app.
-    CREATE OBJECT lo_http TYPE z2ui5_cl_core_handler EXPORTING val = ``.
-    CREATE OBJECT mo_action TYPE z2ui5_cl_core_action EXPORTING val = lo_http.
-    CREATE OBJECT lo_test_app TYPE ltcl_test_app.
+    lo_http = NEW #( val = `` ).
+    mo_action = NEW #( val = lo_http ).
+    lo_test_app = NEW #( ).
     lo_test_app->z2ui5_if_app~check_initialized = abap_false.
     mo_action->mo_app->mo_app = lo_test_app.
-    CREATE OBJECT mo_client TYPE z2ui5_cl_core_client EXPORTING action = mo_action.
+    mo_client = NEW #( action = mo_action ).
 
   ENDMETHOD.
 
@@ -413,7 +413,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA temp24 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp24.
     DATA lv_id TYPE string.
-    CREATE OBJECT lo_new_app TYPE ltcl_test_app.
+    lo_new_app = NEW #( ).
 
     temp24 ?= mo_client.
 
