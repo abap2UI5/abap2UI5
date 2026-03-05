@@ -33,7 +33,6 @@ CLASS z2ui5_cl_pop_file_ul DEFINITION
   PROTECTED SECTION.
     DATA client              TYPE REF TO z2ui5_if_client.
     DATA title               TYPE string.
-    DATA icon                TYPE string.
     DATA question_text       TYPE string.
     DATA button_text_confirm TYPE string.
     DATA button_text_cancel  TYPE string.
@@ -67,7 +66,6 @@ CLASS z2ui5_cl_pop_file_ul IMPLEMENTATION.
   METHOD view_display.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
-                                                               icon       = icon
                                                                afterclose = client->_event( `BUTTON_CANCEL` )
               )->content(
                   )->vbox( `sapUiMediumMargin`

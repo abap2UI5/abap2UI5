@@ -12,10 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-node@v3
-      with:
-        node-version: 20
+    - uses: actions/checkout@v4
     - name: send to bsp repository
       uses: peaceiris/actions-gh-pages@v3
       with:

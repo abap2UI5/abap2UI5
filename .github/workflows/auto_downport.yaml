@@ -21,19 +21,13 @@ jobs:
     - run: npm ci
     - run: npm run auto_downport
 
-    - name: Commit Changes
+    - name: Commit and Push Changes
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
         git add .
-        git commit -m "Downport changes"
-
-    - name: Switch to Branch 702
-      run: git checkout -b 702
-
-    - name: Push Changes
-      uses: ad-m/github-push-action@v0.6.0
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: 702
-        force: true
+        git diff --staged --quiet || git commit -m "Downport changes"
+        git checkout -b 702
+        git push --force origin HEAD:702
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

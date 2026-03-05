@@ -85,6 +85,7 @@ CLASS z2ui5_cl_pop_image_editor IMPLEMENTATION.
         mv_confirmed = abap_true.
         DATA(args) = client->get( )-t_event_arg.
         mv_image = args[ 1 ].
+        client->popup_destroy( ).
         client->nav_app_leave( ).
 
       WHEN `CANCEL`.

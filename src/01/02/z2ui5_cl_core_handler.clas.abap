@@ -160,6 +160,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   METHOD main_begin.
 
+    z2ui5_cl_core_app=>db_load_buffer_clear( ).
     ms_request = request_json_to_abap( mv_request_json ).
 
     IF ms_request-s_front-id IS NOT INITIAL.

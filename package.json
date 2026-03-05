@@ -30,13 +30,6 @@
     "@abaplint/transpiler-cli": "^2.12.28",
     "@playwright/test": "^1.58.2",
     "@types/node": "^25.3.0",
-    "buffer": "^6.0.3",
-    "copy-webpack-plugin": "^13.0.1",
-    "express": "^5.2.1",
-    "html-webpack-plugin": "^5.6.6",
-    "path-browserify": "^1.0.1",
-    "web-encoding": "^1.1.5",
-    "webpack-cli": "^6.0.1",
-    "webpack-dev-server": "^5.2.3"
+    "express": "^5.2.1"
   }
 }
