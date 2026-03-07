@@ -214,6 +214,8 @@ src/
     ├── z2ui5_cl_xml_view.clas.abap     # Fluent XML view builder (~511KB)
     ├── z2ui5_cl_xml_view_cc.clas.abap  # Custom controls builder
     ├── z2ui5_cl_exit.clas.abap         # Default exit implementation
+    ├── z2ui5_cl_app_startup.clas.abap  # Default startup app
+    ├── z2ui5_cl_app_hello_world.clas.abap # Hello world example app
     └── 01/                             # Built-in popups (z2ui5_cl_pop_*)
         # confirm, inform, select, file_dl/ul, table, textedit, pdf, html,
         # messages, error, bal, input_val, data, image_editor, js_loader, get_range/_m
@@ -225,7 +227,7 @@ Additional directories:
 |---|---|
 | `app/webapp/` | UI5 frontend (canonical source for JS/XML/CSS) |
 | `node/` | Node.js transpilation, Express server, Playwright tests |
-| `.github/workflows/` | 17 CI/CD workflows |
+| `.github/workflows/` | 16 CI/CD workflows |
 | `.github/abaplint/` | Linter configs per target environment |
 
 ## Language & Code Rules
