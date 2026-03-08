@@ -24,12 +24,12 @@
   },
   "homepage": "www.abap2UI5.org",
   "devDependencies": {
-    "@abaplint/cli": "^2.115.25",
+    "@abaplint/cli": "^2.116.0",
     "@abaplint/database-sqlite": "^2.11.78",
-    "@abaplint/runtime": "^2.12.28",
-    "@abaplint/transpiler-cli": "^2.12.28",
+    "@abaplint/runtime": "^2.12.32",
+    "@abaplint/transpiler-cli": "^2.12.32",
     "@playwright/test": "^1.58.2",
-    "@types/node": "^25.3.0",
+    "@types/node": "^25.3.5",
     "express": "^5.2.1"
   }
 }
