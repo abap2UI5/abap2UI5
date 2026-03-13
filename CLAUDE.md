@@ -247,22 +247,9 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
 
 **Project-specific patterns to follow:**
 
-- **Event routing:** Use `CASE abap_true / WHEN client->check_on_*()`  — not `IF/ELSEIF` chains
-  ```abap
-  CASE abap_true.
-    WHEN client->check_on_init( ).
-      " ...
-    WHEN client->check_on_event( `BUTTON_POST` ).
-      " ...
-  ENDCASE.
-  ```
 - **Class definition:** Always add `FINAL` unless inheritance is explicitly needed
   ```abap
   CLASS z2ui5_cl_my_class DEFINITION PUBLIC FINAL CREATE PUBLIC.
-  ```
-- **Interface assignment:** Use `CAST` for interface-typed local variables
-  ```abap
-  DATA(li_client) = CAST z2ui5_if_client( NEW z2ui5_cl_core_client( mo_action ) ).
   ```
 - **Exception handling:** Use `cx_root` as catch-all; re-raise as `z2ui5_cx_util_error`; use `##NO_HANDLER` when intentionally ignoring
   ```abap
