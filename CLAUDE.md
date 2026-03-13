@@ -17,6 +17,8 @@ abap2UI5 is a framework for building SAP UI5 applications purely in ABAP — no 
 | [abap2UI5-samples](https://github.com/abap2UI5/abap2UI5-samples) | Sample applications and usage examples |
 | [abap2UI5-documentation](https://github.com/abap2UI5/abap2UI5-documentation) | Project documentation |
 
+> **Building apps?** See the [abap2UI5-samples](https://github.com/abap2UI5/abap2UI5-samples) repository — it contains the app development guide (CLAUDE.md), canonical app template, Client API reference, and 250+ example apps to learn from.
+
 ## Architecture
 
 ### How It Works — The Roundtrip
@@ -89,110 +91,6 @@ App state is persisted between roundtrips via the draft service (`z2ui5_cl_core_
 - **Multi-View:** Main view, nested views (nest/nest2), popups, and popovers simultaneously
 - **Exit Pattern:** `z2ui5_cl_exit` / `z2ui5_if_exit` for custom themes, CSP headers, etc.
 
-## How Apps Work
-
-Every abap2UI5 app implements `z2ui5_if_app` with a single `main()` method:
-
-```abap
-CLASS z2ui5_cl_my_app DEFINITION PUBLIC.
-  PUBLIC SECTION.
-    INTERFACES z2ui5_if_app.
-    DATA name TYPE string.
-ENDCLASS.
-
-CLASS z2ui5_cl_my_app IMPLEMENTATION.
-  METHOD z2ui5_if_app~main.
-    CASE abap_true.
-      WHEN client->check_on_init( ).
-        client->view_display( z2ui5_cl_xml_view=>factory(
-          )->shell( )->page( 'Title'
-          )->input( client->_bind_edit( name )
-          )->button( text = 'Send' press = client->_event( 'POST' )
-          )->stringify( ) ).
-      WHEN client->check_on_event( 'POST' ).
-        client->message_box_display( |Hello { name }| ).
-    ENDCASE.
-  ENDMETHOD.
-ENDCLASS.
-```
-
-### Client API (`z2ui5_if_client`)
-
-| Category | Methods | Purpose |
-|---|---|---|
-| Views | `view_display`, `view_destroy`, `view_model_update` | Main view lifecycle |
-| Nested views | `nest_view_display/destroy/model_update`, `nest2_view_*` | Embedded sub-views |
-| Popups | `popup_display`, `popup_destroy`, `popup_model_update` | Modal dialogs |
-| Popovers | `popover_display`, `popover_destroy`, `popover_model_update` | Context popovers |
-| Binding | `_bind(val)`, `_bind_edit(val)` | Read-only / two-way binding |
-| Events | `_event(val)`, `_event_client(val)`, `check_on_event(val)` | Event registration and checking |
-| Navigation | `nav_app_call(app)`, `nav_app_leave()`, `get_app_prev()` | App stack navigation |
-| Lifecycle | `check_on_init()`, `check_on_navigated()`, `check_app_prev_stack()` | State checks |
-| Messages | `message_box_display(text)`, `message_toast_display(text)` | User notifications |
-| Session | `set_session_stateful(val)`, `set_app_state_active(val)` | Session management |
-| Browser | `set_push_state(val)`, `set_nav_back(val)`, `follow_up_action(val)` | Browser interaction |
-| Info | `get()`, `get_event_arg()`, `get_app(id)` | Request/context data |
-| Constants | `cs_event`, `cs_view` | Predefined event IDs and view names |
-
-## Common Tasks
-
-### Adding a New UI5 Control to `z2ui5_cl_xml_view`
-
-Every fluent method follows this pattern — add a new method to the class:
-
-```abap
-METHOD my_control.
-  result = me.
-  _generic( name   = `MyControl`
-            ns     = ``
-            t_prop = VALUE #( ( n = `text`    v = text )
-                              ( n = `visible` v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
-                              ( n = `press`   v = press ) ) ).
-ENDMETHOD.
-```
-
-Key rules:
-- All parameters: `TYPE clike OPTIONAL`
-- Return type: `REF TO z2ui5_cl_xml_view` (enables chaining)
-- `_generic()` creates the XML node, adds it to the tree, returns the child for chaining
-- Boolean properties: always convert via `z2ui5_cl_util=>boolean_abap_2_json()`
-- `ns` parameter: empty for standard controls, specific namespace for others (e.g., `networkgraph`)
-
-### Creating a New Popup App
-
-Follow the pattern of `z2ui5_cl_pop_to_confirm`:
-
-```abap
-CLASS z2ui5_cl_pop_my_popup DEFINITION PUBLIC FINAL CREATE PUBLIC.
-  PUBLIC SECTION.
-    INTERFACES z2ui5_if_app.
-
-    CLASS-METHODS factory
-      IMPORTING i_text TYPE clike
-      RETURNING VALUE(r_result) TYPE REF TO z2ui5_cl_pop_my_popup.
-
-    METHODS result
-      RETURNING VALUE(result) TYPE string.
-
-  PROTECTED SECTION.
-    DATA client TYPE REF TO z2ui5_if_client.
-    DATA mv_text TYPE string.
-    METHODS view_display.
-ENDCLASS.
-```
-
-Implementation essentials:
-- `factory()` → creates instance, sets parameters, returns it
-- `main()` → `check_on_init()` calls `view_display()`; event handlers call `client->popup_destroy()` then `client->nav_app_leave()`
-- `view_display()` → uses `z2ui5_cl_xml_view=>factory_popup()` and ends with `client->popup_display( xml->stringify() )`
-- Caller uses: `client->nav_app_call( z2ui5_cl_pop_my_popup=>factory( 'text' ) )`
-
-### Adding Custom Controls to `z2ui5_cl_xml_view_cc`
-
-Same as standard controls but:
-- Always use namespace `z2ui5`: `mo_view->_generic( name = 'MyCC' ns = 'z2ui5' ... )`
-- Methods return `REF TO z2ui5_cl_xml_view` (via `mo_view`)
-
 ## Repository Structure
 
 ```
@@ -233,6 +131,32 @@ Additional directories:
 ## Language & Code Rules
 
 **Primary language:** ABAP (v750 syntax target, downported to v702 via CI)
+
+### Coding Style
+
+This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styleguides/blob/main/clean-abap/CleanABAP.md) with the following deliberate exceptions:
+
+| Clean ABAP Recommendation | This Project | Reason |
+|---|---|---|
+| No Hungarian prefixes | Prefixes used throughout (`mv_`, `mo_`, `ms_`, `lo_`, `lv_`, `ls_`, `li_`, `lx_`) | Established project convention, enforced consistently |
+| No public instance attributes | Public `DATA` used extensively | Framework architecture requires direct state access |
+| Prefer inline declarations (`DATA(var)`) | Used selectively, not enforced | `prefer_inline: false` — clarity over brevity |
+| abapdoc comments | Disabled (`abapdoc: false`) | Self-documenting code preferred |
+
+**Project-specific patterns to follow:**
+
+- **Class definition:** Always add `FINAL` unless inheritance is explicitly needed
+  ```abap
+  CLASS z2ui5_cl_my_class DEFINITION PUBLIC FINAL CREATE PUBLIC.
+  ```
+- **Exception handling:** Use `cx_root` as catch-all; re-raise as `z2ui5_cx_util_error`; use `##NO_HANDLER` when intentionally ignoring
+  ```abap
+  CATCH cx_root INTO DATA(x).
+    RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = x.
+
+  CATCH cx_root ##NO_HANDLER.
+  ```
+- **API parameter types:** Use `TYPE clike` for string/char input parameters in public API methods (allows both string and char literals without conversion)
 
 ### Naming (enforced by abaplint)
 
