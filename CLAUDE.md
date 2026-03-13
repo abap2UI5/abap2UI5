@@ -132,6 +132,32 @@ Additional directories:
 
 **Primary language:** ABAP (v750 syntax target, downported to v702 via CI)
 
+### Coding Style
+
+This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styleguides/blob/main/clean-abap/CleanABAP.md) with the following deliberate exceptions:
+
+| Clean ABAP Recommendation | This Project | Reason |
+|---|---|---|
+| No Hungarian prefixes | Prefixes used throughout (`mv_`, `mo_`, `ms_`, `lo_`, `lv_`, `ls_`, `li_`, `lx_`) | Established project convention, enforced consistently |
+| No public instance attributes | Public `DATA` used extensively | Framework architecture requires direct state access |
+| Prefer inline declarations (`DATA(var)`) | Used selectively, not enforced | `prefer_inline: false` — clarity over brevity |
+| abapdoc comments | Disabled (`abapdoc: false`) | Self-documenting code preferred |
+
+**Project-specific patterns to follow:**
+
+- **Class definition:** Always add `FINAL` unless inheritance is explicitly needed
+  ```abap
+  CLASS z2ui5_cl_my_class DEFINITION PUBLIC FINAL CREATE PUBLIC.
+  ```
+- **Exception handling:** Use `cx_root` as catch-all; re-raise as `z2ui5_cx_util_error`; use `##NO_HANDLER` when intentionally ignoring
+  ```abap
+  CATCH cx_root INTO DATA(x).
+    RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = x.
+
+  CATCH cx_root ##NO_HANDLER.
+  ```
+- **API parameter types:** Use `TYPE clike` for string/char input parameters in public API methods (allows both string and char literals without conversion)
+
 ### Naming (enforced by abaplint)
 
 - Classes: `Z2UI5_CL_*` or `Z2UI5_CX_*`
