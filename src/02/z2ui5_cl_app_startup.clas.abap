@@ -325,12 +325,11 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         RETURN.
 
       WHEN cs_event-button_check.
-        IF ms_home-class_editable = abap_false.
-          reset_button_state( ).
+        on_event_check( ).
+        client->view_model_update( ).
 
-        ELSE.
-          on_event_check( ).
-        ENDIF.
+      WHEN cs_event-button_change.
+        reset_button_state( ).
         client->view_model_update( ).
 
       WHEN cs_event-value_help.
