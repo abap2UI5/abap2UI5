@@ -209,9 +209,9 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     simple_form->toolbar( )->title( `Documentation` ).
     simple_form->label( ).
-    simple_form->link( text   = `www.abap2UI5.org`
+    simple_form->link( text   = `abap2UI5.org`
                        target = `_blank`
-                       href   = `http://www.abap2UI5.org` ).
+                       href   = `https://abap2UI5.org` ).
 
     client->view_display( page->stringify( ) ).
 
