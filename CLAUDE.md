@@ -112,7 +112,7 @@ App state is persisted between roundtrips via the draft service (`z2ui5_cl_core_
 - `n( \`Name\` )` / `n( )` — navigate to named ancestor / parent
 - `stringify( indent=abap_true )` — serialize to XML string
 
-**Important:** always pass `'false'` as a string literal — `abap_false` (space) is filtered out and the attribute would be silently dropped. `abap_true` ('X') is correctly converted to `'true'`.
+**Important:** always pass `'true'` or `'false'` as string literals — never use `abap_true` or `abap_false` for XML attribute values. `abap_false` (space) is filtered out and the attribute would be silently dropped; `abap_true` ('X') is not converted and would produce an invalid attribute value.
 
 **Complete example:**
 ```abap
