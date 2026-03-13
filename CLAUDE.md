@@ -17,6 +17,8 @@ abap2UI5 is a framework for building SAP UI5 applications purely in ABAP — no 
 | [abap2UI5-samples](https://github.com/abap2UI5/abap2UI5-samples) | Sample applications and usage examples |
 | [abap2UI5-documentation](https://github.com/abap2UI5/abap2UI5-documentation) | Project documentation |
 
+> **Building apps?** See the [abap2UI5-samples](https://github.com/abap2UI5/abap2UI5-samples) repository — it contains the app development guide (CLAUDE.md), canonical app template, Client API reference, and 250+ example apps to learn from.
+
 ## Architecture
 
 ### How It Works — The Roundtrip
