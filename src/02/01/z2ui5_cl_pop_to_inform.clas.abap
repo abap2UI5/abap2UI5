@@ -8,7 +8,7 @@ CLASS z2ui5_cl_pop_to_inform DEFINITION
     CLASS-METHODS factory
       IMPORTING
         i_text          TYPE string
-        i_title         TYPE string DEFAULT `Title`
+        i_title         TYPE string DEFAULT `Information`
         i_icon          TYPE string DEFAULT `sap-icon://question-mark`
         i_button_text   TYPE string DEFAULT `OK`
       RETURNING
