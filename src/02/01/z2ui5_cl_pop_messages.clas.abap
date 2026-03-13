@@ -52,10 +52,7 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
       DATA(ls_row) = VALUE ty_s_msg( ).
       ls_row-type     = z2ui5_cl_util=>ui5_get_msg_type( lr_row->type ).
       ls_row-title    = lr_row->text.
-*      lr_row->title = `title`.
-*      lr_row->message = `message`.
       ls_row-subtitle = |{ lr_row->id } { lr_row->no }|.
-*      lr_row->group = `001`.
 
       INSERT ls_row INTO TABLE r_result->mt_msg.
     ENDLOOP.
@@ -67,14 +64,13 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
   METHOD view_display.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
-    popup = popup->dialog( title             = `Messages`
+    popup = popup->dialog( title             = title
                            contentheight     = `50%`
                            contentwidth      = `50%`
                            verticalscrolling = abap_false
                            afterclose        = client->_event( `BUTTON_CONTINUE` ) ).
 
     popup->message_view( items = client->_bind( mt_msg )
-*                         groupitems = abap_true
         )->message_item( type     = `{TYPE}`
                          title    = `{TITLE}`
                          subtitle = `{SUBTITLE}` ).
