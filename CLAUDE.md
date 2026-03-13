@@ -86,10 +86,54 @@ App state is persisted between roundtrips via the draft service (`z2ui5_cl_core_
 
 - **Factory:** `z2ui5_cl_http_handler=>factory()` / `factory_cloud()` for on-premise vs. cloud
 - **Fluent Builder:** `z2ui5_cl_xml_view=>factory()->shell()->page()->...->stringify()` builds XML views
+- **Generic XML Builder:** `z2ui5_cl_util_xml=>factory()` builds any XML view (see below)
 - **Event Routing:** `client->_event('ID')` registers; `client->check_on_event('ID')` checks
 - **App Navigation:** `client->nav_app_call(app)` pushes; `client->nav_app_leave()` pops (executed in a loop within one roundtrip)
 - **Multi-View:** Main view, nested views (nest/nest2), popups, and popovers simultaneously
 - **Exit Pattern:** `z2ui5_cl_exit` / `z2ui5_if_exit` for custom themes, CSP headers, etc.
+
+### Building Views with the Full UI5 API — `z2ui5_cl_util_xml`
+
+`z2ui5_cl_util_xml` (`src/00/03/`) is a generic XML builder. Because it takes any element name and attributes as strings, **the entire UI5 control library is immediately available** — no wrapper methods needed, no waiting for new releases.
+
+**The pattern for AI assistants:** look up any control at https://ui5.sap.com/#/api, then translate the XML view example 1:1 to ABAP:
+
+| UI5 XML view | ABAP with `z2ui5_cl_util_xml` |
+|---|---|
+| `<Button text="Send" />` | `->__( n=\`Button\` a=\`text\` v=\`Send\` )` |
+| `press="onPress"` | `v = client->_event( \`BUTTON_POST\` )` |
+| `value="{/name}"` | `v = client->_bind_edit( name )` |
+| `<FeedInput><actions>...</actions></FeedInput>` | `->_( \`FeedInput\` )->_( \`actions\` )->__( ... )` |
+
+**Builder methods:**
+- `_( n=\`Name\` ns=\`ns\` a=\`attr\` v=\`val\` p=... )` — add child, **return child** (go deeper)
+- `__( n=\`Name\` ... )` — add child, **return self** (stay at same level / leaf node)
+- `p( n=\`attr\` v=\`val\` )` — add attribute to current node
+- `n( \`Name\` )` / `n( )` — navigate to named ancestor / parent
+- `stringify( indent=abap_true )` — serialize to XML string
+
+**Important:** always pass `'false'` as a string literal — `abap_false` (space) is filtered out and the attribute would be silently dropped. `abap_true` ('X') is correctly converted to `'true'`.
+
+**Complete example:**
+```abap
+METHOD z2ui5_if_app~main.
+  CASE abap_true.
+    WHEN client->check_on_init( ).
+      DATA(lo_view) = z2ui5_cl_util_xml=>factory(
+        )->_( n = `View`  ns = `mvc`
+              p = VALUE #( ( n = `xmlns:mvc` v = `sap.ui.core.mvc` )
+                           ( n = `xmlns`     v = `sap.m` ) )
+        )->_( `Page`  a = `title`  v = `Hello`
+        )->__( n = `Input`   a = `value` v = client->_bind_edit( name )
+        )->__( n = `Button`
+               p = VALUE #( ( n = `text`  v = `Send` )
+                            ( n = `press` v = client->_event( `POST` ) ) ) ).
+      client->view_display( lo_view->stringify( ) ).
+    WHEN client->check_on_event( `POST` ).
+      client->message_box_display( name ).
+  ENDCASE.
+ENDMETHOD.
+```
 
 ## Repository Structure
 
@@ -252,3 +296,4 @@ test: add unit tests for utility class
 7. **The `z2ui5_cl_xml_view` class has a `method_overwrites_builtin` exception** — its fluent methods intentionally match UI5 control names.
 8. **Use built-in popups** (`src/02/01/z2ui5_cl_pop_*`) rather than building custom ones.
 9. **`z2ui5_if_client` constants**: `cs_event` has predefined client events (`popup_close`, `download_b64_file`, `location_reload`); `cs_view` has view type IDs.
+10. **Building views:** Use `z2ui5_cl_util_xml` to build any UI5 view by looking up controls at https://ui5.sap.com/#/api and translating the XML 1:1. This gives access to the full UI5 API without needing `z2ui5_cl_xml_view` wrapper methods. See the "Building Views with the Full UI5 API" section above.
