@@ -48,10 +48,6 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
 
     r_result = NEW #( ).
 
-    " read log infos
-    " handle
-    "..
-
     " read messages..
     DATA(lt_msg) = z2ui5_cl_util=>msg_get_t( i_messages ).
     LOOP AT lt_msg REFERENCE INTO DATA(lr_row).
@@ -69,7 +65,6 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
       ls_row-subtitle   = |{ lr_row->id } { lr_row->no }|.
       ls_row-date       = z2ui5_cl_util=>time_get_date_by_stampl( lr_row->timestampl ).
       ls_row-time       = z2ui5_cl_util=>time_get_time_by_stampl( lr_row->timestampl ).
-*      lr_row->group = `001`.
 
       INSERT ls_row INTO TABLE r_result->mt_msg.
     ENDLOOP.
@@ -81,7 +76,7 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
   METHOD view_display.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
-    popup = popup->dialog( title             = `Business Application Log`
+    popup = popup->dialog( title             = title
                            contentheight     = `50%`
                            contentwidth      = `50%`
                            verticalscrolling = abap_false

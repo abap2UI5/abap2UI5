@@ -36,11 +36,13 @@ CLASS z2ui5_cl_pop_data IMPLEMENTATION.
 
       WHEN cl_abap_typedescr=>typekind_table.
 
-        client->nav_app_call( z2ui5_cl_pop_table=>factory( <data> ) ).
+        client->nav_app_call( z2ui5_cl_pop_table=>factory( i_tab   = <data>
+                                                           i_title = title ) ).
 
       WHEN cl_abap_typedescr=>typekind_struct1 OR cl_abap_typedescr=>typekind_struct2.
         DATA(lt_result) = z2ui5_cl_util=>itab_get_by_struc( <data> ).
-        client->nav_app_call( z2ui5_cl_pop_table=>factory( lt_result ) ).
+        client->nav_app_call( z2ui5_cl_pop_table=>factory( i_tab   = lt_result
+                                                           i_title = title ) ).
 
     ENDCASE.
 

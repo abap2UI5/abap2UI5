@@ -209,9 +209,9 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     simple_form->toolbar( )->title( `Documentation` ).
     simple_form->label( ).
-    simple_form->link( text   = `www.abap2UI5.org`
+    simple_form->link( text   = `abap2UI5.org`
                        target = `_blank`
-                       href   = `http://www.abap2UI5.org` ).
+                       href   = `https://abap2UI5.org` ).
 
     client->view_display( page->stringify( ) ).
 
@@ -325,12 +325,11 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         RETURN.
 
       WHEN cs_event-button_check.
-        IF ms_home-class_editable = abap_false.
-          reset_button_state( ).
+        on_event_check( ).
+        client->view_model_update( ).
 
-        ELSE.
-          on_event_check( ).
-        ENDIF.
+      WHEN cs_event-button_change.
+        reset_button_state( ).
         client->view_model_update( ).
 
       WHEN cs_event-value_help.
