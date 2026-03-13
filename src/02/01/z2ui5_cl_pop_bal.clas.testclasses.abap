@@ -48,9 +48,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA(lo_pop) = z2ui5_cl_pop_bal=>factory( lt_msg ).
 
-    READ TABLE lo_pop->mt_msg INDEX 1 INTO DATA(ls_msg).
     cl_abap_unit_assert=>assert_equals(
-      act = ls_msg-message
+      act = lo_pop->mt_msg[ 1 ]-message
       exp = `Something failed` ).
   ENDMETHOD.
 
