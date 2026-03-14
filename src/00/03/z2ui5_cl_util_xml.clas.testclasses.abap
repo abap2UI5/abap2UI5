@@ -37,8 +37,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_factory.
 
-    DATA(lo_view) = z2ui5_cl_util_xml=>factory( )->_( `View` ).
-    DATA(lv_xml) = lo_view->_( n = `Page`
+    DATA(lo_view) = z2ui5_cl_util_xml=>factory( )->__( `View` ).
+    DATA(lv_xml) = lo_view->__( n = `Page`
                                 p = VALUE #( ( n = `title` v = `test` ) )
                               )->stringify( ).
 
@@ -49,10 +49,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_factory_popup.
 
-    DATA(lo_popup) = z2ui5_cl_util_xml=>factory( )->_( n = `FragmentDefinition` ns = `core`
+    DATA(lo_popup) = z2ui5_cl_util_xml=>factory( )->__( n = `FragmentDefinition` ns = `core`
                        p = VALUE #( ( n = `xmlns` v = `sap.m` )
                                     ( n = `xmlns:core` v = `sap.ui.core` ) ) ).
-    DATA(lv_xml) = lo_popup->_( n = `Dialog`
+    DATA(lv_xml) = lo_popup->__( n = `Dialog`
                                  p = VALUE #( ( n = `title` v = `Test` ) )
                                )->stringify( ).
 
@@ -65,9 +65,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_shell_page.
 
     DATA(lv_xml) = z2ui5_cl_util_xml=>factory(
-      )->_( n = `View` ns = `mvc`
-      )->_( `Shell`
-      )->_( n = `Page`
+      )->__( n = `View` ns = `mvc`
+      )->__( `Shell`
+      )->__( n = `Page`
             p = VALUE #( ( n = `title` v = `My Page` ) )
       )->stringify( ).
 
@@ -80,9 +80,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_button.
 
     DATA(lv_xml) = z2ui5_cl_util_xml=>factory(
-      )->_( n = `View` ns = `mvc`
-      )->_( n = `Page` a = `title` v = `Test`
-      )->__( n = `Button`
+      )->__( n = `View` ns = `mvc`
+      )->__( n = `Page` a = `title` v = `Test`
+      )->_( n = `Button`
              p = VALUE #( ( n = `text`  v = `Click Me` )
                            ( n = `press` v = `onPress` ) )
       )->stringify( ).
@@ -95,11 +95,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_leaf.
 
     DATA(lo_page) = z2ui5_cl_util_xml=>factory(
-      )->_( n = `View` ns = `mvc`
-      )->_( n = `Page` a = `title` v = `Test` ).
+      )->__( n = `View` ns = `mvc`
+      )->__( n = `Page` a = `title` v = `Test` ).
 
-    lo_page->__( n = `Button` a = `text` v = `Btn1` ).
-    lo_page->__( n = `Button` a = `text` v = `Btn2` ).
+    lo_page->_( n = `Button` a = `text` v = `Btn1` ).
+    lo_page->_( n = `Button` a = `text` v = `Btn2` ).
 
     DATA(lv_xml) = lo_page->stringify( ).
 
@@ -111,12 +111,12 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_nested.
 
     DATA(lv_xml) = z2ui5_cl_util_xml=>factory(
-      )->_( n = `View` ns = `mvc`
-      )->_( `Shell`
-      )->_( n = `Page` a = `title` v = `Test`
-      )->_( `VBox`
-      )->_( `HBox`
-      )->__( n = `Text` a = `text` v = `Nested`
+      )->__( n = `View` ns = `mvc`
+      )->__( `Shell`
+      )->__( n = `Page` a = `title` v = `Test`
+      )->__( `VBox`
+      )->__( `HBox`
+      )->_( n = `Text` a = `text` v = `Nested`
       )->stringify( ).
 
     cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `VBox` ) ).
@@ -128,9 +128,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_nav_up.
 
     DATA(lo_root) = z2ui5_cl_util_xml=>factory( ).
-    DATA(lo_view) = lo_root->_( n = `View` ns = `mvc` ).
-    DATA(lo_page) = lo_view->_( n = `Page` a = `title` v = `Test` ).
-    DATA(lo_vbox) = lo_page->_( `VBox` ).
+    DATA(lo_view) = lo_root->__( n = `View` ns = `mvc` ).
+    DATA(lo_page) = lo_view->__( n = `Page` a = `title` v = `Test` ).
+    DATA(lo_vbox) = lo_page->__( `VBox` ).
     DATA(lo_parent) = lo_vbox->n( ).
 
     cl_abap_unit_assert=>assert_equals( exp = lo_page act = lo_parent ).
@@ -140,13 +140,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_nav_named.
 
     DATA(lo_root) = z2ui5_cl_util_xml=>factory( ).
-    DATA(lo_view) = lo_root->_( n = `View` ns = `mvc` ).
-    DATA(lo_page) = lo_view->_( n = `Page` a = `title` v = `Test` ).
-    lo_page->_( `VBox`
-      )->_( `HBox` ).
+    DATA(lo_view) = lo_root->__( n = `View` ns = `mvc` ).
+    DATA(lo_page) = lo_view->__( n = `Page` a = `title` v = `Test` ).
+    lo_page->__( `VBox`
+      )->__( `HBox` ).
 
-    DATA(lo_result) = lo_page->_( `VBox`
-      )->_( `HBox`
+    DATA(lo_result) = lo_page->__( `VBox`
+      )->__( `HBox`
       )->n( `Page` ).
 
     cl_abap_unit_assert=>assert_equals( exp = lo_page act = lo_result ).
@@ -156,11 +156,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_nav_not_found.
 
     DATA(lo_root) = z2ui5_cl_util_xml=>factory( ).
-    DATA(lo_view) = lo_root->_( n = `View` ns = `mvc` ).
-    DATA(lo_page) = lo_view->_( n = `Page` a = `title` v = `Test` ).
+    DATA(lo_view) = lo_root->__( n = `View` ns = `mvc` ).
+    DATA(lo_page) = lo_view->__( n = `Page` a = `title` v = `Test` ).
 
-    DATA(lo_result) = lo_page->_( `VBox`
-      )->_( `HBox`
+    DATA(lo_result) = lo_page->__( `VBox`
+      )->__( `HBox`
       )->n( `NotExisting` ).
 
     cl_abap_unit_assert=>assert_bound( lo_result ).
@@ -170,9 +170,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_nav_prev.
 
     DATA(lo_root) = z2ui5_cl_util_xml=>factory( ).
-    DATA(lo_view) = lo_root->_( n = `View` ns = `mvc` ).
-    DATA(lo_page) = lo_view->_( n = `Page` a = `title` v = `Test` ).
-    lo_page->__( n = `Button` a = `text` v = `Btn` ).
+    DATA(lo_view) = lo_root->__( n = `View` ns = `mvc` ).
+    DATA(lo_page) = lo_view->__( n = `Page` a = `title` v = `Test` ).
+    lo_page->_( n = `Button` a = `text` v = `Btn` ).
 
     DATA(lo_prev) = lo_root->n_prev( ).
 
@@ -183,10 +183,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_nav_root.
 
     DATA(lo_root) = z2ui5_cl_util_xml=>factory( ).
-    DATA(lo_deep) = lo_root->_( n = `View` ns = `mvc`
-      )->_( `Shell`
-      )->_( `Page`
-      )->_( `VBox` ).
+    DATA(lo_deep) = lo_root->__( n = `View` ns = `mvc`
+      )->__( `Shell`
+      )->__( `Page`
+      )->__( `VBox` ).
 
     DATA(lo_result) = lo_deep->n_root( ).
 
@@ -197,11 +197,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_namespace.
 
     DATA(lv_xml) = z2ui5_cl_util_xml=>factory(
-      )->_( n = `View` ns = `mvc`
+      )->__( n = `View` ns = `mvc`
             p = VALUE #( ( n = `xmlns:f` v = `sap.f` ) )
-      )->_( n  = `DynamicPage`
+      )->__( n  = `DynamicPage`
             ns = `f`
-      )->_( n  = `DynamicPageTitle`
+      )->__( n  = `DynamicPageTitle`
             ns = `f`
       )->stringify( ).
 
@@ -214,22 +214,22 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_table.
 
     DATA(lo_page) = z2ui5_cl_util_xml=>factory(
-      )->_( n = `View` ns = `mvc`
-      )->_( n = `Page` a = `title` v = `Test` ).
+      )->__( n = `View` ns = `mvc`
+      )->__( n = `Page` a = `title` v = `Test` ).
 
-    DATA(lo_table) = lo_page->_( n = `Table`
+    DATA(lo_table) = lo_page->__( n = `Table`
                                   p = VALUE #( ( n = `items`      v = `{/ITEMS}` )
                                                ( n = `headerText` v = `My Table` ) ) ).
 
-    lo_table->_( `columns`
-      )->_( `Column`
-      )->_( `header`
-      )->__( n = `Text` a = `text` v = `Col1` ).
+    lo_table->__( `columns`
+      )->__( `Column`
+      )->__( `header`
+      )->_( n = `Text` a = `text` v = `Col1` ).
 
-    lo_table->_( `items`
-      )->_( `ColumnListItem`
-      )->_( `cells`
-      )->__( n = `Text` a = `text` v = `{COL1}` ).
+    lo_table->__( `items`
+      )->__( `ColumnListItem`
+      )->__( `cells`
+      )->_( n = `Text` a = `text` v = `{COL1}` ).
 
     DATA(lv_xml) = lo_page->stringify( ).
 
@@ -243,18 +243,18 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_simple_form.
 
     DATA(lo_form) = z2ui5_cl_util_xml=>factory(
-      )->_( n = `View` ns = `mvc`
+      )->__( n = `View` ns = `mvc`
             p = VALUE #( ( n = `xmlns:form` v = `sap.ui.layout.form` ) )
-      )->_( n = `Page` a = `title` v = `Test`
-      )->_( n  = `SimpleForm`
+      )->__( n = `Page` a = `title` v = `Test`
+      )->__( n  = `SimpleForm`
             ns = `form`
             a  = `editable`
             v  = `true` ).
 
-    lo_form->_( n  = `content`
+    lo_form->__( n  = `content`
                 ns = `form`
-      )->__( n = `Label` a = `text` v = `Name`
-      )->__( n = `Input` a = `value` v = `{/NAME}` ).
+      )->_( n = `Label` a = `text` v = `Name`
+      )->_( n = `Input` a = `value` v = `{/NAME}` ).
 
     DATA(lv_xml) = lo_form->stringify( ).
 
@@ -267,10 +267,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_preferred_param.
 
     DATA(lv_xml) = z2ui5_cl_util_xml=>factory(
-      )->_( n = `View` ns = `mvc`
-      )->_( `Shell`
-      )->_( `Page`
-      )->__( `Button`
+      )->__( n = `View` ns = `mvc`
+      )->__( `Shell`
+      )->__( `Page`
+      )->_( `Button`
       )->stringify( ).
 
     cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `Shell` ) ).
@@ -282,9 +282,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_shortcut_av.
 
     DATA(lv_xml) = z2ui5_cl_util_xml=>factory(
-      )->_( n = `View` ns = `mvc`
-      )->_( `Shell`
-      )->__( n = `Button` a = `text` v = `OK`
+      )->__( n = `View` ns = `mvc`
+      )->__( `Shell`
+      )->_( n = `Button` a = `text` v = `OK`
       )->stringify( ).
 
     cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `Button` ) ).
@@ -295,9 +295,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_stringify_subnode.
 
     DATA(lo_root) = z2ui5_cl_util_xml=>factory( ).
-    DATA(lo_view) = lo_root->_( n = `View` ns = `mvc` ).
-    DATA(lo_page) = lo_view->_( n = `Page` a = `title` v = `Test` ).
-    lo_page->__( n = `Button` a = `text` v = `Click` ).
+    DATA(lo_view) = lo_root->__( n = `View` ns = `mvc` ).
+    DATA(lo_page) = lo_view->__( n = `Page` a = `title` v = `Test` ).
+    lo_page->_( n = `Button` a = `text` v = `Click` ).
 
     DATA(lv_full) = lo_page->stringify( ).
     DATA(lv_sub)  = lo_page->stringify( from_root = abap_false ).
@@ -312,9 +312,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_p.
 
     DATA(lo_root) = z2ui5_cl_util_xml=>factory( ).
-    DATA(lo_view) = lo_root->_( n = `View` ns = `mvc` ).
-    DATA(lo_btn)  = lo_view->_( `Page`
-      )->_( n = `Button` a = `text` v = `OK` ).
+    DATA(lo_view) = lo_root->__( n = `View` ns = `mvc` ).
+    DATA(lo_btn)  = lo_view->__( `Page`
+      )->__( n = `Button` a = `text` v = `OK` ).
 
     lo_btn->p( n = `type` v = `Emphasized` ).
     lo_btn->p( n = `icon` v = `sap-icon://accept` ).
@@ -330,13 +330,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_if_true.
 
     DATA(lv_xml) = z2ui5_cl_util_xml=>factory(
-      )->_( n = `View` ns = `mvc`
-      )->_( `Page`
+      )->__( n = `View` ns = `mvc`
+      )->__( `Page`
       )->_if( when = abap_true
               n    = `Panel`
               a    = `headerText`
               v    = `Admin`
-      )->__( n = `Text` a = `text` v = `Secret`
+      )->_( n = `Text` a = `text` v = `Secret`
       )->n( `Page`
       )->stringify( ).
 
@@ -348,13 +348,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_if_false.
 
     DATA(lv_xml) = z2ui5_cl_util_xml=>factory(
-      )->_( n = `View` ns = `mvc`
-      )->_( `Page`
+      )->__( n = `View` ns = `mvc`
+      )->__( `Page`
       )->_if( when = abap_false
               n    = `Panel`
               a    = `headerText`
               v    = `Admin`
-      )->__( n = `Button` a = `text` v = `Visible`
+      )->_( n = `Button` a = `text` v = `Visible`
       )->stringify( ).
 
     cl_abap_unit_assert=>assert_false( xsdbool( lv_xml CS `Panel` ) ).
@@ -365,8 +365,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_leaf_if_true.
 
     DATA(lv_xml) = z2ui5_cl_util_xml=>factory(
-      )->_( n = `View` ns = `mvc`
-      )->_( `Page`
+      )->__( n = `View` ns = `mvc`
+      )->__( `Page`
       )->__if( when = abap_true
                n    = `Button`
                a    = `text`
@@ -380,13 +380,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_leaf_if_false.
 
     DATA(lv_xml) = z2ui5_cl_util_xml=>factory(
-      )->_( n = `View` ns = `mvc`
-      )->_( `Page`
+      )->__( n = `View` ns = `mvc`
+      )->__( `Page`
       )->__if( when = abap_false
                n    = `Button`
                a    = `text`
                v    = `Hidden`
-      )->__( n = `Text` a = `text` v = `Visible`
+      )->_( n = `Text` a = `text` v = `Visible`
       )->stringify( ).
 
     cl_abap_unit_assert=>assert_false( xsdbool( lv_xml CS `Hidden` ) ).
@@ -397,40 +397,40 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD build_page_view.
 
     result = z2ui5_cl_util_xml=>factory(
-      )->_( n = `View` ns = `mvc`
+      )->__( n = `View` ns = `mvc`
             p = VALUE #( ( n = `height`    v = `100%` )
                          ( n = `xmlns:mvc` v = `sap.ui.core.mvc` )
                          ( n = `xmlns`     v = `sap.m` ) ) ).
 
-    DATA(lo_page) = result->_( n = `Page`
+    DATA(lo_page) = result->__( n = `Page`
       p = VALUE #( ( n = `title`         v = `Title` )
                    ( n = `class`         v = `sapUiContentPadding sapUiResponsivePadding--header sapUiResponsivePadding--subHeader sapUiResponsivePadding--content sapUiResponsivePadding--footer` )
                    ( n = `showNavButton` v = `true` ) ) ).
 
-    lo_page->_( `headerContent`
-      )->__( n = `Button`
+    lo_page->__( `headerContent`
+      )->_( n = `Button`
              p = VALUE #( ( n = `icon`    v = `sap-icon://action` )
                           ( n = `tooltip` v = `Share` ) ) ).
 
-    lo_page->_( `subHeader`
-      )->_( `OverflowToolbar`
-      )->__( `SearchField` ).
+    lo_page->__( `subHeader`
+      )->__( `OverflowToolbar`
+      )->_( `SearchField` ).
 
-    lo_page->_( `content`
-      )->_( `VBox`
-      )->__( n = `Text` a = `text`
+    lo_page->__( `content`
+      )->__( `VBox`
+      )->_( n = `Text` a = `text`
              v = `Lorem ipsum dolor st amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.`
            && ` At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.`
            && ` Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.`
            && ` Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat` ).
 
-    DATA(lo_footer_toolbar) = lo_page->_( `footer`
-      )->_( `OverflowToolbar` ).
-    lo_footer_toolbar->__( `ToolbarSpacer` ).
-    lo_footer_toolbar->__( n = `Button` p = VALUE #( ( n = `text` v = `Accept` ) ( n = `type` v = `Accept` ) ) ).
-    lo_footer_toolbar->__( n = `Button` p = VALUE #( ( n = `text` v = `Reject` ) ( n = `type` v = `Reject` ) ) ).
-    lo_footer_toolbar->__( n = `Button` a = `text` v = `Edit` ).
-    lo_footer_toolbar->__( n = `Button` a = `text` v = `Delete` ).
+    DATA(lo_footer_toolbar) = lo_page->__( `footer`
+      )->__( `OverflowToolbar` ).
+    lo_footer_toolbar->_( `ToolbarSpacer` ).
+    lo_footer_toolbar->_( n = `Button` p = VALUE #( ( n = `text` v = `Accept` ) ( n = `type` v = `Accept` ) ) ).
+    lo_footer_toolbar->_( n = `Button` p = VALUE #( ( n = `text` v = `Reject` ) ( n = `type` v = `Reject` ) ) ).
+    lo_footer_toolbar->_( n = `Button` a = `text` v = `Edit` ).
+    lo_footer_toolbar->_( n = `Button` a = `text` v = `Delete` ).
 
   ENDMETHOD.
 
