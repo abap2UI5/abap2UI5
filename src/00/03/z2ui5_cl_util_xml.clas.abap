@@ -10,7 +10,7 @@ CLASS z2ui5_cl_util_xml DEFINITION
 
     METHODS constructor.
 
-    METHODS _
+    METHODS __
       IMPORTING
         n             TYPE clike
         ns            TYPE clike                           OPTIONAL
@@ -20,7 +20,7 @@ CLASS z2ui5_cl_util_xml DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
 
-    METHODS __
+    METHODS _
       IMPORTING
         n             TYPE clike
         ns            TYPE clike                           OPTIONAL
@@ -121,7 +121,7 @@ CLASS z2ui5_cl_util_xml IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD _.
+  METHOD __.
 
     DATA(lo_child) = NEW z2ui5_cl_util_xml( ).
     lo_child->mv_name   = n.
@@ -139,25 +139,25 @@ CLASS z2ui5_cl_util_xml IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD __.
+  METHOD _.
 
     result = me.
-    _( n  = n
-       ns = ns
-       a  = a
-       v  = v
-       p  = p ).
+    __( n  = n
+        ns = ns
+        a  = a
+        v  = v
+        p  = p ).
 
   ENDMETHOD.
 
   METHOD _if.
 
     IF when = abap_true.
-      result = _( n  = n
-                  ns = ns
-                  a  = a
-                  v  = v
-                  p  = p ).
+      result = __( n  = n
+                   ns = ns
+                   a  = a
+                   v  = v
+                   p  = p ).
     ELSE.
       result = me.
     ENDIF.
@@ -167,11 +167,11 @@ CLASS z2ui5_cl_util_xml IMPLEMENTATION.
   METHOD __if.
 
     IF when = abap_true.
-      __( n  = n
-          ns = ns
-          a  = a
-          v  = v
-          p  = p ).
+      _( n  = n
+         ns = ns
+         a  = a
+         v  = v
+         p  = p ).
     ENDIF.
     result = me.
 
