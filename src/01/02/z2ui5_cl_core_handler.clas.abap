@@ -84,7 +84,8 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         ENDTRY.
 
         TRY.
-            DATA(lv_hash) = substring_after( val = result-s_front-hash sub = `&/` ).
+            DATA(lv_hash) = substring_after( val = result-s_front-hash
+                                             sub = `&/` ).
             IF lv_hash IS INITIAL.
               lv_hash = result-s_front-hash+2.
             ENDIF.
