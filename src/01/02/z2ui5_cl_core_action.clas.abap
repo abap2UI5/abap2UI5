@@ -1,6 +1,4 @@
-CLASS z2ui5_cl_core_action DEFINITION
-  PUBLIC FINAL
-  CREATE PUBLIC.
+CLASS z2ui5_cl_core_action DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     DATA mo_http_post TYPE REF TO z2ui5_cl_core_handler.

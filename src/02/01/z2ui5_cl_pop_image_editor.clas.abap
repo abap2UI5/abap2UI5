@@ -1,7 +1,4 @@
-CLASS z2ui5_cl_pop_image_editor DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC.
+CLASS z2ui5_cl_pop_image_editor DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.

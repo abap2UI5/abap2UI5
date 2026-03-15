@@ -1,6 +1,4 @@
-CLASS z2ui5_cl_app_startup DEFINITION
-  PUBLIC FINAL
-  CREATE PROTECTED.
+CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.

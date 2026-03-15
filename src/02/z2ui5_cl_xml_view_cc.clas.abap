@@ -1,6 +1,4 @@
-CLASS z2ui5_cl_xml_view_cc DEFINITION
-  PUBLIC FINAL
-  CREATE PUBLIC.
+CLASS z2ui5_cl_xml_view_cc DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     METHODS smartmultiinput_ext

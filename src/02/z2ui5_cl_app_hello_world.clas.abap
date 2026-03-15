@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_app_hello_world DEFINITION PUBLIC FINAL CREATE PUBLIC.
+CLASS z2ui5_cl_app_hello_world DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
