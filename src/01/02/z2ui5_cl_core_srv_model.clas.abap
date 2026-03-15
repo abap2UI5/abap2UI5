@@ -1,6 +1,4 @@
-CLASS z2ui5_cl_core_srv_model DEFINITION
-  PUBLIC FINAL
-  CREATE PUBLIC.
+CLASS z2ui5_cl_core_srv_model DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     METHODS constructor

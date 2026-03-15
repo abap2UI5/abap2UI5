@@ -1,6 +1,4 @@
-CLASS z2ui5_cl_pop_file_dl DEFINITION
-  PUBLIC FINAL
-  CREATE PUBLIC.
+CLASS z2ui5_cl_pop_file_dl DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
