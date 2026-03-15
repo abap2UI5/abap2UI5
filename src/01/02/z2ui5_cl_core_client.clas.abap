@@ -302,7 +302,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   METHOD z2ui5_if_client~view_display.
 
     mo_action->ms_next-s_set-s_view-xml = val.
-    mo_action->ms_next-s_set-s_view-switch_default_model_anno_uri = switch_default_model_anno_uri.
+    mo_action->ms_next-s_set-s_view-switchdefaultmodelannouri = switch_default_model_anno_uri.
     mo_action->ms_next-s_set-s_view-switch_default_model_path = switch_default_model_path.
 
   ENDMETHOD.
