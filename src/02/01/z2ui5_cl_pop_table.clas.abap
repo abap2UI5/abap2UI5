@@ -47,7 +47,6 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( afterclose = client->_event( `BUTTON_CONFIRM` )
                                                                stretch    = abap_true
                                                                title      = title
-*                                                               icon       = `sap-icon://edit`
           )->content( ).
 
     DATA(tab) = popup->table( client->_bind( <tab_out> ) ).

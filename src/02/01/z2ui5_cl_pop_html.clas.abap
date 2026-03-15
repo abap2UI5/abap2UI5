@@ -64,12 +64,10 @@ CLASS z2ui5_cl_pop_html IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CASE client->get( )-event.
-      WHEN `BUTTON_CONFIRM`.
-        client->popup_destroy( ).
-        client->nav_app_leave( ).
-      WHEN OTHERS.
-    ENDCASE.
+    IF client->check_on_event( `BUTTON_CONFIRM` ).
+      client->popup_destroy( ).
+      client->nav_app_leave( ).
+    ENDIF.
 
   ENDMETHOD.
 

@@ -93,7 +93,6 @@ CLASS z2ui5_cl_pop_js_loader IMPLEMENTATION.
       WHEN `TIMER_FINISHED`.
         client->popup_destroy( ).
         client->nav_app_leave( ).
-      WHEN OTHERS.
     ENDCASE.
 
   ENDMETHOD.
