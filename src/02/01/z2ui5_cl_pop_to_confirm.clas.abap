@@ -102,10 +102,10 @@ CLASS z2ui5_cl_pop_to_confirm IMPLEMENTATION.
         client->follow_up_action( client->_event( event_confirm ) ).
 
       WHEN `BUTTON_CANCEL`.
-        client->follow_up_action( client->_event( event_canceled ) ).
         check_result_confirmed = abap_false.
         client->popup_destroy( ).
         client->nav_app_leave( client->get_app_prev( ) ).
+        client->follow_up_action( client->_event( event_canceled ) ).
     ENDCASE.
 
   ENDMETHOD.

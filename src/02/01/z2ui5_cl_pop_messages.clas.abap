@@ -43,16 +43,12 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
   METHOD factory.
 
     r_result = NEW #( ).
-    DATA(lt_msg) = z2ui5_cl_util=>msg_get_t( i_messages ).
-
-    LOOP AT lt_msg REFERENCE INTO DATA(lr_row).
-
-      DATA(ls_row) = VALUE ty_s_msg( ).
-      ls_row-type     = z2ui5_cl_util=>ui5_get_msg_type( lr_row->type ).
-      ls_row-title    = lr_row->text.
-      ls_row-subtitle = |{ lr_row->id } { lr_row->no }|.
-
-      INSERT ls_row INTO TABLE r_result->mt_msg.
+    LOOP AT z2ui5_cl_util=>msg_get_t( i_messages ) REFERENCE INTO DATA(lr_row).
+      INSERT VALUE ty_s_msg(
+        type     = z2ui5_cl_util=>ui5_get_msg_type( lr_row->type )
+        title    = lr_row->text
+        subtitle = |{ lr_row->id } { lr_row->no }|
+      ) INTO TABLE r_result->mt_msg.
     ENDLOOP.
 
     r_result->title = i_title.
@@ -90,12 +86,10 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CASE client->get( )-event.
-      WHEN `BUTTON_CONTINUE`.
-        client->popup_destroy( ).
-        client->nav_app_leave( ).
-      WHEN OTHERS.
-    ENDCASE.
+    IF client->get( )-event = `BUTTON_CONTINUE`.
+      client->popup_destroy( ).
+      client->nav_app_leave( ).
+    ENDIF.
 
   ENDMETHOD.
 

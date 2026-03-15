@@ -62,14 +62,10 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
   METHOD factory.
 
     r_result = NEW #( ).
-    IF i_title IS INITIAL.
-      r_result->title = COND #(
-                                             WHEN i_multiselect = abap_true
-                                             THEN `Multi select`
-                                             ELSE `Single select` ).
-    ELSE.
-      r_result->title = i_title.
-    ENDIF.
+    r_result->title = COND #(
+      WHEN i_title IS NOT INITIAL    THEN i_title
+      WHEN i_multiselect = abap_true THEN `Multi select`
+      ELSE `Single select` ).
 
     r_result->sort_field        = i_sort_field.
     r_result->descending        = i_descending.
@@ -294,8 +290,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
     FIELD-SYMBOLS <field2>         TYPE any.
 
     DATA(lt_arg) = client->get( )-t_event_arg.
-    READ TABLE lt_arg INTO DATA(ls_arg) INDEX 1.
-    ASSERT sy-subrc = 0.
+    DATA(ls_arg) = lt_arg[ 1 ].
 
     ASSIGN mr_tab_popup->* TO <tab_out>.
     ASSIGN mr_tab_popup_backup->* TO <tab_out_backup>.
