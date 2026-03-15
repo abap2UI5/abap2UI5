@@ -54,7 +54,7 @@ CLASS z2ui5_cl_pop_error IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    IF client->get( )-event = `BUTTON_CONFIRM`.
+    IF client->check_on_event( `BUTTON_CONFIRM` ).
       client->popup_destroy( ).
       client->nav_app_leave( ).
     ENDIF.

@@ -86,7 +86,7 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    IF client->get( )-event = `BUTTON_CONTINUE`.
+    IF client->check_on_event( `BUTTON_CONTINUE` ).
       client->popup_destroy( ).
       client->nav_app_leave( ).
     ENDIF.
