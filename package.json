@@ -22,7 +22,7 @@
   "bugs": {
     "url": "https://github.com/abap2UI5/abap2UI5"
   },
-  "homepage": "www.abap2UI5.org",
+  "homepage": "https://abap2UI5.org",
   "devDependencies": {
     "@abaplint/cli": "^2.116.0",
     "@abaplint/database-sqlite": "^2.11.78",

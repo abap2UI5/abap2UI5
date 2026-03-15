@@ -9,6 +9,7 @@ permissions:
 
 jobs:
   create_frontend:
+    if: github.repository == 'abap2UI5/abap2UI5'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

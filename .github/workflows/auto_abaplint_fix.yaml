@@ -5,8 +5,15 @@ on:
   schedule:
     - cron: '0 0 * * 1'
 
+permissions:
+  contents: read
+
 jobs:
   auto_abaplint_fix:
+    if: github.repository == 'abap2UI5/abap2UI5'
+    permissions:
+      contents: write
+      pull-requests: write
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

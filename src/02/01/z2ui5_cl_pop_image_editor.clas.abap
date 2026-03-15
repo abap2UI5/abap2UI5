@@ -1,5 +1,6 @@
 CLASS z2ui5_cl_pop_image_editor DEFINITION
   PUBLIC
+  FINAL
   CREATE PUBLIC.
 
   PUBLIC SECTION.
