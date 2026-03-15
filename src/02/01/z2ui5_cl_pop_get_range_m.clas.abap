@@ -128,15 +128,13 @@ CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
     CASE client->get( )-event.
 
       WHEN `LIST_DELETE`.
-        DATA(lt_event) = client->get( )-t_event_arg.
-        ASSIGN ms_result-t_filter[ name = lt_event[ 1 ] ] TO <tab>.
+        ASSIGN ms_result-t_filter[ name = client->get_event_arg( 1 ) ] TO <tab>.
         CLEAR <tab>-t_token.
         CLEAR <tab>-t_range.
         client->popup_model_update( ).
 
       WHEN `LIST_OPEN`.
-        lt_event = client->get( )-t_event_arg.
-        mv_popup_name = lt_event[ 1 ].
+        mv_popup_name = client->get_event_arg( 1 ).
         DATA(ls_sql) = ms_result-t_filter[ name = mv_popup_name ].
         client->nav_app_call( z2ui5_cl_pop_get_range=>factory( ls_sql-t_range ) ).
 

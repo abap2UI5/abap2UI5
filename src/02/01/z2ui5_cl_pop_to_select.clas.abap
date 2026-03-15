@@ -289,8 +289,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
     FIELD-SYMBOLS <row2>           TYPE any.
     FIELD-SYMBOLS <field2>         TYPE any.
 
-    DATA(lt_arg) = client->get( )-t_event_arg.
-    DATA(ls_arg) = lt_arg[ 1 ].
+    DATA(ls_arg) = client->get_event_arg( 1 ).
 
     ASSIGN mr_tab_popup->* TO <tab_out>.
     ASSIGN mr_tab_popup_backup->* TO <tab_out_backup>.
