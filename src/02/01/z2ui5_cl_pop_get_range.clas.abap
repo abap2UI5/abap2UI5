@@ -162,8 +162,7 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
         client->popup_model_update( ).
 
       WHEN `POPUP_DELETE`.
-        DATA(lt_event) = client->get( )-t_event_arg.
-        DELETE mt_filter WHERE key = lt_event[ 1 ].
+        DELETE mt_filter WHERE key = client->get_event_arg( 1 ).
         client->popup_model_update( ).
 
       WHEN `POPUP_DELETE_ALL`.
