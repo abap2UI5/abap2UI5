@@ -48,7 +48,7 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
         type     = z2ui5_cl_util=>ui5_get_msg_type( lr_row->type )
         title    = lr_row->text
         subtitle = |{ lr_row->id } { lr_row->no }|
-      ) INTO TABLE r_result->mt_msg.
+        ) INTO TABLE r_result->mt_msg.
     ENDLOOP.
 
     r_result->title = i_title.

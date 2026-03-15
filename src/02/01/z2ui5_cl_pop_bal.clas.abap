@@ -60,7 +60,7 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
         subtitle   = |{ lr_row->id } { lr_row->no }|
         date       = z2ui5_cl_util=>time_get_date_by_stampl( lr_row->timestampl )
         time       = z2ui5_cl_util=>time_get_time_by_stampl( lr_row->timestampl )
-      ) INTO TABLE r_result->mt_msg.
+        ) INTO TABLE r_result->mt_msg.
     ENDLOOP.
 
     r_result->title = i_title.
