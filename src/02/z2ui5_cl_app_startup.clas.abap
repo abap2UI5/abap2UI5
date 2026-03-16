@@ -324,7 +324,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
       WHEN cs_event-button_check.
         on_event_check( ).
-         view_display_start( ).
+        view_display_start( ).
 *        client->view_model_update( ).
 
       WHEN cs_event-button_change.
