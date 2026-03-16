@@ -7,6 +7,9 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_factory          FOR TESTING RAISING cx_static_check.
     METHODS test_factory_with_txt FOR TESTING RAISING cx_static_check.
     METHODS test_result_initial   FOR TESTING RAISING cx_static_check.
+    METHODS test_factory_title    FOR TESTING RAISING cx_static_check.
+    METHODS test_factory_editable FOR TESTING RAISING cx_static_check.
+    METHODS test_factory_stretch  FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -39,6 +42,42 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(lo_pop) = z2ui5_cl_pop_textedit=>factory( ).
     DATA(ls_result) = lo_pop->result( ).
     cl_abap_unit_assert=>assert_false( ls_result-check_confirmed ).
+
+  ENDMETHOD.
+
+  METHOD test_factory_title.
+
+    DATA(lo_pop) = z2ui5_cl_pop_textedit=>factory(
+      i_textarea = `hello`
+      i_title    = `Custom Title` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `Custom Title`
+                                        act = lo_pop->mv_title ).
+
+  ENDMETHOD.
+
+  METHOD test_factory_editable.
+
+    DATA(lo_pop) = z2ui5_cl_pop_textedit=>factory(
+      i_textarea       = `text`
+      i_check_editable = abap_true ).
+
+    cl_abap_unit_assert=>assert_true( lo_pop->mv_check_editable ).
+
+    DATA(lo_pop2) = z2ui5_cl_pop_textedit=>factory( ).
+    cl_abap_unit_assert=>assert_false( lo_pop2->mv_check_editable ).
+
+  ENDMETHOD.
+
+  METHOD test_factory_stretch.
+
+    DATA(lo_pop) = z2ui5_cl_pop_textedit=>factory(
+      i_stretch_active = abap_false ).
+
+    cl_abap_unit_assert=>assert_false( lo_pop->mv_stretch_active ).
+
+    DATA(lo_pop2) = z2ui5_cl_pop_textedit=>factory( ).
+    cl_abap_unit_assert=>assert_true( lo_pop2->mv_stretch_active ).
 
   ENDMETHOD.
 

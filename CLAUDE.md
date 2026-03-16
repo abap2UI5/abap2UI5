@@ -291,9 +291,24 @@ test: add unit tests for utility class
 2. **Never manually edit `src/01/03/`** — auto-generated from `app/webapp/` via `auto_app2abap`.
 3. **Always run `npx abaplint`** before considering changes complete.
 4. **Multi-environment compatibility** — code must work on NW 7.02, standard ABAP, and ABAP Cloud.
-5. **The public API (`src/02/` interfaces) is a stable contract** — changes affect all downstream apps.
+5. **The public API (`src/02/`) is a stable contract — never change or remove existing public attributes, methods, or constants.** This folder is consumed directly by thousands of downstream apps. Specifically:
+   - Do not rename, remove, or change the signature of any method in `z2ui5_if_client`, `z2ui5_if_app`, `z2ui5_if_types`, or `z2ui5_if_exit`
+   - Do not remove or rename public `DATA`, `CONSTANTS`, or `TYPES` in any `src/02/` class or interface
+   - Do not change the type or default value of existing parameters in any public method
+   - Additive changes are allowed (new methods, new optional parameters, new constants)
+   - When in doubt, add rather than change
 6. **String literals use backticks** (`` ` ``), not single quotes.
 7. **The `z2ui5_cl_xml_view` class has a `method_overwrites_builtin` exception** — its fluent methods intentionally match UI5 control names.
 8. **Use built-in popups** (`src/02/01/z2ui5_cl_pop_*`) rather than building custom ones.
 9. **`z2ui5_if_client` constants**: `cs_event` has predefined client events (`popup_close`, `download_b64_file`, `location_reload`); `cs_view` has view type IDs.
-10. **Building views:** Use `z2ui5_cl_util_xml` to build any UI5 view by looking up controls at https://ui5.sap.com/#/api and translating the XML 1:1. This gives access to the full UI5 API without needing `z2ui5_cl_xml_view` wrapper methods. See the "Building Views with the Full UI5 API" section above.
+10. **Building views — two APIs exist, use `z2ui5_cl_util_xml` for new code:**
+    - **`z2ui5_cl_util_xml`** (`src/00/03/`) — generic XML builder, **preferred for all new code**. Accepts any element name and attributes as strings, giving immediate access to the full UI5 control library. See the "Building Views with the Full UI5 API" section above.
+    - **`z2ui5_cl_xml_view`** (`src/02/`) — fluent builder with one ABAP method per UI5 control (~11K lines, ~446 methods). This is **legacy/maintenance-only**: do not add new wrapper methods. Existing apps using it continue to work; new code should use `z2ui5_cl_util_xml` instead.
+
+## Design Decisions & Known Non-Issues
+
+The following items may look like gaps but are intentional design choices:
+
+- **Draft table `Z2UI5_T_01` has no version column** — Drafts are session-scoped (deleted after a few hours). There is no long-lived state that needs schema migration. Versioning would add complexity with no benefit.
+- **Changelog** — The project maintains a `CHANGELOG.txt` in the repository root. A `CHANGELOG.md` is not needed separately.
+- **`z2ui5_cl_xml_view` size (~11K lines)** — This class is intentionally large: each method wraps one UI5 control for the fluent API. It is in maintenance mode; new controls should be accessed via `z2ui5_cl_util_xml` instead.
