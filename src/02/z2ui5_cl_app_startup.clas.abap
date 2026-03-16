@@ -160,10 +160,10 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
         DATA(s_config) = client->get( )-s_config.
         s_home-url = z2ui5_cl_util=>app_get_url( classname = s_home-classname
-                                                  origin    = s_config-origin
-                                                  pathname  = s_config-pathname
-                                                  search    = s_config-search
-                                                  hash      = s_config-hash ).
+                                                  origin   = s_config-origin
+                                                  pathname = s_config-pathname
+                                                  search   = s_config-search
+                                                  hash     = s_config-hash ).
       CATCH cx_root INTO DATA(x) ##CATCH_ALL.
         s_home-class_value_state_text = x->get_text( ).
         s_home-class_value_state      = `Warning`.
@@ -254,10 +254,10 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     DATA(s_config2)   = client->get( )-s_config.
     DATA(url_samples) = z2ui5_cl_util=>app_get_url( classname = `z2ui5_cl_demo_app_000`
-                                                     origin    = s_config2-origin
-                                                     pathname  = s_config2-pathname
-                                                     search    = s_config2-search
-                                                     hash      = s_config2-hash ).
+                                                     origin   = s_config2-origin
+                                                     pathname = s_config2-pathname
+                                                     search   = s_config2-search
+                                                     hash     = s_config2-hash ).
 
     simple_form->toolbar( )->title( `What's next?` ).
 
