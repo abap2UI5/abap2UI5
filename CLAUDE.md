@@ -291,7 +291,12 @@ test: add unit tests for utility class
 2. **Never manually edit `src/01/03/`** — auto-generated from `app/webapp/` via `auto_app2abap`.
 3. **Always run `npx abaplint`** before considering changes complete.
 4. **Multi-environment compatibility** — code must work on NW 7.02, standard ABAP, and ABAP Cloud.
-5. **The public API (`src/02/` interfaces) is a stable contract** — changes affect all downstream apps.
+5. **The public API (`src/02/`) is a stable contract — never change or remove existing public attributes, methods, or constants.** This folder is consumed directly by thousands of downstream apps. Specifically:
+   - Do not rename, remove, or change the signature of any method in `z2ui5_if_client`, `z2ui5_if_app`, `z2ui5_if_types`, or `z2ui5_if_exit`
+   - Do not remove or rename public `DATA`, `CONSTANTS`, or `TYPES` in any `src/02/` class or interface
+   - Do not change the type or default value of existing parameters in any public method
+   - Additive changes are allowed (new methods, new optional parameters, new constants)
+   - When in doubt, add rather than change
 6. **String literals use backticks** (`` ` ``), not single quotes.
 7. **The `z2ui5_cl_xml_view` class has a `method_overwrites_builtin` exception** — its fluent methods intentionally match UI5 control names.
 8. **Use built-in popups** (`src/02/01/z2ui5_cl_pop_*`) rather than building custom ones.
