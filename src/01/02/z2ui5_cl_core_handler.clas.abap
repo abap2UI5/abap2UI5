@@ -41,6 +41,29 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC.
     METHODS check_view_update_needed
       RETURNING
         VALUE(result) TYPE abap_bool.
+
+    METHODS request_parse_body
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_core_types=>ty_s_request
+      RAISING
+        z2ui5_cx_ajson_error.
+
+    METHODS request_app_start
+      IMPORTING
+        iv_search    TYPE string
+        io_comp_data TYPE REF TO z2ui5_if_ajson
+      RETURNING
+        VALUE(result) TYPE string
+      RAISING
+        z2ui5_cx_ajson_error.
+
+    METHODS request_app_start_draft
+      IMPORTING
+        iv_hash       TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
 ENDCLASS.
 
 
@@ -48,65 +71,79 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   METHOD request_json_to_abap.
     TRY.
+        result = request_parse_body( val ).
 
-        DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( val ) ).
-        lo_ajson = lo_ajson->slice( `value` ).
-
-        DATA(lv_model_edit_name) = |/{ z2ui5_if_core_types=>cs_ui5-two_way_model }|.
-
-        result-o_model = z2ui5_cl_ajson=>create_empty( ).
-        DATA(lo_model) = lo_ajson->slice( lv_model_edit_name ).
-        result-o_model->set( iv_path = lv_model_edit_name
-                             iv_val  = lo_model ).
-        lo_ajson->delete( lv_model_edit_name ).
-
-        lo_ajson = lo_ajson->slice( `/S_FRONT` ).
-        lo_ajson->to_abap( EXPORTING iv_corresponding = abap_true
-                           IMPORTING ev_container     = result-s_front ).
-
-        result-s_front-o_comp_data = lo_ajson->slice( `/CONFIG/ComponentData` ).
-
-        result-s_control-check_launchpad = xsdbool( result-s_front-search   CS `scenario=LAUNCHPAD`
-                                                    OR result-s_front-pathname CS `/ui2/flp`
-                                                    OR result-s_front-pathname CS `test/flpSandbox` ).
         IF result-s_front-id IS NOT INITIAL.
           RETURN.
         ENDIF.
 
-        TRY.
-            IF result-s_front-o_comp_data IS BOUND.
-              result-s_control-app_start = z2ui5_cl_util=>c_trim_upper(
-                  result-s_front-o_comp_data->get( `/startupParameters/app_start/1` ) ).
-            ENDIF.
-          CATCH cx_root ##NO_HANDLER.
-        ENDTRY.
-
-        TRY.
-            DATA(lv_hash) = substring_after( val = result-s_front-hash
-                                             sub = `&/` ).
-            IF lv_hash IS INITIAL.
-              lv_hash = result-s_front-hash+2.
-            ENDIF.
-            result-s_control-app_start_draft = z2ui5_cl_util=>c_trim_upper(
-                                                   z2ui5_cl_util=>url_param_get( val = `z2ui5-xapp-state`
-                                                                                 url = lv_hash ) ).
-          CATCH cx_root ##NO_HANDLER.
-        ENDTRY.
-        IF result-s_control-app_start IS NOT INITIAL.
-          IF result-s_control-app_start(1) = `-`.
-            REPLACE FIRST OCCURRENCE OF `-` IN result-s_control-app_start WITH `/`.
-            REPLACE FIRST OCCURRENCE OF `-` IN result-s_control-app_start WITH `/`.
-          ENDIF.
-          RETURN.
-        ENDIF.
-
-        result-s_control-app_start = z2ui5_cl_util=>c_trim_upper(
-                                         z2ui5_cl_util=>url_param_get( val = `app_start`
-                                                                       url = result-s_front-search ) ).
+        result-s_control-app_start =
+          request_app_start( iv_search    = result-s_front-search
+                             io_comp_data = result-s_front-o_comp_data ).
+        result-s_control-app_start_draft =
+          request_app_start_draft( result-s_front-hash ).
 
       CATCH cx_root INTO DATA(x).
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
           EXPORTING val = x.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD request_parse_body.
+    DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( val ) ).
+    lo_ajson = lo_ajson->slice( `value` ).
+
+    DATA(lv_model_edit_name) = |/{ z2ui5_if_core_types=>cs_ui5-two_way_model }|.
+    result-o_model = z2ui5_cl_ajson=>create_empty( ).
+    DATA(lo_model) = lo_ajson->slice( lv_model_edit_name ).
+    result-o_model->set( iv_path = lv_model_edit_name
+                         iv_val  = lo_model ).
+    lo_ajson->delete( lv_model_edit_name ).
+
+    lo_ajson = lo_ajson->slice( `/S_FRONT` ).
+    lo_ajson->to_abap( EXPORTING iv_corresponding = abap_true
+                       IMPORTING ev_container     = result-s_front ).
+    result-s_front-o_comp_data = lo_ajson->slice( `/CONFIG/ComponentData` ).
+
+    result-s_control-check_launchpad = xsdbool(
+        result-s_front-search   CS `scenario=LAUNCHPAD`
+        OR result-s_front-pathname CS `/ui2/flp`
+        OR result-s_front-pathname CS `test/flpSandbox` ).
+  ENDMETHOD.
+
+  METHOD request_app_start.
+    TRY.
+        IF io_comp_data IS BOUND.
+          result = z2ui5_cl_util=>c_trim_upper(
+              io_comp_data->get( `/startupParameters/app_start/1` ) ).
+        ENDIF.
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+
+    IF result IS NOT INITIAL.
+      IF result(1) = `-`.
+        REPLACE FIRST OCCURRENCE OF `-` IN result WITH `/`.
+        REPLACE FIRST OCCURRENCE OF `-` IN result WITH `/`.
+      ENDIF.
+      RETURN.
+    ENDIF.
+
+    result = z2ui5_cl_util=>c_trim_upper(
+        z2ui5_cl_util=>url_param_get( val = `app_start`
+                                      url = iv_search ) ).
+  ENDMETHOD.
+
+  METHOD request_app_start_draft.
+    TRY.
+        DATA(lv_hash) = substring_after( val = iv_hash
+                                         sub = `&/` ).
+        IF lv_hash IS INITIAL.
+          lv_hash = iv_hash+2.
+        ENDIF.
+        result = z2ui5_cl_util=>c_trim_upper(
+            z2ui5_cl_util=>url_param_get( val = `z2ui5-xapp-state`
+                                          url = lv_hash ) ).
+      CATCH cx_root ##NO_HANDLER.
     ENDTRY.
   ENDMETHOD.
 

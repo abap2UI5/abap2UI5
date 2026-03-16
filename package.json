@@ -12,7 +12,8 @@
     "auto_transpile": "rm -rf node/output && cp node/srv/*.abap node/downport && abap_transpile ./node/setup/abap_transpile.json",
     "rename": "npm ci && abaplint .github/abaplint/rename_test.jsonc --rename",
     "express": "node node/srv/express.mjs",
-    "unit": "echo RUNNING && node node/output/index.mjs"
+    "unit": "echo RUNNING && node node/output/index.mjs",
+    "test": "npm run unit"
   },
   "repository": {
     "type": "git",

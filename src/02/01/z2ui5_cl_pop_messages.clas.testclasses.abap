@@ -4,8 +4,10 @@ CLASS ltcl_test DEFINITION FINAL
 
   PRIVATE SECTION.
 
-    METHODS test_factory_w_bapiret FOR TESTING RAISING cx_static_check.
-    METHODS test_factory_w_cx     FOR TESTING RAISING cx_static_check.
+    METHODS test_factory_w_bapiret   FOR TESTING RAISING cx_static_check.
+    METHODS test_factory_w_cx        FOR TESTING RAISING cx_static_check.
+    METHODS test_factory_msg_type    FOR TESTING RAISING cx_static_check.
+    METHODS test_factory_empty_input FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -37,6 +39,35 @@ CLASS ltcl_test IMPLEMENTATION.
     ENDTRY.
 
     DATA(lo_pop) = z2ui5_cl_pop_messages=>factory( lx ).
+    cl_abap_unit_assert=>assert_bound( lo_pop ).
+    cl_abap_unit_assert=>assert_not_initial( lo_pop->mt_msg ).
+
+  ENDMETHOD.
+
+  METHOD test_factory_msg_type.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    DATA(lt_msg) = VALUE bapirettab(
+      ( type = `E` message = `Error` )
+      ( type = `W` message = `Warning` )
+      ( type = `S` message = `Success` ) ).
+
+    DATA(lo_pop) = z2ui5_cl_pop_messages=>factory( lt_msg ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lines( lo_pop->mt_msg ) ).
+    cl_abap_unit_assert=>assert_not_initial( lo_pop->mt_msg[ 1 ]-type ).
+
+  ENDMETHOD.
+
+  METHOD test_factory_empty_input.
+
+    DATA(lx) = NEW z2ui5_cx_util_error( val = `test` ).
+    DATA(lo_pop) = z2ui5_cl_pop_messages=>factory( lx ).
+
     cl_abap_unit_assert=>assert_bound( lo_pop ).
     cl_abap_unit_assert=>assert_not_initial( lo_pop->mt_msg ).
 

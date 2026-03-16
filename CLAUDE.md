@@ -296,4 +296,14 @@ test: add unit tests for utility class
 7. **The `z2ui5_cl_xml_view` class has a `method_overwrites_builtin` exception** — its fluent methods intentionally match UI5 control names.
 8. **Use built-in popups** (`src/02/01/z2ui5_cl_pop_*`) rather than building custom ones.
 9. **`z2ui5_if_client` constants**: `cs_event` has predefined client events (`popup_close`, `download_b64_file`, `location_reload`); `cs_view` has view type IDs.
-10. **Building views:** Use `z2ui5_cl_util_xml` to build any UI5 view by looking up controls at https://ui5.sap.com/#/api and translating the XML 1:1. This gives access to the full UI5 API without needing `z2ui5_cl_xml_view` wrapper methods. See the "Building Views with the Full UI5 API" section above.
+10. **Building views — two APIs exist, use `z2ui5_cl_util_xml` for new code:**
+    - **`z2ui5_cl_util_xml`** (`src/00/03/`) — generic XML builder, **preferred for all new code**. Accepts any element name and attributes as strings, giving immediate access to the full UI5 control library. See the "Building Views with the Full UI5 API" section above.
+    - **`z2ui5_cl_xml_view`** (`src/02/`) — fluent builder with one ABAP method per UI5 control (~11K lines, ~446 methods). This is **legacy/maintenance-only**: do not add new wrapper methods. Existing apps using it continue to work; new code should use `z2ui5_cl_util_xml` instead.
+
+## Design Decisions & Known Non-Issues
+
+The following items may look like gaps but are intentional design choices:
+
+- **Draft table `Z2UI5_T_01` has no version column** — Drafts are session-scoped (deleted after a few hours). There is no long-lived state that needs schema migration. Versioning would add complexity with no benefit.
+- **Changelog** — The project maintains a `CHANGELOG.txt` in the repository root. A `CHANGELOG.md` is not needed separately.
+- **`z2ui5_cl_xml_view` size (~11K lines)** — This class is intentionally large: each method wraps one UI5 control for the fluent API. It is in maintenance mode; new controls should be accessed via `z2ui5_cl_util_xml` instead.

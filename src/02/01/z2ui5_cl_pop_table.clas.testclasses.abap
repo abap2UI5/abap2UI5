@@ -2,9 +2,11 @@ CLASS ltcl_test DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
   PRIVATE SECTION.
-    METHODS test_factory         FOR TESTING RAISING cx_static_check.
-    METHODS test_factory_title   FOR TESTING RAISING cx_static_check.
-    METHODS test_result_initial  FOR TESTING RAISING cx_static_check.
+    METHODS test_factory          FOR TESTING RAISING cx_static_check.
+    METHODS test_factory_title    FOR TESTING RAISING cx_static_check.
+    METHODS test_result_initial   FOR TESTING RAISING cx_static_check.
+    METHODS test_factory_row_ref  FOR TESTING RAISING cx_static_check.
+    METHODS test_factory_data_copy FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 CLASS ltcl_test IMPLEMENTATION.
@@ -50,6 +52,40 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = ls_result-check_confirmed ).
+  ENDMETHOD.
+
+  METHOD test_factory_row_ref.
+    TYPES:
+      BEGIN OF ty_row,
+        col TYPE string,
+      END OF ty_row.
+    DATA lt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    lt_tab = VALUE #( ( col = `X` ) ).
+
+    DATA(lo_pop) = z2ui5_cl_pop_table=>factory( lt_tab ).
+    DATA(ls_result) = lo_pop->result( ).
+
+    cl_abap_unit_assert=>assert_bound( ls_result-row ).
+  ENDMETHOD.
+
+  METHOD test_factory_data_copy.
+    TYPES:
+      BEGIN OF ty_row,
+        name  TYPE string,
+        value TYPE string,
+      END OF ty_row.
+    DATA lt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    lt_tab = VALUE #( ( name = `A` value = `1` )
+                      ( name = `B` value = `2` )
+                      ( name = `C` value = `3` ) ).
+
+    DATA(lo_pop) = z2ui5_cl_pop_table=>factory( lt_tab ).
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN lo_pop->mr_tab->* TO <tab>.
+
+    cl_abap_unit_assert=>assert_equals( exp = 3
+                                        act = lines( <tab> ) ).
   ENDMETHOD.
 
 ENDCLASS.

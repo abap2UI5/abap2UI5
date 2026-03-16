@@ -57,3 +57,37 @@ CLASS ltcl_test IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
+
+
+CLASS ltcl_test_events DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    METHODS test_default_events_differ FOR TESTING RAISING cx_static_check.
+    METHODS test_custom_events         FOR TESTING RAISING cx_static_check.
+
+ENDCLASS.
+
+CLASS ltcl_test_events IMPLEMENTATION.
+
+  METHOD test_default_events_differ.
+
+    cl_abap_unit_assert=>assert_differs(
+      act = z2ui5_cl_pop_to_confirm=>cs_event-confirmed
+      exp = z2ui5_cl_pop_to_confirm=>cs_event-canceled ).
+
+  ENDMETHOD.
+
+  METHOD test_custom_events.
+
+    DATA(lo_pop) = z2ui5_cl_pop_to_confirm=>factory(
+      i_question_text       = `Sure?`
+      i_event_confirm       = `MY_CONFIRM`
+      i_event_cancel        = `MY_CANCEL` ).
+
+    cl_abap_unit_assert=>assert_bound( lo_pop ).
+    cl_abap_unit_assert=>assert_false( lo_pop->result( ) ).
+
+  ENDMETHOD.
+
+ENDCLASS.
