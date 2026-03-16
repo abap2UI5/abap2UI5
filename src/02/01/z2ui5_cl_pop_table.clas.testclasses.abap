@@ -12,6 +12,7 @@ ENDCLASS.
 CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory.
+
     TYPES:
       BEGIN OF ty_row,
         name  TYPE string,
@@ -24,6 +25,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_bound( lo_pop ).
     cl_abap_unit_assert=>assert_bound( lo_pop->mr_tab ).
+
   ENDMETHOD.
 
   METHOD test_factory_title.
