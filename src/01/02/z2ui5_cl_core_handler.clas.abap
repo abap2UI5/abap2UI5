@@ -52,8 +52,8 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC.
 
     METHODS request_app_start
       IMPORTING
-        iv_search    TYPE string
-        io_comp_data TYPE REF TO z2ui5_if_ajson
+        iv_search     TYPE string
+        io_comp_data  TYPE REF TO z2ui5_if_ajson
       RETURNING
         VALUE(result) TYPE string
       RAISING

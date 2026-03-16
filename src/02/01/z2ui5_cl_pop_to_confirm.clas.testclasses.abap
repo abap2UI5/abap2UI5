@@ -81,9 +81,9 @@ CLASS ltcl_test_events IMPLEMENTATION.
   METHOD test_custom_events.
 
     DATA(lo_pop) = z2ui5_cl_pop_to_confirm=>factory(
-      i_question_text       = `Sure?`
-      i_event_confirm       = `MY_CONFIRM`
-      i_event_cancel        = `MY_CANCEL` ).
+      i_question_text = `Sure?`
+      i_event_confirm = `MY_CONFIRM`
+      i_event_cancel  = `MY_CANCEL` ).
 
     cl_abap_unit_assert=>assert_bound( lo_pop ).
     cl_abap_unit_assert=>assert_false( lo_pop->result( ) ).
