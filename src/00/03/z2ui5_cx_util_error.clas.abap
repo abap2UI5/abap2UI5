@@ -42,18 +42,23 @@ CLASS z2ui5_cx_util_error IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD if_message~get_text.
+      DATA error LIKE abap_true.
+      DATA lo_x LIKE previous.
+    DATA temp1 TYPE string.
 
     IF ms_error-x_root IS NOT INITIAL.
       result = ms_error-x_root->get_text( ).
 
-      DATA(error) = abap_true.
+      
+      error = abap_true.
     ELSEIF ms_error-text IS NOT INITIAL.
       result = ms_error-text.
       error = abap_true.
     ENDIF.
 
     IF previous IS BOUND.
-      DATA(lo_x) = previous.
+      
+      lo_x = previous.
       WHILE lo_x IS BOUND.
         result = result && cl_abap_char_utilities=>newline && lo_x->get_text( ).
         lo_x = lo_x->previous.
@@ -61,7 +66,13 @@ CLASS z2ui5_cx_util_error IMPLEMENTATION.
     ENDIF.
 
 
-    result = COND #( WHEN error = abap_true AND result IS INITIAL THEN `UNKNOWN_ERROR` ELSE result ).
+    
+    IF error = abap_true AND result IS INITIAL.
+      temp1 = `UNKNOWN_ERROR`.
+    ELSE.
+      temp1 = result.
+    ENDIF.
+    result = temp1.
 
   ENDMETHOD.
 ENDCLASS.

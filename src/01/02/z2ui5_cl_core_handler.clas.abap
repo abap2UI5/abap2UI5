@@ -70,6 +70,7 @@ ENDCLASS.
 CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   METHOD request_json_to_abap.
+        DATA x TYPE REF TO cx_root.
     TRY.
         result = request_parse_body( val ).
 
@@ -83,19 +84,29 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         result-s_control-app_start_draft =
           request_app_start_draft( result-s_front-hash ).
 
-      CATCH cx_root INTO DATA(x).
+        
+      CATCH cx_root INTO x.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
           EXPORTING val = x.
     ENDTRY.
   ENDMETHOD.
 
   METHOD request_parse_body.
-    DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( val ) ).
+    DATA temp1 TYPE REF TO z2ui5_if_ajson.
+    DATA lo_ajson LIKE temp1.
+    DATA lv_model_edit_name TYPE string.
+    DATA lo_model TYPE REF TO z2ui5_if_ajson.
+    DATA temp2 TYPE xsdboolean.
+    temp1 ?= z2ui5_cl_ajson=>parse( val ).
+    
+    lo_ajson = temp1.
     lo_ajson = lo_ajson->slice( `value` ).
 
-    DATA(lv_model_edit_name) = |/{ z2ui5_if_core_types=>cs_ui5-two_way_model }|.
+    
+    lv_model_edit_name = |/{ z2ui5_if_core_types=>cs_ui5-two_way_model }|.
     result-o_model = z2ui5_cl_ajson=>create_empty( ).
-    DATA(lo_model) = lo_ajson->slice( lv_model_edit_name ).
+    
+    lo_model = lo_ajson->slice( lv_model_edit_name ).
     result-o_model->set( iv_path = lv_model_edit_name
                          iv_val  = lo_model ).
     lo_ajson->delete( lv_model_edit_name ).
@@ -105,10 +116,9 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
                        IMPORTING ev_container     = result-s_front ).
     result-s_front-o_comp_data = lo_ajson->slice( `/CONFIG/ComponentData` ).
 
-    result-s_control-check_launchpad = xsdbool(
-        result-s_front-search   CS `scenario=LAUNCHPAD`
-        OR result-s_front-pathname CS `/ui2/flp`
-        OR result-s_front-pathname CS `test/flpSandbox` ).
+    
+    temp2 = boolc( result-s_front-search CS `scenario=LAUNCHPAD` OR result-s_front-pathname CS `/ui2/flp` OR result-s_front-pathname CS `test/flpSandbox` ).
+    result-s_control-check_launchpad = temp2.
   ENDMETHOD.
 
   METHOD request_app_start.
@@ -134,8 +144,10 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD request_app_start_draft.
+        DATA lv_hash TYPE string.
     TRY.
-        DATA(lv_hash) = substring_after( val = iv_hash
+        
+        lv_hash = substring_after( val = iv_hash
                                          sub = `&/` ).
         IF lv_hash IS INITIAL.
           lv_hash = iv_hash+2.
@@ -148,22 +160,30 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD response_abap_to_json.
+        DATA temp2 TYPE REF TO z2ui5_if_ajson.
+        DATA ajson_result LIKE temp2.
+        DATA lv_frontend TYPE string.
+        DATA x TYPE REF TO cx_root.
     TRY.
 
-        DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
-                                                      ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
+        
+        temp2 ?= z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ).
+        
+        ajson_result = temp2.
 
         ajson_result->set( iv_path = `/`
                            iv_val  = val-s_front ).
         ajson_result = ajson_result->filter( z2ui5_cl_util_json_fltr=>create_no_empty_values( ) ).
-        DATA(lv_frontend) = ajson_result->stringify( ).
+        
+        lv_frontend = ajson_result->stringify( ).
 
         result = |\{| &&
             |"S_FRONT":{ lv_frontend },| &&
             |"MODEL":{ val-model }| &&
           |\}|.
 
-      CATCH cx_root INTO DATA(x).
+        
+      CATCH cx_root INTO x.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
           EXPORTING val = x.
     ENDTRY.
@@ -172,7 +192,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
   METHOD constructor.
 
     mv_request_json = val.
-    mo_action = NEW z2ui5_cl_core_action( me ).
+    CREATE OBJECT mo_action TYPE z2ui5_cl_core_action EXPORTING VAL = me.
 
   ENDMETHOD.
 
@@ -180,19 +200,21 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
     main_begin( ).
     DO.
-      IF main_process( ).
+      IF main_process( ) IS NOT INITIAL.
         EXIT.
       ENDIF.
     ENDDO.
 
-    result = VALUE #( body          = mv_response
-                      s_stateful    = ms_response-s_front-params-s_stateful
-                      status_code   = 200
-                      status_reason = `success` ).
+    CLEAR result.
+    result-body = mv_response.
+    result-s_stateful = ms_response-s_front-params-s_stateful.
+    result-status_code = 200.
+    result-status_reason = `success`.
 
   ENDMETHOD.
 
   METHOD main_begin.
+      DATA temp3 TYPE REF TO z2ui5_cl_core_srv_draft.
 
     ms_request = request_json_to_abap( mv_request_json ).
 
@@ -200,7 +222,9 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       mo_action = mo_action->factory_by_frontend( ).
 
     ELSEIF ms_request-s_control-app_start IS NOT INITIAL.
-      NEW z2ui5_cl_core_srv_draft( )->cleanup( ).
+      
+      CREATE OBJECT temp3 TYPE z2ui5_cl_core_srv_draft.
+      temp3->cleanup( ).
       mo_action = mo_action->factory_first_start( ).
 
     ELSE.
@@ -211,27 +235,21 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   METHOD check_view_update_needed.
 
-    result = xsdbool(
-        ms_response-s_front-params-s_view-check_update_model        = abap_true
-        OR ms_response-s_front-params-s_view_nest-check_update_model   = abap_true
-        OR ms_response-s_front-params-s_view_nest2-check_update_model  = abap_true
-        OR ms_response-s_front-params-s_popup-check_update_model       = abap_true
-        OR ms_response-s_front-params-s_popover-check_update_model     = abap_true
-        OR ms_response-s_front-params-s_view-xml IS NOT INITIAL
-        OR ms_response-s_front-params-s_view_nest-xml                 IS NOT INITIAL
-        OR ms_response-s_front-params-s_view_nest2-xml                IS NOT INITIAL
-        OR ms_response-s_front-params-s_popup-xml IS NOT INITIAL
-        OR ms_response-s_front-params-s_popover-xml                   IS NOT INITIAL ).
+    DATA temp3 TYPE xsdboolean.
+    temp3 = boolc( ms_response-s_front-params-s_view-check_update_model = abap_true OR ms_response-s_front-params-s_view_nest-check_update_model = abap_true OR ms_response-s_front-params-s_view_nest2-check_update_model = abap_true OR ms_response-s_front-params-s_popup-check_update_model = abap_true OR ms_response-s_front-params-s_popover-check_update_model = abap_true OR ms_response-s_front-params-s_view-xml IS NOT INITIAL OR ms_response-s_front-params-s_view_nest-xml IS NOT INITIAL OR ms_response-s_front-params-s_view_nest2-xml IS NOT INITIAL OR ms_response-s_front-params-s_popup-xml IS NOT INITIAL OR ms_response-s_front-params-s_popover-xml IS NOT INITIAL ).
+    result = temp3.
 
   ENDMETHOD.
 
   METHOD main_end.
+    DATA temp4 TYPE REF TO z2ui5_if_app.
 
-    ms_response = VALUE #( s_front-params = mo_action->ms_next-s_set
-                           s_front-id     = mo_action->mo_app->ms_draft-id
-                           s_front-app    = z2ui5_cl_util=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app ) ).
+    CLEAR ms_response.
+    ms_response-s_front-params = mo_action->ms_next-s_set.
+    ms_response-s_front-id = mo_action->mo_app->ms_draft-id.
+    ms_response-s_front-app = z2ui5_cl_util=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app ).
 
-    IF check_view_update_needed( ).
+    IF check_view_update_needed( ) IS NOT INITIAL.
       ms_response-model = mo_action->mo_app->model_json_stringify( ).
     ELSE.
       ms_response-model = `{}`.
@@ -245,7 +263,9 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
     CLEAR mo_action->ms_next.
 
-    IF CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky = abap_false.
+    
+    temp4 ?= mo_action->mo_app->mo_app.
+    IF temp4->check_sticky = abap_false.
       mo_action->mo_app->db_save( ).
     ENDIF.
 
@@ -253,8 +273,19 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   METHOD main_process.
 
-    DATA(li_client) = CAST z2ui5_if_client( NEW z2ui5_cl_core_client( mo_action ) ).
-    DATA(li_app)    = CAST z2ui5_if_app( mo_action->mo_app->mo_app ).
+    DATA temp5 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp5.
+    DATA temp6 TYPE REF TO z2ui5_if_app.
+    DATA li_app LIKE temp6.
+        DATA lx TYPE REF TO cx_root.
+        DATA lx2 TYPE REF TO z2ui5_cx_util_error.
+    CREATE OBJECT temp5 TYPE z2ui5_cl_core_client EXPORTING ACTION = mo_action.
+    
+    li_client = temp5.
+    
+    temp6 ?= mo_action->mo_app->mo_app.
+    
+    li_app = temp6.
 
     IF li_app->check_sticky = abap_false.
       ROLLBACK WORK.
@@ -266,10 +297,11 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         ELSE.
           li_app->main( li_client ).
         ENDIF.
-      CATCH cx_root INTO DATA(lx).
+        
+      CATCH cx_root INTO lx.
 
-        DATA(lx2) = NEW z2ui5_cx_util_error( val      = `UNCAUGHT EXCEPTION - Please Restart App:`
-                                             previous = lx ).
+        
+        CREATE OBJECT lx2 TYPE z2ui5_cx_util_error EXPORTING val = `UNCAUGHT EXCEPTION - Please Restart App:` previous = lx.
         li_client->nav_app_leave( z2ui5_cl_pop_error=>factory( lx2 ) ).
     ENDTRY.
     IF li_app->check_sticky = abap_false.

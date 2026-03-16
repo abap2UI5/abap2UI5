@@ -89,7 +89,7 @@ CLASS z2ui5_cl_util_xml DEFINITION
     DATA mo_root   TYPE REF TO z2ui5_cl_util_xml.
     DATA mo_previous TYPE REF TO z2ui5_cl_util_xml.
     DATA mo_parent TYPE REF TO z2ui5_cl_util_xml.
-    DATA mt_child  TYPE STANDARD TABLE OF REF TO z2ui5_cl_util_xml WITH EMPTY KEY.
+    DATA mt_child  TYPE STANDARD TABLE OF REF TO z2ui5_cl_util_xml WITH DEFAULT KEY.
 
     METHODS xml_get_parts
       CHANGING
@@ -114,7 +114,7 @@ CLASS z2ui5_cl_util_xml IMPLEMENTATION.
 
   METHOD factory.
 
-    result = NEW #( ).
+    CREATE OBJECT result.
 
     result->mo_root   = result.
     result->mo_parent = result.
@@ -123,12 +123,18 @@ CLASS z2ui5_cl_util_xml IMPLEMENTATION.
 
   METHOD __.
 
-    DATA(lo_child) = NEW z2ui5_cl_util_xml( ).
+    DATA lo_child TYPE REF TO z2ui5_cl_util_xml.
+      DATA temp27 TYPE z2ui5_cl_util=>ty_s_name_value.
+    CREATE OBJECT lo_child TYPE z2ui5_cl_util_xml.
     lo_child->mv_name   = n.
     lo_child->mv_ns     = ns.
     lo_child->mt_prop   = p.
     IF a IS NOT INITIAL.
-      INSERT VALUE #( n = a v = v ) INTO TABLE lo_child->mt_prop.
+      
+      CLEAR temp27.
+      temp27-n = a.
+      temp27-v = v.
+      INSERT temp27 INTO TABLE lo_child->mt_prop.
     ENDIF.
     lo_child->mo_parent = me.
     lo_child->mo_root   = mo_root.
@@ -179,7 +185,11 @@ CLASS z2ui5_cl_util_xml IMPLEMENTATION.
 
   METHOD p.
 
-    INSERT VALUE #( n = n v = v ) INTO TABLE mt_prop.
+    DATA temp28 TYPE z2ui5_cl_util=>ty_s_name_value.
+    CLEAR temp28.
+    temp28-n = n.
+    temp28-v = v.
+    INSERT temp28 INTO TABLE mt_prop.
     result = me.
 
   ENDMETHOD.
@@ -235,67 +245,157 @@ CLASS z2ui5_cl_util_xml IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD xml_get_parts.
+      DATA lr_root LIKE LINE OF mt_child.
+        DATA temp29 TYPE REF TO z2ui5_cl_util_xml.
+    DATA temp30 TYPE string.
+    DATA lv_tmp2 LIKE temp30.
+    DATA temp31 TYPE string.
+    DATA val TYPE string.
+    DATA row LIKE LINE OF mt_prop.
+      DATA temp1 TYPE string.
+    DATA lv_tmp3 LIKE temp31.
+      DATA temp32 LIKE LINE OF ct_parts.
+    DATA temp33 LIKE LINE OF ct_parts.
+    DATA lr_child LIKE LINE OF mt_child.
+      DATA temp34 TYPE REF TO z2ui5_cl_util_xml.
+    DATA temp35 LIKE LINE OF ct_parts.
 
     IF mv_name IS INITIAL.
-      LOOP AT mt_child INTO DATA(lr_root).
-        CAST z2ui5_cl_util_xml( lr_root )->xml_get_parts( CHANGING ct_parts = ct_parts ).
+      
+      LOOP AT mt_child INTO lr_root.
+        
+        temp29 ?= lr_root.
+        temp29->xml_get_parts( CHANGING ct_parts = ct_parts ).
       ENDLOOP.
       RETURN.
     ENDIF.
 
-    DATA(lv_tmp2) = COND #( WHEN mv_ns <> `` THEN |{ mv_ns }:| ).
-    DATA(lv_tmp3) = REDUCE string( INIT val = `` FOR row IN mt_prop WHERE ( v <> `` ) "#EC CI_SORTSEQ
-                          NEXT val = |{ val } { row-n }="{ escape( val    = COND string( WHEN row-v = abap_true
-                                                                                         THEN `true`
-                                                                                         ELSE row-v )
-                                                                   format = cl_abap_format=>e_xml_attr ) }"| ).
+    
+    IF mv_ns <> ``.
+      temp30 = |{ mv_ns }:|.
+    ELSE.
+      CLEAR temp30.
+    ENDIF.
+    
+    lv_tmp2 = temp30.
+    
+    
+    val = ``.
+    
+    LOOP AT mt_prop INTO row WHERE v <> ``.
+      
+      IF row-v = abap_true.
+        temp1 = `true`.
+      ELSE.
+        temp1 = row-v.
+      ENDIF.
+      val = |{ val } { row-n }="{ escape( val = temp1 format = cl_abap_format=>e_xml_attr ) }"|.
+    ENDLOOP.
+    temp31 = val.
+    
+    lv_tmp3 = temp31.
 
     IF mt_child IS INITIAL.
-      APPEND | <{ lv_tmp2 }{ mv_name }{ lv_tmp3 }/>| TO ct_parts.
+      
+      temp32 = | <{ lv_tmp2 }{ mv_name }{ lv_tmp3 }/>|.
+      APPEND temp32 TO ct_parts.
       RETURN.
     ENDIF.
 
-    APPEND | <{ lv_tmp2 }{ mv_name }{ lv_tmp3 }>| TO ct_parts.
+    
+    temp33 = | <{ lv_tmp2 }{ mv_name }{ lv_tmp3 }>|.
+    APPEND temp33 TO ct_parts.
 
-    LOOP AT mt_child INTO DATA(lr_child).
-      CAST z2ui5_cl_util_xml( lr_child )->xml_get_parts( CHANGING ct_parts = ct_parts ).
+    
+    LOOP AT mt_child INTO lr_child.
+      
+      temp34 ?= lr_child.
+      temp34->xml_get_parts( CHANGING ct_parts = ct_parts ).
     ENDLOOP.
 
-    APPEND |</{ lv_tmp2 }{ mv_name }>| TO ct_parts.
+    
+    temp35 = |</{ lv_tmp2 }{ mv_name }>|.
+    APPEND temp35 TO ct_parts.
 
   ENDMETHOD.
 
   METHOD xml_get_parts_indent.
+      DATA lr_root LIKE LINE OF mt_child.
+        DATA temp36 TYPE REF TO z2ui5_cl_util_xml.
+    DATA lv_pad TYPE string.
+    DATA temp37 TYPE string.
+    DATA lv_ns LIKE temp37.
+    DATA temp38 TYPE string.
+    DATA val TYPE string.
+    DATA row LIKE LINE OF mt_prop.
+      DATA temp2 TYPE string.
+    DATA lv_attr LIKE temp38.
+      DATA temp39 LIKE LINE OF ct_parts.
+    DATA temp40 LIKE LINE OF ct_parts.
+    DATA lr_child LIKE LINE OF mt_child.
+      DATA temp41 TYPE REF TO z2ui5_cl_util_xml.
+    DATA temp42 LIKE LINE OF ct_parts.
 
     IF mv_name IS INITIAL.
-      LOOP AT mt_child INTO DATA(lr_root).
-        CAST z2ui5_cl_util_xml( lr_root )->xml_get_parts_indent( EXPORTING iv_depth = iv_depth
+      
+      LOOP AT mt_child INTO lr_root.
+        
+        temp36 ?= lr_root.
+        temp36->xml_get_parts_indent( EXPORTING iv_depth = iv_depth
                                                                   CHANGING ct_parts = ct_parts ).
       ENDLOOP.
       RETURN.
     ENDIF.
 
-    DATA(lv_pad)  = repeat( val = ` ` occ = iv_depth * 2 ).
-    DATA(lv_ns)   = COND #( WHEN mv_ns <> `` THEN |{ mv_ns }:| ).
-    DATA(lv_attr) = REDUCE string( INIT val = `` FOR row IN mt_prop WHERE ( v <> `` ) "#EC CI_SORTSEQ
-                          NEXT val = |{ val } { row-n }="{ escape( val    = COND string( WHEN row-v = abap_true
-                                                                                         THEN `true`
-                                                                                         ELSE row-v )
-                                                                   format = cl_abap_format=>e_xml_attr ) }"| ).
+    
+    lv_pad  = repeat( val = ` ` occ = iv_depth * 2 ).
+    
+    IF mv_ns <> ``.
+      temp37 = |{ mv_ns }:|.
+    ELSE.
+      CLEAR temp37.
+    ENDIF.
+    
+    lv_ns = temp37.
+    
+    
+    val = ``.
+    
+    LOOP AT mt_prop INTO row WHERE v <> ``.
+      
+      IF row-v = abap_true.
+        temp2 = `true`.
+      ELSE.
+        temp2 = row-v.
+      ENDIF.
+      val = |{ val } { row-n }="{ escape( val = temp2 format = cl_abap_format=>e_xml_attr ) }"|.
+    ENDLOOP.
+    temp38 = val.
+    
+    lv_attr = temp38.
 
     IF mt_child IS INITIAL.
-      APPEND |{ lv_pad }<{ lv_ns }{ mv_name }{ lv_attr }/>| TO ct_parts.
+      
+      temp39 = |{ lv_pad }<{ lv_ns }{ mv_name }{ lv_attr }/>|.
+      APPEND temp39 TO ct_parts.
       RETURN.
     ENDIF.
 
-    APPEND |{ lv_pad }<{ lv_ns }{ mv_name }{ lv_attr }>| TO ct_parts.
+    
+    temp40 = |{ lv_pad }<{ lv_ns }{ mv_name }{ lv_attr }>|.
+    APPEND temp40 TO ct_parts.
 
-    LOOP AT mt_child INTO DATA(lr_child).
-      CAST z2ui5_cl_util_xml( lr_child )->xml_get_parts_indent( EXPORTING iv_depth = iv_depth + 1
+    
+    LOOP AT mt_child INTO lr_child.
+      
+      temp41 ?= lr_child.
+      temp41->xml_get_parts_indent( EXPORTING iv_depth = iv_depth + 1
                                                                  CHANGING ct_parts = ct_parts ).
     ENDLOOP.
 
-    APPEND |{ lv_pad }</{ lv_ns }{ mv_name }>| TO ct_parts.
+    
+    temp42 = |{ lv_pad }</{ lv_ns }{ mv_name }>|.
+    APPEND temp42 TO ct_parts.
 
   ENDMETHOD.
 

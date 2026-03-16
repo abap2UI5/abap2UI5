@@ -32,7 +32,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     lv_payload = `{"value" : { "S_FRONT":{"ORIGIN":"ORIGIN","PATHNAME":"PATHNAME","SEARCH":""}}}`.
 
-    lo_post = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_post EXPORTING val = lv_payload.
     lo_post->main_begin( ).
 
     cl_abap_unit_assert=>assert_bound( lo_post->mo_action ).
@@ -57,7 +57,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"https://myhost.com","PATHNAME":"/sap/test","SEARCH":"?param=1"}}}`.
 
-    lo_handler = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_handler EXPORTING val = lv_payload.
 
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
@@ -77,7 +77,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"https://example.org","PATHNAME":"/app","SEARCH":""}}}`.
 
-    lo_handler = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_handler EXPORTING val = lv_payload.
 
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
@@ -93,7 +93,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/ui2/flp","SEARCH":"?scenario=LAUNCHPAD"}}}`.
 
-    lo_handler = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_handler EXPORTING val = lv_payload.
 
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
@@ -109,7 +109,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_APP_HELLO_WORLD"}}}`.
 
-    lo_handler = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_handler EXPORTING val = lv_payload.
 
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
@@ -125,7 +125,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
     lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":""}}}`.
 
-    lo_handler = NEW #( val = lv_payload ).
+    CREATE OBJECT lo_handler EXPORTING val = lv_payload.
 
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
@@ -143,7 +143,10 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     DATA temp1 TYPE xsdboolean.
     DATA temp3 TYPE xsdboolean.
     DATA temp4 TYPE xsdboolean.
-    lo_handler = NEW #( val = `` ).
+    DATA temp5 TYPE xsdboolean.
+    DATA temp6 TYPE xsdboolean.
+    DATA temp7 TYPE xsdboolean.
+    CREATE OBJECT lo_handler EXPORTING val = ``.
 
     CLEAR temp2.
     temp2-s_front-id = `ID123`.
@@ -156,13 +159,19 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     lv_json = lo_handler->response_abap_to_json( ls_response ).
 
 
-    temp1 = xsdbool( lv_json CS `S_FRONT` ).
+    
+    temp5 = boolc( lv_json CS `S_FRONT` ).
+    temp1 = temp5.
     cl_abap_unit_assert=>assert_true( temp1 ).
 
-    temp3 = xsdbool( lv_json CS `MODEL` ).
+    
+    temp6 = boolc( lv_json CS `MODEL` ).
+    temp3 = temp6.
     cl_abap_unit_assert=>assert_true( temp3 ).
 
-    temp4 = xsdbool( lv_json CS `{"name":"test"}` ).
+    
+    temp7 = boolc( lv_json CS `{"name":"test"}` ).
+    temp4 = temp7.
     cl_abap_unit_assert=>assert_true( temp4 ).
 
   ENDMETHOD.
@@ -170,7 +179,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
   METHOD test_view_update_flag.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
-    lo_handler = NEW #( val = `` ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
     lo_handler->ms_response-s_front-params-s_view-xml = `<View/>`.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
@@ -181,7 +190,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
   METHOD test_view_update_popup.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
-    lo_handler = NEW #( val = `` ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
     lo_handler->ms_response-s_front-params-s_popup-check_update_model = abap_true.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
@@ -192,7 +201,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
   METHOD test_view_update_none.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
-    lo_handler = NEW #( val = `` ).
+    CREATE OBJECT lo_handler EXPORTING val = ``.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = lo_handler->check_view_update_needed( ) ).
@@ -202,7 +211,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
   METHOD test_constructor.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
-    lo_handler = NEW #( val = `test payload` ).
+    CREATE OBJECT lo_handler EXPORTING val = `test payload`.
 
     cl_abap_unit_assert=>assert_equals( exp = `test payload`
                                         act = lo_handler->mv_request_json ).

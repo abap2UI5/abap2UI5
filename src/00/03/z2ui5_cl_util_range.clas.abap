@@ -111,55 +111,81 @@ CLASS z2ui5_cl_util_range IMPLEMENTATION.
 
   METHOD eq.
 
-    result = VALUE #( sign = sign option = `EQ` low = val ).
+    CLEAR result.
+    result-sign = sign.
+    result-option = `EQ`.
+    result-low = val.
 
   ENDMETHOD.
 
   METHOD ne.
 
-    result = VALUE #( sign = sign option = `NE` low = val ).
+    CLEAR result.
+    result-sign = sign.
+    result-option = `NE`.
+    result-low = val.
 
   ENDMETHOD.
 
   METHOD bt.
 
-    result = VALUE #( sign = sign option = `BT` low = low high = high ).
+    CLEAR result.
+    result-sign = sign.
+    result-option = `BT`.
+    result-low = low.
+    result-high = high.
 
   ENDMETHOD.
 
   METHOD cp.
 
-    result = VALUE #( sign = sign option = `CP` low = val ).
+    CLEAR result.
+    result-sign = sign.
+    result-option = `CP`.
+    result-low = val.
 
   ENDMETHOD.
 
   METHOD gt.
 
-    result = VALUE #( sign = sign option = `GT` low = val ).
+    CLEAR result.
+    result-sign = sign.
+    result-option = `GT`.
+    result-low = val.
 
   ENDMETHOD.
 
   METHOD ge.
 
-    result = VALUE #( sign = sign option = `GE` low = val ).
+    CLEAR result.
+    result-sign = sign.
+    result-option = `GE`.
+    result-low = val.
 
   ENDMETHOD.
 
   METHOD lt.
 
-    result = VALUE #( sign = sign option = `LT` low = val ).
+    CLEAR result.
+    result-sign = sign.
+    result-option = `LT`.
+    result-low = val.
 
   ENDMETHOD.
 
   METHOD le.
 
-    result = VALUE #( sign = sign option = `LE` low = val ).
+    CLEAR result.
+    result-sign = sign.
+    result-option = `LE`.
+    result-low = val.
 
   ENDMETHOD.
 
   METHOD get_sql_multi.
 
-    LOOP AT t_sql INTO DATA(lv_sql).
+    DATA lv_sql LIKE LINE OF t_sql.
+    LOOP AT t_sql INTO lv_sql.
       IF lv_sql IS INITIAL.
         CONTINUE.
       ENDIF.
@@ -181,20 +207,33 @@ CLASS z2ui5_cl_util_range IMPLEMENTATION.
   METHOD get_sql.
 
     FIELD-SYMBOLS <lt_range> TYPE STANDARD TABLE.
+    DATA temp1 TYPE xsdboolean.
+    FIELD-SYMBOLS <ls_range_item> TYPE ANY.
+      FIELD-SYMBOLS <lv_sign> TYPE any.
+      FIELD-SYMBOLS <lv_option> TYPE any.
+      FIELD-SYMBOLS <lv_low> TYPE any.
+      FIELD-SYMBOLS <lv_high> TYPE any.
     ASSIGN me->mr_range->* TO <lt_range>.
 
-    IF xsdbool( <lt_range> IS INITIAL ) = abap_true.
+    
+    temp1 = boolc( <lt_range> IS INITIAL ).
+    IF temp1 = abap_true.
       RETURN.
     ENDIF.
 
     result = `(`.
 
-    LOOP AT <lt_range> ASSIGNING FIELD-SYMBOL(<ls_range_item>).
+    
+    LOOP AT <lt_range> ASSIGNING <ls_range_item>.
 
-      ASSIGN COMPONENT `SIGN` OF STRUCTURE <ls_range_item> TO FIELD-SYMBOL(<lv_sign>).
-      ASSIGN COMPONENT `OPTION` OF STRUCTURE <ls_range_item> TO FIELD-SYMBOL(<lv_option>).
-      ASSIGN COMPONENT `LOW` OF STRUCTURE <ls_range_item> TO FIELD-SYMBOL(<lv_low>).
-      ASSIGN COMPONENT `HIGH` OF STRUCTURE <ls_range_item> TO FIELD-SYMBOL(<lv_high>).
+      
+      ASSIGN COMPONENT `SIGN` OF STRUCTURE <ls_range_item> TO <lv_sign>.
+      
+      ASSIGN COMPONENT `OPTION` OF STRUCTURE <ls_range_item> TO <lv_option>.
+      
+      ASSIGN COMPONENT `LOW` OF STRUCTURE <ls_range_item> TO <lv_low>.
+      
+      ASSIGN COMPONENT `HIGH` OF STRUCTURE <ls_range_item> TO <lv_high>.
 
       IF sy-tabix <> 1.
         result = |{ result } OR|.

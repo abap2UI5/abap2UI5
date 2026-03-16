@@ -10,7 +10,8 @@ ENDCLASS.
 CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory.
-    DATA(lo_pop) = z2ui5_cl_pop_pdf=>factory(
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_pdf.
+    lo_pop = z2ui5_cl_pop_pdf=>factory(
       i_title = `My PDF`
       i_pdf   = `data:application/pdf;base64,AAAA` ).
 
@@ -20,7 +21,8 @@ CLASS ltcl_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_factory_defaults.
-    DATA(lo_pop) = z2ui5_cl_pop_pdf=>factory( `test_data` ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_pdf.
+    lo_pop = z2ui5_cl_pop_pdf=>factory( `test_data` ).
 
     cl_abap_unit_assert=>assert_bound( lo_pop ).
     cl_abap_unit_assert=>assert_equals( exp = `test_data`
@@ -28,8 +30,11 @@ CLASS ltcl_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_result_initial.
-    DATA(lo_pop) = z2ui5_cl_pop_pdf=>factory( `test` ).
-    DATA(ls_result) = lo_pop->result( ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_pdf.
+    DATA ls_result TYPE z2ui5_cl_pop_pdf=>ty_s_result.
+    lo_pop = z2ui5_cl_pop_pdf=>factory( `test` ).
+    
+    ls_result = lo_pop->result( ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = ls_result-check_confirmed ).
