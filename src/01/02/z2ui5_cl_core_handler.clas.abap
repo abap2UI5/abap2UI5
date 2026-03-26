@@ -91,7 +91,11 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   METHOD request_parse_body.
     DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( val ) ).
-    lo_ajson = lo_ajson->slice( `value` ).
+    DATA(lo_ajson2) = lo_ajson->slice( `value` ).
+
+    IF lo_ajson2 IS BOUND.
+      lo_ajson = lo_ajson2.
+    ENDIF.
 
     DATA(lv_model_edit_name) = |/{ z2ui5_if_core_types=>cs_ui5-two_way_model }|.
     result-o_model = z2ui5_cl_ajson=>create_empty( ).
