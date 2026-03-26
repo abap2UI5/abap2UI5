@@ -91,7 +91,6 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   METHOD request_parse_body.
     DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( val ) ).
-   
   DATA(lo_ajson2) = lo_ajson->slice( `value` ).
 
     IF lo_ajson2 IS BOUND.
