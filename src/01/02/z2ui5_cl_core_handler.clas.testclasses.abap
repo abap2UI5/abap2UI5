@@ -6,6 +6,8 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_request_parse     FOR TESTING RAISING cx_static_check.
     METHODS test_request_origin    FOR TESTING RAISING cx_static_check.
     METHODS test_request_launchpad FOR TESTING RAISING cx_static_check.
+    METHODS test_parse_body_with_wrapper    FOR TESTING RAISING cx_static_check.
+    METHODS test_parse_body_no_wrapper FOR TESTING RAISING cx_static_check.
     METHODS test_request_app_start FOR TESTING RAISING cx_static_check.
     METHODS test_request_with_id   FOR TESTING RAISING cx_static_check.
     METHODS test_response_json     FOR TESTING RAISING cx_static_check.
@@ -100,6 +102,41 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = ls_request-s_control-check_launchpad ).
 
+  ENDMETHOD.
+
+  METHOD test_parse_body_with_wrapper.
+    " Standalone scenario: frontend wraps body in {"value": ...}
+    " This is the standard case when the app runs outside the Fiori Launchpad.
+    DATA lv_payload TYPE string.
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
+    lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"https://myhost.com","PATHNAME":"/sap/bc/z2ui5","SEARCH":""}}}`.
+
+    lo_handler = NEW #( val = lv_payload ).
+    ls_request = lo_handler->request_json_to_abap( lv_payload ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `https://myhost.com`
+                                        act = ls_request-s_front-origin ).
+    cl_abap_unit_assert=>assert_equals( exp = `/sap/bc/z2ui5`
+                                        act = ls_request-s_front-pathname ).
+  ENDMETHOD.
+
+  METHOD test_parse_body_no_wrapper.
+    " Launchpad/Gateway scenario: FLP proxy strips the {"value": ...} envelope
+    " before the request reaches the ABAP ICF handler, so the body arrives
+    " as a plain object without the value key.
+    DATA lv_payload TYPE string.
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
+    lv_payload = `{"S_FRONT":{"ORIGIN":"https://myhost.com","PATHNAME":"/ui2/flp","SEARCH":"?scenario=LAUNCHPAD"}}`.
+
+    lo_handler = NEW #( val = lv_payload ).
+    ls_request = lo_handler->request_json_to_abap( lv_payload ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `https://myhost.com`
+                                        act = ls_request-s_front-origin ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = ls_request-s_control-check_launchpad ).
   ENDMETHOD.
 
   METHOD test_request_app_start.
