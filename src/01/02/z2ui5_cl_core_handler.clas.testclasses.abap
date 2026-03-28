@@ -7,7 +7,7 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_request_origin    FOR TESTING RAISING cx_static_check.
     METHODS test_request_launchpad FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_with_wrapper    FOR TESTING RAISING cx_static_check.
-    METHODS test_parse_body_without_wrapper FOR TESTING RAISING cx_static_check.
+    METHODS test_parse_body_no_wrapper FOR TESTING RAISING cx_static_check.
     METHODS test_request_app_start FOR TESTING RAISING cx_static_check.
     METHODS test_request_with_id   FOR TESTING RAISING cx_static_check.
     METHODS test_response_json     FOR TESTING RAISING cx_static_check.
@@ -121,7 +121,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
                                         act = ls_request-s_front-pathname ).
   ENDMETHOD.
 
-  METHOD test_parse_body_without_wrapper.
+  METHOD test_parse_body_no_wrapper.
     " Launchpad/Gateway scenario: FLP proxy strips the {"value": ...} envelope
     " before the request reaches the ABAP ICF handler, so the body arrives
     " as a plain object without the value key.
