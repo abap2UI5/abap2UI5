@@ -46,6 +46,31 @@ Browser (UI5 SPA)                          ABAP Backend
 **Request JSON** contains `S_FRONT` (event name, draft ID, browser state) and `XX` (two-way binding changes as deltas).
 **Response JSON** contains a new draft ID, view XML strings (if view changed), the full JSON model, messages, and follow-up actions.
 
+#### Launchpad Special Case — Request Body Wrapping
+
+The frontend always sends the POST body as `{ "value": <payload> }` (see `app/webapp/cc/Server.js`). In standalone mode this envelope arrives intact and `request_parse_body` unwraps it via `slice('value')`.
+
+When the app runs inside the **SAP Fiori Launchpad** (FLP), requests may be routed through the FLP shell or an SAP Gateway proxy. In certain configurations this infrastructure strips the `value` envelope before the request reaches the ABAP ICF handler, so the payload arrives as a plain object without the `value` key.
+
+`request_parse_body` handles both cases defensively:
+```abap
+DATA(lo_ajson2) = lo_ajson->slice( `value` ).
+IF lo_ajson2 IS BOUND.
+  lo_ajson = lo_ajson2.   " standalone: unwrap the value envelope
+ENDIF.
+" launchpad/gateway: no value key → use lo_ajson as-is
+```
+
+The Launchpad context is detected afterwards from the parsed request fields:
+```abap
+result-s_control-check_launchpad = xsdbool(
+    result-s_front-search   CS `scenario=LAUNCHPAD`
+    OR result-s_front-pathname CS `/ui2/flp`
+    OR result-s_front-pathname CS `test/flpSandbox` ).
+```
+
+Both scenarios are covered by unit tests in `z2ui5_cl_core_handler.clas.testclasses.abap` (`test_parse_body_with_wrapper` / `test_parse_body_without_wrapper`).
+
 ### Layered Design
 
 ```
