@@ -100,7 +100,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
             CONTINUE.
           ENDIF.
 
-          IF lo_val_front->exists( '/__delta' ) = abap_true.
+          IF lo_val_front->exists( `/__delta` ) = abap_true.
             delta_apply_to_table( io_val_front = lo_val_front
                                   iv_name      = lr_attri->name ).
             CONTINUE.
@@ -749,8 +749,8 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lo_delta) = io_val_front->slice( '/__delta' ).
-    DATA(lt_idx) = lo_delta->members( '/' ).
+    DATA(lo_delta) = io_val_front->slice( `/__delta` ).
+    DATA(lt_idx) = lo_delta->members( `/` ).
     LOOP AT lt_idx INTO DATA(lv_idx_str).
       DATA(lv_tabix) = CONV i( lv_idx_str ) + 1.
       FIELD-SYMBOLS <delta_row> TYPE any.
@@ -759,7 +759,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
         CONTINUE.
       ENDIF.
       DATA(lo_row_d) = lo_delta->slice( |/{ lv_idx_str }| ).
-      DATA(lt_fld) = lo_row_d->members( '/' ).
+      DATA(lt_fld) = lo_row_d->members( `/` ).
       LOOP AT lt_fld INTO DATA(lv_fld).
         FIELD-SYMBOLS <comp> TYPE any.
         ASSIGN COMPONENT lv_fld OF STRUCTURE <delta_row> TO <comp>.
