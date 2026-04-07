@@ -51,7 +51,6 @@ INTERFACE z2ui5_if_core_types
       srtti_data         TYPE string,
       check_dissolved    TYPE abap_bool,
       view               TYPE string,
-      json_bind_local    TYPE REF TO z2ui5_if_ajson,
       custom_filter      TYPE REF TO z2ui5_if_ajson_filter,
       custom_filter_back TYPE REF TO z2ui5_if_ajson_filter,
       custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping,
