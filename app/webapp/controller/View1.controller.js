@@ -88,12 +88,11 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
 
             },
             onAfterRendering() {
-
-                if (!z2ui5.oResponse) {
-                    return;
+                if (z2ui5.oResponse) {
+                    this._processAfterRendering();
                 }
-
-                (async () => {
+            },
+            async _processAfterRendering() {
                 try {
                     if (!z2ui5.oResponse.PARAMS) {
                         BusyIndicator.hide();
@@ -171,9 +170,8 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                                 text: "Please Restart the App"
                             }).open();
                         }
-                    })
+                    });
                 }
-                })();
             },
             _buildDeltaFromPaths(paths, xx) {
                 let delta = {};

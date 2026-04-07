@@ -131,7 +131,7 @@ sap.ui.define(["sap/ui/core/BusyIndicator", "sap/m/MessageBox"
                     z2ui5.oController.updateModelIfRequired('S_VIEW_NEST2', z2ui5.oViewNest2);
                     z2ui5.oController.updateModelIfRequired('S_POPUP', z2ui5.oViewPopup);
                     z2ui5.oController.updateModelIfRequired('S_POPOVER', z2ui5.oViewPopover);
-                    z2ui5.oController.onAfterRendering();
+                    z2ui5.oController._processAfterRendering();
                 } catch (e) {
                     BusyIndicator.hide();
                     if (e.message.includes("openui5")) {
