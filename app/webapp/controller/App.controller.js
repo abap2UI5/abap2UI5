@@ -1041,7 +1041,7 @@ sap.ui.define("z2ui5/CameraPicture", [
               video.srcObject = stream;
             })
             .catch(function (error) {
-              console.log("Something went wrong! " + error);
+              (z2ui5.errors ??= []).push({ message: `CameraPicture: getUserMedia failed`, error: error, ts: new Date().toISOString() });
             });
         }
       }.bind(this));

@@ -1065,7 +1065,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `              video.srcObject = stream;` && |\n|  &&
              `            })` && |\n|  &&
              `            .catch(function (error) {` && |\n|  &&
-             `              console.log("Something went wrong! " + error);` && |\n|  &&
+             `              (z2ui5.errors ??= []).push({ message: ``CameraPicture: getUserMedia failed``, error: error, ts: new Date().toISOString() });` && |\n|  &&
              `            });` && |\n|  &&
              `        }` && |\n|  &&
              `      }.bind(this));` && |\n|  &&
