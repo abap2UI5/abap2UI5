@@ -283,14 +283,16 @@ sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {
       items.forEach((item, index) => {
         let scrollTop = 0;
         try {
-          const scrollDelegate = z2ui5.oView.byId(item.N).getScrollDelegate();
-          scrollTop = scrollDelegate ? scrollDelegate.getScrollTop() : 0;
-        } catch (e) {
-          try {
-            const element = document.getElementById(`${z2ui5.oView.byId(item.ID).getId()}-inner`);
+          const control = z2ui5.oView.byId(item.N);
+          const scrollDelegate = control?.getScrollDelegate?.();
+          if (scrollDelegate) {
+            scrollTop = scrollDelegate.getScrollTop();
+          } else {
+            const domControl = z2ui5.oView.byId(item.ID);
+            const element = domControl ? document.getElementById(`${domControl.getId()}-inner`) : null;
             scrollTop = element ? element.scrollTop : 0;
-          } catch (e2) { (z2ui5.errors ??= []).push({ message: `Scrolling.setBackend: failed`, error: e2, ts: new Date().toISOString() }); }
-        }
+          }
+        } catch (e) { (z2ui5.errors ??= []).push({ message: `Scrolling.setBackend: failed`, error: e, ts: new Date().toISOString() }); }
         if (item.V !== scrollTop) {
           item.V = scrollTop;
           if (bindingPath && z2ui5.xxChangedPaths) {
@@ -306,13 +308,15 @@ sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {
 
     _restoreScrollPosition(item) {
       try {
-        z2ui5.oView.byId(item.N).scrollTo(item.V);
-      } catch (e) {
-        try {
-          const element = document.getElementById(`${z2ui5.oView.byId(item.ID).getId()}-inner`);
-          if (element) element.scrollTop = item.V;
-        } catch (e2) { (z2ui5.errors ??= []).push({ message: `Scrolling._restoreScrollPosition: failed`, error: e2, ts: new Date().toISOString() }); }
-      }
+        const control = z2ui5.oView.byId(item.N);
+        if (control && typeof control.scrollTo === 'function') {
+          control.scrollTo(item.V);
+          return;
+        }
+        const domControl = z2ui5.oView.byId(item.ID);
+        const element = domControl ? document.getElementById(`${domControl.getId()}-inner`) : null;
+        if (element) element.scrollTop = item.V;
+      } catch (e) { (z2ui5.errors ??= []).push({ message: `Scrolling._restoreScrollPosition: failed`, error: e, ts: new Date().toISOString() }); }
     },
 
     onAfterRendering() {
