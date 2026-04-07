@@ -14,7 +14,6 @@ INTERFACE z2ui5_if_core_types
     BEGIN OF cs_bind_type,
       one_way  TYPE string VALUE `ONE_WAY`,
       two_way  TYPE string VALUE `TWO_WAY`,
-      one_time TYPE string VALUE `ONE_TIME`,
     END OF cs_bind_type.
 
   TYPES:
