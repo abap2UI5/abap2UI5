@@ -832,6 +832,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         width                         TYPE clike OPTIONAL
         showpageindicator             TYPE clike OPTIONAL
         visible                       TYPE clike OPTIONAL
+        pages                         TYPE clike OPTIONAL
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
@@ -5789,7 +5790,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `pageIndicatorPlacement`  v = pageindicatorplacement )
                                          ( n = `width`  v = width )
                                          ( n = `showPageIndicator`  v = showpageindicator )
-                                         ( n = `visible`  v = z2ui5_cl_util=>boolean_abap_2_json( visible ) ) ) ).
+                                         ( n = `visible`  v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                                         ( n = `pages`  v = pages ) ) ).
 
   ENDMETHOD.
 
