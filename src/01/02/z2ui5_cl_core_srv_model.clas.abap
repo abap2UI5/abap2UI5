@@ -294,12 +294,17 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
          WHERE name_ref  IS INITIAL
                AND type_kind  = cl_abap_datadescr=>typekind_dref.
 
-      DATA(lv_deref_path) = |MO_APP->{ lr_attri->name }->*|.
-      ASSIGN (lv_deref_path) TO FIELD-SYMBOL(<dref_value>).
+      DATA(lv_name5) = |MO_APP->{ lr_attri->name }|.
+      ASSIGN (lv_name5) TO FIELD-SYMBOL(<ref>).
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <dref_value> ).
+      DATA(lv_name) = |MO_APP->{ lr_attri->name }->*|.
+      ASSIGN (lv_name) TO FIELD-SYMBOL(<val1>).
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
+      DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <val1> ).
 
       CASE lo_descr->type_kind.
 
@@ -310,42 +315,45 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
                      AND type_kind    = cl_abap_datadescr=>typekind_table
                      AND name_parent  = lr_attri->name.
 
-            DATA(lv_child_path) = |MO_APP->{ lr_attri_child->name }|.
-            ASSIGN (lv_child_path) TO FIELD-SYMBOL(<child_table>).
+            DATA(lv_name6) = |MO_APP->{ lr_attri_child->name }|.
+            ASSIGN (lv_name6) TO FIELD-SYMBOL(<val_ref>).
             IF sy-subrc <> 0.
               CONTINUE.
             ENDIF.
-            lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <child_table> ).
+            lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <val_ref> ).
+            CLEAR <val_ref>.
+            CLEAR <val1>.
+            CLEAR <ref>.
             EXIT.
           ENDLOOP.
 
         WHEN cl_abap_datadescr=>typekind_struct1 OR cl_abap_datadescr=>typekind_struct2.
-          lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <dref_value> ).
+          lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <val1> ).
 
       ENDCASE.
 
     ENDLOOP.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_dref_attri) "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri2) "#EC CI_SORTSEQ
          WHERE type_kind = cl_abap_datadescr=>typekind_dref.
 
-      DATA(lv_clear_path) = |MO_APP->{ lr_dref_attri->name }|.
-      ASSIGN (lv_clear_path) TO FIELD-SYMBOL(<clear_ref>).
+      DATA(lv_name8) = |MO_APP->{ lr_attri2->name }|.
+      ASSIGN (lv_name8) TO FIELD-SYMBOL(<ref2>).
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      CLEAR <clear_ref>.
+      CLEAR <ref2>.
 
-      IF lr_dref_attri->name_ref IS NOT INITIAL.
+      IF lr_attri2->name_ref IS NOT INITIAL.
         CONTINUE.
       ENDIF.
 
-      DATA(lv_clear_deref_path) = |MO_APP->{ lr_dref_attri->name }->*|.
-      ASSIGN (lv_clear_deref_path) TO FIELD-SYMBOL(<clear_value>).
+      DATA(lv_name10) = |MO_APP->{ lr_attri2->name }->*|.
+      ASSIGN (lv_name10) TO FIELD-SYMBOL(<val8>).
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      CLEAR <clear_value>.
+      CLEAR <val8>.
     ENDLOOP.
 
   ENDMETHOD.
