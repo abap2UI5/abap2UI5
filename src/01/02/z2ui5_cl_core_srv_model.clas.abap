@@ -294,11 +294,6 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
          WHERE name_ref  IS INITIAL
                AND type_kind  = cl_abap_datadescr=>typekind_dref.
 
-      DATA(lv_dref_path) = |MO_APP->{ lr_attri->name }|.
-      ASSIGN (lv_dref_path) TO FIELD-SYMBOL(<dref>).
-      IF sy-subrc <> 0.
-        CONTINUE.
-      ENDIF.
       DATA(lv_deref_path) = |MO_APP->{ lr_attri->name }->*|.
       ASSIGN (lv_deref_path) TO FIELD-SYMBOL(<dref_value>).
       IF sy-subrc <> 0.
@@ -321,9 +316,6 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
               CONTINUE.
             ENDIF.
             lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <child_table> ).
-            CLEAR <child_table>.
-            CLEAR <dref_value>.
-            CLEAR <dref>.
             EXIT.
           ENDLOOP.
 
