@@ -46,6 +46,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      z2ui5.onAfterRendering = [];` && |\n| &&
              `      z2ui5.onBeforeEventFrontend = [];` && |\n| &&
              `      z2ui5.onAfterRoundtrip = [];` && |\n| &&
+             `      z2ui5.errors = [];` && |\n| &&
              `` && |\n| &&
              `      z2ui5.checkNestAfter = false;` && |\n| &&
              `` && |\n| &&
@@ -67,8 +68,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    metadata: {` && |\n| &&
              `      properties: {` && |\n| &&
              `        delayMS: {` && |\n| &&
-             `          type: "string",` && |\n| &&
-             `          defaultValue: ""` && |\n| &&
+             `          type: "int",` && |\n| &&
+             `          defaultValue: 0` && |\n| &&
              `        },` && |\n| &&
              `        checkActive: {` && |\n| &&
              `          type: "boolean",` && |\n| &&
@@ -137,7 +138,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        const oElement = z2ui5.oView.byId(val);` && |\n| &&
              `        const oFocus = oElement.getFocusInfo();` && |\n| &&
              `        oElement.applyFocusInfo(oFocus);` && |\n| &&
-             `      } catch (e) { }` && |\n| &&
+             `      } catch (e) { (z2ui5.errors ??= []).push({ message: ``Focus.setFocusId failed``, error: e, ts: new Date().toISOString() }); }` && |\n| &&
              `    },` && |\n| &&
              `    onAfterRendering() {` && |\n| &&
              `      if (!this._pendingFocus) return;` && |\n| &&
@@ -198,7 +199,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        this.setProperty("title", val);` && |\n| &&
              `        z2ui5.oLaunchpadService.setTitle(val);` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        console.error("Launchpad Service to set Title not found");` && |\n| &&
+             `        (z2ui5.errors ??= []).push({ message: ``LPTitle: Launchpad Service to set title not found``, error: e, ts: new Date().toISOString() });` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
@@ -210,7 +211,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    ], async (AppConfiguration)  => {` && |\n| &&
              `      AppConfiguration.setApplicationFullWidth(z2ui5.ApplicationFullWidth);` && |\n| &&
              `    }, function () {` && |\n| &&
-             `      console.error("sap/ushell/services/AppConfiguration not available");` && |\n| &&
+             `      (z2ui5.errors ??= []).push({ message: ``LPTitle: sap/ushell/services/AppConfiguration not available``, ts: new Date().toISOString() });` && |\n| &&
              `    });` && |\n| &&
              `` && |\n| &&
              `  },` && |\n| &&
@@ -304,11 +305,12 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          const scrollDelegate = z2ui5.oView.byId(item.N).getScrollDelegate();` && |\n| &&
              `          scrollTop = scrollDelegate ? scrollDelegate.getScrollTop() : 0;` && |\n| &&
-             `        } catch {` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          (z2ui5.errors ??= []).push({ message: ``Scrolling.setBackend: getScrollDelegate failed``, error: e, ts: new Date().toISOString() });` && |\n| &&
              `          try {` && |\n| &&
              `            const element = document.getElementById(``${z2ui5.oView.byId(item.ID).getId()}-inner``);` && |\n| &&
              `            scrollTop = element ? element.scrollTop : 0;` && |\n| &&
-             `          } catch { }` && |\n| &&
+             `          } catch (e2) { (z2ui5.errors ??= []).push({ message: ``Scrolling.setBackend: fallback DOM read failed``, error: e2, ts: new Date().toISOString() }); }` && |\n| &&
              `        }` && |\n| &&
              `        if (item.V !== scrollTop) {` && |\n| &&
              `          item.V = scrollTop;` && |\n| &&
@@ -326,11 +328,12 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    _restoreScrollPosition(item) {` && |\n| &&
              `      try {` && |\n| &&
              `        z2ui5.oView.byId(item.N).scrollTo(item.V);` && |\n| &&
-             `      } catch {` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        (z2ui5.errors ??= []).push({ message: ``Scrolling._restoreScrollPosition: scrollTo failed``, error: e, ts: new Date().toISOString() });` && |\n| &&
              `        try {` && |\n| &&
              `          const element = document.getElementById(``${z2ui5.oView.byId(item.ID).getId()}-inner``);` && |\n| &&
              `          if (element) element.scrollTop = item.V;` && |\n| &&
-             `        } catch { }` && |\n| &&
+             `        } catch (e2) { (z2ui5.errors ??= []).push({ message: ``Scrolling._restoreScrollPosition: fallback DOM write failed``, error: e2, ts: new Date().toISOString() }); }` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
@@ -415,11 +418,11 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          allowPreventDefault: true,` && |\n| &&
              `          parameters: {},` && |\n| &&
              `        }` && |\n| &&
+             |\n|.
+    result = result &&
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             |\n|.
-    result = result &&
              `    init() { },` && |\n| &&
              `` && |\n| &&
              `    onAfterRendering() {` && |\n| &&
@@ -513,7 +516,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      navigator.geolocation.getCurrentPosition(` && |\n| &&
              `        this.callbackPosition.bind(this),` && |\n| &&
              `        function (error) {` && |\n| &&
-             `          console.error("Geolocation error (" + error.code + "): " + error.message);` && |\n| &&
+             `          (z2ui5.errors ??= []).push({ message: ``Geolocation error (${error.code}): ${error.message}``, ts: new Date().toISOString() });` && |\n| &&
              `        },` && |\n| &&
              `        {` && |\n| &&
              `          enableHighAccuracy: this.getProperty("enableHighAccuracy"),` && |\n| &&
@@ -817,11 +820,11 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    renderer(oRm, oControl) {` && |\n| &&
              `      z2ui5.onAfterRendering.push(oControl.setControl.bind(oControl));` && |\n| &&
              `    },` && |\n| &&
+             |\n|.
+    result = result &&
              `    setControl() {` && |\n| &&
              `      let table = z2ui5.oView.byId(this.getProperty("MultiInputId"));` && |\n| &&
              `      if (!table) {` && |\n| &&
-             |\n|.
-    result = result &&
              `        try {` && |\n| &&
              `          // table = Core.byId(Element.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('-inner', ''));` && |\n| &&
              `        } catch (e) {` && |\n| &&
@@ -1062,7 +1065,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `              video.srcObject = stream;` && |\n| &&
              `            })` && |\n| &&
              `            .catch(function (error) {` && |\n| &&
-             `              console.log("Something went wrong! " + error);` && |\n| &&
+             `              (z2ui5.errors ??= []).push({ message: ``CameraPicture: getUserMedia failed``, error: error, ts: new Date().toISOString() });` && |\n| &&
              `            });` && |\n| &&
              `        }` && |\n| &&
              `      }.bind(this));` && |\n| &&
@@ -1109,7 +1112,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          });` && |\n| &&
              `        })` && |\n| &&
              `        .catch((err) => {` && |\n| &&
-             `          console.error(``${err.name}: ${err.message}``);` && |\n| &&
+             `          (z2ui5.errors ??= []).push({ message: ``CameraDeviceList: enumerateDevices failed``, error: err, ts: new Date().toISOString() });` && |\n| &&
              `        });` && |\n| &&
              `` && |\n| &&
              `    },` && |\n| &&
@@ -1143,7 +1146,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        let id = this.getProperty("tableId");` && |\n| &&
              `        let oTable = z2ui5.oView.byId(id);` && |\n| &&
              `        this.aFilters = oTable.getBinding().aFilters;` && |\n| &&
-             `      } catch (e) { }` && |\n| &&
+             `      } catch (e) { (z2ui5.errors ??= []).push({ message: ``UITableExt.readFilter failed``, error: e, ts: new Date().toISOString() }); }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    _applyWhenRendered(oTable, fn) {` && |\n| &&
@@ -1206,7 +1209,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        let oTable = z2ui5.oView.byId(this.getProperty("tableId"));` && |\n| &&
              `        if (!oTable) return;` && |\n| &&
              `        this._applyWhenRendered(oTable, () => this._applyFilters(oTable, this.aFilters));` && |\n| &&
-             `      } catch (e) { }` && |\n| &&
+             `      } catch (e) { (z2ui5.errors ??= []).push({ message: ``UITableExt.setFilter failed``, error: e, ts: new Date().toISOString() }); }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    readSort() {` && |\n| &&
@@ -1214,16 +1217,16 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        let id = this.getProperty("tableId");` && |\n| &&
              `        let oTable = z2ui5.oView.byId(id);` && |\n| &&
              `        this.aSorters = oTable.getBinding().aSorters;` && |\n| &&
-             `      } catch (e) {}` && |\n| &&
+             `      } catch (e) { (z2ui5.errors ??= []).push({ message: ``UITableExt.readSort failed``, error: e, ts: new Date().toISOString() }); }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    _applySorters(oTable, aSorters) {` && |\n| &&
              `      oTable.getBinding().sort(aSorters);` && |\n| &&
+             |\n|.
+    result = result &&
              `      aSorters.forEach(function(srt, idx) {` && |\n| &&
              `        oTable.getColumns().forEach(function(oCol) {` && |\n| &&
              `          if (oCol.getSortProperty && oCol.getSortProperty() === srt.sPath) {` && |\n| &&
-             |\n|.
-    result = result &&
              `            oCol.setSorted(true);` && |\n| &&
              `            oCol.setSortOrder(srt.bDescending ? "Descending" : "Ascending");` && |\n| &&
              `            if (oCol.setSortIndex) oCol.setSortIndex(idx);` && |\n| &&
@@ -1237,7 +1240,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        let oTable = z2ui5.oView.byId(this.getProperty("tableId"));` && |\n| &&
              `        if (!oTable) return;` && |\n| &&
              `        this._applyWhenRendered(oTable, () => this._applySorters(oTable, this.aSorters));` && |\n| &&
-             `      } catch (e) {}` && |\n| &&
+             `      } catch (e) { (z2ui5.errors ??= []).push({ message: ``UITableExt.setSort failed``, error: e, ts: new Date().toISOString() }); }` && |\n| &&
              `    },` && |\n| &&
              `    renderer(oRM, oControl) { }` && |\n| &&
              `  });` && |\n| &&
@@ -1288,7 +1291,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    metadata: {` && |\n| &&
              `      properties: {` && |\n| &&
              `        isDirty: {` && |\n| &&
-             `          type: "string"` && |\n| &&
+             `          type: "boolean",` && |\n| &&
+             `          defaultValue: false` && |\n| &&
              `        },` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&

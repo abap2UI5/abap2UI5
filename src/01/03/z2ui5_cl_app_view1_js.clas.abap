@@ -35,16 +35,16 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            try {` && |\n| &&
              `                const parsed = new URL(url, window.location.origin);` && |\n| &&
              `                if (parsed.origin !== window.location.origin) {` && |\n| &&
-             `                    console.error('Security: Blocked redirect to different origin:', url);` && |\n| &&
+             `                    (z2ui5.errors ??= []).push({ message: ``Security: Blocked redirect to different origin: ${url}``, ts: new Date().toISOString() });` && |\n| &&
              `                    return false;` && |\n| &&
              `                }` && |\n| &&
              `                if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {` && |\n| &&
-             `                    console.error('Security: Blocked redirect with invalid protocol:', parsed.protocol);` && |\n| &&
+             `                    (z2ui5.errors ??= []).push({ message: ``Security: Blocked redirect with invalid protocol: ${parsed.protocol}``, ts: new Date().toISOString() });` && |\n| &&
              `                    return false;` && |\n| &&
              `                }` && |\n| &&
              `                return true;` && |\n| &&
              `            } catch (e) {` && |\n| &&
-             `                console.error('Security: Invalid URL format:', url, e);` && |\n| &&
+             `                (z2ui5.errors ??= []).push({ message: ``Security: Invalid URL format: ${url}``, error: e, ts: new Date().toISOString() });` && |\n| &&
              `                return false;` && |\n| &&
              `            }` && |\n| &&
              `        }` && |\n| &&
@@ -53,7 +53,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {` && |\n| &&
              `                navigator.clipboard.writeText(textToCopy)` && |\n| &&
              `                    .then(() => { })` && |\n| &&
-             `                    .catch(err => { });` && |\n| &&
+             `                    .catch(err => { (z2ui5.errors ??= []).push({ message: ``Clipboard: writeText failed``, error: err, ts: new Date().toISOString() }); });` && |\n| &&
              `            } else {` && |\n| &&
              `                const tempTextArea = document.createElement("textarea");` && |\n| &&
              `                tempTextArea.value = textToCopy;` && |\n| &&
@@ -61,7 +61,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                tempTextArea.select();` && |\n| &&
              `                try {` && |\n| &&
              `                    document.execCommand("copy");` && |\n| &&
-             `                } catch (err) { }` && |\n| &&
+             `                } catch (err) { (z2ui5.errors ??= []).push({ message: ``Clipboard: execCommand copy failed``, error: err, ts: new Date().toISOString() }); }` && |\n| &&
              `                document.body.removeChild(tempTextArea);` && |\n| &&
              `            }` && |\n| &&
              `        }` && |\n| &&
@@ -78,7 +78,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                }` && |\n| &&
              `                callback(z2ui5.oCrossAppNavigator);` && |\n| &&
              `            }, function () {` && |\n| &&
-             `                console.error("sap/ushell/Container not available - cross-app navigation requires SAP Fiori Launchpad");` && |\n| &&
+             `                (z2ui5.errors ??= []).push({ message: ``CrossAppNav: sap/ushell/Container not available``, ts: new Date().toISOString() });` && |\n| &&
              `            });` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -248,7 +248,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        || null;` && |\n| &&
              `                    oFragment.openBy(oControl);` && |\n| &&
              `                }, function () {` && |\n| &&
-             `                    console.error("sap/ui/core/Element not available");` && |\n| &&
+             `                    (z2ui5.errors ??= []).push({ message: ``displayPopover: sap/ui/core/Element not available``, ts: new Date().toISOString() });` && |\n| &&
              `                });` && |\n| &&
              `            },` && |\n| &&
              `            async displayNestedView(xml, viewProp, viewNestId, controller) {` && |\n| &&
@@ -270,7 +270,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                if (oParent) {` && |\n| &&
              `                    try {` && |\n| &&
              `                        oParent[z2ui5.oResponse.PARAMS[viewNestId].METHOD_DESTROY]();` && |\n| &&
-             `                    } catch { }` && |\n| &&
+             `                    } catch (e) { (z2ui5.errors ??= []).push({ message: ``displayNestedView: parent destroy method failed``, error: e, ts: new Date().toISOString() }); }` && |\n| &&
              `                    oParent[z2ui5.oResponse.PARAMS[viewNestId].METHOD_INSERT](oView);` && |\n| &&
              `                }` && |\n| &&
              `                z2ui5[viewProp] = oView;` && |\n| &&
@@ -279,7 +279,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                const view = z2ui5[prop];` && |\n| &&
              `                if (!view) return;` && |\n| &&
              `                if (tryClose && view.close) {` && |\n| &&
-             `                    try { view.close(); } catch { }` && |\n| &&
+             `                    try { view.close(); } catch (e) { (z2ui5.errors ??= []).push({ message: ``_destroyView: view.close() failed for ${prop}``, error: e, ts: new Date().toISOString() }); }` && |\n| &&
              `                }` && |\n| &&
              `                view.destroy();` && |\n| &&
              `            },` && |\n| &&

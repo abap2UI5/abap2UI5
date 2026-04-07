@@ -56,7 +56,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `                if (sap.ui.require("sap/ushell/Container")) {` && |\n| &&
              `                    z2ui5.oLaunchpadService = await this.getService("ShellUIService");` && |\n| &&
              `                }` && |\n| &&
-             `            } catch (e) { }` && |\n| &&
+             `            } catch (e) { (z2ui5.errors ??= []).push({ message: ``Component: LaunchpadService init failed``, error: e, ts: new Date().toISOString() }); }` && |\n| &&
              `` && |\n| &&
              `            let oVersionInfo = await VersionInfo.load();` && |\n| &&
              `            z2ui5.oConfig.UI5VersionInfo = {` && |\n| &&

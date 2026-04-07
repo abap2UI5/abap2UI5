@@ -36,7 +36,7 @@ sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models", "z2ui5/cc/Server
                 if (sap.ui.require("sap/ushell/Container")) {
                     z2ui5.oLaunchpadService = await this.getService("ShellUIService");
                 }
-            } catch (e) { }
+            } catch (e) { (z2ui5.errors ??= []).push({ message: `Component: LaunchpadService init failed`, error: e, ts: new Date().toISOString() }); }
 
             let oVersionInfo = await VersionInfo.load();
             z2ui5.oConfig.UI5VersionInfo = {
