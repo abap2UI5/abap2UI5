@@ -48,8 +48,8 @@ sap.ui.define("z2ui5/Timer", ["sap/ui/core/Control"], (Control) => {
     metadata: {
       properties: {
         delayMS: {
-          type: "string",
-          defaultValue: ""
+          type: "int",
+          defaultValue: 0
         },
         checkActive: {
           type: "boolean",
@@ -1265,7 +1265,8 @@ sap.ui.define("z2ui5/Dirty", ["sap/ui/core/Control"], (Control) => {
     metadata: {
       properties: {
         isDirty: {
-          type: "string"
+          type: "boolean",
+          defaultValue: false
         },
       }
     },

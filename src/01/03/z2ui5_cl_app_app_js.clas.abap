@@ -68,8 +68,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    metadata: {` && |\n|  &&
              `      properties: {` && |\n|  &&
              `        delayMS: {` && |\n|  &&
-             `          type: "string",` && |\n|  &&
-             `          defaultValue: ""` && |\n|  &&
+             `          type: "int",` && |\n|  &&
+             `          defaultValue: 0` && |\n|  &&
              `        },` && |\n|  &&
              `        checkActive: {` && |\n|  &&
              `          type: "boolean",` && |\n|  &&
@@ -1291,7 +1291,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    metadata: {` && |\n|  &&
              `      properties: {` && |\n|  &&
              `        isDirty: {` && |\n|  &&
-             `          type: "string"` && |\n|  &&
+             `          type: "boolean",` && |\n|  &&
+             `          defaultValue: false` && |\n|  &&
              `        },` && |\n|  &&
              `      }` && |\n|  &&
              `    },` && |\n|  &&
