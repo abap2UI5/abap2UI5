@@ -15,16 +15,16 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
             try {
                 const parsed = new URL(url, window.location.origin);
                 if (parsed.origin !== window.location.origin) {
-                    console.error('Security: Blocked redirect to different origin:', url);
+                    (z2ui5.errors ??= []).push({ message: `Security: Blocked redirect to different origin: ${url}`, ts: new Date().toISOString() });
                     return false;
                 }
                 if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-                    console.error('Security: Blocked redirect with invalid protocol:', parsed.protocol);
+                    (z2ui5.errors ??= []).push({ message: `Security: Blocked redirect with invalid protocol: ${parsed.protocol}`, ts: new Date().toISOString() });
                     return false;
                 }
                 return true;
             } catch (e) {
-                console.error('Security: Invalid URL format:', url, e);
+                (z2ui5.errors ??= []).push({ message: `Security: Invalid URL format: ${url}`, error: e, ts: new Date().toISOString() });
                 return false;
             }
         }
@@ -33,7 +33,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
             if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
                 navigator.clipboard.writeText(textToCopy)
                     .then(() => { })
-                    .catch(err => { });
+                    .catch(err => { (z2ui5.errors ??= []).push({ message: `Clipboard: writeText failed`, error: err, ts: new Date().toISOString() }); });
             } else {
                 const tempTextArea = document.createElement("textarea");
                 tempTextArea.value = textToCopy;
@@ -41,7 +41,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 tempTextArea.select();
                 try {
                     document.execCommand("copy");
-                } catch (err) { }
+                } catch (err) { (z2ui5.errors ??= []).push({ message: `Clipboard: execCommand copy failed`, error: err, ts: new Date().toISOString() }); }
                 document.body.removeChild(tempTextArea);
             }
         }
@@ -58,7 +58,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 }
                 callback(z2ui5.oCrossAppNavigator);
             }, function () {
-                console.error("sap/ushell/Container not available - cross-app navigation requires SAP Fiori Launchpad");
+                (z2ui5.errors ??= []).push({ message: `CrossAppNav: sap/ushell/Container not available`, ts: new Date().toISOString() });
             });
         }
 
@@ -228,7 +228,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         || null;
                     oFragment.openBy(oControl);
                 }, function () {
-                    console.error("sap/ui/core/Element not available");
+                    (z2ui5.errors ??= []).push({ message: `displayPopover: sap/ui/core/Element not available`, ts: new Date().toISOString() });
                 });
             },
             async displayNestedView(xml, viewProp, viewNestId, controller) {
@@ -250,7 +250,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 if (oParent) {
                     try {
                         oParent[z2ui5.oResponse.PARAMS[viewNestId].METHOD_DESTROY]();
-                    } catch { }
+                    } catch (e) { (z2ui5.errors ??= []).push({ message: `displayNestedView: parent destroy method failed`, error: e, ts: new Date().toISOString() }); }
                     oParent[z2ui5.oResponse.PARAMS[viewNestId].METHOD_INSERT](oView);
                 }
                 z2ui5[viewProp] = oView;
@@ -259,7 +259,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 const view = z2ui5[prop];
                 if (!view) return;
                 if (tryClose && view.close) {
-                    try { view.close(); } catch { }
+                    try { view.close(); } catch (e) { (z2ui5.errors ??= []).push({ message: `_destroyView: view.close() failed for ${prop}`, error: e, ts: new Date().toISOString() }); }
                 }
                 view.destroy();
             },
