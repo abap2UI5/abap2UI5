@@ -467,33 +467,33 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   METHOD diss_dref.
 
-    DATA(lr_val) = attri_get_val_ref( ir_attri->name ).
+    DATA(lr_ref_tmp) = attri_get_val_ref( ir_attri->name ).
 
-    IF z2ui5_cl_util=>check_unassign_inital( lr_val ).
+    IF z2ui5_cl_util=>check_unassign_inital( lr_ref_tmp ).
       RETURN.
     ENDIF.
 
-    DATA(lr_ref) = z2ui5_cl_util=>unassign_data( lr_val ).
+    DATA(lr_ref) = z2ui5_cl_util=>unassign_data( lr_ref_tmp ).
     IF lr_ref IS INITIAL.
       RETURN.
     ENDIF.
 
-    DATA(lo_descr) = cl_abap_datadescr=>describe_by_data_ref( lr_ref ).
+    DATA(ls_attri2) = VALUE z2ui5_if_core_types=>ty_s_attri( ).
+    ls_attri2-o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref ).
 
-    CASE lo_descr->kind.
+    CASE ls_attri2-o_typedescr->kind.
 
       WHEN cl_abap_datadescr=>kind_struct.
         DATA(lt_attri) = diss_struc( ir_attri ).
         INSERT LINES OF lt_attri INTO TABLE result.
 
       WHEN OTHERS.
-        INSERT VALUE z2ui5_if_core_types=>ty_s_attri(
-          name        = |{ ir_attri->name }->*|
-          name_parent = ir_attri->name
-          o_typedescr = lo_descr
-          type_kind   = lo_descr->type_kind
-          kind        = lo_descr->kind
-          ) INTO TABLE result.
+
+        ls_attri2-name        = |{ ir_attri->name }->*|.
+        ls_attri2-name_parent = ir_attri->name.
+        ls_attri2-type_kind   = ls_attri2-o_typedescr->type_kind.
+        ls_attri2-kind        = ls_attri2-o_typedescr->kind.
+        INSERT ls_attri2 INTO TABLE result.
 
     ENDCASE.
 
@@ -570,101 +570,73 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD attri_update_entry_refs.
+    METHOD attri_update_entry_refs.
 
-    TYPES: BEGIN OF ty_s_ref_cache,
-             name      TYPE string,
-             ref       TYPE REF TO data,
-             type_kind TYPE string,
-           END OF ty_s_ref_cache.
-    DATA lt_ref_cache TYPE SORTED TABLE OF ty_s_ref_cache WITH UNIQUE KEY name.
-    DATA lt_tables TYPE STANDARD TABLE OF ty_s_ref_cache WITH EMPTY KEY.
-    DATA lt_structs TYPE STANDARD TABLE OF ty_s_ref_cache WITH EMPTY KEY.
-
-    TYPES: BEGIN OF ty_s_child_entry,
-             name_parent TYPE string,
-             name        TYPE string,
-           END OF ty_s_child_entry.
-    DATA lt_children TYPE SORTED TABLE OF ty_s_child_entry WITH NON-UNIQUE KEY name_parent.
-
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_pre)     "#EC CI_SORTSEQ
-         WHERE check_dissolved = abap_true
-               AND name_ref IS INITIAL.
-      TRY.
-          DATA(ls_entry) = VALUE ty_s_ref_cache( name      = lr_pre->name
-                                                 ref       = attri_get_val_ref( lr_pre->name )
-                                                 type_kind = lr_pre->type_kind ).
-          INSERT ls_entry INTO TABLE lt_ref_cache.
-          CASE lr_pre->type_kind.
-            WHEN cl_abap_typedescr=>typekind_table.
-              INSERT ls_entry INTO TABLE lt_tables.
-            WHEN cl_abap_typedescr=>typekind_struct1 OR cl_abap_typedescr=>typekind_struct2.
-              INSERT ls_entry INTO TABLE lt_structs.
-          ENDCASE.
-        CATCH cx_root ##NO_HANDLER.
-      ENDTRY.
-    ENDLOOP.
-
-    LOOP AT mt_attri->* REFERENCE INTO lr_pre           "#EC CI_SORTSEQ
-         WHERE name_parent IS NOT INITIAL.
-      INSERT VALUE #( name_parent = lr_pre->name_parent
-                      name        = lr_pre->name ) INTO TABLE lt_children.
-    ENDLOOP.
-
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
          WHERE check_dissolved  = abap_true
                AND name_ref        IS INITIAL.
 
-      READ TABLE lt_ref_cache REFERENCE INTO DATA(lr_cache) WITH KEY name = lr_attri->name.
-      IF sy-subrc <> 0.
-        CONTINUE.
-      ENDIF.
-      DATA(lr_ref) = lr_cache->ref.
+      TRY.
+          DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
+        CATCH cx_root.
+          CONTINUE.
+      ENDTRY.
 
       CASE lr_attri->type_kind.
 
         WHEN cl_abap_typedescr=>typekind_table.
 
-          LOOP AT lt_tables REFERENCE INTO DATA(lr_tbl_entry)
-               WHERE name <> lr_attri->name.
+          LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_ref) "#EC CI_SORTSEQ
+               WHERE check_dissolved  = abap_true
+                     AND name            <> lr_attri->name
+                     AND name_ref        IS INITIAL
+                     AND type_kind        = cl_abap_typedescr=>typekind_table.
 
-            IF lr_ref <> lr_tbl_entry->ref.
+            TRY.
+                DATA(lr_attri_ref_ref) = attri_get_val_ref( lr_attri_ref->name ).
+              CATCH cx_root.
+                CONTINUE.
+            ENDTRY.
+
+            IF lr_ref <> lr_attri_ref_ref.
               CONTINUE.
             ENDIF.
 
-            lr_attri->name_ref = lr_tbl_entry->name.
+            lr_attri->name_ref = lr_attri_ref->name.
           ENDLOOP.
 
         WHEN cl_abap_typedescr=>typekind_dref.
 
           ASSIGN lr_ref->* TO FIELD-SYMBOL(<ref>).
 
-          LOOP AT lt_structs REFERENCE INTO DATA(lr_struct_entry)
-               WHERE name <> lr_attri->name.
+          LOOP AT mt_attri->* REFERENCE INTO lr_attri_ref "#EC CI_SORTSEQ
+               WHERE check_dissolved  = abap_true
+                     AND name            <> lr_attri->name
+                     AND name_ref        IS INITIAL
+                     AND (    type_kind = cl_abap_typedescr=>typekind_struct1
+                           OR type_kind = cl_abap_typedescr=>typekind_struct2 ).
 
-            IF <ref> <> lr_struct_entry->ref.
+            TRY.
+                lr_attri_ref_ref = attri_get_val_ref( lr_attri_ref->name ).
+              CATCH cx_root.
+                CONTINUE.
+            ENDTRY.
+
+            IF <ref> <> lr_attri_ref_ref.
               CONTINUE.
             ENDIF.
 
-            IF lr_attri->name_ref IS NOT INITIAL AND strlen( lr_attri->name_ref ) <= strlen( lr_struct_entry->name ).
+            IF lr_attri->name_ref IS NOT INITIAL AND strlen( lr_attri->name_ref ) <= lr_attri_ref->name.
               CONTINUE.
             ENDIF.
 
-            lr_attri->name_ref = lr_struct_entry->name.
+            lr_attri->name_ref = lr_attri_ref->name.
 
-            DATA(lv_parent_prefix) = |{ lr_attri->name }->|.
-
-            LOOP AT lt_children REFERENCE INTO DATA(lr_child_entry)
+            LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_child) "#EC CI_SORTSEQ
                  WHERE name_parent = lr_attri->name.
 
-              READ TABLE mt_attri->* REFERENCE INTO DATA(lr_attri_child)
-                   WITH KEY name = lr_child_entry->name.
-              IF sy-subrc <> 0.
-                CONTINUE.
-              ENDIF.
-
               DATA(lv_name) = shift_left( val = lr_attri_child->name
-                                          sub = lv_parent_prefix ).
+                                          sub = |{ lr_attri->name }->| ).
               lr_attri_child->name_ref = |{ lr_attri->name_ref }-{ lv_name }|.
 
             ENDLOOP.
@@ -686,13 +658,14 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
     DATA(lt_attri_new) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
          WHERE check_dissolved = abap_false.
 
       lr_attri->check_dissolved = abap_true.
 
       IF lr_attri->o_typedescr IS NOT BOUND.
-        lr_attri->o_typedescr = attri_create_new( lr_attri->name )-o_typedescr.
+        DATA(ls_entry) = attri_create_new( lr_attri->name ).
+        lr_attri->o_typedescr = ls_entry-o_typedescr.
       ENDIF.
 
       CASE lr_attri->o_typedescr->kind.
@@ -712,9 +685,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
               DATA(lt_attri_dref) = diss_dref( lr_attri ).
               INSERT LINES OF lt_attri_dref INTO TABLE lt_attri_new.
             WHEN OTHERS.
-              RAISE EXCEPTION TYPE z2ui5_cx_util_error
-                EXPORTING
-                  val = `DISSOLVE_ERROR - Unexpected type_kind for reference type`.
+              ASSERT 1 = 0.
           ENDCASE.
         WHEN OTHERS.
       ENDCASE.
