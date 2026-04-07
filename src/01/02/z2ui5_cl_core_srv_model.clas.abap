@@ -570,7 +570,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   ENDMETHOD.
 
-    METHOD attri_update_entry_refs.
+  METHOD attri_update_entry_refs.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
          WHERE check_dissolved  = abap_true
