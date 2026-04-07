@@ -306,11 +306,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          const scrollDelegate = z2ui5.oView.byId(item.N).getScrollDelegate();` && |\n| &&
              `          scrollTop = scrollDelegate ? scrollDelegate.getScrollTop() : 0;` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          (z2ui5.errors ??= []).push({ message: ``Scrolling.setBackend: getScrollDelegate failed``, error: e, ts: new Date().toISOString() });` && |\n| &&
              `          try {` && |\n| &&
              `            const element = document.getElementById(``${z2ui5.oView.byId(item.ID).getId()}-inner``);` && |\n| &&
              `            scrollTop = element ? element.scrollTop : 0;` && |\n| &&
-             `          } catch (e2) { (z2ui5.errors ??= []).push({ message: ``Scrolling.setBackend: fallback DOM read failed``, error: e2, ts: new Date().toISOString() }); }` && |\n| &&
+             `          } catch (e2) { (z2ui5.errors ??= []).push({ message: ``Scrolling.setBackend: failed``, error: e2, ts: new Date().toISOString() }); }` && |\n| &&
              `        }` && |\n| &&
              `        if (item.V !== scrollTop) {` && |\n| &&
              `          item.V = scrollTop;` && |\n| &&
@@ -329,11 +328,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      try {` && |\n| &&
              `        z2ui5.oView.byId(item.N).scrollTo(item.V);` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        (z2ui5.errors ??= []).push({ message: ``Scrolling._restoreScrollPosition: scrollTo failed``, error: e, ts: new Date().toISOString() });` && |\n| &&
              `        try {` && |\n| &&
              `          const element = document.getElementById(``${z2ui5.oView.byId(item.ID).getId()}-inner``);` && |\n| &&
              `          if (element) element.scrollTop = item.V;` && |\n| &&
-             `        } catch (e2) { (z2ui5.errors ??= []).push({ message: ``Scrolling._restoreScrollPosition: fallback DOM write failed``, error: e2, ts: new Date().toISOString() }); }` && |\n| &&
+             `        } catch (e2) { (z2ui5.errors ??= []).push({ message: ``Scrolling._restoreScrollPosition: failed``, error: e2, ts: new Date().toISOString() }); }` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
@@ -418,10 +416,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          allowPreventDefault: true,` && |\n| &&
              `          parameters: {},` && |\n| &&
              `        }` && |\n| &&
-             |\n|.
-    result = result &&
              `      }` && |\n| &&
              `    },` && |\n| &&
+             |\n|.
+    result = result &&
              `` && |\n| &&
              `    init() { },` && |\n| &&
              `` && |\n| &&
@@ -820,10 +818,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    renderer(oRm, oControl) {` && |\n| &&
              `      z2ui5.onAfterRendering.push(oControl.setControl.bind(oControl));` && |\n| &&
              `    },` && |\n| &&
-             |\n|.
-    result = result &&
              `    setControl() {` && |\n| &&
              `      let table = z2ui5.oView.byId(this.getProperty("MultiInputId"));` && |\n| &&
+             |\n|.
+    result = result &&
              `      if (!table) {` && |\n| &&
              `        try {` && |\n| &&
              `          // table = Core.byId(Element.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('-inner', ''));` && |\n| &&
@@ -1222,10 +1220,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `    _applySorters(oTable, aSorters) {` && |\n| &&
              `      oTable.getBinding().sort(aSorters);` && |\n| &&
-             |\n|.
-    result = result &&
              `      aSorters.forEach(function(srt, idx) {` && |\n| &&
              `        oTable.getColumns().forEach(function(oCol) {` && |\n| &&
+             |\n|.
+    result = result &&
              `          if (oCol.getSortProperty && oCol.getSortProperty() === srt.sPath) {` && |\n| &&
              `            oCol.setSorted(true);` && |\n| &&
              `            oCol.setSortOrder(srt.bDescending ? "Descending" : "Ascending");` && |\n| &&

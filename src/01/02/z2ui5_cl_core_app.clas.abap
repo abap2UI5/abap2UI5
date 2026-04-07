@@ -75,17 +75,17 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
     DATA(lo_model) = create_model( ).
 
     TRY.
+        lo_model->main_attri_db_save_srtti( ).
         result = z2ui5_cl_util=>xml_stringify( me ).
+        lo_model->main_attri_db_load( ).
         RETURN.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
     TRY.
-        lo_model->main_attri_db_save_srtti( ).
         result = z2ui5_cl_util=>xml_stringify( me ).
-        lo_model->main_attri_db_load( ).
         RETURN.
-      CATCH cx_root INTO DATA(x) ##NO_HANDLER.
+      CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
     TRY.
@@ -94,7 +94,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
         result = z2ui5_cl_util=>xml_stringify( me ).
         lo_model->main_attri_db_load( ).
         RETURN.
-      CATCH cx_root INTO x ##NO_HANDLER.
+      CATCH cx_root INTO DATA(x) ##NO_HANDLER.
     ENDTRY.
 
     RAISE EXCEPTION TYPE z2ui5_cx_util_error
