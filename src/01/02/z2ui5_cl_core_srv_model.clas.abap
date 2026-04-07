@@ -25,7 +25,7 @@ CLASS z2ui5_cl_core_srv_model DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE string ##NEEDED.
 
-  PROTECTED SECTION.
+
     CONSTANTS max_dissolve_depth TYPE i VALUE 5.
 
     DATA mt_attri TYPE REF TO z2ui5_if_core_types=>ty_t_attri.
@@ -72,11 +72,14 @@ CLASS z2ui5_cl_core_srv_model DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE z2ui5_if_core_types=>ty_s_attri.
 
-  PRIVATE SECTION.
     METHODS delta_apply_to_table
       IMPORTING
         io_val_front TYPE REF TO z2ui5_if_ajson
         iv_name      TYPE string.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+
 ENDCLASS.
 
 
@@ -84,7 +87,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   METHOD main_json_to_attri.
 
-    IF line_exists( mt_attri->*[ view = view ] ). "#EC CI_SORTSEQ
+    IF line_exists( mt_attri->*[ view = view ] ).       "#EC CI_SORTSEQ
       DATA(lv_view) = view.
     ELSE.
       lv_view = z2ui5_if_client=>cs_view-main.
@@ -127,7 +130,8 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
         CATCH cx_root INTO DATA(x).
           RAISE EXCEPTION TYPE z2ui5_cx_util_error
-            EXPORTING val = |JSON_PARSING_ERROR: { x->get_text( ) } |.
+            EXPORTING
+              val = |JSON_PARSING_ERROR: { x->get_text( ) } |.
       ENDTRY.
     ENDLOOP.
 
@@ -191,13 +195,14 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
       CATCH cx_root INTO DATA(x).
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
-          EXPORTING val = x.
+          EXPORTING
+            val = x.
     ENDTRY.
   ENDMETHOD.
 
   METHOD main_attri_db_load.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE name_ref IS INITIAL.
       TRY.
           DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
@@ -219,13 +224,13 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
            END OF ty_s_child_idx.
     DATA lt_child_idx TYPE SORTED TABLE OF ty_s_child_idx WITH NON-UNIQUE KEY name_parent.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_pre) "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_pre)     "#EC CI_SORTSEQ
          WHERE name_parent IS NOT INITIAL.
       INSERT VALUE #( name_parent = lr_pre->name_parent
                       name        = lr_pre->name ) INTO TABLE lt_child_idx.
     ENDLOOP.
 
-    LOOP AT mt_attri->* REFERENCE INTO lr_attri "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO lr_attri         "#EC CI_SORTSEQ
          WHERE name_ref IS NOT INITIAL.
 
       CASE lr_attri->type_kind.
@@ -290,21 +295,21 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
     dissolve( ).
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE name_ref  IS INITIAL
                AND type_kind  = cl_abap_datadescr=>typekind_dref.
 
-      DATA(lv_dref_path) = |MO_APP->{ lr_attri->name }|.
-      ASSIGN (lv_dref_path) TO FIELD-SYMBOL(<dref>).
+      DATA(lv_name5) = |MO_APP->{ lr_attri->name }|.
+      ASSIGN (lv_name5) TO FIELD-SYMBOL(<ref>).
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      DATA(lv_deref_path) = |MO_APP->{ lr_attri->name }->*|.
-      ASSIGN (lv_deref_path) TO FIELD-SYMBOL(<dref_value>).
+      DATA(lv_name) = |MO_APP->{ lr_attri->name }->*|.
+      ASSIGN (lv_name) TO FIELD-SYMBOL(<val1>).
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <dref_value> ).
+      DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <val1> ).
 
       CASE lo_descr->type_kind.
 
@@ -315,45 +320,45 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
                      AND type_kind    = cl_abap_datadescr=>typekind_table
                      AND name_parent  = lr_attri->name.
 
-            DATA(lv_child_path) = |MO_APP->{ lr_attri_child->name }|.
-            ASSIGN (lv_child_path) TO FIELD-SYMBOL(<child_table>).
+            DATA(lv_name6) = |MO_APP->{ lr_attri_child->name }|.
+            ASSIGN (lv_name6) TO FIELD-SYMBOL(<val_ref>).
             IF sy-subrc <> 0.
               CONTINUE.
             ENDIF.
-            lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <child_table> ).
-            CLEAR <child_table>.
-            CLEAR <dref_value>.
-            CLEAR <dref>.
+            lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <val_ref> ).
+            CLEAR <val_ref>.
+            CLEAR <val1>.
+            CLEAR <ref>.
             EXIT.
           ENDLOOP.
 
         WHEN cl_abap_datadescr=>typekind_struct1 OR cl_abap_datadescr=>typekind_struct2.
-          lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <dref_value> ).
+          lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <val1> ).
 
       ENDCASE.
 
     ENDLOOP.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_dref_attri) "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri2)  "#EC CI_SORTSEQ
          WHERE type_kind = cl_abap_datadescr=>typekind_dref.
 
-      DATA(lv_clear_path) = |MO_APP->{ lr_dref_attri->name }|.
-      ASSIGN (lv_clear_path) TO FIELD-SYMBOL(<clear_ref>).
+      DATA(lv_name8) = |MO_APP->{ lr_attri2->name }|.
+      ASSIGN (lv_name8) TO FIELD-SYMBOL(<ref2>).
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      CLEAR <clear_ref>.
+      CLEAR <ref2>.
 
-      IF lr_dref_attri->name_ref IS NOT INITIAL.
+      IF lr_attri2->name_ref IS NOT INITIAL.
         CONTINUE.
       ENDIF.
 
-      DATA(lv_clear_deref_path) = |MO_APP->{ lr_dref_attri->name }->*|.
-      ASSIGN (lv_clear_deref_path) TO FIELD-SYMBOL(<clear_value>).
+      DATA(lv_name10) = |MO_APP->{ lr_attri2->name }->*|.
+      ASSIGN (lv_name10) TO FIELD-SYMBOL(<val8>).
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      CLEAR <clear_value>.
+      CLEAR <val8>.
     ENDLOOP.
 
   ENDMETHOD.
@@ -396,13 +401,15 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
     IF <attri> IS NOT ASSIGNED.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = `ATTRI_GET_VAL_REF_ERROR`.
+        EXPORTING
+          val = `ATTRI_GET_VAL_REF_ERROR`.
     ENDIF.
 
     GET REFERENCE OF <attri> INTO result.
     IF result IS NOT BOUND.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = `ATTRI_GET_VAL_REF_ERROR`.
+        EXPORTING
+          val = `ATTRI_GET_VAL_REF_ERROR`.
     ENDIF.
 
   ENDMETHOD.
@@ -421,10 +428,11 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     IF lo_datadescr->type_kind = cl_abap_typedescr=>typekind_dref
         OR lo_datadescr->type_kind = cl_abap_typedescr=>typekind_oref.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = |NO DATA REFERENCES FOR BINDING ALLOWED: DEREFERENCE YOUR DATA FIRST|.
+        EXPORTING
+          val = |NO DATA REFERENCES FOR BINDING ALLOWED: DEREFERENCE YOUR DATA FIRST|.
     ENDIF.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE name_ref  IS INITIAL
                AND type_kind  = lo_datadescr->type_kind
                AND kind       = lo_datadescr->kind.
@@ -579,7 +587,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
            END OF ty_s_child_entry.
     DATA lt_children TYPE SORTED TABLE OF ty_s_child_entry WITH NON-UNIQUE KEY name_parent.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_pre) "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_pre)     "#EC CI_SORTSEQ
          WHERE check_dissolved = abap_true
                AND name_ref IS INITIAL.
       TRY.
@@ -597,13 +605,13 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
       ENDTRY.
     ENDLOOP.
 
-    LOOP AT mt_attri->* REFERENCE INTO lr_pre "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO lr_pre           "#EC CI_SORTSEQ
          WHERE name_parent IS NOT INITIAL.
       INSERT VALUE #( name_parent = lr_pre->name_parent
                       name        = lr_pre->name ) INTO TABLE lt_children.
     ENDLOOP.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE check_dissolved  = abap_true
                AND name_ref        IS INITIAL.
 
@@ -678,7 +686,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
     DATA(lt_attri_new) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE check_dissolved = abap_false.
 
       lr_attri->check_dissolved = abap_true.
@@ -705,7 +713,8 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
               INSERT LINES OF lt_attri_dref INTO TABLE lt_attri_new.
             WHEN OTHERS.
               RAISE EXCEPTION TYPE z2ui5_cx_util_error
-                EXPORTING val = `DISSOLVE_ERROR - Unexpected type_kind for reference type`.
+                EXPORTING
+                  val = `DISSOLVE_ERROR - Unexpected type_kind for reference type`.
           ENDCASE.
         WHEN OTHERS.
       ENDCASE.
@@ -719,7 +728,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
   METHOD main_attri_refresh.
 
     DATA(lt_attri) = mt_attri->*.
-    DELETE lt_attri WHERE bind_type IS INITIAL. "#EC CI_SORTSEQ
+    DELETE lt_attri WHERE bind_type IS INITIAL.         "#EC CI_SORTSEQ
     CLEAR mt_attri->*.
 
     dissolve( ).

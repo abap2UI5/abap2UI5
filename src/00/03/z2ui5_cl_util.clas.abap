@@ -743,8 +743,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD conv_get_as_data_ref.
 
-*    GET REFERENCE OF val INTO result.
-    result = REF #( val ).
+    GET REFERENCE OF val INTO result.
 
   ENDMETHOD.
 

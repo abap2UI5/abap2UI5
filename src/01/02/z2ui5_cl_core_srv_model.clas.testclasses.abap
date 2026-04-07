@@ -795,6 +795,104 @@ CLASS ltcl_test_diss_complex DEFINITION FINAL
 ENDCLASS.
 
 
+CLASS ltcl_app_inner_335 DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    DATA mr_data TYPE REF TO data ##NEEDED.
+
+    METHODS constructor
+      IMPORTING
+        ir_data TYPE REF TO data OPTIONAL.
+
+ENDCLASS.
+
+CLASS ltcl_app_inner_335 IMPLEMENTATION.
+
+  METHOD constructor.
+
+    mr_data = ir_data.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_app_root_335 DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
+
+  PUBLIC SECTION.
+
+    TYPES:
+      BEGIN OF ty_s_row,
+        comp1 TYPE string,
+        comp2 TYPE string,
+      END OF ty_s_row.
+
+    DATA ms_struc  TYPE ty_s_row.
+    DATA mo_obj    TYPE REF TO ltcl_app_inner_335.
+    DATA mo_obj_2  TYPE REF TO ltcl_app_inner_335.
+
+    METHODS constructor.
+
+ENDCLASS.
+
+CLASS ltcl_app_root_335 IMPLEMENTATION.
+
+  METHOD constructor.
+
+    ms_struc = VALUE #(
+        comp1 = `comp1`
+        comp2 = `comp2` ).
+
+    mo_obj   = NEW ltcl_app_inner_335( ir_data = REF #( ms_struc ) ).
+    mo_obj_2 = NEW ltcl_app_inner_335( ir_data = REF #( ms_struc ) ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_test_sample335 DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
+
+  PRIVATE SECTION.
+    METHODS test_two_drefs_to_same_struc FOR TESTING RAISING cx_static_check.
+
+ENDCLASS.
+
+
+CLASS ltcl_test_sample335 IMPLEMENTATION.
+
+  METHOD test_two_drefs_to_same_struc.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    DATA(lo_app) = NEW ltcl_app_root_335( ).
+
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                  app   = lo_app ).
+
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+
+    DATA(ls_mr_data_1) = VALUE #( lt_attri[ name = `MO_OBJ->MR_DATA` ] OPTIONAL ).
+    cl_abap_unit_assert=>assert_equals( exp = `MS_STRUC`
+                                        act = ls_mr_data_1-name_ref ).
+
+    DATA(ls_mr_data_2) = VALUE #( lt_attri[ name = `MO_OBJ_2->MR_DATA` ] OPTIONAL ).
+    cl_abap_unit_assert=>assert_equals( exp = `MS_STRUC`
+                                        act = ls_mr_data_2-name_ref ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
 CLASS ltcl_test_diss_complex IMPLEMENTATION.
 
   METHOD test_table.
