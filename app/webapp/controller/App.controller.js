@@ -26,6 +26,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller",
       z2ui5.onAfterRendering = [];
       z2ui5.onBeforeEventFrontend = [];
       z2ui5.onAfterRoundtrip = [];
+      z2ui5.errors = [];
 
       z2ui5.checkNestAfter = false;
 
@@ -117,7 +118,7 @@ sap.ui.define("z2ui5/Focus", ["sap/ui/core/Control",], (Control) => {
         const oElement = z2ui5.oView.byId(val);
         const oFocus = oElement.getFocusInfo();
         oElement.applyFocusInfo(oFocus);
-      } catch (e) { }
+      } catch (e) { (z2ui5.errors ??= []).push({ message: `Focus.setFocusId failed`, error: e, ts: new Date().toISOString() }); }
     },
     onAfterRendering() {
       if (!this._pendingFocus) return;
@@ -178,7 +179,7 @@ sap.ui.define("z2ui5/LPTitle", ["sap/ui/core/Control"], (Control) => {
         this.setProperty("title", val);
         z2ui5.oLaunchpadService.setTitle(val);
       } catch (e) {
-        console.error("Launchpad Service to set Title not found");
+        (z2ui5.errors ??= []).push({ message: `LPTitle: Launchpad Service to set title not found`, error: e, ts: new Date().toISOString() });
       }
     },
 
@@ -190,7 +191,7 @@ sap.ui.define("z2ui5/LPTitle", ["sap/ui/core/Control"], (Control) => {
     ], async (AppConfiguration)  => {
       AppConfiguration.setApplicationFullWidth(z2ui5.ApplicationFullWidth);
     }, function () {
-      console.error("sap/ushell/services/AppConfiguration not available");
+      (z2ui5.errors ??= []).push({ message: `LPTitle: sap/ushell/services/AppConfiguration not available`, ts: new Date().toISOString() });
     });
 
   },
@@ -284,11 +285,12 @@ sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {
         try {
           const scrollDelegate = z2ui5.oView.byId(item.N).getScrollDelegate();
           scrollTop = scrollDelegate ? scrollDelegate.getScrollTop() : 0;
-        } catch {
+        } catch (e) {
+          (z2ui5.errors ??= []).push({ message: `Scrolling.setBackend: getScrollDelegate failed`, error: e, ts: new Date().toISOString() });
           try {
             const element = document.getElementById(`${z2ui5.oView.byId(item.ID).getId()}-inner`);
             scrollTop = element ? element.scrollTop : 0;
-          } catch { }
+          } catch (e2) { (z2ui5.errors ??= []).push({ message: `Scrolling.setBackend: fallback DOM read failed`, error: e2, ts: new Date().toISOString() }); }
         }
         if (item.V !== scrollTop) {
           item.V = scrollTop;
@@ -306,11 +308,12 @@ sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {
     _restoreScrollPosition(item) {
       try {
         z2ui5.oView.byId(item.N).scrollTo(item.V);
-      } catch {
+      } catch (e) {
+        (z2ui5.errors ??= []).push({ message: `Scrolling._restoreScrollPosition: scrollTo failed`, error: e, ts: new Date().toISOString() });
         try {
           const element = document.getElementById(`${z2ui5.oView.byId(item.ID).getId()}-inner`);
           if (element) element.scrollTop = item.V;
-        } catch { }
+        } catch (e2) { (z2ui5.errors ??= []).push({ message: `Scrolling._restoreScrollPosition: fallback DOM write failed`, error: e2, ts: new Date().toISOString() }); }
       }
     },
 
@@ -491,7 +494,7 @@ sap.ui.define("z2ui5/Geolocation", ["sap/ui/core/Control"], (Control) => {
       navigator.geolocation.getCurrentPosition(
         this.callbackPosition.bind(this),
         function (error) {
-          console.error("Geolocation error (" + error.code + "): " + error.message);
+          (z2ui5.errors ??= []).push({ message: `Geolocation error (${error.code}): ${error.message}`, ts: new Date().toISOString() });
         },
         {
           enableHighAccuracy: this.getProperty("enableHighAccuracy"),
@@ -1085,7 +1088,7 @@ sap.ui.define("z2ui5/CameraSelector", [
           });
         })
         .catch((err) => {
-          console.error(`${err.name}: ${err.message}`);
+          (z2ui5.errors ??= []).push({ message: `CameraDeviceList: enumerateDevices failed`, error: err, ts: new Date().toISOString() });
         });
 
     },
@@ -1119,7 +1122,7 @@ sap.ui.define("z2ui5/UITableExt", ["sap/ui/core/Control"], (Control) => {
         let id = this.getProperty("tableId");
         let oTable = z2ui5.oView.byId(id);
         this.aFilters = oTable.getBinding().aFilters;
-      } catch (e) { }
+      } catch (e) { (z2ui5.errors ??= []).push({ message: `UITableExt.readFilter failed`, error: e, ts: new Date().toISOString() }); }
     },
 
     _applyWhenRendered(oTable, fn) {
@@ -1182,7 +1185,7 @@ sap.ui.define("z2ui5/UITableExt", ["sap/ui/core/Control"], (Control) => {
         let oTable = z2ui5.oView.byId(this.getProperty("tableId"));
         if (!oTable) return;
         this._applyWhenRendered(oTable, () => this._applyFilters(oTable, this.aFilters));
-      } catch (e) { }
+      } catch (e) { (z2ui5.errors ??= []).push({ message: `UITableExt.setFilter failed`, error: e, ts: new Date().toISOString() }); }
     },
 
     readSort() {
@@ -1190,7 +1193,7 @@ sap.ui.define("z2ui5/UITableExt", ["sap/ui/core/Control"], (Control) => {
         let id = this.getProperty("tableId");
         let oTable = z2ui5.oView.byId(id);
         this.aSorters = oTable.getBinding().aSorters;
-      } catch (e) {}
+      } catch (e) { (z2ui5.errors ??= []).push({ message: `UITableExt.readSort failed`, error: e, ts: new Date().toISOString() }); }
     },
 
     _applySorters(oTable, aSorters) {
@@ -1211,7 +1214,7 @@ sap.ui.define("z2ui5/UITableExt", ["sap/ui/core/Control"], (Control) => {
         let oTable = z2ui5.oView.byId(this.getProperty("tableId"));
         if (!oTable) return;
         this._applyWhenRendered(oTable, () => this._applySorters(oTable, this.aSorters));
-      } catch (e) {}
+      } catch (e) { (z2ui5.errors ??= []).push({ message: `UITableExt.setSort failed`, error: e, ts: new Date().toISOString() }); }
     },
     renderer(oRM, oControl) { }
   });
