@@ -303,14 +303,16 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      items.forEach((item, index) => {` && |\n| &&
              `        let scrollTop = 0;` && |\n| &&
              `        try {` && |\n| &&
-             `          const scrollDelegate = z2ui5.oView.byId(item.N).getScrollDelegate();` && |\n| &&
-             `          scrollTop = scrollDelegate ? scrollDelegate.getScrollTop() : 0;` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          try {` && |\n| &&
-             `            const element = document.getElementById(``${z2ui5.oView.byId(item.ID).getId()}-inner``);` && |\n| &&
+             `          const control = z2ui5.oView.byId(item.N);` && |\n| &&
+             `          const scrollDelegate = control?.getScrollDelegate?.();` && |\n| &&
+             `          if (scrollDelegate) {` && |\n| &&
+             `            scrollTop = scrollDelegate.getScrollTop();` && |\n| &&
+             `          } else {` && |\n| &&
+             `            const domControl = z2ui5.oView.byId(item.ID);` && |\n| &&
+             `            const element = domControl ? document.getElementById(``${domControl.getId()}-inner``) : null;` && |\n| &&
              `            scrollTop = element ? element.scrollTop : 0;` && |\n| &&
-             `          } catch (e2) { (z2ui5.errors ??= []).push({ message: ``Scrolling.setBackend: failed``, error: e2, ts: new Date().toISOString() }); }` && |\n| &&
-             `        }` && |\n| &&
+             `          }` && |\n| &&
+             `        } catch (e) { (z2ui5.errors ??= []).push({ message: ``Scrolling.setBackend: failed``, error: e, ts: new Date().toISOString() }); }` && |\n| &&
              `        if (item.V !== scrollTop) {` && |\n| &&
              `          item.V = scrollTop;` && |\n| &&
              `          if (bindingPath && z2ui5.xxChangedPaths) {` && |\n| &&
@@ -326,13 +328,15 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `    _restoreScrollPosition(item) {` && |\n| &&
              `      try {` && |\n| &&
-             `        z2ui5.oView.byId(item.N).scrollTo(item.V);` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          const element = document.getElementById(``${z2ui5.oView.byId(item.ID).getId()}-inner``);` && |\n| &&
-             `          if (element) element.scrollTop = item.V;` && |\n| &&
-             `        } catch (e2) { (z2ui5.errors ??= []).push({ message: ``Scrolling._restoreScrollPosition: failed``, error: e2, ts: new Date().toISOString() }); }` && |\n| &&
-             `      }` && |\n| &&
+             `        const control = z2ui5.oView.byId(item.N);` && |\n| &&
+             `        if (control && typeof control.scrollTo === 'function') {` && |\n| &&
+             `          control.scrollTo(item.V);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        const domControl = z2ui5.oView.byId(item.ID);` && |\n| &&
+             `        const element = domControl ? document.getElementById(``${domControl.getId()}-inner``) : null;` && |\n| &&
+             `        if (element) element.scrollTop = item.V;` && |\n| &&
+             `      } catch (e) { (z2ui5.errors ??= []).push({ message: ``Scrolling._restoreScrollPosition: failed``, error: e, ts: new Date().toISOString() }); }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    onAfterRendering() {` && |\n| &&
@@ -414,12 +418,12 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      events: {` && |\n| &&
              `        "finished": {` && |\n| &&
              `          allowPreventDefault: true,` && |\n| &&
+             |\n|.
+    result = result &&
              `          parameters: {},` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
-             |\n|.
-    result = result &&
              `` && |\n| &&
              `    init() { },` && |\n| &&
              `` && |\n| &&
@@ -816,12 +820,12 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      this.fireChange();` && |\n| &&
              `    },` && |\n| &&
              `    renderer(oRm, oControl) {` && |\n| &&
+             |\n|.
+    result = result &&
              `      z2ui5.onAfterRendering.push(oControl.setControl.bind(oControl));` && |\n| &&
              `    },` && |\n| &&
              `    setControl() {` && |\n| &&
              `      let table = z2ui5.oView.byId(this.getProperty("MultiInputId"));` && |\n| &&
-             |\n|.
-    result = result &&
              `      if (!table) {` && |\n| &&
              `        try {` && |\n| &&
              `          // table = Core.byId(Element.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('-inner', ''));` && |\n| &&
@@ -1218,12 +1222,12 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      } catch (e) { (z2ui5.errors ??= []).push({ message: ``UITableExt.readSort failed``, error: e, ts: new Date().toISOString() }); }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
+             |\n|.
+    result = result &&
              `    _applySorters(oTable, aSorters) {` && |\n| &&
              `      oTable.getBinding().sort(aSorters);` && |\n| &&
              `      aSorters.forEach(function(srt, idx) {` && |\n| &&
              `        oTable.getColumns().forEach(function(oCol) {` && |\n| &&
-             |\n|.
-    result = result &&
              `          if (oCol.getSortProperty && oCol.getSortProperty() === srt.sPath) {` && |\n| &&
              `            oCol.setSorted(true);` && |\n| &&
              `            oCol.setSortOrder(srt.bDescending ? "Descending" : "Ascending");` && |\n| &&
