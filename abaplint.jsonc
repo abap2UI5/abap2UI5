@@ -90,7 +90,7 @@
     "constant_classes": true,
     "constructor_visibility_public": true,
     "contains_tab": true,
-    "cyclic_oo": true,
+    "cyclic_oo": false,
     "cyclomatic_complexity": {
       "exclude": [],
       "severity": "Error",
