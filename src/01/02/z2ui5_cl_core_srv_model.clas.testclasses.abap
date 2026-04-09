@@ -1480,3 +1480,293 @@ CLASS ltcl_test_delta_apply IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
+
+
+"------------------------------------------------------------------------
+" Helper: two orefs whose MR_DATA both point to the same MT_TAB table
+"------------------------------------------------------------------------
+CLASS ltcl_app_two_tab_drefs DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+
+    TYPES:
+      BEGIN OF ty_s_row,
+        col1 TYPE string,
+        col2 TYPE string,
+      END OF ty_s_row.
+    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_s_row WITH EMPTY KEY.
+
+    DATA mt_tab  TYPE ty_t_tab.
+    DATA mo_ref1 TYPE REF TO ltcl_app_inner_335.
+    DATA mo_ref2 TYPE REF TO ltcl_app_inner_335.
+
+    METHODS constructor.
+
+ENDCLASS.
+
+CLASS ltcl_app_two_tab_drefs IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main ##NEEDED.
+  ENDMETHOD.
+
+  METHOD constructor.
+    mo_ref1 = NEW ltcl_app_inner_335( ir_data = REF #( mt_tab ) ).
+    mo_ref2 = NEW ltcl_app_inner_335( ir_data = REF #( mt_tab ) ).
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_test_two_tab_refs DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
+  PRIVATE SECTION.
+    METHODS test_both_get_name_ref  FOR TESTING RAISING cx_static_check.
+    METHODS test_canonical_search   FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+CLASS ltcl_test_two_tab_refs IMPLEMENTATION.
+
+  METHOD test_both_get_name_ref.
+    " Both MO_REF1->MR_DATA->* and MO_REF2->MR_DATA->* point to MT_TAB.
+    " attri_update_entry_refs must set name_ref = MT_TAB for both paths.
+    DATA(lo_app) = NEW ltcl_app_two_tab_drefs( ).
+    lo_app->mt_tab = VALUE #( ( col1 = `A` col2 = `1` ) ).
+
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                  app   = lo_app ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+
+    DATA(ls_ref1) = VALUE #( lt_attri[ name = `MO_REF1->MR_DATA->*` ] OPTIONAL ).
+    cl_abap_unit_assert=>assert_equals( exp = `MT_TAB`
+                                        act = ls_ref1-name_ref ).
+
+    DATA(ls_ref2) = VALUE #( lt_attri[ name = `MO_REF2->MR_DATA->*` ] OPTIONAL ).
+    cl_abap_unit_assert=>assert_equals( exp = `MT_TAB`
+                                        act = ls_ref2-name_ref ).
+  ENDMETHOD.
+
+  METHOD test_canonical_search.
+    " attri_search via the canonical MT_TAB attribute must resolve correctly
+    DATA(lo_app) = NEW ltcl_app_two_tab_drefs( ).
+    lo_app->mt_tab = VALUE #( ( col1 = `X` col2 = `Y` ) ).
+
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                  app   = lo_app ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+
+    DATA(lr_tab) = lo_model->attri_get_val_ref( `MT_TAB` ).
+    cl_abap_unit_assert=>assert_bound( lr_tab ).
+
+    ASSIGN lr_tab->* TO FIELD-SYMBOL(<tab>).
+    cl_abap_unit_assert=>assert_not_initial( <tab> ).
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_test_deep_nesting DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+  PRIVATE SECTION.
+    METHODS test_deep_struct_writeback FOR TESTING RAISING cx_static_check.
+    METHODS test_deep_oref_writeback   FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+CLASS ltcl_test_deep_nesting IMPLEMENTATION.
+
+  METHOD test_deep_struct_writeback.
+    " MS_NESTED-INNER-DEEP1 is three levels deep inside a nested struct.
+    " main_json_to_attri must write through all levels.
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                  app   = lo_app ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+
+    READ TABLE lt_attri REFERENCE INTO DATA(lr) WITH KEY name = `MS_NESTED-INNER-DEEP1`.
+    IF sy-subrc <> 0.
+      cl_abap_unit_assert=>abort( ).
+    ENDIF.
+    lr->bind_type   = z2ui5_if_core_types=>cs_bind_type-two_way.
+    lr->view        = z2ui5_if_client=>cs_view-main.
+    lr->name_client = `/MS_NESTED-INNER-DEEP1`.
+
+    DATA lo_model_json TYPE REF TO z2ui5_if_ajson.
+    lo_model_json = z2ui5_cl_ajson=>create_empty( ).
+    lo_model_json->set( iv_path = `/MS_NESTED-INNER-DEEP1`
+                        iv_val  = `deep_value` ).
+
+    lo_model->main_json_to_attri( view  = z2ui5_if_client=>cs_view-main
+                                  model = lo_model_json ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `deep_value`
+                                        act = lo_app->ms_nested-inner-deep1 ).
+  ENDMETHOD.
+
+  METHOD test_deep_oref_writeback.
+    " MO_MID->MO_INNER->MV_INNER is accessed through two oref hops.
+    " main_json_to_attri must write the value all the way through.
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    lo_app->mo_mid = NEW #( ).
+    lo_app->mo_mid->mo_inner = NEW #( ).
+
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                  app   = lo_app ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+
+    READ TABLE lt_attri REFERENCE INTO DATA(lr_inner) WITH KEY name = `MO_MID->MO_INNER->MV_INNER`.
+    IF sy-subrc <> 0.
+      cl_abap_unit_assert=>abort( ).
+    ENDIF.
+    lr_inner->bind_type   = z2ui5_if_core_types=>cs_bind_type-two_way.
+    lr_inner->view        = z2ui5_if_client=>cs_view-main.
+    lr_inner->name_client = `/MO_MID-MO_INNER-MV_INNER`.
+
+    DATA lo_model_json TYPE REF TO z2ui5_if_ajson.
+    lo_model_json = z2ui5_cl_ajson=>create_empty( ).
+    lo_model_json->set( iv_path = `/MO_MID-MO_INNER-MV_INNER`
+                        iv_val  = `inner_value` ).
+
+    lo_model->main_json_to_attri( view  = z2ui5_if_client=>cs_view-main
+                                  model = lo_model_json ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `inner_value`
+                                        act = lo_app->mo_mid->mo_inner->mv_inner ).
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_test_refresh_ext DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+  PRIVATE SECTION.
+    METHODS test_oref_after_null_refresh FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+CLASS ltcl_test_refresh_ext IMPLEMENTATION.
+
+  METHOD test_oref_after_null_refresh.
+    " MO_MID is initially NULL so MO_MID->MV_MID is not discovered in first dissolve.
+    " After instantiating MO_MID and calling main_attri_refresh, the child
+    " MO_MID->MV_MID must appear while the existing MV_SIMPLE binding is preserved.
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                  app   = lo_app ).
+    lo_model->dissolve( ).
+
+    " Set an active binding on MV_SIMPLE before refresh
+    READ TABLE lt_attri REFERENCE INTO DATA(lr) WITH KEY name = `MV_SIMPLE`.
+    IF sy-subrc <> 0.
+      cl_abap_unit_assert=>abort( ).
+    ENDIF.
+    lr->bind_type   = z2ui5_if_core_types=>cs_bind_type-two_way.
+    lr->name_client = `/XX/MV_SIMPLE`.
+    lr->view        = z2ui5_if_client=>cs_view-main.
+
+    " Now instantiate the previously-null oref and refresh
+    lo_app->mo_mid = NEW #( ).
+    lo_model->main_attri_refresh( ).
+
+    " After refresh, MO_MID->MV_MID must now be discovered
+    cl_abap_unit_assert=>assert_not_initial(
+        VALUE #( lt_attri[ name = `MO_MID->MV_MID` ] OPTIONAL ) ).
+
+    " The pre-existing MV_SIMPLE binding must be preserved
+    DATA(ls_simple) = VALUE #( lt_attri[ name = `MV_SIMPLE` ] OPTIONAL ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_core_types=>cs_bind_type-two_way
+                                        act = ls_simple-bind_type ).
+    cl_abap_unit_assert=>assert_equals( exp = `/XX/MV_SIMPLE`
+                                        act = ls_simple-name_client ).
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_test_json_types DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+  PRIVATE SECTION.
+    METHODS test_updates_integer FOR TESTING RAISING cx_static_check.
+    METHODS test_multiple_attrs_same_var FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+CLASS ltcl_test_json_types IMPLEMENTATION.
+
+  METHOD test_updates_integer.
+    " MV_INT is TYPE i - main_json_to_attri must write numeric JSON back correctly.
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                  app   = lo_app ).
+    lo_model->dissolve( ).
+
+    READ TABLE lt_attri REFERENCE INTO DATA(lr) WITH KEY name = `MV_INT`.
+    IF sy-subrc <> 0.
+      cl_abap_unit_assert=>abort( ).
+    ENDIF.
+    lr->bind_type   = z2ui5_if_core_types=>cs_bind_type-two_way.
+    lr->view        = z2ui5_if_client=>cs_view-main.
+    lr->name_client = `/MV_INT`.
+
+    DATA lo_model_json TYPE REF TO z2ui5_if_ajson.
+    lo_model_json = z2ui5_cl_ajson=>create_empty( ).
+    lo_model_json->set( iv_path = `/MV_INT`
+                        iv_val  = 42 ).
+
+    lo_model->main_json_to_attri( view  = z2ui5_if_client=>cs_view-main
+                                  model = lo_model_json ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 42
+                                        act = lo_app->mv_int ).
+  ENDMETHOD.
+
+  METHOD test_multiple_attrs_same_var.
+    " Bind the same variable (MV_SIMPLE) under two different name_client paths
+    " and verify that the last written value wins (both writes target the same memory).
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                  app   = lo_app ).
+    lo_model->dissolve( ).
+
+    " First entry: bind MV_SIMPLE as /XX/MV_SIMPLE
+    READ TABLE lt_attri REFERENCE INTO DATA(lr1) WITH KEY name = `MV_SIMPLE`.
+    IF sy-subrc <> 0.
+      cl_abap_unit_assert=>abort( ).
+    ENDIF.
+    lr1->bind_type   = z2ui5_if_core_types=>cs_bind_type-two_way.
+    lr1->view        = z2ui5_if_client=>cs_view-main.
+    lr1->name_client = `/XX/MV_SIMPLE`.
+
+    " Second entry: a copy with a different name_client path, also two-way
+    DATA ls_extra TYPE z2ui5_if_core_types=>ty_s_attri.
+    ls_extra = lr1->*.
+    ls_extra-name        = `MV_SIMPLE_ALIAS`.
+    ls_extra-name_client = `/XX/ALIAS`.
+    INSERT ls_extra INTO TABLE lt_attri.
+
+    DATA lo_model_json TYPE REF TO z2ui5_if_ajson.
+    lo_model_json = z2ui5_cl_ajson=>create_empty( ).
+    lo_model_json->set( iv_path = `/XX/MV_SIMPLE`
+                        iv_val  = `first` ).
+
+    lo_model->main_json_to_attri( view  = z2ui5_if_client=>cs_view-main
+                                  model = lo_model_json ).
+
+    " Only the canonical path was present in JSON, so MV_SIMPLE gets 'first'
+    cl_abap_unit_assert=>assert_equals( exp = `first`
+                                        act = lo_app->mv_simple ).
+  ENDMETHOD.
+
+ENDCLASS.
