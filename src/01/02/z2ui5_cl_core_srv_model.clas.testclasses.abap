@@ -1097,3 +1097,336 @@ CLASS ltcl_test_diss_complex IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
+
+
+CLASS ltcl_test_attri_create DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+  PRIVATE SECTION.
+    METHODS test_string_type_kind FOR TESTING RAISING cx_static_check.
+    METHODS test_table_type_kind  FOR TESTING RAISING cx_static_check.
+    METHODS test_oref_type_kind   FOR TESTING RAISING cx_static_check.
+    METHODS test_int_kind         FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+CLASS ltcl_test_attri_create IMPLEMENTATION.
+
+  METHOD test_string_type_kind.
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri ) app = lo_app ).
+    DATA(ls_result) = lo_model->attri_create_new( `MV_SIMPLE` ).
+    cl_abap_unit_assert=>assert_equals( exp = cl_abap_datadescr=>typekind_string
+                                        act = ls_result-type_kind ).
+  ENDMETHOD.
+
+  METHOD test_table_type_kind.
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri ) app = lo_app ).
+    DATA(ls_result) = lo_model->attri_create_new( `MT_TAB` ).
+    cl_abap_unit_assert=>assert_equals( exp = cl_abap_datadescr=>typekind_table
+                                        act = ls_result-type_kind ).
+  ENDMETHOD.
+
+  METHOD test_oref_type_kind.
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    lo_app->mo_mid = NEW #( ).
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri ) app = lo_app ).
+    DATA(ls_result) = lo_model->attri_create_new( `MO_MID` ).
+    cl_abap_unit_assert=>assert_equals( exp = cl_abap_datadescr=>typekind_oref
+                                        act = ls_result-type_kind ).
+  ENDMETHOD.
+
+  METHOD test_int_kind.
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri ) app = lo_app ).
+    DATA(ls_result) = lo_model->attri_create_new( `MV_INT` ).
+    cl_abap_unit_assert=>assert_equals( exp = cl_abap_typedescr=>kind_elem
+                                        act = ls_result-kind ).
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_test_json_stringify DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+  PRIVATE SECTION.
+    METHODS test_simple_string FOR TESTING RAISING cx_static_check.
+    METHODS test_empty_no_bind FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+CLASS ltcl_test_json_stringify IMPLEMENTATION.
+
+  METHOD test_simple_string.
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    lo_app->mv_simple = `hello`.
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri ) app = lo_app ).
+    lo_model->dissolve( ).
+
+    READ TABLE lt_attri REFERENCE INTO DATA(lr_simple) WITH KEY name = `MV_SIMPLE`.
+    lr_simple->bind_type   = z2ui5_if_core_types=>cs_bind_type-one_way.
+    lr_simple->name_client = `/MV_SIMPLE`.
+
+    DATA(lv_json) = lo_model->main_json_stringify( ).
+    DATA(lo_result) = z2ui5_cl_ajson=>parse( lv_json ).
+    cl_abap_unit_assert=>assert_equals( exp = `hello`
+                                        act = lo_result->get_string( `/MV_SIMPLE` ) ).
+  ENDMETHOD.
+
+  METHOD test_empty_no_bind.
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri ) app = lo_app ).
+    lo_model->dissolve( ).
+
+    " No bind_type set on any attribute - stringify produces empty JSON object
+    DATA(lv_json) = lo_model->main_json_stringify( ).
+    cl_abap_unit_assert=>assert_equals( exp = `{}`
+                                        act = lv_json ).
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_test_json_to_attri DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+  PRIVATE SECTION.
+    METHODS test_updates_two_way FOR TESTING RAISING cx_static_check.
+    METHODS test_skips_one_way   FOR TESTING RAISING cx_static_check.
+    METHODS test_view_filter     FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+CLASS ltcl_test_json_to_attri IMPLEMENTATION.
+
+  METHOD test_updates_two_way.
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri ) app = lo_app ).
+    lo_model->dissolve( ).
+
+    READ TABLE lt_attri REFERENCE INTO DATA(lr) WITH KEY name = `MV_SIMPLE`.
+    lr->bind_type   = z2ui5_if_core_types=>cs_bind_type-two_way.
+    lr->view        = z2ui5_if_client=>cs_view-main.
+    lr->name_client = `/MV_SIMPLE`.
+
+    DATA lo_model_json TYPE REF TO z2ui5_if_ajson.
+    lo_model_json = z2ui5_cl_ajson=>create_empty( ).
+    lo_model_json->set( iv_path = `/MV_SIMPLE` iv_val = `updated` ).
+
+    lo_model->main_json_to_attri( view  = z2ui5_if_client=>cs_view-main
+                                  model = lo_model_json ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `updated` act = lo_app->mv_simple ).
+  ENDMETHOD.
+
+  METHOD test_skips_one_way.
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri ) app = lo_app ).
+    lo_model->dissolve( ).
+
+    READ TABLE lt_attri REFERENCE INTO DATA(lr) WITH KEY name = `MV_SIMPLE`.
+    lr->bind_type   = z2ui5_if_core_types=>cs_bind_type-one_way.
+    lr->view        = z2ui5_if_client=>cs_view-main.
+    lr->name_client = `/MV_SIMPLE`.
+
+    DATA lo_model_json TYPE REF TO z2ui5_if_ajson.
+    lo_model_json = z2ui5_cl_ajson=>create_empty( ).
+    lo_model_json->set( iv_path = `/MV_SIMPLE` iv_val = `should_not_update` ).
+
+    lo_model->main_json_to_attri( view  = z2ui5_if_client=>cs_view-main
+                                  model = lo_model_json ).
+
+    " ONE_WAY binding - value must not be written back from frontend
+    cl_abap_unit_assert=>assert_equals( exp = `` act = lo_app->mv_simple ).
+  ENDMETHOD.
+
+  METHOD test_view_filter.
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri ) app = lo_app ).
+    lo_model->dissolve( ).
+
+    READ TABLE lt_attri REFERENCE INTO DATA(lr) WITH KEY name = `MV_SIMPLE`.
+    lr->bind_type   = z2ui5_if_core_types=>cs_bind_type-two_way.
+    lr->view        = z2ui5_if_client=>cs_view-popup.
+    lr->name_client = `/MV_SIMPLE`.
+
+    DATA lo_model_json TYPE REF TO z2ui5_if_ajson.
+    lo_model_json = z2ui5_cl_ajson=>create_empty( ).
+    lo_model_json->set( iv_path = `/MV_SIMPLE` iv_val = `should_not_update` ).
+
+    " Attribute belongs to POPUP view, called with MAIN view - must not be updated
+    lo_model->main_json_to_attri( view  = z2ui5_if_client=>cs_view-main
+                                  model = lo_model_json ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `` act = lo_app->mv_simple ).
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_test_attri_refresh DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+  PRIVATE SECTION.
+    METHODS test_bindings_preserved FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+CLASS ltcl_test_attri_refresh IMPLEMENTATION.
+
+  METHOD test_bindings_preserved.
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri ) app = lo_app ).
+    lo_model->dissolve( ).
+
+    " Simulate an active binding on MV_SIMPLE
+    READ TABLE lt_attri REFERENCE INTO DATA(lr) WITH KEY name = `MV_SIMPLE`.
+    lr->bind_type   = z2ui5_if_core_types=>cs_bind_type-two_way.
+    lr->name_client = `/XX/MV_SIMPLE`.
+    lr->view        = z2ui5_if_client=>cs_view-main.
+
+    " Refresh clears and re-dissolves but must restore binding info
+    lo_model->main_attri_refresh( ).
+
+    DATA(ls_after) = VALUE #( lt_attri[ name = `MV_SIMPLE` ] OPTIONAL ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_core_types=>cs_bind_type-two_way
+                                        act = ls_after-bind_type ).
+    cl_abap_unit_assert=>assert_equals( exp = `/XX/MV_SIMPLE`
+                                        act = ls_after-name_client ).
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_view-main
+                                        act = ls_after-view ).
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_test_entry_refs_children DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION MEDIUM.
+  PRIVATE SECTION.
+    METHODS test_dref_children_name_ref FOR TESTING RAISING cx_static_check.
+    METHODS test_second_dref_children   FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+CLASS ltcl_test_entry_refs_children IMPLEMENTATION.
+
+  METHOD test_dref_children_name_ref.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    DATA(lo_app) = NEW ltcl_app_root_335( ).
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri ) app = lo_app ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+
+    " MO_OBJ->MR_DATA points to MS_STRUC - dissolved children must get name_ref
+    DATA(ls_child1) = VALUE #( lt_attri[ name = `MO_OBJ->MR_DATA->COMP1` ] OPTIONAL ).
+    cl_abap_unit_assert=>assert_equals( exp = `MS_STRUC-COMP1`
+                                        act = ls_child1-name_ref ).
+
+    DATA(ls_child2) = VALUE #( lt_attri[ name = `MO_OBJ->MR_DATA->COMP2` ] OPTIONAL ).
+    cl_abap_unit_assert=>assert_equals( exp = `MS_STRUC-COMP2`
+                                        act = ls_child2-name_ref ).
+
+  ENDMETHOD.
+
+  METHOD test_second_dref_children.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    DATA(lo_app) = NEW ltcl_app_root_335( ).
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri ) app = lo_app ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+
+    " MO_OBJ_2->MR_DATA also points to same MS_STRUC - children get name_ref too
+    DATA(ls_child1) = VALUE #( lt_attri[ name = `MO_OBJ_2->MR_DATA->COMP1` ] OPTIONAL ).
+    cl_abap_unit_assert=>assert_equals( exp = `MS_STRUC-COMP1`
+                                        act = ls_child1-name_ref ).
+
+    DATA(ls_child2) = VALUE #( lt_attri[ name = `MO_OBJ_2->MR_DATA->COMP2` ] OPTIONAL ).
+    cl_abap_unit_assert=>assert_equals( exp = `MS_STRUC-COMP2`
+                                        act = ls_child2-name_ref ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_test_delta_apply DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+  PRIVATE SECTION.
+    METHODS test_update_first_row  FOR TESTING RAISING cx_static_check.
+    METHODS test_update_second_row FOR TESTING RAISING cx_static_check.
+    METHODS test_out_of_range      FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+CLASS ltcl_test_delta_apply IMPLEMENTATION.
+
+  METHOD test_update_first_row.
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    lo_app->mt_tab = VALUE #( ( col1 = `A` col2 = `1` )
+                               ( col1 = `B` col2 = `2` ) ).
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri ) app = lo_app ).
+
+    DATA lo_delta TYPE REF TO z2ui5_if_ajson.
+    lo_delta = z2ui5_cl_ajson=>create_empty( ).
+    lo_delta->set( iv_path = `/__delta/0/COL1` iv_val = `X` ).
+
+    lo_model->delta_apply_to_table( io_val_front = lo_delta iv_name = `MT_TAB` ).
+
+    " Index 0 maps to ABAP table row 1
+    cl_abap_unit_assert=>assert_equals( exp = `X` act = lo_app->mt_tab[ 1 ]-col1 ).
+    cl_abap_unit_assert=>assert_equals( exp = `1` act = lo_app->mt_tab[ 1 ]-col2 ).
+    cl_abap_unit_assert=>assert_equals( exp = `B` act = lo_app->mt_tab[ 2 ]-col1 ).
+  ENDMETHOD.
+
+  METHOD test_update_second_row.
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    lo_app->mt_tab = VALUE #( ( col1 = `A` col2 = `1` )
+                               ( col1 = `B` col2 = `2` ) ).
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri ) app = lo_app ).
+
+    DATA lo_delta TYPE REF TO z2ui5_if_ajson.
+    lo_delta = z2ui5_cl_ajson=>create_empty( ).
+    lo_delta->set( iv_path = `/__delta/1/COL2` iv_val = `Y` ).
+
+    lo_model->delta_apply_to_table( io_val_front = lo_delta iv_name = `MT_TAB` ).
+
+    " Index 1 maps to ABAP table row 2
+    cl_abap_unit_assert=>assert_equals( exp = `A`  act = lo_app->mt_tab[ 1 ]-col1 ).
+    cl_abap_unit_assert=>assert_equals( exp = `Y`  act = lo_app->mt_tab[ 2 ]-col2 ).
+    cl_abap_unit_assert=>assert_equals( exp = `B`  act = lo_app->mt_tab[ 2 ]-col1 ).
+  ENDMETHOD.
+
+  METHOD test_out_of_range.
+    DATA(lo_app) = NEW ltcl_app_complex( ).
+    lo_app->mt_tab = VALUE #( ( col1 = `A` col2 = `1` ) ).
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri ) app = lo_app ).
+
+    DATA lo_delta TYPE REF TO z2ui5_if_ajson.
+    lo_delta = z2ui5_cl_ajson=>create_empty( ).
+    lo_delta->set( iv_path = `/__delta/5/COL1` iv_val = `Z` ).
+
+    " Index 5 is out of range for a 1-row table - no crash, table unchanged
+    lo_model->delta_apply_to_table( io_val_front = lo_delta iv_name = `MT_TAB` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1 act = lines( lo_app->mt_tab ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `A` act = lo_app->mt_tab[ 1 ]-col1 ).
+  ENDMETHOD.
+
+ENDCLASS.
