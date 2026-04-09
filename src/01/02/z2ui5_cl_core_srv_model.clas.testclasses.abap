@@ -1172,6 +1172,9 @@ CLASS ltcl_test_json_stringify IMPLEMENTATION.
     lo_model->dissolve( ).
 
     READ TABLE lt_attri REFERENCE INTO DATA(lr_simple) WITH KEY name = `MV_SIMPLE`.
+    IF sy-subrc <> 0.
+      cl_abap_unit_assert=>abort( ).
+    ENDIF.
     lr_simple->bind_type   = z2ui5_if_core_types=>cs_bind_type-one_way.
     lr_simple->name_client = `/MV_SIMPLE`.
 
@@ -1215,6 +1218,9 @@ CLASS ltcl_test_json_to_attri IMPLEMENTATION.
     lo_model->dissolve( ).
 
     READ TABLE lt_attri REFERENCE INTO DATA(lr) WITH KEY name = `MV_SIMPLE`.
+    IF sy-subrc <> 0.
+      cl_abap_unit_assert=>abort( ).
+    ENDIF.
     lr->bind_type   = z2ui5_if_core_types=>cs_bind_type-two_way.
     lr->view        = z2ui5_if_client=>cs_view-main.
     lr->name_client = `/MV_SIMPLE`.
@@ -1239,6 +1245,9 @@ CLASS ltcl_test_json_to_attri IMPLEMENTATION.
     lo_model->dissolve( ).
 
     READ TABLE lt_attri REFERENCE INTO DATA(lr) WITH KEY name = `MV_SIMPLE`.
+    IF sy-subrc <> 0.
+      cl_abap_unit_assert=>abort( ).
+    ENDIF.
     lr->bind_type   = z2ui5_if_core_types=>cs_bind_type-one_way.
     lr->view        = z2ui5_if_client=>cs_view-main.
     lr->name_client = `/MV_SIMPLE`.
@@ -1264,6 +1273,9 @@ CLASS ltcl_test_json_to_attri IMPLEMENTATION.
     lo_model->dissolve( ).
 
     READ TABLE lt_attri REFERENCE INTO DATA(lr) WITH KEY name = `MV_SIMPLE`.
+    IF sy-subrc <> 0.
+      cl_abap_unit_assert=>abort( ).
+    ENDIF.
     lr->bind_type   = z2ui5_if_core_types=>cs_bind_type-two_way.
     lr->view        = z2ui5_if_client=>cs_view-popup.
     lr->name_client = `/MV_SIMPLE`.
@@ -1301,6 +1313,9 @@ CLASS ltcl_test_attri_refresh IMPLEMENTATION.
 
     " Simulate an active binding on MV_SIMPLE
     READ TABLE lt_attri REFERENCE INTO DATA(lr) WITH KEY name = `MV_SIMPLE`.
+    IF sy-subrc <> 0.
+      cl_abap_unit_assert=>abort( ).
+    ENDIF.
     lr->bind_type   = z2ui5_if_core_types=>cs_bind_type-two_way.
     lr->name_client = `/XX/MV_SIMPLE`.
     lr->view        = z2ui5_if_client=>cs_view-main.
