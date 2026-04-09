@@ -90,11 +90,11 @@
     "constant_classes": true,
     "constructor_visibility_public": true,
     "contains_tab": true,
-    "cyclic_oo": false,
+    "cyclic_oo": true,
     "cyclomatic_complexity": {
       "exclude": [],
       "severity": "Error",
-      "max": 20
+      "max": 10
     },
     "dangerous_statement": {
       "exclude": [],
