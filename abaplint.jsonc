@@ -90,7 +90,18 @@
     "constant_classes": true,
     "constructor_visibility_public": true,
     "contains_tab": true,
-    "cyclic_oo": false,
+    "cyclic_oo": {
+      "skip": [
+        "Z2UI5_IF_APP",
+        "Z2UI5_IF_CLIENT",
+        "Z2UI5_CL_XML_VIEW",
+        "Z2UI5_CL_XML_VIEW_CC",
+        "Z2UI5_CL_CORE_ACTION",
+        "Z2UI5_CL_CORE_HANDLER"
+      ],
+      "skipSharedMemory": true,
+      "skipTestclasses": true
+    },
     "cyclomatic_complexity": {
       "exclude": [],
       "severity": "Error",
