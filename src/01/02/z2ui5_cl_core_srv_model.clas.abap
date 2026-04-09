@@ -14,6 +14,14 @@ CLASS z2ui5_cl_core_srv_model DEFINITION PUBLIC.
 
     METHODS main_attri_db_save_srtti.
     METHODS main_attri_db_load.
+    METHODS main_attri_db_load_resolve.
+    METHODS main_attri_db_load_table
+      IMPORTING
+        ir_attri TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
+    METHODS main_attri_db_load_dref
+      IMPORTING
+        ir_attri     TYPE REF TO z2ui5_if_core_types=>ty_s_attri
+        ir_child_idx TYPE REF TO ty_t_child_idx.
     METHODS main_attri_refresh.
 
     METHODS main_json_to_attri
@@ -26,12 +34,21 @@ CLASS z2ui5_cl_core_srv_model DEFINITION PUBLIC.
         VALUE(result) TYPE string ##NEEDED.
 
 
+    TYPES: BEGIN OF ty_s_child_idx,
+             name_parent TYPE string,
+             name        TYPE string,
+           END OF ty_s_child_idx.
+    TYPES ty_t_child_idx TYPE SORTED TABLE OF ty_s_child_idx WITH NON-UNIQUE KEY name_parent.
+
     CONSTANTS max_dissolve_depth TYPE i VALUE 5.
 
     DATA mt_attri TYPE REF TO z2ui5_if_core_types=>ty_t_attri.
     DATA mo_app   TYPE REF TO object.
 
     METHODS attri_update_entry_refs.
+    METHODS attri_update_refs_children
+      IMPORTING
+        ir_attri TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
 
     METHODS attri_get_val_ref
       IMPORTING
@@ -202,91 +219,96 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   METHOD main_attri_db_load.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
-         WHERE name_ref IS INITIAL.
-      TRY.
-          DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
-          lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref ).
+    main_attri_db_load_resolve( ).
 
-          IF lr_attri->srtti_data IS NOT INITIAL.
-            ASSIGN lr_ref->* TO FIELD-SYMBOL(<val>).
-            <val> = z2ui5_cl_util=>xml_srtti_parse( lr_attri->srtti_data ).
-            CLEAR lr_attri->srtti_data.
-          ENDIF.
-
-        CATCH cx_root ##NO_HANDLER.
-      ENDTRY.
-    ENDLOOP.
-
-    TYPES: BEGIN OF ty_s_child_idx,
-             name_parent TYPE string,
-             name        TYPE string,
-           END OF ty_s_child_idx.
-    DATA lt_child_idx TYPE SORTED TABLE OF ty_s_child_idx WITH NON-UNIQUE KEY name_parent.
-
+    DATA lt_child_idx TYPE ty_t_child_idx.
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_pre)     "#EC CI_SORTSEQ
          WHERE name_parent IS NOT INITIAL.
       INSERT VALUE #( name_parent = lr_pre->name_parent
                       name        = lr_pre->name ) INTO TABLE lt_child_idx.
     ENDLOOP.
 
-    LOOP AT mt_attri->* REFERENCE INTO lr_attri         "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE name_ref IS NOT INITIAL.
-
       CASE lr_attri->type_kind.
-
         WHEN cl_abap_datadescr=>typekind_table.
-
-          DATA(lr_ref_source) = attri_get_val_ref( lr_attri->name_ref ).
-          lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref_source ).
-
-          READ TABLE mt_attri->* REFERENCE INTO DATA(lr_attri_parent)
-               WITH KEY name = lr_attri->name_parent.
-          IF sy-subrc <> 0.
-            CONTINUE.
-          ENDIF.
-
-          DATA(lv_parent_path) = |MO_APP->{ lr_attri_parent->name }|.
-          ASSIGN (lv_parent_path) TO FIELD-SYMBOL(<parent_ref>).
-          IF sy-subrc <> 0.
-            CONTINUE.
-          ENDIF.
-
-          ASSIGN lr_ref_source->* TO FIELD-SYMBOL(<source_value>).
-          GET REFERENCE OF <source_value> INTO <parent_ref>.
-
-          DATA(lr_ref_parent) = REF #( <parent_ref> ).
-          lr_attri_parent->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref_parent ).
-
+          main_attri_db_load_table( lr_attri ).
         WHEN cl_abap_datadescr=>typekind_dref.
-
-          DATA(lv_source_path) = |MO_APP->{ lr_attri->name_ref }|.
-          ASSIGN (lv_source_path) TO FIELD-SYMBOL(<source_ref>).
-          IF sy-subrc <> 0.
-            CONTINUE.
-          ENDIF.
-
-          DATA(lv_target_path) = |MO_APP->{ lr_attri->name }|.
-          ASSIGN (lv_target_path) TO <parent_ref>.
-          IF sy-subrc <> 0.
-            CONTINUE.
-          ENDIF.
-          GET REFERENCE OF <source_ref> INTO <parent_ref>.
-          lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( <parent_ref> ).
-
-          LOOP AT lt_child_idx REFERENCE INTO DATA(lr_child_idx)
-               WHERE name_parent = lr_attri->name.
-            READ TABLE mt_attri->* REFERENCE INTO DATA(lr_child)
-                 WITH KEY name = lr_child_idx->name.
-            IF sy-subrc <> 0.
-              CONTINUE.
-            ENDIF.
-            DATA(lr_child_ref) = attri_get_val_ref( lr_child->name ).
-            lr_child->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_child_ref ).
-          ENDLOOP.
-
+          main_attri_db_load_dref( ir_attri     = lr_attri
+                                   ir_child_idx = REF #( lt_child_idx ) ).
       ENDCASE.
+    ENDLOOP.
 
+  ENDMETHOD.
+
+  METHOD main_attri_db_load_resolve.
+
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
+         WHERE name_ref IS INITIAL.
+      TRY.
+          DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
+          lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref ).
+          IF lr_attri->srtti_data IS NOT INITIAL.
+            ASSIGN lr_ref->* TO FIELD-SYMBOL(<val>).
+            <val> = z2ui5_cl_util=>xml_srtti_parse( lr_attri->srtti_data ).
+            CLEAR lr_attri->srtti_data.
+          ENDIF.
+        CATCH cx_root ##NO_HANDLER.
+      ENDTRY.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD main_attri_db_load_table.
+
+    DATA(lr_ref_source) = attri_get_val_ref( ir_attri->name_ref ).
+    ir_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref_source ).
+
+    READ TABLE mt_attri->* REFERENCE INTO DATA(lr_attri_parent)
+         WITH KEY name = ir_attri->name_parent.
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
+
+    DATA(lv_parent_path) = |MO_APP->{ lr_attri_parent->name }|.
+    ASSIGN (lv_parent_path) TO FIELD-SYMBOL(<parent_ref>).
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
+
+    ASSIGN lr_ref_source->* TO FIELD-SYMBOL(<source_value>).
+    GET REFERENCE OF <source_value> INTO <parent_ref>.
+
+    DATA(lr_ref_parent) = REF #( <parent_ref> ).
+    lr_attri_parent->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref_parent ).
+
+  ENDMETHOD.
+
+  METHOD main_attri_db_load_dref.
+
+    DATA(lv_source_path) = |MO_APP->{ ir_attri->name_ref }|.
+    ASSIGN (lv_source_path) TO FIELD-SYMBOL(<source_ref>).
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
+
+    DATA(lv_target_path) = |MO_APP->{ ir_attri->name }|.
+    ASSIGN (lv_target_path) TO FIELD-SYMBOL(<parent_ref>).
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
+    GET REFERENCE OF <source_ref> INTO <parent_ref>.
+    ir_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( <parent_ref> ).
+
+    LOOP AT ir_child_idx->* REFERENCE INTO DATA(lr_child_idx)
+         WHERE name_parent = ir_attri->name.
+      READ TABLE mt_attri->* REFERENCE INTO DATA(lr_child)
+           WITH KEY name = lr_child_idx->name.
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
+      DATA(lr_child_ref) = attri_get_val_ref( lr_child->name ).
+      lr_child->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_child_ref ).
     ENDLOOP.
 
   ENDMETHOD.
@@ -631,19 +653,22 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
             ENDIF.
 
             lr_attri->name_ref = lr_attri_ref->name.
-
-            LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_child) "#EC CI_SORTSEQ
-                 WHERE name_parent = lr_attri->name.
-
-              DATA(lv_name) = shift_left( val = lr_attri_child->name
-                                          sub = |{ lr_attri->name }->| ).
-              lr_attri_child->name_ref = |{ lr_attri->name_ref }-{ lv_name }|.
-
-            ENDLOOP.
+            attri_update_refs_children( lr_attri ).
           ENDLOOP.
 
       ENDCASE.
 
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD attri_update_refs_children.
+
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_child) "#EC CI_SORTSEQ
+         WHERE name_parent = ir_attri->name.
+      DATA(lv_name) = shift_left( val = lr_attri_child->name
+                                  sub = |{ ir_attri->name }->| ).
+      lr_attri_child->name_ref = |{ ir_attri->name_ref }-{ lv_name }|.
     ENDLOOP.
 
   ENDMETHOD.
