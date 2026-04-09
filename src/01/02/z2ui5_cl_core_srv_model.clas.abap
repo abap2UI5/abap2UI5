@@ -234,7 +234,8 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
         WHEN cl_abap_datadescr=>typekind_table.
           main_attri_db_load_table( lr_attri ).
         WHEN cl_abap_datadescr=>typekind_dref.
-          main_attri_db_load_dref( ir_attri = lr_attri ir_child_idx = REF #( lt_child_idx ) ).
+          main_attri_db_load_dref( ir_attri     = lr_attri
+                                   ir_child_idx = REF #( lt_child_idx ) ).
       ENDCASE.
     ENDLOOP.
 
