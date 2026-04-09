@@ -56,6 +56,7 @@
     "macro_naming": true,
     "prefer_pragmas": true,
     "add_test_attributes": true,
+    "aff_and_xml": true,
     "implicit_start_of_selection": true,
     "reduce_procedural_code": true,
     "tables_declared_locally": true,
@@ -64,8 +65,12 @@
     "no_prefixes": false,
     "begin_single_include": true,
     "call_transaction_authority_check": true,
+    "catch_and_raise": true,
+    "cds_association_name": true,
     "cds_comment_style": true,
+    "cds_field_order": true,
     "cds_legacy_view": true,
+    "cds_naming": false,
     "cds_parser_error": true,
     "chain_mainly_declarations": true,
     "change_if_to_case": true,
@@ -269,6 +274,7 @@
     "select_add_order_by": true,
     "select_performance": true,
     "selection_screen_naming": true,
+    "selection_screen_texts_missing": false,
     "sequential_blank": {
       "severity": "Warning"
     },
