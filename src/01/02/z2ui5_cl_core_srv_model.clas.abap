@@ -1,6 +1,13 @@
 CLASS z2ui5_cl_core_srv_model DEFINITION PUBLIC.
 
   PUBLIC SECTION.
+
+    TYPES: BEGIN OF ty_s_child_idx,
+             name_parent TYPE string,
+             name        TYPE string,
+           END OF ty_s_child_idx.
+    TYPES ty_t_child_idx TYPE SORTED TABLE OF ty_s_child_idx WITH NON-UNIQUE KEY name_parent.
+
     METHODS constructor
       IMPORTING
         attri TYPE REF TO z2ui5_if_core_types=>ty_t_attri
@@ -15,9 +22,11 @@ CLASS z2ui5_cl_core_srv_model DEFINITION PUBLIC.
     METHODS main_attri_db_save_srtti.
     METHODS main_attri_db_load.
     METHODS main_attri_db_load_resolve.
+
     METHODS main_attri_db_load_table
       IMPORTING
         ir_attri TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
+
     METHODS main_attri_db_load_dref
       IMPORTING
         ir_attri     TYPE REF TO z2ui5_if_core_types=>ty_s_attri
@@ -34,11 +43,7 @@ CLASS z2ui5_cl_core_srv_model DEFINITION PUBLIC.
         VALUE(result) TYPE string ##NEEDED.
 
 
-    TYPES: BEGIN OF ty_s_child_idx,
-             name_parent TYPE string,
-             name        TYPE string,
-           END OF ty_s_child_idx.
-    TYPES ty_t_child_idx TYPE SORTED TABLE OF ty_s_child_idx WITH NON-UNIQUE KEY name_parent.
+
 
     CONSTANTS max_dissolve_depth TYPE i VALUE 5.
 
@@ -594,7 +599,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   METHOD attri_update_entry_refs.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE check_dissolved  = abap_true
                AND name_ref        IS INITIAL.
 
@@ -683,7 +688,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
     DATA(lt_attri_new) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE check_dissolved = abap_false.
 
       lr_attri->check_dissolved = abap_true.
