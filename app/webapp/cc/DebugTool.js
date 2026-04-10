@@ -53,7 +53,7 @@ sap.ui.define(["sap/ui/core/Control", "sap/ui/core/Fragment", "sap/ui/model/json
                     displayEditor(oEvent, this.prettifyXml(oResponse?.PARAMS?.S_POPUP?.XML), 'xml');
                     break;
                 case 'POPUP_MODEL':
-                    displayEditor(oEvent, JSON.stringify(z2ui5.oViewPopup.getModel().getData(), null, 3), 'json');
+                    displayEditor(oEvent, JSON.stringify(z2ui5?.oViewPopup?.getModel()?.getData(), null, 3), 'json');
                     break;
                 case 'POPOVER':
                     displayEditor(oEvent, this.prettifyXml(oResponse?.PARAMS?.S_POPOVER?.XML), 'xml');
