@@ -245,12 +245,15 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 });
                 oView.setModel(oview_model);
                 let oParent = z2ui5.oView.byId(z2ui5.oResponse.PARAMS[viewNestId].ID);
-                if (oParent) {
-                    try {
-                        oParent[z2ui5.oResponse.PARAMS[viewNestId].METHOD_DESTROY]();
-                    } catch (e) { (z2ui5.errors ??= []).push({ message: `displayNestedView: parent destroy method failed`, error: e, ts: new Date().toISOString() }); }
-                    oParent[z2ui5.oResponse.PARAMS[viewNestId].METHOD_INSERT](oView);
+                if (!oParent) {
+                    (z2ui5.errors ??= []).push({ message: `displayNestedView: parent control '${z2ui5.oResponse.PARAMS[viewNestId].ID}' not found, nested view discarded`, ts: new Date().toISOString() });
+                    oView.destroy();
+                    return;
                 }
+                try {
+                    oParent[z2ui5.oResponse.PARAMS[viewNestId].METHOD_DESTROY]();
+                } catch (e) { (z2ui5.errors ??= []).push({ message: `displayNestedView: parent destroy method failed`, error: e, ts: new Date().toISOString() }); }
+                oParent[z2ui5.oResponse.PARAMS[viewNestId].METHOD_INSERT](oView);
                 z2ui5[viewProp] = oView;
             },
             _destroyView(prop, tryClose) {
