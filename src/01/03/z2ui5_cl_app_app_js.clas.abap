@@ -87,14 +87,16 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
-             `    onAfterRendering() { },` && |\n| &&
+             `    onAfterRendering() {` && |\n| &&
+             `      this.delayedCall(this);` && |\n| &&
+             `    },` && |\n| &&
              `    delayedCall(oControl) {` && |\n| &&
              `` && |\n| &&
              `      if (oControl.getProperty("checkActive") === false) {` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      setTimeout((oControl) => {` && |\n| &&
-             `        oControl.setProperty("checkActive", false)` && |\n| &&
+             `        oControl.setProperty("checkActive", false, true);` && |\n| &&
              `        oControl.fireFinished();` && |\n| &&
              `        if (oControl.getProperty("checkRepeat")) {` && |\n| &&
              `          oControl.delayedCall(oControl);` && |\n| &&
@@ -103,7 +105,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        , parseInt(oControl.getProperty("delayMS")), oControl);` && |\n| &&
              `    },` && |\n| &&
              `    renderer(oRm, oControl) {` && |\n| &&
-             `      oControl.delayedCall(oControl);` && |\n| &&
              `    }` && |\n| &&
              `  });` && |\n| &&
              `}` && |\n| &&
@@ -256,7 +257,12 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n| &&
              `` && |\n| &&
              `    init() {` && |\n| &&
-             `      z2ui5.onBeforeRoundtrip.push(this.setBackend.bind(this));` && |\n| &&
+             `      this._setBackendBound = this.setBackend.bind(this);` && |\n| &&
+             `      z2ui5.onBeforeRoundtrip.push(this._setBackendBound);` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    exit() {` && |\n| &&
+             `      z2ui5.onBeforeRoundtrip = z2ui5.onBeforeRoundtrip.filter(fn => fn !== this._setBackendBound);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    onAfterRendering() {` && |\n| &&
@@ -323,7 +329,12 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n| &&
              `` && |\n| &&
              `    init() {` && |\n| &&
-             `      z2ui5.onBeforeRoundtrip.push(this.setBackend.bind(this));` && |\n| &&
+             `      this._setBackendBound = this.setBackend.bind(this);` && |\n| &&
+             `      z2ui5.onBeforeRoundtrip.push(this._setBackendBound);` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    exit() {` && |\n| &&
+             `      z2ui5.onBeforeRoundtrip = z2ui5.onBeforeRoundtrip.filter(fn => fn !== this._setBackendBound);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    _restoreScrollPosition(item) {` && |\n| &&
@@ -407,6 +418,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        },` && |\n| &&
              `        device_os: {` && |\n| &&
              `          type: "string"` && |\n| &&
+             |\n|.
+    result = result &&
              `        },` && |\n| &&
              `        device_systemtype: {` && |\n| &&
              `          type: "string"` && |\n| &&
@@ -418,8 +431,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      events: {` && |\n| &&
              `        "finished": {` && |\n| &&
              `          allowPreventDefault: true,` && |\n| &&
-             |\n|.
-    result = result &&
              `          parameters: {},` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
@@ -809,6 +820,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n| &&
              `` && |\n| &&
              `    onTokenUpdate(oEvent) {` && |\n| &&
+             |\n|.
+    result = result &&
              `      this.setProperty("addedTokens", []);` && |\n| &&
              `      this.setProperty("removedTokens", []);` && |\n| &&
              `      const prop = oEvent.mParameters.type === "removed" ? "removedTokens" : "addedTokens";` && |\n| &&
@@ -820,8 +833,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      this.fireChange();` && |\n| &&
              `    },` && |\n| &&
              `    renderer(oRm, oControl) {` && |\n| &&
-             |\n|.
-    result = result &&
              `      z2ui5.onAfterRendering.push(oControl.setControl.bind(oControl));` && |\n| &&
              `    },` && |\n| &&
              `    setControl() {` && |\n| &&
@@ -1211,6 +1222,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        let oTable = z2ui5.oView.byId(this.getProperty("tableId"));` && |\n| &&
              `        if (!oTable) return;` && |\n| &&
              `        this._applyWhenRendered(oTable, () => this._applyFilters(oTable, this.aFilters));` && |\n| &&
+             |\n|.
+    result = result &&
              `      } catch (e) { (z2ui5.errors ??= []).push({ message: ``UITableExt.setFilter failed``, error: e, ts: new Date().toISOString() }); }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
@@ -1222,8 +1235,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      } catch (e) { (z2ui5.errors ??= []).push({ message: ``UITableExt.readSort failed``, error: e, ts: new Date().toISOString() }); }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             |\n|.
-    result = result &&
              `    _applySorters(oTable, aSorters) {` && |\n| &&
              `      oTable.getBinding().sort(aSorters);` && |\n| &&
              `      aSorters.forEach(function(srt, idx) {` && |\n| &&

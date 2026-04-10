@@ -38,7 +38,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `                &lt;/xsl:template&gt;` && |\n| &&
              `                &lt;xsl:output indent="yes" /&gt;` && |\n| &&
              `            &lt;/xsl:stylesheet&gt;``;` && |\n| &&
-             `            sParse = sParse.replace(/&gt;/g, unescape("%3E")).replace(/&lt;/g, unescape("%3C"));` && |\n| &&
+             `            sParse = sParse.replace(/&gt;/g, ">").replace(/&lt;/g, "<");` && |\n| &&
              `            const xsltDoc = new DOMParser().parseFromString(sParse, 'application/xml');` && |\n| &&
              `` && |\n| &&
              `            const xsltProcessor = new XSLTProcessor();` && |\n| &&
@@ -73,7 +73,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `                    displayEditor(oEvent, this.prettifyXml(oResponse?.PARAMS?.S_POPUP?.XML), 'xml');` && |\n| &&
              `                    break;` && |\n| &&
              `                case 'POPUP_MODEL':` && |\n| &&
-             `                    displayEditor(oEvent, JSON.stringify(z2ui5.oViewPopup.getModel().getData(), null, 3), 'json');` && |\n| &&
+             `                    displayEditor(oEvent, JSON.stringify(z2ui5?.oViewPopup?.getModel()?.getData(), null, 3), 'json');` && |\n| &&
              `                    break;` && |\n| &&
              `                case 'POPOVER':` && |\n| &&
              `                    displayEditor(oEvent, this.prettifyXml(oResponse?.PARAMS?.S_POPOVER?.XML), 'xml');` && |\n| &&
@@ -96,8 +96,9 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `                case 'SOURCE':` && |\n| &&
              `                    const parent = oEvent.getSource().getParent();` && |\n| &&
              `                    const contentControl = parent.getContent()[2].getItems()[0];` && |\n| &&
-             `                    const url = ``${window.location.origin}/sap/bc/adt/oo/classes/${z2ui5.responseData.S_FRONT.APP}/source/main``;` && |\n| &&
-             `                    const content = atob('PGlmcmFtZSBpZD0idGVzdCIgc3JjPSInICsgdXJsICsgJyIgaGVpZ2h0PSI4MDBweCIgd2lkdGg9IjEyMDBweCIgLz4=').replace("' + url + '", url);` && |\n| &&
+             `                    const appId = encodeURIComponent(z2ui5.responseData.S_FRONT.APP);` && |\n| &&
+             `                    const url = ``${window.location.origin}/sap/bc/adt/oo/classes/${appId}/source/main``;` && |\n| &&
+             `                    const content = ``<iframe id="test" src="${url}" height="800px" width="1200px" />``;` && |\n| &&
              `                    contentControl.setProperty("content", content);` && |\n| &&
              `                    const modelData = oEvent.getSource().getModel().oData;` && |\n| &&
              `                    modelData.editor_visible = false;` && |\n| &&
