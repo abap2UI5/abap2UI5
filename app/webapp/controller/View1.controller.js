@@ -128,11 +128,9 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         await this.displayPopover(S_POPOVER.XML, 'oViewPopover', S_POPOVER.OPEN_BY_ID);
                     }
 
-                   let oState;
+                   let oState = {};
                    if (z2ui5.oView) {
-                       oState = JSON.parse(JSON.stringify({ view: z2ui5.oView.mProperties.viewContent, model: z2ui5.oView.getModel().getData(), response: z2ui5.oResponse }));
-                   } else {
-                       oState = {};
+                       oState = { view: z2ui5.oView.mProperties.viewContent, model: z2ui5.oView.getModel().getData(), response: z2ui5.oResponse };
                    }
                    if (SET_PUSH_STATE) {
                         let urlObj = new URL(window.location.href);
