@@ -32,17 +32,9 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
         function copyToClipboard(textToCopy) {
             if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
                 navigator.clipboard.writeText(textToCopy)
-                    .then(() => { })
                     .catch(err => { (z2ui5.errors ??= []).push({ message: `Clipboard: writeText failed`, error: err, ts: new Date().toISOString() }); });
             } else {
-                const tempTextArea = document.createElement("textarea");
-                tempTextArea.value = textToCopy;
-                document.body.appendChild(tempTextArea);
-                tempTextArea.select();
-                try {
-                    document.execCommand("copy");
-                } catch (err) { (z2ui5.errors ??= []).push({ message: `Clipboard: execCommand copy failed`, error: err, ts: new Date().toISOString() }); }
-                document.body.removeChild(tempTextArea);
+                (z2ui5.errors ??= []).push({ message: `Clipboard: writeText API not available`, ts: new Date().toISOString() });
             }
         }
 
