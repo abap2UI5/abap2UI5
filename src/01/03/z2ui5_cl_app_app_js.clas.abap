@@ -88,6 +88,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    },` && |\n| &&
              `    onAfterRendering() {` && |\n| &&
+             `      if (!this._pendingTimer) return;` && |\n| &&
+             `      this._pendingTimer = false;` && |\n| &&
              `      this.delayedCall(this);` && |\n| &&
              `    },` && |\n| &&
              `    delayedCall(oControl) {` && |\n| &&
@@ -105,6 +107,11 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        , parseInt(oControl.getProperty("delayMS")), oControl);` && |\n| &&
              `    },` && |\n| &&
              `    renderer(oRm, oControl) {` && |\n| &&
+             `      oRm.openStart("span", oControl);` && |\n| &&
+             `      oRm.addStyle("display", "none");` && |\n| &&
+             `      oRm.openEnd();` && |\n| &&
+             `      oRm.close("span");` && |\n| &&
+             `      oControl._pendingTimer = oControl.getProperty("checkActive");` && |\n| &&
              `    }` && |\n| &&
              `  });` && |\n| &&
              `}` && |\n| &&
@@ -411,6 +418,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          type: "string"` && |\n| &&
              `        },` && |\n| &&
              `        device_width: {` && |\n| &&
+             |\n|.
+    result = result &&
              `          type: "string"` && |\n| &&
              `        },` && |\n| &&
              `        ui5_theme: {` && |\n| &&
@@ -418,8 +427,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        },` && |\n| &&
              `        device_os: {` && |\n| &&
              `          type: "string"` && |\n| &&
-             |\n|.
-    result = result &&
              `        },` && |\n| &&
              `        device_systemtype: {` && |\n| &&
              `          type: "string"` && |\n| &&
@@ -813,6 +820,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          parameters: {}` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
+             |\n|.
+    result = result &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    init() {` && |\n| &&
@@ -820,8 +829,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n| &&
              `` && |\n| &&
              `    onTokenUpdate(oEvent) {` && |\n| &&
-             |\n|.
-    result = result &&
              `      this.setProperty("addedTokens", []);` && |\n| &&
              `      this.setProperty("removedTokens", []);` && |\n| &&
              `      const prop = oEvent.mParameters.type === "removed" ? "removedTokens" : "addedTokens";` && |\n| &&
@@ -1215,6 +1222,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          }` && |\n| &&
              `        });` && |\n| &&
              `      });` && |\n| &&
+             |\n|.
+    result = result &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    setFilter() {` && |\n| &&
@@ -1222,8 +1231,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        let oTable = z2ui5.oView.byId(this.getProperty("tableId"));` && |\n| &&
              `        if (!oTable) return;` && |\n| &&
              `        this._applyWhenRendered(oTable, () => this._applyFilters(oTable, this.aFilters));` && |\n| &&
-             |\n|.
-    result = result &&
              `      } catch (e) { (z2ui5.errors ??= []).push({ message: ``UITableExt.setFilter failed``, error: e, ts: new Date().toISOString() }); }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
