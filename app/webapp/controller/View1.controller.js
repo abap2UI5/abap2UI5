@@ -446,13 +446,19 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     }
                     z2ui5.oBody.VIEWNAME = 'MAIN';
                 } else if (z2ui5.oControllerPopover == this) {
-                    oModel = z2ui5.oViewPopover.getModel();
+                    if (z2ui5.oViewPopover) {
+                        oModel = z2ui5.oViewPopover.getModel();
+                    }
                     z2ui5.oBody.VIEWNAME = 'MAIN';
                 } else if (z2ui5.oControllerNest == this) {
-                    oModel = z2ui5.oViewNest.getModel();
+                    if (z2ui5.oViewNest) {
+                        oModel = z2ui5.oViewNest.getModel();
+                    }
                     z2ui5.oBody.VIEWNAME = 'NEST';
                 } else if (z2ui5.oControllerNest2 == this) {
-                    oModel = z2ui5.oViewNest2.getModel();
+                    if (z2ui5.oViewNest2) {
+                        oModel = z2ui5.oViewNest2.getModel();
+                    }
                     z2ui5.oBody.VIEWNAME = 'NEST2';
                 }
                 runCallbacks(z2ui5.onBeforeRoundtrip);
