@@ -67,14 +67,16 @@ sap.ui.define("z2ui5/Timer", ["sap/ui/core/Control"], (Control) => {
         }
       }
     },
-    onAfterRendering() { },
+    onAfterRendering() {
+      this.delayedCall(this);
+    },
     delayedCall(oControl) {
 
       if (oControl.getProperty("checkActive") === false) {
         return;
       }
       setTimeout((oControl) => {
-        oControl.setProperty("checkActive", false)
+        oControl.setProperty("checkActive", false, true);
         oControl.fireFinished();
         if (oControl.getProperty("checkRepeat")) {
           oControl.delayedCall(oControl);
@@ -83,7 +85,6 @@ sap.ui.define("z2ui5/Timer", ["sap/ui/core/Control"], (Control) => {
         , parseInt(oControl.getProperty("delayMS")), oControl);
     },
     renderer(oRm, oControl) {
-      oControl.delayedCall(oControl);
     }
   });
 }
