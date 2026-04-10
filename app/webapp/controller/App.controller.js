@@ -236,7 +236,12 @@ sap.ui.define("z2ui5/Tree", ["sap/ui/core/Control"], (Control) => {
     },
 
     init() {
-      z2ui5.onBeforeRoundtrip.push(this.setBackend.bind(this));
+      this._setBackendBound = this.setBackend.bind(this);
+      z2ui5.onBeforeRoundtrip.push(this._setBackendBound);
+    },
+
+    exit() {
+      z2ui5.onBeforeRoundtrip = z2ui5.onBeforeRoundtrip.filter(fn => fn !== this._setBackendBound);
     },
 
     onAfterRendering() {
@@ -303,7 +308,12 @@ sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {
     },
 
     init() {
-      z2ui5.onBeforeRoundtrip.push(this.setBackend.bind(this));
+      this._setBackendBound = this.setBackend.bind(this);
+      z2ui5.onBeforeRoundtrip.push(this._setBackendBound);
+    },
+
+    exit() {
+      z2ui5.onBeforeRoundtrip = z2ui5.onBeforeRoundtrip.filter(fn => fn !== this._setBackendBound);
     },
 
     _restoreScrollPosition(item) {
