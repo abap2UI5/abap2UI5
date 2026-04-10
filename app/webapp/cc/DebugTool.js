@@ -76,8 +76,9 @@ sap.ui.define(["sap/ui/core/Control", "sap/ui/core/Fragment", "sap/ui/model/json
                 case 'SOURCE':
                     const parent = oEvent.getSource().getParent();
                     const contentControl = parent.getContent()[2].getItems()[0];
-                    const url = `${window.location.origin}/sap/bc/adt/oo/classes/${z2ui5.responseData.S_FRONT.APP}/source/main`;
-                    const content = atob('PGlmcmFtZSBpZD0idGVzdCIgc3JjPSInICsgdXJsICsgJyIgaGVpZ2h0PSI4MDBweCIgd2lkdGg9IjEyMDBweCIgLz4=').replace("' + url + '", url);
+                    const appId = encodeURIComponent(z2ui5.responseData.S_FRONT.APP);
+                    const url = `${window.location.origin}/sap/bc/adt/oo/classes/${appId}/source/main`;
+                    const content = `<iframe id="test" src="${url}" height="800px" width="1200px" />`;
                     contentControl.setProperty("content", content);
                     const modelData = oEvent.getSource().getModel().oData;
                     modelData.editor_visible = false;
