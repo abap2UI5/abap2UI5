@@ -253,6 +253,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     try { view.close(); } catch (e) { (z2ui5.errors ??= []).push({ message: `_destroyView: view.close() failed for ${prop}`, error: e, ts: new Date().toISOString() }); }
                 }
                 view.destroy();
+                z2ui5[prop] = null;
             },
             PopupDestroy() { this._destroyView('oViewPopup', true); },
             PopoverDestroy() { this._destroyView('oViewPopover', true); },
