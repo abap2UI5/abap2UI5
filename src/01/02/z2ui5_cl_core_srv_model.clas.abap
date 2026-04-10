@@ -44,7 +44,6 @@ CLASS z2ui5_cl_core_srv_model DEFINITION PUBLIC.
 
 
 
-
     CONSTANTS max_dissolve_depth TYPE i VALUE 5.
 
     DATA mt_attri TYPE REF TO z2ui5_if_core_types=>ty_t_attri.
