@@ -18,7 +18,7 @@ sap.ui.define(["sap/ui/core/Control", "sap/ui/core/Fragment", "sap/ui/model/json
                 &lt;/xsl:template&gt;
                 &lt;xsl:output indent="yes" /&gt;
             &lt;/xsl:stylesheet&gt;`;
-            sParse = sParse.replace(/&gt;/g, unescape("%3E")).replace(/&lt;/g, unescape("%3C"));
+            sParse = sParse.replace(/&gt;/g, ">").replace(/&lt;/g, "<");
             const xsltDoc = new DOMParser().parseFromString(sParse, 'application/xml');
 
             const xsltProcessor = new XSLTProcessor();
