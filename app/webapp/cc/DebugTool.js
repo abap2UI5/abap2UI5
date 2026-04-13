@@ -18,7 +18,7 @@ sap.ui.define(["sap/ui/core/Control", "sap/ui/core/Fragment", "sap/ui/model/json
                 &lt;/xsl:template&gt;
                 &lt;xsl:output indent="yes" /&gt;
             &lt;/xsl:stylesheet&gt;`;
-            sParse = sParse.replace(/&gt;/g, unescape("%3E")).replace(/&lt;/g, unescape("%3C"));
+            sParse = sParse.replace(/&gt;/g, ">").replace(/&lt;/g, "<");
             const xsltDoc = new DOMParser().parseFromString(sParse, 'application/xml');
 
             const xsltProcessor = new XSLTProcessor();
@@ -53,7 +53,7 @@ sap.ui.define(["sap/ui/core/Control", "sap/ui/core/Fragment", "sap/ui/model/json
                     displayEditor(oEvent, this.prettifyXml(oResponse?.PARAMS?.S_POPUP?.XML), 'xml');
                     break;
                 case 'POPUP_MODEL':
-                    displayEditor(oEvent, JSON.stringify(z2ui5.oViewPopup.getModel().getData(), null, 3), 'json');
+                    displayEditor(oEvent, JSON.stringify(z2ui5?.oViewPopup?.getModel()?.getData(), null, 3), 'json');
                     break;
                 case 'POPOVER':
                     displayEditor(oEvent, this.prettifyXml(oResponse?.PARAMS?.S_POPOVER?.XML), 'xml');
@@ -76,8 +76,9 @@ sap.ui.define(["sap/ui/core/Control", "sap/ui/core/Fragment", "sap/ui/model/json
                 case 'SOURCE':
                     const parent = oEvent.getSource().getParent();
                     const contentControl = parent.getContent()[2].getItems()[0];
-                    const url = `${window.location.origin}/sap/bc/adt/oo/classes/${z2ui5.responseData.S_FRONT.APP}/source/main`;
-                    const content = atob('PGlmcmFtZSBpZD0idGVzdCIgc3JjPSInICsgdXJsICsgJyIgaGVpZ2h0PSI4MDBweCIgd2lkdGg9IjEyMDBweCIgLz4=').replace("' + url + '", url);
+                    const appId = encodeURIComponent(z2ui5.responseData.S_FRONT.APP);
+                    const url = `${window.location.origin}/sap/bc/adt/oo/classes/${appId}/source/main`;
+                    const content = `<iframe id="test" src="${url}" height="800px" width="1200px" />`;
                     contentControl.setProperty("content", content);
                     const modelData = oEvent.getSource().getModel().oData;
                     modelData.editor_visible = false;

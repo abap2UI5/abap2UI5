@@ -32,17 +32,9 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
         function copyToClipboard(textToCopy) {
             if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
                 navigator.clipboard.writeText(textToCopy)
-                    .then(() => { })
                     .catch(err => { (z2ui5.errors ??= []).push({ message: `Clipboard: writeText failed`, error: err, ts: new Date().toISOString() }); });
             } else {
-                const tempTextArea = document.createElement("textarea");
-                tempTextArea.value = textToCopy;
-                document.body.appendChild(tempTextArea);
-                tempTextArea.select();
-                try {
-                    document.execCommand("copy");
-                } catch (err) { (z2ui5.errors ??= []).push({ message: `Clipboard: execCommand copy failed`, error: err, ts: new Date().toISOString() }); }
-                document.body.removeChild(tempTextArea);
+                (z2ui5.errors ??= []).push({ message: `Clipboard: writeText API not available`, ts: new Date().toISOString() });
             }
         }
 
@@ -128,11 +120,9 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         await this.displayPopover(S_POPOVER.XML, 'oViewPopover', S_POPOVER.OPEN_BY_ID);
                     }
 
-                   let oState;
+                   let oState = {};
                    if (z2ui5.oView) {
-                       oState = JSON.parse(JSON.stringify({ view: z2ui5.oView.mProperties.viewContent, model: z2ui5.oView.getModel().getData(), response: z2ui5.oResponse }));
-                   } else {
-                       oState = {};
+                       oState = { view: z2ui5.oView.mProperties.viewContent, model: z2ui5.oView.getModel().getData(), response: z2ui5.oResponse };
                    }
                    if (SET_PUSH_STATE) {
                         let urlObj = new URL(window.location.href);
@@ -245,12 +235,15 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 });
                 oView.setModel(oview_model);
                 let oParent = z2ui5.oView.byId(z2ui5.oResponse.PARAMS[viewNestId].ID);
-                if (oParent) {
-                    try {
-                        oParent[z2ui5.oResponse.PARAMS[viewNestId].METHOD_DESTROY]();
-                    } catch (e) { (z2ui5.errors ??= []).push({ message: `displayNestedView: parent destroy method failed`, error: e, ts: new Date().toISOString() }); }
-                    oParent[z2ui5.oResponse.PARAMS[viewNestId].METHOD_INSERT](oView);
+                if (!oParent) {
+                    (z2ui5.errors ??= []).push({ message: `displayNestedView: parent control '${z2ui5.oResponse.PARAMS[viewNestId].ID}' not found, nested view discarded`, ts: new Date().toISOString() });
+                    oView.destroy();
+                    return;
                 }
+                try {
+                    oParent[z2ui5.oResponse.PARAMS[viewNestId].METHOD_DESTROY]();
+                } catch (e) { (z2ui5.errors ??= []).push({ message: `displayNestedView: parent destroy method failed`, error: e, ts: new Date().toISOString() }); }
+                oParent[z2ui5.oResponse.PARAMS[viewNestId].METHOD_INSERT](oView);
                 z2ui5[viewProp] = oView;
             },
             _destroyView(prop, tryClose) {
@@ -260,6 +253,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     try { view.close(); } catch (e) { (z2ui5.errors ??= []).push({ message: `_destroyView: view.close() failed for ${prop}`, error: e, ts: new Date().toISOString() }); }
                 }
                 view.destroy();
+                z2ui5[prop] = null;
             },
             PopupDestroy() { this._destroyView('oViewPopup', true); },
             PopoverDestroy() { this._destroyView('oViewPopover', true); },
@@ -446,13 +440,19 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                     }
                     z2ui5.oBody.VIEWNAME = 'MAIN';
                 } else if (z2ui5.oControllerPopover == this) {
-                    oModel = z2ui5.oViewPopover.getModel();
+                    if (z2ui5.oViewPopover) {
+                        oModel = z2ui5.oViewPopover.getModel();
+                    }
                     z2ui5.oBody.VIEWNAME = 'MAIN';
                 } else if (z2ui5.oControllerNest == this) {
-                    oModel = z2ui5.oViewNest.getModel();
+                    if (z2ui5.oViewNest) {
+                        oModel = z2ui5.oViewNest.getModel();
+                    }
                     z2ui5.oBody.VIEWNAME = 'NEST';
                 } else if (z2ui5.oControllerNest2 == this) {
-                    oModel = z2ui5.oViewNest2.getModel();
+                    if (z2ui5.oViewNest2) {
+                        oModel = z2ui5.oViewNest2.getModel();
+                    }
                     z2ui5.oBody.VIEWNAME = 'NEST2';
                 }
                 runCallbacks(z2ui5.onBeforeRoundtrip);

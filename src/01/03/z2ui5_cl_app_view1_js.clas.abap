@@ -52,17 +52,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        function copyToClipboard(textToCopy) {` && |\n| &&
              `            if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {` && |\n| &&
              `                navigator.clipboard.writeText(textToCopy)` && |\n| &&
-             `                    .then(() => { })` && |\n| &&
              `                    .catch(err => { (z2ui5.errors ??= []).push({ message: ``Clipboard: writeText failed``, error: err, ts: new Date().toISOString() }); });` && |\n| &&
              `            } else {` && |\n| &&
-             `                const tempTextArea = document.createElement("textarea");` && |\n| &&
-             `                tempTextArea.value = textToCopy;` && |\n| &&
-             `                document.body.appendChild(tempTextArea);` && |\n| &&
-             `                tempTextArea.select();` && |\n| &&
-             `                try {` && |\n| &&
-             `                    document.execCommand("copy");` && |\n| &&
-             `                } catch (err) { (z2ui5.errors ??= []).push({ message: ``Clipboard: execCommand copy failed``, error: err, ts: new Date().toISOString() }); }` && |\n| &&
-             `                document.body.removeChild(tempTextArea);` && |\n| &&
+             `                (z2ui5.errors ??= []).push({ message: ``Clipboard: writeText API not available``, ts: new Date().toISOString() });` && |\n| &&
              `            }` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -148,11 +140,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        await this.displayPopover(S_POPOVER.XML, 'oViewPopover', S_POPOVER.OPEN_BY_ID);` && |\n| &&
              `                    }` && |\n| &&
              `` && |\n| &&
-             `                   let oState;` && |\n| &&
+             `                   let oState = {};` && |\n| &&
              `                   if (z2ui5.oView) {` && |\n| &&
-             `                       oState = JSON.parse(JSON.stringify({ view: z2ui5.oView.mProperties.viewContent, model: z2ui5.oView.getModel().getData(), response: z2ui5.oResponse }));` && |\n| &&
-             `                   } else {` && |\n| &&
-             `                       oState = {};` && |\n| &&
+             `                       oState = { view: z2ui5.oView.mProperties.viewContent, model: z2ui5.oView.getModel().getData(), response: z2ui5.oResponse };` && |\n| &&
              `                   }` && |\n| &&
              `                   if (SET_PUSH_STATE) {` && |\n| &&
              `                        let urlObj = new URL(window.location.href);` && |\n| &&
@@ -265,12 +255,15 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                });` && |\n| &&
              `                oView.setModel(oview_model);` && |\n| &&
              `                let oParent = z2ui5.oView.byId(z2ui5.oResponse.PARAMS[viewNestId].ID);` && |\n| &&
-             `                if (oParent) {` && |\n| &&
-             `                    try {` && |\n| &&
-             `                        oParent[z2ui5.oResponse.PARAMS[viewNestId].METHOD_DESTROY]();` && |\n| &&
-             `                    } catch (e) { (z2ui5.errors ??= []).push({ message: ``displayNestedView: parent destroy method failed``, error: e, ts: new Date().toISOString() }); }` && |\n| &&
-             `                    oParent[z2ui5.oResponse.PARAMS[viewNestId].METHOD_INSERT](oView);` && |\n| &&
+             `                if (!oParent) {` && |\n| &&
+             `                    (z2ui5.errors ??= []).push({ message: ``displayNestedView: parent control '${z2ui5.oResponse.PARAMS[viewNestId].ID}' not found, nested view discarded``, ts: new Date().toISOString() });` && |\n| &&
+             `                    oView.destroy();` && |\n| &&
+             `                    return;` && |\n| &&
              `                }` && |\n| &&
+             `                try {` && |\n| &&
+             `                    oParent[z2ui5.oResponse.PARAMS[viewNestId].METHOD_DESTROY]();` && |\n| &&
+             `                } catch (e) { (z2ui5.errors ??= []).push({ message: ``displayNestedView: parent destroy method failed``, error: e, ts: new Date().toISOString() }); }` && |\n| &&
+             `                oParent[z2ui5.oResponse.PARAMS[viewNestId].METHOD_INSERT](oView);` && |\n| &&
              `                z2ui5[viewProp] = oView;` && |\n| &&
              `            },` && |\n| &&
              `            _destroyView(prop, tryClose) {` && |\n| &&
@@ -280,6 +273,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    try { view.close(); } catch (e) { (z2ui5.errors ??= []).push({ message: ``_destroyView: view.close() failed for ${prop}``, error: e, ts: new Date().toISOString() }); }` && |\n| &&
              `                }` && |\n| &&
              `                view.destroy();` && |\n| &&
+             `                z2ui5[prop] = null;` && |\n| &&
              `            },` && |\n| &&
              `            PopupDestroy() { this._destroyView('oViewPopup', true); },` && |\n| &&
              `            PopoverDestroy() { this._destroyView('oViewPopover', true); },` && |\n| &&
@@ -418,14 +412,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                                URLHelper.triggerSms(params);` && |\n| &&
              `                                break;` && |\n| &&
              `                            case 'TRIGGER_TEL':` && |\n| &&
-             |\n|.
-    result = result &&
              `                                URLHelper.triggerTel(params);` && |\n| &&
              `                                break;` && |\n| &&
              `                        }` && |\n| &&
              `                        break;` && |\n| &&
              `                    }` && |\n| &&
              `                    case 'IMAGE_EDITOR_POPUP_CLOSE':` && |\n| &&
+             |\n|.
+    result = result &&
              `                        const image = Fragment.byId("popupId", "imageEditor").getImagePngDataURL();` && |\n| &&
              `                        z2ui5.oController.PopupDestroy();` && |\n| &&
              `                        z2ui5.oController.eB([``SAVE``], image);` && |\n| &&
@@ -468,13 +462,19 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    }` && |\n| &&
              `                    z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n| &&
              `                } else if (z2ui5.oControllerPopover == this) {` && |\n| &&
-             `                    oModel = z2ui5.oViewPopover.getModel();` && |\n| &&
+             `                    if (z2ui5.oViewPopover) {` && |\n| &&
+             `                        oModel = z2ui5.oViewPopover.getModel();` && |\n| &&
+             `                    }` && |\n| &&
              `                    z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n| &&
              `                } else if (z2ui5.oControllerNest == this) {` && |\n| &&
-             `                    oModel = z2ui5.oViewNest.getModel();` && |\n| &&
+             `                    if (z2ui5.oViewNest) {` && |\n| &&
+             `                        oModel = z2ui5.oViewNest.getModel();` && |\n| &&
+             `                    }` && |\n| &&
              `                    z2ui5.oBody.VIEWNAME = 'NEST';` && |\n| &&
              `                } else if (z2ui5.oControllerNest2 == this) {` && |\n| &&
-             `                    oModel = z2ui5.oViewNest2.getModel();` && |\n| &&
+             `                    if (z2ui5.oViewNest2) {` && |\n| &&
+             `                        oModel = z2ui5.oViewNest2.getModel();` && |\n| &&
+             `                    }` && |\n| &&
              `                    z2ui5.oBody.VIEWNAME = 'NEST2';` && |\n| &&
              `                }` && |\n| &&
              `                runCallbacks(z2ui5.onBeforeRoundtrip);` && |\n| &&

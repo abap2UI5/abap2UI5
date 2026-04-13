@@ -87,14 +87,18 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
-             `    onAfterRendering() { },` && |\n| &&
+             `    onAfterRendering() {` && |\n| &&
+             `      if (!this._pendingTimer) return;` && |\n| &&
+             `      this._pendingTimer = false;` && |\n| &&
+             `      this.delayedCall(this);` && |\n| &&
+             `    },` && |\n| &&
              `    delayedCall(oControl) {` && |\n| &&
              `` && |\n| &&
              `      if (oControl.getProperty("checkActive") === false) {` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      setTimeout((oControl) => {` && |\n| &&
-             `        oControl.setProperty("checkActive", false)` && |\n| &&
+             `        oControl.setProperty("checkActive", false, true);` && |\n| &&
              `        oControl.fireFinished();` && |\n| &&
              `        if (oControl.getProperty("checkRepeat")) {` && |\n| &&
              `          oControl.delayedCall(oControl);` && |\n| &&
@@ -103,7 +107,11 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        , parseInt(oControl.getProperty("delayMS")), oControl);` && |\n| &&
              `    },` && |\n| &&
              `    renderer(oRm, oControl) {` && |\n| &&
-             `      oControl.delayedCall(oControl);` && |\n| &&
+             `      oRm.openStart("span", oControl);` && |\n| &&
+             `      oRm.addStyle("display", "none");` && |\n| &&
+             `      oRm.openEnd();` && |\n| &&
+             `      oRm.close("span");` && |\n| &&
+             `      oControl._pendingTimer = oControl.getProperty("checkActive");` && |\n| &&
              `    }` && |\n| &&
              `  });` && |\n| &&
              `}` && |\n| &&
@@ -256,7 +264,12 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n| &&
              `` && |\n| &&
              `    init() {` && |\n| &&
-             `      z2ui5.onBeforeRoundtrip.push(this.setBackend.bind(this));` && |\n| &&
+             `      this._setBackendBound = this.setBackend.bind(this);` && |\n| &&
+             `      z2ui5.onBeforeRoundtrip.push(this._setBackendBound);` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    exit() {` && |\n| &&
+             `      z2ui5.onBeforeRoundtrip = z2ui5.onBeforeRoundtrip.filter(fn => fn !== this._setBackendBound);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    onAfterRendering() {` && |\n| &&
@@ -323,7 +336,12 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n| &&
              `` && |\n| &&
              `    init() {` && |\n| &&
-             `      z2ui5.onBeforeRoundtrip.push(this.setBackend.bind(this));` && |\n| &&
+             `      this._setBackendBound = this.setBackend.bind(this);` && |\n| &&
+             `      z2ui5.onBeforeRoundtrip.push(this._setBackendBound);` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    exit() {` && |\n| &&
+             `      z2ui5.onBeforeRoundtrip = z2ui5.onBeforeRoundtrip.filter(fn => fn !== this._setBackendBound);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    _restoreScrollPosition(item) {` && |\n| &&
@@ -400,6 +418,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          type: "string"` && |\n| &&
              `        },` && |\n| &&
              `        device_width: {` && |\n| &&
+             |\n|.
+    result = result &&
              `          type: "string"` && |\n| &&
              `        },` && |\n| &&
              `        ui5_theme: {` && |\n| &&
@@ -418,8 +438,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      events: {` && |\n| &&
              `        "finished": {` && |\n| &&
              `          allowPreventDefault: true,` && |\n| &&
-             |\n|.
-    result = result &&
              `          parameters: {},` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
@@ -802,6 +820,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          parameters: {}` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
+             |\n|.
+    result = result &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    init() {` && |\n| &&
@@ -820,8 +840,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      this.fireChange();` && |\n| &&
              `    },` && |\n| &&
              `    renderer(oRm, oControl) {` && |\n| &&
-             |\n|.
-    result = result &&
              `      z2ui5.onAfterRendering.push(oControl.setControl.bind(oControl));` && |\n| &&
              `    },` && |\n| &&
              `    setControl() {` && |\n| &&
@@ -1204,6 +1222,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          }` && |\n| &&
              `        });` && |\n| &&
              `      });` && |\n| &&
+             |\n|.
+    result = result &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    setFilter() {` && |\n| &&
@@ -1222,8 +1242,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      } catch (e) { (z2ui5.errors ??= []).push({ message: ``UITableExt.readSort failed``, error: e, ts: new Date().toISOString() }); }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             |\n|.
-    result = result &&
              `    _applySorters(oTable, aSorters) {` && |\n| &&
              `      oTable.getBinding().sort(aSorters);` && |\n| &&
              `      aSorters.forEach(function(srt, idx) {` && |\n| &&

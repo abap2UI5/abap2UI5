@@ -67,14 +67,18 @@ sap.ui.define("z2ui5/Timer", ["sap/ui/core/Control"], (Control) => {
         }
       }
     },
-    onAfterRendering() { },
+    onAfterRendering() {
+      if (!this._pendingTimer) return;
+      this._pendingTimer = false;
+      this.delayedCall(this);
+    },
     delayedCall(oControl) {
 
       if (oControl.getProperty("checkActive") === false) {
         return;
       }
       setTimeout((oControl) => {
-        oControl.setProperty("checkActive", false)
+        oControl.setProperty("checkActive", false, true);
         oControl.fireFinished();
         if (oControl.getProperty("checkRepeat")) {
           oControl.delayedCall(oControl);
@@ -83,7 +87,11 @@ sap.ui.define("z2ui5/Timer", ["sap/ui/core/Control"], (Control) => {
         , parseInt(oControl.getProperty("delayMS")), oControl);
     },
     renderer(oRm, oControl) {
-      oControl.delayedCall(oControl);
+      oRm.openStart("span", oControl);
+      oRm.addStyle("display", "none");
+      oRm.openEnd();
+      oRm.close("span");
+      oControl._pendingTimer = oControl.getProperty("checkActive");
     }
   });
 }
@@ -236,7 +244,12 @@ sap.ui.define("z2ui5/Tree", ["sap/ui/core/Control"], (Control) => {
     },
 
     init() {
-      z2ui5.onBeforeRoundtrip.push(this.setBackend.bind(this));
+      this._setBackendBound = this.setBackend.bind(this);
+      z2ui5.onBeforeRoundtrip.push(this._setBackendBound);
+    },
+
+    exit() {
+      z2ui5.onBeforeRoundtrip = z2ui5.onBeforeRoundtrip.filter(fn => fn !== this._setBackendBound);
     },
 
     onAfterRendering() {
@@ -303,7 +316,12 @@ sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {
     },
 
     init() {
-      z2ui5.onBeforeRoundtrip.push(this.setBackend.bind(this));
+      this._setBackendBound = this.setBackend.bind(this);
+      z2ui5.onBeforeRoundtrip.push(this._setBackendBound);
+    },
+
+    exit() {
+      z2ui5.onBeforeRoundtrip = z2ui5.onBeforeRoundtrip.filter(fn => fn !== this._setBackendBound);
     },
 
     _restoreScrollPosition(item) {
