@@ -545,7 +545,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         let oParams = {
                             styleClass: params[msgType].STYLECLASS ? params[msgType].STYLECLASS : '',
                             title: params[msgType].TITLE ? params[msgType].TITLE : '',
-                            onClose: params[msgType].ONCLOSE ? Function("sAction", "return " + params[msgType].ONCLOSE) : null,
+                            onClose: params[msgType].ONCLOSE ? (sAction) => { z2ui5.oController.eB([params[msgType].ONCLOSE, sAction]); } : null,
                             actions: params[msgType].ACTIONS ? params[msgType].ACTIONS : 'OK',
                             emphasizedAction: params[msgType].EMPHASIZEDACTION ? params[msgType].EMPHASIZEDACTION : 'OK',
                             initialFocus: params[msgType].INITIALFOCUS ? params[msgType].INITIALFOCUS : null,

@@ -567,7 +567,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        let oParams = {` && |\n|  &&
              `                            styleClass: params[msgType].STYLECLASS ? params[msgType].STYLECLASS : '',` && |\n|  &&
              `                            title: params[msgType].TITLE ? params[msgType].TITLE : '',` && |\n|  &&
-             `                            onClose: params[msgType].ONCLOSE ? Function("sAction", "return " + params[msgType].ONCLOSE) : null,` && |\n|  &&
+             `                            onClose: params[msgType].ONCLOSE ? (sAction) => { z2ui5.oController.eB([params[msgType].ONCLOSE, sAction]); } : null,` && |\n|  &&
              `                            actions: params[msgType].ACTIONS ? params[msgType].ACTIONS : 'OK',` && |\n|  &&
              `                            emphasizedAction: params[msgType].EMPHASIZEDACTION ? params[msgType].EMPHASIZEDACTION : 'OK',` && |\n|  &&
              `                            initialFocus: params[msgType].INITIALFOCUS ? params[msgType].INITIALFOCUS : null,` && |\n|  &&
