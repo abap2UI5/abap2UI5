@@ -58,6 +58,23 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            }` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
+             `        function sanitizeMessageDetails(html) {` && |\n| &&
+             `            const parser = new DOMParser();` && |\n| &&
+             `            const doc = parser.parseFromString(html, 'text/html');` && |\n| &&
+             `            const items = Array.from(doc.querySelectorAll('li'));` && |\n| &&
+             `            if (items.length > 0) {` && |\n| &&
+             `                const safeItems = items.map(li => {` && |\n| &&
+             `                    const span = document.createElement('span');` && |\n| &&
+             `                    span.textContent = li.textContent;` && |\n| &&
+             `                    return '<li>' + span.innerHTML + '</li>';` && |\n| &&
+             `                });` && |\n| &&
+             `                return '<ul>' + safeItems.join('') + '</ul>';` && |\n| &&
+             `            }` && |\n| &&
+             `            const div = document.createElement('div');` && |\n| &&
+             `            div.textContent = doc.body.textContent;` && |\n| &&
+             `            return div.innerHTML;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
              `        function withCrossAppNavigator(callback) {` && |\n| &&
              `            sap.ui.require([` && |\n| &&
              `                "sap/ushell/Container"` && |\n| &&
@@ -401,6 +418,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                    case 'URLHELPER': {` && |\n| &&
              `                        const URLHelper = mobileLibrary.URLHelper;` && |\n| &&
              `                        const params = args[2];` && |\n| &&
+             |\n|.
+    result = result &&
              `                        switch (args[1]) {` && |\n| &&
              `                            case 'REDIRECT':` && |\n| &&
              `                                URLHelper.redirect(params.URL, params.NEW_WINDOW);` && |\n| &&
@@ -418,8 +437,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        break;` && |\n| &&
              `                    }` && |\n| &&
              `                    case 'IMAGE_EDITOR_POPUP_CLOSE':` && |\n| &&
-             |\n|.
-    result = result &&
              `                        const image = Fragment.byId("popupId", "imageEditor").getImagePngDataURL();` && |\n| &&
              `                        z2ui5.oController.PopupDestroy();` && |\n| &&
              `                        z2ui5.oController.eB([``SAVE``], image);` && |\n| &&
@@ -550,13 +567,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                        let oParams = {` && |\n| &&
              `                            styleClass: params[msgType].STYLECLASS ? params[msgType].STYLECLASS : '',` && |\n| &&
              `                            title: params[msgType].TITLE ? params[msgType].TITLE : '',` && |\n| &&
-             `                            onClose: params[msgType].ONCLOSE ? Function("sAction", "return " + params[msgType].ONCLOSE) : null,` && |\n| &&
+             `                            onClose: params[msgType].ONCLOSE ? (sAction) => { z2ui5.oController.eB([params[msgType].ONCLOSE, sAction]); } : null,` && |\n| &&
              `                            actions: params[msgType].ACTIONS ? params[msgType].ACTIONS : 'OK',` && |\n| &&
              `                            emphasizedAction: params[msgType].EMPHASIZEDACTION ? params[msgType].EMPHASIZEDACTION : 'OK',` && |\n| &&
              `                            initialFocus: params[msgType].INITIALFOCUS ? params[msgType].INITIALFOCUS : null,` && |\n| &&
              `                            textDirection: params[msgType].TEXTDIRECTION ? params[msgType].TEXTDIRECTION : 'Inherit',` && |\n| &&
              `                            icon: params[msgType].ICON ? params[msgType].ICON : 'NONE',` && |\n| &&
-             `                            details: params[msgType].DETAILS ? params[msgType].DETAILS : '',` && |\n| &&
+             `                            details: params[msgType].DETAILS ? sanitizeMessageDetails(params[msgType].DETAILS) : '',` && |\n| &&
              `                            closeOnNavigation: params[msgType].CLOSEONNAVIGATION ? true : false` && |\n| &&
              `                        };` && |\n| &&
              `                        if (oParams.icon === 'NONE') { delete oParams.icon };` && |\n| &&

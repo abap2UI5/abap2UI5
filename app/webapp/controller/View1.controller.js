@@ -38,6 +38,23 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
             }
         }
 
+        function sanitizeMessageDetails(html) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const items = Array.from(doc.querySelectorAll('li'));
+            if (items.length > 0) {
+                const safeItems = items.map(li => {
+                    const span = document.createElement('span');
+                    span.textContent = li.textContent;
+                    return '<li>' + span.innerHTML + '</li>';
+                });
+                return '<ul>' + safeItems.join('') + '</ul>';
+            }
+            const div = document.createElement('div');
+            div.textContent = doc.body.textContent;
+            return div.innerHTML;
+        }
+
         function withCrossAppNavigator(callback) {
             sap.ui.require([
                 "sap/ushell/Container"
@@ -528,13 +545,13 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                         let oParams = {
                             styleClass: params[msgType].STYLECLASS ? params[msgType].STYLECLASS : '',
                             title: params[msgType].TITLE ? params[msgType].TITLE : '',
-                            onClose: params[msgType].ONCLOSE ? Function("sAction", "return " + params[msgType].ONCLOSE) : null,
+                            onClose: params[msgType].ONCLOSE ? (sAction) => { z2ui5.oController.eB([params[msgType].ONCLOSE, sAction]); } : null,
                             actions: params[msgType].ACTIONS ? params[msgType].ACTIONS : 'OK',
                             emphasizedAction: params[msgType].EMPHASIZEDACTION ? params[msgType].EMPHASIZEDACTION : 'OK',
                             initialFocus: params[msgType].INITIALFOCUS ? params[msgType].INITIALFOCUS : null,
                             textDirection: params[msgType].TEXTDIRECTION ? params[msgType].TEXTDIRECTION : 'Inherit',
                             icon: params[msgType].ICON ? params[msgType].ICON : 'NONE',
-                            details: params[msgType].DETAILS ? params[msgType].DETAILS : '',
+                            details: params[msgType].DETAILS ? sanitizeMessageDetails(params[msgType].DETAILS) : '',
                             closeOnNavigation: params[msgType].CLOSEONNAVIGATION ? true : false
                         };
                         if (oParams.icon === 'NONE') { delete oParams.icon };
