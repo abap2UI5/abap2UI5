@@ -61,14 +61,17 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
     ENDLOOP.
 
     DATA(columns) = tab->columns( ).
+
+    DATA: ls_ddic_field TYPE dfies,
+          lr_elem       TYPE REF TO cl_abap_elemdescr.
+
     LOOP AT lt_comp INTO ls_comp.
       IF ls_comp-type IS BOUND AND
          ls_comp-type->is_ddic_type( ) = abap_true.
+        CLEAR: ls_ddic_field, lr_elem.
 
-        DATA lr_elem TYPE REF TO cl_abap_elemdescr.
         lr_elem ?= ls_comp-type.
-
-        DATA(ls_ddic_field) = lr_elem->get_ddic_field( ).
+        ls_ddic_field = lr_elem->get_ddic_field( ).
 
         IF ls_ddic_field-scrtext_l IS NOT INITIAL.
           columns->column( '8rem' )->header( `` )->text( ls_ddic_field-scrtext_l ).
