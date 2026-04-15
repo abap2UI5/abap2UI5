@@ -112,8 +112,8 @@ Legend
 
 + Added Properties for Multi Input, Slider, Search Field etc.
 + Added Date Range Selection Control etc.
-* Bugfix Generic Tile & Avator Control
-* Bugfix Binding with Custom Mapper 
+* Bugfix Generic Tile & Avatar Control
+* Bugfix Binding with Custom Mapper
 * Bugfix Downport Functionality
 * Bugfix ABAP 750 Syntax
 * Multiple Bugfixes and new Properties added
@@ -240,7 +240,7 @@ Legend
 
 + NavContainer in Popups
 + New properties added to XML View
-+ Improvements POPUP_TO_SELECT (title, sorting, descriptions
++ Improvements POPUP_TO_SELECT (title, sorting, descriptions)
 * Fixes for ABAP for Cloud Readiness
 
 
@@ -264,9 +264,9 @@ Legend
 2024-01-12 v1.114.0
 -------------------
 
-* cross app navigation
-* table output
-! debugger tools
+* Cross App Navigation
+* Table Output
+! Debugger Tools
 
 
 2024-01-03 v1.113.0

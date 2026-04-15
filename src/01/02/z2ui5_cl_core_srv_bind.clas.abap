@@ -175,7 +175,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
     IF |/{ z2ui5_if_core_types=>cs_ui5-two_way_model }| = result.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = `<p>Name of variable not allowed - x is reserved word - use another name for your attribute`.
+        EXPORTING val = `<p>Name of variable not allowed - XX is reserved word - use another name for your attribute`.
 
     ENDIF.
 
