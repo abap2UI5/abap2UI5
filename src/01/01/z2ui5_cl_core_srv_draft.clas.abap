@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_core_srv_draft DEFINITION PUBLIC.
+CLASS z2ui5_cl_core_srv_draft DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
     TYPES ty_s_db TYPE z2ui5_t_01.

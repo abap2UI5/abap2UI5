@@ -6,6 +6,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_factory_empty_msgs    FOR TESTING RAISING cx_static_check.
     METHODS test_factory_msg_count     FOR TESTING RAISING cx_static_check.
     METHODS test_factory_msg_type      FOR TESTING RAISING cx_static_check.
+    METHODS test_factory_w_cx          FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 CLASS ltcl_test IMPLEMENTATION.
@@ -51,6 +52,20 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       act = lo_pop->mt_msg[ 1 ]-message
       exp = `Something failed` ).
+  ENDMETHOD.
+
+  METHOD test_factory_w_cx.
+
+    TRY.
+        DATA(lv_val) = 1 / 0 ##NEEDED.
+      CATCH cx_root INTO DATA(lx).
+    ENDTRY.
+
+    DATA(lo_pop) = z2ui5_cl_pop_bal=>factory( lx ).
+
+    cl_abap_unit_assert=>assert_bound( lo_pop ).
+    cl_abap_unit_assert=>assert_not_initial( lo_pop->mt_msg ).
+
   ENDMETHOD.
 
 ENDCLASS.

@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_pop_file_dl DEFINITION PUBLIC.
+CLASS z2ui5_cl_pop_file_dl DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
@@ -7,7 +7,7 @@ CLASS z2ui5_cl_pop_file_dl DEFINITION PUBLIC.
       IMPORTING
         i_text                TYPE string DEFAULT `Choose the file to download:`
         i_title               TYPE string DEFAULT `File Download`
-        i_button_text_confirm TYPE string DEFAULT `OK`
+        i_button_text_confirm TYPE string DEFAULT `Download`
         i_button_text_cancel  TYPE string DEFAULT `Cancel`
         i_file                TYPE string
         i_type                TYPE string DEFAULT `data:text/csv;base64,`
@@ -92,7 +92,7 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
       )->buttons(
       )->button( text  = button_text_cancel
                  press = client->_event( `BUTTON_CANCEL` )
-      )->button( text  = `Download`
+      )->button( text  = button_text_confirm
                  press = client->_event( `BUTTON_CONFIRM` )
                  type  = `Emphasized` ).
 

@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_pop_get_range_m DEFINITION PUBLIC.
+CLASS z2ui5_cl_pop_get_range_m DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.

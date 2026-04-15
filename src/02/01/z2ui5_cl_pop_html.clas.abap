@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_pop_html DEFINITION PUBLIC.
+CLASS z2ui5_cl_pop_html DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.

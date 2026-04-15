@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_pop_to_select DEFINITION PUBLIC.
+CLASS z2ui5_cl_pop_to_select DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.

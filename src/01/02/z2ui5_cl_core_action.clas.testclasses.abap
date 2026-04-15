@@ -18,7 +18,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_system_startup     FOR TESTING RAISING cx_static_check.
     METHODS test_first_start        FOR TESTING RAISING cx_static_check.
     METHODS test_first_start_error  FOR TESTING RAISING cx_static_check.
-    METHODS test_factory_by_frntend FOR TESTING RAISING cx_static_check.
+    METHODS test_factory_by_frontend FOR TESTING RAISING cx_static_check.
     METHODS test_reset_view_flags   FOR TESTING RAISING cx_static_check.
     METHODS test_stack_call         FOR TESTING RAISING cx_static_check.
 ENDCLASS.
@@ -121,7 +121,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_factory_by_frntend.
+  METHOD test_factory_by_frontend.
     DATA lv_payload TYPE string.
     DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
     DATA lo_action TYPE REF TO z2ui5_cl_core_action.
