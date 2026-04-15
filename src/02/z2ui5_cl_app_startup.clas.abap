@@ -57,7 +57,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD reset_button_state.
 
-    ms_home-btn_text       = `check`.
+    ms_home-btn_text       = `Check`.
     ms_home-btn_event_id   = cs_event-button_check.
     ms_home-btn_icon       = `sap-icon://validate`.
     ms_home-class_editable = abap_true.
@@ -73,7 +73,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         CREATE OBJECT li_app_test TYPE (ms_home-classname).
 
         client->message_toast_display( `App is ready to start!` ).
-        ms_home-btn_text          = `edit`.
+        ms_home-btn_text          = `Edit`.
         ms_home-btn_event_id      = cs_event-button_change.
         ms_home-btn_icon          = `sap-icon://edit`.
         ms_home-class_value_state = `Success`.
@@ -294,7 +294,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     simple_form2->label( `Draft Entries ` ).
     simple_form2->text( lv_count ).
 
-    page2->end_button( )->button( text  = `close`
+    page2->end_button( )->button( text  = `Close`
                                   press = client->_event( cs_event-close )
                                   type  = `Emphasized` ).
 
