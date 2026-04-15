@@ -65,7 +65,7 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
       IF ls_comp-type IS BOUND AND
          ls_comp-type->is_ddic_type( ) = abap_true.
 
-        DATA: lr_elem TYPE REF TO cl_abap_elemdescr.
+        DATA lr_elem TYPE REF TO cl_abap_elemdescr.
         lr_elem ?= ls_comp-type.
 
         DATA(ls_ddic_field) = lr_elem->get_ddic_field( ).
