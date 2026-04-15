@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_core_client DEFINITION PUBLIC FINAL.
+CLASS z2ui5_cl_core_client DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_client.

@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_core_srv_bind DEFINITION PUBLIC FINAL.
+CLASS z2ui5_cl_core_srv_bind DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     DATA mo_app    TYPE REF TO z2ui5_cl_core_app.

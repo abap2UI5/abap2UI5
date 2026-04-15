@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
+CLASS z2ui5_cl_core_handler DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     DATA mo_action       TYPE REF TO z2ui5_cl_core_action.

@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_core_srv_model DEFINITION PUBLIC FINAL.
+CLASS z2ui5_cl_core_srv_model DEFINITION PUBLIC.
 
   PUBLIC SECTION.
 
