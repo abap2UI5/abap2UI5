@@ -63,7 +63,7 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
     DATA(columns) = tab->columns( ).
 
     DATA: lr_elem             TYPE REF TO cl_abap_elemdescr,
-          lv_ddic_field_label TYPE scrtext_l.
+          lv_ddic_field_label TYPE string.
 
     LOOP AT lt_comp INTO ls_comp.
       IF ls_comp-type IS BOUND AND
