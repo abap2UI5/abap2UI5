@@ -6,7 +6,7 @@ CLASS z2ui5_cl_pop_html DEFINITION PUBLIC.
     CLASS-METHODS factory
       IMPORTING
         i_html          TYPE string
-        i_title         TYPE string DEFAULT `Title`
+        i_title         TYPE string DEFAULT `HTML View`
         i_icon          TYPE string DEFAULT `sap-icon://hint`
         i_button_text   TYPE string DEFAULT `OK`
       RETURNING

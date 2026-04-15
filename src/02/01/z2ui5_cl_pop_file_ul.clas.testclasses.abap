@@ -4,8 +4,10 @@ CLASS ltcl_test DEFINITION FINAL
 
   PRIVATE SECTION.
 
-    METHODS test_factory        FOR TESTING RAISING cx_static_check.
-    METHODS test_result_initial FOR TESTING RAISING cx_static_check.
+    METHODS test_factory               FOR TESTING RAISING cx_static_check.
+    METHODS test_result_initial        FOR TESTING RAISING cx_static_check.
+    METHODS test_factory_with_path     FOR TESTING RAISING cx_static_check.
+    METHODS test_confirm_initially_off FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -25,6 +27,21 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(ls_result) = lo_pop->result( ).
     cl_abap_unit_assert=>assert_false( ls_result-check_confirmed ).
     cl_abap_unit_assert=>assert_initial( ls_result-value ).
+
+  ENDMETHOD.
+
+  METHOD test_factory_with_path.
+
+    DATA(lo_pop) = z2ui5_cl_pop_file_ul=>factory( i_path = `/tmp/myfile.csv` ).
+    cl_abap_unit_assert=>assert_equals( exp = `/tmp/myfile.csv`
+                                        act = lo_pop->mv_path ).
+
+  ENDMETHOD.
+
+  METHOD test_confirm_initially_off.
+
+    DATA(lo_pop) = z2ui5_cl_pop_file_ul=>factory( ).
+    cl_abap_unit_assert=>assert_false( lo_pop->check_confirm_enabled ).
 
   ENDMETHOD.
 

@@ -23,7 +23,7 @@ CLASS z2ui5_cl_pop_image_editor DEFINITION PUBLIC.
         iv_enabledbuttons        TYPE clike  OPTIONAL
         iv_mode                  TYPE clike  OPTIONAL
       RETURNING
-        VALUE(result)            TYPE REF TO z2ui5_cl_pop_image_editor.
+        VALUE(r_result)          TYPE REF TO z2ui5_cl_pop_image_editor.
 
     METHODS result
       RETURNING
@@ -46,6 +46,7 @@ CLASS z2ui5_cl_pop_image_editor DEFINITION PUBLIC.
 
     METHODS display.
 
+  PRIVATE SECTION.
 ENDCLASS.
 
 
@@ -53,18 +54,18 @@ CLASS z2ui5_cl_pop_image_editor IMPLEMENTATION.
 
   METHOD factory.
 
-    result = NEW #( ).
-    result->mv_image                 = iv_image.
-    result->mv_title                 = iv_title.
-    result->mv_cancel_text           = iv_cancel_text.
-    result->mv_save_text             = iv_save_text.
-    result->mv_customshapesrc        = iv_customshapesrc.
-    result->mv_keepcropaspectratio   = iv_keepcropaspectratio.
-    result->mv_keepresizeaspectratio = iv_keepresizeaspectratio.
-    result->mv_scalecroparea         = iv_scalecroparea.
-    result->mv_customshapesrctype    = iv_customshapesrctype.
-    result->mv_enabledbuttons        = iv_enabledbuttons.
-    result->mv_mode                  = iv_mode.
+    r_result = NEW #( ).
+    r_result->mv_image                 = iv_image.
+    r_result->mv_title                 = iv_title.
+    r_result->mv_cancel_text           = iv_cancel_text.
+    r_result->mv_save_text             = iv_save_text.
+    r_result->mv_customshapesrc        = iv_customshapesrc.
+    r_result->mv_keepcropaspectratio   = iv_keepcropaspectratio.
+    r_result->mv_keepresizeaspectratio = iv_keepresizeaspectratio.
+    r_result->mv_scalecroparea         = iv_scalecroparea.
+    r_result->mv_customshapesrctype    = iv_customshapesrctype.
+    r_result->mv_enabledbuttons        = iv_enabledbuttons.
+    r_result->mv_mode                  = iv_mode.
 
   ENDMETHOD.
 

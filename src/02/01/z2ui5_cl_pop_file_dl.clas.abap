@@ -5,7 +5,7 @@ CLASS z2ui5_cl_pop_file_dl DEFINITION PUBLIC.
 
     CLASS-METHODS factory
       IMPORTING
-        i_text                TYPE string DEFAULT `Choose the file to upload:`
+        i_text                TYPE string DEFAULT `Choose the file to download:`
         i_title               TYPE string DEFAULT `File Download`
         i_button_text_confirm TYPE string DEFAULT `OK`
         i_button_text_cancel  TYPE string DEFAULT `Cancel`

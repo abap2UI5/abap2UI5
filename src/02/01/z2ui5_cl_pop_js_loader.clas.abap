@@ -16,7 +16,7 @@ CLASS z2ui5_cl_pop_js_loader DEFINITION PUBLIC.
 
     METHODS result
       RETURNING
-        VALUE(result3) TYPE string.
+        VALUE(result) TYPE string.
 
     DATA mv_is_open_ui5 TYPE abap_bool.
     DATA ui5_gav        TYPE string.
@@ -50,7 +50,7 @@ CLASS z2ui5_cl_pop_js_loader IMPLEMENTATION.
 
   METHOD result.
 
-    result3 = user_command.
+    result = user_command.
 
   ENDMETHOD.
 

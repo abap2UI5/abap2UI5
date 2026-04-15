@@ -23,7 +23,7 @@ CLASS z2ui5_cl_pop_get_range_m DEFINITION PUBLIC.
 
   PROTECTED SECTION.
     DATA client        TYPE REF TO z2ui5_if_client.
-    DATA mv_popup_name TYPE LINE OF string_table.
+    DATA mv_popup_name TYPE string.
 
     METHODS popup_display.
 
