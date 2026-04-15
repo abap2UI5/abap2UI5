@@ -652,7 +652,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
               CONTINUE.
             ENDIF.
 
-            IF lr_attri->name_ref IS NOT INITIAL AND strlen( lr_attri->name_ref ) <= lr_attri_ref->name.
+            IF lr_attri->name_ref IS NOT INITIAL AND strlen( lr_attri->name_ref ) <= strlen( lr_attri_ref->name ).
               CONTINUE.
             ENDIF.
 

@@ -147,7 +147,7 @@ Legend
 -------------------
 
 * Popover and Message Toast Adjustments
-* Fixes for Laucnhpad Compatibility
+* Fixes for Launchpad Compatibility
 * Fixes for Data Binding with Generic Data References
 + New Properties for the XML View
 
