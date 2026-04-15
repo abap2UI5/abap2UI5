@@ -997,6 +997,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      properties: {` && |\n| &&
              `        id: { type: "string" },` && |\n| &&
              `        value: { type: "string" },` && |\n| &&
+             `        thumbnail: { type: "string" },` && |\n| &&
              `        press: { type: "string" },` && |\n| &&
              `        width: { type: "string" , defaultValue: 200 },` && |\n| &&
              `        height: { type: "string" , defaultValue: 200 },` && |\n| &&
@@ -1020,15 +1021,30 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `      const video = document.querySelector("#zvideo");` && |\n| &&
              `      const canvas = document.getElementById('zcanvas');` && |\n| &&
-             `      let resultb64 = "";` && |\n| &&
-             `      canvas.width = parseInt( this.getProperty("width") );` && |\n| &&
-             `      canvas.height = parseInt( this.getProperty("height") );` && |\n| &&
-             `      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);` && |\n| &&
-             `      resultb64 = canvas.toDataURL();` && |\n| &&
+             `      canvas.width = video.videoWidth;` && |\n| &&
+             `      canvas.height = video.videoHeight;` && |\n| &&
+             `      canvas.getContext('2d', { willReadFrequently: true }).drawImage(video, 0, 0, canvas.width, canvas.height);` && |\n| &&
+             `      const resultb64 = canvas.toDataURL('image/jpeg', 0.85);` && |\n| &&
+             `      const thumbW = 300;` && |\n| &&
+             `      const thumbH = Math.round(canvas.height * thumbW / canvas.width);` && |\n| &&
+             `      const thumbCanvas = document.createElement('canvas');` && |\n| &&
+             `      thumbCanvas.width = thumbW;` && |\n| &&
+             `      thumbCanvas.height = thumbH;` && |\n| &&
+             `      thumbCanvas.getContext('2d', { willReadFrequently: true }).drawImage(canvas, 0, 0, thumbW, thumbH);` && |\n| &&
+             `      const thumbB64 = thumbCanvas.toDataURL('image/jpeg', 0.70);` && |\n| &&
              `      this.setProperty("value", resultb64);` && |\n| &&
-             `      this.fireOnPhoto({` && |\n| &&
-             `        "photo": resultb64` && |\n| &&
-             `      });` && |\n| &&
+             `      this.setProperty("thumbnail", thumbB64);` && |\n| &&
+             `      this.fireOnPhoto({ "photo": resultb64 });` && |\n| &&
+             `      this._stopCamera();` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    _stopCamera: function () {` && |\n| &&
+             `      const video = document.querySelector("#zvideo");` && |\n| &&
+             `      if (this._stream) {` && |\n| &&
+             `        this._stream.getTracks().forEach(function(track) { track.stop(); });` && |\n| &&
+             `        this._stream = null;` && |\n| &&
+             `      }` && |\n| &&
+             `      if (video) { video.srcObject = null; }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    onPicture: function (oEvent) {` && |\n| &&
@@ -1044,7 +1060,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          content: [` && |\n| &&
              `            new HTML({` && |\n| &&
              `              id: this.getId() + 'PictureContainer',` && |\n| &&
-             `              content: '<video width="' + this.getProperty("width") + 'px" height="' + this.getProperty("height")  + 'px" autoplay="true" id="zvideo">'` && |\n| &&
+             `              content: '<video style="width:100%;height:100%;object-fit:contain;" autoplay="true" id="zvideo">'` && |\n| &&
              `            }),` && |\n| &&
              `            new Button({` && |\n| &&
              `              text: "Capture",` && |\n| &&
@@ -1060,6 +1076,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          endButton: new Button({` && |\n| &&
              `            text: "Cancel",` && |\n| &&
              `            press: function (oEvent) {` && |\n| &&
+             `              this._stopCamera();` && |\n| &&
              `              this._oScanDialog.close();` && |\n| &&
              `            }.bind(this)` && |\n| &&
              `          }),` && |\n| &&
@@ -1072,7 +1089,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          const facingMode = this.getProperty("facingMode");` && |\n| &&
              `          const deviceId = this.getProperty("deviceId");` && |\n| &&
              `` && |\n| &&
-             `          let options = { video: {} };` && |\n| &&
+             `          let options = { video: { width: { ideal: 1920 }, height: { ideal: 1080 } } };` && |\n| &&
              `          if (deviceId) {` && |\n| &&
              `            options.video.deviceId = deviceId;` && |\n| &&
              `          }` && |\n| &&
@@ -1082,8 +1099,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `          navigator.mediaDevices.getUserMedia(options)` && |\n| &&
              `            .then(function (stream) {` && |\n| &&
+             `              this._stream = stream;` && |\n| &&
              `              video.srcObject = stream;` && |\n| &&
-             `            })` && |\n| &&
+             `            }.bind(this))` && |\n| &&
              `            .catch(function (error) {` && |\n| &&
              `              (z2ui5.errors ??= []).push({ message: ``CameraPicture: getUserMedia failed``, error: error, ts: new Date().toISOString() });` && |\n| &&
              `            });` && |\n| &&
