@@ -59,7 +59,7 @@ CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
     DATA(vbox) = lo_popup->vbox( height         = `100%`
                                  justifycontent = `SpaceBetween` ).
 
-    DATA(item) = vbox->list( nodata          = `no conditions defined`
+    DATA(item) = vbox->list( nodata          = `No conditions defined`
                              items           = client->_bind( ms_result-t_filter )
                              selectionchange = client->_event( `SELCHANGE` )
                 )->custom_list_item( ).
