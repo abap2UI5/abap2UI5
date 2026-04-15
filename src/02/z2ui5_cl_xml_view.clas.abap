@@ -962,7 +962,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         selectionchanged  TYPE clike OPTIONAL
         press             TYPE clike OPTIONAL
         precedingpoint    TYPE clike OPTIONAL
-        succeddingpoint   TYPE clike OPTIONAL
+        succeedingpoint   TYPE clike OPTIONAL
         errormessage      TYPE clike OPTIONAL
         errormessagetitle TYPE clike OPTIONAL
         showerror         TYPE clike OPTIONAL
@@ -7126,7 +7126,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                    ( n = `showDividers` v = z2ui5_cl_util=>boolean_abap_2_json( showdividers ) )
                                    ( n = `showOverflowItem` v = z2ui5_cl_util=>boolean_abap_2_json( showoverflowitem ) )
                                    ( n = `visible` v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
-                                   ( n = `snapToRow ` v = z2ui5_cl_util=>boolean_abap_2_json( snaptorow ) )
+                                   ( n = `snapToRow` v = z2ui5_cl_util=>boolean_abap_2_json( snaptorow ) )
                                    ( n = `width` v = width )
                                    ( n = `id` v = id )
                                    ( n = `scroll` v = scroll ) ) ).
@@ -7491,7 +7491,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `errorMessage`      v = errormessage )
                                          ( n = `precedingPoint`    v = precedingpoint )
                                          ( n = `points`            v = points )
-                                         ( n = `succeedingPoint`   v = succeddingpoint )
+                                         ( n = `succeedingPoint`   v = succeedingpoint )
                                          ( n = `displayedPoints`   v = displayedpoints )
                                          ( n = `selectionEnabled`  v = selectionenabled ) ) ).
   ENDMETHOD.
@@ -11113,7 +11113,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `id`      v = id )
                                          ( n = `uid`     v = uid )
                                          ( n = `type`    v = type )
-                                         ( n = `values ` v = values ) ) ).
+                                         ( n = `values` v = values ) ) ).
   ENDMETHOD.
 
   METHOD viz_flattened_dataset.

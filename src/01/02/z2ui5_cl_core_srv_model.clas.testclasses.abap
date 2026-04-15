@@ -268,8 +268,8 @@ CLASS ltcl_test_search_attri DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
   PRIVATE SECTION.
-    METHODS first_test  FOR TESTING RAISING cx_static_check.
-    METHODS second_test FOR TESTING RAISING cx_static_check.
+    METHODS test_first  FOR TESTING RAISING cx_static_check.
+    METHODS test_second FOR TESTING RAISING cx_static_check.
     METHODS third_test  FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
@@ -278,7 +278,7 @@ ENDCLASS.
 CLASS z2ui5_cl_core_srv_model DEFINITION LOCAL FRIENDS ltcl_test_search_attri.
 
 CLASS ltcl_test_search_attri IMPLEMENTATION.
-  METHOD first_test.
+  METHOD test_first.
 
 *    DATA(lo_app_client) = NEW ltcl_test_app2( ).
 *    DATA lr_value TYPE REF TO data.
@@ -300,7 +300,7 @@ CLASS ltcl_test_search_attri IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD second_test.
+  METHOD test_second.
 
 *    DATA(lo_app_client) = NEW ltcl_test_app2( ).
 *    DATA lr_value TYPE REF TO data.
@@ -387,8 +387,8 @@ CLASS ltcl_test_get_attri DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
   PRIVATE SECTION.
-    METHODS first_test  FOR TESTING RAISING cx_static_check.
-    METHODS second_test FOR TESTING RAISING cx_static_check.
+    METHODS test_first  FOR TESTING RAISING cx_static_check.
+    METHODS test_second FOR TESTING RAISING cx_static_check.
     METHODS third_test  FOR TESTING RAISING cx_static_check.
     METHODS test4       FOR TESTING RAISING cx_static_check.
 
@@ -399,7 +399,7 @@ CLASS z2ui5_cl_core_srv_model DEFINITION LOCAL FRIENDS ltcl_test_get_attri.
 
 CLASS ltcl_test_get_attri IMPLEMENTATION.
 
-  METHOD first_test.
+  METHOD test_first.
 
     DATA(lo_app_client) = NEW ltcl_test_app3( ).
 
@@ -419,7 +419,7 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD second_test.
+  METHOD test_second.
 
     DATA(lo_app_client) = NEW ltcl_test_app3( ).
     CREATE DATA lo_app_client->mr_value.

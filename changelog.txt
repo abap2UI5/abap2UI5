@@ -104,7 +104,7 @@ Legend
 + Side Navigation Properties & Events
 + Color Picker Properties
 * Updates for Layout Management of Table Popups
-* Low Release Compatibility of Method to Read Fixvalues
+* Low Release Compatibility of Method to Read Fixed Values
 * Multiple Bugfixes and new Properties added
 
 2024-07-28 v1.132.0
@@ -272,5 +272,5 @@ Legend
 2024-01-03 v1.113.0
 -------------------
 
-+ new debugging tools
-! UI5 module loading
++ New Debugging Tools
+! UI5 Module Loading
