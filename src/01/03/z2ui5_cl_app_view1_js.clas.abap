@@ -535,7 +535,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                const ui5_sdk = oCurrentVersionInfo.gav.includes('com.sap.ui5') ? true : false;` && |\n| &&
              `                if (!ui5_sdk) {` && |\n| &&
              `                    if (err) {` && |\n| &&
-             `                        MessageBox.error("openui5 SDK is loaded, module: " + err._modules + " is not availabe in openui5");` && |\n| &&
+             `                        MessageBox.error("openui5 SDK is loaded, module: " + err._modules + " is not available in openui5");` && |\n| &&
              `                        return;` && |\n| &&
              `                    }` && |\n| &&
              `                }` && |\n| &&

@@ -51,11 +51,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `                    }` && |\n| &&
              `                };` && |\n| &&
              `` && |\n| &&
-             `              //  try{` && |\n| &&
-             `              //  let oState = JSON.parse(JSON.stringify({ view: z2ui5.oView.mProperties.viewContent, model: z2ui5.oView.getModel().getData(), response: z2ui5.oResponse }));` && |\n| &&
-             `              //  history.replaceState(oState, "", window.location.href );` && |\n| &&
-             `              //  }catch(e){}` && |\n| &&
-             `` && |\n| &&
              `                z2ui5.oBody ??= {};` && |\n| &&
              `                z2ui5.oBody.S_FRONT = {` && |\n| &&
              `                    ID: z2ui5?.oBody?.ID,` && |\n| &&
@@ -202,15 +197,15 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        // Create header and iframe for safe HTML rendering using DOM APIs` && |\n| &&
              `        errorContainer.textContent = '';` && |\n| &&
              `` && |\n| &&
-             `        var headerDiv = document.createElement('div');` && |\n| &&
+             `        const headerDiv = document.createElement('div');` && |\n| &&
              `        headerDiv.style.cssText = 'padding: 15px; background: #d32f2f; color: white; display: flex; justify-content: space-between; align-items: center;';` && |\n| &&
-             `        var headerText = document.createElement('h3');` && |\n| &&
+             `        const headerText = document.createElement('h3');` && |\n| &&
              `        headerText.style.margin = '0';` && |\n| &&
              `        headerText.textContent = 'Server Error - Please Restart The App';` && |\n| &&
              `        headerDiv.appendChild(headerText);` && |\n| &&
              `        errorContainer.appendChild(headerDiv);` && |\n| &&
              `` && |\n| &&
-             `        var iframe = document.createElement('iframe');` && |\n| &&
+             `        const iframe = document.createElement('iframe');` && |\n| &&
              `        iframe.id = 'errorIframe';` && |\n| &&
              `        iframe.style.cssText = 'width: 100%; height: 100%; border: none; flex: 1;';` && |\n| &&
              `        iframe.setAttribute('sandbox', 'allow-same-origin');` && |\n| &&
