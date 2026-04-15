@@ -99,10 +99,12 @@ CLASS z2ui5_cl_pop_image_editor IMPLEMENTATION.
   METHOD display.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup(
-                                  )->dialog( title         = mv_title
-                                             icon          = `sap-icon://edit`
-                                             contentheight = `80%`
-                                             contentwidth  = `80%` ).
+                                  )->dialog( title               = mv_title
+                                             icon                = `sap-icon://edit`
+                                             contentheight       = `80%`
+                                             contentwidth        = `80%`
+                                             verticalscrolling   = `false`
+                                             horizontalscrolling = `false` ).
 
     popup->image_editor_container( enabledbuttons = mv_enabledbuttons
                                    mode           = mv_mode

@@ -31,6 +31,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION PUBLIC.
       IMPORTING
         id            TYPE clike OPTIONAL
         value         TYPE clike OPTIONAL
+        thumbnail     TYPE clike OPTIONAL
         height        TYPE clike OPTIONAL
         width         TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
@@ -324,15 +325,16 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     result = mo_view.
     mo_view->_generic( name   = `CameraPicture`
                        ns     = `z2ui5`
-                       t_prop = VALUE #( ( n = `id`       v = id )
-                                         ( n = `value`    v = value )
-                                         ( n = `press`    v = press )
-                                         ( n = `height`    v = height )
-                                         ( n = `width`    v = width )
+                       t_prop = VALUE #( ( n = `id`         v = id )
+                                         ( n = `value`      v = value )
+                                         ( n = `thumbnail`  v = thumbnail )
+                                         ( n = `press`      v = press )
+                                         ( n = `height`     v = height )
+                                         ( n = `width`      v = width )
                                          ( n = `OnPhoto`    v = onphoto )
-                                         ( n = `autoplay` v = z2ui5_cl_util=>boolean_abap_2_json( autoplay ) )
+                                         ( n = `autoplay`   v = z2ui5_cl_util=>boolean_abap_2_json( autoplay ) )
                                          ( n = `facingMode` v = facingmode )
-                                         ( n = `deviceId` v = deviceid )
+                                         ( n = `deviceId`   v = deviceid )
          ) ).
 
   ENDMETHOD.

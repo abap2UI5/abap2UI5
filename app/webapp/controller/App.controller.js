@@ -966,6 +966,7 @@ sap.ui.define("z2ui5/CameraPicture", [
       properties: {
         id: { type: "string" },
         value: { type: "string" },
+        thumbnail: { type: "string" },
         press: { type: "string" },
         width: { type: "string" , defaultValue: 200 },
         height: { type: "string" , defaultValue: 200 },
@@ -989,15 +990,30 @@ sap.ui.define("z2ui5/CameraPicture", [
 
       const video = document.querySelector("#zvideo");
       const canvas = document.getElementById('zcanvas');
-      let resultb64 = "";
-      canvas.width = parseInt( this.getProperty("width") );
-      canvas.height = parseInt( this.getProperty("height") );
-      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-      resultb64 = canvas.toDataURL();
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d', { willReadFrequently: true }).drawImage(video, 0, 0, canvas.width, canvas.height);
+      const resultb64 = canvas.toDataURL('image/jpeg', 0.85);
+      const thumbW = 300;
+      const thumbH = Math.round(canvas.height * thumbW / canvas.width);
+      const thumbCanvas = document.createElement('canvas');
+      thumbCanvas.width = thumbW;
+      thumbCanvas.height = thumbH;
+      thumbCanvas.getContext('2d', { willReadFrequently: true }).drawImage(canvas, 0, 0, thumbW, thumbH);
+      const thumbB64 = thumbCanvas.toDataURL('image/jpeg', 0.70);
       this.setProperty("value", resultb64);
-      this.fireOnPhoto({
-        "photo": resultb64
-      });
+      this.setProperty("thumbnail", thumbB64);
+      this.fireOnPhoto({ "photo": resultb64 });
+      this._stopCamera();
+    },
+
+    _stopCamera: function () {
+      const video = document.querySelector("#zvideo");
+      if (this._stream) {
+        this._stream.getTracks().forEach(function(track) { track.stop(); });
+        this._stream = null;
+      }
+      if (video) { video.srcObject = null; }
     },
 
     onPicture: function (oEvent) {
@@ -1013,7 +1029,7 @@ sap.ui.define("z2ui5/CameraPicture", [
           content: [
             new HTML({
               id: this.getId() + 'PictureContainer',
-              content: '<video width="' + this.getProperty("width") + 'px" height="' + this.getProperty("height")  + 'px" autoplay="true" id="zvideo">'
+              content: '<video style="width:100%;height:100%;object-fit:contain;" autoplay="true" id="zvideo">'
             }),
             new Button({
               text: "Capture",
@@ -1029,6 +1045,7 @@ sap.ui.define("z2ui5/CameraPicture", [
           endButton: new Button({
             text: "Cancel",
             press: function (oEvent) {
+              this._stopCamera();
               this._oScanDialog.close();
             }.bind(this)
           }),
@@ -1041,7 +1058,7 @@ sap.ui.define("z2ui5/CameraPicture", [
           const facingMode = this.getProperty("facingMode");
           const deviceId = this.getProperty("deviceId");
 
-          let options = { video: {} };
+          let options = { video: { width: { ideal: 1920 }, height: { ideal: 1080 } } };
           if (deviceId) {
             options.video.deviceId = deviceId;
           }
@@ -1051,8 +1068,9 @@ sap.ui.define("z2ui5/CameraPicture", [
 
           navigator.mediaDevices.getUserMedia(options)
             .then(function (stream) {
+              this._stream = stream;
               video.srcObject = stream;
-            })
+            }.bind(this))
             .catch(function (error) {
               (z2ui5.errors ??= []).push({ message: `CameraPicture: getUserMedia failed`, error: error, ts: new Date().toISOString() });
             });
