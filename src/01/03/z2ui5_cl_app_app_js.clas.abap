@@ -1222,6 +1222,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            }` && |\n| &&
              `` && |\n| &&
              `            let display;` && |\n| &&
+             |\n|.
+    result = result &&
              `            if (operator === "BT") {` && |\n| &&
              `              const vValue2 = oFilter.oValue2 !== undefined ? oFilter.oValue2 : "";` && |\n| &&
              `              display = (vValue != null ? vValue : "") + opSymbols["BT"] + (vValue2 != null ? vValue2 : "");` && |\n| &&
@@ -1240,8 +1242,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          }` && |\n| &&
              `        });` && |\n| &&
              `      });` && |\n| &&
-             |\n|.
-    result = result &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    setFilter() {` && |\n| &&
