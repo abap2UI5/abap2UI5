@@ -9,6 +9,7 @@ CLASS z2ui5_cl_pop_pdf DEFINITION PUBLIC.
         i_button_text_confirm TYPE string DEFAULT `OK`
         i_button_text_cancel  TYPE string DEFAULT `Cancel`
         i_pdf                 TYPE string
+        i_label               TYPE string OPTIONAL
       RETURNING
         VALUE(r_result)       TYPE REF TO z2ui5_cl_pop_pdf.
 
@@ -45,6 +46,7 @@ CLASS z2ui5_cl_pop_pdf IMPLEMENTATION.
 
     r_result = NEW #( ).
     r_result->title               = i_title.
+    r_result->question_text       = i_label.
     r_result->button_text_confirm = i_button_text_confirm.
     r_result->button_text_cancel  = i_button_text_cancel.
     r_result->mv_pdf              = i_pdf.

@@ -64,8 +64,8 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
     r_result = NEW #( ).
     r_result->title = COND #(
       WHEN i_title IS NOT INITIAL THEN i_title
-      WHEN i_multiselect = abap_true THEN `Multi select`
-      ELSE `Single select` ).
+      WHEN i_multiselect = abap_true THEN `Multi Select`
+      ELSE `Single Select` ).
 
     r_result->sort_field        = i_sort_field.
     r_result->descending        = i_descending.

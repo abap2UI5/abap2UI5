@@ -23,7 +23,7 @@ CLASS z2ui5_cl_pop_get_range_m DEFINITION PUBLIC.
 
   PROTECTED SECTION.
     DATA client        TYPE REF TO z2ui5_if_client.
-    DATA mv_popup_name TYPE LINE OF string_table.
+    DATA mv_popup_name TYPE string.
 
     METHODS popup_display.
 
@@ -54,12 +54,12 @@ CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
     lo_popup = lo_popup->dialog( afterclose    = client->_event( `BUTTON_CANCEL` )
                                  contentheight = `50%`
                                  contentwidth  = `50%`
-                                 title         = `Define Filter Conditons` ).
+                                 title         = `Define Filter Conditions` ).
 
     DATA(vbox) = lo_popup->vbox( height         = `100%`
                                  justifycontent = `SpaceBetween` ).
 
-    DATA(item) = vbox->list( nodata          = `no conditions defined`
+    DATA(item) = vbox->list( nodata          = `No conditions defined`
                              items           = client->_bind( ms_result-t_filter )
                              selectionchange = client->_event( `SELCHANGE` )
                 )->custom_list_item( ).

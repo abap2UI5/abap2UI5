@@ -31,11 +31,6 @@ sap.ui.define(["sap/ui/core/BusyIndicator", "sap/m/MessageBox"
                     }
                 };
 
-              //  try{
-              //  let oState = JSON.parse(JSON.stringify({ view: z2ui5.oView.mProperties.viewContent, model: z2ui5.oView.getModel().getData(), response: z2ui5.oResponse }));
-              //  history.replaceState(oState, "", window.location.href );
-              //  }catch(e){}
-
                 z2ui5.oBody ??= {};
                 z2ui5.oBody.S_FRONT = {
                     ID: z2ui5?.oBody?.ID,
@@ -182,15 +177,15 @@ sap.ui.define(["sap/ui/core/BusyIndicator", "sap/m/MessageBox"
         // Create header and iframe for safe HTML rendering using DOM APIs
         errorContainer.textContent = '';
 
-        var headerDiv = document.createElement('div');
+        const headerDiv = document.createElement('div');
         headerDiv.style.cssText = 'padding: 15px; background: #d32f2f; color: white; display: flex; justify-content: space-between; align-items: center;';
-        var headerText = document.createElement('h3');
+        const headerText = document.createElement('h3');
         headerText.style.margin = '0';
         headerText.textContent = 'Server Error - Please Restart The App';
         headerDiv.appendChild(headerText);
         errorContainer.appendChild(headerDiv);
 
-        var iframe = document.createElement('iframe');
+        const iframe = document.createElement('iframe');
         iframe.id = 'errorIframe';
         iframe.style.cssText = 'width: 100%; height: 100%; border: none; flex: 1;';
         iframe.setAttribute('sandbox', 'allow-same-origin');

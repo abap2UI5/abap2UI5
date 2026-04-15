@@ -44,7 +44,7 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
 
     ASSIGN mr_tab->* TO <tab_out>.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( afterclose = client->_event( `BUTTON_CONFIRM` )
+    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( afterclose = client->_event( `CANCEL` )
                                                                stretch    = abap_true
                                                                title      = title
           )->content( ).

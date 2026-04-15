@@ -730,7 +730,7 @@ sap.ui.define("z2ui5/FileUploader", ["sap/ui/core/Control", "sap/m/Button", "sap
           const value = oEvent.getSource().getProperty("value");
           this.setProperty("path", value);
           if (value) {
-            this.oUploadButton.setEnabled();
+            this.oUploadButton.setEnabled(true);
           } else {
             this.oUploadButton.setEnabled(false);
           }
@@ -820,13 +820,6 @@ sap.ui.define("z2ui5/MultiInputExt", ["sap/ui/core/Control", "sap/m/Token", "sap
     },
     setControl() {
       let table = z2ui5.oView.byId(this.getProperty("MultiInputId"));
-      if (!table) {
-        try {
-          // table = Core.byId(Element.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('-inner', ''));
-        } catch (e) {
-          return;
-        }
-      }
       if (!table) {
         return;
       }

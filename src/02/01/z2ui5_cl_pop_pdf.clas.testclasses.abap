@@ -5,6 +5,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_factory          FOR TESTING RAISING cx_static_check.
     METHODS test_factory_defaults FOR TESTING RAISING cx_static_check.
     METHODS test_result_initial   FOR TESTING RAISING cx_static_check.
+    METHODS test_factory_label    FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 CLASS ltcl_test IMPLEMENTATION.
@@ -34,6 +35,14 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = ls_result-check_confirmed ).
     cl_abap_unit_assert=>assert_initial( ls_result-text ).
+  ENDMETHOD.
+
+  METHOD test_factory_label.
+    DATA(lo_pop) = z2ui5_cl_pop_pdf=>factory(
+      i_pdf   = `test_pdf`
+      i_label = `Page 1 of 3` ).
+
+    cl_abap_unit_assert=>assert_bound( lo_pop ).
   ENDMETHOD.
 
 ENDCLASS.

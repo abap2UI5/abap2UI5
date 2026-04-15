@@ -752,7 +752,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          const value = oEvent.getSource().getProperty("value");` && |\n| &&
              `          this.setProperty("path", value);` && |\n| &&
              `          if (value) {` && |\n| &&
-             `            this.oUploadButton.setEnabled();` && |\n| &&
+             `            this.oUploadButton.setEnabled(true);` && |\n| &&
              `          } else {` && |\n| &&
              `            this.oUploadButton.setEnabled(false);` && |\n| &&
              `          }` && |\n| &&
@@ -844,13 +844,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n| &&
              `    setControl() {` && |\n| &&
              `      let table = z2ui5.oView.byId(this.getProperty("MultiInputId"));` && |\n| &&
-             `      if (!table) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          // table = Core.byId(Element.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('-inner', ''));` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
              `      if (!table) {` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
@@ -1222,8 +1215,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            }` && |\n| &&
              `` && |\n| &&
              `            let display;` && |\n| &&
-             |\n|.
-    result = result &&
              `            if (operator === "BT") {` && |\n| &&
              `              const vValue2 = oFilter.oValue2 !== undefined ? oFilter.oValue2 : "";` && |\n| &&
              `              display = (vValue != null ? vValue : "") + opSymbols["BT"] + (vValue2 != null ? vValue2 : "");` && |\n| &&
@@ -1231,6 +1222,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `              display = "*" + (vValue != null ? vValue : "") + "*";` && |\n| &&
              `            } else if (operator === "StartsWith") {` && |\n| &&
              `              display = "^" + (vValue != null ? vValue : "");` && |\n| &&
+             |\n|.
+    result = result &&
              `            } else if (operator === "EndsWith") {` && |\n| &&
              `              display = (vValue != null ? vValue : "") + "$";` && |\n| &&
              `            } else {` && |\n| &&

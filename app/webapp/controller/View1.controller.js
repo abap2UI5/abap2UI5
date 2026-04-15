@@ -513,7 +513,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/
                 const ui5_sdk = oCurrentVersionInfo.gav.includes('com.sap.ui5') ? true : false;
                 if (!ui5_sdk) {
                     if (err) {
-                        MessageBox.error("openui5 SDK is loaded, module: " + err._modules + " is not availabe in openui5");
+                        MessageBox.error("openui5 SDK is loaded, module: " + err._modules + " is not available in openui5");
                         return;
                     }
                 }

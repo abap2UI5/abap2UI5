@@ -94,7 +94,7 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
        )->text( `{MESSAGE}` ).
 
     popup->buttons(
-       )->button( text  = `continue`
+       )->button( text  = `Continue`
                   press = client->_event( `BUTTON_CONTINUE` )
                   type  = `Emphasized` ).
 
