@@ -35,9 +35,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      onInit() {` && |\n| &&
              `        const oOwnerComponent = this.getOwnerComponent();` && |\n| &&
              `        z2ui5.oOwnerComponent = oOwnerComponent;` && |\n| &&
-             `        z2ui5.oConfig.pathname = z2ui5.checkLocal` && |\n| &&
-             `          ? window.location.href` && |\n| &&
-             `          : oOwnerComponent.getManifest()['sap.app'].dataSources.http.uri;` && |\n| &&
+             `        const uri = oOwnerComponent.getManifest()?.['sap.app']?.dataSources?.http?.uri;` && |\n| &&
+             `        if (!z2ui5.checkLocal && !uri) throw new Error('manifest.json: sap.app.dataSources.http.uri is missing');` && |\n| &&
+             `        z2ui5.oConfig.pathname = z2ui5.checkLocal ? window.location.href : uri;` && |\n| &&
              `` && |\n| &&
              `        Object.assign(z2ui5, {` && |\n| &&
              `          oController: new Controller(),` && |\n| &&
