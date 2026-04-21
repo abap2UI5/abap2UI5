@@ -15,9 +15,9 @@ sap.ui.define(
       onInit() {
         const oOwnerComponent = this.getOwnerComponent();
         z2ui5.oOwnerComponent = oOwnerComponent;
-        z2ui5.oConfig.pathname = z2ui5.checkLocal
-          ? window.location.href
-          : oOwnerComponent.getManifest()['sap.app'].dataSources.http.uri;
+        const uri = oOwnerComponent.getManifest()?.['sap.app']?.dataSources?.http?.uri;
+        if (!z2ui5.checkLocal && !uri) throw new Error('manifest.json: sap.app.dataSources.http.uri is missing');
+        z2ui5.oConfig.pathname = z2ui5.checkLocal ? window.location.href : uri;
 
         Object.assign(z2ui5, {
           oController: new Controller(),
