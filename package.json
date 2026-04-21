@@ -23,6 +23,9 @@
     "url": "git+https://github.com/abap2UI5/abap2UI5.git"
   },
   "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
   "bugs": {
     "url": "https://github.com/abap2UI5/abap2UI5"
   },
