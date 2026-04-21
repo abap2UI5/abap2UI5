@@ -1,93 +1,99 @@
-sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models", "z2ui5/cc/Server", "sap/ui/VersionInfo", "z2ui5/cc/DebugTool"
-], function (UIComponent, Models, Server, VersionInfo, DebugTool) {
-    "use strict";
-    return UIComponent.extend("z2ui5.Component", {
-        metadata: {
-            manifest: "json",
-            interfaces: [
-                "sap.ui.core.IAsyncContentCreation"
-            ]
-        },
-        init() {
+sap.ui.define(
+  ['sap/ui/core/UIComponent', 'z2ui5/model/models', 'z2ui5/cc/Server', 'sap/ui/VersionInfo', 'z2ui5/cc/DebugTool'],
+  (UIComponent, Models, Server, VersionInfo, DebugTool) => {
+    'use strict';
+    return UIComponent.extend('z2ui5.Component', {
+      metadata: {
+        manifest: 'json',
+        interfaces: ['sap.ui.core.IAsyncContentCreation'],
+      },
+      init() {
+        if (typeof z2ui5 !== 'undefined') z2ui5.oConfig = {};
 
-            if (typeof z2ui5 !== 'undefined') {
-                z2ui5.oConfig = {};
-            }
+        UIComponent.prototype.init.call(this);
 
-            UIComponent.prototype.init.apply(this, arguments);
+        if (typeof z2ui5 === 'undefined') z2ui5 = {};
+        if (z2ui5.checkLocal === false) z2ui5 = {};
+        if (typeof z2ui5.oConfig === 'undefined') z2ui5.oConfig = {};
+        z2ui5.oDeviceModel = Models.createDeviceModel();
+        this.setModel(z2ui5.oDeviceModel, 'device');
 
-            if (typeof z2ui5 === 'undefined') {
-                z2ui5 = {};
-            }
-            if (z2ui5?.checkLocal === false) {
-                z2ui5 = {};
-            }
+        z2ui5.oConfig.ComponentData = this.getComponentData();
 
-            if (typeof z2ui5.oConfig === 'undefined') {
-                z2ui5.oConfig = {};
-            }
-            z2ui5.oDeviceModel = Models.createDeviceModel();
-            this.setModel(z2ui5.oDeviceModel, "device");
+        this._initAsync();
 
-            z2ui5.oConfig.ComponentData = this.getComponentData();
+        this._boundUnload = this._onUnload.bind(this);
+        this._unloadEvent = /iPad|iPhone/.test(navigator.userAgent) ? 'pagehide' : 'beforeunload';
+        window.addEventListener(this._unloadEvent, this._boundUnload);
 
-            (async () => {
-            try {
-                if (sap.ui.require("sap/ushell/Container")) {
-                    z2ui5.oLaunchpadService = await this.getService("ShellUIService");
-                }
-            } catch (e) { (z2ui5.errors ??= []).push({ message: `Component: LaunchpadService init failed`, error: e, ts: new Date().toISOString() }); }
+        this._boundKeydown = (zEvent) => {
+          if (zEvent.ctrlKey && zEvent.key === 'F12') {
+            z2ui5.debugTool ??= new DebugTool();
+            z2ui5.debugTool.toggle();
+          }
+        };
+        document.addEventListener('keydown', this._boundKeydown);
 
-            let oVersionInfo = await VersionInfo.load();
-            z2ui5.oConfig.UI5VersionInfo = {
-                version: oVersionInfo.version,
-                buildTimestamp: oVersionInfo.buildTimestamp,
-                gav: oVersionInfo.gav,
-            }
-            })();
+        this._boundPopstate = (event) => {
+          delete event?.state?.response?.PARAMS?.SET_PUSH_STATE;
+          delete event?.state?.response?.PARAMS?.SET_APP_STATE_ACTIVE;
+          if (event?.state?.view) {
+            z2ui5.oController?.ViewDestroy();
+            z2ui5.oResponse = event.state.response;
+            z2ui5.oController?.displayView(event.state.view, event.state.model)?.catch((e) =>
+              (z2ui5.errors ??= []).push({
+                message: `popstate: displayView failed`,
+                error: e,
+                ts: new Date().toISOString(),
+              }),
+            );
+          }
+        };
+        window.addEventListener('popstate', this._boundPopstate);
 
-            this._boundUnload = this._onUnload.bind(this);
-            this._unloadEvent = /iPad|iPhone/.test(navigator.platform) ? "pagehide" : "beforeunload";
-            window.addEventListener(this._unloadEvent, this._boundUnload);
+        z2ui5.oRouter = this.getRouter();
+        z2ui5.oRouter.initialize();
+        z2ui5.oRouter.stop();
+      },
 
-            this._boundKeydown = function (zEvent) {
-                if (zEvent?.ctrlKey && zEvent?.key === "F12") {
-                    if (!z2ui5.debugTool) {
-                        z2ui5.debugTool = new DebugTool();
-                    }
-                    z2ui5.debugTool.toggle();
-                }
-            };
-            document.addEventListener("keydown", this._boundKeydown);
+      async _initAsync() {
+        try {
+          if (sap.ui.require('sap/ushell/Container')) {
+            const service = await this.getService('ShellUIService');
+            if (!this.bIsDestroyed) z2ui5.oLaunchpadService = service;
+          }
+        } catch (e) {
+          (z2ui5.errors ??= []).push({
+            message: `Component: LaunchpadService init failed`,
+            error: e,
+            ts: new Date().toISOString(),
+          });
+        }
 
-            this._boundPopstate = (event) => {
-                delete event?.state?.response?.PARAMS?.SET_PUSH_STATE;
-                delete event?.state?.response?.PARAMS?.SET_APP_STATE_ACTIVE;
-                if (event?.state?.view) {
-                    z2ui5.oController.ViewDestroy();
-                    z2ui5.oResponse = event.state.response;
-                    z2ui5.oController.displayView(event.state.view, event.state.model);
-                }
-            };
-            window.addEventListener("popstate", this._boundPopstate);
+        try {
+          const { version, buildTimestamp, gav } = await VersionInfo.load();
+          if (!this.bIsDestroyed) z2ui5.oConfig.UI5VersionInfo = { version, buildTimestamp, gav };
+        } catch (e) {
+          (z2ui5.errors ??= []).push({
+            message: `Component: VersionInfo load failed`,
+            error: e,
+            ts: new Date().toISOString(),
+          });
+        }
+      },
 
-            z2ui5.oRouter = this.getRouter();
-            z2ui5.oRouter.initialize();
-            z2ui5.oRouter.stop();
+      _onUnload() {
+        window.removeEventListener(this._unloadEvent, this._boundUnload);
+        this.destroy();
+      },
 
-        },
-
-        _onUnload: function () {
-            window.removeEventListener(this._unloadEvent, this._boundUnload);
-            this.destroy();
-        },
-
-        exit: function () {
-            document.removeEventListener("keydown", this._boundKeydown);
-            window.removeEventListener("popstate", this._boundPopstate);
-            Server.endSession();
-            if (UIComponent.prototype.exit)
-                UIComponent.prototype.exit.apply(this, arguments);
-        },
+      exit() {
+        window.removeEventListener(this._unloadEvent, this._boundUnload);
+        document.removeEventListener('keydown', this._boundKeydown);
+        window.removeEventListener('popstate', this._boundPopstate);
+        Server.endSession();
+        UIComponent.prototype.exit?.call(this);
+      },
     });
-});
+  },
+);

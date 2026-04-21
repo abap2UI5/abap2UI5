@@ -13,7 +13,10 @@
     "rename": "npm ci && abaplint .github/abaplint/rename_test.jsonc --rename",
     "express": "node node/srv/express.mjs",
     "unit": "echo RUNNING && node node/output/index.mjs",
-    "test": "npm run unit"
+    "test": "npm run unit",
+    "format": "prettier --write 'app/webapp/**/*.js'",
+    "format:check": "prettier --check 'app/webapp/**/*.js'",
+    "lint": "eslint 'app/webapp/**/*.js'"
   },
   "repository": {
     "type": "git",
@@ -29,8 +32,12 @@
     "@abaplint/database-sqlite": "^2.11.78",
     "@abaplint/runtime": "^2.13.9",
     "@abaplint/transpiler-cli": "^2.13.9",
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.59.1",
     "@types/node": "^25.5.2",
-    "express": "^5.2.1"
+    "eslint": "^10.0.0",
+    "express": "^5.2.1",
+    "globals": "^17.5.0",
+    "prettier": "^3.8.1"
   }
 }

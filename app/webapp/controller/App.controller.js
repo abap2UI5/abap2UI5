@@ -1,1331 +1,1368 @@
-sap.ui.define(["sap/ui/core/mvc/Controller",
-  "z2ui5/controller/View1.controller",
-  "z2ui5/cc/Server",
-  "sap/ui/core/routing/HashChanger"
-], function (BaseController, Controller, Server, HashChanger) {
-  "use strict";
-  return BaseController.extend("z2ui5.controller.App", {
+function _logError(msg, err) {
+  (z2ui5.errors ??= []).push({ message: msg, ...(err !== undefined && { error: err }), ts: new Date().toISOString() });
+}
 
-    onInit() {
+sap.ui.define(
+  [
+    'sap/ui/core/mvc/Controller',
+    'z2ui5/controller/View1.controller',
+    'z2ui5/cc/Server',
+    'sap/ui/core/routing/HashChanger',
+  ],
+  (BaseController, Controller, Server, HashChanger) => {
+    'use strict';
+    return BaseController.extend('z2ui5.controller.App', {
+      onInit() {
+        const oOwnerComponent = this.getOwnerComponent();
+        z2ui5.oOwnerComponent = oOwnerComponent;
+        z2ui5.oConfig.pathname = z2ui5.checkLocal
+          ? window.location.href
+          : oOwnerComponent.getManifest()['sap.app'].dataSources.http.uri;
 
-      z2ui5.oOwnerComponent = this.getOwnerComponent();
-      z2ui5.oConfig.pathname = z2ui5.oOwnerComponent.getManifest()["sap.app"].dataSources.http.uri;
-      if (z2ui5?.checkLocal === true) {
-        z2ui5.oConfig.pathname = window.location.href;
-      };
+        Object.assign(z2ui5, {
+          oController: new Controller(),
+          oApp: this.getView().byId('app'),
+          oControllerNest: new Controller(),
+          oControllerNest2: new Controller(),
+          oControllerPopup: new Controller(),
+          oControllerPopover: new Controller(),
+          onBeforeRoundtrip: [],
+          onAfterRendering: [],
+          onBeforeEventFrontend: [],
+          onAfterRoundtrip: [],
+          errors: [],
+          checkNestAfter: false,
+          checkNestAfter2: false,
+        });
 
-      z2ui5.oController = new Controller();
-      z2ui5.oApp = this.getView().byId("app");
-
-      z2ui5.oControllerNest = new Controller();
-      z2ui5.oControllerNest2 = new Controller();
-      z2ui5.oControllerPopup = new Controller();
-      z2ui5.oControllerPopover = new Controller();
-
-      z2ui5.onBeforeRoundtrip = [];
-      z2ui5.onAfterRendering = [];
-      z2ui5.onBeforeEventFrontend = [];
-      z2ui5.onAfterRoundtrip = [];
-      z2ui5.errors = [];
-
-      z2ui5.checkNestAfter = false;
-
-    //  if (sap.ui.core.routing.HashChanger.getInstance().getHash().includes("z2ui5-xapp-state")){
-       if (HashChanger.getInstance().getHash()){
+        if (HashChanger.getInstance().getHash()) {
           z2ui5.checkInit = true;
           Server.Roundtrip();
-      }
+        }
+      },
+    });
+  },
+);
 
-    }
-  });
-});
+sap.ui.define('z2ui5/Timer', ['sap/ui/core/Control'], (Control) => {
+  'use strict';
 
-
-sap.ui.define("z2ui5/Timer", ["sap/ui/core/Control"], (Control) => {
-  "use strict";
-
-  return Control.extend("z2ui5.Timer", {
+  return Control.extend('z2ui5.Timer', {
     metadata: {
       properties: {
         delayMS: {
-          type: "int",
-          defaultValue: 0
+          type: 'int',
+          defaultValue: 0,
         },
         checkActive: {
-          type: "boolean",
-          defaultValue: true
+          type: 'boolean',
+          defaultValue: true,
         },
         checkRepeat: {
-          type: "boolean",
-          defaultValue: false
+          type: 'boolean',
+          defaultValue: false,
         },
       },
       events: {
-        "finished": {
+        finished: {
           allowPreventDefault: true,
           parameters: {},
-        }
-      }
+        },
+      },
     },
     onAfterRendering() {
       if (!this._pendingTimer) return;
       this._pendingTimer = false;
-      this.delayedCall(this);
+      this.delayedCall();
     },
-    delayedCall(oControl) {
-
-      if (oControl.getProperty("checkActive") === false) {
-        return;
-      }
-      setTimeout((oControl) => {
-        oControl.setProperty("checkActive", false, true);
-        oControl.fireFinished();
-        if (oControl.getProperty("checkRepeat")) {
-          oControl.delayedCall(oControl);
-        }
-      }
-        , parseInt(oControl.getProperty("delayMS")), oControl);
+    exit() {
+      clearTimeout(this._timerId);
+    },
+    delayedCall() {
+      if (!this.getProperty('checkActive')) return;
+      clearTimeout(this._timerId);
+      this._timerId = setTimeout(() => {
+        if (this.bIsDestroyed) return;
+        if (!this.getProperty('checkRepeat')) this.setProperty('checkActive', false, true);
+        this.fireFinished();
+        if (this.getProperty('checkRepeat') && !this.bIsDestroyed) this.delayedCall();
+      }, this.getProperty('delayMS'));
     },
     renderer(oRm, oControl) {
-      oRm.openStart("span", oControl);
-      oRm.addStyle("display", "none");
+      oRm.openStart('span', oControl);
+      oRm.addStyle('display', 'none');
       oRm.openEnd();
-      oRm.close("span");
-      oControl._pendingTimer = oControl.getProperty("checkActive");
-    }
+      oRm.close('span');
+      oControl._pendingTimer = oControl.getProperty('checkActive');
+    },
   });
-}
-);
+});
 
-sap.ui.define("z2ui5/Focus", ["sap/ui/core/Control",], (Control) => {
-  "use strict";
-  return Control.extend("z2ui5.Focus", {
+sap.ui.define('z2ui5/Focus', ['sap/ui/core/Control'], (Control) => {
+  'use strict';
+  return Control.extend('z2ui5.Focus', {
     metadata: {
       properties: {
         setUpdate: {
-          type: "boolean",
-          defaultValue: true
+          type: 'boolean',
+          defaultValue: true,
         },
         focusId: {
-          type: "string"
+          type: 'string',
         },
         selectionStart: {
-          type: "string",
-          defaultValue: "0"
+          type: 'string',
+          defaultValue: '0',
         },
         selectionEnd: {
-          type: "string",
-          defaultValue: "0"
+          type: 'string',
+          defaultValue: '0',
         },
-      }
+      },
     },
-    init() { },
     setFocusId(val) {
       try {
-        this.setProperty("focusId", val);
-        const oElement = z2ui5.oView.byId(val);
-        const oFocus = oElement.getFocusInfo();
-        oElement.applyFocusInfo(oFocus);
-      } catch (e) { (z2ui5.errors ??= []).push({ message: `Focus.setFocusId failed`, error: e, ts: new Date().toISOString() }); }
+        this.setProperty('focusId', val);
+        const oElement = z2ui5.oView?.byId(val);
+        if (oElement) oElement.applyFocusInfo(oElement.getFocusInfo());
+      } catch (e) {
+        _logError(`Focus.setFocusId failed`, e);
+      }
     },
     onAfterRendering() {
       if (!this._pendingFocus) return;
       this._pendingFocus = false;
-      const oElement = z2ui5.oView.byId(this.getProperty("focusId"));
+      const oElement = z2ui5.oView?.byId(this.getProperty('focusId'));
       if (!oElement) return;
-      const oFocus = oElement.getFocusInfo();
-      oFocus.selectionStart = parseInt(this.getProperty("selectionStart"));
-      oFocus.selectionEnd = parseInt(this.getProperty("selectionEnd"));
-      oElement.applyFocusInfo(oFocus);
+      try {
+        oElement.applyFocusInfo(
+          Object.assign(oElement.getFocusInfo(), {
+            selectionStart: +this.getProperty('selectionStart'),
+            selectionEnd: +this.getProperty('selectionEnd'),
+          }),
+        );
+      } catch (e) {
+        _logError(`Focus.onAfterRendering: applyFocusInfo failed`, e);
+      }
     },
     renderer(oRm, oControl) {
-      oRm.openStart("span", oControl);
-      oRm.addStyle("display", "none");
+      oRm.openStart('span', oControl);
+      oRm.addStyle('display', 'none');
       oRm.openEnd();
-      oRm.close("span");
-      if (!oControl.getProperty("setUpdate")) return;
-      oControl.setProperty("setUpdate", false);
+      oRm.close('span');
+      if (!oControl.getProperty('setUpdate')) return;
+      oControl.setProperty('setUpdate', false, true);
       oControl._pendingFocus = true;
-    }
+    },
   });
-}
-);
+});
 
-sap.ui.define("z2ui5/Title", ["sap/ui/core/Control"], (Control) => {
-  "use strict";
-  return Control.extend("z2ui5.Title", {
+sap.ui.define('z2ui5/Title', ['sap/ui/core/Control'], (Control) => {
+  'use strict';
+  return Control.extend('z2ui5.Title', {
     metadata: {
       properties: {
         title: {
-          type: "string"
+          type: 'string',
         },
-      }
+      },
     },
     setTitle(val) {
-      this.setProperty("title", val);
-      document.title = val;
+      this.setProperty('title', val);
+      document.title = String(val ?? '');
     },
-    renderer(oRm, oControl) { }
+    renderer() {},
   });
-}
-);
-sap.ui.define("z2ui5/LPTitle", ["sap/ui/core/Control"], (Control) => {
-  "use strict";
-  return Control.extend("z2ui5.LPTitle", {
+});
+
+sap.ui.define('z2ui5/LPTitle', ['sap/ui/core/Control'], (Control) => {
+  'use strict';
+  return Control.extend('z2ui5.LPTitle', {
     metadata: {
       properties: {
         title: {
-          type: "string"
+          type: 'string',
         },
-        ApplicationFullWidth:{
-          type : "boolean"
-        }
-      }
+        ApplicationFullWidth: {
+          type: 'boolean',
+        },
+      },
     },
     setTitle(val) {
+      this.setProperty('title', val);
       try {
-        this.setProperty("title", val);
-        z2ui5.oLaunchpadService.setTitle(val);
+        z2ui5.oLaunchpadService
+          ?.setTitle(val)
+          ?.catch((e) => _logError(`LPTitle: Launchpad Service setTitle failed`, e));
       } catch (e) {
-        (z2ui5.errors ??= []).push({ message: `LPTitle: Launchpad Service to set title not found`, error: e, ts: new Date().toISOString() });
+        _logError(`LPTitle: Launchpad Service setTitle failed`, e);
       }
     },
 
     setApplicationFullWidth(val) {
-      this.setProperty("ApplicationFullWidth", val);
-      z2ui5.ApplicationFullWidth = val;
-    sap.ui.require([
-      "sap/ushell/services/AppConfiguration"
-    ], async (AppConfiguration)  => {
-      AppConfiguration.setApplicationFullWidth(z2ui5.ApplicationFullWidth);
-    }, function () {
-      (z2ui5.errors ??= []).push({ message: `LPTitle: sap/ushell/services/AppConfiguration not available`, ts: new Date().toISOString() });
-    });
+      this.setProperty('ApplicationFullWidth', val);
+      sap.ui.require(
+        ['sap/ushell/services/AppConfiguration'],
+        (AppConfiguration) => {
+          if (this.bIsDestroyed) return;
+          try {
+            AppConfiguration.setApplicationFullWidth(val);
+          } catch (e) {
+            _logError(`LPTitle: setApplicationFullWidth failed`, e);
+          }
+        },
+        () => _logError(`LPTitle: sap/ushell/services/AppConfiguration not available`),
+      );
+    },
 
-  },
-
-    renderer(oRm, oControl) { }
+    renderer() {},
   });
-}
-);
-sap.ui.define("z2ui5/History", ["sap/ui/core/Control"], (Control) => {
-  "use strict";
-  return Control.extend("z2ui5.History", {
+});
+
+sap.ui.define('z2ui5/History', ['sap/ui/core/Control'], (Control) => {
+  'use strict';
+  return Control.extend('z2ui5.History', {
     metadata: {
       properties: {
         search: {
-          type: "string"
+          type: 'string',
         },
-      }
+      },
     },
     setSearch(val) {
-      this.setProperty("search", val);
-      history.replaceState(null, null, window.location.pathname + val);
+      this.setProperty('search', val);
+      try {
+        history.replaceState(null, '', `${window.location.pathname}${val ?? ''}`);
+      } catch (e) {
+        _logError(`History.setSearch: replaceState failed`, e);
+      }
     },
-    renderer(oRm, oControl) { }
+    renderer() {},
   });
-}
-);
+});
 
-sap.ui.define("z2ui5/Tree", ["sap/ui/core/Control"], (Control) => {
-  "use strict";
+sap.ui.define('z2ui5/Tree', ['sap/ui/core/Control'], (Control) => {
+  'use strict';
 
-  return Control.extend("z2ui5.Tree", {
+  return Control.extend('z2ui5.Tree', {
     metadata: {
       properties: {
         tree_id: {
-          type: "string"
-        }
-      }
+          type: 'string',
+        },
+      },
+    },
+
+    _getTreeBinding() {
+      return z2ui5.oView?.byId(this.getProperty('tree_id'))?.getBinding('items');
     },
 
     setBackend() {
-      z2ui5.treeState = z2ui5.oView.byId(this.getProperty("tree_id")).getBinding('items').getCurrentTreeState();
+      try {
+        z2ui5.treeState = this._getTreeBinding()?.getCurrentTreeState();
+      } catch (e) {
+        _logError(`Tree.setBackend: failed`, e);
+      }
     },
 
     init() {
       this._setBackendBound = this.setBackend.bind(this);
-      z2ui5.onBeforeRoundtrip.push(this._setBackendBound);
+      (z2ui5.onBeforeRoundtrip ??= []).push(this._setBackendBound);
     },
 
     exit() {
-      z2ui5.onBeforeRoundtrip = z2ui5.onBeforeRoundtrip.filter(fn => fn !== this._setBackendBound);
+      z2ui5.onBeforeRoundtrip = (z2ui5.onBeforeRoundtrip ?? []).filter((fn) => fn !== this._setBackendBound);
     },
 
     onAfterRendering() {
       if (!this._pendingTreeState) return;
       this._pendingTreeState = false;
-      const id = this.getProperty("tree_id");
-      z2ui5.oView.byId(id).getBinding('items').setTreeState(z2ui5.treeState);
+      try {
+        this._getTreeBinding()?.setTreeState(z2ui5.treeState);
+      } catch (e) {
+        _logError(`Tree.onAfterRendering: setTreeState failed`, e);
+      }
     },
 
     renderer(oRm, oControl) {
-      oRm.openStart("span", oControl);
-      oRm.addStyle("display", "none");
+      oRm.openStart('span', oControl);
+      oRm.addStyle('display', 'none');
       oRm.openEnd();
-      oRm.close("span");
+      oRm.close('span');
       if (!z2ui5.treeState) return;
       oControl._pendingTreeState = true;
-    }
+    },
   });
 });
 
-sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {
-  "use strict";
+sap.ui.define('z2ui5/Scrolling', ['sap/ui/core/Control'], (Control) => {
+  'use strict';
 
-  return Control.extend("z2ui5.Scrolling", {
+  return Control.extend('z2ui5.Scrolling', {
     metadata: {
       properties: {
         setUpdate: {
-          type: "boolean",
-          defaultValue: true
+          type: 'boolean',
+          defaultValue: true,
         },
         items: {
-          type: "object"
-        }
+          type: 'object',
+        },
+      },
+    },
+
+    _getDomInnerElement(id) {
+      const control = z2ui5.oView?.byId(id);
+      return control && document.getElementById(`${control.getId()}-inner`);
+    },
+
+    _getScrollTop(item) {
+      try {
+        const control = z2ui5.oView?.byId(item.N);
+        const scrollDelegate = control?.getScrollDelegate?.();
+        if (scrollDelegate) return scrollDelegate.getScrollTop();
+        const element = this._getDomInnerElement(item.ID);
+        return element?.scrollTop ?? 0;
+      } catch (e) {
+        _logError(`Scrolling._getScrollTop: failed`, e);
+        return 0;
       }
     },
 
     setBackend() {
-      const items = this.getProperty("items");
+      const items = this.getProperty('items');
       if (!items) return;
-
-      const bindingInfo = this.getBindingInfo("items");
-      const bindingPath = bindingInfo?.parts?.[0]?.path || bindingInfo?.path;
-
-      items.forEach((item, index) => {
-        let scrollTop = 0;
-        try {
-          const control = z2ui5.oView.byId(item.N);
-          const scrollDelegate = control?.getScrollDelegate?.();
-          if (scrollDelegate) {
-            scrollTop = scrollDelegate.getScrollTop();
-          } else {
-            const domControl = z2ui5.oView.byId(item.ID);
-            const element = domControl ? document.getElementById(`${domControl.getId()}-inner`) : null;
-            scrollTop = element ? element.scrollTop : 0;
-          }
-        } catch (e) { (z2ui5.errors ??= []).push({ message: `Scrolling.setBackend: failed`, error: e, ts: new Date().toISOString() }); }
-        if (item.V !== scrollTop) {
-          item.V = scrollTop;
-          if (bindingPath && z2ui5.xxChangedPaths) {
-            z2ui5.xxChangedPaths.add(`${bindingPath}/${index}/V`);
+      try {
+        const bindingInfo = this.getBindingInfo('items');
+        const bindingPath = bindingInfo?.parts?.[0]?.path ?? bindingInfo?.path;
+        for (const [index, item] of items.entries()) {
+          const scrollTop = this._getScrollTop(item);
+          if (item.V !== scrollTop) {
+            item.V = scrollTop;
+            if (bindingPath) z2ui5.xxChangedPaths?.add(`${bindingPath}/${index}/V`);
           }
         }
-      });
+      } catch (e) {
+        _logError(`Scrolling.setBackend: failed`, e);
+      }
     },
 
     init() {
       this._setBackendBound = this.setBackend.bind(this);
-      z2ui5.onBeforeRoundtrip.push(this._setBackendBound);
+      (z2ui5.onBeforeRoundtrip ??= []).push(this._setBackendBound);
     },
 
     exit() {
-      z2ui5.onBeforeRoundtrip = z2ui5.onBeforeRoundtrip.filter(fn => fn !== this._setBackendBound);
+      z2ui5.onBeforeRoundtrip = (z2ui5.onBeforeRoundtrip ?? []).filter((fn) => fn !== this._setBackendBound);
     },
 
     _restoreScrollPosition(item) {
       try {
-        const control = z2ui5.oView.byId(item.N);
-        if (control && typeof control.scrollTo === 'function') {
+        const control = z2ui5.oView?.byId(item.N);
+        if (control?.scrollTo) {
           control.scrollTo(item.V);
           return;
         }
-        const domControl = z2ui5.oView.byId(item.ID);
-        const element = domControl ? document.getElementById(`${domControl.getId()}-inner`) : null;
+        const element = this._getDomInnerElement(item.ID);
         if (element) element.scrollTop = item.V;
-      } catch (e) { (z2ui5.errors ??= []).push({ message: `Scrolling._restoreScrollPosition: failed`, error: e, ts: new Date().toISOString() }); }
+      } catch (e) {
+        _logError(`Scrolling._restoreScrollPosition: failed`, e);
+      }
     },
 
     onAfterRendering() {
       if (!this._pendingScroll) return;
       this._pendingScroll = false;
 
-      const items = this.getProperty("items");
+      const items = this.getProperty('items');
       if (!items) return;
 
-      items.forEach(item => {
-        const control = z2ui5.oView.byId(item.N);
-        if (control?.getDomRef()) {
-          this._restoreScrollPosition(item);
-        } else if (control) {
-          const delegate = {
-            onAfterRendering: () => {
-              this._restoreScrollPosition(item);
-              control.removeEventDelegate(delegate);
-            }
-          };
-          control.addEventDelegate(delegate);
+      try {
+        for (const item of items) {
+          const control = z2ui5.oView?.byId(item.N);
+          if (control?.getDomRef()) {
+            this._restoreScrollPosition(item);
+          } else if (control) {
+            const delegate = {
+              onAfterRendering: () => {
+                control.removeEventDelegate(delegate);
+                if (!this.bIsDestroyed) this._restoreScrollPosition(item);
+              },
+            };
+            control.addEventDelegate(delegate);
+          }
         }
-      });
+      } catch (e) {
+        _logError(`Scrolling.onAfterRendering: failed`, e);
+      }
     },
 
     renderer(oRm, oControl) {
-      oRm.openStart("span", oControl);
-      oRm.addStyle("display", "none");
+      oRm.openStart('span', oControl);
+      oRm.addStyle('display', 'none');
       oRm.openEnd();
-      oRm.close("span");
+      oRm.close('span');
 
-      if (!oControl.getProperty("setUpdate")) return;
-      oControl.setProperty("setUpdate", false, true);
+      if (!oControl.getProperty('setUpdate')) return;
+      oControl.setProperty('setUpdate', false, true);
       oControl._pendingScroll = true;
-    }
+    },
   });
 });
 
-sap.ui.define("z2ui5/Info", ["sap/ui/core/Control", "sap/ui/VersionInfo", "sap/ui/Device"], (Control) => {
-  "use strict";
+sap.ui.define('z2ui5/Info', ['sap/ui/core/Control'], (Control) => {
+  'use strict';
 
-  return Control.extend("z2ui5.Info", {
+  return Control.extend('z2ui5.Info', {
     metadata: {
       properties: {
         ui5_version: {
-          type: "string"
+          type: 'string',
         },
         device_phone: {
-          type: "string"
+          type: 'string',
         },
         device_desktop: {
-          type: "string"
+          type: 'string',
         },
         device_tablet: {
-          type: "string"
+          type: 'string',
         },
         device_combi: {
-          type: "string"
+          type: 'string',
         },
         device_height: {
-          type: "string"
+          type: 'string',
         },
         device_width: {
-          type: "string"
+          type: 'string',
         },
         ui5_theme: {
-          type: "string"
+          type: 'string',
         },
         device_os: {
-          type: "string"
+          type: 'string',
         },
         device_systemtype: {
-          type: "string"
+          type: 'string',
         },
         device_browser: {
-          type: "string"
+          type: 'string',
         },
       },
       events: {
-        "finished": {
+        finished: {
           allowPreventDefault: true,
           parameters: {},
-        }
-      }
-    },
-
-    init() { },
-
-    onAfterRendering() {
+        },
+      },
     },
 
     renderer(_, oControl) {
-
-      let oDevice = z2ui5.oView.getModel("device").oData;
-      oControl.setProperty("ui5_version", z2ui5.oConfig.UI5VersionInfo.version);
-      oControl.setProperty("device_phone", oDevice.system.phone);
-      oControl.setProperty("device_desktop", oDevice.system.desktop);
-      oControl.setProperty("device_tablet", oDevice.system.tablet);
-      oControl.setProperty("device_combi", oDevice.system.combi);
-      oControl.setProperty("device_height", oDevice.resize.height);
-      oControl.setProperty("device_width", oDevice.resize.width);
-      oControl.setProperty("device_os", oDevice.os.name);
-      oControl.setProperty("device_browser", oDevice.browser.name);
-      oControl.fireFinished();
-
-    }
+      try {
+        const deviceData = z2ui5.oView?.getModel('device')?.getData();
+        if (!deviceData) return;
+        const { system, resize, os, browser } = deviceData;
+        for (const [prop, val] of [
+          ['ui5_version', z2ui5.oConfig?.UI5VersionInfo?.version],
+          ['device_phone', system.phone],
+          ['device_desktop', system.desktop],
+          ['device_tablet', system.tablet],
+          ['device_combi', system.combi],
+          ['device_height', resize.height],
+          ['device_width', resize.width],
+          ['device_os', os.name],
+          ['device_browser', browser.name],
+        ])
+          oControl.setProperty(prop, String(val ?? ''), true);
+        oControl.fireFinished();
+      } catch (e) {
+        _logError(`Info.renderer: failed`, e);
+      }
+    },
   });
-}
-);
+});
 
-sap.ui.define("z2ui5/Geolocation", ["sap/ui/core/Control"], (Control) => {
-  "use strict";
+sap.ui.define('z2ui5/Geolocation', ['sap/ui/core/Control'], (Control) => {
+  'use strict';
 
-  return Control.extend("z2ui5.Geolocation", {
+  const _GEO_PROPS = ['longitude', 'latitude', 'altitude', 'accuracy', 'altitudeAccuracy', 'speed', 'heading'];
+
+  return Control.extend('z2ui5.Geolocation', {
     metadata: {
       properties: {
         longitude: {
-          type: "string",
-          defaultValue: ""
+          type: 'string',
+          defaultValue: '',
         },
         latitude: {
-          type: "string",
-          defaultValue: ""
+          type: 'string',
+          defaultValue: '',
         },
         altitude: {
-          type: "string",
-          defaultValue: ""
+          type: 'string',
+          defaultValue: '',
         },
         accuracy: {
-          type: "string",
-          defaultValue: ""
+          type: 'string',
+          defaultValue: '',
         },
         altitudeAccuracy: {
-          type: "string",
-          defaultValue: ""
+          type: 'string',
+          defaultValue: '',
         },
         speed: {
-          type: "string",
-          defaultValue: ""
+          type: 'string',
+          defaultValue: '',
         },
         heading: {
-          type: "string",
-          defaultValue: ""
+          type: 'string',
+          defaultValue: '',
         },
         enableHighAccuracy: {
-          type: "boolean",
-          defaultValue: false
+          type: 'boolean',
+          defaultValue: false,
         },
         timeout: {
-          type: "string",
-          defaultValue: "5000"
-        }
+          type: 'string',
+          defaultValue: '5000',
+        },
       },
       events: {
-        "finished": {
+        finished: {
           allowPreventDefault: true,
           parameters: {},
-        }
-      }
-    },
-
-    callbackPosition(position) {
-
-      this.setProperty("longitude", position.coords.longitude, true);
-      this.setProperty("latitude", position.coords.latitude, true);
-      this.setProperty("altitude", position.coords.altitude, true);
-      this.setProperty("accuracy", position.coords.accuracy, true);
-      this.setProperty("altitudeAccuracy", position.coords.altitudeAccuracy, true);
-      this.setProperty("speed", position.coords.speed, true);
-      this.setProperty("heading", position.coords.heading, true);
-      this.fireFinished();
-
-    },
-
-    async init() {
-
-      navigator.geolocation.getCurrentPosition(
-        this.callbackPosition.bind(this),
-        function (error) {
-          (z2ui5.errors ??= []).push({ message: `Geolocation error (${error.code}): ${error.message}`, ts: new Date().toISOString() });
         },
-        {
-          enableHighAccuracy: this.getProperty("enableHighAccuracy"),
-          timeout: parseInt(this.getProperty("timeout"))
-        }
-      );
+      },
+    },
 
+    callbackPosition({ coords }) {
+      if (this.bIsDestroyed) return;
+      for (const prop of _GEO_PROPS) this.setProperty(prop, coords[prop]?.toString() ?? '', true);
+      this.fireFinished();
+    },
+
+    init() {
+      this._pendingGeolocate = true;
     },
 
     exit() {
+      this._pendingGeolocate = false;
     },
 
     onAfterRendering() {
+      if (!this._pendingGeolocate) return;
+      this._pendingGeolocate = false;
+      try {
+        navigator.geolocation?.getCurrentPosition(
+          this.callbackPosition.bind(this),
+          (error) => _logError(`Geolocation error (${error.code}): ${error.message}`),
+          {
+            enableHighAccuracy: this.getProperty('enableHighAccuracy'),
+            timeout: +this.getProperty('timeout'),
+          },
+        );
+      } catch (e) {
+        _logError(`Geolocation.onAfterRendering: getCurrentPosition failed`, e);
+      }
     },
 
-    renderer() {
-    }
+    renderer(oRm, oControl) {
+      oRm.openStart('span', oControl);
+      oRm.addStyle('display', 'none');
+      oRm.openEnd();
+      oRm.close('span');
+    },
   });
-}
-);
+});
 
-sap.ui.define("z2ui5/Storage", ["sap/ui/core/Control", "sap/ui/util/Storage"], (Control, Storage) => {
-  "use strict";
+sap.ui.define('z2ui5/Storage', ['sap/ui/core/Control', 'sap/ui/util/Storage'], (Control, Storage) => {
+  'use strict';
 
-  return Control.extend("z2ui5.Storage", {
+  return Control.extend('z2ui5.Storage', {
     metadata: {
       properties: {
         type: {
-          type: "string",
-          defaultValue: "session"
+          type: 'string',
+          defaultValue: 'session',
         },
         prefix: {
-          type: "string",
-          defaultValue: ""
+          type: 'string',
+          defaultValue: '',
         },
         key: {
-          type: "string",
-          defaultValue: ""
+          type: 'string',
+          defaultValue: '',
         },
         value: {
-          type: "any",
-          defaultValue: ""
-        }
+          type: 'any',
+          defaultValue: '',
+        },
       },
       events: {
-        "finished": {
+        finished: {
           parameters: {
             type: {
-              type: "string",
+              type: 'string',
             },
             prefix: {
-              type: "string",
+              type: 'string',
             },
             key: {
-              type: "string",
+              type: 'string',
             },
             value: {
-              type: "any",
-            }
-          }
-        }
-      }
+              type: 'any',
+            },
+          },
+        },
+      },
     },
 
     renderer(_, oControl) {
-      let storageType = oControl.getProperty("type");
-      let storageKeyPrefix = oControl.getProperty("prefix");
-      let storageKey  = oControl.getProperty("key");
-      let storageValue = oControl.getProperty("value");
-      let oStorage = new Storage(storageType, storageKeyPrefix);
-      let storedValue = oStorage.get(storageKey);
-      if (storedValue === null || storedValue === undefined) {
-        storedValue = "";
+      const type = oControl.getProperty('type');
+      const prefix = oControl.getProperty('prefix');
+      const key = oControl.getProperty('key');
+      const value = oControl.getProperty('value');
+      let stored;
+      try {
+        stored = new Storage(Storage.Type[type] ?? Storage.Type.session, prefix).get(key) ?? '';
+      } catch (e) {
+        _logError(`Storage: read failed for key '${key}'`, e);
+        return;
       }
-      if (storedValue !== storageValue) {
-         oControl.setProperty("value", storedValue);
-         oControl.fireFinished({
-           "type": storageType,
-           "prefix": storageKeyPrefix,
-           "key": storageKey,
-           "value": storedValue
-         });
-       }
+      if (stored !== value) {
+        oControl.setProperty('value', stored, true);
+        oControl.fireFinished({ type, prefix, key, value: stored });
+      }
     },
-    onAfterRendering() { },
-    init() { }
   });
 });
 
-sap.ui.define("z2ui5/FileUploader", ["sap/ui/core/Control", "sap/m/Button", "sap/ui/unified/FileUploader", "sap/m/HBox"], function (Control, Button, FileUploader, HBox) {
-  "use strict";
+sap.ui.define(
+  'z2ui5/FileUploader',
+  ['sap/ui/core/Control', 'sap/m/Button', 'sap/ui/unified/FileUploader', 'sap/m/HBox'],
+  (Control, Button, FileUploader, HBox) => {
+    'use strict';
 
-  return Control.extend("z2ui5.FileUploader", {
+    return Control.extend('z2ui5.FileUploader', {
+      metadata: {
+        properties: {
+          value: {
+            type: 'string',
+            defaultValue: '',
+          },
+          path: {
+            type: 'string',
+            defaultValue: '',
+          },
+          tooltip: {
+            type: 'string',
+            defaultValue: '',
+          },
+          fileType: {
+            type: 'string',
+            defaultValue: '',
+          },
+          placeholder: {
+            type: 'string',
+            defaultValue: '',
+          },
+          buttonText: {
+            type: 'string',
+            defaultValue: '',
+          },
+          style: {
+            type: 'string',
+            defaultValue: '',
+          },
+          uploadButtonText: {
+            type: 'string',
+            defaultValue: 'Upload',
+          },
+          enabled: {
+            type: 'boolean',
+            defaultValue: true,
+          },
+          icon: {
+            type: 'string',
+            defaultValue: 'sap-icon://browse-folder',
+          },
+          iconOnly: {
+            type: 'boolean',
+            defaultValue: false,
+          },
+          buttonOnly: {
+            type: 'boolean',
+            defaultValue: false,
+          },
+          multiple: {
+            type: 'boolean',
+            defaultValue: false,
+          },
+          visible: {
+            type: 'boolean',
+            defaultValue: true,
+          },
+          checkDirectUpload: {
+            type: 'boolean',
+            defaultValue: false,
+          },
+        },
 
-    metadata: {
-      properties: {
-        value: {
-          type: "string",
-          defaultValue: ""
+        events: {
+          upload: {
+            allowPreventDefault: true,
+            parameters: {},
+          },
         },
-        path: {
-          type: "string",
-          defaultValue: ""
-        },
-        tooltip: {
-          type: "string",
-          defaultValue: ""
-        },
-        fileType: {
-          type: "string",
-          defaultValue: ""
-        },
-        placeholder: {
-          type: "string",
-          defaultValue: ""
-        },
-        buttonText: {
-          type: "string",
-          defaultValue: ""
-        },
-        style: {
-          type: "string",
-          defaultValue: ""
-        },
-        uploadButtonText: {
-          type: "string",
-          defaultValue: "Upload"
-        },
-        enabled: {
-          type: "boolean",
-          defaultValue: true
-        },
-        icon: {
-          type: "string",
-          defaultValue: "sap-icon://browse-folder"
-        },
-        iconOnly: {
-          type: "boolean",
-          defaultValue: false
-        },
-        buttonOnly: {
-          type: "boolean",
-          defaultValue: false
-        },
-        multiple: {
-          type: "boolean",
-          defaultValue: false
-        },
-        visible: {
-          type: "boolean",
-          defaultValue: true
-        },
-        checkDirectUpload: {
-          type: "boolean",
-          defaultValue: false
-        }
       },
 
-      aggregations: {},
-      events: {
-        "upload": {
-          allowPreventDefault: true,
-          parameters: {}
-        }
+      _readFile(file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (this.bIsDestroyed) return;
+          this.setProperty('value', reader.result);
+          this.fireUpload();
+        };
+        reader.onerror = () => _logError(`FileUploader: FileReader failed`, reader.error);
+        reader.readAsDataURL(file);
       },
-      renderer: null
-    },
 
-    renderer: function (oRm, oControl) {
+      exit() {
+        this._oHBox?.destroy();
+      },
 
-      if (!oControl.getProperty("checkDirectUpload")) {
-        oControl.oUploadButton = new Button({
-          text: oControl.getProperty("uploadButtonText"),
-          enabled: oControl.getProperty("path") !== "",
-          press: function (oEvent) {
+      renderer(oRm, oControl) {
+        const directUpload = oControl.getProperty('checkDirectUpload');
+        const path = oControl.getProperty('path');
+        oControl._oHBox?.destroy();
+        oControl._oHBox = null;
+        oControl.oUploadButton = null;
+        oControl.oFileUploader = null;
+        if (!directUpload) {
+          oControl.oUploadButton = new Button({
+            text: oControl.getProperty('uploadButtonText'),
+            enabled: path !== '',
+            press: () => {
+              oControl.setProperty('path', oControl.oFileUploader.getProperty('value'));
+              const file = oControl.oFileUploader?.oFileUpload?.files?.[0];
+              if (file) oControl._readFile(file);
+            },
+          });
+        }
 
-            this.setProperty("path", this.oFileUploader.getProperty("value"));
-
-            const file = z2ui5.oUpload.oFileUpload.files[0];
-            const reader = new FileReader();
-
-            reader.onload = function (evt) {
-              const vContent = evt.currentTarget.result;
-              this.setProperty("value", vContent);
-              this.fireUpload();
-              //this.getView().byId('picture' ).getDomRef().src = vContent;
-            }
-              .bind(this)
-
-            reader.readAsDataURL(file);
-          }
-            .bind(oControl)
+        oControl.oFileUploader = new FileUploader({
+          icon: oControl.getProperty('icon'),
+          iconOnly: oControl.getProperty('iconOnly'),
+          buttonOnly: oControl.getProperty('buttonOnly'),
+          buttonText: oControl.getProperty('buttonText'),
+          style: oControl.getProperty('style'),
+          fileType: oControl.getProperty('fileType'),
+          visible: oControl.getProperty('visible'),
+          uploadOnChange: directUpload,
+          multiple: oControl.getProperty('multiple'),
+          enabled: oControl.getProperty('enabled'),
+          value: path,
+          placeholder: oControl.getProperty('placeholder'),
+          change: (oEvent) => {
+            if (directUpload) return;
+            const value = oEvent.getSource().getProperty('value');
+            oControl.setProperty('path', value);
+            oControl.oUploadButton?.setEnabled(!!value);
+            oControl.oUploadButton?.rerender();
+          },
+          uploadComplete: (oEvent) => {
+            if (!directUpload) return;
+            const value = oEvent.getSource().getProperty('value');
+            oControl.setProperty('path', value);
+            const file = oEvent.getSource().oFileUpload?.files?.[0];
+            if (file) oControl._readFile(file);
+          },
         });
-      }
 
-      oControl.oFileUploader = new FileUploader({
-        icon: oControl.getProperty("icon"),
-        iconOnly: oControl.getProperty("iconOnly"),
-        buttonOnly: oControl.getProperty("buttonOnly"),
-        buttonText: oControl.getProperty("buttonText"),
-        style: oControl.getProperty("style"),
-        fileType: oControl.getProperty("fileType"),
-        visible: oControl.getProperty("visible"),
-        uploadOnChange: oControl.getProperty("checkDirectUpload"),
-        enabled: oControl.getProperty("enabled"),
-        value: oControl.getProperty("path"),
-        placeholder: oControl.getProperty("placeholder"),
-        change: function (oEvent) {
-          if (oControl.getProperty("checkDirectUpload")) {
-            return;
-          }
+        oControl._oHBox = new HBox().addItem(oControl.oFileUploader);
+        if (oControl.oUploadButton) oControl._oHBox.addItem(oControl.oUploadButton);
+        oRm.renderControl(oControl._oHBox);
+      },
+    });
+  },
+);
 
-          const value = oEvent.getSource().getProperty("value");
-          this.setProperty("path", value);
-          if (value) {
-            this.oUploadButton.setEnabled(true);
-          } else {
-            this.oUploadButton.setEnabled(false);
-          }
-          this.oUploadButton.rerender();
-          z2ui5.oUpload = oEvent.oSource;
-        }
-          .bind(oControl),
-        uploadComplete: function (oEvent) {
-          if (!oControl.getProperty("checkDirectUpload")) {
-            return;
-          }
+sap.ui.define('z2ui5/MultiInputExt', ['sap/ui/core/Control', 'sap/m/Token'], (Control, Token) => {
+  'use strict';
 
-          const value = oEvent.getSource().getProperty("value");
-          this.setProperty("path", value);
-
-          const file = oEvent.oSource.oFileUpload.files[0];
-          const reader = new FileReader();
-
-          reader.onload = function (evt) {
-            const vContent = evt.currentTarget.result;
-            this.setProperty("value", vContent);
-            this.fireUpload();
-          }
-            .bind(this)
-
-          reader.readAsDataURL(file);
-        }
-          .bind(oControl)
-      });
-
-      const hbox = new HBox();
-      hbox.addItem(oControl.oFileUploader);
-      hbox.addItem(oControl.oUploadButton);
-      oRm.renderControl(hbox);
-    }
-  });
-});
-
-sap.ui.define("z2ui5/MultiInputExt", ["sap/ui/core/Control", "sap/m/Token", "sap/ui/core/Core", "sap/ui/core/Element"], (Control, Token, Core, Element) => {
-  "use strict";
-
-  return Control.extend("z2ui5.MultiInputExt", {
+  return Control.extend('z2ui5.MultiInputExt', {
     metadata: {
       properties: {
         MultiInputId: {
-          type: "string"
+          type: 'string',
         },
         MultiInputName: {
-          type: "string"
+          type: 'string',
         },
         addedTokens: {
-          type: "object"
+          type: 'object',
         },
         checkInit: {
-          type: "boolean",
-          defaultValue: false
+          type: 'boolean',
+          defaultValue: false,
         },
         removedTokens: {
-          type: "object"
-        }
+          type: 'object',
+        },
       },
       events: {
-        "change": {
+        change: {
           allowPreventDefault: true,
-          parameters: {}
-        }
+          parameters: {},
+        },
       },
     },
 
     init() {
-      z2ui5.onAfterRendering.push(this.setControl.bind(this));
+      this._setControlBound = this.setControl.bind(this);
+      (z2ui5.onAfterRendering ??= []).push(this._setControlBound);
+    },
+    exit() {
+      z2ui5.onAfterRendering = (z2ui5.onAfterRendering ?? []).filter((fn) => fn !== this._setControlBound);
     },
 
     onTokenUpdate(oEvent) {
-      this.setProperty("addedTokens", []);
-      this.setProperty("removedTokens", []);
-      const prop = oEvent.mParameters.type === "removed" ? "removedTokens" : "addedTokens";
-      const tokens = oEvent.mParameters[prop].map(item => ({
+      const { mParameters } = oEvent;
+      const isRemoved = mParameters.type === 'removed';
+      const tokens = (mParameters[isRemoved ? 'removedTokens' : 'addedTokens'] ?? []).map((item) => ({
         KEY: item.getKey(),
-        TEXT: item.getText()
+        TEXT: item.getText(),
       }));
-      this.setProperty(prop, tokens);
+      this.setProperty('addedTokens', isRemoved ? [] : tokens);
+      this.setProperty('removedTokens', isRemoved ? tokens : []);
       this.fireChange();
     },
-    renderer(oRm, oControl) {
-      z2ui5.onAfterRendering.push(oControl.setControl.bind(oControl));
-    },
+    renderer() {},
     setControl() {
-      let table = z2ui5.oView.byId(this.getProperty("MultiInputId"));
-      if (!table) {
-        return;
+      const table = z2ui5.oView?.byId(this.getProperty('MultiInputId'));
+      if (!table || this.getProperty('checkInit')) return;
+      this.setProperty('checkInit', true);
+      try {
+        table.attachTokenUpdate(this.onTokenUpdate.bind(this));
+        table.addValidator(({ text }) => new Token({ key: text, text }));
+      } catch (e) {
+        _logError(`MultiInputExt.setControl: setup failed`, e);
       }
-      if (this.getProperty("checkInit") === true) {
-        return;
-      }
-      this.setProperty("checkInit", true);
-      table.attachTokenUpdate(this.onTokenUpdate.bind(this));
-      const fnValidator = function (args) {
-        const text = args.text;
-        return new Token({
-          key: text,
-          text: text
-        });
-      };
-      table.addValidator(fnValidator);
-    }
+    },
   });
-}
-);
+});
 
-sap.ui.define("z2ui5/SmartMultiInputExt", ["sap/ui/core/Control", "sap/m/Token", "sap/ui/core/Core", "sap/ui/core/Element"], (Control) => {
-  "use strict";
+sap.ui.define('z2ui5/SmartMultiInputExt', ['sap/ui/core/Control'], (Control) => {
+  'use strict';
 
-  return Control.extend("z2ui5.SmartMultiInputExt", {
+  return Control.extend('z2ui5.SmartMultiInputExt', {
     metadata: {
       properties: {
         multiInputId: {
-          type: "string"
+          type: 'string',
         },
         addedTokens: {
-          type: "object"
+          type: 'object',
         },
         removedTokens: {
-          type: "object"
+          type: 'object',
         },
         rangeData: {
-          type: "object",
-          defaultValue: []
+          type: 'object',
+          defaultValue: [],
         },
         checkInit: {
-          type: "boolean",
-          defaultValue: false
-        }
+          type: 'boolean',
+          defaultValue: false,
+        },
       },
       events: {
-        "change": {
+        change: {
           allowPreventDefault: true,
-          parameters: {}
-        }
+          parameters: {},
+        },
       },
     },
 
     init() {
-      z2ui5.onAfterRendering.push(this.setControl.bind(this));
+      this._setControlBound = this.setControl.bind(this);
+      this._oInput = null;
+      this._oPendingInnerControlsCreated = null;
+      this._bInnerControlsCreated = false;
+      (z2ui5.onAfterRendering ??= []).push(this._setControlBound);
+    },
+    exit() {
+      z2ui5.onAfterRendering = (z2ui5.onAfterRendering ?? []).filter((fn) => fn !== this._setControlBound);
+      this._oPendingInnerControlsCreated?.(null);
+      this._oPendingInnerControlsCreated = null;
     },
 
     onTokenUpdate(oEvent) {
-      this.setProperty("addedTokens", []);
-      this.setProperty("removedTokens", []);
-      const prop = oEvent.mParameters.type === "removed" ? "removedTokens" : "addedTokens";
-      const tokens = oEvent.mParameters[prop].map(item => ({
+      const { mParameters } = oEvent;
+      const isRemoved = mParameters.type === 'removed';
+      const mappedTokens = (mParameters[isRemoved ? 'removedTokens' : 'addedTokens'] ?? []).map((item) => ({
         KEY: item.getKey(),
-        TEXT: item.getText()
+        TEXT: item.getText(),
       }));
-      this.setProperty(prop, tokens);
-      const aTokens = oEvent.getSource().getTokens();
-      this.setProperty("rangeData", oEvent.getSource().getRangeData().map((oRangeData, iIndex) => {
-        const oToken = aTokens[iIndex];
-        oRangeData.tokenText = oToken.getText();
-        oRangeData.tokenLongKey = oToken.data("longKey");
-        return oRangeData;
-      }));
+      this.setProperty('addedTokens', isRemoved ? [] : mappedTokens);
+      this.setProperty('removedTokens', isRemoved ? mappedTokens : []);
+      const source = oEvent.getSource();
+      const tokens = source.getTokens();
+      this.setProperty(
+        'rangeData',
+        (source.getRangeData() ?? []).map((oRangeData, index) => {
+          const token = tokens[index];
+          return Object.assign(oRangeData, { tokenText: token?.getText() ?? '', tokenLongKey: token?.data('longKey') });
+        }),
+      );
       this.fireChange();
     },
-    setRangeData(aRangeData) {
-      this.setProperty("rangeData", aRangeData);
-      this.inputInitialized().then((input) => {
-        input.setRangeData(aRangeData.map((oRangeData) => {
-          const oRangeDataNew = {};
-          Object.entries(oRangeData).forEach((aEntry) => {
-            const sKeyNameNew = aEntry[0].toLowerCase();
-            oRangeDataNew[(sKeyNameNew === "keyfield" ? "keyField" : sKeyNameNew)] = aEntry[1];
-          });
-          return oRangeDataNew;
-        }));
+    async setRangeData(aRangeData) {
+      this.setProperty('rangeData', aRangeData);
+      try {
+        const input = await this.inputInitialized();
+        if (this.bIsDestroyed || !input) return;
+        input.setRangeData(
+          aRangeData.map((oRangeData) =>
+            Object.fromEntries(
+              Object.entries(oRangeData).map(([key, value]) => {
+                const k = key.toLowerCase();
+                return [k === 'keyfield' ? 'keyField' : k, value];
+              }),
+            ),
+          ),
+        );
         //we need to set token text explicitly, as setRangeData does no recalculation
-        input.getTokens().forEach((token, index) => {
-          const oRangeData = aRangeData[index];
-          token.data("longKey", oRangeData.TOKENLONGKEY);
-          token.data("range", null);
-          const sTokenText = oRangeData.TOKENTEXT;
-          if (sTokenText) {
-            token.setText(sTokenText);
-          }
-        });
-      });
-    },
-    renderer(oRm, oControl) { },
-    setControl() {
-      const input = z2ui5.oView.byId(this.getProperty("multiInputId"));
-      if (!input) {
-        return;
-      }
-      if (this.getProperty("checkInit") === true) {
-        return;
-      }
-      this.setProperty("checkInit", true);
-      input.attachTokenUpdate(this.onTokenUpdate.bind(this));
-      input.attachInnerControlsCreated(this.onInnerControlsCreated.bind(this));
-    },
-    inputInitialized(input) {
-      return new Promise((resolve, reject) => {
-        if (this._bInnerControlsCreated) {
-          resolve(input); //resolve immediately
-        } else {
-          this._oPendingInnerControlsCreated = resolve; //resolve later
+        for (const [index, token] of (input.getTokens() ?? []).entries()) {
+          const rangeItem = aRangeData[index];
+          if (!rangeItem) continue;
+          const { TOKENLONGKEY, TOKENTEXT } = rangeItem;
+          token.data('longKey', TOKENLONGKEY);
+          token.data('range', null);
+          if (TOKENTEXT) token.setText(TOKENTEXT);
         }
+      } catch (e) {
+        _logError('SmartMultiInputExt.setRangeData failed', e);
+      }
+    },
+    renderer() {},
+    setControl() {
+      const input = z2ui5.oView?.byId(this.getProperty('multiInputId'));
+      if (!input || this.getProperty('checkInit')) return;
+      this.setProperty('checkInit', true);
+      try {
+        input.attachTokenUpdate(this.onTokenUpdate.bind(this));
+        input.attachInnerControlsCreated(this.onInnerControlsCreated.bind(this));
+      } catch (e) {
+        _logError(`SmartMultiInputExt.setControl: setup failed`, e);
+      }
+    },
+    inputInitialized() {
+      return new Promise((resolve) => {
+        if (this._bInnerControlsCreated) resolve(this._oInput);
+        else this._oPendingInnerControlsCreated = resolve;
       });
     },
-    _oPendingInnerControlsCreated: null,
-    _bInnerControlsCreated: false,
     onInnerControlsCreated(oEvent) {
-      const input = oEvent.getSource();
-      if (this._oPendingInnerControlsCreated) {
-        this._oPendingInnerControlsCreated(input);
-      }
+      this._oInput = oEvent.getSource();
+      this._oPendingInnerControlsCreated?.(this._oInput);
       this._oPendingInnerControlsCreated = null;
       this._bInnerControlsCreated = true;
-    }
+    },
   });
-}
+});
+
+sap.ui.define(
+  'z2ui5/CameraPicture',
+  ['sap/ui/core/Control', 'sap/m/Dialog', 'sap/m/Button', 'sap/ui/core/HTML'],
+  (Control, Dialog, Button, HTML) => {
+    'use strict';
+    const _CTX_2D_OPTS = { willReadFrequently: true };
+    const _THUMB_W = 300;
+    return Control.extend('z2ui5.CameraPicture', {
+      metadata: {
+        properties: {
+          id: { type: 'string' },
+          value: { type: 'string' },
+          thumbnail: { type: 'string' },
+          press: { type: 'string' },
+          width: { type: 'string', defaultValue: '200' },
+          height: { type: 'string', defaultValue: '200' },
+          autoplay: { type: 'boolean', defaultValue: true },
+          facingMode: { type: 'string' },
+          deviceId: { type: 'string' },
+        },
+        events: {
+          OnPhoto: {
+            allowPreventDefault: true,
+            parameters: {
+              photo: {
+                type: 'string',
+              },
+            },
+          },
+        },
+      },
+
+      capture() {
+        const video = document.getElementById('zvideo');
+        const canvas = document.getElementById('zcanvas');
+        if (!video || !canvas) return;
+        const { videoWidth, videoHeight } = video;
+        Object.assign(canvas, { width: videoWidth, height: videoHeight });
+        const ctx = canvas.getContext('2d', _CTX_2D_OPTS);
+        if (!ctx) return;
+        ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
+        let resultb64;
+        try {
+          resultb64 = canvas.toDataURL('image/jpeg', 0.85);
+        } catch (e) {
+          _logError(`CameraPicture: canvas toDataURL failed`, e);
+          return;
+        }
+        const thumbH = videoWidth ? Math.round((videoHeight * _THUMB_W) / videoWidth) : _THUMB_W;
+        const thumbCanvas = Object.assign(document.createElement('canvas'), { width: _THUMB_W, height: thumbH });
+        thumbCanvas.getContext('2d', _CTX_2D_OPTS)?.drawImage(canvas, 0, 0, _THUMB_W, thumbH);
+        let thumbB64 = '';
+        try {
+          thumbB64 = thumbCanvas.toDataURL('image/jpeg', 0.7);
+        } catch (e) {
+          _logError(`CameraPicture: thumb toDataURL failed`, e);
+        }
+        if (this.bIsDestroyed) return;
+        this.setProperty('value', resultb64);
+        this.setProperty('thumbnail', thumbB64);
+        this.fireOnPhoto({ photo: resultb64 });
+        this._stopCamera();
+      },
+
+      _stopCamera() {
+        for (const track of this._stream?.getTracks() ?? []) track.stop();
+        this._stream = null;
+        const video = document.getElementById('zvideo');
+        if (video) video.srcObject = null;
+      },
+
+      onPicture() {
+        if (this._oScanDialog?.isOpen()) return;
+        if (!this._oScanDialog) {
+          this._oScanDialog = new Dialog({
+            title: 'Device Photo Function',
+            contentWidth: '640px',
+            contentHeight: '480px',
+            horizontalScrolling: false,
+            verticalScrolling: false,
+            stretch: true,
+            content: [
+              new HTML({
+                id: `${this.getId()}PictureContainer`,
+                content: '<video style="width:100%;height:100%;object-fit:contain;" autoplay="true" id="zvideo">',
+              }),
+              new Button({
+                text: 'Capture',
+                press: () => {
+                  this.capture();
+                  this._oScanDialog.close();
+                },
+              }),
+              new HTML({
+                content: '<canvas hidden id="zcanvas" style="overflow:auto"></canvas>',
+              }),
+            ],
+            endButton: new Button({
+              text: 'Cancel',
+              press: () => {
+                this._stopCamera();
+                this._oScanDialog.close();
+              },
+            }),
+          });
+        }
+
+        this._oScanDialog.attachEventOnce('afterOpen', async () => {
+          if (this.bIsDestroyed) return;
+          const video = document.getElementById('zvideo');
+          if (!video) {
+            _logError(`CameraPicture: video element not found after dialog open`);
+            return;
+          }
+          const facingMode = this.getProperty('facingMode');
+          const deviceId = this.getProperty('deviceId');
+          const options = { video: { width: { ideal: 1920 }, height: { ideal: 1080 } } };
+          if (deviceId) options.video.deviceId = deviceId;
+          if (facingMode) options.video.facingMode = { exact: facingMode };
+          try {
+            const stream = await navigator.mediaDevices?.getUserMedia?.(options);
+            if (!stream) return;
+            if (this.bIsDestroyed) {
+              for (const t of stream.getTracks()) t.stop();
+              return;
+            }
+            this._stream = video.srcObject = stream;
+          } catch (error) {
+            _logError(`CameraPicture: getUserMedia failed`, error);
+          }
+        });
+        this._oScanDialog.open();
+      },
+
+      exit() {
+        this._stopCamera();
+        this._oButton?.destroy();
+        this._oScanDialog?.destroy();
+      },
+      renderer(oRm, oControl) {
+        oControl._oButton ??= new Button({
+          icon: 'sap-icon://camera',
+          text: 'Camera',
+          press: oControl.onPicture.bind(oControl),
+        });
+        oRm.renderControl(oControl._oButton);
+      },
+    });
+  },
 );
 
-sap.ui.define("z2ui5/CameraPicture", [
-  "sap/ui/core/Control",
-  "sap/m/Dialog",
-  "sap/m/Button",
-  "sap/ui/core/HTML"
-], function (Control, Dialog, Button, HTML) {
-  "use strict";
-  return Control.extend("z2ui5.CameraPicture", {
-    metadata: {
-      properties: {
-        id: { type: "string" },
-        value: { type: "string" },
-        thumbnail: { type: "string" },
-        press: { type: "string" },
-        width: { type: "string" , defaultValue: 200 },
-        height: { type: "string" , defaultValue: 200 },
-        autoplay: { type: "boolean", defaultValue: true },
-        facingMode: { type: "string" },
-        deviceId: { type: "string" }
-      },
-      events: {
-        "OnPhoto": {
-          allowPreventDefault: true,
-          parameters: {
-            "photo": {
-              type: "string"
-            }
+sap.ui.define(
+  'z2ui5/CameraSelector',
+  ['sap/m/ComboBox', 'sap/ui/core/Item', 'sap/m/ComboBoxRenderer'],
+  (ComboBox, Item, ComboBoxRenderer) => {
+    'use strict';
+    return ComboBox.extend('z2ui5.CameraSelector', {
+      async init() {
+        ComboBox.prototype.init.call(this);
+        try {
+          const devices = await navigator.mediaDevices?.enumerateDevices();
+          if (!devices) return;
+          for (const device of devices) {
+            if (device.kind === 'videoinput' && !this.bIsDestroyed)
+              this.addItem(new Item({ key: device.deviceId, text: device.label }));
           }
+        } catch (err) {
+          _logError(`CameraDeviceList: enumerateDevices failed`, err);
         }
       },
-    },
 
-    capture: function (oEvent) {
+      renderer: ComboBoxRenderer,
+    });
+  },
+);
 
-      const video = document.querySelector("#zvideo");
-      const canvas = document.getElementById('zcanvas');
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      canvas.getContext('2d', { willReadFrequently: true }).drawImage(video, 0, 0, canvas.width, canvas.height);
-      const resultb64 = canvas.toDataURL('image/jpeg', 0.85);
-      const thumbW = 300;
-      const thumbH = Math.round(canvas.height * thumbW / canvas.width);
-      const thumbCanvas = document.createElement('canvas');
-      thumbCanvas.width = thumbW;
-      thumbCanvas.height = thumbH;
-      thumbCanvas.getContext('2d', { willReadFrequently: true }).drawImage(canvas, 0, 0, thumbW, thumbH);
-      const thumbB64 = thumbCanvas.toDataURL('image/jpeg', 0.70);
-      this.setProperty("value", resultb64);
-      this.setProperty("thumbnail", thumbB64);
-      this.fireOnPhoto({ "photo": resultb64 });
-      this._stopCamera();
-    },
+sap.ui.define('z2ui5/UITableExt', ['sap/ui/core/Control'], (Control) => {
+  'use strict';
 
-    _stopCamera: function () {
-      const video = document.querySelector("#zvideo");
-      if (this._stream) {
-        this._stream.getTracks().forEach(function(track) { track.stop(); });
-        this._stream = null;
-      }
-      if (video) { video.srcObject = null; }
-    },
+  const opSymbols = { EQ: '', NE: '!', LT: '<', LE: '<=', GT: '>', GE: '>=' };
+  const filterDisplayFns = {
+    Contains: (v) => `*${v ?? ''}*`,
+    StartsWith: (v) => `^${v ?? ''}`,
+    EndsWith: (v) => `${v ?? ''}$`,
+  };
 
-    onPicture: function (oEvent) {
-
-      if (!this._oScanDialog) {
-        this._oScanDialog = new Dialog({
-          title: "Device Photo Function",
-          contentWidth: "640px",
-          contentHeight: "480px",
-          horizontalScrolling: false,
-          verticalScrolling: false,
-          stretch: true,
-          content: [
-            new HTML({
-              id: this.getId() + 'PictureContainer',
-              content: '<video style="width:100%;height:100%;object-fit:contain;" autoplay="true" id="zvideo">'
-            }),
-            new Button({
-              text: "Capture",
-              press: function (oEvent) {
-                this.capture();
-                this._oScanDialog.close();
-              }.bind(this)
-            }),
-            new HTML({
-              content: '<canvas hidden id="zcanvas" style="overflow:auto"></canvas>'
-            }),
-          ],
-          endButton: new Button({
-            text: "Cancel",
-            press: function (oEvent) {
-              this._stopCamera();
-              this._oScanDialog.close();
-            }.bind(this)
-          }),
-        });
-      }
-
-      this._oScanDialog.attachEventOnce("afterOpen", function () {
-        const video = document.querySelector('#zvideo');
-        if (navigator.mediaDevices.getUserMedia) {
-          const facingMode = this.getProperty("facingMode");
-          const deviceId = this.getProperty("deviceId");
-
-          let options = { video: { width: { ideal: 1920 }, height: { ideal: 1080 } } };
-          if (deviceId) {
-            options.video.deviceId = deviceId;
-          }
-          if (facingMode) {
-            options.video.facingMode = { exact: facingMode };
-          }
-
-          navigator.mediaDevices.getUserMedia(options)
-            .then(function (stream) {
-              this._stream = stream;
-              video.srcObject = stream;
-            }.bind(this))
-            .catch(function (error) {
-              (z2ui5.errors ??= []).push({ message: `CameraPicture: getUserMedia failed`, error: error, ts: new Date().toISOString() });
-            });
-        }
-      }.bind(this));
-      this._oScanDialog.open();
-
-    },
-
-    renderer: function (oRM, oControl) {
-
-      const oButton = new Button({
-        icon: "sap-icon://camera",
-        text: "Camera",
-        press: oControl.onPicture.bind(oControl),
-      });
-      oRM.renderControl(oButton);
-
-    },
-  });
-});
-
-
-sap.ui.define("z2ui5/CameraSelector", [
-  "sap/m/ComboBox",
-  "sap/ui/core/Item",
-  "sap/m/ComboBoxRenderer"
-], function (ComboBox, Item, ComboBoxRenderer) {
-  "use strict";
-  return ComboBox.extend("z2ui5.CameraSelector", {
-
-    init: function () {
-
-      ComboBox.prototype.init.apply(this, arguments);
-
-      navigator.mediaDevices
-        .enumerateDevices()
-        .then((devices) => {
-          devices.forEach((device) => {
-            if (device.kind === "videoinput") {
-              this.addItem(new Item({
-                key: device.deviceId,
-                text: device.label
-              }));
-            }
-          });
-        })
-        .catch((err) => {
-          (z2ui5.errors ??= []).push({ message: `CameraDeviceList: enumerateDevices failed`, error: err, ts: new Date().toISOString() });
-        });
-
-    },
-
-    renderer: ComboBoxRenderer
-  });
-});
-
-
-sap.ui.define("z2ui5/UITableExt", ["sap/ui/core/Control"], (Control) => {
-  "use strict";
-
-  return Control.extend("z2ui5.UITableExt", {
+  return Control.extend('z2ui5.UITableExt', {
     metadata: {
       properties: {
         tableId: {
-          type: "string"
+          type: 'string',
         },
       },
     },
 
     init() {
-      z2ui5.onBeforeRoundtrip.push(this.readFilter.bind(this));
-      z2ui5.onBeforeRoundtrip.push(this.readSort.bind(this));
-      z2ui5.onAfterRoundtrip.push(this.setFilter.bind(this));
-      z2ui5.onAfterRoundtrip.push(this.setSort.bind(this));
+      this._beforeBound = () => {
+        this.readFilter();
+        this.readSort();
+      };
+      this._afterBound = () => {
+        this.setFilter();
+        this.setSort();
+      };
+      (z2ui5.onBeforeRoundtrip ??= []).push(this._beforeBound);
+      (z2ui5.onAfterRoundtrip ??= []).push(this._afterBound);
+    },
+
+    exit() {
+      z2ui5.onBeforeRoundtrip = (z2ui5.onBeforeRoundtrip ?? []).filter((fn) => fn !== this._beforeBound);
+      z2ui5.onAfterRoundtrip = (z2ui5.onAfterRoundtrip ?? []).filter((fn) => fn !== this._afterBound);
+    },
+
+    _getTable() {
+      return z2ui5.oView?.byId(this.getProperty('tableId'));
     },
 
     readFilter() {
       try {
-        let id = this.getProperty("tableId");
-        let oTable = z2ui5.oView.byId(id);
-        this.aFilters = oTable.getBinding().aFilters;
-      } catch (e) { (z2ui5.errors ??= []).push({ message: `UITableExt.readFilter failed`, error: e, ts: new Date().toISOString() }); }
+        this.aFilters = this._getTable()?.getBinding()?.aFilters;
+      } catch (e) {
+        _logError(`UITableExt.readFilter failed`, e);
+      }
     },
 
     _applyWhenRendered(oTable, fn) {
       if (oTable.getDomRef()) {
         fn();
-      } else {
-        const delegate = {
-          onAfterRendering: () => {
-            oTable.removeEventDelegate(delegate);
-            fn();
-          }
-        };
-        oTable.addEventDelegate(delegate);
+        return;
       }
+      const delegate = {
+        onAfterRendering: () => {
+          oTable.removeEventDelegate(delegate);
+          if (!this.bIsDestroyed) fn();
+        },
+      };
+      oTable.addEventDelegate(delegate);
     },
 
     _applyFilters(oTable, aFilters) {
-      oTable.getBinding().filter(aFilters);
-      const opSymbols = {
-        EQ: "", NE: "!", LT: "<", LE: "<=", GT: ">", GE: ">=",
-        BT: "...", Contains: "*", StartsWith: "^", EndsWith: "$"
-      };
+      if (!aFilters) return;
+      const binding = oTable.getBinding();
+      if (!binding) return;
+      binding.filter(aFilters);
+      const columns = oTable.getColumns();
 
-      aFilters.forEach(function(oFilter) {
+      for (const oFilter of aFilters) {
         const sProperty = oFilter.sPath || oFilter.aFilters?.[0]?.sPath;
-        if (!sProperty) return;
+        if (!sProperty) continue;
 
-        oTable.getColumns().forEach(function(oCol) {
-          if (oCol.getFilterProperty && oCol.getFilterProperty() === sProperty) {
-            const operator = oFilter.sOperator;
-            let vValue = oFilter.oValue1 !== undefined ? oFilter.oValue1 : oFilter.oValue2;
+        const operator = oFilter.sOperator;
+        const vValue = oFilter.oValue1 ?? oFilter.oValue2 ?? oFilter.aFilters?.[0]?.oValue1;
+        const displayFn =
+          operator === 'BT'
+            ? (v) => `${v ?? ''}...${oFilter.oValue2 ?? ''}`
+            : (filterDisplayFns[operator] ?? ((v) => `${opSymbols[operator] || ''}${v ?? ''}`));
+        const display = displayFn(vValue);
 
-            if (vValue === undefined && oFilter.aFilters && oFilter.aFilters[0].oValue1 !== undefined) {
-              vValue = oFilter.aFilters[0].oValue1;
-            }
-
-            let display;
-            if (operator === "BT") {
-              const vValue2 = oFilter.oValue2 !== undefined ? oFilter.oValue2 : "";
-              display = (vValue != null ? vValue : "") + opSymbols["BT"] + (vValue2 != null ? vValue2 : "");
-            } else if (operator === "Contains") {
-              display = "*" + (vValue != null ? vValue : "") + "*";
-            } else if (operator === "StartsWith") {
-              display = "^" + (vValue != null ? vValue : "");
-            } else if (operator === "EndsWith") {
-              display = (vValue != null ? vValue : "") + "$";
-            } else {
-              display = (opSymbols[operator] || "") + (vValue != null ? vValue : "");
-            }
-
+        for (const oCol of columns) {
+          if (oCol.getFilterProperty?.() === sProperty) {
             oCol.setFilterValue(display);
             oCol.setFiltered(!!display);
           }
-        });
-      });
+        }
+      }
+    },
+
+    _applyToTable(applyFn, errorMsg) {
+      try {
+        const oTable = this._getTable();
+        if (!oTable) return;
+        this._applyWhenRendered(oTable, () => applyFn(oTable));
+      } catch (e) {
+        _logError(errorMsg, e);
+      }
     },
 
     setFilter() {
-      try {
-        let oTable = z2ui5.oView.byId(this.getProperty("tableId"));
-        if (!oTable) return;
-        this._applyWhenRendered(oTable, () => this._applyFilters(oTable, this.aFilters));
-      } catch (e) { (z2ui5.errors ??= []).push({ message: `UITableExt.setFilter failed`, error: e, ts: new Date().toISOString() }); }
+      this._applyToTable((oTable) => this._applyFilters(oTable, this.aFilters), `UITableExt.setFilter failed`);
     },
 
     readSort() {
       try {
-        let id = this.getProperty("tableId");
-        let oTable = z2ui5.oView.byId(id);
-        this.aSorters = oTable.getBinding().aSorters;
-      } catch (e) { (z2ui5.errors ??= []).push({ message: `UITableExt.readSort failed`, error: e, ts: new Date().toISOString() }); }
+        this.aSorters = this._getTable()?.getBinding()?.aSorters;
+      } catch (e) {
+        _logError(`UITableExt.readSort failed`, e);
+      }
     },
 
     _applySorters(oTable, aSorters) {
-      oTable.getBinding().sort(aSorters);
-      aSorters.forEach(function(srt, idx) {
-        oTable.getColumns().forEach(function(oCol) {
-          if (oCol.getSortProperty && oCol.getSortProperty() === srt.sPath) {
+      if (!aSorters) return;
+      const binding = oTable.getBinding();
+      if (!binding) return;
+      binding.sort(aSorters);
+      const columns = oTable.getColumns();
+      for (const [idx, srt] of aSorters.entries()) {
+        for (const oCol of columns) {
+          if (oCol.getSortProperty?.() === srt.sPath) {
             oCol.setSorted(true);
-            oCol.setSortOrder(srt.bDescending ? "Descending" : "Ascending");
-            if (oCol.setSortIndex) oCol.setSortIndex(idx);
+            oCol.setSortOrder(srt.bDescending ? 'Descending' : 'Ascending');
+            oCol.setSortIndex?.(idx);
           }
-        });
-      });
+        }
+      }
     },
 
     setSort() {
-      try {
-        let oTable = z2ui5.oView.byId(this.getProperty("tableId"));
-        if (!oTable) return;
-        this._applyWhenRendered(oTable, () => this._applySorters(oTable, this.aSorters));
-      } catch (e) { (z2ui5.errors ??= []).push({ message: `UITableExt.setSort failed`, error: e, ts: new Date().toISOString() }); }
+      this._applyToTable((oTable) => this._applySorters(oTable, this.aSorters), `UITableExt.setSort failed`);
     },
-    renderer(oRM, oControl) { }
+    renderer() {},
   });
-}
-);
+});
 
-sap.ui.define("z2ui5/Util", [], () => {
-  "use strict";
+sap.ui.define('z2ui5/Util', [], () => {
+  'use strict';
+  const parseDmy = (d) => [+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8)];
   return {
     DateCreateObject: (s) => new Date(s),
-    //  DateAbapTimestampToDate: (sTimestamp) => new sap.gantt.misc.Format.abapTimestampToDate(sTimestamp), commented for UI5 2.x compatibility
-    DateAbapDateToDateObject: (d) => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8)),
-    DateAbapDateTimeToDateObject: (d, t = '000000') => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8), t.slice(0, 2), t.slice(2, 4), t.slice(4, 6)),
+    DateAbapDateToDateObject: (d) => new Date(...parseDmy(d)),
+    DateAbapDateTimeToDateObject: (d, t = '000000') =>
+      new Date(...parseDmy(d), +t.slice(0, 2), +t.slice(2, 4), +t.slice(4, 6)),
   };
-}
-);
-sap.ui.require(["z2ui5/Util"], (Util) => {
-  z2ui5.Util = Util;
-}
-);
+});
+sap.ui.require(['z2ui5/Util'], (Util) => (z2ui5.Util = Util));
 
-sap.ui.define("z2ui5/Favicon", ["sap/ui/core/Control"], (Control) => {
-  "use strict";
-  return Control.extend("z2ui5.Favicon", {
+sap.ui.define('z2ui5/Favicon', ['sap/ui/core/Control'], (Control) => {
+  'use strict';
+  return Control.extend('z2ui5.Favicon', {
     metadata: {
       properties: {
         favicon: {
-          type: "string"
+          type: 'string',
         },
-      }
+      },
     },
     setFavicon(val) {
-      this.setProperty("favicon", val);
-      let headTitle = document.querySelector('head');
-      let setFavicon = document.createElement('link');
-      setFavicon.setAttribute('rel', 'shortcut icon');
-      setFavicon.setAttribute('href', val);
-      headTitle.appendChild(setFavicon);
+      this.setProperty('favicon', val);
+      const existing = document.head.querySelector('link[rel="shortcut icon"]');
+      if (existing) {
+        existing.href = val;
+      } else {
+        document.head.appendChild(Object.assign(document.createElement('link'), { rel: 'shortcut icon', href: val }));
+      }
     },
-    renderer(oRm, oControl) { }
+    renderer() {},
   });
-}
-);
+});
 
-sap.ui.define("z2ui5/Dirty", ["sap/ui/core/Control"], (Control) => {
-  "use strict";
-  return Control.extend("z2ui5.Dirty", {
+sap.ui.define('z2ui5/Dirty', ['sap/ui/core/Control'], (Control) => {
+  'use strict';
+  return Control.extend('z2ui5.Dirty', {
     metadata: {
       properties: {
         isDirty: {
-          type: "boolean",
-          defaultValue: false
+          type: 'boolean',
+          defaultValue: false,
         },
-      }
+      },
     },
     setIsDirty(val) {
-      
+      this.setProperty('isDirty', val);
       const fallback = () => {
-        window.onbeforeunload = function (e) {
-          if (val) {
-            e.preventDefault();
-          }
-        }
-      }
+        window.onbeforeunload = val
+          ? (e) => {
+              e.preventDefault();
+              e.returnValue = '';
+            }
+          : null;
+      };
 
-      // Container can be loaded (only available in SAPUI5, not in OpenUI5) and we are in Fiori Launchpad?
-      //   Yes: We can use the containers ability to prevent data loss
-      //   No: We fallback to window.onbeforeunload event
-      sap.ui.require([ "sap/ushell/Container" ], async (Container) => {
-        
-        if (Container && z2ui5.oLaunchpadService) {          
-          Container.setDirtyFlag(val);
-        } else {
-          fallback();
-        }
-        
-      }, fallback);
-      
+      // use FLP dirty flag (SAPUI5 only) when in Launchpad, else fall back to browser unload
+      sap.ui.require(
+        ['sap/ushell/Container'],
+        (Container) => {
+          if (this.bIsDestroyed) return;
+          try {
+            if (Container && z2ui5.oLaunchpadService) Container.setDirtyFlag(val);
+            else fallback();
+          } catch (e) {
+            _logError(`Dirty.setIsDirty: setDirtyFlag failed`, e);
+            fallback();
+          }
+        },
+        fallback,
+      );
     },
-    renderer(oRm, oControl) { }
+    exit() {
+      window.onbeforeunload = null;
+    },
+    renderer() {},
   });
-}
-);
+});
