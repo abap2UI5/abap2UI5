@@ -36,7 +36,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        const oOwnerComponent = this.getOwnerComponent();` && |\n| &&
              `        z2ui5.oOwnerComponent = oOwnerComponent;` && |\n| &&
              `        const uri = oOwnerComponent.getManifest()?.['sap.app']?.dataSources?.http?.uri;` && |\n| &&
-             `        if (!z2ui5.checkLocal && !uri) throw new Error('manifest.json: sap.app.dataSources.http.uri is missing');` && |\n| &&
              `        z2ui5.oConfig.pathname = z2ui5.checkLocal ? window.location.href : uri;` && |\n| &&
              `` && |\n| &&
              `        Object.assign(z2ui5, {` && |\n| &&
@@ -418,9 +417,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n| &&
              `` && |\n| &&
              `    renderer(oRm, oControl) {` && |\n| &&
+             `      oRm.openStart('span', oControl);` && |\n| &&
              |\n|.
     result = result &&
-             `      oRm.openStart('span', oControl);` && |\n| &&
              `      oRm.addStyle('display', 'none');` && |\n| &&
              `      oRm.openEnd();` && |\n| &&
              `      oRm.close('span');` && |\n| &&
@@ -820,9 +819,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        MultiInputId: {` && |\n| &&
              `          type: 'string',` && |\n| &&
              `        },` && |\n| &&
+             `        MultiInputName: {` && |\n| &&
              |\n|.
     result = result &&
-             `        MultiInputName: {` && |\n| &&
              `          type: 'string',` && |\n| &&
              `        },` && |\n| &&
              `        addedTokens: {` && |\n| &&
@@ -1222,9 +1221,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        _logError(``UITableExt.readFilter failed``, e);` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
+             `` && |\n| &&
              |\n|.
     result = result &&
-             `` && |\n| &&
              `    _applyWhenRendered(oTable, fn) {` && |\n| &&
              `      if (oTable.getDomRef()) {` && |\n| &&
              `        fn();` && |\n| &&
