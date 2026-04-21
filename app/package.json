@@ -9,7 +9,6 @@
   ],
   "main": "webapp/index.html",
   "devDependencies": {
-    "@abaplint/cli": "^2.118.10",
     "@sap/ui5-builder-webide-extension": "^1.1.9",
     "@sap/ux-ui5-tooling": "^1.17.1",
     "@ui5/cli": "^4.0.14",
