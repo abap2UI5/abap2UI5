@@ -37,7 +37,6 @@
     "@abaplint/transpiler-cli": "^2.13.9",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.59.1",
-    "@types/node": "^25.5.2",
     "eslint": "^10.0.0",
     "express": "^5.2.1",
     "globals": "^17.5.0",
