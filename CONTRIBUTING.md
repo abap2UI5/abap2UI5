@@ -249,7 +249,7 @@ Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ### Getting Help
 - **Issues:** [GitHub Issues](https://github.com/abap2UI5/abap2UI5/issues)
-- **Documentation:** [abap2UI5.org](http://abap2UI5.org) [11](#4-10) 
+- **Documentation:** [abap2UI5.org](https://abap2UI5.org) [11](#4-10) 
 - **Git Help:** [Git Documentation](https://git-scm.com/doc)
 - **abapGit Help:** [abapGit Documentation](https://docs.abapgit.org/)
 
@@ -282,4 +282,4 @@ Your contributions help make abap2UI5 better for the entire ABAP community. Whet
 
 ---
 
-*For more information, visit [abap2UI5.org](http://abap2UI5.org) or explore our [sample applications](https://github.com/abap2UI5/abap2UI5-samples).*
+*For more information, visit [abap2UI5.org](https://abap2UI5.org) or explore our [sample applications](https://github.com/abap2UI5/abap2UI5-samples).*

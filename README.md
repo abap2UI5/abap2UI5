@@ -26,7 +26,7 @@
 
 </details>
 
-<p align="center"><a href="http://www.abap2ui5.org" target="_blank"><img src="https://github.com/abap2UI5/abap2UI5/assets/102328295/52ac0bb6-a219-4e9d-9e4f-62698dab3063" width="200"></a></p>
+<p align="center"><a href="https://www.abap2ui5.org" target="_blank"><img src="https://github.com/abap2UI5/abap2UI5/assets/102328295/52ac0bb6-a219-4e9d-9e4f-62698dab3063" width="200"></a></p>
 
 <p align="center">
   <strong>Build UI5 Apps Purely in ABAP – no JavaScript, OData, or RAP needed.</strong>
@@ -37,7 +37,7 @@
 </p>
 
 <p align="center">
-  <a href="http://abap2UI5.org">📚 Documentation</a> •
+  <a href="https://abap2UI5.org">📚 Documentation</a> •
   <a href="https://github.com/abap2UI5/abap2UI5-samples">🎯 Samples</a> •
   <a href="https://github.com/abap2UI5/abap2UI5/issues">💬 Issues</a> •
   <a href="https://www.linkedin.com/company/abap2ui5">🔗 LinkedIn</a> •
