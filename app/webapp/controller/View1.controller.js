@@ -276,7 +276,7 @@ sap.ui.define(
             z2ui5.oViewPopup?.Fragment.byId('popupId', openById) ||
             z2ui5.oViewNest?.byId(openById) ||
             z2ui5.oViewNest2?.byId(openById) ||
-            Element.getElementById(openById);
+            (Element.getElementById?.(openById) ?? sap.ui.getCore?.()?.byId?.(openById));
           if (!oControl) {
             _logError(`displayPopover: openBy control '${openById}' not found`);
             return;
