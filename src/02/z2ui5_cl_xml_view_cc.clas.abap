@@ -536,7 +536,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     result = mo_view.
     mo_view->_generic( name   = `MultiInputExt`
                        ns     = `z2ui5`
-                       t_prop = VALUE #( ( n = `MultiInputId` v = multiinputid )
+                       t_prop = VALUE #( ( n = `multiInputId` v = multiinputid )
                                          ( n = `MultiInputName` v = multiinputname )
                                          ( n = `change` v = change )
                                          ( n = `addedTokens` v = addedtokens )
@@ -549,7 +549,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     result = mo_view.
     mo_view->_generic( name   = `Tree`
                        ns     = `z2ui5`
-                       t_prop = VALUE #( ( n = `tree_id`   v = tree_id )
+                       t_prop = VALUE #( ( n = `treeId`   v = tree_id )
          ) ).
 
   ENDMETHOD.

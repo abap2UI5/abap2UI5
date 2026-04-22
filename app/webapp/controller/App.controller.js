@@ -1,6 +1,6 @@
-function _logError(msg, err) {
+const _logError = (msg, err) => {
   (z2ui5.errors ??= []).push({ message: msg, ...(err !== undefined && { error: err }), ts: new Date().toISOString() });
-}
+};
 
 sap.ui.define(
   [
@@ -81,10 +81,10 @@ sap.ui.define('z2ui5/Timer', ['sap/ui/core/Control'], (Control) => {
       if (!this.getProperty('checkActive')) return;
       clearTimeout(this._timerId);
       this._timerId = setTimeout(() => {
-        if (this.bIsDestroyed) return;
+        if (this.isDestroyed()) return;
         if (!this.getProperty('checkRepeat')) this.setProperty('checkActive', false, true);
         this.fireFinished();
-        if (this.getProperty('checkRepeat') && !this.bIsDestroyed) this.delayedCall();
+        if (this.getProperty('checkRepeat') && !this.isDestroyed()) this.delayedCall();
       }, this.getProperty('delayMS'));
     },
     renderer(oRm, oControl) {
@@ -203,7 +203,7 @@ sap.ui.define('z2ui5/LPTitle', ['sap/ui/core/Control'], (Control) => {
       sap.ui.require(
         ['sap/ushell/services/AppConfiguration'],
         (AppConfiguration) => {
-          if (this.bIsDestroyed) return;
+          if (this.isDestroyed()) return;
           try {
             AppConfiguration.setApplicationFullWidth(val);
           } catch (e) {
@@ -246,14 +246,14 @@ sap.ui.define('z2ui5/Tree', ['sap/ui/core/Control'], (Control) => {
   return Control.extend('z2ui5.Tree', {
     metadata: {
       properties: {
-        tree_id: {
+        treeId: {
           type: 'string',
         },
       },
     },
 
     _getTreeBinding() {
-      return z2ui5.oView?.byId(this.getProperty('tree_id'))?.getBinding('items');
+      return z2ui5.oView?.byId(this.getProperty('treeId'))?.getBinding('items');
     },
 
     setBackend() {
@@ -385,7 +385,7 @@ sap.ui.define('z2ui5/Scrolling', ['sap/ui/core/Control'], (Control) => {
             const delegate = {
               onAfterRendering: () => {
                 control.removeEventDelegate(delegate);
-                if (!this.bIsDestroyed) this._restoreScrollPosition(item);
+                if (!this.isDestroyed()) this._restoreScrollPosition(item);
               },
             };
             control.addEventDelegate(delegate);
@@ -536,7 +536,7 @@ sap.ui.define('z2ui5/Geolocation', ['sap/ui/core/Control'], (Control) => {
     },
 
     callbackPosition({ coords }) {
-      if (this.bIsDestroyed) return;
+      if (this.isDestroyed()) return;
       for (const prop of _GEO_PROPS) this.setProperty(prop, coords[prop]?.toString() ?? '', true);
       this.fireFinished();
     },
@@ -720,7 +720,7 @@ sap.ui.define(
       _readFile(file) {
         const reader = new FileReader();
         reader.onload = () => {
-          if (this.bIsDestroyed) return;
+          if (this.isDestroyed()) return;
           this.setProperty('value', reader.result);
           this.fireUpload();
         };
@@ -794,7 +794,7 @@ sap.ui.define('z2ui5/MultiInputExt', ['sap/ui/core/Control', 'sap/m/Token'], (Co
   return Control.extend('z2ui5.MultiInputExt', {
     metadata: {
       properties: {
-        MultiInputId: {
+        multiInputId: {
           type: 'string',
         },
         MultiInputName: {
@@ -840,7 +840,7 @@ sap.ui.define('z2ui5/MultiInputExt', ['sap/ui/core/Control', 'sap/m/Token'], (Co
     },
     renderer() {},
     setControl() {
-      const table = z2ui5.oView?.byId(this.getProperty('MultiInputId'));
+      const table = z2ui5.oView?.byId(this.getProperty('multiInputId'));
       if (!table || this.getProperty('checkInit')) return;
       this.setProperty('checkInit', true);
       try {
@@ -922,7 +922,7 @@ sap.ui.define('z2ui5/SmartMultiInputExt', ['sap/ui/core/Control'], (Control) => 
       this.setProperty('rangeData', aRangeData);
       try {
         const input = await this.inputInitialized();
-        if (this.bIsDestroyed || !input) return;
+        if (this.isDestroyed() || !input) return;
         input.setRangeData(
           aRangeData.map((oRangeData) =>
             Object.fromEntries(
@@ -1006,8 +1006,8 @@ sap.ui.define(
       },
 
       capture() {
-        const video = document.getElementById('zvideo');
-        const canvas = document.getElementById('zcanvas');
+        const video = document.getElementById(`${this.getId()}-video`);
+        const canvas = document.getElementById(`${this.getId()}-canvas`);
         if (!video || !canvas) return;
         const { videoWidth, videoHeight } = video;
         Object.assign(canvas, { width: videoWidth, height: videoHeight });
@@ -1030,7 +1030,7 @@ sap.ui.define(
         } catch (e) {
           _logError(`CameraPicture: thumb toDataURL failed`, e);
         }
-        if (this.bIsDestroyed) return;
+        if (this.isDestroyed()) return;
         this.setProperty('value', resultb64);
         this.setProperty('thumbnail', thumbB64);
         this.fireOnPhoto({ photo: resultb64 });
@@ -1040,7 +1040,7 @@ sap.ui.define(
       _stopCamera() {
         for (const track of this._stream?.getTracks() ?? []) track.stop();
         this._stream = null;
-        const video = document.getElementById('zvideo');
+        const video = document.getElementById(`${this.getId()}-video`);
         if (video) video.srcObject = null;
       },
 
@@ -1057,7 +1057,7 @@ sap.ui.define(
             content: [
               new HTML({
                 id: `${this.getId()}PictureContainer`,
-                content: '<video style="width:100%;height:100%;object-fit:contain;" autoplay="true" id="zvideo">',
+                content: `<video style="width:100%;height:100%;object-fit:contain;" autoplay="true" id="${this.getId()}-video">`,
               }),
               new Button({
                 text: 'Capture',
@@ -1067,7 +1067,7 @@ sap.ui.define(
                 },
               }),
               new HTML({
-                content: '<canvas hidden id="zcanvas" style="overflow:auto"></canvas>',
+                content: `<canvas hidden id="${this.getId()}-canvas" style="overflow:auto"></canvas>`,
               }),
             ],
             endButton: new Button({
@@ -1081,8 +1081,8 @@ sap.ui.define(
         }
 
         this._oScanDialog.attachEventOnce('afterOpen', async () => {
-          if (this.bIsDestroyed) return;
-          const video = document.getElementById('zvideo');
+          if (this.isDestroyed()) return;
+          const video = document.getElementById(`${this.getId()}-video`);
           if (!video) {
             _logError(`CameraPicture: video element not found after dialog open`);
             return;
@@ -1095,7 +1095,7 @@ sap.ui.define(
           try {
             const stream = await navigator.mediaDevices?.getUserMedia?.(options);
             if (!stream) return;
-            if (this.bIsDestroyed) {
+            if (this.isDestroyed()) {
               for (const t of stream.getTracks()) t.stop();
               return;
             }
@@ -1136,7 +1136,7 @@ sap.ui.define(
           const devices = await navigator.mediaDevices?.enumerateDevices();
           if (!devices) return;
           for (const device of devices) {
-            if (device.kind === 'videoinput' && !this.bIsDestroyed)
+            if (device.kind === 'videoinput' && !this.isDestroyed())
               this.addItem(new Item({ key: device.deviceId, text: device.label }));
           }
         } catch (err) {
@@ -1206,7 +1206,7 @@ sap.ui.define('z2ui5/UITableExt', ['sap/ui/core/Control'], (Control) => {
       const delegate = {
         onAfterRendering: () => {
           oTable.removeEventDelegate(delegate);
-          if (!this.bIsDestroyed) fn();
+          if (!this.isDestroyed()) fn();
         },
       };
       oTable.addEventDelegate(delegate);
@@ -1347,7 +1347,7 @@ sap.ui.define('z2ui5/Dirty', ['sap/ui/core/Control'], (Control) => {
       sap.ui.require(
         ['sap/ushell/Container'],
         (Container) => {
-          if (this.bIsDestroyed) return;
+          if (this.isDestroyed()) return;
           try {
             if (Container && z2ui5.oLaunchpadService) Container.setDirtyFlag(val);
             else fallback();

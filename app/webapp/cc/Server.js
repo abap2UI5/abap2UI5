@@ -101,7 +101,7 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
         const customJs = params?.S_FOLLOW_UP_ACTION?.CUSTOM_JS;
         if (customJs) {
           queueMicrotask(() => {
-            if (oController.bIsDestroyed) return;
+            if (oController.isDestroyed()) return;
             for (const item of customJs) {
               try {
                 const mParams = item.split("'");
@@ -199,9 +199,11 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
 
       const { contentDocument } = iframe;
       if (contentDocument) {
-        contentDocument.open();
-        contentDocument.write(errorMessage);
-        contentDocument.close();
+        const pre = contentDocument.createElement('pre');
+        pre.style.cssText =
+          'margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;';
+        pre.textContent = errorMessage;
+        (contentDocument.body || contentDocument.documentElement).appendChild(pre);
       }
     },
   };

@@ -60,7 +60,7 @@ sap.ui.define(
         try {
           if (sap.ui.require('sap/ushell/Container')) {
             const service = await this.getService('ShellUIService');
-            if (!this.bIsDestroyed) z2ui5.oLaunchpadService = service;
+            if (!this.isDestroyed()) z2ui5.oLaunchpadService = service;
           }
         } catch (e) {
           (z2ui5.errors ??= []).push({
@@ -72,7 +72,7 @@ sap.ui.define(
 
         try {
           const { version, buildTimestamp, gav } = await VersionInfo.load();
-          if (!this.bIsDestroyed) z2ui5.oConfig.UI5VersionInfo = { version, buildTimestamp, gav };
+          if (!this.isDestroyed()) z2ui5.oConfig.UI5VersionInfo = { version, buildTimestamp, gav };
         } catch (e) {
           (z2ui5.errors ??= []).push({
             message: `Component: VersionInfo load failed`,
@@ -92,7 +92,7 @@ sap.ui.define(
         document.removeEventListener('keydown', this._boundKeydown);
         window.removeEventListener('popstate', this._boundPopstate);
         Server.endSession();
-        UIComponent.prototype.exit?.call(this);
+        UIComponent.prototype.exit.call(this);
       },
     });
   },

@@ -21,14 +21,14 @@ sap.ui.define(
     let _xsltProcessor = null;
     const _xmlSerializer = new XMLSerializer();
     const _domParser = new DOMParser();
-    function getXsltProcessor() {
+    const getXsltProcessor = () => {
       if (!_xsltProcessor) {
         const xsltDoc = _domParser.parseFromString(PRETTIFY_XSL, 'application/xml');
         _xsltProcessor = new XSLTProcessor();
         _xsltProcessor.importStylesheet(xsltDoc);
       }
       return _xsltProcessor;
-    }
+    };
 
     return Control.extend('z2ui5.cc.DebugTool', {
       prettifyXml(sourceXml) {
@@ -155,7 +155,7 @@ sap.ui.define(
               controller: this,
             });
           }
-          if (this.bIsDestroyed) {
+          if (this.isDestroyed()) {
             this.oDialog?.destroy();
             this.oDialog = null;
             return;

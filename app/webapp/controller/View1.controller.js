@@ -33,7 +33,7 @@ sap.ui.define(
   ) => {
     'use strict';
 
-    function runCallbacks(arr, ...args) {
+    const runCallbacks = (arr, ...args) => {
       for (const fn of arr ?? []) {
         try {
           fn?.(...args);
@@ -41,7 +41,7 @@ sap.ui.define(
           _logError(`runCallbacks: callback failed`, e);
         }
       }
-    }
+    };
 
     const _msgParser = new DOMParser();
     const _sanitizeEl = document.createElement('div');
@@ -55,7 +55,7 @@ sap.ui.define(
         ts: new Date().toISOString(),
       });
 
-    function isValidRedirectURL(url) {
+    const isValidRedirectURL = (url) => {
       if (!url) return false;
       try {
         const { origin, protocol } = new URL(url, window.location.origin);
@@ -72,17 +72,17 @@ sap.ui.define(
         _logError(`Security: Invalid URL format: ${url}`, e);
         return false;
       }
-    }
+    };
 
-    function copyToClipboard(textToCopy) {
+    const copyToClipboard = (textToCopy) => {
       if (!navigator.clipboard?.writeText) {
         _logError(`Clipboard: writeText API not available`);
         return;
       }
       navigator.clipboard.writeText(textToCopy).catch((err) => _logError(`Clipboard: writeText failed`, err));
-    }
+    };
 
-    function sanitizeMessageDetails(html) {
+    const sanitizeMessageDetails = (html) => {
       const doc = _msgParser.parseFromString(html, 'text/html');
       const items = [...doc.querySelectorAll('li')];
       if (items.length) {
@@ -95,9 +95,9 @@ sap.ui.define(
       }
       _sanitizeEl.textContent = doc.body.textContent;
       return _sanitizeEl.innerHTML;
-    }
+    };
 
-    function withCrossAppNavigator(callback) {
+    const withCrossAppNavigator = (callback) => {
       sap.ui.require(
         ['sap/ushell/Container'],
         (ushellContainer) => {
@@ -114,15 +114,15 @@ sap.ui.define(
         },
         () => _logError(`CrossAppNav: sap/ushell/Container not available`),
       );
-    }
+    };
 
-    function navigateContainer(lookup, args) {
+    const navigateContainer = (lookup, args) => {
       try {
         lookup(args[1])?.to(lookup(args[2]));
       } catch (e) {
         _logError(`navigateContainer: navigation failed`, e);
       }
-    }
+    };
 
     const _hashChanger = HashChanger.getInstance();
     const _URLHelper = mobileLibrary.URLHelper;
@@ -245,7 +245,7 @@ sap.ui.define(
           controller: z2ui5.oControllerPopup,
           id: 'popupId',
         });
-        if (!z2ui5.oApp || z2ui5.oApp.bIsDestroyed) {
+        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {
           oFragment.destroy();
           return;
         }
@@ -255,40 +255,47 @@ sap.ui.define(
         oFragment.open();
       },
       displayPopover(xml, viewProp, openById) {
-        sap.ui.require(
-          ['sap/ui/core/Element'],
-          async (Element) => {
-            try {
-              const oModel = this._createViewModel();
-              const oFragment = await Fragment.load({
-                definition: xml,
-                controller: z2ui5.oControllerPopover,
-                id: 'popoverId',
-              });
-              if (!z2ui5.oApp || z2ui5.oApp.bIsDestroyed) {
-                oFragment.destroy();
-                return;
+        return new Promise((resolve) => {
+          sap.ui.require(
+            ['sap/ui/core/Element'],
+            async (Element) => {
+              try {
+                const oModel = this._createViewModel();
+                const oFragment = await Fragment.load({
+                  definition: xml,
+                  controller: z2ui5.oControllerPopover,
+                  id: 'popoverId',
+                });
+                if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {
+                  oFragment.destroy();
+                  return;
+                }
+                oFragment.setModel(oModel);
+                oFragment.Fragment = Fragment;
+                z2ui5[viewProp] = oFragment;
+                const oControl =
+                  z2ui5.oView?.byId(openById) ||
+                  z2ui5.oViewPopup?.Fragment.byId('popupId', openById) ||
+                  z2ui5.oViewNest?.byId(openById) ||
+                  z2ui5.oViewNest2?.byId(openById) ||
+                  Element.getElementById(openById);
+                if (!oControl) {
+                  _logError(`displayPopover: openBy control '${openById}' not found`);
+                  return;
+                }
+                oFragment.openBy(oControl);
+              } catch (e) {
+                _logError(`displayPopover: failed`, e);
+              } finally {
+                resolve();
               }
-              oFragment.setModel(oModel);
-              oFragment.Fragment = Fragment;
-              z2ui5[viewProp] = oFragment;
-              const oControl =
-                z2ui5.oView?.byId(openById) ||
-                z2ui5.oViewPopup?.Fragment.byId('popupId', openById) ||
-                z2ui5.oViewNest?.byId(openById) ||
-                z2ui5.oViewNest2?.byId(openById) ||
-                Element.getElementById(openById);
-              if (!oControl) {
-                _logError(`displayPopover: openBy control '${openById}' not found`);
-                return;
-              }
-              oFragment.openBy(oControl);
-            } catch (e) {
-              _logError(`displayPopover: failed`, e);
-            }
-          },
-          () => _logError(`displayPopover: sap/ui/core/Element not available`),
-        );
+            },
+            () => {
+              _logError(`displayPopover: sap/ui/core/Element not available`);
+              resolve();
+            },
+          );
+        });
       },
       async displayNestedView(xml, viewProp, viewNestId, controller) {
         const oModel = this._createViewModel();
@@ -297,7 +304,7 @@ sap.ui.define(
           controller,
           preprocessors: { xml: { models: { template: oModel } } },
         });
-        if (!z2ui5.oApp || z2ui5.oApp.bIsDestroyed) {
+        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {
           oView.destroy();
           return;
         }
@@ -606,7 +613,7 @@ sap.ui.define(
           id: 'mainView',
           preprocessors: { xml: { models: { template: oViewModel } } },
         });
-        if (!z2ui5.oApp || z2ui5.oApp.bIsDestroyed) {
+        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {
           z2ui5.oView.destroy();
           if (switchPath) oModel.destroy();
           z2ui5.oView = null;
