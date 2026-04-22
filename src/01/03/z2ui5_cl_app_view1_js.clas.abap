@@ -296,7 +296,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            z2ui5.oViewPopup?.Fragment.byId('popupId', openById) ||` && |\n| &&
              `            z2ui5.oViewNest?.byId(openById) ||` && |\n| &&
              `            z2ui5.oViewNest2?.byId(openById) ||` && |\n| &&
-             `            Element.getElementById(openById);` && |\n| &&
+             `            (Element.getElementById?.(openById) ?? sap.ui.getCore?.()?.byId?.(openById));` && |\n| &&
              `          if (!oControl) {` && |\n| &&
              `            _logError(``displayPopover: openBy control '${openById}' not found``);` && |\n| &&
              `            return;` && |\n| &&
