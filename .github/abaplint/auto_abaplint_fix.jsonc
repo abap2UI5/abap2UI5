@@ -17,7 +17,7 @@
   "rules": {
 
     "in_statement_indentation": true,
-    "indentation" : true,
+    "indentation": true,
     "double_space": true,
     "align_parameters": true,
     "align_pseudo_comments": false,

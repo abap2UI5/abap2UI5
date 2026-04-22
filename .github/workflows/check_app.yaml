@@ -7,6 +7,9 @@ concurrency:
   group: check_app-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   check_app:
     runs-on: ubuntu-latest
