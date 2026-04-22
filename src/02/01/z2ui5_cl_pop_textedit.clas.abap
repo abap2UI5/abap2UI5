@@ -13,7 +13,6 @@ CLASS z2ui5_cl_pop_textedit DEFINITION PUBLIC.
       RETURNING
         VALUE(r_result)  TYPE REF TO z2ui5_cl_pop_textedit.
 
-    DATA client            TYPE REF TO z2ui5_if_client.
     DATA mv_stretch_active TYPE abap_bool.
     DATA mv_title          TYPE string.
     DATA mv_check_editable TYPE abap_bool.
@@ -33,6 +32,7 @@ CLASS z2ui5_cl_pop_textedit DEFINITION PUBLIC.
         VALUE(result) TYPE ty_s_result.
 
   PROTECTED SECTION.
+    DATA client TYPE REF TO z2ui5_if_client.
 
   PRIVATE SECTION.
 ENDCLASS.
