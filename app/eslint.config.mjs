@@ -3,10 +3,7 @@ import globals from 'globals';
 
 export default [
   {
-    ignores: ['src/', 'node/', '.github/'],
-  },
-  {
-    files: ['app/webapp/**/*.js'],
+    files: ['webapp/**/*.js'],
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'script',
