@@ -34,6 +34,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    'sap/m/library',` && |\n| &&
              `    'sap/ui/core/routing/HashChanger',` && |\n| &&
              `    'sap/ui/util/Storage',` && |\n| &&
+             `    'sap/ui/core/Element',` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    Controller,` && |\n| &&
@@ -50,6 +51,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    mobileLibrary,` && |\n| &&
              `    HashChanger,` && |\n| &&
              `    Storage,` && |\n| &&
+             `    Element,` && |\n| &&
              `  ) => {` && |\n| &&
              `    'use strict';` && |\n| &&
              `` && |\n| &&
@@ -274,48 +276,35 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        z2ui5[viewProp] = oFragment;` && |\n| &&
              `        oFragment.open();` && |\n| &&
              `      },` && |\n| &&
-             `      displayPopover(xml, viewProp, openById) {` && |\n| &&
-             `        return new Promise((resolve) => {` && |\n| &&
-             `          sap.ui.require(` && |\n| &&
-             `            ['sap/ui/core/Element'],` && |\n| &&
-             `            async (Element) => {` && |\n| &&
-             `              try {` && |\n| &&
-             `                const oModel = this._createViewModel();` && |\n| &&
-             `                const oFragment = await Fragment.load({` && |\n| &&
-             `                  definition: xml,` && |\n| &&
-             `                  controller: z2ui5.oControllerPopover,` && |\n| &&
-             `                  id: 'popoverId',` && |\n| &&
-             `                });` && |\n| &&
-             `                if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {` && |\n| &&
-             `                  oFragment.destroy();` && |\n| &&
-             `                  return;` && |\n| &&
-             `                }` && |\n| &&
-             `                oFragment.setModel(oModel);` && |\n| &&
-             `                oFragment.Fragment = Fragment;` && |\n| &&
-             `                z2ui5[viewProp] = oFragment;` && |\n| &&
-             `                const oControl =` && |\n| &&
-             `                  z2ui5.oView?.byId(openById) ||` && |\n| &&
-             `                  z2ui5.oViewPopup?.Fragment.byId('popupId', openById) ||` && |\n| &&
-             `                  z2ui5.oViewNest?.byId(openById) ||` && |\n| &&
-             `                  z2ui5.oViewNest2?.byId(openById) ||` && |\n| &&
-             `                  Element.getElementById(openById);` && |\n| &&
-             `                if (!oControl) {` && |\n| &&
-             `                  _logError(``displayPopover: openBy control '${openById}' not found``);` && |\n| &&
-             `                  return;` && |\n| &&
-             `                }` && |\n| &&
-             `                oFragment.openBy(oControl);` && |\n| &&
-             `              } catch (e) {` && |\n| &&
-             `                _logError(``displayPopover: failed``, e);` && |\n| &&
-             `              } finally {` && |\n| &&
-             `                resolve();` && |\n| &&
-             `              }` && |\n| &&
-             `            },` && |\n| &&
-             `            () => {` && |\n| &&
-             `              _logError(``displayPopover: sap/ui/core/Element not available``);` && |\n| &&
-             `              resolve();` && |\n| &&
-             `            },` && |\n| &&
-             `          );` && |\n| &&
-             `        });` && |\n| &&
+             `      async displayPopover(xml, viewProp, openById) {` && |\n| &&
+             `        try {` && |\n| &&
+             `          const oModel = this._createViewModel();` && |\n| &&
+             `          const oFragment = await Fragment.load({` && |\n| &&
+             `            definition: xml,` && |\n| &&
+             `            controller: z2ui5.oControllerPopover,` && |\n| &&
+             `            id: 'popoverId',` && |\n| &&
+             `          });` && |\n| &&
+             `          if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {` && |\n| &&
+             `            oFragment.destroy();` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
+             `          oFragment.setModel(oModel);` && |\n| &&
+             `          oFragment.Fragment = Fragment;` && |\n| &&
+             `          z2ui5[viewProp] = oFragment;` && |\n| &&
+             `          const oControl =` && |\n| &&
+             `            z2ui5.oView?.byId(openById) ||` && |\n| &&
+             `            z2ui5.oViewPopup?.Fragment.byId('popupId', openById) ||` && |\n| &&
+             `            z2ui5.oViewNest?.byId(openById) ||` && |\n| &&
+             `            z2ui5.oViewNest2?.byId(openById) ||` && |\n| &&
+             `            Element.getElementById(openById);` && |\n| &&
+             `          if (!oControl) {` && |\n| &&
+             `            _logError(``displayPopover: openBy control '${openById}' not found``);` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
+             `          oFragment.openBy(oControl);` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          _logError(``displayPopover: failed``, e);` && |\n| &&
+             `        }` && |\n| &&
              `      },` && |\n| &&
              `      async displayNestedView(xml, viewProp, viewNestId, controller) {` && |\n| &&
              `        const oModel = this._createViewModel();` && |\n| &&
@@ -418,8 +407,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          case 'CLIPBOARD_APP_STATE':` && |\n| &&
              `            copyToClipboard(``${window.location.href}#/z2ui5-xapp-state=${z2ui5.oResponse?.ID}``);` && |\n| &&
              `            break;` && |\n| &&
-             |\n|.
-    result = result &&
              `          case 'SET_ODATA_MODEL': {` && |\n| &&
              `            try {` && |\n| &&
              `              const oModel = new ODataModel({ serviceUrl: args[1], annotationURI: args[3] ?? '' });` && |\n| &&
@@ -431,6 +418,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          }` && |\n| &&
              `          case 'STORE_DATA': {` && |\n| &&
              `            const { TYPE, PREFIX, VALUE, KEY } = args[1];` && |\n| &&
+             |\n|.
+    result = result &&
              `            try {` && |\n| &&
              `              const oStorage = new Storage(Storage.Type[TYPE] ?? Storage.Type.session, PREFIX);` && |\n| &&
              `              if (VALUE === '' || VALUE == null) {` && |\n| &&

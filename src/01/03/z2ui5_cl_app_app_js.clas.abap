@@ -266,14 +266,14 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `  return Control.extend('z2ui5.Tree', {` && |\n| &&
              `    metadata: {` && |\n| &&
              `      properties: {` && |\n| &&
-             `        treeId: {` && |\n| &&
+             `        tree_id: {` && |\n| &&
              `          type: 'string',` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    _getTreeBinding() {` && |\n| &&
-             `      return z2ui5.oView?.byId(this.getProperty('treeId'))?.getBinding('items');` && |\n| &&
+             `      return z2ui5.oView?.byId(this.getProperty('tree_id'))?.getBinding('items');` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    setBackend() {` && |\n| &&
@@ -816,7 +816,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `  return Control.extend('z2ui5.MultiInputExt', {` && |\n| &&
              `    metadata: {` && |\n| &&
              `      properties: {` && |\n| &&
-             `        multiInputId: {` && |\n| &&
+             `        MultiInputId: {` && |\n| &&
              `          type: 'string',` && |\n| &&
              `        },` && |\n| &&
              `        MultiInputName: {` && |\n| &&
@@ -864,7 +864,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n| &&
              `    renderer() {},` && |\n| &&
              `    setControl() {` && |\n| &&
-             `      const table = z2ui5.oView?.byId(this.getProperty('multiInputId'));` && |\n| &&
+             `      const table = z2ui5.oView?.byId(this.getProperty('MultiInputId'));` && |\n| &&
              `      if (!table || this.getProperty('checkInit')) return;` && |\n| &&
              `      this.setProperty('checkInit', true);` && |\n| &&
              `      try {` && |\n| &&
