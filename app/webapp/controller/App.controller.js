@@ -246,14 +246,14 @@ sap.ui.define('z2ui5/Tree', ['sap/ui/core/Control'], (Control) => {
   return Control.extend('z2ui5.Tree', {
     metadata: {
       properties: {
-        treeId: {
+        tree_id: {
           type: 'string',
         },
       },
     },
 
     _getTreeBinding() {
-      return z2ui5.oView?.byId(this.getProperty('treeId'))?.getBinding('items');
+      return z2ui5.oView?.byId(this.getProperty('tree_id'))?.getBinding('items');
     },
 
     setBackend() {
@@ -794,7 +794,7 @@ sap.ui.define('z2ui5/MultiInputExt', ['sap/ui/core/Control', 'sap/m/Token'], (Co
   return Control.extend('z2ui5.MultiInputExt', {
     metadata: {
       properties: {
-        multiInputId: {
+        MultiInputId: {
           type: 'string',
         },
         MultiInputName: {
@@ -840,7 +840,7 @@ sap.ui.define('z2ui5/MultiInputExt', ['sap/ui/core/Control', 'sap/m/Token'], (Co
     },
     renderer() {},
     setControl() {
-      const table = z2ui5.oView?.byId(this.getProperty('multiInputId'));
+      const table = z2ui5.oView?.byId(this.getProperty('MultiInputId'));
       if (!table || this.getProperty('checkInit')) return;
       this.setProperty('checkInit', true);
       try {
