@@ -9,11 +9,15 @@
   ],
   "main": "webapp/index.html",
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@sap/ui5-builder-webide-extension": "^1.1.9",
     "@sap/ux-ui5-tooling": "^1.17.1",
     "@ui5/cli": "^4.0.14",
     "@ui5/linter": "^1.12.0",
+    "eslint": "^10.0.0",
+    "globals": "^17.5.0",
     "mbt": "^1.2.34",
+    "prettier": "^3.8.1",
     "rimraf": "^6.0.1"
   },
   "scripts": {
@@ -29,7 +33,10 @@
     "undeploy": "cf undeploy z2ui5 --delete-services --delete-service-keys --delete-service-brokers",
     "deploy-test": "npm run build && fiori deploy --config ui5-deploy.yaml --testMode true",
     "build:cf": "ui5 build preload --clean-dest --config ui5-deploy.yaml --include-task=generateCachebusterInfo",
-    "build:mta": "rimraf resources mta_archives && mbt build"
+    "build:mta": "rimraf resources mta_archives && mbt build",
+    "format": "prettier --write 'webapp/**/*.js'",
+    "format:check": "prettier --check 'webapp/**/*.js'",
+    "lint": "eslint 'webapp/**/*.js'"
   },
   "sapuxLayer": "CUSTOMER_BASE"
 }
