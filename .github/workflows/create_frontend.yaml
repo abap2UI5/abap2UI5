@@ -7,13 +7,18 @@ on:
 permissions:
   contents: read
 
+env:
+  # peaceiris/actions-gh-pages@v4 still ships with node20; force the runner to
+  # execute it on node24 until upstream publishes a node24-based release.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
 jobs:
   create_frontend:
     if: github.repository == 'abap2UI5/abap2UI5'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: send to bsp repository
       uses: peaceiris/actions-gh-pages@v4
       with:
