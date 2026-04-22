@@ -599,11 +599,8 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     mo_view->_generic( name   = `BindingUpdate`
                        ns     = `z2ui5`
                        t_prop = VALUE #(
-*                                 ( n = `value`  v = value )
                                          ( n = `path`  v = path )
                                          ( n = `changed`  v = changed )
-*                                ( n = `checkActive`  v = z2ui5_cl_util=>boolean_abap_2_json( checkactive ) )
-*                                ( n = `checkRepeat`  v = z2ui5_cl_util=>boolean_abap_2_json( checkrepeat ) )
                 ) ).
 
   ENDMETHOD.
