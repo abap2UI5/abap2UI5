@@ -14,6 +14,7 @@ sap.ui.define(
     'sap/m/library',
     'sap/ui/core/routing/HashChanger',
     'sap/ui/util/Storage',
+    'sap/ui/core/Element',
   ],
   (
     Controller,
@@ -30,6 +31,7 @@ sap.ui.define(
     mobileLibrary,
     HashChanger,
     Storage,
+    Element,
   ) => {
     'use strict';
 
@@ -254,48 +256,35 @@ sap.ui.define(
         z2ui5[viewProp] = oFragment;
         oFragment.open();
       },
-      displayPopover(xml, viewProp, openById) {
-        return new Promise((resolve) => {
-          sap.ui.require(
-            ['sap/ui/core/Element'],
-            async (Element) => {
-              try {
-                const oModel = this._createViewModel();
-                const oFragment = await Fragment.load({
-                  definition: xml,
-                  controller: z2ui5.oControllerPopover,
-                  id: 'popoverId',
-                });
-                if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {
-                  oFragment.destroy();
-                  return;
-                }
-                oFragment.setModel(oModel);
-                oFragment.Fragment = Fragment;
-                z2ui5[viewProp] = oFragment;
-                const oControl =
-                  z2ui5.oView?.byId(openById) ||
-                  z2ui5.oViewPopup?.Fragment.byId('popupId', openById) ||
-                  z2ui5.oViewNest?.byId(openById) ||
-                  z2ui5.oViewNest2?.byId(openById) ||
-                  Element.getElementById(openById);
-                if (!oControl) {
-                  _logError(`displayPopover: openBy control '${openById}' not found`);
-                  return;
-                }
-                oFragment.openBy(oControl);
-              } catch (e) {
-                _logError(`displayPopover: failed`, e);
-              } finally {
-                resolve();
-              }
-            },
-            () => {
-              _logError(`displayPopover: sap/ui/core/Element not available`);
-              resolve();
-            },
-          );
-        });
+      async displayPopover(xml, viewProp, openById) {
+        try {
+          const oModel = this._createViewModel();
+          const oFragment = await Fragment.load({
+            definition: xml,
+            controller: z2ui5.oControllerPopover,
+            id: 'popoverId',
+          });
+          if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {
+            oFragment.destroy();
+            return;
+          }
+          oFragment.setModel(oModel);
+          oFragment.Fragment = Fragment;
+          z2ui5[viewProp] = oFragment;
+          const oControl =
+            z2ui5.oView?.byId(openById) ||
+            z2ui5.oViewPopup?.Fragment.byId('popupId', openById) ||
+            z2ui5.oViewNest?.byId(openById) ||
+            z2ui5.oViewNest2?.byId(openById) ||
+            Element.getElementById(openById);
+          if (!oControl) {
+            _logError(`displayPopover: openBy control '${openById}' not found`);
+            return;
+          }
+          oFragment.openBy(oControl);
+        } catch (e) {
+          _logError(`displayPopover: failed`, e);
+        }
       },
       async displayNestedView(xml, viewProp, viewNestId, controller) {
         const oModel = this._createViewModel();
