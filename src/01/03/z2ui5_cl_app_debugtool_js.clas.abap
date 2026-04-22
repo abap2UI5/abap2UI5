@@ -41,14 +41,14 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `    let _xsltProcessor = null;` && |\n| &&
              `    const _xmlSerializer = new XMLSerializer();` && |\n| &&
              `    const _domParser = new DOMParser();` && |\n| &&
-             `    function getXsltProcessor() {` && |\n| &&
+             `    const getXsltProcessor = () => {` && |\n| &&
              `      if (!_xsltProcessor) {` && |\n| &&
              `        const xsltDoc = _domParser.parseFromString(PRETTIFY_XSL, 'application/xml');` && |\n| &&
              `        _xsltProcessor = new XSLTProcessor();` && |\n| &&
              `        _xsltProcessor.importStylesheet(xsltDoc);` && |\n| &&
              `      }` && |\n| &&
              `      return _xsltProcessor;` && |\n| &&
-             `    }` && |\n| &&
+             `    };` && |\n| &&
              `` && |\n| &&
              `    return Control.extend('z2ui5.cc.DebugTool', {` && |\n| &&
              `      prettifyXml(sourceXml) {` && |\n| &&
@@ -175,7 +175,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `              controller: this,` && |\n| &&
              `            });` && |\n| &&
              `          }` && |\n| &&
-             `          if (this.bIsDestroyed) {` && |\n| &&
+             `          if (this.isDestroyed()) {` && |\n| &&
              `            this.oDialog?.destroy();` && |\n| &&
              `            this.oDialog = null;` && |\n| &&
              `            return;` && |\n| &&

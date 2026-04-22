@@ -53,7 +53,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `  ) => {` && |\n| &&
              `    'use strict';` && |\n| &&
              `` && |\n| &&
-             `    function runCallbacks(arr, ...args) {` && |\n| &&
+             `    const runCallbacks = (arr, ...args) => {` && |\n| &&
              `      for (const fn of arr ?? []) {` && |\n| &&
              `        try {` && |\n| &&
              `          fn?.(...args);` && |\n| &&
@@ -61,7 +61,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          _logError(``runCallbacks: callback failed``, e);` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
-             `    }` && |\n| &&
+             `    };` && |\n| &&
              `` && |\n| &&
              `    const _msgParser = new DOMParser();` && |\n| &&
              `    const _sanitizeEl = document.createElement('div');` && |\n| &&
@@ -75,7 +75,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        ts: new Date().toISOString(),` && |\n| &&
              `      });` && |\n| &&
              `` && |\n| &&
-             `    function isValidRedirectURL(url) {` && |\n| &&
+             `    const isValidRedirectURL = (url) => {` && |\n| &&
              `      if (!url) return false;` && |\n| &&
              `      try {` && |\n| &&
              `        const { origin, protocol } = new URL(url, window.location.origin);` && |\n| &&
@@ -92,17 +92,17 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        _logError(``Security: Invalid URL format: ${url}``, e);` && |\n| &&
              `        return false;` && |\n| &&
              `      }` && |\n| &&
-             `    }` && |\n| &&
+             `    };` && |\n| &&
              `` && |\n| &&
-             `    function copyToClipboard(textToCopy) {` && |\n| &&
+             `    const copyToClipboard = (textToCopy) => {` && |\n| &&
              `      if (!navigator.clipboard?.writeText) {` && |\n| &&
              `        _logError(``Clipboard: writeText API not available``);` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      navigator.clipboard.writeText(textToCopy).catch((err) => _logError(``Clipboard: writeText failed``, err));` && |\n| &&
-             `    }` && |\n| &&
+             `    };` && |\n| &&
              `` && |\n| &&
-             `    function sanitizeMessageDetails(html) {` && |\n| &&
+             `    const sanitizeMessageDetails = (html) => {` && |\n| &&
              `      const doc = _msgParser.parseFromString(html, 'text/html');` && |\n| &&
              `      const items = [...doc.querySelectorAll('li')];` && |\n| &&
              `      if (items.length) {` && |\n| &&
@@ -115,9 +115,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      }` && |\n| &&
              `      _sanitizeEl.textContent = doc.body.textContent;` && |\n| &&
              `      return _sanitizeEl.innerHTML;` && |\n| &&
-             `    }` && |\n| &&
+             `    };` && |\n| &&
              `` && |\n| &&
-             `    function withCrossAppNavigator(callback) {` && |\n| &&
+             `    const withCrossAppNavigator = (callback) => {` && |\n| &&
              `      sap.ui.require(` && |\n| &&
              `        ['sap/ushell/Container'],` && |\n| &&
              `        (ushellContainer) => {` && |\n| &&
@@ -134,15 +134,15 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        },` && |\n| &&
              `        () => _logError(``CrossAppNav: sap/ushell/Container not available``),` && |\n| &&
              `      );` && |\n| &&
-             `    }` && |\n| &&
+             `    };` && |\n| &&
              `` && |\n| &&
-             `    function navigateContainer(lookup, args) {` && |\n| &&
+             `    const navigateContainer = (lookup, args) => {` && |\n| &&
              `      try {` && |\n| &&
              `        lookup(args[1])?.to(lookup(args[2]));` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        _logError(``navigateContainer: navigation failed``, e);` && |\n| &&
              `      }` && |\n| &&
-             `    }` && |\n| &&
+             `    };` && |\n| &&
              `` && |\n| &&
              `    const _hashChanger = HashChanger.getInstance();` && |\n| &&
              `    const _URLHelper = mobileLibrary.URLHelper;` && |\n| &&
@@ -265,7 +265,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          controller: z2ui5.oControllerPopup,` && |\n| &&
              `          id: 'popupId',` && |\n| &&
              `        });` && |\n| &&
-             `        if (!z2ui5.oApp || z2ui5.oApp.bIsDestroyed) {` && |\n| &&
+             `        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {` && |\n| &&
              `          oFragment.destroy();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -275,40 +275,47 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        oFragment.open();` && |\n| &&
              `      },` && |\n| &&
              `      displayPopover(xml, viewProp, openById) {` && |\n| &&
-             `        sap.ui.require(` && |\n| &&
-             `          ['sap/ui/core/Element'],` && |\n| &&
-             `          async (Element) => {` && |\n| &&
-             `            try {` && |\n| &&
-             `              const oModel = this._createViewModel();` && |\n| &&
-             `              const oFragment = await Fragment.load({` && |\n| &&
-             `                definition: xml,` && |\n| &&
-             `                controller: z2ui5.oControllerPopover,` && |\n| &&
-             `                id: 'popoverId',` && |\n| &&
-             `              });` && |\n| &&
-             `              if (!z2ui5.oApp || z2ui5.oApp.bIsDestroyed) {` && |\n| &&
-             `                oFragment.destroy();` && |\n| &&
-             `                return;` && |\n| &&
+             `        return new Promise((resolve) => {` && |\n| &&
+             `          sap.ui.require(` && |\n| &&
+             `            ['sap/ui/core/Element'],` && |\n| &&
+             `            async (Element) => {` && |\n| &&
+             `              try {` && |\n| &&
+             `                const oModel = this._createViewModel();` && |\n| &&
+             `                const oFragment = await Fragment.load({` && |\n| &&
+             `                  definition: xml,` && |\n| &&
+             `                  controller: z2ui5.oControllerPopover,` && |\n| &&
+             `                  id: 'popoverId',` && |\n| &&
+             `                });` && |\n| &&
+             `                if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {` && |\n| &&
+             `                  oFragment.destroy();` && |\n| &&
+             `                  return;` && |\n| &&
+             `                }` && |\n| &&
+             `                oFragment.setModel(oModel);` && |\n| &&
+             `                oFragment.Fragment = Fragment;` && |\n| &&
+             `                z2ui5[viewProp] = oFragment;` && |\n| &&
+             `                const oControl =` && |\n| &&
+             `                  z2ui5.oView?.byId(openById) ||` && |\n| &&
+             `                  z2ui5.oViewPopup?.Fragment.byId('popupId', openById) ||` && |\n| &&
+             `                  z2ui5.oViewNest?.byId(openById) ||` && |\n| &&
+             `                  z2ui5.oViewNest2?.byId(openById) ||` && |\n| &&
+             `                  Element.getElementById(openById);` && |\n| &&
+             `                if (!oControl) {` && |\n| &&
+             `                  _logError(``displayPopover: openBy control '${openById}' not found``);` && |\n| &&
+             `                  return;` && |\n| &&
+             `                }` && |\n| &&
+             `                oFragment.openBy(oControl);` && |\n| &&
+             `              } catch (e) {` && |\n| &&
+             `                _logError(``displayPopover: failed``, e);` && |\n| &&
+             `              } finally {` && |\n| &&
+             `                resolve();` && |\n| &&
              `              }` && |\n| &&
-             `              oFragment.setModel(oModel);` && |\n| &&
-             `              oFragment.Fragment = Fragment;` && |\n| &&
-             `              z2ui5[viewProp] = oFragment;` && |\n| &&
-             `              const oControl =` && |\n| &&
-             `                z2ui5.oView?.byId(openById) ||` && |\n| &&
-             `                z2ui5.oViewPopup?.Fragment.byId('popupId', openById) ||` && |\n| &&
-             `                z2ui5.oViewNest?.byId(openById) ||` && |\n| &&
-             `                z2ui5.oViewNest2?.byId(openById) ||` && |\n| &&
-             `                Element.getElementById(openById);` && |\n| &&
-             `              if (!oControl) {` && |\n| &&
-             `                _logError(``displayPopover: openBy control '${openById}' not found``);` && |\n| &&
-             `                return;` && |\n| &&
-             `              }` && |\n| &&
-             `              oFragment.openBy(oControl);` && |\n| &&
-             `            } catch (e) {` && |\n| &&
-             `              _logError(``displayPopover: failed``, e);` && |\n| &&
-             `            }` && |\n| &&
-             `          },` && |\n| &&
-             `          () => _logError(``displayPopover: sap/ui/core/Element not available``),` && |\n| &&
-             `        );` && |\n| &&
+             `            },` && |\n| &&
+             `            () => {` && |\n| &&
+             `              _logError(``displayPopover: sap/ui/core/Element not available``);` && |\n| &&
+             `              resolve();` && |\n| &&
+             `            },` && |\n| &&
+             `          );` && |\n| &&
+             `        });` && |\n| &&
              `      },` && |\n| &&
              `      async displayNestedView(xml, viewProp, viewNestId, controller) {` && |\n| &&
              `        const oModel = this._createViewModel();` && |\n| &&
@@ -317,7 +324,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          controller,` && |\n| &&
              `          preprocessors: { xml: { models: { template: oModel } } },` && |\n| &&
              `        });` && |\n| &&
-             `        if (!z2ui5.oApp || z2ui5.oApp.bIsDestroyed) {` && |\n| &&
+             `        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {` && |\n| &&
              `          oView.destroy();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -411,6 +418,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          case 'CLIPBOARD_APP_STATE':` && |\n| &&
              `            copyToClipboard(``${window.location.href}#/z2ui5-xapp-state=${z2ui5.oResponse?.ID}``);` && |\n| &&
              `            break;` && |\n| &&
+             |\n|.
+    result = result &&
              `          case 'SET_ODATA_MODEL': {` && |\n| &&
              `            try {` && |\n| &&
              `              const oModel = new ODataModel({ serviceUrl: args[1], annotationURI: args[3] ?? '' });` && |\n| &&
@@ -418,8 +427,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            } catch (e) {` && |\n| &&
              `              _logError(``SET_ODATA_MODEL: failed for '${args[1]}'``, e);` && |\n| &&
              `            }` && |\n| &&
-             |\n|.
-    result = result &&
              `            break;` && |\n| &&
              `          }` && |\n| &&
              `          case 'STORE_DATA': {` && |\n| &&
@@ -628,7 +635,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          id: 'mainView',` && |\n| &&
              `          preprocessors: { xml: { models: { template: oViewModel } } },` && |\n| &&
              `        });` && |\n| &&
-             `        if (!z2ui5.oApp || z2ui5.oApp.bIsDestroyed) {` && |\n| &&
+             `        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {` && |\n| &&
              `          z2ui5.oView.destroy();` && |\n| &&
              `          if (switchPath) oModel.destroy();` && |\n| &&
              `          z2ui5.oView = null;` && |\n| &&

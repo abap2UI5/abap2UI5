@@ -121,7 +121,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        const customJs = params?.S_FOLLOW_UP_ACTION?.CUSTOM_JS;` && |\n| &&
              `        if (customJs) {` && |\n| &&
              `          queueMicrotask(() => {` && |\n| &&
-             `            if (oController.bIsDestroyed) return;` && |\n| &&
+             `            if (oController.isDestroyed()) return;` && |\n| &&
              `            for (const item of customJs) {` && |\n| &&
              `              try {` && |\n| &&
              `                const mParams = item.split("'");` && |\n| &&
@@ -219,9 +219,11 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `      const { contentDocument } = iframe;` && |\n| &&
              `      if (contentDocument) {` && |\n| &&
-             `        contentDocument.open();` && |\n| &&
-             `        contentDocument.write(errorMessage);` && |\n| &&
-             `        contentDocument.close();` && |\n| &&
+             `        const pre = contentDocument.createElement('pre');` && |\n| &&
+             `        pre.style.cssText =` && |\n| &&
+             `          'margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;';` && |\n| &&
+             `        pre.textContent = errorMessage;` && |\n| &&
+             `        (contentDocument.body || contentDocument.documentElement).appendChild(pre);` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
              `  };` && |\n| &&

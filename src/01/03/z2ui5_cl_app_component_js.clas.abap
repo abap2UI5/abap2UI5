@@ -80,7 +80,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          if (sap.ui.require('sap/ushell/Container')) {` && |\n| &&
              `            const service = await this.getService('ShellUIService');` && |\n| &&
-             `            if (!this.bIsDestroyed) z2ui5.oLaunchpadService = service;` && |\n| &&
+             `            if (!this.isDestroyed()) z2ui5.oLaunchpadService = service;` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          (z2ui5.errors ??= []).push({` && |\n| &&
@@ -92,7 +92,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n| &&
              `        try {` && |\n| &&
              `          const { version, buildTimestamp, gav } = await VersionInfo.load();` && |\n| &&
-             `          if (!this.bIsDestroyed) z2ui5.oConfig.UI5VersionInfo = { version, buildTimestamp, gav };` && |\n| &&
+             `          if (!this.isDestroyed()) z2ui5.oConfig.UI5VersionInfo = { version, buildTimestamp, gav };` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          (z2ui5.errors ??= []).push({` && |\n| &&
              `            message: ``Component: VersionInfo load failed``,` && |\n| &&
@@ -112,7 +112,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        document.removeEventListener('keydown', this._boundKeydown);` && |\n| &&
              `        window.removeEventListener('popstate', this._boundPopstate);` && |\n| &&
              `        Server.endSession();` && |\n| &&
-             `        UIComponent.prototype.exit?.call(this);` && |\n| &&
+             `        UIComponent.prototype.exit.call(this);` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
              `  },` && |\n| &&

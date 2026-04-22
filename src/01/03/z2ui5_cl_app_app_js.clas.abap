@@ -18,9 +18,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `function _logError(msg, err) {` && |\n| &&
+    result = `const _logError = (msg, err) => {` && |\n| &&
              `  (z2ui5.errors ??= []).push({ message: msg, ...(err !== undefined && { error: err }), ts: new Date().toISOString() });` && |\n| &&
-             `}` && |\n| &&
+             `};` && |\n| &&
              `` && |\n| &&
              `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
@@ -101,10 +101,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      if (!this.getProperty('checkActive')) return;` && |\n| &&
              `      clearTimeout(this._timerId);` && |\n| &&
              `      this._timerId = setTimeout(() => {` && |\n| &&
-             `        if (this.bIsDestroyed) return;` && |\n| &&
+             `        if (this.isDestroyed()) return;` && |\n| &&
              `        if (!this.getProperty('checkRepeat')) this.setProperty('checkActive', false, true);` && |\n| &&
              `        this.fireFinished();` && |\n| &&
-             `        if (this.getProperty('checkRepeat') && !this.bIsDestroyed) this.delayedCall();` && |\n| &&
+             `        if (this.getProperty('checkRepeat') && !this.isDestroyed()) this.delayedCall();` && |\n| &&
              `      }, this.getProperty('delayMS'));` && |\n| &&
              `    },` && |\n| &&
              `    renderer(oRm, oControl) {` && |\n| &&
@@ -223,7 +223,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      sap.ui.require(` && |\n| &&
              `        ['sap/ushell/services/AppConfiguration'],` && |\n| &&
              `        (AppConfiguration) => {` && |\n| &&
-             `          if (this.bIsDestroyed) return;` && |\n| &&
+             `          if (this.isDestroyed()) return;` && |\n| &&
              `          try {` && |\n| &&
              `            AppConfiguration.setApplicationFullWidth(val);` && |\n| &&
              `          } catch (e) {` && |\n| &&
@@ -266,14 +266,14 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `  return Control.extend('z2ui5.Tree', {` && |\n| &&
              `    metadata: {` && |\n| &&
              `      properties: {` && |\n| &&
-             `        tree_id: {` && |\n| &&
+             `        treeId: {` && |\n| &&
              `          type: 'string',` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    _getTreeBinding() {` && |\n| &&
-             `      return z2ui5.oView?.byId(this.getProperty('tree_id'))?.getBinding('items');` && |\n| &&
+             `      return z2ui5.oView?.byId(this.getProperty('treeId'))?.getBinding('items');` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    setBackend() {` && |\n| &&
@@ -405,7 +405,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            const delegate = {` && |\n| &&
              `              onAfterRendering: () => {` && |\n| &&
              `                control.removeEventDelegate(delegate);` && |\n| &&
-             `                if (!this.bIsDestroyed) this._restoreScrollPosition(item);` && |\n| &&
+             `                if (!this.isDestroyed()) this._restoreScrollPosition(item);` && |\n| &&
              `              },` && |\n| &&
              `            };` && |\n| &&
              `            control.addEventDelegate(delegate);` && |\n| &&
@@ -558,7 +558,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n| &&
              `` && |\n| &&
              `    callbackPosition({ coords }) {` && |\n| &&
-             `      if (this.bIsDestroyed) return;` && |\n| &&
+             `      if (this.isDestroyed()) return;` && |\n| &&
              `      for (const prop of _GEO_PROPS) this.setProperty(prop, coords[prop]?.toString() ?? '', true);` && |\n| &&
              `      this.fireFinished();` && |\n| &&
              `    },` && |\n| &&
@@ -742,7 +742,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      _readFile(file) {` && |\n| &&
              `        const reader = new FileReader();` && |\n| &&
              `        reader.onload = () => {` && |\n| &&
-             `          if (this.bIsDestroyed) return;` && |\n| &&
+             `          if (this.isDestroyed()) return;` && |\n| &&
              `          this.setProperty('value', reader.result);` && |\n| &&
              `          this.fireUpload();` && |\n| &&
              `        };` && |\n| &&
@@ -816,7 +816,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `  return Control.extend('z2ui5.MultiInputExt', {` && |\n| &&
              `    metadata: {` && |\n| &&
              `      properties: {` && |\n| &&
-             `        MultiInputId: {` && |\n| &&
+             `        multiInputId: {` && |\n| &&
              `          type: 'string',` && |\n| &&
              `        },` && |\n| &&
              `        MultiInputName: {` && |\n| &&
@@ -864,7 +864,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n| &&
              `    renderer() {},` && |\n| &&
              `    setControl() {` && |\n| &&
-             `      const table = z2ui5.oView?.byId(this.getProperty('MultiInputId'));` && |\n| &&
+             `      const table = z2ui5.oView?.byId(this.getProperty('multiInputId'));` && |\n| &&
              `      if (!table || this.getProperty('checkInit')) return;` && |\n| &&
              `      this.setProperty('checkInit', true);` && |\n| &&
              `      try {` && |\n| &&
@@ -946,7 +946,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      this.setProperty('rangeData', aRangeData);` && |\n| &&
              `      try {` && |\n| &&
              `        const input = await this.inputInitialized();` && |\n| &&
-             `        if (this.bIsDestroyed || !input) return;` && |\n| &&
+             `        if (this.isDestroyed() || !input) return;` && |\n| &&
              `        input.setRangeData(` && |\n| &&
              `          aRangeData.map((oRangeData) =>` && |\n| &&
              `            Object.fromEntries(` && |\n| &&
@@ -1030,8 +1030,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      capture() {` && |\n| &&
-             `        const video = document.getElementById('zvideo');` && |\n| &&
-             `        const canvas = document.getElementById('zcanvas');` && |\n| &&
+             `        const video = document.getElementById(``${this.getId()}-video``);` && |\n| &&
+             `        const canvas = document.getElementById(``${this.getId()}-canvas``);` && |\n| &&
              `        if (!video || !canvas) return;` && |\n| &&
              `        const { videoWidth, videoHeight } = video;` && |\n| &&
              `        Object.assign(canvas, { width: videoWidth, height: videoHeight });` && |\n| &&
@@ -1054,7 +1054,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        } catch (e) {` && |\n| &&
              `          _logError(``CameraPicture: thumb toDataURL failed``, e);` && |\n| &&
              `        }` && |\n| &&
-             `        if (this.bIsDestroyed) return;` && |\n| &&
+             `        if (this.isDestroyed()) return;` && |\n| &&
              `        this.setProperty('value', resultb64);` && |\n| &&
              `        this.setProperty('thumbnail', thumbB64);` && |\n| &&
              `        this.fireOnPhoto({ photo: resultb64 });` && |\n| &&
@@ -1064,7 +1064,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      _stopCamera() {` && |\n| &&
              `        for (const track of this._stream?.getTracks() ?? []) track.stop();` && |\n| &&
              `        this._stream = null;` && |\n| &&
-             `        const video = document.getElementById('zvideo');` && |\n| &&
+             `        const video = document.getElementById(``${this.getId()}-video``);` && |\n| &&
              `        if (video) video.srcObject = null;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -1081,7 +1081,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            content: [` && |\n| &&
              `              new HTML({` && |\n| &&
              `                id: ``${this.getId()}PictureContainer``,` && |\n| &&
-             `                content: '<video style="width:100%;height:100%;object-fit:contain;" autoplay="true" id="zvideo">',` && |\n| &&
+             `                content: ``<video style="width:100%;height:100%;object-fit:contain;" autoplay="true" id="${this.getId()}-video">``,` && |\n| &&
              `              }),` && |\n| &&
              `              new Button({` && |\n| &&
              `                text: 'Capture',` && |\n| &&
@@ -1091,7 +1091,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `                },` && |\n| &&
              `              }),` && |\n| &&
              `              new HTML({` && |\n| &&
-             `                content: '<canvas hidden id="zcanvas" style="overflow:auto"></canvas>',` && |\n| &&
+             `                content: ``<canvas hidden id="${this.getId()}-canvas" style="overflow:auto"></canvas>``,` && |\n| &&
              `              }),` && |\n| &&
              `            ],` && |\n| &&
              `            endButton: new Button({` && |\n| &&
@@ -1105,8 +1105,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        }` && |\n| &&
              `` && |\n| &&
              `        this._oScanDialog.attachEventOnce('afterOpen', async () => {` && |\n| &&
-             `          if (this.bIsDestroyed) return;` && |\n| &&
-             `          const video = document.getElementById('zvideo');` && |\n| &&
+             `          if (this.isDestroyed()) return;` && |\n| &&
+             `          const video = document.getElementById(``${this.getId()}-video``);` && |\n| &&
              `          if (!video) {` && |\n| &&
              `            _logError(``CameraPicture: video element not found after dialog open``);` && |\n| &&
              `            return;` && |\n| &&
@@ -1119,7 +1119,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          try {` && |\n| &&
              `            const stream = await navigator.mediaDevices?.getUserMedia?.(options);` && |\n| &&
              `            if (!stream) return;` && |\n| &&
-             `            if (this.bIsDestroyed) {` && |\n| &&
+             `            if (this.isDestroyed()) {` && |\n| &&
              `              for (const t of stream.getTracks()) t.stop();` && |\n| &&
              `              return;` && |\n| &&
              `            }` && |\n| &&
@@ -1160,7 +1160,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          const devices = await navigator.mediaDevices?.enumerateDevices();` && |\n| &&
              `          if (!devices) return;` && |\n| &&
              `          for (const device of devices) {` && |\n| &&
-             `            if (device.kind === 'videoinput' && !this.bIsDestroyed)` && |\n| &&
+             `            if (device.kind === 'videoinput' && !this.isDestroyed())` && |\n| &&
              `              this.addItem(new Item({ key: device.deviceId, text: device.label }));` && |\n| &&
              `          }` && |\n| &&
              `        } catch (err) {` && |\n| &&
@@ -1232,7 +1232,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      const delegate = {` && |\n| &&
              `        onAfterRendering: () => {` && |\n| &&
              `          oTable.removeEventDelegate(delegate);` && |\n| &&
-             `          if (!this.bIsDestroyed) fn();` && |\n| &&
+             `          if (!this.isDestroyed()) fn();` && |\n| &&
              `        },` && |\n| &&
              `      };` && |\n| &&
              `      oTable.addEventDelegate(delegate);` && |\n| &&
@@ -1373,7 +1373,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      sap.ui.require(` && |\n| &&
              `        ['sap/ushell/Container'],` && |\n| &&
              `        (Container) => {` && |\n| &&
-             `          if (this.bIsDestroyed) return;` && |\n| &&
+             `          if (this.isDestroyed()) return;` && |\n| &&
              `          try {` && |\n| &&
              `            if (Container && z2ui5.oLaunchpadService) Container.setDirtyFlag(val);` && |\n| &&
              `            else fallback();` && |\n| &&
