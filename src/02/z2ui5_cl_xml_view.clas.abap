@@ -9003,7 +9003,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD range_slider.
     result = me.
     _generic( name   = `RangeSlider`
-*              ns     = `webc`
               t_prop = VALUE #( ( n = `class`           v = class )
                                 ( n = `endValue`        v = endvalue )
                                 ( n = `id`          v = id )
@@ -10674,7 +10673,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
           ( n = `sap`               v = `sap` )
           ( n = `text`              v = `sap.ui.richtexteditor` )
           ( n = `html`              v = `http://www.w3.org/1999/xhtml` )
-*          ( n = `unified`           v = `sap.ui.unified` )
           ( n = `fb`                v = `sap.ui.comp.filterbar` )
           ( n = `u`                 v = `sap.ui.unified` )
           ( n = `gantt`             v = `sap.gantt.simple` )

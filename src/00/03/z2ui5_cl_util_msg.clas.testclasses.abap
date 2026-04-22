@@ -3,7 +3,6 @@ CLASS ltcl_unit_test_msg_mapper DEFINITION FINAL
 
   PRIVATE SECTION.
 
-    METHODS test_bal            FOR TESTING RAISING cx_static_check.
     METHODS test_cx             FOR TESTING RAISING cx_static_check.
     METHODS test_bapiret        FOR TESTING RAISING cx_static_check.
     METHODS test_bapirettab     FOR TESTING RAISING cx_static_check.
@@ -22,8 +21,8 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lv_dummy2) = `NET`.
-    MESSAGE ID lv_dummy2 TYPE `I` NUMBER `001` INTO DATA(lv_dummy).
+    DATA(lv_msg_id) = `NET`.
+    MESSAGE ID lv_msg_id TYPE `I` NUMBER `001` INTO DATA(lv_msg_text) ##NEEDED.
     DATA(lt_result) = z2ui5_cl_util_msg=>msg_get_by_sy( ).
 
     cl_abap_unit_assert=>assert_equals( exp = `NET`
@@ -122,33 +121,6 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
     DATA(lv_text) = z2ui5_cl_util_msg=>msg_get_text( ls_empty ).
 
     cl_abap_unit_assert=>assert_initial( lv_text ).
-
-  ENDMETHOD.
-
-  METHOD test_bal.
-
-    TYPES: BEGIN OF ty_log_entry,
-           msgnumber   TYPE n LENGTH 6,
-           msgty       TYPE c LENGTH 1,
-           msgid       TYPE c LENGTH 20,
-           msgno       TYPE n LENGTH 3,
-           msgv1       TYPE c LENGTH 50,
-           msgv2       TYPE c LENGTH 50,
-           msgv3       TYPE c LENGTH 50,
-           msgv4       TYPE c LENGTH 50,
-           msgv1_src   TYPE c LENGTH 15,
-           msgv2_src   TYPE c LENGTH 15,
-           msgv3_src   TYPE c LENGTH 15,
-           msgv4_src   TYPE c LENGTH 15,
-           detlevel    TYPE c LENGTH 1,
-           probclass   TYPE c LENGTH 1,
-           alsort      TYPE c LENGTH 3,
-           time_stmp   TYPE p LENGTH 8 DECIMALS 7,
-           msg_count   TYPE i,
-           context     TYPE c LENGTH 255,
-           params      TYPE c LENGTH 255,
-           msg_txt     TYPE string,
-         END OF ty_log_entry.
 
   ENDMETHOD.
 

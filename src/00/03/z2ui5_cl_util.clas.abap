@@ -163,13 +163,13 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    CLASS-METHODS check_bound_a_not_inital
+    CLASS-METHODS check_bound_a_not_initial
       IMPORTING
         val           TYPE REF TO data
       RETURNING
         VALUE(result) TYPE abap_bool.
 
-    CLASS-METHODS check_unassign_inital
+    CLASS-METHODS check_unassign_initial
       IMPORTING
         val           TYPE REF TO data
       RETURNING
@@ -349,7 +349,7 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE timestampl.
 
-    CLASS-METHODS time_substract_seconds
+    CLASS-METHODS time_subtract_seconds
       IMPORTING
         !time         TYPE timestampl
         !seconds      TYPE i
@@ -697,18 +697,18 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD check_bound_a_not_inital.
+  METHOD check_bound_a_not_initial.
 
     IF val IS NOT BOUND.
       result = abap_false.
       RETURN.
     ENDIF.
-    result = xsdbool( check_unassign_inital( val ) = abap_false ).
+    result = xsdbool( check_unassign_initial( val ) = abap_false ).
 
   ENDMETHOD.
 
 
-  METHOD check_unassign_inital.
+  METHOD check_unassign_initial.
 
     IF val IS INITIAL.
       result = abap_true.
@@ -1362,7 +1362,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD time_substract_seconds.
+  METHOD time_subtract_seconds.
 
     result = cl_abap_tstmp=>subtractsecs( tstmp = time
                                           secs  = seconds ).
@@ -1424,7 +1424,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     lv_search = shift_left( val = lv_search
                             sub = `?` ).
-*    lv_search = c_trim_lower( lv_search ).
 
     DATA(lv_search2) = substring_after( val = lv_search
                                         sub = `&sap-startup-params=` ).
@@ -1440,8 +1439,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     LOOP AT lt_param REFERENCE INTO DATA(lr_param).
       SPLIT lr_param->* AT `=` INTO DATA(lv_name) DATA(lv_value).
-*      INSERT VALUE #( n = c_trim_lower( lv_name )
-*                      v = c_trim_lower( lv_value ) ) INTO TABLE rt_params.
       INSERT VALUE #( n = lv_name
                       v = lv_value ) INTO TABLE rt_params.
     ENDLOOP.
@@ -1660,7 +1657,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   METHOD itab_get_by_struc.
 
     DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_any( val ).
-*    result  = VALUE z2ui5_cl_util=>ty_t_name_value( ).
     LOOP AT lt_attri REFERENCE INTO DATA(lr_attri).
 
       ASSIGN COMPONENT lr_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<component>).
@@ -1753,8 +1749,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         ENDLOOP.
       ENDLOOP.
 
-*      DATA result TYPE string.
-*    DATA lt_where TYPE rsdmd_t_where.
       DATA(lv_fm) = `RSDS_RANGE_TO_WHERE`.
       CALL FUNCTION lv_fm
         EXPORTING

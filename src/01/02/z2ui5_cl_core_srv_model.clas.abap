@@ -495,7 +495,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
     DATA(lr_ref_tmp) = attri_get_val_ref( ir_attri->name ).
 
-    IF z2ui5_cl_util=>check_unassign_inital( lr_ref_tmp ).
+    IF z2ui5_cl_util=>check_unassign_initial( lr_ref_tmp ).
       RETURN.
     ENDIF.
 
@@ -529,7 +529,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
     DATA(lr_val) = attri_get_val_ref( ir_attri->name ).
 
-    IF z2ui5_cl_util=>check_unassign_inital( lr_val ).
+    IF z2ui5_cl_util=>check_unassign_initial( lr_val ).
       RETURN.
     ENDIF.
 

@@ -1,7 +1,8 @@
 {
   "name": "z2ui5",
+  "private": true,
   "version": "0.0.1",
-  "description": "",
+  "description": "abap2UI5 frontend tooling and Fiori dev project",
   "keywords": [
     "ui5",
     "openui5",

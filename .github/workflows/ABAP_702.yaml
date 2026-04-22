@@ -4,6 +4,10 @@ on:
   push:
     branches: [702]
 
+concurrency:
+  group: ABAP_702-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 

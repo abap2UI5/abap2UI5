@@ -12,8 +12,8 @@ CLASS z2ui5_cl_pop_to_select DEFINITION PUBLIC.
 
     DATA ms_result           TYPE ty_s_result.
     DATA mr_tab              TYPE REF TO data.
-    DATA mr_tab_popup        TYPE REF TO data ##NEEDED.
-    DATA mr_tab_popup_backup TYPE REF TO data ##NEEDED.
+    DATA mr_tab_popup        TYPE REF TO data.
+    DATA mr_tab_popup_backup TYPE REF TO data.
 
     CLASS-METHODS factory
       IMPORTING

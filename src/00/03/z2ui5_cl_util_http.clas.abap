@@ -329,17 +329,10 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
 
   METHOD get_req_info.
 
-    result-body   = get_cdata( ).
-    result-method = get_method( ).
-
-    IF mo_request_cloud IS BOUND.
-      result-path = get_header_field( `~path` ).
-      result-t_params = z2ui5_cl_util=>url_param_get_tab( get_header_field( `~request_uri` ) ).
-    ELSE.
-      "todo are the names the same in on premise??
-      result-path = get_header_field( `~path` ).
-      result-t_params = z2ui5_cl_util=>url_param_get_tab( get_header_field( `~request_uri` ) ).
-    ENDIF.
+    result-body     = get_cdata( ).
+    result-method   = get_method( ).
+    result-path     = get_header_field( `~path` ).
+    result-t_params = z2ui5_cl_util=>url_param_get_tab( get_header_field( `~request_uri` ) ).
 
   ENDMETHOD.
 
