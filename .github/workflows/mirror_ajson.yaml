@@ -20,7 +20,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: run
       run: |
         git clone https://github.com/abap2UI5/ajson_mirror.git
@@ -29,7 +29,7 @@ jobs:
         rm -rf ajson_mirror
         git status
     - name: Open PR
-      uses: peter-evans/create-pull-request@v7
+      uses: peter-evans/create-pull-request@v8
       with:
         title: mirror-ajson-update
         branch: mirror-ajson-update
