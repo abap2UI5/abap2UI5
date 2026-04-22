@@ -144,7 +144,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
   METHOD main.
 
-    IF z2ui5_cl_util=>check_bound_a_not_inital( config-tab ).
+    IF z2ui5_cl_util=>check_bound_a_not_initial( config-tab ).
 
       result = main_cell( val    = val
                           type   = type

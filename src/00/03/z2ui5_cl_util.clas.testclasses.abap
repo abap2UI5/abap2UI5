@@ -86,7 +86,7 @@ CLASS ltcl_unit_test DEFINITION FINAL
     METHODS test_c_trim_horizontal_tab     FOR TESTING RAISING cx_static_check.
 
     METHODS test_time_get_timestampl       FOR TESTING RAISING cx_static_check.
-    METHODS test_time_substract_seconds    FOR TESTING RAISING cx_static_check.
+    METHODS test_time_subtract_seconds    FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_t_attri_by_incl  FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_classname_by_ref FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_type_name        FOR TESTING RAISING cx_static_check.
@@ -109,10 +109,10 @@ CLASS ltcl_unit_test DEFINITION FINAL
     METHODS test_x_check_raise             FOR TESTING RAISING cx_static_check.
     METHODS test_x_check_raise_not         FOR TESTING RAISING cx_static_check.
     METHODS test_x_raise                   FOR TESTING RAISING cx_static_check.
-    METHODS test_check_unassign_inital     FOR TESTING RAISING cx_static_check.
+    METHODS test_check_unassign_initial     FOR TESTING RAISING cx_static_check.
     METHODS conv_copy_ref_data             FOR TESTING RAISING cx_static_check.
     METHODS rtti_check_ref_data            FOR TESTING RAISING cx_static_check.
-    METHODS test_check_bound_a_not_inital  FOR TESTING RAISING cx_static_check.
+    METHODS test_check_bound_a_not_initial  FOR TESTING RAISING cx_static_check.
     METHODS test_sql_get_by_string         FOR TESTING RAISING cx_static_check.
     METHODS test_get_token_t_by_r_t        FOR TESTING RAISING cx_static_check.
 
@@ -290,28 +290,28 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_check_bound_a_not_inital.
+  METHOD test_check_bound_a_not_initial.
 
     DATA(lv_test) = `test`.
     DATA(lr_test) = REF #( lv_test ).
 
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>check_bound_a_not_inital( lr_test ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>check_bound_a_not_initial( lr_test ) ).
     CLEAR lv_test.
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_util=>check_bound_a_not_inital( lr_test ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_util=>check_bound_a_not_initial( lr_test ) ).
     CLEAR lr_test.
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_util=>check_bound_a_not_inital( lr_test ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_util=>check_bound_a_not_initial( lr_test ) ).
 
   ENDMETHOD.
 
-  METHOD test_check_unassign_inital.
+  METHOD test_check_unassign_initial.
 
     DATA(lv_test) = `test`.
     DATA(lr_test) = REF #( lv_test ).
 
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_util=>check_unassign_inital( lr_test ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_util=>check_unassign_initial( lr_test ) ).
 
     CLEAR lv_test.
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>check_unassign_inital( lr_test ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>check_unassign_initial( lr_test ) ).
 
   ENDMETHOD.
 
@@ -356,7 +356,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lv_time) = z2ui5_cl_util=>time_get_timestampl( ).
 
-    DATA(lv_time2) = z2ui5_cl_util=>time_substract_seconds( time    = lv_time
+    DATA(lv_time2) = z2ui5_cl_util=>time_subtract_seconds( time    = lv_time
                                                             seconds = 60 * 60 * 4 ).
 
     IF lv_time IS INITIAL OR lv_time2 IS INITIAL.
@@ -369,7 +369,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_time_substract_seconds.
+  METHOD test_time_subtract_seconds.
 
     DATA(lv_time) = z2ui5_cl_util=>time_get_timestampl( ).
     DATA(lv_time2) = z2ui5_cl_util=>time_get_timestampl( ).

@@ -163,13 +163,13 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    CLASS-METHODS check_bound_a_not_inital
+    CLASS-METHODS check_bound_a_not_initial
       IMPORTING
         val           TYPE REF TO data
       RETURNING
         VALUE(result) TYPE abap_bool.
 
-    CLASS-METHODS check_unassign_inital
+    CLASS-METHODS check_unassign_initial
       IMPORTING
         val           TYPE REF TO data
       RETURNING
@@ -349,7 +349,7 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE timestampl.
 
-    CLASS-METHODS time_substract_seconds
+    CLASS-METHODS time_subtract_seconds
       IMPORTING
         !time         TYPE timestampl
         !seconds      TYPE i
@@ -697,18 +697,18 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD check_bound_a_not_inital.
+  METHOD check_bound_a_not_initial.
 
     IF val IS NOT BOUND.
       result = abap_false.
       RETURN.
     ENDIF.
-    result = xsdbool( check_unassign_inital( val ) = abap_false ).
+    result = xsdbool( check_unassign_initial( val ) = abap_false ).
 
   ENDMETHOD.
 
 
-  METHOD check_unassign_inital.
+  METHOD check_unassign_initial.
 
     IF val IS INITIAL.
       result = abap_true.
@@ -1362,7 +1362,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD time_substract_seconds.
+  METHOD time_subtract_seconds.
 
     result = cl_abap_tstmp=>subtractsecs( tstmp = time
                                           secs  = seconds ).
