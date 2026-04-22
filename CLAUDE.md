@@ -184,18 +184,53 @@ src/
     ├── z2ui5_cl_app_startup.clas.abap  # Default startup app
     ├── z2ui5_cl_app_hello_world.clas.abap # Hello world example app
     └── 01/                             # Built-in popups (z2ui5_cl_pop_*)
-        # confirm, inform, select, file_dl/ul, table, textedit, pdf, html,
-        # messages, error, bal, input_val, data, image_editor, js_loader, get_range/_m
+        # to_confirm, to_inform, to_select, file_dl, file_ul, table, textedit,
+        # pdf, html, messages, error, bal, input_val, data, image_editor,
+        # js_loader, get_range, get_range_m
 ```
 
-Additional directories:
+### Additional Directories
 
 | Directory | Purpose |
 |---|---|
-| `app/webapp/` | UI5 frontend (canonical source for JS/XML/CSS) |
-| `node/` | Node.js transpilation, Express server, Playwright tests |
-| `.github/workflows/` | 16 CI/CD workflows |
-| `.github/abaplint/` | Linter configs per target environment |
+| `app/` | Frontend tooling (`package.json`, `ui5.yaml`, `eslint.config.mjs`, `.prettierrc`, `.editorconfig`) |
+| `app/webapp/` | UI5 frontend source — `Component.js`, `index.html`, `manifest.json`, `controller/`, `view/`, `model/`, `css/`, `cc/` (custom controls incl. `Server.js` — the JSON POST client that wraps the body as `{ "value": <payload> }`) |
+| `node/srv/` | `express.mjs` (dev server on port 3000), `zcl_sicf.clas.abap` (reference ICF handler impl — ~15 lines; real apps follow the same pattern) |
+| `node/setup/` | `abap_transpile.json` (transpiler config), `setup.mjs` (SQLite bootstrap for Node unit tests) |
+| `node/tests/` | Playwright browser tests — `example.spec.js`, `buildDeltaFromPaths.spec.js` |
+| `node/tests-examples/` | Playwright example specs (reference material, not run in CI) |
+| `.github/workflows/` | 17 CI/CD workflows (see below) |
+| `.github/abaplint/` | Target-specific abaplint configs: `abap_702.jsonc`, `abap_standard.jsonc`, `abap_cloud.jsonc`, `auto_abaplint_fix.jsonc`, `rename_test.jsonc` |
+| `.github/app2abap/` | `trans2abap.js` — converts `app/webapp/*` files into embedded ABAP string constants in `src/01/03/` |
+| `.github/cleaner-profile.cfj` | ABAP Cleaner profile (SAP ABAP Cleaner tool configuration for automated code cleanup) |
+
+### Root Files
+
+| File | Purpose |
+|---|---|
+| `README.md` | Project intro, badges, quick start, references |
+| `CONTRIBUTING.md` | Contribution workflow and setup instructions |
+| `CODE_OF_CONDUCT.md` | Community code of conduct |
+| `SECURITY.md` | Security reporting policy |
+| `LICENSE` | MIT license |
+| `changelog.txt` | Project changelog (lowercase by convention) |
+| `abaplint.jsonc` | Active linter config (swapped by `auto_downport` to target 7.02) |
+| `.abapgit.xml` | abapGit repo config — `STARTING_FOLDER=/src/`, `FOLDER_LOGIC=PREFIX`, `VERSION_CONSTANT=Z2UI5_IF_APP=>VERSION` |
+| `.gitignore` | Excludes `downport/`, `node_modules/`, `output/`, `node/output/`, env/IDE files |
+| `package.json` | Node tooling entry point (scripts + devDependencies) |
+
+### CI/CD Workflows (`.github/workflows/`)
+
+Grouped by purpose:
+
+| Group | Workflows | Purpose |
+|---|---|---|
+| **Compatibility checks** | `ABAP_702.yaml`, `ABAP_STANDARD.yaml`, `ABAP_CLOUD.yaml` | Lint against each ABAP target environment |
+| **Frontend checks** | `UI5.yaml`, `check_app.yaml`, `check_frontend.yaml` | UI5 linter + frontend integrity checks |
+| **Tests** | `test_unit.yaml`, `test_node.yaml`, `test_browser.yaml`, `test_rename.yaml` | Unit tests, Node transpile tests, Playwright browser tests, namespace-rename test |
+| **Automation** | `auto_downport.yaml`, `auto_abaplint_fix.yaml`, `auto_abaplint_fix_pr.yaml` | Scheduled downporting and auto-formatting (open PRs) |
+| **Generation** | `create_app2abap.yaml`, `create_frontend.yaml` | Regenerate `src/01/03/` from `app/webapp/` |
+| **Mirroring** | `mirror_ajson.yaml`, `mirror_srtti.yaml` | Sync `src/00/01/` (AJSON) and `src/00/02/` (S-RTTI) from upstream repos |
 
 ## Language & Code Rules
 
@@ -264,13 +299,33 @@ npm run unit                  # Unit tests
 |---|---|
 | `npx abaplint .github/abaplint/auto_abaplint_fix.jsonc --fix` | Auto-fix formatting |
 | `npm run express` | Start dev server on port 3000 |
-| `npm run auto_app2abap` | Convert `app/` frontend files into ABAP classes |
+| `npm run auto_app2abap` | Convert `app/webapp/` frontend files into ABAP string constants in `src/01/03/` |
+| `npm run auto_abaplint` | Run the auto-fix config directly |
+| `npm run rename` | Test namespace-rename transformation via abaplint |
+| `npm run syfixes` | Replace `RAISE EXCEPTION TYPE cx_sy_itab_line_not_found` with `ASSERT 1 = 0` (compatibility step for 7.02 downport) |
+| `npm run abaplintpathfix` | Rewrite abaplint file globs in `abaplint.jsonc` after downport copy |
+
+### Frontend Tooling (`app/`)
+
+The `app/` folder has its own `package.json` (name `z2ui5`, `sapuxLayer: CUSTOMER_BASE`) with UI5-specific dev dependencies (`@ui5/cli`, `@ui5/linter`, `@sap/ui5-builder-webide-extension`, `@sap/ux-ui5-tooling`, `eslint`, `prettier`, `mbt`, `rimraf`). Key scripts:
+
+| Script (run inside `app/`) | Purpose |
+|---|---|
+| `npm start` / `npm run start-local` | Run locally via Fiori tools with FLP sandbox |
+| `npm run build` | UI5 production build |
+| `npm run format` / `format:check` | Prettier |
+| `npm run lint` | ESLint on `webapp/**/*.js` |
+| `npm run unit-tests` / `int-tests` | QUnit / OPA test runners |
+| `npm run deploy` / `build:cf` / `build:mta` | Cloud Foundry / MTA deployment |
+
+Config files: `eslint.config.mjs`, `.prettierrc`, `.editorconfig`, `ui5.yaml`, `ui5-local.yaml`, `ui5-mock.yaml`.
 
 ### Testing
 
-- **Unit tests:** Embedded in source files as `.testclasses.abap` (~44 files), run via abaplint transpiler in Node.js
-- **Browser tests:** Playwright in `node/tests/` — Chromium, Firefox, WebKit against localhost:3000
+- **Unit tests:** Embedded in source files as `.testclasses.abap` (46 files as of v1.142.0), run via abaplint transpiler in Node.js
+- **Browser tests:** Playwright in `node/tests/` — Chromium, Firefox, WebKit against localhost:3000 (config: `node/playwright.config.js`; unit variant: `node/playwright-unit.config.js`)
 - **Unit test metadata:** When a class has a `.testclasses.abap` file, its `.clas.xml` **must** contain `<WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>`. When a class has no test file, this flag **must not** be present. Mismatches cause `local_testclass_consistency` lint errors.
+- **Test SICF handler:** `node/srv/zcl_sicf.clas.abap` is copied into `node/downport/` during `auto_transpile` so the Node runtime has a minimal HTTP entry point.
 
 ## Key Files
 
@@ -296,8 +351,10 @@ npm run unit                  # Unit tests
 | `src/01/02/z2ui5_cl_core_app.clas.abap` | App lifecycle (create, load, serialize) |
 | `src/01/02/z2ui5_cl_core_srv_bind.clas.abap` | Data binding engine |
 | `src/01/02/z2ui5_cl_core_srv_model.clas.abap` | JSON model management |
+| `src/01/02/z2ui5_cl_core_srv_event.clas.abap` | Event registration and payload assembly |
 | `src/01/01/z2ui5_cl_core_srv_draft.clas.abap` | Draft/session persistence |
 | `src/00/03/z2ui5_cl_util.clas.abap` | General utility class |
+| `src/00/03/z2ui5_cl_util_xml.clas.abap` | Generic XML builder (preferred for new code) |
 
 ## Commit Message Style
 
@@ -335,5 +392,5 @@ test: add unit tests for utility class
 The following items may look like gaps but are intentional design choices:
 
 - **Draft table `Z2UI5_T_01` has no version column** — Drafts are session-scoped (deleted after a few hours). There is no long-lived state that needs schema migration. Versioning would add complexity with no benefit.
-- **Changelog** — The project maintains a `CHANGELOG.txt` in the repository root. A `CHANGELOG.md` is not needed separately.
+- **Changelog** — The project maintains a `changelog.txt` in the repository root. A `CHANGELOG.md` is not needed separately.
 - **`z2ui5_cl_xml_view` size (~11K lines)** — This class is intentionally large: each method wraps one UI5 control for the fluent API. It is in maintenance mode; new controls should be accessed via `z2ui5_cl_util_xml` instead.

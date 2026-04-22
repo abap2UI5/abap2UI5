@@ -1,7 +1,7 @@
 {
   "name": "abap2UI5",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.142.0",
   "description": "Developing UI5 Apps Purely in ABAP.",
   "scripts": {
     "syfixes": "find . -type f -name '*.abap' -exec sed -i -e 's/ RAISE EXCEPTION TYPE cx_sy_itab_line_not_found/ ASSERT 1 = 0/g' {} + ",
@@ -24,14 +24,14 @@
     "node": ">=20"
   },
   "bugs": {
-    "url": "https://github.com/abap2UI5/abap2UI5"
+    "url": "https://github.com/abap2UI5/abap2UI5/issues"
   },
   "homepage": "https://abap2UI5.org",
   "devDependencies": {
-    "@abaplint/cli": "^2.118.10",
+    "@abaplint/cli": "^2.119.1",
     "@abaplint/database-sqlite": "^2.11.78",
-    "@abaplint/runtime": "^2.13.9",
-    "@abaplint/transpiler-cli": "^2.13.9",
+    "@abaplint/runtime": "^2.13.14",
+    "@abaplint/transpiler-cli": "^2.13.14",
     "@playwright/test": "^1.59.1",
     "express": "^5.2.1"
   }
