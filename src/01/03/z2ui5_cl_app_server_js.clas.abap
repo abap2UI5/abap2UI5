@@ -210,6 +210,13 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      const h3 = Object.assign(document.createElement('h3'), { textContent: 'Server Error - Please Restart The App' });` && |\n| &&
              `      h3.style.cssText = 'margin: 0';` && |\n| &&
              `      headerDiv.appendChild(h3);` && |\n| &&
+             `` && |\n| &&
+             `      const refreshBtn = Object.assign(document.createElement('button'), { type: 'button', textContent: 'Refresh' });` && |\n| &&
+             `      refreshBtn.style.cssText =` && |\n| &&
+             `        'padding: 6px 14px; background: white; color: #d32f2f; border: none; border-radius: 3px; cursor: pointer; font-weight: bold;';` && |\n| &&
+             `      refreshBtn.addEventListener('click', () => window.location.reload());` && |\n| &&
+             `      headerDiv.appendChild(refreshBtn);` && |\n| &&
+             `` && |\n| &&
              `      errorContainer.appendChild(headerDiv);` && |\n| &&
              `` && |\n| &&
              `      const iframe = Object.assign(document.createElement('iframe'), { id: 'errorIframe' });` && |\n| &&
