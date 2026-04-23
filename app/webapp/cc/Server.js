@@ -205,16 +205,25 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
       const logoutBtn = Object.assign(document.createElement('button'), { type: 'button', textContent: 'Logout' });
       logoutBtn.style.cssText = btnStyle;
       logoutBtn.addEventListener('click', () => {
-        try {
-          const container = sap.ushell?.Container;
-          if (container?.logout) {
-            container.logout();
-            return;
-          }
-        } catch (e) {
-          // fall through to redirect
-        }
-        window.location.href = '/sap/public/bc/icf/logoff';
+        const redirectToLogoff = () => {
+          window.location.href = '/sap/public/bc/icf/logoff';
+        };
+        sap.ui.require(
+          ['sap/ushell/Container'],
+          (ushellContainer) => {
+            try {
+              const container = ushellContainer || sap.ushell?.Container;
+              if (container?.logout) {
+                container.logout();
+              } else {
+                redirectToLogoff();
+              }
+            } catch (e) {
+              redirectToLogoff();
+            }
+          },
+          () => redirectToLogoff(),
+        );
       });
       actionsDiv.appendChild(logoutBtn);
 
