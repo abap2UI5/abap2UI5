@@ -27,6 +27,8 @@ jobs:
       - name: run transformation
         run: |
           npm ci
+          npm --prefix app ci
+          npm --prefix app run format
           npm run auto_app2abap
           npm run auto_abaplint
 
