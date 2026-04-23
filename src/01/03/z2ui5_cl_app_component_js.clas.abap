@@ -80,7 +80,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        const logLaunchpadError = (message, error) =>` && |\n| &&
              `          (z2ui5.errors ??= []).push({ message, error, ts: new Date().toISOString() });` && |\n| &&
              `        try {` && |\n| &&
-             `          const Container = sap.ui.require('sap/ushell/Container') || sap.ushell?.Container;` && |\n| &&
+             `          const Container = sap.ui.require('sap/ushell/Container');` && |\n| &&
              `          if (Container) {` && |\n| &&
              `            const launchpad = { Container };` && |\n| &&
              `            try {` && |\n| &&
