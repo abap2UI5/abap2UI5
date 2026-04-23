@@ -23,6 +23,7 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_view_display         FOR TESTING RAISING cx_static_check.
     METHODS test_view_destroy         FOR TESTING RAISING cx_static_check.
     METHODS test_view_model_update    FOR TESTING RAISING cx_static_check.
+    METHODS test_view_model_upd_limit FOR TESTING RAISING cx_static_check.
     METHODS test_popup_display        FOR TESTING RAISING cx_static_check.
     METHODS test_popup_destroy        FOR TESTING RAISING cx_static_check.
     METHODS test_popup_model_update   FOR TESTING RAISING cx_static_check.
@@ -115,6 +116,20 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = mo_action->ms_next-s_set-s_view-check_update_model ).
+
+  ENDMETHOD.
+
+  METHOD test_view_model_upd_limit.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    li_client->view_model_update( 5000 ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = mo_action->ms_next-s_set-s_view-check_update_model ).
+    cl_abap_unit_assert=>assert_equals( exp = 5000
+                                        act = mo_action->ms_next-s_set-s_view-size_limit ).
 
   ENDMETHOD.
 

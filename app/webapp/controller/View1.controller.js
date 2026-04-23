@@ -563,7 +563,11 @@ sap.ui.define(
       },
 
       updateModelIfRequired(paramKey, oView) {
-        if (z2ui5.oResponse?.PARAMS?.[paramKey]?.CHECK_UPDATE_MODEL) oView?.setModel(this._createViewModel());
+        const params = z2ui5.oResponse?.PARAMS?.[paramKey];
+        if (!params?.CHECK_UPDATE_MODEL) return;
+        const oModel = this._createViewModel();
+        if (params.SIZE_LIMIT) oModel.setSizeLimit(+params.SIZE_LIMIT);
+        oView?.setModel(oModel);
       },
       async checkSDKcompatibility(err) {
         let gav;

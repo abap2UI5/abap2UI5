@@ -227,6 +227,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   METHOD z2ui5_if_client~nest2_view_model_update.
 
     mo_action->ms_next-s_set-s_view_nest2-check_update_model = abap_true.
+    mo_action->ms_next-s_set-s_view_nest2-size_limit         = size_limit.
 
   ENDMETHOD.
 
@@ -248,6 +249,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   METHOD z2ui5_if_client~nest_view_model_update.
 
     mo_action->ms_next-s_set-s_view_nest-check_update_model = abap_true.
+    mo_action->ms_next-s_set-s_view_nest-size_limit         = size_limit.
 
   ENDMETHOD.
 
@@ -268,6 +270,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   METHOD z2ui5_if_client~popover_model_update.
 
     mo_action->ms_next-s_set-s_popover-check_update_model = abap_true.
+    mo_action->ms_next-s_set-s_popover-size_limit         = size_limit.
 
   ENDMETHOD.
 
@@ -287,6 +290,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   METHOD z2ui5_if_client~popup_model_update.
 
     mo_action->ms_next-s_set-s_popup-check_update_model = abap_true.
+    mo_action->ms_next-s_set-s_popup-size_limit         = size_limit.
 
   ENDMETHOD.
 
@@ -307,6 +311,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   METHOD z2ui5_if_client~view_model_update.
 
     mo_action->ms_next-s_set-s_view-check_update_model = abap_true.
+    mo_action->ms_next-s_set-s_view-size_limit         = size_limit.
 
   ENDMETHOD.
 

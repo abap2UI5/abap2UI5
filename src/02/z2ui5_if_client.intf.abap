@@ -43,7 +43,9 @@ INTERFACE z2ui5_if_client
       switch_default_model_anno_uri TYPE clike OPTIONAL
       switch_default_model_path     TYPE clike OPTIONAL.
 
-  METHODS view_model_update.
+  METHODS view_model_update
+    IMPORTING
+      size_limit TYPE i OPTIONAL.
 
   METHODS set_session_stateful
     IMPORTING
@@ -69,7 +71,9 @@ INTERFACE z2ui5_if_client
       method_destroy TYPE clike OPTIONAL.
 
   METHODS nest_view_destroy.
-  METHODS nest_view_model_update.
+  METHODS nest_view_model_update
+    IMPORTING
+      size_limit TYPE i OPTIONAL.
 
   METHODS nest2_view_display
     IMPORTING
@@ -79,17 +83,23 @@ INTERFACE z2ui5_if_client
       method_destroy TYPE clike OPTIONAL.
 
   METHODS nest2_view_destroy.
-  METHODS nest2_view_model_update.
+  METHODS nest2_view_model_update
+    IMPORTING
+      size_limit TYPE i OPTIONAL.
 
   METHODS popup_display
     IMPORTING
       val TYPE clike.
 
-  METHODS popup_model_update.
+  METHODS popup_model_update
+    IMPORTING
+      size_limit TYPE i OPTIONAL.
 
   METHODS popup_destroy.
 
-  METHODS popover_model_update.
+  METHODS popover_model_update
+    IMPORTING
+      size_limit TYPE i OPTIONAL.
 
   METHODS popover_display
     IMPORTING
