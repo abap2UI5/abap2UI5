@@ -165,6 +165,19 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      POPOVER: () => z2ui5.oViewPopover,` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
+             `    const paramToViewKey = {` && |\n| &&
+             `      S_VIEW: 'MAIN',` && |\n| &&
+             `      S_VIEW_NEST: 'NEST',` && |\n| &&
+             `      S_VIEW_NEST2: 'NEST2',` && |\n| &&
+             `      S_POPUP: 'POPUP',` && |\n| &&
+             `      S_POPOVER: 'POPOVER',` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
+             `    const applyStoredSizeLimit = (viewKey, oModel) => {` && |\n| &&
+             `      const limit = z2ui5.viewSizeLimits?.[viewKey];` && |\n| &&
+             `      if (limit !== undefined && oModel) oModel.setSizeLimit(limit);` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
              `    return Controller.extend('z2ui5.controller.View1', {` && |\n| &&
              `      _trackChanges(oModel) {` && |\n| &&
              `        oModel.attachPropertyChange((e) => {` && |\n| &&
@@ -262,6 +275,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      async displayFragment(xml, viewProp) {` && |\n| &&
              `        const oModel = this._createViewModel();` && |\n| &&
+             `        applyStoredSizeLimit('POPUP', oModel);` && |\n| &&
              `        const oFragment = await Fragment.load({` && |\n| &&
              `          definition: xml,` && |\n| &&
              `          controller: z2ui5.oControllerPopup,` && |\n| &&
@@ -279,6 +293,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      async displayPopover(xml, viewProp, openById) {` && |\n| &&
              `        try {` && |\n| &&
              `          const oModel = this._createViewModel();` && |\n| &&
+             `          applyStoredSizeLimit('POPOVER', oModel);` && |\n| &&
              `          const oFragment = await Fragment.load({` && |\n| &&
              `            definition: xml,` && |\n| &&
              `            controller: z2ui5.oControllerPopover,` && |\n| &&
@@ -308,6 +323,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      async displayNestedView(xml, viewProp, viewNestId, controller) {` && |\n| &&
              `        const oModel = this._createViewModel();` && |\n| &&
+             `        applyStoredSizeLimit(paramToViewKey[viewNestId], oModel);` && |\n| &&
              `        const oView = await XMLView.create({` && |\n| &&
              `          definition: xml,` && |\n| &&
              `          controller,` && |\n| &&
@@ -388,17 +404,22 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        switch (args[0]) {` && |\n| &&
              `          case 'SET_SIZE_LIMIT': {` && |\n| &&
-             `            const target = viewLookups[args[2]]?.();` && |\n| &&
+             `            const viewKey = args[2];` && |\n| &&
+             `            const limit = +args[1];` && |\n| &&
+             `            (z2ui5.viewSizeLimits ??= {})[viewKey] = limit;` && |\n| &&
+             `            const target = viewLookups[viewKey]?.();` && |\n| &&
              `            if (target) {` && |\n| &&
              `              const model = target.getModel();` && |\n| &&
              `              if (model) {` && |\n| &&
-             `                model.setSizeLimit(+args[1]);` && |\n| &&
+             `                model.setSizeLimit(limit);` && |\n| &&
              `                model.refresh(true);` && |\n| &&
              `              }` && |\n| &&
              `            }` && |\n| &&
              `            break;` && |\n| &&
              `          }` && |\n| &&
              `          case 'HISTORY_BACK':` && |\n| &&
+             |\n|.
+    result = result &&
              `            history.back();` && |\n| &&
              `            break;` && |\n| &&
              `          case 'CLIPBOARD_COPY':` && |\n| &&
@@ -418,8 +439,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          }` && |\n| &&
              `          case 'STORE_DATA': {` && |\n| &&
              `            const { TYPE, PREFIX, VALUE, KEY } = args[1];` && |\n| &&
-             |\n|.
-    result = result &&
              `            try {` && |\n| &&
              `              const oStorage = new Storage(Storage.Type[TYPE] ?? Storage.Type.session, PREFIX);` && |\n| &&
              `              if (VALUE === '' || VALUE == null) {` && |\n| &&
@@ -585,7 +604,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      updateModelIfRequired(paramKey, oView) {` && |\n| &&
-             `        if (z2ui5.oResponse?.PARAMS?.[paramKey]?.CHECK_UPDATE_MODEL) oView?.setModel(this._createViewModel());` && |\n| &&
+             `        if (!z2ui5.oResponse?.PARAMS?.[paramKey]?.CHECK_UPDATE_MODEL) return;` && |\n| &&
+             `        const oModel = this._createViewModel();` && |\n| &&
+             `        applyStoredSizeLimit(paramToViewKey[paramKey], oModel);` && |\n| &&
+             `        oView?.setModel(oModel);` && |\n| &&
              `      },` && |\n| &&
              `      async checkSDKcompatibility(err) {` && |\n| &&
              `        let gav;` && |\n| &&
@@ -645,6 +667,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `              annotationURI: sView.SWITCHDEFAULTMODELANNOURI ?? '',` && |\n| &&
              `            })` && |\n| &&
              `          : oViewModel;` && |\n| &&
+             `        applyStoredSizeLimit('MAIN', oModel);` && |\n| &&
              `        z2ui5.oView = await XMLView.create({` && |\n| &&
              `          definition: xml,` && |\n| &&
              `          models: oModel,` && |\n| &&
