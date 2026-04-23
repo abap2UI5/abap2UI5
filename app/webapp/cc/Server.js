@@ -190,6 +190,13 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
       const h3 = Object.assign(document.createElement('h3'), { textContent: 'Server Error - Please Restart The App' });
       h3.style.cssText = 'margin: 0';
       headerDiv.appendChild(h3);
+
+      const refreshBtn = Object.assign(document.createElement('button'), { type: 'button', textContent: 'Refresh' });
+      refreshBtn.style.cssText =
+        'padding: 6px 14px; background: white; color: #d32f2f; border: none; border-radius: 3px; cursor: pointer; font-weight: bold;';
+      refreshBtn.addEventListener('click', () => window.location.reload());
+      headerDiv.appendChild(refreshBtn);
+
       errorContainer.appendChild(headerDiv);
 
       const iframe = Object.assign(document.createElement('iframe'), { id: 'errorIframe' });
