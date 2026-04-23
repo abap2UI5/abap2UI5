@@ -404,22 +404,28 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        switch (args[0]) {` && |\n| &&
              `          case 'SET_SIZE_LIMIT': {` && |\n| &&
-             `            const viewKey = args[2];` && |\n| &&
-             `            const limit = +args[1];` && |\n| &&
-             `            (z2ui5.viewSizeLimits ??= {})[viewKey] = limit;` && |\n| &&
-             `            const target = viewLookups[viewKey]?.();` && |\n| &&
-             `            if (target) {` && |\n| &&
-             `              const model = target.getModel();` && |\n| &&
+             `            const hasLimit = args[2] !== undefined && args[2] !== '';` && |\n| &&
+             `            const viewKey = hasLimit ? args[2] : args[1];` && |\n| &&
+             `            const limit = hasLimit ? Number(args[1]) : NaN;` && |\n| &&
+             `            const model = viewLookups[viewKey]?.()?.getModel();` && |\n| &&
+             `            if (Number.isFinite(limit) && limit > 0) {` && |\n| &&
+             `              (z2ui5.viewSizeLimits ??= {})[viewKey] = limit;` && |\n| &&
              `              if (model) {` && |\n| &&
              `                model.setSizeLimit(limit);` && |\n| &&
+             `                model.refresh(true);` && |\n| &&
+             `              }` && |\n| &&
+             `            } else {` && |\n| &&
+             `              if (z2ui5.viewSizeLimits) delete z2ui5.viewSizeLimits[viewKey];` && |\n| &&
+             `              if (model) {` && |\n| &&
+             `                model.setSizeLimit(100);` && |\n| &&
+             |\n|.
+    result = result &&
              `                model.refresh(true);` && |\n| &&
              `              }` && |\n| &&
              `            }` && |\n| &&
              `            break;` && |\n| &&
              `          }` && |\n| &&
              `          case 'HISTORY_BACK':` && |\n| &&
-             |\n|.
-    result = result &&
              `            history.back();` && |\n| &&
              `            break;` && |\n| &&
              `          case 'CLIPBOARD_COPY':` && |\n| &&

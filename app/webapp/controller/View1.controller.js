@@ -384,14 +384,20 @@ sap.ui.define(
 
         switch (args[0]) {
           case 'SET_SIZE_LIMIT': {
-            const viewKey = args[2];
-            const limit = +args[1];
-            (z2ui5.viewSizeLimits ??= {})[viewKey] = limit;
-            const target = viewLookups[viewKey]?.();
-            if (target) {
-              const model = target.getModel();
+            const hasLimit = args[2] !== undefined && args[2] !== '';
+            const viewKey = hasLimit ? args[2] : args[1];
+            const limit = hasLimit ? Number(args[1]) : NaN;
+            const model = viewLookups[viewKey]?.()?.getModel();
+            if (Number.isFinite(limit) && limit > 0) {
+              (z2ui5.viewSizeLimits ??= {})[viewKey] = limit;
               if (model) {
                 model.setSizeLimit(limit);
+                model.refresh(true);
+              }
+            } else {
+              if (z2ui5.viewSizeLimits) delete z2ui5.viewSizeLimits[viewKey];
+              if (model) {
+                model.setSizeLimit(100);
                 model.refresh(true);
               }
             }
