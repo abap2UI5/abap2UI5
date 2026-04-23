@@ -211,11 +211,43 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      h3.style.cssText = 'margin: 0';` && |\n| &&
              `      headerDiv.appendChild(h3);` && |\n| &&
              `` && |\n| &&
-             `      const refreshBtn = Object.assign(document.createElement('button'), { type: 'button', textContent: 'Refresh' });` && |\n| &&
-             `      refreshBtn.style.cssText =` && |\n| &&
+             `      const btnStyle =` && |\n| &&
              `        'padding: 6px 14px; background: white; color: #d32f2f; border: none; border-radius: 3px; cursor: pointer; font-weight: bold;';` && |\n| &&
+             `` && |\n| &&
+             `      const actionsDiv = document.createElement('div');` && |\n| &&
+             `      actionsDiv.style.cssText = 'display: flex; gap: 8px;';` && |\n| &&
+             `` && |\n| &&
+             `      const refreshBtn = Object.assign(document.createElement('button'), { type: 'button', textContent: 'Refresh' });` && |\n| &&
+             `      refreshBtn.style.cssText = btnStyle;` && |\n| &&
              `      refreshBtn.addEventListener('click', () => window.location.reload());` && |\n| &&
-             `      headerDiv.appendChild(refreshBtn);` && |\n| &&
+             `      actionsDiv.appendChild(refreshBtn);` && |\n| &&
+             `` && |\n| &&
+             `      const logoutBtn = Object.assign(document.createElement('button'), { type: 'button', textContent: 'Logout' });` && |\n| &&
+             `      logoutBtn.style.cssText = btnStyle;` && |\n| &&
+             `      logoutBtn.addEventListener('click', () => {` && |\n| &&
+             `        const redirectToLogoff = () => {` && |\n| &&
+             `          window.location.href = '/sap/public/bc/icf/logoff';` && |\n| &&
+             `        };` && |\n| &&
+             `        sap.ui.require(` && |\n| &&
+             `          ['sap/ushell/Container'],` && |\n| &&
+             `          (ushellContainer) => {` && |\n| &&
+             `            try {` && |\n| &&
+             `              const container = ushellContainer || sap.ushell?.Container;` && |\n| &&
+             `              if (container?.logout) {` && |\n| &&
+             `                container.logout();` && |\n| &&
+             `              } else {` && |\n| &&
+             `                redirectToLogoff();` && |\n| &&
+             `              }` && |\n| &&
+             `            } catch (e) {` && |\n| &&
+             `              redirectToLogoff();` && |\n| &&
+             `            }` && |\n| &&
+             `          },` && |\n| &&
+             `          () => redirectToLogoff(),` && |\n| &&
+             `        );` && |\n| &&
+             `      });` && |\n| &&
+             `      actionsDiv.appendChild(logoutBtn);` && |\n| &&
+             `` && |\n| &&
+             `      headerDiv.appendChild(actionsDiv);` && |\n| &&
              `` && |\n| &&
              `      errorContainer.appendChild(headerDiv);` && |\n| &&
              `` && |\n| &&

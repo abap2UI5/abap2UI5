@@ -191,11 +191,43 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
       h3.style.cssText = 'margin: 0';
       headerDiv.appendChild(h3);
 
-      const refreshBtn = Object.assign(document.createElement('button'), { type: 'button', textContent: 'Refresh' });
-      refreshBtn.style.cssText =
+      const btnStyle =
         'padding: 6px 14px; background: white; color: #d32f2f; border: none; border-radius: 3px; cursor: pointer; font-weight: bold;';
+
+      const actionsDiv = document.createElement('div');
+      actionsDiv.style.cssText = 'display: flex; gap: 8px;';
+
+      const refreshBtn = Object.assign(document.createElement('button'), { type: 'button', textContent: 'Refresh' });
+      refreshBtn.style.cssText = btnStyle;
       refreshBtn.addEventListener('click', () => window.location.reload());
-      headerDiv.appendChild(refreshBtn);
+      actionsDiv.appendChild(refreshBtn);
+
+      const logoutBtn = Object.assign(document.createElement('button'), { type: 'button', textContent: 'Logout' });
+      logoutBtn.style.cssText = btnStyle;
+      logoutBtn.addEventListener('click', () => {
+        const redirectToLogoff = () => {
+          window.location.href = '/sap/public/bc/icf/logoff';
+        };
+        sap.ui.require(
+          ['sap/ushell/Container'],
+          (ushellContainer) => {
+            try {
+              const container = ushellContainer || sap.ushell?.Container;
+              if (container?.logout) {
+                container.logout();
+              } else {
+                redirectToLogoff();
+              }
+            } catch (e) {
+              redirectToLogoff();
+            }
+          },
+          () => redirectToLogoff(),
+        );
+      });
+      actionsDiv.appendChild(logoutBtn);
+
+      headerDiv.appendChild(actionsDiv);
 
       errorContainer.appendChild(headerDiv);
 

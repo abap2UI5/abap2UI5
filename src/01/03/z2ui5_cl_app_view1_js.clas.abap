@@ -455,6 +455,34 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `              MessageBox.error('Invalid redirect URL. Only relative URLs to the same domain are allowed.');` && |\n| &&
              `            }` && |\n| &&
              `            break;` && |\n| &&
+             `          case 'SYSTEM_LOGOUT': {` && |\n| &&
+             `            const logoutUrl = args[1] || '/sap/public/bc/icf/logoff';` && |\n| &&
+             `            const redirectToLogoff = () => {` && |\n| &&
+             `              if (isValidRedirectURL(logoutUrl)) {` && |\n| &&
+             `                window.location.href = logoutUrl;` && |\n| &&
+             `              } else {` && |\n| &&
+             `                MessageBox.error('Invalid logout URL. Only relative URLs to the same domain are allowed.');` && |\n| &&
+             `              }` && |\n| &&
+             `            };` && |\n| &&
+             `            sap.ui.require(` && |\n| &&
+             `              ['sap/ushell/Container'],` && |\n| &&
+             `              (ushellContainer) => {` && |\n| &&
+             `                try {` && |\n| &&
+             `                  const container = ushellContainer || sap.ushell?.Container;` && |\n| &&
+             `                  if (container?.logout) {` && |\n| &&
+             `                    container.logout();` && |\n| &&
+             `                  } else {` && |\n| &&
+             `                    redirectToLogoff();` && |\n| &&
+             `                  }` && |\n| &&
+             `                } catch (e) {` && |\n| &&
+             `                  _logError(``SYSTEM_LOGOUT: ushell logout failed``, e);` && |\n| &&
+             `                  redirectToLogoff();` && |\n| &&
+             `                }` && |\n| &&
+             `              },` && |\n| &&
+             `              () => redirectToLogoff(),` && |\n| &&
+             `            );` && |\n| &&
+             `            break;` && |\n| &&
+             `          }` && |\n| &&
              `          case 'OPEN_NEW_TAB':` && |\n| &&
              `            if (isValidRedirectURL(args[1])) {` && |\n| &&
              `              const newWindow = window.open(args[1], '_blank');` && |\n| &&
