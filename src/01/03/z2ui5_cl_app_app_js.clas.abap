@@ -210,9 +210,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    setTitle(val) {` && |\n| &&
              `      this.setProperty('title', val);` && |\n| &&
              `      try {` && |\n| &&
-             `        z2ui5.oLaunchpad?.ShellUIService` && |\n| &&
-             `          ?.setTitle(val)` && |\n| &&
-             `          ?.catch((e) => _logError(``LPTitle: Launchpad Service setTitle failed``, e));` && |\n| &&
+             `        z2ui5.oLaunchpad?.ShellUIService?.setTitle(val)?.catch((e) =>` && |\n| &&
+             `          _logError(``LPTitle: Launchpad Service setTitle failed``, e),` && |\n| &&
+             `        );` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        _logError(``LPTitle: Launchpad Service setTitle failed``, e);` && |\n| &&
              `      }` && |\n| &&
