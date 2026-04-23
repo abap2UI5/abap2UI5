@@ -60,7 +60,7 @@ sap.ui.define(
         const logLaunchpadError = (message, error) =>
           (z2ui5.errors ??= []).push({ message, error, ts: new Date().toISOString() });
         try {
-          const Container = sap.ui.require('sap/ushell/Container') || sap.ushell?.Container;
+          const Container = sap.ui.require('sap/ushell/Container');
           if (Container) {
             const launchpad = { Container };
             try {
