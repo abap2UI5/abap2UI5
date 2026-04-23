@@ -157,6 +157,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      POPOVER_NAV_CONTAINER_TO: (id) => Fragment.byId('popoverId', id),` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
+             `    const viewLookups = {` && |\n| &&
+             `      MAIN: () => z2ui5.oView,` && |\n| &&
+             `      NEST: () => z2ui5.oViewNest,` && |\n| &&
+             `      NEST2: () => z2ui5.oViewNest2,` && |\n| &&
+             `      POPUP: () => z2ui5.oViewPopup,` && |\n| &&
+             `      POPOVER: () => z2ui5.oViewPopover,` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
              `    return Controller.extend('z2ui5.controller.View1', {` && |\n| &&
              `      _trackChanges(oModel) {` && |\n| &&
              `        oModel.attachPropertyChange((e) => {` && |\n| &&
@@ -380,19 +388,15 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        switch (args[0]) {` && |\n| &&
              `          case 'SET_SIZE_LIMIT': {` && |\n| &&
-             `            const viewMap = {` && |\n| &&
-             `              'MAIN': z2ui5.oView,` && |\n| &&
-             `              'NEST': z2ui5.oViewNest,` && |\n| &&
-             `              'NEST2': z2ui5.oViewNest2,` && |\n| &&
-             `              'POPUP': z2ui5.oPopup,` && |\n| &&
-             `              'POPOVER': z2ui5.oPopover,` && |\n| &&
-             `           };` && |\n| &&
-             `            const target = viewMap[args[2]];` && |\n| &&
-             `              if (target) {` && |\n| &&
-             `                target.getModel().setSizeLimit(parseInt(args[1]));` && |\n| &&
-             `                target.getModel().refresh(true);` && |\n| &&
-             `               }` && |\n| &&
-             `              break;` && |\n| &&
+             `            const target = viewLookups[args[2]]?.();` && |\n| &&
+             `            if (target) {` && |\n| &&
+             `              const model = target.getModel();` && |\n| &&
+             `              if (model) {` && |\n| &&
+             `                model.setSizeLimit(+args[1]);` && |\n| &&
+             `                model.refresh(true);` && |\n| &&
+             `              }` && |\n| &&
+             `            }` && |\n| &&
+             `            break;` && |\n| &&
              `          }` && |\n| &&
              `          case 'HISTORY_BACK':` && |\n| &&
              `            history.back();` && |\n| &&
@@ -414,12 +418,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          }` && |\n| &&
              `          case 'STORE_DATA': {` && |\n| &&
              `            const { TYPE, PREFIX, VALUE, KEY } = args[1];` && |\n| &&
+             |\n|.
+    result = result &&
              `            try {` && |\n| &&
              `              const oStorage = new Storage(Storage.Type[TYPE] ?? Storage.Type.session, PREFIX);` && |\n| &&
              `              if (VALUE === '' || VALUE == null) {` && |\n| &&
              `                oStorage.remove(KEY);` && |\n| &&
-             |\n|.
-    result = result &&
              `              } else {` && |\n| &&
              `                oStorage.put(KEY, VALUE);` && |\n| &&
              `              }` && |\n| &&
