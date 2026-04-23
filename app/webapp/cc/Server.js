@@ -101,7 +101,7 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
         const customJs = params?.S_FOLLOW_UP_ACTION?.CUSTOM_JS;
         if (customJs) {
           queueMicrotask(() => {
-            if (oController.isDestroyed()) return;
+            if (oController.isDestroyed?.()) return;
             for (const item of customJs) {
               try {
                 const mParams = item.split("'");

@@ -121,7 +121,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        const customJs = params?.S_FOLLOW_UP_ACTION?.CUSTOM_JS;` && |\n| &&
              `        if (customJs) {` && |\n| &&
              `          queueMicrotask(() => {` && |\n| &&
-             `            if (oController.isDestroyed()) return;` && |\n| &&
+             `            if (oController.isDestroyed?.()) return;` && |\n| &&
              `            for (const item of customJs) {` && |\n| &&
              `              try {` && |\n| &&
              `                const mParams = item.split("'");` && |\n| &&
