@@ -77,17 +77,33 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      async _initAsync() {` && |\n| &&
+             `        const logLaunchpadError = (message, error) =>` && |\n| &&
+             `          (z2ui5.errors ??= []).push({ message, error, ts: new Date().toISOString() });` && |\n| &&
              `        try {` && |\n| &&
-             `          if (sap.ui.require('sap/ushell/Container')) {` && |\n| &&
-             `            const service = await this.getService('ShellUIService');` && |\n| &&
-             `            if (!this.isDestroyed()) z2ui5.oLaunchpadService = service;` && |\n| &&
+             `          const Container = sap.ui.require('sap/ushell/Container');` && |\n| &&
+             `          if (Container) {` && |\n| &&
+             `            const launchpad = { Container };` && |\n| &&
+             `            try {` && |\n| &&
+             `              launchpad.ShellUIService = await this.getService('ShellUIService');` && |\n| &&
+             `            } catch (e) {` && |\n| &&
+             `              logLaunchpadError(``Component: ShellUIService init failed``, e);` && |\n| &&
+             `            }` && |\n| &&
+             `            try {` && |\n| &&
+             `              launchpad.CrossAppNavigator = Container.getService('CrossApplicationNavigation');` && |\n| &&
+             `            } catch (e) {` && |\n| &&
+             `              logLaunchpadError(``Component: CrossApplicationNavigation init failed``, e);` && |\n| &&
+             `            }` && |\n| &&
+             `            try {` && |\n| &&
+             `              launchpad.AppConfiguration = await new Promise((resolve, reject) =>` && |\n| &&
+             `                sap.ui.require(['sap/ushell/services/AppConfiguration'], resolve, reject),` && |\n| &&
+             `              );` && |\n| &&
+             `            } catch (e) {` && |\n| &&
+             `              logLaunchpadError(``Component: AppConfiguration init failed``, e);` && |\n| &&
+             `            }` && |\n| &&
+             `            if (!this.isDestroyed()) z2ui5.oLaunchpad = launchpad;` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          (z2ui5.errors ??= []).push({` && |\n| &&
-             `            message: ``Component: LaunchpadService init failed``,` && |\n| &&
-             `            error: e,` && |\n| &&
-             `            ts: new Date().toISOString(),` && |\n| &&
-             `          });` && |\n| &&
+             `          logLaunchpadError(``Component: Launchpad init failed``, e);` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        try {` && |\n| &&

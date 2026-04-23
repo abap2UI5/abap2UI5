@@ -190,7 +190,7 @@ sap.ui.define('z2ui5/LPTitle', ['sap/ui/core/Control'], (Control) => {
     setTitle(val) {
       this.setProperty('title', val);
       try {
-        z2ui5.oLaunchpadService
+        z2ui5.oLaunchpad?.ShellUIService
           ?.setTitle(val)
           ?.catch((e) => _logError(`LPTitle: Launchpad Service setTitle failed`, e));
       } catch (e) {
@@ -200,18 +200,11 @@ sap.ui.define('z2ui5/LPTitle', ['sap/ui/core/Control'], (Control) => {
 
     setApplicationFullWidth(val) {
       this.setProperty('ApplicationFullWidth', val);
-      sap.ui.require(
-        ['sap/ushell/services/AppConfiguration'],
-        (AppConfiguration) => {
-          if (this.isDestroyed()) return;
-          try {
-            AppConfiguration.setApplicationFullWidth(val);
-          } catch (e) {
-            _logError(`LPTitle: setApplicationFullWidth failed`, e);
-          }
-        },
-        () => _logError(`LPTitle: sap/ushell/services/AppConfiguration not available`),
-      );
+      try {
+        z2ui5.oLaunchpad?.AppConfiguration?.setApplicationFullWidth(val);
+      } catch (e) {
+        _logError(`LPTitle: setApplicationFullWidth failed`, e);
+      }
     },
 
     renderer() {},
@@ -1344,20 +1337,16 @@ sap.ui.define('z2ui5/Dirty', ['sap/ui/core/Control'], (Control) => {
       };
 
       // use FLP dirty flag (SAPUI5 only) when in Launchpad, else fall back to browser unload
-      sap.ui.require(
-        ['sap/ushell/Container'],
-        (Container) => {
-          if (this.isDestroyed()) return;
-          try {
-            if (Container && z2ui5.oLaunchpadService) Container.setDirtyFlag(val);
-            else fallback();
-          } catch (e) {
-            _logError(`Dirty.setIsDirty: setDirtyFlag failed`, e);
-            fallback();
-          }
-        },
-        fallback,
-      );
+      try {
+        if (z2ui5.oLaunchpad?.Container?.setDirtyFlag && z2ui5.oLaunchpad?.ShellUIService) {
+          z2ui5.oLaunchpad.Container.setDirtyFlag(val);
+        } else {
+          fallback();
+        }
+      } catch (e) {
+        _logError(`Dirty.setIsDirty: setDirtyFlag failed`, e);
+        fallback();
+      }
     },
     exit() {
       window.onbeforeunload = null;

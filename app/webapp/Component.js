@@ -57,17 +57,33 @@ sap.ui.define(
       },
 
       async _initAsync() {
+        const logLaunchpadError = (message, error) =>
+          (z2ui5.errors ??= []).push({ message, error, ts: new Date().toISOString() });
         try {
-          if (sap.ui.require('sap/ushell/Container')) {
-            const service = await this.getService('ShellUIService');
-            if (!this.isDestroyed()) z2ui5.oLaunchpadService = service;
+          const Container = sap.ui.require('sap/ushell/Container');
+          if (Container) {
+            const launchpad = { Container };
+            try {
+              launchpad.ShellUIService = await this.getService('ShellUIService');
+            } catch (e) {
+              logLaunchpadError(`Component: ShellUIService init failed`, e);
+            }
+            try {
+              launchpad.CrossAppNavigator = Container.getService('CrossApplicationNavigation');
+            } catch (e) {
+              logLaunchpadError(`Component: CrossApplicationNavigation init failed`, e);
+            }
+            try {
+              launchpad.AppConfiguration = await new Promise((resolve, reject) =>
+                sap.ui.require(['sap/ushell/services/AppConfiguration'], resolve, reject),
+              );
+            } catch (e) {
+              logLaunchpadError(`Component: AppConfiguration init failed`, e);
+            }
+            if (!this.isDestroyed()) z2ui5.oLaunchpad = launchpad;
           }
         } catch (e) {
-          (z2ui5.errors ??= []).push({
-            message: `Component: LaunchpadService init failed`,
-            error: e,
-            ts: new Date().toISOString(),
-          });
+          logLaunchpadError(`Component: Launchpad init failed`, e);
         }
 
         try {

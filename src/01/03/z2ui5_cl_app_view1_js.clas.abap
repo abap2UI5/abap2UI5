@@ -120,22 +120,16 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    };` && |\n| &&
              `` && |\n| &&
              `    const withCrossAppNavigator = (callback) => {` && |\n| &&
-             `      sap.ui.require(` && |\n| &&
-             `        ['sap/ushell/Container'],` && |\n| &&
-             `        (ushellContainer) => {` && |\n| &&
-             `          try {` && |\n| &&
-             `            // fallback needed for UI5 version < 1.120` && |\n| &&
-             `            const nav = ushellContainer` && |\n| &&
-             `              ? ushellContainer.getService('CrossApplicationNavigation')` && |\n| &&
-             `              : sap.ushell.Container.getService('CrossApplicationNavigation');` && |\n| &&
-             `            z2ui5.oCrossAppNavigator = nav;` && |\n| &&
-             `            callback(nav);` && |\n| &&
-             `          } catch (e) {` && |\n| &&
-             `            _logError(``CrossAppNav: getService failed``, e);` && |\n| &&
-             `          }` && |\n| &&
-             `        },` && |\n| &&
-             `        () => _logError(``CrossAppNav: sap/ushell/Container not available``),` && |\n| &&
-             `      );` && |\n| &&
+             `      const nav = z2ui5.oLaunchpad?.CrossAppNavigator;` && |\n| &&
+             `      if (!nav) {` && |\n| &&
+             `        _logError(``CrossAppNav: not running inside Launchpad``);` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      try {` && |\n| &&
+             `        callback(nav);` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        _logError(``CrossAppNav: callback failed``, e);` && |\n| &&
+             `      }` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    const navigateContainer = (lookup, args) => {` && |\n| &&
@@ -418,14 +412,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          }` && |\n| &&
              `          case 'STORE_DATA': {` && |\n| &&
              `            const { TYPE, PREFIX, VALUE, KEY } = args[1];` && |\n| &&
-             |\n|.
-    result = result &&
              `            try {` && |\n| &&
              `              const oStorage = new Storage(Storage.Type[TYPE] ?? Storage.Type.session, PREFIX);` && |\n| &&
              `              if (VALUE === '' || VALUE == null) {` && |\n| &&
              `                oStorage.remove(KEY);` && |\n| &&
              `              } else {` && |\n| &&
              `                oStorage.put(KEY, VALUE);` && |\n| &&
+             |\n|.
+    result = result &&
              `              }` && |\n| &&
              `            } catch (e) {` && |\n| &&
              `              _logError(``STORE_DATA: storage operation failed for key '${KEY}'``, e);` && |\n| &&
@@ -464,23 +458,16 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                MessageBox.error('Invalid logout URL. Only relative URLs to the same domain are allowed.');` && |\n| &&
              `              }` && |\n| &&
              `            };` && |\n| &&
-             `            sap.ui.require(` && |\n| &&
-             `              ['sap/ushell/Container'],` && |\n| &&
-             `              (ushellContainer) => {` && |\n| &&
-             `                try {` && |\n| &&
-             `                  const container = ushellContainer || sap.ushell?.Container;` && |\n| &&
-             `                  if (container?.logout) {` && |\n| &&
-             `                    container.logout();` && |\n| &&
-             `                  } else {` && |\n| &&
-             `                    redirectToLogoff();` && |\n| &&
-             `                  }` && |\n| &&
-             `                } catch (e) {` && |\n| &&
-             `                  _logError(``SYSTEM_LOGOUT: ushell logout failed``, e);` && |\n| &&
-             `                  redirectToLogoff();` && |\n| &&
-             `                }` && |\n| &&
-             `              },` && |\n| &&
-             `              () => redirectToLogoff(),` && |\n| &&
-             `            );` && |\n| &&
+             `            try {` && |\n| &&
+             `              if (z2ui5.oLaunchpad?.Container?.logout) {` && |\n| &&
+             `                z2ui5.oLaunchpad.Container.logout();` && |\n| &&
+             `              } else {` && |\n| &&
+             `                redirectToLogoff();` && |\n| &&
+             `              }` && |\n| &&
+             `            } catch (e) {` && |\n| &&
+             `              _logError(``SYSTEM_LOGOUT: ushell logout failed``, e);` && |\n| &&
+             `              redirectToLogoff();` && |\n| &&
+             `            }` && |\n| &&
              `            break;` && |\n| &&
              `          }` && |\n| &&
              `          case 'OPEN_NEW_TAB':` && |\n| &&
