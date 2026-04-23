@@ -210,7 +210,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    setTitle(val) {` && |\n| &&
              `      this.setProperty('title', val);` && |\n| &&
              `      try {` && |\n| &&
-             `        z2ui5.oLaunchpadService` && |\n| &&
+             `        z2ui5.oLaunchpad?.ShellUIService` && |\n| &&
              `          ?.setTitle(val)` && |\n| &&
              `          ?.catch((e) => _logError(``LPTitle: Launchpad Service setTitle failed``, e));` && |\n| &&
              `      } catch (e) {` && |\n| &&
@@ -220,18 +220,11 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `    setApplicationFullWidth(val) {` && |\n| &&
              `      this.setProperty('ApplicationFullWidth', val);` && |\n| &&
-             `      sap.ui.require(` && |\n| &&
-             `        ['sap/ushell/services/AppConfiguration'],` && |\n| &&
-             `        (AppConfiguration) => {` && |\n| &&
-             `          if (this.isDestroyed()) return;` && |\n| &&
-             `          try {` && |\n| &&
-             `            AppConfiguration.setApplicationFullWidth(val);` && |\n| &&
-             `          } catch (e) {` && |\n| &&
-             `            _logError(``LPTitle: setApplicationFullWidth failed``, e);` && |\n| &&
-             `          }` && |\n| &&
-             `        },` && |\n| &&
-             `        () => _logError(``LPTitle: sap/ushell/services/AppConfiguration not available``),` && |\n| &&
-             `      );` && |\n| &&
+             `      try {` && |\n| &&
+             `        z2ui5.oLaunchpad?.AppConfiguration?.setApplicationFullWidth(val);` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        _logError(``LPTitle: setApplicationFullWidth failed``, e);` && |\n| &&
+             `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    renderer() {},` && |\n| &&
@@ -418,8 +411,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `    renderer(oRm, oControl) {` && |\n| &&
              `      oRm.openStart('span', oControl);` && |\n| &&
-             |\n|.
-    result = result &&
              `      oRm.addStyle('display', 'none');` && |\n| &&
              `      oRm.openEnd();` && |\n| &&
              `      oRm.close('span');` && |\n| &&
@@ -427,6 +418,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      if (!oControl.getProperty('setUpdate')) return;` && |\n| &&
              `      oControl.setProperty('setUpdate', false, true);` && |\n| &&
              `      oControl._pendingScroll = true;` && |\n| &&
+             |\n|.
+    result = result &&
              `    },` && |\n| &&
              `  });` && |\n| &&
              `});` && |\n| &&
@@ -820,8 +813,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          type: 'string',` && |\n| &&
              `        },` && |\n| &&
              `        MultiInputName: {` && |\n| &&
-             |\n|.
-    result = result &&
              `          type: 'string',` && |\n| &&
              `        },` && |\n| &&
              `        addedTokens: {` && |\n| &&
@@ -829,6 +820,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        },` && |\n| &&
              `        checkInit: {` && |\n| &&
              `          type: 'boolean',` && |\n| &&
+             |\n|.
+    result = result &&
              `          defaultValue: false,` && |\n| &&
              `        },` && |\n| &&
              `        removedTokens: {` && |\n| &&
@@ -1222,8 +1215,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             |\n|.
-    result = result &&
              `    _applyWhenRendered(oTable, fn) {` && |\n| &&
              `      if (oTable.getDomRef()) {` && |\n| &&
              `        fn();` && |\n| &&
@@ -1231,6 +1222,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      }` && |\n| &&
              `      const delegate = {` && |\n| &&
              `        onAfterRendering: () => {` && |\n| &&
+             |\n|.
+    result = result &&
              `          oTable.removeEventDelegate(delegate);` && |\n| &&
              `          if (!this.isDestroyed()) fn();` && |\n| &&
              `        },` && |\n| &&
@@ -1370,20 +1363,16 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      };` && |\n| &&
              `` && |\n| &&
              `      // use FLP dirty flag (SAPUI5 only) when in Launchpad, else fall back to browser unload` && |\n| &&
-             `      sap.ui.require(` && |\n| &&
-             `        ['sap/ushell/Container'],` && |\n| &&
-             `        (Container) => {` && |\n| &&
-             `          if (this.isDestroyed()) return;` && |\n| &&
-             `          try {` && |\n| &&
-             `            if (Container && z2ui5.oLaunchpadService) Container.setDirtyFlag(val);` && |\n| &&
-             `            else fallback();` && |\n| &&
-             `          } catch (e) {` && |\n| &&
-             `            _logError(``Dirty.setIsDirty: setDirtyFlag failed``, e);` && |\n| &&
-             `            fallback();` && |\n| &&
-             `          }` && |\n| &&
-             `        },` && |\n| &&
-             `        fallback,` && |\n| &&
-             `      );` && |\n| &&
+             `      try {` && |\n| &&
+             `        if (z2ui5.oLaunchpad?.Container?.setDirtyFlag && z2ui5.oLaunchpad?.ShellUIService) {` && |\n| &&
+             `          z2ui5.oLaunchpad.Container.setDirtyFlag(val);` && |\n| &&
+             `        } else {` && |\n| &&
+             `          fallback();` && |\n| &&
+             `        }` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        _logError(``Dirty.setIsDirty: setDirtyFlag failed``, e);` && |\n| &&
+             `        fallback();` && |\n| &&
+             `      }` && |\n| &&
              `    },` && |\n| &&
              `    exit() {` && |\n| &&
              `      window.onbeforeunload = null;` && |\n| &&
