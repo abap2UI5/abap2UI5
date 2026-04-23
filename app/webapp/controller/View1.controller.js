@@ -137,14 +137,6 @@ sap.ui.define(
       POPOVER_NAV_CONTAINER_TO: (id) => Fragment.byId('popoverId', id),
     };
 
-    const viewLookups = {
-      MAIN: () => z2ui5.oView,
-      NEST: () => z2ui5.oViewNest,
-      NEST2: () => z2ui5.oViewNest2,
-      POPUP: () => z2ui5.oViewPopup,
-      POPOVER: () => z2ui5.oViewPopover,
-    };
-
     return Controller.extend('z2ui5.controller.View1', {
       _trackChanges(oModel) {
         oModel.attachPropertyChange((e) => {
@@ -368,15 +360,19 @@ sap.ui.define(
 
         switch (args[0]) {
           case 'SET_SIZE_LIMIT': {
-            const target = viewLookups[args[2]]?.();
-            if (target) {
-              const model = target.getModel();
-              if (model) {
-                model.setSizeLimit(+args[1]);
-                model.refresh(true);
-              }
-            }
-            break;
+            const viewMap = {
+              'MAIN': z2ui5.oView,
+              'NEST': z2ui5.oViewNest,
+              'NEST2': z2ui5.oViewNest2,
+              'POPUP': z2ui5.oPopup,
+              'POPOVER': z2ui5.oPopover,
+           };
+            const target = viewMap[args[2]];
+              if (target) {
+                target.getModel().setSizeLimit(parseInt(args[1]));
+                target.getModel().refresh(true);
+               }
+              break;
           }
           case 'HISTORY_BACK':
             history.back();
