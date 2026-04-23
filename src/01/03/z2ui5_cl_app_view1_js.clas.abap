@@ -412,14 +412,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `              if (z2ui5.viewSizeLimits) delete z2ui5.viewSizeLimits[viewKey];` && |\n| &&
              `              if (model) {` && |\n| &&
              `                model.setSizeLimit(100);` && |\n| &&
-             |\n|.
-    result = result &&
              `                model.refresh(true);` && |\n| &&
              `              }` && |\n| &&
              `            }` && |\n| &&
              `            break;` && |\n| &&
              `          }` && |\n| &&
              `          case 'HISTORY_BACK':` && |\n| &&
+             |\n|.
+    result = result &&
              `            history.back();` && |\n| &&
              `            break;` && |\n| &&
              `          case 'CLIPBOARD_COPY':` && |\n| &&
@@ -445,8 +445,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                oStorage.remove(KEY);` && |\n| &&
              `              } else {` && |\n| &&
              `                oStorage.put(KEY, VALUE);` && |\n| &&
-             |\n|.
-    result = result &&
              `              }` && |\n| &&
              `            } catch (e) {` && |\n| &&
              `              _logError(``STORE_DATA: storage operation failed for key '${KEY}'``, e);` && |\n| &&

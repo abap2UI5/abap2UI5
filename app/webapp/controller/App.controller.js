@@ -190,9 +190,9 @@ sap.ui.define('z2ui5/LPTitle', ['sap/ui/core/Control'], (Control) => {
     setTitle(val) {
       this.setProperty('title', val);
       try {
-        z2ui5.oLaunchpad?.ShellUIService
-          ?.setTitle(val)
-          ?.catch((e) => _logError(`LPTitle: Launchpad Service setTitle failed`, e));
+        z2ui5.oLaunchpad?.ShellUIService?.setTitle(val)?.catch((e) =>
+          _logError(`LPTitle: Launchpad Service setTitle failed`, e),
+        );
       } catch (e) {
         _logError(`LPTitle: Launchpad Service setTitle failed`, e);
       }
