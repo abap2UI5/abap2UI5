@@ -9,8 +9,6 @@ CLASS z2ui5_cl_core_client DEFINITION PUBLIC.
       IMPORTING
         action TYPE REF TO z2ui5_cl_core_action.
 
-  PROTECTED SECTION.
-  PRIVATE SECTION.
     DATA mo_srv_bind  TYPE REF TO z2ui5_cl_core_srv_bind.
     DATA mo_srv_event TYPE REF TO z2ui5_cl_core_srv_event.
 
@@ -24,6 +22,8 @@ CLASS z2ui5_cl_core_client DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_app.
 
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 
 
@@ -118,7 +118,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     DATA lv_details TYPE string.
 
     IF z2ui5_cl_util=>rtti_check_clike( text ) = abap_false.
-      DATA(ls_msg_box) = z2ui5_cl_util=>msg_box_format( text ).
+      DATA(ls_msg_box) = z2ui5_cl_util=>ui5_msg_box_format( text ).
       IF ls_msg_box-skip = abap_true.
         RETURN.
       ENDIF.

@@ -96,13 +96,7 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    CLASS-METHODS msg_get_title
-      IMPORTING
-        val           TYPE clike
-      RETURNING
-        VALUE(result) TYPE string.
-
-    CLASS-METHODS msg_box_format
+    CLASS-METHODS ui5_msg_box_format
       IMPORTING
         val           TYPE any
       RETURNING
@@ -213,7 +207,7 @@ CLASS z2ui5_cl_util DEFINITION
 
     CLASS-METHODS filter_itab
       IMPORTING
-        !filter TYPE ty_t_filter_multi
+        filter TYPE ty_t_filter_multi
       CHANGING
         val     TYPE STANDARD TABLE.
 
@@ -1824,14 +1818,14 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD rtti_get_data_element_text_l.
 
-    result = z2ui5_cl_util=>rtti_get_data_element_texts( val )-long.
+    result = rtti_get_data_element_texts( val )-long.
 
   ENDMETHOD.
 
 
   METHOD msg_get_by_msg.
 
-    DATA(ls_msg) = VALUE z2ui5_cl_util=>ty_s_msg(
+    DATA(ls_msg) = VALUE ty_s_msg(
       id         = id
       no         = no
       v1         = v1
@@ -2037,25 +2031,14 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD msg_get_title.
-
-    result = SWITCH #( val
-                       WHEN `E` THEN `Error`
-                       WHEN `S` THEN `Success`
-                       WHEN `W` THEN `Warning`
-                       ELSE `Information` ).
-
-  ENDMETHOD.
-
-
-  METHOD msg_box_format.
+  METHOD ui5_msg_box_format.
 
     DATA(lt_msg) = msg_get_t( val ).
 
     IF lines( lt_msg ) = 1.
       result-text  = lt_msg[ 1 ]-text.
       result-type  = to_lower( ui5_get_msg_type( lt_msg[ 1 ]-type ) ).
-      result-title = msg_get_title( lt_msg[ 1 ]-type ).
+      result-title = ui5_get_msg_type( lt_msg[ 1 ]-type ).
 
     ELSEIF lines( lt_msg ) > 1.
       result-text = | { lines( lt_msg ) } Messages found: |.
@@ -2064,7 +2047,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         INSERT |<li>{ lr_msg->text }</li>| INTO TABLE lt_detail_items.
       ENDLOOP.
       result-details = `<ul>` && concat_lines_of( lt_detail_items ) && `</ul>`.
-      result-title   = msg_get_title( lt_msg[ 1 ]-type ).
+      result-title   = ui5_get_msg_type( lt_msg[ 1 ]-type ).
       result-type    = ui5_get_msg_type( lt_msg[ 1 ]-type ).
 
     ELSE.
