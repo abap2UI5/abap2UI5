@@ -433,6 +433,34 @@ sap.ui.define(
               MessageBox.error('Invalid redirect URL. Only relative URLs to the same domain are allowed.');
             }
             break;
+          case 'SYSTEM_LOGOUT': {
+            const logoutUrl = args[1] || '/sap/public/bc/icf/logoff';
+            const redirectToLogoff = () => {
+              if (isValidRedirectURL(logoutUrl)) {
+                window.location.href = logoutUrl;
+              } else {
+                MessageBox.error('Invalid logout URL. Only relative URLs to the same domain are allowed.');
+              }
+            };
+            sap.ui.require(
+              ['sap/ushell/Container'],
+              (ushellContainer) => {
+                try {
+                  const container = ushellContainer || sap.ushell?.Container;
+                  if (container?.logout) {
+                    container.logout();
+                  } else {
+                    redirectToLogoff();
+                  }
+                } catch (e) {
+                  _logError(`SYSTEM_LOGOUT: ushell logout failed`, e);
+                  redirectToLogoff();
+                }
+              },
+              () => redirectToLogoff(),
+            );
+            break;
+          }
           case 'OPEN_NEW_TAB':
             if (isValidRedirectURL(args[1])) {
               const newWindow = window.open(args[1], '_blank');
