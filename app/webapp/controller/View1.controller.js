@@ -139,6 +139,19 @@ sap.ui.define(
       POPOVER: () => z2ui5.oViewPopover,
     };
 
+    const paramToViewKey = {
+      S_VIEW: 'MAIN',
+      S_VIEW_NEST: 'NEST',
+      S_VIEW_NEST2: 'NEST2',
+      S_POPUP: 'POPUP',
+      S_POPOVER: 'POPOVER',
+    };
+
+    const applyStoredSizeLimit = (viewKey, oModel) => {
+      const limit = z2ui5.viewSizeLimits?.[viewKey];
+      if (limit !== undefined && oModel) oModel.setSizeLimit(limit);
+    };
+
     return Controller.extend('z2ui5.controller.View1', {
       _trackChanges(oModel) {
         oModel.attachPropertyChange((e) => {
@@ -236,6 +249,7 @@ sap.ui.define(
       },
       async displayFragment(xml, viewProp) {
         const oModel = this._createViewModel();
+        applyStoredSizeLimit('POPUP', oModel);
         const oFragment = await Fragment.load({
           definition: xml,
           controller: z2ui5.oControllerPopup,
@@ -253,6 +267,7 @@ sap.ui.define(
       async displayPopover(xml, viewProp, openById) {
         try {
           const oModel = this._createViewModel();
+          applyStoredSizeLimit('POPOVER', oModel);
           const oFragment = await Fragment.load({
             definition: xml,
             controller: z2ui5.oControllerPopover,
@@ -282,6 +297,7 @@ sap.ui.define(
       },
       async displayNestedView(xml, viewProp, viewNestId, controller) {
         const oModel = this._createViewModel();
+        applyStoredSizeLimit(paramToViewKey[viewNestId], oModel);
         const oView = await XMLView.create({
           definition: xml,
           controller,
@@ -362,11 +378,20 @@ sap.ui.define(
 
         switch (args[0]) {
           case 'SET_SIZE_LIMIT': {
-            const target = viewLookups[args[2]]?.();
-            if (target) {
-              const model = target.getModel();
+            const hasLimit = args[2] !== undefined && args[2] !== '';
+            const viewKey = hasLimit ? args[2] : args[1];
+            const limit = hasLimit ? Number(args[1]) : NaN;
+            const model = viewLookups[viewKey]?.()?.getModel();
+            if (Number.isFinite(limit) && limit > 0) {
+              (z2ui5.viewSizeLimits ??= {})[viewKey] = limit;
               if (model) {
-                model.setSizeLimit(+args[1]);
+                model.setSizeLimit(limit);
+                model.refresh(true);
+              }
+            } else {
+              if (z2ui5.viewSizeLimits) delete z2ui5.viewSizeLimits[viewKey];
+              if (model) {
+                model.setSizeLimit(100);
                 model.refresh(true);
               }
             }
@@ -550,7 +575,10 @@ sap.ui.define(
       },
 
       updateModelIfRequired(paramKey, oView) {
-        if (z2ui5.oResponse?.PARAMS?.[paramKey]?.CHECK_UPDATE_MODEL) oView?.setModel(this._createViewModel());
+        if (!z2ui5.oResponse?.PARAMS?.[paramKey]?.CHECK_UPDATE_MODEL) return;
+        const oModel = this._createViewModel();
+        applyStoredSizeLimit(paramToViewKey[paramKey], oModel);
+        oView?.setModel(oModel);
       },
       async checkSDKcompatibility(err) {
         let gav;
@@ -610,6 +638,7 @@ sap.ui.define(
               annotationURI: sView.SWITCHDEFAULTMODELANNOURI ?? '',
             })
           : oViewModel;
+        applyStoredSizeLimit('MAIN', oModel);
         z2ui5.oView = await XMLView.create({
           definition: xml,
           models: oModel,
