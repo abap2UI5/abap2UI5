@@ -100,22 +100,16 @@ sap.ui.define(
     };
 
     const withCrossAppNavigator = (callback) => {
-      sap.ui.require(
-        ['sap/ushell/Container'],
-        (ushellContainer) => {
-          try {
-            // fallback needed for UI5 version < 1.120
-            const nav = ushellContainer
-              ? ushellContainer.getService('CrossApplicationNavigation')
-              : sap.ushell.Container.getService('CrossApplicationNavigation');
-            z2ui5.oCrossAppNavigator = nav;
-            callback(nav);
-          } catch (e) {
-            _logError(`CrossAppNav: getService failed`, e);
-          }
-        },
-        () => _logError(`CrossAppNav: sap/ushell/Container not available`),
-      );
+      const nav = z2ui5.oLaunchpad?.CrossAppNavigator;
+      if (!nav) {
+        _logError(`CrossAppNav: not running inside Launchpad`);
+        return;
+      }
+      try {
+        callback(nav);
+      } catch (e) {
+        _logError(`CrossAppNav: callback failed`, e);
+      }
     };
 
     const navigateContainer = (lookup, args) => {
@@ -467,23 +461,16 @@ sap.ui.define(
                 MessageBox.error('Invalid logout URL. Only relative URLs to the same domain are allowed.');
               }
             };
-            sap.ui.require(
-              ['sap/ushell/Container'],
-              (ushellContainer) => {
-                try {
-                  const container = ushellContainer || sap.ushell?.Container;
-                  if (container?.logout) {
-                    container.logout();
-                  } else {
-                    redirectToLogoff();
-                  }
-                } catch (e) {
-                  _logError(`SYSTEM_LOGOUT: ushell logout failed`, e);
-                  redirectToLogoff();
-                }
-              },
-              () => redirectToLogoff(),
-            );
+            try {
+              if (z2ui5.oLaunchpad?.Container?.logout) {
+                z2ui5.oLaunchpad.Container.logout();
+              } else {
+                redirectToLogoff();
+              }
+            } catch (e) {
+              _logError(`SYSTEM_LOGOUT: ushell logout failed`, e);
+              redirectToLogoff();
+            }
             break;
           }
           case 'OPEN_NEW_TAB':

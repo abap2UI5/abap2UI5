@@ -208,22 +208,15 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
         const redirectToLogoff = () => {
           window.location.href = '/sap/public/bc/icf/logoff';
         };
-        sap.ui.require(
-          ['sap/ushell/Container'],
-          (ushellContainer) => {
-            try {
-              const container = ushellContainer || sap.ushell?.Container;
-              if (container?.logout) {
-                container.logout();
-              } else {
-                redirectToLogoff();
-              }
-            } catch (e) {
-              redirectToLogoff();
-            }
-          },
-          () => redirectToLogoff(),
-        );
+        try {
+          if (z2ui5.oLaunchpad?.Container?.logout) {
+            z2ui5.oLaunchpad.Container.logout();
+          } else {
+            redirectToLogoff();
+          }
+        } catch {
+          redirectToLogoff();
+        }
       });
       actionsDiv.appendChild(logoutBtn);
 

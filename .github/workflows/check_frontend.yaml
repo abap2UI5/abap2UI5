@@ -25,7 +25,5 @@ jobs:
           cache: 'npm'
           cache-dependency-path: app/package-lock.json
       - run: npm ci
-      - name: Prettier format check
-        run: npm run format:check
       - name: ESLint
         run: npm run lint

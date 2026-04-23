@@ -228,22 +228,15 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        const redirectToLogoff = () => {` && |\n| &&
              `          window.location.href = '/sap/public/bc/icf/logoff';` && |\n| &&
              `        };` && |\n| &&
-             `        sap.ui.require(` && |\n| &&
-             `          ['sap/ushell/Container'],` && |\n| &&
-             `          (ushellContainer) => {` && |\n| &&
-             `            try {` && |\n| &&
-             `              const container = ushellContainer || sap.ushell?.Container;` && |\n| &&
-             `              if (container?.logout) {` && |\n| &&
-             `                container.logout();` && |\n| &&
-             `              } else {` && |\n| &&
-             `                redirectToLogoff();` && |\n| &&
-             `              }` && |\n| &&
-             `            } catch (e) {` && |\n| &&
-             `              redirectToLogoff();` && |\n| &&
-             `            }` && |\n| &&
-             `          },` && |\n| &&
-             `          () => redirectToLogoff(),` && |\n| &&
-             `        );` && |\n| &&
+             `        try {` && |\n| &&
+             `          if (z2ui5.oLaunchpad?.Container?.logout) {` && |\n| &&
+             `            z2ui5.oLaunchpad.Container.logout();` && |\n| &&
+             `          } else {` && |\n| &&
+             `            redirectToLogoff();` && |\n| &&
+             `          }` && |\n| &&
+             `        } catch {` && |\n| &&
+             `          redirectToLogoff();` && |\n| &&
+             `        }` && |\n| &&
              `      });` && |\n| &&
              `      actionsDiv.appendChild(logoutBtn);` && |\n| &&
              `` && |\n| &&
