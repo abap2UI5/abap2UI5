@@ -78,7 +78,7 @@ CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
              `  "sap.ui5": {` &&
              `    "flexEnabled": false,` &&
              `    "dependencies": {` &&
-             `      "minUI5Version": "1.65",` &&
+             `      "minUI5Version": "1.136.0",` &&
              `      "libs": {` &&
              `        "sap.m": {},` &&
              `        "sap.ui.core": {},` &&

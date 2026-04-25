@@ -107,12 +107,15 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        if (this.getProperty('checkRepeat') && !this.isDestroyed()) this.delayedCall();` && |\n| &&
              `      }, this.getProperty('delayMS'));` && |\n| &&
              `    },` && |\n| &&
-             `    renderer(oRm, oControl) {` && |\n| &&
-             `      oRm.openStart('span', oControl);` && |\n| &&
-             `      oRm.addStyle('display', 'none');` && |\n| &&
-             `      oRm.openEnd();` && |\n| &&
-             `      oRm.close('span');` && |\n| &&
-             `      oControl._pendingTimer = oControl.getProperty('checkActive');` && |\n| &&
+             `    renderer: {` && |\n| &&
+             `      apiVersion: 2,` && |\n| &&
+             `      render(oRm, oControl) {` && |\n| &&
+             `        oRm.openStart('span', oControl);` && |\n| &&
+             `        oRm.style('display', 'none');` && |\n| &&
+             `        oRm.openEnd();` && |\n| &&
+             `        oRm.close('span');` && |\n| &&
+             `        oControl._pendingTimer = oControl.getProperty('checkActive');` && |\n| &&
+             `      },` && |\n| &&
              `    },` && |\n| &&
              `  });` && |\n| &&
              `});` && |\n| &&
@@ -164,14 +167,17 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        _logError(``Focus.onAfterRendering: applyFocusInfo failed``, e);` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
-             `    renderer(oRm, oControl) {` && |\n| &&
-             `      oRm.openStart('span', oControl);` && |\n| &&
-             `      oRm.addStyle('display', 'none');` && |\n| &&
-             `      oRm.openEnd();` && |\n| &&
-             `      oRm.close('span');` && |\n| &&
-             `      if (!oControl.getProperty('setUpdate')) return;` && |\n| &&
-             `      oControl.setProperty('setUpdate', false, true);` && |\n| &&
-             `      oControl._pendingFocus = true;` && |\n| &&
+             `    renderer: {` && |\n| &&
+             `      apiVersion: 2,` && |\n| &&
+             `      render(oRm, oControl) {` && |\n| &&
+             `        oRm.openStart('span', oControl);` && |\n| &&
+             `        oRm.style('display', 'none');` && |\n| &&
+             `        oRm.openEnd();` && |\n| &&
+             `        oRm.close('span');` && |\n| &&
+             `        if (!oControl.getProperty('setUpdate')) return;` && |\n| &&
+             `        oControl.setProperty('setUpdate', false, true);` && |\n| &&
+             `        oControl._pendingFocus = true;` && |\n| &&
+             `      },` && |\n| &&
              `    },` && |\n| &&
              `  });` && |\n| &&
              `});` && |\n| &&
@@ -190,7 +196,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      this.setProperty('title', val);` && |\n| &&
              `      document.title = String(val ?? '');` && |\n| &&
              `    },` && |\n| &&
-             `    renderer() {},` && |\n| &&
+             `    renderer: { apiVersion: 2, render() {} },` && |\n| &&
              `  });` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
@@ -227,7 +233,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             `    renderer() {},` && |\n| &&
+             `    renderer: { apiVersion: 2, render() {} },` && |\n| &&
              `  });` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
@@ -249,7 +255,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        _logError(``History.setSearch: replaceState failed``, e);` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
-             `    renderer() {},` && |\n| &&
+             `    renderer: { apiVersion: 2, render() {} },` && |\n| &&
              `  });` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
@@ -296,13 +302,16 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             `    renderer(oRm, oControl) {` && |\n| &&
-             `      oRm.openStart('span', oControl);` && |\n| &&
-             `      oRm.addStyle('display', 'none');` && |\n| &&
-             `      oRm.openEnd();` && |\n| &&
-             `      oRm.close('span');` && |\n| &&
-             `      if (!z2ui5.treeState) return;` && |\n| &&
-             `      oControl._pendingTreeState = true;` && |\n| &&
+             `    renderer: {` && |\n| &&
+             `      apiVersion: 2,` && |\n| &&
+             `      render(oRm, oControl) {` && |\n| &&
+             `        oRm.openStart('span', oControl);` && |\n| &&
+             `        oRm.style('display', 'none');` && |\n| &&
+             `        oRm.openEnd();` && |\n| &&
+             `        oRm.close('span');` && |\n| &&
+             `        if (!z2ui5.treeState) return;` && |\n| &&
+             `        oControl._pendingTreeState = true;` && |\n| &&
+             `      },` && |\n| &&
              `    },` && |\n| &&
              `  });` && |\n| &&
              `});` && |\n| &&
@@ -409,17 +418,20 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             `    renderer(oRm, oControl) {` && |\n| &&
-             `      oRm.openStart('span', oControl);` && |\n| &&
-             `      oRm.addStyle('display', 'none');` && |\n| &&
-             `      oRm.openEnd();` && |\n| &&
-             `      oRm.close('span');` && |\n| &&
-             `` && |\n| &&
-             `      if (!oControl.getProperty('setUpdate')) return;` && |\n| &&
-             `      oControl.setProperty('setUpdate', false, true);` && |\n| &&
-             `      oControl._pendingScroll = true;` && |\n| &&
              |\n|.
     result = result &&
+             `    renderer: {` && |\n| &&
+             `      apiVersion: 2,` && |\n| &&
+             `      render(oRm, oControl) {` && |\n| &&
+             `        oRm.openStart('span', oControl);` && |\n| &&
+             `        oRm.style('display', 'none');` && |\n| &&
+             `        oRm.openEnd();` && |\n| &&
+             `        oRm.close('span');` && |\n| &&
+             `` && |\n| &&
+             `        if (!oControl.getProperty('setUpdate')) return;` && |\n| &&
+             `        oControl.setProperty('setUpdate', false, true);` && |\n| &&
+             `        oControl._pendingScroll = true;` && |\n| &&
+             `      },` && |\n| &&
              `    },` && |\n| &&
              `  });` && |\n| &&
              `});` && |\n| &&
@@ -472,27 +484,30 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      },` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             `    renderer(_, oControl) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        const deviceData = z2ui5.oView?.getModel('device')?.getData();` && |\n| &&
-             `        if (!deviceData) return;` && |\n| &&
-             `        const { system, resize, os, browser } = deviceData;` && |\n| &&
-             `        for (const [prop, val] of [` && |\n| &&
-             `          ['ui5_version', z2ui5.oConfig?.UI5VersionInfo?.version],` && |\n| &&
-             `          ['device_phone', system.phone],` && |\n| &&
-             `          ['device_desktop', system.desktop],` && |\n| &&
-             `          ['device_tablet', system.tablet],` && |\n| &&
-             `          ['device_combi', system.combi],` && |\n| &&
-             `          ['device_height', resize.height],` && |\n| &&
-             `          ['device_width', resize.width],` && |\n| &&
-             `          ['device_os', os.name],` && |\n| &&
-             `          ['device_browser', browser.name],` && |\n| &&
-             `        ])` && |\n| &&
-             `          oControl.setProperty(prop, String(val ?? ''), true);` && |\n| &&
-             `        oControl.fireFinished();` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        _logError(``Info.renderer: failed``, e);` && |\n| &&
-             `      }` && |\n| &&
+             `    renderer: {` && |\n| &&
+             `      apiVersion: 2,` && |\n| &&
+             `      render(_, oControl) {` && |\n| &&
+             `        try {` && |\n| &&
+             `          const deviceData = z2ui5.oView?.getModel('device')?.getData();` && |\n| &&
+             `          if (!deviceData) return;` && |\n| &&
+             `          const { system, resize, os, browser } = deviceData;` && |\n| &&
+             `          for (const [prop, val] of [` && |\n| &&
+             `            ['ui5_version', z2ui5.oConfig?.UI5VersionInfo?.version],` && |\n| &&
+             `            ['device_phone', system.phone],` && |\n| &&
+             `            ['device_desktop', system.desktop],` && |\n| &&
+             `            ['device_tablet', system.tablet],` && |\n| &&
+             `            ['device_combi', system.combi],` && |\n| &&
+             `            ['device_height', resize.height],` && |\n| &&
+             `            ['device_width', resize.width],` && |\n| &&
+             `            ['device_os', os.name],` && |\n| &&
+             `            ['device_browser', browser.name],` && |\n| &&
+             `          ])` && |\n| &&
+             `            oControl.setProperty(prop, String(val ?? ''), true);` && |\n| &&
+             `          oControl.fireFinished();` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          _logError(``Info.renderer: failed``, e);` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
              `    },` && |\n| &&
              `  });` && |\n| &&
              `});` && |\n| &&
@@ -581,11 +596,14 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             `    renderer(oRm, oControl) {` && |\n| &&
-             `      oRm.openStart('span', oControl);` && |\n| &&
-             `      oRm.addStyle('display', 'none');` && |\n| &&
-             `      oRm.openEnd();` && |\n| &&
-             `      oRm.close('span');` && |\n| &&
+             `    renderer: {` && |\n| &&
+             `      apiVersion: 2,` && |\n| &&
+             `      render(oRm, oControl) {` && |\n| &&
+             `        oRm.openStart('span', oControl);` && |\n| &&
+             `        oRm.style('display', 'none');` && |\n| &&
+             `        oRm.openEnd();` && |\n| &&
+             `        oRm.close('span');` && |\n| &&
+             `      },` && |\n| &&
              `    },` && |\n| &&
              `  });` && |\n| &&
              `});` && |\n| &&
@@ -633,22 +651,25 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      },` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             `    renderer(_, oControl) {` && |\n| &&
-             `      const type = oControl.getProperty('type');` && |\n| &&
-             `      const prefix = oControl.getProperty('prefix');` && |\n| &&
-             `      const key = oControl.getProperty('key');` && |\n| &&
-             `      const value = oControl.getProperty('value');` && |\n| &&
-             `      let stored;` && |\n| &&
-             `      try {` && |\n| &&
-             `        stored = new Storage(Storage.Type[type] ?? Storage.Type.session, prefix).get(key) ?? '';` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        _logError(``Storage: read failed for key '${key}'``, e);` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (stored !== value) {` && |\n| &&
-             `        oControl.setProperty('value', stored, true);` && |\n| &&
-             `        oControl.fireFinished({ type, prefix, key, value: stored });` && |\n| &&
-             `      }` && |\n| &&
+             `    renderer: {` && |\n| &&
+             `      apiVersion: 2,` && |\n| &&
+             `      render(_, oControl) {` && |\n| &&
+             `        const type = oControl.getProperty('type');` && |\n| &&
+             `        const prefix = oControl.getProperty('prefix');` && |\n| &&
+             `        const key = oControl.getProperty('key');` && |\n| &&
+             `        const value = oControl.getProperty('value');` && |\n| &&
+             `        let stored;` && |\n| &&
+             `        try {` && |\n| &&
+             `          stored = new Storage(Storage.Type[type] ?? Storage.Type.session, prefix).get(key) ?? '';` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          _logError(``Storage: read failed for key '${key}'``, e);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        if (stored !== value) {` && |\n| &&
+             `          oControl.setProperty('value', stored, true);` && |\n| &&
+             `          oControl.fireFinished({ type, prefix, key, value: stored });` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
              `    },` && |\n| &&
              `  });` && |\n| &&
              `});` && |\n| &&
@@ -747,57 +768,62 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        this._oHBox?.destroy();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      renderer(oRm, oControl) {` && |\n| &&
-             `        const directUpload = oControl.getProperty('checkDirectUpload');` && |\n| &&
-             `        const path = oControl.getProperty('path');` && |\n| &&
-             `        oControl._oHBox?.destroy();` && |\n| &&
-             `        oControl._oHBox = null;` && |\n| &&
-             `        oControl.oUploadButton = null;` && |\n| &&
-             `        oControl.oFileUploader = null;` && |\n| &&
-             `        if (!directUpload) {` && |\n| &&
-             `          oControl.oUploadButton = new Button({` && |\n| &&
-             `            text: oControl.getProperty('uploadButtonText'),` && |\n| &&
-             `            enabled: path !== '',` && |\n| &&
-             `            press: () => {` && |\n| &&
-             `              oControl.setProperty('path', oControl.oFileUploader.getProperty('value'));` && |\n| &&
-             `              const file = oControl.oFileUploader?.oFileUpload?.files?.[0];` && |\n| &&
+             `      renderer: {` && |\n| &&
+             `        apiVersion: 2,` && |\n| &&
+             `        render(oRm, oControl) {` && |\n| &&
+             `          const directUpload = oControl.getProperty('checkDirectUpload');` && |\n| &&
+             `          const path = oControl.getProperty('path');` && |\n| &&
+             `          oControl._oHBox?.destroy();` && |\n| &&
+             `          oControl._oHBox = null;` && |\n| &&
+             `          oControl.oUploadButton = null;` && |\n| &&
+             `          oControl.oFileUploader = null;` && |\n| &&
+             `          if (!directUpload) {` && |\n| &&
+             `            oControl.oUploadButton = new Button({` && |\n| &&
+             `              text: oControl.getProperty('uploadButtonText'),` && |\n| &&
+             `              enabled: path !== '',` && |\n| &&
+             `              press: () => {` && |\n| &&
+             `                oControl.setProperty('path', oControl.oFileUploader.getProperty('value'));` && |\n| &&
+             `                const file = oControl.oFileUploader?.oFileUpload?.files?.[0];` && |\n| &&
+             `                if (file) oControl._readFile(file);` && |\n| &&
+             `              },` && |\n| &&
+             `            });` && |\n| &&
+             `          }` && |\n| &&
+             `` && |\n| &&
+             `          oControl.oFileUploader = new FileUploader({` && |\n| &&
+             `            icon: oControl.getProperty('icon'),` && |\n| &&
+             `            iconOnly: oControl.getProperty('iconOnly'),` && |\n| &&
+             `            buttonOnly: oControl.getProperty('buttonOnly'),` && |\n| &&
+             `            buttonText: oControl.getProperty('buttonText'),` && |\n| &&
+             `            style: oControl.getProperty('style'),` && |\n| &&
+             `            fileType: oControl.getProperty('fileType'),` && |\n| &&
+             `            visible: oControl.getProperty('visible'),` && |\n| &&
+             `            uploadOnChange: directUpload,` && |\n| &&
+             `            multiple: oControl.getProperty('multiple'),` && |\n| &&
+             `            enabled: oControl.getProperty('enabled'),` && |\n| &&
+             `            value: path,` && |\n| &&
+             `            placeholder: oControl.getProperty('placeholder'),` && |\n| &&
+             `            change: (oEvent) => {` && |\n| &&
+             `              if (directUpload) return;` && |\n| &&
+             `              const value = oEvent.getSource().getProperty('value');` && |\n| &&
+             `              oControl.setProperty('path', value);` && |\n| &&
+             `              oControl.oUploadButton?.setEnabled(!!value);` && |\n| &&
+             `              oControl.oUploadButton?.rerender();` && |\n| &&
+             `            },` && |\n| &&
+             `            uploadComplete: (oEvent) => {` && |\n| &&
+             `              if (!directUpload) return;` && |\n| &&
+             `              const value = oEvent.getSource().getProperty('value');` && |\n| &&
+             `              oControl.setProperty('path', value);` && |\n| &&
+             `              const file = oEvent.getSource().oFileUpload?.files?.[0];` && |\n| &&
              `              if (file) oControl._readFile(file);` && |\n| &&
              `            },` && |\n| &&
              `          });` && |\n| &&
-             `        }` && |\n| &&
              `` && |\n| &&
-             `        oControl.oFileUploader = new FileUploader({` && |\n| &&
-             `          icon: oControl.getProperty('icon'),` && |\n| &&
-             `          iconOnly: oControl.getProperty('iconOnly'),` && |\n| &&
-             `          buttonOnly: oControl.getProperty('buttonOnly'),` && |\n| &&
-             `          buttonText: oControl.getProperty('buttonText'),` && |\n| &&
-             `          style: oControl.getProperty('style'),` && |\n| &&
-             `          fileType: oControl.getProperty('fileType'),` && |\n| &&
-             `          visible: oControl.getProperty('visible'),` && |\n| &&
-             `          uploadOnChange: directUpload,` && |\n| &&
-             `          multiple: oControl.getProperty('multiple'),` && |\n| &&
-             `          enabled: oControl.getProperty('enabled'),` && |\n| &&
-             `          value: path,` && |\n| &&
-             `          placeholder: oControl.getProperty('placeholder'),` && |\n| &&
-             `          change: (oEvent) => {` && |\n| &&
-             `            if (directUpload) return;` && |\n| &&
-             `            const value = oEvent.getSource().getProperty('value');` && |\n| &&
-             `            oControl.setProperty('path', value);` && |\n| &&
-             `            oControl.oUploadButton?.setEnabled(!!value);` && |\n| &&
-             `            oControl.oUploadButton?.rerender();` && |\n| &&
-             `          },` && |\n| &&
-             `          uploadComplete: (oEvent) => {` && |\n| &&
-             `            if (!directUpload) return;` && |\n| &&
-             `            const value = oEvent.getSource().getProperty('value');` && |\n| &&
-             `            oControl.setProperty('path', value);` && |\n| &&
-             `            const file = oEvent.getSource().oFileUpload?.files?.[0];` && |\n| &&
-             `            if (file) oControl._readFile(file);` && |\n| &&
-             `          },` && |\n| &&
-             `        });` && |\n| &&
-             `` && |\n| &&
-             `        oControl._oHBox = new HBox().addItem(oControl.oFileUploader);` && |\n| &&
-             `        if (oControl.oUploadButton) oControl._oHBox.addItem(oControl.oUploadButton);` && |\n| &&
-             `        oRm.renderControl(oControl._oHBox);` && |\n| &&
+             `          oControl._oHBox = new HBox().addItem(oControl.oFileUploader);` && |\n| &&
+             `          if (oControl.oUploadButton) oControl._oHBox.addItem(oControl.oUploadButton);` && |\n| &&
+             |\n|.
+    result = result &&
+             `          oRm.renderControl(oControl._oHBox);` && |\n| &&
+             `        },` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
              `  },` && |\n| &&
@@ -820,8 +846,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        },` && |\n| &&
              `        checkInit: {` && |\n| &&
              `          type: 'boolean',` && |\n| &&
-             |\n|.
-    result = result &&
              `          defaultValue: false,` && |\n| &&
              `        },` && |\n| &&
              `        removedTokens: {` && |\n| &&
@@ -855,7 +879,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      this.setProperty('removedTokens', isRemoved ? tokens : []);` && |\n| &&
              `      this.fireChange();` && |\n| &&
              `    },` && |\n| &&
-             `    renderer() {},` && |\n| &&
+             `    renderer: { apiVersion: 2, render() {} },` && |\n| &&
              `    setControl() {` && |\n| &&
              `      const table = z2ui5.oView?.byId(this.getProperty('MultiInputId'));` && |\n| &&
              `      if (!table || this.getProperty('checkInit')) return;` && |\n| &&
@@ -963,7 +987,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        _logError('SmartMultiInputExt.setRangeData failed', e);` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
-             `    renderer() {},` && |\n| &&
+             `    renderer: { apiVersion: 2, render() {} },` && |\n| &&
              `    setControl() {` && |\n| &&
              `      const input = z2ui5.oView?.byId(this.getProperty('multiInputId'));` && |\n| &&
              `      if (!input || this.getProperty('checkInit')) return;` && |\n| &&
@@ -1129,13 +1153,16 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        this._oButton?.destroy();` && |\n| &&
              `        this._oScanDialog?.destroy();` && |\n| &&
              `      },` && |\n| &&
-             `      renderer(oRm, oControl) {` && |\n| &&
-             `        oControl._oButton ??= new Button({` && |\n| &&
-             `          icon: 'sap-icon://camera',` && |\n| &&
-             `          text: 'Camera',` && |\n| &&
-             `          press: oControl.onPicture.bind(oControl),` && |\n| &&
-             `        });` && |\n| &&
-             `        oRm.renderControl(oControl._oButton);` && |\n| &&
+             `      renderer: {` && |\n| &&
+             `        apiVersion: 2,` && |\n| &&
+             `        render(oRm, oControl) {` && |\n| &&
+             `          oControl._oButton ??= new Button({` && |\n| &&
+             `            icon: 'sap-icon://camera',` && |\n| &&
+             `            text: 'Camera',` && |\n| &&
+             `            press: oControl.onPicture.bind(oControl),` && |\n| &&
+             `          });` && |\n| &&
+             `          oRm.renderControl(oControl._oButton);` && |\n| &&
+             `        },` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
              `  },` && |\n| &&
@@ -1195,6 +1222,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        this.setSort();` && |\n| &&
              `      };` && |\n| &&
              `      (z2ui5.onBeforeRoundtrip ??= []).push(this._beforeBound);` && |\n| &&
+             |\n|.
+    result = result &&
              `      (z2ui5.onAfterRoundtrip ??= []).push(this._afterBound);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
@@ -1222,8 +1251,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      }` && |\n| &&
              `      const delegate = {` && |\n| &&
              `        onAfterRendering: () => {` && |\n| &&
-             |\n|.
-    result = result &&
              `          oTable.removeEventDelegate(delegate);` && |\n| &&
              `          if (!this.isDestroyed()) fn();` && |\n| &&
              `        },` && |\n| &&
@@ -1301,7 +1328,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    setSort() {` && |\n| &&
              `      this._applyToTable((oTable) => this._applySorters(oTable, this.aSorters), ``UITableExt.setSort failed``);` && |\n| &&
              `    },` && |\n| &&
-             `    renderer() {},` && |\n| &&
+             `    renderer: { apiVersion: 2, render() {} },` && |\n| &&
              `  });` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
@@ -1336,7 +1363,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        document.head.appendChild(Object.assign(document.createElement('link'), { rel: 'shortcut icon', href: val }));` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
-             `    renderer() {},` && |\n| &&
+             `    renderer: { apiVersion: 2, render() {} },` && |\n| &&
              `  });` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
@@ -1377,7 +1404,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    exit() {` && |\n| &&
              `      window.onbeforeunload = null;` && |\n| &&
              `    },` && |\n| &&
-             `    renderer() {},` && |\n| &&
+             `    renderer: { apiVersion: 2, render() {} },` && |\n| &&
              `  });` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
