@@ -87,12 +87,15 @@ sap.ui.define('z2ui5/Timer', ['sap/ui/core/Control'], (Control) => {
         if (this.getProperty('checkRepeat') && !this.isDestroyed()) this.delayedCall();
       }, this.getProperty('delayMS'));
     },
-    renderer(oRm, oControl) {
-      oRm.openStart('span', oControl);
-      oRm.addStyle('display', 'none');
-      oRm.openEnd();
-      oRm.close('span');
-      oControl._pendingTimer = oControl.getProperty('checkActive');
+    renderer: {
+      apiVersion: 2,
+      render(oRm, oControl) {
+        oRm.openStart('span', oControl);
+        oRm.style('display', 'none');
+        oRm.openEnd();
+        oRm.close('span');
+        oControl._pendingTimer = oControl.getProperty('checkActive');
+      },
     },
   });
 });
@@ -144,14 +147,17 @@ sap.ui.define('z2ui5/Focus', ['sap/ui/core/Control'], (Control) => {
         _logError(`Focus.onAfterRendering: applyFocusInfo failed`, e);
       }
     },
-    renderer(oRm, oControl) {
-      oRm.openStart('span', oControl);
-      oRm.addStyle('display', 'none');
-      oRm.openEnd();
-      oRm.close('span');
-      if (!oControl.getProperty('setUpdate')) return;
-      oControl.setProperty('setUpdate', false, true);
-      oControl._pendingFocus = true;
+    renderer: {
+      apiVersion: 2,
+      render(oRm, oControl) {
+        oRm.openStart('span', oControl);
+        oRm.style('display', 'none');
+        oRm.openEnd();
+        oRm.close('span');
+        if (!oControl.getProperty('setUpdate')) return;
+        oControl.setProperty('setUpdate', false, true);
+        oControl._pendingFocus = true;
+      },
     },
   });
 });
@@ -170,7 +176,7 @@ sap.ui.define('z2ui5/Title', ['sap/ui/core/Control'], (Control) => {
       this.setProperty('title', val);
       document.title = String(val ?? '');
     },
-    renderer() {},
+    renderer: { apiVersion: 2, render() {} },
   });
 });
 
@@ -207,7 +213,7 @@ sap.ui.define('z2ui5/LPTitle', ['sap/ui/core/Control'], (Control) => {
       }
     },
 
-    renderer() {},
+    renderer: { apiVersion: 2, render() {} },
   });
 });
 
@@ -229,7 +235,7 @@ sap.ui.define('z2ui5/History', ['sap/ui/core/Control'], (Control) => {
         _logError(`History.setSearch: replaceState failed`, e);
       }
     },
-    renderer() {},
+    renderer: { apiVersion: 2, render() {} },
   });
 });
 
@@ -276,13 +282,16 @@ sap.ui.define('z2ui5/Tree', ['sap/ui/core/Control'], (Control) => {
       }
     },
 
-    renderer(oRm, oControl) {
-      oRm.openStart('span', oControl);
-      oRm.addStyle('display', 'none');
-      oRm.openEnd();
-      oRm.close('span');
-      if (!z2ui5.treeState) return;
-      oControl._pendingTreeState = true;
+    renderer: {
+      apiVersion: 2,
+      render(oRm, oControl) {
+        oRm.openStart('span', oControl);
+        oRm.style('display', 'none');
+        oRm.openEnd();
+        oRm.close('span');
+        if (!z2ui5.treeState) return;
+        oControl._pendingTreeState = true;
+      },
     },
   });
 });
@@ -389,15 +398,18 @@ sap.ui.define('z2ui5/Scrolling', ['sap/ui/core/Control'], (Control) => {
       }
     },
 
-    renderer(oRm, oControl) {
-      oRm.openStart('span', oControl);
-      oRm.addStyle('display', 'none');
-      oRm.openEnd();
-      oRm.close('span');
+    renderer: {
+      apiVersion: 2,
+      render(oRm, oControl) {
+        oRm.openStart('span', oControl);
+        oRm.style('display', 'none');
+        oRm.openEnd();
+        oRm.close('span');
 
-      if (!oControl.getProperty('setUpdate')) return;
-      oControl.setProperty('setUpdate', false, true);
-      oControl._pendingScroll = true;
+        if (!oControl.getProperty('setUpdate')) return;
+        oControl.setProperty('setUpdate', false, true);
+        oControl._pendingScroll = true;
+      },
     },
   });
 });
@@ -450,27 +462,30 @@ sap.ui.define('z2ui5/Info', ['sap/ui/core/Control'], (Control) => {
       },
     },
 
-    renderer(_, oControl) {
-      try {
-        const deviceData = z2ui5.oView?.getModel('device')?.getData();
-        if (!deviceData) return;
-        const { system, resize, os, browser } = deviceData;
-        for (const [prop, val] of [
-          ['ui5_version', z2ui5.oConfig?.UI5VersionInfo?.version],
-          ['device_phone', system.phone],
-          ['device_desktop', system.desktop],
-          ['device_tablet', system.tablet],
-          ['device_combi', system.combi],
-          ['device_height', resize.height],
-          ['device_width', resize.width],
-          ['device_os', os.name],
-          ['device_browser', browser.name],
-        ])
-          oControl.setProperty(prop, String(val ?? ''), true);
-        oControl.fireFinished();
-      } catch (e) {
-        _logError(`Info.renderer: failed`, e);
-      }
+    renderer: {
+      apiVersion: 2,
+      render(_, oControl) {
+        try {
+          const deviceData = z2ui5.oView?.getModel('device')?.getData();
+          if (!deviceData) return;
+          const { system, resize, os, browser } = deviceData;
+          for (const [prop, val] of [
+            ['ui5_version', z2ui5.oConfig?.UI5VersionInfo?.version],
+            ['device_phone', system.phone],
+            ['device_desktop', system.desktop],
+            ['device_tablet', system.tablet],
+            ['device_combi', system.combi],
+            ['device_height', resize.height],
+            ['device_width', resize.width],
+            ['device_os', os.name],
+            ['device_browser', browser.name],
+          ])
+            oControl.setProperty(prop, String(val ?? ''), true);
+          oControl.fireFinished();
+        } catch (e) {
+          _logError(`Info.renderer: failed`, e);
+        }
+      },
     },
   });
 });
@@ -559,11 +574,14 @@ sap.ui.define('z2ui5/Geolocation', ['sap/ui/core/Control'], (Control) => {
       }
     },
 
-    renderer(oRm, oControl) {
-      oRm.openStart('span', oControl);
-      oRm.addStyle('display', 'none');
-      oRm.openEnd();
-      oRm.close('span');
+    renderer: {
+      apiVersion: 2,
+      render(oRm, oControl) {
+        oRm.openStart('span', oControl);
+        oRm.style('display', 'none');
+        oRm.openEnd();
+        oRm.close('span');
+      },
     },
   });
 });
@@ -611,22 +629,25 @@ sap.ui.define('z2ui5/Storage', ['sap/ui/core/Control', 'sap/ui/util/Storage'], (
       },
     },
 
-    renderer(_, oControl) {
-      const type = oControl.getProperty('type');
-      const prefix = oControl.getProperty('prefix');
-      const key = oControl.getProperty('key');
-      const value = oControl.getProperty('value');
-      let stored;
-      try {
-        stored = new Storage(Storage.Type[type] ?? Storage.Type.session, prefix).get(key) ?? '';
-      } catch (e) {
-        _logError(`Storage: read failed for key '${key}'`, e);
-        return;
-      }
-      if (stored !== value) {
-        oControl.setProperty('value', stored, true);
-        oControl.fireFinished({ type, prefix, key, value: stored });
-      }
+    renderer: {
+      apiVersion: 2,
+      render(_, oControl) {
+        const type = oControl.getProperty('type');
+        const prefix = oControl.getProperty('prefix');
+        const key = oControl.getProperty('key');
+        const value = oControl.getProperty('value');
+        let stored;
+        try {
+          stored = new Storage(Storage.Type[type] ?? Storage.Type.session, prefix).get(key) ?? '';
+        } catch (e) {
+          _logError(`Storage: read failed for key '${key}'`, e);
+          return;
+        }
+        if (stored !== value) {
+          oControl.setProperty('value', stored, true);
+          oControl.fireFinished({ type, prefix, key, value: stored });
+        }
+      },
     },
   });
 });
@@ -725,57 +746,60 @@ sap.ui.define(
         this._oHBox?.destroy();
       },
 
-      renderer(oRm, oControl) {
-        const directUpload = oControl.getProperty('checkDirectUpload');
-        const path = oControl.getProperty('path');
-        oControl._oHBox?.destroy();
-        oControl._oHBox = null;
-        oControl.oUploadButton = null;
-        oControl.oFileUploader = null;
-        if (!directUpload) {
-          oControl.oUploadButton = new Button({
-            text: oControl.getProperty('uploadButtonText'),
-            enabled: path !== '',
-            press: () => {
-              oControl.setProperty('path', oControl.oFileUploader.getProperty('value'));
-              const file = oControl.oFileUploader?.oFileUpload?.files?.[0];
+      renderer: {
+        apiVersion: 2,
+        render(oRm, oControl) {
+          const directUpload = oControl.getProperty('checkDirectUpload');
+          const path = oControl.getProperty('path');
+          oControl._oHBox?.destroy();
+          oControl._oHBox = null;
+          oControl.oUploadButton = null;
+          oControl.oFileUploader = null;
+          if (!directUpload) {
+            oControl.oUploadButton = new Button({
+              text: oControl.getProperty('uploadButtonText'),
+              enabled: path !== '',
+              press: () => {
+                oControl.setProperty('path', oControl.oFileUploader.getProperty('value'));
+                const file = oControl.oFileUploader?.oFileUpload?.files?.[0];
+                if (file) oControl._readFile(file);
+              },
+            });
+          }
+
+          oControl.oFileUploader = new FileUploader({
+            icon: oControl.getProperty('icon'),
+            iconOnly: oControl.getProperty('iconOnly'),
+            buttonOnly: oControl.getProperty('buttonOnly'),
+            buttonText: oControl.getProperty('buttonText'),
+            style: oControl.getProperty('style'),
+            fileType: oControl.getProperty('fileType'),
+            visible: oControl.getProperty('visible'),
+            uploadOnChange: directUpload,
+            multiple: oControl.getProperty('multiple'),
+            enabled: oControl.getProperty('enabled'),
+            value: path,
+            placeholder: oControl.getProperty('placeholder'),
+            change: (oEvent) => {
+              if (directUpload) return;
+              const value = oEvent.getSource().getProperty('value');
+              oControl.setProperty('path', value);
+              oControl.oUploadButton?.setEnabled(!!value);
+              oControl.oUploadButton?.rerender();
+            },
+            uploadComplete: (oEvent) => {
+              if (!directUpload) return;
+              const value = oEvent.getSource().getProperty('value');
+              oControl.setProperty('path', value);
+              const file = oEvent.getSource().oFileUpload?.files?.[0];
               if (file) oControl._readFile(file);
             },
           });
-        }
 
-        oControl.oFileUploader = new FileUploader({
-          icon: oControl.getProperty('icon'),
-          iconOnly: oControl.getProperty('iconOnly'),
-          buttonOnly: oControl.getProperty('buttonOnly'),
-          buttonText: oControl.getProperty('buttonText'),
-          style: oControl.getProperty('style'),
-          fileType: oControl.getProperty('fileType'),
-          visible: oControl.getProperty('visible'),
-          uploadOnChange: directUpload,
-          multiple: oControl.getProperty('multiple'),
-          enabled: oControl.getProperty('enabled'),
-          value: path,
-          placeholder: oControl.getProperty('placeholder'),
-          change: (oEvent) => {
-            if (directUpload) return;
-            const value = oEvent.getSource().getProperty('value');
-            oControl.setProperty('path', value);
-            oControl.oUploadButton?.setEnabled(!!value);
-            oControl.oUploadButton?.rerender();
-          },
-          uploadComplete: (oEvent) => {
-            if (!directUpload) return;
-            const value = oEvent.getSource().getProperty('value');
-            oControl.setProperty('path', value);
-            const file = oEvent.getSource().oFileUpload?.files?.[0];
-            if (file) oControl._readFile(file);
-          },
-        });
-
-        oControl._oHBox = new HBox().addItem(oControl.oFileUploader);
-        if (oControl.oUploadButton) oControl._oHBox.addItem(oControl.oUploadButton);
-        oRm.renderControl(oControl._oHBox);
+          oControl._oHBox = new HBox().addItem(oControl.oFileUploader);
+          if (oControl.oUploadButton) oControl._oHBox.addItem(oControl.oUploadButton);
+          oRm.renderControl(oControl._oHBox);
+        },
       },
     });
   },
@@ -831,7 +855,7 @@ sap.ui.define('z2ui5/MultiInputExt', ['sap/ui/core/Control', 'sap/m/Token'], (Co
       this.setProperty('removedTokens', isRemoved ? tokens : []);
       this.fireChange();
     },
-    renderer() {},
+    renderer: { apiVersion: 2, render() {} },
     setControl() {
       const table = z2ui5.oView?.byId(this.getProperty('MultiInputId'));
       if (!table || this.getProperty('checkInit')) return;
@@ -939,7 +963,7 @@ sap.ui.define('z2ui5/SmartMultiInputExt', ['sap/ui/core/Control'], (Control) => 
         _logError('SmartMultiInputExt.setRangeData failed', e);
       }
     },
-    renderer() {},
+    renderer: { apiVersion: 2, render() {} },
     setControl() {
       const input = z2ui5.oView?.byId(this.getProperty('multiInputId'));
       if (!input || this.getProperty('checkInit')) return;
@@ -1105,13 +1129,16 @@ sap.ui.define(
         this._oButton?.destroy();
         this._oScanDialog?.destroy();
       },
-      renderer(oRm, oControl) {
-        oControl._oButton ??= new Button({
-          icon: 'sap-icon://camera',
-          text: 'Camera',
-          press: oControl.onPicture.bind(oControl),
-        });
-        oRm.renderControl(oControl._oButton);
+      renderer: {
+        apiVersion: 2,
+        render(oRm, oControl) {
+          oControl._oButton ??= new Button({
+            icon: 'sap-icon://camera',
+            text: 'Camera',
+            press: oControl.onPicture.bind(oControl),
+          });
+          oRm.renderControl(oControl._oButton);
+        },
       },
     });
   },
@@ -1275,7 +1302,7 @@ sap.ui.define('z2ui5/UITableExt', ['sap/ui/core/Control'], (Control) => {
     setSort() {
       this._applyToTable((oTable) => this._applySorters(oTable, this.aSorters), `UITableExt.setSort failed`);
     },
-    renderer() {},
+    renderer: { apiVersion: 2, render() {} },
   });
 });
 
@@ -1310,7 +1337,7 @@ sap.ui.define('z2ui5/Favicon', ['sap/ui/core/Control'], (Control) => {
         document.head.appendChild(Object.assign(document.createElement('link'), { rel: 'shortcut icon', href: val }));
       }
     },
-    renderer() {},
+    renderer: { apiVersion: 2, render() {} },
   });
 });
 
@@ -1351,6 +1378,6 @@ sap.ui.define('z2ui5/Dirty', ['sap/ui/core/Control'], (Control) => {
     exit() {
       window.onbeforeunload = null;
     },
-    renderer() {},
+    renderer: { apiVersion: 2, render() {} },
   });
 });
