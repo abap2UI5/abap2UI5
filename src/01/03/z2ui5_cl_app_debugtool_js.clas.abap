@@ -220,7 +220,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        else this.show();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      renderer() {},` && |\n| &&
+             `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
              `    });` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&

@@ -89,7 +89,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `              logLaunchpadError(``Component: ShellUIService init failed``, e);` && |\n| &&
              `            }` && |\n| &&
              `            try {` && |\n| &&
-             `              launchpad.CrossAppNavigator = Container.getService('CrossApplicationNavigation');` && |\n| &&
+             `              launchpad.CrossAppNavigator = await Container.getServiceAsync('CrossApplicationNavigation');` && |\n| &&
              `            } catch (e) {` && |\n| &&
              `              logLaunchpadError(``Component: CrossApplicationNavigation init failed``, e);` && |\n| &&
              `            }` && |\n| &&
