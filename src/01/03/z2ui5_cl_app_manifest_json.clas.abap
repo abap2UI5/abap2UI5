@@ -82,7 +82,7 @@ CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
              `      "libs": {` &&
              `        "sap.m": {},` &&
              `        "sap.ui.core": {},` &&
-             `        "sap.ui.unified": {}` &&
+             `        "sap.ui.unified": { "lazy": true }` &&
              `      }` &&
              `    },` &&
              `    "contentDensities": {` &&
