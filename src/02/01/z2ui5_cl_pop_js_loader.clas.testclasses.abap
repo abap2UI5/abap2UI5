@@ -11,7 +11,8 @@ ENDCLASS.
 CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory.
-    DATA(lo_pop) = z2ui5_cl_pop_js_loader=>factory(
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_js_loader.
+    lo_pop = z2ui5_cl_pop_js_loader=>factory(
       i_js     = `console.log("hello");`
       i_result = `DONE` ).
 
@@ -21,20 +22,23 @@ CLASS ltcl_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_factory_open_ui5.
-    DATA(lo_pop) = z2ui5_cl_pop_js_loader=>factory_check_open_ui5( ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_js_loader.
+    lo_pop = z2ui5_cl_pop_js_loader=>factory_check_open_ui5( ).
 
     cl_abap_unit_assert=>assert_bound( lo_pop ).
   ENDMETHOD.
 
   METHOD test_result_initial.
-    DATA(lo_pop) = z2ui5_cl_pop_js_loader=>factory( `alert(1);` ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_js_loader.
+    lo_pop = z2ui5_cl_pop_js_loader=>factory( `alert(1);` ).
 
     cl_abap_unit_assert=>assert_equals( exp = `LOADED`
                                         act = lo_pop->result( ) ).
   ENDMETHOD.
 
   METHOD test_open_ui5_flag_init.
-    DATA(lo_pop) = z2ui5_cl_pop_js_loader=>factory_check_open_ui5( ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_js_loader.
+    lo_pop = z2ui5_cl_pop_js_loader=>factory_check_open_ui5( ).
 
     cl_abap_unit_assert=>assert_false( lo_pop->mv_is_open_ui5 ).
   ENDMETHOD.

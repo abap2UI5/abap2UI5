@@ -16,15 +16,19 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory.
 
-    DATA(lo_pop) = z2ui5_cl_pop_file_ul=>factory( ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_file_ul.
+    lo_pop = z2ui5_cl_pop_file_ul=>factory( ).
     cl_abap_unit_assert=>assert_bound( lo_pop ).
 
   ENDMETHOD.
 
   METHOD test_result_initial.
 
-    DATA(lo_pop) = z2ui5_cl_pop_file_ul=>factory( ).
-    DATA(ls_result) = lo_pop->result( ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_file_ul.
+    DATA ls_result TYPE z2ui5_cl_pop_file_ul=>ty_s_result.
+    lo_pop = z2ui5_cl_pop_file_ul=>factory( ).
+    
+    ls_result = lo_pop->result( ).
     cl_abap_unit_assert=>assert_false( ls_result-check_confirmed ).
     cl_abap_unit_assert=>assert_initial( ls_result-value ).
 
@@ -32,7 +36,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory_with_path.
 
-    DATA(lo_pop) = z2ui5_cl_pop_file_ul=>factory( i_path = `/tmp/myfile.csv` ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_file_ul.
+    lo_pop = z2ui5_cl_pop_file_ul=>factory( i_path = `/tmp/myfile.csv` ).
     cl_abap_unit_assert=>assert_equals( exp = `/tmp/myfile.csv`
                                         act = lo_pop->mv_path ).
 
@@ -40,7 +45,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_confirm_initially_off.
 
-    DATA(lo_pop) = z2ui5_cl_pop_file_ul=>factory( ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_file_ul.
+    lo_pop = z2ui5_cl_pop_file_ul=>factory( ).
     cl_abap_unit_assert=>assert_false( lo_pop->check_confirm_enabled ).
 
   ENDMETHOD.
