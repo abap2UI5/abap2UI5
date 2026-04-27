@@ -24,7 +24,7 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
               )->input( client->_bind_edit( name )
               )->button( text  = `Send`
                          press = client->_event( `BUTTON_POST` ) ).
-        client->view_display( view->stringify( ) ).
+      client->view_display( view->stringify( ) ).
 
     ELSEIF client->check_on_event( `BUTTON_POST` ).
       client->message_box_display( |Your name is { name }| ).
