@@ -86,7 +86,8 @@ CLASS z2ui5_cl_util_log IMPLEMENTATION.
 
   METHOD add.
 
-    DATA(lt_msg) = z2ui5_cl_util=>msg_get_t( val ).
+    DATA lt_msg TYPE z2ui5_cl_util=>ty_t_msg.
+    lt_msg = z2ui5_cl_util=>msg_get_t( val ).
     INSERT LINES OF lt_msg INTO TABLE mt_log.
     result = me.
 
@@ -94,28 +95,44 @@ CLASS z2ui5_cl_util_log IMPLEMENTATION.
 
   METHOD info.
 
-    INSERT VALUE #( type = `I` text = val ) INTO TABLE mt_log.
+    DATA temp15 TYPE z2ui5_cl_util=>ty_s_msg.
+    CLEAR temp15.
+    temp15-type = `I`.
+    temp15-text = val.
+    INSERT temp15 INTO TABLE mt_log.
     result = me.
 
   ENDMETHOD.
 
   METHOD error.
 
-    INSERT VALUE #( type = `E` text = val ) INTO TABLE mt_log.
+    DATA temp16 TYPE z2ui5_cl_util=>ty_s_msg.
+    CLEAR temp16.
+    temp16-type = `E`.
+    temp16-text = val.
+    INSERT temp16 INTO TABLE mt_log.
     result = me.
 
   ENDMETHOD.
 
   METHOD warning.
 
-    INSERT VALUE #( type = `W` text = val ) INTO TABLE mt_log.
+    DATA temp17 TYPE z2ui5_cl_util=>ty_s_msg.
+    CLEAR temp17.
+    temp17-type = `W`.
+    temp17-text = val.
+    INSERT temp17 INTO TABLE mt_log.
     result = me.
 
   ENDMETHOD.
 
   METHOD success.
 
-    INSERT VALUE #( type = `S` text = val ) INTO TABLE mt_log.
+    DATA temp18 TYPE z2ui5_cl_util=>ty_s_msg.
+    CLEAR temp18.
+    temp18-type = `S`.
+    temp18-text = val.
+    INSERT temp18 INTO TABLE mt_log.
     result = me.
 
   ENDMETHOD.
@@ -129,7 +146,13 @@ CLASS z2ui5_cl_util_log IMPLEMENTATION.
 
   METHOD has_error.
 
-    result = xsdbool( line_exists( mt_log[ type = `E` ] ) ).
+    DATA temp19 LIKE sy-subrc.
+    DATA temp1 TYPE xsdboolean.
+    READ TABLE mt_log WITH KEY type = `E` TRANSPORTING NO FIELDS.
+    temp19 = sy-subrc.
+    
+    temp1 = boolc( temp19 = 0 ).
+    result = temp1.
 
   ENDMETHOD.
 
@@ -141,7 +164,8 @@ CLASS z2ui5_cl_util_log IMPLEMENTATION.
 
   METHOD bal_read.
 
-    DATA(lt_msg) = z2ui5_cl_util=>bal_read(
+    DATA lt_msg TYPE z2ui5_cl_util=>ty_t_msg.
+    lt_msg = z2ui5_cl_util=>bal_read(
          object    = object
          subobject = subobject
          id        = id ).
@@ -179,7 +203,8 @@ CLASS z2ui5_cl_util_log IMPLEMENTATION.
 
   METHOD to_string.
 
-    LOOP AT mt_log INTO DATA(ls_msg).
+    DATA ls_msg LIKE LINE OF mt_log.
+    LOOP AT mt_log INTO ls_msg.
       IF result IS NOT INITIAL.
         result = |{ result }\n|.
       ENDIF.

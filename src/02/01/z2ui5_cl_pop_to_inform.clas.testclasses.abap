@@ -15,21 +15,24 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory.
 
-    DATA(lo_pop) = z2ui5_cl_pop_to_inform=>factory( `Info message` ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_inform.
+    lo_pop = z2ui5_cl_pop_to_inform=>factory( `Info message` ).
     cl_abap_unit_assert=>assert_bound( lo_pop ).
 
   ENDMETHOD.
 
   METHOD test_factory_defaults.
 
-    DATA(lo_pop) = z2ui5_cl_pop_to_inform=>factory( `Hello` ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_inform.
+    lo_pop = z2ui5_cl_pop_to_inform=>factory( `Hello` ).
     cl_abap_unit_assert=>assert_bound( lo_pop ).
 
   ENDMETHOD.
 
   METHOD test_factory_custom.
 
-    DATA(lo_pop) = z2ui5_cl_pop_to_inform=>factory(
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_inform.
+    lo_pop = z2ui5_cl_pop_to_inform=>factory(
       i_text        = `Custom Info`
       i_title       = `My Title`
       i_icon        = `sap-icon://hint`

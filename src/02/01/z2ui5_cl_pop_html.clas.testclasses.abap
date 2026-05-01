@@ -14,14 +14,16 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory.
 
-    DATA(lo_pop) = z2ui5_cl_pop_html=>factory( `<p>Hello</p>` ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_html.
+    lo_pop = z2ui5_cl_pop_html=>factory( `<p>Hello</p>` ).
     cl_abap_unit_assert=>assert_bound( lo_pop ).
 
   ENDMETHOD.
 
   METHOD test_factory_custom.
 
-    DATA(lo_pop) = z2ui5_cl_pop_html=>factory(
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_html.
+    lo_pop = z2ui5_cl_pop_html=>factory(
       i_html        = `<h1>Title</h1>`
       i_title       = `My HTML`
       i_icon        = `sap-icon://hint`
