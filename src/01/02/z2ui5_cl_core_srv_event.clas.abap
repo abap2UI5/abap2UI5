@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_core_srv_event DEFINITION PUBLIC.
+CLASS z2ui5_cl_core_srv_event DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
     METHODS get_event

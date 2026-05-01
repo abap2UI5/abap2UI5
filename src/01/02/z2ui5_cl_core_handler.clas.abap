@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_core_handler DEFINITION PUBLIC.
+CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
     DATA mo_action       TYPE REF TO z2ui5_cl_core_action.
@@ -162,9 +162,11 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         ajson_result = ajson_result->filter( z2ui5_cl_util_json_fltr=>create_no_empty_values( ) ).
         DATA(lv_frontend) = ajson_result->stringify( ).
 
+        DATA(lv_model) = COND string( WHEN val-model IS NOT INITIAL THEN val-model ELSE `{}` ).
+
         result = |\{| &&
             |"S_FRONT":{ lv_frontend },| &&
-            |"MODEL":{ val-model }| &&
+            |"MODEL":{ lv_model }| &&
           |\}|.
 
       CATCH cx_root INTO DATA(x).

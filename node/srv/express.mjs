@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 const app = express();
 app.disable('x-powered-by');
 app.set('etag', false);
-app.use(express.raw({type: "*/*"}));
+app.use(express.raw({type: "*/*", limit: "10mb"}));
 
 // ------------------
 

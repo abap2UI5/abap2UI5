@@ -253,6 +253,15 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
   ```abap
   CLASS z2ui5_cl_my_class DEFINITION PUBLIC FINAL CREATE PUBLIC.
   ```
+- **Class sections:** Always include all three section blocks (`PUBLIC SECTION.`, `PROTECTED SECTION.`, `PRIVATE SECTION.`) in every class definition, even when a block is empty. Do not omit empty `PROTECTED SECTION.` or `PRIVATE SECTION.` blocks.
+  ```abap
+  CLASS z2ui5_cl_my_class DEFINITION PUBLIC FINAL CREATE PUBLIC.
+    PUBLIC SECTION.
+      METHODS do_something.
+    PROTECTED SECTION.
+    PRIVATE SECTION.
+  ENDCLASS.
+  ```
 - **Exception handling:** Use `cx_root` as catch-all; re-raise as `z2ui5_cx_util_error`; use `##NO_HANDLER` when intentionally ignoring
   ```abap
   CATCH cx_root INTO DATA(x).
