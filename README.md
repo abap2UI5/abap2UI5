@@ -3,7 +3,7 @@
 <summary>🚦</summary>
 <br>
 
-[![ABAP_702](https://github.com/abap2UI5/abap2UI5/actions/workflows/ABAP_702.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/ABAP_702.yaml)
+[![ABAP_702](https://github.com/abap2UI5/abap2UI5/actions/workflows/ABAP_702.yaml/badge.svg?branch=702)](https://github.com/abap2UI5/abap2UI5/actions/workflows/ABAP_702.yaml?query=branch%3A702)
 [![ABAP_STANDARD](https://github.com/abap2UI5/abap2UI5/actions/workflows/ABAP_STANDARD.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/ABAP_STANDARD.yaml)
 [![ABAP_CLOUD](https://github.com/abap2UI5/abap2UI5/actions/workflows/ABAP_CLOUD.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/ABAP_CLOUD.yaml)
 [![UI5_2X](https://github.com/abap2UI5/abap2UI5/actions/workflows/UI5.yaml/badge.svg?branch=main)](https://github.com/abap2UI5/abap2UI5/actions/workflows/UI5.yaml)
@@ -21,8 +21,6 @@
 <br>
 [![mirror_ajson](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_ajson.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_ajson.yaml)
 [![mirror_srtti](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_srtti.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_srtti.yaml)
-<br>
-[![check_app](https://github.com/abap2UI5/abap2UI5/actions/workflows/check_app.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/check_app.yaml)
 
 </details>
 
