@@ -22,7 +22,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `  'use strict';` && |\n| &&
              `` && |\n| &&
              `  const ERROR_MAX_LENGTH = 50000;` && |\n| &&
-             `  const _MSG_TYPES = ['S_MSG_TOAST', 'S_MSG_BOX'];` && |\n| &&
+             `  const _MSG_TYPES = Object.freeze(['S_MSG_TOAST', 'S_MSG_BOX']);` && |\n| &&
              `` && |\n| &&
              `  return {` && |\n| &&
              `    endSession() {` && |\n| &&
@@ -40,7 +40,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    },` && |\n| &&
              `    Roundtrip() {` && |\n| &&
-             `      z2ui5.checkTimerActive = z2ui5.checkNestAfter = z2ui5.checkNestAfter2 = false;` && |\n| &&
+             `      Object.assign(z2ui5, { checkTimerActive: false, checkNestAfter: false, checkNestAfter2: false });` && |\n| &&
              `      const oBody = (z2ui5.oBody ??= {});` && |\n| &&
              `      oBody.S_FRONT = {` && |\n| &&
              `        ID: oBody.ID,` && |\n| &&
