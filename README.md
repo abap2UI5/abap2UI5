@@ -36,7 +36,7 @@
 
 <p align="center">
   <a href="https://abap2UI5.org">📚 Documentation</a> •
-  <a href="https://github.com/abap2UI5/abap2UI5-samples">🎯 Samples</a> •
+  <a href="https://github.com/abap2UI5/abap2UI5-samples">🎯 Samples (250+ apps)</a> •
   <a href="https://github.com/abap2UI5/abap2UI5/issues">💬 Issues</a> •
   <a href="https://www.linkedin.com/company/abap2ui5">🔗 LinkedIn</a> •
   <a href="https://communityinviter.com/apps/abapgit/abap">👥 Slack</a> •
@@ -69,6 +69,27 @@ ENDCLASS.
 ```
 
 That's it – your first UI5 app is ready and abap2UI5 handles the rest! 🎉
+
+#### How It Works
+
+abap2UI5 is a **single-page app**. The browser loads a UI5 shell once, then talks to ABAP via JSON roundtrips:
+
+```
+ Browser (UI5)                        Backend (ABAP)
+       │                                    │
+       │── GET ────────────────────────────▶│  Returns HTML + UI5 shell
+       │◀── HTML ────────────────────────── │
+       │                                    │
+       │── POST { event, model deltas } ──▶ │  1. Load session draft
+       │                                    │  2. Apply two-way bindings
+       │                                    │  3. Call your app->main( )
+       │                                    │  4. Persist new draft
+       │◀── { view XML, model, actions } ── │
+       │                                    │
+       │  (UI5 renders, binds, awaits next event)
+```
+
+You never touch JSON, HTTP, or JavaScript yourself. You implement `z2ui5_if_app~main`, build views with the fluent XML builder, and bind ABAP variables to UI5 controls — the framework handles serialization, sessions, and rendering.
 
 #### References
 * Webinar on Launchpad Integration [(YouTube - 30.07.2025)](https://www.youtube.com/watch?v=t5g3F3PHsbw&list=PLLpkZ_86h4quGSfsjohDHt9CrpjXdeA1P)
