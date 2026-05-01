@@ -31,7 +31,7 @@
 </p>
 
 <p align="center">
-  Just like the good old days when Selection Screens & ALVs could create full UIs with a few lines of ABAP code. Designed with a minimal system footprint, it works in both on-premise and cloud environments.
+  Just like the good old days when Selection Screens and ALVs delivered full UIs from a few lines of ABAP. Designed with a minimal system footprint, it runs in both on-premise and cloud environments.
 </p>
 
 <p align="center">
@@ -44,11 +44,11 @@
 </p>
 
 #### Key Features
-* **User-Friendly** - Just implement one interface for a standalone UI5 app – all purely in ABAP
-* **Minimal Footprint** - Needs only a simple HTTP handler - no BSP, OData, CDS, or RAP
-* **Cloud & On-Premise Ready** - Works with ABAP Cloud and Standard ABAP
-* **Broad Compatibility** - Supports all ABAP releases from NW 7.02 to ABAP Cloud
-* **Easy Installation** - Install via abapGit – no extra app deployment needed
+* **User-Friendly** – Implement a single interface to build a complete UI5 app, purely in ABAP
+* **Minimal Footprint** – Needs only a simple HTTP handler – no BSP, OData, CDS, or RAP
+* **Cloud & On-Premise Ready** – Runs in ABAP Cloud and Standard ABAP environments
+* **Broad Compatibility** – Supports all ABAP releases from NW 7.02 to ABAP Cloud
+* **Easy Installation** – Install via abapGit – no extra app deployment needed
 
 
 #### Quick Start
@@ -89,7 +89,7 @@ abap2UI5 is a **single-page app**. The browser loads a UI5 shell once, then talk
        │  (UI5 renders, binds, awaits next event)
 ```
 
-You never touch JSON, HTTP, or JavaScript yourself. You implement `z2ui5_if_app~main`, build views with the fluent XML builder, and bind ABAP variables to UI5 controls — the framework handles serialization, sessions, and rendering.
+You never touch JSON, HTTP, or JavaScript yourself. You implement `z2ui5_if_app~main`, build views with an ABAP XML view builder, and bind ABAP variables to UI5 controls — the framework handles serialization, sessions, and rendering.
 
 #### References
 * Webinar on Launchpad Integration [(YouTube - 30.07.2025)](https://www.youtube.com/watch?v=t5g3F3PHsbw&list=PLLpkZ_86h4quGSfsjohDHt9CrpjXdeA1P)
