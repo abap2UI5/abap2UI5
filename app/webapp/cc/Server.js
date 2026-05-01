@@ -2,7 +2,7 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
   'use strict';
 
   const ERROR_MAX_LENGTH = 50000;
-  const _MSG_TYPES = ['S_MSG_TOAST', 'S_MSG_BOX'];
+  const _MSG_TYPES = Object.freeze(['S_MSG_TOAST', 'S_MSG_BOX']);
 
   return {
     endSession() {
@@ -20,7 +20,7 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
       }
     },
     Roundtrip() {
-      z2ui5.checkTimerActive = z2ui5.checkNestAfter = z2ui5.checkNestAfter2 = false;
+      Object.assign(z2ui5, { checkTimerActive: false, checkNestAfter: false, checkNestAfter2: false });
       const oBody = (z2ui5.oBody ??= {});
       oBody.S_FRONT = {
         ID: oBody.ID,
