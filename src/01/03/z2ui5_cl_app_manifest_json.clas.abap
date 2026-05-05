@@ -26,7 +26,7 @@ CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
              `    "applicationVersion": {` &&
              `      "version": "0.0.1"` &&
              `    },` &&
-             `    "title": "",` &&
+             `    "title": "abap2UI5",` &&
              `    "description": "",` &&
              `    "resources": "resources.json",` &&
              `    "sourceTemplate": {` &&
