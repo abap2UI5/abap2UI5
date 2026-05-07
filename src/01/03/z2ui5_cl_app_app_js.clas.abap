@@ -807,7 +807,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `              const value = oEvent.getSource().getProperty('value');` && |\n| &&
              `              oControl.setProperty('path', value);` && |\n| &&
              `              oControl.oUploadButton?.setEnabled(!!value);` && |\n| &&
-             `              oControl.oUploadButton?.rerender();` && |\n| &&
+             `              oControl.oUploadButton?.invalidate();` && |\n| &&
              `            },` && |\n| &&
              `            uploadComplete: (oEvent) => {` && |\n| &&
              `              if (!directUpload) return;` && |\n| &&

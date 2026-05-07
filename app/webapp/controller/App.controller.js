@@ -785,7 +785,7 @@ sap.ui.define(
               const value = oEvent.getSource().getProperty('value');
               oControl.setProperty('path', value);
               oControl.oUploadButton?.setEnabled(!!value);
-              oControl.oUploadButton?.rerender();
+              oControl.oUploadButton?.invalidate();
             },
             uploadComplete: (oEvent) => {
               if (!directUpload) return;
