@@ -37,7 +37,6 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! @parameter size                  | (sap.ui.core.CSSSize) Font size of the icon, e.g. `1rem`, `2em`, `32px`.
     "! @parameter color                 | (string | sap.ui.core.IconColor) Icon color. CSS color or enum: Default | Positive | Negative | Critical | Neutral | Contrast | Non_Interactive | Tile | Marker.
     "! @parameter class                 | (string) CSS class names.
-    "! @parameter id                    | (sap.ui.core.ID) Stable control id.
     "! @parameter width                 | (sap.ui.core.CSSSize) Outer width.
     "! @parameter useicontooltip        | (boolean) Whether the symbolic name is used as tooltip when no `tooltip` is set. Default: true.
     "! @parameter notabstop             | (boolean) If true the icon is not part of the tab chain. Default: false.
@@ -50,7 +49,6 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! @parameter activecolor           | (string | sap.ui.core.IconColor) Color while pressed.
     "! @parameter activebackgroundcolor | (string | sap.ui.core.IconColor) Background color while pressed.
     "! @parameter visible               | (boolean) Whether the icon is visible. Default: true.
-    "! @parameter result                | Self-reference for fluent chaining.
     METHODS icon
       IMPORTING
         src                   TYPE clike OPTIONAL
@@ -206,7 +204,6 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! Responsive list-style table. See https://ui5.sap.com/#/api/sap.m.Table
     "! Many parameters are inherited from sap.m.ListBase (https://ui5.sap.com/#/api/sap.m.ListBase).
     "!
-    "! @parameter id                  | (sap.ui.core.ID) Stable control id.
     "! @parameter items               | (binding path) Aggregation of `sap.m.ColumnListItem` rows. Use `client->_bind_edit( itab )`.
     "! @parameter class               | (string) CSS class names.
     "! @parameter growing             | (boolean, ListBase) Enables progressive loading via "More" button. Default: false.
@@ -227,7 +224,6 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! @parameter fixedlayout         | (any) Layout algorithm for cells: true | false | "Strict". Default: true. Since 1.22.
     "! @parameter backgrounddesign    | (sap.m.BackgroundDesign) Background style: Solid | Translucent | Transparent. Default: Translucent.
     "! @parameter visible             | (boolean) Whether the table is visible. Default: true.
-    "! @parameter result              | Self-reference for fluent chaining.
     METHODS table
       IMPORTING
         id                  TYPE clike OPTIONAL
@@ -805,7 +801,6 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! Single-line input control with optional value help, suggestions and validation states.
     "! See https://ui5.sap.com/#/api/sap.m.Input. Inherits properties from sap.m.InputBase.
     "!
-    "! @parameter id                            | (sap.ui.core.ID) Stable control id.
     "! @parameter value                         | (string, InputBase) Two-way bound value. Use `client->_bind_edit( var )`.
     "! @parameter placeholder                   | (string, InputBase) Placeholder shown while empty.
     "! @parameter type                          | (sap.m.InputType) Text | Email | Number | Password | Tel | Url. Default: Text. Old types Date, Time, Datetime, DatetimeLocale, Month, Week and Passport are deprecated/removed - use sap.m.DatePicker / TimePicker instead.
@@ -842,7 +837,6 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! @parameter enabletableautopopinmode      | (boolean) Auto pop-in for table suggestions. Default: false. Since 1.89.
     "! @parameter arialabelledby                | (sap.ui.core.ID[]) Ids of labelling controls (ARIA).
     "! @parameter ariadescribedby               | (sap.ui.core.ID[]) Ids of describing controls (ARIA).
-    "! @parameter result                        | Self-reference for fluent chaining.
     METHODS input
       IMPORTING
         id                            TYPE clike OPTIONAL
@@ -1212,7 +1206,6 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! @parameter visible          | (boolean) Whether the button is visible. Default: true.
     "! @parameter press            | (event) Fired when the button is clicked or activated by keyboard.
     "! @parameter class            | (string) CSS class names.
-    "! @parameter id               | (sap.ui.core.ID) Stable control id.
     "! @parameter ns               | (string) XML namespace prefix when emitting the element (framework-internal).
     "! @parameter tooltip          | (string) Tooltip shown on hover.
     "! @parameter width            | (sap.ui.core.CSSSize) Width of the button.
@@ -1224,7 +1217,6 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! @parameter textdirection    | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
     "! @parameter arialabelledby   | (sap.ui.core.ID[]) Ids of labelling controls (ARIA).
     "! @parameter ariadescribedby  | (sap.ui.core.ID[]) Ids of describing controls (ARIA).
-    "! @parameter result           | Self-reference for fluent chaining.
     "!
     "! Note: the `tap` event is deprecated in UI5 - use `press`.
     METHODS button
@@ -1340,7 +1332,6 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! @parameter navbuttonpress   | (event) Fired when the back/nav button is pressed (since 1.12.2).
     "! @parameter shownavbutton    | (boolean) Renders a back/nav button on the left of the header. Default: false.
     "! @parameter showheader       | (boolean) Whether the header is shown. Default: true.
-    "! @parameter id               | (sap.ui.core.ID) Stable control id.
     "! @parameter class            | (string) CSS class names.
     "! @parameter ns               | (string) XML namespace prefix (framework-internal).
     "! @parameter backgrounddesign | (sap.m.PageBackgroundDesign) Standard | Solid | Transparent | List. Default: Standard.
@@ -1352,7 +1343,6 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! @parameter showsubheader    | (boolean) Whether the sub-header is shown. Default: true.
     "! @parameter titlealignment   | (sap.m.TitleAlignment) Auto | Start | Center. Default: Auto.
     "! @parameter titlelevel       | (sap.ui.core.TitleLevel) Semantic title level: Auto | H1 | H2 | H3 | H4 | H5 | H6. Default: Auto.
-    "! @parameter result           | Self-reference for fluent chaining.
     "!
     "! Deprecated UI5 properties not exposed by this wrapper: `navButtonText`, `navButtonType`, `icon` (all MVI-theme only, deprecated since 1.20). Event `navButtonTap` is deprecated - use `navButtonPress`.
     METHODS page
