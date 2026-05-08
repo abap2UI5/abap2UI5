@@ -14,7 +14,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory.
 
-    DATA(lo_pop) = z2ui5_cl_pop_file_dl=>factory( `test_content` ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_file_dl.
+    lo_pop = z2ui5_cl_pop_file_dl=>factory( `test_content` ).
     cl_abap_unit_assert=>assert_bound( lo_pop ).
     cl_abap_unit_assert=>assert_equals( exp = `test_content`
                                         act = lo_pop->mv_value ).
@@ -25,7 +26,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_result_initial.
 
-    DATA(lo_pop) = z2ui5_cl_pop_file_dl=>factory( `abc` ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_file_dl.
+    lo_pop = z2ui5_cl_pop_file_dl=>factory( `abc` ).
     cl_abap_unit_assert=>assert_false( lo_pop->result( ) ).
 
   ENDMETHOD.

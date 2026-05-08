@@ -67,6 +67,8 @@ CLASS z2ui5_cl_srt_structdescr IMPLEMENTATION.
     DATA component_rtti  TYPE abap_componentdescr.
 
     FIELD-SYMBOLS <component> TYPE sabap_componentdescr.
+          DATA x TYPE REF TO cx_root.
+          DATA lv_method TYPE c LENGTH 11.
 
     CLEAR components_rtti.
     LOOP AT components ASSIGNING <component>.
@@ -76,8 +78,10 @@ CLASS z2ui5_cl_srt_structdescr IMPLEMENTATION.
 
       TRY.
           component_rtti-type       ?= <component>-type->get_rtti( ).
-        CATCH cx_root INTO DATA(x).
-          DATA(lv_method) = 'GET_BY_KIND'.
+          
+        CATCH cx_root INTO x.
+          
+          lv_method = 'GET_BY_KIND'.
           CALL METHOD cl_abap_elemdescr=>(lv_method)
             EXPORTING
               p_type_kind = <component>-type->type_kind

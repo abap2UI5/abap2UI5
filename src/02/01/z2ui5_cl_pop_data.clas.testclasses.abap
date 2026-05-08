@@ -14,10 +14,20 @@ CLASS ltcl_test IMPLEMENTATION.
       BEGIN OF ty_row,
         name TYPE string,
       END OF ty_row.
-    DATA lt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
-    lt_tab = VALUE #( ( name = `A` ) ( name = `B` ) ).
+    DATA lt_tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
+    DATA temp1 LIKE lt_tab.
+    DATA temp2 LIKE LINE OF temp1.
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_data.
+    CLEAR temp1.
+    
+    temp2-name = `A`.
+    INSERT temp2 INTO TABLE temp1.
+    temp2-name = `B`.
+    INSERT temp2 INTO TABLE temp1.
+    lt_tab = temp1.
 
-    DATA(lo_pop) = z2ui5_cl_pop_data=>factory( lt_tab ).
+    
+    lo_pop = z2ui5_cl_pop_data=>factory( lt_tab ).
 
     cl_abap_unit_assert=>assert_bound( lo_pop ).
     cl_abap_unit_assert=>assert_bound( lo_pop->mr_data ).
@@ -30,7 +40,8 @@ CLASS ltcl_test IMPLEMENTATION.
         field2 TYPE i VALUE 42,
       END OF ls_data.
 
-    DATA(lo_pop) = z2ui5_cl_pop_data=>factory( ls_data ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_data.
+    lo_pop = z2ui5_cl_pop_data=>factory( ls_data ).
 
     cl_abap_unit_assert=>assert_bound( lo_pop ).
     cl_abap_unit_assert=>assert_bound( lo_pop->mr_data ).
@@ -41,9 +52,10 @@ CLASS ltcl_test IMPLEMENTATION.
       BEGIN OF ty_row,
         col TYPE string,
       END OF ty_row.
-    DATA lt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    DATA lt_tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
 
-    DATA(lo_pop) = z2ui5_cl_pop_data=>factory( val   = lt_tab
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_data.
+    lo_pop = z2ui5_cl_pop_data=>factory( val   = lt_tab
                                                title = `My Data` ).
 
     cl_abap_unit_assert=>assert_bound( lo_pop ).

@@ -37,14 +37,14 @@ CLASS z2ui5_cl_pop_js_loader IMPLEMENTATION.
 
   METHOD factory.
 
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
     r_result->js           = i_js.
     r_result->user_command = i_result.
 
   ENDMETHOD.
 
   METHOD factory_check_open_ui5.
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
     r_result->check_open_ui5 = abap_true.
   ENDMETHOD.
 
@@ -56,7 +56,8 @@ CLASS z2ui5_cl_pop_js_loader IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( `Setup UI...` )->content( ).
+    DATA popup TYPE REF TO z2ui5_cl_xml_view.
+    popup = z2ui5_cl_xml_view=>factory_popup( )->dialog( `Setup UI...` )->content( ).
 
     IF js IS NOT INITIAL.
       popup->_z2ui5( )->timer( client->_event( `TIMER_FINISHED` )
@@ -77,7 +78,7 @@ CLASS z2ui5_cl_pop_js_loader IMPLEMENTATION.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       view_display( ).
       RETURN.
     ENDIF.
