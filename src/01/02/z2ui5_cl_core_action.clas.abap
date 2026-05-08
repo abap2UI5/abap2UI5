@@ -88,7 +88,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
         IF mo_http_post->ms_request-s_control-app_start_draft IS NOT INITIAL.
           TRY.
 
-              
+
               lo_app = z2ui5_cl_core_app=>db_load( mo_http_post->ms_request-s_control-app_start_draft ).
               result->mo_app = lo_app.
               result->ms_actual-check_on_navigated = abap_true.
@@ -102,14 +102,14 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
         result->mo_app->ms_draft-id = z2ui5_cl_util=>uuid_get_c32( ).
 
-        
+
         CREATE OBJECT li_app TYPE (mo_http_post->ms_request-s_control-app_start).
         result->mo_app->mo_app = li_app.
         li_app->id_draft = result->mo_app->ms_draft-id.
 
         result->ms_actual-check_on_navigated = abap_true.
 
-        
+
       CATCH cx_root INTO x.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
           EXPORTING
@@ -134,9 +134,9 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
     " check for new app?
     TRY.
-        
+
         CREATE OBJECT lo_draft TYPE z2ui5_cl_core_srv_draft.
-        
+
         ls_draft = lo_draft->read_info( ms_next-o_app_leave->id_draft ).
       CATCH cx_root.
         result->mo_app->ms_draft-id_prev_app_stack = mo_app->ms_draft-id_prev_app_stack.
@@ -160,7 +160,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     result->ms_actual-check_on_navigated = abap_true.
     result->mo_app->mo_app               = z2ui5_cl_app_startup=>factory( ).
 
-    
+
     temp1 ?= result->mo_app->mo_app.
     temp1->id_draft = result->mo_app->ms_draft-id.
 
@@ -210,9 +210,9 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
     IF ms_next-s_set-s_follow_up_action IS NOT INITIAL AND
         lines( ms_next-s_set-s_follow_up_action-custom_js ) > 0.
-      
-      
-      
+
+
+
       temp2 = sy-tabix.
       READ TABLE ms_next-s_set-s_follow_up_action-custom_js INDEX 1 INTO temp1.
       sy-tabix = temp2.
@@ -220,7 +220,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
         ASSERT 1 = 0.
       ENDIF.
       lv_action = temp1.
-      
+
       SPLIT lv_action AT `.eB(['` INTO lv_dummy
             result->ms_actual-event.
       SPLIT result->ms_actual-event AT `']` INTO result->ms_actual-event lv_dummy.

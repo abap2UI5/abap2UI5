@@ -19,13 +19,13 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_error.
 
     TRY.
-        
+
         lv_val = 1 / 0 ##NEEDED.
-        
+
       CATCH cx_root INTO lx.
     ENDTRY.
 
-    
+
     lo_pop = z2ui5_cl_pop_error=>factory( lx ).
     cl_abap_unit_assert=>assert_bound( lo_pop ).
 
@@ -36,7 +36,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lx TYPE REF TO z2ui5_cx_util_error.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_error.
     CREATE OBJECT lx TYPE z2ui5_cx_util_error EXPORTING val = `test error`.
-    
+
     lo_pop = z2ui5_cl_pop_error=>factory( lx ).
     cl_abap_unit_assert=>assert_bound( lo_pop ).
 
@@ -47,7 +47,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lx TYPE REF TO z2ui5_cx_util_error.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_error.
     CREATE OBJECT lx TYPE z2ui5_cx_util_error EXPORTING val = `custom error`.
-    
+
     lo_pop = z2ui5_cl_pop_error=>factory(
       x_root  = lx
       i_title = `My Error Title` ).

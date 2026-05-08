@@ -342,7 +342,7 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
         WHEN z2ui5_if_ajson_types=>node_type-null.
           APPEND '' TO rt_string_table.
         WHEN z2ui5_if_ajson_types=>node_type-boolean.
-          
+
           IF <item>-value = 'true'.
             lv_tmp = abap_true.
           ELSE.
@@ -376,7 +376,7 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
 
     read_only_watchdog( ).
 
-    
+
     ls_split_path = lcl_utils=>split_path( iv_path ).
 
     delete_subtree(
@@ -601,9 +601,9 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
       z2ui5_cx_ajson_error=>raise( |Path [{ iv_path }] is not array| ).
     ENDIF.
 
-    
-    
-    
+
+
+
 
     lv_new_index     = lr_parent->children + 1.
     ls_new_path-path = lcl_utils=>normalize_path( iv_path ).
@@ -680,8 +680,8 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
     lv_item_order = ls_deleted_node-order.
 
     " convert to json
-    
-    
+
+
 
     IF lr_parent->type = z2ui5_if_ajson_types=>node_type-array.
       lv_array_index = lcl_utils=>validate_array_index(
@@ -797,7 +797,7 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
 
     ri_json = me.
 
-    
+
     lv_bool = boolc( iv_val IS NOT INITIAL ).
     z2ui5_if_ajson~set(
       iv_ignore_empty = abap_false
@@ -812,7 +812,7 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
 
     ri_json = me.
 
-    
+
     lv_val = lcl_abap_to_json=>format_date( iv_val ).
 
     z2ui5_if_ajson~set(
@@ -840,7 +840,7 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
 
     ri_json = me.
 
-    
+
     z2ui5_if_ajson~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
@@ -854,7 +854,7 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
 
     ri_json = me.
 
-    
+
     lv_val = iv_val.
     z2ui5_if_ajson~set(
       iv_ignore_empty = abap_false
@@ -869,7 +869,7 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
 
     ri_json = me.
 
-    
+
     lv_timestamp_iso = lcl_abap_to_json=>format_timestamp( iv_val ).
 
     z2ui5_if_ajson~set(
@@ -885,7 +885,7 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
 
     ri_json = me.
 
-    
+
     lv_timestamp_iso = lcl_abap_to_json=>format_timestampl( iv_val ).
 
     z2ui5_if_ajson~set(
@@ -980,7 +980,7 @@ CLASS z2ui5_cl_ajson IMPLEMENTATION.
 
     IF lr_node IS INITIAL. " Or node was cleared
 
-      
+
       lr_parent = prove_path_exists( ls_split_path-path ).
       ASSERT lr_parent IS NOT INITIAL.
 

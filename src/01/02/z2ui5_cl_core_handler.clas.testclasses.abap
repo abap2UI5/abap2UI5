@@ -196,17 +196,17 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     lv_json = lo_handler->response_abap_to_json( ls_response ).
 
 
-    
+
     temp5 = boolc( lv_json CS `S_FRONT` ).
     temp1 = temp5.
     cl_abap_unit_assert=>assert_true( temp1 ).
 
-    
+
     temp6 = boolc( lv_json CS `MODEL` ).
     temp3 = temp6.
     cl_abap_unit_assert=>assert_true( temp3 ).
 
-    
+
     temp7 = boolc( lv_json CS `{"name":"test"}` ).
     temp4 = temp7.
     cl_abap_unit_assert=>assert_true( temp4 ).

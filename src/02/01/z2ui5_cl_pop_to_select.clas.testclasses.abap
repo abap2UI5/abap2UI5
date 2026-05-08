@@ -29,7 +29,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA temp2 LIKE LINE OF temp1.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_select.
     CLEAR temp1.
-    
+
     temp2-name = `A`.
     temp2-value = `1`.
     INSERT temp2 INTO TABLE temp1.
@@ -38,7 +38,7 @@ CLASS ltcl_test IMPLEMENTATION.
     INSERT temp2 INTO TABLE temp1.
     lt_tab = temp1.
 
-    
+
     lo_pop = z2ui5_cl_pop_to_select=>factory( lt_tab ).
     cl_abap_unit_assert=>assert_bound( lo_pop ).
 
@@ -55,12 +55,12 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA temp4 LIKE LINE OF temp3.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_select.
     CLEAR temp3.
-    
+
     temp4-name = `X`.
     INSERT temp4 INTO TABLE temp3.
     lt_tab = temp3.
 
-    
+
     lo_pop = z2ui5_cl_pop_to_select=>factory(
       i_tab         = lt_tab
       i_multiselect = abap_true ).
@@ -81,14 +81,14 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_select.
     DATA ls_result TYPE z2ui5_cl_pop_to_select=>ty_s_result.
     CLEAR temp5.
-    
+
     temp6-name = `A`.
     INSERT temp6 INTO TABLE temp5.
     lt_tab = temp5.
 
-    
+
     lo_pop = z2ui5_cl_pop_to_select=>factory( lt_tab ).
-    
+
     ls_result = lo_pop->result( ).
     cl_abap_unit_assert=>assert_false( ls_result-check_confirmed ).
 
@@ -105,12 +105,12 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA temp8 LIKE LINE OF temp7.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_select.
     CLEAR temp7.
-    
+
     temp8-name = `A`.
     INSERT temp8 INTO TABLE temp7.
     lt_tab = temp7.
 
-    
+
     lo_pop = z2ui5_cl_pop_to_select=>factory(
       i_tab   = lt_tab
       i_title = `Custom` ).
@@ -131,14 +131,14 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_select.
     DATA ls_result TYPE z2ui5_cl_pop_to_select=>ty_s_result.
     CLEAR temp9.
-    
+
     temp10-name = `X`.
     INSERT temp10 INTO TABLE temp9.
     lt_tab = temp9.
 
-    
+
     lo_pop = z2ui5_cl_pop_to_select=>factory( lt_tab ).
-    
+
     ls_result = lo_pop->result( ).
 
     cl_abap_unit_assert=>assert_bound( lo_pop->mr_tab ).
@@ -159,7 +159,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_to_select.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     CLEAR temp11.
-    
+
     temp12-name = `A`.
     INSERT temp12 INTO TABLE temp11.
     temp12-name = `B`.
@@ -168,10 +168,10 @@ CLASS ltcl_test IMPLEMENTATION.
     INSERT temp12 INTO TABLE temp11.
     lt_tab = temp11.
 
-    
+
     lo_pop = z2ui5_cl_pop_to_select=>factory( lt_tab ).
 
-    
+
     ASSIGN lo_pop->mr_tab->* TO <tab>.
     cl_abap_unit_assert=>assert_equals( exp = 3
                                         act = lines( <tab> ) ).
@@ -189,7 +189,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_single TYPE REF TO z2ui5_cl_pop_to_select.
     DATA lo_multi TYPE REF TO z2ui5_cl_pop_to_select.
     lo_single = z2ui5_cl_pop_to_select=>factory( lt_tab ).
-    
+
     lo_multi  = z2ui5_cl_pop_to_select=>factory(
       i_tab         = lt_tab
       i_multiselect = abap_true ).

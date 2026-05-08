@@ -48,11 +48,11 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
       DATA temp2 TYPE xsdboolean.
 
     IF val IS NOT INITIAL.
-      
+
       temp1 = boolc( z2ui5_if_client~get( )-event = val ).
       result = temp1.
     ELSE.
-      
+
       temp2 = boolc( z2ui5_if_client~get( )-event <> `` ).
       result = temp2.
     ENDIF.
@@ -76,33 +76,33 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     result-check_on_navigated = mo_action->ms_actual-check_on_navigated.
     MOVE-CORRESPONDING mo_action->mo_http_post->ms_request-s_front TO result-s_config.
     result-r_event_data = mo_action->ms_actual-r_data.
-    
+
     temp3 = boolc( mo_action->ms_next-o_app_call IS NOT INITIAL ).
     result-_s_nav-check_call = temp3.
-    
+
     temp4 = boolc( mo_action->ms_next-o_app_leave IS NOT INITIAL ).
     result-_s_nav-check_leave = temp4.
 
     TRY.
 
-        
+
         lo_comp = mo_action->mo_http_post->ms_request-s_front-o_comp_data.
         IF lo_comp IS NOT BOUND.
           RETURN.
         ENDIF.
-        
+
         lo_params = lo_comp->slice( `/startupParameters/` ).
 
         IF lo_params IS NOT BOUND.
           RETURN.
         ENDIF.
-        
-        
+
+
         LOOP AT lo_params->mt_json_tree                 "#EC CI_SORTSEQ
              REFERENCE INTO lr_comp
              WHERE name = `1`.
 
-          
+
           CLEAR temp2.
           temp2-n = shift_left( val = shift_right( val = lr_comp->path sub = `/` ) sub = `/` ).
           temp2-v = lr_comp->value.
@@ -118,8 +118,8 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
         DATA temp4 LIKE sy-tabix.
 
     TRY.
-        
-        
+
+
         temp4 = sy-tabix.
         READ TABLE mo_action->ms_actual-t_event_arg INDEX v INTO temp3.
         sy-tabix = temp4.
@@ -138,13 +138,13 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
       DATA temp6 TYPE REF TO z2ui5_if_app.
 
     IF id IS NOT INITIAL.
-      
+
       lo_app = z2ui5_cl_core_app=>db_load( id ).
-      
+
       temp5 ?= lo_app->mo_app.
       result = temp5.
     ELSE.
-      
+
       temp6 ?= mo_action->mo_app->mo_app.
       result = temp6.
     ENDIF.
@@ -161,14 +161,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
       DATA temp7 TYPE string.
 
     IF z2ui5_cl_util=>rtti_check_clike( text ) = abap_false.
-      
+
       ls_msg_box = z2ui5_cl_util=>ui5_msg_box_format( text ).
       IF ls_msg_box-skip = abap_true.
         RETURN.
       ENDIF.
       lv_text    = ls_msg_box-text.
       lv_type    = ls_msg_box-type.
-      
+
       IF title IS NOT INITIAL.
         temp7 = title.
       ELSE.
@@ -239,7 +239,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
           val = `NAV_APP_LEAVE_TO_INITIAL_APP_ERROR`.
     ENDIF.
 
-    
+
     IF app->id_app IS INITIAL.
       temp8 = z2ui5_cl_util=>uuid_get_c32( ).
     ELSE.
@@ -451,7 +451,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     IF li_app->check_sticky = val.
       RETURN.
     ENDIF.
-    
+
     IF val = abap_true.
       temp11 = 1.
     ELSE.
@@ -460,7 +460,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     mo_action->ms_next-s_set-s_stateful-active = temp11.
     li_app->check_sticky = val.
 
-    
+
     temp5 = boolc( mo_action->ms_next-s_set-s_stateful-switched = abap_false ).
     mo_action->ms_next-s_set-s_stateful-switched = temp5.
 

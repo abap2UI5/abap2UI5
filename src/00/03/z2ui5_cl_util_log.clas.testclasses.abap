@@ -31,12 +31,12 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     CREATE OBJECT lo_log TYPE z2ui5_cl_util_log.
     lo_log->info( `Test info` ).
 
-    
+
     lt_msg = lo_log->to_msg( ).
 
     cl_abap_unit_assert=>assert_equals( exp = 1 act = lines( lt_msg ) ).
-    
-    
+
+
     temp2 = sy-tabix.
     READ TABLE lt_msg INDEX 1 INTO temp1.
     sy-tabix = temp2.
@@ -44,8 +44,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       ASSERT 1 = 0.
     ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `I` act = temp1-type ).
-    
-    
+
+
     temp4 = sy-tabix.
     READ TABLE lt_msg INDEX 1 INTO temp3.
     sy-tabix = temp4.
@@ -65,11 +65,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     CREATE OBJECT lo_log TYPE z2ui5_cl_util_log.
     lo_log->error( `Something failed` ).
 
-    
+
     lt_msg = lo_log->to_msg( ).
 
-    
-    
+
+
     temp6 = sy-tabix.
     READ TABLE lt_msg INDEX 1 INTO temp5.
     sy-tabix = temp6.
@@ -89,11 +89,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     CREATE OBJECT lo_log TYPE z2ui5_cl_util_log.
     lo_log->warning( `Be careful` ).
 
-    
+
     lt_msg = lo_log->to_msg( ).
 
-    
-    
+
+
     temp8 = sy-tabix.
     READ TABLE lt_msg INDEX 1 INTO temp7.
     sy-tabix = temp8.
@@ -113,11 +113,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     CREATE OBJECT lo_log TYPE z2ui5_cl_util_log.
     lo_log->success( `All good` ).
 
-    
+
     lt_msg = lo_log->to_msg( ).
 
-    
-    
+
+
     temp10 = sy-tabix.
     READ TABLE lt_msg INDEX 1 INTO temp9.
     sy-tabix = temp10.
@@ -194,12 +194,12 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     CREATE OBJECT lo_log TYPE z2ui5_cl_util_log.
     lo_log->info( `A` )->error( `B` ).
 
-    
+
     lt_msg = lo_log->to_msg( ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2 act = lines( lt_msg ) ).
-    
-    
+
+
     temp12 = sy-tabix.
     READ TABLE lt_msg INDEX 1 INTO temp11.
     sy-tabix = temp12.
@@ -207,8 +207,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       ASSERT 1 = 0.
     ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `A` act = temp11-text ).
-    
-    
+
+
     temp14 = sy-tabix.
     READ TABLE lt_msg INDEX 2 INTO temp13.
     sy-tabix = temp14.
@@ -228,13 +228,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     CREATE OBJECT lo_log TYPE z2ui5_cl_util_log.
     lo_log->info( `Hello` )->error( `World` ).
 
-    
+
     lv_str = lo_log->to_string( ).
 
-    
+
     temp1 = boolc( lv_str CS `[I] Hello` ).
     cl_abap_unit_assert=>assert_true( temp1 ).
-    
+
     temp2 = boolc( lv_str CS `[E] World` ).
     cl_abap_unit_assert=>assert_true( temp2 ).
 
@@ -246,11 +246,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
         DATA lo_log TYPE REF TO z2ui5_cl_util_log.
 
     TRY.
-        
+
         lv_val = 1 / 0.
-        
+
       CATCH cx_root INTO lx.
-        
+
         CREATE OBJECT lo_log TYPE z2ui5_cl_util_log.
         lo_log->add( lx ).
     ENDTRY.

@@ -62,9 +62,9 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     ASSIGN ms_config-tab->* TO <tab>.
     READ TABLE <tab> INDEX ms_config-tab_index ASSIGNING <row>.
 
-    
+
     lt_attri = z2ui5_cl_util=>rtti_get_t_attri_by_any( ms_config-tab ).
-    
+
     LOOP AT lt_attri ASSIGNING <comp>.
 
       ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
@@ -72,7 +72,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
       GET REFERENCE OF <ele> INTO lr_ref_in.
 
       IF iv_val = lr_ref_in.
-        
+
         temp14 = ms_config-tab_index - 1.
         result = |{ iv_name }/{ shift_right( temp14 ) }/{ <comp>-name }|.
         RETURN.
@@ -97,9 +97,9 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
     IF mr_attri->custom_mapper IS BOUND AND ms_config-custom_mapper IS BOUND.
 
-      
+
       lv_name1 = z2ui5_cl_util=>rtti_get_classname_by_ref( mr_attri->custom_mapper ).
-      
+
       lv_name2 = z2ui5_cl_util=>rtti_get_classname_by_ref( ms_config-custom_mapper ).
       IF lv_name1 <> lv_name2.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
@@ -148,7 +148,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
                       sub  = `>`
                       with = ``
                       occ  = 0 ).
-    
+
     IF mv_type = z2ui5_if_core_types=>cs_bind_type-two_way.
       temp15 = |/{ z2ui5_if_core_types=>cs_ui5-two_way_model }|.
     ELSE.
@@ -175,13 +175,13 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     ms_config = config.
     mv_type   = type.
 
-    
+
     CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = mo_app->mt_attri app = mo_app->mo_app.
 
     mr_attri = lo_model->main_attri_search( val ).
 
     IF mr_attri->name_ref IS NOT INITIAL.
-      
+
       READ TABLE mo_app->mt_attri->* WITH KEY name = mr_attri->name_ref ASSIGNING <temp16>.
 IF sy-subrc <> 0.
   ASSERT 1 = 0.
@@ -220,9 +220,9 @@ GET REFERENCE OF <temp16> INTO mr_attri.
     ms_config = config.
     mv_type   = type.
 
-    
+
     CREATE OBJECT lo_bind TYPE z2ui5_cl_core_srv_bind EXPORTING APP = mo_app.
-    
+
     CLEAR temp17.
     temp17-path_only = abap_true.
     result = lo_bind->main( val    = config-tab
@@ -246,7 +246,7 @@ GET REFERENCE OF <temp16> INTO mr_attri.
     mr_attri->custom_filter_back = ms_config-custom_filter_back.
     mr_attri->custom_mapper      = ms_config-custom_mapper.
     mr_attri->custom_mapper_back = ms_config-custom_mapper_back.
-    
+
     IF ms_config-view IS INITIAL.
       temp18 = z2ui5_if_client=>cs_view-main.
     ELSE.

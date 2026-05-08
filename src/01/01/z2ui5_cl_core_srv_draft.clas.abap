@@ -48,11 +48,11 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
     DATA ls_config LIKE temp1.
     DATA lv_n_hours_ago TYPE timestampl.
     CLEAR temp1.
-    
+
     ls_config = temp1.
     z2ui5_cl_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config ).
 
-    
+
     lv_n_hours_ago = z2ui5_cl_util=>time_subtract_seconds(
                                time    = z2ui5_cl_util=>time_get_timestampl( )
                                seconds = c_seconds_per_hour * ls_config-draft_exp_time_in_hours ).
@@ -68,7 +68,7 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
 
     ASSERT draft-id IS NOT INITIAL.
 
-    
+
     CLEAR temp2.
     temp2-id = draft-id.
     temp2-id_prev = draft-id_prev.
@@ -76,7 +76,7 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
     temp2-id_prev_app_stack = draft-id_prev_app_stack.
     temp2-timestampl = z2ui5_cl_util=>time_get_timestampl( ).
     temp2-data = model_xml.
-    
+
     ls_db = temp2.
 
     MODIFY z2ui5_t_01 FROM ls_db.

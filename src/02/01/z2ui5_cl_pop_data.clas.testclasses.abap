@@ -19,14 +19,14 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA temp2 LIKE LINE OF temp1.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_data.
     CLEAR temp1.
-    
+
     temp2-name = `A`.
     INSERT temp2 INTO TABLE temp1.
     temp2-name = `B`.
     INSERT temp2 INTO TABLE temp1.
     lt_tab = temp1.
 
-    
+
     lo_pop = z2ui5_cl_pop_data=>factory( lt_tab ).
 
     cl_abap_unit_assert=>assert_bound( lo_pop ).

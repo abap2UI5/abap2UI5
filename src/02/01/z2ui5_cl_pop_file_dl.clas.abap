@@ -72,13 +72,13 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
               )->content( ).
 
     IF mv_check_download = abap_true.
-      
+
       lv_csv_x = z2ui5_cl_util=>conv_get_xstring_by_string( mv_value ).
-      
+
       lv_base64 = z2ui5_cl_util=>conv_encode_x_base64( lv_csv_x ).
-      
+
       CLEAR temp1.
-      
+
       temp2-n = `src`.
       temp2-v = mv_type && lv_base64.
       INSERT temp2 INTO TABLE temp1.

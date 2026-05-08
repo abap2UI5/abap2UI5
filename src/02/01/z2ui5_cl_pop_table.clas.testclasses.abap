@@ -23,7 +23,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA temp2 LIKE LINE OF temp1.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_table.
     CLEAR temp1.
-    
+
     temp2-name = `A`.
     temp2-value = `1`.
     INSERT temp2 INTO TABLE temp1.
@@ -32,7 +32,7 @@ CLASS ltcl_test IMPLEMENTATION.
     INSERT temp2 INTO TABLE temp1.
     lt_tab = temp1.
 
-    
+
     lo_pop = z2ui5_cl_pop_table=>factory( lt_tab ).
 
     cl_abap_unit_assert=>assert_bound( lo_pop ).
@@ -50,12 +50,12 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA temp4 LIKE LINE OF temp3.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_table.
     CLEAR temp3.
-    
+
     temp4-col = `X`.
     INSERT temp4 INTO TABLE temp3.
     lt_tab = temp3.
 
-    
+
     lo_pop = z2ui5_cl_pop_table=>factory( i_tab   = lt_tab
                                                 i_title = `Custom Title` ).
 
@@ -72,7 +72,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_table.
     DATA ls_result TYPE z2ui5_cl_pop_table=>ty_s_result.
     lo_pop = z2ui5_cl_pop_table=>factory( lt_tab ).
-    
+
     ls_result = lo_pop->result( ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_false
@@ -90,14 +90,14 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_table.
     DATA ls_result TYPE z2ui5_cl_pop_table=>ty_s_result.
     CLEAR temp5.
-    
+
     temp6-col = `X`.
     INSERT temp6 INTO TABLE temp5.
     lt_tab = temp5.
 
-    
+
     lo_pop = z2ui5_cl_pop_table=>factory( lt_tab ).
-    
+
     ls_result = lo_pop->result( ).
 
     cl_abap_unit_assert=>assert_bound( ls_result-row ).
@@ -115,7 +115,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_table.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     CLEAR temp7.
-    
+
     temp8-name = `A`.
     temp8-value = `1`.
     INSERT temp8 INTO TABLE temp7.
@@ -127,10 +127,10 @@ CLASS ltcl_test IMPLEMENTATION.
     INSERT temp8 INTO TABLE temp7.
     lt_tab = temp7.
 
-    
+
     lo_pop = z2ui5_cl_pop_table=>factory( lt_tab ).
 
-    
+
     ASSIGN lo_pop->mr_tab->* TO <tab>.
 
     cl_abap_unit_assert=>assert_equals( exp = 3

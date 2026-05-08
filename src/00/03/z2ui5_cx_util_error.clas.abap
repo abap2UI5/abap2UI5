@@ -49,7 +49,7 @@ CLASS z2ui5_cx_util_error IMPLEMENTATION.
     IF ms_error-x_root IS NOT INITIAL.
       result = ms_error-x_root->get_text( ).
 
-      
+
       error = abap_true.
     ELSEIF ms_error-text IS NOT INITIAL.
       result = ms_error-text.
@@ -57,7 +57,7 @@ CLASS z2ui5_cx_util_error IMPLEMENTATION.
     ENDIF.
 
     IF previous IS BOUND.
-      
+
       lo_x = previous.
       WHILE lo_x IS BOUND.
         result = result && cl_abap_char_utilities=>newline && lo_x->get_text( ).
@@ -66,7 +66,7 @@ CLASS z2ui5_cx_util_error IMPLEMENTATION.
     ENDIF.
 
 
-    
+
     IF error = abap_true AND result IS INITIAL.
       temp1 = `UNKNOWN_ERROR`.
     ELSE.

@@ -116,7 +116,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
       CATCH z2ui5_cx_util_error INTO lx.
 
-        
+
         temp2 = boolc( lx->get_text( ) CS `NONEXISTENT_CLASS` ).
         temp1 = temp2.
         cl_abap_unit_assert=>assert_true( temp1 ).

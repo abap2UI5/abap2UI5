@@ -47,12 +47,12 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
       DATA temp8 TYPE ty_s_msg.
 
     CREATE OBJECT r_result.
-    
+
     temp7 = z2ui5_cl_util=>msg_get_t( i_messages ).
-    
-    
+
+
     LOOP AT temp7 REFERENCE INTO lr_row.
-      
+
       CLEAR temp8.
       temp8-type = z2ui5_cl_util=>ui5_get_msg_type( lr_row->type ).
       temp8-title = lr_row->text.

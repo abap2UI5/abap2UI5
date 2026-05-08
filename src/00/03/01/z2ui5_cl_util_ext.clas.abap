@@ -512,9 +512,9 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
         ENDLOOP.
 
-        
+
       CATCH cx_root INTO x.
-        
+
         error = x->get_text( ).
     ENDTRY.
 
@@ -547,7 +547,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
     TRY.
         TRY.
-            
+
             lv_method2 = `XCO_CP_ABAP_DICTIONARY`.
             CALL METHOD (lv_method2)=>(`DATABASE_TABLE`)
               EXPORTING
@@ -564,12 +564,12 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
               RECEIVING
                 rt_names = names.
           CATCH cx_sy_dyn_call_illegal_class.
-            
+
             workaround = `DDFIELDS`.
             CREATE DATA lr_ddfields TYPE (workaround).
             ASSIGN lr_ddfields->* TO <ddfields>.
             ASSERT sy-subrc = 0.
-            
+
             temp1 ?= cl_abap_typedescr=>describe_by_name( lv_tabname ).
             <ddfields> = temp1->get_ddic_field_list( ).
             LOOP AT <ddfields> ASSIGNING <any>.
@@ -582,29 +582,29 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
               APPEND <field> TO names.
             ENDLOOP.
         ENDTRY.
-        
+
       CATCH cx_root INTO x.
-        
+
         error = x->get_text( ).
     ENDTRY.
 
 
-    
+
     lt_comp  =  z2ui5_cl_util=>rtti_get_t_attri_by_any( tabname ).
-    
-    
+
+
     LOOP AT lt_comp REFERENCE INTO lr_comp.
 
-      
+
       lv_check_key = abap_false.
-      
+
       READ TABLE names WITH KEY table_line = lr_comp->name TRANSPORTING NO FIELDS.
       temp3 = sy-subrc.
       IF temp3 = 0.
         lv_check_key = abap_true.
       ENDIF.
 
-      
+
       CLEAR temp4.
       temp4-fieldname = lr_comp->name.
       temp4-rollname = lr_comp->name.
@@ -788,7 +788,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
       DATA lv_tabname TYPE string.
 
     IF langu IS NOT SUPPLIED.
-      
+
       lan = sy-langu.
     ELSE.
       lan = langu.
@@ -800,7 +800,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
     ELSE.
 
-      
+
       lv_tabname = `dd02t`.
       SELECT SINGLE ddtext
         FROM (lv_tabname) INTO ddtext
@@ -871,17 +871,17 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
       FIELD-SYMBOLS <row> TYPE any.
     lv_type = `SHLP_DESCR`.
     CREATE DATA lr_shlp TYPE (lv_type).
-    
+
     ASSIGN lr_shlp->* TO <shlp>.
 
-    
-    
+
+
     lv_tabname = mv_table.
     lv_fieldname = mv_fname.
 
     IF ms_shlp IS INITIAL.
       " Suchhilfe lesen
-      
+
       lv_fm = `F4IF_DETERMINE_SEARCHHELP`.
       CALL FUNCTION lv_fm
         EXPORTING
@@ -902,11 +902,11 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
       IF ms_shlp-intdescr-issimple = abap_false.
 
 *      DATA lt_shlp       TYPE shlp_desct.
-        
-        
+
+
         lv_type2 = `SHLP_DESCT`.
         CREATE DATA lr_t_shlp TYPE (lv_type2).
-        
+
         ASSIGN lr_t_shlp->* TO <shlp2>.
 
         lv_fm = `F4IF_EXPAND_SEARCHHELP`.
@@ -917,7 +917,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
             shlp_tab = <shlp2>.
 
 *        DATA(ls_row) = CORRESPONDING #( <shlp2>[ 1 ] OPTIONAL ).
-        
+
         READ TABLE <shlp2> INDEX 1 ASSIGNING <row2>.
         MOVE-CORRESPONDING <row2> TO ms_shlp.
       ENDIF.
@@ -925,13 +925,13 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
     IF mr_data IS BOUND.
       " Values from Caller app to Interface Values
-      
-      
+
+
       LOOP AT ms_shlp-interface REFERENCE INTO r_interface WHERE value IS INITIAL.
 
-        
+
         ASSIGN mr_data->* TO <any>.
-        
+
         ASSIGN COMPONENT r_interface->shlpfield OF STRUCTURE <any> TO <value>.
 
         IF sy-subrc <> 0.
@@ -944,7 +944,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
     ENDIF.
 
     " Interface Fixed Values to Selopt
-    
+
     LOOP AT ms_shlp-interface INTO interface.
 
       " Match the name of the SH Field to the Input field name
@@ -954,13 +954,13 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
       IF interface-value IS NOT INITIAL.
 
-        
+
         CLEAR temp6.
         temp6 = ms_shlp-selopt.
-        
+
         temp7-shlpfield = interface-shlpfield.
         temp7-shlpname = interface-valtabname.
-        
+
         IF interface-value CA `*`.
           temp1 = `CP`.
         ELSE.
@@ -976,23 +976,23 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
     ENDLOOP.
 
-    
+
     LOOP AT ms_shlp-fieldprop INTO fieldrop.
 
       IF fieldrop-defaultval IS INITIAL.
         CONTINUE.
       ENDIF.
 
-      
+
       valule = fieldrop-defaultval.
       REPLACE ALL OCCURRENCES OF `'` IN valule WITH ``.
 
-      
+
       CLEAR temp8.
       temp8 = ms_shlp-selopt.
-      
+
       temp9-shlpfield = fieldrop-fieldname.
-      
+
       IF fieldrop-defaultval CA `*`.
         temp2 = `CP`.
       ELSE.
@@ -1023,17 +1023,17 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
     SORT ms_shlp-fieldprop BY shlplispos ASCENDING.
 
-    
+
     LOOP AT ms_shlp-fieldprop INTO field_props WHERE shlplispos IS NOT INITIAL.
 
-      
+
       CLEAR temp10.
-      
+
       READ TABLE mt_result_desc INTO temp11 WITH KEY fieldname = field_props-fieldname.
       IF sy-subrc = 0.
         temp10 = temp11.
       ENDIF.
-      
+
       descption = temp10.
 
       ls_comp-name  = descption-fieldname.
@@ -1042,7 +1042,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
     ENDLOOP.
 
-    
+
     READ TABLE lt_comps WITH KEY name = `ROW_ID` TRANSPORTING NO FIELDS.
     temp12 = sy-subrc.
     IF NOT temp12 = 0.
@@ -1052,17 +1052,17 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
       APPEND ls_comp TO lt_comps.
     ENDIF.
 
-    
+
     strucdescr = cl_abap_structdescr=>create( p_components = lt_comps ).
 
-    
+
     tabdescr = cl_abap_tabledescr=>create( p_line_type = strucdescr ).
 
     IF mt_data IS NOT BOUND.
       CREATE DATA mt_data TYPE HANDLE tabdescr.
     ENDIF.
 
-    
+
     ASSIGN mt_data->* TO <fs_target_tab>.
 
     CLEAR <fs_target_tab>.
@@ -1072,17 +1072,17 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
       CREATE DATA ms_data_row TYPE HANDLE strucdescr.
     ENDIF.
 
-    
+
     LOOP AT lt_result_tab INTO result_line.
 
       CREATE DATA lr_line TYPE HANDLE strucdescr.
-      
+
       ASSIGN lr_line->* TO <fs_line>.
 
-      
+
       LOOP AT mt_result_desc INTO result_desc.
 
-        
+
         ASSIGN COMPONENT result_desc-fieldname OF STRUCTURE <fs_line>
                TO <line_content>.
 
@@ -1103,9 +1103,9 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
             TRY.
                 " Sting table will crash if value length <> outputlen
                 <line_content> = result_line+result_desc-offset.
-                
+
               CATCH cx_root INTO x.
-                
+
                 error = x->get_text( ).
             ENDTRY.
         ENDTRY.
@@ -1151,14 +1151,14 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
 *    set_row_id( ).
 
-    
-    
+
+
 
     ASSIGN mt_data->* TO <tab>.
 
     LOOP AT <tab> ASSIGNING <line>.
 
-      
+
       ASSIGN COMPONENT 'ROW_ID' OF STRUCTURE <line> TO <row>.
       IF <row> IS ASSIGNED.
         <row> = sy-tabix.
@@ -1185,10 +1185,10 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-      
+
       ASSIGN ms_data_row->* TO <row>.
 
-      
+
       ASSIGN COMPONENT dfies->fieldname OF STRUCTURE <row> TO <value>.
       IF <value> IS NOT ASSIGNED.
         CONTINUE.
@@ -1198,12 +1198,12 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
       ENDIF.
 
       IF result IS NOT INITIAL.
-        
+
         and = ` AND `.
       ENDIF.
 
       IF <value> CA `_`.
-        
+
         escape = `ESCAPE '#'`.
       ELSE.
         CLEAR escape.
@@ -1233,7 +1233,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
       FIELD-SYMBOLS <value> TYPE any.
     LOOP AT dfies INTO s_dfies WHERE keyflag = abap_true.
 
-      
+
       ASSIGN COMPONENT s_dfies-fieldname OF STRUCTURE line TO <value>.
       IF <value> IS NOT ASSIGNED.
         CONTINUE.
@@ -1281,14 +1281,14 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
     ELSE.
 
-      
-      
-      
+
+
+
 
       " We need to set the MANDT is necessary
       set_mandt( ir_data ).
 
-      
+
       r_e071k = _set_e071k( ir_data      = ir_data
                                   iv_tabname   = iv_tabname
                                   is_transport = is_transport ).
@@ -1297,14 +1297,14 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-      
+
       r_e071 = _set_e071( iv_tabname   = iv_tabname
                                 is_transport = is_transport ).
 
       ASSIGN r_e071k->* TO <t_e071k>.
       ASSIGN r_e071->* TO <t_e071>.
 
-      
+
       fb1 = 'TR_APPEND_TO_COMM_OBJS_KEYS'.
       CALL FUNCTION fb1
         EXPORTING
@@ -1320,7 +1320,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error.
       ENDIF.
 
-      
+
       fb2 = 'TR_SORT_AND_COMPRESS_COMM'.
       CALL FUNCTION fb2
         EXPORTING
@@ -1359,10 +1359,10 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
     TRY.
 
-        
+
         struct_desc = cl_abap_structdescr=>create( t_comp ).
 
-        
+
         table_desc = cl_abap_tabledescr=>create( p_line_type  = struct_desc
                                                        p_table_kind = cl_abap_tabledescr=>tablekind_std ).
 
@@ -1372,13 +1372,13 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
         ASSIGN t_e071k->* TO <t_e071k>.
         ASSIGN s_e071k->* TO <s_e071k>.
 
-        
+
       CATCH cx_root INTO x.
-        
+
         error = x->get_text( ).
     ENDTRY.
 
-    
+
     dfies = rtti_get_t_dfies_by_table_name( iv_tabname ).
 
 *   is_transport-transport = assign_value( component = 'TRKORR'
@@ -1469,10 +1469,10 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
     TRY.
 
-        
+
         struct_desc_new = cl_abap_structdescr=>create( t_comp ).
 
-        
+
         table_desc_new = cl_abap_tabledescr=>create( p_line_type  = struct_desc_new
                                                            p_table_kind = cl_abap_tabledescr=>tablekind_std ).
 
@@ -1482,9 +1482,9 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
         ASSIGN t_e071->* TO <t_e071>.
         ASSIGN s_e071->* TO <s_e071>.
 
-        
+
       CATCH cx_root INTO x.
-        
+
         error = x->get_text( ).
     ENDTRY.
 
@@ -1550,13 +1550,13 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
     table_name = 'E070'.
 
     TRY.
-        
+
         t_comp = z2ui5_cl_util=>rtti_get_t_attri_by_table_name( table_name ).
 
-        
+
         new_struct_desc = cl_abap_structdescr=>create( t_comp ).
 
-        
+
         new_table_desc = cl_abap_tabledescr=>create( p_line_type  = new_struct_desc
                                                            p_table_kind = cl_abap_tabledescr=>tablekind_std ).
 
@@ -1566,7 +1566,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
         ASSIGN lo_tab->* TO <table>.
         ASSIGN lo_line->* TO <line>.
 
-        
+
         where =
         |( TRFUNCTION EQ 'Q' ) AND ( TRSTATUS EQ 'D' ) AND ( KORRDEV EQ 'CUST' ) AND ( AS4USER EQ '{ sy-uname }' )|.
 
@@ -1585,9 +1585,9 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
         IF sy-subrc <> 0.
           RETURN.
         ENDIF.
-        
+
       CATCH cx_root INTO x.
-        
+
         error = x->get_text( ).
     ENDTRY.
 
@@ -1672,26 +1672,26 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
     ELSE.
 
-      
-      
 
-      
-      
-      
+
+
+
+
+
 
       _read_e070( CHANGING mt_data = mt_data ).
 
-      
+
       table_name = 'E07T'.
 
       TRY.
-          
+
           t_comp = z2ui5_cl_util=>rtti_get_t_attri_by_table_name( table_name ).
 
-          
+
           new_struct_desc = cl_abap_structdescr=>create( t_comp ).
 
-          
+
           new_table_desc = cl_abap_tabledescr=>create( p_line_type  = new_struct_desc
                                                              p_table_kind = cl_abap_tabledescr=>tablekind_std ).
 
@@ -1701,14 +1701,14 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
           ASSIGN lo_tab->* TO <table>.
           ASSIGN lo_line->* TO <line>.
 
-          
+
           index = 0.
 
-          
+
           LOOP AT mt_data INTO line.
             index = index + 1.
             IF index = 1.
-              
+
               where = |TRKORR EQ '{ line-task }'|.
             ELSE.
               where = |{ where }OR TRKORR EQ '{ line-task }'|.
@@ -1726,9 +1726,9 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
             RETURN.
           ENDIF.
 
-          
+
         CATCH cx_root INTO x.
-          
+
           error = x->get_text( ).
       ENDTRY.
 
@@ -1739,7 +1739,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
           CONTINUE.
         ELSE.
 
-          
+
           READ TABLE mt_data REFERENCE INTO data WITH KEY task = <value>.
           IF sy-subrc = 0.
 
@@ -1774,15 +1774,15 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
     LOOP AT <tab> ASSIGNING <line>.
 
-      
+
       ASSIGN COMPONENT `MANDT` OF STRUCTURE <line> TO <row>.
       IF <row> IS ASSIGNED.
 
         TRY.
             <row> = sy-mandt.
-            
+
           CATCH cx_root INTO x.
-            
+
             error = x->get_text( ).
         ENDTRY.
 
@@ -1800,10 +1800,10 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
     ELSE.
 
-      
+
       conv = |CONVERSION_EXIT_{ name-convexit }_INPUT|.
-      
-      
+
+
       lv_tab = 'TFDIR'.
 
       SELECT SINGLE funcname FROM (lv_tab) INTO conex

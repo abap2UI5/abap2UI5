@@ -700,7 +700,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
       ls_key-intkey = val.
 
-      
+
       lv_fm = `SEO_INTERFACE_IMPLEM_GET_ALL`.
       CALL FUNCTION lv_fm
         EXPORTING
@@ -824,7 +824,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
       CATCH cx_root.
         TRY.
-            
+
             lv_xco_cp_abap_dictionary = `XCO_CP_ABAP_DICTIONARY`.
             CALL METHOD (lv_xco_cp_abap_dictionary)=>(`DATA_ELEMENT`)
               EXPORTING
@@ -860,9 +860,9 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
               RECEIVING
                 rs_long_field_label = result-long.
 
-            
+
           CATCH cx_root INTO x.
-            
+
             error = x->get_text( ).
         ENDTRY.
     ENDTRY.
@@ -964,10 +964,10 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
         DATA lv_error TYPE string.
     TRY.
 
-        
-        
-        
-        
+
+
+
+
 
         lv_classname = i_classname.
 
@@ -986,9 +986,9 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
           RECEIVING
             rv_short_description = result.
 
-        
+
       CATCH cx_root INTO x.
-        
+
         lv_error = x->get_text( ).
     ENDTRY.
   ENDMETHOD.
@@ -1000,7 +1000,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
       DATA lv_tabname TYPE string.
 
     IF langu IS NOT SUPPLIED.
-      
+
       lan = sy-langu.
     ELSE.
       lan = langu.
@@ -1012,7 +1012,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
     ELSE.
 
-      
+
       lv_tabname = `dd02t`.
       SELECT SINGLE ddtext
         FROM (lv_tabname) INTO ddtext

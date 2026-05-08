@@ -17,14 +17,14 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA temp2 LIKE LINE OF temp1.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_bal.
     CLEAR temp1.
-    
+
     temp2-type = `E`.
     temp2-title = `Error msg`.
     temp2-message = `Something failed`.
     INSERT temp2 INTO TABLE temp1.
     lt_msg = temp1.
 
-    
+
     lo_pop = z2ui5_cl_pop_bal=>factory( lt_msg ).
 
     cl_abap_unit_assert=>assert_bound( lo_pop ).
@@ -48,7 +48,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA temp4 LIKE LINE OF temp3.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_bal.
     CLEAR temp3.
-    
+
     temp4-type = `E`.
     temp4-title = `Error msg`.
     temp4-message = `Something failed`.
@@ -59,7 +59,7 @@ CLASS ltcl_test IMPLEMENTATION.
     INSERT temp4 INTO TABLE temp3.
     lt_msg = temp3.
 
-    
+
     lo_pop = z2ui5_cl_pop_bal=>factory( lt_msg ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -75,18 +75,18 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA temp7 LIKE LINE OF lo_pop->mt_msg.
     DATA temp8 LIKE sy-tabix.
     CLEAR temp5.
-    
+
     temp6-type = `E`.
     temp6-title = `Error msg`.
     temp6-message = `Something failed`.
     INSERT temp6 INTO TABLE temp5.
     lt_msg = temp5.
 
-    
+
     lo_pop = z2ui5_cl_pop_bal=>factory( lt_msg ).
 
-    
-    
+
+
     temp8 = sy-tabix.
     READ TABLE lo_pop->mt_msg INDEX 1 INTO temp7.
     sy-tabix = temp8.
@@ -104,13 +104,13 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_bal.
 
     TRY.
-        
+
         lv_val = 1 / 0 ##NEEDED.
-        
+
       CATCH cx_root INTO lx.
     ENDTRY.
 
-    
+
     lo_pop = z2ui5_cl_pop_bal=>factory( lx ).
 
     cl_abap_unit_assert=>assert_bound( lo_pop ).

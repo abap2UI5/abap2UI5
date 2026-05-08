@@ -78,9 +78,9 @@ CLASS z2ui5_cl_srt_structdescr IMPLEMENTATION.
 
       TRY.
           component_rtti-type       ?= <component>-type->get_rtti( ).
-          
+
         CATCH cx_root INTO x.
-          
+
           lv_method = 'GET_BY_KIND'.
           CALL METHOD cl_abap_elemdescr=>(lv_method)
             EXPORTING

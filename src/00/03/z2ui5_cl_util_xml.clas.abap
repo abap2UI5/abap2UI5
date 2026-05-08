@@ -130,7 +130,7 @@ CLASS z2ui5_cl_util_xml IMPLEMENTATION.
     lo_child->mv_ns     = ns.
     lo_child->mt_prop   = p.
     IF a IS NOT INITIAL.
-      
+
       CLEAR temp27.
       temp27-n = a.
       temp27-v = v.
@@ -261,29 +261,29 @@ CLASS z2ui5_cl_util_xml IMPLEMENTATION.
     DATA temp35 LIKE LINE OF ct_parts.
 
     IF mv_name IS INITIAL.
-      
+
       LOOP AT mt_child INTO lr_root.
-        
+
         temp29 ?= lr_root.
         temp29->xml_get_parts( CHANGING ct_parts = ct_parts ).
       ENDLOOP.
       RETURN.
     ENDIF.
 
-    
+
     IF mv_ns <> ``.
       temp30 = |{ mv_ns }:|.
     ELSE.
       CLEAR temp30.
     ENDIF.
-    
+
     lv_tmp2 = temp30.
-    
-    
+
+
     val = ``.
-    
+
     LOOP AT mt_prop INTO row WHERE v <> ``.
-      
+
       IF row-v = abap_true.
         temp1 = `true`.
       ELSE.
@@ -292,28 +292,28 @@ CLASS z2ui5_cl_util_xml IMPLEMENTATION.
       val = |{ val } { row-n }="{ escape( val = temp1 format = cl_abap_format=>e_xml_attr ) }"|.
     ENDLOOP.
     temp31 = val.
-    
+
     lv_tmp3 = temp31.
 
     IF mt_child IS INITIAL.
-      
+
       temp32 = | <{ lv_tmp2 }{ mv_name }{ lv_tmp3 }/>|.
       APPEND temp32 TO ct_parts.
       RETURN.
     ENDIF.
 
-    
+
     temp33 = | <{ lv_tmp2 }{ mv_name }{ lv_tmp3 }>|.
     APPEND temp33 TO ct_parts.
 
-    
+
     LOOP AT mt_child INTO lr_child.
-      
+
       temp34 ?= lr_child.
       temp34->xml_get_parts( CHANGING ct_parts = ct_parts ).
     ENDLOOP.
 
-    
+
     temp35 = |</{ lv_tmp2 }{ mv_name }>|.
     APPEND temp35 TO ct_parts.
 
@@ -337,9 +337,9 @@ CLASS z2ui5_cl_util_xml IMPLEMENTATION.
     DATA temp42 LIKE LINE OF ct_parts.
 
     IF mv_name IS INITIAL.
-      
+
       LOOP AT mt_child INTO lr_root.
-        
+
         temp36 ?= lr_root.
         temp36->xml_get_parts_indent( EXPORTING iv_depth = iv_depth
                                                                   CHANGING ct_parts = ct_parts ).
@@ -347,22 +347,22 @@ CLASS z2ui5_cl_util_xml IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    
+
     lv_pad  = repeat( val = ` ` occ = iv_depth * 2 ).
-    
+
     IF mv_ns <> ``.
       temp37 = |{ mv_ns }:|.
     ELSE.
       CLEAR temp37.
     ENDIF.
-    
+
     lv_ns = temp37.
-    
-    
+
+
     val = ``.
-    
+
     LOOP AT mt_prop INTO row WHERE v <> ``.
-      
+
       IF row-v = abap_true.
         temp2 = `true`.
       ELSE.
@@ -371,29 +371,29 @@ CLASS z2ui5_cl_util_xml IMPLEMENTATION.
       val = |{ val } { row-n }="{ escape( val = temp2 format = cl_abap_format=>e_xml_attr ) }"|.
     ENDLOOP.
     temp38 = val.
-    
+
     lv_attr = temp38.
 
     IF mt_child IS INITIAL.
-      
+
       temp39 = |{ lv_pad }<{ lv_ns }{ mv_name }{ lv_attr }/>|.
       APPEND temp39 TO ct_parts.
       RETURN.
     ENDIF.
 
-    
+
     temp40 = |{ lv_pad }<{ lv_ns }{ mv_name }{ lv_attr }>|.
     APPEND temp40 TO ct_parts.
 
-    
+
     LOOP AT mt_child INTO lr_child.
-      
+
       temp41 ?= lr_child.
       temp41->xml_get_parts_indent( EXPORTING iv_depth = iv_depth + 1
                                                                  CHANGING ct_parts = ct_parts ).
     ENDLOOP.
 
-    
+
     temp42 = |{ lv_pad }</{ lv_ns }{ mv_name }>|.
     APPEND temp42 TO ct_parts.
 

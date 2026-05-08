@@ -215,7 +215,7 @@ CLASS z2ui5_cl_util_range IMPLEMENTATION.
       FIELD-SYMBOLS <lv_high> TYPE any.
     ASSIGN me->mr_range->* TO <lt_range>.
 
-    
+
     temp1 = boolc( <lt_range> IS INITIAL ).
     IF temp1 = abap_true.
       RETURN.
@@ -223,16 +223,16 @@ CLASS z2ui5_cl_util_range IMPLEMENTATION.
 
     result = `(`.
 
-    
+
     LOOP AT <lt_range> ASSIGNING <ls_range_item>.
 
-      
+
       ASSIGN COMPONENT `SIGN` OF STRUCTURE <ls_range_item> TO <lv_sign>.
-      
+
       ASSIGN COMPONENT `OPTION` OF STRUCTURE <ls_range_item> TO <lv_option>.
-      
+
       ASSIGN COMPONENT `LOW` OF STRUCTURE <ls_range_item> TO <lv_low>.
-      
+
       ASSIGN COMPONENT `HIGH` OF STRUCTURE <ls_range_item> TO <lv_high>.
 
       IF sy-tabix <> 1.

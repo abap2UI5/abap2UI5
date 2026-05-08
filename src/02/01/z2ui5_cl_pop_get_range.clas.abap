@@ -52,7 +52,7 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
     z2ui5_cl_util=>itab_corresponding( EXPORTING val = t_range
                                        CHANGING  tab = r_result->ms_result-t_range ).
 
-    
+
     CLEAR temp7.
     INSERT temp7 INTO TABLE r_result->ms_result-t_range.
 
@@ -78,20 +78,20 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
                                  contentwidth  = `50%`
                                  title         = `Define Filter Conditions` ).
 
-    
+
     vbox = lo_popup->vbox( height         = `100%`
                                  justifycontent = `SpaceBetween` ).
 
-    
+
     item = vbox->list( nodata          = `No conditions defined`
                              items           = client->_bind_edit( mt_filter )
                              selectionchange = client->_event( `SELCHANGE` )
                 )->custom_list_item( ).
 
-    
+
     grid = item->grid( ).
 
-    
+
     CLEAR temp8.
     INSERT `${KEY}` INTO TABLE temp8.
     grid->combobox( selectedkey = `{OPTION}`
@@ -143,10 +143,10 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
       mt_mapping = z2ui5_cl_util=>filter_get_token_range_mapping( ).
 
       CLEAR mt_filter.
-      
-      
+
+
       LOOP AT ms_result-t_range REFERENCE INTO lr_product.
-        
+
         CLEAR temp11.
         temp11-low = lr_product->low.
         temp11-high = lr_product->high.
@@ -164,13 +164,13 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
       WHEN `BUTTON_CONFIRM`.
 
         CLEAR ms_result-t_range.
-        
-        
+
+
         LOOP AT mt_filter REFERENCE INTO lr_filter.
           IF lr_filter->low IS INITIAL AND lr_filter->high IS INITIAL.
             CONTINUE.
           ENDIF.
-          
+
           CLEAR temp13.
           temp13-sign = `I`.
           temp13-option = lr_filter->option.
@@ -188,7 +188,7 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
         client->nav_app_leave( ).
 
       WHEN `POPUP_ADD`.
-        
+
         CLEAR temp14.
         temp14-key = z2ui5_cl_util=>uuid_get_c32( ).
         INSERT temp14 INTO TABLE mt_filter.
@@ -199,7 +199,7 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
         client->popup_model_update( ).
 
       WHEN `POPUP_DELETE_ALL`.
-        
+
         CLEAR temp15.
         mt_filter = temp15.
         client->popup_model_update( ).

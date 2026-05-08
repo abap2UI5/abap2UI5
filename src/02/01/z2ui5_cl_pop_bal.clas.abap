@@ -50,12 +50,12 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
 
     CREATE OBJECT r_result.
 
-    
+
     temp9 = z2ui5_cl_util=>msg_get_t( i_messages ).
-    
-    
+
+
     LOOP AT temp9 REFERENCE INTO lr_row.
-      
+
       CLEAR temp10.
       temp10-type = z2ui5_cl_util=>ui5_get_msg_type( lr_row->type ).
       temp10-title = lr_row->text.
@@ -87,7 +87,7 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
                            verticalscrolling = abap_false
                            afterclose        = client->_event( `BUTTON_CONTINUE` ) ).
 
-    
+
     table = popup->table( client->_bind( mt_msg ) ).
     table->columns(
          )->column( )->text( `Date` )->get_parent(

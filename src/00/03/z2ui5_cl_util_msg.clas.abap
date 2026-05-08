@@ -40,8 +40,8 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
       DATA temp26 LIKE sy-tabix.
     lt_msg = msg_get( val ).
     IF lt_msg IS NOT INITIAL.
-      
-      
+
+
       temp26 = sy-tabix.
       READ TABLE lt_msg INDEX 1 INTO temp25.
       sy-tabix = temp26.
@@ -81,11 +81,11 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
     CASE lv_kind.
 
       WHEN cl_abap_datadescr=>typekind_table.
-        
+
         ASSIGN val TO <tab>.
-        
+
         LOOP AT <tab> ASSIGNING <row>.
-          
+
           lt_tab = msg_get( <row> ).
           INSERT LINES OF lt_tab INTO TABLE result.
         ENDLOOP.
@@ -96,17 +96,17 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
           RETURN.
         ENDIF.
 
-        
+
         lt_attri = z2ui5_cl_util=>rtti_get_t_attri_by_any( val ).
 
-        
+
         CLEAR temp27.
-        
+
         ls_result = temp27.
-        
-        
+
+
         LOOP AT lt_attri REFERENCE INTO ls_attri.
-          
+
           ASSIGN COMPONENT ls_attri->name OF STRUCTURE val TO <comp>.
 
           IF ls_attri->name = `ITEM`.
@@ -128,20 +128,20 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
       WHEN cl_abap_datadescr=>typekind_oref.
         TRY.
-            
+
             temp29 ?= val.
-            
+
             lx = temp29.
             CLEAR ls_result.
             ls_result-type = `E`.
             ls_result-text = lx->get_text( ).
-            
+
             lt_attri_o = z2ui5_cl_util=>rtti_get_t_attri_by_oref( val ).
-            
-            
+
+
             LOOP AT lt_attri_o REFERENCE INTO ls_attri_o
                  WHERE visibility = `U`.
-              
+
               lv_name = ls_attri_o->name.
               ASSIGN val->(lv_name) TO <comp>.
               ls_result = msg_map( name = ls_attri_o->name val = <comp> is_msg = ls_result ).
@@ -149,21 +149,21 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
             INSERT ls_result INTO TABLE result.
           CATCH cx_root.
 
-            
+
             obj = val.
 
             TRY.
 
-                
+
                 CREATE DATA lr_tab TYPE (`if_bali_log=>ty_item_table`).
-                
+
                 ASSIGN lr_tab->* TO <tab2>.
 
                 CALL METHOD obj->(`IF_BALI_LOG~GET_ALL_ITEMS`)
                   RECEIVING
                     item_table = <tab2>.
 
-                
+
                 lt_tab2 = msg_get( <tab2> ).
                 INSERT LINES OF lt_tab2 INTO TABLE result.
 
@@ -181,7 +181,7 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
                     lt_tab2 = msg_get( <tab2> ).
                     INSERT LINES OF lt_tab2 INTO TABLE result.
 
-                    
+
                   CATCH cx_root INTO lx2.
 
                     lt_attri_o = z2ui5_cl_util=>rtti_get_t_attri_by_oref( val ).
@@ -200,7 +200,7 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
       WHEN OTHERS.
 
         IF z2ui5_cl_util=>rtti_check_clike( val ) IS NOT INITIAL.
-          
+
           CLEAR temp31.
           temp31-text = val.
           INSERT temp31 INTO TABLE result.

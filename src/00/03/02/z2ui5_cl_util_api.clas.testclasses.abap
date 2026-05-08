@@ -56,7 +56,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_result TYPE abap_bool.
     DATA temp1 TYPE xsdboolean.
     lv_result = z2ui5_cl_util_api=>context_check_abap_cloud( ).
-    
+
     temp1 = boolc( lv_result = abap_true OR lv_result = abap_false ).
     cl_abap_unit_assert=>assert_true(
       temp1 ).
@@ -70,7 +70,7 @@ CLASS ltcl_test IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    
+
 
     TRY.
         lv_user_tech = z2ui5_cl_util_api=>context_get_user_tech( ).
@@ -94,7 +94,7 @@ CLASS ltcl_test IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    
+
     ls_sy = z2ui5_cl_util_api=>context_get_sy( ).
     cl_abap_unit_assert=>assert_not_initial( ls_sy-datum ).
     cl_abap_unit_assert=>assert_not_initial( ls_sy-uname ).
@@ -117,7 +117,7 @@ CLASS ltcl_test IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    
+
     lt_stack = z2ui5_cl_util_api=>context_get_callstack( ) ##NEEDED.
 
   ENDMETHOD.
@@ -135,7 +135,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_xstring TYPE xstring.
     DATA lv_string TYPE string.
     lv_xstring = z2ui5_cl_util_api=>conv_get_xstring_by_string( `hello` ).
-    
+
     lv_string = z2ui5_cl_util_api=>conv_get_string_by_xstring( lv_xstring ).
     cl_abap_unit_assert=>assert_equals( exp = `hello`
                                         act = lv_string ).
@@ -147,7 +147,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_xstring TYPE xstring.
     DATA lv_base64 TYPE string.
     lv_xstring = z2ui5_cl_util_api=>conv_get_xstring_by_string( `base64 test` ).
-    
+
     lv_base64 = z2ui5_cl_util_api=>conv_encode_x_base64( lv_xstring ).
     cl_abap_unit_assert=>assert_not_initial( lv_base64 ).
 
@@ -159,9 +159,9 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_base64 TYPE string.
     DATA lv_decoded TYPE xstring.
     lv_xstring = z2ui5_cl_util_api=>conv_get_xstring_by_string( `decode test` ).
-    
+
     lv_base64 = z2ui5_cl_util_api=>conv_encode_x_base64( lv_xstring ).
-    
+
     lv_decoded = z2ui5_cl_util_api=>conv_decode_x_base64( lv_base64 ).
     cl_abap_unit_assert=>assert_equals( exp = lv_xstring
                                         act = lv_decoded ).
@@ -176,13 +176,13 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_xstring2 TYPE xstring.
     DATA lv_string3 TYPE string.
     lv_string   = `my string`.
-    
+
     lv_xstring  = z2ui5_cl_util_api=>conv_get_xstring_by_string( lv_string ).
-    
+
     lv_string2  = z2ui5_cl_util_api=>conv_encode_x_base64( lv_xstring ).
-    
+
     lv_xstring2 = z2ui5_cl_util_api=>conv_decode_x_base64( lv_string2 ).
-    
+
     lv_string3  = z2ui5_cl_util_api=>conv_get_string_by_xstring( lv_xstring2 ).
 
     cl_abap_unit_assert=>assert_equals( exp = lv_string
@@ -204,13 +204,13 @@ DATA lt_tab TYPE temp3.
     DATA temp2 LIKE LINE OF temp1.
     DATA lv_result TYPE xstring.
     CLEAR temp1.
-    
+
     temp2-col1 = `A`.
     temp2-col2 = `B`.
     INSERT temp2 INTO TABLE temp1.
     lt_tab = temp1.
 
-    
+
     lv_result = z2ui5_cl_util_api=>conv_get_xlsx_by_itab( lt_tab ) ##NEEDED.
 
   ENDMETHOD.
@@ -232,7 +232,7 @@ DATA lt_tab TYPE temp3.
       RETURN.
     ENDIF.
 
-    
+
     ls_result = z2ui5_cl_util_api=>rtti_get_data_element_texts( `UNAME` ).
     IF z2ui5_cl_util_api=>context_check_abap_cloud( ) = abap_false.
       cl_abap_unit_assert=>assert_not_initial( ls_result ).
@@ -247,7 +247,7 @@ DATA lt_tab TYPE temp3.
       RETURN.
     ENDIF.
 
-    
+
     mt_classes = z2ui5_cl_util_api=>rtti_get_classes_impl_intf( `IF_SERIALIZABLE_OBJECT` ).
     cl_abap_unit_assert=>assert_not_initial( mt_classes ).
 
@@ -266,12 +266,12 @@ DATA lt_tab TYPE temp3.
       RETURN.
     ENDIF.
 
-    
+
     temp3 ?= cl_abap_elemdescr=>describe_by_name( `ABAP_BOOL` ).
-    
+
     lo_elem = temp3.
 
-    
+
     lt_result = z2ui5_cl_util_api=>rtti_get_t_fixvalues( elemdescr = lo_elem
                                                                 langu     = sy-langu ) ##NEEDED.
 
@@ -288,7 +288,7 @@ DATA lt_tab TYPE temp3.
       RETURN.
     ENDIF.
 
-    
+
     lv_result = z2ui5_cl_util_api=>rtti_get_table_desrc( tabname = `T100` ).
     cl_abap_unit_assert=>assert_not_initial( lv_result ).
 
@@ -301,7 +301,7 @@ DATA lt_tab TYPE temp3.
       RETURN.
     ENDIF.
 
-    
+
     lt_source = z2ui5_cl_util_api=>source_get_method(
       iv_classname  = `Z2UI5_CL_UTIL_API`
       iv_methodname = `UUID_GET_C32` ) ##NEEDED.
@@ -316,8 +316,8 @@ DATA lt_tab TYPE temp3.
       RETURN.
     ENDIF.
 
-    
-    
+
+
     lt_result = z2ui5_cl_util_api=>bal_read( object    = `TEST`
                                                     subobject = `TEST`
                                                     id        = `TEST` ) ##NEEDED.
@@ -331,7 +331,7 @@ DATA lt_tab TYPE temp3.
       RETURN.
     ENDIF.
 
-    
+
     z2ui5_cl_util_api=>bal_save( object    = `TEST`
                                   subobject = `TEST`
                                   id        = `TEST`

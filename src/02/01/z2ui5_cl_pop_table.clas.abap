@@ -54,41 +54,41 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
 
     ASSIGN mr_tab->* TO <tab_out>.
 
-    
+
     popup = z2ui5_cl_xml_view=>factory_popup( )->dialog( afterclose = client->_event( `CANCEL` )
                                                                stretch    = abap_true
                                                                title      = title
           )->content( ).
 
-    
+
     tab = popup->table( client->_bind( <tab_out> ) ).
 
-    
+
     lt_comp = z2ui5_cl_util=>rtti_get_t_attri_by_any( <tab_out> ).
 
-    
+
     list = tab->column_list_item( valign = `Top` ).
-    
+
     cells = list->cells( ).
 
-    
+
     LOOP AT lt_comp INTO ls_comp.
       cells->text( |\{{ ls_comp-name }\}| ).
     ENDLOOP.
 
-    
+
     columns = tab->columns( ).
 
-    
+
 
     LOOP AT lt_comp INTO ls_comp.
       IF ls_comp-type IS BOUND AND
           ls_comp-type->is_ddic_type( ) = abap_true.
         CLEAR lv_ddic_field_label.
 
-        
+
         temp9 ?= ls_comp-type.
-        
+
         lv_name = substring_after( val = temp9->absolute_name
                                          sub = `\TYPE=` ).
         lv_ddic_field_label = z2ui5_cl_util=>rtti_get_data_element_text_l( lv_name ).

@@ -43,19 +43,19 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_xml TYPE string.
     DATA temp3 TYPE xsdboolean.
     lo_view = z2ui5_cl_util_xml=>factory( )->__( `View` ).
-    
+
     CLEAR temp1.
-    
+
     temp2-n = `title`.
     temp2-v = `test`.
     INSERT temp2 INTO TABLE temp1.
-    
+
     lv_xml = lo_view->__( n = `Page`
                                 p = temp1
                               )->stringify( ).
 
     cl_abap_unit_assert=>assert_not_initial( lv_xml ).
-    
+
     temp3 = boolc( lv_xml CS `Page` ).
     cl_abap_unit_assert=>assert_true( temp3 ).
 
@@ -72,32 +72,32 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA temp7 TYPE xsdboolean.
     DATA temp8 TYPE xsdboolean.
     CLEAR temp3.
-    
+
     temp4-n = `xmlns`.
     temp4-v = `sap.m`.
     INSERT temp4 INTO TABLE temp3.
     temp4-n = `xmlns:core`.
     temp4-v = `sap.ui.core`.
     INSERT temp4 INTO TABLE temp3.
-    
+
     lo_popup = z2ui5_cl_util_xml=>factory( )->__( n = `FragmentDefinition` ns = `core`
                        p = temp3 ).
-    
+
     CLEAR temp5.
-    
+
     temp6-n = `title`.
     temp6-v = `Test`.
     INSERT temp6 INTO TABLE temp5.
-    
+
     lv_xml = lo_popup->__( n = `Dialog`
                                  p = temp5
                                )->stringify( ).
 
     cl_abap_unit_assert=>assert_not_initial( lv_xml ).
-    
+
     temp7 = boolc( lv_xml CS `Dialog` ).
     cl_abap_unit_assert=>assert_true( temp7 ).
-    
+
     temp8 = boolc( lv_xml CS `core:FragmentDefinition` ).
     cl_abap_unit_assert=>assert_true( temp8 ).
 
@@ -112,11 +112,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA temp10 TYPE xsdboolean.
     DATA temp11 TYPE xsdboolean.
     CLEAR temp7.
-    
+
     temp8-n = `title`.
     temp8-v = `My Page`.
     INSERT temp8 INTO TABLE temp7.
-    
+
     lv_xml = z2ui5_cl_util_xml=>factory(
       )->__( n = `View` ns = `mvc`
       )->__( `Shell`
@@ -124,13 +124,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
             p = temp7
       )->stringify( ).
 
-    
+
     temp9 = boolc( lv_xml CS `Shell` ).
     cl_abap_unit_assert=>assert_true( temp9 ).
-    
+
     temp10 = boolc( lv_xml CS `Page` ).
     cl_abap_unit_assert=>assert_true( temp10 ).
-    
+
     temp11 = boolc( lv_xml CS `My Page` ).
     cl_abap_unit_assert=>assert_true( temp11 ).
 
@@ -144,14 +144,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA temp12 TYPE xsdboolean.
     DATA temp13 TYPE xsdboolean.
     CLEAR temp9.
-    
+
     temp10-n = `text`.
     temp10-v = `Click Me`.
     INSERT temp10 INTO TABLE temp9.
     temp10-n = `press`.
     temp10-v = `onPress`.
     INSERT temp10 INTO TABLE temp9.
-    
+
     lv_xml = z2ui5_cl_util_xml=>factory(
       )->__( n = `View` ns = `mvc`
       )->__( n = `Page` a = `title` v = `Test`
@@ -159,10 +159,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
              p = temp9
       )->stringify( ).
 
-    
+
     temp12 = boolc( lv_xml CS `Button` ).
     cl_abap_unit_assert=>assert_true( temp12 ).
-    
+
     temp13 = boolc( lv_xml CS `Click Me` ).
     cl_abap_unit_assert=>assert_true( temp13 ).
 
@@ -181,13 +181,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     lo_page->_( n = `Button` a = `text` v = `Btn1` ).
     lo_page->_( n = `Button` a = `text` v = `Btn2` ).
 
-    
+
     lv_xml = lo_page->stringify( ).
 
-    
+
     temp14 = boolc( lv_xml CS `Btn1` ).
     cl_abap_unit_assert=>assert_true( temp14 ).
-    
+
     temp15 = boolc( lv_xml CS `Btn2` ).
     cl_abap_unit_assert=>assert_true( temp15 ).
 
@@ -208,13 +208,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->_( n = `Text` a = `text` v = `Nested`
       )->stringify( ).
 
-    
+
     temp16 = boolc( lv_xml CS `VBox` ).
     cl_abap_unit_assert=>assert_true( temp16 ).
-    
+
     temp17 = boolc( lv_xml CS `HBox` ).
     cl_abap_unit_assert=>assert_true( temp17 ).
-    
+
     temp18 = boolc( lv_xml CS `Nested` ).
     cl_abap_unit_assert=>assert_true( temp18 ).
 
@@ -228,13 +228,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lo_vbox TYPE REF TO z2ui5_cl_util_xml.
     DATA lo_parent TYPE REF TO z2ui5_cl_util_xml.
     lo_root = z2ui5_cl_util_xml=>factory( ).
-    
+
     lo_view = lo_root->__( n = `View` ns = `mvc` ).
-    
+
     lo_page = lo_view->__( n = `Page` a = `title` v = `Test` ).
-    
+
     lo_vbox = lo_page->__( `VBox` ).
-    
+
     lo_parent = lo_vbox->n( ).
 
     cl_abap_unit_assert=>assert_equals( exp = lo_page act = lo_parent ).
@@ -248,14 +248,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lo_page TYPE REF TO z2ui5_cl_util_xml.
     DATA lo_result TYPE REF TO z2ui5_cl_util_xml.
     lo_root = z2ui5_cl_util_xml=>factory( ).
-    
+
     lo_view = lo_root->__( n = `View` ns = `mvc` ).
-    
+
     lo_page = lo_view->__( n = `Page` a = `title` v = `Test` ).
     lo_page->__( `VBox`
       )->__( `HBox` ).
 
-    
+
     lo_result = lo_page->__( `VBox`
       )->__( `HBox`
       )->n( `Page` ).
@@ -271,12 +271,12 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lo_page TYPE REF TO z2ui5_cl_util_xml.
     DATA lo_result TYPE REF TO z2ui5_cl_util_xml.
     lo_root = z2ui5_cl_util_xml=>factory( ).
-    
+
     lo_view = lo_root->__( n = `View` ns = `mvc` ).
-    
+
     lo_page = lo_view->__( n = `Page` a = `title` v = `Test` ).
 
-    
+
     lo_result = lo_page->__( `VBox`
       )->__( `HBox`
       )->n( `NotExisting` ).
@@ -292,13 +292,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lo_page TYPE REF TO z2ui5_cl_util_xml.
     DATA lo_prev TYPE REF TO z2ui5_cl_util_xml.
     lo_root = z2ui5_cl_util_xml=>factory( ).
-    
+
     lo_view = lo_root->__( n = `View` ns = `mvc` ).
-    
+
     lo_page = lo_view->__( n = `Page` a = `title` v = `Test` ).
     lo_page->_( n = `Button` a = `text` v = `Btn` ).
 
-    
+
     lo_prev = lo_root->n_prev( ).
 
     cl_abap_unit_assert=>assert_bound( lo_prev ).
@@ -311,13 +311,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lo_deep TYPE REF TO z2ui5_cl_util_xml.
     DATA lo_result TYPE REF TO z2ui5_cl_util_xml.
     lo_root = z2ui5_cl_util_xml=>factory( ).
-    
+
     lo_deep = lo_root->__( n = `View` ns = `mvc`
       )->__( `Shell`
       )->__( `Page`
       )->__( `VBox` ).
 
-    
+
     lo_result = lo_deep->n_root( ).
 
     cl_abap_unit_assert=>assert_equals( exp = lo_root act = lo_result ).
@@ -333,11 +333,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA temp20 TYPE xsdboolean.
     DATA temp21 TYPE xsdboolean.
     CLEAR temp11.
-    
+
     temp12-n = `xmlns:f`.
     temp12-v = `sap.f`.
     INSERT temp12 INTO TABLE temp11.
-    
+
     lv_xml = z2ui5_cl_util_xml=>factory(
       )->__( n = `View` ns = `mvc`
             p = temp11
@@ -347,13 +347,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
             ns = `f`
       )->stringify( ).
 
-    
+
     temp19 = boolc( lv_xml CS `f:DynamicPage` ).
     cl_abap_unit_assert=>assert_true( temp19 ).
-    
+
     temp20 = boolc( lv_xml CS `f:DynamicPageTitle` ).
     cl_abap_unit_assert=>assert_true( temp20 ).
-    
+
     temp21 = boolc( lv_xml CS `xmlns:f` ).
     cl_abap_unit_assert=>assert_true( temp21 ).
 
@@ -374,16 +374,16 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->__( n = `View` ns = `mvc`
       )->__( n = `Page` a = `title` v = `Test` ).
 
-    
+
     CLEAR temp13.
-    
+
     temp14-n = `items`.
     temp14-v = `{/ITEMS}`.
     INSERT temp14 INTO TABLE temp13.
     temp14-n = `headerText`.
     temp14-v = `My Table`.
     INSERT temp14 INTO TABLE temp13.
-    
+
     lo_table = lo_page->__( n = `Table`
                                   p = temp13 ).
 
@@ -397,19 +397,19 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->__( `cells`
       )->_( n = `Text` a = `text` v = `{COL1}` ).
 
-    
+
     lv_xml = lo_page->stringify( ).
 
-    
+
     temp22 = boolc( lv_xml CS `Table` ).
     cl_abap_unit_assert=>assert_true( temp22 ).
-    
+
     temp23 = boolc( lv_xml CS `My Table` ).
     cl_abap_unit_assert=>assert_true( temp23 ).
-    
+
     temp24 = boolc( lv_xml CS `columns` ).
     cl_abap_unit_assert=>assert_true( temp24 ).
-    
+
     temp25 = boolc( lv_xml CS `ColumnListItem` ).
     cl_abap_unit_assert=>assert_true( temp25 ).
 
@@ -425,11 +425,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA temp27 TYPE xsdboolean.
     DATA temp28 TYPE xsdboolean.
     CLEAR temp15.
-    
+
     temp16-n = `xmlns:form`.
     temp16-v = `sap.ui.layout.form`.
     INSERT temp16 INTO TABLE temp15.
-    
+
     lo_form = z2ui5_cl_util_xml=>factory(
       )->__( n = `View` ns = `mvc`
             p = temp15
@@ -444,16 +444,16 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->_( n = `Label` a = `text` v = `Name`
       )->_( n = `Input` a = `value` v = `{/NAME}` ).
 
-    
+
     lv_xml = lo_form->stringify( ).
 
-    
+
     temp26 = boolc( lv_xml CS `SimpleForm` ).
     cl_abap_unit_assert=>assert_true( temp26 ).
-    
+
     temp27 = boolc( lv_xml CS `Label` ).
     cl_abap_unit_assert=>assert_true( temp27 ).
-    
+
     temp28 = boolc( lv_xml CS `Input` ).
     cl_abap_unit_assert=>assert_true( temp28 ).
 
@@ -472,13 +472,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->_( `Button`
       )->stringify( ).
 
-    
+
     temp29 = boolc( lv_xml CS `Shell` ).
     cl_abap_unit_assert=>assert_true( temp29 ).
-    
+
     temp30 = boolc( lv_xml CS `Page` ).
     cl_abap_unit_assert=>assert_true( temp30 ).
-    
+
     temp31 = boolc( lv_xml CS `Button` ).
     cl_abap_unit_assert=>assert_true( temp31 ).
 
@@ -495,10 +495,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->_( n = `Button` a = `text` v = `OK`
       )->stringify( ).
 
-    
+
     temp32 = boolc( lv_xml CS `Button` ).
     cl_abap_unit_assert=>assert_true( temp32 ).
-    
+
     temp33 = boolc( lv_xml CS `text="OK"` ).
     cl_abap_unit_assert=>assert_true( temp33 ).
 
@@ -516,27 +516,27 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA temp36 TYPE xsdboolean.
     DATA temp37 TYPE xsdboolean.
     lo_root = z2ui5_cl_util_xml=>factory( ).
-    
+
     lo_view = lo_root->__( n = `View` ns = `mvc` ).
-    
+
     lo_page = lo_view->__( n = `Page` a = `title` v = `Test` ).
     lo_page->_( n = `Button` a = `text` v = `Click` ).
 
-    
+
     lv_full = lo_page->stringify( ).
-    
+
     lv_sub  = lo_page->stringify( from_root = abap_false ).
 
-    
+
     temp34 = boolc( lv_full CS `mvc:View` ).
     cl_abap_unit_assert=>assert_true( temp34 ).
-    
+
     temp35 = boolc( lv_sub CS `mvc:View` ).
     cl_abap_unit_assert=>assert_false( temp35 ).
-    
+
     temp36 = boolc( lv_sub CS `Page` ).
     cl_abap_unit_assert=>assert_true( temp36 ).
-    
+
     temp37 = boolc( lv_sub CS `Button` ).
     cl_abap_unit_assert=>assert_true( temp37 ).
 
@@ -552,25 +552,25 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA temp39 TYPE xsdboolean.
     DATA temp40 TYPE xsdboolean.
     lo_root = z2ui5_cl_util_xml=>factory( ).
-    
+
     lo_view = lo_root->__( n = `View` ns = `mvc` ).
-    
+
     lo_btn  = lo_view->__( `Page`
       )->__( n = `Button` a = `text` v = `OK` ).
 
     lo_btn->p( n = `type` v = `Emphasized` ).
     lo_btn->p( n = `icon` v = `sap-icon://accept` ).
 
-    
+
     lv_xml = lo_root->stringify( ).
 
-    
+
     temp38 = boolc( lv_xml CS `text="OK"` ).
     cl_abap_unit_assert=>assert_true( temp38 ).
-    
+
     temp39 = boolc( lv_xml CS `type="Emphasized"` ).
     cl_abap_unit_assert=>assert_true( temp39 ).
-    
+
     temp40 = boolc( lv_xml CS `sap-icon://accept` ).
     cl_abap_unit_assert=>assert_true( temp40 ).
 
@@ -592,10 +592,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->n( `Page`
       )->stringify( ).
 
-    
+
     temp41 = boolc( lv_xml CS `Panel` ).
     cl_abap_unit_assert=>assert_true( temp41 ).
-    
+
     temp42 = boolc( lv_xml CS `Secret` ).
     cl_abap_unit_assert=>assert_true( temp42 ).
 
@@ -616,10 +616,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->_( n = `Button` a = `text` v = `Visible`
       )->stringify( ).
 
-    
+
     temp43 = boolc( lv_xml CS `Panel` ).
     cl_abap_unit_assert=>assert_false( temp43 ).
-    
+
     temp44 = boolc( lv_xml CS `Button` ).
     cl_abap_unit_assert=>assert_true( temp44 ).
 
@@ -638,7 +638,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                v    = `Admin Only`
       )->stringify( ).
 
-    
+
     temp45 = boolc( lv_xml CS `Admin Only` ).
     cl_abap_unit_assert=>assert_true( temp45 ).
 
@@ -659,10 +659,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->_( n = `Text` a = `text` v = `Visible`
       )->stringify( ).
 
-    
+
     temp46 = boolc( lv_xml CS `Hidden` ).
     cl_abap_unit_assert=>assert_false( temp46 ).
-    
+
     temp47 = boolc( lv_xml CS `Visible` ).
     cl_abap_unit_assert=>assert_true( temp47 ).
 
@@ -683,7 +683,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA temp25 TYPE z2ui5_cl_util=>ty_t_name_value.
     DATA temp26 LIKE LINE OF temp25.
     CLEAR temp17.
-    
+
     temp18-n = `height`.
     temp18-v = `100%`.
     INSERT temp18 INTO TABLE temp17.
@@ -697,9 +697,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       )->__( n = `View` ns = `mvc`
             p = temp17 ).
 
-    
+
     CLEAR temp19.
-    
+
     temp20-n = `title`.
     temp20-v = `Title`.
     INSERT temp20 INTO TABLE temp19.
@@ -709,13 +709,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     temp20-n = `showNavButton`.
     temp20-v = `true`.
     INSERT temp20 INTO TABLE temp19.
-    
+
     lo_page = result->__( n = `Page`
       p = temp19 ).
 
-    
+
     CLEAR temp21.
-    
+
     temp22-n = `icon`.
     temp22-v = `sap-icon://action`.
     INSERT temp22 INTO TABLE temp21.
@@ -738,13 +738,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
            && ` Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.`
            && ` Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat` ).
 
-    
+
     lo_footer_toolbar = lo_page->__( `footer`
       )->__( `OverflowToolbar` ).
     lo_footer_toolbar->_( `ToolbarSpacer` ).
-    
+
     CLEAR temp23.
-    
+
     temp24-n = `text`.
     temp24-v = `Accept`.
     INSERT temp24 INTO TABLE temp23.
@@ -752,9 +752,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     temp24-v = `Accept`.
     INSERT temp24 INTO TABLE temp23.
     lo_footer_toolbar->_( n = `Button` p = temp23 ).
-    
+
     CLEAR temp25.
-    
+
     temp26-n = `text`.
     temp26-v = `Reject`.
     INSERT temp26 INTO TABLE temp25.
@@ -773,7 +773,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_exp TYPE string.
     lv_xml = build_page_view( )->stringify( ).
 
-    
+
     lv_exp = ` <mvc:View height="100%" xmlns="sap.m" xmlns:mvc="sap.ui.core.mvc">`
                 && ` <Page class="sapUiContentPadding sapUiResponsivePadding--header sapUiResponsivePadding--subHeader sapUiResponsivePadding--content sapUiResponsivePadding--footer" showNavButton="true" title="Title">`
                 && ` <headerContent>`
@@ -814,7 +814,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_exp TYPE string.
     lv_xml = build_page_view( )->stringify( indent = abap_true ).
 
-    
+
     lv_exp = `<mvc:View height="100%" xmlns="sap.m" xmlns:mvc="sap.ui.core.mvc">` && |\n|
                 && `  <Page class="sapUiContentPadding sapUiResponsivePadding--header sapUiResponsivePadding--subHeader sapUiResponsivePadding--content sapUiResponsivePadding--footer" showNavButton="true" title="Title">` && |\n|
                 && `    <headerContent>` && |\n|

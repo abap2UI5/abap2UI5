@@ -30,15 +30,15 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    
+
     lv_msg_id = `NET`.
-    
+
     MESSAGE ID lv_msg_id TYPE `I` NUMBER `001` INTO lv_msg_text ##NEEDED.
-    
+
     lt_result = z2ui5_cl_util_msg=>msg_get_by_sy( ).
 
-    
-    
+
+
     temp2 = sy-tabix.
     READ TABLE lt_result INDEX 1 INTO temp1.
     sy-tabix = temp2.
@@ -48,8 +48,8 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `NET`
                                         act = temp1-id ).
 
-    
-    
+
+
     temp4 = sy-tabix.
     READ TABLE lt_result INDEX 1 INTO temp3.
     sy-tabix = temp4.
@@ -59,8 +59,8 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `001`
                                         act = temp3-no ).
 
-    
-    
+
+
     temp6 = sy-tabix.
     READ TABLE lt_result INDEX 1 INTO temp5.
     sy-tabix = temp6.
@@ -90,20 +90,20 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    
+
     CLEAR temp7.
-    
+
     temp8-type = `E`.
     temp8-id = `MSG1`.
     temp8-number = `001`.
     temp8-message = `An empty Report field causes an empty XML Message to be sent`.
     INSERT temp8 INTO TABLE temp7.
-    
+
     lt_msg = temp7.
 
-    
-    
-    
+
+
+
     temp2 = sy-tabix.
     READ TABLE lt_msg INDEX 1 INTO temp1.
     sy-tabix = temp2.
@@ -112,8 +112,8 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
     ENDIF.
     lt_result = z2ui5_cl_util_msg=>msg_get( temp1 ).
 
-    
-    
+
+
     temp10 = sy-tabix.
     READ TABLE lt_result INDEX 1 INTO temp9.
     sy-tabix = temp10.
@@ -123,8 +123,8 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `MSG1`
                                         act = temp9-id ).
 
-    
-    
+
+
     temp12 = sy-tabix.
     READ TABLE lt_result INDEX 1 INTO temp11.
     sy-tabix = temp12.
@@ -134,8 +134,8 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `001`
                                         act = temp11-no ).
 
-    
-    
+
+
     temp14 = sy-tabix.
     READ TABLE lt_result INDEX 1 INTO temp13.
     sy-tabix = temp14.
@@ -163,9 +163,9 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    
+
     CLEAR temp15.
-    
+
     temp16-type = `E`.
     temp16-id = `MSG1`.
     temp16-number = `001`.
@@ -176,14 +176,14 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
     temp16-number = `002`.
     temp16-message = `Product already in use`.
     INSERT temp16 INTO TABLE temp15.
-    
+
     lt_msg = temp15.
 
-    
+
     lt_result = z2ui5_cl_util_msg=>msg_get( lt_msg ).
 
-    
-    
+
+
     temp18 = sy-tabix.
     READ TABLE lt_result INDEX 1 INTO temp17.
     sy-tabix = temp18.
@@ -193,8 +193,8 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `MSG1`
                                         act = temp17-id ).
 
-    
-    
+
+
     temp20 = sy-tabix.
     READ TABLE lt_result INDEX 1 INTO temp19.
     sy-tabix = temp20.
@@ -204,8 +204,8 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `001`
                                         act = temp19-no ).
 
-    
-    
+
+
     temp22 = sy-tabix.
     READ TABLE lt_result INDEX 1 INTO temp21.
     sy-tabix = temp22.
@@ -225,16 +225,16 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
     DATA temp24 LIKE sy-tabix.
 
     TRY.
-        
+
         lv_val = 1 / 0.
-        
+
       CATCH cx_root INTO lx.
-        
+
         lt_result = z2ui5_cl_util_msg=>msg_get( lx ).
     ENDTRY.
 
-    
-    
+
+
     temp24 = sy-tabix.
     READ TABLE lt_result INDEX 1 INTO temp23.
     sy-tabix = temp24.
@@ -252,11 +252,11 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
         DATA lv_text TYPE string.
 
     TRY.
-        
+
         lv_val = 1 / 0.
-        
+
       CATCH cx_root INTO lx.
-        
+
         lv_text = z2ui5_cl_util_msg=>msg_get_text( lx ).
     ENDTRY.
 

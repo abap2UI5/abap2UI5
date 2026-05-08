@@ -63,12 +63,12 @@ CLASS ltcl_test IMPLEMENTATION.
                                           t_arg = temp1 ).
 
 
-    
+
     temp4 = boolc( lv_event CS `MY_EVT` ).
     temp2 = temp4.
     cl_abap_unit_assert=>assert_true( temp2 ).
 
-    
+
     temp5 = boolc( lv_event CS `'arg1'` ).
     temp3 = temp5.
     cl_abap_unit_assert=>assert_true( temp3 ).
@@ -97,17 +97,17 @@ CLASS ltcl_test IMPLEMENTATION.
                                           t_arg = temp3 ).
 
 
-    
+
     temp7 = boolc( lv_event CS `'a1'` ).
     temp4 = temp7.
     cl_abap_unit_assert=>assert_true( temp4 ).
 
-    
+
     temp8 = boolc( lv_event CS `'a2'` ).
     temp5 = temp8.
     cl_abap_unit_assert=>assert_true( temp5 ).
 
-    
+
     temp9 = boolc( lv_event CS `'a3'` ).
     temp6 = temp9.
     cl_abap_unit_assert=>assert_true( temp6 ).
@@ -132,12 +132,12 @@ CLASS ltcl_test IMPLEMENTATION.
                                           t_arg = temp5 ).
 
 
-    
+
     temp10 = boolc( lv_event CS `$event` ).
     temp7 = temp10.
     cl_abap_unit_assert=>assert_true( temp7 ).
 
-    
+
     temp11 = boolc( lv_event CS `'$event'` ).
     temp8 = temp11.
     cl_abap_unit_assert=>assert_false( temp8 ).
@@ -162,12 +162,12 @@ CLASS ltcl_test IMPLEMENTATION.
                                           t_arg = temp7 ).
 
 
-    
+
     temp12 = boolc( lv_event CS `{/MY_PATH}` ).
     temp9 = temp12.
     cl_abap_unit_assert=>assert_true( temp9 ).
 
-    
+
     temp13 = boolc( lv_event CS `'{/MY_PATH}'` ).
     temp10 = temp13.
     cl_abap_unit_assert=>assert_false( temp10 ).
@@ -191,7 +191,7 @@ CLASS ltcl_test IMPLEMENTATION.
                                           t_arg = temp9 ).
 
 
-    
+
     temp14 = boolc( lv_event CS `'real'` ).
     temp11 = temp14.
     cl_abap_unit_assert=>assert_true( temp11 ).
@@ -214,7 +214,7 @@ CLASS ltcl_test IMPLEMENTATION.
                                           s_cnt = temp11 ).
 
 
-    
+
     temp15 = boolc( lv_event CS `false,true` ).
     temp12 = temp15.
     cl_abap_unit_assert=>assert_true( temp12 ).
@@ -239,12 +239,12 @@ CLASS ltcl_test IMPLEMENTATION.
                                                  t_arg = temp12 ).
 
 
-    
+
     temp16 = boolc( lv_event CS `CLOSE` ).
     temp13 = temp16.
     cl_abap_unit_assert=>assert_true( temp13 ).
 
-    
+
     temp17 = boolc( lv_event CS `'param1'` ).
     temp14 = temp17.
     cl_abap_unit_assert=>assert_true( temp14 ).

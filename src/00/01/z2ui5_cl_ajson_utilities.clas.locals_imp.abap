@@ -37,7 +37,7 @@ CLASS lcl_node_iterator IMPLEMENTATION.
     mv_node_type = iv_node_type.
     mi_json      = ii_json.
 
-    
+
     lv_node_type = ii_json->get_node_type( mv_base_path ).
 
     IF lv_node_type IS INITIAL.

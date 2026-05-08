@@ -581,8 +581,8 @@ CLASS ltcl_json_utils IMPLEMENTATION.
       iv_path = '/c'
       iv_val  = 6 ).
 
-    
-    
+
+
 
     li_iterator = z2ui5_cl_ajson_utilities=>iterate_array(
       ii_json = li_cut
@@ -655,8 +655,8 @@ CLASS ltcl_json_utils IMPLEMENTATION.
       iv_path = '/x/y'
       iv_val  = 3 ).
 
-    
-    
+
+
 
     li_iterator = z2ui5_cl_ajson_utilities=>iterate_object(
       ii_json = li_cut

@@ -138,11 +138,11 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
         DATA x TYPE REF TO cx_root.
     TRY.
 
-        
+
         CLEAR temp1.
-        
+
         lv_result = temp1.
-        
+
         lv_class = `CL_ABAP_CONTEXT_INFO`.
         CALL METHOD (lv_class)=>(`GET_USER_BUSINESS_PARTNER_ID`)
           RECEIVING
@@ -150,7 +150,7 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
 
         result = lv_result.
 
-        
+
       CATCH cx_root INTO x.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
           EXPORTING
@@ -507,9 +507,9 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
         ENDLOOP.
         result = temp3.
 
-        
+
       CATCH cx_root INTO x.
-        
+
         lv_dummy = x->get_text( ).
     ENDTRY.
 
@@ -583,7 +583,7 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
 
       CATCH cx_root.
         TRY.
-            
+
             lv_xco_cp_abap_dictionary = `XCO_CP_ABAP_DICTIONARY`.
             CALL METHOD (lv_xco_cp_abap_dictionary)=>(`DATA_ELEMENT`)
               EXPORTING
@@ -619,9 +619,9 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
               RECEIVING
                 rs_long_field_label = result-long.
 
-            
+
           CATCH cx_root INTO x.
-            
+
             error = x->get_text( ).
         ENDTRY.
     ENDTRY.
@@ -724,10 +724,10 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
 
     TRY.
 
-        
-        
-        
-        
+
+
+
+
 
         lv_classname = i_classname.
 
@@ -746,9 +746,9 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
           RECEIVING
             rv_short_description = result.
 
-        
+
       CATCH cx_root INTO x.
-        
+
         lv_dummy = x->get_text( ).
     ENDTRY.
 
@@ -761,7 +761,7 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
       DATA lv_tabname TYPE string.
 
     IF langu IS NOT SUPPLIED.
-      
+
       lan = sy-langu.
     ELSE.
       lan = langu.
@@ -773,7 +773,7 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
 
     ELSE.
 
-      
+
       lv_tabname = `dd02t`.
       SELECT SINGLE ddtext
         FROM (lv_tabname) INTO ddtext

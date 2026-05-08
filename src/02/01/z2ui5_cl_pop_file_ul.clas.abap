@@ -102,12 +102,12 @@ CLASS z2ui5_cl_pop_file_ul IMPLEMENTATION.
 
       WHEN `UPLOAD`.
 
-        
-        
+
+
         SPLIT mv_value AT `;` INTO lv_dummy lv_data.
         SPLIT lv_data AT `,` INTO lv_dummy lv_data.
 
-        
+
         lv_data2 = z2ui5_cl_util=>conv_decode_x_base64( lv_data ).
         ms_result-value = z2ui5_cl_util=>conv_get_string_by_xstring( lv_data2 ).
         check_confirm_enabled = abap_true.

@@ -87,8 +87,8 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA temp9 TYPE z2ui5_if_core_types=>ty_s_attri.
     CREATE OBJECT lo_app TYPE ltcl_test_dissolve.
 
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp1.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp1 app = lo_app.
@@ -97,33 +97,33 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp1 app 
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    
+
     CLEAR temp2.
-    
+
     READ TABLE lt_attri INTO temp3 WITH KEY name = `MR_STRUC`.
     IF sy-subrc = 0.
       temp2 = temp3.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp2 ).
-    
+
     CLEAR temp4.
-    
+
     READ TABLE lt_attri INTO temp5 WITH KEY name = `MR_VALUE`.
     IF sy-subrc = 0.
       temp4 = temp5.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp4 ).
-    
+
     CLEAR temp6.
-    
+
     READ TABLE lt_attri INTO temp7 WITH KEY name = `MS_STRUC`.
     IF sy-subrc = 0.
       temp6 = temp7.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp6 ).
-    
+
     CLEAR temp8.
-    
+
     READ TABLE lt_attri INTO temp9 WITH KEY name = `MV_VALUE`.
     IF sy-subrc = 0.
       temp8 = temp9.
@@ -144,8 +144,8 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     CREATE DATA lo_app->mr_struc.
     CREATE DATA lo_app->mr_value TYPE string.
 
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp10.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp10 app = lo_app.
@@ -153,9 +153,9 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp10 app
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    
+
     CLEAR temp11.
-    
+
     READ TABLE lt_attri INTO temp12 WITH KEY name = `MR_VALUE->*`.
     IF sy-subrc = 0.
       temp11 = temp12.
@@ -181,15 +181,15 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA temp21 TYPE z2ui5_if_core_types=>ty_s_attri.
     CREATE OBJECT lo_app TYPE ltcl_test_dissolve.
     CREATE OBJECT lo_app->mo_app.
-    
+
     CREATE OBJECT lo_app2 TYPE ltcl_test_dissolve.
     lo_app2->mo_app = lo_app.
 
     CREATE DATA lo_app->mo_app->mr_struc.
     CREATE DATA lo_app->mo_app->mr_value TYPE string.
 
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp13.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp13 app = lo_app2.
@@ -198,33 +198,33 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp13 app
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    
+
     CLEAR temp14.
-    
+
     READ TABLE lt_attri INTO temp15 WITH KEY name = `MO_APP->MV_VALUE`.
     IF sy-subrc = 0.
       temp14 = temp15.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp14 ).
-    
+
     CLEAR temp16.
-    
+
     READ TABLE lt_attri INTO temp17 WITH KEY name = `MO_APP->MR_STRUC`.
     IF sy-subrc = 0.
       temp16 = temp17.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp16 ).
-    
+
     CLEAR temp18.
-    
+
     READ TABLE lt_attri INTO temp19 WITH KEY name = `MO_APP->MR_VALUE`.
     IF sy-subrc = 0.
       temp18 = temp19.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp18 ).
-    
+
     CLEAR temp20.
-    
+
     READ TABLE lt_attri INTO temp21 WITH KEY name = `MO_APP->MS_STRUC`.
     IF sy-subrc = 0.
       temp20 = temp21.
@@ -246,8 +246,8 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA temp27 TYPE z2ui5_if_core_types=>ty_s_attri.
     DATA temp28 TYPE z2ui5_if_core_types=>ty_s_attri.
     CREATE OBJECT lo_app TYPE ltcl_test_dissolve.
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp22.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp22 app = lo_app.
@@ -258,25 +258,25 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp22 app
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    
+
     CLEAR temp23.
-    
+
     READ TABLE lt_attri INTO temp24 WITH KEY name = `MS_STRUC-INPUT`.
     IF sy-subrc = 0.
       temp23 = temp24.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp23 ).
-    
+
     CLEAR temp25.
-    
+
     READ TABLE lt_attri INTO temp26 WITH KEY name = `MS_STRUC-S_02-INPUT`.
     IF sy-subrc = 0.
       temp25 = temp26.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp25 ).
-    
+
     CLEAR temp27.
-    
+
     READ TABLE lt_attri INTO temp28 WITH KEY name = `MS_STRUC-S_02-S_03-S_04-INPUT`.
     IF sy-subrc = 0.
       temp27 = temp28.
@@ -300,14 +300,14 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA temp35 TYPE z2ui5_if_core_types=>ty_s_attri.
     CREATE OBJECT lo_app TYPE ltcl_test_dissolve.
     CREATE OBJECT lo_app->mo_app.
-    
+
     CREATE OBJECT lo_app2 TYPE ltcl_test_dissolve.
     lo_app2->mo_app = lo_app.
 
     CREATE DATA lo_app->mr_struc.
 
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp29.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp29 app = lo_app.
@@ -316,25 +316,25 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp29 app
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    
+
     CLEAR temp30.
-    
+
     READ TABLE lt_attri INTO temp31 WITH KEY name = `MR_STRUC`.
     IF sy-subrc = 0.
       temp30 = temp31.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp30 ).
-    
+
     CLEAR temp32.
-    
+
     READ TABLE lt_attri INTO temp33 WITH KEY name = `MR_STRUC->INPUT`.
     IF sy-subrc = 0.
       temp32 = temp33.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp32 ).
-    
+
     CLEAR temp34.
-    
+
     READ TABLE lt_attri INTO temp35 WITH KEY name = `MR_STRUC->S_02-INPUT`.
     IF sy-subrc = 0.
       temp34 = temp35.
@@ -354,14 +354,14 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA temp38 TYPE z2ui5_if_core_types=>ty_s_attri.
     CREATE OBJECT lo_app TYPE ltcl_test_dissolve.
     CREATE OBJECT lo_app->mo_app.
-    
+
     CREATE OBJECT lo_app2 TYPE ltcl_test_dissolve.
     lo_app->mo_app = lo_app2.
 
     CREATE DATA lo_app2->mr_value TYPE string.
 
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp36.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp36 app = lo_app.
@@ -370,9 +370,9 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp36 app
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    
+
     CLEAR temp37.
-    
+
     READ TABLE lt_attri INTO temp38 WITH KEY name = `MO_APP->MR_VALUE->*`.
     IF sy-subrc = 0.
       temp37 = temp38.
@@ -396,14 +396,14 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA temp45 TYPE z2ui5_if_core_types=>ty_s_attri.
     CREATE OBJECT lo_app TYPE ltcl_test_dissolve.
     CREATE OBJECT lo_app->mo_app.
-    
+
     CREATE OBJECT lo_app2 TYPE ltcl_test_dissolve.
     lo_app->mo_app = lo_app2.
 
     CREATE DATA lo_app->mo_app->mr_struc.
 
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp39.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp39 app = lo_app.
@@ -413,25 +413,25 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp39 app
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    
+
     CLEAR temp40.
-    
+
     READ TABLE lt_attri INTO temp41 WITH KEY name = `MO_APP->MR_STRUC`.
     IF sy-subrc = 0.
       temp40 = temp41.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp40 ).
-    
+
     CLEAR temp42.
-    
+
     READ TABLE lt_attri INTO temp43 WITH KEY name = `MO_APP->MR_STRUC->INPUT`.
     IF sy-subrc = 0.
       temp42 = temp43.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp42 ).
-    
+
     CLEAR temp44.
-    
+
     READ TABLE lt_attri INTO temp45 WITH KEY name = `MO_APP->MR_STRUC->S_02-INPUT`.
     IF sy-subrc = 0.
       temp44 = temp45.
@@ -454,8 +454,8 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     CREATE OBJECT lo_app->mo_app.
     CREATE DATA lo_app->mo_app->ms_struc2-r_ref TYPE string.
 
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp46.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp46 app = lo_app.
@@ -465,17 +465,17 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp46 app
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    
+
     CLEAR temp47.
-    
+
     READ TABLE lt_attri INTO temp48 WITH KEY name = `MO_APP->MS_STRUC2-R_REF`.
     IF sy-subrc = 0.
       temp47 = temp48.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp47 ).
-    
+
     CLEAR temp49.
-    
+
     READ TABLE lt_attri INTO temp50 WITH KEY name = `MO_APP->MS_STRUC2-R_REF->*`.
     IF sy-subrc = 0.
       temp49 = temp50.
@@ -656,23 +656,23 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA temp53 LIKE REF TO lo_app_client->mv_value.
     CREATE OBJECT lo_app_client TYPE ltcl_test_app3.
 
-    
+
     GET REFERENCE OF lo_app_client->mv_value INTO lr_value.
 
-    
+
     CLEAR temp51.
-    
+
     lt_attri = temp51.
 
-    
+
     GET REFERENCE OF lt_attri INTO temp52.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp52 app = lo_app_client.
 
-    
+
     lr_attri = lo_model->attri_get_val_ref( `MV_VALUE` ).
 
-    
+
     GET REFERENCE OF lo_app_client->mv_value INTO temp53.
 IF temp53 <> lr_attri.
       cl_abap_unit_assert=>abort( ).
@@ -691,16 +691,16 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     CREATE OBJECT lo_app_client TYPE ltcl_test_app3.
     CREATE DATA lo_app_client->mr_value.
 
-    
+
     CLEAR temp54.
-    
+
     lt_attri = temp54.
-    
+
     GET REFERENCE OF lt_attri INTO temp55.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp55 app = lo_app_client.
 
-    
+
     lr_attri = lo_model->attri_get_val_ref( `MR_VALUE->*` ).
 
     IF lr_attri <> lo_app_client->mr_value.
@@ -720,19 +720,19 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA temp58 LIKE REF TO lo_app_client->mo_app->mv_value.
     CREATE OBJECT lo_app_client TYPE ltcl_test_app3.
 
-    
+
     CLEAR temp56.
-    
+
     lt_attri = temp56.
-    
+
     GET REFERENCE OF lt_attri INTO temp57.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp57 app = lo_app_client.
 
-    
+
     lr_attri = lo_model->attri_get_val_ref( `MO_APP->MV_VALUE` ).
 
-    
+
     GET REFERENCE OF lo_app_client->mo_app->mv_value INTO temp58.
 IF temp58 <> lr_attri.
       cl_abap_unit_assert=>abort( ).
@@ -751,16 +751,16 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     CREATE OBJECT lo_app_client TYPE ltcl_test_app3.
     CREATE DATA lo_app_client->mo_app->mr_value.
 
-    
+
     CLEAR temp59.
-    
+
     lt_attri = temp59.
-    
+
     GET REFERENCE OF lt_attri INTO temp60.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp60 app = lo_app_client.
 
-    
+
     lr_attri = lo_model->attri_get_val_ref( `MO_APP->MR_VALUE->*` ).
 
     IF lr_attri <> lo_app_client->mo_app->mr_value.
@@ -829,19 +829,19 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
       RETURN.
     ENDIF.
 
-    
+
     CREATE OBJECT lo_app TYPE ltcl_test_app_root.
 
-    
+
     CLEAR temp61.
-    
+
     lt_attri = temp61.
-    
+
     GET REFERENCE OF lt_attri INTO temp62.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp62 app = lo_app.
 
-    
+
     ls_attri = lo_model->main_attri_search( lo_app->mo_obj->mr_tab ).
 
     IF ls_attri->name <> `MT_TAB`.
@@ -864,7 +864,7 @@ CLASS ltcl_test_app_root IMPLEMENTATION.
     temp63-comp2 = `comp2`.
     INSERT temp63 INTO TABLE mt_tab.
 
-    
+
     GET REFERENCE OF mt_tab INTO temp64.
 CREATE OBJECT mo_obj TYPE ltcl_test_app_root_attri EXPORTING ir_tab = temp64.
 
@@ -925,19 +925,19 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
       RETURN.
     ENDIF.
 
-    
+
     CREATE OBJECT lo_app TYPE ltcl_test_app_root2.
 
-    
+
     CLEAR temp65.
-    
+
     lt_attri = temp65.
-    
+
     GET REFERENCE OF lt_attri INTO temp66.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp66 app = lo_app.
 
-    
+
     ls_attri = lo_model->main_attri_search( lo_app->mo_obj->mr_struc ).
 
     IF ls_attri->name <> `MS_STRUC`.
@@ -957,7 +957,7 @@ CLASS ltcl_test_app_root2 IMPLEMENTATION.
     ms_struc-comp1 = `comp1`.
     ms_struc-comp2 = `comp2`.
 
-    
+
     GET REFERENCE OF ms_struc INTO temp67.
 CREATE OBJECT mo_obj TYPE ltcl_test_app_root_attri2 EXPORTING ir_struc = temp67.
 
@@ -1001,16 +1001,16 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
 
 
     "create data
-    
+
     CREATE OBJECT lo_app TYPE ltcl_test_app_root4.
 
-    
-    
+
+
 
     CREATE DATA lo_app->mr_tab TYPE ty_t_tab.
-    
+
     ASSIGN lo_app->mr_tab->* TO <tab>.
-    
+
     CLEAR temp68.
     temp68-comp1 = `comp1`.
     temp68-comp2 = `comp2`.
@@ -1019,16 +1019,16 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
 
 
     "test find binding
-    
+
     CLEAR temp69.
-    
+
     lt_attri = temp69.
-    
+
     GET REFERENCE OF lt_attri INTO temp70.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp70 app = lo_app.
 
-    
+
     ls_attri = lo_model->main_attri_search( lo_app->mr_tab ).
 
     IF ls_attri->name <> `MR_TAB->*`.
@@ -1041,7 +1041,7 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp70 app
     lo_model->main_attri_db_save_srtti( ).
 
     CREATE OBJECT lo_app TYPE ltcl_test_app_root4.
-    
+
     GET REFERENCE OF lt_attri INTO temp71.
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp71 app = lo_app.
     lo_model->main_attri_db_load( ).
@@ -1197,10 +1197,10 @@ CLASS ltcl_app_root_335 IMPLEMENTATION.
     ms_struc-comp1 = `comp1`.
     ms_struc-comp2 = `comp2`.
 
-    
+
     GET REFERENCE OF ms_struc INTO temp72.
 CREATE OBJECT mo_obj TYPE ltcl_app_inner_335 EXPORTING ir_data = temp72.
-    
+
     GET REFERENCE OF ms_struc INTO temp73.
 CREATE OBJECT mo_obj_2 TYPE ltcl_app_inner_335 EXPORTING ir_data = temp73.
 
@@ -1236,11 +1236,11 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
       RETURN.
     ENDIF.
 
-    
+
     CREATE OBJECT lo_app TYPE ltcl_app_root_335.
 
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp74.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp74 app = lo_app.
@@ -1249,26 +1249,26 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp74 app
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    
+
     CLEAR temp75.
-    
+
     READ TABLE lt_attri INTO temp76 WITH KEY name = `MO_OBJ->MR_DATA`.
     IF sy-subrc = 0.
       temp75 = temp76.
     ENDIF.
-    
+
     ls_mr_data_1 = temp75.
     cl_abap_unit_assert=>assert_equals( exp = `MS_STRUC`
                                         act = ls_mr_data_1-name_ref ).
 
-    
+
     CLEAR temp77.
-    
+
     READ TABLE lt_attri INTO temp78 WITH KEY name = `MO_OBJ_2->MR_DATA`.
     IF sy-subrc = 0.
       temp77 = temp78.
     ENDIF.
-    
+
     ls_mr_data_2 = temp77.
     cl_abap_unit_assert=>assert_equals( exp = `MS_STRUC`
                                         act = ls_mr_data_2-name_ref ).
@@ -1294,9 +1294,9 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA temp85 TYPE z2ui5_if_core_types=>ty_s_attri.
     DATA ls_attri LIKE temp84.
     CREATE OBJECT lo_app TYPE ltcl_app_complex.
-    
+
     CLEAR temp79.
-    
+
     temp80-col1 = `A`.
     temp80-col2 = `1`.
     INSERT temp80 INTO TABLE temp79.
@@ -1305,31 +1305,31 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     INSERT temp80 INTO TABLE temp79.
     lo_app->mt_tab = temp79.
 
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp81.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp81 app = lo_app.
 
     lo_model->dissolve( ).
 
-    
+
     CLEAR temp82.
-    
+
     READ TABLE lt_attri INTO temp83 WITH KEY name = `MT_TAB`.
     IF sy-subrc = 0.
       temp82 = temp83.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp82 ).
 
-    
+
     CLEAR temp84.
-    
+
     READ TABLE lt_attri INTO temp85 WITH KEY name = `MT_TAB`.
     IF sy-subrc = 0.
       temp84 = temp85.
     ENDIF.
-    
+
     ls_attri = temp84.
     cl_abap_unit_assert=>assert_equals( exp = cl_abap_datadescr=>typekind_table
                                         act = ls_attri-type_kind ).
@@ -1358,8 +1358,8 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     lo_app->ms_nested-inner-deep1 = `d1`.
     lo_app->ms_nested-inner-deep2 = `d2`.
 
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp86.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp86 app = lo_app.
@@ -1368,33 +1368,33 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp86 app
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    
+
     CLEAR temp87.
-    
+
     READ TABLE lt_attri INTO temp88 WITH KEY name = `MS_NESTED-NAME`.
     IF sy-subrc = 0.
       temp87 = temp88.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp87 ).
-    
+
     CLEAR temp89.
-    
+
     READ TABLE lt_attri INTO temp90 WITH KEY name = `MS_NESTED-VALUE`.
     IF sy-subrc = 0.
       temp89 = temp90.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp89 ).
-    
+
     CLEAR temp91.
-    
+
     READ TABLE lt_attri INTO temp92 WITH KEY name = `MS_NESTED-INNER-DEEP1`.
     IF sy-subrc = 0.
       temp91 = temp92.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp91 ).
-    
+
     CLEAR temp93.
-    
+
     READ TABLE lt_attri INTO temp94 WITH KEY name = `MS_NESTED-INNER-DEEP2`.
     IF sy-subrc = 0.
       temp93 = temp94.
@@ -1419,8 +1419,8 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     CREATE OBJECT lo_app->mo_mid.
     CREATE OBJECT lo_app->mo_mid->mo_inner.
 
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp95.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp95 app = lo_app.
@@ -1429,25 +1429,25 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp95 app
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    
+
     CLEAR temp96.
-    
+
     READ TABLE lt_attri INTO temp97 WITH KEY name = `MO_MID->MV_MID`.
     IF sy-subrc = 0.
       temp96 = temp97.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp96 ).
-    
+
     CLEAR temp98.
-    
+
     READ TABLE lt_attri INTO temp99 WITH KEY name = `MO_MID->MO_INNER`.
     IF sy-subrc = 0.
       temp98 = temp99.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp98 ).
-    
+
     CLEAR temp100.
-    
+
     READ TABLE lt_attri INTO temp101 WITH KEY name = `MO_MID->MO_INNER->MV_INNER`.
     IF sy-subrc = 0.
       temp100 = temp101.
@@ -1474,15 +1474,15 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA ls_tab LIKE temp107.
     CREATE OBJECT lo_app TYPE ltcl_app_complex.
     CREATE DATA lo_app->mr_tab LIKE lo_app->mt_tab.
-    
+
     ASSIGN lo_app->mr_tab->* TO <tab>.
-    
+
     ls_row-col1 = `X`.
     ls_row-col2 = `Y`.
     INSERT ls_row INTO TABLE <tab>.
 
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp102.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp102 app = lo_app.
@@ -1490,31 +1490,31 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp102 ap
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    
+
     CLEAR temp103.
-    
+
     READ TABLE lt_attri INTO temp104 WITH KEY name = `MR_TAB`.
     IF sy-subrc = 0.
       temp103 = temp104.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp103 ).
-    
+
     CLEAR temp105.
-    
+
     READ TABLE lt_attri INTO temp106 WITH KEY name = `MR_TAB->*`.
     IF sy-subrc = 0.
       temp105 = temp106.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp105 ).
 
-    
+
     CLEAR temp107.
-    
+
     READ TABLE lt_attri INTO temp108 WITH KEY name = `MR_TAB->*`.
     IF sy-subrc = 0.
       temp107 = temp108.
     ENDIF.
-    
+
     ls_tab = temp107.
     cl_abap_unit_assert=>assert_equals( exp = cl_abap_datadescr=>typekind_table
                                         act = ls_tab-type_kind ).
@@ -1542,9 +1542,9 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA temp122 TYPE z2ui5_if_core_types=>ty_s_attri.
     DATA temp123 TYPE z2ui5_if_core_types=>ty_s_attri.
     CREATE OBJECT lo_app TYPE ltcl_app_complex.
-    
+
     CLEAR temp109.
-    
+
     temp110-col1 = `A`.
     temp110-col2 = `1`.
     INSERT temp110 INTO TABLE temp109.
@@ -1553,8 +1553,8 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     CREATE OBJECT lo_app->mo_mid.
     CREATE DATA lo_app->mr_tab LIKE lo_app->mt_tab.
 
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp111.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp111 app = lo_app.
@@ -1563,49 +1563,49 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp111 ap
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    
+
     CLEAR temp112.
-    
+
     READ TABLE lt_attri INTO temp113 WITH KEY name = `MT_TAB`.
     IF sy-subrc = 0.
       temp112 = temp113.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp112 ).
-    
+
     CLEAR temp114.
-    
+
     READ TABLE lt_attri INTO temp115 WITH KEY name = `MS_NESTED-NAME`.
     IF sy-subrc = 0.
       temp114 = temp115.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp114 ).
-    
+
     CLEAR temp116.
-    
+
     READ TABLE lt_attri INTO temp117 WITH KEY name = `MO_MID->MV_MID`.
     IF sy-subrc = 0.
       temp116 = temp117.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp116 ).
-    
+
     CLEAR temp118.
-    
+
     READ TABLE lt_attri INTO temp119 WITH KEY name = `MR_TAB`.
     IF sy-subrc = 0.
       temp118 = temp119.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp118 ).
-    
+
     CLEAR temp120.
-    
+
     READ TABLE lt_attri INTO temp121 WITH KEY name = `MV_SIMPLE`.
     IF sy-subrc = 0.
       temp120 = temp121.
     ENDIF.
     cl_abap_unit_assert=>assert_not_initial( temp120 ).
-    
+
     CLEAR temp122.
-    
+
     READ TABLE lt_attri INTO temp123 WITH KEY name = `MV_INT`.
     IF sy-subrc = 0.
       temp122 = temp123.
@@ -1626,8 +1626,8 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     lo_app->ms_nested-name = `test`.
     CREATE OBJECT lo_app->mo_mid.
 
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp124.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp124 app = lo_app.
@@ -1635,11 +1635,11 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp124 ap
     lo_model->dissolve( ).
     lo_model->dissolve( ).
     lo_model->dissolve( ).
-    
+
     lv_count_1 = lines( lt_attri ).
 
     lo_model->dissolve( ).
-    
+
     lv_count_2 = lines( lt_attri ).
 
     cl_abap_unit_assert=>assert_equals( exp = lv_count_1
@@ -1661,23 +1661,23 @@ DATA ls_attri TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
       RETURN.
     ENDIF.
 
-    
+
     CREATE OBJECT lo_app TYPE ltcl_app_complex.
-    
+
     CLEAR temp125.
-    
+
     temp126-col1 = `A`.
     temp126-col2 = `1`.
     INSERT temp126 INTO TABLE temp125.
     lo_app->mt_tab = temp125.
 
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp127.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp127 app = lo_app.
 
-    
+
     GET REFERENCE OF lo_app->mt_tab INTO temp128.
 
 ls_attri = lo_model->main_attri_search( temp128 ).
@@ -1699,17 +1699,17 @@ DATA ls_attri TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
       RETURN.
     ENDIF.
 
-    
+
     CREATE OBJECT lo_app TYPE ltcl_app_complex.
     lo_app->ms_nested-inner-deep1 = `found`.
 
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp129.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp129 app = lo_app.
 
-    
+
     GET REFERENCE OF lo_app->ms_nested-inner-deep1 INTO temp130.
 
 ls_attri = lo_model->main_attri_search( temp130 ).
@@ -1735,8 +1735,8 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     CREATE OBJECT lo_app->mo_mid.
     CREATE OBJECT lo_app->mo_mid->mo_inner.
 
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp131.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp131 app = lo_app.
@@ -1745,26 +1745,26 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp131 ap
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    
+
     CLEAR temp132.
-    
+
     READ TABLE lt_attri INTO temp133 WITH KEY name = `MO_MID->MO_INNER`.
     IF sy-subrc = 0.
       temp132 = temp133.
     ENDIF.
-    
+
     ls_mid = temp132.
     cl_abap_unit_assert=>assert_equals( exp = `MO_MID`
                                         act = ls_mid-name_parent ).
 
-    
+
     CLEAR temp134.
-    
+
     READ TABLE lt_attri INTO temp135 WITH KEY name = `MO_MID->MO_INNER->MV_INNER`.
     IF sy-subrc = 0.
       temp134 = temp135.
     ENDIF.
-    
+
     ls_inner = temp134.
     cl_abap_unit_assert=>assert_equals( exp = `MO_MID->MO_INNER`
                                         act = ls_inner-name_parent ).
@@ -1792,12 +1792,12 @@ CLASS ltcl_test_attri_create IMPLEMENTATION.
 DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA ls_result TYPE z2ui5_if_core_types=>ty_s_attri.
     CREATE OBJECT lo_app TYPE ltcl_app_complex.
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp136.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp136 app = lo_app.
-    
+
     ls_result = lo_model->attri_create_new( `MV_SIMPLE` ).
     cl_abap_unit_assert=>assert_equals( exp = cl_abap_datadescr=>typekind_string
                                         act = ls_result-type_kind ).
@@ -1810,12 +1810,12 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp136 ap
 DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA ls_result TYPE z2ui5_if_core_types=>ty_s_attri.
     CREATE OBJECT lo_app TYPE ltcl_app_complex.
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp137.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp137 app = lo_app.
-    
+
     ls_result = lo_model->attri_create_new( `MT_TAB` ).
     cl_abap_unit_assert=>assert_equals( exp = cl_abap_datadescr=>typekind_table
                                         act = ls_result-type_kind ).
@@ -1829,12 +1829,12 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA ls_result TYPE z2ui5_if_core_types=>ty_s_attri.
     CREATE OBJECT lo_app TYPE ltcl_app_complex.
     CREATE OBJECT lo_app->mo_mid.
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp138.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp138 app = lo_app.
-    
+
     ls_result = lo_model->attri_create_new( `MO_MID` ).
     cl_abap_unit_assert=>assert_equals( exp = cl_abap_datadescr=>typekind_oref
                                         act = ls_result-type_kind ).
@@ -1847,12 +1847,12 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp138 ap
 DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA ls_result TYPE z2ui5_if_core_types=>ty_s_attri.
     CREATE OBJECT lo_app TYPE ltcl_app_complex.
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp139.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp139 app = lo_app.
-    
+
     ls_result = lo_model->attri_create_new( `MV_INT` ).
     cl_abap_unit_assert=>assert_equals( exp = cl_abap_typedescr=>kind_elem
                                         act = ls_result-kind ).
@@ -1880,14 +1880,14 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA lo_result TYPE REF TO z2ui5_cl_ajson.
     CREATE OBJECT lo_app TYPE ltcl_app_complex.
     lo_app->mv_simple = `hello`.
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp140.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp140 app = lo_app.
     lo_model->dissolve( ).
 
-    
+
     READ TABLE lt_attri REFERENCE INTO lr_simple WITH KEY name = `MV_SIMPLE`.
     IF sy-subrc <> 0.
       cl_abap_unit_assert=>abort( ).
@@ -1895,9 +1895,9 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp140 ap
     lr_simple->bind_type   = z2ui5_if_core_types=>cs_bind_type-one_way.
     lr_simple->name_client = `/MV_SIMPLE`.
 
-    
+
     lv_json = lo_model->main_json_stringify( ).
-    
+
     lo_result = z2ui5_cl_ajson=>parse( lv_json ).
     cl_abap_unit_assert=>assert_equals( exp = `hello`
                                         act = lo_result->get_string( `/MV_SIMPLE` ) ).
@@ -1910,15 +1910,15 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp140 ap
 DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA lv_json TYPE string.
     CREATE OBJECT lo_app TYPE ltcl_app_complex.
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp141.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp141 app = lo_app.
     lo_model->dissolve( ).
 
     " No bind_type set on any attribute - stringify produces empty JSON object
-    
+
     lv_json = lo_model->main_json_stringify( ).
     cl_abap_unit_assert=>assert_equals( exp = `{}`
                                         act = lv_json ).
@@ -1945,14 +1945,14 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA lr TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
     DATA lo_model_json TYPE REF TO z2ui5_if_ajson.
     CREATE OBJECT lo_app TYPE ltcl_app_complex.
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp142.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp142 app = lo_app.
     lo_model->dissolve( ).
 
-    
+
     READ TABLE lt_attri REFERENCE INTO lr WITH KEY name = `MV_SIMPLE`.
     IF sy-subrc <> 0.
       cl_abap_unit_assert=>abort( ).
@@ -1961,7 +1961,7 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp142 ap
     lr->view        = z2ui5_if_client=>cs_view-main.
     lr->name_client = `/MV_SIMPLE`.
 
-    
+
     lo_model_json = z2ui5_cl_ajson=>create_empty( ).
     lo_model_json->set( iv_path = `/MV_SIMPLE`
                         iv_val  = `updated` ).
@@ -1981,14 +1981,14 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA lr TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
     DATA lo_model_json TYPE REF TO z2ui5_if_ajson.
     CREATE OBJECT lo_app TYPE ltcl_app_complex.
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp143.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp143 app = lo_app.
     lo_model->dissolve( ).
 
-    
+
     READ TABLE lt_attri REFERENCE INTO lr WITH KEY name = `MV_SIMPLE`.
     IF sy-subrc <> 0.
       cl_abap_unit_assert=>abort( ).
@@ -1997,7 +1997,7 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp143 ap
     lr->view        = z2ui5_if_client=>cs_view-main.
     lr->name_client = `/MV_SIMPLE`.
 
-    
+
     lo_model_json = z2ui5_cl_ajson=>create_empty( ).
     lo_model_json->set( iv_path = `/MV_SIMPLE`
                         iv_val  = `should_not_update` ).
@@ -2018,14 +2018,14 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA lr TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
     DATA lo_model_json TYPE REF TO z2ui5_if_ajson.
     CREATE OBJECT lo_app TYPE ltcl_app_complex.
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp144.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp144 app = lo_app.
     lo_model->dissolve( ).
 
-    
+
     READ TABLE lt_attri REFERENCE INTO lr WITH KEY name = `MV_SIMPLE`.
     IF sy-subrc <> 0.
       cl_abap_unit_assert=>abort( ).
@@ -2034,7 +2034,7 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp144 ap
     lr->view        = z2ui5_if_client=>cs_view-popup.
     lr->name_client = `/MV_SIMPLE`.
 
-    
+
     lo_model_json = z2ui5_cl_ajson=>create_empty( ).
     lo_model_json->set( iv_path = `/MV_SIMPLE`
                         iv_val  = `should_not_update` ).
@@ -2068,15 +2068,15 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA temp147 TYPE z2ui5_if_core_types=>ty_s_attri.
     DATA ls_after LIKE temp146.
     CREATE OBJECT lo_app TYPE ltcl_app_complex.
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp145.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp145 app = lo_app.
     lo_model->dissolve( ).
 
     " Simulate an active binding on MV_SIMPLE
-    
+
     READ TABLE lt_attri REFERENCE INTO lr WITH KEY name = `MV_SIMPLE`.
     IF sy-subrc <> 0.
       cl_abap_unit_assert=>abort( ).
@@ -2088,14 +2088,14 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp145 ap
     " Refresh clears and re-dissolves but must restore binding info
     lo_model->main_attri_refresh( ).
 
-    
+
     CLEAR temp146.
-    
+
     READ TABLE lt_attri INTO temp147 WITH KEY name = `MV_SIMPLE`.
     IF sy-subrc = 0.
       temp146 = temp147.
     ENDIF.
-    
+
     ls_after = temp146.
     cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_core_types=>cs_bind_type-two_way
                                         act = ls_after-bind_type ).
@@ -2133,10 +2133,10 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
       RETURN.
     ENDIF.
 
-    
+
     CREATE OBJECT lo_app TYPE ltcl_app_root_335.
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp148.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp148 app = lo_app.
@@ -2145,26 +2145,26 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp148 ap
     lo_model->dissolve( ).
 
     " MO_OBJ->MR_DATA points to MS_STRUC - dissolved children must get name_ref
-    
+
     CLEAR temp149.
-    
+
     READ TABLE lt_attri INTO temp150 WITH KEY name = `MO_OBJ->MR_DATA->COMP1`.
     IF sy-subrc = 0.
       temp149 = temp150.
     ENDIF.
-    
+
     ls_child1 = temp149.
     cl_abap_unit_assert=>assert_equals( exp = `MS_STRUC-COMP1`
                                         act = ls_child1-name_ref ).
 
-    
+
     CLEAR temp151.
-    
+
     READ TABLE lt_attri INTO temp152 WITH KEY name = `MO_OBJ->MR_DATA->COMP2`.
     IF sy-subrc = 0.
       temp151 = temp152.
     ENDIF.
-    
+
     ls_child2 = temp151.
     cl_abap_unit_assert=>assert_equals( exp = `MS_STRUC-COMP2`
                                         act = ls_child2-name_ref ).
@@ -2187,10 +2187,10 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
       RETURN.
     ENDIF.
 
-    
+
     CREATE OBJECT lo_app TYPE ltcl_app_root_335.
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp153.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp153 app = lo_app.
@@ -2199,26 +2199,26 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp153 ap
     lo_model->dissolve( ).
 
     " MO_OBJ_2->MR_DATA also points to same MS_STRUC - children get name_ref too
-    
+
     CLEAR temp154.
-    
+
     READ TABLE lt_attri INTO temp155 WITH KEY name = `MO_OBJ_2->MR_DATA->COMP1`.
     IF sy-subrc = 0.
       temp154 = temp155.
     ENDIF.
-    
+
     ls_child1 = temp154.
     cl_abap_unit_assert=>assert_equals( exp = `MS_STRUC-COMP1`
                                         act = ls_child1-name_ref ).
 
-    
+
     CLEAR temp156.
-    
+
     READ TABLE lt_attri INTO temp157 WITH KEY name = `MO_OBJ_2->MR_DATA->COMP2`.
     IF sy-subrc = 0.
       temp156 = temp157.
     ENDIF.
-    
+
     ls_child2 = temp156.
     cl_abap_unit_assert=>assert_equals( exp = `MS_STRUC-COMP2`
                                         act = ls_child2-name_ref ).
@@ -2253,9 +2253,9 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA temp165 LIKE LINE OF lo_app->mt_tab.
     DATA temp166 LIKE sy-tabix.
     CREATE OBJECT lo_app TYPE ltcl_app_complex.
-    
+
     CLEAR temp158.
-    
+
     temp159-col1 = `A`.
     temp159-col2 = `1`.
     INSERT temp159 INTO TABLE temp158.
@@ -2263,13 +2263,13 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     temp159-col2 = `2`.
     INSERT temp159 INTO TABLE temp158.
     lo_app->mt_tab = temp158.
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp160.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp160 app = lo_app.
 
-    
+
     lo_delta = z2ui5_cl_ajson=>create_empty( ).
     lo_delta->set( iv_path = `/__delta/0/COL1`
                    iv_val  = `X` ).
@@ -2278,8 +2278,8 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp160 ap
                                     iv_name      = `MT_TAB` ).
 
     " Index 0 maps to ABAP table row 1
-    
-    
+
+
     temp162 = sy-tabix.
     READ TABLE lo_app->mt_tab INDEX 1 INTO temp161.
     sy-tabix = temp162.
@@ -2288,8 +2288,8 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp160 ap
     ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `X`
                                         act = temp161-col1 ).
-    
-    
+
+
     temp164 = sy-tabix.
     READ TABLE lo_app->mt_tab INDEX 1 INTO temp163.
     sy-tabix = temp164.
@@ -2298,8 +2298,8 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp160 ap
     ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `1`
                                         act = temp163-col2 ).
-    
-    
+
+
     temp166 = sy-tabix.
     READ TABLE lo_app->mt_tab INDEX 2 INTO temp165.
     sy-tabix = temp166.
@@ -2325,9 +2325,9 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA temp174 LIKE LINE OF lo_app->mt_tab.
     DATA temp175 LIKE sy-tabix.
     CREATE OBJECT lo_app TYPE ltcl_app_complex.
-    
+
     CLEAR temp167.
-    
+
     temp168-col1 = `A`.
     temp168-col2 = `1`.
     INSERT temp168 INTO TABLE temp167.
@@ -2335,13 +2335,13 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     temp168-col2 = `2`.
     INSERT temp168 INTO TABLE temp167.
     lo_app->mt_tab = temp167.
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp169.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp169 app = lo_app.
 
-    
+
     lo_delta = z2ui5_cl_ajson=>create_empty( ).
     lo_delta->set( iv_path = `/__delta/1/COL2`
                    iv_val  = `Y` ).
@@ -2350,8 +2350,8 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp169 ap
                                     iv_name      = `MT_TAB` ).
 
     " Index 1 maps to ABAP table row 2
-    
-    
+
+
     temp171 = sy-tabix.
     READ TABLE lo_app->mt_tab INDEX 1 INTO temp170.
     sy-tabix = temp171.
@@ -2360,8 +2360,8 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp169 ap
     ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `A`
                                         act = temp170-col1 ).
-    
-    
+
+
     temp173 = sy-tabix.
     READ TABLE lo_app->mt_tab INDEX 2 INTO temp172.
     sy-tabix = temp173.
@@ -2370,8 +2370,8 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp169 ap
     ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `Y`
                                         act = temp172-col2 ).
-    
-    
+
+
     temp175 = sy-tabix.
     READ TABLE lo_app->mt_tab INDEX 2 INTO temp174.
     sy-tabix = temp175.
@@ -2393,20 +2393,20 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA temp179 LIKE LINE OF lo_app->mt_tab.
     DATA temp180 LIKE sy-tabix.
     CREATE OBJECT lo_app TYPE ltcl_app_complex.
-    
+
     CLEAR temp176.
-    
+
     temp177-col1 = `A`.
     temp177-col2 = `1`.
     INSERT temp177 INTO TABLE temp176.
     lo_app->mt_tab = temp176.
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp178.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp178 app = lo_app.
 
-    
+
     lo_delta = z2ui5_cl_ajson=>create_empty( ).
     lo_delta->set( iv_path = `/__delta/5/COL1`
                    iv_val  = `Z` ).
@@ -2417,8 +2417,8 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp178 ap
 
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = lines( lo_app->mt_tab ) ).
-    
-    
+
+
     temp180 = sy-tabix.
     READ TABLE lo_app->mt_tab INDEX 1 INTO temp179.
     sy-tabix = temp180.
@@ -2466,7 +2466,7 @@ CLASS ltcl_app_two_tab_drefs IMPLEMENTATION.
     DATA temp182 LIKE REF TO mt_tab.
     GET REFERENCE OF mt_tab INTO temp181.
 CREATE OBJECT mo_ref1 TYPE ltcl_app_inner_335 EXPORTING ir_data = temp181.
-    
+
     GET REFERENCE OF mt_tab INTO temp182.
 CREATE OBJECT mo_ref2 TYPE ltcl_app_inner_335 EXPORTING ir_data = temp182.
   ENDMETHOD.
@@ -2499,16 +2499,16 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA temp189 TYPE z2ui5_if_core_types=>ty_s_attri.
     DATA ls_ref2 LIKE temp188.
     CREATE OBJECT lo_app TYPE ltcl_app_two_tab_drefs.
-    
+
     CLEAR temp183.
-    
+
     temp184-col1 = `A`.
     temp184-col2 = `1`.
     INSERT temp184 INTO TABLE temp183.
     lo_app->mt_tab = temp183.
 
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp185.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp185 app = lo_app.
@@ -2516,26 +2516,26 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp185 ap
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    
+
     CLEAR temp186.
-    
+
     READ TABLE lt_attri INTO temp187 WITH KEY name = `MO_REF1->MR_DATA->*`.
     IF sy-subrc = 0.
       temp186 = temp187.
     ENDIF.
-    
+
     ls_ref1 = temp186.
     cl_abap_unit_assert=>assert_equals( exp = `MT_TAB`
                                         act = ls_ref1-name_ref ).
 
-    
+
     CLEAR temp188.
-    
+
     READ TABLE lt_attri INTO temp189 WITH KEY name = `MO_REF2->MR_DATA->*`.
     IF sy-subrc = 0.
       temp188 = temp189.
     ENDIF.
-    
+
     ls_ref2 = temp188.
     cl_abap_unit_assert=>assert_equals( exp = `MT_TAB`
                                         act = ls_ref2-name_ref ).
@@ -2552,16 +2552,16 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA lr_tab TYPE REF TO data.
     FIELD-SYMBOLS <tab> TYPE data.
     CREATE OBJECT lo_app TYPE ltcl_app_two_tab_drefs.
-    
+
     CLEAR temp190.
-    
+
     temp191-col1 = `X`.
     temp191-col2 = `Y`.
     INSERT temp191 INTO TABLE temp190.
     lo_app->mt_tab = temp190.
 
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp192.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp192 app = lo_app.
@@ -2569,11 +2569,11 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp192 ap
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    
+
     lr_tab = lo_model->attri_get_val_ref( `MT_TAB` ).
     cl_abap_unit_assert=>assert_bound( lr_tab ).
 
-    
+
     ASSIGN lr_tab->* TO <tab>.
     cl_abap_unit_assert=>assert_not_initial( <tab> ).
   ENDMETHOD.
@@ -2600,15 +2600,15 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA lr TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
     DATA lo_model_json TYPE REF TO z2ui5_if_ajson.
     CREATE OBJECT lo_app TYPE ltcl_app_complex.
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp193.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp193 app = lo_app.
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    
+
     READ TABLE lt_attri REFERENCE INTO lr WITH KEY name = `MS_NESTED-INNER-DEEP1`.
     IF sy-subrc <> 0.
       cl_abap_unit_assert=>abort( ).
@@ -2617,7 +2617,7 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp193 ap
     lr->view        = z2ui5_if_client=>cs_view-main.
     lr->name_client = `/MS_NESTED-INNER-DEEP1`.
 
-    
+
     lo_model_json = z2ui5_cl_ajson=>create_empty( ).
     lo_model_json->set( iv_path = `/MS_NESTED-INNER-DEEP1`
                         iv_val  = `deep_value` ).
@@ -2642,8 +2642,8 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     CREATE OBJECT lo_app->mo_mid.
     CREATE OBJECT lo_app->mo_mid->mo_inner.
 
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp194.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp194 app = lo_app.
@@ -2651,7 +2651,7 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp194 ap
     lo_model->dissolve( ).
     lo_model->dissolve( ).
 
-    
+
     READ TABLE lt_attri REFERENCE INTO lr_inner WITH KEY name = `MO_MID->MO_INNER->MV_INNER`.
     IF sy-subrc <> 0.
       cl_abap_unit_assert=>abort( ).
@@ -2660,7 +2660,7 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp194 ap
     lr_inner->view        = z2ui5_if_client=>cs_view-main.
     lr_inner->name_client = `/MO_MID-MO_INNER-MV_INNER`.
 
-    
+
     lo_model_json = z2ui5_cl_ajson=>create_empty( ).
     lo_model_json->set( iv_path = `/MO_MID-MO_INNER-MV_INNER`
                         iv_val  = `inner_value` ).
@@ -2698,15 +2698,15 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA temp199 TYPE z2ui5_if_core_types=>ty_s_attri.
     DATA ls_simple LIKE temp198.
     CREATE OBJECT lo_app TYPE ltcl_app_complex.
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp195.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp195 app = lo_app.
     lo_model->dissolve( ).
 
     " Set an active binding on MV_SIMPLE before refresh
-    
+
     READ TABLE lt_attri REFERENCE INTO lr WITH KEY name = `MV_SIMPLE`.
     IF sy-subrc <> 0.
       cl_abap_unit_assert=>abort( ).
@@ -2720,9 +2720,9 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp195 ap
     lo_model->main_attri_refresh( ).
 
     " After refresh, MO_MID->MV_MID must now be discovered
-    
+
     CLEAR temp196.
-    
+
     READ TABLE lt_attri INTO temp197 WITH KEY name = `MO_MID->MV_MID`.
     IF sy-subrc = 0.
       temp196 = temp197.
@@ -2731,14 +2731,14 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp195 ap
         temp196 ).
 
     " The pre-existing MV_SIMPLE binding must be preserved
-    
+
     CLEAR temp198.
-    
+
     READ TABLE lt_attri INTO temp199 WITH KEY name = `MV_SIMPLE`.
     IF sy-subrc = 0.
       temp198 = temp199.
     ENDIF.
-    
+
     ls_simple = temp198.
     cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_core_types=>cs_bind_type-two_way
                                         act = ls_simple-bind_type ).
@@ -2767,14 +2767,14 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA lr TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
     DATA lo_model_json TYPE REF TO z2ui5_if_ajson.
     CREATE OBJECT lo_app TYPE ltcl_app_complex.
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp200.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp200 app = lo_app.
     lo_model->dissolve( ).
 
-    
+
     READ TABLE lt_attri REFERENCE INTO lr WITH KEY name = `MV_INT`.
     IF sy-subrc <> 0.
       cl_abap_unit_assert=>abort( ).
@@ -2783,7 +2783,7 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp200 ap
     lr->view        = z2ui5_if_client=>cs_view-main.
     lr->name_client = `/MV_INT`.
 
-    
+
     lo_model_json = z2ui5_cl_ajson=>create_empty( ).
     lo_model_json->set( iv_path = `/MV_INT`
                         iv_val  = 42 ).
@@ -2806,15 +2806,15 @@ DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
     DATA ls_extra TYPE z2ui5_if_core_types=>ty_s_attri.
     DATA lo_model_json TYPE REF TO z2ui5_if_ajson.
     CREATE OBJECT lo_app TYPE ltcl_app_complex.
-    
-    
+
+
     GET REFERENCE OF lt_attri INTO temp201.
 
 CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp201 app = lo_app.
     lo_model->dissolve( ).
 
     " First entry: bind MV_SIMPLE as /XX/MV_SIMPLE
-    
+
     READ TABLE lt_attri REFERENCE INTO lr1 WITH KEY name = `MV_SIMPLE`.
     IF sy-subrc <> 0.
       cl_abap_unit_assert=>abort( ).
@@ -2824,13 +2824,13 @@ CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = temp201 ap
     lr1->name_client = `/XX/MV_SIMPLE`.
 
     " Second entry: a copy with a different name_client path, also two-way
-    
+
     ls_extra = lr1->*.
     ls_extra-name        = `MV_SIMPLE_ALIAS`.
     ls_extra-name_client = `/XX/ALIAS`.
     INSERT ls_extra INTO TABLE lt_attri.
 
-    
+
     lo_model_json = z2ui5_cl_ajson=>create_empty( ).
     lo_model_json->set( iv_path = `/XX/MV_SIMPLE`
                         iv_val  = `first` ).

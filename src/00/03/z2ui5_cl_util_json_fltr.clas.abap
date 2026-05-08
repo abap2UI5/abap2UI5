@@ -36,21 +36,21 @@ CLASS z2ui5_cl_util_json_fltr IMPLEMENTATION.
 
         CASE is_node-type.
           WHEN z2ui5_if_ajson_types=>node_type-boolean.
-            
+
             temp1 = boolc( is_node-value <> `false` ).
             rv_keep = temp1.
           WHEN z2ui5_if_ajson_types=>node_type-number.
-            
+
             temp2 = boolc( is_node-value <> `0` ).
             rv_keep = temp2.
           WHEN z2ui5_if_ajson_types=>node_type-string.
-            
+
             temp3 = boolc( is_node-value <> `` ).
             rv_keep = temp3.
         ENDCASE.
 
       WHEN z2ui5_if_ajson_filter=>visit_type-close.
-        
+
         temp4 = boolc( is_node-children <> 0 ).
         rv_keep = temp4.
 

@@ -63,21 +63,21 @@ CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
                                  contentwidth  = `50%`
                                  title         = `Define Filter Conditions` ).
 
-    
+
     vbox = lo_popup->vbox( height         = `100%`
                                  justifycontent = `SpaceBetween` ).
 
-    
+
     item = vbox->list( nodata          = `No conditions defined`
                              items           = client->_bind( ms_result-t_filter )
                              selectionchange = client->_event( `SELCHANGE` )
                 )->custom_list_item( ).
 
-    
+
     grid = item->grid( class = `sapUiSmallMarginTop sapUiSmallMarginBottom sapUiSmallMarginBegin` ).
     grid->text( `{NAME}` ).
 
-    
+
     CLEAR temp5.
     INSERT `${NAME}` INTO TABLE temp5.
     grid->multi_input( tokens           = `{T_TOKEN}`
@@ -91,13 +91,13 @@ CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
                            selected = `{SELKZ}`
                            editable = `{EDITABLE}` ).
 
-    
+
     CLEAR temp7.
     INSERT `${NAME}` INTO TABLE temp7.
     grid->button( text  = `Select`
                   press = client->_event( val   = `LIST_OPEN`
                                           t_arg = temp7 ) ).
-    
+
     CLEAR temp9.
     INSERT `${NAME}` INTO TABLE temp9.
     grid->button( icon  = `sap-icon://delete`
@@ -142,12 +142,12 @@ CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
 
     IF client->get( )-check_on_navigated = abap_true.
 
-      
+
       temp11 ?= client->get_app( client->get( )-s_draft-id_prev_app ).
-      
+
       lo_popup = temp11.
       IF lo_popup->result( )-check_confirmed = abap_true.
-        
+
         READ TABLE ms_result-t_filter WITH KEY name = mv_popup_name ASSIGNING <tab>.
         <tab>-t_range = lo_popup->result( )-t_range.
         <tab>-t_token = z2ui5_cl_util=>filter_get_token_t_by_range_t( <tab>-t_range ).
@@ -166,9 +166,9 @@ CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
 
       WHEN `LIST_OPEN`.
         mv_popup_name = client->get_event_arg( 1 ).
-        
-        
-        
+
+
+
         temp6 = sy-tabix.
         READ TABLE ms_result-t_filter WITH KEY name = mv_popup_name INTO temp5.
         sy-tabix = temp6.
@@ -188,8 +188,8 @@ CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
         client->nav_app_leave( ).
 
       WHEN `POPUP_DELETE_ALL`.
-        
-        
+
+
         LOOP AT ms_result-t_filter REFERENCE INTO lr_sql.
           CLEAR lr_sql->t_range.
           CLEAR lr_sql->t_token.

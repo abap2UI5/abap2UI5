@@ -30,7 +30,7 @@ CLASS ltcl_test IMPLEMENTATION.
       title = `Custom Title`
       text  = `Enter value` ).
 
-    
+
     ls_result = lo_pop->result( ).
     cl_abap_unit_assert=>assert_equals( exp = `initial value`
                                         act = ls_result-value ).
@@ -43,7 +43,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_input_val.
     DATA ls_result TYPE z2ui5_cl_pop_input_val=>ty_s_result.
     lo_pop = z2ui5_cl_pop_input_val=>factory( ).
-    
+
     ls_result = lo_pop->result( ).
     cl_abap_unit_assert=>assert_false( ls_result-check_confirmed ).
     cl_abap_unit_assert=>assert_initial( ls_result-value ).

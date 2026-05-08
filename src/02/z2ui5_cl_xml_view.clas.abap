@@ -5374,7 +5374,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp1 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp2 LIKE LINE OF temp1.
     CLEAR temp1.
-    
+
     temp2-n = `id`.
     temp2-v = id.
     INSERT temp2 INTO TABLE temp1.
@@ -5417,7 +5417,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp4 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp5 LIKE LINE OF temp4.
     CLEAR temp4.
-    
+
     temp5-n = `id`.
     temp5-v = id.
     INSERT temp5 INTO TABLE temp4.
@@ -5472,7 +5472,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp6 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp7 LIKE LINE OF temp6.
     CLEAR temp6.
-    
+
     temp7-n = `id`.
     temp7-v = id.
     INSERT temp7 INTO TABLE temp6.
@@ -5512,9 +5512,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp8 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp9 LIKE LINE OF temp8.
     result = me.
-    
+
     CLEAR temp8.
-    
+
     temp9-n = `colorPalette`.
     temp9-v = colorpalette.
     INSERT temp9 INTO TABLE temp8.
@@ -5575,9 +5575,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp11 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp12 LIKE LINE OF temp11.
     result = me.
-    
+
     CLEAR temp11.
-    
+
     temp12-n = `id`.
     temp12-v = id.
     INSERT temp12 INTO TABLE temp11.
@@ -5644,7 +5644,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp13 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp14 LIKE LINE OF temp13.
     CLEAR temp13.
-    
+
     temp14-n = `id`.
     temp14-v = id.
     INSERT temp14 INTO TABLE temp13.
@@ -5696,9 +5696,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp15 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp16 LIKE LINE OF temp15.
     result = me.
-    
+
     CLEAR temp15.
-    
+
     temp16-n = `id`.
     temp16-v = id.
     INSERT temp16 INTO TABLE temp15.
@@ -5747,9 +5747,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp17 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp18 LIKE LINE OF temp17.
     result = me.
-    
+
     CLEAR temp17.
-    
+
     temp18-n = `key`.
     temp18-v = key.
     INSERT temp18 INTO TABLE temp17.
@@ -5771,7 +5771,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp19 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp20 LIKE LINE OF temp19.
     CLEAR temp19.
-    
+
     temp20-n = `id`.
     temp20-v = id.
     INSERT temp20 INTO TABLE temp19.
@@ -5823,7 +5823,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp21 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp22 LIKE LINE OF temp21.
     CLEAR temp21.
-    
+
     temp22-n = `time`.
     temp22-v = time.
     INSERT temp22 INTO TABLE temp21.
@@ -5929,7 +5929,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp23 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp24 LIKE LINE OF temp23.
     CLEAR temp23.
-    
+
     temp24-n = `background`.
     temp24-v = background.
     INSERT temp24 INTO TABLE temp23.
@@ -5945,7 +5945,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp25 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp26 LIKE LINE OF temp25.
     CLEAR temp25.
-    
+
     temp26-n = `backgroundColorSet`.
     temp26-v = backgroundcolorset.
     INSERT temp26 INTO TABLE temp25.
@@ -5979,7 +5979,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp27 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp28 LIKE LINE OF temp27.
     CLEAR temp27.
-    
+
     temp28-n = `rowColorSet`.
     temp28-v = rowcolorset.
     INSERT temp28 INTO TABLE temp27.
@@ -5995,9 +5995,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp29 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp30 LIKE LINE OF temp29.
     result = me.
-    
+
     CLEAR temp29.
-    
+
     temp30-n = `actualValueLabel`.
     temp30-v = actualvaluelabel.
     INSERT temp30 INTO TABLE temp29.
@@ -6074,7 +6074,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp31 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp32 LIKE LINE OF temp31.
     CLEAR temp31.
-    
+
     temp32-n = `id`.
     temp32-v = id.
     INSERT temp32 INTO TABLE temp31.
@@ -6118,9 +6118,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp34 LIKE LINE OF temp33.
 
     result = me.
-    
+
     CLEAR temp33.
-    
+
     temp34-n = `press`.
     temp34-v = press.
     INSERT temp34 INTO TABLE temp33.
@@ -6188,7 +6188,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp35 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp36 LIKE LINE OF temp35.
     CLEAR temp35.
-    
+
     temp36-n = `startDate`.
     temp36-v = startdate.
     INSERT temp36 INTO TABLE temp35.
@@ -6226,7 +6226,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp37 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp38 LIKE LINE OF temp37.
     CLEAR temp37.
-    
+
     temp38-n = `text`.
     temp38-v = text.
     INSERT temp38 INTO TABLE temp37.
@@ -6248,7 +6248,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp39 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp40 LIKE LINE OF temp39.
     CLEAR temp39.
-    
+
     temp40-n = `id`.
     temp40-v = id.
     INSERT temp40 INTO TABLE temp39.
@@ -6276,7 +6276,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp41 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp42 LIKE LINE OF temp41.
     CLEAR temp41.
-    
+
     temp42-n = `id`.
     temp42-v = id.
     INSERT temp42 INTO TABLE temp41.
@@ -6341,7 +6341,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp43 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp44 LIKE LINE OF temp43.
     CLEAR temp43.
-    
+
     temp44-n = `loop`.
     temp44-v = z2ui5_cl_util=>boolean_abap_2_json( loop ).
     INSERT temp44 INTO TABLE temp43.
@@ -6390,7 +6390,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp45 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp46 LIKE LINE OF temp45.
     CLEAR temp45.
-    
+
     temp46-n = `visiblePagesCount`.
     temp46-v = visiblepagescount.
     INSERT temp46 INTO TABLE temp45.
@@ -6407,9 +6407,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp48 LIKE LINE OF temp47.
 
     result = me.
-    
+
     CLEAR temp47.
-    
+
     temp48-n = `text`.
     temp48-v = text.
     INSERT temp48 INTO TABLE temp47.
@@ -6475,9 +6475,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp49 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp50 LIKE LINE OF temp49.
     result = me.
-    
+
     CLEAR temp49.
-    
+
     temp50-n = `value`.
     temp50-v = value.
     INSERT temp50 INTO TABLE temp49.
@@ -6502,7 +6502,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp51 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp52 LIKE LINE OF temp51.
     CLEAR temp51.
-    
+
     temp52-n = `width`.
     temp52-v = width.
     INSERT temp52 INTO TABLE temp51.
@@ -6565,7 +6565,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp53 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp54 LIKE LINE OF temp53.
     CLEAR temp53.
-    
+
     temp54-n = `cellsLarge`.
     temp54-v = cellslarge.
     INSERT temp54 INTO TABLE temp53.
@@ -6581,7 +6581,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp55 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp56 LIKE LINE OF temp55.
     CLEAR temp55.
-    
+
     temp56-n = `vAlign`.
     temp56-v = valign.
     INSERT temp56 INTO TABLE temp55.
@@ -6626,7 +6626,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp57 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp58 LIKE LINE OF temp57.
     CLEAR temp57.
-    
+
     temp58-n = `id`.
     temp58-v = id.
     INSERT temp58 INTO TABLE temp57.
@@ -6641,7 +6641,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp59 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp60 LIKE LINE OF temp59.
     CLEAR temp59.
-    
+
     temp60-n = `id`.
     temp60-v = id.
     INSERT temp60 INTO TABLE temp59.
@@ -6666,7 +6666,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp61 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp62 LIKE LINE OF temp61.
     CLEAR temp61.
-    
+
     temp62-n = `id`.
     temp62-v = id.
     INSERT temp62 INTO TABLE temp61.
@@ -6694,7 +6694,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp63 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp64 LIKE LINE OF temp63.
     CLEAR temp63.
-    
+
     temp64-n = `id`.
     temp64-v = id.
     INSERT temp64 INTO TABLE temp63.
@@ -6740,7 +6740,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp65 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp66 LIKE LINE OF temp65.
     CLEAR temp65.
-    
+
     temp66-n = `id`.
     temp66-v = id.
     INSERT temp66 INTO TABLE temp65.
@@ -6765,7 +6765,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp67 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp68 LIKE LINE OF temp67.
     CLEAR temp67.
-    
+
     temp68-n = `id`.
     temp68-v = id.
     INSERT temp68 INTO TABLE temp67.
@@ -6790,7 +6790,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp69 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp70 LIKE LINE OF temp69.
     CLEAR temp69.
-    
+
     temp70-n = `id`.
     temp70-v = id.
     INSERT temp70 INTO TABLE temp69.
@@ -6812,7 +6812,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp71 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp72 LIKE LINE OF temp71.
     CLEAR temp71.
-    
+
     temp72-n = `id`.
     temp72-v = id.
     INSERT temp72 INTO TABLE temp71.
@@ -6840,7 +6840,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp73 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp74 LIKE LINE OF temp73.
     CLEAR temp73.
-    
+
     temp74-n = `id`.
     temp74-v = id.
     INSERT temp74 INTO TABLE temp73.
@@ -6862,7 +6862,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp75 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp76 LIKE LINE OF temp75.
     CLEAR temp75.
-    
+
     temp76-n = `id`.
     temp76-v = id.
     INSERT temp76 INTO TABLE temp75.
@@ -6890,7 +6890,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp77 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp78 LIKE LINE OF temp77.
     CLEAR temp77.
-    
+
     temp78-n = `id`.
     temp78-v = id.
     INSERT temp78 INTO TABLE temp77.
@@ -6912,7 +6912,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp79 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp80 LIKE LINE OF temp79.
     CLEAR temp79.
-    
+
     temp80-n = `id`.
     temp80-v = id.
     INSERT temp80 INTO TABLE temp79.
@@ -6940,9 +6940,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp81 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp82 LIKE LINE OF temp81.
     result = me.
-    
+
     CLEAR temp81.
-    
+
     temp82-n = `width`.
     temp82-v = width.
     INSERT temp82 INTO TABLE temp81.
@@ -6980,9 +6980,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp83 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp84 LIKE LINE OF temp83.
     result = me.
-    
+
     CLEAR temp83.
-    
+
     temp84-n = `color`.
     temp84-v = color.
     INSERT temp84 INTO TABLE temp83.
@@ -7007,7 +7007,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp85 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp86 LIKE LINE OF temp85.
     CLEAR temp85.
-    
+
     temp86-n = `showClearIcon`.
     temp86-v = z2ui5_cl_util=>boolean_abap_2_json( showclearicon ).
     INSERT temp86 INTO TABLE temp85.
@@ -7090,7 +7090,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp87 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp88 LIKE LINE OF temp87.
     CLEAR temp87.
-    
+
     temp88-n = `colorPalette`.
     temp88-v = colorpalette.
     INSERT temp88 INTO TABLE temp87.
@@ -7137,7 +7137,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp89 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp90 LIKE LINE OF temp89.
     CLEAR temp89.
-    
+
     temp90-n = `color`.
     temp90-v = color.
     INSERT temp90 INTO TABLE temp89.
@@ -7167,7 +7167,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp91 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp92 LIKE LINE OF temp91.
     CLEAR temp91.
-    
+
     temp92-n = `id`.
     temp92-v = id.
     INSERT temp92 INTO TABLE temp91.
@@ -7188,7 +7188,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp93 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp94 LIKE LINE OF temp93.
     CLEAR temp93.
-    
+
     temp94-n = `showSearchButton`.
     temp94-v = showsearchbutton.
     INSERT temp94 INTO TABLE temp93.
@@ -7257,9 +7257,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp95 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp96 LIKE LINE OF temp95.
     result = me.
-    
+
     CLEAR temp95.
-    
+
     temp96-n = `value`.
     temp96-v = value.
     INSERT temp96 INTO TABLE temp95.
@@ -7279,7 +7279,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp97 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp98 LIKE LINE OF temp97.
     CLEAR temp97.
-    
+
     temp98-n = `value`.
     temp98-v = value.
     INSERT temp98 INTO TABLE temp97.
@@ -7333,9 +7333,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp99 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp100 LIKE LINE OF temp99.
     result = me.
-    
+
     CLEAR temp99.
-    
+
     temp100-n = `value`.
     temp100-v = value.
     INSERT temp100 INTO TABLE temp99.
@@ -7425,9 +7425,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp101 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp102 LIKE LINE OF temp101.
     result = me.
-    
+
     CLEAR temp101.
-    
+
     temp102-n = `value`.
     temp102-v = value.
     INSERT temp102 INTO TABLE temp101.
@@ -7448,9 +7448,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp103 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp104 LIKE LINE OF temp103.
     result = me.
-    
+
     CLEAR temp103.
-    
+
     temp104-n = `color`.
     temp104-v = color.
     INSERT temp104 INTO TABLE temp103.
@@ -7516,7 +7516,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp105 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp106 LIKE LINE OF temp105.
     CLEAR temp105.
-    
+
     temp106-n = `title`.
     temp106-v = title.
     INSERT temp106 INTO TABLE temp105.
@@ -7583,7 +7583,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp107 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp108 LIKE LINE OF temp107.
     CLEAR temp107.
-    
+
     temp108-n = `id`.
     temp108-v = id.
     INSERT temp108 INTO TABLE temp107.
@@ -7607,9 +7607,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp109 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp110 LIKE LINE OF temp109.
     result = me.
-    
+
     CLEAR temp109.
-    
+
     temp110-n = `sourceAggregation`.
     temp110-v = sourceaggregation.
     INSERT temp110 INTO TABLE temp109.
@@ -7631,9 +7631,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp111 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp112 LIKE LINE OF temp111.
     result = me.
-    
+
     CLEAR temp111.
-    
+
     temp112-n = `sourceAggregation`.
     temp112-v = sourceaggregation.
     INSERT temp112 INTO TABLE temp111.
@@ -7651,7 +7651,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp113 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp114 LIKE LINE OF temp113.
     CLEAR temp113.
-    
+
     temp114-n = `headerExpanded`.
     temp114-v = z2ui5_cl_util=>boolean_abap_2_json( headerexpanded ).
     INSERT temp114 INTO TABLE temp113.
@@ -7676,7 +7676,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp115 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp116 LIKE LINE OF temp115.
     CLEAR temp115.
-    
+
     temp116-n = `pinnable`.
     temp116-v = z2ui5_cl_util=>boolean_abap_2_json( pinnable ).
     INSERT temp116 INTO TABLE temp115.
@@ -7695,7 +7695,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp117 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp118 LIKE LINE OF temp117.
     CLEAR temp117.
-    
+
     temp118-n = `id`.
     temp118-v = id.
     INSERT temp118 INTO TABLE temp117.
@@ -7722,14 +7722,14 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp120 LIKE LINE OF temp119.
     DATA temp80 TYPE string.
     CLEAR temp119.
-    
+
     temp120-n = `label`.
     temp120-v = label.
     INSERT temp120 INTO TABLE temp119.
     temp120-n = `value`.
     temp120-v = value.
     INSERT temp120 INTO TABLE temp119.
-    
+
     CASE ns.
       WHEN ``.
         temp80 = `networkgraph`.
@@ -7760,7 +7760,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp121 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp122 LIKE LINE OF temp121.
     CLEAR temp121.
-    
+
     temp122-n = `id`.
     temp122-v = id.
     INSERT temp122 INTO TABLE temp121.
@@ -7813,7 +7813,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp123 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp124 LIKE LINE OF temp123.
     CLEAR temp123.
-    
+
     temp124-n = `id`.
     temp124-v = id.
     INSERT temp124 INTO TABLE temp123.
@@ -7858,7 +7858,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp125 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp126 LIKE LINE OF temp125.
     CLEAR temp125.
-    
+
     temp126-n = `id`.
     temp126-v = id.
     INSERT temp126 INTO TABLE temp125.
@@ -7913,7 +7913,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp127 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp128 LIKE LINE OF temp127.
     CLEAR temp127.
-    
+
     temp128-n = `id`.
     temp128-v = id.
     INSERT temp128 INTO TABLE temp127.
@@ -8061,10 +8061,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
       result->mt_prop = t_ns.
     ENDIF.
 
-    
+
     CLEAR temp129.
     temp129 = result->mt_prop.
-    
+
     temp130-n = `displayBlock`.
     temp130-v = `true`.
     INSERT temp130 INTO TABLE temp129.
@@ -8078,17 +8078,17 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result->mo_root   = result.
     result->mo_parent = result.
 
-    
+
     CLEAR temp131.
     temp131-n = `xmlns`.
     temp131-v = `sap.m`.
     INSERT temp131 INTO TABLE result->mt_prop.
-    
+
     CLEAR temp132.
     temp132-n = `xmlns:mvc`.
     temp132-v = `sap.ui.core.mvc`.
     INSERT temp132 INTO TABLE result->mt_prop.
-    
+
     CLEAR temp133.
     temp133-n = `xmlns:core`.
     temp133-v = `sap.ui.core`.
@@ -8120,12 +8120,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result->mo_root   = result.
     result->mo_parent = result.
 
-    
+
     CLEAR temp134.
     temp134-n = `xmlns`.
     temp134-v = `sap.m`.
     INSERT temp134 INTO TABLE result->mt_prop.
-    
+
     CLEAR temp135.
     temp135-n = `xmlns:core`.
     temp135-v = `sap.ui.core`.
@@ -8142,7 +8142,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp136 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp137 LIKE LINE OF temp136.
     CLEAR temp136.
-    
+
     temp137-n = `buttonTooltip`.
     temp137-v = buttontooltip.
     INSERT temp137 INTO TABLE temp136.
@@ -8204,7 +8204,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp138 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp139 LIKE LINE OF temp138.
     CLEAR temp138.
-    
+
     temp139-n = `activeIcon`.
     temp139-v = activeicon.
     INSERT temp139 INTO TABLE temp138.
@@ -8274,7 +8274,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp140 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp141 LIKE LINE OF temp140.
     CLEAR temp140.
-    
+
     temp141-n = `enabled`.
     temp141-v = z2ui5_cl_util=>boolean_abap_2_json( enabled ).
     INSERT temp141 INTO TABLE temp140.
@@ -8302,7 +8302,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp142 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp143 LIKE LINE OF temp142.
     CLEAR temp142.
-    
+
     temp143-n = `useToolbar`.
     temp143-v = z2ui5_cl_util=>boolean_abap_2_json( usetoolbar ).
     INSERT temp143 INTO TABLE temp142.
@@ -8417,7 +8417,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp144 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp145 LIKE LINE OF temp144.
     CLEAR temp144.
-    
+
     temp145-n = `name`.
     temp145-v = name.
     INSERT temp145 INTO TABLE temp144.
@@ -8482,7 +8482,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp146 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp147 LIKE LINE OF temp146.
     CLEAR temp146.
-    
+
     temp147-n = `layout`.
     temp147-v = layout.
     INSERT temp147 INTO TABLE temp146.
@@ -8545,7 +8545,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp148 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp149 LIKE LINE OF temp148.
     CLEAR temp148.
-    
+
     temp149-n = `class`.
     temp149-v = class.
     INSERT temp149 INTO TABLE temp148.
@@ -8601,9 +8601,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp151 LIKE LINE OF temp150.
     result = me.
 
-    
+
     CLEAR temp150.
-    
+
     temp151-n = `growFactor`.
     temp151-v = growfactor.
     INSERT temp151 INTO TABLE temp150.
@@ -8635,7 +8635,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp152 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp153 LIKE LINE OF temp152.
     CLEAR temp152.
-    
+
     temp153-n = `id`.
     temp153-v = id.
     INSERT temp153 INTO TABLE temp152.
@@ -8663,7 +8663,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp154 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp155 LIKE LINE OF temp154.
     CLEAR temp154.
-    
+
     temp155-n = `id`.
     temp155-v = id.
     INSERT temp155 INTO TABLE temp154.
@@ -8697,9 +8697,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp156 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp157 LIKE LINE OF temp156.
     result = me.
-    
+
     CLEAR temp156.
-    
+
     temp157-n = `htmlText`.
     temp157-v = htmltext.
     INSERT temp157 INTO TABLE temp156.
@@ -8751,7 +8751,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp158 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp159 LIKE LINE OF temp158.
     CLEAR temp158.
-    
+
     temp159-n = `id`.
     temp159-v = id.
     INSERT temp159 INTO TABLE temp158.
@@ -8771,7 +8771,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp160 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp161 LIKE LINE OF temp160.
     CLEAR temp160.
-    
+
     temp161-n = `rowId`.
     temp161-v = rowid.
     INSERT temp161 INTO TABLE temp160.
@@ -8804,7 +8804,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp162 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp163 LIKE LINE OF temp162.
     CLEAR temp162.
-    
+
     temp163-n = `ariaLabelledBy`.
     temp163-v = arialabelledby.
     INSERT temp163 INTO TABLE temp162.
@@ -8839,7 +8839,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp164 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp165 LIKE LINE OF temp164.
     CLEAR temp164.
-    
+
     temp165-n = `class`.
     temp165-v = class.
     INSERT temp165 INTO TABLE temp164.
@@ -8980,7 +8980,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp168 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp169 LIKE LINE OF temp168.
     CLEAR temp168.
-    
+
     temp169-n = `defaultSpan`.
     temp169-v = default_span.
     INSERT temp169 INTO TABLE temp168.
@@ -9012,9 +9012,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp170 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp171 LIKE LINE OF temp170.
     result = me.
-    
+
     CLEAR temp170.
-    
+
     temp171-n = `boxesPerRowConfig`.
     temp171-v = boxesperrowconfig.
     INSERT temp171 INTO TABLE temp170.
@@ -9033,9 +9033,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp172 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp173 LIKE LINE OF temp172.
     result = me.
-    
+
     CLEAR temp172.
-    
+
     temp173-n = `span`.
     temp173-v = span.
     INSERT temp173 INTO TABLE temp172.
@@ -9057,9 +9057,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp174 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp175 LIKE LINE OF temp174.
     result = me.
-    
+
     CLEAR temp174.
-    
+
     temp175-n = `targetAggregation`.
     temp175-v = targetaggregation.
     INSERT temp175 INTO TABLE temp174.
@@ -9087,7 +9087,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp176 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp177 LIKE LINE OF temp176.
     CLEAR temp176.
-    
+
     temp177-n = `id`.
     temp177-v = id.
     INSERT temp177 INTO TABLE temp176.
@@ -9188,7 +9188,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp178 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp179 LIKE LINE OF temp178.
     CLEAR temp178.
-    
+
     temp179-n = `busy`.
     temp179-v = busy.
     INSERT temp179 INTO TABLE temp178.
@@ -9246,7 +9246,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp180 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp181 LIKE LINE OF temp180.
     CLEAR temp180.
-    
+
     temp181-n = `collapsed`.
     temp181-v = z2ui5_cl_util=>boolean_abap_2_json( collapsed ).
     INSERT temp181 INTO TABLE temp180.
@@ -9318,7 +9318,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp183 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp184 LIKE LINE OF temp183.
     CLEAR temp183.
-    
+
     temp184-n = `colorPalette`.
     temp184-v = colorpalette.
     INSERT temp184 INTO TABLE temp183.
@@ -9367,7 +9367,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp185 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp186 LIKE LINE OF temp185.
     CLEAR temp185.
-    
+
     temp186-n = `class`.
     temp186-v = class.
     INSERT temp186 INTO TABLE temp185.
@@ -9425,7 +9425,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp187 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp188 LIKE LINE OF temp187.
     CLEAR temp187.
-    
+
     temp188-n = `scrollStep`.
     temp188-v = scrollstep.
     INSERT temp188 INTO TABLE temp187.
@@ -9446,7 +9446,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp189 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp190 LIKE LINE OF temp189.
     CLEAR temp189.
-    
+
     temp190-n = `backgroundDesign`.
     temp190-v = backgrounddesign.
     INSERT temp190 INTO TABLE temp189.
@@ -9526,7 +9526,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp191 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp192 LIKE LINE OF temp191.
     CLEAR temp191.
-    
+
     temp192-n = `class`.
     temp192-v = class.
     INSERT temp192 INTO TABLE temp191.
@@ -9550,7 +9550,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp193 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp194 LIKE LINE OF temp193.
     CLEAR temp193.
-    
+
     temp194-n = `id`.
     temp194-v = id.
     INSERT temp194 INTO TABLE temp193.
@@ -9579,7 +9579,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp195 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp196 LIKE LINE OF temp195.
     CLEAR temp195.
-    
+
     temp196-n = `id`.
     temp196-v = id.
     INSERT temp196 INTO TABLE temp195.
@@ -9610,7 +9610,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp197 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp198 LIKE LINE OF temp197.
     CLEAR temp197.
-    
+
     temp198-n = `id`.
     temp198-v = id.
     INSERT temp198 INTO TABLE temp197.
@@ -9635,7 +9635,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp199 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp200 LIKE LINE OF temp199.
     CLEAR temp199.
-    
+
     temp200-n = `id`.
     temp200-v = id.
     INSERT temp200 INTO TABLE temp199.
@@ -9655,9 +9655,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp202 LIKE LINE OF temp201.
 
     result = me.
-    
+
     CLEAR temp201.
-    
+
     temp202-n = `size`.
     temp202-v = size.
     INSERT temp202 INTO TABLE temp201.
@@ -9723,7 +9723,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp203 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp204 LIKE LINE OF temp203.
     CLEAR temp203.
-    
+
     temp204-n = `class`.
     temp204-v = class.
     INSERT temp204 INTO TABLE temp203.
@@ -9791,7 +9791,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp205 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp206 LIKE LINE OF temp205.
     CLEAR temp205.
-    
+
     temp206-n = `icon`.
     temp206-v = icon.
     INSERT temp206 INTO TABLE temp205.
@@ -9841,7 +9841,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp207 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp208 LIKE LINE OF temp207.
     CLEAR temp207.
-    
+
     temp208-n = `selectedKey`.
     temp208-v = selectedkey.
     INSERT temp208 INTO TABLE temp207.
@@ -9889,7 +9889,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp209 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp210 LIKE LINE OF temp209.
     CLEAR temp209.
-    
+
     temp210-n = `icon`.
     temp210-v = icon.
     INSERT temp210 INTO TABLE temp209.
@@ -9915,7 +9915,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp211 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp212 LIKE LINE OF temp211.
     CLEAR temp211.
-    
+
     temp212-n = `enableVerticalResponsiveness`.
     temp212-v = enableverticalresponsiveness.
     INSERT temp212 INTO TABLE temp211.
@@ -9943,9 +9943,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp213 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp214 LIKE LINE OF temp213.
     result = me.
-    
+
     CLEAR temp213.
-    
+
     temp214-n = `id`.
     temp214-v = id.
     INSERT temp214 INTO TABLE temp213.
@@ -10012,7 +10012,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp215 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp216 LIKE LINE OF temp215.
     CLEAR temp215.
-    
+
     temp216-n = `src`.
     temp216-v = src.
     INSERT temp216 INTO TABLE temp215.
@@ -10037,7 +10037,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp217 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp218 LIKE LINE OF temp217.
     CLEAR temp217.
-    
+
     temp218-n = `id`.
     temp218-v = id.
     INSERT temp218 INTO TABLE temp217.
@@ -10078,9 +10078,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp219 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp220 LIKE LINE OF temp219.
     result = me.
-    
+
     CLEAR temp219.
-    
+
     temp220-n = `id`.
     temp220-v = id.
     INSERT temp220 INTO TABLE temp219.
@@ -10201,7 +10201,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp221 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp222 LIKE LINE OF temp221.
     CLEAR temp221.
-    
+
     temp222-n = `label`.
     temp222-v = label.
     INSERT temp222 INTO TABLE temp221.
@@ -10213,7 +10213,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp223 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp224 LIKE LINE OF temp223.
     CLEAR temp223.
-    
+
     temp224-n = `selectionChanged`.
     temp224-v = selectionchanged.
     INSERT temp224 INTO TABLE temp223.
@@ -10257,7 +10257,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp225 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp226 LIKE LINE OF temp225.
     CLEAR temp225.
-    
+
     temp226-n = `label`.
     temp226-v = label.
     INSERT temp226 INTO TABLE temp225.
@@ -10282,7 +10282,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp227 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp228 LIKE LINE OF temp227.
     CLEAR temp227.
-    
+
     temp228-n = `selectionChanged`.
     temp228-v = selectionchanged.
     INSERT temp228 INTO TABLE temp227.
@@ -10317,7 +10317,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp229 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp230 LIKE LINE OF temp229.
     CLEAR temp229.
-    
+
     temp230-n = `label`.
     temp230-v = label.
     INSERT temp230 INTO TABLE temp229.
@@ -10342,7 +10342,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp231 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp232 LIKE LINE OF temp231.
     CLEAR temp231.
-    
+
     temp232-n = `selectionChanged`.
     temp232-v = selectionchanged.
     INSERT temp232 INTO TABLE temp231.
@@ -10382,7 +10382,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp233 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp234 LIKE LINE OF temp233.
     CLEAR temp233.
-    
+
     temp234-n = `label`.
     temp234-v = label.
     INSERT temp234 INTO TABLE temp233.
@@ -10417,9 +10417,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp235 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp236 LIKE LINE OF temp235.
     result = me.
-    
+
     CLEAR temp235.
-    
+
     temp236-n = `key`.
     temp236-v = key.
     INSERT temp236 INTO TABLE temp235.
@@ -10440,9 +10440,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp237 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp238 LIKE LINE OF temp237.
     result = me.
-    
+
     CLEAR temp237.
-    
+
     temp238-n = `text`.
     temp238-v = text.
     INSERT temp238 INTO TABLE temp237.
@@ -10501,7 +10501,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp239 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp240 LIKE LINE OF temp239.
     CLEAR temp239.
-    
+
     temp240-n = `id`.
     temp240-v = id.
     INSERT temp240 INTO TABLE temp239.
@@ -10540,7 +10540,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp241 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp242 LIKE LINE OF temp241.
     CLEAR temp241.
-    
+
     temp242-n = `id`.
     temp242-v = id.
     INSERT temp242 INTO TABLE temp241.
@@ -10561,7 +10561,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp243 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp244 LIKE LINE OF temp243.
     CLEAR temp243.
-    
+
     temp244-n = `id`.
     temp244-v = id.
     INSERT temp244 INTO TABLE temp243.
@@ -10588,7 +10588,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp245 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp246 LIKE LINE OF temp245.
     CLEAR temp245.
-    
+
     temp246-n = `id`.
     temp246-v = id.
     INSERT temp246 INTO TABLE temp245.
@@ -10656,7 +10656,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp247 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp248 LIKE LINE OF temp247.
     CLEAR temp247.
-    
+
     temp248-n = `id`.
     temp248-v = id.
     INSERT temp248 INTO TABLE temp247.
@@ -10674,7 +10674,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp249 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp250 LIKE LINE OF temp249.
     CLEAR temp249.
-    
+
     temp250-n = `alt`.
     temp250-v = alt.
     INSERT temp250 INTO TABLE temp249.
@@ -10696,7 +10696,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp251 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp252 LIKE LINE OF temp251.
     CLEAR temp251.
-    
+
     temp252-n = `id`.
     temp252-v = id.
     INSERT temp252 INTO TABLE temp251.
@@ -10764,9 +10764,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp254 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp255 LIKE LINE OF temp254.
     result = me.
-    
+
     CLEAR temp254.
-    
+
     temp255-n = `color`.
     temp255-v = color.
     INSERT temp255 INTO TABLE temp254.
@@ -10840,7 +10840,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp256 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp257 LIKE LINE OF temp256.
     CLEAR temp256.
-    
+
     temp257-n = `x`.
     temp257-v = x.
     INSERT temp257 INTO TABLE temp256.
@@ -10862,7 +10862,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp258 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp259 LIKE LINE OF temp258.
     CLEAR temp258.
-    
+
     temp259-n = `points`.
     temp259-v = points.
     INSERT temp259 INTO TABLE temp258.
@@ -10881,7 +10881,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp260 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp261 LIKE LINE OF temp260.
     CLEAR temp260.
-    
+
     temp261-n = `x`.
     temp261-v = x.
     INSERT temp261 INTO TABLE temp260.
@@ -10897,9 +10897,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp262 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp263 LIKE LINE OF temp262.
     result = me.
-    
+
     CLEAR temp262.
-    
+
     temp263-n = `text`.
     temp263-v = text.
     INSERT temp263 INTO TABLE temp262.
@@ -10969,7 +10969,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp264 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp265 LIKE LINE OF temp264.
     CLEAR temp264.
-    
+
     temp265-n = `iconSrc`.
     temp265-v = iconsrc.
     INSERT temp265 INTO TABLE temp264.
@@ -10990,7 +10990,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp266 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp267 LIKE LINE OF temp266.
     CLEAR temp266.
-    
+
     temp267-n = `headerText`.
     temp267-v = headertext.
     INSERT temp267 INTO TABLE temp266.
@@ -11084,9 +11084,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp268 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp269 LIKE LINE OF temp268.
     result = me.
-    
+
     CLEAR temp268.
-    
+
     temp269-n = `text`.
     temp269-v = text.
     INSERT temp269 INTO TABLE temp268.
@@ -11127,7 +11127,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp270 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp271 LIKE LINE OF temp270.
     CLEAR temp270.
-    
+
     temp271-n = `id`.
     temp271-v = id.
     INSERT temp271 INTO TABLE temp270.
@@ -11157,9 +11157,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp272 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp273 LIKE LINE OF temp272.
     result = me.
-    
+
     CLEAR temp272.
-    
+
     temp273-n = `placeholder`.
     temp273-v = placeholder.
     INSERT temp273 INTO TABLE temp272.
@@ -11219,7 +11219,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp274 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp275 LIKE LINE OF temp274.
     CLEAR temp274.
-    
+
     temp275-n = `maskFormatSymbol`.
     temp275-v = maskformatsymbol.
     INSERT temp275 INTO TABLE temp274.
@@ -11238,7 +11238,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp276 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp277 LIKE LINE OF temp276.
     CLEAR temp276.
-    
+
     temp277-n = `buttonMode`.
     temp277-v = buttonmode.
     INSERT temp277 INTO TABLE temp276.
@@ -11265,9 +11265,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp278 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp279 LIKE LINE OF temp278.
     result = me.
-    
+
     CLEAR temp278.
-    
+
     temp279-n = `press`.
     temp279-v = press.
     INSERT temp279 INTO TABLE temp278.
@@ -11285,7 +11285,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp280 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp281 LIKE LINE OF temp280.
     CLEAR temp280.
-    
+
     temp281-n = `type`.
     temp281-v = type.
     INSERT temp281 INTO TABLE temp280.
@@ -11325,7 +11325,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp282 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp283 LIKE LINE OF temp282.
     CLEAR temp282.
-    
+
     temp283-n = `showHeader`.
     temp283-v = z2ui5_cl_util=>boolean_abap_2_json( show_header ).
     INSERT temp283 INTO TABLE temp282.
@@ -11350,7 +11350,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp284 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp285 LIKE LINE OF temp284.
     CLEAR temp284.
-    
+
     temp285-n = `items`.
     temp285-v = items.
     INSERT temp285 INTO TABLE temp284.
@@ -11384,9 +11384,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp286 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp287 LIKE LINE OF temp286.
     result = me.
-    
+
     CLEAR temp286.
-    
+
     temp287-n = `text`.
     temp287-v = text.
     INSERT temp287 INTO TABLE temp286.
@@ -11421,7 +11421,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp288 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp289 LIKE LINE OF temp288.
     CLEAR temp288.
-    
+
     temp289-n = `items`.
     temp289-v = items.
     INSERT temp289 INTO TABLE temp288.
@@ -11436,7 +11436,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp290 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp291 LIKE LINE OF temp290.
     CLEAR temp290.
-    
+
     temp291-n = `id`.
     temp291-v = id.
     INSERT temp291 INTO TABLE temp290.
@@ -11461,7 +11461,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp292 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp293 LIKE LINE OF temp292.
     CLEAR temp292.
-    
+
     temp293-n = `id`.
     temp293-v = id.
     INSERT temp293 INTO TABLE temp292.
@@ -11503,7 +11503,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp294 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp295 LIKE LINE OF temp294.
     CLEAR temp294.
-    
+
     temp295-n = `id`.
     temp295-v = id.
     INSERT temp295 INTO TABLE temp294.
@@ -11517,7 +11517,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp296 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp297 LIKE LINE OF temp296.
     CLEAR temp296.
-    
+
     temp297-n = `selectionChange`.
     temp297-v = selectionchange.
     INSERT temp297 INTO TABLE temp296.
@@ -11605,7 +11605,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp298 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp299 LIKE LINE OF temp298.
     CLEAR temp298.
-    
+
     temp299-n = `tokens`.
     temp299-v = tokens.
     INSERT temp299 INTO TABLE temp298.
@@ -11684,7 +11684,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp300 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp301 LIKE LINE OF temp300.
     CLEAR temp300.
-    
+
     temp301-n = `initialPage`.
     temp301-v = initialpage.
     INSERT temp301 INTO TABLE temp300.
@@ -11715,7 +11715,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp302 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp303 LIKE LINE OF temp302.
     CLEAR temp302.
-    
+
     temp303-n = `id`.
     temp303-v = id.
     INSERT temp303 INTO TABLE temp302.
@@ -11801,7 +11801,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp304 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp305 LIKE LINE OF temp304.
     CLEAR temp304.
-    
+
     temp305-n = `id`.
     temp305-v = id.
     INSERT temp305 INTO TABLE temp304.
@@ -11917,7 +11917,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp306 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp307 LIKE LINE OF temp306.
     CLEAR temp306.
-    
+
     temp307-n = `id`.
     temp307-v = id.
     INSERT temp307 INTO TABLE temp306.
@@ -11947,7 +11947,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp308 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp309 LIKE LINE OF temp308.
     CLEAR temp308.
-    
+
     temp309-n = `id`.
     temp309-v = id.
     INSERT temp309 INTO TABLE temp308.
@@ -12062,7 +12062,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp310 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp311 LIKE LINE OF temp310.
     CLEAR temp310.
-    
+
     temp311-n = `id`.
     temp311-v = id.
     INSERT temp311 INTO TABLE temp310.
@@ -12129,7 +12129,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp312 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp313 LIKE LINE OF temp312.
     CLEAR temp312.
-    
+
     temp313-n = `id`.
     temp313-v = id.
     INSERT temp313 INTO TABLE temp312.
@@ -12223,7 +12223,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp314 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp315 LIKE LINE OF temp314.
     CLEAR temp314.
-    
+
     temp315-n = `value`.
     temp315-v = value.
     INSERT temp315 INTO TABLE temp314.
@@ -12286,7 +12286,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp316 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp317 LIKE LINE OF temp316.
     CLEAR temp316.
-    
+
     temp317-n = `id`.
     temp317-v = id.
     INSERT temp317 INTO TABLE temp316.
@@ -12383,7 +12383,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp318 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp319 LIKE LINE OF temp318.
     CLEAR temp318.
-    
+
     temp319-n = `id`.
     temp319-v = id.
     INSERT temp319 INTO TABLE temp318.
@@ -12415,9 +12415,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp321 LIKE LINE OF temp320.
     result = me.
 
-    
+
     CLEAR temp320.
-    
+
     temp321-n = `title`.
     temp321-v = title.
     INSERT temp321 INTO TABLE temp320.
@@ -12448,7 +12448,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp322 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp323 LIKE LINE OF temp322.
     CLEAR temp322.
-    
+
     temp323-n = `backgrounddesign`.
     temp323-v = backgrounddesign.
     INSERT temp323 INTO TABLE temp322.
@@ -12554,7 +12554,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp324 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp325 LIKE LINE OF temp324.
     CLEAR temp324.
-    
+
     temp325-n = `emptyIndicatorMode`.
     temp325-v = emptyindicatormode.
     INSERT temp325 INTO TABLE temp324.
@@ -12584,7 +12584,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp326 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp327 LIKE LINE OF temp326.
     CLEAR temp326.
-    
+
     temp327-n = `activeIcon`.
     temp327-v = activeicon.
     INSERT temp327 INTO TABLE temp326.
@@ -12636,7 +12636,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp328 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp329 LIKE LINE OF temp328.
     CLEAR temp328.
-    
+
     temp329-n = `additionalInfo`.
     temp329-v = additionalinfo.
     INSERT temp329 INTO TABLE temp328.
@@ -12660,9 +12660,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp330 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp331 LIKE LINE OF temp330.
     result = me.
-    
+
     CLEAR temp330.
-    
+
     temp331-n = `emphasized`.
     temp331-v = z2ui5_cl_util=>boolean_abap_2_json( emphasized ).
     INSERT temp331 INTO TABLE temp330.
@@ -12715,9 +12715,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp332 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp333 LIKE LINE OF temp332.
     result = me.
-    
+
     CLEAR temp332.
-    
+
     temp333-n = `isActionAreaAlwaysVisible`.
     temp333-v = z2ui5_cl_util=>boolean_abap_2_json( isactionareaalwaysvisible ).
     INSERT temp333 INTO TABLE temp332.
@@ -12794,9 +12794,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp334 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp335 LIKE LINE OF temp334.
     result = me.
-    
+
     CLEAR temp334.
-    
+
     temp335-n = `activeIcon`.
     temp335-v = activeicon.
     INSERT temp335 INTO TABLE temp334.
@@ -12851,7 +12851,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp336 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp337 LIKE LINE OF temp336.
     CLEAR temp336.
-    
+
     temp337-n = `showTitleInHeaderContent`.
     temp337-v = z2ui5_cl_util=>boolean_abap_2_json( showtitleinheadercontent ).
     INSERT temp337 INTO TABLE temp336.
@@ -12955,7 +12955,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp338 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp339 LIKE LINE OF temp338.
     CLEAR temp338.
-    
+
     temp339-n = `titleUppercase`.
     temp339-v = z2ui5_cl_util=>boolean_abap_2_json( titleuppercase ).
     INSERT temp339 INTO TABLE temp338.
@@ -12996,7 +12996,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp340 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp341 LIKE LINE OF temp340.
     CLEAR temp340.
-    
+
     temp341-n = `id`.
     temp341-v = id.
     INSERT temp341 INTO TABLE temp340.
@@ -13034,7 +13034,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp342 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp343 LIKE LINE OF temp342.
     CLEAR temp342.
-    
+
     temp343-n = `active`.
     temp343-v = z2ui5_cl_util=>boolean_abap_2_json( active ).
     INSERT temp343 INTO TABLE temp342.
@@ -13086,7 +13086,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp344 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp345 LIKE LINE OF temp344.
     CLEAR temp344.
-    
+
     temp345-n = `press`.
     temp345-v = press.
     INSERT temp345 INTO TABLE temp344.
@@ -13134,9 +13134,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp346 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp347 LIKE LINE OF temp346.
     result = me.
-    
+
     CLEAR temp346.
-    
+
     temp347-n = `id`.
     temp347-v = id.
     INSERT temp347 INTO TABLE temp346.
@@ -13166,7 +13166,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp348 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp349 LIKE LINE OF temp348.
     CLEAR temp348.
-    
+
     temp349-n = `buttonMode`.
     temp349-v = buttonmode.
     INSERT temp349 INTO TABLE temp348.
@@ -13196,9 +13196,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp350 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp351 LIKE LINE OF temp350.
     result = me.
-    
+
     CLEAR temp350.
-    
+
     temp351-n = `press`.
     temp351-v = press.
     INSERT temp351 INTO TABLE temp350.
@@ -13225,7 +13225,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp352 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp353 LIKE LINE OF temp352.
     CLEAR temp352.
-    
+
     temp353-n = `title`.
     temp353-v = title.
     INSERT temp353 INTO TABLE temp352.
@@ -13286,9 +13286,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp354 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp355 LIKE LINE OF temp354.
     result = me.
-    
+
     CLEAR temp354.
-    
+
     temp355-n = `count`.
     temp355-v = count.
     INSERT temp355 INTO TABLE temp354.
@@ -13310,7 +13310,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp356 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp357 LIKE LINE OF temp356.
     CLEAR temp356.
-    
+
     temp357-n = `expandable`.
     temp357-v = z2ui5_cl_util=>boolean_abap_2_json( expandable ).
     INSERT temp357 INTO TABLE temp356.
@@ -13357,7 +13357,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp358 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp359 LIKE LINE OF temp358.
     CLEAR temp358.
-    
+
     temp359-n = `resize`.
     temp359-v = resize.
     INSERT temp359 INTO TABLE temp358.
@@ -13373,7 +13373,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp360 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp361 LIKE LINE OF temp360.
     CLEAR temp360.
-    
+
     temp361-n = `rows`.
     temp361-v = rows.
     INSERT temp361 INTO TABLE temp360.
@@ -13488,7 +13488,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp362 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp363 LIKE LINE OF temp362.
     CLEAR temp362.
-    
+
     temp363-n = `id`.
     temp363-v = id.
     INSERT temp363 INTO TABLE temp362.
@@ -13517,7 +13517,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp364 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp365 LIKE LINE OF temp364.
     CLEAR temp364.
-    
+
     temp365-n = `appointments`.
     temp365-v = appointments.
     INSERT temp365 INTO TABLE temp364.
@@ -13591,7 +13591,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp366 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp367 LIKE LINE OF temp366.
     CLEAR temp366.
-    
+
     temp367-n = `appointmentHeight`.
     temp367-v = appointmentheight.
     INSERT temp367 INTO TABLE temp366.
@@ -13639,7 +13639,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp368 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp369 LIKE LINE OF temp368.
     CLEAR temp368.
-    
+
     temp369-n = `id`.
     temp369-v = id.
     INSERT temp369 INTO TABLE temp368.
@@ -13715,7 +13715,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp370 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp371 LIKE LINE OF temp370.
     CLEAR temp370.
-    
+
     temp371-n = `id`.
     temp371-v = id.
     INSERT temp371 INTO TABLE temp370.
@@ -13763,7 +13763,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp372 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp373 LIKE LINE OF temp372.
     CLEAR temp372.
-    
+
     temp373-n = `iconSrc`.
     temp373-v = iconsrc.
     INSERT temp373 INTO TABLE temp372.
@@ -13791,7 +13791,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp374 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp375 LIKE LINE OF temp374.
     CLEAR temp374.
-    
+
     temp375-n = `laneId`.
     temp375-v = laneid.
     INSERT temp375 INTO TABLE temp374.
@@ -13844,9 +13844,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp376 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp377 LIKE LINE OF temp376.
     result = me.
-    
+
     CLEAR temp376.
-    
+
     temp377-n = `class`.
     temp377-v = class.
     INSERT temp377 INTO TABLE temp376.
@@ -13873,7 +13873,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp378 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp379 LIKE LINE OF temp378.
     CLEAR temp378.
-    
+
     temp379-n = `id`.
     temp379-v = id.
     INSERT temp379 INTO TABLE temp378.
@@ -13906,7 +13906,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp380 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp381 LIKE LINE OF temp380.
     CLEAR temp380.
-    
+
     temp381-n = `zoomLevel`.
     temp381-v = zoomlevel.
     INSERT temp381 INTO TABLE temp380.
@@ -13919,7 +13919,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp382 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp383 LIKE LINE OF temp382.
     CLEAR temp382.
-    
+
     temp383-n = `placement`.
     temp383-v = placement.
     INSERT temp383 INTO TABLE temp382.
@@ -13946,7 +13946,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp384 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp385 LIKE LINE OF temp384.
     CLEAR temp384.
-    
+
     temp385-n = `heading`.
     temp385-v = heading.
     INSERT temp385 INTO TABLE temp384.
@@ -13961,7 +13961,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp386 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp387 LIKE LINE OF temp386.
     CLEAR temp386.
-    
+
     temp387-n = `emailSubject`.
     temp387-v = emailsubject.
     INSERT temp387 INTO TABLE temp386.
@@ -13994,7 +13994,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp388 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp389 LIKE LINE OF temp388.
     CLEAR temp388.
-    
+
     temp389-n = `description`.
     temp389-v = description.
     INSERT temp389 INTO TABLE temp388.
@@ -14022,9 +14022,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp390 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp391 LIKE LINE OF temp390.
     result = me.
-    
+
     CLEAR temp390.
-    
+
     temp391-n = `percentage`.
     temp391-v = percentage.
     INSERT temp391 INTO TABLE temp390.
@@ -14055,7 +14055,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp392 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp393 LIKE LINE OF temp392.
     CLEAR temp392.
-    
+
     temp393-n = `id`.
     temp393-v = id.
     INSERT temp393 INTO TABLE temp392.
@@ -14107,7 +14107,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp394 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp395 LIKE LINE OF temp394.
     CLEAR temp394.
-    
+
     temp395-n = `id`.
     temp395-v = id.
     INSERT temp395 INTO TABLE temp394.
@@ -14146,9 +14146,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp396 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp397 LIKE LINE OF temp396.
     result = me.
-    
+
     CLEAR temp396.
-    
+
     temp397-n = `class`.
     temp397-v = class.
     INSERT temp397 INTO TABLE temp396.
@@ -14197,7 +14197,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp398 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp399 LIKE LINE OF temp398.
     CLEAR temp398.
-    
+
     temp399-n = `class`.
     temp399-v = class.
     INSERT temp399 INTO TABLE temp398.
@@ -14238,7 +14238,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp400 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp401 LIKE LINE OF temp400.
     CLEAR temp400.
-    
+
     temp401-n = `shapeId`.
     temp401-v = shapeid.
     INSERT temp401 INTO TABLE temp400.
@@ -14266,7 +14266,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp402 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp403 LIKE LINE OF temp402.
     CLEAR temp402.
-    
+
     temp403-n = `id`.
     temp403-v = id.
     INSERT temp403 INTO TABLE temp402.
@@ -14284,7 +14284,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp404 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp405 LIKE LINE OF temp404.
     CLEAR temp404.
-    
+
     temp405-n = `defaultPane`.
     temp405-v = defaultpane.
     INSERT temp405 INTO TABLE temp404.
@@ -14303,7 +14303,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp406 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp407 LIKE LINE OF temp406.
     CLEAR temp406.
-    
+
     temp407-n = `buttonGroups`.
     temp407-v = buttongroups.
     INSERT temp407 INTO TABLE temp406.
@@ -14391,9 +14391,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp409 LIKE LINE OF temp408.
 
     result = me.
-    
+
     CLEAR temp408.
-    
+
     temp409-n = `id`.
     temp409-v = id.
     INSERT temp409 INTO TABLE temp408.
@@ -14426,7 +14426,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp410 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp411 LIKE LINE OF temp410.
     CLEAR temp410.
-    
+
     temp411-n = `id`.
     temp411-v = id.
     INSERT temp411 INTO TABLE temp410.
@@ -14456,7 +14456,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp412 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp413 LIKE LINE OF temp412.
     CLEAR temp412.
-    
+
     temp413-n = `height`.
     temp413-v = height.
     INSERT temp413 INTO TABLE temp412.
@@ -14486,9 +14486,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp414 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp415 LIKE LINE OF temp414.
     result = me.
-    
+
     CLEAR temp414.
-    
+
     temp415-n = `width`.
     temp415-v = width.
     INSERT temp415 INTO TABLE temp414.
@@ -14551,7 +14551,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp416 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp417 LIKE LINE OF temp416.
     CLEAR temp416.
-    
+
     temp417-n = `id`.
     temp417-v = id.
     INSERT temp417 INTO TABLE temp416.
@@ -14575,9 +14575,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp418 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp419 LIKE LINE OF temp418.
     result = me.
-    
+
     CLEAR temp418.
-    
+
     temp419-n = `icon`.
     temp419-v = icon.
     INSERT temp419 INTO TABLE temp418.
@@ -14615,7 +14615,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp420 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp421 LIKE LINE OF temp420.
     CLEAR temp420.
-    
+
     temp421-n = `id`.
     temp421-v = id.
     INSERT temp421 INTO TABLE temp420.
@@ -14720,7 +14720,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp422 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp423 LIKE LINE OF temp422.
     CLEAR temp422.
-    
+
     temp423-n = `appWidthLimited`.
     temp423-v = z2ui5_cl_util=>boolean_abap_2_json( appwidthlimited ).
     INSERT temp423 INTO TABLE temp422.
@@ -14734,7 +14734,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp424 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp425 LIKE LINE OF temp424.
     CLEAR temp424.
-    
+
     temp425-n = `homeIcon`.
     temp425-v = homeicon.
     INSERT temp425 INTO TABLE temp424.
@@ -14802,7 +14802,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp426 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp427 LIKE LINE OF temp426.
     CLEAR temp426.
-    
+
     temp427-n = `width`.
     temp427-v = width.
     INSERT temp427 INTO TABLE temp426.
@@ -14816,7 +14816,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp428 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp429 LIKE LINE OF temp428.
     CLEAR temp428.
-    
+
     temp429-n = `sidePanelWidth`.
     temp429-v = sidepanelwidth.
     INSERT temp429 INTO TABLE temp428.
@@ -14857,7 +14857,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp430 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp431 LIKE LINE OF temp430.
     CLEAR temp430.
-    
+
     temp431-n = `icon`.
     temp431-v = icon.
     INSERT temp431 INTO TABLE temp430.
@@ -14879,7 +14879,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp432 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp433 LIKE LINE OF temp432.
     CLEAR temp432.
-    
+
     temp433-n = `title`.
     temp433-v = title.
     INSERT temp433 INTO TABLE temp432.
@@ -14968,9 +14968,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp434 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp435 LIKE LINE OF temp434.
     result = me.
-    
+
     CLEAR temp434.
-    
+
     temp435-n = `class`.
     temp435-v = class.
     INSERT temp435 INTO TABLE temp434.
@@ -15022,7 +15022,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp436 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp437 LIKE LINE OF temp436.
     CLEAR temp436.
-    
+
     temp437-n = `displayTime`.
     temp437-v = displaytime.
     INSERT temp437 INTO TABLE temp436.
@@ -15058,9 +15058,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp438 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp439 LIKE LINE OF temp438.
     result = me.
-    
+
     CLEAR temp438.
-    
+
     temp439-n = `id`.
     temp439-v = id.
     INSERT temp439 INTO TABLE temp438.
@@ -15100,7 +15100,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp440 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp441 LIKE LINE OF temp440.
     CLEAR temp440.
-    
+
     temp441-n = `size`.
     temp441-v = size.
     INSERT temp441 INTO TABLE temp440.
@@ -15120,9 +15120,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp443 LIKE LINE OF temp442.
 
     result = me.
-    
+
     CLEAR temp442.
-    
+
     temp443-n = `id`.
     temp443-v = id.
     INSERT temp443 INTO TABLE temp442.
@@ -15195,7 +15195,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp444 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp445 LIKE LINE OF temp444.
     CLEAR temp444.
-    
+
     temp445-n = `id`.
     temp445-v = id.
     INSERT temp445 INTO TABLE temp444.
@@ -15212,9 +15212,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp447 LIKE LINE OF temp446.
 
     result = me.
-    
+
     CLEAR temp446.
-    
+
     temp447-n = `id`.
     temp447-v = id.
     INSERT temp447 INTO TABLE temp446.
@@ -15256,7 +15256,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp448 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp449 LIKE LINE OF temp448.
     CLEAR temp448.
-    
+
     temp449-n = `id`.
     temp449-v = id.
     INSERT temp449 INTO TABLE temp448.
@@ -15274,9 +15274,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp451 LIKE LINE OF temp450.
 
     result = me.
-    
+
     CLEAR temp450.
-    
+
     temp451-n = `height`.
     temp451-v = height.
     INSERT temp451 INTO TABLE temp450.
@@ -15313,9 +15313,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp452 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp453 LIKE LINE OF temp452.
     result = me.
-    
+
     CLEAR temp452.
-    
+
     temp453-n = `title`.
     temp453-v = title.
     INSERT temp453 INTO TABLE temp452.
@@ -15376,9 +15376,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp454 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp455 LIKE LINE OF temp454.
     result = me.
-    
+
     CLEAR temp454.
-    
+
     temp455-n = `title`.
     temp455-v = title.
     INSERT temp455 INTO TABLE temp454.
@@ -15413,7 +15413,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp456 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp457 LIKE LINE OF temp456.
     CLEAR temp456.
-    
+
     temp457-n = `id`.
     temp457-v = id.
     INSERT temp457 INTO TABLE temp456.
@@ -15494,7 +15494,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp459 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp460 LIKE LINE OF temp459.
     CLEAR temp459.
-    
+
     temp460-n = `id`.
     temp460-v = id.
     INSERT temp460 INTO TABLE temp459.
@@ -15537,9 +15537,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp461 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp462 LIKE LINE OF temp461.
     result = me.
-    
+
     CLEAR temp461.
-    
+
     temp462-n = `id`.
     temp462-v = id.
     INSERT temp462 INTO TABLE temp461.
@@ -15624,9 +15624,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp463 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp464 LIKE LINE OF temp463.
     result = me.
-    
+
     CLEAR temp463.
-    
+
     temp464-n = `description`.
     temp464-v = description.
     INSERT temp464 INTO TABLE temp463.
@@ -15663,9 +15663,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp465 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp466 LIKE LINE OF temp465.
     result = me.
-    
+
     CLEAR temp465.
-    
+
     temp466-n = `type`.
     temp466-v = type.
     INSERT temp466 INTO TABLE temp465.
@@ -15692,7 +15692,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp467 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp468 LIKE LINE OF temp467.
     CLEAR temp467.
-    
+
     temp468-n = `text`.
     temp468-v = text.
     INSERT temp468 INTO TABLE temp467.
@@ -15708,7 +15708,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp469 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp470 LIKE LINE OF temp469.
     CLEAR temp469.
-    
+
     temp470-n = `items`.
     temp470-v = items.
     INSERT temp470 INTO TABLE temp469.
@@ -15781,7 +15781,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp471 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp472 LIKE LINE OF temp471.
     CLEAR temp471.
-    
+
     temp472-n = `confirmButtonText`.
     temp472-v = confirmbuttontext.
     INSERT temp472 INTO TABLE temp471.
@@ -15858,7 +15858,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp473 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp474 LIKE LINE OF temp473.
     CLEAR temp473.
-    
+
     temp474-n = `time`.
     temp474-v = time.
     INSERT temp474 INTO TABLE temp473.
@@ -15900,7 +15900,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp475 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp476 LIKE LINE OF temp475.
     CLEAR temp475.
-    
+
     temp476-n = `test`.
     temp476-v = test.
     INSERT temp476 INTO TABLE temp475.
@@ -15915,7 +15915,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp477 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp478 LIKE LINE OF temp477.
     CLEAR temp477.
-    
+
     temp478-n = `test`.
     temp478-v = test.
     INSERT temp478 INTO TABLE temp477.
@@ -15930,7 +15930,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp479 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp480 LIKE LINE OF temp479.
     CLEAR temp479.
-    
+
     temp480-n = `list`.
     temp480-v = list.
     INSERT temp480 INTO TABLE temp479.
@@ -15955,7 +15955,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp481 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp482 LIKE LINE OF temp481.
     CLEAR temp481.
-    
+
     temp482-n = `path`.
     temp482-v = path.
     INSERT temp482 INTO TABLE temp481.
@@ -15975,9 +15975,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp483 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp484 LIKE LINE OF temp483.
     result = me.
-    
+
     CLEAR temp483.
-    
+
     temp484-n = `text`.
     temp484-v = text.
     INSERT temp484 INTO TABLE temp483.
@@ -16023,9 +16023,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp485 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp486 LIKE LINE OF temp485.
     result = me.
-    
+
     CLEAR temp485.
-    
+
     temp486-n = `value`.
     temp486-v = value.
     INSERT temp486 INTO TABLE temp485.
@@ -16101,7 +16101,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp487 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp488 LIKE LINE OF temp487.
     CLEAR temp487.
-    
+
     temp488-n = `unit`.
     temp488-v = unit.
     INSERT temp488 INTO TABLE temp487.
@@ -16145,7 +16145,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp489 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp490 LIKE LINE OF temp489.
     CLEAR temp489.
-    
+
     temp490-n = `id`.
     temp490-v = id.
     INSERT temp490 INTO TABLE temp489.
@@ -16177,7 +16177,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp491 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp492 LIKE LINE OF temp491.
     CLEAR temp491.
-    
+
     temp492-n = `id`.
     temp492-v = id.
     INSERT temp492 INTO TABLE temp491.
@@ -16273,7 +16273,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp493 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp494 LIKE LINE OF temp493.
     CLEAR temp493.
-    
+
     temp494-n = `id`.
     temp494-v = id.
     INSERT temp494 INTO TABLE temp493.
@@ -16353,7 +16353,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp495 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp496 LIKE LINE OF temp495.
     CLEAR temp495.
-    
+
     temp496-n = `startTime`.
     temp496-v = starttime.
     INSERT temp496 INTO TABLE temp495.
@@ -16369,9 +16369,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp497 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp498 LIKE LINE OF temp497.
     result = me.
-    
+
     CLEAR temp497.
-    
+
     temp498-n = `value`.
     temp498-v = value.
     INSERT temp498 INTO TABLE temp497.
@@ -16479,13 +16479,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     ELSE.
       temp499 = `Title`.
     ENDIF.
-    
+
     lv_name = temp499.
 
     result = me.
-    
+
     CLEAR temp500.
-    
+
     temp501-n = `text`.
     temp501-v = text.
     INSERT temp501 INTO TABLE temp500.
@@ -16529,9 +16529,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp503 LIKE LINE OF temp502.
 
     result = me.
-    
+
     CLEAR temp502.
-    
+
     temp503-n = `press`.
     temp503-v = press.
     INSERT temp503 INTO TABLE temp502.
@@ -16562,9 +16562,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp505 LIKE LINE OF temp504.
 
     result = me.
-    
+
     CLEAR temp504.
-    
+
     temp505-n = `key`.
     temp505-v = key.
     INSERT temp505 INTO TABLE temp504.
@@ -16603,11 +16603,11 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     ELSE.
       temp506 = `Toolbar`.
     ENDIF.
-    
+
     lv_name = temp506.
-    
+
     CLEAR temp507.
-    
+
     temp508-n = `active`.
     temp508-v = z2ui5_cl_util=>boolean_abap_2_json( active ).
     INSERT temp508 INTO TABLE temp507.
@@ -16649,9 +16649,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp510 LIKE LINE OF temp509.
 
     result = me.
-    
+
     CLEAR temp509.
-    
+
     temp510-n = `width`.
     temp510-v = width.
     INSERT temp510 INTO TABLE temp509.
@@ -16681,7 +16681,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp511 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp512 LIKE LINE OF temp511.
     CLEAR temp511.
-    
+
     temp512-n = `id`.
     temp512-v = id.
     INSERT temp512 INTO TABLE temp511.
@@ -16741,7 +16741,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp513 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp514 LIKE LINE OF temp513.
     CLEAR temp513.
-    
+
     temp514-n = `label`.
     temp514-v = label.
     INSERT temp514 INTO TABLE temp513.
@@ -16769,7 +16769,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp515 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp516 LIKE LINE OF temp515.
     CLEAR temp515.
-    
+
     temp516-n = `rows`.
     temp516-v = rows.
     INSERT temp516 INTO TABLE temp515.
@@ -16897,7 +16897,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp517 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp518 LIKE LINE OF temp517.
     CLEAR temp517.
-    
+
     temp518-n = `id`.
     temp518-v = id.
     INSERT temp518 INTO TABLE temp517.
@@ -16967,7 +16967,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp519 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp520 LIKE LINE OF temp519.
     CLEAR temp519.
-    
+
     temp520-n = `icon`.
     temp520-v = icon.
     INSERT temp520 INTO TABLE temp519.
@@ -16998,7 +16998,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp521 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp522 LIKE LINE OF temp521.
     CLEAR temp521.
-    
+
     temp522-n = `rows`.
     temp522-v = rows.
     INSERT temp522 INTO TABLE temp521.
@@ -17110,7 +17110,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp523 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp524 LIKE LINE OF temp523.
     CLEAR temp523.
-    
+
     temp524-n = `id`.
     temp524-v = id.
     INSERT temp524 INTO TABLE temp523.
@@ -17238,7 +17238,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp525 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp526 LIKE LINE OF temp525.
     CLEAR temp525.
-    
+
     temp526-n = `fileName`.
     temp526-v = filename.
     INSERT temp526 INTO TABLE temp525.
@@ -17299,7 +17299,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp527 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp528 LIKE LINE OF temp527.
     CLEAR temp527.
-    
+
     temp528-n = `executeOnSelection`.
     temp528-v = z2ui5_cl_util=>boolean_abap_2_json( executeonselection ).
     INSERT temp528 INTO TABLE temp527.
@@ -17387,7 +17387,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp529 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp530 LIKE LINE OF temp529.
     CLEAR temp529.
-    
+
     temp530-n = `id`.
     temp530-v = id.
     INSERT temp530 INTO TABLE temp529.
@@ -17443,7 +17443,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp531 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp532 LIKE LINE OF temp531.
     CLEAR temp531.
-    
+
     temp532-n = `defaultVariantKey`.
     temp532-v = defaultvariantkey.
     INSERT temp532 INTO TABLE temp531.
@@ -17515,7 +17515,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp533 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp534 LIKE LINE OF temp533.
     CLEAR temp533.
-    
+
     temp534-n = `displayTextForExecuteOnSelectionForStandardVariant`.
     temp534-v = displaytextfsv.
     INSERT temp534 INTO TABLE temp533.
@@ -17577,7 +17577,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp535 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp536 LIKE LINE OF temp535.
     CLEAR temp535.
-    
+
     temp536-n = `id`.
     temp536-v = id.
     INSERT temp536 INTO TABLE temp535.
@@ -17661,7 +17661,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp537 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp538 LIKE LINE OF temp537.
     CLEAR temp537.
-    
+
     temp538-n = `height`.
     temp538-v = height.
     INSERT temp538 INTO TABLE temp537.
@@ -17715,7 +17715,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp539 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp540 LIKE LINE OF temp539.
     CLEAR temp539.
-    
+
     temp540-n = `id`.
     temp540-v = id.
     INSERT temp540 INTO TABLE temp539.
@@ -17741,7 +17741,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp541 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp542 LIKE LINE OF temp541.
     CLEAR temp541.
-    
+
     temp542-n = `confirm`.
     temp542-v = confirm.
     INSERT temp542 INTO TABLE temp541.
@@ -17802,7 +17802,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp543 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp544 LIKE LINE OF temp543.
     CLEAR temp543.
-    
+
     temp544-n = `enabled`.
     temp544-v = z2ui5_cl_util=>boolean_abap_2_json( enabled ).
     INSERT temp544 INTO TABLE temp543.
@@ -17830,7 +17830,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp545 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp546 LIKE LINE OF temp545.
     CLEAR temp545.
-    
+
     temp546-n = `enabled`.
     temp546-v = z2ui5_cl_util=>boolean_abap_2_json( enabled ).
     INSERT temp546 INTO TABLE temp545.
@@ -17867,7 +17867,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp547 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp548 LIKE LINE OF temp547.
     CLEAR temp547.
-    
+
     temp548-n = `id`.
     temp548-v = id.
     INSERT temp548 INTO TABLE temp547.
@@ -17932,7 +17932,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp549 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp550 LIKE LINE OF temp549.
     CLEAR temp549.
-    
+
     temp550-n = `id`.
     temp550-v = id.
     INSERT temp550 INTO TABLE temp549.
@@ -18016,8 +18016,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     CASE mv_name.
       WHEN `ZZPLAIN`.
-        
-        
+
+
         temp552 = sy-tabix.
         READ TABLE mt_prop WITH KEY n = `VALUE` INTO temp551.
         sy-tabix = temp552.
@@ -18031,9 +18031,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     IF me = mo_root.
 
-      
+
       CLEAR temp553.
-      
+
       temp554-n = `z2ui5`.
       temp554-v = `z2ui5`.
       INSERT temp554 INTO TABLE temp553.
@@ -18189,15 +18189,15 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
       INSERT temp554 INTO TABLE temp553.
       lt_prop = temp553.
 
-      
-      
+
+
       LOOP AT mt_ns REFERENCE INTO lr_ns WHERE table_line IS NOT INITIAL  "#EC CI_SORTSEQ
                                                      AND table_line <> `mvc`
                                                      AND table_line <> `core`.
         TRY.
-            
-            
-            
+
+
+
             temp82 = sy-tabix.
             READ TABLE lt_prop WITH KEY n = lr_ns->* INTO temp81.
             sy-tabix = temp82.
@@ -18205,7 +18205,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
               ASSERT 1 = 0.
             ENDIF.
             ls_prop = temp81.
-            
+
             CLEAR temp556.
             temp556-n = |xmlns:{ ls_prop-n }|.
             temp556-v = ls_prop-v.
@@ -18218,20 +18218,20 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     ENDIF.
 
-    
+
     IF mv_ns <> ``.
       temp557 = |{ mv_ns }:|.
     ELSE.
       CLEAR temp557.
     ENDIF.
-    
+
     lv_tmp2 = temp557.
-    
-    
+
+
     val = ``.
-    
+
     LOOP AT mt_prop INTO row WHERE v <> ``.
-      
+
       IF row-v = abap_true.
         temp83 = `true`.
       ELSE.
@@ -18240,28 +18240,28 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
       val = |{ val } { row-n }="{ escape( val = temp83 format = cl_abap_format=>e_xml_attr ) }"|.
     ENDLOOP.
     temp558 = val.
-    
+
     lv_tmp3 = temp558.
 
     IF mt_child IS INITIAL.
-      
+
       temp559 = | <{ lv_tmp2 }{ mv_name }{ lv_tmp3 }/>|.
       APPEND temp559 TO ct_parts.
       RETURN.
     ENDIF.
 
-    
+
     temp560 = | <{ lv_tmp2 }{ mv_name }{ lv_tmp3 }>|.
     APPEND temp560 TO ct_parts.
 
-    
+
     LOOP AT mt_child INTO lr_child.
-      
+
       temp561 ?= lr_child.
       temp561->xml_get_parts( CHANGING ct_parts = ct_parts ).
     ENDLOOP.
 
-    
+
     temp562 = |</{ lv_tmp2 }{ mv_name }>|.
     APPEND temp562 TO ct_parts.
 
@@ -18272,9 +18272,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp564 LIKE LINE OF temp563.
 
     result = me.
-    
+
     CLEAR temp563.
-    
+
     temp564-n = `VALUE`.
     temp564-v = val.
     INSERT temp564 INTO TABLE temp563.
@@ -18289,13 +18289,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA result2 TYPE REF TO z2ui5_cl_xml_view.
 
     TRY.
-        
+
         temp565 = ns.
         INSERT temp565 INTO TABLE mo_root->mt_ns.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
-    
+
     CREATE OBJECT result2 TYPE z2ui5_cl_xml_view.
     result2->mv_name   = name.
     result2->mv_ns     = ns.
@@ -18327,9 +18327,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp567 LIKE LINE OF temp566.
 
     result = me.
-    
+
     CLEAR temp566.
-    
+
     temp567-n = `id`.
     temp567-v = id.
     INSERT temp567 INTO TABLE temp566.
@@ -18344,9 +18344,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp569 LIKE LINE OF temp568.
 
     result = me.
-    
+
     CLEAR temp568.
-    
+
     temp569-n = `id`.
     temp569-v = id.
     INSERT temp569 INTO TABLE temp568.
@@ -18366,9 +18366,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp570 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp571 LIKE LINE OF temp570.
     result = me.
-    
+
     CLEAR temp570.
-    
+
     temp571-n = `value`.
     temp571-v = value.
     INSERT temp571 INTO TABLE temp570.
@@ -18464,7 +18464,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp572 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp573 LIKE LINE OF temp572.
     CLEAR temp572.
-    
+
     temp573-n = `id`.
     temp573-v = id.
     INSERT temp573 INTO TABLE temp572.
@@ -18486,7 +18486,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp574 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp575 LIKE LINE OF temp574.
     CLEAR temp574.
-    
+
     temp575-n = `contentText`.
     temp575-v = contenttext.
     INSERT temp575 INTO TABLE temp574.
@@ -18511,7 +18511,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp576 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp577 LIKE LINE OF temp576.
     CLEAR temp576.
-    
+
     temp577-n = `contentText`.
     temp577-v = contenttext.
     INSERT temp577 INTO TABLE temp576.
@@ -18530,7 +18530,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp578 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp579 LIKE LINE OF temp578.
     CLEAR temp578.
-    
+
     temp579-n = `height`.
     temp579-v = height.
     INSERT temp579 INTO TABLE temp578.
@@ -18549,7 +18549,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp580 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp581 LIKE LINE OF temp580.
     CLEAR temp580.
-    
+
     temp581-n = `id`.
     temp581-v = id.
     INSERT temp581 INTO TABLE temp580.
@@ -18571,7 +18571,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp582 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp583 LIKE LINE OF temp582.
     CLEAR temp582.
-    
+
     temp583-n = `class`.
     temp583-v = class.
     INSERT temp583 INTO TABLE temp582.
@@ -18593,7 +18593,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp584 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp585 LIKE LINE OF temp584.
     CLEAR temp584.
-    
+
     temp585-n = `id`.
     temp585-v = id.
     INSERT temp585 INTO TABLE temp584.
@@ -18621,9 +18621,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp587 LIKE LINE OF temp586.
 
     result = me.
-    
+
     CLEAR temp586.
-    
+
     temp587-n = `text`.
     temp587-v = text.
     INSERT temp587 INTO TABLE temp586.
@@ -18661,7 +18661,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp588 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp589 LIKE LINE OF temp588.
     CLEAR temp588.
-    
+
     temp589-n = `id`.
     temp589-v = id.
     INSERT temp589 INTO TABLE temp588.
@@ -18685,9 +18685,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp591 LIKE LINE OF temp590.
 
     result = me.
-    
+
     CLEAR temp590.
-    
+
     temp591-n = `colorString`.
     temp591-v = colorstring.
     INSERT temp591 INTO TABLE temp590.
@@ -18719,7 +18719,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp592 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp593 LIKE LINE OF temp592.
     CLEAR temp592.
-    
+
     temp593-n = `selectionMode`.
     temp593-v = selectionmode.
     INSERT temp593 INTO TABLE temp592.
@@ -18741,7 +18741,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp594 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp595 LIKE LINE OF temp594.
     CLEAR temp594.
-    
+
     temp595-n = `rowContentHeight`.
     temp595-v = rowcontentheight.
     INSERT temp595 INTO TABLE temp594.
@@ -18759,7 +18759,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp596 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp597 LIKE LINE OF temp596.
     CLEAR temp596.
-    
+
     temp597-n = `link`.
     temp597-v = link.
     INSERT temp597 INTO TABLE temp596.
@@ -18788,7 +18788,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp598 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp599 LIKE LINE OF temp598.
     CLEAR temp598.
-    
+
     temp599-n = `link`.
     temp599-v = link.
     INSERT temp599 INTO TABLE temp598.
@@ -18801,7 +18801,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp600 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp601 LIKE LINE OF temp600.
     CLEAR temp600.
-    
+
     temp601-n = `colorSelect`.
     temp601-v = colorselect.
     INSERT temp601 INTO TABLE temp600.
@@ -18815,7 +18815,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp602 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp603 LIKE LINE OF temp602.
     CLEAR temp602.
-    
+
     temp603-n = `id`.
     temp603-v = id.
     INSERT temp603 INTO TABLE temp602.
@@ -18841,7 +18841,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp604 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp605 LIKE LINE OF temp604.
     CLEAR temp604.
-    
+
     temp605-n = `id`.
     temp605-v = id.
     INSERT temp605 INTO TABLE temp604.
@@ -18862,9 +18862,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp607 LIKE LINE OF temp606.
 
     result = me.
-    
+
     CLEAR temp606.
-    
+
     temp607-n = `id`.
     temp607-v = id.
     INSERT temp607 INTO TABLE temp606.
@@ -18888,7 +18888,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp608 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp609 LIKE LINE OF temp608.
     CLEAR temp608.
-    
+
     temp609-n = `id`.
     temp609-v = id.
     INSERT temp609 INTO TABLE temp608.
@@ -18956,7 +18956,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp610 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp611 LIKE LINE OF temp610.
     CLEAR temp610.
-    
+
     temp611-n = `axis`.
     temp611-v = axis.
     INSERT temp611 INTO TABLE temp610.
@@ -18992,7 +18992,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp612 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp613 LIKE LINE OF temp612.
     CLEAR temp612.
-    
+
     temp613-n = `id`.
     temp613-v = id.
     INSERT temp613 INTO TABLE temp612.
@@ -19014,7 +19014,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp614 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp615 LIKE LINE OF temp614.
     CLEAR temp614.
-    
+
     temp615-n = `data`.
     temp615-v = data.
     INSERT temp615 INTO TABLE temp614.
@@ -19058,9 +19058,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
       lv_vizproperties = vizproperties.
     ENDIF.
 
-    
+
     CLEAR temp616.
-    
+
     temp617-n = `id`.
     temp617-v = id.
     INSERT temp617 INTO TABLE temp616.
@@ -19109,7 +19109,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp618 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp619 LIKE LINE OF temp618.
     CLEAR temp618.
-    
+
     temp619-n = `format`.
     temp619-v = format.
     INSERT temp619 INTO TABLE temp618.
@@ -19141,7 +19141,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp620 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp621 LIKE LINE OF temp620.
     CLEAR temp620.
-    
+
     temp621-n = `id`.
     temp621-v = id.
     INSERT temp621 INTO TABLE temp620.
@@ -19195,7 +19195,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp622 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp623 LIKE LINE OF temp622.
     CLEAR temp622.
-    
+
     temp623-n = `closeOverflowOnInteraction`.
     temp623-v = z2ui5_cl_util=>boolean_abap_2_json( closeoverflowoninteraction ).
     INSERT temp623 INTO TABLE temp622.
@@ -19215,7 +19215,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp624 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp625 LIKE LINE OF temp624.
     CLEAR temp624.
-    
+
     temp625-n = `highlight`.
     temp625-v = highlight.
     INSERT temp625 INTO TABLE temp624.
@@ -19235,7 +19235,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp626 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp627 LIKE LINE OF temp626.
     CLEAR temp626.
-    
+
     temp627-n = `id`.
     temp627-v = id.
     INSERT temp627 INTO TABLE temp626.
@@ -19267,7 +19267,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA temp628 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp629 LIKE LINE OF temp628.
     CLEAR temp628.
-    
+
     temp629-n = `id`.
     temp629-v = id.
     INSERT temp629 INTO TABLE temp628.

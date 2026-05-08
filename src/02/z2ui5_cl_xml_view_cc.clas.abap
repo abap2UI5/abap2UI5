@@ -312,9 +312,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp2 LIKE LINE OF temp1.
 
     result = mo_view.
-    
+
     CLEAR temp1.
-    
+
     temp2-n = `bcid`.
     temp2-v = bcid.
     INSERT temp2 INTO TABLE temp1.
@@ -338,9 +338,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp4 LIKE LINE OF temp3.
 
     result = mo_view.
-    
+
     CLEAR temp3.
-    
+
     temp4-n = `id`.
     temp4-v = id.
     INSERT temp4 INTO TABLE temp3.
@@ -382,9 +382,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp6 LIKE LINE OF temp5.
 
     result = mo_view.
-    
+
     CLEAR temp5.
-    
+
     temp6-n = `showClearIcon`.
     temp6-v = z2ui5_cl_util=>boolean_abap_2_json( showclearicon ).
     INSERT temp6 INTO TABLE temp5.
@@ -469,9 +469,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp8 LIKE LINE OF temp7.
 
     result = mo_view.
-    
+
     CLEAR temp7.
-    
+
     temp8-n = `canvas_id`.
     temp8-v = canvas_id.
     INSERT temp8 INTO TABLE temp7.
@@ -509,7 +509,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     mo_view->_generic( ns   = `html`
                        name = `style` ).
 
-    
+
     lv_class = `Z2UI5_CL_CC_DEMO_OUT`.
     CALL METHOD (lv_class)=>(`GET_STYLE`)
       RECEIVING result = lv_style.
@@ -522,9 +522,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp10 LIKE LINE OF temp9.
 
     result = mo_view.
-    
+
     CLEAR temp9.
-    
+
     temp10-n = `favicon`.
     temp10-v = favicon.
     INSERT temp10 INTO TABLE temp9.
@@ -539,9 +539,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp12 LIKE LINE OF temp11.
 
     result = mo_view.
-    
+
     CLEAR temp11.
-    
+
     temp12-n = `placeholder`.
     temp12-v = placeholder.
     INSERT temp12 INTO TABLE temp11.
@@ -590,9 +590,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp14 LIKE LINE OF temp13.
 
     result = mo_view.
-    
+
     CLEAR temp13.
-    
+
     temp14-n = `setUpdate`.
     temp14-v = setupdate.
     INSERT temp14 INTO TABLE temp13.
@@ -616,9 +616,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp16 LIKE LINE OF temp15.
 
     result = mo_view.
-    
+
     CLEAR temp15.
-    
+
     temp16-n = `finished`.
     temp16-v = finished.
     INSERT temp16 INTO TABLE temp15.
@@ -659,9 +659,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp17 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp18 LIKE LINE OF temp17.
     result = mo_view.
-    
+
     CLEAR temp17.
-    
+
     temp18-n = `finished`.
     temp18-v = finished.
     INSERT temp18 INTO TABLE temp17.
@@ -687,9 +687,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp20 LIKE LINE OF temp19.
 
     result = mo_view.
-    
+
     CLEAR temp19.
-    
+
     temp20-n = `search`.
     temp20-v = search.
     INSERT temp20 INTO TABLE temp19.
@@ -704,9 +704,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp22 LIKE LINE OF temp21.
 
     result = mo_view.
-    
+
     CLEAR temp21.
-    
+
     temp22-n = `ui5_version`.
     temp22-v = ui5_version.
     INSERT temp22 INTO TABLE temp21.
@@ -757,9 +757,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp24 LIKE LINE OF temp23.
 
     result = mo_view.
-    
+
     CLEAR temp23.
-    
+
     temp24-n = `items`.
     temp24-v = items.
     INSERT temp24 INTO TABLE temp23.
@@ -774,9 +774,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp26 LIKE LINE OF temp25.
 
     result = mo_view.
-    
+
     CLEAR temp25.
-    
+
     temp26-n = `items`.
     temp26-v = items.
     INSERT temp26 INTO TABLE temp25.
@@ -791,9 +791,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp28 LIKE LINE OF temp27.
 
     result = mo_view.
-    
+
     CLEAR temp27.
-    
+
     temp28-n = `MultiInputId`.
     temp28-v = multiinputid.
     INSERT temp28 INTO TABLE temp27.
@@ -820,9 +820,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp30 LIKE LINE OF temp29.
 
     result = mo_view.
-    
+
     CLEAR temp29.
-    
+
     temp30-n = `tree_id`.
     temp30-v = tree_id.
     INSERT temp30 INTO TABLE temp29.
@@ -837,9 +837,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp32 LIKE LINE OF temp31.
 
     result = mo_view.
-    
+
     CLEAR temp31.
-    
+
     temp32-n = `setUpdate`.
     temp32-v = setupdate.
     INSERT temp32 INTO TABLE temp31.
@@ -857,9 +857,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp34 LIKE LINE OF temp33.
 
     result = mo_view.
-    
+
     CLEAR temp33.
-    
+
     temp34-n = `tableId`.
     temp34-v = tableid.
     INSERT temp34 INTO TABLE temp33.
@@ -889,9 +889,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp36 LIKE LINE OF temp35.
 
     result = mo_view.
-    
+
     CLEAR temp35.
-    
+
     temp36-n = `delayMS`.
     temp36-v = delayms.
     INSERT temp36 INTO TABLE temp35.
@@ -915,9 +915,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp38 LIKE LINE OF temp37.
 
     result = mo_view.
-    
+
     CLEAR temp37.
-    
+
     temp38-n = `path`.
     temp38-v = path.
     INSERT temp38 INTO TABLE temp37.
@@ -935,9 +935,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp40 LIKE LINE OF temp39.
 
     result = mo_view.
-    
+
     CLEAR temp39.
-    
+
     temp40-n = `value`.
     temp40-v = value.
     INSERT temp40 INTO TABLE temp39.
@@ -964,9 +964,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp42 LIKE LINE OF temp41.
 
     result = mo_view.
-    
+
     CLEAR temp41.
-    
+
     temp42-n = `title`.
     temp42-v = title.
     INSERT temp42 INTO TABLE temp41.
@@ -985,9 +985,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp44 LIKE LINE OF temp43.
 
     result = mo_view.
-    
+
     CLEAR temp43.
-    
+
     temp44-n = `title`.
     temp44-v = title.
     INSERT temp44 INTO TABLE temp43.
@@ -1002,9 +1002,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp46 LIKE LINE OF temp45.
 
     result = mo_view.
-    
+
     CLEAR temp45.
-    
+
     temp46-n = `isDirty`.
     temp46-v = z2ui5_cl_util=>boolean_abap_2_json( isdirty ).
     INSERT temp46 INTO TABLE temp45.
@@ -1019,7 +1019,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp47 TYPE z2ui5_if_types=>ty_t_name_value.
     DATA temp48 LIKE LINE OF temp47.
     CLEAR temp47.
-    
+
     temp48-n = `tableId`.
     temp48-v = tableid.
     INSERT temp48 INTO TABLE temp47.
@@ -1034,9 +1034,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     DATA temp50 LIKE LINE OF temp49.
 
     result = mo_view.
-    
+
     CLEAR temp49.
-    
+
     temp50-n = `multiInputId`.
     temp50-v = multiinputid.
     INSERT temp50 INTO TABLE temp49.

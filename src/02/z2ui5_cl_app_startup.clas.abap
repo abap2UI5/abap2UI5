@@ -81,7 +81,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         ms_home-class_value_state = `Success`.
         ms_home-class_editable    = abap_false.
 
-        
+
         ls_config = client->get( )-s_config.
         ms_home-url               = z2ui5_cl_util=>app_get_url( classname = ms_home-classname
                                                                 origin    = ls_config-origin
@@ -89,7 +89,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                                                                 search    = ls_config-search
                                                                 hash      = ls_config-hash ).
 
-        
+
       CATCH cx_root INTO lx.
         ms_home-class_value_state_text = lx->get_text( ).
         ms_home-class_value_state      = `Warning`.
@@ -111,7 +111,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                      title         = `abap2UI5 - Building UI5 Apps Purely in ABAP`
                      shownavbutton = abap_false ).
 
-    
+
     toolbar = page->header_content( ).
     toolbar->toolbar_spacer(
       )->button( text  = `Debugging Tools`
@@ -126,7 +126,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                        press = client->_event( cs_event-set_config ) ).
     ENDIF.
 
-    
+
     simple_form = page->simple_form( editable                = abap_true
                                            layout                  = `ResponsiveGridLayout`
                                            labelspanxl             = `4`
@@ -182,9 +182,9 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                href    = client->_bind( ms_home-url )
                enabled = |\{= ${ client->_bind( val = ms_home-class_editable ) } === false \}| ).
 
-    
+
     ls_config2 = client->get( )-s_config.
-    
+
     lv_url_samples = z2ui5_cl_util=>app_get_url( classname = `z2ui5_cl_demo_app_000`
                                                         origin   = ls_config2-origin
                                                         pathname = ls_config2-pathname
@@ -195,7 +195,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     IF z2ui5_cl_util=>rtti_check_class_exists( `z2ui5_cl_demo_app_000` ) IS NOT INITIAL.
       simple_form->label( `Start Developing` ).
-      
+
       CLEAR temp1.
       INSERT lv_url_samples INTO TABLE temp1.
       simple_form->button( text  = `Explore Code Samples`
@@ -248,15 +248,15 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     IF client->get( )-check_on_navigated = abap_true.
       TRY.
-          
+
           temp3 ?= client->get_app_prev( ).
-          
+
           lo_f4 = temp3.
-          
+
           ls_result = lo_f4->result( ).
           IF ls_result-check_confirmed = abap_true.
 
-            
+
             ASSIGN ls_result-row->* TO <class>.
             ms_home = ms_home.
 MOVE-CORRESPONDING <class> TO ms_home.
@@ -283,11 +283,11 @@ MOVE-CORRESPONDING <class> TO ms_home.
          )->dialog( title      = `abap2UI5 - System Information`
                     afterclose = client->_event( cs_event-close ) ).
 
-    
+
     content = page2->content( ).
     content->_z2ui5( )->info_frontend( ui5_version = client->_bind( mv_ui5_version ) ).
 
-    
+
     simple_form2 = content->simple_form( editable                = abap_true
                                                layout                  = `ResponsiveGridLayout`
                                                labelspanxl             = `4`
@@ -322,11 +322,11 @@ MOVE-CORRESPONDING <class> TO ms_home.
     simple_form2->label( `User Exit` ).
     simple_form2->text( z2ui5_cl_exit=>get_user_exit_class( ) ).
 
-    
-    
+
+
     CREATE OBJECT temp1 TYPE z2ui5_cl_core_srv_draft.
     temp4 = temp1->count_entries( ).
-    
+
     lv_count = temp4.
     simple_form2->toolbar( )->title( `abap2UI5` ).
     simple_form2->label( `Version` ).
@@ -386,7 +386,7 @@ MOVE-CORRESPONDING <class> TO ms_home.
     DATA temp5 TYPE REF TO z2ui5_cl_app_hello_world.
 
     reset_button_state( ).
-    
+
     CREATE OBJECT temp5 TYPE z2ui5_cl_app_hello_world.
     ms_home-classname = z2ui5_cl_util=>rtti_get_classname_by_ref( temp5 ).
 

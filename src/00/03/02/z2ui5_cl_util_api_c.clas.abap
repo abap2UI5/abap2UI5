@@ -138,11 +138,11 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
         DATA x TYPE REF TO cx_root.
     TRY.
 
-        
+
         CLEAR temp1.
-        
+
         lv_result = temp1.
-        
+
         lv_class = `CL_ABAP_CONTEXT_INFO`.
         CALL METHOD (lv_class)=>(`GET_USER_TECHNICAL_NAME`)
           RECEIVING
@@ -150,7 +150,7 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
 
         result = lv_result.
 
-        
+
       CATCH cx_root INTO x.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
           EXPORTING
@@ -507,9 +507,9 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
         ENDLOOP.
         result = temp3.
 
-        
+
       CATCH cx_root INTO x.
-        
+
         lv_dummy = x->get_text( ).
     ENDTRY.
 
@@ -583,7 +583,7 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
 
       CATCH cx_root.
         TRY.
-            
+
             lv_xco_cp_abap_dictionary = `XCO_CP_ABAP_DICTIONARY`.
             CALL METHOD (lv_xco_cp_abap_dictionary)=>(`DATA_ELEMENT`)
               EXPORTING
@@ -619,9 +619,9 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
               RECEIVING
                 rs_long_field_label = result-long.
 
-            
+
           CATCH cx_root INTO x.
-            
+
             error = x->get_text( ).
         ENDTRY.
     ENDTRY.
@@ -724,10 +724,10 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
 
     TRY.
 
-        
-        
-        
-        
+
+
+
+
 
         lv_classname = i_classname.
 
@@ -746,9 +746,9 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
           RECEIVING
             rv_short_description = result.
 
-        
+
       CATCH cx_root INTO x.
-        
+
         lv_dummy = x->get_text( ).
     ENDTRY.
 
@@ -761,7 +761,7 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
       DATA lv_tabname TYPE string.
 
     IF langu IS NOT SUPPLIED.
-      
+
       lan = sy-langu.
     ELSE.
       lan = langu.
@@ -773,7 +773,7 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
 
     ELSE.
 
-      
+
       lv_tabname = `dd02t`.
       SELECT SINGLE ddtext
         FROM (lv_tabname) INTO ddtext
@@ -822,23 +822,23 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
 
     IF context_check_abap_cloud( ) IS NOT INITIAL.
 
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
       "1 format source
-      
+
       lv_assign = `XCO_CP_CALL_STACK=>LINE_NUMBER_FLAVOR->SOURCE`.
       ASSIGN (lv_assign) TO <format>.
 
@@ -867,7 +867,7 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
         RECEIVING
           ro_full = full_stack.
 
-      
+
       CREATE DATA r TYPE REF TO (`IF_XCO_CS_FORMAT`).
       ASSIGN r->* TO <any>.
       <any> ?= format_source.
@@ -882,18 +882,18 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
         RECEIVING
           ro_lines = ro_lines.
 
-      
+
       ASSIGN ro_lines->(`IF_XCO_STRINGS~VALUE`) TO <lt_lines>.
 
     ELSE.
 
     ENDIF.
 
-    
+
     LOOP AT <lt_lines> INTO text.
-      
+
       CLEAR temp2.
-      
+
       ls_stack = temp2.
       SPLIT text AT ` ` INTO ls_stack-class ls_stack-include ls_stack-method.
       INSERT ls_stack INTO TABLE result.

@@ -41,10 +41,10 @@ CLASS ltcl_test_app IMPLEMENTATION.
     DATA temp2 LIKE st_tab.
 
     sv_var = 1.
-    
+
     CLEAR temp1.
     ss_tab = temp1.
-    
+
     CLEAR temp2.
     st_tab = temp2.
 
@@ -134,11 +134,11 @@ CLASS ltcl_unit_test_open_abap IMPLEMENTATION.
     FIELD-SYMBOLS <any> TYPE any.
     DATA lv_assign TYPE string.
     CREATE OBJECT lo_app TYPE ltcl_test_app.
-    
+
 
     lo_app->mv_val = `ABC`.
 
-    
+
     lv_assign = |MV_VAL|.
     ASSIGN lo_app->(lv_assign) TO <any>.
     ASSERT sy-subrc = 0.
@@ -170,14 +170,14 @@ CLASS ltcl_unit_test_open_abap IMPLEMENTATION.
     DATA temp15 LIKE sy-tabix.
     CREATE OBJECT lo_app TYPE ltcl_test_app.
 
-    
+
     temp3 ?= cl_abap_objectdescr=>describe_by_object_ref( lo_app ).
-    
+
     lt_attri = temp3->attributes.
 
-    
-    
-    
+
+
+
     temp2 = sy-tabix.
     READ TABLE lt_attri WITH KEY name = `MS_TAB` INTO temp1.
     sy-tabix = temp2.
@@ -185,8 +185,8 @@ CLASS ltcl_unit_test_open_abap IMPLEMENTATION.
       ASSERT 1 = 0.
     ENDIF.
     lv_test = temp1.
-    
-    
+
+
     temp5 = sy-tabix.
     READ TABLE lt_attri WITH KEY name = `MT_TAB` INTO temp4.
     sy-tabix = temp5.
@@ -194,8 +194,8 @@ CLASS ltcl_unit_test_open_abap IMPLEMENTATION.
       ASSERT 1 = 0.
     ENDIF.
     lv_test = temp4.
-    
-    
+
+
     temp7 = sy-tabix.
     READ TABLE lt_attri WITH KEY name = `MV_VAL` INTO temp6.
     sy-tabix = temp7.
@@ -203,8 +203,8 @@ CLASS ltcl_unit_test_open_abap IMPLEMENTATION.
       ASSERT 1 = 0.
     ENDIF.
     lv_test = temp6.
-    
-    
+
+
     temp9 = sy-tabix.
     READ TABLE lt_attri WITH KEY name = `SS_TAB` INTO temp8.
     sy-tabix = temp9.
@@ -212,8 +212,8 @@ CLASS ltcl_unit_test_open_abap IMPLEMENTATION.
       ASSERT 1 = 0.
     ENDIF.
     lv_test = temp8.
-    
-    
+
+
     temp11 = sy-tabix.
     READ TABLE lt_attri WITH KEY name = `ST_TAB` INTO temp10.
     sy-tabix = temp11.
@@ -221,8 +221,8 @@ CLASS ltcl_unit_test_open_abap IMPLEMENTATION.
       ASSERT 1 = 0.
     ENDIF.
     lv_test = temp10.
-    
-    
+
+
     temp13 = sy-tabix.
     READ TABLE lt_attri WITH KEY name = `SV_STATUS` INTO temp12.
     sy-tabix = temp13.
@@ -230,8 +230,8 @@ CLASS ltcl_unit_test_open_abap IMPLEMENTATION.
       ASSERT 1 = 0.
     ENDIF.
     lv_test = temp12.
-    
-    
+
+
     temp15 = sy-tabix.
     READ TABLE lt_attri WITH KEY name = `SV_VAR` INTO temp14.
     sy-tabix = temp15.
@@ -247,7 +247,7 @@ CLASS ltcl_unit_test_open_abap IMPLEMENTATION.
     DATA temp16 TYPE REF TO cl_abap_elemdescr.
     DATA lo_ele LIKE temp16.
     temp16 ?= cl_abap_elemdescr=>describe_by_data( abap_true ).
-    
+
     lo_ele = temp16.
 
     cl_abap_unit_assert=>assert_equals( exp = `ABAP_BOOL`
@@ -304,7 +304,7 @@ CLASS ltcl_unit_test_open_abap IMPLEMENTATION.
         ENDIF.
         cl_abap_unit_assert=>fail( ).
 
-        
+
       CATCH z2ui5_cx_util_error INTO lx.
         cl_abap_unit_assert=>assert_bound( lx ).
     ENDTRY.
@@ -322,7 +322,7 @@ CLASS ltcl_unit_test_open_abap IMPLEMENTATION.
       cl_abap_unit_assert=>assert_false( lv_xsdbool ).
     ENDIF.
 
-    
+
     temp2 = boolc( 1 = 1 ).
     IF temp2 = abap_false.
       cl_abap_unit_assert=>fail( ).
@@ -345,7 +345,7 @@ CLASS ltcl_unit_test_open_abap IMPLEMENTATION.
       cl_abap_unit_assert=>fail( ).
     ENDIF.
 
-    
+
     temp4 = boolc( 1 = 1 ).
     IF check_input( temp4 ) = abap_false.
       cl_abap_unit_assert=>fail( ).
@@ -371,7 +371,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     lv_bool = temp5.
     cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>boolean_check_by_data( lv_bool ) ).
 
-    
+
     temp6 = boolc( 1 = 2 ).
     lv_bool = temp6.
     cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>boolean_check_by_data( lv_bool ) ).
@@ -387,7 +387,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_test TYPE string.
     DATA ls_sql TYPE z2ui5_cl_util=>ty_s_sql.
     lv_test = ``.
-    
+
     ls_sql = z2ui5_cl_util=>filter_get_sql_by_sql_string( lv_test ) ##NEEDED.
 
   ENDMETHOD.
@@ -404,7 +404,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lo_test2 TYPE REF TO ltcl_test_app.
     DATA lv_name2 TYPE string.
     CREATE OBJECT lo_test2 TYPE ltcl_test_app.
-    
+
     lv_name2 = z2ui5_cl_util=>rtti_get_classname_by_ref( lo_test2 ).
     cl_abap_unit_assert=>assert_equals( exp = `LTCL_TEST_APP`
                                         act = lv_name2 ).
@@ -416,7 +416,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_test TYPE string.
     DATA lr_test LIKE REF TO lv_test.
     lv_test = `test`.
-    
+
     GET REFERENCE OF lv_test INTO lr_test.
 
     cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>check_bound_a_not_initial( lr_test ) ).
@@ -432,7 +432,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_test TYPE string.
     DATA lr_test LIKE REF TO lv_test.
     lv_test = `test`.
-    
+
     GET REFERENCE OF lv_test INTO lr_test.
 
     cl_abap_unit_assert=>assert_false( z2ui5_cl_util=>check_unassign_initial( lr_test ) ).
@@ -447,7 +447,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_test TYPE string.
     DATA lr_data TYPE REF TO data.
     lv_test = `test`.
-    
+
 *    GET REFERENCE OF lv_test INTO lr_data.
     GET REFERENCE OF lv_test INTO lr_data.
 
@@ -464,14 +464,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lr_test2 TYPE REF TO data.
     FIELD-SYMBOLS <result> TYPE data.
     lv_test = `test`.
-    
+
 *    GET REFERENCE OF lv_test INTO lr_data.
     GET REFERENCE OF lv_test INTO lr_data.
 
-    
+
     lr_test2 = z2ui5_cl_util=>conv_copy_ref_data( lr_data ).
 
-    
+
     ASSIGN lr_test2->* TO <result>.
 
     cl_abap_unit_assert=>assert_equals( exp = lv_test
@@ -492,7 +492,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_time2 TYPE timestampl.
     lv_time = z2ui5_cl_util=>time_get_timestampl( ).
 
-    
+
     lv_time2 = z2ui5_cl_util=>time_subtract_seconds( time    = lv_time
                                                             seconds = 60 * 60 * 4 ).
 
@@ -511,7 +511,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_time TYPE timestampl.
     DATA lv_time2 TYPE timestampl.
     lv_time = z2ui5_cl_util=>time_get_timestampl( ).
-    
+
     lv_time2 = z2ui5_cl_util=>time_get_timestampl( ).
 
     IF lv_time IS INITIAL OR lv_time2 IS INITIAL.
@@ -560,7 +560,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
         DATA temp8 TYPE xsdboolean.
 
     TRY.
-        
+
         temp7 = boolc( 1 = 1 ).
         z2ui5_cl_util=>x_check_raise( temp7 ).
         cl_abap_unit_assert=>fail( ).
@@ -568,7 +568,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        
+
         temp8 = boolc( 1 = 3 ).
         z2ui5_cl_util=>x_check_raise( temp8 ).
       CATCH cx_root.
@@ -590,7 +590,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA ls_row LIKE temp17.
     CLEAR temp17.
     temp17-title = `test`.
-    
+
     ls_row = temp17.
 
     cl_abap_unit_assert=>assert_equals( exp = `{"selected":false,"title":"test","value":""}`
@@ -604,7 +604,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_url TYPE string.
     lt_param = z2ui5_cl_util=>url_param_get_tab(
                          `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
-    
+
     lv_url = z2ui5_cl_util=>url_param_create_url( lt_param ).
 
     cl_abap_unit_assert=>assert_equals( exp = `sap-client=100&app_start=z2ui5_cl_app_hello_world`
@@ -634,8 +634,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     lt_param = z2ui5_cl_util=>url_param_get_tab(
                          `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
 
-    
-    
+
+
     temp19 = sy-tabix.
     READ TABLE lt_param WITH KEY n = `sap-client` INTO temp18.
     sy-tabix = temp19.
@@ -645,8 +645,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `100`
                                         act = temp18-v ).
 
-    
-    
+
+
     temp21 = sy-tabix.
     READ TABLE lt_param WITH KEY n = `app_start` INTO temp20.
     sy-tabix = temp21.
@@ -675,7 +675,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
         DATA temp9 TYPE xsdboolean.
 
     TRY.
-        
+
         temp9 = boolc( 1 = 2 ).
         z2ui5_cl_util=>x_check_raise( temp9 ).
       CATCH z2ui5_cx_util_error.
@@ -689,9 +689,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_xsdbool LIKE temp22.
     DATA lv_name TYPE string.
     CLEAR temp22.
-    
+
     lv_xsdbool = temp22.
-    
+
     lv_name = z2ui5_cl_util=>rtti_get_type_name( lv_xsdbool ).
     cl_abap_unit_assert=>assert_equals( exp = `XSDBOOLEAN`
                                         act = lv_name ).
@@ -705,12 +705,12 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_type_kind TYPE string.
     DATA lr_string TYPE REF TO string.
     CLEAR temp23.
-    
+
     lv_string = temp23.
 
-    
+
     lv_type_kind = z2ui5_cl_util=>rtti_get_type_kind( lv_string ).
-    
+
     cl_abap_unit_assert=>assert_equals( exp = cl_abap_typedescr=>typekind_string
                                         act = lv_type_kind ).
 
@@ -727,9 +727,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lv_string LIKE temp24.
     DATA lr_string TYPE REF TO string.
     CLEAR temp24.
-    
+
     lv_string = temp24.
-    
+
     cl_abap_unit_assert=>assert_false( z2ui5_cl_util=>rtti_check_type_kind_dref( lv_string ) ).
 
     CREATE DATA lr_string.
@@ -746,35 +746,35 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA temp27 LIKE sy-subrc.
     DATA temp28 LIKE sy-subrc.
     CREATE OBJECT lo_obj TYPE ltcl_test_app.
-    
+
     lt_attri = z2ui5_cl_util=>rtti_get_t_attri_by_oref( lo_obj ).
 
     IF lines( lt_attri ) <> 7.
       cl_abap_unit_assert=>fail( ).
     ENDIF.
 
-    
+
     READ TABLE lt_attri WITH KEY name = `MS_TAB` TRANSPORTING NO FIELDS.
     temp25 = sy-subrc.
     IF NOT temp25 = 0.
       cl_abap_unit_assert=>fail( ).
     ENDIF.
 
-    
+
     READ TABLE lt_attri WITH KEY name = `SS_TAB` type_kind = `v` TRANSPORTING NO FIELDS.
     temp26 = sy-subrc.
     IF NOT temp26 = 0.
       cl_abap_unit_assert=>fail( ).
     ENDIF.
 
-    
+
     READ TABLE lt_attri WITH KEY name = `SV_VAR` type_kind = `g` is_class = abap_true TRANSPORTING NO FIELDS.
     temp27 = sy-subrc.
     IF NOT temp27 = 0.
       cl_abap_unit_assert=>fail( ).
     ENDIF.
 
-    
+
     READ TABLE lt_attri WITH KEY name = `SV_STATUS` type_kind = `g` is_class = abap_true is_constant = `X` TRANSPORTING NO FIELDS.
     temp28 = sy-subrc.
     IF NOT temp28 = 0.
@@ -807,47 +807,47 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA temp3 LIKE LINE OF lt_comp.
     DATA temp4 LIKE sy-tabix.
     CLEAR temp29.
-    
+
     ls_row = temp29.
 
-    
+
     lt_comp = z2ui5_cl_util=>rtti_get_t_attri_by_any( ls_row ).
 
     IF lines( lt_comp ) <> 7.
       cl_abap_unit_assert=>fail( ).
     ENDIF.
 
-    
+
     READ TABLE lt_comp WITH KEY name = `TITLE` TRANSPORTING NO FIELDS.
     temp30 = sy-subrc.
     IF NOT temp30 = 0.
       cl_abap_unit_assert=>fail( ).
     ENDIF.
 
-    
+
     READ TABLE lt_comp WITH KEY name = `VALUE` TRANSPORTING NO FIELDS.
     temp31 = sy-subrc.
     IF NOT temp31 = 0.
       cl_abap_unit_assert=>fail( ).
     ENDIF.
 
-    
+
     READ TABLE lt_comp WITH KEY name = `SELECTED` TRANSPORTING NO FIELDS.
     temp32 = sy-subrc.
     IF NOT temp32 = 0.
       cl_abap_unit_assert=>fail( ).
     ENDIF.
 
-    
+
     READ TABLE lt_comp WITH KEY name = `CHECKBOX` TRANSPORTING NO FIELDS.
     temp33 = sy-subrc.
     IF NOT temp33 = 0.
       cl_abap_unit_assert=>fail( ).
     ENDIF.
 
-    
-    
-    
+
+
+
     temp4 = sy-tabix.
     READ TABLE lt_comp INDEX 1 INTO temp3.
     sy-tabix = temp4.
@@ -867,7 +867,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lo_obj TYPE REF TO ltcl_test_app.
     DATA lv_xml TYPE string.
     CREATE OBJECT lo_obj TYPE ltcl_test_app.
-    
+
     lv_xml = z2ui5_cl_util=>xml_stringify( lo_obj ).
 
     IF lv_xml IS INITIAL.
@@ -880,7 +880,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lo_obj TYPE REF TO ltcl_test_app.
     DATA lv_xml TYPE string.
     CREATE OBJECT lo_obj TYPE ltcl_test_app.
-    
+
     lv_xml = z2ui5_cl_util=>xml_stringify( lo_obj ).
 
     CLEAR lo_obj.
@@ -910,11 +910,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA ls_row LIKE temp34.
     DATA lv_xml TYPE string.
     CLEAR temp34.
-    
+
     ls_row = temp34.
     ls_row-value = `test`.
 
-    
+
     lv_xml = z2ui5_cl_util=>xml_stringify( ls_row ).
 
     IF lv_xml IS INITIAL.
@@ -942,15 +942,15 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA ls_row2 LIKE temp36.
     DATA lv_xml TYPE string.
     CLEAR temp35.
-    
+
     ls_row = temp35.
-    
+
     CLEAR temp36.
-    
+
     ls_row2 = temp36.
     ls_row-value = `test`.
 
-    
+
     lv_xml = z2ui5_cl_util=>xml_stringify( ls_row ).
 
     z2ui5_cl_util=>xml_parse( EXPORTING xml = lv_xml
@@ -982,28 +982,28 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA temp40 LIKE LINE OF temp39.
     DATA lt_exp LIKE temp39.
     CLEAR temp37.
-    
+
     temp38-sign = `I`.
     temp38-option = `EQ`.
     temp38-low = `table`.
     temp38-high = ``.
     INSERT temp38 INTO TABLE temp37.
-    
+
     lt_range = temp37.
 
-    
+
     lt_result = z2ui5_cl_util=>filter_get_token_t_by_range_t( lt_range ).
 
-    
+
     CLEAR temp39.
-    
+
     temp40-key = `=table`.
     temp40-text = `=table`.
     temp40-visible = `X`.
     temp40-selkz = ``.
     temp40-editable = `X`.
     INSERT temp40 INTO TABLE temp39.
-    
+
     lt_exp = temp39.
 
     cl_abap_unit_assert=>assert_equals( exp = lt_exp
@@ -1032,21 +1032,21 @@ DATA BEGIN OF ms_struc2.INCLUDE TYPE ty_struc.INCLUDE TYPE ty_struc_incl.DATA EN
       RETURN.
     ENDIF.
 
-    
 
-    
 
-    
 
-    
+
+
+
+
     lo_datadescr = cl_abap_typedescr=>describe_by_data( ms_struc2 ).
 
     IF z2ui5_cl_util=>context_check_abap_cloud( ) IS NOT INITIAL.
       RETURN.
     ENDIF.
-    
+
     temp41 ?= lo_datadescr.
-    
+
     lt_attri = z2ui5_cl_util=>rtti_get_t_attri_by_include( temp41 ).
 
     IF lines( lt_attri ) <> 6.
@@ -1159,8 +1159,8 @@ CLASS ltcl_unit_test_strings IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = 3
                                         act = lines( lt_result ) ).
-    
-    
+
+
     temp43 = sy-tabix.
     READ TABLE lt_result INDEX 1 INTO temp42.
     sy-tabix = temp43.
@@ -1168,8 +1168,8 @@ CLASS ltcl_unit_test_strings IMPLEMENTATION.
       ASSERT 1 = 0.
     ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `one`   act = temp42 ).
-    
-    
+
+
     temp45 = sy-tabix.
     READ TABLE lt_result INDEX 2 INTO temp44.
     sy-tabix = temp45.
@@ -1177,8 +1177,8 @@ CLASS ltcl_unit_test_strings IMPLEMENTATION.
       ASSERT 1 = 0.
     ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `two`   act = temp44 ).
-    
-    
+
+
     temp47 = sy-tabix.
     READ TABLE lt_result INDEX 3 INTO temp46.
     sy-tabix = temp47.
@@ -1198,8 +1198,8 @@ CLASS ltcl_unit_test_strings IMPLEMENTATION.
                                                sep = `;` ).
 
     cl_abap_unit_assert=>assert_equals( exp = 1       act = lines( lt_result ) ).
-    
-    
+
+
     temp49 = sy-tabix.
     READ TABLE lt_result INDEX 1 INTO temp48.
     sy-tabix = temp49.
@@ -1219,9 +1219,9 @@ CLASS ltcl_unit_test_strings IMPLEMENTATION.
     INSERT `one` INTO TABLE temp50.
     INSERT `two` INTO TABLE temp50.
     INSERT `three` INTO TABLE temp50.
-    
+
     lt_tab = temp50.
-    
+
     lv_result = z2ui5_cl_util=>c_join( lt_tab ).
 
     cl_abap_unit_assert=>assert_equals( exp = `onetwothree`
@@ -1238,9 +1238,9 @@ CLASS ltcl_unit_test_strings IMPLEMENTATION.
     INSERT `one` INTO TABLE temp52.
     INSERT `two` INTO TABLE temp52.
     INSERT `three` INTO TABLE temp52.
-    
+
     lt_tab = temp52.
-    
+
     lv_result = z2ui5_cl_util=>c_join( tab = lt_tab
                                               sep = `-` ).
 
@@ -1255,9 +1255,9 @@ CLASS ltcl_unit_test_strings IMPLEMENTATION.
     DATA lt_tab LIKE temp54.
     DATA lv_result TYPE string.
     CLEAR temp54.
-    
+
     lt_tab = temp54.
-    
+
     lv_result = z2ui5_cl_util=>c_join( lt_tab ).
 
     cl_abap_unit_assert=>assert_initial( lv_result ).
@@ -1314,7 +1314,7 @@ CLASS ltcl_unit_test_rtti IMPLEMENTATION.
     DATA temp55 TYPE ty_s.
     DATA ls_struc LIKE temp55.
     CLEAR temp55.
-    
+
     ls_struc = temp55.
     cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>rtti_check_structure( ls_struc ) ).
 
@@ -1616,8 +1616,8 @@ CLASS ltcl_unit_test_filter IMPLEMENTATION.
     lt_mapping = z2ui5_cl_util=>filter_get_token_range_mapping( ).
 
     cl_abap_unit_assert=>assert_not_initial( lt_mapping ).
-    
-    
+
+
     temp57 = sy-tabix.
     READ TABLE lt_mapping WITH KEY n = `EQ` INTO temp56.
     sy-tabix = temp57.
@@ -1626,8 +1626,8 @@ CLASS ltcl_unit_test_filter IMPLEMENTATION.
     ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `={LOW}`
                                         act = temp56-v ).
-    
-    
+
+
     temp59 = sy-tabix.
     READ TABLE lt_mapping WITH KEY n = `LT` INTO temp58.
     sy-tabix = temp59.
@@ -1636,8 +1636,8 @@ CLASS ltcl_unit_test_filter IMPLEMENTATION.
     ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `<{LOW}`
                                         act = temp58-v ).
-    
-    
+
+
     temp61 = sy-tabix.
     READ TABLE lt_mapping WITH KEY n = `GT` INTO temp60.
     sy-tabix = temp61.
@@ -1660,7 +1660,7 @@ CLASS ltcl_unit_test_filter IMPLEMENTATION.
     DATA temp66 LIKE LINE OF lt_range.
     DATA temp67 LIKE sy-tabix.
     CLEAR temp62.
-    
+
     temp63-key = `=100`.
     temp63-text = `=100`.
     temp63-visible = abap_true.
@@ -1671,15 +1671,15 @@ CLASS ltcl_unit_test_filter IMPLEMENTATION.
     temp63-visible = abap_true.
     temp63-editable = abap_true.
     INSERT temp63 INTO TABLE temp62.
-    
+
     lt_tokens = temp62.
 
-    
+
     lt_range = z2ui5_cl_util=>filter_get_range_t_by_token_t( lt_tokens ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2 act = lines( lt_range ) ).
-    
-    
+
+
     temp65 = sy-tabix.
     READ TABLE lt_range INDEX 1 INTO temp64.
     sy-tabix = temp65.
@@ -1687,8 +1687,8 @@ CLASS ltcl_unit_test_filter IMPLEMENTATION.
       ASSERT 1 = 0.
     ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `EQ` act = temp64-option ).
-    
-    
+
+
     temp67 = sy-tabix.
     READ TABLE lt_range INDEX 2 INTO temp66.
     sy-tabix = temp67.
@@ -1715,14 +1715,14 @@ CLASS ltcl_unit_test_filter IMPLEMENTATION.
     DATA temp71 LIKE LINE OF lt_filter.
     DATA temp72 LIKE sy-tabix.
     CLEAR temp68.
-    
+
     ls_row = temp68.
-    
+
     lt_filter = z2ui5_cl_util=>filter_get_multi_by_data( ls_row ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2 act = lines( lt_filter ) ).
-    
-    
+
+
     temp70 = sy-tabix.
     READ TABLE lt_filter INDEX 1 INTO temp69.
     sy-tabix = temp70.
@@ -1730,8 +1730,8 @@ CLASS ltcl_unit_test_filter IMPLEMENTATION.
       ASSERT 1 = 0.
     ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `NAME`  act = temp69-name ).
-    
-    
+
+
     temp72 = sy-tabix.
     READ TABLE lt_filter INDEX 2 INTO temp71.
     sy-tabix = temp72.
@@ -1753,9 +1753,9 @@ CLASS ltcl_unit_test_filter IMPLEMENTATION.
     DATA lt_result TYPE z2ui5_cl_util=>ty_t_filter_multi.
 
     ls_filter-name = `F1`.
-    
+
     CLEAR temp73.
-    
+
     temp74-sign = `I`.
     temp74-option = `EQ`.
     temp74-low = `A`.
@@ -1769,16 +1769,16 @@ CLASS ltcl_unit_test_filter IMPLEMENTATION.
 
     CLEAR ls_filter.
     ls_filter-name = `F3`.
-    
+
     CLEAR temp75.
-    
+
     temp76-key = `=B`.
     temp76-text = `=B`.
     INSERT temp76 INTO TABLE temp75.
     ls_filter-t_token = temp75.
     INSERT ls_filter INTO TABLE lt_filter.
 
-    
+
     lt_result = z2ui5_cl_util=>filter_get_data_by_multi( lt_filter ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2 act = lines( lt_result ) ).
@@ -1825,14 +1825,14 @@ CLASS ltcl_unit_test_conversion IMPLEMENTATION.
     temp77-name = `test`.
     temp77-value = 42.
     temp77-flag = abap_true.
-    
+
     ls_in = temp77.
 
-    
+
     lv_json = z2ui5_cl_util=>json_stringify( ls_in ).
     cl_abap_unit_assert=>assert_not_initial( lv_json ).
 
-    
+
     z2ui5_cl_util=>json_parse( EXPORTING val = lv_json
                                 CHANGING data = ls_out ).
 
@@ -1858,7 +1858,7 @@ DATA lt_in TYPE temp3.
     DATA temp10 TYPE xsdboolean.
     DATA temp11 TYPE xsdboolean.
     CLEAR temp78.
-    
+
     temp79-col1 = `A`.
     temp79-col2 = `B`.
     INSERT temp79 INTO TABLE temp78.
@@ -1867,15 +1867,15 @@ DATA lt_in TYPE temp3.
     INSERT temp79 INTO TABLE temp78.
     lt_in = temp78.
 
-    
+
     lv_csv = z2ui5_cl_util=>itab_get_csv_by_itab( lt_in ).
     cl_abap_unit_assert=>assert_not_initial( lv_csv ).
 
-    
+
     temp10 = boolc( lv_csv CS `COL1` ).
     cl_abap_unit_assert=>assert_true(
       temp10 ).
-    
+
     temp11 = boolc( lv_csv CS `COL2` ).
     cl_abap_unit_assert=>assert_true(
       temp11 ).
@@ -1888,12 +1888,12 @@ DATA lt_in TYPE temp3.
     DATA lr_ref TYPE REF TO data.
     FIELD-SYMBOLS <any> TYPE any.
     lv_val = `test_value`.
-    
+
     lr_ref = z2ui5_cl_util=>conv_get_as_data_ref( lv_val ).
 
     cl_abap_unit_assert=>assert_bound( lr_ref ).
 
-    
+
     ASSIGN lr_ref->* TO <any>.
     cl_abap_unit_assert=>assert_equals( exp = `test_value`
                                         act = <any> ).
@@ -1914,7 +1914,7 @@ DATA lt_in TYPE temp3.
     DATA temp80 TYPE d.
     DATA lv_str TYPE string.
     temp80 = `20240315`.
-    
+
     lv_str = z2ui5_cl_util=>conv_date_to_string( temp80 ).
     cl_abap_unit_assert=>assert_equals( exp = `2024-03-15`
                                         act = lv_str ).
@@ -1927,9 +1927,9 @@ DATA lt_in TYPE temp3.
     DATA lv_date TYPE d.
     DATA lv_back TYPE string.
     lv_original = `2025-12-31`.
-    
+
     lv_date = z2ui5_cl_util=>conv_string_to_date( lv_original ).
-    
+
     lv_back = z2ui5_cl_util=>conv_date_to_string( lv_date ).
 
     cl_abap_unit_assert=>assert_equals( exp = lv_original
@@ -1959,14 +1959,14 @@ DATA lt_in TYPE temp3.
     CLEAR temp81.
     temp81-name = `test_name`.
     temp81-value = `test_value`.
-    
+
     ls_struc = temp81.
-    
+
     lt_nv = z2ui5_cl_util=>itab_get_by_struc( ls_struc ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2 act = lines( lt_nv ) ).
-    
-    
+
+
     temp83 = sy-tabix.
     READ TABLE lt_nv INDEX 1 INTO temp82.
     sy-tabix = temp83.
@@ -1974,8 +1974,8 @@ DATA lt_in TYPE temp3.
       ASSERT 1 = 0.
     ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `NAME`       act = temp82-n ).
-    
-    
+
+
     temp85 = sy-tabix.
     READ TABLE lt_nv INDEX 1 INTO temp84.
     sy-tabix = temp85.
@@ -1983,8 +1983,8 @@ DATA lt_in TYPE temp3.
       ASSERT 1 = 0.
     ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `test_name`  act = temp84-v ).
-    
-    
+
+
     temp87 = sy-tabix.
     READ TABLE lt_nv INDEX 2 INTO temp86.
     sy-tabix = temp87.
@@ -1992,8 +1992,8 @@ DATA lt_in TYPE temp3.
       ASSERT 1 = 0.
     ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `VALUE`      act = temp86-n ).
-    
-    
+
+
     temp89 = sy-tabix.
     READ TABLE lt_nv INDEX 2 INTO temp88.
     sy-tabix = temp89.
@@ -2009,7 +2009,7 @@ DATA lt_in TYPE temp3.
     DATA lv_time TYPE timestampl.
     DATA lv_later TYPE timestampl.
     lv_time = z2ui5_cl_util=>time_get_timestampl( ).
-    
+
     lv_later = z2ui5_cl_util=>time_add_seconds( time    = lv_time
                                                        seconds = 3600 ).
 
@@ -2027,11 +2027,11 @@ DATA lt_in TYPE temp3.
     DATA lv_later TYPE timestampl.
     DATA lv_diff TYPE i.
     lv_time = z2ui5_cl_util=>time_get_timestampl( ).
-    
+
     lv_later = z2ui5_cl_util=>time_add_seconds( time    = lv_time
                                                        seconds = 120 ).
 
-    
+
     lv_diff = z2ui5_cl_util=>time_diff_seconds( time_from = lv_time
                                                        time_to   = lv_later ).
 

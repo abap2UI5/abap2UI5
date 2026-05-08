@@ -128,14 +128,14 @@ CLASS z2ui5_cl_util_db IMPLEMENTATION.
         AND handle3 = handle3
        ##SUBRC_OK.
 
-    
+
     CLEAR temp1.
     temp1-uname = uname.
     temp1-handle = handle.
     temp1-handle2 = handle2.
     temp1-handle3 = handle3.
     temp1-data = z2ui5_cl_util=>xml_stringify( data ).
-    
+
     ls_db = temp1.
 
     IF lv_id IS NOT INITIAL.

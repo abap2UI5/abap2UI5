@@ -31,7 +31,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_image_editor.
     DATA ls_result TYPE z2ui5_cl_pop_image_editor=>t_result.
     lo_pop = z2ui5_cl_pop_image_editor=>factory( `test_img` ).
-    
+
     ls_result = lo_pop->result( ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_false

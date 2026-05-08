@@ -15,7 +15,7 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
       DATA view TYPE REF TO z2ui5_cl_xml_view.
 
     IF client->check_on_init( ) IS NOT INITIAL.
-      
+
       view = z2ui5_cl_xml_view=>factory(
         )->shell(
         )->page( `abap2UI5 - Hello World`

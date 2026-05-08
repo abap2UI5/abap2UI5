@@ -49,13 +49,13 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_xstring2 TYPE xstring.
     DATA lv_string3 TYPE string.
     lv_string   = `my string`.
-    
+
     lv_xstring  = z2ui5_cl_util_api_c=>conv_get_xstring_by_string( lv_string ).
-    
+
     lv_string2  = z2ui5_cl_util_api_c=>conv_encode_x_base64( lv_xstring ).
-    
+
     lv_xstring2 = z2ui5_cl_util_api_c=>conv_decode_x_base64( lv_string2 ).
-    
+
     lv_string3  = z2ui5_cl_util_api_c=>conv_get_string_by_xstring( lv_xstring2 ).
 
     cl_abap_unit_assert=>assert_equals( exp = lv_string
@@ -70,7 +70,7 @@ CLASS ltcl_test IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    
+
     ls_result = z2ui5_cl_util_api_c=>rtti_get_data_element_texts( `UNAME` ).
     IF z2ui5_CL_util=>context_check_abap_cloud( ) = abap_false.
       cl_abap_unit_assert=>assert_not_initial( ls_result ).
@@ -87,7 +87,7 @@ CLASS ltcl_test IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    
+
     mt_classes = z2ui5_cl_util_api_c=>rtti_get_classes_impl_intf( `IF_SERIALIZABLE_OBJECT`  ).
     cl_abap_unit_assert=>assert_not_initial( mt_classes ).
 

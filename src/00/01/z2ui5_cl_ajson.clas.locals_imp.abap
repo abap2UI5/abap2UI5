@@ -471,9 +471,9 @@ CLASS lcl_json_parser IMPLEMENTATION.
 
       CASE lo_node->type.
         WHEN if_sxml_node=>co_nt_element_open.
-          
-          
-          
+
+
+
           lo_open ?= lo_node.
 
           APPEND INITIAL LINE TO rt_json_tree ASSIGNING <item>.
@@ -515,7 +515,7 @@ CLASS lcl_json_parser IMPLEMENTATION.
             && '/'.
 
         WHEN if_sxml_node=>co_nt_element_close.
-          
+
           lo_close ?= lo_node.
 
           READ TABLE mt_stack INDEX 1 INTO lr_stack_top.
@@ -528,7 +528,7 @@ CLASS lcl_json_parser IMPLEMENTATION.
           mv_stack_path = substring( val = mv_stack_path
                                      len = find( val = mv_stack_path sub = '/' occ = -2 ) + 1 ).
         WHEN if_sxml_node=>co_nt_value.
-          
+
           lo_value ?= lo_node.
 
           <item>-value = lo_value->get_value( ).
@@ -694,8 +694,8 @@ CLASS lcl_json_serializer IMPLEMENTATION.
     " finish complex item
 
     IF is_node-type = z2ui5_if_ajson_types=>node_type-array OR is_node-type = z2ui5_if_ajson_types=>node_type-object.
-      
-      
+
+
 
       lv_children_path = is_node-path && is_node-name && '/'. " for root: path = '' and name = '', so result is '/'
 

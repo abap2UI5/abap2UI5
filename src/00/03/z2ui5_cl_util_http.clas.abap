@@ -88,13 +88,13 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
       DATA object TYPE REF TO object.
       FIELD-SYMBOLS <any> TYPE any.
     temp1 = val.
-    
+
     lv_val = temp1.
 
     IF mo_server_onprem IS BOUND.
 
-      
-      
+
+
 
       ASSIGN mo_server_onprem->(`RESPONSE`) TO <any>.
       object = <any>.
@@ -121,7 +121,7 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
     DATA temp2 TYPE string.
     DATA lv_val LIKE temp2.
     temp2 = val.
-    
+
     lv_val = temp2.
 
     IF mo_server_onprem IS BOUND.
@@ -155,7 +155,7 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
     DATA temp3 TYPE string.
     DATA lv_val LIKE temp3.
     temp3 = val.
-    
+
     lv_val = temp3.
 
     IF mo_server_onprem IS BOUND.
@@ -191,11 +191,11 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
     DATA temp5 TYPE string.
     DATA lv_v LIKE temp5.
     temp4 = n.
-    
+
     lv_n = temp4.
-    
+
     temp5 = v.
-    
+
     lv_v = temp5.
     IF mo_server_onprem IS BOUND.
 
@@ -313,7 +313,7 @@ CLASS z2ui5_cl_util_http IMPLEMENTATION.
     DATA temp6 TYPE string.
     DATA lv_reason LIKE temp6.
     temp6 = reason.
-    
+
     lv_reason = temp6.
 
     IF mo_server_onprem IS BOUND.

@@ -150,7 +150,7 @@ CLASS z2ui5_cl_util_log IMPLEMENTATION.
     DATA temp1 TYPE xsdboolean.
     READ TABLE mt_log WITH KEY type = `E` TRANSPORTING NO FIELDS.
     temp19 = sy-subrc.
-    
+
     temp1 = boolc( temp19 = 0 ).
     result = temp1.
 

@@ -114,12 +114,12 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     DATA temp2 LIKE LINE OF ls_config-t_add_config.
     DATA lr_config LIKE REF TO temp2.
     CLEAR temp1.
-    
+
     ls_config = temp1.
     z2ui5_cl_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
 
     IF ls_config-styles_css IS INITIAL.
-      
+
       lv_style_css = z2ui5_cl_app_style_css=>get( ).
     ELSE.
       lv_style_css = ls_config-styles_css.
@@ -160,8 +160,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                  |data-sap-ui-compatVersion="edge" data-sap-ui-async="true" data-sap-ui-frameOptions="trusted" data-sap-ui-bindingSyntax="complex"| && |\n| &&
                  |data-sap-ui-theme="{ ls_config-theme  }" src=" { ls_config-src }"   |.
 
-    
-    
+
+
     LOOP AT ls_config-t_add_config REFERENCE INTO lr_config.
       result-body = |{ result-body } { lr_config->n }='{ lr_config->v }'|.
     ENDLOOP.
@@ -196,13 +196,13 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     mo_server->set_cdata( ms_res-body ).
 
-    
+
     CLEAR temp3.
-    
+
     ls_config = temp3.
     z2ui5_cl_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
 
-    
+
     LOOP AT ls_config-t_security_header INTO ls_header.
       mo_server->set_header_field( n = ls_header-n
                                    v = ls_header-v ).
@@ -215,7 +215,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     IF ms_res-s_stateful-switched = abap_true.
       mo_server->set_session_stateful( ms_res-s_stateful-active ).
       IF mo_server->get_header_field( `sap-contextid-accept` ) = `header`.
-        
+
         lv_contextid = mo_server->get_response_cookie( `sap-contextid` ).
         IF lv_contextid IS NOT INITIAL.
           mo_server->delete_response_cookie( `sap-contextid` ).
@@ -241,7 +241,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     TRY.
 
         IF so_sticky_handler IS NOT BOUND.
-          
+
           CREATE OBJECT lo_post TYPE z2ui5_cl_core_handler EXPORTING VAL = is_req-body.
         ELSE.
           lo_post = so_sticky_handler.
@@ -252,9 +252,9 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
         TRY.
             IF lo_post IS BOUND.
-              
+
               temp4 ?= lo_post->mo_action->mo_app->mo_app.
-              
+
               li_app = temp4.
               IF li_app->check_sticky = abap_true.
                 so_sticky_handler = lo_post.
@@ -265,7 +265,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
           CATCH cx_root ##NO_HANDLER.
         ENDTRY.
 
-        
+
       CATCH cx_root INTO x.
 
         CLEAR result.

@@ -185,7 +185,7 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
 
-    
+
     lt_act = mo_cut->parse( '{"string": "abc"}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -197,7 +197,7 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |number   |num    |123                     |  |0' ).
 
-    
+
     lt_act = mo_cut->parse( '{"number": 123}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -209,7 +209,7 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |float    |num    |123.45                  |  |0' ).
 
-    
+
     CREATE OBJECT mo_cut.
     lt_act = mo_cut->parse( '{"float": 123.45}' ).
     cl_abap_unit_assert=>assert_equals(
@@ -222,7 +222,7 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |boolean  |bool   |true                    |  |0' ).
 
-    
+
     lt_act = mo_cut->parse( '{"boolean": true}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -234,7 +234,7 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |false    |bool   |false                   |  |0' ).
 
-    
+
     lt_act = mo_cut->parse( '{"false": false}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -246,7 +246,7 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |null     |null   |                        |  |0' ).
 
-    
+
     lt_act = mo_cut->parse( '{"null": null}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -258,7 +258,7 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |date     |str    |2020-03-15              |  |0' ).
 
-    
+
     lt_act = mo_cut->parse( '{"date": "2020-03-15"}' ).
     cl_abap_unit_assert=>assert_equals(
       act = lt_act
@@ -271,8 +271,8 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
 
-    
-    
+
+
 
     lv_xstr = '7B22737472696E67223A2022616263227D0A'.
     lt_act = mo_cut->parse( lv_xstr ).
@@ -287,8 +287,8 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     mo_nodes->add( '                 |         |object |                        |  |1' ).
     mo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
 
-    
-    
+
+
 
     lv_str = `{"string": "abc"}`.
     lt_act = mo_cut->parse( lv_str ).
@@ -304,8 +304,8 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     mo_nodes->add( '/                |string   |str    |abc                     |  |0' ).
     mo_nodes->add( '/                |number   |num    |123                     |  |0' ).
 
-    
-    
+
+
 
     INSERT `{` INTO TABLE lt_json.
     INSERT `"string": "abc",` INTO TABLE lt_json.
@@ -545,8 +545,8 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     mo_nodes->add( |/                \|with\ttab        \|num    \|6                       \|  \|0| ).
     mo_nodes->add( |/                \|one/two/slash    \|num    \|7                       \|  \|0| ).
 
-    
-    
+
+
 
     lv_str = '{ "a\\backslash": 1, "contains/slash": 2,'
           && ' "quoted\"text\"": 4, "line\nfeed": 5, "with\ttab": 6,'
@@ -576,8 +576,8 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     mo_nodes->add( |/                \|one/two/slash    \|object \|                        \|  \|1| ).
     mo_nodes->add( |/one\ttwo\tslash/\|g                \|num    \|7                       \|  \|0| ). " tab!
 
-    
-    
+
+
 
     lv_str = '{ "a\\backslash": { "a": 1 }, "contains/slash": { "b": 2 },'
           && ' "quoted\"text\"": { "d": 4 },'
@@ -602,8 +602,8 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     mo_nodes->add( |/                \|f                \|str    \|with\ttab               \|  \|0| ).
     mo_nodes->add( |/                \|g                \|str    \|one/two/slash           \|  \|0| ).
 
-    
-    
+
+
 
     lv_str = '{ "a": "a\\backslash", "b": "contains/slash",'
           && ' "d": "quoted\"text\"", "e": "line\nfeed", "f": "with\ttab",'
@@ -624,7 +624,7 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     DATA lv_str TYPE string.
 
     TRY.
-        
+
         lv_fm_name = `CL_ABAP_CONV_IN_CE`.
         CALL METHOD (lv_fm_name)=>uccpi
         EXPORTING
@@ -644,8 +644,8 @@ CLASS ltcl_parser_test IMPLEMENTATION.
     " in value
     mo_nodes->add( |/                \|c                \|str    \|unicode{ lv_uchar }                \|  \|0| ).
 
-    
-    
+
+
 
     lv_str = '{ "unicode\u1234": 3,'
           && ' "unicode\u1234": { "c": 3 }, '
@@ -1591,7 +1591,7 @@ CLASS ltcl_reader_test IMPLEMENTATION.
       exp = lt_exp ).
 
     " negative
-    
+
 
     CREATE OBJECT lo_nodes.
     lo_nodes->add( '  |         |object |                        | |1' ).
@@ -1900,7 +1900,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
       act = lv_mock
       exp = '111111' ).
 
-    
+
 
     CREATE OBJECT lo_nodes.
     lo_nodes->add( '       |           |str    || ' ).
@@ -2085,7 +2085,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
       CHANGING
         c_container = ls_mock ).
 
-    
+
     ls_elem-a = 'One'.
     APPEND ls_elem TO ls_exp-tab.
     ls_elem-a = 'Two'.
@@ -2178,7 +2178,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
       CHANGING
         c_container = lt_mock ).
 
-    
+
     ls_elem-a = 'One'.
     ls_elem-b = 1.
     INSERT ls_elem INTO TABLE lt_exp.
@@ -2216,7 +2216,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
       CHANGING
         c_container = lt_mock ).
 
-    
+
     ls_elem-a = 'One'.
     ls_elem-b = 1.
     INSERT ls_elem INTO TABLE lt_exp.
@@ -2242,7 +2242,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
 
     CREATE OBJECT lo_cut.
 
-    
+
 
     TRY.
         CREATE OBJECT lo_nodes.
@@ -2330,7 +2330,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        
+
         CREATE OBJECT lo_nodes.
         lo_nodes->add( '      |     |array  |      | ' ).
         lo_nodes->add( '/     |a    |str    |hello |1' ).
@@ -2348,7 +2348,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        
+
         CREATE OBJECT lo_nodes.
         lo_nodes->add( '      |     |str  |hello      | ' ).
 
@@ -2365,7 +2365,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        
+
         CREATE OBJECT lo_nodes.
         lo_nodes->add( '            |           |array  |                          | ' ).
         lo_nodes->add( '/           |1          |str    |One                       |1' ).
@@ -3269,7 +3269,7 @@ DATA END OF ls_dummy.
     lo_nodes_exp->add( '/a/     |2     |object |     |2|1' ).
     lo_nodes_exp->add( '/a/2/   |x     |str    |world| |0' ).
 
-    
+
 
     li_writer->push(
       iv_path = '/a'
@@ -3335,7 +3335,7 @@ DATA END OF ls_dummy.
       iv_val = 123 ).
 
     " touch another node
-    
+
     TRY.
         li_writer->touch_array( iv_path = '/a/1' ).
         cl_abap_unit_assert=>fail( ).
@@ -4228,7 +4228,7 @@ CLASS ltcl_integrated IMPLEMENTATION.
     ENDDO.
     lv_src = lv_src && ']'.
 
-    
+
     li_reader = z2ui5_cl_ajson=>parse( lv_src ).
     li_reader->to_abap( IMPORTING ev_container = lt_act ).
 
@@ -4257,7 +4257,7 @@ CLASS ltcl_integrated IMPLEMENTATION.
     ENDDO.
     lv_src = lv_src && ']'.
 
-    
+
     li_reader = z2ui5_cl_ajson=>parse( lv_src ).
     li_reader->to_abap( IMPORTING ev_container = lt_act ).
 
@@ -4282,9 +4282,9 @@ CLASS ltcl_integrated IMPLEMENTATION.
       act = li_reader->get( '/string' )
       exp = 'abc' ).
 
-    
-    
-    
+
+
+
 
     ls_exp-string = 'abc'.
     ls_exp-number = 123.
@@ -4608,7 +4608,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
     lo_nodes->add( '/a/b/   |c     |object |     ||0' ).
     lo_src->mt_json_tree = lo_nodes->mt_nodes.
 
-    
+
     lt_nodes = lcl_abap_to_json=>convert( iv_data = lo_src ).
 
     cl_abap_unit_assert=>assert_equals(
@@ -4969,7 +4969,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
       act = lt_nodes
       exp = lo_nodes_exp->mt_nodes ).
 
-    
+
     APPEND 'abc' TO lt_strtab.
     APPEND 'bcd' TO lt_strtab.
 

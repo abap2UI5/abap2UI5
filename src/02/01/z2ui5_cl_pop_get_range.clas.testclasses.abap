@@ -32,17 +32,17 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_get_range.
     DATA ls_result TYPE z2ui5_cl_pop_get_range=>ty_s_result.
     CLEAR temp1.
-    
+
     temp2-sign = `I`.
     temp2-option = `EQ`.
     temp2-low = `100`.
     INSERT temp2 INTO TABLE temp1.
-    
+
     lt_range = temp1.
 
-    
+
     lo_pop = z2ui5_cl_pop_get_range=>factory( lt_range ).
-    
+
     ls_result = lo_pop->result( ).
 
     cl_abap_unit_assert=>assert_false( ls_result-check_confirmed ).
@@ -55,7 +55,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_get_range.
     DATA ls_result TYPE z2ui5_cl_pop_get_range=>ty_s_result.
     lo_pop = z2ui5_cl_pop_get_range=>factory( ).
-    
+
     ls_result = lo_pop->result( ).
     cl_abap_unit_assert=>assert_false( ls_result-check_confirmed ).
 
@@ -69,7 +69,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_get_range.
     DATA ls_result TYPE z2ui5_cl_pop_get_range=>ty_s_result.
     CLEAR temp3.
-    
+
     temp4-sign = `I`.
     temp4-option = `EQ`.
     temp4-low = `100`.
@@ -79,12 +79,12 @@ CLASS ltcl_test IMPLEMENTATION.
     temp4-low = `200`.
     temp4-high = `300`.
     INSERT temp4 INTO TABLE temp3.
-    
+
     lt_range = temp3.
 
-    
+
     lo_pop = z2ui5_cl_pop_get_range=>factory( lt_range ).
-    
+
     ls_result = lo_pop->result( ).
 
     " factory appends one empty row to the range for new entries
@@ -98,7 +98,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_get_range.
     DATA ls_result TYPE z2ui5_cl_pop_get_range=>ty_s_result.
     lo_pop = z2ui5_cl_pop_get_range=>factory( ).
-    
+
     ls_result = lo_pop->result( ).
 
     " factory always inserts one empty row even for empty input
@@ -115,7 +115,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_get_range.
     DATA ls_result TYPE z2ui5_cl_pop_get_range=>ty_s_result.
     CLEAR temp5.
-    
+
     temp6-sign = `I`.
     temp6-option = `EQ`.
     temp6-low = `A`.
@@ -128,12 +128,12 @@ CLASS ltcl_test IMPLEMENTATION.
     temp6-option = `GE`.
     temp6-low = `C`.
     INSERT temp6 INTO TABLE temp5.
-    
+
     lt_range = temp5.
 
-    
+
     lo_pop = z2ui5_cl_pop_get_range=>factory( lt_range ).
-    
+
     ls_result = lo_pop->result( ).
 
     " 3 input rows + 1 empty row appended by factory

@@ -119,20 +119,20 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     READ TABLE mt_attri->* WITH KEY view = view TRANSPORTING NO FIELDS.
     temp202 = sy-subrc.
     IF temp202 = 0.       "#EC CI_SORTSEQ
-      
+
       lv_view = view.
     ELSE.
       lv_view = z2ui5_if_client=>cs_view-main.
     ENDIF.
 
-    
-    
+
+
     LOOP AT mt_attri->* REFERENCE INTO lr_attri
          WHERE bind_type = z2ui5_if_core_types=>cs_bind_type-two_way "#EC CI_SORTSEQ
                AND view      = lv_view.
       TRY.
 
-          
+
           lo_val_front = model->slice( lr_attri->name_client ).
           IF lo_val_front IS NOT BOUND.
             CONTINUE.
@@ -153,19 +153,19 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
           ENDIF.
 
           TRY.
-              
+
               lr_ref = attri_get_val_ref( lr_attri->name ).
             CATCH cx_root.
               CONTINUE.
           ENDTRY.
 
-          
+
           ASSIGN lr_ref->* TO <val>.
 
           lo_val_front->to_abap( EXPORTING iv_corresponding = abap_true
                                  IMPORTING ev_container     = <val> ).
 
-          
+
         CATCH cx_root INTO x.
           RAISE EXCEPTION TYPE z2ui5_cx_util_error
             EXPORTING
@@ -198,39 +198,39 @@ TYPES END OF ty_s_mapper_cache.
         DATA x TYPE REF TO cx_root.
     TRY.
 
-        
+
         temp204 ?= z2ui5_cl_ajson=>create_empty( ).
-        
+
         ajson_result = temp204.
-        
+
         lo_upper_mapper = z2ui5_cl_ajson_mapping=>create_upper_case( ).
-        
+
         temp205 ?= z2ui5_cl_ajson=>create_empty( ii_custom_mapping = lo_upper_mapper ).
-        
+
         ajson_default = temp205.
 
-        
-        
 
-        
-        
+
+
+
+
         LOOP AT mt_attri->* REFERENCE INTO lr_attri "#EC CI_SORTSEQ
              WHERE bind_type <> ``
                    AND type_kind <> cl_abap_datadescr=>typekind_dref
                    AND type_kind <> cl_abap_datadescr=>typekind_oref.
 
           IF lr_attri->custom_mapper IS BOUND.
-            
+
             READ TABLE lt_mapper_cache REFERENCE INTO lr_mapper_cache
                  WITH KEY mapper = lr_attri->custom_mapper. "#EC CI_SORTSEQ
             IF sy-subrc = 0.
-              
+
               ajson = lr_mapper_cache->ajson.
             ELSE.
-              
+
               temp207 ?= z2ui5_cl_ajson=>create_empty( ii_custom_mapping = lr_attri->custom_mapper ).
               ajson = temp207.
-              
+
               CLEAR temp208.
               temp208-mapper = lr_attri->custom_mapper.
               temp208-ajson = ajson.
@@ -241,13 +241,13 @@ TYPES END OF ty_s_mapper_cache.
           ENDIF.
 
           TRY.
-              
+
               lr_ref = attri_get_val_ref( lr_attri->name ).
             CATCH cx_root.
               CONTINUE.
           ENDTRY.
 
-          
+
           ASSIGN lr_ref->* TO <val>.
 
           ajson->set( iv_ignore_empty = abap_false
@@ -263,7 +263,7 @@ TYPES END OF ty_s_mapper_cache.
         ENDLOOP.
 
         result = ajson_result->stringify( ).
-        
+
         IF result IS INITIAL.
           temp209 = `{}`.
         ELSE.
@@ -271,7 +271,7 @@ TYPES END OF ty_s_mapper_cache.
         ENDIF.
         result = temp209.
 
-        
+
       CATCH cx_root INTO x.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
           EXPORTING
@@ -290,27 +290,27 @@ TYPES END OF ty_s_mapper_cache.
 
     main_attri_db_load_resolve( ).
 
-    
-    
-    
+
+
+
     LOOP AT mt_attri->* REFERENCE INTO lr_pre     "#EC CI_SORTSEQ
          WHERE name_parent IS NOT INITIAL.
-      
+
       CLEAR temp211.
       temp211-name_parent = lr_pre->name_parent.
       temp211-name = lr_pre->name.
       INSERT temp211 INTO TABLE lt_child_idx.
     ENDLOOP.
 
-    
-    
+
+
     LOOP AT mt_attri->* REFERENCE INTO lr_attri   "#EC CI_SORTSEQ
          WHERE name_ref IS NOT INITIAL.
       CASE lr_attri->type_kind.
         WHEN cl_abap_datadescr=>typekind_table.
           main_attri_db_load_table( lr_attri ).
         WHEN cl_abap_datadescr=>typekind_dref.
-          
+
           GET REFERENCE OF lt_child_idx INTO temp213.
 main_attri_db_load_dref( ir_attri     = lr_attri
                                    ir_child_idx = temp213 ).
@@ -328,11 +328,11 @@ main_attri_db_load_dref( ir_attri     = lr_attri
     LOOP AT mt_attri->* REFERENCE INTO lr_attri   "#EC CI_SORTSEQ
          WHERE name_ref IS INITIAL.
       TRY.
-          
+
           lr_ref = attri_get_val_ref( lr_attri->name ).
           lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref ).
           IF lr_attri->srtti_data IS NOT INITIAL.
-            
+
             ASSIGN lr_ref->* TO <val>.
             <val> = z2ui5_cl_util=>xml_srtti_parse( lr_attri->srtti_data ).
             CLEAR lr_attri->srtti_data.
@@ -354,26 +354,26 @@ main_attri_db_load_dref( ir_attri     = lr_attri
     lr_ref_source = attri_get_val_ref( ir_attri->name_ref ).
     ir_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref_source ).
 
-    
+
     READ TABLE mt_attri->* REFERENCE INTO lr_attri_parent
          WITH KEY name = ir_attri->name_parent.
     IF sy-subrc <> 0.
       RETURN.
     ENDIF.
 
-    
+
     lv_parent_path = |MO_APP->{ lr_attri_parent->name }|.
-    
+
     ASSIGN (lv_parent_path) TO <parent_ref>.
     IF sy-subrc <> 0.
       RETURN.
     ENDIF.
 
-    
+
     ASSIGN lr_ref_source->* TO <source_value>.
     GET REFERENCE OF <source_value> INTO <parent_ref>.
 
-    
+
 GET REFERENCE OF <parent_ref> INTO lr_ref_parent.
     lr_attri_parent->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref_parent ).
 
@@ -390,15 +390,15 @@ GET REFERENCE OF <parent_ref> INTO lr_ref_parent.
       DATA lr_child TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
       DATA lr_child_ref TYPE REF TO data.
     lv_source_path = |MO_APP->{ ir_attri->name_ref }|.
-    
+
     ASSIGN (lv_source_path) TO <source_ref>.
     IF sy-subrc <> 0.
       RETURN.
     ENDIF.
 
-    
+
     lv_target_path = |MO_APP->{ ir_attri->name }|.
-    
+
     ASSIGN (lv_target_path) TO <parent_ref>.
     IF sy-subrc <> 0.
       RETURN.
@@ -406,17 +406,17 @@ GET REFERENCE OF <parent_ref> INTO lr_ref_parent.
     GET REFERENCE OF <source_ref> INTO <parent_ref>.
     ir_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( <parent_ref> ).
 
-    
-    
+
+
     LOOP AT ir_child_idx->* REFERENCE INTO lr_child_idx
          WHERE name_parent = ir_attri->name.
-      
+
       READ TABLE mt_attri->* REFERENCE INTO lr_child
            WITH KEY name = lr_child_idx->name.
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      
+
       lr_child_ref = attri_get_val_ref( lr_child->name ).
       lr_child->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_child_ref ).
     ENDLOOP.
@@ -444,43 +444,43 @@ GET REFERENCE OF <parent_ref> INTO lr_ref_parent.
 
     dissolve( ).
 
-    
-    
+
+
     LOOP AT mt_attri->* REFERENCE INTO lr_attri   "#EC CI_SORTSEQ
          WHERE name_ref  IS INITIAL
                AND type_kind  = cl_abap_datadescr=>typekind_dref.
 
-      
+
       lv_name5 = |MO_APP->{ lr_attri->name }|.
-      
+
       ASSIGN (lv_name5) TO <ref>.
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      
+
       lv_name = |MO_APP->{ lr_attri->name }->*|.
-      
+
       ASSIGN (lv_name) TO <val1>.
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      
+
       lo_descr = cl_abap_datadescr=>describe_by_data( <val1> ).
 
       CASE lo_descr->type_kind.
 
         WHEN cl_abap_datadescr=>typekind_table.
 
-          
-          
+
+
           LOOP AT mt_attri->* REFERENCE INTO lr_attri_child "#EC CI_SORTSEQ
                WHERE name_ref    IS INITIAL
                      AND type_kind    = cl_abap_datadescr=>typekind_table
                      AND name_parent  = lr_attri->name.
 
-            
+
             lv_name6 = |MO_APP->{ lr_attri_child->name }|.
-            
+
             ASSIGN (lv_name6) TO <val_ref>.
             IF sy-subrc <> 0.
               CONTINUE.
@@ -499,14 +499,14 @@ GET REFERENCE OF <parent_ref> INTO lr_ref_parent.
 
     ENDLOOP.
 
-    
-    
+
+
     LOOP AT mt_attri->* REFERENCE INTO lr_attri2  "#EC CI_SORTSEQ
          WHERE type_kind = cl_abap_datadescr=>typekind_dref.
 
-      
+
       lv_name8 = |MO_APP->{ lr_attri2->name }|.
-      
+
       ASSIGN (lv_name8) TO <ref2>.
       IF sy-subrc <> 0.
         CONTINUE.
@@ -517,9 +517,9 @@ GET REFERENCE OF <parent_ref> INTO lr_ref_parent.
         CONTINUE.
       ENDIF.
 
-      
+
       lv_name10 = |MO_APP->{ lr_attri2->name }->*|.
-      
+
       ASSIGN (lv_name10) TO <val8>.
       IF sy-subrc <> 0.
         CONTINUE.
@@ -562,7 +562,7 @@ GET REFERENCE OF <parent_ref> INTO lr_ref_parent.
     IF iv_path IS INITIAL.
       ASSIGN mo_app TO <attri>.
     ELSE.
-      
+
       lv_name = |MO_APP->{ iv_path }|.
       ASSIGN (lv_name) TO <attri>.
     ENDIF.
@@ -604,8 +604,8 @@ GET REFERENCE OF <parent_ref> INTO lr_ref_parent.
           val = |NO DATA REFERENCES FOR BINDING ALLOWED: DEREFERENCE YOUR DATA FIRST|.
     ENDIF.
 
-    
-    
+
+
     LOOP AT mt_attri->* REFERENCE INTO lr_attri   "#EC CI_SORTSEQ
          WHERE name_ref  IS INITIAL
                AND type_kind  = lo_datadescr->type_kind
@@ -616,7 +616,7 @@ GET REFERENCE OF <parent_ref> INTO lr_ref_parent.
       ENDIF.
 
       TRY.
-          
+
           lr_ref = attri_get_val_ref( lr_attri->name ).
         CATCH cx_root.
           CONTINUE.
@@ -635,7 +635,7 @@ GET REFERENCE OF <parent_ref> INTO lr_ref_parent.
     DATA lo_descr TYPE REF TO cl_abap_typedescr.
     DATA temp220 TYPE z2ui5_if_core_types=>ty_s_attri.
     lo_descr = cl_abap_datadescr=>describe_by_data_ref( attri_get_val_ref( name ) ).
-    
+
     CLEAR temp220.
     temp220-name = name.
     temp220-o_typedescr = lo_descr.
@@ -658,22 +658,22 @@ GET REFERENCE OF <parent_ref> INTO lr_ref_parent.
       RETURN.
     ENDIF.
 
-    
+
     lr_ref = z2ui5_cl_util=>unassign_data( lr_ref_tmp ).
     IF lr_ref IS INITIAL.
       RETURN.
     ENDIF.
 
-    
+
     CLEAR temp221.
-    
+
     ls_attri2 = temp221.
     ls_attri2-o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref ).
 
     CASE ls_attri2-o_typedescr->kind.
 
       WHEN cl_abap_datadescr=>kind_struct.
-        
+
         lt_attri = diss_struc( ir_attri ).
         INSERT LINES OF lt_attri INTO TABLE result.
 
@@ -705,28 +705,28 @@ GET REFERENCE OF <parent_ref> INTO lr_ref_parent.
       RETURN.
     ENDIF.
 
-    
+
     lr_ref = z2ui5_cl_util=>unassign_object( lr_val ).
-    
+
     lt_attri = z2ui5_cl_util=>rtti_get_t_attri_by_oref( lr_ref ).
 
-    
-    
+
+
     LOOP AT lt_attri REFERENCE INTO lr_attri
          WHERE visibility   = cl_abap_objectdescr=>public
                AND is_interface = abap_false
                AND is_class     = abap_false
                AND is_constant  = abap_false.
       TRY.
-          
+
           IF ir_attri->name IS NOT INITIAL.
             temp223 = |{ ir_attri->name }->|.
           ELSE.
             CLEAR temp223.
           ENDIF.
-          
+
           lv_name = temp223 && lr_attri->name.
-          
+
           ls_new = attri_create_new( lv_name ).
           ls_new-name_parent = ir_attri->name.
           INSERT ls_new INTO TABLE result.
@@ -748,9 +748,9 @@ GET REFERENCE OF <parent_ref> INTO lr_ref_parent.
     lr_val = attri_get_val_ref( ir_attri->name ).
 
     IF ir_attri->o_typedescr->kind = cl_abap_typedescr=>kind_ref.
-      
+
       lv_name = |{ ir_attri->name }->|.
-      
+
       lr_ref = z2ui5_cl_util=>unassign_data( lr_val ).
     ELSE.
       lv_name = |{ ir_attri->name }-|.
@@ -758,12 +758,12 @@ GET REFERENCE OF <parent_ref> INTO lr_ref_parent.
     ENDIF.
 
     IF lr_ref IS BOUND.
-      
+
       lt_attri = z2ui5_cl_util=>rtti_get_t_attri_by_any( lr_ref ).
 
-      
+
       LOOP AT lt_attri INTO ls_attri.
-        
+
         ls_new = attri_create_new( lv_name && ls_attri-name ).
         ls_new-name_parent = ir_attri->name.
         INSERT ls_new INTO TABLE result.
@@ -808,7 +808,7 @@ GET REFERENCE OF <parent_ref> INTO lr_ref_parent.
                AND name_ref        IS INITIAL.
 
       TRY.
-          
+
           lr_ref = attri_get_val_ref( lr_attri->name ).
         CATCH cx_root.
           CONTINUE.
@@ -818,8 +818,8 @@ GET REFERENCE OF <parent_ref> INTO lr_ref_parent.
 
         WHEN cl_abap_typedescr=>typekind_table.
 
-          
-          
+
+
           LOOP AT mt_attri->* REFERENCE INTO lr_attri_ref "#EC CI_SORTSEQ
                WHERE check_dissolved  = abap_true
                      AND name            <> lr_attri->name
@@ -827,7 +827,7 @@ GET REFERENCE OF <parent_ref> INTO lr_ref_parent.
                      AND type_kind        = cl_abap_typedescr=>typekind_table.
 
             TRY.
-                
+
                 lr_attri_ref_ref = attri_get_val_ref( lr_attri_ref->name ).
               CATCH cx_root.
                 CONTINUE.
@@ -842,7 +842,7 @@ GET REFERENCE OF <parent_ref> INTO lr_ref_parent.
 
         WHEN cl_abap_typedescr=>typekind_dref.
 
-          
+
           ASSIGN lr_ref->* TO <ref>.
 
           LOOP AT mt_attri->* REFERENCE INTO lr_attri_ref "#EC CI_SORTSEQ
@@ -883,7 +883,7 @@ GET REFERENCE OF <parent_ref> INTO lr_ref_parent.
       DATA lv_name TYPE string.
     LOOP AT mt_attri->* REFERENCE INTO lr_attri_child "#EC CI_SORTSEQ
          WHERE name_parent = ir_attri->name.
-      
+
       lv_name = shift_left( val = lr_attri_child->name
                                   sub = |{ ir_attri->name }->| ).
       lr_attri_child->name_ref = |{ ir_attri->name_ref }-{ lv_name }|.
@@ -906,31 +906,31 @@ DATA lt_init TYPE z2ui5_if_core_types=>ty_t_attri.
               DATA lt_attri_dref TYPE z2ui5_if_core_types=>ty_t_attri.
 
     IF mt_attri->* IS INITIAL.
-      
+
       CLEAR temp228.
-      
+
       ls_attri = temp228.
-      
+
       GET REFERENCE OF ls_attri INTO temp229.
 
 lt_init = diss_oref( temp229 ).
       INSERT LINES OF lt_init INTO TABLE mt_attri->*.
     ENDIF.
 
-    
+
     CLEAR temp230.
-    
+
     lt_attri_new = temp230.
 
-    
-    
+
+
     LOOP AT mt_attri->* REFERENCE INTO lr_attri   "#EC CI_SORTSEQ
          WHERE check_dissolved = abap_false.
 
       lr_attri->check_dissolved = abap_true.
 
       IF lr_attri->o_typedescr IS NOT BOUND.
-        
+
         ls_entry = attri_create_new( lr_attri->name ).
         lr_attri->o_typedescr = ls_entry-o_typedescr.
       ENDIF.
@@ -938,7 +938,7 @@ lt_init = diss_oref( temp229 ).
       CASE lr_attri->o_typedescr->kind.
 
         WHEN cl_abap_typedescr=>kind_struct.
-          
+
           lt_attri_struc = diss_struc( lr_attri ).
           INSERT LINES OF lt_attri_struc INTO TABLE lt_attri_new.
 
@@ -947,11 +947,11 @@ lt_init = diss_oref( temp229 ).
           CASE lr_attri->o_typedescr->type_kind.
 
             WHEN cl_abap_typedescr=>typekind_oref.
-              
+
               lt_attri_oref = diss_oref( lr_attri ).
               INSERT LINES OF lt_attri_oref INTO TABLE lt_attri_new.
             WHEN cl_abap_typedescr=>typekind_dref.
-              
+
               lt_attri_dref = diss_dref( lr_attri ).
               INSERT LINES OF lt_attri_dref INTO TABLE lt_attri_new.
             WHEN OTHERS.
@@ -978,10 +978,10 @@ lt_init = diss_oref( temp229 ).
 
     dissolve( ).
 
-    
-    
+
+
     LOOP AT mt_attri->* REFERENCE INTO lr_attri.
-      
+
       READ TABLE lt_attri REFERENCE INTO lr_old WITH KEY name = lr_attri->name. "#EC CI_SORTSEQ
       IF sy-subrc = 0.
         lr_attri->bind_type   = lr_old->bind_type.
@@ -1007,40 +1007,40 @@ lt_init = diss_oref( temp229 ).
         FIELD-SYMBOLS <comp> TYPE any.
 
     TRY.
-        
+
         lr_ref_d = attri_get_val_ref( iv_name ).
       CATCH cx_root.
         RETURN.
     ENDTRY.
 
-    
+
     ASSIGN lr_ref_d->* TO <delta_tab>.
     IF sy-subrc <> 0.
       RETURN.
     ENDIF.
 
-    
+
     lo_delta = io_val_front->slice( `/__delta` ).
-    
+
     lt_idx = lo_delta->members( `/` ).
-    
+
     LOOP AT lt_idx INTO lv_idx_str.
-      
+
       temp233 = lv_idx_str.
-      
+
       lv_tabix = temp233 + 1.
-      
+
       READ TABLE <delta_tab> INDEX lv_tabix ASSIGNING <delta_row>.
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      
+
       lo_row_d = lo_delta->slice( |/{ lv_idx_str }| ).
-      
+
       lt_fld = lo_row_d->members( `/` ).
-      
+
       LOOP AT lt_fld INTO lv_fld.
-        
+
         ASSIGN COMPONENT lv_fld OF STRUCTURE <delta_row> TO <comp>.
         IF sy-subrc <> 0.
           CONTINUE.

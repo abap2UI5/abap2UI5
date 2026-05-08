@@ -33,7 +33,7 @@ CLASS ltcl_test IMPLEMENTATION.
       i_title          = `My Editor`
       i_check_editable = abap_true ).
 
-    
+
     ls_result = lo_pop->result( ).
     cl_abap_unit_assert=>assert_equals( exp = `Some initial text`
                                         act = ls_result-text ).
@@ -46,7 +46,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_textedit.
     DATA ls_result TYPE z2ui5_cl_pop_textedit=>ty_s_result.
     lo_pop = z2ui5_cl_pop_textedit=>factory( ).
-    
+
     ls_result = lo_pop->result( ).
     cl_abap_unit_assert=>assert_false( ls_result-check_confirmed ).
 
@@ -74,7 +74,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_true( lo_pop->mv_check_editable ).
 
-    
+
     lo_pop2 = z2ui5_cl_pop_textedit=>factory( ).
     cl_abap_unit_assert=>assert_false( lo_pop2->mv_check_editable ).
 
@@ -89,7 +89,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_false( lo_pop->mv_stretch_active ).
 
-    
+
     lo_pop2 = z2ui5_cl_pop_textedit=>factory( ).
     cl_abap_unit_assert=>assert_true( lo_pop2->mv_stretch_active ).
 

@@ -64,15 +64,15 @@ CLASS ltcl_test_bind IMPLEMENTATION.
     DATA lo_bind TYPE REF TO z2ui5_cl_core_srv_bind.
         DATA temp1 LIKE REF TO lo_app_client->xx.
     CREATE OBJECT lo_app_client TYPE ltcl_test_app.
-    
+
     CREATE OBJECT lo_app TYPE z2ui5_cl_core_app.
     lo_app->mo_app = lo_app_client.
 
-    
+
     CREATE OBJECT lo_bind TYPE z2ui5_cl_core_srv_bind EXPORTING APP = lo_app.
 
     TRY.
-        
+
         GET REFERENCE OF lo_app_client->xx INTO temp1.
 lo_bind->main( val  = temp1
                        type = z2ui5_if_core_types=>cs_bind_type-one_way ).
@@ -95,16 +95,16 @@ DATA lv_bind TYPE string.
       RETURN.
     ENDIF.
 
-    
+
     CREATE OBJECT lo_app_client TYPE ltcl_test_app.
-    
+
     CREATE OBJECT lo_app TYPE z2ui5_cl_core_app.
     lo_app->mo_app = lo_app_client.
 
-    
+
     CREATE OBJECT lo_bind TYPE z2ui5_cl_core_srv_bind EXPORTING APP = lo_app.
 
-    
+
     GET REFERENCE OF lo_app_client->mv_value INTO temp2.
 
 lv_bind = lo_bind->main( val  = temp2
@@ -127,22 +127,22 @@ lv_bind = lo_bind->main( val  = temp2
     ENDIF.
 
 
-    
+
     CREATE OBJECT lo_app_client TYPE ltcl_test_app.
-    
+
     CREATE OBJECT lo_app TYPE z2ui5_cl_core_app.
     lo_app->mo_app = lo_app_client.
 
-    
+
     CREATE OBJECT lo_bind TYPE z2ui5_cl_core_srv_bind EXPORTING APP = lo_app.
 
-    
+
     GET REFERENCE OF lo_app_client->mv_value INTO temp3.
 lo_bind->main( val  = temp3
                    type = z2ui5_if_core_types=>cs_bind_type-one_way ).
 
     TRY.
-        
+
         GET REFERENCE OF lo_app_client->mv_value INTO temp4.
 lo_bind->main( val  = temp4
                        type = z2ui5_if_core_types=>cs_bind_type-two_way ).
@@ -167,22 +167,22 @@ DATA lv_bind2 TYPE string.
       RETURN.
     ENDIF.
 
-    
+
     CREATE OBJECT lo_app_client TYPE ltcl_test_app.
-    
+
     CREATE OBJECT lo_app TYPE z2ui5_cl_core_app.
     lo_app->mo_app = lo_app_client.
 
-    
+
     CREATE OBJECT lo_bind TYPE z2ui5_cl_core_srv_bind EXPORTING APP = lo_app.
 
-    
+
     GET REFERENCE OF lo_app_client->mv_value INTO temp5.
 
 lv_bind = lo_bind->main( val  = temp5
                                    type = z2ui5_if_core_types=>cs_bind_type-two_way ).
 
-    
+
     GET REFERENCE OF lo_app_client->mv_value INTO temp6.
 
 lv_bind2 = lo_bind->main( val  = temp6
@@ -244,15 +244,15 @@ DATA temp1 TYPE z2ui5_if_core_types=>ty_s_bind_config.
     ENDIF.
 
 
-    
+
     CREATE OBJECT lo_test_app TYPE ltcl_test_main_structure.
-    
+
     CREATE OBJECT lo_app TYPE z2ui5_cl_core_app.
     lo_app->mo_app = lo_test_app.
 
-    
+
     CREATE OBJECT lo_bind TYPE z2ui5_cl_core_srv_bind EXPORTING APP = lo_app.
-    
+
     GET REFERENCE OF lo_test_app->ms_struc-input INTO temp7.
 
 lv_result = lo_bind->main( val  = temp7
@@ -261,7 +261,7 @@ lv_result = lo_bind->main( val  = temp7
     cl_abap_unit_assert=>assert_equals( exp = `{/MS_STRUC/INPUT}`
                                         act = lv_result ).
 
-    
+
     GET REFERENCE OF lo_test_app->ms_struc-input INTO temp8.
 
 CLEAR temp1.
@@ -287,15 +287,15 @@ DATA lv_result TYPE string.
     ENDIF.
 
 
-    
+
     CREATE OBJECT lo_test_app TYPE ltcl_test_main_structure.
-    
+
     CREATE OBJECT lo_app TYPE z2ui5_cl_core_app.
     lo_app->mo_app = lo_test_app.
 
-    
+
     CREATE OBJECT lo_bind TYPE z2ui5_cl_core_srv_bind EXPORTING APP = lo_app.
-    
+
     GET REFERENCE OF lo_test_app->ms_struc-s_02-input INTO temp9.
 
 lv_result = lo_bind->main( val  = temp9
@@ -317,15 +317,15 @@ DATA lv_result TYPE string.
       RETURN.
     ENDIF.
 
-    
+
     CREATE OBJECT lo_test_app TYPE ltcl_test_main_structure.
-    
+
     CREATE OBJECT lo_app TYPE z2ui5_cl_core_app.
     lo_app->mo_app = lo_test_app.
 
-    
+
     CREATE OBJECT lo_bind TYPE z2ui5_cl_core_srv_bind EXPORTING APP = lo_app.
-    
+
     GET REFERENCE OF lo_test_app->ms_struc-s_02-s_03-input INTO temp10.
 
 lv_result = lo_bind->main( val  = temp10
@@ -347,15 +347,15 @@ DATA lv_result TYPE string.
       RETURN.
     ENDIF.
 
-    
+
     CREATE OBJECT lo_test_app TYPE ltcl_test_main_structure.
-    
+
     CREATE OBJECT lo_app TYPE z2ui5_cl_core_app.
     lo_app->mo_app = lo_test_app.
 
-    
+
     CREATE OBJECT lo_bind TYPE z2ui5_cl_core_srv_bind EXPORTING APP = lo_app.
-    
+
     GET REFERENCE OF lo_test_app->ms_struc-s_02-s_03-s_04-input INTO temp11.
 
 lv_result = lo_bind->main( val  = temp11
@@ -414,17 +414,17 @@ DATA lv_result TYPE string.
     ENDIF.
 
 
-    
+
     CREATE OBJECT lo_test_app TYPE ltcl_test_main_object.
     CREATE OBJECT lo_test_app->mo_obj.
     lo_test_app->mo_obj->mv_value = `test`.
-    
+
     CREATE OBJECT lo_app TYPE z2ui5_cl_core_app.
     lo_app->mo_app = lo_test_app.
 
-    
+
     CREATE OBJECT lo_bind TYPE z2ui5_cl_core_srv_bind EXPORTING APP = lo_app.
-    
+
     GET REFERENCE OF lo_test_app->mo_obj->mv_value INTO temp12.
 
 lv_result = lo_bind->main( val  = temp12
@@ -446,16 +446,16 @@ DATA lv_result TYPE string.
       RETURN.
     ENDIF.
 
-    
+
     CREATE OBJECT lo_test_app TYPE ltcl_test_main_object.
     CREATE OBJECT lo_test_app->mo_obj.
-    
+
     CREATE OBJECT lo_app TYPE z2ui5_cl_core_app.
     lo_app->mo_app = lo_test_app.
 
-    
+
     CREATE OBJECT lo_bind TYPE z2ui5_cl_core_srv_bind EXPORTING APP = lo_app.
-    
+
     GET REFERENCE OF lo_test_app->mo_obj->ms_struc-input INTO temp13.
 
 lv_result = lo_bind->main( val  = temp13

@@ -42,17 +42,17 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_not_initial( ls_result-body ).
 
-    
+
     temp4 = boolc( ls_result-body CS `<!DOCTYPE html>` ).
     temp1 = temp4.
     cl_abap_unit_assert=>assert_true( temp1 ).
 
-    
+
     temp5 = boolc( ls_result-body CS `<html` ).
     temp2 = temp5.
     cl_abap_unit_assert=>assert_true( temp2 ).
 
-    
+
     temp6 = boolc( ls_result-body CS `</html>` ).
     temp3 = temp6.
     cl_abap_unit_assert=>assert_true( temp3 ).
@@ -69,12 +69,12 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
     ls_result = z2ui5_cl_http_handler=>_http_get( ).
 
-    
+
     temp7 = boolc( ls_result-body CS `sap-ui-bootstrap` ).
     temp4 = temp7.
     cl_abap_unit_assert=>assert_true( temp4 ).
 
-    
+
     temp8 = boolc( ls_result-body CS `z2ui5` ).
     temp5 = temp8.
     cl_abap_unit_assert=>assert_true( temp5 ).
@@ -100,7 +100,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
 
-    
+
     temp9 = boolc( ls_result-body CS `S_FRONT` ).
     temp6 = temp9.
     cl_abap_unit_assert=>assert_true( temp6 ).
@@ -122,7 +122,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 500
                                         act = ls_result-status_code ).
 
-    
+
     temp10 = boolc( ls_result-body CS `abap2UI5 Error` ).
     temp7 = temp10.
     cl_abap_unit_assert=>assert_true( temp7 ).
@@ -143,7 +143,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
 
-    
+
     temp11 = boolc( ls_result-body CS `<!DOCTYPE html>` ).
     temp8 = temp11.
     cl_abap_unit_assert=>assert_true( temp8 ).

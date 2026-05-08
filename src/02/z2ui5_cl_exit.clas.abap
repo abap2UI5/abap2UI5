@@ -34,7 +34,7 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    
+
     lv_class_name = get_user_exit_class( ).
 
     IF lv_class_name IS NOT INITIAL.
@@ -55,13 +55,13 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
           DATA temp4 LIKE sy-tabix.
 
     TRY.
-        
+
         exit_classes = z2ui5_cl_util=>rtti_get_classes_impl_intf( `Z2UI5_IF_EXIT` ).
         DELETE exit_classes WHERE classname = `Z2UI5_CL_EXIT`.
 
         IF exit_classes IS NOT INITIAL.
-          
-          
+
+
           temp4 = sy-tabix.
           READ TABLE exit_classes INDEX 1 INTO temp3.
           sy-tabix = temp4.
@@ -110,9 +110,9 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
       |  cdnjs.cloudflare.com *.cdnjs.cloudflare.com; | &&
       |worker-src 'self' blob:; "/>|.
 
-    
+
     CLEAR temp5.
-    
+
     temp6-n = `cache-control`.
     temp6-v = `no-cache, no-store, must-revalidate`.
     INSERT temp6 INTO TABLE temp5.
@@ -164,9 +164,9 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
     DATA temp8 TYPE z2ui5_cl_util=>ty_s_name_value.
 
     MOVE-CORRESPONDING http_info TO context.
-    
+
     CLEAR temp7.
-    
+
     READ TABLE http_info-t_params INTO temp8 WITH KEY n = `app_start`.
     IF sy-subrc = 0.
       temp7 = temp8-v.

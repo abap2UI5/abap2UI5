@@ -73,17 +73,17 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp4 = boolc( lv_xml CS `Timer` ).
     temp1 = temp4.
     cl_abap_unit_assert=>assert_true( temp1 ).
 
-    
+
     temp5 = boolc( lv_xml CS `z2ui5` ).
     temp2 = temp5.
     cl_abap_unit_assert=>assert_true( temp2 ).
 
-    
+
     temp6 = boolc( lv_xml CS `2000` ).
     temp3 = temp6.
     cl_abap_unit_assert=>assert_true( temp3 ).
@@ -110,12 +110,12 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp7 = boolc( lv_xml CS `Focus` ).
     temp4 = temp7.
     cl_abap_unit_assert=>assert_true( temp4 ).
 
-    
+
     temp8 = boolc( lv_xml CS `myInput` ).
     temp5 = temp8.
     cl_abap_unit_assert=>assert_true( temp5 ).
@@ -144,12 +144,12 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp9 = boolc( lv_xml CS `CameraPicture` ).
     temp6 = temp9.
     cl_abap_unit_assert=>assert_true( temp6 ).
 
-    
+
     temp10 = boolc( lv_xml CS `cam1` ).
     temp7 = temp10.
     cl_abap_unit_assert=>assert_true( temp7 ).
@@ -179,12 +179,12 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp11 = boolc( lv_xml CS `bwipjs` ).
     temp8 = temp11.
     cl_abap_unit_assert=>assert_true( temp8 ).
 
-    
+
     temp12 = boolc( lv_xml CS `qrcode` ).
     temp9 = temp12.
     cl_abap_unit_assert=>assert_true( temp9 ).
@@ -213,12 +213,12 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp13 = boolc( lv_xml CS `Geolocation` ).
     temp10 = temp13.
     cl_abap_unit_assert=>assert_true( temp10 ).
 
-    
+
     temp14 = boolc( lv_xml CS `{/LON}` ).
     temp11 = temp14.
     cl_abap_unit_assert=>assert_true( temp11 ).
@@ -247,12 +247,12 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp15 = boolc( lv_xml CS `FileUploader` ).
     temp12 = temp15.
     cl_abap_unit_assert=>assert_true( temp12 ).
 
-    
+
     temp16 = boolc( lv_xml CS `Choose file` ).
     temp13 = temp16.
     cl_abap_unit_assert=>assert_true( temp13 ).
@@ -279,12 +279,12 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp17 = boolc( lv_xml CS `Favicon` ).
     temp14 = temp17.
     cl_abap_unit_assert=>assert_true( temp14 ).
 
-    
+
     temp18 = boolc( lv_xml CS `icon.png` ).
     temp15 = temp18.
     cl_abap_unit_assert=>assert_true( temp15 ).
@@ -311,12 +311,12 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp19 = boolc( lv_xml CS `Title` ).
     temp16 = temp19.
     cl_abap_unit_assert=>assert_true( temp16 ).
 
-    
+
     temp20 = boolc( lv_xml CS `My App` ).
     temp17 = temp20.
     cl_abap_unit_assert=>assert_true( temp17 ).
@@ -341,7 +341,7 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp21 = boolc( lv_xml CS `Dirty` ).
     temp18 = temp21.
     cl_abap_unit_assert=>assert_true( temp18 ).
@@ -366,7 +366,7 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp22 = boolc( lv_xml CS `History` ).
     temp19 = temp22.
     cl_abap_unit_assert=>assert_true( temp19 ).
@@ -391,7 +391,7 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp23 = boolc( lv_xml CS `Messaging` ).
     temp20 = temp23.
     cl_abap_unit_assert=>assert_true( temp20 ).
@@ -421,12 +421,12 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp24 = boolc( lv_xml CS `Storage` ).
     temp21 = temp24.
     cl_abap_unit_assert=>assert_true( temp21 ).
 
-    
+
     temp25 = boolc( lv_xml CS `myKey` ).
     temp22 = temp25.
     cl_abap_unit_assert=>assert_true( temp22 ).
@@ -453,12 +453,12 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp26 = boolc( lv_xml CS `Info` ).
     temp23 = temp26.
     cl_abap_unit_assert=>assert_true( temp23 ).
 
-    
+
     temp27 = boolc( lv_xml CS `onInfoDone` ).
     temp24 = temp27.
     cl_abap_unit_assert=>assert_true( temp24 ).
@@ -485,12 +485,12 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp28 = boolc( lv_xml CS `LPTitle` ).
     temp25 = temp28.
     cl_abap_unit_assert=>assert_true( temp25 ).
 
-    
+
     temp29 = boolc( lv_xml CS `Launchpad Title` ).
     temp26 = temp29.
     cl_abap_unit_assert=>assert_true( temp26 ).
@@ -514,7 +514,7 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_view->stringify( ).
 
-    
+
     temp30 = boolc( lv_xml CS `z2ui5` ).
     temp27 = temp30.
     cl_abap_unit_assert=>assert_true( temp27 ).
@@ -542,12 +542,12 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp31 = boolc( lv_xml CS `SmartMultiInputExt` ).
     temp1 = temp31.
     cl_abap_unit_assert=>assert_true( temp1 ).
 
-    
+
     temp32 = boolc( lv_xml CS `input1` ).
     temp2 = temp32.
     cl_abap_unit_assert=>assert_true( temp2 ).
@@ -576,12 +576,12 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp33 = boolc( lv_xml CS `MultiInputExt` ).
     temp3 = temp33.
     cl_abap_unit_assert=>assert_true( temp3 ).
 
-    
+
     temp34 = boolc( lv_xml CS `myInput` ).
     temp4 = temp34.
     cl_abap_unit_assert=>assert_true( temp4 ).
@@ -608,12 +608,12 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp35 = boolc( lv_xml CS `UITableExt` ).
     temp5 = temp35.
     cl_abap_unit_assert=>assert_true( temp5 ).
 
-    
+
     temp36 = boolc( lv_xml CS `myTable` ).
     temp6 = temp36.
     cl_abap_unit_assert=>assert_true( temp6 ).
@@ -641,12 +641,12 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp37 = boolc( lv_xml CS `CameraSelector` ).
     temp7 = temp37.
     cl_abap_unit_assert=>assert_true( temp7 ).
 
-    
+
     temp38 = boolc( lv_xml CS `Select camera` ).
     temp8 = temp38.
     cl_abap_unit_assert=>assert_true( temp8 ).
@@ -675,12 +675,12 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp39 = boolc( lv_xml CS `ExportSpreadsheet` ).
     temp9 = temp39.
     cl_abap_unit_assert=>assert_true( temp9 ).
 
-    
+
     temp40 = boolc( lv_xml CS `exportTable` ).
     temp10 = temp40.
     cl_abap_unit_assert=>assert_true( temp10 ).
@@ -707,12 +707,12 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp41 = boolc( lv_xml CS `MessageManager` ).
     temp11 = temp41.
     cl_abap_unit_assert=>assert_true( temp11 ).
 
-    
+
     temp42 = boolc( lv_xml CS `{/MESSAGES}` ).
     temp12 = temp42.
     cl_abap_unit_assert=>assert_true( temp12 ).
@@ -740,12 +740,12 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp43 = boolc( lv_xml CS `Scrolling` ).
     temp13 = temp43.
     cl_abap_unit_assert=>assert_true( temp13 ).
 
-    
+
     temp44 = boolc( lv_xml CS `onScroll` ).
     temp14 = temp44.
     cl_abap_unit_assert=>assert_true( temp14 ).
@@ -772,12 +772,12 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp45 = boolc( lv_xml CS `Tree` ).
     temp15 = temp45.
     cl_abap_unit_assert=>assert_true( temp15 ).
 
-    
+
     temp46 = boolc( lv_xml CS `myTree` ).
     temp16 = temp46.
     cl_abap_unit_assert=>assert_true( temp16 ).
@@ -806,12 +806,12 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp47 = boolc( lv_xml CS `Websocket` ).
     temp17 = temp47.
     cl_abap_unit_assert=>assert_true( temp17 ).
 
-    
+
     temp48 = boolc( lv_xml CS `/ws/mypath` ).
     temp18 = temp48.
     cl_abap_unit_assert=>assert_true( temp18 ).
@@ -839,12 +839,12 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp49 = boolc( lv_xml CS `BindingUpdate` ).
     temp19 = temp49.
     cl_abap_unit_assert=>assert_true( temp19 ).
 
-    
+
     temp50 = boolc( lv_xml CS `onChanged` ).
     temp20 = temp50.
     cl_abap_unit_assert=>assert_true( temp20 ).
@@ -873,12 +873,12 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp51 = boolc( lv_xml CS `chartjs` ).
     temp21 = temp51.
     cl_abap_unit_assert=>assert_true( temp21 ).
 
-    
+
     temp52 = boolc( lv_xml CS `chart1` ).
     temp22 = temp52.
     cl_abap_unit_assert=>assert_true( temp22 ).
@@ -910,17 +910,17 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     lv_xml = lo_result->stringify( ).
 
-    
+
     temp53 = boolc( lv_xml CS `Popover` ).
     temp23 = temp53.
     cl_abap_unit_assert=>assert_true( temp23 ).
 
-    
+
     temp54 = boolc( lv_xml CS `Are you sure?` ).
     temp24 = temp54.
     cl_abap_unit_assert=>assert_true( temp24 ).
 
-    
+
     temp55 = boolc( lv_xml CS `onConfirm` ).
     temp25 = temp55.
     cl_abap_unit_assert=>assert_true( temp25 ).

@@ -65,7 +65,7 @@ CLASS z2ui5_cl_pop_pdf IMPLEMENTATION.
     DATA temp2 LIKE LINE OF temp1.
     DATA popup TYPE REF TO z2ui5_cl_xml_view.
     CLEAR temp1.
-    
+
     temp2-n = `src`.
     temp2-v = mv_pdf.
     INSERT temp2 INTO TABLE temp1.
@@ -75,7 +75,7 @@ CLASS z2ui5_cl_pop_pdf IMPLEMENTATION.
     temp2-n = `width`.
     temp2-v = `99%`.
     INSERT temp2 INTO TABLE temp1.
-    
+
     popup = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
                                                                stretch    = abap_true
                                                                afterclose = client->_event( `BUTTON_CANCEL` )

@@ -34,7 +34,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_pdf.
     DATA ls_result TYPE z2ui5_cl_pop_pdf=>ty_s_result.
     lo_pop = z2ui5_cl_pop_pdf=>factory( `test` ).
-    
+
     ls_result = lo_pop->result( ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_false

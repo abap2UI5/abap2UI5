@@ -21,11 +21,11 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lt_filter LIKE temp1.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_get_range_m.
     CLEAR temp1.
-    
+
     temp2-name = `CARRID`.
-    
+
     CLEAR temp3.
-    
+
     temp4-sign = `I`.
     temp4-option = `EQ`.
     temp4-low = `AA`.
@@ -34,10 +34,10 @@ CLASS ltcl_test IMPLEMENTATION.
     INSERT temp2 INTO TABLE temp1.
     temp2-name = `CONNID`.
     INSERT temp2 INTO TABLE temp1.
-    
+
     lt_filter = temp1.
 
-    
+
     lo_pop = z2ui5_cl_pop_get_range_m=>factory( lt_filter ).
     cl_abap_unit_assert=>assert_bound( lo_pop ).
 
@@ -51,15 +51,15 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_pop TYPE REF TO z2ui5_cl_pop_get_range_m.
     DATA ls_result TYPE z2ui5_cl_pop_get_range_m=>ty_s_result.
     CLEAR temp3.
-    
+
     temp4-name = `FIELD1`.
     INSERT temp4 INTO TABLE temp3.
-    
+
     lt_filter = temp3.
 
-    
+
     lo_pop = z2ui5_cl_pop_get_range_m=>factory( lt_filter ).
-    
+
     ls_result = lo_pop->result( ).
     cl_abap_unit_assert=>assert_false( ls_result-check_confirmed ).
     cl_abap_unit_assert=>assert_equals( exp = 1
