@@ -8262,6 +8262,43 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.NotificationList - list of notifications (extends sap.m.List)</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.NotificationList. Inherits sap.m.List.
+    "!
+    "! @parameter footertext             | (string) Footer text.
+    "! @parameter growing                | (boolean) Enable growing. Default: false.
+    "! @parameter growingdirection       | (sap.m.ListGrowingDirection) Downwards | Upwards. Default: Downwards.
+    "! @parameter growingscrolltoload    | (boolean) Trigger growing on scroll. Default: false.
+    "! @parameter growingthreshold       | (int) Items per growing chunk. Default: 20.
+    "! @parameter growingtriggertext     | (string) Custom "More" button text.
+    "! @parameter headerlevel            | (sap.ui.core.TitleLevel) Auto | H1..H6. Default: Auto.
+    "! @parameter headertext             | (string) Header text.
+    "! @parameter includeiteminselection | (boolean) Click item to select. Default: false.
+    "! @parameter inset                  | (boolean) Indent the container. Default: false.
+    "! @parameter keyboardmode           | (sap.m.ListKeyboardMode) Navigation | Edit. Default: Navigation.
+    "! @parameter mode                   | (sap.m.ListMode) Selection mode. Default: None.
+    "! @parameter modeanimationon        | (boolean) Animate mode change. Default: true.
+    "! @parameter multiselectmode        | (sap.m.MultiSelectMode) Default | ClearAll | SelectAll. Default: Default.
+    "! @parameter nodatatext             | (string) Empty-state text.
+    "! @parameter rememberselections     | (boolean) Persist selections. Default: true.
+    "! @parameter shownodata             | (boolean) Show empty-state text. Default: true.
+    "! @parameter showseparators         | (sap.m.ListSeparators) All | Inner | None. Default: All.
+    "! @parameter showunread             | (boolean) Activate unread indicator. Default: false.
+    "! @parameter sticky                 | (sap.m.Sticky[]) Sticky areas.
+    "! @parameter swipedirection         | (sap.m.SwipeDirection) Both | RightToLeft | LeftToRight. Default: Both.
+    "! @parameter visible                | (boolean) Whether visible. Default: true.
+    "! @parameter width                  | (sap.ui.core.CSSSize) Width.
+    "! @parameter beforeopencontextmenu  | (event) Fired before the context menu opens.
+    "! @parameter delete                 | (event) Fired when an item is deleted.
+    "! @parameter growingfinished        | (event) DEPRECATED since 1.16.3 - use `updateFinished`.
+    "! @parameter growingstarted         | (event) DEPRECATED since 1.16.3 - use `updateStarted`.
+    "! @parameter itempress              | (event) Fired when an item is pressed.
+    "! @parameter select                 | (event) DEPRECATED since 1.16 - use `selectionChange`.
+    "! @parameter selectionchange        | (event) Fired when selection changes.
+    "! @parameter swipe                  | (event) Fired on swipe.
+    "! @parameter updatefinished         | (event) Fired when the data update finished.
+    "! @parameter updatestarted          | (event) Fired when the data update started.
     METHODS notification_list
       IMPORTING
         id                     TYPE clike OPTIONAL
@@ -8302,6 +8339,27 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.NotificationListGroup - group of notifications</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.NotificationListGroup.
+    "!
+    "! @parameter autopriority                  | (boolean) Auto-derive priority from items. Default: true.
+    "! @parameter collapsed                     | (boolean) Whether the group is collapsed. Default: false.
+    "! @parameter enablecollapsebuttonwhenempty | (boolean) Render collapse button even when empty. Default: false.
+    "! @parameter highlight                     | (sap.ui.core.MessageType | IndicationColor) Default: None.
+    "! @parameter highlighttext                 | (string) Custom accessibility text for highlight.
+    "! @parameter navigated                     | (boolean) Marked as navigated. Default: false.
+    "! @parameter priority                      | (sap.ui.core.Priority) None | Low | Medium | High. Default: None.
+    "! @parameter selected                      | (boolean) Selected state. Default: false.
+    "! @parameter showbuttons                   | (boolean) Show action buttons. Default: true.
+    "! @parameter showclosebutton               | (boolean) Show close button. Default: true.
+    "! @parameter showemptygroup                | (boolean) Render group when empty. Default: false.
+    "! @parameter showitemscounter              | (boolean) Show items counter. Default: true.
+    "! @parameter title                         | (string) Group title.
+    "! @parameter type                          | (sap.m.ListType) Inactive | Active | Detail | Navigation | DetailAndActive. Default: Inactive.
+    "! @parameter unread                        | (boolean) Unread state. Default: false.
+    "! @parameter visible                       | (boolean) Whether visible. Default: true.
+    "! @parameter oncollapse                    | (event) Fired when the collapsed state changes.
     METHODS notification_list_group
       IMPORTING
         id                            TYPE clike OPTIONAL
@@ -8326,6 +8384,33 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.NotificationListItem - single notification entry</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.NotificationListItem.
+    "!
+    "! @parameter visible            | (boolean) Whether visible. Default: true.
+    "! @parameter authoravatarcolor  | (sap.m.AvatarColor) Avatar background colour. Default: Accent6.
+    "! @parameter authorinitials     | (string) Initials when no picture is set.
+    "! @parameter description        | (string) Description text.
+    "! @parameter hideshowmorebutton | (boolean) Hide the "Show More" button. Default: false.
+    "! @parameter truncate           | (boolean) Truncate the text. Default: true.
+    "! @parameter authorname         | (string) Author name.
+    "! @parameter authorpicture      | (sap.ui.core.URI) Author picture URI.
+    "! @parameter counter            | (int) Counter badge value.
+    "! @parameter datetime           | (string) Timestamp text.
+    "! @parameter highlight          | (sap.ui.core.MessageType | IndicationColor) Default: None.
+    "! @parameter highlighttext      | (string) Custom accessibility text for highlight.
+    "! @parameter navigated          | (boolean) Marked as navigated. Default: false.
+    "! @parameter priority           | (sap.ui.core.Priority) None | Low | Medium | High. Default: None.
+    "! @parameter selected           | (boolean) Selected state. Default: false.
+    "! @parameter showbuttons        | (boolean) Show action buttons. Default: true.
+    "! @parameter showclosebutton    | (boolean) Show close button. Default: true.
+    "! @parameter title              | (string) Title text.
+    "! @parameter type               | (sap.m.ListType) Inactive | Active | Detail | Navigation | DetailAndActive. Default: Inactive.
+    "! @parameter unread             | (boolean) Unread state. Default: false.
+    "! @parameter close              | (event) Fired when the close button is pressed.
+    "! @parameter detailpress        | (event, ListItemBase) Fired when the detail icon is pressed.
+    "! @parameter press              | (event, ListItemBase) Fired when the item is activated.
     METHODS notification_list_item
       IMPORTING
         id                 TYPE clike OPTIONAL
@@ -8356,6 +8441,26 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Wizard - multi-step wizard</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.Wizard.
+    "!
+    "! @parameter backgrounddesign   | (sap.m.PageBackgroundDesign) Standard | Solid | Transparent | List. Default: Standard.
+    "! @parameter busy               | (boolean) Busy state. Default: false.
+    "! @parameter busyindicatordelay | (int) Busy indicator delay in ms. Default: 1000.
+    "! @parameter busyindicatorsize  | (sap.ui.core.BusyIndicatorSize) Small | Medium | Large | Auto.
+    "! @parameter enablebranching    | (boolean) Enable branching wizard. Default: false. Since 1.32.
+    "! @parameter fieldgroupids      | (string[]) Field group ids.
+    "! @parameter finishbuttontext   | (string) Text on the "Review" / finish button. Default: "Review".
+    "! @parameter height             | (sap.ui.core.CSSSize) Height. Default: 100%.
+    "! @parameter rendermode         | (sap.m.WizardRenderMode) Scroll | Page. Default: Scroll. Since 1.105.
+    "! @parameter shownextbutton     | (boolean) Show "Next" button. Default: true. Since 1.110.
+    "! @parameter steptitlelevel     | (sap.ui.core.TitleLevel) Auto | H1..H6. Default: H3.
+    "! @parameter visible            | (boolean) Whether visible. Default: true.
+    "! @parameter width              | (sap.ui.core.CSSSize) Width. Default: 100%.
+    "! @parameter complete           | (event) Fired when the wizard is completed.
+    "! @parameter navigationchange   | (event) Fired when the user navigates between steps.
+    "! @parameter stepactivate       | (event) Fired when a step is activated.
     METHODS wizard
       IMPORTING
         id                 TYPE clike OPTIONAL
@@ -8379,6 +8484,23 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.WizardStep - single step inside Wizard</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.WizardStep.
+    "!
+    "! @parameter busy               | (boolean) Busy state. Default: false.
+    "! @parameter busyindicatordelay | (int) Busy indicator delay in ms. Default: 1000.
+    "! @parameter busyindicatorsize  | (sap.ui.core.BusyIndicatorSize) Size of busy indicator.
+    "! @parameter fieldgroupids      | (string[]) Field group ids.
+    "! @parameter icon               | (sap.ui.core.URI) Step icon.
+    "! @parameter !optional          | (boolean) Mark step as optional. Default: false. Since 1.54. (ABAP keyword - prefix `!`).
+    "! @parameter title              | (string) Step title.
+    "! @parameter validated          | (boolean) Whether the step is validated. Default: true.
+    "! @parameter visible            | (boolean) Whether visible. Default: true.
+    "! @parameter activate           | (event) Fired when the step is activated.
+    "! @parameter subsequentsteps    | (sap.ui.core.ID[]) Possible next steps (branching mode).
+    "! @parameter nextstep           | (sap.ui.core.ID) Id of the next step.
+    "! @parameter complete           | (event) Fired when the step is completed.
     METHODS wizard_step
       IMPORTING
         id                 TYPE clike OPTIONAL
@@ -8398,6 +8520,10 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">XMLPreprocessor template-repeat directive (`<template:repeat>`)</p>
+    "!
+    "! @parameter list | (string) Binding path of the list to iterate over.
+    "! @parameter var  | (string) Variable name for the current item.
     METHODS template_repeat
       IMPORTING
         list          TYPE clike OPTIONAL
@@ -8405,6 +8531,11 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">XMLPreprocessor template-with directive (`<template:with>`)</p>
+    "!
+    "! @parameter path   | (string) Binding path scoped under `var`.
+    "! @parameter helper | (string) Optional helper module name.
+    "! @parameter var    | (string) Variable name introduced.
     METHODS template_with
       IMPORTING
         path          TYPE clike OPTIONAL
@@ -8413,26 +8544,40 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">XMLPreprocessor template-if directive (`<template:if>`)</p>
+    "!
+    "! @parameter test | (string) Boolean condition expression.
     METHODS template_if
       IMPORTING
         test          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">XMLPreprocessor template-then directive (`<template:then>`)</p>
     METHODS template_then
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">XMLPreprocessor template-else directive (`<template:else>`)</p>
     METHODS template_else
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">XMLPreprocessor template-elseif directive (`<template:elseif>`)</p>
+    "!
+    "! @parameter test | (string) Boolean condition expression.
     METHODS template_elseif
       IMPORTING
         test          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.gantt.simple.Relationship - relationship line between Gantt shapes</p>
+    "!
+    "! @parameter shapeid     | (string) Relationship shape id.
+    "! @parameter type        | (sap.gantt.simple.RelationshipType) FinishToStart | FinishToFinish | StartToStart | StartToFinish. Default: FinishToStart.
+    "! @parameter successor   | (string) Successor shape id.
+    "! @parameter predecessor | (string) Predecessor shape id.
     METHODS relationship
       IMPORTING
         shapeid       TYPE clike OPTIONAL
@@ -8442,22 +8587,44 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `relationships` (Gantt)</p>
     METHODS relationships
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `noData` (List, Table, NetworkGraph, ...)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS no_data
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `lines` (NetworkGraph / micro charts)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS lines
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.Line - edge between two NetworkGraph nodes</p>
+    "!
+    "! @parameter arroworientation | (sap.suite.ui.commons.networkgraph.LineArrowOrientation) ToStart | ToEnd | None. Default: ToEnd.
+    "! @parameter arrowposition    | (sap.suite.ui.commons.networkgraph.LineArrowPosition) Start | Middle | End. Default: End.
+    "! @parameter description      | (string) Hover description.
+    "! @parameter from             | (string) Source node key.
+    "! @parameter linetype         | (sap.suite.ui.commons.networkgraph.LineType) Solid | Dashed | Dotted. Default: Solid.
+    "! @parameter selected         | (boolean) Selected state. Default: false.
+    "! @parameter status           | (string) Status colour token.
+    "! @parameter stretchtocenter  | (boolean) Stretch line to centre. Default: false.
+    "! @parameter title            | (string) Title shown next to the line.
+    "! @parameter to               | (string) Target node key.
+    "! @parameter visible          | (boolean) Whether visible. Default: true.
+    "! @parameter press            | (event) Fired on click.
+    "! @parameter hover            | (event) Fired on hover.
     METHODS line
       IMPORTING
         id               TYPE clike OPTIONAL
@@ -8478,12 +8645,30 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `groups` (NetworkGraph)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS groups
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.Group - group of NetworkGraph nodes</p>
+    "!
+    "! @parameter collapsed           | (boolean) Collapsed state. Default: false.
+    "! @parameter description         | (string) Group description.
+    "! @parameter headercheckboxstate | (boolean) Header checkbox state.
+    "! @parameter icon                | (sap.ui.core.URI) Icon URI.
+    "! @parameter key                 | (string) Group key.
+    "! @parameter minwidth            | (int) Minimum width in px.
+    "! @parameter parentgroupkey      | (string) Parent group key (for nested groups).
+    "! @parameter status              | (string) Status colour token.
+    "! @parameter title               | (string) Group title.
+    "! @parameter visible             | (boolean) Whether visible. Default: true.
+    "! @parameter collapseexpand      | (event) Fired when expand state changes.
+    "! @parameter headercheckboxpress | (event) Fired when the header checkbox is pressed.
+    "! @parameter showdetail          | (event) Fired when the detail button is pressed.
     METHODS group
       IMPORTING
         id                  TYPE clike OPTIONAL
@@ -8504,6 +8689,33 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.Graph - network graph</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.networkgraph.Graph.
+    "!
+    "! @parameter layout          | (string) Layout algorithm aggregation - use one of the layout builder methods.
+    "! @parameter height          | (sap.ui.core.CSSSize) Height. Default: 100%.
+    "! @parameter width           | (sap.ui.core.CSSSize) Width. Default: 100%.
+    "! @parameter nodes           | (binding path) Aggregation of `Node`.
+    "! @parameter lines           | (binding path) Aggregation of `Line`.
+    "! @parameter groups          | (binding path) Aggregation of `Group`.
+    "! @parameter backgroundcolor | (sap.ui.core.CSSColor) Background colour.
+    "! @parameter backgroundimage | (sap.ui.core.URI) Background image URI.
+    "! @parameter nodatatext      | (string) Empty-state text.
+    "! @parameter orientation     | (sap.suite.ui.commons.networkgraph.Orientation) LeftRight | TopBottom. Default: LeftRight.
+    "! @parameter rendertype      | (sap.suite.ui.commons.networkgraph.RenderType) Html | Svg. Default: Html.
+    "! @parameter enablewheelzoom | (boolean) Enable zoom via mouse wheel. Default: true.
+    "! @parameter enablezoom      | (boolean) Enable zooming. Default: true.
+    "! @parameter nodata          | (binding path) Aggregation `noData` for a custom empty-state control.
+    "! @parameter visible         | (boolean) Whether visible. Default: true.
+    "! @parameter afterlayouting  | (event) Fired after layouting completes.
+    "! @parameter beforelayouting | (event) Fired before layouting starts.
+    "! @parameter failure         | (event) Fired on error.
+    "! @parameter graphready      | (event) Fired when the graph is ready.
+    "! @parameter search          | (event) Fired when search is triggered.
+    "! @parameter searchsuggest   | (event) Fired during search-suggestion typing.
+    "! @parameter selectionchange | (event) Fired when selection changes.
+    "! @parameter zoomchanged     | (event) Fired when the zoom level changes.
     METHODS network_graph
       IMPORTING
         id              TYPE clike OPTIONAL
@@ -8534,10 +8746,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `layoutAlgorithm` (NetworkGraph)</p>
     METHODS layout_algorithm
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.layout.LayeredLayout - layered graph layout</p>
+    "!
+    "! @parameter linespacingfactor | (float) Line-spacing factor. Default: 1.
+    "! @parameter mergeedges        | (boolean) Merge parallel edges. Default: false.
+    "! @parameter nodeplacement     | (sap.suite.ui.commons.networkgraph.NodePlacement) BrandesKoepf | LinearSegments | Simple | NetworkSimplex. Default: BrandesKoepf.
+    "! @parameter nodespacing       | (int) Spacing between nodes in px. Default: 100.
     METHODS layered_layout
       IMPORTING
         id                TYPE clike OPTIONAL
@@ -8549,6 +8768,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.layout.ForceBasedLayout</p>
+    "!
+    "! @parameter alpha           | (float) Initial alpha. Default: 0.1.
+    "! @parameter charge           | (int) Charge strength. Default: -120.
+    "! @parameter friction         | (float) Friction factor. Default: 0.9.
+    "! @parameter maximumduration  | (int) Maximum layout duration in ms.
     METHODS force_based_layout
       IMPORTING
         id              TYPE clike OPTIONAL
