@@ -4149,6 +4149,40 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.table.Table - grid table</p>
+    "!
+    "! Grid (non-responsive) table. See https://ui5.sap.com/#/api/sap.ui.table.Table. Renders as `<t:Table>` in XML views.
+    "!
+    "! @parameter rows                     | (binding path) Aggregation of rows.
+    "! @parameter columnheadervisible      | (boolean) Show column headers. Default: true.
+    "! @parameter editable                 | (boolean) Whether cells are editable. Default: true.
+    "! @parameter class                    | (string) CSS class names.
+    "! @parameter enablecellfilter         | (boolean) Enable cell context-menu filter. Default: false.
+    "! @parameter enablegrouping           | (boolean) DEPRECATED since 1.110 - use AnalyticalTable. Default: false.
+    "! @parameter enableselectall          | (boolean) Render select-all checkbox. Default: true.
+    "! @parameter firstvisiblerow          | (int) Index of first visible row. Default: 0.
+    "! @parameter fixedbottomrowcount      | (int) Number of fixed rows at the bottom. Default: 0.
+    "! @parameter fixedcolumncount         | (int) Number of fixed columns from the start. Default: 0.
+    "! @parameter fixedrowcount            | (int) Number of fixed rows at the top. Default: 0.
+    "! @parameter minautorowcount          | (int) Minimum row count when `visibleRowCountMode=Auto`. Default: 5.
+    "! @parameter rowactioncount           | (int) Number of row action cells. Default: 0. Since 1.45.
+    "! @parameter rowheight                | (int) Row content height in px.
+    "! @parameter selectionmode            | (sap.ui.table.SelectionMode) None | Single | MultiToggle. `Multi` deprecated since 1.38. Default: MultiToggle.
+    "! @parameter showcolumnvisibilitymenu | (boolean) Show column visibility menu. Default: false.
+    "! @parameter shownodata               | (boolean) Show empty-state message. Default: true.
+    "! @parameter selectedindex            | (int) DEPRECATED since 1.69 - use `getSelectedIndices()`.
+    "! @parameter threshold                | (int) Row scrolling threshold. Default: 100.
+    "! @parameter visiblerowcount          | (int) DEPRECATED since 1.119 - use `rowMode`.
+    "! @parameter visiblerowcountmode      | (sap.ui.table.VisibleRowCountMode) DEPRECATED since 1.119 - use `rowMode`. Fixed | Interactive | Auto. Default: Fixed.
+    "! @parameter alternaterowcolors       | (boolean) Alternating row background colours. Default: false.
+    "! @parameter footer                   | (string) Footer text shown below the table.
+    "! @parameter filter                   | (event) Fired when a filter operation is applied.
+    "! @parameter sort                     | (event) Fired when a sort operation is applied.
+    "! @parameter rowselectionchange       | (event) Fired when row selection changes.
+    "! @parameter customfilter             | (event) Fired when a custom filter operation is requested.
+    "! @parameter flex                     | (boolean, framework helper) Render the table to fit its container.
+    "! @parameter selectionbehavior        | (sap.ui.table.SelectionBehavior) Row | RowOnly | RowSelector. Default: RowSelector.
+    "! @parameter rowmode                  | (sap.ui.table.rowmodes.RowMode) Aggregation - use `auto`, `fixed` or `interactive` builders.
     METHODS ui_table
       IMPORTING
         rows                     TYPE clike OPTIONAL
@@ -4186,6 +4220,22 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)            TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.table.Column - column for sap.ui.table.Table</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.ui.table.Column.
+    "!
+    "! @parameter width                 | (sap.ui.core.CSSSize) Column width. Default: auto.
+    "! @parameter showsortmenuentry     | (boolean) Show "Sort" entry in column menu. Default: true.
+    "! @parameter sortproperty          | (string) Property name used for sorting.
+    "! @parameter autoresizable         | (boolean) Allow auto-resize on double-click. Default: false.
+    "! @parameter filterproperty        | (string) Property name used for filtering.
+    "! @parameter showfiltermenuentry   | (boolean) Show "Filter" entry in column menu. Default: true.
+    "! @parameter defaultfilteroperator | (string) Default filter operator (e.g. `EQ`, `Contains`).
+    "! @parameter filtertype            | (string) Filter value parser type.
+    "! @parameter halign                | (sap.ui.core.HorizontalAlign) Begin | End | Left | Right | Center. Default: Begin.
+    "! @parameter minwidth              | (int) Minimum column width in px. Default: 0.
+    "! @parameter resizable             | (boolean) Allow column resizing. Default: true.
+    "! @parameter visible               | (boolean) Whether the column is visible. Default: true.
     METHODS ui_column
       IMPORTING
         id                    TYPE clike OPTIONAL
@@ -4205,22 +4255,35 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `columns` for sap.ui.table.Table</p>
     METHODS ui_columns
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `customData` for sap.ui.table elements</p>
     METHODS ui_custom_data
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `extension` for sap.ui.table.Table (toolbar/extension area)</p>
     METHODS ui_extension
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `template` for sap.ui.table.Column (cell template)</p>
     METHODS ui_template
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.unified.Currency - formatted currency value</p>
+    "!
+    "! Renders amount and currency aligned for tables. See https://ui5.sap.com/#/api/sap.ui.unified.Currency.
+    "!
+    "! @parameter value        | (float) Amount value.
+    "! @parameter currency     | (string) ISO currency code (e.g. `EUR`).
+    "! @parameter usesymbol    | (boolean) Show currency symbol instead of code. Default: false.
+    "! @parameter maxprecision | (int) Maximum number of decimals. Default: 3.
+    "! @parameter stringvalue  | (string) DEPRECATED - read-only formatted value.
     METHODS currency
       IMPORTING
         value         TYPE clike OPTIONAL
@@ -4231,14 +4294,25 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `rowActions` for sap.ui.table.Table</p>
     METHODS ui_row_action
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `template` for sap.ui.table.RowAction</p>
     METHODS ui_row_action_template
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.table.RowActionItem - row action button (sap.ui.table)</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.ui.table.RowActionItem.
+    "!
+    "! @parameter icon    | (sap.ui.core.URI) Icon URI.
+    "! @parameter text    | (string) Action text.
+    "! @parameter type    | (sap.ui.table.RowActionType) Custom | Navigation | Delete. Default: Custom.
+    "! @parameter press   | (event) Fired when the action is pressed.
+    "! @parameter visible | (boolean) Whether the action is visible. Default: true.
     METHODS ui_row_action_item
       IMPORTING
         icon          TYPE clike OPTIONAL
@@ -4249,6 +4323,23 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.RadioButton - single radio button</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.RadioButton.
+    "!
+    "! @parameter activehandling | (boolean) Apply pressed-state styling. Default: true.
+    "! @parameter editable       | (boolean) Whether editable. Default: true.
+    "! @parameter enabled        | (boolean) Whether enabled. Default: true.
+    "! @parameter groupname      | (string) Group name (radio buttons with the same `groupName` are mutually exclusive). Default: `sapMRbDefaultGroup`.
+    "! @parameter selected       | (boolean) Selected state. Default: false.
+    "! @parameter text           | (string) Label text.
+    "! @parameter textalign      | (sap.ui.core.TextAlign) Begin | End | Left | Right | Center | Initial. Default: Initial.
+    "! @parameter textdirection  | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter useentirewidth | (boolean) Stretch the radio button to entire width. Default: false. Since 1.93.
+    "! @parameter valuestate     | (sap.ui.core.ValueState) None | Success | Warning | Error | Information. Default: None.
+    "! @parameter width          | (sap.ui.core.CSSSize) Width.
+    "! @parameter select         | (event) Fired when the state changes.
+    "! @parameter visible        | (boolean) Whether visible. Default: true.
     METHODS radio_button
       IMPORTING
         id             TYPE clike OPTIONAL
@@ -4268,6 +4359,19 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.RadioButtonGroup - group of radio buttons</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.RadioButtonGroup.
+    "!
+    "! @parameter columns       | (int) Number of columns. Default: 1.
+    "! @parameter editable      | (boolean) Whether editable. Default: true.
+    "! @parameter enabled       | (boolean) Whether enabled. Default: true.
+    "! @parameter selectedindex | (int) Two-way bound selected index. Default: 0.
+    "! @parameter textdirection | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter valuestate    | (sap.ui.core.ValueState) None | Success | Warning | Error | Information. Default: None.
+    "! @parameter width         | (sap.ui.core.CSSSize) Width.
+    "! @parameter select        | (event) Fired when the selected button changes.
+    "! @parameter class         | (string) CSS class names.
     METHODS radio_button_group
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -4283,6 +4387,14 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.DynamicSideContent - main + responsive side content</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.ui.layout.DynamicSideContent.
+    "!
+    "! @parameter class                 | (string) CSS class names.
+    "! @parameter sidecontentvisibility | (sap.ui.layout.SideContentVisibility) AlwaysShow | ShowAboveL | ShowAboveM | ShowAboveS | NeverShow. Default: ShowAboveS.
+    "! @parameter showsidecontent       | (boolean) Whether the side content is shown. Default: true.
+    "! @parameter containerquery        | (boolean) Use container width instead of viewport. Default: false.
     METHODS dynamic_side_content
       IMPORTING
         id                    TYPE clike OPTIONAL
@@ -4294,12 +4406,53 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `sideContent` (DynamicSideContent)</p>
+    "!
+    "! @parameter width | (sap.ui.core.CSSSize) Width hint for the side content area.
     METHODS side_content
       IMPORTING
         width         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.PlanningCalendar - rows of resources with appointments</p>
+    "!
+    "! Multi-row planning calendar (Gantt-style). See https://ui5.sap.com/#/api/sap.m.PlanningCalendar.
+    "!
+    "! @parameter rows                          | (binding path) Aggregation of `PlanningCalendarRow`.
+    "! @parameter class                         | (string) CSS class names.
+    "! @parameter startdate                     | (object) Start date displayed.
+    "! @parameter appointmentsvisualization     | (sap.ui.unified.CalendarAppointmentVisualization) Standard | Filled. Default: Standard.
+    "! @parameter appointmentselect             | (event) Fired when an appointment is selected.
+    "! @parameter showemptyintervalheaders      | (boolean) Render empty interval header cells. Default: true.
+    "! @parameter showweeknumbers               | (boolean) Show week numbers. Default: false.
+    "! @parameter showdaynamesline              | (boolean) Show day-names line. Default: true.
+    "! @parameter legend                        | (sap.ui.core.ID) Id of the associated legend.
+    "! @parameter appointmentheight             | (sap.ui.unified.CalendarAppointmentHeight) HalfSize | Regular | Large | Automatic. Default: Regular.
+    "! @parameter appointmentroundwidth         | (sap.ui.unified.CalendarAppointmentRoundWidth) HalfColumn | None. Default: None.
+    "! @parameter builtinviews                  | (sap.m.PlanningCalendarBuiltInView[]) Built-in views to render: Hour | Day | Month | Week | OneMonth.
+    "! @parameter calendarweeknumbering         | (sap.ui.core.date.CalendarWeekNumbering) Default | ISO_8601 | MiddleEastern | WesternTraditional. Default: Default.
+    "! @parameter firstdayofweek                | (int) First day of the week (0=Sunday). Default: -1 (locale-default).
+    "! @parameter height                        | (sap.ui.core.CSSSize) Height.
+    "! @parameter groupappointmentsmode         | (sap.ui.unified.GroupAppointmentsMode) Collapsed | Expanded. Default: Collapsed.
+    "! @parameter iconshape                     | (sap.m.AvatarShape) Square | Circle. Default: Circle.
+    "! @parameter maxdate                       | (object) Maximum selectable date.
+    "! @parameter mindate                       | (object) Minimum selectable date.
+    "! @parameter nodatatext                    | (string) Empty-state text.
+    "! @parameter primarycalendartype           | (sap.ui.core.CalendarType) Gregorian | Islamic | Japanese | Persian | Buddhist.
+    "! @parameter secondarycalendartype         | (sap.ui.core.CalendarType) Secondary calendar type.
+    "! @parameter intervalselect                | (event) Fired when an interval is selected.
+    "! @parameter rowheaderpress                | (event) Fired when a row header is pressed.
+    "! @parameter rowselectionchange            | (event) Fired when row selection changes.
+    "! @parameter startdatechange               | (event) Fired when the start date changes (user navigation).
+    "! @parameter viewchange                    | (event) Fired when the active view changes.
+    "! @parameter stickyheader                  | (boolean) Make the toolbar header sticky. Default: false.
+    "! @parameter viewkey                       | (string) Currently selected view key.
+    "! @parameter width                         | (sap.ui.core.CSSSize) Width.
+    "! @parameter singleselection               | (boolean) Single-row selection. Default: true.
+    "! @parameter showrowheaders                | (boolean) Show row headers. Default: true.
+    "! @parameter multipleappointmentsselection | (boolean) Allow multiple appointment selection. Default: false.
+    "! @parameter showintervalheaders           | (boolean) Show interval headers. Default: true.
     METHODS planning_calendar
       IMPORTING
         rows                          TYPE clike OPTIONAL
@@ -4341,6 +4494,21 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.PlanningCalendarView - custom view for PlanningCalendar</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.PlanningCalendarView.
+    "!
+    "! @parameter appointmentheight      | (sap.ui.unified.CalendarAppointmentHeight) HalfSize | Regular | Large | Automatic.
+    "! @parameter description            | (string) Visible description.
+    "! @parameter intervallabelformatter | (function) Custom interval label formatter.
+    "! @parameter intervalsize           | (int) Size of one interval (e.g. days/hours). Default: 1.
+    "! @parameter intervalsl             | (int) Number of intervals on L screens. Default: 12.
+    "! @parameter intervalsm             | (int) Number of intervals on M screens. Default: 8.
+    "! @parameter intervalss             | (int) Number of intervals on S screens. Default: 6.
+    "! @parameter intervaltype           | (sap.ui.unified.CalendarIntervalType) Hour | Day | Month | Week | OneMonth. Default: Hour.
+    "! @parameter key                    | (string) View key.
+    "! @parameter relative               | (boolean) Use relative numeric labels. Default: false.
+    "! @parameter showsubintervals       | (boolean) Show sub-intervals. Default: false.
     METHODS planning_calendar_view
       IMPORTING
         appointmentheight      TYPE clike OPTIONAL
@@ -4357,6 +4525,29 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.PlanningCalendarRow - row in PlanningCalendar</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.PlanningCalendarRow.
+    "!
+    "! @parameter appointments                  | (binding path) Aggregation of appointments.
+    "! @parameter intervalheaders               | (binding path) Aggregation of interval header appointments.
+    "! @parameter icon                          | (sap.ui.core.URI) Row icon.
+    "! @parameter title                         | (string) Row title.
+    "! @parameter key                           | (string) Row key.
+    "! @parameter text                          | (string) Row description text.
+    "! @parameter enableappointmentscreate      | (boolean) Allow creating appointments by selection. Default: false. Since 1.56.
+    "! @parameter enableappointmentsdraganddrop | (boolean) Allow drag-and-drop. Default: false.
+    "! @parameter enableappointmentsresize      | (boolean) Allow resizing. Default: false.
+    "! @parameter noappointmentstext            | (string) Custom empty-state text.
+    "! @parameter nonworkinghours               | (int[]) Non-working hours array.
+    "! @parameter rowheaderdescription          | (string) Accessibility description for the row header.
+    "! @parameter nonworkingdays                | (int[]) Non-working days array (0=Sunday).
+    "! @parameter selected                      | (boolean) Whether the row is selected. Default: false.
+    "! @parameter appointmentcreate             | (event) Fired when an appointment is created via selection.
+    "! @parameter appointmentdragenter          | (event) Fired when a drag enters the row.
+    "! @parameter appointmentdrop               | (event) Fired when an appointment is dropped.
+    "! @parameter appointmentresize             | (event) Fired when an appointment is resized.
+    "! @parameter class                         | (string) CSS class names.
     METHODS planning_calendar_row
       IMPORTING
         appointments                  TYPE clike OPTIONAL
@@ -4383,6 +4574,15 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.PlanningCalendarLegend - legend for PlanningCalendar</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.PlanningCalendarLegend.
+    "!
+    "! @parameter items            | (binding path) Inherited `items` aggregation (regular calendar items).
+    "! @parameter appointmentitems | (binding path) Aggregation of appointment legend items.
+    "! @parameter standarditems    | (sap.ui.unified.StandardCalendarLegendItem[]) Built-in standard items: Today | WorkingDay | NonWorkingDay | Selected.
+    "! @parameter columnwidth      | (sap.ui.core.CSSSize) Column width. Default: auto.
+    "! @parameter visible          | (boolean) Whether the legend is visible. Default: true.
     METHODS planning_calendar_legend
       IMPORTING
         items            TYPE clike OPTIONAL
@@ -4395,6 +4595,14 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.unified.CalendarLegendItem - legend entry for calendar controls</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.ui.unified.CalendarLegendItem.
+    "!
+    "! @parameter text    | (string) Item text.
+    "! @parameter type    | (sap.ui.unified.CalendarDayType) None | NonWorking | Type01..Type20. Default: None.
+    "! @parameter tooltip | (string) Tooltip.
+    "! @parameter color   | (sap.ui.core.CSSColor) Custom CSS colour. Since 1.46.
     METHODS calendar_legend_item
       IMPORTING
         text          TYPE clike OPTIONAL
@@ -4405,10 +4613,24 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `appointmentItems` (PlanningCalendarLegend)</p>
     METHODS appointment_items
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.tnt.InfoLabel - status label / chip</p>
+    "!
+    "! Coloured status label / chip with numeric or icon variants. See https://ui5.sap.com/#/api/sap.tnt.InfoLabel.
+    "!
+    "! @parameter text          | (string) Label text.
+    "! @parameter rendermode    | (sap.tnt.RenderMode) Loose | Narrow. Default: Loose.
+    "! @parameter colorscheme   | (int) Predefined colour scheme (1..10). Default: 7.
+    "! @parameter icon          | (sap.ui.core.URI) Optional icon URI. Since 1.74.
+    "! @parameter displayonly   | (boolean) Display-only mode (no interaction). Default: false.
+    "! @parameter textdirection | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter width         | (sap.ui.core.CSSSize) Width.
+    "! @parameter visible       | (boolean) Whether visible. Default: true.
+    "! @parameter class         | (string) CSS class names.
     METHODS info_label
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -4425,14 +4647,29 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `rows` (sap.ui.table.Table, PlanningCalendar, ...)</p>
     METHODS rows
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `appointments` (PlanningCalendarRow)</p>
     METHODS appointments
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.unified.CalendarAppointment - appointment</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.ui.unified.CalendarAppointment.
+    "!
+    "! @parameter startdate | (object) Start date.
+    "! @parameter enddate   | (object) End date.
+    "! @parameter icon      | (sap.ui.core.URI) Icon URI.
+    "! @parameter title     | (string) Title.
+    "! @parameter text      | (string) Subtitle/description text.
+    "! @parameter type      | (sap.ui.unified.CalendarDayType) None | NonWorking | Type01..Type20. Default: None.
+    "! @parameter tentative | (boolean) Render as tentative (striped). Default: false.
+    "! @parameter key       | (string) Item key.
+    "! @parameter selected  | (boolean) Selected state. Default: false.
     METHODS calendar_appointment
       IMPORTING
         startdate     TYPE clike OPTIONAL
@@ -4448,10 +4685,16 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `intervalHeaders` (PlanningCalendarRow)</p>
     METHODS interval_headers
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.BlockLayout - high-level page sectioning layout</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.ui.layout.BlockLayout.
+    "!
+    "! @parameter background | (sap.ui.layout.BlockBackgroundType) Default | Light | ColorMix | Dashboard | Accent. `Mixed` is deprecated since 1.50. Default: Default.
     METHODS block_layout
       IMPORTING
         background    TYPE clike OPTIONAL
@@ -4459,6 +4702,11 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.BlockLayoutRow - row in a BlockLayout</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.ui.layout.BlockLayoutRow.
+    "!
+    "! @parameter rowcolorset | (sap.ui.layout.BlockRowColorSets) ColorSet1..ColorSet11. Default: ColorSet1.
     METHODS block_layout_row
       IMPORTING
         rowcolorset   TYPE clike OPTIONAL
@@ -4466,6 +4714,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.BlockLayoutCell - cell in a BlockLayoutRow</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.ui.layout.BlockLayoutCell.
+    "!
+    "! @parameter backgroundcolorset   | (sap.ui.layout.BlockLayoutCellColorSet) ColorSet1..ColorSet11.
+    "! @parameter backgroundcolorshade | (sap.ui.layout.BlockLayoutCellColorShade) ShadeA | ShadeB | ShadeC | ShadeD. Default: ShadeA.
+    "! @parameter title                | (string) Cell title.
+    "! @parameter titlealignment       | (sap.ui.core.HorizontalAlign) Begin | End | Left | Right | Center. Default: Begin.
+    "! @parameter titlelevel           | (sap.ui.core.TitleLevel) Auto | H1..H6. Default: Auto.
+    "! @parameter width                | (int) Width hint as integer ratio.
+    "! @parameter class                | (string) CSS class names.
     METHODS block_layout_cell
       IMPORTING
         backgroundcolorset   TYPE clike OPTIONAL
@@ -4479,6 +4738,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ObjectIdentifier - title with optional active text</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.ObjectIdentifier.
+    "!
+    "! @parameter emptyindicatormode | (sap.m.EmptyIndicatorMode) On | Off | Auto. Default: Off. Since 1.89.
+    "! @parameter text               | (string) Description text.
+    "! @parameter textdirection      | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter title              | (string) Title text.
+    "! @parameter titleactive        | (boolean) Render title as a clickable link. Default: false.
+    "! @parameter visible            | (boolean) Whether the control is visible. Default: true.
+    "! @parameter titlepress         | (event) Fired when an active title is pressed.
     METHODS object_identifier
       IMPORTING
         emptyindicatormode TYPE clike OPTIONAL
@@ -4491,6 +4761,23 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ObjectStatus - status text with semantic colour and optional icon</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.ObjectStatus.
+    "!
+    "! @parameter active                | (boolean) Render as a clickable link. Default: false.
+    "! @parameter emptyindicatormode    | (sap.m.EmptyIndicatorMode) On | Off | Auto. Default: Off. Since 1.89.
+    "! @parameter icon                  | (sap.ui.core.URI) Icon URI.
+    "! @parameter icondensityaware      | (boolean) Density-aware icon. Default: true.
+    "! @parameter inverted              | (boolean) Inverted state colouring. Default: false. Since 1.74.
+    "! @parameter state                 | (sap.ui.core.ValueState | sap.ui.core.IndicationColor) None | Success | Warning | Error | Information | Indication01..Indication10. Default: None.
+    "! @parameter stateannouncementtext | (string) Custom accessibility announcement for the state.
+    "! @parameter text                  | (string) Status text.
+    "! @parameter textdirection         | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter title                 | (string) Status title (label).
+    "! @parameter press                 | (event) Fired when an active status is pressed.
+    "! @parameter visible               | (boolean) Whether visible. Default: true.
+    "! @parameter class                 | (string) CSS class names.
     METHODS object_status
       IMPORTING
         active                TYPE clike OPTIONAL
@@ -4510,6 +4797,25 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Tree - tree list (extends sap.m.ListBase)</p>
+    "!
+    "! Hierarchical list. See https://ui5.sap.com/#/api/sap.m.Tree.
+    "!
+    "! @parameter items                  | (binding path) Aggregation of `sap.m.StandardTreeItem` (or custom item).
+    "! @parameter headertext             | (string, ListBase) Header text.
+    "! @parameter headerlevel            | (sap.ui.core.TitleLevel) Auto | H1..H6. Default: Auto.
+    "! @parameter footertext             | (string, ListBase) Footer text.
+    "! @parameter mode                   | (sap.m.ListMode, ListBase) Selection mode. Default: None.
+    "! @parameter includeiteminselection | (boolean, ListBase) Click item to select. Default: false.
+    "! @parameter inset                  | (boolean, ListBase) Indent the container. Default: false.
+    "! @parameter width                  | (sap.ui.core.CSSSize, ListBase) Width.
+    "! @parameter toggleopenstate        | (event) Fired when a node is expanded/collapsed.
+    "! @parameter selectionchange        | (event) Fired when selection changes.
+    "! @parameter itempress              | (event) Fired when an item is pressed.
+    "! @parameter select                 | (event) DEPRECATED since 1.16 - use `selectionChange`.
+    "! @parameter multiselectmode        | (sap.m.MultiSelectMode) Default | ClearAll | SelectAll. Default: Default.
+    "! @parameter nodatatext             | (string) Empty-state text.
+    "! @parameter shownodata             | (boolean) Show empty-state text. Default: true.
     METHODS tree
       IMPORTING
         id                     TYPE clike     OPTIONAL
@@ -4532,6 +4838,18 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.StandardTreeItem - item inside sap.m.Tree</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.StandardTreeItem.
+    "!
+    "! @parameter title       | (string) Item title.
+    "! @parameter icon        | (sap.ui.core.URI) Icon URI.
+    "! @parameter press       | (event, ListItemBase) Fired when the item is activated.
+    "! @parameter detailpress | (event, ListItemBase) Fired when the detail icon is pressed.
+    "! @parameter type        | (sap.m.ListType, ListItemBase) Inactive | Active | Detail | Navigation | DetailAndActive. Default: Inactive.
+    "! @parameter selected    | (boolean, ListItemBase) Selected state. Default: false.
+    "! @parameter counter     | (int, ListItemBase) Counter badge.
+    "! @parameter tooltip     | (string) Tooltip.
     METHODS standard_tree_item
       IMPORTING
         title         TYPE clike OPTIONAL
@@ -4545,6 +4863,28 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.IconTabBar - tab bar with icons</p>
+    "!
+    "! Tab bar where tabs can show icons. See https://ui5.sap.com/#/api/sap.m.IconTabBar.
+    "!
+    "! @parameter class                  | (string) CSS class names.
+    "! @parameter select                 | (event) Fired when a tab is selected.
+    "! @parameter expand                 | (event) Fired when the bar is expanded/collapsed.
+    "! @parameter expandable             | (boolean) Allow collapsing the content. Default: true.
+    "! @parameter expanded               | (boolean) Initial expanded state. Default: true.
+    "! @parameter selectedkey            | (string) Two-way bound selected tab key.
+    "! @parameter uppercase              | (boolean) Uppercase tab text. Default: false.
+    "! @parameter tabsoverflowmode       | (sap.m.TabsOverflowMode) End | StartAndEnd. Default: End.
+    "! @parameter tabdensitymode         | (sap.m.IconTabDensityMode) Cozy | Compact | Inherit. Default: Cozy.
+    "! @parameter stretchcontentheight   | (boolean) Stretch the content height to fill the parent. Default: false.
+    "! @parameter maxnestinglevel        | (int) Max nesting level for sub-tabs. Default: 3.
+    "! @parameter headermode             | (sap.m.IconTabHeaderMode) Standard | Inline. Default: Standard.
+    "! @parameter headerbackgrounddesign | (sap.m.BackgroundDesign) Solid | Translucent | Transparent. Default: Solid.
+    "! @parameter enabletabreordering    | (boolean) Allow tab drag-and-drop reordering. Default: false.
+    "! @parameter backgrounddesign       | (sap.m.BackgroundDesign) Solid | Translucent | Transparent. Default: Solid.
+    "! @parameter applycontentpadding    | (boolean) Apply default padding to the content area. Default: true.
+    "! @parameter items                  | (binding path) Aggregation of `IconTabFilter` / `IconTabSeparator`.
+    "! @parameter content                | (binding path) Default content shown for each filter.
     METHODS icon_tab_bar
       IMPORTING
         class                  TYPE clike OPTIONAL
