@@ -7351,6 +7351,37 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.Timeline - vertical timeline of events</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.Timeline.
+    "!
+    "! @parameter enabledoublesided | (boolean) Render entries on both sides of the axis. Default: false.
+    "! @parameter groupby           | (string) Property used for automatic grouping.
+    "! @parameter growingthreshold  | (int) Items per growing chunk. Default: 5.
+    "! @parameter filtertitle       | (string) Title shown above the filter.
+    "! @parameter sortoldestfirst   | (boolean) Sort oldest entries first. Default: false.
+    "! @parameter alignment         | (sap.suite.ui.commons.TimelineAlignment) Right | Left. Default: Right.
+    "! @parameter axisorientation   | (sap.suite.ui.commons.TimelineAxisOrientation) Vertical | Horizontal. Default: Vertical.
+    "! @parameter content           | (binding path) Default content aggregation.
+    "! @parameter enablemodelfilter | (boolean) Apply filter at the model level. Default: true.
+    "! @parameter enablescroll      | (boolean) Enable scrolling. Default: true.
+    "! @parameter forcegrowing      | (boolean) Force growing even if all items fit. Default: false.
+    "! @parameter group             | (boolean) Enable grouping. Default: false.
+    "! @parameter lazyloading       | (boolean) Enable lazy loading. Default: false.
+    "! @parameter showheaderbar     | (boolean) Show the header bar. Default: true.
+    "! @parameter showicons         | (boolean) Show icons. Default: true.
+    "! @parameter showitemfilter    | (boolean) Show item filter. Default: true.
+    "! @parameter showsearch        | (boolean) Show search. Default: true.
+    "! @parameter showsort          | (boolean) Show sort dropdown. Default: true.
+    "! @parameter showtimefilter    | (boolean) Show time filter. Default: false.
+    "! @parameter sort              | (boolean) Sort items by date. Default: true.
+    "! @parameter groupbytype       | (sap.suite.ui.commons.TimelineGroupType) Year | Month | Quarter | Week | Day. Default: None.
+    "! @parameter textheight        | (sap.ui.core.CSSSize) Default text height.
+    "! @parameter width             | (sap.ui.core.CSSSize) Width.
+    "! @parameter height            | (sap.ui.core.CSSSize) Height.
+    "! @parameter nodatatext        | (string) Empty-state text.
+    "! @parameter filterlist        | (binding path) Aggregation of filter list items.
+    "! @parameter customfilter      | (binding path) Custom filter aggregation.
     METHODS timeline
       IMPORTING
         id                TYPE clike OPTIONAL
@@ -7384,6 +7415,30 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.TimelineItem - single entry on the Timeline</p>
+    "!
+    "! @parameter datetime            | (string) Entry timestamp.
+    "! @parameter title               | (string) Entry title.
+    "! @parameter usernameclickable   | (boolean) Render the user name as a link. Default: false.
+    "! @parameter useicontooltip      | (boolean) Use icon symbolic name as tooltip. Default: true.
+    "! @parameter usernameclicked     | (event) Fired when the user name link is pressed.
+    "! @parameter select              | (event) Fired when the entry is selected.
+    "! @parameter userpicture         | (sap.ui.core.URI) Profile picture URI.
+    "! @parameter text                | (string) Entry body text.
+    "! @parameter username            | (string) User name.
+    "! @parameter filtervalue         | (string) Value used by the filter.
+    "! @parameter icondisplayshape    | (sap.m.AvatarShape) Circle | Square. Default: Circle.
+    "! @parameter iconinitials        | (string) Initials shown when no icon is set.
+    "! @parameter iconsize            | (sap.m.AvatarSize) Size of the icon.
+    "! @parameter icontooltip         | (string) Custom icon tooltip.
+    "! @parameter maxcharacters       | (int) Truncate text after N characters. 0 = unlimited.
+    "! @parameter replycount          | (int) Number of replies displayed.
+    "! @parameter status              | (string) Item status text.
+    "! @parameter customactionclicked | (event) Fired when a custom action is clicked.
+    "! @parameter press               | (event) Fired when the entry is pressed.
+    "! @parameter replylistopen       | (event) Fired when the reply list opens.
+    "! @parameter replypost           | (event) Fired when a reply is posted.
+    "! @parameter icon                | (sap.ui.core.URI) Icon URI.
     METHODS timeline_item
       IMPORTING
         id                  TYPE clike OPTIONAL
@@ -7412,6 +7467,30 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.SplitContainer - master/detail container</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.SplitContainer.
+    "!
+    "! @parameter initialdetail               | (sap.ui.core.ID) Id of the initially shown detail page.
+    "! @parameter initialmaster               | (sap.ui.core.ID) Id of the initially shown master page.
+    "! @parameter backgroundcolor             | (sap.ui.core.CSSColor) Background colour.
+    "! @parameter backgroundimage             | (sap.ui.core.URI) Background image URI.
+    "! @parameter backgroundopacity           | (float) Background image opacity (0..1). Default: 1.
+    "! @parameter backgroundrepeat            | (boolean) Tile the background image. Default: false.
+    "! @parameter defaulttransitionnamedetail | (string) Default detail-page transition.
+    "! @parameter defaulttransitionnamemaster | (string) Default master-page transition.
+    "! @parameter masterbuttontext            | (string) Master button text on phone.
+    "! @parameter masterbuttontooltip         | (string) Master button tooltip.
+    "! @parameter mode                        | (sap.m.SplitAppMode) ShowHideMode | StretchCompressMode | PopoverMode | HideMode. Default: ShowHideMode.
+    "! @parameter afterdetailnavigate         | (event) Fired after detail navigation.
+    "! @parameter aftermasterclose            | (event) Fired after the master closes.
+    "! @parameter aftermasternavigate         | (event) Fired after master navigation.
+    "! @parameter aftermasteropen             | (event) Fired after the master opens.
+    "! @parameter beforemasterclose           | (event) Fired before the master closes.
+    "! @parameter beforemasteropen            | (event) Fired before the master opens.
+    "! @parameter detailnavigate              | (event) Fired during detail navigation.
+    "! @parameter masterbutton                | (event) Fired when the master button is pressed.
+    "! @parameter masternavigate              | (event) Fired during master navigation.
     METHODS split_container
       IMPORTING
         id                          TYPE clike OPTIONAL
@@ -7438,14 +7517,20 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)               TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `detailPages` (SplitContainer)</p>
     METHODS detail_pages
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `masterPages` (SplitContainer)</p>
     METHODS master_pages
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.vk.ContainerContent - container content (sap.ui.vk)</p>
+    "!
+    "! @parameter title | (string) Tab/content title.
+    "! @parameter icon  | (sap.ui.core.URI) Tab icon URI.
     METHODS container_content
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -7454,6 +7539,10 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.vbm.MapContainer - map container with multiple maps (sap.ui.vbm)</p>
+    "!
+    "! @parameter autoadjustheight | (boolean) Auto-adjust height. Default: false.
+    "! @parameter showhome         | (boolean) Show "Home" button. Default: true.
     METHODS map_container
       IMPORTING
         id               TYPE clike OPTIONAL
@@ -7462,6 +7551,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.vbm.Spot - point on a map</p>
+    "!
+    "! @parameter position      | (string) Geo position (lon;lat;alt).
+    "! @parameter contentoffset | (string) Content offset (x;y).
+    "! @parameter type          | (sap.ui.vbm.SemanticType) None | Success | Error | Warning | Default | Inactive | Hidden. Default: None.
+    "! @parameter scale         | (string) Scale factor (sx;sy;sz).
+    "! @parameter tooltip       | (string) Tooltip.
+    "! @parameter image         | (sap.ui.core.URI) Image URI.
+    "! @parameter icon          | (sap.ui.core.URI) Icon URI.
+    "! @parameter click         | (event) Fired when the spot is clicked.
+    "! @parameter text          | (string) Label text.
     METHODS spot
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -7477,6 +7577,14 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.vbm.AnalyticMap - analytic geographical map (sap.ui.vbm)</p>
+    "!
+    "! @parameter initialposition | (string) Initial centre position (lon;lat).
+    "! @parameter height          | (sap.ui.core.CSSSize) Height.
+    "! @parameter lassoselection  | (boolean) Enable lasso selection. Default: true.
+    "! @parameter visible         | (boolean) Whether visible. Default: true.
+    "! @parameter width           | (sap.ui.core.CSSSize) Width.
+    "! @parameter initialzoom     | (string) Initial zoom level.
     METHODS analytic_map
       IMPORTING
         id              TYPE clike OPTIONAL
@@ -7489,6 +7597,9 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.vbm.Spots - container of map spots</p>
+    "!
+    "! @parameter items | (binding path) Aggregation of `Spot`.
     METHODS spots
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -7497,10 +7608,26 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `vos` (sap.ui.vbm.AnalyticMap visual objects)</p>
     METHODS vos
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ActionSheet - action sheet (button list)</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.ActionSheet.
+    "!
+    "! @parameter cancelbuttontext  | (string) Custom cancel button text.
+    "! @parameter placement         | (sap.m.PlacementType) Top | Bottom | Vertical | Auto | Right | Left | Horizontal. Default: Bottom.
+    "! @parameter showcancelbutton  | (boolean) Show the cancel button (mobile only). Default: true.
+    "! @parameter title              | (string) Title shown on top.
+    "! @parameter afterclose        | (event) Fired after the sheet has closed.
+    "! @parameter afteropen         | (event) Fired after the sheet has opened.
+    "! @parameter beforeclose       | (event) Fired before the sheet closes.
+    "! @parameter beforeopen        | (event) Fired before the sheet opens.
+    "! @parameter cancelbuttonpress | (event) Fired when the cancel button is pressed.
+    "! @parameter visible           | (boolean) Whether the sheet is visible. Default: true.
+    "! @parameter class             | (string) CSS class names.
     METHODS action_sheet
       IMPORTING
         id                TYPE clike OPTIONAL
@@ -7518,6 +7645,20 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ExpandableText - text with show-more / show-less</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.ExpandableText. Since 1.87.
+    "!
+    "! @parameter emptyindicatormode | (sap.m.EmptyIndicatorMode) On | Off | Auto. Default: Off.
+    "! @parameter maxcharacters      | (int) Character limit before "show more". Default: 100.
+    "! @parameter overflowmode       | (sap.m.ExpandableTextOverflowMode) InPlace | Popover. Default: InPlace.
+    "! @parameter renderwhitespace   | (boolean) Render whitespace as `&nbsp;`. Default: false.
+    "! @parameter text               | (string) Text content.
+    "! @parameter textalign          | (sap.ui.core.TextAlign) Begin | End | Left | Right | Center | Initial. Default: Begin.
+    "! @parameter textdirection      | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter visible            | (boolean) Whether visible. Default: true.
+    "! @parameter wrappingtype       | (sap.m.WrappingType) Normal | Hyphenated. Default: Normal.
+    "! @parameter class              | (string) CSS class names.
     METHODS expandable_text
       IMPORTING
         id                 TYPE clike OPTIONAL
@@ -7534,6 +7675,36 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Select - dropdown selector</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.Select.
+    "!
+    "! @parameter autoadjustwidth     | (boolean) Adjust width based on selected text. Default: false.
+    "! @parameter columnratio         | (string) Column-ratio for IconOnly types (e.g. `3:5`).
+    "! @parameter editable            | (boolean) Whether editable. Default: true.
+    "! @parameter enabled             | (boolean) Whether enabled. Default: true.
+    "! @parameter forceselection      | (boolean) Force a value to always be selected. Default: true.
+    "! @parameter icon                | (sap.ui.core.URI) Icon URI (for IconOnly type).
+    "! @parameter maxwidth            | (sap.ui.core.CSSSize) Maximum width.
+    "! @parameter name                | (string) HTML form name.
+    "! @parameter required            | (boolean) Required field marker. Default: false.
+    "! @parameter resetonmissingkey   | (boolean) Reset selection when key is missing. Default: false.
+    "! @parameter selecteditemid      | (string) Id of the selected item.
+    "! @parameter selectedkey         | (string) Two-way bound selected key.
+    "! @parameter showsecondaryvalues | (boolean) Render `additionalText` as a second column. Default: false.
+    "! @parameter textalign           | (sap.ui.core.TextAlign) Begin | End | Left | Right | Center | Initial. Default: Initial.
+    "! @parameter textdirection       | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter type                | (sap.m.SelectType) Default | IconOnly. Default: Default.
+    "! @parameter valuestate          | (sap.ui.core.ValueState) None | Success | Warning | Error | Information. Default: None.
+    "! @parameter valuestatetext      | (string) Value state message.
+    "! @parameter visible             | (boolean) Whether visible. Default: true.
+    "! @parameter width               | (sap.ui.core.CSSSize) Width. Default: auto.
+    "! @parameter wrapitemstext       | (boolean) Wrap item text. Default: false.
+    "! @parameter items               | (binding path) Aggregation of `sap.ui.core.Item`.
+    "! @parameter selecteditem        | (sap.ui.core.ID) Id of the selected item.
+    "! @parameter change              | (event) Fired when the selected item changes.
+    "! @parameter livechange          | (event) Fired during typing in search-enabled mode.
+    "! @parameter class               | (string) CSS class names.
     METHODS select
       IMPORTING
         id                  TYPE clike OPTIONAL
@@ -7566,10 +7737,28 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `_embeddedControl` (custom-control wrapper)</p>
     METHODS embedded_control
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.HeaderContainer - generic horizontal container of cards/items (extended)</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.HeaderContainer.
+    "!
+    "! @parameter backgrounddesign | (sap.m.BackgroundDesign) Solid | Translucent | Transparent. Default: Solid.
+    "! @parameter gridlayout       | (boolean) Use grid layout. Default: false. Since 1.99.
+    "! @parameter height           | (sap.ui.core.CSSSize) Height.
+    "! @parameter orientation      | (sap.ui.core.Orientation) Horizontal | Vertical. Default: Horizontal.
+    "! @parameter scrollstep       | (int) Scroll step in px.
+    "! @parameter scrollstepbyitem | (int) Scroll step in items. Default: 1.
+    "! @parameter scrolltime       | (int) Scroll animation duration in ms.
+    "! @parameter showdividers     | (boolean) Show dividers between items. Default: true.
+    "! @parameter showoverflowitem | (boolean) Show overflow indicator. Default: true.
+    "! @parameter visible          | (boolean) Whether visible. Default: true.
+    "! @parameter width            | (sap.ui.core.CSSSize) Width.
+    "! @parameter scroll           | (event) Fired on scroll.
+    "! @parameter snaptorow        | (boolean) Snap to row when scrolling. Default: false.
     METHODS header_container_control
       IMPORTING
         backgrounddesign TYPE clike OPTIONAL
@@ -7589,12 +7778,23 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `dependents` (used to attach hidden child controls)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS dependents
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.Card - card wrapper</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.f.Card.
+    "!
+    "! @parameter headerposition | (sap.f.cards.HeaderPosition) Top | Bottom. Default: Top.
+    "! @parameter height         | (sap.ui.core.CSSSize) Card height.
+    "! @parameter visible        | (boolean) Whether visible. Default: true.
+    "! @parameter width          | (sap.ui.core.CSSSize) Card width. Default: 100%.
     METHODS card
       IMPORTING
         id             TYPE clike OPTIONAL
@@ -7606,6 +7806,24 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.cards.Header - default Card header</p>
+    "!
+    "! @parameter iconalt             | (string) Alt text for the icon.
+    "! @parameter iconbackgroundcolor | (sap.m.AvatarColor) Accent1..Accent10 | Placeholder | TileIcon | Random. Default: Accent6.
+    "! @parameter icondisplayshape    | (sap.m.AvatarShape) Circle | Square. Default: Circle.
+    "! @parameter iconinitials        | (string) Initials when no icon is set.
+    "! @parameter iconsize            | (sap.m.AvatarSize) Size of the icon.
+    "! @parameter iconsrc             | (sap.ui.core.URI) Icon URI.
+    "! @parameter iconvisible         | (boolean) Show the icon. Default: true.
+    "! @parameter statustext          | (string) Status text shown next to the title.
+    "! @parameter statusvisible       | (boolean) Show status text. Default: true.
+    "! @parameter subtitle            | (string) Subtitle text.
+    "! @parameter subtitlemaxlines    | (int) Max subtitle lines. Default: 2.
+    "! @parameter title               | (string) Title text.
+    "! @parameter titlemaxlines       | (int) Max title lines. Default: 3.
+    "! @parameter visible             | (boolean) Whether visible. Default: true.
+    "! @parameter datatimestamp       | (string) Last data update timestamp.
+    "! @parameter press               | (event) Fired when the header is pressed.
     METHODS card_header
       IMPORTING
         id                  TYPE clike OPTIONAL
@@ -7629,6 +7847,37 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.cards.NumericHeader - card header with numeric KPI</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.f.cards.NumericHeader.
+    "!
+    "! @parameter visible                 | (boolean) Whether visible. Default: true.
+    "! @parameter datatimestamp           | (string) Last data update timestamp.
+    "! @parameter press                   | (event) Fired when the header is pressed.
+    "! @parameter details                 | (string) Details text shown below the value.
+    "! @parameter detailsmaxlines         | (int) Max details lines.
+    "! @parameter detailsstate            | (sap.ui.core.ValueState) None | Success | Warning | Error | Information. Default: None.
+    "! @parameter iconalt                 | (string) Alt text for the icon.
+    "! @parameter iconbackgroundcolor     | (sap.m.AvatarColor) Background colour for the icon.
+    "! @parameter icondisplayshape        | (sap.m.AvatarShape) Circle | Square.
+    "! @parameter iconinitials            | (string) Initials when no icon is set.
+    "! @parameter iconsize                | (sap.m.AvatarSize) Size of the icon.
+    "! @parameter iconsrc                 | (sap.ui.core.URI) Icon URI.
+    "! @parameter iconvisible             | (boolean) Show the icon. Default: true.
+    "! @parameter number                  | (string) The numeric value.
+    "! @parameter numbersize              | (sap.m.cards.NumericHeaderSideIndicatorAlignment) S | M | L. Default: L.
+    "! @parameter numbervisible           | (boolean) Show the number. Default: true.
+    "! @parameter scale                   | (string) Scale text shown next to the number.
+    "! @parameter sideindicatorsalignment | (sap.f.cards.NumericHeaderSideIndicatorsAlignment) Begin | End. Default: Begin.
+    "! @parameter state                   | (sap.m.ValueColor) None | Good | Error | Critical | Neutral. Default: Neutral.
+    "! @parameter statustext              | (string) Status text shown next to the title.
+    "! @parameter statusvisible           | (boolean) Show status text. Default: true.
+    "! @parameter subtitle                | (string) Subtitle text.
+    "! @parameter subtitlemaxlines        | (int) Max subtitle lines.
+    "! @parameter title                   | (string) Title text.
+    "! @parameter titlemaxlines           | (int) Max title lines.
+    "! @parameter trend                   | (sap.m.DeviationIndicator) None | Up | Down. Default: None.
+    "! @parameter unitofmeasurement       | (string) Unit text.
     METHODS numeric_header
       IMPORTING
         id                      TYPE clike OPTIONAL
@@ -7663,6 +7912,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.cards.NumericSideIndicator - side KPI for NumericHeader</p>
+    "!
+    "! @parameter number | (string) Numeric value.
+    "! @parameter state  | (sap.m.ValueColor) None | Good | Error | Critical | Neutral. Default: Neutral.
+    "! @parameter title  | (string) Indicator title.
+    "! @parameter unit   | (string) Unit text.
     METHODS numeric_side_indicator
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -7675,6 +7930,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.SlideTile - tile that auto-cycles through child tiles</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.SlideTile.
+    "!
+    "! @parameter displaytime    | (int) Display time per tile in ms. Default: 5000.
+    "! @parameter height         | (sap.ui.core.CSSSize) Height.
+    "! @parameter scope          | (sap.m.GenericTileScope) Display | Actions | ActionMore | ActionRemove. Default: Display.
+    "! @parameter sizebehavior   | (sap.m.TileSizeBehavior) Responsive | Small. Default: Responsive.
+    "! @parameter transitiontime | (int) Transition animation time in ms. Default: 500.
+    "! @parameter press          | (event) Fired when the tile is pressed.
+    "! @parameter width          | (sap.ui.core.CSSSize) Width.
     METHODS slide_tile
       IMPORTING
         displaytime    TYPE clike OPTIONAL
@@ -7689,10 +7955,24 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `tiles` (SlideTile)</p>
     METHODS tiles
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.BusyIndicator - busy indicator</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.BusyIndicator.
+    "!
+    "! @parameter customicon              | (sap.ui.core.URI) Custom icon URI.
+    "! @parameter customiconheight        | (sap.ui.core.CSSSize) Custom icon height. Default: 44px.
+    "! @parameter customiconrotationspeed | (int) Rotation speed in ms. Default: 1000.
+    "! @parameter customiconwidth         | (sap.ui.core.CSSSize) Custom icon width. Default: 44px.
+    "! @parameter size                    | (sap.ui.core.CSSSize) Indicator size.
+    "! @parameter text                    | (string) Text shown next to the indicator.
+    "! @parameter textdirection           | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter customicondensityaware  | (boolean) Density-aware custom icon. Default: true.
+    "! @parameter visible                 | (boolean) Whether visible. Default: true.
     METHODS busy_indicator
       IMPORTING
         id                      TYPE clike OPTIONAL
@@ -7709,12 +7989,18 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `customLayout` (HeaderContainer / sap.f.GridList)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS custom_layout
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.GridContainerCarouselLayout - carousel-paginated grid layout</p>
+    "!
+    "! @parameter visiblepagescount | (int) Number of visible pages.
     METHODS carousel_layout
       IMPORTING
         visiblepagescount TYPE clike OPTIONAL
