@@ -8007,6 +8007,20 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.FacetFilter - filter bar with multi-list filters</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.FacetFilter.
+    "!
+    "! @parameter livesearch          | (boolean) Live search inside facet popovers. Default: true.
+    "! @parameter showpersonalization | (boolean) Show personalisation button. Default: false.
+    "! @parameter showpopoverokbutton | (boolean) Show OK button in popover. Default: false.
+    "! @parameter showreset           | (boolean) Show "Reset" button. Default: false.
+    "! @parameter showsummarybar      | (boolean) Show summary bar. Default: false.
+    "! @parameter type                | (sap.m.FacetFilterType) Simple | Light. Default: Simple.
+    "! @parameter visible             | (boolean) Whether visible. Default: true.
+    "! @parameter confirm             | (event) Fired when filters are confirmed.
+    "! @parameter reset               | (event) Fired when filters are reset.
+    "! @parameter lists               | (binding path) Aggregation of `FacetFilterList`.
     METHODS facet_filter
       IMPORTING
         id                  TYPE clike OPTIONAL
@@ -8024,6 +8038,51 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.FacetFilterList - single facet filter list</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.FacetFilterList. Inherits sap.m.List.
+    "!
+    "! @parameter active                      | (boolean) Whether the list is active. Default: true.
+    "! @parameter allcount                    | (int) Total number of items including not currently loaded.
+    "! @parameter backgrounddesign            | (sap.m.BackgroundDesign) Solid | Translucent | Transparent.
+    "! @parameter datatype                    | (sap.m.FacetFilterListDataType) String | Date | Time | DateTime | Boolean | Integer | Float. Default: String.
+    "! @parameter enablebusyindicator         | (boolean) Auto-show busy during data load. Default: true.
+    "! @parameter enablecaseinsensitivesearch | (boolean) Case-insensitive search. Default: false.
+    "! @parameter footertext                  | (string) Footer text.
+    "! @parameter growing                     | (boolean) Enable growing. Default: true.
+    "! @parameter growingdirection            | (sap.m.ListGrowingDirection) Downwards | Upwards. Default: Downwards.
+    "! @parameter growingscrolltoload         | (boolean) Trigger growing on scroll. Default: false.
+    "! @parameter growingthreshold            | (int) Items per growing chunk. Default: 50.
+    "! @parameter growingtriggertext          | (string) Custom "More" button text.
+    "! @parameter headerlevel                 | (sap.ui.core.TitleLevel) Auto | H1..H6. Default: Auto.
+    "! @parameter headertext                  | (string) Header text.
+    "! @parameter includeiteminselection      | (boolean) Click item to select. Default: false.
+    "! @parameter inset                       | (boolean) Indent the container. Default: false.
+    "! @parameter key                         | (string) List key.
+    "! @parameter keyboardmode                | (sap.m.ListKeyboardMode) Navigation | Edit. Default: Navigation.
+    "! @parameter mode                        | (sap.m.ListMode) Selection mode. Default: MultiSelect.
+    "! @parameter modeanimationon             | (boolean) Animate mode change. Default: true.
+    "! @parameter multiselectmode             | (sap.m.MultiSelectMode) Default | ClearAll | SelectAll. Default: Default.
+    "! @parameter nodatatext                  | (string) Empty-state text.
+    "! @parameter rememberselections          | (boolean) Persist selections. Default: true.
+    "! @parameter retainlistsequence          | (boolean) Retain the list order on the bar. Default: false.
+    "! @parameter sequence                    | (int) Position of the list on the bar. Default: -1.
+    "! @parameter shownodata                  | (boolean) Show empty-state text. Default: true.
+    "! @parameter showremovefaceticon         | (boolean) Show "Remove Filter" icon in popover. Default: true.
+    "! @parameter showseparators              | (sap.m.ListSeparators) All | Inner | None. Default: All.
+    "! @parameter showunread                  | (boolean) Activate unread indicator. Default: false.
+    "! @parameter sticky                      | (sap.m.Sticky[]) Sticky areas.
+    "! @parameter swipedirection              | (sap.m.SwipeDirection) Both | RightToLeft | LeftToRight. Default: Both.
+    "! @parameter title                       | (string) List title shown on the bar.
+    "! @parameter visible                     | (boolean) Whether visible. Default: true.
+    "! @parameter width                       | (sap.ui.core.CSSSize) Width.
+    "! @parameter wordwrap                    | (boolean) Wrap item text. Default: false.
+    "! @parameter listclose                   | (event) Fired when the popover closes.
+    "! @parameter listopen                    | (event) Fired when the popover opens.
+    "! @parameter search                      | (event) Fired during search.
+    "! @parameter selectionchange             | (event) Fired when selection changes.
+    "! @parameter delete                      | (event) Fired when an item is deleted.
+    "! @parameter items                       | (binding path) Aggregation of `FacetFilterItem`.
     METHODS facet_filter_list
       IMPORTING
         id                          TYPE clike OPTIONAL
@@ -8072,6 +8131,21 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)               TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.FacetFilterItem - item inside FacetFilterList (extends ListItemBase)</p>
+    "!
+    "! @parameter count         | (int) Item count.
+    "! @parameter counter       | (int, ListItemBase) Counter badge.
+    "! @parameter highlight     | (sap.ui.core.MessageType | IndicationColor, ListItemBase) Default: None.
+    "! @parameter highlighttext | (string, ListItemBase) Custom accessibility text for highlight.
+    "! @parameter key           | (string) Item key.
+    "! @parameter navigated     | (boolean, ListItemBase) Marked as navigated. Default: false.
+    "! @parameter selected      | (boolean, ListItemBase) Selected state. Default: false.
+    "! @parameter text          | (string) Item text.
+    "! @parameter type          | (sap.m.ListType, ListItemBase) Inactive | Active | Detail | Navigation | DetailAndActive. Default: Inactive.
+    "! @parameter unread        | (boolean, ListItemBase) Unread state. Default: false.
+    "! @parameter visible       | (boolean, ListItemBase) Whether visible. Default: true.
+    "! @parameter press         | (event, ListItemBase) Fired when the item is activated.
+    "! @parameter detailpress   | (event, ListItemBase) Fired when the detail icon is pressed.
     METHODS facet_filter_item
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -8092,6 +8166,13 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.DraftIndicator - draft state indicator</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.DraftIndicator.
+    "!
+    "! @parameter mindisplaytime | (int) Minimum display time in ms. Default: 1500.
+    "! @parameter state          | (sap.m.DraftIndicatorState) Clear | Saving | Saved. Default: Clear.
+    "! @parameter visible        | (boolean) Whether visible. Default: true.
     METHODS draft_indicator
       IMPORTING
         id             TYPE clike OPTIONAL
@@ -8102,12 +8183,21 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.core.dnd.DragInfo - drag-only configuration</p>
+    "!
+    "! @parameter sourceaggregation | (string) Source aggregation name.
     METHODS drag_info
       IMPORTING
         sourceaggregation TYPE clike OPTIONAL
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.core.dnd.DragDropInfo - drag-and-drop configuration</p>
+    "!
+    "! @parameter sourceaggregation | (string) Source aggregation name.
+    "! @parameter targetaggregation | (string) Target aggregation name.
+    "! @parameter dragstart         | (event) Fired when dragging starts.
+    "! @parameter drop              | (event) Fired when an item is dropped.
     METHODS drag_drop_info
       IMPORTING
         sourceaggregation TYPE clike OPTIONAL
@@ -8117,12 +8207,18 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `dragDropConfig` (used by drag-and-drop-aware controls)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix. Default: `f`.
     METHODS drag_drop_config
       IMPORTING
         ns            TYPE clike DEFAULT `f`
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 raw HTML `<map>` element</p>
+    "!
+    "! @parameter name | (string) Map name (referenced by `usemap`).
     METHODS html_map
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -8131,6 +8227,14 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 raw HTML `<area>` element (image-map area)</p>
+    "!
+    "! @parameter shape   | (string) HTML area shape (rect | circle | poly | default).
+    "! @parameter coords  | (string) Coordinates string.
+    "! @parameter alt     | (string) Alt text.
+    "! @parameter target  | (string) HTML target attribute.
+    "! @parameter href    | (sap.ui.core.URI) Link target.
+    "! @parameter onclick | (string) Inline JS click handler.
     METHODS html_area
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -8143,6 +8247,11 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 raw HTML `<canvas>` element</p>
+    "!
+    "! @parameter width  | (sap.ui.core.CSSSize) Canvas width.
+    "! @parameter height | (sap.ui.core.CSSSize) Canvas height.
+    "! @parameter style  | (string) Inline CSS style.
     METHODS html_canvas
       IMPORTING
         id            TYPE clike OPTIONAL
