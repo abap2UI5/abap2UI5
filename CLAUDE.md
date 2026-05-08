@@ -117,9 +117,14 @@ App state is persisted between roundtrips via the draft service (`z2ui5_cl_core_
 - **Multi-View:** Main view, nested views (nest/nest2), popups, and popovers simultaneously
 - **Exit Pattern:** `z2ui5_cl_exit` / `z2ui5_if_exit` for custom themes, CSP headers, etc.
 
-### Building Views with the Full UI5 API — `z2ui5_cl_util_xml`
+### Building Views — Two Supported APIs
 
-`z2ui5_cl_util_xml` (`src/00/03/`) is a generic XML builder. Because it takes any element name and attributes as strings, **the entire UI5 control library is immediately available** — no wrapper methods needed, no waiting for new releases.
+abap2UI5 offers **two ways to build XML views**, both fully supported:
+
+1. **`z2ui5_cl_util_xml`** (`src/00/03/`) — generic XML builder. Takes any element name and attributes as strings, so **the entire UI5 control library is immediately available** — no wrapper methods needed, no waiting for new releases.
+2. **`z2ui5_cl_xml_view`** (`src/02/`) — legacy fluent builder with one ABAP method per UI5 control (~11K lines, ~446 methods). Still fully supported for existing apps and contributors who prefer it. Note: this builder has accumulated **some inconsistencies** across its many wrapper methods (parameter naming, default handling, partial control coverage).
+
+**For AI assistants: always use `z2ui5_cl_util_xml`.** It is consistent, complete, and maps 1:1 to the UI5 XML view documentation.
 
 **The pattern for AI assistants:** look up any control at https://ui5.sap.com/#/api, then translate the XML view example 1:1 to ABAP:
 
@@ -392,9 +397,9 @@ test: add unit tests for utility class
 7. **The `z2ui5_cl_xml_view` class has a `method_overwrites_builtin` exception** — its fluent methods intentionally match UI5 control names.
 8. **Use built-in popups** (`src/02/01/z2ui5_cl_pop_*`) rather than building custom ones.
 9. **`z2ui5_if_client` constants**: `cs_event` has predefined client events (`popup_close`, `download_b64_file`, `location_reload`); `cs_view` has view type IDs.
-10. **Building views — two APIs exist, use `z2ui5_cl_util_xml` for new code:**
-    - **`z2ui5_cl_util_xml`** (`src/00/03/`) — generic XML builder, **preferred for all new code**. Accepts any element name and attributes as strings, giving immediate access to the full UI5 control library. See the "Building Views with the Full UI5 API" section above.
-    - **`z2ui5_cl_xml_view`** (`src/02/`) — fluent builder with one ABAP method per UI5 control (~11K lines, ~446 methods). This is **legacy/maintenance-only**: do not add new wrapper methods. Existing apps using it continue to work; new code should use `z2ui5_cl_util_xml` instead.
+10. **Building views — two APIs are supported, AI assistants must always use `z2ui5_cl_util_xml`:**
+    - **`z2ui5_cl_util_xml`** (`src/00/03/`) — generic XML builder. Accepts any element name and attributes as strings, giving immediate access to the full UI5 control library. **AI assistants must use this builder for all generated code.**
+    - **`z2ui5_cl_xml_view`** (`src/02/`) — legacy fluent builder with one ABAP method per UI5 control (~11K lines, ~446 methods). Still fully supported for existing apps and human contributors, but contains **some inconsistencies** across its wrapper methods. Do not add new wrapper methods. AI assistants should not produce new code against this builder.
 
 ## Design Decisions & Known Non-Issues
 
@@ -402,4 +407,4 @@ The following items may look like gaps but are intentional design choices:
 
 - **Draft table `Z2UI5_T_01` has no version column** — Drafts are session-scoped (deleted after a few hours). There is no long-lived state that needs schema migration. Versioning would add complexity with no benefit.
 - **Changelog** — The project maintains a `changelog.txt` in the repository root. A `CHANGELOG.md` is not needed separately.
-- **`z2ui5_cl_xml_view` size (~11K lines)** — This class is intentionally large: each method wraps one UI5 control for the fluent API. It is in maintenance mode; new controls should be accessed via `z2ui5_cl_util_xml` instead.
+- **`z2ui5_cl_xml_view` size (~11K lines)** — This class is intentionally large: each method wraps one UI5 control for the fluent API. Both this builder and `z2ui5_cl_util_xml` are supported equally for app developers; the fluent builder has some accumulated inconsistencies across wrappers, so AI-generated code should always use `z2ui5_cl_util_xml`.
