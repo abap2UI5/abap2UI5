@@ -219,35 +219,31 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
     result = xsdbool(
         ms_response-s_front-params-s_view-check_update_model           = abap_true
-        OR ms_response-s_front-params-s_view_nest-check_update_model   = abap_true
-    ).
+        OR ms_response-s_front-params-s_view_nest-check_update_model   = abap_true ).
 
     IF result = abap_false.
 
       result = xsdbool(
         ms_response-s_front-params-s_view_nest2-check_update_model  = abap_true
         OR ms_response-s_front-params-s_popup-check_update_model    = abap_true
-        OR ms_response-s_front-params-s_popover-check_update_model  = abap_true 
-      ).
+        OR ms_response-s_front-params-s_popover-check_update_model  = abap_true ).
 
     ENDIF.
 
     IF result = abap_false.
 
-     result = xsdbool(
+      result = xsdbool(
         ms_response-s_front-params-s_view-xml          IS NOT INITIAL
         OR ms_response-s_front-params-s_view_nest-xml  IS NOT INITIAL
-        OR ms_response-s_front-params-s_view_nest2-xml IS NOT INITIAL
-        ).
+        OR ms_response-s_front-params-s_view_nest2-xml IS NOT INITIAL ).
 
     ENDIF.
 
     IF result = abap_false.
 
-     result = xsdbool(
+      result = xsdbool(
         ms_response-s_front-params-s_popup-xml      IS NOT INITIAL
-        OR ms_response-s_front-params-s_popover-xml IS NOT INITIAL 
-        ).
+        OR ms_response-s_front-params-s_popover-xml IS NOT INITIAL ).
 
     ENDIF.
 
