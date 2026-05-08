@@ -6388,6 +6388,32 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.LineMicroChart - line micro chart</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.suite.ui.microchart.LineMicroChart.
+    "! Common micro-chart properties: `size` (sap.m.Size: S | M | L | Auto | Responsive), `hideOnNoData`, `press` event.
+    "!
+    "! @parameter color                 | (sap.m.ValueCSSColor) Default line colour: Good | Error | Critical | Neutral or CSS colour.
+    "! @parameter leftbottomlabel       | (string) Bottom-left label.
+    "! @parameter lefttoplabel          | (string) Top-left label.
+    "! @parameter maxxvalue             | (float) Maximum X scale.
+    "! @parameter minxvalue             | (float) Minimum X scale.
+    "! @parameter minyvalue             | (float) Minimum Y scale.
+    "! @parameter rightbottomlabel      | (string) Bottom-right label.
+    "! @parameter righttoplabel         | (string) Top-right label.
+    "! @parameter size                  | (sap.m.Size) S | M | L | Auto | Responsive. Default: Auto.
+    "! @parameter threshold             | (float) Threshold value.
+    "! @parameter thresholddisplayvalue | (string) Pre-formatted threshold text.
+    "! @parameter width                 | (sap.ui.core.CSSSize) Width.
+    "! @parameter height                | (sap.ui.core.CSSSize) Height.
+    "! @parameter press                 | (event) Fired when the chart is pressed.
+    "! @parameter hideonnodata          | (boolean) Hide chart when there is no data. Default: false.
+    "! @parameter showbottomlabels      | (boolean) Show bottom labels. Default: true.
+    "! @parameter showpoints            | (sap.suite.ui.microchart.LineMicroChartEmphasizedPointsType | boolean) Show data points.
+    "! @parameter showthresholdline     | (boolean) Render the threshold line. Default: true.
+    "! @parameter showthresholdvalue    | (boolean) Render the threshold value text. Default: false.
+    "! @parameter showtoplabels         | (boolean) Show top labels. Default: true.
+    "! @parameter maxyvalue             | (float) Maximum Y scale.
     METHODS line_micro_chart
       IMPORTING
         color                 TYPE clike OPTIONAL
@@ -6414,6 +6440,11 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.LineMicroChartLine - one line series in LineMicroChart</p>
+    "!
+    "! @parameter points | (binding path) Aggregation of points.
+    "! @parameter color  | (sap.m.ValueCSSColor) Line colour. Default: Neutral.
+    "! @parameter type   | (sap.suite.ui.microchart.LineType) Solid | Dotted. Default: Solid.
     METHODS line_micro_chart_line
       IMPORTING
         points        TYPE clike OPTIONAL
@@ -6422,6 +6453,10 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.LineMicroChartPoint - data point</p>
+    "!
+    "! @parameter x | (float) X value.
+    "! @parameter y | (float) Y value.
     METHODS line_micro_chart_point
       IMPORTING
         x             TYPE clike OPTIONAL
@@ -6429,6 +6464,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.LineMicroChartEmphasizedPoint - emphasised data point</p>
+    "!
+    "! @parameter x     | (float) X value.
+    "! @parameter y     | (float) Y value.
+    "! @parameter color | (sap.m.ValueCSSColor) Point colour. Default: Neutral.
+    "! @parameter show  | (boolean) Whether the emphasised marker is shown. Default: true.
     METHODS line_micro_chart_empszd_point
       IMPORTING
         x             TYPE clike OPTIONAL
@@ -6438,6 +6479,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.StackedBarMicroChart - stacked bar micro chart</p>
+    "!
+    "! @parameter height           | (sap.ui.core.CSSSize) Height.
+    "! @parameter press            | (event) Fired when the chart is pressed.
+    "! @parameter maxvalue         | (float) Maximum value (auto when undefined).
+    "! @parameter precision        | (int) Number of digits for displayed values. Default: 1.
+    "! @parameter size             | (sap.m.Size) S | M | L | Auto | Responsive. Default: Auto.
+    "! @parameter hideonnodata     | (boolean) Hide chart when there is no data. Default: false.
+    "! @parameter displayzerovalue | (boolean) Display zero values. Default: true.
+    "! @parameter showlabels       | (boolean) Show labels. Default: true.
+    "! @parameter width            | (sap.ui.core.CSSSize) Width.
     METHODS stacked_bar_micro_chart
       IMPORTING
         height           TYPE clike OPTIONAL
@@ -6452,6 +6504,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.ColumnMicroChart - column micro chart</p>
+    "!
+    "! @parameter width             | (sap.ui.core.CSSSize) Width.
+    "! @parameter press             | (event) Fired when the chart is pressed.
+    "! @parameter size              | (sap.m.Size) S | M | L | Auto | Responsive. Default: Auto.
+    "! @parameter aligncontent      | (sap.m.microchart.HorizontalAlignmentType) Left | Center | Right. Default: Left.
+    "! @parameter hideonnodata      | (boolean) Hide chart when there is no data. Default: false.
+    "! @parameter allowcolumnlabels | (boolean) Allow column labels. Default: false.
+    "! @parameter showbottomlabels  | (boolean) Show bottom labels. Default: true.
+    "! @parameter showtoplabels     | (boolean) Show top labels. Default: true.
+    "! @parameter height            | (sap.ui.core.CSSSize) Height.
     METHODS column_micro_chart
       IMPORTING
         width             TYPE clike OPTIONAL
@@ -6466,6 +6529,13 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.ColumnMicroChartData - one column in ColumnMicroChart</p>
+    "!
+    "! @parameter value        | (float) Numeric value.
+    "! @parameter label        | (string) Column label.
+    "! @parameter displayvalue | (string) Pre-formatted value text.
+    "! @parameter color        | (sap.m.ValueCSSColor) Column colour. Default: Neutral.
+    "! @parameter press        | (event) Fired when the column is pressed.
     METHODS column_micro_chart_data
       IMPORTING
         value         TYPE clike OPTIONAL
@@ -6476,6 +6546,20 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.ComparisonMicroChart - comparison micro chart</p>
+    "!
+    "! @parameter colorpalette | (string) CSS-colour list applied cyclically.
+    "! @parameter press        | (event) Fired when the chart is pressed.
+    "! @parameter size         | (sap.m.Size) S | M | L | Auto | Responsive. Default: Auto.
+    "! @parameter height       | (sap.ui.core.CSSSize) Height.
+    "! @parameter maxvalue     | (float) Maximum value (auto when undefined).
+    "! @parameter minvalue     | (float) Minimum value (auto when undefined).
+    "! @parameter scale        | (string) Scaling text shown next to the value.
+    "! @parameter width        | (sap.ui.core.CSSSize) Width.
+    "! @parameter hideonnodata | (boolean) Hide chart when there is no data. Default: false.
+    "! @parameter shrinkable   | (boolean) Allow chart to shrink. Default: false.
+    "! @parameter visible      | (boolean) Whether the chart is visible. Default: true.
+    "! @parameter view         | (sap.suite.ui.microchart.ComparisonMicroChartViewType) Normal | Wide. Default: Normal.
     METHODS comparison_micro_chart
       IMPORTING
         colorpalette  TYPE clike OPTIONAL
@@ -6493,6 +6577,13 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.ComparisonMicroChartData - data row</p>
+    "!
+    "! @parameter color        | (sap.m.ValueCSSColor) Bar colour. Default: Neutral.
+    "! @parameter press        | (event) Fired when the row is pressed.
+    "! @parameter displayvalue | (string) Pre-formatted value text.
+    "! @parameter title        | (string) Row title.
+    "! @parameter value        | (float) Numeric value.
     METHODS comparison_micro_chart_data
       IMPORTING
         color         TYPE clike OPTIONAL
@@ -6503,6 +6594,22 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.DeltaMicroChart - delta micro chart</p>
+    "!
+    "! @parameter color             | (sap.m.ValueCSSColor) Delta colour. Default: Neutral.
+    "! @parameter press             | (event) Fired when the chart is pressed.
+    "! @parameter size              | (sap.m.Size) Default: Auto.
+    "! @parameter height            | (sap.ui.core.CSSSize) Height.
+    "! @parameter width             | (sap.ui.core.CSSSize) Width.
+    "! @parameter deltadisplayvalue | (string) Pre-formatted delta text.
+    "! @parameter displayvalue1     | (string) Pre-formatted value 1 text.
+    "! @parameter displayvalue2     | (string) Pre-formatted value 2 text.
+    "! @parameter title2            | (string) Title for value 2.
+    "! @parameter value1            | (float) First value.
+    "! @parameter value2            | (float) Second value.
+    "! @parameter view              | (sap.suite.ui.microchart.DeltaMicroChartViewType) Normal | Wide. Default: Normal.
+    "! @parameter hideonnodata      | (boolean) Hide chart when there is no data. Default: false.
+    "! @parameter title1            | (string) Title for value 1.
     METHODS delta_micro_chart
       IMPORTING
         color             TYPE clike OPTIONAL
@@ -6522,6 +6629,30 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.BulletMicroChart - bullet micro chart</p>
+    "!
+    "! @parameter actualvaluelabel  | (string) Pre-formatted actual value text.
+    "! @parameter press             | (event) Fired when the chart is pressed.
+    "! @parameter size              | (sap.m.Size) Default: Auto.
+    "! @parameter height            | (sap.ui.core.CSSSize) Height.
+    "! @parameter width             | (sap.ui.core.CSSSize) Width.
+    "! @parameter deltavaluelabel   | (string) Pre-formatted delta text.
+    "! @parameter maxvalue          | (float) Maximum scale value.
+    "! @parameter minvalue          | (float) Minimum scale value.
+    "! @parameter mode              | (sap.suite.ui.microchart.BulletMicroChartModeType) Actual | Delta. Default: Actual.
+    "! @parameter scale             | (string) Scale text shown next to the value.
+    "! @parameter targetvalue       | (float) Target value.
+    "! @parameter targetvaluelabel  | (string) Pre-formatted target value text.
+    "! @parameter scalecolor        | (sap.suite.ui.microchart.CommonBackgroundType) Default | Light | LightDark | Dark | DarkDark. Default: Default.
+    "! @parameter hideonnodata      | (boolean) Hide chart when there is no data. Default: false.
+    "! @parameter showactualvalue   | (boolean) Show the actual value bar. Default: true.
+    "! @parameter showdeltavalue    | (boolean) Show the delta value bar. Default: true.
+    "! @parameter showtargetvalue   | (boolean) Show the target value indicator. Default: true.
+    "! @parameter showthresholds    | (boolean) Show threshold lines. Default: true.
+    "! @parameter showvaluemarker   | (boolean) Show value markers. Default: false.
+    "! @parameter smallrangeallowed | (boolean) Allow small ranges. Default: false.
+    "! @parameter forecastvalue     | (float) Forecast value (rendered semi-transparent).
+    "! @parameter savidm            | (string) Custom internal id (rarely used).
     METHODS bullet_micro_chart
       IMPORTING
         actualvaluelabel  TYPE clike OPTIONAL
@@ -6549,6 +6680,21 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.HarveyBallMicroChart - harvey-ball micro chart</p>
+    "!
+    "! @parameter colorpalette   | (string) CSS-colour list applied cyclically.
+    "! @parameter press          | (event) Fired when the chart is pressed.
+    "! @parameter size           | (sap.m.Size) Default: Auto.
+    "! @parameter height         | (sap.ui.core.CSSSize) Height.
+    "! @parameter width          | (sap.ui.core.CSSSize) Width.
+    "! @parameter total          | (float) Total value (denominator).
+    "! @parameter totallabel     | (string) Pre-formatted total text.
+    "! @parameter aligncontent   | (sap.m.microchart.HorizontalAlignmentType) Left | Center | Right. Default: Left.
+    "! @parameter hideonnodata   | (boolean) Hide chart when there is no data. Default: false.
+    "! @parameter formattedlabel | (boolean) Render label as formatted text. Default: false.
+    "! @parameter showfractions  | (boolean) Show fraction values. Default: true.
+    "! @parameter showtotal      | (boolean) Show total. Default: true.
+    "! @parameter totalscale     | (string) Scale text for the total.
     METHODS harvey_ball_micro_chart
       IMPORTING
         colorpalette   TYPE clike OPTIONAL
@@ -6567,6 +6713,21 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.AreaMicroChart - area micro chart</p>
+    "!
+    "! @parameter colorpalette | (string) CSS-colour list applied cyclically.
+    "! @parameter press        | (event) Fired when the chart is pressed.
+    "! @parameter size         | (sap.m.Size) Default: Auto.
+    "! @parameter height       | (sap.ui.core.CSSSize) Height.
+    "! @parameter maxxvalue    | (float) Maximum X scale.
+    "! @parameter maxyvalue    | (float) Maximum Y scale.
+    "! @parameter minxvalue    | (float) Minimum X scale.
+    "! @parameter minyvalue    | (float) Minimum Y scale.
+    "! @parameter view         | (sap.suite.ui.microchart.AreaMicroChartViewType) Normal | Wide. Default: Normal.
+    "! @parameter aligncontent | (sap.m.microchart.HorizontalAlignmentType) Left | Center | Right. Default: Left.
+    "! @parameter hideonnodata | (boolean) Hide chart when there is no data. Default: false.
+    "! @parameter showlabel    | (boolean) Show labels. Default: true.
+    "! @parameter width        | (sap.ui.core.CSSSize) Width.
     METHODS area_micro_chart
       IMPORTING
         colorpalette  TYPE clike OPTIONAL
@@ -6585,6 +6746,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `data` (charts, micro charts)</p>
     METHODS data
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
