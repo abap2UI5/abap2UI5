@@ -19,6 +19,13 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     METHODS constructor.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.HorizontalLayout - lays out children in one row</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.ui.layout.HorizontalLayout.
+    "!
+    "! @parameter class         | (string) CSS class names.
+    "! @parameter visible       | (boolean) Whether the layout is visible. Default: true.
+    "! @parameter allowwrapping | (boolean) Wrap children to a new line when horizontal space runs out. Default: false.
     METHODS horizontal_layout
       IMPORTING
         class         TYPE clike OPTIONAL
@@ -72,6 +79,15 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.DynamicPage - page with collapsible header</p>
+    "!
+    "! Page with title, snappable header, content and footer. See https://ui5.sap.com/#/api/sap.f.DynamicPage.
+    "!
+    "! @parameter headerexpanded           | (boolean) Initial state of the header (true=expanded). Default: true.
+    "! @parameter showfooter               | (boolean) Whether the footer is shown. Default: false.
+    "! @parameter headerpinned             | (boolean) Header initially pinned (only when pinnable). Default: false. Since 1.93.
+    "! @parameter toggleheaderontitleclick | (boolean) Click on title toggles header expand state. Default: true.
+    "! @parameter class                    | (string) CSS class names.
     METHODS dynamic_page
       IMPORTING
         headerexpanded           TYPE clike OPTIONAL
@@ -82,16 +98,34 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)            TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.DynamicPageTitle - title area for DynamicPage</p>
+    "!
+    "! Container for heading, content, actions, navigationActions, breadcrumbs and snapped/expanded slots.
+    "! See https://ui5.sap.com/#/api/sap.f.DynamicPageTitle. Children are added via the matching aggregation methods.
     METHODS dynamic_page_title
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.DynamicPageHeader - snappable header for DynamicPage</p>
+    "!
+    "! Snappable/expandable header. See https://ui5.sap.com/#/api/sap.f.DynamicPageHeader.
+    "!
+    "! @parameter pinnable | (boolean) Whether the user can pin the header (renders pin button). Default: true.
     METHODS dynamic_page_header
       IMPORTING
         pinnable      TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.core.HTML - embed raw HTML content</p>
+    "!
+    "! Embeds a string of HTML inside a UI5 view. See https://ui5.sap.com/#/api/sap.ui.core.HTML.
+    "!
+    "! @parameter content         | (string) HTML markup. Must be enclosed in tags. Script tags execute but do not appear in the DOM.
+    "! @parameter afterrendering  | (event) Fired after rendering. Param `isPreservedDOM` indicates whether existing DOM was preserved.
+    "! @parameter preferdom       | (boolean) Prefer existing DOM over the content string when re-rendering. Default: true.
+    "! @parameter sanitizecontent | (boolean) Run the HTML sanitizer on the content string. Default: false.
+    "! @parameter visible         | (boolean) Whether the control is visible. Default: true.
     METHODS html
       IMPORTING
         content         TYPE clike OPTIONAL
@@ -104,6 +138,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.IllustratedMessage - illustration with title and description</p>
+    "!
+    "! Empty-state / error / success message with illustration, title and description.
+    "! See https://ui5.sap.com/#/api/sap.m.IllustratedMessage.
+    "!
+    "! @parameter enableverticalresponsiveness | (boolean) Resize illustration based on container height when `illustrationSize=Auto`. Default: false.
+    "! @parameter enableformattedtext          | (boolean) Render description as formatted text (HTML subset). Default: false.
+    "! @parameter illustrationtype             | (string) Illustration key, e.g. `sapIllus-NoSearchResults`, `sapIllus-NoData`, `sapIllus-UnableToLoad`, `sapIllus-SuccessScreen`, `sapIllus-NoEntries`, `sapIllus-NoActivities`, `sapIllus-BeforeSearch`. See `sap.m.IllustratedMessageType` for the full list.
+    "! @parameter title                        | (string) Title text shown below the illustration.
+    "! @parameter description                  | (string) Description text shown beneath the title.
+    "! @parameter illustrationsize             | (sap.m.IllustratedMessageSize) Auto | Base | Dot | Spot | Dialog | Scene. Default: Auto.
     METHODS illustrated_message
       IMPORTING
         enableverticalresponsiveness TYPE clike OPTIONAL
@@ -115,12 +160,21 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)                TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.plugins.CellSelector - keyboard cell selection plugin for tables</p>
+    "!
+    "! Plugin enabling Excel-like keyboard cell selection. See https://ui5.sap.com/#/api/sap.m.plugins.CellSelector.
     METHODS p_cell_selector
       IMPORTING
         id            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.plugins.CopyProvider - clipboard copy plugin for tables</p>
+    "!
+    "! Plugin that copies selected rows / cells to the clipboard. See https://ui5.sap.com/#/api/sap.m.plugins.CopyProvider.
+    "!
+    "! @parameter extract_data | (function) Mandatory callback returning the copied data per cell. Set via formatter binding.
+    "! @parameter copy         | (event) Fired when the user triggers the copy action; allows preventDefault.
     METHODS p_copy_provider
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -129,10 +183,29 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `additionalContent` (used by IllustratedMessage et al.)</p>
     METHODS additional_content
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.FlexBox - CSS flexbox container</p>
+    "!
+    "! CSS flexbox layout container. See https://ui5.sap.com/#/api/sap.m.FlexBox.
+    "!
+    "! @parameter class            | (string) CSS class names.
+    "! @parameter rendertype       | (sap.m.FlexRendertype) Div | List | Bare. Default: Div.
+    "! @parameter width            | (sap.ui.core.CSSSize) Width. Container width must be defined when using percentages.
+    "! @parameter fitcontainer     | (boolean) Stretch to fill container. Default: false.
+    "! @parameter height           | (sap.ui.core.CSSSize) Height. Container height must be defined when using percentages.
+    "! @parameter alignitems       | (sap.m.FlexAlignItems) Cross-axis alignment: Start | Center | End | Stretch | Baseline | Inherit. Default: Stretch.
+    "! @parameter justifycontent   | (sap.m.FlexJustifyContent) Main-axis alignment: Start | Center | End | SpaceBetween | SpaceAround | Inherit. Default: Start.
+    "! @parameter wrap             | (sap.m.FlexWrap) NoWrap | Wrap | WrapReverse. Default: NoWrap.
+    "! @parameter visible          | (boolean) Whether the box is visible. Default: true.
+    "! @parameter direction        | (sap.m.FlexDirection) Row | RowReverse | Column | ColumnReverse | Inherit. Default: Row.
+    "! @parameter displayinline    | (boolean) Inline-flex (true) vs flex (false). Default: false.
+    "! @parameter backgrounddesign | (sap.m.BackgroundDesign) Solid | Translucent | Transparent. Default: Transparent.
+    "! @parameter aligncontent     | (sap.m.FlexAlignContent) Start | Center | End | SpaceBetween | SpaceAround | Stretch | Inherit. Default: Stretch.
+    "! @parameter items            | (binding path) Default aggregation of items.
     METHODS flex_box
       IMPORTING
         class            TYPE clike OPTIONAL
@@ -153,6 +226,31 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Popover - small pop-up anchored to a control</p>
+    "!
+    "! Pop-up panel anchored to an opener control. See https://ui5.sap.com/#/api/sap.m.Popover.
+    "!
+    "! @parameter title               | (string) Header title.
+    "! @parameter class               | (string) CSS class names.
+    "! @parameter placement           | (sap.m.PlacementType) Top | Right | Bottom | Left | Vertical | Horizontal | Auto | VerticalPreferredTop | VerticalPreferredBottom | HorizontalPreferredLeft | HorizontalPreferredRight | PreferredTopOrFlip | PreferredBottomOrFlip | PreferredLeftOrFlip | PreferredRightOrFlip. Default: Right. Note: the older `*Prefered*` (single 'r') variants are deprecated misspellings.
+    "! @parameter initialfocus        | (sap.ui.core.ID) Id of the control that receives focus when opened.
+    "! @parameter contentwidth        | (sap.ui.core.CSSSize) Width of the content area.
+    "! @parameter contentheight       | (sap.ui.core.CSSSize) Height of the content area.
+    "! @parameter showheader          | (boolean) Whether the header is rendered. Default: true.
+    "! @parameter showarrow           | (boolean) Whether the arrow indicator is shown. Default: true.
+    "! @parameter resizable           | (boolean) User-resizable (desktop only). Default: false.
+    "! @parameter modal               | (boolean) Prevents closing on outside click. Default: false.
+    "! @parameter horizontalscrolling | (boolean) Allow horizontal scrolling. Default: true.
+    "! @parameter verticalscrolling   | (boolean) Allow vertical scrolling. Default: true.
+    "! @parameter visible             | (boolean) Whether the popover is visible. Default: true.
+    "! @parameter offsetx             | (int) Horizontal offset in pixels. Default: 0.
+    "! @parameter offsety             | (int) Vertical offset in pixels. Default: 0.
+    "! @parameter contentminwidth     | (sap.ui.core.CSSSize) Minimum content width.
+    "! @parameter titlealignment      | (sap.m.TitleAlignment) Auto | Start | Center. Default: Auto.
+    "! @parameter beforeopen          | (event) Fired before the popover opens. Provides `openBy`.
+    "! @parameter beforeclose         | (event) Fired before the popover closes. Provides `openBy`.
+    "! @parameter afteropen           | (event) Fired after the popover opens.
+    "! @parameter afterclose          | (event) Fired after the popover closes.
     METHODS popover
       IMPORTING
         id                  TYPE clike OPTIONAL
@@ -180,6 +278,16 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.core.ListItem - simple list item with optional icon (extends sap.ui.core.Item)</p>
+    "!
+    "! Lightweight item used in ComboBox/Select/etc. See https://ui5.sap.com/#/api/sap.ui.core.ListItem.
+    "!
+    "! @parameter text           | (string, Item) Display text.
+    "! @parameter additionaltext | (string) Optional secondary text shown next to the main text.
+    "! @parameter key            | (string, Item) Key value of the item.
+    "! @parameter icon           | (string) URI to an image or icon font URI.
+    "! @parameter enabled        | (boolean, Item) Whether the item is selectable. Default: true.
+    "! @parameter textdirection  | (sap.ui.core.TextDirection, Item) Inherit | LTR | RTL. Default: Inherit.
     METHODS list_item
       IMPORTING
         text           TYPE clike OPTIONAL
@@ -191,6 +299,13 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.OverflowToolbarLayoutData - overflow behavior for OverflowToolbar children</p>
+    "!
+    "! Layout data attached to children of OverflowToolbar. See https://ui5.sap.com/#/api/sap.m.OverflowToolbarLayoutData.
+    "!
+    "! @parameter priority                   | (sap.m.OverflowToolbarPriority) NeverOverflow | High | Low | Disappear | AlwaysOverflow. Default: High.
+    "! @parameter group                      | (int) Items with the same group number overflow together. Default: 0. Group items cannot use AlwaysOverflow / NeverOverflow.
+    "! @parameter closeoverflowoninteraction | (boolean) Close overflow area after interacting with the control. Default: true.
     METHODS overflow_toolbar_layout_data
       IMPORTING
         priority                   TYPE clike OPTIONAL
