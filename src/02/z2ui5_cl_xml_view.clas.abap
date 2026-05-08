@@ -366,6 +366,16 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.table.AnalyticalTable - hierarchical/grouped grid table</p>
+    "!
+    "! Grid table with built-in OData v2 grouping and aggregation. See https://ui5.sap.com/#/api/sap.ui.table.AnalyticalTable.
+    "! Most properties (selectionMode, rowMode, toolbar, columns) are inherited from sap.ui.table.Table.
+    "!
+    "! @parameter ns            | (string) XML namespace prefix (typically `t` for sap.ui.table).
+    "! @parameter selectionmode | (sap.ui.table.SelectionMode) None | Single | MultiToggle. `Multi` is deprecated since 1.38 (use MultiToggle). Default: MultiToggle.
+    "! @parameter rowmode       | (sap.ui.table.rowmodes.RowMode) Aggregation - use the `auto`, `fixed` or `interactive` builder methods.
+    "! @parameter toolbar       | (binding path) Aggregation slot for the table toolbar.
+    "! @parameter columns       | (binding path) Aggregation slot for `sap.ui.table.AnalyticalColumn` definitions.
     METHODS analytical_table
       IMPORTING
         ns            TYPE clike OPTIONAL
@@ -376,12 +386,25 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `rowMode` for sap.ui.table.Table</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix (typically `t` for sap.ui.table).
     METHODS rowmode
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Breadcrumbs - navigation path with separator</p>
+    "!
+    "! Breadcrumb-style navigation path. See https://ui5.sap.com/#/api/sap.m.Breadcrumbs.
+    "!
+    "! @parameter ns                  | (string) XML namespace prefix.
+    "! @parameter link                | (binding path) Aggregation of `sap.m.Link` ancestors of the current location.
+    "! @parameter class               | (string) CSS class names.
+    "! @parameter currentlocationtext | (string) Text of the current/last element.
+    "! @parameter separatorstyle      | (sap.m.BreadcrumbsSeparatorStyle) Slash | BackSlash | DoubleSlash | DoubleBackSlash | GreaterThan | DoubleGreaterThan. Default: Slash.
+    "! @parameter visible             | (boolean) Whether the control is visible. Default: true.
     METHODS breadcrumbs
       IMPORTING
         ns                  TYPE clike OPTIONAL
@@ -394,6 +417,10 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `currentLocation` (sap.m.Breadcrumbs)</p>
+    "!
+    "! @parameter ns   | (string) XML namespace prefix.
+    "! @parameter link | (binding path) `sap.m.Link` placed in the current location slot.
     METHODS current_location
       IMPORTING
         ns            TYPE clike OPTIONAL
@@ -401,6 +428,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ColorPalette - palette of predefined colors</p>
+    "!
+    "! Picker for predefined colors. See https://ui5.sap.com/#/api/sap.m.ColorPalette.
+    "!
+    "! @parameter ns          | (string) XML namespace prefix.
+    "! @parameter colorselect | (event) Fired when a color is selected. Provides `value` (hex/CSS color) and `defaultAction` flag.
     METHODS color_palette
       IMPORTING
         ns            TYPE clike OPTIONAL
@@ -408,6 +441,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.table.rowmodes.Auto - row mode auto-fitting visible row count to height</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Auto. Used inside `<rowMode>` of sap.ui.table.Table / AnalyticalTable.
+    "!
+    "! @parameter ns               | (string) XML namespace prefix (typically `t`).
+    "! @parameter rowcontentheight | (int) Row content height in pixels. 0 = theme-based default. Default: 0.
     METHODS auto
       IMPORTING
         ns               TYPE clike OPTIONAL
@@ -415,6 +454,18 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.MessageStrip - inline notification banner</p>
+    "!
+    "! Inline coloured notification strip. See https://ui5.sap.com/#/api/sap.m.MessageStrip.
+    "!
+    "! @parameter text                | (string) Message text. Default: empty.
+    "! @parameter type                | (sap.ui.core.message.MessageType) Information | Success | Warning | Error. Default: Information.
+    "! @parameter showicon            | (boolean) Whether the icon is shown. Default: false.
+    "! @parameter customicon          | (sap.ui.core.URI) Custom icon. Falls back to default icon for the type when empty.
+    "! @parameter class               | (string) CSS class names.
+    "! @parameter visible             | (boolean) Whether the strip is visible. Default: true.
+    "! @parameter showclosebutton     | (boolean) Render a close button. Default: false.
+    "! @parameter enableformattedtext | (boolean) Allow a limited HTML subset (`<a>`, `<br>`, `<em>`, `<strong>`, `<u>`, `<span>`) in the text. Default: false.
     METHODS message_strip
       IMPORTING
         text                TYPE clike OPTIONAL
@@ -429,12 +480,25 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `footer` (used by Page, Dialog, DynamicPage, ObjectPage etc.)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS footer
       IMPORTING
         ns            TYPE string OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.MessagePage - DEPRECATED full-page message</p>
+    "!
+    "! DEPRECATED since 1.112 - replace with `sap.m.IllustratedMessage` (see method `illustrated_message`).
+    "! See https://ui5.sap.com/#/api/sap.m.MessagePage.
+    "!
+    "! @parameter show_header         | (boolean) Whether the header is shown. Default: true.
+    "! @parameter text                | (string) Main text. Default: "No matching items found.".
+    "! @parameter enableformattedtext | (boolean) Allow formatted-text HTML subset in the description. Default: false.
+    "! @parameter description         | (string) Description text. Default: "Check the filter settings.".
+    "! @parameter icon                | (sap.ui.core.URI) Icon. Default: `sap-icon://documents`.
     METHODS message_page
       IMPORTING
         show_header         TYPE clike OPTIONAL
@@ -445,6 +509,41 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.uxap.ObjectPageLayout - object page with anchor bar and sections</p>
+    "!
+    "! Object page layout with snappable header, anchor bar and sections/sub-sections. See https://ui5.sap.com/#/api/sap.uxap.ObjectPageLayout.
+    "!
+    "! @parameter showtitleinheadercontent       | (boolean) Show title also inside the header content area. Default: false.
+    "! @parameter showeditheaderbutton           | (boolean) Render an edit-header button. Default: false. Since 1.34.
+    "! @parameter editheaderbuttonpress          | (event) Fired when the edit-header button is pressed.
+    "! @parameter uppercaseanchorbar             | (boolean) Uppercase the anchor bar labels. Default: true.
+    "! @parameter showfooter                     | (boolean) Show floating footer. Default: false. Since 1.40.
+    "! @parameter alwaysshowcontentheader        | (boolean) Always show the content header. Default: false. Since 1.34.
+    "! @parameter enablelazyloading              | (boolean) Lazy-render sub-sections. Default: false.
+    "! @parameter flexenabled                    | (boolean) Page is configured for SAPUI5 flex changes. Default: false. Since 1.34.
+    "! @parameter headercontentpinnable          | (boolean) Render a pin button on the header. Default: true. Since 1.52.
+    "! @parameter headercontentpinned            | (boolean) Initial pinned state. Default: false. Since 1.93.
+    "! @parameter ischildpage                    | (boolean) Mark page as embedded child. Default: false. Since 1.34.
+    "! @parameter preserveheaderstateonscroll    | (boolean) Keep header expanded while scrolling. Default: false. Since 1.52.
+    "! @parameter showanchorbar                  | (boolean) Show the anchor bar. Default: true.
+    "! @parameter showanchorbarpopover           | (boolean) Show sub-section popover on anchor button hover. Default: true.
+    "! @parameter showheadercontent              | (boolean) Show the header content area. Default: true.
+    "! @parameter showonlyhighimportance         | (boolean) Render only high-importance sub-sections. Default: false. Since 1.32.
+    "! @parameter subsectionlayout               | (sap.uxap.ObjectPageSubSectionLayout) TitleOnTop | TitleOnLeft. Default: TitleOnTop.
+    "! @parameter toggleheaderontitleclick       | (boolean) Click on title toggles header expand state. Default: true. Since 1.52.
+    "! @parameter useicontabbar                  | (boolean) Render anchor bar as IconTabBar. Default: false.
+    "! @parameter usetwocolumnsforlargescreen    | (boolean) Use 2-column layout on large screens. Default: false.
+    "! @parameter visible                        | (boolean) Whether the layout is visible. Default: true.
+    "! @parameter backgrounddesignanchorbar      | (sap.m.BackgroundDesign) Background of the anchor bar: Solid | Translucent | Transparent. Since 1.58.
+    "! @parameter height                         | (sap.ui.core.CSSSize) Height of the layout. Default: 100%.
+    "! @parameter sectiontitlelevel              | (sap.ui.core.TitleLevel) Auto | H1 | H2 | H3 | H4 | H5 | H6. Default: Auto. Since 1.44.
+    "! @parameter beforenavigate                 | (event) Fired before navigation; supports preventDefault. Provides section, subSection. Since 1.118.
+    "! @parameter headercontentpinnedstatechange | (event) Fired when the pinned state changes via user interaction. Since 1.93.
+    "! @parameter navigate                       | (event) Fired after section selection changes. Since 1.40.
+    "! @parameter sectionchange                  | (event) Fired on section change via scrolling. Since 1.73.
+    "! @parameter subsectionvisibilitychange     | (event) Fired when sub-section visibility changes. Since 1.77.
+    "! @parameter toggleanchorbar                | (event) Fired when the anchor bar transitions between fixed/moving.
+    "! @parameter class                          | (string) CSS class names.
     METHODS object_page_layout
       IMPORTING
         showtitleinheadercontent       TYPE clike OPTIONAL
@@ -481,6 +580,35 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)                  TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.uxap.ObjectPageHeader - classic ObjectPage header title</p>
+    "!
+    "! Classic (snappable) header title for ObjectPageLayout. See https://ui5.sap.com/#/api/sap.uxap.ObjectPageHeader.
+    "! For dynamic-page-style headers use `object_page_dyn_header_title` (sap.uxap.ObjectPageDynamicHeaderTitle).
+    "!
+    "! @parameter isactionareaalwaysvisible     | (boolean) Show actions when header is snapped. Default: true.
+    "! @parameter isobjecticonalwaysvisible     | (boolean) Show object icon when header is snapped. Default: false.
+    "! @parameter isobjectsubtitlealwaysvisible | (boolean) Show subtitle when snapped. Default: true.
+    "! @parameter isobjecttitlealwaysvisible    | (boolean) Show title when snapped. Default: true.
+    "! @parameter markchanges                   | (boolean) Indicates unsaved changes (requires showMarkers=true). Default: false. Since 1.34.
+    "! @parameter markfavorite                  | (boolean) Favorite state (requires showMarkers=true). Default: false.
+    "! @parameter markflagged                   | (boolean) Flagged state (requires showMarkers=true). Default: false.
+    "! @parameter marklocked                    | (boolean) Locked state indicator. Default: false.
+    "! @parameter objectimagealt                | (string) Alt text / tooltip for the object image. Default: empty.
+    "! @parameter objectimagebackgroundcolor    | (sap.m.AvatarColor) Accent1..Accent10 | Placeholder | TileIcon | Random. Default: Accent6. Since 1.73.
+    "! @parameter objectimagedensityaware       | (boolean) Density-aware image. Default: false.
+    "! @parameter objectimageshape              | (sap.m.AvatarShape) Square | Circle. Default: Square.
+    "! @parameter objectimageuri                | (sap.ui.core.URI) Image URI for the object.
+    "! @parameter objectsubtitle                | (string) Subtitle text.
+    "! @parameter objecttitle                   | (string) Title text.
+    "! @parameter showmarkers                   | (boolean) Render favorite/flagged markers. Default: false.
+    "! @parameter showplaceholder               | (boolean) Show placeholder when image unavailable. Default: false.
+    "! @parameter showtitleselector             | (boolean) Render selector arrow next to title. Default: false.
+    "! @parameter visible                       | (boolean) Whether the header is visible. Default: true.
+    "! @parameter markchangespress              | (event) Fired when the unsaved-changes button is pressed. Since 1.34.
+    "! @parameter marklockedpress               | (event) Fired when the locked button is pressed.
+    "! @parameter titleselectorpress            | (event) Fired when the title selector arrow is pressed.
+    "!
+    "! `headerDesign` (sap.uxap.ObjectPageHeaderDesign) is deprecated since 1.40.1 and not exposed by this wrapper.
     METHODS object_page_header
       IMPORTING
         isactionareaalwaysvisible     TYPE clike OPTIONAL
@@ -508,6 +636,26 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.uxap.ObjectPageHeaderActionButton - action button in ObjectPageHeader</p>
+    "!
+    "! Action button in the classic ObjectPageHeader actions area. Extends sap.m.Button.
+    "! See https://ui5.sap.com/#/api/sap.uxap.ObjectPageHeaderActionButton.
+    "!
+    "! @parameter activeicon       | (sap.ui.core.URI, Button) Icon shown while pressed.
+    "! @parameter ariahaspopup     | (sap.ui.core.aria.HasPopup, Button) None | Menu | ListBox | Tree | Grid | Dialog. Default: None.
+    "! @parameter enabled          | (boolean, Button) Whether the button is enabled. Default: true.
+    "! @parameter hideicon         | (boolean) Hide the icon when overflowing into the action sheet. Default: false.
+    "! @parameter hidetext         | (boolean) Hide the text on the action area button (icon only). Default: true.
+    "! @parameter icon             | (sap.ui.core.URI, Button) Icon URI.
+    "! @parameter icondensityaware | (boolean, Button) Density-aware icon. Default: true.
+    "! @parameter iconfirst        | (boolean, Button) Render icon before the text. Default: true.
+    "! @parameter importance       | (sap.uxap.Importance) Low | Medium | High. Default: High.
+    "! @parameter text             | (string, Button) Button label.
+    "! @parameter textdirection    | (sap.ui.core.TextDirection, Button) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter visible          | (boolean, Button) Whether the button is visible. Default: true.
+    "! @parameter width            | (sap.ui.core.CSSSize, Button) Width of the button.
+    "! @parameter type             | (sap.m.ButtonType, Button) Default | Accept | Reject | Transparent | Ghost | Back | Up | Unstyled | Emphasized | Critical | Negative | Success | Neutral | Attention. Default: Default.
+    "! @parameter press            | (event, Button) Fired when the button is pressed.
     METHODS object_page_header_action_btn
       IMPORTING
         activeicon       TYPE clike OPTIONAL
@@ -528,10 +676,48 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.uxap.ObjectPageDynamicHeaderTitle - DynamicPage-style title for ObjectPage</p>
+    "!
+    "! Modern dynamic-style header title for ObjectPageLayout. See https://ui5.sap.com/#/api/sap.uxap.ObjectPageDynamicHeaderTitle.
+    "! Children are added through `heading`, `expanded_heading`, `snapped_heading`, `actions`, `navigation_actions`, `breadcrumbs`, `expanded_content`, `snapped_content` and `snapped_title_on_mobile`.
     METHODS object_page_dyn_header_title
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.GenericTile - launchpad-style tile</p>
+    "!
+    "! Generic tile container (used in launchpads / dashboards). See https://ui5.sap.com/#/api/sap.m.GenericTile.
+    "!
+    "! @parameter class                  | (string) CSS class names.
+    "! @parameter header                 | (string) Header text.
+    "! @parameter mode                   | (sap.m.GenericTileMode) ContentMode | HeaderMode | LineMode | IconMode | ActionMode | ArticleMode. Default: ContentMode.
+    "! @parameter additionaltooltip      | (string) Extra text added to the auto-generated tooltip. Since 1.82.
+    "! @parameter appshortcut            | (string) Application shortcut/ID text. Since 1.92.
+    "! @parameter backgroundcolor        | (string) Background color (IconMode only). Since 1.96.
+    "! @parameter backgroundimage        | (sap.ui.core.URI) Background image URI.
+    "! @parameter dropareaoffset         | (int) Drop area offset for drag-and-drop. Default: 0. Since 1.118.
+    "! @parameter press                  | (event) Fired when the tile is pressed.
+    "! @parameter frametype              | (sap.m.FrameType) OneByOne | TwoByOne | OneByHalf | TwoByHalf. Default: OneByOne.
+    "! @parameter failedtext             | (string) Message shown in Failed state.
+    "! @parameter headerimage            | (sap.ui.core.URI) Image rendered inside the header.
+    "! @parameter scope                  | (sap.m.GenericTileScope) Display | Actions | ActionMore | ActionRemove. Default: Display. Since 1.46.
+    "! @parameter sizebehavior           | (sap.m.TileSizeBehavior) Responsive | Small. Default: Responsive. Since 1.44.
+    "! @parameter state                  | (sap.m.LoadState) Loaded | Loading | Failed | Disabled. Default: Loaded.
+    "! @parameter systeminfo             | (string) Backend system context information. Since 1.92.
+    "! @parameter tilebadge              | (string) Badge text (max 3 chars). Since 1.113.
+    "! @parameter tileicon               | (sap.ui.core.URI) Icon (IconMode only). Since 1.96.
+    "! @parameter url                    | (sap.ui.core.URI) Renders the tile as an `<a>` linking to this URL. Since 1.76.
+    "! @parameter valuecolor             | (sap.m.ValueColor) None | Good | Error | Critical | Neutral. Default: None. Since 1.95.
+    "! @parameter width                  | (sap.ui.core.CSSSize) Width. Since 1.72.
+    "! @parameter wrappingtype           | (sap.m.WrappingType) Normal | Hyphenated. Default: Normal. Since 1.60.
+    "! @parameter imagedescription       | (string) Accessibility description for the header image.
+    "! @parameter navigationbuttontext   | (string) Navigation button text (ArticleMode only). Since 1.96.
+    "! @parameter visible                | (boolean) Whether the tile is visible. Default: true.
+    "! @parameter renderonthemechange    | (boolean) Re-render the tile on theme change. Default: false. Since 1.106.
+    "! @parameter enablenavigationbutton | (boolean) Render link as button (ArticleMode). Default: false. Since 1.96.
+    "! @parameter pressenabled           | (boolean) Whether the press event is enabled. Default: true. Since 1.96.
+    "! @parameter iconloaded             | (event) Fired when the tile icon finishes loading. Since 1.103.
+    "! @parameter subheader              | (string) Subheader text.
     METHODS generic_tile
       IMPORTING
         class                  TYPE clike OPTIONAL
@@ -568,6 +754,29 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.NumericContent - numeric content for tiles</p>
+    "!
+    "! Numeric content rendered inside `TileContent` of `GenericTile`. See https://ui5.sap.com/#/api/sap.m.NumericContent.
+    "!
+    "! @parameter value             | (string) The numeric value as text.
+    "! @parameter icon              | (sap.ui.core.URI) Icon (alternative to a numeric value).
+    "! @parameter withmargin        | (boolean) Apply default margin. Default: true.
+    "! @parameter adaptivefontsize  | (boolean) Language-adaptive font scaling. Default: true.
+    "! @parameter animatetextchange | (boolean) Animate value transitions. Default: true.
+    "! @parameter formattervalue    | (boolean) Indicates the value already includes its scale. Default: false.
+    "! @parameter icondescription   | (string) Accessibility tooltip for the icon.
+    "! @parameter indicator         | (sap.m.DeviationIndicator) None | Up | Down. Default: None.
+    "! @parameter nullifyvalue      | (boolean) Render zero when value is empty. Default: true.
+    "! @parameter scale             | (string) Scale prefix (currency / SI unit, max 3 chars).
+    "! @parameter state             | (sap.m.LoadState) Loaded | Loading | Failed | Disabled. Default: Loaded.
+    "! @parameter truncatevalueto   | (int) Maximum displayed character count.
+    "! @parameter valuecolor        | (sap.m.ValueColor) None | Good | Error | Critical | Neutral. Default: Neutral.
+    "! @parameter visible           | (boolean) Whether the content is visible. Default: true.
+    "! @parameter width             | (sap.ui.core.CSSSize) Width.
+    "! @parameter class             | (string) CSS class names.
+    "! @parameter press             | (event) Fired when the content is pressed.
+    "!
+    "! `size` is deprecated since 1.38.0 (now device-dependent) and not exposed by this wrapper.
     METHODS numeric_content
       IMPORTING
         value             TYPE clike OPTIONAL
@@ -590,6 +799,14 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.LinkTileContent - tile body containing a link</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.LinkTileContent.
+    "!
+    "! @parameter linkhref  | (sap.ui.core.URI) Target href of the link.
+    "! @parameter linktext  | (string) Link text.
+    "! @parameter iconsrc   | (sap.ui.core.URI) Icon URI.
+    "! @parameter linkpress | (event) Fired when the link is pressed.
     METHODS link_tile_content
       IMPORTING
         linkhref      TYPE clike OPTIONAL
@@ -599,6 +816,15 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ImageContent - image content for tiles</p>
+    "!
+    "! Image rendered inside `TileContent` of `GenericTile`. See https://ui5.sap.com/#/api/sap.m.ImageContent.
+    "!
+    "! @parameter src         | (sap.ui.core.URI) Image URI.
+    "! @parameter description | (string) Accessibility description.
+    "! @parameter visible     | (boolean) Whether the content is visible. Default: true.
+    "! @parameter class       | (string) CSS class names.
+    "! @parameter press       | (event) Fired when the image is pressed.
     METHODS image_content
       IMPORTING
         src           TYPE clike OPTIONAL
@@ -609,6 +835,21 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.TileContent - body of a GenericTile</p>
+    "!
+    "! Container for tile body content. See https://ui5.sap.com/#/api/sap.m.TileContent.
+    "!
+    "! @parameter unit         | (string) Percent sign / currency symbol / unit of measure.
+    "! @parameter footercolor  | (sap.m.ValueColor) None | Good | Error | Critical | Neutral. Default: Neutral. Since 1.44.
+    "! @parameter blocked      | (boolean) Inherited block-state property (sap.ui.core.Control). Default: false.
+    "! @parameter frametype    | (sap.m.FrameType) Auto | OneByOne | TwoByOne. Default: Auto.
+    "! @parameter priority     | (sap.m.Priority) None | VeryHigh | High | Medium | Low. Default: None. Since 1.96.
+    "! @parameter prioritytext | (string) Text inside the priority badge. Since 1.103.
+    "! @parameter state        | (sap.m.LoadState) Loaded | Loading | Failed | Disabled. Default: Loaded. Since 1.100.
+    "! @parameter disabled     | (boolean) Inherited - mark control as disabled. Default: false.
+    "! @parameter visible      | (boolean) Whether the content is visible. Default: true.
+    "! @parameter footer       | (string) Footer text.
+    "! @parameter class        | (string) CSS class names.
     METHODS tile_content
       IMPORTING
         unit          TYPE clike OPTIONAL
@@ -625,52 +866,97 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `expandedHeading` (DynamicPageTitle / ObjectPageDynamicHeaderTitle)</p>
     METHODS expanded_heading
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `snappedHeading` (DynamicPageTitle / ObjectPageDynamicHeaderTitle)</p>
     METHODS snapped_heading
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `expandedContent` (DynamicPageTitle / ObjectPageDynamicHeaderTitle)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix (e.g. `f` for sap.f, `uxap` for sap.uxap).
     METHODS expanded_content
       IMPORTING
         ns            TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `snappedContent` (DynamicPageTitle / ObjectPageDynamicHeaderTitle)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS snapped_content
       IMPORTING
         ns            TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `heading` (DynamicPageTitle / ObjectPageDynamicHeaderTitle)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS heading
       IMPORTING
         ns            TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `actions` (DynamicPageTitle, ObjectPageHeader, IconTabFilter, ToolHeader, ...)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS actions
       IMPORTING
         ns            TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `snappedTitleOnMobile` (DynamicPageTitle)</p>
     METHODS snapped_title_on_mobile
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `header` (used by many controls - sap.f.DynamicPage, sap.f.Card, ...)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix. Default: `f` (sap.f).
     METHODS header
       IMPORTING
         ns            TYPE clike DEFAULT `f`
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `navigationActions` (DynamicPageTitle / ObjectPageDynamicHeaderTitle)</p>
     METHODS navigation_actions
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Avatar - circular/square avatar with image, icon or initials</p>
+    "!
+    "! Avatar control. See https://ui5.sap.com/#/api/sap.m.Avatar.
+    "!
+    "! IMPORTANT: leave `ns` empty (or default) to emit `<Avatar>` resolving to sap.m.Avatar via the View's xmlns.
+    "! Never pass `ns = 'f'` - that produces the deprecated `sap.f.Avatar` (deprecated since 1.73, replaced by sap.m.Avatar).
+    "!
+    "! @parameter ns                | (string) XML namespace prefix. Leave empty for sap.m.Avatar.
+    "! @parameter src               | (sap.ui.core.URI) Image URI or icon font URI. Since 1.73.
+    "! @parameter class             | (string) CSS class names.
+    "! @parameter displaysize       | (sap.m.AvatarSize) XS | S | M | L | XL | Custom. Default: S. Since 1.73.
+    "! @parameter ariahaspopup      | (sap.ui.core.aria.HasPopup) None | Menu | ListBox | Tree | Grid | Dialog. Default: None.
+    "! @parameter backgroundcolor   | (sap.m.AvatarColor) Accent1..Accent10 | Placeholder | TileIcon | Random | Transparent. Default: Accent6.
+    "! @parameter badgeicon         | (sap.ui.core.URI) Icon shown as badge. Since 1.77.
+    "! @parameter badgetooltip      | (string) Custom badge tooltip. Since 1.77.
+    "! @parameter badgevaluestate   | (sap.ui.core.ValueState) None | Success | Warning | Error | Information. Default: None. Since 1.116.
+    "! @parameter customdisplaysize | (sap.ui.core.CSSSize) Used when displaySize=Custom. Default: 3rem.
+    "! @parameter customfontsize    | (sap.ui.core.CSSSize) Font size when displaySize=Custom. Default: 1.125rem.
+    "! @parameter displayshape      | (sap.m.AvatarShape) Circle | Square. Default: Circle.
+    "! @parameter fallbackicon      | (string) Fallback icon when image fails to load (SAP icon font only).
+    "! @parameter imagefittype      | (sap.m.AvatarImageFitType) Cover | Contain. Default: Cover.
+    "! @parameter initials          | (string) 1-3 Latin letters shown when no image is available.
+    "! @parameter showborder        | (boolean) Render a border. Default: false.
+    "! @parameter decorative        | (boolean) Hide from accessibility tools. Default: false. Since 1.97.
+    "! @parameter enabled           | (boolean) Whether the control is enabled. Default: true. Since 1.117.
+    "! @parameter press             | (event) Fired when the avatar is pressed.
     METHODS avatar
       IMPORTING
         ns                TYPE clike OPTIONAL
@@ -696,6 +982,23 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.AvatarGroup - cluster of overlapping avatars</p>
+    "!
+    "! Avatar group rendered with `ns='f'`. See https://ui5.sap.com/#/api/sap.f.AvatarGroup.
+    "!
+    "! @parameter avatarcustomdisplaysize | (sap.ui.core.AbsoluteCSSSize) Custom avatar size (with avatarDisplaySize=Custom). Default: 3rem.
+    "! @parameter avatarcustomfontsize    | (sap.ui.core.AbsoluteCSSSize) Custom avatar font size. Default: 1.125rem.
+    "! @parameter avatardisplaysize       | (sap.m.AvatarSize) XS | S | M | L | XL | Custom. Default: S.
+    "! @parameter blocked                 | (boolean) Inherited control block state.
+    "! @parameter busy                    | (boolean) Inherited busy state.
+    "! @parameter busyindicatordelay      | (int) Inherited - delay before busy indicator shows. Default: 1000.
+    "! @parameter busyindicatorsize       | (sap.ui.core.BusyIndicatorSize) Small | Medium | Large | Auto. Default: Medium.
+    "! @parameter fieldgroupids           | (string[]) Inherited - field group ids.
+    "! @parameter grouptype               | (sap.f.AvatarGroupType) Group | Individual. Default: Group.
+    "! @parameter visible                 | (boolean) Whether the group is visible. Default: true.
+    "! @parameter tooltip                 | (string) Tooltip.
+    "! @parameter items                   | (binding path) Aggregation of `sap.f.AvatarGroupItem`.
+    "! @parameter press                   | (event) Fired on click. Provides `groupType`, `overflowButtonPressed`, `avatarsDisplayed`.
     METHODS avatar_group
       IMPORTING
         id                      TYPE clike     OPTIONAL
