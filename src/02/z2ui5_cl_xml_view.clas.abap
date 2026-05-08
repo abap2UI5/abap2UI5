@@ -5808,6 +5808,27 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.FeedInput - input for posting a new feed entry</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.FeedInput.
+    "!
+    "! @parameter buttontooltip    | (string) Tooltip for the post button.
+    "! @parameter enabled          | (boolean) Whether enabled. Default: true.
+    "! @parameter growing          | (boolean) Auto-grow with content. Default: false.
+    "! @parameter growingmaxlines  | (int) Max lines when growing.
+    "! @parameter icon             | (sap.ui.core.URI) Icon URI.
+    "! @parameter icondensityaware | (boolean) Density-aware icon. Default: true.
+    "! @parameter icondisplayshape | (sap.m.AvatarShape) Circle | Square. Default: Circle.
+    "! @parameter iconinitials     | (string) Initials shown when no icon is set.
+    "! @parameter iconsize         | (sap.m.AvatarSize) XS | S | M | L | XL | Custom. Default: M.
+    "! @parameter maxlength        | (int) Maximum number of characters. 0 = unlimited.
+    "! @parameter placeholder      | (string) Placeholder shown while empty.
+    "! @parameter rows             | (int) Number of visible rows. Default: 2.
+    "! @parameter showexceededtext | (boolean) Show character counter. Default: false.
+    "! @parameter showicon         | (boolean) Show the icon. Default: true.
+    "! @parameter value            | (string) Two-way bound value.
+    "! @parameter post             | (event) Fired when the user posts the feed entry.
+    "! @parameter class            | (string) CSS class names.
     METHODS feed_input
       IMPORTING
         buttontooltip    TYPE clike OPTIONAL
@@ -5830,6 +5851,30 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.FeedListItem - feed entry list item</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.FeedListItem.
+    "!
+    "! @parameter activeicon                  | (sap.ui.core.URI) Icon shown while pressed.
+    "! @parameter convertedlinksdefaulttarget | (string) Default target for auto-converted links. Default: _blank.
+    "! @parameter convertlinkstoanchortags    | (sap.m.LinkConversion) None | All | ProtocolOnly. Default: None.
+    "! @parameter icon                        | (sap.ui.core.URI) Icon URI.
+    "! @parameter iconactive                  | (boolean) Render icon as clickable. Default: true.
+    "! @parameter icondensityaware            | (boolean) Density-aware icon. Default: true.
+    "! @parameter icondisplayshape            | (sap.m.AvatarShape) Circle | Square. Default: Circle.
+    "! @parameter iconinitials                | (string) Initials when no icon is set.
+    "! @parameter iconsize                    | (sap.m.AvatarSize) XS | S | M | L | XL | Custom. Default: M.
+    "! @parameter info                        | (string) Info text shown on the right.
+    "! @parameter lesslabel                   | (string) Custom "Less" label for collapsed state.
+    "! @parameter maxcharacters               | (int) Truncate text after N characters. 0 = unlimited.
+    "! @parameter morelabel                   | (string) Custom "More" label.
+    "! @parameter sender                      | (string) Sender name shown above the text.
+    "! @parameter senderactive                | (boolean) Render sender as clickable. Default: true.
+    "! @parameter showicon                    | (boolean) Show the icon. Default: true.
+    "! @parameter text                        | (string) Feed text.
+    "! @parameter timestamp                   | (string) Timestamp text.
+    "! @parameter iconpress                   | (event) Fired when the icon is pressed.
+    "! @parameter senderpress                 | (event) Fired when the sender link is pressed.
     METHODS feed_list_item
       IMPORTING
         activeicon                  TYPE clike OPTIONAL
@@ -5855,6 +5900,14 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)               TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.FeedListItemAction - action shown in FeedListItem</p>
+    "!
+    "! @parameter enabled | (boolean) Whether enabled. Default: true.
+    "! @parameter icon    | (sap.ui.core.URI) Icon URI.
+    "! @parameter key     | (string) Action key.
+    "! @parameter text    | (string) Action text.
+    "! @parameter visible | (boolean) Whether visible. Default: true.
+    "! @parameter press   | (event) Fired when the action is pressed.
     METHODS feed_list_item_action
       IMPORTING
         enabled       TYPE clike OPTIONAL
@@ -5866,6 +5919,13 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.FeedContent - feed content for tile</p>
+    "!
+    "! @parameter contenttext | (string) Content text.
+    "! @parameter subheader   | (string) Subheader text.
+    "! @parameter value       | (string) Value text.
+    "! @parameter class       | (string) CSS class names.
+    "! @parameter press       | (event) Fired when the content is pressed.
     METHODS feed_content
       IMPORTING
         contenttext   TYPE clike OPTIONAL
@@ -5876,6 +5936,11 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.NewsContent - news content for tile</p>
+    "!
+    "! @parameter contenttext | (string) Headline text.
+    "! @parameter subheader   | (string) Subheader text.
+    "! @parameter press       | (event) Fired when the content is pressed.
     METHODS news_content
       IMPORTING
         contenttext   TYPE clike OPTIONAL
@@ -5884,6 +5949,14 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.unified.ColorPicker - color picker</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.ui.unified.ColorPicker.
+    "!
+    "! @parameter colorstring | (sap.ui.core.CSSColor) Two-way bound colour string. Required.
+    "! @parameter displaymode | (sap.ui.unified.ColorPickerDisplayMode) Default | Large | Simplified. Default: Default.
+    "! @parameter change      | (event) Fired when the colour is committed.
+    "! @parameter livechange  | (event) Fired during interactive selection.
     METHODS color_picker
       IMPORTING
         colorstring   TYPE clike
@@ -5893,6 +5966,27 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.MaskInput - input with character mask</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.MaskInput.
+    "!
+    "! @parameter placeholder           | (string) Placeholder shown while empty.
+    "! @parameter mask                  | (string) Mask pattern (e.g. `9999-99-99`).
+    "! @parameter name                  | (string) HTML form name.
+    "! @parameter textalign             | (sap.ui.core.TextAlign) Begin | End | Left | Right | Center | Initial. Default: Initial.
+    "! @parameter textdirection         | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter value                 | (string) Two-way bound value.
+    "! @parameter width                 | (sap.ui.core.CSSSize) Width.
+    "! @parameter valuestate            | (sap.ui.core.ValueState) None | Success | Warning | Error | Information. Default: None.
+    "! @parameter valuestatetext        | (string) Value state message.
+    "! @parameter placeholdersymbol     | (string) Mask placeholder symbol. Default: `_`.
+    "! @parameter required              | (boolean) Required field marker. Default: false.
+    "! @parameter showclearicon         | (boolean) Show a clear icon. Default: false.
+    "! @parameter showvaluestatemessage | (boolean) Show value state message. Default: true.
+    "! @parameter visible               | (boolean) Whether visible. Default: true.
+    "! @parameter fieldwidth            | (sap.ui.core.CSSSize) Width of the input portion vs description.
+    "! @parameter livechange            | (event) Fired during typing.
+    "! @parameter change                | (event) Fired when the value is committed.
     METHODS mask_input
       IMPORTING
         placeholder           TYPE clike OPTIONAL
@@ -5915,6 +6009,13 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.ResponsiveSplitter - responsive splitter container</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.ui.layout.ResponsiveSplitter.
+    "!
+    "! @parameter defaultpane | (sap.ui.core.ID) Id of the default pane.
+    "! @parameter height      | (sap.ui.core.CSSSize) Height. Default: 100%.
+    "! @parameter width       | (sap.ui.core.CSSSize) Width. Default: 100%.
     METHODS responsive_splitter
       IMPORTING
         defaultpane   TYPE clike OPTIONAL
@@ -5923,6 +6024,13 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.Splitter - non-responsive splitter container</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.ui.layout.Splitter.
+    "!
+    "! @parameter height      | (sap.ui.core.CSSSize) Height. Default: 100%.
+    "! @parameter orientation | (sap.ui.core.Orientation) Horizontal | Vertical. Default: Horizontal.
+    "! @parameter width       | (sap.ui.core.CSSSize) Width. Default: 100%.
     METHODS splitter
       IMPORTING
         height        TYPE clike OPTIONAL
@@ -5931,6 +6039,10 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.core.InvisibleText - text rendered for screen readers only</p>
+    "!
+    "! @parameter ns   | (string) XML namespace prefix.
+    "! @parameter text | (string) Text content (announced by screen readers).
     METHODS invisible_text
       IMPORTING
         ns            TYPE clike
@@ -5939,6 +6051,13 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.FixFlex - fix-size + flexible-size two-pane layout</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.ui.layout.FixFlex.
+    "!
+    "! @parameter ns             | (string) XML namespace prefix.
+    "! @parameter class          | (string) CSS class names.
+    "! @parameter fixcontentsize | (sap.ui.core.CSSSize) Size of the fix area. Default: auto.
     METHODS fix_flex
       IMPORTING
         ns             TYPE clike OPTIONAL
@@ -5947,18 +6066,28 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `fixContent` (FixFlex)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS fix_content
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `flexContent` (FixFlex)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS flex_content
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.PaneContainer - container of split panes</p>
+    "!
+    "! @parameter resize      | (event) Fired when a pane is resized.
+    "! @parameter orientation | (sap.ui.core.Orientation) Horizontal | Vertical. Default: Horizontal.
     METHODS pane_container
       IMPORTING
         resize        TYPE clike OPTIONAL
@@ -5966,6 +6095,9 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.SplitPane - single pane inside ResponsiveSplitter</p>
+    "!
+    "! @parameter requiredparentwidth | (int) Minimum parent width (in px) required to render this pane. Default: 800.
     METHODS split_pane
       IMPORTING
         id                  TYPE clike OPTIONAL
@@ -5973,6 +6105,11 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.SplitterLayoutData - per-child data for Splitter</p>
+    "!
+    "! @parameter size      | (sap.ui.core.CSSSize) Initial size (e.g. `200px`, `30%` or `auto`). Default: auto.
+    "! @parameter minsize   | (int) Minimum size in px. Default: 0.
+    "! @parameter resizable | (boolean) Whether the pane is resizable. Default: true.
     METHODS splitter_layout_data
       IMPORTING
         size          TYPE clike OPTIONAL
@@ -5981,6 +6118,11 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ToolbarLayoutData - layout data for Toolbar children</p>
+    "!
+    "! @parameter maxwidth   | (sap.ui.core.CSSSize) Maximum width.
+    "! @parameter minwidth   | (sap.ui.core.CSSSize) Minimum width.
+    "! @parameter shrinkable | (boolean) Allow the child to shrink. Default: false.
     METHODS toolbar_layout_data
       IMPORTING
         id            TYPE clike OPTIONAL
