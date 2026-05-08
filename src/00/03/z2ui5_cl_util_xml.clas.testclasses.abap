@@ -332,10 +332,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(lv_xml) = z2ui5_cl_util_xml=>factory(
       )->__( n = `View` ns = `mvc`
       )->__( `Page`
-      )->_if( when = abap_true
-              n    = `Panel`
-              a    = `headerText`
-              v    = `Admin`
+      )->__if( when = abap_true
+               n    = `Panel`
+               a    = `headerText`
+               v    = `Admin`
       )->_( n = `Text` a = `text` v = `Secret`
       )->n( `Page`
       )->stringify( ).
@@ -350,10 +350,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(lv_xml) = z2ui5_cl_util_xml=>factory(
       )->__( n = `View` ns = `mvc`
       )->__( `Page`
-      )->_if( when = abap_false
-              n    = `Panel`
-              a    = `headerText`
-              v    = `Admin`
+      )->__if( when = abap_false
+               n    = `Panel`
+               a    = `headerText`
+               v    = `Admin`
       )->_( n = `Button` a = `text` v = `Visible`
       )->stringify( ).
 
@@ -367,10 +367,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(lv_xml) = z2ui5_cl_util_xml=>factory(
       )->__( n = `View` ns = `mvc`
       )->__( `Page`
-      )->__if( when = abap_true
-               n    = `Button`
-               a    = `text`
-               v    = `Admin Only`
+      )->_if( when = abap_true
+              n    = `Button`
+              a    = `text`
+              v    = `Admin Only`
       )->stringify( ).
 
     cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `Admin Only` ) ).
@@ -382,10 +382,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(lv_xml) = z2ui5_cl_util_xml=>factory(
       )->__( n = `View` ns = `mvc`
       )->__( `Page`
-      )->__if( when = abap_false
-               n    = `Button`
-               a    = `text`
-               v    = `Hidden`
+      )->_if( when = abap_false
+              n    = `Button`
+              a    = `text`
+              v    = `Hidden`
       )->_( n = `Text` a = `text` v = `Visible`
       )->stringify( ).
 
