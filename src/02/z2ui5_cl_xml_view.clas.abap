@@ -5333,6 +5333,21 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.Graph (legacy ProcessFlow)</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.networkgraph.Graph (legacy: sap.suite.ui.commons.ProcessFlow).
+    "!
+    "! @parameter foldedcorners | (boolean) Render folded corners on nodes. Default: false.
+    "! @parameter scrollable    | (boolean) Allow scrolling. Default: true.
+    "! @parameter showlabels    | (boolean) Show node labels. Default: false.
+    "! @parameter visible       | (boolean) Whether visible. Default: true.
+    "! @parameter wheelzoomable | (boolean) Allow mouse-wheel zoom. Default: false.
+    "! @parameter headerpress   | (event) Fired when a lane header is pressed.
+    "! @parameter labelpress    | (event) Fired when a node label is pressed.
+    "! @parameter nodepress     | (event) Fired when a node is pressed.
+    "! @parameter onerror       | (event) Fired on graph error.
+    "! @parameter lanes         | (binding path) Aggregation of lanes (process flow legacy).
+    "! @parameter nodes         | (binding path) Aggregation of nodes.
     METHODS process_flow
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -5350,12 +5365,49 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `nodes` (NetworkGraph / ProcessFlow / Tree)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS nodes
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.Node - node inside NetworkGraph</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.networkgraph.Node.
+    "!
+    "! @parameter alttext               | (string) Alternative text for screen readers.
+    "! @parameter collapsed             | (boolean) Collapsed state. Default: false.
+    "! @parameter corenodesize          | (sap.ui.core.CSSSize) Core (icon) area size.
+    "! @parameter description           | (string) Description text.
+    "! @parameter descriptionlinesize   | (int) Maximum lines for description.
+    "! @parameter group                 | (string) Group key for layered layouts.
+    "! @parameter headercheckboxstate   | (boolean) Header checkbox state.
+    "! @parameter height                | (int) Node height in px.
+    "! @parameter title                 | (string) Node title.
+    "! @parameter icon                  | (sap.ui.core.URI) Icon URI.
+    "! @parameter iconsize              | (sap.ui.core.CSSSize) Icon size.
+    "! @parameter key                   | (string) Unique key.
+    "! @parameter maxwidth              | (int) Maximum width in px.
+    "! @parameter selected              | (boolean) Selected state. Default: false.
+    "! @parameter shape                 | (sap.suite.ui.commons.networkgraph.NodeShape) Box | Circle. Default: Box.
+    "! @parameter showactionlinksbutton | (boolean) Show action-links button. Default: true.
+    "! @parameter showdetailbutton      | (boolean) Show detail button. Default: true.
+    "! @parameter showexpandbutton      | (boolean) Show expand/collapse button. Default: true.
+    "! @parameter statusicon            | (sap.ui.core.URI) Status icon URI.
+    "! @parameter titlelinesize         | (int) Maximum lines for title.
+    "! @parameter visible               | (boolean) Whether visible. Default: true.
+    "! @parameter width                 | (int) Node width in px.
+    "! @parameter x                     | (int) X position (only for noopLayout).
+    "! @parameter y                     | (int) Y position (only for noopLayout).
+    "! @parameter collapseexpand        | (event) Fired when the expand state changes.
+    "! @parameter headercheckboxpress   | (event) Fired when the header checkbox is pressed.
+    "! @parameter hover                 | (event) Fired on hover.
+    "! @parameter press                 | (event) Fired on click.
+    "! @parameter attributes            | (binding path) Aggregation of `ElementAttribute`.
+    "! @parameter actionbuttons         | (binding path) Aggregation of action buttons.
     METHODS node
       IMPORTING
         id                    TYPE clike OPTIONAL
@@ -5393,6 +5445,11 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.NodeImage - image attached to a Node</p>
+    "!
+    "! @parameter height | (sap.ui.core.CSSSize) Image height.
+    "! @parameter src    | (sap.ui.core.URI) Image URI.
+    "! @parameter width  | (sap.ui.core.CSSSize) Image width.
     METHODS node_image
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -5403,10 +5460,26 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `lanes` (legacy ProcessFlow)</p>
     METHODS lanes
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.ProcessFlowNode - node in legacy ProcessFlow</p>
+    "!
+    "! @parameter laneid            | (string) Lane id this node belongs to.
+    "! @parameter nodeid            | (string) Node id.
+    "! @parameter title             | (string) Title text.
+    "! @parameter titleabbreviation | (string) Abbreviation shown when collapsed.
+    "! @parameter children          | (string[]) Ids of child nodes.
+    "! @parameter state             | (sap.suite.ui.commons.ProcessFlowNodeState | array) Positive | Negative | Neutral | Planned | PlannedNegative.
+    "! @parameter statetext         | (string) State announcement text.
+    "! @parameter texts             | (string[]) Additional texts shown in the node.
+    "! @parameter highlighted       | (boolean) Highlighted state. Default: false.
+    "! @parameter focused           | (boolean) Focused state. Default: false.
+    "! @parameter selected          | (boolean) Selected state. Default: false.
+    "! @parameter tag               | (string) Tag string.
+    "! @parameter type              | (sap.suite.ui.commons.ProcessFlowNodeType) Single | Aggregated. Default: Single.
     METHODS process_flow_node
       IMPORTING
         laneid            TYPE clike OPTIONAL
@@ -5425,6 +5498,14 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.ProcessFlowLaneHeader - header of a lane in ProcessFlow</p>
+    "!
+    "! @parameter iconsrc   | (sap.ui.core.URI) Icon URI.
+    "! @parameter laneid    | (string) Lane id.
+    "! @parameter position  | (int) Lane position.
+    "! @parameter state     | (sap.suite.ui.commons.ProcessFlowLaneState) Initial values for state.
+    "! @parameter text      | (string) Header text.
+    "! @parameter zoomlevel | (sap.suite.ui.commons.ProcessFlowZoomLevel) One | Two | Three | Four. Default: Two.
     METHODS process_flow_lane_header
       IMPORTING
         iconsrc       TYPE clike OPTIONAL
@@ -5436,6 +5517,26 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ViewSettingsDialog - sort/filter/group dialog</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.ViewSettingsDialog.
+    "!
+    "! @parameter confirm                  | (event) Fired when OK is pressed. Provides selected sort / group / filter settings.
+    "! @parameter cancel                   | (event) Fired when the user cancels the dialog.
+    "! @parameter filterdetailpageopened   | (event) Fired when a filter detail page is opened.
+    "! @parameter reset                    | (event) Fired when "Reset" is pressed.
+    "! @parameter resetfilters             | (event) Fired when filter values are reset.
+    "! @parameter filtersearchoperator    | (sap.m.StringFilterOperator) Contains | StartsWith | Equals | AnyWordStartsWith. Default: StartsWith.
+    "! @parameter groupdescending          | (boolean) Initial group direction (descending). Default: false.
+    "! @parameter sortdescending           | (boolean) Initial sort direction (descending). Default: false.
+    "! @parameter title                    | (string) Dialog title.
+    "! @parameter titlealignment           | (sap.m.TitleAlignment) Auto | Start | Center. Default: Auto.
+    "! @parameter selectedgroupitem        | (sap.ui.core.ID) Initially selected group item id.
+    "! @parameter selectedpresetfilteritem | (sap.ui.core.ID) Initially selected preset-filter item id.
+    "! @parameter selectedsortitem         | (sap.ui.core.ID) Initially selected sort item id.
+    "! @parameter filteritems              | (binding path) Aggregation of filter items.
+    "! @parameter sortitems                | (binding path) Aggregation of sort items.
+    "! @parameter groupitems               | (binding path) Aggregation of group items.
     METHODS view_settings_dialog
       IMPORTING
         confirm                  TYPE clike OPTIONAL
@@ -5457,18 +5558,29 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)            TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `filterItems` (ViewSettingsDialog)</p>
     METHODS filter_items
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `sortItems` (ViewSettingsDialog)</p>
     METHODS sort_items
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `groupItems` (ViewSettingsDialog)</p>
     METHODS group_items
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ViewSettingsFilterItem - filter item in ViewSettingsDialog</p>
+    "!
+    "! @parameter enabled       | (boolean) Whether the filter is enabled. Default: true.
+    "! @parameter key           | (string) Filter key.
+    "! @parameter multiselect   | (boolean) Allow multi-selection. Default: true.
+    "! @parameter selected      | (boolean) Selected state. Default: false.
+    "! @parameter text          | (string) Filter text.
+    "! @parameter textdirection | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
     METHODS view_settings_filter_item
       IMPORTING
         enabled       TYPE clike OPTIONAL
@@ -5480,6 +5592,13 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ViewSettingsItem - sort/group/filter sub-item</p>
+    "!
+    "! @parameter enabled       | (boolean) Whether the item is enabled. Default: true.
+    "! @parameter key           | (string) Item key.
+    "! @parameter selected      | (boolean) Selected state. Default: false.
+    "! @parameter text          | (string) Item text.
+    "! @parameter textdirection | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
     METHODS view_settings_item
       IMPORTING
         enabled       TYPE clike OPTIONAL
@@ -5490,6 +5609,30 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.comp.variants.VariantManagement - SmartVariantManagement (sap.ui.comp)</p>
+    "!
+    "! Variant management for smart controls. See https://ui5.sap.com/#/api/sap.ui.comp.variants.VariantManagement.
+    "! For modern SmartFilterBar/SmartTable use `variant_management_sapm` (sap.ui.fl.variants.VariantManagement) or `smart_variant_management` instead.
+    "!
+    "! @parameter defaultvariantkey      | (string) Key of the default variant.
+    "! @parameter enabled                | (boolean) Whether enabled. Default: true.
+    "! @parameter inerrorstate           | (boolean) Render in error state. Default: false.
+    "! @parameter initialselectionkey    | (string) Initially selected variant key.
+    "! @parameter lifecyclesupport       | (boolean) Show transport / package fields. Default: false.
+    "! @parameter selectionkey           | (string) Currently selected variant key.
+    "! @parameter showcreatetile         | (boolean) Show "Create Tile" entry. Default: false.
+    "! @parameter showexecuteonselection | (boolean) Show "Apply Automatically" checkbox. Default: false.
+    "! @parameter showsetasdefault       | (boolean) Show "Set as Default" checkbox. Default: true.
+    "! @parameter showshare              | (boolean) Show "Public" checkbox. Default: false.
+    "! @parameter standarditemauthor     | (string) Author shown for the standard item.
+    "! @parameter standarditemtext       | (string) Text of the standard item.
+    "! @parameter usefavorites           | (boolean) Enable favourites. Default: false.
+    "! @parameter visible                | (boolean) Whether visible. Default: true.
+    "! @parameter variantitems           | (binding path) Aggregation of variant items.
+    "! @parameter manage                 | (event) Fired when the user opens the management dialog.
+    "! @parameter save                   | (event) Fired when a variant is saved.
+    "! @parameter select                 | (event) Fired when a variant is selected.
+    "! @parameter uservarcreate          | (event) Fired when a new variant is created by the user.
     METHODS variant_management
       IMPORTING
         defaultvariantkey      TYPE clike OPTIONAL
@@ -5515,10 +5658,36 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `variantItems` (sap.ui.comp.variants.VariantManagement)</p>
     METHODS variant_items
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.comp.variants.VariantItem - single variant in sap.ui.comp variant management</p>
+    "!
+    "! @parameter executeonselection      | (boolean) Apply automatically on selection. Default: false.
+    "! @parameter global                  | (boolean) Public/global variant. Default: false.
+    "! @parameter labelreadonly           | (boolean) Whether the label is read-only. Default: false.
+    "! @parameter lifecyclepackage        | (string) Transport package.
+    "! @parameter lifecycletransportid    | (string) Transport id.
+    "! @parameter namespace               | (string) Variant namespace.
+    "! @parameter readonly                | (boolean) Whether the variant is read-only. Default: false.
+    "! @parameter executeonselect         | (boolean) Apply automatically on select. Default: false.
+    "! @parameter author                  | (string) Variant author.
+    "! @parameter changeable              | (boolean) Whether changeable. Default: false.
+    "! @parameter enabled                 | (boolean, Item) Whether selectable. Default: true.
+    "! @parameter favorite                | (boolean) Favourite state. Default: false.
+    "! @parameter key                     | (string, Item) Item key.
+    "! @parameter text                    | (string, Item) Display text.
+    "! @parameter title                   | (string) Display title.
+    "! @parameter textdirection           | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter originaltitle           | (string) Original title (used for change detection).
+    "! @parameter originalexecuteonselect | (boolean) Original `executeOnSelect` value.
+    "! @parameter remove                  | (boolean) Mark for removal.
+    "! @parameter rename                  | (boolean) Mark as renamed.
+    "! @parameter originalfavorite        | (boolean) Original favourite value.
+    "! @parameter sharing                 | (sap.ui.comp.variants.SharingOption) Sharing option.
+    "! @parameter change                  | (event) Fired when item details change.
     METHODS variant_item
       IMPORTING
         executeonselection      TYPE clike OPTIONAL
@@ -5547,6 +5716,33 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.VariantManagement (sapm) / sap.ui.fl.variants.VariantManagement</p>
+    "!
+    "! Modern variant management. See https://ui5.sap.com/#/api/sap.m.VariantManagement.
+    "!
+    "! @parameter creationallowed           | (boolean) Allow creating new variants. Default: true.
+    "! @parameter defaultkey                | (string) Key of the default variant.
+    "! @parameter inerrorstate              | (boolean) Render in error state. Default: false.
+    "! @parameter level                     | (sap.ui.core.TitleLevel) Auto | H1..H6. Default: Auto.
+    "! @parameter maxwidth                  | (sap.ui.core.CSSSize) Maximum text width.
+    "! @parameter modified                  | (boolean) Marks the variant as modified. Default: false.
+    "! @parameter popovertitle              | (string) Custom popover title.
+    "! @parameter selectedkey               | (string) Selected variant key.
+    "! @parameter showfooter                | (boolean) Show footer with Save/Save As. Default: true.
+    "! @parameter showsaveas                | (boolean) Show "Save As" button. Default: true.
+    "! @parameter supportapplyautomatically | (boolean) Show "Apply Automatically" option. Default: true.
+    "! @parameter supportcontexts           | (boolean) Support context-based filtering. Default: false.
+    "! @parameter supportdefault            | (boolean) Support setting a default variant. Default: true.
+    "! @parameter supportfavorites          | (boolean) Support favourites. Default: true.
+    "! @parameter supportpublic             | (boolean) Support sharing variants publicly. Default: true.
+    "! @parameter titlestyle                | (sap.ui.core.TitleLevel) Style for the title.
+    "! @parameter visible                   | (boolean) Whether visible. Default: true.
+    "! @parameter items                     | (binding path) Aggregation of variant items.
+    "! @parameter cancel                    | (event) Fired when management dialog is cancelled.
+    "! @parameter manage                    | (event) Fired when management is confirmed.
+    "! @parameter managecancel              | (event) Fired when management dialog is closed without saving.
+    "! @parameter save                      | (event) Fired when a variant is saved.
+    "! @parameter select                    | (event) Fired when a variant is selected.
     METHODS variant_management_sapm
       IMPORTING
         creationallowed           TYPE clike OPTIONAL
@@ -5576,6 +5772,22 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)             TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.VariantItem - variant item for sapm/sap.ui.fl variant management</p>
+    "!
+    "! @parameter author          | (string) Author name.
+    "! @parameter changeable      | (boolean) Whether changeable. Default: false.
+    "! @parameter contexts        | (object) Context conditions.
+    "! @parameter executeonselect | (boolean) Apply automatically on select. Default: false.
+    "! @parameter favorite        | (boolean) Favourite state. Default: false.
+    "! @parameter key             | (string) Variant key.
+    "! @parameter remove          | (boolean) Mark for removal.
+    "! @parameter rename          | (boolean) Mark as renamed.
+    "! @parameter sharing         | (sap.m.VariantSharing) Public | Private. Default: Public.
+    "! @parameter title           | (string) Display title.
+    "! @parameter visible         | (boolean) Whether visible. Default: true.
+    "! @parameter textdirection   | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter text            | (string) Display text.
+    "! @parameter enabled         | (boolean) Whether enabled. Default: true.
     METHODS variant_item_sapm
       IMPORTING
         author          TYPE clike OPTIONAL
