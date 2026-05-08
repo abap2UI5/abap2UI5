@@ -4909,6 +4909,22 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.IconTabFilter - tab inside IconTabBar</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.IconTabFilter.
+    "!
+    "! @parameter items            | (binding path) Aggregation of nested filters / sub-tabs.
+    "! @parameter showall          | (boolean) Show "All" tab. Default: false.
+    "! @parameter icon             | (sap.ui.core.URI) Tab icon URI.
+    "! @parameter iconcolor        | (sap.ui.core.IconColor) Default | Positive | Negative | Critical | Neutral. Default: Default.
+    "! @parameter count            | (string) Counter shown in the tab.
+    "! @parameter text             | (string) Tab label.
+    "! @parameter key              | (string) Tab key (matches `selectedKey` on IconTabBar).
+    "! @parameter design           | (sap.m.IconTabFilterDesign) Vertical | Horizontal. Default: Vertical.
+    "! @parameter icondensityaware | (boolean) Density-aware icon. Default: true.
+    "! @parameter visible          | (boolean) Whether the tab is visible. Default: true.
+    "! @parameter textdirection    | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter class            | (string) CSS class names.
     METHODS icon_tab_filter
       IMPORTING
         items            TYPE clike OPTIONAL
@@ -4927,6 +4943,14 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.IconTabSeparator - visual separator between IconTabFilters</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.IconTabSeparator.
+    "!
+    "! @parameter icon             | (sap.ui.core.URI) Optional separator icon.
+    "! @parameter icondensityaware | (boolean) Density-aware icon. Default: true.
+    "! @parameter visible          | (boolean) Whether visible. Default: true.
+    "! @parameter class            | (string) CSS class names.
     METHODS icon_tab_separator
       IMPORTING
         icon             TYPE clike OPTIONAL
@@ -4937,14 +4961,35 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Builder helper - switch the builder to the abap2UI5 custom-control mode (z2ui5_cl_xml_view_cc)</p>
     METHODS _z2ui5
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_cc.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.gantt.GanttChartContainer - container hosting GanttChart widgets</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.gantt.GanttChartContainer.
     METHODS gantt_chart_container
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.gantt.config.ContainerToolbar - GanttChartContainer toolbar configuration</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.gantt.config.ContainerToolbar.
+    "!
+    "! @parameter showsearchbutton          | (boolean) Show search button. Default: true.
+    "! @parameter aligncustomcontenttoright | (boolean) Align custom toolbar content to right. Default: false.
+    "! @parameter findmode                  | (string) Find mode behaviour.
+    "! @parameter findbuttonpress           | (event) Fired when the find button is pressed.
+    "! @parameter infoofselectitems         | (string) Custom info text for selected items.
+    "! @parameter showbirdeyebutton         | (boolean) Show birds-eye-view button. Default: true.
+    "! @parameter showdisplaytypebutton     | (boolean) Show display-type button. Default: true.
+    "! @parameter showlegendbutton          | (boolean) Show legend button. Default: true.
+    "! @parameter showsettingbutton         | (boolean) Show settings button. Default: true.
+    "! @parameter showtimezoomcontrol       | (boolean) Show time zoom slider. Default: true.
+    "! @parameter stepcountofslider         | (int) Number of steps in zoom slider.
+    "! @parameter zoomcontroltype           | (sap.gantt.config.ZoomControlType) Slider | Select | None.
+    "! @parameter zoomlevel                 | (int) Initial zoom level.
     METHODS container_toolbar
       IMPORTING
         showsearchbutton          TYPE clike OPTIONAL
@@ -4963,6 +5008,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)             TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.gantt.simple.GanttChartWithTable - Gantt chart with associated table</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.gantt.simple.GanttChartWithTable.
+    "!
+    "! @parameter shapeselectionmode        | (sap.gantt.SelectionMode) None | Single | MultiWithKeyboard | Multiple. Default: Multiple.
+    "! @parameter isconnectordetailsvisible | (boolean) Show connector details. Default: false.
     METHODS gantt_chart_with_table
       IMPORTING
         id                        TYPE clike OPTIONAL
@@ -4971,20 +5022,29 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)             TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `axisTimeStrategy` (GanttChart)</p>
     METHODS axis_time_strategy
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.gantt.axistime.ProportionZoomStrategy - proportion-based zoom strategy</p>
+    "!
+    "! @parameter zoomlevel | (int) Zoom level (0..N).
     METHODS proportion_zoom_strategy
       IMPORTING
         zoomlevel     TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `totalHorizon` (Gantt zoom strategy)</p>
     METHODS total_horizon
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.gantt.config.TimeHorizon - time range definition</p>
+    "!
+    "! @parameter starttime | (string) Start timestamp.
+    "! @parameter endtime   | (string) End timestamp.
     METHODS time_horizon
       IMPORTING
         starttime     TYPE clike OPTIONAL
@@ -4992,14 +5052,22 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `visibleHorizon` (Gantt zoom strategy)</p>
     METHODS visible_horizon
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `rowSettingsTemplate` (Gantt)</p>
     METHODS row_settings_template
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.gantt.simple.GanttRowSettings - row settings for Gantt</p>
+    "!
+    "! @parameter rowid         | (string) Row id.
+    "! @parameter shapes1       | (binding path) Aggregation of primary shapes.
+    "! @parameter relationships | (binding path) Aggregation of relationships.
+    "! @parameter shapes2       | (binding path) Aggregation of secondary shapes.
     METHODS gantt_row_settings
       IMPORTING
         rowid         TYPE clike OPTIONAL
@@ -5009,14 +5077,25 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `shapes1` (GanttRowSettings - primary shapes)</p>
     METHODS shapes1
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `shapes2` (GanttRowSettings - secondary shapes)</p>
     METHODS shapes2
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.gantt.simple.Task - task shape inside Gantt</p>
+    "!
+    "! @parameter type        | (sap.gantt.simple.shapes.TaskType) Normal | Error | Warning | Success.
+    "! @parameter color       | (sap.ui.core.CSSColor) Custom CSS colour.
+    "! @parameter endtime     | (string) End timestamp.
+    "! @parameter time        | (string) Start timestamp.
+    "! @parameter title       | (string) Task title.
+    "! @parameter showtitle   | (boolean) Show title inside the task. Default: true.
+    "! @parameter connectable | (boolean) Allow connections to/from this task. Default: false.
     METHODS task
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -5030,10 +5109,24 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `table` (GanttChartWithTable)</p>
     METHODS gantt_table
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.RatingIndicator - rating stars</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.RatingIndicator.
+    "!
+    "! @parameter maxvalue    | (int) Maximum rating value. Default: 5.
+    "! @parameter enabled     | (boolean) Whether the rating is enabled. Default: true.
+    "! @parameter class       | (string) CSS class names.
+    "! @parameter value       | (float) Two-way bound rating value.
+    "! @parameter iconsize    | (sap.ui.core.CSSSize) Icon size.
+    "! @parameter tooltip     | (string) Tooltip.
+    "! @parameter displayonly | (boolean) Display-only mode. Default: false. Since 1.50.
+    "! @parameter change      | (event) Fired when the value changes.
+    "! @parameter editable    | (boolean) Whether the rating is editable. Default: true.
     METHODS rating_indicator
       IMPORTING
         maxvalue      TYPE clike OPTIONAL
@@ -5049,10 +5142,39 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `toolbar` (Gantt - toolbar above the chart)</p>
     METHODS gantt_toolbar
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.gantt.simple.BaseRectangle - rectangular shape inside Gantt</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.gantt.simple.BaseRectangle.
+    "!
+    "! @parameter time                    | (string) Start timestamp.
+    "! @parameter shapeid                 | (string) Shape id.
+    "! @parameter endtime                 | (string) End timestamp.
+    "! @parameter selectable              | (boolean) Allow selection. Default: true.
+    "! @parameter selectedfill            | (sap.ui.core.CSSColor) Fill while selected.
+    "! @parameter fill                    | (sap.ui.core.CSSColor) Default fill colour.
+    "! @parameter height                  | (sap.ui.core.CSSSize) Shape height.
+    "! @parameter title                   | (string) Title displayed inside the shape.
+    "! @parameter animationsettings       | (object) Animation settings object.
+    "! @parameter alignshape              | (sap.gantt.simple.shapes.ShapeAlignment) Top | Middle | Bottom. Default: Middle.
+    "! @parameter color                   | (sap.ui.core.CSSColor) Stroke colour.
+    "! @parameter fontsize                | (int) Title font size.
+    "! @parameter connectable             | (boolean) Allow connections. Default: false.
+    "! @parameter fontfamily              | (string) Title font family.
+    "! @parameter filter                  | (string) SVG filter reference.
+    "! @parameter transform               | (string) SVG transform.
+    "! @parameter countinbirdeye          | (boolean) Include in birds-eye-view scaling. Default: true.
+    "! @parameter fontweight              | (string) Title font weight.
+    "! @parameter showtitle               | (boolean) Show the title. Default: true.
+    "! @parameter selected                | (boolean) Selected state. Default: false.
+    "! @parameter resizable               | (boolean) Allow resizing. Default: false.
+    "! @parameter horizontaltextalignment | (sap.gantt.simple.shapes.HorizontalTextAlignment) Start | Middle | End.
+    "! @parameter highlighted             | (boolean) Highlighted state. Default: false.
+    "! @parameter highlightable           | (boolean) Whether the shape can be highlighted. Default: true.
     METHODS base_rectangle
       IMPORTING
         time                    TYPE clike OPTIONAL
@@ -5082,14 +5204,35 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.tnt.ToolPage - launchpad-style page with side / main / header</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.tnt.ToolPage. Children: header (`tool_header`), sideContent, mainContents.
     METHODS tool_page
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.tnt.ToolHeader - top header bar for ToolPage</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.tnt.ToolHeader.
     METHODS tool_header
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.IconTabHeader - standalone IconTab header</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.IconTabHeader.
+    "!
+    "! @parameter selectedkey         | (string) Two-way bound selected tab key.
+    "! @parameter items               | (binding path) Aggregation of `IconTabFilter` / `IconTabSeparator`.
+    "! @parameter select              | (event) Fired when a tab is selected.
+    "! @parameter mode                | (sap.m.IconTabHeaderMode) Standard | Inline. Default: Standard.
+    "! @parameter ariatexts           | (object) Custom ARIA texts.
+    "! @parameter backgrounddesign    | (sap.m.BackgroundDesign) Solid | Translucent | Transparent. Default: Solid.
+    "! @parameter enabletabreordering | (boolean) Allow drag-and-drop reordering. Default: false.
+    "! @parameter maxnestinglevel     | (int) Max nesting level. Default: 3.
+    "! @parameter tabdensitymode      | (sap.m.IconTabDensityMode) Cozy | Compact | Inherit. Default: Cozy.
+    "! @parameter tabsoverflowmode    | (sap.m.TabsOverflowMode) End | StartAndEnd. Default: End.
+    "! @parameter visible             | (boolean) Whether visible. Default: true.
     METHODS icon_tab_header
       IMPORTING
         selectedkey         TYPE clike OPTIONAL
@@ -5107,6 +5250,16 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.NavContainer - navigation container with page transitions</p>
+    "!
+    "! Container that switches between pages with transitions. See https://ui5.sap.com/#/api/sap.m.NavContainer.
+    "!
+    "! @parameter initialpage           | (sap.ui.core.ID) Id of the page initially shown.
+    "! @parameter defaulttransitionname | (string) Default transition: slide | fade | flip | show. Default: slide.
+    "! @parameter autofocus             | (boolean) Auto-focus on page change. Default: true.
+    "! @parameter height                | (sap.ui.core.CSSSize) Height. Default: 100%.
+    "! @parameter width                 | (sap.ui.core.CSSSize) Width. Default: 100%.
+    "! @parameter visible               | (boolean) Whether visible. Default: true.
     METHODS nav_container
       IMPORTING
         initialpage           TYPE clike OPTIONAL
@@ -5119,14 +5272,41 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `pages` (NavContainer, App, Carousel, ...)</p>
     METHODS pages
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `mainContents` (sap.tnt.ToolPage main area)</p>
     METHODS main_contents
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.TableSelectDialog - dialog with searchable table for value selection</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.TableSelectDialog.
+    "!
+    "! @parameter confirmbuttontext  | (string) Custom OK button text.
+    "! @parameter contentheight      | (sap.ui.core.CSSSize) Content area height.
+    "! @parameter contentwidth       | (sap.ui.core.CSSSize) Content area width.
+    "! @parameter draggable          | (boolean) Whether the dialog is draggable. Default: false.
+    "! @parameter growing            | (boolean) Enable growing on the underlying table. Default: true.
+    "! @parameter growingthreshold   | (int) Items per growing chunk.
+    "! @parameter multiselect        | (boolean) Allow multiple selection. Default: false.
+    "! @parameter nodatatext         | (string) Empty-state text.
+    "! @parameter rememberselections | (boolean) Persist selections across openings. Default: false.
+    "! @parameter resizable          | (boolean) Whether the dialog is resizable. Default: false.
+    "! @parameter searchplaceholder  | (string) Search field placeholder.
+    "! @parameter showclearbutton    | (boolean) Show "Clear" button. Default: false.
+    "! @parameter title              | (string) Dialog title.
+    "! @parameter titlealignment     | (sap.m.TitleAlignment) Auto | Start | Center. Default: Auto.
+    "! @parameter visible            | (boolean) Whether visible. Default: true.
+    "! @parameter items              | (binding path) Aggregation of `sap.m.ColumnListItem` rows.
+    "! @parameter livechange         | (event) Fired during typing in the search field.
+    "! @parameter cancel             | (event) Fired when the user cancels the dialog.
+    "! @parameter search             | (event) Fired when a search is triggered.
+    "! @parameter confirm            | (event) Fired when OK is pressed. Provides selected items.
+    "! @parameter selectionchange    | (event) Fired when row selection changes.
     METHODS table_select_dialog
       IMPORTING
         confirmbuttontext  TYPE clike OPTIONAL
