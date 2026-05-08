@@ -1018,6 +1018,19 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.AvatarGroupItem - single avatar inside an AvatarGroup</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.f.AvatarGroupItem.
+    "!
+    "! @parameter busy               | (boolean, Control) Inherited busy state. Default: false.
+    "! @parameter busyindicatordelay | (int, Control) Delay before busy indicator shows. Default: 1000.
+    "! @parameter busyindicatorsize  | (sap.ui.core.BusyIndicatorSize) Small | Medium | Large | Auto. Default: Medium.
+    "! @parameter fallbackicon       | (string) Fallback icon when image fails to load.
+    "! @parameter fieldgroupids      | (string[]) Field group ids.
+    "! @parameter initials           | (string) 1-3 Latin letters shown when no image is available.
+    "! @parameter src                | (sap.ui.core.URI) Image URI or icon URI.
+    "! @parameter visible            | (boolean) Whether the item is visible. Default: true.
+    "! @parameter tooltip            | (string) Tooltip.
     METHODS avatar_group_item
       IMPORTING
         id                 TYPE clike OPTIONAL
@@ -1033,14 +1046,30 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `headerTitle` (DynamicPage / ObjectPageLayout)</p>
     METHODS header_title
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `sections` (ObjectPageLayout)</p>
     METHODS sections
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.uxap.ObjectPageSection - section inside ObjectPageLayout</p>
+    "!
+    "! Section grouping sub-sections inside ObjectPageLayout. Inherits from sap.uxap.ObjectPageSectionBase.
+    "! See https://ui5.sap.com/#/api/sap.uxap.ObjectPageSection.
+    "!
+    "! @parameter titleuppercase       | (boolean) Display the section title in uppercase. Default: true.
+    "! @parameter title                | (string, ObjectPageSectionBase) Section title.
+    "! @parameter importance           | (sap.uxap.Importance, ObjectPageSectionBase) Low | Medium | High. Default: High.
+    "! @parameter titlelevel           | (sap.ui.core.TitleLevel, ObjectPageSectionBase) Auto | H1 | H2 | H3 | H4 | H5 | H6. Default: Auto.
+    "! @parameter showtitle            | (boolean) Display the section title. Default: true.
+    "! @parameter visible              | (boolean, ObjectPageSectionBase) Whether the section is visible. Default: true.
+    "! @parameter wraptitle            | (boolean) Wrap the title across multiple lines. Default: false.
+    "! @parameter anchorbarbuttoncolor | (sap.ui.core.IconColor) Default | Positive | Negative | Critical | Neutral | Contrast | NonInteractive | Tile | Marker. Default: Default.
+    "! @parameter titlevisible         | (boolean, ObjectPageSectionBase) Computed - read-only effective title visibility.
     METHODS object_page_section
       IMPORTING
         titleuppercase       TYPE clike OPTIONAL
@@ -1056,10 +1085,23 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `subSections` (ObjectPageSection)</p>
     METHODS sub_sections
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.uxap.ObjectPageSubSection - sub-section inside ObjectPageSection</p>
+    "!
+    "! Sub-section containing actual content blocks. See https://ui5.sap.com/#/api/sap.uxap.ObjectPageSubSection.
+    "!
+    "! @parameter title          | (string) Sub-section title.
+    "! @parameter mode           | (sap.uxap.ObjectPageSubSectionMode) Collapsed | Expanded. Default: Collapsed. Collapsed shows only blocks (moreBlocks behind a "See more" toggle).
+    "! @parameter importance     | (sap.uxap.Importance) Low | Medium | High. Default: High.
+    "! @parameter titlelevel     | (sap.ui.core.TitleLevel) Auto | H1 | H2 | H3 | H4 | H5 | H6. Default: Auto.
+    "! @parameter showtitle      | (boolean) Display the sub-section title. Default: true. Overridden when only one sub-section is visible.
+    "! @parameter titleuppercase | (boolean) Render title in uppercase. Default: false.
+    "! @parameter visible        | (boolean) Whether the sub-section is visible. Default: true.
+    "! @parameter titlevisible   | (boolean) Computed - read-only effective title visibility.
     METHODS object_page_sub_section
       IMPORTING
         id             TYPE clike OPTIONAL
@@ -1074,6 +1116,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Shell - app frame with optional title and logo</p>
+    "!
+    "! Shell wrapper that provides background, branding and optional width limitation. See https://ui5.sap.com/#/api/sap.m.Shell.
+    "!
+    "! @parameter ns              | (string) XML namespace prefix.
+    "! @parameter appwidthlimited | (boolean) Limit app width to a maximum (true) or use full screen width (false). Default: true.
     METHODS shell
       IMPORTING
         ns              TYPE clike OPTIONAL
@@ -1081,6 +1129,29 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.ShellBar - top-level navigation/branding bar</p>
+    "!
+    "! Top-level shell/navigation bar. See https://ui5.sap.com/#/api/sap.f.ShellBar.
+    "!
+    "! @parameter homeicon               | (sap.ui.core.URI) Home icon (company/product logo).
+    "! @parameter homeicontooltip        | (string) Custom tooltip for the home icon.
+    "! @parameter notificationsnumber    | (string) Notification count badge text.
+    "! @parameter secondtitle            | (string) Secondary title.
+    "! @parameter showcopilot            | (boolean) Show CoPilot icon. Default: false. NOTE: SAP CoPilot is being phased out; consider not using.
+    "! @parameter showmenubutton         | (boolean) Show menu (hamburger) button. Default: false.
+    "! @parameter shownavbutton          | (boolean) Show back/navigation button. Default: false.
+    "! @parameter shownotifications      | (boolean) Show notifications button. Default: false.
+    "! @parameter showproductswitcher    | (boolean) Show product switcher button. Default: false.
+    "! @parameter showsearch             | (boolean) Show search button. Default: false.
+    "! @parameter title                  | (string) Main title.
+    "! @parameter avatarpressed          | (event) Fired when the profile avatar is pressed.
+    "! @parameter copilotpressed         | (event) Fired when the CoPilot icon is pressed.
+    "! @parameter homeiconpressed        | (event) Fired when the home icon is pressed.
+    "! @parameter menubuttonpressed      | (event) Fired when the menu button is pressed.
+    "! @parameter navbuttonpressed       | (event) Fired when the back/nav button is pressed.
+    "! @parameter notificationspressed   | (event) Fired when the notifications button is pressed.
+    "! @parameter productswitcherpressed | (event) Fired when the product switcher button is pressed.
+    "! @parameter searchbuttonpressed    | (event) Fired when the search button is pressed.
     METHODS shell_bar
       IMPORTING
         homeicon               TYPE clike     OPTIONAL
@@ -1105,20 +1176,37 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `blocks` (ObjectPageSubSection)</p>
     METHODS blocks
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `moreBlocks` (ObjectPageSubSection - shown when expanded)</p>
     METHODS more_blocks
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `layoutData` - attaches layout-specific data to a control</p>
+    "!
+    "! Wrap the actual layout-data control (e.g. FlexItemData, GridData, OverflowToolbarLayoutData).
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS layout_data
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.FlexItemData - flex layout data for FlexBox children</p>
+    "!
+    "! Layout data for children of `sap.m.FlexBox`. See https://ui5.sap.com/#/api/sap.m.FlexItemData.
+    "!
+    "! @parameter growfactor       | (float) flex-grow factor. Default: 0.
+    "! @parameter basesize         | (sap.ui.core.CSSSize) flex-basis (initial main-axis size). Default: auto.
+    "! @parameter backgrounddesign | (sap.m.BackgroundDesign) Solid | Translucent | Transparent. Default: Transparent.
+    "! @parameter styleclass       | (string) CSS class applied to the flex item.
+    "! @parameter order            | (int) Display order independent of source order. Default: 0.
+    "! @parameter shrinkfactor     | (float) flex-shrink factor. Default: 1.
     METHODS flex_item_data
       IMPORTING
         growfactor       TYPE clike OPTIONAL
@@ -1130,6 +1218,15 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.codeeditor.CodeEditor - syntax-highlighted code editor (ACE)</p>
+    "!
+    "! ACE-based code editor with syntax highlighting. See https://ui5.sap.com/#/api/sap.ui.codeeditor.CodeEditor.
+    "!
+    "! @parameter value    | (string) Source code content.
+    "! @parameter type     | (string) Syntax highlighting mode (ACE mode), e.g. abap | javascript | json | xml | html | css | sql | markdown | python | java | yaml. Default: javascript.
+    "! @parameter height   | (sap.ui.core.CSSSize) Editor height. Default: 100%.
+    "! @parameter width    | (sap.ui.core.CSSSize) Editor width. Default: 100%.
+    "! @parameter editable | (boolean) Allow user edits. Default: true.
     METHODS code_editor
       IMPORTING
         value         TYPE clike OPTIONAL
@@ -1140,10 +1237,20 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `suggestionItems` (Input / MultiInput)</p>
     METHODS suggestion_items
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.core.Item / sap.ui.core.ListItem (used as suggestion entry in Input)</p>
+    "!
+    "! Lightweight item used inside `Input.suggestionItems`. See https://ui5.sap.com/#/api/sap.ui.core.ListItem.
+    "!
+    "! @parameter description   | (string) Optional secondary text shown next to the main text.
+    "! @parameter icon          | (string) Icon URI.
+    "! @parameter key           | (string) Item key.
+    "! @parameter text          | (string) Display text.
+    "! @parameter textdirection | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
     METHODS suggestion_item
       IMPORTING
         description   TYPE clike OPTIONAL
@@ -1154,14 +1261,24 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `suggestionColumns` (Input - tabular suggestion layout)</p>
     METHODS suggestion_columns
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `suggestionRows` (Input - tabular suggestion data)</p>
     METHODS suggestion_rows
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.VerticalLayout - lays out children in one column</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.ui.layout.VerticalLayout.
+    "!
+    "! @parameter class   | (string) CSS class names.
+    "! @parameter width   | (sap.ui.core.CSSSize) Width. If unset, the content's natural width is used.
+    "! @parameter enabled | (boolean) When false all controls inside are disabled. Default: true.
+    "! @parameter visible | (boolean) Whether the layout is visible. Default: true.
     METHODS vertical_layout
       IMPORTING
         class         TYPE clike OPTIONAL
@@ -1172,6 +1289,33 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.MultiInput - input field with multiple value tokens (extends sap.m.Input)</p>
+    "!
+    "! Input that displays accepted values as tokens. See https://ui5.sap.com/#/api/sap.m.MultiInput.
+    "! Most properties are inherited from sap.m.Input / sap.m.InputBase.
+    "!
+    "! @parameter showclearicon    | (boolean, Input) Show a clear icon. Default: false. Since 1.94.
+    "! @parameter showvaluehelp    | (boolean, Input) Render value help icon. Default: false.
+    "! @parameter valuehelponly    | (boolean, Input) DEPRECATED since 1.119 - typing is no longer suppressed. Default: false.
+    "! @parameter name             | (string) HTML form name.
+    "! @parameter suggestionitems  | (binding path, Input) Aggregation of suggestion items.
+    "! @parameter tokenupdate      | (event) Fired when tokens are added or removed. Provides type, addedTokens, removedTokens. Since 1.46.
+    "! @parameter width            | (sap.ui.core.CSSSize, InputBase) Width of the control.
+    "! @parameter value            | (string, InputBase) Two-way bound value. Use `client->_bind_edit( var )`.
+    "! @parameter tokens           | (binding path) Aggregation of `sap.m.Token`.
+    "! @parameter submit           | (event, Input) Fired when the user presses Enter.
+    "! @parameter valuehelprequest | (event, Input) Fired when the value help icon is pressed.
+    "! @parameter enabled          | (boolean, InputBase) Whether the input is enabled. Default: true.
+    "! @parameter class            | (string) CSS class names.
+    "! @parameter change           | (event, InputBase) Fired when the value is committed.
+    "! @parameter required         | (boolean, InputBase) Marks the field as required. Default: false.
+    "! @parameter valuestate       | (sap.ui.core.ValueState, InputBase) None | Success | Warning | Error | Information. Default: None.
+    "! @parameter valuestatetext   | (string, InputBase) Text shown in the value state message popup.
+    "! @parameter placeholder      | (string, InputBase) Placeholder shown while empty.
+    "! @parameter showsuggestion   | (boolean, Input) Enable suggestion popover. Default for MultiInput: true (note: Input's default is false).
+    "! @parameter visible          | (boolean) Whether the input is visible. Default: true.
+    "!
+    "! Note: `tokenChange` event is deprecated since 1.46 - use `tokenUpdate`.
     METHODS multi_input
       IMPORTING
         showclearicon    TYPE clike OPTIONAL
@@ -1198,12 +1342,24 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `tokens` (MultiInput / Tokenizer)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS tokens
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Token - token used inside MultiInput / Tokenizer</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.Token.
+    "!
+    "! @parameter key      | (string) Key value of the token.
+    "! @parameter text     | (string) Displayed token text.
+    "! @parameter selected | (boolean) Selected state. Default: false.
+    "! @parameter visible  | (boolean) Whether the token is visible. Default: true.
+    "! @parameter editable | (boolean) When true the token shows a delete icon. Default: true.
     METHODS token
       IMPORTING
         key           TYPE clike OPTIONAL
