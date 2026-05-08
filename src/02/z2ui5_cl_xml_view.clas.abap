@@ -3866,6 +3866,42 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE string.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.table.TreeTable - hierarchical grid table</p>
+    "!
+    "! Tree-style grid table. See https://ui5.sap.com/#/api/sap.ui.table.TreeTable. Inherits sap.ui.table.Table.
+    "!
+    "! @parameter rows                   | (binding path) Aggregation of rows.
+    "! @parameter selectionmode          | (sap.ui.table.SelectionMode) None | Single | MultiToggle. `Multi` deprecated since 1.38.
+    "! @parameter enablecolumnreordering | (boolean) Allow column drag-and-drop reordering. Default: true.
+    "! @parameter expandfirstlevel       | (boolean) Initially expand first level. Default: false.
+    "! @parameter columnselect           | (event) Fired when a column header is selected.
+    "! @parameter rowselectionchange     | (event) Fired when row selection changes.
+    "! @parameter selectionbehavior      | (sap.ui.table.SelectionBehavior) Row | RowOnly | RowSelector. Default: RowSelector.
+    "! @parameter alternaterowcolors     | (boolean) Alternating row background colours. Default: false.
+    "! @parameter columnheadervisible    | (boolean) Show column headers. Default: true.
+    "! @parameter enablecellfilter       | (boolean) Enable cell context-menu filter. Default: false.
+    "! @parameter enablecolumnfreeze     | (boolean) Allow user to freeze columns. Default: false.
+    "! @parameter enablecustomfilter     | (boolean) Render Filter menu entry. Default: false.
+    "! @parameter enableselectall        | (boolean) Render select-all checkbox. Default: true.
+    "! @parameter shownodata             | (boolean) Show empty-state message. Default: true.
+    "! @parameter showoverlay            | (boolean) Render an overlay blocking interaction. Default: false.
+    "! @parameter visible                | (boolean) Whether the control is visible. Default: true.
+    "! @parameter columnheaderheight     | (sap.ui.core.CSSSize) Column header row height.
+    "! @parameter firstvisiblerow        | (int) Index of first visible row. Default: 0.
+    "! @parameter fixedcolumncount       | (int) Number of fixed (frozen) columns from the start. Default: 0.
+    "! @parameter threshold              | (int) Row scrolling threshold. Default: 100.
+    "! @parameter width                  | (sap.ui.core.CSSSize) Width.
+    "! @parameter usegroupmode           | (boolean) Render as group rows instead of indented tree. Default: false. Since 1.42.
+    "! @parameter groupheaderproperty    | (string) Property used as group header text. Since 1.42.
+    "! @parameter rowactioncount         | (int) Number of row action cells. Default: 0. Since 1.45.
+    "! @parameter selectedindex          | (int) DEPRECATED since 1.69 - use `getSelectedIndices()`.
+    "! @parameter visiblerowcount        | (int) DEPRECATED since 1.119 - use `rowMode`. Default: 10.
+    "! @parameter visiblerowcountmode    | (sap.ui.table.VisibleRowCountMode) DEPRECATED since 1.119 - use `rowMode`. Fixed | Interactive | Auto. Default: Fixed.
+    "! @parameter minautorowcount        | (int) Minimum row count when `visibleRowCountMode=Auto`. Default: 5.
+    "! @parameter fixedbottomrowcount    | (int) Number of fixed rows at the bottom. Default: 0.
+    "! @parameter fixedrowcount          | (int) Number of fixed rows at the top. Default: 0.
+    "! @parameter rowheight              | (int) Row content height in px. Default: theme-dependent.
+    "! @parameter toggleopenstate        | (event) Fired when a node is expanded/collapsed.
     METHODS tree_table
       IMPORTING
         rows                   TYPE clike OPTIONAL
@@ -3904,10 +3940,18 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `columns` for sap.ui.table.TreeTable</p>
     METHODS tree_columns
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.table.Column - column for sap.ui.table.TreeTable / Table</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.ui.table.Column.
+    "!
+    "! @parameter label    | (string) Header label.
+    "! @parameter template | (string) Cell template (column content control).
+    "! @parameter halign   | (sap.ui.core.HorizontalAlign) Begin | End | Left | Right | Center. Default: Begin.
     METHODS tree_column
       IMPORTING
         label         TYPE clike
@@ -3916,14 +3960,53 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `template` for sap.ui.table.Column (cell template)</p>
     METHODS tree_template
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `extension` (sap.ui.table.Table - footer/extension area)</p>
     METHODS tree_extension
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.comp.filterbar.FilterBar - SmartFilterBar variant</p>
+    "!
+    "! Filter bar with variant management. Used together with SmartTable / SmartFilterBar.
+    "! See https://ui5.sap.com/#/api/sap.ui.comp.filterbar.FilterBar.
+    "!
+    "! @parameter usetoolbar                   | (boolean) Render the toolbar in the bar's title area. Default: false.
+    "! @parameter search                       | (event) Fired when the search button is pressed.
+    "! @parameter persistencykey               | (string) Key used to persist variants/filter state.
+    "! @parameter aftervariantload             | (event) Fired after a variant has been loaded.
+    "! @parameter aftervariantsave             | (event) Fired after a variant has been saved.
+    "! @parameter assignedfilterschanged       | (event) Fired when the assigned filters change.
+    "! @parameter beforevariantfetch           | (event) Fired before fetching variants.
+    "! @parameter cancel                       | (event) Fired when the user cancels the filter dialog.
+    "! @parameter clear                        | (event) Fired when filter values are cleared.
+    "! @parameter filterchange                 | (event) Fired when a filter value changes.
+    "! @parameter filtersdialogbeforeopen      | (event) Fired before the filters dialog opens.
+    "! @parameter filtersdialogcancel          | (event) Fired when the filters dialog is cancelled.
+    "! @parameter filtersdialogclosed          | (event) Fired after the filters dialog closes.
+    "! @parameter initialise                   | (event) Fired during initialisation (legacy spelling).
+    "! @parameter initialized                  | (event) Fired after the filter bar is fully initialised.
+    "! @parameter reset                        | (event) Fired when filter values are reset.
+    "! @parameter filtercontainerwidth         | (sap.ui.core.CSSSize) Width of an individual filter input container.
+    "! @parameter header                       | (string) Header text shown in the filter dialog.
+    "! @parameter advancedmode                 | (boolean) Show the advanced filter dialog. Default: false.
+    "! @parameter isrunninginvaluehelpdialog   | (boolean) Used internally when the FilterBar runs inside a value-help dialog.
+    "! @parameter showallfilters               | (boolean) Show all filters in the dialog by default. Default: false.
+    "! @parameter showclearonfb                | (boolean) Show "Clear" button in the bar. Default: false.
+    "! @parameter showfilterconfiguration      | (boolean) Show the filter-configuration button. Default: true.
+    "! @parameter showgoonfb                   | (boolean) Show "Go" button in the bar. Default: true.
+    "! @parameter showrestorebutton            | (boolean) Show "Restore" button in the dialog. Default: true.
+    "! @parameter showrestoreonfb              | (boolean) Show "Restore" button in the bar. Default: false.
+    "! @parameter usesnapshot                  | (boolean) Use snapshot variant. Default: false.
+    "! @parameter searchenabled                | (boolean) Whether the search/Go button is enabled. Default: true.
+    "! @parameter considergrouptitle           | (boolean) Consider group title for variants. Default: false.
+    "! @parameter deltavariantmode             | (boolean) Persist only the delta when saving variants. Default: true.
+    "! @parameter disablesearchmatchespatternw | (boolean) Disable a default search-pattern warning. Default: false.
+    "! @parameter filterbarexpanded            | (boolean) Initial expanded state. Default: true.
     METHODS filter_bar
       IMPORTING
         usetoolbar                   TYPE clike DEFAULT `false`
@@ -3962,10 +4045,28 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)                TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `filterGroupItems` (FilterBar)</p>
     METHODS filter_group_items
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.comp.filterbar.FilterGroupItem - single filter inside FilterBar</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.ui.comp.filterbar.FilterGroupItem.
+    "!
+    "! @parameter name               | (string) Filter property name.
+    "! @parameter label              | (string) Filter label.
+    "! @parameter groupname          | (string) Filter group name (`__BASIC` is default).
+    "! @parameter visibleinfilterbar | (boolean) Show the filter in the bar (not only the dialog). Default: false.
+    "! @parameter mandatory          | (boolean) Required filter marker. Default: false.
+    "! @parameter controltooltip     | (string) Tooltip for the filter control.
+    "! @parameter entitysetname      | (string) OData entity set used for value help.
+    "! @parameter entitytypename     | (string) OData entity type used for value help.
+    "! @parameter grouptitle         | (string) Visible group title.
+    "! @parameter hiddenfilter       | (boolean) Hide the filter completely. Default: false.
+    "! @parameter labeltooltip       | (string) Tooltip for the label.
+    "! @parameter visible            | (boolean) Whether the filter is visible. Default: true.
+    "! @parameter change             | (event) Fired when the filter value changes.
     METHODS filter_group_item
       IMPORTING
         name               TYPE clike OPTIONAL
@@ -3984,10 +4085,31 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `control` for FilterGroupItem (the filter input control)</p>
     METHODS filter_control
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.FlexibleColumnLayout - 1-3 column responsive layout</p>
+    "!
+    "! Flexible 1/2/3-column layout. See https://ui5.sap.com/#/api/sap.f.FlexibleColumnLayout.
+    "!
+    "! @parameter layout                        | (sap.f.LayoutType) OneColumn | TwoColumnsBeginExpanded | TwoColumnsMidExpanded | MidColumnFullScreen | EndColumnFullScreen | ThreeColumnsMidExpanded | ThreeColumnsEndExpanded | ThreeColumnsMidExpandedEndHidden | ThreeColumnsBeginExpandedEndHidden. Default: OneColumn.
+    "! @parameter backgrounddesign              | (sap.m.BackgroundDesign) Solid | Translucent | Transparent. Default: Transparent.
+    "! @parameter defaulttransitionnamebegincol | (string) Default transition for the begin column.
+    "! @parameter defaulttransitionnameendcol   | (string) Default transition for the end column.
+    "! @parameter defaulttransitionnamemidcol   | (string) Default transition for the mid column.
+    "! @parameter autofocus                     | (boolean) Auto-focus active column on navigation. Default: true.
+    "! @parameter restorefocusonbacknavigation  | (boolean) Restore focus on back navigation. Default: false. Since 1.77.
+    "! @parameter class                         | (string) CSS class names.
+    "! @parameter afterbegincolumnnavigate      | (event) Fired after the begin column has navigated.
+    "! @parameter afterendcolumnnavigate        | (event) Fired after the end column has navigated.
+    "! @parameter aftermidcolumnnavigate        | (event) Fired after the mid column has navigated.
+    "! @parameter begincolumnnavigate           | (event) Fired before the begin column navigates.
+    "! @parameter columnresize                  | (event) Fired when a column is resized.
+    "! @parameter endcolumnnavigate             | (event) Fired before the end column navigates.
+    "! @parameter midcolumnnavigate             | (event) Fired before the mid column navigates.
+    "! @parameter statechange                   | (event) Fired when the layout state changes.
     METHODS flexible_column_layout
       IMPORTING
         layout                        TYPE clike
@@ -4010,16 +4132,19 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `beginColumnPages` (FlexibleColumnLayout)</p>
     METHODS begin_column_pages
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `midColumnPages` (FlexibleColumnLayout)</p>
     METHODS mid_column_pages
       IMPORTING
         id            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `endColumnPages` (FlexibleColumnLayout)</p>
     METHODS end_column_pages
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
