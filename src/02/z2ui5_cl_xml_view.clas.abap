@@ -7121,6 +7121,38 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.DateRangeSelection - date range input (extends DatePicker)</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.DateRangeSelection. All DatePicker properties apply.
+    "!
+    "! @parameter value                   | (string) Two-way bound formatted value.
+    "! @parameter delimiter               | (string) Range delimiter. Default: ` - `.
+    "! @parameter datevalue               | (object) Range start date.
+    "! @parameter seconddatevalue         | (object) Range end date.
+    "! @parameter mindate                 | (object) Minimum selectable date.
+    "! @parameter maxdate                 | (object) Maximum selectable date.
+    "! @parameter calendarweeknumbering   | (sap.ui.core.date.CalendarWeekNumbering) Default | ISO_8601 | MiddleEastern | WesternTraditional. Default: Default.
+    "! @parameter displayformat           | (string) Display format pattern.
+    "! @parameter valueformat             | (string) Internal `value` format.
+    "! @parameter displayformattype       | (string) Calendar type for the display format.
+    "! @parameter enabled                 | (boolean) Whether enabled. Default: true.
+    "! @parameter editable                | (boolean) Whether editable. Default: true.
+    "! @parameter required                | (boolean) Required field marker. Default: false.
+    "! @parameter visible                 | (boolean) Whether visible. Default: true.
+    "! @parameter width                   | (sap.ui.core.CSSSize) Width.
+    "! @parameter showcurrentdatebutton   | (boolean) Show "Today" button. Default: false.
+    "! @parameter showfooter              | (boolean) Show calendar footer. Default: false.
+    "! @parameter hideinput               | (boolean) Hide the input field. Default: false.
+    "! @parameter placeholder             | (string) Placeholder text.
+    "! @parameter valuestate              | (sap.ui.core.ValueState) None | Success | Warning | Error | Information.
+    "! @parameter valuestatetext          | (string) Value state message.
+    "! @parameter showvaluestatemessage   | (boolean) Show value state message. Default: true.
+    "! @parameter textdirection           | (sap.ui.core.TextDirection) Inherit | LTR | RTL.
+    "! @parameter textalign               | (sap.ui.core.TextAlign) Begin | End | Left | Right | Center | Initial.
+    "! @parameter name                    | (string) HTML form name.
+    "! @parameter initialfocuseddatevalue | (object) Date initially focused.
+    "! @parameter class                   | (string) CSS class names.
+    "! @parameter change                  | (event) Fired when the range is committed.
     METHODS date_range_selection
       IMPORTING
         value                   TYPE clike OPTIONAL
@@ -7156,6 +7188,27 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.fl.variants.VariantManagement - flexibility variant management</p>
+    "!
+    "! Variant management provided by SAPUI5 flexibility services. See https://ui5.sap.com/#/api/sap.ui.fl.variants.VariantManagement.
+    "!
+    "! @parameter displaytextfsv                | (string) Custom standard variant text.
+    "! @parameter editable                      | (boolean) Whether the control is editable. Default: true.
+    "! @parameter executeonselectionforstandflt | (boolean) Apply automatically also for the standard variant. Default: false.
+    "! @parameter headerlevel                   | (sap.ui.core.TitleLevel) Auto | H1..H6. Default: Auto.
+    "! @parameter inerrorstate                  | (boolean) Render in error state. Default: false.
+    "! @parameter maxwidth                      | (sap.ui.core.CSSSize) Maximum width.
+    "! @parameter modelname                     | (string) Custom flex model name. Default: $FlexVariants.
+    "! @parameter resetoncontextchange          | (boolean) Reset on context change. Default: true.
+    "! @parameter showsetasdefault              | (boolean) Show set-as-default option. Default: true.
+    "! @parameter titlestyle                    | (sap.ui.core.TitleLevel) Style for the title.
+    "! @parameter updatevariantinurl            | (boolean) Update URL when variant changes. Default: false.
+    "! @parameter for                           | (sap.ui.core.ID[]) Ids of the controls under variant management.
+    "! @parameter cancel                        | (event) Fired when management dialog is cancelled.
+    "! @parameter initialized                   | (event) Fired when initialised.
+    "! @parameter manage                        | (event) Fired on manage.
+    "! @parameter save                          | (event) Fired on save.
+    "! @parameter select                        | (event) Fired on select.
     METHODS variant_management_fl
       IMPORTING
         displaytextfsv                TYPE clike OPTIONAL
@@ -7178,6 +7231,10 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.form.ColumnElementData - per-element data for ColumnLayout forms</p>
+    "!
+    "! @parameter cellslarge | (int) Cell span on large screens (1..12). Default: 8.
+    "! @parameter cellssmall | (int) Cell span on small screens (1..12). Default: 12.
     METHODS column_element_data
       IMPORTING
         cellslarge    TYPE clike OPTIONAL
@@ -7185,10 +7242,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `customControl` (SmartFilterBar / SmartTable)</p>
     METHODS fb_control
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.comp.smartvariants.SmartVariantManagement</p>
+    "!
+    "! Variant management for smart controls. See https://ui5.sap.com/#/api/sap.ui.comp.smartvariants.SmartVariantManagement.
+    "!
+    "! @parameter showexecuteonselection | (boolean) Show "Apply Automatically" option. Default: false.
+    "! @parameter persistencykey         | (string) Key under which variants are persisted.
     METHODS smart_variant_management
       IMPORTING
         id                     TYPE clike OPTIONAL
@@ -7197,6 +7261,13 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.comp.smartfilterbar.SmartFilterBar</p>
+    "!
+    "! Smart filter bar with auto-generated controls based on OData metadata.
+    "! See https://ui5.sap.com/#/api/sap.ui.comp.smartfilterbar.SmartFilterBar.
+    "!
+    "! @parameter persistencykey | (string) Key for storing user variants.
+    "! @parameter entityset      | (string) OData entity set.
     METHODS smart_filter_bar
       IMPORTING
         id             TYPE clike OPTIONAL
@@ -7205,6 +7276,13 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.comp.smartfilterbar.ControlConfiguration</p>
+    "!
+    "! Per-field configuration for SmartFilterBar. See https://ui5.sap.com/#/api/sap.ui.comp.smartfilterbar.ControlConfiguration.
+    "!
+    "! @parameter previnitdatafetchinvalhelpdia | (boolean) Prevent initial data fetch in value-help dialog. Default: false.
+    "! @parameter visibleinadvancedarea         | (boolean) Show in the advanced area. Default: false.
+    "! @parameter key                           | (string) Property name the configuration applies to.
     METHODS control_configuration
       IMPORTING
         id                            TYPE clike OPTIONAL
@@ -7214,10 +7292,27 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `controlConfiguration` (SmartFilterBar)</p>
     METHODS _control_configuration
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.comp.smarttable.SmartTable</p>
+    "!
+    "! Smart table that auto-creates columns from OData metadata. See https://ui5.sap.com/#/api/sap.ui.comp.smarttable.SmartTable.
+    "!
+    "! @parameter smartfilterid           | (sap.ui.core.ID) Id of an associated SmartFilterBar.
+    "! @parameter tabletype               | (sap.ui.comp.smarttable.TableType) ResponsiveTable | Table | TreeTable | AnalyticalTable. Default: ResponsiveTable.
+    "! @parameter editable                | (boolean) Whether cells are editable. Default: false.
+    "! @parameter initiallyvisiblefields  | (string) Comma-separated list of initially visible field names.
+    "! @parameter entityset               | (string) OData entity set.
+    "! @parameter usevariantmanagement    | (boolean) Show variant management toolbar. Default: true.
+    "! @parameter useexporttoexcel        | (boolean) Show "Export to Excel" button. Default: true.
+    "! @parameter usetablepersonalisation | (boolean) Show personalisation button. Default: true.
+    "! @parameter header                  | (string) Header text.
+    "! @parameter showrowcount            | (boolean) Show row count in header. Default: true.
+    "! @parameter enableexport            | (boolean) Enable export button. Default: true.
+    "! @parameter enableautobinding       | (boolean) Bind table automatically. Default: false.
     METHODS smart_table
       IMPORTING
         id                      TYPE clike OPTIONAL
@@ -7236,10 +7331,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `formToolbar` (SmartForm / SimpleForm extension)</p>
     METHODS form_toolbar
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.PagingButton - prev/next paging buttons</p>
+    "!
+    "! @parameter count                 | (int) Total number of pages. Default: 1.
+    "! @parameter nextbuttontooltip     | (string) Tooltip for the next button.
+    "! @parameter previousbuttontooltip | (string) Tooltip for the previous button.
+    "! @parameter position              | (int) Current 1-based position.
     METHODS paging_button
       IMPORTING
         count                 TYPE clike OPTIONAL
