@@ -6132,6 +6132,41 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ObjectHeader - large object header (legacy alternative to ObjectPageHeader)</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.ObjectHeader.
+    "!
+    "! @parameter backgrounddesign     | (sap.m.BackgroundDesign) Solid | Translucent | Transparent. Default: Transparent.
+    "! @parameter condensed            | (boolean) Condensed rendering. Default: false.
+    "! @parameter fullscreenoptimized  | (boolean) Optimised for full-screen layouts. Default: false.
+    "! @parameter icon                 | (sap.ui.core.URI) Icon URI.
+    "! @parameter iconactive           | (boolean) Render icon as clickable. Default: false.
+    "! @parameter iconalt              | (string) Alt text for the icon.
+    "! @parameter icondensityaware     | (boolean) Density-aware icon. Default: true.
+    "! @parameter icontooltip          | (string) Icon tooltip.
+    "! @parameter imageshape           | (sap.m.ObjectHeaderPictureShape) Square | Circle. Default: Square.
+    "! @parameter intro                | (string) Intro text.
+    "! @parameter introactive          | (boolean) Render intro as clickable. Default: false.
+    "! @parameter introhref            | (string) Intro link href.
+    "! @parameter introtarget          | (string) Intro link target.
+    "! @parameter introtextdirection   | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter number               | (string) Numeric value.
+    "! @parameter numberstate          | (sap.ui.core.ValueState) None | Success | Warning | Error | Information. Default: None.
+    "! @parameter numbertextdirection  | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter numberunit           | (string) DEPRECATED - use `unit` aggregation slot.
+    "! @parameter responsive           | (boolean) Use responsive layout. Default: false.
+    "! @parameter showtitleselector    | (boolean) Show selector arrow next to title. Default: false.
+    "! @parameter title                | (string) Title text.
+    "! @parameter titleactive          | (boolean) Render title as clickable. Default: false.
+    "! @parameter titlehref            | (string) Title link href.
+    "! @parameter titlelevel           | (sap.ui.core.TitleLevel) Auto | H1..H6. Default: H1.
+    "! @parameter titleselectortooltip | (string) Tooltip for the title selector.
+    "! @parameter titletarget          | (string) Title link target.
+    "! @parameter titletextdirection   | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter iconpress            | (event) Fired when an active icon is pressed.
+    "! @parameter intropress           | (event) Fired when an active intro is pressed.
+    "! @parameter titlepress           | (event) Fired when an active title is pressed.
+    "! @parameter titleselectorpress   | (event) Fired when the title selector arrow is pressed.
     METHODS object_header
       IMPORTING
         backgrounddesign     TYPE clike OPTIONAL
@@ -6169,10 +6204,19 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `additionalNumbers` (ObjectHeader)</p>
     METHODS additional_numbers
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.HeaderContainer - horizontal scrollable container of cards/tiles</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.HeaderContainer.
+    "!
+    "! @parameter scrollstep  | (int) Pixels scrolled per arrow click.
+    "! @parameter scrolltime  | (int) Scroll animation duration in ms. Default: 500.
+    "! @parameter orientation | (sap.ui.core.Orientation) Horizontal | Vertical. Default: Horizontal.
+    "! @parameter height      | (sap.ui.core.CSSSize) Height.
     METHODS header_container
       IMPORTING
         scrollstep    TYPE clike OPTIONAL
@@ -6182,18 +6226,45 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `markers` (ObjectHeader / ObjectListItem / UploadSetItem)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS markers
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `statuses` (ObjectHeader / ObjectListItem)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS statuses
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.statusindicator.PropertyThreshold-style status (sap.ndc) - generic status entry</p>
+    "!
+    "! Generic status entry with custom colours. Used by sap.ndc / status indicator and similar.
+    "!
+    "! @parameter backgroundcolor             | (sap.ui.core.CSSColor) Background colour.
+    "! @parameter bordercolor                 | (sap.ui.core.CSSColor) Border colour.
+    "! @parameter borderstyle                 | (string) CSS border style.
+    "! @parameter borderwidth                 | (string) CSS border width.
+    "! @parameter contentcolor                | (sap.ui.core.CSSColor) Foreground colour.
+    "! @parameter headercontentcolor          | (sap.ui.core.CSSColor) Header foreground colour.
+    "! @parameter hoverbackgroundcolor        | (sap.ui.core.CSSColor) Background colour on hover.
+    "! @parameter hoverbordercolor            | (sap.ui.core.CSSColor) Border colour on hover.
+    "! @parameter hovercontentcolor           | (sap.ui.core.CSSColor) Foreground colour on hover.
+    "! @parameter key                         | (string) Status key.
+    "! @parameter legendcolor                 | (sap.ui.core.CSSColor) Legend colour.
+    "! @parameter selectedbackgroundcolor     | (sap.ui.core.CSSColor) Background while selected.
+    "! @parameter selectedbordercolor         | (sap.ui.core.CSSColor) Border while selected.
+    "! @parameter selectedcontentcolor        | (sap.ui.core.CSSColor) Foreground while selected.
+    "! @parameter title                       | (string) Status title.
+    "! @parameter usefocuscolorascontentcolor | (boolean) Use focus colour as content colour. Default: false.
+    "! @parameter visible                     | (boolean) Whether visible. Default: true.
     METHODS status
       IMPORTING
         id                          TYPE clike OPTIONAL
@@ -6218,14 +6289,25 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)               TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `firstStatus` (ObjectListItem)</p>
     METHODS first_status
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `secondStatus` (ObjectListItem)</p>
     METHODS second_status
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ObjectMarker - icon-based marker (favourite / flagged / locked / draft / unsaved)</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.ObjectMarker.
+    "!
+    "! @parameter additionalinfo | (string) Additional accessibility info.
+    "! @parameter type           | (sap.m.ObjectMarkerType) Flagged | Favorite | Draft | Locked | LockedBy | Unsaved | UnsavedBy.
+    "! @parameter visibility     | (sap.m.ObjectMarkerVisibility) IconAndText | IconOnly | TextOnly.
+    "! @parameter visible        | (boolean) Whether visible. Default: true.
+    "! @parameter press          | (event) Fired when the marker is pressed.
     METHODS object_marker
       IMPORTING
         additionalinfo TYPE clike OPTIONAL
@@ -6236,6 +6318,24 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ObjectListItem - structured list item with title/intro/number/markers/statuses</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.ObjectListItem.
+    "!
+    "! @parameter activeicon          | (sap.ui.core.URI) Icon shown while pressed.
+    "! @parameter icon                | (sap.ui.core.URI) Icon URI.
+    "! @parameter icondensityaware    | (boolean) Density-aware icon. Default: true.
+    "! @parameter intro               | (string) Intro text shown above the title.
+    "! @parameter introtextdirection  | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter number              | (string) Numeric value shown on the right.
+    "! @parameter numberstate         | (sap.ui.core.ValueState) None | Success | Warning | Error | Information. Default: None.
+    "! @parameter numbertextdirection | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter numberunit          | (string) DEPRECATED - use `unit` aggregation slot.
+    "! @parameter title               | (string) Title text.
+    "! @parameter titletextdirection  | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter press               | (event, ListItemBase) Fired when the row is activated.
+    "! @parameter selected            | (boolean, ListItemBase) Selected state. Default: false.
+    "! @parameter type                | (sap.m.ListType, ListItemBase) Inactive | Active | Detail | Navigation | DetailAndActive. Default: Inactive.
     METHODS object_list_item
       IMPORTING
         activeicon          TYPE clike OPTIONAL
@@ -6255,10 +6355,16 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `detailBox` (used by FacetFilter etc.)</p>
     METHODS detail_box
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.LightBox - image lightbox dialog</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.LightBox.
+    "!
+    "! @parameter visible | (boolean) Whether the lightbox is visible. Default: true.
     METHODS light_box
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -6267,6 +6373,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.LightBoxItem - image inside LightBox</p>
+    "!
+    "! @parameter alt      | (string) Image alt text.
+    "! @parameter imagesrc | (sap.ui.core.URI) Image URI.
+    "! @parameter subtitle | (string) Subtitle text.
+    "! @parameter title    | (string) Title text.
     METHODS light_box_item
       IMPORTING
         alt           TYPE clike OPTIONAL
