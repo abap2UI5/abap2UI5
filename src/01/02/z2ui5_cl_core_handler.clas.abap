@@ -224,10 +224,10 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         OR ms_response-s_front-params-s_popup-check_update_model       = abap_true
         OR ms_response-s_front-params-s_popover-check_update_model     = abap_true ).
 
-    if result = abap_true.
+    if result = abap_false.
 
      result = xsdbool(
-        OR ms_response-s_front-params-s_view-xml IS NOT INITIAL
+        ms_response-s_front-params-s_view-xml IS NOT INITIAL
         OR ms_response-s_front-params-s_view_nest-xml                 IS NOT INITIAL
         OR ms_response-s_front-params-s_view_nest2-xml                IS NOT INITIAL
         OR ms_response-s_front-params-s_popup-xml IS NOT INITIAL
