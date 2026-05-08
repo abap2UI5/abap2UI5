@@ -153,6 +153,19 @@ CLASS z2ui5_cl_util_xml IMPLEMENTATION.
   METHOD _if.
 
     IF when = abap_true.
+      __( n  = n
+          ns = ns
+          a  = a
+          v  = v
+          p  = p ).
+    ENDIF.
+    result = me.
+
+  ENDMETHOD.
+
+  METHOD __if.
+
+    IF when = abap_true.
       result = __( n  = n
                    ns = ns
                    a  = a
@@ -161,19 +174,6 @@ CLASS z2ui5_cl_util_xml IMPLEMENTATION.
     ELSE.
       result = me.
     ENDIF.
-
-  ENDMETHOD.
-
-  METHOD __if.
-
-    IF when = abap_true.
-      _( n  = n
-         ns = ns
-         a  = a
-         v  = v
-         p  = p ).
-    ENDIF.
-    result = me.
 
   ENDMETHOD.
 

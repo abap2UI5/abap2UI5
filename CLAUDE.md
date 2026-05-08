@@ -165,6 +165,52 @@ METHOD z2ui5_if_app~main.
 ENDMETHOD.
 ```
 
+### Deprecated UI5 Controls — Do Not Use
+
+When generating views (with either `z2ui5_cl_util_xml` or `z2ui5_cl_xml_view`), avoid the controls listed below. They are deprecated in the current SAPUI5 release line and must not be introduced in new code or examples. The authoritative list is at https://ui5.sap.com/#/api/deprecated.
+
+**Whole libraries — never use any control from these:**
+
+| Library | Deprecated since | Use instead |
+|---|---|---|
+| `sap.ui.commons` (Accordion, Button, CheckBox, ComboBox, DatePicker, Dialog, FileUploader, Label, Link, Menu, Panel, RadioButton, SearchField, Slider, TextArea, TextField, TextView, ToggleButton, Toolbar, Tree, Form, SimpleForm, AbsoluteLayout, BorderLayout, MatrixLayout, HorizontalLayout, VerticalLayout, etc. — entire library) | 1.38 | `sap.m` + `sap.ui.layout` |
+| `sap.viz.ui5.*` legacy charts (Bar, Bubble, Bullet, Column, Combination, Donut, Heatmap, Line, Pie, Scatter, StackedColumn, Treemap, Waterfall, …) | 1.32 | `sap.viz.ui5.controls.VizFrame` |
+
+**Individual deprecated controls:**
+
+| Control | Deprecated since | Use instead |
+|---|---|---|
+| `sap.m.MultiEditField` | 1.120 | — |
+| `sap.f.Avatar` | 1.73 | `sap.m.Avatar` |
+| `sap.ui.core.XMLComposite` | 1.88 | Custom controls |
+| `sap.ui.core.mvc.HTMLView` | 1.108 | XMLView |
+| `sap.ui.core.mvc.JSONView` | 1.120 | XMLView |
+| `sap.ui.core.mvc.JSView` | 1.90 | Typed views |
+| `sap.ui.core.mvc.TemplateView` | 1.56 | XMLView |
+| `sap.ui.core.tmpl.TemplateControl` | 1.56 | — |
+| `sap.ui.table.ColumnHeader` | 1.120 | `sap.ui.table.Column` |
+| `sap.ui.table.TableHelper` | 1.118 | — |
+| `sap.f.routing.Router` / `Target` / `TargetHandler` / `Targets` | 1.56 | `sap.m.routing.*` (async) |
+| `sap.tnt.IToolHeader` (interface) | 1.135 | Any control as `ToolPage` header |
+
+**Deprecated enums/types to avoid:**
+
+- `sap.m.ValueCSSColor`, `DateTimeInputType` (use `DatePicker`/`TimePicker`), `ListHeaderDesign`, `ListMode.SingleSelect` (1.143 → `SingleSelectLeft`), `FrameType.TwoThirds`/`Auto`, mis-spelled `PlacementType.*Prefered*` variants
+- `sap.f.AvatarShape` / `AvatarSize` / `AvatarType` / `AvatarColor` / `AvatarImageFitType` / `IllustratedMessageType` / `IllustratedMessageSize` / `DynamicPageTitleArea` (use the `sap.m.*` equivalents)
+- `sap.ui.layout.BlockBackgroundType.Mixed`, `form.GridElementCells`, `SimpleFormLayout.ResponsiveLayout`, `SimpleFormLayout.GridLayout`, `cssgrid.CSSGridGapShortHand`, `GridHelper`
+- `sap.ui.table.NavigationMode`, `SortOrder` (use `sap.ui.core.SortOrder`), `VisibleRowCountMode` (use `rowMode` aggregation), `TreeAutoExpandMode`, `ResetAllMode`
+- `sap.ui.core.MessageType` (use `module:sap/ui/core/message/MessageType`)
+- `sap.ui.unified.ContentSwitcherAnimation` (1.147 — concept discarded)
+
+**Other deprecated framework items (not controls but related):**
+
+- Analysis Path Framework (APF) — deprecated 1.140
+- `sap.m.PDFViewer.sourceValidationFailed()` — deprecated 1.141
+- Declarative `data-sap-ui-type` attribute — deprecated 1.120 (use XML views)
+- Belize, Blue Crystal, and Blue Crystal HCB themes — removed in 1.136 (use Horizon)
+
+**Namespace caveat for `Avatar`:** `z2ui5_cl_xml_view->avatar( )` accepts a free-form `ns` parameter. Leave it empty to emit `<Avatar>` (resolves to `sap.m.Avatar` via the View's default xmlns). **Never pass `ns = 'f'`** — that produces `<f:Avatar>`, which is the deprecated `sap.f.Avatar`. (`avatar_group` and `avatar_group_item` correctly use `ns = 'f'` because those controls still live in `sap.f`.)
+
 ## Repository Structure
 
 ```
