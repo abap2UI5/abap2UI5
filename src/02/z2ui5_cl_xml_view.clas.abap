@@ -1454,6 +1454,29 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Dialog - modal/standalone dialog</p>
+    "!
+    "! Modal dialog with header, content and buttons. See https://ui5.sap.com/#/api/sap.m.Dialog.
+    "!
+    "! @parameter title               | (string) Header title text.
+    "! @parameter icon                | (sap.ui.core.URI) Header icon (density-aware).
+    "! @parameter showheader          | (boolean) Display header section. Default: true.
+    "! @parameter stretch             | (boolean) Stretch to full screen on mobile. Default: false.
+    "! @parameter contentheight       | (sap.ui.core.CSSSize) Preferred content height.
+    "! @parameter contentwidth        | (sap.ui.core.CSSSize) Preferred content width.
+    "! @parameter resizable           | (boolean) Whether the dialog is resizable. Default: false.
+    "! @parameter horizontalscrolling | (boolean) Allow horizontal scrolling. Default: true.
+    "! @parameter verticalscrolling   | (boolean) Allow vertical scrolling. Default: true.
+    "! @parameter afterclose          | (event) Fired after the dialog has closed.
+    "! @parameter beforeopen          | (event) Fired before the dialog opens.
+    "! @parameter beforeclose         | (event) Fired before the dialog closes.
+    "! @parameter afteropen           | (event) Fired after the dialog has opened.
+    "! @parameter draggable           | (boolean) Whether the dialog is draggable. Default: false.
+    "! @parameter closeonnavigation   | (boolean) Auto-close on routing navigation. Default: true.
+    "! @parameter escapehandler       | (function) Custom escape key handler.
+    "! @parameter type                | (sap.m.DialogType) Standard | Message. Default: Standard.
+    "! @parameter titlealignment      | (sap.m.TitleAlignment) Auto | Start | Center. Default: Auto.
+    "! @parameter state               | (sap.ui.core.ValueState) None | Success | Warning | Error | Information. Default: None.
     METHODS dialog
       IMPORTING
         title               TYPE clike OPTIONAL
@@ -1479,6 +1502,22 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Carousel - paged carousel of pages</p>
+    "!
+    "! Paged carousel. See https://ui5.sap.com/#/api/sap.m.Carousel.
+    "!
+    "! @parameter height                        | (sap.ui.core.CSSSize) Carousel height. Default: 100%.
+    "! @parameter class                         | (string) CSS class names.
+    "! @parameter loop                          | (boolean) Cycle from last page back to first. Default: false.
+    "! @parameter arrowsplacement               | (sap.m.CarouselArrowsPlacement) Content | PageIndicator. Default: Content.
+    "! @parameter backgrounddesign              | (sap.m.BackgroundDesign) Solid | Translucent | Transparent. Default: Translucent. Since 1.110.
+    "! @parameter pageindicatorbackgrounddesign | (sap.m.BackgroundDesign) Background of page indicator. Default: Solid. Since 1.115.
+    "! @parameter pageindicatorborderdesign     | (sap.m.BorderDesign) Solid | None. Default: Solid. Since 1.115.
+    "! @parameter pageindicatorplacement        | (sap.m.PlacementType) Top | Bottom | OverContentTop | OverContentBottom. Default: Bottom.
+    "! @parameter width                         | (sap.ui.core.CSSSize) Width. Default: 100%.
+    "! @parameter showpageindicator             | (boolean) Show the page indicator. Default: true.
+    "! @parameter visible                       | (boolean) Whether the carousel is visible. Default: true.
+    "! @parameter pages                         | (binding path) Aggregation of pages.
     METHODS carousel
       IMPORTING
         height                        TYPE clike OPTIONAL
@@ -1497,42 +1536,78 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `buttons` (Dialog, ActionSheet, ...)</p>
     METHODS buttons
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Builder helper - jump to the root element of the current XML tree</p>
     METHODS get_root
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Builder helper - jump to the parent element of the current node</p>
     METHODS get_parent
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Builder helper - jump to a named ancestor / sibling element</p>
+    "!
+    "! @parameter name | (string) Element name to navigate to.
     METHODS get
       IMPORTING
         name          TYPE string OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Builder helper - jump to the n-th child of the current node</p>
+    "!
+    "! @parameter index | (i) 1-based child index. Default: 1.
     METHODS get_child
       IMPORTING
         index         TYPE i DEFAULT 1
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `columns` (Table, AnalyticalTable, ColumnListItem, ...)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS columns
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.table.AnalyticalColumn - column definition for AnalyticalTable</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.ui.table.AnalyticalColumn. Use the `column` builder for sap.m and `analytical_column` for AnalyticalTable.
+    "!
+    "! @parameter ns | (string) XML namespace prefix (typically `t`).
     METHODS analytical_column
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Column - column definition for sap.m.Table</p>
+    "!
+    "! Responsive table column. See https://ui5.sap.com/#/api/sap.m.Column.
+    "!
+    "! @parameter width             | (sap.ui.core.CSSSize) Column width. Empty = remaining space.
+    "! @parameter minscreenwidth    | (string) Hide column below this screen width (e.g. `Small`, `Medium`, `Large`, `30em`).
+    "! @parameter demandpopin       | (boolean) Show as pop-in instead of hiding when below minScreenWidth. Default: false.
+    "! @parameter halign            | (sap.ui.core.TextAlign) Begin | End | Left | Right | Center | Initial. Default: Begin.
+    "! @parameter visible           | (boolean) Whether the column is visible. Default: true.
+    "! @parameter valign            | (sap.ui.core.VerticalAlign) Bottom | Inherit | Middle | Top. Default: Inherit.
+    "! @parameter styleclass        | (string) CSS class for the column and its pop-in rows.
+    "! @parameter sortindicator     | (sap.ui.core.SortOrder) None | Ascending | Descending. Default: None. Since 1.61.
+    "! @parameter popindisplay      | (sap.m.PopinDisplay) Block | Inline | WithoutHeader. Default: Block. Since 1.13.2.
+    "! @parameter mergefunctionname | (string) Function used when merging duplicate cells. Default: `getText`. Since 1.16.
+    "! @parameter mergeduplicates   | (boolean) Merge repeating cells. Default: false. Since 1.16.
+    "! @parameter importance        | (sap.ui.core.Priority) None | Low | Medium | High. Default: None. Used by `autoPopinMode`. Since 1.76.
+    "! @parameter autopopinwidth    | (float) Auto-pop-in column width in rem. Default: 8. Since 1.76.
+    "! @parameter class             | (string) CSS class names.
+    "! @parameter headermenu        | (sap.ui.core.ID) Id of an `IColumnHeaderMenu` association. Since 1.98.
     METHODS column
       IMPORTING
         width             TYPE clike OPTIONAL
@@ -1555,12 +1630,27 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `items` (List, Table, ComboBox, FlexBox, Carousel, ...)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS items
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.InteractiveDonutChart - interactive donut microchart</p>
+    "!
+    "! Donut microchart with selectable segments. See https://ui5.sap.com/#/api/sap.suite.ui.microchart.InteractiveDonutChart.
+    "!
+    "! @parameter selectionchanged  | (event) Fired when segment selection changes. Provides `selectedSegments`, `allSelectedSegments`, `segment`, `selected`.
+    "! @parameter errormessage      | (string) Error/empty-state message text.
+    "! @parameter errormessagetitle | (string) Error/empty-state message title.
+    "! @parameter showerror         | (boolean) Render the error/empty state. Default: false.
+    "! @parameter displayedsegments | (int) Number of segments rendered (max 4). Default: 3.
+    "! @parameter press             | (event) Fired when the chart is pressed.
+    "! @parameter segments          | (binding path) Aggregation of `InteractiveDonutChartSegment`.
+    "! @parameter selectionenabled  | (boolean) Whether segments can be selected. Default: true.
     METHODS interact_donut_chart
       IMPORTING
         selectionchanged  TYPE clike OPTIONAL
@@ -1574,10 +1664,18 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `segments` (InteractiveDonutChart)</p>
     METHODS segments
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.InteractiveDonutChartSegment - single segment</p>
+    "!
+    "! @parameter label          | (string) Segment label.
+    "! @parameter value          | (float) Numeric value (sum of all segments = 100% of donut).
+    "! @parameter displayedvalue | (string) Pre-formatted value text shown in the tooltip.
+    "! @parameter selected       | (boolean) Selected state. Default: false.
+    "! @parameter color          | (sap.m.ValueCSSColor) Good | Error | Critical | Neutral | CSS color string. Default: Neutral.
     METHODS interact_donut_chart_segment
       IMPORTING
         label          TYPE clike OPTIONAL
@@ -1588,6 +1686,21 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.InteractiveBarChart - interactive bar microchart</p>
+    "!
+    "! Horizontal bar microchart with selectable bars. See https://ui5.sap.com/#/api/sap.suite.ui.microchart.InteractiveBarChart.
+    "!
+    "! @parameter selectionchanged  | (event) Fired when bar selection changes.
+    "! @parameter selectionenabled  | (boolean) Whether bars can be selected. Default: true.
+    "! @parameter press             | (event) Fired when the chart is pressed.
+    "! @parameter labelwidth        | (sap.ui.core.CSSSize) Width of the label area as a percentage. Default: 40%.
+    "! @parameter errormessage      | (string) Error/empty-state message text.
+    "! @parameter errormessagetitle | (string) Error/empty-state message title.
+    "! @parameter showerror         | (boolean) Render the error/empty state. Default: false.
+    "! @parameter displayedbars     | (int) Number of bars rendered (max 10). Default: 3.
+    "! @parameter bars              | (binding path) Aggregation of `InteractiveBarChartBar`.
+    "! @parameter max               | (float) Maximum value for the value scale (auto when undefined).
+    "! @parameter min               | (float) Minimum value for the value scale (auto when undefined).
     METHODS interact_bar_chart
       IMPORTING
         selectionchanged  TYPE clike OPTIONAL
@@ -1604,10 +1717,18 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `bars` (InteractiveBarChart)</p>
     METHODS bars
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.InteractiveBarChartBar - single bar</p>
+    "!
+    "! @parameter label          | (string) Bar label.
+    "! @parameter value          | (float) Numeric value.
+    "! @parameter displayedvalue | (string) Pre-formatted value text.
+    "! @parameter selected       | (boolean) Selected state. Default: false.
+    "! @parameter color          | (sap.m.ValueCSSColor) Good | Error | Critical | Neutral | CSS color string. Default: Neutral.
     METHODS interact_bar_chart_bar
       IMPORTING
         label          TYPE clike OPTIONAL
@@ -1618,6 +1739,20 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.InteractiveLineChart - interactive line microchart</p>
+    "!
+    "! Line microchart with selectable points. See https://ui5.sap.com/#/api/sap.suite.ui.microchart.InteractiveLineChart.
+    "!
+    "! @parameter selectionchanged  | (event) Fired when point selection changes.
+    "! @parameter press             | (event) Fired when the chart is pressed.
+    "! @parameter precedingpoint    | (float) Value preceding the first displayed point (drawn as a dashed continuation).
+    "! @parameter succeedingpoint   | (float) Value succeeding the last displayed point.
+    "! @parameter errormessage      | (string) Error/empty-state message text.
+    "! @parameter errormessagetitle | (string) Error/empty-state message title.
+    "! @parameter showerror         | (boolean) Render the error/empty state. Default: false.
+    "! @parameter displayedpoints   | (int) Number of points rendered. Default: 6.
+    "! @parameter selectionenabled  | (boolean) Whether points can be selected. Default: true.
+    "! @parameter points            | (binding path) Aggregation of `InteractiveLineChartPoint`.
     METHODS interact_line_chart
       IMPORTING
         selectionchanged  TYPE clike OPTIONAL
@@ -1633,10 +1768,18 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `points` (InteractiveLineChart, ...)</p>
     METHODS points
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.InteractiveLineChartPoint - single point</p>
+    "!
+    "! @parameter label          | (string) Primary label.
+    "! @parameter value          | (float) Numeric value.
+    "! @parameter secondarylabel | (string) Secondary label (e.g. shown beneath the primary).
+    "! @parameter displayedvalue | (string) Pre-formatted value text.
+    "! @parameter selected       | (boolean) Selected state. Default: false.
     METHODS interact_line_chart_point
       IMPORTING
         label          TYPE clike OPTIONAL
@@ -1647,6 +1790,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.RadialMicroChart - radial percentage indicator</p>
+    "!
+    "! Radial / circular percentage micro chart. See https://ui5.sap.com/#/api/sap.suite.ui.microchart.RadialMicroChart.
+    "!
+    "! @parameter size         | (sap.m.Size) S | M | L | Auto | Responsive. Default: Auto.
+    "! @parameter percentage   | (float) Percentage value (0 to 100).
+    "! @parameter press        | (event) Fired when the chart is pressed.
+    "! @parameter valuecolor   | (sap.m.ValueColor) None | Good | Error | Critical | Neutral. Default: Neutral.
+    "! @parameter height       | (sap.ui.core.CSSSize) Chart height.
+    "! @parameter aligncontent | (sap.m.microchart.HorizontalAlignmentType) Left | Center | Right. Default: Left.
+    "! @parameter hideonnodata | (boolean) Hide the chart when no data is available. Default: false.
     METHODS radial_micro_chart
       IMPORTING
         size          TYPE clike OPTIONAL
@@ -1659,6 +1813,22 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ColumnListItem - row in sap.m.Table (extends ListItemBase)</p>
+    "!
+    "! Row of a responsive table. See https://ui5.sap.com/#/api/sap.m.ColumnListItem.
+    "! Most properties are inherited from sap.m.ListItemBase.
+    "!
+    "! @parameter valign        | (sap.ui.core.VerticalAlign) Bottom | Inherit | Middle | Top. Default: Inherit.
+    "! @parameter selected      | (boolean, ListItemBase) Selected state. Default: false.
+    "! @parameter type          | (sap.m.ListType, ListItemBase) Inactive | Active | Detail | Navigation | DetailAndActive. Default: Inactive.
+    "! @parameter press         | (event, ListItemBase) Fired when the row is activated.
+    "! @parameter counter       | (int, ListItemBase) Counter badge value (note: not supported on ColumnListItem).
+    "! @parameter highlight     | (sap.ui.core.MessageType | sap.ui.core.IndicationColor) None | Information | Warning | Error | Success | Indication01..Indication10. Default: None.
+    "! @parameter highlighttext | (string, ListItemBase) Custom accessibility text for the highlight indicator.
+    "! @parameter navigated     | (boolean, ListItemBase) Whether the row is marked as navigated. Default: false.
+    "! @parameter unread        | (boolean, ListItemBase) Bold formatting indicating unread state. Default: false.
+    "! @parameter visible       | (boolean, ListItemBase) Whether the row is visible. Default: true.
+    "! @parameter detailpress   | (event, ListItemBase) Fired when the detail icon (`type=Detail`) is pressed.
     METHODS column_list_item
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -1676,6 +1846,11 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ActionListItem - simple text-only action row in a List</p>
+    "!
+    "! Active list item rendering only a text. See https://ui5.sap.com/#/api/sap.m.ActionListItem.
+    "!
+    "! @parameter text | (string) Action text.
     METHODS action_list_item
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -1683,32 +1858,48 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `cells` (ColumnListItem)</p>
     METHODS cells
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `bar` (Page header / footer slot for sap.m.Bar)</p>
     METHODS bar
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `contentLeft` (sap.m.Bar)</p>
     METHODS content_left
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `contentMiddle` (sap.m.Bar)</p>
     METHODS content_middle
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `contentRight` (sap.m.Bar)</p>
     METHODS content_right
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `contentAreas` (Splitter)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS content_areas
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.mdc.Field - smart MDC field control</p>
+    "!
+    "! Smart field that combines display / edit modes for a value. See https://ui5.sap.com/#/api/sap.ui.mdc.Field.
+    "!
+    "! @parameter ns                 | (string) XML namespace prefix (typically `mdc`).
+    "! @parameter value              | (any) Value (use `client->_bind_edit( var )`).
+    "! @parameter editmode           | (sap.ui.mdc.enums.FieldEditMode) Editable | Display | EditableReadOnly | EditableDisplay. Default: Editable.
+    "! @parameter showemptyindicator | (boolean) Show "-" for empty values in display mode. Default: false.
     METHODS field
       IMPORTING
         ns                 TYPE clike OPTIONAL
@@ -1719,28 +1910,45 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `customHeader` (Page, Dialog, ...)</p>
     METHODS custom_header
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `headerContent` (Page, DynamicPageHeader, ObjectPageHeaderContent, ...)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS header_content
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `subHeader` (Page)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS sub_header
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `customData` - attaches sap.ui.core.CustomData to a control</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS custom_data
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.core.CustomData - key/value pair attached to a control</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.ui.core.CustomData.
+    "!
+    "! @parameter key        | (string) Data key.
+    "! @parameter value      | (any) Data value.
+    "! @parameter writetodom | (boolean) When true the value is rendered as `data-{key}` HTML attribute. Default: false.
     METHODS core_custom_data
       IMPORTING
         key           TYPE clike OPTIONAL
@@ -1749,6 +1957,13 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.BadgeCustomData - badge information attached as custom data</p>
+    "!
+    "! Adds a numeric badge (e.g. notifications count) to compatible controls. See https://ui5.sap.com/#/api/sap.m.BadgeCustomData.
+    "!
+    "! @parameter key     | (string) Data key. Default: `sap-ui-custom-badge`.
+    "! @parameter value   | (string) Badge text/value. Default: empty.
+    "! @parameter visible | (boolean) Whether the badge is visible. Default: true.
     METHODS badge_custom_data
       IMPORTING
         key           TYPE clike OPTIONAL
