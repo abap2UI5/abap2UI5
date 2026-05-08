@@ -1,22 +1,42 @@
+"! <p class="shorttext synchronized" lang="en">Fluent XML view builder for abap2UI5 (one method per UI5 control)</p>
+"!
+"! Builder for SAPUI5 XML views. See CLAUDE.md and the project README for usage.
+"! Note: AI assistants should use the generic builder `z2ui5_cl_util_xml` instead - see project guidelines.
 CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
   PUBLIC SECTION.
+    "! <p class="shorttext synchronized" lang="en">Create a builder rooted in a `<View>` element with the standard sap.m / mvc namespaces</p>
+    "!
+    "! Use this when building a top-level view returned via `client->view_display( )`.
+    "!
+    "! @parameter t_ns   | (ty_t_name_value) Additional XML namespaces to include in the root element.
+    "! @parameter result | New builder instance positioned at the View root.
     CLASS-METHODS factory
       IMPORTING
         t_ns          TYPE z2ui5_if_types=>ty_t_name_value OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Create a builder without any pre-set root - caller adds the root element manually</p>
+    "!
+    "! @parameter result | New empty builder instance.
     CLASS-METHODS factory_plain
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Create a builder for a popup (no `<App>`/`<Page>` wrapper) - root is `<core:FragmentDefinition>` </p>
+    "!
+    "! Use this when building dialogs / popovers passed via `client->popup_display( )`.
+    "!
+    "! @parameter t_ns   | (ty_t_name_value) Additional XML namespaces.
+    "! @parameter result | New builder instance positioned at the FragmentDefinition root.
     CLASS-METHODS factory_popup
       IMPORTING
         t_ns          TYPE z2ui5_if_types=>ty_t_name_value OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Constructor (framework-internal) - prefer the `factory*` class methods</p>
     METHODS constructor.
 
     "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.HorizontalLayout - lays out children in one row</p>
@@ -8785,6 +8805,14 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.layout.ForceDirectedLayout</p>
+    "!
+    "! @parameter cooldownstep            | (float) Cooldown step factor.
+    "! @parameter initialtemperature      | (float) Initial simulation temperature.
+    "! @parameter maxiterations           | (int) Maximum simulation iterations.
+    "! @parameter maxtime                 | (int) Maximum simulation time in ms.
+    "! @parameter optimaldistanceconstant | (float) Optimal-distance constant.
+    "! @parameter staticnodes             | (string[]) Keys of nodes that must remain at fixed positions.
     METHODS force_directed_layout
       IMPORTING
         id                      TYPE clike OPTIONAL
@@ -8798,24 +8826,34 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.layout.NoopLayout - identity layout (uses node x/y as-is)</p>
     METHODS noop_layout
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.layout.SwimLaneChainLayout</p>
     METHODS swim_lane_chain_layout
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.layout.TwoColumnsLayout</p>
     METHODS two_columns_layout
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `attributes` (NetworkGraph.Node)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS attributes
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.ElementAttribute - attribute on a Node</p>
+    "!
+    "! @parameter label | (string) Attribute label.
+    "! @parameter value | (string) Attribute value.
     METHODS element_attribute
       IMPORTING
         ns            TYPE clike OPTIONAL
@@ -8824,12 +8862,22 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `actionButtons` (NetworkGraph.Node)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS action_buttons
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.ActionButton - button on a Node</p>
+    "!
+    "! @parameter enabled  | (boolean) Whether enabled. Default: true.
+    "! @parameter icon     | (sap.ui.core.URI) Icon URI.
+    "! @parameter position | (sap.suite.ui.commons.networkgraph.ActionButtonPosition) Top | Right | Bottom | Left.
+    "! @parameter title    | (string) Title text.
+    "! @parameter press    | (event) Fired when pressed.
     METHODS action_button
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -8842,6 +8890,9 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.vbm.Routes - routes container on AnalyticMap</p>
+    "!
+    "! @parameter items | (binding path) Aggregation of `Route`.
     METHODS routes
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -8850,10 +8901,15 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `legendArea` (chart legend)</p>
     METHODS legend_area
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.vbm.Legend.LegendItem - item in vbm Legend</p>
+    "!
+    "! @parameter text  | (string) Item text.
+    "! @parameter color | (sap.ui.core.CSSColor) Item colour.
     METHODS legenditem
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -8863,6 +8919,10 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.vbm.Legend - legend for AnalyticMap</p>
+    "!
+    "! @parameter items   | (binding path) Aggregation of `legenditem`.
+    "! @parameter caption | (string) Legend caption.
     METHODS legend
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -8872,6 +8932,14 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.vbm.Route - route on AnalyticMap</p>
+    "!
+    "! @parameter position    | (string) Geo coordinates list.
+    "! @parameter routetype   | (sap.ui.vbm.RouteType) Solid | Dashed | Dotted.
+    "! @parameter linedash    | (string) SVG dash pattern.
+    "! @parameter color       | (sap.ui.core.CSSColor) Stroke colour.
+    "! @parameter colorborder | (sap.ui.core.CSSColor) Border colour.
+    "! @parameter linewidth   | (string) Stroke width.
     METHODS route
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -8884,6 +8952,11 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.table.columnmenu.Menu - column header menu (since 1.110)</p>
+    "!
+    "! @parameter visible    | (boolean) Whether visible. Default: true.
+    "! @parameter afterclose | (event) Fired after the menu has closed.
+    "! @parameter beforeopen | (event) Fired before the menu opens.
     METHODS column_menu
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -8894,6 +8967,18 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.table.columnmenu.Item - structured menu item</p>
+    "!
+    "! @parameter icon               | (sap.ui.core.URI) Icon URI.
+    "! @parameter label              | (string) Item label.
+    "! @parameter resetbuttonenabled | (boolean) Enable the "Reset" button. Default: true.
+    "! @parameter showcancelbutton   | (boolean) Show the "Cancel" button. Default: true.
+    "! @parameter showconfirmbutton  | (boolean) Show the "Confirm" button. Default: true.
+    "! @parameter showresetbutton    | (boolean) Show the "Reset" button. Default: true.
+    "! @parameter visible            | (boolean) Whether visible. Default: true.
+    "! @parameter cancel             | (event) Fired when the cancel button is pressed.
+    "! @parameter confirm            | (event) Fired when the confirm button is pressed.
+    "! @parameter reset              | (event) Fired when the reset button is pressed.
     METHODS column_menu_item
       IMPORTING
         id                 TYPE clike OPTIONAL
@@ -8911,6 +8996,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.table.columnmenu.ActionItem - simple action menu item</p>
+    "!
+    "! @parameter icon    | (sap.ui.core.URI) Icon URI.
+    "! @parameter label   | (string) Item label.
+    "! @parameter visible | (boolean) Whether visible. Default: true.
+    "! @parameter press   | (event) Fired when pressed.
     METHODS column_menu_action_item
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -8922,6 +9013,11 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.table.columnmenu.QuickAction - generic quick action</p>
+    "!
+    "! @parameter category | (sap.m.table.columnmenu.Category) Generic | Sort | Filter | Group | Aggregate.
+    "! @parameter label    | (string) Action label.
+    "! @parameter visible  | (boolean) Whether visible. Default: true.
     METHODS column_menu_quick_action
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -8932,6 +9028,11 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.table.columnmenu.QuickActionItem - sub-item of QuickAction</p>
+    "!
+    "! @parameter key     | (string) Item key.
+    "! @parameter label   | (string) Item label.
+    "! @parameter visible | (boolean) Whether visible. Default: true.
     METHODS column_menu_quick_action_item
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -8942,6 +9043,10 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.table.columnmenu.QuickGroup - quick group action</p>
+    "!
+    "! @parameter change  | (event) Fired when the grouping changes.
+    "! @parameter visible | (boolean) Whether visible. Default: true.
     METHODS column_menu_quick_group
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -8951,6 +9056,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.table.columnmenu.QuickGroupItem - column inside QuickGroup</p>
+    "!
+    "! @parameter grouped | (boolean) Whether the column is grouped. Default: false.
+    "! @parameter key     | (string) Item key.
+    "! @parameter label   | (string) Item label.
+    "! @parameter visible | (boolean) Whether visible. Default: true.
     METHODS column_menu_quick_group_item
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -8962,6 +9073,10 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.table.columnmenu.QuickSort - quick sort action</p>
+    "!
+    "! @parameter change  | (event) Fired when the sort changes.
+    "! @parameter visible | (boolean) Whether visible. Default: true.
     METHODS column_menu_quick_sort
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -8971,6 +9086,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.table.columnmenu.QuickSortItem - sort entry</p>
+    "!
+    "! @parameter sortorder | (sap.ui.core.SortOrder) None | Ascending | Descending. Default: None.
+    "! @parameter key       | (string) Item key.
+    "! @parameter label     | (string) Item label.
+    "! @parameter visible   | (boolean) Whether visible. Default: true.
     METHODS column_menu_quick_sort_item
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -8982,6 +9103,10 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.table.columnmenu.QuickTotal - quick aggregation/total action</p>
+    "!
+    "! @parameter change  | (event) Fired when the total changes.
+    "! @parameter visible | (boolean) Whether visible. Default: true.
     METHODS column_menu_quick_total
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -8991,6 +9116,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.table.columnmenu.QuickTotalItem - column inside QuickTotal</p>
+    "!
+    "! @parameter totaled | (boolean) Whether the column is totalled. Default: false.
+    "! @parameter key     | (string) Item key.
+    "! @parameter label   | (string) Item label.
+    "! @parameter visible | (boolean) Whether visible. Default: true.
     METHODS column_menu_quick_total_item
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -9002,6 +9133,13 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.MicroProcessFlow - inline horizontal process flow</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.MicroProcessFlow.
+    "!
+    "! @parameter arialabel  | (string) ARIA label.
+    "! @parameter width      | (sap.ui.core.CSSSize) Width.
+    "! @parameter rendertype | (sap.suite.ui.commons.MicroProcessFlowRenderType) Standard | Wider. Default: Standard.
     METHODS micro_process_flow
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -9012,6 +9150,16 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.MicroProcessFlowItem - step in MicroProcessFlow</p>
+    "!
+    "! @parameter icon             | (sap.ui.core.URI) Step icon.
+    "! @parameter key              | (string) Step key.
+    "! @parameter showintermediary | (boolean) Render intermediary indicator. Default: false.
+    "! @parameter showseparator    | (boolean) Render separator after the item. Default: true.
+    "! @parameter state            | (sap.suite.ui.commons.LoadState | sap.m.ValueColor) Step state.
+    "! @parameter stepwidth        | (sap.ui.core.CSSSize) Step width.
+    "! @parameter title            | (string) Step title.
+    "! @parameter press            | (event) Fired when the step is pressed.
     METHODS micro_process_flow_item
       IMPORTING
         id               TYPE clike OPTIONAL
@@ -9027,14 +9175,19 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `intermediary` (MicroProcessFlowItem)</p>
     METHODS intermediary
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `customControl` (MicroProcessFlowItem / SmartFilterBar)</p>
     METHODS custom_control
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.statusindicator.ResponsiveScale - tick scale for StatusIndicator</p>
+    "!
+    "! @parameter tickmarksbetweenlabels | (int) Number of tick marks between labels. Default: 5.
     METHODS responsive_scale
       IMPORTING
         id                     TYPE clike OPTIONAL
@@ -9043,6 +9196,19 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.statusindicator.StatusIndicator - SVG status indicator</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.statusindicator.StatusIndicator.
+    "!
+    "! @parameter height        | (sap.ui.core.CSSSize) Height.
+    "! @parameter labelposition | (sap.suite.ui.commons.statusindicator.LabelPositionType) Top | Right | Bottom | Left | None. Default: Right.
+    "! @parameter showlabel     | (boolean) Show the label. Default: false.
+    "! @parameter size          | (sap.suite.ui.commons.statusindicator.SizeType) None | XS | S | M | L | XL. Default: None.
+    "! @parameter value         | (float) Status value (0..100).
+    "! @parameter viewbox       | (string) Custom SVG viewBox.
+    "! @parameter width         | (sap.ui.core.CSSSize) Width.
+    "! @parameter visible       | (boolean) Whether visible. Default: true.
+    "! @parameter press         | (event) Fired when pressed.
     METHODS status_indicator
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -9059,10 +9225,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `propertyThresholds` (StatusIndicator)</p>
     METHODS property_thresholds
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.statusindicator.PropertyThreshold - threshold step</p>
+    "!
+    "! @parameter fillcolor | (sap.ui.core.CSSColor) Fill colour for this threshold band.
+    "! @parameter tovalue   | (float) Upper bound of this band.
+    "! @parameter arialabel | (string) ARIA label.
+    "! @parameter visible   | (boolean) Whether visible. Default: true.
     METHODS property_threshold
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -9074,10 +9247,30 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.statusindicator.ShapeGroup - container of shapes</p>
     METHODS shape_group
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.statusindicator.LibraryShape - shape from the icon library</p>
+    "!
+    "! @parameter animationonchange   | (boolean) Animate value transitions. Default: true.
+    "! @parameter definition          | (string) Shape definition reference.
+    "! @parameter fillcolor           | (sap.ui.core.CSSColor) Fill colour.
+    "! @parameter fillingangle        | (int) Fill angle in degrees.
+    "! @parameter fillingdirection    | (sap.suite.ui.commons.statusindicator.FillingDirectionType) Left | Right | Up | Down.
+    "! @parameter fillingtype         | (sap.suite.ui.commons.statusindicator.FillingType) Linear | Radial.
+    "! @parameter height              | (sap.ui.core.CSSSize) Shape height.
+    "! @parameter horizontalalignment | (sap.ui.core.HorizontalAlign) Begin | End | Left | Right | Center.
+    "! @parameter shapeid             | (string) Library shape id.
+    "! @parameter strokecolor         | (sap.ui.core.CSSColor) Stroke colour.
+    "! @parameter strokewidth         | (string) Stroke width.
+    "! @parameter verticalalignment   | (sap.ui.core.VerticalAlign) Bottom | Inherit | Middle | Top.
+    "! @parameter visible             | (boolean) Whether visible. Default: true.
+    "! @parameter width               | (sap.ui.core.CSSSize) Shape width.
+    "! @parameter x                   | (int) X position.
+    "! @parameter y                   | (int) Y position.
+    "! @parameter aftershapeloaded    | (event) Fired after the shape SVG has loaded.
     METHODS library_shape
       IMPORTING
         id                  TYPE clike OPTIONAL
@@ -9102,6 +9295,13 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.TileInfo - tile information element</p>
+    "!
+    "! @parameter backgroundcolor | (sap.ui.core.CSSColor) Background colour.
+    "! @parameter bordercolor     | (sap.ui.core.CSSColor) Border colour.
+    "! @parameter src             | (sap.ui.core.URI) Image URI.
+    "! @parameter text            | (string) Tile text.
+    "! @parameter textcolor       | (sap.ui.core.CSSColor) Text colour.
     METHODS tile_info
       IMPORTING
         id              TYPE clike OPTIONAL
@@ -9114,10 +9314,16 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `badge` (used by various controls)</p>
     METHODS badge
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.tnt.SideNavigation - launchpad-style side navigation</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.tnt.SideNavigation.
+    "!
+    "! @parameter selectedkey | (string) Two-way bound selected item key.
     METHODS side_navigation
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -9126,10 +9332,20 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.tnt.NavigationList - navigation list inside SideNavigation</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.tnt.NavigationList.
     METHODS navigation_list
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.tnt.NavigationListItem - item in NavigationList</p>
+    "!
+    "! @parameter text   | (string) Item text.
+    "! @parameter icon   | (sap.ui.core.URI) Icon URI.
+    "! @parameter select | (event) Fired when the item is selected.
+    "! @parameter href   | (sap.ui.core.URI) Link href (renders item as `<a>`).
+    "! @parameter key    | (string) Item key.
     METHODS navigation_list_item
       IMPORTING
         text          TYPE clike OPTIONAL
@@ -9140,10 +9356,26 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `fixedItem` (SideNavigation - bottom-fixed item)</p>
     METHODS fixed_item
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.viz.ui5.controls.VizFrame - charting frame (sap.viz)</p>
+    "!
+    "! Modern charting frame. See https://ui5.sap.com/#/api/sap.viz.ui5.controls.VizFrame.
+    "! Note: legacy `sap.viz.ui5.*` charts (Bar, Bubble, Pie, Line, ...) are deprecated since 1.32 - use VizFrame.
+    "!
+    "! @parameter legendvisible     | (boolean) Show the legend. Default: true.
+    "! @parameter vizcustomizations | (object) Custom viz options.
+    "! @parameter vizproperties     | (object) Custom viz properties.
+    "! @parameter vizscales         | (object[]) Custom viz scales.
+    "! @parameter viztype           | (string) Chart type, e.g. `column` | `line` | `pie` | `bar` | `area` | `scatter` | `combination`.
+    "! @parameter height            | (sap.ui.core.CSSSize) Height.
+    "! @parameter width             | (sap.ui.core.CSSSize) Width.
+    "! @parameter uiconfig          | (object) UI configuration. Default: `{applicationSet:'fiori'}`.
+    "! @parameter visible           | (boolean) Whether visible. Default: true.
+    "! @parameter selectdata        | (event) Fired when data points are selected.
     METHODS viz_frame
       IMPORTING
         id                TYPE clike OPTIONAL
@@ -9160,20 +9392,34 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `dataset` (VizFrame)</p>
     METHODS viz_dataset
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.viz.ui5.data.FlattenedDataset - flat dataset for VizFrame</p>
+    "!
+    "! @parameter data | (binding path) Data binding path.
     METHODS viz_flattened_dataset
       IMPORTING
         data          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `dimensions` (FlattenedDataset)</p>
     METHODS viz_dimensions
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.viz.ui5.data.DimensionDefinition - dimension definition</p>
+    "!
+    "! @parameter axis         | (int) Axis index (1, 2 or 3).
+    "! @parameter datatype     | (string) Data type, e.g. `string`, `number`, `date`.
+    "! @parameter displayvalue | (string) Display value path.
+    "! @parameter identity     | (string) Identity path.
+    "! @parameter name         | (string) Dimension name.
+    "! @parameter sorter       | (object) Custom sorter.
+    "! @parameter value        | (string) Value binding path (e.g. `{Country}`).
     METHODS viz_dimension_definition
       IMPORTING
         axis          TYPE clike OPTIONAL
@@ -9186,10 +9432,20 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `measures` (FlattenedDataset)</p>
     METHODS viz_measures
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.viz.ui5.data.MeasureDefinition - measure definition</p>
+    "!
+    "! @parameter format   | (string) Number format pattern.
+    "! @parameter group    | (int) Measure group index.
+    "! @parameter identity | (string) Identity path.
+    "! @parameter name     | (string) Measure name.
+    "! @parameter range    | (object) Value range.
+    "! @parameter unit     | (string) Unit binding path.
+    "! @parameter value    | (string) Value binding path (e.g. `{Sales}`).
     METHODS viz_measure_definition
       IMPORTING
         format        TYPE clike OPTIONAL
@@ -9202,10 +9458,16 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `feeds` (VizFrame)</p>
     METHODS viz_feeds
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.viz.ui5.controls.common.feeds.FeedItem - VizFrame feed</p>
+    "!
+    "! @parameter uid    | (string) Feed identifier (e.g. `categoryAxis`, `valueAxis`, `color`).
+    "! @parameter type   | (string) Feed type (Dimension | Measure).
+    "! @parameter values | (string[]) Names of dimensions/measures bound to this feed.
     METHODS viz_feed_item
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -9215,6 +9477,24 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.comp.smartmultiinput.SmartMultiInput</p>
+    "!
+    "! Smart multi-input that derives suggestions / value help from OData.
+    "! See https://ui5.sap.com/#/api/sap.ui.comp.smartmultiinput.SmartMultiInput.
+    "!
+    "! @parameter entityset            | (string) OData entity set.
+    "! @parameter value                | (string) Two-way bound value.
+    "! @parameter supportranges        | (boolean) Allow ranges in tokens. Default: false.
+    "! @parameter enableodataselect    | (boolean) Enable OData $select optimisation. Default: false.
+    "! @parameter requestatleastfields | (string) Comma-separated list of fields to always request.
+    "! @parameter singletokenmode      | (boolean) Allow only one token. Default: false.
+    "! @parameter supportmultiselect   | (boolean) Allow multi-selection. Default: true.
+    "! @parameter textseparator        | (string) Token text separator.
+    "! @parameter textlabel            | (string) Custom text label.
+    "! @parameter tooltiplabel         | (string) Custom tooltip label.
+    "! @parameter textineditmodesource | (sap.ui.comp.smartfield.TextInEditModeSource) None | NavigationProperty | ValueList. Default: None.
+    "! @parameter mandatory            | (boolean) Required field marker. Default: false.
+    "! @parameter maxlength            | (int) Maximum number of characters. Default: 0 = unlimited.
     METHODS smart_multi_input
       IMPORTING
         id                   TYPE clike OPTIONAL
@@ -9226,7 +9506,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         singletokenmode      TYPE clike DEFAULT `false`
         supportmultiselect   TYPE clike DEFAULT `true`
         textseparator        TYPE clike OPTIONAL
-        textlabel            TYPE clike OPTIONAL
+        textlabel             TYPE clike OPTIONAL
         tooltiplabel         TYPE clike OPTIONAL
         textineditmodesource TYPE clike DEFAULT `None`
         mandatory            TYPE clike DEFAULT `false`
@@ -9234,6 +9514,11 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.RowSettings - per-row settings (highlight, navigated)</p>
+    "!
+    "! @parameter highlight     | (sap.ui.core.MessageType | sap.ui.core.IndicationColor) Default: None.
+    "! @parameter highlighttext | (string) Custom accessibility text for highlight.
+    "! @parameter navigated     | (boolean) Navigated state. Default: false.
     METHODS row_settings
       IMPORTING
         highlight     TYPE clike OPTIONAL
@@ -9242,6 +9527,16 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.imageeditor.ImageEditor - image editor (crop / resize)</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.imageeditor.ImageEditor.
+    "!
+    "! @parameter customshapesrc        | (sap.ui.core.URI) Custom crop shape SVG URI.
+    "! @parameter keepcropaspectratio   | (boolean) Lock crop aspect ratio. Default: false.
+    "! @parameter keepresizeaspectratio | (boolean) Lock resize aspect ratio. Default: false.
+    "! @parameter scalecroparea         | (boolean) Scale crop area when resizing. Default: false.
+    "! @parameter customshapesrctype    | (sap.suite.ui.commons.imageeditor.CustomShapeSrcType) Svg | Url. Default: Svg.
+    "! @parameter src                   | (sap.ui.core.URI) Image URI to edit.
     METHODS image_editor
       IMPORTING
         id                    TYPE clike OPTIONAL
@@ -9255,6 +9550,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.imageeditor.ImageEditorContainer - image editor with toolbar</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.imageeditor.ImageEditorContainer.
+    "!
+    "! @parameter enabledbuttons | (sap.suite.ui.commons.imageeditor.ImageEditorContainerButton[]) Buttons to render.
+    "! @parameter mode           | (sap.suite.ui.commons.imageeditor.ImageEditorMode) Default | Crop | Resize.
     METHODS image_editor_container
       IMPORTING
         id             TYPE clike OPTIONAL
@@ -9274,6 +9575,9 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     DATA mo_parent   TYPE REF TO z2ui5_cl_xml_view.
     DATA mt_child    TYPE STANDARD TABLE OF REF TO z2ui5_cl_xml_view WITH EMPTY KEY.
 
+    "! <p class="shorttext synchronized" lang="en">Internal recursion that flattens the XML tree into a string_table</p>
+    "!
+    "! @parameter ct_parts | Output - serialised XML fragments.
     METHODS xml_get_parts
       CHANGING
         ct_parts TYPE string_table.
