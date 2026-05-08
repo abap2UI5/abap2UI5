@@ -6751,6 +6751,35 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.richtexteditor.RichTextEditor - WYSIWYG HTML editor (TinyMCE)</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.ui.richtexteditor.RichTextEditor.
+    "!
+    "! @parameter buttongroups       | (object[]) Custom toolbar button groups.
+    "! @parameter customtoolbar      | (boolean) Whether to render a custom toolbar. Default: false.
+    "! @parameter editable           | (boolean) Whether the content is editable. Default: true.
+    "! @parameter editortype         | (sap.ui.richtexteditor.EditorType) TinyMCE | TinyMCE6. Default: TinyMCE6.
+    "! @parameter height             | (sap.ui.core.CSSSize) Editor height.
+    "! @parameter plugins            | (object[]) TinyMCE plugin configuration.
+    "! @parameter required           | (boolean) Required field marker. Default: false.
+    "! @parameter sanitizevalue      | (boolean) Sanitize the value via URLListValidator. Default: false.
+    "! @parameter showgroupclipboard | (boolean) Show clipboard button group. Default: true.
+    "! @parameter showgroupfont      | (boolean) Show font button group. Default: false.
+    "! @parameter showgroupfontstyle | (boolean) Show font-style button group. Default: true.
+    "! @parameter showgroupinsert    | (boolean) Show insert button group. Default: false.
+    "! @parameter showgrouplink      | (boolean) Show link button group. Default: true.
+    "! @parameter showgroupstructure | (boolean) Show structure button group. Default: true.
+    "! @parameter showgrouptextalign | (boolean) Show text-align button group. Default: true.
+    "! @parameter showgroupundo      | (boolean) Show undo/redo group. Default: false.
+    "! @parameter textdirection      | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter uselegacytheme     | (boolean) Use the legacy theme. Default: true.
+    "! @parameter value              | (string) Two-way bound HTML content.
+    "! @parameter width              | (sap.ui.core.CSSSize) Editor width.
+    "! @parameter wrapping           | (boolean) Wrap text. Default: true.
+    "! @parameter beforeeditorinit   | (event) Fired before TinyMCE is initialised.
+    "! @parameter change             | (event) Fired when the value changes.
+    "! @parameter ready              | (event) Fired when the editor is ready.
+    "! @parameter readyrecurring     | (event) Fired on every re-initialisation.
     METHODS rich_text_editor
       IMPORTING
         buttongroups       TYPE clike OPTIONAL
@@ -6781,6 +6810,23 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Slider - single-thumb slider</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.Slider.
+    "!
+    "! @parameter max                 | (float) Maximum value. Default: 100.
+    "! @parameter min                 | (float) Minimum value. Default: 0.
+    "! @parameter step                | (float) Step size. Default: 1.
+    "! @parameter value               | (float) Two-way bound value.
+    "! @parameter enabletickmarks     | (boolean) Show tick marks. Default: false.
+    "! @parameter width               | (sap.ui.core.CSSSize) Width. Default: 100%.
+    "! @parameter class               | (string) CSS class names.
+    "! @parameter enabled             | (boolean) Whether enabled. Default: true.
+    "! @parameter change              | (event) Fired when the value is committed.
+    "! @parameter inputsastooltips    | (boolean) Render the tooltip as a numeric input. Default: false.
+    "! @parameter showadvancedtooltip | (boolean) Use advanced tooltip rendering. Default: false.
+    "! @parameter showhandletooltip   | (boolean) Show handle tooltip. Default: true.
+    "! @parameter livechange          | (event) Fired during dragging.
     METHODS slider
       IMPORTING
         max                 TYPE clike OPTIONAL
@@ -6800,6 +6846,48 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.upload.UploadSet - file upload list (replacement for sap.m.UploadCollection)</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.upload.UploadSet.
+    "!
+    "! @parameter instantupload          | (boolean) Upload as soon as a file is selected. Default: true.
+    "! @parameter showicons              | (boolean) Show file-type icons. Default: true.
+    "! @parameter uploadenabled          | (boolean) Whether file selection / upload is enabled. Default: true.
+    "! @parameter terminationenabled     | (boolean) Allow terminating uploads in progress. Default: true.
+    "! @parameter filetypes              | (string[]) Allowed file extensions.
+    "! @parameter maxfilenamelength      | (int) Max filename length. Default: 0 = unlimited.
+    "! @parameter maxfilesize            | (float) Max file size in MB. Default: 0 = unlimited.
+    "! @parameter mediatypes             | (string[]) Allowed MIME types.
+    "! @parameter uploadurl              | (sap.ui.core.URI) Upload target URL.
+    "! @parameter items                  | (binding path) Aggregation of `UploadSetItem`.
+    "! @parameter mode                   | (sap.m.ListMode) None | SingleSelectMaster | SingleSelectLeft | MultiSelect | Delete. Default: MultiSelect.
+    "! @parameter selectionchanged       | (event) Fired when item selection changes.
+    "! @parameter uploadcompleted        | (event) Fired when an upload completes.
+    "! @parameter afteritemadded         | (event) Fired after an item is added.
+    "! @parameter samefilenameallowed    | (boolean) Allow uploading files with the same name. Default: false.
+    "! @parameter uploadbuttoninvisible  | (boolean) Hide the upload button. Default: false.
+    "! @parameter directory              | (boolean) Allow uploading entire directories. Default: false.
+    "! @parameter multiple               | (boolean) Allow selecting multiple files. Default: false.
+    "! @parameter dragdropdescription    | (string) Drag-and-drop area description.
+    "! @parameter dragdroptext           | (string) Drag-and-drop area text.
+    "! @parameter nodatatext             | (string) Empty-state text.
+    "! @parameter nodatadescription      | (string) Empty-state description.
+    "! @parameter nodataillustrationtype | (sap.m.IllustratedMessageType) Empty-state illustration. Default: NoData.
+    "! @parameter afteritemedited        | (event) Fired after an item is renamed.
+    "! @parameter afteritemremoved       | (event) Fired after an item is removed.
+    "! @parameter beforeitemadded        | (event) Fired before an item is added.
+    "! @parameter beforeitemedited       | (event) Fired before an item is edited.
+    "! @parameter beforeitemremoved      | (event) Fired before an item is removed.
+    "! @parameter beforeuploadstarts     | (event) Fired before the upload starts.
+    "! @parameter beforeuploadtermination | (event) Fired before an upload is terminated.
+    "! @parameter filenamelengthexceeded | (event) Fired when the filename length exceeds the limit.
+    "! @parameter filerenamed            | (event) Fired when a file is renamed.
+    "! @parameter filesizeexceeded       | (event) Fired when the file size exceeds the limit.
+    "! @parameter filetypemismatch       | (event) Fired when the file type is not allowed.
+    "! @parameter itemdragstart          | (event) Fired when item dragging starts.
+    "! @parameter itemdrop               | (event) Fired when an item is dropped.
+    "! @parameter mediatypemismatch      | (event) Fired when the media type is not allowed.
+    "! @parameter uploadterminated       | (event) Fired when an upload is terminated.
     METHODS upload_set
       IMPORTING
         id                      TYPE clike OPTIONAL
@@ -6844,10 +6932,28 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.upload.UploadSetToolbarPlaceholder - placeholder for upload toolbar</p>
     METHODS upload_set_toolbar_placeholder
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.upload.UploadSetItem - item inside UploadSet</p>
+    "!
+    "! @parameter filename      | (string) File name.
+    "! @parameter mediatype     | (string) MIME type.
+    "! @parameter url           | (sap.ui.core.URI) URL of the uploaded file.
+    "! @parameter thumbnailurl  | (sap.ui.core.URI) Thumbnail URL.
+    "! @parameter markers       | (binding path) Aggregation of `ObjectMarker`.
+    "! @parameter statuses      | (binding path) Aggregation of `ObjectStatus`.
+    "! @parameter enablededit   | (boolean) Allow renaming. Default: true.
+    "! @parameter enabledremove | (boolean) Allow removal. Default: true.
+    "! @parameter selected      | (boolean) Selected state. Default: false.
+    "! @parameter visibleedit   | (boolean) Show the edit button. Default: true.
+    "! @parameter visibleremove | (boolean) Show the remove button. Default: true.
+    "! @parameter uploadstate   | (sap.m.UploadState) Ready | Uploading | Error | Complete.
+    "! @parameter uploadurl     | (sap.ui.core.URI) Upload URL override.
+    "! @parameter openpressed   | (event) Fired when the open button is pressed.
+    "! @parameter removepressed | (event) Fired when the remove button is pressed.
     METHODS upload_set_item
       IMPORTING
         filename      TYPE clike OPTIONAL
@@ -6868,14 +6974,20 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `markersAsStatus` (UploadSetItem)</p>
     METHODS markers_as_status
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `rules` (MaskInput - mask validation rules)</p>
     METHODS rules
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.MaskInputRule - validation rule for MaskInput</p>
+    "!
+    "! @parameter maskformatsymbol | (string) Mask symbol the rule applies to. Default: `*`.
+    "! @parameter regex            | (string) Regular expression for the rule. Default: `[a-zA-Z0-9]`.
     METHODS mask_input_rule
       IMPORTING
         maskformatsymbol TYPE clike OPTIONAL
@@ -6883,6 +6995,20 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.SidePanel - main + side-panel layout (sap.f)</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.f.SidePanel.
+    "!
+    "! @parameter actionbarexpanded         | (boolean) Initial action bar state. Default: false.
+    "! @parameter arialabel                 | (string) ARIA label.
+    "! @parameter sidepanelmaxwidth         | (sap.ui.core.CSSSize) Maximum side panel width. Default: 600px.
+    "! @parameter sidepanelminwidth         | (sap.ui.core.CSSSize) Minimum side panel width. Default: 320px.
+    "! @parameter sidepanelposition         | (sap.f.SidePanelPosition) Left | Right. Default: Right.
+    "! @parameter sidepanelresizable        | (boolean) Allow resizing. Default: false.
+    "! @parameter sidepanelresizelargerstep | (int) Larger resize step (Page Up/Down) in px. Default: 50.
+    "! @parameter sidepanelresizestep       | (int) Resize step in px. Default: 10.
+    "! @parameter sidepanelwidth            | (sap.ui.core.CSSSize) Initial side panel width. Default: 320px.
+    "! @parameter toggle                    | (event) Fired when the side panel is toggled.
     METHODS side_panel
       IMPORTING
         actionbarexpanded         TYPE clike OPTIONAL
@@ -6898,6 +7024,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)             TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.SidePanelItem - action item in SidePanel</p>
+    "!
+    "! @parameter icon    | (sap.ui.core.URI) Action icon.
+    "! @parameter text    | (string) Action text.
+    "! @parameter key     | (string) Item key.
+    "! @parameter enabled | (boolean) Whether enabled. Default: true.
     METHODS side_panel_item
       IMPORTING
         icon          TYPE clike OPTIONAL
@@ -6907,10 +7039,21 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `mainContent` (SidePanel main area)</p>
     METHODS main_content
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.QuickView - popover with detail pages</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.QuickView.
+    "!
+    "! @parameter placement   | (sap.m.PlacementType) Auto | Top | Bottom | Left | Right (etc.). Default: Right.
+    "! @parameter width       | (sap.ui.core.CSSSize) Popover width. Default: 320px.
+    "! @parameter afterclose  | (event) Fired after the popover closes.
+    "! @parameter afteropen   | (event) Fired after the popover opens.
+    "! @parameter beforeclose | (event) Fired before the popover closes.
+    "! @parameter beforeopen  | (event) Fired before the popover opens.
     METHODS quick_view
       IMPORTING
         placement     TYPE clike OPTIONAL
@@ -6922,6 +7065,13 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.QuickViewPage - single page inside QuickView</p>
+    "!
+    "! @parameter description | (string) Subtitle/description.
+    "! @parameter header      | (string) Header text.
+    "! @parameter pageid      | (string) Unique page id used for navigation.
+    "! @parameter title       | (string) Title text.
+    "! @parameter titleurl    | (sap.ui.core.URI) Title link URL.
     METHODS quick_view_page
       IMPORTING
         description   TYPE clike OPTIONAL
@@ -6932,10 +7082,15 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `avatar` (QuickViewPage)</p>
     METHODS quick_view_page_avatar
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.QuickViewGroup - group inside QuickViewPage</p>
+    "!
+    "! @parameter heading | (string) Group heading.
+    "! @parameter visible | (boolean) Whether the group is visible. Default: true.
     METHODS quick_view_group
       IMPORTING
         heading       TYPE clike OPTIONAL
@@ -6943,6 +7098,16 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.QuickViewGroupElement - label/value pair inside QuickViewGroup</p>
+    "!
+    "! @parameter emailsubject | (string) Subject for `mailto:` links.
+    "! @parameter label        | (string) Label text.
+    "! @parameter pagelinkid   | (string) Target page id within the QuickView (when type=pageLink).
+    "! @parameter target       | (string) Link target attribute.
+    "! @parameter type         | (sap.m.QuickViewGroupElementType) text | email | phone | mobile | link | pageLink. Default: text.
+    "! @parameter url          | (string) URL for link types.
+    "! @parameter value        | (string) Value text.
+    "! @parameter visible      | (boolean) Whether visible. Default: true.
     METHODS quick_view_group_element
       IMPORTING
         emailsubject  TYPE clike OPTIONAL
