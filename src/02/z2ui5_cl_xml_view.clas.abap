@@ -28,6 +28,29 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.core.Icon - icon font control</p>
+    "!
+    "! Renders an icon from one of the SAPUI5 icon fonts. See https://ui5.sap.com/#/api/sap.ui.core.Icon
+    "!
+    "! @parameter src                   | (sap.ui.core.URI) Icon URI, e.g. `sap-icon://accept`. Required for visible icons.
+    "! @parameter press                 | (event) Fired when the icon is clicked.
+    "! @parameter size                  | (sap.ui.core.CSSSize) Font size of the icon, e.g. `1rem`, `2em`, `32px`.
+    "! @parameter color                 | (string | sap.ui.core.IconColor) Icon color. CSS color or enum: Default | Positive | Negative | Critical | Neutral | Contrast | Non_Interactive | Tile | Marker.
+    "! @parameter class                 | (string) CSS class names.
+    "! @parameter id                    | (sap.ui.core.ID) Stable control id.
+    "! @parameter width                 | (sap.ui.core.CSSSize) Outer width.
+    "! @parameter useicontooltip        | (boolean) Whether the symbolic name is used as tooltip when no `tooltip` is set. Default: true.
+    "! @parameter notabstop             | (boolean) If true the icon is not part of the tab chain. Default: false.
+    "! @parameter hovercolor            | (string | sap.ui.core.IconColor) Color while hovered.
+    "! @parameter hoverbackgroundcolor  | (string | sap.ui.core.IconColor) Background color while hovered.
+    "! @parameter height                | (sap.ui.core.CSSSize) Outer height.
+    "! @parameter decorative            | (boolean) If true the icon is hidden from screen readers and is not focusable. Default: true.
+    "! @parameter backgroundcolor       | (string | sap.ui.core.IconColor) Background color.
+    "! @parameter alt                   | (string) Alternative text for screen readers (used only when `decorative=false`).
+    "! @parameter activecolor           | (string | sap.ui.core.IconColor) Color while pressed.
+    "! @parameter activebackgroundcolor | (string | sap.ui.core.IconColor) Background color while pressed.
+    "! @parameter visible               | (boolean) Whether the icon is visible. Default: true.
+    "! @parameter result                | Self-reference for fluent chaining.
     METHODS icon
       IMPORTING
         src                   TYPE clike OPTIONAL
@@ -178,6 +201,33 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)              TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Table - responsive table (extends sap.m.ListBase)</p>
+    "!
+    "! Responsive list-style table. See https://ui5.sap.com/#/api/sap.m.Table
+    "! Many parameters are inherited from sap.m.ListBase (https://ui5.sap.com/#/api/sap.m.ListBase).
+    "!
+    "! @parameter id                  | (sap.ui.core.ID) Stable control id.
+    "! @parameter items               | (binding path) Aggregation of `sap.m.ColumnListItem` rows. Use `client->_bind_edit( itab )`.
+    "! @parameter class               | (string) CSS class names.
+    "! @parameter growing             | (boolean, ListBase) Enables progressive loading via "More" button. Default: false.
+    "! @parameter growingthreshold    | (int, ListBase) Items per growing chunk. Default: 20.
+    "! @parameter growingscrolltoload | (boolean, ListBase) If true growing is triggered by scroll instead of button. Default: false.
+    "! @parameter headertext          | (string, ListBase) Header text rendered as default header.
+    "! @parameter sticky              | (sap.m.Sticky[], ListBase) Comma-separated list of sticky areas: HeaderToolbar | InfoToolbar | ColumnHeaders | GroupHeaders.
+    "! @parameter mode                | (sap.m.ListMode, ListBase) Selection mode: None | SingleSelectMaster | SingleSelectLeft | MultiSelect | Delete. `SingleSelect` is deprecated since 1.143 (use SingleSelectLeft). Default: None.
+    "! @parameter width               | (sap.ui.core.CSSSize, ListBase) Width of the control. Default: 100%.
+    "! @parameter selectionchange     | (event, ListBase) Fired when selection changes. Provides listItem, listItems, selected, selectAll.
+    "! @parameter alternaterowcolors  | (boolean) Alternating row background colors (zebra stripes). Default: false. Since 1.52.
+    "! @parameter autopopinmode       | (boolean) Auto pop-in behavior; overrides `demandPopin`/`minScreenWidth` on columns. Default: false. Since 1.76.
+    "! @parameter inset               | (boolean, ListBase) Indents the container. Default: false.
+    "! @parameter showseparators      | (sap.m.ListSeparators, ListBase) Item separators: All | Inner | None. Default: All.
+    "! @parameter showoverlay         | (boolean) Renders an overlay that blocks interaction. Default: false. Since 1.22.1.
+    "! @parameter hiddeninpopin       | (sap.ui.core.Priority[]) Column priorities to hide instead of pop-in: None | Low | Medium | High. Since 1.77.
+    "! @parameter popinlayout         | (sap.m.PopinLayout) Layout for pop-in rows: Block | GridSmall | GridLarge. Default: Block. Since 1.52.
+    "! @parameter fixedlayout         | (any) Layout algorithm for cells: true | false | "Strict". Default: true. Since 1.22.
+    "! @parameter backgrounddesign    | (sap.m.BackgroundDesign) Background style: Solid | Translucent | Transparent. Default: Translucent.
+    "! @parameter visible             | (boolean) Whether the table is visible. Default: true.
+    "! @parameter result              | Self-reference for fluent chaining.
     METHODS table
       IMPORTING
         id                  TYPE clike OPTIONAL
@@ -750,6 +800,49 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Input - single-line text input field</p>
+    "!
+    "! Single-line input control with optional value help, suggestions and validation states.
+    "! See https://ui5.sap.com/#/api/sap.m.Input. Inherits properties from sap.m.InputBase.
+    "!
+    "! @parameter id                            | (sap.ui.core.ID) Stable control id.
+    "! @parameter value                         | (string, InputBase) Two-way bound value. Use `client->_bind_edit( var )`.
+    "! @parameter placeholder                   | (string, InputBase) Placeholder shown while empty.
+    "! @parameter type                          | (sap.m.InputType) Text | Email | Number | Password | Tel | Url. Default: Text. Old types Date, Time, Datetime, DatetimeLocale, Month, Week and Passport are deprecated/removed - use sap.m.DatePicker / TimePicker instead.
+    "! @parameter showclearicon                 | (boolean) Shows a clear icon to remove the entered value. Default: false. Since 1.94.
+    "! @parameter valuestate                    | (sap.ui.core.ValueState, InputBase) None | Success | Warning | Error | Information. Default: None.
+    "! @parameter valuestatetext                | (string, InputBase) Text shown in the value state message popup.
+    "! @parameter showtablesuggestionvaluehelp  | (boolean) Renders a value help button below tabular suggestions. Default: true. Since 1.22.1.
+    "! @parameter description                   | (string) Short description rendered after the input (e.g. unit).
+    "! @parameter editable                      | (boolean, InputBase) Whether the input is editable. Default: true.
+    "! @parameter enabled                       | (boolean, InputBase) Whether the input is enabled. Default: true.
+    "! @parameter suggestionitems               | (binding path) Aggregation of `sap.ui.core.Item` for plain suggestions.
+    "! @parameter suggestionrows                | (binding path) Aggregation of rows for tabular suggestions.
+    "! @parameter showsuggestion                | (boolean) Enables suggestion popover; raises the `suggest` event. Default: false. Since 1.16.1.
+    "! @parameter showvaluehelp                 | (boolean) Renders a value help icon. Default: false. Since 1.16.
+    "! @parameter valuehelprequest              | (event) Fired when the value help icon is pressed.
+    "! @parameter required                      | (boolean, InputBase) Marks the field as required. Default: false.
+    "! @parameter suggest                       | (event) Fired when the user types and `showSuggestion=true`.
+    "! @parameter class                         | (string) CSS class names.
+    "! @parameter visible                       | (boolean) Whether the input is visible. Default: true.
+    "! @parameter submit                        | (event) Fired when the user presses Enter.
+    "! @parameter valueliveupdate               | (boolean) Updates the value model on every keystroke. Default: false. Since 1.24.
+    "! @parameter autocomplete                  | (boolean) Browser autocomplete. Default: true. Since 1.61.
+    "! @parameter maxsuggestionwidth            | (sap.ui.core.CSSSize) Maximum width of the suggestion list. Since 1.21.1.
+    "! @parameter fieldwidth                    | (sap.ui.core.CSSSize) Width share of the input field versus the description. Default: 50%.
+    "! @parameter valuehelponly                 | (boolean) DEPRECATED since 1.119 - typing is no longer suppressed. Restricts input to value help only. Default: false.
+    "! @parameter width                         | (sap.ui.core.CSSSize, InputBase) Width of the control.
+    "! @parameter change                        | (event, InputBase) Fired when the value is committed (focus loss / Enter).
+    "! @parameter valuehelpiconsrc              | (sap.ui.core.URI) Custom value help icon. Default: `sap-icon://value-help`. Since 1.84.
+    "! @parameter textformatter                 | (function) Custom display formatter for selected suggestion. Since 1.44.
+    "! @parameter textformatmode                | (sap.m.InputTextFormatMode) Display format of selected suggestion: Value | Key | KeyValue | ValueKey. Default: Value. Since 1.44.
+    "! @parameter maxlength                     | (int, InputBase) Maximum number of characters. 0 = no limit. Default: 0. Not effective when `type=Number`.
+    "! @parameter startsuggestion               | (int) Minimum number of characters before suggestions trigger. Default: 1. Since 1.21.2.
+    "! @parameter enablesuggestionshighlighting | (boolean) Highlight matching characters in suggestions. Default: true. Since 1.46.
+    "! @parameter enabletableautopopinmode      | (boolean) Auto pop-in for table suggestions. Default: false. Since 1.89.
+    "! @parameter arialabelledby                | (sap.ui.core.ID[]) Ids of labelling controls (ARIA).
+    "! @parameter ariadescribedby               | (sap.ui.core.ID[]) Ids of describing controls (ARIA).
+    "! @parameter result                        | Self-reference for fluent chaining.
     METHODS input
       IMPORTING
         id                            TYPE clike OPTIONAL
@@ -1108,6 +1201,32 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Button - clickable element triggering an action</p>
+    "!
+    "! Standard push button. See https://ui5.sap.com/#/api/sap.m.Button.
+    "!
+    "! @parameter text             | (string) Button label. Default: empty.
+    "! @parameter icon             | (sap.ui.core.URI) Icon URI, e.g. `sap-icon://accept`.
+    "! @parameter type             | (sap.m.ButtonType) Visual style: Default | Back | Accept | Reject | Transparent | Ghost | Up | Unstyled | Emphasized | Critical | Negative | Success | Neutral | Attention. Default: Default.
+    "! @parameter enabled          | (boolean) Whether the button is enabled. Default: true.
+    "! @parameter visible          | (boolean) Whether the button is visible. Default: true.
+    "! @parameter press            | (event) Fired when the button is clicked or activated by keyboard.
+    "! @parameter class            | (string) CSS class names.
+    "! @parameter id               | (sap.ui.core.ID) Stable control id.
+    "! @parameter ns               | (string) XML namespace prefix when emitting the element (framework-internal).
+    "! @parameter tooltip          | (string) Tooltip shown on hover.
+    "! @parameter width            | (sap.ui.core.CSSSize) Width of the button.
+    "! @parameter iconfirst        | (boolean) If true the icon is rendered before the text. Default: true.
+    "! @parameter icondensityaware | (boolean) Density-aware icon (1x / 1.5x). Default: true.
+    "! @parameter ariahaspopup     | (sap.ui.core.aria.HasPopup) ARIA aria-haspopup: None | Menu | ListBox | Tree | Grid | Dialog. Default: None.
+    "! @parameter activeicon       | (sap.ui.core.URI) Alternative icon shown while the button is pressed.
+    "! @parameter accessiblerole   | (sap.m.ButtonAccessibleRole) ARIA role: Default | Link. Default: Default.
+    "! @parameter textdirection    | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter arialabelledby   | (sap.ui.core.ID[]) Ids of labelling controls (ARIA).
+    "! @parameter ariadescribedby  | (sap.ui.core.ID[]) Ids of describing controls (ARIA).
+    "! @parameter result           | Self-reference for fluent chaining.
+    "!
+    "! Note: the `tap` event is deprecated in UI5 - use `press`.
     METHODS button
       IMPORTING
         text             TYPE clike OPTIONAL
@@ -1212,6 +1331,30 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Page - top-level page container with header / content / footer</p>
+    "!
+    "! Page container with optional header, sub-header, content and footer areas.
+    "! See https://ui5.sap.com/#/api/sap.m.Page.
+    "!
+    "! @parameter title            | (string) Title text shown in the header bar.
+    "! @parameter navbuttonpress   | (event) Fired when the back/nav button is pressed (since 1.12.2).
+    "! @parameter shownavbutton    | (boolean) Renders a back/nav button on the left of the header. Default: false.
+    "! @parameter showheader       | (boolean) Whether the header is shown. Default: true.
+    "! @parameter id               | (sap.ui.core.ID) Stable control id.
+    "! @parameter class            | (string) CSS class names.
+    "! @parameter ns               | (string) XML namespace prefix (framework-internal).
+    "! @parameter backgrounddesign | (sap.m.PageBackgroundDesign) Standard | Solid | Transparent | List. Default: Standard.
+    "! @parameter contentonlybusy  | (boolean) If true the busy indicator covers the content area only. Default: false.
+    "! @parameter enablescrolling  | (boolean) Vertical scrolling of content. Default: true.
+    "! @parameter navbuttontooltip | (string) Tooltip of the nav button.
+    "! @parameter floatingfooter   | (boolean) Footer floats above the content with offset. Default: false.
+    "! @parameter showfooter       | (boolean) Whether the footer is shown. Default: true.
+    "! @parameter showsubheader    | (boolean) Whether the sub-header is shown. Default: true.
+    "! @parameter titlealignment   | (sap.m.TitleAlignment) Auto | Start | Center. Default: Auto.
+    "! @parameter titlelevel       | (sap.ui.core.TitleLevel) Semantic title level: Auto | H1 | H2 | H3 | H4 | H5 | H6. Default: Auto.
+    "! @parameter result           | Self-reference for fluent chaining.
+    "!
+    "! Deprecated UI5 properties not exposed by this wrapper: `navButtonText`, `navButtonType`, `icon` (all MVI-theme only, deprecated since 1.20). Event `navButtonTap` is deprecated - use `navButtonPress`.
     METHODS page
       IMPORTING
         title            TYPE clike OPTIONAL
