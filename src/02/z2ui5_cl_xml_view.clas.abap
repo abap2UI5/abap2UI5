@@ -9506,7 +9506,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         singletokenmode      TYPE clike DEFAULT `false`
         supportmultiselect   TYPE clike DEFAULT `true`
         textseparator        TYPE clike OPTIONAL
-        textlabel             TYPE clike OPTIONAL
+        textlabel            TYPE clike OPTIONAL
         tooltiplabel         TYPE clike OPTIONAL
         textineditmodesource TYPE clike DEFAULT `None`
         mandatory            TYPE clike DEFAULT `false`
