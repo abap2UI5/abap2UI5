@@ -1972,6 +1972,18 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ToggleButton - two-state push button</p>
+    "!
+    "! Push button that toggles between pressed and unpressed states. Extends sap.m.Button.
+    "! See https://ui5.sap.com/#/api/sap.m.ToggleButton.
+    "!
+    "! @parameter text    | (string, Button) Button label.
+    "! @parameter icon    | (sap.ui.core.URI, Button) Icon URI.
+    "! @parameter type    | (sap.m.ButtonType, Button) Default | Accept | Reject | Transparent | Ghost | Back | Up | Unstyled | Emphasized | Critical | Negative | Success | Neutral | Attention. Default: Default.
+    "! @parameter enabled | (boolean, Button) Whether the button is enabled. Default: true.
+    "! @parameter press   | (event, Button) Fired when the button is pressed.
+    "! @parameter class   | (string) CSS class names.
+    "! @parameter pressed | (boolean) Pressed state. Default: false.
     METHODS toggle_button
       IMPORTING
         text          TYPE clike OPTIONAL
@@ -2032,14 +2044,34 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `beginButton` (Dialog - left/start button)</p>
     METHODS begin_button
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `endButton` (Dialog - right/end button)</p>
     METHODS end_button
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.SearchField - search input with magnifier and clear button</p>
+    "!
+    "! Single-line search input. See https://ui5.sap.com/#/api/sap.m.SearchField.
+    "!
+    "! @parameter search            | (event) Fired when search is triggered (Enter, search button, refresh button).
+    "! @parameter width             | (sap.ui.core.CSSSize) Width.
+    "! @parameter value             | (string) Two-way bound value. Use `client->_bind_edit( var )`.
+    "! @parameter class             | (string) CSS class names.
+    "! @parameter change            | (event) Fired when the value changes (e.g. on focus loss).
+    "! @parameter livechange        | (event) Fired on every keystroke.
+    "! @parameter suggest            | (event) Fired when a suggestion is requested.
+    "! @parameter enabled           | (boolean) Whether the field is enabled. Default: true.
+    "! @parameter enablesuggestions | (boolean) Enable the suggestion list. Default: false.
+    "! @parameter maxlength         | (int) Maximum number of characters. 0 = unlimited. Default: 0.
+    "! @parameter placeholder       | (string) Placeholder shown while empty.
+    "! @parameter showrefreshbutton | (boolean) Show refresh button instead of search icon. Default: false.
+    "! @parameter showsearchbutton  | (boolean) Show the search button. Default: true.
+    "! @parameter visible           | (boolean) Whether the field is visible. Default: true.
     METHODS search_field
       IMPORTING
         search            TYPE clike OPTIONAL
@@ -2060,6 +2092,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.MessageView - list of messages with details navigation</p>
+    "!
+    "! Reusable message viewer (used inside MessagePopover). See https://ui5.sap.com/#/api/sap.m.MessageView.
+    "!
+    "! @parameter items      | (binding path) Aggregation of `sap.m.MessageItem`.
+    "! @parameter groupitems | (boolean) Group items by `groupName`. Default: false.
     METHODS message_view
       IMPORTING
         items         TYPE clike OPTIONAL
@@ -2067,6 +2105,22 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ndc.BarcodeScannerButton - mobile barcode scanner</p>
+    "!
+    "! Button that opens a camera-based barcode scanner. Requires the sap.ndc library and a camera-enabled device.
+    "! See https://ui5.sap.com/#/api/sap.ndc.BarcodeScannerButton.
+    "!
+    "! @parameter scansuccess               | (event) Fired with the scanned text. Provides `text`, `format`.
+    "! @parameter scanfail                  | (event) Fired when the scan fails.
+    "! @parameter inputliveupdate           | (event) Fired during manual input typing.
+    "! @parameter dialogtitle               | (string) Title of the scanning dialog.
+    "! @parameter disablebarcodeinputdialog | (boolean) Disable the manual-input fallback dialog. Default: false.
+    "! @parameter framerate                 | (int) Camera framerate in fps.
+    "! @parameter keepcamerascan            | (boolean) Keep the scanner open after a successful scan. Default: false.
+    "! @parameter preferfrontcamera         | (boolean) Prefer the front camera when available. Default: false.
+    "! @parameter providefallback           | (boolean) Provide a manual-input fallback. Default: false.
+    "! @parameter width                     | (sap.ui.core.CSSSize) Width.
+    "! @parameter zoom                      | (float) Camera zoom factor.
     METHODS barcode_scanner_button
       IMPORTING
         id                        TYPE clike OPTIONAL
@@ -2084,6 +2138,18 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)             TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.MessagePopover - popover listing messages</p>
+    "!
+    "! Popover with messages categorised by type. See https://ui5.sap.com/#/api/sap.m.MessagePopover.
+    "!
+    "! @parameter items             | (binding path) Aggregation of `sap.m.MessageItem`.
+    "! @parameter groupitems        | (boolean) Group items by `groupName`. Default: false.
+    "! @parameter listselect        | (event) Fired when a message is selected.
+    "! @parameter activetitlepress  | (event) Fired when an active title is pressed.
+    "! @parameter placement         | (sap.m.VerticalPlacementType) Top | Bottom | Vertical. Default: Vertical.
+    "! @parameter afterclose        | (event) Fired after the popover closes.
+    "! @parameter beforeclose       | (event) Fired before the popover closes.
+    "! @parameter initiallyexpanded | (boolean) Show the details view initially when there is exactly one message. Default: true.
     METHODS message_popover
       IMPORTING
         items             TYPE clike OPTIONAL
@@ -2097,6 +2163,20 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.MessageItem - single message inside MessageView/MessagePopover</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.MessageItem.
+    "!
+    "! @parameter type              | (sap.ui.core.MessageType) None | Information | Warning | Error | Success. Default: Error.
+    "! @parameter title             | (string) Message title.
+    "! @parameter subtitle          | (string) Subtitle. Since 1.44.
+    "! @parameter description       | (string) Detail description.
+    "! @parameter groupname         | (string) Group name (used when `groupItems=true` on the parent).
+    "! @parameter markupdescription | (boolean) Treat the description as markup. Default: false.
+    "! @parameter textdirection     | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter longtexturl       | (sap.ui.core.URI) URL pointing to a long text describing the message.
+    "! @parameter counter           | (int) Counter shown next to the message.
+    "! @parameter activetitle       | (boolean) Render the title as an active link firing `activeTitlePress`. Default: false.
     METHODS message_item
       IMPORTING
         type              TYPE clike OPTIONAL
@@ -2156,6 +2236,16 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.MenuButton - button that opens a menu</p>
+    "!
+    "! Button that opens a menu on click. See https://ui5.sap.com/#/api/sap.m.MenuButton.
+    "!
+    "! @parameter text          | (string) Button label.
+    "! @parameter activeicon    | (sap.ui.core.URI) Icon shown while pressed.
+    "! @parameter buttonmode    | (sap.m.MenuButtonMode) Regular | Split. Default: Regular.
+    "! @parameter type          | (sap.m.ButtonType) Default | Accept | Reject | Transparent | Ghost | Back | Up | Unstyled | Emphasized | Critical | Negative | Success | Neutral | Attention. Default: Default.
+    "! @parameter enabled       | (boolean) Whether the button is enabled. Default: true.
+    "! @parameter defaultaction | (event) Fired when the default action button (split mode) is pressed.
     METHODS menu_button
       IMPORTING
         text          TYPE clike OPTIONAL
@@ -2167,6 +2257,21 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Panel - collapsible content panel</p>
+    "!
+    "! Container with optional header and expand/collapse. See https://ui5.sap.com/#/api/sap.m.Panel.
+    "!
+    "! @parameter expandable       | (boolean) Render the expand/collapse arrow. Default: false.
+    "! @parameter expanded         | (boolean) Initial expanded state (only with expandable=true). Default: false.
+    "! @parameter headertext       | (string) Header text shown when no `headerToolbar` aggregation is set.
+    "! @parameter stickyheader     | (boolean) Make the header stick during scrolling. Default: true.
+    "! @parameter height           | (sap.ui.core.CSSSize) Height. Default: auto.
+    "! @parameter class            | (string) CSS class names.
+    "! @parameter width            | (sap.ui.core.CSSSize) Width. Default: 100%.
+    "! @parameter backgrounddesign | (sap.m.BackgroundDesign) Solid | Translucent | Transparent. Default: Translucent.
+    "! @parameter expandanimation  | (boolean) Enable animation when expand state changes. Default: true.
+    "! @parameter visible          | (boolean) Whether the panel is visible. Default: true.
+    "! @parameter expand           | (event) Fired when expand state changes.
     METHODS panel
       IMPORTING
         expandable       TYPE clike OPTIONAL
@@ -2184,6 +2289,23 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.VBox - flex column box (FlexBox with direction=Column)</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.VBox. All FlexBox properties are available.
+    "!
+    "! @parameter height           | (sap.ui.core.CSSSize) Height.
+    "! @parameter justifycontent   | (sap.m.FlexJustifyContent) Start | Center | End | SpaceBetween | SpaceAround | Inherit. Default: Start.
+    "! @parameter class            | (string) CSS class names.
+    "! @parameter rendertype       | (sap.m.FlexRendertype) Div | List | Bare. Default: Div.
+    "! @parameter aligncontent     | (sap.m.FlexAlignContent) Start | Center | End | SpaceBetween | SpaceAround | Stretch | Inherit. Default: Stretch.
+    "! @parameter direction        | (sap.m.FlexDirection) Column | ColumnReverse | Row | RowReverse | Inherit. Default: Column for VBox.
+    "! @parameter alignitems       | (sap.m.FlexAlignItems) Start | Center | End | Stretch | Baseline | Inherit. Default: Stretch.
+    "! @parameter width            | (sap.ui.core.CSSSize) Width.
+    "! @parameter wrap             | (sap.m.FlexWrap) NoWrap | Wrap | WrapReverse. Default: NoWrap.
+    "! @parameter backgrounddesign | (sap.m.BackgroundDesign) Solid | Translucent | Transparent. Default: Transparent.
+    "! @parameter displayinline    | (boolean) Inline-flex (true) vs flex (false). Default: false.
+    "! @parameter fitcontainer     | (boolean) Stretch to fill container. Default: false.
+    "! @parameter visible          | (boolean) Whether the box is visible. Default: true.
     METHODS vbox
       IMPORTING
         id               TYPE clike OPTIONAL
@@ -2204,6 +2326,23 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.HBox - flex row box (FlexBox with direction=Row)</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.HBox. All FlexBox properties are available.
+    "!
+    "! @parameter class            | (string) CSS class names.
+    "! @parameter justifycontent   | (sap.m.FlexJustifyContent) Main-axis alignment. Default: Start.
+    "! @parameter aligncontent     | (sap.m.FlexAlignContent) Stretch | Start | Center | End | SpaceBetween | SpaceAround | Inherit. Default: Stretch.
+    "! @parameter alignitems       | (sap.m.FlexAlignItems) Cross-axis alignment. Default: Stretch.
+    "! @parameter width            | (sap.ui.core.CSSSize) Width.
+    "! @parameter height           | (sap.ui.core.CSSSize) Height.
+    "! @parameter rendertype       | (sap.m.FlexRendertype) Div | List | Bare. Default: Div.
+    "! @parameter wrap             | (sap.m.FlexWrap) NoWrap | Wrap | WrapReverse. Default: NoWrap.
+    "! @parameter backgrounddesign | (sap.m.BackgroundDesign) Solid | Translucent | Transparent. Default: Transparent.
+    "! @parameter direction        | (sap.m.FlexDirection) Row | RowReverse | Column | ColumnReverse | Inherit. Default: Row for HBox.
+    "! @parameter displayinline    | (boolean) Inline-flex vs flex. Default: false.
+    "! @parameter fitcontainer     | (boolean) Stretch to fill container. Default: false.
+    "! @parameter visible          | (boolean) Whether the box is visible. Default: true.
     METHODS hbox
       IMPORTING
         id               TYPE clike OPTIONAL
@@ -2223,6 +2362,16 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ScrollContainer - container with internal scrollbars</p>
+    "!
+    "! Container that scrolls its content. See https://ui5.sap.com/#/api/sap.m.ScrollContainer.
+    "!
+    "! @parameter height     | (sap.ui.core.CSSSize) Height.
+    "! @parameter width      | (sap.ui.core.CSSSize) Width.
+    "! @parameter vertical   | (boolean) Allow vertical scrolling. Default: false.
+    "! @parameter horizontal | (boolean) Allow horizontal scrolling. Default: true.
+    "! @parameter focusable  | (boolean) Make the container focusable. Default: false.
+    "! @parameter visible    | (boolean) Whether the container is visible. Default: true.
     METHODS scroll_container
       IMPORTING
         height        TYPE clike OPTIONAL
@@ -2236,6 +2385,35 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.form.SimpleForm - simple form layout</p>
+    "!
+    "! Form layout that arranges labels and fields with responsive layout. See https://ui5.sap.com/#/api/sap.ui.layout.form.SimpleForm.
+    "!
+    "! @parameter title                   | (string) Form title.
+    "! @parameter layout                  | (sap.ui.layout.form.SimpleFormLayout) ColumnLayout (recommended) | ResponsiveGridLayout. Note: ResponsiveLayout / GridLayout are deprecated.
+    "! @parameter class                   | (string) CSS class names.
+    "! @parameter editable                | (boolean) Render fields as editable inputs. Default: false.
+    "! @parameter columnsxl               | (int) Number of columns on XL screens. Default: -1 (use columnsL).
+    "! @parameter columnsl                | (int) Number of columns on L screens. Default: 2.
+    "! @parameter columnsm                | (int) Number of columns on M screens. Default: 1.
+    "! @parameter adjustlabelspan         | (boolean) Recompute labelSpan based on actual columns. Default: true.
+    "! @parameter backgrounddesign        | (sap.ui.layout.BackgroundDesign) Solid | Translucent | Transparent. Default: Translucent.
+    "! @parameter breakpointl             | (int) Breakpoint between M and L (px). Default: 1024.
+    "! @parameter breakpointm             | (int) Breakpoint between S and M (px). Default: 600.
+    "! @parameter breakpointxl            | (int) Breakpoint between L and XL (px). Default: 1440.
+    "! @parameter emptyspanl              | (int) Trailing empty grid span on L. Default: 0.
+    "! @parameter emptyspanm              | (int) Trailing empty grid span on M. Default: 0.
+    "! @parameter emptyspans              | (int) Trailing empty grid span on S. Default: 0.
+    "! @parameter emptyspanxl             | (int) Trailing empty grid span on XL. Default: -1.
+    "! @parameter labelspans              | (int) Label grid span on S. Default: 12.
+    "! @parameter labelspanm              | (int) Label grid span on M. Default: 2.
+    "! @parameter labelspanl              | (int) Label grid span on L. Default: 4.
+    "! @parameter labelspanxl             | (int) Label grid span on XL. Default: -1.
+    "! @parameter maxcontainercols        | (int) DEPRECATED since 1.16 - use `columnsL` / `columnsM`. Default: 2.
+    "! @parameter minwidth                | (int) DEPRECATED since 1.16 - use `breakpointM`. Default: -1.
+    "! @parameter singlecontainerfullsize | (boolean) When true a single container spans the full width. Default: true.
+    "! @parameter visible                 | (boolean) Whether the form is visible. Default: true.
+    "! @parameter width                   | (sap.ui.core.CSSSize) Width.
     METHODS simple_form
       IMPORTING
         title                   TYPE clike OPTIONAL
@@ -2268,18 +2446,39 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Framework helper - emit raw XML inside a custom-control wrapper</p>
+    "!
+    "! @parameter val | (string) Raw XML content.
     METHODS _cc_plain_xml
       IMPORTING
         val           TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">Aggregation slot `content` (Page, Panel, ScrollContainer, FlexBox, ...)</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
     METHODS content
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Title - heading text (or aggregation slot `title`)</p>
+    "!
+    "! Stand-alone heading text. See https://ui5.sap.com/#/api/sap.m.Title.
+    "!
+    "! @parameter ns            | (string) XML namespace prefix. When empty resolves to sap.m.Title.
+    "! @parameter text          | (string) Title text.
+    "! @parameter wrapping      | (boolean) Wrap text. Default: false.
+    "! @parameter level         | (sap.ui.core.TitleLevel) Auto | H1 | H2 | H3 | H4 | H5 | H6. Default: Auto.
+    "! @parameter class         | (string) CSS class names.
+    "! @parameter textalign     | (sap.ui.core.TextAlign) Begin | End | Left | Right | Center | Initial. Default: Initial.
+    "! @parameter textdirection | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter titlestyle    | (sap.ui.core.TitleLevel) Visual style of the title; defaults to `level`.
+    "! @parameter width         | (sap.ui.core.CSSSize) Width.
+    "! @parameter wrappingtype  | (sap.m.WrappingType) Normal | Hyphenated. Default: Normal. Since 1.60.
+    "! @parameter visible       | (boolean) Whether the title is visible. Default: true.
     METHODS title
       IMPORTING
         ns            TYPE clike OPTIONAL
@@ -2298,10 +2497,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.TabContainer - tab container with closable tabs</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.TabContainer. Children are added through `tab`.
     METHODS tab_container
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.TabContainerItem - single tab inside a TabContainer</p>
+    "!
+    "! @parameter text     | (string) Tab title.
+    "! @parameter selected | (boolean) Whether the tab is initially selected. Default: false.
     METHODS tab
       IMPORTING
         text          TYPE clike OPTIONAL
@@ -2309,6 +2515,23 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.OverflowToolbar - toolbar with overflow handling</p>
+    "!
+    "! Toolbar that automatically moves overflowing items into an overflow menu. See https://ui5.sap.com/#/api/sap.m.OverflowToolbar.
+    "! Inherits most properties from sap.m.Toolbar.
+    "!
+    "! @parameter press     | (event, Toolbar) Fired when the toolbar is clicked (only when `active=true`).
+    "! @parameter active    | (boolean, Toolbar) Make the toolbar clickable. Default: false.
+    "! @parameter visible   | (boolean) Whether the toolbar is visible. Default: true.
+    "! @parameter asyncmode | (boolean) Calculate overflow asynchronously. Default: false.
+    "! @parameter enabled   | (boolean, Toolbar) Whether the toolbar is enabled. Default: true.
+    "! @parameter design    | (sap.m.ToolbarDesign) Auto | Solid | Transparent | Info. Default: Auto.
+    "! @parameter style     | (sap.m.ToolbarStyle) Standard | Clear. Default: Standard.
+    "! @parameter width     | (sap.ui.core.CSSSize) Width.
+    "! @parameter height    | (sap.ui.core.CSSSize) Height.
+    "! @parameter class     | (string) CSS class names.
+    "! @parameter text      | (string) Reserved for inherited toolbar metadata; not commonly used.
+    "! @parameter type      | (string) Reserved; not commonly used.
     METHODS overflow_toolbar
       IMPORTING
         press         TYPE clike OPTIONAL
@@ -2327,6 +2550,16 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.OverflowToolbarToggleButton - ToggleButton variant for OverflowToolbar</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.OverflowToolbarToggleButton. Inherits from sap.m.ToggleButton.
+    "!
+    "! @parameter text    | (string, Button) Button label.
+    "! @parameter icon    | (sap.ui.core.URI, Button) Icon URI.
+    "! @parameter type    | (sap.m.ButtonType, Button) Visual style.
+    "! @parameter enabled | (boolean, Button) Whether the button is enabled. Default: true.
+    "! @parameter press   | (event, Button) Fired on press.
+    "! @parameter tooltip | (string) Tooltip.
     METHODS overflow_toolbar_toggle_button
       IMPORTING
         text          TYPE clike OPTIONAL
@@ -2338,6 +2571,16 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.OverflowToolbarButton - Button variant tuned for OverflowToolbar</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.OverflowToolbarButton. Inherits from sap.m.Button.
+    "!
+    "! @parameter text    | (string, Button) Button label.
+    "! @parameter icon    | (sap.ui.core.URI, Button) Icon URI.
+    "! @parameter type    | (sap.m.ButtonType, Button) Visual style.
+    "! @parameter enabled | (boolean, Button) Whether the button is enabled. Default: true.
+    "! @parameter press   | (event, Button) Fired on press.
+    "! @parameter tooltip | (string) Tooltip.
     METHODS overflow_toolbar_button
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -2350,6 +2593,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.OverflowToolbarMenuButton - MenuButton variant for OverflowToolbar</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.OverflowToolbarMenuButton. Inherits from sap.m.MenuButton.
+    "!
+    "! @parameter text          | (string) Button label.
+    "! @parameter icon          | (sap.ui.core.URI) Icon URI.
+    "! @parameter buttonmode    | (sap.m.MenuButtonMode) Regular | Split. Default: Regular.
+    "! @parameter type          | (sap.m.ButtonType) Visual style.
+    "! @parameter enabled       | (boolean) Whether the button is enabled. Default: true.
+    "! @parameter tooltip       | (string) Tooltip.
+    "! @parameter defaultaction | (event) Fired when the default action button (split mode) is pressed.
     METHODS overflow_toolbar_menu_button
       IMPORTING
         text          TYPE clike OPTIONAL
@@ -2362,6 +2616,13 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.MenuItem - menu entry inside a Menu / MenuButton</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.MenuItem.
+    "!
+    "! @parameter press | (event) Fired when the item is selected.
+    "! @parameter text  | (string) Item label.
+    "! @parameter icon  | (sap.ui.core.URI) Icon URI.
     METHODS menu_item
       IMPORTING
         press         TYPE clike OPTIONAL
@@ -2370,6 +2631,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ToolbarSpacer - flexible spacer pushing siblings apart</p>
+    "!
+    "! Insert between toolbar items to create space. See https://ui5.sap.com/#/api/sap.m.ToolbarSpacer.
+    "!
+    "! @parameter ns    | (string) XML namespace prefix.
+    "! @parameter width | (sap.ui.core.CSSSize) Fixed width. When empty the spacer is greedy and takes all remaining space.
     METHODS toolbar_spacer
       IMPORTING
         ns            TYPE clike OPTIONAL
@@ -2377,6 +2644,24 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Label - label text (typically associated with a form field)</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.Label.
+    "!
+    "! @parameter text          | (string) Label text.
+    "! @parameter labelfor      | (sap.ui.core.ID) Id of the labelled control.
+    "! @parameter design        | (sap.m.LabelDesign) Standard | Bold. Default: Standard.
+    "! @parameter displayonly   | (boolean) Display-only mode (different default styling). Default: false.
+    "! @parameter required      | (boolean) Show required marker. Default: false.
+    "! @parameter showcolon     | (boolean) Append a colon to the text. Default: false.
+    "! @parameter textalign     | (sap.ui.core.TextAlign) Begin | End | Left | Right | Center | Initial. Default: Initial.
+    "! @parameter textdirection | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter valign        | (sap.ui.core.VerticalAlign) Bottom | Inherit | Middle | Top. Default: Inherit.
+    "! @parameter width         | (sap.ui.core.CSSSize) Width.
+    "! @parameter wrapping      | (boolean) Wrap text. Default: false.
+    "! @parameter wrappingtype  | (sap.m.WrappingType) Normal | Hyphenated. Default: Normal. Since 1.60.
+    "! @parameter class         | (string) CSS class names.
+    "! @parameter visible       | (boolean) Whether the label is visible. Default: true.
     METHODS label
       IMPORTING
         text          TYPE clike OPTIONAL
@@ -2398,6 +2683,28 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Image - image control</p>
+    "!
+    "! Image with active/hover support, lazy loading and background-mode rendering. See https://ui5.sap.com/#/api/sap.m.Image.
+    "!
+    "! @parameter src                | (sap.ui.core.URI) Image URI.
+    "! @parameter class              | (string) CSS class names.
+    "! @parameter height             | (sap.ui.core.CSSSize) Image height.
+    "! @parameter width              | (sap.ui.core.CSSSize) Image width.
+    "! @parameter usemap             | (string) Name of the HTML image-map (`<img usemap=...>`).
+    "! @parameter mode               | (sap.m.ImageMode) Image | Background. Default: Image.
+    "! @parameter lazyloading        | (boolean) Native lazy loading (`loading="lazy"`). Default: false.
+    "! @parameter densityaware       | (boolean) Density-aware variants (1.5x / 2x). Default: false.
+    "! @parameter decorative         | (boolean) Hide from screen readers. Default: true.
+    "! @parameter backgroundsize     | (string) CSS background-size (Background mode only). Default: cover.
+    "! @parameter backgroundrepeat   | (string) CSS background-repeat (Background mode only). Default: no-repeat.
+    "! @parameter backgroundposition | (string) CSS background-position (Background mode only). Default: center.
+    "! @parameter ariahaspopup       | (sap.ui.core.aria.HasPopup) None | Menu | ListBox | Tree | Grid | Dialog. Default: None.
+    "! @parameter alt                | (string) Alternative text (used only when `decorative=false`).
+    "! @parameter activesrc          | (sap.ui.core.URI) Image shown while pressed.
+    "! @parameter press              | (event) Fired when the image is clicked.
+    "! @parameter load               | (event) Fired when the image has finished loading.
+    "! @parameter error              | (event) Fired when the image fails to load.
     METHODS image
       IMPORTING
         src                TYPE clike OPTIONAL
@@ -2422,6 +2729,36 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.DatePicker - date input with calendar popover</p>
+    "!
+    "! Date input with calendar popover. See https://ui5.sap.com/#/api/sap.m.DatePicker.
+    "!
+    "! @parameter value                   | (string) Two-way bound formatted value. Use `client->_bind_edit( var )`.
+    "! @parameter placeholder             | (string) Placeholder text.
+    "! @parameter displayformat           | (string) Display format pattern (e.g. `dd.MM.yyyy` or `medium`).
+    "! @parameter valueformat             | (string) Internal `value` format (e.g. `yyyy-MM-dd`).
+    "! @parameter required                | (boolean) Required field marker. Default: false.
+    "! @parameter valuestate              | (sap.ui.core.ValueState) None | Success | Warning | Error | Information. Default: None.
+    "! @parameter valuestatetext          | (string) Value state message text.
+    "! @parameter enabled                 | (boolean) Whether the field is enabled. Default: true.
+    "! @parameter showcurrentdatebutton   | (boolean) Show "Today" button. Default: false. Since 1.95.
+    "! @parameter change                  | (event) Fired when the value is committed.
+    "! @parameter hideinput               | (boolean) Hide the input field, keeping only the calendar icon. Default: false.
+    "! @parameter showfooter              | (boolean) Show calendar footer with OK/Cancel. Default: false.
+    "! @parameter visible                 | (boolean) Whether the field is visible. Default: true.
+    "! @parameter showvaluestatemessage   | (boolean) Show value state message. Default: true.
+    "! @parameter mindate                 | (object) Minimum selectable date.
+    "! @parameter maxdate                 | (object) Maximum selectable date.
+    "! @parameter editable                | (boolean) Whether the field is editable. Default: true.
+    "! @parameter width                   | (sap.ui.core.CSSSize) Width.
+    "! @parameter calendarweeknumbering   | (sap.ui.core.date.CalendarWeekNumbering) Default | ISO_8601 | MiddleEastern | WesternTraditional. Default: Default. Since 1.108.
+    "! @parameter displayformattype       | (string) Calendar type for the display format: Gregorian | Islamic | Japanese | Persian | Buddhist.
+    "! @parameter class                   | (string) CSS class names.
+    "! @parameter textdirection           | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter textalign               | (sap.ui.core.TextAlign) Begin | End | Left | Right | Center | Initial. Default: Initial.
+    "! @parameter name                    | (string) HTML form name.
+    "! @parameter datevalue               | (object) JavaScript Date value (alternative to formatted `value`).
+    "! @parameter initialfocuseddatevalue | (object) Date initially focused in the calendar. Since 1.54.
     METHODS date_picker
       IMPORTING
         value                   TYPE clike OPTIONAL
@@ -2455,6 +2792,41 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.TimePicker - time input with clock popover</p>
+    "!
+    "! Time input with clock popover. See https://ui5.sap.com/#/api/sap.m.TimePicker.
+    "!
+    "! @parameter value                   | (string) Two-way bound formatted value.
+    "! @parameter placeholder             | (string) Placeholder text.
+    "! @parameter enabled                 | (boolean) Whether the field is enabled. Default: true.
+    "! @parameter valuestate              | (sap.ui.core.ValueState) None | Success | Warning | Error | Information. Default: None.
+    "! @parameter displayformat           | (string) Display format pattern.
+    "! @parameter valueformat             | (string) Internal `value` format.
+    "! @parameter required                | (boolean) Required field marker. Default: false.
+    "! @parameter width                   | (sap.ui.core.CSSSize) Width.
+    "! @parameter datevalue               | (object) JavaScript Date value.
+    "! @parameter localeid                | (string) Locale id (e.g. `en_US`).
+    "! @parameter mask                    | (string) Input mask. Default derived from displayFormat.
+    "! @parameter maskmode                | (sap.m.MaskMode) On | Off. Default: On.
+    "! @parameter minutesstep             | (int) Minutes step in the picker. Default: 1.
+    "! @parameter name                    | (string) HTML form name.
+    "! @parameter placeholdersymbol       | (string) Mask placeholder symbol. Default: `_`.
+    "! @parameter secondsstep             | (int) Seconds step in the picker. Default: 1.
+    "! @parameter textalign               | (sap.ui.core.TextAlign) Begin | End | Left | Right | Center | Initial. Default: Initial.
+    "! @parameter textdirection           | (sap.ui.core.TextDirection) Inherit | LTR | RTL. Default: Inherit.
+    "! @parameter title                   | (string) Title shown in the popover.
+    "! @parameter showcurrenttimebutton   | (boolean) Show "Now" button. Default: false.
+    "! @parameter showvaluestatemessage   | (boolean) Show value state message. Default: true.
+    "! @parameter support2400             | (boolean) Support 24:00 as a valid time. Default: false. Since 1.54.
+    "! @parameter initialfocuseddatevalue | (object) Time initially focused in the picker.
+    "! @parameter hideinput               | (boolean) Hide the input field. Default: false.
+    "! @parameter editable                | (boolean) Whether the field is editable. Default: true.
+    "! @parameter visible                 | (boolean) Whether the field is visible. Default: true.
+    "! @parameter valuestatetext          | (string) Value state message text.
+    "! @parameter livechange              | (event) Fired during typing.
+    "! @parameter change                  | (event) Fired when the value is committed.
+    "! @parameter aftervaluehelpopen      | (event) Fired after the picker popover opens.
+    "! @parameter aftervaluehelpclose     | (event) Fired after the picker popover closes.
     METHODS time_picker
       IMPORTING
         value                   TYPE clike OPTIONAL
@@ -2492,6 +2864,14 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.DateTimePicker - combined date+time input</p>
+    "!
+    "! Combined date and time input. See https://ui5.sap.com/#/api/sap.m.DateTimePicker. Inherits from sap.m.DatePicker.
+    "!
+    "! @parameter value       | (string) Two-way bound formatted value.
+    "! @parameter placeholder | (string) Placeholder text.
+    "! @parameter enabled     | (boolean) Whether the field is enabled. Default: true.
+    "! @parameter valuestate  | (sap.ui.core.ValueState) None | Success | Warning | Error | Information. Default: None.
     METHODS date_time_picker
       IMPORTING
         value         TYPE clike OPTIONAL
