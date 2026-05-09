@@ -203,12 +203,14 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      const oElement = z2ui5.oView?.byId(this.getProperty('focusId'));` && |\n| &&
              `      if (!oElement) return;` && |\n| &&
              `      try {` && |\n| &&
-             `        oElement.applyFocusInfo(` && |\n| &&
-             `          Object.assign(oElement.getFocusInfo(), {` && |\n| &&
-             `            selectionStart: +this.getProperty('selectionStart'),` && |\n| &&
-             `            selectionEnd: +this.getProperty('selectionEnd'),` && |\n| &&
-             `          }),` && |\n| &&
-             `        );` && |\n| &&
+             `        const start = +this.getProperty('selectionStart');` && |\n| &&
+             `        const end = +this.getProperty('selectionEnd');` && |\n| &&
+             `        // Spread the current focus info instead of Object.assign so we don't mutate UI5 internals` && |\n| &&
+             `        oElement.applyFocusInfo({` && |\n| &&
+             `          ...oElement.getFocusInfo(),` && |\n| &&
+             `          selectionStart: Number.isFinite(start) ? start : 0,` && |\n| &&
+             `          selectionEnd: Number.isFinite(end) ? end : 0,` && |\n| &&
+             `        });` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        _logError(``Focus.onAfterRendering: applyFocusInfo failed``, e);` && |\n| &&
              `      }` && |\n| &&
@@ -349,6 +351,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    onAfterRendering() {` && |\n| &&
              `      if (!this._pendingTreeState) return;` && |\n| &&
              `      this._pendingTreeState = false;` && |\n| &&
+             `      // treeState may have been cleared between render and onAfterRendering — re-check` && |\n| &&
+             `      if (!z2ui5.treeState) return;` && |\n| &&
              `      try {` && |\n| &&
              `        this._getTreeBinding()?.setTreeState(z2ui5.treeState);` && |\n| &&
              `      } catch (e) {` && |\n| &&
@@ -414,12 +418,12 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        const bindingInfo = this.getBindingInfo('items');` && |\n| &&
              `        const bindingPath = bindingInfo?.parts?.[0]?.path ?? bindingInfo?.path;` && |\n| &&
              `        for (const [index, item] of items.entries()) {` && |\n| &&
+             |\n|.
+    result = result &&
              `          const scrollTop = this._getScrollTop(item);` && |\n| &&
              `          if (item.V !== scrollTop) {` && |\n| &&
              `            item.V = scrollTop;` && |\n| &&
              `            if (bindingPath) z2ui5.xxChangedPaths?.add(``${bindingPath}/${index}/V``);` && |\n| &&
-             |\n|.
-    result = result &&
              `          }` && |\n| &&
              `        }` && |\n| &&
              `      } catch (e) {` && |\n| &&
@@ -816,12 +820,12 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          },` && |\n| &&
              `          buttonOnly: {` && |\n| &&
              `            type: 'boolean',` && |\n| &&
+             |\n|.
+    result = result &&
              `            defaultValue: false,` && |\n| &&
              `          },` && |\n| &&
              `          multiple: {` && |\n| &&
              `            type: 'boolean',` && |\n| &&
-             |\n|.
-    result = result &&
              `            defaultValue: false,` && |\n| &&
              `          },` && |\n| &&
              `          visible: {` && |\n| &&
@@ -1218,12 +1222,12 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        if (!this._oScanDialog) {` && |\n| &&
              `          // i18n: title key "camera.title", capture key "camera.capture", cancel key "camera.cancel"` && |\n| &&
              `          this._oScanDialog = new Dialog({` && |\n| &&
+             |\n|.
+    result = result &&
              `            title: 'Device Photo Function',` && |\n| &&
              `            contentWidth: '640px',` && |\n| &&
              `            contentHeight: '480px',` && |\n| &&
              `            horizontalScrolling: false,` && |\n| &&
-             |\n|.
-    result = result &&
              `            verticalScrolling: false,` && |\n| &&
              `            stretch: true,` && |\n| &&
              `            content: [` && |\n| &&

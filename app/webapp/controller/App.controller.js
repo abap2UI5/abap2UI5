@@ -183,12 +183,14 @@ sap.ui.define('z2ui5/Focus', ['sap/ui/core/Control'], (Control) => {
       const oElement = z2ui5.oView?.byId(this.getProperty('focusId'));
       if (!oElement) return;
       try {
-        oElement.applyFocusInfo(
-          Object.assign(oElement.getFocusInfo(), {
-            selectionStart: +this.getProperty('selectionStart'),
-            selectionEnd: +this.getProperty('selectionEnd'),
-          }),
-        );
+        const start = +this.getProperty('selectionStart');
+        const end = +this.getProperty('selectionEnd');
+        // Spread the current focus info instead of Object.assign so we don't mutate UI5 internals
+        oElement.applyFocusInfo({
+          ...oElement.getFocusInfo(),
+          selectionStart: Number.isFinite(start) ? start : 0,
+          selectionEnd: Number.isFinite(end) ? end : 0,
+        });
       } catch (e) {
         _logError(`Focus.onAfterRendering: applyFocusInfo failed`, e);
       }
@@ -329,6 +331,8 @@ sap.ui.define('z2ui5/Tree', ['sap/ui/core/Control'], (Control) => {
     onAfterRendering() {
       if (!this._pendingTreeState) return;
       this._pendingTreeState = false;
+      // treeState may have been cleared between render and onAfterRendering — re-check
+      if (!z2ui5.treeState) return;
       try {
         this._getTreeBinding()?.setTreeState(z2ui5.treeState);
       } catch (e) {
