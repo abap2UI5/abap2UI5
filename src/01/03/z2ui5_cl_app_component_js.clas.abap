@@ -40,7 +40,8 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n| &&
              `        z2ui5.oConfig.ComponentData = this.getComponentData();` && |\n| &&
              `` && |\n| &&
-             `        this._initAsync();` && |\n| &&
+             `        this._initLaunchpad();` && |\n| &&
+             `        this._initVersionInfo();` && |\n| &&
              `` && |\n| &&
              `        this._boundUnload = this._onUnload.bind(this);` && |\n| &&
              `        this._unloadEvent = /iPad|iPhone/.test(navigator.userAgent) ? 'pagehide' : 'beforeunload';` && |\n| &&
@@ -76,36 +77,33 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        z2ui5.oRouter.stop();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      async _initAsync() {` && |\n| &&
-             `        const logLaunchpadError = (message, error) =>` && |\n| &&
+             `      _initLaunchpad() {` && |\n| &&
+             `        const logErr = (message, error) =>` && |\n| &&
              `          (z2ui5.errors ??= []).push({ message, error, ts: new Date().toISOString() });` && |\n| &&
-             `        try {` && |\n| &&
-             `          const Container = sap.ui.require('sap/ushell/Container');` && |\n| &&
-             `          if (Container) {` && |\n| &&
-             `            const launchpad = { Container };` && |\n| &&
-             `            try {` && |\n| &&
-             `              launchpad.ShellUIService = await this.getService('ShellUIService');` && |\n| &&
-             `            } catch (e) {` && |\n| &&
-             `              logLaunchpadError(``Component: ShellUIService init failed``, e);` && |\n| &&
-             `            }` && |\n| &&
-             `            try {` && |\n| &&
-             `              launchpad.CrossAppNavigator = await Container.getServiceAsync('CrossApplicationNavigation');` && |\n| &&
-             `            } catch (e) {` && |\n| &&
-             `              logLaunchpadError(``Component: CrossApplicationNavigation init failed``, e);` && |\n| &&
-             `            }` && |\n| &&
-             `            try {` && |\n| &&
-             `              launchpad.AppConfiguration = await new Promise((resolve, reject) =>` && |\n| &&
-             `                sap.ui.require(['sap/ushell/services/AppConfiguration'], resolve, reject),` && |\n| &&
-             `              );` && |\n| &&
-             `            } catch (e) {` && |\n| &&
-             `              logLaunchpadError(``Component: AppConfiguration init failed``, e);` && |\n| &&
-             `            }` && |\n| &&
-             `            if (!this.isDestroyed()) z2ui5.oLaunchpad = launchpad;` && |\n| &&
-             `          }` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          logLaunchpadError(``Component: Launchpad init failed``, e);` && |\n| &&
-             `        }` && |\n| &&
+             `        const Container = sap.ui.require('sap/ushell/Container');` && |\n| &&
+             `        if (!Container) return;` && |\n| &&
+             `        const launchpad = { Container };` && |\n| &&
+             `        z2ui5.oLaunchpad = launchpad;` && |\n| &&
+             `        Container.getServiceAsync('ShellUIService')` && |\n| &&
+             `          .then((s) => {` && |\n| &&
+             `            launchpad.ShellUIService = s;` && |\n| &&
+             `          })` && |\n| &&
+             `          .catch((e) => logErr(``Component: ShellUIService init failed``, e));` && |\n| &&
+             `        Container.getServiceAsync('CrossApplicationNavigation')` && |\n| &&
+             `          .then((s) => {` && |\n| &&
+             `            launchpad.CrossAppNavigator = s;` && |\n| &&
+             `          })` && |\n| &&
+             `          .catch((e) => logErr(``Component: CrossApplicationNavigation init failed``, e));` && |\n| &&
+             `        sap.ui.require(` && |\n| &&
+             `          ['sap/ushell/services/AppConfiguration'],` && |\n| &&
+             `          (ac) => {` && |\n| &&
+             `            launchpad.AppConfiguration = ac;` && |\n| &&
+             `          },` && |\n| &&
+             `          (e) => logErr(``Component: AppConfiguration init failed``, e),` && |\n| &&
+             `        );` && |\n| &&
+             `      },` && |\n| &&
              `` && |\n| &&
+             `      async _initVersionInfo() {` && |\n| &&
              `        try {` && |\n| &&
              `          const { version, buildTimestamp, gav } = await VersionInfo.load();` && |\n| &&
              `          if (!this.isDestroyed()) z2ui5.oConfig.UI5VersionInfo = { version, buildTimestamp, gav };` && |\n| &&

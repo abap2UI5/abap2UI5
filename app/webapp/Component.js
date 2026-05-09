@@ -20,7 +20,8 @@ sap.ui.define(
 
         z2ui5.oConfig.ComponentData = this.getComponentData();
 
-        this._initAsync();
+        this._initLaunchpad();
+        this._initVersionInfo();
 
         this._boundUnload = this._onUnload.bind(this);
         this._unloadEvent = /iPad|iPhone/.test(navigator.userAgent) ? 'pagehide' : 'beforeunload';
@@ -56,36 +57,33 @@ sap.ui.define(
         z2ui5.oRouter.stop();
       },
 
-      async _initAsync() {
-        const logLaunchpadError = (message, error) =>
+      _initLaunchpad() {
+        const logErr = (message, error) =>
           (z2ui5.errors ??= []).push({ message, error, ts: new Date().toISOString() });
-        try {
-          const Container = sap.ui.require('sap/ushell/Container');
-          if (Container) {
-            const launchpad = { Container };
-            try {
-              launchpad.ShellUIService = await this.getService('ShellUIService');
-            } catch (e) {
-              logLaunchpadError(`Component: ShellUIService init failed`, e);
-            }
-            try {
-              launchpad.CrossAppNavigator = await Container.getServiceAsync('CrossApplicationNavigation');
-            } catch (e) {
-              logLaunchpadError(`Component: CrossApplicationNavigation init failed`, e);
-            }
-            try {
-              launchpad.AppConfiguration = await new Promise((resolve, reject) =>
-                sap.ui.require(['sap/ushell/services/AppConfiguration'], resolve, reject),
-              );
-            } catch (e) {
-              logLaunchpadError(`Component: AppConfiguration init failed`, e);
-            }
-            if (!this.isDestroyed()) z2ui5.oLaunchpad = launchpad;
-          }
-        } catch (e) {
-          logLaunchpadError(`Component: Launchpad init failed`, e);
-        }
+        const Container = sap.ui.require('sap/ushell/Container');
+        if (!Container) return;
+        const launchpad = { Container };
+        z2ui5.oLaunchpad = launchpad;
+        Container.getServiceAsync('ShellUIService')
+          .then((s) => {
+            launchpad.ShellUIService = s;
+          })
+          .catch((e) => logErr(`Component: ShellUIService init failed`, e));
+        Container.getServiceAsync('CrossApplicationNavigation')
+          .then((s) => {
+            launchpad.CrossAppNavigator = s;
+          })
+          .catch((e) => logErr(`Component: CrossApplicationNavigation init failed`, e));
+        sap.ui.require(
+          ['sap/ushell/services/AppConfiguration'],
+          (ac) => {
+            launchpad.AppConfiguration = ac;
+          },
+          (e) => logErr(`Component: AppConfiguration init failed`, e),
+        );
+      },
 
+      async _initVersionInfo() {
         try {
           const { version, buildTimestamp, gav } = await VersionInfo.load();
           if (!this.isDestroyed()) z2ui5.oConfig.UI5VersionInfo = { version, buildTimestamp, gav };
@@ -108,7 +106,7 @@ sap.ui.define(
         document.removeEventListener('keydown', this._boundKeydown);
         window.removeEventListener('popstate', this._boundPopstate);
         Server.endSession();
-        UIComponent.prototype.exit.call(this);
+        UIComponent.prototype.exit?.call(this);
       },
     });
   },
