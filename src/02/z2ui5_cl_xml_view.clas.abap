@@ -41,7 +41,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.layout.HorizontalLayout</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.layout.HorizontalLayout.
+    "! See <a href="https://ui5.sap.com/#/api/sap.ui.layout.HorizontalLayout">sap.ui.layout.HorizontalLayout</a>.
     "!
     "! @parameter class         | (string) CSS class names.
     "! @parameter visible       | (boolean) Whether the layout is visible. Default: true.
@@ -57,7 +57,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.core.Icon</p>
     "!
-    "! Renders an icon from one of the SAPUI5 icon fonts. See https://ui5.sap.com/#/api/sap.ui.core.Icon
+    "! Renders an icon from one of the SAPUI5 icon fonts. See <a href="https://ui5.sap.com/#/api/sap.ui.core.Icon">sap.ui.core.Icon</a>
     "!
     "! @parameter src                   | (sap.ui.core.URI) Icon URI, e.g. `sap-icon://accept`. Required for visible icons.
     "! @parameter press                 | (event) Fired when the icon is clicked.
@@ -101,7 +101,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.f.DynamicPage</p>
     "!
-    "! Page with title, snappable header, content and footer. See https://ui5.sap.com/#/api/sap.f.DynamicPage.
+    "! Page with title, snappable header, content and footer. See <a href="https://ui5.sap.com/#/api/sap.f.DynamicPage">sap.f.DynamicPage</a>.
     "!
     "! @parameter headerexpanded           | (boolean) Initial state of the header (true=expanded). Default: true.
     "! @parameter showfooter               | (boolean) Whether the footer is shown. Default: false.
@@ -121,14 +121,14 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! <p class="shorttext synchronized" lang="en">sap.f.DynamicPageTitle</p>
     "!
     "! Container for heading, content, actions, navigationActions, breadcrumbs and snapped/expanded slots.
-    "! See https://ui5.sap.com/#/api/sap.f.DynamicPageTitle. Children are added via the matching aggregation methods.
+    "! See <a href="https://ui5.sap.com/#/api/sap.f.DynamicPageTitle">sap.f.DynamicPageTitle</a>. Children are added via the matching aggregation methods.
     METHODS dynamic_page_title
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.f.DynamicPageHeader</p>
     "!
-    "! Snappable/expandable header. See https://ui5.sap.com/#/api/sap.f.DynamicPageHeader.
+    "! Snappable/expandable header. See <a href="https://ui5.sap.com/#/api/sap.f.DynamicPageHeader">sap.f.DynamicPageHeader</a>.
     "!
     "! @parameter pinnable | (boolean) Whether the user can pin the header (renders pin button). Default: true.
     METHODS dynamic_page_header
@@ -139,7 +139,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.core.HTML</p>
     "!
-    "! Embeds a string of HTML inside a UI5 view. See https://ui5.sap.com/#/api/sap.ui.core.HTML.
+    "! Embeds a string of HTML inside a UI5 view. See <a href="https://ui5.sap.com/#/api/sap.ui.core.HTML">sap.ui.core.HTML</a>.
     "!
     "! @parameter content         | (string) HTML markup. Must be enclosed in tags. Script tags execute but do not appear in the DOM.
     "! @parameter afterrendering  | (event) Fired after rendering. Param `isPreservedDOM` indicates whether existing DOM was preserved.
@@ -161,7 +161,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! <p class="shorttext synchronized" lang="en">sap.m.IllustratedMessage</p>
     "!
     "! Empty-state / error / success message with illustration, title and description.
-    "! See https://ui5.sap.com/#/api/sap.m.IllustratedMessage.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.IllustratedMessage">sap.m.IllustratedMessage</a>.
     "!
     "! @parameter enableverticalresponsiveness | (boolean) Resize illustration based on container height when `illustrationSize=Auto`. Default: false.
     "! @parameter enableformattedtext          | (boolean) Render description as formatted text (HTML subset). Default: false.
@@ -182,7 +182,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.plugins.CellSelector</p>
     "!
-    "! Plugin enabling Excel-like keyboard cell selection. See https://ui5.sap.com/#/api/sap.m.plugins.CellSelector.
+    "! Plugin enabling Excel-like keyboard cell selection. See <a href="https://ui5.sap.com/#/api/sap.m.plugins.CellSelector">sap.m.plugins.CellSelector</a>.
     METHODS p_cell_selector
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -191,7 +191,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.plugins.CopyProvider</p>
     "!
-    "! Plugin that copies selected rows / cells to the clipboard. See https://ui5.sap.com/#/api/sap.m.plugins.CopyProvider.
+    "! Plugin that copies selected rows / cells to the clipboard. See <a href="https://ui5.sap.com/#/api/sap.m.plugins.CopyProvider">sap.m.plugins.CopyProvider</a>.
     "!
     "! @parameter extract_data | (function) Mandatory callback returning the copied data per cell. Set via formatter binding.
     "! @parameter copy         | (event) Fired when the user triggers the copy action; allows preventDefault.
@@ -210,7 +210,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.FlexBox</p>
     "!
-    "! CSS flexbox layout container. See https://ui5.sap.com/#/api/sap.m.FlexBox.
+    "! CSS flexbox layout container. See <a href="https://ui5.sap.com/#/api/sap.m.FlexBox">sap.m.FlexBox</a>.
     "!
     "! @parameter class            | (string) CSS class names.
     "! @parameter rendertype       | (sap.m.FlexRendertype) Div | List | Bare. Default: Div.
@@ -248,7 +248,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.Popover</p>
     "!
-    "! Pop-up panel anchored to an opener control. See https://ui5.sap.com/#/api/sap.m.Popover.
+    "! Pop-up panel anchored to an opener control. See <a href="https://ui5.sap.com/#/api/sap.m.Popover">sap.m.Popover</a>.
     "!
     "! @parameter title               | (string) Header title.
     "! @parameter class               | (string) CSS class names.
@@ -300,7 +300,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.core.ListItem</p>
     "!
-    "! Lightweight item used in ComboBox/Select/etc. See https://ui5.sap.com/#/api/sap.ui.core.ListItem.
+    "! Lightweight item used in ComboBox/Select/etc. See <a href="https://ui5.sap.com/#/api/sap.ui.core.ListItem">sap.ui.core.ListItem</a>.
     "!
     "! @parameter text           | (string, Item) Display text.
     "! @parameter additionaltext | (string) Optional secondary text shown next to the main text.
@@ -321,7 +321,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.OverflowToolbarLayoutData</p>
     "!
-    "! Layout data attached to children of OverflowToolbar. See https://ui5.sap.com/#/api/sap.m.OverflowToolbarLayoutData.
+    "! Layout data attached to children of OverflowToolbar. See <a href="https://ui5.sap.com/#/api/sap.m.OverflowToolbarLayoutData">sap.m.OverflowToolbarLayoutData</a>.
     "!
     "! @parameter priority                   | (sap.m.OverflowToolbarPriority) NeverOverflow | High | Low | Disappear | AlwaysOverflow. Default: High.
     "! @parameter group                      | (int) Items with the same group number overflow together. Default: 0. Group items cannot use AlwaysOverflow / NeverOverflow.
@@ -336,8 +336,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.Table</p>
     "!
-    "! Responsive list-style table. See https://ui5.sap.com/#/api/sap.m.Table
-    "! Many parameters are inherited from sap.m.ListBase (https://ui5.sap.com/#/api/sap.m.ListBase).
+    "! Responsive list-style table. See <a href="https://ui5.sap.com/#/api/sap.m.Table">sap.m.Table</a>
+    "! Many parameters are inherited from sap.m.ListBase (<a href="https://ui5.sap.com/#/api/sap.m.ListBase">sap.m.ListBase</a>).
     "!
     "! @parameter items               | (binding path) Aggregation of `sap.m.ColumnListItem` rows. Use `client->_bind_edit( itab )`.
     "! @parameter class               | (string) CSS class names.
@@ -388,7 +388,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.table.AnalyticalTable</p>
     "!
-    "! Grid table with built-in OData v2 grouping and aggregation. See https://ui5.sap.com/#/api/sap.ui.table.AnalyticalTable.
+    "! Grid table with built-in OData v2 grouping and aggregation. See <a href="https://ui5.sap.com/#/api/sap.ui.table.AnalyticalTable">sap.ui.table.AnalyticalTable</a>.
     "! Most properties (selectionMode, rowMode, toolbar, columns) are inherited from sap.ui.table.Table.
     "!
     "! @parameter ns            | (string) XML namespace prefix (typically `t` for sap.ui.table).
@@ -417,7 +417,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.Breadcrumbs</p>
     "!
-    "! Breadcrumb-style navigation path. See https://ui5.sap.com/#/api/sap.m.Breadcrumbs.
+    "! Breadcrumb-style navigation path. See <a href="https://ui5.sap.com/#/api/sap.m.Breadcrumbs">sap.m.Breadcrumbs</a>.
     "!
     "! @parameter ns                  | (string) XML namespace prefix.
     "! @parameter link                | (binding path) Aggregation of `sap.m.Link` ancestors of the current location.
@@ -450,7 +450,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.ColorPalette</p>
     "!
-    "! Picker for predefined colors. See https://ui5.sap.com/#/api/sap.m.ColorPalette.
+    "! Picker for predefined colors. See <a href="https://ui5.sap.com/#/api/sap.m.ColorPalette">sap.m.ColorPalette</a>.
     "!
     "! @parameter ns          | (string) XML namespace prefix.
     "! @parameter colorselect | (event) Fired when a color is selected. Provides `value` (hex/CSS color) and `defaultAction` flag.
@@ -463,7 +463,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.table.rowmodes.Auto</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Auto. Used inside `<rowMode>` of sap.ui.table.Table / AnalyticalTable.
+    "! See <a href="https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Auto">sap.ui.table.rowmodes.Auto</a>. Used inside `<rowMode>` of sap.ui.table.Table / AnalyticalTable.
     "!
     "! @parameter ns               | (string) XML namespace prefix (typically `t`).
     "! @parameter rowcontentheight | (int) Row content height in pixels. 0 = theme-based default. Default: 0.
@@ -476,7 +476,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.MessageStrip</p>
     "!
-    "! Inline coloured notification strip. See https://ui5.sap.com/#/api/sap.m.MessageStrip.
+    "! Inline coloured notification strip. See <a href="https://ui5.sap.com/#/api/sap.m.MessageStrip">sap.m.MessageStrip</a>.
     "!
     "! @parameter text                | (string) Message text. Default: empty.
     "! @parameter type                | (sap.ui.core.message.MessageType) Information | Success | Warning | Error. Default: Information.
@@ -512,7 +512,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! <p class="shorttext synchronized" lang="en">sap.m.MessagePage</p>
     "!
     "! DEPRECATED since 1.112 - replace with `sap.m.IllustratedMessage` (see method `illustrated_message`).
-    "! See https://ui5.sap.com/#/api/sap.m.MessagePage.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.MessagePage">sap.m.MessagePage</a>.
     "!
     "! @parameter show_header         | (boolean) Whether the header is shown. Default: true.
     "! @parameter text                | (string) Main text. Default: "No matching items found.".
@@ -531,7 +531,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.uxap.ObjectPageLayout</p>
     "!
-    "! Object page layout with snappable header, anchor bar and sections/sub-sections. See https://ui5.sap.com/#/api/sap.uxap.ObjectPageLayout.
+    "! Object page layout with snappable header, anchor bar and sections/sub-sections. See <a href="https://ui5.sap.com/#/api/sap.uxap.ObjectPageLayout">sap.uxap.ObjectPageLayout</a>.
     "!
     "! @parameter showtitleinheadercontent       | (boolean) Show title also inside the header content area. Default: false.
     "! @parameter showeditheaderbutton           | (boolean) Render an edit-header button. Default: false. Since 1.34.
@@ -602,7 +602,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.uxap.ObjectPageHeader</p>
     "!
-    "! Classic (snappable) header title for ObjectPageLayout. See https://ui5.sap.com/#/api/sap.uxap.ObjectPageHeader.
+    "! Classic (snappable) header title for ObjectPageLayout. See <a href="https://ui5.sap.com/#/api/sap.uxap.ObjectPageHeader">sap.uxap.ObjectPageHeader</a>.
     "! For dynamic-page-style headers use `object_page_dyn_header_title` (sap.uxap.ObjectPageDynamicHeaderTitle).
     "!
     "! @parameter isactionareaalwaysvisible     | (boolean) Show actions when header is snapped. Default: true.
@@ -659,7 +659,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! <p class="shorttext synchronized" lang="en">sap.uxap.ObjectPageHeaderActionButton</p>
     "!
     "! Action button in the classic ObjectPageHeader actions area. Extends sap.m.Button.
-    "! See https://ui5.sap.com/#/api/sap.uxap.ObjectPageHeaderActionButton.
+    "! See <a href="https://ui5.sap.com/#/api/sap.uxap.ObjectPageHeaderActionButton">sap.uxap.ObjectPageHeaderActionButton</a>.
     "!
     "! @parameter activeicon       | (sap.ui.core.URI, Button) Icon shown while pressed.
     "! @parameter ariahaspopup     | (sap.ui.core.aria.HasPopup, Button) None | Menu | ListBox | Tree | Grid | Dialog. Default: None.
@@ -698,7 +698,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.uxap.ObjectPageDynamicHeaderTitle</p>
     "!
-    "! Modern dynamic-style header title for ObjectPageLayout. See https://ui5.sap.com/#/api/sap.uxap.ObjectPageDynamicHeaderTitle.
+    "! Modern dynamic-style header title for ObjectPageLayout. See <a href="https://ui5.sap.com/#/api/sap.uxap.ObjectPageDynamicHeaderTitle">sap.uxap.ObjectPageDynamicHeaderTitle</a>.
     "! Children are added through `heading`, `expanded_heading`, `snapped_heading`, `actions`, `navigation_actions`, `breadcrumbs`, `expanded_content`, `snapped_content` and `snapped_title_on_mobile`.
     METHODS object_page_dyn_header_title
       RETURNING
@@ -706,7 +706,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.GenericTile</p>
     "!
-    "! Generic tile container (used in launchpads / dashboards). See https://ui5.sap.com/#/api/sap.m.GenericTile.
+    "! Generic tile container (used in launchpads / dashboards). See <a href="https://ui5.sap.com/#/api/sap.m.GenericTile">sap.m.GenericTile</a>.
     "!
     "! @parameter class                  | (string) CSS class names.
     "! @parameter header                 | (string) Header text.
@@ -776,7 +776,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.NumericContent</p>
     "!
-    "! Numeric content rendered inside `TileContent` of `GenericTile`. See https://ui5.sap.com/#/api/sap.m.NumericContent.
+    "! Numeric content rendered inside `TileContent` of `GenericTile`. See <a href="https://ui5.sap.com/#/api/sap.m.NumericContent">sap.m.NumericContent</a>.
     "!
     "! @parameter value             | (string) The numeric value as text.
     "! @parameter icon              | (sap.ui.core.URI) Icon (alternative to a numeric value).
@@ -821,7 +821,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.LinkTileContent</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.LinkTileContent.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.LinkTileContent">sap.m.LinkTileContent</a>.
     "!
     "! @parameter linkhref  | (sap.ui.core.URI) Target href of the link.
     "! @parameter linktext  | (string) Link text.
@@ -838,7 +838,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.ImageContent</p>
     "!
-    "! Image rendered inside `TileContent` of `GenericTile`. See https://ui5.sap.com/#/api/sap.m.ImageContent.
+    "! Image rendered inside `TileContent` of `GenericTile`. See <a href="https://ui5.sap.com/#/api/sap.m.ImageContent">sap.m.ImageContent</a>.
     "!
     "! @parameter src         | (sap.ui.core.URI) Image URI.
     "! @parameter description | (string) Accessibility description.
@@ -857,7 +857,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.TileContent</p>
     "!
-    "! Container for tile body content. See https://ui5.sap.com/#/api/sap.m.TileContent.
+    "! Container for tile body content. See <a href="https://ui5.sap.com/#/api/sap.m.TileContent">sap.m.TileContent</a>.
     "!
     "! @parameter unit         | (string) Percent sign / currency symbol / unit of measure.
     "! @parameter footercolor  | (sap.m.ValueColor) None | Good | Error | Critical | Neutral. Default: Neutral. Since 1.44.
@@ -953,7 +953,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.Avatar</p>
     "!
-    "! Avatar control. See https://ui5.sap.com/#/api/sap.m.Avatar.
+    "! Avatar control. See <a href="https://ui5.sap.com/#/api/sap.m.Avatar">sap.m.Avatar</a>.
     "!
     "! IMPORTANT: leave `ns` empty (or default) to emit `<Avatar>` resolving to sap.m.Avatar via the View's xmlns.
     "! Never pass `ns = 'f'` - that produces the deprecated `sap.f.Avatar` (deprecated since 1.73, replaced by sap.m.Avatar).
@@ -1004,7 +1004,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.f.AvatarGroup</p>
     "!
-    "! Avatar group rendered with `ns='f'`. See https://ui5.sap.com/#/api/sap.f.AvatarGroup.
+    "! Avatar group rendered with `ns='f'`. See <a href="https://ui5.sap.com/#/api/sap.f.AvatarGroup">sap.f.AvatarGroup</a>.
     "!
     "! @parameter avatarcustomdisplaysize | (sap.ui.core.AbsoluteCSSSize) Custom avatar size (with avatarDisplaySize=Custom). Default: 3rem.
     "! @parameter avatarcustomfontsize    | (sap.ui.core.AbsoluteCSSSize) Custom avatar font size. Default: 1.125rem.
@@ -1040,7 +1040,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.f.AvatarGroupItem</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.f.AvatarGroupItem.
+    "! See <a href="https://ui5.sap.com/#/api/sap.f.AvatarGroupItem">sap.f.AvatarGroupItem</a>.
     "!
     "! @parameter busy               | (boolean, Control) Inherited busy state. Default: false.
     "! @parameter busyindicatordelay | (int, Control) Delay before busy indicator shows. Default: 1000.
@@ -1079,7 +1079,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! <p class="shorttext synchronized" lang="en">sap.uxap.ObjectPageSection</p>
     "!
     "! Section grouping sub-sections inside ObjectPageLayout. Inherits from sap.uxap.ObjectPageSectionBase.
-    "! See https://ui5.sap.com/#/api/sap.uxap.ObjectPageSection.
+    "! See <a href="https://ui5.sap.com/#/api/sap.uxap.ObjectPageSection">sap.uxap.ObjectPageSection</a>.
     "!
     "! @parameter titleuppercase       | (boolean) Display the section title in uppercase. Default: true.
     "! @parameter title                | (string, ObjectPageSectionBase) Section title.
@@ -1112,7 +1112,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.uxap.ObjectPageSubSection</p>
     "!
-    "! Sub-section containing actual content blocks. See https://ui5.sap.com/#/api/sap.uxap.ObjectPageSubSection.
+    "! Sub-section containing actual content blocks. See <a href="https://ui5.sap.com/#/api/sap.uxap.ObjectPageSubSection">sap.uxap.ObjectPageSubSection</a>.
     "!
     "! @parameter title          | (string) Sub-section title.
     "! @parameter mode           | (sap.uxap.ObjectPageSubSectionMode) Collapsed | Expanded. Default: Collapsed. Collapsed shows only blocks (moreBlocks behind a "See more" toggle).
@@ -1138,7 +1138,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.Shell</p>
     "!
-    "! Shell wrapper that provides background, branding and optional width limitation. See https://ui5.sap.com/#/api/sap.m.Shell.
+    "! Shell wrapper that provides background, branding and optional width limitation. See <a href="https://ui5.sap.com/#/api/sap.m.Shell">sap.m.Shell</a>.
     "!
     "! @parameter ns              | (string) XML namespace prefix.
     "! @parameter appwidthlimited | (boolean) Limit app width to a maximum (true) or use full screen width (false). Default: true.
@@ -1151,7 +1151,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.f.ShellBar</p>
     "!
-    "! Top-level shell/navigation bar. See https://ui5.sap.com/#/api/sap.f.ShellBar.
+    "! Top-level shell/navigation bar. See <a href="https://ui5.sap.com/#/api/sap.f.ShellBar">sap.f.ShellBar</a>.
     "!
     "! @parameter homeicon               | (sap.ui.core.URI) Home icon (company/product logo).
     "! @parameter homeicontooltip        | (string) Custom tooltip for the home icon.
@@ -1219,7 +1219,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.FlexItemData</p>
     "!
-    "! Layout data for children of `sap.m.FlexBox`. See https://ui5.sap.com/#/api/sap.m.FlexItemData.
+    "! Layout data for children of `sap.m.FlexBox`. See <a href="https://ui5.sap.com/#/api/sap.m.FlexItemData">sap.m.FlexItemData</a>.
     "!
     "! @parameter growfactor       | (float) flex-grow factor. Default: 0.
     "! @parameter basesize         | (sap.ui.core.CSSSize) flex-basis (initial main-axis size). Default: auto.
@@ -1240,7 +1240,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.codeeditor.CodeEditor</p>
     "!
-    "! ACE-based code editor with syntax highlighting. See https://ui5.sap.com/#/api/sap.ui.codeeditor.CodeEditor.
+    "! ACE-based code editor with syntax highlighting. See <a href="https://ui5.sap.com/#/api/sap.ui.codeeditor.CodeEditor">sap.ui.codeeditor.CodeEditor</a>.
     "!
     "! @parameter value    | (string) Source code content.
     "! @parameter type     | (string) Syntax highlighting mode (ACE mode), e.g. abap | javascript | json | xml | html | css | sql | markdown | python | java | yaml. Default: javascript.
@@ -1264,7 +1264,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.core.Item / sap.ui.core.ListItem</p>
     "!
-    "! Lightweight item used inside `Input.suggestionItems`. See https://ui5.sap.com/#/api/sap.ui.core.ListItem.
+    "! Lightweight item used inside `Input.suggestionItems`. See <a href="https://ui5.sap.com/#/api/sap.ui.core.ListItem">sap.ui.core.ListItem</a>.
     "!
     "! @parameter description   | (string) Optional secondary text shown next to the main text.
     "! @parameter icon          | (string) Icon URI.
@@ -1293,7 +1293,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.layout.VerticalLayout</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.layout.VerticalLayout.
+    "! See <a href="https://ui5.sap.com/#/api/sap.ui.layout.VerticalLayout">sap.ui.layout.VerticalLayout</a>.
     "!
     "! @parameter class   | (string) CSS class names.
     "! @parameter width   | (sap.ui.core.CSSSize) Width. If unset, the content's natural width is used.
@@ -1311,7 +1311,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.MultiInput</p>
     "!
-    "! Input that displays accepted values as tokens. See https://ui5.sap.com/#/api/sap.m.MultiInput.
+    "! Input that displays accepted values as tokens. See <a href="https://ui5.sap.com/#/api/sap.m.MultiInput">sap.m.MultiInput</a>.
     "! Most properties are inherited from sap.m.Input / sap.m.InputBase.
     "!
     "! @parameter showclearicon    | (boolean, Input) Show a clear icon. Default: false. Since 1.94.
@@ -1373,7 +1373,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.Token</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.Token.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.Token">sap.m.Token</a>.
     "!
     "! @parameter key      | (string) Key value of the token.
     "! @parameter text     | (string) Displayed token text.
@@ -1393,7 +1393,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! <p class="shorttext synchronized" lang="en">sap.m.Input</p>
     "!
     "! Single-line input control with optional value help, suggestions and validation states.
-    "! See https://ui5.sap.com/#/api/sap.m.Input. Inherits properties from sap.m.InputBase.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.Input">sap.m.Input</a>. Inherits properties from sap.m.InputBase.
     "!
     "! @parameter value                         | (string, InputBase) Two-way bound value. Use `client->_bind_edit( var )`.
     "! @parameter placeholder                   | (string, InputBase) Placeholder shown while empty.
@@ -1476,7 +1476,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.Dialog</p>
     "!
-    "! Modal dialog with header, content and buttons. See https://ui5.sap.com/#/api/sap.m.Dialog.
+    "! Modal dialog with header, content and buttons. See <a href="https://ui5.sap.com/#/api/sap.m.Dialog">sap.m.Dialog</a>.
     "!
     "! @parameter title               | (string) Header title text.
     "! @parameter icon                | (sap.ui.core.URI) Header icon (density-aware).
@@ -1524,7 +1524,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.Carousel</p>
     "!
-    "! Paged carousel. See https://ui5.sap.com/#/api/sap.m.Carousel.
+    "! Paged carousel. See <a href="https://ui5.sap.com/#/api/sap.m.Carousel">sap.m.Carousel</a>.
     "!
     "! @parameter height                        | (sap.ui.core.CSSSize) Carousel height. Default: 100%.
     "! @parameter class                         | (string) CSS class names.
@@ -1600,7 +1600,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.table.AnalyticalColumn</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.table.AnalyticalColumn. Use the `column` builder for sap.m and `analytical_column` for AnalyticalTable.
+    "! See <a href="https://ui5.sap.com/#/api/sap.ui.table.AnalyticalColumn">sap.ui.table.AnalyticalColumn</a>. Use the `column` builder for sap.m and `analytical_column` for AnalyticalTable.
     "!
     "! @parameter ns | (string) XML namespace prefix (typically `t`).
     METHODS analytical_column
@@ -1611,7 +1611,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.Column</p>
     "!
-    "! Responsive table column. See https://ui5.sap.com/#/api/sap.m.Column.
+    "! Responsive table column. See <a href="https://ui5.sap.com/#/api/sap.m.Column">sap.m.Column</a>.
     "!
     "! @parameter width             | (sap.ui.core.CSSSize) Column width. Empty = remaining space.
     "! @parameter minscreenwidth    | (string) Hide column below this screen width (e.g. `Small`, `Medium`, `Large`, `30em`).
@@ -1661,7 +1661,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.InteractiveDonutChart</p>
     "!
-    "! Donut microchart with selectable segments. See https://ui5.sap.com/#/api/sap.suite.ui.microchart.InteractiveDonutChart.
+    "! Donut microchart with selectable segments. See <a href="https://ui5.sap.com/#/api/sap.suite.ui.microchart.InteractiveDonutChart">sap.suite.ui.microchart.InteractiveDonutChart</a>.
     "!
     "! @parameter selectionchanged  | (event) Fired when segment selection changes. Provides `selectedSegments`, `allSelectedSegments`, `segment`, `selected`.
     "! @parameter errormessage      | (string) Error/empty-state message text.
@@ -1708,7 +1708,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.InteractiveBarChart</p>
     "!
-    "! Horizontal bar microchart with selectable bars. See https://ui5.sap.com/#/api/sap.suite.ui.microchart.InteractiveBarChart.
+    "! Horizontal bar microchart with selectable bars. See <a href="https://ui5.sap.com/#/api/sap.suite.ui.microchart.InteractiveBarChart">sap.suite.ui.microchart.InteractiveBarChart</a>.
     "!
     "! @parameter selectionchanged  | (event) Fired when bar selection changes.
     "! @parameter selectionenabled  | (boolean) Whether bars can be selected. Default: true.
@@ -1761,7 +1761,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.InteractiveLineChart</p>
     "!
-    "! Line microchart with selectable points. See https://ui5.sap.com/#/api/sap.suite.ui.microchart.InteractiveLineChart.
+    "! Line microchart with selectable points. See <a href="https://ui5.sap.com/#/api/sap.suite.ui.microchart.InteractiveLineChart">sap.suite.ui.microchart.InteractiveLineChart</a>.
     "!
     "! @parameter selectionchanged  | (event) Fired when point selection changes.
     "! @parameter press             | (event) Fired when the chart is pressed.
@@ -1812,7 +1812,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.RadialMicroChart</p>
     "!
-    "! Radial / circular percentage micro chart. See https://ui5.sap.com/#/api/sap.suite.ui.microchart.RadialMicroChart.
+    "! Radial / circular percentage micro chart. See <a href="https://ui5.sap.com/#/api/sap.suite.ui.microchart.RadialMicroChart">sap.suite.ui.microchart.RadialMicroChart</a>.
     "!
     "! @parameter size         | (sap.m.Size) S | M | L | Auto | Responsive. Default: Auto.
     "! @parameter percentage   | (float) Percentage value (0 to 100).
@@ -1835,7 +1835,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.ColumnListItem</p>
     "!
-    "! Row of a responsive table. See https://ui5.sap.com/#/api/sap.m.ColumnListItem.
+    "! Row of a responsive table. See <a href="https://ui5.sap.com/#/api/sap.m.ColumnListItem">sap.m.ColumnListItem</a>.
     "! Most properties are inherited from sap.m.ListItemBase.
     "!
     "! @parameter valign        | (sap.ui.core.VerticalAlign) Bottom | Inherit | Middle | Top. Default: Inherit.
@@ -1868,7 +1868,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.ActionListItem</p>
     "!
-    "! Active list item rendering only a text. See https://ui5.sap.com/#/api/sap.m.ActionListItem.
+    "! Active list item rendering only a text. See <a href="https://ui5.sap.com/#/api/sap.m.ActionListItem">sap.m.ActionListItem</a>.
     "!
     "! @parameter text | (string) Action text.
     METHODS action_list_item
@@ -1914,7 +1914,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.mdc.Field</p>
     "!
-    "! Smart field that combines display / edit modes for a value. See https://ui5.sap.com/#/api/sap.ui.mdc.Field.
+    "! Smart field that combines display / edit modes for a value. See <a href="https://ui5.sap.com/#/api/sap.ui.mdc.Field">sap.ui.mdc.Field</a>.
     "!
     "! @parameter ns                 | (string) XML namespace prefix (typically `mdc`).
     "! @parameter value              | (any) Value (use `client->_bind_edit( var )`).
@@ -1964,7 +1964,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.core.CustomData</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.core.CustomData.
+    "! See <a href="https://ui5.sap.com/#/api/sap.ui.core.CustomData">sap.ui.core.CustomData</a>.
     "!
     "! @parameter key        | (string) Data key.
     "! @parameter value      | (any) Data value.
@@ -1979,7 +1979,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.BadgeCustomData</p>
     "!
-    "! Adds a numeric badge (e.g. notifications count) to compatible controls. See https://ui5.sap.com/#/api/sap.m.BadgeCustomData.
+    "! Adds a numeric badge (e.g. notifications count) to compatible controls. See <a href="https://ui5.sap.com/#/api/sap.m.BadgeCustomData">sap.m.BadgeCustomData</a>.
     "!
     "! @parameter key     | (string) Data key. Default: `sap-ui-custom-badge`.
     "! @parameter value   | (string) Badge text/value. Default: empty.
@@ -1995,7 +1995,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! <p class="shorttext synchronized" lang="en">sap.m.ToggleButton</p>
     "!
     "! Push button that toggles between pressed and unpressed states. Extends sap.m.Button.
-    "! See https://ui5.sap.com/#/api/sap.m.ToggleButton.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.ToggleButton">sap.m.ToggleButton</a>.
     "!
     "! @parameter text    | (string, Button) Button label.
     "! @parameter icon    | (sap.ui.core.URI, Button) Icon URI.
@@ -2018,7 +2018,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.Button</p>
     "!
-    "! Standard push button. See https://ui5.sap.com/#/api/sap.m.Button.
+    "! Standard push button. See <a href="https://ui5.sap.com/#/api/sap.m.Button">sap.m.Button</a>.
     "!
     "! @parameter text             | (string) Button label. Default: empty.
     "! @parameter icon             | (sap.ui.core.URI) Icon URI, e.g. `sap-icon://accept`.
@@ -2076,7 +2076,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.SearchField</p>
     "!
-    "! Single-line search input. See https://ui5.sap.com/#/api/sap.m.SearchField.
+    "! Single-line search input. See <a href="https://ui5.sap.com/#/api/sap.m.SearchField">sap.m.SearchField</a>.
     "!
     "! @parameter search            | (event) Fired when search is triggered (Enter, search button, refresh button).
     "! @parameter width             | (sap.ui.core.CSSSize) Width.
@@ -2114,7 +2114,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.MessageView</p>
     "!
-    "! Reusable message viewer (used inside MessagePopover). See https://ui5.sap.com/#/api/sap.m.MessageView.
+    "! Reusable message viewer (used inside MessagePopover). See <a href="https://ui5.sap.com/#/api/sap.m.MessageView">sap.m.MessageView</a>.
     "!
     "! @parameter items      | (binding path) Aggregation of `sap.m.MessageItem`.
     "! @parameter groupitems | (boolean) Group items by `groupName`. Default: false.
@@ -2128,7 +2128,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! <p class="shorttext synchronized" lang="en">sap.ndc.BarcodeScannerButton</p>
     "!
     "! Button that opens a camera-based barcode scanner. Requires the sap.ndc library and a camera-enabled device.
-    "! See https://ui5.sap.com/#/api/sap.ndc.BarcodeScannerButton.
+    "! See <a href="https://ui5.sap.com/#/api/sap.ndc.BarcodeScannerButton">sap.ndc.BarcodeScannerButton</a>.
     "!
     "! @parameter scansuccess               | (event) Fired with the scanned text. Provides `text`, `format`.
     "! @parameter scanfail                  | (event) Fired when the scan fails.
@@ -2160,7 +2160,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.MessagePopover</p>
     "!
-    "! Popover with messages categorised by type. See https://ui5.sap.com/#/api/sap.m.MessagePopover.
+    "! Popover with messages categorised by type. See <a href="https://ui5.sap.com/#/api/sap.m.MessagePopover">sap.m.MessagePopover</a>.
     "!
     "! @parameter items             | (binding path) Aggregation of `sap.m.MessageItem`.
     "! @parameter groupitems        | (boolean) Group items by `groupName`. Default: false.
@@ -2185,7 +2185,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.MessageItem</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.MessageItem.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.MessageItem">sap.m.MessageItem</a>.
     "!
     "! @parameter type              | (sap.ui.core.MessageType) None | Information | Warning | Error | Success. Default: Error.
     "! @parameter title             | (string) Message title.
@@ -2215,7 +2215,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! <p class="shorttext synchronized" lang="en">sap.m.Page</p>
     "!
     "! Page container with optional header, sub-header, content and footer areas.
-    "! See https://ui5.sap.com/#/api/sap.m.Page.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.Page">sap.m.Page</a>.
     "!
     "! @parameter title            | (string) Title text shown in the header bar.
     "! @parameter navbuttonpress   | (event) Fired when the back/nav button is pressed (since 1.12.2).
@@ -2258,7 +2258,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.MenuButton</p>
     "!
-    "! Button that opens a menu on click. See https://ui5.sap.com/#/api/sap.m.MenuButton.
+    "! Button that opens a menu on click. See <a href="https://ui5.sap.com/#/api/sap.m.MenuButton">sap.m.MenuButton</a>.
     "!
     "! @parameter text          | (string) Button label.
     "! @parameter activeicon    | (sap.ui.core.URI) Icon shown while pressed.
@@ -2279,7 +2279,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.Panel</p>
     "!
-    "! Container with optional header and expand/collapse. See https://ui5.sap.com/#/api/sap.m.Panel.
+    "! Container with optional header and expand/collapse. See <a href="https://ui5.sap.com/#/api/sap.m.Panel">sap.m.Panel</a>.
     "!
     "! @parameter expandable       | (boolean) Render the expand/collapse arrow. Default: false.
     "! @parameter expanded         | (boolean) Initial expanded state (only with expandable=true). Default: false.
@@ -2311,7 +2311,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.VBox</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.VBox. All FlexBox properties are available.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.VBox">sap.m.VBox</a>. All FlexBox properties are available.
     "!
     "! @parameter height           | (sap.ui.core.CSSSize) Height.
     "! @parameter justifycontent   | (sap.m.FlexJustifyContent) Start | Center | End | SpaceBetween | SpaceAround | Inherit. Default: Start.
@@ -2348,7 +2348,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.HBox</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.HBox. All FlexBox properties are available.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.HBox">sap.m.HBox</a>. All FlexBox properties are available.
     "!
     "! @parameter class            | (string) CSS class names.
     "! @parameter justifycontent   | (sap.m.FlexJustifyContent) Main-axis alignment. Default: Start.
@@ -2384,7 +2384,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.ScrollContainer</p>
     "!
-    "! Container that scrolls its content. See https://ui5.sap.com/#/api/sap.m.ScrollContainer.
+    "! Container that scrolls its content. See <a href="https://ui5.sap.com/#/api/sap.m.ScrollContainer">sap.m.ScrollContainer</a>.
     "!
     "! @parameter height     | (sap.ui.core.CSSSize) Height.
     "! @parameter width      | (sap.ui.core.CSSSize) Width.
@@ -2407,7 +2407,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.layout.form.SimpleForm</p>
     "!
-    "! Form layout that arranges labels and fields with responsive layout. See https://ui5.sap.com/#/api/sap.ui.layout.form.SimpleForm.
+    "! Form layout that arranges labels and fields with responsive layout. See <a href="https://ui5.sap.com/#/api/sap.ui.layout.form.SimpleForm">sap.ui.layout.form.SimpleForm</a>.
     "!
     "! @parameter title                   | (string) Form title.
     "! @parameter layout                  | (sap.ui.layout.form.SimpleFormLayout) ColumnLayout (recommended) | ResponsiveGridLayout. Note: ResponsiveLayout / GridLayout are deprecated.
@@ -2486,7 +2486,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.Title</p>
     "!
-    "! Stand-alone heading text. See https://ui5.sap.com/#/api/sap.m.Title.
+    "! Stand-alone heading text. See <a href="https://ui5.sap.com/#/api/sap.m.Title">sap.m.Title</a>.
     "!
     "! @parameter ns            | (string) XML namespace prefix. When empty resolves to sap.m.Title.
     "! @parameter text          | (string) Title text.
@@ -2519,7 +2519,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.TabContainer</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.TabContainer. Children are added through `tab`.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.TabContainer">sap.m.TabContainer</a>. Children are added through `tab`.
     METHODS tab_container
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -2537,7 +2537,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.OverflowToolbar</p>
     "!
-    "! Toolbar that automatically moves overflowing items into an overflow menu. See https://ui5.sap.com/#/api/sap.m.OverflowToolbar.
+    "! Toolbar that automatically moves overflowing items into an overflow menu. See <a href="https://ui5.sap.com/#/api/sap.m.OverflowToolbar">sap.m.OverflowToolbar</a>.
     "! Inherits most properties from sap.m.Toolbar.
     "!
     "! @parameter press     | (event, Toolbar) Fired when the toolbar is clicked (only when `active=true`).
@@ -2572,7 +2572,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.OverflowToolbarToggleButton</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.OverflowToolbarToggleButton. Inherits from sap.m.ToggleButton.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.OverflowToolbarToggleButton">sap.m.OverflowToolbarToggleButton</a>. Inherits from sap.m.ToggleButton.
     "!
     "! @parameter text    | (string, Button) Button label.
     "! @parameter icon    | (sap.ui.core.URI, Button) Icon URI.
@@ -2593,7 +2593,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.OverflowToolbarButton</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.OverflowToolbarButton. Inherits from sap.m.Button.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.OverflowToolbarButton">sap.m.OverflowToolbarButton</a>. Inherits from sap.m.Button.
     "!
     "! @parameter text    | (string, Button) Button label.
     "! @parameter icon    | (sap.ui.core.URI, Button) Icon URI.
@@ -2615,7 +2615,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.OverflowToolbarMenuButton</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.OverflowToolbarMenuButton. Inherits from sap.m.MenuButton.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.OverflowToolbarMenuButton">sap.m.OverflowToolbarMenuButton</a>. Inherits from sap.m.MenuButton.
     "!
     "! @parameter text          | (string) Button label.
     "! @parameter icon          | (sap.ui.core.URI) Icon URI.
@@ -2638,7 +2638,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.MenuItem</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.MenuItem.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.MenuItem">sap.m.MenuItem</a>.
     "!
     "! @parameter press | (event) Fired when the item is selected.
     "! @parameter text  | (string) Item label.
@@ -2653,7 +2653,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.ToolbarSpacer</p>
     "!
-    "! Insert between toolbar items to create space. See https://ui5.sap.com/#/api/sap.m.ToolbarSpacer.
+    "! Insert between toolbar items to create space. See <a href="https://ui5.sap.com/#/api/sap.m.ToolbarSpacer">sap.m.ToolbarSpacer</a>.
     "!
     "! @parameter ns    | (string) XML namespace prefix.
     "! @parameter width | (sap.ui.core.CSSSize) Fixed width. When empty the spacer is greedy and takes all remaining space.
@@ -2666,7 +2666,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.Label</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.Label.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.Label">sap.m.Label</a>.
     "!
     "! @parameter text          | (string) Label text.
     "! @parameter labelfor      | (sap.ui.core.ID) Id of the labelled control.
@@ -2705,7 +2705,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.Image</p>
     "!
-    "! Image with active/hover support, lazy loading and background-mode rendering. See https://ui5.sap.com/#/api/sap.m.Image.
+    "! Image with active/hover support, lazy loading and background-mode rendering. See <a href="https://ui5.sap.com/#/api/sap.m.Image">sap.m.Image</a>.
     "!
     "! @parameter src                | (sap.ui.core.URI) Image URI.
     "! @parameter class              | (string) CSS class names.
@@ -2751,7 +2751,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.DatePicker</p>
     "!
-    "! Date input with calendar popover. See https://ui5.sap.com/#/api/sap.m.DatePicker.
+    "! Date input with calendar popover. See <a href="https://ui5.sap.com/#/api/sap.m.DatePicker">sap.m.DatePicker</a>.
     "!
     "! @parameter value                   | (string) Two-way bound formatted value. Use `client->_bind_edit( var )`.
     "! @parameter placeholder             | (string) Placeholder text.
@@ -2814,7 +2814,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.TimePicker</p>
     "!
-    "! Time input with clock popover. See https://ui5.sap.com/#/api/sap.m.TimePicker.
+    "! Time input with clock popover. See <a href="https://ui5.sap.com/#/api/sap.m.TimePicker">sap.m.TimePicker</a>.
     "!
     "! @parameter value                   | (string) Two-way bound formatted value.
     "! @parameter placeholder             | (string) Placeholder text.
@@ -2886,7 +2886,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.DateTimePicker</p>
     "!
-    "! Combined date and time input. See https://ui5.sap.com/#/api/sap.m.DateTimePicker. Inherits from sap.m.DatePicker.
+    "! Combined date and time input. See <a href="https://ui5.sap.com/#/api/sap.m.DateTimePicker">sap.m.DateTimePicker</a>. Inherits from sap.m.DatePicker.
     "!
     "! @parameter value       | (string) Two-way bound formatted value.
     "! @parameter placeholder | (string) Placeholder text.
@@ -2904,7 +2904,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.Link</p>
     "!
-    "! Standard hyperlink. See https://ui5.sap.com/#/api/sap.m.Link.
+    "! Standard hyperlink. See <a href="https://ui5.sap.com/#/api/sap.m.Link">sap.m.Link</a>.
     "!
     "! @parameter text               | (string) Link text.
     "! @parameter href               | (sap.ui.core.URI) Target URL.
@@ -2954,7 +2954,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.List</p>
     "!
-    "! Generic list. See https://ui5.sap.com/#/api/sap.m.List. Most properties inherited from sap.m.ListBase.
+    "! Generic list. See <a href="https://ui5.sap.com/#/api/sap.m.List">sap.m.List</a>. Most properties inherited from sap.m.ListBase.
     "!
     "! @parameter headertext             | (string, ListBase) Header text.
     "! @parameter items                  | (binding path) List items.
@@ -3019,14 +3019,14 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.CustomListItem</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.CustomListItem. Inherits all ListItemBase properties.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.CustomListItem">sap.m.CustomListItem</a>. Inherits all ListItemBase properties.
     METHODS custom_list_item
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.InputListItem</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.InputListItem.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.InputListItem">sap.m.InputListItem</a>.
     "!
     "! @parameter label | (string) Label rendered in front of the input control.
     METHODS input_list_item
@@ -3037,7 +3037,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.StandardListItem</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.StandardListItem. Inherits from sap.m.ListItemBase.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.StandardListItem">sap.m.StandardListItem</a>. Inherits from sap.m.ListItemBase.
     "!
     "! @parameter title             | (string) Main title text.
     "! @parameter description       | (string) Description text.
@@ -3080,7 +3080,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.core.Item</p>
     "!
-    "! Lightweight item used inside Select / ComboBox / etc. See https://ui5.sap.com/#/api/sap.ui.core.Item.
+    "! Lightweight item used inside Select / ComboBox / etc. See <a href="https://ui5.sap.com/#/api/sap.ui.core.Item">sap.ui.core.Item</a>.
     "!
     "! @parameter key  | (string) Item key.
     "! @parameter text | (string) Display text.
@@ -3093,7 +3093,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.SegmentedButtonItem</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.SegmentedButtonItem.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.SegmentedButtonItem">sap.m.SegmentedButtonItem</a>.
     "!
     "! @parameter icon          | (sap.ui.core.URI) Segment icon.
     "! @parameter key           | (string) Segment key (used by SegmentedButton.selectedKey).
@@ -3118,7 +3118,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.ComboBox</p>
     "!
-    "! Dropdown with autocomplete and value-help button. See https://ui5.sap.com/#/api/sap.m.ComboBox.
+    "! Dropdown with autocomplete and value-help button. See <a href="https://ui5.sap.com/#/api/sap.m.ComboBox">sap.m.ComboBox</a>.
     "!
     "! @parameter selectedkey           | (string) Two-way bound selected key.
     "! @parameter showclearicon         | (boolean) Show a clear icon. Default: false. Since 1.96.
@@ -3174,7 +3174,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.MultiComboBox</p>
     "!
-    "! Dropdown with multi-select. See https://ui5.sap.com/#/api/sap.m.MultiComboBox.
+    "! Dropdown with multi-select. See <a href="https://ui5.sap.com/#/api/sap.m.MultiComboBox">sap.m.MultiComboBox</a>.
     "!
     "! @parameter selectionchange       | (event) Fired when the selection changes.
     "! @parameter selectedkeys          | (string[]) Two-way bound array of selected keys.
@@ -3234,7 +3234,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.layout.Grid</p>
     "!
-    "! 12-column grid layout. See https://ui5.sap.com/#/api/sap.ui.layout.Grid.
+    "! 12-column grid layout. See <a href="https://ui5.sap.com/#/api/sap.ui.layout.Grid">sap.ui.layout.Grid</a>.
     "!
     "! @parameter class          | (string) CSS class names.
     "! @parameter default_span   | (sap.ui.layout.GridSpan) Default span (e.g. `XL3 L4 M6 S12`). Default: XL3 L3 M6 S12.
@@ -3258,7 +3258,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.f.GridContainerSettings</p>
     "!
-    "! Layout for fixed-width box arrangement. See https://ui5.sap.com/#/api/sap.ui.layout.cssgrid.GridBoxLayout.
+    "! Layout for fixed-width box arrangement. See <a href="https://ui5.sap.com/#/api/sap.ui.layout.cssgrid.GridBoxLayout">sap.ui.layout.cssgrid.GridBoxLayout</a>.
     "!
     "! @parameter boxesperrowconfig | (sap.ui.layout.BoxesPerRowConfig) Boxes per row at each breakpoint, e.g. `XL7 L6 M4 S2`. Default: XL7 L6 M4 S2.
     "! @parameter boxminwidth       | (sap.ui.core.CSSSize) Minimum box width.
@@ -3273,7 +3273,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.layout.GridData</p>
     "!
-    "! Per-child grid layout data. See https://ui5.sap.com/#/api/sap.ui.layout.GridData.
+    "! Per-child grid layout data. See <a href="https://ui5.sap.com/#/api/sap.ui.layout.GridData">sap.ui.layout.GridData</a>.
     "!
     "! @parameter span      | (sap.ui.layout.GridSpan) Span string (e.g. `XL3 L4 M6 S12`).
     "! @parameter linebreak | (boolean) Force a line break before this child. Default: false.
@@ -3291,7 +3291,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.f.GridDropInfo</p>
     "!
-    "! Drag-and-drop configuration for grid layouts. See https://ui5.sap.com/#/api/sap.f.dnd.GridDropInfo.
+    "! Drag-and-drop configuration for grid layouts. See <a href="https://ui5.sap.com/#/api/sap.f.dnd.GridDropInfo">sap.f.dnd.GridDropInfo</a>.
     "!
     "! @parameter targetaggregation | (string) Name of the target aggregation.
     "! @parameter dropposition      | (sap.ui.core.dnd.DropPosition) On | Between | OnOrBetween. Default: On.
@@ -3312,7 +3312,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.f.GridList</p>
     "!
-    "! Grid-arranged list. See https://ui5.sap.com/#/api/sap.f.GridList.
+    "! Grid-arranged list. See <a href="https://ui5.sap.com/#/api/sap.f.GridList">sap.f.GridList</a>.
     "!
     "! @parameter busy                   | (boolean) Inherited busy state.
     "! @parameter busyindicatordelay     | (int) Inherited busy indicator delay in ms. Default: 1000.
@@ -3380,7 +3380,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.f.GridListItem</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.f.GridListItem. Inherits ListItemBase.
+    "! See <a href="https://ui5.sap.com/#/api/sap.f.GridListItem">sap.f.GridListItem</a>. Inherits ListItemBase.
     "!
     "! @parameter busy               | (boolean) Inherited busy state.
     "! @parameter busyindicatordelay | (int) Busy indicator delay in ms.
@@ -3421,7 +3421,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.TextArea</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.TextArea. Inherits sap.m.InputBase.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.TextArea">sap.m.TextArea</a>. Inherits sap.m.InputBase.
     "!
     "! @parameter value                 | (string) Two-way bound value.
     "! @parameter rows                  | (int) Number of visible rows. Default: 2.
@@ -3474,7 +3474,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.RangeSlider</p>
     "!
-    "! Slider with two thumbs for selecting a range. See https://ui5.sap.com/#/api/sap.m.RangeSlider.
+    "! Slider with two thumbs for selecting a range. See <a href="https://ui5.sap.com/#/api/sap.m.RangeSlider">sap.m.RangeSlider</a>.
     "!
     "! @parameter max           | (float) Maximum value. Default: 100.
     "! @parameter min           | (float) Minimum value. Default: 0.
@@ -3508,7 +3508,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.GenericTag</p>
     "!
-    "! Badge-style status tag. See https://ui5.sap.com/#/api/sap.m.GenericTag.
+    "! Badge-style status tag. See <a href="https://ui5.sap.com/#/api/sap.m.GenericTag">sap.m.GenericTag</a>.
     "!
     "! @parameter arialabelledby | (sap.ui.core.ID[]) Ids of labelling controls (ARIA).
     "! @parameter text           | (string) Tag text.
@@ -3532,7 +3532,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.ObjectAttribute</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.ObjectAttribute.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.ObjectAttribute">sap.m.ObjectAttribute</a>.
     "!
     "! @parameter title         | (string) Attribute title (label part).
     "! @parameter text          | (string) Attribute value text.
@@ -3555,7 +3555,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.ObjectNumber</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.ObjectNumber.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.ObjectNumber">sap.m.ObjectNumber</a>.
     "!
     "! @parameter state              | (sap.ui.core.ValueState) None | Success | Warning | Error | Information. Default: None.
     "! @parameter emphasized         | (boolean) Bold formatting. Default: true.
@@ -3589,7 +3589,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.Switch</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.Switch.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.Switch">sap.m.Switch</a>.
     "!
     "! @parameter state         | (boolean) On/off state. Default: false.
     "! @parameter customtexton  | (string) Custom "on" text (Standard type only).
@@ -3626,7 +3626,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.StepInput</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.StepInput.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.StepInput">sap.m.StepInput</a>.
     "!
     "! @parameter value                 | (float) Current value.
     "! @parameter min                   | (float) Minimum allowed value.
@@ -3668,7 +3668,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.ProgressIndicator</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.ProgressIndicator.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.ProgressIndicator">sap.m.ProgressIndicator</a>.
     "!
     "! @parameter class        | (string) CSS class names.
     "! @parameter percentvalue | (float) Percentage filled (0..100). Default: 0.
@@ -3689,7 +3689,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.SegmentedButton</p>
     "!
-    "! Group of mutually exclusive buttons. See https://ui5.sap.com/#/api/sap.m.SegmentedButton.
+    "! Group of mutually exclusive buttons. See <a href="https://ui5.sap.com/#/api/sap.m.SegmentedButton">sap.m.SegmentedButton</a>.
     "!
     "! @parameter selected_key     | (string) Two-way bound selected segment key.
     "! @parameter selection_change | (event) Fired when the selected segment changes.
@@ -3708,7 +3708,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.CheckBox</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.CheckBox.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.CheckBox">sap.m.CheckBox</a>.
     "!
     "! @parameter text              | (string) Label text.
     "! @parameter selected          | (boolean) Two-way bound checked state. Default: false.
@@ -3760,7 +3760,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.Toolbar</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.Toolbar.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.Toolbar">sap.m.Toolbar</a>.
     "!
     "! @parameter ns           | (string) XML namespace prefix.
     "! @parameter press        | (event) Fired when the toolbar is clicked (only when `active=true`).
@@ -3790,7 +3790,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.Text</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.Text.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.Text">sap.m.Text</a>.
     "!
     "! @parameter text               | (string) Text content.
     "! @parameter class              | (string) CSS class names.
@@ -3825,7 +3825,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.FormattedText</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.FormattedText.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.FormattedText">sap.m.FormattedText</a>.
     "!
     "! @parameter htmltext                    | (string) HTML markup (sanitised set of tags allowed).
     "! @parameter convertedlinksdefaulttarget | (string) Default target for converted links. Default: `_blank`.
@@ -3888,7 +3888,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.table.TreeTable</p>
     "!
-    "! Tree-style grid table. See https://ui5.sap.com/#/api/sap.ui.table.TreeTable. Inherits sap.ui.table.Table.
+    "! Tree-style grid table. See <a href="https://ui5.sap.com/#/api/sap.ui.table.TreeTable">sap.ui.table.TreeTable</a>. Inherits sap.ui.table.Table.
     "!
     "! @parameter rows                   | (binding path) Aggregation of rows.
     "! @parameter selectionmode          | (sap.ui.table.SelectionMode) None | Single | MultiToggle. `Multi` deprecated since 1.38.
@@ -3967,7 +3967,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.table.Column</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.table.Column.
+    "! See <a href="https://ui5.sap.com/#/api/sap.ui.table.Column">sap.ui.table.Column</a>.
     "!
     "! @parameter label    | (string) Header label.
     "! @parameter template | (string) Cell template (column content control).
@@ -3993,7 +3993,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! <p class="shorttext synchronized" lang="en">sap.ui.comp.filterbar.FilterBar</p>
     "!
     "! Filter bar with variant management. Used together with SmartTable / SmartFilterBar.
-    "! See https://ui5.sap.com/#/api/sap.ui.comp.filterbar.FilterBar.
+    "! See <a href="https://ui5.sap.com/#/api/sap.ui.comp.filterbar.FilterBar">sap.ui.comp.filterbar.FilterBar</a>.
     "!
     "! @parameter usetoolbar                   | (boolean) Render the toolbar in the bar's title area. Default: false.
     "! @parameter search                       | (event) Fired when the search button is pressed.
@@ -4072,7 +4072,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.comp.filterbar.FilterGroupItem</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.comp.filterbar.FilterGroupItem.
+    "! See <a href="https://ui5.sap.com/#/api/sap.ui.comp.filterbar.FilterGroupItem">sap.ui.comp.filterbar.FilterGroupItem</a>.
     "!
     "! @parameter name               | (string) Filter property name.
     "! @parameter label              | (string) Filter label.
@@ -4112,7 +4112,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.f.FlexibleColumnLayout</p>
     "!
-    "! Flexible 1/2/3-column layout. See https://ui5.sap.com/#/api/sap.f.FlexibleColumnLayout.
+    "! Flexible 1/2/3-column layout. See <a href="https://ui5.sap.com/#/api/sap.f.FlexibleColumnLayout">sap.f.FlexibleColumnLayout</a>.
     "!
     "! @parameter layout                        | (sap.f.LayoutType) OneColumn | TwoColumnsBeginExpanded | TwoColumnsMidExpanded | MidColumnFullScreen | EndColumnFullScreen | ThreeColumnsMidExpanded | ThreeColumnsEndExpanded | ThreeColumnsMidExpandedEndHidden | ThreeColumnsBeginExpandedEndHidden. Default: OneColumn.
     "! @parameter backgrounddesign              | (sap.m.BackgroundDesign) Solid | Translucent | Transparent. Default: Transparent.
@@ -4171,7 +4171,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.table.Table</p>
     "!
-    "! Grid (non-responsive) table. See https://ui5.sap.com/#/api/sap.ui.table.Table. Renders as `<t:Table>` in XML views.
+    "! Grid (non-responsive) table. See <a href="https://ui5.sap.com/#/api/sap.ui.table.Table">sap.ui.table.Table</a>. Renders as `<t:Table>` in XML views.
     "!
     "! @parameter rows                     | (binding path) Aggregation of rows.
     "! @parameter columnheadervisible      | (boolean) Show column headers. Default: true.
@@ -4242,7 +4242,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.table.Column</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.table.Column.
+    "! See <a href="https://ui5.sap.com/#/api/sap.ui.table.Column">sap.ui.table.Column</a>.
     "!
     "! @parameter width                 | (sap.ui.core.CSSSize) Column width. Default: auto.
     "! @parameter showsortmenuentry     | (boolean) Show "Sort" entry in column menu. Default: true.
@@ -4297,7 +4297,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.unified.Currency</p>
     "!
-    "! Renders amount and currency aligned for tables. See https://ui5.sap.com/#/api/sap.ui.unified.Currency.
+    "! Renders amount and currency aligned for tables. See <a href="https://ui5.sap.com/#/api/sap.ui.unified.Currency">sap.ui.unified.Currency</a>.
     "!
     "! @parameter value        | (float) Amount value.
     "! @parameter currency     | (string) ISO currency code (e.g. `EUR`).
@@ -4326,7 +4326,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.table.RowActionItem</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.table.RowActionItem.
+    "! See <a href="https://ui5.sap.com/#/api/sap.ui.table.RowActionItem">sap.ui.table.RowActionItem</a>.
     "!
     "! @parameter icon    | (sap.ui.core.URI) Icon URI.
     "! @parameter text    | (string) Action text.
@@ -4345,7 +4345,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.RadioButton</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.RadioButton.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.RadioButton">sap.m.RadioButton</a>.
     "!
     "! @parameter activehandling | (boolean) Apply pressed-state styling. Default: true.
     "! @parameter editable       | (boolean) Whether editable. Default: true.
@@ -4381,7 +4381,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.RadioButtonGroup</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.RadioButtonGroup.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.RadioButtonGroup">sap.m.RadioButtonGroup</a>.
     "!
     "! @parameter columns       | (int) Number of columns. Default: 1.
     "! @parameter editable      | (boolean) Whether editable. Default: true.
@@ -4409,7 +4409,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.layout.DynamicSideContent</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.layout.DynamicSideContent.
+    "! See <a href="https://ui5.sap.com/#/api/sap.ui.layout.DynamicSideContent">sap.ui.layout.DynamicSideContent</a>.
     "!
     "! @parameter class                 | (string) CSS class names.
     "! @parameter sidecontentvisibility | (sap.ui.layout.SideContentVisibility) AlwaysShow | ShowAboveL | ShowAboveM | ShowAboveS | NeverShow. Default: ShowAboveS.
@@ -4437,7 +4437,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.PlanningCalendar</p>
     "!
-    "! Multi-row planning calendar (Gantt-style). See https://ui5.sap.com/#/api/sap.m.PlanningCalendar.
+    "! Multi-row planning calendar (Gantt-style). See <a href="https://ui5.sap.com/#/api/sap.m.PlanningCalendar">sap.m.PlanningCalendar</a>.
     "!
     "! @parameter rows                          | (binding path) Aggregation of `PlanningCalendarRow`.
     "! @parameter class                         | (string) CSS class names.
@@ -4516,7 +4516,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.PlanningCalendarView</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.PlanningCalendarView.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.PlanningCalendarView">sap.m.PlanningCalendarView</a>.
     "!
     "! @parameter appointmentheight      | (sap.ui.unified.CalendarAppointmentHeight) HalfSize | Regular | Large | Automatic.
     "! @parameter description            | (string) Visible description.
@@ -4547,7 +4547,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.PlanningCalendarRow</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.PlanningCalendarRow.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.PlanningCalendarRow">sap.m.PlanningCalendarRow</a>.
     "!
     "! @parameter appointments                  | (binding path) Aggregation of appointments.
     "! @parameter intervalheaders               | (binding path) Aggregation of interval header appointments.
@@ -4596,7 +4596,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.PlanningCalendarLegend</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.PlanningCalendarLegend.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.PlanningCalendarLegend">sap.m.PlanningCalendarLegend</a>.
     "!
     "! @parameter items            | (binding path) Inherited `items` aggregation (regular calendar items).
     "! @parameter appointmentitems | (binding path) Aggregation of appointment legend items.
@@ -4617,7 +4617,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.unified.CalendarLegendItem</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.unified.CalendarLegendItem.
+    "! See <a href="https://ui5.sap.com/#/api/sap.ui.unified.CalendarLegendItem">sap.ui.unified.CalendarLegendItem</a>.
     "!
     "! @parameter text    | (string) Item text.
     "! @parameter type    | (sap.ui.unified.CalendarDayType) None | NonWorking | Type01..Type20. Default: None.
@@ -4640,7 +4640,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.tnt.InfoLabel</p>
     "!
-    "! Coloured status label / chip with numeric or icon variants. See https://ui5.sap.com/#/api/sap.tnt.InfoLabel.
+    "! Coloured status label / chip with numeric or icon variants. See <a href="https://ui5.sap.com/#/api/sap.tnt.InfoLabel">sap.tnt.InfoLabel</a>.
     "!
     "! @parameter text          | (string) Label text.
     "! @parameter rendermode    | (sap.tnt.RenderMode) Loose | Narrow. Default: Loose.
@@ -4679,7 +4679,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.unified.CalendarAppointment</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.unified.CalendarAppointment.
+    "! See <a href="https://ui5.sap.com/#/api/sap.ui.unified.CalendarAppointment">sap.ui.unified.CalendarAppointment</a>.
     "!
     "! @parameter startdate | (object) Start date.
     "! @parameter enddate   | (object) End date.
@@ -4712,7 +4712,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.layout.BlockLayout</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.layout.BlockLayout.
+    "! See <a href="https://ui5.sap.com/#/api/sap.ui.layout.BlockLayout">sap.ui.layout.BlockLayout</a>.
     "!
     "! @parameter background | (sap.ui.layout.BlockBackgroundType) Default | Light | ColorMix | Dashboard | Accent. `Mixed` is deprecated since 1.50. Default: Default.
     METHODS block_layout
@@ -4724,7 +4724,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.layout.BlockLayoutRow</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.layout.BlockLayoutRow.
+    "! See <a href="https://ui5.sap.com/#/api/sap.ui.layout.BlockLayoutRow">sap.ui.layout.BlockLayoutRow</a>.
     "!
     "! @parameter rowcolorset | (sap.ui.layout.BlockRowColorSets) ColorSet1..ColorSet11. Default: ColorSet1.
     METHODS block_layout_row
@@ -4736,7 +4736,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.layout.BlockLayoutCell</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.layout.BlockLayoutCell.
+    "! See <a href="https://ui5.sap.com/#/api/sap.ui.layout.BlockLayoutCell">sap.ui.layout.BlockLayoutCell</a>.
     "!
     "! @parameter backgroundcolorset   | (sap.ui.layout.BlockLayoutCellColorSet) ColorSet1..ColorSet11.
     "! @parameter backgroundcolorshade | (sap.ui.layout.BlockLayoutCellColorShade) ShadeA | ShadeB | ShadeC | ShadeD. Default: ShadeA.
@@ -4760,7 +4760,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.ObjectIdentifier</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.ObjectIdentifier.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.ObjectIdentifier">sap.m.ObjectIdentifier</a>.
     "!
     "! @parameter emptyindicatormode | (sap.m.EmptyIndicatorMode) On | Off | Auto. Default: Off. Since 1.89.
     "! @parameter text               | (string) Description text.
@@ -4783,7 +4783,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.ObjectStatus</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.ObjectStatus.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.ObjectStatus">sap.m.ObjectStatus</a>.
     "!
     "! @parameter active                | (boolean) Render as a clickable link. Default: false.
     "! @parameter emptyindicatormode    | (sap.m.EmptyIndicatorMode) On | Off | Auto. Default: Off. Since 1.89.
@@ -4819,7 +4819,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.Tree</p>
     "!
-    "! Hierarchical list. See https://ui5.sap.com/#/api/sap.m.Tree.
+    "! Hierarchical list. See <a href="https://ui5.sap.com/#/api/sap.m.Tree">sap.m.Tree</a>.
     "!
     "! @parameter items                  | (binding path) Aggregation of `sap.m.StandardTreeItem` (or custom item).
     "! @parameter headertext             | (string, ListBase) Header text.
@@ -4860,7 +4860,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.StandardTreeItem</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.StandardTreeItem.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.StandardTreeItem">sap.m.StandardTreeItem</a>.
     "!
     "! @parameter title       | (string) Item title.
     "! @parameter icon        | (sap.ui.core.URI) Icon URI.
@@ -4885,7 +4885,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.IconTabBar</p>
     "!
-    "! Tab bar where tabs can show icons. See https://ui5.sap.com/#/api/sap.m.IconTabBar.
+    "! Tab bar where tabs can show icons. See <a href="https://ui5.sap.com/#/api/sap.m.IconTabBar">sap.m.IconTabBar</a>.
     "!
     "! @parameter class                  | (string) CSS class names.
     "! @parameter select                 | (event) Fired when a tab is selected.
@@ -4931,7 +4931,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.IconTabFilter</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.IconTabFilter.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.IconTabFilter">sap.m.IconTabFilter</a>.
     "!
     "! @parameter items            | (binding path) Aggregation of nested filters / sub-tabs.
     "! @parameter showall          | (boolean) Show "All" tab. Default: false.
@@ -4965,7 +4965,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.IconTabSeparator</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.IconTabSeparator.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.IconTabSeparator">sap.m.IconTabSeparator</a>.
     "!
     "! @parameter icon             | (sap.ui.core.URI) Optional separator icon.
     "! @parameter icondensityaware | (boolean) Density-aware icon. Default: true.
@@ -4988,14 +4988,14 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.gantt.GanttChartContainer</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.gantt.GanttChartContainer.
+    "! See <a href="https://ui5.sap.com/#/api/sap.gantt.GanttChartContainer">sap.gantt.GanttChartContainer</a>.
     METHODS gantt_chart_container
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.gantt.config.ContainerToolbar</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.gantt.config.ContainerToolbar.
+    "! See <a href="https://ui5.sap.com/#/api/sap.gantt.config.ContainerToolbar">sap.gantt.config.ContainerToolbar</a>.
     "!
     "! @parameter showsearchbutton          | (boolean) Show search button. Default: true.
     "! @parameter aligncustomcontenttoright | (boolean) Align custom toolbar content to right. Default: false.
@@ -5030,7 +5030,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.gantt.simple.GanttChartWithTable</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.gantt.simple.GanttChartWithTable.
+    "! See <a href="https://ui5.sap.com/#/api/sap.gantt.simple.GanttChartWithTable">sap.gantt.simple.GanttChartWithTable</a>.
     "!
     "! @parameter shapeselectionmode        | (sap.gantt.SelectionMode) None | Single | MultiWithKeyboard | Multiple. Default: Multiple.
     "! @parameter isconnectordetailsvisible | (boolean) Show connector details. Default: false.
@@ -5136,7 +5136,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.RatingIndicator</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.RatingIndicator.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.RatingIndicator">sap.m.RatingIndicator</a>.
     "!
     "! @parameter maxvalue    | (int) Maximum rating value. Default: 5.
     "! @parameter enabled     | (boolean) Whether the rating is enabled. Default: true.
@@ -5169,7 +5169,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.gantt.simple.BaseRectangle</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.gantt.simple.BaseRectangle.
+    "! See <a href="https://ui5.sap.com/#/api/sap.gantt.simple.BaseRectangle">sap.gantt.simple.BaseRectangle</a>.
     "!
     "! @parameter time                    | (string) Start timestamp.
     "! @parameter shapeid                 | (string) Shape id.
@@ -5226,21 +5226,21 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.tnt.ToolPage</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.tnt.ToolPage. Children: header (`tool_header`), sideContent, mainContents.
+    "! See <a href="https://ui5.sap.com/#/api/sap.tnt.ToolPage">sap.tnt.ToolPage</a>. Children: header (`tool_header`), sideContent, mainContents.
     METHODS tool_page
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.tnt.ToolHeader</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.tnt.ToolHeader.
+    "! See <a href="https://ui5.sap.com/#/api/sap.tnt.ToolHeader">sap.tnt.ToolHeader</a>.
     METHODS tool_header
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.IconTabHeader</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.IconTabHeader.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.IconTabHeader">sap.m.IconTabHeader</a>.
     "!
     "! @parameter selectedkey         | (string) Two-way bound selected tab key.
     "! @parameter items               | (binding path) Aggregation of `IconTabFilter` / `IconTabSeparator`.
@@ -5272,7 +5272,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.NavContainer</p>
     "!
-    "! Container that switches between pages with transitions. See https://ui5.sap.com/#/api/sap.m.NavContainer.
+    "! Container that switches between pages with transitions. See <a href="https://ui5.sap.com/#/api/sap.m.NavContainer">sap.m.NavContainer</a>.
     "!
     "! @parameter initialpage           | (sap.ui.core.ID) Id of the page initially shown.
     "! @parameter defaulttransitionname | (string) Default transition: slide | fade | flip | show. Default: slide.
@@ -5304,7 +5304,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.TableSelectDialog</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.TableSelectDialog.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.TableSelectDialog">sap.m.TableSelectDialog</a>.
     "!
     "! @parameter confirmbuttontext  | (string) Custom OK button text.
     "! @parameter contentheight      | (sap.ui.core.CSSSize) Content area height.
@@ -5355,7 +5355,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.networkgraph.Graph</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.networkgraph.Graph (legacy: sap.suite.ui.commons.ProcessFlow).
+    "! See <a href="https://ui5.sap.com/#/api/sap.suite.ui.commons.networkgraph.Graph">sap.suite.ui.commons.networkgraph.Graph</a> (legacy: sap.suite.ui.commons.ProcessFlow).
     "!
     "! @parameter foldedcorners | (boolean) Render folded corners on nodes. Default: false.
     "! @parameter scrollable    | (boolean) Allow scrolling. Default: true.
@@ -5396,7 +5396,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.networkgraph.Node</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.networkgraph.Node.
+    "! See <a href="https://ui5.sap.com/#/api/sap.suite.ui.commons.networkgraph.Node">sap.suite.ui.commons.networkgraph.Node</a>.
     "!
     "! @parameter alttext               | (string) Alternative text for screen readers.
     "! @parameter collapsed             | (boolean) Collapsed state. Default: false.
@@ -5539,7 +5539,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.ViewSettingsDialog</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.ViewSettingsDialog.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.ViewSettingsDialog">sap.m.ViewSettingsDialog</a>.
     "!
     "! @parameter confirm                  | (event) Fired when OK is pressed. Provides selected sort / group / filter settings.
     "! @parameter cancel                   | (event) Fired when the user cancels the dialog.
@@ -5631,7 +5631,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.comp.variants.VariantManagement</p>
     "!
-    "! Variant management for smart controls. See https://ui5.sap.com/#/api/sap.ui.comp.variants.VariantManagement.
+    "! Variant management for smart controls. See <a href="https://ui5.sap.com/#/api/sap.ui.comp.variants.VariantManagement">sap.ui.comp.variants.VariantManagement</a>.
     "! For modern SmartFilterBar/SmartTable use `variant_management_sapm` (sap.ui.fl.variants.VariantManagement) or `smart_variant_management` instead.
     "!
     "! @parameter defaultvariantkey      | (string) Key of the default variant.
@@ -5738,7 +5738,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.VariantManagement</p>
     "!
-    "! Modern variant management. See https://ui5.sap.com/#/api/sap.m.VariantManagement.
+    "! Modern variant management. See <a href="https://ui5.sap.com/#/api/sap.m.VariantManagement">sap.m.VariantManagement</a>.
     "!
     "! @parameter creationallowed           | (boolean) Allow creating new variants. Default: true.
     "! @parameter defaultkey                | (string) Key of the default variant.
@@ -5830,7 +5830,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.FeedInput</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.FeedInput.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.FeedInput">sap.m.FeedInput</a>.
     "!
     "! @parameter buttontooltip    | (string) Tooltip for the post button.
     "! @parameter enabled          | (boolean) Whether enabled. Default: true.
@@ -5873,7 +5873,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.FeedListItem</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.FeedListItem.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.FeedListItem">sap.m.FeedListItem</a>.
     "!
     "! @parameter activeicon                  | (sap.ui.core.URI) Icon shown while pressed.
     "! @parameter convertedlinksdefaulttarget | (string) Default target for auto-converted links. Default: _blank.
@@ -5971,7 +5971,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.unified.ColorPicker</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.unified.ColorPicker.
+    "! See <a href="https://ui5.sap.com/#/api/sap.ui.unified.ColorPicker">sap.ui.unified.ColorPicker</a>.
     "!
     "! @parameter colorstring | (sap.ui.core.CSSColor) Two-way bound colour string. Required.
     "! @parameter displaymode | (sap.ui.unified.ColorPickerDisplayMode) Default | Large | Simplified. Default: Default.
@@ -5988,7 +5988,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.MaskInput</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.MaskInput.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.MaskInput">sap.m.MaskInput</a>.
     "!
     "! @parameter placeholder           | (string) Placeholder shown while empty.
     "! @parameter mask                  | (string) Mask pattern (e.g. `9999-99-99`).
@@ -6031,7 +6031,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.layout.ResponsiveSplitter</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.layout.ResponsiveSplitter.
+    "! See <a href="https://ui5.sap.com/#/api/sap.ui.layout.ResponsiveSplitter">sap.ui.layout.ResponsiveSplitter</a>.
     "!
     "! @parameter defaultpane | (sap.ui.core.ID) Id of the default pane.
     "! @parameter height      | (sap.ui.core.CSSSize) Height. Default: 100%.
@@ -6046,7 +6046,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.layout.Splitter</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.layout.Splitter.
+    "! See <a href="https://ui5.sap.com/#/api/sap.ui.layout.Splitter">sap.ui.layout.Splitter</a>.
     "!
     "! @parameter height      | (sap.ui.core.CSSSize) Height. Default: 100%.
     "! @parameter orientation | (sap.ui.core.Orientation) Horizontal | Vertical. Default: Horizontal.
@@ -6073,7 +6073,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.layout.FixFlex</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.layout.FixFlex.
+    "! See <a href="https://ui5.sap.com/#/api/sap.ui.layout.FixFlex">sap.ui.layout.FixFlex</a>.
     "!
     "! @parameter ns             | (string) XML namespace prefix.
     "! @parameter class          | (string) CSS class names.
@@ -6154,7 +6154,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.ObjectHeader</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.ObjectHeader.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.ObjectHeader">sap.m.ObjectHeader</a>.
     "!
     "! @parameter backgrounddesign     | (sap.m.BackgroundDesign) Solid | Translucent | Transparent. Default: Transparent.
     "! @parameter condensed            | (boolean) Condensed rendering. Default: false.
@@ -6231,7 +6231,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.HeaderContainer</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.HeaderContainer.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.HeaderContainer">sap.m.HeaderContainer</a>.
     "!
     "! @parameter scrollstep  | (int) Pixels scrolled per arrow click.
     "! @parameter scrolltime  | (int) Scroll animation duration in ms. Default: 500.
@@ -6321,7 +6321,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.ObjectMarker</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.ObjectMarker.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.ObjectMarker">sap.m.ObjectMarker</a>.
     "!
     "! @parameter additionalinfo | (string) Additional accessibility info.
     "! @parameter type           | (sap.m.ObjectMarkerType) Flagged | Favorite | Draft | Locked | LockedBy | Unsaved | UnsavedBy.
@@ -6340,7 +6340,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.ObjectListItem</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.ObjectListItem.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.ObjectListItem">sap.m.ObjectListItem</a>.
     "!
     "! @parameter activeicon          | (sap.ui.core.URI) Icon shown while pressed.
     "! @parameter icon                | (sap.ui.core.URI) Icon URI.
@@ -6382,7 +6382,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.LightBox</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.LightBox.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.LightBox">sap.m.LightBox</a>.
     "!
     "! @parameter visible | (boolean) Whether the lightbox is visible. Default: true.
     METHODS light_box
@@ -6410,7 +6410,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.LineMicroChart</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.suite.ui.microchart.LineMicroChart.
+    "! See <a href="https://ui5.sap.com/#/api/sap.suite.ui.microchart.LineMicroChart">sap.suite.ui.microchart.LineMicroChart</a>.
     "! Common micro-chart properties: `size` (sap.m.Size: S | M | L | Auto | Responsive), `hideOnNoData`, `press` event.
     "!
     "! @parameter color                 | (sap.m.ValueCSSColor) Default line colour: Good | Error | Critical | Neutral or CSS colour.
@@ -6773,7 +6773,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.richtexteditor.RichTextEditor</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.richtexteditor.RichTextEditor.
+    "! See <a href="https://ui5.sap.com/#/api/sap.ui.richtexteditor.RichTextEditor">sap.ui.richtexteditor.RichTextEditor</a>.
     "!
     "! @parameter buttongroups       | (object[]) Custom toolbar button groups.
     "! @parameter customtoolbar      | (boolean) Whether to render a custom toolbar. Default: false.
@@ -6832,7 +6832,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.Slider</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.Slider.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.Slider">sap.m.Slider</a>.
     "!
     "! @parameter max                 | (float) Maximum value. Default: 100.
     "! @parameter min                 | (float) Minimum value. Default: 0.
@@ -6868,7 +6868,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.upload.UploadSet</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.upload.UploadSet.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.upload.UploadSet">sap.m.upload.UploadSet</a>.
     "!
     "! @parameter instantupload          | (boolean) Upload as soon as a file is selected. Default: true.
     "! @parameter showicons              | (boolean) Show file-type icons. Default: true.
@@ -7017,7 +7017,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.f.SidePanel</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.f.SidePanel.
+    "! See <a href="https://ui5.sap.com/#/api/sap.f.SidePanel">sap.f.SidePanel</a>.
     "!
     "! @parameter actionbarexpanded         | (boolean) Initial action bar state. Default: false.
     "! @parameter arialabel                 | (string) ARIA label.
@@ -7066,7 +7066,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.QuickView</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.QuickView.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.QuickView">sap.m.QuickView</a>.
     "!
     "! @parameter placement   | (sap.m.PlacementType) Auto | Top | Bottom | Left | Right (etc.). Default: Right.
     "! @parameter width       | (sap.ui.core.CSSSize) Popover width. Default: 320px.
@@ -7143,7 +7143,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.DateRangeSelection</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.DateRangeSelection. All DatePicker properties apply.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.DateRangeSelection">sap.m.DateRangeSelection</a>. All DatePicker properties apply.
     "!
     "! @parameter value                   | (string) Two-way bound formatted value.
     "! @parameter delimiter               | (string) Range delimiter. Default: ` - `.
@@ -7210,7 +7210,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.fl.variants.VariantManagement</p>
     "!
-    "! Variant management provided by SAPUI5 flexibility services. See https://ui5.sap.com/#/api/sap.ui.fl.variants.VariantManagement.
+    "! Variant management provided by SAPUI5 flexibility services. See <a href="https://ui5.sap.com/#/api/sap.ui.fl.variants.VariantManagement">sap.ui.fl.variants.VariantManagement</a>.
     "!
     "! @parameter displaytextfsv                | (string) Custom standard variant text.
     "! @parameter editable                      | (boolean) Whether the control is editable. Default: true.
@@ -7269,7 +7269,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.comp.smartvariants.SmartVariantManagement</p>
     "!
-    "! Variant management for smart controls. See https://ui5.sap.com/#/api/sap.ui.comp.smartvariants.SmartVariantManagement.
+    "! Variant management for smart controls. See <a href="https://ui5.sap.com/#/api/sap.ui.comp.smartvariants.SmartVariantManagement">sap.ui.comp.smartvariants.SmartVariantManagement</a>.
     "!
     "! @parameter showexecuteonselection | (boolean) Show "Apply Automatically" option. Default: false.
     "! @parameter persistencykey         | (string) Key under which variants are persisted.
@@ -7284,7 +7284,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! <p class="shorttext synchronized" lang="en">sap.ui.comp.smartfilterbar.SmartFilterBar</p>
     "!
     "! Smart filter bar with auto-generated controls based on OData metadata.
-    "! See https://ui5.sap.com/#/api/sap.ui.comp.smartfilterbar.SmartFilterBar.
+    "! See <a href="https://ui5.sap.com/#/api/sap.ui.comp.smartfilterbar.SmartFilterBar">sap.ui.comp.smartfilterbar.SmartFilterBar</a>.
     "!
     "! @parameter persistencykey | (string) Key for storing user variants.
     "! @parameter entityset      | (string) OData entity set.
@@ -7298,7 +7298,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.comp.smartfilterbar.ControlConfiguration</p>
     "!
-    "! Per-field configuration for SmartFilterBar. See https://ui5.sap.com/#/api/sap.ui.comp.smartfilterbar.ControlConfiguration.
+    "! Per-field configuration for SmartFilterBar. See <a href="https://ui5.sap.com/#/api/sap.ui.comp.smartfilterbar.ControlConfiguration">sap.ui.comp.smartfilterbar.ControlConfiguration</a>.
     "!
     "! @parameter previnitdatafetchinvalhelpdia | (boolean) Prevent initial data fetch in value-help dialog. Default: false.
     "! @parameter visibleinadvancedarea         | (boolean) Show in the advanced area. Default: false.
@@ -7319,7 +7319,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.comp.smarttable.SmartTable</p>
     "!
-    "! Smart table that auto-creates columns from OData metadata. See https://ui5.sap.com/#/api/sap.ui.comp.smarttable.SmartTable.
+    "! Smart table that auto-creates columns from OData metadata. See <a href="https://ui5.sap.com/#/api/sap.ui.comp.smarttable.SmartTable">sap.ui.comp.smarttable.SmartTable</a>.
     "!
     "! @parameter smartfilterid           | (sap.ui.core.ID) Id of an associated SmartFilterBar.
     "! @parameter tabletype               | (sap.ui.comp.smarttable.TableType) ResponsiveTable | Table | TreeTable | AnalyticalTable. Default: ResponsiveTable.
@@ -7373,7 +7373,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.Timeline</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.Timeline.
+    "! See <a href="https://ui5.sap.com/#/api/sap.suite.ui.commons.Timeline">sap.suite.ui.commons.Timeline</a>.
     "!
     "! @parameter enabledoublesided | (boolean) Render entries on both sides of the axis. Default: false.
     "! @parameter groupby           | (string) Property used for automatic grouping.
@@ -7489,7 +7489,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.SplitContainer</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.SplitContainer.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.SplitContainer">sap.m.SplitContainer</a>.
     "!
     "! @parameter initialdetail               | (sap.ui.core.ID) Id of the initially shown detail page.
     "! @parameter initialmaster               | (sap.ui.core.ID) Id of the initially shown master page.
@@ -7635,7 +7635,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.ActionSheet</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.ActionSheet.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.ActionSheet">sap.m.ActionSheet</a>.
     "!
     "! @parameter cancelbuttontext  | (string) Custom cancel button text.
     "! @parameter placement         | (sap.m.PlacementType) Top | Bottom | Vertical | Auto | Right | Left | Horizontal. Default: Bottom.
@@ -7667,7 +7667,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.ExpandableText</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.ExpandableText. Since 1.87.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.ExpandableText">sap.m.ExpandableText</a>. Since 1.87.
     "!
     "! @parameter emptyindicatormode | (sap.m.EmptyIndicatorMode) On | Off | Auto. Default: Off.
     "! @parameter maxcharacters      | (int) Character limit before "show more". Default: 100.
@@ -7697,7 +7697,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.Select</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.Select.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.Select">sap.m.Select</a>.
     "!
     "! @parameter autoadjustwidth     | (boolean) Adjust width based on selected text. Default: false.
     "! @parameter columnratio         | (string) Column-ratio for IconOnly types (e.g. `3:5`).
@@ -7764,7 +7764,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.HeaderContainer</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.HeaderContainer.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.HeaderContainer">sap.m.HeaderContainer</a>.
     "!
     "! @parameter backgrounddesign | (sap.m.BackgroundDesign) Solid | Translucent | Transparent. Default: Solid.
     "! @parameter gridlayout       | (boolean) Use grid layout. Default: false. Since 1.99.
@@ -7809,7 +7809,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.f.Card</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.f.Card.
+    "! See <a href="https://ui5.sap.com/#/api/sap.f.Card">sap.f.Card</a>.
     "!
     "! @parameter headerposition | (sap.f.cards.HeaderPosition) Top | Bottom. Default: Top.
     "! @parameter height         | (sap.ui.core.CSSSize) Card height.
@@ -7869,7 +7869,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.f.cards.NumericHeader</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.f.cards.NumericHeader.
+    "! See <a href="https://ui5.sap.com/#/api/sap.f.cards.NumericHeader">sap.f.cards.NumericHeader</a>.
     "!
     "! @parameter visible                 | (boolean) Whether visible. Default: true.
     "! @parameter datatimestamp           | (string) Last data update timestamp.
@@ -7952,7 +7952,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.SlideTile</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.SlideTile.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.SlideTile">sap.m.SlideTile</a>.
     "!
     "! @parameter displaytime    | (int) Display time per tile in ms. Default: 5000.
     "! @parameter height         | (sap.ui.core.CSSSize) Height.
@@ -7982,7 +7982,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.BusyIndicator</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.BusyIndicator.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.BusyIndicator">sap.m.BusyIndicator</a>.
     "!
     "! @parameter customicon              | (sap.ui.core.URI) Custom icon URI.
     "! @parameter customiconheight        | (sap.ui.core.CSSSize) Custom icon height. Default: 44px.
@@ -8029,7 +8029,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.FacetFilter</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.FacetFilter.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.FacetFilter">sap.m.FacetFilter</a>.
     "!
     "! @parameter livesearch          | (boolean) Live search inside facet popovers. Default: true.
     "! @parameter showpersonalization | (boolean) Show personalisation button. Default: false.
@@ -8060,7 +8060,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.FacetFilterList</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.FacetFilterList. Inherits sap.m.List.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.FacetFilterList">sap.m.FacetFilterList</a>. Inherits sap.m.List.
     "!
     "! @parameter active                      | (boolean) Whether the list is active. Default: true.
     "! @parameter allcount                    | (int) Total number of items including not currently loaded.
@@ -8188,7 +8188,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.DraftIndicator</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.DraftIndicator.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.DraftIndicator">sap.m.DraftIndicator</a>.
     "!
     "! @parameter mindisplaytime | (int) Minimum display time in ms. Default: 1500.
     "! @parameter state          | (sap.m.DraftIndicatorState) Clear | Saving | Saved. Default: Clear.
@@ -8284,7 +8284,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.NotificationList</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.NotificationList. Inherits sap.m.List.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.NotificationList">sap.m.NotificationList</a>. Inherits sap.m.List.
     "!
     "! @parameter footertext             | (string) Footer text.
     "! @parameter growing                | (boolean) Enable growing. Default: false.
@@ -8361,7 +8361,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.NotificationListGroup</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.NotificationListGroup.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.NotificationListGroup">sap.m.NotificationListGroup</a>.
     "!
     "! @parameter autopriority                  | (boolean) Auto-derive priority from items. Default: true.
     "! @parameter collapsed                     | (boolean) Whether the group is collapsed. Default: false.
@@ -8406,7 +8406,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.NotificationListItem</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.NotificationListItem.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.NotificationListItem">sap.m.NotificationListItem</a>.
     "!
     "! @parameter visible            | (boolean) Whether visible. Default: true.
     "! @parameter authoravatarcolor  | (sap.m.AvatarColor) Avatar background colour. Default: Accent6.
@@ -8463,7 +8463,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.Wizard</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.Wizard.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.Wizard">sap.m.Wizard</a>.
     "!
     "! @parameter backgrounddesign   | (sap.m.PageBackgroundDesign) Standard | Solid | Transparent | List. Default: Standard.
     "! @parameter busy               | (boolean) Busy state. Default: false.
@@ -8506,7 +8506,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.WizardStep</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.WizardStep.
+    "! See <a href="https://ui5.sap.com/#/api/sap.m.WizardStep">sap.m.WizardStep</a>.
     "!
     "! @parameter busy               | (boolean) Busy state. Default: false.
     "! @parameter busyindicatordelay | (int) Busy indicator delay in ms. Default: 1000.
@@ -8711,7 +8711,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.networkgraph.Graph</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.networkgraph.Graph.
+    "! See <a href="https://ui5.sap.com/#/api/sap.suite.ui.commons.networkgraph.Graph">sap.suite.ui.commons.networkgraph.Graph</a>.
     "!
     "! @parameter layout          | (string) Layout algorithm aggregation - use one of the layout builder methods.
     "! @parameter height          | (sap.ui.core.CSSSize) Height. Default: 100%.
@@ -9135,7 +9135,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.MicroProcessFlow</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.MicroProcessFlow.
+    "! See <a href="https://ui5.sap.com/#/api/sap.suite.ui.commons.MicroProcessFlow">sap.suite.ui.commons.MicroProcessFlow</a>.
     "!
     "! @parameter arialabel  | (string) ARIA label.
     "! @parameter width      | (sap.ui.core.CSSSize) Width.
@@ -9198,7 +9198,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.statusindicator.StatusIndicator</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.statusindicator.StatusIndicator.
+    "! See <a href="https://ui5.sap.com/#/api/sap.suite.ui.commons.statusindicator.StatusIndicator">sap.suite.ui.commons.statusindicator.StatusIndicator</a>.
     "!
     "! @parameter height        | (sap.ui.core.CSSSize) Height.
     "! @parameter labelposition | (sap.suite.ui.commons.statusindicator.LabelPositionType) Top | Right | Bottom | Left | None. Default: Right.
@@ -9321,7 +9321,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.tnt.SideNavigation</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.tnt.SideNavigation.
+    "! See <a href="https://ui5.sap.com/#/api/sap.tnt.SideNavigation">sap.tnt.SideNavigation</a>.
     "!
     "! @parameter selectedkey | (string) Two-way bound selected item key.
     METHODS side_navigation
@@ -9334,7 +9334,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.tnt.NavigationList</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.tnt.NavigationList.
+    "! See <a href="https://ui5.sap.com/#/api/sap.tnt.NavigationList">sap.tnt.NavigationList</a>.
     METHODS navigation_list
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -9363,7 +9363,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.viz.ui5.controls.VizFrame</p>
     "!
-    "! Modern charting frame. See https://ui5.sap.com/#/api/sap.viz.ui5.controls.VizFrame.
+    "! Modern charting frame. See <a href="https://ui5.sap.com/#/api/sap.viz.ui5.controls.VizFrame">sap.viz.ui5.controls.VizFrame</a>.
     "! Note: legacy `sap.viz.ui5.*` charts (Bar, Bubble, Pie, Line, ...) are deprecated since 1.32 - use VizFrame.
     "!
     "! @parameter legendvisible     | (boolean) Show the legend. Default: true.
@@ -9480,7 +9480,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! <p class="shorttext synchronized" lang="en">sap.ui.comp.smartmultiinput.SmartMultiInput</p>
     "!
     "! Smart multi-input that derives suggestions / value help from OData.
-    "! See https://ui5.sap.com/#/api/sap.ui.comp.smartmultiinput.SmartMultiInput.
+    "! See <a href="https://ui5.sap.com/#/api/sap.ui.comp.smartmultiinput.SmartMultiInput">sap.ui.comp.smartmultiinput.SmartMultiInput</a>.
     "!
     "! @parameter entityset            | (string) OData entity set.
     "! @parameter value                | (string) Two-way bound value.
@@ -9529,7 +9529,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.imageeditor.ImageEditor</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.imageeditor.ImageEditor.
+    "! See <a href="https://ui5.sap.com/#/api/sap.suite.ui.commons.imageeditor.ImageEditor">sap.suite.ui.commons.imageeditor.ImageEditor</a>.
     "!
     "! @parameter customshapesrc        | (sap.ui.core.URI) Custom crop shape SVG URI.
     "! @parameter keepcropaspectratio   | (boolean) Lock crop aspect ratio. Default: false.
@@ -9552,7 +9552,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.imageeditor.ImageEditorContainer</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.imageeditor.ImageEditorContainer.
+    "! See <a href="https://ui5.sap.com/#/api/sap.suite.ui.commons.imageeditor.ImageEditorContainer">sap.suite.ui.commons.imageeditor.ImageEditorContainer</a>.
     "!
     "! @parameter enabledbuttons | (sap.suite.ui.commons.imageeditor.ImageEditorContainerButton[]) Buttons to render.
     "! @parameter mode           | (sap.suite.ui.commons.imageeditor.ImageEditorMode) Default | Crop | Resize.
