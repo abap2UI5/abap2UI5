@@ -23,6 +23,12 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `  (Control, Fragment, JSONModel) => {` && |\n| &&
              `    'use strict';` && |\n| &&
              `` && |\n| &&
+             `    const _logError = (message, error) => {` && |\n| &&
+             `      const entry = { message, ts: new Date().toISOString() };` && |\n| &&
+             `      if (error !== undefined) entry.error = error;` && |\n| &&
+             `      (z2ui5.errors ??= []).push(entry);` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
              `    const toJson = (val) => JSON.stringify(val ?? null, null, 3);` && |\n| &&
              `` && |\n| &&
              `    const PRETTIFY_XSL = ``<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">` && |\n| &&
@@ -39,9 +45,10 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      </xsl:stylesheet>``;` && |\n| &&
              `` && |\n| &&
              `    let _xsltProcessor = null;` && |\n| &&
-             `    const _xmlSerializer = new XMLSerializer();` && |\n| &&
-             `    const _domParser = new DOMParser();` && |\n| &&
+             `    const _xmlSerializer = typeof XMLSerializer !== 'undefined' ? new XMLSerializer() : null;` && |\n| &&
+             `    const _domParser = typeof DOMParser !== 'undefined' ? new DOMParser() : null;` && |\n| &&
              `    const getXsltProcessor = () => {` && |\n| &&
+             `      if (typeof XSLTProcessor === 'undefined' || !_domParser) return null;` && |\n| &&
              `      if (!_xsltProcessor) {` && |\n| &&
              `        const xsltDoc = _domParser.parseFromString(PRETTIFY_XSL, 'application/xml');` && |\n| &&
              `        _xsltProcessor = new XSLTProcessor();` && |\n| &&
@@ -50,101 +57,94 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      return _xsltProcessor;` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    return Control.extend('z2ui5.cc.DebugTool', {` && |\n| &&
-             `      prettifyXml(sourceXml) {` && |\n| &&
-             `        if (!sourceXml) return '';` && |\n| &&
-             `        try {` && |\n| &&
-             `          const xmlDoc = _domParser.parseFromString(sourceXml, 'application/xml');` && |\n| &&
-             `          const resultDoc = getXsltProcessor().transformToDocument(xmlDoc);` && |\n| &&
-             `          if (!resultDoc) return sourceXml;` && |\n| &&
-             `          const resultXml = _xmlSerializer.serializeToString(resultDoc);` && |\n| &&
-             `          return resultXml.replace(/&gt;|&lt;/g, (m) => (m === '&gt;' ? '>' : '<'));` && |\n| &&
-             `        } catch {` && |\n| &&
-             `          return sourceXml;` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
+             `    // prettifyXml does not use 'this' — module-scoped so callers don't need to bind/destructure` && |\n| &&
+             `    const prettifyXml = (sourceXml) => {` && |\n| &&
+             `      if (!sourceXml) return '';` && |\n| &&
+             `      const processor = getXsltProcessor();` && |\n| &&
+             `      if (!processor || !_domParser || !_xmlSerializer) {` && |\n| &&
+             `        _logError('DebugTool.prettifyXml: XSLT/XMLSerializer/DOMParser unavailable in this browser');` && |\n| &&
+             `        return sourceXml;` && |\n| &&
+             `      }` && |\n| &&
+             `      try {` && |\n| &&
+             `        const xmlDoc = _domParser.parseFromString(sourceXml, 'application/xml');` && |\n| &&
+             `        const resultDoc = processor.transformToDocument(xmlDoc);` && |\n| &&
+             `        if (!resultDoc) return sourceXml;` && |\n| &&
+             `        return _xmlSerializer.serializeToString(resultDoc);` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        _logError('DebugTool.prettifyXml: XSLT transform failed', e);` && |\n| &&
+             `        return sourceXml;` && |\n| &&
+             `      }` && |\n| &&
+             `    };` && |\n| &&
              `` && |\n| &&
+             `    // getViewContent uses the public API when available and falls back to mProperties.viewContent` && |\n| &&
+             `    // (UI5 internal) for older versions that do not expose a getter` && |\n| &&
+             `    const getViewContent = (view) => view?.getViewContent?.() ?? view?.mProperties?.viewContent;` && |\n| &&
+             `    const getRenderedContent = (view) => view?._xContent?.outerHTML;` && |\n| &&
+             `` && |\n| &&
+             `    return Control.extend('z2ui5.cc.DebugTool', {` && |\n| &&
              `      onItemSelect(oEvent) {` && |\n| &&
              `        const oSource = oEvent.getSource();` && |\n| &&
              `        const selItem = oSource.getSelectedKey();` && |\n| &&
              `        const oView = z2ui5.oView;` && |\n| &&
              `        const oResponse = z2ui5.oResponse;` && |\n| &&
              `        const displayEditor = (this._displayEditorBound ??= this.displayEditor.bind(this));` && |\n| &&
-             `        const { prettifyXml } = this;` && |\n| &&
              `` && |\n| &&
-             `        switch (selItem) {` && |\n| &&
-             `          case 'CONFIG':` && |\n| &&
-             `            displayEditor(oEvent, toJson(z2ui5.oConfig), 'json');` && |\n| &&
-             `            break;` && |\n| &&
-             `          case 'MODEL':` && |\n| &&
-             `            displayEditor(oEvent, toJson(oView?.getModel()?.getData()), 'json');` && |\n| &&
-             `            break;` && |\n| &&
-             `          case 'VIEW': {` && |\n| &&
-             `            const viewContent = oView?.mProperties?.viewContent || z2ui5.responseData?.S_FRONT?.PARAMS?.S_VIEW?.XML;` && |\n| &&
-             `            displayEditor(oEvent, prettifyXml(viewContent), 'xml', prettifyXml(oView?._xContent?.outerHTML));` && |\n| &&
-             `            break;` && |\n| &&
-             `          }` && |\n| &&
-             `          case 'PLAIN':` && |\n| &&
-             `            displayEditor(oEvent, toJson(z2ui5.responseData), 'json');` && |\n| &&
-             `            break;` && |\n| &&
-             `          case 'REQUEST':` && |\n| &&
-             `            displayEditor(oEvent, toJson(z2ui5.oBody), 'json');` && |\n| &&
-             `            break;` && |\n| &&
-             `          case 'POPUP':` && |\n| &&
-             `            displayEditor(oEvent, prettifyXml(oResponse?.PARAMS?.S_POPUP?.XML), 'xml');` && |\n| &&
-             `            break;` && |\n| &&
-             `          case 'POPUP_MODEL':` && |\n| &&
-             `            displayEditor(oEvent, toJson(z2ui5.oViewPopup?.getModel()?.getData()), 'json');` && |\n| &&
-             `            break;` && |\n| &&
-             `          case 'POPOVER':` && |\n| &&
-             `            displayEditor(oEvent, prettifyXml(oResponse?.PARAMS?.S_POPOVER?.XML), 'xml');` && |\n| &&
-             `            break;` && |\n| &&
-             `          case 'POPOVER_MODEL':` && |\n| &&
-             `            displayEditor(oEvent, toJson(z2ui5.oViewPopover?.getModel()?.getData()), 'json');` && |\n| &&
-             `            break;` && |\n| &&
-             `          case 'NEST1':` && |\n| &&
+             `        const handlers = {` && |\n| &&
+             `          CONFIG: () => displayEditor(oEvent, toJson(z2ui5.oConfig), 'json'),` && |\n| &&
+             `          MODEL: () => displayEditor(oEvent, toJson(oView?.getModel()?.getData()), 'json'),` && |\n| &&
+             `          VIEW: () => {` && |\n| &&
+             `            const viewContent = getViewContent(oView) || z2ui5.responseData?.S_FRONT?.PARAMS?.S_VIEW?.XML;` && |\n| &&
+             `            displayEditor(oEvent, prettifyXml(viewContent), 'xml', prettifyXml(getRenderedContent(oView)));` && |\n| &&
+             `          },` && |\n| &&
+             `          PLAIN: () => displayEditor(oEvent, toJson(z2ui5.responseData), 'json'),` && |\n| &&
+             `          REQUEST: () => displayEditor(oEvent, toJson(z2ui5.oBody), 'json'),` && |\n| &&
+             `          POPUP: () => displayEditor(oEvent, prettifyXml(oResponse?.PARAMS?.S_POPUP?.XML), 'xml'),` && |\n| &&
+             `          POPUP_MODEL: () => displayEditor(oEvent, toJson(z2ui5.oViewPopup?.getModel()?.getData()), 'json'),` && |\n| &&
+             `          POPOVER: () => displayEditor(oEvent, prettifyXml(oResponse?.PARAMS?.S_POPOVER?.XML), 'xml'),` && |\n| &&
+             `          POPOVER_MODEL: () => displayEditor(oEvent, toJson(z2ui5.oViewPopover?.getModel()?.getData()), 'json'),` && |\n| &&
+             `          NEST1: () =>` && |\n| &&
              `            displayEditor(` && |\n| &&
              `              oEvent,` && |\n| &&
-             `              prettifyXml(z2ui5.oViewNest?.mProperties?.viewContent),` && |\n| &&
+             `              prettifyXml(getViewContent(z2ui5.oViewNest)),` && |\n| &&
              `              'xml',` && |\n| &&
-             `              prettifyXml(z2ui5.oViewNest?._xContent?.outerHTML),` && |\n| &&
-             `            );` && |\n| &&
-             `            break;` && |\n| &&
-             `          case 'NEST1_MODEL':` && |\n| &&
-             `            displayEditor(oEvent, toJson(z2ui5.oViewNest?.getModel()?.getData()), 'json');` && |\n| &&
-             `            break;` && |\n| &&
-             `          case 'NEST2':` && |\n| &&
+             `              prettifyXml(getRenderedContent(z2ui5.oViewNest)),` && |\n| &&
+             `            ),` && |\n| &&
+             `          NEST1_MODEL: () => displayEditor(oEvent, toJson(z2ui5.oViewNest?.getModel()?.getData()), 'json'),` && |\n| &&
+             `          NEST2: () =>` && |\n| &&
              `            displayEditor(` && |\n| &&
              `              oEvent,` && |\n| &&
-             `              prettifyXml(z2ui5.oViewNest2?.mProperties?.viewContent),` && |\n| &&
+             `              prettifyXml(getViewContent(z2ui5.oViewNest2)),` && |\n| &&
              `              'xml',` && |\n| &&
-             `              prettifyXml(z2ui5.oViewNest2?._xContent?.outerHTML),` && |\n| &&
-             `            );` && |\n| &&
-             `            break;` && |\n| &&
-             `          case 'NEST2_MODEL':` && |\n| &&
-             `            displayEditor(oEvent, toJson(z2ui5.oViewNest2?.getModel()?.getData()), 'json');` && |\n| &&
-             `            break;` && |\n| &&
-             `          case 'SOURCE': {` && |\n| &&
+             `              prettifyXml(getRenderedContent(z2ui5.oViewNest2)),` && |\n| &&
+             `            ),` && |\n| &&
+             `          NEST2_MODEL: () => displayEditor(oEvent, toJson(z2ui5.oViewNest2?.getModel()?.getData()), 'json'),` && |\n| &&
+             `          SOURCE: () => {` && |\n| &&
              `            const contentControl = oSource.getParent()?.getContent()?.[2]?.getItems()?.[0];` && |\n| &&
-             `            if (!contentControl) break;` && |\n| &&
+             `            if (!contentControl) return;` && |\n| &&
              `            const appId = encodeURIComponent(z2ui5.responseData?.S_FRONT?.APP ?? '');` && |\n| &&
-             `            const url = ``${window.location.origin}/sap/bc/adt/oo/classes/${appId}/source/main``;` && |\n| &&
-             `            contentControl.setProperty('content', ``<iframe id="test" src="${url}" height="800px" width="1200px" />``);` && |\n| &&
+             `            const url = new URL(``/sap/bc/adt/oo/classes/${appId}/source/main``, window.location.origin).href;` && |\n| &&
+             `            contentControl.setProperty(` && |\n| &&
+             `              'content',` && |\n| &&
+             `              ``<iframe id="test" src="${url}" height="800px" width="100%"/>``,` && |\n| &&
+             `            );` && |\n| &&
              `            const oModel = oSource.getModel();` && |\n| &&
-             `            if (!oModel) break;` && |\n| &&
+             `            if (!oModel) return;` && |\n| &&
              `            Object.assign(oModel.getData(), { editor_visible: false, source_visible: true });` && |\n| &&
              `            oModel.refresh();` && |\n| &&
-             `            break;` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
+             `          },` && |\n| &&
+             `        };` && |\n| &&
+             `` && |\n| &&
+             `        handlers[selItem]?.();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      displayEditor(oEvent, content, type, xcontent = '') {` && |\n| &&
              `        const oModel = oEvent.getSource().getModel();` && |\n| &&
+             `        // previousValue mirrors value here; onTemplatingPress later toggles between value and xContent` && |\n| &&
              `        Object.assign(oModel.getData(), {` && |\n| &&
              `          editor_visible: true,` && |\n| &&
              `          source_visible: false,` && |\n| &&
-             `          isTemplating: content?.includes('xmlns:template') ?? false,` && |\n| &&
+             `          // detect actual templating namespace declaration rather than any string match` && |\n| &&
+             `          isTemplating: typeof content === 'string' && /xmlns:template\s*=/.test(content),` && |\n| &&
              `          value: content,` && |\n| &&
              `          previousValue: content,` && |\n| &&
              `          xContent: xcontent,` && |\n| &&
@@ -190,18 +190,19 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `            previousValue: value,` && |\n| &&
              `            isTemplating: false,` && |\n| &&
              `            templatingSource: false,` && |\n| &&
-             `            activeNest1: !!z2ui5.oViewNest?.mProperties?.viewContent,` && |\n| &&
-             `            activeNest2: !!z2ui5.oViewNest2?.mProperties?.viewContent,` && |\n| &&
+             `            activeNest1: !!getViewContent(z2ui5.oViewNest),` && |\n| &&
+             `            activeNest2: !!getViewContent(z2ui5.oViewNest2),` && |\n| &&
              `            activePopup: !!z2ui5.oResponse?.PARAMS?.S_POPUP?.XML,` && |\n| &&
              `            activePopover: !!z2ui5.oResponse?.PARAMS?.S_POPOVER?.XML,` && |\n| &&
              `          };` && |\n| &&
              `          const oModel = new JSONModel(oData);` && |\n| &&
              `          const { oDialog } = this;` && |\n| &&
+             `          // .dbg-ltr forces LTR direction inside the dialog (defined in css/style.css)` && |\n| &&
              `          oDialog.addStyleClass('dbg-ltr');` && |\n| &&
              `          oDialog.setModel(oModel);` && |\n| &&
              `          oDialog.open();` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          (z2ui5.errors ??= []).push({ message: ``DebugTool.show failed``, error: e, ts: new Date().toISOString() });` && |\n| &&
+             `          _logError(``DebugTool.show failed``, e);` && |\n| &&
              `        } finally {` && |\n| &&
              `          this._showPending = false;` && |\n| &&
              `        }` && |\n| &&

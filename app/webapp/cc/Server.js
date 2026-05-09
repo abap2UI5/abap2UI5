@@ -2,26 +2,44 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
   'use strict';
 
   const ERROR_MAX_LENGTH = 50000;
-  const _MSG_TYPES = Object.freeze(['S_MSG_TOAST', 'S_MSG_BOX']);
+  const FETCH_TIMEOUT_MS = 600000;
+  const DEFAULT_LOGOUT_URL = '/sap/public/bc/icf/logoff';
+  const _MSG_TYPES = ['S_MSG_TOAST', 'S_MSG_BOX'];
+
+  const _logError = (message, error) => {
+    const entry = { message, ts: new Date().toISOString() };
+    if (error !== undefined) entry.error = error;
+    (z2ui5.errors ??= []).push(entry);
+  };
+
+  const escapeHtml = (str) =>
+    String(str).replace(
+      /[&<>"']/g,
+      (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
+    );
+
+  const resolveLogoutUrl = () => z2ui5.oConfig?.logoutUrl || DEFAULT_LOGOUT_URL;
 
   return {
     endSession() {
-      if (z2ui5.contextId) {
-        fetch(z2ui5.oConfig.pathname, {
-          method: 'HEAD',
-          keepalive: true,
-          headers: {
-            'sap-terminate': 'session',
-            'sap-contextid': z2ui5.contextId,
-            'sap-contextid-accept': 'header',
-          },
-        }).catch(() => {});
-        delete z2ui5.contextId;
-      }
+      if (!z2ui5.contextId) return;
+      // SAP convention: HEAD with sap-terminate header releases the stateful session.
+      // Some reverse proxies may strip HEAD bodies — we rely on headers only.
+      fetch(z2ui5.oConfig.pathname, {
+        method: 'HEAD',
+        keepalive: true,
+        headers: {
+          'sap-terminate': 'session',
+          'sap-contextid': z2ui5.contextId,
+          'sap-contextid-accept': 'header',
+        },
+      }).catch(() => {});
+      delete z2ui5.contextId;
     },
     Roundtrip() {
-      Object.assign(z2ui5, { checkTimerActive: false, checkNestAfter: false, checkNestAfter2: false });
+      Object.assign(z2ui5, { checkNestAfter: false, checkNestAfter2: false });
       const oBody = (z2ui5.oBody ??= {});
+      const args = oBody.ARGUMENTS ?? [];
       oBody.S_FRONT = {
         ID: oBody.ID,
         CONFIG: z2ui5.oConfig,
@@ -29,39 +47,49 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
         PATHNAME: window.location.pathname,
         SEARCH: z2ui5.search || window.location.search,
         VIEW: oBody.VIEWNAME,
-        EVENT: oBody.ARGUMENTS?.[0]?.[0],
+        EVENT: args[0]?.[0],
         HASH: window.location.hash,
       };
       const sFront = oBody.S_FRONT;
-      oBody.ARGUMENTS?.shift();
-      sFront.T_EVENT_ARG = oBody.ARGUMENTS;
+      const tEventArg = args.slice(1);
+      if (tEventArg.length) sFront.T_EVENT_ARG = tEventArg;
+      if (sFront.T_STARTUP_PARAMETERS === undefined) delete sFront.T_STARTUP_PARAMETERS;
+      if (sFront.SEARCH === '') delete sFront.SEARCH;
+      // Strip the source fields now that they have been promoted into S_FRONT
       delete oBody.ID;
       delete oBody.VIEWNAME;
       delete oBody.ARGUMENTS;
-      if (!sFront.T_EVENT_ARG?.length) delete sFront.T_EVENT_ARG;
-      if (sFront.T_STARTUP_PARAMETERS === undefined) delete sFront.T_STARTUP_PARAMETERS;
-      if (sFront.SEARCH === '') delete sFront.SEARCH;
       if (!oBody.XX) delete oBody.XX;
       this.readHttp();
     },
 
     async readHttp() {
       let response;
+      const fetchOpts = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // CSRF: the abap2UI5 ICF handler relies on cookie-based session auth.
+          // Apps requiring an x-csrf-token can inject it via z2ui5.oConfig before Roundtrip().
+          'sap-contextid-accept': 'header',
+          'sap-contextid': z2ui5.contextId ?? '',
+        },
+        body: JSON.stringify({ value: z2ui5.oBody }),
+      };
+      // AbortSignal.timeout is ES2022; older browsers fall back to no client-side timeout
+      if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+        fetchOpts.signal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
+      }
       try {
-        response = await fetch(z2ui5.oConfig.pathname, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'sap-contextid-accept': 'header',
-            'sap-contextid': z2ui5.contextId ?? '',
-          },
-          body: JSON.stringify({ value: z2ui5.oBody }),
-        });
+        response = await fetch(z2ui5.oConfig.pathname, fetchOpts);
       } catch (e) {
         this.responseError(`Network error: ${e.message}`);
         return;
       }
-      z2ui5.contextId = response.headers.get('sap-contextid');
+      // HTTP header lookup is case-insensitive per spec; only update when present so a
+      // missing header does not blow away the existing context id
+      const newCtx = response.headers.get('sap-contextid');
+      if (newCtx) z2ui5.contextId = newCtx;
       if (!response.ok) {
         let text;
         try {
@@ -101,19 +129,16 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
         const customJs = params?.S_FOLLOW_UP_ACTION?.CUSTOM_JS;
         if (customJs) {
           queueMicrotask(() => {
-            if (oController.isDestroyed?.()) return;
             for (const item of customJs) {
+              if (oController.isDestroyed?.()) return;
               try {
                 const mParams = item.split("'");
                 const mParamsEF = mParams.filter((_, index) => index % 2);
                 if (mParamsEF.length) oController.eF(...mParamsEF);
-                else Function('return ' + mParams[0])();
+                // Controlled eval of backend-provided JS expression
+                else new Function('return ' + mParams[0])();
               } catch (e) {
-                (z2ui5.errors ??= []).push({
-                  message: `customJs: execution failed`,
-                  error: e,
-                  ts: new Date().toISOString(),
-                });
+                _logError(`customJs: execution failed`, e);
               }
             }
           });
@@ -136,38 +161,22 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
       } catch (e) {
         BusyIndicator.hide();
         z2ui5.isBusy = false;
-        (z2ui5.errors ??= []).push({
-          message: `responseSuccess: unexpected error`,
-          error: e,
-          ts: new Date().toISOString(),
-        });
+        _logError(`responseSuccess: unexpected error`, e);
         const msg = e.message ?? '';
         if (msg.includes('openui5') && msg.includes('script load error')) {
           oController.checkSDKcompatibility(e);
         } else {
-          MessageBox.error(e.toLocaleString());
+          MessageBox.error(e.message ?? String(e));
         }
       }
     },
     _getOrCreateErrorContainer() {
       const existing = document.getElementById('serverErrorContainer');
       if (existing) return existing;
-      const container = Object.assign(document.createElement('div'), { id: 'serverErrorContainer' });
-      container.style.cssText = `
-          position: fixed;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 90%;
-          height: 90%;
-          background: white;
-          border: 2px solid #d32f2f;
-          border-radius: 4px;
-          box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-          z-index: 9999;
-          display: flex;
-          flex-direction: column;
-        `;
+      const container = Object.assign(document.createElement('div'), {
+        id: 'serverErrorContainer',
+        className: 'z2ui5-error-overlay',
+      });
       document.body.appendChild(container);
       return container;
     },
@@ -182,31 +191,35 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
           : full;
 
       const errorContainer = this._getOrCreateErrorContainer();
-      errorContainer.textContent = '';
+      errorContainer.replaceChildren();
 
-      const headerDiv = document.createElement('div');
-      headerDiv.style.cssText =
-        'padding: 15px; background: #d32f2f; color: white; display: flex; justify-content: space-between; align-items: center;';
-      const h3 = Object.assign(document.createElement('h3'), { textContent: 'Server Error - Please Restart The App' });
-      h3.style.cssText = 'margin: 0';
+      const headerDiv = Object.assign(document.createElement('div'), { className: 'z2ui5-error-overlay__header' });
+      const h3 = Object.assign(document.createElement('h3'), {
+        textContent: 'Server Error - Please Restart The App',
+        className: 'z2ui5-error-overlay__title',
+      });
       headerDiv.appendChild(h3);
 
-      const btnStyle =
-        'padding: 6px 14px; background: white; color: #d32f2f; border: none; border-radius: 3px; cursor: pointer; font-weight: bold;';
+      const actionsDiv = Object.assign(document.createElement('div'), { className: 'z2ui5-error-overlay__actions' });
 
-      const actionsDiv = document.createElement('div');
-      actionsDiv.style.cssText = 'display: flex; gap: 8px;';
-
-      const refreshBtn = Object.assign(document.createElement('button'), { type: 'button', textContent: 'Refresh' });
-      refreshBtn.style.cssText = btnStyle;
+      const refreshBtn = Object.assign(document.createElement('button'), {
+        type: 'button',
+        textContent: 'Refresh',
+        className: 'z2ui5-error-overlay__btn',
+      });
+      refreshBtn.setAttribute('aria-label', 'Refresh page');
       refreshBtn.addEventListener('click', () => window.location.reload());
       actionsDiv.appendChild(refreshBtn);
 
-      const logoutBtn = Object.assign(document.createElement('button'), { type: 'button', textContent: 'Logout' });
-      logoutBtn.style.cssText = btnStyle;
+      const logoutBtn = Object.assign(document.createElement('button'), {
+        type: 'button',
+        textContent: 'Logout',
+        className: 'z2ui5-error-overlay__btn',
+      });
+      logoutBtn.setAttribute('aria-label', 'Logout from server');
       logoutBtn.addEventListener('click', () => {
         const redirectToLogoff = () => {
-          window.location.href = '/sap/public/bc/icf/logoff';
+          window.location.href = resolveLogoutUrl();
         };
         try {
           if (z2ui5.oLaunchpad?.Container?.logout) {
@@ -221,22 +234,23 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
       actionsDiv.appendChild(logoutBtn);
 
       headerDiv.appendChild(actionsDiv);
-
       errorContainer.appendChild(headerDiv);
 
-      const iframe = Object.assign(document.createElement('iframe'), { id: 'errorIframe' });
-      iframe.style.cssText = 'width: 100%; height: 100%; border: none; flex: 1;';
-      iframe.setAttribute('sandbox', 'allow-same-origin');
+      const iframe = Object.assign(document.createElement('iframe'), {
+        id: 'errorIframe',
+        className: 'z2ui5-error-overlay__iframe',
+        title: 'Server error details',
+      });
+      // sandbox="" gives the iframe an opaque origin and blocks scripts/forms/popups.
+      // srcdoc renders escaped, static <pre> content — no contentDocument access from parent needed.
+      iframe.setAttribute('sandbox', '');
+      iframe.srcdoc = `<style>html,body{margin:0;padding:0}pre{margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all}</style><pre>${escapeHtml(
+        errorMessage,
+      )}</pre>`;
       errorContainer.appendChild(iframe);
 
-      const { contentDocument } = iframe;
-      if (contentDocument) {
-        const pre = contentDocument.createElement('pre');
-        pre.style.cssText =
-          'margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;';
-        pre.textContent = errorMessage;
-        (contentDocument.body || contentDocument.documentElement).appendChild(pre);
-      }
+      // basic focus context for keyboard users; not a full focus trap
+      refreshBtn.focus();
     },
   };
 });

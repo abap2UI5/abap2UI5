@@ -22,26 +22,44 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `  'use strict';` && |\n| &&
              `` && |\n| &&
              `  const ERROR_MAX_LENGTH = 50000;` && |\n| &&
-             `  const _MSG_TYPES = Object.freeze(['S_MSG_TOAST', 'S_MSG_BOX']);` && |\n| &&
+             `  const FETCH_TIMEOUT_MS = 600000;` && |\n| &&
+             `  const DEFAULT_LOGOUT_URL = '/sap/public/bc/icf/logoff';` && |\n| &&
+             `  const _MSG_TYPES = ['S_MSG_TOAST', 'S_MSG_BOX'];` && |\n| &&
+             `` && |\n| &&
+             `  const _logError = (message, error) => {` && |\n| &&
+             `    const entry = { message, ts: new Date().toISOString() };` && |\n| &&
+             `    if (error !== undefined) entry.error = error;` && |\n| &&
+             `    (z2ui5.errors ??= []).push(entry);` && |\n| &&
+             `  };` && |\n| &&
+             `` && |\n| &&
+             `  const escapeHtml = (str) =>` && |\n| &&
+             `    String(str).replace(` && |\n| &&
+             `      /[&<>"']/g,` && |\n| &&
+             `      (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],` && |\n| &&
+             `    );` && |\n| &&
+             `` && |\n| &&
+             `  const resolveLogoutUrl = () => z2ui5.oConfig?.logoutUrl || DEFAULT_LOGOUT_URL;` && |\n| &&
              `` && |\n| &&
              `  return {` && |\n| &&
              `    endSession() {` && |\n| &&
-             `      if (z2ui5.contextId) {` && |\n| &&
-             `        fetch(z2ui5.oConfig.pathname, {` && |\n| &&
-             `          method: 'HEAD',` && |\n| &&
-             `          keepalive: true,` && |\n| &&
-             `          headers: {` && |\n| &&
-             `            'sap-terminate': 'session',` && |\n| &&
-             `            'sap-contextid': z2ui5.contextId,` && |\n| &&
-             `            'sap-contextid-accept': 'header',` && |\n| &&
-             `          },` && |\n| &&
-             `        }).catch(() => {});` && |\n| &&
-             `        delete z2ui5.contextId;` && |\n| &&
-             `      }` && |\n| &&
+             `      if (!z2ui5.contextId) return;` && |\n| &&
+             `      // SAP convention: HEAD with sap-terminate header releases the stateful session.` && |\n| &&
+             `      // Some reverse proxies may strip HEAD bodies — we rely on headers only.` && |\n| &&
+             `      fetch(z2ui5.oConfig.pathname, {` && |\n| &&
+             `        method: 'HEAD',` && |\n| &&
+             `        keepalive: true,` && |\n| &&
+             `        headers: {` && |\n| &&
+             `          'sap-terminate': 'session',` && |\n| &&
+             `          'sap-contextid': z2ui5.contextId,` && |\n| &&
+             `          'sap-contextid-accept': 'header',` && |\n| &&
+             `        },` && |\n| &&
+             `      }).catch(() => {});` && |\n| &&
+             `      delete z2ui5.contextId;` && |\n| &&
              `    },` && |\n| &&
              `    Roundtrip() {` && |\n| &&
-             `      Object.assign(z2ui5, { checkTimerActive: false, checkNestAfter: false, checkNestAfter2: false });` && |\n| &&
+             `      Object.assign(z2ui5, { checkNestAfter: false, checkNestAfter2: false });` && |\n| &&
              `      const oBody = (z2ui5.oBody ??= {});` && |\n| &&
+             `      const args = oBody.ARGUMENTS ?? [];` && |\n| &&
              `      oBody.S_FRONT = {` && |\n| &&
              `        ID: oBody.ID,` && |\n| &&
              `        CONFIG: z2ui5.oConfig,` && |\n| &&
@@ -49,39 +67,49 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        PATHNAME: window.location.pathname,` && |\n| &&
              `        SEARCH: z2ui5.search || window.location.search,` && |\n| &&
              `        VIEW: oBody.VIEWNAME,` && |\n| &&
-             `        EVENT: oBody.ARGUMENTS?.[0]?.[0],` && |\n| &&
+             `        EVENT: args[0]?.[0],` && |\n| &&
              `        HASH: window.location.hash,` && |\n| &&
              `      };` && |\n| &&
              `      const sFront = oBody.S_FRONT;` && |\n| &&
-             `      oBody.ARGUMENTS?.shift();` && |\n| &&
-             `      sFront.T_EVENT_ARG = oBody.ARGUMENTS;` && |\n| &&
+             `      const tEventArg = args.slice(1);` && |\n| &&
+             `      if (tEventArg.length) sFront.T_EVENT_ARG = tEventArg;` && |\n| &&
+             `      if (sFront.T_STARTUP_PARAMETERS === undefined) delete sFront.T_STARTUP_PARAMETERS;` && |\n| &&
+             `      if (sFront.SEARCH === '') delete sFront.SEARCH;` && |\n| &&
+             `      // Strip the source fields now that they have been promoted into S_FRONT` && |\n| &&
              `      delete oBody.ID;` && |\n| &&
              `      delete oBody.VIEWNAME;` && |\n| &&
              `      delete oBody.ARGUMENTS;` && |\n| &&
-             `      if (!sFront.T_EVENT_ARG?.length) delete sFront.T_EVENT_ARG;` && |\n| &&
-             `      if (sFront.T_STARTUP_PARAMETERS === undefined) delete sFront.T_STARTUP_PARAMETERS;` && |\n| &&
-             `      if (sFront.SEARCH === '') delete sFront.SEARCH;` && |\n| &&
              `      if (!oBody.XX) delete oBody.XX;` && |\n| &&
              `      this.readHttp();` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    async readHttp() {` && |\n| &&
              `      let response;` && |\n| &&
+             `      const fetchOpts = {` && |\n| &&
+             `        method: 'POST',` && |\n| &&
+             `        headers: {` && |\n| &&
+             `          'Content-Type': 'application/json',` && |\n| &&
+             `          // CSRF: the abap2UI5 ICF handler relies on cookie-based session auth.` && |\n| &&
+             `          // Apps requiring an x-csrf-token can inject it via z2ui5.oConfig before Roundtrip().` && |\n| &&
+             `          'sap-contextid-accept': 'header',` && |\n| &&
+             `          'sap-contextid': z2ui5.contextId ?? '',` && |\n| &&
+             `        },` && |\n| &&
+             `        body: JSON.stringify({ value: z2ui5.oBody }),` && |\n| &&
+             `      };` && |\n| &&
+             `      // AbortSignal.timeout is ES2022; older browsers fall back to no client-side timeout` && |\n| &&
+             `      if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {` && |\n| &&
+             `        fetchOpts.signal = AbortSignal.timeout(FETCH_TIMEOUT_MS);` && |\n| &&
+             `      }` && |\n| &&
              `      try {` && |\n| &&
-             `        response = await fetch(z2ui5.oConfig.pathname, {` && |\n| &&
-             `          method: 'POST',` && |\n| &&
-             `          headers: {` && |\n| &&
-             `            'Content-Type': 'application/json',` && |\n| &&
-             `            'sap-contextid-accept': 'header',` && |\n| &&
-             `            'sap-contextid': z2ui5.contextId ?? '',` && |\n| &&
-             `          },` && |\n| &&
-             `          body: JSON.stringify({ value: z2ui5.oBody }),` && |\n| &&
-             `        });` && |\n| &&
+             `        response = await fetch(z2ui5.oConfig.pathname, fetchOpts);` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        this.responseError(``Network error: ${e.message}``);` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      z2ui5.contextId = response.headers.get('sap-contextid');` && |\n| &&
+             `      // HTTP header lookup is case-insensitive per spec; only update when present so a` && |\n| &&
+             `      // missing header does not blow away the existing context id` && |\n| &&
+             `      const newCtx = response.headers.get('sap-contextid');` && |\n| &&
+             `      if (newCtx) z2ui5.contextId = newCtx;` && |\n| &&
              `      if (!response.ok) {` && |\n| &&
              `        let text;` && |\n| &&
              `        try {` && |\n| &&
@@ -121,19 +149,16 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        const customJs = params?.S_FOLLOW_UP_ACTION?.CUSTOM_JS;` && |\n| &&
              `        if (customJs) {` && |\n| &&
              `          queueMicrotask(() => {` && |\n| &&
-             `            if (oController.isDestroyed?.()) return;` && |\n| &&
              `            for (const item of customJs) {` && |\n| &&
+             `              if (oController.isDestroyed?.()) return;` && |\n| &&
              `              try {` && |\n| &&
              `                const mParams = item.split("'");` && |\n| &&
              `                const mParamsEF = mParams.filter((_, index) => index % 2);` && |\n| &&
              `                if (mParamsEF.length) oController.eF(...mParamsEF);` && |\n| &&
-             `                else Function('return ' + mParams[0])();` && |\n| &&
+             `                // Controlled eval of backend-provided JS expression` && |\n| &&
+             `                else new Function('return ' + mParams[0])();` && |\n| &&
              `              } catch (e) {` && |\n| &&
-             `                (z2ui5.errors ??= []).push({` && |\n| &&
-             `                  message: ``customJs: execution failed``,` && |\n| &&
-             `                  error: e,` && |\n| &&
-             `                  ts: new Date().toISOString(),` && |\n| &&
-             `                });` && |\n| &&
+             `                _logError(``customJs: execution failed``, e);` && |\n| &&
              `              }` && |\n| &&
              `            }` && |\n| &&
              `          });` && |\n| &&
@@ -156,38 +181,22 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      } catch (e) {` && |\n| &&
              `        BusyIndicator.hide();` && |\n| &&
              `        z2ui5.isBusy = false;` && |\n| &&
-             `        (z2ui5.errors ??= []).push({` && |\n| &&
-             `          message: ``responseSuccess: unexpected error``,` && |\n| &&
-             `          error: e,` && |\n| &&
-             `          ts: new Date().toISOString(),` && |\n| &&
-             `        });` && |\n| &&
+             `        _logError(``responseSuccess: unexpected error``, e);` && |\n| &&
              `        const msg = e.message ?? '';` && |\n| &&
              `        if (msg.includes('openui5') && msg.includes('script load error')) {` && |\n| &&
              `          oController.checkSDKcompatibility(e);` && |\n| &&
              `        } else {` && |\n| &&
-             `          MessageBox.error(e.toLocaleString());` && |\n| &&
+             `          MessageBox.error(e.message ?? String(e));` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
              `    _getOrCreateErrorContainer() {` && |\n| &&
              `      const existing = document.getElementById('serverErrorContainer');` && |\n| &&
              `      if (existing) return existing;` && |\n| &&
-             `      const container = Object.assign(document.createElement('div'), { id: 'serverErrorContainer' });` && |\n| &&
-             `      container.style.cssText = ``` && |\n| &&
-             `          position: fixed;` && |\n| &&
-             `          top: 50%;` && |\n| &&
-             `          left: 50%;` && |\n| &&
-             `          transform: translate(-50%, -50%);` && |\n| &&
-             `          width: 90%;` && |\n| &&
-             `          height: 90%;` && |\n| &&
-             `          background: white;` && |\n| &&
-             `          border: 2px solid #d32f2f;` && |\n| &&
-             `          border-radius: 4px;` && |\n| &&
-             `          box-shadow: 0 4px 6px rgba(0,0,0,0.3);` && |\n| &&
-             `          z-index: 9999;` && |\n| &&
-             `          display: flex;` && |\n| &&
-             `          flex-direction: column;` && |\n| &&
-             `        ``;` && |\n| &&
+             `      const container = Object.assign(document.createElement('div'), {` && |\n| &&
+             `        id: 'serverErrorContainer',` && |\n| &&
+             `        className: 'z2ui5-error-overlay',` && |\n| &&
+             `      });` && |\n| &&
              `      document.body.appendChild(container);` && |\n| &&
              `      return container;` && |\n| &&
              `    },` && |\n| &&
@@ -202,31 +211,35 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          : full;` && |\n| &&
              `` && |\n| &&
              `      const errorContainer = this._getOrCreateErrorContainer();` && |\n| &&
-             `      errorContainer.textContent = '';` && |\n| &&
+             `      errorContainer.replaceChildren();` && |\n| &&
              `` && |\n| &&
-             `      const headerDiv = document.createElement('div');` && |\n| &&
-             `      headerDiv.style.cssText =` && |\n| &&
-             `        'padding: 15px; background: #d32f2f; color: white; display: flex; justify-content: space-between; align-items: center;';` && |\n| &&
-             `      const h3 = Object.assign(document.createElement('h3'), { textContent: 'Server Error - Please Restart The App' });` && |\n| &&
-             `      h3.style.cssText = 'margin: 0';` && |\n| &&
+             `      const headerDiv = Object.assign(document.createElement('div'), { className: 'z2ui5-error-overlay__header' });` && |\n| &&
+             `      const h3 = Object.assign(document.createElement('h3'), {` && |\n| &&
+             `        textContent: 'Server Error - Please Restart The App',` && |\n| &&
+             `        className: 'z2ui5-error-overlay__title',` && |\n| &&
+             `      });` && |\n| &&
              `      headerDiv.appendChild(h3);` && |\n| &&
              `` && |\n| &&
-             `      const btnStyle =` && |\n| &&
-             `        'padding: 6px 14px; background: white; color: #d32f2f; border: none; border-radius: 3px; cursor: pointer; font-weight: bold;';` && |\n| &&
+             `      const actionsDiv = Object.assign(document.createElement('div'), { className: 'z2ui5-error-overlay__actions' });` && |\n| &&
              `` && |\n| &&
-             `      const actionsDiv = document.createElement('div');` && |\n| &&
-             `      actionsDiv.style.cssText = 'display: flex; gap: 8px;';` && |\n| &&
-             `` && |\n| &&
-             `      const refreshBtn = Object.assign(document.createElement('button'), { type: 'button', textContent: 'Refresh' });` && |\n| &&
-             `      refreshBtn.style.cssText = btnStyle;` && |\n| &&
+             `      const refreshBtn = Object.assign(document.createElement('button'), {` && |\n| &&
+             `        type: 'button',` && |\n| &&
+             `        textContent: 'Refresh',` && |\n| &&
+             `        className: 'z2ui5-error-overlay__btn',` && |\n| &&
+             `      });` && |\n| &&
+             `      refreshBtn.setAttribute('aria-label', 'Refresh page');` && |\n| &&
              `      refreshBtn.addEventListener('click', () => window.location.reload());` && |\n| &&
              `      actionsDiv.appendChild(refreshBtn);` && |\n| &&
              `` && |\n| &&
-             `      const logoutBtn = Object.assign(document.createElement('button'), { type: 'button', textContent: 'Logout' });` && |\n| &&
-             `      logoutBtn.style.cssText = btnStyle;` && |\n| &&
+             `      const logoutBtn = Object.assign(document.createElement('button'), {` && |\n| &&
+             `        type: 'button',` && |\n| &&
+             `        textContent: 'Logout',` && |\n| &&
+             `        className: 'z2ui5-error-overlay__btn',` && |\n| &&
+             `      });` && |\n| &&
+             `      logoutBtn.setAttribute('aria-label', 'Logout from server');` && |\n| &&
              `      logoutBtn.addEventListener('click', () => {` && |\n| &&
              `        const redirectToLogoff = () => {` && |\n| &&
-             `          window.location.href = '/sap/public/bc/icf/logoff';` && |\n| &&
+             `          window.location.href = resolveLogoutUrl();` && |\n| &&
              `        };` && |\n| &&
              `        try {` && |\n| &&
              `          if (z2ui5.oLaunchpad?.Container?.logout) {` && |\n| &&
@@ -241,22 +254,23 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      actionsDiv.appendChild(logoutBtn);` && |\n| &&
              `` && |\n| &&
              `      headerDiv.appendChild(actionsDiv);` && |\n| &&
-             `` && |\n| &&
              `      errorContainer.appendChild(headerDiv);` && |\n| &&
              `` && |\n| &&
-             `      const iframe = Object.assign(document.createElement('iframe'), { id: 'errorIframe' });` && |\n| &&
-             `      iframe.style.cssText = 'width: 100%; height: 100%; border: none; flex: 1;';` && |\n| &&
-             `      iframe.setAttribute('sandbox', 'allow-same-origin');` && |\n| &&
+             `      const iframe = Object.assign(document.createElement('iframe'), {` && |\n| &&
+             `        id: 'errorIframe',` && |\n| &&
+             `        className: 'z2ui5-error-overlay__iframe',` && |\n| &&
+             `        title: 'Server error details',` && |\n| &&
+             `      });` && |\n| &&
+             `      // sandbox="" gives the iframe an opaque origin and blocks scripts/forms/popups.` && |\n| &&
+             `      // srcdoc renders escaped, static <pre> content — no contentDocument access from parent needed.` && |\n| &&
+             `      iframe.setAttribute('sandbox', '');` && |\n| &&
+             `      iframe.srcdoc = ``<style>html,body{margin:0;padding:0}pre{margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all}</style><pre>${escapeHtml(` && |\n| &&
+             `        errorMessage,` && |\n| &&
+             `      )}</pre>``;` && |\n| &&
              `      errorContainer.appendChild(iframe);` && |\n| &&
              `` && |\n| &&
-             `      const { contentDocument } = iframe;` && |\n| &&
-             `      if (contentDocument) {` && |\n| &&
-             `        const pre = contentDocument.createElement('pre');` && |\n| &&
-             `        pre.style.cssText =` && |\n| &&
-             `          'margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;';` && |\n| &&
-             `        pre.textContent = errorMessage;` && |\n| &&
-             `        (contentDocument.body || contentDocument.documentElement).appendChild(pre);` && |\n| &&
-             `      }` && |\n| &&
+             `      // basic focus context for keyboard users; not a full focus trap` && |\n| &&
+             `      refreshBtn.focus();` && |\n| &&
              `    },` && |\n| &&
              `  };` && |\n| &&
              `});` && |\n| &&
