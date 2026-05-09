@@ -62,7 +62,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! @parameter src                   | (sap.ui.core.URI) Icon URI, e.g. `sap-icon://accept`. Required for visible icons.
     "! @parameter press                 | (event) Fired when the icon is clicked.
     "! @parameter size                  | (sap.ui.core.CSSSize) Font size of the icon, e.g. `1rem`, `2em`, `32px`.
-    "! @parameter color                 | (string | sap.ui.core.IconColor) Icon color. CSS color or enum: Default | Positive | Negative | Critical | Neutral | Contrast | Non_Interactive | Tile | Marker.
+    "! @parameter color                 | (string | sap.ui.core.IconColor) Icon color. CSS color or enum:
+    "!                                     Default | Positive | Negative | Critical | Neutral | Contrast | Non_Interactive | Tile | Marker.
     "! @parameter class                 | (string) CSS class names.
     "! @parameter width                 | (sap.ui.core.CSSSize) Outer width.
     "! @parameter useicontooltip        | (boolean) Whether the symbolic name is used as tooltip when no `tooltip` is set. Default: true.
@@ -165,7 +166,9 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "!
     "! @parameter enableverticalresponsiveness | (boolean) Resize illustration based on container height when `illustrationSize=Auto`. Default: false.
     "! @parameter enableformattedtext          | (boolean) Render description as formatted text (HTML subset). Default: false.
-    "! @parameter illustrationtype             | (string) Illustration key, e.g. `sapIllus-NoSearchResults`, `sapIllus-NoData`, `sapIllus-UnableToLoad`, `sapIllus-SuccessScreen`, `sapIllus-NoEntries`, `sapIllus-NoActivities`, `sapIllus-BeforeSearch`. See `sap.m.IllustratedMessageType` for the full list.
+    "! @parameter illustrationtype             | (string) Illustration key, e.g. `sapIllus-NoSearchResults`, `sapIllus-NoData`,
+    "!                                            `sapIllus-UnableToLoad`, `sapIllus-SuccessScreen`, `sapIllus-NoEntries`, `sapIllus-NoActivities`,
+    "!                                            `sapIllus-BeforeSearch`. See `sap.m.IllustratedMessageType` for the full list.
     "! @parameter title                        | (string) Title text shown below the illustration.
     "! @parameter description                  | (string) Description text shown beneath the title.
     "! @parameter illustrationsize             | (sap.m.IllustratedMessageSize) Auto | Base | Dot | Spot | Dialog | Scene. Default: Auto.
@@ -252,7 +255,10 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "!
     "! @parameter title               | (string) Header title.
     "! @parameter class               | (string) CSS class names.
-    "! @parameter placement           | (sap.m.PlacementType) Top | Right | Bottom | Left | Vertical | Horizontal | Auto | VerticalPreferredTop | VerticalPreferredBottom | HorizontalPreferredLeft | HorizontalPreferredRight | PreferredTopOrFlip | PreferredBottomOrFlip | PreferredLeftOrFlip | PreferredRightOrFlip. Default: Right. Note: the older `*Prefered*` (single 'r') variants are deprecated misspellings.
+    "! @parameter placement           | (sap.m.PlacementType) Top | Right | Bottom | Left | Vertical | Horizontal | Auto |
+    "!                                   VerticalPreferredTop | VerticalPreferredBottom | HorizontalPreferredLeft | HorizontalPreferredRight |
+    "!                                   PreferredTopOrFlip | PreferredBottomOrFlip | PreferredLeftOrFlip | PreferredRightOrFlip. Default: Right.
+    "!                                   Note: the older `*Prefered*` (single 'r') variants are deprecated misspellings.
     "! @parameter initialfocus        | (sap.ui.core.ID) Id of the control that receives focus when opened.
     "! @parameter contentwidth        | (sap.ui.core.CSSSize) Width of the content area.
     "! @parameter contentheight       | (sap.ui.core.CSSSize) Height of the content area.
@@ -346,7 +352,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! @parameter growingscrolltoload | (boolean, ListBase) If true growing is triggered by scroll instead of button. Default: false.
     "! @parameter headertext          | (string, ListBase) Header text rendered as default header.
     "! @parameter sticky              | (sap.m.Sticky[], ListBase) Comma-separated list of sticky areas: HeaderToolbar | InfoToolbar | ColumnHeaders | GroupHeaders.
-    "! @parameter mode                | (sap.m.ListMode, ListBase) Selection mode: None | SingleSelectMaster | SingleSelectLeft | MultiSelect | Delete. `SingleSelect` is deprecated since 1.143 (use SingleSelectLeft). Default: None.
+    "! @parameter mode                | (sap.m.ListMode, ListBase) Selection mode: None | SingleSelectMaster | SingleSelectLeft | MultiSelect | Delete.
+    "!                                   `SingleSelect` is deprecated since 1.143 (use SingleSelectLeft). Default: None.
     "! @parameter width               | (sap.ui.core.CSSSize, ListBase) Width of the control. Default: 100%.
     "! @parameter selectionchange     | (event, ListBase) Fired when selection changes. Provides listItem, listItems, selected, selectAll.
     "! @parameter alternaterowcolors  | (boolean) Alternating row background colors (zebra stripes). Default: false. Since 1.52.
@@ -674,7 +681,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! @parameter textdirection    | (sap.ui.core.TextDirection, Button) Inherit | LTR | RTL. Default: Inherit.
     "! @parameter visible          | (boolean, Button) Whether the button is visible. Default: true.
     "! @parameter width            | (sap.ui.core.CSSSize, Button) Width of the button.
-    "! @parameter type             | (sap.m.ButtonType, Button) Default | Accept | Reject | Transparent | Ghost | Back | Up | Unstyled | Emphasized | Critical | Negative | Success | Neutral | Attention. Default: Default.
+    "! @parameter type             | (sap.m.ButtonType, Button) Default | Accept | Reject | Transparent | Ghost | Back | Up | Unstyled |
+    "!                                Emphasized | Critical | Negative | Success | Neutral | Attention. Default: Default.
     "! @parameter press            | (event, Button) Fired when the button is pressed.
     METHODS object_page_header_action_btn
       IMPORTING
@@ -1397,7 +1405,9 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "!
     "! @parameter value                         | (string, InputBase) Two-way bound value. Use `client->_bind_edit( var )`.
     "! @parameter placeholder                   | (string, InputBase) Placeholder shown while empty.
-    "! @parameter type                          | (sap.m.InputType) Text | Email | Number | Password | Tel | Url. Default: Text. Old types Date, Time, Datetime, DatetimeLocale, Month, Week and Passport are deprecated/removed - use sap.m.DatePicker / TimePicker instead.
+    "! @parameter type                          | (sap.m.InputType) Text | Email | Number | Password | Tel | Url. Default: Text.
+    "!                                            Old types Date, Time, Datetime, DatetimeLocale, Month, Week and Passport are
+    "!                                            deprecated/removed - use sap.m.DatePicker / TimePicker instead.
     "! @parameter showclearicon                 | (boolean) Shows a clear icon to remove the entered value. Default: false. Since 1.94.
     "! @parameter valuestate                    | (sap.ui.core.ValueState, InputBase) None | Success | Warning | Error | Information. Default: None.
     "! @parameter valuestatetext                | (string, InputBase) Text shown in the value state message popup.
@@ -1999,7 +2009,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "!
     "! @parameter text    | (string, Button) Button label.
     "! @parameter icon    | (sap.ui.core.URI, Button) Icon URI.
-    "! @parameter type    | (sap.m.ButtonType, Button) Default | Accept | Reject | Transparent | Ghost | Back | Up | Unstyled | Emphasized | Critical | Negative | Success | Neutral | Attention. Default: Default.
+    "! @parameter type    | (sap.m.ButtonType, Button) Default | Accept | Reject | Transparent | Ghost | Back | Up | Unstyled |
+    "!                      Emphasized | Critical | Negative | Success | Neutral | Attention. Default: Default.
     "! @parameter enabled | (boolean, Button) Whether the button is enabled. Default: true.
     "! @parameter press   | (event, Button) Fired when the button is pressed.
     "! @parameter class   | (string) CSS class names.
@@ -2022,7 +2033,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "!
     "! @parameter text             | (string) Button label. Default: empty.
     "! @parameter icon             | (sap.ui.core.URI) Icon URI, e.g. `sap-icon://accept`.
-    "! @parameter type             | (sap.m.ButtonType) Visual style: Default | Back | Accept | Reject | Transparent | Ghost | Up | Unstyled | Emphasized | Critical | Negative | Success | Neutral | Attention. Default: Default.
+    "! @parameter type             | (sap.m.ButtonType) Visual style: Default | Back | Accept | Reject | Transparent | Ghost | Up | Unstyled |
+    "!                                Emphasized | Critical | Negative | Success | Neutral | Attention. Default: Default.
     "! @parameter enabled          | (boolean) Whether the button is enabled. Default: true.
     "! @parameter visible          | (boolean) Whether the button is visible. Default: true.
     "! @parameter press            | (event) Fired when the button is clicked or activated by keyboard.
@@ -2233,7 +2245,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! @parameter titlealignment   | (sap.m.TitleAlignment) Auto | Start | Center. Default: Auto.
     "! @parameter titlelevel       | (sap.ui.core.TitleLevel) Semantic title level: Auto | H1 | H2 | H3 | H4 | H5 | H6. Default: Auto.
     "!
-    "! Deprecated UI5 properties not exposed by this wrapper: `navButtonText`, `navButtonType`, `icon` (all MVI-theme only, deprecated since 1.20). Event `navButtonTap` is deprecated - use `navButtonPress`.
+    "! Deprecated UI5 properties not exposed by this wrapper: `navButtonText`, `navButtonType`, `icon`
+    "! (all MVI-theme only, deprecated since 1.20). Event `navButtonTap` is deprecated - use `navButtonPress`.
     METHODS page
       IMPORTING
         title            TYPE clike OPTIONAL
@@ -2263,7 +2276,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! @parameter text          | (string) Button label.
     "! @parameter activeicon    | (sap.ui.core.URI) Icon shown while pressed.
     "! @parameter buttonmode    | (sap.m.MenuButtonMode) Regular | Split. Default: Regular.
-    "! @parameter type          | (sap.m.ButtonType) Default | Accept | Reject | Transparent | Ghost | Back | Up | Unstyled | Emphasized | Critical | Negative | Success | Neutral | Attention. Default: Default.
+    "! @parameter type          | (sap.m.ButtonType) Default | Accept | Reject | Transparent | Ghost | Back | Up | Unstyled |
+    "!                            Emphasized | Critical | Negative | Success | Neutral | Attention. Default: Default.
     "! @parameter enabled       | (boolean) Whether the button is enabled. Default: true.
     "! @parameter defaultaction | (event) Fired when the default action button (split mode) is pressed.
     METHODS menu_button
@@ -4114,7 +4128,9 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "!
     "! Flexible 1/2/3-column layout. See <a href="https://ui5.sap.com/#/api/sap.f.FlexibleColumnLayout">sap.f.FlexibleColumnLayout</a>.
     "!
-    "! @parameter layout                        | (sap.f.LayoutType) OneColumn | TwoColumnsBeginExpanded | TwoColumnsMidExpanded | MidColumnFullScreen | EndColumnFullScreen | ThreeColumnsMidExpanded | ThreeColumnsEndExpanded | ThreeColumnsMidExpandedEndHidden | ThreeColumnsBeginExpandedEndHidden. Default: OneColumn.
+    "! @parameter layout                        | (sap.f.LayoutType) OneColumn | TwoColumnsBeginExpanded | TwoColumnsMidExpanded |
+    "!                                            MidColumnFullScreen | EndColumnFullScreen | ThreeColumnsMidExpanded | ThreeColumnsEndExpanded |
+    "!                                            ThreeColumnsMidExpandedEndHidden | ThreeColumnsBeginExpandedEndHidden. Default: OneColumn.
     "! @parameter backgrounddesign              | (sap.m.BackgroundDesign) Solid | Translucent | Transparent. Default: Transparent.
     "! @parameter defaulttransitionnamebegincol | (string) Default transition for the begin column.
     "! @parameter defaulttransitionnameendcol   | (string) Default transition for the end column.
