@@ -36,7 +36,9 @@ sap.ui.define(
     'use strict';
 
     const runCallbacks = (arr, ...args) => {
-      for (const fn of arr ?? []) {
+      // Guard: someone may have clobbered the global with a non-iterable
+      if (!Array.isArray(arr)) return;
+      for (const fn of arr) {
         try {
           fn?.(...args);
         } catch (e) {
@@ -61,6 +63,8 @@ sap.ui.define(
     const _TOAST_DEFAULT_DURATION_MS = 3000;
     const _TOAST_DEFAULT_ANIM_MS = 1000;
     const _ERRORS_CAP = 200;
+    // Safety net: if a Dialog.afterClose never fires (stuck), still destroy after this many ms
+    const _DESTROY_SAFETY_NET_MS = 1000;
 
     // Public getViewContent() became available in newer UI5 versions; fall back to the internal
     // mProperties.viewContent for older versions
@@ -72,7 +76,9 @@ sap.ui.define(
 
     const _SAFE_PROTOCOLS = new Set(['http:', 'https:']);
     const _logError = (msg, err) => {
-      const arr = (z2ui5.errors ??= []);
+      // Defensive: if z2ui5.errors got clobbered with a non-array, reset it
+      if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];
+      const arr = z2ui5.errors;
       arr.push({
         message: msg,
         ...(err !== undefined && { error: err }),
@@ -107,10 +113,12 @@ sap.ui.define(
       ta.value = text;
       ta.setAttribute('readonly', '');
       ta.style.cssText = 'position:fixed;top:-1000px;left:-1000px;opacity:0;';
-      document.body.appendChild(ta);
+      (document.body ?? document.documentElement).appendChild(ta);
       ta.select();
       try {
-        document.execCommand('copy');
+        // execCommand returns false if the copy was rejected (e.g. user gesture missing)
+        const ok = document.execCommand('copy');
+        if (!ok) _logError(`Clipboard: legacy execCommand returned false`);
       } catch (e) {
         _logError(`Clipboard: legacy execCommand failed`, e);
       } finally {
@@ -187,10 +195,13 @@ sap.ui.define(
       POPOVER_NAV_CONTAINER_TO: (id) => Fragment.byId('popoverId', id),
     };
 
-    // Look up a control across all active views by ID (used by openBy and the Z2UI5 frontend action)
+    // Look up a control across all active views by ID (used by openBy and the Z2UI5 frontend action).
+    // Uses the imported Fragment module directly instead of the per-instance Fragment property
+    // pinned by displayFragment/displayPopover.
     const _findControlById = (id) =>
       z2ui5.oView?.byId(id) ||
-      z2ui5.oViewPopup?.Fragment?.byId('popupId', id) ||
+      (z2ui5.oViewPopup && Fragment.byId('popupId', id)) ||
+      (z2ui5.oViewPopover && Fragment.byId('popoverId', id)) ||
       z2ui5.oViewNest?.byId(id) ||
       z2ui5.oViewNest2?.byId(id) ||
       Element.getElementById?.(id) ||
@@ -337,34 +348,52 @@ sap.ui.define(
       async displayFragment(xml, viewProp) {
         const oModel = this._createViewModel();
         applyStoredSizeLimit('POPUP', oModel);
-        const oFragment = await Fragment.load({
-          definition: xml,
-          controller: z2ui5.oControllerPopup,
-          id: 'popupId',
-        });
+        let oFragment;
+        try {
+          oFragment = await Fragment.load({
+            definition: xml,
+            controller: z2ui5.oControllerPopup,
+            id: 'popupId',
+          });
+        } catch (e) {
+          oModel.destroy?.();
+          _logError(`displayFragment: Fragment.load failed`, e);
+          return;
+        }
         if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {
           oFragment.destroy();
+          oModel.destroy?.();
           return;
         }
         oFragment.setModel(oModel);
+        // .Fragment is pinned for legacy app-side lookups; new code should import Fragment directly
         oFragment.Fragment = Fragment;
         z2ui5[viewProp] = oFragment;
         oFragment.open();
       },
       async displayPopover(xml, viewProp, openById) {
+        const oModel = this._createViewModel();
+        applyStoredSizeLimit('POPOVER', oModel);
+        let oFragment;
         try {
-          const oModel = this._createViewModel();
-          applyStoredSizeLimit('POPOVER', oModel);
-          const oFragment = await Fragment.load({
+          oFragment = await Fragment.load({
             definition: xml,
             controller: z2ui5.oControllerPopover,
             id: 'popoverId',
           });
+        } catch (e) {
+          oModel.destroy?.();
+          _logError(`displayPopover: Fragment.load failed`, e);
+          return;
+        }
+        try {
           if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {
             oFragment.destroy();
+            oModel.destroy?.();
             return;
           }
           oFragment.setModel(oModel);
+          // .Fragment pinned for legacy app-side lookups; new code should import Fragment directly
           oFragment.Fragment = Fragment;
           z2ui5[viewProp] = oFragment;
           const oControl = _findControlById(openById);
@@ -391,8 +420,8 @@ sap.ui.define(
           oModel.destroy?.();
           throw e;
         }
-        const abort = (reason) => {
-          if (reason) _logError(reason);
+        const abort = (reason, err) => {
+          if (reason) _logError(reason, err);
           oView.destroy();
           oModel.destroy?.();
         };
@@ -412,16 +441,24 @@ sap.ui.define(
           abort(`displayNestedView: parent control '${ID}' not found, nested view discarded`);
           return;
         }
-        try {
-          oParent[METHOD_DESTROY]();
-        } catch (e) {
-          _logError(`displayNestedView: parent destroy method failed`, e);
+        // typeof guards: METHOD_DESTROY/INSERT come from the backend; tolerate missing/non-function values
+        if (typeof oParent[METHOD_DESTROY] === 'function') {
+          try {
+            oParent[METHOD_DESTROY]();
+          } catch (e) {
+            _logError(`displayNestedView: parent destroy method '${METHOD_DESTROY}' failed`, e);
+          }
+        } else {
+          _logError(`displayNestedView: parent has no method '${METHOD_DESTROY}'`);
+        }
+        if (typeof oParent[METHOD_INSERT] !== 'function') {
+          abort(`displayNestedView: parent has no method '${METHOD_INSERT}'`);
+          return;
         }
         try {
           oParent[METHOD_INSERT](oView);
         } catch (e) {
-          abort(`displayNestedView: parent insert method failed`);
-          _logError(`displayNestedView: parent insert method failed`, e);
+          abort(`displayNestedView: parent insert method '${METHOD_INSERT}' failed`, e);
           return;
         }
         z2ui5[viewProp] = oView;
@@ -430,7 +467,10 @@ sap.ui.define(
         const view = z2ui5[prop];
         if (!view) return;
         z2ui5[prop] = null;
+        let destroyed = false;
         const closeAndDestroy = () => {
+          if (destroyed) return;
+          destroyed = true;
           try {
             view.destroy();
           } catch (e) {
@@ -448,6 +488,8 @@ sap.ui.define(
             }
             if (typeof view.attachEventOnce === 'function' && typeof view.isOpen === 'function' && view.isOpen()) {
               view.attachEventOnce('afterClose', closeAndDestroy);
+              // Safety net: if afterClose never fires (e.g. dialog stuck), still destroy
+              setTimeout(closeAndDestroy, _DESTROY_SAFETY_NET_MS);
               return;
             }
           } catch (e) {
@@ -487,7 +529,11 @@ sap.ui.define(
             const hasLimit = args[2] !== undefined && args[2] !== '';
             const viewKey = hasLimit ? args[2] : args[1];
             const limit = hasLimit ? Number(args[1]) : NaN;
-            const model = viewLookups[viewKey]?.()?.getModel();
+            // Object.hasOwn guard prevents prototype access (viewKey === '__proto__' etc.)
+            const model =
+              typeof viewKey === 'string' && Object.hasOwn(viewLookups, viewKey)
+                ? viewLookups[viewKey]()?.getModel()
+                : undefined;
             if (Number.isFinite(limit) && limit > 0) {
               (z2ui5.viewSizeLimits ??= {})[viewKey] = limit;
               if (model) {
@@ -528,7 +574,13 @@ sap.ui.define(
           case 'STORE_DATA': {
             const { TYPE, PREFIX, VALUE, KEY } = args[1];
             try {
-              const oStorage = new Storage(Storage.Type[TYPE] ?? Storage.Type.session, PREFIX);
+              const StorageTypes = Storage?.Type ?? {};
+              // Object.hasOwn guard prevents prototype lookups (TYPE === '__proto__')
+              const resolvedType =
+                typeof TYPE === 'string' && Object.hasOwn(StorageTypes, TYPE)
+                  ? StorageTypes[TYPE]
+                  : StorageTypes.session;
+              const oStorage = new Storage(resolvedType, PREFIX);
               if (VALUE === '' || VALUE == null) {
                 oStorage.remove(KEY);
               } else {
@@ -645,7 +697,9 @@ sap.ui.define(
           MessageBox.alert('No internet connection! Please reconnect to the server and try again.');
           return;
         }
-        if (z2ui5.isBusy && !args[0][2]) {
+        // args[0] is the event-name array — args[0][2] is the "force during busy" flag,
+        // args[0][3] forces the main controller path
+        if (z2ui5.isBusy && !args[0]?.[2]) {
           const oBusyDialog = new mBusyDialog();
           oBusyDialog.open();
           queueMicrotask(() => oBusyDialog.close());
@@ -655,7 +709,7 @@ sap.ui.define(
         BusyIndicator.show();
         z2ui5.oBody = { VIEWNAME: 'MAIN' };
         let oModel;
-        if (args[0][3] || z2ui5.oController === this) {
+        if (args[0]?.[3] || z2ui5.oController === this) {
           oModel = z2ui5.oResponse?.PARAMS?.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH
             ? z2ui5.oView?.getModel('http')
             : z2ui5.oView?.getModel();
@@ -676,9 +730,17 @@ sap.ui.define(
           if (xx) z2ui5.oBody.XX = this._buildDeltaFromPaths(z2ui5.xxChangedPaths, xx);
         }
         z2ui5.oBody.ID = z2ui5.oResponse?.ID;
-        z2ui5.oBody.ARGUMENTS = args.map((item, i) =>
-          i > 0 && typeof item === 'object' ? JSON.stringify(item) : item,
-        );
+        // Index 0 is the event-name array; later indices are user-supplied payloads.
+        // Stringify objects/arrays to keep JSON sane; preserve null and primitives untouched.
+        z2ui5.oBody.ARGUMENTS = args.map((item, i) => {
+          if (i === 0 || item === null || typeof item !== 'object') return item;
+          try {
+            return JSON.stringify(item);
+          } catch (e) {
+            _logError(`eB: failed to stringify argument ${i}`, e);
+            return null;
+          }
+        });
         z2ui5.oResponseOld = z2ui5.oResponse;
         Server.Roundtrip();
         runCallbacks(z2ui5.onAfterRoundtrip);
@@ -688,7 +750,12 @@ sap.ui.define(
         if (!z2ui5.oResponse?.PARAMS?.[paramKey]?.CHECK_UPDATE_MODEL) return;
         const oModel = this._createViewModel();
         applyStoredSizeLimit(paramToViewKey[paramKey], oModel);
-        oView?.setModel(oModel);
+        if (oView) {
+          oView.setModel(oModel);
+        } else {
+          // No target view to bind to — release the model instead of leaking it
+          oModel.destroy?.();
+        }
       },
       async checkSDKcompatibility(err) {
         let gav;
@@ -708,7 +775,8 @@ sap.ui.define(
       showMessage(msgType, params) {
         if (!params) return;
         const msg = params[msgType];
-        if (msg?.TEXT === undefined) return;
+        // Skip when the backend sends no usable text (undefined or null)
+        if (msg?.TEXT == null) return;
         if (msgType === 'S_MSG_TOAST') {
           MessageToast.show(msg.TEXT, {
             duration: parseMs(msg.DURATION, _TOAST_DEFAULT_DURATION_MS),
@@ -719,11 +787,16 @@ sap.ui.define(
             animationDuration: parseMs(msg.ANIMATIONDURATION, _TOAST_DEFAULT_ANIM_MS),
             closeonBrowserNavigation: !!msg.CLOSEONBROWSERNAVIGATION,
           });
-          if (msg.CLASS) {
-            // Pick the most recently appended toast — querySelectorAll returns them in DOM order
-            const toasts = document.querySelectorAll('.sapMMessageToast');
-            const toast = toasts[toasts.length - 1];
-            toast?.classList.add(...msg.CLASS.trim().split(/\s+/).filter(Boolean));
+          if (typeof msg.CLASS === 'string' && msg.CLASS) {
+            // Pick the most recently appended toast — querySelectorAll returns them in DOM order.
+            // classList.add throws on invalid token names; protect the rest of the flow.
+            try {
+              const toasts = document.querySelectorAll('.sapMMessageToast');
+              const toast = toasts[toasts.length - 1];
+              toast?.classList.add(...msg.CLASS.trim().split(/\s+/).filter(Boolean));
+            } catch (e) {
+              _logError(`showMessage: invalid toast CLASS '${msg.CLASS}'`, e);
+            }
           }
         } else if (msgType === 'S_MSG_BOX') {
           const oParams = {

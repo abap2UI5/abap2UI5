@@ -20,10 +20,18 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
 
     result = `const _ERRORS_CAP = 200;` && |\n| &&
              `const _logError = (msg, err) => {` && |\n| &&
-             `  const arr = (z2ui5.errors ??= []);` && |\n| &&
+             `  // Defensive: if z2ui5.errors got clobbered with a non-array, reset it` && |\n| &&
+             `  if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];` && |\n| &&
+             `  const arr = z2ui5.errors;` && |\n| &&
              `  arr.push({ message: msg, ...(err !== undefined && { error: err }), ts: new Date().toISOString() });` && |\n| &&
              `  // Cap the rolling error log so a long-lived session does not grow unbounded` && |\n| &&
              `  while (arr.length > _ERRORS_CAP) arr.shift();` && |\n| &&
+             `};` && |\n| &&
+             `` && |\n| &&
+             `// Remove a callback from one of the z2ui5.onXxx arrays without crashing if the array` && |\n| &&
+             `// has been clobbered (filter would throw on non-arrays).` && |\n| &&
+             `const _unregisterCallback = (key, fn) => {` && |\n| &&
+             `  z2ui5[key] = Array.isArray(z2ui5[key]) ? z2ui5[key].filter((cb) => cb !== fn) : [];` && |\n| &&
              `};` && |\n| &&
              `` && |\n| &&
              `sap.ui.define(` && |\n| &&
@@ -64,6 +72,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        const oOwnerComponent = this.getOwnerComponent();` && |\n| &&
              `        z2ui5.oOwnerComponent = oOwnerComponent;` && |\n| &&
              `        const uri = oOwnerComponent.getManifest()?.['sap.app']?.dataSources?.http?.uri;` && |\n| &&
+             `        // oConfig is normally set by Component.init; guard in case onInit runs before/after that` && |\n| &&
+             `        z2ui5.oConfig ??= {};` && |\n| &&
              `        z2ui5.oConfig.pathname = z2ui5.checkLocal ? window.location.href : uri;` && |\n| &&
              `` && |\n| &&
              `        _destroyPrevious();` && |\n| &&
@@ -263,7 +273,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    setApplicationFullWidth(val) {` && |\n| &&
              `      this.setProperty('ApplicationFullWidth', val);` && |\n| &&
              `      try {` && |\n| &&
-             `        z2ui5.oLaunchpad?.AppConfiguration?.setApplicationFullWidth(val);` && |\n| &&
+             `        // Coerce explicitly — UI5 string bindings may pass "true"/"false" strings` && |\n| &&
+             `        z2ui5.oLaunchpad?.AppConfiguration?.setApplicationFullWidth(!!val);` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        _logError(``LPTitle: setApplicationFullWidth failed``, e);` && |\n| &&
              `      }` && |\n| &&
@@ -330,7 +341,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n| &&
              `` && |\n| &&
              `    exit() {` && |\n| &&
-             `      z2ui5.onBeforeRoundtrip = (z2ui5.onBeforeRoundtrip ?? []).filter((fn) => fn !== this._setBackendBound);` && |\n| &&
+             `      _unregisterCallback('onBeforeRoundtrip', this._setBackendBound);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    onAfterRendering() {` && |\n| &&
@@ -375,7 +386,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `    _getDomInnerElement(id) {` && |\n| &&
              `      const control = z2ui5.oView?.byId(id);` && |\n| &&
-             `      return control && document.getElementById(``${control.getId()}-inner``);` && |\n| &&
+             `      if (!control) return null;` && |\n| &&
+             `      // Prefer the UI5 public API for sub-DOM lookup; fall back to the internal ``-inner`` suffix` && |\n| &&
+             `      // for older versions / controls that don't expose that subId.` && |\n| &&
+             `      return control.getDomRef?.('inner') ?? document.getElementById(``${control.getId()}-inner``);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    _getScrollTop(item) {` && |\n| &&
@@ -404,6 +418,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            if (bindingPath) z2ui5.xxChangedPaths?.add(``${bindingPath}/${index}/V``);` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
+             |\n|.
+    result = result &&
              `      } catch (e) {` && |\n| &&
              `        _logError(``Scrolling.setBackend: failed``, e);` && |\n| &&
              `      }` && |\n| &&
@@ -411,15 +427,25 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `    init() {` && |\n| &&
              `      this._setBackendBound = this.setBackend.bind(this);` && |\n| &&
+             `      this._scrollDelegates = [];` && |\n| &&
              `      (z2ui5.onBeforeRoundtrip ??= []).push(this._setBackendBound);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    exit() {` && |\n| &&
-             `      z2ui5.onBeforeRoundtrip = (z2ui5.onBeforeRoundtrip ?? []).filter((fn) => fn !== this._setBackendBound);` && |\n| &&
+             `      _unregisterCallback('onBeforeRoundtrip', this._setBackendBound);` && |\n| &&
+             `      // Detach delegates that may still be sitting on long-lived target controls` && |\n| &&
+             `      for (const { control, delegate } of this._scrollDelegates ?? []) {` && |\n| &&
+             `        try {` && |\n| &&
+             `          if (typeof control?.removeEventDelegate === 'function' && !control.isDestroyed?.()) {` && |\n| &&
+             `            control.removeEventDelegate(delegate);` && |\n| &&
+             `          }` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          _logError(``Scrolling.exit: removeEventDelegate failed``, e);` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `      this._scrollDelegates = null;` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             |\n|.
-    result = result &&
              `    _restoreScrollPosition(item) {` && |\n| &&
              `      try {` && |\n| &&
              `        const control = z2ui5.oView?.byId(item.N);` && |\n| &&
@@ -441,6 +467,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      const items = this.getProperty('items');` && |\n| &&
              `      if (!items) return;` && |\n| &&
              `` && |\n| &&
+             `      // Track outstanding delegates so exit() can detach them and avoid the leak where` && |\n| &&
+             `      // a destroyed Scrolling control still keeps a delegate attached to its target.` && |\n| &&
+             `      this._scrollDelegates ??= [];` && |\n| &&
              `      try {` && |\n| &&
              `        for (const item of items) {` && |\n| &&
              `          const control = z2ui5.oView?.byId(item.N);` && |\n| &&
@@ -450,10 +479,12 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            const delegate = {` && |\n| &&
              `              onAfterRendering: () => {` && |\n| &&
              `                control.removeEventDelegate(delegate);` && |\n| &&
+             `                this._scrollDelegates = (this._scrollDelegates ?? []).filter((d) => d.delegate !== delegate);` && |\n| &&
              `                if (!this.isDestroyed()) this._restoreScrollPosition(item);` && |\n| &&
              `              },` && |\n| &&
              `            };` && |\n| &&
              `            control.addEventDelegate(delegate);` && |\n| &&
+             `            this._scrollDelegates.push({ control, delegate });` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
              `      } catch (e) {` && |\n| &&
@@ -625,13 +656,17 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      if (!this._pendingGeolocate) return;` && |\n| &&
              `      this._pendingGeolocate = false;` && |\n| &&
              `      try {` && |\n| &&
+             `        // Coerce timeout to a finite positive number; NaN is treated as 0 (no timeout) by the` && |\n| &&
+             `        // Geolocation API which is rarely what the caller wants` && |\n| &&
+             `        const rawTimeout = +this.getProperty('timeout');` && |\n| &&
+             `        const timeout = Number.isFinite(rawTimeout) && rawTimeout > 0 ? rawTimeout : 5000;` && |\n| &&
              `        // Optional-method call: skip silently if either geolocation or getCurrentPosition is missing` && |\n| &&
              `        navigator.geolocation?.getCurrentPosition?.(` && |\n| &&
              `          this.callbackPosition.bind(this),` && |\n| &&
              `          (error) => _logError(``Geolocation error (${error?.code ?? '?'}): ${error?.message ?? 'unknown'}``),` && |\n| &&
              `          {` && |\n| &&
              `            enableHighAccuracy: this.getProperty('enableHighAccuracy'),` && |\n| &&
-             `            timeout: +this.getProperty('timeout'),` && |\n| &&
+             `            timeout,` && |\n| &&
              `          },` && |\n| &&
              `        );` && |\n| &&
              `      } catch (e) {` && |\n| &&
@@ -702,8 +737,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        const key = oControl.getProperty('key');` && |\n| &&
              `        const value = oControl.getProperty('value');` && |\n| &&
              `        // Object.hasOwn guard — prevents prototype lookups (type === '__proto__') and logs unknown types` && |\n| &&
-             `        const resolvedType = Object.hasOwn(Storage.Type, type) ? Storage.Type[type] : Storage.Type.session;` && |\n| &&
-             `        if (type && !Object.hasOwn(Storage.Type, type)) {` && |\n| &&
+             `        const StorageTypes = Storage?.Type ?? {};` && |\n| &&
+             `        const known = typeof type === 'string' && Object.hasOwn(StorageTypes, type);` && |\n| &&
+             `        const resolvedType = known ? StorageTypes[type] : StorageTypes.session;` && |\n| &&
+             `        if (type && !known) {` && |\n| &&
              `          _logError(``Storage: unknown type '${type}', falling back to session``);` && |\n| &&
              `        }` && |\n| &&
              `        let stored;` && |\n| &&
@@ -783,6 +820,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            type: 'boolean',` && |\n| &&
              `            defaultValue: false,` && |\n| &&
              `          },` && |\n| &&
+             |\n|.
+    result = result &&
              `          visible: {` && |\n| &&
              `            type: 'boolean',` && |\n| &&
              `            defaultValue: true,` && |\n| &&
@@ -820,8 +859,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        apiVersion: 2,` && |\n| &&
              `        render(oRm, oControl) {` && |\n| &&
              `          const directUpload = oControl.getProperty('checkDirectUpload');` && |\n| &&
-             |\n|.
-    result = result &&
              `          const path = oControl.getProperty('path');` && |\n| &&
              `          oControl._oHBox?.destroy();` && |\n| &&
              `          oControl._oHBox = null;` && |\n| &&
@@ -914,7 +951,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      (z2ui5.onAfterRendering ??= []).push(this._setControlBound);` && |\n| &&
              `    },` && |\n| &&
              `    exit() {` && |\n| &&
-             `      z2ui5.onAfterRendering = (z2ui5.onAfterRendering ?? []).filter((fn) => fn !== this._setControlBound);` && |\n| &&
+             `      _unregisterCallback('onAfterRendering', this._setControlBound);` && |\n| &&
              `      // Detach from the host MultiInput if it is still alive — avoids leaking` && |\n| &&
              `      // a bound onTokenUpdate handler when the table outlives this control.` && |\n| &&
              `      if (this._attachedTable && typeof this._attachedTable.isDestroyed === 'function' && !this._attachedTable.isDestroyed()) {` && |\n| &&
@@ -996,7 +1033,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      (z2ui5.onAfterRendering ??= []).push(this._setControlBound);` && |\n| &&
              `    },` && |\n| &&
              `    exit() {` && |\n| &&
-             `      z2ui5.onAfterRendering = (z2ui5.onAfterRendering ?? []).filter((fn) => fn !== this._setControlBound);` && |\n| &&
+             `      _unregisterCallback('onAfterRendering', this._setControlBound);` && |\n| &&
              `      this._oPendingInnerControlsCreated?.(null);` && |\n| &&
              `      this._oPendingInnerControlsCreated = null;` && |\n| &&
              `      if (this._attachedInput && typeof this._attachedInput.isDestroyed === 'function' && !this._attachedInput.isDestroyed()) {` && |\n| &&
@@ -1025,7 +1062,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        'rangeData',` && |\n| &&
              `        (source.getRangeData() ?? []).map((oRangeData, index) => {` && |\n| &&
              `          const token = tokens[index];` && |\n| &&
-             `          return Object.assign(oRangeData, { tokenText: token?.getText() ?? '', tokenLongKey: token?.data('longKey') });` && |\n| &&
+             `          // Spread instead of Object.assign so we don't mutate the SmartMultiInput's internal range data` && |\n| &&
+             `          return { ...oRangeData, tokenText: token?.getText() ?? '', tokenLongKey: token?.data('longKey') };` && |\n| &&
              `        }),` && |\n| &&
              `      );` && |\n| &&
              `      this.fireChange();` && |\n| &&
@@ -1095,6 +1133,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    const _THUMB_W = 300;` && |\n| &&
              `    const _JPEG_QUALITY_PHOTO = 0.85;` && |\n| &&
              `    const _JPEG_QUALITY_THUMB = 0.7;` && |\n| &&
+             `    const _CAMERA_IDEAL_WIDTH = 1920;` && |\n| &&
+             `    const _CAMERA_IDEAL_HEIGHT = 1080;` && |\n| &&
              `    return Control.extend('z2ui5.CameraPicture', {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -1182,6 +1222,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `                press: () => {` && |\n| &&
              `                  this.capture();` && |\n| &&
              `                  this._oScanDialog.close();` && |\n| &&
+             |\n|.
+    result = result &&
              `                },` && |\n| &&
              `              }),` && |\n| &&
              `              new HTML({` && |\n| &&
@@ -1207,7 +1249,12 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          }` && |\n| &&
              `          const facingMode = this.getProperty('facingMode');` && |\n| &&
              `          const deviceId = this.getProperty('deviceId');` && |\n| &&
-             `          const options = { video: { width: { ideal: 1920 }, height: { ideal: 1080 } } };` && |\n| &&
+             `          const options = {` && |\n| &&
+             `            video: {` && |\n| &&
+             `              width: { ideal: _CAMERA_IDEAL_WIDTH },` && |\n| &&
+             `              height: { ideal: _CAMERA_IDEAL_HEIGHT },` && |\n| &&
+             `            },` && |\n| &&
+             `          };` && |\n| &&
              `          if (deviceId) options.video.deviceId = deviceId;` && |\n| &&
              `          if (facingMode) options.video.facingMode = { exact: facingMode };` && |\n| &&
              `          try {` && |\n| &&
@@ -1222,8 +1269,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            _logError(``CameraPicture: getUserMedia failed``, error);` && |\n| &&
              `          }` && |\n| &&
              `        });` && |\n| &&
-             |\n|.
-    result = result &&
              `        this._oScanDialog.open();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -1235,11 +1280,14 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      renderer: {` && |\n| &&
              `        apiVersion: 2,` && |\n| &&
              `        render(oRm, oControl) {` && |\n| &&
-             `          oControl._oButton ??= new Button({` && |\n| &&
-             `            icon: 'sap-icon://camera',` && |\n| &&
-             `            text: 'Camera',` && |\n| &&
-             `            press: oControl.onPicture.bind(oControl),` && |\n| &&
-             `          });` && |\n| &&
+             `          // Re-create button if it was destroyed externally (??= alone would not detect that)` && |\n| &&
+             `          if (!oControl._oButton || oControl._oButton.isDestroyed?.()) {` && |\n| &&
+             `            oControl._oButton = new Button({` && |\n| &&
+             `              icon: 'sap-icon://camera',` && |\n| &&
+             `              text: 'Camera',` && |\n| &&
+             `              press: oControl.onPicture.bind(oControl),` && |\n| &&
+             `            });` && |\n| &&
+             `          }` && |\n| &&
              `          oRm.renderControl(oControl._oButton);` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
@@ -1261,7 +1309,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          let added = false;` && |\n| &&
              `          for (const device of devices) {` && |\n| &&
              `            if (device.kind === 'videoinput' && !this.isDestroyed()) {` && |\n| &&
-             `              this.addItem(new Item({ key: device.deviceId, text: device.label }));` && |\n| &&
+             `              // Browsers redact device.label to '' when no permission has been granted yet —` && |\n| &&
+             `              // fall back to a short device-id slice so the dropdown is still usable.` && |\n| &&
+             `              const text = device.label || ``Camera ${device.deviceId.slice(0, 6)}``;` && |\n| &&
+             `              this.addItem(new Item({ key: device.deviceId, text }));` && |\n| &&
              `              added = true;` && |\n| &&
              `            }` && |\n| &&
              `          }` && |\n| &&
@@ -1323,8 +1374,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n| &&
              `` && |\n| &&
              `    exit() {` && |\n| &&
-             `      z2ui5.onBeforeRoundtrip = (z2ui5.onBeforeRoundtrip ?? []).filter((fn) => fn !== this._beforeBound);` && |\n| &&
-             `      z2ui5.onAfterRoundtrip = (z2ui5.onAfterRoundtrip ?? []).filter((fn) => fn !== this._afterBound);` && |\n| &&
+             `      _unregisterCallback('onBeforeRoundtrip', this._beforeBound);` && |\n| &&
+             `      _unregisterCallback('onAfterRoundtrip', this._afterBound);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    _getTable() {` && |\n| &&

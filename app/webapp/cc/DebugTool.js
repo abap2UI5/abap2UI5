@@ -199,8 +199,25 @@ sap.ui.define(
         if (!this.oDialog) return;
         const { oDialog } = this;
         this.oDialog = null;
-        oDialog.close();
-        oDialog.destroy();
+        const safeDestroy = () => {
+          try {
+            oDialog.destroy();
+          } catch (e) {
+            _logError(`DebugTool.close: oDialog.destroy() failed`, e);
+          }
+        };
+        try {
+          // Defer destroy until the close animation has settled to avoid races
+          if (typeof oDialog.attachEventOnce === 'function' && typeof oDialog.isOpen === 'function' && oDialog.isOpen()) {
+            oDialog.attachEventOnce('afterClose', safeDestroy);
+            oDialog.close();
+            return;
+          }
+          oDialog.close();
+        } catch (e) {
+          _logError(`DebugTool.close: oDialog.close() failed`, e);
+        }
+        safeDestroy();
       },
 
       toggle() {

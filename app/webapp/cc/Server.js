@@ -13,7 +13,9 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
   const _logError = (message, error) => {
     const entry = { message, ts: new Date().toISOString() };
     if (error !== undefined) entry.error = error;
-    const arr = (z2ui5.errors ??= []);
+    // Defensive: if z2ui5.errors got clobbered with a non-array, reset it
+    if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];
+    const arr = z2ui5.errors;
     arr.push(entry);
     while (arr.length > _ERRORS_CAP) arr.shift();
   };
@@ -138,6 +140,14 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
     },
     async responseSuccess(response) {
       const { oController } = z2ui5;
+      // Bail early if the controller has been torn down between request and response —
+      // every subsequent call (ViewDestroy, eF, showMessage, displayView) assumes it exists
+      if (!oController) {
+        BusyIndicator.hide();
+        z2ui5.isBusy = false;
+        _logError('responseSuccess: z2ui5.oController is missing — response discarded');
+        return;
+      }
       try {
         z2ui5.oResponse = response;
         const params = response.PARAMS;
@@ -148,7 +158,12 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
           queueMicrotask(() => {
             for (const item of customJs) {
               if (oController.isDestroyed?.()) return;
+              if (typeof item !== 'string') {
+                _logError(`customJs: item is not a string`, item);
+                continue;
+              }
               try {
+                // Format: text'arg1'text'arg2'... — odd-indexed slices are the eF arguments
                 const mParams = item.split("'");
                 const mParamsEF = mParams.filter((_, index) => index % 2);
                 if (mParamsEF.length) oController.eF(...mParamsEF);
@@ -194,7 +209,8 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
         id: 'serverErrorContainer',
         className: 'z2ui5-error-overlay',
       });
-      document.body.appendChild(container);
+      // document.body can be momentarily null during pagehide; fall back to documentElement
+      (document.body ?? document.documentElement).appendChild(container);
       return container;
     },
     responseError(response) {
@@ -261,13 +277,21 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
       // sandbox="" gives the iframe an opaque origin and blocks scripts/forms/popups.
       // srcdoc renders escaped, static <pre> content — no contentDocument access from parent needed.
       iframe.setAttribute('sandbox', '');
-      iframe.srcdoc = `<style>html,body{margin:0;padding:0}pre{margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all}</style><pre>${escapeHtml(
-        errorMessage,
-      )}</pre>`;
+      try {
+        iframe.srcdoc = `<style>html,body{margin:0;padding:0}pre{margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all}</style><pre>${escapeHtml(
+          errorMessage,
+        )}</pre>`;
+      } catch (e) {
+        _logError(`responseError: srcdoc assignment failed`, e);
+      }
       errorContainer.appendChild(iframe);
 
-      // basic focus context for keyboard users; not a full focus trap
-      refreshBtn.focus();
+      // basic focus context for keyboard users; focus() can throw inside detached/closing windows
+      try {
+        refreshBtn.focus();
+      } catch {
+        /* focus is best-effort */
+      }
     },
   };
 });

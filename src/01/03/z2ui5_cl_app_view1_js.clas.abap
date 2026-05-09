@@ -56,7 +56,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    'use strict';` && |\n| &&
              `` && |\n| &&
              `    const runCallbacks = (arr, ...args) => {` && |\n| &&
-             `      for (const fn of arr ?? []) {` && |\n| &&
+             `      // Guard: someone may have clobbered the global with a non-iterable` && |\n| &&
+             `      if (!Array.isArray(arr)) return;` && |\n| &&
+             `      for (const fn of arr) {` && |\n| &&
              `        try {` && |\n| &&
              `          fn?.(...args);` && |\n| &&
              `        } catch (e) {` && |\n| &&
@@ -81,6 +83,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    const _TOAST_DEFAULT_DURATION_MS = 3000;` && |\n| &&
              `    const _TOAST_DEFAULT_ANIM_MS = 1000;` && |\n| &&
              `    const _ERRORS_CAP = 200;` && |\n| &&
+             `    // Safety net: if a Dialog.afterClose never fires (stuck), still destroy after this many ms` && |\n| &&
+             `    const _DESTROY_SAFETY_NET_MS = 1000;` && |\n| &&
              `` && |\n| &&
              `    // Public getViewContent() became available in newer UI5 versions; fall back to the internal` && |\n| &&
              `    // mProperties.viewContent for older versions` && |\n| &&
@@ -92,7 +96,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `    const _SAFE_PROTOCOLS = new Set(['http:', 'https:']);` && |\n| &&
              `    const _logError = (msg, err) => {` && |\n| &&
-             `      const arr = (z2ui5.errors ??= []);` && |\n| &&
+             `      // Defensive: if z2ui5.errors got clobbered with a non-array, reset it` && |\n| &&
+             `      if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];` && |\n| &&
+             `      const arr = z2ui5.errors;` && |\n| &&
              `      arr.push({` && |\n| &&
              `        message: msg,` && |\n| &&
              `        ...(err !== undefined && { error: err }),` && |\n| &&
@@ -127,10 +133,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      ta.value = text;` && |\n| &&
              `      ta.setAttribute('readonly', '');` && |\n| &&
              `      ta.style.cssText = 'position:fixed;top:-1000px;left:-1000px;opacity:0;';` && |\n| &&
-             `      document.body.appendChild(ta);` && |\n| &&
+             `      (document.body ?? document.documentElement).appendChild(ta);` && |\n| &&
              `      ta.select();` && |\n| &&
              `      try {` && |\n| &&
-             `        document.execCommand('copy');` && |\n| &&
+             `        // execCommand returns false if the copy was rejected (e.g. user gesture missing)` && |\n| &&
+             `        const ok = document.execCommand('copy');` && |\n| &&
+             `        if (!ok) _logError(``Clipboard: legacy execCommand returned false``);` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        _logError(``Clipboard: legacy execCommand failed``, e);` && |\n| &&
              `      } finally {` && |\n| &&
@@ -207,10 +215,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      POPOVER_NAV_CONTAINER_TO: (id) => Fragment.byId('popoverId', id),` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    // Look up a control across all active views by ID (used by openBy and the Z2UI5 frontend action)` && |\n| &&
+             `    // Look up a control across all active views by ID (used by openBy and the Z2UI5 frontend action).` && |\n| &&
+             `    // Uses the imported Fragment module directly instead of the per-instance Fragment property` && |\n| &&
+             `    // pinned by displayFragment/displayPopover.` && |\n| &&
              `    const _findControlById = (id) =>` && |\n| &&
              `      z2ui5.oView?.byId(id) ||` && |\n| &&
-             `      z2ui5.oViewPopup?.Fragment?.byId('popupId', id) ||` && |\n| &&
+             `      (z2ui5.oViewPopup && Fragment.byId('popupId', id)) ||` && |\n| &&
+             `      (z2ui5.oViewPopover && Fragment.byId('popoverId', id)) ||` && |\n| &&
              `      z2ui5.oViewNest?.byId(id) ||` && |\n| &&
              `      z2ui5.oViewNest2?.byId(id) ||` && |\n| &&
              `      Element.getElementById?.(id) ||` && |\n| &&
@@ -357,38 +368,58 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      async displayFragment(xml, viewProp) {` && |\n| &&
              `        const oModel = this._createViewModel();` && |\n| &&
              `        applyStoredSizeLimit('POPUP', oModel);` && |\n| &&
-             `        const oFragment = await Fragment.load({` && |\n| &&
-             `          definition: xml,` && |\n| &&
-             `          controller: z2ui5.oControllerPopup,` && |\n| &&
-             `          id: 'popupId',` && |\n| &&
-             `        });` && |\n| &&
+             `        let oFragment;` && |\n| &&
+             `        try {` && |\n| &&
+             `          oFragment = await Fragment.load({` && |\n| &&
+             `            definition: xml,` && |\n| &&
+             `            controller: z2ui5.oControllerPopup,` && |\n| &&
+             `            id: 'popupId',` && |\n| &&
+             `          });` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          oModel.destroy?.();` && |\n| &&
+             `          _logError(``displayFragment: Fragment.load failed``, e);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
              `        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {` && |\n| &&
              `          oFragment.destroy();` && |\n| &&
+             `          oModel.destroy?.();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        oFragment.setModel(oModel);` && |\n| &&
+             `        // .Fragment is pinned for legacy app-side lookups; new code should import Fragment directly` && |\n| &&
              `        oFragment.Fragment = Fragment;` && |\n| &&
              `        z2ui5[viewProp] = oFragment;` && |\n| &&
              `        oFragment.open();` && |\n| &&
              `      },` && |\n| &&
              `      async displayPopover(xml, viewProp, openById) {` && |\n| &&
+             `        const oModel = this._createViewModel();` && |\n| &&
+             `        applyStoredSizeLimit('POPOVER', oModel);` && |\n| &&
+             `        let oFragment;` && |\n| &&
              `        try {` && |\n| &&
-             `          const oModel = this._createViewModel();` && |\n| &&
-             `          applyStoredSizeLimit('POPOVER', oModel);` && |\n| &&
-             `          const oFragment = await Fragment.load({` && |\n| &&
+             `          oFragment = await Fragment.load({` && |\n| &&
              `            definition: xml,` && |\n| &&
              `            controller: z2ui5.oControllerPopover,` && |\n| &&
              `            id: 'popoverId',` && |\n| &&
              `          });` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          oModel.destroy?.();` && |\n| &&
+             `          _logError(``displayPopover: Fragment.load failed``, e);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        try {` && |\n| &&
              `          if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {` && |\n| &&
              `            oFragment.destroy();` && |\n| &&
+             `            oModel.destroy?.();` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `          oFragment.setModel(oModel);` && |\n| &&
+             `          // .Fragment pinned for legacy app-side lookups; new code should import Fragment directly` && |\n| &&
              `          oFragment.Fragment = Fragment;` && |\n| &&
              `          z2ui5[viewProp] = oFragment;` && |\n| &&
              `          const oControl = _findControlById(openById);` && |\n| &&
              `          if (!oControl) {` && |\n| &&
+             |\n|.
+    result = result &&
              `            _logError(``displayPopover: openBy control '${openById}' not found``);` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
@@ -411,15 +442,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          oModel.destroy?.();` && |\n| &&
              `          throw e;` && |\n| &&
              `        }` && |\n| &&
-             `        const abort = (reason) => {` && |\n| &&
-             `          if (reason) _logError(reason);` && |\n| &&
+             `        const abort = (reason, err) => {` && |\n| &&
+             `          if (reason) _logError(reason, err);` && |\n| &&
              `          oView.destroy();` && |\n| &&
              `          oModel.destroy?.();` && |\n| &&
              `        };` && |\n| &&
              `        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {` && |\n| &&
              `          abort();` && |\n| &&
-             |\n|.
-    result = result &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        oView.setModel(oModel);` && |\n| &&
@@ -434,16 +463,24 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          abort(``displayNestedView: parent control '${ID}' not found, nested view discarded``);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        try {` && |\n| &&
-             `          oParent[METHOD_DESTROY]();` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          _logError(``displayNestedView: parent destroy method failed``, e);` && |\n| &&
+             `        // typeof guards: METHOD_DESTROY/INSERT come from the backend; tolerate missing/non-function values` && |\n| &&
+             `        if (typeof oParent[METHOD_DESTROY] === 'function') {` && |\n| &&
+             `          try {` && |\n| &&
+             `            oParent[METHOD_DESTROY]();` && |\n| &&
+             `          } catch (e) {` && |\n| &&
+             `            _logError(``displayNestedView: parent destroy method '${METHOD_DESTROY}' failed``, e);` && |\n| &&
+             `          }` && |\n| &&
+             `        } else {` && |\n| &&
+             `          _logError(``displayNestedView: parent has no method '${METHOD_DESTROY}'``);` && |\n| &&
+             `        }` && |\n| &&
+             `        if (typeof oParent[METHOD_INSERT] !== 'function') {` && |\n| &&
+             `          abort(``displayNestedView: parent has no method '${METHOD_INSERT}'``);` && |\n| &&
+             `          return;` && |\n| &&
              `        }` && |\n| &&
              `        try {` && |\n| &&
              `          oParent[METHOD_INSERT](oView);` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          abort(``displayNestedView: parent insert method failed``);` && |\n| &&
-             `          _logError(``displayNestedView: parent insert method failed``, e);` && |\n| &&
+             `          abort(``displayNestedView: parent insert method '${METHOD_INSERT}' failed``, e);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        z2ui5[viewProp] = oView;` && |\n| &&
@@ -452,7 +489,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        const view = z2ui5[prop];` && |\n| &&
              `        if (!view) return;` && |\n| &&
              `        z2ui5[prop] = null;` && |\n| &&
+             `        let destroyed = false;` && |\n| &&
              `        const closeAndDestroy = () => {` && |\n| &&
+             `          if (destroyed) return;` && |\n| &&
+             `          destroyed = true;` && |\n| &&
              `          try {` && |\n| &&
              `            view.destroy();` && |\n| &&
              `          } catch (e) {` && |\n| &&
@@ -470,6 +510,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            }` && |\n| &&
              `            if (typeof view.attachEventOnce === 'function' && typeof view.isOpen === 'function' && view.isOpen()) {` && |\n| &&
              `              view.attachEventOnce('afterClose', closeAndDestroy);` && |\n| &&
+             `              // Safety net: if afterClose never fires (e.g. dialog stuck), still destroy` && |\n| &&
+             `              setTimeout(closeAndDestroy, _DESTROY_SAFETY_NET_MS);` && |\n| &&
              `              return;` && |\n| &&
              `            }` && |\n| &&
              `          } catch (e) {` && |\n| &&
@@ -509,7 +551,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            const hasLimit = args[2] !== undefined && args[2] !== '';` && |\n| &&
              `            const viewKey = hasLimit ? args[2] : args[1];` && |\n| &&
              `            const limit = hasLimit ? Number(args[1]) : NaN;` && |\n| &&
-             `            const model = viewLookups[viewKey]?.()?.getModel();` && |\n| &&
+             `            // Object.hasOwn guard prevents prototype access (viewKey === '__proto__' etc.)` && |\n| &&
+             `            const model =` && |\n| &&
+             `              typeof viewKey === 'string' && Object.hasOwn(viewLookups, viewKey)` && |\n| &&
+             `                ? viewLookups[viewKey]()?.getModel()` && |\n| &&
+             `                : undefined;` && |\n| &&
              `            if (Number.isFinite(limit) && limit > 0) {` && |\n| &&
              `              (z2ui5.viewSizeLimits ??= {})[viewKey] = limit;` && |\n| &&
              `              if (model) {` && |\n| &&
@@ -550,7 +596,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          case 'STORE_DATA': {` && |\n| &&
              `            const { TYPE, PREFIX, VALUE, KEY } = args[1];` && |\n| &&
              `            try {` && |\n| &&
-             `              const oStorage = new Storage(Storage.Type[TYPE] ?? Storage.Type.session, PREFIX);` && |\n| &&
+             `              const StorageTypes = Storage?.Type ?? {};` && |\n| &&
+             `              // Object.hasOwn guard prevents prototype lookups (TYPE === '__proto__')` && |\n| &&
+             `              const resolvedType =` && |\n| &&
+             `                typeof TYPE === 'string' && Object.hasOwn(StorageTypes, TYPE)` && |\n| &&
+             `                  ? StorageTypes[TYPE]` && |\n| &&
+             `                  : StorageTypes.session;` && |\n| &&
+             `              const oStorage = new Storage(resolvedType, PREFIX);` && |\n| &&
              `              if (VALUE === '' || VALUE == null) {` && |\n| &&
              `                oStorage.remove(KEY);` && |\n| &&
              `              } else {` && |\n| &&
@@ -667,7 +719,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          MessageBox.alert('No internet connection! Please reconnect to the server and try again.');` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        if (z2ui5.isBusy && !args[0][2]) {` && |\n| &&
+             `        // args[0] is the event-name array — args[0][2] is the "force during busy" flag,` && |\n| &&
+             `        // args[0][3] forces the main controller path` && |\n| &&
+             `        if (z2ui5.isBusy && !args[0]?.[2]) {` && |\n| &&
              `          const oBusyDialog = new mBusyDialog();` && |\n| &&
              `          oBusyDialog.open();` && |\n| &&
              `          queueMicrotask(() => oBusyDialog.close());` && |\n| &&
@@ -677,7 +731,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        BusyIndicator.show();` && |\n| &&
              `        z2ui5.oBody = { VIEWNAME: 'MAIN' };` && |\n| &&
              `        let oModel;` && |\n| &&
-             `        if (args[0][3] || z2ui5.oController === this) {` && |\n| &&
+             `        if (args[0]?.[3] || z2ui5.oController === this) {` && |\n| &&
              `          oModel = z2ui5.oResponse?.PARAMS?.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH` && |\n| &&
              `            ? z2ui5.oView?.getModel('http')` && |\n| &&
              `            : z2ui5.oView?.getModel();` && |\n| &&
@@ -698,9 +752,17 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          if (xx) z2ui5.oBody.XX = this._buildDeltaFromPaths(z2ui5.xxChangedPaths, xx);` && |\n| &&
              `        }` && |\n| &&
              `        z2ui5.oBody.ID = z2ui5.oResponse?.ID;` && |\n| &&
-             `        z2ui5.oBody.ARGUMENTS = args.map((item, i) =>` && |\n| &&
-             `          i > 0 && typeof item === 'object' ? JSON.stringify(item) : item,` && |\n| &&
-             `        );` && |\n| &&
+             `        // Index 0 is the event-name array; later indices are user-supplied payloads.` && |\n| &&
+             `        // Stringify objects/arrays to keep JSON sane; preserve null and primitives untouched.` && |\n| &&
+             `        z2ui5.oBody.ARGUMENTS = args.map((item, i) => {` && |\n| &&
+             `          if (i === 0 || item === null || typeof item !== 'object') return item;` && |\n| &&
+             `          try {` && |\n| &&
+             `            return JSON.stringify(item);` && |\n| &&
+             `          } catch (e) {` && |\n| &&
+             `            _logError(``eB: failed to stringify argument ${i}``, e);` && |\n| &&
+             `            return null;` && |\n| &&
+             `          }` && |\n| &&
+             `        });` && |\n| &&
              `        z2ui5.oResponseOld = z2ui5.oResponse;` && |\n| &&
              `        Server.Roundtrip();` && |\n| &&
              `        runCallbacks(z2ui5.onAfterRoundtrip);` && |\n| &&
@@ -710,7 +772,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (!z2ui5.oResponse?.PARAMS?.[paramKey]?.CHECK_UPDATE_MODEL) return;` && |\n| &&
              `        const oModel = this._createViewModel();` && |\n| &&
              `        applyStoredSizeLimit(paramToViewKey[paramKey], oModel);` && |\n| &&
-             `        oView?.setModel(oModel);` && |\n| &&
+             `        if (oView) {` && |\n| &&
+             `          oView.setModel(oModel);` && |\n| &&
+             `        } else {` && |\n| &&
+             `          // No target view to bind to — release the model instead of leaking it` && |\n| &&
+             `          oModel.destroy?.();` && |\n| &&
+             `        }` && |\n| &&
              `      },` && |\n| &&
              `      async checkSDKcompatibility(err) {` && |\n| &&
              `        let gav;` && |\n| &&
@@ -730,7 +797,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      showMessage(msgType, params) {` && |\n| &&
              `        if (!params) return;` && |\n| &&
              `        const msg = params[msgType];` && |\n| &&
-             `        if (msg?.TEXT === undefined) return;` && |\n| &&
+             `        // Skip when the backend sends no usable text (undefined or null)` && |\n| &&
+             `        if (msg?.TEXT == null) return;` && |\n| &&
              `        if (msgType === 'S_MSG_TOAST') {` && |\n| &&
              `          MessageToast.show(msg.TEXT, {` && |\n| &&
              `            duration: parseMs(msg.DURATION, _TOAST_DEFAULT_DURATION_MS),` && |\n| &&
@@ -741,12 +809,19 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            animationDuration: parseMs(msg.ANIMATIONDURATION, _TOAST_DEFAULT_ANIM_MS),` && |\n| &&
              `            closeonBrowserNavigation: !!msg.CLOSEONBROWSERNAVIGATION,` && |\n| &&
              `          });` && |\n| &&
-             `          if (msg.CLASS) {` && |\n| &&
-             `            // Pick the most recently appended toast — querySelectorAll returns them in DOM order` && |\n| &&
-             `            const toasts = document.querySelectorAll('.sapMMessageToast');` && |\n| &&
-             `            const toast = toasts[toasts.length - 1];` && |\n| &&
-             `            toast?.classList.add(...msg.CLASS.trim().split(/\s+/).filter(Boolean));` && |\n| &&
+             `          if (typeof msg.CLASS === 'string' && msg.CLASS) {` && |\n| &&
+             `            // Pick the most recently appended toast — querySelectorAll returns them in DOM order.` && |\n| &&
+             `            // classList.add throws on invalid token names; protect the rest of the flow.` && |\n| &&
+             `            try {` && |\n| &&
+             `              const toasts = document.querySelectorAll('.sapMMessageToast');` && |\n| &&
+             `              const toast = toasts[toasts.length - 1];` && |\n| &&
+             `              toast?.classList.add(...msg.CLASS.trim().split(/\s+/).filter(Boolean));` && |\n| &&
+             `            } catch (e) {` && |\n| &&
+             `              _logError(``showMessage: invalid toast CLASS '${msg.CLASS}'``, e);` && |\n| &&
+             `            }` && |\n| &&
              `          }` && |\n| &&
+             |\n|.
+    result = result &&
              `        } else if (msgType === 'S_MSG_BOX') {` && |\n| &&
              `          const oParams = {` && |\n| &&
              `            styleClass: msg.STYLECLASS || '',` && |\n| &&

@@ -1,9 +1,17 @@
 const _ERRORS_CAP = 200;
 const _logError = (msg, err) => {
-  const arr = (z2ui5.errors ??= []);
+  // Defensive: if z2ui5.errors got clobbered with a non-array, reset it
+  if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];
+  const arr = z2ui5.errors;
   arr.push({ message: msg, ...(err !== undefined && { error: err }), ts: new Date().toISOString() });
   // Cap the rolling error log so a long-lived session does not grow unbounded
   while (arr.length > _ERRORS_CAP) arr.shift();
+};
+
+// Remove a callback from one of the z2ui5.onXxx arrays without crashing if the array
+// has been clobbered (filter would throw on non-arrays).
+const _unregisterCallback = (key, fn) => {
+  z2ui5[key] = Array.isArray(z2ui5[key]) ? z2ui5[key].filter((cb) => cb !== fn) : [];
 };
 
 sap.ui.define(
@@ -44,6 +52,8 @@ sap.ui.define(
         const oOwnerComponent = this.getOwnerComponent();
         z2ui5.oOwnerComponent = oOwnerComponent;
         const uri = oOwnerComponent.getManifest()?.['sap.app']?.dataSources?.http?.uri;
+        // oConfig is normally set by Component.init; guard in case onInit runs before/after that
+        z2ui5.oConfig ??= {};
         z2ui5.oConfig.pathname = z2ui5.checkLocal ? window.location.href : uri;
 
         _destroyPrevious();
@@ -243,7 +253,8 @@ sap.ui.define('z2ui5/LPTitle', ['sap/ui/core/Control'], (Control) => {
     setApplicationFullWidth(val) {
       this.setProperty('ApplicationFullWidth', val);
       try {
-        z2ui5.oLaunchpad?.AppConfiguration?.setApplicationFullWidth(val);
+        // Coerce explicitly — UI5 string bindings may pass "true"/"false" strings
+        z2ui5.oLaunchpad?.AppConfiguration?.setApplicationFullWidth(!!val);
       } catch (e) {
         _logError(`LPTitle: setApplicationFullWidth failed`, e);
       }
@@ -310,7 +321,7 @@ sap.ui.define('z2ui5/Tree', ['sap/ui/core/Control'], (Control) => {
     },
 
     exit() {
-      z2ui5.onBeforeRoundtrip = (z2ui5.onBeforeRoundtrip ?? []).filter((fn) => fn !== this._setBackendBound);
+      _unregisterCallback('onBeforeRoundtrip', this._setBackendBound);
     },
 
     onAfterRendering() {
@@ -355,7 +366,10 @@ sap.ui.define('z2ui5/Scrolling', ['sap/ui/core/Control'], (Control) => {
 
     _getDomInnerElement(id) {
       const control = z2ui5.oView?.byId(id);
-      return control && document.getElementById(`${control.getId()}-inner`);
+      if (!control) return null;
+      // Prefer the UI5 public API for sub-DOM lookup; fall back to the internal `-inner` suffix
+      // for older versions / controls that don't expose that subId.
+      return control.getDomRef?.('inner') ?? document.getElementById(`${control.getId()}-inner`);
     },
 
     _getScrollTop(item) {
@@ -391,11 +405,23 @@ sap.ui.define('z2ui5/Scrolling', ['sap/ui/core/Control'], (Control) => {
 
     init() {
       this._setBackendBound = this.setBackend.bind(this);
+      this._scrollDelegates = [];
       (z2ui5.onBeforeRoundtrip ??= []).push(this._setBackendBound);
     },
 
     exit() {
-      z2ui5.onBeforeRoundtrip = (z2ui5.onBeforeRoundtrip ?? []).filter((fn) => fn !== this._setBackendBound);
+      _unregisterCallback('onBeforeRoundtrip', this._setBackendBound);
+      // Detach delegates that may still be sitting on long-lived target controls
+      for (const { control, delegate } of this._scrollDelegates ?? []) {
+        try {
+          if (typeof control?.removeEventDelegate === 'function' && !control.isDestroyed?.()) {
+            control.removeEventDelegate(delegate);
+          }
+        } catch (e) {
+          _logError(`Scrolling.exit: removeEventDelegate failed`, e);
+        }
+      }
+      this._scrollDelegates = null;
     },
 
     _restoreScrollPosition(item) {
@@ -419,6 +445,9 @@ sap.ui.define('z2ui5/Scrolling', ['sap/ui/core/Control'], (Control) => {
       const items = this.getProperty('items');
       if (!items) return;
 
+      // Track outstanding delegates so exit() can detach them and avoid the leak where
+      // a destroyed Scrolling control still keeps a delegate attached to its target.
+      this._scrollDelegates ??= [];
       try {
         for (const item of items) {
           const control = z2ui5.oView?.byId(item.N);
@@ -428,10 +457,12 @@ sap.ui.define('z2ui5/Scrolling', ['sap/ui/core/Control'], (Control) => {
             const delegate = {
               onAfterRendering: () => {
                 control.removeEventDelegate(delegate);
+                this._scrollDelegates = (this._scrollDelegates ?? []).filter((d) => d.delegate !== delegate);
                 if (!this.isDestroyed()) this._restoreScrollPosition(item);
               },
             };
             control.addEventDelegate(delegate);
+            this._scrollDelegates.push({ control, delegate });
           }
         }
       } catch (e) {
@@ -603,13 +634,17 @@ sap.ui.define('z2ui5/Geolocation', ['sap/ui/core/Control'], (Control) => {
       if (!this._pendingGeolocate) return;
       this._pendingGeolocate = false;
       try {
+        // Coerce timeout to a finite positive number; NaN is treated as 0 (no timeout) by the
+        // Geolocation API which is rarely what the caller wants
+        const rawTimeout = +this.getProperty('timeout');
+        const timeout = Number.isFinite(rawTimeout) && rawTimeout > 0 ? rawTimeout : 5000;
         // Optional-method call: skip silently if either geolocation or getCurrentPosition is missing
         navigator.geolocation?.getCurrentPosition?.(
           this.callbackPosition.bind(this),
           (error) => _logError(`Geolocation error (${error?.code ?? '?'}): ${error?.message ?? 'unknown'}`),
           {
             enableHighAccuracy: this.getProperty('enableHighAccuracy'),
-            timeout: +this.getProperty('timeout'),
+            timeout,
           },
         );
       } catch (e) {
@@ -680,8 +715,10 @@ sap.ui.define('z2ui5/Storage', ['sap/ui/core/Control', 'sap/ui/util/Storage'], (
         const key = oControl.getProperty('key');
         const value = oControl.getProperty('value');
         // Object.hasOwn guard — prevents prototype lookups (type === '__proto__') and logs unknown types
-        const resolvedType = Object.hasOwn(Storage.Type, type) ? Storage.Type[type] : Storage.Type.session;
-        if (type && !Object.hasOwn(Storage.Type, type)) {
+        const StorageTypes = Storage?.Type ?? {};
+        const known = typeof type === 'string' && Object.hasOwn(StorageTypes, type);
+        const resolvedType = known ? StorageTypes[type] : StorageTypes.session;
+        if (type && !known) {
           _logError(`Storage: unknown type '${type}', falling back to session`);
         }
         let stored;
@@ -890,7 +927,7 @@ sap.ui.define('z2ui5/MultiInputExt', ['sap/ui/core/Control', 'sap/m/Token'], (Co
       (z2ui5.onAfterRendering ??= []).push(this._setControlBound);
     },
     exit() {
-      z2ui5.onAfterRendering = (z2ui5.onAfterRendering ?? []).filter((fn) => fn !== this._setControlBound);
+      _unregisterCallback('onAfterRendering', this._setControlBound);
       // Detach from the host MultiInput if it is still alive — avoids leaking
       // a bound onTokenUpdate handler when the table outlives this control.
       if (this._attachedTable && typeof this._attachedTable.isDestroyed === 'function' && !this._attachedTable.isDestroyed()) {
@@ -972,7 +1009,7 @@ sap.ui.define('z2ui5/SmartMultiInputExt', ['sap/ui/core/Control'], (Control) => 
       (z2ui5.onAfterRendering ??= []).push(this._setControlBound);
     },
     exit() {
-      z2ui5.onAfterRendering = (z2ui5.onAfterRendering ?? []).filter((fn) => fn !== this._setControlBound);
+      _unregisterCallback('onAfterRendering', this._setControlBound);
       this._oPendingInnerControlsCreated?.(null);
       this._oPendingInnerControlsCreated = null;
       if (this._attachedInput && typeof this._attachedInput.isDestroyed === 'function' && !this._attachedInput.isDestroyed()) {
@@ -1001,7 +1038,8 @@ sap.ui.define('z2ui5/SmartMultiInputExt', ['sap/ui/core/Control'], (Control) => 
         'rangeData',
         (source.getRangeData() ?? []).map((oRangeData, index) => {
           const token = tokens[index];
-          return Object.assign(oRangeData, { tokenText: token?.getText() ?? '', tokenLongKey: token?.data('longKey') });
+          // Spread instead of Object.assign so we don't mutate the SmartMultiInput's internal range data
+          return { ...oRangeData, tokenText: token?.getText() ?? '', tokenLongKey: token?.data('longKey') };
         }),
       );
       this.fireChange();
@@ -1071,6 +1109,8 @@ sap.ui.define(
     const _THUMB_W = 300;
     const _JPEG_QUALITY_PHOTO = 0.85;
     const _JPEG_QUALITY_THUMB = 0.7;
+    const _CAMERA_IDEAL_WIDTH = 1920;
+    const _CAMERA_IDEAL_HEIGHT = 1080;
     return Control.extend('z2ui5.CameraPicture', {
       metadata: {
         properties: {
@@ -1183,7 +1223,12 @@ sap.ui.define(
           }
           const facingMode = this.getProperty('facingMode');
           const deviceId = this.getProperty('deviceId');
-          const options = { video: { width: { ideal: 1920 }, height: { ideal: 1080 } } };
+          const options = {
+            video: {
+              width: { ideal: _CAMERA_IDEAL_WIDTH },
+              height: { ideal: _CAMERA_IDEAL_HEIGHT },
+            },
+          };
           if (deviceId) options.video.deviceId = deviceId;
           if (facingMode) options.video.facingMode = { exact: facingMode };
           try {
@@ -1209,11 +1254,14 @@ sap.ui.define(
       renderer: {
         apiVersion: 2,
         render(oRm, oControl) {
-          oControl._oButton ??= new Button({
-            icon: 'sap-icon://camera',
-            text: 'Camera',
-            press: oControl.onPicture.bind(oControl),
-          });
+          // Re-create button if it was destroyed externally (??= alone would not detect that)
+          if (!oControl._oButton || oControl._oButton.isDestroyed?.()) {
+            oControl._oButton = new Button({
+              icon: 'sap-icon://camera',
+              text: 'Camera',
+              press: oControl.onPicture.bind(oControl),
+            });
+          }
           oRm.renderControl(oControl._oButton);
         },
       },
@@ -1235,7 +1283,10 @@ sap.ui.define(
           let added = false;
           for (const device of devices) {
             if (device.kind === 'videoinput' && !this.isDestroyed()) {
-              this.addItem(new Item({ key: device.deviceId, text: device.label }));
+              // Browsers redact device.label to '' when no permission has been granted yet —
+              // fall back to a short device-id slice so the dropdown is still usable.
+              const text = device.label || `Camera ${device.deviceId.slice(0, 6)}`;
+              this.addItem(new Item({ key: device.deviceId, text }));
               added = true;
             }
           }
@@ -1297,8 +1348,8 @@ sap.ui.define('z2ui5/UITableExt', ['sap/ui/core/Control'], (Control) => {
     },
 
     exit() {
-      z2ui5.onBeforeRoundtrip = (z2ui5.onBeforeRoundtrip ?? []).filter((fn) => fn !== this._beforeBound);
-      z2ui5.onAfterRoundtrip = (z2ui5.onAfterRoundtrip ?? []).filter((fn) => fn !== this._afterBound);
+      _unregisterCallback('onBeforeRoundtrip', this._beforeBound);
+      _unregisterCallback('onAfterRoundtrip', this._afterBound);
     },
 
     _getTable() {

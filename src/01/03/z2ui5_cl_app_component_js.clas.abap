@@ -58,7 +58,10 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n| &&
              `        this._boundKeydown = (zEvent) => {` && |\n| &&
              `          if (zEvent.ctrlKey && zEvent.key === 'F12') {` && |\n| &&
-             `            z2ui5.debugTool ??= new DebugTool();` && |\n| &&
+             `            // ??= alone would not recreate a torn-down dialog control; isDestroyed() check covers that` && |\n| &&
+             `            if (!z2ui5.debugTool || z2ui5.debugTool.isDestroyed?.()) {` && |\n| &&
+             `              z2ui5.debugTool = new DebugTool();` && |\n| &&
+             `            }` && |\n| &&
              `            z2ui5.debugTool.toggle();` && |\n| &&
              `          }` && |\n| &&
              `        };` && |\n| &&
@@ -69,11 +72,9 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `          // by shallow-copying the response/PARAMS instead of mutating event.state in place.` && |\n| &&
              `          const stateResponse = event?.state?.response;` && |\n| &&
              `          if (stateResponse?.PARAMS) {` && |\n| &&
-             `            const {` && |\n| &&
-             `              SET_PUSH_STATE: _0,` && |\n| &&
-             `              SET_APP_STATE_ACTIVE: _1,` && |\n| &&
-             `              ...restParams` && |\n| &&
-             `            } = stateResponse.PARAMS;` && |\n| &&
+             `            const restParams = { ...stateResponse.PARAMS };` && |\n| &&
+             `            delete restParams.SET_PUSH_STATE;` && |\n| &&
+             `            delete restParams.SET_APP_STATE_ACTIVE;` && |\n| &&
              `            z2ui5.oResponse = { ...stateResponse, PARAMS: restParams };` && |\n| &&
              `          }` && |\n| &&
              `          if (event?.state?.view) {` && |\n| &&
@@ -86,6 +87,8 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        window.addEventListener('popstate', this._boundPopstate);` && |\n| &&
              `` && |\n| &&
              `        z2ui5.oRouter = this.getRouter();` && |\n| &&
+             `        // initialize() loads the route patterns; stop() pauses auto-routing — abap2UI5` && |\n| &&
+             `        // drives navigation manually via Roundtrip rather than letting UI5 routing dispatch.` && |\n| &&
              `        z2ui5.oRouter.initialize();` && |\n| &&
              `        z2ui5.oRouter.stop();` && |\n| &&
              `      },` && |\n| &&
@@ -95,16 +98,18 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        if (!Container) return;` && |\n| &&
              `        const launchpad = { Container };` && |\n| &&
              `        z2ui5.oLaunchpad = launchpad;` && |\n| &&
-             `        Container.getServiceAsync('ShellUIService')` && |\n| &&
-             `          .then((s) => {` && |\n| &&
+             `        // Kick off both shell services in parallel; failures stay isolated and don't block each other` && |\n| &&
+             `        Promise.allSettled([` && |\n| &&
+             `          Container.getServiceAsync('ShellUIService').then((s) => {` && |\n| &&
              `            launchpad.ShellUIService = s;` && |\n| &&
-             `          })` && |\n| &&
-             `          .catch((e) => _logError(``Component: ShellUIService init failed``, e));` && |\n| &&
-             `        Container.getServiceAsync('CrossApplicationNavigation')` && |\n| &&
-             `          .then((s) => {` && |\n| &&
+             `          }),` && |\n| &&
+             `          Container.getServiceAsync('CrossApplicationNavigation').then((s) => {` && |\n| &&
              `            launchpad.CrossAppNavigator = s;` && |\n| &&
-             `          })` && |\n| &&
-             `          .catch((e) => _logError(``Component: CrossApplicationNavigation init failed``, e));` && |\n| &&
+             `          }),` && |\n| &&
+             `        ]).then(([ui, nav]) => {` && |\n| &&
+             `          if (ui.status === 'rejected') _logError(``Component: ShellUIService init failed``, ui.reason);` && |\n| &&
+             `          if (nav.status === 'rejected') _logError(``Component: CrossApplicationNavigation init failed``, nav.reason);` && |\n| &&
+             `        });` && |\n| &&
              `        sap.ui.require(` && |\n| &&
              `          ['sap/ushell/services/AppConfiguration'],` && |\n| &&
              `          (ac) => {` && |\n| &&
@@ -116,8 +121,11 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n| &&
              `      async _initVersionInfo() {` && |\n| &&
              `        try {` && |\n| &&
-             `          const { version, buildTimestamp, gav } = await VersionInfo.load();` && |\n| &&
-             `          if (!this.isDestroyed()) z2ui5.oConfig.UI5VersionInfo = { version, buildTimestamp, gav };` && |\n| &&
+             `          const { version, buildTimestamp, gav } = (await VersionInfo.load()) ?? {};` && |\n| &&
+             `          // oConfig may have been torn down between request and response — guard before assignment` && |\n| &&
+             `          if (!this.isDestroyed() && z2ui5.oConfig) {` && |\n| &&
+             `            z2ui5.oConfig.UI5VersionInfo = { version, buildTimestamp, gav };` && |\n| &&
+             `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          _logError(``Component: VersionInfo load failed``, e);` && |\n| &&
              `        }` && |\n| &&
@@ -134,9 +142,11 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        document.removeEventListener('keydown', this._boundKeydown);` && |\n| &&
              `        window.removeEventListener('popstate', this._boundPopstate);` && |\n| &&
              `        z2ui5.debugTool?.destroy?.();` && |\n| &&
-             `        // Symmetric cleanup so a re-mounted Component does not leak controllers/views` && |\n| &&
+             `        z2ui5.oDeviceModel?.destroy?.();` && |\n| &&
+             `        // Symmetric cleanup so a re-mounted Component does not leak controllers/views/router` && |\n| &&
              `        for (const key of [` && |\n| &&
              `          'debugTool',` && |\n| &&
+             `          'oRouter',` && |\n| &&
              `          'oController',` && |\n| &&
              `          'oControllerNest',` && |\n| &&
              `          'oControllerNest2',` && |\n| &&
@@ -147,6 +157,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `          'oViewNest2',` && |\n| &&
              `          'oViewPopup',` && |\n| &&
              `          'oViewPopover',` && |\n| &&
+             `          'oDeviceModel',` && |\n| &&
              `        ]) {` && |\n| &&
              `          z2ui5[key] = null;` && |\n| &&
              `        }` && |\n| &&

@@ -38,7 +38,10 @@ sap.ui.define(
 
         this._boundKeydown = (zEvent) => {
           if (zEvent.ctrlKey && zEvent.key === 'F12') {
-            z2ui5.debugTool ??= new DebugTool();
+            // ??= alone would not recreate a torn-down dialog control; isDestroyed() check covers that
+            if (!z2ui5.debugTool || z2ui5.debugTool.isDestroyed?.()) {
+              z2ui5.debugTool = new DebugTool();
+            }
             z2ui5.debugTool.toggle();
           }
         };
@@ -49,11 +52,9 @@ sap.ui.define(
           // by shallow-copying the response/PARAMS instead of mutating event.state in place.
           const stateResponse = event?.state?.response;
           if (stateResponse?.PARAMS) {
-            const {
-              SET_PUSH_STATE: _0,
-              SET_APP_STATE_ACTIVE: _1,
-              ...restParams
-            } = stateResponse.PARAMS;
+            const restParams = { ...stateResponse.PARAMS };
+            delete restParams.SET_PUSH_STATE;
+            delete restParams.SET_APP_STATE_ACTIVE;
             z2ui5.oResponse = { ...stateResponse, PARAMS: restParams };
           }
           if (event?.state?.view) {
@@ -66,6 +67,8 @@ sap.ui.define(
         window.addEventListener('popstate', this._boundPopstate);
 
         z2ui5.oRouter = this.getRouter();
+        // initialize() loads the route patterns; stop() pauses auto-routing — abap2UI5
+        // drives navigation manually via Roundtrip rather than letting UI5 routing dispatch.
         z2ui5.oRouter.initialize();
         z2ui5.oRouter.stop();
       },
@@ -75,16 +78,18 @@ sap.ui.define(
         if (!Container) return;
         const launchpad = { Container };
         z2ui5.oLaunchpad = launchpad;
-        Container.getServiceAsync('ShellUIService')
-          .then((s) => {
+        // Kick off both shell services in parallel; failures stay isolated and don't block each other
+        Promise.allSettled([
+          Container.getServiceAsync('ShellUIService').then((s) => {
             launchpad.ShellUIService = s;
-          })
-          .catch((e) => _logError(`Component: ShellUIService init failed`, e));
-        Container.getServiceAsync('CrossApplicationNavigation')
-          .then((s) => {
+          }),
+          Container.getServiceAsync('CrossApplicationNavigation').then((s) => {
             launchpad.CrossAppNavigator = s;
-          })
-          .catch((e) => _logError(`Component: CrossApplicationNavigation init failed`, e));
+          }),
+        ]).then(([ui, nav]) => {
+          if (ui.status === 'rejected') _logError(`Component: ShellUIService init failed`, ui.reason);
+          if (nav.status === 'rejected') _logError(`Component: CrossApplicationNavigation init failed`, nav.reason);
+        });
         sap.ui.require(
           ['sap/ushell/services/AppConfiguration'],
           (ac) => {
@@ -96,8 +101,11 @@ sap.ui.define(
 
       async _initVersionInfo() {
         try {
-          const { version, buildTimestamp, gav } = await VersionInfo.load();
-          if (!this.isDestroyed()) z2ui5.oConfig.UI5VersionInfo = { version, buildTimestamp, gav };
+          const { version, buildTimestamp, gav } = (await VersionInfo.load()) ?? {};
+          // oConfig may have been torn down between request and response — guard before assignment
+          if (!this.isDestroyed() && z2ui5.oConfig) {
+            z2ui5.oConfig.UI5VersionInfo = { version, buildTimestamp, gav };
+          }
         } catch (e) {
           _logError(`Component: VersionInfo load failed`, e);
         }
@@ -114,9 +122,11 @@ sap.ui.define(
         document.removeEventListener('keydown', this._boundKeydown);
         window.removeEventListener('popstate', this._boundPopstate);
         z2ui5.debugTool?.destroy?.();
-        // Symmetric cleanup so a re-mounted Component does not leak controllers/views
+        z2ui5.oDeviceModel?.destroy?.();
+        // Symmetric cleanup so a re-mounted Component does not leak controllers/views/router
         for (const key of [
           'debugTool',
+          'oRouter',
           'oController',
           'oControllerNest',
           'oControllerNest2',
@@ -127,6 +137,7 @@ sap.ui.define(
           'oViewNest2',
           'oViewPopup',
           'oViewPopover',
+          'oDeviceModel',
         ]) {
           z2ui5[key] = null;
         }

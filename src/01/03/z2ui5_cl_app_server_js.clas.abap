@@ -33,7 +33,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `  const _logError = (message, error) => {` && |\n| &&
              `    const entry = { message, ts: new Date().toISOString() };` && |\n| &&
              `    if (error !== undefined) entry.error = error;` && |\n| &&
-             `    const arr = (z2ui5.errors ??= []);` && |\n| &&
+             `    // Defensive: if z2ui5.errors got clobbered with a non-array, reset it` && |\n| &&
+             `    if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];` && |\n| &&
+             `    const arr = z2ui5.errors;` && |\n| &&
              `    arr.push(entry);` && |\n| &&
              `    while (arr.length > _ERRORS_CAP) arr.shift();` && |\n| &&
              `  };` && |\n| &&
@@ -158,6 +160,14 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    },` && |\n| &&
              `    async responseSuccess(response) {` && |\n| &&
              `      const { oController } = z2ui5;` && |\n| &&
+             `      // Bail early if the controller has been torn down between request and response —` && |\n| &&
+             `      // every subsequent call (ViewDestroy, eF, showMessage, displayView) assumes it exists` && |\n| &&
+             `      if (!oController) {` && |\n| &&
+             `        BusyIndicator.hide();` && |\n| &&
+             `        z2ui5.isBusy = false;` && |\n| &&
+             `        _logError('responseSuccess: z2ui5.oController is missing — response discarded');` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
              `      try {` && |\n| &&
              `        z2ui5.oResponse = response;` && |\n| &&
              `        const params = response.PARAMS;` && |\n| &&
@@ -168,7 +178,12 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          queueMicrotask(() => {` && |\n| &&
              `            for (const item of customJs) {` && |\n| &&
              `              if (oController.isDestroyed?.()) return;` && |\n| &&
+             `              if (typeof item !== 'string') {` && |\n| &&
+             `                _logError(``customJs: item is not a string``, item);` && |\n| &&
+             `                continue;` && |\n| &&
+             `              }` && |\n| &&
              `              try {` && |\n| &&
+             `                // Format: text'arg1'text'arg2'... — odd-indexed slices are the eF arguments` && |\n| &&
              `                const mParams = item.split("'");` && |\n| &&
              `                const mParamsEF = mParams.filter((_, index) => index % 2);` && |\n| &&
              `                if (mParamsEF.length) oController.eF(...mParamsEF);` && |\n| &&
@@ -214,7 +229,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        id: 'serverErrorContainer',` && |\n| &&
              `        className: 'z2ui5-error-overlay',` && |\n| &&
              `      });` && |\n| &&
-             `      document.body.appendChild(container);` && |\n| &&
+             `      // document.body can be momentarily null during pagehide; fall back to documentElement` && |\n| &&
+             `      (document.body ?? document.documentElement).appendChild(container);` && |\n| &&
              `      return container;` && |\n| &&
              `    },` && |\n| &&
              `    responseError(response) {` && |\n| &&
@@ -281,13 +297,21 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      // sandbox="" gives the iframe an opaque origin and blocks scripts/forms/popups.` && |\n| &&
              `      // srcdoc renders escaped, static <pre> content — no contentDocument access from parent needed.` && |\n| &&
              `      iframe.setAttribute('sandbox', '');` && |\n| &&
-             `      iframe.srcdoc = ``<style>html,body{margin:0;padding:0}pre{margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all}</style><pre>${escapeHtml(` && |\n| &&
-             `        errorMessage,` && |\n| &&
-             `      )}</pre>``;` && |\n| &&
+             `      try {` && |\n| &&
+             `        iframe.srcdoc = ``<style>html,body{margin:0;padding:0}pre{margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all}</style><pre>${escapeHtml(` && |\n| &&
+             `          errorMessage,` && |\n| &&
+             `        )}</pre>``;` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        _logError(``responseError: srcdoc assignment failed``, e);` && |\n| &&
+             `      }` && |\n| &&
              `      errorContainer.appendChild(iframe);` && |\n| &&
              `` && |\n| &&
-             `      // basic focus context for keyboard users; not a full focus trap` && |\n| &&
-             `      refreshBtn.focus();` && |\n| &&
+             `      // basic focus context for keyboard users; focus() can throw inside detached/closing windows` && |\n| &&
+             `      try {` && |\n| &&
+             `        refreshBtn.focus();` && |\n| &&
+             `      } catch {` && |\n| &&
+             `        /* focus is best-effort */` && |\n| &&
+             `      }` && |\n| &&
              `    },` && |\n| &&
              `  };` && |\n| &&
              `});` && |\n| &&
