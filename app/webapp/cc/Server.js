@@ -17,23 +17,28 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
     if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];
     const arr = z2ui5.errors;
     arr.push(entry);
-    while (arr.length > _ERRORS_CAP) arr.shift();
+    // Single splice trims any overflow in one shot (O(n) shift loop replaced)
+    if (arr.length > _ERRORS_CAP) arr.splice(0, arr.length - _ERRORS_CAP);
   };
 
-  const escapeHtml = (str) =>
-    String(str).replace(
-      /[&<>"']/g,
-      (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
-    );
+  // Hoisted lookup table avoids re-allocating the object on every escape call
+  const _ESCAPE_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+  const _ESCAPE_RE = /[&<>"']/g;
+  const escapeHtml = (str) => String(str).replace(_ESCAPE_RE, (c) => _ESCAPE_MAP[c]);
 
   const resolveLogoutUrl = () => z2ui5.oConfig?.logoutUrl || DEFAULT_LOGOUT_URL;
 
   return {
     endSession() {
       if (!z2ui5.contextId) return;
+      const pathname = z2ui5.oConfig?.pathname;
+      if (!pathname) {
+        delete z2ui5.contextId;
+        return;
+      }
       // SAP convention: HEAD with sap-terminate header releases the stateful session.
       // Some reverse proxies may strip HEAD bodies — we rely on headers only.
-      fetch(z2ui5.oConfig.pathname, {
+      fetch(pathname, {
         method: 'HEAD',
         keepalive: true,
         headers: {
@@ -45,7 +50,9 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
       delete z2ui5.contextId;
     },
     Roundtrip() {
-      Object.assign(z2ui5, { checkNestAfter: false, checkNestAfter2: false });
+      // Direct assignments avoid one Object.assign call per roundtrip
+      z2ui5.checkNestAfter = false;
+      z2ui5.checkNestAfter2 = false;
       const oBody = (z2ui5.oBody ??= {});
       const args = oBody.ARGUMENTS ?? [];
       oBody.S_FRONT = {
@@ -72,6 +79,11 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
     },
 
     async readHttp() {
+      const pathname = z2ui5.oConfig?.pathname;
+      if (!pathname) {
+        this.responseError(`Request aborted: z2ui5.oConfig.pathname is missing`);
+        return;
+      }
       let body;
       try {
         body = JSON.stringify({ value: z2ui5.oBody });
@@ -97,11 +109,13 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
         fetchOpts.signal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
       }
       try {
-        response = await fetch(z2ui5.oConfig.pathname, fetchOpts);
+        response = await fetch(pathname, fetchOpts);
       } catch (e) {
         // AbortError (or TimeoutError on newer browsers) means the timeout fired
         const isTimeout = e?.name === 'TimeoutError' || e?.name === 'AbortError';
-        const prefix = isTimeout ? `Request timed out after ${FETCH_TIMEOUT_MS}ms` : 'Network error';
+        const prefix = isTimeout
+          ? `Request timed out after ${Math.round(FETCH_TIMEOUT_MS / 1000)}s`
+          : 'Network error';
         this.responseError(`${prefix}: ${e.message}`);
         return;
       }
@@ -154,7 +168,7 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
         const sView = params?.S_VIEW;
         if (sView?.CHECK_DESTROY) oController.ViewDestroy();
         const customJs = params?.S_FOLLOW_UP_ACTION?.CUSTOM_JS;
-        if (customJs) {
+        if (Array.isArray(customJs) && customJs.length) {
           queueMicrotask(() => {
             for (const item of customJs) {
               if (oController.isDestroyed?.()) return;

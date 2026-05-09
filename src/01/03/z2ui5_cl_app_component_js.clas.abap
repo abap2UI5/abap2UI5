@@ -141,8 +141,16 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        window.removeEventListener(this._unloadEvent, this._boundUnload);` && |\n| &&
              `        document.removeEventListener('keydown', this._boundKeydown);` && |\n| &&
              `        window.removeEventListener('popstate', this._boundPopstate);` && |\n| &&
-             `        z2ui5.debugTool?.destroy?.();` && |\n| &&
-             `        z2ui5.oDeviceModel?.destroy?.();` && |\n| &&
+             `        // Wrap each destroy individually so one failure does not skip the remaining cleanup` && |\n| &&
+             `        const safeDestroy = (key) => {` && |\n| &&
+             `          try {` && |\n| &&
+             `            z2ui5[key]?.destroy?.();` && |\n| &&
+             `          } catch (e) {` && |\n| &&
+             `            _logError(``Component.exit: ${key}.destroy() failed``, e);` && |\n| &&
+             `          }` && |\n| &&
+             `        };` && |\n| &&
+             `        safeDestroy('debugTool');` && |\n| &&
+             `        safeDestroy('oDeviceModel');` && |\n| &&
              `        // Symmetric cleanup so a re-mounted Component does not leak controllers/views/router` && |\n| &&
              `        for (const key of [` && |\n| &&
              `          'debugTool',` && |\n| &&
@@ -161,7 +169,11 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        ]) {` && |\n| &&
              `          z2ui5[key] = null;` && |\n| &&
              `        }` && |\n| &&
-             `        Server.endSession();` && |\n| &&
+             `        try {` && |\n| &&
+             `          Server.endSession();` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          _logError(``Component.exit: Server.endSession failed``, e);` && |\n| &&
+             `        }` && |\n| &&
              `        UIComponent.prototype.exit?.call(this);` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&

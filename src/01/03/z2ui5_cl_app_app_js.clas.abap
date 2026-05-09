@@ -24,8 +24,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `  if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];` && |\n| &&
              `  const arr = z2ui5.errors;` && |\n| &&
              `  arr.push({ message: msg, ...(err !== undefined && { error: err }), ts: new Date().toISOString() });` && |\n| &&
-             `  // Cap the rolling error log so a long-lived session does not grow unbounded` && |\n| &&
-             `  while (arr.length > _ERRORS_CAP) arr.shift();` && |\n| &&
+             `  // Single splice trims any overflow in one shot (cap the rolling log)` && |\n| &&
+             `  if (arr.length > _ERRORS_CAP) arr.splice(0, arr.length - _ERRORS_CAP);` && |\n| &&
              `};` && |\n| &&
              `` && |\n| &&
              `// Remove a callback from one of the z2ui5.onXxx arrays without crashing if the array` && |\n| &&
@@ -324,7 +324,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n| &&
              `` && |\n| &&
              `    _getTreeBinding() {` && |\n| &&
-             `      return z2ui5.oView?.byId(this.getProperty('tree_id'))?.getBinding('items');` && |\n| &&
+             `      // sap.m.Tree binds under 'items', sap.ui.table.TreeTable under 'rows' — try both` && |\n| &&
+             `      const ctrl = z2ui5.oView?.byId(this.getProperty('tree_id'));` && |\n| &&
+             `      return ctrl?.getBinding('items') ?? ctrl?.getBinding('rows');` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    setBackend() {` && |\n| &&
@@ -416,10 +418,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          if (item.V !== scrollTop) {` && |\n| &&
              `            item.V = scrollTop;` && |\n| &&
              `            if (bindingPath) z2ui5.xxChangedPaths?.add(``${bindingPath}/${index}/V``);` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
              |\n|.
     result = result &&
+             `          }` && |\n| &&
+             `        }` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        _logError(``Scrolling.setBackend: failed``, e);` && |\n| &&
              `      }` && |\n| &&
@@ -818,10 +820,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          },` && |\n| &&
              `          multiple: {` && |\n| &&
              `            type: 'boolean',` && |\n| &&
-             `            defaultValue: false,` && |\n| &&
-             `          },` && |\n| &&
              |\n|.
     result = result &&
+             `            defaultValue: false,` && |\n| &&
+             `          },` && |\n| &&
              `          visible: {` && |\n| &&
              `            type: 'boolean',` && |\n| &&
              `            defaultValue: true,` && |\n| &&
@@ -869,7 +871,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `              text: oControl.getProperty('uploadButtonText'),` && |\n| &&
              `              enabled: path !== '',` && |\n| &&
              `              press: () => {` && |\n| &&
-             `                oControl.setProperty('path', oControl.oFileUploader.getProperty('value'));` && |\n| &&
+             `                // oFileUploader may have been destroyed by a re-render between attach and press` && |\n| &&
+             `                const value = oControl.oFileUploader?.getProperty?.('value');` && |\n| &&
+             `                if (value === undefined) return;` && |\n| &&
+             `                oControl.setProperty('path', value);` && |\n| &&
              `                const file = oControl.oFileUploader?.oFileUpload?.files?.[0];` && |\n| &&
              `                if (file) oControl._readFile(file);` && |\n| &&
              `              },` && |\n| &&
@@ -1163,12 +1168,18 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      capture() {` && |\n| &&
              `        const video = document.getElementById(``${this.getId()}-video``);` && |\n| &&
              `        const canvas = document.getElementById(``${this.getId()}-canvas``);` && |\n| &&
-             `        if (!video || !canvas) return;` && |\n| &&
+             `        if (!video || !canvas) {` && |\n| &&
+             `          _logError(``CameraPicture.capture: video or canvas element not found in DOM``);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
              `        const { videoWidth, videoHeight } = video;` && |\n| &&
              `        canvas.width = videoWidth;` && |\n| &&
              `        canvas.height = videoHeight;` && |\n| &&
              `        const ctx = canvas.getContext('2d', _CTX_2D_OPTS);` && |\n| &&
-             `        if (!ctx) return;` && |\n| &&
+             `        if (!ctx) {` && |\n| &&
+             `          _logError(``CameraPicture.capture: 2d canvas context unavailable``);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
              `        ctx.drawImage(video, 0, 0, videoWidth, videoHeight);` && |\n| &&
              `        let resultb64;` && |\n| &&
              `        try {` && |\n| &&
@@ -1205,11 +1216,14 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      onPicture() {` && |\n| &&
              `        if (this._oScanDialog?.isOpen()) return;` && |\n| &&
              `        if (!this._oScanDialog) {` && |\n| &&
+             `          // i18n: title key "camera.title", capture key "camera.capture", cancel key "camera.cancel"` && |\n| &&
              `          this._oScanDialog = new Dialog({` && |\n| &&
              `            title: 'Device Photo Function',` && |\n| &&
              `            contentWidth: '640px',` && |\n| &&
              `            contentHeight: '480px',` && |\n| &&
              `            horizontalScrolling: false,` && |\n| &&
+             |\n|.
+    result = result &&
              `            verticalScrolling: false,` && |\n| &&
              `            stretch: true,` && |\n| &&
              `            content: [` && |\n| &&
@@ -1221,9 +1235,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `                text: 'Capture',` && |\n| &&
              `                press: () => {` && |\n| &&
              `                  this.capture();` && |\n| &&
-             `                  this._oScanDialog.close();` && |\n| &&
-             |\n|.
-    result = result &&
+             `                  // _oScanDialog could have been destroyed externally between attach and press` && |\n| &&
+             `                  this._oScanDialog?.close();` && |\n| &&
              `                },` && |\n| &&
              `              }),` && |\n| &&
              `              new HTML({` && |\n| &&
@@ -1234,7 +1247,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `              text: 'Cancel',` && |\n| &&
              `              press: () => {` && |\n| &&
              `                this._stopCamera();` && |\n| &&
-             `                this._oScanDialog.close();` && |\n| &&
+             `                this._oScanDialog?.close();` && |\n| &&
              `              },` && |\n| &&
              `            }),` && |\n| &&
              `          });` && |\n| &&

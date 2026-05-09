@@ -37,23 +37,28 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];` && |\n| &&
              `    const arr = z2ui5.errors;` && |\n| &&
              `    arr.push(entry);` && |\n| &&
-             `    while (arr.length > _ERRORS_CAP) arr.shift();` && |\n| &&
+             `    // Single splice trims any overflow in one shot (O(n) shift loop replaced)` && |\n| &&
+             `    if (arr.length > _ERRORS_CAP) arr.splice(0, arr.length - _ERRORS_CAP);` && |\n| &&
              `  };` && |\n| &&
              `` && |\n| &&
-             `  const escapeHtml = (str) =>` && |\n| &&
-             `    String(str).replace(` && |\n| &&
-             `      /[&<>"']/g,` && |\n| &&
-             `      (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],` && |\n| &&
-             `    );` && |\n| &&
+             `  // Hoisted lookup table avoids re-allocating the object on every escape call` && |\n| &&
+             `  const _ESCAPE_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };` && |\n| &&
+             `  const _ESCAPE_RE = /[&<>"']/g;` && |\n| &&
+             `  const escapeHtml = (str) => String(str).replace(_ESCAPE_RE, (c) => _ESCAPE_MAP[c]);` && |\n| &&
              `` && |\n| &&
              `  const resolveLogoutUrl = () => z2ui5.oConfig?.logoutUrl || DEFAULT_LOGOUT_URL;` && |\n| &&
              `` && |\n| &&
              `  return {` && |\n| &&
              `    endSession() {` && |\n| &&
              `      if (!z2ui5.contextId) return;` && |\n| &&
+             `      const pathname = z2ui5.oConfig?.pathname;` && |\n| &&
+             `      if (!pathname) {` && |\n| &&
+             `        delete z2ui5.contextId;` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
              `      // SAP convention: HEAD with sap-terminate header releases the stateful session.` && |\n| &&
              `      // Some reverse proxies may strip HEAD bodies — we rely on headers only.` && |\n| &&
-             `      fetch(z2ui5.oConfig.pathname, {` && |\n| &&
+             `      fetch(pathname, {` && |\n| &&
              `        method: 'HEAD',` && |\n| &&
              `        keepalive: true,` && |\n| &&
              `        headers: {` && |\n| &&
@@ -65,7 +70,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      delete z2ui5.contextId;` && |\n| &&
              `    },` && |\n| &&
              `    Roundtrip() {` && |\n| &&
-             `      Object.assign(z2ui5, { checkNestAfter: false, checkNestAfter2: false });` && |\n| &&
+             `      // Direct assignments avoid one Object.assign call per roundtrip` && |\n| &&
+             `      z2ui5.checkNestAfter = false;` && |\n| &&
+             `      z2ui5.checkNestAfter2 = false;` && |\n| &&
              `      const oBody = (z2ui5.oBody ??= {});` && |\n| &&
              `      const args = oBody.ARGUMENTS ?? [];` && |\n| &&
              `      oBody.S_FRONT = {` && |\n| &&
@@ -92,6 +99,11 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    },` && |\n| &&
              `` && |\n| &&
              `    async readHttp() {` && |\n| &&
+             `      const pathname = z2ui5.oConfig?.pathname;` && |\n| &&
+             `      if (!pathname) {` && |\n| &&
+             `        this.responseError(``Request aborted: z2ui5.oConfig.pathname is missing``);` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
              `      let body;` && |\n| &&
              `      try {` && |\n| &&
              `        body = JSON.stringify({ value: z2ui5.oBody });` && |\n| &&
@@ -117,11 +129,13 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        fetchOpts.signal = AbortSignal.timeout(FETCH_TIMEOUT_MS);` && |\n| &&
              `      }` && |\n| &&
              `      try {` && |\n| &&
-             `        response = await fetch(z2ui5.oConfig.pathname, fetchOpts);` && |\n| &&
+             `        response = await fetch(pathname, fetchOpts);` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        // AbortError (or TimeoutError on newer browsers) means the timeout fired` && |\n| &&
              `        const isTimeout = e?.name === 'TimeoutError' || e?.name === 'AbortError';` && |\n| &&
-             `        const prefix = isTimeout ? ``Request timed out after ${FETCH_TIMEOUT_MS}ms`` : 'Network error';` && |\n| &&
+             `        const prefix = isTimeout` && |\n| &&
+             `          ? ``Request timed out after ${Math.round(FETCH_TIMEOUT_MS / 1000)}s``` && |\n| &&
+             `          : 'Network error';` && |\n| &&
              `        this.responseError(``${prefix}: ${e.message}``);` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
@@ -174,7 +188,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        const sView = params?.S_VIEW;` && |\n| &&
              `        if (sView?.CHECK_DESTROY) oController.ViewDestroy();` && |\n| &&
              `        const customJs = params?.S_FOLLOW_UP_ACTION?.CUSTOM_JS;` && |\n| &&
-             `        if (customJs) {` && |\n| &&
+             `        if (Array.isArray(customJs) && customJs.length) {` && |\n| &&
              `          queueMicrotask(() => {` && |\n| &&
              `            for (const item of customJs) {` && |\n| &&
              `              if (oController.isDestroyed?.()) return;` && |\n| &&

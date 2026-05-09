@@ -150,8 +150,9 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        Object.assign(oModel.getData(), {` && |\n| &&
              `          editor_visible: true,` && |\n| &&
              `          source_visible: false,` && |\n| &&
-             `          // detect actual templating namespace declaration rather than any string match` && |\n| &&
-             `          isTemplating: typeof content === 'string' && /xmlns:template\s*=/.test(content),` && |\n| &&
+             `          // Word-boundary detection: only flag actual ``xmlns:template=`` declarations, avoid` && |\n| &&
+             `          // false positives like ``xmlns:templateData=`` or matches inside text/comment nodes` && |\n| &&
+             `          isTemplating: typeof content === 'string' && /\bxmlns:template\s*=/.test(content),` && |\n| &&
              `          value: content,` && |\n| &&
              `          previousValue: content,` && |\n| &&
              `          xContent: xcontent,` && |\n| &&

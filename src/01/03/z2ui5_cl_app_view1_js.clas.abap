@@ -104,8 +104,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        ...(err !== undefined && { error: err }),` && |\n| &&
              `        ts: new Date().toISOString(),` && |\n| &&
              `      });` && |\n| &&
-             `      // Cap the rolling error log so a long-lived session does not grow unbounded` && |\n| &&
-             `      while (arr.length > _ERRORS_CAP) arr.shift();` && |\n| &&
+             `      // Single splice trims any overflow in one shot (cap the rolling log)` && |\n| &&
+             `      if (arr.length > _ERRORS_CAP) arr.splice(0, arr.length - _ERRORS_CAP);` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    const isValidRedirectURL = (url) => {` && |\n| &&
@@ -321,6 +321,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          runCallbacks(z2ui5.onAfterRendering);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          _logError(``_processAfterRendering: unexpected error``, e);` && |\n| &&
+             `          // i18n: title key "appTerminated.title", body key "appTerminated.body"` && |\n| &&
              `          MessageBox.error(e.message ?? String(e), {` && |\n| &&
              `            title: 'Unexpected Error Occurred - App Terminated',` && |\n| &&
              `            actions: [],` && |\n| &&
@@ -347,19 +348,36 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        return delta;` && |\n| &&
              `      },` && |\n| &&
              `      // Try a full pushState/replaceState; if the browser rejects the state object` && |\n| &&
-             `      // (~640 kB quota in some browsers) retry with the navigation flags only.` && |\n| &&
+             `      // (~640 kB quota in some browsers) progressively shrink the state until it fits,` && |\n| &&
+             `      // and finally fall back to a null state if even the view alone is too large.` && |\n| &&
              `      _safeHistoryWrite(method, state, url) {` && |\n| &&
              `        try {` && |\n| &&
              `          history[method](state, '', url);` && |\n| &&
+             `          return;` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          _logError(``_safeHistoryWrite: ${method} oversized state — retrying without model``, e);` && |\n| &&
-             `          const lite = state ? { view: state.view, response: state.response } : {};` && |\n| &&
-             `          try {` && |\n| &&
-             `            history[method](lite, '', url);` && |\n| &&
-             `          } catch (e2) {` && |\n| &&
-             `            _logError(``_safeHistoryWrite: ${method} failed even with light state``, e2);` && |\n| &&
-             `            history[method](null, '', url);` && |\n| &&
-             `          }` && |\n| &&
+             `        }` && |\n| &&
+             `        // First retry: drop the model (typically the largest payload)` && |\n| &&
+             `        try {` && |\n| &&
+             `          const tier1 = state ? { view: state.view, response: state.response } : {};` && |\n| &&
+             `          history[method](tier1, '', url);` && |\n| &&
+             `          return;` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          _logError(``_safeHistoryWrite: ${method} still oversized — retrying with view only``, e);` && |\n| &&
+             `        }` && |\n| &&
+             `        // Second retry: keep only the view XML so popstate can still restore the page` && |\n| &&
+             `        try {` && |\n| &&
+             `          const tier2 = state ? { view: state.view } : {};` && |\n| &&
+             `          history[method](tier2, '', url);` && |\n| &&
+             `          return;` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          _logError(``_safeHistoryWrite: ${method} failed even with view-only state``, e);` && |\n| &&
+             `        }` && |\n| &&
+             `        // Last resort: null state — popstate handler will treat it as a no-op` && |\n| &&
+             `        try {` && |\n| &&
+             `          history[method](null, '', url);` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          _logError(``_safeHistoryWrite: ${method} failed with null state``, e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `      _createViewModel() {` && |\n| &&
@@ -400,6 +418,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            definition: xml,` && |\n| &&
              `            controller: z2ui5.oControllerPopover,` && |\n| &&
              `            id: 'popoverId',` && |\n| &&
+             |\n|.
+    result = result &&
              `          });` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          oModel.destroy?.();` && |\n| &&
@@ -418,8 +438,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          z2ui5[viewProp] = oFragment;` && |\n| &&
              `          const oControl = _findControlById(openById);` && |\n| &&
              `          if (!oControl) {` && |\n| &&
-             |\n|.
-    result = result &&
              `            _logError(``displayPopover: openBy control '${openById}' not found``);` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
@@ -572,7 +590,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            break;` && |\n| &&
              `          }` && |\n| &&
              `          case 'HISTORY_BACK':` && |\n| &&
-             `            history.back();` && |\n| &&
+             `            // Only navigate back when there is actually an entry to go back to` && |\n| &&
+             `            if (history.length > 1) history.back();` && |\n| &&
              `            break;` && |\n| &&
              `          case 'CLIPBOARD_COPY':` && |\n| &&
              `            copyToClipboard(args[1]);` && |\n| &&
@@ -730,7 +749,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        z2ui5.isBusy = true;` && |\n| &&
              `        BusyIndicator.show();` && |\n| &&
              `        z2ui5.oBody = { VIEWNAME: 'MAIN' };` && |\n| &&
-             `        let oModel;` && |\n| &&
+             `        let oModel = null;` && |\n| &&
              `        if (args[0]?.[3] || z2ui5.oController === this) {` && |\n| &&
              `          oModel = z2ui5.oResponse?.PARAMS?.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH` && |\n| &&
              `            ? z2ui5.oView?.getModel('http')` && |\n| &&
@@ -801,6 +820,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (msg?.TEXT == null) return;` && |\n| &&
              `        if (msgType === 'S_MSG_TOAST') {` && |\n| &&
              `          MessageToast.show(msg.TEXT, {` && |\n| &&
+             |\n|.
+    result = result &&
              `            duration: parseMs(msg.DURATION, _TOAST_DEFAULT_DURATION_MS),` && |\n| &&
              `            width: msg.WIDTH || _TOAST_DEFAULT_WIDTH,` && |\n| &&
              `            onClose: msg.ONCLOSE ? () => this.eB([msg.ONCLOSE]) : null,` && |\n| &&
@@ -820,8 +841,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `              _logError(``showMessage: invalid toast CLASS '${msg.CLASS}'``, e);` && |\n| &&
              `            }` && |\n| &&
              `          }` && |\n| &&
-             |\n|.
-    result = result &&
              `        } else if (msgType === 'S_MSG_BOX') {` && |\n| &&
              `          const oParams = {` && |\n| &&
              `            styleClass: msg.STYLECLASS || '',` && |\n| &&

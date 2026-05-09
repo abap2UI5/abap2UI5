@@ -84,8 +84,8 @@ sap.ui.define(
         ...(err !== undefined && { error: err }),
         ts: new Date().toISOString(),
       });
-      // Cap the rolling error log so a long-lived session does not grow unbounded
-      while (arr.length > _ERRORS_CAP) arr.shift();
+      // Single splice trims any overflow in one shot (cap the rolling log)
+      if (arr.length > _ERRORS_CAP) arr.splice(0, arr.length - _ERRORS_CAP);
     };
 
     const isValidRedirectURL = (url) => {
@@ -301,6 +301,7 @@ sap.ui.define(
           runCallbacks(z2ui5.onAfterRendering);
         } catch (e) {
           _logError(`_processAfterRendering: unexpected error`, e);
+          // i18n: title key "appTerminated.title", body key "appTerminated.body"
           MessageBox.error(e.message ?? String(e), {
             title: 'Unexpected Error Occurred - App Terminated',
             actions: [],
@@ -327,19 +328,36 @@ sap.ui.define(
         return delta;
       },
       // Try a full pushState/replaceState; if the browser rejects the state object
-      // (~640 kB quota in some browsers) retry with the navigation flags only.
+      // (~640 kB quota in some browsers) progressively shrink the state until it fits,
+      // and finally fall back to a null state if even the view alone is too large.
       _safeHistoryWrite(method, state, url) {
         try {
           history[method](state, '', url);
+          return;
         } catch (e) {
           _logError(`_safeHistoryWrite: ${method} oversized state — retrying without model`, e);
-          const lite = state ? { view: state.view, response: state.response } : {};
-          try {
-            history[method](lite, '', url);
-          } catch (e2) {
-            _logError(`_safeHistoryWrite: ${method} failed even with light state`, e2);
-            history[method](null, '', url);
-          }
+        }
+        // First retry: drop the model (typically the largest payload)
+        try {
+          const tier1 = state ? { view: state.view, response: state.response } : {};
+          history[method](tier1, '', url);
+          return;
+        } catch (e) {
+          _logError(`_safeHistoryWrite: ${method} still oversized — retrying with view only`, e);
+        }
+        // Second retry: keep only the view XML so popstate can still restore the page
+        try {
+          const tier2 = state ? { view: state.view } : {};
+          history[method](tier2, '', url);
+          return;
+        } catch (e) {
+          _logError(`_safeHistoryWrite: ${method} failed even with view-only state`, e);
+        }
+        // Last resort: null state — popstate handler will treat it as a no-op
+        try {
+          history[method](null, '', url);
+        } catch (e) {
+          _logError(`_safeHistoryWrite: ${method} failed with null state`, e);
         }
       },
       _createViewModel() {
@@ -550,7 +568,8 @@ sap.ui.define(
             break;
           }
           case 'HISTORY_BACK':
-            history.back();
+            // Only navigate back when there is actually an entry to go back to
+            if (history.length > 1) history.back();
             break;
           case 'CLIPBOARD_COPY':
             copyToClipboard(args[1]);
@@ -708,7 +727,7 @@ sap.ui.define(
         z2ui5.isBusy = true;
         BusyIndicator.show();
         z2ui5.oBody = { VIEWNAME: 'MAIN' };
-        let oModel;
+        let oModel = null;
         if (args[0]?.[3] || z2ui5.oController === this) {
           oModel = z2ui5.oResponse?.PARAMS?.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH
             ? z2ui5.oView?.getModel('http')

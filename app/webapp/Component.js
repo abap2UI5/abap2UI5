@@ -121,8 +121,16 @@ sap.ui.define(
         window.removeEventListener(this._unloadEvent, this._boundUnload);
         document.removeEventListener('keydown', this._boundKeydown);
         window.removeEventListener('popstate', this._boundPopstate);
-        z2ui5.debugTool?.destroy?.();
-        z2ui5.oDeviceModel?.destroy?.();
+        // Wrap each destroy individually so one failure does not skip the remaining cleanup
+        const safeDestroy = (key) => {
+          try {
+            z2ui5[key]?.destroy?.();
+          } catch (e) {
+            _logError(`Component.exit: ${key}.destroy() failed`, e);
+          }
+        };
+        safeDestroy('debugTool');
+        safeDestroy('oDeviceModel');
         // Symmetric cleanup so a re-mounted Component does not leak controllers/views/router
         for (const key of [
           'debugTool',
@@ -141,7 +149,11 @@ sap.ui.define(
         ]) {
           z2ui5[key] = null;
         }
-        Server.endSession();
+        try {
+          Server.endSession();
+        } catch (e) {
+          _logError(`Component.exit: Server.endSession failed`, e);
+        }
         UIComponent.prototype.exit?.call(this);
       },
     });

@@ -130,8 +130,9 @@ sap.ui.define(
         Object.assign(oModel.getData(), {
           editor_visible: true,
           source_visible: false,
-          // detect actual templating namespace declaration rather than any string match
-          isTemplating: typeof content === 'string' && /xmlns:template\s*=/.test(content),
+          // Word-boundary detection: only flag actual `xmlns:template=` declarations, avoid
+          // false positives like `xmlns:templateData=` or matches inside text/comment nodes
+          isTemplating: typeof content === 'string' && /\bxmlns:template\s*=/.test(content),
           value: content,
           previousValue: content,
           xContent: xcontent,

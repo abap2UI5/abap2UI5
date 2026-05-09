@@ -4,8 +4,8 @@ const _logError = (msg, err) => {
   if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];
   const arr = z2ui5.errors;
   arr.push({ message: msg, ...(err !== undefined && { error: err }), ts: new Date().toISOString() });
-  // Cap the rolling error log so a long-lived session does not grow unbounded
-  while (arr.length > _ERRORS_CAP) arr.shift();
+  // Single splice trims any overflow in one shot (cap the rolling log)
+  if (arr.length > _ERRORS_CAP) arr.splice(0, arr.length - _ERRORS_CAP);
 };
 
 // Remove a callback from one of the z2ui5.onXxx arrays without crashing if the array
@@ -304,7 +304,9 @@ sap.ui.define('z2ui5/Tree', ['sap/ui/core/Control'], (Control) => {
     },
 
     _getTreeBinding() {
-      return z2ui5.oView?.byId(this.getProperty('tree_id'))?.getBinding('items');
+      // sap.m.Tree binds under 'items', sap.ui.table.TreeTable under 'rows' — try both
+      const ctrl = z2ui5.oView?.byId(this.getProperty('tree_id'));
+      return ctrl?.getBinding('items') ?? ctrl?.getBinding('rows');
     },
 
     setBackend() {
@@ -845,7 +847,10 @@ sap.ui.define(
               text: oControl.getProperty('uploadButtonText'),
               enabled: path !== '',
               press: () => {
-                oControl.setProperty('path', oControl.oFileUploader.getProperty('value'));
+                // oFileUploader may have been destroyed by a re-render between attach and press
+                const value = oControl.oFileUploader?.getProperty?.('value');
+                if (value === undefined) return;
+                oControl.setProperty('path', value);
                 const file = oControl.oFileUploader?.oFileUpload?.files?.[0];
                 if (file) oControl._readFile(file);
               },
@@ -1139,12 +1144,18 @@ sap.ui.define(
       capture() {
         const video = document.getElementById(`${this.getId()}-video`);
         const canvas = document.getElementById(`${this.getId()}-canvas`);
-        if (!video || !canvas) return;
+        if (!video || !canvas) {
+          _logError(`CameraPicture.capture: video or canvas element not found in DOM`);
+          return;
+        }
         const { videoWidth, videoHeight } = video;
         canvas.width = videoWidth;
         canvas.height = videoHeight;
         const ctx = canvas.getContext('2d', _CTX_2D_OPTS);
-        if (!ctx) return;
+        if (!ctx) {
+          _logError(`CameraPicture.capture: 2d canvas context unavailable`);
+          return;
+        }
         ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
         let resultb64;
         try {
@@ -1181,6 +1192,7 @@ sap.ui.define(
       onPicture() {
         if (this._oScanDialog?.isOpen()) return;
         if (!this._oScanDialog) {
+          // i18n: title key "camera.title", capture key "camera.capture", cancel key "camera.cancel"
           this._oScanDialog = new Dialog({
             title: 'Device Photo Function',
             contentWidth: '640px',
@@ -1197,7 +1209,8 @@ sap.ui.define(
                 text: 'Capture',
                 press: () => {
                   this.capture();
-                  this._oScanDialog.close();
+                  // _oScanDialog could have been destroyed externally between attach and press
+                  this._oScanDialog?.close();
                 },
               }),
               new HTML({
@@ -1208,7 +1221,7 @@ sap.ui.define(
               text: 'Cancel',
               press: () => {
                 this._stopCamera();
-                this._oScanDialog.close();
+                this._oScanDialog?.close();
               },
             }),
           });
