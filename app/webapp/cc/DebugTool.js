@@ -3,59 +3,8 @@ sap.ui.define(
   (Control, Fragment, JSONModel, Util) => {
     'use strict';
 
-    const { logError: _logError, getViewContent } = Util;
-
-    const toJson = (val) => JSON.stringify(val ?? null, null, 3);
-
-    const PRETTIFY_XSL = `<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-        <xsl:strip-space elements="*" />
-        <xsl:template match="para[content-style][not(text())]">
-          <xsl:value-of select="normalize-space(.)" />
-        </xsl:template>
-        <xsl:template match="node()|@*">
-          <xsl:copy>
-            <xsl:apply-templates select="node()|@*" />
-          </xsl:copy>
-        </xsl:template>
-        <xsl:output indent="yes" />
-      </xsl:stylesheet>`;
-
-    let _xsltProcessor = null;
-    const _xmlSerializer = typeof XMLSerializer !== 'undefined' ? new XMLSerializer() : null;
-    const _domParser = typeof DOMParser !== 'undefined' ? new DOMParser() : null;
-    const getXsltProcessor = () => {
-      if (typeof XSLTProcessor === 'undefined' || !_domParser) return null;
-      if (!_xsltProcessor) {
-        const xsltDoc = _domParser.parseFromString(PRETTIFY_XSL, 'application/xml');
-        _xsltProcessor = new XSLTProcessor();
-        _xsltProcessor.importStylesheet(xsltDoc);
-      }
-      return _xsltProcessor;
-    };
-
-    // prettifyXml does not use 'this' — module-scoped so callers don't need to bind/destructure
-    const prettifyXml = (sourceXml) => {
-      if (!sourceXml) return '';
-      const processor = getXsltProcessor();
-      if (!processor || !_domParser || !_xmlSerializer) {
-        _logError('DebugTool.prettifyXml: XSLT/XMLSerializer/DOMParser unavailable in this browser');
-        return sourceXml;
-      }
-      try {
-        const xmlDoc = _domParser.parseFromString(sourceXml, 'application/xml');
-        const resultDoc = processor.transformToDocument(xmlDoc);
-        if (!resultDoc) return sourceXml;
-        return _xmlSerializer.serializeToString(resultDoc);
-      } catch (e) {
-        _logError('DebugTool.prettifyXml: XSLT transform failed', e);
-        return sourceXml;
-      }
-    };
-
-    // getViewContent comes from z2ui5/cc/Util (public-API + mProperties fallback).
-    // _xContent is a UI5-internal property holding the raw post-templating XML; there is no
-    // public equivalent for the rendered (post-template) view source, so we accept the lookup.
-    const getRenderedContent = (view) => view?._xContent?.outerHTML;
+    // toJson, prettifyXml, getViewContent, getRenderedContent come from z2ui5/cc/Util
+    const { logError: _logError, toJson, prettifyXml, getViewContent, getRenderedContent } = Util;
 
     return Control.extend('z2ui5.cc.DebugTool', {
       _buildHandlers(oEvent, oSource, displayEditor) {

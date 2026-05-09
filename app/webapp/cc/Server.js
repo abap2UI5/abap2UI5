@@ -3,11 +3,14 @@ sap.ui.define(
   (BusyIndicator, MessageBox, Util) => {
   'use strict';
 
-  const { logError: _logError } = Util;
+  const {
+    logError: _logError,
+    escapeHtml,
+    ERROR_MAX_LENGTH,
+    DEFAULT_FETCH_TIMEOUT_MS,
+    DEFAULT_LOGOUT_URL,
+  } = Util;
 
-  const ERROR_MAX_LENGTH = 50000;
-  const DEFAULT_FETCH_TIMEOUT_MS = 600000;
-  const DEFAULT_LOGOUT_URL = '/sap/public/bc/icf/logoff';
   // Apps can override the timeout by setting z2ui5.oConfig.fetchTimeoutMs before Roundtrip
   const _fetchTimeoutMs = () => {
     const v = z2ui5.oConfig?.fetchTimeoutMs;
@@ -17,11 +20,6 @@ sap.ui.define(
   const SAP_CONTEXTID_ACCEPT_VALUE = 'header';
   const SAP_CONTEXTID_HEADER = 'sap-contextid';
   const _MSG_TYPES = ['S_MSG_TOAST', 'S_MSG_BOX'];
-
-  // Hoisted lookup table avoids re-allocating the object on every escape call
-  const _ESCAPE_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-  const _ESCAPE_RE = /[&<>"']/g;
-  const escapeHtml = (str) => String(str).replace(_ESCAPE_RE, (c) => _ESCAPE_MAP[c]);
 
   const resolveLogoutUrl = () => z2ui5.oConfig?.logoutUrl || DEFAULT_LOGOUT_URL;
 

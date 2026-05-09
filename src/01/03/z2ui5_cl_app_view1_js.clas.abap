@@ -34,7 +34,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    'sap/m/library',` && |\n| &&
              `    'sap/ui/core/routing/HashChanger',` && |\n| &&
              `    'sap/ui/util/Storage',` && |\n| &&
-             `    'sap/ui/core/Element',` && |\n| &&
              `    'z2ui5/cc/Util',` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
@@ -52,102 +51,30 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    mobileLibrary,` && |\n| &&
              `    HashChanger,` && |\n| &&
              `    Storage,` && |\n| &&
-             `    Element,` && |\n| &&
              `    Util,` && |\n| &&
              `  ) => {` && |\n| &&
              `    'use strict';` && |\n| &&
              `` && |\n| &&
-             `    const { logError: _logError, runCallbacks, getViewContent: _getViewContent } = Util;` && |\n| &&
-             `` && |\n| &&
-             `    const _msgParser = new DOMParser();` && |\n| &&
-             `    const _sanitizeEl = document.createElement('div');` && |\n| &&
-             `    // ?? semantics: an explicit 0 from the backend should pass through (e.g. duration=0 to disable),` && |\n| &&
-             `    // not be replaced by the default` && |\n| &&
-             `    const parseMs = (val, def) => {` && |\n| &&
-             `      if (val === undefined || val === null || val === '') return def;` && |\n| &&
-             `      const n = +val;` && |\n| &&
-             `      return Number.isFinite(n) ? n : def;` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    // length of the "/XX/" prefix on two-way binding paths` && |\n| &&
-             `    const _XX_PATH_PREFIX_LEN = 4;` && |\n| &&
-             `    const _TOAST_DEFAULT_WIDTH = '15em';` && |\n| &&
-             `    const _TOAST_DEFAULT_DURATION_MS = 3000;` && |\n| &&
-             `    const _TOAST_DEFAULT_ANIM_MS = 1000;` && |\n| &&
-             `    // Safety net: if a Dialog.afterClose never fires (stuck), still destroy after this many ms` && |\n| &&
-             `    const _DESTROY_SAFETY_NET_MS = 1000;` && |\n| &&
+             `    // All cross-cutting helpers and constants come from z2ui5/cc/Util` && |\n| &&
+             `    const {` && |\n| &&
+             `      logError: _logError,` && |\n| &&
+             `      runCallbacks,` && |\n| &&
+             `      getViewContent: _getViewContent,` && |\n| &&
+             `      findControlById: _findControlById,` && |\n| &&
+             `      parseMs,` && |\n| &&
+             `      isValidRedirectURL,` && |\n| &&
+             `      copyToClipboard,` && |\n| &&
+             `      sanitizeMessageDetails,` && |\n| &&
+             `      XX_PATH_PREFIX_LEN: _XX_PATH_PREFIX_LEN,` && |\n| &&
+             `      TOAST_DEFAULT_WIDTH: _TOAST_DEFAULT_WIDTH,` && |\n| &&
+             `      TOAST_DEFAULT_DURATION_MS: _TOAST_DEFAULT_DURATION_MS,` && |\n| &&
+             `      TOAST_DEFAULT_ANIM_MS: _TOAST_DEFAULT_ANIM_MS,` && |\n| &&
+             `      DESTROY_SAFETY_NET_MS: _DESTROY_SAFETY_NET_MS,` && |\n| &&
+             `    } = Util;` && |\n| &&
              `` && |\n| &&
              `    // Whitelist of MessageBox functions we accept from the backend — guards against` && |\n| &&
              `    // prototype-pollution (e.g. msg.TYPE === '__proto__') and unintended dispatch.` && |\n| &&
              `    const _MSG_BOX_TYPES = new Set(['error', 'success', 'warning', 'information', 'show', 'alert', 'confirm']);` && |\n| &&
-             `` && |\n| &&
-             `    const _SAFE_PROTOCOLS = new Set(['http:', 'https:']);` && |\n| &&
-             `` && |\n| &&
-             `    const isValidRedirectURL = (url) => {` && |\n| &&
-             `      if (!url) return false;` && |\n| &&
-             `      try {` && |\n| &&
-             `        const { origin, protocol } = new URL(url, window.location.origin);` && |\n| &&
-             `        if (origin !== window.location.origin) {` && |\n| &&
-             `          _logError(``Security: Blocked redirect to different origin: ${url}``);` && |\n| &&
-             `          return false;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (!_SAFE_PROTOCOLS.has(protocol)) {` && |\n| &&
-             `          _logError(``Security: Blocked redirect with invalid protocol: ${protocol}``);` && |\n| &&
-             `          return false;` && |\n| &&
-             `        }` && |\n| &&
-             `        return true;` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        _logError(``Security: Invalid URL format: ${url}``, e);` && |\n| &&
-             `        return false;` && |\n| &&
-             `      }` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    const _legacyClipboardCopy = (text) => {` && |\n| &&
-             `      // Fallback for non-HTTPS contexts and older browsers without navigator.clipboard` && |\n| &&
-             `      const ta = document.createElement('textarea');` && |\n| &&
-             `      ta.value = text;` && |\n| &&
-             `      ta.setAttribute('readonly', '');` && |\n| &&
-             `      ta.style.cssText = 'position:fixed;top:-1000px;left:-1000px;opacity:0;';` && |\n| &&
-             `      (document.body ?? document.documentElement).appendChild(ta);` && |\n| &&
-             `      ta.select();` && |\n| &&
-             `      try {` && |\n| &&
-             `        // execCommand returns false if the copy was rejected (e.g. user gesture missing)` && |\n| &&
-             `        const ok = document.execCommand('copy');` && |\n| &&
-             `        if (!ok) _logError(``Clipboard: legacy execCommand returned false``);` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        _logError(``Clipboard: legacy execCommand failed``, e);` && |\n| &&
-             `      } finally {` && |\n| &&
-             `        ta.remove();` && |\n| &&
-             `      }` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    const copyToClipboard = (textToCopy) => {` && |\n| &&
-             `      if (navigator.clipboard?.writeText) {` && |\n| &&
-             `        navigator.clipboard` && |\n| &&
-             `          .writeText(textToCopy)` && |\n| &&
-             `          .catch((err) => {` && |\n| &&
-             `            _logError(``Clipboard: writeText failed, falling back to execCommand``, err);` && |\n| &&
-             `            _legacyClipboardCopy(textToCopy);` && |\n| &&
-             `          });` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      _legacyClipboardCopy(textToCopy);` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    const sanitizeMessageDetails = (html) => {` && |\n| &&
-             `      const doc = _msgParser.parseFromString(html, 'text/html');` && |\n| &&
-             `      const items = [...doc.querySelectorAll('li')];` && |\n| &&
-             `      if (items.length) {` && |\n| &&
-             `        return ``<ul>${items` && |\n| &&
-             `          .map((li) => {` && |\n| &&
-             `            _sanitizeEl.textContent = li.textContent;` && |\n| &&
-             `            return ``<li>${_sanitizeEl.innerHTML}</li>``;` && |\n| &&
-             `          })` && |\n| &&
-             `          .join('')}</ul>``;` && |\n| &&
-             `      }` && |\n| &&
-             `      _sanitizeEl.textContent = doc.body.textContent;` && |\n| &&
-             `      return _sanitizeEl.innerHTML;` && |\n| &&
-             `    };` && |\n| &&
              `` && |\n| &&
              `    const withCrossAppNavigator = (callback) => {` && |\n| &&
              `      const nav = z2ui5.oLaunchpad?.CrossAppNavigator;` && |\n| &&
@@ -189,19 +116,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      POPUP_NAV_CONTAINER_TO: (id) => Fragment.byId('popupId', id),` && |\n| &&
              `      POPOVER_NAV_CONTAINER_TO: (id) => Fragment.byId('popoverId', id),` && |\n| &&
              `    };` && |\n| &&
-             `` && |\n| &&
-             `    // Look up a control across all active views by ID (used by openBy and the Z2UI5 frontend action).` && |\n| &&
-             `    // Uses the imported Fragment module directly instead of the per-instance Fragment property` && |\n| &&
-             `    // pinned by displayFragment/displayPopover.` && |\n| &&
-             `    const _findControlById = (id) =>` && |\n| &&
-             `      z2ui5.oView?.byId(id) ||` && |\n| &&
-             `      (z2ui5.oViewPopup && Fragment.byId('popupId', id)) ||` && |\n| &&
-             `      (z2ui5.oViewPopover && Fragment.byId('popoverId', id)) ||` && |\n| &&
-             `      z2ui5.oViewNest?.byId(id) ||` && |\n| &&
-             `      z2ui5.oViewNest2?.byId(id) ||` && |\n| &&
-             `      Element.getElementById?.(id) ||` && |\n| &&
-             `      // sap.ui.getCore() is removed in ui5-legacy-free; chain with optional access for compatibility` && |\n| &&
-             `      sap.ui.getCore?.()?.byId?.(id);` && |\n| &&
              `` && |\n| &&
              `    const viewLookups = {` && |\n| &&
              `      MAIN: () => z2ui5.oView,` && |\n| &&
@@ -418,8 +332,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            oModel.destroy?.();` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
-             |\n|.
-    result = result &&
              `          oFragment.openBy(oControl);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          _logError(``displayPopover: failed``, e);` && |\n| &&
@@ -506,6 +418,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            if (ret && typeof ret.then === 'function') {` && |\n| &&
              `              ret.then(closeAndDestroy, closeAndDestroy);` && |\n| &&
              `              return;` && |\n| &&
+             |\n|.
+    result = result &&
              `            }` && |\n| &&
              `            if (typeof view.attachEventOnce === 'function' && typeof view.isOpen === 'function' && view.isOpen()) {` && |\n| &&
              `              view.attachEventOnce('afterClose', closeAndDestroy);` && |\n| &&
@@ -820,8 +734,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `              const toasts = document.querySelectorAll('.sapMMessageToast');` && |\n| &&
              `              const toast = toasts[toasts.length - 1];` && |\n| &&
              `              toast?.classList.add(...msg.CLASS.trim().split(/\s+/).filter(Boolean));` && |\n| &&
-             |\n|.
-    result = result &&
              `            } catch (e) {` && |\n| &&
              `              _logError(``showMessage: invalid toast CLASS '${msg.CLASS}'``, e);` && |\n| &&
              `            }` && |\n| &&

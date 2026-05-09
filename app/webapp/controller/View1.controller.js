@@ -14,7 +14,6 @@ sap.ui.define(
     'sap/m/library',
     'sap/ui/core/routing/HashChanger',
     'sap/ui/util/Storage',
-    'sap/ui/core/Element',
     'z2ui5/cc/Util',
   ],
   (
@@ -32,102 +31,30 @@ sap.ui.define(
     mobileLibrary,
     HashChanger,
     Storage,
-    Element,
     Util,
   ) => {
     'use strict';
 
-    const { logError: _logError, runCallbacks, getViewContent: _getViewContent } = Util;
-
-    const _msgParser = new DOMParser();
-    const _sanitizeEl = document.createElement('div');
-    // ?? semantics: an explicit 0 from the backend should pass through (e.g. duration=0 to disable),
-    // not be replaced by the default
-    const parseMs = (val, def) => {
-      if (val === undefined || val === null || val === '') return def;
-      const n = +val;
-      return Number.isFinite(n) ? n : def;
-    };
-
-    // length of the "/XX/" prefix on two-way binding paths
-    const _XX_PATH_PREFIX_LEN = 4;
-    const _TOAST_DEFAULT_WIDTH = '15em';
-    const _TOAST_DEFAULT_DURATION_MS = 3000;
-    const _TOAST_DEFAULT_ANIM_MS = 1000;
-    // Safety net: if a Dialog.afterClose never fires (stuck), still destroy after this many ms
-    const _DESTROY_SAFETY_NET_MS = 1000;
+    // All cross-cutting helpers and constants come from z2ui5/cc/Util
+    const {
+      logError: _logError,
+      runCallbacks,
+      getViewContent: _getViewContent,
+      findControlById: _findControlById,
+      parseMs,
+      isValidRedirectURL,
+      copyToClipboard,
+      sanitizeMessageDetails,
+      XX_PATH_PREFIX_LEN: _XX_PATH_PREFIX_LEN,
+      TOAST_DEFAULT_WIDTH: _TOAST_DEFAULT_WIDTH,
+      TOAST_DEFAULT_DURATION_MS: _TOAST_DEFAULT_DURATION_MS,
+      TOAST_DEFAULT_ANIM_MS: _TOAST_DEFAULT_ANIM_MS,
+      DESTROY_SAFETY_NET_MS: _DESTROY_SAFETY_NET_MS,
+    } = Util;
 
     // Whitelist of MessageBox functions we accept from the backend — guards against
     // prototype-pollution (e.g. msg.TYPE === '__proto__') and unintended dispatch.
     const _MSG_BOX_TYPES = new Set(['error', 'success', 'warning', 'information', 'show', 'alert', 'confirm']);
-
-    const _SAFE_PROTOCOLS = new Set(['http:', 'https:']);
-
-    const isValidRedirectURL = (url) => {
-      if (!url) return false;
-      try {
-        const { origin, protocol } = new URL(url, window.location.origin);
-        if (origin !== window.location.origin) {
-          _logError(`Security: Blocked redirect to different origin: ${url}`);
-          return false;
-        }
-        if (!_SAFE_PROTOCOLS.has(protocol)) {
-          _logError(`Security: Blocked redirect with invalid protocol: ${protocol}`);
-          return false;
-        }
-        return true;
-      } catch (e) {
-        _logError(`Security: Invalid URL format: ${url}`, e);
-        return false;
-      }
-    };
-
-    const _legacyClipboardCopy = (text) => {
-      // Fallback for non-HTTPS contexts and older browsers without navigator.clipboard
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.setAttribute('readonly', '');
-      ta.style.cssText = 'position:fixed;top:-1000px;left:-1000px;opacity:0;';
-      (document.body ?? document.documentElement).appendChild(ta);
-      ta.select();
-      try {
-        // execCommand returns false if the copy was rejected (e.g. user gesture missing)
-        const ok = document.execCommand('copy');
-        if (!ok) _logError(`Clipboard: legacy execCommand returned false`);
-      } catch (e) {
-        _logError(`Clipboard: legacy execCommand failed`, e);
-      } finally {
-        ta.remove();
-      }
-    };
-
-    const copyToClipboard = (textToCopy) => {
-      if (navigator.clipboard?.writeText) {
-        navigator.clipboard
-          .writeText(textToCopy)
-          .catch((err) => {
-            _logError(`Clipboard: writeText failed, falling back to execCommand`, err);
-            _legacyClipboardCopy(textToCopy);
-          });
-        return;
-      }
-      _legacyClipboardCopy(textToCopy);
-    };
-
-    const sanitizeMessageDetails = (html) => {
-      const doc = _msgParser.parseFromString(html, 'text/html');
-      const items = [...doc.querySelectorAll('li')];
-      if (items.length) {
-        return `<ul>${items
-          .map((li) => {
-            _sanitizeEl.textContent = li.textContent;
-            return `<li>${_sanitizeEl.innerHTML}</li>`;
-          })
-          .join('')}</ul>`;
-      }
-      _sanitizeEl.textContent = doc.body.textContent;
-      return _sanitizeEl.innerHTML;
-    };
 
     const withCrossAppNavigator = (callback) => {
       const nav = z2ui5.oLaunchpad?.CrossAppNavigator;
@@ -169,19 +96,6 @@ sap.ui.define(
       POPUP_NAV_CONTAINER_TO: (id) => Fragment.byId('popupId', id),
       POPOVER_NAV_CONTAINER_TO: (id) => Fragment.byId('popoverId', id),
     };
-
-    // Look up a control across all active views by ID (used by openBy and the Z2UI5 frontend action).
-    // Uses the imported Fragment module directly instead of the per-instance Fragment property
-    // pinned by displayFragment/displayPopover.
-    const _findControlById = (id) =>
-      z2ui5.oView?.byId(id) ||
-      (z2ui5.oViewPopup && Fragment.byId('popupId', id)) ||
-      (z2ui5.oViewPopover && Fragment.byId('popoverId', id)) ||
-      z2ui5.oViewNest?.byId(id) ||
-      z2ui5.oViewNest2?.byId(id) ||
-      Element.getElementById?.(id) ||
-      // sap.ui.getCore() is removed in ui5-legacy-free; chain with optional access for compatibility
-      sap.ui.getCore?.()?.byId?.(id);
 
     const viewLookups = {
       MAIN: () => z2ui5.oView,

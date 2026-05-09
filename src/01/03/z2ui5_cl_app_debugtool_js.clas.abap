@@ -23,59 +23,8 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `  (Control, Fragment, JSONModel, Util) => {` && |\n| &&
              `    'use strict';` && |\n| &&
              `` && |\n| &&
-             `    const { logError: _logError, getViewContent } = Util;` && |\n| &&
-             `` && |\n| &&
-             `    const toJson = (val) => JSON.stringify(val ?? null, null, 3);` && |\n| &&
-             `` && |\n| &&
-             `    const PRETTIFY_XSL = ``<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">` && |\n| &&
-             `        <xsl:strip-space elements="*" />` && |\n| &&
-             `        <xsl:template match="para[content-style][not(text())]">` && |\n| &&
-             `          <xsl:value-of select="normalize-space(.)" />` && |\n| &&
-             `        </xsl:template>` && |\n| &&
-             `        <xsl:template match="node()|@*">` && |\n| &&
-             `          <xsl:copy>` && |\n| &&
-             `            <xsl:apply-templates select="node()|@*" />` && |\n| &&
-             `          </xsl:copy>` && |\n| &&
-             `        </xsl:template>` && |\n| &&
-             `        <xsl:output indent="yes" />` && |\n| &&
-             `      </xsl:stylesheet>``;` && |\n| &&
-             `` && |\n| &&
-             `    let _xsltProcessor = null;` && |\n| &&
-             `    const _xmlSerializer = typeof XMLSerializer !== 'undefined' ? new XMLSerializer() : null;` && |\n| &&
-             `    const _domParser = typeof DOMParser !== 'undefined' ? new DOMParser() : null;` && |\n| &&
-             `    const getXsltProcessor = () => {` && |\n| &&
-             `      if (typeof XSLTProcessor === 'undefined' || !_domParser) return null;` && |\n| &&
-             `      if (!_xsltProcessor) {` && |\n| &&
-             `        const xsltDoc = _domParser.parseFromString(PRETTIFY_XSL, 'application/xml');` && |\n| &&
-             `        _xsltProcessor = new XSLTProcessor();` && |\n| &&
-             `        _xsltProcessor.importStylesheet(xsltDoc);` && |\n| &&
-             `      }` && |\n| &&
-             `      return _xsltProcessor;` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    // prettifyXml does not use 'this' — module-scoped so callers don't need to bind/destructure` && |\n| &&
-             `    const prettifyXml = (sourceXml) => {` && |\n| &&
-             `      if (!sourceXml) return '';` && |\n| &&
-             `      const processor = getXsltProcessor();` && |\n| &&
-             `      if (!processor || !_domParser || !_xmlSerializer) {` && |\n| &&
-             `        _logError('DebugTool.prettifyXml: XSLT/XMLSerializer/DOMParser unavailable in this browser');` && |\n| &&
-             `        return sourceXml;` && |\n| &&
-             `      }` && |\n| &&
-             `      try {` && |\n| &&
-             `        const xmlDoc = _domParser.parseFromString(sourceXml, 'application/xml');` && |\n| &&
-             `        const resultDoc = processor.transformToDocument(xmlDoc);` && |\n| &&
-             `        if (!resultDoc) return sourceXml;` && |\n| &&
-             `        return _xmlSerializer.serializeToString(resultDoc);` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        _logError('DebugTool.prettifyXml: XSLT transform failed', e);` && |\n| &&
-             `        return sourceXml;` && |\n| &&
-             `      }` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    // getViewContent comes from z2ui5/cc/Util (public-API + mProperties fallback).` && |\n| &&
-             `    // _xContent is a UI5-internal property holding the raw post-templating XML; there is no` && |\n| &&
-             `    // public equivalent for the rendered (post-template) view source, so we accept the lookup.` && |\n| &&
-             `    const getRenderedContent = (view) => view?._xContent?.outerHTML;` && |\n| &&
+             `    // toJson, prettifyXml, getViewContent, getRenderedContent come from z2ui5/cc/Util` && |\n| &&
+             `    const { logError: _logError, toJson, prettifyXml, getViewContent, getRenderedContent } = Util;` && |\n| &&
              `` && |\n| &&
              `    return Control.extend('z2ui5.cc.DebugTool', {` && |\n| &&
              `      _buildHandlers(oEvent, oSource, displayEditor) {` && |\n| &&

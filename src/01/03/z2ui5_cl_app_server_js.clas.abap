@@ -23,11 +23,14 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `  (BusyIndicator, MessageBox, Util) => {` && |\n| &&
              `  'use strict';` && |\n| &&
              `` && |\n| &&
-             `  const { logError: _logError } = Util;` && |\n| &&
+             `  const {` && |\n| &&
+             `    logError: _logError,` && |\n| &&
+             `    escapeHtml,` && |\n| &&
+             `    ERROR_MAX_LENGTH,` && |\n| &&
+             `    DEFAULT_FETCH_TIMEOUT_MS,` && |\n| &&
+             `    DEFAULT_LOGOUT_URL,` && |\n| &&
+             `  } = Util;` && |\n| &&
              `` && |\n| &&
-             `  const ERROR_MAX_LENGTH = 50000;` && |\n| &&
-             `  const DEFAULT_FETCH_TIMEOUT_MS = 600000;` && |\n| &&
-             `  const DEFAULT_LOGOUT_URL = '/sap/public/bc/icf/logoff';` && |\n| &&
              `  // Apps can override the timeout by setting z2ui5.oConfig.fetchTimeoutMs before Roundtrip` && |\n| &&
              `  const _fetchTimeoutMs = () => {` && |\n| &&
              `    const v = z2ui5.oConfig?.fetchTimeoutMs;` && |\n| &&
@@ -37,11 +40,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `  const SAP_CONTEXTID_ACCEPT_VALUE = 'header';` && |\n| &&
              `  const SAP_CONTEXTID_HEADER = 'sap-contextid';` && |\n| &&
              `  const _MSG_TYPES = ['S_MSG_TOAST', 'S_MSG_BOX'];` && |\n| &&
-             `` && |\n| &&
-             `  // Hoisted lookup table avoids re-allocating the object on every escape call` && |\n| &&
-             `  const _ESCAPE_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };` && |\n| &&
-             `  const _ESCAPE_RE = /[&<>"']/g;` && |\n| &&
-             `  const escapeHtml = (str) => String(str).replace(_ESCAPE_RE, (c) => _ESCAPE_MAP[c]);` && |\n| &&
              `` && |\n| &&
              `  const resolveLogoutUrl = () => z2ui5.oConfig?.logoutUrl || DEFAULT_LOGOUT_URL;` && |\n| &&
              `` && |\n| &&
