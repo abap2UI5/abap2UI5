@@ -5,7 +5,7 @@
 CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
   PUBLIC SECTION.
-    "! <p class="shorttext synchronized" lang="en">factory - rooted in `<View>`</p>
+    "! <p class="shorttext synchronized" lang="en">factory - rooted in View</p>
     "!
     "! Use this when building a top-level view returned via `client->view_display( )`.
     "!
@@ -470,7 +470,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.table.rowmodes.Auto</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Auto. Used inside `<rowMode>` of sap.ui.table.Table / AnalyticalTable.
+    "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Auto. Used inside `rowMode` of sap.ui.table.Table / AnalyticalTable.
     "!
     "! @parameter ns               | (string) XML namespace prefix (typically `t`).
     "! @parameter rowcontentheight | (int) Row content height in pixels. 0 = theme-based default. Default: 0.
@@ -492,7 +492,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! @parameter class               | (string) CSS class names.
     "! @parameter visible             | (boolean) Whether the strip is visible. Default: true.
     "! @parameter showclosebutton     | (boolean) Render a close button. Default: false.
-    "! @parameter enableformattedtext | (boolean) Allow a limited HTML subset (`<a>`, `<br>`, `<em>`, `<strong>`, `<u>`, `<span>`) in the text. Default: false.
+    "! @parameter enableformattedtext | (boolean) Allow a limited HTML subset in the text. Default: false.
     METHODS message_strip
       IMPORTING
         text                TYPE clike OPTIONAL
@@ -734,7 +734,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! @parameter systeminfo             | (string) Backend system context information. Since 1.92.
     "! @parameter tilebadge              | (string) Badge text (max 3 chars). Since 1.113.
     "! @parameter tileicon               | (sap.ui.core.URI) Icon (IconMode only). Since 1.96.
-    "! @parameter url                    | (sap.ui.core.URI) Renders the tile as an `<a>` linking to this URL. Since 1.76.
+    "! @parameter url                    | (sap.ui.core.URI) Renders the tile linking to this URL. Since 1.76.
     "! @parameter valuecolor             | (sap.m.ValueColor) None | Good | Error | Critical | Neutral. Default: None. Since 1.95.
     "! @parameter width                  | (sap.ui.core.CSSSize) Width. Since 1.72.
     "! @parameter wrappingtype           | (sap.m.WrappingType) Normal | Hyphenated. Default: Normal. Since 1.60.
@@ -963,7 +963,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "!
     "! Avatar control. See https://ui5.sap.com/#/api/sap.m.Avatar.
     "!
-    "! IMPORTANT: leave `ns` empty (or default) to emit `<Avatar>` resolving to sap.m.Avatar via the View's xmlns.
+    "! IMPORTANT: leave `ns` empty (or default) to emit `Avatar` resolving to sap.m.Avatar via the View's xmlns.
     "! Never pass `ns = 'f'` - that produces the deprecated `sap.f.Avatar` (deprecated since 1.73, replaced by sap.m.Avatar).
     "!
     "! @parameter ns                | (string) XML namespace prefix. Leave empty for sap.m.Avatar.
@@ -2725,7 +2725,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! @parameter class              | (string) CSS class names.
     "! @parameter height             | (sap.ui.core.CSSSize) Image height.
     "! @parameter width              | (sap.ui.core.CSSSize) Image width.
-    "! @parameter usemap             | (string) Name of the HTML image-map (`<img usemap=...>`).
+    "! @parameter usemap             | (string) Name of the HTML image-map.
     "! @parameter mode               | (sap.m.ImageMode) Image | Background. Default: Image.
     "! @parameter lazyloading        | (boolean) Native lazy loading (`loading="lazy"`). Default: false.
     "! @parameter densityaware       | (boolean) Density-aware variants (1.5x / 2x). Default: false.
@@ -3850,7 +3850,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! @parameter visible                     | (boolean) Whether visible. Default: true.
     "! @parameter width                       | (sap.ui.core.CSSSize) Width.
     "! @parameter class                       | (string) CSS class names.
-    "! @parameter controls                    | (sap.ui.core.ID[]) Ids of controls referenced from inside the markup (e.g. via `<embed data-index="0">`).
+    "! @parameter controls                    | (sap.ui.core.ID[]) Ids of controls referenced from inside the markup.
     METHODS formatted_text
       IMPORTING
         htmltext                    TYPE clike OPTIONAL
@@ -4187,7 +4187,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.table.Table</p>
     "!
-    "! Grid (non-responsive) table. See https://ui5.sap.com/#/api/sap.ui.table.Table. Renders as `<t:Table>` in XML views.
+    "! Grid (non-responsive) table. See https://ui5.sap.com/#/api/sap.ui.table.Table. Renders as `t:Table` in XML views.
     "!
     "! @parameter rows                     | (binding path) Aggregation of rows.
     "! @parameter columnheadervisible      | (boolean) Show column headers. Default: true.
@@ -8252,7 +8252,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 raw HTML `<map>` element</p>
+    "! <p class="shorttext synchronized" lang="en">UI5 raw HTML `map` element</p>
     "!
     "! @parameter name | (string) Map name (referenced by `usemap`).
     METHODS html_map
@@ -8263,7 +8263,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 raw HTML `<area>` element (image-map area)</p>
+    "! <p class="shorttext synchronized" lang="en">UI5 raw HTML area element (image-map area)</p>
     "!
     "! @parameter shape   | (string) HTML area shape (rect | circle | poly | default).
     "! @parameter coords  | (string) Coordinates string.
@@ -8283,7 +8283,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 raw HTML `<canvas>` element</p>
+    "! <p class="shorttext synchronized" lang="en">UI5 raw HTML `canvas` element</p>
     "!
     "! @parameter width  | (sap.ui.core.CSSSize) Canvas width.
     "! @parameter height | (sap.ui.core.CSSSize) Canvas height.
@@ -8529,7 +8529,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! @parameter busyindicatorsize  | (sap.ui.core.BusyIndicatorSize) Size of busy indicator.
     "! @parameter fieldgroupids      | (string[]) Field group ids.
     "! @parameter icon               | (sap.ui.core.URI) Step icon.
-    "! @parameter !optional          | (boolean) Mark step as optional. Default: false. Since 1.54. (ABAP keyword - prefix `!`).
+    "! @parameter optional           | (boolean) Mark step as optional. Default: false. Since 1.54. (ABAP keyword - prefix `!`).
     "! @parameter title              | (string) Step title.
     "! @parameter validated          | (boolean) Whether the step is validated. Default: true.
     "! @parameter visible            | (boolean) Whether visible. Default: true.
@@ -8567,7 +8567,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">XMLPreprocessor template-with directive (`<template:with>`)</p>
+    "! <p class="shorttext synchronized" lang="en">XMLPreprocessor template-with directive</p>
     "!
     "! @parameter path   | (string) Binding path scoped under `var`.
     "! @parameter helper | (string) Optional helper module name.
@@ -8580,7 +8580,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">XMLPreprocessor template-if directive (`<template:if>`)</p>
+    "! <p class="shorttext synchronized" lang="en">XMLPreprocessor template-if directive</p>
     "!
     "! @parameter test | (string) Boolean condition expression.
     METHODS template_if
@@ -8589,12 +8589,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">XMLPreprocessor template-then directive (`<template:then>`)</p>
+    "! <p class="shorttext synchronized" lang="en">XMLPreprocessor template-then directive</p>
     METHODS template_then
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">XMLPreprocessor template-else directive (`<template:else>`)</p>
+    "! <p class="shorttext synchronized" lang="en">XMLPreprocessor template-else directive</p>
     METHODS template_else
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -9360,7 +9360,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! @parameter text   | (string) Item text.
     "! @parameter icon   | (sap.ui.core.URI) Icon URI.
     "! @parameter select | (event) Fired when the item is selected.
-    "! @parameter href   | (sap.ui.core.URI) Link href (renders item as `<a>`).
+    "! @parameter href   | (sap.ui.core.URI) Link href (renders item as `a`).
     "! @parameter key    | (string) Item key.
     METHODS navigation_list_item
       IMPORTING

@@ -571,7 +571,7 @@
     <SEOCOMPOTX>
      <CMPNAME>FACTORY</CMPNAME>
      <LANGU>E</LANGU>
-     <DESCRIPT>factory - rooted in `&lt;View&gt;`</DESCRIPT>
+     <DESCRIPT>factory - rooted in View</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CMPNAME>FACTORY_PLAIN</CMPNAME>
@@ -866,17 +866,17 @@
     <SEOCOMPOTX>
      <CMPNAME>HTML_AREA</CMPNAME>
      <LANGU>E</LANGU>
-     <DESCRIPT>UI5 raw HTML `&lt;area&gt;` element (image-map area)</DESCRIPT>
+     <DESCRIPT>UI5 raw HTML area element (image-map area)</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CMPNAME>HTML_CANVAS</CMPNAME>
      <LANGU>E</LANGU>
-     <DESCRIPT>UI5 raw HTML `&lt;canvas&gt;` element</DESCRIPT>
+     <DESCRIPT>UI5 raw HTML `canvas` element</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CMPNAME>HTML_MAP</CMPNAME>
      <LANGU>E</LANGU>
-     <DESCRIPT>UI5 raw HTML `&lt;map&gt;` element</DESCRIPT>
+     <DESCRIPT>UI5 raw HTML `map` element</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CMPNAME>ICON</CMPNAME>
@@ -1871,7 +1871,7 @@
     <SEOCOMPOTX>
      <CMPNAME>TEMPLATE_ELSE</CMPNAME>
      <LANGU>E</LANGU>
-     <DESCRIPT>XMLPreprocessor template-else directive (`&lt;template:else&gt;`)</DESCRIPT>
+     <DESCRIPT>XMLPreprocessor template-else directive</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CMPNAME>TEMPLATE_ELSEIF</CMPNAME>
@@ -1881,7 +1881,7 @@
     <SEOCOMPOTX>
      <CMPNAME>TEMPLATE_IF</CMPNAME>
      <LANGU>E</LANGU>
-     <DESCRIPT>XMLPreprocessor template-if directive (`&lt;template:if&gt;`)</DESCRIPT>
+     <DESCRIPT>XMLPreprocessor template-if directive</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CMPNAME>TEMPLATE_REPEAT</CMPNAME>
@@ -1891,12 +1891,12 @@
     <SEOCOMPOTX>
      <CMPNAME>TEMPLATE_THEN</CMPNAME>
      <LANGU>E</LANGU>
-     <DESCRIPT>XMLPreprocessor template-then directive (`&lt;template:then&gt;`)</DESCRIPT>
+     <DESCRIPT>XMLPreprocessor template-then directive</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CMPNAME>TEMPLATE_WITH</CMPNAME>
      <LANGU>E</LANGU>
-     <DESCRIPT>XMLPreprocessor template-with directive (`&lt;template:with&gt;`)</DESCRIPT>
+     <DESCRIPT>XMLPreprocessor template-with directive</DESCRIPT>
     </SEOCOMPOTX>
     <SEOCOMPOTX>
      <CMPNAME>TEXT</CMPNAME>
