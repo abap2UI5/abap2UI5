@@ -417,6 +417,10 @@ sap.ui.define(
           const oControl = _findControlById(openById);
           if (!oControl) {
             _logError(`displayPopover: openBy control '${openById}' not found`);
+            // Fragment + model are unowned at this point — release them instead of leaking
+            z2ui5[viewProp] = null;
+            oFragment.destroy();
+            oModel.destroy?.();
             return;
           }
           oFragment.openBy(oControl);
@@ -574,9 +578,12 @@ sap.ui.define(
           case 'CLIPBOARD_COPY':
             copyToClipboard(args[1]);
             break;
-          case 'CLIPBOARD_APP_STATE':
-            copyToClipboard(`${window.location.href}#/z2ui5-xapp-state=${z2ui5.oResponse?.ID}`);
+          case 'CLIPBOARD_APP_STATE': {
+            // Strip any existing hash before appending — avoids producing a malformed URL with two `#`
+            const baseUrl = window.location.href.split('#')[0];
+            copyToClipboard(`${baseUrl}#/z2ui5-xapp-state=${z2ui5.oResponse?.ID ?? ''}`);
             break;
+          }
           case 'SET_ODATA_MODEL': {
             try {
               const modelName = args[2] || undefined;

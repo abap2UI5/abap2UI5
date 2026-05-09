@@ -22,8 +22,13 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `  'use strict';` && |\n| &&
              `` && |\n| &&
              `  const ERROR_MAX_LENGTH = 50000;` && |\n| &&
-             `  const FETCH_TIMEOUT_MS = 600000;` && |\n| &&
+             `  const DEFAULT_FETCH_TIMEOUT_MS = 600000;` && |\n| &&
              `  const DEFAULT_LOGOUT_URL = '/sap/public/bc/icf/logoff';` && |\n| &&
+             `  // Apps can override the timeout by setting z2ui5.oConfig.fetchTimeoutMs before Roundtrip` && |\n| &&
+             `  const _fetchTimeoutMs = () => {` && |\n| &&
+             `    const v = z2ui5.oConfig?.fetchTimeoutMs;` && |\n| &&
+             `    return Number.isFinite(v) && v > 0 ? v : DEFAULT_FETCH_TIMEOUT_MS;` && |\n| &&
+             `  };` && |\n| &&
              `  const SAP_CONTEXTID_ACCEPT_HEADER = 'sap-contextid-accept';` && |\n| &&
              `  const SAP_CONTEXTID_ACCEPT_VALUE = 'header';` && |\n| &&
              `  const SAP_CONTEXTID_HEADER = 'sap-contextid';` && |\n| &&
@@ -125,8 +130,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        body,` && |\n| &&
              `      };` && |\n| &&
              `      // AbortSignal.timeout is ES2022; older browsers fall back to no client-side timeout` && |\n| &&
+             `      const timeoutMs = _fetchTimeoutMs();` && |\n| &&
              `      if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {` && |\n| &&
-             `        fetchOpts.signal = AbortSignal.timeout(FETCH_TIMEOUT_MS);` && |\n| &&
+             `        fetchOpts.signal = AbortSignal.timeout(timeoutMs);` && |\n| &&
              `      }` && |\n| &&
              `      try {` && |\n| &&
              `        response = await fetch(pathname, fetchOpts);` && |\n| &&
@@ -134,7 +140,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        // AbortError (or TimeoutError on newer browsers) means the timeout fired` && |\n| &&
              `        const isTimeout = e?.name === 'TimeoutError' || e?.name === 'AbortError';` && |\n| &&
              `        const prefix = isTimeout` && |\n| &&
-             `          ? ``Request timed out after ${Math.round(FETCH_TIMEOUT_MS / 1000)}s``` && |\n| &&
+             `          ? ``Request timed out after ${Math.round(timeoutMs / 1000)}s``` && |\n| &&
              `          : 'Network error';` && |\n| &&
              `        this.responseError(``${prefix}: ${e.message}``);` && |\n| &&
              `        return;` && |\n| &&

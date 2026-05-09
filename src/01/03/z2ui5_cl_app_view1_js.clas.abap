@@ -439,6 +439,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const oControl = _findControlById(openById);` && |\n| &&
              `          if (!oControl) {` && |\n| &&
              `            _logError(``displayPopover: openBy control '${openById}' not found``);` && |\n| &&
+             `            // Fragment + model are unowned at this point — release them instead of leaking` && |\n| &&
+             `            z2ui5[viewProp] = null;` && |\n| &&
+             `            oFragment.destroy();` && |\n| &&
+             `            oModel.destroy?.();` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `          oFragment.openBy(oControl);` && |\n| &&
@@ -596,9 +600,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          case 'CLIPBOARD_COPY':` && |\n| &&
              `            copyToClipboard(args[1]);` && |\n| &&
              `            break;` && |\n| &&
-             `          case 'CLIPBOARD_APP_STATE':` && |\n| &&
-             `            copyToClipboard(``${window.location.href}#/z2ui5-xapp-state=${z2ui5.oResponse?.ID}``);` && |\n| &&
+             `          case 'CLIPBOARD_APP_STATE': {` && |\n| &&
+             `            // Strip any existing hash before appending — avoids producing a malformed URL with two ``#``` && |\n| &&
+             `            const baseUrl = window.location.href.split('#')[0];` && |\n| &&
+             `            copyToClipboard(``${baseUrl}#/z2ui5-xapp-state=${z2ui5.oResponse?.ID ?? ''}``);` && |\n| &&
              `            break;` && |\n| &&
+             `          }` && |\n| &&
              `          case 'SET_ODATA_MODEL': {` && |\n| &&
              `            try {` && |\n| &&
              `              const modelName = args[2] || undefined;` && |\n| &&
@@ -813,6 +820,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        MessageBox.error(err?.message ?? String(err));` && |\n| &&
              `      },` && |\n| &&
+             |\n|.
+    result = result &&
              `      showMessage(msgType, params) {` && |\n| &&
              `        if (!params) return;` && |\n| &&
              `        const msg = params[msgType];` && |\n| &&
@@ -820,8 +829,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (msg?.TEXT == null) return;` && |\n| &&
              `        if (msgType === 'S_MSG_TOAST') {` && |\n| &&
              `          MessageToast.show(msg.TEXT, {` && |\n| &&
-             |\n|.
-    result = result &&
              `            duration: parseMs(msg.DURATION, _TOAST_DEFAULT_DURATION_MS),` && |\n| &&
              `            width: msg.WIDTH || _TOAST_DEFAULT_WIDTH,` && |\n| &&
              `            onClose: msg.ONCLOSE ? () => this.eB([msg.ONCLOSE]) : null,` && |\n| &&

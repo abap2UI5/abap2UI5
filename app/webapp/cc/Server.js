@@ -2,8 +2,13 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
   'use strict';
 
   const ERROR_MAX_LENGTH = 50000;
-  const FETCH_TIMEOUT_MS = 600000;
+  const DEFAULT_FETCH_TIMEOUT_MS = 600000;
   const DEFAULT_LOGOUT_URL = '/sap/public/bc/icf/logoff';
+  // Apps can override the timeout by setting z2ui5.oConfig.fetchTimeoutMs before Roundtrip
+  const _fetchTimeoutMs = () => {
+    const v = z2ui5.oConfig?.fetchTimeoutMs;
+    return Number.isFinite(v) && v > 0 ? v : DEFAULT_FETCH_TIMEOUT_MS;
+  };
   const SAP_CONTEXTID_ACCEPT_HEADER = 'sap-contextid-accept';
   const SAP_CONTEXTID_ACCEPT_VALUE = 'header';
   const SAP_CONTEXTID_HEADER = 'sap-contextid';
@@ -105,8 +110,9 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
         body,
       };
       // AbortSignal.timeout is ES2022; older browsers fall back to no client-side timeout
+      const timeoutMs = _fetchTimeoutMs();
       if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
-        fetchOpts.signal = AbortSignal.timeout(FETCH_TIMEOUT_MS);
+        fetchOpts.signal = AbortSignal.timeout(timeoutMs);
       }
       try {
         response = await fetch(pathname, fetchOpts);
@@ -114,7 +120,7 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
         // AbortError (or TimeoutError on newer browsers) means the timeout fired
         const isTimeout = e?.name === 'TimeoutError' || e?.name === 'AbortError';
         const prefix = isTimeout
-          ? `Request timed out after ${Math.round(FETCH_TIMEOUT_MS / 1000)}s`
+          ? `Request timed out after ${Math.round(timeoutMs / 1000)}s`
           : 'Network error';
         this.responseError(`${prefix}: ${e.message}`);
         return;
