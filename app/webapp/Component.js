@@ -114,7 +114,22 @@ sap.ui.define(
         document.removeEventListener('keydown', this._boundKeydown);
         window.removeEventListener('popstate', this._boundPopstate);
         z2ui5.debugTool?.destroy?.();
-        z2ui5.debugTool = null;
+        // Symmetric cleanup so a re-mounted Component does not leak controllers/views
+        for (const key of [
+          'debugTool',
+          'oController',
+          'oControllerNest',
+          'oControllerNest2',
+          'oControllerPopup',
+          'oControllerPopover',
+          'oView',
+          'oViewNest',
+          'oViewNest2',
+          'oViewPopup',
+          'oViewPopover',
+        ]) {
+          z2ui5[key] = null;
+        }
         Server.endSession();
         UIComponent.prototype.exit?.call(this);
       },

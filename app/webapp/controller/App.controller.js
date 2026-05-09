@@ -1,5 +1,9 @@
+const _ERRORS_CAP = 200;
 const _logError = (msg, err) => {
-  (z2ui5.errors ??= []).push({ message: msg, ...(err !== undefined && { error: err }), ts: new Date().toISOString() });
+  const arr = (z2ui5.errors ??= []);
+  arr.push({ message: msg, ...(err !== undefined && { error: err }), ts: new Date().toISOString() });
+  // Cap the rolling error log so a long-lived session does not grow unbounded
+  while (arr.length > _ERRORS_CAP) arr.shift();
 };
 
 sap.ui.define(
@@ -11,12 +15,38 @@ sap.ui.define(
   ],
   (BaseController, Controller, Server, HashChanger) => {
     'use strict';
+    // Destroy lingering controllers / views from a previous onInit to avoid leaks if the
+    // App controller is re-initialised (e.g. after a routing reload)
+    const _destroyPrevious = () => {
+      for (const key of [
+        'oController',
+        'oControllerNest',
+        'oControllerNest2',
+        'oControllerPopup',
+        'oControllerPopover',
+        'oView',
+        'oViewNest',
+        'oViewNest2',
+        'oViewPopup',
+        'oViewPopover',
+      ]) {
+        try {
+          z2ui5[key]?.destroy?.();
+        } catch (e) {
+          _logError(`App.onInit: previous ${key}.destroy() failed`, e);
+        }
+        z2ui5[key] = null;
+      }
+    };
+
     return BaseController.extend('z2ui5.controller.App', {
       onInit() {
         const oOwnerComponent = this.getOwnerComponent();
         z2ui5.oOwnerComponent = oOwnerComponent;
         const uri = oOwnerComponent.getManifest()?.['sap.app']?.dataSources?.http?.uri;
         z2ui5.oConfig.pathname = z2ui5.checkLocal ? window.location.href : uri;
+
+        _destroyPrevious();
 
         Object.assign(z2ui5, {
           oController: new Controller(),
@@ -69,6 +99,10 @@ sap.ui.define('z2ui5/Timer', ['sap/ui/core/Control'], (Control) => {
         },
       },
     },
+    init() {
+      this._timerId = null;
+      this._pendingTimer = false;
+    },
     onAfterRendering() {
       if (!this._pendingTimer) return;
       this._pendingTimer = false;
@@ -76,6 +110,7 @@ sap.ui.define('z2ui5/Timer', ['sap/ui/core/Control'], (Control) => {
     },
     exit() {
       clearTimeout(this._timerId);
+      this._timerId = null;
     },
     delayedCall() {
       if (!this.getProperty('checkActive')) return;
@@ -231,7 +266,12 @@ sap.ui.define('z2ui5/History', ['sap/ui/core/Control'], (Control) => {
     setSearch(val) {
       this.setProperty('search', val);
       try {
-        history.replaceState(null, '', `${window.location.pathname}${val ?? ''}`);
+        // Normalise: prepend '?' if the value looks like a query string but is missing it
+        let suffix = val ?? '';
+        if (suffix && !suffix.startsWith('?') && !suffix.startsWith('#') && !suffix.startsWith('&')) {
+          suffix = `?${suffix}`;
+        }
+        history.replaceState(null, '', `${window.location.pathname}${suffix}`);
       } catch (e) {
         _logError(`History.setSearch: replaceState failed`, e);
       }
@@ -563,9 +603,10 @@ sap.ui.define('z2ui5/Geolocation', ['sap/ui/core/Control'], (Control) => {
       if (!this._pendingGeolocate) return;
       this._pendingGeolocate = false;
       try {
-        navigator.geolocation?.getCurrentPosition(
+        // Optional-method call: skip silently if either geolocation or getCurrentPosition is missing
+        navigator.geolocation?.getCurrentPosition?.(
           this.callbackPosition.bind(this),
-          (error) => _logError(`Geolocation error (${error.code}): ${error.message}`),
+          (error) => _logError(`Geolocation error (${error?.code ?? '?'}): ${error?.message ?? 'unknown'}`),
           {
             enableHighAccuracy: this.getProperty('enableHighAccuracy'),
             timeout: +this.getProperty('timeout'),
@@ -638,9 +679,14 @@ sap.ui.define('z2ui5/Storage', ['sap/ui/core/Control', 'sap/ui/util/Storage'], (
         const prefix = oControl.getProperty('prefix');
         const key = oControl.getProperty('key');
         const value = oControl.getProperty('value');
+        // Object.hasOwn guard — prevents prototype lookups (type === '__proto__') and logs unknown types
+        const resolvedType = Object.hasOwn(Storage.Type, type) ? Storage.Type[type] : Storage.Type.session;
+        if (type && !Object.hasOwn(Storage.Type, type)) {
+          _logError(`Storage: unknown type '${type}', falling back to session`);
+        }
         let stored;
         try {
-          stored = new Storage(Storage.Type[type] ?? Storage.Type.session, prefix).get(key) ?? '';
+          stored = new Storage(resolvedType, prefix).get(key) ?? '';
         } catch (e) {
           _logError(`Storage: read failed for key '${key}'`, e);
           return;
@@ -847,7 +893,7 @@ sap.ui.define('z2ui5/MultiInputExt', ['sap/ui/core/Control', 'sap/m/Token'], (Co
       z2ui5.onAfterRendering = (z2ui5.onAfterRendering ?? []).filter((fn) => fn !== this._setControlBound);
       // Detach from the host MultiInput if it is still alive — avoids leaking
       // a bound onTokenUpdate handler when the table outlives this control.
-      if (this._attachedTable && !this._attachedTable.bIsDestroyed) {
+      if (this._attachedTable && typeof this._attachedTable.isDestroyed === 'function' && !this._attachedTable.isDestroyed()) {
         try {
           this._attachedTable.detachTokenUpdate(this._tokenUpdateBound);
         } catch (e) {
@@ -929,7 +975,7 @@ sap.ui.define('z2ui5/SmartMultiInputExt', ['sap/ui/core/Control'], (Control) => 
       z2ui5.onAfterRendering = (z2ui5.onAfterRendering ?? []).filter((fn) => fn !== this._setControlBound);
       this._oPendingInnerControlsCreated?.(null);
       this._oPendingInnerControlsCreated = null;
-      if (this._attachedInput && !this._attachedInput.bIsDestroyed) {
+      if (this._attachedInput && typeof this._attachedInput.isDestroyed === 'function' && !this._attachedInput.isDestroyed()) {
         try {
           this._attachedInput.detachTokenUpdate(this._tokenUpdateBound);
           this._attachedInput.detachInnerControlsCreated?.(this._innerControlsCreatedBound);
@@ -1023,6 +1069,8 @@ sap.ui.define(
     'use strict';
     const _CTX_2D_OPTS = { willReadFrequently: true };
     const _THUMB_W = 300;
+    const _JPEG_QUALITY_PHOTO = 0.85;
+    const _JPEG_QUALITY_THUMB = 0.7;
     return Control.extend('z2ui5.CameraPicture', {
       metadata: {
         properties: {
@@ -1053,23 +1101,26 @@ sap.ui.define(
         const canvas = document.getElementById(`${this.getId()}-canvas`);
         if (!video || !canvas) return;
         const { videoWidth, videoHeight } = video;
-        Object.assign(canvas, { width: videoWidth, height: videoHeight });
+        canvas.width = videoWidth;
+        canvas.height = videoHeight;
         const ctx = canvas.getContext('2d', _CTX_2D_OPTS);
         if (!ctx) return;
         ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
         let resultb64;
         try {
-          resultb64 = canvas.toDataURL('image/jpeg', 0.85);
+          resultb64 = canvas.toDataURL('image/jpeg', _JPEG_QUALITY_PHOTO);
         } catch (e) {
           _logError(`CameraPicture: canvas toDataURL failed`, e);
           return;
         }
         const thumbH = videoWidth ? Math.round((videoHeight * _THUMB_W) / videoWidth) : _THUMB_W;
-        const thumbCanvas = Object.assign(document.createElement('canvas'), { width: _THUMB_W, height: thumbH });
+        const thumbCanvas = document.createElement('canvas');
+        thumbCanvas.width = _THUMB_W;
+        thumbCanvas.height = thumbH;
         thumbCanvas.getContext('2d', _CTX_2D_OPTS)?.drawImage(canvas, 0, 0, _THUMB_W, thumbH);
         let thumbB64 = '';
         try {
-          thumbB64 = thumbCanvas.toDataURL('image/jpeg', 0.7);
+          thumbB64 = thumbCanvas.toDataURL('image/jpeg', _JPEG_QUALITY_THUMB);
         } catch (e) {
           _logError(`CameraPicture: thumb toDataURL failed`, e);
         }
@@ -1179,12 +1230,17 @@ sap.ui.define(
       async init() {
         ComboBox.prototype.init.call(this);
         try {
-          const devices = await navigator.mediaDevices?.enumerateDevices();
-          if (!devices) return;
+          const devices = await navigator.mediaDevices?.enumerateDevices?.();
+          if (!devices || this.isDestroyed()) return;
+          let added = false;
           for (const device of devices) {
-            if (device.kind === 'videoinput' && !this.isDestroyed())
+            if (device.kind === 'videoinput' && !this.isDestroyed()) {
               this.addItem(new Item({ key: device.deviceId, text: device.label }));
+              added = true;
+            }
           }
+          // Trigger a re-render so items added after the first paint actually show up
+          if (added && !this.isDestroyed()) this.invalidate();
         } catch (err) {
           _logError(`CameraDeviceList: enumerateDevices failed`, err);
         }
@@ -1205,6 +1261,17 @@ sap.ui.define('z2ui5/UITableExt', ['sap/ui/core/Control'], (Control) => {
     EndsWith: (v) => `${v ?? ''}$`,
   };
 
+  // sap.ui.table.Table binds rows under 'rows', sap.m.Table under 'items' — try both
+  const _ROW_AGGREGATIONS = ['rows', 'items'];
+  const _getRowsBinding = (oTable) => {
+    if (!oTable) return undefined;
+    for (const name of _ROW_AGGREGATIONS) {
+      const b = oTable.getBinding(name);
+      if (b) return b;
+    }
+    return oTable.getBinding();
+  };
+
   return Control.extend('z2ui5.UITableExt', {
     metadata: {
       properties: {
@@ -1215,6 +1282,8 @@ sap.ui.define('z2ui5/UITableExt', ['sap/ui/core/Control'], (Control) => {
     },
 
     init() {
+      this._aFilters = null;
+      this._aSorters = null;
       this._beforeBound = () => {
         this.readFilter();
         this.readSort();
@@ -1238,7 +1307,7 @@ sap.ui.define('z2ui5/UITableExt', ['sap/ui/core/Control'], (Control) => {
 
     readFilter() {
       try {
-        this.aFilters = this._getTable()?.getBinding()?.aFilters;
+        this._aFilters = _getRowsBinding(this._getTable())?.aFilters;
       } catch (e) {
         _logError(`UITableExt.readFilter failed`, e);
       }
@@ -1260,7 +1329,7 @@ sap.ui.define('z2ui5/UITableExt', ['sap/ui/core/Control'], (Control) => {
 
     _applyFilters(oTable, aFilters) {
       if (!aFilters) return;
-      const binding = oTable.getBinding();
+      const binding = _getRowsBinding(oTable);
       if (!binding) return;
       binding.filter(aFilters);
       const columns = oTable.getColumns();
@@ -1297,12 +1366,12 @@ sap.ui.define('z2ui5/UITableExt', ['sap/ui/core/Control'], (Control) => {
     },
 
     setFilter() {
-      this._applyToTable((oTable) => this._applyFilters(oTable, this.aFilters), `UITableExt.setFilter failed`);
+      this._applyToTable((oTable) => this._applyFilters(oTable, this._aFilters), `UITableExt.setFilter failed`);
     },
 
     readSort() {
       try {
-        this.aSorters = this._getTable()?.getBinding()?.aSorters;
+        this._aSorters = _getRowsBinding(this._getTable())?.aSorters;
       } catch (e) {
         _logError(`UITableExt.readSort failed`, e);
       }
@@ -1310,7 +1379,7 @@ sap.ui.define('z2ui5/UITableExt', ['sap/ui/core/Control'], (Control) => {
 
     _applySorters(oTable, aSorters) {
       if (!aSorters) return;
-      const binding = oTable.getBinding();
+      const binding = _getRowsBinding(oTable);
       if (!binding) return;
       binding.sort(aSorters);
       const columns = oTable.getColumns();
@@ -1326,7 +1395,7 @@ sap.ui.define('z2ui5/UITableExt', ['sap/ui/core/Control'], (Control) => {
     },
 
     setSort() {
-      this._applyToTable((oTable) => this._applySorters(oTable, this.aSorters), `UITableExt.setSort failed`);
+      this._applyToTable((oTable) => this._applySorters(oTable, this._aSorters), `UITableExt.setSort failed`);
     },
     renderer: { apiVersion: 2, render() {} },
   });
@@ -1334,17 +1403,20 @@ sap.ui.define('z2ui5/UITableExt', ['sap/ui/core/Control'], (Control) => {
 
 sap.ui.define('z2ui5/Util', [], () => {
   'use strict';
-  // ABAP DATS is YYYYMMDD (8 chars). Returns NaN tuple for malformed input
-  // so the resulting Date is a well-defined "Invalid Date" rather than a silent default.
+  // ABAP DATS is YYYYMMDD (8 chars), TIMS is HHMMSS (6 chars). Both helpers return NaN tuples
+  // for malformed input so the resulting Date is a well-defined "Invalid Date".
   const parseDmy = (d) => {
     if (typeof d !== 'string' || d.length < 8) return [NaN, NaN, NaN];
     return [+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8)];
   };
+  const parseHms = (t) => {
+    if (typeof t !== 'string' || t.length < 6) return [NaN, NaN, NaN];
+    return [+t.slice(0, 2), +t.slice(2, 4), +t.slice(4, 6)];
+  };
   return {
     DateCreateObject: (s) => new Date(s),
     DateAbapDateToDateObject: (d) => new Date(...parseDmy(d)),
-    DateAbapDateTimeToDateObject: (d, t = '000000') =>
-      new Date(...parseDmy(d), +t.slice(0, 2), +t.slice(2, 4), +t.slice(4, 6)),
+    DateAbapDateTimeToDateObject: (d, t = '000000') => new Date(...parseDmy(d), ...parseHms(t)),
   };
 });
 sap.ui.require(['z2ui5/Util'], (Util) => (z2ui5.Util = Util));

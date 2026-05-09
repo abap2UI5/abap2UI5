@@ -55,17 +55,32 @@ sap.ui.define(
       return Number.isFinite(n) ? n : def;
     };
 
+    // length of the "/XX/" prefix on two-way binding paths
+    const _XX_PATH_PREFIX_LEN = 4;
+    const _TOAST_DEFAULT_WIDTH = '15em';
+    const _TOAST_DEFAULT_DURATION_MS = 3000;
+    const _TOAST_DEFAULT_ANIM_MS = 1000;
+    const _ERRORS_CAP = 200;
+
+    // Public getViewContent() became available in newer UI5 versions; fall back to the internal
+    // mProperties.viewContent for older versions
+    const _getViewContent = (view) => view?.getViewContent?.() ?? view?.mProperties?.viewContent;
+
     // Whitelist of MessageBox functions we accept from the backend — guards against
     // prototype-pollution (e.g. msg.TYPE === '__proto__') and unintended dispatch.
     const _MSG_BOX_TYPES = new Set(['error', 'success', 'warning', 'information', 'show', 'alert', 'confirm']);
 
     const _SAFE_PROTOCOLS = new Set(['http:', 'https:']);
-    const _logError = (msg, err) =>
-      (z2ui5.errors ??= []).push({
+    const _logError = (msg, err) => {
+      const arr = (z2ui5.errors ??= []);
+      arr.push({
         message: msg,
         ...(err !== undefined && { error: err }),
         ts: new Date().toISOString(),
       });
+      // Cap the rolling error log so a long-lived session does not grow unbounded
+      while (arr.length > _ERRORS_CAP) arr.shift();
+    };
 
     const isValidRedirectURL = (url) => {
       if (!url) return false;
@@ -251,24 +266,26 @@ sap.ui.define(
 
           const oView = z2ui5.oView;
           const oState = oView
-            ? { view: oView.mProperties.viewContent, model: oView.getModel()?.getData(), response: z2ui5.oResponse }
+            ? { view: _getViewContent(oView), model: oView.getModel()?.getData(), response: z2ui5.oResponse }
             : {};
           try {
             if (SET_PUSH_STATE) {
               const hash = _hashChanger.getHash() || '#';
-              history.pushState(
+              // Avoid emitting `##` if SET_PUSH_STATE already starts with a hash
+              const tail = SET_PUSH_STATE.startsWith('#') && hash === '#' ? SET_PUSH_STATE : `${hash}${SET_PUSH_STATE}`;
+              this._safeHistoryWrite(
+                'pushState',
                 oState,
-                '',
-                `${window.location.pathname}${window.location.search}${hash}${SET_PUSH_STATE}`,
+                `${window.location.pathname}${window.location.search}${tail}`,
               );
             } else {
-              history.replaceState(oState, '', window.location.href);
+              this._safeHistoryWrite('replaceState', oState, window.location.href);
             }
             _hashChanger.replaceHash(SET_APP_STATE_ACTIVE ? `z2ui5-xapp-state=${ID ?? ''}` : '');
           } catch (e) {
             _logError(`_processAfterRendering: history update failed`, e);
           }
-          if (SET_NAV_BACK) history.back();
+          if (SET_NAV_BACK && history.length > 1) history.back();
 
           runCallbacks(z2ui5.onAfterRendering);
         } catch (e) {
@@ -286,8 +303,8 @@ sap.ui.define(
       _buildDeltaFromPaths(paths, xx) {
         const delta = {};
         for (const path of paths) {
-          const [attr, rowIdx, field] = path.slice(4).split('/');
-          if (field !== undefined && rowIdx !== '' && !isNaN(rowIdx)) {
+          const [attr, rowIdx, field] = path.slice(_XX_PATH_PREFIX_LEN).split('/');
+          if (field !== undefined && rowIdx !== '' && Number.isFinite(+rowIdx)) {
             if (!delta[attr]?.__delta) delta[attr] = { __delta: {} };
             const attrDelta = delta[attr].__delta;
             attrDelta[rowIdx] ??= {};
@@ -297,6 +314,22 @@ sap.ui.define(
           }
         }
         return delta;
+      },
+      // Try a full pushState/replaceState; if the browser rejects the state object
+      // (~640 kB quota in some browsers) retry with the navigation flags only.
+      _safeHistoryWrite(method, state, url) {
+        try {
+          history[method](state, '', url);
+        } catch (e) {
+          _logError(`_safeHistoryWrite: ${method} oversized state — retrying without model`, e);
+          const lite = state ? { view: state.view, response: state.response } : {};
+          try {
+            history[method](lite, '', url);
+          } catch (e2) {
+            _logError(`_safeHistoryWrite: ${method} failed even with light state`, e2);
+            history[method](null, '', url);
+          }
+        }
       },
       _createViewModel() {
         return this._trackChanges(new JSONModel(z2ui5.oResponse?.OVIEWMODEL));
@@ -347,27 +380,36 @@ sap.ui.define(
       async displayNestedView(xml, viewProp, viewNestId, controller) {
         const oModel = this._createViewModel();
         applyStoredSizeLimit(paramToViewKey[viewNestId], oModel);
-        const oView = await XMLView.create({
-          definition: xml,
-          controller,
-          preprocessors: { xml: { models: { template: oModel } } },
-        });
-        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {
+        let oView;
+        try {
+          oView = await XMLView.create({
+            definition: xml,
+            controller,
+            preprocessors: { xml: { models: { template: oModel } } },
+          });
+        } catch (e) {
+          oModel.destroy?.();
+          throw e;
+        }
+        const abort = (reason) => {
+          if (reason) _logError(reason);
           oView.destroy();
+          oModel.destroy?.();
+        };
+        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {
+          abort();
           return;
         }
         oView.setModel(oModel);
         const nestParams = z2ui5.oResponse?.PARAMS?.[viewNestId];
         if (!nestParams) {
-          _logError(`displayNestedView: missing PARAMS.${viewNestId}`);
-          oView.destroy();
+          abort(`displayNestedView: missing PARAMS.${viewNestId}`);
           return;
         }
         const { ID, METHOD_DESTROY, METHOD_INSERT } = nestParams;
         const oParent = z2ui5.oView?.byId(ID);
         if (!oParent) {
-          _logError(`displayNestedView: parent control '${ID}' not found, nested view discarded`);
-          oView.destroy();
+          abort(`displayNestedView: parent control '${ID}' not found, nested view discarded`);
           return;
         }
         try {
@@ -378,8 +420,8 @@ sap.ui.define(
         try {
           oParent[METHOD_INSERT](oView);
         } catch (e) {
+          abort(`displayNestedView: parent insert method failed`);
           _logError(`displayNestedView: parent insert method failed`, e);
-          oView.destroy();
           return;
         }
         z2ui5[viewProp] = oView;
@@ -387,19 +429,32 @@ sap.ui.define(
       _destroyView(prop, tryClose) {
         const view = z2ui5[prop];
         if (!view) return;
+        z2ui5[prop] = null;
+        const closeAndDestroy = () => {
+          try {
+            view.destroy();
+          } catch (e) {
+            _logError(`_destroyView: view.destroy() failed for ${prop}`, e);
+          }
+        };
         if (tryClose) {
           try {
-            view.close?.();
+            const ret = view.close?.();
+            // Defer destroy until the close animation has settled. If close() returned a
+            // thenable we wait for it; otherwise an afterClose handler covers Dialog/Popover.
+            if (ret && typeof ret.then === 'function') {
+              ret.then(closeAndDestroy, closeAndDestroy);
+              return;
+            }
+            if (typeof view.attachEventOnce === 'function' && typeof view.isOpen === 'function' && view.isOpen()) {
+              view.attachEventOnce('afterClose', closeAndDestroy);
+              return;
+            }
           } catch (e) {
             _logError(`_destroyView: view.close() failed for ${prop}`, e);
           }
         }
-        try {
-          view.destroy();
-        } catch (e) {
-          _logError(`_destroyView: view.destroy() failed for ${prop}`, e);
-        }
-        z2ui5[prop] = null;
+        closeAndDestroy();
       },
       PopupDestroy() {
         this._destroyView('oViewPopup', true);
@@ -419,7 +474,9 @@ sap.ui.define(
       eF(...args) {
         runCallbacks(z2ui5.onBeforeEventFrontend, args);
 
-        const navLookup = navContainerLookups[args[0]];
+        // Object.hasOwn guard prevents prototype lookups (e.g. args[0] === 'constructor')
+        const navLookup =
+          typeof args[0] === 'string' && Object.hasOwn(navContainerLookups, args[0]) ? navContainerLookups[args[0]] : null;
         if (navLookup) {
           navigateContainer(navLookup, args);
           return;
@@ -636,16 +693,17 @@ sap.ui.define(
       async checkSDKcompatibility(err) {
         let gav;
         try {
-          ({ gav } = await VersionInfo.load());
+          ({ gav } = (await VersionInfo.load()) ?? {});
         } catch (e) {
           _logError('checkSDKcompatibility: VersionInfo.load failed', e);
           return;
         }
-        if (!gav.includes('com.sap.ui5')) {
+        // gav can be missing for some openui5 builds — fall back to a plain message
+        if (typeof gav === 'string' && !gav.includes('com.sap.ui5')) {
           MessageBox.error(`openui5 SDK is loaded, module: ${err?._modules} is not available in openui5`);
           return;
         }
-        MessageBox.error(err.toLocaleString());
+        MessageBox.error(err?.message ?? String(err));
       },
       showMessage(msgType, params) {
         if (!params) return;
@@ -653,18 +711,20 @@ sap.ui.define(
         if (msg?.TEXT === undefined) return;
         if (msgType === 'S_MSG_TOAST') {
           MessageToast.show(msg.TEXT, {
-            duration: parseMs(msg.DURATION, 3000),
-            width: msg.WIDTH || '15em',
+            duration: parseMs(msg.DURATION, _TOAST_DEFAULT_DURATION_MS),
+            width: msg.WIDTH || _TOAST_DEFAULT_WIDTH,
             onClose: msg.ONCLOSE ? () => this.eB([msg.ONCLOSE]) : null,
             autoClose: !!msg.AUTOCLOSE,
             animationTimingFunction: msg.ANIMATIONTIMINGFUNCTION || 'ease',
-            animationDuration: parseMs(msg.ANIMATIONDURATION, 1000),
+            animationDuration: parseMs(msg.ANIMATIONDURATION, _TOAST_DEFAULT_ANIM_MS),
             closeonBrowserNavigation: !!msg.CLOSEONBROWSERNAVIGATION,
           });
-          if (msg.CLASS)
-            document
-              .querySelector('.sapMMessageToast')
-              ?.classList.add(...msg.CLASS.trim().split(/\s+/).filter(Boolean));
+          if (msg.CLASS) {
+            // Pick the most recently appended toast — querySelectorAll returns them in DOM order
+            const toasts = document.querySelectorAll('.sapMMessageToast');
+            const toast = toasts[toasts.length - 1];
+            toast?.classList.add(...msg.CLASS.trim().split(/\s+/).filter(Boolean));
+          }
         } else if (msgType === 'S_MSG_BOX') {
           const oParams = {
             styleClass: msg.STYLECLASS || '',
@@ -697,23 +757,39 @@ sap.ui.define(
             })
           : oViewModel;
         applyStoredSizeLimit('MAIN', oModel);
-        z2ui5.oView = await XMLView.create({
-          definition: xml,
-          models: oModel,
-          controller: z2ui5.oController,
-          id: 'mainView',
-          preprocessors: { xml: { models: { template: oViewModel } } },
-        });
+        let oView;
+        try {
+          oView = await XMLView.create({
+            definition: xml,
+            models: oModel,
+            controller: z2ui5.oController,
+            id: 'mainView',
+            preprocessors: { xml: { models: { template: oViewModel } } },
+          });
+        } catch (e) {
+          // If XMLView.create rejects, both models leak — destroy them explicitly
+          if (switchPath) {
+            oModel.destroy?.();
+            oViewModel.destroy?.();
+          } else {
+            oViewModel.destroy?.();
+          }
+          throw e;
+        }
         if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {
-          z2ui5.oView.destroy();
-          if (switchPath) oModel.destroy();
+          oView.destroy();
+          if (switchPath) {
+            oModel.destroy?.();
+            oViewModel.destroy?.();
+          }
           z2ui5.oView = null;
           return;
         }
-        z2ui5.oView.setModel(z2ui5.oDeviceModel, 'device');
-        if (switchPath) z2ui5.oView.setModel(oViewModel, 'http');
+        z2ui5.oView = oView;
+        oView.setModel(z2ui5.oDeviceModel, 'device');
+        if (switchPath) oView.setModel(oViewModel, 'http');
         z2ui5.oApp.removeAllPages();
-        z2ui5.oApp.insertPage(z2ui5.oView);
+        z2ui5.oApp.insertPage(oView);
       },
     });
   },

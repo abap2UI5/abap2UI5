@@ -134,7 +134,22 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        document.removeEventListener('keydown', this._boundKeydown);` && |\n| &&
              `        window.removeEventListener('popstate', this._boundPopstate);` && |\n| &&
              `        z2ui5.debugTool?.destroy?.();` && |\n| &&
-             `        z2ui5.debugTool = null;` && |\n| &&
+             `        // Symmetric cleanup so a re-mounted Component does not leak controllers/views` && |\n| &&
+             `        for (const key of [` && |\n| &&
+             `          'debugTool',` && |\n| &&
+             `          'oController',` && |\n| &&
+             `          'oControllerNest',` && |\n| &&
+             `          'oControllerNest2',` && |\n| &&
+             `          'oControllerPopup',` && |\n| &&
+             `          'oControllerPopover',` && |\n| &&
+             `          'oView',` && |\n| &&
+             `          'oViewNest',` && |\n| &&
+             `          'oViewNest2',` && |\n| &&
+             `          'oViewPopup',` && |\n| &&
+             `          'oViewPopover',` && |\n| &&
+             `        ]) {` && |\n| &&
+             `          z2ui5[key] = null;` && |\n| &&
+             `        }` && |\n| &&
              `        Server.endSession();` && |\n| &&
              `        UIComponent.prototype.exit?.call(this);` && |\n| &&
              `      },` && |\n| &&

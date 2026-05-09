@@ -79,17 +79,15 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `    // getViewContent uses the public API when available and falls back to mProperties.viewContent` && |\n| &&
              `    // (UI5 internal) for older versions that do not expose a getter` && |\n| &&
              `    const getViewContent = (view) => view?.getViewContent?.() ?? view?.mProperties?.viewContent;` && |\n| &&
+             `    // _xContent is a UI5-internal property holding the raw post-templating XML; there is no` && |\n| &&
+             `    // public equivalent for the rendered (post-template) view source, so we accept the lookup.` && |\n| &&
              `    const getRenderedContent = (view) => view?._xContent?.outerHTML;` && |\n| &&
              `` && |\n| &&
              `    return Control.extend('z2ui5.cc.DebugTool', {` && |\n| &&
-             `      onItemSelect(oEvent) {` && |\n| &&
-             `        const oSource = oEvent.getSource();` && |\n| &&
-             `        const selItem = oSource.getSelectedKey();` && |\n| &&
+             `      _buildHandlers(oEvent, oSource, displayEditor) {` && |\n| &&
              `        const oView = z2ui5.oView;` && |\n| &&
              `        const oResponse = z2ui5.oResponse;` && |\n| &&
-             `        const displayEditor = (this._displayEditorBound ??= this.displayEditor.bind(this));` && |\n| &&
-             `` && |\n| &&
-             `        const handlers = {` && |\n| &&
+             `        return {` && |\n| &&
              `          CONFIG: () => displayEditor(oEvent, toJson(z2ui5.oConfig), 'json'),` && |\n| &&
              `          MODEL: () => displayEditor(oEvent, toJson(oView?.getModel()?.getData()), 'json'),` && |\n| &&
              `          VIEW: () => {` && |\n| &&
@@ -123,9 +121,11 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `            if (!contentControl) return;` && |\n| &&
              `            const appId = encodeURIComponent(z2ui5.responseData?.S_FRONT?.APP ?? '');` && |\n| &&
              `            const url = new URL(``/sap/bc/adt/oo/classes/${appId}/source/main``, window.location.origin).href;` && |\n| &&
+             `            // Use a control-scoped iframe id to avoid collisions with other #test elements` && |\n| &&
+             `            const iframeId = ``${this.getId()}-source-iframe``;` && |\n| &&
              `            contentControl.setProperty(` && |\n| &&
              `              'content',` && |\n| &&
-             `              ``<iframe id="test" src="${url}" height="800px" width="100%"/>``,` && |\n| &&
+             `              ``<iframe id="${iframeId}" src="${url}" height="800px" width="100%"/>``,` && |\n| &&
              `            );` && |\n| &&
              `            const oModel = oSource.getModel();` && |\n| &&
              `            if (!oModel) return;` && |\n| &&
@@ -133,8 +133,15 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `            oModel.refresh();` && |\n| &&
              `          },` && |\n| &&
              `        };` && |\n| &&
+             `      },` && |\n| &&
              `` && |\n| &&
-             `        handlers[selItem]?.();` && |\n| &&
+             `      onItemSelect(oEvent) {` && |\n| &&
+             `        const oSource = oEvent.getSource();` && |\n| &&
+             `        const selItem = oSource.getSelectedKey();` && |\n| &&
+             `        const displayEditor = (this._displayEditorBound ??= this.displayEditor.bind(this));` && |\n| &&
+             `        // Rebuild on each click — handlers close over the current oView/oResponse references` && |\n| &&
+             `        const handlers = this._buildHandlers(oEvent, oSource, displayEditor);` && |\n| &&
+             `        if (Object.hasOwn(handlers, selItem)) handlers[selItem]();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      displayEditor(oEvent, content, type, xcontent = '') {` && |\n| &&

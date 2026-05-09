@@ -4,12 +4,18 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
   const ERROR_MAX_LENGTH = 50000;
   const FETCH_TIMEOUT_MS = 600000;
   const DEFAULT_LOGOUT_URL = '/sap/public/bc/icf/logoff';
+  const SAP_CONTEXTID_ACCEPT_HEADER = 'sap-contextid-accept';
+  const SAP_CONTEXTID_ACCEPT_VALUE = 'header';
+  const SAP_CONTEXTID_HEADER = 'sap-contextid';
   const _MSG_TYPES = ['S_MSG_TOAST', 'S_MSG_BOX'];
+  const _ERRORS_CAP = 200;
 
   const _logError = (message, error) => {
     const entry = { message, ts: new Date().toISOString() };
     if (error !== undefined) entry.error = error;
-    (z2ui5.errors ??= []).push(entry);
+    const arr = (z2ui5.errors ??= []);
+    arr.push(entry);
+    while (arr.length > _ERRORS_CAP) arr.shift();
   };
 
   const escapeHtml = (str) =>
@@ -30,8 +36,8 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
         keepalive: true,
         headers: {
           'sap-terminate': 'session',
-          'sap-contextid': z2ui5.contextId,
-          'sap-contextid-accept': 'header',
+          [SAP_CONTEXTID_HEADER]: z2ui5.contextId,
+          [SAP_CONTEXTID_ACCEPT_HEADER]: SAP_CONTEXTID_ACCEPT_VALUE,
         },
       }).catch(() => {});
       delete z2ui5.contextId;
@@ -64,6 +70,14 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
     },
 
     async readHttp() {
+      let body;
+      try {
+        body = JSON.stringify({ value: z2ui5.oBody });
+      } catch (e) {
+        // Most likely a circular reference (e.g. UI5 control accidentally landed in the model)
+        this.responseError(`Request serialisation failed: ${e.message}`);
+        return;
+      }
       let response;
       const fetchOpts = {
         method: 'POST',
@@ -71,10 +85,10 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
           'Content-Type': 'application/json',
           // CSRF: the abap2UI5 ICF handler relies on cookie-based session auth.
           // Apps requiring an x-csrf-token can inject it via z2ui5.oConfig before Roundtrip().
-          'sap-contextid-accept': 'header',
-          'sap-contextid': z2ui5.contextId ?? '',
+          [SAP_CONTEXTID_ACCEPT_HEADER]: SAP_CONTEXTID_ACCEPT_VALUE,
+          [SAP_CONTEXTID_HEADER]: z2ui5.contextId ?? '',
         },
-        body: JSON.stringify({ value: z2ui5.oBody }),
+        body,
       };
       // AbortSignal.timeout is ES2022; older browsers fall back to no client-side timeout
       if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
@@ -83,12 +97,15 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
       try {
         response = await fetch(z2ui5.oConfig.pathname, fetchOpts);
       } catch (e) {
-        this.responseError(`Network error: ${e.message}`);
+        // AbortError (or TimeoutError on newer browsers) means the timeout fired
+        const isTimeout = e?.name === 'TimeoutError' || e?.name === 'AbortError';
+        const prefix = isTimeout ? `Request timed out after ${FETCH_TIMEOUT_MS}ms` : 'Network error';
+        this.responseError(`${prefix}: ${e.message}`);
         return;
       }
       // HTTP header lookup is case-insensitive per spec; only update when present so a
       // missing header does not blow away the existing context id
-      const newCtx = response.headers.get('sap-contextid');
+      const newCtx = response.headers.get(SAP_CONTEXTID_HEADER);
       if (newCtx) z2ui5.contextId = newCtx;
       if (!response.ok) {
         let text;

@@ -75,17 +75,32 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      return Number.isFinite(n) ? n : def;` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
+             `    // length of the "/XX/" prefix on two-way binding paths` && |\n| &&
+             `    const _XX_PATH_PREFIX_LEN = 4;` && |\n| &&
+             `    const _TOAST_DEFAULT_WIDTH = '15em';` && |\n| &&
+             `    const _TOAST_DEFAULT_DURATION_MS = 3000;` && |\n| &&
+             `    const _TOAST_DEFAULT_ANIM_MS = 1000;` && |\n| &&
+             `    const _ERRORS_CAP = 200;` && |\n| &&
+             `` && |\n| &&
+             `    // Public getViewContent() became available in newer UI5 versions; fall back to the internal` && |\n| &&
+             `    // mProperties.viewContent for older versions` && |\n| &&
+             `    const _getViewContent = (view) => view?.getViewContent?.() ?? view?.mProperties?.viewContent;` && |\n| &&
+             `` && |\n| &&
              `    // Whitelist of MessageBox functions we accept from the backend — guards against` && |\n| &&
              `    // prototype-pollution (e.g. msg.TYPE === '__proto__') and unintended dispatch.` && |\n| &&
              `    const _MSG_BOX_TYPES = new Set(['error', 'success', 'warning', 'information', 'show', 'alert', 'confirm']);` && |\n| &&
              `` && |\n| &&
              `    const _SAFE_PROTOCOLS = new Set(['http:', 'https:']);` && |\n| &&
-             `    const _logError = (msg, err) =>` && |\n| &&
-             `      (z2ui5.errors ??= []).push({` && |\n| &&
+             `    const _logError = (msg, err) => {` && |\n| &&
+             `      const arr = (z2ui5.errors ??= []);` && |\n| &&
+             `      arr.push({` && |\n| &&
              `        message: msg,` && |\n| &&
              `        ...(err !== undefined && { error: err }),` && |\n| &&
              `        ts: new Date().toISOString(),` && |\n| &&
              `      });` && |\n| &&
+             `      // Cap the rolling error log so a long-lived session does not grow unbounded` && |\n| &&
+             `      while (arr.length > _ERRORS_CAP) arr.shift();` && |\n| &&
+             `    };` && |\n| &&
              `` && |\n| &&
              `    const isValidRedirectURL = (url) => {` && |\n| &&
              `      if (!url) return false;` && |\n| &&
@@ -271,24 +286,26 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `          const oView = z2ui5.oView;` && |\n| &&
              `          const oState = oView` && |\n| &&
-             `            ? { view: oView.mProperties.viewContent, model: oView.getModel()?.getData(), response: z2ui5.oResponse }` && |\n| &&
+             `            ? { view: _getViewContent(oView), model: oView.getModel()?.getData(), response: z2ui5.oResponse }` && |\n| &&
              `            : {};` && |\n| &&
              `          try {` && |\n| &&
              `            if (SET_PUSH_STATE) {` && |\n| &&
              `              const hash = _hashChanger.getHash() || '#';` && |\n| &&
-             `              history.pushState(` && |\n| &&
+             `              // Avoid emitting ``##`` if SET_PUSH_STATE already starts with a hash` && |\n| &&
+             `              const tail = SET_PUSH_STATE.startsWith('#') && hash === '#' ? SET_PUSH_STATE : ``${hash}${SET_PUSH_STATE}``;` && |\n| &&
+             `              this._safeHistoryWrite(` && |\n| &&
+             `                'pushState',` && |\n| &&
              `                oState,` && |\n| &&
-             `                '',` && |\n| &&
-             `                ``${window.location.pathname}${window.location.search}${hash}${SET_PUSH_STATE}``,` && |\n| &&
+             `                ``${window.location.pathname}${window.location.search}${tail}``,` && |\n| &&
              `              );` && |\n| &&
              `            } else {` && |\n| &&
-             `              history.replaceState(oState, '', window.location.href);` && |\n| &&
+             `              this._safeHistoryWrite('replaceState', oState, window.location.href);` && |\n| &&
              `            }` && |\n| &&
              `            _hashChanger.replaceHash(SET_APP_STATE_ACTIVE ? ``z2ui5-xapp-state=${ID ?? ''}`` : '');` && |\n| &&
              `          } catch (e) {` && |\n| &&
              `            _logError(``_processAfterRendering: history update failed``, e);` && |\n| &&
              `          }` && |\n| &&
-             `          if (SET_NAV_BACK) history.back();` && |\n| &&
+             `          if (SET_NAV_BACK && history.length > 1) history.back();` && |\n| &&
              `` && |\n| &&
              `          runCallbacks(z2ui5.onAfterRendering);` && |\n| &&
              `        } catch (e) {` && |\n| &&
@@ -306,8 +323,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      _buildDeltaFromPaths(paths, xx) {` && |\n| &&
              `        const delta = {};` && |\n| &&
              `        for (const path of paths) {` && |\n| &&
-             `          const [attr, rowIdx, field] = path.slice(4).split('/');` && |\n| &&
-             `          if (field !== undefined && rowIdx !== '' && !isNaN(rowIdx)) {` && |\n| &&
+             `          const [attr, rowIdx, field] = path.slice(_XX_PATH_PREFIX_LEN).split('/');` && |\n| &&
+             `          if (field !== undefined && rowIdx !== '' && Number.isFinite(+rowIdx)) {` && |\n| &&
              `            if (!delta[attr]?.__delta) delta[attr] = { __delta: {} };` && |\n| &&
              `            const attrDelta = delta[attr].__delta;` && |\n| &&
              `            attrDelta[rowIdx] ??= {};` && |\n| &&
@@ -317,6 +334,22 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          }` && |\n| &&
              `        }` && |\n| &&
              `        return delta;` && |\n| &&
+             `      },` && |\n| &&
+             `      // Try a full pushState/replaceState; if the browser rejects the state object` && |\n| &&
+             `      // (~640 kB quota in some browsers) retry with the navigation flags only.` && |\n| &&
+             `      _safeHistoryWrite(method, state, url) {` && |\n| &&
+             `        try {` && |\n| &&
+             `          history[method](state, '', url);` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          _logError(``_safeHistoryWrite: ${method} oversized state — retrying without model``, e);` && |\n| &&
+             `          const lite = state ? { view: state.view, response: state.response } : {};` && |\n| &&
+             `          try {` && |\n| &&
+             `            history[method](lite, '', url);` && |\n| &&
+             `          } catch (e2) {` && |\n| &&
+             `            _logError(``_safeHistoryWrite: ${method} failed even with light state``, e2);` && |\n| &&
+             `            history[method](null, '', url);` && |\n| &&
+             `          }` && |\n| &&
+             `        }` && |\n| &&
              `      },` && |\n| &&
              `      _createViewModel() {` && |\n| &&
              `        return this._trackChanges(new JSONModel(z2ui5.oResponse?.OVIEWMODEL));` && |\n| &&
@@ -367,27 +400,38 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      async displayNestedView(xml, viewProp, viewNestId, controller) {` && |\n| &&
              `        const oModel = this._createViewModel();` && |\n| &&
              `        applyStoredSizeLimit(paramToViewKey[viewNestId], oModel);` && |\n| &&
-             `        const oView = await XMLView.create({` && |\n| &&
-             `          definition: xml,` && |\n| &&
-             `          controller,` && |\n| &&
-             `          preprocessors: { xml: { models: { template: oModel } } },` && |\n| &&
-             `        });` && |\n| &&
-             `        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {` && |\n| &&
+             `        let oView;` && |\n| &&
+             `        try {` && |\n| &&
+             `          oView = await XMLView.create({` && |\n| &&
+             `            definition: xml,` && |\n| &&
+             `            controller,` && |\n| &&
+             `            preprocessors: { xml: { models: { template: oModel } } },` && |\n| &&
+             `          });` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          oModel.destroy?.();` && |\n| &&
+             `          throw e;` && |\n| &&
+             `        }` && |\n| &&
+             `        const abort = (reason) => {` && |\n| &&
+             `          if (reason) _logError(reason);` && |\n| &&
              `          oView.destroy();` && |\n| &&
+             `          oModel.destroy?.();` && |\n| &&
+             `        };` && |\n| &&
+             `        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {` && |\n| &&
+             `          abort();` && |\n| &&
+             |\n|.
+    result = result &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        oView.setModel(oModel);` && |\n| &&
              `        const nestParams = z2ui5.oResponse?.PARAMS?.[viewNestId];` && |\n| &&
              `        if (!nestParams) {` && |\n| &&
-             `          _logError(``displayNestedView: missing PARAMS.${viewNestId}``);` && |\n| &&
-             `          oView.destroy();` && |\n| &&
+             `          abort(``displayNestedView: missing PARAMS.${viewNestId}``);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        const { ID, METHOD_DESTROY, METHOD_INSERT } = nestParams;` && |\n| &&
              `        const oParent = z2ui5.oView?.byId(ID);` && |\n| &&
              `        if (!oParent) {` && |\n| &&
-             `          _logError(``displayNestedView: parent control '${ID}' not found, nested view discarded``);` && |\n| &&
-             `          oView.destroy();` && |\n| &&
+             `          abort(``displayNestedView: parent control '${ID}' not found, nested view discarded``);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        try {` && |\n| &&
@@ -398,8 +442,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          oParent[METHOD_INSERT](oView);` && |\n| &&
              `        } catch (e) {` && |\n| &&
+             `          abort(``displayNestedView: parent insert method failed``);` && |\n| &&
              `          _logError(``displayNestedView: parent insert method failed``, e);` && |\n| &&
-             `          oView.destroy();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        z2ui5[viewProp] = oView;` && |\n| &&
@@ -407,21 +451,32 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      _destroyView(prop, tryClose) {` && |\n| &&
              `        const view = z2ui5[prop];` && |\n| &&
              `        if (!view) return;` && |\n| &&
+             `        z2ui5[prop] = null;` && |\n| &&
+             `        const closeAndDestroy = () => {` && |\n| &&
+             `          try {` && |\n| &&
+             `            view.destroy();` && |\n| &&
+             `          } catch (e) {` && |\n| &&
+             `            _logError(``_destroyView: view.destroy() failed for ${prop}``, e);` && |\n| &&
+             `          }` && |\n| &&
+             `        };` && |\n| &&
              `        if (tryClose) {` && |\n| &&
              `          try {` && |\n| &&
-             `            view.close?.();` && |\n| &&
+             `            const ret = view.close?.();` && |\n| &&
+             `            // Defer destroy until the close animation has settled. If close() returned a` && |\n| &&
+             `            // thenable we wait for it; otherwise an afterClose handler covers Dialog/Popover.` && |\n| &&
+             `            if (ret && typeof ret.then === 'function') {` && |\n| &&
+             `              ret.then(closeAndDestroy, closeAndDestroy);` && |\n| &&
+             `              return;` && |\n| &&
+             `            }` && |\n| &&
+             `            if (typeof view.attachEventOnce === 'function' && typeof view.isOpen === 'function' && view.isOpen()) {` && |\n| &&
+             `              view.attachEventOnce('afterClose', closeAndDestroy);` && |\n| &&
+             `              return;` && |\n| &&
+             `            }` && |\n| &&
              `          } catch (e) {` && |\n| &&
              `            _logError(``_destroyView: view.close() failed for ${prop}``, e);` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
-             `        try {` && |\n| &&
-             `          view.destroy();` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          _logError(``_destroyView: view.destroy() failed for ${prop}``, e);` && |\n| &&
-             |\n|.
-    result = result &&
-             `        }` && |\n| &&
-             `        z2ui5[prop] = null;` && |\n| &&
+             `        closeAndDestroy();` && |\n| &&
              `      },` && |\n| &&
              `      PopupDestroy() {` && |\n| &&
              `        this._destroyView('oViewPopup', true);` && |\n| &&
@@ -441,7 +496,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      eF(...args) {` && |\n| &&
              `        runCallbacks(z2ui5.onBeforeEventFrontend, args);` && |\n| &&
              `` && |\n| &&
-             `        const navLookup = navContainerLookups[args[0]];` && |\n| &&
+             `        // Object.hasOwn guard prevents prototype lookups (e.g. args[0] === 'constructor')` && |\n| &&
+             `        const navLookup =` && |\n| &&
+             `          typeof args[0] === 'string' && Object.hasOwn(navContainerLookups, args[0]) ? navContainerLookups[args[0]] : null;` && |\n| &&
              `        if (navLookup) {` && |\n| &&
              `          navigateContainer(navLookup, args);` && |\n| &&
              `          return;` && |\n| &&
@@ -658,16 +715,17 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      async checkSDKcompatibility(err) {` && |\n| &&
              `        let gav;` && |\n| &&
              `        try {` && |\n| &&
-             `          ({ gav } = await VersionInfo.load());` && |\n| &&
+             `          ({ gav } = (await VersionInfo.load()) ?? {});` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          _logError('checkSDKcompatibility: VersionInfo.load failed', e);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        if (!gav.includes('com.sap.ui5')) {` && |\n| &&
+             `        // gav can be missing for some openui5 builds — fall back to a plain message` && |\n| &&
+             `        if (typeof gav === 'string' && !gav.includes('com.sap.ui5')) {` && |\n| &&
              `          MessageBox.error(``openui5 SDK is loaded, module: ${err?._modules} is not available in openui5``);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        MessageBox.error(err.toLocaleString());` && |\n| &&
+             `        MessageBox.error(err?.message ?? String(err));` && |\n| &&
              `      },` && |\n| &&
              `      showMessage(msgType, params) {` && |\n| &&
              `        if (!params) return;` && |\n| &&
@@ -675,18 +733,20 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (msg?.TEXT === undefined) return;` && |\n| &&
              `        if (msgType === 'S_MSG_TOAST') {` && |\n| &&
              `          MessageToast.show(msg.TEXT, {` && |\n| &&
-             `            duration: parseMs(msg.DURATION, 3000),` && |\n| &&
-             `            width: msg.WIDTH || '15em',` && |\n| &&
+             `            duration: parseMs(msg.DURATION, _TOAST_DEFAULT_DURATION_MS),` && |\n| &&
+             `            width: msg.WIDTH || _TOAST_DEFAULT_WIDTH,` && |\n| &&
              `            onClose: msg.ONCLOSE ? () => this.eB([msg.ONCLOSE]) : null,` && |\n| &&
              `            autoClose: !!msg.AUTOCLOSE,` && |\n| &&
              `            animationTimingFunction: msg.ANIMATIONTIMINGFUNCTION || 'ease',` && |\n| &&
-             `            animationDuration: parseMs(msg.ANIMATIONDURATION, 1000),` && |\n| &&
+             `            animationDuration: parseMs(msg.ANIMATIONDURATION, _TOAST_DEFAULT_ANIM_MS),` && |\n| &&
              `            closeonBrowserNavigation: !!msg.CLOSEONBROWSERNAVIGATION,` && |\n| &&
              `          });` && |\n| &&
-             `          if (msg.CLASS)` && |\n| &&
-             `            document` && |\n| &&
-             `              .querySelector('.sapMMessageToast')` && |\n| &&
-             `              ?.classList.add(...msg.CLASS.trim().split(/\s+/).filter(Boolean));` && |\n| &&
+             `          if (msg.CLASS) {` && |\n| &&
+             `            // Pick the most recently appended toast — querySelectorAll returns them in DOM order` && |\n| &&
+             `            const toasts = document.querySelectorAll('.sapMMessageToast');` && |\n| &&
+             `            const toast = toasts[toasts.length - 1];` && |\n| &&
+             `            toast?.classList.add(...msg.CLASS.trim().split(/\s+/).filter(Boolean));` && |\n| &&
+             `          }` && |\n| &&
              `        } else if (msgType === 'S_MSG_BOX') {` && |\n| &&
              `          const oParams = {` && |\n| &&
              `            styleClass: msg.STYLECLASS || '',` && |\n| &&
@@ -719,23 +779,39 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            })` && |\n| &&
              `          : oViewModel;` && |\n| &&
              `        applyStoredSizeLimit('MAIN', oModel);` && |\n| &&
-             `        z2ui5.oView = await XMLView.create({` && |\n| &&
-             `          definition: xml,` && |\n| &&
-             `          models: oModel,` && |\n| &&
-             `          controller: z2ui5.oController,` && |\n| &&
-             `          id: 'mainView',` && |\n| &&
-             `          preprocessors: { xml: { models: { template: oViewModel } } },` && |\n| &&
-             `        });` && |\n| &&
+             `        let oView;` && |\n| &&
+             `        try {` && |\n| &&
+             `          oView = await XMLView.create({` && |\n| &&
+             `            definition: xml,` && |\n| &&
+             `            models: oModel,` && |\n| &&
+             `            controller: z2ui5.oController,` && |\n| &&
+             `            id: 'mainView',` && |\n| &&
+             `            preprocessors: { xml: { models: { template: oViewModel } } },` && |\n| &&
+             `          });` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          // If XMLView.create rejects, both models leak — destroy them explicitly` && |\n| &&
+             `          if (switchPath) {` && |\n| &&
+             `            oModel.destroy?.();` && |\n| &&
+             `            oViewModel.destroy?.();` && |\n| &&
+             `          } else {` && |\n| &&
+             `            oViewModel.destroy?.();` && |\n| &&
+             `          }` && |\n| &&
+             `          throw e;` && |\n| &&
+             `        }` && |\n| &&
              `        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {` && |\n| &&
-             `          z2ui5.oView.destroy();` && |\n| &&
-             `          if (switchPath) oModel.destroy();` && |\n| &&
+             `          oView.destroy();` && |\n| &&
+             `          if (switchPath) {` && |\n| &&
+             `            oModel.destroy?.();` && |\n| &&
+             `            oViewModel.destroy?.();` && |\n| &&
+             `          }` && |\n| &&
              `          z2ui5.oView = null;` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        z2ui5.oView.setModel(z2ui5.oDeviceModel, 'device');` && |\n| &&
-             `        if (switchPath) z2ui5.oView.setModel(oViewModel, 'http');` && |\n| &&
+             `        z2ui5.oView = oView;` && |\n| &&
+             `        oView.setModel(z2ui5.oDeviceModel, 'device');` && |\n| &&
+             `        if (switchPath) oView.setModel(oViewModel, 'http');` && |\n| &&
              `        z2ui5.oApp.removeAllPages();` && |\n| &&
-             `        z2ui5.oApp.insertPage(z2ui5.oView);` && |\n| &&
+             `        z2ui5.oApp.insertPage(oView);` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
              `  },` && |\n| &&

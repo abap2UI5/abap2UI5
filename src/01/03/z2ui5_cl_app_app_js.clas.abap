@@ -18,8 +18,12 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `const _logError = (msg, err) => {` && |\n| &&
-             `  (z2ui5.errors ??= []).push({ message: msg, ...(err !== undefined && { error: err }), ts: new Date().toISOString() });` && |\n| &&
+    result = `const _ERRORS_CAP = 200;` && |\n| &&
+             `const _logError = (msg, err) => {` && |\n| &&
+             `  const arr = (z2ui5.errors ??= []);` && |\n| &&
+             `  arr.push({ message: msg, ...(err !== undefined && { error: err }), ts: new Date().toISOString() });` && |\n| &&
+             `  // Cap the rolling error log so a long-lived session does not grow unbounded` && |\n| &&
+             `  while (arr.length > _ERRORS_CAP) arr.shift();` && |\n| &&
              `};` && |\n| &&
              `` && |\n| &&
              `sap.ui.define(` && |\n| &&
@@ -31,12 +35,38 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `  ],` && |\n| &&
              `  (BaseController, Controller, Server, HashChanger) => {` && |\n| &&
              `    'use strict';` && |\n| &&
+             `    // Destroy lingering controllers / views from a previous onInit to avoid leaks if the` && |\n| &&
+             `    // App controller is re-initialised (e.g. after a routing reload)` && |\n| &&
+             `    const _destroyPrevious = () => {` && |\n| &&
+             `      for (const key of [` && |\n| &&
+             `        'oController',` && |\n| &&
+             `        'oControllerNest',` && |\n| &&
+             `        'oControllerNest2',` && |\n| &&
+             `        'oControllerPopup',` && |\n| &&
+             `        'oControllerPopover',` && |\n| &&
+             `        'oView',` && |\n| &&
+             `        'oViewNest',` && |\n| &&
+             `        'oViewNest2',` && |\n| &&
+             `        'oViewPopup',` && |\n| &&
+             `        'oViewPopover',` && |\n| &&
+             `      ]) {` && |\n| &&
+             `        try {` && |\n| &&
+             `          z2ui5[key]?.destroy?.();` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          _logError(``App.onInit: previous ${key}.destroy() failed``, e);` && |\n| &&
+             `        }` && |\n| &&
+             `        z2ui5[key] = null;` && |\n| &&
+             `      }` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
              `    return BaseController.extend('z2ui5.controller.App', {` && |\n| &&
              `      onInit() {` && |\n| &&
              `        const oOwnerComponent = this.getOwnerComponent();` && |\n| &&
              `        z2ui5.oOwnerComponent = oOwnerComponent;` && |\n| &&
              `        const uri = oOwnerComponent.getManifest()?.['sap.app']?.dataSources?.http?.uri;` && |\n| &&
              `        z2ui5.oConfig.pathname = z2ui5.checkLocal ? window.location.href : uri;` && |\n| &&
+             `` && |\n| &&
+             `        _destroyPrevious();` && |\n| &&
              `` && |\n| &&
              `        Object.assign(z2ui5, {` && |\n| &&
              `          oController: new Controller(),` && |\n| &&
@@ -89,6 +119,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        },` && |\n| &&
              `      },` && |\n| &&
              `    },` && |\n| &&
+             `    init() {` && |\n| &&
+             `      this._timerId = null;` && |\n| &&
+             `      this._pendingTimer = false;` && |\n| &&
+             `    },` && |\n| &&
              `    onAfterRendering() {` && |\n| &&
              `      if (!this._pendingTimer) return;` && |\n| &&
              `      this._pendingTimer = false;` && |\n| &&
@@ -96,6 +130,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n| &&
              `    exit() {` && |\n| &&
              `      clearTimeout(this._timerId);` && |\n| &&
+             `      this._timerId = null;` && |\n| &&
              `    },` && |\n| &&
              `    delayedCall() {` && |\n| &&
              `      if (!this.getProperty('checkActive')) return;` && |\n| &&
@@ -251,7 +286,12 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    setSearch(val) {` && |\n| &&
              `      this.setProperty('search', val);` && |\n| &&
              `      try {` && |\n| &&
-             `        history.replaceState(null, '', ``${window.location.pathname}${val ?? ''}``);` && |\n| &&
+             `        // Normalise: prepend '?' if the value looks like a query string but is missing it` && |\n| &&
+             `        let suffix = val ?? '';` && |\n| &&
+             `        if (suffix && !suffix.startsWith('?') && !suffix.startsWith('#') && !suffix.startsWith('&')) {` && |\n| &&
+             `          suffix = ``?${suffix}``;` && |\n| &&
+             `        }` && |\n| &&
+             `        history.replaceState(null, '', ``${window.location.pathname}${suffix}``);` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        _logError(``History.setSearch: replaceState failed``, e);` && |\n| &&
              `      }` && |\n| &&
@@ -378,6 +418,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      z2ui5.onBeforeRoundtrip = (z2ui5.onBeforeRoundtrip ?? []).filter((fn) => fn !== this._setBackendBound);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
+             |\n|.
+    result = result &&
              `    _restoreScrollPosition(item) {` && |\n| &&
              `      try {` && |\n| &&
              `        const control = z2ui5.oView?.byId(item.N);` && |\n| &&
@@ -418,8 +460,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        _logError(``Scrolling.onAfterRendering: failed``, e);` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
-             |\n|.
-    result = result &&
              `` && |\n| &&
              `    renderer: {` && |\n| &&
              `      apiVersion: 2,` && |\n| &&
@@ -585,9 +625,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      if (!this._pendingGeolocate) return;` && |\n| &&
              `      this._pendingGeolocate = false;` && |\n| &&
              `      try {` && |\n| &&
-             `        navigator.geolocation?.getCurrentPosition(` && |\n| &&
+             `        // Optional-method call: skip silently if either geolocation or getCurrentPosition is missing` && |\n| &&
+             `        navigator.geolocation?.getCurrentPosition?.(` && |\n| &&
              `          this.callbackPosition.bind(this),` && |\n| &&
-             `          (error) => _logError(``Geolocation error (${error.code}): ${error.message}``),` && |\n| &&
+             `          (error) => _logError(``Geolocation error (${error?.code ?? '?'}): ${error?.message ?? 'unknown'}``),` && |\n| &&
              `          {` && |\n| &&
              `            enableHighAccuracy: this.getProperty('enableHighAccuracy'),` && |\n| &&
              `            timeout: +this.getProperty('timeout'),` && |\n| &&
@@ -660,9 +701,14 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        const prefix = oControl.getProperty('prefix');` && |\n| &&
              `        const key = oControl.getProperty('key');` && |\n| &&
              `        const value = oControl.getProperty('value');` && |\n| &&
+             `        // Object.hasOwn guard — prevents prototype lookups (type === '__proto__') and logs unknown types` && |\n| &&
+             `        const resolvedType = Object.hasOwn(Storage.Type, type) ? Storage.Type[type] : Storage.Type.session;` && |\n| &&
+             `        if (type && !Object.hasOwn(Storage.Type, type)) {` && |\n| &&
+             `          _logError(``Storage: unknown type '${type}', falling back to session``);` && |\n| &&
+             `        }` && |\n| &&
              `        let stored;` && |\n| &&
              `        try {` && |\n| &&
-             `          stored = new Storage(Storage.Type[type] ?? Storage.Type.session, prefix).get(key) ?? '';` && |\n| &&
+             `          stored = new Storage(resolvedType, prefix).get(key) ?? '';` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          _logError(``Storage: read failed for key '${key}'``, e);` && |\n| &&
              `          return;` && |\n| &&
@@ -774,6 +820,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        apiVersion: 2,` && |\n| &&
              `        render(oRm, oControl) {` && |\n| &&
              `          const directUpload = oControl.getProperty('checkDirectUpload');` && |\n| &&
+             |\n|.
+    result = result &&
              `          const path = oControl.getProperty('path');` && |\n| &&
              `          oControl._oHBox?.destroy();` && |\n| &&
              `          oControl._oHBox = null;` && |\n| &&
@@ -820,8 +868,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            },` && |\n| &&
              `          });` && |\n| &&
              `` && |\n| &&
-             |\n|.
-    result = result &&
              `          oControl._oHBox = new HBox().addItem(oControl.oFileUploader);` && |\n| &&
              `          if (oControl.oUploadButton) oControl._oHBox.addItem(oControl.oUploadButton);` && |\n| &&
              `          oRm.renderControl(oControl._oHBox);` && |\n| &&
@@ -871,7 +917,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      z2ui5.onAfterRendering = (z2ui5.onAfterRendering ?? []).filter((fn) => fn !== this._setControlBound);` && |\n| &&
              `      // Detach from the host MultiInput if it is still alive — avoids leaking` && |\n| &&
              `      // a bound onTokenUpdate handler when the table outlives this control.` && |\n| &&
-             `      if (this._attachedTable && !this._attachedTable.bIsDestroyed) {` && |\n| &&
+             `      if (this._attachedTable && typeof this._attachedTable.isDestroyed === 'function' && !this._attachedTable.isDestroyed()) {` && |\n| &&
              `        try {` && |\n| &&
              `          this._attachedTable.detachTokenUpdate(this._tokenUpdateBound);` && |\n| &&
              `        } catch (e) {` && |\n| &&
@@ -953,7 +999,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      z2ui5.onAfterRendering = (z2ui5.onAfterRendering ?? []).filter((fn) => fn !== this._setControlBound);` && |\n| &&
              `      this._oPendingInnerControlsCreated?.(null);` && |\n| &&
              `      this._oPendingInnerControlsCreated = null;` && |\n| &&
-             `      if (this._attachedInput && !this._attachedInput.bIsDestroyed) {` && |\n| &&
+             `      if (this._attachedInput && typeof this._attachedInput.isDestroyed === 'function' && !this._attachedInput.isDestroyed()) {` && |\n| &&
              `        try {` && |\n| &&
              `          this._attachedInput.detachTokenUpdate(this._tokenUpdateBound);` && |\n| &&
              `          this._attachedInput.detachInnerControlsCreated?.(this._innerControlsCreatedBound);` && |\n| &&
@@ -1047,6 +1093,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    'use strict';` && |\n| &&
              `    const _CTX_2D_OPTS = { willReadFrequently: true };` && |\n| &&
              `    const _THUMB_W = 300;` && |\n| &&
+             `    const _JPEG_QUALITY_PHOTO = 0.85;` && |\n| &&
+             `    const _JPEG_QUALITY_THUMB = 0.7;` && |\n| &&
              `    return Control.extend('z2ui5.CameraPicture', {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -1077,23 +1125,26 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        const canvas = document.getElementById(``${this.getId()}-canvas``);` && |\n| &&
              `        if (!video || !canvas) return;` && |\n| &&
              `        const { videoWidth, videoHeight } = video;` && |\n| &&
-             `        Object.assign(canvas, { width: videoWidth, height: videoHeight });` && |\n| &&
+             `        canvas.width = videoWidth;` && |\n| &&
+             `        canvas.height = videoHeight;` && |\n| &&
              `        const ctx = canvas.getContext('2d', _CTX_2D_OPTS);` && |\n| &&
              `        if (!ctx) return;` && |\n| &&
              `        ctx.drawImage(video, 0, 0, videoWidth, videoHeight);` && |\n| &&
              `        let resultb64;` && |\n| &&
              `        try {` && |\n| &&
-             `          resultb64 = canvas.toDataURL('image/jpeg', 0.85);` && |\n| &&
+             `          resultb64 = canvas.toDataURL('image/jpeg', _JPEG_QUALITY_PHOTO);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          _logError(``CameraPicture: canvas toDataURL failed``, e);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        const thumbH = videoWidth ? Math.round((videoHeight * _THUMB_W) / videoWidth) : _THUMB_W;` && |\n| &&
-             `        const thumbCanvas = Object.assign(document.createElement('canvas'), { width: _THUMB_W, height: thumbH });` && |\n| &&
+             `        const thumbCanvas = document.createElement('canvas');` && |\n| &&
+             `        thumbCanvas.width = _THUMB_W;` && |\n| &&
+             `        thumbCanvas.height = thumbH;` && |\n| &&
              `        thumbCanvas.getContext('2d', _CTX_2D_OPTS)?.drawImage(canvas, 0, 0, _THUMB_W, thumbH);` && |\n| &&
              `        let thumbB64 = '';` && |\n| &&
              `        try {` && |\n| &&
-             `          thumbB64 = thumbCanvas.toDataURL('image/jpeg', 0.7);` && |\n| &&
+             `          thumbB64 = thumbCanvas.toDataURL('image/jpeg', _JPEG_QUALITY_THUMB);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          _logError(``CameraPicture: thumb toDataURL failed``, e);` && |\n| &&
              `        }` && |\n| &&
@@ -1171,6 +1222,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            _logError(``CameraPicture: getUserMedia failed``, error);` && |\n| &&
              `          }` && |\n| &&
              `        });` && |\n| &&
+             |\n|.
+    result = result &&
              `        this._oScanDialog.open();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -1203,12 +1256,17 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      async init() {` && |\n| &&
              `        ComboBox.prototype.init.call(this);` && |\n| &&
              `        try {` && |\n| &&
-             `          const devices = await navigator.mediaDevices?.enumerateDevices();` && |\n| &&
-             `          if (!devices) return;` && |\n| &&
+             `          const devices = await navigator.mediaDevices?.enumerateDevices?.();` && |\n| &&
+             `          if (!devices || this.isDestroyed()) return;` && |\n| &&
+             `          let added = false;` && |\n| &&
              `          for (const device of devices) {` && |\n| &&
-             `            if (device.kind === 'videoinput' && !this.isDestroyed())` && |\n| &&
+             `            if (device.kind === 'videoinput' && !this.isDestroyed()) {` && |\n| &&
              `              this.addItem(new Item({ key: device.deviceId, text: device.label }));` && |\n| &&
+             `              added = true;` && |\n| &&
+             `            }` && |\n| &&
              `          }` && |\n| &&
+             `          // Trigger a re-render so items added after the first paint actually show up` && |\n| &&
+             `          if (added && !this.isDestroyed()) this.invalidate();` && |\n| &&
              `        } catch (err) {` && |\n| &&
              `          _logError(``CameraDeviceList: enumerateDevices failed``, err);` && |\n| &&
              `        }` && |\n| &&
@@ -1222,13 +1280,22 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `sap.ui.define('z2ui5/UITableExt', ['sap/ui/core/Control'], (Control) => {` && |\n| &&
              `  'use strict';` && |\n| &&
              `` && |\n| &&
-             |\n|.
-    result = result &&
              `  const opSymbols = { EQ: '', NE: '!', LT: '<', LE: '<=', GT: '>', GE: '>=' };` && |\n| &&
              `  const filterDisplayFns = {` && |\n| &&
              `    Contains: (v) => ``*${v ?? ''}*``,` && |\n| &&
              `    StartsWith: (v) => ``^${v ?? ''}``,` && |\n| &&
              `    EndsWith: (v) => ``${v ?? ''}$``,` && |\n| &&
+             `  };` && |\n| &&
+             `` && |\n| &&
+             `  // sap.ui.table.Table binds rows under 'rows', sap.m.Table under 'items' — try both` && |\n| &&
+             `  const _ROW_AGGREGATIONS = ['rows', 'items'];` && |\n| &&
+             `  const _getRowsBinding = (oTable) => {` && |\n| &&
+             `    if (!oTable) return undefined;` && |\n| &&
+             `    for (const name of _ROW_AGGREGATIONS) {` && |\n| &&
+             `      const b = oTable.getBinding(name);` && |\n| &&
+             `      if (b) return b;` && |\n| &&
+             `    }` && |\n| &&
+             `    return oTable.getBinding();` && |\n| &&
              `  };` && |\n| &&
              `` && |\n| &&
              `  return Control.extend('z2ui5.UITableExt', {` && |\n| &&
@@ -1241,6 +1308,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n| &&
              `` && |\n| &&
              `    init() {` && |\n| &&
+             `      this._aFilters = null;` && |\n| &&
+             `      this._aSorters = null;` && |\n| &&
              `      this._beforeBound = () => {` && |\n| &&
              `        this.readFilter();` && |\n| &&
              `        this.readSort();` && |\n| &&
@@ -1264,7 +1333,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `    readFilter() {` && |\n| &&
              `      try {` && |\n| &&
-             `        this.aFilters = this._getTable()?.getBinding()?.aFilters;` && |\n| &&
+             `        this._aFilters = _getRowsBinding(this._getTable())?.aFilters;` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        _logError(``UITableExt.readFilter failed``, e);` && |\n| &&
              `      }` && |\n| &&
@@ -1286,7 +1355,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `    _applyFilters(oTable, aFilters) {` && |\n| &&
              `      if (!aFilters) return;` && |\n| &&
-             `      const binding = oTable.getBinding();` && |\n| &&
+             `      const binding = _getRowsBinding(oTable);` && |\n| &&
              `      if (!binding) return;` && |\n| &&
              `      binding.filter(aFilters);` && |\n| &&
              `      const columns = oTable.getColumns();` && |\n| &&
@@ -1323,12 +1392,12 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n| &&
              `` && |\n| &&
              `    setFilter() {` && |\n| &&
-             `      this._applyToTable((oTable) => this._applyFilters(oTable, this.aFilters), ``UITableExt.setFilter failed``);` && |\n| &&
+             `      this._applyToTable((oTable) => this._applyFilters(oTable, this._aFilters), ``UITableExt.setFilter failed``);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    readSort() {` && |\n| &&
              `      try {` && |\n| &&
-             `        this.aSorters = this._getTable()?.getBinding()?.aSorters;` && |\n| &&
+             `        this._aSorters = _getRowsBinding(this._getTable())?.aSorters;` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        _logError(``UITableExt.readSort failed``, e);` && |\n| &&
              `      }` && |\n| &&
@@ -1336,7 +1405,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `    _applySorters(oTable, aSorters) {` && |\n| &&
              `      if (!aSorters) return;` && |\n| &&
-             `      const binding = oTable.getBinding();` && |\n| &&
+             `      const binding = _getRowsBinding(oTable);` && |\n| &&
              `      if (!binding) return;` && |\n| &&
              `      binding.sort(aSorters);` && |\n| &&
              `      const columns = oTable.getColumns();` && |\n| &&
@@ -1352,7 +1421,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n| &&
              `` && |\n| &&
              `    setSort() {` && |\n| &&
-             `      this._applyToTable((oTable) => this._applySorters(oTable, this.aSorters), ``UITableExt.setSort failed``);` && |\n| &&
+             `      this._applyToTable((oTable) => this._applySorters(oTable, this._aSorters), ``UITableExt.setSort failed``);` && |\n| &&
              `    },` && |\n| &&
              `    renderer: { apiVersion: 2, render() {} },` && |\n| &&
              `  });` && |\n| &&
@@ -1360,17 +1429,20 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `sap.ui.define('z2ui5/Util', [], () => {` && |\n| &&
              `  'use strict';` && |\n| &&
-             `  // ABAP DATS is YYYYMMDD (8 chars). Returns NaN tuple for malformed input` && |\n| &&
-             `  // so the resulting Date is a well-defined "Invalid Date" rather than a silent default.` && |\n| &&
+             `  // ABAP DATS is YYYYMMDD (8 chars), TIMS is HHMMSS (6 chars). Both helpers return NaN tuples` && |\n| &&
+             `  // for malformed input so the resulting Date is a well-defined "Invalid Date".` && |\n| &&
              `  const parseDmy = (d) => {` && |\n| &&
              `    if (typeof d !== 'string' || d.length < 8) return [NaN, NaN, NaN];` && |\n| &&
              `    return [+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8)];` && |\n| &&
              `  };` && |\n| &&
+             `  const parseHms = (t) => {` && |\n| &&
+             `    if (typeof t !== 'string' || t.length < 6) return [NaN, NaN, NaN];` && |\n| &&
+             `    return [+t.slice(0, 2), +t.slice(2, 4), +t.slice(4, 6)];` && |\n| &&
+             `  };` && |\n| &&
              `  return {` && |\n| &&
              `    DateCreateObject: (s) => new Date(s),` && |\n| &&
              `    DateAbapDateToDateObject: (d) => new Date(...parseDmy(d)),` && |\n| &&
-             `    DateAbapDateTimeToDateObject: (d, t = '000000') =>` && |\n| &&
-             `      new Date(...parseDmy(d), +t.slice(0, 2), +t.slice(2, 4), +t.slice(4, 6)),` && |\n| &&
+             `    DateAbapDateTimeToDateObject: (d, t = '000000') => new Date(...parseDmy(d), ...parseHms(t)),` && |\n| &&
              `  };` && |\n| &&
              `});` && |\n| &&
              `sap.ui.require(['z2ui5/Util'], (Util) => (z2ui5.Util = Util));` && |\n| &&

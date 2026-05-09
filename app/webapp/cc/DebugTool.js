@@ -59,17 +59,15 @@ sap.ui.define(
     // getViewContent uses the public API when available and falls back to mProperties.viewContent
     // (UI5 internal) for older versions that do not expose a getter
     const getViewContent = (view) => view?.getViewContent?.() ?? view?.mProperties?.viewContent;
+    // _xContent is a UI5-internal property holding the raw post-templating XML; there is no
+    // public equivalent for the rendered (post-template) view source, so we accept the lookup.
     const getRenderedContent = (view) => view?._xContent?.outerHTML;
 
     return Control.extend('z2ui5.cc.DebugTool', {
-      onItemSelect(oEvent) {
-        const oSource = oEvent.getSource();
-        const selItem = oSource.getSelectedKey();
+      _buildHandlers(oEvent, oSource, displayEditor) {
         const oView = z2ui5.oView;
         const oResponse = z2ui5.oResponse;
-        const displayEditor = (this._displayEditorBound ??= this.displayEditor.bind(this));
-
-        const handlers = {
+        return {
           CONFIG: () => displayEditor(oEvent, toJson(z2ui5.oConfig), 'json'),
           MODEL: () => displayEditor(oEvent, toJson(oView?.getModel()?.getData()), 'json'),
           VIEW: () => {
@@ -103,9 +101,11 @@ sap.ui.define(
             if (!contentControl) return;
             const appId = encodeURIComponent(z2ui5.responseData?.S_FRONT?.APP ?? '');
             const url = new URL(`/sap/bc/adt/oo/classes/${appId}/source/main`, window.location.origin).href;
+            // Use a control-scoped iframe id to avoid collisions with other #test elements
+            const iframeId = `${this.getId()}-source-iframe`;
             contentControl.setProperty(
               'content',
-              `<iframe id="test" src="${url}" height="800px" width="100%"/>`,
+              `<iframe id="${iframeId}" src="${url}" height="800px" width="100%"/>`,
             );
             const oModel = oSource.getModel();
             if (!oModel) return;
@@ -113,8 +113,15 @@ sap.ui.define(
             oModel.refresh();
           },
         };
+      },
 
-        handlers[selItem]?.();
+      onItemSelect(oEvent) {
+        const oSource = oEvent.getSource();
+        const selItem = oSource.getSelectedKey();
+        const displayEditor = (this._displayEditorBound ??= this.displayEditor.bind(this));
+        // Rebuild on each click — handlers close over the current oView/oResponse references
+        const handlers = this._buildHandlers(oEvent, oSource, displayEditor);
+        if (Object.hasOwn(handlers, selItem)) handlers[selItem]();
       },
 
       displayEditor(oEvent, content, type, xcontent = '') {

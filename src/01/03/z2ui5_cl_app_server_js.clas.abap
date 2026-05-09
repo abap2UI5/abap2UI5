@@ -24,12 +24,18 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `  const ERROR_MAX_LENGTH = 50000;` && |\n| &&
              `  const FETCH_TIMEOUT_MS = 600000;` && |\n| &&
              `  const DEFAULT_LOGOUT_URL = '/sap/public/bc/icf/logoff';` && |\n| &&
+             `  const SAP_CONTEXTID_ACCEPT_HEADER = 'sap-contextid-accept';` && |\n| &&
+             `  const SAP_CONTEXTID_ACCEPT_VALUE = 'header';` && |\n| &&
+             `  const SAP_CONTEXTID_HEADER = 'sap-contextid';` && |\n| &&
              `  const _MSG_TYPES = ['S_MSG_TOAST', 'S_MSG_BOX'];` && |\n| &&
+             `  const _ERRORS_CAP = 200;` && |\n| &&
              `` && |\n| &&
              `  const _logError = (message, error) => {` && |\n| &&
              `    const entry = { message, ts: new Date().toISOString() };` && |\n| &&
              `    if (error !== undefined) entry.error = error;` && |\n| &&
-             `    (z2ui5.errors ??= []).push(entry);` && |\n| &&
+             `    const arr = (z2ui5.errors ??= []);` && |\n| &&
+             `    arr.push(entry);` && |\n| &&
+             `    while (arr.length > _ERRORS_CAP) arr.shift();` && |\n| &&
              `  };` && |\n| &&
              `` && |\n| &&
              `  const escapeHtml = (str) =>` && |\n| &&
@@ -50,8 +56,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        keepalive: true,` && |\n| &&
              `        headers: {` && |\n| &&
              `          'sap-terminate': 'session',` && |\n| &&
-             `          'sap-contextid': z2ui5.contextId,` && |\n| &&
-             `          'sap-contextid-accept': 'header',` && |\n| &&
+             `          [SAP_CONTEXTID_HEADER]: z2ui5.contextId,` && |\n| &&
+             `          [SAP_CONTEXTID_ACCEPT_HEADER]: SAP_CONTEXTID_ACCEPT_VALUE,` && |\n| &&
              `        },` && |\n| &&
              `      }).catch(() => {});` && |\n| &&
              `      delete z2ui5.contextId;` && |\n| &&
@@ -84,6 +90,14 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    },` && |\n| &&
              `` && |\n| &&
              `    async readHttp() {` && |\n| &&
+             `      let body;` && |\n| &&
+             `      try {` && |\n| &&
+             `        body = JSON.stringify({ value: z2ui5.oBody });` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        // Most likely a circular reference (e.g. UI5 control accidentally landed in the model)` && |\n| &&
+             `        this.responseError(``Request serialisation failed: ${e.message}``);` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
              `      let response;` && |\n| &&
              `      const fetchOpts = {` && |\n| &&
              `        method: 'POST',` && |\n| &&
@@ -91,10 +105,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          'Content-Type': 'application/json',` && |\n| &&
              `          // CSRF: the abap2UI5 ICF handler relies on cookie-based session auth.` && |\n| &&
              `          // Apps requiring an x-csrf-token can inject it via z2ui5.oConfig before Roundtrip().` && |\n| &&
-             `          'sap-contextid-accept': 'header',` && |\n| &&
-             `          'sap-contextid': z2ui5.contextId ?? '',` && |\n| &&
+             `          [SAP_CONTEXTID_ACCEPT_HEADER]: SAP_CONTEXTID_ACCEPT_VALUE,` && |\n| &&
+             `          [SAP_CONTEXTID_HEADER]: z2ui5.contextId ?? '',` && |\n| &&
              `        },` && |\n| &&
-             `        body: JSON.stringify({ value: z2ui5.oBody }),` && |\n| &&
+             `        body,` && |\n| &&
              `      };` && |\n| &&
              `      // AbortSignal.timeout is ES2022; older browsers fall back to no client-side timeout` && |\n| &&
              `      if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {` && |\n| &&
@@ -103,12 +117,15 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      try {` && |\n| &&
              `        response = await fetch(z2ui5.oConfig.pathname, fetchOpts);` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        this.responseError(``Network error: ${e.message}``);` && |\n| &&
+             `        // AbortError (or TimeoutError on newer browsers) means the timeout fired` && |\n| &&
+             `        const isTimeout = e?.name === 'TimeoutError' || e?.name === 'AbortError';` && |\n| &&
+             `        const prefix = isTimeout ? ``Request timed out after ${FETCH_TIMEOUT_MS}ms`` : 'Network error';` && |\n| &&
+             `        this.responseError(``${prefix}: ${e.message}``);` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      // HTTP header lookup is case-insensitive per spec; only update when present so a` && |\n| &&
              `      // missing header does not blow away the existing context id` && |\n| &&
-             `      const newCtx = response.headers.get('sap-contextid');` && |\n| &&
+             `      const newCtx = response.headers.get(SAP_CONTEXTID_HEADER);` && |\n| &&
              `      if (newCtx) z2ui5.contextId = newCtx;` && |\n| &&
              `      if (!response.ok) {` && |\n| &&
              `        let text;` && |\n| &&
