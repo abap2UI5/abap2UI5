@@ -23,10 +23,15 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `  (Control, Fragment, JSONModel) => {` && |\n| &&
              `    'use strict';` && |\n| &&
              `` && |\n| &&
+             `    const _ERRORS_CAP = 200;` && |\n| &&
              `    const _logError = (message, error) => {` && |\n| &&
              `      const entry = { message, ts: new Date().toISOString() };` && |\n| &&
              `      if (error !== undefined) entry.error = error;` && |\n| &&
-             `      (z2ui5.errors ??= []).push(entry);` && |\n| &&
+             `      // Defensive: re-create z2ui5.errors if it has been clobbered with a non-array` && |\n| &&
+             `      if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];` && |\n| &&
+             `      const arr = z2ui5.errors;` && |\n| &&
+             `      arr.push(entry);` && |\n| &&
+             `      if (arr.length > _ERRORS_CAP) arr.splice(0, arr.length - _ERRORS_CAP);` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    const toJson = (val) => JSON.stringify(val ?? null, null, 3);` && |\n| &&

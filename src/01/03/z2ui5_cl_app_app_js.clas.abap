@@ -28,6 +28,13 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `  if (arr.length > _ERRORS_CAP) arr.splice(0, arr.length - _ERRORS_CAP);` && |\n| &&
              `};` && |\n| &&
              `` && |\n| &&
+             `// Push a callback onto one of the z2ui5.onXxx arrays, recreating the array if the` && |\n| &&
+             `// global has been clobbered with a non-array (??= alone would not detect that).` && |\n| &&
+             `const _registerCallback = (key, fn) => {` && |\n| &&
+             `  if (!Array.isArray(z2ui5[key])) z2ui5[key] = [];` && |\n| &&
+             `  z2ui5[key].push(fn);` && |\n| &&
+             `};` && |\n| &&
+             `` && |\n| &&
              `// Remove a callback from one of the z2ui5.onXxx arrays without crashing if the array` && |\n| &&
              `// has been clobbered (filter would throw on non-arrays).` && |\n| &&
              `const _unregisterCallback = (key, fn) => {` && |\n| &&
@@ -341,7 +348,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `    init() {` && |\n| &&
              `      this._setBackendBound = this.setBackend.bind(this);` && |\n| &&
-             `      (z2ui5.onBeforeRoundtrip ??= []).push(this._setBackendBound);` && |\n| &&
+             `      _registerCallback('onBeforeRoundtrip', this._setBackendBound);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    exit() {` && |\n| &&
@@ -411,6 +418,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
+             |\n|.
+    result = result &&
              `    setBackend() {` && |\n| &&
              `      const items = this.getProperty('items');` && |\n| &&
              `      if (!items) return;` && |\n| &&
@@ -418,8 +427,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        const bindingInfo = this.getBindingInfo('items');` && |\n| &&
              `        const bindingPath = bindingInfo?.parts?.[0]?.path ?? bindingInfo?.path;` && |\n| &&
              `        for (const [index, item] of items.entries()) {` && |\n| &&
-             |\n|.
-    result = result &&
              `          const scrollTop = this._getScrollTop(item);` && |\n| &&
              `          if (item.V !== scrollTop) {` && |\n| &&
              `            item.V = scrollTop;` && |\n| &&
@@ -434,7 +441,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    init() {` && |\n| &&
              `      this._setBackendBound = this.setBackend.bind(this);` && |\n| &&
              `      this._scrollDelegates = [];` && |\n| &&
-             `      (z2ui5.onBeforeRoundtrip ??= []).push(this._setBackendBound);` && |\n| &&
+             `      _registerCallback('onBeforeRoundtrip', this._setBackendBound);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    exit() {` && |\n| &&
@@ -813,6 +820,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          icon: {` && |\n| &&
              `            type: 'string',` && |\n| &&
              `            defaultValue: 'sap-icon://browse-folder',` && |\n| &&
+             |\n|.
+    result = result &&
              `          },` && |\n| &&
              `          iconOnly: {` && |\n| &&
              `            type: 'boolean',` && |\n| &&
@@ -820,8 +829,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          },` && |\n| &&
              `          buttonOnly: {` && |\n| &&
              `            type: 'boolean',` && |\n| &&
-             |\n|.
-    result = result &&
              `            defaultValue: false,` && |\n| &&
              `          },` && |\n| &&
              `          multiple: {` && |\n| &&
@@ -957,7 +964,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    init() {` && |\n| &&
              `      this._setControlBound = this.setControl.bind(this);` && |\n| &&
              `      this._tokenUpdateBound = this.onTokenUpdate.bind(this);` && |\n| &&
-             `      (z2ui5.onAfterRendering ??= []).push(this._setControlBound);` && |\n| &&
+             `      _registerCallback('onAfterRendering', this._setControlBound);` && |\n| &&
              `    },` && |\n| &&
              `    exit() {` && |\n| &&
              `      _unregisterCallback('onAfterRendering', this._setControlBound);` && |\n| &&
@@ -1039,7 +1046,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      this._oInput = null;` && |\n| &&
              `      this._oPendingInnerControlsCreated = null;` && |\n| &&
              `      this._bInnerControlsCreated = false;` && |\n| &&
-             `      (z2ui5.onAfterRendering ??= []).push(this._setControlBound);` && |\n| &&
+             `      _registerCallback('onAfterRendering', this._setControlBound);` && |\n| &&
              `    },` && |\n| &&
              `    exit() {` && |\n| &&
              `      _unregisterCallback('onAfterRendering', this._setControlBound);` && |\n| &&
@@ -1215,6 +1222,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        this._stream = null;` && |\n| &&
              `        const video = document.getElementById(``${this.getId()}-video``);` && |\n| &&
              `        if (video) video.srcObject = null;` && |\n| &&
+             |\n|.
+    result = result &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onPicture() {` && |\n| &&
@@ -1222,8 +1231,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        if (!this._oScanDialog) {` && |\n| &&
              `          // i18n: title key "camera.title", capture key "camera.capture", cancel key "camera.cancel"` && |\n| &&
              `          this._oScanDialog = new Dialog({` && |\n| &&
-             |\n|.
-    result = result &&
              `            title: 'Device Photo Function',` && |\n| &&
              `            contentWidth: '640px',` && |\n| &&
              `            contentHeight: '480px',` && |\n| &&
@@ -1386,8 +1393,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        this.setFilter();` && |\n| &&
              `        this.setSort();` && |\n| &&
              `      };` && |\n| &&
-             `      (z2ui5.onBeforeRoundtrip ??= []).push(this._beforeBound);` && |\n| &&
-             `      (z2ui5.onAfterRoundtrip ??= []).push(this._afterBound);` && |\n| &&
+             `      _registerCallback('onBeforeRoundtrip', this._beforeBound);` && |\n| &&
+             `      _registerCallback('onAfterRoundtrip', this._afterBound);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    exit() {` && |\n| &&

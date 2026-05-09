@@ -8,6 +8,13 @@ const _logError = (msg, err) => {
   if (arr.length > _ERRORS_CAP) arr.splice(0, arr.length - _ERRORS_CAP);
 };
 
+// Push a callback onto one of the z2ui5.onXxx arrays, recreating the array if the
+// global has been clobbered with a non-array (??= alone would not detect that).
+const _registerCallback = (key, fn) => {
+  if (!Array.isArray(z2ui5[key])) z2ui5[key] = [];
+  z2ui5[key].push(fn);
+};
+
 // Remove a callback from one of the z2ui5.onXxx arrays without crashing if the array
 // has been clobbered (filter would throw on non-arrays).
 const _unregisterCallback = (key, fn) => {
@@ -321,7 +328,7 @@ sap.ui.define('z2ui5/Tree', ['sap/ui/core/Control'], (Control) => {
 
     init() {
       this._setBackendBound = this.setBackend.bind(this);
-      (z2ui5.onBeforeRoundtrip ??= []).push(this._setBackendBound);
+      _registerCallback('onBeforeRoundtrip', this._setBackendBound);
     },
 
     exit() {
@@ -412,7 +419,7 @@ sap.ui.define('z2ui5/Scrolling', ['sap/ui/core/Control'], (Control) => {
     init() {
       this._setBackendBound = this.setBackend.bind(this);
       this._scrollDelegates = [];
-      (z2ui5.onBeforeRoundtrip ??= []).push(this._setBackendBound);
+      _registerCallback('onBeforeRoundtrip', this._setBackendBound);
     },
 
     exit() {
@@ -933,7 +940,7 @@ sap.ui.define('z2ui5/MultiInputExt', ['sap/ui/core/Control', 'sap/m/Token'], (Co
     init() {
       this._setControlBound = this.setControl.bind(this);
       this._tokenUpdateBound = this.onTokenUpdate.bind(this);
-      (z2ui5.onAfterRendering ??= []).push(this._setControlBound);
+      _registerCallback('onAfterRendering', this._setControlBound);
     },
     exit() {
       _unregisterCallback('onAfterRendering', this._setControlBound);
@@ -1015,7 +1022,7 @@ sap.ui.define('z2ui5/SmartMultiInputExt', ['sap/ui/core/Control'], (Control) => 
       this._oInput = null;
       this._oPendingInnerControlsCreated = null;
       this._bInnerControlsCreated = false;
-      (z2ui5.onAfterRendering ??= []).push(this._setControlBound);
+      _registerCallback('onAfterRendering', this._setControlBound);
     },
     exit() {
       _unregisterCallback('onAfterRendering', this._setControlBound);
@@ -1360,8 +1367,8 @@ sap.ui.define('z2ui5/UITableExt', ['sap/ui/core/Control'], (Control) => {
         this.setFilter();
         this.setSort();
       };
-      (z2ui5.onBeforeRoundtrip ??= []).push(this._beforeBound);
-      (z2ui5.onAfterRoundtrip ??= []).push(this._afterBound);
+      _registerCallback('onBeforeRoundtrip', this._beforeBound);
+      _registerCallback('onAfterRoundtrip', this._afterBound);
     },
 
     exit() {

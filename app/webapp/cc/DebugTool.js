@@ -3,10 +3,15 @@ sap.ui.define(
   (Control, Fragment, JSONModel) => {
     'use strict';
 
+    const _ERRORS_CAP = 200;
     const _logError = (message, error) => {
       const entry = { message, ts: new Date().toISOString() };
       if (error !== undefined) entry.error = error;
-      (z2ui5.errors ??= []).push(entry);
+      // Defensive: re-create z2ui5.errors if it has been clobbered with a non-array
+      if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];
+      const arr = z2ui5.errors;
+      arr.push(entry);
+      if (arr.length > _ERRORS_CAP) arr.splice(0, arr.length - _ERRORS_CAP);
     };
 
     const toJson = (val) => JSON.stringify(val ?? null, null, 3);
