@@ -22,6 +22,10 @@ CLASS z2ui5_cl_app_models_js IMPLEMENTATION.
              `  'use strict';` && |\n| &&
              `` && |\n| &&
              `  return {` && |\n| &&
+             `    /**` && |\n| &&
+             `     * Wraps sap.ui.Device into a one-way JSONModel.` && |\n| &&
+             `     * One-way binding because the device data is read-only — UI changes must not write back.` && |\n| &&
+             `     */` && |\n| &&
              `    createDeviceModel() {` && |\n| &&
              `      const oModel = new JSONModel(Device);` && |\n| &&
              `      oModel.setDefaultBindingMode('OneWay');` && |\n| &&

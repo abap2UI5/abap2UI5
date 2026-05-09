@@ -67,7 +67,17 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `    const _msgParser = new DOMParser();` && |\n| &&
              `    const _sanitizeEl = document.createElement('div');` && |\n| &&
-             `    const parseMs = (val, def) => (val ? +val : def);` && |\n| &&
+             `    // ?? semantics: an explicit 0 from the backend should pass through (e.g. duration=0 to disable),` && |\n| &&
+             `    // not be replaced by the default` && |\n| &&
+             `    const parseMs = (val, def) => {` && |\n| &&
+             `      if (val === undefined || val === null || val === '') return def;` && |\n| &&
+             `      const n = +val;` && |\n| &&
+             `      return Number.isFinite(n) ? n : def;` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
+             `    // Whitelist of MessageBox functions we accept from the backend — guards against` && |\n| &&
+             `    // prototype-pollution (e.g. msg.TYPE === '__proto__') and unintended dispatch.` && |\n| &&
+             `    const _MSG_BOX_TYPES = new Set(['error', 'success', 'warning', 'information', 'show', 'alert', 'confirm']);` && |\n| &&
              `` && |\n| &&
              `    const _SAFE_PROTOCOLS = new Set(['http:', 'https:']);` && |\n| &&
              `    const _logError = (msg, err) =>` && |\n| &&
@@ -96,12 +106,34 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
+             `    const _legacyClipboardCopy = (text) => {` && |\n| &&
+             `      // Fallback for non-HTTPS contexts and older browsers without navigator.clipboard` && |\n| &&
+             `      const ta = document.createElement('textarea');` && |\n| &&
+             `      ta.value = text;` && |\n| &&
+             `      ta.setAttribute('readonly', '');` && |\n| &&
+             `      ta.style.cssText = 'position:fixed;top:-1000px;left:-1000px;opacity:0;';` && |\n| &&
+             `      document.body.appendChild(ta);` && |\n| &&
+             `      ta.select();` && |\n| &&
+             `      try {` && |\n| &&
+             `        document.execCommand('copy');` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        _logError(``Clipboard: legacy execCommand failed``, e);` && |\n| &&
+             `      } finally {` && |\n| &&
+             `        ta.remove();` && |\n| &&
+             `      }` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
              `    const copyToClipboard = (textToCopy) => {` && |\n| &&
-             `      if (!navigator.clipboard?.writeText) {` && |\n| &&
-             `        _logError(``Clipboard: writeText API not available``);` && |\n| &&
+             `      if (navigator.clipboard?.writeText) {` && |\n| &&
+             `        navigator.clipboard` && |\n| &&
+             `          .writeText(textToCopy)` && |\n| &&
+             `          .catch((err) => {` && |\n| &&
+             `            _logError(``Clipboard: writeText failed, falling back to execCommand``, err);` && |\n| &&
+             `            _legacyClipboardCopy(textToCopy);` && |\n| &&
+             `          });` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      navigator.clipboard.writeText(textToCopy).catch((err) => _logError(``Clipboard: writeText failed``, err));` && |\n| &&
+             `      _legacyClipboardCopy(textToCopy);` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    const sanitizeMessageDetails = (html) => {` && |\n| &&
@@ -143,6 +175,15 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    const _hashChanger = HashChanger.getInstance();` && |\n| &&
              `    const _URLHelper = mobileLibrary.URLHelper;` && |\n| &&
              `` && |\n| &&
+             `    // URLHelper actions table — module-level so we don't reallocate per call` && |\n| &&
+             `    const _URL_HELPER_ACTIONS = {` && |\n| &&
+             `      REDIRECT: (params) => _URLHelper.redirect(params.URL, params.NEW_WINDOW),` && |\n| &&
+             `      TRIGGER_EMAIL: (params) =>` && |\n| &&
+             `        _URLHelper.triggerEmail(params.EMAIL, params.SUBJECT, params.BODY, params.CC, params.BCC, params.NEW_WINDOW),` && |\n| &&
+             `      TRIGGER_SMS: (params) => _URLHelper.triggerSms(params),` && |\n| &&
+             `      TRIGGER_TEL: (params) => _URLHelper.triggerTel(params),` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
              `    const navContainerLookups = {` && |\n| &&
              `      NAV_CONTAINER_TO: (id) => z2ui5.oView?.byId(id),` && |\n| &&
              `      NEST_NAV_CONTAINER_TO: (id) => z2ui5.oViewNest?.byId(id),` && |\n| &&
@@ -150,6 +191,16 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      POPUP_NAV_CONTAINER_TO: (id) => Fragment.byId('popupId', id),` && |\n| &&
              `      POPOVER_NAV_CONTAINER_TO: (id) => Fragment.byId('popoverId', id),` && |\n| &&
              `    };` && |\n| &&
+             `` && |\n| &&
+             `    // Look up a control across all active views by ID (used by openBy and the Z2UI5 frontend action)` && |\n| &&
+             `    const _findControlById = (id) =>` && |\n| &&
+             `      z2ui5.oView?.byId(id) ||` && |\n| &&
+             `      z2ui5.oViewPopup?.Fragment?.byId('popupId', id) ||` && |\n| &&
+             `      z2ui5.oViewNest?.byId(id) ||` && |\n| &&
+             `      z2ui5.oViewNest2?.byId(id) ||` && |\n| &&
+             `      Element.getElementById?.(id) ||` && |\n| &&
+             `      // sap.ui.getCore() is removed in ui5-legacy-free; chain with optional access for compatibility` && |\n| &&
+             `      sap.ui.getCore?.()?.byId?.(id);` && |\n| &&
              `` && |\n| &&
              `    const viewLookups = {` && |\n| &&
              `      MAIN: () => z2ui5.oView,` && |\n| &&
@@ -197,8 +248,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          if (!PARAMS) return;` && |\n| &&
              `          const { S_POPUP, S_VIEW_NEST, S_VIEW_NEST2, S_POPOVER, SET_APP_STATE_ACTIVE, SET_PUSH_STATE, SET_NAV_BACK } =` && |\n| &&
              `            PARAMS;` && |\n| &&
-             `          if (S_POPUP?.CHECK_DESTROY) this.PopupDestroy();` && |\n| &&
-             `          if (S_POPOVER?.CHECK_DESTROY) this.PopoverDestroy();` && |\n| &&
+             `          // CHECK_DESTROY without a follow-up XML closes the popup; if XML is also present` && |\n| &&
+             `          // the displayFragment branch destroys the existing popup before creating the new one,` && |\n| &&
+             `          // so a separate CHECK_DESTROY here would be redundant double-destroy.` && |\n| &&
+             `          if (S_POPUP?.CHECK_DESTROY && !S_POPUP?.XML) this.PopupDestroy();` && |\n| &&
+             `          if (S_POPOVER?.CHECK_DESTROY && !S_POPOVER?.XML) this.PopoverDestroy();` && |\n| &&
              `          if (S_POPUP?.XML) {` && |\n| &&
              `            this.PopupDestroy();` && |\n| &&
              `            await this.displayFragment(S_POPUP.XML, 'oViewPopup');` && |\n| &&
@@ -239,7 +293,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          runCallbacks(z2ui5.onAfterRendering);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          _logError(``_processAfterRendering: unexpected error``, e);` && |\n| &&
-             `          MessageBox.error(e.toLocaleString(), {` && |\n| &&
+             `          MessageBox.error(e.message ?? String(e), {` && |\n| &&
              `            title: 'Unexpected Error Occurred - App Terminated',` && |\n| &&
              `            actions: [],` && |\n| &&
              `            onClose: () => new mBusyDialog({ text: 'Please Restart the App' }).open(),` && |\n| &&
@@ -300,12 +354,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          oFragment.setModel(oModel);` && |\n| &&
              `          oFragment.Fragment = Fragment;` && |\n| &&
              `          z2ui5[viewProp] = oFragment;` && |\n| &&
-             `          const oControl =` && |\n| &&
-             `            z2ui5.oView?.byId(openById) ||` && |\n| &&
-             `            z2ui5.oViewPopup?.Fragment.byId('popupId', openById) ||` && |\n| &&
-             `            z2ui5.oViewNest?.byId(openById) ||` && |\n| &&
-             `            z2ui5.oViewNest2?.byId(openById) ||` && |\n| &&
-             `            (Element.getElementById?.(openById) ?? sap.ui.getCore?.()?.byId?.(openById));` && |\n| &&
+             `          const oControl = _findControlById(openById);` && |\n| &&
              `          if (!oControl) {` && |\n| &&
              `            _logError(``displayPopover: openBy control '${openById}' not found``);` && |\n| &&
              `            return;` && |\n| &&
@@ -369,6 +418,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          view.destroy();` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          _logError(``_destroyView: view.destroy() failed for ${prop}``, e);` && |\n| &&
+             |\n|.
+    result = result &&
              `        }` && |\n| &&
              `        z2ui5[prop] = null;` && |\n| &&
              `      },` && |\n| &&
@@ -418,8 +469,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            break;` && |\n| &&
              `          }` && |\n| &&
              `          case 'HISTORY_BACK':` && |\n| &&
-             |\n|.
-    result = result &&
              `            history.back();` && |\n| &&
              `            break;` && |\n| &&
              `          case 'CLIPBOARD_COPY':` && |\n| &&
@@ -430,8 +479,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            break;` && |\n| &&
              `          case 'SET_ODATA_MODEL': {` && |\n| &&
              `            try {` && |\n| &&
+             `              const modelName = args[2] || undefined;` && |\n| &&
+             `              // Destroy a previously bound ODataModel under the same name to release sockets/handlers` && |\n| &&
+             `              const previous = z2ui5.oView?.getModel(modelName);` && |\n| &&
              `              const oModel = new ODataModel({ serviceUrl: args[1], annotationURI: args[3] ?? '' });` && |\n| &&
-             `              z2ui5.oView?.setModel(oModel, args[2] || undefined);` && |\n| &&
+             `              z2ui5.oView?.setModel(oModel, modelName);` && |\n| &&
+             `              if (previous && previous !== oModel && typeof previous.destroy === 'function') previous.destroy();` && |\n| &&
              `            } catch (e) {` && |\n| &&
              `              _logError(``SET_ODATA_MODEL: failed for '${args[1]}'``, e);` && |\n| &&
              `            }` && |\n| &&
@@ -451,9 +504,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            }` && |\n| &&
              `            break;` && |\n| &&
              `          }` && |\n| &&
-             `          case 'DOWNLOAD_B64_FILE':` && |\n| &&
-             `            Object.assign(document.createElement('a'), { href: args[1], download: args[2] }).click();` && |\n| &&
+             `          case 'DOWNLOAD_B64_FILE': {` && |\n| &&
+             `            // Firefox ignores click() on a detached anchor; attach briefly to the body` && |\n| &&
+             `            const a = Object.assign(document.createElement('a'), { href: args[1], download: args[2] });` && |\n| &&
+             `            document.body.appendChild(a);` && |\n| &&
+             `            a.click();` && |\n| &&
+             `            a.remove();` && |\n| &&
              `            break;` && |\n| &&
+             `          }` && |\n| &&
              `          case 'CROSS_APP_NAV_TO_PREV_APP':` && |\n| &&
              `            withCrossAppNavigator((nav) => nav.backToPreviousApp());` && |\n| &&
              `            break;` && |\n| &&
@@ -497,8 +555,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          }` && |\n| &&
              `          case 'OPEN_NEW_TAB':` && |\n| &&
              `            if (isValidRedirectURL(args[1])) {` && |\n| &&
-             `              const newWindow = window.open(args[1], '_blank');` && |\n| &&
-             `              if (newWindow) newWindow.opener = null;` && |\n| &&
+             `              // noopener,noreferrer prevents the new tab from accessing window.opener and from` && |\n| &&
+             `              // sending a Referer header (modern best practice; supersedes manual ``opener = null``)` && |\n| &&
+             `              window.open(args[1], '_blank', 'noopener,noreferrer');` && |\n| &&
              `            } else {` && |\n| &&
              `              MessageBox.error('Invalid URL. Only relative URLs to the same domain are allowed.');` && |\n| &&
              `            }` && |\n| &&
@@ -510,23 +569,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            this.PopoverDestroy();` && |\n| &&
              `            break;` && |\n| &&
              `          case 'URLHELPER': {` && |\n| &&
-             `            const params = args[2];` && |\n| &&
-             `            const actions = {` && |\n| &&
-             `              REDIRECT: () => _URLHelper.redirect(params.URL, params.NEW_WINDOW),` && |\n| &&
-             `              TRIGGER_EMAIL: () =>` && |\n| &&
-             `                _URLHelper.triggerEmail(` && |\n| &&
-             `                  params.EMAIL,` && |\n| &&
-             `                  params.SUBJECT,` && |\n| &&
-             `                  params.BODY,` && |\n| &&
-             `                  params.CC,` && |\n| &&
-             `                  params.BCC,` && |\n| &&
-             `                  params.NEW_WINDOW,` && |\n| &&
-             `                ),` && |\n| &&
-             `              TRIGGER_SMS: () => _URLHelper.triggerSms(params),` && |\n| &&
-             `              TRIGGER_TEL: () => _URLHelper.triggerTel(params),` && |\n| &&
-             `            };` && |\n| &&
              `            try {` && |\n| &&
-             `              actions[args[1]]?.();` && |\n| &&
+             `              _URL_HELPER_ACTIONS[args[1]]?.(args[2]);` && |\n| &&
              `            } catch (e) {` && |\n| &&
              `              _logError(``URLHELPER: '${args[1]}' failed``, e);` && |\n| &&
              `            }` && |\n| &&
@@ -540,12 +584,21 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `              _logError(``IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed``, e);` && |\n| &&
              `            }` && |\n| &&
              `            this.PopupDestroy();` && |\n| &&
-             `            this.eB(['SAVE'], image);` && |\n| &&
+             `            // Skip the SAVE roundtrip if we couldn't extract the image — sending undefined` && |\n| &&
+             `            // would silently overwrite the backend image with null` && |\n| &&
+             `            if (image !== undefined) this.eB(['SAVE'], image);` && |\n| &&
              `            break;` && |\n| &&
              `          }` && |\n| &&
              `          case 'Z2UI5':` && |\n| &&
              `            try {` && |\n| &&
-             `              z2ui5[args[1]]?.(args.slice(2));` && |\n| &&
+             `              const fnName = args[1];` && |\n| &&
+             `              // Restrict to own callable properties to block prototype-pollution paths like` && |\n| &&
+             `              // '__proto__', 'constructor', 'hasOwnProperty', etc.` && |\n| &&
+             `              if (typeof fnName !== 'string' || !Object.hasOwn(z2ui5, fnName) || typeof z2ui5[fnName] !== 'function') {` && |\n| &&
+             `                _logError(``Z2UI5: '${fnName}' is not a callable own property of z2ui5``);` && |\n| &&
+             `                break;` && |\n| &&
+             `              }` && |\n| &&
+             `              z2ui5[fnName](args.slice(2));` && |\n| &&
              `            } catch (e) {` && |\n| &&
              `              _logError(``Z2UI5: '${args[1]}' failed``, e);` && |\n| &&
              `            }` && |\n| &&
@@ -647,7 +700,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            closeOnNavigation: !!msg.CLOSEONNAVIGATION,` && |\n| &&
              `            ...(msg.ICON && msg.ICON !== 'NONE' && { icon: msg.ICON }),` && |\n| &&
              `          };` && |\n| &&
-             `          MessageBox[msg.TYPE]?.(msg.TEXT, oParams);` && |\n| &&
+             `          // Whitelist guard: prevents prototype-pollution dispatch (e.g. msg.TYPE === '__proto__')` && |\n| &&
+             `          if (typeof msg.TYPE === 'string' && _MSG_BOX_TYPES.has(msg.TYPE) && typeof MessageBox[msg.TYPE] === 'function') {` && |\n| &&
+             `            MessageBox[msg.TYPE](msg.TEXT, oParams);` && |\n| &&
+             `          } else {` && |\n| &&
+             `            _logError(``showMessage: unsupported MessageBox type '${msg.TYPE}'``);` && |\n| &&
+             `          }` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `      async displayView(xml, viewModel) {` && |\n| &&

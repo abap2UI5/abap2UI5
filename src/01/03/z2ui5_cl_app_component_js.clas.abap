@@ -22,6 +22,13 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `  ['sap/ui/core/UIComponent', 'z2ui5/model/models', 'z2ui5/cc/Server', 'sap/ui/VersionInfo', 'z2ui5/cc/DebugTool'],` && |\n| &&
              `  (UIComponent, Models, Server, VersionInfo, DebugTool) => {` && |\n| &&
              `    'use strict';` && |\n| &&
+             `` && |\n| &&
+             `    const _logError = (message, error) => {` && |\n| &&
+             `      const entry = { message, ts: new Date().toISOString() };` && |\n| &&
+             `      if (error !== undefined) entry.error = error;` && |\n| &&
+             `      (z2ui5.errors ??= []).push(entry);` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
              `    return UIComponent.extend('z2ui5.Component', {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        manifest: 'json',` && |\n| &&
@@ -34,7 +41,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n| &&
              `        if (typeof z2ui5 === 'undefined') z2ui5 = {};` && |\n| &&
              `        if (z2ui5.checkLocal === false) z2ui5 = {};` && |\n| &&
-             `        if (typeof z2ui5.oConfig === 'undefined') z2ui5.oConfig = {};` && |\n| &&
+             `        z2ui5.oConfig ??= {};` && |\n| &&
              `        z2ui5.oDeviceModel = Models.createDeviceModel();` && |\n| &&
              `        this.setModel(z2ui5.oDeviceModel, 'device');` && |\n| &&
              `` && |\n| &&
@@ -44,7 +51,9 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        this._initVersionInfo();` && |\n| &&
              `` && |\n| &&
              `        this._boundUnload = this._onUnload.bind(this);` && |\n| &&
-             `        this._unloadEvent = /iPad|iPhone/.test(navigator.userAgent) ? 'pagehide' : 'beforeunload';` && |\n| &&
+             `        // pagehide fires on every browser; beforeunload does not on iOS Safari.` && |\n| &&
+             `        // Feature-detect rather than UA-sniff.` && |\n| &&
+             `        this._unloadEvent = 'onpagehide' in window ? 'pagehide' : 'beforeunload';` && |\n| &&
              `        window.addEventListener(this._unloadEvent, this._boundUnload);` && |\n| &&
              `` && |\n| &&
              `        this._boundKeydown = (zEvent) => {` && |\n| &&
@@ -56,18 +65,22 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        document.addEventListener('keydown', this._boundKeydown);` && |\n| &&
              `` && |\n| &&
              `        this._boundPopstate = (event) => {` && |\n| &&
-             `          delete event?.state?.response?.PARAMS?.SET_PUSH_STATE;` && |\n| &&
-             `          delete event?.state?.response?.PARAMS?.SET_APP_STATE_ACTIVE;` && |\n| &&
+             `          // Browser history state should be treated as read-only; drop the navigation flags` && |\n| &&
+             `          // by shallow-copying the response/PARAMS instead of mutating event.state in place.` && |\n| &&
+             `          const stateResponse = event?.state?.response;` && |\n| &&
+             `          if (stateResponse?.PARAMS) {` && |\n| &&
+             `            const {` && |\n| &&
+             `              SET_PUSH_STATE: _0,` && |\n| &&
+             `              SET_APP_STATE_ACTIVE: _1,` && |\n| &&
+             `              ...restParams` && |\n| &&
+             `            } = stateResponse.PARAMS;` && |\n| &&
+             `            z2ui5.oResponse = { ...stateResponse, PARAMS: restParams };` && |\n| &&
+             `          }` && |\n| &&
              `          if (event?.state?.view) {` && |\n| &&
              `            z2ui5.oController?.ViewDestroy();` && |\n| &&
-             `            z2ui5.oResponse = event.state.response;` && |\n| &&
-             `            z2ui5.oController?.displayView(event.state.view, event.state.model)?.catch((e) =>` && |\n| &&
-             `              (z2ui5.errors ??= []).push({` && |\n| &&
-             `                message: ``popstate: displayView failed``,` && |\n| &&
-             `                error: e,` && |\n| &&
-             `                ts: new Date().toISOString(),` && |\n| &&
-             `              }),` && |\n| &&
-             `            );` && |\n| &&
+             `            z2ui5.oController` && |\n| &&
+             `              ?.displayView(event.state.view, event.state.model)` && |\n| &&
+             `              ?.catch((e) => _logError(``popstate: displayView failed``, e));` && |\n| &&
              `          }` && |\n| &&
              `        };` && |\n| &&
              `        window.addEventListener('popstate', this._boundPopstate);` && |\n| &&
@@ -78,8 +91,6 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _initLaunchpad() {` && |\n| &&
-             `        const logErr = (message, error) =>` && |\n| &&
-             `          (z2ui5.errors ??= []).push({ message, error, ts: new Date().toISOString() });` && |\n| &&
              `        const Container = sap.ui.require('sap/ushell/Container');` && |\n| &&
              `        if (!Container) return;` && |\n| &&
              `        const launchpad = { Container };` && |\n| &&
@@ -88,18 +99,18 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `          .then((s) => {` && |\n| &&
              `            launchpad.ShellUIService = s;` && |\n| &&
              `          })` && |\n| &&
-             `          .catch((e) => logErr(``Component: ShellUIService init failed``, e));` && |\n| &&
+             `          .catch((e) => _logError(``Component: ShellUIService init failed``, e));` && |\n| &&
              `        Container.getServiceAsync('CrossApplicationNavigation')` && |\n| &&
              `          .then((s) => {` && |\n| &&
              `            launchpad.CrossAppNavigator = s;` && |\n| &&
              `          })` && |\n| &&
-             `          .catch((e) => logErr(``Component: CrossApplicationNavigation init failed``, e));` && |\n| &&
+             `          .catch((e) => _logError(``Component: CrossApplicationNavigation init failed``, e));` && |\n| &&
              `        sap.ui.require(` && |\n| &&
              `          ['sap/ushell/services/AppConfiguration'],` && |\n| &&
              `          (ac) => {` && |\n| &&
              `            launchpad.AppConfiguration = ac;` && |\n| &&
              `          },` && |\n| &&
-             `          (e) => logErr(``Component: AppConfiguration init failed``, e),` && |\n| &&
+             `          (e) => _logError(``Component: AppConfiguration init failed``, e),` && |\n| &&
              `        );` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -108,16 +119,13 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `          const { version, buildTimestamp, gav } = await VersionInfo.load();` && |\n| &&
              `          if (!this.isDestroyed()) z2ui5.oConfig.UI5VersionInfo = { version, buildTimestamp, gav };` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          (z2ui5.errors ??= []).push({` && |\n| &&
-             `            message: ``Component: VersionInfo load failed``,` && |\n| &&
-             `            error: e,` && |\n| &&
-             `            ts: new Date().toISOString(),` && |\n| &&
-             `          });` && |\n| &&
+             `          _logError(``Component: VersionInfo load failed``, e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _onUnload() {` && |\n| &&
              `        window.removeEventListener(this._unloadEvent, this._boundUnload);` && |\n| &&
+             `        // destroy() triggers exit() which removes the remaining listeners and ends the session` && |\n| &&
              `        this.destroy();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -125,8 +133,10 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        window.removeEventListener(this._unloadEvent, this._boundUnload);` && |\n| &&
              `        document.removeEventListener('keydown', this._boundKeydown);` && |\n| &&
              `        window.removeEventListener('popstate', this._boundPopstate);` && |\n| &&
+             `        z2ui5.debugTool?.destroy?.();` && |\n| &&
+             `        z2ui5.debugTool = null;` && |\n| &&
              `        Server.endSession();` && |\n| &&
-             `        UIComponent.prototype.exit.call(this);` && |\n| &&
+             `        UIComponent.prototype.exit?.call(this);` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
              `  },` && |\n| &&

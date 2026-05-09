@@ -82,9 +82,10 @@ sap.ui.define('z2ui5/Timer', ['sap/ui/core/Control'], (Control) => {
       clearTimeout(this._timerId);
       this._timerId = setTimeout(() => {
         if (this.isDestroyed()) return;
-        if (!this.getProperty('checkRepeat')) this.setProperty('checkActive', false, true);
+        const checkRepeat = this.getProperty('checkRepeat');
+        if (!checkRepeat) this.setProperty('checkActive', false, true);
         this.fireFinished();
-        if (this.getProperty('checkRepeat') && !this.isDestroyed()) this.delayedCall();
+        if (checkRepeat && !this.isDestroyed()) this.delayedCall();
       }, this.getProperty('delayMS'));
     },
     renderer: {
@@ -469,12 +470,13 @@ sap.ui.define('z2ui5/Info', ['sap/ui/core/Control'], (Control) => {
           const deviceData = z2ui5.oView?.getModel('device')?.getData();
           if (!deviceData) return;
           const { system, resize, os, browser } = deviceData;
+          // sap.ui.Device.system has no standard 'combi' property — guard with ?? ''
           for (const [prop, val] of [
             ['ui5_version', z2ui5.oConfig?.UI5VersionInfo?.version],
             ['device_phone', system.phone],
             ['device_desktop', system.desktop],
             ['device_tablet', system.tablet],
-            ['device_combi', system.combi],
+            ['device_combi', system.combi ?? ''],
             ['device_height', resize.height],
             ['device_width', resize.width],
             ['device_os', os.name],
@@ -838,10 +840,21 @@ sap.ui.define('z2ui5/MultiInputExt', ['sap/ui/core/Control', 'sap/m/Token'], (Co
 
     init() {
       this._setControlBound = this.setControl.bind(this);
+      this._tokenUpdateBound = this.onTokenUpdate.bind(this);
       (z2ui5.onAfterRendering ??= []).push(this._setControlBound);
     },
     exit() {
       z2ui5.onAfterRendering = (z2ui5.onAfterRendering ?? []).filter((fn) => fn !== this._setControlBound);
+      // Detach from the host MultiInput if it is still alive — avoids leaking
+      // a bound onTokenUpdate handler when the table outlives this control.
+      if (this._attachedTable && !this._attachedTable.bIsDestroyed) {
+        try {
+          this._attachedTable.detachTokenUpdate(this._tokenUpdateBound);
+        } catch (e) {
+          _logError(`MultiInputExt.exit: detachTokenUpdate failed`, e);
+        }
+      }
+      this._attachedTable = null;
     },
 
     onTokenUpdate(oEvent) {
@@ -861,8 +874,9 @@ sap.ui.define('z2ui5/MultiInputExt', ['sap/ui/core/Control', 'sap/m/Token'], (Co
       if (!table || this.getProperty('checkInit')) return;
       this.setProperty('checkInit', true);
       try {
-        table.attachTokenUpdate(this.onTokenUpdate.bind(this));
+        table.attachTokenUpdate(this._tokenUpdateBound);
         table.addValidator(({ text }) => new Token({ key: text, text }));
+        this._attachedTable = table;
       } catch (e) {
         _logError(`MultiInputExt.setControl: setup failed`, e);
       }
@@ -904,6 +918,8 @@ sap.ui.define('z2ui5/SmartMultiInputExt', ['sap/ui/core/Control'], (Control) => 
 
     init() {
       this._setControlBound = this.setControl.bind(this);
+      this._tokenUpdateBound = this.onTokenUpdate.bind(this);
+      this._innerControlsCreatedBound = this.onInnerControlsCreated.bind(this);
       this._oInput = null;
       this._oPendingInnerControlsCreated = null;
       this._bInnerControlsCreated = false;
@@ -913,6 +929,15 @@ sap.ui.define('z2ui5/SmartMultiInputExt', ['sap/ui/core/Control'], (Control) => 
       z2ui5.onAfterRendering = (z2ui5.onAfterRendering ?? []).filter((fn) => fn !== this._setControlBound);
       this._oPendingInnerControlsCreated?.(null);
       this._oPendingInnerControlsCreated = null;
+      if (this._attachedInput && !this._attachedInput.bIsDestroyed) {
+        try {
+          this._attachedInput.detachTokenUpdate(this._tokenUpdateBound);
+          this._attachedInput.detachInnerControlsCreated?.(this._innerControlsCreatedBound);
+        } catch (e) {
+          _logError(`SmartMultiInputExt.exit: detach failed`, e);
+        }
+      }
+      this._attachedInput = null;
     },
 
     onTokenUpdate(oEvent) {
@@ -969,8 +994,9 @@ sap.ui.define('z2ui5/SmartMultiInputExt', ['sap/ui/core/Control'], (Control) => 
       if (!input || this.getProperty('checkInit')) return;
       this.setProperty('checkInit', true);
       try {
-        input.attachTokenUpdate(this.onTokenUpdate.bind(this));
-        input.attachInnerControlsCreated(this.onInnerControlsCreated.bind(this));
+        input.attachTokenUpdate(this._tokenUpdateBound);
+        input.attachInnerControlsCreated(this._innerControlsCreatedBound);
+        this._attachedInput = input;
       } catch (e) {
         _logError(`SmartMultiInputExt.setControl: setup failed`, e);
       }
@@ -1308,7 +1334,12 @@ sap.ui.define('z2ui5/UITableExt', ['sap/ui/core/Control'], (Control) => {
 
 sap.ui.define('z2ui5/Util', [], () => {
   'use strict';
-  const parseDmy = (d) => [+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8)];
+  // ABAP DATS is YYYYMMDD (8 chars). Returns NaN tuple for malformed input
+  // so the resulting Date is a well-defined "Invalid Date" rather than a silent default.
+  const parseDmy = (d) => {
+    if (typeof d !== 'string' || d.length < 8) return [NaN, NaN, NaN];
+    return [+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8)];
+  };
   return {
     DateCreateObject: (s) => new Date(s),
     DateAbapDateToDateObject: (d) => new Date(...parseDmy(d)),
@@ -1330,11 +1361,12 @@ sap.ui.define('z2ui5/Favicon', ['sap/ui/core/Control'], (Control) => {
     },
     setFavicon(val) {
       this.setProperty('favicon', val);
-      const existing = document.head.querySelector('link[rel="shortcut icon"]');
+      // rel~="icon" matches both the legacy "shortcut icon" and the standard "icon"
+      const existing = document.head.querySelector('link[rel~="icon"]');
       if (existing) {
         existing.href = val;
       } else {
-        document.head.appendChild(Object.assign(document.createElement('link'), { rel: 'shortcut icon', href: val }));
+        document.head.appendChild(Object.assign(document.createElement('link'), { rel: 'icon', href: val }));
       }
     },
     renderer: { apiVersion: 2, render() {} },
@@ -1352,15 +1384,26 @@ sap.ui.define('z2ui5/Dirty', ['sap/ui/core/Control'], (Control) => {
         },
       },
     },
+    init() {
+      // Single handler instance kept on the control so add/removeEventListener match
+      this._beforeUnloadHandler = (e) => {
+        e.preventDefault();
+        e.returnValue = '';
+      };
+      this._beforeUnloadAttached = false;
+    },
     setIsDirty(val) {
       this.setProperty('isDirty', val);
       const fallback = () => {
-        window.onbeforeunload = val
-          ? (e) => {
-              e.preventDefault();
-              e.returnValue = '';
-            }
-          : null;
+        // Use addEventListener instead of overwriting window.onbeforeunload so we don't
+        // clobber handlers that the host (FLP, embedding app) may have registered.
+        if (val && !this._beforeUnloadAttached) {
+          window.addEventListener('beforeunload', this._beforeUnloadHandler);
+          this._beforeUnloadAttached = true;
+        } else if (!val && this._beforeUnloadAttached) {
+          window.removeEventListener('beforeunload', this._beforeUnloadHandler);
+          this._beforeUnloadAttached = false;
+        }
       };
 
       // use FLP dirty flag (SAPUI5 only) when in Launchpad, else fall back to browser unload
@@ -1376,7 +1419,10 @@ sap.ui.define('z2ui5/Dirty', ['sap/ui/core/Control'], (Control) => {
       }
     },
     exit() {
-      window.onbeforeunload = null;
+      if (this._beforeUnloadAttached) {
+        window.removeEventListener('beforeunload', this._beforeUnloadHandler);
+        this._beforeUnloadAttached = false;
+      }
     },
     renderer: { apiVersion: 2, render() {} },
   });

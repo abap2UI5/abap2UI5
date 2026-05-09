@@ -47,7 +47,17 @@ sap.ui.define(
 
     const _msgParser = new DOMParser();
     const _sanitizeEl = document.createElement('div');
-    const parseMs = (val, def) => (val ? +val : def);
+    // ?? semantics: an explicit 0 from the backend should pass through (e.g. duration=0 to disable),
+    // not be replaced by the default
+    const parseMs = (val, def) => {
+      if (val === undefined || val === null || val === '') return def;
+      const n = +val;
+      return Number.isFinite(n) ? n : def;
+    };
+
+    // Whitelist of MessageBox functions we accept from the backend — guards against
+    // prototype-pollution (e.g. msg.TYPE === '__proto__') and unintended dispatch.
+    const _MSG_BOX_TYPES = new Set(['error', 'success', 'warning', 'information', 'show', 'alert', 'confirm']);
 
     const _SAFE_PROTOCOLS = new Set(['http:', 'https:']);
     const _logError = (msg, err) =>
@@ -76,12 +86,34 @@ sap.ui.define(
       }
     };
 
+    const _legacyClipboardCopy = (text) => {
+      // Fallback for non-HTTPS contexts and older browsers without navigator.clipboard
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:fixed;top:-1000px;left:-1000px;opacity:0;';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+      } catch (e) {
+        _logError(`Clipboard: legacy execCommand failed`, e);
+      } finally {
+        ta.remove();
+      }
+    };
+
     const copyToClipboard = (textToCopy) => {
-      if (!navigator.clipboard?.writeText) {
-        _logError(`Clipboard: writeText API not available`);
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard
+          .writeText(textToCopy)
+          .catch((err) => {
+            _logError(`Clipboard: writeText failed, falling back to execCommand`, err);
+            _legacyClipboardCopy(textToCopy);
+          });
         return;
       }
-      navigator.clipboard.writeText(textToCopy).catch((err) => _logError(`Clipboard: writeText failed`, err));
+      _legacyClipboardCopy(textToCopy);
     };
 
     const sanitizeMessageDetails = (html) => {
@@ -123,6 +155,15 @@ sap.ui.define(
     const _hashChanger = HashChanger.getInstance();
     const _URLHelper = mobileLibrary.URLHelper;
 
+    // URLHelper actions table — module-level so we don't reallocate per call
+    const _URL_HELPER_ACTIONS = {
+      REDIRECT: (params) => _URLHelper.redirect(params.URL, params.NEW_WINDOW),
+      TRIGGER_EMAIL: (params) =>
+        _URLHelper.triggerEmail(params.EMAIL, params.SUBJECT, params.BODY, params.CC, params.BCC, params.NEW_WINDOW),
+      TRIGGER_SMS: (params) => _URLHelper.triggerSms(params),
+      TRIGGER_TEL: (params) => _URLHelper.triggerTel(params),
+    };
+
     const navContainerLookups = {
       NAV_CONTAINER_TO: (id) => z2ui5.oView?.byId(id),
       NEST_NAV_CONTAINER_TO: (id) => z2ui5.oViewNest?.byId(id),
@@ -130,6 +171,16 @@ sap.ui.define(
       POPUP_NAV_CONTAINER_TO: (id) => Fragment.byId('popupId', id),
       POPOVER_NAV_CONTAINER_TO: (id) => Fragment.byId('popoverId', id),
     };
+
+    // Look up a control across all active views by ID (used by openBy and the Z2UI5 frontend action)
+    const _findControlById = (id) =>
+      z2ui5.oView?.byId(id) ||
+      z2ui5.oViewPopup?.Fragment?.byId('popupId', id) ||
+      z2ui5.oViewNest?.byId(id) ||
+      z2ui5.oViewNest2?.byId(id) ||
+      Element.getElementById?.(id) ||
+      // sap.ui.getCore() is removed in ui5-legacy-free; chain with optional access for compatibility
+      sap.ui.getCore?.()?.byId?.(id);
 
     const viewLookups = {
       MAIN: () => z2ui5.oView,
@@ -177,8 +228,11 @@ sap.ui.define(
           if (!PARAMS) return;
           const { S_POPUP, S_VIEW_NEST, S_VIEW_NEST2, S_POPOVER, SET_APP_STATE_ACTIVE, SET_PUSH_STATE, SET_NAV_BACK } =
             PARAMS;
-          if (S_POPUP?.CHECK_DESTROY) this.PopupDestroy();
-          if (S_POPOVER?.CHECK_DESTROY) this.PopoverDestroy();
+          // CHECK_DESTROY without a follow-up XML closes the popup; if XML is also present
+          // the displayFragment branch destroys the existing popup before creating the new one,
+          // so a separate CHECK_DESTROY here would be redundant double-destroy.
+          if (S_POPUP?.CHECK_DESTROY && !S_POPUP?.XML) this.PopupDestroy();
+          if (S_POPOVER?.CHECK_DESTROY && !S_POPOVER?.XML) this.PopoverDestroy();
           if (S_POPUP?.XML) {
             this.PopupDestroy();
             await this.displayFragment(S_POPUP.XML, 'oViewPopup');
@@ -219,7 +273,7 @@ sap.ui.define(
           runCallbacks(z2ui5.onAfterRendering);
         } catch (e) {
           _logError(`_processAfterRendering: unexpected error`, e);
-          MessageBox.error(e.toLocaleString(), {
+          MessageBox.error(e.message ?? String(e), {
             title: 'Unexpected Error Occurred - App Terminated',
             actions: [],
             onClose: () => new mBusyDialog({ text: 'Please Restart the App' }).open(),
@@ -280,12 +334,7 @@ sap.ui.define(
           oFragment.setModel(oModel);
           oFragment.Fragment = Fragment;
           z2ui5[viewProp] = oFragment;
-          const oControl =
-            z2ui5.oView?.byId(openById) ||
-            z2ui5.oViewPopup?.Fragment.byId('popupId', openById) ||
-            z2ui5.oViewNest?.byId(openById) ||
-            z2ui5.oViewNest2?.byId(openById) ||
-            (Element.getElementById?.(openById) ?? sap.ui.getCore?.()?.byId?.(openById));
+          const oControl = _findControlById(openById);
           if (!oControl) {
             _logError(`displayPopover: openBy control '${openById}' not found`);
             return;
@@ -408,8 +457,12 @@ sap.ui.define(
             break;
           case 'SET_ODATA_MODEL': {
             try {
+              const modelName = args[2] || undefined;
+              // Destroy a previously bound ODataModel under the same name to release sockets/handlers
+              const previous = z2ui5.oView?.getModel(modelName);
               const oModel = new ODataModel({ serviceUrl: args[1], annotationURI: args[3] ?? '' });
-              z2ui5.oView?.setModel(oModel, args[2] || undefined);
+              z2ui5.oView?.setModel(oModel, modelName);
+              if (previous && previous !== oModel && typeof previous.destroy === 'function') previous.destroy();
             } catch (e) {
               _logError(`SET_ODATA_MODEL: failed for '${args[1]}'`, e);
             }
@@ -429,9 +482,14 @@ sap.ui.define(
             }
             break;
           }
-          case 'DOWNLOAD_B64_FILE':
-            Object.assign(document.createElement('a'), { href: args[1], download: args[2] }).click();
+          case 'DOWNLOAD_B64_FILE': {
+            // Firefox ignores click() on a detached anchor; attach briefly to the body
+            const a = Object.assign(document.createElement('a'), { href: args[1], download: args[2] });
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
             break;
+          }
           case 'CROSS_APP_NAV_TO_PREV_APP':
             withCrossAppNavigator((nav) => nav.backToPreviousApp());
             break;
@@ -475,8 +533,9 @@ sap.ui.define(
           }
           case 'OPEN_NEW_TAB':
             if (isValidRedirectURL(args[1])) {
-              const newWindow = window.open(args[1], '_blank');
-              if (newWindow) newWindow.opener = null;
+              // noopener,noreferrer prevents the new tab from accessing window.opener and from
+              // sending a Referer header (modern best practice; supersedes manual `opener = null`)
+              window.open(args[1], '_blank', 'noopener,noreferrer');
             } else {
               MessageBox.error('Invalid URL. Only relative URLs to the same domain are allowed.');
             }
@@ -488,23 +547,8 @@ sap.ui.define(
             this.PopoverDestroy();
             break;
           case 'URLHELPER': {
-            const params = args[2];
-            const actions = {
-              REDIRECT: () => _URLHelper.redirect(params.URL, params.NEW_WINDOW),
-              TRIGGER_EMAIL: () =>
-                _URLHelper.triggerEmail(
-                  params.EMAIL,
-                  params.SUBJECT,
-                  params.BODY,
-                  params.CC,
-                  params.BCC,
-                  params.NEW_WINDOW,
-                ),
-              TRIGGER_SMS: () => _URLHelper.triggerSms(params),
-              TRIGGER_TEL: () => _URLHelper.triggerTel(params),
-            };
             try {
-              actions[args[1]]?.();
+              _URL_HELPER_ACTIONS[args[1]]?.(args[2]);
             } catch (e) {
               _logError(`URLHELPER: '${args[1]}' failed`, e);
             }
@@ -518,12 +562,21 @@ sap.ui.define(
               _logError(`IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed`, e);
             }
             this.PopupDestroy();
-            this.eB(['SAVE'], image);
+            // Skip the SAVE roundtrip if we couldn't extract the image — sending undefined
+            // would silently overwrite the backend image with null
+            if (image !== undefined) this.eB(['SAVE'], image);
             break;
           }
           case 'Z2UI5':
             try {
-              z2ui5[args[1]]?.(args.slice(2));
+              const fnName = args[1];
+              // Restrict to own callable properties to block prototype-pollution paths like
+              // '__proto__', 'constructor', 'hasOwnProperty', etc.
+              if (typeof fnName !== 'string' || !Object.hasOwn(z2ui5, fnName) || typeof z2ui5[fnName] !== 'function') {
+                _logError(`Z2UI5: '${fnName}' is not a callable own property of z2ui5`);
+                break;
+              }
+              z2ui5[fnName](args.slice(2));
             } catch (e) {
               _logError(`Z2UI5: '${args[1]}' failed`, e);
             }
@@ -625,7 +678,12 @@ sap.ui.define(
             closeOnNavigation: !!msg.CLOSEONNAVIGATION,
             ...(msg.ICON && msg.ICON !== 'NONE' && { icon: msg.ICON }),
           };
-          MessageBox[msg.TYPE]?.(msg.TEXT, oParams);
+          // Whitelist guard: prevents prototype-pollution dispatch (e.g. msg.TYPE === '__proto__')
+          if (typeof msg.TYPE === 'string' && _MSG_BOX_TYPES.has(msg.TYPE) && typeof MessageBox[msg.TYPE] === 'function') {
+            MessageBox[msg.TYPE](msg.TEXT, oParams);
+          } else {
+            _logError(`showMessage: unsupported MessageBox type '${msg.TYPE}'`);
+          }
         }
       },
       async displayView(xml, viewModel) {

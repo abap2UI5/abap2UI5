@@ -2,6 +2,13 @@ sap.ui.define(
   ['sap/ui/core/UIComponent', 'z2ui5/model/models', 'z2ui5/cc/Server', 'sap/ui/VersionInfo', 'z2ui5/cc/DebugTool'],
   (UIComponent, Models, Server, VersionInfo, DebugTool) => {
     'use strict';
+
+    const _logError = (message, error) => {
+      const entry = { message, ts: new Date().toISOString() };
+      if (error !== undefined) entry.error = error;
+      (z2ui5.errors ??= []).push(entry);
+    };
+
     return UIComponent.extend('z2ui5.Component', {
       metadata: {
         manifest: 'json',
@@ -14,7 +21,7 @@ sap.ui.define(
 
         if (typeof z2ui5 === 'undefined') z2ui5 = {};
         if (z2ui5.checkLocal === false) z2ui5 = {};
-        if (typeof z2ui5.oConfig === 'undefined') z2ui5.oConfig = {};
+        z2ui5.oConfig ??= {};
         z2ui5.oDeviceModel = Models.createDeviceModel();
         this.setModel(z2ui5.oDeviceModel, 'device');
 
@@ -24,7 +31,9 @@ sap.ui.define(
         this._initVersionInfo();
 
         this._boundUnload = this._onUnload.bind(this);
-        this._unloadEvent = /iPad|iPhone/.test(navigator.userAgent) ? 'pagehide' : 'beforeunload';
+        // pagehide fires on every browser; beforeunload does not on iOS Safari.
+        // Feature-detect rather than UA-sniff.
+        this._unloadEvent = 'onpagehide' in window ? 'pagehide' : 'beforeunload';
         window.addEventListener(this._unloadEvent, this._boundUnload);
 
         this._boundKeydown = (zEvent) => {
@@ -36,18 +45,22 @@ sap.ui.define(
         document.addEventListener('keydown', this._boundKeydown);
 
         this._boundPopstate = (event) => {
-          delete event?.state?.response?.PARAMS?.SET_PUSH_STATE;
-          delete event?.state?.response?.PARAMS?.SET_APP_STATE_ACTIVE;
+          // Browser history state should be treated as read-only; drop the navigation flags
+          // by shallow-copying the response/PARAMS instead of mutating event.state in place.
+          const stateResponse = event?.state?.response;
+          if (stateResponse?.PARAMS) {
+            const {
+              SET_PUSH_STATE: _0,
+              SET_APP_STATE_ACTIVE: _1,
+              ...restParams
+            } = stateResponse.PARAMS;
+            z2ui5.oResponse = { ...stateResponse, PARAMS: restParams };
+          }
           if (event?.state?.view) {
             z2ui5.oController?.ViewDestroy();
-            z2ui5.oResponse = event.state.response;
-            z2ui5.oController?.displayView(event.state.view, event.state.model)?.catch((e) =>
-              (z2ui5.errors ??= []).push({
-                message: `popstate: displayView failed`,
-                error: e,
-                ts: new Date().toISOString(),
-              }),
-            );
+            z2ui5.oController
+              ?.displayView(event.state.view, event.state.model)
+              ?.catch((e) => _logError(`popstate: displayView failed`, e));
           }
         };
         window.addEventListener('popstate', this._boundPopstate);
@@ -58,8 +71,6 @@ sap.ui.define(
       },
 
       _initLaunchpad() {
-        const logErr = (message, error) =>
-          (z2ui5.errors ??= []).push({ message, error, ts: new Date().toISOString() });
         const Container = sap.ui.require('sap/ushell/Container');
         if (!Container) return;
         const launchpad = { Container };
@@ -68,18 +79,18 @@ sap.ui.define(
           .then((s) => {
             launchpad.ShellUIService = s;
           })
-          .catch((e) => logErr(`Component: ShellUIService init failed`, e));
+          .catch((e) => _logError(`Component: ShellUIService init failed`, e));
         Container.getServiceAsync('CrossApplicationNavigation')
           .then((s) => {
             launchpad.CrossAppNavigator = s;
           })
-          .catch((e) => logErr(`Component: CrossApplicationNavigation init failed`, e));
+          .catch((e) => _logError(`Component: CrossApplicationNavigation init failed`, e));
         sap.ui.require(
           ['sap/ushell/services/AppConfiguration'],
           (ac) => {
             launchpad.AppConfiguration = ac;
           },
-          (e) => logErr(`Component: AppConfiguration init failed`, e),
+          (e) => _logError(`Component: AppConfiguration init failed`, e),
         );
       },
 
@@ -88,16 +99,13 @@ sap.ui.define(
           const { version, buildTimestamp, gav } = await VersionInfo.load();
           if (!this.isDestroyed()) z2ui5.oConfig.UI5VersionInfo = { version, buildTimestamp, gav };
         } catch (e) {
-          (z2ui5.errors ??= []).push({
-            message: `Component: VersionInfo load failed`,
-            error: e,
-            ts: new Date().toISOString(),
-          });
+          _logError(`Component: VersionInfo load failed`, e);
         }
       },
 
       _onUnload() {
         window.removeEventListener(this._unloadEvent, this._boundUnload);
+        // destroy() triggers exit() which removes the remaining listeners and ends the session
         this.destroy();
       },
 
@@ -105,6 +113,8 @@ sap.ui.define(
         window.removeEventListener(this._unloadEvent, this._boundUnload);
         document.removeEventListener('keydown', this._boundKeydown);
         window.removeEventListener('popstate', this._boundPopstate);
+        z2ui5.debugTool?.destroy?.();
+        z2ui5.debugTool = null;
         Server.endSession();
         UIComponent.prototype.exit?.call(this);
       },

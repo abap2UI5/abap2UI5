@@ -68,8 +68,8 @@
       "compact": true,
       "cozy": true
     },
-    "services": {                                                                                                                                                                                                                                              
-      "ShellUIService": {                                                                                                                                                                                                                                      
+    "services": {
+      "ShellUIService": {
         "factoryName": "sap.ushell.ui5service.ShellUIService",
         "lazy": true
       }

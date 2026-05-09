@@ -102,9 +102,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      clearTimeout(this._timerId);` && |\n| &&
              `      this._timerId = setTimeout(() => {` && |\n| &&
              `        if (this.isDestroyed()) return;` && |\n| &&
-             `        if (!this.getProperty('checkRepeat')) this.setProperty('checkActive', false, true);` && |\n| &&
+             `        const checkRepeat = this.getProperty('checkRepeat');` && |\n| &&
+             `        if (!checkRepeat) this.setProperty('checkActive', false, true);` && |\n| &&
              `        this.fireFinished();` && |\n| &&
-             `        if (this.getProperty('checkRepeat') && !this.isDestroyed()) this.delayedCall();` && |\n| &&
+             `        if (checkRepeat && !this.isDestroyed()) this.delayedCall();` && |\n| &&
              `      }, this.getProperty('delayMS'));` && |\n| &&
              `    },` && |\n| &&
              `    renderer: {` && |\n| &&
@@ -417,9 +418,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        _logError(``Scrolling.onAfterRendering: failed``, e);` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
-             `` && |\n| &&
              |\n|.
     result = result &&
+             `` && |\n| &&
              `    renderer: {` && |\n| &&
              `      apiVersion: 2,` && |\n| &&
              `      render(oRm, oControl) {` && |\n| &&
@@ -491,12 +492,13 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          const deviceData = z2ui5.oView?.getModel('device')?.getData();` && |\n| &&
              `          if (!deviceData) return;` && |\n| &&
              `          const { system, resize, os, browser } = deviceData;` && |\n| &&
+             `          // sap.ui.Device.system has no standard 'combi' property — guard with ?? ''` && |\n| &&
              `          for (const [prop, val] of [` && |\n| &&
              `            ['ui5_version', z2ui5.oConfig?.UI5VersionInfo?.version],` && |\n| &&
              `            ['device_phone', system.phone],` && |\n| &&
              `            ['device_desktop', system.desktop],` && |\n| &&
              `            ['device_tablet', system.tablet],` && |\n| &&
-             `            ['device_combi', system.combi],` && |\n| &&
+             `            ['device_combi', system.combi ?? ''],` && |\n| &&
              `            ['device_height', resize.height],` && |\n| &&
              `            ['device_width', resize.width],` && |\n| &&
              `            ['device_os', os.name],` && |\n| &&
@@ -818,10 +820,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            },` && |\n| &&
              `          });` && |\n| &&
              `` && |\n| &&
-             `          oControl._oHBox = new HBox().addItem(oControl.oFileUploader);` && |\n| &&
-             `          if (oControl.oUploadButton) oControl._oHBox.addItem(oControl.oUploadButton);` && |\n| &&
              |\n|.
     result = result &&
+             `          oControl._oHBox = new HBox().addItem(oControl.oFileUploader);` && |\n| &&
+             `          if (oControl.oUploadButton) oControl._oHBox.addItem(oControl.oUploadButton);` && |\n| &&
              `          oRm.renderControl(oControl._oHBox);` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
@@ -862,10 +864,21 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `    init() {` && |\n| &&
              `      this._setControlBound = this.setControl.bind(this);` && |\n| &&
+             `      this._tokenUpdateBound = this.onTokenUpdate.bind(this);` && |\n| &&
              `      (z2ui5.onAfterRendering ??= []).push(this._setControlBound);` && |\n| &&
              `    },` && |\n| &&
              `    exit() {` && |\n| &&
              `      z2ui5.onAfterRendering = (z2ui5.onAfterRendering ?? []).filter((fn) => fn !== this._setControlBound);` && |\n| &&
+             `      // Detach from the host MultiInput if it is still alive — avoids leaking` && |\n| &&
+             `      // a bound onTokenUpdate handler when the table outlives this control.` && |\n| &&
+             `      if (this._attachedTable && !this._attachedTable.bIsDestroyed) {` && |\n| &&
+             `        try {` && |\n| &&
+             `          this._attachedTable.detachTokenUpdate(this._tokenUpdateBound);` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          _logError(``MultiInputExt.exit: detachTokenUpdate failed``, e);` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `      this._attachedTable = null;` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    onTokenUpdate(oEvent) {` && |\n| &&
@@ -885,8 +898,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      if (!table || this.getProperty('checkInit')) return;` && |\n| &&
              `      this.setProperty('checkInit', true);` && |\n| &&
              `      try {` && |\n| &&
-             `        table.attachTokenUpdate(this.onTokenUpdate.bind(this));` && |\n| &&
+             `        table.attachTokenUpdate(this._tokenUpdateBound);` && |\n| &&
              `        table.addValidator(({ text }) => new Token({ key: text, text }));` && |\n| &&
+             `        this._attachedTable = table;` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        _logError(``MultiInputExt.setControl: setup failed``, e);` && |\n| &&
              `      }` && |\n| &&
@@ -928,6 +942,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `    init() {` && |\n| &&
              `      this._setControlBound = this.setControl.bind(this);` && |\n| &&
+             `      this._tokenUpdateBound = this.onTokenUpdate.bind(this);` && |\n| &&
+             `      this._innerControlsCreatedBound = this.onInnerControlsCreated.bind(this);` && |\n| &&
              `      this._oInput = null;` && |\n| &&
              `      this._oPendingInnerControlsCreated = null;` && |\n| &&
              `      this._bInnerControlsCreated = false;` && |\n| &&
@@ -937,6 +953,15 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      z2ui5.onAfterRendering = (z2ui5.onAfterRendering ?? []).filter((fn) => fn !== this._setControlBound);` && |\n| &&
              `      this._oPendingInnerControlsCreated?.(null);` && |\n| &&
              `      this._oPendingInnerControlsCreated = null;` && |\n| &&
+             `      if (this._attachedInput && !this._attachedInput.bIsDestroyed) {` && |\n| &&
+             `        try {` && |\n| &&
+             `          this._attachedInput.detachTokenUpdate(this._tokenUpdateBound);` && |\n| &&
+             `          this._attachedInput.detachInnerControlsCreated?.(this._innerControlsCreatedBound);` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          _logError(``SmartMultiInputExt.exit: detach failed``, e);` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `      this._attachedInput = null;` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    onTokenUpdate(oEvent) {` && |\n| &&
@@ -993,8 +1018,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      if (!input || this.getProperty('checkInit')) return;` && |\n| &&
              `      this.setProperty('checkInit', true);` && |\n| &&
              `      try {` && |\n| &&
-             `        input.attachTokenUpdate(this.onTokenUpdate.bind(this));` && |\n| &&
-             `        input.attachInnerControlsCreated(this.onInnerControlsCreated.bind(this));` && |\n| &&
+             `        input.attachTokenUpdate(this._tokenUpdateBound);` && |\n| &&
+             `        input.attachInnerControlsCreated(this._innerControlsCreatedBound);` && |\n| &&
+             `        this._attachedInput = input;` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        _logError(``SmartMultiInputExt.setControl: setup failed``, e);` && |\n| &&
              `      }` && |\n| &&
@@ -1196,6 +1222,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `sap.ui.define('z2ui5/UITableExt', ['sap/ui/core/Control'], (Control) => {` && |\n| &&
              `  'use strict';` && |\n| &&
              `` && |\n| &&
+             |\n|.
+    result = result &&
              `  const opSymbols = { EQ: '', NE: '!', LT: '<', LE: '<=', GT: '>', GE: '>=' };` && |\n| &&
              `  const filterDisplayFns = {` && |\n| &&
              `    Contains: (v) => ``*${v ?? ''}*``,` && |\n| &&
@@ -1222,8 +1250,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        this.setSort();` && |\n| &&
              `      };` && |\n| &&
              `      (z2ui5.onBeforeRoundtrip ??= []).push(this._beforeBound);` && |\n| &&
-             |\n|.
-    result = result &&
              `      (z2ui5.onAfterRoundtrip ??= []).push(this._afterBound);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
@@ -1334,7 +1360,12 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `sap.ui.define('z2ui5/Util', [], () => {` && |\n| &&
              `  'use strict';` && |\n| &&
-             `  const parseDmy = (d) => [+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8)];` && |\n| &&
+             `  // ABAP DATS is YYYYMMDD (8 chars). Returns NaN tuple for malformed input` && |\n| &&
+             `  // so the resulting Date is a well-defined "Invalid Date" rather than a silent default.` && |\n| &&
+             `  const parseDmy = (d) => {` && |\n| &&
+             `    if (typeof d !== 'string' || d.length < 8) return [NaN, NaN, NaN];` && |\n| &&
+             `    return [+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8)];` && |\n| &&
+             `  };` && |\n| &&
              `  return {` && |\n| &&
              `    DateCreateObject: (s) => new Date(s),` && |\n| &&
              `    DateAbapDateToDateObject: (d) => new Date(...parseDmy(d)),` && |\n| &&
@@ -1356,11 +1387,12 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n| &&
              `    setFavicon(val) {` && |\n| &&
              `      this.setProperty('favicon', val);` && |\n| &&
-             `      const existing = document.head.querySelector('link[rel="shortcut icon"]');` && |\n| &&
+             `      // rel~="icon" matches both the legacy "shortcut icon" and the standard "icon"` && |\n| &&
+             `      const existing = document.head.querySelector('link[rel~="icon"]');` && |\n| &&
              `      if (existing) {` && |\n| &&
              `        existing.href = val;` && |\n| &&
              `      } else {` && |\n| &&
-             `        document.head.appendChild(Object.assign(document.createElement('link'), { rel: 'shortcut icon', href: val }));` && |\n| &&
+             `        document.head.appendChild(Object.assign(document.createElement('link'), { rel: 'icon', href: val }));` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
              `    renderer: { apiVersion: 2, render() {} },` && |\n| &&
@@ -1378,15 +1410,26 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        },` && |\n| &&
              `      },` && |\n| &&
              `    },` && |\n| &&
+             `    init() {` && |\n| &&
+             `      // Single handler instance kept on the control so add/removeEventListener match` && |\n| &&
+             `      this._beforeUnloadHandler = (e) => {` && |\n| &&
+             `        e.preventDefault();` && |\n| &&
+             `        e.returnValue = '';` && |\n| &&
+             `      };` && |\n| &&
+             `      this._beforeUnloadAttached = false;` && |\n| &&
+             `    },` && |\n| &&
              `    setIsDirty(val) {` && |\n| &&
              `      this.setProperty('isDirty', val);` && |\n| &&
              `      const fallback = () => {` && |\n| &&
-             `        window.onbeforeunload = val` && |\n| &&
-             `          ? (e) => {` && |\n| &&
-             `              e.preventDefault();` && |\n| &&
-             `              e.returnValue = '';` && |\n| &&
-             `            }` && |\n| &&
-             `          : null;` && |\n| &&
+             `        // Use addEventListener instead of overwriting window.onbeforeunload so we don't` && |\n| &&
+             `        // clobber handlers that the host (FLP, embedding app) may have registered.` && |\n| &&
+             `        if (val && !this._beforeUnloadAttached) {` && |\n| &&
+             `          window.addEventListener('beforeunload', this._beforeUnloadHandler);` && |\n| &&
+             `          this._beforeUnloadAttached = true;` && |\n| &&
+             `        } else if (!val && this._beforeUnloadAttached) {` && |\n| &&
+             `          window.removeEventListener('beforeunload', this._beforeUnloadHandler);` && |\n| &&
+             `          this._beforeUnloadAttached = false;` && |\n| &&
+             `        }` && |\n| &&
              `      };` && |\n| &&
              `` && |\n| &&
              `      // use FLP dirty flag (SAPUI5 only) when in Launchpad, else fall back to browser unload` && |\n| &&
@@ -1402,7 +1445,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    },` && |\n| &&
              `    exit() {` && |\n| &&
-             `      window.onbeforeunload = null;` && |\n| &&
+             `      if (this._beforeUnloadAttached) {` && |\n| &&
+             `        window.removeEventListener('beforeunload', this._beforeUnloadHandler);` && |\n| &&
+             `        this._beforeUnloadAttached = false;` && |\n| &&
+             `      }` && |\n| &&
              `    },` && |\n| &&
              `    renderer: { apiVersion: 2, render() {} },` && |\n| &&
              `  });` && |\n| &&
