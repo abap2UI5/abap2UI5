@@ -1,18 +1,9 @@
 sap.ui.define(
-  ['sap/ui/core/Control', 'sap/ui/core/Fragment', 'sap/ui/model/json/JSONModel'],
-  (Control, Fragment, JSONModel) => {
+  ['sap/ui/core/Control', 'sap/ui/core/Fragment', 'sap/ui/model/json/JSONModel', 'z2ui5/cc/Util'],
+  (Control, Fragment, JSONModel, Util) => {
     'use strict';
 
-    const _ERRORS_CAP = 200;
-    const _logError = (message, error) => {
-      const entry = { message, ts: new Date().toISOString() };
-      if (error !== undefined) entry.error = error;
-      // Defensive: re-create z2ui5.errors if it has been clobbered with a non-array
-      if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];
-      const arr = z2ui5.errors;
-      arr.push(entry);
-      if (arr.length > _ERRORS_CAP) arr.splice(0, arr.length - _ERRORS_CAP);
-    };
+    const { logError: _logError, getViewContent } = Util;
 
     const toJson = (val) => JSON.stringify(val ?? null, null, 3);
 
@@ -61,9 +52,7 @@ sap.ui.define(
       }
     };
 
-    // getViewContent uses the public API when available and falls back to mProperties.viewContent
-    // (UI5 internal) for older versions that do not expose a getter
-    const getViewContent = (view) => view?.getViewContent?.() ?? view?.mProperties?.viewContent;
+    // getViewContent comes from z2ui5/cc/Util (public-API + mProperties fallback).
     // _xContent is a UI5-internal property holding the raw post-templating XML; there is no
     // public equivalent for the rendered (post-template) view source, so we accept the lookup.
     const getRenderedContent = (view) => view?._xContent?.outerHTML;

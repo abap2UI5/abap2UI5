@@ -15,6 +15,7 @@ sap.ui.define(
     'sap/ui/core/routing/HashChanger',
     'sap/ui/util/Storage',
     'sap/ui/core/Element',
+    'z2ui5/cc/Util',
   ],
   (
     Controller,
@@ -32,20 +33,11 @@ sap.ui.define(
     HashChanger,
     Storage,
     Element,
+    Util,
   ) => {
     'use strict';
 
-    const runCallbacks = (arr, ...args) => {
-      // Guard: someone may have clobbered the global with a non-iterable
-      if (!Array.isArray(arr)) return;
-      for (const fn of arr) {
-        try {
-          fn?.(...args);
-        } catch (e) {
-          _logError(`runCallbacks: callback failed`, e);
-        }
-      }
-    };
+    const { logError: _logError, runCallbacks, getViewContent: _getViewContent } = Util;
 
     const _msgParser = new DOMParser();
     const _sanitizeEl = document.createElement('div');
@@ -62,31 +54,14 @@ sap.ui.define(
     const _TOAST_DEFAULT_WIDTH = '15em';
     const _TOAST_DEFAULT_DURATION_MS = 3000;
     const _TOAST_DEFAULT_ANIM_MS = 1000;
-    const _ERRORS_CAP = 200;
     // Safety net: if a Dialog.afterClose never fires (stuck), still destroy after this many ms
     const _DESTROY_SAFETY_NET_MS = 1000;
-
-    // Public getViewContent() became available in newer UI5 versions; fall back to the internal
-    // mProperties.viewContent for older versions
-    const _getViewContent = (view) => view?.getViewContent?.() ?? view?.mProperties?.viewContent;
 
     // Whitelist of MessageBox functions we accept from the backend — guards against
     // prototype-pollution (e.g. msg.TYPE === '__proto__') and unintended dispatch.
     const _MSG_BOX_TYPES = new Set(['error', 'success', 'warning', 'information', 'show', 'alert', 'confirm']);
 
     const _SAFE_PROTOCOLS = new Set(['http:', 'https:']);
-    const _logError = (msg, err) => {
-      // Defensive: if z2ui5.errors got clobbered with a non-array, reset it
-      if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];
-      const arr = z2ui5.errors;
-      arr.push({
-        message: msg,
-        ...(err !== undefined && { error: err }),
-        ts: new Date().toISOString(),
-      });
-      // Single splice trims any overflow in one shot (cap the rolling log)
-      if (arr.length > _ERRORS_CAP) arr.splice(0, arr.length - _ERRORS_CAP);
-    };
 
     const isValidRedirectURL = (url) => {
       if (!url) return false;

@@ -1,5 +1,9 @@
-sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator, MessageBox) => {
+sap.ui.define(
+  ['sap/ui/core/BusyIndicator', 'sap/m/MessageBox', 'z2ui5/cc/Util'],
+  (BusyIndicator, MessageBox, Util) => {
   'use strict';
+
+  const { logError: _logError } = Util;
 
   const ERROR_MAX_LENGTH = 50000;
   const DEFAULT_FETCH_TIMEOUT_MS = 600000;
@@ -13,18 +17,6 @@ sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator,
   const SAP_CONTEXTID_ACCEPT_VALUE = 'header';
   const SAP_CONTEXTID_HEADER = 'sap-contextid';
   const _MSG_TYPES = ['S_MSG_TOAST', 'S_MSG_BOX'];
-  const _ERRORS_CAP = 200;
-
-  const _logError = (message, error) => {
-    const entry = { message, ts: new Date().toISOString() };
-    if (error !== undefined) entry.error = error;
-    // Defensive: if z2ui5.errors got clobbered with a non-array, reset it
-    if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];
-    const arr = z2ui5.errors;
-    arr.push(entry);
-    // Single splice trims any overflow in one shot (O(n) shift loop replaced)
-    if (arr.length > _ERRORS_CAP) arr.splice(0, arr.length - _ERRORS_CAP);
-  };
 
   // Hoisted lookup table avoids re-allocating the object on every escape call
   const _ESCAPE_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };

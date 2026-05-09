@@ -35,6 +35,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    'sap/ui/core/routing/HashChanger',` && |\n| &&
              `    'sap/ui/util/Storage',` && |\n| &&
              `    'sap/ui/core/Element',` && |\n| &&
+             `    'z2ui5/cc/Util',` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    Controller,` && |\n| &&
@@ -52,20 +53,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    HashChanger,` && |\n| &&
              `    Storage,` && |\n| &&
              `    Element,` && |\n| &&
+             `    Util,` && |\n| &&
              `  ) => {` && |\n| &&
              `    'use strict';` && |\n| &&
              `` && |\n| &&
-             `    const runCallbacks = (arr, ...args) => {` && |\n| &&
-             `      // Guard: someone may have clobbered the global with a non-iterable` && |\n| &&
-             `      if (!Array.isArray(arr)) return;` && |\n| &&
-             `      for (const fn of arr) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          fn?.(...args);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          _logError(``runCallbacks: callback failed``, e);` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `    };` && |\n| &&
+             `    const { logError: _logError, runCallbacks, getViewContent: _getViewContent } = Util;` && |\n| &&
              `` && |\n| &&
              `    const _msgParser = new DOMParser();` && |\n| &&
              `    const _sanitizeEl = document.createElement('div');` && |\n| &&
@@ -82,31 +74,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    const _TOAST_DEFAULT_WIDTH = '15em';` && |\n| &&
              `    const _TOAST_DEFAULT_DURATION_MS = 3000;` && |\n| &&
              `    const _TOAST_DEFAULT_ANIM_MS = 1000;` && |\n| &&
-             `    const _ERRORS_CAP = 200;` && |\n| &&
              `    // Safety net: if a Dialog.afterClose never fires (stuck), still destroy after this many ms` && |\n| &&
              `    const _DESTROY_SAFETY_NET_MS = 1000;` && |\n| &&
-             `` && |\n| &&
-             `    // Public getViewContent() became available in newer UI5 versions; fall back to the internal` && |\n| &&
-             `    // mProperties.viewContent for older versions` && |\n| &&
-             `    const _getViewContent = (view) => view?.getViewContent?.() ?? view?.mProperties?.viewContent;` && |\n| &&
              `` && |\n| &&
              `    // Whitelist of MessageBox functions we accept from the backend — guards against` && |\n| &&
              `    // prototype-pollution (e.g. msg.TYPE === '__proto__') and unintended dispatch.` && |\n| &&
              `    const _MSG_BOX_TYPES = new Set(['error', 'success', 'warning', 'information', 'show', 'alert', 'confirm']);` && |\n| &&
              `` && |\n| &&
              `    const _SAFE_PROTOCOLS = new Set(['http:', 'https:']);` && |\n| &&
-             `    const _logError = (msg, err) => {` && |\n| &&
-             `      // Defensive: if z2ui5.errors got clobbered with a non-array, reset it` && |\n| &&
-             `      if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];` && |\n| &&
-             `      const arr = z2ui5.errors;` && |\n| &&
-             `      arr.push({` && |\n| &&
-             `        message: msg,` && |\n| &&
-             `        ...(err !== undefined && { error: err }),` && |\n| &&
-             `        ts: new Date().toISOString(),` && |\n| &&
-             `      });` && |\n| &&
-             `      // Single splice trims any overflow in one shot (cap the rolling log)` && |\n| &&
-             `      if (arr.length > _ERRORS_CAP) arr.splice(0, arr.length - _ERRORS_CAP);` && |\n| &&
-             `    };` && |\n| &&
              `` && |\n| &&
              `    const isValidRedirectURL = (url) => {` && |\n| &&
              `      if (!url) return false;` && |\n| &&
@@ -418,8 +393,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            definition: xml,` && |\n| &&
              `            controller: z2ui5.oControllerPopover,` && |\n| &&
              `            id: 'popoverId',` && |\n| &&
-             |\n|.
-    result = result &&
              `          });` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          oModel.destroy?.();` && |\n| &&
@@ -445,6 +418,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            oModel.destroy?.();` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
+             |\n|.
+    result = result &&
              `          oFragment.openBy(oControl);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          _logError(``displayPopover: failed``, e);` && |\n| &&
@@ -820,8 +795,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (typeof gav === 'string' && !gav.includes('com.sap.ui5')) {` && |\n| &&
              `          MessageBox.error(``openui5 SDK is loaded, module: ${err?._modules} is not available in openui5``);` && |\n| &&
              `          return;` && |\n| &&
-             |\n|.
-    result = result &&
              `        }` && |\n| &&
              `        MessageBox.error(err?.message ?? String(err));` && |\n| &&
              `      },` && |\n| &&
@@ -847,6 +820,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `              const toasts = document.querySelectorAll('.sapMMessageToast');` && |\n| &&
              `              const toast = toasts[toasts.length - 1];` && |\n| &&
              `              toast?.classList.add(...msg.CLASS.trim().split(/\s+/).filter(Boolean));` && |\n| &&
+             |\n|.
+    result = result &&
              `            } catch (e) {` && |\n| &&
              `              _logError(``showMessage: invalid toast CLASS '${msg.CLASS}'``, e);` && |\n| &&
              `            }` && |\n| &&

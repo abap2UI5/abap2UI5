@@ -18,28 +18,23 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `const _ERRORS_CAP = 200;` && |\n| &&
+    result = `// Thin top-level wrappers that delegate to the z2ui5/cc/Util AMD module.` && |\n| &&
+             `// We keep them at file-scope (rather than inside a single sap.ui.define) so the dozen` && |\n| &&
+             `// custom-control define blocks below can reference them without each pulling Util in.` && |\n| &&
+             `// ``sap.ui.require('z2ui5/cc/Util')`` is synchronous: by the time any of these wrappers` && |\n| &&
+             `// fires (always inside a runtime handler, never at parse-time) Component.js has long` && |\n| &&
+             `// since registered the Util module.` && |\n| &&
              `const _logError = (msg, err) => {` && |\n| &&
-             `  // Defensive: if z2ui5.errors got clobbered with a non-array, reset it` && |\n| &&
+             `  const u = sap.ui.require('z2ui5/cc/Util');` && |\n| &&
+             `  if (u) return u.logError(msg, err);` && |\n| &&
+             `  // Fallback if Util is not yet loaded — keep the error visible` && |\n| &&
              `  if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];` && |\n| &&
-             `  const arr = z2ui5.errors;` && |\n| &&
-             `  arr.push({ message: msg, ...(err !== undefined && { error: err }), ts: new Date().toISOString() });` && |\n| &&
-             `  // Single splice trims any overflow in one shot (cap the rolling log)` && |\n| &&
-             `  if (arr.length > _ERRORS_CAP) arr.splice(0, arr.length - _ERRORS_CAP);` && |\n| &&
+             `  const entry = { message: msg, ts: new Date().toISOString() };` && |\n| &&
+             `  if (err !== undefined) entry.error = err;` && |\n| &&
+             `  z2ui5.errors.push(entry);` && |\n| &&
              `};` && |\n| &&
-             `` && |\n| &&
-             `// Push a callback onto one of the z2ui5.onXxx arrays, recreating the array if the` && |\n| &&
-             `// global has been clobbered with a non-array (??= alone would not detect that).` && |\n| &&
-             `const _registerCallback = (key, fn) => {` && |\n| &&
-             `  if (!Array.isArray(z2ui5[key])) z2ui5[key] = [];` && |\n| &&
-             `  z2ui5[key].push(fn);` && |\n| &&
-             `};` && |\n| &&
-             `` && |\n| &&
-             `// Remove a callback from one of the z2ui5.onXxx arrays without crashing if the array` && |\n| &&
-             `// has been clobbered (filter would throw on non-arrays).` && |\n| &&
-             `const _unregisterCallback = (key, fn) => {` && |\n| &&
-             `  z2ui5[key] = Array.isArray(z2ui5[key]) ? z2ui5[key].filter((cb) => cb !== fn) : [];` && |\n| &&
-             `};` && |\n| &&
+             `const _registerCallback = (key, fn) => sap.ui.require('z2ui5/cc/Util')?.registerCallback(key, fn);` && |\n| &&
+             `const _unregisterCallback = (key, fn) => sap.ui.require('z2ui5/cc/Util')?.unregisterCallback(key, fn);` && |\n| &&
              `` && |\n| &&
              `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
@@ -418,13 +413,13 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             |\n|.
-    result = result &&
              `    setBackend() {` && |\n| &&
              `      const items = this.getProperty('items');` && |\n| &&
              `      if (!items) return;` && |\n| &&
              `      try {` && |\n| &&
              `        const bindingInfo = this.getBindingInfo('items');` && |\n| &&
+             |\n|.
+    result = result &&
              `        const bindingPath = bindingInfo?.parts?.[0]?.path ?? bindingInfo?.path;` && |\n| &&
              `        for (const [index, item] of items.entries()) {` && |\n| &&
              `          const scrollTop = this._getScrollTop(item);` && |\n| &&
@@ -820,13 +815,13 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          icon: {` && |\n| &&
              `            type: 'string',` && |\n| &&
              `            defaultValue: 'sap-icon://browse-folder',` && |\n| &&
-             |\n|.
-    result = result &&
              `          },` && |\n| &&
              `          iconOnly: {` && |\n| &&
              `            type: 'boolean',` && |\n| &&
              `            defaultValue: false,` && |\n| &&
              `          },` && |\n| &&
+             |\n|.
+    result = result &&
              `          buttonOnly: {` && |\n| &&
              `            type: 'boolean',` && |\n| &&
              `            defaultValue: false,` && |\n| &&
@@ -1222,13 +1217,13 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        this._stream = null;` && |\n| &&
              `        const video = document.getElementById(``${this.getId()}-video``);` && |\n| &&
              `        if (video) video.srcObject = null;` && |\n| &&
-             |\n|.
-    result = result &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onPicture() {` && |\n| &&
              `        if (this._oScanDialog?.isOpen()) return;` && |\n| &&
              `        if (!this._oScanDialog) {` && |\n| &&
+             |\n|.
+    result = result &&
              `          // i18n: title key "camera.title", capture key "camera.capture", cancel key "camera.cancel"` && |\n| &&
              `          this._oScanDialog = new Dialog({` && |\n| &&
              `            title: 'Device Photo Function',` && |\n| &&

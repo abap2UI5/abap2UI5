@@ -18,21 +18,71 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(` && |\n| &&
-             `  ['sap/ui/core/UIComponent', 'z2ui5/model/models', 'z2ui5/cc/Server', 'sap/ui/VersionInfo', 'z2ui5/cc/DebugTool'],` && |\n| &&
-             `  (UIComponent, Models, Server, VersionInfo, DebugTool) => {` && |\n| &&
+    result = `// Shared utility module — registered first so that consumers (Server, DebugTool,` && |\n| &&
+             `// View1.controller, App.controller) can declare 'z2ui5/cc/Util' as an AMD dependency.` && |\n| &&
+             `// Component.js is the entry point, so this define block is parsed before any other` && |\n| &&
+             `// abap2UI5 module is fetched, which guarantees the registry is populated in time.` && |\n| &&
+             `sap.ui.define('z2ui5/cc/Util', [], () => {` && |\n| &&
+             `  'use strict';` && |\n| &&
+             `` && |\n| &&
+             `  const ERRORS_CAP = 200;` && |\n| &&
+             `` && |\n| &&
+             `  const logError = (message, error) => {` && |\n| &&
+             `    const entry = { message, ts: new Date().toISOString() };` && |\n| &&
+             `    if (error !== undefined) entry.error = error;` && |\n| &&
+             `    // Defensive: re-create z2ui5.errors if it has been clobbered with a non-array` && |\n| &&
+             `    if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];` && |\n| &&
+             `    const arr = z2ui5.errors;` && |\n| &&
+             `    arr.push(entry);` && |\n| &&
+             `    // Single splice trims any overflow in one shot (cap the rolling log)` && |\n| &&
+             `    if (arr.length > ERRORS_CAP) arr.splice(0, arr.length - ERRORS_CAP);` && |\n| &&
+             `  };` && |\n| &&
+             `` && |\n| &&
+             `  // Push a callback onto one of the z2ui5.onXxx arrays, recreating the array if the` && |\n| &&
+             `  // global has been clobbered with a non-array (??= alone would not detect that).` && |\n| &&
+             `  const registerCallback = (key, fn) => {` && |\n| &&
+             `    if (!Array.isArray(z2ui5[key])) z2ui5[key] = [];` && |\n| &&
+             `    z2ui5[key].push(fn);` && |\n| &&
+             `  };` && |\n| &&
+             `` && |\n| &&
+             `  // Remove a callback without crashing if the array has been clobbered` && |\n| &&
+             `  const unregisterCallback = (key, fn) => {` && |\n| &&
+             `    z2ui5[key] = Array.isArray(z2ui5[key]) ? z2ui5[key].filter((cb) => cb !== fn) : [];` && |\n| &&
+             `  };` && |\n| &&
+             `` && |\n| &&
+             `  // Run each callback in ``arr`` with ``args``, swallowing per-callback errors so a single` && |\n| &&
+             `  // bad callback does not break the iteration over the rest.` && |\n| &&
+             `  const runCallbacks = (arr, ...args) => {` && |\n| &&
+             `    if (!Array.isArray(arr)) return;` && |\n| &&
+             `    for (const fn of arr) {` && |\n| &&
+             `      try {` && |\n| &&
+             `        fn?.(...args);` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        logError(``runCallbacks: callback failed``, e);` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `  };` && |\n| &&
+             `` && |\n| &&
+             `  // Public getViewContent() became available in newer UI5 versions; fall back to the` && |\n| &&
+             `  // internal mProperties.viewContent for older versions` && |\n| &&
+             `  const getViewContent = (view) => view?.getViewContent?.() ?? view?.mProperties?.viewContent;` && |\n| &&
+             `` && |\n| &&
+             `  return {` && |\n| &&
+             `    ERRORS_CAP,` && |\n| &&
+             `    logError,` && |\n| &&
+             `    registerCallback,` && |\n| &&
+             `    unregisterCallback,` && |\n| &&
+             `    runCallbacks,` && |\n| &&
+             `    getViewContent,` && |\n| &&
+             `  };` && |\n| &&
+             `});` && |\n| &&
+             `` && |\n| &&
+             `sap.ui.define(` && |\n| &&
+             `  ['sap/ui/core/UIComponent', 'z2ui5/model/models', 'z2ui5/cc/Server', 'sap/ui/VersionInfo', 'z2ui5/cc/DebugTool', 'z2ui5/cc/Util'],` && |\n| &&
+             `  (UIComponent, Models, Server, VersionInfo, DebugTool, Util) => {` && |\n| &&
              `    'use strict';` && |\n| &&
              `` && |\n| &&
-             `    const _ERRORS_CAP = 200;` && |\n| &&
-             `    const _logError = (message, error) => {` && |\n| &&
-             `      const entry = { message, ts: new Date().toISOString() };` && |\n| &&
-             `      if (error !== undefined) entry.error = error;` && |\n| &&
-             `      // Defensive: re-create z2ui5.errors if it has been clobbered with a non-array` && |\n| &&
-             `      if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];` && |\n| &&
-             `      const arr = z2ui5.errors;` && |\n| &&
-             `      arr.push(entry);` && |\n| &&
-             `      if (arr.length > _ERRORS_CAP) arr.splice(0, arr.length - _ERRORS_CAP);` && |\n| &&
-             `    };` && |\n| &&
+             `    const { logError: _logError } = Util;` && |\n| &&
              `` && |\n| &&
              `    return UIComponent.extend('z2ui5.Component', {` && |\n| &&
              `      metadata: {` && |\n| &&

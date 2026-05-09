@@ -1,18 +1,68 @@
+// Shared utility module — registered first so that consumers (Server, DebugTool,
+// View1.controller, App.controller) can declare 'z2ui5/cc/Util' as an AMD dependency.
+// Component.js is the entry point, so this define block is parsed before any other
+// abap2UI5 module is fetched, which guarantees the registry is populated in time.
+sap.ui.define('z2ui5/cc/Util', [], () => {
+  'use strict';
+
+  const ERRORS_CAP = 200;
+
+  const logError = (message, error) => {
+    const entry = { message, ts: new Date().toISOString() };
+    if (error !== undefined) entry.error = error;
+    // Defensive: re-create z2ui5.errors if it has been clobbered with a non-array
+    if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];
+    const arr = z2ui5.errors;
+    arr.push(entry);
+    // Single splice trims any overflow in one shot (cap the rolling log)
+    if (arr.length > ERRORS_CAP) arr.splice(0, arr.length - ERRORS_CAP);
+  };
+
+  // Push a callback onto one of the z2ui5.onXxx arrays, recreating the array if the
+  // global has been clobbered with a non-array (??= alone would not detect that).
+  const registerCallback = (key, fn) => {
+    if (!Array.isArray(z2ui5[key])) z2ui5[key] = [];
+    z2ui5[key].push(fn);
+  };
+
+  // Remove a callback without crashing if the array has been clobbered
+  const unregisterCallback = (key, fn) => {
+    z2ui5[key] = Array.isArray(z2ui5[key]) ? z2ui5[key].filter((cb) => cb !== fn) : [];
+  };
+
+  // Run each callback in `arr` with `args`, swallowing per-callback errors so a single
+  // bad callback does not break the iteration over the rest.
+  const runCallbacks = (arr, ...args) => {
+    if (!Array.isArray(arr)) return;
+    for (const fn of arr) {
+      try {
+        fn?.(...args);
+      } catch (e) {
+        logError(`runCallbacks: callback failed`, e);
+      }
+    }
+  };
+
+  // Public getViewContent() became available in newer UI5 versions; fall back to the
+  // internal mProperties.viewContent for older versions
+  const getViewContent = (view) => view?.getViewContent?.() ?? view?.mProperties?.viewContent;
+
+  return {
+    ERRORS_CAP,
+    logError,
+    registerCallback,
+    unregisterCallback,
+    runCallbacks,
+    getViewContent,
+  };
+});
+
 sap.ui.define(
-  ['sap/ui/core/UIComponent', 'z2ui5/model/models', 'z2ui5/cc/Server', 'sap/ui/VersionInfo', 'z2ui5/cc/DebugTool'],
-  (UIComponent, Models, Server, VersionInfo, DebugTool) => {
+  ['sap/ui/core/UIComponent', 'z2ui5/model/models', 'z2ui5/cc/Server', 'sap/ui/VersionInfo', 'z2ui5/cc/DebugTool', 'z2ui5/cc/Util'],
+  (UIComponent, Models, Server, VersionInfo, DebugTool, Util) => {
     'use strict';
 
-    const _ERRORS_CAP = 200;
-    const _logError = (message, error) => {
-      const entry = { message, ts: new Date().toISOString() };
-      if (error !== undefined) entry.error = error;
-      // Defensive: re-create z2ui5.errors if it has been clobbered with a non-array
-      if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];
-      const arr = z2ui5.errors;
-      arr.push(entry);
-      if (arr.length > _ERRORS_CAP) arr.splice(0, arr.length - _ERRORS_CAP);
-    };
+    const { logError: _logError } = Util;
 
     return UIComponent.extend('z2ui5.Component', {
       metadata: {

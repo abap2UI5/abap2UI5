@@ -18,8 +18,12 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(['sap/ui/core/BusyIndicator', 'sap/m/MessageBox'], (BusyIndicator, MessageBox) => {` && |\n| &&
+    result = `sap.ui.define(` && |\n| &&
+             `  ['sap/ui/core/BusyIndicator', 'sap/m/MessageBox', 'z2ui5/cc/Util'],` && |\n| &&
+             `  (BusyIndicator, MessageBox, Util) => {` && |\n| &&
              `  'use strict';` && |\n| &&
+             `` && |\n| &&
+             `  const { logError: _logError } = Util;` && |\n| &&
              `` && |\n| &&
              `  const ERROR_MAX_LENGTH = 50000;` && |\n| &&
              `  const DEFAULT_FETCH_TIMEOUT_MS = 600000;` && |\n| &&
@@ -33,18 +37,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `  const SAP_CONTEXTID_ACCEPT_VALUE = 'header';` && |\n| &&
              `  const SAP_CONTEXTID_HEADER = 'sap-contextid';` && |\n| &&
              `  const _MSG_TYPES = ['S_MSG_TOAST', 'S_MSG_BOX'];` && |\n| &&
-             `  const _ERRORS_CAP = 200;` && |\n| &&
-             `` && |\n| &&
-             `  const _logError = (message, error) => {` && |\n| &&
-             `    const entry = { message, ts: new Date().toISOString() };` && |\n| &&
-             `    if (error !== undefined) entry.error = error;` && |\n| &&
-             `    // Defensive: if z2ui5.errors got clobbered with a non-array, reset it` && |\n| &&
-             `    if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];` && |\n| &&
-             `    const arr = z2ui5.errors;` && |\n| &&
-             `    arr.push(entry);` && |\n| &&
-             `    // Single splice trims any overflow in one shot (O(n) shift loop replaced)` && |\n| &&
-             `    if (arr.length > _ERRORS_CAP) arr.splice(0, arr.length - _ERRORS_CAP);` && |\n| &&
-             `  };` && |\n| &&
              `` && |\n| &&
              `  // Hoisted lookup table avoids re-allocating the object on every escape call` && |\n| &&
              `  const _ESCAPE_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };` && |\n| &&

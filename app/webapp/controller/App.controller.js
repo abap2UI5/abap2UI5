@@ -1,25 +1,20 @@
-const _ERRORS_CAP = 200;
+// Thin top-level wrappers that delegate to the z2ui5/cc/Util AMD module.
+// We keep them at file-scope (rather than inside a single sap.ui.define) so the dozen
+// custom-control define blocks below can reference them without each pulling Util in.
+// `sap.ui.require('z2ui5/cc/Util')` is synchronous: by the time any of these wrappers
+// fires (always inside a runtime handler, never at parse-time) Component.js has long
+// since registered the Util module.
 const _logError = (msg, err) => {
-  // Defensive: if z2ui5.errors got clobbered with a non-array, reset it
+  const u = sap.ui.require('z2ui5/cc/Util');
+  if (u) return u.logError(msg, err);
+  // Fallback if Util is not yet loaded — keep the error visible
   if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];
-  const arr = z2ui5.errors;
-  arr.push({ message: msg, ...(err !== undefined && { error: err }), ts: new Date().toISOString() });
-  // Single splice trims any overflow in one shot (cap the rolling log)
-  if (arr.length > _ERRORS_CAP) arr.splice(0, arr.length - _ERRORS_CAP);
+  const entry = { message: msg, ts: new Date().toISOString() };
+  if (err !== undefined) entry.error = err;
+  z2ui5.errors.push(entry);
 };
-
-// Push a callback onto one of the z2ui5.onXxx arrays, recreating the array if the
-// global has been clobbered with a non-array (??= alone would not detect that).
-const _registerCallback = (key, fn) => {
-  if (!Array.isArray(z2ui5[key])) z2ui5[key] = [];
-  z2ui5[key].push(fn);
-};
-
-// Remove a callback from one of the z2ui5.onXxx arrays without crashing if the array
-// has been clobbered (filter would throw on non-arrays).
-const _unregisterCallback = (key, fn) => {
-  z2ui5[key] = Array.isArray(z2ui5[key]) ? z2ui5[key].filter((cb) => cb !== fn) : [];
-};
+const _registerCallback = (key, fn) => sap.ui.require('z2ui5/cc/Util')?.registerCallback(key, fn);
+const _unregisterCallback = (key, fn) => sap.ui.require('z2ui5/cc/Util')?.unregisterCallback(key, fn);
 
 sap.ui.define(
   [

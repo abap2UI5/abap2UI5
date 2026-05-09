@@ -19,20 +19,11 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ['sap/ui/core/Control', 'sap/ui/core/Fragment', 'sap/ui/model/json/JSONModel'],` && |\n| &&
-             `  (Control, Fragment, JSONModel) => {` && |\n| &&
+             `  ['sap/ui/core/Control', 'sap/ui/core/Fragment', 'sap/ui/model/json/JSONModel', 'z2ui5/cc/Util'],` && |\n| &&
+             `  (Control, Fragment, JSONModel, Util) => {` && |\n| &&
              `    'use strict';` && |\n| &&
              `` && |\n| &&
-             `    const _ERRORS_CAP = 200;` && |\n| &&
-             `    const _logError = (message, error) => {` && |\n| &&
-             `      const entry = { message, ts: new Date().toISOString() };` && |\n| &&
-             `      if (error !== undefined) entry.error = error;` && |\n| &&
-             `      // Defensive: re-create z2ui5.errors if it has been clobbered with a non-array` && |\n| &&
-             `      if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];` && |\n| &&
-             `      const arr = z2ui5.errors;` && |\n| &&
-             `      arr.push(entry);` && |\n| &&
-             `      if (arr.length > _ERRORS_CAP) arr.splice(0, arr.length - _ERRORS_CAP);` && |\n| &&
-             `    };` && |\n| &&
+             `    const { logError: _logError, getViewContent } = Util;` && |\n| &&
              `` && |\n| &&
              `    const toJson = (val) => JSON.stringify(val ?? null, null, 3);` && |\n| &&
              `` && |\n| &&
@@ -81,9 +72,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    // getViewContent uses the public API when available and falls back to mProperties.viewContent` && |\n| &&
-             `    // (UI5 internal) for older versions that do not expose a getter` && |\n| &&
-             `    const getViewContent = (view) => view?.getViewContent?.() ?? view?.mProperties?.viewContent;` && |\n| &&
+             `    // getViewContent comes from z2ui5/cc/Util (public-API + mProperties fallback).` && |\n| &&
              `    // _xContent is a UI5-internal property holding the raw post-templating XML; there is no` && |\n| &&
              `    // public equivalent for the rendered (post-template) view source, so we accept the lookup.` && |\n| &&
              `    const getRenderedContent = (view) => view?._xContent?.outerHTML;` && |\n| &&
