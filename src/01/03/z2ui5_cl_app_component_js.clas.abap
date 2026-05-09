@@ -78,8 +78,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _initLaunchpad() {` && |\n| &&
-             `        const logErr = (message, error) =>` && |\n| &&
-             `          (z2ui5.errors ??= []).push({ message, error, ts: new Date().toISOString() });` && |\n| &&
+             `        const logErr = (message, error) => (z2ui5.errors ??= []).push({ message, error, ts: new Date().toISOString() });` && |\n| &&
              `        const Container = sap.ui.require('sap/ushell/Container');` && |\n| &&
              `        if (!Container) return;` && |\n| &&
              `        const launchpad = { Container };` && |\n| &&
@@ -126,7 +125,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        document.removeEventListener('keydown', this._boundKeydown);` && |\n| &&
              `        window.removeEventListener('popstate', this._boundPopstate);` && |\n| &&
              `        Server.endSession();` && |\n| &&
-             `        UIComponent.prototype.exit.call(this);` && |\n| &&
+             `        UIComponent.prototype.exit?.call(this);` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
              `  },` && |\n| &&

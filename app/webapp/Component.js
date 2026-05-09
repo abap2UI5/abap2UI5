@@ -58,8 +58,7 @@ sap.ui.define(
       },
 
       _initLaunchpad() {
-        const logErr = (message, error) =>
-          (z2ui5.errors ??= []).push({ message, error, ts: new Date().toISOString() });
+        const logErr = (message, error) => (z2ui5.errors ??= []).push({ message, error, ts: new Date().toISOString() });
         const Container = sap.ui.require('sap/ushell/Container');
         if (!Container) return;
         const launchpad = { Container };
