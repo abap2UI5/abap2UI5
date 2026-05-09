@@ -106,7 +106,7 @@ sap.ui.define(
         document.removeEventListener('keydown', this._boundKeydown);
         window.removeEventListener('popstate', this._boundPopstate);
         Server.endSession();
-        UIComponent.prototype.exit.call(this);
+        UIComponent.prototype.exit?.call(this);
       },
     });
   },
