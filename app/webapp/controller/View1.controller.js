@@ -490,9 +490,11 @@ sap.ui.define(
         if (!view) return;
         z2ui5[prop] = null;
         let destroyed = false;
+        let safetyTimer = null;
         const closeAndDestroy = () => {
           if (destroyed) return;
           destroyed = true;
+          if (safetyTimer !== null) clearTimeout(safetyTimer);
           try {
             view.destroy();
           } catch (e) {
@@ -510,8 +512,9 @@ sap.ui.define(
             }
             if (typeof view.attachEventOnce === 'function' && typeof view.isOpen === 'function' && view.isOpen()) {
               view.attachEventOnce('afterClose', closeAndDestroy);
-              // Safety net: if afterClose never fires (e.g. dialog stuck), still destroy
-              setTimeout(closeAndDestroy, _DESTROY_SAFETY_NET_MS);
+              // Safety net: if afterClose never fires (e.g. dialog stuck), still destroy.
+              // The timer is cleared in closeAndDestroy so we don't keep an orphan callback.
+              safetyTimer = setTimeout(closeAndDestroy, _DESTROY_SAFETY_NET_MS);
               return;
             }
           } catch (e) {

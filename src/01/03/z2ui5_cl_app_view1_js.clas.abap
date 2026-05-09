@@ -512,9 +512,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (!view) return;` && |\n| &&
              `        z2ui5[prop] = null;` && |\n| &&
              `        let destroyed = false;` && |\n| &&
+             `        let safetyTimer = null;` && |\n| &&
              `        const closeAndDestroy = () => {` && |\n| &&
              `          if (destroyed) return;` && |\n| &&
              `          destroyed = true;` && |\n| &&
+             `          if (safetyTimer !== null) clearTimeout(safetyTimer);` && |\n| &&
              `          try {` && |\n| &&
              `            view.destroy();` && |\n| &&
              `          } catch (e) {` && |\n| &&
@@ -532,8 +534,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            }` && |\n| &&
              `            if (typeof view.attachEventOnce === 'function' && typeof view.isOpen === 'function' && view.isOpen()) {` && |\n| &&
              `              view.attachEventOnce('afterClose', closeAndDestroy);` && |\n| &&
-             `              // Safety net: if afterClose never fires (e.g. dialog stuck), still destroy` && |\n| &&
-             `              setTimeout(closeAndDestroy, _DESTROY_SAFETY_NET_MS);` && |\n| &&
+             `              // Safety net: if afterClose never fires (e.g. dialog stuck), still destroy.` && |\n| &&
+             `              // The timer is cleared in closeAndDestroy so we don't keep an orphan callback.` && |\n| &&
+             `              safetyTimer = setTimeout(closeAndDestroy, _DESTROY_SAFETY_NET_MS);` && |\n| &&
              `              return;` && |\n| &&
              `            }` && |\n| &&
              `          } catch (e) {` && |\n| &&
@@ -817,11 +820,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (typeof gav === 'string' && !gav.includes('com.sap.ui5')) {` && |\n| &&
              `          MessageBox.error(``openui5 SDK is loaded, module: ${err?._modules} is not available in openui5``);` && |\n| &&
              `          return;` && |\n| &&
+             |\n|.
+    result = result &&
              `        }` && |\n| &&
              `        MessageBox.error(err?.message ?? String(err));` && |\n| &&
              `      },` && |\n| &&
-             |\n|.
-    result = result &&
              `      showMessage(msgType, params) {` && |\n| &&
              `        if (!params) return;` && |\n| &&
              `        const msg = params[msgType];` && |\n| &&
