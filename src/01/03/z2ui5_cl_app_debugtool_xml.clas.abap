@@ -22,9 +22,9 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `    xmlns="sap.m"` &&
              `    xmlns:mvc="sap.ui.core.mvc"` &&
              `    xmlns:core="sap.ui.core"` &&
-             `    xmlns:html="http://www.w3.org/1999/xhtml"` &&
              `    xmlns:ce="sap.ui.codeeditor"` &&
              `>` &&
+             `    <!-- i18n: title key "debugTool.title" -->` &&
              `    <Dialog` &&
              `        title="abap2UI5 - DebugTool"` &&
              `        stretch="true"` &&
@@ -37,12 +37,10 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `                <IconTabFilter` &&
              `                    text="Config"` &&
              `                    key="CONFIG"` &&
-             `                    enabled="true"` &&
              `                />` &&
              `                <IconTabFilter` &&
              `                    text="Previous Request"` &&
              `                    key="REQUEST"` &&
-             `                    enabled="true"` &&
              `                />` &&
              `                <IconTabFilter` &&
              `                    text="Response"` &&
@@ -107,15 +105,16 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `            <ce:CodeEditor` &&
              `                type="{/type}"` &&
              `                value="{/value}"` &&
-             `                height="2000px"` &&
-             `                width="10000px"` &&
+             `                height="100%"` &&
+             `                width="100%"` &&
              `                visible="{/editor_visible}"` &&
              `            />` &&
              `        </VBox>` &&
              `        <VBox visible="{/source_visible}">` &&
-             `            <core:HTML/>` &&
+             `            <core:HTML content="{/xContent}"/>` &&
              `        </VBox>` &&
              `        <endButton>` &&
+             `            <!-- i18n: text key "debugTool.close" -->` &&
              `            <Button` &&
              `                text="Close"` &&
              `                press=".onClose"` &&
