@@ -1,11 +1,11 @@
-"! <p class="shorttext synchronized" lang="en">Fluent XML view builder for abap2UI5 (one method per UI5 control)</p>
+"! <p class="shorttext synchronized" lang="en">Fluent XML view builder for abap2UI5</p>
 "!
 "! Builder for SAPUI5 XML views. See CLAUDE.md and the project README for usage.
 "! Note: AI assistants should use the generic builder `z2ui5_cl_util_xml` instead - see project guidelines.
 CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
   PUBLIC SECTION.
-    "! <p class="shorttext synchronized" lang="en">Create a builder rooted in a `<View>` element with the standard sap.m / mvc namespaces</p>
+    "! <p class="shorttext synchronized" lang="en">factory - rooted in `<View>`</p>
     "!
     "! Use this when building a top-level view returned via `client->view_display( )`.
     "!
@@ -17,14 +17,14 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Create a builder without any pre-set root - caller adds the root element manually</p>
+    "! <p class="shorttext synchronized" lang="en">Create a builder without any pre-set root</p>
     "!
     "! @parameter result | New empty builder instance.
     CLASS-METHODS factory_plain
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Create a builder for a popup (no `<App>`/`<Page>` wrapper) - root is `<core:FragmentDefinition>` </p>
+    "! <p class="shorttext synchronized" lang="en">factory_popup - rooted in FragmentDefinition</p>
     "!
     "! Use this when building dialogs / popovers passed via `client->popup_display( )`.
     "!
@@ -36,10 +36,10 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Constructor (framework-internal) - prefer the `factory*` class methods</p>
+    "! <p class="shorttext synchronized" lang="en">Constructor</p>
     METHODS constructor.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.HorizontalLayout - lays out children in one row</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.layout.HorizontalLayout</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.layout.HorizontalLayout.
     "!
@@ -55,7 +55,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.core.Icon - icon font control</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.core.Icon</p>
     "!
     "! Renders an icon from one of the SAPUI5 icon fonts. See https://ui5.sap.com/#/api/sap.ui.core.Icon
     "!
@@ -99,7 +99,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.DynamicPage - page with collapsible header</p>
+    "! <p class="shorttext synchronized" lang="en">sap.f.DynamicPage</p>
     "!
     "! Page with title, snappable header, content and footer. See https://ui5.sap.com/#/api/sap.f.DynamicPage.
     "!
@@ -118,7 +118,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)            TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.DynamicPageTitle - title area for DynamicPage</p>
+    "! <p class="shorttext synchronized" lang="en">sap.f.DynamicPageTitle</p>
     "!
     "! Container for heading, content, actions, navigationActions, breadcrumbs and snapped/expanded slots.
     "! See https://ui5.sap.com/#/api/sap.f.DynamicPageTitle. Children are added via the matching aggregation methods.
@@ -126,7 +126,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.DynamicPageHeader - snappable header for DynamicPage</p>
+    "! <p class="shorttext synchronized" lang="en">sap.f.DynamicPageHeader</p>
     "!
     "! Snappable/expandable header. See https://ui5.sap.com/#/api/sap.f.DynamicPageHeader.
     "!
@@ -137,7 +137,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.core.HTML - embed raw HTML content</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.core.HTML</p>
     "!
     "! Embeds a string of HTML inside a UI5 view. See https://ui5.sap.com/#/api/sap.ui.core.HTML.
     "!
@@ -158,7 +158,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.IllustratedMessage - illustration with title and description</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.IllustratedMessage</p>
     "!
     "! Empty-state / error / success message with illustration, title and description.
     "! See https://ui5.sap.com/#/api/sap.m.IllustratedMessage.
@@ -180,7 +180,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)                TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.plugins.CellSelector - keyboard cell selection plugin for tables</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.plugins.CellSelector</p>
     "!
     "! Plugin enabling Excel-like keyboard cell selection. See https://ui5.sap.com/#/api/sap.m.plugins.CellSelector.
     METHODS p_cell_selector
@@ -189,7 +189,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.plugins.CopyProvider - clipboard copy plugin for tables</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.plugins.CopyProvider</p>
     "!
     "! Plugin that copies selected rows / cells to the clipboard. See https://ui5.sap.com/#/api/sap.m.plugins.CopyProvider.
     "!
@@ -203,12 +203,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `additionalContent` (used by IllustratedMessage et al.)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `additionalContent`</p>
     METHODS additional_content
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.FlexBox - CSS flexbox container</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.FlexBox</p>
     "!
     "! CSS flexbox layout container. See https://ui5.sap.com/#/api/sap.m.FlexBox.
     "!
@@ -246,7 +246,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Popover - small pop-up anchored to a control</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.Popover</p>
     "!
     "! Pop-up panel anchored to an opener control. See https://ui5.sap.com/#/api/sap.m.Popover.
     "!
@@ -298,7 +298,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.core.ListItem - simple list item with optional icon (extends sap.ui.core.Item)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.core.ListItem</p>
     "!
     "! Lightweight item used in ComboBox/Select/etc. See https://ui5.sap.com/#/api/sap.ui.core.ListItem.
     "!
@@ -319,7 +319,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.OverflowToolbarLayoutData - overflow behavior for OverflowToolbar children</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.OverflowToolbarLayoutData</p>
     "!
     "! Layout data attached to children of OverflowToolbar. See https://ui5.sap.com/#/api/sap.m.OverflowToolbarLayoutData.
     "!
@@ -334,7 +334,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)              TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Table - responsive table (extends sap.m.ListBase)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.Table</p>
     "!
     "! Responsive list-style table. See https://ui5.sap.com/#/api/sap.m.Table
     "! Many parameters are inherited from sap.m.ListBase (https://ui5.sap.com/#/api/sap.m.ListBase).
@@ -386,7 +386,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.table.AnalyticalTable - hierarchical/grouped grid table</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.table.AnalyticalTable</p>
     "!
     "! Grid table with built-in OData v2 grouping and aggregation. See https://ui5.sap.com/#/api/sap.ui.table.AnalyticalTable.
     "! Most properties (selectionMode, rowMode, toolbar, columns) are inherited from sap.ui.table.Table.
@@ -406,7 +406,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `rowMode` for sap.ui.table.Table</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `rowMode`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix (typically `t` for sap.ui.table).
     METHODS rowmode
@@ -415,7 +415,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Breadcrumbs - navigation path with separator</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.Breadcrumbs</p>
     "!
     "! Breadcrumb-style navigation path. See https://ui5.sap.com/#/api/sap.m.Breadcrumbs.
     "!
@@ -437,7 +437,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `currentLocation` (sap.m.Breadcrumbs)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `currentLocation`</p>
     "!
     "! @parameter ns   | (string) XML namespace prefix.
     "! @parameter link | (binding path) `sap.m.Link` placed in the current location slot.
@@ -448,7 +448,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ColorPalette - palette of predefined colors</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.ColorPalette</p>
     "!
     "! Picker for predefined colors. See https://ui5.sap.com/#/api/sap.m.ColorPalette.
     "!
@@ -461,7 +461,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.table.rowmodes.Auto - row mode auto-fitting visible row count to height</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.table.rowmodes.Auto</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Auto. Used inside `<rowMode>` of sap.ui.table.Table / AnalyticalTable.
     "!
@@ -474,7 +474,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.MessageStrip - inline notification banner</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.MessageStrip</p>
     "!
     "! Inline coloured notification strip. See https://ui5.sap.com/#/api/sap.m.MessageStrip.
     "!
@@ -500,7 +500,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `footer` (used by Page, Dialog, DynamicPage, ObjectPage etc.)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `footer`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix.
     METHODS footer
@@ -509,7 +509,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.MessagePage - DEPRECATED full-page message</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.MessagePage</p>
     "!
     "! DEPRECATED since 1.112 - replace with `sap.m.IllustratedMessage` (see method `illustrated_message`).
     "! See https://ui5.sap.com/#/api/sap.m.MessagePage.
@@ -529,7 +529,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.uxap.ObjectPageLayout - object page with anchor bar and sections</p>
+    "! <p class="shorttext synchronized" lang="en">sap.uxap.ObjectPageLayout</p>
     "!
     "! Object page layout with snappable header, anchor bar and sections/sub-sections. See https://ui5.sap.com/#/api/sap.uxap.ObjectPageLayout.
     "!
@@ -600,7 +600,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)                  TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.uxap.ObjectPageHeader - classic ObjectPage header title</p>
+    "! <p class="shorttext synchronized" lang="en">sap.uxap.ObjectPageHeader</p>
     "!
     "! Classic (snappable) header title for ObjectPageLayout. See https://ui5.sap.com/#/api/sap.uxap.ObjectPageHeader.
     "! For dynamic-page-style headers use `object_page_dyn_header_title` (sap.uxap.ObjectPageDynamicHeaderTitle).
@@ -656,7 +656,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.uxap.ObjectPageHeaderActionButton - action button in ObjectPageHeader</p>
+    "! <p class="shorttext synchronized" lang="en">sap.uxap.ObjectPageHeaderActionButton</p>
     "!
     "! Action button in the classic ObjectPageHeader actions area. Extends sap.m.Button.
     "! See https://ui5.sap.com/#/api/sap.uxap.ObjectPageHeaderActionButton.
@@ -696,7 +696,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.uxap.ObjectPageDynamicHeaderTitle - DynamicPage-style title for ObjectPage</p>
+    "! <p class="shorttext synchronized" lang="en">sap.uxap.ObjectPageDynamicHeaderTitle</p>
     "!
     "! Modern dynamic-style header title for ObjectPageLayout. See https://ui5.sap.com/#/api/sap.uxap.ObjectPageDynamicHeaderTitle.
     "! Children are added through `heading`, `expanded_heading`, `snapped_heading`, `actions`, `navigation_actions`, `breadcrumbs`, `expanded_content`, `snapped_content` and `snapped_title_on_mobile`.
@@ -704,7 +704,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.GenericTile - launchpad-style tile</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.GenericTile</p>
     "!
     "! Generic tile container (used in launchpads / dashboards). See https://ui5.sap.com/#/api/sap.m.GenericTile.
     "!
@@ -774,7 +774,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.NumericContent - numeric content for tiles</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.NumericContent</p>
     "!
     "! Numeric content rendered inside `TileContent` of `GenericTile`. See https://ui5.sap.com/#/api/sap.m.NumericContent.
     "!
@@ -819,7 +819,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.LinkTileContent - tile body containing a link</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.LinkTileContent</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.LinkTileContent.
     "!
@@ -836,7 +836,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ImageContent - image content for tiles</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.ImageContent</p>
     "!
     "! Image rendered inside `TileContent` of `GenericTile`. See https://ui5.sap.com/#/api/sap.m.ImageContent.
     "!
@@ -855,7 +855,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.TileContent - body of a GenericTile</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.TileContent</p>
     "!
     "! Container for tile body content. See https://ui5.sap.com/#/api/sap.m.TileContent.
     "!
@@ -886,17 +886,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `expandedHeading` (DynamicPageTitle / ObjectPageDynamicHeaderTitle)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `expandedHeading`</p>
     METHODS expanded_heading
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `snappedHeading` (DynamicPageTitle / ObjectPageDynamicHeaderTitle)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `snappedHeading`</p>
     METHODS snapped_heading
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `expandedContent` (DynamicPageTitle / ObjectPageDynamicHeaderTitle)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `expandedContent`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix (e.g. `f` for sap.f, `uxap` for sap.uxap).
     METHODS expanded_content
@@ -905,7 +905,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `snappedContent` (DynamicPageTitle / ObjectPageDynamicHeaderTitle)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `snappedContent`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix.
     METHODS snapped_content
@@ -914,7 +914,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `heading` (DynamicPageTitle / ObjectPageDynamicHeaderTitle)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `heading`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix.
     METHODS heading
@@ -923,7 +923,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `actions` (DynamicPageTitle, ObjectPageHeader, IconTabFilter, ToolHeader, ...)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `actions`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix.
     METHODS actions
@@ -932,12 +932,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `snappedTitleOnMobile` (DynamicPageTitle)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `snappedTitleOnMobile`</p>
     METHODS snapped_title_on_mobile
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `header` (used by many controls - sap.f.DynamicPage, sap.f.Card, ...)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `header`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix. Default: `f` (sap.f).
     METHODS header
@@ -946,12 +946,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `navigationActions` (DynamicPageTitle / ObjectPageDynamicHeaderTitle)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `navigationActions`</p>
     METHODS navigation_actions
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Avatar - circular/square avatar with image, icon or initials</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.Avatar</p>
     "!
     "! Avatar control. See https://ui5.sap.com/#/api/sap.m.Avatar.
     "!
@@ -1002,7 +1002,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.AvatarGroup - cluster of overlapping avatars</p>
+    "! <p class="shorttext synchronized" lang="en">sap.f.AvatarGroup</p>
     "!
     "! Avatar group rendered with `ns='f'`. See https://ui5.sap.com/#/api/sap.f.AvatarGroup.
     "!
@@ -1038,7 +1038,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.AvatarGroupItem - single avatar inside an AvatarGroup</p>
+    "! <p class="shorttext synchronized" lang="en">sap.f.AvatarGroupItem</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.f.AvatarGroupItem.
     "!
@@ -1066,17 +1066,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `headerTitle` (DynamicPage / ObjectPageLayout)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `headerTitle`</p>
     METHODS header_title
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `sections` (ObjectPageLayout)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `sections`</p>
     METHODS sections
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.uxap.ObjectPageSection - section inside ObjectPageLayout</p>
+    "! <p class="shorttext synchronized" lang="en">sap.uxap.ObjectPageSection</p>
     "!
     "! Section grouping sub-sections inside ObjectPageLayout. Inherits from sap.uxap.ObjectPageSectionBase.
     "! See https://ui5.sap.com/#/api/sap.uxap.ObjectPageSection.
@@ -1105,12 +1105,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `subSections` (ObjectPageSection)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `subSections`</p>
     METHODS sub_sections
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.uxap.ObjectPageSubSection - sub-section inside ObjectPageSection</p>
+    "! <p class="shorttext synchronized" lang="en">sap.uxap.ObjectPageSubSection</p>
     "!
     "! Sub-section containing actual content blocks. See https://ui5.sap.com/#/api/sap.uxap.ObjectPageSubSection.
     "!
@@ -1136,7 +1136,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Shell - app frame with optional title and logo</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.Shell</p>
     "!
     "! Shell wrapper that provides background, branding and optional width limitation. See https://ui5.sap.com/#/api/sap.m.Shell.
     "!
@@ -1149,7 +1149,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.ShellBar - top-level navigation/branding bar</p>
+    "! <p class="shorttext synchronized" lang="en">sap.f.ShellBar</p>
     "!
     "! Top-level shell/navigation bar. See https://ui5.sap.com/#/api/sap.f.ShellBar.
     "!
@@ -1196,17 +1196,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `blocks` (ObjectPageSubSection)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `blocks`</p>
     METHODS blocks
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `moreBlocks` (ObjectPageSubSection - shown when expanded)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `moreBlocks`</p>
     METHODS more_blocks
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `layoutData` - attaches layout-specific data to a control</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `layoutData`</p>
     "!
     "! Wrap the actual layout-data control (e.g. FlexItemData, GridData, OverflowToolbarLayoutData).
     "!
@@ -1217,7 +1217,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.FlexItemData - flex layout data for FlexBox children</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.FlexItemData</p>
     "!
     "! Layout data for children of `sap.m.FlexBox`. See https://ui5.sap.com/#/api/sap.m.FlexItemData.
     "!
@@ -1238,7 +1238,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.codeeditor.CodeEditor - syntax-highlighted code editor (ACE)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.codeeditor.CodeEditor</p>
     "!
     "! ACE-based code editor with syntax highlighting. See https://ui5.sap.com/#/api/sap.ui.codeeditor.CodeEditor.
     "!
@@ -1257,12 +1257,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `suggestionItems` (Input / MultiInput)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `suggestionItems`</p>
     METHODS suggestion_items
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.core.Item / sap.ui.core.ListItem (used as suggestion entry in Input)</p>
+    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.core.Item / sap.ui.core.ListItem</p>
     "!
     "! Lightweight item used inside `Input.suggestionItems`. See https://ui5.sap.com/#/api/sap.ui.core.ListItem.
     "!
@@ -1281,17 +1281,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `suggestionColumns` (Input - tabular suggestion layout)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `suggestionColumns`</p>
     METHODS suggestion_columns
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `suggestionRows` (Input - tabular suggestion data)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `suggestionRows`</p>
     METHODS suggestion_rows
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.VerticalLayout - lays out children in one column</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.layout.VerticalLayout</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.layout.VerticalLayout.
     "!
@@ -1309,7 +1309,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.MultiInput - input field with multiple value tokens (extends sap.m.Input)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.MultiInput</p>
     "!
     "! Input that displays accepted values as tokens. See https://ui5.sap.com/#/api/sap.m.MultiInput.
     "! Most properties are inherited from sap.m.Input / sap.m.InputBase.
@@ -1362,7 +1362,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `tokens` (MultiInput / Tokenizer)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `tokens`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix.
     METHODS tokens
@@ -1371,7 +1371,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Token - token used inside MultiInput / Tokenizer</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.Token</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.Token.
     "!
@@ -1390,7 +1390,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Input - single-line text input field</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.Input</p>
     "!
     "! Single-line input control with optional value help, suggestions and validation states.
     "! See https://ui5.sap.com/#/api/sap.m.Input. Inherits properties from sap.m.InputBase.
@@ -1474,7 +1474,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Dialog - modal/standalone dialog</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.Dialog</p>
     "!
     "! Modal dialog with header, content and buttons. See https://ui5.sap.com/#/api/sap.m.Dialog.
     "!
@@ -1522,7 +1522,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Carousel - paged carousel of pages</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.Carousel</p>
     "!
     "! Paged carousel. See https://ui5.sap.com/#/api/sap.m.Carousel.
     "!
@@ -1556,17 +1556,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `buttons` (Dialog, ActionSheet, ...)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `buttons`</p>
     METHODS buttons
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Builder helper - jump to the root element of the current XML tree</p>
+    "! <p class="shorttext synchronized" lang="en">Builder helper</p>
     METHODS get_root
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Builder helper - jump to the parent element of the current node</p>
+    "! <p class="shorttext synchronized" lang="en">Builder helper</p>
     METHODS get_parent
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -1589,7 +1589,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `columns` (Table, AnalyticalTable, ColumnListItem, ...)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `columns`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix.
     METHODS columns
@@ -1598,7 +1598,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.table.AnalyticalColumn - column definition for AnalyticalTable</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.table.AnalyticalColumn</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.table.AnalyticalColumn. Use the `column` builder for sap.m and `analytical_column` for AnalyticalTable.
     "!
@@ -1609,7 +1609,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Column - column definition for sap.m.Table</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.Column</p>
     "!
     "! Responsive table column. See https://ui5.sap.com/#/api/sap.m.Column.
     "!
@@ -1650,7 +1650,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `items` (List, Table, ComboBox, FlexBox, Carousel, ...)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `items`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix.
     METHODS items
@@ -1659,7 +1659,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.InteractiveDonutChart - interactive donut microchart</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.InteractiveDonutChart</p>
     "!
     "! Donut microchart with selectable segments. See https://ui5.sap.com/#/api/sap.suite.ui.microchart.InteractiveDonutChart.
     "!
@@ -1684,12 +1684,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `segments` (InteractiveDonutChart)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `segments`</p>
     METHODS segments
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.InteractiveDonutChartSegment - single segment</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.InteractiveDonutChartSegment</p>
     "!
     "! @parameter label          | (string) Segment label.
     "! @parameter value          | (float) Numeric value (sum of all segments = 100% of donut).
@@ -1706,7 +1706,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.InteractiveBarChart - interactive bar microchart</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.InteractiveBarChart</p>
     "!
     "! Horizontal bar microchart with selectable bars. See https://ui5.sap.com/#/api/sap.suite.ui.microchart.InteractiveBarChart.
     "!
@@ -1737,12 +1737,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `bars` (InteractiveBarChart)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `bars`</p>
     METHODS bars
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.InteractiveBarChartBar - single bar</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.InteractiveBarChartBar</p>
     "!
     "! @parameter label          | (string) Bar label.
     "! @parameter value          | (float) Numeric value.
@@ -1759,7 +1759,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.InteractiveLineChart - interactive line microchart</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.InteractiveLineChart</p>
     "!
     "! Line microchart with selectable points. See https://ui5.sap.com/#/api/sap.suite.ui.microchart.InteractiveLineChart.
     "!
@@ -1788,12 +1788,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `points` (InteractiveLineChart, ...)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `points`</p>
     METHODS points
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.InteractiveLineChartPoint - single point</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.InteractiveLineChartPoint</p>
     "!
     "! @parameter label          | (string) Primary label.
     "! @parameter value          | (float) Numeric value.
@@ -1810,7 +1810,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.RadialMicroChart - radial percentage indicator</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.RadialMicroChart</p>
     "!
     "! Radial / circular percentage micro chart. See https://ui5.sap.com/#/api/sap.suite.ui.microchart.RadialMicroChart.
     "!
@@ -1833,7 +1833,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ColumnListItem - row in sap.m.Table (extends ListItemBase)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.ColumnListItem</p>
     "!
     "! Row of a responsive table. See https://ui5.sap.com/#/api/sap.m.ColumnListItem.
     "! Most properties are inherited from sap.m.ListItemBase.
@@ -1866,7 +1866,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ActionListItem - simple text-only action row in a List</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.ActionListItem</p>
     "!
     "! Active list item rendering only a text. See https://ui5.sap.com/#/api/sap.m.ActionListItem.
     "!
@@ -1878,32 +1878,32 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `cells` (ColumnListItem)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `cells`</p>
     METHODS cells
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `bar` (Page header / footer slot for sap.m.Bar)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `bar`</p>
     METHODS bar
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `contentLeft` (sap.m.Bar)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `contentLeft`</p>
     METHODS content_left
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `contentMiddle` (sap.m.Bar)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `contentMiddle`</p>
     METHODS content_middle
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `contentRight` (sap.m.Bar)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `contentRight`</p>
     METHODS content_right
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `contentAreas` (Splitter)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `contentAreas`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix.
     METHODS content_areas
@@ -1912,7 +1912,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.mdc.Field - smart MDC field control</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.mdc.Field</p>
     "!
     "! Smart field that combines display / edit modes for a value. See https://ui5.sap.com/#/api/sap.ui.mdc.Field.
     "!
@@ -1930,12 +1930,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `customHeader` (Page, Dialog, ...)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `customHeader`</p>
     METHODS custom_header
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `headerContent` (Page, DynamicPageHeader, ObjectPageHeaderContent, ...)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `headerContent`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix.
     METHODS header_content
@@ -1944,7 +1944,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `subHeader` (Page)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `subHeader`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix.
     METHODS sub_header
@@ -1953,7 +1953,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `customData` - attaches sap.ui.core.CustomData to a control</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `customData`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix.
     METHODS custom_data
@@ -1962,7 +1962,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.core.CustomData - key/value pair attached to a control</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.core.CustomData</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.core.CustomData.
     "!
@@ -1977,7 +1977,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.BadgeCustomData - badge information attached as custom data</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.BadgeCustomData</p>
     "!
     "! Adds a numeric badge (e.g. notifications count) to compatible controls. See https://ui5.sap.com/#/api/sap.m.BadgeCustomData.
     "!
@@ -1992,7 +1992,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ToggleButton - two-state push button</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.ToggleButton</p>
     "!
     "! Push button that toggles between pressed and unpressed states. Extends sap.m.Button.
     "! See https://ui5.sap.com/#/api/sap.m.ToggleButton.
@@ -2016,7 +2016,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Button - clickable element triggering an action</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.Button</p>
     "!
     "! Standard push button. See https://ui5.sap.com/#/api/sap.m.Button.
     "!
@@ -2064,17 +2064,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `beginButton` (Dialog - left/start button)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `beginButton`</p>
     METHODS begin_button
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `endButton` (Dialog - right/end button)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `endButton`</p>
     METHODS end_button
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.SearchField - search input with magnifier and clear button</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.SearchField</p>
     "!
     "! Single-line search input. See https://ui5.sap.com/#/api/sap.m.SearchField.
     "!
@@ -2112,7 +2112,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.MessageView - list of messages with details navigation</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.MessageView</p>
     "!
     "! Reusable message viewer (used inside MessagePopover). See https://ui5.sap.com/#/api/sap.m.MessageView.
     "!
@@ -2125,7 +2125,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ndc.BarcodeScannerButton - mobile barcode scanner</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ndc.BarcodeScannerButton</p>
     "!
     "! Button that opens a camera-based barcode scanner. Requires the sap.ndc library and a camera-enabled device.
     "! See https://ui5.sap.com/#/api/sap.ndc.BarcodeScannerButton.
@@ -2158,7 +2158,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)             TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.MessagePopover - popover listing messages</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.MessagePopover</p>
     "!
     "! Popover with messages categorised by type. See https://ui5.sap.com/#/api/sap.m.MessagePopover.
     "!
@@ -2183,7 +2183,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.MessageItem - single message inside MessageView/MessagePopover</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.MessageItem</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.MessageItem.
     "!
@@ -2212,7 +2212,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Page - top-level page container with header / content / footer</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.Page</p>
     "!
     "! Page container with optional header, sub-header, content and footer areas.
     "! See https://ui5.sap.com/#/api/sap.m.Page.
@@ -2256,7 +2256,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.MenuButton - button that opens a menu</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.MenuButton</p>
     "!
     "! Button that opens a menu on click. See https://ui5.sap.com/#/api/sap.m.MenuButton.
     "!
@@ -2277,7 +2277,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Panel - collapsible content panel</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.Panel</p>
     "!
     "! Container with optional header and expand/collapse. See https://ui5.sap.com/#/api/sap.m.Panel.
     "!
@@ -2309,7 +2309,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.VBox - flex column box (FlexBox with direction=Column)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.VBox</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.VBox. All FlexBox properties are available.
     "!
@@ -2346,7 +2346,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.HBox - flex row box (FlexBox with direction=Row)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.HBox</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.HBox. All FlexBox properties are available.
     "!
@@ -2382,7 +2382,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ScrollContainer - container with internal scrollbars</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.ScrollContainer</p>
     "!
     "! Container that scrolls its content. See https://ui5.sap.com/#/api/sap.m.ScrollContainer.
     "!
@@ -2405,7 +2405,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.form.SimpleForm - simple form layout</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.layout.form.SimpleForm</p>
     "!
     "! Form layout that arranges labels and fields with responsive layout. See https://ui5.sap.com/#/api/sap.ui.layout.form.SimpleForm.
     "!
@@ -2466,7 +2466,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Framework helper - emit raw XML inside a custom-control wrapper</p>
+    "! <p class="shorttext synchronized" lang="en">Framework helper</p>
     "!
     "! @parameter val | (string) Raw XML content.
     METHODS _cc_plain_xml
@@ -2475,7 +2475,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `content` (Page, Panel, ScrollContainer, FlexBox, ...)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `content`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix.
     METHODS content
@@ -2484,7 +2484,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Title - heading text (or aggregation slot `title`)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.Title</p>
     "!
     "! Stand-alone heading text. See https://ui5.sap.com/#/api/sap.m.Title.
     "!
@@ -2517,14 +2517,14 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.TabContainer - tab container with closable tabs</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.TabContainer</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.TabContainer. Children are added through `tab`.
     METHODS tab_container
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.TabContainerItem - single tab inside a TabContainer</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.TabContainerItem</p>
     "!
     "! @parameter text     | (string) Tab title.
     "! @parameter selected | (boolean) Whether the tab is initially selected. Default: false.
@@ -2535,7 +2535,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.OverflowToolbar - toolbar with overflow handling</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.OverflowToolbar</p>
     "!
     "! Toolbar that automatically moves overflowing items into an overflow menu. See https://ui5.sap.com/#/api/sap.m.OverflowToolbar.
     "! Inherits most properties from sap.m.Toolbar.
@@ -2570,7 +2570,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.OverflowToolbarToggleButton - ToggleButton variant for OverflowToolbar</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.OverflowToolbarToggleButton</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.OverflowToolbarToggleButton. Inherits from sap.m.ToggleButton.
     "!
@@ -2591,7 +2591,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.OverflowToolbarButton - Button variant tuned for OverflowToolbar</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.OverflowToolbarButton</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.OverflowToolbarButton. Inherits from sap.m.Button.
     "!
@@ -2613,7 +2613,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.OverflowToolbarMenuButton - MenuButton variant for OverflowToolbar</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.OverflowToolbarMenuButton</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.OverflowToolbarMenuButton. Inherits from sap.m.MenuButton.
     "!
@@ -2636,7 +2636,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.MenuItem - menu entry inside a Menu / MenuButton</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.MenuItem</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.MenuItem.
     "!
@@ -2651,7 +2651,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ToolbarSpacer - flexible spacer pushing siblings apart</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.ToolbarSpacer</p>
     "!
     "! Insert between toolbar items to create space. See https://ui5.sap.com/#/api/sap.m.ToolbarSpacer.
     "!
@@ -2664,7 +2664,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Label - label text (typically associated with a form field)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.Label</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.Label.
     "!
@@ -2703,7 +2703,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Image - image control</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.Image</p>
     "!
     "! Image with active/hover support, lazy loading and background-mode rendering. See https://ui5.sap.com/#/api/sap.m.Image.
     "!
@@ -2749,7 +2749,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.DatePicker - date input with calendar popover</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.DatePicker</p>
     "!
     "! Date input with calendar popover. See https://ui5.sap.com/#/api/sap.m.DatePicker.
     "!
@@ -2812,7 +2812,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.TimePicker - time input with clock popover</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.TimePicker</p>
     "!
     "! Time input with clock popover. See https://ui5.sap.com/#/api/sap.m.TimePicker.
     "!
@@ -2884,7 +2884,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.DateTimePicker - combined date+time input</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.DateTimePicker</p>
     "!
     "! Combined date and time input. See https://ui5.sap.com/#/api/sap.m.DateTimePicker. Inherits from sap.m.DatePicker.
     "!
@@ -2902,7 +2902,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Link - hyperlink</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.Link</p>
     "!
     "! Standard hyperlink. See https://ui5.sap.com/#/api/sap.m.Link.
     "!
@@ -2952,7 +2952,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.List - responsive list (extends sap.m.ListBase)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.List</p>
     "!
     "! Generic list. See https://ui5.sap.com/#/api/sap.m.List. Most properties inherited from sap.m.ListBase.
     "!
@@ -3017,14 +3017,14 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.CustomListItem - list item with arbitrary content</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.CustomListItem</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.CustomListItem. Inherits all ListItemBase properties.
     METHODS custom_list_item
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.InputListItem - list item with label and a content field</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.InputListItem</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.InputListItem.
     "!
@@ -3035,7 +3035,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.StandardListItem - typical list row with title/description/icon/info</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.StandardListItem</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.StandardListItem. Inherits from sap.m.ListItemBase.
     "!
@@ -3078,7 +3078,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.core.Item - generic key/text item</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.core.Item</p>
     "!
     "! Lightweight item used inside Select / ComboBox / etc. See https://ui5.sap.com/#/api/sap.ui.core.Item.
     "!
@@ -3091,7 +3091,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.SegmentedButtonItem - single segment of a SegmentedButton</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.SegmentedButtonItem</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.SegmentedButtonItem.
     "!
@@ -3116,7 +3116,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ComboBox - dropdown with auto-complete</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.ComboBox</p>
     "!
     "! Dropdown with autocomplete and value-help button. See https://ui5.sap.com/#/api/sap.m.ComboBox.
     "!
@@ -3172,7 +3172,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.MultiComboBox - dropdown with multiple selection</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.MultiComboBox</p>
     "!
     "! Dropdown with multi-select. See https://ui5.sap.com/#/api/sap.m.MultiComboBox.
     "!
@@ -3232,7 +3232,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.Grid - 12-column responsive grid</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.layout.Grid</p>
     "!
     "! 12-column grid layout. See https://ui5.sap.com/#/api/sap.ui.layout.Grid.
     "!
@@ -3256,7 +3256,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.GridContainerSettings (legacy: sap.ui.layout.cssgrid.GridBoxLayout)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.f.GridContainerSettings</p>
     "!
     "! Layout for fixed-width box arrangement. See https://ui5.sap.com/#/api/sap.ui.layout.cssgrid.GridBoxLayout.
     "!
@@ -3271,7 +3271,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.GridData - layout data for sap.ui.layout.Grid children</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.layout.GridData</p>
     "!
     "! Per-child grid layout data. See https://ui5.sap.com/#/api/sap.ui.layout.GridData.
     "!
@@ -3289,7 +3289,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.GridDropInfo - DnD drop info for grid containers</p>
+    "! <p class="shorttext synchronized" lang="en">sap.f.GridDropInfo</p>
     "!
     "! Drag-and-drop configuration for grid layouts. See https://ui5.sap.com/#/api/sap.f.dnd.GridDropInfo.
     "!
@@ -3310,7 +3310,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.GridList - grid-style list (extends sap.m.ListBase)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.f.GridList</p>
     "!
     "! Grid-arranged list. See https://ui5.sap.com/#/api/sap.f.GridList.
     "!
@@ -3378,7 +3378,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.GridListItem - item inside GridList</p>
+    "! <p class="shorttext synchronized" lang="en">sap.f.GridListItem</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.f.GridListItem. Inherits ListItemBase.
     "!
@@ -3419,7 +3419,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.TextArea - multi-line text input</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.TextArea</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.TextArea. Inherits sap.m.InputBase.
     "!
@@ -3472,7 +3472,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.RangeSlider - slider with two thumbs</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.RangeSlider</p>
     "!
     "! Slider with two thumbs for selecting a range. See https://ui5.sap.com/#/api/sap.m.RangeSlider.
     "!
@@ -3506,7 +3506,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.GenericTag - badge-style status tag</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.GenericTag</p>
     "!
     "! Badge-style status tag. See https://ui5.sap.com/#/api/sap.m.GenericTag.
     "!
@@ -3530,7 +3530,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ObjectAttribute - title-text pair displayed inline</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.ObjectAttribute</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.ObjectAttribute.
     "!
@@ -3553,7 +3553,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ObjectNumber - number with optional unit and semantic color</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.ObjectNumber</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.ObjectNumber.
     "!
@@ -3587,7 +3587,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Switch - on/off toggle</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.Switch</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.Switch.
     "!
@@ -3608,7 +3608,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.HarveyBallMicroChartItem - segment of HarveyBallMicroChart</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.HarveyBallMicroChartItem</p>
     "!
     "! @parameter color         | (sap.m.ValueCSSColor) Good | Error | Critical | Neutral | CSS color string. Default: Neutral.
     "! @parameter fraction      | (float) Numeric fraction value.
@@ -3624,7 +3624,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.StepInput - numeric input with +/- buttons</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.StepInput</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.StepInput.
     "!
@@ -3666,7 +3666,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ProgressIndicator - horizontal progress bar</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.ProgressIndicator</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.ProgressIndicator.
     "!
@@ -3687,7 +3687,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.SegmentedButton - segmented button group</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.SegmentedButton</p>
     "!
     "! Group of mutually exclusive buttons. See https://ui5.sap.com/#/api/sap.m.SegmentedButton.
     "!
@@ -3706,7 +3706,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.CheckBox - checkbox</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.CheckBox</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.CheckBox.
     "!
@@ -3753,12 +3753,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `headerToolbar` (Panel, Form, Table, ...)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `headerToolbar`</p>
     METHODS header_toolbar
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Toolbar - toolbar with horizontal items</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.Toolbar</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.Toolbar.
     "!
@@ -3788,7 +3788,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Text - plain text</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.Text</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.Text.
     "!
@@ -3823,7 +3823,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.FormattedText - text with limited HTML markup</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.FormattedText</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.FormattedText.
     "!
@@ -3854,7 +3854,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)               TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Generic builder helper - emit any UI5 element by name with property table</p>
+    "! <p class="shorttext synchronized" lang="en">Generic builder helper</p>
     "!
     "! @parameter name   | (string) UI5 element name.
     "! @parameter ns     | (string) XML namespace prefix.
@@ -3867,7 +3867,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Generic builder helper - add a single property name/value to the current node</p>
+    "! <p class="shorttext synchronized" lang="en">Generic builder helper</p>
     "!
     "! @parameter val | (z2ui5_if_types=>ty_s_name_value) Property name and value.
     METHODS _generic_property
@@ -3881,12 +3881,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE string.
 
-    "! <p class="shorttext synchronized" lang="en">Builder helper - serialise the current XML tree (entry point passed to `view_display`)</p>
+    "! <p class="shorttext synchronized" lang="en">Builder helper</p>
     METHODS stringify
       RETURNING
         VALUE(result) TYPE string.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.table.TreeTable - hierarchical grid table</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.table.TreeTable</p>
     "!
     "! Tree-style grid table. See https://ui5.sap.com/#/api/sap.ui.table.TreeTable. Inherits sap.ui.table.Table.
     "!
@@ -3960,12 +3960,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `columns` for sap.ui.table.TreeTable</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `columns`</p>
     METHODS tree_columns
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.table.Column - column for sap.ui.table.TreeTable / Table</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.table.Column</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.table.Column.
     "!
@@ -3980,17 +3980,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `template` for sap.ui.table.Column (cell template)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `template`</p>
     METHODS tree_template
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `extension` (sap.ui.table.Table - footer/extension area)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `extension`</p>
     METHODS tree_extension
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.comp.filterbar.FilterBar - SmartFilterBar variant</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.comp.filterbar.FilterBar</p>
     "!
     "! Filter bar with variant management. Used together with SmartTable / SmartFilterBar.
     "! See https://ui5.sap.com/#/api/sap.ui.comp.filterbar.FilterBar.
@@ -4065,12 +4065,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)                TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `filterGroupItems` (FilterBar)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `filterGroupItems`</p>
     METHODS filter_group_items
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.comp.filterbar.FilterGroupItem - single filter inside FilterBar</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.comp.filterbar.FilterGroupItem</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.comp.filterbar.FilterGroupItem.
     "!
@@ -4105,12 +4105,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `control` for FilterGroupItem (the filter input control)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `control`</p>
     METHODS filter_control
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.FlexibleColumnLayout - 1-3 column responsive layout</p>
+    "! <p class="shorttext synchronized" lang="en">sap.f.FlexibleColumnLayout</p>
     "!
     "! Flexible 1/2/3-column layout. See https://ui5.sap.com/#/api/sap.f.FlexibleColumnLayout.
     "!
@@ -4152,24 +4152,24 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `beginColumnPages` (FlexibleColumnLayout)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `beginColumnPages`</p>
     METHODS begin_column_pages
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `midColumnPages` (FlexibleColumnLayout)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `midColumnPages`</p>
     METHODS mid_column_pages
       IMPORTING
         id            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `endColumnPages` (FlexibleColumnLayout)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `endColumnPages`</p>
     METHODS end_column_pages
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.table.Table - grid table</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.table.Table</p>
     "!
     "! Grid (non-responsive) table. See https://ui5.sap.com/#/api/sap.ui.table.Table. Renders as `<t:Table>` in XML views.
     "!
@@ -4240,7 +4240,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)            TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.table.Column - column for sap.ui.table.Table</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.table.Column</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.table.Column.
     "!
@@ -4275,27 +4275,27 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `columns` for sap.ui.table.Table</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `columns`</p>
     METHODS ui_columns
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `customData` for sap.ui.table elements</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `customData`</p>
     METHODS ui_custom_data
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `extension` for sap.ui.table.Table (toolbar/extension area)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `extension`</p>
     METHODS ui_extension
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `template` for sap.ui.table.Column (cell template)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `template`</p>
     METHODS ui_template
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.unified.Currency - formatted currency value</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.unified.Currency</p>
     "!
     "! Renders amount and currency aligned for tables. See https://ui5.sap.com/#/api/sap.ui.unified.Currency.
     "!
@@ -4314,17 +4314,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `rowActions` for sap.ui.table.Table</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `rowActions`</p>
     METHODS ui_row_action
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `template` for sap.ui.table.RowAction</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `template`</p>
     METHODS ui_row_action_template
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.table.RowActionItem - row action button (sap.ui.table)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.table.RowActionItem</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.table.RowActionItem.
     "!
@@ -4343,7 +4343,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.RadioButton - single radio button</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.RadioButton</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.RadioButton.
     "!
@@ -4379,7 +4379,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.RadioButtonGroup - group of radio buttons</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.RadioButtonGroup</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.RadioButtonGroup.
     "!
@@ -4407,7 +4407,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.DynamicSideContent - main + responsive side content</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.layout.DynamicSideContent</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.layout.DynamicSideContent.
     "!
@@ -4426,7 +4426,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `sideContent` (DynamicSideContent)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `sideContent`</p>
     "!
     "! @parameter width | (sap.ui.core.CSSSize) Width hint for the side content area.
     METHODS side_content
@@ -4435,7 +4435,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.PlanningCalendar - rows of resources with appointments</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.PlanningCalendar</p>
     "!
     "! Multi-row planning calendar (Gantt-style). See https://ui5.sap.com/#/api/sap.m.PlanningCalendar.
     "!
@@ -4514,7 +4514,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.PlanningCalendarView - custom view for PlanningCalendar</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.PlanningCalendarView</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.PlanningCalendarView.
     "!
@@ -4545,7 +4545,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.PlanningCalendarRow - row in PlanningCalendar</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.PlanningCalendarRow</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.PlanningCalendarRow.
     "!
@@ -4594,7 +4594,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.PlanningCalendarLegend - legend for PlanningCalendar</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.PlanningCalendarLegend</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.PlanningCalendarLegend.
     "!
@@ -4615,7 +4615,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.unified.CalendarLegendItem - legend entry for calendar controls</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.unified.CalendarLegendItem</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.unified.CalendarLegendItem.
     "!
@@ -4633,12 +4633,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `appointmentItems` (PlanningCalendarLegend)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `appointmentItems`</p>
     METHODS appointment_items
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.tnt.InfoLabel - status label / chip</p>
+    "! <p class="shorttext synchronized" lang="en">sap.tnt.InfoLabel</p>
     "!
     "! Coloured status label / chip with numeric or icon variants. See https://ui5.sap.com/#/api/sap.tnt.InfoLabel.
     "!
@@ -4667,17 +4667,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `rows` (sap.ui.table.Table, PlanningCalendar, ...)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `rows`</p>
     METHODS rows
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `appointments` (PlanningCalendarRow)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `appointments`</p>
     METHODS appointments
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.unified.CalendarAppointment - appointment</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.unified.CalendarAppointment</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.unified.CalendarAppointment.
     "!
@@ -4705,12 +4705,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `intervalHeaders` (PlanningCalendarRow)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `intervalHeaders`</p>
     METHODS interval_headers
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.BlockLayout - high-level page sectioning layout</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.layout.BlockLayout</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.layout.BlockLayout.
     "!
@@ -4722,7 +4722,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.BlockLayoutRow - row in a BlockLayout</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.layout.BlockLayoutRow</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.layout.BlockLayoutRow.
     "!
@@ -4734,7 +4734,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.BlockLayoutCell - cell in a BlockLayoutRow</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.layout.BlockLayoutCell</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.layout.BlockLayoutCell.
     "!
@@ -4758,7 +4758,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ObjectIdentifier - title with optional active text</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.ObjectIdentifier</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.ObjectIdentifier.
     "!
@@ -4781,7 +4781,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ObjectStatus - status text with semantic colour and optional icon</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.ObjectStatus</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.ObjectStatus.
     "!
@@ -4817,7 +4817,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Tree - tree list (extends sap.m.ListBase)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.Tree</p>
     "!
     "! Hierarchical list. See https://ui5.sap.com/#/api/sap.m.Tree.
     "!
@@ -4858,7 +4858,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.StandardTreeItem - item inside sap.m.Tree</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.StandardTreeItem</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.StandardTreeItem.
     "!
@@ -4883,7 +4883,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.IconTabBar - tab bar with icons</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.IconTabBar</p>
     "!
     "! Tab bar where tabs can show icons. See https://ui5.sap.com/#/api/sap.m.IconTabBar.
     "!
@@ -4929,7 +4929,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.IconTabFilter - tab inside IconTabBar</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.IconTabFilter</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.IconTabFilter.
     "!
@@ -4963,7 +4963,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.IconTabSeparator - visual separator between IconTabFilters</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.IconTabSeparator</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.IconTabSeparator.
     "!
@@ -4981,19 +4981,19 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Builder helper - switch the builder to the abap2UI5 custom-control mode (z2ui5_cl_xml_view_cc)</p>
+    "! <p class="shorttext synchronized" lang="en">Builder helper</p>
     METHODS _z2ui5
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_cc.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.gantt.GanttChartContainer - container hosting GanttChart widgets</p>
+    "! <p class="shorttext synchronized" lang="en">sap.gantt.GanttChartContainer</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.gantt.GanttChartContainer.
     METHODS gantt_chart_container
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.gantt.config.ContainerToolbar - GanttChartContainer toolbar configuration</p>
+    "! <p class="shorttext synchronized" lang="en">sap.gantt.config.ContainerToolbar</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.gantt.config.ContainerToolbar.
     "!
@@ -5028,7 +5028,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)             TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.gantt.simple.GanttChartWithTable - Gantt chart with associated table</p>
+    "! <p class="shorttext synchronized" lang="en">sap.gantt.simple.GanttChartWithTable</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.gantt.simple.GanttChartWithTable.
     "!
@@ -5042,12 +5042,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)             TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `axisTimeStrategy` (GanttChart)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `axisTimeStrategy`</p>
     METHODS axis_time_strategy
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.gantt.axistime.ProportionZoomStrategy - proportion-based zoom strategy</p>
+    "! <p class="shorttext synchronized" lang="en">sap.gantt.axistime.ProportionZoomStrategy</p>
     "!
     "! @parameter zoomlevel | (int) Zoom level (0..N).
     METHODS proportion_zoom_strategy
@@ -5056,12 +5056,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `totalHorizon` (Gantt zoom strategy)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `totalHorizon`</p>
     METHODS total_horizon
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.gantt.config.TimeHorizon - time range definition</p>
+    "! <p class="shorttext synchronized" lang="en">sap.gantt.config.TimeHorizon</p>
     "!
     "! @parameter starttime | (string) Start timestamp.
     "! @parameter endtime   | (string) End timestamp.
@@ -5072,17 +5072,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `visibleHorizon` (Gantt zoom strategy)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `visibleHorizon`</p>
     METHODS visible_horizon
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `rowSettingsTemplate` (Gantt)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `rowSettingsTemplate`</p>
     METHODS row_settings_template
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.gantt.simple.GanttRowSettings - row settings for Gantt</p>
+    "! <p class="shorttext synchronized" lang="en">sap.gantt.simple.GanttRowSettings</p>
     "!
     "! @parameter rowid         | (string) Row id.
     "! @parameter shapes1       | (binding path) Aggregation of primary shapes.
@@ -5097,17 +5097,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `shapes1` (GanttRowSettings - primary shapes)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `shapes1`</p>
     METHODS shapes1
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `shapes2` (GanttRowSettings - secondary shapes)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `shapes2`</p>
     METHODS shapes2
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.gantt.simple.Task - task shape inside Gantt</p>
+    "! <p class="shorttext synchronized" lang="en">sap.gantt.simple.Task</p>
     "!
     "! @parameter type        | (sap.gantt.simple.shapes.TaskType) Normal | Error | Warning | Success.
     "! @parameter color       | (sap.ui.core.CSSColor) Custom CSS colour.
@@ -5129,12 +5129,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `table` (GanttChartWithTable)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `table`</p>
     METHODS gantt_table
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.RatingIndicator - rating stars</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.RatingIndicator</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.RatingIndicator.
     "!
@@ -5162,12 +5162,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `toolbar` (Gantt - toolbar above the chart)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `toolbar`</p>
     METHODS gantt_toolbar
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.gantt.simple.BaseRectangle - rectangular shape inside Gantt</p>
+    "! <p class="shorttext synchronized" lang="en">sap.gantt.simple.BaseRectangle</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.gantt.simple.BaseRectangle.
     "!
@@ -5224,21 +5224,21 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.tnt.ToolPage - launchpad-style page with side / main / header</p>
+    "! <p class="shorttext synchronized" lang="en">sap.tnt.ToolPage</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.tnt.ToolPage. Children: header (`tool_header`), sideContent, mainContents.
     METHODS tool_page
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.tnt.ToolHeader - top header bar for ToolPage</p>
+    "! <p class="shorttext synchronized" lang="en">sap.tnt.ToolHeader</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.tnt.ToolHeader.
     METHODS tool_header
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.IconTabHeader - standalone IconTab header</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.IconTabHeader</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.IconTabHeader.
     "!
@@ -5270,7 +5270,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.NavContainer - navigation container with page transitions</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.NavContainer</p>
     "!
     "! Container that switches between pages with transitions. See https://ui5.sap.com/#/api/sap.m.NavContainer.
     "!
@@ -5292,17 +5292,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `pages` (NavContainer, App, Carousel, ...)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `pages`</p>
     METHODS pages
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `mainContents` (sap.tnt.ToolPage main area)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `mainContents`</p>
     METHODS main_contents
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.TableSelectDialog - dialog with searchable table for value selection</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.TableSelectDialog</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.TableSelectDialog.
     "!
@@ -5353,7 +5353,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.Graph (legacy ProcessFlow)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.networkgraph.Graph</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.networkgraph.Graph (legacy: sap.suite.ui.commons.ProcessFlow).
     "!
@@ -5385,7 +5385,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `nodes` (NetworkGraph / ProcessFlow / Tree)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `nodes`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix.
     METHODS nodes
@@ -5394,7 +5394,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.Node - node inside NetworkGraph</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.networkgraph.Node</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.networkgraph.Node.
     "!
@@ -5465,7 +5465,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.NodeImage - image attached to a Node</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.networkgraph.NodeImage</p>
     "!
     "! @parameter height | (sap.ui.core.CSSSize) Image height.
     "! @parameter src    | (sap.ui.core.URI) Image URI.
@@ -5480,12 +5480,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `lanes` (legacy ProcessFlow)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `lanes`</p>
     METHODS lanes
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.ProcessFlowNode - node in legacy ProcessFlow</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.ProcessFlowNode</p>
     "!
     "! @parameter laneid            | (string) Lane id this node belongs to.
     "! @parameter nodeid            | (string) Node id.
@@ -5518,7 +5518,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.ProcessFlowLaneHeader - header of a lane in ProcessFlow</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.ProcessFlowLaneHeader</p>
     "!
     "! @parameter iconsrc   | (sap.ui.core.URI) Icon URI.
     "! @parameter laneid    | (string) Lane id.
@@ -5537,7 +5537,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ViewSettingsDialog - sort/filter/group dialog</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.ViewSettingsDialog</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.ViewSettingsDialog.
     "!
@@ -5578,22 +5578,22 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)            TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `filterItems` (ViewSettingsDialog)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `filterItems`</p>
     METHODS filter_items
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `sortItems` (ViewSettingsDialog)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `sortItems`</p>
     METHODS sort_items
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `groupItems` (ViewSettingsDialog)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `groupItems`</p>
     METHODS group_items
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ViewSettingsFilterItem - filter item in ViewSettingsDialog</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.ViewSettingsFilterItem</p>
     "!
     "! @parameter enabled       | (boolean) Whether the filter is enabled. Default: true.
     "! @parameter key           | (string) Filter key.
@@ -5612,7 +5612,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ViewSettingsItem - sort/group/filter sub-item</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.ViewSettingsItem</p>
     "!
     "! @parameter enabled       | (boolean) Whether the item is enabled. Default: true.
     "! @parameter key           | (string) Item key.
@@ -5629,7 +5629,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.comp.variants.VariantManagement - SmartVariantManagement (sap.ui.comp)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.comp.variants.VariantManagement</p>
     "!
     "! Variant management for smart controls. See https://ui5.sap.com/#/api/sap.ui.comp.variants.VariantManagement.
     "! For modern SmartFilterBar/SmartTable use `variant_management_sapm` (sap.ui.fl.variants.VariantManagement) or `smart_variant_management` instead.
@@ -5678,12 +5678,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `variantItems` (sap.ui.comp.variants.VariantManagement)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `variantItems`</p>
     METHODS variant_items
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.comp.variants.VariantItem - single variant in sap.ui.comp variant management</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.comp.variants.VariantItem</p>
     "!
     "! @parameter executeonselection      | (boolean) Apply automatically on selection. Default: false.
     "! @parameter global                  | (boolean) Public/global variant. Default: false.
@@ -5736,7 +5736,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.VariantManagement (sapm) / sap.ui.fl.variants.VariantManagement</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.VariantManagement</p>
     "!
     "! Modern variant management. See https://ui5.sap.com/#/api/sap.m.VariantManagement.
     "!
@@ -5792,7 +5792,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)             TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.VariantItem - variant item for sapm/sap.ui.fl variant management</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.VariantItem</p>
     "!
     "! @parameter author          | (string) Author name.
     "! @parameter changeable      | (boolean) Whether changeable. Default: false.
@@ -5828,7 +5828,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.FeedInput - input for posting a new feed entry</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.FeedInput</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.FeedInput.
     "!
@@ -5871,7 +5871,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.FeedListItem - feed entry list item</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.FeedListItem</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.FeedListItem.
     "!
@@ -5920,7 +5920,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)               TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.FeedListItemAction - action shown in FeedListItem</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.FeedListItemAction</p>
     "!
     "! @parameter enabled | (boolean) Whether enabled. Default: true.
     "! @parameter icon    | (sap.ui.core.URI) Icon URI.
@@ -5939,7 +5939,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.FeedContent - feed content for tile</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.FeedContent</p>
     "!
     "! @parameter contenttext | (string) Content text.
     "! @parameter subheader   | (string) Subheader text.
@@ -5956,7 +5956,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.NewsContent - news content for tile</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.NewsContent</p>
     "!
     "! @parameter contenttext | (string) Headline text.
     "! @parameter subheader   | (string) Subheader text.
@@ -5969,7 +5969,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.unified.ColorPicker - color picker</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.unified.ColorPicker</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.unified.ColorPicker.
     "!
@@ -5986,7 +5986,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.MaskInput - input with character mask</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.MaskInput</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.MaskInput.
     "!
@@ -6029,7 +6029,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.ResponsiveSplitter - responsive splitter container</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.layout.ResponsiveSplitter</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.layout.ResponsiveSplitter.
     "!
@@ -6044,7 +6044,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.Splitter - non-responsive splitter container</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.layout.Splitter</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.layout.Splitter.
     "!
@@ -6059,7 +6059,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.core.InvisibleText - text rendered for screen readers only</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.core.InvisibleText</p>
     "!
     "! @parameter ns   | (string) XML namespace prefix.
     "! @parameter text | (string) Text content (announced by screen readers).
@@ -6071,7 +6071,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.FixFlex - fix-size + flexible-size two-pane layout</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.layout.FixFlex</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.layout.FixFlex.
     "!
@@ -6086,7 +6086,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `fixContent` (FixFlex)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `fixContent`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix.
     METHODS fix_content
@@ -6095,7 +6095,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `flexContent` (FixFlex)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `flexContent`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix.
     METHODS flex_content
@@ -6104,7 +6104,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.PaneContainer - container of split panes</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.layout.PaneContainer</p>
     "!
     "! @parameter resize      | (event) Fired when a pane is resized.
     "! @parameter orientation | (sap.ui.core.Orientation) Horizontal | Vertical. Default: Horizontal.
@@ -6115,7 +6115,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.SplitPane - single pane inside ResponsiveSplitter</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.layout.SplitPane</p>
     "!
     "! @parameter requiredparentwidth | (int) Minimum parent width (in px) required to render this pane. Default: 800.
     METHODS split_pane
@@ -6125,7 +6125,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.SplitterLayoutData - per-child data for Splitter</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.layout.SplitterLayoutData</p>
     "!
     "! @parameter size      | (sap.ui.core.CSSSize) Initial size (e.g. `200px`, `30%` or `auto`). Default: auto.
     "! @parameter minsize   | (int) Minimum size in px. Default: 0.
@@ -6138,7 +6138,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ToolbarLayoutData - layout data for Toolbar children</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.ToolbarLayoutData</p>
     "!
     "! @parameter maxwidth   | (sap.ui.core.CSSSize) Maximum width.
     "! @parameter minwidth   | (sap.ui.core.CSSSize) Minimum width.
@@ -6152,7 +6152,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ObjectHeader - large object header (legacy alternative to ObjectPageHeader)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.ObjectHeader</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.ObjectHeader.
     "!
@@ -6224,12 +6224,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `additionalNumbers` (ObjectHeader)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `additionalNumbers`</p>
     METHODS additional_numbers
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.HeaderContainer - horizontal scrollable container of cards/tiles</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.HeaderContainer</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.HeaderContainer.
     "!
@@ -6246,7 +6246,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `markers` (ObjectHeader / ObjectListItem / UploadSetItem)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `markers`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix.
     METHODS markers
@@ -6255,7 +6255,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `statuses` (ObjectHeader / ObjectListItem)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `statuses`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix.
     METHODS statuses
@@ -6264,7 +6264,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.statusindicator.PropertyThreshold-style status (sap.ndc) - generic status entry</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.statusindicator.PropertyThreshold</p>
     "!
     "! Generic status entry with custom colours. Used by sap.ndc / status indicator and similar.
     "!
@@ -6309,17 +6309,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)               TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `firstStatus` (ObjectListItem)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `firstStatus`</p>
     METHODS first_status
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `secondStatus` (ObjectListItem)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `secondStatus`</p>
     METHODS second_status
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ObjectMarker - icon-based marker (favourite / flagged / locked / draft / unsaved)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.ObjectMarker</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.ObjectMarker.
     "!
@@ -6338,7 +6338,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ObjectListItem - structured list item with title/intro/number/markers/statuses</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.ObjectListItem</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.ObjectListItem.
     "!
@@ -6375,12 +6375,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `detailBox` (used by FacetFilter etc.)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `detailBox`</p>
     METHODS detail_box
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.LightBox - image lightbox dialog</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.LightBox</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.LightBox.
     "!
@@ -6393,7 +6393,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.LightBoxItem - image inside LightBox</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.LightBoxItem</p>
     "!
     "! @parameter alt      | (string) Image alt text.
     "! @parameter imagesrc | (sap.ui.core.URI) Image URI.
@@ -6408,7 +6408,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.LineMicroChart - line micro chart</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.LineMicroChart</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.suite.ui.microchart.LineMicroChart.
     "! Common micro-chart properties: `size` (sap.m.Size: S | M | L | Auto | Responsive), `hideOnNoData`, `press` event.
@@ -6460,7 +6460,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.LineMicroChartLine - one line series in LineMicroChart</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.LineMicroChartLine</p>
     "!
     "! @parameter points | (binding path) Aggregation of points.
     "! @parameter color  | (sap.m.ValueCSSColor) Line colour. Default: Neutral.
@@ -6473,7 +6473,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.LineMicroChartPoint - data point</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.LineMicroChartPoint</p>
     "!
     "! @parameter x | (float) X value.
     "! @parameter y | (float) Y value.
@@ -6484,7 +6484,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.LineMicroChartEmphasizedPoint - emphasised data point</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.LineMicroChartEmphasizedPoint</p>
     "!
     "! @parameter x     | (float) X value.
     "! @parameter y     | (float) Y value.
@@ -6499,7 +6499,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.StackedBarMicroChart - stacked bar micro chart</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.StackedBarMicroChart</p>
     "!
     "! @parameter height           | (sap.ui.core.CSSSize) Height.
     "! @parameter press            | (event) Fired when the chart is pressed.
@@ -6524,7 +6524,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.ColumnMicroChart - column micro chart</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.ColumnMicroChart</p>
     "!
     "! @parameter width             | (sap.ui.core.CSSSize) Width.
     "! @parameter press             | (event) Fired when the chart is pressed.
@@ -6549,7 +6549,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.ColumnMicroChartData - one column in ColumnMicroChart</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.ColumnMicroChartData</p>
     "!
     "! @parameter value        | (float) Numeric value.
     "! @parameter label        | (string) Column label.
@@ -6566,7 +6566,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.ComparisonMicroChart - comparison micro chart</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.ComparisonMicroChart</p>
     "!
     "! @parameter colorpalette | (string) CSS-colour list applied cyclically.
     "! @parameter press        | (event) Fired when the chart is pressed.
@@ -6597,7 +6597,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.ComparisonMicroChartData - data row</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.ComparisonMicroChartData</p>
     "!
     "! @parameter color        | (sap.m.ValueCSSColor) Bar colour. Default: Neutral.
     "! @parameter press        | (event) Fired when the row is pressed.
@@ -6614,7 +6614,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.DeltaMicroChart - delta micro chart</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.DeltaMicroChart</p>
     "!
     "! @parameter color             | (sap.m.ValueCSSColor) Delta colour. Default: Neutral.
     "! @parameter press             | (event) Fired when the chart is pressed.
@@ -6649,7 +6649,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.BulletMicroChart - bullet micro chart</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.BulletMicroChart</p>
     "!
     "! @parameter actualvaluelabel  | (string) Pre-formatted actual value text.
     "! @parameter press             | (event) Fired when the chart is pressed.
@@ -6700,7 +6700,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.HarveyBallMicroChart - harvey-ball micro chart</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.HarveyBallMicroChart</p>
     "!
     "! @parameter colorpalette   | (string) CSS-colour list applied cyclically.
     "! @parameter press          | (event) Fired when the chart is pressed.
@@ -6733,7 +6733,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.microchart.AreaMicroChart - area micro chart</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.microchart.AreaMicroChart</p>
     "!
     "! @parameter colorpalette | (string) CSS-colour list applied cyclically.
     "! @parameter press        | (event) Fired when the chart is pressed.
@@ -6766,12 +6766,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `data` (charts, micro charts)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `data`</p>
     METHODS data
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.richtexteditor.RichTextEditor - WYSIWYG HTML editor (TinyMCE)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.richtexteditor.RichTextEditor</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.richtexteditor.RichTextEditor.
     "!
@@ -6830,7 +6830,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Slider - single-thumb slider</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.Slider</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.Slider.
     "!
@@ -6866,7 +6866,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.upload.UploadSet - file upload list (replacement for sap.m.UploadCollection)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.upload.UploadSet</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.upload.UploadSet.
     "!
@@ -6952,12 +6952,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.upload.UploadSetToolbarPlaceholder - placeholder for upload toolbar</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.upload.UploadSetToolbarPlaceholder</p>
     METHODS upload_set_toolbar_placeholder
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.upload.UploadSetItem - item inside UploadSet</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.upload.UploadSetItem</p>
     "!
     "! @parameter filename      | (string) File name.
     "! @parameter mediatype     | (string) MIME type.
@@ -6994,17 +6994,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `markersAsStatus` (UploadSetItem)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `markersAsStatus`</p>
     METHODS markers_as_status
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `rules` (MaskInput - mask validation rules)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `rules`</p>
     METHODS rules
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.MaskInputRule - validation rule for MaskInput</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.MaskInputRule</p>
     "!
     "! @parameter maskformatsymbol | (string) Mask symbol the rule applies to. Default: `*`.
     "! @parameter regex            | (string) Regular expression for the rule. Default: `[a-zA-Z0-9]`.
@@ -7015,7 +7015,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.SidePanel - main + side-panel layout (sap.f)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.f.SidePanel</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.f.SidePanel.
     "!
@@ -7044,7 +7044,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)             TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.SidePanelItem - action item in SidePanel</p>
+    "! <p class="shorttext synchronized" lang="en">sap.f.SidePanelItem</p>
     "!
     "! @parameter icon    | (sap.ui.core.URI) Action icon.
     "! @parameter text    | (string) Action text.
@@ -7059,12 +7059,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `mainContent` (SidePanel main area)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `mainContent`</p>
     METHODS main_content
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.QuickView - popover with detail pages</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.QuickView</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.QuickView.
     "!
@@ -7085,7 +7085,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.QuickViewPage - single page inside QuickView</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.QuickViewPage</p>
     "!
     "! @parameter description | (string) Subtitle/description.
     "! @parameter header      | (string) Header text.
@@ -7102,12 +7102,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `avatar` (QuickViewPage)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `avatar`</p>
     METHODS quick_view_page_avatar
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.QuickViewGroup - group inside QuickViewPage</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.QuickViewGroup</p>
     "!
     "! @parameter heading | (string) Group heading.
     "! @parameter visible | (boolean) Whether the group is visible. Default: true.
@@ -7118,7 +7118,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.QuickViewGroupElement - label/value pair inside QuickViewGroup</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.QuickViewGroupElement</p>
     "!
     "! @parameter emailsubject | (string) Subject for `mailto:` links.
     "! @parameter label        | (string) Label text.
@@ -7141,7 +7141,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.DateRangeSelection - date range input (extends DatePicker)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.DateRangeSelection</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.DateRangeSelection. All DatePicker properties apply.
     "!
@@ -7208,7 +7208,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.fl.variants.VariantManagement - flexibility variant management</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.fl.variants.VariantManagement</p>
     "!
     "! Variant management provided by SAPUI5 flexibility services. See https://ui5.sap.com/#/api/sap.ui.fl.variants.VariantManagement.
     "!
@@ -7251,7 +7251,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.layout.form.ColumnElementData - per-element data for ColumnLayout forms</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.layout.form.ColumnElementData</p>
     "!
     "! @parameter cellslarge | (int) Cell span on large screens (1..12). Default: 8.
     "! @parameter cellssmall | (int) Cell span on small screens (1..12). Default: 12.
@@ -7262,12 +7262,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `customControl` (SmartFilterBar / SmartTable)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `customControl`</p>
     METHODS fb_control
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.comp.smartvariants.SmartVariantManagement</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.comp.smartvariants.SmartVariantManagement</p>
     "!
     "! Variant management for smart controls. See https://ui5.sap.com/#/api/sap.ui.comp.smartvariants.SmartVariantManagement.
     "!
@@ -7281,7 +7281,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.comp.smartfilterbar.SmartFilterBar</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.comp.smartfilterbar.SmartFilterBar</p>
     "!
     "! Smart filter bar with auto-generated controls based on OData metadata.
     "! See https://ui5.sap.com/#/api/sap.ui.comp.smartfilterbar.SmartFilterBar.
@@ -7296,7 +7296,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.comp.smartfilterbar.ControlConfiguration</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.comp.smartfilterbar.ControlConfiguration</p>
     "!
     "! Per-field configuration for SmartFilterBar. See https://ui5.sap.com/#/api/sap.ui.comp.smartfilterbar.ControlConfiguration.
     "!
@@ -7312,12 +7312,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `controlConfiguration` (SmartFilterBar)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `controlConfiguration`</p>
     METHODS _control_configuration
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.comp.smarttable.SmartTable</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.comp.smarttable.SmartTable</p>
     "!
     "! Smart table that auto-creates columns from OData metadata. See https://ui5.sap.com/#/api/sap.ui.comp.smarttable.SmartTable.
     "!
@@ -7351,12 +7351,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `formToolbar` (SmartForm / SimpleForm extension)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `formToolbar`</p>
     METHODS form_toolbar
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.PagingButton - prev/next paging buttons</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.PagingButton</p>
     "!
     "! @parameter count                 | (int) Total number of pages. Default: 1.
     "! @parameter nextbuttontooltip     | (string) Tooltip for the next button.
@@ -7371,7 +7371,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.Timeline - vertical timeline of events</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.Timeline</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.Timeline.
     "!
@@ -7435,7 +7435,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.TimelineItem - single entry on the Timeline</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.TimelineItem</p>
     "!
     "! @parameter datetime            | (string) Entry timestamp.
     "! @parameter title               | (string) Entry title.
@@ -7487,7 +7487,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.SplitContainer - master/detail container</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.SplitContainer</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.SplitContainer.
     "!
@@ -7537,17 +7537,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)               TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `detailPages` (SplitContainer)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `detailPages`</p>
     METHODS detail_pages
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `masterPages` (SplitContainer)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `masterPages`</p>
     METHODS master_pages
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.vk.ContainerContent - container content (sap.ui.vk)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.vk.ContainerContent</p>
     "!
     "! @parameter title | (string) Tab/content title.
     "! @parameter icon  | (sap.ui.core.URI) Tab icon URI.
@@ -7559,7 +7559,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.vbm.MapContainer - map container with multiple maps (sap.ui.vbm)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.vbm.MapContainer</p>
     "!
     "! @parameter autoadjustheight | (boolean) Auto-adjust height. Default: false.
     "! @parameter showhome         | (boolean) Show "Home" button. Default: true.
@@ -7571,7 +7571,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.vbm.Spot - point on a map</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.vbm.Spot</p>
     "!
     "! @parameter position      | (string) Geo position (lon;lat;alt).
     "! @parameter contentoffset | (string) Content offset (x;y).
@@ -7597,7 +7597,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.vbm.AnalyticMap - analytic geographical map (sap.ui.vbm)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.vbm.AnalyticMap</p>
     "!
     "! @parameter initialposition | (string) Initial centre position (lon;lat).
     "! @parameter height          | (sap.ui.core.CSSSize) Height.
@@ -7617,7 +7617,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.vbm.Spots - container of map spots</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.vbm.Spots</p>
     "!
     "! @parameter items | (binding path) Aggregation of `Spot`.
     METHODS spots
@@ -7628,12 +7628,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `vos` (sap.ui.vbm.AnalyticMap visual objects)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `vos`</p>
     METHODS vos
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ActionSheet - action sheet (button list)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.ActionSheet</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.ActionSheet.
     "!
@@ -7665,7 +7665,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.ExpandableText - text with show-more / show-less</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.ExpandableText</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.ExpandableText. Since 1.87.
     "!
@@ -7695,7 +7695,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Select - dropdown selector</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.Select</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.Select.
     "!
@@ -7757,12 +7757,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `_embeddedControl` (custom-control wrapper)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `_embeddedControl`</p>
     METHODS embedded_control
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.HeaderContainer - generic horizontal container of cards/items (extended)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.HeaderContainer</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.HeaderContainer.
     "!
@@ -7798,7 +7798,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `dependents` (used to attach hidden child controls)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `dependents`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix.
     METHODS dependents
@@ -7807,7 +7807,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.Card - card wrapper</p>
+    "! <p class="shorttext synchronized" lang="en">sap.f.Card</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.f.Card.
     "!
@@ -7826,7 +7826,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.cards.Header - default Card header</p>
+    "! <p class="shorttext synchronized" lang="en">sap.f.cards.Header</p>
     "!
     "! @parameter iconalt             | (string) Alt text for the icon.
     "! @parameter iconbackgroundcolor | (sap.m.AvatarColor) Accent1..Accent10 | Placeholder | TileIcon | Random. Default: Accent6.
@@ -7867,7 +7867,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.cards.NumericHeader - card header with numeric KPI</p>
+    "! <p class="shorttext synchronized" lang="en">sap.f.cards.NumericHeader</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.f.cards.NumericHeader.
     "!
@@ -7932,7 +7932,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.cards.NumericSideIndicator - side KPI for NumericHeader</p>
+    "! <p class="shorttext synchronized" lang="en">sap.f.cards.NumericSideIndicator</p>
     "!
     "! @parameter number | (string) Numeric value.
     "! @parameter state  | (sap.m.ValueColor) None | Good | Error | Critical | Neutral. Default: Neutral.
@@ -7950,7 +7950,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.SlideTile - tile that auto-cycles through child tiles</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.SlideTile</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.SlideTile.
     "!
@@ -7975,12 +7975,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `tiles` (SlideTile)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `tiles`</p>
     METHODS tiles
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.BusyIndicator - busy indicator</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.BusyIndicator</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.BusyIndicator.
     "!
@@ -8009,7 +8009,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `customLayout` (HeaderContainer / sap.f.GridList)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `customLayout`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix.
     METHODS custom_layout
@@ -8018,7 +8018,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.f.GridContainerCarouselLayout - carousel-paginated grid layout</p>
+    "! <p class="shorttext synchronized" lang="en">sap.f.GridContainerCarouselLayout</p>
     "!
     "! @parameter visiblepagescount | (int) Number of visible pages.
     METHODS carousel_layout
@@ -8027,7 +8027,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.FacetFilter - filter bar with multi-list filters</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.FacetFilter</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.FacetFilter.
     "!
@@ -8058,7 +8058,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.FacetFilterList - single facet filter list</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.FacetFilterList</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.FacetFilterList. Inherits sap.m.List.
     "!
@@ -8151,7 +8151,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)               TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.FacetFilterItem - item inside FacetFilterList (extends ListItemBase)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.FacetFilterItem</p>
     "!
     "! @parameter count         | (int) Item count.
     "! @parameter counter       | (int, ListItemBase) Counter badge.
@@ -8186,7 +8186,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.DraftIndicator - draft state indicator</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.DraftIndicator</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.DraftIndicator.
     "!
@@ -8203,7 +8203,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.core.dnd.DragInfo - drag-only configuration</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.core.dnd.DragInfo</p>
     "!
     "! @parameter sourceaggregation | (string) Source aggregation name.
     METHODS drag_info
@@ -8212,7 +8212,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.core.dnd.DragDropInfo - drag-and-drop configuration</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.core.dnd.DragDropInfo</p>
     "!
     "! @parameter sourceaggregation | (string) Source aggregation name.
     "! @parameter targetaggregation | (string) Target aggregation name.
@@ -8227,7 +8227,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `dragDropConfig` (used by drag-and-drop-aware controls)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `dragDropConfig`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix. Default: `f`.
     METHODS drag_drop_config
@@ -8282,7 +8282,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.NotificationList - list of notifications (extends sap.m.List)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.NotificationList</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.NotificationList. Inherits sap.m.List.
     "!
@@ -8359,7 +8359,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.NotificationListGroup - group of notifications</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.NotificationListGroup</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.NotificationListGroup.
     "!
@@ -8404,7 +8404,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.NotificationListItem - single notification entry</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.NotificationListItem</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.NotificationListItem.
     "!
@@ -8461,7 +8461,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.Wizard - multi-step wizard</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.Wizard</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.Wizard.
     "!
@@ -8504,7 +8504,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.WizardStep - single step inside Wizard</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.WizardStep</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.WizardStep.
     "!
@@ -8540,7 +8540,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">XMLPreprocessor template-repeat directive (`<template:repeat>`)</p>
+    "! <p class="shorttext synchronized" lang="en">template:repeat directive</p>
     "!
     "! @parameter list | (string) Binding path of the list to iterate over.
     "! @parameter var  | (string) Variable name for the current item.
@@ -8583,7 +8583,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">XMLPreprocessor template-elseif directive (`<template:elseif>`)</p>
+    "! <p class="shorttext synchronized" lang="en">template:elseif directive</p>
     "!
     "! @parameter test | (string) Boolean condition expression.
     METHODS template_elseif
@@ -8592,7 +8592,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.gantt.simple.Relationship - relationship line between Gantt shapes</p>
+    "! <p class="shorttext synchronized" lang="en">sap.gantt.simple.Relationship</p>
     "!
     "! @parameter shapeid     | (string) Relationship shape id.
     "! @parameter type        | (sap.gantt.simple.RelationshipType) FinishToStart | FinishToFinish | StartToStart | StartToFinish. Default: FinishToStart.
@@ -8607,12 +8607,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `relationships` (Gantt)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `relationships`</p>
     METHODS relationships
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `noData` (List, Table, NetworkGraph, ...)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `noData`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix.
     METHODS no_data
@@ -8621,7 +8621,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `lines` (NetworkGraph / micro charts)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `lines`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix.
     METHODS lines
@@ -8630,7 +8630,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.Line - edge between two NetworkGraph nodes</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.networkgraph.Line</p>
     "!
     "! @parameter arroworientation | (sap.suite.ui.commons.networkgraph.LineArrowOrientation) ToStart | ToEnd | None. Default: ToEnd.
     "! @parameter arrowposition    | (sap.suite.ui.commons.networkgraph.LineArrowPosition) Start | Middle | End. Default: End.
@@ -8665,7 +8665,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `groups` (NetworkGraph)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `groups`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix.
     METHODS groups
@@ -8674,7 +8674,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.Group - group of NetworkGraph nodes</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.networkgraph.Group</p>
     "!
     "! @parameter collapsed           | (boolean) Collapsed state. Default: false.
     "! @parameter description         | (string) Group description.
@@ -8709,7 +8709,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.Graph - network graph</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.networkgraph.Graph</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.networkgraph.Graph.
     "!
@@ -8766,12 +8766,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `layoutAlgorithm` (NetworkGraph)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `layoutAlgorithm`</p>
     METHODS layout_algorithm
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.layout.LayeredLayout - layered graph layout</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.networkgraph.layout.LayeredLayout</p>
     "!
     "! @parameter linespacingfactor | (float) Line-spacing factor. Default: 1.
     "! @parameter mergeedges        | (boolean) Merge parallel edges. Default: false.
@@ -8788,7 +8788,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.layout.ForceBasedLayout</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.networkgraph.layout.ForceBasedLayout</p>
     "!
     "! @parameter alpha           | (float) Initial alpha. Default: 0.1.
     "! @parameter charge           | (int) Charge strength. Default: -120.
@@ -8805,7 +8805,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.layout.ForceDirectedLayout</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.networkgraph.layout.ForceDirectedLayout</p>
     "!
     "! @parameter cooldownstep            | (float) Cooldown step factor.
     "! @parameter initialtemperature      | (float) Initial simulation temperature.
@@ -8826,22 +8826,22 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.layout.NoopLayout - identity layout (uses node x/y as-is)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.networkgraph.layout.NoopLayout</p>
     METHODS noop_layout
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.layout.SwimLaneChainLayout</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.networkgraph.layout.SwimLaneChainLayout</p>
     METHODS swim_lane_chain_layout
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.layout.TwoColumnsLayout</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.networkgraph.layout.TwoColumnsLayout</p>
     METHODS two_columns_layout
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `attributes` (NetworkGraph.Node)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `attributes`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix.
     METHODS attributes
@@ -8850,7 +8850,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.ElementAttribute - attribute on a Node</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.networkgraph.ElementAttribute</p>
     "!
     "! @parameter label | (string) Attribute label.
     "! @parameter value | (string) Attribute value.
@@ -8862,7 +8862,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `actionButtons` (NetworkGraph.Node)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `actionButtons`</p>
     "!
     "! @parameter ns | (string) XML namespace prefix.
     METHODS action_buttons
@@ -8871,7 +8871,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.networkgraph.ActionButton - button on a Node</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.networkgraph.ActionButton</p>
     "!
     "! @parameter enabled  | (boolean) Whether enabled. Default: true.
     "! @parameter icon     | (sap.ui.core.URI) Icon URI.
@@ -8890,7 +8890,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.vbm.Routes - routes container on AnalyticMap</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.vbm.Routes</p>
     "!
     "! @parameter items | (binding path) Aggregation of `Route`.
     METHODS routes
@@ -8901,12 +8901,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `legendArea` (chart legend)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `legendArea`</p>
     METHODS legend_area
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.vbm.Legend.LegendItem - item in vbm Legend</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.vbm.Legend.LegendItem</p>
     "!
     "! @parameter text  | (string) Item text.
     "! @parameter color | (sap.ui.core.CSSColor) Item colour.
@@ -8919,7 +8919,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.vbm.Legend - legend for AnalyticMap</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.vbm.Legend</p>
     "!
     "! @parameter items   | (binding path) Aggregation of `legenditem`.
     "! @parameter caption | (string) Legend caption.
@@ -8932,7 +8932,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.vbm.Route - route on AnalyticMap</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.vbm.Route</p>
     "!
     "! @parameter position    | (string) Geo coordinates list.
     "! @parameter routetype   | (sap.ui.vbm.RouteType) Solid | Dashed | Dotted.
@@ -8952,7 +8952,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.table.columnmenu.Menu - column header menu (since 1.110)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.Menu</p>
     "!
     "! @parameter visible    | (boolean) Whether visible. Default: true.
     "! @parameter afterclose | (event) Fired after the menu has closed.
@@ -8967,7 +8967,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.table.columnmenu.Item - structured menu item</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.Item</p>
     "!
     "! @parameter icon               | (sap.ui.core.URI) Icon URI.
     "! @parameter label              | (string) Item label.
@@ -8996,7 +8996,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.table.columnmenu.ActionItem - simple action menu item</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.ActionItem</p>
     "!
     "! @parameter icon    | (sap.ui.core.URI) Icon URI.
     "! @parameter label   | (string) Item label.
@@ -9013,7 +9013,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.table.columnmenu.QuickAction - generic quick action</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.QuickAction</p>
     "!
     "! @parameter category | (sap.m.table.columnmenu.Category) Generic | Sort | Filter | Group | Aggregate.
     "! @parameter label    | (string) Action label.
@@ -9028,7 +9028,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.table.columnmenu.QuickActionItem - sub-item of QuickAction</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.QuickActionItem</p>
     "!
     "! @parameter key     | (string) Item key.
     "! @parameter label   | (string) Item label.
@@ -9043,7 +9043,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.table.columnmenu.QuickGroup - quick group action</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.QuickGroup</p>
     "!
     "! @parameter change  | (event) Fired when the grouping changes.
     "! @parameter visible | (boolean) Whether visible. Default: true.
@@ -9056,7 +9056,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.table.columnmenu.QuickGroupItem - column inside QuickGroup</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.QuickGroupItem</p>
     "!
     "! @parameter grouped | (boolean) Whether the column is grouped. Default: false.
     "! @parameter key     | (string) Item key.
@@ -9073,7 +9073,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.table.columnmenu.QuickSort - quick sort action</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.QuickSort</p>
     "!
     "! @parameter change  | (event) Fired when the sort changes.
     "! @parameter visible | (boolean) Whether visible. Default: true.
@@ -9086,7 +9086,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.table.columnmenu.QuickSortItem - sort entry</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.QuickSortItem</p>
     "!
     "! @parameter sortorder | (sap.ui.core.SortOrder) None | Ascending | Descending. Default: None.
     "! @parameter key       | (string) Item key.
@@ -9103,7 +9103,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.table.columnmenu.QuickTotal - quick aggregation/total action</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.QuickTotal</p>
     "!
     "! @parameter change  | (event) Fired when the total changes.
     "! @parameter visible | (boolean) Whether visible. Default: true.
@@ -9116,7 +9116,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.table.columnmenu.QuickTotalItem - column inside QuickTotal</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.QuickTotalItem</p>
     "!
     "! @parameter totaled | (boolean) Whether the column is totalled. Default: false.
     "! @parameter key     | (string) Item key.
@@ -9133,7 +9133,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.MicroProcessFlow - inline horizontal process flow</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.MicroProcessFlow</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.MicroProcessFlow.
     "!
@@ -9150,7 +9150,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.MicroProcessFlowItem - step in MicroProcessFlow</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.MicroProcessFlowItem</p>
     "!
     "! @parameter icon             | (sap.ui.core.URI) Step icon.
     "! @parameter key              | (string) Step key.
@@ -9175,17 +9175,17 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `intermediary` (MicroProcessFlowItem)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `intermediary`</p>
     METHODS intermediary
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `customControl` (MicroProcessFlowItem / SmartFilterBar)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `customControl`</p>
     METHODS custom_control
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.statusindicator.ResponsiveScale - tick scale for StatusIndicator</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.statusindicator.ResponsiveScale</p>
     "!
     "! @parameter tickmarksbetweenlabels | (int) Number of tick marks between labels. Default: 5.
     METHODS responsive_scale
@@ -9196,7 +9196,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.statusindicator.StatusIndicator - SVG status indicator</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.statusindicator.StatusIndicator</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.statusindicator.StatusIndicator.
     "!
@@ -9225,12 +9225,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `propertyThresholds` (StatusIndicator)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `propertyThresholds`</p>
     METHODS property_thresholds
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.statusindicator.PropertyThreshold - threshold step</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.statusindicator.PropertyThreshold</p>
     "!
     "! @parameter fillcolor | (sap.ui.core.CSSColor) Fill colour for this threshold band.
     "! @parameter tovalue   | (float) Upper bound of this band.
@@ -9247,12 +9247,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.statusindicator.ShapeGroup - container of shapes</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.statusindicator.ShapeGroup</p>
     METHODS shape_group
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.statusindicator.LibraryShape - shape from the icon library</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.statusindicator.LibraryShape</p>
     "!
     "! @parameter animationonchange   | (boolean) Animate value transitions. Default: true.
     "! @parameter definition          | (string) Shape definition reference.
@@ -9295,7 +9295,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.TileInfo - tile information element</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.TileInfo</p>
     "!
     "! @parameter backgroundcolor | (sap.ui.core.CSSColor) Background colour.
     "! @parameter bordercolor     | (sap.ui.core.CSSColor) Border colour.
@@ -9314,12 +9314,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `badge` (used by various controls)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `badge`</p>
     METHODS badge
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.tnt.SideNavigation - launchpad-style side navigation</p>
+    "! <p class="shorttext synchronized" lang="en">sap.tnt.SideNavigation</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.tnt.SideNavigation.
     "!
@@ -9332,14 +9332,14 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.tnt.NavigationList - navigation list inside SideNavigation</p>
+    "! <p class="shorttext synchronized" lang="en">sap.tnt.NavigationList</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.tnt.NavigationList.
     METHODS navigation_list
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.tnt.NavigationListItem - item in NavigationList</p>
+    "! <p class="shorttext synchronized" lang="en">sap.tnt.NavigationListItem</p>
     "!
     "! @parameter text   | (string) Item text.
     "! @parameter icon   | (sap.ui.core.URI) Icon URI.
@@ -9356,12 +9356,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `fixedItem` (SideNavigation - bottom-fixed item)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `fixedItem`</p>
     METHODS fixed_item
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.viz.ui5.controls.VizFrame - charting frame (sap.viz)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.viz.ui5.controls.VizFrame</p>
     "!
     "! Modern charting frame. See https://ui5.sap.com/#/api/sap.viz.ui5.controls.VizFrame.
     "! Note: legacy `sap.viz.ui5.*` charts (Bar, Bubble, Pie, Line, ...) are deprecated since 1.32 - use VizFrame.
@@ -9392,12 +9392,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `dataset` (VizFrame)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `dataset`</p>
     METHODS viz_dataset
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.viz.ui5.data.FlattenedDataset - flat dataset for VizFrame</p>
+    "! <p class="shorttext synchronized" lang="en">sap.viz.ui5.data.FlattenedDataset</p>
     "!
     "! @parameter data | (binding path) Data binding path.
     METHODS viz_flattened_dataset
@@ -9406,12 +9406,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `dimensions` (FlattenedDataset)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `dimensions`</p>
     METHODS viz_dimensions
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.viz.ui5.data.DimensionDefinition - dimension definition</p>
+    "! <p class="shorttext synchronized" lang="en">sap.viz.ui5.data.DimensionDefinition</p>
     "!
     "! @parameter axis         | (int) Axis index (1, 2 or 3).
     "! @parameter datatype     | (string) Data type, e.g. `string`, `number`, `date`.
@@ -9432,12 +9432,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `measures` (FlattenedDataset)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `measures`</p>
     METHODS viz_measures
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.viz.ui5.data.MeasureDefinition - measure definition</p>
+    "! <p class="shorttext synchronized" lang="en">sap.viz.ui5.data.MeasureDefinition</p>
     "!
     "! @parameter format   | (string) Number format pattern.
     "! @parameter group    | (int) Measure group index.
@@ -9458,12 +9458,12 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">Aggregation slot `feeds` (VizFrame)</p>
+    "! <p class="shorttext synchronized" lang="en">Aggregation `feeds`</p>
     METHODS viz_feeds
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.viz.ui5.controls.common.feeds.FeedItem - VizFrame feed</p>
+    "! <p class="shorttext synchronized" lang="en">sap.viz.ui5.controls.common.feeds.FeedItem</p>
     "!
     "! @parameter uid    | (string) Feed identifier (e.g. `categoryAxis`, `valueAxis`, `color`).
     "! @parameter type   | (string) Feed type (Dimension | Measure).
@@ -9477,7 +9477,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.ui.comp.smartmultiinput.SmartMultiInput</p>
+    "! <p class="shorttext synchronized" lang="en">sap.ui.comp.smartmultiinput.SmartMultiInput</p>
     "!
     "! Smart multi-input that derives suggestions / value help from OData.
     "! See https://ui5.sap.com/#/api/sap.ui.comp.smartmultiinput.SmartMultiInput.
@@ -9514,7 +9514,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.m.RowSettings - per-row settings (highlight, navigated)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.m.RowSettings</p>
     "!
     "! @parameter highlight     | (sap.ui.core.MessageType | sap.ui.core.IndicationColor) Default: None.
     "! @parameter highlighttext | (string) Custom accessibility text for highlight.
@@ -9527,7 +9527,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.imageeditor.ImageEditor - image editor (crop / resize)</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.imageeditor.ImageEditor</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.imageeditor.ImageEditor.
     "!
@@ -9550,7 +9550,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
-    "! <p class="shorttext synchronized" lang="en">UI5 sap.suite.ui.commons.imageeditor.ImageEditorContainer - image editor with toolbar</p>
+    "! <p class="shorttext synchronized" lang="en">sap.suite.ui.commons.imageeditor.ImageEditorContainer</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.suite.ui.commons.imageeditor.ImageEditorContainer.
     "!
@@ -9575,7 +9575,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     DATA mo_parent   TYPE REF TO z2ui5_cl_xml_view.
     DATA mt_child    TYPE STANDARD TABLE OF REF TO z2ui5_cl_xml_view WITH EMPTY KEY.
 
-    "! <p class="shorttext synchronized" lang="en">Internal recursion that flattens the XML tree into a string_table</p>
+    "! <p class="shorttext synchronized" lang="en">Internal recursion that flattens the XML tree into a stri...</p>
     "!
     "! @parameter ct_parts | Output - serialised XML fragments.
     METHODS xml_get_parts
