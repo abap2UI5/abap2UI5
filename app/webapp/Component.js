@@ -63,22 +63,23 @@ sap.ui.define(
         const Container = sap.ui.require('sap/ushell/Container');
         if (!Container) return;
         const launchpad = { Container };
+        this._launchpad = launchpad;
         z2ui5.oLaunchpad = launchpad;
+        // Guard async writes: a slow-resolving service must not populate the
+        // launchpad object after the component has been destroyed (e.g. user
+        // closes the app before the FLP services finish loading).
+        const setIfAlive = (key, value) => {
+          if (!this.isDestroyed() && this._launchpad === launchpad) launchpad[key] = value;
+        };
         Container.getServiceAsync('ShellUIService')
-          .then((s) => {
-            launchpad.ShellUIService = s;
-          })
+          .then((s) => setIfAlive('ShellUIService', s))
           .catch((e) => logErr(`Component: ShellUIService init failed`, e));
         Container.getServiceAsync('CrossApplicationNavigation')
-          .then((s) => {
-            launchpad.CrossAppNavigator = s;
-          })
+          .then((s) => setIfAlive('CrossAppNavigator', s))
           .catch((e) => logErr(`Component: CrossApplicationNavigation init failed`, e));
         sap.ui.require(
           ['sap/ushell/services/AppConfiguration'],
-          (ac) => {
-            launchpad.AppConfiguration = ac;
-          },
+          (ac) => setIfAlive('AppConfiguration', ac),
           (e) => logErr(`Component: AppConfiguration init failed`, e),
         );
       },
@@ -106,6 +107,21 @@ sap.ui.define(
         document.removeEventListener('keydown', this._boundKeydown);
         window.removeEventListener('popstate', this._boundPopstate);
         Server.endSession();
+        // Robust launchpad teardown: clear the FLP dirty flag so it does not
+        // carry over into the next app, and detach the shared launchpad
+        // object so a subsequent re-launch starts from a clean state and any
+        // still-pending init Promises become no-ops.
+        try {
+          this._launchpad?.Container?.setDirtyFlag?.(false);
+        } catch (e) {
+          (z2ui5.errors ??= []).push({
+            message: `Component: clearing FLP dirty flag failed`,
+            error: e,
+            ts: new Date().toISOString(),
+          });
+        }
+        if (z2ui5.oLaunchpad === this._launchpad) z2ui5.oLaunchpad = null;
+        this._launchpad = null;
         UIComponent.prototype.exit?.call(this);
       },
     });
