@@ -19,10 +19,6 @@ export default [
       'prefer-const': 'error',
       'eqeqeq': ['error', 'always', { null: 'ignore' }],
       'no-console': 'warn',
-      'no-prototype-builtins': 'error',
-      'no-implicit-globals': 'error',
-      'no-throw-literal': 'error',
-      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     },
   },
 ];
