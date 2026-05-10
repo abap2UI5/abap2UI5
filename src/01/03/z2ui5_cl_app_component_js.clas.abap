@@ -46,6 +46,9 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `      if (arr.length > ERRORS_CAP) arr.splice(0, arr.length - ERRORS_CAP);` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
+             `    // hasOwnProperty.call — pre-ES2022 equivalent of Object.hasOwn (works on browsers from 2020)` && |\n| &&
+             `    const hasOwn = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);` && |\n| &&
+             `` && |\n| &&
              `    const registerCallback = (key, fn) => {` && |\n| &&
              `      if (!Array.isArray(z2ui5[key])) z2ui5[key] = [];` && |\n| &&
              `      z2ui5[key].push(fn);` && |\n| &&
@@ -210,6 +213,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `      TOAST_DEFAULT_ANIM_MS,` && |\n| &&
              `      XX_PATH_PREFIX_LEN,` && |\n| &&
              `      logError,` && |\n| &&
+             `      hasOwn,` && |\n| &&
              `      registerCallback,` && |\n| &&
              `      unregisterCallback,` && |\n| &&
              `      runCallbacks,` && |\n| &&

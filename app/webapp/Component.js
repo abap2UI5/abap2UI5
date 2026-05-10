@@ -26,6 +26,9 @@ sap.ui.define(
       if (arr.length > ERRORS_CAP) arr.splice(0, arr.length - ERRORS_CAP);
     };
 
+    // hasOwnProperty.call — pre-ES2022 equivalent of Object.hasOwn (works on browsers from 2020)
+    const hasOwn = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
+
     const registerCallback = (key, fn) => {
       if (!Array.isArray(z2ui5[key])) z2ui5[key] = [];
       z2ui5[key].push(fn);
@@ -190,6 +193,7 @@ sap.ui.define(
       TOAST_DEFAULT_ANIM_MS,
       XX_PATH_PREFIX_LEN,
       logError,
+      hasOwn,
       registerCallback,
       unregisterCallback,
       runCallbacks,

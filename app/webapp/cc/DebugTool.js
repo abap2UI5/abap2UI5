@@ -4,7 +4,7 @@ sap.ui.define(
     'use strict';
 
     // toJson, prettifyXml, getViewContent, getRenderedContent come from z2ui5/cc/Util
-    const { logError: _logError, toJson, prettifyXml, getViewContent, getRenderedContent } = Util;
+    const { logError: _logError, hasOwn, toJson, prettifyXml, getViewContent, getRenderedContent } = Util;
 
     return Control.extend('z2ui5.cc.DebugTool', {
       _buildHandlers(oEvent, oSource, displayEditor) {
@@ -64,7 +64,7 @@ sap.ui.define(
         const displayEditor = (this._displayEditorBound ??= this.displayEditor.bind(this));
         // Rebuild on each click — handlers close over the current oView/oResponse references
         const handlers = this._buildHandlers(oEvent, oSource, displayEditor);
-        if (Object.hasOwn(handlers, selItem)) handlers[selItem]();
+        if (hasOwn(handlers, selItem)) handlers[selItem]();
       },
 
       displayEditor(oEvent, content, type, xcontent = '') {

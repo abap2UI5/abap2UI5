@@ -24,7 +24,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `    'use strict';` && |\n| &&
              `` && |\n| &&
              `    // toJson, prettifyXml, getViewContent, getRenderedContent come from z2ui5/cc/Util` && |\n| &&
-             `    const { logError: _logError, toJson, prettifyXml, getViewContent, getRenderedContent } = Util;` && |\n| &&
+             `    const { logError: _logError, hasOwn, toJson, prettifyXml, getViewContent, getRenderedContent } = Util;` && |\n| &&
              `` && |\n| &&
              `    return Control.extend('z2ui5.cc.DebugTool', {` && |\n| &&
              `      _buildHandlers(oEvent, oSource, displayEditor) {` && |\n| &&
@@ -84,7 +84,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        const displayEditor = (this._displayEditorBound ??= this.displayEditor.bind(this));` && |\n| &&
              `        // Rebuild on each click — handlers close over the current oView/oResponse references` && |\n| &&
              `        const handlers = this._buildHandlers(oEvent, oSource, displayEditor);` && |\n| &&
-             `        if (Object.hasOwn(handlers, selItem)) handlers[selItem]();` && |\n| &&
+             `        if (hasOwn(handlers, selItem)) handlers[selItem]();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      displayEditor(oEvent, content, type, xcontent = '') {` && |\n| &&

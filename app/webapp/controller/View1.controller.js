@@ -37,6 +37,7 @@ sap.ui.define(
 
     const {
       logError: _logError,
+      hasOwn,
       runCallbacks,
       getViewContent: _getViewContent,
       findControlById: _findControlById,
@@ -389,7 +390,7 @@ sap.ui.define(
 
         // Object.hasOwn guard prevents prototype lookups (e.g. args[0] === 'constructor')
         const navLookup =
-          typeof args[0] === 'string' && Object.hasOwn(navContainerLookups, args[0]) ? navContainerLookups[args[0]] : null;
+          typeof args[0] === 'string' && hasOwn(navContainerLookups, args[0]) ? navContainerLookups[args[0]] : null;
         if (navLookup) {
           navigateContainer(navLookup, args);
           return;
@@ -402,7 +403,7 @@ sap.ui.define(
             const limit = hasLimit ? Number(args[1]) : NaN;
             // Object.hasOwn guard prevents prototype access (viewKey === '__proto__' etc.)
             const model =
-              typeof viewKey === 'string' && Object.hasOwn(viewLookups, viewKey)
+              typeof viewKey === 'string' && hasOwn(viewLookups, viewKey)
                 ? viewLookups[viewKey]()?.getModel()
                 : undefined;
             if (Number.isFinite(limit) && limit > 0) {
@@ -452,7 +453,7 @@ sap.ui.define(
               const StorageTypes = Storage?.Type ?? {};
               // Object.hasOwn guard prevents prototype lookups (TYPE === '__proto__')
               const resolvedType =
-                typeof TYPE === 'string' && Object.hasOwn(StorageTypes, TYPE)
+                typeof TYPE === 'string' && hasOwn(StorageTypes, TYPE)
                   ? StorageTypes[TYPE]
                   : StorageTypes.session;
               const oStorage = new Storage(resolvedType, PREFIX);
@@ -556,7 +557,7 @@ sap.ui.define(
               const fnName = args[1];
               // Restrict to own callable properties to block prototype-pollution paths like
               // '__proto__', 'constructor', 'hasOwnProperty', etc.
-              if (typeof fnName !== 'string' || !Object.hasOwn(z2ui5, fnName) || typeof z2ui5[fnName] !== 'function') {
+              if (typeof fnName !== 'string' || !hasOwn(z2ui5, fnName) || typeof z2ui5[fnName] !== 'function') {
                 _logError(`Z2UI5: '${fnName}' is not a callable own property of z2ui5`);
                 break;
               }

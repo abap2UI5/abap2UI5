@@ -57,6 +57,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `    const {` && |\n| &&
              `      logError: _logError,` && |\n| &&
+             `      hasOwn,` && |\n| &&
              `      runCallbacks,` && |\n| &&
              `      getViewContent: _getViewContent,` && |\n| &&
              `      findControlById: _findControlById,` && |\n| &&
@@ -409,7 +410,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        // Object.hasOwn guard prevents prototype lookups (e.g. args[0] === 'constructor')` && |\n| &&
              `        const navLookup =` && |\n| &&
-             `          typeof args[0] === 'string' && Object.hasOwn(navContainerLookups, args[0]) ? navContainerLookups[args[0]] : null;` && |\n| &&
+             `          typeof args[0] === 'string' && hasOwn(navContainerLookups, args[0]) ? navContainerLookups[args[0]] : null;` && |\n| &&
              `        if (navLookup) {` && |\n| &&
              `          navigateContainer(navLookup, args);` && |\n| &&
              `          return;` && |\n| &&
@@ -417,14 +418,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        switch (args[0]) {` && |\n| &&
              `          case 'SET_SIZE_LIMIT': {` && |\n| &&
-             `            const hasLimit = args[2] !== undefined && args[2] !== '';` && |\n| &&
              |\n|.
     result = result &&
+             `            const hasLimit = args[2] !== undefined && args[2] !== '';` && |\n| &&
              `            const viewKey = hasLimit ? args[2] : args[1];` && |\n| &&
              `            const limit = hasLimit ? Number(args[1]) : NaN;` && |\n| &&
              `            // Object.hasOwn guard prevents prototype access (viewKey === '__proto__' etc.)` && |\n| &&
              `            const model =` && |\n| &&
-             `              typeof viewKey === 'string' && Object.hasOwn(viewLookups, viewKey)` && |\n| &&
+             `              typeof viewKey === 'string' && hasOwn(viewLookups, viewKey)` && |\n| &&
              `                ? viewLookups[viewKey]()?.getModel()` && |\n| &&
              `                : undefined;` && |\n| &&
              `            if (Number.isFinite(limit) && limit > 0) {` && |\n| &&
@@ -474,7 +475,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `              const StorageTypes = Storage?.Type ?? {};` && |\n| &&
              `              // Object.hasOwn guard prevents prototype lookups (TYPE === '__proto__')` && |\n| &&
              `              const resolvedType =` && |\n| &&
-             `                typeof TYPE === 'string' && Object.hasOwn(StorageTypes, TYPE)` && |\n| &&
+             `                typeof TYPE === 'string' && hasOwn(StorageTypes, TYPE)` && |\n| &&
              `                  ? StorageTypes[TYPE]` && |\n| &&
              `                  : StorageTypes.session;` && |\n| &&
              `              const oStorage = new Storage(resolvedType, PREFIX);` && |\n| &&
@@ -578,7 +579,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `              const fnName = args[1];` && |\n| &&
              `              // Restrict to own callable properties to block prototype-pollution paths like` && |\n| &&
              `              // '__proto__', 'constructor', 'hasOwnProperty', etc.` && |\n| &&
-             `              if (typeof fnName !== 'string' || !Object.hasOwn(z2ui5, fnName) || typeof z2ui5[fnName] !== 'function') {` && |\n| &&
+             `              if (typeof fnName !== 'string' || !hasOwn(z2ui5, fnName) || typeof z2ui5[fnName] !== 'function') {` && |\n| &&
              `                _logError(``Z2UI5: '${fnName}' is not a callable own property of z2ui5``);` && |\n| &&
              `                break;` && |\n| &&
              `              }` && |\n| &&

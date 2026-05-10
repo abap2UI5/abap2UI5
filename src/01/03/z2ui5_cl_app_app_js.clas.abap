@@ -744,9 +744,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        const prefix = oControl.getProperty('prefix');` && |\n| &&
              `        const key = oControl.getProperty('key');` && |\n| &&
              `        const value = oControl.getProperty('value');` && |\n| &&
-             `        // Object.hasOwn guard — prevents prototype lookups (type === '__proto__') and logs unknown types` && |\n| &&
+             `        // hasOwnProperty.call guards against prototype lookups (type === '__proto__')` && |\n| &&
+             `        // and logs unknown types — equivalent to Object.hasOwn but works pre-ES2022` && |\n| &&
              `        const StorageTypes = Storage?.Type ?? {};` && |\n| &&
-             `        const known = typeof type === 'string' && Object.hasOwn(StorageTypes, type);` && |\n| &&
+             `        const known = typeof type === 'string' && Object.prototype.hasOwnProperty.call(StorageTypes, type);` && |\n| &&
              `        const resolvedType = known ? StorageTypes[type] : StorageTypes.session;` && |\n| &&
              `        if (type && !known) {` && |\n| &&
              `          _logError(``Storage: unknown type '${type}', falling back to session``);` && |\n| &&
@@ -819,9 +820,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          iconOnly: {` && |\n| &&
              `            type: 'boolean',` && |\n| &&
              `            defaultValue: false,` && |\n| &&
-             `          },` && |\n| &&
              |\n|.
     result = result &&
+             `          },` && |\n| &&
              `          buttonOnly: {` && |\n| &&
              `            type: 'boolean',` && |\n| &&
              `            defaultValue: false,` && |\n| &&
@@ -1221,9 +1222,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `      onPicture() {` && |\n| &&
              `        if (this._oScanDialog?.isOpen()) return;` && |\n| &&
-             `        if (!this._oScanDialog) {` && |\n| &&
              |\n|.
     result = result &&
+             `        if (!this._oScanDialog) {` && |\n| &&
              `          this._oScanDialog = new Dialog({` && |\n| &&
              `            title: 'Device Photo Function',` && |\n| &&
              `            contentWidth: '640px',` && |\n| &&

@@ -722,9 +722,10 @@ sap.ui.define('z2ui5/Storage', ['sap/ui/core/Control', 'sap/ui/util/Storage'], (
         const prefix = oControl.getProperty('prefix');
         const key = oControl.getProperty('key');
         const value = oControl.getProperty('value');
-        // Object.hasOwn guard — prevents prototype lookups (type === '__proto__') and logs unknown types
+        // hasOwnProperty.call guards against prototype lookups (type === '__proto__')
+        // and logs unknown types — equivalent to Object.hasOwn but works pre-ES2022
         const StorageTypes = Storage?.Type ?? {};
-        const known = typeof type === 'string' && Object.hasOwn(StorageTypes, type);
+        const known = typeof type === 'string' && Object.prototype.hasOwnProperty.call(StorageTypes, type);
         const resolvedType = known ? StorageTypes[type] : StorageTypes.session;
         if (type && !known) {
           _logError(`Storage: unknown type '${type}', falling back to session`);
