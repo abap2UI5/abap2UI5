@@ -69,7 +69,7 @@ sap.ui.define(
         // launchpad object after the component has been destroyed (e.g. user
         // closes the app before the FLP services finish loading).
         const setIfAlive = (key, value) => {
-          if (!this.isDestroyed() && this._launchpad === launchpad) launchpad[key] = value;
+          if (!this.isDestroyed?.() && this._launchpad === launchpad) launchpad[key] = value;
         };
         Container.getServiceAsync('ShellUIService')
           .then((s) => setIfAlive('ShellUIService', s))
@@ -87,7 +87,7 @@ sap.ui.define(
       async _initVersionInfo() {
         try {
           const { version, buildTimestamp, gav } = await VersionInfo.load();
-          if (!this.isDestroyed()) z2ui5.oConfig.UI5VersionInfo = { version, buildTimestamp, gav };
+          if (!this.isDestroyed?.()) z2ui5.oConfig.UI5VersionInfo = { version, buildTimestamp, gav };
         } catch (e) {
           (z2ui5.errors ??= []).push({
             message: `Component: VersionInfo load failed`,

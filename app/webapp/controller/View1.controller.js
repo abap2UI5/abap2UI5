@@ -263,7 +263,7 @@ sap.ui.define(
           controller: z2ui5.oControllerPopup,
           id: popupFragmentId(),
         });
-        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {
+        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed?.()) {
           oFragment.destroy();
           return;
         }
@@ -281,7 +281,7 @@ sap.ui.define(
             controller: z2ui5.oControllerPopover,
             id: popoverFragmentId(),
           });
-          if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {
+          if (!z2ui5.oApp || z2ui5.oApp.isDestroyed?.()) {
             oFragment.destroy();
             return;
           }
@@ -311,7 +311,7 @@ sap.ui.define(
           controller,
           preprocessors: { xml: { models: { template: oModel } } },
         });
-        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {
+        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed?.()) {
           oView.destroy();
           return;
         }
@@ -654,7 +654,7 @@ sap.ui.define(
           id: mainViewId(),
           preprocessors: { xml: { models: { template: oViewModel } } },
         });
-        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {
+        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed?.()) {
           z2ui5.oView.destroy();
           if (switchPath) oModel.destroy();
           z2ui5.oView = null;
