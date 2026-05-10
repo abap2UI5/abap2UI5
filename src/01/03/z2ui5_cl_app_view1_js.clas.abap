@@ -20,21 +20,21 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
 
     result = `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
-             `    'sap/ui/core/mvc/Controller',` && |\n| &&
-             `    'sap/ui/core/mvc/XMLView',` && |\n| &&
-             `    'sap/ui/model/json/JSONModel',` && |\n| &&
-             `    'sap/ui/core/BusyIndicator',` && |\n| &&
-             `    'sap/m/MessageBox',` && |\n| &&
-             `    'sap/m/MessageToast',` && |\n| &&
-             `    'sap/ui/core/Fragment',` && |\n| &&
-             `    'sap/m/BusyDialog',` && |\n| &&
-             `    'sap/ui/VersionInfo',` && |\n| &&
-             `    'z2ui5/cc/Server',` && |\n| &&
-             `    'sap/ui/model/odata/v2/ODataModel',` && |\n| &&
-             `    'sap/m/library',` && |\n| &&
-             `    'sap/ui/core/routing/HashChanger',` && |\n| &&
-             `    'sap/ui/util/Storage',` && |\n| &&
-             `    'sap/ui/core/Element',` && |\n| &&
+             `    "sap/ui/core/mvc/Controller",` && |\n| &&
+             `    "sap/ui/core/mvc/XMLView",` && |\n| &&
+             `    "sap/ui/model/json/JSONModel",` && |\n| &&
+             `    "sap/ui/core/BusyIndicator",` && |\n| &&
+             `    "sap/m/MessageBox",` && |\n| &&
+             `    "sap/m/MessageToast",` && |\n| &&
+             `    "sap/ui/core/Fragment",` && |\n| &&
+             `    "sap/m/BusyDialog",` && |\n| &&
+             `    "sap/ui/VersionInfo",` && |\n| &&
+             `    "z2ui5/cc/Server",` && |\n| &&
+             `    "sap/ui/model/odata/v2/ODataModel",` && |\n| &&
+             `    "sap/m/library",` && |\n| &&
+             `    "sap/ui/core/routing/HashChanger",` && |\n| &&
+             `    "sap/ui/util/Storage",` && |\n| &&
+             `    "sap/ui/core/Element",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    Controller,` && |\n| &&
@@ -53,7 +53,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    Storage,` && |\n| &&
              `    Element,` && |\n| &&
              `  ) => {` && |\n| &&
-             `    'use strict';` && |\n| &&
+             `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const runCallbacks = (arr, ...args) => {` && |\n| &&
              `      for (const fn of arr ?? []) {` && |\n| &&
@@ -66,10 +66,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    };` && |\n| &&
              `` && |\n| &&
              `    const _msgParser = new DOMParser();` && |\n| &&
-             `    const _sanitizeEl = document.createElement('div');` && |\n| &&
+             `    const _sanitizeEl = document.createElement("div");` && |\n| &&
              `    const parseMs = (val, def) => (val ? +val : def);` && |\n| &&
              `` && |\n| &&
-             `    const _SAFE_PROTOCOLS = new Set(['http:', 'https:']);` && |\n| &&
+             `    const _SAFE_PROTOCOLS = new Set(["http:", "https:"]);` && |\n| &&
              `    const _logError = (msg, err) =>` && |\n| &&
              `      (z2ui5.errors ??= []).push({` && |\n| &&
              `        message: msg,` && |\n| &&
@@ -86,7 +86,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return false;` && |\n| &&
              `        }` && |\n| &&
              `        if (!_SAFE_PROTOCOLS.has(protocol)) {` && |\n| &&
-             `          _logError(``Security: Blocked redirect with invalid protocol: ${protocol}``);` && |\n| &&
+             `          _logError(` && |\n| &&
+             `            ``Security: Blocked redirect with invalid protocol: ${protocol}``,` && |\n| &&
+             `          );` && |\n| &&
              `          return false;` && |\n| &&
              `        }` && |\n| &&
              `        return true;` && |\n| &&
@@ -101,19 +103,21 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        _logError(``Clipboard: writeText API not available``);` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      navigator.clipboard.writeText(textToCopy).catch((err) => _logError(``Clipboard: writeText failed``, err));` && |\n| &&
+             `      navigator.clipboard` && |\n| &&
+             `        .writeText(textToCopy)` && |\n| &&
+             `        .catch((err) => _logError(``Clipboard: writeText failed``, err));` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    const sanitizeMessageDetails = (html) => {` && |\n| &&
-             `      const doc = _msgParser.parseFromString(html, 'text/html');` && |\n| &&
-             `      const items = [...doc.querySelectorAll('li')];` && |\n| &&
+             `      const doc = _msgParser.parseFromString(html, "text/html");` && |\n| &&
+             `      const items = [...doc.querySelectorAll("li")];` && |\n| &&
              `      if (items.length) {` && |\n| &&
              `        return ``<ul>${items` && |\n| &&
              `          .map((li) => {` && |\n| &&
              `            _sanitizeEl.textContent = li.textContent;` && |\n| &&
              `            return ``<li>${_sanitizeEl.innerHTML}</li>``;` && |\n| &&
              `          })` && |\n| &&
-             `          .join('')}</ul>``;` && |\n| &&
+             `          .join("")}</ul>``;` && |\n| &&
              `      }` && |\n| &&
              `      _sanitizeEl.textContent = doc.body.textContent;` && |\n| &&
              `      return _sanitizeEl.innerHTML;` && |\n| &&
@@ -147,8 +151,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      NAV_CONTAINER_TO: (id) => z2ui5.oView?.byId(id),` && |\n| &&
              `      NEST_NAV_CONTAINER_TO: (id) => z2ui5.oViewNest?.byId(id),` && |\n| &&
              `      NEST2_NAV_CONTAINER_TO: (id) => z2ui5.oViewNest2?.byId(id),` && |\n| &&
-             `      POPUP_NAV_CONTAINER_TO: (id) => Fragment.byId('popupId', id),` && |\n| &&
-             `      POPOVER_NAV_CONTAINER_TO: (id) => Fragment.byId('popoverId', id),` && |\n| &&
+             `      POPUP_NAV_CONTAINER_TO: (id) => Fragment.byId("popupId", id),` && |\n| &&
+             `      POPOVER_NAV_CONTAINER_TO: (id) => Fragment.byId("popoverId", id),` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    const viewLookups = {` && |\n| &&
@@ -160,11 +164,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    };` && |\n| &&
              `` && |\n| &&
              `    const paramToViewKey = {` && |\n| &&
-             `      S_VIEW: 'MAIN',` && |\n| &&
-             `      S_VIEW_NEST: 'NEST',` && |\n| &&
-             `      S_VIEW_NEST2: 'NEST2',` && |\n| &&
-             `      S_POPUP: 'POPUP',` && |\n| &&
-             `      S_POPOVER: 'POPOVER',` && |\n| &&
+             `      S_VIEW: "MAIN",` && |\n| &&
+             `      S_VIEW_NEST: "NEST",` && |\n| &&
+             `      S_VIEW_NEST2: "NEST2",` && |\n| &&
+             `      S_POPUP: "POPUP",` && |\n| &&
+             `      S_POPOVER: "POPOVER",` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    const applyStoredSizeLimit = (viewKey, oModel) => {` && |\n| &&
@@ -172,13 +176,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      if (limit !== undefined && oModel) oModel.setSizeLimit(limit);` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    return Controller.extend('z2ui5.controller.View1', {` && |\n| &&
+             `    return Controller.extend("z2ui5.controller.View1", {` && |\n| &&
              `      _trackChanges(oModel) {` && |\n| &&
              `        oModel.attachPropertyChange((e) => {` && |\n| &&
              `          const { path: raw, context: c } = e.getParameters();` && |\n| &&
              `          if (!raw) return;` && |\n| &&
-             `          const p = c && !raw.startsWith('/') ? ``${c.getPath()}/${raw}`` : raw;` && |\n| &&
-             `          if (p.startsWith('/XX/')) (z2ui5.xxChangedPaths ??= new Set()).add(p);` && |\n| &&
+             `          const p = c && !raw.startsWith("/") ? ``${c.getPath()}/${raw}`` : raw;` && |\n| &&
+             `          if (p.startsWith("/XX/")) (z2ui5.xxChangedPaths ??= new Set()).add(p);` && |\n| &&
              `        });` && |\n| &&
              `        return oModel;` && |\n| &&
              `      },` && |\n| &&
@@ -189,7 +193,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        });` && |\n| &&
              `      },` && |\n| &&
              `      onAfterRendering() {` && |\n| &&
-             `        if (z2ui5.oResponse && !z2ui5.oResponse._processed) this._processAfterRendering();` && |\n| &&
+             `        if (z2ui5.oResponse && !z2ui5.oResponse._processed)` && |\n| &&
+             `          this._processAfterRendering();` && |\n| &&
              `      },` && |\n| &&
              `      async _processAfterRendering() {` && |\n| &&
              `        try {` && |\n| &&
@@ -198,45 +203,72 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          oResponse._processed = true;` && |\n| &&
              `          const { PARAMS, ID } = oResponse;` && |\n| &&
              `          if (!PARAMS) return;` && |\n| &&
-             `          const { S_POPUP, S_VIEW_NEST, S_VIEW_NEST2, S_POPOVER, SET_APP_STATE_ACTIVE, SET_PUSH_STATE, SET_NAV_BACK } =` && |\n| &&
-             `            PARAMS;` && |\n| &&
+             `          const {` && |\n| &&
+             `            S_POPUP,` && |\n| &&
+             `            S_VIEW_NEST,` && |\n| &&
+             `            S_VIEW_NEST2,` && |\n| &&
+             `            S_POPOVER,` && |\n| &&
+             `            SET_APP_STATE_ACTIVE,` && |\n| &&
+             `            SET_PUSH_STATE,` && |\n| &&
+             `            SET_NAV_BACK,` && |\n| &&
+             `          } = PARAMS;` && |\n| &&
              `          if (S_POPUP?.CHECK_DESTROY) this.PopupDestroy();` && |\n| &&
              `          if (S_POPOVER?.CHECK_DESTROY) this.PopoverDestroy();` && |\n| &&
              `          if (S_POPUP?.XML) {` && |\n| &&
              `            this.PopupDestroy();` && |\n| &&
-             `            await this.displayFragment(S_POPUP.XML, 'oViewPopup');` && |\n| &&
+             `            await this.displayFragment(S_POPUP.XML, "oViewPopup");` && |\n| &&
              `          }` && |\n| &&
              `          if (!z2ui5.checkNestAfter && S_VIEW_NEST?.XML) {` && |\n| &&
              `            this.NestViewDestroy();` && |\n| &&
-             `            await this.displayNestedView(S_VIEW_NEST.XML, 'oViewNest', 'S_VIEW_NEST', z2ui5.oControllerNest);` && |\n| &&
+             `            await this.displayNestedView(` && |\n| &&
+             `              S_VIEW_NEST.XML,` && |\n| &&
+             `              "oViewNest",` && |\n| &&
+             `              "S_VIEW_NEST",` && |\n| &&
+             `              z2ui5.oControllerNest,` && |\n| &&
+             `            );` && |\n| &&
              `            z2ui5.checkNestAfter = true;` && |\n| &&
              `          }` && |\n| &&
              `          if (!z2ui5.checkNestAfter2 && S_VIEW_NEST2?.XML) {` && |\n| &&
              `            this.NestViewDestroy2();` && |\n| &&
-             `            await this.displayNestedView(S_VIEW_NEST2.XML, 'oViewNest2', 'S_VIEW_NEST2', z2ui5.oControllerNest2);` && |\n| &&
+             `            await this.displayNestedView(` && |\n| &&
+             `              S_VIEW_NEST2.XML,` && |\n| &&
+             `              "oViewNest2",` && |\n| &&
+             `              "S_VIEW_NEST2",` && |\n| &&
+             `              z2ui5.oControllerNest2,` && |\n| &&
+             `            );` && |\n| &&
              `            z2ui5.checkNestAfter2 = true;` && |\n| &&
              `          }` && |\n| &&
              `          if (S_POPOVER?.XML) {` && |\n| &&
              `            this.PopoverDestroy();` && |\n| &&
-             `            await this.displayPopover(S_POPOVER.XML, 'oViewPopover', S_POPOVER.OPEN_BY_ID);` && |\n| &&
+             `            await this.displayPopover(` && |\n| &&
+             `              S_POPOVER.XML,` && |\n| &&
+             `              "oViewPopover",` && |\n| &&
+             `              S_POPOVER.OPEN_BY_ID,` && |\n| &&
+             `            );` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
              `          const oView = z2ui5.oView;` && |\n| &&
              `          const oState = oView` && |\n| &&
-             `            ? { view: oView.mProperties.viewContent, model: oView.getModel()?.getData(), response: z2ui5.oResponse }` && |\n| &&
+             `            ? {` && |\n| &&
+             `                view: oView.mProperties.viewContent,` && |\n| &&
+             `                model: oView.getModel()?.getData(),` && |\n| &&
+             `                response: z2ui5.oResponse,` && |\n| &&
+             `              }` && |\n| &&
              `            : {};` && |\n| &&
              `          try {` && |\n| &&
              `            if (SET_PUSH_STATE) {` && |\n| &&
-             `              const hash = _hashChanger.getHash() || '#';` && |\n| &&
+             `              const hash = _hashChanger.getHash() || "#";` && |\n| &&
              `              history.pushState(` && |\n| &&
              `                oState,` && |\n| &&
-             `                '',` && |\n| &&
+             `                "",` && |\n| &&
              `                ``${window.location.pathname}${window.location.search}${hash}${SET_PUSH_STATE}``,` && |\n| &&
              `              );` && |\n| &&
              `            } else {` && |\n| &&
-             `              history.replaceState(oState, '', window.location.href);` && |\n| &&
+             `              history.replaceState(oState, "", window.location.href);` && |\n| &&
              `            }` && |\n| &&
-             `            _hashChanger.replaceHash(SET_APP_STATE_ACTIVE ? ``z2ui5-xapp-state=${ID ?? ''}`` : '');` && |\n| &&
+             `            _hashChanger.replaceHash(` && |\n| &&
+             `              SET_APP_STATE_ACTIVE ? ``z2ui5-xapp-state=${ID ?? ""}`` : "",` && |\n| &&
+             `            );` && |\n| &&
              `          } catch (e) {` && |\n| &&
              `            _logError(``_processAfterRendering: history update failed``, e);` && |\n| &&
              `          }` && |\n| &&
@@ -246,9 +278,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        } catch (e) {` && |\n| &&
              `          _logError(``_processAfterRendering: unexpected error``, e);` && |\n| &&
              `          MessageBox.error(e.toLocaleString(), {` && |\n| &&
-             `            title: 'Unexpected Error Occurred - App Terminated',` && |\n| &&
+             `            title: "Unexpected Error Occurred - App Terminated",` && |\n| &&
              `            actions: [],` && |\n| &&
-             `            onClose: () => new mBusyDialog({ text: 'Please Restart the App' }).open(),` && |\n| &&
+             `            onClose: () =>` && |\n| &&
+             `              new mBusyDialog({ text: "Please Restart the App" }).open(),` && |\n| &&
              `          });` && |\n| &&
              `        } finally {` && |\n| &&
              `          BusyIndicator.hide();` && |\n| &&
@@ -258,8 +291,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      _buildDeltaFromPaths(paths, xx) {` && |\n| &&
              `        const delta = {};` && |\n| &&
              `        for (const path of paths) {` && |\n| &&
-             `          const [attr, rowIdx, field] = path.slice(4).split('/');` && |\n| &&
-             `          if (field !== undefined && rowIdx !== '' && !isNaN(rowIdx)) {` && |\n| &&
+             `          const [attr, rowIdx, field] = path.slice(4).split("/");` && |\n| &&
+             `          if (field !== undefined && rowIdx !== "" && !isNaN(rowIdx)) {` && |\n| &&
              `            if (!delta[attr]?.__delta) delta[attr] = { __delta: {} };` && |\n| &&
              `            const attrDelta = delta[attr].__delta;` && |\n| &&
              `            attrDelta[rowIdx] ??= {};` && |\n| &&
@@ -275,11 +308,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      async displayFragment(xml, viewProp) {` && |\n| &&
              `        const oModel = this._createViewModel();` && |\n| &&
-             `        applyStoredSizeLimit('POPUP', oModel);` && |\n| &&
+             `        applyStoredSizeLimit("POPUP", oModel);` && |\n| &&
              `        const oFragment = await Fragment.load({` && |\n| &&
              `          definition: xml,` && |\n| &&
              `          controller: z2ui5.oControllerPopup,` && |\n| &&
-             `          id: 'popupId',` && |\n| &&
+             `          id: "popupId",` && |\n| &&
              `        });` && |\n| &&
              `        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed?.()) {` && |\n| &&
              `          oFragment.destroy();` && |\n| &&
@@ -293,11 +326,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      async displayPopover(xml, viewProp, openById) {` && |\n| &&
              `        try {` && |\n| &&
              `          const oModel = this._createViewModel();` && |\n| &&
-             `          applyStoredSizeLimit('POPOVER', oModel);` && |\n| &&
+             `          applyStoredSizeLimit("POPOVER", oModel);` && |\n| &&
              `          const oFragment = await Fragment.load({` && |\n| &&
              `            definition: xml,` && |\n| &&
              `            controller: z2ui5.oControllerPopover,` && |\n| &&
-             `            id: 'popoverId',` && |\n| &&
+             `            id: "popoverId",` && |\n| &&
              `          });` && |\n| &&
              `          if (!z2ui5.oApp || z2ui5.oApp.isDestroyed?.()) {` && |\n| &&
              `            oFragment.destroy();` && |\n| &&
@@ -307,10 +340,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          oFragment.Fragment = Fragment;` && |\n| &&
              `          const oControl =` && |\n| &&
              `            z2ui5.oView?.byId(openById) ||` && |\n| &&
-             `            z2ui5.oViewPopup?.Fragment.byId('popupId', openById) ||` && |\n| &&
+             `            z2ui5.oViewPopup?.Fragment.byId("popupId", openById) ||` && |\n| &&
              `            z2ui5.oViewNest?.byId(openById) ||` && |\n| &&
              `            z2ui5.oViewNest2?.byId(openById) ||` && |\n| &&
-             `            (Element.getElementById?.(openById) ?? sap.ui.getCore?.()?.byId?.(openById));` && |\n| &&
+             `            (Element.getElementById?.(openById) ??` && |\n| &&
+             `              sap.ui.getCore?.()?.byId?.(openById));` && |\n| &&
              `          if (!oControl) {` && |\n| &&
              `            _logError(``displayPopover: openBy control '${openById}' not found``);` && |\n| &&
              `            oFragment.destroy();` && |\n| &&
@@ -344,7 +378,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        const { ID, METHOD_DESTROY, METHOD_INSERT } = nestParams;` && |\n| &&
              `        const oParent = z2ui5.oView?.byId(ID);` && |\n| &&
              `        if (!oParent) {` && |\n| &&
-             `          _logError(``displayNestedView: parent control '${ID}' not found, nested view discarded``);` && |\n| &&
+             `          _logError(` && |\n| &&
+             `            ``displayNestedView: parent control '${ID}' not found, nested view discarded``,` && |\n| &&
+             `          );` && |\n| &&
              `          oView.destroy();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -380,19 +416,21 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        z2ui5[prop] = null;` && |\n| &&
              `      },` && |\n| &&
              `      PopupDestroy() {` && |\n| &&
-             `        this._destroyView('oViewPopup', true);` && |\n| &&
+             `        this._destroyView("oViewPopup", true);` && |\n| &&
              `      },` && |\n| &&
+             |\n|.
+    result = result &&
              `      PopoverDestroy() {` && |\n| &&
-             `        this._destroyView('oViewPopover', true);` && |\n| &&
+             `        this._destroyView("oViewPopover", true);` && |\n| &&
              `      },` && |\n| &&
              `      NestViewDestroy() {` && |\n| &&
-             `        this._destroyView('oViewNest');` && |\n| &&
+             `        this._destroyView("oViewNest");` && |\n| &&
              `      },` && |\n| &&
              `      NestViewDestroy2() {` && |\n| &&
-             `        this._destroyView('oViewNest2');` && |\n| &&
+             `        this._destroyView("oViewNest2");` && |\n| &&
              `      },` && |\n| &&
              `      ViewDestroy() {` && |\n| &&
-             `        this._destroyView('oView');` && |\n| &&
+             `        this._destroyView("oView");` && |\n| &&
              `      },` && |\n| &&
              `      eF(...args) {` && |\n| &&
              `        runCallbacks(z2ui5.onBeforeEventFrontend, args);` && |\n| &&
@@ -404,8 +442,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `` && |\n| &&
              `        switch (args[0]) {` && |\n| &&
-             `          case 'SET_SIZE_LIMIT': {` && |\n| &&
-             `            const hasLimit = args[2] !== undefined && args[2] !== '';` && |\n| &&
+             `          case "SET_SIZE_LIMIT": {` && |\n| &&
+             `            const hasLimit = args[2] !== undefined && args[2] !== "";` && |\n| &&
              `            const viewKey = hasLimit ? args[2] : args[1];` && |\n| &&
              `            const limit = hasLimit ? Number(args[1]) : NaN;` && |\n| &&
              `            const model = viewLookups[viewKey]?.()?.getModel();` && |\n| &&
@@ -424,70 +462,90 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            }` && |\n| &&
              `            break;` && |\n| &&
              `          }` && |\n| &&
-             `          case 'HISTORY_BACK':` && |\n| &&
-             |\n|.
-    result = result &&
+             `          case "HISTORY_BACK":` && |\n| &&
              `            history.back();` && |\n| &&
              `            break;` && |\n| &&
-             `          case 'CLIPBOARD_COPY':` && |\n| &&
+             `          case "CLIPBOARD_COPY":` && |\n| &&
              `            copyToClipboard(args[1]);` && |\n| &&
              `            break;` && |\n| &&
-             `          case 'CLIPBOARD_APP_STATE':` && |\n| &&
-             `            copyToClipboard(``${window.location.href}#/z2ui5-xapp-state=${z2ui5.oResponse?.ID}``);` && |\n| &&
+             `          case "CLIPBOARD_APP_STATE":` && |\n| &&
+             `            copyToClipboard(` && |\n| &&
+             `              ``${window.location.href}#/z2ui5-xapp-state=${z2ui5.oResponse?.ID}``,` && |\n| &&
+             `            );` && |\n| &&
              `            break;` && |\n| &&
-             `          case 'SET_ODATA_MODEL': {` && |\n| &&
+             `          case "SET_ODATA_MODEL": {` && |\n| &&
              `            try {` && |\n| &&
-             `              const oModel = new ODataModel({ serviceUrl: args[1], annotationURI: args[3] ?? '' });` && |\n| &&
+             `              const oModel = new ODataModel({` && |\n| &&
+             `                serviceUrl: args[1],` && |\n| &&
+             `                annotationURI: args[3] ?? "",` && |\n| &&
+             `              });` && |\n| &&
              `              z2ui5.oView?.setModel(oModel, args[2] || undefined);` && |\n| &&
              `            } catch (e) {` && |\n| &&
              `              _logError(``SET_ODATA_MODEL: failed for '${args[1]}'``, e);` && |\n| &&
              `            }` && |\n| &&
              `            break;` && |\n| &&
              `          }` && |\n| &&
-             `          case 'STORE_DATA': {` && |\n| &&
+             `          case "STORE_DATA": {` && |\n| &&
              `            const { TYPE, PREFIX, VALUE, KEY } = args[1];` && |\n| &&
              `            try {` && |\n| &&
-             `              const oStorage = new Storage(Storage.Type[TYPE] ?? Storage.Type.session, PREFIX);` && |\n| &&
-             `              if (VALUE === '' || VALUE == null) {` && |\n| &&
+             `              const oStorage = new Storage(` && |\n| &&
+             `                Storage.Type[TYPE] ?? Storage.Type.session,` && |\n| &&
+             `                PREFIX,` && |\n| &&
+             `              );` && |\n| &&
+             `              if (VALUE === "" || VALUE == null) {` && |\n| &&
              `                oStorage.remove(KEY);` && |\n| &&
              `              } else {` && |\n| &&
              `                oStorage.put(KEY, VALUE);` && |\n| &&
              `              }` && |\n| &&
              `            } catch (e) {` && |\n| &&
-             `              _logError(``STORE_DATA: storage operation failed for key '${KEY}'``, e);` && |\n| &&
+             `              _logError(` && |\n| &&
+             `                ``STORE_DATA: storage operation failed for key '${KEY}'``,` && |\n| &&
+             `                e,` && |\n| &&
+             `              );` && |\n| &&
              `            }` && |\n| &&
              `            break;` && |\n| &&
              `          }` && |\n| &&
-             `          case 'DOWNLOAD_B64_FILE':` && |\n| &&
-             `            Object.assign(document.createElement('a'), { href: args[1], download: args[2] }).click();` && |\n| &&
+             `          case "DOWNLOAD_B64_FILE":` && |\n| &&
+             `            Object.assign(document.createElement("a"), {` && |\n| &&
+             `              href: args[1],` && |\n| &&
+             `              download: args[2],` && |\n| &&
+             `            }).click();` && |\n| &&
              `            break;` && |\n| &&
-             `          case 'CROSS_APP_NAV_TO_PREV_APP':` && |\n| &&
+             `          case "CROSS_APP_NAV_TO_PREV_APP":` && |\n| &&
              `            withCrossAppNavigator((nav) => nav.backToPreviousApp());` && |\n| &&
              `            break;` && |\n| &&
-             `          case 'CROSS_APP_NAV_TO_EXT':` && |\n| &&
+             `          case "CROSS_APP_NAV_TO_EXT":` && |\n| &&
              `            withCrossAppNavigator((nav) => {` && |\n| &&
-             `              const hash = nav.hrefForExternal({ target: args[1], params: args[2] }) ?? '';` && |\n| &&
-             `              if (args[3] === 'EXT') {` && |\n| &&
-             `                _URLHelper.redirect(``${window.location.href.split('#')[0]}${hash}``, true);` && |\n| &&
+             `              const hash =` && |\n| &&
+             `                nav.hrefForExternal({ target: args[1], params: args[2] }) ?? "";` && |\n| &&
+             `              if (args[3] === "EXT") {` && |\n| &&
+             `                _URLHelper.redirect(` && |\n| &&
+             `                  ``${window.location.href.split("#")[0]}${hash}``,` && |\n| &&
+             `                  true,` && |\n| &&
+             `                );` && |\n| &&
              `              } else {` && |\n| &&
              `                nav.toExternal({ target: { shellHash: hash } });` && |\n| &&
              `              }` && |\n| &&
              `            });` && |\n| &&
              `            break;` && |\n| &&
-             `          case 'LOCATION_RELOAD':` && |\n| &&
+             `          case "LOCATION_RELOAD":` && |\n| &&
              `            if (isValidRedirectURL(args[1])) {` && |\n| &&
              `              window.location.href = args[1];` && |\n| &&
              `            } else {` && |\n| &&
-             `              MessageBox.error('Invalid redirect URL. Only relative URLs to the same domain are allowed.');` && |\n| &&
+             `              MessageBox.error(` && |\n| &&
+             `                "Invalid redirect URL. Only relative URLs to the same domain are allowed.",` && |\n| &&
+             `              );` && |\n| &&
              `            }` && |\n| &&
              `            break;` && |\n| &&
-             `          case 'SYSTEM_LOGOUT': {` && |\n| &&
-             `            const logoutUrl = args[1] || '/sap/public/bc/icf/logoff';` && |\n| &&
+             `          case "SYSTEM_LOGOUT": {` && |\n| &&
+             `            const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";` && |\n| &&
              `            const redirectToLogoff = () => {` && |\n| &&
              `              if (isValidRedirectURL(logoutUrl)) {` && |\n| &&
              `                window.location.href = logoutUrl;` && |\n| &&
              `              } else {` && |\n| &&
-             `                MessageBox.error('Invalid logout URL. Only relative URLs to the same domain are allowed.');` && |\n| &&
+             `                MessageBox.error(` && |\n| &&
+             `                  "Invalid logout URL. Only relative URLs to the same domain are allowed.",` && |\n| &&
+             `                );` && |\n| &&
              `              }` && |\n| &&
              `            };` && |\n| &&
              `            try {` && |\n| &&
@@ -502,24 +560,27 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            }` && |\n| &&
              `            break;` && |\n| &&
              `          }` && |\n| &&
-             `          case 'OPEN_NEW_TAB':` && |\n| &&
+             `          case "OPEN_NEW_TAB":` && |\n| &&
              `            if (isValidRedirectURL(args[1])) {` && |\n| &&
-             `              const newWindow = window.open(args[1], '_blank');` && |\n| &&
+             `              const newWindow = window.open(args[1], "_blank");` && |\n| &&
              `              if (newWindow) newWindow.opener = null;` && |\n| &&
              `            } else {` && |\n| &&
-             `              MessageBox.error('Invalid URL. Only relative URLs to the same domain are allowed.');` && |\n| &&
+             `              MessageBox.error(` && |\n| &&
+             `                "Invalid URL. Only relative URLs to the same domain are allowed.",` && |\n| &&
+             `              );` && |\n| &&
              `            }` && |\n| &&
              `            break;` && |\n| &&
-             `          case 'POPUP_CLOSE':` && |\n| &&
+             `          case "POPUP_CLOSE":` && |\n| &&
              `            this.PopupDestroy();` && |\n| &&
              `            break;` && |\n| &&
-             `          case 'POPOVER_CLOSE':` && |\n| &&
+             `          case "POPOVER_CLOSE":` && |\n| &&
              `            this.PopoverDestroy();` && |\n| &&
              `            break;` && |\n| &&
-             `          case 'URLHELPER': {` && |\n| &&
+             `          case "URLHELPER": {` && |\n| &&
              `            const params = args[2];` && |\n| &&
              `            const actions = {` && |\n| &&
-             `              REDIRECT: () => _URLHelper.redirect(params.URL, params.NEW_WINDOW),` && |\n| &&
+             `              REDIRECT: () =>` && |\n| &&
+             `                _URLHelper.redirect(params.URL, params.NEW_WINDOW),` && |\n| &&
              `              TRIGGER_EMAIL: () =>` && |\n| &&
              `                _URLHelper.triggerEmail(` && |\n| &&
              `                  params.EMAIL,` && |\n| &&
@@ -539,18 +600,24 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            }` && |\n| &&
              `            break;` && |\n| &&
              `          }` && |\n| &&
-             `          case 'IMAGE_EDITOR_POPUP_CLOSE': {` && |\n| &&
+             `          case "IMAGE_EDITOR_POPUP_CLOSE": {` && |\n| &&
              `            let image;` && |\n| &&
              `            try {` && |\n| &&
-             `              image = Fragment.byId('popupId', 'imageEditor')?.getImagePngDataURL();` && |\n| &&
+             `              image = Fragment.byId(` && |\n| &&
+             `                "popupId",` && |\n| &&
+             `                "imageEditor",` && |\n| &&
+             `              )?.getImagePngDataURL();` && |\n| &&
              `            } catch (e) {` && |\n| &&
-             `              _logError(``IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed``, e);` && |\n| &&
+             `              _logError(` && |\n| &&
+             `                ``IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed``,` && |\n| &&
+             `                e,` && |\n| &&
+             `              );` && |\n| &&
              `            }` && |\n| &&
              `            this.PopupDestroy();` && |\n| &&
-             `            this.eB(['SAVE'], image);` && |\n| &&
+             `            this.eB(["SAVE"], image);` && |\n| &&
              `            break;` && |\n| &&
              `          }` && |\n| &&
-             `          case 'Z2UI5':` && |\n| &&
+             `          case "Z2UI5":` && |\n| &&
              `            try {` && |\n| &&
              `              z2ui5[args[1]]?.(args.slice(2));` && |\n| &&
              `            } catch (e) {` && |\n| &&
@@ -561,7 +628,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      eB(...args) {` && |\n| &&
              `        if (!navigator.onLine) {` && |\n| &&
-             `          MessageBox.alert('No internet connection! Please reconnect to the server and try again.');` && |\n| &&
+             `          MessageBox.alert(` && |\n| &&
+             `            "No internet connection! Please reconnect to the server and try again.",` && |\n| &&
+             `          );` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        if (z2ui5.isBusy && !args[0][2]) {` && |\n| &&
@@ -572,11 +641,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        z2ui5.isBusy = true;` && |\n| &&
              `        BusyIndicator.show();` && |\n| &&
-             `        z2ui5.oBody = { VIEWNAME: 'MAIN' };` && |\n| &&
+             `        z2ui5.oBody = { VIEWNAME: "MAIN" };` && |\n| &&
              `        let oModel;` && |\n| &&
              `        if (args[0][3] || z2ui5.oController === this) {` && |\n| &&
              `          oModel = z2ui5.oResponse?.PARAMS?.S_VIEW?.SWITCH_DEFAULT_MODEL_PATH` && |\n| &&
-             `            ? z2ui5.oView?.getModel('http')` && |\n| &&
+             `            ? z2ui5.oView?.getModel("http")` && |\n| &&
              `            : z2ui5.oView?.getModel();` && |\n| &&
              `        } else if (z2ui5.oControllerPopup === this) {` && |\n| &&
              `          oModel = z2ui5.oViewPopup?.getModel();` && |\n| &&
@@ -584,19 +653,23 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          oModel = z2ui5.oViewPopover?.getModel();` && |\n| &&
              `        } else if (z2ui5.oControllerNest === this) {` && |\n| &&
              `          oModel = z2ui5.oViewNest?.getModel();` && |\n| &&
-             `          z2ui5.oBody.VIEWNAME = 'NEST';` && |\n| &&
+             `          z2ui5.oBody.VIEWNAME = "NEST";` && |\n| &&
              `        } else if (z2ui5.oControllerNest2 === this) {` && |\n| &&
              `          oModel = z2ui5.oViewNest2?.getModel();` && |\n| &&
-             `          z2ui5.oBody.VIEWNAME = 'NEST2';` && |\n| &&
+             `          z2ui5.oBody.VIEWNAME = "NEST2";` && |\n| &&
              `        }` && |\n| &&
              `        runCallbacks(z2ui5.onBeforeRoundtrip);` && |\n| &&
              `        if (oModel && z2ui5.xxChangedPaths?.size > 0) {` && |\n| &&
              `          const xx = oModel.getData()?.XX;` && |\n| &&
-             `          if (xx) z2ui5.oBody.XX = this._buildDeltaFromPaths(z2ui5.xxChangedPaths, xx);` && |\n| &&
+             `          if (xx)` && |\n| &&
+             `            z2ui5.oBody.XX = this._buildDeltaFromPaths(` && |\n| &&
+             `              z2ui5.xxChangedPaths,` && |\n| &&
+             `              xx,` && |\n| &&
+             `            );` && |\n| &&
              `        }` && |\n| &&
              `        z2ui5.oBody.ID = z2ui5.oResponse?.ID;` && |\n| &&
              `        z2ui5.oBody.ARGUMENTS = args.map((item, i) =>` && |\n| &&
-             `          i > 0 && typeof item === 'object' ? JSON.stringify(item) : item,` && |\n| &&
+             `          i > 0 && typeof item === "object" ? JSON.stringify(item) : item,` && |\n| &&
              `        );` && |\n| &&
              `        z2ui5.oResponseOld = z2ui5.oResponse;` && |\n| &&
              `        Server.Roundtrip();` && |\n| &&
@@ -614,11 +687,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          ({ gav } = await VersionInfo.load());` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          _logError('checkSDKcompatibility: VersionInfo.load failed', e);` && |\n| &&
+             `          _logError("checkSDKcompatibility: VersionInfo.load failed", e);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        if (!gav.includes('com.sap.ui5')) {` && |\n| &&
-             `          MessageBox.error(``openui5 SDK is loaded, module: ${err?._modules} is not available in openui5``);` && |\n| &&
+             `        if (!gav.includes("com.sap.ui5")) {` && |\n| &&
+             `          MessageBox.error(` && |\n| &&
+             `            ``openui5 SDK is loaded, module: ${err?._modules} is not available in openui5``,` && |\n| &&
+             `          );` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        MessageBox.error(err.toLocaleString());` && |\n| &&
@@ -627,32 +702,34 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (!params) return;` && |\n| &&
              `        const msg = params[msgType];` && |\n| &&
              `        if (msg?.TEXT === undefined) return;` && |\n| &&
-             `        if (msgType === 'S_MSG_TOAST') {` && |\n| &&
+             `        if (msgType === "S_MSG_TOAST") {` && |\n| &&
              `          MessageToast.show(msg.TEXT, {` && |\n| &&
              `            duration: parseMs(msg.DURATION, 3000),` && |\n| &&
-             `            width: msg.WIDTH || '15em',` && |\n| &&
+             `            width: msg.WIDTH || "15em",` && |\n| &&
              `            onClose: msg.ONCLOSE ? () => this.eB([msg.ONCLOSE]) : null,` && |\n| &&
              `            autoClose: !!msg.AUTOCLOSE,` && |\n| &&
-             `            animationTimingFunction: msg.ANIMATIONTIMINGFUNCTION || 'ease',` && |\n| &&
+             `            animationTimingFunction: msg.ANIMATIONTIMINGFUNCTION || "ease",` && |\n| &&
              `            animationDuration: parseMs(msg.ANIMATIONDURATION, 1000),` && |\n| &&
              `            closeonBrowserNavigation: !!msg.CLOSEONBROWSERNAVIGATION,` && |\n| &&
              `          });` && |\n| &&
              `          if (msg.CLASS)` && |\n| &&
              `            document` && |\n| &&
-             `              .querySelector('.sapMMessageToast')` && |\n| &&
+             `              .querySelector(".sapMMessageToast")` && |\n| &&
              `              ?.classList.add(...msg.CLASS.trim().split(/\s+/).filter(Boolean));` && |\n| &&
-             `        } else if (msgType === 'S_MSG_BOX') {` && |\n| &&
+             `        } else if (msgType === "S_MSG_BOX") {` && |\n| &&
              `          const oParams = {` && |\n| &&
-             `            styleClass: msg.STYLECLASS || '',` && |\n| &&
-             `            title: msg.TITLE || '',` && |\n| &&
-             `            onClose: msg.ONCLOSE ? (sAction) => this.eB([msg.ONCLOSE, sAction]) : null,` && |\n| &&
-             `            actions: msg.ACTIONS || 'OK',` && |\n| &&
-             `            emphasizedAction: msg.EMPHASIZEDACTION || 'OK',` && |\n| &&
+             `            styleClass: msg.STYLECLASS || "",` && |\n| &&
+             `            title: msg.TITLE || "",` && |\n| &&
+             `            onClose: msg.ONCLOSE` && |\n| &&
+             `              ? (sAction) => this.eB([msg.ONCLOSE, sAction])` && |\n| &&
+             `              : null,` && |\n| &&
+             `            actions: msg.ACTIONS || "OK",` && |\n| &&
+             `            emphasizedAction: msg.EMPHASIZEDACTION || "OK",` && |\n| &&
              `            initialFocus: msg.INITIALFOCUS || null,` && |\n| &&
-             `            textDirection: msg.TEXTDIRECTION || 'Inherit',` && |\n| &&
-             `            details: msg.DETAILS ? sanitizeMessageDetails(msg.DETAILS) : '',` && |\n| &&
+             `            textDirection: msg.TEXTDIRECTION || "Inherit",` && |\n| &&
+             `            details: msg.DETAILS ? sanitizeMessageDetails(msg.DETAILS) : "",` && |\n| &&
              `            closeOnNavigation: !!msg.CLOSEONNAVIGATION,` && |\n| &&
-             `            ...(msg.ICON && msg.ICON !== 'NONE' && { icon: msg.ICON }),` && |\n| &&
+             `            ...(msg.ICON && msg.ICON !== "NONE" && { icon: msg.ICON }),` && |\n| &&
              `          };` && |\n| &&
              `          MessageBox[msg.TYPE]?.(msg.TEXT, oParams);` && |\n| &&
              `        }` && |\n| &&
@@ -664,15 +741,15 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        const oModel = switchPath` && |\n| &&
              `          ? new ODataModel({` && |\n| &&
              `              serviceUrl: switchPath,` && |\n| &&
-             `              annotationURI: sView.SWITCHDEFAULTMODELANNOURI ?? '',` && |\n| &&
+             `              annotationURI: sView.SWITCHDEFAULTMODELANNOURI ?? "",` && |\n| &&
              `            })` && |\n| &&
              `          : oViewModel;` && |\n| &&
-             `        applyStoredSizeLimit('MAIN', oModel);` && |\n| &&
+             `        applyStoredSizeLimit("MAIN", oModel);` && |\n| &&
              `        z2ui5.oView = await XMLView.create({` && |\n| &&
              `          definition: xml,` && |\n| &&
              `          models: oModel,` && |\n| &&
              `          controller: z2ui5.oController,` && |\n| &&
-             `          id: 'mainView',` && |\n| &&
+             `          id: "mainView",` && |\n| &&
              `          preprocessors: { xml: { models: { template: oViewModel } } },` && |\n| &&
              `        });` && |\n| &&
              `        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed?.()) {` && |\n| &&
@@ -681,8 +758,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          z2ui5.oView = null;` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        z2ui5.oView.setModel(z2ui5.oDeviceModel, 'device');` && |\n| &&
-             `        if (switchPath) z2ui5.oView.setModel(oViewModel, 'http');` && |\n| &&
+             `        z2ui5.oView.setModel(z2ui5.oDeviceModel, "device");` && |\n| &&
+             `        if (switchPath) z2ui5.oView.setModel(oViewModel, "http");` && |\n| &&
              `        z2ui5.oApp.removeAllPages();` && |\n| &&
              `        z2ui5.oApp.insertPage(z2ui5.oView);` && |\n| &&
              `      },` && |\n| &&
