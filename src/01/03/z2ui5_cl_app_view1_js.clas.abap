@@ -189,11 +189,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        });` && |\n| &&
              `      },` && |\n| &&
              `      onAfterRendering() {` && |\n| &&
-             `        if (z2ui5.oResponse) this._processAfterRendering();` && |\n| &&
+             `        if (z2ui5.oResponse && !z2ui5.oResponse._processed) this._processAfterRendering();` && |\n| &&
              `      },` && |\n| &&
              `      async _processAfterRendering() {` && |\n| &&
              `        try {` && |\n| &&
-             `          const { PARAMS, ID } = z2ui5.oResponse;` && |\n| &&
+             `          const oResponse = z2ui5.oResponse;` && |\n| &&
+             `          if (oResponse._processed) return;` && |\n| &&
+             `          oResponse._processed = true;` && |\n| &&
+             `          const { PARAMS, ID } = oResponse;` && |\n| &&
              `          if (!PARAMS) return;` && |\n| &&
              `          const { S_POPUP, S_VIEW_NEST, S_VIEW_NEST2, S_POPOVER, SET_APP_STATE_ACTIVE, SET_PUSH_STATE, SET_NAV_BACK } =` && |\n| &&
              `            PARAMS;` && |\n| &&
@@ -213,7 +216,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            await this.displayNestedView(S_VIEW_NEST2.XML, 'oViewNest2', 'S_VIEW_NEST2', z2ui5.oControllerNest2);` && |\n| &&
              `            z2ui5.checkNestAfter2 = true;` && |\n| &&
              `          }` && |\n| &&
-             `          if (S_POPOVER?.XML) await this.displayPopover(S_POPOVER.XML, 'oViewPopover', S_POPOVER.OPEN_BY_ID);` && |\n| &&
+             `          if (S_POPOVER?.XML) {` && |\n| &&
+             `            this.PopoverDestroy();` && |\n| &&
+             `            await this.displayPopover(S_POPOVER.XML, 'oViewPopover', S_POPOVER.OPEN_BY_ID);` && |\n| &&
+             `          }` && |\n| &&
              `` && |\n| &&
              `          const oView = z2ui5.oView;` && |\n| &&
              `          const oState = oView` && |\n| &&
@@ -299,7 +305,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          }` && |\n| &&
              `          oFragment.setModel(oModel);` && |\n| &&
              `          oFragment.Fragment = Fragment;` && |\n| &&
-             `          z2ui5[viewProp] = oFragment;` && |\n| &&
              `          const oControl =` && |\n| &&
              `            z2ui5.oView?.byId(openById) ||` && |\n| &&
              `            z2ui5.oViewPopup?.Fragment.byId('popupId', openById) ||` && |\n| &&
@@ -308,8 +313,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            (Element.getElementById?.(openById) ?? sap.ui.getCore?.()?.byId?.(openById));` && |\n| &&
              `          if (!oControl) {` && |\n| &&
              `            _logError(``displayPopover: openBy control '${openById}' not found``);` && |\n| &&
+             `            oFragment.destroy();` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
+             `          z2ui5[viewProp] = oFragment;` && |\n| &&
              `          oFragment.openBy(oControl);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          _logError(``displayPopover: failed``, e);` && |\n| &&
