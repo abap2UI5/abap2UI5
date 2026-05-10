@@ -215,10 +215,10 @@ sap.ui.define(
     _getOrCreateErrorContainer() {
       const existing = document.getElementById('serverErrorContainer');
       if (existing) return existing;
-      const container = Object.assign(document.createElement('div'), {
-        id: 'serverErrorContainer',
-        className: 'z2ui5-error-overlay',
-      });
+      const container = document.createElement('div');
+      container.id = 'serverErrorContainer';
+      container.style.cssText =
+        'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:90%;height:90%;background:white;border:2px solid #d32f2f;border-radius:4px;box-shadow:0 4px 6px rgba(0,0,0,0.3);z-index:9999;display:flex;flex-direction:column;';
       // document.body can be momentarily null during pagehide; fall back to documentElement
       (document.body ?? document.documentElement).appendChild(container);
       return container;
@@ -236,30 +236,31 @@ sap.ui.define(
       const errorContainer = this._getOrCreateErrorContainer();
       errorContainer.replaceChildren();
 
-      const headerDiv = Object.assign(document.createElement('div'), { className: 'z2ui5-error-overlay__header' });
-      const h3 = Object.assign(document.createElement('h3'), {
-        textContent: 'Server Error - Please Restart The App',
-        className: 'z2ui5-error-overlay__title',
-      });
+      const headerDiv = document.createElement('div');
+      headerDiv.style.cssText =
+        'padding:15px;background:#d32f2f;color:white;display:flex;justify-content:space-between;align-items:center;';
+      const h3 = document.createElement('h3');
+      h3.textContent = 'Server Error - Please Restart The App';
+      h3.style.margin = '0';
       headerDiv.appendChild(h3);
 
-      const actionsDiv = Object.assign(document.createElement('div'), { className: 'z2ui5-error-overlay__actions' });
+      const actionsDiv = document.createElement('div');
+      actionsDiv.style.cssText = 'display:flex;gap:8px;';
 
-      const refreshBtn = Object.assign(document.createElement('button'), {
-        type: 'button',
-        textContent: 'Refresh',
-        className: 'z2ui5-error-overlay__btn',
-      });
-      refreshBtn.setAttribute('aria-label', 'Refresh page');
+      const btnStyle =
+        'padding:6px 14px;background:white;color:#d32f2f;border:none;border-radius:3px;cursor:pointer;font-weight:bold;';
+
+      const refreshBtn = document.createElement('button');
+      refreshBtn.type = 'button';
+      refreshBtn.textContent = 'Refresh';
+      refreshBtn.style.cssText = btnStyle;
       refreshBtn.addEventListener('click', () => window.location.reload());
       actionsDiv.appendChild(refreshBtn);
 
-      const logoutBtn = Object.assign(document.createElement('button'), {
-        type: 'button',
-        textContent: 'Logout',
-        className: 'z2ui5-error-overlay__btn',
-      });
-      logoutBtn.setAttribute('aria-label', 'Logout from server');
+      const logoutBtn = document.createElement('button');
+      logoutBtn.type = 'button';
+      logoutBtn.textContent = 'Logout';
+      logoutBtn.style.cssText = btnStyle;
       logoutBtn.addEventListener('click', () => {
         const redirectToLogoff = () => {
           window.location.href = resolveLogoutUrl();
@@ -279,13 +280,10 @@ sap.ui.define(
       headerDiv.appendChild(actionsDiv);
       errorContainer.appendChild(headerDiv);
 
-      const iframe = Object.assign(document.createElement('iframe'), {
-        id: 'errorIframe',
-        className: 'z2ui5-error-overlay__iframe',
-        title: 'Server error details',
-      });
-      // sandbox="" gives the iframe an opaque origin and blocks scripts/forms/popups.
-      // srcdoc renders escaped, static <pre> content — no contentDocument access from parent needed.
+      const iframe = document.createElement('iframe');
+      iframe.id = 'errorIframe';
+      iframe.style.cssText = 'width:100%;height:100%;border:none;flex:1;';
+      // sandbox="" + escaped srcdoc — opaque origin, no scripts, static <pre>
       iframe.setAttribute('sandbox', '');
       try {
         iframe.srcdoc = `<style>html,body{margin:0;padding:0}pre{margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all}</style><pre>${escapeHtml(
@@ -295,13 +293,6 @@ sap.ui.define(
         _logError(`responseError: srcdoc assignment failed`, e);
       }
       errorContainer.appendChild(iframe);
-
-      // basic focus context for keyboard users; focus() can throw inside detached/closing windows
-      try {
-        refreshBtn.focus();
-      } catch {
-        /* focus is best-effort */
-      }
     },
   };
 });

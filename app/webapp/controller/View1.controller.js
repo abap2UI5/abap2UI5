@@ -35,7 +35,6 @@ sap.ui.define(
   ) => {
     'use strict';
 
-    // All cross-cutting helpers and constants come from z2ui5/cc/Util
     const {
       logError: _logError,
       runCallbacks,
@@ -49,7 +48,6 @@ sap.ui.define(
       TOAST_DEFAULT_WIDTH: _TOAST_DEFAULT_WIDTH,
       TOAST_DEFAULT_DURATION_MS: _TOAST_DEFAULT_DURATION_MS,
       TOAST_DEFAULT_ANIM_MS: _TOAST_DEFAULT_ANIM_MS,
-      DESTROY_SAFETY_NET_MS: _DESTROY_SAFETY_NET_MS,
     } = Util;
 
     // Whitelist of MessageBox functions we accept from the backend — guards against
@@ -190,7 +188,6 @@ sap.ui.define(
           runCallbacks(z2ui5.onAfterRendering);
         } catch (e) {
           _logError(`_processAfterRendering: unexpected error`, e);
-          // i18n: title key "appTerminated.title", body key "appTerminated.body"
           MessageBox.error(e.message ?? String(e), {
             title: 'Unexpected Error Occurred - App Terminated',
             actions: [],
@@ -216,37 +213,18 @@ sap.ui.define(
         }
         return delta;
       },
-      // Try a full pushState/replaceState; if the browser rejects the state object
-      // (~640 kB quota in some browsers) progressively shrink the state until it fits,
-      // and finally fall back to a null state if even the view alone is too large.
+      // Browser may reject pushState/replaceState if the state object exceeds the ~640 kB
+      // quota. Fall back to a null state so the URL still updates.
       _safeHistoryWrite(method, state, url) {
         try {
           history[method](state, '', url);
-          return;
         } catch (e) {
-          _logError(`_safeHistoryWrite: ${method} oversized state — retrying without model`, e);
-        }
-        // First retry: drop the model (typically the largest payload)
-        try {
-          const tier1 = state ? { view: state.view, response: state.response } : {};
-          history[method](tier1, '', url);
-          return;
-        } catch (e) {
-          _logError(`_safeHistoryWrite: ${method} still oversized — retrying with view only`, e);
-        }
-        // Second retry: keep only the view XML so popstate can still restore the page
-        try {
-          const tier2 = state ? { view: state.view } : {};
-          history[method](tier2, '', url);
-          return;
-        } catch (e) {
-          _logError(`_safeHistoryWrite: ${method} failed even with view-only state`, e);
-        }
-        // Last resort: null state — popstate handler will treat it as a no-op
-        try {
-          history[method](null, '', url);
-        } catch (e) {
-          _logError(`_safeHistoryWrite: ${method} failed with null state`, e);
+          _logError(`_safeHistoryWrite: ${method} state too large — retrying with null`, e);
+          try {
+            history[method](null, '', url);
+          } catch (e2) {
+            _logError(`_safeHistoryWrite: ${method} also failed with null state`, e2);
+          }
         }
       },
       _createViewModel() {
@@ -378,39 +356,18 @@ sap.ui.define(
         const view = z2ui5[prop];
         if (!view) return;
         z2ui5[prop] = null;
-        let destroyed = false;
-        let safetyTimer = null;
-        const closeAndDestroy = () => {
-          if (destroyed) return;
-          destroyed = true;
-          if (safetyTimer !== null) clearTimeout(safetyTimer);
-          try {
-            view.destroy();
-          } catch (e) {
-            _logError(`_destroyView: view.destroy() failed for ${prop}`, e);
-          }
-        };
         if (tryClose) {
           try {
-            const ret = view.close?.();
-            // Defer destroy until the close animation has settled. If close() returned a
-            // thenable we wait for it; otherwise an afterClose handler covers Dialog/Popover.
-            if (ret && typeof ret.then === 'function') {
-              ret.then(closeAndDestroy, closeAndDestroy);
-              return;
-            }
-            if (typeof view.attachEventOnce === 'function' && typeof view.isOpen === 'function' && view.isOpen()) {
-              view.attachEventOnce('afterClose', closeAndDestroy);
-              // Safety net: if afterClose never fires (e.g. dialog stuck), still destroy.
-              // The timer is cleared in closeAndDestroy so we don't keep an orphan callback.
-              safetyTimer = setTimeout(closeAndDestroy, _DESTROY_SAFETY_NET_MS);
-              return;
-            }
+            view.close?.();
           } catch (e) {
-            _logError(`_destroyView: view.close() failed for ${prop}`, e);
+            _logError(`_destroyView: ${prop}.close() failed`, e);
           }
         }
-        closeAndDestroy();
+        try {
+          view.destroy();
+        } catch (e) {
+          _logError(`_destroyView: ${prop}.destroy() failed`, e);
+        }
       },
       PopupDestroy() {
         this._destroyView('oViewPopup', true);

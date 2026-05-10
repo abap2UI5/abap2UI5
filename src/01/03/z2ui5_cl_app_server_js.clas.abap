@@ -235,10 +235,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    _getOrCreateErrorContainer() {` && |\n| &&
              `      const existing = document.getElementById('serverErrorContainer');` && |\n| &&
              `      if (existing) return existing;` && |\n| &&
-             `      const container = Object.assign(document.createElement('div'), {` && |\n| &&
-             `        id: 'serverErrorContainer',` && |\n| &&
-             `        className: 'z2ui5-error-overlay',` && |\n| &&
-             `      });` && |\n| &&
+             `      const container = document.createElement('div');` && |\n| &&
+             `      container.id = 'serverErrorContainer';` && |\n| &&
+             `      container.style.cssText =` && |\n| &&
+             `        'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:90%;height:90%;background:white;border:2px solid #d32f2f;border-radius:4px;box-shadow:0 4px 6px rgba(0,0,0,0.3);z-index:9999;display:flex;flex-direction:column;';` && |\n| &&
              `      // document.body can be momentarily null during pagehide; fall back to documentElement` && |\n| &&
              `      (document.body ?? document.documentElement).appendChild(container);` && |\n| &&
              `      return container;` && |\n| &&
@@ -256,30 +256,31 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      const errorContainer = this._getOrCreateErrorContainer();` && |\n| &&
              `      errorContainer.replaceChildren();` && |\n| &&
              `` && |\n| &&
-             `      const headerDiv = Object.assign(document.createElement('div'), { className: 'z2ui5-error-overlay__header' });` && |\n| &&
-             `      const h3 = Object.assign(document.createElement('h3'), {` && |\n| &&
-             `        textContent: 'Server Error - Please Restart The App',` && |\n| &&
-             `        className: 'z2ui5-error-overlay__title',` && |\n| &&
-             `      });` && |\n| &&
+             `      const headerDiv = document.createElement('div');` && |\n| &&
+             `      headerDiv.style.cssText =` && |\n| &&
+             `        'padding:15px;background:#d32f2f;color:white;display:flex;justify-content:space-between;align-items:center;';` && |\n| &&
+             `      const h3 = document.createElement('h3');` && |\n| &&
+             `      h3.textContent = 'Server Error - Please Restart The App';` && |\n| &&
+             `      h3.style.margin = '0';` && |\n| &&
              `      headerDiv.appendChild(h3);` && |\n| &&
              `` && |\n| &&
-             `      const actionsDiv = Object.assign(document.createElement('div'), { className: 'z2ui5-error-overlay__actions' });` && |\n| &&
+             `      const actionsDiv = document.createElement('div');` && |\n| &&
+             `      actionsDiv.style.cssText = 'display:flex;gap:8px;';` && |\n| &&
              `` && |\n| &&
-             `      const refreshBtn = Object.assign(document.createElement('button'), {` && |\n| &&
-             `        type: 'button',` && |\n| &&
-             `        textContent: 'Refresh',` && |\n| &&
-             `        className: 'z2ui5-error-overlay__btn',` && |\n| &&
-             `      });` && |\n| &&
-             `      refreshBtn.setAttribute('aria-label', 'Refresh page');` && |\n| &&
+             `      const btnStyle =` && |\n| &&
+             `        'padding:6px 14px;background:white;color:#d32f2f;border:none;border-radius:3px;cursor:pointer;font-weight:bold;';` && |\n| &&
+             `` && |\n| &&
+             `      const refreshBtn = document.createElement('button');` && |\n| &&
+             `      refreshBtn.type = 'button';` && |\n| &&
+             `      refreshBtn.textContent = 'Refresh';` && |\n| &&
+             `      refreshBtn.style.cssText = btnStyle;` && |\n| &&
              `      refreshBtn.addEventListener('click', () => window.location.reload());` && |\n| &&
              `      actionsDiv.appendChild(refreshBtn);` && |\n| &&
              `` && |\n| &&
-             `      const logoutBtn = Object.assign(document.createElement('button'), {` && |\n| &&
-             `        type: 'button',` && |\n| &&
-             `        textContent: 'Logout',` && |\n| &&
-             `        className: 'z2ui5-error-overlay__btn',` && |\n| &&
-             `      });` && |\n| &&
-             `      logoutBtn.setAttribute('aria-label', 'Logout from server');` && |\n| &&
+             `      const logoutBtn = document.createElement('button');` && |\n| &&
+             `      logoutBtn.type = 'button';` && |\n| &&
+             `      logoutBtn.textContent = 'Logout';` && |\n| &&
+             `      logoutBtn.style.cssText = btnStyle;` && |\n| &&
              `      logoutBtn.addEventListener('click', () => {` && |\n| &&
              `        const redirectToLogoff = () => {` && |\n| &&
              `          window.location.href = resolveLogoutUrl();` && |\n| &&
@@ -299,13 +300,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      headerDiv.appendChild(actionsDiv);` && |\n| &&
              `      errorContainer.appendChild(headerDiv);` && |\n| &&
              `` && |\n| &&
-             `      const iframe = Object.assign(document.createElement('iframe'), {` && |\n| &&
-             `        id: 'errorIframe',` && |\n| &&
-             `        className: 'z2ui5-error-overlay__iframe',` && |\n| &&
-             `        title: 'Server error details',` && |\n| &&
-             `      });` && |\n| &&
-             `      // sandbox="" gives the iframe an opaque origin and blocks scripts/forms/popups.` && |\n| &&
-             `      // srcdoc renders escaped, static <pre> content — no contentDocument access from parent needed.` && |\n| &&
+             `      const iframe = document.createElement('iframe');` && |\n| &&
+             `      iframe.id = 'errorIframe';` && |\n| &&
+             `      iframe.style.cssText = 'width:100%;height:100%;border:none;flex:1;';` && |\n| &&
+             `      // sandbox="" + escaped srcdoc — opaque origin, no scripts, static <pre>` && |\n| &&
              `      iframe.setAttribute('sandbox', '');` && |\n| &&
              `      try {` && |\n| &&
              `        iframe.srcdoc = ``<style>html,body{margin:0;padding:0}pre{margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all}</style><pre>${escapeHtml(` && |\n| &&
@@ -315,13 +313,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        _logError(``responseError: srcdoc assignment failed``, e);` && |\n| &&
              `      }` && |\n| &&
              `      errorContainer.appendChild(iframe);` && |\n| &&
-             `` && |\n| &&
-             `      // basic focus context for keyboard users; focus() can throw inside detached/closing windows` && |\n| &&
-             `      try {` && |\n| &&
-             `        refreshBtn.focus();` && |\n| &&
-             `      } catch {` && |\n| &&
-             `        /* focus is best-effort */` && |\n| &&
-             `      }` && |\n| &&
              `    },` && |\n| &&
              `  };` && |\n| &&
              `});` && |\n| &&

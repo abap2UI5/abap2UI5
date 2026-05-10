@@ -148,8 +148,6 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `          };` && |\n| &&
              `          const oModel = new JSONModel(oData);` && |\n| &&
              `          const { oDialog } = this;` && |\n| &&
-             `          // .dbg-ltr forces LTR direction inside the dialog (defined in css/style.css)` && |\n| &&
-             `          oDialog.addStyleClass('dbg-ltr');` && |\n| &&
              `          oDialog.setModel(oModel);` && |\n| &&
              `          oDialog.open();` && |\n| &&
              `        } catch (e) {` && |\n| &&
@@ -163,25 +161,16 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        if (!this.oDialog) return;` && |\n| &&
              `        const { oDialog } = this;` && |\n| &&
              `        this.oDialog = null;` && |\n| &&
-             `        const safeDestroy = () => {` && |\n| &&
-             `          try {` && |\n| &&
-             `            oDialog.destroy();` && |\n| &&
-             `          } catch (e) {` && |\n| &&
-             `            _logError(``DebugTool.close: oDialog.destroy() failed``, e);` && |\n| &&
-             `          }` && |\n| &&
-             `        };` && |\n| &&
              `        try {` && |\n| &&
-             `          // Defer destroy until the close animation has settled to avoid races` && |\n| &&
-             `          if (typeof oDialog.attachEventOnce === 'function' && typeof oDialog.isOpen === 'function' && oDialog.isOpen()) {` && |\n| &&
-             `            oDialog.attachEventOnce('afterClose', safeDestroy);` && |\n| &&
-             `            oDialog.close();` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
              `          oDialog.close();` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          _logError(``DebugTool.close: oDialog.close() failed``, e);` && |\n| &&
              `        }` && |\n| &&
-             `        safeDestroy();` && |\n| &&
+             `        try {` && |\n| &&
+             `          oDialog.destroy();` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          _logError(``DebugTool.close: oDialog.destroy() failed``, e);` && |\n| &&
+             `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      toggle() {` && |\n| &&

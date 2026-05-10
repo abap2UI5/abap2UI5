@@ -128,8 +128,6 @@ sap.ui.define(
           };
           const oModel = new JSONModel(oData);
           const { oDialog } = this;
-          // .dbg-ltr forces LTR direction inside the dialog (defined in css/style.css)
-          oDialog.addStyleClass('dbg-ltr');
           oDialog.setModel(oModel);
           oDialog.open();
         } catch (e) {
@@ -143,25 +141,16 @@ sap.ui.define(
         if (!this.oDialog) return;
         const { oDialog } = this;
         this.oDialog = null;
-        const safeDestroy = () => {
-          try {
-            oDialog.destroy();
-          } catch (e) {
-            _logError(`DebugTool.close: oDialog.destroy() failed`, e);
-          }
-        };
         try {
-          // Defer destroy until the close animation has settled to avoid races
-          if (typeof oDialog.attachEventOnce === 'function' && typeof oDialog.isOpen === 'function' && oDialog.isOpen()) {
-            oDialog.attachEventOnce('afterClose', safeDestroy);
-            oDialog.close();
-            return;
-          }
           oDialog.close();
         } catch (e) {
           _logError(`DebugTool.close: oDialog.close() failed`, e);
         }
-        safeDestroy();
+        try {
+          oDialog.destroy();
+        } catch (e) {
+          _logError(`DebugTool.close: oDialog.destroy() failed`, e);
+        }
       },
 
       toggle() {

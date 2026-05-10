@@ -24,7 +24,6 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `    xmlns:core="sap.ui.core"` &&
              `    xmlns:ce="sap.ui.codeeditor"` &&
              `>` &&
-             `    <!-- i18n: title key "debugTool.title" -->` &&
              `    <Dialog` &&
              `        title="abap2UI5 - DebugTool"` &&
              `        stretch="true"` &&
@@ -114,7 +113,6 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `            <core:HTML content="{/xContent}"/>` &&
              `        </VBox>` &&
              `        <endButton>` &&
-             `            <!-- i18n: text key "debugTool.close" -->` &&
              `            <Button` &&
              `                text="Close"` &&
              `                press=".onClose"` &&

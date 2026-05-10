@@ -4,7 +4,6 @@
     xmlns:core="sap.ui.core"
     xmlns:ce="sap.ui.codeeditor"
 >
-    <!-- i18n: title key "debugTool.title" -->
     <Dialog
         title="abap2UI5 - DebugTool"
         stretch="true"
@@ -94,7 +93,6 @@
             <core:HTML content="{/xContent}"/>
         </VBox>
         <endButton>
-            <!-- i18n: text key "debugTool.close" -->
             <Button
                 text="Close"
                 press=".onClose"

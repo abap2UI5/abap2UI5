@@ -55,7 +55,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `  ) => {` && |\n| &&
              `    'use strict';` && |\n| &&
              `` && |\n| &&
-             `    // All cross-cutting helpers and constants come from z2ui5/cc/Util` && |\n| &&
              `    const {` && |\n| &&
              `      logError: _logError,` && |\n| &&
              `      runCallbacks,` && |\n| &&
@@ -69,7 +68,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      TOAST_DEFAULT_WIDTH: _TOAST_DEFAULT_WIDTH,` && |\n| &&
              `      TOAST_DEFAULT_DURATION_MS: _TOAST_DEFAULT_DURATION_MS,` && |\n| &&
              `      TOAST_DEFAULT_ANIM_MS: _TOAST_DEFAULT_ANIM_MS,` && |\n| &&
-             `      DESTROY_SAFETY_NET_MS: _DESTROY_SAFETY_NET_MS,` && |\n| &&
              `    } = Util;` && |\n| &&
              `` && |\n| &&
              `    // Whitelist of MessageBox functions we accept from the backend — guards against` && |\n| &&
@@ -210,7 +208,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          runCallbacks(z2ui5.onAfterRendering);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          _logError(``_processAfterRendering: unexpected error``, e);` && |\n| &&
-             `          // i18n: title key "appTerminated.title", body key "appTerminated.body"` && |\n| &&
              `          MessageBox.error(e.message ?? String(e), {` && |\n| &&
              `            title: 'Unexpected Error Occurred - App Terminated',` && |\n| &&
              `            actions: [],` && |\n| &&
@@ -236,37 +233,18 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        return delta;` && |\n| &&
              `      },` && |\n| &&
-             `      // Try a full pushState/replaceState; if the browser rejects the state object` && |\n| &&
-             `      // (~640 kB quota in some browsers) progressively shrink the state until it fits,` && |\n| &&
-             `      // and finally fall back to a null state if even the view alone is too large.` && |\n| &&
+             `      // Browser may reject pushState/replaceState if the state object exceeds the ~640 kB` && |\n| &&
+             `      // quota. Fall back to a null state so the URL still updates.` && |\n| &&
              `      _safeHistoryWrite(method, state, url) {` && |\n| &&
              `        try {` && |\n| &&
              `          history[method](state, '', url);` && |\n| &&
-             `          return;` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          _logError(``_safeHistoryWrite: ${method} oversized state — retrying without model``, e);` && |\n| &&
-             `        }` && |\n| &&
-             `        // First retry: drop the model (typically the largest payload)` && |\n| &&
-             `        try {` && |\n| &&
-             `          const tier1 = state ? { view: state.view, response: state.response } : {};` && |\n| &&
-             `          history[method](tier1, '', url);` && |\n| &&
-             `          return;` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          _logError(``_safeHistoryWrite: ${method} still oversized — retrying with view only``, e);` && |\n| &&
-             `        }` && |\n| &&
-             `        // Second retry: keep only the view XML so popstate can still restore the page` && |\n| &&
-             `        try {` && |\n| &&
-             `          const tier2 = state ? { view: state.view } : {};` && |\n| &&
-             `          history[method](tier2, '', url);` && |\n| &&
-             `          return;` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          _logError(``_safeHistoryWrite: ${method} failed even with view-only state``, e);` && |\n| &&
-             `        }` && |\n| &&
-             `        // Last resort: null state — popstate handler will treat it as a no-op` && |\n| &&
-             `        try {` && |\n| &&
-             `          history[method](null, '', url);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          _logError(``_safeHistoryWrite: ${method} failed with null state``, e);` && |\n| &&
+             `          _logError(``_safeHistoryWrite: ${method} state too large — retrying with null``, e);` && |\n| &&
+             `          try {` && |\n| &&
+             `            history[method](null, '', url);` && |\n| &&
+             `          } catch (e2) {` && |\n| &&
+             `            _logError(``_safeHistoryWrite: ${method} also failed with null state``, e2);` && |\n| &&
+             `          }` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `      _createViewModel() {` && |\n| &&
@@ -398,41 +376,18 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        const view = z2ui5[prop];` && |\n| &&
              `        if (!view) return;` && |\n| &&
              `        z2ui5[prop] = null;` && |\n| &&
-             `        let destroyed = false;` && |\n| &&
-             `        let safetyTimer = null;` && |\n| &&
-             `        const closeAndDestroy = () => {` && |\n| &&
-             `          if (destroyed) return;` && |\n| &&
-             `          destroyed = true;` && |\n| &&
-             `          if (safetyTimer !== null) clearTimeout(safetyTimer);` && |\n| &&
-             `          try {` && |\n| &&
-             `            view.destroy();` && |\n| &&
-             `          } catch (e) {` && |\n| &&
-             `            _logError(``_destroyView: view.destroy() failed for ${prop}``, e);` && |\n| &&
-             `          }` && |\n| &&
-             `        };` && |\n| &&
              `        if (tryClose) {` && |\n| &&
              `          try {` && |\n| &&
-             `            const ret = view.close?.();` && |\n| &&
-             `            // Defer destroy until the close animation has settled. If close() returned a` && |\n| &&
-             `            // thenable we wait for it; otherwise an afterClose handler covers Dialog/Popover.` && |\n| &&
-             `            if (ret && typeof ret.then === 'function') {` && |\n| &&
-             `              ret.then(closeAndDestroy, closeAndDestroy);` && |\n| &&
-             `              return;` && |\n| &&
-             |\n|.
-    result = result &&
-             `            }` && |\n| &&
-             `            if (typeof view.attachEventOnce === 'function' && typeof view.isOpen === 'function' && view.isOpen()) {` && |\n| &&
-             `              view.attachEventOnce('afterClose', closeAndDestroy);` && |\n| &&
-             `              // Safety net: if afterClose never fires (e.g. dialog stuck), still destroy.` && |\n| &&
-             `              // The timer is cleared in closeAndDestroy so we don't keep an orphan callback.` && |\n| &&
-             `              safetyTimer = setTimeout(closeAndDestroy, _DESTROY_SAFETY_NET_MS);` && |\n| &&
-             `              return;` && |\n| &&
-             `            }` && |\n| &&
+             `            view.close?.();` && |\n| &&
              `          } catch (e) {` && |\n| &&
-             `            _logError(``_destroyView: view.close() failed for ${prop}``, e);` && |\n| &&
+             `            _logError(``_destroyView: ${prop}.close() failed``, e);` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
-             `        closeAndDestroy();` && |\n| &&
+             `        try {` && |\n| &&
+             `          view.destroy();` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          _logError(``_destroyView: ${prop}.destroy() failed``, e);` && |\n| &&
+             `        }` && |\n| &&
              `      },` && |\n| &&
              `      PopupDestroy() {` && |\n| &&
              `        this._destroyView('oViewPopup', true);` && |\n| &&
@@ -463,6 +418,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        switch (args[0]) {` && |\n| &&
              `          case 'SET_SIZE_LIMIT': {` && |\n| &&
              `            const hasLimit = args[2] !== undefined && args[2] !== '';` && |\n| &&
+             |\n|.
+    result = result &&
              `            const viewKey = hasLimit ? args[2] : args[1];` && |\n| &&
              `            const limit = hasLimit ? Number(args[1]) : NaN;` && |\n| &&
              `            // Object.hasOwn guard prevents prototype access (viewKey === '__proto__' etc.)` && |\n| &&

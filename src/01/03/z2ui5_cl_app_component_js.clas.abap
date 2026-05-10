@@ -28,45 +28,33 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `  (Fragment, Element) => {` && |\n| &&
              `    'use strict';` && |\n| &&
              `` && |\n| &&
-             `    // ===== Constants =====` && |\n| &&
              `    const ERRORS_CAP = 200;` && |\n| &&
              `    const ERROR_MAX_LENGTH = 50000;` && |\n| &&
              `    const DEFAULT_FETCH_TIMEOUT_MS = 600000;` && |\n| &&
              `    const DEFAULT_LOGOUT_URL = '/sap/public/bc/icf/logoff';` && |\n| &&
-             `    const DESTROY_SAFETY_NET_MS = 1000;` && |\n| &&
              `    const TOAST_DEFAULT_WIDTH = '15em';` && |\n| &&
              `    const TOAST_DEFAULT_DURATION_MS = 3000;` && |\n| &&
              `    const TOAST_DEFAULT_ANIM_MS = 1000;` && |\n| &&
-             `    // length of the "/XX/" prefix on two-way binding paths` && |\n| &&
              `    const XX_PATH_PREFIX_LEN = 4;` && |\n| &&
              `` && |\n| &&
-             `    // ===== Error logging =====` && |\n| &&
              `    const logError = (message, error) => {` && |\n| &&
              `      const entry = { message, ts: new Date().toISOString() };` && |\n| &&
              `      if (error !== undefined) entry.error = error;` && |\n| &&
-             `      // Defensive: re-create z2ui5.errors if it has been clobbered with a non-array` && |\n| &&
              `      if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];` && |\n| &&
              `      const arr = z2ui5.errors;` && |\n| &&
              `      arr.push(entry);` && |\n| &&
-             `      // Single splice trims any overflow in one shot (cap the rolling log)` && |\n| &&
              `      if (arr.length > ERRORS_CAP) arr.splice(0, arr.length - ERRORS_CAP);` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    // ===== Callback registry =====` && |\n| &&
-             `    // Push a callback onto one of the z2ui5.onXxx arrays, recreating the array if the` && |\n| &&
-             `    // global has been clobbered with a non-array (??= alone would not detect that).` && |\n| &&
              `    const registerCallback = (key, fn) => {` && |\n| &&
              `      if (!Array.isArray(z2ui5[key])) z2ui5[key] = [];` && |\n| &&
              `      z2ui5[key].push(fn);` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    // Remove a callback without crashing if the array has been clobbered` && |\n| &&
              `    const unregisterCallback = (key, fn) => {` && |\n| &&
              `      z2ui5[key] = Array.isArray(z2ui5[key]) ? z2ui5[key].filter((cb) => cb !== fn) : [];` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    // Run each callback in ``arr`` with ``args``, swallowing per-callback errors so a single` && |\n| &&
-             `    // bad callback does not break the iteration over the rest.` && |\n| &&
              `    const runCallbacks = (arr, ...args) => {` && |\n| &&
              `      if (!Array.isArray(arr)) return;` && |\n| &&
              `      for (const fn of arr) {` && |\n| &&
@@ -78,9 +66,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    // ===== Pure helpers =====` && |\n| &&
-             `    // ?? semantics: an explicit 0 from the backend should pass through (e.g. duration=0` && |\n| &&
-             `    // to disable), not be replaced by the default` && |\n| &&
+             `    // explicit 0 from backend must pass through (e.g. duration=0 disables auto-close)` && |\n| &&
              `    const parseMs = (val, def) => {` && |\n| &&
              `      if (val === undefined || val === null || val === '') return def;` && |\n| &&
              `      const n = +val;` && |\n| &&
@@ -89,12 +75,10 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n| &&
              `    const toJson = (val) => JSON.stringify(val ?? null, null, 3);` && |\n| &&
              `` && |\n| &&
-             `    // Hoisted lookup table avoids re-allocating the object on every escape call` && |\n| &&
              `    const _ESCAPE_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };` && |\n| &&
              `    const _ESCAPE_RE = /[&<>"']/g;` && |\n| &&
              `    const escapeHtml = (str) => String(str).replace(_ESCAPE_RE, (c) => _ESCAPE_MAP[c]);` && |\n| &&
              `` && |\n| &&
-             `    // ===== URL safety =====` && |\n| &&
              `    const _SAFE_PROTOCOLS = new Set(['http:', 'https:']);` && |\n| &&
              `    const isValidRedirectURL = (url) => {` && |\n| &&
              `      if (!url) return false;` && |\n| &&
@@ -115,9 +99,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    // ===== Clipboard =====` && |\n| &&
              `    const _legacyClipboardCopy = (text) => {` && |\n| &&
-             `      // Fallback for non-HTTPS contexts and older browsers without navigator.clipboard` && |\n| &&
              `      const ta = document.createElement('textarea');` && |\n| &&
              `      ta.value = text;` && |\n| &&
              `      ta.setAttribute('readonly', '');` && |\n| &&
@@ -125,9 +107,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `      (document.body ?? document.documentElement).appendChild(ta);` && |\n| &&
              `      ta.select();` && |\n| &&
              `      try {` && |\n| &&
-             `        // execCommand returns false if the copy was rejected (e.g. user gesture missing)` && |\n| &&
-             `        const ok = document.execCommand('copy');` && |\n| &&
-             `        if (!ok) logError(``Clipboard: legacy execCommand returned false``);` && |\n| &&
+             `        if (!document.execCommand('copy')) logError(``Clipboard: legacy execCommand returned false``);` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        logError(``Clipboard: legacy execCommand failed``, e);` && |\n| &&
              `      } finally {` && |\n| &&
@@ -146,7 +126,6 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `      _legacyClipboardCopy(textToCopy);` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    // ===== DOM sanitisation =====` && |\n| &&
              `    const _msgParser = new DOMParser();` && |\n| &&
              `    const _sanitizeEl = document.createElement('div');` && |\n| &&
              `    const sanitizeMessageDetails = (html) => {` && |\n| &&
@@ -164,16 +143,11 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `      return _sanitizeEl.innerHTML;` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    // ===== UI5 view helpers =====` && |\n| &&
-             `    // Public getViewContent() became available in newer UI5 versions; fall back to the` && |\n| &&
-             `    // internal mProperties.viewContent for older versions` && |\n| &&
+             `    // public getViewContent() since newer UI5; fall back to internal mProperties for older` && |\n| &&
              `    const getViewContent = (view) => view?.getViewContent?.() ?? view?.mProperties?.viewContent;` && |\n| &&
-             `    // _xContent is a UI5-internal property holding the raw post-templating XML; there is` && |\n| &&
-             `    // no public equivalent for the rendered (post-template) view source` && |\n| &&
+             `    // _xContent is UI5-internal — no public equivalent for the post-template view source` && |\n| &&
              `    const getRenderedContent = (view) => view?._xContent?.outerHTML;` && |\n| &&
              `` && |\n| &&
-             `    // Look up a control across all active views by ID (used by openBy and the Z2UI5` && |\n| &&
-             `    // frontend action). Uses the imported Fragment module directly.` && |\n| &&
              `    const findControlById = (id) =>` && |\n| &&
              `      z2ui5.oView?.byId(id) ||` && |\n| &&
              `      (z2ui5.oViewPopup && Fragment.byId('popupId', id)) ||` && |\n| &&
@@ -181,10 +155,9 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `      z2ui5.oViewNest?.byId(id) ||` && |\n| &&
              `      z2ui5.oViewNest2?.byId(id) ||` && |\n| &&
              `      Element.getElementById?.(id) ||` && |\n| &&
-             `      // sap.ui.getCore() is removed in ui5-legacy-free; chain with optional access` && |\n| &&
+             `      // sap.ui.getCore() is removed in ui5-legacy-free` && |\n| &&
              `      sap.ui.getCore?.()?.byId?.(id);` && |\n| &&
              `` && |\n| &&
-             `    // ===== XSLT pretty-print =====` && |\n| &&
              `    const PRETTIFY_XSL = ``<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">` && |\n| &&
              `        <xsl:strip-space elements="*" />` && |\n| &&
              `        <xsl:template match="para[content-style][not(text())]">` && |\n| &&
@@ -228,34 +201,27 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `    };` && |\n| &&
              `` && |\n| &&
              `    return {` && |\n| &&
-             `      // constants` && |\n| &&
              `      ERRORS_CAP,` && |\n| &&
              `      ERROR_MAX_LENGTH,` && |\n| &&
              `      DEFAULT_FETCH_TIMEOUT_MS,` && |\n| &&
              `      DEFAULT_LOGOUT_URL,` && |\n| &&
-             `      DESTROY_SAFETY_NET_MS,` && |\n| &&
              `      TOAST_DEFAULT_WIDTH,` && |\n| &&
              `      TOAST_DEFAULT_DURATION_MS,` && |\n| &&
              `      TOAST_DEFAULT_ANIM_MS,` && |\n| &&
              `      XX_PATH_PREFIX_LEN,` && |\n| &&
-             `      // error/callback infrastructure` && |\n| &&
              `      logError,` && |\n| &&
              `      registerCallback,` && |\n| &&
              `      unregisterCallback,` && |\n| &&
              `      runCallbacks,` && |\n| &&
-             `      // pure` && |\n| &&
              `      parseMs,` && |\n| &&
              `      toJson,` && |\n| &&
              `      escapeHtml,` && |\n| &&
              `      isValidRedirectURL,` && |\n| &&
-             `      // dom/clipboard` && |\n| &&
              `      copyToClipboard,` && |\n| &&
              `      sanitizeMessageDetails,` && |\n| &&
-             `      // ui5 view` && |\n| &&
              `      getViewContent,` && |\n| &&
              `      getRenderedContent,` && |\n| &&
              `      findControlById,` && |\n| &&
-             `      // xml` && |\n| &&
              `      prettifyXml,` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&
@@ -337,23 +303,15 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        if (!Container) return;` && |\n| &&
              `        const launchpad = { Container };` && |\n| &&
              `        z2ui5.oLaunchpad = launchpad;` && |\n| &&
-             `        // Kick off both shell services in parallel; failures stay isolated and don't block each other` && |\n| &&
-             `        Promise.allSettled([` && |\n| &&
-             `          Container.getServiceAsync('ShellUIService').then((s) => {` && |\n| &&
-             `            launchpad.ShellUIService = s;` && |\n| &&
-             `          }),` && |\n| &&
-             `          Container.getServiceAsync('CrossApplicationNavigation').then((s) => {` && |\n| &&
-             `            launchpad.CrossAppNavigator = s;` && |\n| &&
-             `          }),` && |\n| &&
-             `        ]).then(([ui, nav]) => {` && |\n| &&
-             `          if (ui.status === 'rejected') _logError(``Component: ShellUIService init failed``, ui.reason);` && |\n| &&
-             `          if (nav.status === 'rejected') _logError(``Component: CrossApplicationNavigation init failed``, nav.reason);` && |\n| &&
-             `        });` && |\n| &&
+             `        Container.getServiceAsync('ShellUIService')` && |\n| &&
+             `          .then((s) => { launchpad.ShellUIService = s; })` && |\n| &&
+             `          .catch((e) => _logError(``Component: ShellUIService init failed``, e));` && |\n| &&
+             `        Container.getServiceAsync('CrossApplicationNavigation')` && |\n| &&
+             `          .then((s) => { launchpad.CrossAppNavigator = s; })` && |\n| &&
+             `          .catch((e) => _logError(``Component: CrossApplicationNavigation init failed``, e));` && |\n| &&
              `        sap.ui.require(` && |\n| &&
              `          ['sap/ushell/services/AppConfiguration'],` && |\n| &&
-             `          (ac) => {` && |\n| &&
-             `            launchpad.AppConfiguration = ac;` && |\n| &&
-             `          },` && |\n| &&
+             `          (ac) => { launchpad.AppConfiguration = ac; },` && |\n| &&
              `          (e) => _logError(``Component: AppConfiguration init failed``, e),` && |\n| &&
              `        );` && |\n| &&
              `      },` && |\n| &&
@@ -418,8 +376,6 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `    });` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
-             |\n|.
-    result = result &&
              `` && |\n| &&
               ``.
 

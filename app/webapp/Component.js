@@ -8,45 +8,33 @@ sap.ui.define(
   (Fragment, Element) => {
     'use strict';
 
-    // ===== Constants =====
     const ERRORS_CAP = 200;
     const ERROR_MAX_LENGTH = 50000;
     const DEFAULT_FETCH_TIMEOUT_MS = 600000;
     const DEFAULT_LOGOUT_URL = '/sap/public/bc/icf/logoff';
-    const DESTROY_SAFETY_NET_MS = 1000;
     const TOAST_DEFAULT_WIDTH = '15em';
     const TOAST_DEFAULT_DURATION_MS = 3000;
     const TOAST_DEFAULT_ANIM_MS = 1000;
-    // length of the "/XX/" prefix on two-way binding paths
     const XX_PATH_PREFIX_LEN = 4;
 
-    // ===== Error logging =====
     const logError = (message, error) => {
       const entry = { message, ts: new Date().toISOString() };
       if (error !== undefined) entry.error = error;
-      // Defensive: re-create z2ui5.errors if it has been clobbered with a non-array
       if (!Array.isArray(z2ui5.errors)) z2ui5.errors = [];
       const arr = z2ui5.errors;
       arr.push(entry);
-      // Single splice trims any overflow in one shot (cap the rolling log)
       if (arr.length > ERRORS_CAP) arr.splice(0, arr.length - ERRORS_CAP);
     };
 
-    // ===== Callback registry =====
-    // Push a callback onto one of the z2ui5.onXxx arrays, recreating the array if the
-    // global has been clobbered with a non-array (??= alone would not detect that).
     const registerCallback = (key, fn) => {
       if (!Array.isArray(z2ui5[key])) z2ui5[key] = [];
       z2ui5[key].push(fn);
     };
 
-    // Remove a callback without crashing if the array has been clobbered
     const unregisterCallback = (key, fn) => {
       z2ui5[key] = Array.isArray(z2ui5[key]) ? z2ui5[key].filter((cb) => cb !== fn) : [];
     };
 
-    // Run each callback in `arr` with `args`, swallowing per-callback errors so a single
-    // bad callback does not break the iteration over the rest.
     const runCallbacks = (arr, ...args) => {
       if (!Array.isArray(arr)) return;
       for (const fn of arr) {
@@ -58,9 +46,7 @@ sap.ui.define(
       }
     };
 
-    // ===== Pure helpers =====
-    // ?? semantics: an explicit 0 from the backend should pass through (e.g. duration=0
-    // to disable), not be replaced by the default
+    // explicit 0 from backend must pass through (e.g. duration=0 disables auto-close)
     const parseMs = (val, def) => {
       if (val === undefined || val === null || val === '') return def;
       const n = +val;
@@ -69,12 +55,10 @@ sap.ui.define(
 
     const toJson = (val) => JSON.stringify(val ?? null, null, 3);
 
-    // Hoisted lookup table avoids re-allocating the object on every escape call
     const _ESCAPE_MAP = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
     const _ESCAPE_RE = /[&<>"']/g;
     const escapeHtml = (str) => String(str).replace(_ESCAPE_RE, (c) => _ESCAPE_MAP[c]);
 
-    // ===== URL safety =====
     const _SAFE_PROTOCOLS = new Set(['http:', 'https:']);
     const isValidRedirectURL = (url) => {
       if (!url) return false;
@@ -95,9 +79,7 @@ sap.ui.define(
       }
     };
 
-    // ===== Clipboard =====
     const _legacyClipboardCopy = (text) => {
-      // Fallback for non-HTTPS contexts and older browsers without navigator.clipboard
       const ta = document.createElement('textarea');
       ta.value = text;
       ta.setAttribute('readonly', '');
@@ -105,9 +87,7 @@ sap.ui.define(
       (document.body ?? document.documentElement).appendChild(ta);
       ta.select();
       try {
-        // execCommand returns false if the copy was rejected (e.g. user gesture missing)
-        const ok = document.execCommand('copy');
-        if (!ok) logError(`Clipboard: legacy execCommand returned false`);
+        if (!document.execCommand('copy')) logError(`Clipboard: legacy execCommand returned false`);
       } catch (e) {
         logError(`Clipboard: legacy execCommand failed`, e);
       } finally {
@@ -126,7 +106,6 @@ sap.ui.define(
       _legacyClipboardCopy(textToCopy);
     };
 
-    // ===== DOM sanitisation =====
     const _msgParser = new DOMParser();
     const _sanitizeEl = document.createElement('div');
     const sanitizeMessageDetails = (html) => {
@@ -144,16 +123,11 @@ sap.ui.define(
       return _sanitizeEl.innerHTML;
     };
 
-    // ===== UI5 view helpers =====
-    // Public getViewContent() became available in newer UI5 versions; fall back to the
-    // internal mProperties.viewContent for older versions
+    // public getViewContent() since newer UI5; fall back to internal mProperties for older
     const getViewContent = (view) => view?.getViewContent?.() ?? view?.mProperties?.viewContent;
-    // _xContent is a UI5-internal property holding the raw post-templating XML; there is
-    // no public equivalent for the rendered (post-template) view source
+    // _xContent is UI5-internal — no public equivalent for the post-template view source
     const getRenderedContent = (view) => view?._xContent?.outerHTML;
 
-    // Look up a control across all active views by ID (used by openBy and the Z2UI5
-    // frontend action). Uses the imported Fragment module directly.
     const findControlById = (id) =>
       z2ui5.oView?.byId(id) ||
       (z2ui5.oViewPopup && Fragment.byId('popupId', id)) ||
@@ -161,10 +135,9 @@ sap.ui.define(
       z2ui5.oViewNest?.byId(id) ||
       z2ui5.oViewNest2?.byId(id) ||
       Element.getElementById?.(id) ||
-      // sap.ui.getCore() is removed in ui5-legacy-free; chain with optional access
+      // sap.ui.getCore() is removed in ui5-legacy-free
       sap.ui.getCore?.()?.byId?.(id);
 
-    // ===== XSLT pretty-print =====
     const PRETTIFY_XSL = `<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
         <xsl:strip-space elements="*" />
         <xsl:template match="para[content-style][not(text())]">
@@ -208,34 +181,27 @@ sap.ui.define(
     };
 
     return {
-      // constants
       ERRORS_CAP,
       ERROR_MAX_LENGTH,
       DEFAULT_FETCH_TIMEOUT_MS,
       DEFAULT_LOGOUT_URL,
-      DESTROY_SAFETY_NET_MS,
       TOAST_DEFAULT_WIDTH,
       TOAST_DEFAULT_DURATION_MS,
       TOAST_DEFAULT_ANIM_MS,
       XX_PATH_PREFIX_LEN,
-      // error/callback infrastructure
       logError,
       registerCallback,
       unregisterCallback,
       runCallbacks,
-      // pure
       parseMs,
       toJson,
       escapeHtml,
       isValidRedirectURL,
-      // dom/clipboard
       copyToClipboard,
       sanitizeMessageDetails,
-      // ui5 view
       getViewContent,
       getRenderedContent,
       findControlById,
-      // xml
       prettifyXml,
     };
   },
@@ -317,23 +283,15 @@ sap.ui.define(
         if (!Container) return;
         const launchpad = { Container };
         z2ui5.oLaunchpad = launchpad;
-        // Kick off both shell services in parallel; failures stay isolated and don't block each other
-        Promise.allSettled([
-          Container.getServiceAsync('ShellUIService').then((s) => {
-            launchpad.ShellUIService = s;
-          }),
-          Container.getServiceAsync('CrossApplicationNavigation').then((s) => {
-            launchpad.CrossAppNavigator = s;
-          }),
-        ]).then(([ui, nav]) => {
-          if (ui.status === 'rejected') _logError(`Component: ShellUIService init failed`, ui.reason);
-          if (nav.status === 'rejected') _logError(`Component: CrossApplicationNavigation init failed`, nav.reason);
-        });
+        Container.getServiceAsync('ShellUIService')
+          .then((s) => { launchpad.ShellUIService = s; })
+          .catch((e) => _logError(`Component: ShellUIService init failed`, e));
+        Container.getServiceAsync('CrossApplicationNavigation')
+          .then((s) => { launchpad.CrossAppNavigator = s; })
+          .catch((e) => _logError(`Component: CrossApplicationNavigation init failed`, e));
         sap.ui.require(
           ['sap/ushell/services/AppConfiguration'],
-          (ac) => {
-            launchpad.AppConfiguration = ac;
-          },
+          (ac) => { launchpad.AppConfiguration = ac; },
           (e) => _logError(`Component: AppConfiguration init failed`, e),
         );
       },

@@ -1198,7 +1198,6 @@ sap.ui.define(
       onPicture() {
         if (this._oScanDialog?.isOpen()) return;
         if (!this._oScanDialog) {
-          // i18n: title key "camera.title", capture key "camera.capture", cancel key "camera.cancel"
           this._oScanDialog = new Dialog({
             title: 'Device Photo Function',
             contentWidth: '640px',
