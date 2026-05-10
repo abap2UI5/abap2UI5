@@ -86,11 +86,11 @@ sap.ui.define("z2ui5/Timer", ["sap/ui/core/Control"], (Control) => {
       if (!this.getProperty("checkActive")) return;
       clearTimeout(this._timerId);
       this._timerId = setTimeout(() => {
-        if (this.isDestroyed()) return;
+        if (this.isDestroyed?.()) return;
         if (!this.getProperty("checkRepeat"))
           this.setProperty("checkActive", false, true);
         this.fireFinished();
-        if (this.getProperty("checkRepeat") && !this.isDestroyed())
+        if (this.getProperty("checkRepeat") && !this.isDestroyed?.())
           this.delayedCall();
       }, this.getProperty("delayMS"));
     },
@@ -405,7 +405,7 @@ sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {
             const delegate = {
               onAfterRendering: () => {
                 control.removeEventDelegate(delegate);
-                if (!this.isDestroyed()) this._restoreScrollPosition(item);
+                if (!this.isDestroyed?.()) this._restoreScrollPosition(item);
               },
             };
             control.addEventDelegate(delegate);
@@ -570,7 +570,7 @@ sap.ui.define("z2ui5/Geolocation", ["sap/ui/core/Control"], (Control) => {
     },
 
     callbackPosition({ coords }) {
-      if (this.isDestroyed()) return;
+      if (this.isDestroyed?.()) return;
       for (const prop of _GEO_PROPS)
         this.setProperty(prop, coords[prop]?.toString() ?? "", true);
       this.fireFinished();
@@ -775,7 +775,7 @@ sap.ui.define(
       _readFile(file) {
         const reader = new FileReader();
         reader.onload = () => {
-          if (this.isDestroyed()) return;
+          if (this.isDestroyed?.()) return;
           this.setProperty("value", reader.result);
           this.fireUpload();
         };
@@ -1003,7 +1003,7 @@ sap.ui.define(
         this.setProperty("rangeData", aRangeData);
         try {
           const input = await this.inputInitialized();
-          if (this.isDestroyed() || !input) return;
+          if (this.isDestroyed?.() || !input) return;
           input.setRangeData(
             aRangeData.map((oRangeData) =>
               Object.fromEntries(
@@ -1121,7 +1121,7 @@ sap.ui.define(
         } catch (e) {
           _logError(`CameraPicture: thumb toDataURL failed`, e);
         }
-        if (this.isDestroyed()) return;
+        if (this.isDestroyed?.()) return;
         this.setProperty("value", resultb64);
         this.setProperty("thumbnail", thumbB64);
         this.fireOnPhoto({ photo: resultb64 });
@@ -1145,6 +1145,7 @@ sap.ui.define(
             horizontalScrolling: false,
             verticalScrolling: false,
             stretch: true,
+            afterClose: () => this._stopCamera(),
             content: [
               new HTML({
                 id: `${this.getId()}PictureContainer`,
@@ -1172,7 +1173,7 @@ sap.ui.define(
         }
 
         this._oScanDialog.attachEventOnce("afterOpen", async () => {
-          if (this.isDestroyed()) return;
+          if (this.isDestroyed?.()) return;
           const video = document.getElementById(`${this.getId()}-video`);
           if (!video) {
             _logError(
@@ -1191,7 +1192,7 @@ sap.ui.define(
             const stream =
               await navigator.mediaDevices?.getUserMedia?.(options);
             if (!stream) return;
-            if (this.isDestroyed()) {
+            if (this.isDestroyed?.()) {
               for (const t of stream.getTracks()) t.stop();
               return;
             }
@@ -1235,7 +1236,7 @@ sap.ui.define(
           const devices = await navigator.mediaDevices?.enumerateDevices();
           if (!devices) return;
           for (const device of devices) {
-            if (device.kind === "videoinput" && !this.isDestroyed())
+            if (device.kind === "videoinput" && !this.isDestroyed?.())
               this.addItem(
                 new Item({ key: device.deviceId, text: device.label }),
               );
@@ -1311,7 +1312,7 @@ sap.ui.define("z2ui5/UITableExt", ["sap/ui/core/Control"], (Control) => {
       const delegate = {
         onAfterRendering: () => {
           oTable.removeEventDelegate(delegate);
-          if (!this.isDestroyed()) fn();
+          if (!this.isDestroyed?.()) fn();
         },
       };
       oTable.addEventDelegate(delegate);

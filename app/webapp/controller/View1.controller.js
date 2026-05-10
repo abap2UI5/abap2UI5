@@ -237,11 +237,11 @@ sap.ui.define(
             : {};
           try {
             if (SET_PUSH_STATE) {
-              const hash = _hashChanger.getHash() || "#";
+              const hash = _hashChanger.getHash();
               history.pushState(
                 oState,
                 "",
-                `${window.location.pathname}${window.location.search}${hash}${SET_PUSH_STATE}`,
+                `${window.location.pathname}${window.location.search}#${hash}${SET_PUSH_STATE}`,
               );
             } else {
               history.replaceState(oState, "", window.location.href);
@@ -613,6 +613,9 @@ sap.ui.define(
         }
         if (z2ui5.isBusy && !args[0][2]) {
           const oBusyDialog = new mBusyDialog();
+          oBusyDialog.attachEventOnce("afterClose", () =>
+            oBusyDialog.destroy(),
+          );
           oBusyDialog.open();
           queueMicrotask(() => oBusyDialog.close());
           return;
@@ -668,7 +671,7 @@ sap.ui.define(
           _logError("checkSDKcompatibility: VersionInfo.load failed", e);
           return;
         }
-        if (!gav.includes("com.sap.ui5")) {
+        if (!gav?.includes("com.sap.ui5")) {
           MessageBox.error(
             `openui5 SDK is loaded, module: ${err?._modules} is not available in openui5`,
           );

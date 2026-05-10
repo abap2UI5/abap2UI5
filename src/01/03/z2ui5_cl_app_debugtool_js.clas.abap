@@ -232,7 +232,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `              controller: this,` && |\n| &&
              `            });` && |\n| &&
              `          }` && |\n| &&
-             `          if (this.isDestroyed()) {` && |\n| &&
+             `          if (this.isDestroyed?.()) {` && |\n| &&
              `            this.oDialog?.destroy();` && |\n| &&
              `            this.oDialog = null;` && |\n| &&
              `            return;` && |\n| &&

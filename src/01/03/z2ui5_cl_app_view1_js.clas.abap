@@ -257,11 +257,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            : {};` && |\n| &&
              `          try {` && |\n| &&
              `            if (SET_PUSH_STATE) {` && |\n| &&
-             `              const hash = _hashChanger.getHash() || "#";` && |\n| &&
+             `              const hash = _hashChanger.getHash();` && |\n| &&
              `              history.pushState(` && |\n| &&
              `                oState,` && |\n| &&
              `                "",` && |\n| &&
-             `                ``${window.location.pathname}${window.location.search}${hash}${SET_PUSH_STATE}``,` && |\n| &&
+             `                ``${window.location.pathname}${window.location.search}#${hash}${SET_PUSH_STATE}``,` && |\n| &&
              `              );` && |\n| &&
              `            } else {` && |\n| &&
              `              history.replaceState(oState, "", window.location.href);` && |\n| &&
@@ -635,6 +635,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        if (z2ui5.isBusy && !args[0][2]) {` && |\n| &&
              `          const oBusyDialog = new mBusyDialog();` && |\n| &&
+             `          oBusyDialog.attachEventOnce("afterClose", () =>` && |\n| &&
+             `            oBusyDialog.destroy(),` && |\n| &&
+             `          );` && |\n| &&
              `          oBusyDialog.open();` && |\n| &&
              `          queueMicrotask(() => oBusyDialog.close());` && |\n| &&
              `          return;` && |\n| &&
@@ -690,7 +693,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          _logError("checkSDKcompatibility: VersionInfo.load failed", e);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        if (!gav.includes("com.sap.ui5")) {` && |\n| &&
+             `        if (!gav?.includes("com.sap.ui5")) {` && |\n| &&
              `          MessageBox.error(` && |\n| &&
              `            ``openui5 SDK is loaded, module: ${err?._modules} is not available in openui5``,` && |\n| &&
              `          );` && |\n| &&

@@ -106,11 +106,11 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      if (!this.getProperty("checkActive")) return;` && |\n| &&
              `      clearTimeout(this._timerId);` && |\n| &&
              `      this._timerId = setTimeout(() => {` && |\n| &&
-             `        if (this.isDestroyed()) return;` && |\n| &&
+             `        if (this.isDestroyed?.()) return;` && |\n| &&
              `        if (!this.getProperty("checkRepeat"))` && |\n| &&
              `          this.setProperty("checkActive", false, true);` && |\n| &&
              `        this.fireFinished();` && |\n| &&
-             `        if (this.getProperty("checkRepeat") && !this.isDestroyed())` && |\n| &&
+             `        if (this.getProperty("checkRepeat") && !this.isDestroyed?.())` && |\n| &&
              `          this.delayedCall();` && |\n| &&
              `      }, this.getProperty("delayMS"));` && |\n| &&
              `    },` && |\n| &&
@@ -427,7 +427,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            const delegate = {` && |\n| &&
              `              onAfterRendering: () => {` && |\n| &&
              `                control.removeEventDelegate(delegate);` && |\n| &&
-             `                if (!this.isDestroyed()) this._restoreScrollPosition(item);` && |\n| &&
+             `                if (!this.isDestroyed?.()) this._restoreScrollPosition(item);` && |\n| &&
              `              },` && |\n| &&
              `            };` && |\n| &&
              `            control.addEventDelegate(delegate);` && |\n| &&
@@ -592,7 +592,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    },` && |\n| &&
              `` && |\n| &&
              `    callbackPosition({ coords }) {` && |\n| &&
-             `      if (this.isDestroyed()) return;` && |\n| &&
+             `      if (this.isDestroyed?.()) return;` && |\n| &&
              `      for (const prop of _GEO_PROPS)` && |\n| &&
              `        this.setProperty(prop, coords[prop]?.toString() ?? "", true);` && |\n| &&
              `      this.fireFinished();` && |\n| &&
@@ -797,7 +797,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      _readFile(file) {` && |\n| &&
              `        const reader = new FileReader();` && |\n| &&
              `        reader.onload = () => {` && |\n| &&
-             `          if (this.isDestroyed()) return;` && |\n| &&
+             `          if (this.isDestroyed?.()) return;` && |\n| &&
              `          this.setProperty("value", reader.result);` && |\n| &&
              `          this.fireUpload();` && |\n| &&
              `        };` && |\n| &&
@@ -1027,7 +1027,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        this.setProperty("rangeData", aRangeData);` && |\n| &&
              `        try {` && |\n| &&
              `          const input = await this.inputInitialized();` && |\n| &&
-             `          if (this.isDestroyed() || !input) return;` && |\n| &&
+             `          if (this.isDestroyed?.() || !input) return;` && |\n| &&
              `          input.setRangeData(` && |\n| &&
              `            aRangeData.map((oRangeData) =>` && |\n| &&
              `              Object.fromEntries(` && |\n| &&
@@ -1145,7 +1145,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        } catch (e) {` && |\n| &&
              `          _logError(``CameraPicture: thumb toDataURL failed``, e);` && |\n| &&
              `        }` && |\n| &&
-             `        if (this.isDestroyed()) return;` && |\n| &&
+             `        if (this.isDestroyed?.()) return;` && |\n| &&
              `        this.setProperty("value", resultb64);` && |\n| &&
              `        this.setProperty("thumbnail", thumbB64);` && |\n| &&
              `        this.fireOnPhoto({ photo: resultb64 });` && |\n| &&
@@ -1169,6 +1169,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            horizontalScrolling: false,` && |\n| &&
              `            verticalScrolling: false,` && |\n| &&
              `            stretch: true,` && |\n| &&
+             `            afterClose: () => this._stopCamera(),` && |\n| &&
              `            content: [` && |\n| &&
              `              new HTML({` && |\n| &&
              `                id: ``${this.getId()}PictureContainer``,` && |\n| &&
@@ -1196,7 +1197,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        }` && |\n| &&
              `` && |\n| &&
              `        this._oScanDialog.attachEventOnce("afterOpen", async () => {` && |\n| &&
-             `          if (this.isDestroyed()) return;` && |\n| &&
+             `          if (this.isDestroyed?.()) return;` && |\n| &&
              `          const video = document.getElementById(``${this.getId()}-video``);` && |\n| &&
              `          if (!video) {` && |\n| &&
              `            _logError(` && |\n| &&
@@ -1215,15 +1216,15 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            const stream =` && |\n| &&
              `              await navigator.mediaDevices?.getUserMedia?.(options);` && |\n| &&
              `            if (!stream) return;` && |\n| &&
-             `            if (this.isDestroyed()) {` && |\n| &&
+             `            if (this.isDestroyed?.()) {` && |\n| &&
              `              for (const t of stream.getTracks()) t.stop();` && |\n| &&
              `              return;` && |\n| &&
              `            }` && |\n| &&
              `            this._stream = video.srcObject = stream;` && |\n| &&
              `          } catch (error) {` && |\n| &&
-             `            _logError(``CameraPicture: getUserMedia failed``, error);` && |\n| &&
              |\n|.
     result = result &&
+             `            _logError(``CameraPicture: getUserMedia failed``, error);` && |\n| &&
              `          }` && |\n| &&
              `        });` && |\n| &&
              `        this._oScanDialog.open();` && |\n| &&
@@ -1261,7 +1262,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          const devices = await navigator.mediaDevices?.enumerateDevices();` && |\n| &&
              `          if (!devices) return;` && |\n| &&
              `          for (const device of devices) {` && |\n| &&
-             `            if (device.kind === "videoinput" && !this.isDestroyed())` && |\n| &&
+             `            if (device.kind === "videoinput" && !this.isDestroyed?.())` && |\n| &&
              `              this.addItem(` && |\n| &&
              `                new Item({ key: device.deviceId, text: device.label }),` && |\n| &&
              `              );` && |\n| &&
@@ -1337,7 +1338,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      const delegate = {` && |\n| &&
              `        onAfterRendering: () => {` && |\n| &&
              `          oTable.removeEventDelegate(delegate);` && |\n| &&
-             `          if (!this.isDestroyed()) fn();` && |\n| &&
+             `          if (!this.isDestroyed?.()) fn();` && |\n| &&
              `        },` && |\n| &&
              `      };` && |\n| &&
              `      oTable.addEventDelegate(delegate);` && |\n| &&
