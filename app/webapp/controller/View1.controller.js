@@ -216,13 +216,18 @@ sap.ui.define(
             } else {
               history.replaceState(oState, '', window.location.href);
             }
-            _hashChanger.replaceHash(SET_APP_STATE_ACTIVE ? `z2ui5-xapp-state=${ID ?? ''}` : '');
+            if (SET_APP_STATE_ACTIVE) {
+              _hashChanger.replaceHash(`z2ui5-xapp-state=${ID ?? ''}`);
+            } else if (_hashChanger.getHash()?.startsWith('z2ui5-xapp-state=')) {
+              _hashChanger.replaceHash('');
+            }
           } catch (e) {
             _logError(`_processAfterRendering: history update failed`, e);
           }
           if (SET_NAV_BACK) history.back();
 
           runCallbacks(z2ui5.onAfterRendering);
+          runCallbacks(z2ui5.onAfterRoundtrip);
         } catch (e) {
           _logError(`_processAfterRendering: unexpected error`, e);
           MessageBox.error(e.toLocaleString(), {
@@ -544,6 +549,7 @@ sap.ui.define(
         }
         if (z2ui5.isBusy && !args[0][2]) {
           const oBusyDialog = new mBusyDialog();
+          oBusyDialog.attachAfterClose(() => oBusyDialog.destroy());
           oBusyDialog.open();
           queueMicrotask(() => oBusyDialog.close());
           return;
@@ -578,7 +584,6 @@ sap.ui.define(
         );
         z2ui5.oResponseOld = z2ui5.oResponse;
         Server.Roundtrip();
-        runCallbacks(z2ui5.onAfterRoundtrip);
       },
 
       updateModelIfRequired(paramKey, oView) {
@@ -595,7 +600,7 @@ sap.ui.define(
           _logError('checkSDKcompatibility: VersionInfo.load failed', e);
           return;
         }
-        if (!gav.includes('com.sap.ui5')) {
+        if (!gav?.includes('com.sap.ui5')) {
           MessageBox.error(`openui5 SDK is loaded, module: ${err?._modules} is not available in openui5`);
           return;
         }
