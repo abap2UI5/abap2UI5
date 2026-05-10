@@ -17,12 +17,7 @@
     "dataSources": {
       "http": {
         "uri": "/sap/bc/z2ui5",
-        "type": "OData",
-        "settings": {
-          "annotations": [],
-          "localUri": "localService/metadata.xml",
-          "odataVersion": "2.0"
-        }
+        "type": "JSON"
       }
     },
     "crossNavigation": {
@@ -58,7 +53,7 @@
   "sap.ui5": {
     "flexEnabled": false,
     "dependencies": {
-      "minUI5Version": "1.130.0",
+      "minUI5Version": "1.71.0",
       "libs": {
         "sap.m": {},
         "sap.ui.core": {}
@@ -68,8 +63,8 @@
       "compact": true,
       "cozy": true
     },
-    "services": {                                                                                                                                                                                                                                              
-      "ShellUIService": {                                                                                                                                                                                                                                      
+    "services": {
+      "ShellUIService": {
         "factoryName": "sap.ushell.ui5service.ShellUIService",
         "lazy": true
       }
