@@ -275,7 +275,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          controller: z2ui5.oControllerPopup,` && |\n| &&
              `          id: 'popupId',` && |\n| &&
              `        });` && |\n| &&
-             `        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {` && |\n| &&
+             `        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed?.()) {` && |\n| &&
              `          oFragment.destroy();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -293,7 +293,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            controller: z2ui5.oControllerPopover,` && |\n| &&
              `            id: 'popoverId',` && |\n| &&
              `          });` && |\n| &&
-             `          if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {` && |\n| &&
+             `          if (!z2ui5.oApp || z2ui5.oApp.isDestroyed?.()) {` && |\n| &&
              `            oFragment.destroy();` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
@@ -323,7 +323,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          controller,` && |\n| &&
              `          preprocessors: { xml: { models: { template: oModel } } },` && |\n| &&
              `        });` && |\n| &&
-             `        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {` && |\n| &&
+             `        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed?.()) {` && |\n| &&
              `          oView.destroy();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -668,7 +668,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          id: 'mainView',` && |\n| &&
              `          preprocessors: { xml: { models: { template: oViewModel } } },` && |\n| &&
              `        });` && |\n| &&
-             `        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed()) {` && |\n| &&
+             `        if (!z2ui5.oApp || z2ui5.oApp.isDestroyed?.()) {` && |\n| &&
              `          z2ui5.oView.destroy();` && |\n| &&
              `          if (switchPath) oModel.destroy();` && |\n| &&
              `          z2ui5.oView = null;` && |\n| &&

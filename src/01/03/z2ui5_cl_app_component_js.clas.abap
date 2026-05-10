@@ -83,22 +83,23 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        const Container = sap.ui.require('sap/ushell/Container');` && |\n| &&
              `        if (!Container) return;` && |\n| &&
              `        const launchpad = { Container };` && |\n| &&
+             `        this._launchpad = launchpad;` && |\n| &&
              `        z2ui5.oLaunchpad = launchpad;` && |\n| &&
+             `        // Guard async writes: a slow-resolving service must not populate the` && |\n| &&
+             `        // launchpad object after the component has been destroyed (e.g. user` && |\n| &&
+             `        // closes the app before the FLP services finish loading).` && |\n| &&
+             `        const setIfAlive = (key, value) => {` && |\n| &&
+             `          if (!this.isDestroyed?.() && this._launchpad === launchpad) launchpad[key] = value;` && |\n| &&
+             `        };` && |\n| &&
              `        Container.getServiceAsync('ShellUIService')` && |\n| &&
-             `          .then((s) => {` && |\n| &&
-             `            launchpad.ShellUIService = s;` && |\n| &&
-             `          })` && |\n| &&
+             `          .then((s) => setIfAlive('ShellUIService', s))` && |\n| &&
              `          .catch((e) => logErr(``Component: ShellUIService init failed``, e));` && |\n| &&
              `        Container.getServiceAsync('CrossApplicationNavigation')` && |\n| &&
-             `          .then((s) => {` && |\n| &&
-             `            launchpad.CrossAppNavigator = s;` && |\n| &&
-             `          })` && |\n| &&
+             `          .then((s) => setIfAlive('CrossAppNavigator', s))` && |\n| &&
              `          .catch((e) => logErr(``Component: CrossApplicationNavigation init failed``, e));` && |\n| &&
              `        sap.ui.require(` && |\n| &&
              `          ['sap/ushell/services/AppConfiguration'],` && |\n| &&
-             `          (ac) => {` && |\n| &&
-             `            launchpad.AppConfiguration = ac;` && |\n| &&
-             `          },` && |\n| &&
+             `          (ac) => setIfAlive('AppConfiguration', ac),` && |\n| &&
              `          (e) => logErr(``Component: AppConfiguration init failed``, e),` && |\n| &&
              `        );` && |\n| &&
              `      },` && |\n| &&
@@ -106,7 +107,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `      async _initVersionInfo() {` && |\n| &&
              `        try {` && |\n| &&
              `          const { version, buildTimestamp, gav } = await VersionInfo.load();` && |\n| &&
-             `          if (!this.isDestroyed()) z2ui5.oConfig.UI5VersionInfo = { version, buildTimestamp, gav };` && |\n| &&
+             `          if (!this.isDestroyed?.()) z2ui5.oConfig.UI5VersionInfo = { version, buildTimestamp, gav };` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          (z2ui5.errors ??= []).push({` && |\n| &&
              `            message: ``Component: VersionInfo load failed``,` && |\n| &&
@@ -126,7 +127,22 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        document.removeEventListener('keydown', this._boundKeydown);` && |\n| &&
              `        window.removeEventListener('popstate', this._boundPopstate);` && |\n| &&
              `        Server.endSession();` && |\n| &&
-             `        UIComponent.prototype.exit.call(this);` && |\n| &&
+             `        // Robust launchpad teardown: clear the FLP dirty flag so it does not` && |\n| &&
+             `        // carry over into the next app, and detach the shared launchpad` && |\n| &&
+             `        // object so a subsequent re-launch starts from a clean state and any` && |\n| &&
+             `        // still-pending init Promises become no-ops.` && |\n| &&
+             `        try {` && |\n| &&
+             `          this._launchpad?.Container?.setDirtyFlag?.(false);` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          (z2ui5.errors ??= []).push({` && |\n| &&
+             `            message: ``Component: clearing FLP dirty flag failed``,` && |\n| &&
+             `            error: e,` && |\n| &&
+             `            ts: new Date().toISOString(),` && |\n| &&
+             `          });` && |\n| &&
+             `        }` && |\n| &&
+             `        if (z2ui5.oLaunchpad === this._launchpad) z2ui5.oLaunchpad = null;` && |\n| &&
+             `        this._launchpad = null;` && |\n| &&
+             `        UIComponent.prototype.exit?.call(this);` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
              `  },` && |\n| &&

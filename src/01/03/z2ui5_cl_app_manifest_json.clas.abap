@@ -37,12 +37,7 @@ CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
              `    "dataSources": {` &&
              `      "http": {` &&
              `        "uri": "/sap/bc/z2ui5",` &&
-             `        "type": "OData",` &&
-             `        "settings": {` &&
-             `          "annotations": [],` &&
-             `          "localUri": "localService/metadata.xml",` &&
-             `          "odataVersion": "2.0"` &&
-             `        }` &&
+             `        "type": "JSON"` &&
              `      }` &&
              `    },` &&
              `    "crossNavigation": {` &&
@@ -78,7 +73,7 @@ CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
              `  "sap.ui5": {` &&
              `    "flexEnabled": false,` &&
              `    "dependencies": {` &&
-             `      "minUI5Version": "1.136.0",` &&
+             `      "minUI5Version": "1.71.0",` &&
              `      "libs": {` &&
              `        "sap.m": {},` &&
              `        "sap.ui.core": {}` &&
