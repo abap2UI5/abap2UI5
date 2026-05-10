@@ -169,11 +169,14 @@ sap.ui.define(
         });
       },
       onAfterRendering() {
-        if (z2ui5.oResponse) this._processAfterRendering();
+        if (z2ui5.oResponse && !z2ui5.oResponse._processed) this._processAfterRendering();
       },
       async _processAfterRendering() {
         try {
-          const { PARAMS, ID } = z2ui5.oResponse;
+          const oResponse = z2ui5.oResponse;
+          if (oResponse._processed) return;
+          oResponse._processed = true;
+          const { PARAMS, ID } = oResponse;
           if (!PARAMS) return;
           const { S_POPUP, S_VIEW_NEST, S_VIEW_NEST2, S_POPOVER, SET_APP_STATE_ACTIVE, SET_PUSH_STATE, SET_NAV_BACK } =
             PARAMS;
@@ -193,7 +196,10 @@ sap.ui.define(
             await this.displayNestedView(S_VIEW_NEST2.XML, 'oViewNest2', 'S_VIEW_NEST2', z2ui5.oControllerNest2);
             z2ui5.checkNestAfter2 = true;
           }
-          if (S_POPOVER?.XML) await this.displayPopover(S_POPOVER.XML, 'oViewPopover', S_POPOVER.OPEN_BY_ID);
+          if (S_POPOVER?.XML) {
+            this.PopoverDestroy();
+            await this.displayPopover(S_POPOVER.XML, 'oViewPopover', S_POPOVER.OPEN_BY_ID);
+          }
 
           const oView = z2ui5.oView;
           const oState = oView
@@ -279,7 +285,6 @@ sap.ui.define(
           }
           oFragment.setModel(oModel);
           oFragment.Fragment = Fragment;
-          z2ui5[viewProp] = oFragment;
           const oControl =
             z2ui5.oView?.byId(openById) ||
             z2ui5.oViewPopup?.Fragment.byId('popupId', openById) ||
@@ -288,8 +293,10 @@ sap.ui.define(
             (Element.getElementById?.(openById) ?? sap.ui.getCore?.()?.byId?.(openById));
           if (!oControl) {
             _logError(`displayPopover: openBy control '${openById}' not found`);
+            oFragment.destroy();
             return;
           }
+          z2ui5[viewProp] = oFragment;
           oFragment.openBy(oControl);
         } catch (e) {
           _logError(`displayPopover: failed`, e);
