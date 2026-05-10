@@ -212,7 +212,7 @@ sap.ui.define(
               controller: this,
             });
           }
-          if (this.isDestroyed()) {
+          if (this.isDestroyed?.()) {
             this.oDialog?.destroy();
             this.oDialog = null;
             return;

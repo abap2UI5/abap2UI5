@@ -237,11 +237,11 @@ sap.ui.define(
             : {};
           try {
             if (SET_PUSH_STATE) {
-              const hash = _hashChanger.getHash() || "#";
+              const hash = _hashChanger.getHash();
               history.pushState(
                 oState,
                 "",
-                `${window.location.pathname}${window.location.search}${hash}${SET_PUSH_STATE}`,
+                `${window.location.pathname}${window.location.search}#${hash}${SET_PUSH_STATE}`,
               );
             } else {
               history.replaceState(oState, "", window.location.href);
@@ -668,7 +668,7 @@ sap.ui.define(
           _logError("checkSDKcompatibility: VersionInfo.load failed", e);
           return;
         }
-        if (!gav.includes("com.sap.ui5")) {
+        if (!gav?.includes("com.sap.ui5")) {
           MessageBox.error(
             `openui5 SDK is loaded, module: ${err?._modules} is not available in openui5`,
           );
