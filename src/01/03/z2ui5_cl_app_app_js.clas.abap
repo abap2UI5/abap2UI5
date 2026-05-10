@@ -1224,7 +1224,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        if (!this._oScanDialog) {` && |\n| &&
              |\n|.
     result = result &&
-             `          // i18n: title key "camera.title", capture key "camera.capture", cancel key "camera.cancel"` && |\n| &&
              `          this._oScanDialog = new Dialog({` && |\n| &&
              `            title: 'Device Photo Function',` && |\n| &&
              `            contentWidth: '640px',` && |\n| &&
