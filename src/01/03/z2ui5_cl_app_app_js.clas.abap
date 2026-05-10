@@ -1169,6 +1169,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            horizontalScrolling: false,` && |\n| &&
              `            verticalScrolling: false,` && |\n| &&
              `            stretch: true,` && |\n| &&
+             `            afterClose: () => this._stopCamera(),` && |\n| &&
              `            content: [` && |\n| &&
              `              new HTML({` && |\n| &&
              `                id: ``${this.getId()}PictureContainer``,` && |\n| &&
@@ -1221,9 +1222,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            }` && |\n| &&
              `            this._stream = video.srcObject = stream;` && |\n| &&
              `          } catch (error) {` && |\n| &&
-             `            _logError(``CameraPicture: getUserMedia failed``, error);` && |\n| &&
              |\n|.
     result = result &&
+             `            _logError(``CameraPicture: getUserMedia failed``, error);` && |\n| &&
              `          }` && |\n| &&
              `        });` && |\n| &&
              `        this._oScanDialog.open();` && |\n| &&

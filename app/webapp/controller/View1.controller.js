@@ -613,6 +613,9 @@ sap.ui.define(
         }
         if (z2ui5.isBusy && !args[0][2]) {
           const oBusyDialog = new mBusyDialog();
+          oBusyDialog.attachEventOnce("afterClose", () =>
+            oBusyDialog.destroy(),
+          );
           oBusyDialog.open();
           queueMicrotask(() => oBusyDialog.close());
           return;

@@ -1145,6 +1145,7 @@ sap.ui.define(
             horizontalScrolling: false,
             verticalScrolling: false,
             stretch: true,
+            afterClose: () => this._stopCamera(),
             content: [
               new HTML({
                 id: `${this.getId()}PictureContainer`,

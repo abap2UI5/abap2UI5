@@ -635,6 +635,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        if (z2ui5.isBusy && !args[0][2]) {` && |\n| &&
              `          const oBusyDialog = new mBusyDialog();` && |\n| &&
+             `          oBusyDialog.attachEventOnce("afterClose", () =>` && |\n| &&
+             `            oBusyDialog.destroy(),` && |\n| &&
+             `          );` && |\n| &&
              `          oBusyDialog.open();` && |\n| &&
              `          queueMicrotask(() => oBusyDialog.close());` && |\n| &&
              `          return;` && |\n| &&
