@@ -227,7 +227,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            : {};` && |\n|  &&
              `          try {` && |\n|  &&
              `            if (SET_PUSH_STATE) {` && |\n|  &&
-             `              const hash = _hashChanger.getHash() || '#';` && |\n|  &&
+             `              const currentHash = _hashChanger.getHash();` && |\n|  &&
+             `              const hash = currentHash ? ``#${currentHash}`` : '#';` && |\n|  &&
              `              history.pushState(` && |\n|  &&
              `                oState,` && |\n|  &&
              `                '',` && |\n|  &&
@@ -417,9 +418,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            if (Number.isFinite(limit) && limit > 0) {` && |\n|  &&
              `              (z2ui5.viewSizeLimits ??= {})[viewKey] = limit;` && |\n|  &&
              `              if (model) {` && |\n|  &&
-             `                model.setSizeLimit(limit);` && |\n|  &&
              |\n|.
     result = result &&
+             `                model.setSizeLimit(limit);` && |\n|  &&
              `                model.refresh(true);` && |\n|  &&
              `              }` && |\n|  &&
              `            } else {` && |\n|  &&
@@ -438,12 +439,17 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            copyToClipboard(args[1]);` && |\n|  &&
              `            break;` && |\n|  &&
              `          case 'CLIPBOARD_APP_STATE':` && |\n|  &&
-             `            copyToClipboard(``${window.location.href}#/z2ui5-xapp-state=${z2ui5.oResponse?.ID}``);` && |\n|  &&
+             `            copyToClipboard(` && |\n|  &&
+             `              ``${window.location.href.split('#')[0]}#/z2ui5-xapp-state=${z2ui5.oResponse?.ID ?? ''}``,` && |\n|  &&
+             `            );` && |\n|  &&
              `            break;` && |\n|  &&
              `          case 'SET_ODATA_MODEL': {` && |\n|  &&
              `            try {` && |\n|  &&
+             `              const modelName = args[2] || undefined;` && |\n|  &&
+             `              const prevModel = z2ui5.oView?.getModel(modelName);` && |\n|  &&
              `              const oModel = new ODataModel({ serviceUrl: args[1], annotationURI: args[3] ?? '' });` && |\n|  &&
-             `              z2ui5.oView?.setModel(oModel, args[2] || undefined);` && |\n|  &&
+             `              z2ui5.oView?.setModel(oModel, modelName);` && |\n|  &&
+             `              if (prevModel && prevModel !== oModel) prevModel.destroy?.();` && |\n|  &&
              `            } catch (e) {` && |\n|  &&
              `              _logError(``SET_ODATA_MODEL: failed for '${args[1]}'``, e);` && |\n|  &&
              `            }` && |\n|  &&

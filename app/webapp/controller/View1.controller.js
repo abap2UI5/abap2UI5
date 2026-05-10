@@ -207,7 +207,8 @@ sap.ui.define(
             : {};
           try {
             if (SET_PUSH_STATE) {
-              const hash = _hashChanger.getHash() || '#';
+              const currentHash = _hashChanger.getHash();
+              const hash = currentHash ? `#${currentHash}` : '#';
               history.pushState(
                 oState,
                 '',
@@ -416,12 +417,17 @@ sap.ui.define(
             copyToClipboard(args[1]);
             break;
           case 'CLIPBOARD_APP_STATE':
-            copyToClipboard(`${window.location.href}#/z2ui5-xapp-state=${z2ui5.oResponse?.ID}`);
+            copyToClipboard(
+              `${window.location.href.split('#')[0]}#/z2ui5-xapp-state=${z2ui5.oResponse?.ID ?? ''}`,
+            );
             break;
           case 'SET_ODATA_MODEL': {
             try {
+              const modelName = args[2] || undefined;
+              const prevModel = z2ui5.oView?.getModel(modelName);
               const oModel = new ODataModel({ serviceUrl: args[1], annotationURI: args[3] ?? '' });
-              z2ui5.oView?.setModel(oModel, args[2] || undefined);
+              z2ui5.oView?.setModel(oModel, modelName);
+              if (prevModel && prevModel !== oModel) prevModel.destroy?.();
             } catch (e) {
               _logError(`SET_ODATA_MODEL: failed for '${args[1]}'`, e);
             }
