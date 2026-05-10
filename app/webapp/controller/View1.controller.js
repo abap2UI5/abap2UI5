@@ -123,20 +123,12 @@ sap.ui.define(
     const _hashChanger = HashChanger.getInstance();
     const _URLHelper = mobileLibrary.URLHelper;
 
-    // Component-scoped IDs prevent duplicate-ID errors when the same app is
-    // launched more than once in the SAP Fiori Launchpad: each component
-    // instance gets its own unique prefix so global UI5 element IDs never collide.
-    const scopedId = (name) => z2ui5.oOwnerComponent?.createId(name) ?? name;
-    const mainViewId = () => scopedId('mainView');
-    const popupFragmentId = () => scopedId('popupId');
-    const popoverFragmentId = () => scopedId('popoverId');
-
     const navContainerLookups = {
       NAV_CONTAINER_TO: (id) => z2ui5.oView?.byId(id),
       NEST_NAV_CONTAINER_TO: (id) => z2ui5.oViewNest?.byId(id),
       NEST2_NAV_CONTAINER_TO: (id) => z2ui5.oViewNest2?.byId(id),
-      POPUP_NAV_CONTAINER_TO: (id) => Fragment.byId(popupFragmentId(), id),
-      POPOVER_NAV_CONTAINER_TO: (id) => Fragment.byId(popoverFragmentId(), id),
+      POPUP_NAV_CONTAINER_TO: (id) => Fragment.byId('popupId', id),
+      POPOVER_NAV_CONTAINER_TO: (id) => Fragment.byId('popoverId', id),
     };
 
     const viewLookups = {
@@ -261,7 +253,7 @@ sap.ui.define(
         const oFragment = await Fragment.load({
           definition: xml,
           controller: z2ui5.oControllerPopup,
-          id: popupFragmentId(),
+          id: 'popupId',
         });
         if (!z2ui5.oApp || z2ui5.oApp.isDestroyed?.()) {
           oFragment.destroy();
@@ -279,7 +271,7 @@ sap.ui.define(
           const oFragment = await Fragment.load({
             definition: xml,
             controller: z2ui5.oControllerPopover,
-            id: popoverFragmentId(),
+            id: 'popoverId',
           });
           if (!z2ui5.oApp || z2ui5.oApp.isDestroyed?.()) {
             oFragment.destroy();
@@ -290,7 +282,7 @@ sap.ui.define(
           z2ui5[viewProp] = oFragment;
           const oControl =
             z2ui5.oView?.byId(openById) ||
-            z2ui5.oViewPopup?.Fragment.byId(popupFragmentId(), openById) ||
+            z2ui5.oViewPopup?.Fragment.byId('popupId', openById) ||
             z2ui5.oViewNest?.byId(openById) ||
             z2ui5.oViewNest2?.byId(openById) ||
             (Element.getElementById?.(openById) ?? sap.ui.getCore?.()?.byId?.(openById));
@@ -521,7 +513,7 @@ sap.ui.define(
           case 'IMAGE_EDITOR_POPUP_CLOSE': {
             let image;
             try {
-              image = Fragment.byId(popupFragmentId(), 'imageEditor')?.getImagePngDataURL();
+              image = Fragment.byId('popupId', 'imageEditor')?.getImagePngDataURL();
             } catch (e) {
               _logError(`IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed`, e);
             }
@@ -651,7 +643,7 @@ sap.ui.define(
           definition: xml,
           models: oModel,
           controller: z2ui5.oController,
-          id: mainViewId(),
+          id: 'mainView',
           preprocessors: { xml: { models: { template: oViewModel } } },
         });
         if (!z2ui5.oApp || z2ui5.oApp.isDestroyed?.()) {
