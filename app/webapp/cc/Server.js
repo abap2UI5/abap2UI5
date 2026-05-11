@@ -305,7 +305,8 @@ sap.ui.define(
           pre.style.cssText =
             "margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;";
           pre.textContent = errorMessage;
-          const target = contentDocument.body || contentDocument.documentElement;
+          const target =
+            contentDocument.body || contentDocument.documentElement;
           target.appendChild(pre);
         }
       },

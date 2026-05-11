@@ -561,8 +561,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          if (!deviceData) return;` && |\n| &&
              `` && |\n| &&
              `          const { system, resize, os, browser } = deviceData;` && |\n| &&
-             `          const versionInfo =` && |\n| &&
-             `            z2ui5.oConfig && z2ui5.oConfig.UI5VersionInfo;` && |\n| &&
+             `          const versionInfo = z2ui5.oConfig && z2ui5.oConfig.UI5VersionInfo;` && |\n| &&
              `          const ui5Version = versionInfo ? versionInfo.version : "";` && |\n| &&
              `` && |\n| &&
              `          const props = [` && |\n| &&
@@ -820,9 +819,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            type: "string",` && |\n| &&
              `            defaultValue: "",` && |\n| &&
              `          },` && |\n| &&
+             `          style: {` && |\n| &&
              |\n|.
     result = result &&
-             `          style: {` && |\n| &&
              `            type: "string",` && |\n| &&
              `            defaultValue: "",` && |\n| &&
              `          },` && |\n| &&
@@ -1222,9 +1221,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        if (!video || !canvas) return;` && |\n| &&
              `` && |\n| &&
              `        const videoWidth = video.videoWidth;` && |\n| &&
+             `        const videoHeight = video.videoHeight;` && |\n| &&
              |\n|.
     result = result &&
-             `        const videoHeight = video.videoHeight;` && |\n| &&
              `        canvas.width = videoWidth;` && |\n| &&
              `        canvas.height = videoHeight;` && |\n| &&
              `` && |\n| &&
@@ -1512,7 +1511,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        const display = displayFn(vValue);` && |\n| &&
              `` && |\n| &&
              `        for (const oCol of columns) {` && |\n| &&
-             `          if (oCol.getFilterProperty && oCol.getFilterProperty() === sProperty) {` && |\n| &&
+             `          if (` && |\n| &&
+             `            oCol.getFilterProperty &&` && |\n| &&
+             `            oCol.getFilterProperty() === sProperty` && |\n| &&
+             `          ) {` && |\n| &&
              `            oCol.setFilterValue(display);` && |\n| &&
              `            oCol.setFiltered(!!display);` && |\n| &&
              `          }` && |\n| &&
@@ -1622,10 +1624,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      if (existing) {` && |\n| &&
              `        existing.href = val;` && |\n| &&
              `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      const link = document.createElement("link");` && |\n| &&
              |\n|.
     result = result &&
+             `      }` && |\n| &&
+             `      const link = document.createElement("link");` && |\n| &&
              `      link.rel = "shortcut icon";` && |\n| &&
              `      link.href = val;` && |\n| &&
              `      document.head.appendChild(link);` && |\n| &&

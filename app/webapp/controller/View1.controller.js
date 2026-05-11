@@ -131,8 +131,7 @@ sap.ui.define(
     // ------------------------------------------------------------------
 
     function withCrossAppNavigator(callback) {
-      const nav =
-        z2ui5.oLaunchpad && z2ui5.oLaunchpad.CrossAppNavigator;
+      const nav = z2ui5.oLaunchpad && z2ui5.oLaunchpad.CrossAppNavigator;
       if (!nav) {
         logError("CrossAppNav: not running inside Launchpad");
         return;
@@ -552,9 +551,7 @@ sap.ui.define(
             break;
           case "CLIPBOARD_APP_STATE": {
             const id = z2ui5.oResponse && z2ui5.oResponse.ID;
-            copyToClipboard(
-              `${window.location.href}#/z2ui5-xapp-state=${id}`,
-            );
+            copyToClipboard(`${window.location.href}#/z2ui5-xapp-state=${id}`);
             break;
           }
           case "SET_ODATA_MODEL":
@@ -834,9 +831,10 @@ sap.ui.define(
         // The 4th positional flag in args[0] forces use of the main view's
         // model even when called from a popup/popover controller.
         if (args[0][3] || z2ui5.oController === this) {
-          const sView = z2ui5.oResponse && z2ui5.oResponse.PARAMS
-            ? z2ui5.oResponse.PARAMS.S_VIEW
-            : null;
+          const sView =
+            z2ui5.oResponse && z2ui5.oResponse.PARAMS
+              ? z2ui5.oResponse.PARAMS.S_VIEW
+              : null;
           if (sView && sView.SWITCH_DEFAULT_MODEL_PATH) {
             return z2ui5.oView && z2ui5.oView.getModel("http");
           }
@@ -943,9 +941,10 @@ sap.ui.define(
       async displayView(xml, viewModel) {
         const oViewModel = this._trackChanges(new JSONModel(viewModel));
 
-        const sView = z2ui5.oResponse && z2ui5.oResponse.PARAMS
-          ? z2ui5.oResponse.PARAMS.S_VIEW
-          : null;
+        const sView =
+          z2ui5.oResponse && z2ui5.oResponse.PARAMS
+            ? z2ui5.oResponse.PARAMS.S_VIEW
+            : null;
         const switchPath = sView && sView.SWITCH_DEFAULT_MODEL_PATH;
 
         // When the app wants OData as the default model, build it here and

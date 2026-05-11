@@ -121,7 +121,8 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `            break;` && |\n| &&
              `` && |\n| &&
              `          case "MODEL": {` && |\n| &&
-             `            const data = oView && oView.getModel() && oView.getModel().getData();` && |\n| &&
+             `            const data =` && |\n| &&
+             `              oView && oView.getModel() && oView.getModel().getData();` && |\n| &&
              `            displayEditor(oEvent, toJson(data), "json");` && |\n| &&
              `            break;` && |\n| &&
              `          }` && |\n| &&
@@ -195,7 +196,8 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `` && |\n| &&
              `          case "NEST1": {` && |\n| &&
              `            const nest = z2ui5.oViewNest;` && |\n| &&
-             `            const xml = nest && nest.mProperties && nest.mProperties.viewContent;` && |\n| &&
+             `            const xml =` && |\n| &&
+             `              nest && nest.mProperties && nest.mProperties.viewContent;` && |\n| &&
              `            const rendered = nest && nest._xContent && nest._xContent.outerHTML;` && |\n| &&
              `            displayEditor(` && |\n| &&
              `              oEvent,` && |\n| &&
@@ -217,7 +219,8 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `` && |\n| &&
              `          case "NEST2": {` && |\n| &&
              `            const nest = z2ui5.oViewNest2;` && |\n| &&
-             `            const xml = nest && nest.mProperties && nest.mProperties.viewContent;` && |\n| &&
+             `            const xml =` && |\n| &&
+             `              nest && nest.mProperties && nest.mProperties.viewContent;` && |\n| &&
              `            const rendered = nest && nest._xContent && nest._xContent.outerHTML;` && |\n| &&
              `            displayEditor(` && |\n| &&
              `              oEvent,` && |\n| &&
@@ -242,7 +245,10 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `            const parent = oSource.getParent();` && |\n| &&
              `            const content = parent && parent.getContent && parent.getContent();` && |\n| &&
              `            const contentControl =` && |\n| &&
-             `              content && content[2] && content[2].getItems && content[2].getItems()[0];` && |\n| &&
+             `              content &&` && |\n| &&
+             `              content[2] &&` && |\n| &&
+             `              content[2].getItems &&` && |\n| &&
+             `              content[2].getItems()[0];` && |\n| &&
              `            if (!contentControl) break;` && |\n| &&
              `` && |\n| &&
              `            const appName =` && |\n| &&
@@ -276,8 +282,9 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        const modelData = oModel.getData();` && |\n| &&
              `        modelData.editor_visible = true;` && |\n| &&
              `        modelData.source_visible = false;` && |\n| &&
-             `        modelData.isTemplating =` && |\n| &&
-             `          !!(content && content.includes("xmlns:template"));` && |\n| &&
+             `        modelData.isTemplating = !!(` && |\n| &&
+             `          content && content.includes("xmlns:template")` && |\n| &&
+             `        );` && |\n| &&
              `        modelData.value = content;` && |\n| &&
              `        modelData.previousValue = content;` && |\n| &&
              `        modelData.xContent = xcontent;` && |\n| &&

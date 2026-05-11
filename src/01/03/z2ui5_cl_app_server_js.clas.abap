@@ -325,7 +325,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          pre.style.cssText =` && |\n| &&
              `            "margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;";` && |\n| &&
              `          pre.textContent = errorMessage;` && |\n| &&
-             `          const target = contentDocument.body || contentDocument.documentElement;` && |\n| &&
+             `          const target =` && |\n| &&
+             `            contentDocument.body || contentDocument.documentElement;` && |\n| &&
              `          target.appendChild(pre);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&

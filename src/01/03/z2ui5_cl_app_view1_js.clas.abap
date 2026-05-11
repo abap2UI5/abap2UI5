@@ -151,8 +151,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
              `    function withCrossAppNavigator(callback) {` && |\n| &&
-             `      const nav =` && |\n| &&
-             `        z2ui5.oLaunchpad && z2ui5.oLaunchpad.CrossAppNavigator;` && |\n| &&
+             `      const nav = z2ui5.oLaunchpad && z2ui5.oLaunchpad.CrossAppNavigator;` && |\n| &&
              `      if (!nav) {` && |\n| &&
              `        logError("CrossAppNav: not running inside Launchpad");` && |\n| &&
              `        return;` && |\n| &&
@@ -418,9 +417,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const appAlive =` && |\n| &&
              `            z2ui5.oApp &&` && |\n| &&
              `            (!z2ui5.oApp.isDestroyed || !z2ui5.oApp.isDestroyed());` && |\n| &&
+             `          if (!appAlive) {` && |\n| &&
              |\n|.
     result = result &&
-             `          if (!appAlive) {` && |\n| &&
              `            oFragment.destroy();` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
@@ -574,9 +573,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            break;` && |\n| &&
              `          case "CLIPBOARD_APP_STATE": {` && |\n| &&
              `            const id = z2ui5.oResponse && z2ui5.oResponse.ID;` && |\n| &&
-             `            copyToClipboard(` && |\n| &&
-             `              ``${window.location.href}#/z2ui5-xapp-state=${id}``,` && |\n| &&
-             `            );` && |\n| &&
+             `            copyToClipboard(``${window.location.href}#/z2ui5-xapp-state=${id}``);` && |\n| &&
              `            break;` && |\n| &&
              `          }` && |\n| &&
              `          case "SET_ODATA_MODEL":` && |\n| &&
@@ -820,11 +817,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        z2ui5.oBody = { VIEWNAME: "MAIN" };` && |\n| &&
              `` && |\n| &&
              `        // Decide which view's model holds the data we need to send back. The` && |\n| &&
-             |\n|.
-    result = result &&
              `        // mapping is: main app controller → main view, popup controller →` && |\n| &&
              `        // popup view, etc.` && |\n| &&
              `        const oModel = this._pickModelForRoundtrip(args);` && |\n| &&
+             |\n|.
+    result = result &&
              `` && |\n| &&
              `        runCallbacks(z2ui5.onBeforeRoundtrip);` && |\n| &&
              `` && |\n| &&
@@ -858,9 +855,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // The 4th positional flag in args[0] forces use of the main view's` && |\n| &&
              `        // model even when called from a popup/popover controller.` && |\n| &&
              `        if (args[0][3] || z2ui5.oController === this) {` && |\n| &&
-             `          const sView = z2ui5.oResponse && z2ui5.oResponse.PARAMS` && |\n| &&
-             `            ? z2ui5.oResponse.PARAMS.S_VIEW` && |\n| &&
-             `            : null;` && |\n| &&
+             `          const sView =` && |\n| &&
+             `            z2ui5.oResponse && z2ui5.oResponse.PARAMS` && |\n| &&
+             `              ? z2ui5.oResponse.PARAMS.S_VIEW` && |\n| &&
+             `              : null;` && |\n| &&
              `          if (sView && sView.SWITCH_DEFAULT_MODEL_PATH) {` && |\n| &&
              `            return z2ui5.oView && z2ui5.oView.getModel("http");` && |\n| &&
              `          }` && |\n| &&
@@ -967,9 +965,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      async displayView(xml, viewModel) {` && |\n| &&
              `        const oViewModel = this._trackChanges(new JSONModel(viewModel));` && |\n| &&
              `` && |\n| &&
-             `        const sView = z2ui5.oResponse && z2ui5.oResponse.PARAMS` && |\n| &&
-             `          ? z2ui5.oResponse.PARAMS.S_VIEW` && |\n| &&
-             `          : null;` && |\n| &&
+             `        const sView =` && |\n| &&
+             `          z2ui5.oResponse && z2ui5.oResponse.PARAMS` && |\n| &&
+             `            ? z2ui5.oResponse.PARAMS.S_VIEW` && |\n| &&
+             `            : null;` && |\n| &&
              `        const switchPath = sView && sView.SWITCH_DEFAULT_MODEL_PATH;` && |\n| &&
              `` && |\n| &&
              `        // When the app wants OData as the default model, build it here and` && |\n| &&
