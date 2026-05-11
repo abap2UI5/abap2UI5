@@ -466,10 +466,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          if (!control) continue;` && |\n| &&
              `` && |\n| &&
              `          if (control.getDomRef()) {` && |\n| &&
-             `            // The target control is already rendered → restore immediately.` && |\n| &&
+             `            // The target control is already rendered -> restore immediately.` && |\n| &&
              `            this._restoreScrollPosition(item);` && |\n| &&
              `          } else {` && |\n| &&
-             `            // Not rendered yet → wait until it is, then restore once.` && |\n| &&
+             `            // Not rendered yet -> wait until it is, then restore once.` && |\n| &&
              `            const delegate = {` && |\n| &&
              `              onAfterRendering: () => {` && |\n| &&
              `                control.removeEventDelegate(delegate);` && |\n| &&
@@ -1459,7 +1459,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        fn();` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      // Not rendered yet → run ``fn`` once the next render completes.` && |\n| &&
+             `      // Not rendered yet -> run ``fn`` once the next render completes.` && |\n| &&
              `      const delegate = {` && |\n| &&
              `        onAfterRendering: () => {` && |\n| &&
              `          oTable.removeEventDelegate(delegate);` && |\n| &&

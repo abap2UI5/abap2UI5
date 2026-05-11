@@ -339,7 +339,7 @@ sap.ui.define(
           const isRowField =
             field !== undefined && rowIdx !== "" && !isNaN(rowIdx);
           if (isRowField) {
-            // Table cell change → ship only the changed cell.
+            // Table cell change -> ship only the changed cell.
             if (!delta[attr] || !delta[attr].__delta) {
               delta[attr] = { __delta: {} };
             }
@@ -348,7 +348,7 @@ sap.ui.define(
             const row = xx[attr] && xx[attr][+rowIdx];
             attrDelta[rowIdx][field] = row ? row[field] : undefined;
           } else {
-            // Scalar change → ship the whole attribute.
+            // Scalar change -> ship the whole attribute.
             delta[attr] = xx[attr];
           }
         }
@@ -607,8 +607,8 @@ sap.ui.define(
 
       _evSetSizeLimit(args) {
         // Two call shapes:
-        //   ["SET_SIZE_LIMIT", "<limit>", "<viewKey>"]   → set the limit
-        //   ["SET_SIZE_LIMIT", "<viewKey>"]              → reset the limit
+        //   ["SET_SIZE_LIMIT", "<limit>", "<viewKey>"]   -> set the limit
+        //   ["SET_SIZE_LIMIT", "<viewKey>"]              -> reset the limit
         const hasLimit = args[2] !== undefined && args[2] !== "";
         const viewKey = hasLimit ? args[2] : args[1];
         const limit = hasLimit ? Number(args[1]) : NaN;
@@ -795,7 +795,7 @@ sap.ui.define(
         z2ui5.oBody = { VIEWNAME: "MAIN" };
 
         // Decide which view's model holds the data we need to send back. The
-        // mapping is: main app controller → main view, popup controller →
+        // mapping is: main app controller -> main view, popup controller ->
         // popup view, etc.
         const oModel = this._pickModelForRoundtrip(args);
 

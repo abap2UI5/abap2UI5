@@ -183,7 +183,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `          for (const t of _MSG_TYPES) oController.showMessage(t, params);` && |\n| &&
              `` && |\n| &&
-             `          // Full view replacement → destroy & rebuild, nothing more to do.` && |\n| &&
+             `          // Full view replacement -> destroy & rebuild, nothing more to do.` && |\n| &&
              `          if (sView && sView.XML) {` && |\n| &&
              `            oController.ViewDestroy();` && |\n| &&
              `            await oController.displayView(sView.XML, response.OVIEWMODEL);` && |\n| &&
@@ -217,8 +217,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Executes a single custom-JS snippet from the backend.` && |\n| &&
-             `      // Format A:  "alert(123)"           → runs the expression` && |\n| &&
-             `      // Format B:  "eF('A','B','C')"      → calls oController.eF('A','B','C')` && |\n| &&
+             `      // Format A:  "alert(123)"           -> runs the expression` && |\n| &&
+             `      // Format B:  "eF('A','B','C')"      -> calls oController.eF('A','B','C')` && |\n| &&
              `      _runCustomJs(item, oController) {` && |\n| &&
              `        try {` && |\n| &&
              `          const parts = item.split("'");` && |\n| &&

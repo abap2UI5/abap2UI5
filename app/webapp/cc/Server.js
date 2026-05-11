@@ -163,7 +163,7 @@ sap.ui.define(
 
           for (const t of _MSG_TYPES) oController.showMessage(t, params);
 
-          // Full view replacement → destroy & rebuild, nothing more to do.
+          // Full view replacement -> destroy & rebuild, nothing more to do.
           if (sView && sView.XML) {
             oController.ViewDestroy();
             await oController.displayView(sView.XML, response.OVIEWMODEL);
@@ -197,8 +197,8 @@ sap.ui.define(
       },
 
       // Executes a single custom-JS snippet from the backend.
-      // Format A:  "alert(123)"           → runs the expression
-      // Format B:  "eF('A','B','C')"      → calls oController.eF('A','B','C')
+      // Format A:  "alert(123)"           -> runs the expression
+      // Format B:  "eF('A','B','C')"      -> calls oController.eF('A','B','C')
       _runCustomJs(item, oController) {
         try {
           const parts = item.split("'");

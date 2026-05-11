@@ -117,7 +117,7 @@ sap.ui.define(
 
       _initLaunchpad() {
         const Container = sap.ui.require("sap/ushell/Container");
-        if (!Container) return; // not running inside the launchpad → nothing to do
+        if (!Container) return; // not running inside the launchpad -> nothing to do
 
         const launchpad = { Container };
         this._launchpad = launchpad;
