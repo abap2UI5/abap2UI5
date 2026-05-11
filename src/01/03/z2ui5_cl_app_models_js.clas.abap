@@ -24,6 +24,8 @@ CLASS z2ui5_cl_app_models_js IMPLEMENTATION.
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    return {` && |\n| &&
+             `      // Creates a read-only JSON model that exposes the current device info` && |\n| &&
+             `      // (phone / tablet / desktop, orientation, ...) to the views.` && |\n| &&
              `      createDeviceModel() {` && |\n| &&
              `        const oModel = new JSONModel(Device);` && |\n| &&
              `        oModel.setDefaultBindingMode("OneWay");` && |\n| &&
