@@ -101,7 +101,8 @@ sap.ui.define(
             break;
 
           case "MODEL": {
-            const data = oView && oView.getModel() && oView.getModel().getData();
+            const data =
+              oView && oView.getModel() && oView.getModel().getData();
             displayEditor(oEvent, toJson(data), "json");
             break;
           }
@@ -175,7 +176,8 @@ sap.ui.define(
 
           case "NEST1": {
             const nest = z2ui5.oViewNest;
-            const xml = nest && nest.mProperties && nest.mProperties.viewContent;
+            const xml =
+              nest && nest.mProperties && nest.mProperties.viewContent;
             const rendered = nest && nest._xContent && nest._xContent.outerHTML;
             displayEditor(
               oEvent,
@@ -197,7 +199,8 @@ sap.ui.define(
 
           case "NEST2": {
             const nest = z2ui5.oViewNest2;
-            const xml = nest && nest.mProperties && nest.mProperties.viewContent;
+            const xml =
+              nest && nest.mProperties && nest.mProperties.viewContent;
             const rendered = nest && nest._xContent && nest._xContent.outerHTML;
             displayEditor(
               oEvent,
@@ -222,7 +225,10 @@ sap.ui.define(
             const parent = oSource.getParent();
             const content = parent && parent.getContent && parent.getContent();
             const contentControl =
-              content && content[2] && content[2].getItems && content[2].getItems()[0];
+              content &&
+              content[2] &&
+              content[2].getItems &&
+              content[2].getItems()[0];
             if (!contentControl) break;
 
             const appName =
@@ -256,8 +262,9 @@ sap.ui.define(
         const modelData = oModel.getData();
         modelData.editor_visible = true;
         modelData.source_visible = false;
-        modelData.isTemplating =
-          !!(content && content.includes("xmlns:template"));
+        modelData.isTemplating = !!(
+          content && content.includes("xmlns:template")
+        );
         modelData.value = content;
         modelData.previousValue = content;
         modelData.xContent = xcontent;

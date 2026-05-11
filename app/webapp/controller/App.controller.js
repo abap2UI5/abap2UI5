@@ -539,8 +539,7 @@ sap.ui.define("z2ui5/Info", ["sap/ui/core/Control"], (Control) => {
           if (!deviceData) return;
 
           const { system, resize, os, browser } = deviceData;
-          const versionInfo =
-            z2ui5.oConfig && z2ui5.oConfig.UI5VersionInfo;
+          const versionInfo = z2ui5.oConfig && z2ui5.oConfig.UI5VersionInfo;
           const ui5Version = versionInfo ? versionInfo.version : "";
 
           const props = [
@@ -1486,7 +1485,10 @@ sap.ui.define("z2ui5/UITableExt", ["sap/ui/core/Control"], (Control) => {
         const display = displayFn(vValue);
 
         for (const oCol of columns) {
-          if (oCol.getFilterProperty && oCol.getFilterProperty() === sProperty) {
+          if (
+            oCol.getFilterProperty &&
+            oCol.getFilterProperty() === sProperty
+          ) {
             oCol.setFilterValue(display);
             oCol.setFiltered(!!display);
           }
