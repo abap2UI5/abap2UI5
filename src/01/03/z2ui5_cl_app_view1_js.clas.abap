@@ -359,7 +359,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const isRowField =` && |\n| &&
              `            field !== undefined && rowIdx !== "" && !isNaN(rowIdx);` && |\n| &&
              `          if (isRowField) {` && |\n| &&
-             `            // Table cell change → ship only the changed cell.` && |\n| &&
+             `            // Table cell change -> ship only the changed cell.` && |\n| &&
              `            if (!delta[attr] || !delta[attr].__delta) {` && |\n| &&
              `              delta[attr] = { __delta: {} };` && |\n| &&
              `            }` && |\n| &&
@@ -368,7 +368,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            const row = xx[attr] && xx[attr][+rowIdx];` && |\n| &&
              `            attrDelta[rowIdx][field] = row ? row[field] : undefined;` && |\n| &&
              `          } else {` && |\n| &&
-             `            // Scalar change → ship the whole attribute.` && |\n| &&
+             `            // Scalar change -> ship the whole attribute.` && |\n| &&
              `            delta[attr] = xx[attr];` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
@@ -629,8 +629,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `      _evSetSizeLimit(args) {` && |\n| &&
              `        // Two call shapes:` && |\n| &&
-             `        //   ["SET_SIZE_LIMIT", "<limit>", "<viewKey>"]   → set the limit` && |\n| &&
-             `        //   ["SET_SIZE_LIMIT", "<viewKey>"]              → reset the limit` && |\n| &&
+             `        //   ["SET_SIZE_LIMIT", "<limit>", "<viewKey>"]   -> set the limit` && |\n| &&
+             `        //   ["SET_SIZE_LIMIT", "<viewKey>"]              -> reset the limit` && |\n| &&
              `        const hasLimit = args[2] !== undefined && args[2] !== "";` && |\n| &&
              `        const viewKey = hasLimit ? args[2] : args[1];` && |\n| &&
              `        const limit = hasLimit ? Number(args[1]) : NaN;` && |\n| &&
@@ -817,7 +817,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        z2ui5.oBody = { VIEWNAME: "MAIN" };` && |\n| &&
              `` && |\n| &&
              `        // Decide which view's model holds the data we need to send back. The` && |\n| &&
-             `        // mapping is: main app controller → main view, popup controller →` && |\n| &&
+             `        // mapping is: main app controller -> main view, popup controller ->` && |\n| &&
              `        // popup view, etc.` && |\n| &&
              `        const oModel = this._pickModelForRoundtrip(args);` && |\n| &&
              |\n|.

@@ -444,10 +444,10 @@ sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {
           if (!control) continue;
 
           if (control.getDomRef()) {
-            // The target control is already rendered → restore immediately.
+            // The target control is already rendered -> restore immediately.
             this._restoreScrollPosition(item);
           } else {
-            // Not rendered yet → wait until it is, then restore once.
+            // Not rendered yet -> wait until it is, then restore once.
             const delegate = {
               onAfterRendering: () => {
                 control.removeEventDelegate(delegate);
@@ -1433,7 +1433,7 @@ sap.ui.define("z2ui5/UITableExt", ["sap/ui/core/Control"], (Control) => {
         fn();
         return;
       }
-      // Not rendered yet → run `fn` once the next render completes.
+      // Not rendered yet -> run `fn` once the next render completes.
       const delegate = {
         onAfterRendering: () => {
           oTable.removeEventDelegate(delegate);

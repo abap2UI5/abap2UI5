@@ -137,7 +137,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n| &&
              `      _initLaunchpad() {` && |\n| &&
              `        const Container = sap.ui.require("sap/ushell/Container");` && |\n| &&
-             `        if (!Container) return; // not running inside the launchpad → nothing to do` && |\n| &&
+             `        if (!Container) return; // not running inside the launchpad -> nothing to do` && |\n| &&
              `` && |\n| &&
              `        const launchpad = { Container };` && |\n| &&
              `        this._launchpad = launchpad;` && |\n| &&
