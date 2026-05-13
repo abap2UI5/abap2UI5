@@ -682,65 +682,65 @@ sap.ui.define(
         }
       },
 
-      _evSystemLogout(args) {                                                                                                                                                                                                                                  
-        const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";                                                                                                                                                                                              
-        const goToLogoutUrl = () => {                                                                                                                                                                                                                          
-          if (isValidRedirectURL(logoutUrl)) {                                                                                                                                                                                                                 
-            window.location.href = logoutUrl;                                                                                                                                                                                                                  
-          } else {                                                                                                                                                                                                                                             
-            MessageBox.error(                                                                                                                                                                                                                                  
-              "Invalid logout URL. Only relative URLs to the same domain are allowed.",                                                                                                                                                                        
-            );                                                                                                                                                                                                                                                 
-          }                                                                                                                                                                                                                                                    
-        };                                                                                                                                                                                                                                                     
-        // When abap2UI5 is hosted as a BSP application,                                                                                                                                                                                                       
-        // /sap/public/bc/icf/logoff alone does not terminate the stateful                                                                                                                                                                                     
-        // BSP context (sap-contextid stays bound to /sap/bc/bsp/sap/<app>/).                                                                                                                                                                                  
-        // Hit the BSP path with ?sap-sessioncmd=logoff first so the BSP                                                                                                                                                                                       
-        // runtime calls server->session->terminate( ), then go to the ICF                                                                                                                                                                                     
-        // logoff to also drop the SSO2 ticket.                                                                                                                                                                                                                
-        const redirectToLogoff = () => {                                                                                                                                                                                                                       
-          const path = window.location.pathname;                                                                                                                                                                                                               
-          if (path.indexOf("/sap/bc/bsp/") !== 0) {                                                                                                                                                                                                            
-            goToLogoutUrl();                                                                                                                                                                                                                                   
-            return;                                                                                                                                                                                                                                            
-          }                                                                                                                                                                                                                                                    
-          const sep = path.indexOf("?") >= 0 ? "&" : "?";                                                                                                                                                                                                      
-          const bspKill = path + sep + "sap-sessioncmd=logoff";                                                                                                                                                                                                
-          let done = false;                                                                                                                                                                                                                                    
-          const finish = () => {                                                                                                                                                                                                                               
-            if (done) return;                                                                                                                                                                                                                                  
-            done = true;                                                                                                                                                                                                                                       
-            goToLogoutUrl();                                                                                                                                                                                                                                   
-          };                                                                                                                                                                                                                                                   
-          try {                                                                                                                                                                                                                                                
-            const f = document.createElement("iframe");                                                                                                                                                                                                        
-            f.style.display = "none";                                                                                                                                                                                                                          
-            f.src = bspKill;                                                                                                                                                                                                                                   
-            f.addEventListener("load", finish);                                                                                                                                                                                                                
-            document.body.appendChild(f);                                                                                                                                                                                                                      
-          } catch (e) {                                                                                                                                                                                                                                        
-            finish();                                                                                                                                                                                                                                          
-            return;                                                                                                                                                                                                                                            
-          }                                                                                                                                                                                                                                                    
-          // Safety net: never wait longer than 1.5s for the BSP terminate.                                                                                                                                                                                    
-          setTimeout(finish, 1500);                                                                                                                                                                                                                            
-        };                                                                                                                                                                                                                                                     
-        try {                                                                                                                                                                                                                                                  
-          const launchpadLogout =                                                                                                                                                                                                                              
-            z2ui5.oLaunchpad &&                                                                                                                                                                                                                                
-            z2ui5.oLaunchpad.Container &&                                                                                                                                                                                                                      
-            z2ui5.oLaunchpad.Container.logout;                                                                                                                                                                                                                 
-          if (launchpadLogout) {                                                                                                                                                                                                                               
-            z2ui5.oLaunchpad.Container.logout();                                                                                                                                                                                                               
-          } else {                                                                                                                                                                                                                                             
-            redirectToLogoff();                                                                                                                                                                                                                                
-          }                                                                                                                                                                                                                                                    
-        } catch (e) {                                                                                                                                                                                                                                          
-          logError("SYSTEM_LOGOUT: ushell logout failed", e);                                                                                                                                                                                                  
-          redirectToLogoff();                                                                                                                                                                                                                                  
-        }                                                                                                                                                                                                                                                      
-      },     
+      _evSystemLogout(args) {
+        const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";
+        const goToLogoutUrl = () => {
+          if (isValidRedirectURL(logoutUrl)) {
+            window.location.href = logoutUrl;
+          } else {
+            MessageBox.error(
+              "Invalid logout URL. Only relative URLs to the same domain are allowed.",
+            );
+          }
+        };
+        // When abap2UI5 is hosted as a BSP application,
+        // /sap/public/bc/icf/logoff alone does not terminate the stateful
+        // BSP context (sap-contextid stays bound to /sap/bc/bsp/sap/<app>/).
+        // Hit the BSP path with ?sap-sessioncmd=logoff first so the BSP
+        // runtime calls server->session->terminate( ), then go to the ICF
+        // logoff to also drop the SSO2 ticket.
+        const redirectToLogoff = () => {
+          const path = window.location.pathname;
+          if (path.indexOf("/sap/bc/bsp/") !== 0) {
+            goToLogoutUrl();
+            return;
+          }
+          const sep = path.indexOf("?") >= 0 ? "&" : "?";
+          const bspKill = path + sep + "sap-sessioncmd=logoff";
+          let done = false;
+          const finish = () => {
+            if (done) return;
+            done = true;
+            goToLogoutUrl();
+          };
+          try {
+            const f = document.createElement("iframe");
+            f.style.display = "none";
+            f.src = bspKill;
+            f.addEventListener("load", finish);
+            document.body.appendChild(f);
+          } catch (e) {
+            finish();
+            return;
+          }
+          // Safety net: never wait longer than 1.5s for the BSP terminate.
+          setTimeout(finish, 1500);
+        };
+        try {
+          const launchpadLogout =
+            z2ui5.oLaunchpad &&
+            z2ui5.oLaunchpad.Container &&
+            z2ui5.oLaunchpad.Container.logout;
+          if (launchpadLogout) {
+            z2ui5.oLaunchpad.Container.logout();
+          } else {
+            redirectToLogoff();
+          }
+        } catch (e) {
+          logError("SYSTEM_LOGOUT: ushell logout failed", e);
+          redirectToLogoff();
+        }
+      },
 
       _evOpenNewTab(args) {
         if (!isValidRedirectURL(args[1])) {

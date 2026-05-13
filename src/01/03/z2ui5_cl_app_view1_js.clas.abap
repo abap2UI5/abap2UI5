@@ -706,7 +706,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `      _evSystemLogout(args) {` && |\n| &&
              `        const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";` && |\n| &&
-             `        const redirectToLogoff = () => {` && |\n| &&
+             `        const goToLogoutUrl = () => {` && |\n| &&
              `          if (isValidRedirectURL(logoutUrl)) {` && |\n| &&
              `            window.location.href = logoutUrl;` && |\n| &&
              `          } else {` && |\n| &&
@@ -714,6 +714,39 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `              "Invalid logout URL. Only relative URLs to the same domain are allowed.",` && |\n| &&
              `            );` && |\n| &&
              `          }` && |\n| &&
+             `        };` && |\n| &&
+             `        // When abap2UI5 is hosted as a BSP application,` && |\n| &&
+             `        // /sap/public/bc/icf/logoff alone does not terminate the stateful` && |\n| &&
+             `        // BSP context (sap-contextid stays bound to /sap/bc/bsp/sap/<app>/).` && |\n| &&
+             `        // Hit the BSP path with ?sap-sessioncmd=logoff first so the BSP` && |\n| &&
+             `        // runtime calls server->session->terminate( ), then go to the ICF` && |\n| &&
+             `        // logoff to also drop the SSO2 ticket.` && |\n| &&
+             `        const redirectToLogoff = () => {` && |\n| &&
+             `          const path = window.location.pathname;` && |\n| &&
+             `          if (path.indexOf("/sap/bc/bsp/") !== 0) {` && |\n| &&
+             `            goToLogoutUrl();` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
+             `          const sep = path.indexOf("?") >= 0 ? "&" : "?";` && |\n| &&
+             `          const bspKill = path + sep + "sap-sessioncmd=logoff";` && |\n| &&
+             `          let done = false;` && |\n| &&
+             `          const finish = () => {` && |\n| &&
+             `            if (done) return;` && |\n| &&
+             `            done = true;` && |\n| &&
+             `            goToLogoutUrl();` && |\n| &&
+             `          };` && |\n| &&
+             `          try {` && |\n| &&
+             `            const f = document.createElement("iframe");` && |\n| &&
+             `            f.style.display = "none";` && |\n| &&
+             `            f.src = bspKill;` && |\n| &&
+             `            f.addEventListener("load", finish);` && |\n| &&
+             `            document.body.appendChild(f);` && |\n| &&
+             `          } catch (e) {` && |\n| &&
+             `            finish();` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
+             `          // Safety net: never wait longer than 1.5s for the BSP terminate.` && |\n| &&
+             `          setTimeout(finish, 1500);` && |\n| &&
              `        };` && |\n| &&
              `        try {` && |\n| &&
              `          const launchpadLogout =` && |\n| &&
@@ -787,6 +820,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          logError(``Z2UI5: '${args[1]}' failed``, e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
+             |\n|.
+    result = result &&
              `` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `      // eB: trigger a backend roundtrip with arguments.` && |\n| &&
@@ -820,8 +855,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // mapping is: main app controller -> main view, popup controller ->` && |\n| &&
              `        // popup view, etc.` && |\n| &&
              `        const oModel = this._pickModelForRoundtrip(args);` && |\n| &&
-             |\n|.
-    result = result &&
              `` && |\n| &&
              `        runCallbacks(z2ui5.onBeforeRoundtrip);` && |\n| &&
              `` && |\n| &&
