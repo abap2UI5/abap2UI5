@@ -75,9 +75,6 @@ sap.ui.define(
         if (!sFront.T_EVENT_ARG || sFront.T_EVENT_ARG.length === 0) {
           delete sFront.T_EVENT_ARG;
         }
-        if (sFront.T_STARTUP_PARAMETERS === undefined) {
-          delete sFront.T_STARTUP_PARAMETERS;
-        }
         if (sFront.SEARCH === "") delete sFront.SEARCH;
         if (!oBody.XX) delete oBody.XX;
 

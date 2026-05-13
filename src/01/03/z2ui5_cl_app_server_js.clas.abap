@@ -95,9 +95,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        if (!sFront.T_EVENT_ARG || sFront.T_EVENT_ARG.length === 0) {` && |\n| &&
              `          delete sFront.T_EVENT_ARG;` && |\n| &&
              `        }` && |\n| &&
-             `        if (sFront.T_STARTUP_PARAMETERS === undefined) {` && |\n| &&
-             `          delete sFront.T_STARTUP_PARAMETERS;` && |\n| &&
-             `        }` && |\n| &&
              `        if (sFront.SEARCH === "") delete sFront.SEARCH;` && |\n| &&
              `        if (!oBody.XX) delete oBody.XX;` && |\n| &&
              `` && |\n| &&

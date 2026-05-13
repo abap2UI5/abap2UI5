@@ -189,10 +189,9 @@ INTERFACE z2ui5_if_core_types
 
   TYPES:
     BEGIN OF ty_s_config,
-      origin           TYPE string,
-      pathname         TYPE string,
-      search           TYPE string,
-      t_startup_params TYPE z2ui5_if_types=>ty_t_name_value,
+      origin   TYPE string,
+      pathname TYPE string,
+      search   TYPE string,
     END OF ty_s_config.
 
   TYPES:
