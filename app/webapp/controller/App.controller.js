@@ -1037,6 +1037,10 @@ sap.ui.define(
             type: "string",
             defaultValue: "",
           },
+          removedFileName: {
+            type: "string",
+            defaultValue: "",
+          },
           checkInit: {
             type: "boolean",
             defaultValue: false,
@@ -1044,6 +1048,10 @@ sap.ui.define(
         },
         events: {
           change: {
+            allowPreventDefault: true,
+            parameters: {},
+          },
+          remove: {
             allowPreventDefault: true,
             parameters: {},
           },
@@ -1080,6 +1088,13 @@ sap.ui.define(
         if (file) this._readFile(file);
       },
 
+      onItemRemoved(oEvent) {
+        const item = oEvent.getParameter("item");
+        const name = item && item.getFileName ? item.getFileName() : "";
+        this.setProperty("removedFileName", name);
+        this.fireRemove();
+      },
+
       renderer: { apiVersion: 2, render() {} },
       setControl() {
         const uploadSet =
@@ -1088,6 +1103,7 @@ sap.ui.define(
         this.setProperty("checkInit", true);
         try {
           uploadSet.attachAfterItemAdded(this.onItemAdded.bind(this));
+          uploadSet.attachAfterItemRemoved(this.onItemRemoved.bind(this));
         } catch (e) {
           _logError("UploadSetExt.setControl: setup failed", e);
         }

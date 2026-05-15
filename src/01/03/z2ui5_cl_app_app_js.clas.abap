@@ -1061,6 +1061,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            type: "string",` && |\n| &&
              `            defaultValue: "",` && |\n| &&
              `          },` && |\n| &&
+             `          removedFileName: {` && |\n| &&
+             `            type: "string",` && |\n| &&
+             `            defaultValue: "",` && |\n| &&
+             `          },` && |\n| &&
              `          checkInit: {` && |\n| &&
              `            type: "boolean",` && |\n| &&
              `            defaultValue: false,` && |\n| &&
@@ -1068,6 +1072,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        },` && |\n| &&
              `        events: {` && |\n| &&
              `          change: {` && |\n| &&
+             `            allowPreventDefault: true,` && |\n| &&
+             `            parameters: {},` && |\n| &&
+             `          },` && |\n| &&
+             `          remove: {` && |\n| &&
              `            allowPreventDefault: true,` && |\n| &&
              `            parameters: {},` && |\n| &&
              `          },` && |\n| &&
@@ -1104,6 +1112,13 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        if (file) this._readFile(file);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      onItemRemoved(oEvent) {` && |\n| &&
+             `        const item = oEvent.getParameter("item");` && |\n| &&
+             `        const name = item && item.getFileName ? item.getFileName() : "";` && |\n| &&
+             `        this.setProperty("removedFileName", name);` && |\n| &&
+             `        this.fireRemove();` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
              `      setControl() {` && |\n| &&
              `        const uploadSet =` && |\n| &&
@@ -1112,6 +1127,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        this.setProperty("checkInit", true);` && |\n| &&
              `        try {` && |\n| &&
              `          uploadSet.attachAfterItemAdded(this.onItemAdded.bind(this));` && |\n| &&
+             `          uploadSet.attachAfterItemRemoved(this.onItemRemoved.bind(this));` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          _logError("UploadSetExt.setControl: setup failed", e);` && |\n| &&
              `        }` && |\n| &&
