@@ -1222,6 +1222,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          const inputTokens = input.getTokens() || [];` && |\n| &&
              `          for (const [index, token] of inputTokens.entries()) {` && |\n| &&
              `            const rangeItem = aRangeData[index];` && |\n| &&
+             |\n|.
+    result = result &&
              `            if (!rangeItem) continue;` && |\n| &&
              `            const { TOKENLONGKEY, TOKENTEXT } = rangeItem;` && |\n| &&
              `            token.data("longKey", TOKENLONGKEY);` && |\n| &&
@@ -1309,8 +1311,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `        const videoWidth = video.videoWidth;` && |\n| &&
              `        const videoHeight = video.videoHeight;` && |\n| &&
-             |\n|.
-    result = result &&
              `        canvas.width = videoWidth;` && |\n| &&
              `        canvas.height = videoHeight;` && |\n| &&
              `` && |\n| &&
@@ -1624,6 +1624,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        (oTable) => this._applyFilters(oTable, this.aFilters),` && |\n| &&
              `        "UITableExt.setFilter failed",` && |\n| &&
              `      );` && |\n| &&
+             |\n|.
+    result = result &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    readSort() {` && |\n| &&
@@ -1711,8 +1713,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      if (existing) {` && |\n| &&
              `        existing.href = val;` && |\n| &&
              `        return;` && |\n| &&
-             |\n|.
-    result = result &&
              `      }` && |\n| &&
              `      const link = document.createElement("link");` && |\n| &&
              `      link.rel = "shortcut icon";` && |\n| &&
