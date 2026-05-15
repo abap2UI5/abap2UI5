@@ -20,6 +20,7 @@ CLASS ltcl_test_cc DEFINITION FINAL
     METHODS test_z2ui5_namespace     FOR TESTING RAISING cx_static_check.
     METHODS test_smartmultiinput_ext FOR TESTING RAISING cx_static_check.
     METHODS test_multiinput_ext      FOR TESTING RAISING cx_static_check.
+    METHODS test_uploadset_ext       FOR TESTING RAISING cx_static_check.
     METHODS test_uitableext          FOR TESTING RAISING cx_static_check.
     METHODS test_camera_selector     FOR TESTING RAISING cx_static_check.
     METHODS test_spreadsheet_export  FOR TESTING RAISING cx_static_check.
@@ -492,6 +493,35 @@ CLASS ltcl_test_cc IMPLEMENTATION.
 
     temp4 = xsdbool( lv_xml CS `myInput` ).
     cl_abap_unit_assert=>assert_true( temp4 ).
+
+  ENDMETHOD.
+
+  METHOD test_uploadset_ext.
+
+    DATA lo_view TYPE REF TO z2ui5_cl_xml_view.
+    DATA lo_cc TYPE REF TO z2ui5_cl_xml_view_cc.
+    DATA lo_result TYPE REF TO z2ui5_cl_xml_view.
+    DATA lv_xml TYPE string.
+    DATA temp_a TYPE xsdboolean.
+    DATA temp_b TYPE xsdboolean.
+    lo_view = z2ui5_cl_xml_view=>factory( )->page( `Test` ).
+
+    lo_cc = NEW #( view = lo_view ).
+
+    lo_result = lo_cc->uploadset_ext( uploadsetid = `myUploadSet`
+                                      filedata    = `{/data}`
+                                      filename    = `{/name}`
+                                      change      = `onUpload` ).
+
+    cl_abap_unit_assert=>assert_bound( lo_result ).
+
+    lv_xml = lo_result->stringify( ).
+
+    temp_a = xsdbool( lv_xml CS `UploadSetExt` ).
+    cl_abap_unit_assert=>assert_true( temp_a ).
+
+    temp_b = xsdbool( lv_xml CS `myUploadSet` ).
+    cl_abap_unit_assert=>assert_true( temp_b ).
 
   ENDMETHOD.
 

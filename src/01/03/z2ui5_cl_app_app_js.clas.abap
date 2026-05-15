@@ -1034,6 +1034,93 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `);` && |\n| &&
              `` && |\n| &&
              `sap.ui.define(` && |\n| &&
+             `  "z2ui5/UploadSetExt",` && |\n| &&
+             `  ["sap/ui/core/Control"],` && |\n| &&
+             `  (Control) => {` && |\n| &&
+             `    "use strict";` && |\n| &&
+             `` && |\n| &&
+             `    return Control.extend("z2ui5.UploadSetExt", {` && |\n| &&
+             `      metadata: {` && |\n| &&
+             `        properties: {` && |\n| &&
+             `          uploadSetId: {` && |\n| &&
+             `            type: "string",` && |\n| &&
+             `          },` && |\n| &&
+             `          fileData: {` && |\n| &&
+             `            type: "string",` && |\n| &&
+             `            defaultValue: "",` && |\n| &&
+             `          },` && |\n| &&
+             `          fileName: {` && |\n| &&
+             `            type: "string",` && |\n| &&
+             `            defaultValue: "",` && |\n| &&
+             `          },` && |\n| &&
+             `          mediaType: {` && |\n| &&
+             `            type: "string",` && |\n| &&
+             `            defaultValue: "",` && |\n| &&
+             `          },` && |\n| &&
+             `          fileSize: {` && |\n| &&
+             `            type: "string",` && |\n| &&
+             `            defaultValue: "",` && |\n| &&
+             `          },` && |\n| &&
+             `          checkInit: {` && |\n| &&
+             `            type: "boolean",` && |\n| &&
+             `            defaultValue: false,` && |\n| &&
+             `          },` && |\n| &&
+             `        },` && |\n| &&
+             `        events: {` && |\n| &&
+             `          change: {` && |\n| &&
+             `            allowPreventDefault: true,` && |\n| &&
+             `            parameters: {},` && |\n| &&
+             `          },` && |\n| &&
+             `        },` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      init() {` && |\n| &&
+             `        this._setControlBound = this.setControl.bind(this);` && |\n| &&
+             `        _registerCallback("onAfterRendering", this._setControlBound);` && |\n| &&
+             `      },` && |\n| &&
+             `      exit() {` && |\n| &&
+             `        _unregisterCallback("onAfterRendering", this._setControlBound);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _readFile(file) {` && |\n| &&
+             `        const reader = new FileReader();` && |\n| &&
+             `        reader.onload = () => {` && |\n| &&
+             `          if (this.isDestroyed && this.isDestroyed()) return;` && |\n| &&
+             `          this.setProperty("fileData", reader.result);` && |\n| &&
+             `          this.setProperty("fileName", file.name);` && |\n| &&
+             `          this.setProperty("mediaType", file.type);` && |\n| &&
+             `          this.setProperty("fileSize", String(file.size));` && |\n| &&
+             `          this.fireChange();` && |\n| &&
+             `        };` && |\n| &&
+             `        reader.onerror = () =>` && |\n| &&
+             `          _logError("UploadSetExt: FileReader failed", reader.error);` && |\n| &&
+             `        reader.readAsDataURL(file);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      onItemAdded(oEvent) {` && |\n| &&
+             `        const item = oEvent.getParameter("item");` && |\n| &&
+             `        const file =` && |\n| &&
+             `          item && item.getFileObject ? item.getFileObject() : null;` && |\n| &&
+             `        if (file) this._readFile(file);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
+             `      setControl() {` && |\n| &&
+             `        const uploadSet =` && |\n| &&
+             `          z2ui5.oView && z2ui5.oView.byId(this.getProperty("uploadSetId"));` && |\n| &&
+             `        if (!uploadSet || this.getProperty("checkInit")) return;` && |\n| &&
+             `        this.setProperty("checkInit", true);` && |\n| &&
+             `        try {` && |\n| &&
+             `          uploadSet.attachAfterItemAdded(this.onItemAdded.bind(this));` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          _logError("UploadSetExt.setControl: setup failed", e);` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `    });` && |\n| &&
+             `  },` && |\n| &&
+             `);` && |\n| &&
+             `` && |\n| &&
+             `sap.ui.define(` && |\n| &&
              `  "z2ui5/SmartMultiInputExt",` && |\n| &&
              `  ["sap/ui/core/Control"],` && |\n| &&
              `  (Control) => {` && |\n| &&

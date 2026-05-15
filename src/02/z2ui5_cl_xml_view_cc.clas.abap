@@ -21,6 +21,17 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION PUBLIC.
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS uploadset_ext
+      IMPORTING
+        uploadsetid   TYPE clike OPTIONAL
+        filedata      TYPE clike OPTIONAL
+        filename      TYPE clike OPTIONAL
+        mediatype     TYPE clike OPTIONAL
+        filesize      TYPE clike OPTIONAL
+        change        TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS uitableext
       IMPORTING
         tableid       TYPE clike OPTIONAL
@@ -541,6 +552,20 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                                          ( n = `change` v = change )
                                          ( n = `addedTokens` v = addedtokens )
                                          ( n = `removedTokens` v = removedtokens ) ) ).
+
+  ENDMETHOD.
+
+  METHOD uploadset_ext.
+
+    result = mo_view.
+    mo_view->_generic( name   = `UploadSetExt`
+                       ns     = `z2ui5`
+                       t_prop = VALUE #( ( n = `uploadSetId` v = uploadsetid )
+                                         ( n = `fileData`    v = filedata )
+                                         ( n = `fileName`    v = filename )
+                                         ( n = `mediaType`   v = mediatype )
+                                         ( n = `fileSize`    v = filesize )
+                                         ( n = `change`      v = change ) ) ).
 
   ENDMETHOD.
 
