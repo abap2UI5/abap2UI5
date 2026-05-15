@@ -23,14 +23,16 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION PUBLIC.
 
     METHODS uploadset_ext
       IMPORTING
-        uploadsetid   TYPE clike OPTIONAL
-        filedata      TYPE clike OPTIONAL
-        filename      TYPE clike OPTIONAL
-        mediatype     TYPE clike OPTIONAL
-        filesize      TYPE clike OPTIONAL
-        change        TYPE clike OPTIONAL
+        uploadsetid     TYPE clike OPTIONAL
+        filedata        TYPE clike OPTIONAL
+        filename        TYPE clike OPTIONAL
+        mediatype       TYPE clike OPTIONAL
+        filesize        TYPE clike OPTIONAL
+        removedfilename TYPE clike OPTIONAL
+        change          TYPE clike OPTIONAL
+        remove          TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS uitableext
       IMPORTING
@@ -560,12 +562,14 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     result = mo_view.
     mo_view->_generic( name   = `UploadSetExt`
                        ns     = `z2ui5`
-                       t_prop = VALUE #( ( n = `uploadSetId` v = uploadsetid )
-                                         ( n = `fileData`    v = filedata )
-                                         ( n = `fileName`    v = filename )
-                                         ( n = `mediaType`   v = mediatype )
-                                         ( n = `fileSize`    v = filesize )
-                                         ( n = `change`      v = change ) ) ).
+                       t_prop = VALUE #( ( n = `uploadSetId`     v = uploadsetid )
+                                         ( n = `fileData`        v = filedata )
+                                         ( n = `fileName`        v = filename )
+                                         ( n = `mediaType`       v = mediatype )
+                                         ( n = `fileSize`        v = filesize )
+                                         ( n = `removedFileName` v = removedfilename )
+                                         ( n = `change`          v = change )
+                                         ( n = `remove`          v = remove ) ) ).
 
   ENDMETHOD.
 
