@@ -1010,6 +1010,93 @@ sap.ui.define(
 );
 
 sap.ui.define(
+  "z2ui5/UploadSetExt",
+  ["sap/ui/core/Control"],
+  (Control) => {
+    "use strict";
+
+    return Control.extend("z2ui5.UploadSetExt", {
+      metadata: {
+        properties: {
+          uploadSetId: {
+            type: "string",
+          },
+          fileData: {
+            type: "string",
+            defaultValue: "",
+          },
+          fileName: {
+            type: "string",
+            defaultValue: "",
+          },
+          mediaType: {
+            type: "string",
+            defaultValue: "",
+          },
+          fileSize: {
+            type: "string",
+            defaultValue: "",
+          },
+          checkInit: {
+            type: "boolean",
+            defaultValue: false,
+          },
+        },
+        events: {
+          change: {
+            allowPreventDefault: true,
+            parameters: {},
+          },
+        },
+      },
+
+      init() {
+        this._setControlBound = this.setControl.bind(this);
+        _registerCallback("onAfterRendering", this._setControlBound);
+      },
+      exit() {
+        _unregisterCallback("onAfterRendering", this._setControlBound);
+      },
+
+      _readFile(file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (this.isDestroyed && this.isDestroyed()) return;
+          this.setProperty("fileData", reader.result);
+          this.setProperty("fileName", file.name);
+          this.setProperty("mediaType", file.type);
+          this.setProperty("fileSize", String(file.size));
+          this.fireChange();
+        };
+        reader.onerror = () =>
+          _logError("UploadSetExt: FileReader failed", reader.error);
+        reader.readAsDataURL(file);
+      },
+
+      onItemAdded(oEvent) {
+        const item = oEvent.getParameter("item");
+        const file =
+          item && item.getFileObject ? item.getFileObject() : null;
+        if (file) this._readFile(file);
+      },
+
+      renderer: { apiVersion: 2, render() {} },
+      setControl() {
+        const uploadSet =
+          z2ui5.oView && z2ui5.oView.byId(this.getProperty("uploadSetId"));
+        if (!uploadSet || this.getProperty("checkInit")) return;
+        this.setProperty("checkInit", true);
+        try {
+          uploadSet.attachAfterItemAdded(this.onItemAdded.bind(this));
+        } catch (e) {
+          _logError("UploadSetExt.setControl: setup failed", e);
+        }
+      },
+    });
+  },
+);
+
+sap.ui.define(
   "z2ui5/SmartMultiInputExt",
   ["sap/ui/core/Control"],
   (Control) => {
