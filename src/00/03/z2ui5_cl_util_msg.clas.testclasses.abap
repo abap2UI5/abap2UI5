@@ -16,6 +16,7 @@ CLASS ltcl_unit_test_msg_mapper DEFINITION FINAL
     METHODS test_rap_other      FOR TESTING RAISING cx_static_check.
     METHODS test_fallback       FOR TESTING RAISING cx_static_check.
     METHODS test_fallback_skip  FOR TESTING RAISING cx_static_check.
+    METHODS test_rap_element    FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -283,6 +284,63 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 1 act = lines( lt_result ) ).
     cl_abap_unit_assert=>assert_char_cp( exp = `*first*`     act = lt_result[ 1 ]-text ).
     cl_abap_unit_assert=>assert_char_np( exp = `*second*`    act = lt_result[ 1 ]-text ).
+
+  ENDMETHOD.
+
+  METHOD test_rap_element.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    " Build a RAP-shaped failed row carrying both %FAIL-CAUSE and %ELEMENT-CUSTOMERID.
+    DATA lo_fail_struct TYPE REF TO cl_abap_structdescr.
+    DATA lo_row_struct  TYPE REF TO cl_abap_structdescr.
+    DATA lo_row_tab     TYPE REF TO cl_abap_tabledescr.
+    DATA lo_top_struct  TYPE REF TO cl_abap_structdescr.
+    DATA lr_data        TYPE REF TO data.
+
+    TRY.
+        lo_fail_struct = cl_abap_structdescr=>create(
+          VALUE #( ( name = `CAUSE` type = cl_abap_elemdescr=>get_i( ) ) ) ).
+
+        lo_row_struct = cl_abap_structdescr=>create(
+          VALUE #(
+            ( name = `%FAIL`              type = lo_fail_struct )
+            ( name = `%ELEMENT-CUSTOMERID` type = cl_abap_elemdescr=>get_c( p_length = 1 ) ) ) ).
+
+        lo_row_tab = cl_abap_tabledescr=>create( lo_row_struct ).
+
+        lo_top_struct = cl_abap_structdescr=>create(
+          VALUE #( ( name = `TRAVEL` type = lo_row_tab ) ) ).
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
+
+    CREATE DATA lr_data TYPE HANDLE lo_top_struct.
+    ASSIGN lr_data->* TO FIELD-SYMBOL(<failed>).
+
+    ASSIGN COMPONENT `TRAVEL` OF STRUCTURE <failed> TO FIELD-SYMBOL(<tab>).
+    FIELD-SYMBOLS <ftab> TYPE STANDARD TABLE.
+    ASSIGN <tab> TO <ftab>.
+
+    DATA lr_row TYPE REF TO data.
+    CREATE DATA lr_row TYPE HANDLE lo_row_struct.
+    ASSIGN lr_row->* TO FIELD-SYMBOL(<row>).
+
+    ASSIGN COMPONENT `%FAIL` OF STRUCTURE <row> TO FIELD-SYMBOL(<fail>).
+    ASSIGN COMPONENT `CAUSE` OF STRUCTURE <fail> TO FIELD-SYMBOL(<cause>).
+    <cause> = 1.
+
+    ASSIGN COMPONENT `%ELEMENT-CUSTOMERID` OF STRUCTURE <row> TO FIELD-SYMBOL(<el>).
+    <el> = `X`.
+
+    INSERT <row> INTO TABLE <ftab>.
+
+    DATA(lt_result) = z2ui5_cl_util_msg=>msg_get( <failed> ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1            act = lines( lt_result ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `CUSTOMERID` act = lt_result[ 1 ]-element ).
 
   ENDMETHOD.
 

@@ -78,6 +78,7 @@ CLASS z2ui5_cl_util DEFINITION
         v3         TYPE string,
         v4         TYPE string,
         timestampl TYPE timestampl,
+        element    TYPE string,
       END OF ty_s_msg,
       ty_t_msg TYPE STANDARD TABLE OF ty_s_msg WITH EMPTY KEY.
 

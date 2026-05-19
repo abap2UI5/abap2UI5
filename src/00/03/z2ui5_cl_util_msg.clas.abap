@@ -56,6 +56,12 @@ CLASS z2ui5_cl_util_msg DEFINITION PUBLIC
       RETURNING
         VALUE(result) TYPE z2ui5_cl_util=>ty_t_msg.
 
+    CLASS-METHODS msg_get_rap_element
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS msg_get_rap_fail_text
       IMPORTING
         cause         TYPE i
@@ -286,12 +292,20 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
     DATA lv_is_row TYPE abap_bool.
 
+    DATA(lv_element) = msg_get_rap_element( val ).
+
     ASSIGN COMPONENT `%MSG` OF STRUCTURE val TO FIELD-SYMBOL(<msg>).
     IF sy-subrc = 0.
       lv_is_row = abap_true.
       IF <msg> IS NOT INITIAL.
         TRY.
-            INSERT LINES OF msg_get( <msg> ) INTO TABLE result.
+            DATA(lt_one) = msg_get( <msg> ).
+            IF lv_element IS NOT INITIAL.
+              LOOP AT lt_one ASSIGNING FIELD-SYMBOL(<m>).
+                <m>-element = lv_element.
+              ENDLOOP.
+            ENDIF.
+            INSERT LINES OF lt_one INTO TABLE result.
           CATCH cx_root ##NO_HANDLER.
         ENDTRY.
       ENDIF.
@@ -308,7 +322,7 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
         IF entity_name IS NOT INITIAL.
           lv_text = |{ entity_name }: { lv_text }|.
         ENDIF.
-        INSERT VALUE #( type = `E` text = lv_text ) INTO TABLE result.
+        INSERT VALUE #( type = `E` text = lv_text element = lv_element ) INTO TABLE result.
       ENDIF.
     ENDIF.
 
@@ -338,6 +352,26 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
                                        entity_name = ls_attri->name ) INTO TABLE result.
         ENDIF.
       ENDLOOP.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD msg_get_rap_element.
+
+    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_any( val ).
+    LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
+      CHECK strlen( ls_attri->name ) > 9.
+      CHECK ls_attri->name(9) = `%ELEMENT-`.
+      ASSIGN COMPONENT ls_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<flag>).
+      CHECK sy-subrc = 0.
+      CHECK <flag> IS NOT INITIAL.
+
+      DATA(lv_field) = ls_attri->name+9.
+      IF result IS INITIAL.
+        result = lv_field.
+      ELSE.
+        result = |{ result }, { lv_field }|.
+      ENDIF.
     ENDLOOP.
 
   ENDMETHOD.
