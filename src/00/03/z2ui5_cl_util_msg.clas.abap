@@ -37,15 +37,16 @@ CLASS z2ui5_cl_util_msg DEFINITION PUBLIC
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    CLASS-METHODS msg_get_rap_reported
+    CLASS-METHODS check_is_rap_struct
       IMPORTING
         val           TYPE any
       RETURNING
-        VALUE(result) TYPE z2ui5_cl_util=>ty_t_msg.
+        VALUE(result) TYPE abap_bool.
 
-    CLASS-METHODS msg_get_rap_failed
+    CLASS-METHODS msg_get_rap
       IMPORTING
         val           TYPE any
+        entity_name   TYPE string OPTIONAL
       RETURNING
         VALUE(result) TYPE z2ui5_cl_util=>ty_t_msg.
 
@@ -85,6 +86,11 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
       WHEN cl_abap_datadescr=>typekind_struct1 OR cl_abap_datadescr=>typekind_struct2.
 
         IF val IS INITIAL.
+          RETURN.
+        ENDIF.
+
+        IF check_is_rap_struct( val ) = abap_true.
+          result = msg_get_rap( val ).
           RETURN.
         ENDIF.
 
@@ -213,46 +219,46 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
   METHOD msg_get_by_rap.
 
-    result = msg_get_rap_reported( reported ).
-    INSERT LINES OF msg_get_rap_failed( failed ) INTO TABLE result.
+    result = msg_get_rap( reported ).
+    INSERT LINES OF msg_get_rap( failed ) INTO TABLE result.
     " mapped carries generated keys only - no messages
 
   ENDMETHOD.
 
-  METHOD msg_get_rap_reported.
-
-    DATA(lv_kind) = z2ui5_cl_util=>rtti_get_type_kind( val ).
-    IF lv_kind <> cl_abap_datadescr=>typekind_struct1
-       AND lv_kind <> cl_abap_datadescr=>typekind_struct2.
-      RETURN.
-    ENDIF.
+  METHOD check_is_rap_struct.
 
     DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_any( val ).
-    LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
 
+    LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
+      IF ls_attri->name = `%MSG` OR ls_attri->name = `%FAIL`.
+        result = abap_true.
+        RETURN.
+      ENDIF.
+    ENDLOOP.
+
+    LOOP AT lt_attri REFERENCE INTO ls_attri.
       ASSIGN COMPONENT ls_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<tab>).
       CHECK sy-subrc = 0.
       CHECK z2ui5_cl_util=>rtti_get_type_kind( <tab> ) = cl_abap_datadescr=>typekind_table.
 
-      FIELD-SYMBOLS <ftab> TYPE ANY TABLE.
-      ASSIGN <tab> TO <ftab>.
-
-      LOOP AT <ftab> ASSIGNING FIELD-SYMBOL(<row>).
-        ASSIGN COMPONENT `%MSG` OF STRUCTURE <row> TO FIELD-SYMBOL(<msg>).
-        IF sy-subrc <> 0 OR <msg> IS INITIAL.
-          CONTINUE.
-        ENDIF.
-
-        TRY.
-            INSERT LINES OF msg_get( <msg> ) INTO TABLE result.
-          CATCH cx_root ##NO_HANDLER.
-        ENDTRY.
-      ENDLOOP.
+      TRY.
+          DATA(lo_tab) = CAST cl_abap_tabledescr( cl_abap_typedescr=>describe_by_data( <tab> ) ).
+          DATA(lo_line) = lo_tab->get_table_line_type( ).
+          CHECK lo_line->kind = cl_abap_typedescr=>kind_struct.
+          DATA(lt_comps) = CAST cl_abap_structdescr( lo_line )->get_components( ).
+          LOOP AT lt_comps REFERENCE INTO DATA(ls_comp).
+            IF ls_comp->name = `%MSG` OR ls_comp->name = `%FAIL`.
+              result = abap_true.
+              RETURN.
+            ENDIF.
+          ENDLOOP.
+        CATCH cx_root ##NO_HANDLER.
+      ENDTRY.
     ENDLOOP.
 
   ENDMETHOD.
 
-  METHOD msg_get_rap_failed.
+  METHOD msg_get_rap.
 
     DATA(lv_kind) = z2ui5_cl_util=>rtti_get_type_kind( val ).
     IF lv_kind <> cl_abap_datadescr=>typekind_struct1
@@ -260,9 +266,40 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+    DATA lv_is_row TYPE abap_bool.
+
+    ASSIGN COMPONENT `%MSG` OF STRUCTURE val TO FIELD-SYMBOL(<msg>).
+    IF sy-subrc = 0.
+      lv_is_row = abap_true.
+      IF <msg> IS NOT INITIAL.
+        TRY.
+            INSERT LINES OF msg_get( <msg> ) INTO TABLE result.
+          CATCH cx_root ##NO_HANDLER.
+        ENDTRY.
+      ENDIF.
+    ENDIF.
+
+    ASSIGN COMPONENT `%FAIL` OF STRUCTURE val TO FIELD-SYMBOL(<fail>).
+    IF sy-subrc = 0.
+      lv_is_row = abap_true.
+      ASSIGN COMPONENT `CAUSE` OF STRUCTURE <fail> TO FIELD-SYMBOL(<cause>).
+      IF sy-subrc = 0.
+        DATA lv_cause TYPE i.
+        lv_cause = <cause>.
+        DATA(lv_text) = msg_get_rap_fail_text( lv_cause ).
+        IF entity_name IS NOT INITIAL.
+          lv_text = |{ entity_name }: { lv_text }|.
+        ENDIF.
+        INSERT VALUE #( type = `E` text = lv_text ) INTO TABLE result.
+      ENDIF.
+    ENDIF.
+
+    IF lv_is_row = abap_true.
+      RETURN.
+    ENDIF.
+
     DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_any( val ).
     LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
-
       ASSIGN COMPONENT ls_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<tab>).
       CHECK sy-subrc = 0.
       CHECK z2ui5_cl_util=>rtti_get_type_kind( <tab> ) = cl_abap_datadescr=>typekind_table.
@@ -271,19 +308,8 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
       ASSIGN <tab> TO <ftab>.
 
       LOOP AT <ftab> ASSIGNING FIELD-SYMBOL(<row>).
-        ASSIGN COMPONENT `%FAIL` OF STRUCTURE <row> TO FIELD-SYMBOL(<fail>).
-        CHECK sy-subrc = 0.
-
-        ASSIGN COMPONENT `CAUSE` OF STRUCTURE <fail> TO FIELD-SYMBOL(<cause>).
-        CHECK sy-subrc = 0.
-
-        DATA lv_cause TYPE i.
-        lv_cause = <cause>.
-
-        INSERT VALUE #(
-          type = `E`
-          text = |{ ls_attri->name }: { msg_get_rap_fail_text( lv_cause ) }|
-        ) INTO TABLE result.
+        INSERT LINES OF msg_get_rap( val         = <row>
+                                     entity_name = ls_attri->name ) INTO TABLE result.
       ENDLOOP.
     ENDLOOP.
 
