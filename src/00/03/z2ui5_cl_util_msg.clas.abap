@@ -5,6 +5,7 @@ CLASS z2ui5_cl_util_msg DEFINITION PUBLIC
     CLASS-METHODS msg_get_text
       IMPORTING
         val           TYPE any
+        val2          TYPE any OPTIONAL
       RETURNING
         VALUE(result) TYPE string.
 
@@ -19,6 +20,7 @@ CLASS z2ui5_cl_util_msg DEFINITION PUBLIC
     CLASS-METHODS msg_get
       IMPORTING
         val           TYPE any
+        val2          TYPE any OPTIONAL
       RETURNING
         VALUE(result) TYPE z2ui5_cl_util=>ty_t_msg.
 
@@ -29,10 +31,17 @@ CLASS z2ui5_cl_util_msg DEFINITION PUBLIC
     CLASS-METHODS msg_get_collect
       IMPORTING
         val           TYPE any
+        val2          TYPE any OPTIONAL
       RETURNING
         VALUE(result) TYPE string.
 
   PROTECTED SECTION.
+
+    CLASS-METHODS msg_get_internal
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE z2ui5_cl_util=>ty_t_msg.
 
     CLASS-METHODS check_is_rap_struct
       IMPORTING
@@ -62,7 +71,7 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
   METHOD msg_get_text.
 
-    DATA(lt_msg) = msg_get( val ).
+    DATA(lt_msg) = msg_get( val = val val2 = val2 ).
     IF lt_msg IS NOT INITIAL.
       result = lt_msg[ 1 ]-text.
     ENDIF.
@@ -71,6 +80,15 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
   METHOD msg_get.
 
+    result = msg_get_internal( val ).
+    IF result IS INITIAL AND val2 IS NOT INITIAL.
+      result = msg_get_internal( val2 ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD msg_get_internal.
+
     DATA(lv_kind) = z2ui5_cl_util=>rtti_get_type_kind( val ).
     CASE lv_kind.
 
@@ -78,7 +96,7 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
         FIELD-SYMBOLS <tab> TYPE ANY TABLE.
         ASSIGN val TO <tab>.
         LOOP AT <tab> ASSIGNING FIELD-SYMBOL(<row>).
-          DATA(lt_tab) = msg_get( <row> ).
+          DATA(lt_tab) = msg_get_internal( <row> ).
           INSERT LINES OF lt_tab INTO TABLE result.
         ENDLOOP.
 
@@ -100,7 +118,7 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
           ASSIGN COMPONENT ls_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<comp>).
 
           IF ls_attri->name = `ITEM`.
-            lt_tab = msg_get( <comp> ).
+            lt_tab = msg_get_internal( <comp> ).
             INSERT LINES OF lt_tab INTO TABLE result.
             RETURN.
           ELSE.
@@ -143,7 +161,7 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
                   RECEIVING
                     item_table = <tab2>.
 
-                DATA(lt_tab2) = msg_get( <tab2> ).
+                DATA(lt_tab2) = msg_get_internal( <tab2> ).
                 INSERT LINES OF lt_tab2 INTO TABLE result.
 
               CATCH cx_root.
@@ -157,7 +175,7 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
                       RECEIVING
                         rt_bapiret = <tab2>.
 
-                    lt_tab2 = msg_get( <tab2> ).
+                    lt_tab2 = msg_get_internal( <tab2> ).
                     INSERT LINES OF lt_tab2 INTO TABLE result.
 
                   CATCH cx_root INTO DATA(lx2).
@@ -219,7 +237,7 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
   METHOD msg_get_collect.
 
     result = concat_lines_of(
-      table = VALUE string_table( FOR <r> IN msg_get( val ) ( |- { <r>-text }| ) )
+      table = VALUE string_table( FOR <r> IN msg_get( val = val val2 = val2 ) ( |- { <r>-text }| ) )
       sep   = cl_abap_char_utilities=>newline ).
 
   ENDMETHOD.

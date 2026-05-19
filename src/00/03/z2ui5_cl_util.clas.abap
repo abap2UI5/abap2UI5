@@ -111,6 +111,7 @@ CLASS z2ui5_cl_util DEFINITION
     CLASS-METHODS msg_get_t
       IMPORTING
         VALUE(val)    TYPE any
+        VALUE(val2)   TYPE any OPTIONAL
       RETURNING
         VALUE(result) TYPE ty_t_msg.
 
@@ -123,12 +124,14 @@ CLASS z2ui5_cl_util DEFINITION
     CLASS-METHODS msg_get
       IMPORTING
         VALUE(val)    TYPE any
+        VALUE(val2)   TYPE any OPTIONAL
       RETURNING
         VALUE(result) TYPE ty_s_msg.
 
     CLASS-METHODS msg_get_collect
       IMPORTING
         VALUE(val)    TYPE any
+        VALUE(val2)   TYPE any OPTIONAL
       RETURNING
         VALUE(result) TYPE string.
 
@@ -1774,7 +1777,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD msg_get_t.
 
-    result = z2ui5_cl_util_msg=>msg_get( val ).
+    result = z2ui5_cl_util_msg=>msg_get( val = val val2 = val2 ).
 
   ENDMETHOD.
 
@@ -1816,7 +1819,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD msg_get.
 
-    DATA(lt_msg) = msg_get_t( val ).
+    DATA(lt_msg) = msg_get_t( val = val val2 = val2 ).
     result = lt_msg[ 1 ].
 
   ENDMETHOD.
@@ -1824,7 +1827,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD msg_get_collect.
 
-    result = z2ui5_cl_util_msg=>msg_get_collect( val ).
+    result = z2ui5_cl_util_msg=>msg_get_collect( val = val val2 = val2 ).
 
   ENDMETHOD.
 

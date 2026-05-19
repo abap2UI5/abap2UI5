@@ -14,6 +14,8 @@ CLASS ltcl_unit_test_msg_mapper DEFINITION FINAL
     METHODS test_collect        FOR TESTING RAISING cx_static_check.
     METHODS test_collect_empty  FOR TESTING RAISING cx_static_check.
     METHODS test_rap_other      FOR TESTING RAISING cx_static_check.
+    METHODS test_fallback       FOR TESTING RAISING cx_static_check.
+    METHODS test_fallback_skip  FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -253,6 +255,34 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
     DATA(lt_result) = z2ui5_cl_util_msg=>msg_get( <reported> ).
 
     cl_abap_unit_assert=>assert_not_initial( lt_result ).
+
+  ENDMETHOD.
+
+  METHOD test_fallback.
+
+    " val empty, val2 has content -> result comes from val2
+    DATA lt_empty TYPE bapirettab.
+    DATA(lt_full) = VALUE bapirettab(
+      ( type = `E` id = `MSG` number = `001` message = `fallback hit` ) ).
+
+    DATA(lt_result) = z2ui5_cl_util_msg=>msg_get( val = lt_empty val2 = lt_full ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1 act = lines( lt_result ) ).
+    cl_abap_unit_assert=>assert_char_cp( exp = `*fallback hit*` act = lt_result[ 1 ]-text ).
+
+  ENDMETHOD.
+
+  METHOD test_fallback_skip.
+
+    " val has content -> val2 is ignored
+    DATA(lt_first)  = VALUE bapirettab( ( type = `E` id = `A` number = `001` message = `first` ) ).
+    DATA(lt_second) = VALUE bapirettab( ( type = `E` id = `B` number = `001` message = `second` ) ).
+
+    DATA(lt_result) = z2ui5_cl_util_msg=>msg_get( val = lt_first val2 = lt_second ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1 act = lines( lt_result ) ).
+    cl_abap_unit_assert=>assert_char_cp( exp = `*first*`     act = lt_result[ 1 ]-text ).
+    cl_abap_unit_assert=>assert_char_np( exp = `*second*`    act = lt_result[ 1 ]-text ).
 
   ENDMETHOD.
 
