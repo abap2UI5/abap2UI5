@@ -235,6 +235,12 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    CLASS-METHODS filter_get_multi_by_sql_where
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE ty_t_filter_multi.
+
     CLASS-METHODS filter_get_sql_by_sql_string
       IMPORTING
         val           TYPE clike
@@ -637,6 +643,33 @@ CLASS z2ui5_cl_util DEFINITION
       END OF ty_s_bool_cache.
 
     CLASS-DATA mt_bool_cache TYPE HASHED TABLE OF ty_s_bool_cache WITH UNIQUE KEY absolute_name.
+
+    CLASS-METHODS filter_get_sql_cond_by_range
+      IMPORTING
+        fieldname     TYPE clike
+        range         TYPE ty_s_range
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS filter_get_range_by_sql_cond
+      IMPORTING
+        val       TYPE clike
+      EXPORTING
+        fieldname TYPE string
+        range     TYPE ty_s_range.
+
+    CLASS-METHODS filter_sql_split_top_level
+      IMPORTING
+        val           TYPE clike
+        sep           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string_table.
+
+    CLASS-METHODS filter_sql_strip_quotes
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
 
 ENDCLASS.
 
@@ -1335,12 +1368,23 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   METHOD filter_get_sql_by_sql_string.
 
     DATA(lv_sql) = CONV string( val ).
-    REPLACE ALL OCCURRENCES OF ` ` IN lv_sql WITH ``.
-    lv_sql = to_upper( lv_sql ).
-    SPLIT lv_sql AT `SELECTFROM` INTO DATA(lv_dummy) DATA(lv_tab).
+
+    DATA(lv_squished) = lv_sql.
+    REPLACE ALL OCCURRENCES OF ` ` IN lv_squished WITH ``.
+    lv_squished = to_upper( lv_squished ).
+    SPLIT lv_squished AT `SELECTFROM` INTO DATA(lv_dummy) DATA(lv_tab).
     SPLIT lv_tab AT `FIELDS` INTO lv_tab lv_dummy.
+    SPLIT lv_tab AT `WHERE` INTO lv_tab lv_dummy.
 
     result-tabname = lv_tab.
+
+    DATA(lv_upper) = to_upper( lv_sql ).
+    IF lv_upper CS ` WHERE `.
+      DATA(lv_pos) = sy-fdpos + 7.
+      result-where = c_trim( substring( val = lv_sql
+                                        off = lv_pos ) ).
+      result-t_filter = filter_get_multi_by_sql_where( result-where ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -1719,54 +1763,349 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD filter_get_sql_where.
 
+    LOOP AT val INTO DATA(ls_filter).
 
-    IF context_check_abap_cloud( ).
-
-
-    ELSE.
-
-      TYPES: BEGIN OF ty_rscedst,
-               fnam   TYPE c LENGTH 30, " Field Name
-               sign   TYPE c LENGTH 1,  " Selection criteria: SIGN
-               option TYPE c LENGTH 2,  " Selection criteria: OPTION
-               low    TYPE c LENGTH 45, " From value
-               high   TYPE c LENGTH 45, " To value
-             END OF ty_rscedst.
-
-      DATA lt_range TYPE STANDARD TABLE OF ty_rscedst.
-
-      LOOP AT val INTO DATA(ls_filter).
-        LOOP AT ls_filter-t_range INTO DATA(ls_range).
-
-          INSERT VALUE #(
-              fnam = ls_filter-name
-              sign = ls_range-sign
-              option = ls_range-option
-              low = ls_range-low
-              high = ls_range-high
-           ) INTO TABLE lt_range.
-
-        ENDLOOP.
-      ENDLOOP.
-
-      DATA(lv_fm) = `RSDS_RANGE_TO_WHERE`.
-      CALL FUNCTION lv_fm
-        EXPORTING
-          i_t_range      = lt_range
-*         i_th_range     =
-*         i_r_renderer   =
-        IMPORTING
-          e_where        = result
-*         e_t_where      = lt_where
-        EXCEPTIONS
-          internal_error = 1
-          OTHERS         = 2.
-      IF sy-subrc <> 0.
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error
-          EXPORTING
-            val = z2ui5_cl_util=>context_get_sy( ).
+      IF ls_filter-t_range IS INITIAL.
+        CONTINUE.
       ENDIF.
 
+      DATA(lv_field_where) = ``.
+      LOOP AT ls_filter-t_range INTO DATA(ls_range).
+        DATA(lv_cond) = filter_get_sql_cond_by_range( fieldname = ls_filter-name
+                                                      range     = ls_range ).
+        IF lv_cond IS INITIAL.
+          CONTINUE.
+        ENDIF.
+        IF lv_field_where IS INITIAL.
+          lv_field_where = lv_cond.
+        ELSE.
+          lv_field_where = |{ lv_field_where } OR { lv_cond }|.
+        ENDIF.
+      ENDLOOP.
+
+      IF lv_field_where IS INITIAL.
+        CONTINUE.
+      ENDIF.
+
+      IF result IS INITIAL.
+        result = |( { lv_field_where } )|.
+      ELSE.
+        result = |{ result } AND ( { lv_field_where } )|.
+      ENDIF.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD filter_get_sql_cond_by_range.
+
+    DATA(lv_low) = replace( val  = range-low
+                            sub  = `'`
+                            with = `''`
+                            occ  = 0 ).
+    DATA(lv_high) = replace( val  = range-high
+                             sub  = `'`
+                             with = `''`
+                             occ  = 0 ).
+    DATA(lv_option) = range-option.
+
+    IF range-sign = `E`.
+      CASE lv_option.
+        WHEN `EQ`. lv_option = `NE`.
+        WHEN `NE`. lv_option = `EQ`.
+        WHEN `LT`. lv_option = `GE`.
+        WHEN `LE`. lv_option = `GT`.
+        WHEN `GT`. lv_option = `LE`.
+        WHEN `GE`. lv_option = `LT`.
+        WHEN `CP`. lv_option = `NP`.
+        WHEN `NP`. lv_option = `CP`.
+        WHEN `BT`. lv_option = `NB`.
+        WHEN `NB`. lv_option = `BT`.
+      ENDCASE.
+    ENDIF.
+
+    DATA(lv_like) = ``.
+    CASE lv_option.
+      WHEN `EQ`.
+        result = |{ fieldname } = '{ lv_low }'|.
+      WHEN `NE`.
+        result = |{ fieldname } <> '{ lv_low }'|.
+      WHEN `LT`.
+        result = |{ fieldname } < '{ lv_low }'|.
+      WHEN `LE`.
+        result = |{ fieldname } <= '{ lv_low }'|.
+      WHEN `GT`.
+        result = |{ fieldname } > '{ lv_low }'|.
+      WHEN `GE`.
+        result = |{ fieldname } >= '{ lv_low }'|.
+      WHEN `CP`.
+        lv_like = lv_low.
+        REPLACE ALL OCCURRENCES OF `*` IN lv_like WITH `%`.
+        REPLACE ALL OCCURRENCES OF `+` IN lv_like WITH `_`.
+        result = |{ fieldname } LIKE '{ lv_like }'|.
+      WHEN `NP`.
+        lv_like = lv_low.
+        REPLACE ALL OCCURRENCES OF `*` IN lv_like WITH `%`.
+        REPLACE ALL OCCURRENCES OF `+` IN lv_like WITH `_`.
+        result = |{ fieldname } NOT LIKE '{ lv_like }'|.
+      WHEN `BT`.
+        result = |{ fieldname } BETWEEN '{ lv_low }' AND '{ lv_high }'|.
+      WHEN `NB`.
+        result = |{ fieldname } NOT BETWEEN '{ lv_low }' AND '{ lv_high }'|.
+    ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD filter_get_multi_by_sql_where.
+
+    DATA(lv_where) = c_trim( CONV string( val ) ).
+    IF lv_where IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    DATA(lt_groups) = filter_sql_split_top_level( val = lv_where
+                                                  sep = ` AND ` ).
+
+    LOOP AT lt_groups INTO DATA(lv_group).
+
+      lv_group = c_trim( lv_group ).
+      DATA(lv_len) = strlen( lv_group ).
+
+      IF lv_len >= 2
+         AND lv_group(1) = `(`
+         AND substring( val = lv_group
+                        off = lv_len - 1
+                        len = 1 ) = `)`.
+        lv_group = c_trim( substring( val = lv_group
+                                      off = 1
+                                      len = lv_len - 2 ) ).
+      ENDIF.
+
+      DATA(lt_conds) = filter_sql_split_top_level( val = lv_group
+                                                   sep = ` OR ` ).
+
+      DATA ls_filter TYPE ty_s_filter_multi.
+      CLEAR ls_filter.
+
+      LOOP AT lt_conds INTO DATA(lv_cond).
+
+        DATA ls_range TYPE ty_s_range.
+        DATA lv_fieldname TYPE string.
+        CLEAR ls_range.
+        CLEAR lv_fieldname.
+
+        filter_get_range_by_sql_cond(
+          EXPORTING val       = c_trim( lv_cond )
+          IMPORTING fieldname = lv_fieldname
+                    range     = ls_range ).
+
+        IF ls_range-option IS INITIAL.
+          CONTINUE.
+        ENDIF.
+
+        IF ls_filter-name IS INITIAL.
+          ls_filter-name = lv_fieldname.
+        ENDIF.
+        INSERT ls_range INTO TABLE ls_filter-t_range.
+
+      ENDLOOP.
+
+      IF ls_filter-name IS NOT INITIAL.
+        INSERT ls_filter INTO TABLE result.
+      ENDIF.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD filter_get_range_by_sql_cond.
+
+    CLEAR range.
+    CLEAR fieldname.
+
+    DATA(lv_cond) = CONV string( val ).
+    range-sign = `I`.
+
+    DATA lv_rest TYPE string.
+    DATA lv_low TYPE string.
+    DATA lv_high TYPE string.
+    DATA lv_like TYPE string.
+
+    IF lv_cond CS ` NOT BETWEEN `.
+      SPLIT lv_cond AT ` NOT BETWEEN ` INTO fieldname lv_rest.
+      SPLIT lv_rest AT ` AND ` INTO lv_low lv_high.
+      range-option = `NB`.
+      range-low    = filter_sql_strip_quotes( lv_low ).
+      range-high   = filter_sql_strip_quotes( lv_high ).
+      RETURN.
+    ENDIF.
+
+    IF lv_cond CS ` BETWEEN `.
+      SPLIT lv_cond AT ` BETWEEN ` INTO fieldname lv_rest.
+      SPLIT lv_rest AT ` AND ` INTO lv_low lv_high.
+      range-option = `BT`.
+      range-low    = filter_sql_strip_quotes( lv_low ).
+      range-high   = filter_sql_strip_quotes( lv_high ).
+      RETURN.
+    ENDIF.
+
+    IF lv_cond CS ` NOT LIKE `.
+      SPLIT lv_cond AT ` NOT LIKE ` INTO fieldname lv_rest.
+      lv_like = filter_sql_strip_quotes( lv_rest ).
+      REPLACE ALL OCCURRENCES OF `%` IN lv_like WITH `*`.
+      REPLACE ALL OCCURRENCES OF `_` IN lv_like WITH `+`.
+      range-option = `NP`.
+      range-low    = lv_like.
+      RETURN.
+    ENDIF.
+
+    IF lv_cond CS ` LIKE `.
+      SPLIT lv_cond AT ` LIKE ` INTO fieldname lv_rest.
+      lv_like = filter_sql_strip_quotes( lv_rest ).
+      REPLACE ALL OCCURRENCES OF `%` IN lv_like WITH `*`.
+      REPLACE ALL OCCURRENCES OF `_` IN lv_like WITH `+`.
+      range-option = `CP`.
+      range-low    = lv_like.
+      RETURN.
+    ENDIF.
+
+    IF lv_cond CS ` <> `.
+      SPLIT lv_cond AT ` <> ` INTO fieldname lv_rest.
+      range-option = `NE`.
+      range-low    = filter_sql_strip_quotes( lv_rest ).
+      RETURN.
+    ENDIF.
+
+    IF lv_cond CS ` <= `.
+      SPLIT lv_cond AT ` <= ` INTO fieldname lv_rest.
+      range-option = `LE`.
+      range-low    = filter_sql_strip_quotes( lv_rest ).
+      RETURN.
+    ENDIF.
+
+    IF lv_cond CS ` >= `.
+      SPLIT lv_cond AT ` >= ` INTO fieldname lv_rest.
+      range-option = `GE`.
+      range-low    = filter_sql_strip_quotes( lv_rest ).
+      RETURN.
+    ENDIF.
+
+    IF lv_cond CS ` < `.
+      SPLIT lv_cond AT ` < ` INTO fieldname lv_rest.
+      range-option = `LT`.
+      range-low    = filter_sql_strip_quotes( lv_rest ).
+      RETURN.
+    ENDIF.
+
+    IF lv_cond CS ` > `.
+      SPLIT lv_cond AT ` > ` INTO fieldname lv_rest.
+      range-option = `GT`.
+      range-low    = filter_sql_strip_quotes( lv_rest ).
+      RETURN.
+    ENDIF.
+
+    IF lv_cond CS ` = `.
+      SPLIT lv_cond AT ` = ` INTO fieldname lv_rest.
+      range-option = `EQ`.
+      range-low    = filter_sql_strip_quotes( lv_rest ).
+      RETURN.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD filter_sql_split_top_level.
+
+    DATA(lv_val) = CONV string( val ).
+    DATA(lv_sep) = CONV string( sep ).
+    DATA(lv_len) = strlen( lv_val ).
+    DATA(lv_sep_len) = strlen( lv_sep ).
+    DATA(lv_depth) = 0.
+    DATA(lv_start) = 0.
+    DATA(lv_pos) = 0.
+    DATA(lv_in_quote) = abap_false.
+
+    IF lv_val IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    IF lv_sep_len = 0.
+      INSERT lv_val INTO TABLE result.
+      RETURN.
+    ENDIF.
+
+    WHILE lv_pos < lv_len.
+
+      DATA(lv_char) = lv_val+lv_pos(1).
+
+      IF lv_char = `'`.
+        IF lv_in_quote = abap_false.
+          lv_in_quote = abap_true.
+        ELSE.
+          lv_in_quote = abap_false.
+        ENDIF.
+        lv_pos = lv_pos + 1.
+        CONTINUE.
+      ENDIF.
+
+      IF lv_in_quote = abap_true.
+        lv_pos = lv_pos + 1.
+        CONTINUE.
+      ENDIF.
+
+      IF lv_char = `(`.
+        lv_depth = lv_depth + 1.
+        lv_pos = lv_pos + 1.
+        CONTINUE.
+      ENDIF.
+
+      IF lv_char = `)`.
+        lv_depth = lv_depth - 1.
+        lv_pos = lv_pos + 1.
+        CONTINUE.
+      ENDIF.
+
+      IF lv_depth = 0
+         AND lv_pos + lv_sep_len <= lv_len
+         AND lv_val+lv_pos(lv_sep_len) = lv_sep.
+        INSERT substring( val = lv_val
+                          off = lv_start
+                          len = lv_pos - lv_start ) INTO TABLE result.
+        lv_pos = lv_pos + lv_sep_len.
+        lv_start = lv_pos.
+        CONTINUE.
+      ENDIF.
+
+      lv_pos = lv_pos + 1.
+
+    ENDWHILE.
+
+    INSERT substring( val = lv_val
+                      off = lv_start ) INTO TABLE result.
+
+  ENDMETHOD.
+
+
+  METHOD filter_sql_strip_quotes.
+
+    result = c_trim( val ).
+    DATA(lv_len) = strlen( result ).
+
+    IF lv_len >= 2
+       AND result(1) = `'`
+       AND substring( val = result
+                      off = lv_len - 1
+                      len = 1 ) = `'`.
+      result = substring( val = result
+                          off = 1
+                          len = lv_len - 2 ).
+      result = replace( val  = result
+                        sub  = `''`
+                        with = `'`
+                        occ  = 0 ).
     ENDIF.
 
   ENDMETHOD.
