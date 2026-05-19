@@ -26,8 +26,35 @@ CLASS z2ui5_cl_util_msg DEFINITION PUBLIC
       RETURNING
         VALUE(result) TYPE z2ui5_cl_util=>ty_t_msg.
 
+    CLASS-METHODS msg_get_by_rap
+      IMPORTING
+        reported      TYPE any OPTIONAL
+        failed        TYPE any OPTIONAL
+        mapped        TYPE any OPTIONAL ##NEEDED
+      RETURNING
+        VALUE(result) TYPE z2ui5_cl_util=>ty_t_msg.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
+
+    CLASS-METHODS msg_get_rap_reported
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE z2ui5_cl_util=>ty_t_msg.
+
+    CLASS-METHODS msg_get_rap_failed
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE z2ui5_cl_util=>ty_t_msg.
+
+    CLASS-METHODS msg_get_rap_fail_text
+      IMPORTING
+        cause         TYPE i
+      RETURNING
+        VALUE(result) TYPE string.
+
 ENDCLASS.
 
 
@@ -162,7 +189,7 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
         result-no = val.
       WHEN `MESSAGE` OR `TEXT`.
         result-text = val.
-      WHEN `TYPE` OR `MSGTY`.
+      WHEN `TYPE` OR `MSGTY` OR `M_SEVERITY`.
         result-type = val.
       WHEN `MESSAGE_V1` OR `MSGV1` OR `V1`.
         result-v1 = val.
@@ -181,6 +208,103 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
   METHOD msg_get_by_sy.
 
     result = msg_get( z2ui5_cl_util=>context_get_sy( ) ).
+
+  ENDMETHOD.
+
+  METHOD msg_get_by_rap.
+
+    result = msg_get_rap_reported( reported ).
+    INSERT LINES OF msg_get_rap_failed( failed ) INTO TABLE result.
+    " mapped carries generated keys only - no messages
+
+  ENDMETHOD.
+
+  METHOD msg_get_rap_reported.
+
+    DATA(lv_kind) = z2ui5_cl_util=>rtti_get_type_kind( val ).
+    IF lv_kind <> cl_abap_datadescr=>typekind_struct1
+       AND lv_kind <> cl_abap_datadescr=>typekind_struct2.
+      RETURN.
+    ENDIF.
+
+    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_any( val ).
+    LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
+
+      ASSIGN COMPONENT ls_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<tab>).
+      CHECK sy-subrc = 0.
+      CHECK z2ui5_cl_util=>rtti_get_type_kind( <tab> ) = cl_abap_datadescr=>typekind_table.
+
+      FIELD-SYMBOLS <ftab> TYPE ANY TABLE.
+      ASSIGN <tab> TO <ftab>.
+
+      LOOP AT <ftab> ASSIGNING FIELD-SYMBOL(<row>).
+        ASSIGN COMPONENT `%MSG` OF STRUCTURE <row> TO FIELD-SYMBOL(<msg>).
+        IF sy-subrc <> 0 OR <msg> IS INITIAL.
+          CONTINUE.
+        ENDIF.
+
+        TRY.
+            INSERT LINES OF msg_get( <msg> ) INTO TABLE result.
+          CATCH cx_root ##NO_HANDLER.
+        ENDTRY.
+      ENDLOOP.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD msg_get_rap_failed.
+
+    DATA(lv_kind) = z2ui5_cl_util=>rtti_get_type_kind( val ).
+    IF lv_kind <> cl_abap_datadescr=>typekind_struct1
+       AND lv_kind <> cl_abap_datadescr=>typekind_struct2.
+      RETURN.
+    ENDIF.
+
+    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_any( val ).
+    LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
+
+      ASSIGN COMPONENT ls_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<tab>).
+      CHECK sy-subrc = 0.
+      CHECK z2ui5_cl_util=>rtti_get_type_kind( <tab> ) = cl_abap_datadescr=>typekind_table.
+
+      FIELD-SYMBOLS <ftab> TYPE ANY TABLE.
+      ASSIGN <tab> TO <ftab>.
+
+      LOOP AT <ftab> ASSIGNING FIELD-SYMBOL(<row>).
+        ASSIGN COMPONENT `%FAIL` OF STRUCTURE <row> TO FIELD-SYMBOL(<fail>).
+        CHECK sy-subrc = 0.
+
+        ASSIGN COMPONENT `CAUSE` OF STRUCTURE <fail> TO FIELD-SYMBOL(<cause>).
+        CHECK sy-subrc = 0.
+
+        DATA lv_cause TYPE i.
+        lv_cause = <cause>.
+
+        INSERT VALUE #(
+          type = `E`
+          text = |{ ls_attri->name }: { msg_get_rap_fail_text( lv_cause ) }|
+        ) INTO TABLE result.
+      ENDLOOP.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD msg_get_rap_fail_text.
+
+    result = SWITCH string( cause
+      WHEN 0  THEN `Operation failed`
+      WHEN 1  THEN `Entity not found`
+      WHEN 2  THEN `Entity is locked`
+      WHEN 3  THEN `Authorization failure`
+      WHEN 4  THEN `Concurrent modification`
+      WHEN 5  THEN `Concurrent modification`
+      WHEN 6  THEN `Operation disabled`
+      WHEN 7  THEN `Operation forbidden`
+      WHEN 8  THEN `Semantic error`
+      WHEN 9  THEN `Determination failed`
+      WHEN 10 THEN `Permission denied`
+      WHEN 11 THEN `Validation failed`
+      ELSE         |Operation failed (cause code { cause })| ).
 
   ENDMETHOD.
 
