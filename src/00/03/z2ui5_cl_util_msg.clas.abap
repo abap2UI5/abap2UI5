@@ -102,7 +102,7 @@ CLASS z2ui5_cl_util_msg DEFINITION PUBLIC
       IMPORTING
         val           TYPE any
       RETURNING
-        VALUE(result) TYPE z2ui5_cl_util=>ty_t_meta.
+        VALUE(result) TYPE z2ui5_cl_util=>ty_t_name_value.
 
     CLASS-METHODS msg_get_rap_fail_text
       IMPORTING
@@ -516,32 +516,32 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
     lv = msg_get_rap_element( val ).
     IF lv IS NOT INITIAL.
-      INSERT VALUE #( name = `element` value = lv ) INTO TABLE result.
+      INSERT VALUE #( n = `element` v = lv ) INTO TABLE result.
     ENDIF.
 
     lv = msg_get_rap_state_area( val ).
     IF lv IS NOT INITIAL.
-      INSERT VALUE #( name = `state_area` value = lv ) INTO TABLE result.
+      INSERT VALUE #( n = `state_area` v = lv ) INTO TABLE result.
     ENDIF.
 
     lv = msg_get_rap_action( val ).
     IF lv IS NOT INITIAL.
-      INSERT VALUE #( name = `action` value = lv ) INTO TABLE result.
+      INSERT VALUE #( n = `action` v = lv ) INTO TABLE result.
     ENDIF.
 
     lv = msg_get_rap_pid( val ).
     IF lv IS NOT INITIAL.
-      INSERT VALUE #( name = `pid` value = lv ) INTO TABLE result.
+      INSERT VALUE #( n = `pid` v = lv ) INTO TABLE result.
     ENDIF.
 
     lv = msg_get_rap_cid( val ).
     IF lv IS NOT INITIAL.
-      INSERT VALUE #( name = `cid` value = lv ) INTO TABLE result.
+      INSERT VALUE #( n = `cid` v = lv ) INTO TABLE result.
     ENDIF.
 
     lv = msg_get_rap_tky( val ).
     IF lv IS NOT INITIAL.
-      INSERT VALUE #( name = `tky` value = lv ) INTO TABLE result.
+      INSERT VALUE #( n = `tky` v = lv ) INTO TABLE result.
     ENDIF.
 
   ENDMETHOD.

@@ -382,19 +382,19 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
     DATA(lt_meta) = lt_result[ 1 ]-t_meta.
 
     cl_abap_unit_assert=>assert_equals( exp = `CUSTOMERID`
-                                        act = lt_meta[ name = `element`    ]-value ).
+                                        act = lt_meta[ n = `element`    ]-v ).
     cl_abap_unit_assert=>assert_equals( exp = `VALIDATE_CUSTOMER`
-                                        act = lt_meta[ name = `state_area` ]-value ).
+                                        act = lt_meta[ n = `state_area` ]-v ).
     cl_abap_unit_assert=>assert_equals( exp = `DEDUCTDISCOUNT`
-                                        act = lt_meta[ name = `action`     ]-value ).
+                                        act = lt_meta[ n = `action`     ]-v ).
     cl_abap_unit_assert=>assert_equals( exp = `req-42`
-                                        act = lt_meta[ name = `pid`        ]-value ).
+                                        act = lt_meta[ n = `pid`        ]-v ).
     cl_abap_unit_assert=>assert_equals( exp = `EDIT_BANK`
-                                        act = lt_meta[ name = `cid`        ]-value ).
+                                        act = lt_meta[ n = `cid`        ]-v ).
     cl_abap_unit_assert=>assert_char_cp( exp = `*BANKCOUNTRY=DE*`
-                                         act = lt_meta[ name = `tky`       ]-value ).
+                                         act = lt_meta[ n = `tky`       ]-v ).
     cl_abap_unit_assert=>assert_char_cp( exp = `*BANKINTERNALID=50070010*`
-                                         act = lt_meta[ name = `tky`       ]-value ).
+                                         act = lt_meta[ n = `tky`       ]-v ).
 
   ENDMETHOD.
 
