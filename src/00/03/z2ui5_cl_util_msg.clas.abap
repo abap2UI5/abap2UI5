@@ -26,16 +26,7 @@ CLASS z2ui5_cl_util_msg DEFINITION PUBLIC
       RETURNING
         VALUE(result) TYPE z2ui5_cl_util=>ty_t_msg.
 
-    CLASS-METHODS msg_get_by_rap
-      IMPORTING
-        reported      TYPE any OPTIONAL
-        failed        TYPE any OPTIONAL
-        mapped        TYPE any OPTIONAL ##NEEDED
-      RETURNING
-        VALUE(result) TYPE z2ui5_cl_util=>ty_t_msg.
-
   PROTECTED SECTION.
-  PRIVATE SECTION.
 
     CLASS-METHODS check_is_rap_struct
       IMPORTING
@@ -55,6 +46,8 @@ CLASS z2ui5_cl_util_msg DEFINITION PUBLIC
         cause         TYPE i
       RETURNING
         VALUE(result) TYPE string.
+
+  PRIVATE SECTION.
 
 ENDCLASS.
 
@@ -214,14 +207,6 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
   METHOD msg_get_by_sy.
 
     result = msg_get( z2ui5_cl_util=>context_get_sy( ) ).
-
-  ENDMETHOD.
-
-  METHOD msg_get_by_rap.
-
-    result = msg_get_rap( reported ).
-    INSERT LINES OF msg_get_rap( failed ) INTO TABLE result.
-    " mapped carries generated keys only - no messages
 
   ENDMETHOD.
 
