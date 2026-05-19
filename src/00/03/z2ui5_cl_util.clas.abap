@@ -126,6 +126,12 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE ty_s_msg.
 
+    CLASS-METHODS msg_get_collect
+      IMPORTING
+        VALUE(val)    TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS msg_get_by_msg
       IMPORTING
         id            TYPE any
@@ -1812,6 +1818,13 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     DATA(lt_msg) = msg_get_t( val ).
     result = lt_msg[ 1 ].
+
+  ENDMETHOD.
+
+
+  METHOD msg_get_collect.
+
+    result = z2ui5_cl_util_msg=>msg_get_collect( val ).
 
   ENDMETHOD.
 

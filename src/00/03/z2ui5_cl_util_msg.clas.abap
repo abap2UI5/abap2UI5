@@ -26,6 +26,12 @@ CLASS z2ui5_cl_util_msg DEFINITION PUBLIC
       RETURNING
         VALUE(result) TYPE z2ui5_cl_util=>ty_t_msg.
 
+    CLASS-METHODS msg_get_collect
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
 
     CLASS-METHODS check_is_rap_struct
@@ -207,6 +213,14 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
   METHOD msg_get_by_sy.
 
     result = msg_get( z2ui5_cl_util=>context_get_sy( ) ).
+
+  ENDMETHOD.
+
+  METHOD msg_get_collect.
+
+    result = concat_lines_of(
+      table = VALUE string_table( FOR <r> IN msg_get( val ) ( |- { <r>-text }| ) )
+      sep   = cl_abap_char_utilities=>newline ).
 
   ENDMETHOD.
 

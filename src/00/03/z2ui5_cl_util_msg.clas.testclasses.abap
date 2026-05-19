@@ -11,6 +11,8 @@ CLASS ltcl_unit_test_msg_mapper DEFINITION FINAL
     METHODS test_get_text_str   FOR TESTING RAISING cx_static_check.
     METHODS test_get_text_empty FOR TESTING RAISING cx_static_check.
     METHODS test_rap_via_get    FOR TESTING RAISING cx_static_check.
+    METHODS test_collect        FOR TESTING RAISING cx_static_check.
+    METHODS test_collect_empty  FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -182,6 +184,32 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
     " msg_get_text should produce the same string content directly.
     DATA(lv_text) = z2ui5_cl_util_msg=>msg_get_text( <failed> ).
     cl_abap_unit_assert=>assert_not_initial( lv_text ).
+
+  ENDMETHOD.
+
+  METHOD test_collect.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    DATA(lt_msg) = VALUE bapirettab(
+      ( type = `E` id = `MSG1` number = `001` message = `first error` )
+      ( type = `W` id = `MSG2` number = `002` message = `second warning` ) ).
+
+    DATA(lv_collected) = z2ui5_cl_util_msg=>msg_get_collect( lt_msg ).
+
+    cl_abap_unit_assert=>assert_char_cp( exp = `*first error*`     act = lv_collected ).
+    cl_abap_unit_assert=>assert_char_cp( exp = `*second warning*`  act = lv_collected ).
+
+  ENDMETHOD.
+
+  METHOD test_collect_empty.
+
+    DATA lt_empty TYPE bapirettab.
+    DATA(lv_collected) = z2ui5_cl_util_msg=>msg_get_collect( lt_empty ).
+
+    cl_abap_unit_assert=>assert_initial( lv_collected ).
 
   ENDMETHOD.
 
