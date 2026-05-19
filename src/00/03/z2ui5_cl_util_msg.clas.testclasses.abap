@@ -13,6 +13,7 @@ CLASS ltcl_unit_test_msg_mapper DEFINITION FINAL
     METHODS test_rap_via_get    FOR TESTING RAISING cx_static_check.
     METHODS test_collect        FOR TESTING RAISING cx_static_check.
     METHODS test_collect_empty  FOR TESTING RAISING cx_static_check.
+    METHODS test_rap_other      FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -210,6 +211,48 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
     DATA(lv_collected) = z2ui5_cl_util_msg=>msg_get_collect( lt_empty ).
 
     cl_abap_unit_assert=>assert_initial( lv_collected ).
+
+  ENDMETHOD.
+
+  METHOD test_rap_other.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    " Simulate `reported-%other`: a TABLE OF REF TO cx_root (stand-in for
+    " if_abap_behv_message) sitting on a struct with a `%OTHER` component name.
+    DATA lo_ref     TYPE REF TO cl_abap_refdescr.
+    DATA lo_tab     TYPE REF TO cl_abap_tabledescr.
+    DATA lo_top     TYPE REF TO cl_abap_structdescr.
+    DATA lr_data    TYPE REF TO data.
+
+    TRY.
+        lo_ref = cl_abap_refdescr=>create(
+          CAST cl_abap_classdescr( cl_abap_typedescr=>describe_by_name( `CX_ROOT` ) ) ).
+        lo_tab = cl_abap_tabledescr=>create( lo_ref ).
+        lo_top = cl_abap_structdescr=>create(
+          VALUE #( ( name = `%OTHER` type = lo_tab ) ) ).
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
+
+    CREATE DATA lr_data TYPE HANDLE lo_top.
+    ASSIGN lr_data->* TO FIELD-SYMBOL(<reported>).
+
+    ASSIGN COMPONENT `%OTHER` OF STRUCTURE <reported> TO FIELD-SYMBOL(<tab>).
+    FIELD-SYMBOLS <ftab> TYPE STANDARD TABLE.
+    ASSIGN <tab> TO <ftab>.
+
+    TRY.
+        DATA(lv_x) = 1 / 0.
+      CATCH cx_root INTO DATA(lx).
+        INSERT lx INTO TABLE <ftab>.
+    ENDTRY.
+
+    DATA(lt_result) = z2ui5_cl_util_msg=>msg_get( <reported> ).
+
+    cl_abap_unit_assert=>assert_not_initial( lt_result ).
 
   ENDMETHOD.
 

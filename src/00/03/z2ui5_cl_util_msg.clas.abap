@@ -229,10 +229,11 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
     DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_any( val ).
 
     LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
-      IF ls_attri->name = `%MSG` OR ls_attri->name = `%FAIL`.
-        result = abap_true.
-        RETURN.
-      ENDIF.
+      CASE ls_attri->name.
+        WHEN `%MSG` OR `%FAIL` OR `%OTHER`.
+          result = abap_true.
+          RETURN.
+      ENDCASE.
     ENDLOOP.
 
     LOOP AT lt_attri REFERENCE INTO ls_attri.
@@ -307,8 +308,17 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
       ASSIGN <tab> TO <ftab>.
 
       LOOP AT <ftab> ASSIGNING FIELD-SYMBOL(<row>).
-        INSERT LINES OF msg_get_rap( val         = <row>
-                                     entity_name = ls_attri->name ) INTO TABLE result.
+        IF z2ui5_cl_util=>rtti_get_type_kind( <row> ) = cl_abap_datadescr=>typekind_oref.
+          IF <row> IS NOT INITIAL.
+            TRY.
+                INSERT LINES OF msg_get( <row> ) INTO TABLE result.
+              CATCH cx_root ##NO_HANDLER.
+            ENDTRY.
+          ENDIF.
+        ELSE.
+          INSERT LINES OF msg_get_rap( val         = <row>
+                                       entity_name = ls_attri->name ) INTO TABLE result.
+        ENDIF.
       ENDLOOP.
     ENDLOOP.
 
