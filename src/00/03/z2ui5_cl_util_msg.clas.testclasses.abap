@@ -10,6 +10,7 @@ CLASS ltcl_unit_test_msg_mapper DEFINITION FINAL
     METHODS test_get_text_cx    FOR TESTING RAISING cx_static_check.
     METHODS test_get_text_str   FOR TESTING RAISING cx_static_check.
     METHODS test_get_text_empty FOR TESTING RAISING cx_static_check.
+    METHODS test_rap_via_get    FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -121,6 +122,66 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
     DATA(lv_text) = z2ui5_cl_util_msg=>msg_get_text( ls_empty ).
 
     cl_abap_unit_assert=>assert_initial( lv_text ).
+
+  ENDMETHOD.
+
+  METHOD test_rap_via_get.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    " Dynamically build a RAP-shaped `failed` structure (one entity table whose
+    " row carries `%FAIL-CAUSE`) and verify the auto-detection branch in msg_get.
+    " Component names with `%` are created dynamically - ABAP TYPES does not
+    " accept `%` in static declarations.
+    DATA lo_fail_struct TYPE REF TO cl_abap_structdescr.
+    DATA lo_row_struct  TYPE REF TO cl_abap_structdescr.
+    DATA lo_row_tab     TYPE REF TO cl_abap_tabledescr.
+    DATA lo_top_struct  TYPE REF TO cl_abap_structdescr.
+    DATA lr_data        TYPE REF TO data.
+
+    TRY.
+        lo_fail_struct = cl_abap_structdescr=>create(
+          VALUE #( ( name = `CAUSE` type = cl_abap_elemdescr=>get_i( ) ) ) ).
+
+        lo_row_struct = cl_abap_structdescr=>create(
+          VALUE #( ( name = `%FAIL` type = lo_fail_struct ) ) ).
+
+        lo_row_tab = cl_abap_tabledescr=>create( lo_row_struct ).
+
+        lo_top_struct = cl_abap_structdescr=>create(
+          VALUE #( ( name = `BOOKINGS` type = lo_row_tab ) ) ).
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
+
+    CREATE DATA lr_data TYPE HANDLE lo_top_struct.
+    ASSIGN lr_data->* TO FIELD-SYMBOL(<failed>).
+
+    ASSIGN COMPONENT `BOOKINGS` OF STRUCTURE <failed> TO FIELD-SYMBOL(<tab>).
+    FIELD-SYMBOLS <ftab> TYPE STANDARD TABLE.
+    ASSIGN <tab> TO <ftab>.
+
+    DATA lr_row TYPE REF TO data.
+    CREATE DATA lr_row TYPE HANDLE lo_row_struct.
+    ASSIGN lr_row->* TO FIELD-SYMBOL(<row>).
+
+    ASSIGN COMPONENT `%FAIL` OF STRUCTURE <row> TO FIELD-SYMBOL(<fail>).
+    ASSIGN COMPONENT `CAUSE` OF STRUCTURE <fail> TO FIELD-SYMBOL(<cause>).
+    <cause> = 2.
+
+    INSERT <row> INTO TABLE <ftab>.
+
+    " Auto-detection: msg_get( <failed> ) recognises the RAP shape and extracts.
+    DATA(lt_result) = z2ui5_cl_util_msg=>msg_get( <failed> ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1 act = lines( lt_result ) ).
+    cl_abap_unit_assert=>assert_char_cp( exp = `*BOOKINGS*locked*` act = lt_result[ 1 ]-text ).
+
+    " msg_get_text should produce the same string content directly.
+    DATA(lv_text) = z2ui5_cl_util_msg=>msg_get_text( <failed> ).
+    cl_abap_unit_assert=>assert_not_initial( lv_text ).
 
   ENDMETHOD.
 
