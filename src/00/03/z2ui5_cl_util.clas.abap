@@ -68,6 +68,13 @@ CLASS z2ui5_cl_util DEFINITION
       END OF ty_s_sql.
 
     TYPES:
+      BEGIN OF ty_s_meta,
+        name  TYPE string,
+        value TYPE string,
+      END OF ty_s_meta,
+      ty_t_meta TYPE STANDARD TABLE OF ty_s_meta WITH EMPTY KEY.
+
+    TYPES:
       BEGIN OF ty_s_msg,
         text       TYPE string,
         id         TYPE string,
@@ -78,12 +85,7 @@ CLASS z2ui5_cl_util DEFINITION
         v3         TYPE string,
         v4         TYPE string,
         timestampl TYPE timestampl,
-        element    TYPE string,
-        state_area TYPE string,
-        action     TYPE string,
-        pid        TYPE string,
-        cid        TYPE string,
-        tky        TYPE string,
+        t_meta     TYPE ty_t_meta,
       END OF ty_s_msg,
       ty_t_msg TYPE STANDARD TABLE OF ty_s_msg WITH EMPTY KEY.
 

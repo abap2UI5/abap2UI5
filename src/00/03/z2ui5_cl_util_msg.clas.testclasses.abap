@@ -378,14 +378,23 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
 
     DATA(lt_result) = z2ui5_cl_util_msg=>msg_get( <failed> ).
 
-    cl_abap_unit_assert=>assert_equals( exp = 1                   act = lines( lt_result ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `CUSTOMERID`        act = lt_result[ 1 ]-element ).
-    cl_abap_unit_assert=>assert_equals( exp = `VALIDATE_CUSTOMER` act = lt_result[ 1 ]-state_area ).
-    cl_abap_unit_assert=>assert_equals( exp = `DEDUCTDISCOUNT`    act = lt_result[ 1 ]-action ).
-    cl_abap_unit_assert=>assert_equals( exp = `req-42`            act = lt_result[ 1 ]-pid ).
-    cl_abap_unit_assert=>assert_equals( exp = `EDIT_BANK`         act = lt_result[ 1 ]-cid ).
-    cl_abap_unit_assert=>assert_char_cp( exp = `*BANKCOUNTRY=DE*`     act = lt_result[ 1 ]-tky ).
-    cl_abap_unit_assert=>assert_char_cp( exp = `*BANKINTERNALID=50070010*` act = lt_result[ 1 ]-tky ).
+    cl_abap_unit_assert=>assert_equals( exp = 1 act = lines( lt_result ) ).
+    DATA(lt_meta) = lt_result[ 1 ]-t_meta.
+
+    cl_abap_unit_assert=>assert_equals( exp = `CUSTOMERID`
+                                        act = lt_meta[ name = `element`    ]-value ).
+    cl_abap_unit_assert=>assert_equals( exp = `VALIDATE_CUSTOMER`
+                                        act = lt_meta[ name = `state_area` ]-value ).
+    cl_abap_unit_assert=>assert_equals( exp = `DEDUCTDISCOUNT`
+                                        act = lt_meta[ name = `action`     ]-value ).
+    cl_abap_unit_assert=>assert_equals( exp = `req-42`
+                                        act = lt_meta[ name = `pid`        ]-value ).
+    cl_abap_unit_assert=>assert_equals( exp = `EDIT_BANK`
+                                        act = lt_meta[ name = `cid`        ]-value ).
+    cl_abap_unit_assert=>assert_char_cp( exp = `*BANKCOUNTRY=DE*`
+                                         act = lt_meta[ name = `tky`       ]-value ).
+    cl_abap_unit_assert=>assert_char_cp( exp = `*BANKINTERNALID=50070010*`
+                                         act = lt_meta[ name = `tky`       ]-value ).
 
   ENDMETHOD.
 

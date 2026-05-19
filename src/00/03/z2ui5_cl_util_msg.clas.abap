@@ -98,6 +98,12 @@ CLASS z2ui5_cl_util_msg DEFINITION PUBLIC
       RETURNING
         VALUE(result) TYPE string.
 
+    CLASS-METHODS msg_get_rap_meta
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE z2ui5_cl_util=>ty_t_meta.
+
     CLASS-METHODS msg_get_rap_fail_text
       IMPORTING
         cause         TYPE i
@@ -328,12 +334,7 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
     DATA lv_is_row TYPE abap_bool.
 
-    DATA(lv_element)    = msg_get_rap_element( val ).
-    DATA(lv_state_area) = msg_get_rap_state_area( val ).
-    DATA(lv_action)     = msg_get_rap_action( val ).
-    DATA(lv_pid)        = msg_get_rap_pid( val ).
-    DATA(lv_cid)        = msg_get_rap_cid( val ).
-    DATA(lv_tky)        = msg_get_rap_tky( val ).
+    DATA(lt_meta) = msg_get_rap_meta( val ).
 
     ASSIGN COMPONENT `%MSG` OF STRUCTURE val TO FIELD-SYMBOL(<msg>).
     IF sy-subrc = 0.
@@ -342,12 +343,7 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
         TRY.
             DATA(lt_one) = msg_get( <msg> ).
             LOOP AT lt_one ASSIGNING FIELD-SYMBOL(<m>).
-              <m>-element    = lv_element.
-              <m>-state_area = lv_state_area.
-              <m>-action     = lv_action.
-              <m>-pid        = lv_pid.
-              <m>-cid        = lv_cid.
-              <m>-tky        = lv_tky.
+              <m>-t_meta = lt_meta.
             ENDLOOP.
             INSERT LINES OF lt_one INTO TABLE result.
           CATCH cx_root ##NO_HANDLER.
@@ -366,14 +362,9 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
         IF entity_name IS NOT INITIAL.
           lv_text = |{ entity_name }: { lv_text }|.
         ENDIF.
-        INSERT VALUE #( type       = `E`
-                        text       = lv_text
-                        element    = lv_element
-                        state_area = lv_state_area
-                        action     = lv_action
-                        pid        = lv_pid
-                        cid        = lv_cid
-                        tky        = lv_tky ) INTO TABLE result.
+        INSERT VALUE #( type   = `E`
+                        text   = lv_text
+                        t_meta = lt_meta ) INTO TABLE result.
       ENDIF.
     ENDIF.
 
@@ -516,6 +507,42 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
         ENDIF.
       ENDIF.
     ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD msg_get_rap_meta.
+
+    DATA lv TYPE string.
+
+    lv = msg_get_rap_element( val ).
+    IF lv IS NOT INITIAL.
+      INSERT VALUE #( name = `element` value = lv ) INTO TABLE result.
+    ENDIF.
+
+    lv = msg_get_rap_state_area( val ).
+    IF lv IS NOT INITIAL.
+      INSERT VALUE #( name = `state_area` value = lv ) INTO TABLE result.
+    ENDIF.
+
+    lv = msg_get_rap_action( val ).
+    IF lv IS NOT INITIAL.
+      INSERT VALUE #( name = `action` value = lv ) INTO TABLE result.
+    ENDIF.
+
+    lv = msg_get_rap_pid( val ).
+    IF lv IS NOT INITIAL.
+      INSERT VALUE #( name = `pid` value = lv ) INTO TABLE result.
+    ENDIF.
+
+    lv = msg_get_rap_cid( val ).
+    IF lv IS NOT INITIAL.
+      INSERT VALUE #( name = `cid` value = lv ) INTO TABLE result.
+    ENDIF.
+
+    lv = msg_get_rap_tky( val ).
+    IF lv IS NOT INITIAL.
+      INSERT VALUE #( name = `tky` value = lv ) INTO TABLE result.
+    ENDIF.
 
   ENDMETHOD.
 
