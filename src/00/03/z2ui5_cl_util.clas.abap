@@ -79,6 +79,11 @@ CLASS z2ui5_cl_util DEFINITION
         v4         TYPE string,
         timestampl TYPE timestampl,
         element    TYPE string,
+        state_area TYPE string,
+        action     TYPE string,
+        pid        TYPE string,
+        cid        TYPE string,
+        tky        TYPE string,
       END OF ty_s_msg,
       ty_t_msg TYPE STANDARD TABLE OF ty_s_msg WITH EMPTY KEY.
 

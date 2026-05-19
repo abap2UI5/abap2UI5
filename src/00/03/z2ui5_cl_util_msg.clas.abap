@@ -62,6 +62,42 @@ CLASS z2ui5_cl_util_msg DEFINITION PUBLIC
       RETURNING
         VALUE(result) TYPE string.
 
+    CLASS-METHODS msg_get_rap_state_area
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS msg_get_rap_action
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS msg_get_rap_pid
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS msg_get_rap_cid
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS msg_get_rap_tky
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS msg_get_rap_flatten
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS msg_get_rap_fail_text
       IMPORTING
         cause         TYPE i
@@ -292,7 +328,12 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
     DATA lv_is_row TYPE abap_bool.
 
-    DATA(lv_element) = msg_get_rap_element( val ).
+    DATA(lv_element)    = msg_get_rap_element( val ).
+    DATA(lv_state_area) = msg_get_rap_state_area( val ).
+    DATA(lv_action)     = msg_get_rap_action( val ).
+    DATA(lv_pid)        = msg_get_rap_pid( val ).
+    DATA(lv_cid)        = msg_get_rap_cid( val ).
+    DATA(lv_tky)        = msg_get_rap_tky( val ).
 
     ASSIGN COMPONENT `%MSG` OF STRUCTURE val TO FIELD-SYMBOL(<msg>).
     IF sy-subrc = 0.
@@ -300,11 +341,14 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
       IF <msg> IS NOT INITIAL.
         TRY.
             DATA(lt_one) = msg_get( <msg> ).
-            IF lv_element IS NOT INITIAL.
-              LOOP AT lt_one ASSIGNING FIELD-SYMBOL(<m>).
-                <m>-element = lv_element.
-              ENDLOOP.
-            ENDIF.
+            LOOP AT lt_one ASSIGNING FIELD-SYMBOL(<m>).
+              <m>-element    = lv_element.
+              <m>-state_area = lv_state_area.
+              <m>-action     = lv_action.
+              <m>-pid        = lv_pid.
+              <m>-cid        = lv_cid.
+              <m>-tky        = lv_tky.
+            ENDLOOP.
             INSERT LINES OF lt_one INTO TABLE result.
           CATCH cx_root ##NO_HANDLER.
         ENDTRY.
@@ -322,7 +366,14 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
         IF entity_name IS NOT INITIAL.
           lv_text = |{ entity_name }: { lv_text }|.
         ENDIF.
-        INSERT VALUE #( type = `E` text = lv_text element = lv_element ) INTO TABLE result.
+        INSERT VALUE #( type       = `E`
+                        text       = lv_text
+                        element    = lv_element
+                        state_area = lv_state_area
+                        action     = lv_action
+                        pid        = lv_pid
+                        cid        = lv_cid
+                        tky        = lv_tky ) INTO TABLE result.
       ENDIF.
     ENDIF.
 
@@ -371,6 +422,98 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
         result = lv_field.
       ELSE.
         result = |{ result }, { lv_field }|.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD msg_get_rap_state_area.
+
+    ASSIGN COMPONENT `%STATE_AREA` OF STRUCTURE val TO FIELD-SYMBOL(<sa>).
+    IF sy-subrc = 0.
+      result = <sa>.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD msg_get_rap_action.
+
+    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_any( val ).
+    LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
+      CHECK strlen( ls_attri->name ) > 12.
+      CHECK ls_attri->name(12) = `%OP-%ACTION-`.
+      ASSIGN COMPONENT ls_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<flag>).
+      CHECK sy-subrc = 0.
+      CHECK <flag> IS NOT INITIAL.
+      result = ls_attri->name+12.
+      RETURN.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD msg_get_rap_pid.
+
+    ASSIGN COMPONENT `%PID` OF STRUCTURE val TO FIELD-SYMBOL(<pid>).
+    IF sy-subrc = 0.
+      result = <pid>.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD msg_get_rap_cid.
+
+    ASSIGN COMPONENT `%CID` OF STRUCTURE val TO FIELD-SYMBOL(<cid>).
+    IF sy-subrc = 0.
+      result = <cid>.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD msg_get_rap_tky.
+
+    ASSIGN COMPONENT `%TKY` OF STRUCTURE val TO FIELD-SYMBOL(<tky>).
+    IF sy-subrc <> 0 OR <tky> IS INITIAL.
+      RETURN.
+    ENDIF.
+    result = msg_get_rap_flatten( <tky> ).
+
+  ENDMETHOD.
+
+  METHOD msg_get_rap_flatten.
+
+    DATA(lv_kind) = z2ui5_cl_util=>rtti_get_type_kind( val ).
+    IF lv_kind <> cl_abap_datadescr=>typekind_struct1
+       AND lv_kind <> cl_abap_datadescr=>typekind_struct2.
+      RETURN.
+    ENDIF.
+
+    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_any( val ).
+    LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
+      ASSIGN COMPONENT ls_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<comp>).
+      CHECK sy-subrc = 0.
+
+      DATA(lv_sub_kind) = z2ui5_cl_util=>rtti_get_type_kind( <comp> ).
+      IF lv_sub_kind = cl_abap_datadescr=>typekind_struct1
+         OR lv_sub_kind = cl_abap_datadescr=>typekind_struct2.
+        DATA(lv_sub) = msg_get_rap_flatten( <comp> ).
+        IF lv_sub IS NOT INITIAL.
+          IF result IS NOT INITIAL.
+            result = |{ result }, |.
+          ENDIF.
+          result = |{ result }{ lv_sub }|.
+        ENDIF.
+      ELSE.
+        IF <comp> IS NOT INITIAL.
+          TRY.
+              DATA lv_str TYPE string.
+              lv_str = <comp>.
+              IF result IS NOT INITIAL.
+                result = |{ result }, |.
+              ENDIF.
+              result = |{ result }{ ls_attri->name }={ lv_str }|.
+            CATCH cx_root ##NO_HANDLER.
+          ENDTRY.
+        ENDIF.
       ENDIF.
     ENDLOOP.
 

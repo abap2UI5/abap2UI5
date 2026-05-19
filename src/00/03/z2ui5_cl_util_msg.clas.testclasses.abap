@@ -293,21 +293,41 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    " Build a RAP-shaped failed row carrying both %FAIL-CAUSE and %ELEMENT-CUSTOMERID.
+    " Build a RAP-shaped failed row carrying %FAIL-CAUSE plus all metadata fields
+    " the util surfaces: %ELEMENT-<X>, %STATE_AREA, %OP-%ACTION-<X>, %PID, %CID, %TKY.
+    DATA lo_key_struct  TYPE REF TO cl_abap_structdescr.
+    DATA lo_tky_struct  TYPE REF TO cl_abap_structdescr.
     DATA lo_fail_struct TYPE REF TO cl_abap_structdescr.
     DATA lo_row_struct  TYPE REF TO cl_abap_structdescr.
     DATA lo_row_tab     TYPE REF TO cl_abap_tabledescr.
     DATA lo_top_struct  TYPE REF TO cl_abap_structdescr.
     DATA lr_data        TYPE REF TO data.
+    DATA lo_c1          TYPE REF TO cl_abap_elemdescr.
+    DATA lo_str         TYPE REF TO cl_abap_elemdescr.
 
     TRY.
+        lo_c1  = cl_abap_elemdescr=>get_c( p_length = 1 ).
+        lo_str = cl_abap_elemdescr=>get_string( ).
+
+        lo_key_struct = cl_abap_structdescr=>create(
+          VALUE #( ( name = `BANKCOUNTRY`    type = lo_str )
+                   ( name = `BANKINTERNALID` type = lo_str ) ) ).
+
+        lo_tky_struct = cl_abap_structdescr=>create(
+          VALUE #( ( name = `%KEY` type = lo_key_struct ) ) ).
+
         lo_fail_struct = cl_abap_structdescr=>create(
           VALUE #( ( name = `CAUSE` type = cl_abap_elemdescr=>get_i( ) ) ) ).
 
         lo_row_struct = cl_abap_structdescr=>create(
           VALUE #(
-            ( name = `%FAIL`              type = lo_fail_struct )
-            ( name = `%ELEMENT-CUSTOMERID` type = cl_abap_elemdescr=>get_c( p_length = 1 ) ) ) ).
+            ( name = `%FAIL`                   type = lo_fail_struct )
+            ( name = `%TKY`                    type = lo_tky_struct )
+            ( name = `%ELEMENT-CUSTOMERID`     type = lo_c1 )
+            ( name = `%STATE_AREA`             type = lo_str )
+            ( name = `%OP-%ACTION-DEDUCTDISCOUNT` type = lo_c1 )
+            ( name = `%PID`                    type = lo_str )
+            ( name = `%CID`                    type = lo_str ) ) ).
 
         lo_row_tab = cl_abap_tabledescr=>create( lo_row_struct ).
 
@@ -332,15 +352,40 @@ CLASS ltcl_unit_test_msg_mapper IMPLEMENTATION.
     ASSIGN COMPONENT `CAUSE` OF STRUCTURE <fail> TO FIELD-SYMBOL(<cause>).
     <cause> = 1.
 
+    ASSIGN COMPONENT `%TKY` OF STRUCTURE <row> TO FIELD-SYMBOL(<tky>).
+    ASSIGN COMPONENT `%KEY` OF STRUCTURE <tky> TO FIELD-SYMBOL(<key>).
+    ASSIGN COMPONENT `BANKCOUNTRY`    OF STRUCTURE <key> TO FIELD-SYMBOL(<bc>).
+    ASSIGN COMPONENT `BANKINTERNALID` OF STRUCTURE <key> TO FIELD-SYMBOL(<bid>).
+    <bc>  = `DE`.
+    <bid> = `50070010`.
+
     ASSIGN COMPONENT `%ELEMENT-CUSTOMERID` OF STRUCTURE <row> TO FIELD-SYMBOL(<el>).
     <el> = `X`.
+
+    ASSIGN COMPONENT `%STATE_AREA` OF STRUCTURE <row> TO FIELD-SYMBOL(<sa>).
+    <sa> = `VALIDATE_CUSTOMER`.
+
+    ASSIGN COMPONENT `%OP-%ACTION-DEDUCTDISCOUNT` OF STRUCTURE <row> TO FIELD-SYMBOL(<act>).
+    <act> = `X`.
+
+    ASSIGN COMPONENT `%PID` OF STRUCTURE <row> TO FIELD-SYMBOL(<pid>).
+    <pid> = `req-42`.
+
+    ASSIGN COMPONENT `%CID` OF STRUCTURE <row> TO FIELD-SYMBOL(<cid>).
+    <cid> = `EDIT_BANK`.
 
     INSERT <row> INTO TABLE <ftab>.
 
     DATA(lt_result) = z2ui5_cl_util_msg=>msg_get( <failed> ).
 
-    cl_abap_unit_assert=>assert_equals( exp = 1            act = lines( lt_result ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `CUSTOMERID` act = lt_result[ 1 ]-element ).
+    cl_abap_unit_assert=>assert_equals( exp = 1                   act = lines( lt_result ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `CUSTOMERID`        act = lt_result[ 1 ]-element ).
+    cl_abap_unit_assert=>assert_equals( exp = `VALIDATE_CUSTOMER` act = lt_result[ 1 ]-state_area ).
+    cl_abap_unit_assert=>assert_equals( exp = `DEDUCTDISCOUNT`    act = lt_result[ 1 ]-action ).
+    cl_abap_unit_assert=>assert_equals( exp = `req-42`            act = lt_result[ 1 ]-pid ).
+    cl_abap_unit_assert=>assert_equals( exp = `EDIT_BANK`         act = lt_result[ 1 ]-cid ).
+    cl_abap_unit_assert=>assert_char_cp( exp = `*BANKCOUNTRY=DE*`     act = lt_result[ 1 ]-tky ).
+    cl_abap_unit_assert=>assert_char_cp( exp = `*BANKINTERNALID=50070010*` act = lt_result[ 1 ]-tky ).
 
   ENDMETHOD.
 
