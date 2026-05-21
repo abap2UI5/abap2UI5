@@ -408,11 +408,10 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
       CHECK sy-subrc = 0.
       CHECK <flag> IS NOT INITIAL.
 
-      DATA(lv_field) = ls_attri->name+9.
       IF result IS INITIAL.
-        result = lv_field.
+        result = ls_attri->name+9.
       ELSE.
-        result = |{ result }, { lv_field }|.
+        result = |{ result }, { ls_attri->name+9 }|.
       ENDIF.
     ENDLOOP.
 
