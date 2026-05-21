@@ -180,6 +180,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `              version: info.version,` && |\n| &&
              `              buildTimestamp: info.buildTimestamp,` && |\n| &&
              `              gav: info.gav,` && |\n| &&
+             `              theme: sap.ui.core.Theming ? sap.ui.core.Theming.getTheme() : "",` && |\n| &&
              `            };` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
