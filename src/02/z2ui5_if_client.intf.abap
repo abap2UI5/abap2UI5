@@ -28,6 +28,8 @@ INTERFACE z2ui5_if_client
       set_lp_title              TYPE string VALUE `SET_LP_TITLE`,
       set_focus                 TYPE string VALUE `SET_FOCUS`,
       focus_active_input        TYPE string VALUE `FOCUS_ACTIVE_INPUT`,
+      start_timer               TYPE string VALUE `START_TIMER`,
+      stop_timer                TYPE string VALUE `STOP_TIMER`,
     END OF cs_event.
 
   CONSTANTS:

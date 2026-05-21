@@ -608,6 +608,12 @@ sap.ui.define(
           case "FOCUS_ACTIVE_INPUT":
             this._evFocusActiveInput();
             break;
+          case "START_TIMER":
+            this._evStartTimer(args);
+            break;
+          case "STOP_TIMER":
+            this._evStopTimer(args);
+            break;
           case "Z2UI5":
             this._evZ2ui5Custom(args);
             break;
@@ -802,6 +808,26 @@ sap.ui.define(
         }
         this.PopupDestroy();
         this.eB(["SAVE"], image);
+      },
+
+      _evStartTimer(args) {
+        const delay = +args[1] || 0;
+        const repeat = args[2] === "true";
+        const eventName = args[3];
+        if (!z2ui5.timers) z2ui5.timers = {};
+        clearTimeout(z2ui5.timers[eventName]);
+        const fire = () => {
+          this.eB([eventName]);
+          if (repeat) z2ui5.timers[eventName] = setTimeout(fire, delay);
+          else delete z2ui5.timers[eventName];
+        };
+        z2ui5.timers[eventName] = setTimeout(fire, delay);
+      },
+
+      _evStopTimer(args) {
+        if (!z2ui5.timers) return;
+        clearTimeout(z2ui5.timers[args[1]]);
+        delete z2ui5.timers[args[1]];
       },
 
       _evSetFocus(args) {
