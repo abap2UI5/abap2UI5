@@ -597,10 +597,7 @@ sap.ui.define(
             this._evImageEditorPopupClose();
             break;
           case "SET_TITLE":
-            document.title = args[1] == null ? "" : String(args[1]);
-            break;
-          case "SET_LP_TITLE":
-            this._evSetLpTitle(args);
+            this._evSetTitle(args);
             break;
           case "SET_FOCUS":
             this._evSetFocus(args);
@@ -891,18 +888,18 @@ sap.ui.define(
         Rendering.attachAfterRendering(onAfterRendering);
       },
 
-      _evSetLpTitle(args) {
+      _evSetTitle(args) {
+        const title = args[1] == null ? "" : String(args[1]);
+        document.title = title;
         try {
           const shell = z2ui5.oLaunchpad && z2ui5.oLaunchpad.ShellUIService;
           if (!shell || !shell.setTitle) return;
-          const result = shell.setTitle(args[1] == null ? "" : String(args[1]));
+          const result = shell.setTitle(title);
           if (result && result.catch) {
-            result.catch((e) =>
-              logError("SET_LP_TITLE: Launchpad Service setTitle failed", e),
-            );
+            result.catch((e) => logError("SET_TITLE: ShellUIService.setTitle failed", e));
           }
         } catch (e) {
-          logError("SET_LP_TITLE: Launchpad Service setTitle failed", e);
+          logError("SET_TITLE: ShellUIService.setTitle failed", e);
         }
       },
 
