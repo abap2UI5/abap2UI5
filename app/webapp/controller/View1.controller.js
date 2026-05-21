@@ -820,13 +820,14 @@ sap.ui.define(
       },
 
       _evStartTimer(args) {
-        const eventName = args[0];
-        const delay = +args[3] || 0;
+        const timerKey = args[0];
+        const callbackEvent = args[1];
+        const delay = +args[2] || 0;
         if (!z2ui5.timers) z2ui5.timers = {};
-        clearTimeout(z2ui5.timers[eventName]);
-        z2ui5.timers[eventName] = setTimeout(() => {
-          delete z2ui5.timers[eventName];
-          this.eB([eventName]);
+        clearTimeout(z2ui5.timers[timerKey]);
+        z2ui5.timers[timerKey] = setTimeout(() => {
+          delete z2ui5.timers[timerKey];
+          this.eB([callbackEvent]);
         }, delay);
       },
 
