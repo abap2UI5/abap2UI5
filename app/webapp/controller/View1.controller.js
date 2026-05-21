@@ -611,9 +611,6 @@ sap.ui.define(
           case "START_TIMER":
             this._evStartTimer(args);
             break;
-          case "STOP_TIMER":
-            this._evStopTimer(args);
-            break;
           case "Z2UI5":
             this._evZ2ui5Custom(args);
             break;
@@ -819,12 +816,6 @@ sap.ui.define(
           delete z2ui5.timers[eventName];
           this.eB([eventName]);
         }, delay);
-      },
-
-      _evStopTimer(args) {
-        if (!z2ui5.timers) return;
-        clearTimeout(z2ui5.timers[args[1]]);
-        delete z2ui5.timers[args[1]];
       },
 
       _evSetFocus(args) {
