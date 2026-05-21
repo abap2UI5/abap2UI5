@@ -15,6 +15,7 @@ sap.ui.define(
     "sap/ui/core/routing/HashChanger",
     "sap/ui/util/Storage",
     "sap/ui/core/Element",
+    "sap/ui/core/Rendering",
   ],
   (
     Controller,
@@ -32,6 +33,7 @@ sap.ui.define(
     HashChanger,
     Storage,
     Element,
+    Rendering,
   ) => {
     "use strict";
 
@@ -816,24 +818,22 @@ sap.ui.define(
       },
 
       _evFocusActiveInput() {
-        // UI5 schedules DOM updates via rAF. The first rAF lets UI5 complete
-        // its rendering tasks; the second fires after the DOM has settled.
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            try {
-              const el = document.activeElement;
-              if (!el) return;
-              const input = el.matches("input, textarea")
-                ? el
-                : el.querySelector("input, textarea");
-              if (!input) return;
-              input.focus();
-              input.select();
-            } catch (e) {
-              logError("FOCUS_ACTIVE_INPUT: failed", e);
-            }
-          });
-        });
+        const onAfterRendering = () => {
+          Rendering.detachAfterRendering(onAfterRendering);
+          try {
+            const el = document.activeElement;
+            if (!el) return;
+            const input = el.matches("input, textarea")
+              ? el
+              : el.querySelector("input, textarea");
+            if (!input) return;
+            input.focus();
+            input.select();
+          } catch (e) {
+            logError("FOCUS_ACTIVE_INPUT: failed", e);
+          }
+        };
+        Rendering.attachAfterRendering(onAfterRendering);
       },
 
       _evSetLpTitle(args) {
