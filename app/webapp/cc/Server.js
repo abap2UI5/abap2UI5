@@ -37,34 +37,24 @@ sap.ui.define(
 
       _getDeviceInfo() {
         const d = sap.ui.Device;
+        const sys = d.system;
+        const system = sys.phone
+          ? "phone"
+          : sys.tablet
+            ? "tablet"
+            : sys.combi
+              ? "combi"
+              : "desktop";
         return {
-          SYSTEM: {
-            PHONE: d.system.phone || false,
-            TABLET: d.system.tablet || false,
-            DESKTOP: d.system.desktop || false,
-            COMBI: d.system.combi || false,
-          },
+          SYSTEM: system,
+          ORIENTATION: d.orientation.portrait ? "portrait" : "landscape",
           BROWSER: {
             NAME: d.browser.name || "",
             VERSION: String(d.browser.version || ""),
-            CHROME: d.browser.chrome || false,
-            FIREFOX: d.browser.firefox || false,
-            SAFARI: d.browser.safari || false,
-            WEBKIT: d.browser.webkit || false,
-            MOBILE: d.browser.mobile || false,
           },
           OS: {
             NAME: d.os.name || "",
             VERSION: String(d.os.version || ""),
-            WINDOWS: d.os.windows || false,
-            MACINTOSH: d.os.macintosh || false,
-            LINUX: d.os.linux || false,
-            IOS: d.os.ios || false,
-            ANDROID: d.os.android || false,
-          },
-          ORIENTATION: {
-            PORTRAIT: d.orientation.portrait || false,
-            LANDSCAPE: d.orientation.landscape || false,
           },
           RESIZE: {
             WIDTH: d.resize.width || window.innerWidth,
