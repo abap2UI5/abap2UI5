@@ -28,9 +28,9 @@ INTERFACE z2ui5_if_client
       set_lp_title              TYPE string VALUE `SET_LP_TITLE`,
       set_focus                 TYPE string VALUE `SET_FOCUS`,
       set_focus_cell            TYPE string VALUE `SET_FOCUS_CELL`,
-      focus_active_input        TYPE string VALUE `FOCUS_ACTIVE_INPUT`,
       start_timer               TYPE string VALUE `START_TIMER`,
-      set_input_mode            TYPE string VALUE `SET_INPUT_MODE`,
+      keyboard_keep_open        TYPE string VALUE `KEYBOARD_KEEP_OPEN`,
+      keyboard_set_mode         TYPE string VALUE `KEYBOARD_SET_MODE`,
     END OF cs_event.
 
   CONSTANTS:

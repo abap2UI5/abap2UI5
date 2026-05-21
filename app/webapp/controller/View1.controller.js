@@ -608,13 +608,13 @@ sap.ui.define(
           case "SET_FOCUS_CELL":
             this._evSetCellFocus(args);
             break;
-          case "FOCUS_ACTIVE_INPUT":
+          case "KEYBOARD_KEEP_OPEN":
             this._evFocusActiveInput();
             break;
           case "START_TIMER":
             this._evStartTimer(args);
             break;
-          case "SET_INPUT_MODE":
+          case "KEYBOARD_SET_MODE":
             this._evSetInputMode(args);
             break;
           case "Z2UI5":
@@ -836,7 +836,7 @@ sap.ui.define(
           if (!input) return;
           input.setAttribute("inputmode", args[2] || "text");
         } catch (e) {
-          logError(`SET_INPUT_MODE: setAttribute failed for '${args[1]}'`, e);
+          logError(`KEYBOARD_SET_MODE: setAttribute failed for '${args[1]}'`, e);
         }
       },
 
