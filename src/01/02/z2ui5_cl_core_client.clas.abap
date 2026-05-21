@@ -68,29 +68,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                       _s_nav-check_call      = xsdbool( mo_action->ms_next-o_app_call IS NOT INITIAL )
                       _s_nav-check_leave     = xsdbool( mo_action->ms_next-o_app_leave IS NOT INITIAL ) ).
 
-    TRY.
-
-        DATA(lo_comp) = mo_action->mo_http_post->ms_request-s_front-o_comp_data.
-        IF lo_comp IS NOT BOUND.
-          RETURN.
-        ENDIF.
-        DATA(lo_params) = lo_comp->slice( `/startupParameters/` ).
-
-        IF lo_params IS NOT BOUND.
-          RETURN.
-        ENDIF.
-        LOOP AT lo_params->mt_json_tree                 "#EC CI_SORTSEQ
-             REFERENCE INTO DATA(lr_comp)
-             WHERE name = `1`.
-
-          INSERT VALUE #( n = shift_left( val = shift_right( val = lr_comp->path
-                                                             sub = `/` )
-                                          sub = `/` )
-                          v = lr_comp->value ) INTO TABLE result-t_comp_params.
-        ENDLOOP.
-      CATCH cx_root ##NO_HANDLER.
-    ENDTRY.
-
   ENDMETHOD.
 
   METHOD z2ui5_if_client~get_event_arg.
