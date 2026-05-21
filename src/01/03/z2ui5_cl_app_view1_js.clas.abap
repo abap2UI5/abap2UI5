@@ -639,6 +639,15 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          case "Z2UI5":` && |\n| &&
              `            this._evZ2ui5Custom(args);` && |\n| &&
              `            break;` && |\n| &&
+             `          case "EXPAND_TO_LEVEL":` && |\n| &&
+             `            this._evExpandToLevel(args);` && |\n| &&
+             `            break;` && |\n| &&
+             `          case "WIZARD_SET_NEXT_STEP":` && |\n| &&
+             `            this._evWizardSetNextStep(args);` && |\n| &&
+             `            break;` && |\n| &&
+             `          case "PLAY_AUDIO":` && |\n| &&
+             `            this._evPlayAudio(args);` && |\n| &&
+             `            break;` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -811,6 +820,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            ),` && |\n| &&
              `          TRIGGER_SMS: () => _URLHelper.triggerSms(params),` && |\n| &&
              `          TRIGGER_TEL: () => _URLHelper.triggerTel(params),` && |\n| &&
+             |\n|.
+    result = result &&
              `        };` && |\n| &&
              `        try {` && |\n| &&
              `          const fn = actions[args[1]];` && |\n| &&
@@ -820,8 +831,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             |\n|.
-    result = result &&
              `      _evImageEditorPopupClose() {` && |\n| &&
              `        let image;` && |\n| &&
              `        try {` && |\n| &&
@@ -940,6 +949,35 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          if (fn) fn(args.slice(2));` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          logError(``Z2UI5: '${args[1]}' failed``, e);` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _evExpandToLevel(args) {` && |\n| &&
+             `        try {` && |\n| &&
+             `          const ctrl = z2ui5.oView && z2ui5.oView.byId(args[1]);` && |\n| &&
+             `          if (ctrl && ctrl.expandToLevel) ctrl.expandToLevel(+args[2]);` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          logError(``EXPAND_TO_LEVEL: failed for '${args[1]}'``, e);` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _evWizardSetNextStep(args) {` && |\n| &&
+             `        try {` && |\n| &&
+             `          const wiz = z2ui5.oView && z2ui5.oView.byId(args[1]);` && |\n| &&
+             `          const step = z2ui5.oView && z2ui5.oView.byId(args[2]);` && |\n| &&
+             `          const nextStep = z2ui5.oView && z2ui5.oView.byId(args[3]);` && |\n| &&
+             `          if (wiz && step) wiz.discardProgress(step);` && |\n| &&
+             `          if (step && nextStep) step.setNextStep(nextStep);` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          logError(``WIZARD_SET_NEXT_STEP: failed for wizard '${args[1]}'``, e);` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _evPlayAudio(args) {` && |\n| &&
+             `        try {` && |\n| &&
+             `          new Audio(args[1]).play();` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          logError(``PLAY_AUDIO: failed for '${args[1]}'``, e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
