@@ -594,6 +594,12 @@ sap.ui.define(
           case "IMAGE_EDITOR_POPUP_CLOSE":
             this._evImageEditorPopupClose();
             break;
+          case "SET_TITLE":
+            document.title = args[1] == null ? "" : String(args[1]);
+            break;
+          case "SET_LP_TITLE":
+            this._evSetLpTitle(args);
+            break;
           case "Z2UI5":
             this._evZ2ui5Custom(args);
             break;
@@ -788,6 +794,21 @@ sap.ui.define(
         }
         this.PopupDestroy();
         this.eB(["SAVE"], image);
+      },
+
+      _evSetLpTitle(args) {
+        try {
+          const shell = z2ui5.oLaunchpad && z2ui5.oLaunchpad.ShellUIService;
+          if (!shell || !shell.setTitle) return;
+          const result = shell.setTitle(args[1] == null ? "" : String(args[1]));
+          if (result && result.catch) {
+            result.catch((e) =>
+              logError("SET_LP_TITLE: Launchpad Service setTitle failed", e),
+            );
+          }
+        } catch (e) {
+          logError("SET_LP_TITLE: Launchpad Service setTitle failed", e);
+        }
       },
 
       _evZ2ui5Custom(args) {

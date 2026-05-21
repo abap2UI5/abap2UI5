@@ -24,6 +24,8 @@ INTERFACE z2ui5_if_client
       store_data                TYPE string VALUE `STORE_DATA`,
       image_editor_popup_close  TYPE string VALUE `IMAGE_EDITOR_POPUP_CLOSE`,
       system_logout             TYPE string VALUE `SYSTEM_LOGOUT`,
+      set_title                 TYPE string VALUE `SET_TITLE`,
+      set_lp_title              TYPE string VALUE `SET_LP_TITLE`,
     END OF cs_event.
 
   CONSTANTS:
