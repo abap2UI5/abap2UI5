@@ -120,10 +120,10 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
                          IMPORTING ev_container     = result-s_front-s_focus ).
     ENDIF.
 
-    result-s_front-s_ui5_version-version         = lo_ajson->get_string( `/CONFIG/S_UI5/VERSION` ).
-    result-s_front-s_ui5_version-build_timestamp = lo_ajson->get_string( `/CONFIG/S_UI5/BUILDTIMESTAMP` ).
-    result-s_front-s_ui5_version-gav             = lo_ajson->get_string( `/CONFIG/S_UI5/GAV` ).
-    result-s_front-s_ui5_version-theme           = lo_ajson->get_string( `/CONFIG/S_UI5/THEME` ).
+    result-s_front-s_ui5-version         = lo_ajson->get_string( `/CONFIG/S_UI5/VERSION` ).
+    result-s_front-s_ui5-build_timestamp = lo_ajson->get_string( `/CONFIG/S_UI5/BUILDTIMESTAMP` ).
+    result-s_front-s_ui5-gav             = lo_ajson->get_string( `/CONFIG/S_UI5/GAV` ).
+    result-s_front-s_ui5-theme           = lo_ajson->get_string( `/CONFIG/S_UI5/THEME` ).
 
     result-s_control-check_launchpad = xsdbool(
         result-s_front-search   CS `scenario=LAUNCHPAD`
