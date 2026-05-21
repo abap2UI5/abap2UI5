@@ -160,9 +160,7 @@ sap.ui.define(
               version: info.version,
               buildTimestamp: info.buildTimestamp,
               gav: info.gav,
-              theme: sap.ui.core.Theming
-                ? sap.ui.core.Theming.getTheme()
-                : "",
+              theme: sap.ui.core.Theming ? sap.ui.core.Theming.getTheme() : "",
             };
           }
         } catch (e) {

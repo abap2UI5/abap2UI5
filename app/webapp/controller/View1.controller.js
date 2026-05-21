@@ -833,7 +833,10 @@ sap.ui.define(
           if (!input) return;
           input.setAttribute("inputmode", args[2] || "text");
         } catch (e) {
-          logError(`KEYBOARD_SET_MODE: setAttribute failed for '${args[1]}'`, e);
+          logError(
+            `KEYBOARD_SET_MODE: setAttribute failed for '${args[1]}'`,
+            e,
+          );
         }
       },
 
@@ -895,7 +898,9 @@ sap.ui.define(
           if (shell && shell.setTitle) {
             const result = shell.setTitle(title);
             if (result && result.catch) {
-              result.catch((e) => logError("SET_TITLE: ShellUIService.setTitle failed", e));
+              result.catch((e) =>
+                logError("SET_TITLE: ShellUIService.setTitle failed", e),
+              );
             }
           } else {
             document.title = title;

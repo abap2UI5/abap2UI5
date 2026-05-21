@@ -35,6 +35,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    "sap/ui/core/routing/HashChanger",` && |\n| &&
              `    "sap/ui/util/Storage",` && |\n| &&
              `    "sap/ui/core/Element",` && |\n| &&
+             `    "sap/ui/core/Rendering",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    Controller,` && |\n| &&
@@ -52,6 +53,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    HashChanger,` && |\n| &&
              `    Storage,` && |\n| &&
              `    Element,` && |\n| &&
+             `    Rendering,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -416,10 +418,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          });` && |\n| &&
              `          const appAlive =` && |\n| &&
              `            z2ui5.oApp &&` && |\n| &&
-             `            (!z2ui5.oApp.isDestroyed || !z2ui5.oApp.isDestroyed());` && |\n| &&
-             `          if (!appAlive) {` && |\n| &&
              |\n|.
     result = result &&
+             `            (!z2ui5.oApp.isDestroyed || !z2ui5.oApp.isDestroyed());` && |\n| &&
+             `          if (!appAlive) {` && |\n| &&
              `            oFragment.destroy();` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
@@ -616,6 +618,24 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          case "IMAGE_EDITOR_POPUP_CLOSE":` && |\n| &&
              `            this._evImageEditorPopupClose();` && |\n| &&
              `            break;` && |\n| &&
+             `          case "SET_TITLE":` && |\n| &&
+             `            this._evSetTitle(args);` && |\n| &&
+             `            break;` && |\n| &&
+             `          case "SET_FOCUS":` && |\n| &&
+             `            this._evSetFocus(args);` && |\n| &&
+             `            break;` && |\n| &&
+             `          case "SET_FOCUS_CELL":` && |\n| &&
+             `            this._evSetCellFocus(args);` && |\n| &&
+             `            break;` && |\n| &&
+             `          case "KEYBOARD_KEEP_OPEN":` && |\n| &&
+             `            this._evFocusActiveInput();` && |\n| &&
+             `            break;` && |\n| &&
+             `          case "START_TIMER":` && |\n| &&
+             `            this._evStartTimer(args);` && |\n| &&
+             `            break;` && |\n| &&
+             `          case "KEYBOARD_SET_MODE":` && |\n| &&
+             `            this._evSetInputMode(args);` && |\n| &&
+             `            break;` && |\n| &&
              `          case "Z2UI5":` && |\n| &&
              `            this._evZ2ui5Custom(args);` && |\n| &&
              `            break;` && |\n| &&
@@ -800,6 +820,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             |\n|.
+    result = result &&
              `      _evImageEditorPopupClose() {` && |\n| &&
              `        let image;` && |\n| &&
              `        try {` && |\n| &&
@@ -812,6 +834,106 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        this.eB(["SAVE"], image);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      _evStartTimer(args) {` && |\n| &&
+             `        const eventName = args[1];` && |\n| &&
+             `        const delay = +args[2] || 0;` && |\n| &&
+             `        if (!z2ui5.timers) z2ui5.timers = {};` && |\n| &&
+             `        clearTimeout(z2ui5.timers[eventName]);` && |\n| &&
+             `        z2ui5.timers[eventName] = setTimeout(() => {` && |\n| &&
+             `          delete z2ui5.timers[eventName];` && |\n| &&
+             `          this.eB([eventName]);` && |\n| &&
+             `        }, delay);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _evSetInputMode(args) {` && |\n| &&
+             `        try {` && |\n| &&
+             `          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);` && |\n| &&
+             `          if (!oElement) return;` && |\n| &&
+             `          const dom = oElement.getDomRef();` && |\n| &&
+             `          if (!dom) return;` && |\n| &&
+             `          const input = dom.matches("input, textarea")` && |\n| &&
+             `            ? dom` && |\n| &&
+             `            : dom.querySelector("input, textarea");` && |\n| &&
+             `          if (!input) return;` && |\n| &&
+             `          input.setAttribute("inputmode", args[2] || "text");` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          logError(` && |\n| &&
+             `            ``KEYBOARD_SET_MODE: setAttribute failed for '${args[1]}'``,` && |\n| &&
+             `            e,` && |\n| &&
+             `          );` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _evSetFocus(args) {` && |\n| &&
+             `        try {` && |\n| &&
+             `          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);` && |\n| &&
+             `          if (!oElement) return;` && |\n| &&
+             `          const info = oElement.getFocusInfo();` && |\n| &&
+             `          if (args[2] != null && args[2] !== "") info.selectionStart = +args[2];` && |\n| &&
+             `          if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];` && |\n| &&
+             `          oElement.applyFocusInfo(info);` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          logError(``SET_FOCUS: failed for '${args[1]}'``, e);` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _evSetCellFocus(args) {` && |\n| &&
+             `        try {` && |\n| &&
+             `          // args[1] = column view-relative ID, args[2] = row index (0-based)` && |\n| &&
+             `          const oColumn = z2ui5.oView && z2ui5.oView.byId(args[1]);` && |\n| &&
+             `          if (!oColumn) return;` && |\n| &&
+             `          const oTable = oColumn.getParent();` && |\n| &&
+             `          if (!oTable) return;` && |\n| &&
+             `          const colIdx = oTable.indexOfColumn(oColumn);` && |\n| &&
+             `          const rows = oTable.getItems ? oTable.getItems() : oTable.getRows();` && |\n| &&
+             `          const oRow = rows[+args[2]];` && |\n| &&
+             `          if (!oRow) return;` && |\n| &&
+             `          const oCell = oRow.getCells()[colIdx];` && |\n| &&
+             `          if (!oCell) return;` && |\n| &&
+             `          oCell.applyFocusInfo(oCell.getFocusInfo());` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          logError(``SET_FOCUS_CELL: failed for column '${args[1]}'``, e);` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _evFocusActiveInput() {` && |\n| &&
+             `        const onAfterRendering = () => {` && |\n| &&
+             `          Rendering.detachAfterRendering(onAfterRendering);` && |\n| &&
+             `          try {` && |\n| &&
+             `            const el = document.activeElement;` && |\n| &&
+             `            if (!el) return;` && |\n| &&
+             `            const input = el.matches("input, textarea")` && |\n| &&
+             `              ? el` && |\n| &&
+             `              : el.querySelector("input, textarea");` && |\n| &&
+             `            if (!input) return;` && |\n| &&
+             `            input.focus();` && |\n| &&
+             `            input.select();` && |\n| &&
+             `          } catch (e) {` && |\n| &&
+             `            logError("FOCUS_ACTIVE_INPUT: failed", e);` && |\n| &&
+             `          }` && |\n| &&
+             `        };` && |\n| &&
+             `        Rendering.attachAfterRendering(onAfterRendering);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _evSetTitle(args) {` && |\n| &&
+             `        const title = args[1] == null ? "" : String(args[1]);` && |\n| &&
+             `        try {` && |\n| &&
+             `          const shell = z2ui5.oLaunchpad && z2ui5.oLaunchpad.ShellUIService;` && |\n| &&
+             `          if (shell && shell.setTitle) {` && |\n| &&
+             `            const result = shell.setTitle(title);` && |\n| &&
+             `            if (result && result.catch) {` && |\n| &&
+             `              result.catch((e) =>` && |\n| &&
+             `                logError("SET_TITLE: ShellUIService.setTitle failed", e),` && |\n| &&
+             `              );` && |\n| &&
+             `            }` && |\n| &&
+             `          } else {` && |\n| &&
+             `            document.title = title;` && |\n| &&
+             `          }` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          logError("SET_TITLE: ShellUIService.setTitle failed", e);` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      _evZ2ui5Custom(args) {` && |\n| &&
              `        try {` && |\n| &&
              `          const fn = z2ui5[args[1]];` && |\n| &&
@@ -820,8 +942,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          logError(``Z2UI5: '${args[1]}' failed``, e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
-             |\n|.
-    result = result &&
              `` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `      // eB: trigger a backend roundtrip with arguments.` && |\n| &&

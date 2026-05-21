@@ -55,6 +55,75 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        delete z2ui5.contextId;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      _getDeviceInfo() {` && |\n| &&
+             `        const d = sap.ui.Device;` && |\n| &&
+             `        const sys = d.system;` && |\n| &&
+             `        const system = sys.phone` && |\n| &&
+             `          ? "phone"` && |\n| &&
+             `          : sys.tablet` && |\n| &&
+             `            ? "tablet"` && |\n| &&
+             `            : sys.combi` && |\n| &&
+             `              ? "combi"` && |\n| &&
+             `              : "desktop";` && |\n| &&
+             `        return {` && |\n| &&
+             `          SYSTEM: system,` && |\n| &&
+             `          ORIENTATION: d.orientation.portrait ? "portrait" : "landscape",` && |\n| &&
+             `          BROWSER: {` && |\n| &&
+             `            NAME: d.browser.name || "",` && |\n| &&
+             `            VERSION: String(d.browser.version || ""),` && |\n| &&
+             `          },` && |\n| &&
+             `          OS: {` && |\n| &&
+             `            NAME: d.os.name || "",` && |\n| &&
+             `            VERSION: String(d.os.version || ""),` && |\n| &&
+             `          },` && |\n| &&
+             `          RESIZE: {` && |\n| &&
+             `            WIDTH: d.resize.width || window.innerWidth,` && |\n| &&
+             `            HEIGHT: d.resize.height || window.innerHeight,` && |\n| &&
+             `          },` && |\n| &&
+             `          SUPPORT: {` && |\n| &&
+             `            TOUCH: d.support.touch || false,` && |\n| &&
+             `            POINTER: d.support.pointer || false,` && |\n| &&
+             `            RETINA: d.support.retina || false,` && |\n| &&
+             `          },` && |\n| &&
+             `        };` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _getFocusInfo() {` && |\n| &&
+             `        try {` && |\n| &&
+             `          const active = document.activeElement;` && |\n| &&
+             `          if (!active) return {};` && |\n| &&
+             `          const ui5El =` && |\n| &&
+             `            sap.ui.core.Element && sap.ui.core.Element.closestTo` && |\n| &&
+             `              ? sap.ui.core.Element.closestTo(active)` && |\n| &&
+             `              : null;` && |\n| &&
+             `          if (!ui5El) return {};` && |\n| &&
+             `          const fullId = ui5El.getId();` && |\n| &&
+             `          const views = [` && |\n| &&
+             `            z2ui5.oView,` && |\n| &&
+             `            z2ui5.oViewNest,` && |\n| &&
+             `            z2ui5.oViewNest2,` && |\n| &&
+             `            z2ui5.oViewPopup,` && |\n| &&
+             `            z2ui5.oViewPopover,` && |\n| &&
+             `          ];` && |\n| &&
+             `          let id = fullId;` && |\n| &&
+             `          for (const v of views) {` && |\n| &&
+             `            if (!v) continue;` && |\n| &&
+             `            const prefix = v.getId() + "--";` && |\n| &&
+             `            if (fullId.startsWith(prefix)) {` && |\n| &&
+             `              id = fullId.slice(prefix.length);` && |\n| &&
+             `              break;` && |\n| &&
+             `            }` && |\n| &&
+             `          }` && |\n| &&
+             `          return {` && |\n| &&
+             `            ID: id,` && |\n| &&
+             `            SELECTION_START: active.selectionStart || 0,` && |\n| &&
+             `            SELECTION_END: active.selectionEnd || 0,` && |\n| &&
+             `          };` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          return {};` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      Roundtrip() {` && |\n| &&
              `        z2ui5.checkTimerActive = false;` && |\n| &&
              `        z2ui5.checkNestAfter = false;` && |\n| &&
@@ -78,6 +147,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          VIEW: oBody.VIEWNAME,` && |\n| &&
              `          EVENT: eventName,` && |\n| &&
              `          HASH: window.location.hash,` && |\n| &&
+             `          S_DEVICE: this._getDeviceInfo(),` && |\n| &&
+             `          S_FOCUS: this._getFocusInfo(),` && |\n| &&
              `        };` && |\n| &&
              `        const sFront = oBody.S_FRONT;` && |\n| &&
              `` && |\n| &&
@@ -347,6 +418,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          fallback();` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
+             |\n|.
+    result = result &&
              `    };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
