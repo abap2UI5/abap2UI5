@@ -855,14 +855,18 @@ sap.ui.define(
 
       _evSetCellFocus(args) {
         try {
-          // args[1] = column id (matches data-columnid CustomData key)
-          // args[2] = row index (0-based)
-          const selector = `td:has([data-columnid='${args[1]}']) > div`;
-          const cellDiv = document.querySelectorAll(selector)[+args[2]];
-          if (!cellDiv) return;
-          const el = sap.ui.core.Element.getElementById(cellDiv.id);
-          if (!el) return;
-          el.applyFocusInfo(el.getFocusInfo());
+          // args[1] = column view-relative ID, args[2] = row index (0-based)
+          const oColumn = z2ui5.oView && z2ui5.oView.byId(args[1]);
+          if (!oColumn) return;
+          const oTable = oColumn.getParent();
+          if (!oTable) return;
+          const colIdx = oTable.indexOfColumn(oColumn);
+          const rows = oTable.getItems ? oTable.getItems() : oTable.getRows();
+          const oRow = rows[+args[2]];
+          if (!oRow) return;
+          const oCell = oRow.getCells()[colIdx];
+          if (!oCell) return;
+          oCell.applyFocusInfo(oCell.getFocusInfo());
         } catch (e) {
           logError(`SET_FOCUS_CELL: failed for column '${args[1]}'`, e);
         }
