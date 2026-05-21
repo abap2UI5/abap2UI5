@@ -60,7 +60,7 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
       IF lv_new IS INITIAL.
         CONTINUE.
       ENDIF.
-      IF lv_new(1) <> `$` AND lv_new(1) <> `{` AND NOT lv_new CP `.eB(*`.
+      IF lv_new(1) <> `$` AND lv_new(1) <> `{` AND lv_new NP `.eB(*`.
         lv_new = |'{ lv_new }'|.
       ENDIF.
       result = |{ result }, { lv_new }|.
