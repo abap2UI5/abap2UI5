@@ -123,6 +123,7 @@ sap.ui.define(
             S_UI5: z2ui5.oConfig && z2ui5.oConfig.S_UI5,
             S_DEVICE: this._getDeviceInfo(),
             S_FOCUS: this._getFocusInfo(),
+            ComponentData: z2ui5.oConfig && z2ui5.oConfig.ComponentData,
           },
           ID: oBody.ID,
           ORIGIN: window.location.origin,

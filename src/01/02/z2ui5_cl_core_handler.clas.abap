@@ -53,8 +53,11 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
     METHODS request_app_start
       IMPORTING
         iv_search     TYPE string
+        io_comp_data  TYPE REF TO z2ui5_if_ajson
       RETURNING
-        VALUE(result) TYPE string.
+        VALUE(result) TYPE string
+      RAISING
+        z2ui5_cx_ajson_error.
 
     METHODS request_app_start_draft
       IMPORTING
@@ -75,7 +78,8 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         ENDIF.
 
         result-s_control-app_start =
-          request_app_start( result-s_front-search ).
+          request_app_start( iv_search    = result-s_front-search
+                             io_comp_data = result-s_front-o_comp_data ).
         result-s_control-app_start_draft =
           request_app_start_draft( result-s_front-hash ).
 
@@ -103,6 +107,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     lo_ajson = lo_ajson->slice( `/S_FRONT` ).
     lo_ajson->to_abap( EXPORTING iv_corresponding = abap_true
                        IMPORTING ev_container     = result-s_front ).
+    result-s_front-o_comp_data = lo_ajson->slice( `/CONFIG/ComponentData` ).
 
     DATA(lo_device) = lo_ajson->slice( `/CONFIG/S_DEVICE` ).
     IF lo_device IS BOUND.
@@ -127,6 +132,22 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD request_app_start.
+    TRY.
+        IF io_comp_data IS BOUND.
+          result = z2ui5_cl_util=>c_trim_upper(
+              io_comp_data->get( `/startupParameters/app_start/1` ) ).
+        ENDIF.
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+
+    IF result IS NOT INITIAL.
+      IF result(1) = `-`.
+        REPLACE FIRST OCCURRENCE OF `-` IN result WITH `/`.
+        REPLACE FIRST OCCURRENCE OF `-` IN result WITH `/`.
+      ENDIF.
+      RETURN.
+    ENDIF.
+
     result = z2ui5_cl_util=>c_trim_upper(
         z2ui5_cl_util=>url_param_get( val = `app_start`
                                       url = iv_search ) ).

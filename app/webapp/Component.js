@@ -39,6 +39,7 @@ sap.ui.define(
         if (typeof z2ui5 === "undefined") z2ui5 = {};
         if (z2ui5.checkLocal === false) z2ui5 = {};
         if (typeof z2ui5.oConfig === "undefined") z2ui5.oConfig = {};
+        z2ui5.oConfig.ComponentData = this.getComponentData();
 
         z2ui5.oDeviceModel = Models.createDeviceModel();
         this.setModel(z2ui5.oDeviceModel, "device");

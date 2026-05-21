@@ -165,6 +165,7 @@ INTERFACE z2ui5_if_core_types
         view        TYPE string,
         t_event_arg TYPE string_table,
         event       TYPE string,
+        o_comp_data TYPE REF TO z2ui5_if_ajson,
         origin      TYPE string,
         pathname    TYPE string,
         search      TYPE string,
