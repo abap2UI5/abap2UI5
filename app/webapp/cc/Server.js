@@ -119,16 +119,18 @@ sap.ui.define(
         }
 
         oBody.S_FRONT = {
+          CONFIG: {
+            S_UI5: z2ui5.oConfig && z2ui5.oConfig.S_UI5,
+            S_DEVICE: this._getDeviceInfo(),
+            S_FOCUS: this._getFocusInfo(),
+          },
           ID: oBody.ID,
-          CONFIG: z2ui5.oConfig,
           ORIGIN: window.location.origin,
           PATHNAME: window.location.pathname,
           SEARCH: z2ui5.search || window.location.search,
           VIEW: oBody.VIEWNAME,
           EVENT: eventName,
           HASH: window.location.hash,
-          S_DEVICE: this._getDeviceInfo(),
-          S_FOCUS: this._getFocusInfo(),
         };
         const sFront = oBody.S_FRONT;
 
