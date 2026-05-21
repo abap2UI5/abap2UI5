@@ -603,6 +603,9 @@ sap.ui.define(
           case "SET_FOCUS":
             this._evSetFocus(args);
             break;
+          case "FOCUS_ACTIVE_INPUT":
+            this._evFocusActiveInput();
+            break;
           case "Z2UI5":
             this._evZ2ui5Custom(args);
             break;
@@ -810,6 +813,26 @@ sap.ui.define(
         } catch (e) {
           logError(`SET_FOCUS: applyFocusInfo failed for '${args[1]}'`, e);
         }
+      },
+
+      _evFocusActiveInput() {
+        // After a roundtrip the DOM re-renders and focus is lost. Wait for the
+        // render cycle to finish, then re-focus the input inside the previously
+        // active cell (e.g. a sap.ui.table input column).
+        setTimeout(() => {
+          try {
+            const el = document.activeElement;
+            if (!el) return;
+            const input = el.matches("input, textarea")
+              ? el
+              : el.querySelector("input, textarea");
+            if (!input) return;
+            input.focus();
+            input.select();
+          } catch (e) {
+            logError("FOCUS_ACTIVE_INPUT: failed", e);
+          }
+        }, 100);
       },
 
       _evSetLpTitle(args) {
