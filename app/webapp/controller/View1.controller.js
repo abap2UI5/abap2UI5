@@ -839,14 +839,26 @@ sap.ui.define(
 
       _evSetFocus(args) {
         try {
+          // Mode 1: focus by UI5 view element ID (with optional selection range)
           const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
-          if (!oElement) return;
-          const info = oElement.getFocusInfo();
-          if (args[2] != null && args[2] !== "") info.selectionStart = +args[2];
-          if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];
-          oElement.applyFocusInfo(info);
+          if (oElement) {
+            const info = oElement.getFocusInfo();
+            if (args[2] != null && args[2] !== "") info.selectionStart = +args[2];
+            if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];
+            oElement.applyFocusInfo(info);
+            return;
+          }
+          // Mode 2: focus table cell by data-columnid + row index
+          // args[1] = column id (matches data-columnid attribute set via CustomData)
+          // args[2] = row index (0-based)
+          const selector = `td:has([data-columnid='${args[1]}']) > div`;
+          const cellDiv = document.querySelectorAll(selector)[+args[2]];
+          if (!cellDiv) return;
+          const el = sap.ui.core.Element.getElementById(cellDiv.id);
+          if (!el) return;
+          el.applyFocusInfo(el.getFocusInfo());
         } catch (e) {
-          logError(`SET_FOCUS: applyFocusInfo failed for '${args[1]}'`, e);
+          logError(`SET_FOCUS: failed for '${args[1]}'`, e);
         }
       },
 
