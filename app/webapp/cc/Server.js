@@ -38,16 +38,43 @@ sap.ui.define(
       _getDeviceInfo() {
         const d = sap.ui.Device;
         return {
-          DEVICE_TYPE: d.system.phone
-            ? "phone"
-            : d.system.tablet
-              ? "tablet"
-              : "desktop",
-          ORIENTATION: d.orientation.portrait ? "portrait" : "landscape",
-          SCREEN_WIDTH: window.screen.width,
-          SCREEN_HEIGHT: window.screen.height,
-          WINDOW_WIDTH: window.innerWidth,
-          WINDOW_HEIGHT: window.innerHeight,
+          SYSTEM: {
+            PHONE: d.system.phone || false,
+            TABLET: d.system.tablet || false,
+            DESKTOP: d.system.desktop || false,
+            COMBI: d.system.combi || false,
+          },
+          BROWSER: {
+            NAME: d.browser.name || "",
+            VERSION: String(d.browser.version || ""),
+            CHROME: d.browser.chrome || false,
+            FIREFOX: d.browser.firefox || false,
+            SAFARI: d.browser.safari || false,
+            WEBKIT: d.browser.webkit || false,
+            MOBILE: d.browser.mobile || false,
+          },
+          OS: {
+            NAME: d.os.name || "",
+            VERSION: String(d.os.version || ""),
+            WINDOWS: d.os.windows || false,
+            MACINTOSH: d.os.macintosh || false,
+            LINUX: d.os.linux || false,
+            IOS: d.os.ios || false,
+            ANDROID: d.os.android || false,
+          },
+          ORIENTATION: {
+            PORTRAIT: d.orientation.portrait || false,
+            LANDSCAPE: d.orientation.landscape || false,
+          },
+          RESIZE: {
+            WIDTH: d.resize.width || window.innerWidth,
+            HEIGHT: d.resize.height || window.innerHeight,
+          },
+          SUPPORT: {
+            TOUCH: d.support.touch || false,
+            POINTER: d.support.pointer || false,
+            RETINA: d.support.retina || false,
+          },
         };
       },
 
