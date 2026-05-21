@@ -25,8 +25,9 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `    "z2ui5/cc/Server",` && |\n| &&
              `    "sap/ui/VersionInfo",` && |\n| &&
              `    "z2ui5/cc/DebugTool",` && |\n| &&
+             `    "sap/ui/core/Theming",` && |\n| &&
              `  ],` && |\n| &&
-             `  (UIComponent, Models, Server, VersionInfo, DebugTool) => {` && |\n| &&
+             `  (UIComponent, Models, Server, VersionInfo, DebugTool, Theming) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Append an entry to the global error log. We create the array on first use.` && |\n| &&
@@ -180,7 +181,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `              version: info.version,` && |\n| &&
              `              buildTimestamp: info.buildTimestamp,` && |\n| &&
              `              gav: info.gav,` && |\n| &&
-             `              theme: sap.ui.core.Theming ? sap.ui.core.Theming.getTheme() : "",` && |\n| &&
+             `              theme: Theming ? Theming.getTheme() : "",` && |\n| &&
              `            };` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&

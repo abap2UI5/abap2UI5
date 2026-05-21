@@ -5,8 +5,9 @@ sap.ui.define(
     "z2ui5/cc/Server",
     "sap/ui/VersionInfo",
     "z2ui5/cc/DebugTool",
+    "sap/ui/core/Theming",
   ],
-  (UIComponent, Models, Server, VersionInfo, DebugTool) => {
+  (UIComponent, Models, Server, VersionInfo, DebugTool, Theming) => {
     "use strict";
 
     // Append an entry to the global error log. We create the array on first use.
@@ -160,7 +161,7 @@ sap.ui.define(
               version: info.version,
               buildTimestamp: info.buildTimestamp,
               gav: info.gav,
-              theme: sap.ui.core.Theming ? sap.ui.core.Theming.getTheme() : "",
+              theme: Theming ? Theming.getTheme() : "",
             };
           }
         } catch (e) {
