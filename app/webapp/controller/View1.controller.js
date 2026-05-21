@@ -611,6 +611,9 @@ sap.ui.define(
           case "START_TIMER":
             this._evStartTimer(args);
             break;
+          case "SET_INPUT_MODE":
+            this._evSetInputMode(args);
+            break;
           case "Z2UI5":
             this._evZ2ui5Custom(args);
             break;
@@ -816,6 +819,22 @@ sap.ui.define(
           delete z2ui5.timers[eventName];
           this.eB([eventName]);
         }, delay);
+      },
+
+      _evSetInputMode(args) {
+        try {
+          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
+          if (!oElement) return;
+          const dom = oElement.getDomRef();
+          if (!dom) return;
+          const input = dom.matches("input, textarea")
+            ? dom
+            : dom.querySelector("input, textarea");
+          if (!input) return;
+          input.setAttribute("inputmode", args[2] || "text");
+        } catch (e) {
+          logError(`SET_INPUT_MODE: setAttribute failed for '${args[1]}'`, e);
+        }
       },
 
       _evSetFocus(args) {
