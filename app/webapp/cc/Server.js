@@ -23,7 +23,7 @@ sap.ui.define(
         if (!z2ui5.contextId) return;
         // Best-effort notify the backend that the session ends. Errors are
         // intentionally swallowed: the browser tab is closing anyway.
-        fetch(z2ui5.oConfig.pathname, {
+        fetch(z2ui5.url, {
           method: "HEAD",
           keepalive: true,
           headers: {
@@ -156,7 +156,7 @@ sap.ui.define(
         // Step 1: send the request.
         let response;
         try {
-          response = await fetch(z2ui5.oConfig.pathname, {
+          response = await fetch(z2ui5.url, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
