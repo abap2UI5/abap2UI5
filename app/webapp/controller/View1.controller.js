@@ -600,6 +600,9 @@ sap.ui.define(
           case "SET_LP_TITLE":
             this._evSetLpTitle(args);
             break;
+          case "SET_FOCUS":
+            this._evSetFocus(args);
+            break;
           case "Z2UI5":
             this._evZ2ui5Custom(args);
             break;
@@ -794,6 +797,19 @@ sap.ui.define(
         }
         this.PopupDestroy();
         this.eB(["SAVE"], image);
+      },
+
+      _evSetFocus(args) {
+        try {
+          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
+          if (!oElement) return;
+          const info = oElement.getFocusInfo();
+          if (args[2] != null && args[2] !== "") info.selectionStart = +args[2];
+          if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];
+          oElement.applyFocusInfo(info);
+        } catch (e) {
+          logError(`SET_FOCUS: applyFocusInfo failed for '${args[1]}'`, e);
+        }
       },
 
       _evSetLpTitle(args) {

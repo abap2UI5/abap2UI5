@@ -26,6 +26,7 @@ INTERFACE z2ui5_if_client
       system_logout             TYPE string VALUE `SYSTEM_LOGOUT`,
       set_title                 TYPE string VALUE `SET_TITLE`,
       set_lp_title              TYPE string VALUE `SET_LP_TITLE`,
+      set_focus                 TYPE string VALUE `SET_FOCUS`,
     END OF cs_event.
 
   CONSTANTS:
