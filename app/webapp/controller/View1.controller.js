@@ -820,8 +820,8 @@ sap.ui.define(
       },
 
       _evStartTimer(args) {
-        const eventName = args[1];
-        const delay = +args[2] || 0;
+        const eventName = args[0];
+        const delay = +args[3] || 0;
         if (!z2ui5.timers) z2ui5.timers = {};
         clearTimeout(z2ui5.timers[eventName]);
         z2ui5.timers[eventName] = setTimeout(() => {
