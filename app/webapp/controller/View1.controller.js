@@ -816,23 +816,24 @@ sap.ui.define(
       },
 
       _evFocusActiveInput() {
-        // After a roundtrip the DOM re-renders and focus is lost. Wait for the
-        // render cycle to finish, then re-focus the input inside the previously
-        // active cell (e.g. a sap.ui.table input column).
-        setTimeout(() => {
-          try {
-            const el = document.activeElement;
-            if (!el) return;
-            const input = el.matches("input, textarea")
-              ? el
-              : el.querySelector("input, textarea");
-            if (!input) return;
-            input.focus();
-            input.select();
-          } catch (e) {
-            logError("FOCUS_ACTIVE_INPUT: failed", e);
-          }
-        }, 100);
+        // UI5 schedules DOM updates via rAF. The first rAF lets UI5 complete
+        // its rendering tasks; the second fires after the DOM has settled.
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            try {
+              const el = document.activeElement;
+              if (!el) return;
+              const input = el.matches("input, textarea")
+                ? el
+                : el.querySelector("input, textarea");
+              if (!input) return;
+              input.focus();
+              input.select();
+            } catch (e) {
+              logError("FOCUS_ACTIVE_INPUT: failed", e);
+            }
+          });
+        });
       },
 
       _evSetLpTitle(args) {
