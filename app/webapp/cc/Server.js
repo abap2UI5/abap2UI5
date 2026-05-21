@@ -51,10 +51,7 @@ sap.ui.define(
 
         oBody.S_FRONT = {
           ID: oBody.ID,
-          CONFIG: {
-            UI5VersionInfo: z2ui5.oConfig && z2ui5.oConfig.UI5VersionInfo,
-            ComponentData: z2ui5.oConfig && z2ui5.oConfig.ComponentData,
-          },
+          CONFIG: z2ui5.oConfig,
           ORIGIN: window.location.origin,
           PATHNAME: window.location.pathname,
           SEARCH: z2ui5.search || window.location.search,
