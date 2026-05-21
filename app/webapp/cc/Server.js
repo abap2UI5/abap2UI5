@@ -35,6 +35,58 @@ sap.ui.define(
         delete z2ui5.contextId;
       },
 
+      _getDeviceInfo() {
+        const d = sap.ui.Device;
+        return {
+          DEVICE_TYPE: d.system.phone
+            ? "phone"
+            : d.system.tablet
+              ? "tablet"
+              : "desktop",
+          ORIENTATION: d.orientation.portrait ? "portrait" : "landscape",
+          SCREEN_WIDTH: window.screen.width,
+          SCREEN_HEIGHT: window.screen.height,
+          WINDOW_WIDTH: window.innerWidth,
+          WINDOW_HEIGHT: window.innerHeight,
+        };
+      },
+
+      _getFocusInfo() {
+        try {
+          const active = document.activeElement;
+          if (!active) return {};
+          const ui5El =
+            sap.ui.core.Element && sap.ui.core.Element.closestTo
+              ? sap.ui.core.Element.closestTo(active)
+              : null;
+          if (!ui5El) return {};
+          const fullId = ui5El.getId();
+          const views = [
+            z2ui5.oView,
+            z2ui5.oViewNest,
+            z2ui5.oViewNest2,
+            z2ui5.oViewPopup,
+            z2ui5.oViewPopover,
+          ];
+          let id = fullId;
+          for (const v of views) {
+            if (!v) continue;
+            const prefix = v.getId() + "--";
+            if (fullId.startsWith(prefix)) {
+              id = fullId.slice(prefix.length);
+              break;
+            }
+          }
+          return {
+            ID: id,
+            SELECTION_START: active.selectionStart || 0,
+            SELECTION_END: active.selectionEnd || 0,
+          };
+        } catch (e) {
+          return {};
+        }
+      },
+
       Roundtrip() {
         z2ui5.checkTimerActive = false;
         z2ui5.checkNestAfter = false;
@@ -58,6 +110,8 @@ sap.ui.define(
           VIEW: oBody.VIEWNAME,
           EVENT: eventName,
           HASH: window.location.hash,
+          S_DEVICE: this._getDeviceInfo(),
+          S_FOCUS: this._getFocusInfo(),
         };
         const sFront = oBody.S_FRONT;
 
