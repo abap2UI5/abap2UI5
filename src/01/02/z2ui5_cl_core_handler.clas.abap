@@ -108,6 +108,10 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     lo_ajson->to_abap( EXPORTING iv_corresponding = abap_true
                        IMPORTING ev_container     = result-s_front ).
     result-s_front-o_comp_data = lo_ajson->slice( `/CONFIG/ComponentData` ).
+    result-s_front-s_ui5_version-version         = lo_ajson->get_string( `/CONFIG/UI5VersionInfo/version` ).
+    result-s_front-s_ui5_version-build_timestamp = lo_ajson->get_string( `/CONFIG/UI5VersionInfo/buildTimestamp` ).
+    result-s_front-s_ui5_version-gav             = lo_ajson->get_string( `/CONFIG/UI5VersionInfo/gav` ).
+    result-s_front-s_ui5_version-theme           = lo_ajson->get_string( `/CONFIG/UI5VersionInfo/theme` ).
 
     result-s_control-check_launchpad = xsdbool(
         result-s_front-search   CS `scenario=LAUNCHPAD`
