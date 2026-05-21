@@ -844,13 +844,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _evStartTimer(args) {` && |\n| &&
-             `        const eventName = args[0];` && |\n| &&
-             `        const delay = +args[3] || 0;` && |\n| &&
+             `        const timerKey = args[0];` && |\n| &&
+             `        const callbackEvent = args[1];` && |\n| &&
+             `        const delay = +args[2] || 0;` && |\n| &&
              `        if (!z2ui5.timers) z2ui5.timers = {};` && |\n| &&
-             `        clearTimeout(z2ui5.timers[eventName]);` && |\n| &&
-             `        z2ui5.timers[eventName] = setTimeout(() => {` && |\n| &&
-             `          delete z2ui5.timers[eventName];` && |\n| &&
-             `          this.eB([eventName]);` && |\n| &&
+             `        clearTimeout(z2ui5.timers[timerKey]);` && |\n| &&
+             `        z2ui5.timers[timerKey] = setTimeout(() => {` && |\n| &&
+             `          delete z2ui5.timers[timerKey];` && |\n| &&
+             `          this.eB([callbackEvent]);` && |\n| &&
              `        }, delay);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
