@@ -890,13 +890,15 @@ sap.ui.define(
 
       _evSetTitle(args) {
         const title = args[1] == null ? "" : String(args[1]);
-        document.title = title;
         try {
           const shell = z2ui5.oLaunchpad && z2ui5.oLaunchpad.ShellUIService;
-          if (!shell || !shell.setTitle) return;
-          const result = shell.setTitle(title);
-          if (result && result.catch) {
-            result.catch((e) => logError("SET_TITLE: ShellUIService.setTitle failed", e));
+          if (shell && shell.setTitle) {
+            const result = shell.setTitle(title);
+            if (result && result.catch) {
+              result.catch((e) => logError("SET_TITLE: ShellUIService.setTitle failed", e));
+            }
+          } else {
+            document.title = title;
           }
         } catch (e) {
           logError("SET_TITLE: ShellUIService.setTitle failed", e);
