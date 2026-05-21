@@ -15,6 +15,7 @@ sap.ui.define(
     "sap/ui/core/routing/HashChanger",
     "sap/ui/util/Storage",
     "sap/ui/core/Element",
+    "sap/ui/core/Rendering",
   ],
   (
     Controller,
@@ -32,6 +33,7 @@ sap.ui.define(
     HashChanger,
     Storage,
     Element,
+    Rendering,
   ) => {
     "use strict";
 
@@ -594,6 +596,24 @@ sap.ui.define(
           case "IMAGE_EDITOR_POPUP_CLOSE":
             this._evImageEditorPopupClose();
             break;
+          case "SET_TITLE":
+            this._evSetTitle(args);
+            break;
+          case "SET_FOCUS":
+            this._evSetFocus(args);
+            break;
+          case "SET_FOCUS_CELL":
+            this._evSetCellFocus(args);
+            break;
+          case "KEYBOARD_KEEP_OPEN":
+            this._evFocusActiveInput();
+            break;
+          case "START_TIMER":
+            this._evStartTimer(args);
+            break;
+          case "KEYBOARD_SET_MODE":
+            this._evSetInputMode(args);
+            break;
           case "Z2UI5":
             this._evZ2ui5Custom(args);
             break;
@@ -788,6 +808,101 @@ sap.ui.define(
         }
         this.PopupDestroy();
         this.eB(["SAVE"], image);
+      },
+
+      _evStartTimer(args) {
+        const eventName = args[1];
+        const delay = +args[2] || 0;
+        if (!z2ui5.timers) z2ui5.timers = {};
+        clearTimeout(z2ui5.timers[eventName]);
+        z2ui5.timers[eventName] = setTimeout(() => {
+          delete z2ui5.timers[eventName];
+          this.eB([eventName]);
+        }, delay);
+      },
+
+      _evSetInputMode(args) {
+        try {
+          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
+          if (!oElement) return;
+          const dom = oElement.getDomRef();
+          if (!dom) return;
+          const input = dom.matches("input, textarea")
+            ? dom
+            : dom.querySelector("input, textarea");
+          if (!input) return;
+          input.setAttribute("inputmode", args[2] || "text");
+        } catch (e) {
+          logError(`KEYBOARD_SET_MODE: setAttribute failed for '${args[1]}'`, e);
+        }
+      },
+
+      _evSetFocus(args) {
+        try {
+          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
+          if (!oElement) return;
+          const info = oElement.getFocusInfo();
+          if (args[2] != null && args[2] !== "") info.selectionStart = +args[2];
+          if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];
+          oElement.applyFocusInfo(info);
+        } catch (e) {
+          logError(`SET_FOCUS: failed for '${args[1]}'`, e);
+        }
+      },
+
+      _evSetCellFocus(args) {
+        try {
+          // args[1] = column view-relative ID, args[2] = row index (0-based)
+          const oColumn = z2ui5.oView && z2ui5.oView.byId(args[1]);
+          if (!oColumn) return;
+          const oTable = oColumn.getParent();
+          if (!oTable) return;
+          const colIdx = oTable.indexOfColumn(oColumn);
+          const rows = oTable.getItems ? oTable.getItems() : oTable.getRows();
+          const oRow = rows[+args[2]];
+          if (!oRow) return;
+          const oCell = oRow.getCells()[colIdx];
+          if (!oCell) return;
+          oCell.applyFocusInfo(oCell.getFocusInfo());
+        } catch (e) {
+          logError(`SET_FOCUS_CELL: failed for column '${args[1]}'`, e);
+        }
+      },
+
+      _evFocusActiveInput() {
+        const onAfterRendering = () => {
+          Rendering.detachAfterRendering(onAfterRendering);
+          try {
+            const el = document.activeElement;
+            if (!el) return;
+            const input = el.matches("input, textarea")
+              ? el
+              : el.querySelector("input, textarea");
+            if (!input) return;
+            input.focus();
+            input.select();
+          } catch (e) {
+            logError("FOCUS_ACTIVE_INPUT: failed", e);
+          }
+        };
+        Rendering.attachAfterRendering(onAfterRendering);
+      },
+
+      _evSetTitle(args) {
+        const title = args[1] == null ? "" : String(args[1]);
+        try {
+          const shell = z2ui5.oLaunchpad && z2ui5.oLaunchpad.ShellUIService;
+          if (shell && shell.setTitle) {
+            const result = shell.setTitle(title);
+            if (result && result.catch) {
+              result.catch((e) => logError("SET_TITLE: ShellUIService.setTitle failed", e));
+            }
+          } else {
+            document.title = title;
+          }
+        } catch (e) {
+          logError("SET_TITLE: ShellUIService.setTitle failed", e);
+        }
       },
 
       _evZ2ui5Custom(args) {
