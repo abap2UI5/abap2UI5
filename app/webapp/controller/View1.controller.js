@@ -605,6 +605,9 @@ sap.ui.define(
           case "SET_FOCUS":
             this._evSetFocus(args);
             break;
+          case "SET_CELL_FOCUS":
+            this._evSetCellFocus(args);
+            break;
           case "FOCUS_ACTIVE_INPUT":
             this._evFocusActiveInput();
             break;
@@ -839,17 +842,20 @@ sap.ui.define(
 
       _evSetFocus(args) {
         try {
-          // Mode 1: focus by UI5 view element ID (with optional selection range)
           const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
-          if (oElement) {
-            const info = oElement.getFocusInfo();
-            if (args[2] != null && args[2] !== "") info.selectionStart = +args[2];
-            if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];
-            oElement.applyFocusInfo(info);
-            return;
-          }
-          // Mode 2: focus table cell by data-columnid + row index
-          // args[1] = column id (matches data-columnid attribute set via CustomData)
+          if (!oElement) return;
+          const info = oElement.getFocusInfo();
+          if (args[2] != null && args[2] !== "") info.selectionStart = +args[2];
+          if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];
+          oElement.applyFocusInfo(info);
+        } catch (e) {
+          logError(`SET_FOCUS: failed for '${args[1]}'`, e);
+        }
+      },
+
+      _evSetCellFocus(args) {
+        try {
+          // args[1] = column id (matches data-columnid CustomData key)
           // args[2] = row index (0-based)
           const selector = `td:has([data-columnid='${args[1]}']) > div`;
           const cellDiv = document.querySelectorAll(selector)[+args[2]];
@@ -858,7 +864,7 @@ sap.ui.define(
           if (!el) return;
           el.applyFocusInfo(el.getFocusInfo());
         } catch (e) {
-          logError(`SET_FOCUS: failed for '${args[1]}'`, e);
+          logError(`SET_CELL_FOCUS: failed for column '${args[1]}'`, e);
         }
       },
 
