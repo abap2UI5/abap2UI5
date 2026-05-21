@@ -605,7 +605,7 @@ sap.ui.define(
           case "SET_FOCUS":
             this._evSetFocus(args);
             break;
-          case "SET_CELL_FOCUS":
+          case "SET_FOCUS_CELL":
             this._evSetCellFocus(args);
             break;
           case "FOCUS_ACTIVE_INPUT":
@@ -864,7 +864,7 @@ sap.ui.define(
           if (!el) return;
           el.applyFocusInfo(el.getFocusInfo());
         } catch (e) {
-          logError(`SET_CELL_FOCUS: failed for column '${args[1]}'`, e);
+          logError(`SET_FOCUS_CELL: failed for column '${args[1]}'`, e);
         }
       },
 
