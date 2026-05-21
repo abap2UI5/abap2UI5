@@ -200,6 +200,7 @@ INTERFACE z2ui5_if_core_types
           version         TYPE string,
           build_timestamp TYPE string,
           gav             TYPE string,
+          theme           TYPE string,
         END OF s_ui5_version,
       END OF s_front,
       BEGIN OF s_control,

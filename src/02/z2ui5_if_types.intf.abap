@@ -116,6 +116,7 @@ INTERFACE z2ui5_if_types
         version         TYPE string,
         build_timestamp TYPE string,
         gav             TYPE string,
+        theme           TYPE string,
       END OF s_ui5_version,
       BEGIN OF _s_nav,
         check_leave TYPE abap_bool,
