@@ -59,7 +59,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        const dataSources = sapApp && sapApp.dataSources;` && |\n| &&
              `        const http = dataSources && dataSources.http;` && |\n| &&
              `        const uri = http && http.uri;` && |\n| &&
-             `        z2ui5.oConfig.pathname = z2ui5.checkLocal ? window.location.href : uri;` && |\n| &&
+             `        z2ui5.url = z2ui5.checkLocal ? window.location.href : uri;` && |\n| &&
              `` && |\n| &&
              `        // Set up the shared z2ui5 state used by the whole app.` && |\n| &&
              `        z2ui5.oController = new Controller();` && |\n| &&
