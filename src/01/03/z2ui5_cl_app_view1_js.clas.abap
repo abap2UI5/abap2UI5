@@ -35,7 +35,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    "sap/ui/core/routing/HashChanger",` && |\n| &&
              `    "sap/ui/util/Storage",` && |\n| &&
              `    "sap/ui/core/Element",` && |\n| &&
-             `    "sap/ui/core/Rendering",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    Controller,` && |\n| &&
@@ -53,7 +52,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    HashChanger,` && |\n| &&
              `    Storage,` && |\n| &&
              `    Element,` && |\n| &&
-             `    Rendering,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -418,10 +416,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          });` && |\n| &&
              `          const appAlive =` && |\n| &&
              `            z2ui5.oApp &&` && |\n| &&
-             |\n|.
-    result = result &&
              `            (!z2ui5.oApp.isDestroyed || !z2ui5.oApp.isDestroyed());` && |\n| &&
              `          if (!appAlive) {` && |\n| &&
+             |\n|.
+    result = result &&
              `            oFragment.destroy();` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
@@ -624,12 +622,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          case "SET_FOCUS":` && |\n| &&
              `            this._evSetFocus(args);` && |\n| &&
              `            break;` && |\n| &&
-             `          case "SET_FOCUS_CELL":` && |\n| &&
-             `            this._evSetCellFocus(args);` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "KEYBOARD_KEEP_OPEN":` && |\n| &&
-             `            this._evFocusActiveInput();` && |\n| &&
-             `            break;` && |\n| &&
              `          case "START_TIMER":` && |\n| &&
              `            this._evStartTimer(args);` && |\n| &&
              `            break;` && |\n| &&
@@ -638,9 +630,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            break;` && |\n| &&
              `          case "Z2UI5":` && |\n| &&
              `            this._evZ2ui5Custom(args);` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "EXPAND_TO_LEVEL":` && |\n| &&
-             `            this._evExpandToLevel(args);` && |\n| &&
              `            break;` && |\n| &&
              `          case "WIZARD_SET_NEXT_STEP":` && |\n| &&
              `            this._evWizardSetNextStep(args);` && |\n| &&
@@ -820,8 +809,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            ),` && |\n| &&
              `          TRIGGER_SMS: () => _URLHelper.triggerSms(params),` && |\n| &&
              `          TRIGGER_TEL: () => _URLHelper.triggerTel(params),` && |\n| &&
-             |\n|.
-    result = result &&
              `        };` && |\n| &&
              `        try {` && |\n| &&
              `          const fn = actions[args[1]];` && |\n| &&
@@ -833,6 +820,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `      _evImageEditorPopupClose() {` && |\n| &&
              `        let image;` && |\n| &&
+             |\n|.
+    result = result &&
              `        try {` && |\n| &&
              `          const editor = Fragment.byId("popupId", "imageEditor");` && |\n| &&
              `          if (editor) image = editor.getImagePngDataURL();` && |\n| &&
@@ -887,44 +876,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      _evSetCellFocus(args) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          // args[1] = column view-relative ID, args[2] = row index (0-based)` && |\n| &&
-             `          const oColumn = z2ui5.oView && z2ui5.oView.byId(args[1]);` && |\n| &&
-             `          if (!oColumn) return;` && |\n| &&
-             `          const oTable = oColumn.getParent();` && |\n| &&
-             `          if (!oTable) return;` && |\n| &&
-             `          const colIdx = oTable.indexOfColumn(oColumn);` && |\n| &&
-             `          const rows = oTable.getItems ? oTable.getItems() : oTable.getRows();` && |\n| &&
-             `          const oRow = rows[+args[2]];` && |\n| &&
-             `          if (!oRow) return;` && |\n| &&
-             `          const oCell = oRow.getCells()[colIdx];` && |\n| &&
-             `          if (!oCell) return;` && |\n| &&
-             `          oCell.applyFocusInfo(oCell.getFocusInfo());` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          logError(``SET_FOCUS_CELL: failed for column '${args[1]}'``, e);` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _evFocusActiveInput() {` && |\n| &&
-             `        const onAfterRendering = () => {` && |\n| &&
-             `          Rendering.detachAfterRendering(onAfterRendering);` && |\n| &&
-             `          try {` && |\n| &&
-             `            const el = document.activeElement;` && |\n| &&
-             `            if (!el) return;` && |\n| &&
-             `            const input = el.matches("input, textarea")` && |\n| &&
-             `              ? el` && |\n| &&
-             `              : el.querySelector("input, textarea");` && |\n| &&
-             `            if (!input) return;` && |\n| &&
-             `            input.focus();` && |\n| &&
-             `            input.select();` && |\n| &&
-             `          } catch (e) {` && |\n| &&
-             `            logError("FOCUS_ACTIVE_INPUT: failed", e);` && |\n| &&
-             `          }` && |\n| &&
-             `        };` && |\n| &&
-             `        Rendering.attachAfterRendering(onAfterRendering);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
              `      _evSetTitle(args) {` && |\n| &&
              `        const title = args[1] == null ? "" : String(args[1]);` && |\n| &&
              `        try {` && |\n| &&
@@ -950,15 +901,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          if (fn) fn(args.slice(2));` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          logError(``Z2UI5: '${args[1]}' failed``, e);` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      _evExpandToLevel(args) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          const ctrl = z2ui5.oView && z2ui5.oView.byId(args[1]);` && |\n| &&
-             `          if (ctrl && ctrl.expandToLevel) ctrl.expandToLevel(+args[2]);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          logError(``EXPAND_TO_LEVEL: failed for '${args[1]}'``, e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
