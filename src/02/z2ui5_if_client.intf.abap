@@ -217,6 +217,11 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val TYPE string.
 
+  METHODS action
+    IMPORTING
+      val   TYPE clike
+      t_arg TYPE string_table OPTIONAL.
+
   METHODS check_on_event
     IMPORTING
       val           TYPE clike OPTIONAL

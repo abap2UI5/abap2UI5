@@ -43,6 +43,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD z2ui5_if_client~action.
+
+    INSERT mo_srv_event->get_event_client( val   = val
+                                           t_arg = t_arg )
+           INTO TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js.
+
+  ENDMETHOD.
+
   METHOD z2ui5_if_client~check_on_event.
 
     IF val IS NOT INITIAL.
