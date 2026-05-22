@@ -108,9 +108,10 @@ sap.ui.define(
         // For each visible view, find the first scrollable descendant
         // (typically a sap.m.Page) and return its current scroll offsets.
         // X = scrollLeft (horizontal), Y = scrollTop (vertical).
-        const empty = { ID: "", X: 0, Y: 0 };
+        // Only views that exist and have a scrollable target are included;
+        // empty slots are omitted to keep the request payload small.
         const getOne = (view) => {
-          if (!view || !view.findAggregatedObjects) return empty;
+          if (!view || !view.findAggregatedObjects) return null;
           let target = null;
           try {
             const candidates = view.findAggregatedObjects(true, (c) => {
@@ -122,9 +123,9 @@ sap.ui.define(
             });
             target = candidates && candidates[0];
           } catch (e) {
-            return empty;
+            return null;
           }
-          if (!target) return empty;
+          if (!target) return null;
           let x = 0;
           let y = 0;
           try {
@@ -148,13 +149,20 @@ sap.ui.define(
           if (id.startsWith(prefix)) id = id.slice(prefix.length);
           return { ID: id, X: x, Y: y };
         };
-        return {
-          MAIN: getOne(z2ui5.oView),
-          NEST: getOne(z2ui5.oViewNest),
-          NEST2: getOne(z2ui5.oViewNest2),
-          POPUP: getOne(z2ui5.oViewPopup),
-          POPOVER: getOne(z2ui5.oViewPopover),
-        };
+        const out = {};
+        const slots = [
+          ["MAIN", z2ui5.oView],
+          ["NEST", z2ui5.oViewNest],
+          ["NEST2", z2ui5.oViewNest2],
+          ["POPUP", z2ui5.oViewPopup],
+          ["POPOVER", z2ui5.oViewPopover],
+        ];
+        for (const [key, view] of slots) {
+          const v = getOne(view);
+          if (v) out[key] = v;
+        }
+        // Returning undefined lets JSON.stringify omit S_SCROLL entirely.
+        return Object.keys(out).length ? out : undefined;
       },
 
       Roundtrip() {

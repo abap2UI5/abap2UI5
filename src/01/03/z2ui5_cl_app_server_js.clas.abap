@@ -128,9 +128,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        // For each visible view, find the first scrollable descendant` && |\n| &&
              `        // (typically a sap.m.Page) and return its current scroll offsets.` && |\n| &&
              `        // X = scrollLeft (horizontal), Y = scrollTop (vertical).` && |\n| &&
-             `        const empty = { ID: "", X: 0, Y: 0 };` && |\n| &&
+             `        // Only views that exist and have a scrollable target are included;` && |\n| &&
+             `        // empty slots are omitted to keep the request payload small.` && |\n| &&
              `        const getOne = (view) => {` && |\n| &&
-             `          if (!view || !view.findAggregatedObjects) return empty;` && |\n| &&
+             `          if (!view || !view.findAggregatedObjects) return null;` && |\n| &&
              `          let target = null;` && |\n| &&
              `          try {` && |\n| &&
              `            const candidates = view.findAggregatedObjects(true, (c) => {` && |\n| &&
@@ -142,9 +143,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            });` && |\n| &&
              `            target = candidates && candidates[0];` && |\n| &&
              `          } catch (e) {` && |\n| &&
-             `            return empty;` && |\n| &&
+             `            return null;` && |\n| &&
              `          }` && |\n| &&
-             `          if (!target) return empty;` && |\n| &&
+             `          if (!target) return null;` && |\n| &&
              `          let x = 0;` && |\n| &&
              `          let y = 0;` && |\n| &&
              `          try {` && |\n| &&
@@ -168,13 +169,20 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          if (id.startsWith(prefix)) id = id.slice(prefix.length);` && |\n| &&
              `          return { ID: id, X: x, Y: y };` && |\n| &&
              `        };` && |\n| &&
-             `        return {` && |\n| &&
-             `          MAIN: getOne(z2ui5.oView),` && |\n| &&
-             `          NEST: getOne(z2ui5.oViewNest),` && |\n| &&
-             `          NEST2: getOne(z2ui5.oViewNest2),` && |\n| &&
-             `          POPUP: getOne(z2ui5.oViewPopup),` && |\n| &&
-             `          POPOVER: getOne(z2ui5.oViewPopover),` && |\n| &&
-             `        };` && |\n| &&
+             `        const out = {};` && |\n| &&
+             `        const slots = [` && |\n| &&
+             `          ["MAIN", z2ui5.oView],` && |\n| &&
+             `          ["NEST", z2ui5.oViewNest],` && |\n| &&
+             `          ["NEST2", z2ui5.oViewNest2],` && |\n| &&
+             `          ["POPUP", z2ui5.oViewPopup],` && |\n| &&
+             `          ["POPOVER", z2ui5.oViewPopover],` && |\n| &&
+             `        ];` && |\n| &&
+             `        for (const [key, view] of slots) {` && |\n| &&
+             `          const v = getOne(view);` && |\n| &&
+             `          if (v) out[key] = v;` && |\n| &&
+             `        }` && |\n| &&
+             `        // Returning undefined lets JSON.stringify omit S_SCROLL entirely.` && |\n| &&
+             `        return Object.keys(out).length ? out : undefined;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      Roundtrip() {` && |\n| &&
