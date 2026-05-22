@@ -626,6 +626,9 @@ sap.ui.define(
           case "SCROLL_TO":
             this._evScrollTo(args);
             break;
+          case "SCROLL_INTO_VIEW":
+            this._evScrollIntoView(args);
+            break;
           case "START_TIMER":
             this._evStartTimer(args);
             break;
@@ -880,19 +883,33 @@ sap.ui.define(
 
       _evScrollTo(args) {
         // args[1] = control id
-        // args[2] = scrollTop value (px) - vertical
-        // args[3] = scrollLeft value (px) - horizontal, optional
-        // Mirrors the Scrolling custom control: prefer the scroll delegate
-        // when available, otherwise set scrollTop/scrollLeft on the -inner
-        // DOM element.
+        // args[2] = scrollTop  (Y, vertical, px)
+        // args[3] = scrollLeft (X, horizontal, px) - optional, default 0
+        // args[4] = behavior - "auto" (default) | "smooth" | "instant"
+        // When behavior is "smooth" the modern Element.scrollTo({...,
+        // behavior}) API is used. Otherwise the Scrolling custom control's
+        // restoration logic is mirrored (delegate.scrollTo / scrollTop on
+        // the -inner DOM element).
         try {
           const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
           if (!oElement) return;
           const y = +args[2] || 0;
           const x = +args[3] || 0;
+          const behavior = args[4] || "auto";
+
+          if (behavior === "smooth" || behavior === "instant") {
+            const dom = document.getElementById(`${oElement.getId()}-inner`)
+              || oElement.getDomRef();
+            if (dom && dom.scrollTo) {
+              dom.scrollTo({ top: y, left: x, behavior });
+              return;
+            }
+          }
+
           let handledByDelegate = false;
           try {
-            const d = oElement.getScrollDelegate && oElement.getScrollDelegate();
+            const d =
+              oElement.getScrollDelegate && oElement.getScrollDelegate();
             if (d && d.scrollTo) {
               // Hammer.js / iScroll delegate: scrollTo(x, y, time)
               d.scrollTo(x, y, 0);
@@ -908,13 +925,33 @@ sap.ui.define(
           }
           const dom = document.getElementById(`${oElement.getId()}-inner`);
           if (dom) {
-            // Always set scrollLeft on the DOM since neither delegate above
-            // exposes a single horizontal-only API in every case.
             if (!handledByDelegate) dom.scrollTop = y;
             dom.scrollLeft = x;
           }
         } catch (e) {
           logError(`SCROLL_TO: failed for '${args[1]}'`, e);
+        }
+      },
+
+      _evScrollIntoView(args) {
+        // args[1] = control id
+        // args[2] = behavior - "smooth" (default) | "auto" | "instant"
+        // args[3] = block    - "start"  (default) | "center" | "end" | "nearest"
+        // args[4] = inline   - "nearest" (default)| "start"  | "center" | "end"
+        // Modern declarative scroll: bring a control into the viewport,
+        // regardless of where the surrounding scroll container currently is.
+        try {
+          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
+          if (!oElement) return;
+          const dom = oElement.getDomRef();
+          if (!dom || !dom.scrollIntoView) return;
+          dom.scrollIntoView({
+            behavior: args[2] || "smooth",
+            block: args[3] || "start",
+            inline: args[4] || "nearest",
+          });
+        } catch (e) {
+          logError(`SCROLL_INTO_VIEW: failed for '${args[1]}'`, e);
         }
       },
 
