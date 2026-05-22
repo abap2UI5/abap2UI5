@@ -43,7 +43,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        if (!z2ui5.contextId) return;` && |\n| &&
              `        // Best-effort notify the backend that the session ends. Errors are` && |\n| &&
              `        // intentionally swallowed: the browser tab is closing anyway.` && |\n| &&
-             `        fetch(z2ui5.oConfig.pathname, {` && |\n| &&
+             `        fetch(z2ui5.url, {` && |\n| &&
              `          method: "HEAD",` && |\n| &&
              `          keepalive: true,` && |\n| &&
              `          headers: {` && |\n| &&
@@ -139,16 +139,19 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        }` && |\n| &&
              `` && |\n| &&
              `        oBody.S_FRONT = {` && |\n| &&
+             `          CONFIG: {` && |\n| &&
+             `            S_UI5: z2ui5.oConfig && z2ui5.oConfig.S_UI5,` && |\n| &&
+             `            S_DEVICE: this._getDeviceInfo(),` && |\n| &&
+             `            S_FOCUS: this._getFocusInfo(),` && |\n| &&
+             `            ComponentData: z2ui5.oConfig && z2ui5.oConfig.ComponentData,` && |\n| &&
+             `          },` && |\n| &&
              `          ID: oBody.ID,` && |\n| &&
-             `          CONFIG: z2ui5.oConfig,` && |\n| &&
              `          ORIGIN: window.location.origin,` && |\n| &&
              `          PATHNAME: window.location.pathname,` && |\n| &&
              `          SEARCH: z2ui5.search || window.location.search,` && |\n| &&
              `          VIEW: oBody.VIEWNAME,` && |\n| &&
              `          EVENT: eventName,` && |\n| &&
              `          HASH: window.location.hash,` && |\n| &&
-             `          S_DEVICE: this._getDeviceInfo(),` && |\n| &&
-             `          S_FOCUS: this._getFocusInfo(),` && |\n| &&
              `        };` && |\n| &&
              `        const sFront = oBody.S_FRONT;` && |\n| &&
              `` && |\n| &&
@@ -176,7 +179,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        // Step 1: send the request.` && |\n| &&
              `        let response;` && |\n| &&
              `        try {` && |\n| &&
-             `          response = await fetch(z2ui5.oConfig.pathname, {` && |\n| &&
+             `          response = await fetch(z2ui5.url, {` && |\n| &&
              `            method: "POST",` && |\n| &&
              `            headers: {` && |\n| &&
              `              "Content-Type": "application/json",` && |\n| &&
@@ -415,11 +418,11 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            fallback();` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
+             |\n|.
+    result = result &&
              `          fallback();` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
-             |\n|.
-    result = result &&
              `    };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&

@@ -39,7 +39,7 @@ sap.ui.define(
         const dataSources = sapApp && sapApp.dataSources;
         const http = dataSources && dataSources.http;
         const uri = http && http.uri;
-        z2ui5.oConfig.pathname = z2ui5.checkLocal ? window.location.href : uri;
+        z2ui5.url = z2ui5.checkLocal ? window.location.href : uri;
 
         // Set up the shared z2ui5 state used by the whole app.
         z2ui5.oController = new Controller();

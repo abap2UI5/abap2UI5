@@ -59,11 +59,10 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        if (typeof z2ui5 === "undefined") z2ui5 = {};` && |\n| &&
              `        if (z2ui5.checkLocal === false) z2ui5 = {};` && |\n| &&
              `        if (typeof z2ui5.oConfig === "undefined") z2ui5.oConfig = {};` && |\n| &&
+             `        z2ui5.oConfig.ComponentData = this.getComponentData();` && |\n| &&
              `` && |\n| &&
              `        z2ui5.oDeviceModel = Models.createDeviceModel();` && |\n| &&
              `        this.setModel(z2ui5.oDeviceModel, "device");` && |\n| &&
-             `` && |\n| &&
-             `        z2ui5.oConfig.ComponentData = this.getComponentData();` && |\n| &&
              `` && |\n| &&
              `        this._initLaunchpad();` && |\n| &&
              `        this._initVersionInfo();` && |\n| &&
@@ -177,11 +176,11 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `          const info = await VersionInfo.load();` && |\n| &&
              `          const stillAlive = !this.isDestroyed || !this.isDestroyed();` && |\n| &&
              `          if (stillAlive) {` && |\n| &&
-             `            z2ui5.oConfig.UI5VersionInfo = {` && |\n| &&
-             `              version: info.version,` && |\n| &&
-             `              buildTimestamp: info.buildTimestamp,` && |\n| &&
-             `              gav: info.gav,` && |\n| &&
-             `              theme: Theming ? Theming.getTheme() : "",` && |\n| &&
+             `            z2ui5.oConfig.S_UI5 = {` && |\n| &&
+             `              VERSION: info.version,` && |\n| &&
+             `              BUILDTIMESTAMP: info.buildTimestamp,` && |\n| &&
+             `              GAV: info.gav,` && |\n| &&
+             `              THEME: Theming ? Theming.getTheme() : "",` && |\n| &&
              `            };` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&

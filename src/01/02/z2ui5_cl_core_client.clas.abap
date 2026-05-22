@@ -63,7 +63,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                       s_config               = CORRESPONDING #( mo_action->mo_http_post->ms_request-s_front )
                       s_device               = mo_action->mo_http_post->ms_request-s_front-s_device
                       s_focus                = mo_action->mo_http_post->ms_request-s_front-s_focus
-                      s_ui5_version          = mo_action->mo_http_post->ms_request-s_front-s_ui5_version
+                      s_ui5                  = mo_action->mo_http_post->ms_request-s_front-s_ui5
                       r_event_data           = mo_action->ms_actual-r_data
                       _s_nav-check_call      = xsdbool( mo_action->ms_next-o_app_call IS NOT INITIAL )
                       _s_nav-check_leave     = xsdbool( mo_action->ms_next-o_app_leave IS NOT INITIAL ) ).

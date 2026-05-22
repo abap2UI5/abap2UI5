@@ -23,7 +23,7 @@ sap.ui.define(
         if (!z2ui5.contextId) return;
         // Best-effort notify the backend that the session ends. Errors are
         // intentionally swallowed: the browser tab is closing anyway.
-        fetch(z2ui5.oConfig.pathname, {
+        fetch(z2ui5.url, {
           method: "HEAD",
           keepalive: true,
           headers: {
@@ -119,16 +119,19 @@ sap.ui.define(
         }
 
         oBody.S_FRONT = {
+          CONFIG: {
+            S_UI5: z2ui5.oConfig && z2ui5.oConfig.S_UI5,
+            S_DEVICE: this._getDeviceInfo(),
+            S_FOCUS: this._getFocusInfo(),
+            ComponentData: z2ui5.oConfig && z2ui5.oConfig.ComponentData,
+          },
           ID: oBody.ID,
-          CONFIG: z2ui5.oConfig,
           ORIGIN: window.location.origin,
           PATHNAME: window.location.pathname,
           SEARCH: z2ui5.search || window.location.search,
           VIEW: oBody.VIEWNAME,
           EVENT: eventName,
           HASH: window.location.hash,
-          S_DEVICE: this._getDeviceInfo(),
-          S_FOCUS: this._getFocusInfo(),
         };
         const sFront = oBody.S_FRONT;
 
@@ -156,7 +159,7 @@ sap.ui.define(
         // Step 1: send the request.
         let response;
         try {
-          response = await fetch(z2ui5.oConfig.pathname, {
+          response = await fetch(z2ui5.url, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
