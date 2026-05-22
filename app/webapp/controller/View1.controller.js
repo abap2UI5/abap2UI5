@@ -623,6 +623,9 @@ sap.ui.define(
           case "SET_FOCUS":
             this._evSetFocus(args);
             break;
+          case "SCROLL_TO":
+            this._evScrollTo(args);
+            break;
           case "START_TIMER":
             this._evStartTimer(args);
             break;
@@ -872,6 +875,24 @@ sap.ui.define(
           oElement.applyFocusInfo(info);
         } catch (e) {
           logError(`SET_FOCUS: failed for '${args[1]}'`, e);
+        }
+      },
+
+      _evScrollTo(args) {
+        // args[1] = control id
+        // args[2] = optional behavior: "smooth" (default) | "auto" | "instant"
+        // args[3] = optional block:    "start" (default)  | "center" | "end" | "nearest"
+        try {
+          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
+          if (!oElement) return;
+          const dom = oElement.getDomRef();
+          if (!dom) return;
+          dom.scrollIntoView({
+            behavior: args[2] || "smooth",
+            block: args[3] || "start",
+          });
+        } catch (e) {
+          logError(`SCROLL_TO: failed for '${args[1]}'`, e);
         }
       },
 

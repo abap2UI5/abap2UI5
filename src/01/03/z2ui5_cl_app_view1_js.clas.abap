@@ -645,6 +645,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          case "SET_FOCUS":` && |\n|  &&
              `            this._evSetFocus(args);` && |\n|  &&
              `            break;` && |\n|  &&
+             `          case "SCROLL_TO":` && |\n|  &&
+             `            this._evScrollTo(args);` && |\n|  &&
+             `            break;` && |\n|  &&
              `          case "START_TIMER":` && |\n|  &&
              `            this._evStartTimer(args);` && |\n|  &&
              `            break;` && |\n|  &&
@@ -817,11 +820,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (newWindow) newWindow.opener = null;` && |\n|  &&
              `      },` && |\n|  &&
              `` && |\n|  &&
+             |\n|.
+    result = result &&
              `      _evUrlHelper(args) {` && |\n|  &&
              `        const params = args[2];` && |\n|  &&
              `        const actions = {` && |\n|  &&
-             |\n|.
-    result = result &&
              `          REDIRECT: () => _URLHelper.redirect(params.URL, params.NEW_WINDOW),` && |\n|  &&
              `          TRIGGER_EMAIL: () =>` && |\n|  &&
              `            _URLHelper.triggerEmail(` && |\n|  &&
@@ -896,6 +899,24 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          oElement.applyFocusInfo(info);` && |\n|  &&
              `        } catch (e) {` && |\n|  &&
              `          logError(``SET_FOCUS: failed for '${args[1]}'``, e);` && |\n|  &&
+             `        }` && |\n|  &&
+             `      },` && |\n|  &&
+             `` && |\n|  &&
+             `      _evScrollTo(args) {` && |\n|  &&
+             `        // args[1] = control id` && |\n|  &&
+             `        // args[2] = optional behavior: "smooth" (default) | "auto" | "instant"` && |\n|  &&
+             `        // args[3] = optional block:    "start" (default)  | "center" | "end" | "nearest"` && |\n|  &&
+             `        try {` && |\n|  &&
+             `          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);` && |\n|  &&
+             `          if (!oElement) return;` && |\n|  &&
+             `          const dom = oElement.getDomRef();` && |\n|  &&
+             `          if (!dom) return;` && |\n|  &&
+             `          dom.scrollIntoView({` && |\n|  &&
+             `            behavior: args[2] || "smooth",` && |\n|  &&
+             `            block: args[3] || "start",` && |\n|  &&
+             `          });` && |\n|  &&
+             `        } catch (e) {` && |\n|  &&
+             `          logError(``SCROLL_TO: failed for '${args[1]}'``, e);` && |\n|  &&
              `        }` && |\n|  &&
              `      },` && |\n|  &&
              `` && |\n|  &&
