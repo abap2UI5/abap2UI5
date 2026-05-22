@@ -600,9 +600,6 @@ sap.ui.define(
           case "SET_FOCUS":
             this._evSetFocus(args);
             break;
-          case "SET_FOCUS_CELL":
-            this._evSetCellFocus(args);
-            break;
           case "START_TIMER":
             this._evStartTimer(args);
             break;
@@ -852,25 +849,6 @@ sap.ui.define(
           oElement.applyFocusInfo(info);
         } catch (e) {
           logError(`SET_FOCUS: failed for '${args[1]}'`, e);
-        }
-      },
-
-      _evSetCellFocus(args) {
-        try {
-          // args[1] = column view-relative ID, args[2] = row index (0-based)
-          const oColumn = z2ui5.oView && z2ui5.oView.byId(args[1]);
-          if (!oColumn) return;
-          const oTable = oColumn.getParent();
-          if (!oTable) return;
-          const colIdx = oTable.indexOfColumn(oColumn);
-          const rows = oTable.getItems ? oTable.getItems() : oTable.getRows();
-          const oRow = rows[+args[2]];
-          if (!oRow) return;
-          const oCell = oRow.getCells()[colIdx];
-          if (!oCell) return;
-          oCell.applyFocusInfo(oCell.getFocusInfo());
-        } catch (e) {
-          logError(`SET_FOCUS_CELL: failed for column '${args[1]}'`, e);
         }
       },
 
