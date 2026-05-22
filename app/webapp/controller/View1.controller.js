@@ -15,7 +15,6 @@ sap.ui.define(
     "sap/ui/core/routing/HashChanger",
     "sap/ui/util/Storage",
     "sap/ui/core/Element",
-    "sap/ui/core/Rendering",
   ],
   (
     Controller,
@@ -33,7 +32,6 @@ sap.ui.define(
     HashChanger,
     Storage,
     Element,
-    Rendering,
   ) => {
     "use strict";
 
@@ -605,9 +603,6 @@ sap.ui.define(
           case "SET_FOCUS_CELL":
             this._evSetCellFocus(args);
             break;
-          case "KEYBOARD_KEEP_OPEN":
-            this._evFocusActiveInput();
-            break;
           case "START_TIMER":
             this._evStartTimer(args);
             break;
@@ -877,25 +872,6 @@ sap.ui.define(
         } catch (e) {
           logError(`SET_FOCUS_CELL: failed for column '${args[1]}'`, e);
         }
-      },
-
-      _evFocusActiveInput() {
-        const onAfterRendering = () => {
-          Rendering.detachAfterRendering(onAfterRendering);
-          try {
-            const el = document.activeElement;
-            if (!el) return;
-            const input = el.matches("input, textarea")
-              ? el
-              : el.querySelector("input, textarea");
-            if (!input) return;
-            input.focus();
-            input.select();
-          } catch (e) {
-            logError("FOCUS_ACTIVE_INPUT: failed", e);
-          }
-        };
-        Rendering.attachAfterRendering(onAfterRendering);
       },
 
       _evSetTitle(args) {
