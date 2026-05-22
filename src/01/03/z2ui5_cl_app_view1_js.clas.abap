@@ -122,12 +122,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `    function copyToClipboard(textToCopy) {` && |\n| &&
              `      if (navigator.clipboard && navigator.clipboard.writeText) {` && |\n| &&
-             `        navigator.clipboard` && |\n| &&
-             `          .writeText(textToCopy)` && |\n| &&
-             `          .catch((err) => {` && |\n| &&
-             `            logError("Clipboard: writeText failed, falling back", err);` && |\n| &&
-             `            copyToClipboardFallback(textToCopy);` && |\n| &&
-             `          });` && |\n| &&
+             `        navigator.clipboard.writeText(textToCopy).catch((err) => {` && |\n| &&
+             `          logError("Clipboard: writeText failed, falling back", err);` && |\n| &&
+             `          copyToClipboardFallback(textToCopy);` && |\n| &&
+             `        });` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      copyToClipboardFallback(textToCopy);` && |\n| &&
@@ -418,10 +416,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // The app might have been torn down while the fragment loaded.` && |\n| &&
              `        const appAlive =` && |\n| &&
              `          z2ui5.oApp && (!z2ui5.oApp.isDestroyed || !z2ui5.oApp.isDestroyed());` && |\n| &&
-             |\n|.
-    result = result &&
              `        if (!appAlive) {` && |\n| &&
              `          oFragment.destroy();` && |\n| &&
+             |\n|.
+    result = result &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        oFragment.setModel(oModel);` && |\n| &&
@@ -820,10 +818,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        const newWindow = window.open(args[1], "_blank");` && |\n| &&
              `        // Clear opener to prevent the new tab from accessing window.opener.` && |\n| &&
-             |\n|.
-    result = result &&
              `        if (newWindow) newWindow.opener = null;` && |\n| &&
              `      },` && |\n| &&
+             |\n|.
+    result = result &&
              `` && |\n| &&
              `      _evUrlHelper(args) {` && |\n| &&
              `        const params = args[2];` && |\n| &&
@@ -922,8 +920,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const behavior = args[4] || "auto";` && |\n| &&
              `` && |\n| &&
              `          if (behavior === "smooth" || behavior === "instant") {` && |\n| &&
-             `            const dom = document.getElementById(``${oElement.getId()}-inner``)` && |\n| &&
-             `              || oElement.getDomRef();` && |\n| &&
+             `            const dom =` && |\n| &&
+             `              document.getElementById(``${oElement.getId()}-inner``) ||` && |\n| &&
+             `              oElement.getDomRef();` && |\n| &&
              `            if (dom && dom.scrollTo) {` && |\n| &&
              `              dom.scrollTo({ top: y, left: x, behavior });` && |\n| &&
              `              return;` && |\n| &&
@@ -1222,9 +1221,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        applyStoredSizeLimit("MAIN", oModel);` && |\n| &&
              `` && |\n| &&
              `        z2ui5.oView = await XMLView.create({` && |\n| &&
+             `          definition: xml,` && |\n| &&
              |\n|.
     result = result &&
-             `          definition: xml,` && |\n| &&
              `          models: oModel,` && |\n| &&
              `          controller: z2ui5.oController,` && |\n| &&
              `          id: "mainView",` && |\n| &&
