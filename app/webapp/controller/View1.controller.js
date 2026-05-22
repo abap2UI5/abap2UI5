@@ -101,13 +101,36 @@ sap.ui.define(
     }
 
     function copyToClipboard(textToCopy) {
-      if (!navigator.clipboard || !navigator.clipboard.writeText) {
-        logError("Clipboard: writeText API not available");
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard
+          .writeText(textToCopy)
+          .catch((err) => {
+            logError("Clipboard: writeText failed, falling back", err);
+            copyToClipboardFallback(textToCopy);
+          });
         return;
       }
-      navigator.clipboard
-        .writeText(textToCopy)
-        .catch((err) => logError("Clipboard: writeText failed", err));
+      copyToClipboardFallback(textToCopy);
+    }
+
+    function copyToClipboardFallback(textToCopy) {
+      const textarea = document.createElement("textarea");
+      textarea.value = textToCopy;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.top = "-1000px";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        if (!document.execCommand("copy")) {
+          logError("Clipboard: execCommand('copy') returned false");
+        }
+      } catch (err) {
+        logError("Clipboard: execCommand('copy') threw", err);
+      } finally {
+        document.body.removeChild(textarea);
+      }
     }
 
     // Turns an HTML "details" snippet from the backend into safe HTML.
