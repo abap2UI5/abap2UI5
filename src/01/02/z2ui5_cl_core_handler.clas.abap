@@ -119,6 +119,11 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       lo_focus->to_abap( EXPORTING iv_corresponding = abap_true
                          IMPORTING ev_container     = result-s_front-s_focus ).
     ENDIF.
+    DATA(lo_scroll) = lo_ajson->slice( `/CONFIG/S_SCROLL` ).
+    IF lo_scroll IS BOUND.
+      lo_scroll->to_abap( EXPORTING iv_corresponding = abap_true
+                          IMPORTING ev_container     = result-s_front-s_scroll ).
+    ENDIF.
 
     result-s_front-s_ui5-version         = lo_ajson->get_string( `/CONFIG/S_UI5/VERSION` ).
     result-s_front-s_ui5-build_timestamp = lo_ajson->get_string( `/CONFIG/S_UI5/BUILDTIMESTAMP` ).

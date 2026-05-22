@@ -880,17 +880,19 @@ sap.ui.define(
 
       _evScrollTo(args) {
         // args[1] = control id
-        // args[2] = optional behavior: "smooth" (default) | "auto" | "instant"
-        // args[3] = optional block:    "start" (default)  | "center" | "end" | "nearest"
+        // args[2] = scrollTop value (px)
+        // Mirrors the Scrolling custom control: prefer the scroll delegate
+        // when available, otherwise set scrollTop on the -inner DOM element.
         try {
           const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
           if (!oElement) return;
-          const dom = oElement.getDomRef();
-          if (!dom) return;
-          dom.scrollIntoView({
-            behavior: args[2] || "smooth",
-            block: args[3] || "start",
-          });
+          const value = +args[2] || 0;
+          if (oElement.scrollTo) {
+            oElement.scrollTo(value);
+            return;
+          }
+          const dom = document.getElementById(`${oElement.getId()}-inner`);
+          if (dom) dom.scrollTop = value;
         } catch (e) {
           logError(`SCROLL_TO: failed for '${args[1]}'`, e);
         }
