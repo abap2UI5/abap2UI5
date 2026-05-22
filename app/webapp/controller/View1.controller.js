@@ -617,9 +617,6 @@ sap.ui.define(
           case "Z2UI5":
             this._evZ2ui5Custom(args);
             break;
-          case "EXPAND_TO_LEVEL":
-            this._evExpandToLevel(args);
-            break;
           case "WIZARD_SET_NEXT_STEP":
             this._evWizardSetNextStep(args);
             break;
@@ -926,15 +923,6 @@ sap.ui.define(
           if (fn) fn(args.slice(2));
         } catch (e) {
           logError(`Z2UI5: '${args[1]}' failed`, e);
-        }
-      },
-
-      _evExpandToLevel(args) {
-        try {
-          const ctrl = z2ui5.oView && z2ui5.oView.byId(args[1]);
-          if (ctrl && ctrl.expandToLevel) ctrl.expandToLevel(+args[2]);
-        } catch (e) {
-          logError(`EXPAND_TO_LEVEL: failed for '${args[1]}'`, e);
         }
       },
 
