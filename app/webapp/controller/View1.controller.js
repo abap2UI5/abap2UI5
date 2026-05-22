@@ -102,12 +102,10 @@ sap.ui.define(
 
     function copyToClipboard(textToCopy) {
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard
-          .writeText(textToCopy)
-          .catch((err) => {
-            logError("Clipboard: writeText failed, falling back", err);
-            copyToClipboardFallback(textToCopy);
-          });
+        navigator.clipboard.writeText(textToCopy).catch((err) => {
+          logError("Clipboard: writeText failed, falling back", err);
+          copyToClipboardFallback(textToCopy);
+        });
         return;
       }
       copyToClipboardFallback(textToCopy);
@@ -898,8 +896,9 @@ sap.ui.define(
           const behavior = args[4] || "auto";
 
           if (behavior === "smooth" || behavior === "instant") {
-            const dom = document.getElementById(`${oElement.getId()}-inner`)
-              || oElement.getDomRef();
+            const dom =
+              document.getElementById(`${oElement.getId()}-inner`) ||
+              oElement.getDomRef();
             if (dom && dom.scrollTo) {
               dom.scrollTo({ top: y, left: x, behavior });
               return;
