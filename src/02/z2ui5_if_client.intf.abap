@@ -26,6 +26,8 @@ INTERFACE z2ui5_if_client
       system_logout             TYPE string VALUE `SYSTEM_LOGOUT`,
       set_title                 TYPE string VALUE `SET_TITLE`,
       set_focus                 TYPE string VALUE `SET_FOCUS`,
+      scroll_to                 TYPE string VALUE `SCROLL_TO`,
+      scroll_into_view          TYPE string VALUE `SCROLL_INTO_VIEW`,
       start_timer               TYPE string VALUE `START_TIMER`,
       keyboard_set_mode         TYPE string VALUE `KEYBOARD_SET_MODE`,
       z2ui5                TYPE string VALUE `Z2UI5`,

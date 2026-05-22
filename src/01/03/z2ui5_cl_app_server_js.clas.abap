@@ -124,6 +124,59 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      _getScrollInfo() {` && |\n| &&
+             `        // For each visible view, find the first scrollable descendant` && |\n| &&
+             `        // (typically a sap.m.Page) and return its current scroll offsets.` && |\n| &&
+             `        // X = scrollLeft (horizontal), Y = scrollTop (vertical).` && |\n| &&
+             `        const empty = { ID: "", X: 0, Y: 0 };` && |\n| &&
+             `        const getOne = (view) => {` && |\n| &&
+             `          if (!view || !view.findAggregatedObjects) return empty;` && |\n| &&
+             `          let target = null;` && |\n| &&
+             `          try {` && |\n| &&
+             `            const candidates = view.findAggregatedObjects(true, (c) => {` && |\n| &&
+             `              try {` && |\n| &&
+             `                return c.getScrollDelegate && c.getScrollDelegate();` && |\n| &&
+             `              } catch (e) {` && |\n| &&
+             `                return false;` && |\n| &&
+             `              }` && |\n| &&
+             `            });` && |\n| &&
+             `            target = candidates && candidates[0];` && |\n| &&
+             `          } catch (e) {` && |\n| &&
+             `            return empty;` && |\n| &&
+             `          }` && |\n| &&
+             `          if (!target) return empty;` && |\n| &&
+             `          let x = 0;` && |\n| &&
+             `          let y = 0;` && |\n| &&
+             `          try {` && |\n| &&
+             `            const d = target.getScrollDelegate();` && |\n| &&
+             `            if (d) {` && |\n| &&
+             `              if (d.getScrollTop) y = d.getScrollTop() || 0;` && |\n| &&
+             `              if (d.getScrollLeft) x = d.getScrollLeft() || 0;` && |\n| &&
+             `            }` && |\n| &&
+             `          } catch (e) {` && |\n| &&
+             `            // ignored - fall through to DOM lookup` && |\n| &&
+             `          }` && |\n| &&
+             `          if (!x || !y) {` && |\n| &&
+             `            const el = document.getElementById(``${target.getId()}-inner``);` && |\n| &&
+             `            if (el) {` && |\n| &&
+             `              if (!y) y = el.scrollTop || 0;` && |\n| &&
+             `              if (!x) x = el.scrollLeft || 0;` && |\n| &&
+             `            }` && |\n| &&
+             `          }` && |\n| &&
+             `          let id = target.getId();` && |\n| &&
+             `          const prefix = view.getId() + "--";` && |\n| &&
+             `          if (id.startsWith(prefix)) id = id.slice(prefix.length);` && |\n| &&
+             `          return { ID: id, X: x, Y: y };` && |\n| &&
+             `        };` && |\n| &&
+             `        return {` && |\n| &&
+             `          MAIN: getOne(z2ui5.oView),` && |\n| &&
+             `          NEST: getOne(z2ui5.oViewNest),` && |\n| &&
+             `          NEST2: getOne(z2ui5.oViewNest2),` && |\n| &&
+             `          POPUP: getOne(z2ui5.oViewPopup),` && |\n| &&
+             `          POPOVER: getOne(z2ui5.oViewPopover),` && |\n| &&
+             `        };` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      Roundtrip() {` && |\n| &&
              `        z2ui5.checkTimerActive = false;` && |\n| &&
              `        z2ui5.checkNestAfter = false;` && |\n| &&
@@ -143,6 +196,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            S_UI5: z2ui5.oConfig && z2ui5.oConfig.S_UI5,` && |\n| &&
              `            S_DEVICE: this._getDeviceInfo(),` && |\n| &&
              `            S_FOCUS: this._getFocusInfo(),` && |\n| &&
+             `            S_SCROLL: this._getScrollInfo(),` && |\n| &&
              `            ComponentData: z2ui5.oConfig && z2ui5.oConfig.ComponentData,` && |\n| &&
              `          },` && |\n| &&
              `          ID: oBody.ID,` && |\n| &&
@@ -364,6 +418,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        const actionsDiv = document.createElement("div");` && |\n| &&
              `        actionsDiv.style.cssText = "display: flex; gap: 8px;";` && |\n| &&
              `` && |\n| &&
+             |\n|.
+    result = result &&
              `        const refreshBtn = document.createElement("button");` && |\n| &&
              `        refreshBtn.type = "button";` && |\n| &&
              `        refreshBtn.textContent = "Refresh";` && |\n| &&
@@ -418,8 +474,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            fallback();` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             |\n|.
-    result = result &&
              `          fallback();` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&

@@ -104,6 +104,59 @@ sap.ui.define(
         }
       },
 
+      _getScrollInfo() {
+        // For each visible view, find the first scrollable descendant
+        // (typically a sap.m.Page) and return its current scroll offsets.
+        // X = scrollLeft (horizontal), Y = scrollTop (vertical).
+        const empty = { ID: "", X: 0, Y: 0 };
+        const getOne = (view) => {
+          if (!view || !view.findAggregatedObjects) return empty;
+          let target = null;
+          try {
+            const candidates = view.findAggregatedObjects(true, (c) => {
+              try {
+                return c.getScrollDelegate && c.getScrollDelegate();
+              } catch (e) {
+                return false;
+              }
+            });
+            target = candidates && candidates[0];
+          } catch (e) {
+            return empty;
+          }
+          if (!target) return empty;
+          let x = 0;
+          let y = 0;
+          try {
+            const d = target.getScrollDelegate();
+            if (d) {
+              if (d.getScrollTop) y = d.getScrollTop() || 0;
+              if (d.getScrollLeft) x = d.getScrollLeft() || 0;
+            }
+          } catch (e) {
+            // ignored - fall through to DOM lookup
+          }
+          if (!x || !y) {
+            const el = document.getElementById(`${target.getId()}-inner`);
+            if (el) {
+              if (!y) y = el.scrollTop || 0;
+              if (!x) x = el.scrollLeft || 0;
+            }
+          }
+          let id = target.getId();
+          const prefix = view.getId() + "--";
+          if (id.startsWith(prefix)) id = id.slice(prefix.length);
+          return { ID: id, X: x, Y: y };
+        };
+        return {
+          MAIN: getOne(z2ui5.oView),
+          NEST: getOne(z2ui5.oViewNest),
+          NEST2: getOne(z2ui5.oViewNest2),
+          POPUP: getOne(z2ui5.oViewPopup),
+          POPOVER: getOne(z2ui5.oViewPopover),
+        };
+      },
+
       Roundtrip() {
         z2ui5.checkTimerActive = false;
         z2ui5.checkNestAfter = false;
@@ -123,6 +176,7 @@ sap.ui.define(
             S_UI5: z2ui5.oConfig && z2ui5.oConfig.S_UI5,
             S_DEVICE: this._getDeviceInfo(),
             S_FOCUS: this._getFocusInfo(),
+            S_SCROLL: this._getScrollInfo(),
             ComponentData: z2ui5.oConfig && z2ui5.oConfig.ComponentData,
           },
           ID: oBody.ID,

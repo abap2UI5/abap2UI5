@@ -121,13 +121,36 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function copyToClipboard(textToCopy) {` && |\n| &&
-             `      if (!navigator.clipboard || !navigator.clipboard.writeText) {` && |\n| &&
-             `        logError("Clipboard: writeText API not available");` && |\n| &&
+             `      if (navigator.clipboard && navigator.clipboard.writeText) {` && |\n| &&
+             `        navigator.clipboard` && |\n| &&
+             `          .writeText(textToCopy)` && |\n| &&
+             `          .catch((err) => {` && |\n| &&
+             `            logError("Clipboard: writeText failed, falling back", err);` && |\n| &&
+             `            copyToClipboardFallback(textToCopy);` && |\n| &&
+             `          });` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      navigator.clipboard` && |\n| &&
-             `        .writeText(textToCopy)` && |\n| &&
-             `        .catch((err) => logError("Clipboard: writeText failed", err));` && |\n| &&
+             `      copyToClipboardFallback(textToCopy);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function copyToClipboardFallback(textToCopy) {` && |\n| &&
+             `      const textarea = document.createElement("textarea");` && |\n| &&
+             `      textarea.value = textToCopy;` && |\n| &&
+             `      textarea.setAttribute("readonly", "");` && |\n| &&
+             `      textarea.style.position = "fixed";` && |\n| &&
+             `      textarea.style.top = "-1000px";` && |\n| &&
+             `      textarea.style.opacity = "0";` && |\n| &&
+             `      document.body.appendChild(textarea);` && |\n| &&
+             `      textarea.select();` && |\n| &&
+             `      try {` && |\n| &&
+             `        if (!document.execCommand("copy")) {` && |\n| &&
+             `          logError("Clipboard: execCommand('copy') returned false");` && |\n| &&
+             `        }` && |\n| &&
+             `      } catch (err) {` && |\n| &&
+             `        logError("Clipboard: execCommand('copy') threw", err);` && |\n| &&
+             `      } finally {` && |\n| &&
+             `        document.body.removeChild(textarea);` && |\n| &&
+             `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Turns an HTML "details" snippet from the backend into safe HTML.` && |\n| &&
@@ -395,6 +418,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // The app might have been torn down while the fragment loaded.` && |\n| &&
              `        const appAlive =` && |\n| &&
              `          z2ui5.oApp && (!z2ui5.oApp.isDestroyed || !z2ui5.oApp.isDestroyed());` && |\n| &&
+             |\n|.
+    result = result &&
              `        if (!appAlive) {` && |\n| &&
              `          oFragment.destroy();` && |\n| &&
              `          return;` && |\n| &&
@@ -418,8 +443,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            z2ui5.oApp &&` && |\n| &&
              `            (!z2ui5.oApp.isDestroyed || !z2ui5.oApp.isDestroyed());` && |\n| &&
              `          if (!appAlive) {` && |\n| &&
-             |\n|.
-    result = result &&
              `            oFragment.destroy();` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
@@ -622,6 +645,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          case "SET_FOCUS":` && |\n| &&
              `            this._evSetFocus(args);` && |\n| &&
              `            break;` && |\n| &&
+             `          case "SCROLL_TO":` && |\n| &&
+             `            this._evScrollTo(args);` && |\n| &&
+             `            break;` && |\n| &&
+             `          case "SCROLL_INTO_VIEW":` && |\n| &&
+             `            this._evScrollIntoView(args);` && |\n| &&
+             `            break;` && |\n| &&
              `          case "START_TIMER":` && |\n| &&
              `            this._evStartTimer(args);` && |\n| &&
              `            break;` && |\n| &&
@@ -791,6 +820,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        const newWindow = window.open(args[1], "_blank");` && |\n| &&
              `        // Clear opener to prevent the new tab from accessing window.opener.` && |\n| &&
+             |\n|.
+    result = result &&
              `        if (newWindow) newWindow.opener = null;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -820,8 +851,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `      _evImageEditorPopupClose() {` && |\n| &&
              `        let image;` && |\n| &&
-             |\n|.
-    result = result &&
              `        try {` && |\n| &&
              `          const editor = Fragment.byId("popupId", "imageEditor");` && |\n| &&
              `          if (editor) image = editor.getImagePngDataURL();` && |\n| &&
@@ -873,6 +902,80 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          oElement.applyFocusInfo(info);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          logError(``SET_FOCUS: failed for '${args[1]}'``, e);` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _evScrollTo(args) {` && |\n| &&
+             `        // args[1] = control id` && |\n| &&
+             `        // args[2] = scrollTop  (Y, vertical, px)` && |\n| &&
+             `        // args[3] = scrollLeft (X, horizontal, px) - optional, default 0` && |\n| &&
+             `        // args[4] = behavior - "auto" (default) | "smooth" | "instant"` && |\n| &&
+             `        // When behavior is "smooth" the modern Element.scrollTo({...,` && |\n| &&
+             `        // behavior}) API is used. Otherwise the Scrolling custom control's` && |\n| &&
+             `        // restoration logic is mirrored (delegate.scrollTo / scrollTop on` && |\n| &&
+             `        // the -inner DOM element).` && |\n| &&
+             `        try {` && |\n| &&
+             `          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);` && |\n| &&
+             `          if (!oElement) return;` && |\n| &&
+             `          const y = +args[2] || 0;` && |\n| &&
+             `          const x = +args[3] || 0;` && |\n| &&
+             `          const behavior = args[4] || "auto";` && |\n| &&
+             `` && |\n| &&
+             `          if (behavior === "smooth" || behavior === "instant") {` && |\n| &&
+             `            const dom = document.getElementById(``${oElement.getId()}-inner``)` && |\n| &&
+             `              || oElement.getDomRef();` && |\n| &&
+             `            if (dom && dom.scrollTo) {` && |\n| &&
+             `              dom.scrollTo({ top: y, left: x, behavior });` && |\n| &&
+             `              return;` && |\n| &&
+             `            }` && |\n| &&
+             `          }` && |\n| &&
+             `` && |\n| &&
+             `          let handledByDelegate = false;` && |\n| &&
+             `          try {` && |\n| &&
+             `            const d =` && |\n| &&
+             `              oElement.getScrollDelegate && oElement.getScrollDelegate();` && |\n| &&
+             `            if (d && d.scrollTo) {` && |\n| &&
+             `              // Hammer.js / iScroll delegate: scrollTo(x, y, time)` && |\n| &&
+             `              d.scrollTo(x, y, 0);` && |\n| &&
+             `              handledByDelegate = true;` && |\n| &&
+             `            }` && |\n| &&
+             `          } catch (e) {` && |\n| &&
+             `            // fall through` && |\n| &&
+             `          }` && |\n| &&
+             `          if (!handledByDelegate && oElement.scrollTo) {` && |\n| &&
+             `            // sap.m.Page.scrollTo(y, time) - vertical only` && |\n| &&
+             `            oElement.scrollTo(y);` && |\n| &&
+             `            handledByDelegate = true;` && |\n| &&
+             `          }` && |\n| &&
+             `          const dom = document.getElementById(``${oElement.getId()}-inner``);` && |\n| &&
+             `          if (dom) {` && |\n| &&
+             `            if (!handledByDelegate) dom.scrollTop = y;` && |\n| &&
+             `            dom.scrollLeft = x;` && |\n| &&
+             `          }` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          logError(``SCROLL_TO: failed for '${args[1]}'``, e);` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _evScrollIntoView(args) {` && |\n| &&
+             `        // args[1] = control id` && |\n| &&
+             `        // args[2] = behavior - "smooth" (default) | "auto" | "instant"` && |\n| &&
+             `        // args[3] = block    - "start"  (default) | "center" | "end" | "nearest"` && |\n| &&
+             `        // args[4] = inline   - "nearest" (default)| "start"  | "center" | "end"` && |\n| &&
+             `        // Modern declarative scroll: bring a control into the viewport,` && |\n| &&
+             `        // regardless of where the surrounding scroll container currently is.` && |\n| &&
+             `        try {` && |\n| &&
+             `          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);` && |\n| &&
+             `          if (!oElement) return;` && |\n| &&
+             `          const dom = oElement.getDomRef();` && |\n| &&
+             `          if (!dom || !dom.scrollIntoView) return;` && |\n| &&
+             `          dom.scrollIntoView({` && |\n| &&
+             `            behavior: args[2] || "smooth",` && |\n| &&
+             `            block: args[3] || "start",` && |\n| &&
+             `            inline: args[4] || "nearest",` && |\n| &&
+             `          });` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          logError(``SCROLL_INTO_VIEW: failed for '${args[1]}'``, e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -1119,6 +1222,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        applyStoredSizeLimit("MAIN", oModel);` && |\n| &&
              `` && |\n| &&
              `        z2ui5.oView = await XMLView.create({` && |\n| &&
+             |\n|.
+    result = result &&
              `          definition: xml,` && |\n| &&
              `          models: oModel,` && |\n| &&
              `          controller: z2ui5.oController,` && |\n| &&
