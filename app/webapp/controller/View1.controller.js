@@ -15,7 +15,6 @@ sap.ui.define(
     "sap/ui/core/routing/HashChanger",
     "sap/ui/util/Storage",
     "sap/ui/core/Element",
-    "sap/ui/core/Rendering",
   ],
   (
     Controller,
@@ -33,7 +32,6 @@ sap.ui.define(
     HashChanger,
     Storage,
     Element,
-    Rendering,
   ) => {
     "use strict";
 
@@ -602,12 +600,6 @@ sap.ui.define(
           case "SET_FOCUS":
             this._evSetFocus(args);
             break;
-          case "SET_FOCUS_CELL":
-            this._evSetCellFocus(args);
-            break;
-          case "KEYBOARD_KEEP_OPEN":
-            this._evFocusActiveInput();
-            break;
           case "START_TIMER":
             this._evStartTimer(args);
             break;
@@ -616,9 +608,6 @@ sap.ui.define(
             break;
           case "Z2UI5":
             this._evZ2ui5Custom(args);
-            break;
-          case "EXPAND_TO_LEVEL":
-            this._evExpandToLevel(args);
             break;
           case "WIZARD_SET_NEXT_STEP":
             this._evWizardSetNextStep(args);
@@ -863,44 +852,6 @@ sap.ui.define(
         }
       },
 
-      _evSetCellFocus(args) {
-        try {
-          // args[1] = column view-relative ID, args[2] = row index (0-based)
-          const oColumn = z2ui5.oView && z2ui5.oView.byId(args[1]);
-          if (!oColumn) return;
-          const oTable = oColumn.getParent();
-          if (!oTable) return;
-          const colIdx = oTable.indexOfColumn(oColumn);
-          const rows = oTable.getItems ? oTable.getItems() : oTable.getRows();
-          const oRow = rows[+args[2]];
-          if (!oRow) return;
-          const oCell = oRow.getCells()[colIdx];
-          if (!oCell) return;
-          oCell.applyFocusInfo(oCell.getFocusInfo());
-        } catch (e) {
-          logError(`SET_FOCUS_CELL: failed for column '${args[1]}'`, e);
-        }
-      },
-
-      _evFocusActiveInput() {
-        const onAfterRendering = () => {
-          Rendering.detachAfterRendering(onAfterRendering);
-          try {
-            const el = document.activeElement;
-            if (!el) return;
-            const input = el.matches("input, textarea")
-              ? el
-              : el.querySelector("input, textarea");
-            if (!input) return;
-            input.focus();
-            input.select();
-          } catch (e) {
-            logError("FOCUS_ACTIVE_INPUT: failed", e);
-          }
-        };
-        Rendering.attachAfterRendering(onAfterRendering);
-      },
-
       _evSetTitle(args) {
         const title = args[1] == null ? "" : String(args[1]);
         try {
@@ -926,15 +877,6 @@ sap.ui.define(
           if (fn) fn(args.slice(2));
         } catch (e) {
           logError(`Z2UI5: '${args[1]}' failed`, e);
-        }
-      },
-
-      _evExpandToLevel(args) {
-        try {
-          const ctrl = z2ui5.oView && z2ui5.oView.byId(args[1]);
-          if (ctrl && ctrl.expandToLevel) ctrl.expandToLevel(+args[2]);
-        } catch (e) {
-          logError(`EXPAND_TO_LEVEL: failed for '${args[1]}'`, e);
         }
       },
 
