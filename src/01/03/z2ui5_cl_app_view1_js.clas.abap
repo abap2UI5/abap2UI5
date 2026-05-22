@@ -910,47 +910,50 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // args[2] = scrollTop  (Y, vertical, px)` && |\n| &&
              `        // args[3] = scrollLeft (X, horizontal, px) - optional, default 0` && |\n| &&
              `        // args[4] = behavior - "auto" (default) | "smooth" | "instant"` && |\n| &&
-             `        // When behavior is "smooth" the modern Element.scrollTo({...,` && |\n| &&
-             `        // behavior}) API is used. Otherwise the Scrolling custom control's` && |\n| &&
-             `        // restoration logic is mirrored (delegate.scrollTo / scrollTop on` && |\n| &&
-             `        // the -inner DOM element).` && |\n| &&
+             `        // Strategy: prefer the control's scroll delegate (sap.m.Page,` && |\n| &&
+             `        // ScrollContainer etc. expose ScrollEnablement). The delegate knows` && |\n| &&
+             `        // the real scroll container, which often is NOT the control's root` && |\n| &&
+             `        // DOM element - so native Element.scrollTo on getDomRef() silently` && |\n| &&
+             `        // does nothing on a Page. ScrollEnablement.scrollTo(x, y, time)` && |\n| &&
+             `        // animates when time > 0, so "smooth" maps to a 300ms animation.` && |\n| &&
+             `        // Native Element.scrollTo is only used as a fallback for controls` && |\n| &&
+             `        // without a delegate.` && |\n| &&
              `        try {` && |\n| &&
              `          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);` && |\n| &&
              `          if (!oElement) return;` && |\n| &&
              `          const y = +args[2] || 0;` && |\n| &&
              `          const x = +args[3] || 0;` && |\n| &&
              `          const behavior = args[4] || "auto";` && |\n| &&
+             `          const smooth = behavior === "smooth";` && |\n| &&
              `` && |\n| &&
-             `          if (behavior === "smooth" || behavior === "instant") {` && |\n| &&
-             `            const dom = document.getElementById(``${oElement.getId()}-inner``)` && |\n| &&
-             `              || oElement.getDomRef();` && |\n| &&
-             `            if (dom && dom.scrollTo) {` && |\n| &&
-             `              dom.scrollTo({ top: y, left: x, behavior });` && |\n| &&
-             `              return;` && |\n| &&
-             `            }` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          let handledByDelegate = false;` && |\n| &&
+             `          let handled = false;` && |\n| &&
              `          try {` && |\n| &&
              `            const d =` && |\n| &&
              `              oElement.getScrollDelegate && oElement.getScrollDelegate();` && |\n| &&
              `            if (d && d.scrollTo) {` && |\n| &&
-             `              // Hammer.js / iScroll delegate: scrollTo(x, y, time)` && |\n| &&
-             `              d.scrollTo(x, y, 0);` && |\n| &&
-             `              handledByDelegate = true;` && |\n| &&
+             `              // ScrollEnablement / iScroll delegate: scrollTo(x, y, time)` && |\n| &&
+             `              d.scrollTo(x, y, smooth ? 300 : 0);` && |\n| &&
+             `              handled = true;` && |\n| &&
              `            }` && |\n| &&
              `          } catch (e) {` && |\n| &&
              `            // fall through` && |\n| &&
              `          }` && |\n| &&
-             `          if (!handledByDelegate && oElement.scrollTo) {` && |\n| &&
-             `            // sap.m.Page.scrollTo(y, time) - vertical only` && |\n| &&
-             `            oElement.scrollTo(y);` && |\n| &&
-             `            handledByDelegate = true;` && |\n| &&
-             `          }` && |\n| &&
-             `          const dom = document.getElementById(``${oElement.getId()}-inner``);` && |\n| &&
-             `          if (dom) {` && |\n| &&
-             `            if (!handledByDelegate) dom.scrollTop = y;` && |\n| &&
-             `            dom.scrollLeft = x;` && |\n| &&
+             `` && |\n| &&
+             `          if (!handled) {` && |\n| &&
+             `            const dom = document.getElementById(``${oElement.getId()}-inner``)` && |\n| &&
+             `              || oElement.getDomRef();` && |\n| &&
+             `            if (dom && dom.scrollTo) {` && |\n| &&
+             `              dom.scrollTo({ top: y, left: x, behavior });` && |\n| &&
+             `              handled = true;` && |\n| &&
+             `            } else if (dom) {` && |\n| &&
+             `              dom.scrollTop = y;` && |\n| &&
+             `              dom.scrollLeft = x;` && |\n| &&
+             `              handled = true;` && |\n| &&
+             `            } else if (oElement.scrollTo) {` && |\n| &&
+             `              // sap.m.Page.scrollTo(y, time) - vertical only` && |\n| &&
+             `              oElement.scrollTo(y, smooth ? 300 : 0);` && |\n| &&
+             `              handled = true;` && |\n| &&
+             `            }` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          logError(``SCROLL_TO: failed for '${args[1]}'``, e);` && |\n| &&
