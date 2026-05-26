@@ -430,7 +430,11 @@ test: add unit tests for utility class
 ## Important Rules for AI Assistants
 
 1. **Do not modify `src/00/`** — mirrored from external projects, synced by automated workflows.
-2. **Never manually edit `src/01/03/`** — auto-generated from `app/webapp/` via `auto_app2abap`.
+2. **NEVER manually edit any ABAP file under `src/01/03/`.** These files are the embedded frontend (auto-generated from `app/webapp/` via the `app2abap` job — see `.github/app2abap/trans2abap.js` and the `create_app2abap.yaml` workflow). The **only** allowed way to update them is:
+   - Change the source under `app/webapp/`
+   - Run the `app2abap` job (`npm run auto_app2abap` locally, or trigger the `create_app2abap.yaml` workflow)
+   - Commit the regenerated `src/01/03/` files as the job produced them
+   Direct edits to `src/01/03/*.abap` are forbidden — no manual tweaks, no "small fixes", no formatting changes, nothing. The job may be invoked, but the files must never be touched by hand or by any other means.
 3. **Always run `npx abaplint`** before considering changes complete.
 4. **Multi-environment compatibility** — code must work on NW 7.02, standard ABAP, and ABAP Cloud.
 5. **The public API (`src/02/`) is a stable contract — never change or remove existing public attributes, methods, or constants.** This folder is consumed directly by thousands of downstream apps. Specifically:
