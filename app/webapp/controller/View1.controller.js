@@ -884,48 +884,50 @@ sap.ui.define(
         // args[2] = scrollTop  (Y, vertical, px)
         // args[3] = scrollLeft (X, horizontal, px) - optional, default 0
         // args[4] = behavior - "auto" (default) | "smooth" | "instant"
-        // When behavior is "smooth" the modern Element.scrollTo({...,
-        // behavior}) API is used. Otherwise the Scrolling custom control's
-        // restoration logic is mirrored (delegate.scrollTo / scrollTop on
-        // the -inner DOM element).
+        // Strategy: prefer the control's scroll delegate (sap.m.Page,
+        // ScrollContainer etc. expose ScrollEnablement). The delegate knows
+        // the real scroll container, which often is NOT the control's root
+        // DOM element - so native Element.scrollTo on getDomRef() silently
+        // does nothing on a Page. ScrollEnablement.scrollTo(x, y, time)
+        // animates when time > 0, so "smooth" maps to a 300ms animation.
+        // Native Element.scrollTo is only used as a fallback for controls
+        // without a delegate.
         try {
           const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
           if (!oElement) return;
           const y = +args[2] || 0;
           const x = +args[3] || 0;
           const behavior = args[4] || "auto";
+          const smooth = behavior === "smooth";
 
-          if (behavior === "smooth" || behavior === "instant") {
-            const dom =
-              document.getElementById(`${oElement.getId()}-inner`) ||
-              oElement.getDomRef();
-            if (dom && dom.scrollTo) {
-              dom.scrollTo({ top: y, left: x, behavior });
-              return;
-            }
-          }
-
-          let handledByDelegate = false;
+          let handled = false;
           try {
             const d =
               oElement.getScrollDelegate && oElement.getScrollDelegate();
             if (d && d.scrollTo) {
-              // Hammer.js / iScroll delegate: scrollTo(x, y, time)
-              d.scrollTo(x, y, 0);
-              handledByDelegate = true;
+              // ScrollEnablement / iScroll delegate: scrollTo(x, y, time)
+              d.scrollTo(x, y, smooth ? 300 : 0);
+              handled = true;
             }
           } catch (e) {
             // fall through
           }
-          if (!handledByDelegate && oElement.scrollTo) {
-            // sap.m.Page.scrollTo(y, time) - vertical only
-            oElement.scrollTo(y);
-            handledByDelegate = true;
-          }
-          const dom = document.getElementById(`${oElement.getId()}-inner`);
-          if (dom) {
-            if (!handledByDelegate) dom.scrollTop = y;
-            dom.scrollLeft = x;
+
+          if (!handled) {
+            const dom = document.getElementById(`${oElement.getId()}-inner`)
+              || oElement.getDomRef();
+            if (dom && dom.scrollTo) {
+              dom.scrollTo({ top: y, left: x, behavior });
+              handled = true;
+            } else if (dom) {
+              dom.scrollTop = y;
+              dom.scrollLeft = x;
+              handled = true;
+            } else if (oElement.scrollTo) {
+              // sap.m.Page.scrollTo(y, time) - vertical only
+              oElement.scrollTo(y, smooth ? 300 : 0);
+              handled = true;
+            }
           }
         } catch (e) {
           logError(`SCROLL_TO: failed for '${args[1]}'`, e);
