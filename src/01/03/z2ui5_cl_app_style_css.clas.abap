@@ -18,7 +18,7 @@ CLASS z2ui5_cl_app_style_css IMPLEMENTATION.
 
   METHOD get.
 
-    result = `/* Enter your custom styles here */` &&
+    result =              `/* Enter your custom styles here */` &&
               ``.
 
   ENDMETHOD.

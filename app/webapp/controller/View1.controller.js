@@ -1028,6 +1028,16 @@ sap.ui.define(
           return;
         }
 
+        // A new roundtrip overrides any pending timer - timers that fired
+        // already removed themselves before calling eB, so this only cancels
+        // timers that are still waiting.
+        if (z2ui5.timers) {
+          for (const key in z2ui5.timers) {
+            clearTimeout(z2ui5.timers[key]);
+            delete z2ui5.timers[key];
+          }
+        }
+
         z2ui5.isBusy = true;
         BusyIndicator.show();
         z2ui5.oBody = { VIEWNAME: "MAIN" };
