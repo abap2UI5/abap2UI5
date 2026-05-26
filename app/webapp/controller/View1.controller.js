@@ -914,8 +914,9 @@ sap.ui.define(
           }
 
           if (!handled) {
-            const dom = document.getElementById(`${oElement.getId()}-inner`)
-              || oElement.getDomRef();
+            const dom =
+              document.getElementById(`${oElement.getId()}-inner`) ||
+              oElement.getDomRef();
             if (dom && dom.scrollTo) {
               dom.scrollTo({ top: y, left: x, behavior });
               handled = true;
