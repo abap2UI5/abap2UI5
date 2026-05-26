@@ -105,49 +105,79 @@ sap.ui.define(
       },
 
       _getScrollInfo() {
-        // For each visible view, find the first scrollable descendant
-        // (typically a sap.m.Page) and return its current scroll offsets.
-        // X = scrollLeft (horizontal), Y = scrollTop (vertical).
-        // Only views that exist and have a scrollable target are included;
-        // empty slots are omitted to keep the request payload small.
+        // For each visible view, find the scrollable descendant that is
+        // actually scrolled (typically a sap.m.Page) and return its current
+        // scroll offsets. X = scrollLeft, Y = scrollTop.
+        //
+        // Multiple controls in the tree expose getScrollDelegate (App,
+        // NavContainer, Page, ScrollContainer, ...). findAggregatedObjects
+        // returns them in pre-order, so the outer App/NavContainer comes
+        // first - but its delegate never scrolls visible content. We pick
+        // the first candidate whose container is actually scrolled, with
+        // the deepest overflowing container as a fallback.
+        //
+        // Reading the position directly from the container's DOM avoids
+        // relying on the delegate's cached _scrollY/_scrollX which can lag
+        // until a scroll event fires.
+        const containerOf = (control) => {
+          try {
+            const d = control.getScrollDelegate();
+            if (d && d.getContainerDomRef) {
+              const dom = d.getContainerDomRef();
+              if (dom) return dom;
+            }
+          } catch (e) {
+            // ignored
+          }
+          // Fallback to known ID suffixes for common controls.
+          const id = control.getId();
+          return (
+            document.getElementById(`${id}-cont`) || // sap.m.Page
+            document.getElementById(`${id}-scroll`) || // sap.m.ScrollContainer
+            null
+          );
+        };
         const getOne = (view) => {
           if (!view || !view.findAggregatedObjects) return null;
-          let target = null;
+          let candidates;
           try {
-            const candidates = view.findAggregatedObjects(true, (c) => {
+            candidates = view.findAggregatedObjects(true, (c) => {
               try {
                 return c.getScrollDelegate && c.getScrollDelegate();
               } catch (e) {
                 return false;
               }
             });
-            target = candidates && candidates[0];
           } catch (e) {
             return null;
           }
-          if (!target) return null;
-          let x = 0;
-          let y = 0;
-          try {
-            const d = target.getScrollDelegate();
-            if (d) {
-              if (d.getScrollTop) y = d.getScrollTop() || 0;
-              if (d.getScrollLeft) x = d.getScrollLeft() || 0;
+          if (!candidates || !candidates.length) return null;
+
+          let chosen = null;
+          let fallback = null;
+          for (const c of candidates) {
+            const dom = containerOf(c);
+            if (!dom) continue;
+            const x = dom.scrollLeft || 0;
+            const y = dom.scrollTop || 0;
+            if (x || y) {
+              chosen = { control: c, x, y };
+              break;
             }
-          } catch (e) {
-            // ignored - fall through to DOM lookup
-          }
-          if (!x || !y) {
-            const el = document.getElementById(`${target.getId()}-inner`);
-            if (el) {
-              if (!y) y = el.scrollTop || 0;
-              if (!x) x = el.scrollLeft || 0;
+            // Prefer the deepest container that actually overflows.
+            const overflows =
+              dom.scrollHeight > dom.clientHeight ||
+              dom.scrollWidth > dom.clientWidth;
+            if (overflows || !fallback) {
+              fallback = { control: c, x, y };
             }
           }
-          let id = target.getId();
+          const pick = chosen || fallback;
+          if (!pick) return null;
+          let id = pick.control.getId();
           const prefix = view.getId() + "--";
           if (id.startsWith(prefix)) id = id.slice(prefix.length);
-          return { ID: id, X: x, Y: y };
+          return { ID: id, X: pick.x, Y: pick.y };
         };
         const out = {};
         const slots = [
