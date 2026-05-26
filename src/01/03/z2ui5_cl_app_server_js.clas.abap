@@ -125,49 +125,79 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      },` && |\n|  &&
              `` && |\n|  &&
              `      _getScrollInfo() {` && |\n|  &&
-             `        // For each visible view, find the first scrollable descendant` && |\n|  &&
-             `        // (typically a sap.m.Page) and return its current scroll offsets.` && |\n|  &&
-             `        // X = scrollLeft (horizontal), Y = scrollTop (vertical).` && |\n|  &&
-             `        // Only views that exist and have a scrollable target are included;` && |\n|  &&
-             `        // empty slots are omitted to keep the request payload small.` && |\n|  &&
+             `        // For each visible view, find the scrollable descendant that is` && |\n|  &&
+             `        // actually scrolled (typically a sap.m.Page) and return its current` && |\n|  &&
+             `        // scroll offsets. X = scrollLeft, Y = scrollTop.` && |\n|  &&
+             `        //` && |\n|  &&
+             `        // Multiple controls in the tree expose getScrollDelegate (App,` && |\n|  &&
+             `        // NavContainer, Page, ScrollContainer, ...). findAggregatedObjects` && |\n|  &&
+             `        // returns them in pre-order, so the outer App/NavContainer comes` && |\n|  &&
+             `        // first - but its delegate never scrolls visible content. We pick` && |\n|  &&
+             `        // the first candidate whose container is actually scrolled, with` && |\n|  &&
+             `        // the deepest overflowing container as a fallback.` && |\n|  &&
+             `        //` && |\n|  &&
+             `        // Reading the position directly from the container's DOM avoids` && |\n|  &&
+             `        // relying on the delegate's cached _scrollY/_scrollX which can lag` && |\n|  &&
+             `        // until a scroll event fires.` && |\n|  &&
+             `        const containerOf = (control) => {` && |\n|  &&
+             `          try {` && |\n|  &&
+             `            const d = control.getScrollDelegate();` && |\n|  &&
+             `            if (d && d.getContainerDomRef) {` && |\n|  &&
+             `              const dom = d.getContainerDomRef();` && |\n|  &&
+             `              if (dom) return dom;` && |\n|  &&
+             `            }` && |\n|  &&
+             `          } catch (e) {` && |\n|  &&
+             `            // ignored` && |\n|  &&
+             `          }` && |\n|  &&
+             `          // Fallback to known ID suffixes for common controls.` && |\n|  &&
+             `          const id = control.getId();` && |\n|  &&
+             `          return (` && |\n|  &&
+             `            document.getElementById(``${id}-cont``) || // sap.m.Page` && |\n|  &&
+             `            document.getElementById(``${id}-scroll``) || // sap.m.ScrollContainer` && |\n|  &&
+             `            null` && |\n|  &&
+             `          );` && |\n|  &&
+             `        };` && |\n|  &&
              `        const getOne = (view) => {` && |\n|  &&
              `          if (!view || !view.findAggregatedObjects) return null;` && |\n|  &&
-             `          let target = null;` && |\n|  &&
+             `          let candidates;` && |\n|  &&
              `          try {` && |\n|  &&
-             `            const candidates = view.findAggregatedObjects(true, (c) => {` && |\n|  &&
+             `            candidates = view.findAggregatedObjects(true, (c) => {` && |\n|  &&
              `              try {` && |\n|  &&
              `                return c.getScrollDelegate && c.getScrollDelegate();` && |\n|  &&
              `              } catch (e) {` && |\n|  &&
              `                return false;` && |\n|  &&
              `              }` && |\n|  &&
              `            });` && |\n|  &&
-             `            target = candidates && candidates[0];` && |\n|  &&
              `          } catch (e) {` && |\n|  &&
              `            return null;` && |\n|  &&
              `          }` && |\n|  &&
-             `          if (!target) return null;` && |\n|  &&
-             `          let x = 0;` && |\n|  &&
-             `          let y = 0;` && |\n|  &&
-             `          try {` && |\n|  &&
-             `            const d = target.getScrollDelegate();` && |\n|  &&
-             `            if (d) {` && |\n|  &&
-             `              if (d.getScrollTop) y = d.getScrollTop() || 0;` && |\n|  &&
-             `              if (d.getScrollLeft) x = d.getScrollLeft() || 0;` && |\n|  &&
+             `          if (!candidates || !candidates.length) return null;` && |\n|  &&
+             `` && |\n|  &&
+             `          let chosen = null;` && |\n|  &&
+             `          let fallback = null;` && |\n|  &&
+             `          for (const c of candidates) {` && |\n|  &&
+             `            const dom = containerOf(c);` && |\n|  &&
+             `            if (!dom) continue;` && |\n|  &&
+             `            const x = dom.scrollLeft || 0;` && |\n|  &&
+             `            const y = dom.scrollTop || 0;` && |\n|  &&
+             `            if (x || y) {` && |\n|  &&
+             `              chosen = { control: c, x, y };` && |\n|  &&
+             `              break;` && |\n|  &&
              `            }` && |\n|  &&
-             `          } catch (e) {` && |\n|  &&
-             `            // ignored - fall through to DOM lookup` && |\n|  &&
-             `          }` && |\n|  &&
-             `          if (!x || !y) {` && |\n|  &&
-             `            const el = document.getElementById(``${target.getId()}-inner``);` && |\n|  &&
-             `            if (el) {` && |\n|  &&
-             `              if (!y) y = el.scrollTop || 0;` && |\n|  &&
-             `              if (!x) x = el.scrollLeft || 0;` && |\n|  &&
+             `            // Prefer the deepest container that actually overflows.` && |\n|  &&
+             `            const overflows =` && |\n|  &&
+             `              dom.scrollHeight > dom.clientHeight ||` && |\n|  &&
+             `              dom.scrollWidth > dom.clientWidth;` && |\n|  &&
+             `            if (overflows || !fallback) {` && |\n|  &&
+             `              fallback = { control: c, x, y };` && |\n|  &&
              `            }` && |\n|  &&
              `          }` && |\n|  &&
-             `          let id = target.getId();` && |\n|  &&
+             `          const pick = chosen || fallback;` && |\n|  &&
+             `          if (!pick) return null;` && |\n|  &&
+             `          let id = pick.control.getId();` && |\n|  &&
              `          const prefix = view.getId() + "--";` && |\n|  &&
              `          if (id.startsWith(prefix)) id = id.slice(prefix.length);` && |\n|  &&
-             `          return { ID: id, X: x, Y: y };` && |\n|  &&
+             `          return { ID: id, X: pick.x, Y: pick.y };` && |\n|  &&
              `        };` && |\n|  &&
              `        const out = {};` && |\n|  &&
              `        const slots = [` && |\n|  &&
@@ -388,6 +418,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          z-index: 9999;` && |\n|  &&
              `          display: flex;` && |\n|  &&
              `          flex-direction: column;` && |\n|  &&
+             |\n|.
+    result = result &&
              `        ``;` && |\n|  &&
              `        document.body.appendChild(container);` && |\n|  &&
              `        return container;` && |\n|  &&
@@ -418,8 +450,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        const h3 = document.createElement("h3");` && |\n|  &&
              `        h3.textContent = "Server Error - Please Restart The App";` && |\n|  &&
              `        h3.style.cssText = "margin: 0";` && |\n|  &&
-             |\n|.
-    result = result &&
              `        headerDiv.appendChild(h3);` && |\n|  &&
              `` && |\n|  &&
              `        const btnStyle =` && |\n|  &&
