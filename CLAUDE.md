@@ -17,7 +17,7 @@ abap2UI5 is a framework for building SAP UI5 applications purely in ABAP — no 
 | [abap2UI5-samples](https://github.com/abap2UI5/abap2UI5-samples) | Sample applications and usage examples |
 | [abap2UI5-documentation](https://github.com/abap2UI5/abap2UI5-documentation) | Project documentation |
 
-> **Building apps?** See the [abap2UI5-samples](https://github.com/abap2UI5/abap2UI5-samples) repository — it contains the app development guide (CLAUDE.md), canonical app template, Client API reference, and 250+ example apps to learn from.
+> **Building apps?** This file is the briefing for AI assistants working **on the framework itself**. For everything an AI needs to **build apps with** abap2UI5 — app template, client API, view-building patterns, lifecycle, deprecated controls — see the single canonical guide at <https://abap2ui5.github.io/docs/get_started/ai.html>.
 
 ## Architecture
 
@@ -117,99 +117,9 @@ App state is persisted between roundtrips via the draft service (`z2ui5_cl_core_
 - **Multi-View:** Main view, nested views (nest/nest2), popups, and popovers simultaneously
 - **Exit Pattern:** `z2ui5_cl_exit` / `z2ui5_if_exit` for custom themes, CSP headers, etc.
 
-### Building Views — Two Supported APIs
+### Building Apps
 
-abap2UI5 offers **two ways to build XML views**, both fully supported:
-
-1. **`z2ui5_cl_util_xml`** (`src/00/03/`) — generic XML builder. Takes any element name and attributes as strings, so **the entire UI5 control library is immediately available** — no wrapper methods needed, no waiting for new releases.
-2. **`z2ui5_cl_xml_view`** (`src/02/`) — legacy fluent builder with one ABAP method per UI5 control (~11K lines, ~446 methods). Still fully supported for existing apps and contributors who prefer it. Note: this builder has accumulated **some inconsistencies** across its many wrapper methods (parameter naming, default handling, partial control coverage).
-
-**For AI assistants: always use `z2ui5_cl_util_xml`.** It is consistent, complete, and maps 1:1 to the UI5 XML view documentation.
-
-**The pattern for AI assistants:** look up any control at https://ui5.sap.com/#/api, then translate the XML view example 1:1 to ABAP:
-
-| UI5 XML view | ABAP with `z2ui5_cl_util_xml` |
-|---|---|
-| `<Button text="Send" />` | `->__( n=\`Button\` a=\`text\` v=\`Send\` )` |
-| `press="onPress"` | `v = client->_event( \`BUTTON_POST\` )` |
-| `value="{/name}"` | `v = client->_bind_edit( name )` |
-| `<FeedInput><actions>...</actions></FeedInput>` | `->_( \`FeedInput\` )->_( \`actions\` )->__( ... )` |
-
-**Builder methods:**
-- `_( n=\`Name\` ns=\`ns\` a=\`attr\` v=\`val\` p=... )` — add child, **return child** (go deeper)
-- `__( n=\`Name\` ... )` — add child, **return self** (stay at same level / leaf node)
-- `p( n=\`attr\` v=\`val\` )` — add attribute to current node
-- `n( \`Name\` )` / `n( )` — navigate to named ancestor / parent
-- `stringify( indent=abap_true )` — serialize to XML string
-
-**Important:** always pass `'true'` or `'false'` as string literals — never use `abap_true` or `abap_false` for XML attribute values. `abap_false` (space) is filtered out and the attribute would be silently dropped; `abap_true` ('X') is not converted and would produce an invalid attribute value.
-
-**Complete example:**
-```abap
-METHOD z2ui5_if_app~main.
-  CASE abap_true.
-    WHEN client->check_on_init( ).
-      DATA(lo_view) = z2ui5_cl_util_xml=>factory(
-        )->_( n = `View`  ns = `mvc`
-              p = VALUE #( ( n = `xmlns:mvc` v = `sap.ui.core.mvc` )
-                           ( n = `xmlns`     v = `sap.m` ) )
-        )->_( `Page`  a = `title`  v = `Hello`
-        )->__( n = `Input`   a = `value` v = client->_bind_edit( name )
-        )->__( n = `Button`
-               p = VALUE #( ( n = `text`  v = `Send` )
-                            ( n = `press` v = client->_event( `POST` ) ) ) ).
-      client->view_display( lo_view->stringify( ) ).
-    WHEN client->check_on_event( `POST` ).
-      client->message_box_display( name ).
-  ENDCASE.
-ENDMETHOD.
-```
-
-### Deprecated UI5 Controls — Do Not Use
-
-When generating views (with either `z2ui5_cl_util_xml` or `z2ui5_cl_xml_view`), avoid the controls listed below. They are deprecated in the current SAPUI5 release line and must not be introduced in new code or examples. The authoritative list is at https://ui5.sap.com/#/api/deprecated.
-
-**Whole libraries — never use any control from these:**
-
-| Library | Deprecated since | Use instead |
-|---|---|---|
-| `sap.ui.commons` (Accordion, Button, CheckBox, ComboBox, DatePicker, Dialog, FileUploader, Label, Link, Menu, Panel, RadioButton, SearchField, Slider, TextArea, TextField, TextView, ToggleButton, Toolbar, Tree, Form, SimpleForm, AbsoluteLayout, BorderLayout, MatrixLayout, HorizontalLayout, VerticalLayout, etc. — entire library) | 1.38 | `sap.m` + `sap.ui.layout` |
-| `sap.viz.ui5.*` legacy charts (Bar, Bubble, Bullet, Column, Combination, Donut, Heatmap, Line, Pie, Scatter, StackedColumn, Treemap, Waterfall, …) | 1.32 | `sap.viz.ui5.controls.VizFrame` |
-
-**Individual deprecated controls:**
-
-| Control | Deprecated since | Use instead |
-|---|---|---|
-| `sap.m.MultiEditField` | 1.120 | — |
-| `sap.f.Avatar` | 1.73 | `sap.m.Avatar` |
-| `sap.ui.core.XMLComposite` | 1.88 | Custom controls |
-| `sap.ui.core.mvc.HTMLView` | 1.108 | XMLView |
-| `sap.ui.core.mvc.JSONView` | 1.120 | XMLView |
-| `sap.ui.core.mvc.JSView` | 1.90 | Typed views |
-| `sap.ui.core.mvc.TemplateView` | 1.56 | XMLView |
-| `sap.ui.core.tmpl.TemplateControl` | 1.56 | — |
-| `sap.ui.table.ColumnHeader` | 1.120 | `sap.ui.table.Column` |
-| `sap.ui.table.TableHelper` | 1.118 | — |
-| `sap.f.routing.Router` / `Target` / `TargetHandler` / `Targets` | 1.56 | `sap.m.routing.*` (async) |
-| `sap.tnt.IToolHeader` (interface) | 1.135 | Any control as `ToolPage` header |
-
-**Deprecated enums/types to avoid:**
-
-- `sap.m.ValueCSSColor`, `DateTimeInputType` (use `DatePicker`/`TimePicker`), `ListHeaderDesign`, `ListMode.SingleSelect` (1.143 → `SingleSelectLeft`), `FrameType.TwoThirds`/`Auto`, mis-spelled `PlacementType.*Prefered*` variants
-- `sap.f.AvatarShape` / `AvatarSize` / `AvatarType` / `AvatarColor` / `AvatarImageFitType` / `IllustratedMessageType` / `IllustratedMessageSize` / `DynamicPageTitleArea` (use the `sap.m.*` equivalents)
-- `sap.ui.layout.BlockBackgroundType.Mixed`, `form.GridElementCells`, `SimpleFormLayout.ResponsiveLayout`, `SimpleFormLayout.GridLayout`, `cssgrid.CSSGridGapShortHand`, `GridHelper`
-- `sap.ui.table.NavigationMode`, `SortOrder` (use `sap.ui.core.SortOrder`), `VisibleRowCountMode` (use `rowMode` aggregation), `TreeAutoExpandMode`, `ResetAllMode`
-- `sap.ui.core.MessageType` (use `module:sap/ui/core/message/MessageType`)
-- `sap.ui.unified.ContentSwitcherAnimation` (1.147 — concept discarded)
-
-**Other deprecated framework items (not controls but related):**
-
-- Analysis Path Framework (APF) — deprecated 1.140
-- `sap.m.PDFViewer.sourceValidationFailed()` — deprecated 1.141
-- Declarative `data-sap-ui-type` attribute — deprecated 1.120 (use XML views)
-- Belize, Blue Crystal, and Blue Crystal HCB themes — removed in 1.136 (use Horizon)
-
-**Namespace caveat for `Avatar`:** `z2ui5_cl_xml_view->avatar( )` accepts a free-form `ns` parameter. Leave it empty to emit `<Avatar>` (resolves to `sap.m.Avatar` via the View's default xmlns). **Never pass `ns = 'f'`** — that produces `<f:Avatar>`, which is the deprecated `sap.f.Avatar`. (`avatar_group` and `avatar_group_item` correctly use `ns = 'f'` because those controls still live in `sap.f`.)
+App-building guidance (view builder choice, deprecated controls, lifecycle patterns, canonical app template, client API) lives exclusively at <https://abap2ui5.github.io/docs/get_started/ai.html>. Do not duplicate it here.
 
 ## Repository Structure
 
@@ -429,6 +339,8 @@ test: add unit tests for utility class
 
 ## Important Rules for AI Assistants
 
+These rules apply to AI assistants **modifying the framework** (this repo). For AI assistants **building apps**, see <https://abap2ui5.github.io/docs/get_started/ai.html> instead.
+
 1. **Do not modify `src/00/`** — mirrored from external projects, synced by automated workflows.
 2. **NEVER manually edit any ABAP file under `src/01/03/`.** These files are the embedded frontend (auto-generated from `app/webapp/` via the `app2abap` job — see `.github/app2abap/trans2abap.js` and the `create_app2abap.yaml` workflow). The **only** allowed way to update them is:
    - Change the source under `app/webapp/`
@@ -445,11 +357,6 @@ test: add unit tests for utility class
    - When in doubt, add rather than change
 6. **String literals use backticks** (`` ` ``), not single quotes.
 7. **The `z2ui5_cl_xml_view` class has a `method_overwrites_builtin` exception** — its fluent methods intentionally match UI5 control names.
-8. **Use built-in popups** (`src/02/01/z2ui5_cl_pop_*`) rather than building custom ones.
-9. **`z2ui5_if_client` constants**: `cs_event` has predefined client events (`popup_close`, `download_b64_file`, `location_reload`); `cs_view` has view type IDs.
-10. **Building views — two APIs are supported, AI assistants must always use `z2ui5_cl_util_xml`:**
-    - **`z2ui5_cl_util_xml`** (`src/00/03/`) — generic XML builder. Accepts any element name and attributes as strings, giving immediate access to the full UI5 control library. **AI assistants must use this builder for all generated code.**
-    - **`z2ui5_cl_xml_view`** (`src/02/`) — legacy fluent builder with one ABAP method per UI5 control (~11K lines, ~446 methods). Still fully supported for existing apps and human contributors, but contains **some inconsistencies** across its wrapper methods. Do not add new wrapper methods. AI assistants should not produce new code against this builder.
 
 ## Design Decisions & Known Non-Issues
 
@@ -457,4 +364,4 @@ The following items may look like gaps but are intentional design choices:
 
 - **Draft table `Z2UI5_T_01` has no version column** — Drafts are session-scoped (deleted after a few hours). There is no long-lived state that needs schema migration. Versioning would add complexity with no benefit.
 - **Changelog** — The project maintains a `changelog.txt` in the repository root. A `CHANGELOG.md` is not needed separately.
-- **`z2ui5_cl_xml_view` size (~11K lines)** — This class is intentionally large: each method wraps one UI5 control for the fluent API. Both this builder and `z2ui5_cl_util_xml` are supported equally for app developers; the fluent builder has some accumulated inconsistencies across wrappers, so AI-generated code should always use `z2ui5_cl_util_xml`.
+- **`z2ui5_cl_xml_view` size (~11K lines)** — This class is intentionally large: each method wraps one UI5 control for the fluent API. Both this builder and `z2ui5_cl_util_xml` are supported equally; do not add new wrapper methods.
