@@ -46,6 +46,8 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_check_on_event_empty FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_navigated   FOR TESTING RAISING cx_static_check.
     METHODS test_nav_app_call         FOR TESTING RAISING cx_static_check.
+    METHODS test_nav_app_leave_event  FOR TESTING RAISING cx_static_check.
+    METHODS test_nav_app_leave_r_data FOR TESTING RAISING cx_static_check.
     METHODS test_check_app_prev_stack FOR TESTING RAISING cx_static_check.
     METHODS test_set_push_state       FOR TESTING RAISING cx_static_check.
     METHODS test_set_nav_back         FOR TESTING RAISING cx_static_check.
@@ -481,6 +483,41 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_not_initial( lv_id ).
     cl_abap_unit_assert=>assert_bound( mo_action->ms_next-o_app_call ).
+
+  ENDMETHOD.
+
+  METHOD test_nav_app_leave_event.
+
+    DATA lo_app TYPE REF TO ltcl_test_app.
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    lo_app = NEW #( ).
+    li_client ?= mo_client.
+
+    li_client->nav_app_leave( app   = lo_app
+                              event = `MY_EVENT` ).
+
+    cl_abap_unit_assert=>assert_bound( mo_action->ms_next-o_app_leave ).
+    cl_abap_unit_assert=>assert_equals( exp = `MY_EVENT`
+                                        act = mo_action->ms_next-next_event ).
+    " the dedicated backend event must not emit any client side JS snippet
+    cl_abap_unit_assert=>assert_equals( exp = 0
+                                        act = lines( mo_action->ms_next-s_set-s_follow_up_action-custom_js ) ).
+
+  ENDMETHOD.
+
+  METHOD test_nav_app_leave_r_data.
+
+    DATA lo_app TYPE REF TO ltcl_test_app.
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA lv_data TYPE string VALUE `payload`.
+    lo_app = NEW #( ).
+    li_client ?= mo_client.
+
+    li_client->nav_app_leave( app    = lo_app
+                              event  = `MY_EVENT`
+                              r_data = lv_data ).
+
+    cl_abap_unit_assert=>assert_bound( mo_action->ms_next-r_data ).
 
   ENDMETHOD.
 

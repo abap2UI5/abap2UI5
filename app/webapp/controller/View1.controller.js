@@ -100,6 +100,27 @@ sap.ui.define(
       }
     }
 
+    // Returns true if the URL uses a safe (http/https) protocol. Unlike
+    // isValidRedirectURL this allows cross-origin targets, so it fits
+    // outbound redirects to external sites while still blocking dangerous
+    // schemes such as javascript:, data: or vbscript:.
+    function isSafeRedirectProtocol(url) {
+      if (!url) return false;
+      try {
+        const parsed = new URL(url, window.location.origin);
+        if (!_SAFE_PROTOCOLS.has(parsed.protocol)) {
+          logError(
+            `Security: Blocked redirect with invalid protocol: ${parsed.protocol}`,
+          );
+          return false;
+        }
+        return true;
+      } catch (e) {
+        logError(`Security: Invalid URL format: ${url}`, e);
+        return false;
+      }
+    }
+
     function copyToClipboard(textToCopy) {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(textToCopy).catch((err) => {
@@ -802,7 +823,15 @@ sap.ui.define(
       _evUrlHelper(args) {
         const params = args[2];
         const actions = {
-          REDIRECT: () => _URLHelper.redirect(params.URL, params.NEW_WINDOW),
+          REDIRECT: () => {
+            if (!isSafeRedirectProtocol(params.URL)) {
+              MessageBox.error(
+                "Invalid redirect URL. Only http/https protocols are allowed.",
+              );
+              return;
+            }
+            _URLHelper.redirect(params.URL, params.NEW_WINDOW);
+          },
           TRIGGER_EMAIL: () =>
             _URLHelper.triggerEmail(
               params.EMAIL,
