@@ -142,6 +142,7 @@ INTERFACE z2ui5_if_core_types
     BEGIN OF ty_s_next,
       o_app_call  TYPE REF TO z2ui5_if_app,
       o_app_leave TYPE REF TO z2ui5_if_app,
+      next_event  TYPE string,
       s_set       TYPE ty_s_next_frontend,
       r_data      TYPE REF TO data,
     END OF ty_s_next.

@@ -130,6 +130,9 @@ INTERFACE z2ui5_if_client
   METHODS nav_app_leave
     IMPORTING
       VALUE(app)    TYPE REF TO z2ui5_if_app OPTIONAL
+      event         TYPE clike                OPTIONAL
+      r_data        TYPE data                 OPTIONAL
+        PREFERRED PARAMETER app
     RETURNING
       VALUE(result) TYPE string.
 

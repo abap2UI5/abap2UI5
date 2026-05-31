@@ -192,8 +192,12 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
     result->reset_view_update_flags( ).
 
-    IF ms_next-s_set-s_follow_up_action IS NOT INITIAL AND
+    IF ms_next-next_event IS NOT INITIAL.
+      result->ms_actual-event = ms_next-next_event.
+    ELSEIF ms_next-s_set-s_follow_up_action IS NOT INITIAL AND
         lines( ms_next-s_set-s_follow_up_action-custom_js ) > 0.
+      " backward compatibility: derive the next event from a legacy
+      " follow_up_action( _event( ) ) snippet ( deprecated mechanism )
       DATA(lv_action) = ms_next-s_set-s_follow_up_action-custom_js[ 1 ].
       SPLIT lv_action AT `.eB(['` INTO DATA(lv_dummy)
             result->ms_actual-event.

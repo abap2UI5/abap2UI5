@@ -120,6 +120,27 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // Returns true if the URL uses a safe (http/https) protocol. Unlike` && |\n| &&
+             `    // isValidRedirectURL this allows cross-origin targets, so it fits` && |\n| &&
+             `    // outbound redirects to external sites while still blocking dangerous` && |\n| &&
+             `    // schemes such as javascript:, data: or vbscript:.` && |\n| &&
+             `    function isSafeRedirectProtocol(url) {` && |\n| &&
+             `      if (!url) return false;` && |\n| &&
+             `      try {` && |\n| &&
+             `        const parsed = new URL(url, window.location.origin);` && |\n| &&
+             `        if (!_SAFE_PROTOCOLS.has(parsed.protocol)) {` && |\n| &&
+             `          logError(` && |\n| &&
+             `            ``Security: Blocked redirect with invalid protocol: ${parsed.protocol}``,` && |\n| &&
+             `          );` && |\n| &&
+             `          return false;` && |\n| &&
+             `        }` && |\n| &&
+             `        return true;` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        logError(``Security: Invalid URL format: ${url}``, e);` && |\n| &&
+             `        return false;` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function copyToClipboard(textToCopy) {` && |\n| &&
              `      if (navigator.clipboard && navigator.clipboard.writeText) {` && |\n| &&
              `        navigator.clipboard.writeText(textToCopy).catch((err) => {` && |\n| &&
@@ -397,6 +418,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _createViewModel() {` && |\n| &&
+             |\n|.
+    result = result &&
              `        const data = z2ui5.oResponse && z2ui5.oResponse.OVIEWMODEL;` && |\n| &&
              `        return this._trackChanges(new JSONModel(data));` && |\n| &&
              `      },` && |\n| &&
@@ -418,8 +441,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          z2ui5.oApp && (!z2ui5.oApp.isDestroyed || !z2ui5.oApp.isDestroyed());` && |\n| &&
              `        if (!appAlive) {` && |\n| &&
              `          oFragment.destroy();` && |\n| &&
-             |\n|.
-    result = result &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        oFragment.setModel(oModel);` && |\n| &&
@@ -799,6 +820,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            z2ui5.oLaunchpad.Container &&` && |\n| &&
              `            z2ui5.oLaunchpad.Container.logout;` && |\n| &&
              `          if (launchpadLogout) {` && |\n| &&
+             |\n|.
+    result = result &&
              `            z2ui5.oLaunchpad.Container.logout();` && |\n| &&
              `          } else {` && |\n| &&
              `            redirectToLogoff();` && |\n| &&
@@ -820,13 +843,19 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // Clear opener to prevent the new tab from accessing window.opener.` && |\n| &&
              `        if (newWindow) newWindow.opener = null;` && |\n| &&
              `      },` && |\n| &&
-             |\n|.
-    result = result &&
              `` && |\n| &&
              `      _evUrlHelper(args) {` && |\n| &&
              `        const params = args[2];` && |\n| &&
              `        const actions = {` && |\n| &&
-             `          REDIRECT: () => _URLHelper.redirect(params.URL, params.NEW_WINDOW),` && |\n| &&
+             `          REDIRECT: () => {` && |\n| &&
+             `            if (!isSafeRedirectProtocol(params.URL)) {` && |\n| &&
+             `              MessageBox.error(` && |\n| &&
+             `                "Invalid redirect URL. Only http/https protocols are allowed.",` && |\n| &&
+             `              );` && |\n| &&
+             `              return;` && |\n| &&
+             `            }` && |\n| &&
+             `            _URLHelper.redirect(params.URL, params.NEW_WINDOW);` && |\n| &&
+             `          },` && |\n| &&
              `          TRIGGER_EMAIL: () =>` && |\n| &&
              `            _URLHelper.triggerEmail(` && |\n| &&
              `              params.EMAIL,` && |\n| &&
@@ -1193,6 +1222,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (msgType === "S_MSG_BOX") {` && |\n| &&
              `          const oParams = {` && |\n| &&
              `            styleClass: msg.STYLECLASS || "",` && |\n| &&
+             |\n|.
+    result = result &&
              `            title: msg.TITLE || "",` && |\n| &&
              `            onClose: msg.ONCLOSE` && |\n| &&
              `              ? (sAction) => this.eB([msg.ONCLOSE, sAction])` && |\n| &&
@@ -1222,8 +1253,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        // When the app wants OData as the default model, build it here and` && |\n| &&
              `        // keep the JSON model as the named "http" model.` && |\n| &&
-             |\n|.
-    result = result &&
              `        let oModel;` && |\n| &&
              `        if (switchPath) {` && |\n| &&
              `          oModel = new ODataModel({` && |\n| &&

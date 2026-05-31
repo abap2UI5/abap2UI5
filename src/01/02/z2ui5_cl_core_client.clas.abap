@@ -226,6 +226,13 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     ENDIF.
 
     mo_action->ms_next-o_app_leave = app.
+    mo_action->ms_next-next_event  = event.
+
+    IF r_data IS NOT INITIAL.
+      CREATE DATA mo_action->ms_next-r_data LIKE r_data.
+      mo_action->ms_next-r_data = z2ui5_cl_util=>conv_copy_ref_data( r_data ).
+    ENDIF.
+
     result = nav_app_set_id( app ).
 
   ENDMETHOD.
