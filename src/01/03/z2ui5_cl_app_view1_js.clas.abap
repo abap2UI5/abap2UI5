@@ -388,6 +388,23 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        } finally {` && |\n| &&
              `          BusyIndicator.hide();` && |\n| &&
              `          z2ui5.isBusy = false;` && |\n| &&
+             `          // Now that the view is rendered (and any busy indicator is gone),` && |\n| &&
+             `          // run the follow-up JS snippets the backend asked for. Doing it here` && |\n| &&
+             `          // - rather than as an early microtask - guarantees render-dependent` && |\n| &&
+             `          // actions like SET_FOCUS find their target control in the DOM.` && |\n| &&
+             `          this._runPendingCustomJs();` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // Execute the follow-up JS snippets stashed by Server.responseSuccess.` && |\n| &&
+             `      // Runs once per roundtrip, after the view has rendered.` && |\n| &&
+             `      _runPendingCustomJs() {` && |\n| &&
+             `        const customJs = z2ui5.pendingCustomJs;` && |\n| &&
+             `        z2ui5.pendingCustomJs = null;` && |\n| &&
+             `        if (!customJs) return;` && |\n| &&
+             `        if (this.isDestroyed && this.isDestroyed()) return;` && |\n| &&
+             `        for (const item of customJs) {` && |\n| &&
+             `          Server._runCustomJs(item, this);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -401,6 +418,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const [attr, rowIdx, field] = parts;` && |\n| &&
              `          // Only a flat table cell (exactly attr/row/field) qualifies for a` && |\n| &&
              `          // delta. Deeper paths (e.g. tree tables: attr/row/<subtable>/<row>/<field>)` && |\n| &&
+             |\n|.
+    result = result &&
              `          // fall back to shipping the whole attribute, which the backend applies` && |\n| &&
              `          // via corresponding-based deserialization.` && |\n| &&
              `          const isRowField =` && |\n| &&
@@ -418,8 +437,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            // Scalar change -> ship the whole attribute.` && |\n| &&
              `            delta[attr] = xx[attr];` && |\n| &&
              `          }` && |\n| &&
-             |\n|.
-    result = result &&
              `        }` && |\n| &&
              `        return delta;` && |\n| &&
              `      },` && |\n| &&
@@ -803,6 +820,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          let done = false;` && |\n| &&
              `          const finish = () => {` && |\n| &&
              `            if (done) return;` && |\n| &&
+             |\n|.
+    result = result &&
              `            done = true;` && |\n| &&
              `            goToLogoutUrl();` && |\n| &&
              `          };` && |\n| &&
@@ -820,8 +839,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          setTimeout(finish, 1500);` && |\n| &&
              `        };` && |\n| &&
              `        try {` && |\n| &&
-             |\n|.
-    result = result &&
              `          const launchpadLogout =` && |\n| &&
              `            z2ui5.oLaunchpad &&` && |\n| &&
              `            z2ui5.oLaunchpad.Container &&` && |\n| &&
@@ -925,39 +942,16 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _evSetFocus(args) {` && |\n| &&
-             `        // Try to focus the target control now. Returns true once the focus was` && |\n| &&
-             `        // applied (or a hard error stopped us), false while the control is not` && |\n| &&
-             `        // rendered yet and we should retry after the next rendering cycle.` && |\n| &&
-             `        const applyFocus = () => {` && |\n| &&
-             `          try {` && |\n| &&
-             `            const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);` && |\n| &&
-             `            if (!oElement) return false;` && |\n| &&
-             `            // On init SET_FOCUS arrives together with a full view rebuild, so` && |\n| &&
-             `            // the control exists but is not in the DOM yet - defer in that case.` && |\n| &&
-             `            if (oElement.getDomRef && !oElement.getDomRef()) return false;` && |\n| &&
-             `            const info = oElement.getFocusInfo();` && |\n| &&
-             `            if (args[2] != null && args[2] !== "")` && |\n| &&
-             `              info.selectionStart = +args[2];` && |\n| &&
-             `            if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];` && |\n| &&
-             `            oElement.applyFocusInfo(info);` && |\n| &&
-             `            return true;` && |\n| &&
-             `          } catch (e) {` && |\n| &&
-             `            logError(``SET_FOCUS: failed for '${args[1]}'``, e);` && |\n| &&
-             `            return true;` && |\n| &&
-             `          }` && |\n| &&
-             `        };` && |\n| &&
-             `` && |\n| &&
-             `        if (applyFocus()) return;` && |\n| &&
-             `` && |\n| &&
-             `        // Control not rendered yet (initial view build): retry after rendering,` && |\n| &&
-             `        // mirroring the previous z2ui5.Focus control behavior.` && |\n| &&
-             `        let attempts = 0;` && |\n| &&
-             `        const onAfterRendering = () => {` && |\n| &&
-             `          if (applyFocus() || ++attempts >= 5) {` && |\n| &&
-             `            Rendering.detachAfterRendering(onAfterRendering);` && |\n| &&
-             `          }` && |\n| &&
-             `        };` && |\n| &&
-             `        Rendering.attachAfterRendering(onAfterRendering);` && |\n| &&
+             `        try {` && |\n| &&
+             `          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);` && |\n| &&
+             `          if (!oElement) return;` && |\n| &&
+             `          const info = oElement.getFocusInfo();` && |\n| &&
+             `          if (args[2] != null && args[2] !== "") info.selectionStart = +args[2];` && |\n| &&
+             `          if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];` && |\n| &&
+             `          oElement.applyFocusInfo(info);` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          logError(``SET_FOCUS: failed for '${args[1]}'``, e);` && |\n| &&
+             `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _evScrollTo(args) {` && |\n| &&
@@ -1222,14 +1216,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `      // Display a toast or message box. Triggered for S_MSG_TOAST and` && |\n| &&
              `      // S_MSG_BOX entries in the server response.` && |\n| &&
-             |\n|.
-    result = result &&
              `      showMessage(msgType, params) {` && |\n| &&
              `        if (!params) return;` && |\n| &&
              `        const msg = params[msgType];` && |\n| &&
              `        if (!msg || msg.TEXT === undefined) return;` && |\n| &&
              `` && |\n| &&
              `        if (msgType === "S_MSG_TOAST") {` && |\n| &&
+             |\n|.
+    result = result &&
              `          MessageToast.show(msg.TEXT, {` && |\n| &&
              `            duration: parseMs(msg.DURATION, 3000),` && |\n| &&
              `            width: msg.WIDTH || "15em",` && |\n| &&

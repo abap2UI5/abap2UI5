@@ -368,6 +368,23 @@ sap.ui.define(
         } finally {
           BusyIndicator.hide();
           z2ui5.isBusy = false;
+          // Now that the view is rendered (and any busy indicator is gone),
+          // run the follow-up JS snippets the backend asked for. Doing it here
+          // - rather than as an early microtask - guarantees render-dependent
+          // actions like SET_FOCUS find their target control in the DOM.
+          this._runPendingCustomJs();
+        }
+      },
+
+      // Execute the follow-up JS snippets stashed by Server.responseSuccess.
+      // Runs once per roundtrip, after the view has rendered.
+      _runPendingCustomJs() {
+        const customJs = z2ui5.pendingCustomJs;
+        z2ui5.pendingCustomJs = null;
+        if (!customJs) return;
+        if (this.isDestroyed && this.isDestroyed()) return;
+        for (const item of customJs) {
+          Server._runCustomJs(item, this);
         }
       },
 
@@ -901,39 +918,16 @@ sap.ui.define(
       },
 
       _evSetFocus(args) {
-        // Try to focus the target control now. Returns true once the focus was
-        // applied (or a hard error stopped us), false while the control is not
-        // rendered yet and we should retry after the next rendering cycle.
-        const applyFocus = () => {
-          try {
-            const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
-            if (!oElement) return false;
-            // On init SET_FOCUS arrives together with a full view rebuild, so
-            // the control exists but is not in the DOM yet - defer in that case.
-            if (oElement.getDomRef && !oElement.getDomRef()) return false;
-            const info = oElement.getFocusInfo();
-            if (args[2] != null && args[2] !== "")
-              info.selectionStart = +args[2];
-            if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];
-            oElement.applyFocusInfo(info);
-            return true;
-          } catch (e) {
-            logError(`SET_FOCUS: failed for '${args[1]}'`, e);
-            return true;
-          }
-        };
-
-        if (applyFocus()) return;
-
-        // Control not rendered yet (initial view build): retry after rendering,
-        // mirroring the previous z2ui5.Focus control behavior.
-        let attempts = 0;
-        const onAfterRendering = () => {
-          if (applyFocus() || ++attempts >= 5) {
-            Rendering.detachAfterRendering(onAfterRendering);
-          }
-        };
-        Rendering.attachAfterRendering(onAfterRendering);
+        try {
+          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
+          if (!oElement) return;
+          const info = oElement.getFocusInfo();
+          if (args[2] != null && args[2] !== "") info.selectionStart = +args[2];
+          if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];
+          oElement.applyFocusInfo(info);
+        } catch (e) {
+          logError(`SET_FOCUS: failed for '${args[1]}'`, e);
+        }
       },
 
       _evScrollTo(args) {
