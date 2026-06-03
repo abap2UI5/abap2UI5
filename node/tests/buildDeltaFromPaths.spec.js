@@ -7,7 +7,7 @@ function _buildDeltaFromPaths(paths, xx) {
     for (let path of paths) {
         let parts = path.substring(4).split('/');
         let attr = parts[0];
-        if (parts.length >= 3 && !isNaN(parts[1])) {
+        if (parts.length === 3 && !isNaN(parts[1])) {
             if (!delta[attr] || !delta[attr]["__delta"]) {
                 delta[attr] = { "__delta": {} };
             }
@@ -203,13 +203,44 @@ test.describe('Edge cases', () => {
         });
     });
 
-    test('deeply nested path (4+ parts) uses first 3 parts for delta', () => {
+    test('deeply nested path (4+ parts) falls back to full array', () => {
         // "/XX/TABLE1/0/COL1/deep" → parts = ["TABLE1","0","COL1","deep"]
-        // parts.length >= 3 ✓, !isNaN("0") ✓ → delta with parts[2] = "COL1"
+        // parts.length !== 3 → cannot be expressed as a flat cell delta, so the
+        // whole attribute is shipped instead.
         const paths = new Set(['/XX/TABLE1/0/COL1/deep']);
         const result = _buildDeltaFromPaths(paths, SAMPLE_XX);
+        expect(result).toEqual({ TABLE1: SAMPLE_XX.TABLE1 });
+    });
+});
+
+// ── 5b. Tree table (nested sub-table) edits ─────────────────────────────
+test.describe('Tree table nested edits → full array fallback', () => {
+
+    const TREE_XX = {
+        MT_TREE: [
+            {
+                USER: "Manager", ENABLED: false, VALIDATED: false,
+                NODES: [
+                    { USER: "Employee 1", ENABLED: true, VALIDATED: false },
+                    { USER: "Employee 2", ENABLED: true, VALIDATED: false },
+                ],
+            },
+        ],
+    };
+
+    test('checkbox on a tree child node ships the whole attribute', () => {
+        // UI5 tree table edit path: /XX/MT_TREE/0/NODES/1/VALIDATED
+        // parts = ["MT_TREE","0","NODES","1","VALIDATED"] → length 5 → fallback.
+        const paths = new Set(['/XX/MT_TREE/0/NODES/1/VALIDATED']);
+        const result = _buildDeltaFromPaths(paths, TREE_XX);
+        expect(result).toEqual({ MT_TREE: TREE_XX.MT_TREE });
+    });
+
+    test('edit on a tree root node still uses a flat cell delta', () => {
+        const paths = new Set(['/XX/MT_TREE/0/VALIDATED']);
+        const result = _buildDeltaFromPaths(paths, TREE_XX);
         expect(result).toEqual({
-            TABLE1: { __delta: { "0": { COL1: "A1" } } }
+            MT_TREE: { __delta: { "0": { VALIDATED: false } } }
         });
     });
 });

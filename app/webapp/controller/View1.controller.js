@@ -377,9 +377,14 @@ sap.ui.define(
         const delta = {};
         for (const path of paths) {
           // path looks like "/XX/<attr>" or "/XX/<attr>/<row>/<field>"
-          const [attr, rowIdx, field] = path.slice(4).split("/");
+          const parts = path.slice(4).split("/");
+          const [attr, rowIdx, field] = parts;
+          // Only a flat table cell (exactly attr/row/field) qualifies for a
+          // delta. Deeper paths (e.g. tree tables: attr/row/<subtable>/<row>/<field>)
+          // fall back to shipping the whole attribute, which the backend applies
+          // via corresponding-based deserialization.
           const isRowField =
-            field !== undefined && rowIdx !== "" && !isNaN(rowIdx);
+            parts.length === 3 && rowIdx !== "" && !isNaN(rowIdx);
           if (isRowField) {
             // Table cell change -> ship only the changed cell.
             if (!delta[attr] || !delta[attr].__delta) {
