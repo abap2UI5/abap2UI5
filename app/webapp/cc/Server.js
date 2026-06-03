@@ -332,17 +332,14 @@ sap.ui.define(
 
           // The backend can send small JS snippets to run after the response.
           // Each snippet is either a literal expression or an "eF(...)" call
-          // whose arguments are wrapped in single quotes.
+          // whose arguments are wrapped in single quotes. They are stashed
+          // here and executed at the end of _processAfterRendering, i.e. once
+          // the (possibly freshly built) view is actually rendered. Running
+          // them earlier would break render-dependent actions such as
+          // SET_FOCUS on the initial view, where the target control does not
+          // exist in the DOM yet.
           const followUp = params && params.S_FOLLOW_UP_ACTION;
-          const customJs = followUp && followUp.CUSTOM_JS;
-          if (customJs) {
-            queueMicrotask(() => {
-              if (oController.isDestroyed && oController.isDestroyed()) return;
-              for (const item of customJs) {
-                this._runCustomJs(item, oController);
-              }
-            });
-          }
+          z2ui5.pendingCustomJs = (followUp && followUp.CUSTOM_JS) || null;
 
           for (const t of _MSG_TYPES) oController.showMessage(t, params);
 

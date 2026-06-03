@@ -352,17 +352,14 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `          // The backend can send small JS snippets to run after the response.` && |\n| &&
              `          // Each snippet is either a literal expression or an "eF(...)" call` && |\n| &&
-             `          // whose arguments are wrapped in single quotes.` && |\n| &&
+             `          // whose arguments are wrapped in single quotes. They are stashed` && |\n| &&
+             `          // here and executed at the end of _processAfterRendering, i.e. once` && |\n| &&
+             `          // the (possibly freshly built) view is actually rendered. Running` && |\n| &&
+             `          // them earlier would break render-dependent actions such as` && |\n| &&
+             `          // SET_FOCUS on the initial view, where the target control does not` && |\n| &&
+             `          // exist in the DOM yet.` && |\n| &&
              `          const followUp = params && params.S_FOLLOW_UP_ACTION;` && |\n| &&
-             `          const customJs = followUp && followUp.CUSTOM_JS;` && |\n| &&
-             `          if (customJs) {` && |\n| &&
-             `            queueMicrotask(() => {` && |\n| &&
-             `              if (oController.isDestroyed && oController.isDestroyed()) return;` && |\n| &&
-             `              for (const item of customJs) {` && |\n| &&
-             `                this._runCustomJs(item, oController);` && |\n| &&
-             `              }` && |\n| &&
-             `            });` && |\n| &&
-             `          }` && |\n| &&
+             `          z2ui5.pendingCustomJs = (followUp && followUp.CUSTOM_JS) || null;` && |\n| &&
              `` && |\n| &&
              `          for (const t of _MSG_TYPES) oController.showMessage(t, params);` && |\n| &&
              `` && |\n| &&
@@ -418,11 +415,11 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             |\n|.
-    result = result &&
              `      _getOrCreateErrorContainer() {` && |\n| &&
              `        const existing = document.getElementById("serverErrorContainer");` && |\n| &&
              `        if (existing) return existing;` && |\n| &&
+             |\n|.
+    result = result &&
              `` && |\n| &&
              `        const container = document.createElement("div");` && |\n| &&
              `        container.id = "serverErrorContainer";` && |\n| &&

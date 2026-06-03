@@ -368,6 +368,23 @@ sap.ui.define(
         } finally {
           BusyIndicator.hide();
           z2ui5.isBusy = false;
+          // Now that the view is rendered (and any busy indicator is gone),
+          // run the follow-up JS snippets the backend asked for. Doing it here
+          // - rather than as an early microtask - guarantees render-dependent
+          // actions like SET_FOCUS find their target control in the DOM.
+          this._runPendingCustomJs();
+        }
+      },
+
+      // Execute the follow-up JS snippets stashed by Server.responseSuccess.
+      // Runs once per roundtrip, after the view has rendered.
+      _runPendingCustomJs() {
+        const customJs = z2ui5.pendingCustomJs;
+        z2ui5.pendingCustomJs = null;
+        if (!customJs) return;
+        if (this.isDestroyed && this.isDestroyed()) return;
+        for (const item of customJs) {
+          Server._runCustomJs(item, this);
         }
       },
 
