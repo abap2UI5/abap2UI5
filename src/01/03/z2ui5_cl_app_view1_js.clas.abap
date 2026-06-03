@@ -942,15 +942,34 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _evSetFocus(args) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);` && |\n| &&
-             `          if (!oElement) return;` && |\n| &&
-             `          const info = oElement.getFocusInfo();` && |\n| &&
-             `          if (args[2] != null && args[2] !== "") info.selectionStart = +args[2];` && |\n| &&
-             `          if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];` && |\n| &&
-             `          oElement.applyFocusInfo(info);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          logError(``SET_FOCUS: failed for '${args[1]}'``, e);` && |\n| &&
+             `        const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);` && |\n| &&
+             `        if (!oElement) return;` && |\n| &&
+             `` && |\n| &&
+             `        const applyFocus = () => {` && |\n| &&
+             `          try {` && |\n| &&
+             `            const info = oElement.getFocusInfo();` && |\n| &&
+             `            if (args[2] != null && args[2] !== "")` && |\n| &&
+             `              info.selectionStart = +args[2];` && |\n| &&
+             `            if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];` && |\n| &&
+             `            oElement.applyFocusInfo(info);` && |\n| &&
+             `          } catch (e) {` && |\n| &&
+             `            logError(``SET_FOCUS: failed for '${args[1]}'``, e);` && |\n| &&
+             `          }` && |\n| &&
+             `        };` && |\n| &&
+             `` && |\n| &&
+             `        // The control may still be missing from the DOM when SET_FOCUS runs` && |\n| &&
+             `        // together with a fresh view build. Apply now if it is rendered,` && |\n| &&
+             `        // otherwise once it is - same pattern as UITableExt / Scrolling.` && |\n| &&
+             `        if (oElement.getDomRef && oElement.getDomRef()) {` && |\n| &&
+             `          applyFocus();` && |\n| &&
+             `        } else {` && |\n| &&
+             `          const delegate = {` && |\n| &&
+             `            onAfterRendering: () => {` && |\n| &&
+             `              oElement.removeEventDelegate(delegate);` && |\n| &&
+             `              applyFocus();` && |\n| &&
+             `            },` && |\n| &&
+             `          };` && |\n| &&
+             `          oElement.addEventDelegate(delegate);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -1203,6 +1222,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        if (!gav || !gav.includes("com.sap.ui5")) {` && |\n| &&
+             |\n|.
+    result = result &&
              `          // openui5 doesn't ship some sap.com modules - tell the user which` && |\n| &&
              `          // module is missing so they know to switch to SAPUI5.` && |\n| &&
              `          const missingModule = err && err._modules;` && |\n| &&
@@ -1222,8 +1243,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (!msg || msg.TEXT === undefined) return;` && |\n| &&
              `` && |\n| &&
              `        if (msgType === "S_MSG_TOAST") {` && |\n| &&
-             |\n|.
-    result = result &&
              `          MessageToast.show(msg.TEXT, {` && |\n| &&
              `            duration: parseMs(msg.DURATION, 3000),` && |\n| &&
              `            width: msg.WIDTH || "15em",` && |\n| &&

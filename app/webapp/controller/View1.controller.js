@@ -918,15 +918,34 @@ sap.ui.define(
       },
 
       _evSetFocus(args) {
-        try {
-          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
-          if (!oElement) return;
-          const info = oElement.getFocusInfo();
-          if (args[2] != null && args[2] !== "") info.selectionStart = +args[2];
-          if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];
-          oElement.applyFocusInfo(info);
-        } catch (e) {
-          logError(`SET_FOCUS: failed for '${args[1]}'`, e);
+        const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
+        if (!oElement) return;
+
+        const applyFocus = () => {
+          try {
+            const info = oElement.getFocusInfo();
+            if (args[2] != null && args[2] !== "")
+              info.selectionStart = +args[2];
+            if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];
+            oElement.applyFocusInfo(info);
+          } catch (e) {
+            logError(`SET_FOCUS: failed for '${args[1]}'`, e);
+          }
+        };
+
+        // The control may still be missing from the DOM when SET_FOCUS runs
+        // together with a fresh view build. Apply now if it is rendered,
+        // otherwise once it is - same pattern as UITableExt / Scrolling.
+        if (oElement.getDomRef && oElement.getDomRef()) {
+          applyFocus();
+        } else {
+          const delegate = {
+            onAfterRendering: () => {
+              oElement.removeEventDelegate(delegate);
+              applyFocus();
+            },
+          };
+          oElement.addEventDelegate(delegate);
         }
       },
 
