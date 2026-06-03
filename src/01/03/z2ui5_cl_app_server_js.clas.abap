@@ -38,9 +38,18 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      });` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // A usable stateful session id ("sap-contextid"). We must never put a` && |\n| &&
+             `    // missing value on the wire: an empty or - via string coercion of a` && |\n| &&
+             `    // JS ``undefined`` - the literal "undefined" makes the SAP Web Dispatcher /` && |\n| &&
+             `    // ICM log "invalid w3c session id" / "HttpExtractSID: SID wrong len: 9"` && |\n| &&
+             `    // on every roundtrip. Only forward a real, non-empty id.` && |\n| &&
+             `    function isValidContextId(id) {` && |\n| &&
+             `      return typeof id === "string" && id !== "" && id !== "undefined";` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    return {` && |\n| &&
              `      endSession() {` && |\n| &&
-             `        if (!z2ui5.contextId) return;` && |\n| &&
+             `        if (!isValidContextId(z2ui5.contextId)) return;` && |\n| &&
              `        // Best-effort notify the backend that the session ends. Errors are` && |\n| &&
              `        // intentionally swallowed: the browser tab is closing anyway.` && |\n| &&
              `        fetch(z2ui5.url, {` && |\n| &&
@@ -271,20 +280,31 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        // Step 1: send the request.` && |\n| &&
              `        let response;` && |\n| &&
              `        try {` && |\n| &&
+             `          // Only forward "sap-contextid" once we actually own a valid session` && |\n| &&
+             `          // id - otherwise omit the header entirely (never send "" or` && |\n| &&
+             `          // "undefined"; see isValidContextId).` && |\n| &&
+             `          const headers = {` && |\n| &&
+             `            "Content-Type": "application/json",` && |\n| &&
+             `            "sap-contextid-accept": "header",` && |\n| &&
+             `          };` && |\n| &&
+             `          if (isValidContextId(z2ui5.contextId)) {` && |\n| &&
+             `            headers["sap-contextid"] = z2ui5.contextId;` && |\n| &&
+             `          }` && |\n| &&
              `          response = await fetch(z2ui5.url, {` && |\n| &&
              `            method: "POST",` && |\n| &&
-             `            headers: {` && |\n| &&
-             `              "Content-Type": "application/json",` && |\n| &&
-             `              "sap-contextid-accept": "header",` && |\n| &&
-             `              "sap-contextid": z2ui5.contextId || "",` && |\n| &&
-             `            },` && |\n| &&
+             `            headers: headers,` && |\n| &&
              `            body: JSON.stringify({ value: z2ui5.oBody }),` && |\n| &&
              `          });` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          this.responseError(``Network error: ${e.message}``);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        z2ui5.contextId = response.headers.get("sap-contextid");` && |\n| &&
+             `        // Keep the last valid session id; a response without the header` && |\n| &&
+             `        // (returns null) must not wipe an established session.` && |\n| &&
+             `        const contextId = response.headers.get("sap-contextid");` && |\n| &&
+             `        if (isValidContextId(contextId)) {` && |\n| &&
+             `          z2ui5.contextId = contextId;` && |\n| &&
+             `        }` && |\n| &&
              `` && |\n| &&
              `        // Step 2: if the HTTP status is not 2xx, treat the body as error text.` && |\n| &&
              `        if (!response.ok) {` && |\n| &&
@@ -398,6 +418,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             |\n|.
+    result = result &&
              `      _getOrCreateErrorContainer() {` && |\n| &&
              `        const existing = document.getElementById("serverErrorContainer");` && |\n| &&
              `        if (existing) return existing;` && |\n| &&
@@ -418,8 +440,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          z-index: 9999;` && |\n| &&
              `          display: flex;` && |\n| &&
              `          flex-direction: column;` && |\n| &&
-             |\n|.
-    result = result &&
              `        ``;` && |\n| &&
              `        document.body.appendChild(container);` && |\n| &&
              `        return container;` && |\n| &&
