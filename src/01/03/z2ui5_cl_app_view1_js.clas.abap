@@ -1222,6 +1222,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const info = await VersionInfo.load();` && |\n| &&
              `          gav = info.gav;` && |\n| &&
              `        } catch (e) {` && |\n| &&
+             |\n|.
+    result = result &&
              `          logError("checkSDKcompatibility: VersionInfo.load failed", e);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -1239,16 +1241,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `      // Display a toast or message box. Triggered for S_MSG_TOAST and` && |\n| &&
              `      // S_MSG_BOX entries in the server response.` && |\n| &&
-             |\n|.
-    result = result &&
              `      showMessage(msgType, params) {` && |\n| &&
              `        if (!params) return;` && |\n| &&
              `        const msg = params[msgType];` && |\n| &&
              `        if (!msg || msg.TEXT === undefined) return;` && |\n| &&
              `` && |\n| &&
              `        if (msgType === "S_MSG_TOAST") {` && |\n| &&
-             |\n|.
-    result = result &&
              `          MessageToast.show(msg.TEXT, {` && |\n| &&
              `            duration: parseMs(msg.DURATION, 3000),` && |\n| &&
              `            width: msg.WIDTH || "15em",` && |\n| &&
