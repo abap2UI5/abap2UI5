@@ -901,16 +901,39 @@ sap.ui.define(
       },
 
       _evSetFocus(args) {
-        try {
-          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
-          if (!oElement) return;
-          const info = oElement.getFocusInfo();
-          if (args[2] != null && args[2] !== "") info.selectionStart = +args[2];
-          if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];
-          oElement.applyFocusInfo(info);
-        } catch (e) {
-          logError(`SET_FOCUS: failed for '${args[1]}'`, e);
-        }
+        // Try to focus the target control now. Returns true once the focus was
+        // applied (or a hard error stopped us), false while the control is not
+        // rendered yet and we should retry after the next rendering cycle.
+        const applyFocus = () => {
+          try {
+            const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
+            if (!oElement) return false;
+            // On init SET_FOCUS arrives together with a full view rebuild, so
+            // the control exists but is not in the DOM yet - defer in that case.
+            if (oElement.getDomRef && !oElement.getDomRef()) return false;
+            const info = oElement.getFocusInfo();
+            if (args[2] != null && args[2] !== "")
+              info.selectionStart = +args[2];
+            if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];
+            oElement.applyFocusInfo(info);
+            return true;
+          } catch (e) {
+            logError(`SET_FOCUS: failed for '${args[1]}'`, e);
+            return true;
+          }
+        };
+
+        if (applyFocus()) return;
+
+        // Control not rendered yet (initial view build): retry after rendering,
+        // mirroring the previous z2ui5.Focus control behavior.
+        let attempts = 0;
+        const onAfterRendering = () => {
+          if (applyFocus() || ++attempts >= 5) {
+            Rendering.detachAfterRendering(onAfterRendering);
+          }
+        };
+        Rendering.attachAfterRendering(onAfterRendering);
       },
 
       _evScrollTo(args) {
