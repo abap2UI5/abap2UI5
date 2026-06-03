@@ -397,9 +397,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        const delta = {};` && |\n| &&
              `        for (const path of paths) {` && |\n| &&
              `          // path looks like "/XX/<attr>" or "/XX/<attr>/<row>/<field>"` && |\n| &&
-             `          const [attr, rowIdx, field] = path.slice(4).split("/");` && |\n| &&
+             `          const parts = path.slice(4).split("/");` && |\n| &&
+             `          const [attr, rowIdx, field] = parts;` && |\n| &&
+             `          // Only a flat table cell (exactly attr/row/field) qualifies for a` && |\n| &&
+             `          // delta. Deeper paths (e.g. tree tables: attr/row/<subtable>/<row>/<field>)` && |\n| &&
+             `          // fall back to shipping the whole attribute, which the backend applies` && |\n| &&
+             `          // via corresponding-based deserialization.` && |\n| &&
              `          const isRowField =` && |\n| &&
-             `            field !== undefined && rowIdx !== "" && !isNaN(rowIdx);` && |\n| &&
+             `            parts.length === 3 && rowIdx !== "" && !isNaN(rowIdx);` && |\n| &&
              `          if (isRowField) {` && |\n| &&
              `            // Table cell change -> ship only the changed cell.` && |\n| &&
              `            if (!delta[attr] || !delta[attr].__delta) {` && |\n| &&
@@ -413,13 +418,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            // Scalar change -> ship the whole attribute.` && |\n| &&
              `            delta[attr] = xx[attr];` && |\n| &&
              `          }` && |\n| &&
+             |\n|.
+    result = result &&
              `        }` && |\n| &&
              `        return delta;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _createViewModel() {` && |\n| &&
-             |\n|.
-    result = result &&
              `        const data = z2ui5.oResponse && z2ui5.oResponse.OVIEWMODEL;` && |\n| &&
              `        return this._trackChanges(new JSONModel(data));` && |\n| &&
              `      },` && |\n| &&
@@ -815,13 +820,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          setTimeout(finish, 1500);` && |\n| &&
              `        };` && |\n| &&
              `        try {` && |\n| &&
+             |\n|.
+    result = result &&
              `          const launchpadLogout =` && |\n| &&
              `            z2ui5.oLaunchpad &&` && |\n| &&
              `            z2ui5.oLaunchpad.Container &&` && |\n| &&
              `            z2ui5.oLaunchpad.Container.logout;` && |\n| &&
              `          if (launchpadLogout) {` && |\n| &&
-             |\n|.
-    result = result &&
              `            z2ui5.oLaunchpad.Container.logout();` && |\n| &&
              `          } else {` && |\n| &&
              `            redirectToLogoff();` && |\n| &&
@@ -1217,13 +1222,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            }` && |\n| &&
              `          }` && |\n| &&
              `          return;` && |\n| &&
+             |\n|.
+    result = result &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        if (msgType === "S_MSG_BOX") {` && |\n| &&
              `          const oParams = {` && |\n| &&
              `            styleClass: msg.STYLECLASS || "",` && |\n| &&
-             |\n|.
-    result = result &&
              `            title: msg.TITLE || "",` && |\n| &&
              `            onClose: msg.ONCLOSE` && |\n| &&
              `              ? (sAction) => this.eB([msg.ONCLOSE, sAction])` && |\n| &&
