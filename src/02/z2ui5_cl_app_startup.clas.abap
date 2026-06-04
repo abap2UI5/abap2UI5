@@ -26,8 +26,7 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
         class_editable         TYPE abap_bool VALUE abap_true,
       END OF ms_home.
 
-    DATA mv_ui5_version TYPE string.
-    DATA client         TYPE REF TO z2ui5_if_client.
+    DATA client TYPE REF TO z2ui5_if_client.
 
     CLASS-METHODS factory
       RETURNING
@@ -251,7 +250,6 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                     afterclose = client->_event( cs_event-close ) ).
 
     DATA(content) = page2->content( ).
-    content->_z2ui5( )->info_frontend( ui5_version = client->_bind( mv_ui5_version ) ).
 
     DATA(simple_form2) = content->simple_form( editable                = abap_true
                                                layout                  = `ResponsiveGridLayout`
@@ -273,7 +271,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     simple_form2->toolbar( )->title( `Frontend` ).
 
     simple_form2->label( `UI5 Version` ).
-    simple_form2->text( client->_bind( mv_ui5_version ) ).
+    simple_form2->text( client->get( )-s_ui5-version ).
     simple_form2->label( `Launchpad active` ).
     simple_form2->checkbox( enabled  = abap_false
                             selected = client->get( )-check_launchpad_active ).
