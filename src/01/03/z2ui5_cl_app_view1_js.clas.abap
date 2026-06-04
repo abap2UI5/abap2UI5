@@ -683,6 +683,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          case "SET_TITLE":` && |\n| &&
              `            this._evSetTitle(args);` && |\n| &&
              `            break;` && |\n| &&
+             `          case "SET_TITLE_LAUNCHPAD":` && |\n| &&
+             `            this._evSetTitleLaunchpad(args);` && |\n| &&
+             `            break;` && |\n| &&
              `          case "SET_FOCUS":` && |\n| &&
              `            this._evSetFocus(args);` && |\n| &&
              `            break;` && |\n| &&
@@ -817,11 +820,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          }` && |\n| &&
              `          const sep = path.indexOf("?") >= 0 ? "&" : "?";` && |\n| &&
              `          const bspKill = path + sep + "sap-sessioncmd=logoff";` && |\n| &&
+             |\n|.
+    result = result &&
              `          let done = false;` && |\n| &&
              `          const finish = () => {` && |\n| &&
              `            if (done) return;` && |\n| &&
-             |\n|.
-    result = result &&
              `            done = true;` && |\n| &&
              `            goToLogoutUrl();` && |\n| &&
              `          };` && |\n| &&
@@ -1054,19 +1057,32 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      _evSetTitle(args) {` && |\n| &&
              `        const title = args[1] == null ? "" : String(args[1]);` && |\n| &&
              `        try {` && |\n| &&
+             `          document.title = title;` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          logError("SET_TITLE: setting document.title failed", e);` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _evSetTitleLaunchpad(args) {` && |\n| &&
+             `        const title = args[1] == null ? "" : String(args[1]);` && |\n| &&
+             `        try {` && |\n| &&
              `          const shell = z2ui5.oLaunchpad && z2ui5.oLaunchpad.ShellUIService;` && |\n| &&
              `          if (shell && shell.setTitle) {` && |\n| &&
              `            const result = shell.setTitle(title);` && |\n| &&
              `            if (result && result.catch) {` && |\n| &&
              `              result.catch((e) =>` && |\n| &&
-             `                logError("SET_TITLE: ShellUIService.setTitle failed", e),` && |\n| &&
+             `                logError(` && |\n| &&
+             `                  "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",` && |\n| &&
+             `                  e,` && |\n| &&
+             `                ),` && |\n| &&
              `              );` && |\n| &&
              `            }` && |\n| &&
-             `          } else {` && |\n| &&
-             `            document.title = title;` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError("SET_TITLE: ShellUIService.setTitle failed", e);` && |\n| &&
+             `          logError(` && |\n| &&
+             `            "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",` && |\n| &&
+             `            e,` && |\n| &&
+             `          );` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -1206,6 +1222,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        const params = z2ui5.oResponse && z2ui5.oResponse.PARAMS;` && |\n| &&
              `        const slot = params && params[paramKey];` && |\n| &&
              `        if (!slot || !slot.CHECK_UPDATE_MODEL) return;` && |\n| &&
+             |\n|.
+    result = result &&
              `` && |\n| &&
              `        const oModel = this._createViewModel();` && |\n| &&
              `        applyStoredSizeLimit(paramToViewKey[paramKey], oModel);` && |\n| &&
@@ -1222,8 +1240,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        if (!gav || !gav.includes("com.sap.ui5")) {` && |\n| &&
-             |\n|.
-    result = result &&
              `          // openui5 doesn't ship some sap.com modules - tell the user which` && |\n| &&
              `          // module is missing so they know to switch to SAPUI5.` && |\n| &&
              `          const missingModule = err && err._modules;` && |\n| &&
