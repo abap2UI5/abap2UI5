@@ -103,7 +103,7 @@ CLASS z2ui5_cl_pop_demo_output IMPLEMENTATION.
 
   METHOD get_style.
 
-    result =  `<html:style type="text/css">` && |\n| &&
+    result = `<html:style type="text/css">` && |\n| &&
               `  body {` && |\n| &&
               `    font-family: Arial;` && |\n| &&
               `    font-size: 90%;` && |\n| &&
