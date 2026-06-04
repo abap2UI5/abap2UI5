@@ -29,6 +29,7 @@ CLASS ltcl_test DEFINITION FINAL
 
     METHODS test_factory          FOR TESTING RAISING cx_static_check.
     METHODS test_factory_custom   FOR TESTING RAISING cx_static_check.
+    METHODS test_factory_as_page  FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -50,6 +51,16 @@ CLASS ltcl_test IMPLEMENTATION.
       i_icon        = `sap-icon://hint`
       i_button_text = `Close`
       i_stretch     = abap_true ).
+
+    cl_abap_unit_assert=>assert_bound( lo_pop ).
+
+  ENDMETHOD.
+
+  METHOD test_factory_as_page.
+
+    DATA(lo_pop) = z2ui5_cl_pop_demo_output=>factory(
+      i_output  = NEW ltcl_output_stub( )
+      i_as_page = abap_true ).
 
     cl_abap_unit_assert=>assert_bound( lo_pop ).
 
