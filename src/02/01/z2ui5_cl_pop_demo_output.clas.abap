@@ -56,8 +56,14 @@ CLASS z2ui5_cl_pop_demo_output IMPLEMENTATION.
     " data-binding expressions, so the CSS braces break the binding parser.
     " Escape them with a leading backslash - UI5's documented way to mark a
     " brace as a literal character, rendered without the backslash.
-    r_result->html = replace( val = r_result->html sub = `{` with = `\{` occ = 0 ).
-    r_result->html = replace( val = r_result->html sub = `}` with = `\}` occ = 0 ).
+    r_result->html = replace( val  = r_result->html
+                              sub  = `{`
+                              with = `\{`
+                              occ  = 0 ).
+    r_result->html = replace( val  = r_result->html
+                              sub  = `}`
+                              with = `\}`
+                              occ  = 0 ).
 
   ENDMETHOD.
 
