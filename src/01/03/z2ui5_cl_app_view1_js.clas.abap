@@ -1079,10 +1079,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            }` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError(` && |\n| &&
-             `            "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",` && |\n| &&
-             `            e,` && |\n| &&
-             `          );` && |\n| &&
+             `          logError("SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -1222,11 +1219,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        const params = z2ui5.oResponse && z2ui5.oResponse.PARAMS;` && |\n| &&
              `        const slot = params && params[paramKey];` && |\n| &&
              `        if (!slot || !slot.CHECK_UPDATE_MODEL) return;` && |\n| &&
-             |\n|.
-    result = result &&
              `` && |\n| &&
              `        const oModel = this._createViewModel();` && |\n| &&
              `        applyStoredSizeLimit(paramToViewKey[paramKey], oModel);` && |\n| &&
+             |\n|.
+    result = result &&
              `        if (oView) oView.setModel(oModel);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
