@@ -51,6 +51,14 @@ CLASS z2ui5_cl_pop_demo_output IMPLEMENTATION.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
+    " CL_DEMO_OUTPUT emits a full HTML document including a <style> block.
+    " UI5 interprets `{` / `}` inside the core:HTML `content` attribute as
+    " data-binding expressions, so the CSS braces break the binding parser.
+    " Escape them with a leading backslash - UI5's documented way to mark a
+    " brace as a literal character, rendered without the backslash.
+    r_result->html = replace( val = r_result->html sub = `{` with = `\{` occ = 0 ).
+    r_result->html = replace( val = r_result->html sub = `}` with = `\}` occ = 0 ).
+
   ENDMETHOD.
 
   METHOD view_display.
