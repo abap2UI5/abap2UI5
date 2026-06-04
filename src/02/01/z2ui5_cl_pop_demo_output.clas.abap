@@ -47,7 +47,7 @@ CLASS z2ui5_cl_pop_demo_output IMPLEMENTATION.
     TRY.
         CALL METHOD i_output->('GET')
           RECEIVING
-            result = r_result->html.
+            output = r_result->html.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
