@@ -1218,8 +1218,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const info = await VersionInfo.load();` && |\n| &&
              `          gav = info.gav;` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             |\n|.
-    result = result &&
              `          logError("checkSDKcompatibility: VersionInfo.load failed", e);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
