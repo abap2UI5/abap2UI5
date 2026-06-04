@@ -269,7 +269,8 @@ npm run unit                  # Unit tests
 |---|---|
 | `npx abaplint .github/abaplint/auto_abaplint_fix.jsonc --fix` | Auto-fix formatting |
 | `npm run express` | Start dev server on port 3000 |
-| `npm run auto_app2abap` | Convert `app/webapp/` frontend files into ABAP string constants in `src/01/03/` |
+| `npm run app2abap` | **Canonical** full regeneration pipeline: Prettier (`app` format) → generate → abaplint normalize. Use this after editing `app/webapp/` so only truly-changed `src/01/03/` files differ |
+| `npm run auto_app2abap` | Generate ABAP string constants from `app/webapp/` (raw, **un-normalized** — prefer `npm run app2abap` instead) |
 | `npm run auto_abaplint` | Run the auto-fix config directly |
 | `npm run rename` | Test namespace-rename transformation via abaplint |
 | `npm run syfixes` | Replace `RAISE EXCEPTION TYPE cx_sy_itab_line_not_found` with `ASSERT 1 = 0` (compatibility step for 7.02 downport) |
@@ -344,9 +345,18 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
 1. **Do not modify `src/00/`** — mirrored from external projects, synced by automated workflows.
 2. **NEVER manually edit any ABAP file under `src/01/03/`.** These files are the embedded frontend (auto-generated from `app/webapp/` via the `app2abap` job — see `.github/app2abap/trans2abap.js` and the `create_app2abap.yaml` workflow). The **only** allowed way to update them is:
    - Change the source under `app/webapp/`
-   - Run the `app2abap` job (`npm run auto_app2abap` locally, or trigger the `create_app2abap.yaml` workflow)
+   - Run **`npm run app2abap`** locally (or trigger the `create_app2abap.yaml` workflow). This single command runs the full pipeline in the correct order — `npm --prefix app run format` (Prettier) → `npm run auto_app2abap` (generate) → `npm run auto_abaplint` (normalize) — exactly as CI does. Running `auto_app2abap` on its own produces **un-normalized** ABAP that differs from the committed form in *every* `src/01/03/` file (alignment/whitespace drift); the `auto_abaplint` step reverts that drift so only the files whose `app/webapp/` source actually changed remain modified.
    - Commit the regenerated `src/01/03/` files as the job produced them
    Direct edits to `src/01/03/*.abap` are forbidden — no manual tweaks, no "small fixes", no formatting changes, nothing. The job may be invoked, but the files must never be touched by hand or by any other means.
+   - **Keep diffs minimal — avoid Prettier reflow:** when you add or remove a module dependency in a `sap.ui.define([...], (...) => {` block, Prettier may collapse the call onto one line (or expand it), which **reindents the entire module body** and rewrites every line of the file (and its embedded `src/01/03/` constant). To prevent this, freeze the `define` header with a `// prettier-ignore` directive so the dependency list stays multi-line:
+     ```js
+     // Keep this define multi-line: with a single dependency Prettier would
+     // collapse it onto one line and reindent the entire module body.
+     // prettier-ignore
+     sap.ui.define(
+       ["sap/ui/core/BusyIndicator"],
+       (BusyIndicator) => {
+     ```
 3. **Always run `npx abaplint`** before considering changes complete.
 4. **Multi-environment compatibility** — code must work on NW 7.02, standard ABAP, and ABAP Cloud.
 5. **The public API (`src/02/`) is a stable contract — never change or remove existing public attributes, methods, or constants.** This folder is consumed directly by thousands of downstream apps. Specifically:
