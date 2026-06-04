@@ -25,6 +25,7 @@ INTERFACE z2ui5_if_client
       image_editor_popup_close  TYPE string VALUE `IMAGE_EDITOR_POPUP_CLOSE`,
       system_logout             TYPE string VALUE `SYSTEM_LOGOUT`,
       set_title                 TYPE string VALUE `SET_TITLE`,
+      set_title_launchpad       TYPE string VALUE `SET_TITLE_LAUNCHPAD`,
       set_focus                 TYPE string VALUE `SET_FOCUS`,
       scroll_to                 TYPE string VALUE `SCROLL_TO`,
       scroll_into_view          TYPE string VALUE `SCROLL_INTO_VIEW`,
