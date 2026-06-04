@@ -379,12 +379,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          runCallbacks(z2ui5.onAfterRendering);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          logError("_processAfterRendering: unexpected error", e);` && |\n| &&
-             `          MessageBox.error(e.toLocaleString(), {` && |\n| &&
-             `            title: "Unexpected Error Occurred - App Terminated",` && |\n| &&
-             `            actions: [],` && |\n| &&
-             `            onClose: () =>` && |\n| &&
-             `              new mBusyDialog({ text: "Please Restart the App" }).open(),` && |\n| &&
-             `          });` && |\n| &&
+             `          Server.responseError(e, "Unexpected Error Occurred - App Terminated");` && |\n| &&
              `        } finally {` && |\n| &&
              `          BusyIndicator.hide();` && |\n| &&
              `          z2ui5.isBusy = false;` && |\n| &&
@@ -418,13 +413,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const [attr, rowIdx, field] = parts;` && |\n| &&
              `          // Only a flat table cell (exactly attr/row/field) qualifies for a` && |\n| &&
              `          // delta. Deeper paths (e.g. tree tables: attr/row/<subtable>/<row>/<field>)` && |\n| &&
-             |\n|.
-    result = result &&
              `          // fall back to shipping the whole attribute, which the backend applies` && |\n| &&
              `          // via corresponding-based deserialization.` && |\n| &&
              `          const isRowField =` && |\n| &&
              `            parts.length === 3 && rowIdx !== "" && !isNaN(rowIdx);` && |\n| &&
              `          if (isRowField) {` && |\n| &&
+             |\n|.
+    result = result &&
              `            // Table cell change -> ship only the changed cell.` && |\n| &&
              `            if (!delta[attr] || !delta[attr].__delta) {` && |\n| &&
              `              delta[attr] = { __delta: {} };` && |\n| &&
@@ -820,13 +815,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          }` && |\n| &&
              `          const sep = path.indexOf("?") >= 0 ? "&" : "?";` && |\n| &&
              `          const bspKill = path + sep + "sap-sessioncmd=logoff";` && |\n| &&
-             |\n|.
-    result = result &&
              `          let done = false;` && |\n| &&
              `          const finish = () => {` && |\n| &&
              `            if (done) return;` && |\n| &&
              `            done = true;` && |\n| &&
              `            goToLogoutUrl();` && |\n| &&
+             |\n|.
+    result = result &&
              `          };` && |\n| &&
              `          try {` && |\n| &&
              `            const f = document.createElement("iframe");` && |\n| &&
@@ -1222,13 +1217,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        const oModel = this._createViewModel();` && |\n| &&
              `        applyStoredSizeLimit(paramToViewKey[paramKey], oModel);` && |\n| &&
-             |\n|.
-    result = result &&
              `        if (oView) oView.setModel(oModel);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      async checkSDKcompatibility(err) {` && |\n| &&
              `        let gav;` && |\n| &&
+             |\n|.
+    result = result &&
              `        try {` && |\n| &&
              `          const info = await VersionInfo.load();` && |\n| &&
              `          gav = info.gav;` && |\n| &&
@@ -1240,12 +1235,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          // openui5 doesn't ship some sap.com modules - tell the user which` && |\n| &&
              `          // module is missing so they know to switch to SAPUI5.` && |\n| &&
              `          const missingModule = err && err._modules;` && |\n| &&
-             `          MessageBox.error(` && |\n| &&
+             `          Server.responseError(` && |\n| &&
              `            ``openui5 SDK is loaded, module: ${missingModule} is not available in openui5``,` && |\n| &&
              `          );` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        MessageBox.error(err.toLocaleString());` && |\n| &&
+             `        Server.responseError(err);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Display a toast or message box. Triggered for S_MSG_TOAST and` && |\n| &&

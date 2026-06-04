@@ -1,6 +1,9 @@
+// Keep this define multi-line: with a single dependency prettier would
+// collapse it onto one line and reindent the entire module body.
+// prettier-ignore
 sap.ui.define(
-  ["sap/ui/core/BusyIndicator", "sap/m/MessageBox"],
-  (BusyIndicator, MessageBox) => {
+  ["sap/ui/core/BusyIndicator"],
+  (BusyIndicator) => {
     "use strict";
 
     // Errors longer than this are truncated before being shown to the user,
@@ -371,7 +374,7 @@ sap.ui.define(
           if (msg.includes("openui5") && msg.includes("script load error")) {
             oController.checkSDKcompatibility(e);
           } else {
-            MessageBox.error(e.toLocaleString());
+            this.responseError(e);
           }
         }
       },
@@ -420,11 +423,20 @@ sap.ui.define(
         return container;
       },
 
-      responseError(response) {
+      // Unified fatal-error overlay. Shown whenever the app reaches an
+      // unrecoverable state - a failed roundtrip (network, HTTP != 2xx, bad
+      // JSON, backend dump) or a client-side failure (invalid view XML,
+      // post-render crash, missing SDK module). The only way out is a restart,
+      // hence the Refresh / Logout actions. Built from raw DOM so it still
+      // works when the UI5 core itself is in a broken state.
+      // `response` may be a string or an Error object; `title` overrides the
+      // default header text.
+      responseError(response, title) {
         BusyIndicator.hide();
         z2ui5.isBusy = false;
 
-        const full = String(response);
+        const full =
+          response && response.stack ? String(response.stack) : String(response);
         let errorMessage;
         if (full.length > ERROR_MAX_LENGTH) {
           errorMessage =
@@ -443,7 +455,7 @@ sap.ui.define(
           "padding: 15px; background: #d32f2f; color: white; display: flex; justify-content: space-between; align-items: center;";
 
         const h3 = document.createElement("h3");
-        h3.textContent = "Server Error - Please Restart The App";
+        h3.textContent = title || "Application Error - Please Restart The App";
         h3.style.cssText = "margin: 0";
         headerDiv.appendChild(h3);
 

@@ -359,12 +359,7 @@ sap.ui.define(
           runCallbacks(z2ui5.onAfterRendering);
         } catch (e) {
           logError("_processAfterRendering: unexpected error", e);
-          MessageBox.error(e.toLocaleString(), {
-            title: "Unexpected Error Occurred - App Terminated",
-            actions: [],
-            onClose: () =>
-              new mBusyDialog({ text: "Please Restart the App" }).open(),
-          });
+          Server.responseError(e, "Unexpected Error Occurred - App Terminated");
         } finally {
           BusyIndicator.hide();
           z2ui5.isBusy = false;
@@ -1214,12 +1209,12 @@ sap.ui.define(
           // openui5 doesn't ship some sap.com modules - tell the user which
           // module is missing so they know to switch to SAPUI5.
           const missingModule = err && err._modules;
-          MessageBox.error(
+          Server.responseError(
             `openui5 SDK is loaded, module: ${missingModule} is not available in openui5`,
           );
           return;
         }
-        MessageBox.error(err.toLocaleString());
+        Server.responseError(err);
       },
 
       // Display a toast or message box. Triggered for S_MSG_TOAST and

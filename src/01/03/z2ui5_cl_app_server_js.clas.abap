@@ -18,9 +18,12 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/BusyIndicator", "sap/m/MessageBox"],` && |\n| &&
-             `  (BusyIndicator, MessageBox) => {` && |\n| &&
+    result = `// Keep this define multi-line: with a single dependency prettier would` && |\n| &&
+             `// collapse it onto one line and reindent the entire module body.` && |\n| &&
+             `// prettier-ignore` && |\n| &&
+             `sap.ui.define(` && |\n| &&
+             `  ["sap/ui/core/BusyIndicator"],` && |\n| &&
+             `  (BusyIndicator) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Errors longer than this are truncated before being shown to the user,` && |\n| &&
@@ -391,7 +394,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          if (msg.includes("openui5") && msg.includes("script load error")) {` && |\n| &&
              `            oController.checkSDKcompatibility(e);` && |\n| &&
              `          } else {` && |\n| &&
-             `            MessageBox.error(e.toLocaleString());` && |\n| &&
+             `            this.responseError(e);` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
@@ -415,11 +418,11 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             |\n|.
+    result = result &&
              `      _getOrCreateErrorContainer() {` && |\n| &&
              `        const existing = document.getElementById("serverErrorContainer");` && |\n| &&
              `        if (existing) return existing;` && |\n| &&
-             |\n|.
-    result = result &&
              `` && |\n| &&
              `        const container = document.createElement("div");` && |\n| &&
              `        container.id = "serverErrorContainer";` && |\n| &&
@@ -442,11 +445,20 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        return container;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      responseError(response) {` && |\n| &&
+             `      // Unified fatal-error overlay. Shown whenever the app reaches an` && |\n| &&
+             `      // unrecoverable state - a failed roundtrip (network, HTTP != 2xx, bad` && |\n| &&
+             `      // JSON, backend dump) or a client-side failure (invalid view XML,` && |\n| &&
+             `      // post-render crash, missing SDK module). The only way out is a restart,` && |\n| &&
+             `      // hence the Refresh / Logout actions. Built from raw DOM so it still` && |\n| &&
+             `      // works when the UI5 core itself is in a broken state.` && |\n| &&
+             `      // ``response`` may be a string or an Error object; ``title`` overrides the` && |\n| &&
+             `      // default header text.` && |\n| &&
+             `      responseError(response, title) {` && |\n| &&
              `        BusyIndicator.hide();` && |\n| &&
              `        z2ui5.isBusy = false;` && |\n| &&
              `` && |\n| &&
-             `        const full = String(response);` && |\n| &&
+             `        const full =` && |\n| &&
+             `          response && response.stack ? String(response.stack) : String(response);` && |\n| &&
              `        let errorMessage;` && |\n| &&
              `        if (full.length > ERROR_MAX_LENGTH) {` && |\n| &&
              `          errorMessage =` && |\n| &&
@@ -465,7 +477,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          "padding: 15px; background: #d32f2f; color: white; display: flex; justify-content: space-between; align-items: center;";` && |\n| &&
              `` && |\n| &&
              `        const h3 = document.createElement("h3");` && |\n| &&
-             `        h3.textContent = "Server Error - Please Restart The App";` && |\n| &&
+             `        h3.textContent = title || "Application Error - Please Restart The App";` && |\n| &&
              `        h3.style.cssText = "margin: 0";` && |\n| &&
              `        headerDiv.appendChild(h3);` && |\n| &&
              `` && |\n| &&
