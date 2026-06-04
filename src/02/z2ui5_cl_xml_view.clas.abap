@@ -3986,11 +3986,13 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! @parameter label    | (string) Header label.
     "! @parameter template | (string) Cell template (column content control).
     "! @parameter halign   | (sap.ui.core.HorizontalAlign) Begin | End | Left | Right | Center. Default: Begin.
+    "! @parameter width    | (sap.ui.core.CSSSize) Column width.
     METHODS tree_column
       IMPORTING
         label         TYPE clike
         template      TYPE clike OPTIONAL
         halign        TYPE clike DEFAULT `Begin`
+        width         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -14343,7 +14345,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        ns     = `table`
                        t_prop = VALUE #( ( n = `label`      v = label )
                                          ( n = `template`   v = template )
-                                         ( n = `hAlign`     v = halign ) ) ).
+                                         ( n = `hAlign`     v = halign )
+                                         ( n = `width`      v = width ) ) ).
 
   ENDMETHOD.
 
