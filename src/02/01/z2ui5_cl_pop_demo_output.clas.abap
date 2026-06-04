@@ -10,6 +10,7 @@ CLASS z2ui5_cl_pop_demo_output DEFINITION PUBLIC FINAL CREATE PUBLIC.
         i_icon          TYPE string DEFAULT `sap-icon://textFormatting`
         i_button_text   TYPE string DEFAULT `OK`
         i_stretch       TYPE abap_bool DEFAULT abap_false
+        i_as_page       TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_pop_demo_output.
 
@@ -20,8 +21,13 @@ CLASS z2ui5_cl_pop_demo_output DEFINITION PUBLIC FINAL CREATE PUBLIC.
     DATA html                TYPE string.
     DATA button_text_confirm TYPE string.
     DATA stretch             TYPE abap_bool.
+    DATA as_page             TYPE abap_bool.
 
     METHODS view_display.
+
+    METHODS render_popup.
+
+    METHODS render_page.
 
     METHODS get_style
       RETURNING
@@ -40,6 +46,7 @@ CLASS z2ui5_cl_pop_demo_output IMPLEMENTATION.
     r_result->icon                = i_icon.
     r_result->button_text_confirm = i_button_text.
     r_result->stretch             = i_stretch.
+    r_result->as_page             = i_as_page.
 
     " CL_DEMO_OUTPUT is typed generically for compatibility - it is not
     " available on every ABAP release / environment. The HTML output is
@@ -69,6 +76,16 @@ CLASS z2ui5_cl_pop_demo_output IMPLEMENTATION.
 
   METHOD view_display.
 
+    IF as_page = abap_true.
+      render_page( ).
+    ELSE.
+      render_popup( ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD render_popup.
+
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog(
                       title         = title
                       icon          = icon
@@ -82,14 +99,37 @@ CLASS z2ui5_cl_pop_demo_output IMPLEMENTATION.
                       )->html( html
               )->get_parent( )->get_parent( )->get_parent(
               )->buttons(
-                  )->button( text  = COND #( WHEN stretch = abap_true THEN `Popup` ELSE `Fullscreen` )
-                             icon  = COND #( WHEN stretch = abap_true THEN `sap-icon://exit-full-screen` ELSE `sap-icon://full-screen` )
+                  )->button( text  = `Fullscreen`
+                             icon  = `sap-icon://full-screen`
                              press = client->_event( `TOGGLE_FULLSCREEN` )
                   )->button( text  = button_text_confirm
                              press = client->_event( `BUTTON_CONFIRM` )
                              type  = `Emphasized` ).
 
     client->popup_display( popup->stringify( ) ).
+
+  ENDMETHOD.
+
+  METHOD render_page.
+
+    DATA(page) = z2ui5_cl_xml_view=>factory( )->shell(
+        )->page(
+            title          = title
+            navbuttonpress = client->_event_nav_app_leave( )
+            shownavbutton  = abap_true
+            )->header_content(
+                )->button(
+                    text  = `Popup`
+                    icon  = `sap-icon://exit-full-screen`
+                    press = client->_event( `TOGGLE_FULLSCREEN` )
+        )->get_parent( ).
+
+    page->content(
+        )->vbox( `sapUiMediumMargin`
+            )->_cc_plain_xml( get_style( )
+            )->html( html ).
+
+    client->view_display( page->stringify( ) ).
 
   ENDMETHOD.
 
@@ -103,7 +143,12 @@ CLASS z2ui5_cl_pop_demo_output IMPLEMENTATION.
     ENDIF.
 
     IF client->check_on_event( `TOGGLE_FULLSCREEN` ).
-      stretch = xsdbool( stretch = abap_false ).
+      IF as_page = abap_true.
+        client->view_destroy( ).
+      ELSE.
+        client->popup_destroy( ).
+      ENDIF.
+      as_page = xsdbool( as_page = abap_false ).
       view_display( ).
       RETURN.
     ENDIF.
