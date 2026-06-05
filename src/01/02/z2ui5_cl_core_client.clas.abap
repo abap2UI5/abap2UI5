@@ -28,7 +28,9 @@ CLASS z2ui5_cl_core_client DEFINITION PUBLIC FINAL.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_core_client IMPLEMENTATION.
+
+CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
+
 
   METHOD constructor.
 
@@ -39,11 +41,13 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_client~follow_up_action.
 
     INSERT val INTO TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js.
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_action~gen.
 
@@ -62,6 +66,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_client~check_on_event.
 
     IF val IS NOT INITIAL.
@@ -71,6 +76,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_client~get.
 
@@ -113,6 +119,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_client~get_event_arg.
 
     TRY.
@@ -121,6 +128,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_client~get_app.
 
@@ -132,6 +140,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_client~message_box_display.
 
@@ -182,6 +191,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_client~message_toast_display.
 
     mo_action->ms_next-s_set-s_msg_toast = VALUE #( text                     = text
@@ -201,6 +211,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD nav_app_set_id.
 
     IF app IS NOT BOUND.
@@ -214,12 +225,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_client~nav_app_call.
 
     mo_action->ms_next-o_app_call = app.
     result = nav_app_set_id( app ).
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_client~nav_app_leave.
 
@@ -239,11 +252,13 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_client~nest2_view_destroy.
 
     mo_action->ms_next-s_set-s_view_nest2-check_update_model = abap_true.
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_client~nest2_view_display.
 
@@ -254,17 +269,20 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_client~nest2_view_model_update.
 
     mo_action->ms_next-s_set-s_view_nest2-check_update_model = abap_true.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_client~nest_view_destroy.
 
     mo_action->ms_next-s_set-s_view_nest-check_update_model = abap_true.
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_client~nest_view_display.
 
@@ -275,17 +293,20 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_client~nest_view_model_update.
 
     mo_action->ms_next-s_set-s_view_nest-check_update_model = abap_true.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_client~popover_destroy.
 
     mo_action->ms_next-s_set-s_popover-check_destroy = abap_true.
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_client~popover_display.
 
@@ -295,17 +316,20 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_client~popover_model_update.
 
     mo_action->ms_next-s_set-s_popover-check_update_model = abap_true.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_client~popup_destroy.
 
     mo_action->ms_next-s_set-s_popup = VALUE #( check_destroy = abap_true ).
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_client~popup_display.
 
@@ -314,17 +338,20 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_client~popup_model_update.
 
     mo_action->ms_next-s_set-s_popup-check_update_model = abap_true.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_client~view_destroy.
 
     mo_action->ms_next-s_set-s_view-check_destroy = abap_true.
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_client~view_display.
 
@@ -334,11 +361,13 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_client~view_model_update.
 
     mo_action->ms_next-s_set-s_view-check_update_model = abap_true.
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_client~_bind.
 
@@ -352,6 +381,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                                               switch_default_model = switch_default_model ) ).
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_client~_bind_edit.
 
@@ -368,6 +398,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_client~_event.
 
     result = mo_srv_event->get_event( val = val
@@ -381,6 +412,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_client~_event_client.
 
     result = mo_srv_event->get_event_client( val = val
@@ -388,11 +420,13 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_client~set_nav_back.
 
     mo_action->ms_next-s_set-set_nav_back = val.
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_client~set_push_state.
 
@@ -400,11 +434,13 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_client~set_app_state_active.
 
     mo_action->ms_next-s_set-set_app_state_active = val.
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_client~set_session_stateful.
 
@@ -419,11 +455,13 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_client~check_app_prev_stack.
 
     result = xsdbool( mo_action->mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL ).
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_client~check_on_init.
 
@@ -431,11 +469,13 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_client~check_on_navigated.
 
     result = mo_action->ms_actual-check_on_navigated.
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_client~get_app_prev.
 
@@ -443,11 +483,13 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_client~_event_nav_app_leave.
 
     result = z2ui5_if_client~_event( z2ui5_if_core_types=>cs_event_nav_app_leave ).
 
   ENDMETHOD.
+
 
   METHOD get_if_app.
 
@@ -455,4 +497,21 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD z2ui5_if_client~action.
+
+    DATA lv_val TYPE string.
+    lv_val = val.
+
+    IF lv_val IS INITIAL OR lv_val CN `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_`.
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING
+          val = |action: invalid event name '{ val }' - only A-Z, a-z, 0-9 and _ allowed|.
+    ENDIF.
+
+    INSERT mo_srv_event->get_event_client( val   = val
+                                           t_arg = t_arg )
+           INTO TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js.
+
+  ENDMETHOD.
 ENDCLASS.
