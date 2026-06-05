@@ -17,7 +17,7 @@ abap2UI5 is a framework for building SAP UI5 applications purely in ABAP — no 
 | [abap2UI5-samples](https://github.com/abap2UI5/abap2UI5-samples) | Sample applications and usage examples |
 | [abap2UI5-documentation](https://github.com/abap2UI5/abap2UI5-documentation) | Project documentation |
 
-> **Building apps?** This file is the briefing for AI assistants working **on the framework itself**. For everything an AI needs to **build apps with** abap2UI5 — app template, client API, view-building patterns, lifecycle, deprecated controls — see the single canonical guide at <https://abap2ui5.github.io/docs/get_started/ai.html>.
+> **Building apps?** This file is the briefing for AI assistants working **on the framework itself**. For everything an AI needs to **build apps with** abap2UI5 — app template, client API, view-building patterns, lifecycle, deprecated controls — see the single canonical guide at <https://abap2ui5.github.io/docs/get_started/agent.html>.
 
 ## Architecture
 
@@ -119,7 +119,7 @@ App state is persisted between roundtrips via the draft service (`z2ui5_cl_core_
 
 ### Building Apps
 
-App-building guidance (view builder choice, deprecated controls, lifecycle patterns, canonical app template, client API) lives exclusively at <https://abap2ui5.github.io/docs/get_started/ai.html>. Do not duplicate it here.
+App-building guidance (view builder choice, deprecated controls, lifecycle patterns, canonical app template, client API) lives exclusively at <https://abap2ui5.github.io/docs/get_started/agent.html>. Do not duplicate it here.
 
 ## Repository Structure
 
@@ -340,7 +340,7 @@ test: add unit tests for utility class
 
 ## Important Rules for AI Assistants
 
-These rules apply to AI assistants **modifying the framework** (this repo). For AI assistants **building apps**, see <https://abap2ui5.github.io/docs/get_started/ai.html> instead.
+These rules apply to AI assistants **modifying the framework** (this repo). For AI assistants **building apps**, see <https://abap2ui5.github.io/docs/get_started/agent.html> instead.
 
 1. **Do not modify `src/00/`** — mirrored from external projects, synced by automated workflows.
 2. **NEVER manually edit any ABAP file under `src/01/03/`.** These files are the embedded frontend (auto-generated from `app/webapp/` via the `app2abap` job — see `.github/app2abap/trans2abap.js` and the `create_app2abap.yaml` workflow). The **only** allowed way to update them is:
