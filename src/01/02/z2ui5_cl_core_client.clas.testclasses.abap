@@ -345,9 +345,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA li_client TYPE REF TO z2ui5_if_client.
     li_client ?= mo_client.
 
-    li_client->action( val   = z2ui5_if_client=>cs_event-set_title
-                       t_arg = VALUE #( ( `My Title` ) ) ).
-    li_client->action( z2ui5_if_client=>cs_event-history_back ).
+    li_client->action->gen( val   = z2ui5_if_client=>cs_event-set_title
+                            t_arg = VALUE #( ( `My Title` ) ) ).
+    li_client->action->gen( z2ui5_if_client=>cs_event-history_back ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( mo_action->ms_next-s_set-s_follow_up_action-custom_js ) ).
@@ -365,7 +365,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client ?= mo_client.
 
     TRY.
-        li_client->action( `EVT'); alert(1);//` ).
+        li_client->action->gen( `EVT'); alert(1);//` ).
       CATCH z2ui5_cx_util_error.
         lv_raised = abap_true.
     ENDTRY.
@@ -384,7 +384,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client ?= mo_client.
 
     TRY.
-        li_client->action( `` ).
+        li_client->action->gen( `` ).
       CATCH z2ui5_cx_util_error.
         lv_raised = abap_true.
     ENDTRY.

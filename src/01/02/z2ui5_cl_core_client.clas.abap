@@ -2,6 +2,7 @@ CLASS z2ui5_cl_core_client DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_client.
+    INTERFACES z2ui5_if_action.
 
     DATA mo_action TYPE REF TO z2ui5_cl_core_action.
 
@@ -34,6 +35,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     mo_action = action.
     mo_srv_bind = NEW #( mo_action->mo_app ).
     mo_srv_event = NEW #( ).
+    z2ui5_if_client~action = me.
 
   ENDMETHOD.
 
@@ -43,7 +45,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_client~action.
+  METHOD z2ui5_if_action~gen.
 
     DATA lv_val TYPE string.
     lv_val = val.
