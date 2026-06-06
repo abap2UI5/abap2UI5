@@ -219,12 +219,25 @@ CLASS z2ui5_cl_util_api DEFINITION
       RETURNING
         VALUE(result) TYPE z2ui5_cl_util=>ty_t_msg.
 
-    CLASS-METHODS bal_save
+    CLASS-METHODS bal_create
       IMPORTING
         object    TYPE clike
         subobject TYPE clike
         id        TYPE clike
         t_log     TYPE z2ui5_cl_util=>ty_t_msg.
+
+    CLASS-METHODS bal_update
+      IMPORTING
+        object    TYPE clike
+        subobject TYPE clike
+        id        TYPE clike
+        t_log     TYPE z2ui5_cl_util=>ty_t_msg.
+
+    CLASS-METHODS bal_delete
+      IMPORTING
+        object    TYPE clike
+        subobject TYPE clike
+        id        TYPE clike.
 
     CLASS-METHODS context_get_callstack
       RETURNING
@@ -1062,38 +1075,71 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD bal_read.
+  METHOD bal_create.
 
-*" Create and set header
-*
-*
-*DATA(lo_header) = cl_bali_header_setter=>create( object      = `ZBS_DEMO_LOG_OBJECT`
-*                                                 subobject   = `TEST`
-*                                                 external_id = cl_system_uuid=>create_uuid_c32_static( )
-*                                                 ).
-*
-*
-*DATA(lo_ohandler) = cl_bali_object_handler=>get_instance( ).
-*
-*lo_ohandler->read_object(
-*  EXPORTING
-*    iv_object      = `TEST`
-*  IMPORTING
-**    ev_object_text =
-*    et_subobjects  = data(lo_obj)
-*).
-**CATCH cx_bali_objects.
-*
-*lo_obj
-*DATA(lo_log_db) = cl_bali_log_db=>get_instance( ).
-*data(ls_hanlde) =  value if_bali_log_db=>ty_handle( ).
-*DATA(lo_log) = lo_header->load_log( value ).
-*DATA(lt_items) = lo_log->get_all_items( ).
-
+    IF context_check_abap_cloud( ).
+      z2ui5_cl_util_api_c=>bal_create(
+        object    = object
+        subobject = subobject
+        id        = id
+        t_log     = t_log ).
+    ELSE.
+      z2ui5_cl_util_api_s=>bal_create(
+        object    = object
+        subobject = subobject
+        id        = id
+        t_log     = t_log ).
+    ENDIF.
 
   ENDMETHOD.
 
-  METHOD bal_save.
+  METHOD bal_read.
+
+    IF context_check_abap_cloud( ).
+      result = z2ui5_cl_util_api_c=>bal_read(
+        object    = object
+        subobject = subobject
+        id        = id ).
+    ELSE.
+      result = z2ui5_cl_util_api_s=>bal_read(
+        object    = object
+        subobject = subobject
+        id        = id ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD bal_update.
+
+    IF context_check_abap_cloud( ).
+      z2ui5_cl_util_api_c=>bal_update(
+        object    = object
+        subobject = subobject
+        id        = id
+        t_log     = t_log ).
+    ELSE.
+      z2ui5_cl_util_api_s=>bal_update(
+        object    = object
+        subobject = subobject
+        id        = id
+        t_log     = t_log ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD bal_delete.
+
+    IF context_check_abap_cloud( ).
+      z2ui5_cl_util_api_c=>bal_delete(
+        object    = object
+        subobject = subobject
+        id        = id ).
+    ELSE.
+      z2ui5_cl_util_api_s=>bal_delete(
+        object    = object
+        subobject = subobject
+        id        = id ).
+    ENDIF.
 
   ENDMETHOD.
 
