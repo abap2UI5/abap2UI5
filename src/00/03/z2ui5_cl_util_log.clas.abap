@@ -151,7 +151,7 @@ CLASS z2ui5_cl_util_log IMPLEMENTATION.
 
   METHOD bal_save.
 
-    z2ui5_cl_util=>bal_save(
+    z2ui5_cl_util=>bal_create(
         object    = object
         subobject = subobject
         id        = id

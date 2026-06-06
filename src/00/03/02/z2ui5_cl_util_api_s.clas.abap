@@ -12,12 +12,25 @@ CLASS z2ui5_cl_util_api_s DEFINITION
       RETURNING
         VALUE(result) TYPE z2ui5_cl_util=>ty_t_msg.
 
-    CLASS-METHODS bal_save
+    CLASS-METHODS bal_create
       IMPORTING
         object    TYPE clike
         subobject TYPE clike
         id        TYPE clike
         t_log     TYPE z2ui5_cl_util=>ty_t_msg.
+
+    CLASS-METHODS bal_update
+      IMPORTING
+        object    TYPE clike
+        subobject TYPE clike
+        id        TYPE clike
+        t_log     TYPE z2ui5_cl_util=>ty_t_msg.
+
+    CLASS-METHODS bal_delete
+      IMPORTING
+        object    TYPE clike
+        subobject TYPE clike
+        id        TYPE clike.
 
     CLASS-METHODS context_get_callstack
       RETURNING
@@ -125,6 +138,40 @@ CLASS z2ui5_cl_util_api_s DEFINITION
 
     CLASS-DATA gv_check_cloud TYPE abap_bool.
     CLASS-DATA gv_check_cloud_cached TYPE abap_bool.
+
+    CLASS-METHODS bal_msg_add
+      IMPORTING
+        handle TYPE any
+        t_log  TYPE z2ui5_cl_util=>ty_t_msg.
+
+    CLASS-METHODS bal_load_handles
+      IMPORTING
+        object        TYPE clike
+        subobject     TYPE clike
+        id            TYPE clike
+      RETURNING
+        VALUE(result) TYPE REF TO data.
+
+    CLASS-METHODS bal_build_filter
+      IMPORTING
+        object        TYPE clike
+        subobject     TYPE clike
+        id            TYPE clike
+      RETURNING
+        VALUE(result) TYPE REF TO data.
+
+    CLASS-METHODS bal_filter_add
+      IMPORTING
+        comp   TYPE clike
+        value  TYPE clike
+      CHANGING
+        filter TYPE any.
+
+    CLASS-METHODS bal_map_msg
+      IMPORTING
+        msg           TYPE any
+      RETURNING
+        VALUE(result) TYPE z2ui5_cl_util=>ty_s_msg.
 
 ENDCLASS.
 
@@ -876,38 +923,416 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD bal_read.
+  METHOD bal_create.
 
-*" Create and set header
-*
-*
-*DATA(lo_header) = cl_bali_header_setter=>create( object      = `ZBS_DEMO_LOG_OBJECT`
-*                                                 subobject   = `TEST`
-*                                                 external_id = cl_system_uuid=>create_uuid_c32_static( )
-*                                                 ).
-*
-*
-*DATA(lo_ohandler) = cl_bali_object_handler=>get_instance( ).
-*
-*lo_ohandler->read_object(
-*  EXPORTING
-*    iv_object      = `TEST`
-*  IMPORTING
-**    ev_object_text =
-*    et_subobjects  = data(lo_obj)
-*).
-**CATCH cx_bali_objects.
-*
-*lo_obj
-*DATA(lo_log_db) = cl_bali_log_db=>get_instance( ).
-*data(ls_hanlde) =  value if_bali_log_db=>ty_handle( ).
-*DATA(lo_log) = lo_header->load_log( value ).
-*DATA(lt_items) = lo_log->get_all_items( ).
+    " Standard ABAP / on-premise: classic Business Application Log function modules.
+    DATA lv_fm      TYPE string.
+    DATA lr_log     TYPE REF TO data.
+    DATA lr_handle  TYPE REF TO data.
+    DATA lr_handles TYPE REF TO data.
+    FIELD-SYMBOLS <log>     TYPE any.
+    FIELD-SYMBOLS <handle>  TYPE any.
+    FIELD-SYMBOLS <handles> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <comp>    TYPE any.
 
+    TRY.
+        CREATE DATA lr_log TYPE ('BAL_S_LOG').
+        ASSIGN lr_log->* TO <log>.
+        ASSIGN COMPONENT `OBJECT` OF STRUCTURE <log> TO <comp>.
+        <comp> = object.
+        ASSIGN COMPONENT `SUBOBJECT` OF STRUCTURE <log> TO <comp>.
+        <comp> = subobject.
+        ASSIGN COMPONENT `EXTNUMBER` OF STRUCTURE <log> TO <comp>.
+        <comp> = id.
+
+        CREATE DATA lr_handle TYPE ('BALLOGHNDL').
+        ASSIGN lr_handle->* TO <handle>.
+
+        lv_fm = `BAL_LOG_CREATE`.
+        CALL FUNCTION lv_fm
+          EXPORTING
+            i_s_log      = <log>
+          IMPORTING
+            e_log_handle = <handle>
+          EXCEPTIONS
+            OTHERS       = 1.
+        IF sy-subrc <> 0.
+          RETURN.
+        ENDIF.
+
+        bal_msg_add( handle = <handle>
+                     t_log  = t_log ).
+
+        CREATE DATA lr_handles TYPE ('BAL_T_LOGH').
+        ASSIGN lr_handles->* TO <handles>.
+        INSERT <handle> INTO TABLE <handles>.
+
+        lv_fm = `BAL_DB_SAVE`.
+        CALL FUNCTION lv_fm
+          EXPORTING
+            i_t_log_handle = <handles>
+          EXCEPTIONS
+            OTHERS         = 1.
+        IF sy-subrc = 0.
+          COMMIT WORK AND WAIT.
+        ENDIF.
+
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
 
   ENDMETHOD.
 
-  METHOD bal_save.
+  METHOD bal_read.
+
+    DATA lv_fm      TYPE string.
+    DATA lr_handles TYPE REF TO data.
+    DATA lr_single  TYPE REF TO data.
+    DATA lr_msgh    TYPE REF TO data.
+    DATA lr_msg     TYPE REF TO data.
+    FIELD-SYMBOLS <handles> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <handle>  TYPE any.
+    FIELD-SYMBOLS <single>  TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <msgh>    TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <mh>      TYPE any.
+    FIELD-SYMBOLS <msg>     TYPE any.
+
+    TRY.
+        lr_handles = bal_load_handles( object    = object
+                                       subobject = subobject
+                                       id        = id ).
+        IF lr_handles IS NOT BOUND.
+          RETURN.
+        ENDIF.
+        ASSIGN lr_handles->* TO <handles>.
+
+        CREATE DATA lr_single TYPE ('BAL_T_LOGH').
+        ASSIGN lr_single->* TO <single>.
+        CREATE DATA lr_msgh TYPE ('BAL_T_MSGH').
+        ASSIGN lr_msgh->* TO <msgh>.
+        CREATE DATA lr_msg TYPE ('BAL_S_MSG').
+        ASSIGN lr_msg->* TO <msg>.
+
+        LOOP AT <handles> ASSIGNING <handle>.
+
+          CLEAR <single>.
+          INSERT <handle> INTO TABLE <single>.
+
+          CLEAR <msgh>.
+          lv_fm = `BAL_GLB_SEARCH_MSG`.
+          CALL FUNCTION lv_fm
+            EXPORTING
+              i_t_log_handle = <single>
+            IMPORTING
+              e_t_msg_handle = <msgh>
+            EXCEPTIONS
+              OTHERS         = 1.
+          IF sy-subrc <> 0.
+            CONTINUE.
+          ENDIF.
+
+          LOOP AT <msgh> ASSIGNING <mh>.
+            CLEAR <msg>.
+            lv_fm = `BAL_LOG_MSG_READ`.
+            CALL FUNCTION lv_fm
+              EXPORTING
+                i_s_msg_handle = <mh>
+              IMPORTING
+                e_s_msg        = <msg>
+              EXCEPTIONS
+                OTHERS         = 1.
+            IF sy-subrc = 0.
+              INSERT bal_map_msg( <msg> ) INTO TABLE result.
+            ENDIF.
+          ENDLOOP.
+
+        ENDLOOP.
+
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD bal_update.
+
+    " Append the given messages to an already persisted log; create a new one if none exists.
+    DATA lv_fm      TYPE string.
+    DATA lr_handles TYPE REF TO data.
+    FIELD-SYMBOLS <handles> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <handle>  TYPE any.
+
+    TRY.
+        lr_handles = bal_load_handles( object    = object
+                                       subobject = subobject
+                                       id        = id ).
+        IF lr_handles IS NOT BOUND.
+          bal_create( object    = object
+                      subobject = subobject
+                      id        = id
+                      t_log     = t_log ).
+          RETURN.
+        ENDIF.
+
+        ASSIGN lr_handles->* TO <handles>.
+        IF <handles> IS INITIAL.
+          bal_create( object    = object
+                      subobject = subobject
+                      id        = id
+                      t_log     = t_log ).
+          RETURN.
+        ENDIF.
+
+        ASSIGN <handles>[ 1 ] TO <handle>.
+        bal_msg_add( handle = <handle>
+                     t_log  = t_log ).
+
+        lv_fm = `BAL_DB_SAVE`.
+        CALL FUNCTION lv_fm
+          EXPORTING
+            i_t_log_handle = <handles>
+          EXCEPTIONS
+            OTHERS         = 1.
+        IF sy-subrc = 0.
+          COMMIT WORK AND WAIT.
+        ENDIF.
+
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD bal_delete.
+
+    DATA lv_fm     TYPE string.
+    DATA lr_filter TYPE REF TO data.
+    FIELD-SYMBOLS <filter> TYPE any.
+
+    TRY.
+        lr_filter = bal_build_filter( object    = object
+                                      subobject = subobject
+                                      id        = id ).
+        ASSIGN lr_filter->* TO <filter>.
+
+        lv_fm = `BAL_DB_DELETE`.
+        CALL FUNCTION lv_fm
+          EXPORTING
+            i_s_log_filter = <filter>
+          EXCEPTIONS
+            OTHERS         = 1.
+        IF sy-subrc = 0.
+          COMMIT WORK AND WAIT.
+        ENDIF.
+
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD bal_msg_add.
+
+    DATA lv_fm    TYPE string.
+    DATA lr_msg   TYPE REF TO data.
+    DATA lv_msgty TYPE c LENGTH 1.
+    DATA lv_text  TYPE c LENGTH 200.
+    FIELD-SYMBOLS <msg>  TYPE any.
+    FIELD-SYMBOLS <comp> TYPE any.
+
+    LOOP AT t_log INTO DATA(ls_log).
+
+      IF ls_log-id IS NOT INITIAL AND ls_log-no IS NOT INITIAL.
+
+        CREATE DATA lr_msg TYPE ('BAL_S_MSG').
+        ASSIGN lr_msg->* TO <msg>.
+        ASSIGN COMPONENT `MSGTY` OF STRUCTURE <msg> TO <comp>.
+        <comp> = ls_log-type.
+        ASSIGN COMPONENT `MSGID` OF STRUCTURE <msg> TO <comp>.
+        <comp> = ls_log-id.
+        ASSIGN COMPONENT `MSGNO` OF STRUCTURE <msg> TO <comp>.
+        <comp> = ls_log-no.
+        ASSIGN COMPONENT `MSGV1` OF STRUCTURE <msg> TO <comp>.
+        <comp> = ls_log-v1.
+        ASSIGN COMPONENT `MSGV2` OF STRUCTURE <msg> TO <comp>.
+        <comp> = ls_log-v2.
+        ASSIGN COMPONENT `MSGV3` OF STRUCTURE <msg> TO <comp>.
+        <comp> = ls_log-v3.
+        ASSIGN COMPONENT `MSGV4` OF STRUCTURE <msg> TO <comp>.
+        <comp> = ls_log-v4.
+
+        lv_fm = `BAL_LOG_MSG_ADD`.
+        CALL FUNCTION lv_fm
+          EXPORTING
+            i_log_handle = handle
+            i_s_msg      = <msg>
+          EXCEPTIONS
+            OTHERS       = 1.
+
+      ELSE.
+
+        lv_msgty = ls_log-type.
+        lv_text  = ls_log-text.
+        lv_fm    = `BAL_LOG_MSG_ADD_FREE_TEXT`.
+        CALL FUNCTION lv_fm
+          EXPORTING
+            i_log_handle = handle
+            i_msgty      = lv_msgty
+            i_text       = lv_text
+          EXCEPTIONS
+            OTHERS       = 1.
+
+      ENDIF.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD bal_load_handles.
+
+    DATA lv_fm      TYPE string.
+    DATA lr_filter  TYPE REF TO data.
+    DATA lr_headers TYPE REF TO data.
+    FIELD-SYMBOLS <filter>  TYPE any.
+    FIELD-SYMBOLS <headers> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <handles> TYPE STANDARD TABLE.
+
+    lr_filter = bal_build_filter( object    = object
+                                  subobject = subobject
+                                  id        = id ).
+    ASSIGN lr_filter->* TO <filter>.
+
+    CREATE DATA lr_headers TYPE ('BALHDR_T').
+    ASSIGN lr_headers->* TO <headers>.
+
+    lv_fm = `BAL_DB_SEARCH`.
+    CALL FUNCTION lv_fm
+      EXPORTING
+        i_s_log_filter = <filter>
+      IMPORTING
+        e_t_log_header = <headers>
+      EXCEPTIONS
+        OTHERS         = 1.
+    IF sy-subrc <> 0 OR <headers> IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    CREATE DATA result TYPE ('BAL_T_LOGH').
+    ASSIGN result->* TO <handles>.
+
+    lv_fm = `BAL_DB_LOAD`.
+    CALL FUNCTION lv_fm
+      EXPORTING
+        i_t_log_header = <headers>
+      IMPORTING
+        e_t_log_handle = <handles>
+      EXCEPTIONS
+        OTHERS         = 1.
+
+  ENDMETHOD.
+
+  METHOD bal_build_filter.
+
+    FIELD-SYMBOLS <filter> TYPE any.
+
+    CREATE DATA result TYPE ('BAL_S_LFIL').
+    ASSIGN result->* TO <filter>.
+
+    bal_filter_add( EXPORTING comp   = `OBJECT`
+                              value  = object
+                    CHANGING  filter = <filter> ).
+    bal_filter_add( EXPORTING comp   = `SUBOBJECT`
+                              value  = subobject
+                    CHANGING  filter = <filter> ).
+    bal_filter_add( EXPORTING comp   = `EXTNUMBER`
+                              value  = id
+                    CHANGING  filter = <filter> ).
+
+  ENDMETHOD.
+
+  METHOD bal_filter_add.
+
+    DATA lr_line TYPE REF TO data.
+    FIELD-SYMBOLS <range> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <line>  TYPE any.
+    FIELD-SYMBOLS <comp>  TYPE any.
+
+    IF value IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    ASSIGN COMPONENT comp OF STRUCTURE filter TO <range>.
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
+
+    CREATE DATA lr_line LIKE LINE OF <range>.
+    ASSIGN lr_line->* TO <line>.
+    ASSIGN COMPONENT `SIGN` OF STRUCTURE <line> TO <comp>.
+    <comp> = `I`.
+    ASSIGN COMPONENT `OPTION` OF STRUCTURE <line> TO <comp>.
+    <comp> = `EQ`.
+    ASSIGN COMPONENT `LOW` OF STRUCTURE <line> TO <comp>.
+    <comp> = value.
+    INSERT <line> INTO TABLE <range>.
+
+  ENDMETHOD.
+
+  METHOD bal_map_msg.
+
+    DATA lv_fm   TYPE string.
+    DATA lv_text TYPE c LENGTH 200.
+    FIELD-SYMBOLS <comp> TYPE any.
+
+    ASSIGN COMPONENT `MSGTY` OF STRUCTURE msg TO <comp>.
+    IF sy-subrc = 0.
+      result-type = <comp>.
+    ENDIF.
+    ASSIGN COMPONENT `MSGID` OF STRUCTURE msg TO <comp>.
+    IF sy-subrc = 0.
+      result-id = <comp>.
+    ENDIF.
+    ASSIGN COMPONENT `MSGNO` OF STRUCTURE msg TO <comp>.
+    IF sy-subrc = 0.
+      result-no = <comp>.
+    ENDIF.
+    ASSIGN COMPONENT `MSGV1` OF STRUCTURE msg TO <comp>.
+    IF sy-subrc = 0.
+      result-v1 = <comp>.
+    ENDIF.
+    ASSIGN COMPONENT `MSGV2` OF STRUCTURE msg TO <comp>.
+    IF sy-subrc = 0.
+      result-v2 = <comp>.
+    ENDIF.
+    ASSIGN COMPONENT `MSGV3` OF STRUCTURE msg TO <comp>.
+    IF sy-subrc = 0.
+      result-v3 = <comp>.
+    ENDIF.
+    ASSIGN COMPONENT `MSGV4` OF STRUCTURE msg TO <comp>.
+    IF sy-subrc = 0.
+      result-v4 = <comp>.
+    ENDIF.
+    ASSIGN COMPONENT `TIME_STMP` OF STRUCTURE msg TO <comp>.
+    IF sy-subrc = 0.
+      result-timestampl = <comp>.
+    ENDIF.
+
+    TRY.
+        lv_fm = `MESSAGE_TEXT_BUILD`.
+        CALL FUNCTION lv_fm
+          EXPORTING
+            msgid               = result-id
+            msgnr               = result-no
+            msgv1               = result-v1
+            msgv2               = result-v2
+            msgv3               = result-v3
+            msgv4               = result-v4
+          IMPORTING
+            message_text_output = lv_text.
+        result-text = lv_text.
+      CATCH cx_root.
+        result-text = result-v1.
+    ENDTRY.
 
   ENDMETHOD.
 
