@@ -905,13 +905,17 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
 
     " ABAP Cloud: released Business Application Log API (cl_bali_*).
     " All access is dynamic so this class still compiles on lower releases.
+    " The class names are kept in variables - a string literal inside the
+    " dynamic component selector ( '...' )=>( '...' ) is not valid ABAP.
     " Returning parameter names follow the released API (header/log/db_handler).
-    DATA lo_header TYPE REF TO object.
-    DATA lo_log    TYPE REF TO object.
-    DATA lo_db     TYPE REF TO object.
+    DATA lo_header  TYPE REF TO object.
+    DATA lo_log     TYPE REF TO object.
+    DATA lo_db      TYPE REF TO object.
+    DATA lv_class   TYPE string.
 
     TRY.
-        CALL METHOD ('CL_BALI_HEADER_SETTER')=>('CREATE')
+        lv_class = `CL_BALI_HEADER_SETTER`.
+        CALL METHOD (lv_class)=>(`CREATE`)
           EXPORTING
             object      = object
             subobject   = subobject
@@ -919,22 +923,24 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
           RECEIVING
             header      = lo_header.
 
-        CALL METHOD ('CL_BALI_LOG')=>('CREATE')
+        lv_class = `CL_BALI_LOG`.
+        CALL METHOD (lv_class)=>(`CREATE`)
           RECEIVING
             log = lo_log.
 
-        CALL METHOD lo_log->('SET_HEADER')
+        CALL METHOD lo_log->(`SET_HEADER`)
           EXPORTING
             header = lo_header.
 
         bal_add_items( log   = lo_log
                        t_log = t_log ).
 
-        CALL METHOD ('CL_BALI_LOG_DB')=>('GET_INSTANCE')
+        lv_class = `CL_BALI_LOG_DB`.
+        CALL METHOD (lv_class)=>(`GET_INSTANCE`)
           RECEIVING
             db_handler = lo_db.
 
-        CALL METHOD lo_db->('SAVE_LOG')
+        CALL METHOD lo_db->(`SAVE_LOG`)
           EXPORTING
             log = lo_log.
 
@@ -961,17 +967,19 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
     DATA lo_db     TYPE REF TO object.
     DATA lt_logs   TYPE STANDARD TABLE OF REF TO object.
     DATA lv_text   TYPE string.
+    DATA lv_class  TYPE string.
 
     TRY.
         lo_filter = bal_build_filter( object    = object
                                       subobject = subobject
                                       id        = id ).
 
-        CALL METHOD ('CL_BALI_LOG_DB')=>('GET_INSTANCE')
+        lv_class = `CL_BALI_LOG_DB`.
+        CALL METHOD (lv_class)=>(`GET_INSTANCE`)
           RECEIVING
             db_handler = lo_db.
 
-        CALL METHOD lo_db->('LOAD_LOGS_VIA_FILTER')
+        CALL METHOD lo_db->(`LOAD_LOGS_VIA_FILTER`)
           EXPORTING
             filter    = lo_filter
           RECEIVING
@@ -980,7 +988,7 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
         LOOP AT lt_logs INTO DATA(lo_log).
 
           lt_items = VALUE #( ).
-          CALL METHOD lo_log->('GET_ALL_ITEMS')
+          CALL METHOD lo_log->(`GET_ALL_ITEMS`)
             RECEIVING
               item_table = lt_items.
 
@@ -989,7 +997,7 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
               CONTINUE.
             ENDIF.
             lv_text = ``.
-            CALL METHOD ls_item-item->('GET_MESSAGE_TEXT')
+            CALL METHOD ls_item-item->(`GET_MESSAGE_TEXT`)
               RECEIVING
                 message_text = lv_text.
             INSERT VALUE #( text = lv_text ) INTO TABLE result.
@@ -1020,24 +1028,26 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
     DATA lo_filter TYPE REF TO object.
     DATA lo_db     TYPE REF TO object.
     DATA lt_logs   TYPE STANDARD TABLE OF REF TO object.
+    DATA lv_class  TYPE string.
 
     TRY.
         lo_filter = bal_build_filter( object    = object
                                       subobject = subobject
                                       id        = id ).
 
-        CALL METHOD ('CL_BALI_LOG_DB')=>('GET_INSTANCE')
+        lv_class = `CL_BALI_LOG_DB`.
+        CALL METHOD (lv_class)=>(`GET_INSTANCE`)
           RECEIVING
             db_handler = lo_db.
 
-        CALL METHOD lo_db->('LOAD_LOGS_VIA_FILTER')
+        CALL METHOD lo_db->(`LOAD_LOGS_VIA_FILTER`)
           EXPORTING
             filter    = lo_filter
           RECEIVING
             log_table = lt_logs.
 
         LOOP AT lt_logs INTO DATA(lo_log).
-          CALL METHOD lo_db->('DELETE_LOG')
+          CALL METHOD lo_db->(`DELETE_LOG`)
             EXPORTING
               log = lo_log.
         ENDLOOP.
@@ -1054,13 +1064,15 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
 
     DATA lo_item  TYPE REF TO object.
     DATA lv_msgty TYPE c LENGTH 1.
+    DATA lv_class TYPE string.
 
     LOOP AT t_log INTO DATA(ls_log).
 
       lv_msgty = ls_log-type.
 
       IF ls_log-id IS NOT INITIAL AND ls_log-no IS NOT INITIAL.
-        CALL METHOD ('CL_BALI_MESSAGE_SETTER')=>('CREATE')
+        lv_class = `CL_BALI_MESSAGE_SETTER`.
+        CALL METHOD (lv_class)=>(`CREATE`)
           EXPORTING
             severity   = lv_msgty
             id         = ls_log-id
@@ -1072,7 +1084,8 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
           RECEIVING
             message    = lo_item.
       ELSE.
-        CALL METHOD ('CL_BALI_FREE_TEXT_SETTER')=>('CREATE')
+        lv_class = `CL_BALI_FREE_TEXT_SETTER`.
+        CALL METHOD (lv_class)=>(`CREATE`)
           EXPORTING
             severity  = lv_msgty
             text      = ls_log-text
@@ -1080,7 +1093,7 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
             free_text = lo_item.
       ENDIF.
 
-      CALL METHOD log->('ADD_ITEM')
+      CALL METHOD log->(`ADD_ITEM`)
         EXPORTING
           item = lo_item.
 
@@ -1091,12 +1104,14 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
   METHOD bal_build_filter.
 
     DATA lo_filter TYPE REF TO object.
+    DATA lv_class  TYPE string.
 
-    CALL METHOD ('CL_BALI_LOG_FILTER')=>('CREATE')
+    lv_class = `CL_BALI_LOG_FILTER`.
+    CALL METHOD (lv_class)=>(`CREATE`)
       RECEIVING
         filter = lo_filter.
 
-    CALL METHOD lo_filter->('SET_DESCRIPTOR')
+    CALL METHOD lo_filter->(`SET_DESCRIPTOR`)
       EXPORTING
         object      = object
         subobject   = subobject
