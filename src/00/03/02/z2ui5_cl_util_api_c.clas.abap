@@ -905,6 +905,7 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
 
     " ABAP Cloud: released Business Application Log API (cl_bali_*).
     " All access is dynamic so this class still compiles on lower releases.
+    " Returning parameter names follow the released API (header/log/db_handler).
     DATA lo_header TYPE REF TO object.
     DATA lo_log    TYPE REF TO object.
     DATA lo_db     TYPE REF TO object.
@@ -916,11 +917,11 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
             subobject   = subobject
             external_id = id
           RECEIVING
-            result      = lo_header.
+            header      = lo_header.
 
         CALL METHOD ('CL_BALI_LOG')=>('CREATE')
           RECEIVING
-            result = lo_log.
+            log = lo_log.
 
         CALL METHOD lo_log->('SET_HEADER')
           EXPORTING
@@ -931,7 +932,7 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
 
         CALL METHOD ('CL_BALI_LOG_DB')=>('GET_INSTANCE')
           RECEIVING
-            result = lo_db.
+            db_handler = lo_db.
 
         CALL METHOD lo_db->('SAVE_LOG')
           EXPORTING
@@ -947,13 +948,58 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
 
   METHOD bal_read.
 
-    " Reading persisted logs back in ABAP Cloud requires the released filter API
-    " (cl_bali_log_filter + cl_bali_log_db->load_logs_w_items_via_filter) and the
-    " generic capture of its typed result tables. This is intentionally left as a
-    " no-op fallback here - the same approach the framework takes for other complex
-    " cloud-only readers (see conv_get_itab_by_xlsx). On standard / on-premise ABAP
-    " bal_read is fully supported via z2ui5_cl_util_api_s.
-    RETURN.
+    " Load the persisted logs (incl. items) via the released filter API and map
+    " each item's message text. cl_bali_log_db->load_logs_via_filter loads items
+    " by default (read_only_header not set).
+    TYPES:
+      BEGIN OF ty_item,
+        log_item_number TYPE i,
+        item            TYPE REF TO object,
+      END OF ty_item.
+    DATA lt_items  TYPE STANDARD TABLE OF ty_item.
+    DATA lo_filter TYPE REF TO object.
+    DATA lo_db     TYPE REF TO object.
+    DATA lt_logs   TYPE STANDARD TABLE OF REF TO object.
+    DATA lv_text   TYPE string.
+
+    TRY.
+        lo_filter = bal_build_filter( object    = object
+                                      subobject = subobject
+                                      id        = id ).
+
+        CALL METHOD ('CL_BALI_LOG_DB')=>('GET_INSTANCE')
+          RECEIVING
+            db_handler = lo_db.
+
+        CALL METHOD lo_db->('LOAD_LOGS_VIA_FILTER')
+          EXPORTING
+            filter    = lo_filter
+          RECEIVING
+            log_table = lt_logs.
+
+        LOOP AT lt_logs INTO DATA(lo_log).
+
+          lt_items = VALUE #( ).
+          CALL METHOD lo_log->('GET_ALL_ITEMS')
+            RECEIVING
+              item_table = lt_items.
+
+          LOOP AT lt_items INTO DATA(ls_item).
+            IF ls_item-item IS NOT BOUND.
+              CONTINUE.
+            ENDIF.
+            lv_text = ``.
+            CALL METHOD ls_item-item->('GET_MESSAGE_TEXT')
+              RECEIVING
+                message_text = lv_text.
+            INSERT VALUE #( text = lv_text ) INTO TABLE result.
+          ENDLOOP.
+
+        ENDLOOP.
+
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -973,22 +1019,28 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
 
     DATA lo_filter TYPE REF TO object.
     DATA lo_db     TYPE REF TO object.
+    DATA lt_logs   TYPE STANDARD TABLE OF REF TO object.
 
     TRY.
         lo_filter = bal_build_filter( object    = object
                                       subobject = subobject
                                       id        = id ).
-        IF lo_filter IS NOT BOUND.
-          RETURN.
-        ENDIF.
 
         CALL METHOD ('CL_BALI_LOG_DB')=>('GET_INSTANCE')
           RECEIVING
-            result = lo_db.
+            db_handler = lo_db.
 
-        CALL METHOD lo_db->('DELETE_LOGS_VIA_FILTER')
+        CALL METHOD lo_db->('LOAD_LOGS_VIA_FILTER')
           EXPORTING
-            filter = lo_filter.
+            filter    = lo_filter
+          RECEIVING
+            log_table = lt_logs.
+
+        LOOP AT lt_logs INTO DATA(lo_log).
+          CALL METHOD lo_db->('DELETE_LOG')
+            EXPORTING
+              log = lo_log.
+        ENDLOOP.
 
         COMMIT WORK AND WAIT.
 
@@ -1018,14 +1070,14 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
             variable_3 = ls_log-v3
             variable_4 = ls_log-v4
           RECEIVING
-            result     = lo_item.
+            message    = lo_item.
       ELSE.
         CALL METHOD ('CL_BALI_FREE_TEXT_SETTER')=>('CREATE')
           EXPORTING
-            severity = lv_msgty
-            text     = ls_log-text
+            severity  = lv_msgty
+            text      = ls_log-text
           RECEIVING
-            result   = lo_item.
+            free_text = lo_item.
       ENDIF.
 
       CALL METHOD log->('ADD_ITEM')
@@ -1042,23 +1094,13 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
 
     CALL METHOD ('CL_BALI_LOG_FILTER')=>('CREATE')
       RECEIVING
-        result = lo_filter.
+        filter = lo_filter.
 
-    IF object IS NOT INITIAL.
-      CALL METHOD lo_filter->('SET_LOG_OBJECT')
-        EXPORTING
-          object = object.
-    ENDIF.
-    IF subobject IS NOT INITIAL.
-      CALL METHOD lo_filter->('SET_SUBOBJECT')
-        EXPORTING
-          subobject = subobject.
-    ENDIF.
-    IF id IS NOT INITIAL.
-      CALL METHOD lo_filter->('SET_EXTERNAL_ID')
-        EXPORTING
-          external_id = id.
-    ENDIF.
+    CALL METHOD lo_filter->('SET_DESCRIPTOR')
+      EXPORTING
+        object      = object
+        subobject   = subobject
+        external_id = id.
 
     result = lo_filter.
 
