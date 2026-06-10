@@ -49,6 +49,15 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      return typeof id === "string" && id !== "" && id !== "undefined";` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // Roundtrip lifecycle (spans this file and View1.controller.js):` && |\n| &&
+             `    //   1. View1.eB(...)              collects the model delta into z2ui5.oBody` && |\n| &&
+             `    //   2. Server.Roundtrip()         adds S_FRONT (device/focus/scroll info)` && |\n| &&
+             `    //   3. Server.readHttp()          POSTs { value: oBody }, parses the JSON` && |\n| &&
+             `    //   4. Server.responseSuccess()   shows messages, rebuilds/updates views` && |\n| &&
+             `    //   5. View1._processAfterRendering()  popups, nested views, history,` && |\n| &&
+             `    //      then runs pending follow-up JS once rendering is done` && |\n| &&
+             `    // State is handed between the steps via the z2ui5 globals oBody,` && |\n| &&
+             `    // oResponse and pendingCustomJs.` && |\n| &&
              `    return {` && |\n| &&
              `      endSession() {` && |\n| &&
              `        if (!isValidContextId(z2ui5.contextId)) return;` && |\n| &&
@@ -108,13 +117,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          const ui5El = Element.closestTo ? Element.closestTo(active) : null;` && |\n| &&
              `          if (!ui5El) return {};` && |\n| &&
              `          const fullId = ui5El.getId();` && |\n| &&
-             `          const views = [` && |\n| &&
-             `            z2ui5.oView,` && |\n| &&
-             `            z2ui5.oViewNest,` && |\n| &&
-             `            z2ui5.oViewNest2,` && |\n| &&
-             `            z2ui5.oViewPopup,` && |\n| &&
-             `            z2ui5.oViewPopover,` && |\n| &&
-             `          ];` && |\n| &&
+             `          const views = Util.viewSlots.map((slot) => z2ui5[slot.prop]);` && |\n| &&
              `          let id = fullId;` && |\n| &&
              `          for (const v of views) {` && |\n| &&
              `            if (!v) continue;` && |\n| &&
@@ -210,16 +213,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          return { ID: id, X: pick.x, Y: pick.y };` && |\n| &&
              `        };` && |\n| &&
              `        const out = {};` && |\n| &&
-             `        const slots = [` && |\n| &&
-             `          ["MAIN", z2ui5.oView],` && |\n| &&
-             `          ["NEST", z2ui5.oViewNest],` && |\n| &&
-             `          ["NEST2", z2ui5.oViewNest2],` && |\n| &&
-             `          ["POPUP", z2ui5.oViewPopup],` && |\n| &&
-             `          ["POPOVER", z2ui5.oViewPopover],` && |\n| &&
-             `        ];` && |\n| &&
-             `        for (const [key, view] of slots) {` && |\n| &&
-             `          const v = getOne(view);` && |\n| &&
-             `          if (v) out[key] = v;` && |\n| &&
+             `        for (const slot of Util.viewSlots) {` && |\n| &&
+             `          const v = getOne(z2ui5[slot.prop]);` && |\n| &&
+             `          if (v) out[slot.key] = v;` && |\n| &&
              `        }` && |\n| &&
              `        // Returning undefined lets JSON.stringify omit S_SCROLL entirely.` && |\n| &&
              `        return Object.keys(out).length ? out : undefined;` && |\n| &&
@@ -385,15 +381,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `          // Partial response: refresh whichever existing views the backend` && |\n| &&
              `          // sent updates for.` && |\n| &&
-             `          const updateTargets = [` && |\n| &&
-             `            ["S_VIEW", z2ui5.oView],` && |\n| &&
-             `            ["S_VIEW_NEST", z2ui5.oViewNest],` && |\n| &&
-             `            ["S_VIEW_NEST2", z2ui5.oViewNest2],` && |\n| &&
-             `            ["S_POPUP", z2ui5.oViewPopup],` && |\n| &&
-             `            ["S_POPOVER", z2ui5.oViewPopover],` && |\n| &&
-             `          ];` && |\n| &&
-             `          for (const [key, view] of updateTargets) {` && |\n| &&
-             `            oController.updateModelIfRequired(key, view);` && |\n| &&
+             `          for (const slot of Util.viewSlots) {` && |\n| &&
+             `            oController.updateModelIfRequired(slot.param, z2ui5[slot.prop]);` && |\n| &&
              `          }` && |\n| &&
              `          oController._processAfterRendering();` && |\n| &&
              `        } catch (e) {` && |\n| &&
@@ -418,8 +407,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      // with older apps and will be removed in a future release. Do not` && |\n| &&
              `      // extend or change it.` && |\n| &&
              `      _runCustomJs(item, oController) {` && |\n| &&
-             |\n|.
-    result = result &&
              `        try {` && |\n| &&
              `          const parts = item.split("'");` && |\n| &&
              `          // Arguments live at the odd indices between single quotes.` && |\n| &&
@@ -431,6 +418,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            Function("return " + parts[0])();` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
+             |\n|.
+    result = result &&
              `          Util.logError("customJs: execution failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&

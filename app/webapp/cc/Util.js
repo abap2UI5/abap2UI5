@@ -69,6 +69,30 @@ sap.ui.define([], () => {
     control.setProperty("removedTokens", isRemoved ? tokens : []);
   }
 
+  // The five view slots of the multi-view architecture. `param` is the
+  // key used in the backend response PARAMS, `key` the short slot name
+  // used in frontend events, `prop` the z2ui5 property holding the live
+  // view instance.
+  const viewSlots = [
+    { key: "MAIN", param: "S_VIEW", prop: "oView" },
+    { key: "NEST", param: "S_VIEW_NEST", prop: "oViewNest" },
+    { key: "NEST2", param: "S_VIEW_NEST2", prop: "oViewNest2" },
+    { key: "POPUP", param: "S_POPUP", prop: "oViewPopup" },
+    { key: "POPOVER", param: "S_POPOVER", prop: "oViewPopover" },
+  ];
+
+  // Returns the live view instance for a slot key ("MAIN", "POPUP", ...).
+  function getViewByKey(key) {
+    const slot = viewSlots.find((s) => s.key === key);
+    return slot ? z2ui5[slot.prop] : undefined;
+  }
+
+  // Returns the slot key for a response param key ("S_VIEW" -> "MAIN").
+  function slotKeyByParam(param) {
+    const slot = viewSlots.find((s) => s.param === param);
+    return slot ? slot.key : undefined;
+  }
+
   return {
     logError,
     isDestroyed,
@@ -77,5 +101,8 @@ sap.ui.define([], () => {
     unregisterCallback,
     readFileAsDataURL,
     applyTokenUpdate,
+    viewSlots,
+    getViewByKey,
+    slotKeyByParam,
   };
 });

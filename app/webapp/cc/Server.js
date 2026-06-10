@@ -29,6 +29,15 @@ sap.ui.define(
       return typeof id === "string" && id !== "" && id !== "undefined";
     }
 
+    // Roundtrip lifecycle (spans this file and View1.controller.js):
+    //   1. View1.eB(...)              collects the model delta into z2ui5.oBody
+    //   2. Server.Roundtrip()         adds S_FRONT (device/focus/scroll info)
+    //   3. Server.readHttp()          POSTs { value: oBody }, parses the JSON
+    //   4. Server.responseSuccess()   shows messages, rebuilds/updates views
+    //   5. View1._processAfterRendering()  popups, nested views, history,
+    //      then runs pending follow-up JS once rendering is done
+    // State is handed between the steps via the z2ui5 globals oBody,
+    // oResponse and pendingCustomJs.
     return {
       endSession() {
         if (!isValidContextId(z2ui5.contextId)) return;
@@ -88,13 +97,7 @@ sap.ui.define(
           const ui5El = Element.closestTo ? Element.closestTo(active) : null;
           if (!ui5El) return {};
           const fullId = ui5El.getId();
-          const views = [
-            z2ui5.oView,
-            z2ui5.oViewNest,
-            z2ui5.oViewNest2,
-            z2ui5.oViewPopup,
-            z2ui5.oViewPopover,
-          ];
+          const views = Util.viewSlots.map((slot) => z2ui5[slot.prop]);
           let id = fullId;
           for (const v of views) {
             if (!v) continue;
@@ -190,16 +193,9 @@ sap.ui.define(
           return { ID: id, X: pick.x, Y: pick.y };
         };
         const out = {};
-        const slots = [
-          ["MAIN", z2ui5.oView],
-          ["NEST", z2ui5.oViewNest],
-          ["NEST2", z2ui5.oViewNest2],
-          ["POPUP", z2ui5.oViewPopup],
-          ["POPOVER", z2ui5.oViewPopover],
-        ];
-        for (const [key, view] of slots) {
-          const v = getOne(view);
-          if (v) out[key] = v;
+        for (const slot of Util.viewSlots) {
+          const v = getOne(z2ui5[slot.prop]);
+          if (v) out[slot.key] = v;
         }
         // Returning undefined lets JSON.stringify omit S_SCROLL entirely.
         return Object.keys(out).length ? out : undefined;
@@ -365,15 +361,8 @@ sap.ui.define(
 
           // Partial response: refresh whichever existing views the backend
           // sent updates for.
-          const updateTargets = [
-            ["S_VIEW", z2ui5.oView],
-            ["S_VIEW_NEST", z2ui5.oViewNest],
-            ["S_VIEW_NEST2", z2ui5.oViewNest2],
-            ["S_POPUP", z2ui5.oViewPopup],
-            ["S_POPOVER", z2ui5.oViewPopover],
-          ];
-          for (const [key, view] of updateTargets) {
-            oController.updateModelIfRequired(key, view);
+          for (const slot of Util.viewSlots) {
+            oController.updateModelIfRequired(slot.param, z2ui5[slot.prop]);
           }
           oController._processAfterRendering();
         } catch (e) {

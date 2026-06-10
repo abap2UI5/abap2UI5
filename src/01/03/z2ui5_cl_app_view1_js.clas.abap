@@ -243,20 +243,36 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      POPOVER_NAV_CONTAINER_TO: (id) => Fragment.byId("popoverId", id),` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    const viewLookups = {` && |\n| &&
-             `      MAIN: () => z2ui5.oView,` && |\n| &&
-             `      NEST: () => z2ui5.oViewNest,` && |\n| &&
-             `      NEST2: () => z2ui5.oViewNest2,` && |\n| &&
-             `      POPUP: () => z2ui5.oViewPopup,` && |\n| &&
-             `      POPOVER: () => z2ui5.oViewPopover,` && |\n| &&
-             `    };` && |\n| &&
-             `` && |\n| &&
-             `    const paramToViewKey = {` && |\n| &&
-             `      S_VIEW: "MAIN",` && |\n| &&
-             `      S_VIEW_NEST: "NEST",` && |\n| &&
-             `      S_VIEW_NEST2: "NEST2",` && |\n| &&
-             `      S_POPUP: "POPUP",` && |\n| &&
-             `      S_POPOVER: "POPOVER",` && |\n| &&
+             `    // Frontend event dispatch: maps the eF event name to the controller` && |\n| &&
+             `    // method handling it. NavContainer events are dispatched separately` && |\n| &&
+             `    // via navContainerLookups above.` && |\n| &&
+             `    const eventFrontendHandlers = {` && |\n| &&
+             `      SET_SIZE_LIMIT: "_evSetSizeLimit",` && |\n| &&
+             `      HISTORY_BACK: "_evHistoryBack",` && |\n| &&
+             `      CLIPBOARD_COPY: "_evClipboardCopy",` && |\n| &&
+             `      CLIPBOARD_APP_STATE: "_evClipboardAppState",` && |\n| &&
+             `      SET_ODATA_MODEL: "_evSetODataModel",` && |\n| &&
+             `      STORE_DATA: "_evStoreData",` && |\n| &&
+             `      DOWNLOAD_B64_FILE: "_evDownloadB64File",` && |\n| &&
+             `      CROSS_APP_NAV_TO_PREV_APP: "_evCrossAppNavToPrevApp",` && |\n| &&
+             `      CROSS_APP_NAV_TO_EXT: "_evCrossAppNavToExt",` && |\n| &&
+             `      LOCATION_RELOAD: "_evLocationReload",` && |\n| &&
+             `      SYSTEM_LOGOUT: "_evSystemLogout",` && |\n| &&
+             `      OPEN_NEW_TAB: "_evOpenNewTab",` && |\n| &&
+             `      POPUP_CLOSE: "PopupDestroy",` && |\n| &&
+             `      POPOVER_CLOSE: "PopoverDestroy",` && |\n| &&
+             `      URLHELPER: "_evUrlHelper",` && |\n| &&
+             `      IMAGE_EDITOR_POPUP_CLOSE: "_evImageEditorPopupClose",` && |\n| &&
+             `      SET_TITLE: "_evSetTitle",` && |\n| &&
+             `      SET_TITLE_LAUNCHPAD: "_evSetTitleLaunchpad",` && |\n| &&
+             `      SET_FOCUS: "_evSetFocus",` && |\n| &&
+             `      SCROLL_TO: "_evScrollTo",` && |\n| &&
+             `      SCROLL_INTO_VIEW: "_evScrollIntoView",` && |\n| &&
+             `      START_TIMER: "_evStartTimer",` && |\n| &&
+             `      KEYBOARD_SET_MODE: "_evSetInputMode",` && |\n| &&
+             `      Z2UI5: "_evZ2ui5Custom",` && |\n| &&
+             `      WIZARD_SET_NEXT_STEP: "_evWizardSetNextStep",` && |\n| &&
+             `      PLAY_AUDIO: "_evPlayAudio",` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    function applyStoredSizeLimit(viewKey, oModel) {` && |\n| &&
@@ -402,6 +418,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `          runCallbacks(z2ui5.onAfterRendering);` && |\n| &&
              `        } catch (e) {` && |\n| &&
+             |\n|.
+    result = result &&
              `          Util.logError("_processAfterRendering: unexpected error", e);` && |\n| &&
              `          Server.responseError(e, "Unexpected Error Occurred - App Terminated");` && |\n| &&
              `        } finally {` && |\n| &&
@@ -418,8 +436,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // Execute the follow-up JS snippets stashed by Server.responseSuccess.` && |\n| &&
              `      // Runs once per roundtrip, after the view has rendered.` && |\n| &&
              `      _runPendingCustomJs() {` && |\n| &&
-             |\n|.
-    result = result &&
              `        const customJs = z2ui5.pendingCustomJs;` && |\n| &&
              `        z2ui5.pendingCustomJs = null;` && |\n| &&
              `        if (!customJs) return;` && |\n| &&
@@ -542,7 +558,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `      async displayNestedView(xml, viewProp, viewNestId, controller) {` && |\n| &&
              `        const oModel = this._createViewModel();` && |\n| &&
-             `        applyStoredSizeLimit(paramToViewKey[viewNestId], oModel);` && |\n| &&
+             `        applyStoredSizeLimit(Util.slotKeyByParam(viewNestId), oModel);` && |\n| &&
              `        const oView = await XMLView.create({` && |\n| &&
              `          definition: xml,` && |\n| &&
              `          controller: controller,` && |\n| &&
@@ -627,7 +643,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
-             `      // eF: handle frontend-only events triggered by the backend response.` && |\n| &&
+             `      // eF = "event frontend": handles frontend-only events triggered by` && |\n| &&
+             `      // the backend response, without a roundtrip. The name is part of the` && |\n| &&
+             `      // protocol - backend-generated view XML binds events to eB/eF - and` && |\n| &&
+             `      // must not be renamed.` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `      eF(...args) {` && |\n| &&
              `        runCallbacks(z2ui5.onBeforeEventFrontend, args);` && |\n| &&
@@ -639,102 +658,43 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        switch (args[0]) {` && |\n| &&
-             `          case "SET_SIZE_LIMIT":` && |\n| &&
-             `            this._evSetSizeLimit(args);` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "HISTORY_BACK":` && |\n| &&
-             `            history.back();` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "CLIPBOARD_COPY":` && |\n| &&
-             `            copyToClipboard(args[1]);` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "CLIPBOARD_APP_STATE": {` && |\n| &&
-             `            const id = z2ui5.oResponse && z2ui5.oResponse.ID;` && |\n| &&
-             `            copyToClipboard(``${window.location.href}#/z2ui5-xapp-state=${id}``);` && |\n| &&
-             `            break;` && |\n| &&
-             `          }` && |\n| &&
-             `          case "SET_ODATA_MODEL":` && |\n| &&
-             `            this._evSetODataModel(args);` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "STORE_DATA":` && |\n| &&
-             `            this._evStoreData(args);` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "DOWNLOAD_B64_FILE": {` && |\n| &&
-             `            if (!isSafeDownloadURL(args[1])) {` && |\n| &&
-             `              Util.logError("DOWNLOAD_B64_FILE: blocked unsafe URL");` && |\n| &&
-             `              break;` && |\n| &&
-             `            }` && |\n| &&
-             `            const a = document.createElement("a");` && |\n| &&
-             `            a.href = args[1];` && |\n| &&
-             `            a.download = args[2];` && |\n| &&
-             `            a.click();` && |\n| &&
-             `            break;` && |\n| &&
-             `          }` && |\n| &&
-             `          case "CROSS_APP_NAV_TO_PREV_APP":` && |\n| &&
-             `            withCrossAppNavigator((nav) => nav.backToPreviousApp());` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "CROSS_APP_NAV_TO_EXT":` && |\n| &&
-             `            this._evCrossAppNavToExt(args);` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "LOCATION_RELOAD":` && |\n| &&
-             `            this._evLocationReload(args);` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "SYSTEM_LOGOUT":` && |\n| &&
-             `            this._evSystemLogout(args);` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "OPEN_NEW_TAB":` && |\n| &&
-             `            this._evOpenNewTab(args);` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "POPUP_CLOSE":` && |\n| &&
-             `            this.PopupDestroy();` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "POPOVER_CLOSE":` && |\n| &&
-             `            this.PopoverDestroy();` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "URLHELPER":` && |\n| &&
-             `            this._evUrlHelper(args);` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "IMAGE_EDITOR_POPUP_CLOSE":` && |\n| &&
-             `            this._evImageEditorPopupClose();` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "SET_TITLE":` && |\n| &&
-             `            this._evSetTitle(args);` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "SET_TITLE_LAUNCHPAD":` && |\n| &&
-             `            this._evSetTitleLaunchpad(args);` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "SET_FOCUS":` && |\n| &&
-             `            this._evSetFocus(args);` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "SCROLL_TO":` && |\n| &&
-             `            this._evScrollTo(args);` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "SCROLL_INTO_VIEW":` && |\n| &&
-             `            this._evScrollIntoView(args);` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "START_TIMER":` && |\n| &&
-             `            this._evStartTimer(args);` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "KEYBOARD_SET_MODE":` && |\n| &&
-             `            this._evSetInputMode(args);` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "Z2UI5":` && |\n| &&
-             `            this._evZ2ui5Custom(args);` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "WIZARD_SET_NEXT_STEP":` && |\n| &&
-             `            this._evWizardSetNextStep(args);` && |\n| &&
-             `            break;` && |\n| &&
-             `          case "PLAY_AUDIO":` && |\n| &&
-             `            this._evPlayAudio(args);` && |\n| &&
-             `            break;` && |\n| &&
-             `        }` && |\n| &&
+             `        const handler = eventFrontendHandlers[args[0]];` && |\n| &&
+             `        if (handler) this[handler](args);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
-             `      // Individual event handlers - one per case in eF(). Splitting them out` && |\n| &&
-             `      // keeps eF() short and makes each behavior easy to find.` && |\n| &&
+             `      // Individual event handlers - one per entry in eventFrontendHandlers.` && |\n| &&
+             `      // Splitting them out keeps eF() short and makes each behavior easy to` && |\n| &&
+             `      // find.` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
+             `` && |\n| &&
+             `      _evHistoryBack() {` && |\n| &&
+             `        history.back();` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _evClipboardCopy(args) {` && |\n| &&
+             `        copyToClipboard(args[1]);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _evClipboardAppState() {` && |\n| &&
+             `        const id = z2ui5.oResponse && z2ui5.oResponse.ID;` && |\n| &&
+             `        copyToClipboard(``${window.location.href}#/z2ui5-xapp-state=${id}``);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _evDownloadB64File(args) {` && |\n| &&
+             `        if (!isSafeDownloadURL(args[1])) {` && |\n| &&
+             `          Util.logError("DOWNLOAD_B64_FILE: blocked unsafe URL");` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        const a = document.createElement("a");` && |\n| &&
+             `        a.href = args[1];` && |\n| &&
+             `        a.download = args[2];` && |\n| &&
+             `        a.click();` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _evCrossAppNavToPrevApp() {` && |\n| &&
+             `        withCrossAppNavigator((nav) => nav.backToPreviousApp());` && |\n| &&
+             `      },` && |\n| &&
              `` && |\n| &&
              `      _evSetSizeLimit(args) {` && |\n| &&
              `        // Two call shapes:` && |\n| &&
@@ -743,7 +703,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        const hasLimit = args[2] !== undefined && args[2] !== "";` && |\n| &&
              `        const viewKey = hasLimit ? args[2] : args[1];` && |\n| &&
              `        const limit = hasLimit ? Number(args[1]) : NaN;` && |\n| &&
-             `        const view = viewLookups[viewKey] && viewLookups[viewKey]();` && |\n| &&
+             `        const view = Util.getViewByKey(viewKey);` && |\n| &&
              `        const model = view && view.getModel();` && |\n| &&
              `` && |\n| &&
              `        if (Number.isFinite(limit) && limit > 0) {` && |\n| &&
@@ -820,8 +780,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";` && |\n| &&
              `        const goToLogoutUrl = () => {` && |\n| &&
              `          if (isValidRedirectURL(logoutUrl)) {` && |\n| &&
-             |\n|.
-    result = result &&
              `            window.location.href = logoutUrl;` && |\n| &&
              `          } else {` && |\n| &&
              `            MessageBox.error(` && |\n| &&
@@ -862,6 +820,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          // Safety net: never wait longer than 1.5s for the BSP terminate.` && |\n| &&
              `          setTimeout(finish, 1500);` && |\n| &&
              `        };` && |\n| &&
+             |\n|.
+    result = result &&
              `        try {` && |\n| &&
              `          const launchpadLogout =` && |\n| &&
              `            z2ui5.oLaunchpad &&` && |\n| &&
@@ -1155,9 +1115,20 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
-             `      // eB: trigger a backend roundtrip with arguments.` && |\n| &&
+             `      // eB = "event backend": triggers a backend roundtrip with arguments.` && |\n| &&
+             `      // The name is part of the protocol - backend-generated view XML binds` && |\n| &&
+             `      // events to eB/eF - and must not be renamed.` && |\n| &&
+             `      //` && |\n| &&
+             `      // args[0] is the event array built by the backend:` && |\n| &&
+             `      //   [0] event name` && |\n| &&
+             `      //   [2] "ignore busy" flag - background events (e.g. timers) skip the` && |\n| &&
+             `      //       busy guard below` && |\n| &&
+             `      //   [3] "use main view model" flag - events fired from a popup or` && |\n| &&
+             `      //       popover controller that still target the main app's model` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `      eB(...args) {` && |\n| &&
+             `        const [, , ignoreBusy, useMainModel] = args[0];` && |\n| &&
+             `` && |\n| &&
              `        if (!navigator.onLine) {` && |\n| &&
              `          MessageBox.alert(` && |\n| &&
              `            "No internet connection! Please reconnect to the server and try again.",` && |\n| &&
@@ -1166,9 +1137,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `` && |\n| &&
              `        // If a roundtrip is already in flight, briefly show a BusyDialog so` && |\n| &&
-             `        // the user gets visual feedback instead of a silent click. args[0][2]` && |\n| &&
-             `        // is the "ignore busy" flag set by certain background events.` && |\n| &&
-             `        if (z2ui5.isBusy && !args[0][2]) {` && |\n| &&
+             `        // the user gets visual feedback instead of a silent click.` && |\n| &&
+             `        if (z2ui5.isBusy && !ignoreBusy) {` && |\n| &&
              `          if (!_busyDialog) _busyDialog = new mBusyDialog();` && |\n| &&
              `          _busyDialog.open();` && |\n| &&
              `          queueMicrotask(() => _busyDialog.close());` && |\n| &&
@@ -1192,7 +1162,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // Decide which view's model holds the data we need to send back. The` && |\n| &&
              `        // mapping is: main app controller -> main view, popup controller ->` && |\n| &&
              `        // popup view, etc.` && |\n| &&
-             `        const oModel = this._pickModelForRoundtrip(args);` && |\n| &&
+             `        const oModel = this._pickModelForRoundtrip(useMainModel);` && |\n| &&
              `` && |\n| &&
              `        runCallbacks(z2ui5.onBeforeRoundtrip);` && |\n| &&
              `` && |\n| &&
@@ -1221,12 +1191,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        runCallbacks(z2ui5.onAfterRoundtrip);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      _pickModelForRoundtrip(args) {` && |\n| &&
-             |\n|.
-    result = result &&
-             `        // The 4th positional flag in args[0] forces use of the main view's` && |\n| &&
-             `        // model even when called from a popup/popover controller.` && |\n| &&
-             `        if (args[0][3] || z2ui5.oController === this) {` && |\n| &&
+             `      _pickModelForRoundtrip(useMainModel) {` && |\n| &&
+             `        // useMainModel forces use of the main view's model even when called` && |\n| &&
+             `        // from a popup/popover controller.` && |\n| &&
+             `        if (useMainModel || z2ui5.oController === this) {` && |\n| &&
              `          const sView =` && |\n| &&
              `            z2ui5.oResponse && z2ui5.oResponse.PARAMS` && |\n| &&
              `              ? z2ui5.oResponse.PARAMS.S_VIEW` && |\n| &&
@@ -1254,6 +1222,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Re-bind a model to one of the views when the response signals an` && |\n| &&
+             |\n|.
+    result = result &&
              `      // update is required for that particular slot.` && |\n| &&
              `      updateModelIfRequired(paramKey, oView) {` && |\n| &&
              `        const params = z2ui5.oResponse && z2ui5.oResponse.PARAMS;` && |\n| &&
@@ -1261,7 +1231,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (!slot || !slot.CHECK_UPDATE_MODEL) return;` && |\n| &&
              `` && |\n| &&
              `        const oModel = this._createViewModel();` && |\n| &&
-             `        applyStoredSizeLimit(paramToViewKey[paramKey], oModel);` && |\n| &&
+             `        applyStoredSizeLimit(Util.slotKeyByParam(paramKey), oModel);` && |\n| &&
              `        if (oView) oView.setModel(oModel);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&

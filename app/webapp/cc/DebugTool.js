@@ -50,6 +50,66 @@ sap.ui.define(
       return _xsltProcessor;
     }
 
+    // Helpers to pull the various pieces of state shown in the dialog.
+    function getModelJson(view) {
+      const model = view && view.getModel();
+      return model && model.getData();
+    }
+
+    function getViewContent(view) {
+      return view && view.mProperties && view.mProperties.viewContent;
+    }
+
+    function getRenderedContent(view) {
+      return view && view._xContent && view._xContent.outerHTML;
+    }
+
+    function getResponseXml(key) {
+      const params = z2ui5.oResponse && z2ui5.oResponse.PARAMS;
+      const slot = params && params[key];
+      return slot && slot.XML;
+    }
+
+    function getResponseFrontViewXml() {
+      const sFront = z2ui5.responseData && z2ui5.responseData.S_FRONT;
+      const params = sFront && sFront.PARAMS;
+      const view = params && params.S_VIEW;
+      return view && view.XML;
+    }
+
+    // What each dropdown entry shows: either a JSON source or an XML source
+    // (the latter optionally with the rendered DOM for the templating
+    // toggle). The "SOURCE" entry is handled separately in onItemSelect.
+    const jsonSources = {
+      CONFIG: () => z2ui5.oConfig,
+      MODEL: () => getModelJson(z2ui5.oView),
+      PLAIN: () => z2ui5.responseData,
+      REQUEST: () => z2ui5.oBody,
+      POPUP_MODEL: () => getModelJson(z2ui5.oViewPopup),
+      POPOVER_MODEL: () => getModelJson(z2ui5.oViewPopover),
+      NEST1_MODEL: () => getModelJson(z2ui5.oViewNest),
+      NEST2_MODEL: () => getModelJson(z2ui5.oViewNest2),
+    };
+
+    const xmlSources = {
+      // Prefer the actual viewContent string; fall back to the XML that
+      // arrived in the last server response.
+      VIEW: () => ({
+        xml: getViewContent(z2ui5.oView) || getResponseFrontViewXml(),
+        rendered: getRenderedContent(z2ui5.oView),
+      }),
+      POPUP: () => ({ xml: getResponseXml("S_POPUP") }),
+      POPOVER: () => ({ xml: getResponseXml("S_POPOVER") }),
+      NEST1: () => ({
+        xml: getViewContent(z2ui5.oViewNest),
+        rendered: getRenderedContent(z2ui5.oViewNest),
+      }),
+      NEST2: () => ({
+        xml: getViewContent(z2ui5.oViewNest2),
+        rendered: getRenderedContent(z2ui5.oViewNest2),
+      }),
+    };
+
     return Control.extend("z2ui5.cc.DebugTool", {
       // Reformat an XML string with indentation. If anything goes wrong the
       // original input is returned unchanged - the debug tool must never
@@ -75,172 +135,50 @@ sap.ui.define(
       },
 
       // Called when the user picks an entry in the dropdown of the debug
-      // dialog. Each case shows a different piece of internal state.
+      // dialog. The content shown per entry is defined declaratively in
+      // jsonSources / xmlSources above.
       onItemSelect(oEvent) {
-        const oSource = oEvent.getSource();
-        const selItem = oSource.getSelectedKey();
-        const oView = z2ui5.oView;
-        const oResponse = z2ui5.oResponse;
+        const selItem = oEvent.getSource().getSelectedKey();
 
-        // Cache a bound version of displayEditor so we don't recreate the
-        // bound function on every call.
-        if (!this._displayEditorBound) {
-          this._displayEditorBound = this.displayEditor.bind(this);
+        if (jsonSources[selItem]) {
+          this.displayEditor(oEvent, toJson(jsonSources[selItem]()), "json");
+          return;
         }
-        const displayEditor = this._displayEditorBound;
-        const prettifyXml = this.prettifyXml;
 
-        switch (selItem) {
-          case "CONFIG":
-            displayEditor(oEvent, toJson(z2ui5.oConfig), "json");
-            break;
-
-          case "MODEL": {
-            const data =
-              oView && oView.getModel() && oView.getModel().getData();
-            displayEditor(oEvent, toJson(data), "json");
-            break;
-          }
-
-          case "VIEW": {
-            // Prefer the actual viewContent string; fall back to the XML
-            // that arrived in the last server response.
-            const viewContent =
-              (oView && oView.mProperties && oView.mProperties.viewContent) ||
-              (z2ui5.responseData &&
-                z2ui5.responseData.S_FRONT &&
-                z2ui5.responseData.S_FRONT.PARAMS &&
-                z2ui5.responseData.S_FRONT.PARAMS.S_VIEW &&
-                z2ui5.responseData.S_FRONT.PARAMS.S_VIEW.XML);
-            const rendered =
-              oView && oView._xContent && oView._xContent.outerHTML;
-            displayEditor(
-              oEvent,
-              prettifyXml(viewContent),
-              "xml",
-              prettifyXml(rendered),
-            );
-            break;
-          }
-
-          case "PLAIN":
-            displayEditor(oEvent, toJson(z2ui5.responseData), "json");
-            break;
-
-          case "REQUEST":
-            displayEditor(oEvent, toJson(z2ui5.oBody), "json");
-            break;
-
-          case "POPUP": {
-            const xml =
-              oResponse &&
-              oResponse.PARAMS &&
-              oResponse.PARAMS.S_POPUP &&
-              oResponse.PARAMS.S_POPUP.XML;
-            displayEditor(oEvent, prettifyXml(xml), "xml");
-            break;
-          }
-
-          case "POPUP_MODEL": {
-            const data =
-              z2ui5.oViewPopup &&
-              z2ui5.oViewPopup.getModel() &&
-              z2ui5.oViewPopup.getModel().getData();
-            displayEditor(oEvent, toJson(data), "json");
-            break;
-          }
-
-          case "POPOVER": {
-            const xml =
-              oResponse &&
-              oResponse.PARAMS &&
-              oResponse.PARAMS.S_POPOVER &&
-              oResponse.PARAMS.S_POPOVER.XML;
-            displayEditor(oEvent, prettifyXml(xml), "xml");
-            break;
-          }
-
-          case "POPOVER_MODEL": {
-            const data =
-              z2ui5.oViewPopover &&
-              z2ui5.oViewPopover.getModel() &&
-              z2ui5.oViewPopover.getModel().getData();
-            displayEditor(oEvent, toJson(data), "json");
-            break;
-          }
-
-          case "NEST1": {
-            const nest = z2ui5.oViewNest;
-            const xml =
-              nest && nest.mProperties && nest.mProperties.viewContent;
-            const rendered = nest && nest._xContent && nest._xContent.outerHTML;
-            displayEditor(
-              oEvent,
-              prettifyXml(xml),
-              "xml",
-              prettifyXml(rendered),
-            );
-            break;
-          }
-
-          case "NEST1_MODEL": {
-            const data =
-              z2ui5.oViewNest &&
-              z2ui5.oViewNest.getModel() &&
-              z2ui5.oViewNest.getModel().getData();
-            displayEditor(oEvent, toJson(data), "json");
-            break;
-          }
-
-          case "NEST2": {
-            const nest = z2ui5.oViewNest2;
-            const xml =
-              nest && nest.mProperties && nest.mProperties.viewContent;
-            const rendered = nest && nest._xContent && nest._xContent.outerHTML;
-            displayEditor(
-              oEvent,
-              prettifyXml(xml),
-              "xml",
-              prettifyXml(rendered),
-            );
-            break;
-          }
-
-          case "NEST2_MODEL": {
-            const data =
-              z2ui5.oViewNest2 &&
-              z2ui5.oViewNest2.getModel() &&
-              z2ui5.oViewNest2.getModel().getData();
-            displayEditor(oEvent, toJson(data), "json");
-            break;
-          }
-
-          case "SOURCE": {
-            // Show the ABAP source of the running app inside an iframe.
-            const contentControl = Fragment.byId(FRAGMENT_ID, "sourceHtml");
-            if (!contentControl) break;
-
-            const appName =
-              (z2ui5.responseData &&
-                z2ui5.responseData.S_FRONT &&
-                z2ui5.responseData.S_FRONT.APP) ||
-              "";
-            const appId = encodeURIComponent(appName);
-            const url = `${window.location.origin}/sap/bc/adt/oo/classes/${appId}/source/main`;
-            contentControl.setProperty(
-              "content",
-              `<iframe id="test" src="${url}" height="800px" width="1200px" />`,
-            );
-
-            const oModel = oSource.getModel();
-            if (!oModel) break;
-            const modelData = oModel.getData();
-            modelData.editor_visible = false;
-            modelData.source_visible = true;
-            oModel.refresh();
-            break;
-          }
+        if (xmlSources[selItem]) {
+          const { xml, rendered } = xmlSources[selItem]();
+          this.displayEditor(
+            oEvent,
+            this.prettifyXml(xml),
+            "xml",
+            this.prettifyXml(rendered),
+          );
+          return;
         }
+
+        if (selItem === "SOURCE") this.showAbapSource(oEvent);
+      },
+
+      // Show the ABAP source of the running app inside an iframe.
+      showAbapSource(oEvent) {
+        const contentControl = Fragment.byId(FRAGMENT_ID, "sourceHtml");
+        if (!contentControl) return;
+
+        const sFront = z2ui5.responseData && z2ui5.responseData.S_FRONT;
+        const appName = (sFront && sFront.APP) || "";
+        const appId = encodeURIComponent(appName);
+        const url = `${window.location.origin}/sap/bc/adt/oo/classes/${appId}/source/main`;
+        contentControl.setProperty(
+          "content",
+          `<iframe id="test" src="${url}" height="800px" width="1200px" />`,
+        );
+
+        const oModel = oEvent.getSource().getModel();
+        if (!oModel) return;
+        const modelData = oModel.getData();
+        modelData.editor_visible = false;
+        modelData.source_visible = true;
+        oModel.refresh();
       },
 
       // Populates the dialog model so the right editor / source area is shown
@@ -309,28 +247,10 @@ sap.ui.define(
             previousValue: value,
             isTemplating: false,
             templatingSource: false,
-            activeNest1: !!(
-              z2ui5.oViewNest &&
-              z2ui5.oViewNest.mProperties &&
-              z2ui5.oViewNest.mProperties.viewContent
-            ),
-            activeNest2: !!(
-              z2ui5.oViewNest2 &&
-              z2ui5.oViewNest2.mProperties &&
-              z2ui5.oViewNest2.mProperties.viewContent
-            ),
-            activePopup: !!(
-              z2ui5.oResponse &&
-              z2ui5.oResponse.PARAMS &&
-              z2ui5.oResponse.PARAMS.S_POPUP &&
-              z2ui5.oResponse.PARAMS.S_POPUP.XML
-            ),
-            activePopover: !!(
-              z2ui5.oResponse &&
-              z2ui5.oResponse.PARAMS &&
-              z2ui5.oResponse.PARAMS.S_POPOVER &&
-              z2ui5.oResponse.PARAMS.S_POPOVER.XML
-            ),
+            activeNest1: !!getViewContent(z2ui5.oViewNest),
+            activeNest2: !!getViewContent(z2ui5.oViewNest2),
+            activePopup: !!getResponseXml("S_POPUP"),
+            activePopover: !!getResponseXml("S_POPOVER"),
           };
 
           const oModel = new JSONModel(oData);

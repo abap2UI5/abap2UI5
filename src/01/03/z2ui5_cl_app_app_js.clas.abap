@@ -18,7 +18,14 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(` && |\n| &&
+    result = `// Shared rendering pattern of the custom controls in this file (Timer,` && |\n| &&
+             `// Focus, Scrolling, Tree, ...): the renderer only *marks* work by setting a` && |\n| &&
+             `// ``_pending*`` flag on the control instance, and onAfterRendering() consumes` && |\n| &&
+             `// the flag and performs the actual DOM work (focus, scrolling, timers, tree` && |\n| &&
+             `// state). Renderers must stay cheap and free of visible side effects` && |\n| &&
+             `// (rendering API v2); deferring to onAfterRendering also guarantees the` && |\n| &&
+             `// control's DOM exists.` && |\n| &&
+             `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
              `    "sap/ui/core/mvc/Controller",` && |\n| &&
              `    "z2ui5/controller/View1.controller",` && |\n| &&
@@ -411,6 +418,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      if (!items) return;` && |\n| &&
              `      try {` && |\n| &&
              `        // Resolve the binding path so we can mark only changed entries` && |\n| &&
+             |\n|.
+    result = result &&
              `        // as dirty in xxChangedPaths.` && |\n| &&
              `        const bindingInfo = this.getBindingInfo("items");` && |\n| &&
              `        let bindingPath;` && |\n| &&
@@ -418,8 +427,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          const parts = bindingInfo.parts;` && |\n| &&
              `          if (parts && parts[0]) bindingPath = parts[0].path;` && |\n| &&
              `          if (!bindingPath) bindingPath = bindingInfo.path;` && |\n| &&
-             |\n|.
-    result = result &&
              `        }` && |\n| &&
              `        for (const [index, item] of items.entries()) {` && |\n| &&
              `          const scrollTop = this._getScrollTop(item);` && |\n| &&
@@ -813,6 +820,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            type: "string",` && |\n| &&
              `            defaultValue: "",` && |\n| &&
              `          },` && |\n| &&
+             |\n|.
+    result = result &&
              `          path: {` && |\n| &&
              `            type: "string",` && |\n| &&
              `            defaultValue: "",` && |\n| &&
@@ -820,8 +829,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          tooltip: {` && |\n| &&
              `            type: "string",` && |\n| &&
              `            defaultValue: "",` && |\n| &&
-             |\n|.
-    result = result &&
              `          },` && |\n| &&
              `          fileType: {` && |\n| &&
              `            type: "string",` && |\n| &&
@@ -1215,6 +1222,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `          // Convert the ABAP-style uppercase keys to the camelCase property` && |\n| &&
              `          // names the smart multi input expects. "keyField" needs its capital` && |\n| &&
+             |\n|.
+    result = result &&
              `          // F preserved.` && |\n| &&
              `          const normalizedRangeData = aRangeData.map((oRangeData) => {` && |\n| &&
              `            const out = {};` && |\n| &&
@@ -1222,8 +1231,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `              const lower = key.toLowerCase();` && |\n| &&
              `              const finalKey = lower === "keyfield" ? "keyField" : lower;` && |\n| &&
              `              out[finalKey] = value;` && |\n| &&
-             |\n|.
-    result = result &&
              `            }` && |\n| &&
              `            return out;` && |\n| &&
              `          });` && |\n| &&
@@ -1617,6 +1624,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        } else {` && |\n| &&
              `          // Fallback: optional operator prefix (e.g. "!" for NE) + value.` && |\n| &&
              `          const prefix = opSymbols[operator] || "";` && |\n| &&
+             |\n|.
+    result = result &&
              `          displayFn = (v) => ``${prefix}${v == null ? "" : v}``;` && |\n| &&
              `        }` && |\n| &&
              `        const display = displayFn(vValue);` && |\n| &&
@@ -1624,8 +1633,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        for (const oCol of columns) {` && |\n| &&
              `          if (` && |\n| &&
              `            oCol.getFilterProperty &&` && |\n| &&
-             |\n|.
-    result = result &&
              `            oCol.getFilterProperty() === sProperty` && |\n| &&
              `          ) {` && |\n| &&
              `            oCol.setFilterValue(display);` && |\n| &&

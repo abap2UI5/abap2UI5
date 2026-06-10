@@ -223,20 +223,36 @@ sap.ui.define(
       POPOVER_NAV_CONTAINER_TO: (id) => Fragment.byId("popoverId", id),
     };
 
-    const viewLookups = {
-      MAIN: () => z2ui5.oView,
-      NEST: () => z2ui5.oViewNest,
-      NEST2: () => z2ui5.oViewNest2,
-      POPUP: () => z2ui5.oViewPopup,
-      POPOVER: () => z2ui5.oViewPopover,
-    };
-
-    const paramToViewKey = {
-      S_VIEW: "MAIN",
-      S_VIEW_NEST: "NEST",
-      S_VIEW_NEST2: "NEST2",
-      S_POPUP: "POPUP",
-      S_POPOVER: "POPOVER",
+    // Frontend event dispatch: maps the eF event name to the controller
+    // method handling it. NavContainer events are dispatched separately
+    // via navContainerLookups above.
+    const eventFrontendHandlers = {
+      SET_SIZE_LIMIT: "_evSetSizeLimit",
+      HISTORY_BACK: "_evHistoryBack",
+      CLIPBOARD_COPY: "_evClipboardCopy",
+      CLIPBOARD_APP_STATE: "_evClipboardAppState",
+      SET_ODATA_MODEL: "_evSetODataModel",
+      STORE_DATA: "_evStoreData",
+      DOWNLOAD_B64_FILE: "_evDownloadB64File",
+      CROSS_APP_NAV_TO_PREV_APP: "_evCrossAppNavToPrevApp",
+      CROSS_APP_NAV_TO_EXT: "_evCrossAppNavToExt",
+      LOCATION_RELOAD: "_evLocationReload",
+      SYSTEM_LOGOUT: "_evSystemLogout",
+      OPEN_NEW_TAB: "_evOpenNewTab",
+      POPUP_CLOSE: "PopupDestroy",
+      POPOVER_CLOSE: "PopoverDestroy",
+      URLHELPER: "_evUrlHelper",
+      IMAGE_EDITOR_POPUP_CLOSE: "_evImageEditorPopupClose",
+      SET_TITLE: "_evSetTitle",
+      SET_TITLE_LAUNCHPAD: "_evSetTitleLaunchpad",
+      SET_FOCUS: "_evSetFocus",
+      SCROLL_TO: "_evScrollTo",
+      SCROLL_INTO_VIEW: "_evScrollIntoView",
+      START_TIMER: "_evStartTimer",
+      KEYBOARD_SET_MODE: "_evSetInputMode",
+      Z2UI5: "_evZ2ui5Custom",
+      WIZARD_SET_NEXT_STEP: "_evWizardSetNextStep",
+      PLAY_AUDIO: "_evPlayAudio",
     };
 
     function applyStoredSizeLimit(viewKey, oModel) {
@@ -520,7 +536,7 @@ sap.ui.define(
 
       async displayNestedView(xml, viewProp, viewNestId, controller) {
         const oModel = this._createViewModel();
-        applyStoredSizeLimit(paramToViewKey[viewNestId], oModel);
+        applyStoredSizeLimit(Util.slotKeyByParam(viewNestId), oModel);
         const oView = await XMLView.create({
           definition: xml,
           controller: controller,
@@ -605,7 +621,10 @@ sap.ui.define(
       },
 
       // ------------------------------------------------------------------
-      // eF: handle frontend-only events triggered by the backend response.
+      // eF = "event frontend": handles frontend-only events triggered by
+      // the backend response, without a roundtrip. The name is part of the
+      // protocol - backend-generated view XML binds events to eB/eF - and
+      // must not be renamed.
       // ------------------------------------------------------------------
       eF(...args) {
         runCallbacks(z2ui5.onBeforeEventFrontend, args);
@@ -617,102 +636,43 @@ sap.ui.define(
           return;
         }
 
-        switch (args[0]) {
-          case "SET_SIZE_LIMIT":
-            this._evSetSizeLimit(args);
-            break;
-          case "HISTORY_BACK":
-            history.back();
-            break;
-          case "CLIPBOARD_COPY":
-            copyToClipboard(args[1]);
-            break;
-          case "CLIPBOARD_APP_STATE": {
-            const id = z2ui5.oResponse && z2ui5.oResponse.ID;
-            copyToClipboard(`${window.location.href}#/z2ui5-xapp-state=${id}`);
-            break;
-          }
-          case "SET_ODATA_MODEL":
-            this._evSetODataModel(args);
-            break;
-          case "STORE_DATA":
-            this._evStoreData(args);
-            break;
-          case "DOWNLOAD_B64_FILE": {
-            if (!isSafeDownloadURL(args[1])) {
-              Util.logError("DOWNLOAD_B64_FILE: blocked unsafe URL");
-              break;
-            }
-            const a = document.createElement("a");
-            a.href = args[1];
-            a.download = args[2];
-            a.click();
-            break;
-          }
-          case "CROSS_APP_NAV_TO_PREV_APP":
-            withCrossAppNavigator((nav) => nav.backToPreviousApp());
-            break;
-          case "CROSS_APP_NAV_TO_EXT":
-            this._evCrossAppNavToExt(args);
-            break;
-          case "LOCATION_RELOAD":
-            this._evLocationReload(args);
-            break;
-          case "SYSTEM_LOGOUT":
-            this._evSystemLogout(args);
-            break;
-          case "OPEN_NEW_TAB":
-            this._evOpenNewTab(args);
-            break;
-          case "POPUP_CLOSE":
-            this.PopupDestroy();
-            break;
-          case "POPOVER_CLOSE":
-            this.PopoverDestroy();
-            break;
-          case "URLHELPER":
-            this._evUrlHelper(args);
-            break;
-          case "IMAGE_EDITOR_POPUP_CLOSE":
-            this._evImageEditorPopupClose();
-            break;
-          case "SET_TITLE":
-            this._evSetTitle(args);
-            break;
-          case "SET_TITLE_LAUNCHPAD":
-            this._evSetTitleLaunchpad(args);
-            break;
-          case "SET_FOCUS":
-            this._evSetFocus(args);
-            break;
-          case "SCROLL_TO":
-            this._evScrollTo(args);
-            break;
-          case "SCROLL_INTO_VIEW":
-            this._evScrollIntoView(args);
-            break;
-          case "START_TIMER":
-            this._evStartTimer(args);
-            break;
-          case "KEYBOARD_SET_MODE":
-            this._evSetInputMode(args);
-            break;
-          case "Z2UI5":
-            this._evZ2ui5Custom(args);
-            break;
-          case "WIZARD_SET_NEXT_STEP":
-            this._evWizardSetNextStep(args);
-            break;
-          case "PLAY_AUDIO":
-            this._evPlayAudio(args);
-            break;
-        }
+        const handler = eventFrontendHandlers[args[0]];
+        if (handler) this[handler](args);
       },
 
       // ------------------------------------------------------------------
-      // Individual event handlers - one per case in eF(). Splitting them out
-      // keeps eF() short and makes each behavior easy to find.
+      // Individual event handlers - one per entry in eventFrontendHandlers.
+      // Splitting them out keeps eF() short and makes each behavior easy to
+      // find.
       // ------------------------------------------------------------------
+
+      _evHistoryBack() {
+        history.back();
+      },
+
+      _evClipboardCopy(args) {
+        copyToClipboard(args[1]);
+      },
+
+      _evClipboardAppState() {
+        const id = z2ui5.oResponse && z2ui5.oResponse.ID;
+        copyToClipboard(`${window.location.href}#/z2ui5-xapp-state=${id}`);
+      },
+
+      _evDownloadB64File(args) {
+        if (!isSafeDownloadURL(args[1])) {
+          Util.logError("DOWNLOAD_B64_FILE: blocked unsafe URL");
+          return;
+        }
+        const a = document.createElement("a");
+        a.href = args[1];
+        a.download = args[2];
+        a.click();
+      },
+
+      _evCrossAppNavToPrevApp() {
+        withCrossAppNavigator((nav) => nav.backToPreviousApp());
+      },
 
       _evSetSizeLimit(args) {
         // Two call shapes:
@@ -721,7 +681,7 @@ sap.ui.define(
         const hasLimit = args[2] !== undefined && args[2] !== "";
         const viewKey = hasLimit ? args[2] : args[1];
         const limit = hasLimit ? Number(args[1]) : NaN;
-        const view = viewLookups[viewKey] && viewLookups[viewKey]();
+        const view = Util.getViewByKey(viewKey);
         const model = view && view.getModel();
 
         if (Number.isFinite(limit) && limit > 0) {
@@ -1131,9 +1091,20 @@ sap.ui.define(
       },
 
       // ------------------------------------------------------------------
-      // eB: trigger a backend roundtrip with arguments.
+      // eB = "event backend": triggers a backend roundtrip with arguments.
+      // The name is part of the protocol - backend-generated view XML binds
+      // events to eB/eF - and must not be renamed.
+      //
+      // args[0] is the event array built by the backend:
+      //   [0] event name
+      //   [2] "ignore busy" flag - background events (e.g. timers) skip the
+      //       busy guard below
+      //   [3] "use main view model" flag - events fired from a popup or
+      //       popover controller that still target the main app's model
       // ------------------------------------------------------------------
       eB(...args) {
+        const [, , ignoreBusy, useMainModel] = args[0];
+
         if (!navigator.onLine) {
           MessageBox.alert(
             "No internet connection! Please reconnect to the server and try again.",
@@ -1142,9 +1113,8 @@ sap.ui.define(
         }
 
         // If a roundtrip is already in flight, briefly show a BusyDialog so
-        // the user gets visual feedback instead of a silent click. args[0][2]
-        // is the "ignore busy" flag set by certain background events.
-        if (z2ui5.isBusy && !args[0][2]) {
+        // the user gets visual feedback instead of a silent click.
+        if (z2ui5.isBusy && !ignoreBusy) {
           if (!_busyDialog) _busyDialog = new mBusyDialog();
           _busyDialog.open();
           queueMicrotask(() => _busyDialog.close());
@@ -1168,7 +1138,7 @@ sap.ui.define(
         // Decide which view's model holds the data we need to send back. The
         // mapping is: main app controller -> main view, popup controller ->
         // popup view, etc.
-        const oModel = this._pickModelForRoundtrip(args);
+        const oModel = this._pickModelForRoundtrip(useMainModel);
 
         runCallbacks(z2ui5.onBeforeRoundtrip);
 
@@ -1197,10 +1167,10 @@ sap.ui.define(
         runCallbacks(z2ui5.onAfterRoundtrip);
       },
 
-      _pickModelForRoundtrip(args) {
-        // The 4th positional flag in args[0] forces use of the main view's
-        // model even when called from a popup/popover controller.
-        if (args[0][3] || z2ui5.oController === this) {
+      _pickModelForRoundtrip(useMainModel) {
+        // useMainModel forces use of the main view's model even when called
+        // from a popup/popover controller.
+        if (useMainModel || z2ui5.oController === this) {
           const sView =
             z2ui5.oResponse && z2ui5.oResponse.PARAMS
               ? z2ui5.oResponse.PARAMS.S_VIEW
@@ -1235,7 +1205,7 @@ sap.ui.define(
         if (!slot || !slot.CHECK_UPDATE_MODEL) return;
 
         const oModel = this._createViewModel();
-        applyStoredSizeLimit(paramToViewKey[paramKey], oModel);
+        applyStoredSizeLimit(Util.slotKeyByParam(paramKey), oModel);
         if (oView) oView.setModel(oModel);
       },
 

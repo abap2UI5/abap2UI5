@@ -89,6 +89,30 @@ CLASS z2ui5_cl_app_util_js IMPLEMENTATION.
              `    control.setProperty("removedTokens", isRemoved ? tokens : []);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  // The five view slots of the multi-view architecture. ``param`` is the` && |\n| &&
+             `  // key used in the backend response PARAMS, ``key`` the short slot name` && |\n| &&
+             `  // used in frontend events, ``prop`` the z2ui5 property holding the live` && |\n| &&
+             `  // view instance.` && |\n| &&
+             `  const viewSlots = [` && |\n| &&
+             `    { key: "MAIN", param: "S_VIEW", prop: "oView" },` && |\n| &&
+             `    { key: "NEST", param: "S_VIEW_NEST", prop: "oViewNest" },` && |\n| &&
+             `    { key: "NEST2", param: "S_VIEW_NEST2", prop: "oViewNest2" },` && |\n| &&
+             `    { key: "POPUP", param: "S_POPUP", prop: "oViewPopup" },` && |\n| &&
+             `    { key: "POPOVER", param: "S_POPOVER", prop: "oViewPopover" },` && |\n| &&
+             `  ];` && |\n| &&
+             `` && |\n| &&
+             `  // Returns the live view instance for a slot key ("MAIN", "POPUP", ...).` && |\n| &&
+             `  function getViewByKey(key) {` && |\n| &&
+             `    const slot = viewSlots.find((s) => s.key === key);` && |\n| &&
+             `    return slot ? z2ui5[slot.prop] : undefined;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // Returns the slot key for a response param key ("S_VIEW" -> "MAIN").` && |\n| &&
+             `  function slotKeyByParam(param) {` && |\n| &&
+             `    const slot = viewSlots.find((s) => s.param === param);` && |\n| &&
+             `    return slot ? slot.key : undefined;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  return {` && |\n| &&
              `    logError,` && |\n| &&
              `    isDestroyed,` && |\n| &&
@@ -97,6 +121,9 @@ CLASS z2ui5_cl_app_util_js IMPLEMENTATION.
              `    unregisterCallback,` && |\n| &&
              `    readFileAsDataURL,` && |\n| &&
              `    applyTokenUpdate,` && |\n| &&
+             `    viewSlots,` && |\n| &&
+             `    getViewByKey,` && |\n| &&
+             `    slotKeyByParam,` && |\n| &&
              `  };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&

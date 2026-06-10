@@ -70,6 +70,66 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      return _xsltProcessor;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // Helpers to pull the various pieces of state shown in the dialog.` && |\n| &&
+             `    function getModelJson(view) {` && |\n| &&
+             `      const model = view && view.getModel();` && |\n| &&
+             `      return model && model.getData();` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function getViewContent(view) {` && |\n| &&
+             `      return view && view.mProperties && view.mProperties.viewContent;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function getRenderedContent(view) {` && |\n| &&
+             `      return view && view._xContent && view._xContent.outerHTML;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function getResponseXml(key) {` && |\n| &&
+             `      const params = z2ui5.oResponse && z2ui5.oResponse.PARAMS;` && |\n| &&
+             `      const slot = params && params[key];` && |\n| &&
+             `      return slot && slot.XML;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function getResponseFrontViewXml() {` && |\n| &&
+             `      const sFront = z2ui5.responseData && z2ui5.responseData.S_FRONT;` && |\n| &&
+             `      const params = sFront && sFront.PARAMS;` && |\n| &&
+             `      const view = params && params.S_VIEW;` && |\n| &&
+             `      return view && view.XML;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // What each dropdown entry shows: either a JSON source or an XML source` && |\n| &&
+             `    // (the latter optionally with the rendered DOM for the templating` && |\n| &&
+             `    // toggle). The "SOURCE" entry is handled separately in onItemSelect.` && |\n| &&
+             `    const jsonSources = {` && |\n| &&
+             `      CONFIG: () => z2ui5.oConfig,` && |\n| &&
+             `      MODEL: () => getModelJson(z2ui5.oView),` && |\n| &&
+             `      PLAIN: () => z2ui5.responseData,` && |\n| &&
+             `      REQUEST: () => z2ui5.oBody,` && |\n| &&
+             `      POPUP_MODEL: () => getModelJson(z2ui5.oViewPopup),` && |\n| &&
+             `      POPOVER_MODEL: () => getModelJson(z2ui5.oViewPopover),` && |\n| &&
+             `      NEST1_MODEL: () => getModelJson(z2ui5.oViewNest),` && |\n| &&
+             `      NEST2_MODEL: () => getModelJson(z2ui5.oViewNest2),` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
+             `    const xmlSources = {` && |\n| &&
+             `      // Prefer the actual viewContent string; fall back to the XML that` && |\n| &&
+             `      // arrived in the last server response.` && |\n| &&
+             `      VIEW: () => ({` && |\n| &&
+             `        xml: getViewContent(z2ui5.oView) || getResponseFrontViewXml(),` && |\n| &&
+             `        rendered: getRenderedContent(z2ui5.oView),` && |\n| &&
+             `      }),` && |\n| &&
+             `      POPUP: () => ({ xml: getResponseXml("S_POPUP") }),` && |\n| &&
+             `      POPOVER: () => ({ xml: getResponseXml("S_POPOVER") }),` && |\n| &&
+             `      NEST1: () => ({` && |\n| &&
+             `        xml: getViewContent(z2ui5.oViewNest),` && |\n| &&
+             `        rendered: getRenderedContent(z2ui5.oViewNest),` && |\n| &&
+             `      }),` && |\n| &&
+             `      NEST2: () => ({` && |\n| &&
+             `        xml: getViewContent(z2ui5.oViewNest2),` && |\n| &&
+             `        rendered: getRenderedContent(z2ui5.oViewNest2),` && |\n| &&
+             `      }),` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
              `    return Control.extend("z2ui5.cc.DebugTool", {` && |\n| &&
              `      // Reformat an XML string with indentation. If anything goes wrong the` && |\n| &&
              `      // original input is returned unchanged - the debug tool must never` && |\n| &&
@@ -95,172 +155,50 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Called when the user picks an entry in the dropdown of the debug` && |\n| &&
-             `      // dialog. Each case shows a different piece of internal state.` && |\n| &&
+             `      // dialog. The content shown per entry is defined declaratively in` && |\n| &&
+             `      // jsonSources / xmlSources above.` && |\n| &&
              `      onItemSelect(oEvent) {` && |\n| &&
-             `        const oSource = oEvent.getSource();` && |\n| &&
-             `        const selItem = oSource.getSelectedKey();` && |\n| &&
-             `        const oView = z2ui5.oView;` && |\n| &&
-             `        const oResponse = z2ui5.oResponse;` && |\n| &&
+             `        const selItem = oEvent.getSource().getSelectedKey();` && |\n| &&
              `` && |\n| &&
-             `        // Cache a bound version of displayEditor so we don't recreate the` && |\n| &&
-             `        // bound function on every call.` && |\n| &&
-             `        if (!this._displayEditorBound) {` && |\n| &&
-             `          this._displayEditorBound = this.displayEditor.bind(this);` && |\n| &&
+             `        if (jsonSources[selItem]) {` && |\n| &&
+             `          this.displayEditor(oEvent, toJson(jsonSources[selItem]()), "json");` && |\n| &&
+             `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        const displayEditor = this._displayEditorBound;` && |\n| &&
-             `        const prettifyXml = this.prettifyXml;` && |\n| &&
              `` && |\n| &&
-             `        switch (selItem) {` && |\n| &&
-             `          case "CONFIG":` && |\n| &&
-             `            displayEditor(oEvent, toJson(z2ui5.oConfig), "json");` && |\n| &&
-             `            break;` && |\n| &&
-             `` && |\n| &&
-             `          case "MODEL": {` && |\n| &&
-             `            const data =` && |\n| &&
-             `              oView && oView.getModel() && oView.getModel().getData();` && |\n| &&
-             `            displayEditor(oEvent, toJson(data), "json");` && |\n| &&
-             `            break;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          case "VIEW": {` && |\n| &&
-             `            // Prefer the actual viewContent string; fall back to the XML` && |\n| &&
-             `            // that arrived in the last server response.` && |\n| &&
-             `            const viewContent =` && |\n| &&
-             `              (oView && oView.mProperties && oView.mProperties.viewContent) ||` && |\n| &&
-             `              (z2ui5.responseData &&` && |\n| &&
-             `                z2ui5.responseData.S_FRONT &&` && |\n| &&
-             `                z2ui5.responseData.S_FRONT.PARAMS &&` && |\n| &&
-             `                z2ui5.responseData.S_FRONT.PARAMS.S_VIEW &&` && |\n| &&
-             `                z2ui5.responseData.S_FRONT.PARAMS.S_VIEW.XML);` && |\n| &&
-             `            const rendered =` && |\n| &&
-             `              oView && oView._xContent && oView._xContent.outerHTML;` && |\n| &&
-             `            displayEditor(` && |\n| &&
-             `              oEvent,` && |\n| &&
-             `              prettifyXml(viewContent),` && |\n| &&
-             `              "xml",` && |\n| &&
-             `              prettifyXml(rendered),` && |\n| &&
-             `            );` && |\n| &&
-             `            break;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          case "PLAIN":` && |\n| &&
-             `            displayEditor(oEvent, toJson(z2ui5.responseData), "json");` && |\n| &&
-             `            break;` && |\n| &&
-             `` && |\n| &&
-             `          case "REQUEST":` && |\n| &&
-             `            displayEditor(oEvent, toJson(z2ui5.oBody), "json");` && |\n| &&
-             `            break;` && |\n| &&
-             `` && |\n| &&
-             `          case "POPUP": {` && |\n| &&
-             `            const xml =` && |\n| &&
-             `              oResponse &&` && |\n| &&
-             `              oResponse.PARAMS &&` && |\n| &&
-             `              oResponse.PARAMS.S_POPUP &&` && |\n| &&
-             `              oResponse.PARAMS.S_POPUP.XML;` && |\n| &&
-             `            displayEditor(oEvent, prettifyXml(xml), "xml");` && |\n| &&
-             `            break;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          case "POPUP_MODEL": {` && |\n| &&
-             `            const data =` && |\n| &&
-             `              z2ui5.oViewPopup &&` && |\n| &&
-             `              z2ui5.oViewPopup.getModel() &&` && |\n| &&
-             `              z2ui5.oViewPopup.getModel().getData();` && |\n| &&
-             `            displayEditor(oEvent, toJson(data), "json");` && |\n| &&
-             `            break;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          case "POPOVER": {` && |\n| &&
-             `            const xml =` && |\n| &&
-             `              oResponse &&` && |\n| &&
-             `              oResponse.PARAMS &&` && |\n| &&
-             `              oResponse.PARAMS.S_POPOVER &&` && |\n| &&
-             `              oResponse.PARAMS.S_POPOVER.XML;` && |\n| &&
-             `            displayEditor(oEvent, prettifyXml(xml), "xml");` && |\n| &&
-             `            break;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          case "POPOVER_MODEL": {` && |\n| &&
-             `            const data =` && |\n| &&
-             `              z2ui5.oViewPopover &&` && |\n| &&
-             `              z2ui5.oViewPopover.getModel() &&` && |\n| &&
-             `              z2ui5.oViewPopover.getModel().getData();` && |\n| &&
-             `            displayEditor(oEvent, toJson(data), "json");` && |\n| &&
-             `            break;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          case "NEST1": {` && |\n| &&
-             `            const nest = z2ui5.oViewNest;` && |\n| &&
-             `            const xml =` && |\n| &&
-             `              nest && nest.mProperties && nest.mProperties.viewContent;` && |\n| &&
-             `            const rendered = nest && nest._xContent && nest._xContent.outerHTML;` && |\n| &&
-             `            displayEditor(` && |\n| &&
-             `              oEvent,` && |\n| &&
-             `              prettifyXml(xml),` && |\n| &&
-             `              "xml",` && |\n| &&
-             `              prettifyXml(rendered),` && |\n| &&
-             `            );` && |\n| &&
-             `            break;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          case "NEST1_MODEL": {` && |\n| &&
-             `            const data =` && |\n| &&
-             `              z2ui5.oViewNest &&` && |\n| &&
-             `              z2ui5.oViewNest.getModel() &&` && |\n| &&
-             `              z2ui5.oViewNest.getModel().getData();` && |\n| &&
-             `            displayEditor(oEvent, toJson(data), "json");` && |\n| &&
-             `            break;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          case "NEST2": {` && |\n| &&
-             `            const nest = z2ui5.oViewNest2;` && |\n| &&
-             `            const xml =` && |\n| &&
-             `              nest && nest.mProperties && nest.mProperties.viewContent;` && |\n| &&
-             `            const rendered = nest && nest._xContent && nest._xContent.outerHTML;` && |\n| &&
-             `            displayEditor(` && |\n| &&
-             `              oEvent,` && |\n| &&
-             `              prettifyXml(xml),` && |\n| &&
-             `              "xml",` && |\n| &&
-             `              prettifyXml(rendered),` && |\n| &&
-             `            );` && |\n| &&
-             `            break;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          case "NEST2_MODEL": {` && |\n| &&
-             `            const data =` && |\n| &&
-             `              z2ui5.oViewNest2 &&` && |\n| &&
-             `              z2ui5.oViewNest2.getModel() &&` && |\n| &&
-             `              z2ui5.oViewNest2.getModel().getData();` && |\n| &&
-             `            displayEditor(oEvent, toJson(data), "json");` && |\n| &&
-             `            break;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          case "SOURCE": {` && |\n| &&
-             `            // Show the ABAP source of the running app inside an iframe.` && |\n| &&
-             `            const contentControl = Fragment.byId(FRAGMENT_ID, "sourceHtml");` && |\n| &&
-             `            if (!contentControl) break;` && |\n| &&
-             `` && |\n| &&
-             `            const appName =` && |\n| &&
-             `              (z2ui5.responseData &&` && |\n| &&
-             `                z2ui5.responseData.S_FRONT &&` && |\n| &&
-             `                z2ui5.responseData.S_FRONT.APP) ||` && |\n| &&
-             `              "";` && |\n| &&
-             `            const appId = encodeURIComponent(appName);` && |\n| &&
-             `            const url = ``${window.location.origin}/sap/bc/adt/oo/classes/${appId}/source/main``;` && |\n| &&
-             `            contentControl.setProperty(` && |\n| &&
-             `              "content",` && |\n| &&
-             `              ``<iframe id="test" src="${url}" height="800px" width="1200px" />``,` && |\n| &&
-             `            );` && |\n| &&
-             `` && |\n| &&
-             `            const oModel = oSource.getModel();` && |\n| &&
-             `            if (!oModel) break;` && |\n| &&
-             `            const modelData = oModel.getData();` && |\n| &&
-             `            modelData.editor_visible = false;` && |\n| &&
-             `            modelData.source_visible = true;` && |\n| &&
-             `            oModel.refresh();` && |\n| &&
-             `            break;` && |\n| &&
-             `          }` && |\n| &&
+             `        if (xmlSources[selItem]) {` && |\n| &&
+             `          const { xml, rendered } = xmlSources[selItem]();` && |\n| &&
+             `          this.displayEditor(` && |\n| &&
+             `            oEvent,` && |\n| &&
+             `            this.prettifyXml(xml),` && |\n| &&
+             `            "xml",` && |\n| &&
+             `            this.prettifyXml(rendered),` && |\n| &&
+             `          );` && |\n| &&
+             `          return;` && |\n| &&
              `        }` && |\n| &&
+             `` && |\n| &&
+             `        if (selItem === "SOURCE") this.showAbapSource(oEvent);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // Show the ABAP source of the running app inside an iframe.` && |\n| &&
+             `      showAbapSource(oEvent) {` && |\n| &&
+             `        const contentControl = Fragment.byId(FRAGMENT_ID, "sourceHtml");` && |\n| &&
+             `        if (!contentControl) return;` && |\n| &&
+             `` && |\n| &&
+             `        const sFront = z2ui5.responseData && z2ui5.responseData.S_FRONT;` && |\n| &&
+             `        const appName = (sFront && sFront.APP) || "";` && |\n| &&
+             `        const appId = encodeURIComponent(appName);` && |\n| &&
+             `        const url = ``${window.location.origin}/sap/bc/adt/oo/classes/${appId}/source/main``;` && |\n| &&
+             `        contentControl.setProperty(` && |\n| &&
+             `          "content",` && |\n| &&
+             `          ``<iframe id="test" src="${url}" height="800px" width="1200px" />``,` && |\n| &&
+             `        );` && |\n| &&
+             `` && |\n| &&
+             `        const oModel = oEvent.getSource().getModel();` && |\n| &&
+             `        if (!oModel) return;` && |\n| &&
+             `        const modelData = oModel.getData();` && |\n| &&
+             `        modelData.editor_visible = false;` && |\n| &&
+             `        modelData.source_visible = true;` && |\n| &&
+             `        oModel.refresh();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Populates the dialog model so the right editor / source area is shown` && |\n| &&
@@ -329,28 +267,10 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `            previousValue: value,` && |\n| &&
              `            isTemplating: false,` && |\n| &&
              `            templatingSource: false,` && |\n| &&
-             `            activeNest1: !!(` && |\n| &&
-             `              z2ui5.oViewNest &&` && |\n| &&
-             `              z2ui5.oViewNest.mProperties &&` && |\n| &&
-             `              z2ui5.oViewNest.mProperties.viewContent` && |\n| &&
-             `            ),` && |\n| &&
-             `            activeNest2: !!(` && |\n| &&
-             `              z2ui5.oViewNest2 &&` && |\n| &&
-             `              z2ui5.oViewNest2.mProperties &&` && |\n| &&
-             `              z2ui5.oViewNest2.mProperties.viewContent` && |\n| &&
-             `            ),` && |\n| &&
-             `            activePopup: !!(` && |\n| &&
-             `              z2ui5.oResponse &&` && |\n| &&
-             `              z2ui5.oResponse.PARAMS &&` && |\n| &&
-             `              z2ui5.oResponse.PARAMS.S_POPUP &&` && |\n| &&
-             `              z2ui5.oResponse.PARAMS.S_POPUP.XML` && |\n| &&
-             `            ),` && |\n| &&
-             `            activePopover: !!(` && |\n| &&
-             `              z2ui5.oResponse &&` && |\n| &&
-             `              z2ui5.oResponse.PARAMS &&` && |\n| &&
-             `              z2ui5.oResponse.PARAMS.S_POPOVER &&` && |\n| &&
-             `              z2ui5.oResponse.PARAMS.S_POPOVER.XML` && |\n| &&
-             `            ),` && |\n| &&
+             `            activeNest1: !!getViewContent(z2ui5.oViewNest),` && |\n| &&
+             `            activeNest2: !!getViewContent(z2ui5.oViewNest2),` && |\n| &&
+             `            activePopup: !!getResponseXml("S_POPUP"),` && |\n| &&
+             `            activePopover: !!getResponseXml("S_POPOVER"),` && |\n| &&
              `          };` && |\n| &&
              `` && |\n| &&
              `          const oModel = new JSONModel(oData);` && |\n| &&
