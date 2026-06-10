@@ -125,6 +125,28 @@ CLASS z2ui5_cl_util_api_c DEFINITION
       RETURNING
         VALUE(result) TYPE string ##NEEDED.
 
+    CLASS-METHODS tr_copy_objects
+      IMPORTING
+        source      TYPE clike
+        destination TYPE clike.
+
+    CLASS-METHODS tr_import
+      IMPORTING
+        trkorr         TYPE clike
+        target_system  TYPE clike
+        client         TYPE clike OPTIONAL
+        ignore_version TYPE abap_bool DEFAULT abap_true
+      RETURNING
+        VALUE(result)  TYPE i.
+
+    CLASS-METHODS tr_check_status
+      IMPORTING
+        trkorr   TYPE clike
+        system   TYPE clike
+      EXPORTING
+        imported TYPE abap_bool
+        rc       TYPE i.
+
 
   PROTECTED SECTION.
 
@@ -1118,6 +1140,35 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
         external_id = id.
 
     result = lo_filter.
+
+  ENDMETHOD.
+
+  METHOD tr_copy_objects.
+
+    " Copying objects between requests relies on the classic transport
+    " functions (TR_COPY_COMM) which are not released on ABAP Cloud.
+    RAISE EXCEPTION TYPE z2ui5_cx_util_error
+      EXPORTING
+        val = `tr_copy_objects is not supported on ABAP Cloud`.
+
+  ENDMETHOD.
+
+  METHOD tr_import.
+
+    " Importing transports via TMS (TMS_MGR_*) is not available on ABAP Cloud.
+    RAISE EXCEPTION TYPE z2ui5_cx_util_error
+      EXPORTING
+        val = `tr_import is not supported on ABAP Cloud`.
+
+  ENDMETHOD.
+
+  METHOD tr_check_status.
+
+    " Reading the transport log (TR_READ_GLOBAL_INFO_OF_REQUEST) is not
+    " available on ABAP Cloud.
+    RAISE EXCEPTION TYPE z2ui5_cx_util_error
+      EXPORTING
+        val = `tr_check_status is not supported on ABAP Cloud`.
 
   ENDMETHOD.
 
