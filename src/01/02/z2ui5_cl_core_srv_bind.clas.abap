@@ -43,20 +43,6 @@ CLASS z2ui5_cl_core_srv_bind DEFINITION PUBLIC FINAL.
     METHODS check_raise_new.
 
   PRIVATE SECTION.
-    TYPES:
-      BEGIN OF ty_s_attri_cache,
-        type_name TYPE string,
-        t_attri   TYPE cl_abap_structdescr=>component_table,
-      END OF ty_s_attri_cache.
-    TYPES ty_t_attri_cache TYPE HASHED TABLE OF ty_s_attri_cache WITH UNIQUE KEY type_name.
-
-    DATA mt_attri_cache TYPE ty_t_attri_cache.
-
-    METHODS rtti_get_t_attri_cached
-      IMPORTING
-        val           TYPE REF TO data
-      RETURNING
-        VALUE(result) TYPE cl_abap_structdescr=>component_table.
 ENDCLASS.
 
 
@@ -73,7 +59,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     ASSIGN ms_config-tab->* TO <tab>.
     ASSIGN <tab>[ ms_config-tab_index ] TO <row>.
 
-    DATA(lt_attri) = rtti_get_t_attri_cached( ms_config-tab ).
+    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_any( ms_config-tab ).
     LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
 
       ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
@@ -90,23 +76,6 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     RAISE EXCEPTION TYPE z2ui5_cx_util_error
       EXPORTING
         val = `BINDING_ERROR_TAB_CELL_LEVEL - No class attribute for binding found - Please check if the bound values are public attributes of your class`.
-
-  ENDMETHOD.
-
-  METHOD rtti_get_t_attri_cached.
-
-    DATA(lv_type_name) = CONV string(
-        cl_abap_typedescr=>describe_by_data_ref( val )->absolute_name ).
-
-    READ TABLE mt_attri_cache REFERENCE INTO DATA(lr_cache)
-         WITH TABLE KEY type_name = lv_type_name.
-    IF sy-subrc <> 0.
-      INSERT VALUE #( type_name = lv_type_name
-                      t_attri   = z2ui5_cl_util=>rtti_get_t_attri_by_any( val ) )
-             INTO TABLE mt_attri_cache REFERENCE INTO lr_cache.
-    ENDIF.
-
-    result = lr_cache->t_attri.
 
   ENDMETHOD.
 
