@@ -702,6 +702,15 @@ CLASS z2ui5_cl_util DEFINITION
 
     CLASS-DATA mt_bool_cache TYPE HASHED TABLE OF ty_s_bool_cache WITH UNIQUE KEY absolute_name.
 
+    TYPES:
+      BEGIN OF ty_s_attri_cache,
+        absolute_name TYPE string,
+        o_struct      TYPE REF TO cl_abap_structdescr,
+        t_attri       TYPE cl_abap_structdescr=>component_table,
+      END OF ty_s_attri_cache.
+
+    CLASS-DATA mt_attri_cache TYPE HASHED TABLE OF ty_s_attri_cache WITH UNIQUE KEY absolute_name.
+
     CLASS-METHODS filter_get_sql_cond_by_range
       IMPORTING
         fieldname     TYPE clike
@@ -1315,6 +1324,16 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         lo_struct ?= lo_type.
     ENDCASE.
 
+    " descriptor instances are singletons per type, so the identity check
+    " guards against absolute names reused by other (local/anonymous) types
+    DATA(lv_absolute_name) = CONV string( lo_struct->absolute_name ).
+    READ TABLE mt_attri_cache REFERENCE INTO DATA(lr_cache)
+         WITH TABLE KEY absolute_name = lv_absolute_name.
+    IF sy-subrc = 0 AND lr_cache->o_struct = lo_struct.
+      result = lr_cache->t_attri.
+      RETURN.
+    ENDIF.
+
     DATA(comps) = lo_struct->get_components( ).
 
     LOOP AT comps REFERENCE INTO DATA(lr_comp).
@@ -1326,6 +1345,15 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         APPEND LINES OF lt_attri TO result.
       ENDIF.
     ENDLOOP.
+
+    IF lr_cache IS BOUND.
+      lr_cache->o_struct = lo_struct.
+      lr_cache->t_attri  = result.
+    ELSE.
+      INSERT VALUE #( absolute_name = lv_absolute_name
+                      o_struct      = lo_struct
+                      t_attri       = result ) INTO TABLE mt_attri_cache.
+    ENDIF.
 
   ENDMETHOD.
 
