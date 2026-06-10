@@ -570,8 +570,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          if (!deviceData) return;` && |\n| &&
              `` && |\n| &&
              `          const { system, resize, os, browser } = deviceData;` && |\n| &&
-             `          const versionInfo = z2ui5.oConfig && z2ui5.oConfig.UI5VersionInfo;` && |\n| &&
-             `          const ui5Version = versionInfo ? versionInfo.version : "";` && |\n| &&
+             `          // Filled by Component._initVersionInfo (async, may not have` && |\n| &&
+             `          // resolved yet on the very first render).` && |\n| &&
+             `          const ui5Info = z2ui5.oConfig && z2ui5.oConfig.S_UI5;` && |\n| &&
+             `          const ui5Version = (ui5Info && ui5Info.VERSION) || "";` && |\n| &&
              `` && |\n| &&
              `          const props = [` && |\n| &&
              `            ["ui5_version", ui5Version],` && |\n| &&
@@ -818,10 +820,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          },` && |\n| &&
              `          tooltip: {` && |\n| &&
              `            type: "string",` && |\n| &&
-             `            defaultValue: "",` && |\n| &&
-             `          },` && |\n| &&
              |\n|.
     result = result &&
+             `            defaultValue: "",` && |\n| &&
+             `          },` && |\n| &&
              `          fileType: {` && |\n| &&
              `            type: "string",` && |\n| &&
              `            defaultValue: "",` && |\n| &&
@@ -1220,10 +1222,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            for (const [key, value] of Object.entries(oRangeData)) {` && |\n| &&
              `              const lower = key.toLowerCase();` && |\n| &&
              `              const finalKey = lower === "keyfield" ? "keyField" : lower;` && |\n| &&
-             `              out[finalKey] = value;` && |\n| &&
-             `            }` && |\n| &&
              |\n|.
     result = result &&
+             `              out[finalKey] = value;` && |\n| &&
+             `            }` && |\n| &&
              `            return out;` && |\n| &&
              `          });` && |\n| &&
              `          input.setRangeData(normalizedRangeData);` && |\n| &&
@@ -1622,10 +1624,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `        for (const oCol of columns) {` && |\n| &&
              `          if (` && |\n| &&
-             `            oCol.getFilterProperty &&` && |\n| &&
-             `            oCol.getFilterProperty() === sProperty` && |\n| &&
              |\n|.
     result = result &&
+             `            oCol.getFilterProperty &&` && |\n| &&
+             `            oCol.getFilterProperty() === sProperty` && |\n| &&
              `          ) {` && |\n| &&
              `            oCol.setFilterValue(display);` && |\n| &&
              `            oCol.setFiltered(!!display);` && |\n| &&

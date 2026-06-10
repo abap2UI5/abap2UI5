@@ -88,6 +88,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    const _URLHelper = mobileLibrary.URLHelper;` && |\n| &&
              `    const _SAFE_PROTOCOLS = new Set(["http:", "https:"]);` && |\n| &&
              `` && |\n| &&
+             `    // Single reusable BusyDialog flashed when the user clicks while a` && |\n| &&
+             `    // roundtrip is already in flight (created lazily, kept for reuse).` && |\n| &&
+             `    let _busyDialog = null;` && |\n| &&
+             `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `    // Security helpers` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
@@ -131,6 +135,24 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return false;` && |\n| &&
              `        }` && |\n| &&
              `        return true;` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Util.logError(``Security: Invalid URL format: ${url}``, e);` && |\n| &&
+             `        return false;` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // Returns true for URLs that are safe as download targets: data: and` && |\n| &&
+             `    // blob: (generated content) plus http(s). Blocks javascript: and other` && |\n| &&
+             `    // active schemes, consistent with the redirect validators above.` && |\n| &&
+             `    function isSafeDownloadURL(url) {` && |\n| &&
+             `      if (!url) return false;` && |\n| &&
+             `      try {` && |\n| &&
+             `        const parsed = new URL(url, window.location.origin);` && |\n| &&
+             `        return (` && |\n| &&
+             `          parsed.protocol === "data:" ||` && |\n| &&
+             `          parsed.protocol === "blob:" ||` && |\n| &&
+             `          _SAFE_PROTOCOLS.has(parsed.protocol)` && |\n| &&
+             `        );` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Util.logError(``Security: Invalid URL format: ${url}``, e);` && |\n| &&
              `        return false;` && |\n| &&
@@ -396,6 +418,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `      // Execute the follow-up JS snippets stashed by Server.responseSuccess.` && |\n| &&
              `      // Runs once per roundtrip, after the view has rendered.` && |\n| &&
+             |\n|.
+    result = result &&
              `      _runPendingCustomJs() {` && |\n| &&
              `        const customJs = z2ui5.pendingCustomJs;` && |\n| &&
              `        z2ui5.pendingCustomJs = null;` && |\n| &&
@@ -418,8 +442,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          // delta. Deeper paths (e.g. tree tables: attr/row/<subtable>/<row>/<field>)` && |\n| &&
              `          // fall back to shipping the whole attribute, which the backend applies` && |\n| &&
              `          // via corresponding-based deserialization.` && |\n| &&
-             |\n|.
-    result = result &&
              `          const isRowField =` && |\n| &&
              `            parts.length === 3 && rowIdx !== "" && !isNaN(rowIdx);` && |\n| &&
              `          if (isRowField) {` && |\n| &&
@@ -640,6 +662,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            this._evStoreData(args);` && |\n| &&
              `            break;` && |\n| &&
              `          case "DOWNLOAD_B64_FILE": {` && |\n| &&
+             `            if (!isSafeDownloadURL(args[1])) {` && |\n| &&
+             `              Util.logError("DOWNLOAD_B64_FILE: blocked unsafe URL");` && |\n| &&
+             `              break;` && |\n| &&
+             `            }` && |\n| &&
              `            const a = document.createElement("a");` && |\n| &&
              `            a.href = args[1];` && |\n| &&
              `            a.download = args[2];` && |\n| &&
@@ -794,6 +820,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      _evSystemLogout(args) {` && |\n| &&
              `        const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";` && |\n| &&
              `        const goToLogoutUrl = () => {` && |\n| &&
+             |\n|.
+    result = result &&
              `          if (isValidRedirectURL(logoutUrl)) {` && |\n| &&
              `            window.location.href = logoutUrl;` && |\n| &&
              `          } else {` && |\n| &&
@@ -820,8 +848,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const finish = () => {` && |\n| &&
              `            if (done) return;` && |\n| &&
              `            done = true;` && |\n| &&
-             |\n|.
-    result = result &&
              `            goToLogoutUrl();` && |\n| &&
              `          };` && |\n| &&
              `          try {` && |\n| &&
@@ -1144,12 +1170,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // the user gets visual feedback instead of a silent click. args[0][2]` && |\n| &&
              `        // is the "ignore busy" flag set by certain background events.` && |\n| &&
              `        if (z2ui5.isBusy && !args[0][2]) {` && |\n| &&
-             `          const oBusyDialog = new mBusyDialog();` && |\n| &&
-             `          oBusyDialog.attachEventOnce("afterClose", () =>` && |\n| &&
-             `            oBusyDialog.destroy(),` && |\n| &&
-             `          );` && |\n| &&
-             `          oBusyDialog.open();` && |\n| &&
-             `          queueMicrotask(() => oBusyDialog.close());` && |\n| &&
+             `          if (!_busyDialog) _busyDialog = new mBusyDialog();` && |\n| &&
+             `          _busyDialog.open();` && |\n| &&
+             `          queueMicrotask(() => _busyDialog.close());` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -1199,6 +1222,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        Server.Roundtrip();` && |\n| &&
              `        runCallbacks(z2ui5.onAfterRoundtrip);` && |\n| &&
              `      },` && |\n| &&
+             |\n|.
+    result = result &&
              `` && |\n| &&
              `      _pickModelForRoundtrip(args) {` && |\n| &&
              `        // The 4th positional flag in args[0] forces use of the main view's` && |\n| &&
@@ -1222,8 +1247,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (z2ui5.oControllerNest === this) {` && |\n| &&
              `          z2ui5.oBody.VIEWNAME = "NEST";` && |\n| &&
              `          return z2ui5.oViewNest && z2ui5.oViewNest.getModel();` && |\n| &&
-             |\n|.
-    result = result &&
              `        }` && |\n| &&
              `        if (z2ui5.oControllerNest2 === this) {` && |\n| &&
              `          z2ui5.oBody.VIEWNAME = "NEST2";` && |\n| &&
@@ -1283,11 +1306,17 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            closeonBrowserNavigation: !!msg.CLOSEONBROWSERNAVIGATION,` && |\n| &&
              `          });` && |\n| &&
              `          if (msg.CLASS) {` && |\n| &&
-             `            const toastEl = document.querySelector(".sapMMessageToast");` && |\n| &&
-             `            if (toastEl) {` && |\n| &&
-             `              const classes = msg.CLASS.trim().split(/\s+/).filter(Boolean);` && |\n| &&
-             `              toastEl.classList.add(...classes);` && |\n| &&
-             `            }` && |\n| &&
+             `            const classes = msg.CLASS.trim().split(/\s+/).filter(Boolean);` && |\n| &&
+             `            // Pick the newest toast (several can be open at once). The` && |\n| &&
+             `            // element may not be in the DOM yet right after show(), so` && |\n| &&
+             `            // retry once on the next animation frame.` && |\n| &&
+             `            const applyClass = () => {` && |\n| &&
+             `              const toasts = document.querySelectorAll(".sapMMessageToast");` && |\n| &&
+             `              const toastEl = toasts[toasts.length - 1];` && |\n| &&
+             `              if (toastEl) toastEl.classList.add(...classes);` && |\n| &&
+             `              return !!toastEl;` && |\n| &&
+             `            };` && |\n| &&
+             `            if (!applyClass()) requestAnimationFrame(applyClass);` && |\n| &&
              `          }` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
