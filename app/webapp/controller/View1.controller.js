@@ -15,6 +15,7 @@ sap.ui.define(
     "sap/ui/core/routing/HashChanger",
     "sap/ui/util/Storage",
     "sap/ui/core/Element",
+    "z2ui5/cc/Util",
   ],
   (
     Controller,
@@ -32,20 +33,13 @@ sap.ui.define(
     HashChanger,
     Storage,
     Element,
+    Util,
   ) => {
     "use strict";
 
     // ------------------------------------------------------------------
     // Small utility helpers (module-private)
     // ------------------------------------------------------------------
-
-    // Append an entry to the global error log. We create the array on first use.
-    function logError(message, error) {
-      if (!z2ui5.errors) z2ui5.errors = [];
-      const entry = { message: message, ts: new Date().toISOString() };
-      if (error !== undefined) entry.error = error;
-      z2ui5.errors.push(entry);
-    }
 
     // Run every callback in `arr`, swallowing individual failures so one bad
     // callback cannot break the whole event sequence.
@@ -56,7 +50,7 @@ sap.ui.define(
         try {
           fn(...args);
         } catch (e) {
-          logError("runCallbacks: callback failed", e);
+          Util.logError("runCallbacks: callback failed", e);
         }
       }
     }
@@ -84,18 +78,20 @@ sap.ui.define(
       try {
         const parsed = new URL(url, window.location.origin);
         if (parsed.origin !== window.location.origin) {
-          logError(`Security: Blocked redirect to different origin: ${url}`);
+          Util.logError(
+            `Security: Blocked redirect to different origin: ${url}`,
+          );
           return false;
         }
         if (!_SAFE_PROTOCOLS.has(parsed.protocol)) {
-          logError(
+          Util.logError(
             `Security: Blocked redirect with invalid protocol: ${parsed.protocol}`,
           );
           return false;
         }
         return true;
       } catch (e) {
-        logError(`Security: Invalid URL format: ${url}`, e);
+        Util.logError(`Security: Invalid URL format: ${url}`, e);
         return false;
       }
     }
@@ -109,14 +105,14 @@ sap.ui.define(
       try {
         const parsed = new URL(url, window.location.origin);
         if (!_SAFE_PROTOCOLS.has(parsed.protocol)) {
-          logError(
+          Util.logError(
             `Security: Blocked redirect with invalid protocol: ${parsed.protocol}`,
           );
           return false;
         }
         return true;
       } catch (e) {
-        logError(`Security: Invalid URL format: ${url}`, e);
+        Util.logError(`Security: Invalid URL format: ${url}`, e);
         return false;
       }
     }
@@ -124,7 +120,7 @@ sap.ui.define(
     function copyToClipboard(textToCopy) {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(textToCopy).catch((err) => {
-          logError("Clipboard: writeText failed, falling back", err);
+          Util.logError("Clipboard: writeText failed, falling back", err);
           copyToClipboardFallback(textToCopy);
         });
         return;
@@ -143,10 +139,10 @@ sap.ui.define(
       textarea.select();
       try {
         if (!document.execCommand("copy")) {
-          logError("Clipboard: execCommand('copy') returned false");
+          Util.logError("Clipboard: execCommand('copy') returned false");
         }
       } catch (err) {
-        logError("Clipboard: execCommand('copy') threw", err);
+        Util.logError("Clipboard: execCommand('copy') threw", err);
       } finally {
         document.body.removeChild(textarea);
       }
@@ -175,13 +171,13 @@ sap.ui.define(
     function withCrossAppNavigator(callback) {
       const nav = z2ui5.oLaunchpad && z2ui5.oLaunchpad.CrossAppNavigator;
       if (!nav) {
-        logError("CrossAppNav: not running inside Launchpad");
+        Util.logError("CrossAppNav: not running inside Launchpad");
         return;
       }
       try {
         callback(nav);
       } catch (e) {
-        logError("CrossAppNav: callback failed", e);
+        Util.logError("CrossAppNav: callback failed", e);
       }
     }
 
@@ -190,7 +186,7 @@ sap.ui.define(
         const container = lookup(args[1]);
         if (container) container.to(lookup(args[2]));
       } catch (e) {
-        logError("navigateContainer: navigation failed", e);
+        Util.logError("navigateContainer: navigation failed", e);
       }
     }
 
@@ -351,14 +347,14 @@ sap.ui.define(
               : "";
             _hashChanger.replaceHash(newHash);
           } catch (e) {
-            logError("_processAfterRendering: history update failed", e);
+            Util.logError("_processAfterRendering: history update failed", e);
           }
 
           if (SET_NAV_BACK) history.back();
 
           runCallbacks(z2ui5.onAfterRendering);
         } catch (e) {
-          logError("_processAfterRendering: unexpected error", e);
+          Util.logError("_processAfterRendering: unexpected error", e);
           Server.responseError(e, "Unexpected Error Occurred - App Terminated");
         } finally {
           BusyIndicator.hide();
@@ -377,7 +373,7 @@ sap.ui.define(
         const customJs = z2ui5.pendingCustomJs;
         z2ui5.pendingCustomJs = null;
         if (!customJs) return;
-        if (this.isDestroyed && this.isDestroyed()) return;
+        if (Util.isDestroyed(this)) return;
         for (const item of customJs) {
           Server._runCustomJs(item, this);
         }
@@ -432,9 +428,7 @@ sap.ui.define(
           id: "popupId",
         });
         // The app might have been torn down while the fragment loaded.
-        const appAlive =
-          z2ui5.oApp && (!z2ui5.oApp.isDestroyed || !z2ui5.oApp.isDestroyed());
-        if (!appAlive) {
+        if (!Util.isAlive(z2ui5.oApp)) {
           oFragment.destroy();
           return;
         }
@@ -453,10 +447,7 @@ sap.ui.define(
             controller: z2ui5.oControllerPopover,
             id: "popoverId",
           });
-          const appAlive =
-            z2ui5.oApp &&
-            (!z2ui5.oApp.isDestroyed || !z2ui5.oApp.isDestroyed());
-          if (!appAlive) {
+          if (!Util.isAlive(z2ui5.oApp)) {
             oFragment.destroy();
             return;
           }
@@ -486,14 +477,16 @@ sap.ui.define(
           }
 
           if (!oControl) {
-            logError(`displayPopover: openBy control '${openById}' not found`);
+            Util.logError(
+              `displayPopover: openBy control '${openById}' not found`,
+            );
             oFragment.destroy();
             return;
           }
           z2ui5[viewProp] = oFragment;
           oFragment.openBy(oControl);
         } catch (e) {
-          logError("displayPopover: failed", e);
+          Util.logError("displayPopover: failed", e);
         }
       },
 
@@ -506,9 +499,7 @@ sap.ui.define(
           preprocessors: { xml: { models: { template: oModel } } },
         });
 
-        const appAlive =
-          z2ui5.oApp && (!z2ui5.oApp.isDestroyed || !z2ui5.oApp.isDestroyed());
-        if (!appAlive) {
+        if (!Util.isAlive(z2ui5.oApp)) {
           oView.destroy();
           return;
         }
@@ -519,7 +510,7 @@ sap.ui.define(
           z2ui5.oResponse.PARAMS &&
           z2ui5.oResponse.PARAMS[viewNestId];
         if (!nestParams) {
-          logError(`displayNestedView: missing PARAMS.${viewNestId}`);
+          Util.logError(`displayNestedView: missing PARAMS.${viewNestId}`);
           oView.destroy();
           return;
         }
@@ -527,7 +518,7 @@ sap.ui.define(
 
         const oParent = z2ui5.oView && z2ui5.oView.byId(ID);
         if (!oParent) {
-          logError(
+          Util.logError(
             `displayNestedView: parent control '${ID}' not found, nested view discarded`,
           );
           oView.destroy();
@@ -537,12 +528,12 @@ sap.ui.define(
         try {
           oParent[METHOD_DESTROY]();
         } catch (e) {
-          logError("displayNestedView: parent destroy method failed", e);
+          Util.logError("displayNestedView: parent destroy method failed", e);
         }
         try {
           oParent[METHOD_INSERT](oView);
         } catch (e) {
-          logError("displayNestedView: parent insert method failed", e);
+          Util.logError("displayNestedView: parent insert method failed", e);
           oView.destroy();
           return;
         }
@@ -558,13 +549,13 @@ sap.ui.define(
           try {
             if (view.close) view.close();
           } catch (e) {
-            logError(`_destroyView: view.close() failed for ${prop}`, e);
+            Util.logError(`_destroyView: view.close() failed for ${prop}`, e);
           }
         }
         try {
           view.destroy();
         } catch (e) {
-          logError(`_destroyView: view.destroy() failed for ${prop}`, e);
+          Util.logError(`_destroyView: view.destroy() failed for ${prop}`, e);
         }
         z2ui5[prop] = null;
       },
@@ -725,7 +716,7 @@ sap.ui.define(
           });
           if (z2ui5.oView) z2ui5.oView.setModel(oModel, args[2] || undefined);
         } catch (e) {
-          logError(`SET_ODATA_MODEL: failed for '${args[1]}'`, e);
+          Util.logError(`SET_ODATA_MODEL: failed for '${args[1]}'`, e);
         }
       },
 
@@ -740,7 +731,10 @@ sap.ui.define(
             oStorage.put(KEY, VALUE);
           }
         } catch (e) {
-          logError(`STORE_DATA: storage operation failed for key '${KEY}'`, e);
+          Util.logError(
+            `STORE_DATA: storage operation failed for key '${KEY}'`,
+            e,
+          );
         }
       },
 
@@ -823,7 +817,7 @@ sap.ui.define(
             redirectToLogoff();
           }
         } catch (e) {
-          logError("SYSTEM_LOGOUT: ushell logout failed", e);
+          Util.logError("SYSTEM_LOGOUT: ushell logout failed", e);
           redirectToLogoff();
         }
       },
@@ -868,7 +862,7 @@ sap.ui.define(
           const fn = actions[args[1]];
           if (fn) fn();
         } catch (e) {
-          logError(`URLHELPER: '${args[1]}' failed`, e);
+          Util.logError(`URLHELPER: '${args[1]}' failed`, e);
         }
       },
 
@@ -878,7 +872,10 @@ sap.ui.define(
           const editor = Fragment.byId("popupId", "imageEditor");
           if (editor) image = editor.getImagePngDataURL();
         } catch (e) {
-          logError("IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed", e);
+          Util.logError(
+            "IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed",
+            e,
+          );
         }
         this.PopupDestroy();
         this.eB(["SAVE"], image);
@@ -908,7 +905,7 @@ sap.ui.define(
           if (!input) return;
           input.setAttribute("inputmode", args[2] || "text");
         } catch (e) {
-          logError(
+          Util.logError(
             `KEYBOARD_SET_MODE: setAttribute failed for '${args[1]}'`,
             e,
           );
@@ -927,7 +924,7 @@ sap.ui.define(
             if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];
             oElement.applyFocusInfo(info);
           } catch (e) {
-            logError(`SET_FOCUS: failed for '${args[1]}'`, e);
+            Util.logError(`SET_FOCUS: failed for '${args[1]}'`, e);
           }
         };
 
@@ -999,7 +996,7 @@ sap.ui.define(
             }
           }
         } catch (e) {
-          logError(`SCROLL_TO: failed for '${args[1]}'`, e);
+          Util.logError(`SCROLL_TO: failed for '${args[1]}'`, e);
         }
       },
 
@@ -1021,7 +1018,7 @@ sap.ui.define(
             inline: args[4] || "nearest",
           });
         } catch (e) {
-          logError(`SCROLL_INTO_VIEW: failed for '${args[1]}'`, e);
+          Util.logError(`SCROLL_INTO_VIEW: failed for '${args[1]}'`, e);
         }
       },
 
@@ -1030,7 +1027,7 @@ sap.ui.define(
         try {
           document.title = title;
         } catch (e) {
-          logError("SET_TITLE: setting document.title failed", e);
+          Util.logError("SET_TITLE: setting document.title failed", e);
         }
       },
 
@@ -1042,7 +1039,7 @@ sap.ui.define(
             const result = shell.setTitle(title);
             if (result && result.catch) {
               result.catch((e) =>
-                logError(
+                Util.logError(
                   "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",
                   e,
                 ),
@@ -1050,7 +1047,10 @@ sap.ui.define(
             }
           }
         } catch (e) {
-          logError("SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed", e);
+          Util.logError(
+            "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",
+            e,
+          );
         }
       },
 
@@ -1059,7 +1059,7 @@ sap.ui.define(
           const fn = z2ui5[args[1]];
           if (fn) fn(args.slice(2));
         } catch (e) {
-          logError(`Z2UI5: '${args[1]}' failed`, e);
+          Util.logError(`Z2UI5: '${args[1]}' failed`, e);
         }
       },
 
@@ -1071,7 +1071,10 @@ sap.ui.define(
           if (wiz && step) wiz.discardProgress(step);
           if (step && nextStep) step.setNextStep(nextStep);
         } catch (e) {
-          logError(`WIZARD_SET_NEXT_STEP: failed for wizard '${args[1]}'`, e);
+          Util.logError(
+            `WIZARD_SET_NEXT_STEP: failed for wizard '${args[1]}'`,
+            e,
+          );
         }
       },
 
@@ -1079,7 +1082,7 @@ sap.ui.define(
         try {
           new Audio(args[1]).play();
         } catch (e) {
-          logError(`PLAY_AUDIO: failed for '${args[1]}'`, e);
+          Util.logError(`PLAY_AUDIO: failed for '${args[1]}'`, e);
         }
       },
 
@@ -1202,7 +1205,7 @@ sap.ui.define(
           const info = await VersionInfo.load();
           gav = info.gav;
         } catch (e) {
-          logError("checkSDKcompatibility: VersionInfo.load failed", e);
+          Util.logError("checkSDKcompatibility: VersionInfo.load failed", e);
           return;
         }
         if (!gav || !gav.includes("com.sap.ui5")) {
@@ -1296,9 +1299,7 @@ sap.ui.define(
         });
 
         // Guard against the app being destroyed during the await above.
-        const appAlive =
-          z2ui5.oApp && (!z2ui5.oApp.isDestroyed || !z2ui5.oApp.isDestroyed());
-        if (!appAlive) {
+        if (!Util.isAlive(z2ui5.oApp)) {
           z2ui5.oView.destroy();
           if (switchPath) oModel.destroy();
           z2ui5.oView = null;

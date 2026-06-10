@@ -23,19 +23,10 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `    "sap/ui/core/Control",` && |\n| &&
              `    "sap/ui/core/Fragment",` && |\n| &&
              `    "sap/ui/model/json/JSONModel",` && |\n| &&
+             `    "z2ui5/cc/Util",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Control, Fragment, JSONModel) => {` && |\n| &&
+             `  (Control, Fragment, JSONModel, Util) => {` && |\n| &&
              `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    // Append an entry to the global error log. We create the array on first use.` && |\n| &&
-             `    function logError(message, error) {` && |\n| &&
-             `      if (!z2ui5.errors) z2ui5.errors = [];` && |\n| &&
-             `      z2ui5.errors.push({` && |\n| &&
-             `        message: message,` && |\n| &&
-             `        error: error,` && |\n| &&
-             `        ts: new Date().toISOString(),` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
              `` && |\n| &&
              `    // Pretty-print any value (object, array, primitive) as indented JSON.` && |\n| &&
              `    // ``null`` is used as a fallback so undefined values still produce output.` && |\n| &&
@@ -323,7 +314,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `          }` && |\n| &&
              `          // If the user closed the app while the fragment was loading we` && |\n| &&
              `          // must throw the freshly created dialog away.` && |\n| &&
-             `          if (this.isDestroyed && this.isDestroyed()) {` && |\n| &&
+             `          if (Util.isDestroyed(this)) {` && |\n| &&
              `            if (this.oDialog) this.oDialog.destroy();` && |\n| &&
              `            this.oDialog = null;` && |\n| &&
              `            return;` && |\n| &&
@@ -369,7 +360,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `          oDialog.setModel(oModel);` && |\n| &&
              `          oDialog.open();` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError("DebugTool.show failed", e);` && |\n| &&
+             `          Util.logError("DebugTool.show failed", e);` && |\n| &&
              `        } finally {` && |\n| &&
              `          this._showPending = false;` && |\n| &&
              `        }` && |\n| &&

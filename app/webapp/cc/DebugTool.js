@@ -3,19 +3,10 @@ sap.ui.define(
     "sap/ui/core/Control",
     "sap/ui/core/Fragment",
     "sap/ui/model/json/JSONModel",
+    "z2ui5/cc/Util",
   ],
-  (Control, Fragment, JSONModel) => {
+  (Control, Fragment, JSONModel, Util) => {
     "use strict";
-
-    // Append an entry to the global error log. We create the array on first use.
-    function logError(message, error) {
-      if (!z2ui5.errors) z2ui5.errors = [];
-      z2ui5.errors.push({
-        message: message,
-        error: error,
-        ts: new Date().toISOString(),
-      });
-    }
 
     // Pretty-print any value (object, array, primitive) as indented JSON.
     // `null` is used as a fallback so undefined values still produce output.
@@ -303,7 +294,7 @@ sap.ui.define(
           }
           // If the user closed the app while the fragment was loading we
           // must throw the freshly created dialog away.
-          if (this.isDestroyed && this.isDestroyed()) {
+          if (Util.isDestroyed(this)) {
             if (this.oDialog) this.oDialog.destroy();
             this.oDialog = null;
             return;
@@ -349,7 +340,7 @@ sap.ui.define(
           oDialog.setModel(oModel);
           oDialog.open();
         } catch (e) {
-          logError("DebugTool.show failed", e);
+          Util.logError("DebugTool.show failed", e);
         } finally {
           this._showPending = false;
         }

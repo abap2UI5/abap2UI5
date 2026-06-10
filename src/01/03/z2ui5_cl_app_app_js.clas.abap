@@ -18,27 +18,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// Append an entry to the global error log. We create the array on first use.` && |\n| &&
-             `function _logError(message, error) {` && |\n| &&
-             `  if (!z2ui5.errors) z2ui5.errors = [];` && |\n| &&
-             `  const entry = { message: message, ts: new Date().toISOString() };` && |\n| &&
-             `  if (error !== undefined) entry.error = error;` && |\n| &&
-             `  z2ui5.errors.push(entry);` && |\n| &&
-             `}` && |\n| &&
-             `` && |\n| &&
-             `// Helpers for managing z2ui5 callback arrays (onBeforeRoundtrip,` && |\n| &&
-             `// onAfterRendering, ...). Several custom controls register hooks here in` && |\n| &&
-             `// init() and remove them in exit().` && |\n| &&
-             `function _registerCallback(name, fn) {` && |\n| &&
-             `  if (!z2ui5[name]) z2ui5[name] = [];` && |\n| &&
-             `  z2ui5[name].push(fn);` && |\n| &&
-             `}` && |\n| &&
-             `function _unregisterCallback(name, fn) {` && |\n| &&
-             `  if (!z2ui5[name]) return;` && |\n| &&
-             `  z2ui5[name] = z2ui5[name].filter((f) => f !== fn);` && |\n| &&
-             `}` && |\n| &&
-             `` && |\n| &&
-             `sap.ui.define(` && |\n| &&
+    result = `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
              `    "sap/ui/core/mvc/Controller",` && |\n| &&
              `    "z2ui5/controller/View1.controller",` && |\n| &&
@@ -87,7 +67,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&
-             `sap.ui.define("z2ui5/Timer", ["sap/ui/core/Control"], (Control) => {` && |\n| &&
+             `// Keep this define header on one line: Prettier would otherwise expand it` && |\n| &&
+             `// and reindent the entire module body.` && |\n| &&
+             `// prettier-ignore` && |\n| &&
+             `sap.ui.define("z2ui5/Timer", ["sap/ui/core/Control", "z2ui5/cc/Util"], (Control, Util) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
              `  return Control.extend("z2ui5.Timer", {` && |\n| &&
@@ -128,12 +111,12 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      const delay = this.getProperty("delayMS");` && |\n| &&
              `      this._timerId = setTimeout(() => {` && |\n| &&
              `        // The control might have been destroyed during the delay.` && |\n| &&
-             `        if (this.isDestroyed && this.isDestroyed()) return;` && |\n| &&
+             `        if (Util.isDestroyed(this)) return;` && |\n| &&
              `        if (!repeat) this.setProperty("checkActive", false, true);` && |\n| &&
              `        this.fireFinished();` && |\n| &&
              `        // For repeating timers, queue the next iteration. Re-check destroy` && |\n| &&
              `        // again because fireFinished may have triggered teardown.` && |\n| &&
-             `        if (repeat && !(this.isDestroyed && this.isDestroyed())) {` && |\n| &&
+             `        if (repeat && !Util.isDestroyed(this)) {` && |\n| &&
              `          this.delayedCall();` && |\n| &&
              `        }` && |\n| &&
              `      }, delay);` && |\n| &&
@@ -151,7 +134,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `  });` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
-             `sap.ui.define("z2ui5/Focus", ["sap/ui/core/Control"], (Control) => {` && |\n| &&
+             `// Keep this define header on one line: Prettier would otherwise expand it` && |\n| &&
+             `// and reindent the entire module body.` && |\n| &&
+             `// prettier-ignore` && |\n| &&
+             `sap.ui.define("z2ui5/Focus", ["sap/ui/core/Control", "z2ui5/cc/Util"], (Control, Util) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `  return Control.extend("z2ui5.Focus", {` && |\n| &&
              `    metadata: {` && |\n| &&
@@ -179,7 +165,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        const oElement = z2ui5.oView && z2ui5.oView.byId(val);` && |\n| &&
              `        if (oElement) oElement.applyFocusInfo(oElement.getFocusInfo());` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        _logError("Focus.setFocusId failed", e);` && |\n| &&
+             `        Util.logError("Focus.setFocusId failed", e);` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
              `    onAfterRendering() {` && |\n| &&
@@ -196,7 +182,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        info.selectionEnd = +this.getProperty("selectionEnd");` && |\n| &&
              `        oElement.applyFocusInfo(info);` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        _logError("Focus.onAfterRendering: applyFocusInfo failed", e);` && |\n| &&
+             `        Util.logError("Focus.onAfterRendering: applyFocusInfo failed", e);` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
              `    renderer: {` && |\n| &&
@@ -232,7 +218,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `  });` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
-             `sap.ui.define("z2ui5/LPTitle", ["sap/ui/core/Control"], (Control) => {` && |\n| &&
+             `// Keep this define header on one line: Prettier would otherwise expand it` && |\n| &&
+             `// and reindent the entire module body.` && |\n| &&
+             `// prettier-ignore` && |\n| &&
+             `sap.ui.define("z2ui5/LPTitle", ["sap/ui/core/Control", "z2ui5/cc/Util"], (Control, Util) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `  return Control.extend("z2ui5.LPTitle", {` && |\n| &&
              `    metadata: {` && |\n| &&
@@ -254,11 +243,11 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        // setTitle may return a Promise; report any async failure.` && |\n| &&
              `        if (result && result.catch) {` && |\n| &&
              `          result.catch((e) =>` && |\n| &&
-             `            _logError("LPTitle: Launchpad Service setTitle failed", e),` && |\n| &&
+             `            Util.logError("LPTitle: Launchpad Service setTitle failed", e),` && |\n| &&
              `          );` && |\n| &&
              `        }` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        _logError("LPTitle: Launchpad Service setTitle failed", e);` && |\n| &&
+             `        Util.logError("LPTitle: Launchpad Service setTitle failed", e);` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
@@ -270,7 +259,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          config.setApplicationFullWidth(val);` && |\n| &&
              `        }` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        _logError("LPTitle: setApplicationFullWidth failed", e);` && |\n| &&
+             `        Util.logError("LPTitle: setApplicationFullWidth failed", e);` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
@@ -278,7 +267,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `  });` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
-             `sap.ui.define("z2ui5/History", ["sap/ui/core/Control"], (Control) => {` && |\n| &&
+             `// Keep this define header on one line: Prettier would otherwise expand it` && |\n| &&
+             `// and reindent the entire module body.` && |\n| &&
+             `// prettier-ignore` && |\n| &&
+             `sap.ui.define("z2ui5/History", ["sap/ui/core/Control", "z2ui5/cc/Util"], (Control, Util) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `  return Control.extend("z2ui5.History", {` && |\n| &&
              `    metadata: {` && |\n| &&
@@ -294,14 +286,17 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        const search = val == null ? "" : val;` && |\n| &&
              `        history.replaceState(null, "", ``${window.location.pathname}${search}``);` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        _logError("History.setSearch: replaceState failed", e);` && |\n| &&
+             `        Util.logError("History.setSearch: replaceState failed", e);` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
              `    renderer: { apiVersion: 2, render() {} },` && |\n| &&
              `  });` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
-             `sap.ui.define("z2ui5/Tree", ["sap/ui/core/Control"], (Control) => {` && |\n| &&
+             `// Keep this define header on one line: Prettier would otherwise expand it` && |\n| &&
+             `// and reindent the entire module body.` && |\n| &&
+             `// prettier-ignore` && |\n| &&
+             `sap.ui.define("z2ui5/Tree", ["sap/ui/core/Control", "z2ui5/cc/Util"], (Control, Util) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
              `  return Control.extend("z2ui5.Tree", {` && |\n| &&
@@ -325,17 +320,17 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        const binding = this._getTreeBinding();` && |\n| &&
              `        z2ui5.treeState = binding ? binding.getCurrentTreeState() : undefined;` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        _logError("Tree.setBackend: failed", e);` && |\n| &&
+             `        Util.logError("Tree.setBackend: failed", e);` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    init() {` && |\n| &&
              `      this._setBackendBound = this.setBackend.bind(this);` && |\n| &&
-             `      _registerCallback("onBeforeRoundtrip", this._setBackendBound);` && |\n| &&
+             `      Util.registerCallback("onBeforeRoundtrip", this._setBackendBound);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    exit() {` && |\n| &&
-             `      _unregisterCallback("onBeforeRoundtrip", this._setBackendBound);` && |\n| &&
+             `      Util.unregisterCallback("onBeforeRoundtrip", this._setBackendBound);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    onAfterRendering() {` && |\n| &&
@@ -345,7 +340,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        const binding = this._getTreeBinding();` && |\n| &&
              `        if (binding) binding.setTreeState(z2ui5.treeState);` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        _logError("Tree.onAfterRendering: setTreeState failed", e);` && |\n| &&
+             `        Util.logError("Tree.onAfterRendering: setTreeState failed", e);` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
@@ -363,7 +358,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `  });` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
-             `sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control"], (Control) => {` && |\n| &&
+             `// Keep this define header on one line: Prettier would otherwise expand it` && |\n| &&
+             `// and reindent the entire module body.` && |\n| &&
+             `// prettier-ignore` && |\n| &&
+             `sap.ui.define("z2ui5/Scrolling", ["sap/ui/core/Control", "z2ui5/cc/Util"], (Control, Util) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
              `  return Control.extend("z2ui5.Scrolling", {` && |\n| &&
@@ -396,7 +394,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        const element = this._getDomInnerElement(item.ID);` && |\n| &&
              `        return element ? element.scrollTop : 0;` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        _logError("Scrolling._getScrollTop: failed", e);` && |\n| &&
+             `        Util.logError("Scrolling._getScrollTop: failed", e);` && |\n| &&
              `        return 0;` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
@@ -418,25 +416,25 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          const scrollTop = this._getScrollTop(item);` && |\n| &&
              `          if (item.V !== scrollTop) {` && |\n| &&
              `            item.V = scrollTop;` && |\n| &&
-             |\n|.
-    result = result &&
              `            if (bindingPath && z2ui5.xxChangedPaths) {` && |\n| &&
              `              z2ui5.xxChangedPaths.add(``${bindingPath}/${index}/V``);` && |\n| &&
+             |\n|.
+    result = result &&
              `            }` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        _logError("Scrolling.setBackend: failed", e);` && |\n| &&
+             `        Util.logError("Scrolling.setBackend: failed", e);` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    init() {` && |\n| &&
              `      this._setBackendBound = this.setBackend.bind(this);` && |\n| &&
-             `      _registerCallback("onBeforeRoundtrip", this._setBackendBound);` && |\n| &&
+             `      Util.registerCallback("onBeforeRoundtrip", this._setBackendBound);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    exit() {` && |\n| &&
-             `      _unregisterCallback("onBeforeRoundtrip", this._setBackendBound);` && |\n| &&
+             `      Util.unregisterCallback("onBeforeRoundtrip", this._setBackendBound);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    _restoreScrollPosition(item) {` && |\n| &&
@@ -449,7 +447,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        const element = this._getDomInnerElement(item.ID);` && |\n| &&
              `        if (element) element.scrollTop = item.V;` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        _logError("Scrolling._restoreScrollPosition: failed", e);` && |\n| &&
+             `        Util.logError("Scrolling._restoreScrollPosition: failed", e);` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
@@ -473,7 +471,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            const delegate = {` && |\n| &&
              `              onAfterRendering: () => {` && |\n| &&
              `                control.removeEventDelegate(delegate);` && |\n| &&
-             `                if (!(this.isDestroyed && this.isDestroyed())) {` && |\n| &&
+             `                if (!Util.isDestroyed(this)) {` && |\n| &&
              `                  this._restoreScrollPosition(item);` && |\n| &&
              `                }` && |\n| &&
              `              },` && |\n| &&
@@ -482,7 +480,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          }` && |\n| &&
              `        }` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        _logError("Scrolling.onAfterRendering: failed", e);` && |\n| &&
+             `        Util.logError("Scrolling.onAfterRendering: failed", e);` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
@@ -502,7 +500,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `  });` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
-             `sap.ui.define("z2ui5/Info", ["sap/ui/core/Control"], (Control) => {` && |\n| &&
+             `// Keep this define header on one line: Prettier would otherwise expand it` && |\n| &&
+             `// and reindent the entire module body.` && |\n| &&
+             `// prettier-ignore` && |\n| &&
+             `sap.ui.define("z2ui5/Info", ["sap/ui/core/Control", "z2ui5/cc/Util"], (Control, Util) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
              `  return Control.extend("z2ui5.Info", {` && |\n| &&
@@ -581,14 +582,17 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          }` && |\n| &&
              `          oControl.fireFinished();` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          _logError("Info.renderer: failed", e);` && |\n| &&
+             `          Util.logError("Info.renderer: failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `    },` && |\n| &&
              `  });` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
-             `sap.ui.define("z2ui5/Geolocation", ["sap/ui/core/Control"], (Control) => {` && |\n| &&
+             `// Keep this define header on one line: Prettier would otherwise expand it` && |\n| &&
+             `// and reindent the entire module body.` && |\n| &&
+             `// prettier-ignore` && |\n| &&
+             `sap.ui.define("z2ui5/Geolocation", ["sap/ui/core/Control", "z2ui5/cc/Util"], (Control, Util) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
              `  const _GEO_PROPS = [` && |\n| &&
@@ -651,7 +655,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `    callbackPosition({ coords }) {` && |\n| &&
              `      // The control could be torn down while the geolocation API was busy.` && |\n| &&
-             `      if (this.isDestroyed && this.isDestroyed()) return;` && |\n| &&
+             `      if (Util.isDestroyed(this)) return;` && |\n| &&
              `      for (const prop of _GEO_PROPS) {` && |\n| &&
              `        const raw = coords[prop];` && |\n| &&
              `        const val = raw == null ? "" : raw.toString();` && |\n| &&
@@ -676,14 +680,14 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        navigator.geolocation.getCurrentPosition(` && |\n| &&
              `          this.callbackPosition.bind(this),` && |\n| &&
              `          (error) =>` && |\n| &&
-             `            _logError(``Geolocation error (${error.code}): ${error.message}``),` && |\n| &&
+             `            Util.logError(``Geolocation error (${error.code}): ${error.message}``),` && |\n| &&
              `          {` && |\n| &&
              `            enableHighAccuracy: this.getProperty("enableHighAccuracy"),` && |\n| &&
              `            timeout: +this.getProperty("timeout"),` && |\n| &&
              `          },` && |\n| &&
              `        );` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        _logError("Geolocation.onAfterRendering: getCurrentPosition failed", e);` && |\n| &&
+             `        Util.logError("Geolocation.onAfterRendering: getCurrentPosition failed", e);` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
@@ -701,8 +705,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `sap.ui.define(` && |\n| &&
              `  "z2ui5/Storage",` && |\n| &&
-             `  ["sap/ui/core/Control", "sap/ui/util/Storage"],` && |\n| &&
-             `  (Control, Storage) => {` && |\n| &&
+             `  ["sap/ui/core/Control", "sap/ui/util/Storage", "z2ui5/cc/Util"],` && |\n| &&
+             `  (Control, Storage, Util) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    return Control.extend("z2ui5.Storage", {` && |\n| &&
@@ -760,7 +764,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            const read = storage.get(key);` && |\n| &&
              `            stored = read == null ? "" : read;` && |\n| &&
              `          } catch (e) {` && |\n| &&
-             `            _logError(``Storage: read failed for key '${key}'``, e);` && |\n| &&
+             `            Util.logError(``Storage: read failed for key '${key}'``, e);` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
@@ -788,8 +792,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    "sap/m/Button",` && |\n| &&
              `    "sap/ui/unified/FileUploader",` && |\n| &&
              `    "sap/m/HBox",` && |\n| &&
+             `    "z2ui5/cc/Util",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Control, Button, FileUploader, HBox) => {` && |\n| &&
+             `  (Control, Button, FileUploader, HBox, Util) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    return Control.extend("z2ui5.FileUploader", {` && |\n| &&
@@ -815,13 +820,13 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            type: "string",` && |\n| &&
              `            defaultValue: "",` && |\n| &&
              `          },` && |\n| &&
+             |\n|.
+    result = result &&
              `          buttonText: {` && |\n| &&
              `            type: "string",` && |\n| &&
              `            defaultValue: "",` && |\n| &&
              `          },` && |\n| &&
              `          style: {` && |\n| &&
-             |\n|.
-    result = result &&
              `            type: "string",` && |\n| &&
              `            defaultValue: "",` && |\n| &&
              `          },` && |\n| &&
@@ -868,15 +873,15 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _readFile(file) {` && |\n| &&
-             `        const reader = new FileReader();` && |\n| &&
-             `        reader.onload = () => {` && |\n| &&
-             `          if (this.isDestroyed && this.isDestroyed()) return;` && |\n| &&
-             `          this.setProperty("value", reader.result);` && |\n| &&
-             `          this.fireUpload();` && |\n| &&
-             `        };` && |\n| &&
-             `        reader.onerror = () =>` && |\n| &&
-             `          _logError("FileUploader: FileReader failed", reader.error);` && |\n| &&
-             `        reader.readAsDataURL(file);` && |\n| &&
+             `        Util.readFileAsDataURL(` && |\n| &&
+             `          file,` && |\n| &&
+             `          this,` && |\n| &&
+             `          (result) => {` && |\n| &&
+             `            this.setProperty("value", result);` && |\n| &&
+             `            this.fireUpload();` && |\n| &&
+             `          },` && |\n| &&
+             `          "FileUploader",` && |\n| &&
+             `        );` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      exit() {` && |\n| &&
@@ -961,8 +966,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `sap.ui.define(` && |\n| &&
              `  "z2ui5/MultiInputExt",` && |\n| &&
-             `  ["sap/ui/core/Control", "sap/m/Token"],` && |\n| &&
-             `  (Control, Token) => {` && |\n| &&
+             `  ["sap/ui/core/Control", "sap/m/Token", "z2ui5/cc/Util"],` && |\n| &&
+             `  (Control, Token, Util) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    return Control.extend("z2ui5.MultiInputExt", {` && |\n| &&
@@ -995,23 +1000,14 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `      init() {` && |\n| &&
              `        this._setControlBound = this.setControl.bind(this);` && |\n| &&
-             `        _registerCallback("onAfterRendering", this._setControlBound);` && |\n| &&
+             `        Util.registerCallback("onAfterRendering", this._setControlBound);` && |\n| &&
              `      },` && |\n| &&
              `      exit() {` && |\n| &&
-             `        _unregisterCallback("onAfterRendering", this._setControlBound);` && |\n| &&
+             `        Util.unregisterCallback("onAfterRendering", this._setControlBound);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onTokenUpdate(oEvent) {` && |\n| &&
-             `        const mParameters = oEvent.mParameters;` && |\n| &&
-             `        const isRemoved = mParameters.type === "removed";` && |\n| &&
-             `        const rawList =` && |\n| &&
-             `          mParameters[isRemoved ? "removedTokens" : "addedTokens"] || [];` && |\n| &&
-             `        const tokens = rawList.map((item) => ({` && |\n| &&
-             `          KEY: item.getKey(),` && |\n| &&
-             `          TEXT: item.getText(),` && |\n| &&
-             `        }));` && |\n| &&
-             `        this.setProperty("addedTokens", isRemoved ? [] : tokens);` && |\n| &&
-             `        this.setProperty("removedTokens", isRemoved ? tokens : []);` && |\n| &&
+             `        Util.applyTokenUpdate(this, oEvent);` && |\n| &&
              `        this.fireChange();` && |\n| &&
              `      },` && |\n| &&
              `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
@@ -1026,14 +1022,17 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          // both key and visible text equal the input string.` && |\n| &&
              `          table.addValidator(({ text }) => new Token({ key: text, text }));` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          _logError("MultiInputExt.setControl: setup failed", e);` && |\n| &&
+             `          Util.logError("MultiInputExt.setControl: setup failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&
-             `sap.ui.define("z2ui5/UploadSetExt", ["sap/ui/core/Control"], (Control) => {` && |\n| &&
+             `// Keep this define header on one line: Prettier would otherwise expand it` && |\n| &&
+             `// and reindent the entire module body.` && |\n| &&
+             `// prettier-ignore` && |\n| &&
+             `sap.ui.define("z2ui5/UploadSetExt", ["sap/ui/core/Control", "z2ui5/cc/Util"], (Control, Util) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
              `  return Control.extend("z2ui5.UploadSetExt", {` && |\n| &&
@@ -1081,25 +1080,25 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `    init() {` && |\n| &&
              `      this._setControlBound = this.setControl.bind(this);` && |\n| &&
-             `      _registerCallback("onAfterRendering", this._setControlBound);` && |\n| &&
+             `      Util.registerCallback("onAfterRendering", this._setControlBound);` && |\n| &&
              `    },` && |\n| &&
              `    exit() {` && |\n| &&
-             `      _unregisterCallback("onAfterRendering", this._setControlBound);` && |\n| &&
+             `      Util.unregisterCallback("onAfterRendering", this._setControlBound);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    _readFile(file) {` && |\n| &&
-             `      const reader = new FileReader();` && |\n| &&
-             `      reader.onload = () => {` && |\n| &&
-             `        if (this.isDestroyed && this.isDestroyed()) return;` && |\n| &&
-             `        this.setProperty("fileData", reader.result);` && |\n| &&
-             `        this.setProperty("fileName", file.name);` && |\n| &&
-             `        this.setProperty("mediaType", file.type);` && |\n| &&
-             `        this.setProperty("fileSize", String(file.size));` && |\n| &&
-             `        this.fireChange();` && |\n| &&
-             `      };` && |\n| &&
-             `      reader.onerror = () =>` && |\n| &&
-             `        _logError("UploadSetExt: FileReader failed", reader.error);` && |\n| &&
-             `      reader.readAsDataURL(file);` && |\n| &&
+             `      Util.readFileAsDataURL(` && |\n| &&
+             `        file,` && |\n| &&
+             `        this,` && |\n| &&
+             `        (result) => {` && |\n| &&
+             `          this.setProperty("fileData", result);` && |\n| &&
+             `          this.setProperty("fileName", file.name);` && |\n| &&
+             `          this.setProperty("mediaType", file.type);` && |\n| &&
+             `          this.setProperty("fileSize", String(file.size));` && |\n| &&
+             `          this.fireChange();` && |\n| &&
+             `        },` && |\n| &&
+             `        "UploadSetExt",` && |\n| &&
+             `      );` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    onItemAdded(oEvent) {` && |\n| &&
@@ -1125,7 +1124,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        uploadSet.attachAfterItemAdded(this.onItemAdded.bind(this));` && |\n| &&
              `        uploadSet.attachAfterItemRemoved(this.onItemRemoved.bind(this));` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        _logError("UploadSetExt.setControl: setup failed", e);` && |\n| &&
+             `        Util.logError("UploadSetExt.setControl: setup failed", e);` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
              `  });` && |\n| &&
@@ -1133,8 +1132,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `sap.ui.define(` && |\n| &&
              `  "z2ui5/SmartMultiInputExt",` && |\n| &&
-             `  ["sap/ui/core/Control"],` && |\n| &&
-             `  (Control) => {` && |\n| &&
+             `  ["sap/ui/core/Control", "z2ui5/cc/Util"],` && |\n| &&
+             `  (Control, Util) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    return Control.extend("z2ui5.SmartMultiInputExt", {` && |\n| &&
@@ -1171,10 +1170,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        this._oInput = null;` && |\n| &&
              `        this._oPendingInnerControlsCreated = null;` && |\n| &&
              `        this._bInnerControlsCreated = false;` && |\n| &&
-             `        _registerCallback("onAfterRendering", this._setControlBound);` && |\n| &&
+             `        Util.registerCallback("onAfterRendering", this._setControlBound);` && |\n| &&
              `      },` && |\n| &&
              `      exit() {` && |\n| &&
-             `        _unregisterCallback("onAfterRendering", this._setControlBound);` && |\n| &&
+             `        Util.unregisterCallback("onAfterRendering", this._setControlBound);` && |\n| &&
              `        // Resolve any still-pending promise so awaiters don't hang.` && |\n| &&
              `        if (this._oPendingInnerControlsCreated) {` && |\n| &&
              `          this._oPendingInnerControlsCreated(null);` && |\n| &&
@@ -1183,16 +1182,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      onTokenUpdate(oEvent) {` && |\n| &&
-             `        const mParameters = oEvent.mParameters;` && |\n| &&
-             `        const isRemoved = mParameters.type === "removed";` && |\n| &&
-             `        const rawList =` && |\n| &&
-             `          mParameters[isRemoved ? "removedTokens" : "addedTokens"] || [];` && |\n| &&
-             `        const mappedTokens = rawList.map((item) => ({` && |\n| &&
-             `          KEY: item.getKey(),` && |\n| &&
-             `          TEXT: item.getText(),` && |\n| &&
-             `        }));` && |\n| &&
-             `        this.setProperty("addedTokens", isRemoved ? [] : mappedTokens);` && |\n| &&
-             `        this.setProperty("removedTokens", isRemoved ? mappedTokens : []);` && |\n| &&
+             `        Util.applyTokenUpdate(this, oEvent);` && |\n| &&
              `` && |\n| &&
              `        // Mirror each range entry with the visible token text + long key` && |\n| &&
              `        // so the backend has enough info to re-render the input later.` && |\n| &&
@@ -1212,7 +1202,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        this.setProperty("rangeData", aRangeData);` && |\n| &&
              `        try {` && |\n| &&
              `          const input = await this.inputInitialized();` && |\n| &&
-             `          if ((this.isDestroyed && this.isDestroyed()) || !input) return;` && |\n| &&
+             `          if (Util.isDestroyed(this) || !input) return;` && |\n| &&
              `` && |\n| &&
              `          // Convert the ABAP-style uppercase keys to the camelCase property` && |\n| &&
              `          // names the smart multi input expects. "keyField" needs its capital` && |\n| &&
@@ -1222,8 +1212,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            for (const [key, value] of Object.entries(oRangeData)) {` && |\n| &&
              `              const lower = key.toLowerCase();` && |\n| &&
              `              const finalKey = lower === "keyfield" ? "keyField" : lower;` && |\n| &&
-             |\n|.
-    result = result &&
              `              out[finalKey] = value;` && |\n| &&
              `            }` && |\n| &&
              `            return out;` && |\n| &&
@@ -1234,6 +1222,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          // recalculation.` && |\n| &&
              `          const inputTokens = input.getTokens() || [];` && |\n| &&
              `          for (const [index, token] of inputTokens.entries()) {` && |\n| &&
+             |\n|.
+    result = result &&
              `            const rangeItem = aRangeData[index];` && |\n| &&
              `            if (!rangeItem) continue;` && |\n| &&
              `            const { TOKENLONGKEY, TOKENTEXT } = rangeItem;` && |\n| &&
@@ -1242,7 +1232,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            if (TOKENTEXT) token.setText(TOKENTEXT);` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          _logError("SmartMultiInputExt.setRangeData failed", e);` && |\n| &&
+             `          Util.logError("SmartMultiInputExt.setRangeData failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
@@ -1257,7 +1247,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            this.onInnerControlsCreated.bind(this),` && |\n| &&
              `          );` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          _logError("SmartMultiInputExt.setControl: setup failed", e);` && |\n| &&
+             `          Util.logError("SmartMultiInputExt.setControl: setup failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `      // Returns a Promise that resolves once the smart multi input's inner` && |\n| &&
@@ -1285,8 +1275,14 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `sap.ui.define(` && |\n| &&
              `  "z2ui5/CameraPicture",` && |\n| &&
-             `  ["sap/ui/core/Control", "sap/m/Dialog", "sap/m/Button", "sap/ui/core/HTML"],` && |\n| &&
-             `  (Control, Dialog, Button, HTML) => {` && |\n| &&
+             `  [` && |\n| &&
+             `    "sap/ui/core/Control",` && |\n| &&
+             `    "sap/m/Dialog",` && |\n| &&
+             `    "sap/m/Button",` && |\n| &&
+             `    "sap/ui/core/HTML",` && |\n| &&
+             `    "z2ui5/cc/Util",` && |\n| &&
+             `  ],` && |\n| &&
+             `  (Control, Dialog, Button, HTML, Util) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `    const _CTX_2D_OPTS = { willReadFrequently: true };` && |\n| &&
              `    const _THUMB_W = 300;` && |\n| &&
@@ -1335,7 +1331,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          resultb64 = canvas.toDataURL("image/jpeg", 0.85);` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          _logError("CameraPicture: canvas toDataURL failed", e);` && |\n| &&
+             `          Util.logError("CameraPicture: canvas toDataURL failed", e);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -1352,10 +1348,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          thumbB64 = thumbCanvas.toDataURL("image/jpeg", 0.7);` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          _logError("CameraPicture: thumb toDataURL failed", e);` && |\n| &&
+             `          Util.logError("CameraPicture: thumb toDataURL failed", e);` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        if (this.isDestroyed && this.isDestroyed()) return;` && |\n| &&
+             `        if (Util.isDestroyed(this)) return;` && |\n| &&
              `        this.setProperty("value", resultb64);` && |\n| &&
              `        this.setProperty("thumbnail", thumbB64);` && |\n| &&
              `        this.fireOnPhoto({ photo: resultb64 });` && |\n| &&
@@ -1410,10 +1406,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        }` && |\n| &&
              `` && |\n| &&
              `        this._oScanDialog.attachEventOnce("afterOpen", async () => {` && |\n| &&
-             `          if (this.isDestroyed && this.isDestroyed()) return;` && |\n| &&
+             `          if (Util.isDestroyed(this)) return;` && |\n| &&
              `          const video = document.getElementById(``${this.getId()}-video``);` && |\n| &&
              `          if (!video) {` && |\n| &&
-             `            _logError(` && |\n| &&
+             `            Util.logError(` && |\n| &&
              `              "CameraPicture: video element not found after dialog open",` && |\n| &&
              `            );` && |\n| &&
              `            return;` && |\n| &&
@@ -1433,14 +1429,14 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            if (!stream) return;` && |\n| &&
              `            // Guard: the control could have been destroyed during the` && |\n| &&
              `            // getUserMedia await. Release the camera if so.` && |\n| &&
-             `            if (this.isDestroyed && this.isDestroyed()) {` && |\n| &&
+             `            if (Util.isDestroyed(this)) {` && |\n| &&
              `              for (const t of stream.getTracks()) t.stop();` && |\n| &&
              `              return;` && |\n| &&
              `            }` && |\n| &&
              `            this._stream = stream;` && |\n| &&
              `            video.srcObject = stream;` && |\n| &&
              `          } catch (error) {` && |\n| &&
-             `            _logError("CameraPicture: getUserMedia failed", error);` && |\n| &&
+             `            Util.logError("CameraPicture: getUserMedia failed", error);` && |\n| &&
              `          }` && |\n| &&
              `        });` && |\n| &&
              `        this._oScanDialog.open();` && |\n| &&
@@ -1470,8 +1466,13 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `sap.ui.define(` && |\n| &&
              `  "z2ui5/CameraSelector",` && |\n| &&
-             `  ["sap/m/ComboBox", "sap/ui/core/Item", "sap/m/ComboBoxRenderer"],` && |\n| &&
-             `  (ComboBox, Item, ComboBoxRenderer) => {` && |\n| &&
+             `  [` && |\n| &&
+             `    "sap/m/ComboBox",` && |\n| &&
+             `    "sap/ui/core/Item",` && |\n| &&
+             `    "sap/m/ComboBoxRenderer",` && |\n| &&
+             `    "z2ui5/cc/Util",` && |\n| &&
+             `  ],` && |\n| &&
+             `  (ComboBox, Item, ComboBoxRenderer, Util) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `    return ComboBox.extend("z2ui5.CameraSelector", {` && |\n| &&
              `      async init() {` && |\n| &&
@@ -1485,13 +1486,13 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            // Only video inputs are relevant; also stop adding items when the` && |\n| &&
              `            // ComboBox has been destroyed during the await.` && |\n| &&
              `            if (device.kind !== "videoinput") continue;` && |\n| &&
-             `            if (this.isDestroyed && this.isDestroyed()) return;` && |\n| &&
+             `            if (Util.isDestroyed(this)) return;` && |\n| &&
              `            this.addItem(` && |\n| &&
              `              new Item({ key: device.deviceId, text: device.label }),` && |\n| &&
              `            );` && |\n| &&
              `          }` && |\n| &&
              `        } catch (err) {` && |\n| &&
-             `          _logError("CameraDeviceList: enumerateDevices failed", err);` && |\n| &&
+             `          Util.logError("CameraDeviceList: enumerateDevices failed", err);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -1500,7 +1501,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&
-             `sap.ui.define("z2ui5/UITableExt", ["sap/ui/core/Control"], (Control) => {` && |\n| &&
+             `// Keep this define header on one line: Prettier would otherwise expand it` && |\n| &&
+             `// and reindent the entire module body.` && |\n| &&
+             `// prettier-ignore` && |\n| &&
+             `sap.ui.define("z2ui5/UITableExt", ["sap/ui/core/Control", "z2ui5/cc/Util"], (Control, Util) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
              `  const opSymbols = { EQ: "", NE: "!", LT: "<", LE: "<=", GT: ">", GE: ">=" };` && |\n| &&
@@ -1528,13 +1532,13 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        this.setFilter();` && |\n| &&
              `        this.setSort();` && |\n| &&
              `      };` && |\n| &&
-             `      _registerCallback("onBeforeRoundtrip", this._beforeBound);` && |\n| &&
-             `      _registerCallback("onAfterRoundtrip", this._afterBound);` && |\n| &&
+             `      Util.registerCallback("onBeforeRoundtrip", this._beforeBound);` && |\n| &&
+             `      Util.registerCallback("onAfterRoundtrip", this._afterBound);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    exit() {` && |\n| &&
-             `      _unregisterCallback("onBeforeRoundtrip", this._beforeBound);` && |\n| &&
-             `      _unregisterCallback("onAfterRoundtrip", this._afterBound);` && |\n| &&
+             `      Util.unregisterCallback("onBeforeRoundtrip", this._beforeBound);` && |\n| &&
+             `      Util.unregisterCallback("onAfterRoundtrip", this._afterBound);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    _getTable() {` && |\n| &&
@@ -1548,7 +1552,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        const binding = table && table.getBinding();` && |\n| &&
              `        this.aFilters = binding ? binding.aFilters : undefined;` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        _logError("UITableExt.readFilter failed", e);` && |\n| &&
+             `        Util.logError("UITableExt.readFilter failed", e);` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
@@ -1561,7 +1565,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      const delegate = {` && |\n| &&
              `        onAfterRendering: () => {` && |\n| &&
              `          oTable.removeEventDelegate(delegate);` && |\n| &&
-             `          if (!(this.isDestroyed && this.isDestroyed())) fn();` && |\n| &&
+             `          if (!Util.isDestroyed(this)) fn();` && |\n| &&
              `        },` && |\n| &&
              `      };` && |\n| &&
              `      oTable.addEventDelegate(delegate);` && |\n| &&
@@ -1620,15 +1624,15 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
+             |\n|.
+    result = result &&
              `    _applyToTable(applyFn, errorMsg) {` && |\n| &&
              `      try {` && |\n| &&
              `        const oTable = this._getTable();` && |\n| &&
              `        if (!oTable) return;` && |\n| &&
-             |\n|.
-    result = result &&
              `        this._applyWhenRendered(oTable, () => applyFn(oTable));` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        _logError(errorMsg, e);` && |\n| &&
+             `        Util.logError(errorMsg, e);` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
@@ -1645,7 +1649,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        const binding = table && table.getBinding();` && |\n| &&
              `        this.aSorters = binding ? binding.aSorters : undefined;` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        _logError("UITableExt.readSort failed", e);` && |\n| &&
+             `        Util.logError("UITableExt.readSort failed", e);` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
@@ -1734,7 +1738,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `  });` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
-             `sap.ui.define("z2ui5/Dirty", ["sap/ui/core/Control"], (Control) => {` && |\n| &&
+             `// Keep this define header on one line: Prettier would otherwise expand it` && |\n| &&
+             `// and reindent the entire module body.` && |\n| &&
+             `// prettier-ignore` && |\n| &&
+             `sap.ui.define("z2ui5/Dirty", ["sap/ui/core/Control", "z2ui5/cc/Util"], (Control, Util) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `  return Control.extend("z2ui5.Dirty", {` && |\n| &&
              `    metadata: {` && |\n| &&
@@ -1776,7 +1783,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          fallback();` && |\n| &&
              `        }` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        _logError("Dirty.setIsDirty: setDirtyFlag failed", e);` && |\n| &&
+             `        Util.logError("Dirty.setIsDirty: setDirtyFlag failed", e);` && |\n| &&
              `        fallback();` && |\n| &&
              `      }` && |\n| &&
              `    },` && |\n| &&

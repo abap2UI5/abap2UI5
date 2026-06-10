@@ -26,19 +26,10 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `    "sap/ui/VersionInfo",` && |\n| &&
              `    "z2ui5/cc/DebugTool",` && |\n| &&
              `    "sap/ui/core/Theming",` && |\n| &&
+             `    "z2ui5/cc/Util",` && |\n| &&
              `  ],` && |\n| &&
-             `  (UIComponent, Models, Server, VersionInfo, DebugTool, Theming) => {` && |\n| &&
+             `  (UIComponent, Models, Server, VersionInfo, DebugTool, Theming, Util) => {` && |\n| &&
              `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    // Append an entry to the global error log. We create the array on first use.` && |\n| &&
-             `    function logError(message, error) {` && |\n| &&
-             `      if (!z2ui5.errors) z2ui5.errors = [];` && |\n| &&
-             `      z2ui5.errors.push({` && |\n| &&
-             `        message: message,` && |\n| &&
-             `        error: error,` && |\n| &&
-             `        ts: new Date().toISOString(),` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
              `` && |\n| &&
              `    return UIComponent.extend("z2ui5.Component", {` && |\n| &&
              `      metadata: {` && |\n| &&
@@ -124,7 +115,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `            z2ui5.oController.displayView(state.view, state.model);` && |\n| &&
              `          if (displayPromise && displayPromise.catch) {` && |\n| &&
              `            displayPromise.catch((e) =>` && |\n| &&
-             `              logError("popstate: displayView failed", e),` && |\n| &&
+             `              Util.logError("popstate: displayView failed", e),` && |\n| &&
              `            );` && |\n| &&
              `          }` && |\n| &&
              `        };` && |\n| &&
@@ -148,34 +139,37 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        // before the services were ready). setIfAlive guards against writing` && |\n| &&
              `        // to a stale launchpad object in that case.` && |\n| &&
              `        const setIfAlive = (key, value) => {` && |\n| &&
-             `          const stillAlive = !this.isDestroyed || !this.isDestroyed();` && |\n| &&
-             `          if (stillAlive && this._launchpad === launchpad) {` && |\n| &&
+             `          if (Util.isAlive(this) && this._launchpad === launchpad) {` && |\n| &&
              `            launchpad[key] = value;` && |\n| &&
              `          }` && |\n| &&
              `        };` && |\n| &&
              `` && |\n| &&
              `        Container.getServiceAsync("ShellUIService")` && |\n| &&
              `          .then((s) => setIfAlive("ShellUIService", s))` && |\n| &&
-             `          .catch((e) => logError("Component: ShellUIService init failed", e));` && |\n| &&
+             `          .catch((e) =>` && |\n| &&
+             `            Util.logError("Component: ShellUIService init failed", e),` && |\n| &&
+             `          );` && |\n| &&
              `` && |\n| &&
              `        Container.getServiceAsync("CrossApplicationNavigation")` && |\n| &&
              `          .then((s) => setIfAlive("CrossAppNavigator", s))` && |\n| &&
              `          .catch((e) =>` && |\n| &&
-             `            logError("Component: CrossApplicationNavigation init failed", e),` && |\n| &&
+             `            Util.logError(` && |\n| &&
+             `              "Component: CrossApplicationNavigation init failed",` && |\n| &&
+             `              e,` && |\n| &&
+             `            ),` && |\n| &&
              `          );` && |\n| &&
              `` && |\n| &&
              `        sap.ui.require(` && |\n| &&
              `          ["sap/ushell/services/AppConfiguration"],` && |\n| &&
              `          (ac) => setIfAlive("AppConfiguration", ac),` && |\n| &&
-             `          (e) => logError("Component: AppConfiguration init failed", e),` && |\n| &&
+             `          (e) => Util.logError("Component: AppConfiguration init failed", e),` && |\n| &&
              `        );` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      async _initVersionInfo() {` && |\n| &&
              `        try {` && |\n| &&
              `          const info = await VersionInfo.load();` && |\n| &&
-             `          const stillAlive = !this.isDestroyed || !this.isDestroyed();` && |\n| &&
-             `          if (stillAlive) {` && |\n| &&
+             `          if (Util.isAlive(this)) {` && |\n| &&
              `            z2ui5.oConfig.S_UI5 = {` && |\n| &&
              `              VERSION: info.version,` && |\n| &&
              `              BUILDTIMESTAMP: info.buildTimestamp,` && |\n| &&
@@ -184,7 +178,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `            };` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError("Component: VersionInfo load failed", e);` && |\n| &&
+             `          Util.logError("Component: VersionInfo load failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -217,7 +211,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `            this._launchpad.Container.setDirtyFlag;` && |\n| &&
              `          if (setDirtyFlag) setDirtyFlag.call(this._launchpad.Container, false);` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError("Component: clearing FLP dirty flag failed", e);` && |\n| &&
+             `          Util.logError("Component: clearing FLP dirty flag failed", e);` && |\n| &&
              `        }` && |\n| &&
              `        if (z2ui5.oLaunchpad === this._launchpad) z2ui5.oLaunchpad = null;` && |\n| &&
              `        this._launchpad = null;` && |\n| &&

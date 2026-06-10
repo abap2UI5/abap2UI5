@@ -22,24 +22,14 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `// collapse it onto one line and reindent the entire module body.` && |\n| &&
              `// prettier-ignore` && |\n| &&
              `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/BusyIndicator"],` && |\n| &&
-             `  (BusyIndicator) => {` && |\n| &&
+             `  ["sap/ui/core/BusyIndicator", "z2ui5/cc/Util"],` && |\n| &&
+             `  (BusyIndicator, Util) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Errors longer than this are truncated before being shown to the user,` && |\n| &&
              `    // so a stack trace from the backend cannot blow up the error overlay.` && |\n| &&
              `    const ERROR_MAX_LENGTH = 50000;` && |\n| &&
              `    const _MSG_TYPES = Object.freeze(["S_MSG_TOAST", "S_MSG_BOX"]);` && |\n| &&
-             `` && |\n| &&
-             `    // Append an entry to the global error log. We create the array on first use.` && |\n| &&
-             `    function logError(message, error) {` && |\n| &&
-             `      if (!z2ui5.errors) z2ui5.errors = [];` && |\n| &&
-             `      z2ui5.errors.push({` && |\n| &&
-             `        message: message,` && |\n| &&
-             `        error: error,` && |\n| &&
-             `        ts: new Date().toISOString(),` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
              `` && |\n| &&
              `    // A usable stateful session id ("sap-contextid"). We must never put a` && |\n| &&
              `    // missing value on the wire: an empty or - via string coercion of a` && |\n| &&
@@ -389,7 +379,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        } catch (e) {` && |\n| &&
              `          BusyIndicator.hide();` && |\n| &&
              `          z2ui5.isBusy = false;` && |\n| &&
-             `          logError("responseSuccess: unexpected error", e);` && |\n| &&
+             `          Util.logError("responseSuccess: unexpected error", e);` && |\n| &&
              `          const msg = e.message || "";` && |\n| &&
              `          if (msg.includes("openui5") && msg.includes("script load error")) {` && |\n| &&
              `            oController.checkSDKcompatibility(e);` && |\n| &&
@@ -414,12 +404,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            Function("return " + parts[0])();` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError("customJs: execution failed", e);` && |\n| &&
+             `          Util.logError("customJs: execution failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             |\n|.
-    result = result &&
              `      _getOrCreateErrorContainer() {` && |\n| &&
              `        const existing = document.getElementById("serverErrorContainer");` && |\n| &&
              `        if (existing) return existing;` && |\n| &&
@@ -430,6 +418,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          position: fixed;` && |\n| &&
              `          top: 50%;` && |\n| &&
              `          left: 50%;` && |\n| &&
+             |\n|.
+    result = result &&
              `          transform: translate(-50%, -50%);` && |\n| &&
              `          width: 90%;` && |\n| &&
              `          height: 90%;` && |\n| &&

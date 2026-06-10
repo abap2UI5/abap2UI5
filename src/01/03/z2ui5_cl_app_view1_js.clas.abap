@@ -35,6 +35,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    "sap/ui/core/routing/HashChanger",` && |\n| &&
              `    "sap/ui/util/Storage",` && |\n| &&
              `    "sap/ui/core/Element",` && |\n| &&
+             `    "z2ui5/cc/Util",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    Controller,` && |\n| &&
@@ -52,20 +53,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    HashChanger,` && |\n| &&
              `    Storage,` && |\n| &&
              `    Element,` && |\n| &&
+             `    Util,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `    // Small utility helpers (module-private)` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
-             `    // Append an entry to the global error log. We create the array on first use.` && |\n| &&
-             `    function logError(message, error) {` && |\n| &&
-             `      if (!z2ui5.errors) z2ui5.errors = [];` && |\n| &&
-             `      const entry = { message: message, ts: new Date().toISOString() };` && |\n| &&
-             `      if (error !== undefined) entry.error = error;` && |\n| &&
-             `      z2ui5.errors.push(entry);` && |\n| &&
-             `    }` && |\n| &&
              `` && |\n| &&
              `    // Run every callback in ``arr``, swallowing individual failures so one bad` && |\n| &&
              `    // callback cannot break the whole event sequence.` && |\n| &&
@@ -76,7 +70,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          fn(...args);` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError("runCallbacks: callback failed", e);` && |\n| &&
+             `          Util.logError("runCallbacks: callback failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
@@ -104,18 +98,20 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      try {` && |\n| &&
              `        const parsed = new URL(url, window.location.origin);` && |\n| &&
              `        if (parsed.origin !== window.location.origin) {` && |\n| &&
-             `          logError(``Security: Blocked redirect to different origin: ${url}``);` && |\n| &&
+             `          Util.logError(` && |\n| &&
+             `            ``Security: Blocked redirect to different origin: ${url}``,` && |\n| &&
+             `          );` && |\n| &&
              `          return false;` && |\n| &&
              `        }` && |\n| &&
              `        if (!_SAFE_PROTOCOLS.has(parsed.protocol)) {` && |\n| &&
-             `          logError(` && |\n| &&
+             `          Util.logError(` && |\n| &&
              `            ``Security: Blocked redirect with invalid protocol: ${parsed.protocol}``,` && |\n| &&
              `          );` && |\n| &&
              `          return false;` && |\n| &&
              `        }` && |\n| &&
              `        return true;` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        logError(``Security: Invalid URL format: ${url}``, e);` && |\n| &&
+             `        Util.logError(``Security: Invalid URL format: ${url}``, e);` && |\n| &&
              `        return false;` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
@@ -129,14 +125,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      try {` && |\n| &&
              `        const parsed = new URL(url, window.location.origin);` && |\n| &&
              `        if (!_SAFE_PROTOCOLS.has(parsed.protocol)) {` && |\n| &&
-             `          logError(` && |\n| &&
+             `          Util.logError(` && |\n| &&
              `            ``Security: Blocked redirect with invalid protocol: ${parsed.protocol}``,` && |\n| &&
              `          );` && |\n| &&
              `          return false;` && |\n| &&
              `        }` && |\n| &&
              `        return true;` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        logError(``Security: Invalid URL format: ${url}``, e);` && |\n| &&
+             `        Util.logError(``Security: Invalid URL format: ${url}``, e);` && |\n| &&
              `        return false;` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
@@ -144,7 +140,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    function copyToClipboard(textToCopy) {` && |\n| &&
              `      if (navigator.clipboard && navigator.clipboard.writeText) {` && |\n| &&
              `        navigator.clipboard.writeText(textToCopy).catch((err) => {` && |\n| &&
-             `          logError("Clipboard: writeText failed, falling back", err);` && |\n| &&
+             `          Util.logError("Clipboard: writeText failed, falling back", err);` && |\n| &&
              `          copyToClipboardFallback(textToCopy);` && |\n| &&
              `        });` && |\n| &&
              `        return;` && |\n| &&
@@ -163,10 +159,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      textarea.select();` && |\n| &&
              `      try {` && |\n| &&
              `        if (!document.execCommand("copy")) {` && |\n| &&
-             `          logError("Clipboard: execCommand('copy') returned false");` && |\n| &&
+             `          Util.logError("Clipboard: execCommand('copy') returned false");` && |\n| &&
              `        }` && |\n| &&
              `      } catch (err) {` && |\n| &&
-             `        logError("Clipboard: execCommand('copy') threw", err);` && |\n| &&
+             `        Util.logError("Clipboard: execCommand('copy') threw", err);` && |\n| &&
              `      } finally {` && |\n| &&
              `        document.body.removeChild(textarea);` && |\n| &&
              `      }` && |\n| &&
@@ -195,13 +191,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    function withCrossAppNavigator(callback) {` && |\n| &&
              `      const nav = z2ui5.oLaunchpad && z2ui5.oLaunchpad.CrossAppNavigator;` && |\n| &&
              `      if (!nav) {` && |\n| &&
-             `        logError("CrossAppNav: not running inside Launchpad");` && |\n| &&
+             `        Util.logError("CrossAppNav: not running inside Launchpad");` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      try {` && |\n| &&
              `        callback(nav);` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        logError("CrossAppNav: callback failed", e);` && |\n| &&
+             `        Util.logError("CrossAppNav: callback failed", e);` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -210,7 +206,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        const container = lookup(args[1]);` && |\n| &&
              `        if (container) container.to(lookup(args[2]));` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        logError("navigateContainer: navigation failed", e);` && |\n| &&
+             `        Util.logError("navigateContainer: navigation failed", e);` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -371,14 +367,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `              : "";` && |\n| &&
              `            _hashChanger.replaceHash(newHash);` && |\n| &&
              `          } catch (e) {` && |\n| &&
-             `            logError("_processAfterRendering: history update failed", e);` && |\n| &&
+             `            Util.logError("_processAfterRendering: history update failed", e);` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
              `          if (SET_NAV_BACK) history.back();` && |\n| &&
              `` && |\n| &&
              `          runCallbacks(z2ui5.onAfterRendering);` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError("_processAfterRendering: unexpected error", e);` && |\n| &&
+             `          Util.logError("_processAfterRendering: unexpected error", e);` && |\n| &&
              `          Server.responseError(e, "Unexpected Error Occurred - App Terminated");` && |\n| &&
              `        } finally {` && |\n| &&
              `          BusyIndicator.hide();` && |\n| &&
@@ -397,7 +393,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        const customJs = z2ui5.pendingCustomJs;` && |\n| &&
              `        z2ui5.pendingCustomJs = null;` && |\n| &&
              `        if (!customJs) return;` && |\n| &&
-             `        if (this.isDestroyed && this.isDestroyed()) return;` && |\n| &&
+             `        if (Util.isDestroyed(this)) return;` && |\n| &&
              `        for (const item of customJs) {` && |\n| &&
              `          Server._runCustomJs(item, this);` && |\n| &&
              `        }` && |\n| &&
@@ -418,12 +414,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const isRowField =` && |\n| &&
              `            parts.length === 3 && rowIdx !== "" && !isNaN(rowIdx);` && |\n| &&
              `          if (isRowField) {` && |\n| &&
-             |\n|.
-    result = result &&
              `            // Table cell change -> ship only the changed cell.` && |\n| &&
              `            if (!delta[attr] || !delta[attr].__delta) {` && |\n| &&
              `              delta[attr] = { __delta: {} };` && |\n| &&
              `            }` && |\n| &&
+             |\n|.
+    result = result &&
              `            const attrDelta = delta[attr].__delta;` && |\n| &&
              `            if (!attrDelta[rowIdx]) attrDelta[rowIdx] = {};` && |\n| &&
              `            const row = xx[attr] && xx[attr][+rowIdx];` && |\n| &&
@@ -454,9 +450,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          id: "popupId",` && |\n| &&
              `        });` && |\n| &&
              `        // The app might have been torn down while the fragment loaded.` && |\n| &&
-             `        const appAlive =` && |\n| &&
-             `          z2ui5.oApp && (!z2ui5.oApp.isDestroyed || !z2ui5.oApp.isDestroyed());` && |\n| &&
-             `        if (!appAlive) {` && |\n| &&
+             `        if (!Util.isAlive(z2ui5.oApp)) {` && |\n| &&
              `          oFragment.destroy();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -475,10 +469,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            controller: z2ui5.oControllerPopover,` && |\n| &&
              `            id: "popoverId",` && |\n| &&
              `          });` && |\n| &&
-             `          const appAlive =` && |\n| &&
-             `            z2ui5.oApp &&` && |\n| &&
-             `            (!z2ui5.oApp.isDestroyed || !z2ui5.oApp.isDestroyed());` && |\n| &&
-             `          if (!appAlive) {` && |\n| &&
+             `          if (!Util.isAlive(z2ui5.oApp)) {` && |\n| &&
              `            oFragment.destroy();` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
@@ -508,14 +499,16 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          }` && |\n| &&
              `` && |\n| &&
              `          if (!oControl) {` && |\n| &&
-             `            logError(``displayPopover: openBy control '${openById}' not found``);` && |\n| &&
+             `            Util.logError(` && |\n| &&
+             `              ``displayPopover: openBy control '${openById}' not found``,` && |\n| &&
+             `            );` && |\n| &&
              `            oFragment.destroy();` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `          z2ui5[viewProp] = oFragment;` && |\n| &&
              `          oFragment.openBy(oControl);` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError("displayPopover: failed", e);` && |\n| &&
+             `          Util.logError("displayPopover: failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -528,9 +521,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          preprocessors: { xml: { models: { template: oModel } } },` && |\n| &&
              `        });` && |\n| &&
              `` && |\n| &&
-             `        const appAlive =` && |\n| &&
-             `          z2ui5.oApp && (!z2ui5.oApp.isDestroyed || !z2ui5.oApp.isDestroyed());` && |\n| &&
-             `        if (!appAlive) {` && |\n| &&
+             `        if (!Util.isAlive(z2ui5.oApp)) {` && |\n| &&
              `          oView.destroy();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -541,7 +532,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          z2ui5.oResponse.PARAMS &&` && |\n| &&
              `          z2ui5.oResponse.PARAMS[viewNestId];` && |\n| &&
              `        if (!nestParams) {` && |\n| &&
-             `          logError(``displayNestedView: missing PARAMS.${viewNestId}``);` && |\n| &&
+             `          Util.logError(``displayNestedView: missing PARAMS.${viewNestId}``);` && |\n| &&
              `          oView.destroy();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -549,7 +540,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        const oParent = z2ui5.oView && z2ui5.oView.byId(ID);` && |\n| &&
              `        if (!oParent) {` && |\n| &&
-             `          logError(` && |\n| &&
+             `          Util.logError(` && |\n| &&
              `            ``displayNestedView: parent control '${ID}' not found, nested view discarded``,` && |\n| &&
              `          );` && |\n| &&
              `          oView.destroy();` && |\n| &&
@@ -559,12 +550,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          oParent[METHOD_DESTROY]();` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError("displayNestedView: parent destroy method failed", e);` && |\n| &&
+             `          Util.logError("displayNestedView: parent destroy method failed", e);` && |\n| &&
              `        }` && |\n| &&
              `        try {` && |\n| &&
              `          oParent[METHOD_INSERT](oView);` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError("displayNestedView: parent insert method failed", e);` && |\n| &&
+             `          Util.logError("displayNestedView: parent insert method failed", e);` && |\n| &&
              `          oView.destroy();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -580,13 +571,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          try {` && |\n| &&
              `            if (view.close) view.close();` && |\n| &&
              `          } catch (e) {` && |\n| &&
-             `            logError(``_destroyView: view.close() failed for ${prop}``, e);` && |\n| &&
+             `            Util.logError(``_destroyView: view.close() failed for ${prop}``, e);` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
              `        try {` && |\n| &&
              `          view.destroy();` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError(``_destroyView: view.destroy() failed for ${prop}``, e);` && |\n| &&
+             `          Util.logError(``_destroyView: view.destroy() failed for ${prop}``, e);` && |\n| &&
              `        }` && |\n| &&
              `        z2ui5[prop] = null;` && |\n| &&
              `      },` && |\n| &&
@@ -747,7 +738,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          });` && |\n| &&
              `          if (z2ui5.oView) z2ui5.oView.setModel(oModel, args[2] || undefined);` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError(``SET_ODATA_MODEL: failed for '${args[1]}'``, e);` && |\n| &&
+             `          Util.logError(``SET_ODATA_MODEL: failed for '${args[1]}'``, e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -762,7 +753,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            oStorage.put(KEY, VALUE);` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError(``STORE_DATA: storage operation failed for key '${KEY}'``, e);` && |\n| &&
+             `          Util.logError(` && |\n| &&
+             `            ``STORE_DATA: storage operation failed for key '${KEY}'``,` && |\n| &&
+             `            e,` && |\n| &&
+             `          );` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -820,14 +814,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            if (done) return;` && |\n| &&
              `            done = true;` && |\n| &&
              `            goToLogoutUrl();` && |\n| &&
-             |\n|.
-    result = result &&
              `          };` && |\n| &&
              `          try {` && |\n| &&
              `            const f = document.createElement("iframe");` && |\n| &&
              `            f.style.display = "none";` && |\n| &&
              `            f.src = bspKill;` && |\n| &&
              `            f.addEventListener("load", finish);` && |\n| &&
+             |\n|.
+    result = result &&
              `            document.body.appendChild(f);` && |\n| &&
              `          } catch (e) {` && |\n| &&
              `            finish();` && |\n| &&
@@ -847,7 +841,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            redirectToLogoff();` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError("SYSTEM_LOGOUT: ushell logout failed", e);` && |\n| &&
+             `          Util.logError("SYSTEM_LOGOUT: ushell logout failed", e);` && |\n| &&
              `          redirectToLogoff();` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
@@ -892,7 +886,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const fn = actions[args[1]];` && |\n| &&
              `          if (fn) fn();` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError(``URLHELPER: '${args[1]}' failed``, e);` && |\n| &&
+             `          Util.logError(``URLHELPER: '${args[1]}' failed``, e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -902,7 +896,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const editor = Fragment.byId("popupId", "imageEditor");` && |\n| &&
              `          if (editor) image = editor.getImagePngDataURL();` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError("IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed", e);` && |\n| &&
+             `          Util.logError(` && |\n| &&
+             `            "IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed",` && |\n| &&
+             `            e,` && |\n| &&
+             `          );` && |\n| &&
              `        }` && |\n| &&
              `        this.PopupDestroy();` && |\n| &&
              `        this.eB(["SAVE"], image);` && |\n| &&
@@ -932,7 +929,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          if (!input) return;` && |\n| &&
              `          input.setAttribute("inputmode", args[2] || "text");` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError(` && |\n| &&
+             `          Util.logError(` && |\n| &&
              `            ``KEYBOARD_SET_MODE: setAttribute failed for '${args[1]}'``,` && |\n| &&
              `            e,` && |\n| &&
              `          );` && |\n| &&
@@ -951,7 +948,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];` && |\n| &&
              `            oElement.applyFocusInfo(info);` && |\n| &&
              `          } catch (e) {` && |\n| &&
-             `            logError(``SET_FOCUS: failed for '${args[1]}'``, e);` && |\n| &&
+             `            Util.logError(``SET_FOCUS: failed for '${args[1]}'``, e);` && |\n| &&
              `          }` && |\n| &&
              `        };` && |\n| &&
              `` && |\n| &&
@@ -1023,7 +1020,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            }` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError(``SCROLL_TO: failed for '${args[1]}'``, e);` && |\n| &&
+             `          Util.logError(``SCROLL_TO: failed for '${args[1]}'``, e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -1045,7 +1042,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            inline: args[4] || "nearest",` && |\n| &&
              `          });` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError(``SCROLL_INTO_VIEW: failed for '${args[1]}'``, e);` && |\n| &&
+             `          Util.logError(``SCROLL_INTO_VIEW: failed for '${args[1]}'``, e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -1054,7 +1051,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          document.title = title;` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError("SET_TITLE: setting document.title failed", e);` && |\n| &&
+             `          Util.logError("SET_TITLE: setting document.title failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -1066,7 +1063,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            const result = shell.setTitle(title);` && |\n| &&
              `            if (result && result.catch) {` && |\n| &&
              `              result.catch((e) =>` && |\n| &&
-             `                logError(` && |\n| &&
+             `                Util.logError(` && |\n| &&
              `                  "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",` && |\n| &&
              `                  e,` && |\n| &&
              `                ),` && |\n| &&
@@ -1074,7 +1071,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            }` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError("SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed", e);` && |\n| &&
+             `          Util.logError(` && |\n| &&
+             `            "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",` && |\n| &&
+             `            e,` && |\n| &&
+             `          );` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -1083,7 +1083,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const fn = z2ui5[args[1]];` && |\n| &&
              `          if (fn) fn(args.slice(2));` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError(``Z2UI5: '${args[1]}' failed``, e);` && |\n| &&
+             `          Util.logError(``Z2UI5: '${args[1]}' failed``, e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -1095,7 +1095,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          if (wiz && step) wiz.discardProgress(step);` && |\n| &&
              `          if (step && nextStep) step.setNextStep(nextStep);` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError(``WIZARD_SET_NEXT_STEP: failed for wizard '${args[1]}'``, e);` && |\n| &&
+             `          Util.logError(` && |\n| &&
+             `            ``WIZARD_SET_NEXT_STEP: failed for wizard '${args[1]}'``,` && |\n| &&
+             `            e,` && |\n| &&
+             `          );` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -1103,7 +1106,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          new Audio(args[1]).play();` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError(``PLAY_AUDIO: failed for '${args[1]}'``, e);` && |\n| &&
+             `          Util.logError(``PLAY_AUDIO: failed for '${args[1]}'``, e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -1219,16 +1222,16 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        applyStoredSizeLimit(paramToViewKey[paramKey], oModel);` && |\n| &&
              `        if (oView) oView.setModel(oModel);` && |\n| &&
              `      },` && |\n| &&
+             |\n|.
+    result = result &&
              `` && |\n| &&
              `      async checkSDKcompatibility(err) {` && |\n| &&
              `        let gav;` && |\n| &&
-             |\n|.
-    result = result &&
              `        try {` && |\n| &&
              `          const info = await VersionInfo.load();` && |\n| &&
              `          gav = info.gav;` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError("checkSDKcompatibility: VersionInfo.load failed", e);` && |\n| &&
+             `          Util.logError("checkSDKcompatibility: VersionInfo.load failed", e);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        if (!gav || !gav.includes("com.sap.ui5")) {` && |\n| &&
@@ -1322,9 +1325,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        });` && |\n| &&
              `` && |\n| &&
              `        // Guard against the app being destroyed during the await above.` && |\n| &&
-             `        const appAlive =` && |\n| &&
-             `          z2ui5.oApp && (!z2ui5.oApp.isDestroyed || !z2ui5.oApp.isDestroyed());` && |\n| &&
-             `        if (!appAlive) {` && |\n| &&
+             `        if (!Util.isAlive(z2ui5.oApp)) {` && |\n| &&
              `          z2ui5.oView.destroy();` && |\n| &&
              `          if (switchPath) oModel.destroy();` && |\n| &&
              `          z2ui5.oView = null;` && |\n| &&

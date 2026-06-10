@@ -6,19 +6,10 @@ sap.ui.define(
     "sap/ui/VersionInfo",
     "z2ui5/cc/DebugTool",
     "sap/ui/core/Theming",
+    "z2ui5/cc/Util",
   ],
-  (UIComponent, Models, Server, VersionInfo, DebugTool, Theming) => {
+  (UIComponent, Models, Server, VersionInfo, DebugTool, Theming, Util) => {
     "use strict";
-
-    // Append an entry to the global error log. We create the array on first use.
-    function logError(message, error) {
-      if (!z2ui5.errors) z2ui5.errors = [];
-      z2ui5.errors.push({
-        message: message,
-        error: error,
-        ts: new Date().toISOString(),
-      });
-    }
 
     return UIComponent.extend("z2ui5.Component", {
       metadata: {
@@ -104,7 +95,7 @@ sap.ui.define(
             z2ui5.oController.displayView(state.view, state.model);
           if (displayPromise && displayPromise.catch) {
             displayPromise.catch((e) =>
-              logError("popstate: displayView failed", e),
+              Util.logError("popstate: displayView failed", e),
             );
           }
         };
@@ -128,34 +119,37 @@ sap.ui.define(
         // before the services were ready). setIfAlive guards against writing
         // to a stale launchpad object in that case.
         const setIfAlive = (key, value) => {
-          const stillAlive = !this.isDestroyed || !this.isDestroyed();
-          if (stillAlive && this._launchpad === launchpad) {
+          if (Util.isAlive(this) && this._launchpad === launchpad) {
             launchpad[key] = value;
           }
         };
 
         Container.getServiceAsync("ShellUIService")
           .then((s) => setIfAlive("ShellUIService", s))
-          .catch((e) => logError("Component: ShellUIService init failed", e));
+          .catch((e) =>
+            Util.logError("Component: ShellUIService init failed", e),
+          );
 
         Container.getServiceAsync("CrossApplicationNavigation")
           .then((s) => setIfAlive("CrossAppNavigator", s))
           .catch((e) =>
-            logError("Component: CrossApplicationNavigation init failed", e),
+            Util.logError(
+              "Component: CrossApplicationNavigation init failed",
+              e,
+            ),
           );
 
         sap.ui.require(
           ["sap/ushell/services/AppConfiguration"],
           (ac) => setIfAlive("AppConfiguration", ac),
-          (e) => logError("Component: AppConfiguration init failed", e),
+          (e) => Util.logError("Component: AppConfiguration init failed", e),
         );
       },
 
       async _initVersionInfo() {
         try {
           const info = await VersionInfo.load();
-          const stillAlive = !this.isDestroyed || !this.isDestroyed();
-          if (stillAlive) {
+          if (Util.isAlive(this)) {
             z2ui5.oConfig.S_UI5 = {
               VERSION: info.version,
               BUILDTIMESTAMP: info.buildTimestamp,
@@ -164,7 +158,7 @@ sap.ui.define(
             };
           }
         } catch (e) {
-          logError("Component: VersionInfo load failed", e);
+          Util.logError("Component: VersionInfo load failed", e);
         }
       },
 
@@ -197,7 +191,7 @@ sap.ui.define(
             this._launchpad.Container.setDirtyFlag;
           if (setDirtyFlag) setDirtyFlag.call(this._launchpad.Container, false);
         } catch (e) {
-          logError("Component: clearing FLP dirty flag failed", e);
+          Util.logError("Component: clearing FLP dirty flag failed", e);
         }
         if (z2ui5.oLaunchpad === this._launchpad) z2ui5.oLaunchpad = null;
         this._launchpad = null;
