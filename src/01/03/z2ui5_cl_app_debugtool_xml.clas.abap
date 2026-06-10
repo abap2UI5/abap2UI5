@@ -113,7 +113,7 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `            />` &&
              `        </VBox>` &&
              `        <VBox visible="{/source_visible}">` &&
-             `            <core:HTML/>` &&
+             `            <core:HTML id="sourceHtml"/>` &&
              `        </VBox>` &&
              `        <endButton>` &&
              `            <Button` &&

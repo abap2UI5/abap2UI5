@@ -93,7 +93,7 @@
             />
         </VBox>
         <VBox visible="{/source_visible}">
-            <core:HTML/>
+            <core:HTML id="sourceHtml"/>
         </VBox>
         <endButton>
             <Button

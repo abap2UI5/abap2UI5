@@ -264,7 +264,15 @@ sap.ui.define("z2ui5/History", ["sap/ui/core/Control", "z2ui5/cc/Util"], (Contro
       this.setProperty("search", val);
       try {
         const search = val == null ? "" : val;
-        history.replaceState(null, "", `${window.location.pathname}${search}`);
+        // Pass the current state object along: _processAfterRendering stores
+        // the rendered view/model in history.state so the back button can
+        // restore it without a roundtrip - replacing it with null would
+        // break that popstate restore.
+        history.replaceState(
+          history.state,
+          "",
+          `${window.location.pathname}${search}`,
+        );
       } catch (e) {
         Util.logError("History.setSearch: replaceState failed", e);
       }

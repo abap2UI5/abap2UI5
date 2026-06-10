@@ -13,6 +13,13 @@ sap.ui.define(
     const ERROR_MAX_LENGTH = 50000;
     const _MSG_TYPES = Object.freeze(["S_MSG_TOAST", "S_MSG_BOX"]);
 
+    // Last-resort client-side timeout for backend roundtrips. Infrastructure
+    // timeouts (ICM, web dispatcher, proxies) usually fire much earlier and
+    // surface as a regular error response; this backstop only ensures that a
+    // completely hung connection cannot leave the busy indicator spinning
+    // forever. Override via z2ui5.requestTimeoutMs.
+    const REQUEST_TIMEOUT_MS = 600000;
+
     // A usable stateful session id ("sap-contextid"). We must never put a
     // missing value on the wire: an empty or - via string coercion of a
     // JS `undefined` - the literal "undefined" makes the SAP Web Dispatcher /
@@ -253,6 +260,7 @@ sap.ui.define(
       async readHttp() {
         // Step 1: send the request.
         let response;
+        const timeoutMs = z2ui5.requestTimeoutMs || REQUEST_TIMEOUT_MS;
         try {
           // Only forward "sap-contextid" once we actually own a valid session
           // id - otherwise omit the header entirely (never send "" or
@@ -268,9 +276,21 @@ sap.ui.define(
             method: "POST",
             headers: headers,
             body: JSON.stringify({ value: z2ui5.oBody }),
+            // The signal also guards reading the response body below.
+            // Browsers without AbortSignal.timeout simply get no client-side
+            // timeout, as before.
+            signal: AbortSignal.timeout
+              ? AbortSignal.timeout(timeoutMs)
+              : undefined,
           });
         } catch (e) {
-          this.responseError(`Network error: ${e.message}`);
+          if (e.name === "TimeoutError" || e.name === "AbortError") {
+            this.responseError(
+              `No backend response within ${timeoutMs / 1000} seconds - request aborted`,
+            );
+          } else {
+            this.responseError(`Network error: ${e.message}`);
+          }
           return;
         }
         // Keep the last valid session id; a response without the header

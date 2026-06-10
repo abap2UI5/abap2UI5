@@ -1104,7 +1104,15 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `      _evPlayAudio(args) {` && |\n| &&
              `        try {` && |\n| &&
-             `          new Audio(args[1]).play();` && |\n| &&
+             `          const playing = new Audio(args[1]).play();` && |\n| &&
+             `          // play() returns a Promise; a rejection (e.g. blocked by the` && |\n| &&
+             `          // browser's autoplay policy) is not caught by the surrounding` && |\n| &&
+             `          // try/catch and would surface as an unhandled rejection.` && |\n| &&
+             `          if (playing && playing.catch) {` && |\n| &&
+             `            playing.catch((e) =>` && |\n| &&
+             `              Util.logError(``PLAY_AUDIO: failed for '${args[1]}'``, e),` && |\n| &&
+             `            );` && |\n| &&
+             `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Util.logError(``PLAY_AUDIO: failed for '${args[1]}'``, e);` && |\n| &&
              `        }` && |\n| &&
@@ -1214,6 +1222,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // Re-bind a model to one of the views when the response signals an` && |\n| &&
              `      // update is required for that particular slot.` && |\n| &&
              `      updateModelIfRequired(paramKey, oView) {` && |\n| &&
+             |\n|.
+    result = result &&
              `        const params = z2ui5.oResponse && z2ui5.oResponse.PARAMS;` && |\n| &&
              `        const slot = params && params[paramKey];` && |\n| &&
              `        if (!slot || !slot.CHECK_UPDATE_MODEL) return;` && |\n| &&
@@ -1222,8 +1232,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        applyStoredSizeLimit(paramToViewKey[paramKey], oModel);` && |\n| &&
              `        if (oView) oView.setModel(oModel);` && |\n| &&
              `      },` && |\n| &&
-             |\n|.
-    result = result &&
              `` && |\n| &&
              `      async checkSDKcompatibility(err) {` && |\n| &&
              `        let gav;` && |\n| &&

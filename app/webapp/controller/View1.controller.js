@@ -1080,7 +1080,15 @@ sap.ui.define(
 
       _evPlayAudio(args) {
         try {
-          new Audio(args[1]).play();
+          const playing = new Audio(args[1]).play();
+          // play() returns a Promise; a rejection (e.g. blocked by the
+          // browser's autoplay policy) is not caught by the surrounding
+          // try/catch and would surface as an unhandled rejection.
+          if (playing && playing.catch) {
+            playing.catch((e) =>
+              Util.logError(`PLAY_AUDIO: failed for '${args[1]}'`, e),
+            );
+          }
         } catch (e) {
           Util.logError(`PLAY_AUDIO: failed for '${args[1]}'`, e);
         }

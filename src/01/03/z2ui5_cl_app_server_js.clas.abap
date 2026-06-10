@@ -33,6 +33,13 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    const ERROR_MAX_LENGTH = 50000;` && |\n| &&
              `    const _MSG_TYPES = Object.freeze(["S_MSG_TOAST", "S_MSG_BOX"]);` && |\n| &&
              `` && |\n| &&
+             `    // Last-resort client-side timeout for backend roundtrips. Infrastructure` && |\n| &&
+             `    // timeouts (ICM, web dispatcher, proxies) usually fire much earlier and` && |\n| &&
+             `    // surface as a regular error response; this backstop only ensures that a` && |\n| &&
+             `    // completely hung connection cannot leave the busy indicator spinning` && |\n| &&
+             `    // forever. Override via z2ui5.requestTimeoutMs.` && |\n| &&
+             `    const REQUEST_TIMEOUT_MS = 600000;` && |\n| &&
+             `` && |\n| &&
              `    // A usable stateful session id ("sap-contextid"). We must never put a` && |\n| &&
              `    // missing value on the wire: an empty or - via string coercion of a` && |\n| &&
              `    // JS ``undefined`` - the literal "undefined" makes the SAP Web Dispatcher /` && |\n| &&
@@ -273,6 +280,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      async readHttp() {` && |\n| &&
              `        // Step 1: send the request.` && |\n| &&
              `        let response;` && |\n| &&
+             `        const timeoutMs = z2ui5.requestTimeoutMs || REQUEST_TIMEOUT_MS;` && |\n| &&
              `        try {` && |\n| &&
              `          // Only forward "sap-contextid" once we actually own a valid session` && |\n| &&
              `          // id - otherwise omit the header entirely (never send "" or` && |\n| &&
@@ -288,9 +296,21 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            method: "POST",` && |\n| &&
              `            headers: headers,` && |\n| &&
              `            body: JSON.stringify({ value: z2ui5.oBody }),` && |\n| &&
+             `            // The signal also guards reading the response body below.` && |\n| &&
+             `            // Browsers without AbortSignal.timeout simply get no client-side` && |\n| &&
+             `            // timeout, as before.` && |\n| &&
+             `            signal: AbortSignal.timeout` && |\n| &&
+             `              ? AbortSignal.timeout(timeoutMs)` && |\n| &&
+             `              : undefined,` && |\n| &&
              `          });` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          this.responseError(``Network error: ${e.message}``);` && |\n| &&
+             `          if (e.name === "TimeoutError" || e.name === "AbortError") {` && |\n| &&
+             `            this.responseError(` && |\n| &&
+             `              ``No backend response within ${timeoutMs / 1000} seconds - request aborted``,` && |\n| &&
+             `            );` && |\n| &&
+             `          } else {` && |\n| &&
+             `            this.responseError(``Network error: ${e.message}``);` && |\n| &&
+             `          }` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        // Keep the last valid session id; a response without the header` && |\n| &&
@@ -398,6 +418,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          const parts = item.split("'");` && |\n| &&
              `          // Arguments live at the odd indices between single quotes.` && |\n| &&
              `          const args = parts.filter((_, index) => index % 2 === 1);` && |\n| &&
+             |\n|.
+    result = result &&
              `          if (args.length > 0) {` && |\n| &&
              `            oController.eF(...args);` && |\n| &&
              `          } else {` && |\n| &&
@@ -418,8 +440,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        container.style.cssText = ``` && |\n| &&
              `          position: fixed;` && |\n| &&
              `          top: 50%;` && |\n| &&
-             |\n|.
-    result = result &&
              `          left: 50%;` && |\n| &&
              `          transform: translate(-50%, -50%);` && |\n| &&
              `          width: 90%;` && |\n| &&

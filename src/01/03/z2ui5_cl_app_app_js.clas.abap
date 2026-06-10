@@ -284,7 +284,15 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      this.setProperty("search", val);` && |\n| &&
              `      try {` && |\n| &&
              `        const search = val == null ? "" : val;` && |\n| &&
-             `        history.replaceState(null, "", ``${window.location.pathname}${search}``);` && |\n| &&
+             `        // Pass the current state object along: _processAfterRendering stores` && |\n| &&
+             `        // the rendered view/model in history.state so the back button can` && |\n| &&
+             `        // restore it without a roundtrip - replacing it with null would` && |\n| &&
+             `        // break that popstate restore.` && |\n| &&
+             `        history.replaceState(` && |\n| &&
+             `          history.state,` && |\n| &&
+             `          "",` && |\n| &&
+             `          ``${window.location.pathname}${search}``,` && |\n| &&
+             `        );` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Util.logError("History.setSearch: replaceState failed", e);` && |\n| &&
              `      }` && |\n| &&
@@ -410,6 +418,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        if (bindingInfo) {` && |\n| &&
              `          const parts = bindingInfo.parts;` && |\n| &&
              `          if (parts && parts[0]) bindingPath = parts[0].path;` && |\n| &&
+             |\n|.
+    result = result &&
              `          if (!bindingPath) bindingPath = bindingInfo.path;` && |\n| &&
              `        }` && |\n| &&
              `        for (const [index, item] of items.entries()) {` && |\n| &&
@@ -418,8 +428,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            item.V = scrollTop;` && |\n| &&
              `            if (bindingPath && z2ui5.xxChangedPaths) {` && |\n| &&
              `              z2ui5.xxChangedPaths.add(``${bindingPath}/${index}/V``);` && |\n| &&
-             |\n|.
-    result = result &&
              `            }` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
@@ -812,6 +820,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            type: "string",` && |\n| &&
              `            defaultValue: "",` && |\n| &&
              `          },` && |\n| &&
+             |\n|.
+    result = result &&
              `          fileType: {` && |\n| &&
              `            type: "string",` && |\n| &&
              `            defaultValue: "",` && |\n| &&
@@ -820,8 +830,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            type: "string",` && |\n| &&
              `            defaultValue: "",` && |\n| &&
              `          },` && |\n| &&
-             |\n|.
-    result = result &&
              `          buttonText: {` && |\n| &&
              `            type: "string",` && |\n| &&
              `            defaultValue: "",` && |\n| &&
@@ -1214,6 +1222,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `              const finalKey = lower === "keyfield" ? "keyField" : lower;` && |\n| &&
              `              out[finalKey] = value;` && |\n| &&
              `            }` && |\n| &&
+             |\n|.
+    result = result &&
              `            return out;` && |\n| &&
              `          });` && |\n| &&
              `          input.setRangeData(normalizedRangeData);` && |\n| &&
@@ -1222,8 +1232,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          // recalculation.` && |\n| &&
              `          const inputTokens = input.getTokens() || [];` && |\n| &&
              `          for (const [index, token] of inputTokens.entries()) {` && |\n| &&
-             |\n|.
-    result = result &&
              `            const rangeItem = aRangeData[index];` && |\n| &&
              `            if (!rangeItem) continue;` && |\n| &&
              `            const { TOKENLONGKEY, TOKENTEXT } = rangeItem;` && |\n| &&
@@ -1616,6 +1624,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          if (` && |\n| &&
              `            oCol.getFilterProperty &&` && |\n| &&
              `            oCol.getFilterProperty() === sProperty` && |\n| &&
+             |\n|.
+    result = result &&
              `          ) {` && |\n| &&
              `            oCol.setFilterValue(display);` && |\n| &&
              `            oCol.setFiltered(!!display);` && |\n| &&
@@ -1624,8 +1634,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             |\n|.
-    result = result &&
              `    _applyToTable(applyFn, errorMsg) {` && |\n| &&
              `      try {` && |\n| &&
              `        const oTable = this._getTable();` && |\n| &&

@@ -8,6 +8,10 @@ sap.ui.define(
   (Control, Fragment, JSONModel, Util) => {
     "use strict";
 
+    // Fragment id under which the debug dialog's controls are registered;
+    // used to resolve controls by their id instead of by content position.
+    const FRAGMENT_ID = "z2ui5DebugTool";
+
     // Pretty-print any value (object, array, primitive) as indented JSON.
     // `null` is used as a fallback so undefined values still produce output.
     function toJson(val) {
@@ -213,13 +217,7 @@ sap.ui.define(
 
           case "SOURCE": {
             // Show the ABAP source of the running app inside an iframe.
-            const parent = oSource.getParent();
-            const content = parent && parent.getContent && parent.getContent();
-            const contentControl =
-              content &&
-              content[2] &&
-              content[2].getItems &&
-              content[2].getItems()[0];
+            const contentControl = Fragment.byId(FRAGMENT_ID, "sourceHtml");
             if (!contentControl) break;
 
             const appName =
@@ -290,6 +288,7 @@ sap.ui.define(
             this.oDialog = await Fragment.load({
               name: "z2ui5.cc.DebugTool",
               controller: this,
+              id: FRAGMENT_ID,
             });
           }
           // If the user closed the app while the fragment was loading we

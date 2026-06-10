@@ -28,6 +28,10 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `  (Control, Fragment, JSONModel, Util) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
+             `    // Fragment id under which the debug dialog's controls are registered;` && |\n| &&
+             `    // used to resolve controls by their id instead of by content position.` && |\n| &&
+             `    const FRAGMENT_ID = "z2ui5DebugTool";` && |\n| &&
+             `` && |\n| &&
              `    // Pretty-print any value (object, array, primitive) as indented JSON.` && |\n| &&
              `    // ``null`` is used as a fallback so undefined values still produce output.` && |\n| &&
              `    function toJson(val) {` && |\n| &&
@@ -233,13 +237,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `` && |\n| &&
              `          case "SOURCE": {` && |\n| &&
              `            // Show the ABAP source of the running app inside an iframe.` && |\n| &&
-             `            const parent = oSource.getParent();` && |\n| &&
-             `            const content = parent && parent.getContent && parent.getContent();` && |\n| &&
-             `            const contentControl =` && |\n| &&
-             `              content &&` && |\n| &&
-             `              content[2] &&` && |\n| &&
-             `              content[2].getItems &&` && |\n| &&
-             `              content[2].getItems()[0];` && |\n| &&
+             `            const contentControl = Fragment.byId(FRAGMENT_ID, "sourceHtml");` && |\n| &&
              `            if (!contentControl) break;` && |\n| &&
              `` && |\n| &&
              `            const appName =` && |\n| &&
@@ -310,6 +308,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `            this.oDialog = await Fragment.load({` && |\n| &&
              `              name: "z2ui5.cc.DebugTool",` && |\n| &&
              `              controller: this,` && |\n| &&
+             `              id: FRAGMENT_ID,` && |\n| &&
              `            });` && |\n| &&
              `          }` && |\n| &&
              `          // If the user closed the app while the fragment was loading we` && |\n| &&
