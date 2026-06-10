@@ -12,12 +12,25 @@ CLASS z2ui5_cl_util_api_c DEFINITION
       RETURNING
         VALUE(result) TYPE z2ui5_cl_util=>ty_t_msg.
 
-    CLASS-METHODS bal_save
+    CLASS-METHODS bal_create
       IMPORTING
         object    TYPE clike
         subobject TYPE clike
         id        TYPE clike
         t_log     TYPE z2ui5_cl_util=>ty_t_msg.
+
+    CLASS-METHODS bal_update
+      IMPORTING
+        object    TYPE clike
+        subobject TYPE clike
+        id        TYPE clike
+        t_log     TYPE z2ui5_cl_util=>ty_t_msg.
+
+    CLASS-METHODS bal_delete
+      IMPORTING
+        object    TYPE clike
+        subobject TYPE clike
+        id        TYPE clike.
 
     CLASS-METHODS context_get_callstack
       RETURNING
@@ -147,6 +160,19 @@ CLASS z2ui5_cl_util_api_c DEFINITION
 
     CLASS-DATA gv_check_cloud TYPE abap_bool.
     CLASS-DATA gv_check_cloud_cached TYPE abap_bool.
+
+    CLASS-METHODS bal_add_items
+      IMPORTING
+        log   TYPE REF TO object
+        t_log TYPE z2ui5_cl_util=>ty_t_msg.
+
+    CLASS-METHODS bal_build_filter
+      IMPORTING
+        object        TYPE clike
+        subobject     TYPE clike
+        id            TYPE clike
+      RETURNING
+        VALUE(result) TYPE REF TO object.
 
 ENDCLASS.
 
@@ -897,38 +923,223 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD bal_read.
+  METHOD bal_create.
 
-*" Create and set header
-*
-*
-*DATA(lo_header) = cl_bali_header_setter=>create( object      = `ZBS_DEMO_LOG_OBJECT`
-*                                                 subobject   = `TEST`
-*                                                 external_id = cl_system_uuid=>create_uuid_c32_static( )
-*                                                 ).
-*
-*
-*DATA(lo_ohandler) = cl_bali_object_handler=>get_instance( ).
-*
-*lo_ohandler->read_object(
-*  EXPORTING
-*    iv_object      = `TEST`
-*  IMPORTING
-**    ev_object_text =
-*    et_subobjects  = data(lo_obj)
-*).
-**CATCH cx_bali_objects.
-*
-*lo_obj
-*DATA(lo_log_db) = cl_bali_log_db=>get_instance( ).
-*data(ls_hanlde) =  value if_bali_log_db=>ty_handle( ).
-*DATA(lo_log) = lo_header->load_log( value ).
-*DATA(lt_items) = lo_log->get_all_items( ).
+    " ABAP Cloud: released Business Application Log API (cl_bali_*).
+    " All access is dynamic so this class still compiles on lower releases.
+    " The class names are kept in variables - a string literal inside the
+    " dynamic component selector ( '...' )=>( '...' ) is not valid ABAP.
+    " Returning parameter names follow the released API (header/log/db_handler).
+    DATA lo_header  TYPE REF TO object.
+    DATA lo_log     TYPE REF TO object.
+    DATA lo_db      TYPE REF TO object.
+    DATA lv_class   TYPE string.
 
+    TRY.
+        lv_class = `CL_BALI_HEADER_SETTER`.
+        CALL METHOD (lv_class)=>(`CREATE`)
+          EXPORTING
+            object      = object
+            subobject   = subobject
+            external_id = id
+          RECEIVING
+            header      = lo_header.
+
+        lv_class = `CL_BALI_LOG`.
+        CALL METHOD (lv_class)=>(`CREATE`)
+          RECEIVING
+            log = lo_log.
+
+        CALL METHOD lo_log->(`SET_HEADER`)
+          EXPORTING
+            header = lo_header.
+
+        bal_add_items( log   = lo_log
+                       t_log = t_log ).
+
+        lv_class = `CL_BALI_LOG_DB`.
+        CALL METHOD (lv_class)=>(`GET_INSTANCE`)
+          RECEIVING
+            db_handler = lo_db.
+
+        CALL METHOD lo_db->(`SAVE_LOG`)
+          EXPORTING
+            log = lo_log.
+
+        COMMIT WORK AND WAIT.
+
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
 
   ENDMETHOD.
 
-  METHOD bal_save.
+  METHOD bal_read.
+
+    " Load the persisted logs (incl. items) via the released filter API and map
+    " each item's message text. cl_bali_log_db->load_logs_via_filter loads items
+    " by default (read_only_header not set).
+    TYPES:
+      BEGIN OF ty_item,
+        log_item_number TYPE i,
+        item            TYPE REF TO object,
+      END OF ty_item.
+    DATA lt_items  TYPE STANDARD TABLE OF ty_item.
+    DATA lo_filter TYPE REF TO object.
+    DATA lo_db     TYPE REF TO object.
+    DATA lt_logs   TYPE STANDARD TABLE OF REF TO object.
+    DATA lv_text   TYPE string.
+    DATA lv_class  TYPE string.
+
+    TRY.
+        lo_filter = bal_build_filter( object    = object
+                                      subobject = subobject
+                                      id        = id ).
+
+        lv_class = `CL_BALI_LOG_DB`.
+        CALL METHOD (lv_class)=>(`GET_INSTANCE`)
+          RECEIVING
+            db_handler = lo_db.
+
+        CALL METHOD lo_db->(`LOAD_LOGS_VIA_FILTER`)
+          EXPORTING
+            filter    = lo_filter
+          RECEIVING
+            log_table = lt_logs.
+
+        LOOP AT lt_logs INTO DATA(lo_log).
+
+          lt_items = VALUE #( ).
+          CALL METHOD lo_log->(`GET_ALL_ITEMS`)
+            RECEIVING
+              item_table = lt_items.
+
+          LOOP AT lt_items INTO DATA(ls_item).
+            IF ls_item-item IS NOT BOUND.
+              CONTINUE.
+            ENDIF.
+            lv_text = ``.
+            CALL METHOD ls_item-item->(`GET_MESSAGE_TEXT`)
+              RECEIVING
+                message_text = lv_text.
+            INSERT VALUE #( text = lv_text ) INTO TABLE result.
+          ENDLOOP.
+
+        ENDLOOP.
+
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD bal_update.
+
+    " Classic in-place append needs a reliable load of the existing log, which on
+    " ABAP Cloud depends on the released filter API. As a safe fallback the messages
+    " are persisted as a new log for the same object / subobject / external id.
+    bal_create( object    = object
+                subobject = subobject
+                id        = id
+                t_log     = t_log ).
+
+  ENDMETHOD.
+
+  METHOD bal_delete.
+
+    DATA lo_filter TYPE REF TO object.
+    DATA lo_db     TYPE REF TO object.
+    DATA lt_logs   TYPE STANDARD TABLE OF REF TO object.
+    DATA lv_class  TYPE string.
+
+    TRY.
+        lo_filter = bal_build_filter( object    = object
+                                      subobject = subobject
+                                      id        = id ).
+
+        lv_class = `CL_BALI_LOG_DB`.
+        CALL METHOD (lv_class)=>(`GET_INSTANCE`)
+          RECEIVING
+            db_handler = lo_db.
+
+        CALL METHOD lo_db->(`LOAD_LOGS_VIA_FILTER`)
+          EXPORTING
+            filter    = lo_filter
+          RECEIVING
+            log_table = lt_logs.
+
+        LOOP AT lt_logs INTO DATA(lo_log).
+          CALL METHOD lo_db->(`DELETE_LOG`)
+            EXPORTING
+              log = lo_log.
+        ENDLOOP.
+
+        COMMIT WORK AND WAIT.
+
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD bal_add_items.
+
+    DATA lo_item  TYPE REF TO object.
+    DATA lv_msgty TYPE c LENGTH 1.
+    DATA lv_class TYPE string.
+
+    LOOP AT t_log INTO DATA(ls_log).
+
+      lv_msgty = ls_log-type.
+
+      IF ls_log-id IS NOT INITIAL AND ls_log-no IS NOT INITIAL.
+        lv_class = `CL_BALI_MESSAGE_SETTER`.
+        CALL METHOD (lv_class)=>(`CREATE`)
+          EXPORTING
+            severity   = lv_msgty
+            id         = ls_log-id
+            number     = ls_log-no
+            variable_1 = ls_log-v1
+            variable_2 = ls_log-v2
+            variable_3 = ls_log-v3
+            variable_4 = ls_log-v4
+          RECEIVING
+            message    = lo_item.
+      ELSE.
+        lv_class = `CL_BALI_FREE_TEXT_SETTER`.
+        CALL METHOD (lv_class)=>(`CREATE`)
+          EXPORTING
+            severity  = lv_msgty
+            text      = ls_log-text
+          RECEIVING
+            free_text = lo_item.
+      ENDIF.
+
+      CALL METHOD log->(`ADD_ITEM`)
+        EXPORTING
+          item = lo_item.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD bal_build_filter.
+
+    DATA lo_filter TYPE REF TO object.
+    DATA lv_class  TYPE string.
+
+    lv_class = `CL_BALI_LOG_FILTER`.
+    CALL METHOD (lv_class)=>(`CREATE`)
+      RECEIVING
+        filter = lo_filter.
+
+    CALL METHOD lo_filter->(`SET_DESCRIPTOR`)
+      EXPORTING
+        object      = object
+        subobject   = subobject
+        external_id = id.
+
+    result = lo_filter.
 
   ENDMETHOD.
 

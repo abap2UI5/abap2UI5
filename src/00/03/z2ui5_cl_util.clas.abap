@@ -91,6 +91,13 @@ CLASS z2ui5_cl_util DEFINITION
         skip    TYPE abap_bool,
       END OF ty_s_msg_box.
 
+    TYPES:
+      BEGIN OF ty_s_zip_file,
+        name    TYPE string,
+        content TYPE xstring,
+      END OF ty_s_zip_file.
+    TYPES ty_t_zip_file TYPE STANDARD TABLE OF ty_s_zip_file WITH EMPTY KEY.
+
     CLASS-METHODS ui5_get_msg_type
       IMPORTING
         val           TYPE clike
@@ -635,6 +642,53 @@ CLASS z2ui5_cl_util DEFINITION
         !origin       TYPE clike
       RETURNING
         VALUE(result) TYPE string.
+
+    CLASS-METHODS cal_get_weekday
+      IMPORTING
+        !date         TYPE d
+      RETURNING
+        VALUE(result) TYPE i.
+
+    CLASS-METHODS cal_is_weekend
+      IMPORTING
+        !date         TYPE d
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS cal_is_workday
+      IMPORTING
+        !date         TYPE d
+        !calendar_id  TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS cal_add_workdays
+      IMPORTING
+        !date         TYPE d
+        !days         TYPE i
+        !calendar_id  TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE d.
+
+    CLASS-METHODS cal_count_workdays
+      IMPORTING
+        !date_from    TYPE d
+        !date_to      TYPE d
+        !calendar_id  TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE i.
+
+    CLASS-METHODS zip_pack
+      IMPORTING
+        !files        TYPE ty_t_zip_file
+      RETURNING
+        VALUE(result) TYPE xstring.
+
+    CLASS-METHODS zip_unpack
+      IMPORTING
+        !val          TYPE xstring
+      RETURNING
+        VALUE(result) TYPE ty_t_zip_file.
 
   PROTECTED SECTION.
 
@@ -2444,6 +2498,126 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   METHOD app_get_url_source_code.
 
     result = |{ origin }/sap/bc/adt/oo/classes/{ classname }/source/main|.
+
+  ENDMETHOD.
+
+
+  METHOD cal_get_weekday.
+
+    " 1900-01-01 was a Monday, so the day distance modulo 7 yields the weekday
+    DATA(lv_days) = date - CONV d( `19000101` ).
+    result = lv_days MOD 7 + 1.
+
+  ENDMETHOD.
+
+
+  METHOD cal_is_weekend.
+
+    result = xsdbool( cal_get_weekday( date ) >= 6 ).
+
+  ENDMETHOD.
+
+
+  METHOD cal_is_workday.
+
+    IF calendar_id IS NOT INITIAL.
+      z2ui5_cl_util=>x_raise( `cal_is_workday: factory calendar support is not yet implemented` ).
+    ENDIF.
+
+    result = xsdbool( cal_is_weekend( date ) = abap_false ).
+
+  ENDMETHOD.
+
+
+  METHOD cal_add_workdays.
+
+    DATA(lv_remaining) = abs( days ).
+    DATA(lv_step) = COND i( WHEN days < 0 THEN -1 ELSE 1 ).
+
+    result = date.
+    WHILE lv_remaining > 0.
+      result = result + lv_step.
+      IF cal_is_workday( date = result calendar_id = calendar_id ) = abap_true.
+        lv_remaining = lv_remaining - 1.
+      ENDIF.
+    ENDWHILE.
+
+  ENDMETHOD.
+
+
+  METHOD cal_count_workdays.
+
+    DATA(lv_date) = date_from.
+    DATA(lv_step) = COND i( WHEN date_to < date_from THEN -1 ELSE 1 ).
+
+    WHILE lv_date <> date_to.
+      lv_date = lv_date + lv_step.
+      IF cal_is_workday( date = lv_date calendar_id = calendar_id ) = abap_true.
+        result = result + 1.
+      ENDIF.
+    ENDWHILE.
+
+  ENDMETHOD.
+
+
+  METHOD zip_pack.
+
+    DATA lo_zip TYPE REF TO object.
+
+    TRY.
+
+        CREATE OBJECT lo_zip TYPE ('CL_ABAP_ZIP').
+        LOOP AT files INTO DATA(ls_file).
+          CALL METHOD lo_zip->('ADD')
+            EXPORTING
+              name    = ls_file-name
+              content = ls_file-content.
+        ENDLOOP.
+        CALL METHOD lo_zip->('SAVE')
+          RECEIVING
+            zip = result.
+
+      CATCH cx_root INTO DATA(x).
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = x.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD zip_unpack.
+
+    DATA lo_zip    TYPE REF TO object.
+    DATA lv_name   TYPE string.
+    DATA ls_result LIKE LINE OF result.
+
+    FIELD-SYMBOLS <files> TYPE ANY TABLE.
+    FIELD-SYMBOLS <file>  TYPE any.
+    FIELD-SYMBOLS <name>  TYPE any.
+
+    TRY.
+
+        CREATE OBJECT lo_zip TYPE ('CL_ABAP_ZIP').
+        CALL METHOD lo_zip->('LOAD')
+          EXPORTING
+            zip = val.
+
+        ASSIGN lo_zip->('FILES') TO <files>.
+        LOOP AT <files> ASSIGNING <file>.
+          ASSIGN COMPONENT `NAME` OF STRUCTURE <file> TO <name>.
+          lv_name = <name>.
+
+          ls_result = VALUE #( name = lv_name ).
+          CALL METHOD lo_zip->('GET')
+            EXPORTING
+              name    = lv_name
+            IMPORTING
+              content = ls_result-content.
+          INSERT ls_result INTO TABLE result.
+        ENDLOOP.
+
+      CATCH cx_root INTO DATA(x).
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = x.
+    ENDTRY.
 
   ENDMETHOD.
 ENDCLASS.
