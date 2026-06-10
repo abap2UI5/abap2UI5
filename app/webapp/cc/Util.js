@@ -69,6 +69,138 @@ sap.ui.define([], () => {
     control.setProperty("removedTokens", isRemoved ? tokens : []);
   }
 
+  // ------------------------------------------------------------------
+  // Pure helpers - free of UI5 dependencies so the Node specs under
+  // node/tests/ can load this module with a stubbed sap.ui.define and
+  // test the real implementation instead of a copy.
+  // ------------------------------------------------------------------
+
+  const SAFE_PROTOCOLS = ["http:", "https:"];
+
+  // Returns true only if the URL is on the same origin and uses http/https.
+  function isValidRedirectURL(url) {
+    if (!url) return false;
+    try {
+      const parsed = new URL(url, window.location.origin);
+      if (parsed.origin !== window.location.origin) {
+        logError(`Security: Blocked redirect to different origin: ${url}`);
+        return false;
+      }
+      if (!SAFE_PROTOCOLS.includes(parsed.protocol)) {
+        logError(
+          `Security: Blocked redirect with invalid protocol: ${parsed.protocol}`,
+        );
+        return false;
+      }
+      return true;
+    } catch (e) {
+      logError(`Security: Invalid URL format: ${url}`, e);
+      return false;
+    }
+  }
+
+  // Returns true if the URL uses a safe (http/https) protocol. Unlike
+  // isValidRedirectURL this allows cross-origin targets, so it fits
+  // outbound redirects to external sites while still blocking dangerous
+  // schemes such as javascript:, data: or vbscript:.
+  function isSafeRedirectProtocol(url) {
+    if (!url) return false;
+    try {
+      const parsed = new URL(url, window.location.origin);
+      if (!SAFE_PROTOCOLS.includes(parsed.protocol)) {
+        logError(
+          `Security: Blocked redirect with invalid protocol: ${parsed.protocol}`,
+        );
+        return false;
+      }
+      return true;
+    } catch (e) {
+      logError(`Security: Invalid URL format: ${url}`, e);
+      return false;
+    }
+  }
+
+  // Returns true for URLs that are safe as download targets: data: and
+  // blob: (generated content) plus http(s). Blocks javascript: and other
+  // active schemes, consistent with the redirect validators above.
+  function isSafeDownloadURL(url) {
+    if (!url) return false;
+    try {
+      const parsed = new URL(url, window.location.origin);
+      return (
+        parsed.protocol === "data:" ||
+        parsed.protocol === "blob:" ||
+        SAFE_PROTOCOLS.includes(parsed.protocol)
+      );
+    } catch (e) {
+      logError(`Security: Invalid URL format: ${url}`, e);
+      return false;
+    }
+  }
+
+  // A usable stateful session id ("sap-contextid"). We must never put a
+  // missing value on the wire: an empty or - via string coercion of a
+  // JS `undefined` - the literal "undefined" makes the SAP Web Dispatcher /
+  // ICM log "invalid w3c session id" / "HttpExtractSID: SID wrong len: 9"
+  // on every roundtrip. Only forward a real, non-empty id.
+  function isValidContextId(id) {
+    return typeof id === "string" && id !== "" && id !== "undefined";
+  }
+
+  // Build the delta object sent to the backend. `paths` is the set of
+  // /XX/... paths that the user edited; `xx` is the full XX model data.
+  function buildDeltaFromPaths(paths, xx) {
+    const delta = {};
+    for (const path of paths) {
+      // path looks like "/XX/<attr>" or "/XX/<attr>/<row>/<field>"
+      const parts = path.slice(4).split("/");
+      const [attr, rowIdx, field] = parts;
+      // Only a flat table cell (exactly attr/row/field) qualifies for a
+      // delta. Deeper paths (e.g. tree tables: attr/row/<subtable>/<row>/<field>)
+      // fall back to shipping the whole attribute, which the backend applies
+      // via corresponding-based deserialization.
+      const isRowField = parts.length === 3 && rowIdx !== "" && !isNaN(rowIdx);
+      if (isRowField) {
+        // Table cell change -> ship only the changed cell.
+        if (!delta[attr] || !delta[attr].__delta) {
+          delta[attr] = { __delta: {} };
+        }
+        const attrDelta = delta[attr].__delta;
+        if (!attrDelta[rowIdx]) attrDelta[rowIdx] = {};
+        const row = xx[attr] && xx[attr][+rowIdx];
+        attrDelta[rowIdx][field] = row ? row[field] : undefined;
+      } else {
+        // Scalar change -> ship the whole attribute.
+        delta[attr] = xx[attr];
+      }
+    }
+    return delta;
+  }
+
+  // Turns an HTML "details" snippet from the backend into safe HTML.
+  // Bullet lists are preserved; everything else is reduced to plain text.
+  // The DOM helpers are created lazily so loading this module does not
+  // require a DOM (the Node specs never call this function).
+  let _msgParser = null;
+  let _sanitizeEl = null;
+  function sanitizeMessageDetails(html) {
+    if (!_msgParser) {
+      _msgParser = new DOMParser();
+      _sanitizeEl = document.createElement("div");
+    }
+    const doc = _msgParser.parseFromString(html, "text/html");
+    const items = Array.from(doc.querySelectorAll("li"));
+    if (items.length > 0) {
+      const safeItems = items.map((li) => {
+        _sanitizeEl.textContent = li.textContent;
+        return `<li>${_sanitizeEl.innerHTML}</li>`;
+      });
+      return `<ul>${safeItems.join("")}</ul>`;
+    }
+    _sanitizeEl.textContent = doc.body.textContent;
+    return _sanitizeEl.innerHTML;
+  }
+
   // The five view slots of the multi-view architecture. `param` is the
   // key used in the backend response PARAMS, `key` the short slot name
   // used in frontend events, `prop` the z2ui5 property holding the live
@@ -101,6 +233,12 @@ sap.ui.define([], () => {
     unregisterCallback,
     readFileAsDataURL,
     applyTokenUpdate,
+    isValidRedirectURL,
+    isSafeRedirectProtocol,
+    isSafeDownloadURL,
+    isValidContextId,
+    buildDeltaFromPaths,
+    sanitizeMessageDetails,
     viewSlots,
     getViewByKey,
     slotKeyByParam,

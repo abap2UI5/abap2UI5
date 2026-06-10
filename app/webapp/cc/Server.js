@@ -20,15 +20,6 @@ sap.ui.define(
     // forever. Override via z2ui5.requestTimeoutMs.
     const REQUEST_TIMEOUT_MS = 600000;
 
-    // A usable stateful session id ("sap-contextid"). We must never put a
-    // missing value on the wire: an empty or - via string coercion of a
-    // JS `undefined` - the literal "undefined" makes the SAP Web Dispatcher /
-    // ICM log "invalid w3c session id" / "HttpExtractSID: SID wrong len: 9"
-    // on every roundtrip. Only forward a real, non-empty id.
-    function isValidContextId(id) {
-      return typeof id === "string" && id !== "" && id !== "undefined";
-    }
-
     // Roundtrip lifecycle (spans this file and View1.controller.js):
     //   1. View1.eB(...)              collects the model delta into z2ui5.oBody
     //   2. Server.Roundtrip()         adds S_FRONT (device/focus/scroll info)
@@ -40,7 +31,7 @@ sap.ui.define(
     // oResponse and pendingCustomJs.
     return {
       endSession() {
-        if (!isValidContextId(z2ui5.contextId)) return;
+        if (!Util.isValidContextId(z2ui5.contextId)) return;
         // Best-effort notify the backend that the session ends. Errors are
         // intentionally swallowed: the browser tab is closing anyway.
         fetch(z2ui5.url, {
@@ -240,7 +231,7 @@ sap.ui.define(
             "Content-Type": "application/json",
             "sap-contextid-accept": "header",
           };
-          if (isValidContextId(z2ui5.contextId)) {
+          if (Util.isValidContextId(z2ui5.contextId)) {
             headers["sap-contextid"] = z2ui5.contextId;
           }
           response = await fetch(z2ui5.url, {
@@ -267,7 +258,7 @@ sap.ui.define(
         // Keep the last valid session id; a response without the header
         // (returns null) must not wipe an established session.
         const contextId = response.headers.get("sap-contextid");
-        if (isValidContextId(contextId)) {
+        if (Util.isValidContextId(contextId)) {
           z2ui5.contextId = contextId;
         }
 

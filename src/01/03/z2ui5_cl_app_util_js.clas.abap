@@ -89,6 +89,138 @@ CLASS z2ui5_cl_app_util_js IMPLEMENTATION.
              `    control.setProperty("removedTokens", isRemoved ? tokens : []);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  // ------------------------------------------------------------------` && |\n| &&
+             `  // Pure helpers - free of UI5 dependencies so the Node specs under` && |\n| &&
+             `  // node/tests/ can load this module with a stubbed sap.ui.define and` && |\n| &&
+             `  // test the real implementation instead of a copy.` && |\n| &&
+             `  // ------------------------------------------------------------------` && |\n| &&
+             `` && |\n| &&
+             `  const SAFE_PROTOCOLS = ["http:", "https:"];` && |\n| &&
+             `` && |\n| &&
+             `  // Returns true only if the URL is on the same origin and uses http/https.` && |\n| &&
+             `  function isValidRedirectURL(url) {` && |\n| &&
+             `    if (!url) return false;` && |\n| &&
+             `    try {` && |\n| &&
+             `      const parsed = new URL(url, window.location.origin);` && |\n| &&
+             `      if (parsed.origin !== window.location.origin) {` && |\n| &&
+             `        logError(``Security: Blocked redirect to different origin: ${url}``);` && |\n| &&
+             `        return false;` && |\n| &&
+             `      }` && |\n| &&
+             `      if (!SAFE_PROTOCOLS.includes(parsed.protocol)) {` && |\n| &&
+             `        logError(` && |\n| &&
+             `          ``Security: Blocked redirect with invalid protocol: ${parsed.protocol}``,` && |\n| &&
+             `        );` && |\n| &&
+             `        return false;` && |\n| &&
+             `      }` && |\n| &&
+             `      return true;` && |\n| &&
+             `    } catch (e) {` && |\n| &&
+             `      logError(``Security: Invalid URL format: ${url}``, e);` && |\n| &&
+             `      return false;` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // Returns true if the URL uses a safe (http/https) protocol. Unlike` && |\n| &&
+             `  // isValidRedirectURL this allows cross-origin targets, so it fits` && |\n| &&
+             `  // outbound redirects to external sites while still blocking dangerous` && |\n| &&
+             `  // schemes such as javascript:, data: or vbscript:.` && |\n| &&
+             `  function isSafeRedirectProtocol(url) {` && |\n| &&
+             `    if (!url) return false;` && |\n| &&
+             `    try {` && |\n| &&
+             `      const parsed = new URL(url, window.location.origin);` && |\n| &&
+             `      if (!SAFE_PROTOCOLS.includes(parsed.protocol)) {` && |\n| &&
+             `        logError(` && |\n| &&
+             `          ``Security: Blocked redirect with invalid protocol: ${parsed.protocol}``,` && |\n| &&
+             `        );` && |\n| &&
+             `        return false;` && |\n| &&
+             `      }` && |\n| &&
+             `      return true;` && |\n| &&
+             `    } catch (e) {` && |\n| &&
+             `      logError(``Security: Invalid URL format: ${url}``, e);` && |\n| &&
+             `      return false;` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // Returns true for URLs that are safe as download targets: data: and` && |\n| &&
+             `  // blob: (generated content) plus http(s). Blocks javascript: and other` && |\n| &&
+             `  // active schemes, consistent with the redirect validators above.` && |\n| &&
+             `  function isSafeDownloadURL(url) {` && |\n| &&
+             `    if (!url) return false;` && |\n| &&
+             `    try {` && |\n| &&
+             `      const parsed = new URL(url, window.location.origin);` && |\n| &&
+             `      return (` && |\n| &&
+             `        parsed.protocol === "data:" ||` && |\n| &&
+             `        parsed.protocol === "blob:" ||` && |\n| &&
+             `        SAFE_PROTOCOLS.includes(parsed.protocol)` && |\n| &&
+             `      );` && |\n| &&
+             `    } catch (e) {` && |\n| &&
+             `      logError(``Security: Invalid URL format: ${url}``, e);` && |\n| &&
+             `      return false;` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // A usable stateful session id ("sap-contextid"). We must never put a` && |\n| &&
+             `  // missing value on the wire: an empty or - via string coercion of a` && |\n| &&
+             `  // JS ``undefined`` - the literal "undefined" makes the SAP Web Dispatcher /` && |\n| &&
+             `  // ICM log "invalid w3c session id" / "HttpExtractSID: SID wrong len: 9"` && |\n| &&
+             `  // on every roundtrip. Only forward a real, non-empty id.` && |\n| &&
+             `  function isValidContextId(id) {` && |\n| &&
+             `    return typeof id === "string" && id !== "" && id !== "undefined";` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // Build the delta object sent to the backend. ``paths`` is the set of` && |\n| &&
+             `  // /XX/... paths that the user edited; ``xx`` is the full XX model data.` && |\n| &&
+             `  function buildDeltaFromPaths(paths, xx) {` && |\n| &&
+             `    const delta = {};` && |\n| &&
+             `    for (const path of paths) {` && |\n| &&
+             `      // path looks like "/XX/<attr>" or "/XX/<attr>/<row>/<field>"` && |\n| &&
+             `      const parts = path.slice(4).split("/");` && |\n| &&
+             `      const [attr, rowIdx, field] = parts;` && |\n| &&
+             `      // Only a flat table cell (exactly attr/row/field) qualifies for a` && |\n| &&
+             `      // delta. Deeper paths (e.g. tree tables: attr/row/<subtable>/<row>/<field>)` && |\n| &&
+             `      // fall back to shipping the whole attribute, which the backend applies` && |\n| &&
+             `      // via corresponding-based deserialization.` && |\n| &&
+             `      const isRowField = parts.length === 3 && rowIdx !== "" && !isNaN(rowIdx);` && |\n| &&
+             `      if (isRowField) {` && |\n| &&
+             `        // Table cell change -> ship only the changed cell.` && |\n| &&
+             `        if (!delta[attr] || !delta[attr].__delta) {` && |\n| &&
+             `          delta[attr] = { __delta: {} };` && |\n| &&
+             `        }` && |\n| &&
+             `        const attrDelta = delta[attr].__delta;` && |\n| &&
+             `        if (!attrDelta[rowIdx]) attrDelta[rowIdx] = {};` && |\n| &&
+             `        const row = xx[attr] && xx[attr][+rowIdx];` && |\n| &&
+             `        attrDelta[rowIdx][field] = row ? row[field] : undefined;` && |\n| &&
+             `      } else {` && |\n| &&
+             `        // Scalar change -> ship the whole attribute.` && |\n| &&
+             `        delta[attr] = xx[attr];` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `    return delta;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // Turns an HTML "details" snippet from the backend into safe HTML.` && |\n| &&
+             `  // Bullet lists are preserved; everything else is reduced to plain text.` && |\n| &&
+             `  // The DOM helpers are created lazily so loading this module does not` && |\n| &&
+             `  // require a DOM (the Node specs never call this function).` && |\n| &&
+             `  let _msgParser = null;` && |\n| &&
+             `  let _sanitizeEl = null;` && |\n| &&
+             `  function sanitizeMessageDetails(html) {` && |\n| &&
+             `    if (!_msgParser) {` && |\n| &&
+             `      _msgParser = new DOMParser();` && |\n| &&
+             `      _sanitizeEl = document.createElement("div");` && |\n| &&
+             `    }` && |\n| &&
+             `    const doc = _msgParser.parseFromString(html, "text/html");` && |\n| &&
+             `    const items = Array.from(doc.querySelectorAll("li"));` && |\n| &&
+             `    if (items.length > 0) {` && |\n| &&
+             `      const safeItems = items.map((li) => {` && |\n| &&
+             `        _sanitizeEl.textContent = li.textContent;` && |\n| &&
+             `        return ``<li>${_sanitizeEl.innerHTML}</li>``;` && |\n| &&
+             `      });` && |\n| &&
+             `      return ``<ul>${safeItems.join("")}</ul>``;` && |\n| &&
+             `    }` && |\n| &&
+             `    _sanitizeEl.textContent = doc.body.textContent;` && |\n| &&
+             `    return _sanitizeEl.innerHTML;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  // The five view slots of the multi-view architecture. ``param`` is the` && |\n| &&
              `  // key used in the backend response PARAMS, ``key`` the short slot name` && |\n| &&
              `  // used in frontend events, ``prop`` the z2ui5 property holding the live` && |\n| &&
@@ -121,6 +253,12 @@ CLASS z2ui5_cl_app_util_js IMPLEMENTATION.
              `    unregisterCallback,` && |\n| &&
              `    readFileAsDataURL,` && |\n| &&
              `    applyTokenUpdate,` && |\n| &&
+             `    isValidRedirectURL,` && |\n| &&
+             `    isSafeRedirectProtocol,` && |\n| &&
+             `    isSafeDownloadURL,` && |\n| &&
+             `    isValidContextId,` && |\n| &&
+             `    buildDeltaFromPaths,` && |\n| &&
+             `    sanitizeMessageDetails,` && |\n| &&
              `    viewSlots,` && |\n| &&
              `    getViewByKey,` && |\n| &&
              `    slotKeyByParam,` && |\n| &&

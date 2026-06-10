@@ -40,15 +40,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    // forever. Override via z2ui5.requestTimeoutMs.` && |\n| &&
              `    const REQUEST_TIMEOUT_MS = 600000;` && |\n| &&
              `` && |\n| &&
-             `    // A usable stateful session id ("sap-contextid"). We must never put a` && |\n| &&
-             `    // missing value on the wire: an empty or - via string coercion of a` && |\n| &&
-             `    // JS ``undefined`` - the literal "undefined" makes the SAP Web Dispatcher /` && |\n| &&
-             `    // ICM log "invalid w3c session id" / "HttpExtractSID: SID wrong len: 9"` && |\n| &&
-             `    // on every roundtrip. Only forward a real, non-empty id.` && |\n| &&
-             `    function isValidContextId(id) {` && |\n| &&
-             `      return typeof id === "string" && id !== "" && id !== "undefined";` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    // Roundtrip lifecycle (spans this file and View1.controller.js):` && |\n| &&
              `    //   1. View1.eB(...)              collects the model delta into z2ui5.oBody` && |\n| &&
              `    //   2. Server.Roundtrip()         adds S_FRONT (device/focus/scroll info)` && |\n| &&
@@ -60,7 +51,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    // oResponse and pendingCustomJs.` && |\n| &&
              `    return {` && |\n| &&
              `      endSession() {` && |\n| &&
-             `        if (!isValidContextId(z2ui5.contextId)) return;` && |\n| &&
+             `        if (!Util.isValidContextId(z2ui5.contextId)) return;` && |\n| &&
              `        // Best-effort notify the backend that the session ends. Errors are` && |\n| &&
              `        // intentionally swallowed: the browser tab is closing anyway.` && |\n| &&
              `        fetch(z2ui5.url, {` && |\n| &&
@@ -260,7 +251,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            "Content-Type": "application/json",` && |\n| &&
              `            "sap-contextid-accept": "header",` && |\n| &&
              `          };` && |\n| &&
-             `          if (isValidContextId(z2ui5.contextId)) {` && |\n| &&
+             `          if (Util.isValidContextId(z2ui5.contextId)) {` && |\n| &&
              `            headers["sap-contextid"] = z2ui5.contextId;` && |\n| &&
              `          }` && |\n| &&
              `          response = await fetch(z2ui5.url, {` && |\n| &&
@@ -287,7 +278,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        // Keep the last valid session id; a response without the header` && |\n| &&
              `        // (returns null) must not wipe an established session.` && |\n| &&
              `        const contextId = response.headers.get("sap-contextid");` && |\n| &&
-             `        if (isValidContextId(contextId)) {` && |\n| &&
+             `        if (Util.isValidContextId(contextId)) {` && |\n| &&
              `          z2ui5.contextId = contextId;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -418,8 +409,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          z-index: 9999;` && |\n| &&
              `          display: flex;` && |\n| &&
              `          flex-direction: column;` && |\n| &&
-             |\n|.
-    result = result &&
              `        ``;` && |\n| &&
              `        document.body.appendChild(container);` && |\n| &&
              `        return container;` && |\n| &&
@@ -429,6 +418,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      // unrecoverable state - a failed roundtrip (network, HTTP != 2xx, bad` && |\n| &&
              `      // JSON, backend dump) or a client-side failure (invalid view XML,` && |\n| &&
              `      // post-render crash, missing SDK module). The only way out is a restart,` && |\n| &&
+             |\n|.
+    result = result &&
              `      // hence the Refresh / Logout actions. Built from raw DOM so it still` && |\n| &&
              `      // works when the UI5 core itself is in a broken state.` && |\n| &&
              `      // ``response`` may be a string or an Error object; ``title`` overrides the` && |\n| &&

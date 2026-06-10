@@ -61,83 +61,13 @@ sap.ui.define(
       return val ? +val : def;
     }
 
-    // DOM helpers reused across calls; kept as module-level singletons.
-    const _msgParser = new DOMParser();
-    const _sanitizeEl = document.createElement("div");
+    // Helpers reused across calls; kept as module-level singletons.
     const _hashChanger = HashChanger.getInstance();
     const _URLHelper = mobileLibrary.URLHelper;
-    const _SAFE_PROTOCOLS = new Set(["http:", "https:"]);
 
     // Single reusable BusyDialog flashed when the user clicks while a
     // roundtrip is already in flight (created lazily, kept for reuse).
     let _busyDialog = null;
-
-    // ------------------------------------------------------------------
-    // Security helpers
-    // ------------------------------------------------------------------
-
-    // Returns true only if the URL is on the same origin and uses http/https.
-    function isValidRedirectURL(url) {
-      if (!url) return false;
-      try {
-        const parsed = new URL(url, window.location.origin);
-        if (parsed.origin !== window.location.origin) {
-          Util.logError(
-            `Security: Blocked redirect to different origin: ${url}`,
-          );
-          return false;
-        }
-        if (!_SAFE_PROTOCOLS.has(parsed.protocol)) {
-          Util.logError(
-            `Security: Blocked redirect with invalid protocol: ${parsed.protocol}`,
-          );
-          return false;
-        }
-        return true;
-      } catch (e) {
-        Util.logError(`Security: Invalid URL format: ${url}`, e);
-        return false;
-      }
-    }
-
-    // Returns true if the URL uses a safe (http/https) protocol. Unlike
-    // isValidRedirectURL this allows cross-origin targets, so it fits
-    // outbound redirects to external sites while still blocking dangerous
-    // schemes such as javascript:, data: or vbscript:.
-    function isSafeRedirectProtocol(url) {
-      if (!url) return false;
-      try {
-        const parsed = new URL(url, window.location.origin);
-        if (!_SAFE_PROTOCOLS.has(parsed.protocol)) {
-          Util.logError(
-            `Security: Blocked redirect with invalid protocol: ${parsed.protocol}`,
-          );
-          return false;
-        }
-        return true;
-      } catch (e) {
-        Util.logError(`Security: Invalid URL format: ${url}`, e);
-        return false;
-      }
-    }
-
-    // Returns true for URLs that are safe as download targets: data: and
-    // blob: (generated content) plus http(s). Blocks javascript: and other
-    // active schemes, consistent with the redirect validators above.
-    function isSafeDownloadURL(url) {
-      if (!url) return false;
-      try {
-        const parsed = new URL(url, window.location.origin);
-        return (
-          parsed.protocol === "data:" ||
-          parsed.protocol === "blob:" ||
-          _SAFE_PROTOCOLS.has(parsed.protocol)
-        );
-      } catch (e) {
-        Util.logError(`Security: Invalid URL format: ${url}`, e);
-        return false;
-      }
-    }
 
     function copyToClipboard(textToCopy) {
       if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -168,22 +98,6 @@ sap.ui.define(
       } finally {
         document.body.removeChild(textarea);
       }
-    }
-
-    // Turns an HTML "details" snippet from the backend into safe HTML.
-    // Bullet lists are preserved; everything else is reduced to plain text.
-    function sanitizeMessageDetails(html) {
-      const doc = _msgParser.parseFromString(html, "text/html");
-      const items = Array.from(doc.querySelectorAll("li"));
-      if (items.length > 0) {
-        const safeItems = items.map((li) => {
-          _sanitizeEl.textContent = li.textContent;
-          return `<li>${_sanitizeEl.innerHTML}</li>`;
-        });
-        return `<ul>${safeItems.join("")}</ul>`;
-      }
-      _sanitizeEl.textContent = doc.body.textContent;
-      return _sanitizeEl.innerHTML;
     }
 
     // ------------------------------------------------------------------
@@ -423,37 +337,6 @@ sap.ui.define(
         }
       },
 
-      // Build the delta object sent to the backend. `paths` is the set of
-      // /XX/... paths that the user edited; `xx` is the full XX model data.
-      _buildDeltaFromPaths(paths, xx) {
-        const delta = {};
-        for (const path of paths) {
-          // path looks like "/XX/<attr>" or "/XX/<attr>/<row>/<field>"
-          const parts = path.slice(4).split("/");
-          const [attr, rowIdx, field] = parts;
-          // Only a flat table cell (exactly attr/row/field) qualifies for a
-          // delta. Deeper paths (e.g. tree tables: attr/row/<subtable>/<row>/<field>)
-          // fall back to shipping the whole attribute, which the backend applies
-          // via corresponding-based deserialization.
-          const isRowField =
-            parts.length === 3 && rowIdx !== "" && !isNaN(rowIdx);
-          if (isRowField) {
-            // Table cell change -> ship only the changed cell.
-            if (!delta[attr] || !delta[attr].__delta) {
-              delta[attr] = { __delta: {} };
-            }
-            const attrDelta = delta[attr].__delta;
-            if (!attrDelta[rowIdx]) attrDelta[rowIdx] = {};
-            const row = xx[attr] && xx[attr][+rowIdx];
-            attrDelta[rowIdx][field] = row ? row[field] : undefined;
-          } else {
-            // Scalar change -> ship the whole attribute.
-            delta[attr] = xx[attr];
-          }
-        }
-        return delta;
-      },
-
       _createViewModel() {
         const data = z2ui5.oResponse && z2ui5.oResponse.OVIEWMODEL;
         return this._trackChanges(new JSONModel(data));
@@ -660,7 +543,7 @@ sap.ui.define(
       },
 
       _evDownloadB64File(args) {
-        if (!isSafeDownloadURL(args[1])) {
+        if (!Util.isSafeDownloadURL(args[1])) {
           Util.logError("DOWNLOAD_B64_FILE: blocked unsafe URL");
           return;
         }
@@ -745,7 +628,7 @@ sap.ui.define(
       },
 
       _evLocationReload(args) {
-        if (isValidRedirectURL(args[1])) {
+        if (Util.isValidRedirectURL(args[1])) {
           window.location.href = args[1];
         } else {
           MessageBox.error(
@@ -757,7 +640,7 @@ sap.ui.define(
       _evSystemLogout(args) {
         const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";
         const goToLogoutUrl = () => {
-          if (isValidRedirectURL(logoutUrl)) {
+          if (Util.isValidRedirectURL(logoutUrl)) {
             window.location.href = logoutUrl;
           } else {
             MessageBox.error(
@@ -815,7 +698,7 @@ sap.ui.define(
       },
 
       _evOpenNewTab(args) {
-        if (!isValidRedirectURL(args[1])) {
+        if (!Util.isValidRedirectURL(args[1])) {
           MessageBox.error(
             "Invalid URL. Only relative URLs to the same domain are allowed.",
           );
@@ -830,7 +713,7 @@ sap.ui.define(
         const params = args[2];
         const actions = {
           REDIRECT: () => {
-            if (!isSafeRedirectProtocol(params.URL)) {
+            if (!Util.isSafeRedirectProtocol(params.URL)) {
               MessageBox.error(
                 "Invalid redirect URL. Only http/https protocols are allowed.",
               );
@@ -1148,10 +1031,7 @@ sap.ui.define(
           const data = oModel.getData();
           const xx = data && data.XX;
           if (xx) {
-            z2ui5.oBody.XX = this._buildDeltaFromPaths(
-              z2ui5.xxChangedPaths,
-              xx,
-            );
+            z2ui5.oBody.XX = Util.buildDeltaFromPaths(z2ui5.xxChangedPaths, xx);
           }
         }
 
@@ -1274,7 +1154,9 @@ sap.ui.define(
             emphasizedAction: msg.EMPHASIZEDACTION || "OK",
             initialFocus: msg.INITIALFOCUS || null,
             textDirection: msg.TEXTDIRECTION || "Inherit",
-            details: msg.DETAILS ? sanitizeMessageDetails(msg.DETAILS) : "",
+            details: msg.DETAILS
+              ? Util.sanitizeMessageDetails(msg.DETAILS)
+              : "",
             closeOnNavigation: !!msg.CLOSEONNAVIGATION,
           };
           if (msg.ICON && msg.ICON !== "NONE") oParams.icon = msg.ICON;

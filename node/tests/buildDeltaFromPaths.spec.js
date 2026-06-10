@@ -1,27 +1,11 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
+const { loadUtil } = require('./loadUtilModule');
 
-// Extract the pure function from the controller for unit testing
-function _buildDeltaFromPaths(paths, xx) {
-    let delta = {};
-    for (let path of paths) {
-        let parts = path.substring(4).split('/');
-        let attr = parts[0];
-        if (parts.length === 3 && !isNaN(parts[1])) {
-            if (!delta[attr] || !delta[attr]["__delta"]) {
-                delta[attr] = { "__delta": {} };
-            }
-            let rowIdx = parts[1];
-            if (!delta[attr]["__delta"][rowIdx]) {
-                delta[attr]["__delta"][rowIdx] = {};
-            }
-            delta[attr]["__delta"][rowIdx][parts[2]] = xx[attr]?.[parseInt(rowIdx)]?.[parts[2]];
-        } else {
-            delta[attr] = xx[attr];
-        }
-    }
-    return delta;
-}
+// Tests the real implementation shipped in app/webapp/cc/Util.js (loaded
+// via a stubbed sap.ui.define) instead of a local copy that could drift.
+const { Util } = loadUtil();
+const _buildDeltaFromPaths = Util.buildDeltaFromPaths;
 
 // ── Test data ───────────────────────────────────────────────────────────
 const SAMPLE_XX = {

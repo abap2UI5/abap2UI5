@@ -81,83 +81,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      return val ? +val : def;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // DOM helpers reused across calls; kept as module-level singletons.` && |\n| &&
-             `    const _msgParser = new DOMParser();` && |\n| &&
-             `    const _sanitizeEl = document.createElement("div");` && |\n| &&
+             `    // Helpers reused across calls; kept as module-level singletons.` && |\n| &&
              `    const _hashChanger = HashChanger.getInstance();` && |\n| &&
              `    const _URLHelper = mobileLibrary.URLHelper;` && |\n| &&
-             `    const _SAFE_PROTOCOLS = new Set(["http:", "https:"]);` && |\n| &&
              `` && |\n| &&
              `    // Single reusable BusyDialog flashed when the user clicks while a` && |\n| &&
              `    // roundtrip is already in flight (created lazily, kept for reuse).` && |\n| &&
              `    let _busyDialog = null;` && |\n| &&
-             `` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `    // Security helpers` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
-             `    // Returns true only if the URL is on the same origin and uses http/https.` && |\n| &&
-             `    function isValidRedirectURL(url) {` && |\n| &&
-             `      if (!url) return false;` && |\n| &&
-             `      try {` && |\n| &&
-             `        const parsed = new URL(url, window.location.origin);` && |\n| &&
-             `        if (parsed.origin !== window.location.origin) {` && |\n| &&
-             `          Util.logError(` && |\n| &&
-             `            ``Security: Blocked redirect to different origin: ${url}``,` && |\n| &&
-             `          );` && |\n| &&
-             `          return false;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (!_SAFE_PROTOCOLS.has(parsed.protocol)) {` && |\n| &&
-             `          Util.logError(` && |\n| &&
-             `            ``Security: Blocked redirect with invalid protocol: ${parsed.protocol}``,` && |\n| &&
-             `          );` && |\n| &&
-             `          return false;` && |\n| &&
-             `        }` && |\n| &&
-             `        return true;` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Util.logError(``Security: Invalid URL format: ${url}``, e);` && |\n| &&
-             `        return false;` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    // Returns true if the URL uses a safe (http/https) protocol. Unlike` && |\n| &&
-             `    // isValidRedirectURL this allows cross-origin targets, so it fits` && |\n| &&
-             `    // outbound redirects to external sites while still blocking dangerous` && |\n| &&
-             `    // schemes such as javascript:, data: or vbscript:.` && |\n| &&
-             `    function isSafeRedirectProtocol(url) {` && |\n| &&
-             `      if (!url) return false;` && |\n| &&
-             `      try {` && |\n| &&
-             `        const parsed = new URL(url, window.location.origin);` && |\n| &&
-             `        if (!_SAFE_PROTOCOLS.has(parsed.protocol)) {` && |\n| &&
-             `          Util.logError(` && |\n| &&
-             `            ``Security: Blocked redirect with invalid protocol: ${parsed.protocol}``,` && |\n| &&
-             `          );` && |\n| &&
-             `          return false;` && |\n| &&
-             `        }` && |\n| &&
-             `        return true;` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Util.logError(``Security: Invalid URL format: ${url}``, e);` && |\n| &&
-             `        return false;` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    // Returns true for URLs that are safe as download targets: data: and` && |\n| &&
-             `    // blob: (generated content) plus http(s). Blocks javascript: and other` && |\n| &&
-             `    // active schemes, consistent with the redirect validators above.` && |\n| &&
-             `    function isSafeDownloadURL(url) {` && |\n| &&
-             `      if (!url) return false;` && |\n| &&
-             `      try {` && |\n| &&
-             `        const parsed = new URL(url, window.location.origin);` && |\n| &&
-             `        return (` && |\n| &&
-             `          parsed.protocol === "data:" ||` && |\n| &&
-             `          parsed.protocol === "blob:" ||` && |\n| &&
-             `          _SAFE_PROTOCOLS.has(parsed.protocol)` && |\n| &&
-             `        );` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Util.logError(``Security: Invalid URL format: ${url}``, e);` && |\n| &&
-             `        return false;` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
              `` && |\n| &&
              `    function copyToClipboard(textToCopy) {` && |\n| &&
              `      if (navigator.clipboard && navigator.clipboard.writeText) {` && |\n| &&
@@ -188,22 +118,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      } finally {` && |\n| &&
              `        document.body.removeChild(textarea);` && |\n| &&
              `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    // Turns an HTML "details" snippet from the backend into safe HTML.` && |\n| &&
-             `    // Bullet lists are preserved; everything else is reduced to plain text.` && |\n| &&
-             `    function sanitizeMessageDetails(html) {` && |\n| &&
-             `      const doc = _msgParser.parseFromString(html, "text/html");` && |\n| &&
-             `      const items = Array.from(doc.querySelectorAll("li"));` && |\n| &&
-             `      if (items.length > 0) {` && |\n| &&
-             `        const safeItems = items.map((li) => {` && |\n| &&
-             `          _sanitizeEl.textContent = li.textContent;` && |\n| &&
-             `          return ``<li>${_sanitizeEl.innerHTML}</li>``;` && |\n| &&
-             `        });` && |\n| &&
-             `        return ``<ul>${safeItems.join("")}</ul>``;` && |\n| &&
-             `      }` && |\n| &&
-             `      _sanitizeEl.textContent = doc.body.textContent;` && |\n| &&
-             `      return _sanitizeEl.innerHTML;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
@@ -418,8 +332,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `          runCallbacks(z2ui5.onAfterRendering);` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             |\n|.
-    result = result &&
              `          Util.logError("_processAfterRendering: unexpected error", e);` && |\n| &&
              `          Server.responseError(e, "Unexpected Error Occurred - App Terminated");` && |\n| &&
              `        } finally {` && |\n| &&
@@ -443,37 +355,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        for (const item of customJs) {` && |\n| &&
              `          Server._runCustomJs(item, this);` && |\n| &&
              `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // Build the delta object sent to the backend. ``paths`` is the set of` && |\n| &&
-             `      // /XX/... paths that the user edited; ``xx`` is the full XX model data.` && |\n| &&
-             `      _buildDeltaFromPaths(paths, xx) {` && |\n| &&
-             `        const delta = {};` && |\n| &&
-             `        for (const path of paths) {` && |\n| &&
-             `          // path looks like "/XX/<attr>" or "/XX/<attr>/<row>/<field>"` && |\n| &&
-             `          const parts = path.slice(4).split("/");` && |\n| &&
-             `          const [attr, rowIdx, field] = parts;` && |\n| &&
-             `          // Only a flat table cell (exactly attr/row/field) qualifies for a` && |\n| &&
-             `          // delta. Deeper paths (e.g. tree tables: attr/row/<subtable>/<row>/<field>)` && |\n| &&
-             `          // fall back to shipping the whole attribute, which the backend applies` && |\n| &&
-             `          // via corresponding-based deserialization.` && |\n| &&
-             `          const isRowField =` && |\n| &&
-             `            parts.length === 3 && rowIdx !== "" && !isNaN(rowIdx);` && |\n| &&
-             `          if (isRowField) {` && |\n| &&
-             `            // Table cell change -> ship only the changed cell.` && |\n| &&
-             `            if (!delta[attr] || !delta[attr].__delta) {` && |\n| &&
-             `              delta[attr] = { __delta: {} };` && |\n| &&
-             `            }` && |\n| &&
-             `            const attrDelta = delta[attr].__delta;` && |\n| &&
-             `            if (!attrDelta[rowIdx]) attrDelta[rowIdx] = {};` && |\n| &&
-             `            const row = xx[attr] && xx[attr][+rowIdx];` && |\n| &&
-             `            attrDelta[rowIdx][field] = row ? row[field] : undefined;` && |\n| &&
-             `          } else {` && |\n| &&
-             `            // Scalar change -> ship the whole attribute.` && |\n| &&
-             `            delta[attr] = xx[attr];` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
-             `        return delta;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _createViewModel() {` && |\n| &&
@@ -537,6 +418,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            if (Element.getElementById) {` && |\n| &&
              `              oControl = Element.getElementById(openById);` && |\n| &&
              `            } else if (sap.ui.getCore) {` && |\n| &&
+             |\n|.
+    result = result &&
              `              const core = sap.ui.getCore();` && |\n| &&
              `              if (core && core.byId) oControl = core.byId(openById);` && |\n| &&
              `            }` && |\n| &&
@@ -682,7 +565,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _evDownloadB64File(args) {` && |\n| &&
-             `        if (!isSafeDownloadURL(args[1])) {` && |\n| &&
+             `        if (!Util.isSafeDownloadURL(args[1])) {` && |\n| &&
              `          Util.logError("DOWNLOAD_B64_FILE: blocked unsafe URL");` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -767,7 +650,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _evLocationReload(args) {` && |\n| &&
-             `        if (isValidRedirectURL(args[1])) {` && |\n| &&
+             `        if (Util.isValidRedirectURL(args[1])) {` && |\n| &&
              `          window.location.href = args[1];` && |\n| &&
              `        } else {` && |\n| &&
              `          MessageBox.error(` && |\n| &&
@@ -779,7 +662,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      _evSystemLogout(args) {` && |\n| &&
              `        const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";` && |\n| &&
              `        const goToLogoutUrl = () => {` && |\n| &&
-             `          if (isValidRedirectURL(logoutUrl)) {` && |\n| &&
+             `          if (Util.isValidRedirectURL(logoutUrl)) {` && |\n| &&
              `            window.location.href = logoutUrl;` && |\n| &&
              `          } else {` && |\n| &&
              `            MessageBox.error(` && |\n| &&
@@ -820,8 +703,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          // Safety net: never wait longer than 1.5s for the BSP terminate.` && |\n| &&
              `          setTimeout(finish, 1500);` && |\n| &&
              `        };` && |\n| &&
-             |\n|.
-    result = result &&
              `        try {` && |\n| &&
              `          const launchpadLogout =` && |\n| &&
              `            z2ui5.oLaunchpad &&` && |\n| &&
@@ -839,7 +720,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _evOpenNewTab(args) {` && |\n| &&
-             `        if (!isValidRedirectURL(args[1])) {` && |\n| &&
+             `        if (!Util.isValidRedirectURL(args[1])) {` && |\n| &&
              `          MessageBox.error(` && |\n| &&
              `            "Invalid URL. Only relative URLs to the same domain are allowed.",` && |\n| &&
              `          );` && |\n| &&
@@ -854,7 +735,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        const params = args[2];` && |\n| &&
              `        const actions = {` && |\n| &&
              `          REDIRECT: () => {` && |\n| &&
-             `            if (!isSafeRedirectProtocol(params.URL)) {` && |\n| &&
+             `            if (!Util.isSafeRedirectProtocol(params.URL)) {` && |\n| &&
              `              MessageBox.error(` && |\n| &&
              `                "Invalid redirect URL. Only http/https protocols are allowed.",` && |\n| &&
              `              );` && |\n| &&
@@ -939,6 +820,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        const applyFocus = () => {` && |\n| &&
              `          try {` && |\n| &&
              `            const info = oElement.getFocusInfo();` && |\n| &&
+             |\n|.
+    result = result &&
              `            if (args[2] != null && args[2] !== "")` && |\n| &&
              `              info.selectionStart = +args[2];` && |\n| &&
              `            if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];` && |\n| &&
@@ -1172,10 +1055,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const data = oModel.getData();` && |\n| &&
              `          const xx = data && data.XX;` && |\n| &&
              `          if (xx) {` && |\n| &&
-             `            z2ui5.oBody.XX = this._buildDeltaFromPaths(` && |\n| &&
-             `              z2ui5.xxChangedPaths,` && |\n| &&
-             `              xx,` && |\n| &&
-             `            );` && |\n| &&
+             `            z2ui5.oBody.XX = Util.buildDeltaFromPaths(z2ui5.xxChangedPaths, xx);` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -1222,8 +1102,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Re-bind a model to one of the views when the response signals an` && |\n| &&
-             |\n|.
-    result = result &&
              `      // update is required for that particular slot.` && |\n| &&
              `      updateModelIfRequired(paramKey, oView) {` && |\n| &&
              `        const params = z2ui5.oResponse && z2ui5.oResponse.PARAMS;` && |\n| &&
@@ -1300,7 +1178,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            emphasizedAction: msg.EMPHASIZEDACTION || "OK",` && |\n| &&
              `            initialFocus: msg.INITIALFOCUS || null,` && |\n| &&
              `            textDirection: msg.TEXTDIRECTION || "Inherit",` && |\n| &&
-             `            details: msg.DETAILS ? sanitizeMessageDetails(msg.DETAILS) : "",` && |\n| &&
+             `            details: msg.DETAILS` && |\n| &&
+             `              ? Util.sanitizeMessageDetails(msg.DETAILS)` && |\n| &&
+             `              : "",` && |\n| &&
              `            closeOnNavigation: !!msg.CLOSEONNAVIGATION,` && |\n| &&
              `          };` && |\n| &&
              `          if (msg.ICON && msg.ICON !== "NONE") oParams.icon = msg.ICON;` && |\n| &&
@@ -1342,6 +1222,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        // Guard against the app being destroyed during the await above.` && |\n| &&
              `        if (!Util.isAlive(z2ui5.oApp)) {` && |\n| &&
+             |\n|.
+    result = result &&
              `          z2ui5.oView.destroy();` && |\n| &&
              `          if (switchPath) oModel.destroy();` && |\n| &&
              `          z2ui5.oView = null;` && |\n| &&
