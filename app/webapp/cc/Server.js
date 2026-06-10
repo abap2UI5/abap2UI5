@@ -117,85 +117,61 @@ sap.ui.define(
         }
       },
 
-      _getScrollInfo() {
-        // For each visible view, find the scrollable descendant that is
-        // actually scrolled (typically a sap.m.Page) and return its current
-        // scroll offsets. X = scrollLeft, Y = scrollTop.
-        //
-        // Multiple controls in the tree expose getScrollDelegate (App,
-        // NavContainer, Page, ScrollContainer, ...). findAggregatedObjects
-        // returns them in pre-order, so the outer App/NavContainer comes
-        // first - but its delegate never scrolls visible content. We pick
-        // the first candidate whose container is actually scrolled, with
-        // the deepest overflowing container as a fallback.
-        //
-        // Reading the position directly from the container's DOM avoids
-        // relying on the delegate's cached _scrollY/_scrollX which can lag
-        // until a scroll event fires.
-        const containerOf = (control) => {
-          try {
-            const d = control.getScrollDelegate();
-            if (d && d.getContainerDomRef) {
-              const dom = d.getContainerDomRef();
-              if (dom) return dom;
-            }
-          } catch (e) {
-            // ignored
-          }
-          // Fallback to known ID suffixes for common controls.
-          const id = control.getId();
-          return (
-            document.getElementById(`${id}-cont`) || // sap.m.Page
-            document.getElementById(`${id}-scroll`) || // sap.m.ScrollContainer
-            null
-          );
-        };
-        const getOne = (view) => {
-          if (!view || !view.findAggregatedObjects) return null;
-          let candidates;
-          try {
-            candidates = view.findAggregatedObjects(true, (c) => {
-              try {
-                return c.getScrollDelegate && c.getScrollDelegate();
-              } catch (e) {
-                return false;
-              }
-            });
-          } catch (e) {
-            return null;
-          }
-          if (!candidates || !candidates.length) return null;
+      // Records which element the user actually scrolled, per view slot.
+      // Bound to a single document-level capture-phase listener (installed
+      // in Component.init): scroll events do not bubble, but they do fire
+      // capture listeners on ancestors, so one listener observes every
+      // scrollable container - no per-roundtrip walk over the control tree,
+      // and no guessing which container "looks scrolled".
+      onScrollCapture(event) {
+        const target = event.target;
+        if (!target || target.nodeType !== 1) return;
+        const ui5El = Element.closestTo ? Element.closestTo(target) : null;
+        if (!ui5El) return;
 
-          let chosen = null;
-          let fallback = null;
-          for (const c of candidates) {
-            const dom = containerOf(c);
-            if (!dom) continue;
-            const x = dom.scrollLeft || 0;
-            const y = dom.scrollTop || 0;
-            if (x || y) {
-              chosen = { control: c, x, y };
-              break;
-            }
-            // Prefer the deepest container that actually overflows.
-            const overflows =
-              dom.scrollHeight > dom.clientHeight ||
-              dom.scrollWidth > dom.clientWidth;
-            if (overflows || !fallback) {
-              fallback = { control: c, x, y };
+        // Walk up the control tree to find the view slot the scrolled
+        // element belongs to (innermost slot wins, e.g. nested views).
+        let current = ui5El;
+        while (current) {
+          for (const slot of Util.viewSlots) {
+            if (z2ui5[slot.prop] === current) {
+              if (!z2ui5.lastScrolled) z2ui5.lastScrolled = {};
+              z2ui5.lastScrolled[slot.key] = { control: ui5El, dom: target };
+              return;
             }
           }
-          const pick = chosen || fallback;
-          if (!pick) return null;
-          let id = pick.control.getId();
-          const prefix = view.getId() + "--";
-          if (id.startsWith(prefix)) id = id.slice(prefix.length);
-          return { ID: id, X: pick.x, Y: pick.y };
-        };
+          current = current.getParent && current.getParent();
+        }
+      },
+
+      _getScrollInfo() {
+        // Reads scrollLeft/scrollTop straight from the DOM element the user
+        // last scrolled in each view slot (recorded by onScrollCapture).
+        // X = scrollLeft, Y = scrollTop. Slots the user never scrolled are
+        // absent from the result - restoring 0/0 would be a no-op anyway.
+        const store = z2ui5.lastScrolled;
+        if (!store) return undefined;
+
         const out = {};
         for (const slot of Util.viewSlots) {
-          const v = getOne(z2ui5[slot.prop]);
-          if (v) out[slot.key] = v;
+          const entry = store[slot.key];
+          if (!entry) continue;
+
+          // Drop stale references, e.g. after the view was replaced.
+          if (!entry.dom.isConnected) {
+            delete store[slot.key];
+            continue;
+          }
+
+          let id = entry.control.getId();
+          const view = z2ui5[slot.prop];
+          const prefix = view ? `${view.getId()}--` : "";
+          if (prefix && id.startsWith(prefix)) id = id.slice(prefix.length);
+          out[slot.key] = {
+            ID: id,
+            X: entry.dom.scrollLeft || 0,
+            Y: entry.dom.scrollTop || 0,
+          };
         }
         // Returning undefined lets JSON.stringify omit S_SCROLL entirely.
         return Object.keys(out).length ? out : undefined;

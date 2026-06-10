@@ -63,6 +63,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n| &&
              `        this._installUnloadListener();` && |\n| &&
              `        this._installDebugToolShortcut();` && |\n| &&
+             `        this._installScrollListener();` && |\n| &&
              `        // Currently disabled: the popstate view restore. Its counterpart -` && |\n| &&
              `        // storing the rendered view/model in history.state on every` && |\n| &&
              `        // roundtrip (View1 _processAfterRendering) - is disabled for` && |\n| &&
@@ -96,6 +97,18 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `          }` && |\n| &&
              `        };` && |\n| &&
              `        document.addEventListener("keydown", this._boundKeydown);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _installScrollListener() {` && |\n| &&
+             `        // Scroll events do not bubble, but they do trigger capture-phase` && |\n| &&
+             `        // listeners on ancestors - a single document-level listener observes` && |\n| &&
+             `        // every scrollable container. Server.onScrollCapture records the` && |\n| &&
+             `        // last scrolled element per view slot for the S_SCROLL request info.` && |\n| &&
+             `        this._boundScroll = (event) => Server.onScrollCapture(event);` && |\n| &&
+             `        document.addEventListener("scroll", this._boundScroll, {` && |\n| &&
+             `          capture: true,` && |\n| &&
+             `          passive: true,` && |\n| &&
+             `        });` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Currently not installed - see init(). Kept for re-enabling the` && |\n| &&
@@ -204,6 +217,9 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `      exit() {` && |\n| &&
              `        window.removeEventListener(this._unloadEvent, this._boundUnload);` && |\n| &&
              `        document.removeEventListener("keydown", this._boundKeydown);` && |\n| &&
+             `        document.removeEventListener("scroll", this._boundScroll, {` && |\n| &&
+             `          capture: true,` && |\n| &&
+             `        });` && |\n| &&
              `        // Disabled together with _installPopstateListener in init():` && |\n| &&
              `        // window.removeEventListener("popstate", this._boundPopstate);` && |\n| &&
              `` && |\n| &&

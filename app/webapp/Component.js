@@ -43,6 +43,7 @@ sap.ui.define(
 
         this._installUnloadListener();
         this._installDebugToolShortcut();
+        this._installScrollListener();
         // Currently disabled: the popstate view restore. Its counterpart -
         // storing the rendered view/model in history.state on every
         // roundtrip (View1 _processAfterRendering) - is disabled for
@@ -76,6 +77,18 @@ sap.ui.define(
           }
         };
         document.addEventListener("keydown", this._boundKeydown);
+      },
+
+      _installScrollListener() {
+        // Scroll events do not bubble, but they do trigger capture-phase
+        // listeners on ancestors - a single document-level listener observes
+        // every scrollable container. Server.onScrollCapture records the
+        // last scrolled element per view slot for the S_SCROLL request info.
+        this._boundScroll = (event) => Server.onScrollCapture(event);
+        document.addEventListener("scroll", this._boundScroll, {
+          capture: true,
+          passive: true,
+        });
       },
 
       // Currently not installed - see init(). Kept for re-enabling the
@@ -184,6 +197,9 @@ sap.ui.define(
       exit() {
         window.removeEventListener(this._unloadEvent, this._boundUnload);
         document.removeEventListener("keydown", this._boundKeydown);
+        document.removeEventListener("scroll", this._boundScroll, {
+          capture: true,
+        });
         // Disabled together with _installPopstateListener in init():
         // window.removeEventListener("popstate", this._boundPopstate);
 
