@@ -23,9 +23,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    "sap/ui/core/BusyIndicator",` && |\n| &&
              `    "sap/ui/Device",` && |\n| &&
              `    "sap/ui/core/Element",` && |\n| &&
-             `    "z2ui5/cc/Util",` && |\n| &&
+             `    "z2ui5/cc/Lib",` && |\n| &&
              `  ],` && |\n| &&
-             `  (BusyIndicator, Device, Element, Util) => {` && |\n| &&
+             `  (BusyIndicator, Device, Element, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Errors longer than this are truncated before being shown to the user,` && |\n| &&
@@ -51,7 +51,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    // oResponse and pendingCustomJs.` && |\n| &&
              `    return {` && |\n| &&
              `      endSession() {` && |\n| &&
-             `        if (!Util.isValidContextId(z2ui5.contextId)) return;` && |\n| &&
+             `        if (!Lib.isValidContextId(z2ui5.contextId)) return;` && |\n| &&
              `        // Best-effort notify the backend that the session ends. Errors are` && |\n| &&
              `        // intentionally swallowed: the browser tab is closing anyway.` && |\n| &&
              `        fetch(z2ui5.url, {` && |\n| &&
@@ -108,7 +108,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          const ui5El = Element.closestTo ? Element.closestTo(active) : null;` && |\n| &&
              `          if (!ui5El) return {};` && |\n| &&
              `          const fullId = ui5El.getId();` && |\n| &&
-             `          const views = Util.viewSlots.map((slot) => z2ui5[slot.prop]);` && |\n| &&
+             `          const views = Lib.viewSlots.map((slot) => z2ui5[slot.prop]);` && |\n| &&
              `          let id = fullId;` && |\n| &&
              `          for (const v of views) {` && |\n| &&
              `            if (!v) continue;` && |\n| &&
@@ -144,7 +144,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        // element belongs to (innermost slot wins, e.g. nested views).` && |\n| &&
              `        let current = ui5El;` && |\n| &&
              `        while (current) {` && |\n| &&
-             `          for (const slot of Util.viewSlots) {` && |\n| &&
+             `          for (const slot of Lib.viewSlots) {` && |\n| &&
              `            if (z2ui5[slot.prop] === current) {` && |\n| &&
              `              if (!z2ui5.lastScrolled) z2ui5.lastScrolled = {};` && |\n| &&
              `              z2ui5.lastScrolled[slot.key] = { control: ui5El, dom: target };` && |\n| &&
@@ -164,7 +164,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        if (!store) return undefined;` && |\n| &&
              `` && |\n| &&
              `        const out = {};` && |\n| &&
-             `        for (const slot of Util.viewSlots) {` && |\n| &&
+             `        for (const slot of Lib.viewSlots) {` && |\n| &&
              `          const entry = store[slot.key];` && |\n| &&
              `          if (!entry) continue;` && |\n| &&
              `` && |\n| &&
@@ -251,7 +251,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            "Content-Type": "application/json",` && |\n| &&
              `            "sap-contextid-accept": "header",` && |\n| &&
              `          };` && |\n| &&
-             `          if (Util.isValidContextId(z2ui5.contextId)) {` && |\n| &&
+             `          if (Lib.isValidContextId(z2ui5.contextId)) {` && |\n| &&
              `            headers["sap-contextid"] = z2ui5.contextId;` && |\n| &&
              `          }` && |\n| &&
              `          response = await fetch(z2ui5.url, {` && |\n| &&
@@ -278,7 +278,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        // Keep the last valid session id; a response without the header` && |\n| &&
              `        // (returns null) must not wipe an established session.` && |\n| &&
              `        const contextId = response.headers.get("sap-contextid");` && |\n| &&
-             `        if (Util.isValidContextId(contextId)) {` && |\n| &&
+             `        if (Lib.isValidContextId(contextId)) {` && |\n| &&
              `          z2ui5.contextId = contextId;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -348,14 +348,14 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `          // Partial response: refresh whichever existing views the backend` && |\n| &&
              `          // sent updates for.` && |\n| &&
-             `          for (const slot of Util.viewSlots) {` && |\n| &&
+             `          for (const slot of Lib.viewSlots) {` && |\n| &&
              `            oController.updateModelIfRequired(slot.param, z2ui5[slot.prop]);` && |\n| &&
              `          }` && |\n| &&
              `          oController._processAfterRendering();` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          BusyIndicator.hide();` && |\n| &&
              `          z2ui5.isBusy = false;` && |\n| &&
-             `          Util.logError("responseSuccess: unexpected error", e);` && |\n| &&
+             `          Lib.logError("responseSuccess: unexpected error", e);` && |\n| &&
              `          const msg = e.message || "";` && |\n| &&
              `          if (msg.includes("openui5") && msg.includes("script load error")) {` && |\n| &&
              `            oController.checkSDKcompatibility(e);` && |\n| &&
@@ -385,7 +385,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            Function("return " + parts[0])();` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Util.logError("customJs: execution failed", e);` && |\n| &&
+             `          Lib.logError("customJs: execution failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&

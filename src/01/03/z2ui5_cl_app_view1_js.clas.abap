@@ -35,7 +35,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    "sap/ui/core/routing/HashChanger",` && |\n| &&
              `    "sap/ui/util/Storage",` && |\n| &&
              `    "sap/ui/core/Element",` && |\n| &&
-             `    "z2ui5/cc/Util",` && |\n| &&
+             `    "z2ui5/cc/Lib",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    Controller,` && |\n| &&
@@ -53,7 +53,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    HashChanger,` && |\n| &&
              `    Storage,` && |\n| &&
              `    Element,` && |\n| &&
-             `    Util,` && |\n| &&
+             `    Lib,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -70,7 +70,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          fn(...args);` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Util.logError("runCallbacks: callback failed", e);` && |\n| &&
+             `          Lib.logError("runCallbacks: callback failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
@@ -92,7 +92,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    function copyToClipboard(textToCopy) {` && |\n| &&
              `      if (navigator.clipboard && navigator.clipboard.writeText) {` && |\n| &&
              `        navigator.clipboard.writeText(textToCopy).catch((err) => {` && |\n| &&
-             `          Util.logError("Clipboard: writeText failed, falling back", err);` && |\n| &&
+             `          Lib.logError("Clipboard: writeText failed, falling back", err);` && |\n| &&
              `          copyToClipboardFallback(textToCopy);` && |\n| &&
              `        });` && |\n| &&
              `        return;` && |\n| &&
@@ -111,10 +111,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      textarea.select();` && |\n| &&
              `      try {` && |\n| &&
              `        if (!document.execCommand("copy")) {` && |\n| &&
-             `          Util.logError("Clipboard: execCommand('copy') returned false");` && |\n| &&
+             `          Lib.logError("Clipboard: execCommand('copy') returned false");` && |\n| &&
              `        }` && |\n| &&
              `      } catch (err) {` && |\n| &&
-             `        Util.logError("Clipboard: execCommand('copy') threw", err);` && |\n| &&
+             `        Lib.logError("Clipboard: execCommand('copy') threw", err);` && |\n| &&
              `      } finally {` && |\n| &&
              `        document.body.removeChild(textarea);` && |\n| &&
              `      }` && |\n| &&
@@ -127,13 +127,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    function withCrossAppNavigator(callback) {` && |\n| &&
              `      const nav = z2ui5.oLaunchpad && z2ui5.oLaunchpad.CrossAppNavigator;` && |\n| &&
              `      if (!nav) {` && |\n| &&
-             `        Util.logError("CrossAppNav: not running inside Launchpad");` && |\n| &&
+             `        Lib.logError("CrossAppNav: not running inside Launchpad");` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      try {` && |\n| &&
              `        callback(nav);` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        Util.logError("CrossAppNav: callback failed", e);` && |\n| &&
+             `        Lib.logError("CrossAppNav: callback failed", e);` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -142,7 +142,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        const container = lookup(args[1]);` && |\n| &&
              `        if (container) container.to(lookup(args[2]));` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        Util.logError("navigateContainer: navigation failed", e);` && |\n| &&
+             `        Lib.logError("navigateContainer: navigation failed", e);` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -325,14 +325,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `              : "";` && |\n| &&
              `            _hashChanger.replaceHash(newHash);` && |\n| &&
              `          } catch (e) {` && |\n| &&
-             `            Util.logError("_processAfterRendering: history update failed", e);` && |\n| &&
+             `            Lib.logError("_processAfterRendering: history update failed", e);` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
              `          if (SET_NAV_BACK) history.back();` && |\n| &&
              `` && |\n| &&
              `          runCallbacks(z2ui5.onAfterRendering);` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Util.logError("_processAfterRendering: unexpected error", e);` && |\n| &&
+             `          Lib.logError("_processAfterRendering: unexpected error", e);` && |\n| &&
              `          Server.responseError(e, "Unexpected Error Occurred - App Terminated");` && |\n| &&
              `        } finally {` && |\n| &&
              `          BusyIndicator.hide();` && |\n| &&
@@ -351,7 +351,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        const customJs = z2ui5.pendingCustomJs;` && |\n| &&
              `        z2ui5.pendingCustomJs = null;` && |\n| &&
              `        if (!customJs) return;` && |\n| &&
-             `        if (Util.isDestroyed(this)) return;` && |\n| &&
+             `        if (Lib.isDestroyed(this)) return;` && |\n| &&
              `        for (const item of customJs) {` && |\n| &&
              `          Server._runCustomJs(item, this);` && |\n| &&
              `        }` && |\n| &&
@@ -375,7 +375,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          id: "popupId",` && |\n| &&
              `        });` && |\n| &&
              `        // The app might have been torn down while the fragment loaded.` && |\n| &&
-             `        if (!Util.isAlive(z2ui5.oApp)) {` && |\n| &&
+             `        if (!Lib.isAlive(z2ui5.oApp)) {` && |\n| &&
              `          oFragment.destroy();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -394,7 +394,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            controller: z2ui5.oControllerPopover,` && |\n| &&
              `            id: "popoverId",` && |\n| &&
              `          });` && |\n| &&
-             `          if (!Util.isAlive(z2ui5.oApp)) {` && |\n| &&
+             `          if (!Lib.isAlive(z2ui5.oApp)) {` && |\n| &&
              `            oFragment.destroy();` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
@@ -426,7 +426,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          }` && |\n| &&
              `` && |\n| &&
              `          if (!oControl) {` && |\n| &&
-             `            Util.logError(` && |\n| &&
+             `            Lib.logError(` && |\n| &&
              `              ``displayPopover: openBy control '${openById}' not found``,` && |\n| &&
              `            );` && |\n| &&
              `            oFragment.destroy();` && |\n| &&
@@ -435,20 +435,20 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          z2ui5[viewProp] = oFragment;` && |\n| &&
              `          oFragment.openBy(oControl);` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Util.logError("displayPopover: failed", e);` && |\n| &&
+             `          Lib.logError("displayPopover: failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      async displayNestedView(xml, viewProp, viewNestId, controller) {` && |\n| &&
              `        const oModel = this._createViewModel();` && |\n| &&
-             `        applyStoredSizeLimit(Util.slotKeyByParam(viewNestId), oModel);` && |\n| &&
+             `        applyStoredSizeLimit(Lib.slotKeyByParam(viewNestId), oModel);` && |\n| &&
              `        const oView = await XMLView.create({` && |\n| &&
              `          definition: xml,` && |\n| &&
              `          controller: controller,` && |\n| &&
              `          preprocessors: { xml: { models: { template: oModel } } },` && |\n| &&
              `        });` && |\n| &&
              `` && |\n| &&
-             `        if (!Util.isAlive(z2ui5.oApp)) {` && |\n| &&
+             `        if (!Lib.isAlive(z2ui5.oApp)) {` && |\n| &&
              `          oView.destroy();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -459,7 +459,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          z2ui5.oResponse.PARAMS &&` && |\n| &&
              `          z2ui5.oResponse.PARAMS[viewNestId];` && |\n| &&
              `        if (!nestParams) {` && |\n| &&
-             `          Util.logError(``displayNestedView: missing PARAMS.${viewNestId}``);` && |\n| &&
+             `          Lib.logError(``displayNestedView: missing PARAMS.${viewNestId}``);` && |\n| &&
              `          oView.destroy();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -467,7 +467,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        const oParent = z2ui5.oView && z2ui5.oView.byId(ID);` && |\n| &&
              `        if (!oParent) {` && |\n| &&
-             `          Util.logError(` && |\n| &&
+             `          Lib.logError(` && |\n| &&
              `            ``displayNestedView: parent control '${ID}' not found, nested view discarded``,` && |\n| &&
              `          );` && |\n| &&
              `          oView.destroy();` && |\n| &&
@@ -477,12 +477,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          oParent[METHOD_DESTROY]();` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Util.logError("displayNestedView: parent destroy method failed", e);` && |\n| &&
+             `          Lib.logError("displayNestedView: parent destroy method failed", e);` && |\n| &&
              `        }` && |\n| &&
              `        try {` && |\n| &&
              `          oParent[METHOD_INSERT](oView);` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Util.logError("displayNestedView: parent insert method failed", e);` && |\n| &&
+             `          Lib.logError("displayNestedView: parent insert method failed", e);` && |\n| &&
              `          oView.destroy();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -498,13 +498,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          try {` && |\n| &&
              `            if (view.close) view.close();` && |\n| &&
              `          } catch (e) {` && |\n| &&
-             `            Util.logError(``_destroyView: view.close() failed for ${prop}``, e);` && |\n| &&
+             `            Lib.logError(``_destroyView: view.close() failed for ${prop}``, e);` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
              `        try {` && |\n| &&
              `          view.destroy();` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Util.logError(``_destroyView: view.destroy() failed for ${prop}``, e);` && |\n| &&
+             `          Lib.logError(``_destroyView: view.destroy() failed for ${prop}``, e);` && |\n| &&
              `        }` && |\n| &&
              `        z2ui5[prop] = null;` && |\n| &&
              `      },` && |\n| &&
@@ -565,8 +565,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _evDownloadB64File(args) {` && |\n| &&
-             `        if (!Util.isSafeDownloadURL(args[1])) {` && |\n| &&
-             `          Util.logError("DOWNLOAD_B64_FILE: blocked unsafe URL");` && |\n| &&
+             `        if (!Lib.isSafeDownloadURL(args[1])) {` && |\n| &&
+             `          Lib.logError("DOWNLOAD_B64_FILE: blocked unsafe URL");` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        const a = document.createElement("a");` && |\n| &&
@@ -586,7 +586,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        const hasLimit = args[2] !== undefined && args[2] !== "";` && |\n| &&
              `        const viewKey = hasLimit ? args[2] : args[1];` && |\n| &&
              `        const limit = hasLimit ? Number(args[1]) : NaN;` && |\n| &&
-             `        const view = Util.getViewByKey(viewKey);` && |\n| &&
+             `        const view = Lib.getViewByKey(viewKey);` && |\n| &&
              `        const model = view && view.getModel();` && |\n| &&
              `` && |\n| &&
              `        if (Number.isFinite(limit) && limit > 0) {` && |\n| &&
@@ -613,7 +613,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          });` && |\n| &&
              `          if (z2ui5.oView) z2ui5.oView.setModel(oModel, args[2] || undefined);` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Util.logError(``SET_ODATA_MODEL: failed for '${args[1]}'``, e);` && |\n| &&
+             `          Lib.logError(``SET_ODATA_MODEL: failed for '${args[1]}'``, e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -628,7 +628,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            oStorage.put(KEY, VALUE);` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Util.logError(` && |\n| &&
+             `          Lib.logError(` && |\n| &&
              `            ``STORE_DATA: storage operation failed for key '${KEY}'``,` && |\n| &&
              `            e,` && |\n| &&
              `          );` && |\n| &&
@@ -650,7 +650,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _evLocationReload(args) {` && |\n| &&
-             `        if (Util.isValidRedirectURL(args[1])) {` && |\n| &&
+             `        if (Lib.isValidRedirectURL(args[1])) {` && |\n| &&
              `          window.location.href = args[1];` && |\n| &&
              `        } else {` && |\n| &&
              `          MessageBox.error(` && |\n| &&
@@ -662,7 +662,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      _evSystemLogout(args) {` && |\n| &&
              `        const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";` && |\n| &&
              `        const goToLogoutUrl = () => {` && |\n| &&
-             `          if (Util.isValidRedirectURL(logoutUrl)) {` && |\n| &&
+             `          if (Lib.isValidRedirectURL(logoutUrl)) {` && |\n| &&
              `            window.location.href = logoutUrl;` && |\n| &&
              `          } else {` && |\n| &&
              `            MessageBox.error(` && |\n| &&
@@ -714,13 +714,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            redirectToLogoff();` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Util.logError("SYSTEM_LOGOUT: ushell logout failed", e);` && |\n| &&
+             `          Lib.logError("SYSTEM_LOGOUT: ushell logout failed", e);` && |\n| &&
              `          redirectToLogoff();` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _evOpenNewTab(args) {` && |\n| &&
-             `        if (!Util.isValidRedirectURL(args[1])) {` && |\n| &&
+             `        if (!Lib.isValidRedirectURL(args[1])) {` && |\n| &&
              `          MessageBox.error(` && |\n| &&
              `            "Invalid URL. Only relative URLs to the same domain are allowed.",` && |\n| &&
              `          );` && |\n| &&
@@ -735,7 +735,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        const params = args[2];` && |\n| &&
              `        const actions = {` && |\n| &&
              `          REDIRECT: () => {` && |\n| &&
-             `            if (!Util.isSafeRedirectProtocol(params.URL)) {` && |\n| &&
+             `            if (!Lib.isSafeRedirectProtocol(params.URL)) {` && |\n| &&
              `              MessageBox.error(` && |\n| &&
              `                "Invalid redirect URL. Only http/https protocols are allowed.",` && |\n| &&
              `              );` && |\n| &&
@@ -759,7 +759,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const fn = actions[args[1]];` && |\n| &&
              `          if (fn) fn();` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Util.logError(``URLHELPER: '${args[1]}' failed``, e);` && |\n| &&
+             `          Lib.logError(``URLHELPER: '${args[1]}' failed``, e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -769,7 +769,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const editor = Fragment.byId("popupId", "imageEditor");` && |\n| &&
              `          if (editor) image = editor.getImagePngDataURL();` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Util.logError(` && |\n| &&
+             `          Lib.logError(` && |\n| &&
              `            "IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed",` && |\n| &&
              `            e,` && |\n| &&
              `          );` && |\n| &&
@@ -806,7 +806,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          if (!input) return;` && |\n| &&
              `          input.setAttribute("inputmode", args[2] || "text");` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Util.logError(` && |\n| &&
+             `          Lib.logError(` && |\n| &&
              `            ``KEYBOARD_SET_MODE: setAttribute failed for '${args[1]}'``,` && |\n| &&
              `            e,` && |\n| &&
              `          );` && |\n| &&
@@ -827,7 +827,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];` && |\n| &&
              `            oElement.applyFocusInfo(info);` && |\n| &&
              `          } catch (e) {` && |\n| &&
-             `            Util.logError(``SET_FOCUS: failed for '${args[1]}'``, e);` && |\n| &&
+             `            Lib.logError(``SET_FOCUS: failed for '${args[1]}'``, e);` && |\n| &&
              `          }` && |\n| &&
              `        };` && |\n| &&
              `` && |\n| &&
@@ -899,7 +899,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            }` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Util.logError(``SCROLL_TO: failed for '${args[1]}'``, e);` && |\n| &&
+             `          Lib.logError(``SCROLL_TO: failed for '${args[1]}'``, e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -921,7 +921,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            inline: args[4] || "nearest",` && |\n| &&
              `          });` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Util.logError(``SCROLL_INTO_VIEW: failed for '${args[1]}'``, e);` && |\n| &&
+             `          Lib.logError(``SCROLL_INTO_VIEW: failed for '${args[1]}'``, e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -930,7 +930,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          document.title = title;` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Util.logError("SET_TITLE: setting document.title failed", e);` && |\n| &&
+             `          Lib.logError("SET_TITLE: setting document.title failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -942,7 +942,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            const result = shell.setTitle(title);` && |\n| &&
              `            if (result && result.catch) {` && |\n| &&
              `              result.catch((e) =>` && |\n| &&
-             `                Util.logError(` && |\n| &&
+             `                Lib.logError(` && |\n| &&
              `                  "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",` && |\n| &&
              `                  e,` && |\n| &&
              `                ),` && |\n| &&
@@ -950,7 +950,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            }` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Util.logError(` && |\n| &&
+             `          Lib.logError(` && |\n| &&
              `            "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",` && |\n| &&
              `            e,` && |\n| &&
              `          );` && |\n| &&
@@ -962,7 +962,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const fn = z2ui5[args[1]];` && |\n| &&
              `          if (fn) fn(args.slice(2));` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Util.logError(``Z2UI5: '${args[1]}' failed``, e);` && |\n| &&
+             `          Lib.logError(``Z2UI5: '${args[1]}' failed``, e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -974,7 +974,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          if (wiz && step) wiz.discardProgress(step);` && |\n| &&
              `          if (step && nextStep) step.setNextStep(nextStep);` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Util.logError(` && |\n| &&
+             `          Lib.logError(` && |\n| &&
              `            ``WIZARD_SET_NEXT_STEP: failed for wizard '${args[1]}'``,` && |\n| &&
              `            e,` && |\n| &&
              `          );` && |\n| &&
@@ -989,11 +989,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          // try/catch and would surface as an unhandled rejection.` && |\n| &&
              `          if (playing && playing.catch) {` && |\n| &&
              `            playing.catch((e) =>` && |\n| &&
-             `              Util.logError(``PLAY_AUDIO: failed for '${args[1]}'``, e),` && |\n| &&
+             `              Lib.logError(``PLAY_AUDIO: failed for '${args[1]}'``, e),` && |\n| &&
              `            );` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Util.logError(``PLAY_AUDIO: failed for '${args[1]}'``, e);` && |\n| &&
+             `          Lib.logError(``PLAY_AUDIO: failed for '${args[1]}'``, e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -1055,7 +1055,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const data = oModel.getData();` && |\n| &&
              `          const xx = data && data.XX;` && |\n| &&
              `          if (xx) {` && |\n| &&
-             `            z2ui5.oBody.XX = Util.buildDeltaFromPaths(z2ui5.xxChangedPaths, xx);` && |\n| &&
+             `            z2ui5.oBody.XX = Lib.buildDeltaFromPaths(z2ui5.xxChangedPaths, xx);` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -1109,7 +1109,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (!slot || !slot.CHECK_UPDATE_MODEL) return;` && |\n| &&
              `` && |\n| &&
              `        const oModel = this._createViewModel();` && |\n| &&
-             `        applyStoredSizeLimit(Util.slotKeyByParam(paramKey), oModel);` && |\n| &&
+             `        applyStoredSizeLimit(Lib.slotKeyByParam(paramKey), oModel);` && |\n| &&
              `        if (oView) oView.setModel(oModel);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -1119,7 +1119,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const info = await VersionInfo.load();` && |\n| &&
              `          gav = info.gav;` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Util.logError("checkSDKcompatibility: VersionInfo.load failed", e);` && |\n| &&
+             `          Lib.logError("checkSDKcompatibility: VersionInfo.load failed", e);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        if (!gav || !gav.includes("com.sap.ui5")) {` && |\n| &&
@@ -1178,9 +1178,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            emphasizedAction: msg.EMPHASIZEDACTION || "OK",` && |\n| &&
              `            initialFocus: msg.INITIALFOCUS || null,` && |\n| &&
              `            textDirection: msg.TEXTDIRECTION || "Inherit",` && |\n| &&
-             `            details: msg.DETAILS` && |\n| &&
-             `              ? Util.sanitizeMessageDetails(msg.DETAILS)` && |\n| &&
-             `              : "",` && |\n| &&
+             `            details: msg.DETAILS ? Lib.sanitizeMessageDetails(msg.DETAILS) : "",` && |\n| &&
              `            closeOnNavigation: !!msg.CLOSEONNAVIGATION,` && |\n| &&
              `          };` && |\n| &&
              `          if (msg.ICON && msg.ICON !== "NONE") oParams.icon = msg.ICON;` && |\n| &&
@@ -1221,11 +1219,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        });` && |\n| &&
              `` && |\n| &&
              `        // Guard against the app being destroyed during the await above.` && |\n| &&
-             `        if (!Util.isAlive(z2ui5.oApp)) {` && |\n| &&
-             |\n|.
-    result = result &&
+             `        if (!Lib.isAlive(z2ui5.oApp)) {` && |\n| &&
              `          z2ui5.oView.destroy();` && |\n| &&
              `          if (switchPath) oModel.destroy();` && |\n| &&
+             |\n|.
+    result = result &&
              `          z2ui5.oView = null;` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&

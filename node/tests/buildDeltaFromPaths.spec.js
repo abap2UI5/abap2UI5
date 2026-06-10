@@ -1,11 +1,11 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
-const { loadUtil } = require('./loadUtilModule');
+const { loadLib } = require('./loadLibModule');
 
-// Tests the real implementation shipped in app/webapp/cc/Util.js (loaded
+// Tests the real implementation shipped in app/webapp/cc/Lib.js (loaded
 // via a stubbed sap.ui.define) instead of a local copy that could drift.
-const { Util } = loadUtil();
-const _buildDeltaFromPaths = Util.buildDeltaFromPaths;
+const { Lib } = loadLib();
+const _buildDeltaFromPaths = Lib.buildDeltaFromPaths;
 
 // ── Test data ───────────────────────────────────────────────────────────
 const SAMPLE_XX = {

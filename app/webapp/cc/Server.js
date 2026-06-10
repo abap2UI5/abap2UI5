@@ -3,9 +3,9 @@ sap.ui.define(
     "sap/ui/core/BusyIndicator",
     "sap/ui/Device",
     "sap/ui/core/Element",
-    "z2ui5/cc/Util",
+    "z2ui5/cc/Lib",
   ],
-  (BusyIndicator, Device, Element, Util) => {
+  (BusyIndicator, Device, Element, Lib) => {
     "use strict";
 
     // Errors longer than this are truncated before being shown to the user,
@@ -31,7 +31,7 @@ sap.ui.define(
     // oResponse and pendingCustomJs.
     return {
       endSession() {
-        if (!Util.isValidContextId(z2ui5.contextId)) return;
+        if (!Lib.isValidContextId(z2ui5.contextId)) return;
         // Best-effort notify the backend that the session ends. Errors are
         // intentionally swallowed: the browser tab is closing anyway.
         fetch(z2ui5.url, {
@@ -88,7 +88,7 @@ sap.ui.define(
           const ui5El = Element.closestTo ? Element.closestTo(active) : null;
           if (!ui5El) return {};
           const fullId = ui5El.getId();
-          const views = Util.viewSlots.map((slot) => z2ui5[slot.prop]);
+          const views = Lib.viewSlots.map((slot) => z2ui5[slot.prop]);
           let id = fullId;
           for (const v of views) {
             if (!v) continue;
@@ -124,7 +124,7 @@ sap.ui.define(
         // element belongs to (innermost slot wins, e.g. nested views).
         let current = ui5El;
         while (current) {
-          for (const slot of Util.viewSlots) {
+          for (const slot of Lib.viewSlots) {
             if (z2ui5[slot.prop] === current) {
               if (!z2ui5.lastScrolled) z2ui5.lastScrolled = {};
               z2ui5.lastScrolled[slot.key] = { control: ui5El, dom: target };
@@ -144,7 +144,7 @@ sap.ui.define(
         if (!store) return undefined;
 
         const out = {};
-        for (const slot of Util.viewSlots) {
+        for (const slot of Lib.viewSlots) {
           const entry = store[slot.key];
           if (!entry) continue;
 
@@ -231,7 +231,7 @@ sap.ui.define(
             "Content-Type": "application/json",
             "sap-contextid-accept": "header",
           };
-          if (Util.isValidContextId(z2ui5.contextId)) {
+          if (Lib.isValidContextId(z2ui5.contextId)) {
             headers["sap-contextid"] = z2ui5.contextId;
           }
           response = await fetch(z2ui5.url, {
@@ -258,7 +258,7 @@ sap.ui.define(
         // Keep the last valid session id; a response without the header
         // (returns null) must not wipe an established session.
         const contextId = response.headers.get("sap-contextid");
-        if (Util.isValidContextId(contextId)) {
+        if (Lib.isValidContextId(contextId)) {
           z2ui5.contextId = contextId;
         }
 
@@ -328,14 +328,14 @@ sap.ui.define(
 
           // Partial response: refresh whichever existing views the backend
           // sent updates for.
-          for (const slot of Util.viewSlots) {
+          for (const slot of Lib.viewSlots) {
             oController.updateModelIfRequired(slot.param, z2ui5[slot.prop]);
           }
           oController._processAfterRendering();
         } catch (e) {
           BusyIndicator.hide();
           z2ui5.isBusy = false;
-          Util.logError("responseSuccess: unexpected error", e);
+          Lib.logError("responseSuccess: unexpected error", e);
           const msg = e.message || "";
           if (msg.includes("openui5") && msg.includes("script load error")) {
             oController.checkSDKcompatibility(e);
@@ -365,7 +365,7 @@ sap.ui.define(
             Function("return " + parts[0])();
           }
         } catch (e) {
-          Util.logError("customJs: execution failed", e);
+          Lib.logError("customJs: execution failed", e);
         }
       },
 

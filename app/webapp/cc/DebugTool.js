@@ -3,9 +3,9 @@ sap.ui.define(
     "sap/ui/core/Control",
     "sap/ui/core/Fragment",
     "sap/ui/model/json/JSONModel",
-    "z2ui5/cc/Util",
+    "z2ui5/cc/Lib",
   ],
-  (Control, Fragment, JSONModel, Util) => {
+  (Control, Fragment, JSONModel, Lib) => {
     "use strict";
 
     // Fragment id under which the debug dialog's controls are registered;
@@ -231,7 +231,7 @@ sap.ui.define(
           }
           // If the user closed the app while the fragment was loading we
           // must throw the freshly created dialog away.
-          if (Util.isDestroyed(this)) {
+          if (Lib.isDestroyed(this)) {
             if (this.oDialog) this.oDialog.destroy();
             this.oDialog = null;
             return;
@@ -259,7 +259,7 @@ sap.ui.define(
           oDialog.setModel(oModel);
           oDialog.open();
         } catch (e) {
-          Util.logError("DebugTool.show failed", e);
+          Lib.logError("DebugTool.show failed", e);
         } finally {
           this._showPending = false;
         }

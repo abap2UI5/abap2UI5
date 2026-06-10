@@ -23,9 +23,9 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `    "sap/ui/core/Control",` && |\n| &&
              `    "sap/ui/core/Fragment",` && |\n| &&
              `    "sap/ui/model/json/JSONModel",` && |\n| &&
-             `    "z2ui5/cc/Util",` && |\n| &&
+             `    "z2ui5/cc/Lib",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Control, Fragment, JSONModel, Util) => {` && |\n| &&
+             `  (Control, Fragment, JSONModel, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Fragment id under which the debug dialog's controls are registered;` && |\n| &&
@@ -251,7 +251,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `          }` && |\n| &&
              `          // If the user closed the app while the fragment was loading we` && |\n| &&
              `          // must throw the freshly created dialog away.` && |\n| &&
-             `          if (Util.isDestroyed(this)) {` && |\n| &&
+             `          if (Lib.isDestroyed(this)) {` && |\n| &&
              `            if (this.oDialog) this.oDialog.destroy();` && |\n| &&
              `            this.oDialog = null;` && |\n| &&
              `            return;` && |\n| &&
@@ -279,7 +279,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `          oDialog.setModel(oModel);` && |\n| &&
              `          oDialog.open();` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Util.logError("DebugTool.show failed", e);` && |\n| &&
+             `          Lib.logError("DebugTool.show failed", e);` && |\n| &&
              `        } finally {` && |\n| &&
              `          this._showPending = false;` && |\n| &&
              `        }` && |\n| &&

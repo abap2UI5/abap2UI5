@@ -1,14 +1,14 @@
 // @ts-check
-// Loads the real app/webapp/cc/Util.js in Node by stubbing sap.ui.define,
+// Loads the real app/webapp/cc/Lib.js in Node by stubbing sap.ui.define,
 // so the specs exercise the shipped implementation instead of a copy that
 // could silently drift from the production code.
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
-const UTIL_PATH = path.join(__dirname, '..', '..', 'app', 'webapp', 'cc', 'Util.js');
+const UTIL_PATH = path.join(__dirname, '..', '..', 'app', 'webapp', 'cc', 'Lib.js');
 
-function loadUtil(overrides = {}) {
+function loadLib(overrides = {}) {
     const source = fs.readFileSync(UTIL_PATH, 'utf8');
     let exported;
     const sandbox = {
@@ -22,9 +22,9 @@ function loadUtil(overrides = {}) {
     };
     vm.runInNewContext(source, sandbox, { filename: UTIL_PATH });
     if (!exported) {
-        throw new Error('Util.js did not register via sap.ui.define');
+        throw new Error('Lib.js did not register via sap.ui.define');
     }
-    return { Util: exported, sandbox };
+    return { Lib: exported, sandbox };
 }
 
-module.exports = { loadUtil };
+module.exports = { loadLib };
