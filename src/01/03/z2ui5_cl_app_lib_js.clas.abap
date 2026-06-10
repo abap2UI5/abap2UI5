@@ -18,7 +18,14 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define([], () => {` && |\n| &&
+    result = `// Shared rendering pattern of the custom controls (Timer.js, Focus.js,` && |\n| &&
+             `// Scrolling.js, Tree.js, ...): the renderer only *marks* work by setting a` && |\n| &&
+             `// ``_pending*`` flag on the control instance, and onAfterRendering() consumes` && |\n| &&
+             `// the flag and performs the actual DOM work (focus, scrolling, timers, tree` && |\n| &&
+             `// state). Renderers must stay cheap and free of visible side effects` && |\n| &&
+             `// (rendering API v2); deferring to onAfterRendering also guarantees the` && |\n| &&
+             `// control's DOM exists.` && |\n| &&
+             `sap.ui.define([], () => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
              `  // Cap the error log so a long-running session cannot grow it unbounded.` && |\n| &&

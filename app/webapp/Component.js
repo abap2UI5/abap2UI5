@@ -7,8 +7,18 @@ sap.ui.define(
     "z2ui5/cc/DebugTool",
     "sap/ui/core/Theming",
     "z2ui5/cc/Lib",
+    "z2ui5/Util",
   ],
-  (UIComponent, Models, Server, VersionInfo, DebugTool, Theming, Lib) => {
+  (
+    UIComponent,
+    Models,
+    Server,
+    VersionInfo,
+    DebugTool,
+    Theming,
+    Lib,
+    DateUtil,
+  ) => {
     "use strict";
 
     return UIComponent.extend("z2ui5.Component", {
@@ -34,6 +44,13 @@ sap.ui.define(
         if (z2ui5.checkLocal === false) window.z2ui5 = {};
         if (typeof z2ui5.oConfig === "undefined") z2ui5.oConfig = {};
         z2ui5.oConfig.ComponentData = this.getComponentData();
+
+        // The date helpers are a public contract: apps use them via the
+        // z2ui5.Util global (XML view formatter strings) or via
+        // core:require of the z2ui5/Util module. Publish the global here -
+        // since the custom controls were split out of App.controller.js,
+        // nothing else loads the module eagerly anymore.
+        z2ui5.Util = DateUtil;
 
         z2ui5.oDeviceModel = Models.createDeviceModel();
         this.setModel(z2ui5.oDeviceModel, "device");

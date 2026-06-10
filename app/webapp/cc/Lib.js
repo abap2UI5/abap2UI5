@@ -1,3 +1,10 @@
+// Shared rendering pattern of the custom controls (Timer.js, Focus.js,
+// Scrolling.js, Tree.js, ...): the renderer only *marks* work by setting a
+// `_pending*` flag on the control instance, and onAfterRendering() consumes
+// the flag and performs the actual DOM work (focus, scrolling, timers, tree
+// state). Renderers must stay cheap and free of visible side effects
+// (rendering API v2); deferring to onAfterRendering also guarantees the
+// control's DOM exists.
 sap.ui.define([], () => {
   "use strict";
 

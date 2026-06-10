@@ -54,7 +54,17 @@ function generateClassName(filePath) {
         fileName.splice(1, 1); // Remove the middle part
     }
     const folderPath = parts.map(part => part.substring(0, 4)).join('_').toLowerCase();
-    return `z2ui5_cl_app_${fileName.join('_').toLowerCase()}`;
+    let className = `z2ui5_cl_app_${fileName.join('_').toLowerCase()}`;
+    // ABAP object names are limited to 30 characters. Shorten the stem but
+    // keep the extension suffix so the kind of file stays recognizable
+    // (e.g. SmartMultiInputExt.js -> z2ui5_cl_app_smartmultiinpu_js).
+    // The collision check in main() catches any ambiguity this introduces.
+    if (className.length > 30) {
+        const suffix = `_${fileName[fileName.length - 1].toLowerCase()}`;
+        const stem = `z2ui5_cl_app_${fileName.slice(0, -1).join('_').toLowerCase()}`;
+        className = stem.substring(0, 30 - suffix.length) + suffix;
+    }
+    return className;
 }
 
 // Builds the generated z2ui5_cl_app_preload class. It returns the
@@ -154,6 +164,20 @@ async function main() {
 
         const files = getAllFiles(sourceDir);
         const preloadEntries = [];
+
+        // Class names ignore folders (cc/Foo.js and Foo.js would both map to
+        // z2ui5_cl_app_foo_js), so duplicate basenames silently overwrite
+        // each other. Fail fast instead.
+        const seenClassNames = new Map();
+        for (const file of files) {
+            const cn = generateClassName(file);
+            if (seenClassNames.has(cn)) {
+                throw new Error(
+                    `class name collision: ${file} and ${seenClassNames.get(cn)} both map to ${cn}`,
+                );
+            }
+            seenClassNames.set(cn, file);
+        }
 
         for (const file of files) {
             let sourceContent = await readFile(file);

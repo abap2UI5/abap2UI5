@@ -1,0 +1,136 @@
+sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
+  "use strict";
+
+  return Control.extend("z2ui5.Scrolling", {
+    metadata: {
+      properties: {
+        setUpdate: {
+          type: "boolean",
+          defaultValue: true,
+        },
+        items: {
+          type: "object",
+        },
+      },
+    },
+
+    _getDomInnerElement(id) {
+      const control = z2ui5.oView && z2ui5.oView.byId(id);
+      if (!control) return null;
+      return document.getElementById(`${control.getId()}-inner`);
+    },
+
+    _getScrollTop(item) {
+      try {
+        const control = z2ui5.oView && z2ui5.oView.byId(item.N);
+        // Some controls expose a scroll delegate; prefer it when available.
+        if (control && control.getScrollDelegate) {
+          const delegate = control.getScrollDelegate();
+          if (delegate) return delegate.getScrollTop();
+        }
+        const element = this._getDomInnerElement(item.ID);
+        return element ? element.scrollTop : 0;
+      } catch (e) {
+        Lib.logError("Scrolling._getScrollTop: failed", e);
+        return 0;
+      }
+    },
+
+    setBackend() {
+      const items = this.getProperty("items");
+      if (!items) return;
+      try {
+        // Resolve the binding path so we can mark only changed entries
+        // as dirty in xxChangedPaths.
+        const bindingInfo = this.getBindingInfo("items");
+        let bindingPath;
+        if (bindingInfo) {
+          const parts = bindingInfo.parts;
+          if (parts && parts[0]) bindingPath = parts[0].path;
+          if (!bindingPath) bindingPath = bindingInfo.path;
+        }
+        for (const [index, item] of items.entries()) {
+          const scrollTop = this._getScrollTop(item);
+          if (item.V !== scrollTop) {
+            item.V = scrollTop;
+            if (bindingPath && z2ui5.xxChangedPaths) {
+              z2ui5.xxChangedPaths.add(`${bindingPath}/${index}/V`);
+            }
+          }
+        }
+      } catch (e) {
+        Lib.logError("Scrolling.setBackend: failed", e);
+      }
+    },
+
+    init() {
+      this._setBackendBound = this.setBackend.bind(this);
+      Lib.registerCallback("onBeforeRoundtrip", this._setBackendBound);
+    },
+
+    exit() {
+      Lib.unregisterCallback("onBeforeRoundtrip", this._setBackendBound);
+    },
+
+    _restoreScrollPosition(item) {
+      try {
+        const control = z2ui5.oView && z2ui5.oView.byId(item.N);
+        if (control && control.scrollTo) {
+          control.scrollTo(item.V);
+          return;
+        }
+        const element = this._getDomInnerElement(item.ID);
+        if (element) element.scrollTop = item.V;
+      } catch (e) {
+        Lib.logError("Scrolling._restoreScrollPosition: failed", e);
+      }
+    },
+
+    onAfterRendering() {
+      if (!this._pendingScroll) return;
+      this._pendingScroll = false;
+
+      const items = this.getProperty("items");
+      if (!items) return;
+
+      try {
+        for (const item of items) {
+          const control = z2ui5.oView && z2ui5.oView.byId(item.N);
+          if (!control) continue;
+
+          if (control.getDomRef()) {
+            // The target control is already rendered -> restore immediately.
+            this._restoreScrollPosition(item);
+          } else {
+            // Not rendered yet -> wait until it is, then restore once.
+            const delegate = {
+              onAfterRendering: () => {
+                control.removeEventDelegate(delegate);
+                if (!Lib.isDestroyed(this)) {
+                  this._restoreScrollPosition(item);
+                }
+              },
+            };
+            control.addEventDelegate(delegate);
+          }
+        }
+      } catch (e) {
+        Lib.logError("Scrolling.onAfterRendering: failed", e);
+      }
+    },
+
+    renderer: {
+      apiVersion: 2,
+      render(oRm, oControl) {
+        oRm.openStart("span", oControl);
+        oRm.style("display", "none");
+        oRm.openEnd();
+        oRm.close("span");
+
+        if (!oControl.getProperty("setUpdate")) return;
+        oControl.setProperty("setUpdate", false, true);
+        oControl._pendingScroll = true;
+      },
+    },
+  });
+});

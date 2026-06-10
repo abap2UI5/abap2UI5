@@ -27,8 +27,18 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `    "z2ui5/cc/DebugTool",` && |\n| &&
              `    "sap/ui/core/Theming",` && |\n| &&
              `    "z2ui5/cc/Lib",` && |\n| &&
+             `    "z2ui5/Util",` && |\n| &&
              `  ],` && |\n| &&
-             `  (UIComponent, Models, Server, VersionInfo, DebugTool, Theming, Lib) => {` && |\n| &&
+             `  (` && |\n| &&
+             `    UIComponent,` && |\n| &&
+             `    Models,` && |\n| &&
+             `    Server,` && |\n| &&
+             `    VersionInfo,` && |\n| &&
+             `    DebugTool,` && |\n| &&
+             `    Theming,` && |\n| &&
+             `    Lib,` && |\n| &&
+             `    DateUtil,` && |\n| &&
+             `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    return UIComponent.extend("z2ui5.Component", {` && |\n| &&
@@ -54,6 +64,13 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        if (z2ui5.checkLocal === false) window.z2ui5 = {};` && |\n| &&
              `        if (typeof z2ui5.oConfig === "undefined") z2ui5.oConfig = {};` && |\n| &&
              `        z2ui5.oConfig.ComponentData = this.getComponentData();` && |\n| &&
+             `` && |\n| &&
+             `        // The date helpers are a public contract: apps use them via the` && |\n| &&
+             `        // z2ui5.Util global (XML view formatter strings) or via` && |\n| &&
+             `        // core:require of the z2ui5/Util module. Publish the global here -` && |\n| &&
+             `        // since the custom controls were split out of App.controller.js,` && |\n| &&
+             `        // nothing else loads the module eagerly anymore.` && |\n| &&
+             `        z2ui5.Util = DateUtil;` && |\n| &&
              `` && |\n| &&
              `        z2ui5.oDeviceModel = Models.createDeviceModel();` && |\n| &&
              `        this.setModel(z2ui5.oDeviceModel, "device");` && |\n| &&
