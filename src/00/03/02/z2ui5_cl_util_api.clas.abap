@@ -323,6 +323,41 @@ CLASS z2ui5_cl_util_api DEFINITION
       RETURNING
         VALUE(result) TYPE string ##NEEDED.
 
+    CLASS-METHODS tr_create
+      IMPORTING
+        text          TYPE clike
+        target        TYPE clike
+        type          TYPE clike DEFAULT `T`
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS tr_release
+      IMPORTING
+        trkorr       TYPE clike
+        ignore_locks TYPE abap_bool DEFAULT abap_true.
+
+    CLASS-METHODS tr_copy_objects
+      IMPORTING
+        source      TYPE clike
+        destination TYPE clike.
+
+    CLASS-METHODS tr_import
+      IMPORTING
+        trkorr         TYPE clike
+        target_system  TYPE clike
+        client         TYPE clike OPTIONAL
+        ignore_version TYPE abap_bool DEFAULT abap_true
+      RETURNING
+        VALUE(result)  TYPE i.
+
+    CLASS-METHODS tr_check_status
+      IMPORTING
+        trkorr   TYPE clike
+        system   TYPE clike
+      EXPORTING
+        imported TYPE abap_bool
+        rc       TYPE i.
+
 
   PROTECTED SECTION.
 
@@ -1100,6 +1135,120 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
   METHOD context_get_sy.
 
     result = CORRESPONDING #( sy ).
+
+  ENDMETHOD.
+
+  METHOD tr_create.
+
+    " Create an empty transport request (default type `T` = transport of copies).
+    " Uses the released class CL_ADT_CTS_MANAGEMENT, available on standard ABAP
+    " (>= 7.51) and ABAP Cloud. Called dynamically so the source stays compilable
+    " on all targets - on releases where the class is missing a clean
+    " z2ui5_cx_util_error is raised instead of a short dump.
+    TRY.
+
+        DATA lr_header TYPE REF TO data.
+        FIELD-SYMBOLS <header> TYPE any.
+        FIELD-SYMBOLS <trkorr> TYPE any.
+        DATA lv_class TYPE string.
+
+        CREATE DATA lr_header TYPE (`TRWBO_REQUEST_HEADER`).
+        ASSIGN lr_header->* TO <header>.
+
+        lv_class = `CL_ADT_CTS_MANAGEMENT`.
+        CALL METHOD (lv_class)=>(`CREATE_EMPTY_REQUEST`)
+          EXPORTING
+            iv_type           = type
+            iv_text           = text
+            iv_target         = target
+          IMPORTING
+            es_request_header = <header>.
+
+        ASSIGN COMPONENT `TRKORR` OF STRUCTURE <header> TO <trkorr>.
+        result = <trkorr>.
+
+      CATCH cx_root INTO DATA(x).
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING
+            previous = x.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD tr_release.
+
+    " Release a transport request via the released CTS REST API
+    " (CL_CTS_REST_API_FACTORY). Works on standard ABAP and ABAP Cloud.
+    TRY.
+
+        DATA lo_api   TYPE REF TO object.
+        DATA lv_class TYPE string.
+
+        lv_class = `CL_CTS_REST_API_FACTORY`.
+        CALL METHOD (lv_class)=>(`CREATE_INSTANCE`)
+          RECEIVING
+            result = lo_api.
+
+        CALL METHOD lo_api->(`RELEASE`)
+          EXPORTING
+            iv_trkorr       = trkorr
+            iv_ignore_locks = ignore_locks.
+
+      CATCH cx_root INTO DATA(x).
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING
+            previous = x.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD tr_copy_objects.
+
+    IF context_check_abap_cloud( ).
+      z2ui5_cl_util_api_c=>tr_copy_objects( source = source destination = destination ).
+    ELSE.
+      z2ui5_cl_util_api_s=>tr_copy_objects( source = source destination = destination ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD tr_import.
+
+    IF context_check_abap_cloud( ).
+      result = z2ui5_cl_util_api_c=>tr_import(
+                 trkorr         = trkorr
+                 target_system  = target_system
+                 client         = client
+                 ignore_version = ignore_version ).
+    ELSE.
+      result = z2ui5_cl_util_api_s=>tr_import(
+                 trkorr         = trkorr
+                 target_system  = target_system
+                 client         = client
+                 ignore_version = ignore_version ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD tr_check_status.
+
+    IF context_check_abap_cloud( ).
+      z2ui5_cl_util_api_c=>tr_check_status(
+        EXPORTING
+          trkorr   = trkorr
+          system   = system
+        IMPORTING
+          imported = imported
+          rc       = rc ).
+    ELSE.
+      z2ui5_cl_util_api_s=>tr_check_status(
+        EXPORTING
+          trkorr   = trkorr
+          system   = system
+        IMPORTING
+          imported = imported
+          rc       = rc ).
+    ENDIF.
 
   ENDMETHOD.
 

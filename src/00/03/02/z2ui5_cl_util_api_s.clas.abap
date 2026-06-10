@@ -112,6 +112,28 @@ CLASS z2ui5_cl_util_api_s DEFINITION
       RETURNING
         VALUE(result) TYPE string ##NEEDED.
 
+    CLASS-METHODS tr_copy_objects
+      IMPORTING
+        source      TYPE clike
+        destination TYPE clike.
+
+    CLASS-METHODS tr_import
+      IMPORTING
+        trkorr         TYPE clike
+        target_system  TYPE clike
+        client         TYPE clike OPTIONAL
+        ignore_version TYPE abap_bool DEFAULT abap_true
+      RETURNING
+        VALUE(result)  TYPE i.
+
+    CLASS-METHODS tr_check_status
+      IMPORTING
+        trkorr   TYPE clike
+        system   TYPE clike
+      EXPORTING
+        imported TYPE abap_bool
+        rc       TYPE i.
+
 
   PROTECTED SECTION.
 
@@ -908,6 +930,205 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD bal_save.
+
+  ENDMETHOD.
+
+  METHOD tr_copy_objects.
+
+    " Copy all objects/commands of a source request (and its tasks) into a
+    " target request via the classic transport functions. Called dynamically
+    " so the statement stays compilable on ABAP Cloud as well, even though the
+    " function modules only exist on-premise.
+    TRY.
+
+        DATA lr_headers TYPE REF TO data.
+        FIELD-SYMBOLS <headers> TYPE ANY TABLE.
+        FIELD-SYMBOLS <header>  TYPE any.
+        FIELD-SYMBOLS <trkorr>  TYPE any.
+        FIELD-SYMBOLS <strkorr> TYPE any.
+        DATA lv_fm TYPE string.
+
+        CREATE DATA lr_headers TYPE (`TRWBO_REQUEST_HEADERS`).
+        ASSIGN lr_headers->* TO <headers>.
+
+        lv_fm = `TR_READ_REQUEST_WITH_TASKS`.
+        CALL FUNCTION lv_fm
+          EXPORTING
+            iv_trkorr          = source
+          IMPORTING
+            et_request_headers = <headers>
+          EXCEPTIONS
+            invalid_input      = 1
+            OTHERS             = 2.
+        IF sy-subrc <> 0.
+          RAISE EXCEPTION TYPE z2ui5_cx_util_error
+            EXPORTING
+              val = `TR_READ_REQUEST_WITH_TASKS failed`.
+        ENDIF.
+
+        LOOP AT <headers> ASSIGNING <header>.
+
+          ASSIGN COMPONENT `TRKORR`  OF STRUCTURE <header> TO <trkorr>.
+          ASSIGN COMPONENT `STRKORR` OF STRUCTURE <header> TO <strkorr>.
+          IF <trkorr> <> source AND <strkorr> <> source.
+            CONTINUE.
+          ENDIF.
+
+          lv_fm = `TR_COPY_COMM`.
+          CALL FUNCTION lv_fm
+            EXPORTING
+              wi_dialog                = abap_false
+              wi_trkorr_from           = <trkorr>
+              wi_trkorr_to             = destination
+              wi_without_documentation = abap_false
+            EXCEPTIONS
+              OTHERS                   = 1.
+          IF sy-subrc <> 0.
+            RAISE EXCEPTION TYPE z2ui5_cx_util_error
+              EXPORTING
+                val = `TR_COPY_COMM failed`.
+          ENDIF.
+
+        ENDLOOP.
+
+      CATCH z2ui5_cx_util_error INTO DATA(lx_known).
+        RAISE EXCEPTION lx_known.
+      CATCH cx_root INTO DATA(x).
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING
+            previous = x.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD tr_import.
+
+    " Import a transport request into a target system via TMS. The target
+    " system may be given as `SYSTEM` or `SYSTEM.CLIENT`; an explicit client
+    " parameter takes precedence, otherwise the current client is used.
+    TRY.
+
+        DATA lv_system  TYPE c LENGTH 8.
+        DATA lv_client  TYPE c LENGTH 3.
+        DATA lv_retcode TYPE c LENGTH 4.
+        DATA lr_exc     TYPE REF TO data.
+        FIELD-SYMBOLS <exc> TYPE any.
+        DATA lv_fm TYPE string.
+
+        SPLIT target_system AT `.` INTO lv_system lv_client.
+        IF lv_client IS INITIAL.
+          IF client IS NOT INITIAL.
+            lv_client = client.
+          ELSE.
+            lv_client = sy-mandt.
+          ENDIF.
+        ENDIF.
+
+        CREATE DATA lr_exc TYPE (`STMSCALERT`).
+        ASSIGN lr_exc->* TO <exc>.
+
+        lv_fm = `TMS_MGR_REFRESH_IMPORT_QUEUES`.
+        CALL FUNCTION lv_fm
+          EXPORTING
+            iv_system    = lv_system
+            iv_monitor   = abap_true
+            iv_verbose   = abap_true
+          IMPORTING
+            es_exception = <exc>
+          EXCEPTIONS
+            OTHERS       = 99.
+        IF sy-subrc = 99.
+          RAISE EXCEPTION TYPE z2ui5_cx_util_error
+            EXPORTING
+              val = `TMS_MGR_REFRESH_IMPORT_QUEUES failed`.
+        ENDIF.
+
+        lv_fm = `TMS_MGR_IMPORT_TR_REQUEST`.
+        CALL FUNCTION lv_fm
+          EXPORTING
+            iv_system                  = lv_system
+            iv_request                 = trkorr
+            iv_client                  = lv_client
+            iv_ignore_cvers            = ignore_version
+          IMPORTING
+            ev_tp_ret_code             = lv_retcode
+          EXCEPTIONS
+            read_config_failed         = 1
+            table_of_requests_is_empty = 2
+            OTHERS                     = 3.
+        IF sy-subrc <> 0.
+          RAISE EXCEPTION TYPE z2ui5_cx_util_error
+            EXPORTING
+              val = `TMS_MGR_IMPORT_TR_REQUEST failed`.
+        ENDIF.
+
+        result = lv_retcode.
+
+      CATCH z2ui5_cx_util_error INTO DATA(lx_known).
+        RAISE EXCEPTION lx_known.
+      CATCH cx_root INTO DATA(x).
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING
+            previous = x.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD tr_check_status.
+
+    " Read the import status (imported flag + return code) of a request in a
+    " given system via the classic transport log API.
+    TRY.
+
+        DATA lr_settings TYPE REF TO data.
+        DATA lr_cofile   TYPE REF TO data.
+        DATA lr_sysline  TYPE REF TO data.
+        FIELD-SYMBOLS <settings> TYPE any.
+        FIELD-SYMBOLS <systems>  TYPE ANY TABLE.
+        FIELD-SYMBOLS <sysline>  TYPE any.
+        FIELD-SYMBOLS <cofile>   TYPE any.
+        FIELD-SYMBOLS <comp>     TYPE any.
+        DATA lv_fm TYPE string.
+
+        CREATE DATA lr_settings TYPE (`CTSLG_SETTINGS`).
+        ASSIGN lr_settings->* TO <settings>.
+        ASSIGN COMPONENT `SYSTEMS` OF STRUCTURE <settings> TO <systems>.
+
+        CREATE DATA lr_sysline LIKE LINE OF <systems>.
+        ASSIGN lr_sysline->* TO <sysline>.
+        <sysline> = system.
+        INSERT <sysline> INTO TABLE <systems>.
+
+        CREATE DATA lr_cofile TYPE (`CTSLG_COFILE`).
+        ASSIGN lr_cofile->* TO <cofile>.
+
+        lv_fm = `TR_READ_GLOBAL_INFO_OF_REQUEST`.
+        CALL FUNCTION lv_fm
+          EXPORTING
+            iv_trkorr   = trkorr
+            is_settings = <settings>
+          IMPORTING
+            es_cofile   = <cofile>.
+
+        ASSIGN COMPONENT `EXISTS` OF STRUCTURE <cofile> TO <comp>.
+        IF <comp> = abap_false.
+          RAISE EXCEPTION TYPE z2ui5_cx_util_error
+            EXPORTING
+              val = `request does not exist in target system`.
+        ENDIF.
+
+        ASSIGN COMPONENT `IMPORTED` OF STRUCTURE <cofile> TO <comp>.
+        imported = <comp>.
+        ASSIGN COMPONENT `RC` OF STRUCTURE <cofile> TO <comp>.
+        rc = <comp>.
+
+      CATCH z2ui5_cx_util_error INTO DATA(lx_known).
+        RAISE EXCEPTION lx_known.
+      CATCH cx_root INTO DATA(x).
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING
+            previous = x.
+    ENDTRY.
 
   ENDMETHOD.
 
