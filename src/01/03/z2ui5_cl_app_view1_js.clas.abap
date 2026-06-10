@@ -293,7 +293,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `      onInit() {` && |\n| &&
              `        z2ui5.oRouter.attachRouteMatched(() => {` && |\n| &&
-             `          z2ui5.checkInit = true;` && |\n| &&
              `          Server.Roundtrip();` && |\n| &&
              `        });` && |\n| &&
              `      },` && |\n| &&
@@ -418,9 +417,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `      // Execute the follow-up JS snippets stashed by Server.responseSuccess.` && |\n| &&
              `      // Runs once per roundtrip, after the view has rendered.` && |\n| &&
+             `      _runPendingCustomJs() {` && |\n| &&
              |\n|.
     result = result &&
-             `      _runPendingCustomJs() {` && |\n| &&
              `        const customJs = z2ui5.pendingCustomJs;` && |\n| &&
              `        z2ui5.pendingCustomJs = null;` && |\n| &&
              `        if (!customJs) return;` && |\n| &&
@@ -820,9 +819,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      _evSystemLogout(args) {` && |\n| &&
              `        const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";` && |\n| &&
              `        const goToLogoutUrl = () => {` && |\n| &&
+             `          if (isValidRedirectURL(logoutUrl)) {` && |\n| &&
              |\n|.
     result = result &&
-             `          if (isValidRedirectURL(logoutUrl)) {` && |\n| &&
              `            window.location.href = logoutUrl;` && |\n| &&
              `          } else {` && |\n| &&
              `            MessageBox.error(` && |\n| &&
@@ -1218,14 +1217,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return item;` && |\n| &&
              `        });` && |\n| &&
              `` && |\n| &&
-             `        z2ui5.oResponseOld = z2ui5.oResponse;` && |\n| &&
              `        Server.Roundtrip();` && |\n| &&
              `        runCallbacks(z2ui5.onAfterRoundtrip);` && |\n| &&
              `      },` && |\n| &&
-             |\n|.
-    result = result &&
              `` && |\n| &&
              `      _pickModelForRoundtrip(args) {` && |\n| &&
+             |\n|.
+    result = result &&
              `        // The 4th positional flag in args[0] forces use of the main view's` && |\n| &&
              `        // model even when called from a popup/popover controller.` && |\n| &&
              `        if (args[0][3] || z2ui5.oController === this) {` && |\n| &&

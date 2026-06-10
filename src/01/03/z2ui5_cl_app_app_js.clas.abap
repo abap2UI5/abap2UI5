@@ -59,7 +59,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        // If the URL already contains a hash, kick off the initial roundtrip` && |\n| &&
              `        // so the backend can restore that state.` && |\n| &&
              `        if (HashChanger.getInstance().getHash()) {` && |\n| &&
-             `          z2ui5.checkInit = true;` && |\n| &&
              `          Server.Roundtrip();` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
@@ -418,9 +417,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        if (bindingInfo) {` && |\n| &&
              `          const parts = bindingInfo.parts;` && |\n| &&
              `          if (parts && parts[0]) bindingPath = parts[0].path;` && |\n| &&
+             `          if (!bindingPath) bindingPath = bindingInfo.path;` && |\n| &&
              |\n|.
     result = result &&
-             `          if (!bindingPath) bindingPath = bindingInfo.path;` && |\n| &&
              `        }` && |\n| &&
              `        for (const [index, item] of items.entries()) {` && |\n| &&
              `          const scrollTop = this._getScrollTop(item);` && |\n| &&
@@ -820,9 +819,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          },` && |\n| &&
              `          tooltip: {` && |\n| &&
              `            type: "string",` && |\n| &&
+             `            defaultValue: "",` && |\n| &&
              |\n|.
     result = result &&
-             `            defaultValue: "",` && |\n| &&
              `          },` && |\n| &&
              `          fileType: {` && |\n| &&
              `            type: "string",` && |\n| &&
@@ -1222,9 +1221,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            for (const [key, value] of Object.entries(oRangeData)) {` && |\n| &&
              `              const lower = key.toLowerCase();` && |\n| &&
              `              const finalKey = lower === "keyfield" ? "keyField" : lower;` && |\n| &&
+             `              out[finalKey] = value;` && |\n| &&
              |\n|.
     result = result &&
-             `              out[finalKey] = value;` && |\n| &&
              `            }` && |\n| &&
              `            return out;` && |\n| &&
              `          });` && |\n| &&
@@ -1624,9 +1623,9 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `        for (const oCol of columns) {` && |\n| &&
              `          if (` && |\n| &&
+             `            oCol.getFilterProperty &&` && |\n| &&
              |\n|.
     result = result &&
-             `            oCol.getFilterProperty &&` && |\n| &&
              `            oCol.getFilterProperty() === sProperty` && |\n| &&
              `          ) {` && |\n| &&
              `            oCol.setFilterValue(display);` && |\n| &&

@@ -206,7 +206,6 @@ sap.ui.define(
       },
 
       Roundtrip() {
-        z2ui5.checkTimerActive = false;
         z2ui5.checkNestAfter = false;
         z2ui5.checkNestAfter2 = false;
 

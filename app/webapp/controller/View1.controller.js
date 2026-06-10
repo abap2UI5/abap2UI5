@@ -273,7 +273,6 @@ sap.ui.define(
 
       onInit() {
         z2ui5.oRouter.attachRouteMatched(() => {
-          z2ui5.checkInit = true;
           Server.Roundtrip();
         });
       },
@@ -1194,7 +1193,6 @@ sap.ui.define(
           return item;
         });
 
-        z2ui5.oResponseOld = z2ui5.oResponse;
         Server.Roundtrip();
         runCallbacks(z2ui5.onAfterRoundtrip);
       },

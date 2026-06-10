@@ -39,7 +39,6 @@ sap.ui.define(
         // If the URL already contains a hash, kick off the initial roundtrip
         // so the backend can restore that state.
         if (HashChanger.getInstance().getHash()) {
-          z2ui5.checkInit = true;
           Server.Roundtrip();
         }
       },

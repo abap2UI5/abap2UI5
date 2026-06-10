@@ -226,7 +226,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      Roundtrip() {` && |\n| &&
-             `        z2ui5.checkTimerActive = false;` && |\n| &&
              `        z2ui5.checkNestAfter = false;` && |\n| &&
              `        z2ui5.checkNestAfter2 = false;` && |\n| &&
              `` && |\n| &&
@@ -418,9 +417,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      // and the Function() evaluation) only exists for backward compatibility` && |\n| &&
              `      // with older apps and will be removed in a future release. Do not` && |\n| &&
              `      // extend or change it.` && |\n| &&
+             `      _runCustomJs(item, oController) {` && |\n| &&
              |\n|.
     result = result &&
-             `      _runCustomJs(item, oController) {` && |\n| &&
              `        try {` && |\n| &&
              `          const parts = item.split("'");` && |\n| &&
              `          // Arguments live at the odd indices between single quotes.` && |\n| &&
