@@ -393,6 +393,11 @@ sap.ui.define(
       // Executes a single custom-JS snippet from the backend.
       // Format A:  "alert(123)"           -> runs the expression
       // Format B:  "eF('A','B','C')"      -> calls oController.eF('A','B','C')
+      //
+      // OBSOLETE: this mechanism (including the quote-based argument parsing
+      // and the Function() evaluation) only exists for backward compatibility
+      // with older apps and will be removed in a future release. Do not
+      // extend or change it.
       _runCustomJs(item, oController) {
         try {
           const parts = item.split("'");

@@ -906,6 +906,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _evStartTimer(args) {` && |\n| &&
+             `        // Intentionally a single timer slot: args[0] is always the event` && |\n| &&
+             `        // name "START_TIMER", so a new START_TIMER replaces the previous` && |\n| &&
+             `        // one. At most one backend timer is pending at any time - this is` && |\n| &&
+             `        // by design, not a bug.` && |\n| &&
              `        const timerKey = args[0];` && |\n| &&
              `        const callbackEvent = args[1];` && |\n| &&
              `        const delay = +args[2] || 0;` && |\n| &&
@@ -1218,12 +1222,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        return undefined;` && |\n| &&
              `      },` && |\n| &&
+             |\n|.
+    result = result &&
              `` && |\n| &&
              `      // Re-bind a model to one of the views when the response signals an` && |\n| &&
              `      // update is required for that particular slot.` && |\n| &&
              `      updateModelIfRequired(paramKey, oView) {` && |\n| &&
-             |\n|.
-    result = result &&
              `        const params = z2ui5.oResponse && z2ui5.oResponse.PARAMS;` && |\n| &&
              `        const slot = params && params[paramKey];` && |\n| &&
              `        if (!slot || !slot.CHECK_UPDATE_MODEL) return;` && |\n| &&

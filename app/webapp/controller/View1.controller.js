@@ -882,6 +882,10 @@ sap.ui.define(
       },
 
       _evStartTimer(args) {
+        // Intentionally a single timer slot: args[0] is always the event
+        // name "START_TIMER", so a new START_TIMER replaces the previous
+        // one. At most one backend timer is pending at any time - this is
+        // by design, not a bug.
         const timerKey = args[0];
         const callbackEvent = args[1];
         const delay = +args[2] || 0;
