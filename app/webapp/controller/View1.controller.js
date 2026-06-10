@@ -397,9 +397,16 @@ sap.ui.define(
           if (!oControl) {
             if (Element.getElementById) {
               oControl = Element.getElementById(openById);
-            } else if (sap.ui.getCore) {
-              const core = sap.ui.getCore();
-              if (core && core.byId) oControl = core.byId(openById);
+            } else {
+              /* ui5lint-disable no-globals, no-deprecated-api --
+                 deliberate fallback for UI5 releases that do not provide
+                 Element.getElementById yet (added in 1.119); the modern
+                 API is used in the branch above. */
+              if (sap.ui.getCore) {
+                const core = sap.ui.getCore();
+                if (core && core.byId) oControl = core.byId(openById);
+              }
+              /* ui5lint-enable no-globals, no-deprecated-api */
             }
           }
 

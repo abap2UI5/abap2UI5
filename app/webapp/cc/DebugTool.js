@@ -57,10 +57,12 @@ sap.ui.define(
     }
 
     function getViewContent(view) {
-      return view && view.mProperties && view.mProperties.viewContent;
+      return view && view.getProperty("viewContent");
     }
 
     function getRenderedContent(view) {
+      // Private member access (debug tool only): _xContent holds the view
+      // XML after XML templating ran; there is no public equivalent.
       return view && view._xContent && view._xContent.outerHTML;
     }
 

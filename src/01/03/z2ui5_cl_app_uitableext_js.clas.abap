@@ -64,7 +64,13 @@ CLASS z2ui5_cl_app_uitableext_js IMPLEMENTATION.
              `      try {` && |\n| &&
              `        const table = this._getTable();` && |\n| &&
              `        const binding = table && table.getBinding();` && |\n| &&
-             `        this.aFilters = binding ? binding.aFilters : undefined;` && |\n| &&
+             `        // Prefer the public getFilters API (UI5 >= 1.96); older releases` && |\n| &&
+             `        // only expose the private aFilters member.` && |\n| &&
+             `        this.aFilters = !binding` && |\n| &&
+             `          ? undefined` && |\n| &&
+             `          : binding.getFilters` && |\n| &&
+             `            ? binding.getFilters("Application")` && |\n| &&
+             `            : binding.aFilters;` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("UITableExt.readFilter failed", e);` && |\n| &&
              `      }` && |\n| &&
@@ -159,6 +165,8 @@ CLASS z2ui5_cl_app_uitableext_js IMPLEMENTATION.
              `      try {` && |\n| &&
              `        const table = this._getTable();` && |\n| &&
              `        const binding = table && table.getBinding();` && |\n| &&
+             `        // Private member access: ListBinding has no public getter for the` && |\n| &&
+             `        // active sorters (unlike getFilters for filters).` && |\n| &&
              `        this.aSorters = binding ? binding.aSorters : undefined;` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("UITableExt.readSort failed", e);` && |\n| &&

@@ -44,7 +44,13 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
       try {
         const table = this._getTable();
         const binding = table && table.getBinding();
-        this.aFilters = binding ? binding.aFilters : undefined;
+        // Prefer the public getFilters API (UI5 >= 1.96); older releases
+        // only expose the private aFilters member.
+        this.aFilters = !binding
+          ? undefined
+          : binding.getFilters
+            ? binding.getFilters("Application")
+            : binding.aFilters;
       } catch (e) {
         Lib.logError("UITableExt.readFilter failed", e);
       }
@@ -139,6 +145,8 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
       try {
         const table = this._getTable();
         const binding = table && table.getBinding();
+        // Private member access: ListBinding has no public getter for the
+        // active sorters (unlike getFilters for filters).
         this.aSorters = binding ? binding.aSorters : undefined;
       } catch (e) {
         Lib.logError("UITableExt.readSort failed", e);

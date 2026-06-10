@@ -18,7 +18,52 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// Shared rendering pattern of the custom controls (Timer.js, Focus.js,` && |\n| &&
+    result = `// The global ``z2ui5`` object holds the shared frontend state. It is declared` && |\n| &&
+             `// by the backend-generated HTML (or created by Component.init when running` && |\n| &&
+             `// standalone). Field inventory - writer in parentheses:` && |\n| &&
+             `//` && |\n| &&
+             `// Bootstrap / configuration` && |\n| &&
+             `//   checkLocal        true when served by the backend GET page (backend HTML)` && |\n| &&
+             `//   url               backend endpoint for roundtrips (App.controller)` && |\n| &&
+             `//   oConfig           { S_UI5: version info, ComponentData } (Component)` && |\n| &&
+             `//   oLaunchpad        FLP services when running inside the launchpad, else` && |\n| &&
+             `//                     null (Component._initLaunchpad)` && |\n| &&
+             `//   Util              PUBLIC date helpers for view formatters - apps rely on` && |\n| &&
+             `//                     this global and on the z2ui5/Util module (Component)` && |\n| &&
+             `//   requestTimeoutMs  optional override for the roundtrip timeout (apps)` && |\n| &&
+             `//` && |\n| &&
+             `// Views / controllers / UI5 objects` && |\n| &&
+             `//   oApp              sap.m.App hosting the main view (App.controller)` && |\n| &&
+             `//   oOwnerComponent, oRouter, oDeviceModel (Component / App.controller)` && |\n| &&
+             `//   oView, oViewNest, oViewNest2, oViewPopup, oViewPopover` && |\n| &&
+             `//                     the five view slots, see viewSlots below (View1)` && |\n| &&
+             `//   oController, oControllerNest, oControllerNest2, oControllerPopup,` && |\n| &&
+             `//   oControllerPopover  controller instance per slot (App.controller)` && |\n| &&
+             `//` && |\n| &&
+             `// Roundtrip state` && |\n| &&
+             `//   oBody             request payload being assembled (View1.eB / Server)` && |\n| &&
+             `//   oResponse         last processed response { ID, PARAMS, OVIEWMODEL }` && |\n| &&
+             `//   responseData      raw parsed response JSON (Server.readHttp)` && |\n| &&
+             `//   contextId         stateful session id, header transport (Server)` && |\n| &&
+             `//   isBusy            roundtrip in flight (View1.eB / Server)` && |\n| &&
+             `//   xxChangedPaths    Set of edited /XX/ model paths for the delta (View1)` && |\n| &&
+             `//   checkNestAfter, checkNestAfter2  nested views rebuilt this roundtrip` && |\n| &&
+             `//   search            overrides location.search in S_FRONT (History control)` && |\n| &&
+             `//   pendingCustomJs   follow-up JS to run after rendering (Server)` && |\n| &&
+             `//` && |\n| &&
+             `// Control / helper state` && |\n| &&
+             `//   errors            capped error log, see logError below` && |\n| &&
+             `//   timers            single pending backend timer (View1._evStartTimer)` && |\n| &&
+             `//   lastScrolled      last scrolled element per slot (Server.onScrollCapture)` && |\n| &&
+             `//   viewSizeLimits    per-slot model size limits (View1._evSetSizeLimit)` && |\n| &&
+             `//   treeState         tree binding state across rebuilds (Tree control)` && |\n| &&
+             `//   debugTool         DebugTool instance (Component, Ctrl+F12)` && |\n| &&
+             `//   onBeforeRoundtrip, onAfterRoundtrip, onAfterRendering,` && |\n| &&
+             `//   onBeforeEventFrontend  callback arrays, see registerCallback below` && |\n| &&
+             `//   <custom>          apps can register functions via the js_loader popup` && |\n| &&
+             `//                     and call them through the Z2UI5 frontend event` && |\n| &&
+             `//` && |\n| &&
+             `// Shared rendering pattern of the custom controls (Timer.js, Focus.js,` && |\n| &&
              `// Scrolling.js, Tree.js, ...): the renderer only *marks* work by setting a` && |\n| &&
              `// ``_pending*`` flag on the control instance, and onAfterRendering() consumes` && |\n| &&
              `// the flag and performs the actual DOM work (focus, scrolling, timers, tree` && |\n| &&
@@ -84,10 +129,9 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `  // added/removed UI5 tokens to plain objects and store them in the` && |\n| &&
              `  // control's addedTokens/removedTokens properties.` && |\n| &&
              `  function applyTokenUpdate(control, oEvent) {` && |\n| &&
-             `    const mParameters = oEvent.mParameters;` && |\n| &&
-             `    const isRemoved = mParameters.type === "removed";` && |\n| &&
+             `    const isRemoved = oEvent.getParameter("type") === "removed";` && |\n| &&
              `    const rawList =` && |\n| &&
-             `      mParameters[isRemoved ? "removedTokens" : "addedTokens"] || [];` && |\n| &&
+             `      oEvent.getParameter(isRemoved ? "removedTokens" : "addedTokens") || [];` && |\n| &&
              `    const tokens = rawList.map((item) => ({` && |\n| &&
              `      KEY: item.getKey(),` && |\n| &&
              `      TEXT: item.getText(),` && |\n| &&

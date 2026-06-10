@@ -110,13 +110,6 @@ sap.ui.define(
           oControl.oUploadButton = null;
           oControl.oFileUploader = null;
 
-          // Helper: read the first file from a FileUploader instance.
-          const getFirstFile = (uploader) => {
-            const fileUpload = uploader && uploader.oFileUpload;
-            const files = fileUpload && fileUpload.files;
-            return files && files[0];
-          };
-
           if (!directUpload) {
             oControl.oUploadButton = new Button({
               text: oControl.getProperty("uploadButtonText"),
@@ -126,8 +119,9 @@ sap.ui.define(
                   "path",
                   oControl.oFileUploader.getProperty("value"),
                 );
-                const file = getFirstFile(oControl.oFileUploader);
-                if (file) oControl._readFile(file);
+                if (oControl._pendingFile) {
+                  oControl._readFile(oControl._pendingFile);
+                }
               },
             });
           }
@@ -146,6 +140,12 @@ sap.ui.define(
             value: path,
             placeholder: oControl.getProperty("placeholder"),
             change: (oEvent) => {
+              // Remember the selected file from the event's public "files"
+              // parameter (the inner file input is private API). It is
+              // consumed by the upload button press or, in direct-upload
+              // mode, by uploadComplete below.
+              const files = oEvent.getParameter("files");
+              oControl._pendingFile = files && files[0];
               if (directUpload) return;
               const value = oEvent.getSource().getProperty("value");
               oControl.setProperty("path", value);
@@ -158,8 +158,9 @@ sap.ui.define(
               if (!directUpload) return;
               const source = oEvent.getSource();
               oControl.setProperty("path", source.getProperty("value"));
-              const file = getFirstFile(source);
-              if (file) oControl._readFile(file);
+              if (oControl._pendingFile) {
+                oControl._readFile(oControl._pendingFile);
+              }
             },
           });
 

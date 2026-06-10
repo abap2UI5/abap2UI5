@@ -130,13 +130,6 @@ CLASS z2ui5_cl_app_fileuploader_js IMPLEMENTATION.
              `          oControl.oUploadButton = null;` && |\n| &&
              `          oControl.oFileUploader = null;` && |\n| &&
              `` && |\n| &&
-             `          // Helper: read the first file from a FileUploader instance.` && |\n| &&
-             `          const getFirstFile = (uploader) => {` && |\n| &&
-             `            const fileUpload = uploader && uploader.oFileUpload;` && |\n| &&
-             `            const files = fileUpload && fileUpload.files;` && |\n| &&
-             `            return files && files[0];` && |\n| &&
-             `          };` && |\n| &&
-             `` && |\n| &&
              `          if (!directUpload) {` && |\n| &&
              `            oControl.oUploadButton = new Button({` && |\n| &&
              `              text: oControl.getProperty("uploadButtonText"),` && |\n| &&
@@ -146,8 +139,9 @@ CLASS z2ui5_cl_app_fileuploader_js IMPLEMENTATION.
              `                  "path",` && |\n| &&
              `                  oControl.oFileUploader.getProperty("value"),` && |\n| &&
              `                );` && |\n| &&
-             `                const file = getFirstFile(oControl.oFileUploader);` && |\n| &&
-             `                if (file) oControl._readFile(file);` && |\n| &&
+             `                if (oControl._pendingFile) {` && |\n| &&
+             `                  oControl._readFile(oControl._pendingFile);` && |\n| &&
+             `                }` && |\n| &&
              `              },` && |\n| &&
              `            });` && |\n| &&
              `          }` && |\n| &&
@@ -166,6 +160,12 @@ CLASS z2ui5_cl_app_fileuploader_js IMPLEMENTATION.
              `            value: path,` && |\n| &&
              `            placeholder: oControl.getProperty("placeholder"),` && |\n| &&
              `            change: (oEvent) => {` && |\n| &&
+             `              // Remember the selected file from the event's public "files"` && |\n| &&
+             `              // parameter (the inner file input is private API). It is` && |\n| &&
+             `              // consumed by the upload button press or, in direct-upload` && |\n| &&
+             `              // mode, by uploadComplete below.` && |\n| &&
+             `              const files = oEvent.getParameter("files");` && |\n| &&
+             `              oControl._pendingFile = files && files[0];` && |\n| &&
              `              if (directUpload) return;` && |\n| &&
              `              const value = oEvent.getSource().getProperty("value");` && |\n| &&
              `              oControl.setProperty("path", value);` && |\n| &&
@@ -178,8 +178,9 @@ CLASS z2ui5_cl_app_fileuploader_js IMPLEMENTATION.
              `              if (!directUpload) return;` && |\n| &&
              `              const source = oEvent.getSource();` && |\n| &&
              `              oControl.setProperty("path", source.getProperty("value"));` && |\n| &&
-             `              const file = getFirstFile(source);` && |\n| &&
-             `              if (file) oControl._readFile(file);` && |\n| &&
+             `              if (oControl._pendingFile) {` && |\n| &&
+             `                oControl._readFile(oControl._pendingFile);` && |\n| &&
+             `              }` && |\n| &&
              `            },` && |\n| &&
              `          });` && |\n| &&
              `` && |\n| &&

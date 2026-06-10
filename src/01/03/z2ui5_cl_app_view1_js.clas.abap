@@ -417,11 +417,18 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          if (!oControl) {` && |\n| &&
              `            if (Element.getElementById) {` && |\n| &&
              `              oControl = Element.getElementById(openById);` && |\n| &&
-             `            } else if (sap.ui.getCore) {` && |\n| &&
+             `            } else {` && |\n| &&
              |\n|.
     result = result &&
-             `              const core = sap.ui.getCore();` && |\n| &&
-             `              if (core && core.byId) oControl = core.byId(openById);` && |\n| &&
+             `              /* ui5lint-disable no-globals, no-deprecated-api --` && |\n| &&
+             `                 deliberate fallback for UI5 releases that do not provide` && |\n| &&
+             `                 Element.getElementById yet (added in 1.119); the modern` && |\n| &&
+             `                 API is used in the branch above. */` && |\n| &&
+             `              if (sap.ui.getCore) {` && |\n| &&
+             `                const core = sap.ui.getCore();` && |\n| &&
+             `                if (core && core.byId) oControl = core.byId(openById);` && |\n| &&
+             `              }` && |\n| &&
+             `              /* ui5lint-enable no-globals, no-deprecated-api */` && |\n| &&
              `            }` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
@@ -813,6 +820,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             |\n|.
+    result = result &&
              `      _evSetFocus(args) {` && |\n| &&
              `        const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
@@ -820,8 +829,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        const applyFocus = () => {` && |\n| &&
              `          try {` && |\n| &&
              `            const info = oElement.getFocusInfo();` && |\n| &&
-             |\n|.
-    result = result &&
              `            if (args[2] != null && args[2] !== "")` && |\n| &&
              `              info.selectionStart = +args[2];` && |\n| &&
              `            if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];` && |\n| &&
@@ -1215,6 +1222,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          models: oModel,` && |\n| &&
              `          controller: z2ui5.oController,` && |\n| &&
              `          id: "mainView",` && |\n| &&
+             |\n|.
+    result = result &&
              `          preprocessors: { xml: { models: { template: oViewModel } } },` && |\n| &&
              `        });` && |\n| &&
              `` && |\n| &&
@@ -1222,8 +1231,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (!Lib.isAlive(z2ui5.oApp)) {` && |\n| &&
              `          z2ui5.oView.destroy();` && |\n| &&
              `          if (switchPath) oModel.destroy();` && |\n| &&
-             |\n|.
-    result = result &&
              `          z2ui5.oView = null;` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&

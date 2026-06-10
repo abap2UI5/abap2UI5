@@ -1,3 +1,48 @@
+// The global `z2ui5` object holds the shared frontend state. It is declared
+// by the backend-generated HTML (or created by Component.init when running
+// standalone). Field inventory - writer in parentheses:
+//
+// Bootstrap / configuration
+//   checkLocal        true when served by the backend GET page (backend HTML)
+//   url               backend endpoint for roundtrips (App.controller)
+//   oConfig           { S_UI5: version info, ComponentData } (Component)
+//   oLaunchpad        FLP services when running inside the launchpad, else
+//                     null (Component._initLaunchpad)
+//   Util              PUBLIC date helpers for view formatters - apps rely on
+//                     this global and on the z2ui5/Util module (Component)
+//   requestTimeoutMs  optional override for the roundtrip timeout (apps)
+//
+// Views / controllers / UI5 objects
+//   oApp              sap.m.App hosting the main view (App.controller)
+//   oOwnerComponent, oRouter, oDeviceModel (Component / App.controller)
+//   oView, oViewNest, oViewNest2, oViewPopup, oViewPopover
+//                     the five view slots, see viewSlots below (View1)
+//   oController, oControllerNest, oControllerNest2, oControllerPopup,
+//   oControllerPopover  controller instance per slot (App.controller)
+//
+// Roundtrip state
+//   oBody             request payload being assembled (View1.eB / Server)
+//   oResponse         last processed response { ID, PARAMS, OVIEWMODEL }
+//   responseData      raw parsed response JSON (Server.readHttp)
+//   contextId         stateful session id, header transport (Server)
+//   isBusy            roundtrip in flight (View1.eB / Server)
+//   xxChangedPaths    Set of edited /XX/ model paths for the delta (View1)
+//   checkNestAfter, checkNestAfter2  nested views rebuilt this roundtrip
+//   search            overrides location.search in S_FRONT (History control)
+//   pendingCustomJs   follow-up JS to run after rendering (Server)
+//
+// Control / helper state
+//   errors            capped error log, see logError below
+//   timers            single pending backend timer (View1._evStartTimer)
+//   lastScrolled      last scrolled element per slot (Server.onScrollCapture)
+//   viewSizeLimits    per-slot model size limits (View1._evSetSizeLimit)
+//   treeState         tree binding state across rebuilds (Tree control)
+//   debugTool         DebugTool instance (Component, Ctrl+F12)
+//   onBeforeRoundtrip, onAfterRoundtrip, onAfterRendering,
+//   onBeforeEventFrontend  callback arrays, see registerCallback below
+//   <custom>          apps can register functions via the js_loader popup
+//                     and call them through the Z2UI5 frontend event
+//
 // Shared rendering pattern of the custom controls (Timer.js, Focus.js,
 // Scrolling.js, Tree.js, ...): the renderer only *marks* work by setting a
 // `_pending*` flag on the control instance, and onAfterRendering() consumes
@@ -64,10 +109,9 @@ sap.ui.define([], () => {
   // added/removed UI5 tokens to plain objects and store them in the
   // control's addedTokens/removedTokens properties.
   function applyTokenUpdate(control, oEvent) {
-    const mParameters = oEvent.mParameters;
-    const isRemoved = mParameters.type === "removed";
+    const isRemoved = oEvent.getParameter("type") === "removed";
     const rawList =
-      mParameters[isRemoved ? "removedTokens" : "addedTokens"] || [];
+      oEvent.getParameter(isRemoved ? "removedTokens" : "addedTokens") || [];
     const tokens = rawList.map((item) => ({
       KEY: item.getKey(),
       TEXT: item.getText(),

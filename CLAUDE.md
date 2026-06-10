@@ -155,10 +155,10 @@ src/
 | Directory | Purpose |
 |---|---|
 | `app/` | Frontend tooling (`package.json`, `ui5.yaml`, `eslint.config.mjs`, `.prettierrc`, `.editorconfig`) |
-| `app/webapp/` | UI5 frontend source — `Component.js`, `index.html`, `manifest.json`, `controller/`, `view/`, `model/`, `css/`, `cc/` (custom controls incl. `Server.js` — the JSON POST client that wraps the body as `{ "value": <payload> }`) |
+| `app/webapp/` | UI5 frontend source — `Component.js`, `index.html`, `manifest.json`, `controller/`, `view/`, `model/`, `css/`, plus one file per custom control at the webapp root (`Timer.js`, `Scrolling.js`, … — module IDs `z2ui5/<Name>` resolved from the `z2ui5` XML namespace; `Util.js` holds the **public** date helpers exposed as the `z2ui5.Util` global). `cc/` contains the internals: `Server.js` (the JSON POST client that wraps the body as `{ "value": <payload> }`), `Lib.js` (shared helper module + the documented inventory of all `z2ui5.*` globals) and `DebugTool` |
 | `node/srv/` | `express.mjs` (dev server on port 3000), `zcl_sicf.clas.abap` (reference ICF handler impl — ~15 lines; real apps follow the same pattern) |
 | `node/setup/` | `abap_transpile.json` (transpiler config), `setup.mjs` (SQLite bootstrap for Node unit tests) |
-| `node/tests/` | Playwright browser tests — `example.spec.js`, `buildDeltaFromPaths.spec.js` |
+| `node/tests/` | Playwright tests — `example.spec.js` (browser), plus unit specs (`buildDeltaFromPaths.spec.js`, `utilHelpers.spec.js`) that load the **real** `app/webapp/cc/Lib.js` via `loadLibModule.js` (stubbed `sap.ui.define`); run them without a browser via `npx playwright test -c node/playwright-unit.config.js` |
 | `node/tests-examples/` | Playwright example specs (reference material, not run in CI) |
 | `.github/workflows/` | 17 CI/CD workflows (see below) |
 | `.github/abaplint/` | Target-specific abaplint configs: `abap_702.jsonc`, `abap_standard.jsonc`, `abap_cloud.jsonc`, `auto_abaplint_fix.jsonc`, `rename_test.jsonc` |
@@ -347,6 +347,7 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
    - Change the source under `app/webapp/`
    - Run **`npm run app2abap`** locally (or trigger the `create_app2abap.yaml` workflow). This single command runs the full pipeline in the correct order — `npm --prefix app run format` (Prettier) → `npm run auto_app2abap` (generate) → `npm run auto_abaplint` (normalize) — exactly as CI does. Running `auto_app2abap` on its own produces **un-normalized** ABAP that differs from the committed form in *every* `src/01/03/` file (alignment/whitespace drift); the `auto_abaplint` step reverts that drift so only the files whose `app/webapp/` source actually changed remain modified.
    - Commit the regenerated `src/01/03/` files as the job produced them
+   - The `sap.ui.require.preload` mapping is **also generated**: `trans2abap.js` emits `z2ui5_cl_app_preload`, which `z2ui5_cl_http_handler` consumes. New files under `app/webapp/` are picked up automatically — never reintroduce a manually maintained preload list in the HTTP handler.
    Direct edits to `src/01/03/*.abap` are forbidden — no manual tweaks, no "small fixes", no formatting changes, nothing. The job may be invoked, but the files must never be touched by hand or by any other means.
    - **Keep diffs minimal — avoid Prettier reflow:** when you add or remove a module dependency in a `sap.ui.define([...], (...) => {` block, Prettier may collapse the call onto one line (or expand it), which **reindents the entire module body** and rewrites every line of the file (and its embedded `src/01/03/` constant). To prevent this, freeze the `define` header with a `// prettier-ignore` directive so the dependency list stays multi-line:
      ```js

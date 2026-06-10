@@ -19,5 +19,5 @@ jobs:
       with:
         node-version: '20'
         cache: 'npm'
-    - run: cd app && npm i && npx ui5lint --ignore-pattern "webapp/index.html" "webapp/controller/View1.controller.js" --details
+    - run: cd app && npm i && npx ui5lint --ignore-pattern "webapp/index.html" --details
       continue-on-error: true

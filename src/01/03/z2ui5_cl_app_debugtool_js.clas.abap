@@ -77,10 +77,12 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function getViewContent(view) {` && |\n| &&
-             `      return view && view.mProperties && view.mProperties.viewContent;` && |\n| &&
+             `      return view && view.getProperty("viewContent");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function getRenderedContent(view) {` && |\n| &&
+             `      // Private member access (debug tool only): _xContent holds the view` && |\n| &&
+             `      // XML after XML templating ran; there is no public equivalent.` && |\n| &&
              `      return view && view._xContent && view._xContent.outerHTML;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
