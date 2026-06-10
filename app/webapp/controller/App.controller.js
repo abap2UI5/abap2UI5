@@ -1,5 +1,19 @@
-// Append an entry to the global error log. We create the array on first use.
+// Append an entry to the global error log. This delegates to the shared
+// z2ui5/cc/Logger module, which is loaded transitively via Server / View1.
+// The control definitions below live in their own sap.ui.define blocks and
+// share this single file-scope helper, so we resolve the module lazily
+// (the lookup only succeeds once it is loaded) and keep an inline fallback
+// for the rare case a control logs before the module is available.
+let _loggerImpl;
 function _logError(message, error) {
+  if (!_loggerImpl) {
+    const Logger = sap.ui.require("z2ui5/cc/Logger");
+    if (Logger) _loggerImpl = Logger.logError;
+  }
+  if (_loggerImpl) {
+    _loggerImpl(message, error);
+    return;
+  }
   if (!z2ui5.errors) z2ui5.errors = [];
   const entry = { message: message, ts: new Date().toISOString() };
   if (error !== undefined) entry.error = error;

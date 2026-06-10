@@ -3,19 +3,12 @@ sap.ui.define(
     "sap/ui/core/Control",
     "sap/ui/core/Fragment",
     "sap/ui/model/json/JSONModel",
+    "z2ui5/cc/Logger",
   ],
-  (Control, Fragment, JSONModel) => {
+  (Control, Fragment, JSONModel, Logger) => {
     "use strict";
 
-    // Append an entry to the global error log. We create the array on first use.
-    function logError(message, error) {
-      if (!z2ui5.errors) z2ui5.errors = [];
-      z2ui5.errors.push({
-        message: message,
-        error: error,
-        ts: new Date().toISOString(),
-      });
-    }
+    const logError = Logger.logError;
 
     // Pretty-print any value (object, array, primitive) as indented JSON.
     // `null` is used as a fallback so undefined values still produce output.

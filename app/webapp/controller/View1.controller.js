@@ -15,6 +15,7 @@ sap.ui.define(
     "sap/ui/core/routing/HashChanger",
     "sap/ui/util/Storage",
     "sap/ui/core/Element",
+    "z2ui5/cc/Logger",
   ],
   (
     Controller,
@@ -32,6 +33,7 @@ sap.ui.define(
     HashChanger,
     Storage,
     Element,
+    Logger,
   ) => {
     "use strict";
 
@@ -39,13 +41,7 @@ sap.ui.define(
     // Small utility helpers (module-private)
     // ------------------------------------------------------------------
 
-    // Append an entry to the global error log. We create the array on first use.
-    function logError(message, error) {
-      if (!z2ui5.errors) z2ui5.errors = [];
-      const entry = { message: message, ts: new Date().toISOString() };
-      if (error !== undefined) entry.error = error;
-      z2ui5.errors.push(entry);
-    }
+    const logError = Logger.logError;
 
     // Run every callback in `arr`, swallowing individual failures so one bad
     // callback cannot break the whole event sequence.

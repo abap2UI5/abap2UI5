@@ -35,6 +35,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    "sap/ui/core/routing/HashChanger",` && |\n| &&
              `    "sap/ui/util/Storage",` && |\n| &&
              `    "sap/ui/core/Element",` && |\n| &&
+             `    "z2ui5/cc/Logger",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    Controller,` && |\n| &&
@@ -52,6 +53,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    HashChanger,` && |\n| &&
              `    Storage,` && |\n| &&
              `    Element,` && |\n| &&
+             `    Logger,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -59,13 +61,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    // Small utility helpers (module-private)` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
-             `    // Append an entry to the global error log. We create the array on first use.` && |\n| &&
-             `    function logError(message, error) {` && |\n| &&
-             `      if (!z2ui5.errors) z2ui5.errors = [];` && |\n| &&
-             `      const entry = { message: message, ts: new Date().toISOString() };` && |\n| &&
-             `      if (error !== undefined) entry.error = error;` && |\n| &&
-             `      z2ui5.errors.push(entry);` && |\n| &&
-             `    }` && |\n| &&
+             `    const logError = Logger.logError;` && |\n| &&
              `` && |\n| &&
              `    // Run every callback in ``arr``, swallowing individual failures so one bad` && |\n| &&
              `    // callback cannot break the whole event sequence.` && |\n| &&
@@ -418,12 +414,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const isRowField =` && |\n| &&
              `            parts.length === 3 && rowIdx !== "" && !isNaN(rowIdx);` && |\n| &&
              `          if (isRowField) {` && |\n| &&
-             |\n|.
-    result = result &&
              `            // Table cell change -> ship only the changed cell.` && |\n| &&
              `            if (!delta[attr] || !delta[attr].__delta) {` && |\n| &&
              `              delta[attr] = { __delta: {} };` && |\n| &&
              `            }` && |\n| &&
+             |\n|.
+    result = result &&
              `            const attrDelta = delta[attr].__delta;` && |\n| &&
              `            if (!attrDelta[rowIdx]) attrDelta[rowIdx] = {};` && |\n| &&
              `            const row = xx[attr] && xx[attr][+rowIdx];` && |\n| &&
@@ -820,12 +816,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            if (done) return;` && |\n| &&
              `            done = true;` && |\n| &&
              `            goToLogoutUrl();` && |\n| &&
-             |\n|.
-    result = result &&
              `          };` && |\n| &&
              `          try {` && |\n| &&
              `            const f = document.createElement("iframe");` && |\n| &&
              `            f.style.display = "none";` && |\n| &&
+             |\n|.
+    result = result &&
              `            f.src = bspKill;` && |\n| &&
              `            f.addEventListener("load", finish);` && |\n| &&
              `            document.body.appendChild(f);` && |\n| &&
@@ -1222,12 +1218,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `      async checkSDKcompatibility(err) {` && |\n| &&
              `        let gav;` && |\n| &&
-             |\n|.
-    result = result &&
              `        try {` && |\n| &&
              `          const info = await VersionInfo.load();` && |\n| &&
              `          gav = info.gav;` && |\n| &&
              `        } catch (e) {` && |\n| &&
+             |\n|.
+    result = result &&
              `          logError("checkSDKcompatibility: VersionInfo.load failed", e);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&

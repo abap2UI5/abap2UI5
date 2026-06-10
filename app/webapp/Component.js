@@ -6,19 +6,12 @@ sap.ui.define(
     "sap/ui/VersionInfo",
     "z2ui5/cc/DebugTool",
     "sap/ui/core/Theming",
+    "z2ui5/cc/Logger",
   ],
-  (UIComponent, Models, Server, VersionInfo, DebugTool, Theming) => {
+  (UIComponent, Models, Server, VersionInfo, DebugTool, Theming, Logger) => {
     "use strict";
 
-    // Append an entry to the global error log. We create the array on first use.
-    function logError(message, error) {
-      if (!z2ui5.errors) z2ui5.errors = [];
-      z2ui5.errors.push({
-        message: message,
-        error: error,
-        ts: new Date().toISOString(),
-      });
-    }
+    const logError = Logger.logError;
 
     return UIComponent.extend("z2ui5.Component", {
       metadata: {

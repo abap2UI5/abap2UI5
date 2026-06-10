@@ -26,19 +26,12 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `    "sap/ui/VersionInfo",` && |\n| &&
              `    "z2ui5/cc/DebugTool",` && |\n| &&
              `    "sap/ui/core/Theming",` && |\n| &&
+             `    "z2ui5/cc/Logger",` && |\n| &&
              `  ],` && |\n| &&
-             `  (UIComponent, Models, Server, VersionInfo, DebugTool, Theming) => {` && |\n| &&
+             `  (UIComponent, Models, Server, VersionInfo, DebugTool, Theming, Logger) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // Append an entry to the global error log. We create the array on first use.` && |\n| &&
-             `    function logError(message, error) {` && |\n| &&
-             `      if (!z2ui5.errors) z2ui5.errors = [];` && |\n| &&
-             `      z2ui5.errors.push({` && |\n| &&
-             `        message: message,` && |\n| &&
-             `        error: error,` && |\n| &&
-             `        ts: new Date().toISOString(),` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
+             `    const logError = Logger.logError;` && |\n| &&
              `` && |\n| &&
              `    return UIComponent.extend("z2ui5.Component", {` && |\n| &&
              `      metadata: {` && |\n| &&

@@ -18,12 +18,12 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// Keep this define multi-line: with a single dependency prettier would` && |\n| &&
-             `// collapse it onto one line and reindent the entire module body.` && |\n| &&
+    result = `// Keep this define multi-line so prettier does not reindent the entire` && |\n| &&
+             `// module body.` && |\n| &&
              `// prettier-ignore` && |\n| &&
              `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/BusyIndicator"],` && |\n| &&
-             `  (BusyIndicator) => {` && |\n| &&
+             `  ["sap/ui/core/BusyIndicator", "z2ui5/cc/Logger"],` && |\n| &&
+             `  (BusyIndicator, Logger) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Errors longer than this are truncated before being shown to the user,` && |\n| &&
@@ -31,15 +31,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    const ERROR_MAX_LENGTH = 50000;` && |\n| &&
              `    const _MSG_TYPES = Object.freeze(["S_MSG_TOAST", "S_MSG_BOX"]);` && |\n| &&
              `` && |\n| &&
-             `    // Append an entry to the global error log. We create the array on first use.` && |\n| &&
-             `    function logError(message, error) {` && |\n| &&
-             `      if (!z2ui5.errors) z2ui5.errors = [];` && |\n| &&
-             `      z2ui5.errors.push({` && |\n| &&
-             `        message: message,` && |\n| &&
-             `        error: error,` && |\n| &&
-             `        ts: new Date().toISOString(),` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
+             `    const logError = Logger.logError;` && |\n| &&
              `` && |\n| &&
              `    // A usable stateful session id ("sap-contextid"). We must never put a` && |\n| &&
              `    // missing value on the wire: an empty or - via string coercion of a` && |\n| &&
@@ -418,8 +410,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             |\n|.
-    result = result &&
              `      _getOrCreateErrorContainer() {` && |\n| &&
              `        const existing = document.getElementById("serverErrorContainer");` && |\n| &&
              `        if (existing) return existing;` && |\n| &&
@@ -428,6 +418,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        container.id = "serverErrorContainer";` && |\n| &&
              `        container.style.cssText = ``` && |\n| &&
              `          position: fixed;` && |\n| &&
+             |\n|.
+    result = result &&
              `          top: 50%;` && |\n| &&
              `          left: 50%;` && |\n| &&
              `          transform: translate(-50%, -50%);` && |\n| &&

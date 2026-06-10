@@ -1,9 +1,9 @@
-// Keep this define multi-line: with a single dependency prettier would
-// collapse it onto one line and reindent the entire module body.
+// Keep this define multi-line so prettier does not reindent the entire
+// module body.
 // prettier-ignore
 sap.ui.define(
-  ["sap/ui/core/BusyIndicator"],
-  (BusyIndicator) => {
+  ["sap/ui/core/BusyIndicator", "z2ui5/cc/Logger"],
+  (BusyIndicator, Logger) => {
     "use strict";
 
     // Errors longer than this are truncated before being shown to the user,
@@ -11,15 +11,7 @@ sap.ui.define(
     const ERROR_MAX_LENGTH = 50000;
     const _MSG_TYPES = Object.freeze(["S_MSG_TOAST", "S_MSG_BOX"]);
 
-    // Append an entry to the global error log. We create the array on first use.
-    function logError(message, error) {
-      if (!z2ui5.errors) z2ui5.errors = [];
-      z2ui5.errors.push({
-        message: message,
-        error: error,
-        ts: new Date().toISOString(),
-      });
-    }
+    const logError = Logger.logError;
 
     // A usable stateful session id ("sap-contextid"). We must never put a
     // missing value on the wire: an empty or - via string coercion of a

@@ -18,8 +18,22 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// Append an entry to the global error log. We create the array on first use.` && |\n| &&
+    result = `// Append an entry to the global error log. This delegates to the shared` && |\n| &&
+             `// z2ui5/cc/Logger module, which is loaded transitively via Server / View1.` && |\n| &&
+             `// The control definitions below live in their own sap.ui.define blocks and` && |\n| &&
+             `// share this single file-scope helper, so we resolve the module lazily` && |\n| &&
+             `// (the lookup only succeeds once it is loaded) and keep an inline fallback` && |\n| &&
+             `// for the rare case a control logs before the module is available.` && |\n| &&
+             `let _loggerImpl;` && |\n| &&
              `function _logError(message, error) {` && |\n| &&
+             `  if (!_loggerImpl) {` && |\n| &&
+             `    const Logger = sap.ui.require("z2ui5/cc/Logger");` && |\n| &&
+             `    if (Logger) _loggerImpl = Logger.logError;` && |\n| &&
+             `  }` && |\n| &&
+             `  if (_loggerImpl) {` && |\n| &&
+             `    _loggerImpl(message, error);` && |\n| &&
+             `    return;` && |\n| &&
+             `  }` && |\n| &&
              `  if (!z2ui5.errors) z2ui5.errors = [];` && |\n| &&
              `  const entry = { message: message, ts: new Date().toISOString() };` && |\n| &&
              `  if (error !== undefined) entry.error = error;` && |\n| &&
@@ -404,6 +418,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `    setBackend() {` && |\n| &&
              `      const items = this.getProperty("items");` && |\n| &&
              `      if (!items) return;` && |\n| &&
+             |\n|.
+    result = result &&
              `      try {` && |\n| &&
              `        // Resolve the binding path so we can mark only changed entries` && |\n| &&
              `        // as dirty in xxChangedPaths.` && |\n| &&
@@ -418,8 +434,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          const scrollTop = this._getScrollTop(item);` && |\n| &&
              `          if (item.V !== scrollTop) {` && |\n| &&
              `            item.V = scrollTop;` && |\n| &&
-             |\n|.
-    result = result &&
              `            if (bindingPath && z2ui5.xxChangedPaths) {` && |\n| &&
              `              z2ui5.xxChangedPaths.add(``${bindingPath}/${index}/V``);` && |\n| &&
              `            }` && |\n| &&
@@ -806,6 +820,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `          tooltip: {` && |\n| &&
              `            type: "string",` && |\n| &&
              `            defaultValue: "",` && |\n| &&
+             |\n|.
+    result = result &&
              `          },` && |\n| &&
              `          fileType: {` && |\n| &&
              `            type: "string",` && |\n| &&
@@ -820,8 +836,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            defaultValue: "",` && |\n| &&
              `          },` && |\n| &&
              `          style: {` && |\n| &&
-             |\n|.
-    result = result &&
              `            type: "string",` && |\n| &&
              `            defaultValue: "",` && |\n| &&
              `          },` && |\n| &&
@@ -1208,6 +1222,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        this.setProperty("rangeData", enrichedRanges);` && |\n| &&
              `        this.fireChange();` && |\n| &&
              `      },` && |\n| &&
+             |\n|.
+    result = result &&
              `      async setRangeData(aRangeData) {` && |\n| &&
              `        this.setProperty("rangeData", aRangeData);` && |\n| &&
              `        try {` && |\n| &&
@@ -1222,8 +1238,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `            for (const [key, value] of Object.entries(oRangeData)) {` && |\n| &&
              `              const lower = key.toLowerCase();` && |\n| &&
              `              const finalKey = lower === "keyfield" ? "keyField" : lower;` && |\n| &&
-             |\n|.
-    result = result &&
              `              out[finalKey] = value;` && |\n| &&
              `            }` && |\n| &&
              `            return out;` && |\n| &&
@@ -1610,6 +1624,8 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `` && |\n| &&
              `        for (const oCol of columns) {` && |\n| &&
              `          if (` && |\n| &&
+             |\n|.
+    result = result &&
              `            oCol.getFilterProperty &&` && |\n| &&
              `            oCol.getFilterProperty() === sProperty` && |\n| &&
              `          ) {` && |\n| &&
@@ -1624,8 +1640,6 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `      try {` && |\n| &&
              `        const oTable = this._getTable();` && |\n| &&
              `        if (!oTable) return;` && |\n| &&
-             |\n|.
-    result = result &&
              `        this._applyWhenRendered(oTable, () => applyFn(oTable));` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        _logError(errorMsg, e);` && |\n| &&
