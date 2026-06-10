@@ -63,7 +63,11 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n| &&
              `        this._installUnloadListener();` && |\n| &&
              `        this._installDebugToolShortcut();` && |\n| &&
-             `        this._installPopstateListener();` && |\n| &&
+             `        // Currently disabled: the popstate view restore. Its counterpart -` && |\n| &&
+             `        // storing the rendered view/model in history.state on every` && |\n| &&
+             `        // roundtrip (View1 _processAfterRendering) - is disabled for` && |\n| &&
+             `        // performance reasons, so the listener would never fire with state.` && |\n| &&
+             `        // this._installPopstateListener();` && |\n| &&
              `` && |\n| &&
              `        z2ui5.oRouter = this.getRouter();` && |\n| &&
              `        z2ui5.oRouter.initialize();` && |\n| &&
@@ -94,6 +98,9 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        document.addEventListener("keydown", this._boundKeydown);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      // Currently not installed - see init(). Kept for re-enabling the` && |\n| &&
+             `      // popstate view restore together with the history.state storing in` && |\n| &&
+             `      // View1 _processAfterRendering.` && |\n| &&
              `      _installPopstateListener() {` && |\n| &&
              `        // The browser's back/forward buttons restore a previously displayed` && |\n| &&
              `        // view from history.state without doing a backend roundtrip.` && |\n| &&
@@ -197,7 +204,8 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `      exit() {` && |\n| &&
              `        window.removeEventListener(this._unloadEvent, this._boundUnload);` && |\n| &&
              `        document.removeEventListener("keydown", this._boundKeydown);` && |\n| &&
-             `        window.removeEventListener("popstate", this._boundPopstate);` && |\n| &&
+             `        // Disabled together with _installPopstateListener in init():` && |\n| &&
+             `        // window.removeEventListener("popstate", this._boundPopstate);` && |\n| &&
              `` && |\n| &&
              `        Server.endSession();` && |\n| &&
              `` && |\n| &&

@@ -43,7 +43,11 @@ sap.ui.define(
 
         this._installUnloadListener();
         this._installDebugToolShortcut();
-        this._installPopstateListener();
+        // Currently disabled: the popstate view restore. Its counterpart -
+        // storing the rendered view/model in history.state on every
+        // roundtrip (View1 _processAfterRendering) - is disabled for
+        // performance reasons, so the listener would never fire with state.
+        // this._installPopstateListener();
 
         z2ui5.oRouter = this.getRouter();
         z2ui5.oRouter.initialize();
@@ -74,6 +78,9 @@ sap.ui.define(
         document.addEventListener("keydown", this._boundKeydown);
       },
 
+      // Currently not installed - see init(). Kept for re-enabling the
+      // popstate view restore together with the history.state storing in
+      // View1 _processAfterRendering.
       _installPopstateListener() {
         // The browser's back/forward buttons restore a previously displayed
         // view from history.state without doing a backend roundtrip.
@@ -177,7 +184,8 @@ sap.ui.define(
       exit() {
         window.removeEventListener(this._unloadEvent, this._boundUnload);
         document.removeEventListener("keydown", this._boundKeydown);
-        window.removeEventListener("popstate", this._boundPopstate);
+        // Disabled together with _installPopstateListener in init():
+        // window.removeEventListener("popstate", this._boundPopstate);
 
         Server.endSession();
 

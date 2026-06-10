@@ -341,27 +341,34 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            );` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
-             `          // Build the state object stored in history.state, so a future` && |\n| &&
-             `          // popstate can restore the current view without a backend hit.` && |\n| &&
-             `          const oView = z2ui5.oView;` && |\n| &&
-             `          let oState = {};` && |\n| &&
-             `          if (oView) {` && |\n| &&
-             `            const model = oView.getModel();` && |\n| &&
-             `            oState = {` && |\n| &&
-             `              view: oView.mProperties.viewContent,` && |\n| &&
-             `              model: model ? model.getData() : undefined,` && |\n| &&
-             `              response: z2ui5.oResponse,` && |\n| &&
-             `            };` && |\n| &&
-             `          }` && |\n| &&
+             `          // Currently disabled: storing the rendered view + model in` && |\n| &&
+             `          // history.state so a popstate could restore the view without a` && |\n| &&
+             `          // backend hit. Cloning the full view XML and model data on every` && |\n| &&
+             `          // roundtrip is expensive for large views and the restore is not` && |\n| &&
+             `          // needed right now. Re-enable together with the popstate listener` && |\n| &&
+             `          // in Component.js (_installPopstateListener).` && |\n| &&
+             `          // const oView = z2ui5.oView;` && |\n| &&
+             `          // let oState = {};` && |\n| &&
+             `          // if (oView) {` && |\n| &&
+             `          //   const model = oView.getModel();` && |\n| &&
+             `          //   oState = {` && |\n| &&
+             `          //     view: oView.mProperties.viewContent,` && |\n| &&
+             `          //     model: model ? model.getData() : undefined,` && |\n| &&
+             `          //     response: z2ui5.oResponse,` && |\n| &&
+             `          //   };` && |\n| &&
+             `          // }` && |\n| &&
              `` && |\n| &&
              `          try {` && |\n| &&
              `            if (SET_PUSH_STATE) {` && |\n| &&
              `              const hash = _hashChanger.getHash();` && |\n| &&
              `              const newUrl = ``${window.location.pathname}${window.location.search}#${hash}${SET_PUSH_STATE}``;` && |\n| &&
-             `              history.pushState(oState, "", newUrl);` && |\n| &&
-             `            } else {` && |\n| &&
-             `              history.replaceState(oState, "", window.location.href);` && |\n| &&
+             `              history.pushState(null, "", newUrl);` && |\n| &&
              `            }` && |\n| &&
+             `            // Disabled together with the state storing above - without a` && |\n| &&
+             `            // state object this call was a pure no-op:` && |\n| &&
+             `            // else {` && |\n| &&
+             `            //   history.replaceState(oState, "", window.location.href);` && |\n| &&
+             `            // }` && |\n| &&
              `            const newHash = SET_APP_STATE_ACTIVE` && |\n| &&
              `              ? ``z2ui5-xapp-state=${ID || ""}``` && |\n| &&
              `              : "";` && |\n| &&
@@ -411,6 +418,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          // delta. Deeper paths (e.g. tree tables: attr/row/<subtable>/<row>/<field>)` && |\n| &&
              `          // fall back to shipping the whole attribute, which the backend applies` && |\n| &&
              `          // via corresponding-based deserialization.` && |\n| &&
+             |\n|.
+    result = result &&
              `          const isRowField =` && |\n| &&
              `            parts.length === 3 && rowIdx !== "" && !isNaN(rowIdx);` && |\n| &&
              `          if (isRowField) {` && |\n| &&
@@ -418,8 +427,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            if (!delta[attr] || !delta[attr].__delta) {` && |\n| &&
              `              delta[attr] = { __delta: {} };` && |\n| &&
              `            }` && |\n| &&
-             |\n|.
-    result = result &&
              `            const attrDelta = delta[attr].__delta;` && |\n| &&
              `            if (!attrDelta[rowIdx]) attrDelta[rowIdx] = {};` && |\n| &&
              `            const row = xx[attr] && xx[attr][+rowIdx];` && |\n| &&
@@ -813,6 +820,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const finish = () => {` && |\n| &&
              `            if (done) return;` && |\n| &&
              `            done = true;` && |\n| &&
+             |\n|.
+    result = result &&
              `            goToLogoutUrl();` && |\n| &&
              `          };` && |\n| &&
              `          try {` && |\n| &&
@@ -820,8 +829,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            f.style.display = "none";` && |\n| &&
              `            f.src = bspKill;` && |\n| &&
              `            f.addEventListener("load", finish);` && |\n| &&
-             |\n|.
-    result = result &&
              `            document.body.appendChild(f);` && |\n| &&
              `          } catch (e) {` && |\n| &&
              `            finish();` && |\n| &&
@@ -1215,6 +1222,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (z2ui5.oControllerNest === this) {` && |\n| &&
              `          z2ui5.oBody.VIEWNAME = "NEST";` && |\n| &&
              `          return z2ui5.oViewNest && z2ui5.oViewNest.getModel();` && |\n| &&
+             |\n|.
+    result = result &&
              `        }` && |\n| &&
              `        if (z2ui5.oControllerNest2 === this) {` && |\n| &&
              `          z2ui5.oBody.VIEWNAME = "NEST2";` && |\n| &&
@@ -1222,8 +1231,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        return undefined;` && |\n| &&
              `      },` && |\n| &&
-             |\n|.
-    result = result &&
              `` && |\n| &&
              `      // Re-bind a model to one of the views when the response signals an` && |\n| &&
              `      // update is required for that particular slot.` && |\n| &&

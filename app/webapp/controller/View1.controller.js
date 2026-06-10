@@ -321,27 +321,34 @@ sap.ui.define(
             );
           }
 
-          // Build the state object stored in history.state, so a future
-          // popstate can restore the current view without a backend hit.
-          const oView = z2ui5.oView;
-          let oState = {};
-          if (oView) {
-            const model = oView.getModel();
-            oState = {
-              view: oView.mProperties.viewContent,
-              model: model ? model.getData() : undefined,
-              response: z2ui5.oResponse,
-            };
-          }
+          // Currently disabled: storing the rendered view + model in
+          // history.state so a popstate could restore the view without a
+          // backend hit. Cloning the full view XML and model data on every
+          // roundtrip is expensive for large views and the restore is not
+          // needed right now. Re-enable together with the popstate listener
+          // in Component.js (_installPopstateListener).
+          // const oView = z2ui5.oView;
+          // let oState = {};
+          // if (oView) {
+          //   const model = oView.getModel();
+          //   oState = {
+          //     view: oView.mProperties.viewContent,
+          //     model: model ? model.getData() : undefined,
+          //     response: z2ui5.oResponse,
+          //   };
+          // }
 
           try {
             if (SET_PUSH_STATE) {
               const hash = _hashChanger.getHash();
               const newUrl = `${window.location.pathname}${window.location.search}#${hash}${SET_PUSH_STATE}`;
-              history.pushState(oState, "", newUrl);
-            } else {
-              history.replaceState(oState, "", window.location.href);
+              history.pushState(null, "", newUrl);
             }
+            // Disabled together with the state storing above - without a
+            // state object this call was a pure no-op:
+            // else {
+            //   history.replaceState(oState, "", window.location.href);
+            // }
             const newHash = SET_APP_STATE_ACTIVE
               ? `z2ui5-xapp-state=${ID || ""}`
               : "";
