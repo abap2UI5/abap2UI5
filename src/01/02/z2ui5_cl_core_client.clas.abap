@@ -497,21 +497,4 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD z2ui5_if_client~action.
-
-    DATA lv_val TYPE string.
-    lv_val = val.
-
-    IF lv_val IS INITIAL OR lv_val CN `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_`.
-      RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING
-          val = |action: invalid event name '{ val }' - only A-Z, a-z, 0-9 and _ allowed|.
-    ENDIF.
-
-    INSERT mo_srv_event->get_event_client( val   = val
-                                           t_arg = t_arg )
-           INTO TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js.
-
-  ENDMETHOD.
 ENDCLASS.
