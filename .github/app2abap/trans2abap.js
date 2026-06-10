@@ -57,6 +57,54 @@ function generateClassName(filePath) {
     return `z2ui5_cl_app_${fileName.join('_').toLowerCase()}`;
 }
 
+// Builds the generated z2ui5_cl_app_preload class. It returns the
+// sap.ui.require.preload entries for every embedded frontend file, so the
+// preload list used by z2ui5_cl_http_handler can never run out of sync with
+// the files in app/webapp. style.css and Component.js take their content /
+// custom-js suffix from the exit configuration, hence the two parameters.
+function buildPreloadClass(entries) {
+    const entryLines = entries.map(({ urlPath, className, isJs, isComponent, isStyleCss }) => {
+        if (isStyleCss) {
+            return `|      "${urlPath}": '{ styles_css }',| && |\\n|`;
+        }
+        if (isJs) {
+            const suffix = isComponent ? `{ custom_js }` : '';
+            return `|      "${urlPath}": function()\\{{ ${className}=>get( ) }${suffix}\\},| && |\\n|`;
+        }
+        return `|      "${urlPath}": '{ ${className}=>get( ) }',| && |\\n|`;
+    });
+    const joined = entryLines.join(' &&\n             ');
+    return `CLASS z2ui5_cl_app_preload DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
+
+  PUBLIC SECTION.
+
+    CLASS-METHODS get
+      IMPORTING
+        styles_css    TYPE string
+        custom_js     TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+CLASS z2ui5_cl_app_preload IMPLEMENTATION.
+
+  METHOD get.
+
+    result = ${joined}.
+
+  ENDMETHOD.
+
+ENDCLASS.
+`;
+}
+
 // Function to recursively get all files in a directory
 function getAllFiles(dirPath, arrayOfFiles) {
     const files = fs.readdirSync(dirPath);
@@ -105,6 +153,7 @@ async function main() {
         console.log(`Initial XML file created successfully at: ${initialXMLFilePath}`);
 
         const files = getAllFiles(sourceDir);
+        const preloadEntries = [];
 
         for (const file of files) {
             let sourceContent = await readFile(file);
@@ -122,7 +171,29 @@ async function main() {
             const xmlFilePath = path.join(targetDir, `${className.toLowerCase()}.clas.xml`);
             await createFileInTargetDir(xmlFilePath, `\uFEFF${xmlContent}`);
             console.log(`XML file created successfully at: ${xmlFilePath}`);
+
+            // Collect the preload entry. index.html is the standalone dev
+            // page and is not preloaded by the generated GET response.
+            const relPath = path.relative(sourceDir, file).split(path.sep).join('/');
+            if (relPath !== 'index.html') {
+                preloadEntries.push({
+                    urlPath: `z2ui5/${relPath}`,
+                    className: className.toLowerCase(),
+                    isJs: file.endsWith('.js'),
+                    isComponent: relPath === 'Component.js',
+                    isStyleCss: relPath === 'css/style.css',
+                });
+            }
         }
+
+        // Generate the preload mapping class (sorted for a stable output).
+        preloadEntries.sort((a, b) => a.urlPath.localeCompare(b.urlPath));
+        const preloadFilePath = path.join(targetDir, 'z2ui5_cl_app_preload.clas.abap');
+        await createFileInTargetDir(preloadFilePath, buildPreloadClass(preloadEntries));
+        console.log(`Preload class created successfully at: ${preloadFilePath}`);
+        const preloadXmlPath = path.join(targetDir, 'z2ui5_cl_app_preload.clas.xml');
+        await createFileInTargetDir(preloadXmlPath, `\uFEFF${xmlTemplate('z2ui5_cl_app_preload', 'abap2UI5 - preload mapping')}`);
+        console.log(`Preload XML created successfully at: ${preloadXmlPath}`);
     } catch (error) {
         console.error('Error:', error.message);
     }
