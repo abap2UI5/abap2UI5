@@ -1,9 +1,11 @@
-// Keep this define multi-line: with a single dependency prettier would
-// collapse it onto one line and reindent the entire module body.
-// prettier-ignore
 sap.ui.define(
-  ["sap/ui/core/BusyIndicator", "z2ui5/cc/Util"],
-  (BusyIndicator, Util) => {
+  [
+    "sap/ui/core/BusyIndicator",
+    "sap/ui/Device",
+    "sap/ui/core/Element",
+    "z2ui5/cc/Util",
+  ],
+  (BusyIndicator, Device, Element, Util) => {
     "use strict";
 
     // Errors longer than this are truncated before being shown to the user,
@@ -38,7 +40,7 @@ sap.ui.define(
       },
 
       _getDeviceInfo() {
-        const d = sap.ui.Device;
+        const d = Device;
         const sys = d.system;
         const system = sys.phone
           ? "phone"
@@ -74,10 +76,9 @@ sap.ui.define(
         try {
           const active = document.activeElement;
           if (!active) return {};
-          const ui5El =
-            sap.ui.core.Element && sap.ui.core.Element.closestTo
-              ? sap.ui.core.Element.closestTo(active)
-              : null;
+          // Element.closestTo exists as of UI5 1.106; keep the feature check
+          // so older releases simply skip the focus restore.
+          const ui5El = Element.closestTo ? Element.closestTo(active) : null;
           if (!ui5El) return {};
           const fullId = ui5El.getId();
           const views = [
@@ -426,7 +427,9 @@ sap.ui.define(
         z2ui5.isBusy = false;
 
         const full =
-          response && response.stack ? String(response.stack) : String(response);
+          response && response.stack
+            ? String(response.stack)
+            : String(response);
         let errorMessage;
         if (full.length > ERROR_MAX_LENGTH) {
           errorMessage =

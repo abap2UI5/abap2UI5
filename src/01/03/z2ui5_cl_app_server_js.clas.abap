@@ -18,12 +18,14 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// Keep this define multi-line: with a single dependency prettier would` && |\n| &&
-             `// collapse it onto one line and reindent the entire module body.` && |\n| &&
-             `// prettier-ignore` && |\n| &&
-             `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/BusyIndicator", "z2ui5/cc/Util"],` && |\n| &&
-             `  (BusyIndicator, Util) => {` && |\n| &&
+    result = `sap.ui.define(` && |\n| &&
+             `  [` && |\n| &&
+             `    "sap/ui/core/BusyIndicator",` && |\n| &&
+             `    "sap/ui/Device",` && |\n| &&
+             `    "sap/ui/core/Element",` && |\n| &&
+             `    "z2ui5/cc/Util",` && |\n| &&
+             `  ],` && |\n| &&
+             `  (BusyIndicator, Device, Element, Util) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Errors longer than this are truncated before being shown to the user,` && |\n| &&
@@ -58,7 +60,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _getDeviceInfo() {` && |\n| &&
-             `        const d = sap.ui.Device;` && |\n| &&
+             `        const d = Device;` && |\n| &&
              `        const sys = d.system;` && |\n| &&
              `        const system = sys.phone` && |\n| &&
              `          ? "phone"` && |\n| &&
@@ -94,10 +96,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          const active = document.activeElement;` && |\n| &&
              `          if (!active) return {};` && |\n| &&
-             `          const ui5El =` && |\n| &&
-             `            sap.ui.core.Element && sap.ui.core.Element.closestTo` && |\n| &&
-             `              ? sap.ui.core.Element.closestTo(active)` && |\n| &&
-             `              : null;` && |\n| &&
+             `          // Element.closestTo exists as of UI5 1.106; keep the feature check` && |\n| &&
+             `          // so older releases simply skip the focus restore.` && |\n| &&
+             `          const ui5El = Element.closestTo ? Element.closestTo(active) : null;` && |\n| &&
              `          if (!ui5El) return {};` && |\n| &&
              `          const fullId = ui5El.getId();` && |\n| &&
              `          const views = [` && |\n| &&
@@ -417,9 +418,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        container.style.cssText = ``` && |\n| &&
              `          position: fixed;` && |\n| &&
              `          top: 50%;` && |\n| &&
-             `          left: 50%;` && |\n| &&
              |\n|.
     result = result &&
+             `          left: 50%;` && |\n| &&
              `          transform: translate(-50%, -50%);` && |\n| &&
              `          width: 90%;` && |\n| &&
              `          height: 90%;` && |\n| &&
@@ -448,7 +449,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        z2ui5.isBusy = false;` && |\n| &&
              `` && |\n| &&
              `        const full =` && |\n| &&
-             `          response && response.stack ? String(response.stack) : String(response);` && |\n| &&
+             `          response && response.stack` && |\n| &&
+             `            ? String(response.stack)` && |\n| &&
+             `            : String(response);` && |\n| &&
              `        let errorMessage;` && |\n| &&
              `        if (full.length > ERROR_MAX_LENGTH) {` && |\n| &&
              `          errorMessage =` && |\n| &&

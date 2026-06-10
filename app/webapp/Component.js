@@ -25,10 +25,13 @@ sap.ui.define(
 
         UIComponent.prototype.init.call(this);
 
-        // After the base init, ensure z2ui5 / z2ui5.oConfig still exist. When
-        // running locally without the SAP launchpad the global is re-created.
-        if (typeof z2ui5 === "undefined") z2ui5 = {};
-        if (z2ui5.checkLocal === false) z2ui5 = {};
+        // After the base init, ensure z2ui5 / z2ui5.oConfig still exist. The
+        // backend-generated HTML declares window.z2ui5 before the component
+        // boots; when running standalone (local dev tooling) it does not
+        // exist yet. Assign via window - a bare `z2ui5 = {}` would throw a
+        // ReferenceError on an undeclared global in strict mode.
+        if (typeof z2ui5 === "undefined") window.z2ui5 = {};
+        if (z2ui5.checkLocal === false) window.z2ui5 = {};
         if (typeof z2ui5.oConfig === "undefined") z2ui5.oConfig = {};
         z2ui5.oConfig.ComponentData = this.getComponentData();
 
