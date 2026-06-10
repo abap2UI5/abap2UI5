@@ -68,6 +68,10 @@ sap.ui.define(
     const _URLHelper = mobileLibrary.URLHelper;
     const _SAFE_PROTOCOLS = new Set(["http:", "https:"]);
 
+    // Single reusable BusyDialog flashed when the user clicks while a
+    // roundtrip is already in flight (created lazily, kept for reuse).
+    let _busyDialog = null;
+
     // ------------------------------------------------------------------
     // Security helpers
     // ------------------------------------------------------------------
@@ -111,6 +115,24 @@ sap.ui.define(
           return false;
         }
         return true;
+      } catch (e) {
+        Util.logError(`Security: Invalid URL format: ${url}`, e);
+        return false;
+      }
+    }
+
+    // Returns true for URLs that are safe as download targets: data: and
+    // blob: (generated content) plus http(s). Blocks javascript: and other
+    // active schemes, consistent with the redirect validators above.
+    function isSafeDownloadURL(url) {
+      if (!url) return false;
+      try {
+        const parsed = new URL(url, window.location.origin);
+        return (
+          parsed.protocol === "data:" ||
+          parsed.protocol === "blob:" ||
+          _SAFE_PROTOCOLS.has(parsed.protocol)
+        );
       } catch (e) {
         Util.logError(`Security: Invalid URL format: ${url}`, e);
         return false;
@@ -618,6 +640,10 @@ sap.ui.define(
             this._evStoreData(args);
             break;
           case "DOWNLOAD_B64_FILE": {
+            if (!isSafeDownloadURL(args[1])) {
+              Util.logError("DOWNLOAD_B64_FILE: blocked unsafe URL");
+              break;
+            }
             const a = document.createElement("a");
             a.href = args[1];
             a.download = args[2];
@@ -1120,12 +1146,9 @@ sap.ui.define(
         // the user gets visual feedback instead of a silent click. args[0][2]
         // is the "ignore busy" flag set by certain background events.
         if (z2ui5.isBusy && !args[0][2]) {
-          const oBusyDialog = new mBusyDialog();
-          oBusyDialog.attachEventOnce("afterClose", () =>
-            oBusyDialog.destroy(),
-          );
-          oBusyDialog.open();
-          queueMicrotask(() => oBusyDialog.close());
+          if (!_busyDialog) _busyDialog = new mBusyDialog();
+          _busyDialog.open();
+          queueMicrotask(() => _busyDialog.close());
           return;
         }
 
@@ -1257,11 +1280,17 @@ sap.ui.define(
             closeonBrowserNavigation: !!msg.CLOSEONBROWSERNAVIGATION,
           });
           if (msg.CLASS) {
-            const toastEl = document.querySelector(".sapMMessageToast");
-            if (toastEl) {
-              const classes = msg.CLASS.trim().split(/\s+/).filter(Boolean);
-              toastEl.classList.add(...classes);
-            }
+            const classes = msg.CLASS.trim().split(/\s+/).filter(Boolean);
+            // Pick the newest toast (several can be open at once). The
+            // element may not be in the DOM yet right after show(), so
+            // retry once on the next animation frame.
+            const applyClass = () => {
+              const toasts = document.querySelectorAll(".sapMMessageToast");
+              const toastEl = toasts[toasts.length - 1];
+              if (toastEl) toastEl.classList.add(...classes);
+              return !!toastEl;
+            };
+            if (!applyClass()) requestAnimationFrame(applyClass);
           }
           return;
         }

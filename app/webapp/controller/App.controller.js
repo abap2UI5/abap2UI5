@@ -548,8 +548,10 @@ sap.ui.define("z2ui5/Info", ["sap/ui/core/Control", "z2ui5/cc/Util"], (Control, 
           if (!deviceData) return;
 
           const { system, resize, os, browser } = deviceData;
-          const versionInfo = z2ui5.oConfig && z2ui5.oConfig.UI5VersionInfo;
-          const ui5Version = versionInfo ? versionInfo.version : "";
+          // Filled by Component._initVersionInfo (async, may not have
+          // resolved yet on the very first render).
+          const ui5Info = z2ui5.oConfig && z2ui5.oConfig.S_UI5;
+          const ui5Version = (ui5Info && ui5Info.VERSION) || "";
 
           const props = [
             ["ui5_version", ui5Version],
