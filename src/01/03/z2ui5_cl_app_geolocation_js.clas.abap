@@ -84,7 +84,7 @@ CLASS z2ui5_cl_app_geolocation_js IMPLEMENTATION.
              `      if (Lib.isDestroyed(this)) return;` && |\n| &&
              `      for (const prop of _GEO_PROPS) {` && |\n| &&
              `        const raw = coords[prop];` && |\n| &&
-             `        const val = raw == null ? "" : raw.toString();` && |\n| &&
+             `        const val = Lib.toText(raw);` && |\n| &&
              `        this.setProperty(prop, val, true);` && |\n| &&
              `      }` && |\n| &&
              `      this.fireFinished();` && |\n| &&

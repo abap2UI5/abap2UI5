@@ -1,4 +1,4 @@
-sap.ui.define(["sap/ui/core/Control"], (Control) => {
+sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
   "use strict";
   return Control.extend("z2ui5.Title", {
     metadata: {
@@ -10,7 +10,7 @@ sap.ui.define(["sap/ui/core/Control"], (Control) => {
     },
     setTitle(val) {
       this.setProperty("title", val);
-      document.title = val == null ? "" : String(val);
+      document.title = Lib.toText(val);
     },
     renderer: { apiVersion: 2, render() {} },
   });

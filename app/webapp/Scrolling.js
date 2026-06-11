@@ -98,21 +98,10 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
           const control = z2ui5.oView?.byId(item.N);
           if (!control) continue;
 
-          if (control.getDomRef()) {
-            // The target control is already rendered -> restore immediately.
-            this._restoreScrollPosition(item);
-          } else {
-            // Not rendered yet -> wait until it is, then restore once.
-            const delegate = {
-              onAfterRendering: () => {
-                control.removeEventDelegate(delegate);
-                if (!Lib.isDestroyed(this)) {
-                  this._restoreScrollPosition(item);
-                }
-              },
-            };
-            control.addEventDelegate(delegate);
-          }
+          // Restore immediately when rendered, otherwise once it is.
+          Lib.whenRendered(control, this, () =>
+            this._restoreScrollPosition(item),
+          );
         }
       } catch (e) {
         Lib.logError("Scrolling.onAfterRendering: failed", e);

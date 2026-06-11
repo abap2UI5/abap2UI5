@@ -64,7 +64,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
       if (Lib.isDestroyed(this)) return;
       for (const prop of _GEO_PROPS) {
         const raw = coords[prop];
-        const val = raw == null ? "" : raw.toString();
+        const val = Lib.toText(raw);
         this.setProperty(prop, val, true);
       }
       this.fireFinished();

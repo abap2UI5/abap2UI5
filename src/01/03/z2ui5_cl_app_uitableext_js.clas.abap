@@ -76,21 +76,6 @@ CLASS z2ui5_cl_app_uitableext_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             `    _applyWhenRendered(oTable, fn) {` && |\n| &&
-             `      if (oTable.getDomRef()) {` && |\n| &&
-             `        fn();` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      // Not rendered yet -> run ``fn`` once the next render completes.` && |\n| &&
-             `      const delegate = {` && |\n| &&
-             `        onAfterRendering: () => {` && |\n| &&
-             `          oTable.removeEventDelegate(delegate);` && |\n| &&
-             `          if (!Lib.isDestroyed(this)) fn();` && |\n| &&
-             `        },` && |\n| &&
-             `      };` && |\n| &&
-             `      oTable.addEventDelegate(delegate);` && |\n| &&
-             `    },` && |\n| &&
-             `` && |\n| &&
              `    _applyFilters(oTable, aFilters) {` && |\n| &&
              `      if (!aFilters) return;` && |\n| &&
              `      const binding = oTable.getBinding();` && |\n| &&
@@ -119,8 +104,8 @@ CLASS z2ui5_cl_app_uitableext_js IMPLEMENTATION.
              `        if (operator === "BT") {` && |\n| &&
              `          // "between" displays "from...to".` && |\n| &&
              `          displayFn = (v) => {` && |\n| &&
-             `            const from = v == null ? "" : v;` && |\n| &&
-             `            const to = oFilter.oValue2 == null ? "" : oFilter.oValue2;` && |\n| &&
+             `            const from = Lib.toText(v);` && |\n| &&
+             `            const to = Lib.toText(oFilter.oValue2);` && |\n| &&
              `            return ``${from}...${to}``;` && |\n| &&
              `          };` && |\n| &&
              `        } else if (filterDisplayFns[operator]) {` && |\n| &&
@@ -128,7 +113,7 @@ CLASS z2ui5_cl_app_uitableext_js IMPLEMENTATION.
              `        } else {` && |\n| &&
              `          // Fallback: optional operator prefix (e.g. "!" for NE) + value.` && |\n| &&
              `          const prefix = opSymbols[operator] || "";` && |\n| &&
-             `          displayFn = (v) => ``${prefix}${v == null ? "" : v}``;` && |\n| &&
+             `          displayFn = (v) => ``${prefix}${Lib.toText(v)}``;` && |\n| &&
              `        }` && |\n| &&
              `        const display = displayFn(vValue);` && |\n| &&
              `` && |\n| &&
@@ -145,7 +130,7 @@ CLASS z2ui5_cl_app_uitableext_js IMPLEMENTATION.
              `      try {` && |\n| &&
              `        const oTable = this._getTable();` && |\n| &&
              `        if (!oTable) return;` && |\n| &&
-             `        this._applyWhenRendered(oTable, () => applyFn(oTable));` && |\n| &&
+             `        Lib.whenRendered(oTable, this, () => applyFn(oTable));` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError(errorMsg, e);` && |\n| &&
              `      }` && |\n| &&

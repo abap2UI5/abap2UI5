@@ -61,20 +61,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    // Small utility helpers (module-private)` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
-             `    // Run every callback in ``arr``, swallowing individual failures so one bad` && |\n| &&
-             `    // callback cannot break the whole event sequence.` && |\n| &&
-             `    function runCallbacks(arr, ...args) {` && |\n| &&
-             `      if (!arr) return;` && |\n| &&
-             `      for (const fn of arr) {` && |\n| &&
-             `        if (!fn) continue;` && |\n| &&
-             `        try {` && |\n| &&
-             `          fn(...args);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("runCallbacks: callback failed", e);` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    // Parse a value as integer milliseconds, falling back to ``def`` when the` && |\n| &&
              `    // input is empty / undefined.` && |\n| &&
              `    function parseMs(val, def) {` && |\n| &&
@@ -88,37 +74,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    // Single reusable BusyDialog flashed when the user clicks while a` && |\n| &&
              `    // roundtrip is already in flight (created lazily, kept for reuse).` && |\n| &&
              `    let _busyDialog = null;` && |\n| &&
-             `` && |\n| &&
-             `    function copyToClipboard(textToCopy) {` && |\n| &&
-             `      if (navigator.clipboard?.writeText) {` && |\n| &&
-             `        navigator.clipboard.writeText(textToCopy).catch((err) => {` && |\n| &&
-             `          Lib.logError("Clipboard: writeText failed, falling back", err);` && |\n| &&
-             `          copyToClipboardFallback(textToCopy);` && |\n| &&
-             `        });` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      copyToClipboardFallback(textToCopy);` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    function copyToClipboardFallback(textToCopy) {` && |\n| &&
-             `      const textarea = document.createElement("textarea");` && |\n| &&
-             `      textarea.value = textToCopy;` && |\n| &&
-             `      textarea.setAttribute("readonly", "");` && |\n| &&
-             `      textarea.style.position = "fixed";` && |\n| &&
-             `      textarea.style.top = "-1000px";` && |\n| &&
-             `      textarea.style.opacity = "0";` && |\n| &&
-             `      document.body.appendChild(textarea);` && |\n| &&
-             `      textarea.select();` && |\n| &&
-             `      try {` && |\n| &&
-             `        if (!document.execCommand("copy")) {` && |\n| &&
-             `          Lib.logError("Clipboard: execCommand('copy') returned false");` && |\n| &&
-             `        }` && |\n| &&
-             `      } catch (err) {` && |\n| &&
-             `        Lib.logError("Clipboard: execCommand('copy') threw", err);` && |\n| &&
-             `      } finally {` && |\n| &&
-             `        document.body.removeChild(textarea);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `    // Launchpad / NavContainer helpers` && |\n| &&
@@ -247,7 +202,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          this._updateBrowserHistory(PARAMS, oResponse.ID);` && |\n| &&
              `          if (PARAMS.SET_NAV_BACK) history.back();` && |\n| &&
              `` && |\n| &&
-             `          runCallbacks(z2ui5.onAfterRendering);` && |\n| &&
+             `          Lib.runCallbacks(z2ui5.onAfterRendering);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("_processAfterRendering: unexpected error", e);` && |\n| &&
              `          Server.responseError(e, "Unexpected Error Occurred - App Terminated");` && |\n| &&
@@ -418,8 +373,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          }` && |\n| &&
              `          if (!oControl && z2ui5.oViewNest2) {` && |\n| &&
              `            oControl = z2ui5.oViewNest2.byId(openById);` && |\n| &&
-             |\n|.
-    result = result &&
              `          }` && |\n| &&
              `          if (!oControl) {` && |\n| &&
              `            if (Element.getElementById) {` && |\n| &&
@@ -465,6 +418,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        oView.setModel(oModel);` && |\n| &&
+             |\n|.
+    result = result &&
              `` && |\n| &&
              `        const nestParams =` && |\n| &&
              `          z2ui5.oResponse?.PARAMS && z2ui5.oResponse.PARAMS[viewNestId];` && |\n| &&
@@ -542,7 +497,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // must not be renamed.` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `      eF(...args) {` && |\n| &&
-             `        runCallbacks(z2ui5.onBeforeEventFrontend, args);` && |\n| &&
+             `        Lib.runCallbacks(z2ui5.onBeforeEventFrontend, args);` && |\n| &&
              `` && |\n| &&
              `        // NavContainer navigation is dispatched via lookup table.` && |\n| &&
              `        const navLookup = navContainerLookups[args[0]];` && |\n| &&
@@ -566,12 +521,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _evClipboardCopy(args) {` && |\n| &&
-             `        copyToClipboard(args[1]);` && |\n| &&
+             `        Lib.copyToClipboard(args[1]);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _evClipboardAppState() {` && |\n| &&
              `        const id = z2ui5.oResponse?.ID;` && |\n| &&
-             `        copyToClipboard(``${window.location.href}#/z2ui5-xapp-state=${id}``);` && |\n| &&
+             `        Lib.copyToClipboard(``${window.location.href}#/z2ui5-xapp-state=${id}``);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _evDownloadB64File(args) {` && |\n| &&
@@ -820,8 +775,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          input.setAttribute("inputmode", args[2] || "text");` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError(` && |\n| &&
-             |\n|.
-    result = result &&
              `            ``KEYBOARD_SET_MODE: setAttribute failed for '${args[1]}'``,` && |\n| &&
              `            e,` && |\n| &&
              `          );` && |\n| &&
@@ -846,18 +799,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        // The control may still be missing from the DOM when SET_FOCUS runs` && |\n| &&
              `        // together with a fresh view build. Apply now if it is rendered,` && |\n| &&
-             `        // otherwise once it is - same pattern as UITableExt / Scrolling.` && |\n| &&
-             `        if (oElement.getDomRef?.()) {` && |\n| &&
-             `          applyFocus();` && |\n| &&
-             `        } else {` && |\n| &&
-             `          const delegate = {` && |\n| &&
-             `            onAfterRendering: () => {` && |\n| &&
-             `              oElement.removeEventDelegate(delegate);` && |\n| &&
-             `              applyFocus();` && |\n| &&
-             `            },` && |\n| &&
-             `          };` && |\n| &&
-             `          oElement.addEventDelegate(delegate);` && |\n| &&
-             `        }` && |\n| &&
+             `        // otherwise once it is.` && |\n| &&
+             `        Lib.whenRendered(oElement, this, applyFocus);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _evScrollTo(args) {` && |\n| &&
@@ -877,6 +820,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const oElement = z2ui5.oView?.byId(args[1]);` && |\n| &&
              `          if (!oElement) return;` && |\n| &&
              `          const y = +args[2] || 0;` && |\n| &&
+             |\n|.
+    result = result &&
              `          const x = +args[3] || 0;` && |\n| &&
              `          const behavior = args[4] || "auto";` && |\n| &&
              `          const smooth = behavior === "smooth";` && |\n| &&
@@ -938,7 +883,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _evSetTitle(args) {` && |\n| &&
-             `        const title = args[1] == null ? "" : String(args[1]);` && |\n| &&
+             `        const title = Lib.toText(args[1]);` && |\n| &&
              `        try {` && |\n| &&
              `          document.title = title;` && |\n| &&
              `        } catch (e) {` && |\n| &&
@@ -947,7 +892,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _evSetTitleLaunchpad(args) {` && |\n| &&
-             `        const title = args[1] == null ? "" : String(args[1]);` && |\n| &&
+             `        const title = Lib.toText(args[1]);` && |\n| &&
              `        try {` && |\n| &&
              `          const shell = z2ui5.oLaunchpad?.ShellUIService;` && |\n| &&
              `          if (shell?.setTitle) {` && |\n| &&
@@ -1059,7 +1004,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // popup view, etc.` && |\n| &&
              `        const oModel = this._pickModelForRoundtrip(useMainModel);` && |\n| &&
              `` && |\n| &&
-             `        runCallbacks(z2ui5.onBeforeRoundtrip);` && |\n| &&
+             `        Lib.runCallbacks(z2ui5.onBeforeRoundtrip);` && |\n| &&
              `` && |\n| &&
              `        // If the user edited /XX/ paths, send only the delta to keep the` && |\n| &&
              `        // payload small.` && |\n| &&
@@ -1080,7 +1025,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        });` && |\n| &&
              `` && |\n| &&
              `        Server.roundtrip();` && |\n| &&
-             `        runCallbacks(z2ui5.onAfterRoundtrip);` && |\n| &&
+             `        Lib.runCallbacks(z2ui5.onAfterRoundtrip);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _pickModelForRoundtrip(useMainModel) {` && |\n| &&
@@ -1222,8 +1167,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        z2ui5.oView = await XMLView.create({` && |\n| &&
              `          definition: xml,` && |\n| &&
-             |\n|.
-    result = result &&
              `          models: oModel,` && |\n| &&
              `          controller: z2ui5.oController,` && |\n| &&
              `          id: "mainView",` && |\n| &&

@@ -120,6 +120,71 @@ sap.ui.define([], () => {
     control.setProperty("removedTokens", isRemoved ? tokens : []);
   }
 
+  // Run every callback in `callbacks` (the z2ui5 callback arrays above),
+  // swallowing individual failures so one bad callback cannot break the
+  // whole event sequence.
+  function runCallbacks(callbacks, ...args) {
+    if (!callbacks) return;
+    for (const fn of callbacks) {
+      if (!fn) continue;
+      try {
+        fn(...args);
+      } catch (e) {
+        logError("runCallbacks: callback failed", e);
+      }
+    }
+  }
+
+  // Runs `fn` once `control` has a DOM reference: immediately when it is
+  // already rendered, otherwise once after its next rendering. The call
+  // is skipped when `owner` was destroyed in the meantime.
+  function whenRendered(control, owner, fn) {
+    if (control.getDomRef()) {
+      fn();
+      return;
+    }
+    const delegate = {
+      onAfterRendering: () => {
+        control.removeEventDelegate(delegate);
+        if (!isDestroyed(owner)) fn();
+      },
+    };
+    control.addEventDelegate(delegate);
+  }
+
+  // Copy text to the clipboard, preferring the async clipboard API with a
+  // fallback to the legacy textarea + execCommand approach.
+  function copyToClipboard(textToCopy) {
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(textToCopy).catch((err) => {
+        logError("Clipboard: writeText failed, falling back", err);
+        copyToClipboardFallback(textToCopy);
+      });
+      return;
+    }
+    copyToClipboardFallback(textToCopy);
+  }
+
+  function copyToClipboardFallback(textToCopy) {
+    const textarea = document.createElement("textarea");
+    textarea.value = textToCopy;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.top = "-1000px";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      if (!document.execCommand("copy")) {
+        logError("Clipboard: execCommand('copy') returned false");
+      }
+    } catch (err) {
+      logError("Clipboard: execCommand('copy') threw", err);
+    } finally {
+      document.body.removeChild(textarea);
+    }
+  }
+
   // ------------------------------------------------------------------
   // Pure helpers - free of UI5 dependencies so the Node specs under
   // node/tests/ can load this module with a stubbed sap.ui.define and
@@ -127,6 +192,12 @@ sap.ui.define([], () => {
   // ------------------------------------------------------------------
 
   const SAFE_PROTOCOLS = ["http:", "https:"];
+
+  // Normalizes any value for display: null and undefined become the empty
+  // string, everything else its string representation.
+  function toText(val) {
+    return val == null ? "" : String(val);
+  }
 
   // Returns true only if the URL is on the same origin and uses http/https.
   function isValidRedirectURL(url) {
@@ -284,6 +355,10 @@ sap.ui.define([], () => {
     unregisterCallback,
     readFileAsDataURL,
     applyTokenUpdate,
+    runCallbacks,
+    whenRendered,
+    copyToClipboard,
+    toText,
     isValidRedirectURL,
     isSafeRedirectProtocol,
     isSafeDownloadURL,

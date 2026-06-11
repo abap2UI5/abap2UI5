@@ -35,14 +35,7 @@ sap.ui.define(
 
         UIComponent.prototype.init.call(this);
 
-        // After the base init, ensure z2ui5 / z2ui5.oConfig still exist. The
-        // backend-generated HTML declares window.z2ui5 before the component
-        // boots; when running standalone (local dev tooling) it does not
-        // exist yet. Assign via window - a bare `z2ui5 = {}` would throw a
-        // ReferenceError on an undeclared global in strict mode.
-        if (typeof z2ui5 === "undefined") window.z2ui5 = {};
-        if (z2ui5.checkLocal === false) window.z2ui5 = {};
-        if (typeof z2ui5.oConfig === "undefined") z2ui5.oConfig = {};
+        this._ensureGlobalState();
         z2ui5.oConfig.ComponentData = this.getComponentData();
 
         // The date helpers are a public contract: apps use them via the
@@ -70,6 +63,17 @@ sap.ui.define(
         z2ui5.oRouter = this.getRouter();
         z2ui5.oRouter.initialize();
         z2ui5.oRouter.stop();
+      },
+
+      // After the base init, ensure z2ui5 / z2ui5.oConfig exist. The
+      // backend-generated HTML declares window.z2ui5 before the component
+      // boots; when running standalone (local dev tooling) it does not
+      // exist yet. Assign via window - a bare `z2ui5 = {}` would throw a
+      // ReferenceError on an undeclared global in strict mode.
+      _ensureGlobalState() {
+        if (typeof z2ui5 === "undefined") window.z2ui5 = {};
+        if (z2ui5.checkLocal === false) window.z2ui5 = {};
+        if (typeof z2ui5.oConfig === "undefined") z2ui5.oConfig = {};
       },
 
       // ------------------------------------------------------------------

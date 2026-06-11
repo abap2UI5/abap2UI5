@@ -140,6 +140,71 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `    control.setProperty("removedTokens", isRemoved ? tokens : []);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  // Run every callback in ``callbacks`` (the z2ui5 callback arrays above),` && |\n| &&
+             `  // swallowing individual failures so one bad callback cannot break the` && |\n| &&
+             `  // whole event sequence.` && |\n| &&
+             `  function runCallbacks(callbacks, ...args) {` && |\n| &&
+             `    if (!callbacks) return;` && |\n| &&
+             `    for (const fn of callbacks) {` && |\n| &&
+             `      if (!fn) continue;` && |\n| &&
+             `      try {` && |\n| &&
+             `        fn(...args);` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        logError("runCallbacks: callback failed", e);` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // Runs ``fn`` once ``control`` has a DOM reference: immediately when it is` && |\n| &&
+             `  // already rendered, otherwise once after its next rendering. The call` && |\n| &&
+             `  // is skipped when ``owner`` was destroyed in the meantime.` && |\n| &&
+             `  function whenRendered(control, owner, fn) {` && |\n| &&
+             `    if (control.getDomRef()) {` && |\n| &&
+             `      fn();` && |\n| &&
+             `      return;` && |\n| &&
+             `    }` && |\n| &&
+             `    const delegate = {` && |\n| &&
+             `      onAfterRendering: () => {` && |\n| &&
+             `        control.removeEventDelegate(delegate);` && |\n| &&
+             `        if (!isDestroyed(owner)) fn();` && |\n| &&
+             `      },` && |\n| &&
+             `    };` && |\n| &&
+             `    control.addEventDelegate(delegate);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // Copy text to the clipboard, preferring the async clipboard API with a` && |\n| &&
+             `  // fallback to the legacy textarea + execCommand approach.` && |\n| &&
+             `  function copyToClipboard(textToCopy) {` && |\n| &&
+             `    if (navigator.clipboard?.writeText) {` && |\n| &&
+             `      navigator.clipboard.writeText(textToCopy).catch((err) => {` && |\n| &&
+             `        logError("Clipboard: writeText failed, falling back", err);` && |\n| &&
+             `        copyToClipboardFallback(textToCopy);` && |\n| &&
+             `      });` && |\n| &&
+             `      return;` && |\n| &&
+             `    }` && |\n| &&
+             `    copyToClipboardFallback(textToCopy);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function copyToClipboardFallback(textToCopy) {` && |\n| &&
+             `    const textarea = document.createElement("textarea");` && |\n| &&
+             `    textarea.value = textToCopy;` && |\n| &&
+             `    textarea.setAttribute("readonly", "");` && |\n| &&
+             `    textarea.style.position = "fixed";` && |\n| &&
+             `    textarea.style.top = "-1000px";` && |\n| &&
+             `    textarea.style.opacity = "0";` && |\n| &&
+             `    document.body.appendChild(textarea);` && |\n| &&
+             `    textarea.select();` && |\n| &&
+             `    try {` && |\n| &&
+             `      if (!document.execCommand("copy")) {` && |\n| &&
+             `        logError("Clipboard: execCommand('copy') returned false");` && |\n| &&
+             `      }` && |\n| &&
+             `    } catch (err) {` && |\n| &&
+             `      logError("Clipboard: execCommand('copy') threw", err);` && |\n| &&
+             `    } finally {` && |\n| &&
+             `      document.body.removeChild(textarea);` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  // ------------------------------------------------------------------` && |\n| &&
              `  // Pure helpers - free of UI5 dependencies so the Node specs under` && |\n| &&
              `  // node/tests/ can load this module with a stubbed sap.ui.define and` && |\n| &&
@@ -147,6 +212,12 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `  // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
              `  const SAFE_PROTOCOLS = ["http:", "https:"];` && |\n| &&
+             `` && |\n| &&
+             `  // Normalizes any value for display: null and undefined become the empty` && |\n| &&
+             `  // string, everything else its string representation.` && |\n| &&
+             `  function toText(val) {` && |\n| &&
+             `    return val == null ? "" : String(val);` && |\n| &&
+             `  }` && |\n| &&
              `` && |\n| &&
              `  // Returns true only if the URL is on the same origin and uses http/https.` && |\n| &&
              `  function isValidRedirectURL(url) {` && |\n| &&
@@ -304,6 +375,10 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `    unregisterCallback,` && |\n| &&
              `    readFileAsDataURL,` && |\n| &&
              `    applyTokenUpdate,` && |\n| &&
+             `    runCallbacks,` && |\n| &&
+             `    whenRendered,` && |\n| &&
+             `    copyToClipboard,` && |\n| &&
+             `    toText,` && |\n| &&
              `    isValidRedirectURL,` && |\n| &&
              `    isSafeRedirectProtocol,` && |\n| &&
              `    isSafeDownloadURL,` && |\n| &&

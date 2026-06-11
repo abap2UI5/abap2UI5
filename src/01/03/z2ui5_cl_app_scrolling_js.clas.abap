@@ -118,21 +118,10 @@ CLASS z2ui5_cl_app_scrolling_js IMPLEMENTATION.
              `          const control = z2ui5.oView?.byId(item.N);` && |\n| &&
              `          if (!control) continue;` && |\n| &&
              `` && |\n| &&
-             `          if (control.getDomRef()) {` && |\n| &&
-             `            // The target control is already rendered -> restore immediately.` && |\n| &&
-             `            this._restoreScrollPosition(item);` && |\n| &&
-             `          } else {` && |\n| &&
-             `            // Not rendered yet -> wait until it is, then restore once.` && |\n| &&
-             `            const delegate = {` && |\n| &&
-             `              onAfterRendering: () => {` && |\n| &&
-             `                control.removeEventDelegate(delegate);` && |\n| &&
-             `                if (!Lib.isDestroyed(this)) {` && |\n| &&
-             `                  this._restoreScrollPosition(item);` && |\n| &&
-             `                }` && |\n| &&
-             `              },` && |\n| &&
-             `            };` && |\n| &&
-             `            control.addEventDelegate(delegate);` && |\n| &&
-             `          }` && |\n| &&
+             `          // Restore immediately when rendered, otherwise once it is.` && |\n| &&
+             `          Lib.whenRendered(control, this, () =>` && |\n| &&
+             `            this._restoreScrollPosition(item),` && |\n| &&
+             `          );` && |\n| &&
              `        }` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("Scrolling.onAfterRendering: failed", e);` && |\n| &&

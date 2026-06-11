@@ -77,7 +77,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
           ["device_browser", browser.name],
         ];
         for (const [prop, val] of props) {
-          const safe = val == null ? "" : String(val);
+          const safe = Lib.toText(val);
           this.setProperty(prop, safe, true);
         }
         this.fireFinished();

@@ -55,14 +55,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n| &&
              `        UIComponent.prototype.init.call(this);` && |\n| &&
              `` && |\n| &&
-             `        // After the base init, ensure z2ui5 / z2ui5.oConfig still exist. The` && |\n| &&
-             `        // backend-generated HTML declares window.z2ui5 before the component` && |\n| &&
-             `        // boots; when running standalone (local dev tooling) it does not` && |\n| &&
-             `        // exist yet. Assign via window - a bare ``z2ui5 = {}`` would throw a` && |\n| &&
-             `        // ReferenceError on an undeclared global in strict mode.` && |\n| &&
-             `        if (typeof z2ui5 === "undefined") window.z2ui5 = {};` && |\n| &&
-             `        if (z2ui5.checkLocal === false) window.z2ui5 = {};` && |\n| &&
-             `        if (typeof z2ui5.oConfig === "undefined") z2ui5.oConfig = {};` && |\n| &&
+             `        this._ensureGlobalState();` && |\n| &&
              `        z2ui5.oConfig.ComponentData = this.getComponentData();` && |\n| &&
              `` && |\n| &&
              `        // The date helpers are a public contract: apps use them via the` && |\n| &&
@@ -90,6 +83,17 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        z2ui5.oRouter = this.getRouter();` && |\n| &&
              `        z2ui5.oRouter.initialize();` && |\n| &&
              `        z2ui5.oRouter.stop();` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // After the base init, ensure z2ui5 / z2ui5.oConfig exist. The` && |\n| &&
+             `      // backend-generated HTML declares window.z2ui5 before the component` && |\n| &&
+             `      // boots; when running standalone (local dev tooling) it does not` && |\n| &&
+             `      // exist yet. Assign via window - a bare ``z2ui5 = {}`` would throw a` && |\n| &&
+             `      // ReferenceError on an undeclared global in strict mode.` && |\n| &&
+             `      _ensureGlobalState() {` && |\n| &&
+             `        if (typeof z2ui5 === "undefined") window.z2ui5 = {};` && |\n| &&
+             `        if (z2ui5.checkLocal === false) window.z2ui5 = {};` && |\n| &&
+             `        if (typeof z2ui5.oConfig === "undefined") z2ui5.oConfig = {};` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&

@@ -97,7 +97,7 @@ CLASS z2ui5_cl_app_info_js IMPLEMENTATION.
              `          ["device_browser", browser.name],` && |\n| &&
              `        ];` && |\n| &&
              `        for (const [prop, val] of props) {` && |\n| &&
-             `          const safe = val == null ? "" : String(val);` && |\n| &&
+             `          const safe = Lib.toText(val);` && |\n| &&
              `          this.setProperty(prop, safe, true);` && |\n| &&
              `        }` && |\n| &&
              `        this.fireFinished();` && |\n| &&

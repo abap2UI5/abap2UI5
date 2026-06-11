@@ -41,20 +41,6 @@ sap.ui.define(
     // Small utility helpers (module-private)
     // ------------------------------------------------------------------
 
-    // Run every callback in `arr`, swallowing individual failures so one bad
-    // callback cannot break the whole event sequence.
-    function runCallbacks(arr, ...args) {
-      if (!arr) return;
-      for (const fn of arr) {
-        if (!fn) continue;
-        try {
-          fn(...args);
-        } catch (e) {
-          Lib.logError("runCallbacks: callback failed", e);
-        }
-      }
-    }
-
     // Parse a value as integer milliseconds, falling back to `def` when the
     // input is empty / undefined.
     function parseMs(val, def) {
@@ -68,37 +54,6 @@ sap.ui.define(
     // Single reusable BusyDialog flashed when the user clicks while a
     // roundtrip is already in flight (created lazily, kept for reuse).
     let _busyDialog = null;
-
-    function copyToClipboard(textToCopy) {
-      if (navigator.clipboard?.writeText) {
-        navigator.clipboard.writeText(textToCopy).catch((err) => {
-          Lib.logError("Clipboard: writeText failed, falling back", err);
-          copyToClipboardFallback(textToCopy);
-        });
-        return;
-      }
-      copyToClipboardFallback(textToCopy);
-    }
-
-    function copyToClipboardFallback(textToCopy) {
-      const textarea = document.createElement("textarea");
-      textarea.value = textToCopy;
-      textarea.setAttribute("readonly", "");
-      textarea.style.position = "fixed";
-      textarea.style.top = "-1000px";
-      textarea.style.opacity = "0";
-      document.body.appendChild(textarea);
-      textarea.select();
-      try {
-        if (!document.execCommand("copy")) {
-          Lib.logError("Clipboard: execCommand('copy') returned false");
-        }
-      } catch (err) {
-        Lib.logError("Clipboard: execCommand('copy') threw", err);
-      } finally {
-        document.body.removeChild(textarea);
-      }
-    }
 
     // ------------------------------------------------------------------
     // Launchpad / NavContainer helpers
@@ -227,7 +182,7 @@ sap.ui.define(
           this._updateBrowserHistory(PARAMS, oResponse.ID);
           if (PARAMS.SET_NAV_BACK) history.back();
 
-          runCallbacks(z2ui5.onAfterRendering);
+          Lib.runCallbacks(z2ui5.onAfterRendering);
         } catch (e) {
           Lib.logError("_processAfterRendering: unexpected error", e);
           Server.responseError(e, "Unexpected Error Occurred - App Terminated");
@@ -520,7 +475,7 @@ sap.ui.define(
       // must not be renamed.
       // ------------------------------------------------------------------
       eF(...args) {
-        runCallbacks(z2ui5.onBeforeEventFrontend, args);
+        Lib.runCallbacks(z2ui5.onBeforeEventFrontend, args);
 
         // NavContainer navigation is dispatched via lookup table.
         const navLookup = navContainerLookups[args[0]];
@@ -544,12 +499,12 @@ sap.ui.define(
       },
 
       _evClipboardCopy(args) {
-        copyToClipboard(args[1]);
+        Lib.copyToClipboard(args[1]);
       },
 
       _evClipboardAppState() {
         const id = z2ui5.oResponse?.ID;
-        copyToClipboard(`${window.location.href}#/z2ui5-xapp-state=${id}`);
+        Lib.copyToClipboard(`${window.location.href}#/z2ui5-xapp-state=${id}`);
       },
 
       _evDownloadB64File(args) {
@@ -822,18 +777,8 @@ sap.ui.define(
 
         // The control may still be missing from the DOM when SET_FOCUS runs
         // together with a fresh view build. Apply now if it is rendered,
-        // otherwise once it is - same pattern as UITableExt / Scrolling.
-        if (oElement.getDomRef?.()) {
-          applyFocus();
-        } else {
-          const delegate = {
-            onAfterRendering: () => {
-              oElement.removeEventDelegate(delegate);
-              applyFocus();
-            },
-          };
-          oElement.addEventDelegate(delegate);
-        }
+        // otherwise once it is.
+        Lib.whenRendered(oElement, this, applyFocus);
       },
 
       _evScrollTo(args) {
@@ -914,7 +859,7 @@ sap.ui.define(
       },
 
       _evSetTitle(args) {
-        const title = args[1] == null ? "" : String(args[1]);
+        const title = Lib.toText(args[1]);
         try {
           document.title = title;
         } catch (e) {
@@ -923,7 +868,7 @@ sap.ui.define(
       },
 
       _evSetTitleLaunchpad(args) {
-        const title = args[1] == null ? "" : String(args[1]);
+        const title = Lib.toText(args[1]);
         try {
           const shell = z2ui5.oLaunchpad?.ShellUIService;
           if (shell?.setTitle) {
@@ -1035,7 +980,7 @@ sap.ui.define(
         // popup view, etc.
         const oModel = this._pickModelForRoundtrip(useMainModel);
 
-        runCallbacks(z2ui5.onBeforeRoundtrip);
+        Lib.runCallbacks(z2ui5.onBeforeRoundtrip);
 
         // If the user edited /XX/ paths, send only the delta to keep the
         // payload small.
@@ -1056,7 +1001,7 @@ sap.ui.define(
         });
 
         Server.roundtrip();
-        runCallbacks(z2ui5.onAfterRoundtrip);
+        Lib.runCallbacks(z2ui5.onAfterRoundtrip);
       },
 
       _pickModelForRoundtrip(useMainModel) {

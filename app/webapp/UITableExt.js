@@ -56,21 +56,6 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
       }
     },
 
-    _applyWhenRendered(oTable, fn) {
-      if (oTable.getDomRef()) {
-        fn();
-        return;
-      }
-      // Not rendered yet -> run `fn` once the next render completes.
-      const delegate = {
-        onAfterRendering: () => {
-          oTable.removeEventDelegate(delegate);
-          if (!Lib.isDestroyed(this)) fn();
-        },
-      };
-      oTable.addEventDelegate(delegate);
-    },
-
     _applyFilters(oTable, aFilters) {
       if (!aFilters) return;
       const binding = oTable.getBinding();
@@ -99,8 +84,8 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
         if (operator === "BT") {
           // "between" displays "from...to".
           displayFn = (v) => {
-            const from = v == null ? "" : v;
-            const to = oFilter.oValue2 == null ? "" : oFilter.oValue2;
+            const from = Lib.toText(v);
+            const to = Lib.toText(oFilter.oValue2);
             return `${from}...${to}`;
           };
         } else if (filterDisplayFns[operator]) {
@@ -108,7 +93,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
         } else {
           // Fallback: optional operator prefix (e.g. "!" for NE) + value.
           const prefix = opSymbols[operator] || "";
-          displayFn = (v) => `${prefix}${v == null ? "" : v}`;
+          displayFn = (v) => `${prefix}${Lib.toText(v)}`;
         }
         const display = displayFn(vValue);
 
@@ -125,7 +110,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
       try {
         const oTable = this._getTable();
         if (!oTable) return;
-        this._applyWhenRendered(oTable, () => applyFn(oTable));
+        Lib.whenRendered(oTable, this, () => applyFn(oTable));
       } catch (e) {
         Lib.logError(errorMsg, e);
       }
