@@ -29,7 +29,7 @@
 //   oApp              sap.m.App hosting the main view (App.controller)
 //   oOwnerComponent, oRouter, oDeviceModel (Component / App.controller)
 //   oView, oViewNest, oViewNest2, oViewPopup, oViewPopover
-//                     the five view slots, see Lib.viewSlots (View1)
+//                     the five view slots, see core/ViewSlots.js (View1)
 //   oController, oControllerNest, oControllerNest2, oControllerPopup,
 //   oControllerPopover  controller instance per slot (App.controller)
 //   oLaunchpad        FLP services when running inside the launchpad, else

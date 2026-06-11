@@ -15,6 +15,7 @@ sap.ui.define(
     "sap/ui/core/Element",
     "z2ui5/core/Lib",
     "z2ui5/core/FrontendAction",
+    "z2ui5/core/ViewSlots",
   ],
   (
     Controller,
@@ -32,6 +33,7 @@ sap.ui.define(
     Element,
     Lib,
     FrontendAction,
+    ViewSlots,
   ) => {
     "use strict";
 
@@ -139,38 +141,24 @@ sap.ui.define(
 
         if (S_POPUP?.XML) {
           this.destroyPopup();
-          await this.displayFragment(S_POPUP.XML, "oViewPopup");
+          await this.displayFragment(S_POPUP.XML);
         }
 
         if (!z2ui5.checkNestAfter && S_VIEW_NEST?.XML) {
           this.destroyNestView();
-          await this.displayNestedView(
-            S_VIEW_NEST.XML,
-            "oViewNest",
-            "S_VIEW_NEST",
-            z2ui5.oControllerNest,
-          );
+          await this.displayNestedView(S_VIEW_NEST.XML, "NEST");
           z2ui5.checkNestAfter = true;
         }
 
         if (!z2ui5.checkNestAfter2 && S_VIEW_NEST2?.XML) {
           this.destroyNestView2();
-          await this.displayNestedView(
-            S_VIEW_NEST2.XML,
-            "oViewNest2",
-            "S_VIEW_NEST2",
-            z2ui5.oControllerNest2,
-          );
+          await this.displayNestedView(S_VIEW_NEST2.XML, "NEST2");
           z2ui5.checkNestAfter2 = true;
         }
 
         if (S_POPOVER?.XML) {
           this.destroyPopover();
-          await this.displayPopover(
-            S_POPOVER.XML,
-            "oViewPopover",
-            S_POPOVER.OPEN_BY_ID,
-          );
+          await this.displayPopover(S_POPOVER.XML, S_POPOVER.OPEN_BY_ID);
         }
       },
 
@@ -235,12 +223,12 @@ sap.ui.define(
       // Display: popups, popovers, nested views, main view
       // ------------------------------------------------------------------
 
-      async displayFragment(xml, viewProp) {
+      async displayFragment(xml) {
         const oModel = this._createViewModel();
         applyStoredSizeLimit("POPUP", oModel);
         const oFragment = await Fragment.load({
           definition: xml,
-          controller: z2ui5.oControllerPopup,
+          controller: ViewSlots.getController("POPUP"),
           id: "popupId",
         });
         // The app might have been torn down while the fragment loaded.
@@ -249,18 +237,17 @@ sap.ui.define(
           return;
         }
         oFragment.setModel(oModel);
-        oFragment.Fragment = Fragment;
-        z2ui5[viewProp] = oFragment;
+        ViewSlots.setView("POPUP", oFragment);
         oFragment.open();
       },
 
-      async displayPopover(xml, viewProp, openById) {
+      async displayPopover(xml, openById) {
         try {
           const oModel = this._createViewModel();
           applyStoredSizeLimit("POPOVER", oModel);
           const oFragment = await Fragment.load({
             definition: xml,
-            controller: z2ui5.oControllerPopover,
+            controller: ViewSlots.getController("POPOVER"),
             id: "popoverId",
           });
           if (!Lib.isAlive(z2ui5.oApp)) {
@@ -268,21 +255,15 @@ sap.ui.define(
             return;
           }
           oFragment.setModel(oModel);
-          oFragment.Fragment = Fragment;
 
           // Find the control to attach the popover to. We search the main
           // view first, then any open popup / nested views, then the global
           // UI5 control registry as a last resort.
-          let oControl = z2ui5.oView?.byId(openById);
-          if (!oControl && z2ui5.oViewPopup?.Fragment) {
-            oControl = z2ui5.oViewPopup.Fragment.byId("popupId", openById);
-          }
-          if (!oControl && z2ui5.oViewNest) {
-            oControl = z2ui5.oViewNest.byId(openById);
-          }
-          if (!oControl && z2ui5.oViewNest2) {
-            oControl = z2ui5.oViewNest2.byId(openById);
-          }
+          let oControl =
+            ViewSlots.byId("MAIN", openById) ||
+            ViewSlots.byId("POPUP", openById) ||
+            ViewSlots.byId("NEST", openById) ||
+            ViewSlots.byId("NEST2", openById);
           if (!oControl) {
             if (Element.getElementById) {
               oControl = Element.getElementById(openById);
@@ -306,19 +287,20 @@ sap.ui.define(
             oFragment.destroy();
             return;
           }
-          z2ui5[viewProp] = oFragment;
+          ViewSlots.setView("POPOVER", oFragment);
           oFragment.openBy(oControl);
         } catch (e) {
           Lib.logError("displayPopover: failed", e);
         }
       },
 
-      async displayNestedView(xml, viewProp, viewNestId, controller) {
+      async displayNestedView(xml, slotKey) {
+        const paramKey = ViewSlots.paramByKey(slotKey);
         const oModel = this._createViewModel();
-        applyStoredSizeLimit(Lib.slotKeyByParam(viewNestId), oModel);
+        applyStoredSizeLimit(slotKey, oModel);
         const oView = await XMLView.create({
           definition: xml,
-          controller: controller,
+          controller: ViewSlots.getController(slotKey),
           preprocessors: { xml: { models: { template: oModel } } },
         });
 
@@ -329,15 +311,15 @@ sap.ui.define(
         oView.setModel(oModel);
 
         const nestParams =
-          z2ui5.oResponse?.PARAMS && z2ui5.oResponse.PARAMS[viewNestId];
+          z2ui5.oResponse?.PARAMS && z2ui5.oResponse.PARAMS[paramKey];
         if (!nestParams) {
-          Lib.logError(`displayNestedView: missing PARAMS.${viewNestId}`);
+          Lib.logError(`displayNestedView: missing PARAMS.${paramKey}`);
           oView.destroy();
           return;
         }
         const { ID, METHOD_DESTROY, METHOD_INSERT } = nestParams;
 
-        const oParent = z2ui5.oView?.byId(ID);
+        const oParent = ViewSlots.byId("MAIN", ID);
         if (!oParent) {
           Lib.logError(
             `displayNestedView: parent control '${ID}' not found, nested view discarded`,
@@ -358,43 +340,25 @@ sap.ui.define(
           oView.destroy();
           return;
         }
-        z2ui5[viewProp] = oView;
+        ViewSlots.setView(slotKey, oView);
       },
 
-      // Shared destroy logic: close (if dialog/popover) and destroy the view,
-      // then clear the slot on z2ui5.
-      _destroyView(prop, tryClose) {
-        const view = z2ui5[prop];
-        if (!view) return;
-        if (tryClose) {
-          try {
-            if (view.close) view.close();
-          } catch (e) {
-            Lib.logError(`_destroyView: view.close() failed for ${prop}`, e);
-          }
-        }
-        try {
-          view.destroy();
-        } catch (e) {
-          Lib.logError(`_destroyView: view.destroy() failed for ${prop}`, e);
-        }
-        z2ui5[prop] = null;
-      },
-
+      // Thin wrappers around the shared slot teardown in ViewSlots, kept
+      // because existing apps may call them via custom JS.
       destroyPopup() {
-        this._destroyView("oViewPopup", true);
+        ViewSlots.destroy("POPUP");
       },
       destroyPopover() {
-        this._destroyView("oViewPopover", true);
+        ViewSlots.destroy("POPOVER");
       },
       destroyNestView() {
-        this._destroyView("oViewNest");
+        ViewSlots.destroy("NEST");
       },
       destroyNestView2() {
-        this._destroyView("oViewNest2");
+        ViewSlots.destroy("NEST2");
       },
       destroyView() {
-        this._destroyView("oView");
+        ViewSlots.destroy("MAIN");
       },
 
       // ------------------------------------------------------------------
@@ -483,41 +447,37 @@ sap.ui.define(
       _pickModelForRoundtrip(useMainModel) {
         // useMainModel forces use of the main view's model even when called
         // from a popup/popover controller.
-        if (useMainModel || z2ui5.oController === this) {
+        const slotKey = useMainModel ? "MAIN" : ViewSlots.keyOfController(this);
+        if (!slotKey) return undefined;
+
+        if (slotKey === "MAIN") {
           const sView = z2ui5.oResponse?.PARAMS
             ? z2ui5.oResponse.PARAMS.S_VIEW
             : null;
           if (sView?.SWITCH_DEFAULT_MODEL_PATH) {
-            return z2ui5.oView?.getModel("http");
+            return ViewSlots.getView("MAIN")?.getModel("http");
           }
-          return z2ui5.oView?.getModel();
+          return ViewSlots.getView("MAIN")?.getModel();
         }
-        if (z2ui5.oControllerPopup === this) {
-          return z2ui5.oViewPopup?.getModel();
+
+        // Nested views report their slot as VIEW in S_FRONT so the backend
+        // routes the event to the right app instance.
+        if (slotKey === "NEST" || slotKey === "NEST2") {
+          z2ui5.oBody.VIEWNAME = slotKey;
         }
-        if (z2ui5.oControllerPopover === this) {
-          return z2ui5.oViewPopover?.getModel();
-        }
-        if (z2ui5.oControllerNest === this) {
-          z2ui5.oBody.VIEWNAME = "NEST";
-          return z2ui5.oViewNest?.getModel();
-        }
-        if (z2ui5.oControllerNest2 === this) {
-          z2ui5.oBody.VIEWNAME = "NEST2";
-          return z2ui5.oViewNest2?.getModel();
-        }
-        return undefined;
+        return ViewSlots.getView(slotKey)?.getModel();
       },
 
       // Re-bind a model to one of the views when the response signals an
       // update is required for that particular slot.
-      updateModelIfRequired(paramKey, oView) {
+      updateModelIfRequired(slotKey) {
         const params = z2ui5.oResponse?.PARAMS;
-        const slot = params?.[paramKey];
-        if (!slot || !slot.CHECK_UPDATE_MODEL) return;
+        const slotParams = params?.[ViewSlots.paramByKey(slotKey)];
+        if (!slotParams || !slotParams.CHECK_UPDATE_MODEL) return;
 
         const oModel = this._createViewModel();
-        applyStoredSizeLimit(Lib.slotKeyByParam(paramKey), oModel);
+        applyStoredSizeLimit(slotKey, oModel);
+        const oView = ViewSlots.getView(slotKey);
         if (oView) oView.setModel(oModel);
       },
 
@@ -617,26 +577,26 @@ sap.ui.define(
         }
         applyStoredSizeLimit("MAIN", oModel);
 
-        z2ui5.oView = await XMLView.create({
+        const oView = await XMLView.create({
           definition: xml,
           models: oModel,
-          controller: z2ui5.oController,
+          controller: ViewSlots.getController("MAIN"),
           id: "mainView",
           preprocessors: { xml: { models: { template: oViewModel } } },
         });
 
         // Guard against the app being destroyed during the await above.
         if (!Lib.isAlive(z2ui5.oApp)) {
-          z2ui5.oView.destroy();
+          oView.destroy();
           if (switchPath) oModel.destroy();
-          z2ui5.oView = null;
           return;
         }
 
-        z2ui5.oView.setModel(z2ui5.oDeviceModel, "device");
-        if (switchPath) z2ui5.oView.setModel(oViewModel, "http");
+        ViewSlots.setView("MAIN", oView);
+        oView.setModel(z2ui5.oDeviceModel, "device");
+        if (switchPath) oView.setModel(oViewModel, "http");
         z2ui5.oApp.removeAllPages();
-        z2ui5.oApp.insertPage(z2ui5.oView);
+        z2ui5.oApp.insertPage(oView);
       },
     });
   },

@@ -1,6 +1,11 @@
 sap.ui.define(
-  ["sap/ui/core/Control", "sap/m/Token", "z2ui5/core/Lib"],
-  (Control, Token, Lib) => {
+  [
+    "sap/ui/core/Control",
+    "sap/m/Token",
+    "z2ui5/core/Lib",
+    "z2ui5/core/ViewSlots",
+  ],
+  (Control, Token, Lib, ViewSlots) => {
     "use strict";
 
     return Control.extend("z2ui5.cc.MultiInputExt", {
@@ -45,7 +50,7 @@ sap.ui.define(
       },
       renderer: { apiVersion: 2, render() {} },
       setControl() {
-        const table = z2ui5.oView?.byId(this.getProperty("MultiInputId"));
+        const table = ViewSlots.byId("MAIN", this.getProperty("MultiInputId"));
         if (!table || this.getProperty("checkInit")) return;
         this.setProperty("checkInit", true);
         try {

@@ -24,8 +24,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    "sap/ui/Device",` && |\n| &&
              `    "sap/ui/core/Element",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/ViewSlots",` && |\n| &&
              `  ],` && |\n| &&
-             `  (BusyIndicator, Device, Element, Lib) => {` && |\n| &&
+             `  (BusyIndicator, Device, Element, Lib, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Errors longer than this are truncated before being shown to the user,` && |\n| &&
@@ -149,7 +150,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          const ui5El = Element.closestTo?.(active) ?? null;` && |\n| &&
              `          if (!ui5El) return {};` && |\n| &&
              `          const fullId = ui5El.getId();` && |\n| &&
-             `          const views = Lib.viewSlots.map((slot) => z2ui5[slot.prop]);` && |\n| &&
+             `          const views = ViewSlots.slots.map((slot) =>` && |\n| &&
+             `            ViewSlots.getView(slot.key),` && |\n| &&
+             `          );` && |\n| &&
              `          let id = fullId;` && |\n| &&
              `          for (const v of views) {` && |\n| &&
              `            if (!v) continue;` && |\n| &&
@@ -181,17 +184,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        const ui5El = Element.closestTo?.(target) ?? null;` && |\n| &&
              `        if (!ui5El) return;` && |\n| &&
              `` && |\n| &&
-             `        // Walk up the control tree to find the view slot the scrolled` && |\n| &&
-             `        // element belongs to (innermost slot wins, e.g. nested views).` && |\n| &&
-             `        let current = ui5El;` && |\n| &&
-             `        while (current) {` && |\n| &&
-             `          for (const slot of Lib.viewSlots) {` && |\n| &&
-             `            if (z2ui5[slot.prop] === current) {` && |\n| &&
-             `              z2ui5.lastScrolled[slot.key] = { control: ui5El, dom: target };` && |\n| &&
-             `              return;` && |\n| &&
-             `            }` && |\n| &&
-             `          }` && |\n| &&
-             `          current = current.getParent?.();` && |\n| &&
+             `        const slotKey = ViewSlots.containingSlotKey(ui5El);` && |\n| &&
+             `        if (slotKey) {` && |\n| &&
+             `          z2ui5.lastScrolled[slotKey] = { control: ui5El, dom: target };` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -202,7 +197,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        // absent from the result - restoring 0/0 would be a no-op anyway.` && |\n| &&
              `        const store = z2ui5.lastScrolled;` && |\n| &&
              `        const out = {};` && |\n| &&
-             `        for (const slot of Lib.viewSlots) {` && |\n| &&
+             `        for (const slot of ViewSlots.slots) {` && |\n| &&
              `          const entry = store[slot.key];` && |\n| &&
              `          if (!entry) continue;` && |\n| &&
              `` && |\n| &&
@@ -213,7 +208,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          }` && |\n| &&
              `` && |\n| &&
              `          let id = entry.control.getId();` && |\n| &&
-             `          const view = z2ui5[slot.prop];` && |\n| &&
+             `          const view = ViewSlots.getView(slot.key);` && |\n| &&
              `          const prefix = view ? ``${view.getId()}--`` : "";` && |\n| &&
              `          if (prefix && id.startsWith(prefix)) id = id.slice(prefix.length);` && |\n| &&
              `          out[slot.key] = {` && |\n| &&
@@ -356,13 +351,13 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      async responseSuccess(response) {` && |\n| &&
-             `        const oController = z2ui5.oController;` && |\n| &&
+             `        const oController = ViewSlots.getController("MAIN");` && |\n| &&
              `        try {` && |\n| &&
              `          z2ui5.oResponse = response;` && |\n| &&
              `          const params = response.PARAMS;` && |\n| &&
              `          const sView = params?.S_VIEW;` && |\n| &&
              `` && |\n| &&
-             `          if (sView?.CHECK_DESTROY) oController.destroyView();` && |\n| &&
+             `          if (sView?.CHECK_DESTROY) ViewSlots.destroy("MAIN");` && |\n| &&
              `` && |\n| &&
              `          // The backend can send small JS snippets to run after the response.` && |\n| &&
              `          // Each snippet is either a literal expression or an "eF(...)" call` && |\n| &&
@@ -379,15 +374,15 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `          // Full view replacement -> destroy & rebuild, nothing more to do.` && |\n| &&
              `          if (sView?.XML) {` && |\n| &&
-             `            oController.destroyView();` && |\n| &&
+             `            ViewSlots.destroy("MAIN");` && |\n| &&
              `            await oController.displayView(sView.XML, response.OVIEWMODEL);` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
              `          // Partial response: refresh whichever existing views the backend` && |\n| &&
              `          // sent updates for.` && |\n| &&
-             `          for (const slot of Lib.viewSlots) {` && |\n| &&
-             `            oController.updateModelIfRequired(slot.param, z2ui5[slot.prop]);` && |\n| &&
+             `          for (const slot of ViewSlots.slots) {` && |\n| &&
+             `            oController.updateModelIfRequired(slot.key);` && |\n| &&
              `          }` && |\n| &&
              `          oController._processAfterRendering();` && |\n| &&
              `        } catch (e) {` && |\n| &&
@@ -418,13 +413,13 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          const args = parts.filter((_, index) => index % 2 === 1);` && |\n| &&
              `          if (args.length > 0) {` && |\n| &&
              `            oController.eF(...args);` && |\n| &&
-             |\n|.
-    result = result &&
              `          } else {` && |\n| &&
              `            // eslint-disable-next-line no-new-func` && |\n| &&
              `            Function("return " + parts[0])();` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
+             |\n|.
+    result = result &&
              `          Lib.logError("customJs: execution failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&

@@ -49,6 +49,7 @@ CLASS z2ui5_cl_app_preload IMPLEMENTATION.
              |      "z2ui5/core/FrontendAction.js": function()\{{ z2ui5_cl_app_frontendaction_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/Lib.js": function()\{{ z2ui5_cl_app_lib_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/Server.js": function()\{{ z2ui5_cl_app_server_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/core/ViewSlots.js": function()\{{ z2ui5_cl_app_viewslots_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/css/style.css": '{ styles_css }',| && |\n| &&
              |      "z2ui5/manifest.json": '{ z2ui5_cl_app_manifest_json=>get( ) }',| && |\n| &&
              |      "z2ui5/model/models.js": function()\{{ z2ui5_cl_app_models_js=>get( ) }\},| && |\n| &&

@@ -35,6 +35,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    "sap/ui/core/Element",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/FrontendAction",` && |\n| &&
+             `    "z2ui5/core/ViewSlots",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    Controller,` && |\n| &&
@@ -52,6 +53,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    Element,` && |\n| &&
              `    Lib,` && |\n| &&
              `    FrontendAction,` && |\n| &&
+             `    ViewSlots,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -159,38 +161,24 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        if (S_POPUP?.XML) {` && |\n| &&
              `          this.destroyPopup();` && |\n| &&
-             `          await this.displayFragment(S_POPUP.XML, "oViewPopup");` && |\n| &&
+             `          await this.displayFragment(S_POPUP.XML);` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        if (!z2ui5.checkNestAfter && S_VIEW_NEST?.XML) {` && |\n| &&
              `          this.destroyNestView();` && |\n| &&
-             `          await this.displayNestedView(` && |\n| &&
-             `            S_VIEW_NEST.XML,` && |\n| &&
-             `            "oViewNest",` && |\n| &&
-             `            "S_VIEW_NEST",` && |\n| &&
-             `            z2ui5.oControllerNest,` && |\n| &&
-             `          );` && |\n| &&
+             `          await this.displayNestedView(S_VIEW_NEST.XML, "NEST");` && |\n| &&
              `          z2ui5.checkNestAfter = true;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        if (!z2ui5.checkNestAfter2 && S_VIEW_NEST2?.XML) {` && |\n| &&
              `          this.destroyNestView2();` && |\n| &&
-             `          await this.displayNestedView(` && |\n| &&
-             `            S_VIEW_NEST2.XML,` && |\n| &&
-             `            "oViewNest2",` && |\n| &&
-             `            "S_VIEW_NEST2",` && |\n| &&
-             `            z2ui5.oControllerNest2,` && |\n| &&
-             `          );` && |\n| &&
+             `          await this.displayNestedView(S_VIEW_NEST2.XML, "NEST2");` && |\n| &&
              `          z2ui5.checkNestAfter2 = true;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        if (S_POPOVER?.XML) {` && |\n| &&
              `          this.destroyPopover();` && |\n| &&
-             `          await this.displayPopover(` && |\n| &&
-             `            S_POPOVER.XML,` && |\n| &&
-             `            "oViewPopover",` && |\n| &&
-             `            S_POPOVER.OPEN_BY_ID,` && |\n| &&
-             `          );` && |\n| &&
+             `          await this.displayPopover(S_POPOVER.XML, S_POPOVER.OPEN_BY_ID);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -255,12 +243,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // Display: popups, popovers, nested views, main view` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
-             `      async displayFragment(xml, viewProp) {` && |\n| &&
+             `      async displayFragment(xml) {` && |\n| &&
              `        const oModel = this._createViewModel();` && |\n| &&
              `        applyStoredSizeLimit("POPUP", oModel);` && |\n| &&
              `        const oFragment = await Fragment.load({` && |\n| &&
              `          definition: xml,` && |\n| &&
-             `          controller: z2ui5.oControllerPopup,` && |\n| &&
+             `          controller: ViewSlots.getController("POPUP"),` && |\n| &&
              `          id: "popupId",` && |\n| &&
              `        });` && |\n| &&
              `        // The app might have been torn down while the fragment loaded.` && |\n| &&
@@ -269,18 +257,17 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        oFragment.setModel(oModel);` && |\n| &&
-             `        oFragment.Fragment = Fragment;` && |\n| &&
-             `        z2ui5[viewProp] = oFragment;` && |\n| &&
+             `        ViewSlots.setView("POPUP", oFragment);` && |\n| &&
              `        oFragment.open();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      async displayPopover(xml, viewProp, openById) {` && |\n| &&
+             `      async displayPopover(xml, openById) {` && |\n| &&
              `        try {` && |\n| &&
              `          const oModel = this._createViewModel();` && |\n| &&
              `          applyStoredSizeLimit("POPOVER", oModel);` && |\n| &&
              `          const oFragment = await Fragment.load({` && |\n| &&
              `            definition: xml,` && |\n| &&
-             `            controller: z2ui5.oControllerPopover,` && |\n| &&
+             `            controller: ViewSlots.getController("POPOVER"),` && |\n| &&
              `            id: "popoverId",` && |\n| &&
              `          });` && |\n| &&
              `          if (!Lib.isAlive(z2ui5.oApp)) {` && |\n| &&
@@ -288,21 +275,15 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `          oFragment.setModel(oModel);` && |\n| &&
-             `          oFragment.Fragment = Fragment;` && |\n| &&
              `` && |\n| &&
              `          // Find the control to attach the popover to. We search the main` && |\n| &&
              `          // view first, then any open popup / nested views, then the global` && |\n| &&
              `          // UI5 control registry as a last resort.` && |\n| &&
-             `          let oControl = z2ui5.oView?.byId(openById);` && |\n| &&
-             `          if (!oControl && z2ui5.oViewPopup?.Fragment) {` && |\n| &&
-             `            oControl = z2ui5.oViewPopup.Fragment.byId("popupId", openById);` && |\n| &&
-             `          }` && |\n| &&
-             `          if (!oControl && z2ui5.oViewNest) {` && |\n| &&
-             `            oControl = z2ui5.oViewNest.byId(openById);` && |\n| &&
-             `          }` && |\n| &&
-             `          if (!oControl && z2ui5.oViewNest2) {` && |\n| &&
-             `            oControl = z2ui5.oViewNest2.byId(openById);` && |\n| &&
-             `          }` && |\n| &&
+             `          let oControl =` && |\n| &&
+             `            ViewSlots.byId("MAIN", openById) ||` && |\n| &&
+             `            ViewSlots.byId("POPUP", openById) ||` && |\n| &&
+             `            ViewSlots.byId("NEST", openById) ||` && |\n| &&
+             `            ViewSlots.byId("NEST2", openById);` && |\n| &&
              `          if (!oControl) {` && |\n| &&
              `            if (Element.getElementById) {` && |\n| &&
              `              oControl = Element.getElementById(openById);` && |\n| &&
@@ -326,19 +307,20 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            oFragment.destroy();` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
-             `          z2ui5[viewProp] = oFragment;` && |\n| &&
+             `          ViewSlots.setView("POPOVER", oFragment);` && |\n| &&
              `          oFragment.openBy(oControl);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("displayPopover: failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      async displayNestedView(xml, viewProp, viewNestId, controller) {` && |\n| &&
+             `      async displayNestedView(xml, slotKey) {` && |\n| &&
+             `        const paramKey = ViewSlots.paramByKey(slotKey);` && |\n| &&
              `        const oModel = this._createViewModel();` && |\n| &&
-             `        applyStoredSizeLimit(Lib.slotKeyByParam(viewNestId), oModel);` && |\n| &&
+             `        applyStoredSizeLimit(slotKey, oModel);` && |\n| &&
              `        const oView = await XMLView.create({` && |\n| &&
              `          definition: xml,` && |\n| &&
-             `          controller: controller,` && |\n| &&
+             `          controller: ViewSlots.getController(slotKey),` && |\n| &&
              `          preprocessors: { xml: { models: { template: oModel } } },` && |\n| &&
              `        });` && |\n| &&
              `` && |\n| &&
@@ -349,15 +331,15 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        oView.setModel(oModel);` && |\n| &&
              `` && |\n| &&
              `        const nestParams =` && |\n| &&
-             `          z2ui5.oResponse?.PARAMS && z2ui5.oResponse.PARAMS[viewNestId];` && |\n| &&
+             `          z2ui5.oResponse?.PARAMS && z2ui5.oResponse.PARAMS[paramKey];` && |\n| &&
              `        if (!nestParams) {` && |\n| &&
-             `          Lib.logError(``displayNestedView: missing PARAMS.${viewNestId}``);` && |\n| &&
+             `          Lib.logError(``displayNestedView: missing PARAMS.${paramKey}``);` && |\n| &&
              `          oView.destroy();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        const { ID, METHOD_DESTROY, METHOD_INSERT } = nestParams;` && |\n| &&
              `` && |\n| &&
-             `        const oParent = z2ui5.oView?.byId(ID);` && |\n| &&
+             `        const oParent = ViewSlots.byId("MAIN", ID);` && |\n| &&
              `        if (!oParent) {` && |\n| &&
              `          Lib.logError(` && |\n| &&
              `            ``displayNestedView: parent control '${ID}' not found, nested view discarded``,` && |\n| &&
@@ -378,48 +360,28 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          oView.destroy();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        z2ui5[viewProp] = oView;` && |\n| &&
+             `        ViewSlots.setView(slotKey, oView);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Shared destroy logic: close (if dialog/popover) and destroy the view,` && |\n| &&
-             `      // then clear the slot on z2ui5.` && |\n| &&
-             `      _destroyView(prop, tryClose) {` && |\n| &&
-             `        const view = z2ui5[prop];` && |\n| &&
-             `        if (!view) return;` && |\n| &&
-             `        if (tryClose) {` && |\n| &&
-             `          try {` && |\n| &&
-             `            if (view.close) view.close();` && |\n| &&
-             `          } catch (e) {` && |\n| &&
-             `            Lib.logError(``_destroyView: view.close() failed for ${prop}``, e);` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
-             `        try {` && |\n| &&
-             `          view.destroy();` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError(``_destroyView: view.destroy() failed for ${prop}``, e);` && |\n| &&
-             `        }` && |\n| &&
-             `        z2ui5[prop] = null;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
+             `      // Thin wrappers around the shared slot teardown in ViewSlots, kept` && |\n| &&
+             `      // because existing apps may call them via custom JS.` && |\n| &&
              `      destroyPopup() {` && |\n| &&
-             `        this._destroyView("oViewPopup", true);` && |\n| &&
+             `        ViewSlots.destroy("POPUP");` && |\n| &&
              `      },` && |\n| &&
              `      destroyPopover() {` && |\n| &&
-             `        this._destroyView("oViewPopover", true);` && |\n| &&
+             `        ViewSlots.destroy("POPOVER");` && |\n| &&
              `      },` && |\n| &&
              `      destroyNestView() {` && |\n| &&
-             `        this._destroyView("oViewNest");` && |\n| &&
+             `        ViewSlots.destroy("NEST");` && |\n| &&
              `      },` && |\n| &&
              `      destroyNestView2() {` && |\n| &&
-             `        this._destroyView("oViewNest2");` && |\n| &&
+             `        ViewSlots.destroy("NEST2");` && |\n| &&
              `      },` && |\n| &&
              `      destroyView() {` && |\n| &&
-             `        this._destroyView("oView");` && |\n| &&
+             `        ViewSlots.destroy("MAIN");` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
-             |\n|.
-    result = result &&
              `      // eF = "event frontend": handles frontend-only events triggered by` && |\n| &&
              `      // the backend response, without a roundtrip. The name is part of the` && |\n| &&
              `      // protocol - backend-generated view XML binds events to eB/eF - and` && |\n| &&
@@ -456,6 +418,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // the user gets visual feedback instead of a silent click.` && |\n| &&
              `        if (z2ui5.isBusy && !ignoreBusy) {` && |\n| &&
              `          if (!_busyDialog) _busyDialog = new BusyDialog();` && |\n| &&
+             |\n|.
+    result = result &&
              `          _busyDialog.open();` && |\n| &&
              `          queueMicrotask(() => _busyDialog.close());` && |\n| &&
              `          return;` && |\n| &&
@@ -505,41 +469,37 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      _pickModelForRoundtrip(useMainModel) {` && |\n| &&
              `        // useMainModel forces use of the main view's model even when called` && |\n| &&
              `        // from a popup/popover controller.` && |\n| &&
-             `        if (useMainModel || z2ui5.oController === this) {` && |\n| &&
+             `        const slotKey = useMainModel ? "MAIN" : ViewSlots.keyOfController(this);` && |\n| &&
+             `        if (!slotKey) return undefined;` && |\n| &&
+             `` && |\n| &&
+             `        if (slotKey === "MAIN") {` && |\n| &&
              `          const sView = z2ui5.oResponse?.PARAMS` && |\n| &&
              `            ? z2ui5.oResponse.PARAMS.S_VIEW` && |\n| &&
              `            : null;` && |\n| &&
              `          if (sView?.SWITCH_DEFAULT_MODEL_PATH) {` && |\n| &&
-             `            return z2ui5.oView?.getModel("http");` && |\n| &&
+             `            return ViewSlots.getView("MAIN")?.getModel("http");` && |\n| &&
              `          }` && |\n| &&
-             `          return z2ui5.oView?.getModel();` && |\n| &&
+             `          return ViewSlots.getView("MAIN")?.getModel();` && |\n| &&
              `        }` && |\n| &&
-             `        if (z2ui5.oControllerPopup === this) {` && |\n| &&
-             `          return z2ui5.oViewPopup?.getModel();` && |\n| &&
+             `` && |\n| &&
+             `        // Nested views report their slot as VIEW in S_FRONT so the backend` && |\n| &&
+             `        // routes the event to the right app instance.` && |\n| &&
+             `        if (slotKey === "NEST" || slotKey === "NEST2") {` && |\n| &&
+             `          z2ui5.oBody.VIEWNAME = slotKey;` && |\n| &&
              `        }` && |\n| &&
-             `        if (z2ui5.oControllerPopover === this) {` && |\n| &&
-             `          return z2ui5.oViewPopover?.getModel();` && |\n| &&
-             `        }` && |\n| &&
-             `        if (z2ui5.oControllerNest === this) {` && |\n| &&
-             `          z2ui5.oBody.VIEWNAME = "NEST";` && |\n| &&
-             `          return z2ui5.oViewNest?.getModel();` && |\n| &&
-             `        }` && |\n| &&
-             `        if (z2ui5.oControllerNest2 === this) {` && |\n| &&
-             `          z2ui5.oBody.VIEWNAME = "NEST2";` && |\n| &&
-             `          return z2ui5.oViewNest2?.getModel();` && |\n| &&
-             `        }` && |\n| &&
-             `        return undefined;` && |\n| &&
+             `        return ViewSlots.getView(slotKey)?.getModel();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Re-bind a model to one of the views when the response signals an` && |\n| &&
              `      // update is required for that particular slot.` && |\n| &&
-             `      updateModelIfRequired(paramKey, oView) {` && |\n| &&
+             `      updateModelIfRequired(slotKey) {` && |\n| &&
              `        const params = z2ui5.oResponse?.PARAMS;` && |\n| &&
-             `        const slot = params?.[paramKey];` && |\n| &&
-             `        if (!slot || !slot.CHECK_UPDATE_MODEL) return;` && |\n| &&
+             `        const slotParams = params?.[ViewSlots.paramByKey(slotKey)];` && |\n| &&
+             `        if (!slotParams || !slotParams.CHECK_UPDATE_MODEL) return;` && |\n| &&
              `` && |\n| &&
              `        const oModel = this._createViewModel();` && |\n| &&
-             `        applyStoredSizeLimit(Lib.slotKeyByParam(paramKey), oModel);` && |\n| &&
+             `        applyStoredSizeLimit(slotKey, oModel);` && |\n| &&
+             `        const oView = ViewSlots.getView(slotKey);` && |\n| &&
              `        if (oView) oView.setModel(oModel);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -639,26 +599,26 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        applyStoredSizeLimit("MAIN", oModel);` && |\n| &&
              `` && |\n| &&
-             `        z2ui5.oView = await XMLView.create({` && |\n| &&
+             `        const oView = await XMLView.create({` && |\n| &&
              `          definition: xml,` && |\n| &&
              `          models: oModel,` && |\n| &&
-             `          controller: z2ui5.oController,` && |\n| &&
+             `          controller: ViewSlots.getController("MAIN"),` && |\n| &&
              `          id: "mainView",` && |\n| &&
              `          preprocessors: { xml: { models: { template: oViewModel } } },` && |\n| &&
              `        });` && |\n| &&
              `` && |\n| &&
              `        // Guard against the app being destroyed during the await above.` && |\n| &&
              `        if (!Lib.isAlive(z2ui5.oApp)) {` && |\n| &&
-             `          z2ui5.oView.destroy();` && |\n| &&
+             `          oView.destroy();` && |\n| &&
              `          if (switchPath) oModel.destroy();` && |\n| &&
-             `          z2ui5.oView = null;` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        z2ui5.oView.setModel(z2ui5.oDeviceModel, "device");` && |\n| &&
-             `        if (switchPath) z2ui5.oView.setModel(oViewModel, "http");` && |\n| &&
+             `        ViewSlots.setView("MAIN", oView);` && |\n| &&
+             `        oView.setModel(z2ui5.oDeviceModel, "device");` && |\n| &&
+             `        if (switchPath) oView.setModel(oViewModel, "http");` && |\n| &&
              `        z2ui5.oApp.removeAllPages();` && |\n| &&
-             `        z2ui5.oApp.insertPage(z2ui5.oView);` && |\n| &&
+             `        z2ui5.oApp.insertPage(oView);` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
              `  },` && |\n| &&

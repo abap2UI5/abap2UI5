@@ -4,8 +4,9 @@ sap.ui.define(
     "sap/ui/Device",
     "sap/ui/core/Element",
     "z2ui5/core/Lib",
+    "z2ui5/core/ViewSlots",
   ],
-  (BusyIndicator, Device, Element, Lib) => {
+  (BusyIndicator, Device, Element, Lib, ViewSlots) => {
     "use strict";
 
     // Errors longer than this are truncated before being shown to the user,
@@ -129,7 +130,9 @@ sap.ui.define(
           const ui5El = Element.closestTo?.(active) ?? null;
           if (!ui5El) return {};
           const fullId = ui5El.getId();
-          const views = Lib.viewSlots.map((slot) => z2ui5[slot.prop]);
+          const views = ViewSlots.slots.map((slot) =>
+            ViewSlots.getView(slot.key),
+          );
           let id = fullId;
           for (const v of views) {
             if (!v) continue;
@@ -161,17 +164,9 @@ sap.ui.define(
         const ui5El = Element.closestTo?.(target) ?? null;
         if (!ui5El) return;
 
-        // Walk up the control tree to find the view slot the scrolled
-        // element belongs to (innermost slot wins, e.g. nested views).
-        let current = ui5El;
-        while (current) {
-          for (const slot of Lib.viewSlots) {
-            if (z2ui5[slot.prop] === current) {
-              z2ui5.lastScrolled[slot.key] = { control: ui5El, dom: target };
-              return;
-            }
-          }
-          current = current.getParent?.();
+        const slotKey = ViewSlots.containingSlotKey(ui5El);
+        if (slotKey) {
+          z2ui5.lastScrolled[slotKey] = { control: ui5El, dom: target };
         }
       },
 
@@ -182,7 +177,7 @@ sap.ui.define(
         // absent from the result - restoring 0/0 would be a no-op anyway.
         const store = z2ui5.lastScrolled;
         const out = {};
-        for (const slot of Lib.viewSlots) {
+        for (const slot of ViewSlots.slots) {
           const entry = store[slot.key];
           if (!entry) continue;
 
@@ -193,7 +188,7 @@ sap.ui.define(
           }
 
           let id = entry.control.getId();
-          const view = z2ui5[slot.prop];
+          const view = ViewSlots.getView(slot.key);
           const prefix = view ? `${view.getId()}--` : "";
           if (prefix && id.startsWith(prefix)) id = id.slice(prefix.length);
           out[slot.key] = {
@@ -336,13 +331,13 @@ sap.ui.define(
       },
 
       async responseSuccess(response) {
-        const oController = z2ui5.oController;
+        const oController = ViewSlots.getController("MAIN");
         try {
           z2ui5.oResponse = response;
           const params = response.PARAMS;
           const sView = params?.S_VIEW;
 
-          if (sView?.CHECK_DESTROY) oController.destroyView();
+          if (sView?.CHECK_DESTROY) ViewSlots.destroy("MAIN");
 
           // The backend can send small JS snippets to run after the response.
           // Each snippet is either a literal expression or an "eF(...)" call
@@ -359,15 +354,15 @@ sap.ui.define(
 
           // Full view replacement -> destroy & rebuild, nothing more to do.
           if (sView?.XML) {
-            oController.destroyView();
+            ViewSlots.destroy("MAIN");
             await oController.displayView(sView.XML, response.OVIEWMODEL);
             return;
           }
 
           // Partial response: refresh whichever existing views the backend
           // sent updates for.
-          for (const slot of Lib.viewSlots) {
-            oController.updateModelIfRequired(slot.param, z2ui5[slot.prop]);
+          for (const slot of ViewSlots.slots) {
+            oController.updateModelIfRequired(slot.key);
           }
           oController._processAfterRendering();
         } catch (e) {

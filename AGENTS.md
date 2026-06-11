@@ -158,7 +158,7 @@ src/
 | Directory | Purpose |
 |---|---|
 | `app/` | Frontend tooling (`package.json`, `ui5.yaml`, `eslint.config.mjs`, `.prettierrc`, `.editorconfig`) |
-| `app/webapp/` | UI5 frontend source — `Component.js`, `index.html`, `manifest.json`, `controller/`, `view/`, `model/`, `css/`, `Util.js` (the **public** date helpers exposed as the `z2ui5.Util` global), `cc/` with one file per custom control (`Timer.js`, `Scrolling.js`, … — module IDs `z2ui5/cc/<Name>`, resolved from the `z2ui5` XML namespace which maps to `z2ui5.cc`), and `core/` with the internals: `Server.js` (the JSON POST client that wraps the body as `{ "value": <payload> }`), `AppState.js` (owner of the shared frontend state + the documented inventory of all `z2ui5.*` globals), `Lib.js` (shared helper module), `FrontendAction.js` (the handlers behind the controller's `eF()` entry point) and `DebugTool` |
+| `app/webapp/` | UI5 frontend source — `Component.js`, `index.html`, `manifest.json`, `controller/`, `view/`, `model/`, `css/`, `Util.js` (the **public** date helpers exposed as the `z2ui5.Util` global), `cc/` with one file per custom control (`Timer.js`, `Scrolling.js`, … — module IDs `z2ui5/cc/<Name>`, resolved from the `z2ui5` XML namespace which maps to `z2ui5.cc`), and `core/` with the internals: `Server.js` (the JSON POST client that wraps the body as `{ "value": <payload> }`), `AppState.js` (owner of the shared frontend state + the documented inventory of all `z2ui5.*` globals), `ViewSlots.js` (access layer for the five view slots — lookups, byId resolution and teardown), `Lib.js` (shared helper module), `FrontendAction.js` (the handlers behind the controller's `eF()` entry point) and `DebugTool` |
 | `node/srv/` | `express.mjs` (dev server on port 3000), `zcl_sicf.clas.abap` (reference ICF handler impl — ~15 lines; real apps follow the same pattern) |
 | `node/setup/` | `abap_transpile.json` (transpiler config), `setup.mjs` (SQLite bootstrap for Node unit tests) |
 | `node/tests/` | Playwright tests — `example.spec.js` (browser), plus unit specs (`buildDeltaFromPaths.spec.js`, `utilHelpers.spec.js`) that load the **real** `app/webapp/core/Lib.js` via `loadLibModule.js` (stubbed `sap.ui.define`); run them without a browser via `npx playwright test -c node/playwright-unit.config.js` |
@@ -331,6 +331,7 @@ Config files: `eslint.config.mjs`, `.prettierrc`, `.editorconfig`, `ui5.yaml`, `
 | `src/00/03/z2ui5_cl_util.clas.abap` | General utility class |
 | `src/00/03/z2ui5_cl_util_xml.clas.abap` | Generic XML builder (preferred for new code) |
 | `app/webapp/core/AppState.js` | Owner of the shared frontend state + `z2ui5.*` globals inventory |
+| `app/webapp/core/ViewSlots.js` | View-slot access layer (get/set/byId/destroy per slot) |
 | `app/webapp/core/Lib.js` | Shared frontend helpers |
 | `app/webapp/core/Server.js` | Roundtrip lifecycle + request/response wire format docs |
 

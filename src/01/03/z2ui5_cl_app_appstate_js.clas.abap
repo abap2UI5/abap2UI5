@@ -49,7 +49,7 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `//   oApp              sap.m.App hosting the main view (App.controller)` && |\n| &&
              `//   oOwnerComponent, oRouter, oDeviceModel (Component / App.controller)` && |\n| &&
              `//   oView, oViewNest, oViewNest2, oViewPopup, oViewPopover` && |\n| &&
-             `//                     the five view slots, see Lib.viewSlots (View1)` && |\n| &&
+             `//                     the five view slots, see core/ViewSlots.js (View1)` && |\n| &&
              `//   oController, oControllerNest, oControllerNest2, oControllerPopup,` && |\n| &&
              `//   oControllerPopover  controller instance per slot (App.controller)` && |\n| &&
              `//   oLaunchpad        FLP services when running inside the launchpad, else` && |\n| &&

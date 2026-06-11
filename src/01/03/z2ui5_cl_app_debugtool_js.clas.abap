@@ -24,8 +24,9 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `    "sap/ui/core/Fragment",` && |\n| &&
              `    "sap/ui/model/json/JSONModel",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/ViewSlots",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Control, Fragment, JSONModel, Lib) => {` && |\n| &&
+             `  (Control, Fragment, JSONModel, Lib, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Fragment id under which the debug dialog's controls are registered;` && |\n| &&
@@ -104,31 +105,33 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `    // toggle). The "SOURCE" entry is handled separately in onItemSelect.` && |\n| &&
              `    const jsonSources = {` && |\n| &&
              `      CONFIG: () => z2ui5.oConfig,` && |\n| &&
-             `      MODEL: () => getModelJson(z2ui5.oView),` && |\n| &&
+             `      MODEL: () => getModelJson(ViewSlots.getView("MAIN")),` && |\n| &&
              `      PLAIN: () => z2ui5.responseData,` && |\n| &&
              `      REQUEST: () => z2ui5.oBody,` && |\n| &&
-             `      POPUP_MODEL: () => getModelJson(z2ui5.oViewPopup),` && |\n| &&
-             `      POPOVER_MODEL: () => getModelJson(z2ui5.oViewPopover),` && |\n| &&
-             `      NEST1_MODEL: () => getModelJson(z2ui5.oViewNest),` && |\n| &&
-             `      NEST2_MODEL: () => getModelJson(z2ui5.oViewNest2),` && |\n| &&
+             `      POPUP_MODEL: () => getModelJson(ViewSlots.getView("POPUP")),` && |\n| &&
+             `      POPOVER_MODEL: () => getModelJson(ViewSlots.getView("POPOVER")),` && |\n| &&
+             `      NEST1_MODEL: () => getModelJson(ViewSlots.getView("NEST")),` && |\n| &&
+             `      NEST2_MODEL: () => getModelJson(ViewSlots.getView("NEST2")),` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    const xmlSources = {` && |\n| &&
              `      // Prefer the actual viewContent string; fall back to the XML that` && |\n| &&
              `      // arrived in the last server response.` && |\n| &&
              `      VIEW: () => ({` && |\n| &&
-             `        xml: getViewContent(z2ui5.oView) || getResponseFrontViewXml(),` && |\n| &&
-             `        rendered: getRenderedContent(z2ui5.oView),` && |\n| &&
+             `        xml:` && |\n| &&
+             `          getViewContent(ViewSlots.getView("MAIN")) ||` && |\n| &&
+             `          getResponseFrontViewXml(),` && |\n| &&
+             `        rendered: getRenderedContent(ViewSlots.getView("MAIN")),` && |\n| &&
              `      }),` && |\n| &&
              `      POPUP: () => ({ xml: getResponseXml("S_POPUP") }),` && |\n| &&
              `      POPOVER: () => ({ xml: getResponseXml("S_POPOVER") }),` && |\n| &&
              `      NEST1: () => ({` && |\n| &&
-             `        xml: getViewContent(z2ui5.oViewNest),` && |\n| &&
-             `        rendered: getRenderedContent(z2ui5.oViewNest),` && |\n| &&
+             `        xml: getViewContent(ViewSlots.getView("NEST")),` && |\n| &&
+             `        rendered: getRenderedContent(ViewSlots.getView("NEST")),` && |\n| &&
              `      }),` && |\n| &&
              `      NEST2: () => ({` && |\n| &&
-             `        xml: getViewContent(z2ui5.oViewNest2),` && |\n| &&
-             `        rendered: getRenderedContent(z2ui5.oViewNest2),` && |\n| &&
+             `        xml: getViewContent(ViewSlots.getView("NEST2")),` && |\n| &&
+             `        rendered: getRenderedContent(ViewSlots.getView("NEST2")),` && |\n| &&
              `      }),` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
@@ -267,8 +270,8 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `            previousValue: value,` && |\n| &&
              `            isTemplating: false,` && |\n| &&
              `            templatingSource: false,` && |\n| &&
-             `            activeNest1: !!getViewContent(z2ui5.oViewNest),` && |\n| &&
-             `            activeNest2: !!getViewContent(z2ui5.oViewNest2),` && |\n| &&
+             `            activeNest1: !!getViewContent(ViewSlots.getView("NEST")),` && |\n| &&
+             `            activeNest2: !!getViewContent(ViewSlots.getView("NEST2")),` && |\n| &&
              `            activePopup: !!getResponseXml("S_POPUP"),` && |\n| &&
              `            activePopover: !!getResponseXml("S_POPOVER"),` && |\n| &&
              `          };` && |\n| &&
