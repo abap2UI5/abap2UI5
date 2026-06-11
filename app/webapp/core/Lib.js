@@ -33,9 +33,9 @@
 //
 // Control / helper state
 //   errors            capped error log, see logError below
-//   timers            single pending backend timer (View1._evStartTimer)
+//   timers            single pending backend timer (FrontendAction)
 //   lastScrolled      last scrolled element per slot (Server.onScrollCapture)
-//   viewSizeLimits    per-slot model size limits (View1._evSetSizeLimit)
+//   viewSizeLimits    per-slot model size limits (FrontendAction)
 //   treeState         tree binding state across rebuilds (Tree control)
 //   debugTool         DebugTool instance (Component, Ctrl+F12)
 //   onBeforeRoundtrip, onAfterRoundtrip, onAfterRendering,
