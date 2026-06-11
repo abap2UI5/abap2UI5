@@ -63,36 +63,50 @@ CLASS z2ui5_cl_app_storage_js IMPLEMENTATION.
              `        },` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      // Follows the shared rendering pattern (see cc/Lib.js): the renderer` && |\n| &&
+             `      // only marks the work, onAfterRendering reads the storage and fires` && |\n| &&
+             `      // the event.` && |\n| &&
+             `      onAfterRendering() {` && |\n| &&
+             `        if (!this._pendingRead) return;` && |\n| &&
+             `        this._pendingRead = false;` && |\n| &&
+             `` && |\n| &&
+             `        const type = this.getProperty("type");` && |\n| &&
+             `        const prefix = this.getProperty("prefix");` && |\n| &&
+             `        const key = this.getProperty("key");` && |\n| &&
+             `        const value = this.getProperty("value");` && |\n| &&
+             `` && |\n| &&
+             `        let stored;` && |\n| &&
+             `        try {` && |\n| &&
+             `          const storageType = Storage.Type[type] || Storage.Type.session;` && |\n| &&
+             `          const storage = new Storage(storageType, prefix);` && |\n| &&
+             `          const read = storage.get(key);` && |\n| &&
+             `          stored = read == null ? "" : read;` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          Lib.logError(``Storage: read failed for key '${key}'``, e);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        // Only fire "finished" when the stored value differs from the` && |\n| &&
+             `        // current property to avoid feedback loops.` && |\n| &&
+             `        if (stored !== value) {` && |\n| &&
+             `          this.setProperty("value", stored, true);` && |\n| &&
+             `          this.fireFinished({` && |\n| &&
+             `            type: type,` && |\n| &&
+             `            prefix: prefix,` && |\n| &&
+             `            key: key,` && |\n| &&
+             `            value: stored,` && |\n| &&
+             `          });` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      renderer: {` && |\n| &&
              `        apiVersion: 2,` && |\n| &&
-             `        render(_, oControl) {` && |\n| &&
-             `          const type = oControl.getProperty("type");` && |\n| &&
-             `          const prefix = oControl.getProperty("prefix");` && |\n| &&
-             `          const key = oControl.getProperty("key");` && |\n| &&
-             `          const value = oControl.getProperty("value");` && |\n| &&
-             `` && |\n| &&
-             `          let stored;` && |\n| &&
-             `          try {` && |\n| &&
-             `            const storageType = Storage.Type[type] || Storage.Type.session;` && |\n| &&
-             `            const storage = new Storage(storageType, prefix);` && |\n| &&
-             `            const read = storage.get(key);` && |\n| &&
-             `            stored = read == null ? "" : read;` && |\n| &&
-             `          } catch (e) {` && |\n| &&
-             `            Lib.logError(``Storage: read failed for key '${key}'``, e);` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          // Only fire "finished" when the stored value differs from the` && |\n| &&
-             `          // current property to avoid feedback loops.` && |\n| &&
-             `          if (stored !== value) {` && |\n| &&
-             `            oControl.setProperty("value", stored, true);` && |\n| &&
-             `            oControl.fireFinished({` && |\n| &&
-             `              type: type,` && |\n| &&
-             `              prefix: prefix,` && |\n| &&
-             `              key: key,` && |\n| &&
-             `              value: stored,` && |\n| &&
-             `            });` && |\n| &&
-             `          }` && |\n| &&
+             `        render(oRm, oControl) {` && |\n| &&
+             `          oRm.openStart("span", oControl);` && |\n| &&
+             `          oRm.style("display", "none");` && |\n| &&
+             `          oRm.openEnd();` && |\n| &&
+             `          oRm.close("span");` && |\n| &&
+             `          oControl._pendingRead = true;` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&

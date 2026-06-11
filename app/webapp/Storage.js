@@ -43,36 +43,50 @@ sap.ui.define(
         },
       },
 
+      // Follows the shared rendering pattern (see cc/Lib.js): the renderer
+      // only marks the work, onAfterRendering reads the storage and fires
+      // the event.
+      onAfterRendering() {
+        if (!this._pendingRead) return;
+        this._pendingRead = false;
+
+        const type = this.getProperty("type");
+        const prefix = this.getProperty("prefix");
+        const key = this.getProperty("key");
+        const value = this.getProperty("value");
+
+        let stored;
+        try {
+          const storageType = Storage.Type[type] || Storage.Type.session;
+          const storage = new Storage(storageType, prefix);
+          const read = storage.get(key);
+          stored = read == null ? "" : read;
+        } catch (e) {
+          Lib.logError(`Storage: read failed for key '${key}'`, e);
+          return;
+        }
+
+        // Only fire "finished" when the stored value differs from the
+        // current property to avoid feedback loops.
+        if (stored !== value) {
+          this.setProperty("value", stored, true);
+          this.fireFinished({
+            type: type,
+            prefix: prefix,
+            key: key,
+            value: stored,
+          });
+        }
+      },
+
       renderer: {
         apiVersion: 2,
-        render(_, oControl) {
-          const type = oControl.getProperty("type");
-          const prefix = oControl.getProperty("prefix");
-          const key = oControl.getProperty("key");
-          const value = oControl.getProperty("value");
-
-          let stored;
-          try {
-            const storageType = Storage.Type[type] || Storage.Type.session;
-            const storage = new Storage(storageType, prefix);
-            const read = storage.get(key);
-            stored = read == null ? "" : read;
-          } catch (e) {
-            Lib.logError(`Storage: read failed for key '${key}'`, e);
-            return;
-          }
-
-          // Only fire "finished" when the stored value differs from the
-          // current property to avoid feedback loops.
-          if (stored !== value) {
-            oControl.setProperty("value", stored, true);
-            oControl.fireFinished({
-              type: type,
-              prefix: prefix,
-              key: key,
-              value: stored,
-            });
-          }
+        render(oRm, oControl) {
+          oRm.openStart("span", oControl);
+          oRm.style("display", "none");
+          oRm.openEnd();
+          oRm.close("span");
+          oControl._pendingRead = true;
         },
       },
     });

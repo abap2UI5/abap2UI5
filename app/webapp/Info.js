@@ -46,41 +46,54 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
       },
     },
 
+    // Follows the shared rendering pattern (see cc/Lib.js): the renderer
+    // only marks the work, onAfterRendering reads the device info and
+    // fires the event.
+    onAfterRendering() {
+      if (!this._pendingInfo) return;
+      this._pendingInfo = false;
+      try {
+        // The device model is created by Component.init(); it exposes
+        // system / resize / os / browser info.
+        const deviceModel = z2ui5.oView && z2ui5.oView.getModel("device");
+        const deviceData = deviceModel && deviceModel.getData();
+        if (!deviceData) return;
+
+        const { system, resize, os, browser } = deviceData;
+        // Filled by Component._initVersionInfo (async, may not have
+        // resolved yet on the very first render).
+        const ui5Info = z2ui5.oConfig && z2ui5.oConfig.S_UI5;
+        const ui5Version = (ui5Info && ui5Info.VERSION) || "";
+
+        const props = [
+          ["ui5_version", ui5Version],
+          ["device_phone", system.phone],
+          ["device_desktop", system.desktop],
+          ["device_tablet", system.tablet],
+          ["device_combi", system.combi],
+          ["device_height", resize.height],
+          ["device_width", resize.width],
+          ["device_os", os.name],
+          ["device_browser", browser.name],
+        ];
+        for (const [prop, val] of props) {
+          const safe = val == null ? "" : String(val);
+          this.setProperty(prop, safe, true);
+        }
+        this.fireFinished();
+      } catch (e) {
+        Lib.logError("Info.onAfterRendering: failed", e);
+      }
+    },
+
     renderer: {
       apiVersion: 2,
-      render(_, oControl) {
-        try {
-          // The device model is created by Component.init(); it exposes
-          // system / resize / os / browser info.
-          const deviceModel = z2ui5.oView && z2ui5.oView.getModel("device");
-          const deviceData = deviceModel && deviceModel.getData();
-          if (!deviceData) return;
-
-          const { system, resize, os, browser } = deviceData;
-          // Filled by Component._initVersionInfo (async, may not have
-          // resolved yet on the very first render).
-          const ui5Info = z2ui5.oConfig && z2ui5.oConfig.S_UI5;
-          const ui5Version = (ui5Info && ui5Info.VERSION) || "";
-
-          const props = [
-            ["ui5_version", ui5Version],
-            ["device_phone", system.phone],
-            ["device_desktop", system.desktop],
-            ["device_tablet", system.tablet],
-            ["device_combi", system.combi],
-            ["device_height", resize.height],
-            ["device_width", resize.width],
-            ["device_os", os.name],
-            ["device_browser", browser.name],
-          ];
-          for (const [prop, val] of props) {
-            const safe = val == null ? "" : String(val);
-            oControl.setProperty(prop, safe, true);
-          }
-          oControl.fireFinished();
-        } catch (e) {
-          Lib.logError("Info.renderer: failed", e);
-        }
+      render(oRm, oControl) {
+        oRm.openStart("span", oControl);
+        oRm.style("display", "none");
+        oRm.openEnd();
+        oRm.close("span");
+        oControl._pendingInfo = true;
       },
     },
   });
