@@ -233,8 +233,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Runs once after each roundtrip's view has been rendered. Handles` && |\n| &&
-             `      // popups, nested views, popovers and browser-history updates.` && |\n| &&
+             `      // Runs once after each roundtrip's view has been rendered, in two` && |\n| &&
+             `      // named phases: display pending fragments/views, then update the` && |\n| &&
+             `      // browser history/hash.` && |\n| &&
              `      async _processAfterRendering() {` && |\n| &&
              `        try {` && |\n| &&
              `          const oResponse = z2ui5.oResponse;` && |\n| &&
@@ -242,93 +243,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          oResponse._processed = true;` && |\n| &&
              `` && |\n| &&
              `          const PARAMS = oResponse.PARAMS;` && |\n| &&
-             `          const ID = oResponse.ID;` && |\n| &&
              `          if (!PARAMS) return;` && |\n| &&
              `` && |\n| &&
-             `          const S_POPUP = PARAMS.S_POPUP;` && |\n| &&
-             `          const S_VIEW_NEST = PARAMS.S_VIEW_NEST;` && |\n| &&
-             `          const S_VIEW_NEST2 = PARAMS.S_VIEW_NEST2;` && |\n| &&
-             `          const S_POPOVER = PARAMS.S_POPOVER;` && |\n| &&
-             `          const SET_APP_STATE_ACTIVE = PARAMS.SET_APP_STATE_ACTIVE;` && |\n| &&
-             `          const SET_PUSH_STATE = PARAMS.SET_PUSH_STATE;` && |\n| &&
-             `          const SET_NAV_BACK = PARAMS.SET_NAV_BACK;` && |\n| &&
-             `` && |\n| &&
-             `          if (S_POPUP && S_POPUP.CHECK_DESTROY) this.destroyPopup();` && |\n| &&
-             `          if (S_POPOVER && S_POPOVER.CHECK_DESTROY) this.destroyPopover();` && |\n| &&
-             `` && |\n| &&
-             `          if (S_POPUP && S_POPUP.XML) {` && |\n| &&
-             `            this.destroyPopup();` && |\n| &&
-             `            await this.displayFragment(S_POPUP.XML, "oViewPopup");` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          if (!z2ui5.checkNestAfter && S_VIEW_NEST && S_VIEW_NEST.XML) {` && |\n| &&
-             `            this.destroyNestView();` && |\n| &&
-             `            await this.displayNestedView(` && |\n| &&
-             `              S_VIEW_NEST.XML,` && |\n| &&
-             `              "oViewNest",` && |\n| &&
-             `              "S_VIEW_NEST",` && |\n| &&
-             `              z2ui5.oControllerNest,` && |\n| &&
-             `            );` && |\n| &&
-             `            z2ui5.checkNestAfter = true;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          if (!z2ui5.checkNestAfter2 && S_VIEW_NEST2 && S_VIEW_NEST2.XML) {` && |\n| &&
-             `            this.destroyNestView2();` && |\n| &&
-             `            await this.displayNestedView(` && |\n| &&
-             `              S_VIEW_NEST2.XML,` && |\n| &&
-             `              "oViewNest2",` && |\n| &&
-             `              "S_VIEW_NEST2",` && |\n| &&
-             `              z2ui5.oControllerNest2,` && |\n| &&
-             `            );` && |\n| &&
-             `            z2ui5.checkNestAfter2 = true;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          if (S_POPOVER && S_POPOVER.XML) {` && |\n| &&
-             `            this.destroyPopover();` && |\n| &&
-             `            await this.displayPopover(` && |\n| &&
-             `              S_POPOVER.XML,` && |\n| &&
-             `              "oViewPopover",` && |\n| &&
-             `              S_POPOVER.OPEN_BY_ID,` && |\n| &&
-             `            );` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          // Currently disabled: storing the rendered view + model in` && |\n| &&
-             `          // history.state so a popstate could restore the view without a` && |\n| &&
-             `          // backend hit. Cloning the full view XML and model data on every` && |\n| &&
-             `          // roundtrip is expensive for large views and the restore is not` && |\n| &&
-             `          // needed right now. Re-enable together with the popstate listener` && |\n| &&
-             `          // in Component.js (_installPopstateListener).` && |\n| &&
-             `          // const oView = z2ui5.oView;` && |\n| &&
-             `          // let oState = {};` && |\n| &&
-             `          // if (oView) {` && |\n| &&
-             `          //   const model = oView.getModel();` && |\n| &&
-             `          //   oState = {` && |\n| &&
-             `          //     view: oView.mProperties.viewContent,` && |\n| &&
-             `          //     model: model ? model.getData() : undefined,` && |\n| &&
-             `          //     response: z2ui5.oResponse,` && |\n| &&
-             `          //   };` && |\n| &&
-             `          // }` && |\n| &&
-             `` && |\n| &&
-             `          try {` && |\n| &&
-             `            if (SET_PUSH_STATE) {` && |\n| &&
-             `              const hash = _hashChanger.getHash();` && |\n| &&
-             `              const newUrl = ``${window.location.pathname}${window.location.search}#${hash}${SET_PUSH_STATE}``;` && |\n| &&
-             `              history.pushState(null, "", newUrl);` && |\n| &&
-             `            }` && |\n| &&
-             `            // Disabled together with the state storing above - without a` && |\n| &&
-             `            // state object this call was a pure no-op:` && |\n| &&
-             `            // else {` && |\n| &&
-             `            //   history.replaceState(oState, "", window.location.href);` && |\n| &&
-             `            // }` && |\n| &&
-             `            const newHash = SET_APP_STATE_ACTIVE` && |\n| &&
-             `              ? ``z2ui5-xapp-state=${ID || ""}``` && |\n| &&
-             `              : "";` && |\n| &&
-             `            _hashChanger.replaceHash(newHash);` && |\n| &&
-             `          } catch (e) {` && |\n| &&
-             `            Lib.logError("_processAfterRendering: history update failed", e);` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          if (SET_NAV_BACK) history.back();` && |\n| &&
+             `          await this._displayPendingViews(PARAMS);` && |\n| &&
+             `          this._updateBrowserHistory(PARAMS, oResponse.ID);` && |\n| &&
+             `          if (PARAMS.SET_NAV_BACK) history.back();` && |\n| &&
              `` && |\n| &&
              `          runCallbacks(z2ui5.onAfterRendering);` && |\n| &&
              `        } catch (e) {` && |\n| &&
@@ -342,6 +261,94 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          // - rather than as an early microtask - guarantees render-dependent` && |\n| &&
              `          // actions like SET_FOCUS find their target control in the DOM.` && |\n| &&
              `          this._runPendingCustomJs();` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // Phase 1: open/destroy the popup, nested views and popover the` && |\n| &&
+             `      // response asked for.` && |\n| &&
+             `      async _displayPendingViews(PARAMS) {` && |\n| &&
+             `        const S_POPUP = PARAMS.S_POPUP;` && |\n| &&
+             `        const S_VIEW_NEST = PARAMS.S_VIEW_NEST;` && |\n| &&
+             `        const S_VIEW_NEST2 = PARAMS.S_VIEW_NEST2;` && |\n| &&
+             `        const S_POPOVER = PARAMS.S_POPOVER;` && |\n| &&
+             `` && |\n| &&
+             `        if (S_POPUP && S_POPUP.CHECK_DESTROY) this.destroyPopup();` && |\n| &&
+             `        if (S_POPOVER && S_POPOVER.CHECK_DESTROY) this.destroyPopover();` && |\n| &&
+             `` && |\n| &&
+             `        if (S_POPUP && S_POPUP.XML) {` && |\n| &&
+             `          this.destroyPopup();` && |\n| &&
+             `          await this.displayFragment(S_POPUP.XML, "oViewPopup");` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        if (!z2ui5.checkNestAfter && S_VIEW_NEST && S_VIEW_NEST.XML) {` && |\n| &&
+             `          this.destroyNestView();` && |\n| &&
+             `          await this.displayNestedView(` && |\n| &&
+             `            S_VIEW_NEST.XML,` && |\n| &&
+             `            "oViewNest",` && |\n| &&
+             `            "S_VIEW_NEST",` && |\n| &&
+             `            z2ui5.oControllerNest,` && |\n| &&
+             `          );` && |\n| &&
+             `          z2ui5.checkNestAfter = true;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        if (!z2ui5.checkNestAfter2 && S_VIEW_NEST2 && S_VIEW_NEST2.XML) {` && |\n| &&
+             `          this.destroyNestView2();` && |\n| &&
+             `          await this.displayNestedView(` && |\n| &&
+             `            S_VIEW_NEST2.XML,` && |\n| &&
+             `            "oViewNest2",` && |\n| &&
+             `            "S_VIEW_NEST2",` && |\n| &&
+             `            z2ui5.oControllerNest2,` && |\n| &&
+             `          );` && |\n| &&
+             `          z2ui5.checkNestAfter2 = true;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        if (S_POPOVER && S_POPOVER.XML) {` && |\n| &&
+             `          this.destroyPopover();` && |\n| &&
+             `          await this.displayPopover(` && |\n| &&
+             `            S_POPOVER.XML,` && |\n| &&
+             `            "oViewPopover",` && |\n| &&
+             `            S_POPOVER.OPEN_BY_ID,` && |\n| &&
+             `          );` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // Phase 2: push the backend-requested URL and update the app-state` && |\n| &&
+             `      // hash.` && |\n| &&
+             `      _updateBrowserHistory(PARAMS, ID) {` && |\n| &&
+             `        // Currently disabled: storing the rendered view + model in` && |\n| &&
+             `        // history.state so a popstate could restore the view without a` && |\n| &&
+             `        // backend hit. Cloning the full view XML and model data on every` && |\n| &&
+             `        // roundtrip is expensive for large views and the restore is not` && |\n| &&
+             `        // needed right now. Re-enable together with the popstate listener` && |\n| &&
+             `        // in Component.js (_installPopstateListener).` && |\n| &&
+             `        // const oView = z2ui5.oView;` && |\n| &&
+             `        // let oState = {};` && |\n| &&
+             `        // if (oView) {` && |\n| &&
+             `        //   const model = oView.getModel();` && |\n| &&
+             `        //   oState = {` && |\n| &&
+             `        //     view: oView.mProperties.viewContent,` && |\n| &&
+             `        //     model: model ? model.getData() : undefined,` && |\n| &&
+             `        //     response: z2ui5.oResponse,` && |\n| &&
+             `        //   };` && |\n| &&
+             `        // }` && |\n| &&
+             `` && |\n| &&
+             `        try {` && |\n| &&
+             `          if (PARAMS.SET_PUSH_STATE) {` && |\n| &&
+             `            const hash = _hashChanger.getHash();` && |\n| &&
+             `            const newUrl = ``${window.location.pathname}${window.location.search}#${hash}${PARAMS.SET_PUSH_STATE}``;` && |\n| &&
+             `            history.pushState(null, "", newUrl);` && |\n| &&
+             `          }` && |\n| &&
+             `          // Disabled together with the state storing above - without a` && |\n| &&
+             `          // state object this call was a pure no-op:` && |\n| &&
+             `          // else {` && |\n| &&
+             `          //   history.replaceState(oState, "", window.location.href);` && |\n| &&
+             `          // }` && |\n| &&
+             `          const newHash = PARAMS.SET_APP_STATE_ACTIVE` && |\n| &&
+             `            ? ``z2ui5-xapp-state=${ID || ""}``` && |\n| &&
+             `            : "";` && |\n| &&
+             `          _hashChanger.replaceHash(newHash);` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          Lib.logError("_updateBrowserHistory: history update failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -411,6 +418,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          if (!oControl && z2ui5.oViewNest) {` && |\n| &&
              `            oControl = z2ui5.oViewNest.byId(openById);` && |\n| &&
              `          }` && |\n| &&
+             |\n|.
+    result = result &&
              `          if (!oControl && z2ui5.oViewNest2) {` && |\n| &&
              `            oControl = z2ui5.oViewNest2.byId(openById);` && |\n| &&
              `          }` && |\n| &&
@@ -418,8 +427,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            if (Element.getElementById) {` && |\n| &&
              `              oControl = Element.getElementById(openById);` && |\n| &&
              `            } else {` && |\n| &&
-             |\n|.
-    result = result &&
              `              /* ui5lint-disable no-globals, no-deprecated-api --` && |\n| &&
              `                 deliberate fallback for UI5 releases that do not provide` && |\n| &&
              `                 Element.getElementById yet (added in 1.119); the modern` && |\n| &&
@@ -666,63 +673,66 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      // SYSTEM_LOGOUT: prefer the launchpad logout when running inside the` && |\n| &&
+             `      // FLP; otherwise terminate a possible stateful BSP session first and` && |\n| &&
+             `      // then navigate to the logout URL.` && |\n| &&
              `      _evSystemLogout(args) {` && |\n| &&
              `        const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";` && |\n| &&
-             `        const goToLogoutUrl = () => {` && |\n| &&
-             `          if (Lib.isValidRedirectURL(logoutUrl)) {` && |\n| &&
-             `            window.location.href = logoutUrl;` && |\n| &&
-             `          } else {` && |\n| &&
-             `            MessageBox.error(` && |\n| &&
-             `              "Invalid logout URL. Only relative URLs to the same domain are allowed.",` && |\n| &&
-             `            );` && |\n| &&
-             `          }` && |\n| &&
-             `        };` && |\n| &&
-             `        // When abap2UI5 is hosted as a BSP application,` && |\n| &&
-             `        // /sap/public/bc/icf/logoff alone does not terminate the stateful` && |\n| &&
-             `        // BSP context (sap-contextid stays bound to /sap/bc/bsp/sap/<app>/).` && |\n| &&
-             `        // Hit the BSP path with ?sap-sessioncmd=logoff first so the BSP` && |\n| &&
-             `        // runtime calls server->session->terminate( ), then go to the ICF` && |\n| &&
-             `        // logoff to also drop the SSO2 ticket.` && |\n| &&
-             `        const redirectToLogoff = () => {` && |\n| &&
-             `          const path = window.location.pathname;` && |\n| &&
-             `          if (path.indexOf("/sap/bc/bsp/") !== 0) {` && |\n| &&
-             `            goToLogoutUrl();` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `          const sep = path.indexOf("?") >= 0 ? "&" : "?";` && |\n| &&
-             `          const bspKill = path + sep + "sap-sessioncmd=logoff";` && |\n| &&
-             `          let done = false;` && |\n| &&
-             `          const finish = () => {` && |\n| &&
-             `            if (done) return;` && |\n| &&
-             `            done = true;` && |\n| &&
-             `            goToLogoutUrl();` && |\n| &&
-             `          };` && |\n| &&
-             `          try {` && |\n| &&
-             `            const f = document.createElement("iframe");` && |\n| &&
-             `            f.style.display = "none";` && |\n| &&
-             `            f.src = bspKill;` && |\n| &&
-             `            f.addEventListener("load", finish);` && |\n| &&
-             `            document.body.appendChild(f);` && |\n| &&
-             `          } catch (e) {` && |\n| &&
-             `            finish();` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `          // Safety net: never wait longer than 1.5s for the BSP terminate.` && |\n| &&
-             `          setTimeout(finish, 1500);` && |\n| &&
-             `        };` && |\n| &&
              `        try {` && |\n| &&
-             `          const launchpadLogout =` && |\n| &&
-             `            z2ui5.oLaunchpad &&` && |\n| &&
-             `            z2ui5.oLaunchpad.Container &&` && |\n| &&
-             `            z2ui5.oLaunchpad.Container.logout;` && |\n| &&
-             `          if (launchpadLogout) {` && |\n| &&
-             `            z2ui5.oLaunchpad.Container.logout();` && |\n| &&
-             `          } else {` && |\n| &&
-             `            redirectToLogoff();` && |\n| &&
+             `          const container = z2ui5.oLaunchpad && z2ui5.oLaunchpad.Container;` && |\n| &&
+             `          if (container && container.logout) {` && |\n| &&
+             `            container.logout();` && |\n| &&
+             `            return;` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("SYSTEM_LOGOUT: ushell logout failed", e);` && |\n| &&
-             `          redirectToLogoff();` && |\n| &&
+             `        }` && |\n| &&
+             `        this._logoutViaBspTerminate(logoutUrl);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // When abap2UI5 is hosted as a BSP application,` && |\n| &&
+             `      // /sap/public/bc/icf/logoff alone does not terminate the stateful` && |\n| &&
+             `      // BSP context (sap-contextid stays bound to /sap/bc/bsp/sap/<app>/).` && |\n| &&
+             `      // Hit the BSP path with ?sap-sessioncmd=logoff first so the BSP` && |\n| &&
+             `      // runtime calls server->session->terminate( ), then go to the ICF` && |\n| &&
+             `      // logoff to also drop the SSO2 ticket. Outside a BSP path this goes` && |\n| &&
+             `      // straight to the logout URL.` && |\n| &&
+             `      _logoutViaBspTerminate(logoutUrl) {` && |\n| &&
+             `        const path = window.location.pathname;` && |\n| &&
+             `        if (!path.startsWith("/sap/bc/bsp/")) {` && |\n| &&
+             `          this._redirectToLogout(logoutUrl);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        const sep = path.indexOf("?") >= 0 ? "&" : "?";` && |\n| &&
+             `        const bspKill = ``${path}${sep}sap-sessioncmd=logoff``;` && |\n| &&
+             `        let done = false;` && |\n| &&
+             `        const finish = () => {` && |\n| &&
+             `          if (done) return;` && |\n| &&
+             `          done = true;` && |\n| &&
+             `          this._redirectToLogout(logoutUrl);` && |\n| &&
+             `        };` && |\n| &&
+             `        try {` && |\n| &&
+             `          const f = document.createElement("iframe");` && |\n| &&
+             `          f.style.display = "none";` && |\n| &&
+             `          f.src = bspKill;` && |\n| &&
+             `          f.addEventListener("load", finish);` && |\n| &&
+             `          document.body.appendChild(f);` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          finish();` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        // Safety net: never wait longer than 1.5s for the BSP terminate.` && |\n| &&
+             `        setTimeout(finish, 1500);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _redirectToLogout(logoutUrl) {` && |\n| &&
+             `        if (Lib.isValidRedirectURL(logoutUrl)) {` && |\n| &&
+             `          window.location.href = logoutUrl;` && |\n| &&
+             `        } else {` && |\n| &&
+             `          MessageBox.error(` && |\n| &&
+             `            "Invalid logout URL. Only relative URLs to the same domain are allowed.",` && |\n| &&
+             `          );` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -810,6 +820,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const input = dom.matches("input, textarea")` && |\n| &&
              `            ? dom` && |\n| &&
              `            : dom.querySelector("input, textarea");` && |\n| &&
+             |\n|.
+    result = result &&
              `          if (!input) return;` && |\n| &&
              `          input.setAttribute("inputmode", args[2] || "text");` && |\n| &&
              `        } catch (e) {` && |\n| &&
@@ -820,8 +832,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             |\n|.
-    result = result &&
              `      _evSetFocus(args) {` && |\n| &&
              `        const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
@@ -1212,6 +1222,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            serviceUrl: switchPath,` && |\n| &&
              `            annotationURI: sView.SWITCHDEFAULTMODELANNOURI || "",` && |\n| &&
              `          });` && |\n| &&
+             |\n|.
+    result = result &&
              `        } else {` && |\n| &&
              `          oModel = oViewModel;` && |\n| &&
              `        }` && |\n| &&
@@ -1222,8 +1234,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          models: oModel,` && |\n| &&
              `          controller: z2ui5.oController,` && |\n| &&
              `          id: "mainView",` && |\n| &&
-             |\n|.
-    result = result &&
              `          preprocessors: { xml: { models: { template: oViewModel } } },` && |\n| &&
              `        });` && |\n| &&
              `` && |\n| &&

@@ -107,13 +107,14 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      _getDeviceInfo() {` && |\n| &&
              `        const d = Device;` && |\n| &&
              `        const sys = d.system;` && |\n| &&
-             `        const system = sys.phone` && |\n| &&
-             `          ? "phone"` && |\n| &&
-             `          : sys.tablet` && |\n| &&
-             `            ? "tablet"` && |\n| &&
-             `            : sys.combi` && |\n| &&
-             `              ? "combi"` && |\n| &&
-             `              : "desktop";` && |\n| &&
+             `        let system = "desktop";` && |\n| &&
+             `        if (sys.phone) {` && |\n| &&
+             `          system = "phone";` && |\n| &&
+             `        } else if (sys.tablet) {` && |\n| &&
+             `          system = "tablet";` && |\n| &&
+             `        } else if (sys.combi) {` && |\n| &&
+             `          system = "combi";` && |\n| &&
+             `        }` && |\n| &&
              `        return {` && |\n| &&
              `          SYSTEM: system,` && |\n| &&
              `          ORIENTATION: d.orientation.portrait ? "portrait" : "landscape",` && |\n| &&
@@ -417,9 +418,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // Arguments live at the odd indices between single quotes.` && |\n| &&
              `          const args = parts.filter((_, index) => index % 2 === 1);` && |\n| &&
              `          if (args.length > 0) {` && |\n| &&
-             `            oController.eF(...args);` && |\n| &&
              |\n|.
     result = result &&
+             `            oController.eF(...args);` && |\n| &&
              `          } else {` && |\n| &&
              `            // eslint-disable-next-line no-new-func` && |\n| &&
              `            Function("return " + parts[0])();` && |\n| &&

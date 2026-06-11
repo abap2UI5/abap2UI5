@@ -87,13 +87,14 @@ sap.ui.define(
       _getDeviceInfo() {
         const d = Device;
         const sys = d.system;
-        const system = sys.phone
-          ? "phone"
-          : sys.tablet
-            ? "tablet"
-            : sys.combi
-              ? "combi"
-              : "desktop";
+        let system = "desktop";
+        if (sys.phone) {
+          system = "phone";
+        } else if (sys.tablet) {
+          system = "tablet";
+        } else if (sys.combi) {
+          system = "combi";
+        }
         return {
           SYSTEM: system,
           ORIENTATION: d.orientation.portrait ? "portrait" : "landscape",

@@ -213,8 +213,9 @@ sap.ui.define(
         }
       },
 
-      // Runs once after each roundtrip's view has been rendered. Handles
-      // popups, nested views, popovers and browser-history updates.
+      // Runs once after each roundtrip's view has been rendered, in two
+      // named phases: display pending fragments/views, then update the
+      // browser history/hash.
       async _processAfterRendering() {
         try {
           const oResponse = z2ui5.oResponse;
@@ -222,93 +223,11 @@ sap.ui.define(
           oResponse._processed = true;
 
           const PARAMS = oResponse.PARAMS;
-          const ID = oResponse.ID;
           if (!PARAMS) return;
 
-          const S_POPUP = PARAMS.S_POPUP;
-          const S_VIEW_NEST = PARAMS.S_VIEW_NEST;
-          const S_VIEW_NEST2 = PARAMS.S_VIEW_NEST2;
-          const S_POPOVER = PARAMS.S_POPOVER;
-          const SET_APP_STATE_ACTIVE = PARAMS.SET_APP_STATE_ACTIVE;
-          const SET_PUSH_STATE = PARAMS.SET_PUSH_STATE;
-          const SET_NAV_BACK = PARAMS.SET_NAV_BACK;
-
-          if (S_POPUP && S_POPUP.CHECK_DESTROY) this.destroyPopup();
-          if (S_POPOVER && S_POPOVER.CHECK_DESTROY) this.destroyPopover();
-
-          if (S_POPUP && S_POPUP.XML) {
-            this.destroyPopup();
-            await this.displayFragment(S_POPUP.XML, "oViewPopup");
-          }
-
-          if (!z2ui5.checkNestAfter && S_VIEW_NEST && S_VIEW_NEST.XML) {
-            this.destroyNestView();
-            await this.displayNestedView(
-              S_VIEW_NEST.XML,
-              "oViewNest",
-              "S_VIEW_NEST",
-              z2ui5.oControllerNest,
-            );
-            z2ui5.checkNestAfter = true;
-          }
-
-          if (!z2ui5.checkNestAfter2 && S_VIEW_NEST2 && S_VIEW_NEST2.XML) {
-            this.destroyNestView2();
-            await this.displayNestedView(
-              S_VIEW_NEST2.XML,
-              "oViewNest2",
-              "S_VIEW_NEST2",
-              z2ui5.oControllerNest2,
-            );
-            z2ui5.checkNestAfter2 = true;
-          }
-
-          if (S_POPOVER && S_POPOVER.XML) {
-            this.destroyPopover();
-            await this.displayPopover(
-              S_POPOVER.XML,
-              "oViewPopover",
-              S_POPOVER.OPEN_BY_ID,
-            );
-          }
-
-          // Currently disabled: storing the rendered view + model in
-          // history.state so a popstate could restore the view without a
-          // backend hit. Cloning the full view XML and model data on every
-          // roundtrip is expensive for large views and the restore is not
-          // needed right now. Re-enable together with the popstate listener
-          // in Component.js (_installPopstateListener).
-          // const oView = z2ui5.oView;
-          // let oState = {};
-          // if (oView) {
-          //   const model = oView.getModel();
-          //   oState = {
-          //     view: oView.mProperties.viewContent,
-          //     model: model ? model.getData() : undefined,
-          //     response: z2ui5.oResponse,
-          //   };
-          // }
-
-          try {
-            if (SET_PUSH_STATE) {
-              const hash = _hashChanger.getHash();
-              const newUrl = `${window.location.pathname}${window.location.search}#${hash}${SET_PUSH_STATE}`;
-              history.pushState(null, "", newUrl);
-            }
-            // Disabled together with the state storing above - without a
-            // state object this call was a pure no-op:
-            // else {
-            //   history.replaceState(oState, "", window.location.href);
-            // }
-            const newHash = SET_APP_STATE_ACTIVE
-              ? `z2ui5-xapp-state=${ID || ""}`
-              : "";
-            _hashChanger.replaceHash(newHash);
-          } catch (e) {
-            Lib.logError("_processAfterRendering: history update failed", e);
-          }
-
-          if (SET_NAV_BACK) history.back();
+          await this._displayPendingViews(PARAMS);
+          this._updateBrowserHistory(PARAMS, oResponse.ID);
+          if (PARAMS.SET_NAV_BACK) history.back();
 
           runCallbacks(z2ui5.onAfterRendering);
         } catch (e) {
@@ -322,6 +241,94 @@ sap.ui.define(
           // - rather than as an early microtask - guarantees render-dependent
           // actions like SET_FOCUS find their target control in the DOM.
           this._runPendingCustomJs();
+        }
+      },
+
+      // Phase 1: open/destroy the popup, nested views and popover the
+      // response asked for.
+      async _displayPendingViews(PARAMS) {
+        const S_POPUP = PARAMS.S_POPUP;
+        const S_VIEW_NEST = PARAMS.S_VIEW_NEST;
+        const S_VIEW_NEST2 = PARAMS.S_VIEW_NEST2;
+        const S_POPOVER = PARAMS.S_POPOVER;
+
+        if (S_POPUP && S_POPUP.CHECK_DESTROY) this.destroyPopup();
+        if (S_POPOVER && S_POPOVER.CHECK_DESTROY) this.destroyPopover();
+
+        if (S_POPUP && S_POPUP.XML) {
+          this.destroyPopup();
+          await this.displayFragment(S_POPUP.XML, "oViewPopup");
+        }
+
+        if (!z2ui5.checkNestAfter && S_VIEW_NEST && S_VIEW_NEST.XML) {
+          this.destroyNestView();
+          await this.displayNestedView(
+            S_VIEW_NEST.XML,
+            "oViewNest",
+            "S_VIEW_NEST",
+            z2ui5.oControllerNest,
+          );
+          z2ui5.checkNestAfter = true;
+        }
+
+        if (!z2ui5.checkNestAfter2 && S_VIEW_NEST2 && S_VIEW_NEST2.XML) {
+          this.destroyNestView2();
+          await this.displayNestedView(
+            S_VIEW_NEST2.XML,
+            "oViewNest2",
+            "S_VIEW_NEST2",
+            z2ui5.oControllerNest2,
+          );
+          z2ui5.checkNestAfter2 = true;
+        }
+
+        if (S_POPOVER && S_POPOVER.XML) {
+          this.destroyPopover();
+          await this.displayPopover(
+            S_POPOVER.XML,
+            "oViewPopover",
+            S_POPOVER.OPEN_BY_ID,
+          );
+        }
+      },
+
+      // Phase 2: push the backend-requested URL and update the app-state
+      // hash.
+      _updateBrowserHistory(PARAMS, ID) {
+        // Currently disabled: storing the rendered view + model in
+        // history.state so a popstate could restore the view without a
+        // backend hit. Cloning the full view XML and model data on every
+        // roundtrip is expensive for large views and the restore is not
+        // needed right now. Re-enable together with the popstate listener
+        // in Component.js (_installPopstateListener).
+        // const oView = z2ui5.oView;
+        // let oState = {};
+        // if (oView) {
+        //   const model = oView.getModel();
+        //   oState = {
+        //     view: oView.mProperties.viewContent,
+        //     model: model ? model.getData() : undefined,
+        //     response: z2ui5.oResponse,
+        //   };
+        // }
+
+        try {
+          if (PARAMS.SET_PUSH_STATE) {
+            const hash = _hashChanger.getHash();
+            const newUrl = `${window.location.pathname}${window.location.search}#${hash}${PARAMS.SET_PUSH_STATE}`;
+            history.pushState(null, "", newUrl);
+          }
+          // Disabled together with the state storing above - without a
+          // state object this call was a pure no-op:
+          // else {
+          //   history.replaceState(oState, "", window.location.href);
+          // }
+          const newHash = PARAMS.SET_APP_STATE_ACTIVE
+            ? `z2ui5-xapp-state=${ID || ""}`
+            : "";
+          _hashChanger.replaceHash(newHash);
+        } catch (e) {
+          Lib.logError("_updateBrowserHistory: history update failed", e);
         }
       },
 
@@ -644,63 +651,66 @@ sap.ui.define(
         }
       },
 
+      // SYSTEM_LOGOUT: prefer the launchpad logout when running inside the
+      // FLP; otherwise terminate a possible stateful BSP session first and
+      // then navigate to the logout URL.
       _evSystemLogout(args) {
         const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";
-        const goToLogoutUrl = () => {
-          if (Lib.isValidRedirectURL(logoutUrl)) {
-            window.location.href = logoutUrl;
-          } else {
-            MessageBox.error(
-              "Invalid logout URL. Only relative URLs to the same domain are allowed.",
-            );
-          }
-        };
-        // When abap2UI5 is hosted as a BSP application,
-        // /sap/public/bc/icf/logoff alone does not terminate the stateful
-        // BSP context (sap-contextid stays bound to /sap/bc/bsp/sap/<app>/).
-        // Hit the BSP path with ?sap-sessioncmd=logoff first so the BSP
-        // runtime calls server->session->terminate( ), then go to the ICF
-        // logoff to also drop the SSO2 ticket.
-        const redirectToLogoff = () => {
-          const path = window.location.pathname;
-          if (path.indexOf("/sap/bc/bsp/") !== 0) {
-            goToLogoutUrl();
-            return;
-          }
-          const sep = path.indexOf("?") >= 0 ? "&" : "?";
-          const bspKill = path + sep + "sap-sessioncmd=logoff";
-          let done = false;
-          const finish = () => {
-            if (done) return;
-            done = true;
-            goToLogoutUrl();
-          };
-          try {
-            const f = document.createElement("iframe");
-            f.style.display = "none";
-            f.src = bspKill;
-            f.addEventListener("load", finish);
-            document.body.appendChild(f);
-          } catch (e) {
-            finish();
-            return;
-          }
-          // Safety net: never wait longer than 1.5s for the BSP terminate.
-          setTimeout(finish, 1500);
-        };
         try {
-          const launchpadLogout =
-            z2ui5.oLaunchpad &&
-            z2ui5.oLaunchpad.Container &&
-            z2ui5.oLaunchpad.Container.logout;
-          if (launchpadLogout) {
-            z2ui5.oLaunchpad.Container.logout();
-          } else {
-            redirectToLogoff();
+          const container = z2ui5.oLaunchpad && z2ui5.oLaunchpad.Container;
+          if (container && container.logout) {
+            container.logout();
+            return;
           }
         } catch (e) {
           Lib.logError("SYSTEM_LOGOUT: ushell logout failed", e);
-          redirectToLogoff();
+        }
+        this._logoutViaBspTerminate(logoutUrl);
+      },
+
+      // When abap2UI5 is hosted as a BSP application,
+      // /sap/public/bc/icf/logoff alone does not terminate the stateful
+      // BSP context (sap-contextid stays bound to /sap/bc/bsp/sap/<app>/).
+      // Hit the BSP path with ?sap-sessioncmd=logoff first so the BSP
+      // runtime calls server->session->terminate( ), then go to the ICF
+      // logoff to also drop the SSO2 ticket. Outside a BSP path this goes
+      // straight to the logout URL.
+      _logoutViaBspTerminate(logoutUrl) {
+        const path = window.location.pathname;
+        if (!path.startsWith("/sap/bc/bsp/")) {
+          this._redirectToLogout(logoutUrl);
+          return;
+        }
+
+        const sep = path.indexOf("?") >= 0 ? "&" : "?";
+        const bspKill = `${path}${sep}sap-sessioncmd=logoff`;
+        let done = false;
+        const finish = () => {
+          if (done) return;
+          done = true;
+          this._redirectToLogout(logoutUrl);
+        };
+        try {
+          const f = document.createElement("iframe");
+          f.style.display = "none";
+          f.src = bspKill;
+          f.addEventListener("load", finish);
+          document.body.appendChild(f);
+        } catch (e) {
+          finish();
+          return;
+        }
+        // Safety net: never wait longer than 1.5s for the BSP terminate.
+        setTimeout(finish, 1500);
+      },
+
+      _redirectToLogout(logoutUrl) {
+        if (Lib.isValidRedirectURL(logoutUrl)) {
+          window.location.href = logoutUrl;
+        } else {
+          MessageBox.error(
+            "Invalid logout URL. Only relative URLs to the same domain are allowed.",
+          );
         }
       },
 
