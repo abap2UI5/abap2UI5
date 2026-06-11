@@ -32,6 +32,11 @@ export default [
         "error",
         { caughtErrors: "none", argsIgnorePattern: "^_" },
       ],
+      // Beginner guard rails: always use === (the deliberate `x == null`
+      // null-or-undefined idiom stays allowed via "smart"), and use const
+      // for bindings that are never reassigned.
+      eqeqeq: ["error", "smart"],
+      "prefer-const": "error",
     },
   },
 ];
