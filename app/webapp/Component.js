@@ -127,7 +127,7 @@ sap.ui.define(
 
           if (!state.view) return;
 
-          if (z2ui5.oController) z2ui5.oController.ViewDestroy();
+          if (z2ui5.oController) z2ui5.oController.destroyView();
           z2ui5.oResponse = state.response;
 
           const displayPromise =

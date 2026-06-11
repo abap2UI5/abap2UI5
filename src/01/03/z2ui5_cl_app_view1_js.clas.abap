@@ -45,7 +45,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    MessageBox,` && |\n| &&
              `    MessageToast,` && |\n| &&
              `    Fragment,` && |\n| &&
-             `    mBusyDialog,` && |\n| &&
+             `    BusyDialog,` && |\n| &&
              `    VersionInfo,` && |\n| &&
              `    Server,` && |\n| &&
              `    ODataModel,` && |\n| &&
@@ -173,8 +173,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      LOCATION_RELOAD: "_evLocationReload",` && |\n| &&
              `      SYSTEM_LOGOUT: "_evSystemLogout",` && |\n| &&
              `      OPEN_NEW_TAB: "_evOpenNewTab",` && |\n| &&
-             `      POPUP_CLOSE: "PopupDestroy",` && |\n| &&
-             `      POPOVER_CLOSE: "PopoverDestroy",` && |\n| &&
+             `      POPUP_CLOSE: "destroyPopup",` && |\n| &&
+             `      POPOVER_CLOSE: "destroyPopover",` && |\n| &&
              `      URLHELPER: "_evUrlHelper",` && |\n| &&
              `      IMAGE_EDITOR_POPUP_CLOSE: "_evImageEditorPopupClose",` && |\n| &&
              `      SET_TITLE: "_evSetTitle",` && |\n| &&
@@ -223,7 +223,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `      onInit() {` && |\n| &&
              `        z2ui5.oRouter.attachRouteMatched(() => {` && |\n| &&
-             `          Server.Roundtrip();` && |\n| &&
+             `          Server.roundtrip();` && |\n| &&
              `        });` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -253,16 +253,16 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const SET_PUSH_STATE = PARAMS.SET_PUSH_STATE;` && |\n| &&
              `          const SET_NAV_BACK = PARAMS.SET_NAV_BACK;` && |\n| &&
              `` && |\n| &&
-             `          if (S_POPUP && S_POPUP.CHECK_DESTROY) this.PopupDestroy();` && |\n| &&
-             `          if (S_POPOVER && S_POPOVER.CHECK_DESTROY) this.PopoverDestroy();` && |\n| &&
+             `          if (S_POPUP && S_POPUP.CHECK_DESTROY) this.destroyPopup();` && |\n| &&
+             `          if (S_POPOVER && S_POPOVER.CHECK_DESTROY) this.destroyPopover();` && |\n| &&
              `` && |\n| &&
              `          if (S_POPUP && S_POPUP.XML) {` && |\n| &&
-             `            this.PopupDestroy();` && |\n| &&
+             `            this.destroyPopup();` && |\n| &&
              `            await this.displayFragment(S_POPUP.XML, "oViewPopup");` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
              `          if (!z2ui5.checkNestAfter && S_VIEW_NEST && S_VIEW_NEST.XML) {` && |\n| &&
-             `            this.NestViewDestroy();` && |\n| &&
+             `            this.destroyNestView();` && |\n| &&
              `            await this.displayNestedView(` && |\n| &&
              `              S_VIEW_NEST.XML,` && |\n| &&
              `              "oViewNest",` && |\n| &&
@@ -273,7 +273,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          }` && |\n| &&
              `` && |\n| &&
              `          if (!z2ui5.checkNestAfter2 && S_VIEW_NEST2 && S_VIEW_NEST2.XML) {` && |\n| &&
-             `            this.NestViewDestroy2();` && |\n| &&
+             `            this.destroyNestView2();` && |\n| &&
              `            await this.displayNestedView(` && |\n| &&
              `              S_VIEW_NEST2.XML,` && |\n| &&
              `              "oViewNest2",` && |\n| &&
@@ -284,7 +284,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          }` && |\n| &&
              `` && |\n| &&
              `          if (S_POPOVER && S_POPOVER.XML) {` && |\n| &&
-             `            this.PopoverDestroy();` && |\n| &&
+             `            this.destroyPopover();` && |\n| &&
              `            await this.displayPopover(` && |\n| &&
              `              S_POPOVER.XML,` && |\n| &&
              `              "oViewPopover",` && |\n| &&
@@ -516,19 +516,19 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        z2ui5[prop] = null;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      PopupDestroy() {` && |\n| &&
+             `      destroyPopup() {` && |\n| &&
              `        this._destroyView("oViewPopup", true);` && |\n| &&
              `      },` && |\n| &&
-             `      PopoverDestroy() {` && |\n| &&
+             `      destroyPopover() {` && |\n| &&
              `        this._destroyView("oViewPopover", true);` && |\n| &&
              `      },` && |\n| &&
-             `      NestViewDestroy() {` && |\n| &&
+             `      destroyNestView() {` && |\n| &&
              `        this._destroyView("oViewNest");` && |\n| &&
              `      },` && |\n| &&
-             `      NestViewDestroy2() {` && |\n| &&
+             `      destroyNestView2() {` && |\n| &&
              `        this._destroyView("oViewNest2");` && |\n| &&
              `      },` && |\n| &&
-             `      ViewDestroy() {` && |\n| &&
+             `      destroyView() {` && |\n| &&
              `        this._destroyView("oView");` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -781,7 +781,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            e,` && |\n| &&
              `          );` && |\n| &&
              `        }` && |\n| &&
-             `        this.PopupDestroy();` && |\n| &&
+             `        this.destroyPopup();` && |\n| &&
              `        this.eB(["SAVE"], image);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -1029,7 +1029,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // If a roundtrip is already in flight, briefly show a BusyDialog so` && |\n| &&
              `        // the user gets visual feedback instead of a silent click.` && |\n| &&
              `        if (z2ui5.isBusy && !ignoreBusy) {` && |\n| &&
-             `          if (!_busyDialog) _busyDialog = new mBusyDialog();` && |\n| &&
+             `          if (!_busyDialog) _busyDialog = new BusyDialog();` && |\n| &&
              `          _busyDialog.open();` && |\n| &&
              `          queueMicrotask(() => _busyDialog.close());` && |\n| &&
              `          return;` && |\n| &&
@@ -1074,7 +1074,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return item;` && |\n| &&
              `        });` && |\n| &&
              `` && |\n| &&
-             `        Server.Roundtrip();` && |\n| &&
+             `        Server.roundtrip();` && |\n| &&
              `        runCallbacks(z2ui5.onAfterRoundtrip);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&

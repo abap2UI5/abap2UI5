@@ -25,7 +25,7 @@ sap.ui.define(
     MessageBox,
     MessageToast,
     Fragment,
-    mBusyDialog,
+    BusyDialog,
     VersionInfo,
     Server,
     ODataModel,
@@ -153,8 +153,8 @@ sap.ui.define(
       LOCATION_RELOAD: "_evLocationReload",
       SYSTEM_LOGOUT: "_evSystemLogout",
       OPEN_NEW_TAB: "_evOpenNewTab",
-      POPUP_CLOSE: "PopupDestroy",
-      POPOVER_CLOSE: "PopoverDestroy",
+      POPUP_CLOSE: "destroyPopup",
+      POPOVER_CLOSE: "destroyPopover",
       URLHELPER: "_evUrlHelper",
       IMAGE_EDITOR_POPUP_CLOSE: "_evImageEditorPopupClose",
       SET_TITLE: "_evSetTitle",
@@ -203,7 +203,7 @@ sap.ui.define(
 
       onInit() {
         z2ui5.oRouter.attachRouteMatched(() => {
-          Server.Roundtrip();
+          Server.roundtrip();
         });
       },
 
@@ -233,16 +233,16 @@ sap.ui.define(
           const SET_PUSH_STATE = PARAMS.SET_PUSH_STATE;
           const SET_NAV_BACK = PARAMS.SET_NAV_BACK;
 
-          if (S_POPUP && S_POPUP.CHECK_DESTROY) this.PopupDestroy();
-          if (S_POPOVER && S_POPOVER.CHECK_DESTROY) this.PopoverDestroy();
+          if (S_POPUP && S_POPUP.CHECK_DESTROY) this.destroyPopup();
+          if (S_POPOVER && S_POPOVER.CHECK_DESTROY) this.destroyPopover();
 
           if (S_POPUP && S_POPUP.XML) {
-            this.PopupDestroy();
+            this.destroyPopup();
             await this.displayFragment(S_POPUP.XML, "oViewPopup");
           }
 
           if (!z2ui5.checkNestAfter && S_VIEW_NEST && S_VIEW_NEST.XML) {
-            this.NestViewDestroy();
+            this.destroyNestView();
             await this.displayNestedView(
               S_VIEW_NEST.XML,
               "oViewNest",
@@ -253,7 +253,7 @@ sap.ui.define(
           }
 
           if (!z2ui5.checkNestAfter2 && S_VIEW_NEST2 && S_VIEW_NEST2.XML) {
-            this.NestViewDestroy2();
+            this.destroyNestView2();
             await this.displayNestedView(
               S_VIEW_NEST2.XML,
               "oViewNest2",
@@ -264,7 +264,7 @@ sap.ui.define(
           }
 
           if (S_POPOVER && S_POPOVER.XML) {
-            this.PopoverDestroy();
+            this.destroyPopover();
             await this.displayPopover(
               S_POPOVER.XML,
               "oViewPopover",
@@ -494,19 +494,19 @@ sap.ui.define(
         z2ui5[prop] = null;
       },
 
-      PopupDestroy() {
+      destroyPopup() {
         this._destroyView("oViewPopup", true);
       },
-      PopoverDestroy() {
+      destroyPopover() {
         this._destroyView("oViewPopover", true);
       },
-      NestViewDestroy() {
+      destroyNestView() {
         this._destroyView("oViewNest");
       },
-      NestViewDestroy2() {
+      destroyNestView2() {
         this._destroyView("oViewNest2");
       },
-      ViewDestroy() {
+      destroyView() {
         this._destroyView("oView");
       },
 
@@ -759,7 +759,7 @@ sap.ui.define(
             e,
           );
         }
-        this.PopupDestroy();
+        this.destroyPopup();
         this.eB(["SAVE"], image);
       },
 
@@ -1005,7 +1005,7 @@ sap.ui.define(
         // If a roundtrip is already in flight, briefly show a BusyDialog so
         // the user gets visual feedback instead of a silent click.
         if (z2ui5.isBusy && !ignoreBusy) {
-          if (!_busyDialog) _busyDialog = new mBusyDialog();
+          if (!_busyDialog) _busyDialog = new BusyDialog();
           _busyDialog.open();
           queueMicrotask(() => _busyDialog.close());
           return;
@@ -1050,7 +1050,7 @@ sap.ui.define(
           return item;
         });
 
-        Server.Roundtrip();
+        Server.roundtrip();
         runCallbacks(z2ui5.onAfterRoundtrip);
       },
 

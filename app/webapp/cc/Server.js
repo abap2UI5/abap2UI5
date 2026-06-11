@@ -22,7 +22,7 @@ sap.ui.define(
 
     // Roundtrip lifecycle (spans this file and View1.controller.js):
     //   1. View1.eB(...)              collects the model delta into z2ui5.oBody
-    //   2. Server.Roundtrip()         adds S_FRONT (device/focus/scroll info)
+    //   2. Server.roundtrip()         adds S_FRONT (device/focus/scroll info)
     //   3. Server.readHttp()          POSTs { value: oBody }, parses the JSON
     //   4. Server.responseSuccess()   shows messages, rebuilds/updates views
     //   5. View1._processAfterRendering()  popups, nested views, history,
@@ -206,7 +206,7 @@ sap.ui.define(
         return Object.keys(out).length ? out : undefined;
       },
 
-      Roundtrip() {
+      roundtrip() {
         z2ui5.checkNestAfter = false;
         z2ui5.checkNestAfter2 = false;
 
@@ -342,7 +342,7 @@ sap.ui.define(
           const params = response.PARAMS;
           const sView = params && params.S_VIEW;
 
-          if (sView && sView.CHECK_DESTROY) oController.ViewDestroy();
+          if (sView && sView.CHECK_DESTROY) oController.destroyView();
 
           // The backend can send small JS snippets to run after the response.
           // Each snippet is either a literal expression or an "eF(...)" call
@@ -359,7 +359,7 @@ sap.ui.define(
 
           // Full view replacement -> destroy & rebuild, nothing more to do.
           if (sView && sView.XML) {
-            oController.ViewDestroy();
+            oController.destroyView();
             await oController.displayView(sView.XML, response.OVIEWMODEL);
             return;
           }

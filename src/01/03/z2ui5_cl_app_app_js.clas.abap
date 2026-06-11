@@ -59,7 +59,7 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        // If the URL already contains a hash, kick off the initial roundtrip` && |\n| &&
              `        // so the backend can restore that state.` && |\n| &&
              `        if (HashChanger.getInstance().getHash()) {` && |\n| &&
-             `          Server.Roundtrip();` && |\n| &&
+             `          Server.roundtrip();` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&

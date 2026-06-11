@@ -42,7 +42,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `    // Roundtrip lifecycle (spans this file and View1.controller.js):` && |\n| &&
              `    //   1. View1.eB(...)              collects the model delta into z2ui5.oBody` && |\n| &&
-             `    //   2. Server.Roundtrip()         adds S_FRONT (device/focus/scroll info)` && |\n| &&
+             `    //   2. Server.roundtrip()         adds S_FRONT (device/focus/scroll info)` && |\n| &&
              `    //   3. Server.readHttp()          POSTs { value: oBody }, parses the JSON` && |\n| &&
              `    //   4. Server.responseSuccess()   shows messages, rebuilds/updates views` && |\n| &&
              `    //   5. View1._processAfterRendering()  popups, nested views, history,` && |\n| &&
@@ -226,7 +226,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        return Object.keys(out).length ? out : undefined;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      Roundtrip() {` && |\n| &&
+             `      roundtrip() {` && |\n| &&
              `        z2ui5.checkNestAfter = false;` && |\n| &&
              `        z2ui5.checkNestAfter2 = false;` && |\n| &&
              `` && |\n| &&
@@ -362,7 +362,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          const params = response.PARAMS;` && |\n| &&
              `          const sView = params && params.S_VIEW;` && |\n| &&
              `` && |\n| &&
-             `          if (sView && sView.CHECK_DESTROY) oController.ViewDestroy();` && |\n| &&
+             `          if (sView && sView.CHECK_DESTROY) oController.destroyView();` && |\n| &&
              `` && |\n| &&
              `          // The backend can send small JS snippets to run after the response.` && |\n| &&
              `          // Each snippet is either a literal expression or an "eF(...)" call` && |\n| &&
@@ -379,7 +379,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `          // Full view replacement -> destroy & rebuild, nothing more to do.` && |\n| &&
              `          if (sView && sView.XML) {` && |\n| &&
-             `            oController.ViewDestroy();` && |\n| &&
+             `            oController.destroyView();` && |\n| &&
              `            await oController.displayView(sView.XML, response.OVIEWMODEL);` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&

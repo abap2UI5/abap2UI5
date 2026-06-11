@@ -147,7 +147,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n| &&
              `          if (!state.view) return;` && |\n| &&
              `` && |\n| &&
-             `          if (z2ui5.oController) z2ui5.oController.ViewDestroy();` && |\n| &&
+             `          if (z2ui5.oController) z2ui5.oController.destroyView();` && |\n| &&
              `          z2ui5.oResponse = state.response;` && |\n| &&
              `` && |\n| &&
              `          const displayPromise =` && |\n| &&
