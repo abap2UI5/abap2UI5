@@ -158,7 +158,7 @@ src/
 | Directory | Purpose |
 |---|---|
 | `app/` | Frontend tooling (`package.json`, `ui5.yaml`, `eslint.config.mjs`, `.prettierrc`, `.editorconfig`) |
-| `app/webapp/` | UI5 frontend source — `Component.js`, `index.html`, `manifest.json`, `controller/`, `view/`, `model/`, `css/`, `Util.js` (the **public** date helpers exposed as the `z2ui5.Util` global), `cc/` with one file per custom control (`Timer.js`, `Scrolling.js`, … — module IDs `z2ui5/cc/<Name>`, resolved from the `z2ui5` XML namespace which maps to `z2ui5.cc`), and `core/` with the internals: `Server.js` (the JSON POST client that wraps the body as `{ "value": <payload> }`), `Lib.js` (shared helper module + the documented inventory of all `z2ui5.*` globals), `FrontendAction.js` (the handlers behind the controller's `eF()` entry point) and `DebugTool` |
+| `app/webapp/` | UI5 frontend source — `Component.js`, `index.html`, `manifest.json`, `controller/`, `view/`, `model/`, `css/`, `Util.js` (the **public** date helpers exposed as the `z2ui5.Util` global), `cc/` with one file per custom control (`Timer.js`, `Scrolling.js`, … — module IDs `z2ui5/cc/<Name>`, resolved from the `z2ui5` XML namespace which maps to `z2ui5.cc`), and `core/` with the internals: `Server.js` (the JSON POST client that wraps the body as `{ "value": <payload> }`), `AppState.js` (owner of the shared frontend state + the documented inventory of all `z2ui5.*` globals), `Lib.js` (shared helper module), `FrontendAction.js` (the handlers behind the controller's `eF()` entry point) and `DebugTool` |
 | `node/srv/` | `express.mjs` (dev server on port 3000), `zcl_sicf.clas.abap` (reference ICF handler impl — ~15 lines; real apps follow the same pattern) |
 | `node/setup/` | `abap_transpile.json` (transpiler config), `setup.mjs` (SQLite bootstrap for Node unit tests) |
 | `node/tests/` | Playwright tests — `example.spec.js` (browser), plus unit specs (`buildDeltaFromPaths.spec.js`, `utilHelpers.spec.js`) that load the **real** `app/webapp/core/Lib.js` via `loadLibModule.js` (stubbed `sap.ui.define`); run them without a browser via `npx playwright test -c node/playwright-unit.config.js` |
@@ -330,7 +330,8 @@ Config files: `eslint.config.mjs`, `.prettierrc`, `.editorconfig`, `ui5.yaml`, `
 | `src/01/01/z2ui5_cl_core_srv_draft.clas.abap` | Draft/session persistence |
 | `src/00/03/z2ui5_cl_util.clas.abap` | General utility class |
 | `src/00/03/z2ui5_cl_util_xml.clas.abap` | Generic XML builder (preferred for new code) |
-| `app/webapp/core/Lib.js` | Shared frontend helpers + `z2ui5.*` globals inventory |
+| `app/webapp/core/AppState.js` | Owner of the shared frontend state + `z2ui5.*` globals inventory |
+| `app/webapp/core/Lib.js` | Shared frontend helpers |
 | `app/webapp/core/Server.js` | Roundtrip lifecycle + request/response wire format docs |
 
 ## Commit Message Style
@@ -367,7 +368,7 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
 6. **String literals use backticks** (`` ` ``), not single quotes.
 7. **The `z2ui5_cl_xml_view` class has a `method_overwrites_builtin` exception** — its fluent methods intentionally match UI5 control names.
 8. **Frontend public contracts** — besides `src/02/`, the following frontend names are consumed by backend-generated views and existing apps and must not be renamed: the module IDs `z2ui5/cc/<Name>` of the custom controls (file location under `webapp/cc/` defines the ID; the `z2ui5` XML namespace maps to `z2ui5.cc` in `z2ui5_cl_xml_view`), their properties/events used by `z2ui5_cl_xml_view_cc`, the controller methods `eB`/`eF`, the `z2ui5/Util` module and the `z2ui5.Util` global (public date helpers). Additive changes only. Raw view XML written by apps must declare `xmlns:z2ui5="z2ui5.cc"` (changed from `"z2ui5"` when the controls moved into `cc/`).
-9. **Shared frontend helpers live in `app/webapp/core/Lib.js`** — shared or pure/testable logic goes there (pure helpers are unit-tested in Node via `node/tests/loadLibModule.js`); helpers with a single consumer stay in that module. `core/Lib.js` also documents the complete inventory of the `z2ui5.*` globals.
+9. **Shared frontend helpers live in `app/webapp/core/Lib.js`** — shared or pure/testable logic goes there (pure helpers are unit-tested in Node via `node/tests/loadLibModule.js`); helpers with a single consumer stay in that module. **Shared frontend state is owned by `app/webapp/core/AppState.js`** — it documents the complete inventory of the `z2ui5.*` globals (public contract vs. internal fields), provides the defaults for all internal fields and exposes them on the global via transitional accessors. Do not add new lazy `if (!z2ui5.x)` bootstrapping; add the field with its default to `AppState.createState()` instead.
 10. **`npm run auto_downport` rewrites `src/` in place** (and overwrites `abaplint.jsonc`) — it is meant for throwaway CI checkouts. When running the validation sequence locally, commit your work first and restore afterwards with `git checkout -- src/ abaplint.jsonc`.
 
 ## Design Decisions & Known Non-Issues

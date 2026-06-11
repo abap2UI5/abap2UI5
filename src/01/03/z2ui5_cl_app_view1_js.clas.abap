@@ -73,7 +73,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    let _busyDialog = null;` && |\n| &&
              `` && |\n| &&
              `    function applyStoredSizeLimit(viewKey, oModel) {` && |\n| &&
-             `      if (!oModel || !z2ui5.viewSizeLimits) return;` && |\n| &&
+             `      if (!oModel) return;` && |\n| &&
              `      const limit = z2ui5.viewSizeLimits[viewKey];` && |\n| &&
              `      if (limit !== undefined) oModel.setSizeLimit(limit);` && |\n| &&
              `    }` && |\n| &&
@@ -97,7 +97,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            p = raw;` && |\n| &&
              `          }` && |\n| &&
              `          if (p.startsWith("/XX/")) {` && |\n| &&
-             `            if (!z2ui5.xxChangedPaths) z2ui5.xxChangedPaths = new Set();` && |\n| &&
              `            z2ui5.xxChangedPaths.add(p);` && |\n| &&
              `          }` && |\n| &&
              `        });` && |\n| &&
@@ -418,9 +417,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        this._destroyView("oView");` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      // ------------------------------------------------------------------` && |\n| &&
              |\n|.
     result = result &&
-             `      // ------------------------------------------------------------------` && |\n| &&
              `      // eF = "event frontend": handles frontend-only events triggered by` && |\n| &&
              `      // the backend response, without a roundtrip. The name is part of the` && |\n| &&
              `      // protocol - backend-generated view XML binds events to eB/eF - and` && |\n| &&
@@ -465,11 +464,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // A new roundtrip overrides any pending timer - timers that fired` && |\n| &&
              `        // already removed themselves before calling eB, so this only cancels` && |\n| &&
              `        // timers that are still waiting.` && |\n| &&
-             `        if (z2ui5.timers) {` && |\n| &&
-             `          for (const key in z2ui5.timers) {` && |\n| &&
-             `            clearTimeout(z2ui5.timers[key]);` && |\n| &&
-             `            delete z2ui5.timers[key];` && |\n| &&
-             `          }` && |\n| &&
+             `        for (const key in z2ui5.timers) {` && |\n| &&
+             `          clearTimeout(z2ui5.timers[key]);` && |\n| &&
+             `          delete z2ui5.timers[key];` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        z2ui5.isBusy = true;` && |\n| &&
@@ -485,7 +482,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        // If the user edited /XX/ paths, send only the delta to keep the` && |\n| &&
              `        // payload small.` && |\n| &&
-             `        if (oModel && z2ui5.xxChangedPaths?.size > 0) {` && |\n| &&
+             `        if (oModel && z2ui5.xxChangedPaths.size > 0) {` && |\n| &&
              `          const data = oModel.getData();` && |\n| &&
              `          const xx = data?.XX;` && |\n| &&
              `          if (xx) {` && |\n| &&

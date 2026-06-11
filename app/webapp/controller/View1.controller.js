@@ -53,7 +53,7 @@ sap.ui.define(
     let _busyDialog = null;
 
     function applyStoredSizeLimit(viewKey, oModel) {
-      if (!oModel || !z2ui5.viewSizeLimits) return;
+      if (!oModel) return;
       const limit = z2ui5.viewSizeLimits[viewKey];
       if (limit !== undefined) oModel.setSizeLimit(limit);
     }
@@ -77,7 +77,6 @@ sap.ui.define(
             p = raw;
           }
           if (p.startsWith("/XX/")) {
-            if (!z2ui5.xxChangedPaths) z2ui5.xxChangedPaths = new Set();
             z2ui5.xxChangedPaths.add(p);
           }
         });
@@ -443,11 +442,9 @@ sap.ui.define(
         // A new roundtrip overrides any pending timer - timers that fired
         // already removed themselves before calling eB, so this only cancels
         // timers that are still waiting.
-        if (z2ui5.timers) {
-          for (const key in z2ui5.timers) {
-            clearTimeout(z2ui5.timers[key]);
-            delete z2ui5.timers[key];
-          }
+        for (const key in z2ui5.timers) {
+          clearTimeout(z2ui5.timers[key]);
+          delete z2ui5.timers[key];
         }
 
         z2ui5.isBusy = true;
@@ -463,7 +460,7 @@ sap.ui.define(
 
         // If the user edited /XX/ paths, send only the delta to keep the
         // payload small.
-        if (oModel && z2ui5.xxChangedPaths?.size > 0) {
+        if (oModel && z2ui5.xxChangedPaths.size > 0) {
           const data = oModel.getData();
           const xx = data?.XX;
           if (xx) {

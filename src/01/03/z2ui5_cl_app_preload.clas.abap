@@ -43,6 +43,7 @@ CLASS z2ui5_cl_app_preload IMPLEMENTATION.
              |      "z2ui5/Component.js": function()\{{ z2ui5_cl_app_component_js=>get( ) }{ custom_js }\},| && |\n| &&
              |      "z2ui5/controller/App.controller.js": function()\{{ z2ui5_cl_app_app_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/controller/View1.controller.js": function()\{{ z2ui5_cl_app_view1_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/core/AppState.js": function()\{{ z2ui5_cl_app_appstate_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/DebugTool.fragment.xml": '{ z2ui5_cl_app_debugtool_xml=>get( ) }',| && |\n| &&
              |      "z2ui5/core/DebugTool.js": function()\{{ z2ui5_cl_app_debugtool_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/FrontendAction.js": function()\{{ z2ui5_cl_app_frontendaction_js=>get( ) }\},| && |\n| &&

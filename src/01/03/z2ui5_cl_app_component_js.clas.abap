@@ -27,6 +27,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `    "z2ui5/core/DebugTool",` && |\n| &&
              `    "sap/ui/core/Theming",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/Util",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
@@ -37,6 +38,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `    DebugTool,` && |\n| &&
              `    Theming,` && |\n| &&
              `    Lib,` && |\n| &&
+             `    AppState,` && |\n| &&
              `    DateUtil,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
@@ -48,14 +50,15 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      init() {` && |\n| &&
-             `        // The global "z2ui5" object holds shared state for the whole app. When` && |\n| &&
-             `        // the component is (re-)initialized we make sure oConfig exists so the` && |\n| &&
-             `        // base init() and our helpers can rely on it.` && |\n| &&
-             `        if (typeof z2ui5 !== "undefined") z2ui5.oConfig = {};` && |\n| &&
+             `        // The global "z2ui5" object holds the shared state for the whole` && |\n| &&
+             `        // app; core/AppState owns it. initGlobal() creates the global if` && |\n| &&
+             `        // needed, resets the internal state to clean defaults and provides` && |\n| &&
+             `        // a fresh oConfig - so the base init() and all helpers can rely on` && |\n| &&
+             `        // a fully initialized global from here on.` && |\n| &&
+             `        AppState.initGlobal();` && |\n| &&
              `` && |\n| &&
              `        UIComponent.prototype.init.call(this);` && |\n| &&
              `` && |\n| &&
-             `        this._ensureGlobalState();` && |\n| &&
              `        z2ui5.oConfig.ComponentData = this.getComponentData();` && |\n| &&
              `` && |\n| &&
              `        // The date helpers are a public contract: apps use them via the` && |\n| &&
@@ -83,17 +86,6 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        z2ui5.oRouter = this.getRouter();` && |\n| &&
              `        z2ui5.oRouter.initialize();` && |\n| &&
              `        z2ui5.oRouter.stop();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // After the base init, ensure z2ui5 / z2ui5.oConfig exist. The` && |\n| &&
-             `      // backend-generated HTML declares window.z2ui5 before the component` && |\n| &&
-             `      // boots; when running standalone (local dev tooling) it does not` && |\n| &&
-             `      // exist yet. Assign via window - a bare ``z2ui5 = {}`` would throw a` && |\n| &&
-             `      // ReferenceError on an undeclared global in strict mode.` && |\n| &&
-             `      _ensureGlobalState() {` && |\n| &&
-             `        if (typeof z2ui5 === "undefined") window.z2ui5 = {};` && |\n| &&
-             `        if (z2ui5.checkLocal === false) window.z2ui5 = {};` && |\n| &&
-             `        if (typeof z2ui5.oConfig === "undefined") z2ui5.oConfig = {};` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&

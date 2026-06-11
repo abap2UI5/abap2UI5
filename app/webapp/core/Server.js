@@ -81,7 +81,9 @@ sap.ui.define(
             "sap-contextid-accept": "header",
           },
         }).catch(() => {});
-        delete z2ui5.contextId;
+        // Null instead of delete: contextId is an accessor installed by
+        // core/AppState, deleting it would remove the accessor itself.
+        z2ui5.contextId = null;
       },
 
       _getDeviceInfo() {
@@ -165,7 +167,6 @@ sap.ui.define(
         while (current) {
           for (const slot of Lib.viewSlots) {
             if (z2ui5[slot.prop] === current) {
-              if (!z2ui5.lastScrolled) z2ui5.lastScrolled = {};
               z2ui5.lastScrolled[slot.key] = { control: ui5El, dom: target };
               return;
             }
@@ -180,8 +181,6 @@ sap.ui.define(
         // X = scrollLeft, Y = scrollTop. Slots the user never scrolled are
         // absent from the result - restoring 0/0 would be a no-op anyway.
         const store = z2ui5.lastScrolled;
-        if (!store) return undefined;
-
         const out = {};
         for (const slot of Lib.viewSlots) {
           const entry = store[slot.key];

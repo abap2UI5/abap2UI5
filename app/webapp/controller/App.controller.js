@@ -21,20 +21,16 @@ sap.ui.define(
         const uri = http?.uri;
         z2ui5.url = z2ui5.checkLocal ? window.location.href : uri;
 
-        // Set up the shared z2ui5 state used by the whole app.
+        // Wire up the controller instances and the app container. All other
+        // shared state (callback arrays, error log, roundtrip flags, ...)
+        // starts from the defaults that core/AppState set during
+        // Component.init.
         z2ui5.oController = new Controller();
         z2ui5.oApp = this.getView().byId("app");
         z2ui5.oControllerNest = new Controller();
         z2ui5.oControllerNest2 = new Controller();
         z2ui5.oControllerPopup = new Controller();
         z2ui5.oControllerPopover = new Controller();
-        z2ui5.onBeforeRoundtrip = [];
-        z2ui5.onAfterRendering = [];
-        z2ui5.onBeforeEventFrontend = [];
-        z2ui5.onAfterRoundtrip = [];
-        z2ui5.errors = [];
-        z2ui5.checkNestAfter = false;
-        z2ui5.checkNestAfter2 = false;
 
         // If the URL already contains a hash, kick off the initial roundtrip
         // so the backend can restore that state.

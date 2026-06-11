@@ -101,7 +101,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            "sap-contextid-accept": "header",` && |\n| &&
              `          },` && |\n| &&
              `        }).catch(() => {});` && |\n| &&
-             `        delete z2ui5.contextId;` && |\n| &&
+             `        // Null instead of delete: contextId is an accessor installed by` && |\n| &&
+             `        // core/AppState, deleting it would remove the accessor itself.` && |\n| &&
+             `        z2ui5.contextId = null;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _getDeviceInfo() {` && |\n| &&
@@ -185,7 +187,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        while (current) {` && |\n| &&
              `          for (const slot of Lib.viewSlots) {` && |\n| &&
              `            if (z2ui5[slot.prop] === current) {` && |\n| &&
-             `              if (!z2ui5.lastScrolled) z2ui5.lastScrolled = {};` && |\n| &&
              `              z2ui5.lastScrolled[slot.key] = { control: ui5El, dom: target };` && |\n| &&
              `              return;` && |\n| &&
              `            }` && |\n| &&
@@ -200,8 +201,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        // X = scrollLeft, Y = scrollTop. Slots the user never scrolled are` && |\n| &&
              `        // absent from the result - restoring 0/0 would be a no-op anyway.` && |\n| &&
              `        const store = z2ui5.lastScrolled;` && |\n| &&
-             `        if (!store) return undefined;` && |\n| &&
-             `` && |\n| &&
              `        const out = {};` && |\n| &&
              `        for (const slot of Lib.viewSlots) {` && |\n| &&
              `          const entry = store[slot.key];` && |\n| &&
@@ -418,9 +417,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // Arguments live at the odd indices between single quotes.` && |\n| &&
              `          const args = parts.filter((_, index) => index % 2 === 1);` && |\n| &&
              `          if (args.length > 0) {` && |\n| &&
+             `            oController.eF(...args);` && |\n| &&
              |\n|.
     result = result &&
-             `            oController.eF(...args);` && |\n| &&
              `          } else {` && |\n| &&
              `            // eslint-disable-next-line no-new-func` && |\n| &&
              `            Function("return " + parts[0])();` && |\n| &&

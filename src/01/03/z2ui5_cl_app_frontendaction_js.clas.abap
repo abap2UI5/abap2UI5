@@ -121,14 +121,13 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      const model = view?.getModel();` && |\n| &&
              `` && |\n| &&
              `      if (Number.isFinite(limit) && limit > 0) {` && |\n| &&
-             `        if (!z2ui5.viewSizeLimits) z2ui5.viewSizeLimits = {};` && |\n| &&
              `        z2ui5.viewSizeLimits[viewKey] = limit;` && |\n| &&
              `        if (model) {` && |\n| &&
              `          model.setSizeLimit(limit);` && |\n| &&
              `          model.refresh(true);` && |\n| &&
              `        }` && |\n| &&
              `      } else {` && |\n| &&
-             `        if (z2ui5.viewSizeLimits) delete z2ui5.viewSizeLimits[viewKey];` && |\n| &&
+             `        delete z2ui5.viewSizeLimits[viewKey];` && |\n| &&
              `        if (model) {` && |\n| &&
              `          model.setSizeLimit(100);` && |\n| &&
              `          model.refresh(true);` && |\n| &&
@@ -317,7 +316,6 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      const timerKey = args[0];` && |\n| &&
              `      const callbackEvent = args[1];` && |\n| &&
              `      const delay = +args[2] || 0;` && |\n| &&
-             `      if (!z2ui5.timers) z2ui5.timers = {};` && |\n| &&
              `      clearTimeout(z2ui5.timers[timerKey]);` && |\n| &&
              `      z2ui5.timers[timerKey] = setTimeout(() => {` && |\n| &&
              `        delete z2ui5.timers[timerKey];` && |\n| &&
@@ -418,10 +416,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      } catch (e) {` && |\n| &&
              `        Lib.logError(``SCROLL_TO: failed for '${args[1]}'``, e);` && |\n| &&
              `      }` && |\n| &&
-             |\n|.
-    result = result &&
              `    }` && |\n| &&
              `` && |\n| &&
+             |\n|.
+    result = result &&
              `    function evScrollIntoView(oController, args) {` && |\n| &&
              `      // args[1] = control id` && |\n| &&
              `      // args[2] = behavior - "smooth" (default) | "auto" | "instant"` && |\n| &&

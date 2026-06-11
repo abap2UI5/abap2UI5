@@ -101,14 +101,13 @@ sap.ui.define(
       const model = view?.getModel();
 
       if (Number.isFinite(limit) && limit > 0) {
-        if (!z2ui5.viewSizeLimits) z2ui5.viewSizeLimits = {};
         z2ui5.viewSizeLimits[viewKey] = limit;
         if (model) {
           model.setSizeLimit(limit);
           model.refresh(true);
         }
       } else {
-        if (z2ui5.viewSizeLimits) delete z2ui5.viewSizeLimits[viewKey];
+        delete z2ui5.viewSizeLimits[viewKey];
         if (model) {
           model.setSizeLimit(100);
           model.refresh(true);
@@ -297,7 +296,6 @@ sap.ui.define(
       const timerKey = args[0];
       const callbackEvent = args[1];
       const delay = +args[2] || 0;
-      if (!z2ui5.timers) z2ui5.timers = {};
       clearTimeout(z2ui5.timers[timerKey]);
       z2ui5.timers[timerKey] = setTimeout(() => {
         delete z2ui5.timers[timerKey];
