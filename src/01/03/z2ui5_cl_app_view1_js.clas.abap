@@ -72,6 +72,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // so the next roundtrip only ships the delta.` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `      _trackChanges(oModel) {` && |\n| &&
+             `        // Mark the model as framework-owned: updateModelIfRequired may only` && |\n| &&
+             `        // reuse models that carry this change tracker.` && |\n| &&
+             `        oModel._z2ui5Tracked = true;` && |\n| &&
              `        oModel.attachPropertyChange((e) => {` && |\n| &&
              `          const params = e.getParameters();` && |\n| &&
              `          const raw = params.path;` && |\n| &&
@@ -415,11 +418,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // payload small.` && |\n| &&
              `        if (oModel && z2ui5.xxChangedPaths.size > 0) {` && |\n| &&
              `          const data = oModel.getData();` && |\n| &&
+             |\n|.
+    result = result &&
              `          const xx = data?.XX;` && |\n| &&
              `          if (xx) {` && |\n| &&
              `            oBody.XX = Lib.buildDeltaFromPaths(z2ui5.xxChangedPaths, xx);` && |\n| &&
-             |\n|.
-    result = result &&
              `          }` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -459,17 +462,35 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        return ViewSlots.getView(slotKey)?.getModel();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Re-bind a model to one of the views when the response signals an` && |\n| &&
-             `      // update is required for that particular slot.` && |\n| &&
+             `      // Refresh a slot's model when the response signals an update for it` && |\n| &&
+             `      // (CHECK_UPDATE_MODEL - the data-only roundtrip every app triggers` && |\n| &&
+             `      // via client->view_model_update( )).` && |\n| &&
              `      updateModelIfRequired(slotKey) {` && |\n| &&
              `        const params = z2ui5.oResponse?.PARAMS;` && |\n| &&
              `        const slotParams = params?.[ViewSlots.paramByKey(slotKey)];` && |\n| &&
              `        if (!slotParams || !slotParams.CHECK_UPDATE_MODEL) return;` && |\n| &&
              `` && |\n| &&
+             `        const oView = ViewSlots.getView(slotKey);` && |\n| &&
+             `        if (!oView) return;` && |\n| &&
+             `` && |\n| &&
+             `        // Reuse the existing model whenever it is ours: setData() keeps the` && |\n| &&
+             `        // view's bindings alive and only refreshes what changed, while a new` && |\n| &&
+             `        // model + setModel() destroys and recreates every binding - measured` && |\n| &&
+             `        // ~3x slower with all values changed and ~150x slower when little` && |\n| &&
+             `        // changed (see node/tests-examples/modelUpdate.bench.spec.js).` && |\n| &&
+             `        const existing = oView.getModel();` && |\n| &&
+             `        if (existing?._z2ui5Tracked) {` && |\n| &&
+             `          applyStoredSizeLimit(slotKey, existing);` && |\n| &&
+             `          existing.setData(z2ui5.oResponse?.OVIEWMODEL);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        // The slot's default model is not framework-owned (e.g. an` && |\n| &&
+             `        // ODataModel via SWITCH_DEFAULT_MODEL_PATH): keep the previous` && |\n| &&
+             `        // behavior and bind a fresh JSON model.` && |\n| &&
              `        const oModel = this._createViewModel();` && |\n| &&
              `        applyStoredSizeLimit(slotKey, oModel);` && |\n| &&
-             `        const oView = ViewSlots.getView(slotKey);` && |\n| &&
-             `        if (oView) oView.setModel(oModel);` && |\n| &&
+             `        oView.setModel(oModel);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Replace the main app view with the XML coming from the backend.` && |\n| &&

@@ -52,6 +52,9 @@ sap.ui.define(
       // so the next roundtrip only ships the delta.
       // ------------------------------------------------------------------
       _trackChanges(oModel) {
+        // Mark the model as framework-owned: updateModelIfRequired may only
+        // reuse models that carry this change tracker.
+        oModel._z2ui5Tracked = true;
         oModel.attachPropertyChange((e) => {
           const params = e.getParameters();
           const raw = params.path;
@@ -437,17 +440,35 @@ sap.ui.define(
         return ViewSlots.getView(slotKey)?.getModel();
       },
 
-      // Re-bind a model to one of the views when the response signals an
-      // update is required for that particular slot.
+      // Refresh a slot's model when the response signals an update for it
+      // (CHECK_UPDATE_MODEL - the data-only roundtrip every app triggers
+      // via client->view_model_update( )).
       updateModelIfRequired(slotKey) {
         const params = z2ui5.oResponse?.PARAMS;
         const slotParams = params?.[ViewSlots.paramByKey(slotKey)];
         if (!slotParams || !slotParams.CHECK_UPDATE_MODEL) return;
 
+        const oView = ViewSlots.getView(slotKey);
+        if (!oView) return;
+
+        // Reuse the existing model whenever it is ours: setData() keeps the
+        // view's bindings alive and only refreshes what changed, while a new
+        // model + setModel() destroys and recreates every binding - measured
+        // ~3x slower with all values changed and ~150x slower when little
+        // changed (see node/tests-examples/modelUpdate.bench.spec.js).
+        const existing = oView.getModel();
+        if (existing?._z2ui5Tracked) {
+          applyStoredSizeLimit(slotKey, existing);
+          existing.setData(z2ui5.oResponse?.OVIEWMODEL);
+          return;
+        }
+
+        // The slot's default model is not framework-owned (e.g. an
+        // ODataModel via SWITCH_DEFAULT_MODEL_PATH): keep the previous
+        // behavior and bind a fresh JSON model.
         const oModel = this._createViewModel();
         applyStoredSizeLimit(slotKey, oModel);
-        const oView = ViewSlots.getView(slotKey);
-        if (oView) oView.setModel(oModel);
+        oView.setModel(oModel);
       },
 
       // Replace the main app view with the XML coming from the backend.

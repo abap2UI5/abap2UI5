@@ -162,7 +162,7 @@ src/
 | `node/srv/` | `express.mjs` (dev server on port 3000), `zcl_sicf.clas.abap` (reference ICF handler impl — ~15 lines; real apps follow the same pattern) |
 | `node/setup/` | `abap_transpile.json` (transpiler config), `setup.mjs` (SQLite bootstrap for Node unit tests) |
 | `node/tests/` | Playwright tests — `example.spec.js` (browser), plus unit specs (`buildDeltaFromPaths.spec.js`, `utilHelpers.spec.js`, `appState.spec.js`, `viewSlots.spec.js`) that load the **real** `app/webapp` modules via `loadModule.js` (stubbed `sap.ui.define`, stubbable dependencies); run them without a browser via `npx playwright test -c node/playwright-unit.config.js` (the unit config ignores `example.spec.js`) |
-| `node/tests-examples/` | Playwright example specs (reference material, not run in CI) |
+| `node/tests-examples/` | Playwright example specs and performance benchmarks (reference material, not run in CI) — `modelUpdate.bench.spec.js` measures the model-update strategies and documents its own setup; run via `node/playwright-bench.config.js` |
 | `.github/workflows/` | 17 CI/CD workflows (see below) |
 | `.github/abaplint/` | Target-specific abaplint configs: `abap_702.jsonc`, `abap_standard.jsonc`, `abap_cloud.jsonc`, `auto_abaplint_fix.jsonc`, `rename_test.jsonc` |
 | `.github/app2abap/` | `trans2abap.js` — converts `app/webapp/*` files into embedded ABAP string constants in `src/01/03/` |
