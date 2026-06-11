@@ -24,7 +24,7 @@ CLASS z2ui5_cl_app_fileuploader_js IMPLEMENTATION.
              `    "sap/m/Button",` && |\n| &&
              `    "sap/ui/unified/FileUploader",` && |\n| &&
              `    "sap/m/HBox",` && |\n| &&
-             `    "z2ui5/cc/Lib",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
              `  ],` && |\n| &&
              `  (Control, Button, FileUploader, HBox, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&

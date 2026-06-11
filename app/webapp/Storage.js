@@ -1,5 +1,5 @@
 sap.ui.define(
-  ["sap/ui/core/Control", "sap/ui/util/Storage", "z2ui5/cc/Lib"],
+  ["sap/ui/core/Control", "sap/ui/util/Storage", "z2ui5/core/Lib"],
   (Control, Storage, Lib) => {
     "use strict";
 
@@ -43,7 +43,7 @@ sap.ui.define(
         },
       },
 
-      // Follows the shared rendering pattern (see cc/Lib.js): the renderer
+      // Follows the shared rendering pattern (see core/Lib.js): the renderer
       // only marks the work, onAfterRendering reads the storage and fires
       // the event.
       onAfterRendering() {

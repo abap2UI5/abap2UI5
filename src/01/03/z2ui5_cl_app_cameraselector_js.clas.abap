@@ -23,7 +23,7 @@ CLASS z2ui5_cl_app_cameraselector_js IMPLEMENTATION.
              `    "sap/m/ComboBox",` && |\n| &&
              `    "sap/ui/core/Item",` && |\n| &&
              `    "sap/m/ComboBoxRenderer",` && |\n| &&
-             `    "z2ui5/cc/Lib",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
              `  ],` && |\n| &&
              `  (ComboBox, Item, ComboBoxRenderer, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&

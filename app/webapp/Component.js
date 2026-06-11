@@ -2,11 +2,11 @@ sap.ui.define(
   [
     "sap/ui/core/UIComponent",
     "z2ui5/model/models",
-    "z2ui5/cc/Server",
+    "z2ui5/core/Server",
     "sap/ui/VersionInfo",
-    "z2ui5/cc/DebugTool",
+    "z2ui5/core/DebugTool",
     "sap/ui/core/Theming",
-    "z2ui5/cc/Lib",
+    "z2ui5/core/Lib",
     "z2ui5/Util",
   ],
   (

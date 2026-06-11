@@ -51,7 +51,7 @@ Browser (UI5 SPA)                          ABAP Backend
 
 #### Launchpad Special Case — Request Body Wrapping
 
-The frontend always sends the POST body as `{ "value": <payload> }` (see `app/webapp/cc/Server.js`). In standalone mode this envelope arrives intact and `request_parse_body` unwraps it via `slice('value')`.
+The frontend always sends the POST body as `{ "value": <payload> }` (see `app/webapp/core/Server.js`). In standalone mode this envelope arrives intact and `request_parse_body` unwraps it via `slice('value')`.
 
 When the app runs inside the **SAP Fiori Launchpad** (FLP), requests may be routed through the FLP shell or an SAP Gateway proxy. In certain configurations this infrastructure strips the `value` envelope before the request reaches the ABAP ICF handler, so the payload arrives as a plain object without the `value` key.
 
@@ -158,10 +158,10 @@ src/
 | Directory | Purpose |
 |---|---|
 | `app/` | Frontend tooling (`package.json`, `ui5.yaml`, `eslint.config.mjs`, `.prettierrc`, `.editorconfig`) |
-| `app/webapp/` | UI5 frontend source — `Component.js`, `index.html`, `manifest.json`, `controller/`, `view/`, `model/`, `css/`, plus one file per custom control at the webapp root (`Timer.js`, `Scrolling.js`, … — module IDs `z2ui5/<Name>` resolved from the `z2ui5` XML namespace; `Util.js` holds the **public** date helpers exposed as the `z2ui5.Util` global). `cc/` contains the internals: `Server.js` (the JSON POST client that wraps the body as `{ "value": <payload> }`), `Lib.js` (shared helper module + the documented inventory of all `z2ui5.*` globals) and `DebugTool` |
+| `app/webapp/` | UI5 frontend source — `Component.js`, `index.html`, `manifest.json`, `controller/`, `view/`, `model/`, `css/`, plus one file per custom control at the webapp root (`Timer.js`, `Scrolling.js`, … — module IDs `z2ui5/<Name>` resolved from the `z2ui5` XML namespace; `Util.js` holds the **public** date helpers exposed as the `z2ui5.Util` global). `core/` contains the internals: `Server.js` (the JSON POST client that wraps the body as `{ "value": <payload> }`), `Lib.js` (shared helper module + the documented inventory of all `z2ui5.*` globals) and `DebugTool` |
 | `node/srv/` | `express.mjs` (dev server on port 3000), `zcl_sicf.clas.abap` (reference ICF handler impl — ~15 lines; real apps follow the same pattern) |
 | `node/setup/` | `abap_transpile.json` (transpiler config), `setup.mjs` (SQLite bootstrap for Node unit tests) |
-| `node/tests/` | Playwright tests — `example.spec.js` (browser), plus unit specs (`buildDeltaFromPaths.spec.js`, `utilHelpers.spec.js`) that load the **real** `app/webapp/cc/Lib.js` via `loadLibModule.js` (stubbed `sap.ui.define`); run them without a browser via `npx playwright test -c node/playwright-unit.config.js` |
+| `node/tests/` | Playwright tests — `example.spec.js` (browser), plus unit specs (`buildDeltaFromPaths.spec.js`, `utilHelpers.spec.js`) that load the **real** `app/webapp/core/Lib.js` via `loadLibModule.js` (stubbed `sap.ui.define`); run them without a browser via `npx playwright test -c node/playwright-unit.config.js` |
 | `node/tests-examples/` | Playwright example specs (reference material, not run in CI) |
 | `.github/workflows/` | 17 CI/CD workflows (see below) |
 | `.github/abaplint/` | Target-specific abaplint configs: `abap_702.jsonc`, `abap_standard.jsonc`, `abap_cloud.jsonc`, `auto_abaplint_fix.jsonc`, `rename_test.jsonc` |
@@ -298,7 +298,7 @@ Config files: `eslint.config.mjs`, `.prettierrc`, `.editorconfig`, `ui5.yaml`, `
 
 - **Unit tests:** Embedded in source files as `.testclasses.abap` (46 files as of v1.142.0), run via abaplint transpiler in Node.js
 - **Browser tests:** Playwright in `node/tests/` — Chromium, Firefox, WebKit against localhost:3000 (config: `node/playwright.config.js`; unit variant: `node/playwright-unit.config.js`)
-- **JS unit specs:** `node/tests/buildDeltaFromPaths.spec.js` and `node/tests/utilHelpers.spec.js` load the **real** `app/webapp/cc/Lib.js` through a stubbed `sap.ui.define` (`loadLibModule.js`) — never test a copied function. Run without a browser: `npx playwright test -c node/playwright-unit.config.js`
+- **JS unit specs:** `node/tests/buildDeltaFromPaths.spec.js` and `node/tests/utilHelpers.spec.js` load the **real** `app/webapp/core/Lib.js` through a stubbed `sap.ui.define` (`loadLibModule.js`) — never test a copied function. Run without a browser: `npx playwright test -c node/playwright-unit.config.js`
 - **Unit test metadata:** When a class has a `.testclasses.abap` file, its `.clas.xml` **must** contain `<WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>`. When a class has no test file, this flag **must not** be present. Mismatches cause `local_testclass_consistency` lint errors.
 - **Test SICF handler:** `node/srv/zcl_sicf.clas.abap` is copied into `node/downport/` during `auto_transpile` so the Node runtime has a minimal HTTP entry point.
 
@@ -330,8 +330,8 @@ Config files: `eslint.config.mjs`, `.prettierrc`, `.editorconfig`, `ui5.yaml`, `
 | `src/01/01/z2ui5_cl_core_srv_draft.clas.abap` | Draft/session persistence |
 | `src/00/03/z2ui5_cl_util.clas.abap` | General utility class |
 | `src/00/03/z2ui5_cl_util_xml.clas.abap` | Generic XML builder (preferred for new code) |
-| `app/webapp/cc/Lib.js` | Shared frontend helpers + `z2ui5.*` globals inventory |
-| `app/webapp/cc/Server.js` | Roundtrip lifecycle + request/response wire format docs |
+| `app/webapp/core/Lib.js` | Shared frontend helpers + `z2ui5.*` globals inventory |
+| `app/webapp/core/Server.js` | Roundtrip lifecycle + request/response wire format docs |
 
 ## Commit Message Style
 
@@ -367,7 +367,7 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
 6. **String literals use backticks** (`` ` ``), not single quotes.
 7. **The `z2ui5_cl_xml_view` class has a `method_overwrites_builtin` exception** — its fluent methods intentionally match UI5 control names.
 8. **Frontend public contracts** — besides `src/02/`, the following frontend names are consumed by backend-generated views and existing apps and must not be renamed: the module IDs `z2ui5/<Name>` of the custom controls (file location at the `webapp` root defines the ID), their properties/events used by `z2ui5_cl_xml_view_cc`, the controller methods `eB`/`eF`, the `z2ui5/Util` module and the `z2ui5.Util` global (public date helpers). Additive changes only.
-9. **Shared frontend helpers live in `app/webapp/cc/Lib.js`** — shared or pure/testable logic goes there (pure helpers are unit-tested in Node via `node/tests/loadLibModule.js`); helpers with a single consumer stay in that module. `cc/Lib.js` also documents the complete inventory of the `z2ui5.*` globals.
+9. **Shared frontend helpers live in `app/webapp/core/Lib.js`** — shared or pure/testable logic goes there (pure helpers are unit-tested in Node via `node/tests/loadLibModule.js`); helpers with a single consumer stay in that module. `core/Lib.js` also documents the complete inventory of the `z2ui5.*` globals.
 10. **`npm run auto_downport` rewrites `src/` in place** (and overwrites `abaplint.jsonc`) — it is meant for throwaway CI checkouts. When running the validation sequence locally, commit your work first and restore afterwards with `git checkout -- src/ abaplint.jsonc`.
 
 ## Design Decisions & Known Non-Issues

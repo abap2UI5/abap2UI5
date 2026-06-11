@@ -4,7 +4,7 @@ sap.ui.define(
     "sap/m/Button",
     "sap/ui/unified/FileUploader",
     "sap/m/HBox",
-    "z2ui5/cc/Lib",
+    "z2ui5/core/Lib",
   ],
   (Control, Button, FileUploader, HBox, Lib) => {
     "use strict";

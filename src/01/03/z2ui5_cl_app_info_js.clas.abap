@@ -18,7 +18,7 @@ CLASS z2ui5_cl_app_info_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {` && |\n| &&
+    result = `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
              `  return Control.extend("z2ui5.Info", {` && |\n| &&
@@ -66,7 +66,7 @@ CLASS z2ui5_cl_app_info_js IMPLEMENTATION.
              `      },` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             `    // Follows the shared rendering pattern (see cc/Lib.js): the renderer` && |\n| &&
+             `    // Follows the shared rendering pattern (see core/Lib.js): the renderer` && |\n| &&
              `    // only marks the work, onAfterRendering reads the device info and` && |\n| &&
              `    // fires the event.` && |\n| &&
              `    onAfterRendering() {` && |\n| &&

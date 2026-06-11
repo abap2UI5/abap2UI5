@@ -4,7 +4,7 @@ sap.ui.define(
     "sap/m/Dialog",
     "sap/m/Button",
     "sap/ui/core/HTML",
-    "z2ui5/cc/Lib",
+    "z2ui5/core/Lib",
   ],
   (Control, Dialog, Button, HTML, Lib) => {
     "use strict";

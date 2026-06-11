@@ -19,7 +19,7 @@ CLASS z2ui5_cl_app_multiinputext_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Control", "sap/m/Token", "z2ui5/cc/Lib"],` && |\n| &&
+             `  ["sap/ui/core/Control", "sap/m/Token", "z2ui5/core/Lib"],` && |\n| &&
              `  (Control, Token, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&

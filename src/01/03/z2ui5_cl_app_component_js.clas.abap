@@ -22,11 +22,11 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `  [` && |\n| &&
              `    "sap/ui/core/UIComponent",` && |\n| &&
              `    "z2ui5/model/models",` && |\n| &&
-             `    "z2ui5/cc/Server",` && |\n| &&
+             `    "z2ui5/core/Server",` && |\n| &&
              `    "sap/ui/VersionInfo",` && |\n| &&
-             `    "z2ui5/cc/DebugTool",` && |\n| &&
+             `    "z2ui5/core/DebugTool",` && |\n| &&
              `    "sap/ui/core/Theming",` && |\n| &&
-             `    "z2ui5/cc/Lib",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/Util",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&

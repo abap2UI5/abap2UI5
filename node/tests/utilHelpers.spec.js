@@ -2,7 +2,7 @@
 const { test, expect } = require("@playwright/test");
 const { loadLib } = require("./loadLibModule");
 
-// Tests the security and session helpers shipped in app/webapp/cc/Lib.js.
+// Tests the security and session helpers shipped in app/webapp/core/Lib.js.
 // The module is loaded via a stubbed sap.ui.define (see loadLibModule.js),
 // with window.location.origin anchored to http://localhost:3000.
 

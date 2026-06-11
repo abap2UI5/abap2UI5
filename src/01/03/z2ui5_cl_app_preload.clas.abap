@@ -23,13 +23,13 @@ CLASS z2ui5_cl_app_preload IMPLEMENTATION.
 
     result = |      "z2ui5/CameraPicture.js": function()\{{ z2ui5_cl_app_camerapicture_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/CameraSelector.js": function()\{{ z2ui5_cl_app_cameraselector_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/cc/DebugTool.fragment.xml": '{ z2ui5_cl_app_debugtool_xml=>get( ) }',| && |\n| &&
-             |      "z2ui5/cc/DebugTool.js": function()\{{ z2ui5_cl_app_debugtool_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/cc/Lib.js": function()\{{ z2ui5_cl_app_lib_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/cc/Server.js": function()\{{ z2ui5_cl_app_server_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/Component.js": function()\{{ z2ui5_cl_app_component_js=>get( ) }{ custom_js }\},| && |\n| &&
              |      "z2ui5/controller/App.controller.js": function()\{{ z2ui5_cl_app_app_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/controller/View1.controller.js": function()\{{ z2ui5_cl_app_view1_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/core/DebugTool.fragment.xml": '{ z2ui5_cl_app_debugtool_xml=>get( ) }',| && |\n| &&
+             |      "z2ui5/core/DebugTool.js": function()\{{ z2ui5_cl_app_debugtool_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/core/Lib.js": function()\{{ z2ui5_cl_app_lib_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/core/Server.js": function()\{{ z2ui5_cl_app_server_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/css/style.css": '{ styles_css }',| && |\n| &&
              |      "z2ui5/Dirty.js": function()\{{ z2ui5_cl_app_dirty_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/Favicon.js": function()\{{ z2ui5_cl_app_favicon_js=>get( ) }\},| && |\n| &&

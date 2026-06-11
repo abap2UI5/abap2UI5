@@ -3,7 +3,7 @@ sap.ui.define(
     "sap/ui/core/BusyIndicator",
     "sap/ui/Device",
     "sap/ui/core/Element",
-    "z2ui5/cc/Lib",
+    "z2ui5/core/Lib",
   ],
   (BusyIndicator, Device, Element, Lib) => {
     "use strict";

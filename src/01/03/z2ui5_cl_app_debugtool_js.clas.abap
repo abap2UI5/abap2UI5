@@ -23,7 +23,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `    "sap/ui/core/Control",` && |\n| &&
              `    "sap/ui/core/Fragment",` && |\n| &&
              `    "sap/ui/model/json/JSONModel",` && |\n| &&
-             `    "z2ui5/cc/Lib",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
              `  ],` && |\n| &&
              `  (Control, Fragment, JSONModel, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&
@@ -132,7 +132,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      }),` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    return Control.extend("z2ui5.cc.DebugTool", {` && |\n| &&
+             `    return Control.extend("z2ui5.core.DebugTool", {` && |\n| &&
              `      // Reformat an XML string with indentation. If anything goes wrong the` && |\n| &&
              `      // original input is returned unchanged - the debug tool must never` && |\n| &&
              `      // crash the host app.` && |\n| &&
@@ -244,7 +244,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          if (!this.oDialog) {` && |\n| &&
              `            this.oDialog = await Fragment.load({` && |\n| &&
-             `              name: "z2ui5.cc.DebugTool",` && |\n| &&
+             `              name: "z2ui5.core.DebugTool",` && |\n| &&
              `              controller: this,` && |\n| &&
              `              id: FRAGMENT_ID,` && |\n| &&
              `            });` && |\n| &&

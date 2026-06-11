@@ -1,5 +1,5 @@
 // @ts-check
-// Loads the real app/webapp/cc/Lib.js in Node by stubbing sap.ui.define,
+// Loads the real app/webapp/core/Lib.js in Node by stubbing sap.ui.define,
 // so the specs exercise the shipped implementation instead of a copy that
 // could silently drift from the production code.
 const fs = require("fs");

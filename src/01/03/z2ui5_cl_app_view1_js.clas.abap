@@ -29,13 +29,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    "sap/ui/core/Fragment",` && |\n| &&
              `    "sap/m/BusyDialog",` && |\n| &&
              `    "sap/ui/VersionInfo",` && |\n| &&
-             `    "z2ui5/cc/Server",` && |\n| &&
+             `    "z2ui5/core/Server",` && |\n| &&
              `    "sap/ui/model/odata/v2/ODataModel",` && |\n| &&
              `    "sap/m/library",` && |\n| &&
              `    "sap/ui/core/routing/HashChanger",` && |\n| &&
              `    "sap/ui/util/Storage",` && |\n| &&
              `    "sap/ui/core/Element",` && |\n| &&
-             `    "z2ui5/cc/Lib",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    Controller,` && |\n| &&

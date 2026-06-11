@@ -3,7 +3,7 @@ sap.ui.define(
     "sap/ui/core/Control",
     "sap/ui/core/Fragment",
     "sap/ui/model/json/JSONModel",
-    "z2ui5/cc/Lib",
+    "z2ui5/core/Lib",
   ],
   (Control, Fragment, JSONModel, Lib) => {
     "use strict";
@@ -112,7 +112,7 @@ sap.ui.define(
       }),
     };
 
-    return Control.extend("z2ui5.cc.DebugTool", {
+    return Control.extend("z2ui5.core.DebugTool", {
       // Reformat an XML string with indentation. If anything goes wrong the
       // original input is returned unchanged - the debug tool must never
       // crash the host app.
@@ -224,7 +224,7 @@ sap.ui.define(
         try {
           if (!this.oDialog) {
             this.oDialog = await Fragment.load({
-              name: "z2ui5.cc.DebugTool",
+              name: "z2ui5.core.DebugTool",
               controller: this,
               id: FRAGMENT_ID,
             });

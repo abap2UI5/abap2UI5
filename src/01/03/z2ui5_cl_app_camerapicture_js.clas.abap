@@ -24,7 +24,7 @@ CLASS z2ui5_cl_app_camerapicture_js IMPLEMENTATION.
              `    "sap/m/Dialog",` && |\n| &&
              `    "sap/m/Button",` && |\n| &&
              `    "sap/ui/core/HTML",` && |\n| &&
-             `    "z2ui5/cc/Lib",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
              `  ],` && |\n| &&
              `  (Control, Dialog, Button, HTML, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&

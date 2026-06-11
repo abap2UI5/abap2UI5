@@ -3,7 +3,7 @@ sap.ui.define(
     "sap/m/ComboBox",
     "sap/ui/core/Item",
     "sap/m/ComboBoxRenderer",
-    "z2ui5/cc/Lib",
+    "z2ui5/core/Lib",
   ],
   (ComboBox, Item, ComboBoxRenderer, Lib) => {
     "use strict";

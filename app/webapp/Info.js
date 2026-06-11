@@ -1,4 +1,4 @@
-sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
+sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
   "use strict";
 
   return Control.extend("z2ui5.Info", {
@@ -46,7 +46,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
       },
     },
 
-    // Follows the shared rendering pattern (see cc/Lib.js): the renderer
+    // Follows the shared rendering pattern (see core/Lib.js): the renderer
     // only marks the work, onAfterRendering reads the device info and
     // fires the event.
     onAfterRendering() {

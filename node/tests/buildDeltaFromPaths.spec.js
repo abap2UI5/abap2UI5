@@ -2,7 +2,7 @@
 const { test, expect } = require("@playwright/test");
 const { loadLib } = require("./loadLibModule");
 
-// Tests the real implementation shipped in app/webapp/cc/Lib.js (loaded
+// Tests the real implementation shipped in app/webapp/core/Lib.js (loaded
 // via a stubbed sap.ui.define) instead of a local copy that could drift.
 const { Lib } = loadLib();
 const _buildDeltaFromPaths = Lib.buildDeltaFromPaths;

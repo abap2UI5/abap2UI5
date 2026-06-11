@@ -1,5 +1,5 @@
 sap.ui.define(
-  ["sap/ui/core/Control", "sap/m/Token", "z2ui5/cc/Lib"],
+  ["sap/ui/core/Control", "sap/m/Token", "z2ui5/core/Lib"],
   (Control, Token, Lib) => {
     "use strict";
 

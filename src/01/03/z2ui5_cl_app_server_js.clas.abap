@@ -23,7 +23,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    "sap/ui/core/BusyIndicator",` && |\n| &&
              `    "sap/ui/Device",` && |\n| &&
              `    "sap/ui/core/Element",` && |\n| &&
-             `    "z2ui5/cc/Lib",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
              `  ],` && |\n| &&
              `  (BusyIndicator, Device, Element, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&

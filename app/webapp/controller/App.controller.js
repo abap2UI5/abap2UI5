@@ -2,7 +2,7 @@ sap.ui.define(
   [
     "sap/ui/core/mvc/Controller",
     "z2ui5/controller/View1.controller",
-    "z2ui5/cc/Server",
+    "z2ui5/core/Server",
     "sap/ui/core/routing/HashChanger",
   ],
   (BaseController, Controller, Server, HashChanger) => {

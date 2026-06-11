@@ -19,7 +19,7 @@ CLASS z2ui5_cl_app_storage_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Control", "sap/ui/util/Storage", "z2ui5/cc/Lib"],` && |\n| &&
+             `  ["sap/ui/core/Control", "sap/ui/util/Storage", "z2ui5/core/Lib"],` && |\n| &&
              `  (Control, Storage, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -63,7 +63,7 @@ CLASS z2ui5_cl_app_storage_js IMPLEMENTATION.
              `        },` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Follows the shared rendering pattern (see cc/Lib.js): the renderer` && |\n| &&
+             `      // Follows the shared rendering pattern (see core/Lib.js): the renderer` && |\n| &&
              `      // only marks the work, onAfterRendering reads the storage and fires` && |\n| &&
              `      // the event.` && |\n| &&
              `      onAfterRendering() {` && |\n| &&
