@@ -39,6 +39,20 @@ CLASS z2ui5_cl_util_db DEFINITION
       EXPORTING
         VALUE(result) TYPE any.
 
+    TYPES ty_s_db TYPE z2ui5_t_91.
+    TYPES ty_t_db TYPE STANDARD TABLE OF ty_s_db WITH EMPTY KEY.
+
+    " only supplied parameters filter the selection, initial values of
+    " unsupplied parameters do not restrict the result
+    CLASS-METHODS load_multi_by_handle
+      IMPORTING
+        uname         TYPE clike OPTIONAL
+        handle        TYPE clike OPTIONAL
+        handle2       TYPE clike OPTIONAL
+        handle3       TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE ty_t_db.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -88,6 +102,37 @@ CLASS z2ui5_cl_util_db IMPLEMENTATION.
         xml = lv_data
       IMPORTING
         any = result ).
+
+  ENDMETHOD.
+
+
+  METHOD load_multi_by_handle.
+
+    DATA lr_uname   TYPE RANGE OF z2ui5_t_91-uname.
+    DATA lr_handle  TYPE RANGE OF z2ui5_t_91-handle.
+    DATA lr_handle2 TYPE RANGE OF z2ui5_t_91-handle2.
+    DATA lr_handle3 TYPE RANGE OF z2ui5_t_91-handle3.
+
+    IF uname IS SUPPLIED.
+      lr_uname = VALUE #( ( sign = `I` option = `EQ` low = uname ) ).
+    ENDIF.
+    IF handle IS SUPPLIED.
+      lr_handle = VALUE #( ( sign = `I` option = `EQ` low = handle ) ).
+    ENDIF.
+    IF handle2 IS SUPPLIED.
+      lr_handle2 = VALUE #( ( sign = `I` option = `EQ` low = handle2 ) ).
+    ENDIF.
+    IF handle3 IS SUPPLIED.
+      lr_handle3 = VALUE #( ( sign = `I` option = `EQ` low = handle3 ) ).
+    ENDIF.
+
+    SELECT FROM z2ui5_t_91
+      FIELDS *
+      WHERE uname   IN @lr_uname
+        AND handle  IN @lr_handle
+        AND handle2 IN @lr_handle2
+        AND handle3 IN @lr_handle3 "#EC WARNOK
+      INTO CORRESPONDING FIELDS OF TABLE @result.
 
   ENDMETHOD.
 
