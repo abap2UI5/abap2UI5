@@ -690,6 +690,61 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE ty_t_zip_file.
 
+    TYPES:
+      BEGIN OF ty_s_lock_param,
+        name  TYPE c LENGTH 30,
+        value TYPE string,
+      END OF ty_s_lock_param.
+    TYPES ty_t_lock_param TYPE STANDARD TABLE OF ty_s_lock_param WITH DEFAULT KEY.
+
+    TYPES:
+      BEGIN OF ty_s_lock,
+        lock_object TYPE string,
+        argument    TYPE string,
+        user        TYPE string,
+        mode        TYPE string,
+        client      TYPE string,
+        date        TYPE d,
+        time        TYPE t,
+        owner       TYPE string,
+        owner_vb    TYPE string,
+      END OF ty_s_lock.
+    TYPES ty_t_lock TYPE STANDARD TABLE OF ty_s_lock WITH DEFAULT KEY.
+
+    CLASS-METHODS lock_set
+      IMPORTING
+        val           TYPE clike
+        t_param       TYPE ty_t_lock_param OPTIONAL
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS lock_delete
+      IMPORTING
+        val           TYPE clike
+        t_param       TYPE ty_t_lock_param OPTIONAL
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS lock_read
+      IMPORTING
+        lock_object   TYPE clike OPTIONAL
+        !user         TYPE clike OPTIONAL
+        client        TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE ty_t_lock.
+
+    CLASS-METHODS lock_delete_entries
+      IMPORTING
+        t_lock        TYPE ty_t_lock
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS lock_get_dequeue_by_enqueue
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
 
   PRIVATE SECTION.
@@ -737,6 +792,13 @@ CLASS z2ui5_cl_util DEFINITION
         val           TYPE clike
       RETURNING
         VALUE(result) TYPE string.
+
+    CLASS-METHODS lock_call_function
+      IMPORTING
+        val           TYPE clike
+        t_param       TYPE ty_t_lock_param OPTIONAL
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
 ENDCLASS.
 
@@ -2645,6 +2707,270 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
       CATCH cx_root INTO DATA(x).
         RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = x.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD lock_set.
+
+    result = lock_call_function( val     = val
+                                 t_param = t_param ).
+
+  ENDMETHOD.
+
+
+  METHOD lock_delete.
+
+    result = lock_call_function( val     = lock_get_dequeue_by_enqueue( val )
+                                 t_param = t_param ).
+
+  ENDMETHOD.
+
+
+  METHOD lock_get_dequeue_by_enqueue.
+
+    result = replace( val  = c_trim_upper( val )
+                      sub  = `ENQUEUE_`
+                      with = `DEQUEUE_` ).
+
+  ENDMETHOD.
+
+
+  METHOD lock_call_function.
+
+    DATA lt_param      TYPE abap_func_parmbind_tab.
+    DATA ls_param      TYPE abap_func_parmbind.
+    DATA ls_lock_param TYPE ty_s_lock_param.
+    DATA lr_value      TYPE REF TO string.
+    DATA lt_exception  TYPE abap_func_excpbind_tab.
+    DATA ls_exception  TYPE abap_func_excpbind.
+    DATA lv_function   TYPE string.
+
+    TRY.
+        LOOP AT t_param INTO ls_lock_param.
+          ls_param-name = ls_lock_param-name.
+          ls_param-kind = abap_func_exporting.
+          CREATE DATA lr_value.
+          lr_value->* = ls_lock_param-value.
+          ls_param-value = lr_value.
+          INSERT ls_param INTO TABLE lt_param.
+        ENDLOOP.
+
+        ls_exception-name  = `OTHERS`.
+        ls_exception-value = 4.
+        INSERT ls_exception INTO TABLE lt_exception.
+
+        lv_function = c_trim_upper( val ).
+        CALL FUNCTION lv_function
+          PARAMETER-TABLE lt_param
+          EXCEPTION-TABLE lt_exception.
+
+        result = xsdbool( sy-subrc = 0 ).
+
+      CATCH cx_root.
+        result = abap_false.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD lock_read.
+
+    DATA lr_enq TYPE REF TO data.
+    FIELD-SYMBOLS <lt_enq>   TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <ls_enq>   TYPE any.
+    FIELD-SYMBOLS <lv_value> TYPE any.
+    DATA lv_client     TYPE c LENGTH 3.
+    DATA lv_name       TYPE c LENGTH 30.
+    DATA lv_uname      TYPE c LENGTH 12.
+    DATA lt_param      TYPE abap_func_parmbind_tab.
+    DATA ls_param      TYPE abap_func_parmbind.
+    DATA lt_exception  TYPE abap_func_excpbind_tab.
+    DATA ls_exception  TYPE abap_func_excpbind.
+    DATA lv_function   TYPE string.
+    DATA ls_lock       TYPE ty_s_lock.
+
+    TRY.
+        CREATE DATA lr_enq TYPE STANDARD TABLE OF (`SEQG3`).
+        ASSIGN lr_enq->* TO <lt_enq>.
+
+        IF client IS INITIAL.
+          lv_client = context_get_sy( )-mandt.
+        ELSE.
+          lv_client = client.
+        ENDIF.
+        lv_name  = lock_object.
+        lv_uname = user.
+
+        ls_param-name = `GCLIENT`.
+        ls_param-kind = abap_func_exporting.
+        GET REFERENCE OF lv_client INTO ls_param-value.
+        INSERT ls_param INTO TABLE lt_param.
+
+        ls_param-name = `GNAME`.
+        GET REFERENCE OF lv_name INTO ls_param-value.
+        INSERT ls_param INTO TABLE lt_param.
+
+        ls_param-name = `GUNAME`.
+        GET REFERENCE OF lv_uname INTO ls_param-value.
+        INSERT ls_param INTO TABLE lt_param.
+
+        ls_param-name = `ENQ`.
+        ls_param-kind = abap_func_tables.
+        GET REFERENCE OF <lt_enq> INTO ls_param-value.
+        INSERT ls_param INTO TABLE lt_param.
+
+        ls_exception-name  = `OTHERS`.
+        ls_exception-value = 4.
+        INSERT ls_exception INTO TABLE lt_exception.
+
+        lv_function = `ENQUEUE_READ`.
+        CALL FUNCTION lv_function
+          PARAMETER-TABLE lt_param
+          EXCEPTION-TABLE lt_exception.
+        IF sy-subrc <> 0.
+          RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = `LOCK_READ_FAILED`.
+        ENDIF.
+
+        LOOP AT <lt_enq> ASSIGNING <ls_enq>.
+          CLEAR ls_lock.
+          ASSIGN COMPONENT `GNAME` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            ls_lock-lock_object = <lv_value>.
+          ENDIF.
+          ASSIGN COMPONENT `GARG` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            ls_lock-argument = <lv_value>.
+          ENDIF.
+          ASSIGN COMPONENT `GUNAME` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            ls_lock-user = <lv_value>.
+          ENDIF.
+          ASSIGN COMPONENT `GMODE` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            ls_lock-mode = <lv_value>.
+          ENDIF.
+          ASSIGN COMPONENT `GCLIENT` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            ls_lock-client = <lv_value>.
+          ENDIF.
+          ASSIGN COMPONENT `GTDATE` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            ls_lock-date = <lv_value>.
+          ENDIF.
+          ASSIGN COMPONENT `GTTIME` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            ls_lock-time = <lv_value>.
+          ENDIF.
+          ASSIGN COMPONENT `GUSR` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            ls_lock-owner = <lv_value>.
+          ENDIF.
+          ASSIGN COMPONENT `GUSRVB` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            ls_lock-owner_vb = <lv_value>.
+          ENDIF.
+          INSERT ls_lock INTO TABLE result.
+        ENDLOOP.
+
+      CATCH z2ui5_cx_util_error INTO DATA(lx_error).
+        RAISE EXCEPTION lx_error.
+      CATCH cx_root INTO DATA(lx_root).
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = lx_root.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD lock_delete_entries.
+
+    DATA lr_enq TYPE REF TO data.
+    FIELD-SYMBOLS <lt_enq>   TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <ls_enq>   TYPE any.
+    FIELD-SYMBOLS <lv_value> TYPE any.
+    DATA lr_row        TYPE REF TO data.
+    DATA ls_lock       TYPE ty_s_lock.
+    DATA lv_check_upd  TYPE i.
+    DATA lv_subrc      TYPE sy-subrc.
+    DATA lt_param      TYPE abap_func_parmbind_tab.
+    DATA ls_param      TYPE abap_func_parmbind.
+    DATA lt_exception  TYPE abap_func_excpbind_tab.
+    DATA ls_exception  TYPE abap_func_excpbind.
+    DATA lv_function   TYPE string.
+
+    TRY.
+        CREATE DATA lr_enq TYPE STANDARD TABLE OF (`SEQG3`).
+        ASSIGN lr_enq->* TO <lt_enq>.
+        CREATE DATA lr_row TYPE (`SEQG3`).
+        ASSIGN lr_row->* TO <ls_enq>.
+
+        LOOP AT t_lock INTO ls_lock.
+          CLEAR <ls_enq>.
+          ASSIGN COMPONENT `GNAME` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            <lv_value> = ls_lock-lock_object.
+          ENDIF.
+          ASSIGN COMPONENT `GARG` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            <lv_value> = ls_lock-argument.
+          ENDIF.
+          ASSIGN COMPONENT `GUNAME` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            <lv_value> = ls_lock-user.
+          ENDIF.
+          ASSIGN COMPONENT `GMODE` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            <lv_value> = ls_lock-mode.
+          ENDIF.
+          ASSIGN COMPONENT `GCLIENT` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            <lv_value> = ls_lock-client.
+          ENDIF.
+          ASSIGN COMPONENT `GUSR` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            <lv_value> = ls_lock-owner.
+          ENDIF.
+          ASSIGN COMPONENT `GUSRVB` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            <lv_value> = ls_lock-owner_vb.
+          ENDIF.
+          INSERT <ls_enq> INTO TABLE <lt_enq>.
+        ENDLOOP.
+
+        IF <lt_enq> IS INITIAL.
+          result = abap_true.
+          RETURN.
+        ENDIF.
+
+        ls_param-name = `CHECK_UPD_REQUESTS`.
+        ls_param-kind = abap_func_exporting.
+        GET REFERENCE OF lv_check_upd INTO ls_param-value.
+        INSERT ls_param INTO TABLE lt_param.
+
+        ls_param-name = `SUBRC`.
+        ls_param-kind = abap_func_importing.
+        GET REFERENCE OF lv_subrc INTO ls_param-value.
+        INSERT ls_param INTO TABLE lt_param.
+
+        ls_param-name = `ENQ`.
+        ls_param-kind = abap_func_tables.
+        GET REFERENCE OF <lt_enq> INTO ls_param-value.
+        INSERT ls_param INTO TABLE lt_param.
+
+        ls_exception-name  = `OTHERS`.
+        ls_exception-value = 4.
+        INSERT ls_exception INTO TABLE lt_exception.
+
+        lv_function = `ENQUE_DELETE`.
+        CALL FUNCTION lv_function
+          PARAMETER-TABLE lt_param
+          EXCEPTION-TABLE lt_exception.
+
+        result = xsdbool( sy-subrc = 0 AND lv_subrc = 0 ).
+
+      CATCH cx_root.
+        result = abap_false.
     ENDTRY.
 
   ENDMETHOD.
