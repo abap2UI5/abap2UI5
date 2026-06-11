@@ -9,12 +9,13 @@ sap.ui.define(
     "sap/ui/core/Fragment",
     "sap/m/BusyDialog",
     "sap/ui/VersionInfo",
-    "z2ui5/cc/Server",
+    "z2ui5/core/Server",
     "sap/ui/model/odata/v2/ODataModel",
     "sap/m/library",
     "sap/ui/core/routing/HashChanger",
     "sap/ui/util/Storage",
     "sap/ui/core/Element",
+    "z2ui5/core/Lib",
   ],
   (
     Controller,
@@ -24,7 +25,7 @@ sap.ui.define(
     MessageBox,
     MessageToast,
     Fragment,
-    mBusyDialog,
+    BusyDialog,
     VersionInfo,
     Server,
     ODataModel,
@@ -32,6 +33,7 @@ sap.ui.define(
     HashChanger,
     Storage,
     Element,
+    Lib,
   ) => {
     "use strict";
 
@@ -39,149 +41,34 @@ sap.ui.define(
     // Small utility helpers (module-private)
     // ------------------------------------------------------------------
 
-    // Append an entry to the global error log. We create the array on first use.
-    function logError(message, error) {
-      if (!z2ui5.errors) z2ui5.errors = [];
-      const entry = { message: message, ts: new Date().toISOString() };
-      if (error !== undefined) entry.error = error;
-      z2ui5.errors.push(entry);
-    }
-
-    // Run every callback in `arr`, swallowing individual failures so one bad
-    // callback cannot break the whole event sequence.
-    function runCallbacks(arr, ...args) {
-      if (!arr) return;
-      for (const fn of arr) {
-        if (!fn) continue;
-        try {
-          fn(...args);
-        } catch (e) {
-          logError("runCallbacks: callback failed", e);
-        }
-      }
-    }
-
     // Parse a value as integer milliseconds, falling back to `def` when the
     // input is empty / undefined.
     function parseMs(val, def) {
       return val ? +val : def;
     }
 
-    // DOM helpers reused across calls; kept as module-level singletons.
-    const _msgParser = new DOMParser();
-    const _sanitizeEl = document.createElement("div");
+    // Helpers reused across calls; kept as module-level singletons.
     const _hashChanger = HashChanger.getInstance();
     const _URLHelper = mobileLibrary.URLHelper;
-    const _SAFE_PROTOCOLS = new Set(["http:", "https:"]);
 
-    // ------------------------------------------------------------------
-    // Security helpers
-    // ------------------------------------------------------------------
-
-    // Returns true only if the URL is on the same origin and uses http/https.
-    function isValidRedirectURL(url) {
-      if (!url) return false;
-      try {
-        const parsed = new URL(url, window.location.origin);
-        if (parsed.origin !== window.location.origin) {
-          logError(`Security: Blocked redirect to different origin: ${url}`);
-          return false;
-        }
-        if (!_SAFE_PROTOCOLS.has(parsed.protocol)) {
-          logError(
-            `Security: Blocked redirect with invalid protocol: ${parsed.protocol}`,
-          );
-          return false;
-        }
-        return true;
-      } catch (e) {
-        logError(`Security: Invalid URL format: ${url}`, e);
-        return false;
-      }
-    }
-
-    // Returns true if the URL uses a safe (http/https) protocol. Unlike
-    // isValidRedirectURL this allows cross-origin targets, so it fits
-    // outbound redirects to external sites while still blocking dangerous
-    // schemes such as javascript:, data: or vbscript:.
-    function isSafeRedirectProtocol(url) {
-      if (!url) return false;
-      try {
-        const parsed = new URL(url, window.location.origin);
-        if (!_SAFE_PROTOCOLS.has(parsed.protocol)) {
-          logError(
-            `Security: Blocked redirect with invalid protocol: ${parsed.protocol}`,
-          );
-          return false;
-        }
-        return true;
-      } catch (e) {
-        logError(`Security: Invalid URL format: ${url}`, e);
-        return false;
-      }
-    }
-
-    function copyToClipboard(textToCopy) {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(textToCopy).catch((err) => {
-          logError("Clipboard: writeText failed, falling back", err);
-          copyToClipboardFallback(textToCopy);
-        });
-        return;
-      }
-      copyToClipboardFallback(textToCopy);
-    }
-
-    function copyToClipboardFallback(textToCopy) {
-      const textarea = document.createElement("textarea");
-      textarea.value = textToCopy;
-      textarea.setAttribute("readonly", "");
-      textarea.style.position = "fixed";
-      textarea.style.top = "-1000px";
-      textarea.style.opacity = "0";
-      document.body.appendChild(textarea);
-      textarea.select();
-      try {
-        if (!document.execCommand("copy")) {
-          logError("Clipboard: execCommand('copy') returned false");
-        }
-      } catch (err) {
-        logError("Clipboard: execCommand('copy') threw", err);
-      } finally {
-        document.body.removeChild(textarea);
-      }
-    }
-
-    // Turns an HTML "details" snippet from the backend into safe HTML.
-    // Bullet lists are preserved; everything else is reduced to plain text.
-    function sanitizeMessageDetails(html) {
-      const doc = _msgParser.parseFromString(html, "text/html");
-      const items = Array.from(doc.querySelectorAll("li"));
-      if (items.length > 0) {
-        const safeItems = items.map((li) => {
-          _sanitizeEl.textContent = li.textContent;
-          return `<li>${_sanitizeEl.innerHTML}</li>`;
-        });
-        return `<ul>${safeItems.join("")}</ul>`;
-      }
-      _sanitizeEl.textContent = doc.body.textContent;
-      return _sanitizeEl.innerHTML;
-    }
+    // Single reusable BusyDialog flashed when the user clicks while a
+    // roundtrip is already in flight (created lazily, kept for reuse).
+    let _busyDialog = null;
 
     // ------------------------------------------------------------------
     // Launchpad / NavContainer helpers
     // ------------------------------------------------------------------
 
     function withCrossAppNavigator(callback) {
-      const nav = z2ui5.oLaunchpad && z2ui5.oLaunchpad.CrossAppNavigator;
+      const nav = z2ui5.oLaunchpad?.CrossAppNavigator;
       if (!nav) {
-        logError("CrossAppNav: not running inside Launchpad");
+        Lib.logError("CrossAppNav: not running inside Launchpad");
         return;
       }
       try {
         callback(nav);
       } catch (e) {
-        logError("CrossAppNav: callback failed", e);
+        Lib.logError("CrossAppNav: callback failed", e);
       }
     }
 
@@ -190,35 +77,49 @@ sap.ui.define(
         const container = lookup(args[1]);
         if (container) container.to(lookup(args[2]));
       } catch (e) {
-        logError("navigateContainer: navigation failed", e);
+        Lib.logError("navigateContainer: navigation failed", e);
       }
     }
 
     // Lookup tables mapping event names / param keys to the right view.
     const navContainerLookups = {
-      NAV_CONTAINER_TO: (id) => z2ui5.oView && z2ui5.oView.byId(id),
-      NEST_NAV_CONTAINER_TO: (id) =>
-        z2ui5.oViewNest && z2ui5.oViewNest.byId(id),
-      NEST2_NAV_CONTAINER_TO: (id) =>
-        z2ui5.oViewNest2 && z2ui5.oViewNest2.byId(id),
+      NAV_CONTAINER_TO: (id) => z2ui5.oView?.byId(id),
+      NEST_NAV_CONTAINER_TO: (id) => z2ui5.oViewNest?.byId(id),
+      NEST2_NAV_CONTAINER_TO: (id) => z2ui5.oViewNest2?.byId(id),
       POPUP_NAV_CONTAINER_TO: (id) => Fragment.byId("popupId", id),
       POPOVER_NAV_CONTAINER_TO: (id) => Fragment.byId("popoverId", id),
     };
 
-    const viewLookups = {
-      MAIN: () => z2ui5.oView,
-      NEST: () => z2ui5.oViewNest,
-      NEST2: () => z2ui5.oViewNest2,
-      POPUP: () => z2ui5.oViewPopup,
-      POPOVER: () => z2ui5.oViewPopover,
-    };
-
-    const paramToViewKey = {
-      S_VIEW: "MAIN",
-      S_VIEW_NEST: "NEST",
-      S_VIEW_NEST2: "NEST2",
-      S_POPUP: "POPUP",
-      S_POPOVER: "POPOVER",
+    // Frontend event dispatch: maps the eF event name to the controller
+    // method handling it. NavContainer events are dispatched separately
+    // via navContainerLookups above.
+    const eventFrontendHandlers = {
+      SET_SIZE_LIMIT: "_evSetSizeLimit",
+      HISTORY_BACK: "_evHistoryBack",
+      CLIPBOARD_COPY: "_evClipboardCopy",
+      CLIPBOARD_APP_STATE: "_evClipboardAppState",
+      SET_ODATA_MODEL: "_evSetODataModel",
+      STORE_DATA: "_evStoreData",
+      DOWNLOAD_B64_FILE: "_evDownloadB64File",
+      CROSS_APP_NAV_TO_PREV_APP: "_evCrossAppNavToPrevApp",
+      CROSS_APP_NAV_TO_EXT: "_evCrossAppNavToExt",
+      LOCATION_RELOAD: "_evLocationReload",
+      SYSTEM_LOGOUT: "_evSystemLogout",
+      OPEN_NEW_TAB: "_evOpenNewTab",
+      POPUP_CLOSE: "destroyPopup",
+      POPOVER_CLOSE: "destroyPopover",
+      URLHELPER: "_evUrlHelper",
+      IMAGE_EDITOR_POPUP_CLOSE: "_evImageEditorPopupClose",
+      SET_TITLE: "_evSetTitle",
+      SET_TITLE_LAUNCHPAD: "_evSetTitleLaunchpad",
+      SET_FOCUS: "_evSetFocus",
+      SCROLL_TO: "_evScrollTo",
+      SCROLL_INTO_VIEW: "_evScrollIntoView",
+      START_TIMER: "_evStartTimer",
+      KEYBOARD_SET_MODE: "_evSetInputMode",
+      Z2UI5: "_evZ2ui5Custom",
+      WIZARD_SET_NEXT_STEP: "_evWizardSetNextStep",
+      PLAY_AUDIO: "_evPlayAudio",
     };
 
     function applyStoredSizeLimit(viewKey, oModel) {
@@ -255,8 +156,7 @@ sap.ui.define(
 
       onInit() {
         z2ui5.oRouter.attachRouteMatched(() => {
-          z2ui5.checkInit = true;
-          Server.Roundtrip();
+          Server.roundtrip();
         });
       },
 
@@ -266,8 +166,9 @@ sap.ui.define(
         }
       },
 
-      // Runs once after each roundtrip's view has been rendered. Handles
-      // popups, nested views, popovers and browser-history updates.
+      // Runs once after each roundtrip's view has been rendered, in two
+      // named phases: display pending fragments/views, then update the
+      // browser history/hash.
       async _processAfterRendering() {
         try {
           const oResponse = z2ui5.oResponse;
@@ -275,90 +176,15 @@ sap.ui.define(
           oResponse._processed = true;
 
           const PARAMS = oResponse.PARAMS;
-          const ID = oResponse.ID;
           if (!PARAMS) return;
 
-          const S_POPUP = PARAMS.S_POPUP;
-          const S_VIEW_NEST = PARAMS.S_VIEW_NEST;
-          const S_VIEW_NEST2 = PARAMS.S_VIEW_NEST2;
-          const S_POPOVER = PARAMS.S_POPOVER;
-          const SET_APP_STATE_ACTIVE = PARAMS.SET_APP_STATE_ACTIVE;
-          const SET_PUSH_STATE = PARAMS.SET_PUSH_STATE;
-          const SET_NAV_BACK = PARAMS.SET_NAV_BACK;
+          await this._displayPendingViews(PARAMS);
+          this._updateBrowserHistory(PARAMS, oResponse.ID);
+          if (PARAMS.SET_NAV_BACK) history.back();
 
-          if (S_POPUP && S_POPUP.CHECK_DESTROY) this.PopupDestroy();
-          if (S_POPOVER && S_POPOVER.CHECK_DESTROY) this.PopoverDestroy();
-
-          if (S_POPUP && S_POPUP.XML) {
-            this.PopupDestroy();
-            await this.displayFragment(S_POPUP.XML, "oViewPopup");
-          }
-
-          if (!z2ui5.checkNestAfter && S_VIEW_NEST && S_VIEW_NEST.XML) {
-            this.NestViewDestroy();
-            await this.displayNestedView(
-              S_VIEW_NEST.XML,
-              "oViewNest",
-              "S_VIEW_NEST",
-              z2ui5.oControllerNest,
-            );
-            z2ui5.checkNestAfter = true;
-          }
-
-          if (!z2ui5.checkNestAfter2 && S_VIEW_NEST2 && S_VIEW_NEST2.XML) {
-            this.NestViewDestroy2();
-            await this.displayNestedView(
-              S_VIEW_NEST2.XML,
-              "oViewNest2",
-              "S_VIEW_NEST2",
-              z2ui5.oControllerNest2,
-            );
-            z2ui5.checkNestAfter2 = true;
-          }
-
-          if (S_POPOVER && S_POPOVER.XML) {
-            this.PopoverDestroy();
-            await this.displayPopover(
-              S_POPOVER.XML,
-              "oViewPopover",
-              S_POPOVER.OPEN_BY_ID,
-            );
-          }
-
-          // Build the state object stored in history.state, so a future
-          // popstate can restore the current view without a backend hit.
-          const oView = z2ui5.oView;
-          let oState = {};
-          if (oView) {
-            const model = oView.getModel();
-            oState = {
-              view: oView.mProperties.viewContent,
-              model: model ? model.getData() : undefined,
-              response: z2ui5.oResponse,
-            };
-          }
-
-          try {
-            if (SET_PUSH_STATE) {
-              const hash = _hashChanger.getHash();
-              const newUrl = `${window.location.pathname}${window.location.search}#${hash}${SET_PUSH_STATE}`;
-              history.pushState(oState, "", newUrl);
-            } else {
-              history.replaceState(oState, "", window.location.href);
-            }
-            const newHash = SET_APP_STATE_ACTIVE
-              ? `z2ui5-xapp-state=${ID || ""}`
-              : "";
-            _hashChanger.replaceHash(newHash);
-          } catch (e) {
-            logError("_processAfterRendering: history update failed", e);
-          }
-
-          if (SET_NAV_BACK) history.back();
-
-          runCallbacks(z2ui5.onAfterRendering);
+          Lib.runCallbacks(z2ui5.onAfterRendering);
         } catch (e) {
-          logError("_processAfterRendering: unexpected error", e);
+          Lib.logError("_processAfterRendering: unexpected error", e);
           Server.responseError(e, "Unexpected Error Occurred - App Terminated");
         } finally {
           BusyIndicator.hide();
@@ -371,51 +197,108 @@ sap.ui.define(
         }
       },
 
+      // Phase 1: open/destroy the popup, nested views and popover the
+      // response asked for.
+      async _displayPendingViews(PARAMS) {
+        const S_POPUP = PARAMS.S_POPUP;
+        const S_VIEW_NEST = PARAMS.S_VIEW_NEST;
+        const S_VIEW_NEST2 = PARAMS.S_VIEW_NEST2;
+        const S_POPOVER = PARAMS.S_POPOVER;
+
+        if (S_POPUP?.CHECK_DESTROY) this.destroyPopup();
+        if (S_POPOVER?.CHECK_DESTROY) this.destroyPopover();
+
+        if (S_POPUP?.XML) {
+          this.destroyPopup();
+          await this.displayFragment(S_POPUP.XML, "oViewPopup");
+        }
+
+        if (!z2ui5.checkNestAfter && S_VIEW_NEST?.XML) {
+          this.destroyNestView();
+          await this.displayNestedView(
+            S_VIEW_NEST.XML,
+            "oViewNest",
+            "S_VIEW_NEST",
+            z2ui5.oControllerNest,
+          );
+          z2ui5.checkNestAfter = true;
+        }
+
+        if (!z2ui5.checkNestAfter2 && S_VIEW_NEST2?.XML) {
+          this.destroyNestView2();
+          await this.displayNestedView(
+            S_VIEW_NEST2.XML,
+            "oViewNest2",
+            "S_VIEW_NEST2",
+            z2ui5.oControllerNest2,
+          );
+          z2ui5.checkNestAfter2 = true;
+        }
+
+        if (S_POPOVER?.XML) {
+          this.destroyPopover();
+          await this.displayPopover(
+            S_POPOVER.XML,
+            "oViewPopover",
+            S_POPOVER.OPEN_BY_ID,
+          );
+        }
+      },
+
+      // Phase 2: push the backend-requested URL and update the app-state
+      // hash.
+      _updateBrowserHistory(PARAMS, ID) {
+        // Currently disabled: storing the rendered view + model in
+        // history.state so a popstate could restore the view without a
+        // backend hit. Cloning the full view XML and model data on every
+        // roundtrip is expensive for large views and the restore is not
+        // needed right now. Re-enable together with the popstate listener
+        // in Component.js (_installPopstateListener).
+        // const oView = z2ui5.oView;
+        // let oState = {};
+        // if (oView) {
+        //   const model = oView.getModel();
+        //   oState = {
+        //     view: oView.mProperties.viewContent,
+        //     model: model ? model.getData() : undefined,
+        //     response: z2ui5.oResponse,
+        //   };
+        // }
+
+        try {
+          if (PARAMS.SET_PUSH_STATE) {
+            const hash = _hashChanger.getHash();
+            const newUrl = `${window.location.pathname}${window.location.search}#${hash}${PARAMS.SET_PUSH_STATE}`;
+            history.pushState(null, "", newUrl);
+          }
+          // Disabled together with the state storing above - without a
+          // state object this call was a pure no-op:
+          // else {
+          //   history.replaceState(oState, "", window.location.href);
+          // }
+          const newHash = PARAMS.SET_APP_STATE_ACTIVE
+            ? `z2ui5-xapp-state=${ID || ""}`
+            : "";
+          _hashChanger.replaceHash(newHash);
+        } catch (e) {
+          Lib.logError("_updateBrowserHistory: history update failed", e);
+        }
+      },
+
       // Execute the follow-up JS snippets stashed by Server.responseSuccess.
       // Runs once per roundtrip, after the view has rendered.
       _runPendingCustomJs() {
         const customJs = z2ui5.pendingCustomJs;
         z2ui5.pendingCustomJs = null;
         if (!customJs) return;
-        if (this.isDestroyed && this.isDestroyed()) return;
+        if (Lib.isDestroyed(this)) return;
         for (const item of customJs) {
           Server._runCustomJs(item, this);
         }
       },
 
-      // Build the delta object sent to the backend. `paths` is the set of
-      // /XX/... paths that the user edited; `xx` is the full XX model data.
-      _buildDeltaFromPaths(paths, xx) {
-        const delta = {};
-        for (const path of paths) {
-          // path looks like "/XX/<attr>" or "/XX/<attr>/<row>/<field>"
-          const parts = path.slice(4).split("/");
-          const [attr, rowIdx, field] = parts;
-          // Only a flat table cell (exactly attr/row/field) qualifies for a
-          // delta. Deeper paths (e.g. tree tables: attr/row/<subtable>/<row>/<field>)
-          // fall back to shipping the whole attribute, which the backend applies
-          // via corresponding-based deserialization.
-          const isRowField =
-            parts.length === 3 && rowIdx !== "" && !isNaN(rowIdx);
-          if (isRowField) {
-            // Table cell change -> ship only the changed cell.
-            if (!delta[attr] || !delta[attr].__delta) {
-              delta[attr] = { __delta: {} };
-            }
-            const attrDelta = delta[attr].__delta;
-            if (!attrDelta[rowIdx]) attrDelta[rowIdx] = {};
-            const row = xx[attr] && xx[attr][+rowIdx];
-            attrDelta[rowIdx][field] = row ? row[field] : undefined;
-          } else {
-            // Scalar change -> ship the whole attribute.
-            delta[attr] = xx[attr];
-          }
-        }
-        return delta;
-      },
-
       _createViewModel() {
-        const data = z2ui5.oResponse && z2ui5.oResponse.OVIEWMODEL;
+        const data = z2ui5.oResponse?.OVIEWMODEL;
         return this._trackChanges(new JSONModel(data));
       },
 
@@ -432,9 +315,7 @@ sap.ui.define(
           id: "popupId",
         });
         // The app might have been torn down while the fragment loaded.
-        const appAlive =
-          z2ui5.oApp && (!z2ui5.oApp.isDestroyed || !z2ui5.oApp.isDestroyed());
-        if (!appAlive) {
+        if (!Lib.isAlive(z2ui5.oApp)) {
           oFragment.destroy();
           return;
         }
@@ -453,10 +334,7 @@ sap.ui.define(
             controller: z2ui5.oControllerPopover,
             id: "popoverId",
           });
-          const appAlive =
-            z2ui5.oApp &&
-            (!z2ui5.oApp.isDestroyed || !z2ui5.oApp.isDestroyed());
-          if (!appAlive) {
+          if (!Lib.isAlive(z2ui5.oApp)) {
             oFragment.destroy();
             return;
           }
@@ -466,8 +344,8 @@ sap.ui.define(
           // Find the control to attach the popover to. We search the main
           // view first, then any open popup / nested views, then the global
           // UI5 control registry as a last resort.
-          let oControl = z2ui5.oView && z2ui5.oView.byId(openById);
-          if (!oControl && z2ui5.oViewPopup && z2ui5.oViewPopup.Fragment) {
+          let oControl = z2ui5.oView?.byId(openById);
+          if (!oControl && z2ui5.oViewPopup?.Fragment) {
             oControl = z2ui5.oViewPopup.Fragment.byId("popupId", openById);
           }
           if (!oControl && z2ui5.oViewNest) {
@@ -479,55 +357,60 @@ sap.ui.define(
           if (!oControl) {
             if (Element.getElementById) {
               oControl = Element.getElementById(openById);
-            } else if (sap.ui.getCore) {
-              const core = sap.ui.getCore();
-              if (core && core.byId) oControl = core.byId(openById);
+            } else {
+              /* ui5lint-disable no-globals, no-deprecated-api --
+                 deliberate fallback for UI5 releases that do not provide
+                 Element.getElementById yet (added in 1.119); the modern
+                 API is used in the branch above. */
+              if (sap.ui.getCore) {
+                const core = sap.ui.getCore();
+                if (core?.byId) oControl = core.byId(openById);
+              }
+              /* ui5lint-enable no-globals, no-deprecated-api */
             }
           }
 
           if (!oControl) {
-            logError(`displayPopover: openBy control '${openById}' not found`);
+            Lib.logError(
+              `displayPopover: openBy control '${openById}' not found`,
+            );
             oFragment.destroy();
             return;
           }
           z2ui5[viewProp] = oFragment;
           oFragment.openBy(oControl);
         } catch (e) {
-          logError("displayPopover: failed", e);
+          Lib.logError("displayPopover: failed", e);
         }
       },
 
       async displayNestedView(xml, viewProp, viewNestId, controller) {
         const oModel = this._createViewModel();
-        applyStoredSizeLimit(paramToViewKey[viewNestId], oModel);
+        applyStoredSizeLimit(Lib.slotKeyByParam(viewNestId), oModel);
         const oView = await XMLView.create({
           definition: xml,
           controller: controller,
           preprocessors: { xml: { models: { template: oModel } } },
         });
 
-        const appAlive =
-          z2ui5.oApp && (!z2ui5.oApp.isDestroyed || !z2ui5.oApp.isDestroyed());
-        if (!appAlive) {
+        if (!Lib.isAlive(z2ui5.oApp)) {
           oView.destroy();
           return;
         }
         oView.setModel(oModel);
 
         const nestParams =
-          z2ui5.oResponse &&
-          z2ui5.oResponse.PARAMS &&
-          z2ui5.oResponse.PARAMS[viewNestId];
+          z2ui5.oResponse?.PARAMS && z2ui5.oResponse.PARAMS[viewNestId];
         if (!nestParams) {
-          logError(`displayNestedView: missing PARAMS.${viewNestId}`);
+          Lib.logError(`displayNestedView: missing PARAMS.${viewNestId}`);
           oView.destroy();
           return;
         }
         const { ID, METHOD_DESTROY, METHOD_INSERT } = nestParams;
 
-        const oParent = z2ui5.oView && z2ui5.oView.byId(ID);
+        const oParent = z2ui5.oView?.byId(ID);
         if (!oParent) {
-          logError(
+          Lib.logError(
             `displayNestedView: parent control '${ID}' not found, nested view discarded`,
           );
           oView.destroy();
@@ -537,12 +420,12 @@ sap.ui.define(
         try {
           oParent[METHOD_DESTROY]();
         } catch (e) {
-          logError("displayNestedView: parent destroy method failed", e);
+          Lib.logError("displayNestedView: parent destroy method failed", e);
         }
         try {
           oParent[METHOD_INSERT](oView);
         } catch (e) {
-          logError("displayNestedView: parent insert method failed", e);
+          Lib.logError("displayNestedView: parent insert method failed", e);
           oView.destroy();
           return;
         }
@@ -558,38 +441,41 @@ sap.ui.define(
           try {
             if (view.close) view.close();
           } catch (e) {
-            logError(`_destroyView: view.close() failed for ${prop}`, e);
+            Lib.logError(`_destroyView: view.close() failed for ${prop}`, e);
           }
         }
         try {
           view.destroy();
         } catch (e) {
-          logError(`_destroyView: view.destroy() failed for ${prop}`, e);
+          Lib.logError(`_destroyView: view.destroy() failed for ${prop}`, e);
         }
         z2ui5[prop] = null;
       },
 
-      PopupDestroy() {
+      destroyPopup() {
         this._destroyView("oViewPopup", true);
       },
-      PopoverDestroy() {
+      destroyPopover() {
         this._destroyView("oViewPopover", true);
       },
-      NestViewDestroy() {
+      destroyNestView() {
         this._destroyView("oViewNest");
       },
-      NestViewDestroy2() {
+      destroyNestView2() {
         this._destroyView("oViewNest2");
       },
-      ViewDestroy() {
+      destroyView() {
         this._destroyView("oView");
       },
 
       // ------------------------------------------------------------------
-      // eF: handle frontend-only events triggered by the backend response.
+      // eF = "event frontend": handles frontend-only events triggered by
+      // the backend response, without a roundtrip. The name is part of the
+      // protocol - backend-generated view XML binds events to eB/eF - and
+      // must not be renamed.
       // ------------------------------------------------------------------
       eF(...args) {
-        runCallbacks(z2ui5.onBeforeEventFrontend, args);
+        Lib.runCallbacks(z2ui5.onBeforeEventFrontend, args);
 
         // NavContainer navigation is dispatched via lookup table.
         const navLookup = navContainerLookups[args[0]];
@@ -598,98 +484,43 @@ sap.ui.define(
           return;
         }
 
-        switch (args[0]) {
-          case "SET_SIZE_LIMIT":
-            this._evSetSizeLimit(args);
-            break;
-          case "HISTORY_BACK":
-            history.back();
-            break;
-          case "CLIPBOARD_COPY":
-            copyToClipboard(args[1]);
-            break;
-          case "CLIPBOARD_APP_STATE": {
-            const id = z2ui5.oResponse && z2ui5.oResponse.ID;
-            copyToClipboard(`${window.location.href}#/z2ui5-xapp-state=${id}`);
-            break;
-          }
-          case "SET_ODATA_MODEL":
-            this._evSetODataModel(args);
-            break;
-          case "STORE_DATA":
-            this._evStoreData(args);
-            break;
-          case "DOWNLOAD_B64_FILE": {
-            const a = document.createElement("a");
-            a.href = args[1];
-            a.download = args[2];
-            a.click();
-            break;
-          }
-          case "CROSS_APP_NAV_TO_PREV_APP":
-            withCrossAppNavigator((nav) => nav.backToPreviousApp());
-            break;
-          case "CROSS_APP_NAV_TO_EXT":
-            this._evCrossAppNavToExt(args);
-            break;
-          case "LOCATION_RELOAD":
-            this._evLocationReload(args);
-            break;
-          case "SYSTEM_LOGOUT":
-            this._evSystemLogout(args);
-            break;
-          case "OPEN_NEW_TAB":
-            this._evOpenNewTab(args);
-            break;
-          case "POPUP_CLOSE":
-            this.PopupDestroy();
-            break;
-          case "POPOVER_CLOSE":
-            this.PopoverDestroy();
-            break;
-          case "URLHELPER":
-            this._evUrlHelper(args);
-            break;
-          case "IMAGE_EDITOR_POPUP_CLOSE":
-            this._evImageEditorPopupClose();
-            break;
-          case "SET_TITLE":
-            this._evSetTitle(args);
-            break;
-          case "SET_TITLE_LAUNCHPAD":
-            this._evSetTitleLaunchpad(args);
-            break;
-          case "SET_FOCUS":
-            this._evSetFocus(args);
-            break;
-          case "SCROLL_TO":
-            this._evScrollTo(args);
-            break;
-          case "SCROLL_INTO_VIEW":
-            this._evScrollIntoView(args);
-            break;
-          case "START_TIMER":
-            this._evStartTimer(args);
-            break;
-          case "KEYBOARD_SET_MODE":
-            this._evSetInputMode(args);
-            break;
-          case "Z2UI5":
-            this._evZ2ui5Custom(args);
-            break;
-          case "WIZARD_SET_NEXT_STEP":
-            this._evWizardSetNextStep(args);
-            break;
-          case "PLAY_AUDIO":
-            this._evPlayAudio(args);
-            break;
-        }
+        const handler = eventFrontendHandlers[args[0]];
+        if (handler) this[handler](args);
       },
 
       // ------------------------------------------------------------------
-      // Individual event handlers - one per case in eF(). Splitting them out
-      // keeps eF() short and makes each behavior easy to find.
+      // Individual event handlers - one per entry in eventFrontendHandlers.
+      // Splitting them out keeps eF() short and makes each behavior easy to
+      // find.
       // ------------------------------------------------------------------
+
+      _evHistoryBack() {
+        history.back();
+      },
+
+      _evClipboardCopy(args) {
+        Lib.copyToClipboard(args[1]);
+      },
+
+      _evClipboardAppState() {
+        const id = z2ui5.oResponse?.ID;
+        Lib.copyToClipboard(`${window.location.href}#/z2ui5-xapp-state=${id}`);
+      },
+
+      _evDownloadB64File(args) {
+        if (!Lib.isSafeDownloadURL(args[1])) {
+          Lib.logError("DOWNLOAD_B64_FILE: blocked unsafe URL");
+          return;
+        }
+        const a = document.createElement("a");
+        a.href = args[1];
+        a.download = args[2];
+        a.click();
+      },
+
+      _evCrossAppNavToPrevApp() {
+        withCrossAppNavigator((nav) => nav.backToPreviousApp());
+      },
 
       _evSetSizeLimit(args) {
         // Two call shapes:
@@ -698,8 +529,8 @@ sap.ui.define(
         const hasLimit = args[2] !== undefined && args[2] !== "";
         const viewKey = hasLimit ? args[2] : args[1];
         const limit = hasLimit ? Number(args[1]) : NaN;
-        const view = viewLookups[viewKey] && viewLookups[viewKey]();
-        const model = view && view.getModel();
+        const view = Lib.getViewByKey(viewKey);
+        const model = view?.getModel();
 
         if (Number.isFinite(limit) && limit > 0) {
           if (!z2ui5.viewSizeLimits) z2ui5.viewSizeLimits = {};
@@ -725,7 +556,7 @@ sap.ui.define(
           });
           if (z2ui5.oView) z2ui5.oView.setModel(oModel, args[2] || undefined);
         } catch (e) {
-          logError(`SET_ODATA_MODEL: failed for '${args[1]}'`, e);
+          Lib.logError(`SET_ODATA_MODEL: failed for '${args[1]}'`, e);
         }
       },
 
@@ -740,7 +571,10 @@ sap.ui.define(
             oStorage.put(KEY, VALUE);
           }
         } catch (e) {
-          logError(`STORE_DATA: storage operation failed for key '${KEY}'`, e);
+          Lib.logError(
+            `STORE_DATA: storage operation failed for key '${KEY}'`,
+            e,
+          );
         }
       },
 
@@ -759,7 +593,7 @@ sap.ui.define(
       },
 
       _evLocationReload(args) {
-        if (isValidRedirectURL(args[1])) {
+        if (Lib.isValidRedirectURL(args[1])) {
           window.location.href = args[1];
         } else {
           MessageBox.error(
@@ -768,68 +602,71 @@ sap.ui.define(
         }
       },
 
+      // SYSTEM_LOGOUT: prefer the launchpad logout when running inside the
+      // FLP; otherwise terminate a possible stateful BSP session first and
+      // then navigate to the logout URL.
       _evSystemLogout(args) {
         const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";
-        const goToLogoutUrl = () => {
-          if (isValidRedirectURL(logoutUrl)) {
-            window.location.href = logoutUrl;
-          } else {
-            MessageBox.error(
-              "Invalid logout URL. Only relative URLs to the same domain are allowed.",
-            );
-          }
-        };
-        // When abap2UI5 is hosted as a BSP application,
-        // /sap/public/bc/icf/logoff alone does not terminate the stateful
-        // BSP context (sap-contextid stays bound to /sap/bc/bsp/sap/<app>/).
-        // Hit the BSP path with ?sap-sessioncmd=logoff first so the BSP
-        // runtime calls server->session->terminate( ), then go to the ICF
-        // logoff to also drop the SSO2 ticket.
-        const redirectToLogoff = () => {
-          const path = window.location.pathname;
-          if (path.indexOf("/sap/bc/bsp/") !== 0) {
-            goToLogoutUrl();
-            return;
-          }
-          const sep = path.indexOf("?") >= 0 ? "&" : "?";
-          const bspKill = path + sep + "sap-sessioncmd=logoff";
-          let done = false;
-          const finish = () => {
-            if (done) return;
-            done = true;
-            goToLogoutUrl();
-          };
-          try {
-            const f = document.createElement("iframe");
-            f.style.display = "none";
-            f.src = bspKill;
-            f.addEventListener("load", finish);
-            document.body.appendChild(f);
-          } catch (e) {
-            finish();
-            return;
-          }
-          // Safety net: never wait longer than 1.5s for the BSP terminate.
-          setTimeout(finish, 1500);
-        };
         try {
-          const launchpadLogout =
-            z2ui5.oLaunchpad &&
-            z2ui5.oLaunchpad.Container &&
-            z2ui5.oLaunchpad.Container.logout;
-          if (launchpadLogout) {
-            z2ui5.oLaunchpad.Container.logout();
-          } else {
-            redirectToLogoff();
+          const container = z2ui5.oLaunchpad?.Container;
+          if (container?.logout) {
+            container.logout();
+            return;
           }
         } catch (e) {
-          logError("SYSTEM_LOGOUT: ushell logout failed", e);
-          redirectToLogoff();
+          Lib.logError("SYSTEM_LOGOUT: ushell logout failed", e);
+        }
+        this._logoutViaBspTerminate(logoutUrl);
+      },
+
+      // When abap2UI5 is hosted as a BSP application,
+      // /sap/public/bc/icf/logoff alone does not terminate the stateful
+      // BSP context (sap-contextid stays bound to /sap/bc/bsp/sap/<app>/).
+      // Hit the BSP path with ?sap-sessioncmd=logoff first so the BSP
+      // runtime calls server->session->terminate( ), then go to the ICF
+      // logoff to also drop the SSO2 ticket. Outside a BSP path this goes
+      // straight to the logout URL.
+      _logoutViaBspTerminate(logoutUrl) {
+        const path = window.location.pathname;
+        if (!path.startsWith("/sap/bc/bsp/")) {
+          this._redirectToLogout(logoutUrl);
+          return;
+        }
+
+        const sep = path.indexOf("?") >= 0 ? "&" : "?";
+        const bspKill = `${path}${sep}sap-sessioncmd=logoff`;
+        let done = false;
+        const finish = () => {
+          if (done) return;
+          done = true;
+          this._redirectToLogout(logoutUrl);
+        };
+        try {
+          const f = document.createElement("iframe");
+          f.style.display = "none";
+          f.src = bspKill;
+          f.addEventListener("load", finish);
+          document.body.appendChild(f);
+        } catch (e) {
+          finish();
+          return;
+        }
+        // Safety net: never wait longer than 1.5s for the BSP terminate.
+        setTimeout(finish, 1500);
+      },
+
+      _redirectToLogout(logoutUrl) {
+        if (Lib.isValidRedirectURL(logoutUrl)) {
+          window.location.href = logoutUrl;
+        } else {
+          MessageBox.error(
+            "Invalid logout URL. Only relative URLs to the same domain are allowed.",
+          );
         }
       },
 
       _evOpenNewTab(args) {
-        if (!isValidRedirectURL(args[1])) {
+        if (!Lib.isValidRedirectURL(args[1])) {
           MessageBox.error(
             "Invalid URL. Only relative URLs to the same domain are allowed.",
           );
@@ -844,7 +681,7 @@ sap.ui.define(
         const params = args[2];
         const actions = {
           REDIRECT: () => {
-            if (!isSafeRedirectProtocol(params.URL)) {
+            if (!Lib.isSafeRedirectProtocol(params.URL)) {
               MessageBox.error(
                 "Invalid redirect URL. Only http/https protocols are allowed.",
               );
@@ -868,7 +705,7 @@ sap.ui.define(
           const fn = actions[args[1]];
           if (fn) fn();
         } catch (e) {
-          logError(`URLHELPER: '${args[1]}' failed`, e);
+          Lib.logError(`URLHELPER: '${args[1]}' failed`, e);
         }
       },
 
@@ -878,13 +715,20 @@ sap.ui.define(
           const editor = Fragment.byId("popupId", "imageEditor");
           if (editor) image = editor.getImagePngDataURL();
         } catch (e) {
-          logError("IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed", e);
+          Lib.logError(
+            "IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed",
+            e,
+          );
         }
-        this.PopupDestroy();
+        this.destroyPopup();
         this.eB(["SAVE"], image);
       },
 
       _evStartTimer(args) {
+        // Intentionally a single timer slot: args[0] is always the event
+        // name "START_TIMER", so a new START_TIMER replaces the previous
+        // one. At most one backend timer is pending at any time - this is
+        // by design, not a bug.
         const timerKey = args[0];
         const callbackEvent = args[1];
         const delay = +args[2] || 0;
@@ -898,7 +742,7 @@ sap.ui.define(
 
       _evSetInputMode(args) {
         try {
-          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
+          const oElement = z2ui5.oView?.byId(args[1]);
           if (!oElement) return;
           const dom = oElement.getDomRef();
           if (!dom) return;
@@ -908,7 +752,7 @@ sap.ui.define(
           if (!input) return;
           input.setAttribute("inputmode", args[2] || "text");
         } catch (e) {
-          logError(
+          Lib.logError(
             `KEYBOARD_SET_MODE: setAttribute failed for '${args[1]}'`,
             e,
           );
@@ -916,7 +760,7 @@ sap.ui.define(
       },
 
       _evSetFocus(args) {
-        const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
+        const oElement = z2ui5.oView?.byId(args[1]);
         if (!oElement) return;
 
         const applyFocus = () => {
@@ -927,24 +771,14 @@ sap.ui.define(
             if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];
             oElement.applyFocusInfo(info);
           } catch (e) {
-            logError(`SET_FOCUS: failed for '${args[1]}'`, e);
+            Lib.logError(`SET_FOCUS: failed for '${args[1]}'`, e);
           }
         };
 
         // The control may still be missing from the DOM when SET_FOCUS runs
         // together with a fresh view build. Apply now if it is rendered,
-        // otherwise once it is - same pattern as UITableExt / Scrolling.
-        if (oElement.getDomRef && oElement.getDomRef()) {
-          applyFocus();
-        } else {
-          const delegate = {
-            onAfterRendering: () => {
-              oElement.removeEventDelegate(delegate);
-              applyFocus();
-            },
-          };
-          oElement.addEventDelegate(delegate);
-        }
+        // otherwise once it is.
+        Lib.whenRendered(oElement, this, applyFocus);
       },
 
       _evScrollTo(args) {
@@ -961,7 +795,7 @@ sap.ui.define(
         // Native Element.scrollTo is only used as a fallback for controls
         // without a delegate.
         try {
-          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
+          const oElement = z2ui5.oView?.byId(args[1]);
           if (!oElement) return;
           const y = +args[2] || 0;
           const x = +args[3] || 0;
@@ -970,9 +804,8 @@ sap.ui.define(
 
           let handled = false;
           try {
-            const d =
-              oElement.getScrollDelegate && oElement.getScrollDelegate();
-            if (d && d.scrollTo) {
+            const d = oElement.getScrollDelegate?.();
+            if (d?.scrollTo) {
               // ScrollEnablement / iScroll delegate: scrollTo(x, y, time)
               d.scrollTo(x, y, smooth ? 300 : 0);
               handled = true;
@@ -985,7 +818,7 @@ sap.ui.define(
             const dom =
               document.getElementById(`${oElement.getId()}-inner`) ||
               oElement.getDomRef();
-            if (dom && dom.scrollTo) {
+            if (dom?.scrollTo) {
               dom.scrollTo({ top: y, left: x, behavior });
               handled = true;
             } else if (dom) {
@@ -999,7 +832,7 @@ sap.ui.define(
             }
           }
         } catch (e) {
-          logError(`SCROLL_TO: failed for '${args[1]}'`, e);
+          Lib.logError(`SCROLL_TO: failed for '${args[1]}'`, e);
         }
       },
 
@@ -1011,7 +844,7 @@ sap.ui.define(
         // Modern declarative scroll: bring a control into the viewport,
         // regardless of where the surrounding scroll container currently is.
         try {
-          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
+          const oElement = z2ui5.oView?.byId(args[1]);
           if (!oElement) return;
           const dom = oElement.getDomRef();
           if (!dom || !dom.scrollIntoView) return;
@@ -1021,28 +854,28 @@ sap.ui.define(
             inline: args[4] || "nearest",
           });
         } catch (e) {
-          logError(`SCROLL_INTO_VIEW: failed for '${args[1]}'`, e);
+          Lib.logError(`SCROLL_INTO_VIEW: failed for '${args[1]}'`, e);
         }
       },
 
       _evSetTitle(args) {
-        const title = args[1] == null ? "" : String(args[1]);
+        const title = Lib.toText(args[1]);
         try {
           document.title = title;
         } catch (e) {
-          logError("SET_TITLE: setting document.title failed", e);
+          Lib.logError("SET_TITLE: setting document.title failed", e);
         }
       },
 
       _evSetTitleLaunchpad(args) {
-        const title = args[1] == null ? "" : String(args[1]);
+        const title = Lib.toText(args[1]);
         try {
-          const shell = z2ui5.oLaunchpad && z2ui5.oLaunchpad.ShellUIService;
-          if (shell && shell.setTitle) {
+          const shell = z2ui5.oLaunchpad?.ShellUIService;
+          if (shell?.setTitle) {
             const result = shell.setTitle(title);
-            if (result && result.catch) {
+            if (result?.catch) {
               result.catch((e) =>
-                logError(
+                Lib.logError(
                   "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",
                   e,
                 ),
@@ -1050,7 +883,10 @@ sap.ui.define(
             }
           }
         } catch (e) {
-          logError("SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed", e);
+          Lib.logError(
+            "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",
+            e,
+          );
         }
       },
 
@@ -1059,34 +895,56 @@ sap.ui.define(
           const fn = z2ui5[args[1]];
           if (fn) fn(args.slice(2));
         } catch (e) {
-          logError(`Z2UI5: '${args[1]}' failed`, e);
+          Lib.logError(`Z2UI5: '${args[1]}' failed`, e);
         }
       },
 
       _evWizardSetNextStep(args) {
         try {
-          const wiz = z2ui5.oView && z2ui5.oView.byId(args[1]);
-          const step = z2ui5.oView && z2ui5.oView.byId(args[2]);
-          const nextStep = z2ui5.oView && z2ui5.oView.byId(args[3]);
+          const wiz = z2ui5.oView?.byId(args[1]);
+          const step = z2ui5.oView?.byId(args[2]);
+          const nextStep = z2ui5.oView?.byId(args[3]);
           if (wiz && step) wiz.discardProgress(step);
           if (step && nextStep) step.setNextStep(nextStep);
         } catch (e) {
-          logError(`WIZARD_SET_NEXT_STEP: failed for wizard '${args[1]}'`, e);
+          Lib.logError(
+            `WIZARD_SET_NEXT_STEP: failed for wizard '${args[1]}'`,
+            e,
+          );
         }
       },
 
       _evPlayAudio(args) {
         try {
-          new Audio(args[1]).play();
+          const playing = new Audio(args[1]).play();
+          // play() returns a Promise; a rejection (e.g. blocked by the
+          // browser's autoplay policy) is not caught by the surrounding
+          // try/catch and would surface as an unhandled rejection.
+          if (playing?.catch) {
+            playing.catch((e) =>
+              Lib.logError(`PLAY_AUDIO: failed for '${args[1]}'`, e),
+            );
+          }
         } catch (e) {
-          logError(`PLAY_AUDIO: failed for '${args[1]}'`, e);
+          Lib.logError(`PLAY_AUDIO: failed for '${args[1]}'`, e);
         }
       },
 
       // ------------------------------------------------------------------
-      // eB: trigger a backend roundtrip with arguments.
+      // eB = "event backend": triggers a backend roundtrip with arguments.
+      // The name is part of the protocol - backend-generated view XML binds
+      // events to eB/eF - and must not be renamed.
+      //
+      // args[0] is the event array built by the backend:
+      //   [0] event name
+      //   [2] "ignore busy" flag - background events (e.g. timers) skip the
+      //       busy guard below
+      //   [3] "use main view model" flag - events fired from a popup or
+      //       popover controller that still target the main app's model
       // ------------------------------------------------------------------
       eB(...args) {
+        const [, , ignoreBusy, useMainModel] = args[0];
+
         if (!navigator.onLine) {
           MessageBox.alert(
             "No internet connection! Please reconnect to the server and try again.",
@@ -1095,15 +953,11 @@ sap.ui.define(
         }
 
         // If a roundtrip is already in flight, briefly show a BusyDialog so
-        // the user gets visual feedback instead of a silent click. args[0][2]
-        // is the "ignore busy" flag set by certain background events.
-        if (z2ui5.isBusy && !args[0][2]) {
-          const oBusyDialog = new mBusyDialog();
-          oBusyDialog.attachEventOnce("afterClose", () =>
-            oBusyDialog.destroy(),
-          );
-          oBusyDialog.open();
-          queueMicrotask(() => oBusyDialog.close());
+        // the user gets visual feedback instead of a silent click.
+        if (z2ui5.isBusy && !ignoreBusy) {
+          if (!_busyDialog) _busyDialog = new BusyDialog();
+          _busyDialog.open();
+          queueMicrotask(() => _busyDialog.close());
           return;
         }
 
@@ -1124,24 +978,21 @@ sap.ui.define(
         // Decide which view's model holds the data we need to send back. The
         // mapping is: main app controller -> main view, popup controller ->
         // popup view, etc.
-        const oModel = this._pickModelForRoundtrip(args);
+        const oModel = this._pickModelForRoundtrip(useMainModel);
 
-        runCallbacks(z2ui5.onBeforeRoundtrip);
+        Lib.runCallbacks(z2ui5.onBeforeRoundtrip);
 
         // If the user edited /XX/ paths, send only the delta to keep the
         // payload small.
-        if (oModel && z2ui5.xxChangedPaths && z2ui5.xxChangedPaths.size > 0) {
+        if (oModel && z2ui5.xxChangedPaths?.size > 0) {
           const data = oModel.getData();
-          const xx = data && data.XX;
+          const xx = data?.XX;
           if (xx) {
-            z2ui5.oBody.XX = this._buildDeltaFromPaths(
-              z2ui5.xxChangedPaths,
-              xx,
-            );
+            z2ui5.oBody.XX = Lib.buildDeltaFromPaths(z2ui5.xxChangedPaths, xx);
           }
         }
 
-        z2ui5.oBody.ID = z2ui5.oResponse && z2ui5.oResponse.ID;
+        z2ui5.oBody.ID = z2ui5.oResponse?.ID;
         // Object arguments are stringified for transport; the event name in
         // args[0] is left as-is.
         z2ui5.oBody.ARGUMENTS = args.map((item, i) => {
@@ -1149,37 +1000,35 @@ sap.ui.define(
           return item;
         });
 
-        z2ui5.oResponseOld = z2ui5.oResponse;
-        Server.Roundtrip();
-        runCallbacks(z2ui5.onAfterRoundtrip);
+        Server.roundtrip();
+        Lib.runCallbacks(z2ui5.onAfterRoundtrip);
       },
 
-      _pickModelForRoundtrip(args) {
-        // The 4th positional flag in args[0] forces use of the main view's
-        // model even when called from a popup/popover controller.
-        if (args[0][3] || z2ui5.oController === this) {
-          const sView =
-            z2ui5.oResponse && z2ui5.oResponse.PARAMS
-              ? z2ui5.oResponse.PARAMS.S_VIEW
-              : null;
-          if (sView && sView.SWITCH_DEFAULT_MODEL_PATH) {
-            return z2ui5.oView && z2ui5.oView.getModel("http");
+      _pickModelForRoundtrip(useMainModel) {
+        // useMainModel forces use of the main view's model even when called
+        // from a popup/popover controller.
+        if (useMainModel || z2ui5.oController === this) {
+          const sView = z2ui5.oResponse?.PARAMS
+            ? z2ui5.oResponse.PARAMS.S_VIEW
+            : null;
+          if (sView?.SWITCH_DEFAULT_MODEL_PATH) {
+            return z2ui5.oView?.getModel("http");
           }
-          return z2ui5.oView && z2ui5.oView.getModel();
+          return z2ui5.oView?.getModel();
         }
         if (z2ui5.oControllerPopup === this) {
-          return z2ui5.oViewPopup && z2ui5.oViewPopup.getModel();
+          return z2ui5.oViewPopup?.getModel();
         }
         if (z2ui5.oControllerPopover === this) {
-          return z2ui5.oViewPopover && z2ui5.oViewPopover.getModel();
+          return z2ui5.oViewPopover?.getModel();
         }
         if (z2ui5.oControllerNest === this) {
           z2ui5.oBody.VIEWNAME = "NEST";
-          return z2ui5.oViewNest && z2ui5.oViewNest.getModel();
+          return z2ui5.oViewNest?.getModel();
         }
         if (z2ui5.oControllerNest2 === this) {
           z2ui5.oBody.VIEWNAME = "NEST2";
-          return z2ui5.oViewNest2 && z2ui5.oViewNest2.getModel();
+          return z2ui5.oViewNest2?.getModel();
         }
         return undefined;
       },
@@ -1187,12 +1036,12 @@ sap.ui.define(
       // Re-bind a model to one of the views when the response signals an
       // update is required for that particular slot.
       updateModelIfRequired(paramKey, oView) {
-        const params = z2ui5.oResponse && z2ui5.oResponse.PARAMS;
-        const slot = params && params[paramKey];
+        const params = z2ui5.oResponse?.PARAMS;
+        const slot = params?.[paramKey];
         if (!slot || !slot.CHECK_UPDATE_MODEL) return;
 
         const oModel = this._createViewModel();
-        applyStoredSizeLimit(paramToViewKey[paramKey], oModel);
+        applyStoredSizeLimit(Lib.slotKeyByParam(paramKey), oModel);
         if (oView) oView.setModel(oModel);
       },
 
@@ -1202,13 +1051,13 @@ sap.ui.define(
           const info = await VersionInfo.load();
           gav = info.gav;
         } catch (e) {
-          logError("checkSDKcompatibility: VersionInfo.load failed", e);
+          Lib.logError("checkSDKcompatibility: VersionInfo.load failed", e);
           return;
         }
         if (!gav || !gav.includes("com.sap.ui5")) {
           // openui5 doesn't ship some sap.com modules - tell the user which
           // module is missing so they know to switch to SAPUI5.
-          const missingModule = err && err._modules;
+          const missingModule = err?._modules;
           Server.responseError(
             `openui5 SDK is loaded, module: ${missingModule} is not available in openui5`,
           );
@@ -1235,11 +1084,17 @@ sap.ui.define(
             closeonBrowserNavigation: !!msg.CLOSEONBROWSERNAVIGATION,
           });
           if (msg.CLASS) {
-            const toastEl = document.querySelector(".sapMMessageToast");
-            if (toastEl) {
-              const classes = msg.CLASS.trim().split(/\s+/).filter(Boolean);
-              toastEl.classList.add(...classes);
-            }
+            const classes = msg.CLASS.trim().split(/\s+/).filter(Boolean);
+            // Pick the newest toast (several can be open at once). The
+            // element may not be in the DOM yet right after show(), so
+            // retry once on the next animation frame.
+            const applyClass = () => {
+              const toasts = document.querySelectorAll(".sapMMessageToast");
+              const toastEl = toasts[toasts.length - 1];
+              if (toastEl) toastEl.classList.add(...classes);
+              return !!toastEl;
+            };
+            if (!applyClass()) requestAnimationFrame(applyClass);
           }
           return;
         }
@@ -1255,7 +1110,7 @@ sap.ui.define(
             emphasizedAction: msg.EMPHASIZEDACTION || "OK",
             initialFocus: msg.INITIALFOCUS || null,
             textDirection: msg.TEXTDIRECTION || "Inherit",
-            details: msg.DETAILS ? sanitizeMessageDetails(msg.DETAILS) : "",
+            details: msg.DETAILS ? Lib.sanitizeMessageDetails(msg.DETAILS) : "",
             closeOnNavigation: !!msg.CLOSEONNAVIGATION,
           };
           if (msg.ICON && msg.ICON !== "NONE") oParams.icon = msg.ICON;
@@ -1268,11 +1123,10 @@ sap.ui.define(
       async displayView(xml, viewModel) {
         const oViewModel = this._trackChanges(new JSONModel(viewModel));
 
-        const sView =
-          z2ui5.oResponse && z2ui5.oResponse.PARAMS
-            ? z2ui5.oResponse.PARAMS.S_VIEW
-            : null;
-        const switchPath = sView && sView.SWITCH_DEFAULT_MODEL_PATH;
+        const sView = z2ui5.oResponse?.PARAMS
+          ? z2ui5.oResponse.PARAMS.S_VIEW
+          : null;
+        const switchPath = sView?.SWITCH_DEFAULT_MODEL_PATH;
 
         // When the app wants OData as the default model, build it here and
         // keep the JSON model as the named "http" model.
@@ -1296,9 +1150,7 @@ sap.ui.define(
         });
 
         // Guard against the app being destroyed during the await above.
-        const appAlive =
-          z2ui5.oApp && (!z2ui5.oApp.isDestroyed || !z2ui5.oApp.isDestroyed());
-        if (!appAlive) {
+        if (!Lib.isAlive(z2ui5.oApp)) {
           z2ui5.oView.destroy();
           if (switchPath) oModel.destroy();
           z2ui5.oView = null;

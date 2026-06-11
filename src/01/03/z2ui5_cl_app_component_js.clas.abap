@@ -22,23 +22,24 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `  [` && |\n| &&
              `    "sap/ui/core/UIComponent",` && |\n| &&
              `    "z2ui5/model/models",` && |\n| &&
-             `    "z2ui5/cc/Server",` && |\n| &&
+             `    "z2ui5/core/Server",` && |\n| &&
              `    "sap/ui/VersionInfo",` && |\n| &&
-             `    "z2ui5/cc/DebugTool",` && |\n| &&
+             `    "z2ui5/core/DebugTool",` && |\n| &&
              `    "sap/ui/core/Theming",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/Util",` && |\n| &&
              `  ],` && |\n| &&
-             `  (UIComponent, Models, Server, VersionInfo, DebugTool, Theming) => {` && |\n| &&
+             `  (` && |\n| &&
+             `    UIComponent,` && |\n| &&
+             `    Models,` && |\n| &&
+             `    Server,` && |\n| &&
+             `    VersionInfo,` && |\n| &&
+             `    DebugTool,` && |\n| &&
+             `    Theming,` && |\n| &&
+             `    Lib,` && |\n| &&
+             `    DateUtil,` && |\n| &&
+             `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    // Append an entry to the global error log. We create the array on first use.` && |\n| &&
-             `    function logError(message, error) {` && |\n| &&
-             `      if (!z2ui5.errors) z2ui5.errors = [];` && |\n| &&
-             `      z2ui5.errors.push({` && |\n| &&
-             `        message: message,` && |\n| &&
-             `        error: error,` && |\n| &&
-             `        ts: new Date().toISOString(),` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
              `` && |\n| &&
              `    return UIComponent.extend("z2ui5.Component", {` && |\n| &&
              `      metadata: {` && |\n| &&
@@ -54,12 +55,15 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n| &&
              `        UIComponent.prototype.init.call(this);` && |\n| &&
              `` && |\n| &&
-             `        // After the base init, ensure z2ui5 / z2ui5.oConfig still exist. When` && |\n| &&
-             `        // running locally without the SAP launchpad the global is re-created.` && |\n| &&
-             `        if (typeof z2ui5 === "undefined") z2ui5 = {};` && |\n| &&
-             `        if (z2ui5.checkLocal === false) z2ui5 = {};` && |\n| &&
-             `        if (typeof z2ui5.oConfig === "undefined") z2ui5.oConfig = {};` && |\n| &&
+             `        this._ensureGlobalState();` && |\n| &&
              `        z2ui5.oConfig.ComponentData = this.getComponentData();` && |\n| &&
+             `` && |\n| &&
+             `        // The date helpers are a public contract: apps use them via the` && |\n| &&
+             `        // z2ui5.Util global (XML view formatter strings) or via` && |\n| &&
+             `        // core:require of the z2ui5/Util module. Publish the global here -` && |\n| &&
+             `        // since the custom controls were split out of App.controller.js,` && |\n| &&
+             `        // nothing else loads the module eagerly anymore.` && |\n| &&
+             `        z2ui5.Util = DateUtil;` && |\n| &&
              `` && |\n| &&
              `        z2ui5.oDeviceModel = Models.createDeviceModel();` && |\n| &&
              `        this.setModel(z2ui5.oDeviceModel, "device");` && |\n| &&
@@ -69,11 +73,27 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n| &&
              `        this._installUnloadListener();` && |\n| &&
              `        this._installDebugToolShortcut();` && |\n| &&
-             `        this._installPopstateListener();` && |\n| &&
+             `        this._installScrollListener();` && |\n| &&
+             `        // Currently disabled: the popstate view restore. Its counterpart -` && |\n| &&
+             `        // storing the rendered view/model in history.state on every` && |\n| &&
+             `        // roundtrip (View1 _processAfterRendering) - is disabled for` && |\n| &&
+             `        // performance reasons, so the listener would never fire with state.` && |\n| &&
+             `        // this._installPopstateListener();` && |\n| &&
              `` && |\n| &&
              `        z2ui5.oRouter = this.getRouter();` && |\n| &&
              `        z2ui5.oRouter.initialize();` && |\n| &&
              `        z2ui5.oRouter.stop();` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // After the base init, ensure z2ui5 / z2ui5.oConfig exist. The` && |\n| &&
+             `      // backend-generated HTML declares window.z2ui5 before the component` && |\n| &&
+             `      // boots; when running standalone (local dev tooling) it does not` && |\n| &&
+             `      // exist yet. Assign via window - a bare ``z2ui5 = {}`` would throw a` && |\n| &&
+             `      // ReferenceError on an undeclared global in strict mode.` && |\n| &&
+             `      _ensureGlobalState() {` && |\n| &&
+             `        if (typeof z2ui5 === "undefined") window.z2ui5 = {};` && |\n| &&
+             `        if (z2ui5.checkLocal === false) window.z2ui5 = {};` && |\n| &&
+             `        if (typeof z2ui5.oConfig === "undefined") z2ui5.oConfig = {};` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
@@ -100,31 +120,47 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        document.addEventListener("keydown", this._boundKeydown);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      _installScrollListener() {` && |\n| &&
+             `        // Scroll events do not bubble, but they do trigger capture-phase` && |\n| &&
+             `        // listeners on ancestors - a single document-level listener observes` && |\n| &&
+             `        // every scrollable container. Server.onScrollCapture records the` && |\n| &&
+             `        // last scrolled element per view slot for the S_SCROLL request info.` && |\n| &&
+             `        this._boundScroll = (event) => Server.onScrollCapture(event);` && |\n| &&
+             `        document.addEventListener("scroll", this._boundScroll, {` && |\n| &&
+             `          capture: true,` && |\n| &&
+             `          passive: true,` && |\n| &&
+             `        });` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // Currently not installed - see init(). Kept for re-enabling the` && |\n| &&
+             `      // popstate view restore together with the history.state storing in` && |\n| &&
+             `      // View1 _processAfterRendering.` && |\n| &&
              `      _installPopstateListener() {` && |\n| &&
              `        // The browser's back/forward buttons restore a previously displayed` && |\n| &&
              `        // view from history.state without doing a backend roundtrip.` && |\n| &&
              `        this._boundPopstate = (event) => {` && |\n| &&
-             `          const state = event && event.state;` && |\n| &&
+             `          const state = event?.state;` && |\n| &&
              `          if (!state) return;` && |\n| &&
              `` && |\n| &&
              `          // These flags only apply once when the state was first pushed; on` && |\n| &&
              `          // restore we strip them so they don't trigger again.` && |\n| &&
-             `          if (state.response && state.response.PARAMS) {` && |\n| &&
+             `          if (state.response?.PARAMS) {` && |\n| &&
              `            delete state.response.PARAMS.SET_PUSH_STATE;` && |\n| &&
              `            delete state.response.PARAMS.SET_APP_STATE_ACTIVE;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
              `          if (!state.view) return;` && |\n| &&
              `` && |\n| &&
-             `          if (z2ui5.oController) z2ui5.oController.ViewDestroy();` && |\n| &&
+             `          if (z2ui5.oController) z2ui5.oController.destroyView();` && |\n| &&
              `          z2ui5.oResponse = state.response;` && |\n| &&
              `` && |\n| &&
-             `          const displayPromise =` && |\n| &&
-             `            z2ui5.oController &&` && |\n| &&
-             `            z2ui5.oController.displayView(state.view, state.model);` && |\n| &&
-             `          if (displayPromise && displayPromise.catch) {` && |\n| &&
+             `          const displayPromise = z2ui5.oController?.displayView(` && |\n| &&
+             `            state.view,` && |\n| &&
+             `            state.model,` && |\n| &&
+             `          );` && |\n| &&
+             `          if (displayPromise?.catch) {` && |\n| &&
              `            displayPromise.catch((e) =>` && |\n| &&
-             `              logError("popstate: displayView failed", e),` && |\n| &&
+             `              Lib.logError("popstate: displayView failed", e),` && |\n| &&
              `            );` && |\n| &&
              `          }` && |\n| &&
              `        };` && |\n| &&
@@ -148,34 +184,37 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        // before the services were ready). setIfAlive guards against writing` && |\n| &&
              `        // to a stale launchpad object in that case.` && |\n| &&
              `        const setIfAlive = (key, value) => {` && |\n| &&
-             `          const stillAlive = !this.isDestroyed || !this.isDestroyed();` && |\n| &&
-             `          if (stillAlive && this._launchpad === launchpad) {` && |\n| &&
+             `          if (Lib.isAlive(this) && this._launchpad === launchpad) {` && |\n| &&
              `            launchpad[key] = value;` && |\n| &&
              `          }` && |\n| &&
              `        };` && |\n| &&
              `` && |\n| &&
              `        Container.getServiceAsync("ShellUIService")` && |\n| &&
              `          .then((s) => setIfAlive("ShellUIService", s))` && |\n| &&
-             `          .catch((e) => logError("Component: ShellUIService init failed", e));` && |\n| &&
+             `          .catch((e) =>` && |\n| &&
+             `            Lib.logError("Component: ShellUIService init failed", e),` && |\n| &&
+             `          );` && |\n| &&
              `` && |\n| &&
              `        Container.getServiceAsync("CrossApplicationNavigation")` && |\n| &&
              `          .then((s) => setIfAlive("CrossAppNavigator", s))` && |\n| &&
              `          .catch((e) =>` && |\n| &&
-             `            logError("Component: CrossApplicationNavigation init failed", e),` && |\n| &&
+             `            Lib.logError(` && |\n| &&
+             `              "Component: CrossApplicationNavigation init failed",` && |\n| &&
+             `              e,` && |\n| &&
+             `            ),` && |\n| &&
              `          );` && |\n| &&
              `` && |\n| &&
              `        sap.ui.require(` && |\n| &&
              `          ["sap/ushell/services/AppConfiguration"],` && |\n| &&
              `          (ac) => setIfAlive("AppConfiguration", ac),` && |\n| &&
-             `          (e) => logError("Component: AppConfiguration init failed", e),` && |\n| &&
+             `          (e) => Lib.logError("Component: AppConfiguration init failed", e),` && |\n| &&
              `        );` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      async _initVersionInfo() {` && |\n| &&
              `        try {` && |\n| &&
              `          const info = await VersionInfo.load();` && |\n| &&
-             `          const stillAlive = !this.isDestroyed || !this.isDestroyed();` && |\n| &&
-             `          if (stillAlive) {` && |\n| &&
+             `          if (Lib.isAlive(this)) {` && |\n| &&
              `            z2ui5.oConfig.S_UI5 = {` && |\n| &&
              `              VERSION: info.version,` && |\n| &&
              `              BUILDTIMESTAMP: info.buildTimestamp,` && |\n| &&
@@ -184,7 +223,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `            };` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError("Component: VersionInfo load failed", e);` && |\n| &&
+             `          Lib.logError("Component: VersionInfo load failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -200,7 +239,11 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `      exit() {` && |\n| &&
              `        window.removeEventListener(this._unloadEvent, this._boundUnload);` && |\n| &&
              `        document.removeEventListener("keydown", this._boundKeydown);` && |\n| &&
-             `        window.removeEventListener("popstate", this._boundPopstate);` && |\n| &&
+             `        document.removeEventListener("scroll", this._boundScroll, {` && |\n| &&
+             `          capture: true,` && |\n| &&
+             `        });` && |\n| &&
+             `        // Disabled together with _installPopstateListener in init():` && |\n| &&
+             `        // window.removeEventListener("popstate", this._boundPopstate);` && |\n| &&
              `` && |\n| &&
              `        Server.endSession();` && |\n| &&
              `` && |\n| &&
@@ -212,12 +255,11 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        //     become no-ops via setIfAlive().` && |\n| &&
              `        try {` && |\n| &&
              `          const setDirtyFlag =` && |\n| &&
-             `            this._launchpad &&` && |\n| &&
-             `            this._launchpad.Container &&` && |\n| &&
+             `            this._launchpad?.Container &&` && |\n| &&
              `            this._launchpad.Container.setDirtyFlag;` && |\n| &&
              `          if (setDirtyFlag) setDirtyFlag.call(this._launchpad.Container, false);` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError("Component: clearing FLP dirty flag failed", e);` && |\n| &&
+             `          Lib.logError("Component: clearing FLP dirty flag failed", e);` && |\n| &&
              `        }` && |\n| &&
              `        if (z2ui5.oLaunchpad === this._launchpad) z2ui5.oLaunchpad = null;` && |\n| &&
              `        this._launchpad = null;` && |\n| &&

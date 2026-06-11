@@ -2,23 +2,24 @@ sap.ui.define(
   [
     "sap/ui/core/UIComponent",
     "z2ui5/model/models",
-    "z2ui5/cc/Server",
+    "z2ui5/core/Server",
     "sap/ui/VersionInfo",
-    "z2ui5/cc/DebugTool",
+    "z2ui5/core/DebugTool",
     "sap/ui/core/Theming",
+    "z2ui5/core/Lib",
+    "z2ui5/Util",
   ],
-  (UIComponent, Models, Server, VersionInfo, DebugTool, Theming) => {
+  (
+    UIComponent,
+    Models,
+    Server,
+    VersionInfo,
+    DebugTool,
+    Theming,
+    Lib,
+    DateUtil,
+  ) => {
     "use strict";
-
-    // Append an entry to the global error log. We create the array on first use.
-    function logError(message, error) {
-      if (!z2ui5.errors) z2ui5.errors = [];
-      z2ui5.errors.push({
-        message: message,
-        error: error,
-        ts: new Date().toISOString(),
-      });
-    }
 
     return UIComponent.extend("z2ui5.Component", {
       metadata: {
@@ -34,12 +35,15 @@ sap.ui.define(
 
         UIComponent.prototype.init.call(this);
 
-        // After the base init, ensure z2ui5 / z2ui5.oConfig still exist. When
-        // running locally without the SAP launchpad the global is re-created.
-        if (typeof z2ui5 === "undefined") z2ui5 = {};
-        if (z2ui5.checkLocal === false) z2ui5 = {};
-        if (typeof z2ui5.oConfig === "undefined") z2ui5.oConfig = {};
+        this._ensureGlobalState();
         z2ui5.oConfig.ComponentData = this.getComponentData();
+
+        // The date helpers are a public contract: apps use them via the
+        // z2ui5.Util global (XML view formatter strings) or via
+        // core:require of the z2ui5/Util module. Publish the global here -
+        // since the custom controls were split out of App.controller.js,
+        // nothing else loads the module eagerly anymore.
+        z2ui5.Util = DateUtil;
 
         z2ui5.oDeviceModel = Models.createDeviceModel();
         this.setModel(z2ui5.oDeviceModel, "device");
@@ -49,11 +53,27 @@ sap.ui.define(
 
         this._installUnloadListener();
         this._installDebugToolShortcut();
-        this._installPopstateListener();
+        this._installScrollListener();
+        // Currently disabled: the popstate view restore. Its counterpart -
+        // storing the rendered view/model in history.state on every
+        // roundtrip (View1 _processAfterRendering) - is disabled for
+        // performance reasons, so the listener would never fire with state.
+        // this._installPopstateListener();
 
         z2ui5.oRouter = this.getRouter();
         z2ui5.oRouter.initialize();
         z2ui5.oRouter.stop();
+      },
+
+      // After the base init, ensure z2ui5 / z2ui5.oConfig exist. The
+      // backend-generated HTML declares window.z2ui5 before the component
+      // boots; when running standalone (local dev tooling) it does not
+      // exist yet. Assign via window - a bare `z2ui5 = {}` would throw a
+      // ReferenceError on an undeclared global in strict mode.
+      _ensureGlobalState() {
+        if (typeof z2ui5 === "undefined") window.z2ui5 = {};
+        if (z2ui5.checkLocal === false) window.z2ui5 = {};
+        if (typeof z2ui5.oConfig === "undefined") z2ui5.oConfig = {};
       },
 
       // ------------------------------------------------------------------
@@ -80,31 +100,47 @@ sap.ui.define(
         document.addEventListener("keydown", this._boundKeydown);
       },
 
+      _installScrollListener() {
+        // Scroll events do not bubble, but they do trigger capture-phase
+        // listeners on ancestors - a single document-level listener observes
+        // every scrollable container. Server.onScrollCapture records the
+        // last scrolled element per view slot for the S_SCROLL request info.
+        this._boundScroll = (event) => Server.onScrollCapture(event);
+        document.addEventListener("scroll", this._boundScroll, {
+          capture: true,
+          passive: true,
+        });
+      },
+
+      // Currently not installed - see init(). Kept for re-enabling the
+      // popstate view restore together with the history.state storing in
+      // View1 _processAfterRendering.
       _installPopstateListener() {
         // The browser's back/forward buttons restore a previously displayed
         // view from history.state without doing a backend roundtrip.
         this._boundPopstate = (event) => {
-          const state = event && event.state;
+          const state = event?.state;
           if (!state) return;
 
           // These flags only apply once when the state was first pushed; on
           // restore we strip them so they don't trigger again.
-          if (state.response && state.response.PARAMS) {
+          if (state.response?.PARAMS) {
             delete state.response.PARAMS.SET_PUSH_STATE;
             delete state.response.PARAMS.SET_APP_STATE_ACTIVE;
           }
 
           if (!state.view) return;
 
-          if (z2ui5.oController) z2ui5.oController.ViewDestroy();
+          if (z2ui5.oController) z2ui5.oController.destroyView();
           z2ui5.oResponse = state.response;
 
-          const displayPromise =
-            z2ui5.oController &&
-            z2ui5.oController.displayView(state.view, state.model);
-          if (displayPromise && displayPromise.catch) {
+          const displayPromise = z2ui5.oController?.displayView(
+            state.view,
+            state.model,
+          );
+          if (displayPromise?.catch) {
             displayPromise.catch((e) =>
-              logError("popstate: displayView failed", e),
+              Lib.logError("popstate: displayView failed", e),
             );
           }
         };
@@ -128,34 +164,37 @@ sap.ui.define(
         // before the services were ready). setIfAlive guards against writing
         // to a stale launchpad object in that case.
         const setIfAlive = (key, value) => {
-          const stillAlive = !this.isDestroyed || !this.isDestroyed();
-          if (stillAlive && this._launchpad === launchpad) {
+          if (Lib.isAlive(this) && this._launchpad === launchpad) {
             launchpad[key] = value;
           }
         };
 
         Container.getServiceAsync("ShellUIService")
           .then((s) => setIfAlive("ShellUIService", s))
-          .catch((e) => logError("Component: ShellUIService init failed", e));
+          .catch((e) =>
+            Lib.logError("Component: ShellUIService init failed", e),
+          );
 
         Container.getServiceAsync("CrossApplicationNavigation")
           .then((s) => setIfAlive("CrossAppNavigator", s))
           .catch((e) =>
-            logError("Component: CrossApplicationNavigation init failed", e),
+            Lib.logError(
+              "Component: CrossApplicationNavigation init failed",
+              e,
+            ),
           );
 
         sap.ui.require(
           ["sap/ushell/services/AppConfiguration"],
           (ac) => setIfAlive("AppConfiguration", ac),
-          (e) => logError("Component: AppConfiguration init failed", e),
+          (e) => Lib.logError("Component: AppConfiguration init failed", e),
         );
       },
 
       async _initVersionInfo() {
         try {
           const info = await VersionInfo.load();
-          const stillAlive = !this.isDestroyed || !this.isDestroyed();
-          if (stillAlive) {
+          if (Lib.isAlive(this)) {
             z2ui5.oConfig.S_UI5 = {
               VERSION: info.version,
               BUILDTIMESTAMP: info.buildTimestamp,
@@ -164,7 +203,7 @@ sap.ui.define(
             };
           }
         } catch (e) {
-          logError("Component: VersionInfo load failed", e);
+          Lib.logError("Component: VersionInfo load failed", e);
         }
       },
 
@@ -180,7 +219,11 @@ sap.ui.define(
       exit() {
         window.removeEventListener(this._unloadEvent, this._boundUnload);
         document.removeEventListener("keydown", this._boundKeydown);
-        window.removeEventListener("popstate", this._boundPopstate);
+        document.removeEventListener("scroll", this._boundScroll, {
+          capture: true,
+        });
+        // Disabled together with _installPopstateListener in init():
+        // window.removeEventListener("popstate", this._boundPopstate);
 
         Server.endSession();
 
@@ -192,12 +235,11 @@ sap.ui.define(
         //     become no-ops via setIfAlive().
         try {
           const setDirtyFlag =
-            this._launchpad &&
-            this._launchpad.Container &&
+            this._launchpad?.Container &&
             this._launchpad.Container.setDirtyFlag;
           if (setDirtyFlag) setDirtyFlag.call(this._launchpad.Container, false);
         } catch (e) {
-          logError("Component: clearing FLP dirty flag failed", e);
+          Lib.logError("Component: clearing FLP dirty flag failed", e);
         }
         if (z2ui5.oLaunchpad === this._launchpad) z2ui5.oLaunchpad = null;
         this._launchpad = null;

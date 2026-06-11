@@ -1,0 +1,45 @@
+sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
+  "use strict";
+  return Control.extend("z2ui5.cc.LPTitle", {
+    metadata: {
+      properties: {
+        title: {
+          type: "string",
+        },
+        ApplicationFullWidth: {
+          type: "boolean",
+        },
+      },
+    },
+    setTitle(val) {
+      this.setProperty("title", val);
+      try {
+        const shell = z2ui5.oLaunchpad?.ShellUIService;
+        if (!shell || !shell.setTitle) return;
+        const result = shell.setTitle(val);
+        // setTitle may return a Promise; report any async failure.
+        if (result?.catch) {
+          result.catch((e) =>
+            Lib.logError("LPTitle: Launchpad Service setTitle failed", e),
+          );
+        }
+      } catch (e) {
+        Lib.logError("LPTitle: Launchpad Service setTitle failed", e);
+      }
+    },
+
+    setApplicationFullWidth(val) {
+      this.setProperty("ApplicationFullWidth", val);
+      try {
+        const config = z2ui5.oLaunchpad?.AppConfiguration;
+        if (config?.setApplicationFullWidth) {
+          config.setApplicationFullWidth(val);
+        }
+      } catch (e) {
+        Lib.logError("LPTitle: setApplicationFullWidth failed", e);
+      }
+    },
+
+    renderer: { apiVersion: 2, render() {} },
+  });
+});

@@ -29,8 +29,6 @@
     "deploy-config": "fiori add deploy-config",
     "start-noflp": "fiori run --open \"index.html?sap-ui-xx-viewCache=false\"",
     "start-variants-management": "fiori run --open \"preview.html?sap-ui-xx-viewCache=false&fiori-tools-rta-mode=true&sap-ui-rta-skip-flex-validation=true#preview-app\"",
-    "unit-tests": "fiori run --open 'test/unit/unitTests.qunit.html'",
-    "int-tests": "fiori run --open 'test/integration/opaTests.qunit.html'",
     "undeploy": "cf undeploy z2ui5 --delete-services --delete-service-keys --delete-service-brokers",
     "deploy-test": "npm run build && fiori deploy --config ui5-deploy.yaml --testMode true",
     "build:cf": "ui5 build preload --clean-dest --config ui5-deploy.yaml --include-task=generateCachebusterInfo",

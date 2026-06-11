@@ -18,12 +18,14 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// Keep this define multi-line: with a single dependency prettier would` && |\n| &&
-             `// collapse it onto one line and reindent the entire module body.` && |\n| &&
-             `// prettier-ignore` && |\n| &&
-             `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/BusyIndicator"],` && |\n| &&
-             `  (BusyIndicator) => {` && |\n| &&
+    result = `sap.ui.define(` && |\n| &&
+             `  [` && |\n| &&
+             `    "sap/ui/core/BusyIndicator",` && |\n| &&
+             `    "sap/ui/Device",` && |\n| &&
+             `    "sap/ui/core/Element",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
+             `  ],` && |\n| &&
+             `  (BusyIndicator, Device, Element, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Errors longer than this are truncated before being shown to the user,` && |\n| &&
@@ -31,28 +33,63 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    const ERROR_MAX_LENGTH = 50000;` && |\n| &&
              `    const _MSG_TYPES = Object.freeze(["S_MSG_TOAST", "S_MSG_BOX"]);` && |\n| &&
              `` && |\n| &&
-             `    // Append an entry to the global error log. We create the array on first use.` && |\n| &&
-             `    function logError(message, error) {` && |\n| &&
-             `      if (!z2ui5.errors) z2ui5.errors = [];` && |\n| &&
-             `      z2ui5.errors.push({` && |\n| &&
-             `        message: message,` && |\n| &&
-             `        error: error,` && |\n| &&
-             `        ts: new Date().toISOString(),` && |\n| &&
-             `      });` && |\n| &&
-             `    }` && |\n| &&
+             `    // Last-resort client-side timeout for backend roundtrips. Infrastructure` && |\n| &&
+             `    // timeouts (ICM, web dispatcher, proxies) usually fire much earlier and` && |\n| &&
+             `    // surface as a regular error response; this backstop only ensures that a` && |\n| &&
+             `    // completely hung connection cannot leave the busy indicator spinning` && |\n| &&
+             `    // forever. Override via z2ui5.requestTimeoutMs.` && |\n| &&
+             `    const REQUEST_TIMEOUT_MS = 600000;` && |\n| &&
              `` && |\n| &&
-             `    // A usable stateful session id ("sap-contextid"). We must never put a` && |\n| &&
-             `    // missing value on the wire: an empty or - via string coercion of a` && |\n| &&
-             `    // JS ``undefined`` - the literal "undefined" makes the SAP Web Dispatcher /` && |\n| &&
-             `    // ICM log "invalid w3c session id" / "HttpExtractSID: SID wrong len: 9"` && |\n| &&
-             `    // on every roundtrip. Only forward a real, non-empty id.` && |\n| &&
-             `    function isValidContextId(id) {` && |\n| &&
-             `      return typeof id === "string" && id !== "" && id !== "undefined";` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
+             `    // Roundtrip lifecycle (spans this file and View1.controller.js):` && |\n| &&
+             `    //   1. View1.eB(...)              collects the model delta into z2ui5.oBody` && |\n| &&
+             `    //   2. Server.roundtrip()         adds S_FRONT (device/focus/scroll info)` && |\n| &&
+             `    //   3. Server.readHttp()          POSTs { value: oBody }, parses the JSON` && |\n| &&
+             `    //   4. Server.responseSuccess()   shows messages, rebuilds/updates views` && |\n| &&
+             `    //   5. View1._processAfterRendering()  popups, nested views, history,` && |\n| &&
+             `    //      then runs pending follow-up JS once rendering is done` && |\n| &&
+             `    // State is handed between the steps via the z2ui5 globals oBody,` && |\n| &&
+             `    // oResponse and pendingCustomJs.` && |\n| &&
+             `    //` && |\n| &&
+             `    // Wire format - request (POST body; VIEWNAME/ARGUMENTS are folded into` && |\n| &&
+             `    // S_FRONT before sending, empty fields are removed):` && |\n| &&
+             `    //   { "value": {` && |\n| &&
+             `    //       "XX": {                        // two-way model delta` && |\n| &&
+             `    //         "NAME": "new value",         //   scalar: full attribute` && |\n| &&
+             `    //         "TAB": { "__delta": { "0": { "COL1": "new cell" } } }` && |\n| &&
+             `    //       },` && |\n| &&
+             `    //       "S_FRONT": {` && |\n| &&
+             `    //         "ID": "<draft id of the previous response>",` && |\n| &&
+             `    //         "EVENT": "SAVE",             // event name` && |\n| &&
+             `    //         "T_EVENT_ARG": ["arg1"],     // further event arguments` && |\n| &&
+             `    //         "VIEW": "MAIN",              // which view fired it` && |\n| &&
+             `    //         "ORIGIN": "https://host", "PATHNAME": "/sap/...",` && |\n| &&
+             `    //         "SEARCH": "?p=1", "HASH": "#...",` && |\n| &&
+             `    //         "CONFIG": { "S_UI5": {...}, "S_DEVICE": {...},` && |\n| &&
+             `    //                     "S_FOCUS": {...}, "S_SCROLL": {...},` && |\n| &&
+             `    //                     "ComponentData": {...} }` && |\n| &&
+             `    //   } } }` && |\n| &&
+             `    //` && |\n| &&
+             `    // Wire format - response:` && |\n| &&
+             `    //   { "S_FRONT": {` && |\n| &&
+             `    //       "ID": "<new draft id>",        // sent back with the next request` && |\n| &&
+             `    //       "PARAMS": {` && |\n| &&
+             `    //         "S_VIEW":      { "XML": "<mvc:View...>", "CHECK_DESTROY": "" },` && |\n| &&
+             `    //         "S_VIEW_NEST", "S_VIEW_NEST2", "S_POPUP", "S_POPOVER": same,` && |\n| &&
+             `    //         "S_MSG_TOAST": { "TEXT": "...", ... },` && |\n| &&
+             `    //         "S_MSG_BOX":   { "TEXT": "...", "TYPE": "error", ... },` && |\n| &&
+             `    //         "S_FOLLOW_UP_ACTION": { "CUSTOM_JS": ["eF('SET_FOCUS','id1')"] },` && |\n| &&
+             `    //         "SET_PUSH_STATE": "", "SET_APP_STATE_ACTIVE": "",` && |\n| &&
+             `    //         "SET_NAV_BACK": ""           // browser/history follow-ups` && |\n| &&
+             `    //       }` && |\n| &&
+             `    //     },` && |\n| &&
+             `    //     "MODEL": { "XX": {...}, ... }    // full JSON view model, becomes` && |\n| &&
+             `    //   }                                  // the view's binding model` && |\n| &&
+             `    //` && |\n| &&
+             `    // Inspect live payloads via the debug tool (Ctrl+F12): "Previous` && |\n| &&
+             `    // Request" and "Response".` && |\n| &&
              `    return {` && |\n| &&
              `      endSession() {` && |\n| &&
-             `        if (!isValidContextId(z2ui5.contextId)) return;` && |\n| &&
+             `        if (!Lib.isValidContextId(z2ui5.contextId)) return;` && |\n| &&
              `        // Best-effort notify the backend that the session ends. Errors are` && |\n| &&
              `        // intentionally swallowed: the browser tab is closing anyway.` && |\n| &&
              `        fetch(z2ui5.url, {` && |\n| &&
@@ -68,15 +105,16 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _getDeviceInfo() {` && |\n| &&
-             `        const d = sap.ui.Device;` && |\n| &&
+             `        const d = Device;` && |\n| &&
              `        const sys = d.system;` && |\n| &&
-             `        const system = sys.phone` && |\n| &&
-             `          ? "phone"` && |\n| &&
-             `          : sys.tablet` && |\n| &&
-             `            ? "tablet"` && |\n| &&
-             `            : sys.combi` && |\n| &&
-             `              ? "combi"` && |\n| &&
-             `              : "desktop";` && |\n| &&
+             `        let system = "desktop";` && |\n| &&
+             `        if (sys.phone) {` && |\n| &&
+             `          system = "phone";` && |\n| &&
+             `        } else if (sys.tablet) {` && |\n| &&
+             `          system = "tablet";` && |\n| &&
+             `        } else if (sys.combi) {` && |\n| &&
+             `          system = "combi";` && |\n| &&
+             `        }` && |\n| &&
              `        return {` && |\n| &&
              `          SYSTEM: system,` && |\n| &&
              `          ORIENTATION: d.orientation.portrait ? "portrait" : "landscape",` && |\n| &&
@@ -104,19 +142,12 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          const active = document.activeElement;` && |\n| &&
              `          if (!active) return {};` && |\n| &&
-             `          const ui5El =` && |\n| &&
-             `            sap.ui.core.Element && sap.ui.core.Element.closestTo` && |\n| &&
-             `              ? sap.ui.core.Element.closestTo(active)` && |\n| &&
-             `              : null;` && |\n| &&
+             `          // Element.closestTo exists as of UI5 1.106; keep the feature check` && |\n| &&
+             `          // so older releases simply skip the focus restore.` && |\n| &&
+             `          const ui5El = Element.closestTo?.(active) ?? null;` && |\n| &&
              `          if (!ui5El) return {};` && |\n| &&
              `          const fullId = ui5El.getId();` && |\n| &&
-             `          const views = [` && |\n| &&
-             `            z2ui5.oView,` && |\n| &&
-             `            z2ui5.oViewNest,` && |\n| &&
-             `            z2ui5.oViewNest2,` && |\n| &&
-             `            z2ui5.oViewPopup,` && |\n| &&
-             `            z2ui5.oViewPopover,` && |\n| &&
-             `          ];` && |\n| &&
+             `          const views = Lib.viewSlots.map((slot) => z2ui5[slot.prop]);` && |\n| &&
              `          let id = fullId;` && |\n| &&
              `          for (const v of views) {` && |\n| &&
              `            if (!v) continue;` && |\n| &&
@@ -136,99 +167,67 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      _getScrollInfo() {` && |\n| &&
-             `        // For each visible view, find the scrollable descendant that is` && |\n| &&
-             `        // actually scrolled (typically a sap.m.Page) and return its current` && |\n| &&
-             `        // scroll offsets. X = scrollLeft, Y = scrollTop.` && |\n| &&
-             `        //` && |\n| &&
-             `        // Multiple controls in the tree expose getScrollDelegate (App,` && |\n| &&
-             `        // NavContainer, Page, ScrollContainer, ...). findAggregatedObjects` && |\n| &&
-             `        // returns them in pre-order, so the outer App/NavContainer comes` && |\n| &&
-             `        // first - but its delegate never scrolls visible content. We pick` && |\n| &&
-             `        // the first candidate whose container is actually scrolled, with` && |\n| &&
-             `        // the deepest overflowing container as a fallback.` && |\n| &&
-             `        //` && |\n| &&
-             `        // Reading the position directly from the container's DOM avoids` && |\n| &&
-             `        // relying on the delegate's cached _scrollY/_scrollX which can lag` && |\n| &&
-             `        // until a scroll event fires.` && |\n| &&
-             `        const containerOf = (control) => {` && |\n| &&
-             `          try {` && |\n| &&
-             `            const d = control.getScrollDelegate();` && |\n| &&
-             `            if (d && d.getContainerDomRef) {` && |\n| &&
-             `              const dom = d.getContainerDomRef();` && |\n| &&
-             `              if (dom) return dom;` && |\n| &&
-             `            }` && |\n| &&
-             `          } catch (e) {` && |\n| &&
-             `            // ignored` && |\n| &&
-             `          }` && |\n| &&
-             `          // Fallback to known ID suffixes for common controls.` && |\n| &&
-             `          const id = control.getId();` && |\n| &&
-             `          return (` && |\n| &&
-             `            document.getElementById(``${id}-cont``) || // sap.m.Page` && |\n| &&
-             `            document.getElementById(``${id}-scroll``) || // sap.m.ScrollContainer` && |\n| &&
-             `            null` && |\n| &&
-             `          );` && |\n| &&
-             `        };` && |\n| &&
-             `        const getOne = (view) => {` && |\n| &&
-             `          if (!view || !view.findAggregatedObjects) return null;` && |\n| &&
-             `          let candidates;` && |\n| &&
-             `          try {` && |\n| &&
-             `            candidates = view.findAggregatedObjects(true, (c) => {` && |\n| &&
-             `              try {` && |\n| &&
-             `                return c.getScrollDelegate && c.getScrollDelegate();` && |\n| &&
-             `              } catch (e) {` && |\n| &&
-             `                return false;` && |\n| &&
-             `              }` && |\n| &&
-             `            });` && |\n| &&
-             `          } catch (e) {` && |\n| &&
-             `            return null;` && |\n| &&
-             `          }` && |\n| &&
-             `          if (!candidates || !candidates.length) return null;` && |\n| &&
+             `      // Records which element the user actually scrolled, per view slot.` && |\n| &&
+             `      // Bound to a single document-level capture-phase listener (installed` && |\n| &&
+             `      // in Component.init): scroll events do not bubble, but they do fire` && |\n| &&
+             `      // capture listeners on ancestors, so one listener observes every` && |\n| &&
+             `      // scrollable container - no per-roundtrip walk over the control tree,` && |\n| &&
+             `      // and no guessing which container "looks scrolled".` && |\n| &&
+             `      onScrollCapture(event) {` && |\n| &&
+             `        const target = event.target;` && |\n| &&
+             `        if (!target || target.nodeType !== 1) return;` && |\n| &&
+             `        const ui5El = Element.closestTo?.(target) ?? null;` && |\n| &&
+             `        if (!ui5El) return;` && |\n| &&
              `` && |\n| &&
-             `          let chosen = null;` && |\n| &&
-             `          let fallback = null;` && |\n| &&
-             `          for (const c of candidates) {` && |\n| &&
-             `            const dom = containerOf(c);` && |\n| &&
-             `            if (!dom) continue;` && |\n| &&
-             `            const x = dom.scrollLeft || 0;` && |\n| &&
-             `            const y = dom.scrollTop || 0;` && |\n| &&
-             `            if (x || y) {` && |\n| &&
-             `              chosen = { control: c, x, y };` && |\n| &&
-             `              break;` && |\n| &&
-             `            }` && |\n| &&
-             `            // Prefer the deepest container that actually overflows.` && |\n| &&
-             `            const overflows =` && |\n| &&
-             `              dom.scrollHeight > dom.clientHeight ||` && |\n| &&
-             `              dom.scrollWidth > dom.clientWidth;` && |\n| &&
-             `            if (overflows || !fallback) {` && |\n| &&
-             `              fallback = { control: c, x, y };` && |\n| &&
+             `        // Walk up the control tree to find the view slot the scrolled` && |\n| &&
+             `        // element belongs to (innermost slot wins, e.g. nested views).` && |\n| &&
+             `        let current = ui5El;` && |\n| &&
+             `        while (current) {` && |\n| &&
+             `          for (const slot of Lib.viewSlots) {` && |\n| &&
+             `            if (z2ui5[slot.prop] === current) {` && |\n| &&
+             `              if (!z2ui5.lastScrolled) z2ui5.lastScrolled = {};` && |\n| &&
+             `              z2ui5.lastScrolled[slot.key] = { control: ui5El, dom: target };` && |\n| &&
+             `              return;` && |\n| &&
              `            }` && |\n| &&
              `          }` && |\n| &&
-             `          const pick = chosen || fallback;` && |\n| &&
-             `          if (!pick) return null;` && |\n| &&
-             `          let id = pick.control.getId();` && |\n| &&
-             `          const prefix = view.getId() + "--";` && |\n| &&
-             `          if (id.startsWith(prefix)) id = id.slice(prefix.length);` && |\n| &&
-             `          return { ID: id, X: pick.x, Y: pick.y };` && |\n| &&
-             `        };` && |\n| &&
+             `          current = current.getParent?.();` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _getScrollInfo() {` && |\n| &&
+             `        // Reads scrollLeft/scrollTop straight from the DOM element the user` && |\n| &&
+             `        // last scrolled in each view slot (recorded by onScrollCapture).` && |\n| &&
+             `        // X = scrollLeft, Y = scrollTop. Slots the user never scrolled are` && |\n| &&
+             `        // absent from the result - restoring 0/0 would be a no-op anyway.` && |\n| &&
+             `        const store = z2ui5.lastScrolled;` && |\n| &&
+             `        if (!store) return undefined;` && |\n| &&
+             `` && |\n| &&
              `        const out = {};` && |\n| &&
-             `        const slots = [` && |\n| &&
-             `          ["MAIN", z2ui5.oView],` && |\n| &&
-             `          ["NEST", z2ui5.oViewNest],` && |\n| &&
-             `          ["NEST2", z2ui5.oViewNest2],` && |\n| &&
-             `          ["POPUP", z2ui5.oViewPopup],` && |\n| &&
-             `          ["POPOVER", z2ui5.oViewPopover],` && |\n| &&
-             `        ];` && |\n| &&
-             `        for (const [key, view] of slots) {` && |\n| &&
-             `          const v = getOne(view);` && |\n| &&
-             `          if (v) out[key] = v;` && |\n| &&
+             `        for (const slot of Lib.viewSlots) {` && |\n| &&
+             `          const entry = store[slot.key];` && |\n| &&
+             `          if (!entry) continue;` && |\n| &&
+             `` && |\n| &&
+             `          // Drop stale references, e.g. after the view was replaced.` && |\n| &&
+             `          if (!entry.dom.isConnected) {` && |\n| &&
+             `            delete store[slot.key];` && |\n| &&
+             `            continue;` && |\n| &&
+             `          }` && |\n| &&
+             `` && |\n| &&
+             `          let id = entry.control.getId();` && |\n| &&
+             `          const view = z2ui5[slot.prop];` && |\n| &&
+             `          const prefix = view ? ``${view.getId()}--`` : "";` && |\n| &&
+             `          if (prefix && id.startsWith(prefix)) id = id.slice(prefix.length);` && |\n| &&
+             `          out[slot.key] = {` && |\n| &&
+             `            ID: id,` && |\n| &&
+             `            X: entry.dom.scrollLeft || 0,` && |\n| &&
+             `            Y: entry.dom.scrollTop || 0,` && |\n| &&
+             `          };` && |\n| &&
              `        }` && |\n| &&
              `        // Returning undefined lets JSON.stringify omit S_SCROLL entirely.` && |\n| &&
              `        return Object.keys(out).length ? out : undefined;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      Roundtrip() {` && |\n| &&
-             `        z2ui5.checkTimerActive = false;` && |\n| &&
+             `      roundtrip() {` && |\n| &&
              `        z2ui5.checkNestAfter = false;` && |\n| &&
              `        z2ui5.checkNestAfter2 = false;` && |\n| &&
              `` && |\n| &&
@@ -237,17 +236,17 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `        // Pick the first event argument (event name) safely.` && |\n| &&
              `        let eventName;` && |\n| &&
-             `        if (oBody.ARGUMENTS && oBody.ARGUMENTS[0]) {` && |\n| &&
+             `        if (oBody.ARGUMENTS?.[0]) {` && |\n| &&
              `          eventName = oBody.ARGUMENTS[0][0];` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        oBody.S_FRONT = {` && |\n| &&
              `          CONFIG: {` && |\n| &&
-             `            S_UI5: z2ui5.oConfig && z2ui5.oConfig.S_UI5,` && |\n| &&
+             `            S_UI5: z2ui5.oConfig?.S_UI5,` && |\n| &&
              `            S_DEVICE: this._getDeviceInfo(),` && |\n| &&
              `            S_FOCUS: this._getFocusInfo(),` && |\n| &&
              `            S_SCROLL: this._getScrollInfo(),` && |\n| &&
-             `            ComponentData: z2ui5.oConfig && z2ui5.oConfig.ComponentData,` && |\n| &&
+             `            ComponentData: z2ui5.oConfig?.ComponentData,` && |\n| &&
              `          },` && |\n| &&
              `          ID: oBody.ID,` && |\n| &&
              `          ORIGIN: window.location.origin,` && |\n| &&
@@ -282,6 +281,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      async readHttp() {` && |\n| &&
              `        // Step 1: send the request.` && |\n| &&
              `        let response;` && |\n| &&
+             `        const timeoutMs = z2ui5.requestTimeoutMs || REQUEST_TIMEOUT_MS;` && |\n| &&
              `        try {` && |\n| &&
              `          // Only forward "sap-contextid" once we actually own a valid session` && |\n| &&
              `          // id - otherwise omit the header entirely (never send "" or` && |\n| &&
@@ -290,22 +290,34 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            "Content-Type": "application/json",` && |\n| &&
              `            "sap-contextid-accept": "header",` && |\n| &&
              `          };` && |\n| &&
-             `          if (isValidContextId(z2ui5.contextId)) {` && |\n| &&
+             `          if (Lib.isValidContextId(z2ui5.contextId)) {` && |\n| &&
              `            headers["sap-contextid"] = z2ui5.contextId;` && |\n| &&
              `          }` && |\n| &&
              `          response = await fetch(z2ui5.url, {` && |\n| &&
              `            method: "POST",` && |\n| &&
              `            headers: headers,` && |\n| &&
              `            body: JSON.stringify({ value: z2ui5.oBody }),` && |\n| &&
+             `            // The signal also guards reading the response body below.` && |\n| &&
+             `            // Browsers without AbortSignal.timeout simply get no client-side` && |\n| &&
+             `            // timeout, as before.` && |\n| &&
+             `            signal: AbortSignal.timeout` && |\n| &&
+             `              ? AbortSignal.timeout(timeoutMs)` && |\n| &&
+             `              : undefined,` && |\n| &&
              `          });` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          this.responseError(``Network error: ${e.message}``);` && |\n| &&
+             `          if (e.name === "TimeoutError" || e.name === "AbortError") {` && |\n| &&
+             `            this.responseError(` && |\n| &&
+             `              ``No backend response within ${timeoutMs / 1000} seconds - request aborted``,` && |\n| &&
+             `            );` && |\n| &&
+             `          } else {` && |\n| &&
+             `            this.responseError(``Network error: ${e.message}``);` && |\n| &&
+             `          }` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        // Keep the last valid session id; a response without the header` && |\n| &&
              `        // (returns null) must not wipe an established session.` && |\n| &&
              `        const contextId = response.headers.get("sap-contextid");` && |\n| &&
-             `        if (isValidContextId(contextId)) {` && |\n| &&
+             `        if (Lib.isValidContextId(contextId)) {` && |\n| &&
              `          z2ui5.contextId = contextId;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -349,9 +361,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          z2ui5.oResponse = response;` && |\n| &&
              `          const params = response.PARAMS;` && |\n| &&
-             `          const sView = params && params.S_VIEW;` && |\n| &&
+             `          const sView = params?.S_VIEW;` && |\n| &&
              `` && |\n| &&
-             `          if (sView && sView.CHECK_DESTROY) oController.ViewDestroy();` && |\n| &&
+             `          if (sView?.CHECK_DESTROY) oController.destroyView();` && |\n| &&
              `` && |\n| &&
              `          // The backend can send small JS snippets to run after the response.` && |\n| &&
              `          // Each snippet is either a literal expression or an "eF(...)" call` && |\n| &&
@@ -361,35 +373,28 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // them earlier would break render-dependent actions such as` && |\n| &&
              `          // SET_FOCUS on the initial view, where the target control does not` && |\n| &&
              `          // exist in the DOM yet.` && |\n| &&
-             `          const followUp = params && params.S_FOLLOW_UP_ACTION;` && |\n| &&
-             `          z2ui5.pendingCustomJs = (followUp && followUp.CUSTOM_JS) || null;` && |\n| &&
+             `          const followUp = params?.S_FOLLOW_UP_ACTION;` && |\n| &&
+             `          z2ui5.pendingCustomJs = followUp?.CUSTOM_JS || null;` && |\n| &&
              `` && |\n| &&
              `          for (const t of _MSG_TYPES) oController.showMessage(t, params);` && |\n| &&
              `` && |\n| &&
              `          // Full view replacement -> destroy & rebuild, nothing more to do.` && |\n| &&
-             `          if (sView && sView.XML) {` && |\n| &&
-             `            oController.ViewDestroy();` && |\n| &&
+             `          if (sView?.XML) {` && |\n| &&
+             `            oController.destroyView();` && |\n| &&
              `            await oController.displayView(sView.XML, response.OVIEWMODEL);` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
              `          // Partial response: refresh whichever existing views the backend` && |\n| &&
              `          // sent updates for.` && |\n| &&
-             `          const updateTargets = [` && |\n| &&
-             `            ["S_VIEW", z2ui5.oView],` && |\n| &&
-             `            ["S_VIEW_NEST", z2ui5.oViewNest],` && |\n| &&
-             `            ["S_VIEW_NEST2", z2ui5.oViewNest2],` && |\n| &&
-             `            ["S_POPUP", z2ui5.oViewPopup],` && |\n| &&
-             `            ["S_POPOVER", z2ui5.oViewPopover],` && |\n| &&
-             `          ];` && |\n| &&
-             `          for (const [key, view] of updateTargets) {` && |\n| &&
-             `            oController.updateModelIfRequired(key, view);` && |\n| &&
+             `          for (const slot of Lib.viewSlots) {` && |\n| &&
+             `            oController.updateModelIfRequired(slot.param, z2ui5[slot.prop]);` && |\n| &&
              `          }` && |\n| &&
              `          oController._processAfterRendering();` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          BusyIndicator.hide();` && |\n| &&
              `          z2ui5.isBusy = false;` && |\n| &&
-             `          logError("responseSuccess: unexpected error", e);` && |\n| &&
+             `          Lib.logError("responseSuccess: unexpected error", e);` && |\n| &&
              `          const msg = e.message || "";` && |\n| &&
              `          if (msg.includes("openui5") && msg.includes("script load error")) {` && |\n| &&
              `            oController.checkSDKcompatibility(e);` && |\n| &&
@@ -402,24 +407,29 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      // Executes a single custom-JS snippet from the backend.` && |\n| &&
              `      // Format A:  "alert(123)"           -> runs the expression` && |\n| &&
              `      // Format B:  "eF('A','B','C')"      -> calls oController.eF('A','B','C')` && |\n| &&
+             `      //` && |\n| &&
+             `      // OBSOLETE: this mechanism (including the quote-based argument parsing` && |\n| &&
+             `      // and the Function() evaluation) only exists for backward compatibility` && |\n| &&
+             `      // with older apps and will be removed in a future release. Do not` && |\n| &&
+             `      // extend or change it.` && |\n| &&
              `      _runCustomJs(item, oController) {` && |\n| &&
              `        try {` && |\n| &&
              `          const parts = item.split("'");` && |\n| &&
              `          // Arguments live at the odd indices between single quotes.` && |\n| &&
              `          const args = parts.filter((_, index) => index % 2 === 1);` && |\n| &&
              `          if (args.length > 0) {` && |\n| &&
+             |\n|.
+    result = result &&
              `            oController.eF(...args);` && |\n| &&
              `          } else {` && |\n| &&
              `            // eslint-disable-next-line no-new-func` && |\n| &&
              `            Function("return " + parts[0])();` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          logError("customJs: execution failed", e);` && |\n| &&
+             `          Lib.logError("customJs: execution failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             |\n|.
-    result = result &&
              `      _getOrCreateErrorContainer() {` && |\n| &&
              `        const existing = document.getElementById("serverErrorContainer");` && |\n| &&
              `        if (existing) return existing;` && |\n| &&
@@ -457,8 +467,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        BusyIndicator.hide();` && |\n| &&
              `        z2ui5.isBusy = false;` && |\n| &&
              `` && |\n| &&
-             `        const full =` && |\n| &&
-             `          response && response.stack ? String(response.stack) : String(response);` && |\n| &&
+             `        const full = response?.stack` && |\n| &&
+             `          ? String(response.stack)` && |\n| &&
+             `          : String(response);` && |\n| &&
              `        let errorMessage;` && |\n| &&
              `        if (full.length > ERROR_MAX_LENGTH) {` && |\n| &&
              `          errorMessage =` && |\n| &&
@@ -532,9 +543,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        };` && |\n| &&
              `        try {` && |\n| &&
              `          const launchpadLogout =` && |\n| &&
-             `            z2ui5.oLaunchpad &&` && |\n| &&
-             `            z2ui5.oLaunchpad.Container &&` && |\n| &&
-             `            z2ui5.oLaunchpad.Container.logout;` && |\n| &&
+             `            z2ui5.oLaunchpad?.Container && z2ui5.oLaunchpad.Container.logout;` && |\n| &&
              `          if (launchpadLogout) {` && |\n| &&
              `            z2ui5.oLaunchpad.Container.logout();` && |\n| &&
              `          } else {` && |\n| &&

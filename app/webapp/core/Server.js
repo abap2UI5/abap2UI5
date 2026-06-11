@@ -1,9 +1,11 @@
-// Keep this define multi-line: with a single dependency prettier would
-// collapse it onto one line and reindent the entire module body.
-// prettier-ignore
 sap.ui.define(
-  ["sap/ui/core/BusyIndicator"],
-  (BusyIndicator) => {
+  [
+    "sap/ui/core/BusyIndicator",
+    "sap/ui/Device",
+    "sap/ui/core/Element",
+    "z2ui5/core/Lib",
+  ],
+  (BusyIndicator, Device, Element, Lib) => {
     "use strict";
 
     // Errors longer than this are truncated before being shown to the user,
@@ -11,28 +13,63 @@ sap.ui.define(
     const ERROR_MAX_LENGTH = 50000;
     const _MSG_TYPES = Object.freeze(["S_MSG_TOAST", "S_MSG_BOX"]);
 
-    // Append an entry to the global error log. We create the array on first use.
-    function logError(message, error) {
-      if (!z2ui5.errors) z2ui5.errors = [];
-      z2ui5.errors.push({
-        message: message,
-        error: error,
-        ts: new Date().toISOString(),
-      });
-    }
+    // Last-resort client-side timeout for backend roundtrips. Infrastructure
+    // timeouts (ICM, web dispatcher, proxies) usually fire much earlier and
+    // surface as a regular error response; this backstop only ensures that a
+    // completely hung connection cannot leave the busy indicator spinning
+    // forever. Override via z2ui5.requestTimeoutMs.
+    const REQUEST_TIMEOUT_MS = 600000;
 
-    // A usable stateful session id ("sap-contextid"). We must never put a
-    // missing value on the wire: an empty or - via string coercion of a
-    // JS `undefined` - the literal "undefined" makes the SAP Web Dispatcher /
-    // ICM log "invalid w3c session id" / "HttpExtractSID: SID wrong len: 9"
-    // on every roundtrip. Only forward a real, non-empty id.
-    function isValidContextId(id) {
-      return typeof id === "string" && id !== "" && id !== "undefined";
-    }
-
+    // Roundtrip lifecycle (spans this file and View1.controller.js):
+    //   1. View1.eB(...)              collects the model delta into z2ui5.oBody
+    //   2. Server.roundtrip()         adds S_FRONT (device/focus/scroll info)
+    //   3. Server.readHttp()          POSTs { value: oBody }, parses the JSON
+    //   4. Server.responseSuccess()   shows messages, rebuilds/updates views
+    //   5. View1._processAfterRendering()  popups, nested views, history,
+    //      then runs pending follow-up JS once rendering is done
+    // State is handed between the steps via the z2ui5 globals oBody,
+    // oResponse and pendingCustomJs.
+    //
+    // Wire format - request (POST body; VIEWNAME/ARGUMENTS are folded into
+    // S_FRONT before sending, empty fields are removed):
+    //   { "value": {
+    //       "XX": {                        // two-way model delta
+    //         "NAME": "new value",         //   scalar: full attribute
+    //         "TAB": { "__delta": { "0": { "COL1": "new cell" } } }
+    //       },
+    //       "S_FRONT": {
+    //         "ID": "<draft id of the previous response>",
+    //         "EVENT": "SAVE",             // event name
+    //         "T_EVENT_ARG": ["arg1"],     // further event arguments
+    //         "VIEW": "MAIN",              // which view fired it
+    //         "ORIGIN": "https://host", "PATHNAME": "/sap/...",
+    //         "SEARCH": "?p=1", "HASH": "#...",
+    //         "CONFIG": { "S_UI5": {...}, "S_DEVICE": {...},
+    //                     "S_FOCUS": {...}, "S_SCROLL": {...},
+    //                     "ComponentData": {...} }
+    //   } } }
+    //
+    // Wire format - response:
+    //   { "S_FRONT": {
+    //       "ID": "<new draft id>",        // sent back with the next request
+    //       "PARAMS": {
+    //         "S_VIEW":      { "XML": "<mvc:View...>", "CHECK_DESTROY": "" },
+    //         "S_VIEW_NEST", "S_VIEW_NEST2", "S_POPUP", "S_POPOVER": same,
+    //         "S_MSG_TOAST": { "TEXT": "...", ... },
+    //         "S_MSG_BOX":   { "TEXT": "...", "TYPE": "error", ... },
+    //         "S_FOLLOW_UP_ACTION": { "CUSTOM_JS": ["eF('SET_FOCUS','id1')"] },
+    //         "SET_PUSH_STATE": "", "SET_APP_STATE_ACTIVE": "",
+    //         "SET_NAV_BACK": ""           // browser/history follow-ups
+    //       }
+    //     },
+    //     "MODEL": { "XX": {...}, ... }    // full JSON view model, becomes
+    //   }                                  // the view's binding model
+    //
+    // Inspect live payloads via the debug tool (Ctrl+F12): "Previous
+    // Request" and "Response".
     return {
       endSession() {
-        if (!isValidContextId(z2ui5.contextId)) return;
+        if (!Lib.isValidContextId(z2ui5.contextId)) return;
         // Best-effort notify the backend that the session ends. Errors are
         // intentionally swallowed: the browser tab is closing anyway.
         fetch(z2ui5.url, {
@@ -48,15 +85,16 @@ sap.ui.define(
       },
 
       _getDeviceInfo() {
-        const d = sap.ui.Device;
+        const d = Device;
         const sys = d.system;
-        const system = sys.phone
-          ? "phone"
-          : sys.tablet
-            ? "tablet"
-            : sys.combi
-              ? "combi"
-              : "desktop";
+        let system = "desktop";
+        if (sys.phone) {
+          system = "phone";
+        } else if (sys.tablet) {
+          system = "tablet";
+        } else if (sys.combi) {
+          system = "combi";
+        }
         return {
           SYSTEM: system,
           ORIENTATION: d.orientation.portrait ? "portrait" : "landscape",
@@ -84,19 +122,12 @@ sap.ui.define(
         try {
           const active = document.activeElement;
           if (!active) return {};
-          const ui5El =
-            sap.ui.core.Element && sap.ui.core.Element.closestTo
-              ? sap.ui.core.Element.closestTo(active)
-              : null;
+          // Element.closestTo exists as of UI5 1.106; keep the feature check
+          // so older releases simply skip the focus restore.
+          const ui5El = Element.closestTo?.(active) ?? null;
           if (!ui5El) return {};
           const fullId = ui5El.getId();
-          const views = [
-            z2ui5.oView,
-            z2ui5.oViewNest,
-            z2ui5.oViewNest2,
-            z2ui5.oViewPopup,
-            z2ui5.oViewPopover,
-          ];
+          const views = Lib.viewSlots.map((slot) => z2ui5[slot.prop]);
           let id = fullId;
           for (const v of views) {
             if (!v) continue;
@@ -116,99 +147,67 @@ sap.ui.define(
         }
       },
 
-      _getScrollInfo() {
-        // For each visible view, find the scrollable descendant that is
-        // actually scrolled (typically a sap.m.Page) and return its current
-        // scroll offsets. X = scrollLeft, Y = scrollTop.
-        //
-        // Multiple controls in the tree expose getScrollDelegate (App,
-        // NavContainer, Page, ScrollContainer, ...). findAggregatedObjects
-        // returns them in pre-order, so the outer App/NavContainer comes
-        // first - but its delegate never scrolls visible content. We pick
-        // the first candidate whose container is actually scrolled, with
-        // the deepest overflowing container as a fallback.
-        //
-        // Reading the position directly from the container's DOM avoids
-        // relying on the delegate's cached _scrollY/_scrollX which can lag
-        // until a scroll event fires.
-        const containerOf = (control) => {
-          try {
-            const d = control.getScrollDelegate();
-            if (d && d.getContainerDomRef) {
-              const dom = d.getContainerDomRef();
-              if (dom) return dom;
-            }
-          } catch (e) {
-            // ignored
-          }
-          // Fallback to known ID suffixes for common controls.
-          const id = control.getId();
-          return (
-            document.getElementById(`${id}-cont`) || // sap.m.Page
-            document.getElementById(`${id}-scroll`) || // sap.m.ScrollContainer
-            null
-          );
-        };
-        const getOne = (view) => {
-          if (!view || !view.findAggregatedObjects) return null;
-          let candidates;
-          try {
-            candidates = view.findAggregatedObjects(true, (c) => {
-              try {
-                return c.getScrollDelegate && c.getScrollDelegate();
-              } catch (e) {
-                return false;
-              }
-            });
-          } catch (e) {
-            return null;
-          }
-          if (!candidates || !candidates.length) return null;
+      // Records which element the user actually scrolled, per view slot.
+      // Bound to a single document-level capture-phase listener (installed
+      // in Component.init): scroll events do not bubble, but they do fire
+      // capture listeners on ancestors, so one listener observes every
+      // scrollable container - no per-roundtrip walk over the control tree,
+      // and no guessing which container "looks scrolled".
+      onScrollCapture(event) {
+        const target = event.target;
+        if (!target || target.nodeType !== 1) return;
+        const ui5El = Element.closestTo?.(target) ?? null;
+        if (!ui5El) return;
 
-          let chosen = null;
-          let fallback = null;
-          for (const c of candidates) {
-            const dom = containerOf(c);
-            if (!dom) continue;
-            const x = dom.scrollLeft || 0;
-            const y = dom.scrollTop || 0;
-            if (x || y) {
-              chosen = { control: c, x, y };
-              break;
-            }
-            // Prefer the deepest container that actually overflows.
-            const overflows =
-              dom.scrollHeight > dom.clientHeight ||
-              dom.scrollWidth > dom.clientWidth;
-            if (overflows || !fallback) {
-              fallback = { control: c, x, y };
+        // Walk up the control tree to find the view slot the scrolled
+        // element belongs to (innermost slot wins, e.g. nested views).
+        let current = ui5El;
+        while (current) {
+          for (const slot of Lib.viewSlots) {
+            if (z2ui5[slot.prop] === current) {
+              if (!z2ui5.lastScrolled) z2ui5.lastScrolled = {};
+              z2ui5.lastScrolled[slot.key] = { control: ui5El, dom: target };
+              return;
             }
           }
-          const pick = chosen || fallback;
-          if (!pick) return null;
-          let id = pick.control.getId();
-          const prefix = view.getId() + "--";
-          if (id.startsWith(prefix)) id = id.slice(prefix.length);
-          return { ID: id, X: pick.x, Y: pick.y };
-        };
+          current = current.getParent?.();
+        }
+      },
+
+      _getScrollInfo() {
+        // Reads scrollLeft/scrollTop straight from the DOM element the user
+        // last scrolled in each view slot (recorded by onScrollCapture).
+        // X = scrollLeft, Y = scrollTop. Slots the user never scrolled are
+        // absent from the result - restoring 0/0 would be a no-op anyway.
+        const store = z2ui5.lastScrolled;
+        if (!store) return undefined;
+
         const out = {};
-        const slots = [
-          ["MAIN", z2ui5.oView],
-          ["NEST", z2ui5.oViewNest],
-          ["NEST2", z2ui5.oViewNest2],
-          ["POPUP", z2ui5.oViewPopup],
-          ["POPOVER", z2ui5.oViewPopover],
-        ];
-        for (const [key, view] of slots) {
-          const v = getOne(view);
-          if (v) out[key] = v;
+        for (const slot of Lib.viewSlots) {
+          const entry = store[slot.key];
+          if (!entry) continue;
+
+          // Drop stale references, e.g. after the view was replaced.
+          if (!entry.dom.isConnected) {
+            delete store[slot.key];
+            continue;
+          }
+
+          let id = entry.control.getId();
+          const view = z2ui5[slot.prop];
+          const prefix = view ? `${view.getId()}--` : "";
+          if (prefix && id.startsWith(prefix)) id = id.slice(prefix.length);
+          out[slot.key] = {
+            ID: id,
+            X: entry.dom.scrollLeft || 0,
+            Y: entry.dom.scrollTop || 0,
+          };
         }
         // Returning undefined lets JSON.stringify omit S_SCROLL entirely.
         return Object.keys(out).length ? out : undefined;
       },
 
-      Roundtrip() {
-        z2ui5.checkTimerActive = false;
+      roundtrip() {
         z2ui5.checkNestAfter = false;
         z2ui5.checkNestAfter2 = false;
 
@@ -217,17 +216,17 @@ sap.ui.define(
 
         // Pick the first event argument (event name) safely.
         let eventName;
-        if (oBody.ARGUMENTS && oBody.ARGUMENTS[0]) {
+        if (oBody.ARGUMENTS?.[0]) {
           eventName = oBody.ARGUMENTS[0][0];
         }
 
         oBody.S_FRONT = {
           CONFIG: {
-            S_UI5: z2ui5.oConfig && z2ui5.oConfig.S_UI5,
+            S_UI5: z2ui5.oConfig?.S_UI5,
             S_DEVICE: this._getDeviceInfo(),
             S_FOCUS: this._getFocusInfo(),
             S_SCROLL: this._getScrollInfo(),
-            ComponentData: z2ui5.oConfig && z2ui5.oConfig.ComponentData,
+            ComponentData: z2ui5.oConfig?.ComponentData,
           },
           ID: oBody.ID,
           ORIGIN: window.location.origin,
@@ -262,6 +261,7 @@ sap.ui.define(
       async readHttp() {
         // Step 1: send the request.
         let response;
+        const timeoutMs = z2ui5.requestTimeoutMs || REQUEST_TIMEOUT_MS;
         try {
           // Only forward "sap-contextid" once we actually own a valid session
           // id - otherwise omit the header entirely (never send "" or
@@ -270,22 +270,34 @@ sap.ui.define(
             "Content-Type": "application/json",
             "sap-contextid-accept": "header",
           };
-          if (isValidContextId(z2ui5.contextId)) {
+          if (Lib.isValidContextId(z2ui5.contextId)) {
             headers["sap-contextid"] = z2ui5.contextId;
           }
           response = await fetch(z2ui5.url, {
             method: "POST",
             headers: headers,
             body: JSON.stringify({ value: z2ui5.oBody }),
+            // The signal also guards reading the response body below.
+            // Browsers without AbortSignal.timeout simply get no client-side
+            // timeout, as before.
+            signal: AbortSignal.timeout
+              ? AbortSignal.timeout(timeoutMs)
+              : undefined,
           });
         } catch (e) {
-          this.responseError(`Network error: ${e.message}`);
+          if (e.name === "TimeoutError" || e.name === "AbortError") {
+            this.responseError(
+              `No backend response within ${timeoutMs / 1000} seconds - request aborted`,
+            );
+          } else {
+            this.responseError(`Network error: ${e.message}`);
+          }
           return;
         }
         // Keep the last valid session id; a response without the header
         // (returns null) must not wipe an established session.
         const contextId = response.headers.get("sap-contextid");
-        if (isValidContextId(contextId)) {
+        if (Lib.isValidContextId(contextId)) {
           z2ui5.contextId = contextId;
         }
 
@@ -329,9 +341,9 @@ sap.ui.define(
         try {
           z2ui5.oResponse = response;
           const params = response.PARAMS;
-          const sView = params && params.S_VIEW;
+          const sView = params?.S_VIEW;
 
-          if (sView && sView.CHECK_DESTROY) oController.ViewDestroy();
+          if (sView?.CHECK_DESTROY) oController.destroyView();
 
           // The backend can send small JS snippets to run after the response.
           // Each snippet is either a literal expression or an "eF(...)" call
@@ -341,35 +353,28 @@ sap.ui.define(
           // them earlier would break render-dependent actions such as
           // SET_FOCUS on the initial view, where the target control does not
           // exist in the DOM yet.
-          const followUp = params && params.S_FOLLOW_UP_ACTION;
-          z2ui5.pendingCustomJs = (followUp && followUp.CUSTOM_JS) || null;
+          const followUp = params?.S_FOLLOW_UP_ACTION;
+          z2ui5.pendingCustomJs = followUp?.CUSTOM_JS || null;
 
           for (const t of _MSG_TYPES) oController.showMessage(t, params);
 
           // Full view replacement -> destroy & rebuild, nothing more to do.
-          if (sView && sView.XML) {
-            oController.ViewDestroy();
+          if (sView?.XML) {
+            oController.destroyView();
             await oController.displayView(sView.XML, response.OVIEWMODEL);
             return;
           }
 
           // Partial response: refresh whichever existing views the backend
           // sent updates for.
-          const updateTargets = [
-            ["S_VIEW", z2ui5.oView],
-            ["S_VIEW_NEST", z2ui5.oViewNest],
-            ["S_VIEW_NEST2", z2ui5.oViewNest2],
-            ["S_POPUP", z2ui5.oViewPopup],
-            ["S_POPOVER", z2ui5.oViewPopover],
-          ];
-          for (const [key, view] of updateTargets) {
-            oController.updateModelIfRequired(key, view);
+          for (const slot of Lib.viewSlots) {
+            oController.updateModelIfRequired(slot.param, z2ui5[slot.prop]);
           }
           oController._processAfterRendering();
         } catch (e) {
           BusyIndicator.hide();
           z2ui5.isBusy = false;
-          logError("responseSuccess: unexpected error", e);
+          Lib.logError("responseSuccess: unexpected error", e);
           const msg = e.message || "";
           if (msg.includes("openui5") && msg.includes("script load error")) {
             oController.checkSDKcompatibility(e);
@@ -382,6 +387,11 @@ sap.ui.define(
       // Executes a single custom-JS snippet from the backend.
       // Format A:  "alert(123)"           -> runs the expression
       // Format B:  "eF('A','B','C')"      -> calls oController.eF('A','B','C')
+      //
+      // OBSOLETE: this mechanism (including the quote-based argument parsing
+      // and the Function() evaluation) only exists for backward compatibility
+      // with older apps and will be removed in a future release. Do not
+      // extend or change it.
       _runCustomJs(item, oController) {
         try {
           const parts = item.split("'");
@@ -394,7 +404,7 @@ sap.ui.define(
             Function("return " + parts[0])();
           }
         } catch (e) {
-          logError("customJs: execution failed", e);
+          Lib.logError("customJs: execution failed", e);
         }
       },
 
@@ -435,8 +445,9 @@ sap.ui.define(
         BusyIndicator.hide();
         z2ui5.isBusy = false;
 
-        const full =
-          response && response.stack ? String(response.stack) : String(response);
+        const full = response?.stack
+          ? String(response.stack)
+          : String(response);
         let errorMessage;
         if (full.length > ERROR_MAX_LENGTH) {
           errorMessage =
@@ -510,9 +521,7 @@ sap.ui.define(
         };
         try {
           const launchpadLogout =
-            z2ui5.oLaunchpad &&
-            z2ui5.oLaunchpad.Container &&
-            z2ui5.oLaunchpad.Container.logout;
+            z2ui5.oLaunchpad?.Container && z2ui5.oLaunchpad.Container.logout;
           if (launchpadLogout) {
             z2ui5.oLaunchpad.Container.logout();
           } else {

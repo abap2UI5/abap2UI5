@@ -131,17 +131,11 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                 |<script>| && |\n| &&
              |  function onInitComponent()\{| && |\n| &&
              |    sap.ui.require.preload(\{| && |\n| &&
-             |      "z2ui5/css/style.css": '{ lv_style_css }',| && |\n| &&
-             |      "z2ui5/manifest.json": '{ z2ui5_cl_app_manifest_json=>get( ) }',| && |\n| &&
-             |      "z2ui5/Component.js": function()\{{ z2ui5_cl_app_component_js=>get( ) }{ ls_config-custom_js }\},| && |\n| &&
-             |      "z2ui5/model/models.js": function()\{{ z2ui5_cl_app_models_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/view/App.view.xml": '{ z2ui5_cl_app_app_xml=>get( ) }',| && |\n| &&
-             |      "z2ui5/controller/App.controller.js": function()\{{ z2ui5_cl_app_app_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/view/View1.view.xml": '{ z2ui5_cl_app_view1_xml=>get( ) }',| && |\n| &&
-             |      "z2ui5/controller/View1.controller.js": function()\{{ z2ui5_cl_app_view1_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/cc/Server.js": function()\{{ z2ui5_cl_app_server_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/cc/DebugTool.fragment.xml": '{ z2ui5_cl_app_debugtool_xml=>get( ) }',| && |\n| &&
-             |      "z2ui5/cc/DebugTool.js": function()\{{ z2ui5_cl_app_debugtool_js=>get( ) }\},| && |\n| &&
+             " The entries for all embedded frontend files come from the
+             " generated preload mapping (see .github/app2abap/trans2abap.js),
+             " so the list can never run out of sync with app/webapp.
+             z2ui5_cl_app_preload=>get( styles_css = lv_style_css
+                                        custom_js  = ls_config-custom_js ) &&
              |    \});| && |\n| &&
              |    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport)\{| && |\n| &&
              |     window.z2ui5 = \{ checkLocal : true \}; ComponentSupport.run();| && |\n| &&

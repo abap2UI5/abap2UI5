@@ -1,0 +1,100 @@
+sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
+  "use strict";
+
+  return Control.extend("z2ui5.cc.Info", {
+    metadata: {
+      properties: {
+        ui5_version: {
+          type: "string",
+        },
+        device_phone: {
+          type: "string",
+        },
+        device_desktop: {
+          type: "string",
+        },
+        device_tablet: {
+          type: "string",
+        },
+        device_combi: {
+          type: "string",
+        },
+        device_height: {
+          type: "string",
+        },
+        device_width: {
+          type: "string",
+        },
+        ui5_theme: {
+          type: "string",
+        },
+        device_os: {
+          type: "string",
+        },
+        device_systemtype: {
+          type: "string",
+        },
+        device_browser: {
+          type: "string",
+        },
+      },
+      events: {
+        finished: {
+          allowPreventDefault: true,
+          parameters: {},
+        },
+      },
+    },
+
+    // Follows the shared rendering pattern (see core/Lib.js): the renderer
+    // only marks the work, onAfterRendering reads the device info and
+    // fires the event.
+    onAfterRendering() {
+      if (!this._pendingInfo) return;
+      this._pendingInfo = false;
+      try {
+        // The device model is created by Component.init(); it exposes
+        // system / resize / os / browser info.
+        const deviceModel = z2ui5.oView?.getModel("device");
+        const deviceData = deviceModel?.getData();
+        if (!deviceData) return;
+
+        const { system, resize, os, browser } = deviceData;
+        // Filled by Component._initVersionInfo (async, may not have
+        // resolved yet on the very first render).
+        const ui5Info = z2ui5.oConfig?.S_UI5;
+        const ui5Version = ui5Info?.VERSION || "";
+
+        const props = [
+          ["ui5_version", ui5Version],
+          ["device_phone", system.phone],
+          ["device_desktop", system.desktop],
+          ["device_tablet", system.tablet],
+          ["device_combi", system.combi],
+          ["device_height", resize.height],
+          ["device_width", resize.width],
+          ["device_os", os.name],
+          ["device_browser", browser.name],
+        ];
+        for (const [prop, val] of props) {
+          const safe = Lib.toText(val);
+          this.setProperty(prop, safe, true);
+        }
+        this.fireFinished();
+      } catch (e) {
+        Lib.logError("Info.onAfterRendering: failed", e);
+      }
+    },
+
+    renderer: {
+      apiVersion: 2,
+      render(oRm, oControl) {
+        oRm.openStart("span", oControl);
+        oRm.style("display", "none");
+        oRm.openEnd();
+        oRm.close("span");
+        oControl._pendingInfo = true;
+      },
+    },
+  });
+});

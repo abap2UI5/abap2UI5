@@ -54,7 +54,65 @@ function generateClassName(filePath) {
         fileName.splice(1, 1); // Remove the middle part
     }
     const folderPath = parts.map(part => part.substring(0, 4)).join('_').toLowerCase();
-    return `z2ui5_cl_app_${fileName.join('_').toLowerCase()}`;
+    let className = `z2ui5_cl_app_${fileName.join('_').toLowerCase()}`;
+    // ABAP object names are limited to 30 characters. Shorten the stem but
+    // keep the extension suffix so the kind of file stays recognizable
+    // (e.g. SmartMultiInputExt.js -> z2ui5_cl_app_smartmultiinpu_js).
+    // The collision check in main() catches any ambiguity this introduces.
+    if (className.length > 30) {
+        const suffix = `_${fileName[fileName.length - 1].toLowerCase()}`;
+        const stem = `z2ui5_cl_app_${fileName.slice(0, -1).join('_').toLowerCase()}`;
+        className = stem.substring(0, 30 - suffix.length) + suffix;
+    }
+    return className;
+}
+
+// Builds the generated z2ui5_cl_app_preload class. It returns the
+// sap.ui.require.preload entries for every embedded frontend file, so the
+// preload list used by z2ui5_cl_http_handler can never run out of sync with
+// the files in app/webapp. style.css and Component.js take their content /
+// custom-js suffix from the exit configuration, hence the two parameters.
+function buildPreloadClass(entries) {
+    const entryLines = entries.map(({ urlPath, className, isJs, isComponent, isStyleCss }) => {
+        if (isStyleCss) {
+            return `|      "${urlPath}": '{ styles_css }',| && |\\n|`;
+        }
+        if (isJs) {
+            const suffix = isComponent ? `{ custom_js }` : '';
+            return `|      "${urlPath}": function()\\{{ ${className}=>get( ) }${suffix}\\},| && |\\n|`;
+        }
+        return `|      "${urlPath}": '{ ${className}=>get( ) }',| && |\\n|`;
+    });
+    const joined = entryLines.join(' &&\n             ');
+    return `CLASS z2ui5_cl_app_preload DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
+
+  PUBLIC SECTION.
+
+    CLASS-METHODS get
+      IMPORTING
+        styles_css    TYPE string
+        custom_js     TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+CLASS z2ui5_cl_app_preload IMPLEMENTATION.
+
+  METHOD get.
+
+    result = ${joined}.
+
+  ENDMETHOD.
+
+ENDCLASS.
+`;
 }
 
 // Function to recursively get all files in a directory
@@ -105,6 +163,21 @@ async function main() {
         console.log(`Initial XML file created successfully at: ${initialXMLFilePath}`);
 
         const files = getAllFiles(sourceDir);
+        const preloadEntries = [];
+
+        // Class names ignore folders (cc/Foo.js and Foo.js would both map to
+        // z2ui5_cl_app_foo_js), so duplicate basenames silently overwrite
+        // each other. Fail fast instead.
+        const seenClassNames = new Map();
+        for (const file of files) {
+            const cn = generateClassName(file);
+            if (seenClassNames.has(cn)) {
+                throw new Error(
+                    `class name collision: ${file} and ${seenClassNames.get(cn)} both map to ${cn}`,
+                );
+            }
+            seenClassNames.set(cn, file);
+        }
 
         for (const file of files) {
             let sourceContent = await readFile(file);
@@ -122,7 +195,29 @@ async function main() {
             const xmlFilePath = path.join(targetDir, `${className.toLowerCase()}.clas.xml`);
             await createFileInTargetDir(xmlFilePath, `\uFEFF${xmlContent}`);
             console.log(`XML file created successfully at: ${xmlFilePath}`);
+
+            // Collect the preload entry. index.html is the standalone dev
+            // page and is not preloaded by the generated GET response.
+            const relPath = path.relative(sourceDir, file).split(path.sep).join('/');
+            if (relPath !== 'index.html') {
+                preloadEntries.push({
+                    urlPath: `z2ui5/${relPath}`,
+                    className: className.toLowerCase(),
+                    isJs: file.endsWith('.js'),
+                    isComponent: relPath === 'Component.js',
+                    isStyleCss: relPath === 'css/style.css',
+                });
+            }
         }
+
+        // Generate the preload mapping class (sorted for a stable output).
+        preloadEntries.sort((a, b) => a.urlPath.localeCompare(b.urlPath));
+        const preloadFilePath = path.join(targetDir, 'z2ui5_cl_app_preload.clas.abap');
+        await createFileInTargetDir(preloadFilePath, buildPreloadClass(preloadEntries));
+        console.log(`Preload class created successfully at: ${preloadFilePath}`);
+        const preloadXmlPath = path.join(targetDir, 'z2ui5_cl_app_preload.clas.xml');
+        await createFileInTargetDir(preloadXmlPath, `\uFEFF${xmlTemplate('z2ui5_cl_app_preload', 'abap2UI5 - preload mapping')}`);
+        console.log(`Preload XML created successfully at: ${preloadXmlPath}`);
     } catch (error) {
         console.error('Error:', error.message);
     }
