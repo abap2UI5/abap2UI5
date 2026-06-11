@@ -5,13 +5,11 @@ sap.ui.define(
     "sap/ui/core/Element",
     "z2ui5/core/Lib",
     "z2ui5/core/ViewSlots",
+    "z2ui5/core/ErrorView",
   ],
-  (BusyIndicator, Device, Element, Lib, ViewSlots) => {
+  (BusyIndicator, Device, Element, Lib, ViewSlots, ErrorView) => {
     "use strict";
 
-    // Errors longer than this are truncated before being shown to the user,
-    // so a stack trace from the backend cannot blow up the error overlay.
-    const ERROR_MAX_LENGTH = 50000;
     const _MSG_TYPES = Object.freeze(["S_MSG_TOAST", "S_MSG_BOX"]);
 
     // Last-resort client-side timeout for backend roundtrips. Infrastructure
@@ -22,14 +20,17 @@ sap.ui.define(
     const REQUEST_TIMEOUT_MS = 600000;
 
     // Roundtrip lifecycle (spans this file and View1.controller.js):
-    //   1. View1.eB(...)              collects the model delta into z2ui5.oBody
-    //   2. Server.roundtrip()         adds S_FRONT (device/focus/scroll info)
-    //   3. Server.readHttp()          POSTs { value: oBody }, parses the JSON
+    //   1. View1.eB(...)              builds the request body with the model
+    //                                 delta and hands it to roundtrip(oBody)
+    //   2. Server.roundtrip(oBody)    adds S_FRONT (device/focus/scroll info)
+    //   3. Server.readHttp(oBody)     POSTs { value: oBody }, parses the JSON
     //   4. Server.responseSuccess()   shows messages, rebuilds/updates views
     //   5. View1._processAfterRendering()  popups, nested views, history,
     //      then runs pending follow-up JS once rendering is done
-    // State is handed between the steps via the z2ui5 globals oBody,
-    // oResponse and pendingCustomJs.
+    // The request body travels through the steps as a parameter; it is
+    // mirrored to z2ui5.oBody so onBeforeRoundtrip hooks and the debug tool
+    // can inspect it. Only the response side still crosses an async boundary
+    // (the rendering) via the globals oResponse and pendingCustomJs.
     //
     // Wire format - request (POST body; VIEWNAME/ARGUMENTS are folded into
     // S_FRONT before sending, empty fields are removed):
@@ -201,12 +202,14 @@ sap.ui.define(
         return Object.keys(out).length ? out : undefined;
       },
 
-      roundtrip() {
+      roundtrip(oBody = {}) {
         z2ui5.checkNestAfter = false;
         z2ui5.checkNestAfter2 = false;
 
-        if (!z2ui5.oBody) z2ui5.oBody = {};
-        const oBody = z2ui5.oBody;
+        // Keep the global record in sync (debug tool "Previous Request",
+        // app hooks); the parameter stays the working object. Calls without
+        // a body (initial roundtrip, route changes) start from scratch.
+        z2ui5.oBody = oBody;
 
         // Pick the first event argument (event name) safely.
         let eventName;
@@ -249,10 +252,10 @@ sap.ui.define(
         if (sFront.SEARCH === "") delete sFront.SEARCH;
         if (!oBody.XX) delete oBody.XX;
 
-        this.readHttp();
+        this.readHttp(oBody);
       },
 
-      async readHttp() {
+      async readHttp(oBody) {
         // Step 1: send the request.
         let response;
         const timeoutMs = z2ui5.requestTimeoutMs || REQUEST_TIMEOUT_MS;
@@ -270,7 +273,7 @@ sap.ui.define(
           response = await fetch(z2ui5.url, {
             method: "POST",
             headers: headers,
-            body: JSON.stringify({ value: z2ui5.oBody }),
+            body: JSON.stringify({ value: oBody }),
             // The signal also guards reading the response body below.
             // Browsers without AbortSignal.timeout simply get no client-side
             // timeout, as before.
@@ -402,128 +405,14 @@ sap.ui.define(
         }
       },
 
-      _getOrCreateErrorContainer() {
-        const existing = document.getElementById("serverErrorContainer");
-        if (existing) return existing;
-
-        const container = document.createElement("div");
-        container.id = "serverErrorContainer";
-        container.style.cssText = `
-          position: fixed;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 90%;
-          height: 90%;
-          background: white;
-          border: 2px solid #d32f2f;
-          border-radius: 4px;
-          box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-          z-index: 9999;
-          display: flex;
-          flex-direction: column;
-        `;
-        document.body.appendChild(container);
-        return container;
-      },
-
-      // Unified fatal-error overlay. Shown whenever the app reaches an
-      // unrecoverable state - a failed roundtrip (network, HTTP != 2xx, bad
-      // JSON, backend dump) or a client-side failure (invalid view XML,
-      // post-render crash, missing SDK module). The only way out is a restart,
-      // hence the Refresh / Logout actions. Built from raw DOM so it still
-      // works when the UI5 core itself is in a broken state.
-      // `response` may be a string or an Error object; `title` overrides the
-      // default header text.
+      // Terminate the roundtrip in an unrecoverable state: clear the busy
+      // state and show the fatal-error overlay (core/ErrorView). `response`
+      // may be a string or an Error object; `title` overrides the default
+      // header text.
       responseError(response, title) {
         BusyIndicator.hide();
         z2ui5.isBusy = false;
-
-        const full = response?.stack
-          ? String(response.stack)
-          : String(response);
-        let errorMessage;
-        if (full.length > ERROR_MAX_LENGTH) {
-          errorMessage =
-            full.slice(0, ERROR_MAX_LENGTH) +
-            "\n\n<!-- Content truncated - too long -->";
-        } else {
-          errorMessage = full;
-        }
-
-        const errorContainer = this._getOrCreateErrorContainer();
-        errorContainer.textContent = "";
-
-        // Header bar with title and action buttons.
-        const headerDiv = document.createElement("div");
-        headerDiv.style.cssText =
-          "padding: 15px; background: #d32f2f; color: white; display: flex; justify-content: space-between; align-items: center;";
-
-        const h3 = document.createElement("h3");
-        h3.textContent = title || "Application Error - Please Restart The App";
-        h3.style.cssText = "margin: 0";
-        headerDiv.appendChild(h3);
-
-        const btnStyle =
-          "padding: 6px 14px; background: white; color: #d32f2f; border: none; border-radius: 3px; cursor: pointer; font-weight: bold;";
-
-        const actionsDiv = document.createElement("div");
-        actionsDiv.style.cssText = "display: flex; gap: 8px;";
-
-        const refreshBtn = document.createElement("button");
-        refreshBtn.type = "button";
-        refreshBtn.textContent = "Refresh";
-        refreshBtn.style.cssText = btnStyle;
-        refreshBtn.addEventListener("click", () => window.location.reload());
-        actionsDiv.appendChild(refreshBtn);
-
-        const logoutBtn = document.createElement("button");
-        logoutBtn.type = "button";
-        logoutBtn.textContent = "Logout";
-        logoutBtn.style.cssText = btnStyle;
-        logoutBtn.addEventListener("click", () => this._handleLogout());
-        actionsDiv.appendChild(logoutBtn);
-
-        headerDiv.appendChild(actionsDiv);
-        errorContainer.appendChild(headerDiv);
-
-        // The error text itself lives inside a sandboxed iframe so any HTML
-        // in the backend response cannot execute or affect the main page.
-        const iframe = document.createElement("iframe");
-        iframe.id = "errorIframe";
-        iframe.style.cssText =
-          "width: 100%; height: 100%; border: none; flex: 1;";
-        iframe.setAttribute("sandbox", "allow-same-origin");
-        errorContainer.appendChild(iframe);
-
-        const contentDocument = iframe.contentDocument;
-        if (contentDocument) {
-          const pre = contentDocument.createElement("pre");
-          pre.style.cssText =
-            "margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;";
-          pre.textContent = errorMessage;
-          const target =
-            contentDocument.body || contentDocument.documentElement;
-          target.appendChild(pre);
-        }
-      },
-
-      // Logout via the launchpad if available; otherwise hit the SAP logoff URL.
-      _handleLogout() {
-        const fallback = () => {
-          window.location.href = "/sap/public/bc/icf/logoff";
-        };
-        try {
-          const launchpadLogout =
-            z2ui5.oLaunchpad?.Container && z2ui5.oLaunchpad.Container.logout;
-          if (launchpadLogout) {
-            z2ui5.oLaunchpad.Container.logout();
-          } else {
-            fallback();
-          }
-        } catch (e) {
-          fallback();
-        }
+        ErrorView.show(response, title);
       },
     };
   },

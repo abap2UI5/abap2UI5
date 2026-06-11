@@ -36,7 +36,11 @@
 //                     null (Component._initLaunchpad)
 //
 // Roundtrip state
-//   oBody             request payload being assembled (View1.eB / Server)
+//   oBody             mirror of the current request payload - the body
+//                     itself travels as a parameter through
+//                     Server.roundtrip/readHttp; this record exists for
+//                     onBeforeRoundtrip hooks and the debug tool
+//                     (View1.eB / Server)
 //   oResponse         last processed response { ID, PARAMS, OVIEWMODEL }
 //   responseData      raw parsed response JSON (Server.readHttp)
 //   contextId         stateful session id, header transport (Server)

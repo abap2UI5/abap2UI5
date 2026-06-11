@@ -413,12 +413,17 @@ sap.ui.define(
 
         z2ui5.isBusy = true;
         BusyIndicator.show();
-        z2ui5.oBody = { VIEWNAME: "MAIN" };
+
+        // The request body is built locally and handed explicitly through
+        // Server.roundtrip/readHttp. It is mirrored to z2ui5.oBody right
+        // away so onBeforeRoundtrip hooks and the debug tool see it.
+        const oBody = { VIEWNAME: "MAIN" };
+        z2ui5.oBody = oBody;
 
         // Decide which view's model holds the data we need to send back. The
         // mapping is: main app controller -> main view, popup controller ->
         // popup view, etc.
-        const oModel = this._pickModelForRoundtrip(useMainModel);
+        const oModel = this._pickModelForRoundtrip(useMainModel, oBody);
 
         Lib.runCallbacks(z2ui5.onBeforeRoundtrip);
 
@@ -428,23 +433,23 @@ sap.ui.define(
           const data = oModel.getData();
           const xx = data?.XX;
           if (xx) {
-            z2ui5.oBody.XX = Lib.buildDeltaFromPaths(z2ui5.xxChangedPaths, xx);
+            oBody.XX = Lib.buildDeltaFromPaths(z2ui5.xxChangedPaths, xx);
           }
         }
 
-        z2ui5.oBody.ID = z2ui5.oResponse?.ID;
+        oBody.ID = z2ui5.oResponse?.ID;
         // Object arguments are stringified for transport; the event name in
         // args[0] is left as-is.
-        z2ui5.oBody.ARGUMENTS = args.map((item, i) => {
+        oBody.ARGUMENTS = args.map((item, i) => {
           if (i > 0 && typeof item === "object") return JSON.stringify(item);
           return item;
         });
 
-        Server.roundtrip();
+        Server.roundtrip(oBody);
         Lib.runCallbacks(z2ui5.onAfterRoundtrip);
       },
 
-      _pickModelForRoundtrip(useMainModel) {
+      _pickModelForRoundtrip(useMainModel, oBody) {
         // useMainModel forces use of the main view's model even when called
         // from a popup/popover controller.
         const slotKey = useMainModel ? "MAIN" : ViewSlots.keyOfController(this);
@@ -463,7 +468,7 @@ sap.ui.define(
         // Nested views report their slot as VIEW in S_FRONT so the backend
         // routes the event to the right app instance.
         if (slotKey === "NEST" || slotKey === "NEST2") {
-          z2ui5.oBody.VIEWNAME = slotKey;
+          oBody.VIEWNAME = slotKey;
         }
         return ViewSlots.getView(slotKey)?.getModel();
       },

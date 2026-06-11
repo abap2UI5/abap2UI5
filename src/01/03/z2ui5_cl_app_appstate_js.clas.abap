@@ -56,7 +56,11 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `//                     null (Component._initLaunchpad)` && |\n| &&
              `//` && |\n| &&
              `// Roundtrip state` && |\n| &&
-             `//   oBody             request payload being assembled (View1.eB / Server)` && |\n| &&
+             `//   oBody             mirror of the current request payload - the body` && |\n| &&
+             `//                     itself travels as a parameter through` && |\n| &&
+             `//                     Server.roundtrip/readHttp; this record exists for` && |\n| &&
+             `//                     onBeforeRoundtrip hooks and the debug tool` && |\n| &&
+             `//                     (View1.eB / Server)` && |\n| &&
              `//   oResponse         last processed response { ID, PARAMS, OVIEWMODEL }` && |\n| &&
              `//   responseData      raw parsed response JSON (Server.readHttp)` && |\n| &&
              `//   contextId         stateful session id, header transport (Server)` && |\n| &&

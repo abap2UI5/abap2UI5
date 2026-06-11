@@ -435,12 +435,17 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        z2ui5.isBusy = true;` && |\n| &&
              `        BusyIndicator.show();` && |\n| &&
-             `        z2ui5.oBody = { VIEWNAME: "MAIN" };` && |\n| &&
+             `` && |\n| &&
+             `        // The request body is built locally and handed explicitly through` && |\n| &&
+             `        // Server.roundtrip/readHttp. It is mirrored to z2ui5.oBody right` && |\n| &&
+             `        // away so onBeforeRoundtrip hooks and the debug tool see it.` && |\n| &&
+             `        const oBody = { VIEWNAME: "MAIN" };` && |\n| &&
+             `        z2ui5.oBody = oBody;` && |\n| &&
              `` && |\n| &&
              `        // Decide which view's model holds the data we need to send back. The` && |\n| &&
              `        // mapping is: main app controller -> main view, popup controller ->` && |\n| &&
              `        // popup view, etc.` && |\n| &&
-             `        const oModel = this._pickModelForRoundtrip(useMainModel);` && |\n| &&
+             `        const oModel = this._pickModelForRoundtrip(useMainModel, oBody);` && |\n| &&
              `` && |\n| &&
              `        Lib.runCallbacks(z2ui5.onBeforeRoundtrip);` && |\n| &&
              `` && |\n| &&
@@ -450,23 +455,23 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const data = oModel.getData();` && |\n| &&
              `          const xx = data?.XX;` && |\n| &&
              `          if (xx) {` && |\n| &&
-             `            z2ui5.oBody.XX = Lib.buildDeltaFromPaths(z2ui5.xxChangedPaths, xx);` && |\n| &&
+             `            oBody.XX = Lib.buildDeltaFromPaths(z2ui5.xxChangedPaths, xx);` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        z2ui5.oBody.ID = z2ui5.oResponse?.ID;` && |\n| &&
+             `        oBody.ID = z2ui5.oResponse?.ID;` && |\n| &&
              `        // Object arguments are stringified for transport; the event name in` && |\n| &&
              `        // args[0] is left as-is.` && |\n| &&
-             `        z2ui5.oBody.ARGUMENTS = args.map((item, i) => {` && |\n| &&
+             `        oBody.ARGUMENTS = args.map((item, i) => {` && |\n| &&
              `          if (i > 0 && typeof item === "object") return JSON.stringify(item);` && |\n| &&
              `          return item;` && |\n| &&
              `        });` && |\n| &&
              `` && |\n| &&
-             `        Server.roundtrip();` && |\n| &&
+             `        Server.roundtrip(oBody);` && |\n| &&
              `        Lib.runCallbacks(z2ui5.onAfterRoundtrip);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      _pickModelForRoundtrip(useMainModel) {` && |\n| &&
+             `      _pickModelForRoundtrip(useMainModel, oBody) {` && |\n| &&
              `        // useMainModel forces use of the main view's model even when called` && |\n| &&
              `        // from a popup/popover controller.` && |\n| &&
              `        const slotKey = useMainModel ? "MAIN" : ViewSlots.keyOfController(this);` && |\n| &&
@@ -485,7 +490,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // Nested views report their slot as VIEW in S_FRONT so the backend` && |\n| &&
              `        // routes the event to the right app instance.` && |\n| &&
              `        if (slotKey === "NEST" || slotKey === "NEST2") {` && |\n| &&
-             `          z2ui5.oBody.VIEWNAME = slotKey;` && |\n| &&
+             `          oBody.VIEWNAME = slotKey;` && |\n| &&
              `        }` && |\n| &&
              `        return ViewSlots.getView(slotKey)?.getModel();` && |\n| &&
              `      },` && |\n| &&
