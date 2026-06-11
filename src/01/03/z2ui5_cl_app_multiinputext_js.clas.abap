@@ -23,7 +23,7 @@ CLASS z2ui5_cl_app_multiinputext_js IMPLEMENTATION.
              `  (Control, Token, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    return Control.extend("z2ui5.MultiInputExt", {` && |\n| &&
+             `    return Control.extend("z2ui5.cc.MultiInputExt", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
              `          MultiInputId: {` && |\n| &&

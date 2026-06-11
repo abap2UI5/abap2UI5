@@ -20,7 +20,7 @@ CLASS z2ui5_cl_app_favicon_js IMPLEMENTATION.
 
     result = `sap.ui.define(["sap/ui/core/Control"], (Control) => {` && |\n| &&
              `  "use strict";` && |\n| &&
-             `  return Control.extend("z2ui5.Favicon", {` && |\n| &&
+             `  return Control.extend("z2ui5.cc.Favicon", {` && |\n| &&
              `    metadata: {` && |\n| &&
              `      properties: {` && |\n| &&
              `        favicon: {` && |\n| &&

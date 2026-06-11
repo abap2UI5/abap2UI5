@@ -1,6 +1,6 @@
 sap.ui.define(["sap/ui/core/Control"], (Control) => {
   "use strict";
-  return Control.extend("z2ui5.Favicon", {
+  return Control.extend("z2ui5.cc.Favicon", {
     metadata: {
       properties: {
         favicon: {

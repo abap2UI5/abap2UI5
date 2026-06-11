@@ -30,7 +30,7 @@ CLASS z2ui5_cl_app_camerapicture_js IMPLEMENTATION.
              `    "use strict";` && |\n| &&
              `    const _CTX_2D_OPTS = { willReadFrequently: true };` && |\n| &&
              `    const _THUMB_W = 300;` && |\n| &&
-             `    return Control.extend("z2ui5.CameraPicture", {` && |\n| &&
+             `    return Control.extend("z2ui5.cc.CameraPicture", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
              `          id: { type: "string" },` && |\n| &&

@@ -8,7 +8,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
     EndsWith: (v) => `${v ?? ""}$`,
   };
 
-  return Control.extend("z2ui5.UITableExt", {
+  return Control.extend("z2ui5.cc.UITableExt", {
     metadata: {
       properties: {
         tableId: {

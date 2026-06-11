@@ -14890,7 +14890,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     IF me = mo_root.
 
       lt_prop = VALUE #(
-          ( n = `z2ui5`             v = `z2ui5` )
+          ( n = `z2ui5`             v = `z2ui5.cc` )
           ( n = `layout`            v = `sap.ui.layout` )
           ( n = `networkgraph`      v = `sap.suite.ui.commons.networkgraph` )
           ( n = `nglayout`          v = `sap.suite.ui.commons.networkgraph.layout` )

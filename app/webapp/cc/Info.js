@@ -1,7 +1,7 @@
 sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
   "use strict";
 
-  return Control.extend("z2ui5.Info", {
+  return Control.extend("z2ui5.cc.Info", {
     metadata: {
       properties: {
         ui5_version: {

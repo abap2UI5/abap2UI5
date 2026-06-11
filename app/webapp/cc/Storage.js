@@ -3,7 +3,7 @@ sap.ui.define(
   (Control, Storage, Lib) => {
     "use strict";
 
-    return Control.extend("z2ui5.Storage", {
+    return Control.extend("z2ui5.cc.Storage", {
       metadata: {
         properties: {
           type: {

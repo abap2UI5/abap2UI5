@@ -3,7 +3,7 @@ sap.ui.define(
   (Control, Token, Lib) => {
     "use strict";
 
-    return Control.extend("z2ui5.MultiInputExt", {
+    return Control.extend("z2ui5.cc.MultiInputExt", {
       metadata: {
         properties: {
           MultiInputId: {

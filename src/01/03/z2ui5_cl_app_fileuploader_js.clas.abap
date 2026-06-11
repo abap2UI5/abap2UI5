@@ -29,7 +29,7 @@ CLASS z2ui5_cl_app_fileuploader_js IMPLEMENTATION.
              `  (Control, Button, FileUploader, HBox, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    return Control.extend("z2ui5.FileUploader", {` && |\n| &&
+             `    return Control.extend("z2ui5.cc.FileUploader", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
              `          value: {` && |\n| &&

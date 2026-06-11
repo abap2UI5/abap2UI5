@@ -20,7 +20,7 @@ CLASS z2ui5_cl_app_dirty_js IMPLEMENTATION.
 
     result = `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
              `  "use strict";` && |\n| &&
-             `  return Control.extend("z2ui5.Dirty", {` && |\n| &&
+             `  return Control.extend("z2ui5.cc.Dirty", {` && |\n| &&
              `    metadata: {` && |\n| &&
              `      properties: {` && |\n| &&
              `        isDirty: {` && |\n| &&

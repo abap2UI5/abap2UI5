@@ -23,7 +23,7 @@ CLASS z2ui5_cl_app_storage_js IMPLEMENTATION.
              `  (Control, Storage, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    return Control.extend("z2ui5.Storage", {` && |\n| &&
+             `    return Control.extend("z2ui5.cc.Storage", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
              `          type: {` && |\n| &&

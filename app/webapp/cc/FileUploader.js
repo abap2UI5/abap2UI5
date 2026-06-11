@@ -9,7 +9,7 @@ sap.ui.define(
   (Control, Button, FileUploader, HBox, Lib) => {
     "use strict";
 
-    return Control.extend("z2ui5.FileUploader", {
+    return Control.extend("z2ui5.cc.FileUploader", {
       metadata: {
         properties: {
           value: {

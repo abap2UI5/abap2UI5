@@ -7,7 +7,7 @@ sap.ui.define(
   ],
   (ComboBox, Item, ComboBoxRenderer, Lib) => {
     "use strict";
-    return ComboBox.extend("z2ui5.CameraSelector", {
+    return ComboBox.extend("z2ui5.cc.CameraSelector", {
       async init() {
         ComboBox.prototype.init.call(this);
         try {

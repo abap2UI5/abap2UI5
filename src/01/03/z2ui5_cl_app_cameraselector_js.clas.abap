@@ -27,7 +27,7 @@ CLASS z2ui5_cl_app_cameraselector_js IMPLEMENTATION.
              `  ],` && |\n| &&
              `  (ComboBox, Item, ComboBoxRenderer, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&
-             `    return ComboBox.extend("z2ui5.CameraSelector", {` && |\n| &&
+             `    return ComboBox.extend("z2ui5.cc.CameraSelector", {` && |\n| &&
              `      async init() {` && |\n| &&
              `        ComboBox.prototype.init.call(this);` && |\n| &&
              `        try {` && |\n| &&

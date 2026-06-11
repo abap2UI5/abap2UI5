@@ -21,7 +21,7 @@ CLASS z2ui5_cl_app_uploadsetext_js IMPLEMENTATION.
     result = `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
-             `  return Control.extend("z2ui5.UploadSetExt", {` && |\n| &&
+             `  return Control.extend("z2ui5.cc.UploadSetExt", {` && |\n| &&
              `    metadata: {` && |\n| &&
              `      properties: {` && |\n| &&
              `        uploadSetId: {` && |\n| &&

@@ -28,7 +28,7 @@ CLASS z2ui5_cl_app_uitableext_js IMPLEMENTATION.
              `    EndsWith: (v) => ``${v ?? ""}$``,` && |\n| &&
              `  };` && |\n| &&
              `` && |\n| &&
-             `  return Control.extend("z2ui5.UITableExt", {` && |\n| &&
+             `  return Control.extend("z2ui5.cc.UITableExt", {` && |\n| &&
              `    metadata: {` && |\n| &&
              `      properties: {` && |\n| &&
              `        tableId: {` && |\n| &&

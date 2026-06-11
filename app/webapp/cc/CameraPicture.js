@@ -10,7 +10,7 @@ sap.ui.define(
     "use strict";
     const _CTX_2D_OPTS = { willReadFrequently: true };
     const _THUMB_W = 300;
-    return Control.extend("z2ui5.CameraPicture", {
+    return Control.extend("z2ui5.cc.CameraPicture", {
       metadata: {
         properties: {
           id: { type: "string" },

@@ -31,7 +31,7 @@ CLASS z2ui5_cl_app_geolocation_js IMPLEMENTATION.
              `    "heading",` && |\n| &&
              `  ];` && |\n| &&
              `` && |\n| &&
-             `  return Control.extend("z2ui5.Geolocation", {` && |\n| &&
+             `  return Control.extend("z2ui5.cc.Geolocation", {` && |\n| &&
              `    metadata: {` && |\n| &&
              `      properties: {` && |\n| &&
              `        longitude: {` && |\n| &&

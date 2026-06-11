@@ -11,7 +11,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
     "heading",
   ];
 
-  return Control.extend("z2ui5.Geolocation", {
+  return Control.extend("z2ui5.cc.Geolocation", {
     metadata: {
       properties: {
         longitude: {
