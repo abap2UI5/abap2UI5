@@ -4,8 +4,9 @@ sap.ui.define(
     "sap/ui/core/Fragment",
     "sap/ui/model/json/JSONModel",
     "z2ui5/core/Lib",
+    "z2ui5/core/ViewSlots",
   ],
-  (Control, Fragment, JSONModel, Lib) => {
+  (Control, Fragment, JSONModel, Lib, ViewSlots) => {
     "use strict";
 
     // Fragment id under which the debug dialog's controls are registered;
@@ -72,43 +73,37 @@ sap.ui.define(
       return slot?.XML;
     }
 
-    function getResponseFrontViewXml() {
-      const sFront = z2ui5.responseData?.S_FRONT;
-      const params = sFront?.PARAMS;
-      const view = params?.S_VIEW;
-      return view?.XML;
-    }
-
     // What each dropdown entry shows: either a JSON source or an XML source
     // (the latter optionally with the rendered DOM for the templating
     // toggle). The "SOURCE" entry is handled separately in onItemSelect.
     const jsonSources = {
       CONFIG: () => z2ui5.oConfig,
-      MODEL: () => getModelJson(z2ui5.oView),
+      MODEL: () => getModelJson(ViewSlots.getView("MAIN")),
       PLAIN: () => z2ui5.responseData,
       REQUEST: () => z2ui5.oBody,
-      POPUP_MODEL: () => getModelJson(z2ui5.oViewPopup),
-      POPOVER_MODEL: () => getModelJson(z2ui5.oViewPopover),
-      NEST1_MODEL: () => getModelJson(z2ui5.oViewNest),
-      NEST2_MODEL: () => getModelJson(z2ui5.oViewNest2),
+      POPUP_MODEL: () => getModelJson(ViewSlots.getView("POPUP")),
+      POPOVER_MODEL: () => getModelJson(ViewSlots.getView("POPOVER")),
+      NEST1_MODEL: () => getModelJson(ViewSlots.getView("NEST")),
+      NEST2_MODEL: () => getModelJson(ViewSlots.getView("NEST2")),
     };
 
     const xmlSources = {
       // Prefer the actual viewContent string; fall back to the XML that
       // arrived in the last server response.
       VIEW: () => ({
-        xml: getViewContent(z2ui5.oView) || getResponseFrontViewXml(),
-        rendered: getRenderedContent(z2ui5.oView),
+        xml:
+          getViewContent(ViewSlots.getView("MAIN")) || getResponseXml("S_VIEW"),
+        rendered: getRenderedContent(ViewSlots.getView("MAIN")),
       }),
       POPUP: () => ({ xml: getResponseXml("S_POPUP") }),
       POPOVER: () => ({ xml: getResponseXml("S_POPOVER") }),
       NEST1: () => ({
-        xml: getViewContent(z2ui5.oViewNest),
-        rendered: getRenderedContent(z2ui5.oViewNest),
+        xml: getViewContent(ViewSlots.getView("NEST")),
+        rendered: getRenderedContent(ViewSlots.getView("NEST")),
       }),
       NEST2: () => ({
-        xml: getViewContent(z2ui5.oViewNest2),
-        rendered: getRenderedContent(z2ui5.oViewNest2),
+        xml: getViewContent(ViewSlots.getView("NEST2")),
+        rendered: getRenderedContent(ViewSlots.getView("NEST2")),
       }),
     };
 
@@ -247,8 +242,8 @@ sap.ui.define(
             previousValue: value,
             isTemplating: false,
             templatingSource: false,
-            activeNest1: !!getViewContent(z2ui5.oViewNest),
-            activeNest2: !!getViewContent(z2ui5.oViewNest2),
+            activeNest1: !!getViewContent(ViewSlots.getView("NEST")),
+            activeNest2: !!getViewContent(ViewSlots.getView("NEST2")),
             activePopup: !!getResponseXml("S_POPUP"),
             activePopover: !!getResponseXml("S_POPOVER"),
           };

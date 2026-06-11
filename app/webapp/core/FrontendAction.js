@@ -1,13 +1,13 @@
 sap.ui.define(
   [
-    "sap/ui/core/Fragment",
     "sap/m/MessageBox",
     "sap/ui/model/odata/v2/ODataModel",
     "sap/m/library",
     "sap/ui/util/Storage",
     "z2ui5/core/Lib",
+    "z2ui5/core/ViewSlots",
   ],
-  (Fragment, MessageBox, ODataModel, mobileLibrary, Storage, Lib) => {
+  (MessageBox, ODataModel, mobileLibrary, Storage, Lib, ViewSlots) => {
     "use strict";
 
     // ------------------------------------------------------------------
@@ -47,13 +47,13 @@ sap.ui.define(
       }
     }
 
-    // Lookup tables mapping event names / param keys to the right view.
+    // Lookup tables mapping event names to the right view slot.
     const navContainerLookups = {
-      NAV_CONTAINER_TO: (id) => z2ui5.oView?.byId(id),
-      NEST_NAV_CONTAINER_TO: (id) => z2ui5.oViewNest?.byId(id),
-      NEST2_NAV_CONTAINER_TO: (id) => z2ui5.oViewNest2?.byId(id),
-      POPUP_NAV_CONTAINER_TO: (id) => Fragment.byId("popupId", id),
-      POPOVER_NAV_CONTAINER_TO: (id) => Fragment.byId("popoverId", id),
+      NAV_CONTAINER_TO: (id) => ViewSlots.byId("MAIN", id),
+      NEST_NAV_CONTAINER_TO: (id) => ViewSlots.byId("NEST", id),
+      NEST2_NAV_CONTAINER_TO: (id) => ViewSlots.byId("NEST2", id),
+      POPUP_NAV_CONTAINER_TO: (id) => ViewSlots.byId("POPUP", id),
+      POPOVER_NAV_CONTAINER_TO: (id) => ViewSlots.byId("POPOVER", id),
     };
 
     // ------------------------------------------------------------------
@@ -97,18 +97,17 @@ sap.ui.define(
       const hasLimit = args[2] !== undefined && args[2] !== "";
       const viewKey = hasLimit ? args[2] : args[1];
       const limit = hasLimit ? Number(args[1]) : NaN;
-      const view = Lib.getViewByKey(viewKey);
+      const view = ViewSlots.getView(viewKey);
       const model = view?.getModel();
 
       if (Number.isFinite(limit) && limit > 0) {
-        if (!z2ui5.viewSizeLimits) z2ui5.viewSizeLimits = {};
         z2ui5.viewSizeLimits[viewKey] = limit;
         if (model) {
           model.setSizeLimit(limit);
           model.refresh(true);
         }
       } else {
-        if (z2ui5.viewSizeLimits) delete z2ui5.viewSizeLimits[viewKey];
+        delete z2ui5.viewSizeLimits[viewKey];
         if (model) {
           model.setSizeLimit(100);
           model.refresh(true);
@@ -122,7 +121,8 @@ sap.ui.define(
           serviceUrl: args[1],
           annotationURI: args[3] || "",
         });
-        if (z2ui5.oView) z2ui5.oView.setModel(oModel, args[2] || undefined);
+        const oView = ViewSlots.getView("MAIN");
+        if (oView) oView.setModel(oModel, args[2] || undefined);
       } catch (e) {
         Lib.logError(`SET_ODATA_MODEL: failed for '${args[1]}'`, e);
       }
@@ -280,12 +280,12 @@ sap.ui.define(
     function evImageEditorPopupClose(oController) {
       let image;
       try {
-        const editor = Fragment.byId("popupId", "imageEditor");
+        const editor = ViewSlots.byId("POPUP", "imageEditor");
         if (editor) image = editor.getImagePngDataURL();
       } catch (e) {
         Lib.logError("IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed", e);
       }
-      oController.destroyPopup();
+      ViewSlots.destroy("POPUP");
       oController.eB(["SAVE"], image);
     }
 
@@ -297,7 +297,6 @@ sap.ui.define(
       const timerKey = args[0];
       const callbackEvent = args[1];
       const delay = +args[2] || 0;
-      if (!z2ui5.timers) z2ui5.timers = {};
       clearTimeout(z2ui5.timers[timerKey]);
       z2ui5.timers[timerKey] = setTimeout(() => {
         delete z2ui5.timers[timerKey];
@@ -307,7 +306,7 @@ sap.ui.define(
 
     function evSetInputMode(oController, args) {
       try {
-        const oElement = z2ui5.oView?.byId(args[1]);
+        const oElement = ViewSlots.byId("MAIN", args[1]);
         if (!oElement) return;
         const dom = oElement.getDomRef();
         if (!dom) return;
@@ -325,7 +324,7 @@ sap.ui.define(
     }
 
     function evSetFocus(oController, args) {
-      const oElement = z2ui5.oView?.byId(args[1]);
+      const oElement = ViewSlots.byId("MAIN", args[1]);
       if (!oElement) return;
 
       const applyFocus = () => {
@@ -359,7 +358,7 @@ sap.ui.define(
       // Native Element.scrollTo is only used as a fallback for controls
       // without a delegate.
       try {
-        const oElement = z2ui5.oView?.byId(args[1]);
+        const oElement = ViewSlots.byId("MAIN", args[1]);
         if (!oElement) return;
         const y = +args[2] || 0;
         const x = +args[3] || 0;
@@ -408,7 +407,7 @@ sap.ui.define(
       // Modern declarative scroll: bring a control into the viewport,
       // regardless of where the surrounding scroll container currently is.
       try {
-        const oElement = z2ui5.oView?.byId(args[1]);
+        const oElement = ViewSlots.byId("MAIN", args[1]);
         if (!oElement) return;
         const dom = oElement.getDomRef();
         if (!dom || !dom.scrollIntoView) return;
@@ -462,9 +461,9 @@ sap.ui.define(
 
     function evWizardSetNextStep(oController, args) {
       try {
-        const wiz = z2ui5.oView?.byId(args[1]);
-        const step = z2ui5.oView?.byId(args[2]);
-        const nextStep = z2ui5.oView?.byId(args[3]);
+        const wiz = ViewSlots.byId("MAIN", args[1]);
+        const step = ViewSlots.byId("MAIN", args[2]);
+        const nextStep = ViewSlots.byId("MAIN", args[3]);
         if (wiz && step) wiz.discardProgress(step);
         if (step && nextStep) step.setNextStep(nextStep);
       } catch (e) {
@@ -504,8 +503,8 @@ sap.ui.define(
       LOCATION_RELOAD: evLocationReload,
       SYSTEM_LOGOUT: evSystemLogout,
       OPEN_NEW_TAB: evOpenNewTab,
-      POPUP_CLOSE: (oController) => oController.destroyPopup(),
-      POPOVER_CLOSE: (oController) => oController.destroyPopover(),
+      POPUP_CLOSE: () => ViewSlots.destroy("POPUP"),
+      POPOVER_CLOSE: () => ViewSlots.destroy("POPOVER"),
       URLHELPER: evUrlHelper,
       IMAGE_EDITOR_POPUP_CLOSE: evImageEditorPopupClose,
       SET_TITLE: evSetTitle,

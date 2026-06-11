@@ -19,8 +19,13 @@ CLASS z2ui5_cl_app_multiinputext_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Control", "sap/m/Token", "z2ui5/core/Lib"],` && |\n| &&
-             `  (Control, Token, Lib) => {` && |\n| &&
+             `  [` && |\n| &&
+             `    "sap/ui/core/Control",` && |\n| &&
+             `    "sap/m/Token",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `  ],` && |\n| &&
+             `  (Control, Token, Lib, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    return Control.extend("z2ui5.cc.MultiInputExt", {` && |\n| &&
@@ -65,7 +70,7 @@ CLASS z2ui5_cl_app_multiinputext_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
              `      setControl() {` && |\n| &&
-             `        const table = z2ui5.oView?.byId(this.getProperty("MultiInputId"));` && |\n| &&
+             `        const table = ViewSlots.byId("MAIN", this.getProperty("MultiInputId"));` && |\n| &&
              `        if (!table || this.getProperty("checkInit")) return;` && |\n| &&
              `        this.setProperty("checkInit", true);` && |\n| &&
              `        try {` && |\n| &&

@@ -23,14 +23,24 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    "sap/ui/core/BusyIndicator",` && |\n| &&
              `    "sap/ui/Device",` && |\n| &&
              `    "sap/ui/core/Element",` && |\n| &&
+             `    "sap/ui/VersionInfo",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/core/ErrorView",` && |\n| &&
+             `    "z2ui5/core/Messages",` && |\n| &&
              `  ],` && |\n| &&
-             `  (BusyIndicator, Device, Element, Lib) => {` && |\n| &&
+             `  (` && |\n| &&
+             `    BusyIndicator,` && |\n| &&
+             `    Device,` && |\n| &&
+             `    Element,` && |\n| &&
+             `    VersionInfo,` && |\n| &&
+             `    Lib,` && |\n| &&
+             `    ViewSlots,` && |\n| &&
+             `    ErrorView,` && |\n| &&
+             `    Messages,` && |\n| &&
+             `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // Errors longer than this are truncated before being shown to the user,` && |\n| &&
-             `    // so a stack trace from the backend cannot blow up the error overlay.` && |\n| &&
-             `    const ERROR_MAX_LENGTH = 50000;` && |\n| &&
              `    const _MSG_TYPES = Object.freeze(["S_MSG_TOAST", "S_MSG_BOX"]);` && |\n| &&
              `` && |\n| &&
              `    // Last-resort client-side timeout for backend roundtrips. Infrastructure` && |\n| &&
@@ -41,14 +51,17 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    const REQUEST_TIMEOUT_MS = 600000;` && |\n| &&
              `` && |\n| &&
              `    // Roundtrip lifecycle (spans this file and View1.controller.js):` && |\n| &&
-             `    //   1. View1.eB(...)              collects the model delta into z2ui5.oBody` && |\n| &&
-             `    //   2. Server.roundtrip()         adds S_FRONT (device/focus/scroll info)` && |\n| &&
-             `    //   3. Server.readHttp()          POSTs { value: oBody }, parses the JSON` && |\n| &&
+             `    //   1. View1.eB(...)              builds the request body with the model` && |\n| &&
+             `    //                                 delta and hands it to roundtrip(oBody)` && |\n| &&
+             `    //   2. Server.roundtrip(oBody)    adds S_FRONT (device/focus/scroll info)` && |\n| &&
+             `    //   3. Server.readHttp(oBody)     POSTs { value: oBody }, parses the JSON` && |\n| &&
              `    //   4. Server.responseSuccess()   shows messages, rebuilds/updates views` && |\n| &&
              `    //   5. View1._processAfterRendering()  popups, nested views, history,` && |\n| &&
              `    //      then runs pending follow-up JS once rendering is done` && |\n| &&
-             `    // State is handed between the steps via the z2ui5 globals oBody,` && |\n| &&
-             `    // oResponse and pendingCustomJs.` && |\n| &&
+             `    // The request body travels through the steps as a parameter; it is` && |\n| &&
+             `    // mirrored to z2ui5.oBody so onBeforeRoundtrip hooks and the debug tool` && |\n| &&
+             `    // can inspect it. Only the response side still crosses an async boundary` && |\n| &&
+             `    // (the rendering) via the globals oResponse and pendingCustomJs.` && |\n| &&
              `    //` && |\n| &&
              `    // Wire format - request (POST body; VIEWNAME/ARGUMENTS are folded into` && |\n| &&
              `    // S_FRONT before sending, empty fields are removed):` && |\n| &&
@@ -101,7 +114,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            "sap-contextid-accept": "header",` && |\n| &&
              `          },` && |\n| &&
              `        }).catch(() => {});` && |\n| &&
-             `        delete z2ui5.contextId;` && |\n| &&
+             `        // Null instead of delete: contextId is an accessor installed by` && |\n| &&
+             `        // core/AppState, deleting it would remove the accessor itself.` && |\n| &&
+             `        z2ui5.contextId = null;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _getDeviceInfo() {` && |\n| &&
@@ -147,7 +162,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          const ui5El = Element.closestTo?.(active) ?? null;` && |\n| &&
              `          if (!ui5El) return {};` && |\n| &&
              `          const fullId = ui5El.getId();` && |\n| &&
-             `          const views = Lib.viewSlots.map((slot) => z2ui5[slot.prop]);` && |\n| &&
+             `          const views = ViewSlots.slots.map((slot) =>` && |\n| &&
+             `            ViewSlots.getView(slot.key),` && |\n| &&
+             `          );` && |\n| &&
              `          let id = fullId;` && |\n| &&
              `          for (const v of views) {` && |\n| &&
              `            if (!v) continue;` && |\n| &&
@@ -179,18 +196,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        const ui5El = Element.closestTo?.(target) ?? null;` && |\n| &&
              `        if (!ui5El) return;` && |\n| &&
              `` && |\n| &&
-             `        // Walk up the control tree to find the view slot the scrolled` && |\n| &&
-             `        // element belongs to (innermost slot wins, e.g. nested views).` && |\n| &&
-             `        let current = ui5El;` && |\n| &&
-             `        while (current) {` && |\n| &&
-             `          for (const slot of Lib.viewSlots) {` && |\n| &&
-             `            if (z2ui5[slot.prop] === current) {` && |\n| &&
-             `              if (!z2ui5.lastScrolled) z2ui5.lastScrolled = {};` && |\n| &&
-             `              z2ui5.lastScrolled[slot.key] = { control: ui5El, dom: target };` && |\n| &&
-             `              return;` && |\n| &&
-             `            }` && |\n| &&
-             `          }` && |\n| &&
-             `          current = current.getParent?.();` && |\n| &&
+             `        const slotKey = ViewSlots.containingSlotKey(ui5El);` && |\n| &&
+             `        if (slotKey) {` && |\n| &&
+             `          z2ui5.lastScrolled[slotKey] = { control: ui5El, dom: target };` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -200,10 +208,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        // X = scrollLeft, Y = scrollTop. Slots the user never scrolled are` && |\n| &&
              `        // absent from the result - restoring 0/0 would be a no-op anyway.` && |\n| &&
              `        const store = z2ui5.lastScrolled;` && |\n| &&
-             `        if (!store) return undefined;` && |\n| &&
-             `` && |\n| &&
              `        const out = {};` && |\n| &&
-             `        for (const slot of Lib.viewSlots) {` && |\n| &&
+             `        for (const slot of ViewSlots.slots) {` && |\n| &&
              `          const entry = store[slot.key];` && |\n| &&
              `          if (!entry) continue;` && |\n| &&
              `` && |\n| &&
@@ -214,7 +220,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          }` && |\n| &&
              `` && |\n| &&
              `          let id = entry.control.getId();` && |\n| &&
-             `          const view = z2ui5[slot.prop];` && |\n| &&
+             `          const view = ViewSlots.getView(slot.key);` && |\n| &&
              `          const prefix = view ? ``${view.getId()}--`` : "";` && |\n| &&
              `          if (prefix && id.startsWith(prefix)) id = id.slice(prefix.length);` && |\n| &&
              `          out[slot.key] = {` && |\n| &&
@@ -227,12 +233,14 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        return Object.keys(out).length ? out : undefined;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      roundtrip() {` && |\n| &&
+             `      roundtrip(oBody = {}) {` && |\n| &&
              `        z2ui5.checkNestAfter = false;` && |\n| &&
              `        z2ui5.checkNestAfter2 = false;` && |\n| &&
              `` && |\n| &&
-             `        if (!z2ui5.oBody) z2ui5.oBody = {};` && |\n| &&
-             `        const oBody = z2ui5.oBody;` && |\n| &&
+             `        // Keep the global record in sync (debug tool "Previous Request",` && |\n| &&
+             `        // app hooks); the parameter stays the working object. Calls without` && |\n| &&
+             `        // a body (initial roundtrip, route changes) start from scratch.` && |\n| &&
+             `        z2ui5.oBody = oBody;` && |\n| &&
              `` && |\n| &&
              `        // Pick the first event argument (event name) safely.` && |\n| &&
              `        let eventName;` && |\n| &&
@@ -275,10 +283,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        if (sFront.SEARCH === "") delete sFront.SEARCH;` && |\n| &&
              `        if (!oBody.XX) delete oBody.XX;` && |\n| &&
              `` && |\n| &&
-             `        this.readHttp();` && |\n| &&
+             `        this.readHttp(oBody);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      async readHttp() {` && |\n| &&
+             `      async readHttp(oBody) {` && |\n| &&
              `        // Step 1: send the request.` && |\n| &&
              `        let response;` && |\n| &&
              `        const timeoutMs = z2ui5.requestTimeoutMs || REQUEST_TIMEOUT_MS;` && |\n| &&
@@ -296,7 +304,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          response = await fetch(z2ui5.url, {` && |\n| &&
              `            method: "POST",` && |\n| &&
              `            headers: headers,` && |\n| &&
-             `            body: JSON.stringify({ value: z2ui5.oBody }),` && |\n| &&
+             `            body: JSON.stringify({ value: oBody }),` && |\n| &&
              `            // The signal also guards reading the response body below.` && |\n| &&
              `            // Browsers without AbortSignal.timeout simply get no client-side` && |\n| &&
              `            // timeout, as before.` && |\n| &&
@@ -357,13 +365,13 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      async responseSuccess(response) {` && |\n| &&
-             `        const oController = z2ui5.oController;` && |\n| &&
+             `        const oController = ViewSlots.getController("MAIN");` && |\n| &&
              `        try {` && |\n| &&
              `          z2ui5.oResponse = response;` && |\n| &&
              `          const params = response.PARAMS;` && |\n| &&
              `          const sView = params?.S_VIEW;` && |\n| &&
              `` && |\n| &&
-             `          if (sView?.CHECK_DESTROY) oController.destroyView();` && |\n| &&
+             `          if (sView?.CHECK_DESTROY) ViewSlots.destroy("MAIN");` && |\n| &&
              `` && |\n| &&
              `          // The backend can send small JS snippets to run after the response.` && |\n| &&
              `          // Each snippet is either a literal expression or an "eF(...)" call` && |\n| &&
@@ -376,19 +384,19 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          const followUp = params?.S_FOLLOW_UP_ACTION;` && |\n| &&
              `          z2ui5.pendingCustomJs = followUp?.CUSTOM_JS || null;` && |\n| &&
              `` && |\n| &&
-             `          for (const t of _MSG_TYPES) oController.showMessage(t, params);` && |\n| &&
+             `          for (const t of _MSG_TYPES) Messages.show(t, params, oController);` && |\n| &&
              `` && |\n| &&
              `          // Full view replacement -> destroy & rebuild, nothing more to do.` && |\n| &&
              `          if (sView?.XML) {` && |\n| &&
-             `            oController.destroyView();` && |\n| &&
+             `            ViewSlots.destroy("MAIN");` && |\n| &&
              `            await oController.displayView(sView.XML, response.OVIEWMODEL);` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
              `          // Partial response: refresh whichever existing views the backend` && |\n| &&
              `          // sent updates for.` && |\n| &&
-             `          for (const slot of Lib.viewSlots) {` && |\n| &&
-             `            oController.updateModelIfRequired(slot.param, z2ui5[slot.prop]);` && |\n| &&
+             `          for (const slot of ViewSlots.slots) {` && |\n| &&
+             `            oController.updateModelIfRequired(slot.key);` && |\n| &&
              `          }` && |\n| &&
              `          oController._processAfterRendering();` && |\n| &&
              `        } catch (e) {` && |\n| &&
@@ -397,11 +405,35 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          Lib.logError("responseSuccess: unexpected error", e);` && |\n| &&
              `          const msg = e.message || "";` && |\n| &&
              `          if (msg.includes("openui5") && msg.includes("script load error")) {` && |\n| &&
-             `            oController.checkSDKcompatibility(e);` && |\n| &&
+             `            this._checkSDKcompatibility(e);` && |\n| &&
              `          } else {` && |\n| &&
              `            this.responseError(e);` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // A view failed to load a sap.com module: when the page runs on` && |\n| &&
+             `      // openui5 (instead of SAPUI5), tell the user which module is missing` && |\n| &&
+             `      // so they know to switch SDKs; otherwise show the original error.` && |\n| &&
+             `      async _checkSDKcompatibility(err) {` && |\n| &&
+             `        let gav;` && |\n| &&
+             `        try {` && |\n| &&
+             |\n|.
+    result = result &&
+             `          const info = await VersionInfo.load();` && |\n| &&
+             `          gav = info.gav;` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          Lib.logError("_checkSDKcompatibility: VersionInfo.load failed", e);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        if (!gav || !gav.includes("com.sap.ui5")) {` && |\n| &&
+             `          const missingModule = err?._modules;` && |\n| &&
+             `          this.responseError(` && |\n| &&
+             `            ``openui5 SDK is loaded, module: ${missingModule} is not available in openui5``,` && |\n| &&
+             `          );` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        this.responseError(err);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Executes a single custom-JS snippet from the backend.` && |\n| &&
@@ -418,8 +450,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // Arguments live at the odd indices between single quotes.` && |\n| &&
              `          const args = parts.filter((_, index) => index % 2 === 1);` && |\n| &&
              `          if (args.length > 0) {` && |\n| &&
-             |\n|.
-    result = result &&
              `            oController.eF(...args);` && |\n| &&
              `          } else {` && |\n| &&
              `            // eslint-disable-next-line no-new-func` && |\n| &&
@@ -430,128 +460,14 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      _getOrCreateErrorContainer() {` && |\n| &&
-             `        const existing = document.getElementById("serverErrorContainer");` && |\n| &&
-             `        if (existing) return existing;` && |\n| &&
-             `` && |\n| &&
-             `        const container = document.createElement("div");` && |\n| &&
-             `        container.id = "serverErrorContainer";` && |\n| &&
-             `        container.style.cssText = ``` && |\n| &&
-             `          position: fixed;` && |\n| &&
-             `          top: 50%;` && |\n| &&
-             `          left: 50%;` && |\n| &&
-             `          transform: translate(-50%, -50%);` && |\n| &&
-             `          width: 90%;` && |\n| &&
-             `          height: 90%;` && |\n| &&
-             `          background: white;` && |\n| &&
-             `          border: 2px solid #d32f2f;` && |\n| &&
-             `          border-radius: 4px;` && |\n| &&
-             `          box-shadow: 0 4px 6px rgba(0,0,0,0.3);` && |\n| &&
-             `          z-index: 9999;` && |\n| &&
-             `          display: flex;` && |\n| &&
-             `          flex-direction: column;` && |\n| &&
-             `        ``;` && |\n| &&
-             `        document.body.appendChild(container);` && |\n| &&
-             `        return container;` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // Unified fatal-error overlay. Shown whenever the app reaches an` && |\n| &&
-             `      // unrecoverable state - a failed roundtrip (network, HTTP != 2xx, bad` && |\n| &&
-             `      // JSON, backend dump) or a client-side failure (invalid view XML,` && |\n| &&
-             `      // post-render crash, missing SDK module). The only way out is a restart,` && |\n| &&
-             `      // hence the Refresh / Logout actions. Built from raw DOM so it still` && |\n| &&
-             `      // works when the UI5 core itself is in a broken state.` && |\n| &&
-             `      // ``response`` may be a string or an Error object; ``title`` overrides the` && |\n| &&
-             `      // default header text.` && |\n| &&
+             `      // Terminate the roundtrip in an unrecoverable state: clear the busy` && |\n| &&
+             `      // state and show the fatal-error overlay (core/ErrorView). ``response``` && |\n| &&
+             `      // may be a string or an Error object; ``title`` overrides the default` && |\n| &&
+             `      // header text.` && |\n| &&
              `      responseError(response, title) {` && |\n| &&
              `        BusyIndicator.hide();` && |\n| &&
              `        z2ui5.isBusy = false;` && |\n| &&
-             `` && |\n| &&
-             `        const full = response?.stack` && |\n| &&
-             `          ? String(response.stack)` && |\n| &&
-             `          : String(response);` && |\n| &&
-             `        let errorMessage;` && |\n| &&
-             `        if (full.length > ERROR_MAX_LENGTH) {` && |\n| &&
-             `          errorMessage =` && |\n| &&
-             `            full.slice(0, ERROR_MAX_LENGTH) +` && |\n| &&
-             `            "\n\n<!-- Content truncated - too long -->";` && |\n| &&
-             `        } else {` && |\n| &&
-             `          errorMessage = full;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        const errorContainer = this._getOrCreateErrorContainer();` && |\n| &&
-             `        errorContainer.textContent = "";` && |\n| &&
-             `` && |\n| &&
-             `        // Header bar with title and action buttons.` && |\n| &&
-             `        const headerDiv = document.createElement("div");` && |\n| &&
-             `        headerDiv.style.cssText =` && |\n| &&
-             `          "padding: 15px; background: #d32f2f; color: white; display: flex; justify-content: space-between; align-items: center;";` && |\n| &&
-             `` && |\n| &&
-             `        const h3 = document.createElement("h3");` && |\n| &&
-             `        h3.textContent = title || "Application Error - Please Restart The App";` && |\n| &&
-             `        h3.style.cssText = "margin: 0";` && |\n| &&
-             `        headerDiv.appendChild(h3);` && |\n| &&
-             `` && |\n| &&
-             `        const btnStyle =` && |\n| &&
-             `          "padding: 6px 14px; background: white; color: #d32f2f; border: none; border-radius: 3px; cursor: pointer; font-weight: bold;";` && |\n| &&
-             `` && |\n| &&
-             `        const actionsDiv = document.createElement("div");` && |\n| &&
-             `        actionsDiv.style.cssText = "display: flex; gap: 8px;";` && |\n| &&
-             `` && |\n| &&
-             `        const refreshBtn = document.createElement("button");` && |\n| &&
-             `        refreshBtn.type = "button";` && |\n| &&
-             `        refreshBtn.textContent = "Refresh";` && |\n| &&
-             `        refreshBtn.style.cssText = btnStyle;` && |\n| &&
-             `        refreshBtn.addEventListener("click", () => window.location.reload());` && |\n| &&
-             `        actionsDiv.appendChild(refreshBtn);` && |\n| &&
-             `` && |\n| &&
-             `        const logoutBtn = document.createElement("button");` && |\n| &&
-             `        logoutBtn.type = "button";` && |\n| &&
-             `        logoutBtn.textContent = "Logout";` && |\n| &&
-             `        logoutBtn.style.cssText = btnStyle;` && |\n| &&
-             `        logoutBtn.addEventListener("click", () => this._handleLogout());` && |\n| &&
-             `        actionsDiv.appendChild(logoutBtn);` && |\n| &&
-             `` && |\n| &&
-             `        headerDiv.appendChild(actionsDiv);` && |\n| &&
-             `        errorContainer.appendChild(headerDiv);` && |\n| &&
-             `` && |\n| &&
-             `        // The error text itself lives inside a sandboxed iframe so any HTML` && |\n| &&
-             `        // in the backend response cannot execute or affect the main page.` && |\n| &&
-             `        const iframe = document.createElement("iframe");` && |\n| &&
-             `        iframe.id = "errorIframe";` && |\n| &&
-             `        iframe.style.cssText =` && |\n| &&
-             `          "width: 100%; height: 100%; border: none; flex: 1;";` && |\n| &&
-             `        iframe.setAttribute("sandbox", "allow-same-origin");` && |\n| &&
-             `        errorContainer.appendChild(iframe);` && |\n| &&
-             `` && |\n| &&
-             `        const contentDocument = iframe.contentDocument;` && |\n| &&
-             `        if (contentDocument) {` && |\n| &&
-             `          const pre = contentDocument.createElement("pre");` && |\n| &&
-             `          pre.style.cssText =` && |\n| &&
-             `            "margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;";` && |\n| &&
-             `          pre.textContent = errorMessage;` && |\n| &&
-             `          const target =` && |\n| &&
-             `            contentDocument.body || contentDocument.documentElement;` && |\n| &&
-             `          target.appendChild(pre);` && |\n| &&
-             `        }` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // Logout via the launchpad if available; otherwise hit the SAP logoff URL.` && |\n| &&
-             `      _handleLogout() {` && |\n| &&
-             `        const fallback = () => {` && |\n| &&
-             `          window.location.href = "/sap/public/bc/icf/logoff";` && |\n| &&
-             `        };` && |\n| &&
-             `        try {` && |\n| &&
-             `          const launchpadLogout =` && |\n| &&
-             `            z2ui5.oLaunchpad?.Container && z2ui5.oLaunchpad.Container.logout;` && |\n| &&
-             `          if (launchpadLogout) {` && |\n| &&
-             `            z2ui5.oLaunchpad.Container.logout();` && |\n| &&
-             `          } else {` && |\n| &&
-             `            fallback();` && |\n| &&
-             `          }` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          fallback();` && |\n| &&
-             `        }` && |\n| &&
+             `        ErrorView.show(response, title);` && |\n| &&
              `      },` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&

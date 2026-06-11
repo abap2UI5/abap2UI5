@@ -1,47 +1,7 @@
-// The global `z2ui5` object holds the shared frontend state. It is declared
-// by the backend-generated HTML (or created by Component.init when running
-// standalone). Field inventory - writer in parentheses:
-//
-// Bootstrap / configuration
-//   checkLocal        true when served by the backend GET page (backend HTML)
-//   url               backend endpoint for roundtrips (App.controller)
-//   oConfig           { S_UI5: version info, ComponentData } (Component)
-//   oLaunchpad        FLP services when running inside the launchpad, else
-//                     null (Component._initLaunchpad)
-//   Util              PUBLIC date helpers for view formatters - apps rely on
-//                     this global and on the z2ui5/Util module (Component)
-//   requestTimeoutMs  optional override for the roundtrip timeout (apps)
-//
-// Views / controllers / UI5 objects
-//   oApp              sap.m.App hosting the main view (App.controller)
-//   oOwnerComponent, oRouter, oDeviceModel (Component / App.controller)
-//   oView, oViewNest, oViewNest2, oViewPopup, oViewPopover
-//                     the five view slots, see viewSlots below (View1)
-//   oController, oControllerNest, oControllerNest2, oControllerPopup,
-//   oControllerPopover  controller instance per slot (App.controller)
-//
-// Roundtrip state
-//   oBody             request payload being assembled (View1.eB / Server)
-//   oResponse         last processed response { ID, PARAMS, OVIEWMODEL }
-//   responseData      raw parsed response JSON (Server.readHttp)
-//   contextId         stateful session id, header transport (Server)
-//   isBusy            roundtrip in flight (View1.eB / Server)
-//   xxChangedPaths    Set of edited /XX/ model paths for the delta (View1)
-//   checkNestAfter, checkNestAfter2  nested views rebuilt this roundtrip
-//   search            overrides location.search in S_FRONT (History control)
-//   pendingCustomJs   follow-up JS to run after rendering (Server)
-//
-// Control / helper state
-//   errors            capped error log, see logError below
-//   timers            single pending backend timer (FrontendAction)
-//   lastScrolled      last scrolled element per slot (Server.onScrollCapture)
-//   viewSizeLimits    per-slot model size limits (FrontendAction)
-//   treeState         tree binding state across rebuilds (Tree control)
-//   debugTool         DebugTool instance (Component, Ctrl+F12)
-//   onBeforeRoundtrip, onAfterRoundtrip, onAfterRendering,
-//   onBeforeEventFrontend  callback arrays, see registerCallback below
-//   <custom>          apps can register functions via the js_loader popup
-//                     and call them through the Z2UI5 frontend event
+// Shared helper module of the z2ui5 frontend. The global `z2ui5` object
+// holds the shared frontend state; core/AppState.js owns that state and
+// documents the complete field inventory (public contract vs. internal
+// fields, plus their defaults).
 //
 // Shared rendering pattern of the custom controls (Timer.js, Focus.js,
 // Scrolling.js, Tree.js, ...): the renderer only *marks* work by setting a
@@ -56,8 +16,10 @@ sap.ui.define([], () => {
   // Cap the error log so a long-running session cannot grow it unbounded.
   const MAX_ERRORS = 100;
 
-  // Append an entry to the global error log. We create the array on first
-  // use and drop the oldest entry once the cap is reached.
+  // Append an entry to the global error log and drop the oldest entry once
+  // the cap is reached. In the app the array always exists (AppState
+  // default); the guard keeps the helper usable standalone, e.g. in the
+  // Node specs that load this module with a bare z2ui5 stub.
   function logError(message, error) {
     if (!z2ui5.errors) z2ui5.errors = [];
     const entry = { message: message, ts: new Date().toISOString() };
@@ -80,7 +42,8 @@ sap.ui.define([], () => {
 
   // Helpers for managing z2ui5 callback arrays (onBeforeRoundtrip,
   // onAfterRendering, ...). Several custom controls register hooks here in
-  // init() and remove them in exit().
+  // init() and remove them in exit(). The arrays always exist in the app
+  // (AppState defaults); the guard keeps the helper standalone-safe.
   function registerCallback(name, fn) {
     if (!z2ui5[name]) z2ui5[name] = [];
     z2ui5[name].push(fn);
@@ -323,30 +286,6 @@ sap.ui.define([], () => {
     return _sanitizeEl.innerHTML;
   }
 
-  // The five view slots of the multi-view architecture. `param` is the
-  // key used in the backend response PARAMS, `key` the short slot name
-  // used in frontend events, `prop` the z2ui5 property holding the live
-  // view instance.
-  const viewSlots = [
-    { key: "MAIN", param: "S_VIEW", prop: "oView" },
-    { key: "NEST", param: "S_VIEW_NEST", prop: "oViewNest" },
-    { key: "NEST2", param: "S_VIEW_NEST2", prop: "oViewNest2" },
-    { key: "POPUP", param: "S_POPUP", prop: "oViewPopup" },
-    { key: "POPOVER", param: "S_POPOVER", prop: "oViewPopover" },
-  ];
-
-  // Returns the live view instance for a slot key ("MAIN", "POPUP", ...).
-  function getViewByKey(key) {
-    const slot = viewSlots.find((s) => s.key === key);
-    return slot ? z2ui5[slot.prop] : undefined;
-  }
-
-  // Returns the slot key for a response param key ("S_VIEW" -> "MAIN").
-  function slotKeyByParam(param) {
-    const slot = viewSlots.find((s) => s.param === param);
-    return slot ? slot.key : undefined;
-  }
-
   return {
     logError,
     isDestroyed,
@@ -365,8 +304,5 @@ sap.ui.define([], () => {
     isValidContextId,
     buildDeltaFromPaths,
     sanitizeMessageDetails,
-    viewSlots,
-    getViewByKey,
-    slotKeyByParam,
   };
 });

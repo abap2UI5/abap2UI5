@@ -1,44 +1,21 @@
 // @ts-check
-// Loads the real app/webapp/core/Lib.js in Node by stubbing sap.ui.define,
-// so the specs exercise the shipped implementation instead of a copy that
-// could silently drift from the production code.
-const fs = require("fs");
-const path = require("path");
-const vm = require("vm");
-
-const UTIL_PATH = path.join(
-  __dirname,
-  "..",
-  "..",
-  "app",
-  "webapp",
-  "core",
-  "Lib.js",
-);
+// Loads the real app/webapp/core/Lib.js through the generic loadModule
+// helper (stubbed sap.ui.define), so the specs exercise the shipped
+// implementation instead of a copy that could silently drift from the
+// production code.
+const { loadModule } = require("./loadModule");
 
 function loadLib(overrides = {}) {
-  const source = fs.readFileSync(UTIL_PATH, "utf8");
-  let exported;
-  const sandbox = {
-    sap: {
-      ui: {
-        define: (deps, factory) => {
-          exported = factory();
-        },
-      },
+  const { module, sandbox } = loadModule("core/Lib.js", {
+    sandbox: {
+      // Globals the helpers touch at runtime: z2ui5 receives the error
+      // log, window.location.origin anchors relative URL resolution.
+      z2ui5: {},
+      window: { location: { origin: "http://localhost:3000" } },
+      ...overrides,
     },
-    // Globals the helpers touch at runtime: z2ui5 receives the error
-    // log, window.location.origin anchors relative URL resolution.
-    z2ui5: {},
-    URL,
-    window: { location: { origin: "http://localhost:3000" } },
-    ...overrides,
-  };
-  vm.runInNewContext(source, sandbox, { filename: UTIL_PATH });
-  if (!exported) {
-    throw new Error("Lib.js did not register via sap.ui.define");
-  }
-  return { Lib: exported, sandbox };
+  });
+  return { Lib: module, sandbox };
 }
 
 module.exports = { loadLib };

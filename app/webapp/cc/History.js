@@ -12,10 +12,8 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
       this.setProperty("search", val);
       try {
         const search = Lib.toText(val);
-        // Pass the current state object along: _processAfterRendering stores
-        // the rendered view/model in history.state so the back button can
-        // restore it without a roundtrip - replacing it with null would
-        // break that popstate restore.
+        // Pass the existing state object along instead of null so we do
+        // not clobber state someone else stored on the history entry.
         history.replaceState(
           history.state,
           "",

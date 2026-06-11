@@ -41,20 +41,16 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        const uri = http?.uri;` && |\n| &&
              `        z2ui5.url = z2ui5.checkLocal ? window.location.href : uri;` && |\n| &&
              `` && |\n| &&
-             `        // Set up the shared z2ui5 state used by the whole app.` && |\n| &&
+             `        // Wire up the controller instances and the app container. All other` && |\n| &&
+             `        // shared state (callback arrays, error log, roundtrip flags, ...)` && |\n| &&
+             `        // starts from the defaults that core/AppState set during` && |\n| &&
+             `        // Component.init.` && |\n| &&
              `        z2ui5.oController = new Controller();` && |\n| &&
              `        z2ui5.oApp = this.getView().byId("app");` && |\n| &&
              `        z2ui5.oControllerNest = new Controller();` && |\n| &&
              `        z2ui5.oControllerNest2 = new Controller();` && |\n| &&
              `        z2ui5.oControllerPopup = new Controller();` && |\n| &&
              `        z2ui5.oControllerPopover = new Controller();` && |\n| &&
-             `        z2ui5.onBeforeRoundtrip = [];` && |\n| &&
-             `        z2ui5.onAfterRendering = [];` && |\n| &&
-             `        z2ui5.onBeforeEventFrontend = [];` && |\n| &&
-             `        z2ui5.onAfterRoundtrip = [];` && |\n| &&
-             `        z2ui5.errors = [];` && |\n| &&
-             `        z2ui5.checkNestAfter = false;` && |\n| &&
-             `        z2ui5.checkNestAfter2 = false;` && |\n| &&
              `` && |\n| &&
              `        // If the URL already contains a hash, kick off the initial roundtrip` && |\n| &&
              `        // so the backend can restore that state.` && |\n| &&

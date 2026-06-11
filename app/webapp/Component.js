@@ -7,6 +7,7 @@ sap.ui.define(
     "z2ui5/core/DebugTool",
     "sap/ui/core/Theming",
     "z2ui5/core/Lib",
+    "z2ui5/core/AppState",
     "z2ui5/Util",
   ],
   (
@@ -17,6 +18,7 @@ sap.ui.define(
     DebugTool,
     Theming,
     Lib,
+    AppState,
     DateUtil,
   ) => {
     "use strict";
@@ -28,14 +30,15 @@ sap.ui.define(
       },
 
       init() {
-        // The global "z2ui5" object holds shared state for the whole app. When
-        // the component is (re-)initialized we make sure oConfig exists so the
-        // base init() and our helpers can rely on it.
-        if (typeof z2ui5 !== "undefined") z2ui5.oConfig = {};
+        // The global "z2ui5" object holds the shared state for the whole
+        // app; core/AppState owns it. initGlobal() creates the global if
+        // needed, resets the internal state to clean defaults and provides
+        // a fresh oConfig - so the base init() and all helpers can rely on
+        // a fully initialized global from here on.
+        AppState.initGlobal();
 
         UIComponent.prototype.init.call(this);
 
-        this._ensureGlobalState();
         z2ui5.oConfig.ComponentData = this.getComponentData();
 
         // The date helpers are a public contract: apps use them via the
@@ -54,26 +57,10 @@ sap.ui.define(
         this._installUnloadListener();
         this._installDebugToolShortcut();
         this._installScrollListener();
-        // Currently disabled: the popstate view restore. Its counterpart -
-        // storing the rendered view/model in history.state on every
-        // roundtrip (View1 _processAfterRendering) - is disabled for
-        // performance reasons, so the listener would never fire with state.
-        // this._installPopstateListener();
 
         z2ui5.oRouter = this.getRouter();
         z2ui5.oRouter.initialize();
         z2ui5.oRouter.stop();
-      },
-
-      // After the base init, ensure z2ui5 / z2ui5.oConfig exist. The
-      // backend-generated HTML declares window.z2ui5 before the component
-      // boots; when running standalone (local dev tooling) it does not
-      // exist yet. Assign via window - a bare `z2ui5 = {}` would throw a
-      // ReferenceError on an undeclared global in strict mode.
-      _ensureGlobalState() {
-        if (typeof z2ui5 === "undefined") window.z2ui5 = {};
-        if (z2ui5.checkLocal === false) window.z2ui5 = {};
-        if (typeof z2ui5.oConfig === "undefined") z2ui5.oConfig = {};
       },
 
       // ------------------------------------------------------------------
@@ -110,41 +97,6 @@ sap.ui.define(
           capture: true,
           passive: true,
         });
-      },
-
-      // Currently not installed - see init(). Kept for re-enabling the
-      // popstate view restore together with the history.state storing in
-      // View1 _processAfterRendering.
-      _installPopstateListener() {
-        // The browser's back/forward buttons restore a previously displayed
-        // view from history.state without doing a backend roundtrip.
-        this._boundPopstate = (event) => {
-          const state = event?.state;
-          if (!state) return;
-
-          // These flags only apply once when the state was first pushed; on
-          // restore we strip them so they don't trigger again.
-          if (state.response?.PARAMS) {
-            delete state.response.PARAMS.SET_PUSH_STATE;
-            delete state.response.PARAMS.SET_APP_STATE_ACTIVE;
-          }
-
-          if (!state.view) return;
-
-          if (z2ui5.oController) z2ui5.oController.destroyView();
-          z2ui5.oResponse = state.response;
-
-          const displayPromise = z2ui5.oController?.displayView(
-            state.view,
-            state.model,
-          );
-          if (displayPromise?.catch) {
-            displayPromise.catch((e) =>
-              Lib.logError("popstate: displayView failed", e),
-            );
-          }
-        };
-        window.addEventListener("popstate", this._boundPopstate);
       },
 
       // ------------------------------------------------------------------
@@ -222,8 +174,6 @@ sap.ui.define(
         document.removeEventListener("scroll", this._boundScroll, {
           capture: true,
         });
-        // Disabled together with _installPopstateListener in init():
-        // window.removeEventListener("popstate", this._boundPopstate);
 
         Server.endSession();
 

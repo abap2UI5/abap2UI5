@@ -18,50 +18,10 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// The global ``z2ui5`` object holds the shared frontend state. It is declared` && |\n| &&
-             `// by the backend-generated HTML (or created by Component.init when running` && |\n| &&
-             `// standalone). Field inventory - writer in parentheses:` && |\n| &&
-             `//` && |\n| &&
-             `// Bootstrap / configuration` && |\n| &&
-             `//   checkLocal        true when served by the backend GET page (backend HTML)` && |\n| &&
-             `//   url               backend endpoint for roundtrips (App.controller)` && |\n| &&
-             `//   oConfig           { S_UI5: version info, ComponentData } (Component)` && |\n| &&
-             `//   oLaunchpad        FLP services when running inside the launchpad, else` && |\n| &&
-             `//                     null (Component._initLaunchpad)` && |\n| &&
-             `//   Util              PUBLIC date helpers for view formatters - apps rely on` && |\n| &&
-             `//                     this global and on the z2ui5/Util module (Component)` && |\n| &&
-             `//   requestTimeoutMs  optional override for the roundtrip timeout (apps)` && |\n| &&
-             `//` && |\n| &&
-             `// Views / controllers / UI5 objects` && |\n| &&
-             `//   oApp              sap.m.App hosting the main view (App.controller)` && |\n| &&
-             `//   oOwnerComponent, oRouter, oDeviceModel (Component / App.controller)` && |\n| &&
-             `//   oView, oViewNest, oViewNest2, oViewPopup, oViewPopover` && |\n| &&
-             `//                     the five view slots, see viewSlots below (View1)` && |\n| &&
-             `//   oController, oControllerNest, oControllerNest2, oControllerPopup,` && |\n| &&
-             `//   oControllerPopover  controller instance per slot (App.controller)` && |\n| &&
-             `//` && |\n| &&
-             `// Roundtrip state` && |\n| &&
-             `//   oBody             request payload being assembled (View1.eB / Server)` && |\n| &&
-             `//   oResponse         last processed response { ID, PARAMS, OVIEWMODEL }` && |\n| &&
-             `//   responseData      raw parsed response JSON (Server.readHttp)` && |\n| &&
-             `//   contextId         stateful session id, header transport (Server)` && |\n| &&
-             `//   isBusy            roundtrip in flight (View1.eB / Server)` && |\n| &&
-             `//   xxChangedPaths    Set of edited /XX/ model paths for the delta (View1)` && |\n| &&
-             `//   checkNestAfter, checkNestAfter2  nested views rebuilt this roundtrip` && |\n| &&
-             `//   search            overrides location.search in S_FRONT (History control)` && |\n| &&
-             `//   pendingCustomJs   follow-up JS to run after rendering (Server)` && |\n| &&
-             `//` && |\n| &&
-             `// Control / helper state` && |\n| &&
-             `//   errors            capped error log, see logError below` && |\n| &&
-             `//   timers            single pending backend timer (FrontendAction)` && |\n| &&
-             `//   lastScrolled      last scrolled element per slot (Server.onScrollCapture)` && |\n| &&
-             `//   viewSizeLimits    per-slot model size limits (FrontendAction)` && |\n| &&
-             `//   treeState         tree binding state across rebuilds (Tree control)` && |\n| &&
-             `//   debugTool         DebugTool instance (Component, Ctrl+F12)` && |\n| &&
-             `//   onBeforeRoundtrip, onAfterRoundtrip, onAfterRendering,` && |\n| &&
-             `//   onBeforeEventFrontend  callback arrays, see registerCallback below` && |\n| &&
-             `//   <custom>          apps can register functions via the js_loader popup` && |\n| &&
-             `//                     and call them through the Z2UI5 frontend event` && |\n| &&
+    result = `// Shared helper module of the z2ui5 frontend. The global ``z2ui5`` object` && |\n| &&
+             `// holds the shared frontend state; core/AppState.js owns that state and` && |\n| &&
+             `// documents the complete field inventory (public contract vs. internal` && |\n| &&
+             `// fields, plus their defaults).` && |\n| &&
              `//` && |\n| &&
              `// Shared rendering pattern of the custom controls (Timer.js, Focus.js,` && |\n| &&
              `// Scrolling.js, Tree.js, ...): the renderer only *marks* work by setting a` && |\n| &&
@@ -76,8 +36,10 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `  // Cap the error log so a long-running session cannot grow it unbounded.` && |\n| &&
              `  const MAX_ERRORS = 100;` && |\n| &&
              `` && |\n| &&
-             `  // Append an entry to the global error log. We create the array on first` && |\n| &&
-             `  // use and drop the oldest entry once the cap is reached.` && |\n| &&
+             `  // Append an entry to the global error log and drop the oldest entry once` && |\n| &&
+             `  // the cap is reached. In the app the array always exists (AppState` && |\n| &&
+             `  // default); the guard keeps the helper usable standalone, e.g. in the` && |\n| &&
+             `  // Node specs that load this module with a bare z2ui5 stub.` && |\n| &&
              `  function logError(message, error) {` && |\n| &&
              `    if (!z2ui5.errors) z2ui5.errors = [];` && |\n| &&
              `    const entry = { message: message, ts: new Date().toISOString() };` && |\n| &&
@@ -100,7 +62,8 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `` && |\n| &&
              `  // Helpers for managing z2ui5 callback arrays (onBeforeRoundtrip,` && |\n| &&
              `  // onAfterRendering, ...). Several custom controls register hooks here in` && |\n| &&
-             `  // init() and remove them in exit().` && |\n| &&
+             `  // init() and remove them in exit(). The arrays always exist in the app` && |\n| &&
+             `  // (AppState defaults); the guard keeps the helper standalone-safe.` && |\n| &&
              `  function registerCallback(name, fn) {` && |\n| &&
              `    if (!z2ui5[name]) z2ui5[name] = [];` && |\n| &&
              `    z2ui5[name].push(fn);` && |\n| &&
@@ -343,30 +306,6 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `    return _sanitizeEl.innerHTML;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // The five view slots of the multi-view architecture. ``param`` is the` && |\n| &&
-             `  // key used in the backend response PARAMS, ``key`` the short slot name` && |\n| &&
-             `  // used in frontend events, ``prop`` the z2ui5 property holding the live` && |\n| &&
-             `  // view instance.` && |\n| &&
-             `  const viewSlots = [` && |\n| &&
-             `    { key: "MAIN", param: "S_VIEW", prop: "oView" },` && |\n| &&
-             `    { key: "NEST", param: "S_VIEW_NEST", prop: "oViewNest" },` && |\n| &&
-             `    { key: "NEST2", param: "S_VIEW_NEST2", prop: "oViewNest2" },` && |\n| &&
-             `    { key: "POPUP", param: "S_POPUP", prop: "oViewPopup" },` && |\n| &&
-             `    { key: "POPOVER", param: "S_POPOVER", prop: "oViewPopover" },` && |\n| &&
-             `  ];` && |\n| &&
-             `` && |\n| &&
-             `  // Returns the live view instance for a slot key ("MAIN", "POPUP", ...).` && |\n| &&
-             `  function getViewByKey(key) {` && |\n| &&
-             `    const slot = viewSlots.find((s) => s.key === key);` && |\n| &&
-             `    return slot ? z2ui5[slot.prop] : undefined;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
-             `  // Returns the slot key for a response param key ("S_VIEW" -> "MAIN").` && |\n| &&
-             `  function slotKeyByParam(param) {` && |\n| &&
-             `    const slot = viewSlots.find((s) => s.param === param);` && |\n| &&
-             `    return slot ? slot.key : undefined;` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
              `  return {` && |\n| &&
              `    logError,` && |\n| &&
              `    isDestroyed,` && |\n| &&
@@ -385,9 +324,6 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `    isValidContextId,` && |\n| &&
              `    buildDeltaFromPaths,` && |\n| &&
              `    sanitizeMessageDetails,` && |\n| &&
-             `    viewSlots,` && |\n| &&
-             `    getViewByKey,` && |\n| &&
-             `    slotKeyByParam,` && |\n| &&
              `  };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&

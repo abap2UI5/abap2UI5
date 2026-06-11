@@ -20,14 +20,14 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
 
     result = `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
-             `    "sap/ui/core/Fragment",` && |\n| &&
              `    "sap/m/MessageBox",` && |\n| &&
              `    "sap/ui/model/odata/v2/ODataModel",` && |\n| &&
              `    "sap/m/library",` && |\n| &&
              `    "sap/ui/util/Storage",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/ViewSlots",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Fragment, MessageBox, ODataModel, mobileLibrary, Storage, Lib) => {` && |\n| &&
+             `  (MessageBox, ODataModel, mobileLibrary, Storage, Lib, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
@@ -67,13 +67,13 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // Lookup tables mapping event names / param keys to the right view.` && |\n| &&
+             `    // Lookup tables mapping event names to the right view slot.` && |\n| &&
              `    const navContainerLookups = {` && |\n| &&
-             `      NAV_CONTAINER_TO: (id) => z2ui5.oView?.byId(id),` && |\n| &&
-             `      NEST_NAV_CONTAINER_TO: (id) => z2ui5.oViewNest?.byId(id),` && |\n| &&
-             `      NEST2_NAV_CONTAINER_TO: (id) => z2ui5.oViewNest2?.byId(id),` && |\n| &&
-             `      POPUP_NAV_CONTAINER_TO: (id) => Fragment.byId("popupId", id),` && |\n| &&
-             `      POPOVER_NAV_CONTAINER_TO: (id) => Fragment.byId("popoverId", id),` && |\n| &&
+             `      NAV_CONTAINER_TO: (id) => ViewSlots.byId("MAIN", id),` && |\n| &&
+             `      NEST_NAV_CONTAINER_TO: (id) => ViewSlots.byId("NEST", id),` && |\n| &&
+             `      NEST2_NAV_CONTAINER_TO: (id) => ViewSlots.byId("NEST2", id),` && |\n| &&
+             `      POPUP_NAV_CONTAINER_TO: (id) => ViewSlots.byId("POPUP", id),` && |\n| &&
+             `      POPOVER_NAV_CONTAINER_TO: (id) => ViewSlots.byId("POPOVER", id),` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
@@ -117,18 +117,17 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      const hasLimit = args[2] !== undefined && args[2] !== "";` && |\n| &&
              `      const viewKey = hasLimit ? args[2] : args[1];` && |\n| &&
              `      const limit = hasLimit ? Number(args[1]) : NaN;` && |\n| &&
-             `      const view = Lib.getViewByKey(viewKey);` && |\n| &&
+             `      const view = ViewSlots.getView(viewKey);` && |\n| &&
              `      const model = view?.getModel();` && |\n| &&
              `` && |\n| &&
              `      if (Number.isFinite(limit) && limit > 0) {` && |\n| &&
-             `        if (!z2ui5.viewSizeLimits) z2ui5.viewSizeLimits = {};` && |\n| &&
              `        z2ui5.viewSizeLimits[viewKey] = limit;` && |\n| &&
              `        if (model) {` && |\n| &&
              `          model.setSizeLimit(limit);` && |\n| &&
              `          model.refresh(true);` && |\n| &&
              `        }` && |\n| &&
              `      } else {` && |\n| &&
-             `        if (z2ui5.viewSizeLimits) delete z2ui5.viewSizeLimits[viewKey];` && |\n| &&
+             `        delete z2ui5.viewSizeLimits[viewKey];` && |\n| &&
              `        if (model) {` && |\n| &&
              `          model.setSizeLimit(100);` && |\n| &&
              `          model.refresh(true);` && |\n| &&
@@ -142,7 +141,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          serviceUrl: args[1],` && |\n| &&
              `          annotationURI: args[3] || "",` && |\n| &&
              `        });` && |\n| &&
-             `        if (z2ui5.oView) z2ui5.oView.setModel(oModel, args[2] || undefined);` && |\n| &&
+             `        const oView = ViewSlots.getView("MAIN");` && |\n| &&
+             `        if (oView) oView.setModel(oModel, args[2] || undefined);` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError(``SET_ODATA_MODEL: failed for '${args[1]}'``, e);` && |\n| &&
              `      }` && |\n| &&
@@ -300,12 +300,12 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    function evImageEditorPopupClose(oController) {` && |\n| &&
              `      let image;` && |\n| &&
              `      try {` && |\n| &&
-             `        const editor = Fragment.byId("popupId", "imageEditor");` && |\n| &&
+             `        const editor = ViewSlots.byId("POPUP", "imageEditor");` && |\n| &&
              `        if (editor) image = editor.getImagePngDataURL();` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed", e);` && |\n| &&
              `      }` && |\n| &&
-             `      oController.destroyPopup();` && |\n| &&
+             `      ViewSlots.destroy("POPUP");` && |\n| &&
              `      oController.eB(["SAVE"], image);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -317,7 +317,6 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      const timerKey = args[0];` && |\n| &&
              `      const callbackEvent = args[1];` && |\n| &&
              `      const delay = +args[2] || 0;` && |\n| &&
-             `      if (!z2ui5.timers) z2ui5.timers = {};` && |\n| &&
              `      clearTimeout(z2ui5.timers[timerKey]);` && |\n| &&
              `      z2ui5.timers[timerKey] = setTimeout(() => {` && |\n| &&
              `        delete z2ui5.timers[timerKey];` && |\n| &&
@@ -327,7 +326,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `` && |\n| &&
              `    function evSetInputMode(oController, args) {` && |\n| &&
              `      try {` && |\n| &&
-             `        const oElement = z2ui5.oView?.byId(args[1]);` && |\n| &&
+             `        const oElement = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
              `        const dom = oElement.getDomRef();` && |\n| &&
              `        if (!dom) return;` && |\n| &&
@@ -345,7 +344,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evSetFocus(oController, args) {` && |\n| &&
-             `      const oElement = z2ui5.oView?.byId(args[1]);` && |\n| &&
+             `      const oElement = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
              `      if (!oElement) return;` && |\n| &&
              `` && |\n| &&
              `      const applyFocus = () => {` && |\n| &&
@@ -379,7 +378,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // Native Element.scrollTo is only used as a fallback for controls` && |\n| &&
              `      // without a delegate.` && |\n| &&
              `      try {` && |\n| &&
-             `        const oElement = z2ui5.oView?.byId(args[1]);` && |\n| &&
+             `        const oElement = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
              `        const y = +args[2] || 0;` && |\n| &&
              `        const x = +args[3] || 0;` && |\n| &&
@@ -418,9 +417,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      } catch (e) {` && |\n| &&
              `        Lib.logError(``SCROLL_TO: failed for '${args[1]}'``, e);` && |\n| &&
              `      }` && |\n| &&
+             `    }` && |\n| &&
              |\n|.
     result = result &&
-             `    }` && |\n| &&
              `` && |\n| &&
              `    function evScrollIntoView(oController, args) {` && |\n| &&
              `      // args[1] = control id` && |\n| &&
@@ -430,7 +429,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // Modern declarative scroll: bring a control into the viewport,` && |\n| &&
              `      // regardless of where the surrounding scroll container currently is.` && |\n| &&
              `      try {` && |\n| &&
-             `        const oElement = z2ui5.oView?.byId(args[1]);` && |\n| &&
+             `        const oElement = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
              `        const dom = oElement.getDomRef();` && |\n| &&
              `        if (!dom || !dom.scrollIntoView) return;` && |\n| &&
@@ -484,9 +483,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `` && |\n| &&
              `    function evWizardSetNextStep(oController, args) {` && |\n| &&
              `      try {` && |\n| &&
-             `        const wiz = z2ui5.oView?.byId(args[1]);` && |\n| &&
-             `        const step = z2ui5.oView?.byId(args[2]);` && |\n| &&
-             `        const nextStep = z2ui5.oView?.byId(args[3]);` && |\n| &&
+             `        const wiz = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
+             `        const step = ViewSlots.byId("MAIN", args[2]);` && |\n| &&
+             `        const nextStep = ViewSlots.byId("MAIN", args[3]);` && |\n| &&
              `        if (wiz && step) wiz.discardProgress(step);` && |\n| &&
              `        if (step && nextStep) step.setNextStep(nextStep);` && |\n| &&
              `      } catch (e) {` && |\n| &&
@@ -526,8 +525,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      LOCATION_RELOAD: evLocationReload,` && |\n| &&
              `      SYSTEM_LOGOUT: evSystemLogout,` && |\n| &&
              `      OPEN_NEW_TAB: evOpenNewTab,` && |\n| &&
-             `      POPUP_CLOSE: (oController) => oController.destroyPopup(),` && |\n| &&
-             `      POPOVER_CLOSE: (oController) => oController.destroyPopover(),` && |\n| &&
+             `      POPUP_CLOSE: () => ViewSlots.destroy("POPUP"),` && |\n| &&
+             `      POPOVER_CLOSE: () => ViewSlots.destroy("POPOVER"),` && |\n| &&
              `      URLHELPER: evUrlHelper,` && |\n| &&
              `      IMAGE_EDITOR_POPUP_CLOSE: evImageEditorPopupClose,` && |\n| &&
              `      SET_TITLE: evSetTitle,` && |\n| &&
