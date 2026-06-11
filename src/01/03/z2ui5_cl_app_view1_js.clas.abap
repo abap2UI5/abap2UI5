@@ -25,10 +25,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    "sap/ui/model/json/JSONModel",` && |\n| &&
              `    "sap/ui/core/BusyIndicator",` && |\n| &&
              `    "sap/m/MessageBox",` && |\n| &&
-             `    "sap/m/MessageToast",` && |\n| &&
              `    "sap/ui/core/Fragment",` && |\n| &&
              `    "sap/m/BusyDialog",` && |\n| &&
-             `    "sap/ui/VersionInfo",` && |\n| &&
              `    "z2ui5/core/Server",` && |\n| &&
              `    "sap/ui/model/odata/v2/ODataModel",` && |\n| &&
              `    "sap/ui/core/routing/HashChanger",` && |\n| &&
@@ -43,10 +41,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    JSONModel,` && |\n| &&
              `    BusyIndicator,` && |\n| &&
              `    MessageBox,` && |\n| &&
-             `    MessageToast,` && |\n| &&
              `    Fragment,` && |\n| &&
              `    BusyDialog,` && |\n| &&
-             `    VersionInfo,` && |\n| &&
              `    Server,` && |\n| &&
              `    ODataModel,` && |\n| &&
              `    HashChanger,` && |\n| &&
@@ -56,16 +52,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    ViewSlots,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
-             `` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `    // Small utility helpers (module-private)` && |\n| &&
-             `    // ------------------------------------------------------------------` && |\n| &&
-             `` && |\n| &&
-             `    // Parse a value as integer milliseconds, falling back to ``def`` when the` && |\n| &&
-             `    // input is empty / undefined.` && |\n| &&
-             `    function parseMs(val, def) {` && |\n| &&
-             `      return val ? +val : def;` && |\n| &&
-             `    }` && |\n| &&
              `` && |\n| &&
              `    // Helpers reused across calls; kept as module-level singletons.` && |\n| &&
              `    const _hashChanger = HashChanger.getInstance();` && |\n| &&
@@ -185,34 +171,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // Phase 2: push the backend-requested URL and update the app-state` && |\n| &&
              `      // hash.` && |\n| &&
              `      _updateBrowserHistory(PARAMS, ID) {` && |\n| &&
-             `        // Currently disabled: storing the rendered view + model in` && |\n| &&
-             `        // history.state so a popstate could restore the view without a` && |\n| &&
-             `        // backend hit. Cloning the full view XML and model data on every` && |\n| &&
-             `        // roundtrip is expensive for large views and the restore is not` && |\n| &&
-             `        // needed right now. Re-enable together with the popstate listener` && |\n| &&
-             `        // in Component.js (_installPopstateListener).` && |\n| &&
-             `        // const oView = z2ui5.oView;` && |\n| &&
-             `        // let oState = {};` && |\n| &&
-             `        // if (oView) {` && |\n| &&
-             `        //   const model = oView.getModel();` && |\n| &&
-             `        //   oState = {` && |\n| &&
-             `        //     view: oView.mProperties.viewContent,` && |\n| &&
-             `        //     model: model ? model.getData() : undefined,` && |\n| &&
-             `        //     response: z2ui5.oResponse,` && |\n| &&
-             `        //   };` && |\n| &&
-             `        // }` && |\n| &&
-             `` && |\n| &&
              `        try {` && |\n| &&
              `          if (PARAMS.SET_PUSH_STATE) {` && |\n| &&
              `            const hash = _hashChanger.getHash();` && |\n| &&
              `            const newUrl = ``${window.location.pathname}${window.location.search}#${hash}${PARAMS.SET_PUSH_STATE}``;` && |\n| &&
              `            history.pushState(null, "", newUrl);` && |\n| &&
              `          }` && |\n| &&
-             `          // Disabled together with the state storing above - without a` && |\n| &&
-             `          // state object this call was a pure no-op:` && |\n| &&
-             `          // else {` && |\n| &&
-             `          //   history.replaceState(oState, "", window.location.href);` && |\n| &&
-             `          // }` && |\n| &&
              `          const newHash = PARAMS.SET_APP_STATE_ACTIVE` && |\n| &&
              `            ? ``z2ui5-xapp-state=${ID || ""}``` && |\n| &&
              `            : "";` && |\n| &&
@@ -418,8 +382,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // the user gets visual feedback instead of a silent click.` && |\n| &&
              `        if (z2ui5.isBusy && !ignoreBusy) {` && |\n| &&
              `          if (!_busyDialog) _busyDialog = new BusyDialog();` && |\n| &&
-             |\n|.
-    result = result &&
              `          _busyDialog.open();` && |\n| &&
              `          queueMicrotask(() => _busyDialog.close());` && |\n| &&
              `          return;` && |\n| &&
@@ -456,6 +418,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const xx = data?.XX;` && |\n| &&
              `          if (xx) {` && |\n| &&
              `            oBody.XX = Lib.buildDeltaFromPaths(z2ui5.xxChangedPaths, xx);` && |\n| &&
+             |\n|.
+    result = result &&
              `          }` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -506,80 +470,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        applyStoredSizeLimit(slotKey, oModel);` && |\n| &&
              `        const oView = ViewSlots.getView(slotKey);` && |\n| &&
              `        if (oView) oView.setModel(oModel);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      async checkSDKcompatibility(err) {` && |\n| &&
-             `        let gav;` && |\n| &&
-             `        try {` && |\n| &&
-             `          const info = await VersionInfo.load();` && |\n| &&
-             `          gav = info.gav;` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("checkSDKcompatibility: VersionInfo.load failed", e);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (!gav || !gav.includes("com.sap.ui5")) {` && |\n| &&
-             `          // openui5 doesn't ship some sap.com modules - tell the user which` && |\n| &&
-             `          // module is missing so they know to switch to SAPUI5.` && |\n| &&
-             `          const missingModule = err?._modules;` && |\n| &&
-             `          Server.responseError(` && |\n| &&
-             `            ``openui5 SDK is loaded, module: ${missingModule} is not available in openui5``,` && |\n| &&
-             `          );` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        Server.responseError(err);` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // Display a toast or message box. Triggered for S_MSG_TOAST and` && |\n| &&
-             `      // S_MSG_BOX entries in the server response.` && |\n| &&
-             `      showMessage(msgType, params) {` && |\n| &&
-             `        if (!params) return;` && |\n| &&
-             `        const msg = params[msgType];` && |\n| &&
-             `        if (!msg || msg.TEXT === undefined) return;` && |\n| &&
-             `` && |\n| &&
-             `        if (msgType === "S_MSG_TOAST") {` && |\n| &&
-             `          MessageToast.show(msg.TEXT, {` && |\n| &&
-             `            duration: parseMs(msg.DURATION, 3000),` && |\n| &&
-             `            width: msg.WIDTH || "15em",` && |\n| &&
-             `            onClose: msg.ONCLOSE ? () => this.eB([msg.ONCLOSE]) : null,` && |\n| &&
-             `            autoClose: !!msg.AUTOCLOSE,` && |\n| &&
-             `            animationTimingFunction: msg.ANIMATIONTIMINGFUNCTION || "ease",` && |\n| &&
-             `            animationDuration: parseMs(msg.ANIMATIONDURATION, 1000),` && |\n| &&
-             `            closeonBrowserNavigation: !!msg.CLOSEONBROWSERNAVIGATION,` && |\n| &&
-             `          });` && |\n| &&
-             `          if (msg.CLASS) {` && |\n| &&
-             `            const classes = msg.CLASS.trim().split(/\s+/).filter(Boolean);` && |\n| &&
-             `            // Pick the newest toast (several can be open at once). The` && |\n| &&
-             `            // element may not be in the DOM yet right after show(), so` && |\n| &&
-             `            // retry once on the next animation frame.` && |\n| &&
-             `            const applyClass = () => {` && |\n| &&
-             `              const toasts = document.querySelectorAll(".sapMMessageToast");` && |\n| &&
-             `              const toastEl = toasts[toasts.length - 1];` && |\n| &&
-             `              if (toastEl) toastEl.classList.add(...classes);` && |\n| &&
-             `              return !!toastEl;` && |\n| &&
-             `            };` && |\n| &&
-             `            if (!applyClass()) requestAnimationFrame(applyClass);` && |\n| &&
-             `          }` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        if (msgType === "S_MSG_BOX") {` && |\n| &&
-             `          const oParams = {` && |\n| &&
-             `            styleClass: msg.STYLECLASS || "",` && |\n| &&
-             `            title: msg.TITLE || "",` && |\n| &&
-             `            onClose: msg.ONCLOSE` && |\n| &&
-             `              ? (sAction) => this.eB([msg.ONCLOSE, sAction])` && |\n| &&
-             `              : null,` && |\n| &&
-             `            actions: msg.ACTIONS || "OK",` && |\n| &&
-             `            emphasizedAction: msg.EMPHASIZEDACTION || "OK",` && |\n| &&
-             `            initialFocus: msg.INITIALFOCUS || null,` && |\n| &&
-             `            textDirection: msg.TEXTDIRECTION || "Inherit",` && |\n| &&
-             `            details: msg.DETAILS ? Lib.sanitizeMessageDetails(msg.DETAILS) : "",` && |\n| &&
-             `            closeOnNavigation: !!msg.CLOSEONNAVIGATION,` && |\n| &&
-             `          };` && |\n| &&
-             `          if (msg.ICON && msg.ICON !== "NONE") oParams.icon = msg.ICON;` && |\n| &&
-             `          const showFn = MessageBox[msg.TYPE];` && |\n| &&
-             `          if (showFn) showFn(msg.TEXT, oParams);` && |\n| &&
-             `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Replace the main app view with the XML coming from the backend.` && |\n| &&

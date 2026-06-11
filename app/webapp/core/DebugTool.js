@@ -73,13 +73,6 @@ sap.ui.define(
       return slot?.XML;
     }
 
-    function getResponseFrontViewXml() {
-      const sFront = z2ui5.responseData?.S_FRONT;
-      const params = sFront?.PARAMS;
-      const view = params?.S_VIEW;
-      return view?.XML;
-    }
-
     // What each dropdown entry shows: either a JSON source or an XML source
     // (the latter optionally with the rendered DOM for the templating
     // toggle). The "SOURCE" entry is handled separately in onItemSelect.
@@ -99,8 +92,7 @@ sap.ui.define(
       // arrived in the last server response.
       VIEW: () => ({
         xml:
-          getViewContent(ViewSlots.getView("MAIN")) ||
-          getResponseFrontViewXml(),
+          getViewContent(ViewSlots.getView("MAIN")) || getResponseXml("S_VIEW"),
         rendered: getRenderedContent(ViewSlots.getView("MAIN")),
       }),
       POPUP: () => ({ xml: getResponseXml("S_POPUP") }),

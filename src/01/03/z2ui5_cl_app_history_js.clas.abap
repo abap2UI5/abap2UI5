@@ -32,10 +32,8 @@ CLASS z2ui5_cl_app_history_js IMPLEMENTATION.
              `      this.setProperty("search", val);` && |\n| &&
              `      try {` && |\n| &&
              `        const search = Lib.toText(val);` && |\n| &&
-             `        // Pass the current state object along: _processAfterRendering stores` && |\n| &&
-             `        // the rendered view/model in history.state so the back button can` && |\n| &&
-             `        // restore it without a roundtrip - replacing it with null would` && |\n| &&
-             `        // break that popstate restore.` && |\n| &&
+             `        // Pass the existing state object along instead of null so we do` && |\n| &&
+             `        // not clobber state someone else stored on the history entry.` && |\n| &&
              `        history.replaceState(` && |\n| &&
              `          history.state,` && |\n| &&
              `          "",` && |\n| &&

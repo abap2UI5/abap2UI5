@@ -42,7 +42,10 @@
 //                     onBeforeRoundtrip hooks and the debug tool
 //                     (View1.eB / Server)
 //   oResponse         last processed response { ID, PARAMS, OVIEWMODEL }
-//   responseData      raw parsed response JSON (Server.readHttp)
+//   responseData      raw parsed response JSON (Server.readHttp); kept
+//                     besides oResponse because it carries fields the
+//                     cooked record does not (e.g. S_FRONT.APP, used by
+//                     the debug tool)
 //   contextId         stateful session id, header transport (Server)
 //   isBusy            roundtrip in flight (View1.eB / Server)
 //   xxChangedPaths    Set of edited /XX/ model paths for the delta (View1)

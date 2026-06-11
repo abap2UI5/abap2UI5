@@ -93,13 +93,6 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      return slot?.XML;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function getResponseFrontViewXml() {` && |\n| &&
-             `      const sFront = z2ui5.responseData?.S_FRONT;` && |\n| &&
-             `      const params = sFront?.PARAMS;` && |\n| &&
-             `      const view = params?.S_VIEW;` && |\n| &&
-             `      return view?.XML;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    // What each dropdown entry shows: either a JSON source or an XML source` && |\n| &&
              `    // (the latter optionally with the rendered DOM for the templating` && |\n| &&
              `    // toggle). The "SOURCE" entry is handled separately in onItemSelect.` && |\n| &&
@@ -119,8 +112,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      // arrived in the last server response.` && |\n| &&
              `      VIEW: () => ({` && |\n| &&
              `        xml:` && |\n| &&
-             `          getViewContent(ViewSlots.getView("MAIN")) ||` && |\n| &&
-             `          getResponseFrontViewXml(),` && |\n| &&
+             `          getViewContent(ViewSlots.getView("MAIN")) || getResponseXml("S_VIEW"),` && |\n| &&
              `        rendered: getRenderedContent(ViewSlots.getView("MAIN")),` && |\n| &&
              `      }),` && |\n| &&
              `      POPUP: () => ({ xml: getResponseXml("S_POPUP") }),` && |\n| &&

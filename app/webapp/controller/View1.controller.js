@@ -5,10 +5,8 @@ sap.ui.define(
     "sap/ui/model/json/JSONModel",
     "sap/ui/core/BusyIndicator",
     "sap/m/MessageBox",
-    "sap/m/MessageToast",
     "sap/ui/core/Fragment",
     "sap/m/BusyDialog",
-    "sap/ui/VersionInfo",
     "z2ui5/core/Server",
     "sap/ui/model/odata/v2/ODataModel",
     "sap/ui/core/routing/HashChanger",
@@ -23,10 +21,8 @@ sap.ui.define(
     JSONModel,
     BusyIndicator,
     MessageBox,
-    MessageToast,
     Fragment,
     BusyDialog,
-    VersionInfo,
     Server,
     ODataModel,
     HashChanger,
@@ -36,16 +32,6 @@ sap.ui.define(
     ViewSlots,
   ) => {
     "use strict";
-
-    // ------------------------------------------------------------------
-    // Small utility helpers (module-private)
-    // ------------------------------------------------------------------
-
-    // Parse a value as integer milliseconds, falling back to `def` when the
-    // input is empty / undefined.
-    function parseMs(val, def) {
-      return val ? +val : def;
-    }
 
     // Helpers reused across calls; kept as module-level singletons.
     const _hashChanger = HashChanger.getInstance();
@@ -165,34 +151,12 @@ sap.ui.define(
       // Phase 2: push the backend-requested URL and update the app-state
       // hash.
       _updateBrowserHistory(PARAMS, ID) {
-        // Currently disabled: storing the rendered view + model in
-        // history.state so a popstate could restore the view without a
-        // backend hit. Cloning the full view XML and model data on every
-        // roundtrip is expensive for large views and the restore is not
-        // needed right now. Re-enable together with the popstate listener
-        // in Component.js (_installPopstateListener).
-        // const oView = z2ui5.oView;
-        // let oState = {};
-        // if (oView) {
-        //   const model = oView.getModel();
-        //   oState = {
-        //     view: oView.mProperties.viewContent,
-        //     model: model ? model.getData() : undefined,
-        //     response: z2ui5.oResponse,
-        //   };
-        // }
-
         try {
           if (PARAMS.SET_PUSH_STATE) {
             const hash = _hashChanger.getHash();
             const newUrl = `${window.location.pathname}${window.location.search}#${hash}${PARAMS.SET_PUSH_STATE}`;
             history.pushState(null, "", newUrl);
           }
-          // Disabled together with the state storing above - without a
-          // state object this call was a pure no-op:
-          // else {
-          //   history.replaceState(oState, "", window.location.href);
-          // }
           const newHash = PARAMS.SET_APP_STATE_ACTIVE
             ? `z2ui5-xapp-state=${ID || ""}`
             : "";
@@ -484,80 +448,6 @@ sap.ui.define(
         applyStoredSizeLimit(slotKey, oModel);
         const oView = ViewSlots.getView(slotKey);
         if (oView) oView.setModel(oModel);
-      },
-
-      async checkSDKcompatibility(err) {
-        let gav;
-        try {
-          const info = await VersionInfo.load();
-          gav = info.gav;
-        } catch (e) {
-          Lib.logError("checkSDKcompatibility: VersionInfo.load failed", e);
-          return;
-        }
-        if (!gav || !gav.includes("com.sap.ui5")) {
-          // openui5 doesn't ship some sap.com modules - tell the user which
-          // module is missing so they know to switch to SAPUI5.
-          const missingModule = err?._modules;
-          Server.responseError(
-            `openui5 SDK is loaded, module: ${missingModule} is not available in openui5`,
-          );
-          return;
-        }
-        Server.responseError(err);
-      },
-
-      // Display a toast or message box. Triggered for S_MSG_TOAST and
-      // S_MSG_BOX entries in the server response.
-      showMessage(msgType, params) {
-        if (!params) return;
-        const msg = params[msgType];
-        if (!msg || msg.TEXT === undefined) return;
-
-        if (msgType === "S_MSG_TOAST") {
-          MessageToast.show(msg.TEXT, {
-            duration: parseMs(msg.DURATION, 3000),
-            width: msg.WIDTH || "15em",
-            onClose: msg.ONCLOSE ? () => this.eB([msg.ONCLOSE]) : null,
-            autoClose: !!msg.AUTOCLOSE,
-            animationTimingFunction: msg.ANIMATIONTIMINGFUNCTION || "ease",
-            animationDuration: parseMs(msg.ANIMATIONDURATION, 1000),
-            closeonBrowserNavigation: !!msg.CLOSEONBROWSERNAVIGATION,
-          });
-          if (msg.CLASS) {
-            const classes = msg.CLASS.trim().split(/\s+/).filter(Boolean);
-            // Pick the newest toast (several can be open at once). The
-            // element may not be in the DOM yet right after show(), so
-            // retry once on the next animation frame.
-            const applyClass = () => {
-              const toasts = document.querySelectorAll(".sapMMessageToast");
-              const toastEl = toasts[toasts.length - 1];
-              if (toastEl) toastEl.classList.add(...classes);
-              return !!toastEl;
-            };
-            if (!applyClass()) requestAnimationFrame(applyClass);
-          }
-          return;
-        }
-
-        if (msgType === "S_MSG_BOX") {
-          const oParams = {
-            styleClass: msg.STYLECLASS || "",
-            title: msg.TITLE || "",
-            onClose: msg.ONCLOSE
-              ? (sAction) => this.eB([msg.ONCLOSE, sAction])
-              : null,
-            actions: msg.ACTIONS || "OK",
-            emphasizedAction: msg.EMPHASIZEDACTION || "OK",
-            initialFocus: msg.INITIALFOCUS || null,
-            textDirection: msg.TEXTDIRECTION || "Inherit",
-            details: msg.DETAILS ? Lib.sanitizeMessageDetails(msg.DETAILS) : "",
-            closeOnNavigation: !!msg.CLOSEONNAVIGATION,
-          };
-          if (msg.ICON && msg.ICON !== "NONE") oParams.icon = msg.ICON;
-          const showFn = MessageBox[msg.TYPE];
-          if (showFn) showFn(msg.TEXT, oParams);
-        }
       },
 
       // Replace the main app view with the XML coming from the backend.

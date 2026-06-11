@@ -23,11 +23,22 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    "sap/ui/core/BusyIndicator",` && |\n| &&
              `    "sap/ui/Device",` && |\n| &&
              `    "sap/ui/core/Element",` && |\n| &&
+             `    "sap/ui/VersionInfo",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/ErrorView",` && |\n| &&
+             `    "z2ui5/core/Messages",` && |\n| &&
              `  ],` && |\n| &&
-             `  (BusyIndicator, Device, Element, Lib, ViewSlots, ErrorView) => {` && |\n| &&
+             `  (` && |\n| &&
+             `    BusyIndicator,` && |\n| &&
+             `    Device,` && |\n| &&
+             `    Element,` && |\n| &&
+             `    VersionInfo,` && |\n| &&
+             `    Lib,` && |\n| &&
+             `    ViewSlots,` && |\n| &&
+             `    ErrorView,` && |\n| &&
+             `    Messages,` && |\n| &&
+             `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    const _MSG_TYPES = Object.freeze(["S_MSG_TOAST", "S_MSG_BOX"]);` && |\n| &&
@@ -373,7 +384,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          const followUp = params?.S_FOLLOW_UP_ACTION;` && |\n| &&
              `          z2ui5.pendingCustomJs = followUp?.CUSTOM_JS || null;` && |\n| &&
              `` && |\n| &&
-             `          for (const t of _MSG_TYPES) oController.showMessage(t, params);` && |\n| &&
+             `          for (const t of _MSG_TYPES) Messages.show(t, params, oController);` && |\n| &&
              `` && |\n| &&
              `          // Full view replacement -> destroy & rebuild, nothing more to do.` && |\n| &&
              `          if (sView?.XML) {` && |\n| &&
@@ -394,11 +405,35 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          Lib.logError("responseSuccess: unexpected error", e);` && |\n| &&
              `          const msg = e.message || "";` && |\n| &&
              `          if (msg.includes("openui5") && msg.includes("script load error")) {` && |\n| &&
-             `            oController.checkSDKcompatibility(e);` && |\n| &&
+             `            this._checkSDKcompatibility(e);` && |\n| &&
              `          } else {` && |\n| &&
              `            this.responseError(e);` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // A view failed to load a sap.com module: when the page runs on` && |\n| &&
+             `      // openui5 (instead of SAPUI5), tell the user which module is missing` && |\n| &&
+             `      // so they know to switch SDKs; otherwise show the original error.` && |\n| &&
+             `      async _checkSDKcompatibility(err) {` && |\n| &&
+             `        let gav;` && |\n| &&
+             `        try {` && |\n| &&
+             |\n|.
+    result = result &&
+             `          const info = await VersionInfo.load();` && |\n| &&
+             `          gav = info.gav;` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          Lib.logError("_checkSDKcompatibility: VersionInfo.load failed", e);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        if (!gav || !gav.includes("com.sap.ui5")) {` && |\n| &&
+             `          const missingModule = err?._modules;` && |\n| &&
+             `          this.responseError(` && |\n| &&
+             `            ``openui5 SDK is loaded, module: ${missingModule} is not available in openui5``,` && |\n| &&
+             `          );` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        this.responseError(err);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Executes a single custom-JS snippet from the backend.` && |\n| &&
@@ -418,8 +453,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            oController.eF(...args);` && |\n| &&
              `          } else {` && |\n| &&
              `            // eslint-disable-next-line no-new-func` && |\n| &&
-             |\n|.
-    result = result &&
              `            Function("return " + parts[0])();` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&

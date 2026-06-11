@@ -3,11 +3,22 @@ sap.ui.define(
     "sap/ui/core/BusyIndicator",
     "sap/ui/Device",
     "sap/ui/core/Element",
+    "sap/ui/VersionInfo",
     "z2ui5/core/Lib",
     "z2ui5/core/ViewSlots",
     "z2ui5/core/ErrorView",
+    "z2ui5/core/Messages",
   ],
-  (BusyIndicator, Device, Element, Lib, ViewSlots, ErrorView) => {
+  (
+    BusyIndicator,
+    Device,
+    Element,
+    VersionInfo,
+    Lib,
+    ViewSlots,
+    ErrorView,
+    Messages,
+  ) => {
     "use strict";
 
     const _MSG_TYPES = Object.freeze(["S_MSG_TOAST", "S_MSG_BOX"]);
@@ -353,7 +364,7 @@ sap.ui.define(
           const followUp = params?.S_FOLLOW_UP_ACTION;
           z2ui5.pendingCustomJs = followUp?.CUSTOM_JS || null;
 
-          for (const t of _MSG_TYPES) oController.showMessage(t, params);
+          for (const t of _MSG_TYPES) Messages.show(t, params, oController);
 
           // Full view replacement -> destroy & rebuild, nothing more to do.
           if (sView?.XML) {
@@ -374,11 +385,33 @@ sap.ui.define(
           Lib.logError("responseSuccess: unexpected error", e);
           const msg = e.message || "";
           if (msg.includes("openui5") && msg.includes("script load error")) {
-            oController.checkSDKcompatibility(e);
+            this._checkSDKcompatibility(e);
           } else {
             this.responseError(e);
           }
         }
+      },
+
+      // A view failed to load a sap.com module: when the page runs on
+      // openui5 (instead of SAPUI5), tell the user which module is missing
+      // so they know to switch SDKs; otherwise show the original error.
+      async _checkSDKcompatibility(err) {
+        let gav;
+        try {
+          const info = await VersionInfo.load();
+          gav = info.gav;
+        } catch (e) {
+          Lib.logError("_checkSDKcompatibility: VersionInfo.load failed", e);
+          return;
+        }
+        if (!gav || !gav.includes("com.sap.ui5")) {
+          const missingModule = err?._modules;
+          this.responseError(
+            `openui5 SDK is loaded, module: ${missingModule} is not available in openui5`,
+          );
+          return;
+        }
+        this.responseError(err);
       },
 
       // Executes a single custom-JS snippet from the backend.

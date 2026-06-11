@@ -62,7 +62,10 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `//                     onBeforeRoundtrip hooks and the debug tool` && |\n| &&
              `//                     (View1.eB / Server)` && |\n| &&
              `//   oResponse         last processed response { ID, PARAMS, OVIEWMODEL }` && |\n| &&
-             `//   responseData      raw parsed response JSON (Server.readHttp)` && |\n| &&
+             `//   responseData      raw parsed response JSON (Server.readHttp); kept` && |\n| &&
+             `//                     besides oResponse because it carries fields the` && |\n| &&
+             `//                     cooked record does not (e.g. S_FRONT.APP, used by` && |\n| &&
+             `//                     the debug tool)` && |\n| &&
              `//   contextId         stateful session id, header transport (Server)` && |\n| &&
              `//   isBusy            roundtrip in flight (View1.eB / Server)` && |\n| &&
              `//   xxChangedPaths    Set of edited /XX/ model paths for the delta (View1)` && |\n| &&
