@@ -1754,6 +1754,7 @@ CLASS ltcl_unit_test_conversion DEFINITION FINAL
     METHODS test_cal_workdays            FOR TESTING RAISING cx_static_check.
     METHODS test_zip_pack                FOR TESTING RAISING cx_static_check.
     METHODS test_zip_unpack              FOR TESTING RAISING cx_static_check.
+    METHODS test_lock_get_dequeue        FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -1966,6 +1967,24 @@ CLASS ltcl_unit_test_conversion IMPLEMENTATION.
       cl_abap_unit_assert=>assert_equals( exp = ls_in-content
                                           act = ls_out-content ).
     ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD test_lock_get_dequeue.
+
+    DATA lv_result TYPE string.
+
+    lv_result = z2ui5_cl_util=>lock_get_dequeue_by_enqueue( `ENQUEUE_EVVBAKE` ).
+    cl_abap_unit_assert=>assert_equals( exp = `DEQUEUE_EVVBAKE`
+                                        act = lv_result ).
+
+    lv_result = z2ui5_cl_util=>lock_get_dequeue_by_enqueue( `enqueue_evvbake` ).
+    cl_abap_unit_assert=>assert_equals( exp = `DEQUEUE_EVVBAKE`
+                                        act = lv_result ).
+
+    lv_result = z2ui5_cl_util=>lock_get_dequeue_by_enqueue( `DEQUEUE_EVVBAKE` ).
+    cl_abap_unit_assert=>assert_equals( exp = `DEQUEUE_EVVBAKE`
+                                        act = lv_result ).
 
   ENDMETHOD.
 
