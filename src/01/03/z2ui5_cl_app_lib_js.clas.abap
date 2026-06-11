@@ -53,9 +53,9 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `//` && |\n| &&
              `// Control / helper state` && |\n| &&
              `//   errors            capped error log, see logError below` && |\n| &&
-             `//   timers            single pending backend timer (View1._evStartTimer)` && |\n| &&
+             `//   timers            single pending backend timer (FrontendAction)` && |\n| &&
              `//   lastScrolled      last scrolled element per slot (Server.onScrollCapture)` && |\n| &&
-             `//   viewSizeLimits    per-slot model size limits (View1._evSetSizeLimit)` && |\n| &&
+             `//   viewSizeLimits    per-slot model size limits (FrontendAction)` && |\n| &&
              `//   treeState         tree binding state across rebuilds (Tree control)` && |\n| &&
              `//   debugTool         DebugTool instance (Component, Ctrl+F12)` && |\n| &&
              `//   onBeforeRoundtrip, onAfterRoundtrip, onAfterRendering,` && |\n| &&
