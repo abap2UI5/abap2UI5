@@ -12,7 +12,7 @@ const UTIL_PATH = path.join(
   "..",
   "app",
   "webapp",
-  "cc",
+  "core",
   "Lib.js",
 );
 
