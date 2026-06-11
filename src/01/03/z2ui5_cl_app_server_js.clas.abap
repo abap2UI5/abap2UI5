@@ -49,6 +49,44 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    //      then runs pending follow-up JS once rendering is done` && |\n| &&
              `    // State is handed between the steps via the z2ui5 globals oBody,` && |\n| &&
              `    // oResponse and pendingCustomJs.` && |\n| &&
+             `    //` && |\n| &&
+             `    // Wire format - request (POST body; VIEWNAME/ARGUMENTS are folded into` && |\n| &&
+             `    // S_FRONT before sending, empty fields are removed):` && |\n| &&
+             `    //   { "value": {` && |\n| &&
+             `    //       "XX": {                        // two-way model delta` && |\n| &&
+             `    //         "NAME": "new value",         //   scalar: full attribute` && |\n| &&
+             `    //         "TAB": { "__delta": { "0": { "COL1": "new cell" } } }` && |\n| &&
+             `    //       },` && |\n| &&
+             `    //       "S_FRONT": {` && |\n| &&
+             `    //         "ID": "<draft id of the previous response>",` && |\n| &&
+             `    //         "EVENT": "SAVE",             // event name` && |\n| &&
+             `    //         "T_EVENT_ARG": ["arg1"],     // further event arguments` && |\n| &&
+             `    //         "VIEW": "MAIN",              // which view fired it` && |\n| &&
+             `    //         "ORIGIN": "https://host", "PATHNAME": "/sap/...",` && |\n| &&
+             `    //         "SEARCH": "?p=1", "HASH": "#...",` && |\n| &&
+             `    //         "CONFIG": { "S_UI5": {...}, "S_DEVICE": {...},` && |\n| &&
+             `    //                     "S_FOCUS": {...}, "S_SCROLL": {...},` && |\n| &&
+             `    //                     "ComponentData": {...} }` && |\n| &&
+             `    //   } } }` && |\n| &&
+             `    //` && |\n| &&
+             `    // Wire format - response:` && |\n| &&
+             `    //   { "S_FRONT": {` && |\n| &&
+             `    //       "ID": "<new draft id>",        // sent back with the next request` && |\n| &&
+             `    //       "PARAMS": {` && |\n| &&
+             `    //         "S_VIEW":      { "XML": "<mvc:View...>", "CHECK_DESTROY": "" },` && |\n| &&
+             `    //         "S_VIEW_NEST", "S_VIEW_NEST2", "S_POPUP", "S_POPOVER": same,` && |\n| &&
+             `    //         "S_MSG_TOAST": { "TEXT": "...", ... },` && |\n| &&
+             `    //         "S_MSG_BOX":   { "TEXT": "...", "TYPE": "error", ... },` && |\n| &&
+             `    //         "S_FOLLOW_UP_ACTION": { "CUSTOM_JS": ["eF('SET_FOCUS','id1')"] },` && |\n| &&
+             `    //         "SET_PUSH_STATE": "", "SET_APP_STATE_ACTIVE": "",` && |\n| &&
+             `    //         "SET_NAV_BACK": ""           // browser/history follow-ups` && |\n| &&
+             `    //       }` && |\n| &&
+             `    //     },` && |\n| &&
+             `    //     "MODEL": { "XX": {...}, ... }    // full JSON view model, becomes` && |\n| &&
+             `    //   }                                  // the view's binding model` && |\n| &&
+             `    //` && |\n| &&
+             `    // Inspect live payloads via the debug tool (Ctrl+F12): "Previous` && |\n| &&
+             `    // Request" and "Response".` && |\n| &&
              `    return {` && |\n| &&
              `      endSession() {` && |\n| &&
              `        if (!Lib.isValidContextId(z2ui5.contextId)) return;` && |\n| &&
@@ -380,6 +418,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          const args = parts.filter((_, index) => index % 2 === 1);` && |\n| &&
              `          if (args.length > 0) {` && |\n| &&
              `            oController.eF(...args);` && |\n| &&
+             |\n|.
+    result = result &&
              `          } else {` && |\n| &&
              `            // eslint-disable-next-line no-new-func` && |\n| &&
              `            Function("return " + parts[0])();` && |\n| &&
@@ -418,8 +458,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      // unrecoverable state - a failed roundtrip (network, HTTP != 2xx, bad` && |\n| &&
              `      // JSON, backend dump) or a client-side failure (invalid view XML,` && |\n| &&
              `      // post-render crash, missing SDK module). The only way out is a restart,` && |\n| &&
-             |\n|.
-    result = result &&
              `      // hence the Refresh / Logout actions. Built from raw DOM so it still` && |\n| &&
              `      // works when the UI5 core itself is in a broken state.` && |\n| &&
              `      // ``response`` may be a string or an Error object; ``title`` overrides the` && |\n| &&

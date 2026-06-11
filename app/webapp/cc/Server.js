@@ -29,6 +29,44 @@ sap.ui.define(
     //      then runs pending follow-up JS once rendering is done
     // State is handed between the steps via the z2ui5 globals oBody,
     // oResponse and pendingCustomJs.
+    //
+    // Wire format - request (POST body; VIEWNAME/ARGUMENTS are folded into
+    // S_FRONT before sending, empty fields are removed):
+    //   { "value": {
+    //       "XX": {                        // two-way model delta
+    //         "NAME": "new value",         //   scalar: full attribute
+    //         "TAB": { "__delta": { "0": { "COL1": "new cell" } } }
+    //       },
+    //       "S_FRONT": {
+    //         "ID": "<draft id of the previous response>",
+    //         "EVENT": "SAVE",             // event name
+    //         "T_EVENT_ARG": ["arg1"],     // further event arguments
+    //         "VIEW": "MAIN",              // which view fired it
+    //         "ORIGIN": "https://host", "PATHNAME": "/sap/...",
+    //         "SEARCH": "?p=1", "HASH": "#...",
+    //         "CONFIG": { "S_UI5": {...}, "S_DEVICE": {...},
+    //                     "S_FOCUS": {...}, "S_SCROLL": {...},
+    //                     "ComponentData": {...} }
+    //   } } }
+    //
+    // Wire format - response:
+    //   { "S_FRONT": {
+    //       "ID": "<new draft id>",        // sent back with the next request
+    //       "PARAMS": {
+    //         "S_VIEW":      { "XML": "<mvc:View...>", "CHECK_DESTROY": "" },
+    //         "S_VIEW_NEST", "S_VIEW_NEST2", "S_POPUP", "S_POPOVER": same,
+    //         "S_MSG_TOAST": { "TEXT": "...", ... },
+    //         "S_MSG_BOX":   { "TEXT": "...", "TYPE": "error", ... },
+    //         "S_FOLLOW_UP_ACTION": { "CUSTOM_JS": ["eF('SET_FOCUS','id1')"] },
+    //         "SET_PUSH_STATE": "", "SET_APP_STATE_ACTIVE": "",
+    //         "SET_NAV_BACK": ""           // browser/history follow-ups
+    //       }
+    //     },
+    //     "MODEL": { "XX": {...}, ... }    // full JSON view model, becomes
+    //   }                                  // the view's binding model
+    //
+    // Inspect live payloads via the debug tool (Ctrl+F12): "Previous
+    // Request" and "Response".
     return {
       endSession() {
         if (!Lib.isValidContextId(z2ui5.contextId)) return;
