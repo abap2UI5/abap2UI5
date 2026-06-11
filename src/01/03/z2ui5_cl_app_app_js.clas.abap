@@ -35,10 +35,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        // Read the backend URI from the manifest, falling back step by step` && |\n| &&
              `        // so a missing entry doesn't blow up.` && |\n| &&
              `        const manifest = oOwnerComponent.getManifest();` && |\n| &&
-             `        const sapApp = manifest && manifest["sap.app"];` && |\n| &&
-             `        const dataSources = sapApp && sapApp.dataSources;` && |\n| &&
-             `        const http = dataSources && dataSources.http;` && |\n| &&
-             `        const uri = http && http.uri;` && |\n| &&
+             `        const sapApp = manifest?.["sap.app"];` && |\n| &&
+             `        const dataSources = sapApp?.dataSources;` && |\n| &&
+             `        const http = dataSources?.http;` && |\n| &&
+             `        const uri = http?.uri;` && |\n| &&
              `        z2ui5.url = z2ui5.checkLocal ? window.location.href : uri;` && |\n| &&
              `` && |\n| &&
              `        // Set up the shared z2ui5 state used by the whole app.` && |\n| &&

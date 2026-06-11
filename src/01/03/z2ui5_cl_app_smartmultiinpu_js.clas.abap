@@ -120,8 +120,7 @@ CLASS z2ui5_cl_app_smartmultiinpu_js IMPLEMENTATION.
              `    },` && |\n| &&
              `    renderer: { apiVersion: 2, render() {} },` && |\n| &&
              `    setControl() {` && |\n| &&
-             `      const input =` && |\n| &&
-             `        z2ui5.oView && z2ui5.oView.byId(this.getProperty("multiInputId"));` && |\n| &&
+             `      const input = z2ui5.oView?.byId(this.getProperty("multiInputId"));` && |\n| &&
              `      if (!input || this.getProperty("checkInit")) return;` && |\n| &&
              `      this.setProperty("checkInit", true);` && |\n| &&
              `      try {` && |\n| &&

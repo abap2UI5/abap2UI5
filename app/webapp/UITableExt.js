@@ -43,7 +43,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
     readFilter() {
       try {
         const table = this._getTable();
-        const binding = table && table.getBinding();
+        const binding = table?.getBinding();
         // Prefer the public getFilters API (UI5 >= 1.96); older releases
         // only expose the private aFilters member.
         this.aFilters = !binding
@@ -81,7 +81,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
       for (const oFilter of aFilters) {
         // Multi-filter? Pick the inner filter for the column lookup.
         let sProperty = oFilter.sPath;
-        if (!sProperty && oFilter.aFilters && oFilter.aFilters[0]) {
+        if (!sProperty && oFilter.aFilters?.[0]) {
           sProperty = oFilter.aFilters[0].sPath;
         }
         if (!sProperty) continue;
@@ -90,7 +90,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
         // Pick the most meaningful value to display in the column header.
         let vValue = oFilter.oValue1;
         if (vValue === undefined) vValue = oFilter.oValue2;
-        if (vValue === undefined && oFilter.aFilters && oFilter.aFilters[0]) {
+        if (vValue === undefined && oFilter.aFilters?.[0]) {
           vValue = oFilter.aFilters[0].oValue1;
         }
 
@@ -113,10 +113,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
         const display = displayFn(vValue);
 
         for (const oCol of columns) {
-          if (
-            oCol.getFilterProperty &&
-            oCol.getFilterProperty() === sProperty
-          ) {
+          if (oCol.getFilterProperty?.() === sProperty) {
             oCol.setFilterValue(display);
             oCol.setFiltered(!!display);
           }
@@ -144,7 +141,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
     readSort() {
       try {
         const table = this._getTable();
-        const binding = table && table.getBinding();
+        const binding = table?.getBinding();
         // Private member access: ListBinding has no public getter for the
         // active sorters (unlike getFilters for filters).
         this.aSorters = binding ? binding.aSorters : undefined;
@@ -162,7 +159,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
       const columns = oTable.getColumns();
       for (const [idx, srt] of aSorters.entries()) {
         for (const oCol of columns) {
-          if (oCol.getSortProperty && oCol.getSortProperty() === srt.sPath) {
+          if (oCol.getSortProperty?.() === srt.sPath) {
             oCol.setSorted(true);
             oCol.setSortOrder(srt.bDescending ? "Descending" : "Ascending");
             // setSortIndex is only available on some column variants.

@@ -23,7 +23,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
     setFocusId(val) {
       try {
         this.setProperty("focusId", val);
-        const oElement = z2ui5.oView && z2ui5.oView.byId(val);
+        const oElement = z2ui5.oView?.byId(val);
         if (oElement) oElement.applyFocusInfo(oElement.getFocusInfo());
       } catch (e) {
         Lib.logError("Focus.setFocusId failed", e);
@@ -32,8 +32,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
     onAfterRendering() {
       if (!this._pendingFocus) return;
       this._pendingFocus = false;
-      const oElement =
-        z2ui5.oView && z2ui5.oView.byId(this.getProperty("focusId"));
+      const oElement = z2ui5.oView?.byId(this.getProperty("focusId"));
       if (!oElement) return;
       try {
         // Merge the additional selection info into the existing focus info,

@@ -135,12 +135,12 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        // The browser's back/forward buttons restore a previously displayed` && |\n| &&
              `        // view from history.state without doing a backend roundtrip.` && |\n| &&
              `        this._boundPopstate = (event) => {` && |\n| &&
-             `          const state = event && event.state;` && |\n| &&
+             `          const state = event?.state;` && |\n| &&
              `          if (!state) return;` && |\n| &&
              `` && |\n| &&
              `          // These flags only apply once when the state was first pushed; on` && |\n| &&
              `          // restore we strip them so they don't trigger again.` && |\n| &&
-             `          if (state.response && state.response.PARAMS) {` && |\n| &&
+             `          if (state.response?.PARAMS) {` && |\n| &&
              `            delete state.response.PARAMS.SET_PUSH_STATE;` && |\n| &&
              `            delete state.response.PARAMS.SET_APP_STATE_ACTIVE;` && |\n| &&
              `          }` && |\n| &&
@@ -150,10 +150,11 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `          if (z2ui5.oController) z2ui5.oController.destroyView();` && |\n| &&
              `          z2ui5.oResponse = state.response;` && |\n| &&
              `` && |\n| &&
-             `          const displayPromise =` && |\n| &&
-             `            z2ui5.oController &&` && |\n| &&
-             `            z2ui5.oController.displayView(state.view, state.model);` && |\n| &&
-             `          if (displayPromise && displayPromise.catch) {` && |\n| &&
+             `          const displayPromise = z2ui5.oController?.displayView(` && |\n| &&
+             `            state.view,` && |\n| &&
+             `            state.model,` && |\n| &&
+             `          );` && |\n| &&
+             `          if (displayPromise?.catch) {` && |\n| &&
              `            displayPromise.catch((e) =>` && |\n| &&
              `              Lib.logError("popstate: displayView failed", e),` && |\n| &&
              `            );` && |\n| &&
@@ -250,8 +251,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        //     become no-ops via setIfAlive().` && |\n| &&
              `        try {` && |\n| &&
              `          const setDirtyFlag =` && |\n| &&
-             `            this._launchpad &&` && |\n| &&
-             `            this._launchpad.Container &&` && |\n| &&
+             `            this._launchpad?.Container &&` && |\n| &&
              `            this._launchpad.Container.setDirtyFlag;` && |\n| &&
              `          if (setDirtyFlag) setDirtyFlag.call(this._launchpad.Container, false);` && |\n| &&
              `        } catch (e) {` && |\n| &&

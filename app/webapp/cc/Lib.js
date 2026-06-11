@@ -68,7 +68,7 @@ sap.ui.define([], () => {
 
   // True when the object supports isDestroyed() and reports destroyed.
   function isDestroyed(obj) {
-    return !!(obj && obj.isDestroyed && obj.isDestroyed());
+    return !!(obj?.isDestroyed && obj.isDestroyed());
   }
 
   // True when the object exists and is not destroyed. Used to guard

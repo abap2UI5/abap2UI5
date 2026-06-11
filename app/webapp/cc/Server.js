@@ -124,7 +124,7 @@ sap.ui.define(
           if (!active) return {};
           // Element.closestTo exists as of UI5 1.106; keep the feature check
           // so older releases simply skip the focus restore.
-          const ui5El = Element.closestTo ? Element.closestTo(active) : null;
+          const ui5El = Element.closestTo?.(active) ?? null;
           if (!ui5El) return {};
           const fullId = ui5El.getId();
           const views = Lib.viewSlots.map((slot) => z2ui5[slot.prop]);
@@ -156,7 +156,7 @@ sap.ui.define(
       onScrollCapture(event) {
         const target = event.target;
         if (!target || target.nodeType !== 1) return;
-        const ui5El = Element.closestTo ? Element.closestTo(target) : null;
+        const ui5El = Element.closestTo?.(target) ?? null;
         if (!ui5El) return;
 
         // Walk up the control tree to find the view slot the scrolled
@@ -170,7 +170,7 @@ sap.ui.define(
               return;
             }
           }
-          current = current.getParent && current.getParent();
+          current = current.getParent?.();
         }
       },
 
@@ -216,17 +216,17 @@ sap.ui.define(
 
         // Pick the first event argument (event name) safely.
         let eventName;
-        if (oBody.ARGUMENTS && oBody.ARGUMENTS[0]) {
+        if (oBody.ARGUMENTS?.[0]) {
           eventName = oBody.ARGUMENTS[0][0];
         }
 
         oBody.S_FRONT = {
           CONFIG: {
-            S_UI5: z2ui5.oConfig && z2ui5.oConfig.S_UI5,
+            S_UI5: z2ui5.oConfig?.S_UI5,
             S_DEVICE: this._getDeviceInfo(),
             S_FOCUS: this._getFocusInfo(),
             S_SCROLL: this._getScrollInfo(),
-            ComponentData: z2ui5.oConfig && z2ui5.oConfig.ComponentData,
+            ComponentData: z2ui5.oConfig?.ComponentData,
           },
           ID: oBody.ID,
           ORIGIN: window.location.origin,
@@ -341,9 +341,9 @@ sap.ui.define(
         try {
           z2ui5.oResponse = response;
           const params = response.PARAMS;
-          const sView = params && params.S_VIEW;
+          const sView = params?.S_VIEW;
 
-          if (sView && sView.CHECK_DESTROY) oController.destroyView();
+          if (sView?.CHECK_DESTROY) oController.destroyView();
 
           // The backend can send small JS snippets to run after the response.
           // Each snippet is either a literal expression or an "eF(...)" call
@@ -353,13 +353,13 @@ sap.ui.define(
           // them earlier would break render-dependent actions such as
           // SET_FOCUS on the initial view, where the target control does not
           // exist in the DOM yet.
-          const followUp = params && params.S_FOLLOW_UP_ACTION;
-          z2ui5.pendingCustomJs = (followUp && followUp.CUSTOM_JS) || null;
+          const followUp = params?.S_FOLLOW_UP_ACTION;
+          z2ui5.pendingCustomJs = followUp?.CUSTOM_JS || null;
 
           for (const t of _MSG_TYPES) oController.showMessage(t, params);
 
           // Full view replacement -> destroy & rebuild, nothing more to do.
-          if (sView && sView.XML) {
+          if (sView?.XML) {
             oController.destroyView();
             await oController.displayView(sView.XML, response.OVIEWMODEL);
             return;
@@ -445,10 +445,9 @@ sap.ui.define(
         BusyIndicator.hide();
         z2ui5.isBusy = false;
 
-        const full =
-          response && response.stack
-            ? String(response.stack)
-            : String(response);
+        const full = response?.stack
+          ? String(response.stack)
+          : String(response);
         let errorMessage;
         if (full.length > ERROR_MAX_LENGTH) {
           errorMessage =
@@ -522,9 +521,7 @@ sap.ui.define(
         };
         try {
           const launchpadLogout =
-            z2ui5.oLaunchpad &&
-            z2ui5.oLaunchpad.Container &&
-            z2ui5.oLaunchpad.Container.logout;
+            z2ui5.oLaunchpad?.Container && z2ui5.oLaunchpad.Container.logout;
           if (launchpadLogout) {
             z2ui5.oLaunchpad.Container.logout();
           } else {

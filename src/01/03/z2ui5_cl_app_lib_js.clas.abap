@@ -88,7 +88,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `` && |\n| &&
              `  // True when the object supports isDestroyed() and reports destroyed.` && |\n| &&
              `  function isDestroyed(obj) {` && |\n| &&
-             `    return !!(obj && obj.isDestroyed && obj.isDestroyed());` && |\n| &&
+             `    return !!(obj?.isDestroyed && obj.isDestroyed());` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // True when the object exists and is not destroyed. Used to guard` && |\n| &&

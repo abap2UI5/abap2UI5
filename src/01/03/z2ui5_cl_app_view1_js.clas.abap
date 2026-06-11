@@ -90,7 +90,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    let _busyDialog = null;` && |\n| &&
              `` && |\n| &&
              `    function copyToClipboard(textToCopy) {` && |\n| &&
-             `      if (navigator.clipboard && navigator.clipboard.writeText) {` && |\n| &&
+             `      if (navigator.clipboard?.writeText) {` && |\n| &&
              `        navigator.clipboard.writeText(textToCopy).catch((err) => {` && |\n| &&
              `          Lib.logError("Clipboard: writeText failed, falling back", err);` && |\n| &&
              `          copyToClipboardFallback(textToCopy);` && |\n| &&
@@ -125,7 +125,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
              `    function withCrossAppNavigator(callback) {` && |\n| &&
-             `      const nav = z2ui5.oLaunchpad && z2ui5.oLaunchpad.CrossAppNavigator;` && |\n| &&
+             `      const nav = z2ui5.oLaunchpad?.CrossAppNavigator;` && |\n| &&
              `      if (!nav) {` && |\n| &&
              `        Lib.logError("CrossAppNav: not running inside Launchpad");` && |\n| &&
              `        return;` && |\n| &&
@@ -148,11 +148,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `    // Lookup tables mapping event names / param keys to the right view.` && |\n| &&
              `    const navContainerLookups = {` && |\n| &&
-             `      NAV_CONTAINER_TO: (id) => z2ui5.oView && z2ui5.oView.byId(id),` && |\n| &&
-             `      NEST_NAV_CONTAINER_TO: (id) =>` && |\n| &&
-             `        z2ui5.oViewNest && z2ui5.oViewNest.byId(id),` && |\n| &&
-             `      NEST2_NAV_CONTAINER_TO: (id) =>` && |\n| &&
-             `        z2ui5.oViewNest2 && z2ui5.oViewNest2.byId(id),` && |\n| &&
+             `      NAV_CONTAINER_TO: (id) => z2ui5.oView?.byId(id),` && |\n| &&
+             `      NEST_NAV_CONTAINER_TO: (id) => z2ui5.oViewNest?.byId(id),` && |\n| &&
+             `      NEST2_NAV_CONTAINER_TO: (id) => z2ui5.oViewNest2?.byId(id),` && |\n| &&
              `      POPUP_NAV_CONTAINER_TO: (id) => Fragment.byId("popupId", id),` && |\n| &&
              `      POPOVER_NAV_CONTAINER_TO: (id) => Fragment.byId("popoverId", id),` && |\n| &&
              `    };` && |\n| &&
@@ -272,15 +270,15 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        const S_VIEW_NEST2 = PARAMS.S_VIEW_NEST2;` && |\n| &&
              `        const S_POPOVER = PARAMS.S_POPOVER;` && |\n| &&
              `` && |\n| &&
-             `        if (S_POPUP && S_POPUP.CHECK_DESTROY) this.destroyPopup();` && |\n| &&
-             `        if (S_POPOVER && S_POPOVER.CHECK_DESTROY) this.destroyPopover();` && |\n| &&
+             `        if (S_POPUP?.CHECK_DESTROY) this.destroyPopup();` && |\n| &&
+             `        if (S_POPOVER?.CHECK_DESTROY) this.destroyPopover();` && |\n| &&
              `` && |\n| &&
-             `        if (S_POPUP && S_POPUP.XML) {` && |\n| &&
+             `        if (S_POPUP?.XML) {` && |\n| &&
              `          this.destroyPopup();` && |\n| &&
              `          await this.displayFragment(S_POPUP.XML, "oViewPopup");` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        if (!z2ui5.checkNestAfter && S_VIEW_NEST && S_VIEW_NEST.XML) {` && |\n| &&
+             `        if (!z2ui5.checkNestAfter && S_VIEW_NEST?.XML) {` && |\n| &&
              `          this.destroyNestView();` && |\n| &&
              `          await this.displayNestedView(` && |\n| &&
              `            S_VIEW_NEST.XML,` && |\n| &&
@@ -291,7 +289,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          z2ui5.checkNestAfter = true;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        if (!z2ui5.checkNestAfter2 && S_VIEW_NEST2 && S_VIEW_NEST2.XML) {` && |\n| &&
+             `        if (!z2ui5.checkNestAfter2 && S_VIEW_NEST2?.XML) {` && |\n| &&
              `          this.destroyNestView2();` && |\n| &&
              `          await this.displayNestedView(` && |\n| &&
              `            S_VIEW_NEST2.XML,` && |\n| &&
@@ -302,7 +300,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          z2ui5.checkNestAfter2 = true;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        if (S_POPOVER && S_POPOVER.XML) {` && |\n| &&
+             `        if (S_POPOVER?.XML) {` && |\n| &&
              `          this.destroyPopover();` && |\n| &&
              `          await this.displayPopover(` && |\n| &&
              `            S_POPOVER.XML,` && |\n| &&
@@ -365,7 +363,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _createViewModel() {` && |\n| &&
-             `        const data = z2ui5.oResponse && z2ui5.oResponse.OVIEWMODEL;` && |\n| &&
+             `        const data = z2ui5.oResponse?.OVIEWMODEL;` && |\n| &&
              `        return this._trackChanges(new JSONModel(data));` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -411,17 +409,17 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          // Find the control to attach the popover to. We search the main` && |\n| &&
              `          // view first, then any open popup / nested views, then the global` && |\n| &&
              `          // UI5 control registry as a last resort.` && |\n| &&
-             `          let oControl = z2ui5.oView && z2ui5.oView.byId(openById);` && |\n| &&
-             `          if (!oControl && z2ui5.oViewPopup && z2ui5.oViewPopup.Fragment) {` && |\n| &&
+             `          let oControl = z2ui5.oView?.byId(openById);` && |\n| &&
+             `          if (!oControl && z2ui5.oViewPopup?.Fragment) {` && |\n| &&
              `            oControl = z2ui5.oViewPopup.Fragment.byId("popupId", openById);` && |\n| &&
              `          }` && |\n| &&
              `          if (!oControl && z2ui5.oViewNest) {` && |\n| &&
              `            oControl = z2ui5.oViewNest.byId(openById);` && |\n| &&
              `          }` && |\n| &&
-             |\n|.
-    result = result &&
              `          if (!oControl && z2ui5.oViewNest2) {` && |\n| &&
              `            oControl = z2ui5.oViewNest2.byId(openById);` && |\n| &&
+             |\n|.
+    result = result &&
              `          }` && |\n| &&
              `          if (!oControl) {` && |\n| &&
              `            if (Element.getElementById) {` && |\n| &&
@@ -433,7 +431,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                 API is used in the branch above. */` && |\n| &&
              `              if (sap.ui.getCore) {` && |\n| &&
              `                const core = sap.ui.getCore();` && |\n| &&
-             `                if (core && core.byId) oControl = core.byId(openById);` && |\n| &&
+             `                if (core?.byId) oControl = core.byId(openById);` && |\n| &&
              `              }` && |\n| &&
              `              /* ui5lint-enable no-globals, no-deprecated-api */` && |\n| &&
              `            }` && |\n| &&
@@ -469,9 +467,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        oView.setModel(oModel);` && |\n| &&
              `` && |\n| &&
              `        const nestParams =` && |\n| &&
-             `          z2ui5.oResponse &&` && |\n| &&
-             `          z2ui5.oResponse.PARAMS &&` && |\n| &&
-             `          z2ui5.oResponse.PARAMS[viewNestId];` && |\n| &&
+             `          z2ui5.oResponse?.PARAMS && z2ui5.oResponse.PARAMS[viewNestId];` && |\n| &&
              `        if (!nestParams) {` && |\n| &&
              `          Lib.logError(``displayNestedView: missing PARAMS.${viewNestId}``);` && |\n| &&
              `          oView.destroy();` && |\n| &&
@@ -479,7 +475,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        const { ID, METHOD_DESTROY, METHOD_INSERT } = nestParams;` && |\n| &&
              `` && |\n| &&
-             `        const oParent = z2ui5.oView && z2ui5.oView.byId(ID);` && |\n| &&
+             `        const oParent = z2ui5.oView?.byId(ID);` && |\n| &&
              `        if (!oParent) {` && |\n| &&
              `          Lib.logError(` && |\n| &&
              `            ``displayNestedView: parent control '${ID}' not found, nested view discarded``,` && |\n| &&
@@ -574,7 +570,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _evClipboardAppState() {` && |\n| &&
-             `        const id = z2ui5.oResponse && z2ui5.oResponse.ID;` && |\n| &&
+             `        const id = z2ui5.oResponse?.ID;` && |\n| &&
              `        copyToClipboard(``${window.location.href}#/z2ui5-xapp-state=${id}``);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -601,7 +597,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        const viewKey = hasLimit ? args[2] : args[1];` && |\n| &&
              `        const limit = hasLimit ? Number(args[1]) : NaN;` && |\n| &&
              `        const view = Lib.getViewByKey(viewKey);` && |\n| &&
-             `        const model = view && view.getModel();` && |\n| &&
+             `        const model = view?.getModel();` && |\n| &&
              `` && |\n| &&
              `        if (Number.isFinite(limit) && limit > 0) {` && |\n| &&
              `          if (!z2ui5.viewSizeLimits) z2ui5.viewSizeLimits = {};` && |\n| &&
@@ -679,8 +675,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      _evSystemLogout(args) {` && |\n| &&
              `        const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";` && |\n| &&
              `        try {` && |\n| &&
-             `          const container = z2ui5.oLaunchpad && z2ui5.oLaunchpad.Container;` && |\n| &&
-             `          if (container && container.logout) {` && |\n| &&
+             `          const container = z2ui5.oLaunchpad?.Container;` && |\n| &&
+             `          if (container?.logout) {` && |\n| &&
              `            container.logout();` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
@@ -813,19 +809,19 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `      _evSetInputMode(args) {` && |\n| &&
              `        try {` && |\n| &&
-             `          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);` && |\n| &&
+             `          const oElement = z2ui5.oView?.byId(args[1]);` && |\n| &&
              `          if (!oElement) return;` && |\n| &&
              `          const dom = oElement.getDomRef();` && |\n| &&
              `          if (!dom) return;` && |\n| &&
              `          const input = dom.matches("input, textarea")` && |\n| &&
              `            ? dom` && |\n| &&
              `            : dom.querySelector("input, textarea");` && |\n| &&
-             |\n|.
-    result = result &&
              `          if (!input) return;` && |\n| &&
              `          input.setAttribute("inputmode", args[2] || "text");` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError(` && |\n| &&
+             |\n|.
+    result = result &&
              `            ``KEYBOARD_SET_MODE: setAttribute failed for '${args[1]}'``,` && |\n| &&
              `            e,` && |\n| &&
              `          );` && |\n| &&
@@ -833,7 +829,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _evSetFocus(args) {` && |\n| &&
-             `        const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);` && |\n| &&
+             `        const oElement = z2ui5.oView?.byId(args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
              `` && |\n| &&
              `        const applyFocus = () => {` && |\n| &&
@@ -851,7 +847,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // The control may still be missing from the DOM when SET_FOCUS runs` && |\n| &&
              `        // together with a fresh view build. Apply now if it is rendered,` && |\n| &&
              `        // otherwise once it is - same pattern as UITableExt / Scrolling.` && |\n| &&
-             `        if (oElement.getDomRef && oElement.getDomRef()) {` && |\n| &&
+             `        if (oElement.getDomRef?.()) {` && |\n| &&
              `          applyFocus();` && |\n| &&
              `        } else {` && |\n| &&
              `          const delegate = {` && |\n| &&
@@ -878,7 +874,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // Native Element.scrollTo is only used as a fallback for controls` && |\n| &&
              `        // without a delegate.` && |\n| &&
              `        try {` && |\n| &&
-             `          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);` && |\n| &&
+             `          const oElement = z2ui5.oView?.byId(args[1]);` && |\n| &&
              `          if (!oElement) return;` && |\n| &&
              `          const y = +args[2] || 0;` && |\n| &&
              `          const x = +args[3] || 0;` && |\n| &&
@@ -887,9 +883,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `          let handled = false;` && |\n| &&
              `          try {` && |\n| &&
-             `            const d =` && |\n| &&
-             `              oElement.getScrollDelegate && oElement.getScrollDelegate();` && |\n| &&
-             `            if (d && d.scrollTo) {` && |\n| &&
+             `            const d = oElement.getScrollDelegate?.();` && |\n| &&
+             `            if (d?.scrollTo) {` && |\n| &&
              `              // ScrollEnablement / iScroll delegate: scrollTo(x, y, time)` && |\n| &&
              `              d.scrollTo(x, y, smooth ? 300 : 0);` && |\n| &&
              `              handled = true;` && |\n| &&
@@ -902,7 +897,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            const dom =` && |\n| &&
              `              document.getElementById(``${oElement.getId()}-inner``) ||` && |\n| &&
              `              oElement.getDomRef();` && |\n| &&
-             `            if (dom && dom.scrollTo) {` && |\n| &&
+             `            if (dom?.scrollTo) {` && |\n| &&
              `              dom.scrollTo({ top: y, left: x, behavior });` && |\n| &&
              `              handled = true;` && |\n| &&
              `            } else if (dom) {` && |\n| &&
@@ -928,7 +923,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // Modern declarative scroll: bring a control into the viewport,` && |\n| &&
              `        // regardless of where the surrounding scroll container currently is.` && |\n| &&
              `        try {` && |\n| &&
-             `          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);` && |\n| &&
+             `          const oElement = z2ui5.oView?.byId(args[1]);` && |\n| &&
              `          if (!oElement) return;` && |\n| &&
              `          const dom = oElement.getDomRef();` && |\n| &&
              `          if (!dom || !dom.scrollIntoView) return;` && |\n| &&
@@ -954,10 +949,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      _evSetTitleLaunchpad(args) {` && |\n| &&
              `        const title = args[1] == null ? "" : String(args[1]);` && |\n| &&
              `        try {` && |\n| &&
-             `          const shell = z2ui5.oLaunchpad && z2ui5.oLaunchpad.ShellUIService;` && |\n| &&
-             `          if (shell && shell.setTitle) {` && |\n| &&
+             `          const shell = z2ui5.oLaunchpad?.ShellUIService;` && |\n| &&
+             `          if (shell?.setTitle) {` && |\n| &&
              `            const result = shell.setTitle(title);` && |\n| &&
-             `            if (result && result.catch) {` && |\n| &&
+             `            if (result?.catch) {` && |\n| &&
              `              result.catch((e) =>` && |\n| &&
              `                Lib.logError(` && |\n| &&
              `                  "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",` && |\n| &&
@@ -985,9 +980,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `      _evWizardSetNextStep(args) {` && |\n| &&
              `        try {` && |\n| &&
-             `          const wiz = z2ui5.oView && z2ui5.oView.byId(args[1]);` && |\n| &&
-             `          const step = z2ui5.oView && z2ui5.oView.byId(args[2]);` && |\n| &&
-             `          const nextStep = z2ui5.oView && z2ui5.oView.byId(args[3]);` && |\n| &&
+             `          const wiz = z2ui5.oView?.byId(args[1]);` && |\n| &&
+             `          const step = z2ui5.oView?.byId(args[2]);` && |\n| &&
+             `          const nextStep = z2ui5.oView?.byId(args[3]);` && |\n| &&
              `          if (wiz && step) wiz.discardProgress(step);` && |\n| &&
              `          if (step && nextStep) step.setNextStep(nextStep);` && |\n| &&
              `        } catch (e) {` && |\n| &&
@@ -1004,7 +999,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          // play() returns a Promise; a rejection (e.g. blocked by the` && |\n| &&
              `          // browser's autoplay policy) is not caught by the surrounding` && |\n| &&
              `          // try/catch and would surface as an unhandled rejection.` && |\n| &&
-             `          if (playing && playing.catch) {` && |\n| &&
+             `          if (playing?.catch) {` && |\n| &&
              `            playing.catch((e) =>` && |\n| &&
              `              Lib.logError(``PLAY_AUDIO: failed for '${args[1]}'``, e),` && |\n| &&
              `            );` && |\n| &&
@@ -1068,15 +1063,15 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        // If the user edited /XX/ paths, send only the delta to keep the` && |\n| &&
              `        // payload small.` && |\n| &&
-             `        if (oModel && z2ui5.xxChangedPaths && z2ui5.xxChangedPaths.size > 0) {` && |\n| &&
+             `        if (oModel && z2ui5.xxChangedPaths?.size > 0) {` && |\n| &&
              `          const data = oModel.getData();` && |\n| &&
-             `          const xx = data && data.XX;` && |\n| &&
+             `          const xx = data?.XX;` && |\n| &&
              `          if (xx) {` && |\n| &&
              `            z2ui5.oBody.XX = Lib.buildDeltaFromPaths(z2ui5.xxChangedPaths, xx);` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        z2ui5.oBody.ID = z2ui5.oResponse && z2ui5.oResponse.ID;` && |\n| &&
+             `        z2ui5.oBody.ID = z2ui5.oResponse?.ID;` && |\n| &&
              `        // Object arguments are stringified for transport; the event name in` && |\n| &&
              `        // args[0] is left as-is.` && |\n| &&
              `        z2ui5.oBody.ARGUMENTS = args.map((item, i) => {` && |\n| &&
@@ -1092,28 +1087,27 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // useMainModel forces use of the main view's model even when called` && |\n| &&
              `        // from a popup/popover controller.` && |\n| &&
              `        if (useMainModel || z2ui5.oController === this) {` && |\n| &&
-             `          const sView =` && |\n| &&
-             `            z2ui5.oResponse && z2ui5.oResponse.PARAMS` && |\n| &&
-             `              ? z2ui5.oResponse.PARAMS.S_VIEW` && |\n| &&
-             `              : null;` && |\n| &&
-             `          if (sView && sView.SWITCH_DEFAULT_MODEL_PATH) {` && |\n| &&
-             `            return z2ui5.oView && z2ui5.oView.getModel("http");` && |\n| &&
+             `          const sView = z2ui5.oResponse?.PARAMS` && |\n| &&
+             `            ? z2ui5.oResponse.PARAMS.S_VIEW` && |\n| &&
+             `            : null;` && |\n| &&
+             `          if (sView?.SWITCH_DEFAULT_MODEL_PATH) {` && |\n| &&
+             `            return z2ui5.oView?.getModel("http");` && |\n| &&
              `          }` && |\n| &&
-             `          return z2ui5.oView && z2ui5.oView.getModel();` && |\n| &&
+             `          return z2ui5.oView?.getModel();` && |\n| &&
              `        }` && |\n| &&
              `        if (z2ui5.oControllerPopup === this) {` && |\n| &&
-             `          return z2ui5.oViewPopup && z2ui5.oViewPopup.getModel();` && |\n| &&
+             `          return z2ui5.oViewPopup?.getModel();` && |\n| &&
              `        }` && |\n| &&
              `        if (z2ui5.oControllerPopover === this) {` && |\n| &&
-             `          return z2ui5.oViewPopover && z2ui5.oViewPopover.getModel();` && |\n| &&
+             `          return z2ui5.oViewPopover?.getModel();` && |\n| &&
              `        }` && |\n| &&
              `        if (z2ui5.oControllerNest === this) {` && |\n| &&
              `          z2ui5.oBody.VIEWNAME = "NEST";` && |\n| &&
-             `          return z2ui5.oViewNest && z2ui5.oViewNest.getModel();` && |\n| &&
+             `          return z2ui5.oViewNest?.getModel();` && |\n| &&
              `        }` && |\n| &&
              `        if (z2ui5.oControllerNest2 === this) {` && |\n| &&
              `          z2ui5.oBody.VIEWNAME = "NEST2";` && |\n| &&
-             `          return z2ui5.oViewNest2 && z2ui5.oViewNest2.getModel();` && |\n| &&
+             `          return z2ui5.oViewNest2?.getModel();` && |\n| &&
              `        }` && |\n| &&
              `        return undefined;` && |\n| &&
              `      },` && |\n| &&
@@ -1121,8 +1115,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // Re-bind a model to one of the views when the response signals an` && |\n| &&
              `      // update is required for that particular slot.` && |\n| &&
              `      updateModelIfRequired(paramKey, oView) {` && |\n| &&
-             `        const params = z2ui5.oResponse && z2ui5.oResponse.PARAMS;` && |\n| &&
-             `        const slot = params && params[paramKey];` && |\n| &&
+             `        const params = z2ui5.oResponse?.PARAMS;` && |\n| &&
+             `        const slot = params?.[paramKey];` && |\n| &&
              `        if (!slot || !slot.CHECK_UPDATE_MODEL) return;` && |\n| &&
              `` && |\n| &&
              `        const oModel = this._createViewModel();` && |\n| &&
@@ -1142,7 +1136,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (!gav || !gav.includes("com.sap.ui5")) {` && |\n| &&
              `          // openui5 doesn't ship some sap.com modules - tell the user which` && |\n| &&
              `          // module is missing so they know to switch to SAPUI5.` && |\n| &&
-             `          const missingModule = err && err._modules;` && |\n| &&
+             `          const missingModule = err?._modules;` && |\n| &&
              `          Server.responseError(` && |\n| &&
              `            ``openui5 SDK is loaded, module: ${missingModule} is not available in openui5``,` && |\n| &&
              `          );` && |\n| &&
@@ -1208,11 +1202,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      async displayView(xml, viewModel) {` && |\n| &&
              `        const oViewModel = this._trackChanges(new JSONModel(viewModel));` && |\n| &&
              `` && |\n| &&
-             `        const sView =` && |\n| &&
-             `          z2ui5.oResponse && z2ui5.oResponse.PARAMS` && |\n| &&
-             `            ? z2ui5.oResponse.PARAMS.S_VIEW` && |\n| &&
-             `            : null;` && |\n| &&
-             `        const switchPath = sView && sView.SWITCH_DEFAULT_MODEL_PATH;` && |\n| &&
+             `        const sView = z2ui5.oResponse?.PARAMS` && |\n| &&
+             `          ? z2ui5.oResponse.PARAMS.S_VIEW` && |\n| &&
+             `          : null;` && |\n| &&
+             `        const switchPath = sView?.SWITCH_DEFAULT_MODEL_PATH;` && |\n| &&
              `` && |\n| &&
              `        // When the app wants OData as the default model, build it here and` && |\n| &&
              `        // keep the JSON model as the named "http" model.` && |\n| &&
@@ -1222,8 +1215,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            serviceUrl: switchPath,` && |\n| &&
              `            annotationURI: sView.SWITCHDEFAULTMODELANNOURI || "",` && |\n| &&
              `          });` && |\n| &&
-             |\n|.
-    result = result &&
              `        } else {` && |\n| &&
              `          oModel = oViewModel;` && |\n| &&
              `        }` && |\n| &&
@@ -1231,6 +1222,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        z2ui5.oView = await XMLView.create({` && |\n| &&
              `          definition: xml,` && |\n| &&
+             |\n|.
+    result = result &&
              `          models: oModel,` && |\n| &&
              `          controller: z2ui5.oController,` && |\n| &&
              `          id: "mainView",` && |\n| &&

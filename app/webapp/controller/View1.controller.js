@@ -70,7 +70,7 @@ sap.ui.define(
     let _busyDialog = null;
 
     function copyToClipboard(textToCopy) {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
+      if (navigator.clipboard?.writeText) {
         navigator.clipboard.writeText(textToCopy).catch((err) => {
           Lib.logError("Clipboard: writeText failed, falling back", err);
           copyToClipboardFallback(textToCopy);
@@ -105,7 +105,7 @@ sap.ui.define(
     // ------------------------------------------------------------------
 
     function withCrossAppNavigator(callback) {
-      const nav = z2ui5.oLaunchpad && z2ui5.oLaunchpad.CrossAppNavigator;
+      const nav = z2ui5.oLaunchpad?.CrossAppNavigator;
       if (!nav) {
         Lib.logError("CrossAppNav: not running inside Launchpad");
         return;
@@ -128,11 +128,9 @@ sap.ui.define(
 
     // Lookup tables mapping event names / param keys to the right view.
     const navContainerLookups = {
-      NAV_CONTAINER_TO: (id) => z2ui5.oView && z2ui5.oView.byId(id),
-      NEST_NAV_CONTAINER_TO: (id) =>
-        z2ui5.oViewNest && z2ui5.oViewNest.byId(id),
-      NEST2_NAV_CONTAINER_TO: (id) =>
-        z2ui5.oViewNest2 && z2ui5.oViewNest2.byId(id),
+      NAV_CONTAINER_TO: (id) => z2ui5.oView?.byId(id),
+      NEST_NAV_CONTAINER_TO: (id) => z2ui5.oViewNest?.byId(id),
+      NEST2_NAV_CONTAINER_TO: (id) => z2ui5.oViewNest2?.byId(id),
       POPUP_NAV_CONTAINER_TO: (id) => Fragment.byId("popupId", id),
       POPOVER_NAV_CONTAINER_TO: (id) => Fragment.byId("popoverId", id),
     };
@@ -252,15 +250,15 @@ sap.ui.define(
         const S_VIEW_NEST2 = PARAMS.S_VIEW_NEST2;
         const S_POPOVER = PARAMS.S_POPOVER;
 
-        if (S_POPUP && S_POPUP.CHECK_DESTROY) this.destroyPopup();
-        if (S_POPOVER && S_POPOVER.CHECK_DESTROY) this.destroyPopover();
+        if (S_POPUP?.CHECK_DESTROY) this.destroyPopup();
+        if (S_POPOVER?.CHECK_DESTROY) this.destroyPopover();
 
-        if (S_POPUP && S_POPUP.XML) {
+        if (S_POPUP?.XML) {
           this.destroyPopup();
           await this.displayFragment(S_POPUP.XML, "oViewPopup");
         }
 
-        if (!z2ui5.checkNestAfter && S_VIEW_NEST && S_VIEW_NEST.XML) {
+        if (!z2ui5.checkNestAfter && S_VIEW_NEST?.XML) {
           this.destroyNestView();
           await this.displayNestedView(
             S_VIEW_NEST.XML,
@@ -271,7 +269,7 @@ sap.ui.define(
           z2ui5.checkNestAfter = true;
         }
 
-        if (!z2ui5.checkNestAfter2 && S_VIEW_NEST2 && S_VIEW_NEST2.XML) {
+        if (!z2ui5.checkNestAfter2 && S_VIEW_NEST2?.XML) {
           this.destroyNestView2();
           await this.displayNestedView(
             S_VIEW_NEST2.XML,
@@ -282,7 +280,7 @@ sap.ui.define(
           z2ui5.checkNestAfter2 = true;
         }
 
-        if (S_POPOVER && S_POPOVER.XML) {
+        if (S_POPOVER?.XML) {
           this.destroyPopover();
           await this.displayPopover(
             S_POPOVER.XML,
@@ -345,7 +343,7 @@ sap.ui.define(
       },
 
       _createViewModel() {
-        const data = z2ui5.oResponse && z2ui5.oResponse.OVIEWMODEL;
+        const data = z2ui5.oResponse?.OVIEWMODEL;
         return this._trackChanges(new JSONModel(data));
       },
 
@@ -391,8 +389,8 @@ sap.ui.define(
           // Find the control to attach the popover to. We search the main
           // view first, then any open popup / nested views, then the global
           // UI5 control registry as a last resort.
-          let oControl = z2ui5.oView && z2ui5.oView.byId(openById);
-          if (!oControl && z2ui5.oViewPopup && z2ui5.oViewPopup.Fragment) {
+          let oControl = z2ui5.oView?.byId(openById);
+          if (!oControl && z2ui5.oViewPopup?.Fragment) {
             oControl = z2ui5.oViewPopup.Fragment.byId("popupId", openById);
           }
           if (!oControl && z2ui5.oViewNest) {
@@ -411,7 +409,7 @@ sap.ui.define(
                  API is used in the branch above. */
               if (sap.ui.getCore) {
                 const core = sap.ui.getCore();
-                if (core && core.byId) oControl = core.byId(openById);
+                if (core?.byId) oControl = core.byId(openById);
               }
               /* ui5lint-enable no-globals, no-deprecated-api */
             }
@@ -447,9 +445,7 @@ sap.ui.define(
         oView.setModel(oModel);
 
         const nestParams =
-          z2ui5.oResponse &&
-          z2ui5.oResponse.PARAMS &&
-          z2ui5.oResponse.PARAMS[viewNestId];
+          z2ui5.oResponse?.PARAMS && z2ui5.oResponse.PARAMS[viewNestId];
         if (!nestParams) {
           Lib.logError(`displayNestedView: missing PARAMS.${viewNestId}`);
           oView.destroy();
@@ -457,7 +453,7 @@ sap.ui.define(
         }
         const { ID, METHOD_DESTROY, METHOD_INSERT } = nestParams;
 
-        const oParent = z2ui5.oView && z2ui5.oView.byId(ID);
+        const oParent = z2ui5.oView?.byId(ID);
         if (!oParent) {
           Lib.logError(
             `displayNestedView: parent control '${ID}' not found, nested view discarded`,
@@ -552,7 +548,7 @@ sap.ui.define(
       },
 
       _evClipboardAppState() {
-        const id = z2ui5.oResponse && z2ui5.oResponse.ID;
+        const id = z2ui5.oResponse?.ID;
         copyToClipboard(`${window.location.href}#/z2ui5-xapp-state=${id}`);
       },
 
@@ -579,7 +575,7 @@ sap.ui.define(
         const viewKey = hasLimit ? args[2] : args[1];
         const limit = hasLimit ? Number(args[1]) : NaN;
         const view = Lib.getViewByKey(viewKey);
-        const model = view && view.getModel();
+        const model = view?.getModel();
 
         if (Number.isFinite(limit) && limit > 0) {
           if (!z2ui5.viewSizeLimits) z2ui5.viewSizeLimits = {};
@@ -657,8 +653,8 @@ sap.ui.define(
       _evSystemLogout(args) {
         const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";
         try {
-          const container = z2ui5.oLaunchpad && z2ui5.oLaunchpad.Container;
-          if (container && container.logout) {
+          const container = z2ui5.oLaunchpad?.Container;
+          if (container?.logout) {
             container.logout();
             return;
           }
@@ -791,7 +787,7 @@ sap.ui.define(
 
       _evSetInputMode(args) {
         try {
-          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
+          const oElement = z2ui5.oView?.byId(args[1]);
           if (!oElement) return;
           const dom = oElement.getDomRef();
           if (!dom) return;
@@ -809,7 +805,7 @@ sap.ui.define(
       },
 
       _evSetFocus(args) {
-        const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
+        const oElement = z2ui5.oView?.byId(args[1]);
         if (!oElement) return;
 
         const applyFocus = () => {
@@ -827,7 +823,7 @@ sap.ui.define(
         // The control may still be missing from the DOM when SET_FOCUS runs
         // together with a fresh view build. Apply now if it is rendered,
         // otherwise once it is - same pattern as UITableExt / Scrolling.
-        if (oElement.getDomRef && oElement.getDomRef()) {
+        if (oElement.getDomRef?.()) {
           applyFocus();
         } else {
           const delegate = {
@@ -854,7 +850,7 @@ sap.ui.define(
         // Native Element.scrollTo is only used as a fallback for controls
         // without a delegate.
         try {
-          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
+          const oElement = z2ui5.oView?.byId(args[1]);
           if (!oElement) return;
           const y = +args[2] || 0;
           const x = +args[3] || 0;
@@ -863,9 +859,8 @@ sap.ui.define(
 
           let handled = false;
           try {
-            const d =
-              oElement.getScrollDelegate && oElement.getScrollDelegate();
-            if (d && d.scrollTo) {
+            const d = oElement.getScrollDelegate?.();
+            if (d?.scrollTo) {
               // ScrollEnablement / iScroll delegate: scrollTo(x, y, time)
               d.scrollTo(x, y, smooth ? 300 : 0);
               handled = true;
@@ -878,7 +873,7 @@ sap.ui.define(
             const dom =
               document.getElementById(`${oElement.getId()}-inner`) ||
               oElement.getDomRef();
-            if (dom && dom.scrollTo) {
+            if (dom?.scrollTo) {
               dom.scrollTo({ top: y, left: x, behavior });
               handled = true;
             } else if (dom) {
@@ -904,7 +899,7 @@ sap.ui.define(
         // Modern declarative scroll: bring a control into the viewport,
         // regardless of where the surrounding scroll container currently is.
         try {
-          const oElement = z2ui5.oView && z2ui5.oView.byId(args[1]);
+          const oElement = z2ui5.oView?.byId(args[1]);
           if (!oElement) return;
           const dom = oElement.getDomRef();
           if (!dom || !dom.scrollIntoView) return;
@@ -930,10 +925,10 @@ sap.ui.define(
       _evSetTitleLaunchpad(args) {
         const title = args[1] == null ? "" : String(args[1]);
         try {
-          const shell = z2ui5.oLaunchpad && z2ui5.oLaunchpad.ShellUIService;
-          if (shell && shell.setTitle) {
+          const shell = z2ui5.oLaunchpad?.ShellUIService;
+          if (shell?.setTitle) {
             const result = shell.setTitle(title);
-            if (result && result.catch) {
+            if (result?.catch) {
               result.catch((e) =>
                 Lib.logError(
                   "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",
@@ -961,9 +956,9 @@ sap.ui.define(
 
       _evWizardSetNextStep(args) {
         try {
-          const wiz = z2ui5.oView && z2ui5.oView.byId(args[1]);
-          const step = z2ui5.oView && z2ui5.oView.byId(args[2]);
-          const nextStep = z2ui5.oView && z2ui5.oView.byId(args[3]);
+          const wiz = z2ui5.oView?.byId(args[1]);
+          const step = z2ui5.oView?.byId(args[2]);
+          const nextStep = z2ui5.oView?.byId(args[3]);
           if (wiz && step) wiz.discardProgress(step);
           if (step && nextStep) step.setNextStep(nextStep);
         } catch (e) {
@@ -980,7 +975,7 @@ sap.ui.define(
           // play() returns a Promise; a rejection (e.g. blocked by the
           // browser's autoplay policy) is not caught by the surrounding
           // try/catch and would surface as an unhandled rejection.
-          if (playing && playing.catch) {
+          if (playing?.catch) {
             playing.catch((e) =>
               Lib.logError(`PLAY_AUDIO: failed for '${args[1]}'`, e),
             );
@@ -1044,15 +1039,15 @@ sap.ui.define(
 
         // If the user edited /XX/ paths, send only the delta to keep the
         // payload small.
-        if (oModel && z2ui5.xxChangedPaths && z2ui5.xxChangedPaths.size > 0) {
+        if (oModel && z2ui5.xxChangedPaths?.size > 0) {
           const data = oModel.getData();
-          const xx = data && data.XX;
+          const xx = data?.XX;
           if (xx) {
             z2ui5.oBody.XX = Lib.buildDeltaFromPaths(z2ui5.xxChangedPaths, xx);
           }
         }
 
-        z2ui5.oBody.ID = z2ui5.oResponse && z2ui5.oResponse.ID;
+        z2ui5.oBody.ID = z2ui5.oResponse?.ID;
         // Object arguments are stringified for transport; the event name in
         // args[0] is left as-is.
         z2ui5.oBody.ARGUMENTS = args.map((item, i) => {
@@ -1068,28 +1063,27 @@ sap.ui.define(
         // useMainModel forces use of the main view's model even when called
         // from a popup/popover controller.
         if (useMainModel || z2ui5.oController === this) {
-          const sView =
-            z2ui5.oResponse && z2ui5.oResponse.PARAMS
-              ? z2ui5.oResponse.PARAMS.S_VIEW
-              : null;
-          if (sView && sView.SWITCH_DEFAULT_MODEL_PATH) {
-            return z2ui5.oView && z2ui5.oView.getModel("http");
+          const sView = z2ui5.oResponse?.PARAMS
+            ? z2ui5.oResponse.PARAMS.S_VIEW
+            : null;
+          if (sView?.SWITCH_DEFAULT_MODEL_PATH) {
+            return z2ui5.oView?.getModel("http");
           }
-          return z2ui5.oView && z2ui5.oView.getModel();
+          return z2ui5.oView?.getModel();
         }
         if (z2ui5.oControllerPopup === this) {
-          return z2ui5.oViewPopup && z2ui5.oViewPopup.getModel();
+          return z2ui5.oViewPopup?.getModel();
         }
         if (z2ui5.oControllerPopover === this) {
-          return z2ui5.oViewPopover && z2ui5.oViewPopover.getModel();
+          return z2ui5.oViewPopover?.getModel();
         }
         if (z2ui5.oControllerNest === this) {
           z2ui5.oBody.VIEWNAME = "NEST";
-          return z2ui5.oViewNest && z2ui5.oViewNest.getModel();
+          return z2ui5.oViewNest?.getModel();
         }
         if (z2ui5.oControllerNest2 === this) {
           z2ui5.oBody.VIEWNAME = "NEST2";
-          return z2ui5.oViewNest2 && z2ui5.oViewNest2.getModel();
+          return z2ui5.oViewNest2?.getModel();
         }
         return undefined;
       },
@@ -1097,8 +1091,8 @@ sap.ui.define(
       // Re-bind a model to one of the views when the response signals an
       // update is required for that particular slot.
       updateModelIfRequired(paramKey, oView) {
-        const params = z2ui5.oResponse && z2ui5.oResponse.PARAMS;
-        const slot = params && params[paramKey];
+        const params = z2ui5.oResponse?.PARAMS;
+        const slot = params?.[paramKey];
         if (!slot || !slot.CHECK_UPDATE_MODEL) return;
 
         const oModel = this._createViewModel();
@@ -1118,7 +1112,7 @@ sap.ui.define(
         if (!gav || !gav.includes("com.sap.ui5")) {
           // openui5 doesn't ship some sap.com modules - tell the user which
           // module is missing so they know to switch to SAPUI5.
-          const missingModule = err && err._modules;
+          const missingModule = err?._modules;
           Server.responseError(
             `openui5 SDK is loaded, module: ${missingModule} is not available in openui5`,
           );
@@ -1184,11 +1178,10 @@ sap.ui.define(
       async displayView(xml, viewModel) {
         const oViewModel = this._trackChanges(new JSONModel(viewModel));
 
-        const sView =
-          z2ui5.oResponse && z2ui5.oResponse.PARAMS
-            ? z2ui5.oResponse.PARAMS.S_VIEW
-            : null;
-        const switchPath = sView && sView.SWITCH_DEFAULT_MODEL_PATH;
+        const sView = z2ui5.oResponse?.PARAMS
+          ? z2ui5.oResponse.PARAMS.S_VIEW
+          : null;
+        const switchPath = sView?.SWITCH_DEFAULT_MODEL_PATH;
 
         // When the app wants OData as the default model, build it here and
         // keep the JSON model as the named "http" model.

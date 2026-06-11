@@ -113,7 +113,7 @@ CLASS z2ui5_cl_app_camerapicture_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      onPicture() {` && |\n| &&
-             `        if (this._oScanDialog && this._oScanDialog.isOpen()) return;` && |\n| &&
+             `        if (this._oScanDialog?.isOpen()) return;` && |\n| &&
              `        if (!this._oScanDialog) {` && |\n| &&
              `          this._oScanDialog = new Dialog({` && |\n| &&
              `            title: "Device Photo Function",` && |\n| &&

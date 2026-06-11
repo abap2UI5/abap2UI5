@@ -75,15 +75,15 @@ CLASS z2ui5_cl_app_info_js IMPLEMENTATION.
              `      try {` && |\n| &&
              `        // The device model is created by Component.init(); it exposes` && |\n| &&
              `        // system / resize / os / browser info.` && |\n| &&
-             `        const deviceModel = z2ui5.oView && z2ui5.oView.getModel("device");` && |\n| &&
-             `        const deviceData = deviceModel && deviceModel.getData();` && |\n| &&
+             `        const deviceModel = z2ui5.oView?.getModel("device");` && |\n| &&
+             `        const deviceData = deviceModel?.getData();` && |\n| &&
              `        if (!deviceData) return;` && |\n| &&
              `` && |\n| &&
              `        const { system, resize, os, browser } = deviceData;` && |\n| &&
              `        // Filled by Component._initVersionInfo (async, may not have` && |\n| &&
              `        // resolved yet on the very first render).` && |\n| &&
-             `        const ui5Info = z2ui5.oConfig && z2ui5.oConfig.S_UI5;` && |\n| &&
-             `        const ui5Version = (ui5Info && ui5Info.VERSION) || "";` && |\n| &&
+             `        const ui5Info = z2ui5.oConfig?.S_UI5;` && |\n| &&
+             `        const ui5Version = ui5Info?.VERSION || "";` && |\n| &&
              `` && |\n| &&
              `        const props = [` && |\n| &&
              `          ["ui5_version", ui5Version],` && |\n| &&

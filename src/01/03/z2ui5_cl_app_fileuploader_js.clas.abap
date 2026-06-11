@@ -165,7 +165,7 @@ CLASS z2ui5_cl_app_fileuploader_js IMPLEMENTATION.
              `              // consumed by the upload button press or, in direct-upload` && |\n| &&
              `              // mode, by uploadComplete below.` && |\n| &&
              `              const files = oEvent.getParameter("files");` && |\n| &&
-             `              oControl._pendingFile = files && files[0];` && |\n| &&
+             `              oControl._pendingFile = files?.[0];` && |\n| &&
              `              if (directUpload) return;` && |\n| &&
              `              const value = oEvent.getSource().getProperty("value");` && |\n| &&
              `              oControl.setProperty("path", value);` && |\n| &&

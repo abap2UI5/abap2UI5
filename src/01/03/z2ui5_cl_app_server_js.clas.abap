@@ -144,7 +144,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          if (!active) return {};` && |\n| &&
              `          // Element.closestTo exists as of UI5 1.106; keep the feature check` && |\n| &&
              `          // so older releases simply skip the focus restore.` && |\n| &&
-             `          const ui5El = Element.closestTo ? Element.closestTo(active) : null;` && |\n| &&
+             `          const ui5El = Element.closestTo?.(active) ?? null;` && |\n| &&
              `          if (!ui5El) return {};` && |\n| &&
              `          const fullId = ui5El.getId();` && |\n| &&
              `          const views = Lib.viewSlots.map((slot) => z2ui5[slot.prop]);` && |\n| &&
@@ -176,7 +176,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      onScrollCapture(event) {` && |\n| &&
              `        const target = event.target;` && |\n| &&
              `        if (!target || target.nodeType !== 1) return;` && |\n| &&
-             `        const ui5El = Element.closestTo ? Element.closestTo(target) : null;` && |\n| &&
+             `        const ui5El = Element.closestTo?.(target) ?? null;` && |\n| &&
              `        if (!ui5El) return;` && |\n| &&
              `` && |\n| &&
              `        // Walk up the control tree to find the view slot the scrolled` && |\n| &&
@@ -190,7 +190,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `              return;` && |\n| &&
              `            }` && |\n| &&
              `          }` && |\n| &&
-             `          current = current.getParent && current.getParent();` && |\n| &&
+             `          current = current.getParent?.();` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -236,17 +236,17 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `        // Pick the first event argument (event name) safely.` && |\n| &&
              `        let eventName;` && |\n| &&
-             `        if (oBody.ARGUMENTS && oBody.ARGUMENTS[0]) {` && |\n| &&
+             `        if (oBody.ARGUMENTS?.[0]) {` && |\n| &&
              `          eventName = oBody.ARGUMENTS[0][0];` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        oBody.S_FRONT = {` && |\n| &&
              `          CONFIG: {` && |\n| &&
-             `            S_UI5: z2ui5.oConfig && z2ui5.oConfig.S_UI5,` && |\n| &&
+             `            S_UI5: z2ui5.oConfig?.S_UI5,` && |\n| &&
              `            S_DEVICE: this._getDeviceInfo(),` && |\n| &&
              `            S_FOCUS: this._getFocusInfo(),` && |\n| &&
              `            S_SCROLL: this._getScrollInfo(),` && |\n| &&
-             `            ComponentData: z2ui5.oConfig && z2ui5.oConfig.ComponentData,` && |\n| &&
+             `            ComponentData: z2ui5.oConfig?.ComponentData,` && |\n| &&
              `          },` && |\n| &&
              `          ID: oBody.ID,` && |\n| &&
              `          ORIGIN: window.location.origin,` && |\n| &&
@@ -361,9 +361,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          z2ui5.oResponse = response;` && |\n| &&
              `          const params = response.PARAMS;` && |\n| &&
-             `          const sView = params && params.S_VIEW;` && |\n| &&
+             `          const sView = params?.S_VIEW;` && |\n| &&
              `` && |\n| &&
-             `          if (sView && sView.CHECK_DESTROY) oController.destroyView();` && |\n| &&
+             `          if (sView?.CHECK_DESTROY) oController.destroyView();` && |\n| &&
              `` && |\n| &&
              `          // The backend can send small JS snippets to run after the response.` && |\n| &&
              `          // Each snippet is either a literal expression or an "eF(...)" call` && |\n| &&
@@ -373,13 +373,13 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // them earlier would break render-dependent actions such as` && |\n| &&
              `          // SET_FOCUS on the initial view, where the target control does not` && |\n| &&
              `          // exist in the DOM yet.` && |\n| &&
-             `          const followUp = params && params.S_FOLLOW_UP_ACTION;` && |\n| &&
-             `          z2ui5.pendingCustomJs = (followUp && followUp.CUSTOM_JS) || null;` && |\n| &&
+             `          const followUp = params?.S_FOLLOW_UP_ACTION;` && |\n| &&
+             `          z2ui5.pendingCustomJs = followUp?.CUSTOM_JS || null;` && |\n| &&
              `` && |\n| &&
              `          for (const t of _MSG_TYPES) oController.showMessage(t, params);` && |\n| &&
              `` && |\n| &&
              `          // Full view replacement -> destroy & rebuild, nothing more to do.` && |\n| &&
-             `          if (sView && sView.XML) {` && |\n| &&
+             `          if (sView?.XML) {` && |\n| &&
              `            oController.destroyView();` && |\n| &&
              `            await oController.displayView(sView.XML, response.OVIEWMODEL);` && |\n| &&
              `            return;` && |\n| &&
@@ -467,10 +467,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        BusyIndicator.hide();` && |\n| &&
              `        z2ui5.isBusy = false;` && |\n| &&
              `` && |\n| &&
-             `        const full =` && |\n| &&
-             `          response && response.stack` && |\n| &&
-             `            ? String(response.stack)` && |\n| &&
-             `            : String(response);` && |\n| &&
+             `        const full = response?.stack` && |\n| &&
+             `          ? String(response.stack)` && |\n| &&
+             `          : String(response);` && |\n| &&
              `        let errorMessage;` && |\n| &&
              `        if (full.length > ERROR_MAX_LENGTH) {` && |\n| &&
              `          errorMessage =` && |\n| &&
@@ -544,9 +543,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        };` && |\n| &&
              `        try {` && |\n| &&
              `          const launchpadLogout =` && |\n| &&
-             `            z2ui5.oLaunchpad &&` && |\n| &&
-             `            z2ui5.oLaunchpad.Container &&` && |\n| &&
-             `            z2ui5.oLaunchpad.Container.logout;` && |\n| &&
+             `            z2ui5.oLaunchpad?.Container && z2ui5.oLaunchpad.Container.logout;` && |\n| &&
              `          if (launchpadLogout) {` && |\n| &&
              `            z2ui5.oLaunchpad.Container.logout();` && |\n| &&
              `          } else {` && |\n| &&

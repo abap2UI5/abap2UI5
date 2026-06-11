@@ -52,31 +52,31 @@ sap.ui.define(
 
     // Helpers to pull the various pieces of state shown in the dialog.
     function getModelJson(view) {
-      const model = view && view.getModel();
-      return model && model.getData();
+      const model = view?.getModel();
+      return model?.getData();
     }
 
     function getViewContent(view) {
-      return view && view.getProperty("viewContent");
+      return view?.getProperty("viewContent");
     }
 
     function getRenderedContent(view) {
       // Private member access (debug tool only): _xContent holds the view
       // XML after XML templating ran; there is no public equivalent.
-      return view && view._xContent && view._xContent.outerHTML;
+      return view?._xContent?.outerHTML;
     }
 
     function getResponseXml(key) {
-      const params = z2ui5.oResponse && z2ui5.oResponse.PARAMS;
-      const slot = params && params[key];
-      return slot && slot.XML;
+      const params = z2ui5.oResponse?.PARAMS;
+      const slot = params?.[key];
+      return slot?.XML;
     }
 
     function getResponseFrontViewXml() {
-      const sFront = z2ui5.responseData && z2ui5.responseData.S_FRONT;
-      const params = sFront && sFront.PARAMS;
-      const view = params && params.S_VIEW;
-      return view && view.XML;
+      const sFront = z2ui5.responseData?.S_FRONT;
+      const params = sFront?.PARAMS;
+      const view = params?.S_VIEW;
+      return view?.XML;
     }
 
     // What each dropdown entry shows: either a JSON source or an XML source
@@ -166,8 +166,8 @@ sap.ui.define(
         const contentControl = Fragment.byId(FRAGMENT_ID, "sourceHtml");
         if (!contentControl) return;
 
-        const sFront = z2ui5.responseData && z2ui5.responseData.S_FRONT;
-        const appName = (sFront && sFront.APP) || "";
+        const sFront = z2ui5.responseData?.S_FRONT;
+        const appName = sFront?.APP || "";
         const appId = encodeURIComponent(appName);
         const url = `${window.location.origin}/sap/bc/adt/oo/classes/${appId}/source/main`;
         contentControl.setProperty(
@@ -191,9 +191,7 @@ sap.ui.define(
         const modelData = oModel.getData();
         modelData.editor_visible = true;
         modelData.source_visible = false;
-        modelData.isTemplating = !!(
-          content && content.includes("xmlns:template")
-        );
+        modelData.isTemplating = !!content?.includes("xmlns:template");
         modelData.value = content;
         modelData.previousValue = content;
         modelData.xContent = xcontent;

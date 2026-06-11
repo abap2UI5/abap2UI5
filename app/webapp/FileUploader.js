@@ -145,7 +145,7 @@ sap.ui.define(
               // consumed by the upload button press or, in direct-upload
               // mode, by uploadComplete below.
               const files = oEvent.getParameter("files");
-              oControl._pendingFile = files && files[0];
+              oControl._pendingFile = files?.[0];
               if (directUpload) return;
               const value = oEvent.getSource().getProperty("value");
               oControl.setProperty("path", value);

@@ -34,11 +34,11 @@ CLASS z2ui5_cl_app_lptitle_js IMPLEMENTATION.
              `    setTitle(val) {` && |\n| &&
              `      this.setProperty("title", val);` && |\n| &&
              `      try {` && |\n| &&
-             `        const shell = z2ui5.oLaunchpad && z2ui5.oLaunchpad.ShellUIService;` && |\n| &&
+             `        const shell = z2ui5.oLaunchpad?.ShellUIService;` && |\n| &&
              `        if (!shell || !shell.setTitle) return;` && |\n| &&
              `        const result = shell.setTitle(val);` && |\n| &&
              `        // setTitle may return a Promise; report any async failure.` && |\n| &&
-             `        if (result && result.catch) {` && |\n| &&
+             `        if (result?.catch) {` && |\n| &&
              `          result.catch((e) =>` && |\n| &&
              `            Lib.logError("LPTitle: Launchpad Service setTitle failed", e),` && |\n| &&
              `          );` && |\n| &&
@@ -51,8 +51,8 @@ CLASS z2ui5_cl_app_lptitle_js IMPLEMENTATION.
              `    setApplicationFullWidth(val) {` && |\n| &&
              `      this.setProperty("ApplicationFullWidth", val);` && |\n| &&
              `      try {` && |\n| &&
-             `        const config = z2ui5.oLaunchpad && z2ui5.oLaunchpad.AppConfiguration;` && |\n| &&
-             `        if (config && config.setApplicationFullWidth) {` && |\n| &&
+             `        const config = z2ui5.oLaunchpad?.AppConfiguration;` && |\n| &&
+             `        if (config?.setApplicationFullWidth) {` && |\n| &&
              `          config.setApplicationFullWidth(val);` && |\n| &&
              `        }` && |\n| &&
              `      } catch (e) {` && |\n| &&

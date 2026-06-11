@@ -89,21 +89,20 @@ CLASS z2ui5_cl_app_uploadsetext_js IMPLEMENTATION.
              `` && |\n| &&
              `    onItemAdded(oEvent) {` && |\n| &&
              `      const item = oEvent.getParameter("item");` && |\n| &&
-             `      const file = item && item.getFileObject ? item.getFileObject() : null;` && |\n| &&
+             `      const file = item?.getFileObject ? item.getFileObject() : null;` && |\n| &&
              `      if (file) this._readFile(file);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    onItemRemoved(oEvent) {` && |\n| &&
              `      const item = oEvent.getParameter("item");` && |\n| &&
-             `      const name = item && item.getFileName ? item.getFileName() : "";` && |\n| &&
+             `      const name = item?.getFileName ? item.getFileName() : "";` && |\n| &&
              `      this.setProperty("removedFileName", name);` && |\n| &&
              `      this.fireRemove();` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    renderer: { apiVersion: 2, render() {} },` && |\n| &&
              `    setControl() {` && |\n| &&
-             `      const uploadSet =` && |\n| &&
-             `        z2ui5.oView && z2ui5.oView.byId(this.getProperty("uploadSetId"));` && |\n| &&
+             `      const uploadSet = z2ui5.oView?.byId(this.getProperty("uploadSetId"));` && |\n| &&
              `      if (!uploadSet || this.getProperty("checkInit")) return;` && |\n| &&
              `      this.setProperty("checkInit", true);` && |\n| &&
              `      try {` && |\n| &&

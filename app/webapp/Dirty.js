@@ -30,8 +30,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
       try {
         const launchpad = z2ui5.oLaunchpad;
         const hasFlpDirtyFlag =
-          launchpad &&
-          launchpad.Container &&
+          launchpad?.Container &&
           launchpad.Container.setDirtyFlag &&
           launchpad.ShellUIService;
         if (hasFlpDirtyFlag) {

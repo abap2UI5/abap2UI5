@@ -69,21 +69,20 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
 
     onItemAdded(oEvent) {
       const item = oEvent.getParameter("item");
-      const file = item && item.getFileObject ? item.getFileObject() : null;
+      const file = item?.getFileObject ? item.getFileObject() : null;
       if (file) this._readFile(file);
     },
 
     onItemRemoved(oEvent) {
       const item = oEvent.getParameter("item");
-      const name = item && item.getFileName ? item.getFileName() : "";
+      const name = item?.getFileName ? item.getFileName() : "";
       this.setProperty("removedFileName", name);
       this.fireRemove();
     },
 
     renderer: { apiVersion: 2, render() {} },
     setControl() {
-      const uploadSet =
-        z2ui5.oView && z2ui5.oView.byId(this.getProperty("uploadSetId"));
+      const uploadSet = z2ui5.oView?.byId(this.getProperty("uploadSetId"));
       if (!uploadSet || this.getProperty("checkInit")) return;
       this.setProperty("checkInit", true);
       try {

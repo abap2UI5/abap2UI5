@@ -100,8 +100,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
     },
     renderer: { apiVersion: 2, render() {} },
     setControl() {
-      const input =
-        z2ui5.oView && z2ui5.oView.byId(this.getProperty("multiInputId"));
+      const input = z2ui5.oView?.byId(this.getProperty("multiInputId"));
       if (!input || this.getProperty("checkInit")) return;
       this.setProperty("checkInit", true);
       try {

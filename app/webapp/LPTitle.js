@@ -14,11 +14,11 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
     setTitle(val) {
       this.setProperty("title", val);
       try {
-        const shell = z2ui5.oLaunchpad && z2ui5.oLaunchpad.ShellUIService;
+        const shell = z2ui5.oLaunchpad?.ShellUIService;
         if (!shell || !shell.setTitle) return;
         const result = shell.setTitle(val);
         // setTitle may return a Promise; report any async failure.
-        if (result && result.catch) {
+        if (result?.catch) {
           result.catch((e) =>
             Lib.logError("LPTitle: Launchpad Service setTitle failed", e),
           );
@@ -31,8 +31,8 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
     setApplicationFullWidth(val) {
       this.setProperty("ApplicationFullWidth", val);
       try {
-        const config = z2ui5.oLaunchpad && z2ui5.oLaunchpad.AppConfiguration;
-        if (config && config.setApplicationFullWidth) {
+        const config = z2ui5.oLaunchpad?.AppConfiguration;
+        if (config?.setApplicationFullWidth) {
           config.setApplicationFullWidth(val);
         }
       } catch (e) {

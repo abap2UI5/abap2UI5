@@ -50,8 +50,7 @@ CLASS z2ui5_cl_app_dirty_js IMPLEMENTATION.
              `      try {` && |\n| &&
              `        const launchpad = z2ui5.oLaunchpad;` && |\n| &&
              `        const hasFlpDirtyFlag =` && |\n| &&
-             `          launchpad &&` && |\n| &&
-             `          launchpad.Container &&` && |\n| &&
+             `          launchpad?.Container &&` && |\n| &&
              `          launchpad.Container.setDirtyFlag &&` && |\n| &&
              `          launchpad.ShellUIService;` && |\n| &&
              `        if (hasFlpDirtyFlag) {` && |\n| &&

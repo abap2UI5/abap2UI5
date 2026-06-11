@@ -45,8 +45,7 @@ sap.ui.define(
       },
       renderer: { apiVersion: 2, render() {} },
       setControl() {
-        const table =
-          z2ui5.oView && z2ui5.oView.byId(this.getProperty("MultiInputId"));
+        const table = z2ui5.oView?.byId(this.getProperty("MultiInputId"));
         if (!table || this.getProperty("checkInit")) return;
         this.setProperty("checkInit", true);
         try {

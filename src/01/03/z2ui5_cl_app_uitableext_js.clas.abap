@@ -63,7 +63,7 @@ CLASS z2ui5_cl_app_uitableext_js IMPLEMENTATION.
              `    readFilter() {` && |\n| &&
              `      try {` && |\n| &&
              `        const table = this._getTable();` && |\n| &&
-             `        const binding = table && table.getBinding();` && |\n| &&
+             `        const binding = table?.getBinding();` && |\n| &&
              `        // Prefer the public getFilters API (UI5 >= 1.96); older releases` && |\n| &&
              `        // only expose the private aFilters member.` && |\n| &&
              `        this.aFilters = !binding` && |\n| &&
@@ -101,7 +101,7 @@ CLASS z2ui5_cl_app_uitableext_js IMPLEMENTATION.
              `      for (const oFilter of aFilters) {` && |\n| &&
              `        // Multi-filter? Pick the inner filter for the column lookup.` && |\n| &&
              `        let sProperty = oFilter.sPath;` && |\n| &&
-             `        if (!sProperty && oFilter.aFilters && oFilter.aFilters[0]) {` && |\n| &&
+             `        if (!sProperty && oFilter.aFilters?.[0]) {` && |\n| &&
              `          sProperty = oFilter.aFilters[0].sPath;` && |\n| &&
              `        }` && |\n| &&
              `        if (!sProperty) continue;` && |\n| &&
@@ -110,7 +110,7 @@ CLASS z2ui5_cl_app_uitableext_js IMPLEMENTATION.
              `        // Pick the most meaningful value to display in the column header.` && |\n| &&
              `        let vValue = oFilter.oValue1;` && |\n| &&
              `        if (vValue === undefined) vValue = oFilter.oValue2;` && |\n| &&
-             `        if (vValue === undefined && oFilter.aFilters && oFilter.aFilters[0]) {` && |\n| &&
+             `        if (vValue === undefined && oFilter.aFilters?.[0]) {` && |\n| &&
              `          vValue = oFilter.aFilters[0].oValue1;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -133,10 +133,7 @@ CLASS z2ui5_cl_app_uitableext_js IMPLEMENTATION.
              `        const display = displayFn(vValue);` && |\n| &&
              `` && |\n| &&
              `        for (const oCol of columns) {` && |\n| &&
-             `          if (` && |\n| &&
-             `            oCol.getFilterProperty &&` && |\n| &&
-             `            oCol.getFilterProperty() === sProperty` && |\n| &&
-             `          ) {` && |\n| &&
+             `          if (oCol.getFilterProperty?.() === sProperty) {` && |\n| &&
              `            oCol.setFilterValue(display);` && |\n| &&
              `            oCol.setFiltered(!!display);` && |\n| &&
              `          }` && |\n| &&
@@ -164,7 +161,7 @@ CLASS z2ui5_cl_app_uitableext_js IMPLEMENTATION.
              `    readSort() {` && |\n| &&
              `      try {` && |\n| &&
              `        const table = this._getTable();` && |\n| &&
-             `        const binding = table && table.getBinding();` && |\n| &&
+             `        const binding = table?.getBinding();` && |\n| &&
              `        // Private member access: ListBinding has no public getter for the` && |\n| &&
              `        // active sorters (unlike getFilters for filters).` && |\n| &&
              `        this.aSorters = binding ? binding.aSorters : undefined;` && |\n| &&
@@ -182,7 +179,7 @@ CLASS z2ui5_cl_app_uitableext_js IMPLEMENTATION.
              `      const columns = oTable.getColumns();` && |\n| &&
              `      for (const [idx, srt] of aSorters.entries()) {` && |\n| &&
              `        for (const oCol of columns) {` && |\n| &&
-             `          if (oCol.getSortProperty && oCol.getSortProperty() === srt.sPath) {` && |\n| &&
+             `          if (oCol.getSortProperty?.() === srt.sPath) {` && |\n| &&
              `            oCol.setSorted(true);` && |\n| &&
              `            oCol.setSortOrder(srt.bDescending ? "Descending" : "Ascending");` && |\n| &&
              `            // setSortIndex is only available on some column variants.` && |\n| &&

@@ -15,16 +15,16 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
     },
 
     _getDomInnerElement(id) {
-      const control = z2ui5.oView && z2ui5.oView.byId(id);
+      const control = z2ui5.oView?.byId(id);
       if (!control) return null;
       return document.getElementById(`${control.getId()}-inner`);
     },
 
     _getScrollTop(item) {
       try {
-        const control = z2ui5.oView && z2ui5.oView.byId(item.N);
+        const control = z2ui5.oView?.byId(item.N);
         // Some controls expose a scroll delegate; prefer it when available.
-        if (control && control.getScrollDelegate) {
+        if (control?.getScrollDelegate) {
           const delegate = control.getScrollDelegate();
           if (delegate) return delegate.getScrollTop();
         }
@@ -46,7 +46,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
         let bindingPath;
         if (bindingInfo) {
           const parts = bindingInfo.parts;
-          if (parts && parts[0]) bindingPath = parts[0].path;
+          if (parts?.[0]) bindingPath = parts[0].path;
           if (!bindingPath) bindingPath = bindingInfo.path;
         }
         for (const [index, item] of items.entries()) {
@@ -74,8 +74,8 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
 
     _restoreScrollPosition(item) {
       try {
-        const control = z2ui5.oView && z2ui5.oView.byId(item.N);
-        if (control && control.scrollTo) {
+        const control = z2ui5.oView?.byId(item.N);
+        if (control?.scrollTo) {
           control.scrollTo(item.V);
           return;
         }
@@ -95,7 +95,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
 
       try {
         for (const item of items) {
-          const control = z2ui5.oView && z2ui5.oView.byId(item.N);
+          const control = z2ui5.oView?.byId(item.N);
           if (!control) continue;
 
           if (control.getDomRef()) {

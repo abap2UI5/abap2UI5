@@ -55,15 +55,15 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/cc/Lib"], (Control, Lib) => {
       try {
         // The device model is created by Component.init(); it exposes
         // system / resize / os / browser info.
-        const deviceModel = z2ui5.oView && z2ui5.oView.getModel("device");
-        const deviceData = deviceModel && deviceModel.getData();
+        const deviceModel = z2ui5.oView?.getModel("device");
+        const deviceData = deviceModel?.getData();
         if (!deviceData) return;
 
         const { system, resize, os, browser } = deviceData;
         // Filled by Component._initVersionInfo (async, may not have
         // resolved yet on the very first render).
-        const ui5Info = z2ui5.oConfig && z2ui5.oConfig.S_UI5;
-        const ui5Version = (ui5Info && ui5Info.VERSION) || "";
+        const ui5Info = z2ui5.oConfig?.S_UI5;
+        const ui5Version = ui5Info?.VERSION || "";
 
         const props = [
           ["ui5_version", ui5Version],

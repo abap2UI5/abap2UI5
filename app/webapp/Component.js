@@ -115,12 +115,12 @@ sap.ui.define(
         // The browser's back/forward buttons restore a previously displayed
         // view from history.state without doing a backend roundtrip.
         this._boundPopstate = (event) => {
-          const state = event && event.state;
+          const state = event?.state;
           if (!state) return;
 
           // These flags only apply once when the state was first pushed; on
           // restore we strip them so they don't trigger again.
-          if (state.response && state.response.PARAMS) {
+          if (state.response?.PARAMS) {
             delete state.response.PARAMS.SET_PUSH_STATE;
             delete state.response.PARAMS.SET_APP_STATE_ACTIVE;
           }
@@ -130,10 +130,11 @@ sap.ui.define(
           if (z2ui5.oController) z2ui5.oController.destroyView();
           z2ui5.oResponse = state.response;
 
-          const displayPromise =
-            z2ui5.oController &&
-            z2ui5.oController.displayView(state.view, state.model);
-          if (displayPromise && displayPromise.catch) {
+          const displayPromise = z2ui5.oController?.displayView(
+            state.view,
+            state.model,
+          );
+          if (displayPromise?.catch) {
             displayPromise.catch((e) =>
               Lib.logError("popstate: displayView failed", e),
             );
@@ -230,8 +231,7 @@ sap.ui.define(
         //     become no-ops via setIfAlive().
         try {
           const setDirtyFlag =
-            this._launchpad &&
-            this._launchpad.Container &&
+            this._launchpad?.Container &&
             this._launchpad.Container.setDirtyFlag;
           if (setDirtyFlag) setDirtyFlag.call(this._launchpad.Container, false);
         } catch (e) {

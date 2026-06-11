@@ -35,16 +35,16 @@ CLASS z2ui5_cl_app_scrolling_js IMPLEMENTATION.
              `    },` && |\n| &&
              `` && |\n| &&
              `    _getDomInnerElement(id) {` && |\n| &&
-             `      const control = z2ui5.oView && z2ui5.oView.byId(id);` && |\n| &&
+             `      const control = z2ui5.oView?.byId(id);` && |\n| &&
              `      if (!control) return null;` && |\n| &&
              `      return document.getElementById(``${control.getId()}-inner``);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    _getScrollTop(item) {` && |\n| &&
              `      try {` && |\n| &&
-             `        const control = z2ui5.oView && z2ui5.oView.byId(item.N);` && |\n| &&
+             `        const control = z2ui5.oView?.byId(item.N);` && |\n| &&
              `        // Some controls expose a scroll delegate; prefer it when available.` && |\n| &&
-             `        if (control && control.getScrollDelegate) {` && |\n| &&
+             `        if (control?.getScrollDelegate) {` && |\n| &&
              `          const delegate = control.getScrollDelegate();` && |\n| &&
              `          if (delegate) return delegate.getScrollTop();` && |\n| &&
              `        }` && |\n| &&
@@ -66,7 +66,7 @@ CLASS z2ui5_cl_app_scrolling_js IMPLEMENTATION.
              `        let bindingPath;` && |\n| &&
              `        if (bindingInfo) {` && |\n| &&
              `          const parts = bindingInfo.parts;` && |\n| &&
-             `          if (parts && parts[0]) bindingPath = parts[0].path;` && |\n| &&
+             `          if (parts?.[0]) bindingPath = parts[0].path;` && |\n| &&
              `          if (!bindingPath) bindingPath = bindingInfo.path;` && |\n| &&
              `        }` && |\n| &&
              `        for (const [index, item] of items.entries()) {` && |\n| &&
@@ -94,8 +94,8 @@ CLASS z2ui5_cl_app_scrolling_js IMPLEMENTATION.
              `` && |\n| &&
              `    _restoreScrollPosition(item) {` && |\n| &&
              `      try {` && |\n| &&
-             `        const control = z2ui5.oView && z2ui5.oView.byId(item.N);` && |\n| &&
-             `        if (control && control.scrollTo) {` && |\n| &&
+             `        const control = z2ui5.oView?.byId(item.N);` && |\n| &&
+             `        if (control?.scrollTo) {` && |\n| &&
              `          control.scrollTo(item.V);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -115,7 +115,7 @@ CLASS z2ui5_cl_app_scrolling_js IMPLEMENTATION.
              `` && |\n| &&
              `      try {` && |\n| &&
              `        for (const item of items) {` && |\n| &&
-             `          const control = z2ui5.oView && z2ui5.oView.byId(item.N);` && |\n| &&
+             `          const control = z2ui5.oView?.byId(item.N);` && |\n| &&
              `          if (!control) continue;` && |\n| &&
              `` && |\n| &&
              `          if (control.getDomRef()) {` && |\n| &&

@@ -72,31 +72,31 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `` && |\n| &&
              `    // Helpers to pull the various pieces of state shown in the dialog.` && |\n| &&
              `    function getModelJson(view) {` && |\n| &&
-             `      const model = view && view.getModel();` && |\n| &&
-             `      return model && model.getData();` && |\n| &&
+             `      const model = view?.getModel();` && |\n| &&
+             `      return model?.getData();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function getViewContent(view) {` && |\n| &&
-             `      return view && view.getProperty("viewContent");` && |\n| &&
+             `      return view?.getProperty("viewContent");` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function getRenderedContent(view) {` && |\n| &&
              `      // Private member access (debug tool only): _xContent holds the view` && |\n| &&
              `      // XML after XML templating ran; there is no public equivalent.` && |\n| &&
-             `      return view && view._xContent && view._xContent.outerHTML;` && |\n| &&
+             `      return view?._xContent?.outerHTML;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function getResponseXml(key) {` && |\n| &&
-             `      const params = z2ui5.oResponse && z2ui5.oResponse.PARAMS;` && |\n| &&
-             `      const slot = params && params[key];` && |\n| &&
-             `      return slot && slot.XML;` && |\n| &&
+             `      const params = z2ui5.oResponse?.PARAMS;` && |\n| &&
+             `      const slot = params?.[key];` && |\n| &&
+             `      return slot?.XML;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function getResponseFrontViewXml() {` && |\n| &&
-             `      const sFront = z2ui5.responseData && z2ui5.responseData.S_FRONT;` && |\n| &&
-             `      const params = sFront && sFront.PARAMS;` && |\n| &&
-             `      const view = params && params.S_VIEW;` && |\n| &&
-             `      return view && view.XML;` && |\n| &&
+             `      const sFront = z2ui5.responseData?.S_FRONT;` && |\n| &&
+             `      const params = sFront?.PARAMS;` && |\n| &&
+             `      const view = params?.S_VIEW;` && |\n| &&
+             `      return view?.XML;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // What each dropdown entry shows: either a JSON source or an XML source` && |\n| &&
@@ -186,8 +186,8 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        const contentControl = Fragment.byId(FRAGMENT_ID, "sourceHtml");` && |\n| &&
              `        if (!contentControl) return;` && |\n| &&
              `` && |\n| &&
-             `        const sFront = z2ui5.responseData && z2ui5.responseData.S_FRONT;` && |\n| &&
-             `        const appName = (sFront && sFront.APP) || "";` && |\n| &&
+             `        const sFront = z2ui5.responseData?.S_FRONT;` && |\n| &&
+             `        const appName = sFront?.APP || "";` && |\n| &&
              `        const appId = encodeURIComponent(appName);` && |\n| &&
              `        const url = ``${window.location.origin}/sap/bc/adt/oo/classes/${appId}/source/main``;` && |\n| &&
              `        contentControl.setProperty(` && |\n| &&
@@ -211,9 +211,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        const modelData = oModel.getData();` && |\n| &&
              `        modelData.editor_visible = true;` && |\n| &&
              `        modelData.source_visible = false;` && |\n| &&
-             `        modelData.isTemplating = !!(` && |\n| &&
-             `          content && content.includes("xmlns:template")` && |\n| &&
-             `        );` && |\n| &&
+             `        modelData.isTemplating = !!content?.includes("xmlns:template");` && |\n| &&
              `        modelData.value = content;` && |\n| &&
              `        modelData.previousValue = content;` && |\n| &&
              `        modelData.xContent = xcontent;` && |\n| &&

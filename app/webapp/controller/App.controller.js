@@ -15,10 +15,10 @@ sap.ui.define(
         // Read the backend URI from the manifest, falling back step by step
         // so a missing entry doesn't blow up.
         const manifest = oOwnerComponent.getManifest();
-        const sapApp = manifest && manifest["sap.app"];
-        const dataSources = sapApp && sapApp.dataSources;
-        const http = dataSources && dataSources.http;
-        const uri = http && http.uri;
+        const sapApp = manifest?.["sap.app"];
+        const dataSources = sapApp?.dataSources;
+        const http = dataSources?.http;
+        const uri = http?.uri;
         z2ui5.url = z2ui5.checkLocal ? window.location.href : uri;
 
         // Set up the shared z2ui5 state used by the whole app.

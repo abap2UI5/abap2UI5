@@ -93,7 +93,7 @@ sap.ui.define(
       },
 
       onPicture() {
-        if (this._oScanDialog && this._oScanDialog.isOpen()) return;
+        if (this._oScanDialog?.isOpen()) return;
         if (!this._oScanDialog) {
           this._oScanDialog = new Dialog({
             title: "Device Photo Function",
