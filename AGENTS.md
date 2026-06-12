@@ -234,6 +234,13 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
   CATCH cx_root ##NO_HANDLER.
   ```
 - **API parameter types:** Use `TYPE clike` for string/char input parameters in public API methods (allows both string and char literals without conversion)
+- **Utility access:** Always call utilities via the facade `z2ui5_cl_util` — it inherits everything from `z2ui5_cl_util_api`. Never reference `z2ui5_cl_util_api` (or its environment-specific implementations `z2ui5_cl_util_api_s` / `z2ui5_cl_util_api_c`) directly outside `src/00/`
+  ```abap
+  " good
+  z2ui5_cl_util=>bal_read( ... ).
+  " bad
+  z2ui5_cl_util_api=>bal_read( ... ).
+  ```
 
 ### Naming (enforced by abaplint)
 
