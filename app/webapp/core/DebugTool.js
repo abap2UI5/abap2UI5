@@ -73,6 +73,24 @@ sap.ui.define(
       return slot?.XML;
     }
 
+    // Preload the sap.ui.codeeditor modules used by the fragment. On older
+    // UI5 releases (e.g. 1.71) Fragment.load still processes the XML with
+    // the sync strategy, so an unloaded CodeEditor would be fetched via
+    // synchronous XHR and executed with eval - which a Content-Security-
+    // Policy without 'unsafe-eval' blocks. Requiring the modules
+    // asynchronously up front makes the sync lookup a cache hit.
+    function preloadCodeEditor() {
+      return new Promise((resolve) => {
+        sap.ui.require(
+          ["sap/ui/codeeditor/library", "sap/ui/codeeditor/CodeEditor"],
+          () => resolve(),
+          // On failure continue anyway and let Fragment.load surface the
+          // real error.
+          () => resolve(),
+        );
+      });
+    }
+
     // What each dropdown entry shows: either a JSON source or an XML source
     // (the latter optionally with the rendered DOM for the templating
     // toggle). The "SOURCE" entry is handled separately in onItemSelect.
@@ -218,6 +236,7 @@ sap.ui.define(
         this._showPending = true;
         try {
           if (!this.oDialog) {
+            await preloadCodeEditor();
             this.oDialog = await Fragment.load({
               name: "z2ui5.core.DebugTool",
               controller: this,
