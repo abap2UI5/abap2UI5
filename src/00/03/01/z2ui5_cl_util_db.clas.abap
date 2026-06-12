@@ -40,7 +40,7 @@ CLASS z2ui5_cl_util_db DEFINITION
         VALUE(result) TYPE any.
 
     TYPES ty_s_db TYPE z2ui5_t_91.
-    TYPES ty_t_db TYPE STANDARD TABLE OF ty_s_db WITH EMPTY KEY.
+    TYPES ty_t_db TYPE STANDARD TABLE OF ty_s_db WITH DEFAULT KEY.
 
     " only supplied parameters filter the selection, initial values of
     " unsupplied parameters do not restrict the result
@@ -67,10 +67,10 @@ CLASS z2ui5_cl_util_db IMPLEMENTATION.
 
     DELETE FROM z2ui5_t_91
         WHERE
-           uname = @uname
-            AND handle = @handle
-            AND handle2 = @handle2
-            AND handle3 = @handle3.
+           uname = uname
+            AND handle = handle
+            AND handle2 = handle2
+            AND handle3 = handle3.
 
     IF check_commit = abap_true.
       COMMIT WORK AND WAIT.
@@ -81,16 +81,17 @@ CLASS z2ui5_cl_util_db IMPLEMENTATION.
 
   METHOD load_by_handle.
 
-    DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_91 WITH EMPTY KEY.
+    DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_91 WITH DEFAULT KEY.
 
+    DATA lv_data TYPE z2ui5_t_91-data.
     SELECT SINGLE data
-      FROM z2ui5_t_91
+      FROM z2ui5_t_91 INTO lv_data
        WHERE
-        uname = @uname
-        AND handle = @handle
-        AND handle2 = @handle2
-        AND handle3 = @handle3 "#EC WARNOK
-      INTO @DATA(lv_data).
+        uname = uname
+        AND handle = handle
+        AND handle2 = handle2
+        AND handle3 = handle3 "#EC WARNOK
+      .
     IF sy-subrc <> 0.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING
@@ -112,39 +113,76 @@ CLASS z2ui5_cl_util_db IMPLEMENTATION.
     DATA lr_handle  TYPE RANGE OF z2ui5_t_91-handle.
     DATA lr_handle2 TYPE RANGE OF z2ui5_t_91-handle2.
     DATA lr_handle3 TYPE RANGE OF z2ui5_t_91-handle3.
+      DATA temp1 LIKE lr_uname.
+      DATA temp2 LIKE LINE OF temp1.
+      DATA temp3 LIKE lr_handle.
+      DATA temp4 LIKE LINE OF temp3.
+      DATA temp5 LIKE lr_handle2.
+      DATA temp6 LIKE LINE OF temp5.
+      DATA temp7 LIKE lr_handle3.
+      DATA temp8 LIKE LINE OF temp7.
 
     IF uname IS SUPPLIED.
-      lr_uname = VALUE #( ( sign = `I` option = `EQ` low = uname ) ).
+
+      CLEAR temp1.
+
+      temp2-sign = `I`.
+      temp2-option = `EQ`.
+      temp2-low = uname.
+      INSERT temp2 INTO TABLE temp1.
+      lr_uname = temp1.
     ENDIF.
     IF handle IS SUPPLIED.
-      lr_handle = VALUE #( ( sign = `I` option = `EQ` low = handle ) ).
+
+      CLEAR temp3.
+
+      temp4-sign = `I`.
+      temp4-option = `EQ`.
+      temp4-low = handle.
+      INSERT temp4 INTO TABLE temp3.
+      lr_handle = temp3.
     ENDIF.
     IF handle2 IS SUPPLIED.
-      lr_handle2 = VALUE #( ( sign = `I` option = `EQ` low = handle2 ) ).
+
+      CLEAR temp5.
+
+      temp6-sign = `I`.
+      temp6-option = `EQ`.
+      temp6-low = handle2.
+      INSERT temp6 INTO TABLE temp5.
+      lr_handle2 = temp5.
     ENDIF.
     IF handle3 IS SUPPLIED.
-      lr_handle3 = VALUE #( ( sign = `I` option = `EQ` low = handle3 ) ).
+
+      CLEAR temp7.
+
+      temp8-sign = `I`.
+      temp8-option = `EQ`.
+      temp8-low = handle3.
+      INSERT temp8 INTO TABLE temp7.
+      lr_handle3 = temp7.
     ENDIF.
 
-    SELECT FROM z2ui5_t_91
-      FIELDS *
-      WHERE uname   IN @lr_uname
-        AND handle  IN @lr_handle
-        AND handle2 IN @lr_handle2
-        AND handle3 IN @lr_handle3 "#EC WARNOK
-      INTO CORRESPONDING FIELDS OF TABLE @result.
+    SELECT * FROM z2ui5_t_91 INTO CORRESPONDING FIELDS OF TABLE result
+
+      WHERE uname   IN lr_uname
+        AND handle  IN lr_handle
+        AND handle2 IN lr_handle2
+        AND handle3 IN lr_handle3 "#EC WARNOK
+      .
 
   ENDMETHOD.
 
 
   METHOD load_by_id.
 
-    DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_91 WITH EMPTY KEY.
+    DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_91 WITH DEFAULT KEY.
 
+    DATA lv_data TYPE z2ui5_t_91-data.
     SELECT SINGLE data
-      FROM z2ui5_t_91
-      WHERE id = @id  "#EC WARNOK
-      INTO @DATA(lv_data).
+      FROM z2ui5_t_91 INTO lv_data
+      WHERE id = id  "#EC WARNOK
+      .
     ASSERT sy-subrc = 0.
 
     z2ui5_cl_util=>xml_parse(
@@ -158,22 +196,28 @@ CLASS z2ui5_cl_util_db IMPLEMENTATION.
 
   METHOD save.
 
-    DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_91 WITH EMPTY KEY.
+    DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_91 WITH DEFAULT KEY.
+    DATA lv_id TYPE z2ui5_t_91-id.
+    DATA temp9 TYPE z2ui5_t_91.
+    DATA ls_db LIKE temp9.
     SELECT SINGLE id
-      FROM z2ui5_t_91
+      FROM z2ui5_t_91 INTO lv_id
        WHERE
-        uname = @uname
-        AND handle = @handle
-        AND handle2 = @handle2 "#EC WARNOK
-        AND handle3 = @handle3
-      INTO @DATA(lv_id) ##SUBRC_OK.
+        uname = uname
+        AND handle = handle
+        AND handle2 = handle2 "#EC WARNOK
+        AND handle3 = handle3
+       ##SUBRC_OK.
 
-    DATA(ls_db) = VALUE z2ui5_t_91(
-        uname   = uname
-        handle  = handle
-        handle2 = handle2
-        handle3 = handle3
-        data    = z2ui5_cl_util=>xml_stringify( data ) ).
+
+    CLEAR temp9.
+    temp9-uname = uname.
+    temp9-handle = handle.
+    temp9-handle2 = handle2.
+    temp9-handle3 = handle3.
+    temp9-data = z2ui5_cl_util=>xml_stringify( data ).
+
+    ls_db = temp9.
 
     IF lv_id IS NOT INITIAL.
       ls_db-id = lv_id.
@@ -181,7 +225,7 @@ CLASS z2ui5_cl_util_db IMPLEMENTATION.
       ls_db-id = z2ui5_cl_util=>uuid_get_c32( ).
     ENDIF.
 
-    MODIFY z2ui5_t_91 FROM @ls_db.
+    MODIFY z2ui5_t_91 FROM ls_db.
     ASSERT sy-subrc = 0.
 
     IF check_commit = abap_true.

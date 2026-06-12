@@ -19,7 +19,7 @@ CLASS z2ui5_cl_pop_bal DEFINITION PUBLIC.
         message_v4 TYPE string,
         group      TYPE string,
       END OF ty_s_msg.
-    TYPES ty_t_msg TYPE STANDARD TABLE OF ty_s_msg WITH EMPTY KEY.
+    TYPES ty_t_msg TYPE STANDARD TABLE OF ty_s_msg WITH DEFAULT KEY.
 
     DATA mt_msg       TYPE ty_t_msg.
     DATA mt_msg_bal   TYPE z2ui5_cl_util=>ty_t_msg.
@@ -63,26 +63,32 @@ ENDCLASS.
 CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
 
   METHOD factory.
+    DATA temp15 LIKE LINE OF r_result->mt_msg_bal.
+    DATA lr_row LIKE REF TO temp15.
+      DATA temp16 TYPE ty_s_msg.
 
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
 
     r_result->mt_msg_bal = z2ui5_cl_util=>msg_get_t( i_messages ).
 
-    LOOP AT r_result->mt_msg_bal REFERENCE INTO DATA(lr_row).
-      INSERT VALUE ty_s_msg(
-        type       = z2ui5_cl_util=>ui5_get_msg_type( lr_row->type )
-        title      = lr_row->text
-        id         = lr_row->id
-        number     = lr_row->no
-        message_v1 = lr_row->v1
-        message_v2 = lr_row->v2
-        message_v3 = lr_row->v3
-        message_v4 = lr_row->v4
-        message    = lr_row->text
-        subtitle   = |{ lr_row->id } { lr_row->no }|
-        date       = z2ui5_cl_util=>time_get_date_by_stampl( lr_row->timestampl )
-        time       = z2ui5_cl_util=>time_get_time_by_stampl( lr_row->timestampl )
-        ) INTO TABLE r_result->mt_msg.
+
+
+    LOOP AT r_result->mt_msg_bal REFERENCE INTO lr_row.
+
+      CLEAR temp16.
+      temp16-type = z2ui5_cl_util=>ui5_get_msg_type( lr_row->type ).
+      temp16-title = lr_row->text.
+      temp16-id = lr_row->id.
+      temp16-number = lr_row->no.
+      temp16-message_v1 = lr_row->v1.
+      temp16-message_v2 = lr_row->v2.
+      temp16-message_v3 = lr_row->v3.
+      temp16-message_v4 = lr_row->v4.
+      temp16-message = lr_row->text.
+      temp16-subtitle = |{ lr_row->id } { lr_row->no }|.
+      temp16-date = z2ui5_cl_util=>time_get_date_by_stampl( lr_row->timestampl ).
+      temp16-time = z2ui5_cl_util=>time_get_time_by_stampl( lr_row->timestampl ).
+      INSERT temp16 INTO TABLE r_result->mt_msg.
     ENDLOOP.
 
     r_result->title         = i_title.
@@ -108,7 +114,10 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
+    DATA popup TYPE REF TO z2ui5_cl_xml_view.
+    DATA table TYPE REF TO z2ui5_cl_xml_view.
+    DATA buttons TYPE REF TO z2ui5_cl_xml_view.
+    popup = z2ui5_cl_xml_view=>factory_popup( ).
     popup = popup->dialog( title             = title
                            contentheight     = `50%`
                            contentwidth      = `50%`
@@ -128,7 +137,8 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
                     width = `10rem` ).
     ENDIF.
 
-    DATA(table) = popup->table( client->_bind( mt_msg ) ).
+
+    table = popup->table( client->_bind( mt_msg ) ).
     table->columns(
          )->column( )->text( `Date` )->get_parent(
          )->column( )->text( `Time` )->get_parent(
@@ -145,7 +155,8 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
        )->text( `{NUMBER}`
        )->text( `{MESSAGE}` ).
 
-    DATA(buttons) = popup->buttons( ).
+
+    buttons = popup->buttons( ).
     IF mv_check_save = abap_true.
       buttons->button( text  = `Save`
                        press = client->_event( `BUTTON_SAVE` ) ).
@@ -159,6 +170,7 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD on_event_save.
+        DATA x TYPE REF TO cx_root.
 
     IF mv_object IS INITIAL.
       client->message_box_display( text = `Enter an object before saving the log`
@@ -172,7 +184,8 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
                                    id        = mv_extnumber
                                    t_log     = mt_msg_bal ).
         client->message_toast_display( `Business Application Log saved` ).
-      CATCH cx_root INTO DATA(x).
+
+      CATCH cx_root INTO x.
         client->message_box_display( text = x->get_text( )
                                      type = `error` ).
     ENDTRY.
@@ -183,17 +196,17 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       view_display( ).
       RETURN.
     ENDIF.
 
-    IF client->check_on_event( `BUTTON_SAVE` ).
+    IF client->check_on_event( `BUTTON_SAVE` ) IS NOT INITIAL.
       on_event_save( ).
       RETURN.
     ENDIF.
 
-    IF client->check_on_event( `BUTTON_CONTINUE` ).
+    IF client->check_on_event( `BUTTON_CONTINUE` ) IS NOT INITIAL.
       client->popup_destroy( ).
       client->nav_app_leave( ).
     ENDIF.

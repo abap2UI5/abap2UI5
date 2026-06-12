@@ -201,17 +201,26 @@ ENDCLASS.
 CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
 
   METHOD context_get_user_tech.
+        DATA temp1 TYPE string.
+        DATA lv_result LIKE temp1.
+        DATA lv_class TYPE string.
+        DATA x TYPE REF TO cx_root.
     TRY.
 
-        DATA(lv_result) = VALUE string( ).
-        DATA(lv_class) = `CL_ABAP_CONTEXT_INFO`.
+
+        CLEAR temp1.
+
+        lv_result = temp1.
+
+        lv_class = `CL_ABAP_CONTEXT_INFO`.
         CALL METHOD (lv_class)=>(`GET_USER_BUSINESS_PARTNER_ID`)
           RECEIVING
             rv_business_partner_id = lv_result.
 
         result = lv_result.
 
-      CATCH cx_root INTO DATA(x).
+
+      CATCH cx_root INTO x.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
           EXPORTING
             previous = x.
@@ -527,6 +536,8 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
     DATA lr_impl LIKE REF TO temp5.
     FIELD-SYMBOLS <description> TYPE any.
     DATA temp6 TYPE z2ui5_cl_util_api=>ty_s_class_descr.
+        DATA x TYPE REF TO cx_root.
+        DATA lv_dummy TYPE string.
 
     TRY.
 
@@ -565,8 +576,10 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
         ENDLOOP.
         result = temp3.
 
-      CATCH cx_root INTO DATA(x).
-        DATA(lv_dummy) = x->get_text( ).
+
+      CATCH cx_root INTO x.
+
+        lv_dummy = x->get_text( ).
     ENDTRY.
 
   ENDMETHOD.
@@ -591,6 +604,9 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
     DATA lo_typedescr           TYPE REF TO cl_abap_typedescr.
     DATA temp8                  TYPE REF TO cl_abap_datadescr.
     DATA data_descr             LIKE temp8.
+            DATA lv_xco_cp_abap_dictionary TYPE string.
+            DATA x TYPE REF TO cx_root.
+            DATA error TYPE string.
 
     data_element_name = val.
 
@@ -636,7 +652,7 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
 
       CATCH cx_root.
         TRY.
-            DATA lv_xco_cp_abap_dictionary TYPE string.
+
             lv_xco_cp_abap_dictionary = `XCO_CP_ABAP_DICTIONARY`.
             CALL METHOD (lv_xco_cp_abap_dictionary)=>(`DATA_ELEMENT`)
               EXPORTING
@@ -672,8 +688,10 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
               RECEIVING
                 rs_long_field_label = result-long.
 
-          CATCH cx_root INTO DATA(x).
-            DATA(error) = x->get_text( ).
+
+          CATCH cx_root INTO x.
+
+            error = x->get_text( ).
         ENDTRY.
     ENDTRY.
 
@@ -766,13 +784,19 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD rtti_get_class_descr_on_cloud.
+        DATA obj TYPE REF TO object.
+        DATA content TYPE REF TO object.
+        DATA lv_classname TYPE c LENGTH 30.
+        DATA xco_cp_abap TYPE c LENGTH 11.
+        DATA x TYPE REF TO cx_root.
+        DATA lv_dummy TYPE string.
 
     TRY.
 
-        DATA obj          TYPE REF TO object.
-        DATA content      TYPE REF TO object.
-        DATA lv_classname TYPE c LENGTH 30.
-        DATA xco_cp_abap  TYPE c LENGTH 11.
+
+
+
+
 
         lv_classname = i_classname.
 
@@ -791,8 +815,10 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
           RECEIVING
             rv_short_description = result.
 
-      CATCH cx_root INTO DATA(x).
-        DATA(lv_dummy) = x->get_text( ).
+
+      CATCH cx_root INTO x.
+
+        lv_dummy = x->get_text( ).
     ENDTRY.
 
   ENDMETHOD.
@@ -800,25 +826,29 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
   METHOD rtti_get_table_desrc.
 
     DATA ddtext TYPE c LENGTH 60.
+      DATA lan LIKE sy-langu.
+      DATA lv_tabname TYPE string.
 
     IF langu IS NOT SUPPLIED.
-      DATA(lan) = sy-langu.
+
+      lan = sy-langu.
     ELSE.
       lan = langu.
     ENDIF.
 
-    IF context_check_abap_cloud( ).
+    IF context_check_abap_cloud( ) IS NOT INITIAL.
 
       ddtext = tabname.
 
     ELSE.
 
-      DATA(lv_tabname) = `dd02t`.
+
+      lv_tabname = `dd02t`.
       SELECT SINGLE ddtext
-        FROM (lv_tabname)
-        WHERE tabname    = @tabname
-          AND ddlanguage = @lan
-        INTO @ddtext.
+        FROM (lv_tabname) INTO ddtext
+        WHERE tabname    = tabname
+          AND ddlanguage = lan
+        .
 
     ENDIF.
 
@@ -1105,7 +1135,7 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
           RETURN.
         ENDIF.
 
-        ASSIGN <handles>[ 1 ] TO <handle>.
+        READ TABLE <handles> INDEX 1 ASSIGNING <handle>.
         bal_msg_add( handle = <handle>
                      t_log  = t_log ).
 
@@ -1162,7 +1192,8 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
     FIELD-SYMBOLS <msg>  TYPE any.
     FIELD-SYMBOLS <comp> TYPE any.
 
-    LOOP AT t_log INTO DATA(ls_log).
+    DATA ls_log LIKE LINE OF t_log.
+    LOOP AT t_log INTO ls_log.
 
       IF ls_log-id IS NOT INITIAL AND ls_log-no IS NOT INITIAL.
 
@@ -1359,6 +1390,14 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD tr_copy_objects.
+        DATA lr_headers TYPE REF TO data.
+        FIELD-SYMBOLS <headers> TYPE ANY TABLE.
+        FIELD-SYMBOLS <header> TYPE any.
+        FIELD-SYMBOLS <trkorr> TYPE any.
+        FIELD-SYMBOLS <strkorr> TYPE any.
+        DATA lv_fm TYPE string.
+        DATA lx_known TYPE REF TO z2ui5_cx_util_error.
+        DATA x TYPE REF TO cx_root.
 
     " Copy all objects/commands of a source request (and its tasks) into a
     " target request via the classic transport functions. Called dynamically
@@ -1366,12 +1405,12 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
     " function modules only exist on-premise.
     TRY.
 
-        DATA lr_headers TYPE REF TO data.
-        FIELD-SYMBOLS <headers> TYPE ANY TABLE.
-        FIELD-SYMBOLS <header>  TYPE any.
-        FIELD-SYMBOLS <trkorr>  TYPE any.
-        FIELD-SYMBOLS <strkorr> TYPE any.
-        DATA lv_fm TYPE string.
+
+
+
+
+
+
 
         CREATE DATA lr_headers TYPE (`TRWBO_REQUEST_HEADERS`).
         ASSIGN lr_headers->* TO <headers>.
@@ -1416,9 +1455,11 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
 
         ENDLOOP.
 
-      CATCH z2ui5_cx_util_error INTO DATA(lx_known).
+
+      CATCH z2ui5_cx_util_error INTO lx_known.
         RAISE EXCEPTION lx_known.
-      CATCH cx_root INTO DATA(x).
+
+      CATCH cx_root INTO x.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
           EXPORTING
             previous = x.
@@ -1427,18 +1468,26 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD tr_import.
+        DATA lv_system TYPE c LENGTH 8.
+        DATA lv_client TYPE c LENGTH 3.
+        DATA lv_retcode TYPE c LENGTH 4.
+        DATA lr_exc TYPE REF TO data.
+        FIELD-SYMBOLS <exc> TYPE any.
+        DATA lv_fm TYPE string.
+        DATA lx_known TYPE REF TO z2ui5_cx_util_error.
+        DATA x TYPE REF TO cx_root.
 
     " Import a transport request into a target system via TMS. The target
     " system may be given as `SYSTEM` or `SYSTEM.CLIENT`; an explicit client
     " parameter takes precedence, otherwise the current client is used.
     TRY.
 
-        DATA lv_system  TYPE c LENGTH 8.
-        DATA lv_client  TYPE c LENGTH 3.
-        DATA lv_retcode TYPE c LENGTH 4.
-        DATA lr_exc     TYPE REF TO data.
-        FIELD-SYMBOLS <exc> TYPE any.
-        DATA lv_fm TYPE string.
+
+
+
+
+
+
 
         SPLIT target_system AT `.` INTO lv_system lv_client.
         IF lv_client IS INITIAL.
@@ -1489,9 +1538,11 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
 
         result = lv_retcode.
 
-      CATCH z2ui5_cx_util_error INTO DATA(lx_known).
+
+      CATCH z2ui5_cx_util_error INTO lx_known.
         RAISE EXCEPTION lx_known.
-      CATCH cx_root INTO DATA(x).
+
+      CATCH cx_root INTO x.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
           EXPORTING
             previous = x.
@@ -1500,20 +1551,31 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD tr_check_status.
+        DATA lr_settings TYPE REF TO data.
+        DATA lr_cofile TYPE REF TO data.
+        DATA lr_sysline TYPE REF TO data.
+        FIELD-SYMBOLS <settings> TYPE any.
+        FIELD-SYMBOLS <systems> TYPE ANY TABLE.
+        FIELD-SYMBOLS <sysline> TYPE any.
+        FIELD-SYMBOLS <cofile> TYPE any.
+        FIELD-SYMBOLS <comp> TYPE any.
+        DATA lv_fm TYPE string.
+        DATA lx_known TYPE REF TO z2ui5_cx_util_error.
+        DATA x TYPE REF TO cx_root.
 
     " Read the import status (imported flag + return code) of a request in a
     " given system via the classic transport log API.
     TRY.
 
-        DATA lr_settings TYPE REF TO data.
-        DATA lr_cofile   TYPE REF TO data.
-        DATA lr_sysline  TYPE REF TO data.
-        FIELD-SYMBOLS <settings> TYPE any.
-        FIELD-SYMBOLS <systems>  TYPE ANY TABLE.
-        FIELD-SYMBOLS <sysline>  TYPE any.
-        FIELD-SYMBOLS <cofile>   TYPE any.
-        FIELD-SYMBOLS <comp>     TYPE any.
-        DATA lv_fm TYPE string.
+
+
+
+
+
+
+
+
+
 
         CREATE DATA lr_settings TYPE (`CTSLG_SETTINGS`).
         ASSIGN lr_settings->* TO <settings>.
@@ -1547,9 +1609,11 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
         ASSIGN COMPONENT `RC` OF STRUCTURE <cofile> TO <comp>.
         rc = <comp>.
 
-      CATCH z2ui5_cx_util_error INTO DATA(lx_known).
+
+      CATCH z2ui5_cx_util_error INTO lx_known.
         RAISE EXCEPTION lx_known.
-      CATCH cx_root INTO DATA(x).
+
+      CATCH cx_root INTO x.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
           EXPORTING
             previous = x.

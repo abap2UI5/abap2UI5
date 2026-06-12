@@ -35,8 +35,8 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
   METHOD constructor.
 
     mo_action = action.
-    mo_srv_bind = NEW #( mo_action->mo_app ).
-    mo_srv_event = NEW #( ).
+    CREATE OBJECT mo_srv_bind EXPORTING APP = mo_action->mo_app.
+    CREATE OBJECT mo_srv_event.
     z2ui5_if_client~action = me.
 
   ENDMETHOD.
@@ -68,51 +68,74 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
 
 
   METHOD z2ui5_if_client~check_on_event.
+      DATA temp1 TYPE xsdboolean.
+      DATA temp2 TYPE xsdboolean.
 
     IF val IS NOT INITIAL.
-      result = xsdbool( z2ui5_if_client~get( )-event = val ).
+
+      temp1 = boolc( z2ui5_if_client~get( )-event = val ).
+      result = temp1.
     ELSE.
-      result = xsdbool( z2ui5_if_client~get( )-event <> `` ).
+
+      temp2 = boolc( z2ui5_if_client~get( )-event <> `` ).
+      result = temp2.
     ENDIF.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~get.
+    DATA temp3 TYPE xsdboolean.
+    DATA temp4 TYPE xsdboolean.
+        DATA lo_comp LIKE mo_action->mo_http_post->ms_request-s_front-o_comp_data.
+        DATA lo_params TYPE REF TO z2ui5_if_ajson.
+        DATA temp7 LIKE LINE OF lo_params->mt_json_tree.
+        DATA lr_comp LIKE REF TO temp7.
+          DATA temp8 TYPE z2ui5_if_types=>ty_s_name_value.
 
-    result = VALUE #( event                  = mo_action->ms_actual-event
-                      check_launchpad_active = mo_action->mo_http_post->ms_request-s_control-check_launchpad
-                      t_event_arg            = mo_action->ms_actual-t_event_arg
-                      s_draft                = CORRESPONDING #( mo_action->mo_app->ms_draft )
-                      check_on_navigated     = mo_action->ms_actual-check_on_navigated
-                      s_config               = CORRESPONDING #( mo_action->mo_http_post->ms_request-s_front )
-                      s_device               = mo_action->mo_http_post->ms_request-s_front-s_device
-                      s_focus                = mo_action->mo_http_post->ms_request-s_front-s_focus
-                      s_scroll               = mo_action->mo_http_post->ms_request-s_front-s_scroll
-                      s_ui5                  = mo_action->mo_http_post->ms_request-s_front-s_ui5
-                      r_event_data           = mo_action->ms_actual-r_data
-                      _s_nav-check_call      = xsdbool( mo_action->ms_next-o_app_call IS NOT INITIAL )
-                      _s_nav-check_leave     = xsdbool( mo_action->ms_next-o_app_leave IS NOT INITIAL ) ).
+    CLEAR result.
+    result-event = mo_action->ms_actual-event.
+    result-check_launchpad_active = mo_action->mo_http_post->ms_request-s_control-check_launchpad.
+    result-t_event_arg = mo_action->ms_actual-t_event_arg.
+    MOVE-CORRESPONDING mo_action->mo_app->ms_draft TO result-s_draft.
+    result-check_on_navigated = mo_action->ms_actual-check_on_navigated.
+    MOVE-CORRESPONDING mo_action->mo_http_post->ms_request-s_front TO result-s_config.
+    result-s_device = mo_action->mo_http_post->ms_request-s_front-s_device.
+    result-s_focus = mo_action->mo_http_post->ms_request-s_front-s_focus.
+    result-s_scroll = mo_action->mo_http_post->ms_request-s_front-s_scroll.
+    result-s_ui5 = mo_action->mo_http_post->ms_request-s_front-s_ui5.
+    result-r_event_data = mo_action->ms_actual-r_data.
+
+    temp3 = boolc( mo_action->ms_next-o_app_call IS NOT INITIAL ).
+    result-_s_nav-check_call = temp3.
+
+    temp4 = boolc( mo_action->ms_next-o_app_leave IS NOT INITIAL ).
+    result-_s_nav-check_leave = temp4.
 
     TRY.
 
-        DATA(lo_comp) = mo_action->mo_http_post->ms_request-s_front-o_comp_data.
+
+        lo_comp = mo_action->mo_http_post->ms_request-s_front-o_comp_data.
         IF lo_comp IS NOT BOUND.
           RETURN.
         ENDIF.
-        DATA(lo_params) = lo_comp->slice( `/startupParameters/` ).
+
+        lo_params = lo_comp->slice( `/startupParameters/` ).
 
         IF lo_params IS NOT BOUND.
           RETURN.
         ENDIF.
+
+
         LOOP AT lo_params->mt_json_tree                 "#EC CI_SORTSEQ
-             REFERENCE INTO DATA(lr_comp)
+             REFERENCE INTO lr_comp
              WHERE name = `1`.
 
-          INSERT VALUE #( n = shift_left( val = shift_right( val = lr_comp->path
-                                                             sub = `/` )
-                                          sub = `/` )
-                          v = lr_comp->value ) INTO TABLE result-t_comp_params.
+
+          CLEAR temp8.
+          temp8-n = shift_left( val = shift_right( val = lr_comp->path sub = `/` ) sub = `/` ).
+          temp8-v = lr_comp->value.
+          INSERT temp8 INTO TABLE result-t_comp_params.
         ENDLOOP.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
@@ -121,9 +144,19 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
 
 
   METHOD z2ui5_if_client~get_event_arg.
+        DATA temp9 LIKE LINE OF mo_action->ms_actual-t_event_arg.
+        DATA temp10 LIKE sy-tabix.
 
     TRY.
-        result = mo_action->ms_actual-t_event_arg[ v ].
+
+
+        temp10 = sy-tabix.
+        READ TABLE mo_action->ms_actual-t_event_arg INDEX v INTO temp9.
+        sy-tabix = temp10.
+        IF sy-subrc <> 0.
+          ASSERT 1 = 0.
+        ENDIF.
+        result = temp9.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
@@ -131,12 +164,20 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
 
 
   METHOD z2ui5_if_client~get_app.
+      DATA lo_app TYPE REF TO z2ui5_cl_core_app.
+      DATA temp11 TYPE REF TO z2ui5_if_app.
+      DATA temp12 TYPE REF TO z2ui5_if_app.
 
     IF id IS NOT INITIAL.
-      DATA(lo_app) = z2ui5_cl_core_app=>db_load( id ).
-      result = CAST #( lo_app->mo_app ).
+
+      lo_app = z2ui5_cl_core_app=>db_load( id ).
+
+      temp11 ?= lo_app->mo_app.
+      result = temp11.
     ELSE.
-      result = CAST #( mo_action->mo_app->mo_app ).
+
+      temp12 ?= mo_action->mo_app->mo_app.
+      result = temp12.
     ENDIF.
 
   ENDMETHOD.
@@ -148,15 +189,24 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
     DATA lv_type    TYPE string.
     DATA lv_title   TYPE string.
     DATA lv_details TYPE string.
+      DATA ls_msg_box TYPE z2ui5_cl_util=>ty_s_msg_box.
+      DATA temp13 TYPE string.
 
     IF z2ui5_cl_util=>rtti_check_clike( text ) = abap_false.
-      DATA(ls_msg_box) = z2ui5_cl_util=>ui5_msg_box_format( text ).
+
+      ls_msg_box = z2ui5_cl_util=>ui5_msg_box_format( text ).
       IF ls_msg_box-skip = abap_true.
         RETURN.
       ENDIF.
       lv_text    = ls_msg_box-text.
       lv_type    = ls_msg_box-type.
-      lv_title   = COND #( WHEN title IS NOT INITIAL THEN title ELSE ls_msg_box-title ).
+
+      IF title IS NOT INITIAL.
+        temp13 = title.
+      ELSE.
+        temp13 = ls_msg_box-title.
+      ENDIF.
+      lv_title   = temp13.
       lv_details = ls_msg_box-details.
     ELSE.
       lv_text = text.
@@ -176,43 +226,46 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
       lv_type = `show`.
     ENDIF.
 
-    mo_action->ms_next-s_set-s_msg_box = VALUE #( text              = lv_text
-                                                  type              = lv_type
-                                                  title             = lv_title
-                                                  styleclass        = styleclass
-                                                  onclose           = onclose
-                                                  actions           = actions
-                                                  emphasizedaction  = emphasizedaction
-                                                  initialfocus      = initialfocus
-                                                  textdirection     = textdirection
-                                                  icon              = icon
-                                                  details           = lv_details
-                                                  closeonnavigation = closeonnavigation ).
+    CLEAR mo_action->ms_next-s_set-s_msg_box.
+    mo_action->ms_next-s_set-s_msg_box-text = lv_text.
+    mo_action->ms_next-s_set-s_msg_box-type = lv_type.
+    mo_action->ms_next-s_set-s_msg_box-title = lv_title.
+    mo_action->ms_next-s_set-s_msg_box-styleclass = styleclass.
+    mo_action->ms_next-s_set-s_msg_box-onclose = onclose.
+    mo_action->ms_next-s_set-s_msg_box-actions = actions.
+    mo_action->ms_next-s_set-s_msg_box-emphasizedaction = emphasizedaction.
+    mo_action->ms_next-s_set-s_msg_box-initialfocus = initialfocus.
+    mo_action->ms_next-s_set-s_msg_box-textdirection = textdirection.
+    mo_action->ms_next-s_set-s_msg_box-icon = icon.
+    mo_action->ms_next-s_set-s_msg_box-details = lv_details.
+    mo_action->ms_next-s_set-s_msg_box-closeonnavigation = closeonnavigation.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~message_toast_display.
 
-    mo_action->ms_next-s_set-s_msg_toast = VALUE #( text                     = text
-                                                    duration                 = duration
-                                                    width                    = width
-                                                    my                       = my
-                                                    at                       = at
-                                                    of                       = of
-                                                    offset                   = offset
-                                                    collision                = collision
-                                                    onclose                  = onclose
-                                                    autoclose                = autoclose
-                                                    animationtimingfunction  = animationtimingfunction
-                                                    animationduration        = animationduration
-                                                    closeonbrowsernavigation = closeonbrowsernavigation
-                                                    class                    = class ).
+    CLEAR mo_action->ms_next-s_set-s_msg_toast.
+    mo_action->ms_next-s_set-s_msg_toast-text = text.
+    mo_action->ms_next-s_set-s_msg_toast-duration = duration.
+    mo_action->ms_next-s_set-s_msg_toast-width = width.
+    mo_action->ms_next-s_set-s_msg_toast-my = my.
+    mo_action->ms_next-s_set-s_msg_toast-at = at.
+    mo_action->ms_next-s_set-s_msg_toast-of = of.
+    mo_action->ms_next-s_set-s_msg_toast-offset = offset.
+    mo_action->ms_next-s_set-s_msg_toast-collision = collision.
+    mo_action->ms_next-s_set-s_msg_toast-onclose = onclose.
+    mo_action->ms_next-s_set-s_msg_toast-autoclose = autoclose.
+    mo_action->ms_next-s_set-s_msg_toast-animationtimingfunction = animationtimingfunction.
+    mo_action->ms_next-s_set-s_msg_toast-animationduration = animationduration.
+    mo_action->ms_next-s_set-s_msg_toast-closeonbrowsernavigation = closeonbrowsernavigation.
+    mo_action->ms_next-s_set-s_msg_toast-class = class.
 
   ENDMETHOD.
 
 
   METHOD nav_app_set_id.
+    DATA temp14 TYPE string.
 
     IF app IS NOT BOUND.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
@@ -220,7 +273,13 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
           val = `NAV_APP_LEAVE_TO_INITIAL_APP_ERROR`.
     ENDIF.
 
-    app->id_app = COND #( WHEN app->id_app IS INITIAL THEN z2ui5_cl_util=>uuid_get_c32( ) ).
+
+    IF app->id_app IS INITIAL.
+      temp14 = z2ui5_cl_util=>uuid_get_c32( ).
+    ELSE.
+      CLEAR temp14.
+    ENDIF.
+    app->id_app = temp14.
     result = app->id_app.
 
   ENDMETHOD.
@@ -326,7 +385,8 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popup_destroy.
 
-    mo_action->ms_next-s_set-s_popup = VALUE #( check_destroy = abap_true ).
+    CLEAR mo_action->ms_next-s_set-s_popup.
+    mo_action->ms_next-s_set-s_popup-check_destroy = abap_true.
 
   ENDMETHOD.
 
@@ -371,30 +431,36 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind.
 
+    DATA temp15 TYPE z2ui5_if_core_types=>ty_s_bind_config.
+    CLEAR temp15.
+    temp15-path_only = path.
+    temp15-custom_filter = custom_filter.
+    temp15-custom_mapper = custom_mapper.
+    temp15-tab = z2ui5_cl_util=>conv_get_as_data_ref( tab ).
+    temp15-tab_index = tab_index.
+    temp15-switch_default_model = switch_default_model.
     result = mo_srv_bind->main( val = z2ui5_cl_util=>conv_get_as_data_ref( val )
                             type    = z2ui5_if_core_types=>cs_bind_type-one_way
-                            config  = VALUE #( path_only           = path
-                                              custom_filter        = custom_filter
-                                              custom_mapper        = custom_mapper
-                                              tab                  = z2ui5_cl_util=>conv_get_as_data_ref( tab )
-                                              tab_index            = tab_index
-                                              switch_default_model = switch_default_model ) ).
+                            config  = temp15 ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~_bind_edit.
 
+    DATA temp16 TYPE z2ui5_if_core_types=>ty_s_bind_config.
+    CLEAR temp16.
+    temp16-path_only = path.
+    temp16-custom_filter = custom_filter.
+    temp16-custom_filter_back = custom_filter_back.
+    temp16-custom_mapper = custom_mapper.
+    temp16-custom_mapper_back = custom_mapper_back.
+    temp16-tab = z2ui5_cl_util=>conv_get_as_data_ref( tab ).
+    temp16-tab_index = tab_index.
+    temp16-switch_default_model = switch_default_model.
     result = mo_srv_bind->main( val = z2ui5_cl_util=>conv_get_as_data_ref( val )
                             type    = z2ui5_if_core_types=>cs_bind_type-two_way
-                            config  = VALUE #( path_only           = path
-                                              custom_filter        = custom_filter
-                                              custom_filter_back   = custom_filter_back
-                                              custom_mapper        = custom_mapper
-                                              custom_mapper_back   = custom_mapper_back
-                                              tab                  = z2ui5_cl_util=>conv_get_as_data_ref( tab )
-                                              tab_index            = tab_index
-                                              switch_default_model = switch_default_model ) ).
+                            config  = temp16 ).
 
   ENDMETHOD.
 
@@ -444,28 +510,43 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
 
   METHOD z2ui5_if_client~set_session_stateful.
 
-    DATA(li_app) = get_if_app( ).
+    DATA li_app TYPE REF TO z2ui5_if_app.
+    DATA temp17 TYPE z2ui5_if_core_types=>ty_s_http_res-s_stateful-active.
+    DATA temp5 TYPE xsdboolean.
+    li_app = get_if_app( ).
     IF li_app->check_sticky = val.
       RETURN.
     ENDIF.
-    mo_action->ms_next-s_set-s_stateful-active = COND #( WHEN val = abap_true THEN 1 ELSE 0 ).
+
+    IF val = abap_true.
+      temp17 = 1.
+    ELSE.
+      temp17 = 0.
+    ENDIF.
+    mo_action->ms_next-s_set-s_stateful-active = temp17.
     li_app->check_sticky = val.
 
-    mo_action->ms_next-s_set-s_stateful-switched = xsdbool( mo_action->ms_next-s_set-s_stateful-switched = abap_false ).
+
+    temp5 = boolc( mo_action->ms_next-s_set-s_stateful-switched = abap_false ).
+    mo_action->ms_next-s_set-s_stateful-switched = temp5.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~check_app_prev_stack.
 
-    result = xsdbool( mo_action->mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL ).
+    DATA temp6 TYPE xsdboolean.
+    temp6 = boolc( mo_action->mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL ).
+    result = temp6.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~check_on_init.
 
-    result = xsdbool( get_if_app( )->check_initialized = abap_false ).
+    DATA temp7 TYPE xsdboolean.
+    temp7 = boolc( get_if_app( )->check_initialized = abap_false ).
+    result = temp7.
 
   ENDMETHOD.
 
@@ -493,7 +574,9 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
 
   METHOD get_if_app.
 
-    result = CAST z2ui5_if_app( mo_action->mo_app->mo_app ).
+    DATA temp18 TYPE REF TO z2ui5_if_app.
+    temp18 ?= mo_action->mo_app->mo_app.
+    result = temp18.
 
   ENDMETHOD.
 
