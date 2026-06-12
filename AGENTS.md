@@ -241,6 +241,14 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
   " bad
   z2ui5_cl_util_api=>bal_read( ... ).
   ```
+- **Environment-specific APIs:** SAP APIs and DDIC types that are not available on every target (e.g. the classic `BAL_*` function modules, on-premise-only FMs) must never be referenced statically — the code has to compile on NW 7.02, standard ABAP, and ABAP Cloud alike. Create the types dynamically and call the function modules dynamically, wrapped in `TRY ... CATCH cx_root`:
+  ```abap
+  CREATE DATA lr_log TYPE ('BAL_S_LOG').
+  DATA(lv_fm) = `BAL_LOG_CREATE`.
+  CALL FUNCTION lv_fm
+    EXPORTING i_s_log = <log> ...
+  ```
+  The utility layer wraps such APIs behind a `context_check_abap_cloud( )` dispatch between the cloud (`z2ui5_cl_util_api_c`) and standard (`z2ui5_cl_util_api_s`) implementations; consume them via the `z2ui5_cl_util` facade. The Business Application Log API (`z2ui5_cl_util=>bal_read` / `bal_create` / `bal_update` / `bal_delete`) is the reference example.
 
 ### Naming (enforced by abaplint)
 
@@ -335,7 +343,8 @@ Config files: `eslint.config.mjs`, `.prettierrc`, `.editorconfig`, `ui5.yaml`, `
 | `src/01/02/z2ui5_cl_core_srv_model.clas.abap` | JSON model management |
 | `src/01/02/z2ui5_cl_core_srv_event.clas.abap` | Event registration and payload assembly |
 | `src/01/01/z2ui5_cl_core_srv_draft.clas.abap` | Draft/session persistence |
-| `src/00/03/z2ui5_cl_util.clas.abap` | General utility class |
+| `src/02/01/z2ui5_cl_pop_bal.clas.abap` | BAL popup — displays messages, loads logs from the DB (`factory_by_db`) and saves the displayed messages as a new log (`i_check_save`) |
+| `src/00/03/z2ui5_cl_util.clas.abap` | General utility facade — includes the BAL API (`bal_read` / `bal_create` / `bal_update` / `bal_delete`) with automatic cloud/on-premise dispatch |
 | `src/00/03/z2ui5_cl_util_xml.clas.abap` | Generic XML builder (preferred for new code) |
 | `app/webapp/core/AppState.js` | Owner of the shared frontend state + `z2ui5.*` globals inventory |
 | `app/webapp/core/ViewSlots.js` | View-slot access layer (get/set/byId/destroy per slot) |
@@ -366,7 +375,7 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
    Direct edits to `src/01/03/*.abap` are forbidden — no manual tweaks, no "small fixes", no formatting changes, nothing. The job may be invoked, but the files must never be touched by hand or by any other means.
    - **Prettier governs all of `app/webapp/`** — do not add `// prettier-ignore` directives. Since every custom control lives in its own file, a header reflow only touches that control's small generated constant; just let `npm run app2abap` format and regenerate.
 3. **Always run `npx abaplint`** before considering changes complete.
-4. **Multi-environment compatibility** — code must work on NW 7.02, standard ABAP, and ABAP Cloud.
+4. **Multi-environment & old-release compatibility** — code must work on NW 7.02, standard ABAP, and ABAP Cloud. Backward compatibility with old releases is mandatory: write at most ABAP v750 syntax (the downport pipeline converts it to 7.02 automatically), and never statically reference APIs or DDIC types that exist on only some targets — use the dynamic-call pattern described under Coding Style instead.
 5. **The public API (`src/02/`) is a stable contract — never change or remove existing public attributes, methods, or constants.** This folder is consumed directly by thousands of downstream apps. Specifically:
    - Do not rename, remove, or change the signature of any method in `z2ui5_if_client`, `z2ui5_if_app`, `z2ui5_if_types`, or `z2ui5_if_exit`
    - Do not remove or rename public `DATA`, `CONSTANTS`, or `TYPES` in any `src/02/` class or interface
