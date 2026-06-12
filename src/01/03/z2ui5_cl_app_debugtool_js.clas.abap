@@ -93,6 +93,24 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      return slot?.XML;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // Preload the sap.ui.codeeditor modules used by the fragment. On older` && |\n| &&
+             `    // UI5 releases (e.g. 1.71) Fragment.load still processes the XML with` && |\n| &&
+             `    // the sync strategy, so an unloaded CodeEditor would be fetched via` && |\n| &&
+             `    // synchronous XHR and executed with eval - which a Content-Security-` && |\n| &&
+             `    // Policy without 'unsafe-eval' blocks. Requiring the modules` && |\n| &&
+             `    // asynchronously up front makes the sync lookup a cache hit.` && |\n| &&
+             `    function preloadCodeEditor() {` && |\n| &&
+             `      return new Promise((resolve) => {` && |\n| &&
+             `        sap.ui.require(` && |\n| &&
+             `          ["sap/ui/codeeditor/library", "sap/ui/codeeditor/CodeEditor"],` && |\n| &&
+             `          () => resolve(),` && |\n| &&
+             `          // On failure continue anyway and let Fragment.load surface the` && |\n| &&
+             `          // real error.` && |\n| &&
+             `          () => resolve(),` && |\n| &&
+             `        );` && |\n| &&
+             `      });` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    // What each dropdown entry shows: either a JSON source or an XML source` && |\n| &&
              `    // (the latter optionally with the rendered DOM for the templating` && |\n| &&
              `    // toggle). The "SOURCE" entry is handled separately in onItemSelect.` && |\n| &&
@@ -238,6 +256,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        this._showPending = true;` && |\n| &&
              `        try {` && |\n| &&
              `          if (!this.oDialog) {` && |\n| &&
+             `            await preloadCodeEditor();` && |\n| &&
              `            this.oDialog = await Fragment.load({` && |\n| &&
              `              name: "z2ui5.core.DebugTool",` && |\n| &&
              `              controller: this,` && |\n| &&
