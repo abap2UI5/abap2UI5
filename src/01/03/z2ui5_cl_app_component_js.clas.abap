@@ -25,7 +25,6 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `    "z2ui5/core/Server",` && |\n| &&
              `    "sap/ui/VersionInfo",` && |\n| &&
              `    "z2ui5/core/DebugTool",` && |\n| &&
-             `    "sap/ui/core/Theming",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/Util",` && |\n| &&
@@ -36,7 +35,6 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `    Server,` && |\n| &&
              `    VersionInfo,` && |\n| &&
              `    DebugTool,` && |\n| &&
-             `    Theming,` && |\n| &&
              `    Lib,` && |\n| &&
              `    AppState,` && |\n| &&
              `    DateUtil,` && |\n| &&
@@ -171,12 +169,30 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `              VERSION: info.version,` && |\n| &&
              `              BUILDTIMESTAMP: info.buildTimestamp,` && |\n| &&
              `              GAV: info.gav,` && |\n| &&
-             `              THEME: Theming ? Theming.getTheme() : "",` && |\n| &&
+             `              THEME: this._getTheme(),` && |\n| &&
              `            };` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("Component: VersionInfo load failed", e);` && |\n| &&
              `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _getTheme() {` && |\n| &&
+             `        // sap/ui/core/Theming only exists since UI5 1.118, so it must not be` && |\n| &&
+             `        // a hard dependency of this module - older bootstraps (e.g. 1.108)` && |\n| &&
+             `        // would fail to load the component. On 1.118+ the core itself loads` && |\n| &&
+             `        // Theming, so the probing require finds it; otherwise fall back to` && |\n| &&
+             `        // the legacy Configuration API.` && |\n| &&
+             `        try {` && |\n| &&
+             `          const Theming = sap.ui.require("sap/ui/core/Theming");` && |\n| &&
+             `          if (Theming?.getTheme) return Theming.getTheme();` && |\n| &&
+             `          if (sap.ui.getCore) {` && |\n| &&
+             `            return sap.ui.getCore().getConfiguration().getTheme();` && |\n| &&
+             `          }` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          Lib.logError("Component: reading theme failed", e);` && |\n| &&
+             `        }` && |\n| &&
+             `        return "";` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _onUnload() {` && |\n| &&
