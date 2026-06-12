@@ -5,7 +5,6 @@ sap.ui.define(
     "z2ui5/core/Server",
     "sap/ui/VersionInfo",
     "z2ui5/core/DebugTool",
-    "sap/ui/core/Theming",
     "z2ui5/core/Lib",
     "z2ui5/core/AppState",
     "z2ui5/Util",
@@ -16,7 +15,6 @@ sap.ui.define(
     Server,
     VersionInfo,
     DebugTool,
-    Theming,
     Lib,
     AppState,
     DateUtil,
@@ -151,12 +149,30 @@ sap.ui.define(
               VERSION: info.version,
               BUILDTIMESTAMP: info.buildTimestamp,
               GAV: info.gav,
-              THEME: Theming ? Theming.getTheme() : "",
+              THEME: this._getTheme(),
             };
           }
         } catch (e) {
           Lib.logError("Component: VersionInfo load failed", e);
         }
+      },
+
+      _getTheme() {
+        // sap/ui/core/Theming only exists since UI5 1.118, so it must not be
+        // a hard dependency of this module - older bootstraps (e.g. 1.108)
+        // would fail to load the component. On 1.118+ the core itself loads
+        // Theming, so the probing require finds it; otherwise fall back to
+        // the legacy Configuration API.
+        try {
+          const Theming = sap.ui.require("sap/ui/core/Theming");
+          if (Theming?.getTheme) return Theming.getTheme();
+          if (sap.ui.getCore) {
+            return sap.ui.getCore().getConfiguration().getTheme();
+          }
+        } catch (e) {
+          Lib.logError("Component: reading theme failed", e);
+        }
+        return "";
       },
 
       _onUnload() {
