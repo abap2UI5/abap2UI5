@@ -358,10 +358,36 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      };` && |\n| &&
              `` && |\n| &&
+             `      const hasFocus = () => {` && |\n| &&
+             `        const dom =` && |\n| &&
+             `          (oElement.getFocusDomRef && oElement.getFocusDomRef()) ||` && |\n| &&
+             `          oElement.getDomRef();` && |\n| &&
+             `        return !!dom && dom.contains(document.activeElement);` && |\n| &&
+             `      };` && |\n| &&
+             `` && |\n| &&
+             `      // Applying the focus once is not enough on older UI5 releases (e.g.` && |\n| &&
+             `      // 1.71): when SET_FOCUS arrives together with a fresh view build, the` && |\n| &&
+             `      // initial rendering is not settled yet when this runs - the` && |\n| &&
+             `      // NavContainer's first-render autofocus and its page transitions move` && |\n| &&
+             `      // the focus again afterwards, and focus() is a no-op while the target` && |\n| &&
+             `      // is still hidden. Verify the focus actually stuck and re-apply it` && |\n| &&
+             `      // with increasing delays until it does. On current releases the first` && |\n| &&
+             `      // attempt sticks and no retry fires.` && |\n| &&
+             `      let attempts = 0;` && |\n| &&
+             `      const applyAndVerify = () => {` && |\n| &&
+             `        if (Lib.isDestroyed(oController) || Lib.isDestroyed(oElement)) return;` && |\n| &&
+             `        applyFocus();` && |\n| &&
+             `        attempts += 1;` && |\n| &&
+             `        if (attempts >= 5) return;` && |\n| &&
+             `        setTimeout(() => {` && |\n| &&
+             `          if (!hasFocus()) applyAndVerify();` && |\n| &&
+             `        }, attempts * 50);` && |\n| &&
+             `      };` && |\n| &&
+             `` && |\n| &&
              `      // The control may still be missing from the DOM when SET_FOCUS runs` && |\n| &&
              `      // together with a fresh view build. Apply now if it is rendered,` && |\n| &&
              `      // otherwise once it is.` && |\n| &&
-             `      Lib.whenRendered(oElement, oController, applyFocus);` && |\n| &&
+             `      Lib.whenRendered(oElement, oController, applyAndVerify);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evScrollTo(oController, args) {` && |\n| &&
@@ -392,6 +418,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            // ScrollEnablement / iScroll delegate: scrollTo(x, y, time)` && |\n| &&
              `            d.scrollTo(x, y, smooth ? 300 : 0);` && |\n| &&
              `            handled = true;` && |\n| &&
+             |\n|.
+    result = result &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          // fall through` && |\n| &&
@@ -418,8 +446,6 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        Lib.logError(``SCROLL_TO: failed for '${args[1]}'``, e);` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
-             |\n|.
-    result = result &&
              `` && |\n| &&
              `    function evScrollIntoView(oController, args) {` && |\n| &&
              `      // args[1] = control id` && |\n| &&

@@ -338,10 +338,36 @@ sap.ui.define(
         }
       };
 
+      const hasFocus = () => {
+        const dom =
+          (oElement.getFocusDomRef && oElement.getFocusDomRef()) ||
+          oElement.getDomRef();
+        return !!dom && dom.contains(document.activeElement);
+      };
+
+      // Applying the focus once is not enough on older UI5 releases (e.g.
+      // 1.71): when SET_FOCUS arrives together with a fresh view build, the
+      // initial rendering is not settled yet when this runs - the
+      // NavContainer's first-render autofocus and its page transitions move
+      // the focus again afterwards, and focus() is a no-op while the target
+      // is still hidden. Verify the focus actually stuck and re-apply it
+      // with increasing delays until it does. On current releases the first
+      // attempt sticks and no retry fires.
+      let attempts = 0;
+      const applyAndVerify = () => {
+        if (Lib.isDestroyed(oController) || Lib.isDestroyed(oElement)) return;
+        applyFocus();
+        attempts += 1;
+        if (attempts >= 5) return;
+        setTimeout(() => {
+          if (!hasFocus()) applyAndVerify();
+        }, attempts * 50);
+      };
+
       // The control may still be missing from the DOM when SET_FOCUS runs
       // together with a fresh view build. Apply now if it is rendered,
       // otherwise once it is.
-      Lib.whenRendered(oElement, oController, applyFocus);
+      Lib.whenRendered(oElement, oController, applyAndVerify);
     }
 
     function evScrollTo(oController, args) {
