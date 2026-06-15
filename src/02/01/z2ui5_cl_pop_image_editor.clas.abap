@@ -36,8 +36,8 @@ CLASS z2ui5_cl_pop_image_editor DEFINITION PUBLIC.
     DATA mv_cancel_text           TYPE string.
     DATA mv_save_text             TYPE string.
     DATA mv_customshapesrc        TYPE string.
-    DATA mv_keepcropaspectratio   TYPE abap_bool.
-    DATA mv_keepresizeaspectratio TYPE abap_bool.
+    DATA mv_keepcropaspectratio   TYPE string.
+    DATA mv_keepresizeaspectratio TYPE string.
     DATA mv_scalecroparea         TYPE string.
     DATA mv_customshapesrctype    TYPE string.
     DATA mv_enabledbuttons        TYPE string.

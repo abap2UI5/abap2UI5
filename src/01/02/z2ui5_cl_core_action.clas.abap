@@ -125,18 +125,17 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
     result = prepare_app_stack( ms_next-o_app_leave ).
 
+    DATA(lo_draft) = NEW z2ui5_cl_core_srv_draft( ).
+
     " check for new app?
-    TRY.
-        DATA(lo_draft) = NEW z2ui5_cl_core_srv_draft( ).
-        DATA(ls_draft) = lo_draft->read_info( ms_next-o_app_leave->id_draft ).
-      CATCH cx_root.
-        result->mo_app->ms_draft-id_prev_app_stack = mo_app->ms_draft-id_prev_app_stack.
-        RETURN.
-    ENDTRY.
+    IF lo_draft->check_exists( ms_next-o_app_leave->id_draft ) = abap_false.
+      result->mo_app->ms_draft-id_prev_app_stack = mo_app->ms_draft-id_prev_app_stack.
+      RETURN.
+    ENDIF.
 
     " check for already existing app?
     IF mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL.
-      ls_draft = lo_draft->read_info( mo_app->ms_draft-id_prev_app_stack ).
+      DATA(ls_draft) = lo_draft->read_info( mo_app->ms_draft-id_prev_app_stack ).
       result->mo_app->ms_draft-id_prev_app_stack = ls_draft-id_prev_app_stack.
     ENDIF.
 

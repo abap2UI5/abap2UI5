@@ -149,10 +149,8 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
           lo_val_front->to_abap( EXPORTING iv_corresponding = abap_true
                                  IMPORTING ev_container     = <val> ).
 
-        CATCH cx_root INTO DATA(x).
-          RAISE EXCEPTION TYPE z2ui5_cx_util_error
-            EXPORTING
-              val = |JSON_PARSING_ERROR: { x->get_text( ) } |.
+        CATCH cx_root.
+          CONTINUE.
       ENDTRY.
     ENDLOOP.
 
@@ -578,9 +576,12 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   METHOD dissolve.
 
+    DATA lv_depth TYPE i.
+
     WHILE line_exists( mt_attri->*[ check_dissolved = abap_false ] ) OR mt_attri->* IS INITIAL. "#EC CI_SORTSEQ
 
-      IF sy-index = max_dissolve_depth.
+      lv_depth = lv_depth + 1.
+      IF lv_depth >= max_dissolve_depth.
         RETURN.
       ENDIF.
 
