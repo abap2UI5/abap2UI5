@@ -149,8 +149,10 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
           lo_val_front->to_abap( EXPORTING iv_corresponding = abap_true
                                  IMPORTING ev_container     = <val> ).
 
-        CATCH cx_root.
-          CONTINUE.
+        CATCH cx_root INTO DATA(x).
+          RAISE EXCEPTION TYPE z2ui5_cx_util_error
+            EXPORTING
+              val = |JSON_PARSING_ERROR: { x->get_text( ) } |.
       ENDTRY.
     ENDLOOP.
 
