@@ -2,7 +2,7 @@ CLASS z2ui5_cl_core_srv_draft DEFINITION PUBLIC FINAL.
 
   PUBLIC SECTION.
     CONSTANTS c_seconds_per_hour TYPE i VALUE 3600.
-    CONSTANTS c_min_exp_time_in_hours TYPE i VALUE 3.
+    CONSTANTS c_min_exp_time_in_hours TYPE i VALUE 1.
 
     TYPES ty_s_db TYPE z2ui5_t_01.
 
