@@ -228,7 +228,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                 CLEAR so_sticky_handler.
               ENDIF.
             ENDIF.
-          CATCH cx_root ##NO_HANDLER.
+          CATCH cx_root.
+            CLEAR so_sticky_handler.
         ENDTRY.
 
       CATCH cx_root INTO DATA(x).
