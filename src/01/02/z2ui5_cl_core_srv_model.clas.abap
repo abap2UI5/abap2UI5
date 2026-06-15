@@ -578,9 +578,12 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   METHOD dissolve.
 
+    DATA lv_depth TYPE i.
+
     WHILE line_exists( mt_attri->*[ check_dissolved = abap_false ] ) OR mt_attri->* IS INITIAL. "#EC CI_SORTSEQ
 
-      IF sy-index = max_dissolve_depth.
+      lv_depth = lv_depth + 1.
+      IF lv_depth >= max_dissolve_depth.
         RETURN.
       ENDIF.
 
