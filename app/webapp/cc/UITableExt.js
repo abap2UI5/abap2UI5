@@ -45,6 +45,10 @@ sap.ui.define(
         try {
           const table = this._getTable();
           const binding = table?.getBinding();
+          // Remember the binding object we read from so the re-apply pass
+          // can skip when that same binding is still in place (see
+          // _applyFilters).
+          this._filterBinding = binding;
           // Prefer the public getFilters API (UI5 >= 1.96); older releases
           // only expose the private aFilters member.
           this.aFilters = !binding
@@ -61,6 +65,15 @@ sap.ui.define(
         if (!aFilters) return;
         const binding = oTable.getBinding();
         if (!binding) return;
+        // The re-apply pass (onAfterRoundtrip) runs synchronously right
+        // after the request is dispatched, before the response can rebuild
+        // the table. When the binding is still the exact object we read the
+        // filters from, it already carries them and the column indicators
+        // are in sync - re-running binding.filter() would re-evaluate the
+        // whole client dataset for an identical result. Only re-apply when
+        // the binding was replaced (e.g. a fresh view build produced a new,
+        // unfiltered binding).
+        if (binding === this._filterBinding) return;
         binding.filter(aFilters);
         const columns = oTable.getColumns();
 
@@ -128,6 +141,9 @@ sap.ui.define(
         try {
           const table = this._getTable();
           const binding = table?.getBinding();
+          // Same binding reference the sort re-apply checks against (see
+          // _applySorters).
+          this._sortBinding = binding;
           // Private member access: ListBinding has no public getter for the
           // active sorters (unlike getFilters for filters).
           this.aSorters = binding ? binding.aSorters : undefined;
@@ -140,6 +156,11 @@ sap.ui.define(
         if (!aSorters) return;
         const binding = oTable.getBinding();
         if (!binding) return;
+        // Same redundancy guard as _applyFilters: skip the re-sort when the
+        // binding is unchanged since readSort - it still holds these sorters
+        // and re-running binding.sort() would re-sort the whole dataset for
+        // an identical result. Re-apply only after a binding rebuild.
+        if (binding === this._sortBinding) return;
         binding.sort(aSorters);
 
         const columns = oTable.getColumns();
