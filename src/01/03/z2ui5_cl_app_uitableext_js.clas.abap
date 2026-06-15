@@ -65,6 +65,10 @@ CLASS z2ui5_cl_app_uitableext_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          const table = this._getTable();` && |\n| &&
              `          const binding = table?.getBinding();` && |\n| &&
+             `          // Remember the binding object we read from so the re-apply pass` && |\n| &&
+             `          // can skip when that same binding is still in place (see` && |\n| &&
+             `          // _applyFilters).` && |\n| &&
+             `          this._filterBinding = binding;` && |\n| &&
              `          // Prefer the public getFilters API (UI5 >= 1.96); older releases` && |\n| &&
              `          // only expose the private aFilters member.` && |\n| &&
              `          this.aFilters = !binding` && |\n| &&
@@ -81,6 +85,15 @@ CLASS z2ui5_cl_app_uitableext_js IMPLEMENTATION.
              `        if (!aFilters) return;` && |\n| &&
              `        const binding = oTable.getBinding();` && |\n| &&
              `        if (!binding) return;` && |\n| &&
+             `        // The re-apply pass (onAfterRoundtrip) runs synchronously right` && |\n| &&
+             `        // after the request is dispatched, before the response can rebuild` && |\n| &&
+             `        // the table. When the binding is still the exact object we read the` && |\n| &&
+             `        // filters from, it already carries them and the column indicators` && |\n| &&
+             `        // are in sync - re-running binding.filter() would re-evaluate the` && |\n| &&
+             `        // whole client dataset for an identical result. Only re-apply when` && |\n| &&
+             `        // the binding was replaced (e.g. a fresh view build produced a new,` && |\n| &&
+             `        // unfiltered binding).` && |\n| &&
+             `        if (binding === this._filterBinding) return;` && |\n| &&
              `        binding.filter(aFilters);` && |\n| &&
              `        const columns = oTable.getColumns();` && |\n| &&
              `` && |\n| &&
@@ -148,6 +161,9 @@ CLASS z2ui5_cl_app_uitableext_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          const table = this._getTable();` && |\n| &&
              `          const binding = table?.getBinding();` && |\n| &&
+             `          // Same binding reference the sort re-apply checks against (see` && |\n| &&
+             `          // _applySorters).` && |\n| &&
+             `          this._sortBinding = binding;` && |\n| &&
              `          // Private member access: ListBinding has no public getter for the` && |\n| &&
              `          // active sorters (unlike getFilters for filters).` && |\n| &&
              `          this.aSorters = binding ? binding.aSorters : undefined;` && |\n| &&
@@ -160,6 +176,11 @@ CLASS z2ui5_cl_app_uitableext_js IMPLEMENTATION.
              `        if (!aSorters) return;` && |\n| &&
              `        const binding = oTable.getBinding();` && |\n| &&
              `        if (!binding) return;` && |\n| &&
+             `        // Same redundancy guard as _applyFilters: skip the re-sort when the` && |\n| &&
+             `        // binding is unchanged since readSort - it still holds these sorters` && |\n| &&
+             `        // and re-running binding.sort() would re-sort the whole dataset for` && |\n| &&
+             `        // an identical result. Re-apply only after a binding rebuild.` && |\n| &&
+             `        if (binding === this._sortBinding) return;` && |\n| &&
              `        binding.sort(aSorters);` && |\n| &&
              `` && |\n| &&
              `        const columns = oTable.getColumns();` && |\n| &&
