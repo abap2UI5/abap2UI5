@@ -429,7 +429,12 @@ sap.ui.define(
           return;
         }
         if (!gav || !gav.includes("com.sap.ui5")) {
-          const missingModule = err?._modules;
+          // UI5 loader errors do not expose a stable module field; fall back
+          // to the quoted module path in the message so the hint stays useful
+          // instead of printing "module: undefined".
+          const moduleMatch = /['"]([\w./-]+)['"]/.exec(err?.message || "");
+          const missingModule =
+            err?._modules || moduleMatch?.[1] || "the requested module";
           this.responseError(
             `openui5 SDK is loaded, module: ${missingModule} is not available in openui5`,
           );

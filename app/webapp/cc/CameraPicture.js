@@ -16,9 +16,10 @@ sap.ui.define(
           id: { type: "string" },
           value: { type: "string" },
           thumbnail: { type: "string" },
-          press: { type: "string" },
-          width: { type: "string", defaultValue: "200" },
-          height: { type: "string", defaultValue: "200" },
+          // Empty default leaves the trigger button auto-sized; a bare
+          // number is treated as px (see renderer / onAfterRendering).
+          width: { type: "string", defaultValue: "" },
+          height: { type: "string", defaultValue: "" },
           autoplay: { type: "boolean", defaultValue: true },
           facingMode: { type: "string" },
           deviceId: { type: "string" },
@@ -31,6 +32,12 @@ sap.ui.define(
                 type: "string",
               },
             },
+          },
+          // Fired when the trigger button is pressed (the backend binds it
+          // via the `press` attribute, the same way as OnPhoto).
+          press: {
+            allowPreventDefault: true,
+            parameters: {},
           },
         },
       },
@@ -106,7 +113,7 @@ sap.ui.define(
             content: [
               new HTML({
                 id: `${this.getId()}PictureContainer`,
-                content: `<video style="width:100%;height:100%;object-fit:contain;" autoplay="true" id="${this.getId()}-video">`,
+                content: `<video style="width:100%;height:100%;object-fit:contain;"${this.getAutoplay() ? " autoplay" : ""} id="${this.getId()}-video">`,
               }),
               new Button({
                 text: "Capture",
@@ -171,6 +178,14 @@ sap.ui.define(
         if (this._oButton) this._oButton.destroy();
         if (this._oScanDialog) this._oScanDialog.destroy();
       },
+
+      // sap.m.Button has no height property, so apply it to the DOM here.
+      onAfterRendering() {
+        const h = this.getHeight();
+        const dom = this._oButton?.getDomRef();
+        if (h && dom) dom.style.height = /^\d+$/.test(h) ? `${h}px` : h;
+      },
+
       renderer: {
         apiVersion: 2,
         render(oRm, oControl) {
@@ -178,9 +193,17 @@ sap.ui.define(
             oControl._oButton = new Button({
               icon: "sap-icon://camera",
               text: "Camera",
-              press: oControl.onPicture.bind(oControl),
+              // Pressing the trigger notifies the backend (press event, when
+              // bound) and opens the local camera dialog.
+              press: () => {
+                oControl.firePress();
+                oControl.onPicture();
+              },
             });
           }
+          // width, when set, sizes the trigger button; a bare number is px.
+          const w = oControl.getWidth();
+          oControl._oButton.setWidth(/^\d+$/.test(w) ? `${w}px` : w);
           oRm.renderControl(oControl._oButton);
         },
       },

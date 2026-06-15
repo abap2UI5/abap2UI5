@@ -30,6 +30,9 @@ sap.ui.define(
           ui5_theme: {
             type: "string",
           },
+          ui5_gav: {
+            type: "string",
+          },
           device_os: {
             type: "string",
           },
@@ -67,6 +70,16 @@ sap.ui.define(
           const ui5Info = z2ui5.oConfig?.S_UI5;
           const ui5Version = ui5Info?.VERSION || "";
 
+          // Single system-type label, same derivation as Server._getDeviceInfo.
+          let systemType = "desktop";
+          if (system.phone) {
+            systemType = "phone";
+          } else if (system.tablet) {
+            systemType = "tablet";
+          } else if (system.combi) {
+            systemType = "combi";
+          }
+
           const props = [
             ["ui5_version", ui5Version],
             ["device_phone", system.phone],
@@ -75,6 +88,9 @@ sap.ui.define(
             ["device_combi", system.combi],
             ["device_height", resize.height],
             ["device_width", resize.width],
+            ["ui5_theme", ui5Info?.THEME || ""],
+            ["ui5_gav", ui5Info?.GAV || ""],
+            ["device_systemtype", systemType],
             ["device_os", os.name],
             ["device_browser", browser.name],
           ];

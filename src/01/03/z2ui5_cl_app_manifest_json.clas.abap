@@ -113,13 +113,6 @@ CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
              `          "target": [` &&
              `            "TargetView1"` &&
              `          ]` &&
-             `        },` &&
-             `        {` &&
-             `          "name": "RouteView2",` &&
-             `          "pattern": ":?query:",` &&
-             `          "target": [` &&
-             `            "TargetView2"` &&
-             `          ]` &&
              `        }` &&
              `      ],` &&
              `      "targets": {` &&
@@ -129,13 +122,6 @@ CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
              `          "clearControlAggregation": false,` &&
              `          "viewId": "View1",` &&
              `          "viewName": "View1"` &&
-             `        },` &&
-             `        "TargetView2": {` &&
-             `          "viewType": "XML",` &&
-             `          "transition": "flip",` &&
-             `          "clearControlAggregation": false,` &&
-             `          "viewId": "View2",` &&
-             `          "viewName": "View2"` &&
              `        }` &&
              `      }` &&
              `    },` &&

@@ -36,9 +36,10 @@ CLASS z2ui5_cl_app_camerapicture_js IMPLEMENTATION.
              `          id: { type: "string" },` && |\n| &&
              `          value: { type: "string" },` && |\n| &&
              `          thumbnail: { type: "string" },` && |\n| &&
-             `          press: { type: "string" },` && |\n| &&
-             `          width: { type: "string", defaultValue: "200" },` && |\n| &&
-             `          height: { type: "string", defaultValue: "200" },` && |\n| &&
+             `          // Empty default leaves the trigger button auto-sized; a bare` && |\n| &&
+             `          // number is treated as px (see renderer / onAfterRendering).` && |\n| &&
+             `          width: { type: "string", defaultValue: "" },` && |\n| &&
+             `          height: { type: "string", defaultValue: "" },` && |\n| &&
              `          autoplay: { type: "boolean", defaultValue: true },` && |\n| &&
              `          facingMode: { type: "string" },` && |\n| &&
              `          deviceId: { type: "string" },` && |\n| &&
@@ -51,6 +52,12 @@ CLASS z2ui5_cl_app_camerapicture_js IMPLEMENTATION.
              `                type: "string",` && |\n| &&
              `              },` && |\n| &&
              `            },` && |\n| &&
+             `          },` && |\n| &&
+             `          // Fired when the trigger button is pressed (the backend binds it` && |\n| &&
+             `          // via the ``press`` attribute, the same way as OnPhoto).` && |\n| &&
+             `          press: {` && |\n| &&
+             `            allowPreventDefault: true,` && |\n| &&
+             `            parameters: {},` && |\n| &&
              `          },` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
@@ -126,7 +133,7 @@ CLASS z2ui5_cl_app_camerapicture_js IMPLEMENTATION.
              `            content: [` && |\n| &&
              `              new HTML({` && |\n| &&
              `                id: ``${this.getId()}PictureContainer``,` && |\n| &&
-             `                content: ``<video style="width:100%;height:100%;object-fit:contain;" autoplay="true" id="${this.getId()}-video">``,` && |\n| &&
+             `                content: ``<video style="width:100%;height:100%;object-fit:contain;"${this.getAutoplay() ? " autoplay" : ""} id="${this.getId()}-video">``,` && |\n| &&
              `              }),` && |\n| &&
              `              new Button({` && |\n| &&
              `                text: "Capture",` && |\n| &&
@@ -191,6 +198,14 @@ CLASS z2ui5_cl_app_camerapicture_js IMPLEMENTATION.
              `        if (this._oButton) this._oButton.destroy();` && |\n| &&
              `        if (this._oScanDialog) this._oScanDialog.destroy();` && |\n| &&
              `      },` && |\n| &&
+             `` && |\n| &&
+             `      // sap.m.Button has no height property, so apply it to the DOM here.` && |\n| &&
+             `      onAfterRendering() {` && |\n| &&
+             `        const h = this.getHeight();` && |\n| &&
+             `        const dom = this._oButton?.getDomRef();` && |\n| &&
+             `        if (h && dom) dom.style.height = /^\d+$/.test(h) ? ``${h}px`` : h;` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      renderer: {` && |\n| &&
              `        apiVersion: 2,` && |\n| &&
              `        render(oRm, oControl) {` && |\n| &&
@@ -198,9 +213,17 @@ CLASS z2ui5_cl_app_camerapicture_js IMPLEMENTATION.
              `            oControl._oButton = new Button({` && |\n| &&
              `              icon: "sap-icon://camera",` && |\n| &&
              `              text: "Camera",` && |\n| &&
-             `              press: oControl.onPicture.bind(oControl),` && |\n| &&
+             `              // Pressing the trigger notifies the backend (press event, when` && |\n| &&
+             `              // bound) and opens the local camera dialog.` && |\n| &&
+             `              press: () => {` && |\n| &&
+             `                oControl.firePress();` && |\n| &&
+             `                oControl.onPicture();` && |\n| &&
+             `              },` && |\n| &&
              `            });` && |\n| &&
              `          }` && |\n| &&
+             `          // width, when set, sizes the trigger button; a bare number is px.` && |\n| &&
+             `          const w = oControl.getWidth();` && |\n| &&
+             `          oControl._oButton.setWidth(/^\d+$/.test(w) ? ``${w}px`` : w);` && |\n| &&
              `          oRm.renderControl(oControl._oButton);` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&

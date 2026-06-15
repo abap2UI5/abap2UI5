@@ -451,7 +451,12 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        if (!gav || !gav.includes("com.sap.ui5")) {` && |\n| &&
-             `          const missingModule = err?._modules;` && |\n| &&
+             `          // UI5 loader errors do not expose a stable module field; fall back` && |\n| &&
+             `          // to the quoted module path in the message so the hint stays useful` && |\n| &&
+             `          // instead of printing "module: undefined".` && |\n| &&
+             `          const moduleMatch = /['"]([\w./-]+)['"]/.exec(err?.message || "");` && |\n| &&
+             `          const missingModule =` && |\n| &&
+             `            err?._modules || moduleMatch?.[1] || "the requested module";` && |\n| &&
              `          this.responseError(` && |\n| &&
              `            ``openui5 SDK is loaded, module: ${missingModule} is not available in openui5``,` && |\n| &&
              `          );` && |\n| &&
