@@ -50,6 +50,9 @@ CLASS z2ui5_cl_app_info_js IMPLEMENTATION.
              `          ui5_theme: {` && |\n| &&
              `            type: "string",` && |\n| &&
              `          },` && |\n| &&
+             `          ui5_gav: {` && |\n| &&
+             `            type: "string",` && |\n| &&
+             `          },` && |\n| &&
              `          device_os: {` && |\n| &&
              `            type: "string",` && |\n| &&
              `          },` && |\n| &&
@@ -106,6 +109,7 @@ CLASS z2ui5_cl_app_info_js IMPLEMENTATION.
              `            ["device_height", resize.height],` && |\n| &&
              `            ["device_width", resize.width],` && |\n| &&
              `            ["ui5_theme", ui5Info?.THEME || ""],` && |\n| &&
+             `            ["ui5_gav", ui5Info?.GAV || ""],` && |\n| &&
              `            ["device_systemtype", systemType],` && |\n| &&
              `            ["device_os", os.name],` && |\n| &&
              `            ["device_browser", browser.name],` && |\n| &&
