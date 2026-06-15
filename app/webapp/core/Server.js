@@ -101,34 +101,42 @@ sap.ui.define(
 
       _getDeviceInfo() {
         const d = Device;
-        const sys = d.system;
-        let system = "desktop";
-        if (sys.phone) {
-          system = "phone";
-        } else if (sys.tablet) {
-          system = "tablet";
-        } else if (sys.combi) {
-          system = "combi";
+        // SYSTEM / BROWSER / OS / SUPPORT are fixed for the lifetime of the
+        // session, so resolve them once and reuse the cached block; only
+        // ORIENTATION and RESIZE are read fresh on every roundtrip.
+        if (!this._deviceStatic) {
+          const sys = d.system;
+          let system = "desktop";
+          if (sys.phone) {
+            system = "phone";
+          } else if (sys.tablet) {
+            system = "tablet";
+          } else if (sys.combi) {
+            system = "combi";
+          }
+          this._deviceStatic = {
+            SYSTEM: system,
+            BROWSER: {
+              NAME: d.browser.name || "",
+              VERSION: String(d.browser.version || ""),
+            },
+            OS: {
+              NAME: d.os.name || "",
+              VERSION: String(d.os.version || ""),
+            },
+            SUPPORT: {
+              TOUCH: d.support.touch || false,
+              POINTER: d.support.pointer || false,
+              RETINA: d.support.retina || false,
+            },
+          };
         }
         return {
-          SYSTEM: system,
+          ...this._deviceStatic,
           ORIENTATION: d.orientation.portrait ? "portrait" : "landscape",
-          BROWSER: {
-            NAME: d.browser.name || "",
-            VERSION: String(d.browser.version || ""),
-          },
-          OS: {
-            NAME: d.os.name || "",
-            VERSION: String(d.os.version || ""),
-          },
           RESIZE: {
             WIDTH: d.resize.width || window.innerWidth,
             HEIGHT: d.resize.height || window.innerHeight,
-          },
-          SUPPORT: {
-            TOUCH: d.support.touch || false,
-            POINTER: d.support.pointer || false,
-            RETINA: d.support.retina || false,
           },
         };
       },
@@ -173,12 +181,28 @@ sap.ui.define(
       onScrollCapture(event) {
         const target = event.target;
         if (!target || target.nodeType !== 1) return;
-        const ui5El = Element.closestTo?.(target) ?? null;
-        if (!ui5El) return;
 
-        const slotKey = ViewSlots.containingSlotKey(ui5El);
-        if (slotKey) {
-          z2ui5.lastScrolled[slotKey] = { control: ui5El, dom: target };
+        // Scroll events fire up to once per frame per element while the user
+        // drags, but the same DOM element keeps firing throughout a gesture.
+        // Resolving the UI5 control (Element.closestTo) and walking it up to
+        // its view slot (ViewSlots.containingSlotKey) is the expensive part,
+        // so cache that resolution keyed by the element: it runs once per
+        // scrolled element instead of once per event. Only the cheap
+        // scroll-position record stays per event.
+        if (target !== this._lastScrollTarget) {
+          const ui5El = Element.closestTo?.(target) ?? null;
+          this._lastScrollTarget = target;
+          this._lastScrollUi5El = ui5El;
+          this._lastScrollSlotKey = ui5El
+            ? ViewSlots.containingSlotKey(ui5El)
+            : undefined;
+        }
+
+        if (this._lastScrollSlotKey) {
+          z2ui5.lastScrolled[this._lastScrollSlotKey] = {
+            control: this._lastScrollUi5El,
+            dom: target,
+          };
         }
       },
 

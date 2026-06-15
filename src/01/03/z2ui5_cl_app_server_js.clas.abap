@@ -121,34 +121,42 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `      _getDeviceInfo() {` && |\n| &&
              `        const d = Device;` && |\n| &&
-             `        const sys = d.system;` && |\n| &&
-             `        let system = "desktop";` && |\n| &&
-             `        if (sys.phone) {` && |\n| &&
-             `          system = "phone";` && |\n| &&
-             `        } else if (sys.tablet) {` && |\n| &&
-             `          system = "tablet";` && |\n| &&
-             `        } else if (sys.combi) {` && |\n| &&
-             `          system = "combi";` && |\n| &&
+             `        // SYSTEM / BROWSER / OS / SUPPORT are fixed for the lifetime of the` && |\n| &&
+             `        // session, so resolve them once and reuse the cached block; only` && |\n| &&
+             `        // ORIENTATION and RESIZE are read fresh on every roundtrip.` && |\n| &&
+             `        if (!this._deviceStatic) {` && |\n| &&
+             `          const sys = d.system;` && |\n| &&
+             `          let system = "desktop";` && |\n| &&
+             `          if (sys.phone) {` && |\n| &&
+             `            system = "phone";` && |\n| &&
+             `          } else if (sys.tablet) {` && |\n| &&
+             `            system = "tablet";` && |\n| &&
+             `          } else if (sys.combi) {` && |\n| &&
+             `            system = "combi";` && |\n| &&
+             `          }` && |\n| &&
+             `          this._deviceStatic = {` && |\n| &&
+             `            SYSTEM: system,` && |\n| &&
+             `            BROWSER: {` && |\n| &&
+             `              NAME: d.browser.name || "",` && |\n| &&
+             `              VERSION: String(d.browser.version || ""),` && |\n| &&
+             `            },` && |\n| &&
+             `            OS: {` && |\n| &&
+             `              NAME: d.os.name || "",` && |\n| &&
+             `              VERSION: String(d.os.version || ""),` && |\n| &&
+             `            },` && |\n| &&
+             `            SUPPORT: {` && |\n| &&
+             `              TOUCH: d.support.touch || false,` && |\n| &&
+             `              POINTER: d.support.pointer || false,` && |\n| &&
+             `              RETINA: d.support.retina || false,` && |\n| &&
+             `            },` && |\n| &&
+             `          };` && |\n| &&
              `        }` && |\n| &&
              `        return {` && |\n| &&
-             `          SYSTEM: system,` && |\n| &&
+             `          ...this._deviceStatic,` && |\n| &&
              `          ORIENTATION: d.orientation.portrait ? "portrait" : "landscape",` && |\n| &&
-             `          BROWSER: {` && |\n| &&
-             `            NAME: d.browser.name || "",` && |\n| &&
-             `            VERSION: String(d.browser.version || ""),` && |\n| &&
-             `          },` && |\n| &&
-             `          OS: {` && |\n| &&
-             `            NAME: d.os.name || "",` && |\n| &&
-             `            VERSION: String(d.os.version || ""),` && |\n| &&
-             `          },` && |\n| &&
              `          RESIZE: {` && |\n| &&
              `            WIDTH: d.resize.width || window.innerWidth,` && |\n| &&
              `            HEIGHT: d.resize.height || window.innerHeight,` && |\n| &&
-             `          },` && |\n| &&
-             `          SUPPORT: {` && |\n| &&
-             `            TOUCH: d.support.touch || false,` && |\n| &&
-             `            POINTER: d.support.pointer || false,` && |\n| &&
-             `            RETINA: d.support.retina || false,` && |\n| &&
              `          },` && |\n| &&
              `        };` && |\n| &&
              `      },` && |\n| &&
@@ -193,12 +201,28 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      onScrollCapture(event) {` && |\n| &&
              `        const target = event.target;` && |\n| &&
              `        if (!target || target.nodeType !== 1) return;` && |\n| &&
-             `        const ui5El = Element.closestTo?.(target) ?? null;` && |\n| &&
-             `        if (!ui5El) return;` && |\n| &&
              `` && |\n| &&
-             `        const slotKey = ViewSlots.containingSlotKey(ui5El);` && |\n| &&
-             `        if (slotKey) {` && |\n| &&
-             `          z2ui5.lastScrolled[slotKey] = { control: ui5El, dom: target };` && |\n| &&
+             `        // Scroll events fire up to once per frame per element while the user` && |\n| &&
+             `        // drags, but the same DOM element keeps firing throughout a gesture.` && |\n| &&
+             `        // Resolving the UI5 control (Element.closestTo) and walking it up to` && |\n| &&
+             `        // its view slot (ViewSlots.containingSlotKey) is the expensive part,` && |\n| &&
+             `        // so cache that resolution keyed by the element: it runs once per` && |\n| &&
+             `        // scrolled element instead of once per event. Only the cheap` && |\n| &&
+             `        // scroll-position record stays per event.` && |\n| &&
+             `        if (target !== this._lastScrollTarget) {` && |\n| &&
+             `          const ui5El = Element.closestTo?.(target) ?? null;` && |\n| &&
+             `          this._lastScrollTarget = target;` && |\n| &&
+             `          this._lastScrollUi5El = ui5El;` && |\n| &&
+             `          this._lastScrollSlotKey = ui5El` && |\n| &&
+             `            ? ViewSlots.containingSlotKey(ui5El)` && |\n| &&
+             `            : undefined;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        if (this._lastScrollSlotKey) {` && |\n| &&
+             `          z2ui5.lastScrolled[this._lastScrollSlotKey] = {` && |\n| &&
+             `            control: this._lastScrollUi5El,` && |\n| &&
+             `            dom: target,` && |\n| &&
+             `          };` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -394,6 +418,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          }` && |\n| &&
              `` && |\n| &&
              `          // Partial response: refresh whichever existing views the backend` && |\n| &&
+             |\n|.
+    result = result &&
              `          // sent updates for.` && |\n| &&
              `          for (const slot of ViewSlots.slots) {` && |\n| &&
              `            oController.updateModelIfRequired(slot.key);` && |\n| &&
@@ -418,8 +444,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      async _checkSDKcompatibility(err) {` && |\n| &&
              `        let gav;` && |\n| &&
              `        try {` && |\n| &&
-             |\n|.
-    result = result &&
              `          const info = await VersionInfo.load();` && |\n| &&
              `          gav = info.gav;` && |\n| &&
              `        } catch (e) {` && |\n| &&
