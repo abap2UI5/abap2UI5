@@ -1,0 +1,16 @@
+{
+  "name": "abap2ui5",
+  "owner": {
+    "name": "abap2UI5 community"
+  },
+  "description": "Claude Code plugins for building abap2UI5 applications in ABAP.",
+  "plugins": [
+    {
+      "name": "abap2ui5-app",
+      "source": "./",
+      "description": "Build abap2UI5 apps in pure ABAP: views, binding, events, navigation, popups, with a mined recipe + control catalog.",
+      "category": "development",
+      "keywords": ["abap", "abap2ui5", "ui5", "sap"]
+    }
+  ]
+}
