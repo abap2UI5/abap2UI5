@@ -1,0 +1,13 @@
+{
+  "name": "abap2ui5-app",
+  "displayName": "abap2UI5 App Builder",
+  "description": "Build abap2UI5 applications in pure ABAP — fluent z2ui5_cl_xml_view views, data binding, events, navigation, popups, plus a recipe and control catalog mined from the official samples.",
+  "version": "0.1.0",
+  "author": {
+    "name": "abap2UI5 community"
+  },
+  "homepage": "https://abap2ui5.org",
+  "repository": "https://github.com/abap2UI5/abap2UI5",
+  "license": "MIT",
+  "keywords": ["abap", "abap2ui5", "ui5", "sap", "fiori"]
+}
