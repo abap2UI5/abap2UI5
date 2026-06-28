@@ -532,6 +532,13 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    CLASS-METHODS conv_exit
+      IMPORTING
+        convexit TYPE clike
+        output   TYPE abap_bool DEFAULT abap_false
+      CHANGING
+        value    TYPE data.
+
     CLASS-METHODS rtti_check_clike
       IMPORTING
         val           TYPE any
@@ -1471,6 +1478,41 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         ENDCASE.
       CATCH cx_root INTO DATA(x).
         DATA(lv_error) = x->get_text( ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD conv_exit.
+
+    DATA(conex) = COND string( WHEN output = abap_true
+                               THEN |CONVERSION_EXIT_{ convexit }_OUTPUT|
+                               ELSE |CONVERSION_EXIT_{ convexit }_INPUT| ).
+
+    TRY.
+        IF convexit = `CUNIT`.
+
+          CALL FUNCTION conex
+            EXPORTING
+              input    = value
+              language = sy-langu
+            IMPORTING
+              output   = value
+            EXCEPTIONS
+              OTHERS   = 99.
+
+        ELSE.
+
+          CALL FUNCTION conex
+            EXPORTING
+              input  = value
+            IMPORTING
+              output = value
+            EXCEPTIONS
+              OTHERS = 99.
+
+        ENDIF.
+
+      CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
   ENDMETHOD.
