@@ -177,7 +177,7 @@ sap.ui.define(
       const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";
       try {
         const container = z2ui5.oLaunchpad?.Container;
-        if (container?.logout && args.length == 0  ) {
+        if (container?.logout && args.length == 0) {
           container.logout();
           return;
         }
