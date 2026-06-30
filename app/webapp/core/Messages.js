@@ -21,7 +21,7 @@ sap.ui.define(
         autoClose: !!msg.AUTOCLOSE,
         animationTimingFunction: msg.ANIMATIONTIMINGFUNCTION || "ease",
         animationDuration: parseMs(msg.ANIMATIONDURATION, 1000),
-        closeonBrowserNavigation: !!msg.CLOSEONBROWSERNAVIGATION,
+        closeOnBrowserNavigation: !!msg.CLOSEONBROWSERNAVIGATION,
       });
       if (msg.CLASS) {
         const classes = msg.CLASS.trim().split(/\s+/).filter(Boolean);

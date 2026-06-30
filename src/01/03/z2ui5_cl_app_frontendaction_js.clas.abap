@@ -103,7 +103,11 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      const a = document.createElement("a");` && |\n| &&
              `      a.href = args[1];` && |\n| &&
              `      a.download = args[2];` && |\n| &&
+             `      // Firefox only triggers a programmatic download click when the anchor` && |\n| &&
+             `      // is part of the document, so attach it briefly and remove it again.` && |\n| &&
+             `      document.body.appendChild(a);` && |\n| &&
              `      a.click();` && |\n| &&
+             `      document.body.removeChild(a);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evCrossAppNavToPrevApp() {` && |\n| &&
@@ -197,7 +201,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";` && |\n| &&
              `      try {` && |\n| &&
              `        const container = z2ui5.oLaunchpad?.Container;` && |\n| &&
-             `        if (container?.logout && args.length == 0) {` && |\n| &&
+             `        // No explicit logout URL was passed (args is just the event name):` && |\n| &&
+             `        // inside the launchpad, prefer its own logout over the BSP/ICF` && |\n| &&
+             `        // redirect below.` && |\n| &&
+             `        if (container?.logout && args.length <= 1) {` && |\n| &&
              `          container.logout();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -411,6 +418,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          } else if (oElement.scrollTo) {` && |\n| &&
              `            // sap.m.Page.scrollTo(y, time) - vertical only` && |\n| &&
              `            oElement.scrollTo(y, smooth ? 300 : 0);` && |\n| &&
+             |\n|.
+    result = result &&
              `            handled = true;` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
@@ -418,8 +427,6 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        Lib.logError(``SCROLL_TO: failed for '${args[1]}'``, e);` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
-             |\n|.
-    result = result &&
              `` && |\n| &&
              `    function evScrollIntoView(oController, args) {` && |\n| &&
              `      // args[1] = control id` && |\n| &&
@@ -545,15 +552,21 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    function execute(oController, args) {` && |\n| &&
              `      Lib.runCallbacks(z2ui5.onBeforeEventFrontend, args);` && |\n| &&
              `` && |\n| &&
-             `      // NavContainer navigation is dispatched via lookup table.` && |\n| &&
-             `      const navLookup = navContainerLookups[args[0]];` && |\n| &&
-             `      if (navLookup) {` && |\n| &&
-             `        navigateContainer(navLookup, args);` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
+             `      try {` && |\n| &&
+             `        // NavContainer navigation is dispatched via lookup table.` && |\n| &&
+             `        const navLookup = navContainerLookups[args[0]];` && |\n| &&
+             `        if (navLookup) {` && |\n| &&
+             `          navigateContainer(navLookup, args);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
              `` && |\n| &&
-             `      const handler = handlers[args[0]];` && |\n| &&
-             `      if (handler) handler(oController, args);` && |\n| &&
+             `        const handler = handlers[args[0]];` && |\n| &&
+             `        if (handler) handler(oController, args);` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        // Backstop: individual handlers already guard themselves, but a` && |\n| &&
+             `        // malformed payload must never let an error escape into the caller.` && |\n| &&
+             `        Lib.logError(``FrontendAction: handler '${args[0]}' failed``, e);` && |\n| &&
+             `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    return { execute };` && |\n| &&

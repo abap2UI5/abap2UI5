@@ -41,7 +41,7 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `        autoClose: !!msg.AUTOCLOSE,` && |\n| &&
              `        animationTimingFunction: msg.ANIMATIONTIMINGFUNCTION || "ease",` && |\n| &&
              `        animationDuration: parseMs(msg.ANIMATIONDURATION, 1000),` && |\n| &&
-             `        closeonBrowserNavigation: !!msg.CLOSEONBROWSERNAVIGATION,` && |\n| &&
+             `        closeOnBrowserNavigation: !!msg.CLOSEONBROWSERNAVIGATION,` && |\n| &&
              `      });` && |\n| &&
              `      if (msg.CLASS) {` && |\n| &&
              `        const classes = msg.CLASS.trim().split(/\s+/).filter(Boolean);` && |\n| &&
