@@ -197,7 +197,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";` && |\n| &&
              `      try {` && |\n| &&
              `        const container = z2ui5.oLaunchpad?.Container;` && |\n| &&
-             `        if (container?.logout) {` && |\n| &&
+             `        if (container?.logout && args.length == 0) {` && |\n| &&
              `          container.logout();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
