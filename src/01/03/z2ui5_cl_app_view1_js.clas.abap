@@ -417,8 +417,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // If the user edited /XX/ paths, send only the delta to keep the` && |\n| &&
              `        // payload small.` && |\n| &&
              `        if (oModel && z2ui5.xxChangedPaths.size > 0) {` && |\n| &&
-             `          const data = oModel.getData();` && |\n| &&
-             |\n|.
+             `          const data = oModel.getData();` && |\n|.
     result = result &&
              `          const xx = data?.XX;` && |\n| &&
              `          if (xx) {` && |\n| &&
@@ -445,9 +444,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (!slotKey) return undefined;` && |\n| &&
              `` && |\n| &&
              `        if (slotKey === "MAIN") {` && |\n| &&
-             `          const sView = z2ui5.oResponse?.PARAMS` && |\n| &&
-             `            ? z2ui5.oResponse.PARAMS.S_VIEW` && |\n| &&
-             `            : null;` && |\n| &&
+             `          const sView = z2ui5.oResponse?.PARAMS?.S_VIEW ?? null;` && |\n| &&
              `          if (sView?.SWITCH_DEFAULT_MODEL_PATH) {` && |\n| &&
              `            return ViewSlots.getView("MAIN")?.getModel("http");` && |\n| &&
              `          }` && |\n| &&
@@ -497,9 +494,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      async displayView(xml, viewModel) {` && |\n| &&
              `        const oViewModel = this._trackChanges(new JSONModel(viewModel));` && |\n| &&
              `` && |\n| &&
-             `        const sView = z2ui5.oResponse?.PARAMS` && |\n| &&
-             `          ? z2ui5.oResponse.PARAMS.S_VIEW` && |\n| &&
-             `          : null;` && |\n| &&
+             `        const sView = z2ui5.oResponse?.PARAMS?.S_VIEW ?? null;` && |\n| &&
              `        const switchPath = sView?.SWITCH_DEFAULT_MODEL_PATH;` && |\n| &&
              `` && |\n| &&
              `        // When the app wants OData as the default model, build it here and` && |\n| &&

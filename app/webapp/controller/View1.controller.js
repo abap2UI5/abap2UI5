@@ -423,9 +423,7 @@ sap.ui.define(
         if (!slotKey) return undefined;
 
         if (slotKey === "MAIN") {
-          const sView = z2ui5.oResponse?.PARAMS
-            ? z2ui5.oResponse.PARAMS.S_VIEW
-            : null;
+          const sView = z2ui5.oResponse?.PARAMS?.S_VIEW ?? null;
           if (sView?.SWITCH_DEFAULT_MODEL_PATH) {
             return ViewSlots.getView("MAIN")?.getModel("http");
           }
@@ -475,9 +473,7 @@ sap.ui.define(
       async displayView(xml, viewModel) {
         const oViewModel = this._trackChanges(new JSONModel(viewModel));
 
-        const sView = z2ui5.oResponse?.PARAMS
-          ? z2ui5.oResponse.PARAMS.S_VIEW
-          : null;
+        const sView = z2ui5.oResponse?.PARAMS?.S_VIEW ?? null;
         const switchPath = sView?.SWITCH_DEFAULT_MODEL_PATH;
 
         // When the app wants OData as the default model, build it here and

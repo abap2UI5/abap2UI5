@@ -417,8 +417,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          }` && |\n| &&
              `` && |\n| &&
              `          // Partial response: refresh whichever existing views the backend` && |\n| &&
-             `          // sent updates for.` && |\n| &&
-             |\n|.
+             `          // sent updates for.` && |\n|.
     result = result &&
              `          for (const slot of ViewSlots.slots) {` && |\n| &&
              `            oController.updateModelIfRequired(slot.key);` && |\n| &&

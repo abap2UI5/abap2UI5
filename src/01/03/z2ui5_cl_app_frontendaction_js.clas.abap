@@ -417,8 +417,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            oElement.getDomRef();` && |\n| &&
              `          if (dom?.scrollTo) {` && |\n| &&
              `            dom.scrollTo({ top: y, left: x, behavior });` && |\n| &&
-             `            handled = true;` && |\n| &&
-             |\n|.
+             `            handled = true;` && |\n|.
     result = result &&
              `          } else if (dom) {` && |\n| &&
              `            dom.scrollTop = y;` && |\n| &&
