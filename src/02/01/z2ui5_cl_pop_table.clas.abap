@@ -74,7 +74,7 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
         lv_ddic_field_label = z2ui5_cl_util=>rtti_get_data_element_text_l( lv_name ).
 
         IF lv_ddic_field_label IS NOT INITIAL.
-          columns->column( '8rem' )->header( `` )->text( lv_ddic_field_label ).
+          columns->column( `8rem` )->header( `` )->text( lv_ddic_field_label ).
           CONTINUE.
         ENDIF.
       ENDIF.

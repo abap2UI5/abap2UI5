@@ -778,10 +778,11 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
         IF sy-subrc <> 0.
           CONTINUE.
         ENDIF.
-        IF lo_row_d->get_node_type( |/{ lv_fld }| ) = z2ui5_if_ajson_types=>node_type-boolean.
-          <comp> = lo_row_d->get_boolean( |/{ lv_fld }| ).
+        DATA(lv_fld_path) = |/{ lv_fld }|.
+        IF lo_row_d->get_node_type( lv_fld_path ) = z2ui5_if_ajson_types=>node_type-boolean.
+          <comp> = lo_row_d->get_boolean( lv_fld_path ).
         ELSE.
-          <comp> = lo_row_d->get_string( |/{ lv_fld }| ).
+          <comp> = lo_row_d->get_string( lv_fld_path ).
         ENDIF.
       ENDLOOP.
     ENDLOOP.

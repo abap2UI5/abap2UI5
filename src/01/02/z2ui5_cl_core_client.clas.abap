@@ -70,9 +70,9 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
   METHOD z2ui5_if_client~check_on_event.
 
     IF val IS NOT INITIAL.
-      result = xsdbool( z2ui5_if_client~get( )-event = val ).
+      result = xsdbool( mo_action->ms_actual-event = val ).
     ELSE.
-      result = xsdbool( z2ui5_if_client~get( )-event <> `` ).
+      result = xsdbool( mo_action->ms_actual-event <> `` ).
     ENDIF.
 
   ENDMETHOD.
@@ -237,7 +237,7 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
   METHOD z2ui5_if_client~nav_app_leave.
 
     IF app IS NOT SUPPLIED.
-      app = z2ui5_if_client~get_app( z2ui5_if_client~get( )-s_draft-id_prev_app_stack ).
+      app = z2ui5_if_client~get_app( mo_action->mo_app->ms_draft-id_prev_app_stack ).
     ENDIF.
 
     mo_action->ms_next-o_app_leave = app.
