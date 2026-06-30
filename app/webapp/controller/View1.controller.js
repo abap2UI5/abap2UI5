@@ -209,56 +209,59 @@ sap.ui.define(
       },
 
       async displayPopover(xml, openById) {
-        try {
-          const oModel = this._createViewModel();
-          applyStoredSizeLimit("POPOVER", oModel);
-          const oFragment = await Fragment.load({
-            definition: xml,
-            controller: ViewSlots.getController("POPOVER"),
-            id: "popoverId",
-          });
-          if (!Lib.isAlive(z2ui5.oApp)) {
-            oFragment.destroy();
-            return;
-          }
-          oFragment.setModel(oModel);
-
-          // Find the control to attach the popover to. We search the main
-          // view first, then any open popup / nested views, then the global
-          // UI5 control registry as a last resort.
-          let oControl =
-            ViewSlots.byId("MAIN", openById) ||
-            ViewSlots.byId("POPUP", openById) ||
-            ViewSlots.byId("NEST", openById) ||
-            ViewSlots.byId("NEST2", openById);
-          if (!oControl) {
-            if (Element.getElementById) {
-              oControl = Element.getElementById(openById);
-            } else {
-              /* ui5lint-disable no-globals, no-deprecated-api --
-                 deliberate fallback for UI5 releases that do not provide
-                 Element.getElementById yet (added in 1.119); the modern
-                 API is used in the branch above. */
-              if (sap.ui.getCore) {
-                const core = sap.ui.getCore();
-                if (core?.byId) oControl = core.byId(openById);
-              }
-              /* ui5lint-enable no-globals, no-deprecated-api */
-            }
-          }
-
-          if (!oControl) {
-            Lib.logError(
-              `displayPopover: openBy control '${openById}' not found`,
-            );
-            oFragment.destroy();
-            return;
-          }
-          ViewSlots.setView("POPOVER", oFragment);
-          oFragment.openBy(oControl);
-        } catch (e) {
-          Lib.logError("displayPopover: failed", e);
+        // No catch-all here on purpose: a malformed-XML load or render
+        // failure must propagate to _processAfterRendering and surface the
+        // fatal "App Terminated" overlay, exactly like displayFragment and
+        // displayNestedView. The explicit returns below stay graceful - they
+        // handle expected, non-error conditions (app torn down mid-load, or
+        // the openBy anchor not being present), matching the parent-not-found
+        // guard in displayNestedView.
+        const oModel = this._createViewModel();
+        applyStoredSizeLimit("POPOVER", oModel);
+        const oFragment = await Fragment.load({
+          definition: xml,
+          controller: ViewSlots.getController("POPOVER"),
+          id: "popoverId",
+        });
+        if (!Lib.isAlive(z2ui5.oApp)) {
+          oFragment.destroy();
+          return;
         }
+        oFragment.setModel(oModel);
+
+        // Find the control to attach the popover to. We search the main
+        // view first, then any open popup / nested views, then the global
+        // UI5 control registry as a last resort.
+        let oControl =
+          ViewSlots.byId("MAIN", openById) ||
+          ViewSlots.byId("POPUP", openById) ||
+          ViewSlots.byId("NEST", openById) ||
+          ViewSlots.byId("NEST2", openById);
+        if (!oControl) {
+          if (Element.getElementById) {
+            oControl = Element.getElementById(openById);
+          } else {
+            /* ui5lint-disable no-globals, no-deprecated-api --
+               deliberate fallback for UI5 releases that do not provide
+               Element.getElementById yet (added in 1.119); the modern
+               API is used in the branch above. */
+            if (sap.ui.getCore) {
+              const core = sap.ui.getCore();
+              if (core?.byId) oControl = core.byId(openById);
+            }
+            /* ui5lint-enable no-globals, no-deprecated-api */
+          }
+        }
+
+        if (!oControl) {
+          Lib.logError(
+            `displayPopover: openBy control '${openById}' not found`,
+          );
+          oFragment.destroy();
+          return;
+        }
+        ViewSlots.setView("POPOVER", oFragment);
+        oFragment.openBy(oControl);
       },
 
       async displayNestedView(xml, slotKey) {
