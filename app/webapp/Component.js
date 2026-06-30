@@ -119,7 +119,14 @@ sap.ui.define(
           }
         };
 
-        Container.getServiceAsync("ShellUIService")
+        // ShellUIService is a UI5 service (factory
+        // sap.ushell.ui5service.ShellUIService, declared in manifest.json),
+        // not a Container service. Requesting it via Container.getServiceAsync
+        // resolves to sap/ushell/services/ShellUIService.js, which does not
+        // exist in the (ABAP) launchpad and fails with a 404. The component's
+        // getService() honors the manifest declaration and returns the
+        // correctly scoped instance.
+        this.getService("ShellUIService")
           .then((s) => setIfAlive("ShellUIService", s))
           .catch((e) =>
             Lib.logError("Component: ShellUIService init failed", e),
