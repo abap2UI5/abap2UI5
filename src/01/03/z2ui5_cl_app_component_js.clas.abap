@@ -139,7 +139,14 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `          }` && |\n| &&
              `        };` && |\n| &&
              `` && |\n| &&
-             `        Container.getServiceAsync("ShellUIService")` && |\n| &&
+             `        // ShellUIService is a UI5 service (factory` && |\n| &&
+             `        // sap.ushell.ui5service.ShellUIService, declared in manifest.json),` && |\n| &&
+             `        // not a Container service. Requesting it via Container.getServiceAsync` && |\n| &&
+             `        // resolves to sap/ushell/services/ShellUIService.js, which does not` && |\n| &&
+             `        // exist in the (ABAP) launchpad and fails with a 404. The component's` && |\n| &&
+             `        // getService() honors the manifest declaration and returns the` && |\n| &&
+             `        // correctly scoped instance.` && |\n| &&
+             `        this.getService("ShellUIService")` && |\n| &&
              `          .then((s) => setIfAlive("ShellUIService", s))` && |\n| &&
              `          .catch((e) =>` && |\n| &&
              `            Lib.logError("Component: ShellUIService init failed", e),` && |\n| &&
