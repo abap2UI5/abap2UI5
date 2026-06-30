@@ -187,10 +187,11 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            reason = ms_res-status_reason ).
 
     " transform cookie to header based contextid handling
+    DATA lv_contextid TYPE string.
     IF ms_res-s_stateful-switched = abap_true.
       mo_server->set_session_stateful( ms_res-s_stateful-active ).
       IF mo_server->get_header_field( `sap-contextid-accept` ) = `header`.
-        DATA(lv_contextid) = mo_server->get_response_cookie( `sap-contextid` ).
+        lv_contextid = mo_server->get_response_cookie( `sap-contextid` ).
         IF lv_contextid IS NOT INITIAL.
           mo_server->delete_response_cookie( `sap-contextid` ).
           mo_server->set_header_field( n = `sap-contextid`
