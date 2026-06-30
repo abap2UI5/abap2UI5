@@ -236,8 +236,12 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          const entry = store[slot.key];` && |\n| &&
              `          if (!entry) continue;` && |\n| &&
              `` && |\n| &&
-             `          // Drop stale references, e.g. after the view was replaced.` && |\n| &&
-             `          if (!entry.dom.isConnected) {` && |\n| &&
+             `          // Drop stale references, e.g. after the view was replaced. Also` && |\n| &&
+             `          // drop a destroyed control whose DOM is still transiently` && |\n| &&
+             `          // connected: entry.control.getId() below would throw and abort the` && |\n| &&
+             `          // whole roundtrip (this method, unlike _getFocusInfo, has no outer` && |\n| &&
+             `          // try/catch).` && |\n| &&
+             `          if (!entry.dom.isConnected || !Lib.isAlive(entry.control)) {` && |\n| &&
              `            delete store[slot.key];` && |\n| &&
              `            continue;` && |\n| &&
              `          }` && |\n| &&
@@ -413,12 +417,12 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          if (sView?.XML) {` && |\n| &&
              `            ViewSlots.destroy("MAIN");` && |\n| &&
              `            await oController.displayView(sView.XML, response.OVIEWMODEL);` && |\n| &&
-             `            return;` && |\n| &&
+             `            return;` && |\n|.
+    result = result &&
              `          }` && |\n| &&
              `` && |\n| &&
              `          // Partial response: refresh whichever existing views the backend` && |\n| &&
-             `          // sent updates for.` && |\n|.
-    result = result &&
+             `          // sent updates for.` && |\n| &&
              `          for (const slot of ViewSlots.slots) {` && |\n| &&
              `            oController.updateModelIfRequired(slot.key);` && |\n| &&
              `          }` && |\n| &&

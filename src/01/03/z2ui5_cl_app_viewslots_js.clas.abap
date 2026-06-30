@@ -104,6 +104,7 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `  // Returns the key of the slot whose controller is ``controller`` -` && |\n| &&
              `  // i.e. which slot an event handler was invoked for.` && |\n| &&
              `  function keyOfController(controller) {` && |\n| &&
+             `    if (!controller) return undefined;` && |\n| &&
              `    const slot = slots.find((s) => z2ui5[s.controllerProp] === controller);` && |\n| &&
              `    return slot ? slot.key : undefined;` && |\n| &&
              `  }` && |\n| &&

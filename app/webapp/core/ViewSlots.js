@@ -84,6 +84,7 @@ sap.ui.define(["sap/ui/core/Fragment", "z2ui5/core/Lib"], (Fragment, Lib) => {
   // Returns the key of the slot whose controller is `controller` -
   // i.e. which slot an event handler was invoked for.
   function keyOfController(controller) {
+    if (!controller) return undefined;
     const slot = slots.find((s) => z2ui5[s.controllerProp] === controller);
     return slot ? slot.key : undefined;
   }

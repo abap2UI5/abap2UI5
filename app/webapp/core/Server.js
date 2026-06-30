@@ -216,8 +216,12 @@ sap.ui.define(
           const entry = store[slot.key];
           if (!entry) continue;
 
-          // Drop stale references, e.g. after the view was replaced.
-          if (!entry.dom.isConnected) {
+          // Drop stale references, e.g. after the view was replaced. Also
+          // drop a destroyed control whose DOM is still transiently
+          // connected: entry.control.getId() below would throw and abort the
+          // whole roundtrip (this method, unlike _getFocusInfo, has no outer
+          // try/catch).
+          if (!entry.dom.isConnected || !Lib.isAlive(entry.control)) {
             delete store[slot.key];
             continue;
           }

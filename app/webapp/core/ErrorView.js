@@ -111,14 +111,24 @@ sap.ui.define([], () => {
     iframe.setAttribute("sandbox", "allow-same-origin");
     errorContainer.appendChild(iframe);
 
+    const preStyle =
+      "margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;";
     const contentDocument = iframe.contentDocument;
     if (contentDocument) {
       const pre = contentDocument.createElement("pre");
-      pre.style.cssText =
-        "margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;";
+      pre.style.cssText = preStyle;
       pre.textContent = errorMessage;
       const target = contentDocument.body || contentDocument.documentElement;
       target.appendChild(pre);
+    } else {
+      // The sandboxed iframe document was not reachable (sandbox/timing
+      // edge). Never leave the fatal overlay empty: fall back to a plain
+      // <pre> in the container. textContent does not parse HTML, so the
+      // untrusted backend message still cannot execute.
+      const pre = document.createElement("pre");
+      pre.style.cssText = preStyle;
+      pre.textContent = errorMessage;
+      errorContainer.appendChild(pre);
     }
   }
 

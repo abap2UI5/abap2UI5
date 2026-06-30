@@ -131,14 +131,24 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    iframe.setAttribute("sandbox", "allow-same-origin");` && |\n| &&
              `    errorContainer.appendChild(iframe);` && |\n| &&
              `` && |\n| &&
+             `    const preStyle =` && |\n| &&
+             `      "margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;";` && |\n| &&
              `    const contentDocument = iframe.contentDocument;` && |\n| &&
              `    if (contentDocument) {` && |\n| &&
              `      const pre = contentDocument.createElement("pre");` && |\n| &&
-             `      pre.style.cssText =` && |\n| &&
-             `        "margin:0;padding:8px;font-family:monospace;font-size:12px;white-space:pre-wrap;word-break:break-all;";` && |\n| &&
+             `      pre.style.cssText = preStyle;` && |\n| &&
              `      pre.textContent = errorMessage;` && |\n| &&
              `      const target = contentDocument.body || contentDocument.documentElement;` && |\n| &&
              `      target.appendChild(pre);` && |\n| &&
+             `    } else {` && |\n| &&
+             `      // The sandboxed iframe document was not reachable (sandbox/timing` && |\n| &&
+             `      // edge). Never leave the fatal overlay empty: fall back to a plain` && |\n| &&
+             `      // <pre> in the container. textContent does not parse HTML, so the` && |\n| &&
+             `      // untrusted backend message still cannot execute.` && |\n| &&
+             `      const pre = document.createElement("pre");` && |\n| &&
+             `      pre.style.cssText = preStyle;` && |\n| &&
+             `      pre.textContent = errorMessage;` && |\n| &&
+             `      errorContainer.appendChild(pre);` && |\n| &&
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
