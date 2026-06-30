@@ -182,6 +182,18 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `    return val == null ? "" : String(val);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  // Collapse a UI5 Device ``system`` flag object into a single label. The` && |\n| &&
+             `  // order matters - phone/tablet/combi are mutually exclusive with the` && |\n| &&
+             `  // desktop fallback. Shared by Server._getDeviceInfo (request payload) and` && |\n| &&
+             `  // the Info control so both report the same value.` && |\n| &&
+             `  function deriveSystemType(system) {` && |\n| &&
+             `    if (!system) return "desktop";` && |\n| &&
+             `    if (system.phone) return "phone";` && |\n| &&
+             `    if (system.tablet) return "tablet";` && |\n| &&
+             `    if (system.combi) return "combi";` && |\n| &&
+             `    return "desktop";` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  // Returns true only if the URL is on the same origin and uses http/https.` && |\n| &&
              `  function isValidRedirectURL(url) {` && |\n| &&
              `    if (!url) return false;` && |\n| &&
@@ -318,6 +330,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `    whenRendered,` && |\n| &&
              `    copyToClipboard,` && |\n| &&
              `    toText,` && |\n| &&
+             `    deriveSystemType,` && |\n| &&
              `    isValidRedirectURL,` && |\n| &&
              `    isSafeRedirectProtocol,` && |\n| &&
              `    isSafeDownloadURL,` && |\n| &&

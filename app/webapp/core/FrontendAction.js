@@ -83,7 +83,11 @@ sap.ui.define(
       const a = document.createElement("a");
       a.href = args[1];
       a.download = args[2];
+      // Firefox only triggers a programmatic download click when the anchor
+      // is part of the document, so attach it briefly and remove it again.
+      document.body.appendChild(a);
       a.click();
+      document.body.removeChild(a);
     }
 
     function evCrossAppNavToPrevApp() {
@@ -122,7 +126,12 @@ sap.ui.define(
           annotationURI: args[3] || "",
         });
         const oView = ViewSlots.getView("MAIN");
-        if (oView) oView.setModel(oModel, args[2] || undefined);
+        if (oView) {
+          oView.setModel(oModel, args[2] || undefined);
+        } else {
+          // No view to attach to - release the model instead of leaking it.
+          oModel.destroy();
+        }
       } catch (e) {
         Lib.logError(`SET_ODATA_MODEL: failed for '${args[1]}'`, e);
       }
@@ -177,7 +186,10 @@ sap.ui.define(
       const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";
       try {
         const container = z2ui5.oLaunchpad?.Container;
-        if (container?.logout && args.length == 0) {
+        // No explicit logout URL was passed (args is just the event name):
+        // inside the launchpad, prefer its own logout over the BSP/ICF
+        // redirect below.
+        if (container?.logout && args.length <= 1) {
           container.logout();
           return;
         }
@@ -523,15 +535,21 @@ sap.ui.define(
     function execute(oController, args) {
       Lib.runCallbacks(z2ui5.onBeforeEventFrontend, args);
 
-      // NavContainer navigation is dispatched via lookup table.
-      const navLookup = navContainerLookups[args[0]];
-      if (navLookup) {
-        navigateContainer(navLookup, args);
-        return;
-      }
+      try {
+        // NavContainer navigation is dispatched via lookup table.
+        const navLookup = navContainerLookups[args[0]];
+        if (navLookup) {
+          navigateContainer(navLookup, args);
+          return;
+        }
 
-      const handler = handlers[args[0]];
-      if (handler) handler(oController, args);
+        const handler = handlers[args[0]];
+        if (handler) handler(oController, args);
+      } catch (e) {
+        // Backstop: individual handlers already guard themselves, but a
+        // malformed payload must never let an error escape into the caller.
+        Lib.logError(`FrontendAction: handler '${args[0]}' failed`, e);
+      }
     }
 
     return { execute };

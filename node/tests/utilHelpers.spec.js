@@ -128,6 +128,22 @@ test.describe("toText", () => {
   });
 });
 
+test.describe("deriveSystemType", () => {
+  const { Lib } = loadLib();
+
+  test("maps each device flag to its label, phone winning first", () => {
+    expect(Lib.deriveSystemType({ phone: true, tablet: true })).toBe("phone");
+    expect(Lib.deriveSystemType({ tablet: true })).toBe("tablet");
+    expect(Lib.deriveSystemType({ combi: true })).toBe("combi");
+  });
+
+  test("falls back to desktop for no flags or a missing object", () => {
+    expect(Lib.deriveSystemType({ desktop: true })).toBe("desktop");
+    expect(Lib.deriveSystemType({})).toBe("desktop");
+    expect(Lib.deriveSystemType(undefined)).toBe("desktop");
+  });
+});
+
 test.describe("runCallbacks", () => {
   test("calls every callback with the given arguments", () => {
     const { Lib } = loadLib();

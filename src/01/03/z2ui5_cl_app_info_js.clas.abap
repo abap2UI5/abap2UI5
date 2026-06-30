@@ -91,14 +91,7 @@ CLASS z2ui5_cl_app_info_js IMPLEMENTATION.
              `          const ui5Version = ui5Info?.VERSION || "";` && |\n| &&
              `` && |\n| &&
              `          // Single system-type label, same derivation as Server._getDeviceInfo.` && |\n| &&
-             `          let systemType = "desktop";` && |\n| &&
-             `          if (system.phone) {` && |\n| &&
-             `            systemType = "phone";` && |\n| &&
-             `          } else if (system.tablet) {` && |\n| &&
-             `            systemType = "tablet";` && |\n| &&
-             `          } else if (system.combi) {` && |\n| &&
-             `            systemType = "combi";` && |\n| &&
-             `          }` && |\n| &&
+             `          const systemType = Lib.deriveSystemType(system);` && |\n| &&
              `` && |\n| &&
              `          const props = [` && |\n| &&
              `            ["ui5_version", ui5Version],` && |\n| &&

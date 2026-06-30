@@ -125,17 +125,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        // session, so resolve them once and reuse the cached block; only` && |\n| &&
              `        // ORIENTATION and RESIZE are read fresh on every roundtrip.` && |\n| &&
              `        if (!this._deviceStatic) {` && |\n| &&
-             `          const sys = d.system;` && |\n| &&
-             `          let system = "desktop";` && |\n| &&
-             `          if (sys.phone) {` && |\n| &&
-             `            system = "phone";` && |\n| &&
-             `          } else if (sys.tablet) {` && |\n| &&
-             `            system = "tablet";` && |\n| &&
-             `          } else if (sys.combi) {` && |\n| &&
-             `            system = "combi";` && |\n| &&
-             `          }` && |\n| &&
              `          this._deviceStatic = {` && |\n| &&
-             `            SYSTEM: system,` && |\n| &&
+             `            SYSTEM: Lib.deriveSystemType(d.system),` && |\n| &&
              `            BROWSER: {` && |\n| &&
              `              NAME: d.browser.name || "",` && |\n| &&
              `              VERSION: String(d.browser.version || ""),` && |\n| &&
@@ -161,6 +152,15 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        };` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      // Strip the owning view's "<viewId>--" prefix from a control id so the` && |\n| &&
+             `      // backend gets the id as the app declared it. Returns the id unchanged` && |\n| &&
+             `      // when it does not belong to that view.` && |\n| &&
+             `      _stripViewPrefix(fullId, view) {` && |\n| &&
+             `        if (!view) return fullId;` && |\n| &&
+             `        const prefix = ``${view.getId()}--``;` && |\n| &&
+             `        return fullId.startsWith(prefix) ? fullId.slice(prefix.length) : fullId;` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      _getFocusInfo() {` && |\n| &&
              `        try {` && |\n| &&
              `          const active = document.activeElement;` && |\n| &&
@@ -170,15 +170,14 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          const ui5El = Element.closestTo?.(active) ?? null;` && |\n| &&
              `          if (!ui5El) return {};` && |\n| &&
              `          const fullId = ui5El.getId();` && |\n| &&
-             `          const views = ViewSlots.slots.map((slot) =>` && |\n| &&
-             `            ViewSlots.getView(slot.key),` && |\n| &&
-             `          );` && |\n| &&
              `          let id = fullId;` && |\n| &&
-             `          for (const v of views) {` && |\n| &&
-             `            if (!v) continue;` && |\n| &&
-             `            const prefix = v.getId() + "--";` && |\n| &&
-             `            if (fullId.startsWith(prefix)) {` && |\n| &&
-             `              id = fullId.slice(prefix.length);` && |\n| &&
+             `          for (const slot of ViewSlots.slots) {` && |\n| &&
+             `            const local = this._stripViewPrefix(` && |\n| &&
+             `              fullId,` && |\n| &&
+             `              ViewSlots.getView(slot.key),` && |\n| &&
+             `            );` && |\n| &&
+             `            if (local !== fullId) {` && |\n| &&
+             `              id = local;` && |\n| &&
              `              break;` && |\n| &&
              `            }` && |\n| &&
              `          }` && |\n| &&
@@ -243,10 +242,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            continue;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
-             `          let id = entry.control.getId();` && |\n| &&
-             `          const view = ViewSlots.getView(slot.key);` && |\n| &&
-             `          const prefix = view ? ``${view.getId()}--`` : "";` && |\n| &&
-             `          if (prefix && id.startsWith(prefix)) id = id.slice(prefix.length);` && |\n| &&
+             `          const id = this._stripViewPrefix(` && |\n| &&
+             `            entry.control.getId(),` && |\n| &&
+             `            ViewSlots.getView(slot.key),` && |\n| &&
+             `          );` && |\n| &&
              `          out[slot.key] = {` && |\n| &&
              `            ID: id,` && |\n| &&
              `            X: entry.dom.scrollLeft || 0,` && |\n| &&
@@ -418,9 +417,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          }` && |\n| &&
              `` && |\n| &&
              `          // Partial response: refresh whichever existing views the backend` && |\n| &&
+             `          // sent updates for.` && |\n| &&
              |\n|.
     result = result &&
-             `          // sent updates for.` && |\n| &&
              `          for (const slot of ViewSlots.slots) {` && |\n| &&
              `            oController.updateModelIfRequired(slot.key);` && |\n| &&
              `          }` && |\n| &&
