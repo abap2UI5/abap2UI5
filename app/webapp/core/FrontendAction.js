@@ -126,7 +126,12 @@ sap.ui.define(
           annotationURI: args[3] || "",
         });
         const oView = ViewSlots.getView("MAIN");
-        if (oView) oView.setModel(oModel, args[2] || undefined);
+        if (oView) {
+          oView.setModel(oModel, args[2] || undefined);
+        } else {
+          // No view to attach to - release the model instead of leaking it.
+          oModel.destroy();
+        }
       } catch (e) {
         Lib.logError(`SET_ODATA_MODEL: failed for '${args[1]}'`, e);
       }

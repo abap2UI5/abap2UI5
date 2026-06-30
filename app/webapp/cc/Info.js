@@ -71,14 +71,7 @@ sap.ui.define(
           const ui5Version = ui5Info?.VERSION || "";
 
           // Single system-type label, same derivation as Server._getDeviceInfo.
-          let systemType = "desktop";
-          if (system.phone) {
-            systemType = "phone";
-          } else if (system.tablet) {
-            systemType = "tablet";
-          } else if (system.combi) {
-            systemType = "combi";
-          }
+          const systemType = Lib.deriveSystemType(system);
 
           const props = [
             ["ui5_version", ui5Version],

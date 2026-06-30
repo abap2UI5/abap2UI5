@@ -146,7 +146,12 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          annotationURI: args[3] || "",` && |\n| &&
              `        });` && |\n| &&
              `        const oView = ViewSlots.getView("MAIN");` && |\n| &&
-             `        if (oView) oView.setModel(oModel, args[2] || undefined);` && |\n| &&
+             `        if (oView) {` && |\n| &&
+             `          oView.setModel(oModel, args[2] || undefined);` && |\n| &&
+             `        } else {` && |\n| &&
+             `          // No view to attach to - release the model instead of leaking it.` && |\n| &&
+             `          oModel.destroy();` && |\n| &&
+             `        }` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError(``SET_ODATA_MODEL: failed for '${args[1]}'``, e);` && |\n| &&
              `      }` && |\n| &&
@@ -413,13 +418,13 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            handled = true;` && |\n| &&
              `          } else if (dom) {` && |\n| &&
              `            dom.scrollTop = y;` && |\n| &&
+             |\n|.
+    result = result &&
              `            dom.scrollLeft = x;` && |\n| &&
              `            handled = true;` && |\n| &&
              `          } else if (oElement.scrollTo) {` && |\n| &&
              `            // sap.m.Page.scrollTo(y, time) - vertical only` && |\n| &&
              `            oElement.scrollTo(y, smooth ? 300 : 0);` && |\n| &&
-             |\n|.
-    result = result &&
              `            handled = true;` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&

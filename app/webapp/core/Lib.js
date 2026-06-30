@@ -162,6 +162,18 @@ sap.ui.define([], () => {
     return val == null ? "" : String(val);
   }
 
+  // Collapse a UI5 Device `system` flag object into a single label. The
+  // order matters - phone/tablet/combi are mutually exclusive with the
+  // desktop fallback. Shared by Server._getDeviceInfo (request payload) and
+  // the Info control so both report the same value.
+  function deriveSystemType(system) {
+    if (!system) return "desktop";
+    if (system.phone) return "phone";
+    if (system.tablet) return "tablet";
+    if (system.combi) return "combi";
+    return "desktop";
+  }
+
   // Returns true only if the URL is on the same origin and uses http/https.
   function isValidRedirectURL(url) {
     if (!url) return false;
@@ -298,6 +310,7 @@ sap.ui.define([], () => {
     whenRendered,
     copyToClipboard,
     toText,
+    deriveSystemType,
     isValidRedirectURL,
     isSafeRedirectProtocol,
     isSafeDownloadURL,

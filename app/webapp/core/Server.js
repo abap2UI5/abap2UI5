@@ -105,17 +105,8 @@ sap.ui.define(
         // session, so resolve them once and reuse the cached block; only
         // ORIENTATION and RESIZE are read fresh on every roundtrip.
         if (!this._deviceStatic) {
-          const sys = d.system;
-          let system = "desktop";
-          if (sys.phone) {
-            system = "phone";
-          } else if (sys.tablet) {
-            system = "tablet";
-          } else if (sys.combi) {
-            system = "combi";
-          }
           this._deviceStatic = {
-            SYSTEM: system,
+            SYSTEM: Lib.deriveSystemType(d.system),
             BROWSER: {
               NAME: d.browser.name || "",
               VERSION: String(d.browser.version || ""),
@@ -141,6 +132,15 @@ sap.ui.define(
         };
       },
 
+      // Strip the owning view's "<viewId>--" prefix from a control id so the
+      // backend gets the id as the app declared it. Returns the id unchanged
+      // when it does not belong to that view.
+      _stripViewPrefix(fullId, view) {
+        if (!view) return fullId;
+        const prefix = `${view.getId()}--`;
+        return fullId.startsWith(prefix) ? fullId.slice(prefix.length) : fullId;
+      },
+
       _getFocusInfo() {
         try {
           const active = document.activeElement;
@@ -150,15 +150,14 @@ sap.ui.define(
           const ui5El = Element.closestTo?.(active) ?? null;
           if (!ui5El) return {};
           const fullId = ui5El.getId();
-          const views = ViewSlots.slots.map((slot) =>
-            ViewSlots.getView(slot.key),
-          );
           let id = fullId;
-          for (const v of views) {
-            if (!v) continue;
-            const prefix = v.getId() + "--";
-            if (fullId.startsWith(prefix)) {
-              id = fullId.slice(prefix.length);
+          for (const slot of ViewSlots.slots) {
+            const local = this._stripViewPrefix(
+              fullId,
+              ViewSlots.getView(slot.key),
+            );
+            if (local !== fullId) {
+              id = local;
               break;
             }
           }
@@ -223,10 +222,10 @@ sap.ui.define(
             continue;
           }
 
-          let id = entry.control.getId();
-          const view = ViewSlots.getView(slot.key);
-          const prefix = view ? `${view.getId()}--` : "";
-          if (prefix && id.startsWith(prefix)) id = id.slice(prefix.length);
+          const id = this._stripViewPrefix(
+            entry.control.getId(),
+            ViewSlots.getView(slot.key),
+          );
           out[slot.key] = {
             ID: id,
             X: entry.dom.scrollLeft || 0,
