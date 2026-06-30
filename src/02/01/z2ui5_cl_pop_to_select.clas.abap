@@ -288,6 +288,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
     FIELD-SYMBOLS <field2>         TYPE any.
 
     DATA(ls_arg) = client->get_event_arg( 1 ).
+    DATA(lv_arg_upper) = to_upper( ls_arg ).
 
     ASSIGN mr_tab_popup->* TO <tab_out>.
     ASSIGN mr_tab_popup_backup->* TO <tab_out_backup>.
@@ -301,7 +302,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
         DATA(lv_assign) = |<ROW2>-{ ls_comp-name }|.
         ASSIGN (lv_assign) TO <field2>.
         ASSERT sy-subrc = 0.
-        IF to_upper( <field2> ) CS to_upper( ls_arg ).
+        IF to_upper( <field2> ) CS lv_arg_upper.
           lv_check_continue = abap_true.
           EXIT.
         ENDIF.

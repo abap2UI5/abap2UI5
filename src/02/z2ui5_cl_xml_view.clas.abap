@@ -14983,7 +14983,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     result = me.
     _generic( name   = `ZZPLAIN`
-                ns   = 'html'
+              ns     = `html`
               t_prop = VALUE #( ( n = `VALUE` v = val ) ) ).
 
   ENDMETHOD.

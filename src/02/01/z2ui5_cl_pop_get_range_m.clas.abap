@@ -116,9 +116,10 @@ CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
     IF client->get( )-check_on_navigated = abap_true.
 
       DATA(lo_popup) = CAST z2ui5_cl_pop_get_range( client->get_app( client->get( )-s_draft-id_prev_app ) ).
-      IF lo_popup->result( )-check_confirmed = abap_true.
+      DATA(ls_popup_result) = lo_popup->result( ).
+      IF ls_popup_result-check_confirmed = abap_true.
         ASSIGN ms_result-t_filter[ name = mv_popup_name ] TO FIELD-SYMBOL(<tab>).
-        <tab>-t_range = lo_popup->result( )-t_range.
+        <tab>-t_range = ls_popup_result-t_range.
         <tab>-t_token = z2ui5_cl_util=>filter_get_token_t_by_range_t( <tab>-t_range ).
       ENDIF.
       popup_display( ).
