@@ -42,9 +42,7 @@ sap.ui.define([], () => {
       window.location.href = "/sap/public/bc/icf/logoff";
     };
     try {
-      const launchpadLogout =
-        z2ui5.oLaunchpad?.Container && z2ui5.oLaunchpad.Container.logout;
-      if (launchpadLogout) {
+      if (z2ui5.oLaunchpad?.Container?.logout) {
         z2ui5.oLaunchpad.Container.logout();
       } else {
         fallback();

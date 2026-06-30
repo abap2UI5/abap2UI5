@@ -62,9 +62,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `      window.location.href = "/sap/public/bc/icf/logoff";` && |\n| &&
              `    };` && |\n| &&
              `    try {` && |\n| &&
-             `      const launchpadLogout =` && |\n| &&
-             `        z2ui5.oLaunchpad?.Container && z2ui5.oLaunchpad.Container.logout;` && |\n| &&
-             `      if (launchpadLogout) {` && |\n| &&
+             `      if (z2ui5.oLaunchpad?.Container?.logout) {` && |\n| &&
              `        z2ui5.oLaunchpad.Container.logout();` && |\n| &&
              `      } else {` && |\n| &&
              `        fallback();` && |\n| &&
