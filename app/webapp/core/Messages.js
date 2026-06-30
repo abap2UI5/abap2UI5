@@ -8,9 +8,11 @@ sap.ui.define(
     "use strict";
 
     // Parse a value as integer milliseconds, falling back to `def` when the
-    // input is empty / undefined.
+    // input is empty / undefined / not a finite number (so a stray
+    // non-numeric value never reaches MessageToast as NaN).
     function parseMs(val, def) {
-      return val ? +val : def;
+      const n = +val;
+      return val && Number.isFinite(n) ? n : def;
     }
 
     function showToast(msg, oController) {

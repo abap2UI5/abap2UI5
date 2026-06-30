@@ -229,56 +229,59 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      async displayPopover(xml, openById) {` && |\n| &&
-             `        try {` && |\n| &&
-             `          const oModel = this._createViewModel();` && |\n| &&
-             `          applyStoredSizeLimit("POPOVER", oModel);` && |\n| &&
-             `          const oFragment = await Fragment.load({` && |\n| &&
-             `            definition: xml,` && |\n| &&
-             `            controller: ViewSlots.getController("POPOVER"),` && |\n| &&
-             `            id: "popoverId",` && |\n| &&
-             `          });` && |\n| &&
-             `          if (!Lib.isAlive(z2ui5.oApp)) {` && |\n| &&
-             `            oFragment.destroy();` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `          oFragment.setModel(oModel);` && |\n| &&
-             `` && |\n| &&
-             `          // Find the control to attach the popover to. We search the main` && |\n| &&
-             `          // view first, then any open popup / nested views, then the global` && |\n| &&
-             `          // UI5 control registry as a last resort.` && |\n| &&
-             `          let oControl =` && |\n| &&
-             `            ViewSlots.byId("MAIN", openById) ||` && |\n| &&
-             `            ViewSlots.byId("POPUP", openById) ||` && |\n| &&
-             `            ViewSlots.byId("NEST", openById) ||` && |\n| &&
-             `            ViewSlots.byId("NEST2", openById);` && |\n| &&
-             `          if (!oControl) {` && |\n| &&
-             `            if (Element.getElementById) {` && |\n| &&
-             `              oControl = Element.getElementById(openById);` && |\n| &&
-             `            } else {` && |\n| &&
-             `              /* ui5lint-disable no-globals, no-deprecated-api --` && |\n| &&
-             `                 deliberate fallback for UI5 releases that do not provide` && |\n| &&
-             `                 Element.getElementById yet (added in 1.119); the modern` && |\n| &&
-             `                 API is used in the branch above. */` && |\n| &&
-             `              if (sap.ui.getCore) {` && |\n| &&
-             `                const core = sap.ui.getCore();` && |\n| &&
-             `                if (core?.byId) oControl = core.byId(openById);` && |\n| &&
-             `              }` && |\n| &&
-             `              /* ui5lint-enable no-globals, no-deprecated-api */` && |\n| &&
-             `            }` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          if (!oControl) {` && |\n| &&
-             `            Lib.logError(` && |\n| &&
-             `              ``displayPopover: openBy control '${openById}' not found``,` && |\n| &&
-             `            );` && |\n| &&
-             `            oFragment.destroy();` && |\n| &&
-             `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `          ViewSlots.setView("POPOVER", oFragment);` && |\n| &&
-             `          oFragment.openBy(oControl);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("displayPopover: failed", e);` && |\n| &&
+             `        // No catch-all here on purpose: a malformed-XML load or render` && |\n| &&
+             `        // failure must propagate to _processAfterRendering and surface the` && |\n| &&
+             `        // fatal "App Terminated" overlay, exactly like displayFragment and` && |\n| &&
+             `        // displayNestedView. The explicit returns below stay graceful - they` && |\n| &&
+             `        // handle expected, non-error conditions (app torn down mid-load, or` && |\n| &&
+             `        // the openBy anchor not being present), matching the parent-not-found` && |\n| &&
+             `        // guard in displayNestedView.` && |\n| &&
+             `        const oModel = this._createViewModel();` && |\n| &&
+             `        applyStoredSizeLimit("POPOVER", oModel);` && |\n| &&
+             `        const oFragment = await Fragment.load({` && |\n| &&
+             `          definition: xml,` && |\n| &&
+             `          controller: ViewSlots.getController("POPOVER"),` && |\n| &&
+             `          id: "popoverId",` && |\n| &&
+             `        });` && |\n| &&
+             `        if (!Lib.isAlive(z2ui5.oApp)) {` && |\n| &&
+             `          oFragment.destroy();` && |\n| &&
+             `          return;` && |\n| &&
              `        }` && |\n| &&
+             `        oFragment.setModel(oModel);` && |\n| &&
+             `` && |\n| &&
+             `        // Find the control to attach the popover to. We search the main` && |\n| &&
+             `        // view first, then any open popup / nested views, then the global` && |\n| &&
+             `        // UI5 control registry as a last resort.` && |\n| &&
+             `        let oControl =` && |\n| &&
+             `          ViewSlots.byId("MAIN", openById) ||` && |\n| &&
+             `          ViewSlots.byId("POPUP", openById) ||` && |\n| &&
+             `          ViewSlots.byId("NEST", openById) ||` && |\n| &&
+             `          ViewSlots.byId("NEST2", openById);` && |\n| &&
+             `        if (!oControl) {` && |\n| &&
+             `          if (Element.getElementById) {` && |\n| &&
+             `            oControl = Element.getElementById(openById);` && |\n| &&
+             `          } else {` && |\n| &&
+             `            /* ui5lint-disable no-globals, no-deprecated-api --` && |\n| &&
+             `               deliberate fallback for UI5 releases that do not provide` && |\n| &&
+             `               Element.getElementById yet (added in 1.119); the modern` && |\n| &&
+             `               API is used in the branch above. */` && |\n| &&
+             `            if (sap.ui.getCore) {` && |\n| &&
+             `              const core = sap.ui.getCore();` && |\n| &&
+             `              if (core?.byId) oControl = core.byId(openById);` && |\n| &&
+             `            }` && |\n| &&
+             `            /* ui5lint-enable no-globals, no-deprecated-api */` && |\n| &&
+             `          }` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        if (!oControl) {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``displayPopover: openBy control '${openById}' not found``,` && |\n| &&
+             `          );` && |\n| &&
+             `          oFragment.destroy();` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        ViewSlots.setView("POPOVER", oFragment);` && |\n| &&
+             `        oFragment.openBy(oControl);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      async displayNestedView(xml, slotKey) {` && |\n| &&
@@ -414,12 +417,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        Lib.runCallbacks(z2ui5.onBeforeRoundtrip);` && |\n| &&
              `` && |\n| &&
-             `        // If the user edited /XX/ paths, send only the delta to keep the` && |\n| &&
+             `        // If the user edited /XX/ paths, send only the delta to keep the` && |\n|.
+    result = result &&
              `        // payload small.` && |\n| &&
              `        if (oModel && z2ui5.xxChangedPaths.size > 0) {` && |\n| &&
              `          const data = oModel.getData();` && |\n| &&
-             |\n|.
-    result = result &&
              `          const xx = data?.XX;` && |\n| &&
              `          if (xx) {` && |\n| &&
              `            oBody.XX = Lib.buildDeltaFromPaths(z2ui5.xxChangedPaths, xx);` && |\n| &&
@@ -445,9 +447,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (!slotKey) return undefined;` && |\n| &&
              `` && |\n| &&
              `        if (slotKey === "MAIN") {` && |\n| &&
-             `          const sView = z2ui5.oResponse?.PARAMS` && |\n| &&
-             `            ? z2ui5.oResponse.PARAMS.S_VIEW` && |\n| &&
-             `            : null;` && |\n| &&
+             `          const sView = z2ui5.oResponse?.PARAMS?.S_VIEW ?? null;` && |\n| &&
              `          if (sView?.SWITCH_DEFAULT_MODEL_PATH) {` && |\n| &&
              `            return ViewSlots.getView("MAIN")?.getModel("http");` && |\n| &&
              `          }` && |\n| &&
@@ -497,9 +497,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      async displayView(xml, viewModel) {` && |\n| &&
              `        const oViewModel = this._trackChanges(new JSONModel(viewModel));` && |\n| &&
              `` && |\n| &&
-             `        const sView = z2ui5.oResponse?.PARAMS` && |\n| &&
-             `          ? z2ui5.oResponse.PARAMS.S_VIEW` && |\n| &&
-             `          : null;` && |\n| &&
+             `        const sView = z2ui5.oResponse?.PARAMS?.S_VIEW ?? null;` && |\n| &&
              `        const switchPath = sView?.SWITCH_DEFAULT_MODEL_PATH;` && |\n| &&
              `` && |\n| &&
              `        // When the app wants OData as the default model, build it here and` && |\n| &&

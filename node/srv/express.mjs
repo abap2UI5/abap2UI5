@@ -17,5 +17,10 @@ app.all(["/", "/{*path}"], async function (req, res) {
   await cl_express_icf_shim.run({req, res, class: "ZCL_SICF"});
 });
 
-app.listen(PORT);
-console.log("Listening on port http://localhost:" + PORT);
+const server = app.listen(PORT, () => {
+  console.log("Listening on port http://localhost:" + PORT);
+});
+server.on("error", (err) => {
+  console.error("Failed to start server:", err.message);
+  process.exit(1);
+});

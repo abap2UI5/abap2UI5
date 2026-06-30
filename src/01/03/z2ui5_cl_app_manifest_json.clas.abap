@@ -27,7 +27,7 @@ CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
              `      "version": "0.0.1"` &&
              `    },` &&
              `    "title": "abap2UI5",` &&
-             `    "description": "",` &&
+             `    "description": "Create UI5 apps purely in ABAP",` &&
              `    "resources": "resources.json",` &&
              `    "sourceTemplate": {` &&
              `      "id": "@sap/generator-fiori:basic",` &&

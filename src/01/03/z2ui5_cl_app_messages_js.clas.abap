@@ -28,9 +28,11 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Parse a value as integer milliseconds, falling back to ``def`` when the` && |\n| &&
-             `    // input is empty / undefined.` && |\n| &&
+             `    // input is empty / undefined / not a finite number (so a stray` && |\n| &&
+             `    // non-numeric value never reaches MessageToast as NaN).` && |\n| &&
              `    function parseMs(val, def) {` && |\n| &&
-             `      return val ? +val : def;` && |\n| &&
+             `      const n = +val;` && |\n| &&
+             `      return val && Number.isFinite(n) ? n : def;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function showToast(msg, oController) {` && |\n| &&

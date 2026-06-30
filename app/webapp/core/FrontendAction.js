@@ -82,7 +82,9 @@ sap.ui.define(
       }
       const a = document.createElement("a");
       a.href = args[1];
-      a.download = args[2];
+      // Fall back to an empty download attribute when the backend omits the
+      // filename, so the anchor never carries the literal "undefined".
+      a.download = args[2] || "";
       // Firefox only triggers a programmatic download click when the anchor
       // is part of the document, so attach it briefly and remove it again.
       document.body.appendChild(a);

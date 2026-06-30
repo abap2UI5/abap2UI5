@@ -158,9 +158,12 @@ sap.ui.define(
             if (!md || !md.getUserMedia) return;
             const stream = await md.getUserMedia(options);
             if (!stream) return;
-            // Guard: the control could have been destroyed during the
-            // getUserMedia await. Release the camera if so.
-            if (Lib.isDestroyed(this)) {
+            // Guard: during the getUserMedia await the control could have
+            // been destroyed, or the user could have closed the dialog
+            // (Cancel/afterClose). In both cases afterClose's _stopCamera()
+            // has already run with no stream to stop, so release the camera
+            // here instead of leaving it active.
+            if (Lib.isDestroyed(this) || !this._oScanDialog?.isOpen()) {
               for (const t of stream.getTracks()) t.stop();
               return;
             }

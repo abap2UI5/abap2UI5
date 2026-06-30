@@ -38,7 +38,14 @@ function formatAsAbapClass(content, className, isSpecialFile) {
         let formattedLine = `             \`${line.replace(/`/g, '``')}\` && ${isSpecialFile ? '' : '|\\n|  &&'}`;
         formattedLine = formattedLine.replace(/&&\s+$/, '&&'); // Remove trailing spaces after &&
         if ((index + 1) % 400 === 0) {
-            return `${formattedLine}\n             |\\n|.\n    result = result &&`;
+            // ABAP caps the length of a chained expression, so the result is
+            // split into several statements every 400 lines. This line
+            // already carries its own separator (|\n| for normal files, none
+            // for special files), so close the statement by turning its
+            // trailing `&&` into `.` rather than appending a second |\n| -
+            // the latter inserted a spurious blank line every 400 lines and
+            // would have corrupted newline-free special files past that size.
+            return `${formattedLine.replace(/\s*&&$/, '.')}\n    result = result &&`;
         }
         return formattedLine;
     });
@@ -162,7 +169,9 @@ async function main() {
         await createFileInTargetDir(initialXMLFilePath, initialXMLContent);
         console.log(`Initial XML file created successfully at: ${initialXMLFilePath}`);
 
-        const files = getAllFiles(sourceDir);
+        // Sort so the generation order (and console log) is deterministic
+        // regardless of the filesystem's readdir order.
+        const files = getAllFiles(sourceDir).sort();
         const preloadEntries = [];
 
         // Class names ignore folders (cc/Foo.js and Foo.js would both map to
@@ -219,7 +228,10 @@ async function main() {
         await createFileInTargetDir(preloadXmlPath, `\uFEFF${xmlTemplate('z2ui5_cl_app_preload', 'abap2UI5 - preload mapping')}`);
         console.log(`Preload XML created successfully at: ${preloadXmlPath}`);
     } catch (error) {
+        // Signal failure so CI (create_app2abap.yaml) does not treat a broken
+        // generation run as success and commit a partial src/01/03.
         console.error('Error:', error.message);
+        process.exitCode = 1;
     }
 }
 

@@ -178,9 +178,12 @@ CLASS z2ui5_cl_app_camerapicture_js IMPLEMENTATION.
              `            if (!md || !md.getUserMedia) return;` && |\n| &&
              `            const stream = await md.getUserMedia(options);` && |\n| &&
              `            if (!stream) return;` && |\n| &&
-             `            // Guard: the control could have been destroyed during the` && |\n| &&
-             `            // getUserMedia await. Release the camera if so.` && |\n| &&
-             `            if (Lib.isDestroyed(this)) {` && |\n| &&
+             `            // Guard: during the getUserMedia await the control could have` && |\n| &&
+             `            // been destroyed, or the user could have closed the dialog` && |\n| &&
+             `            // (Cancel/afterClose). In both cases afterClose's _stopCamera()` && |\n| &&
+             `            // has already run with no stream to stop, so release the camera` && |\n| &&
+             `            // here instead of leaving it active.` && |\n| &&
+             `            if (Lib.isDestroyed(this) || !this._oScanDialog?.isOpen()) {` && |\n| &&
              `              for (const t of stream.getTracks()) t.stop();` && |\n| &&
              `              return;` && |\n| &&
              `            }` && |\n| &&

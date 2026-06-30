@@ -102,7 +102,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      }` && |\n| &&
              `      const a = document.createElement("a");` && |\n| &&
              `      a.href = args[1];` && |\n| &&
-             `      a.download = args[2];` && |\n| &&
+             `      // Fall back to an empty download attribute when the backend omits the` && |\n| &&
+             `      // filename, so the anchor never carries the literal "undefined".` && |\n| &&
+             `      a.download = args[2] || "";` && |\n| &&
              `      // Firefox only triggers a programmatic download click when the anchor` && |\n| &&
              `      // is part of the document, so attach it briefly and remove it again.` && |\n| &&
              `      document.body.appendChild(a);` && |\n| &&
@@ -415,11 +417,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            oElement.getDomRef();` && |\n| &&
              `          if (dom?.scrollTo) {` && |\n| &&
              `            dom.scrollTo({ top: y, left: x, behavior });` && |\n| &&
-             `            handled = true;` && |\n| &&
+             `            handled = true;` && |\n|.
+    result = result &&
              `          } else if (dom) {` && |\n| &&
              `            dom.scrollTop = y;` && |\n| &&
-             |\n|.
-    result = result &&
              `            dom.scrollLeft = x;` && |\n| &&
              `            handled = true;` && |\n| &&
              `          } else if (oElement.scrollTo) {` && |\n| &&

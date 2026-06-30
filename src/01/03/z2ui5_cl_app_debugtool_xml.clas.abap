@@ -20,9 +20,7 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
 
     result = `<core:FragmentDefinition` &&
              `    xmlns="sap.m"` &&
-             `    xmlns:mvc="sap.ui.core.mvc"` &&
              `    xmlns:core="sap.ui.core"` &&
-             `    xmlns:html="http://www.w3.org/1999/xhtml"` &&
              `    xmlns:ce="sap.ui.codeeditor"` &&
              `>` &&
              `    <Dialog` &&
