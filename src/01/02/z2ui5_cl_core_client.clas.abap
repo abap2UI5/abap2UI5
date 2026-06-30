@@ -244,7 +244,6 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
     mo_action->ms_next-next_event  = event.
 
     IF r_data IS NOT INITIAL.
-      CREATE DATA mo_action->ms_next-r_data LIKE r_data.
       mo_action->ms_next-r_data = z2ui5_cl_util=>conv_copy_ref_data( r_data ).
     ENDIF.
 
@@ -406,7 +405,6 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
                                 s_cnt     = s_ctrl ).
 
     IF r_data IS NOT INITIAL.
-      CREATE DATA mo_action->ms_next-r_data LIKE r_data.
       mo_action->ms_next-r_data = z2ui5_cl_util=>conv_copy_ref_data( r_data ).
     ENDIF.
 
