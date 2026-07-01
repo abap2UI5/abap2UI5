@@ -3702,19 +3702,19 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! @parameter visible      | (boolean) Whether the indicator is visible. Default: true.
     METHODS progress_indicator
       IMPORTING
-        class         TYPE clike OPTIONAL
-        percentvalue  TYPE clike OPTIONAL
-        displayvalue  TYPE clike OPTIONAL
-        showvalue     TYPE clike OPTIONAL
-        state         TYPE clike OPTIONAL
-        visible       TYPE clike OPTIONAL
-        width         TYPE clike OPTIONAL
-        height        TYPE clike OPTIONAL
-        enabled       TYPE clike OPTIONAL
-        displayonly   TYPE clike OPTIONAL
+        class            TYPE clike OPTIONAL
+        percentvalue     TYPE clike OPTIONAL
+        displayvalue     TYPE clike OPTIONAL
+        showvalue        TYPE clike OPTIONAL
+        state            TYPE clike OPTIONAL
+        visible          TYPE clike OPTIONAL
+        width            TYPE clike OPTIONAL
+        height           TYPE clike OPTIONAL
+        enabled          TYPE clike OPTIONAL
+        displayonly      TYPE clike OPTIONAL
         displayanimation TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.SegmentedButton</p>
     "!
