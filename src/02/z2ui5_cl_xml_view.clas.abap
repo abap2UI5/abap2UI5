@@ -389,6 +389,11 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         fixedlayout         TYPE clike OPTIONAL
         backgrounddesign    TYPE clike OPTIONAL
         visible             TYPE clike OPTIONAL
+        footertext          TYPE clike OPTIONAL
+        multiselectmode     TYPE clike OPTIONAL
+        rememberselections  TYPE clike OPTIONAL
+        keyboardmode        TYPE clike OPTIONAL
+        contextualwidth     TYPE clike OPTIONAL
           PREFERRED PARAMETER items
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
@@ -1480,6 +1485,10 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         enabletableautopopinmode      TYPE clike OPTIONAL
         arialabelledby                TYPE clike OPTIONAL
         ariadescribedby               TYPE clike OPTIONAL
+        name                          TYPE clike OPTIONAL
+        textalign                     TYPE clike OPTIONAL
+        textdirection                 TYPE clike OPTIONAL
+        showvaluestatemessage         TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
@@ -3619,6 +3628,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         enabled       TYPE clike OPTIONAL
         change        TYPE clike OPTIONAL
         type          TYPE clike OPTIONAL
+        name          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -3698,6 +3708,11 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         showvalue     TYPE clike OPTIONAL
         state         TYPE clike OPTIONAL
         visible       TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
+        height        TYPE clike OPTIONAL
+        enabled       TYPE clike OPTIONAL
+        displayonly   TYPE clike OPTIONAL
+        displayanimation TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -4007,6 +4022,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.comp.filterbar.FilterBar</p>
+    "!
+    "! Note: sap.ui.comp is superseded by sap.ui.mdc, which SAP recommends for new developments (this wrapper remains fully supported).
     "!
     "! Filter bar with variant management. Used together with SmartTable / SmartFilterBar.
     "! See https://ui5.sap.com/#/api/sap.ui.comp.filterbar.FilterBar.
@@ -5649,6 +5666,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.comp.variants.VariantManagement</p>
     "!
+    "! Note: sap.ui.comp is superseded by sap.ui.mdc, which SAP recommends for new developments (this wrapper remains fully supported).
+    "!
     "! Variant management for smart controls. See https://ui5.sap.com/#/api/sap.ui.comp.variants.VariantManagement.
     "! For modern SmartFilterBar/SmartTable use `variant_management_sapm` (sap.ui.fl.variants.VariantManagement) or `smart_variant_management` instead.
     "!
@@ -7287,6 +7306,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.comp.smartvariants.SmartVariantManagement</p>
     "!
+    "! Note: sap.ui.comp is superseded by sap.ui.mdc, which SAP recommends for new developments (this wrapper remains fully supported).
+    "!
     "! Variant management for smart controls. See https://ui5.sap.com/#/api/sap.ui.comp.smartvariants.SmartVariantManagement.
     "!
     "! @parameter showexecuteonselection | (boolean) Show "Apply Automatically" option. Default: false.
@@ -7300,6 +7321,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.comp.smartfilterbar.SmartFilterBar</p>
+    "!
+    "! Note: sap.ui.comp is superseded by sap.ui.mdc, which SAP recommends for new developments (this wrapper remains fully supported).
     "!
     "! Smart filter bar with auto-generated controls based on OData metadata.
     "! See https://ui5.sap.com/#/api/sap.ui.comp.smartfilterbar.SmartFilterBar.
@@ -7336,6 +7359,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.comp.smarttable.SmartTable</p>
+    "!
+    "! Note: sap.ui.comp is superseded by sap.ui.mdc, which SAP recommends for new developments (this wrapper remains fully supported).
     "!
     "! Smart table that auto-creates columns from OData metadata. See https://ui5.sap.com/#/api/sap.ui.comp.smarttable.SmartTable.
     "!
@@ -9496,6 +9521,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.comp.smartmultiinput.SmartMultiInput</p>
+    "!
+    "! Note: sap.ui.comp is superseded by sap.ui.mdc, which SAP recommends for new developments (this wrapper remains fully supported).
     "!
     "! Smart multi-input that derives suggestions / value help from OData.
     "! See https://ui5.sap.com/#/api/sap.ui.comp.smartmultiinput.SmartMultiInput.
@@ -11663,7 +11690,11 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
             ( n = `textFormatMode`  v = textformatmode )
             ( n = `fieldWidth`          v = fieldwidth )
             ( n = `ariaLabelledBy`      v = arialabelledby )
-            ( n = `ariaDescribedBy`     v = ariadescribedby ) ) ).
+            ( n = `ariaDescribedBy`     v = ariadescribedby )
+            ( n = `name`                 v = name )
+            ( n = `textAlign`            v = textalign )
+            ( n = `textDirection`        v = textdirection )
+            ( n = `showValueStateMessage` v = z2ui5_cl_util=>boolean_abap_2_json( showvaluestatemessage ) ) ) ).
   ENDMETHOD.
 
   METHOD input_list_item.
@@ -13128,7 +13159,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `displayValue` v = displayvalue )
                                 ( n = `showValue`    v = z2ui5_cl_util=>boolean_abap_2_json( showvalue ) )
                                 ( n = `visible`      v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
-                                ( n = `state`        v = state ) ) ).
+                                ( n = `state`        v = state )
+                                ( n = `width`        v = width )
+                                ( n = `height`       v = height )
+                                ( n = `enabled`      v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
+                                ( n = `displayOnly`  v = z2ui5_cl_util=>boolean_abap_2_json( displayonly ) )
+                                ( n = `displayAnimation` v = z2ui5_cl_util=>boolean_abap_2_json( displayanimation ) ) ) ).
   ENDMETHOD.
 
   METHOD property_threshold.
@@ -13904,7 +13940,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `state`          v = state )
                                 ( n = `change`         v = change )
                                 ( n = `customTextOff`  v = customtextoff )
-                                ( n = `customTextOn`   v = customtexton ) ) ).
+                                ( n = `customTextOn`   v = customtexton )
+                                ( n = `name`           v = name ) ) ).
   ENDMETHOD.
 
   METHOD tab.
@@ -13937,7 +13974,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                            ( n = `alternateRowColors`  v = z2ui5_cl_util=>boolean_abap_2_json( alternaterowcolors ) )
                            ( n = `fixedLayout`  v = z2ui5_cl_util=>boolean_abap_2_json( fixedlayout ) )
                            ( n = `showOverlay`  v = z2ui5_cl_util=>boolean_abap_2_json( showoverlay ) )
-                           ( n = `autoPopinMode`  v = z2ui5_cl_util=>boolean_abap_2_json( autopopinmode ) ) ) ).
+                           ( n = `autoPopinMode`  v = z2ui5_cl_util=>boolean_abap_2_json( autopopinmode ) )
+                           ( n = `footerText`  v = footertext )
+                           ( n = `multiSelectMode`  v = multiselectmode )
+                           ( n = `keyboardMode`  v = keyboardmode )
+                           ( n = `contextualWidth`  v = contextualwidth )
+                           ( n = `rememberSelections`  v = z2ui5_cl_util=>boolean_abap_2_json( rememberselections ) ) ) ).
   ENDMETHOD.
 
   METHOD table_select_dialog.
