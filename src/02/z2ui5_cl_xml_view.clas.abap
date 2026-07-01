@@ -4023,6 +4023,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.comp.filterbar.FilterBar</p>
     "!
+    "! Note: sap.ui.comp is superseded by sap.ui.mdc, which SAP recommends for new developments (this wrapper remains fully supported).
+    "!
     "! Filter bar with variant management. Used together with SmartTable / SmartFilterBar.
     "! See https://ui5.sap.com/#/api/sap.ui.comp.filterbar.FilterBar.
     "!
@@ -5664,6 +5666,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.comp.variants.VariantManagement</p>
     "!
+    "! Note: sap.ui.comp is superseded by sap.ui.mdc, which SAP recommends for new developments (this wrapper remains fully supported).
+    "!
     "! Variant management for smart controls. See https://ui5.sap.com/#/api/sap.ui.comp.variants.VariantManagement.
     "! For modern SmartFilterBar/SmartTable use `variant_management_sapm` (sap.ui.fl.variants.VariantManagement) or `smart_variant_management` instead.
     "!
@@ -7302,6 +7306,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.comp.smartvariants.SmartVariantManagement</p>
     "!
+    "! Note: sap.ui.comp is superseded by sap.ui.mdc, which SAP recommends for new developments (this wrapper remains fully supported).
+    "!
     "! Variant management for smart controls. See https://ui5.sap.com/#/api/sap.ui.comp.smartvariants.SmartVariantManagement.
     "!
     "! @parameter showexecuteonselection | (boolean) Show "Apply Automatically" option. Default: false.
@@ -7315,6 +7321,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.comp.smartfilterbar.SmartFilterBar</p>
+    "!
+    "! Note: sap.ui.comp is superseded by sap.ui.mdc, which SAP recommends for new developments (this wrapper remains fully supported).
     "!
     "! Smart filter bar with auto-generated controls based on OData metadata.
     "! See https://ui5.sap.com/#/api/sap.ui.comp.smartfilterbar.SmartFilterBar.
@@ -7351,6 +7359,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.comp.smarttable.SmartTable</p>
+    "!
+    "! Note: sap.ui.comp is superseded by sap.ui.mdc, which SAP recommends for new developments (this wrapper remains fully supported).
     "!
     "! Smart table that auto-creates columns from OData metadata. See https://ui5.sap.com/#/api/sap.ui.comp.smarttable.SmartTable.
     "!
@@ -9511,6 +9521,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.comp.smartmultiinput.SmartMultiInput</p>
+    "!
+    "! Note: sap.ui.comp is superseded by sap.ui.mdc, which SAP recommends for new developments (this wrapper remains fully supported).
     "!
     "! Smart multi-input that derives suggestions / value help from OData.
     "! See https://ui5.sap.com/#/api/sap.ui.comp.smartmultiinput.SmartMultiInput.
