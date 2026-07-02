@@ -290,9 +290,9 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
     <tab_out> = <tab_out_backup>.
 
-    z2ui5_cl_util=>itab_filter_by_search_string( EXPORTING val         = client->get_event_arg( 1 )
-                                                           ignore_case = abap_true
-                                                 CHANGING  tab         = <tab_out> ).
+    z2ui5_cl_util=>itab_filter_by_val( EXPORTING val         = client->get_event_arg( 1 )
+                                                 ignore_case = abap_true
+                                       CHANGING  tab         = <tab_out> ).
     client->popup_model_update( ).
 
   ENDMETHOD.

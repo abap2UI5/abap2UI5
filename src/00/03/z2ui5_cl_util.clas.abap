@@ -488,12 +488,6 @@ CLASS z2ui5_cl_util DEFINITION
 
     CLASS-METHODS itab_filter_by_val
       IMPORTING
-        val  TYPE clike
-      CHANGING
-        !tab TYPE STANDARD TABLE.
-
-    CLASS-METHODS itab_filter_by_search_string
-      IMPORTING
         val         TYPE clike
         fields      TYPE string_table OPTIONAL
         ignore_case TYPE abap_bool DEFAULT abap_false
@@ -1134,30 +1128,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
 
   METHOD itab_filter_by_val.
-
-    FIELD-SYMBOLS <row> TYPE any.
-
-    LOOP AT tab ASSIGNING <row>.
-      DATA(lv_row) = ``.
-      DATA(lv_index) = 1.
-      DO.
-        ASSIGN COMPONENT lv_index OF STRUCTURE <row> TO FIELD-SYMBOL(<field>).
-        IF sy-subrc <> 0.
-          EXIT.
-        ENDIF.
-        lv_row = lv_row && <field>.
-        lv_index = lv_index + 1.
-      ENDDO.
-
-      IF lv_row NS val.
-        DELETE tab.
-      ENDIF.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD itab_filter_by_search_string.
 
     FIELD-SYMBOLS <row>   TYPE any.
     FIELD-SYMBOLS <field> TYPE any.
