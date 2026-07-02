@@ -1264,22 +1264,15 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD boolean_check_by_data.
 
-    DATA lv_type   TYPE c LENGTH 1.
-    DATA lv_length TYPE i.
-
-    " all supported boolean types are single-character flags, this check
-    " filters out every other type without the more expensive type reflection
-    DESCRIBE FIELD val TYPE lv_type.
-    IF lv_type <> `C`.
-      RETURN.
-    ENDIF.
-    DESCRIBE FIELD val LENGTH lv_length IN CHARACTER MODE.
-    IF lv_length <> 1.
-      RETURN.
-    ENDIF.
-
     TRY.
         DATA(lo_descr) = cl_abap_elemdescr=>describe_by_data( val ).
+
+        " all supported boolean types are character-like flags, this check
+        " filters out every other type before the name based cache lookup
+        IF lo_descr->type_kind <> cl_abap_typedescr=>typekind_char.
+          RETURN.
+        ENDIF.
+
         DATA(lv_abs_name) = CONV string( lo_descr->absolute_name ).
 
         READ TABLE mt_bool_cache REFERENCE INTO DATA(lr_cache)
