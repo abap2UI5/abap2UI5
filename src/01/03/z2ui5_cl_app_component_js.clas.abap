@@ -88,8 +88,12 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `      _installUnloadListener() {` && |\n| &&
              `        this._boundUnload = this._onUnload.bind(this);` && |\n| &&
              `        // Safari on iOS does not fire "beforeunload" reliably, so we use` && |\n| &&
-             `        // "pagehide" there.` && |\n| &&
-             `        const isIos = /iPad|iPhone/.test(navigator.userAgent);` && |\n| &&
+             `        // "pagehide" there. iPads on iPadOS 13+ report a Mac user agent` && |\n| &&
+             `        // ("desktop site" default) - the touch-point probe catches those,` && |\n| &&
+             `        // while real Macs report 0 touch points.` && |\n| &&
+             `        const isIos =` && |\n| &&
+             `          /iPad|iPhone/.test(navigator.userAgent) ||` && |\n| &&
+             `          (navigator.userAgent.includes("Mac") && navigator.maxTouchPoints > 1);` && |\n| &&
              `        this._unloadEvent = isIos ? "pagehide" : "beforeunload";` && |\n| &&
              `        window.addEventListener(this._unloadEvent, this._boundUnload);` && |\n| &&
              `      },` && |\n| &&

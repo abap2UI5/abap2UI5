@@ -71,7 +71,9 @@ sap.ui.define(
     }
 
     function evClipboardAppState() {
-      const id = z2ui5.oResponse?.ID;
+      // Guard against a missing response so the copied link never carries
+      // the literal "undefined" as its state id.
+      const id = z2ui5.oResponse?.ID || "";
       // Strip any existing hash (e.g. an active app-state) so the copied
       // link carries only the fresh state id.
       const base = window.location.href.split("#")[0];

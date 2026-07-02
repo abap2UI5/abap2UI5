@@ -279,13 +279,12 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      const isRowField = parts.length === 3 && rowIdx !== "" && !isNaN(rowIdx);` && |\n| &&
              `      if (isRowField) {` && |\n| &&
              `        // Table cell change -> ship only the changed cell.` && |\n| &&
-             `        if (!delta[attr] || !delta[attr].__delta) {` && |\n| &&
+             `        if (!delta[attr]?.__delta) {` && |\n| &&
              `          delta[attr] = { __delta: {} };` && |\n| &&
              `        }` && |\n| &&
              `        const attrDelta = delta[attr].__delta;` && |\n| &&
              `        if (!attrDelta[rowIdx]) attrDelta[rowIdx] = {};` && |\n| &&
-             `        const row = xx[attr] && xx[attr][+rowIdx];` && |\n| &&
-             `        attrDelta[rowIdx][field] = row ? row[field] : undefined;` && |\n| &&
+             `        attrDelta[rowIdx][field] = xx[attr]?.[+rowIdx]?.[field];` && |\n| &&
              `      } else {` && |\n| &&
              `        // Scalar change -> ship the whole attribute.` && |\n| &&
              `        delta[attr] = xx[attr];` && |\n| &&
