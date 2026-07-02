@@ -17,8 +17,8 @@ abap2UI5 is a framework for building SAP UI5 applications purely in ABAP — no 
 | Repository | Purpose |
 |---|---|
 | [abap2UI5](https://github.com/abap2UI5/abap2UI5) | Core framework (this repo) |
-| [abap2UI5-samples](https://github.com/abap2UI5/abap2UI5-samples) | Sample applications and usage examples |
-| [abap2UI5-documentation](https://github.com/abap2UI5/abap2UI5-documentation) | Project documentation |
+| [samples](https://github.com/abap2UI5/samples) | Sample applications and usage examples |
+| [docs](https://github.com/abap2UI5/docs) | Project documentation |
 
 > **Building apps?** This file is the briefing for AI assistants working **on the framework itself**. For everything an AI needs to **build apps with** abap2UI5 — app template, client API, view-building patterns, lifecycle, deprecated controls — see the single canonical guide at <https://abap2ui5.github.io/docs/advanced/agent.html>.
 

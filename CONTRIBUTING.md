@@ -282,4 +282,4 @@ Your contributions help make abap2UI5 better for the entire ABAP community. Whet
 
 ---
 
-*For more information, visit [abap2UI5.org](https://abap2UI5.org) or explore our [sample applications](https://github.com/abap2UI5/abap2UI5-samples).*
+*For more information, visit [abap2UI5.org](https://abap2UI5.org) or explore our [sample applications](https://github.com/abap2UI5/samples).*

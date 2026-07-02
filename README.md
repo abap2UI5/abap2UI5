@@ -36,7 +36,7 @@
 
 <p align="center">
   <a href="https://abap2UI5.org">📚 Documentation</a> •
-  <a href="https://github.com/abap2UI5/abap2UI5-samples">🎯 Samples (250+ apps)</a> •
+  <a href="https://github.com/abap2UI5/samples">🎯 Samples (250+ apps)</a> •
   <a href="https://github.com/abap2UI5/abap2UI5/issues">💬 Issues</a> •
   <a href="https://www.linkedin.com/company/abap2ui5">🔗 LinkedIn</a> •
   <a href="https://communityinviter.com/apps/abapgit/abap">👥 Slack</a> •
@@ -117,7 +117,7 @@ This project thrives thanks to its [contributors](https://github.com/abap2UI5/ab
 * Runtime serialization using [S-RTTI](https://github.com/sandraros/S-RTTI) [(sandrarossi)](https://github.com/sandraros)
 * ABAP Cloud & Standard compatibility with [Steampunkification](https://github.com/heliconialabs/steampunkification) [(contributors)](https://github.com/heliconialabs/steampunkification/graphs/contributors)
 * Syntax downporting via the [downport branch](https://github.com/abap2UI5/abap2UI5/tree/702) by [abaplint](https://abaplint.org/) [(larshp)](https://github.com/larshp)
-* Namespace renaming via the [renamed repository](https://github.com/abap2UI5/abap2UI5-mirror-renamed) by [abaplint](https://abaplint.org/) [(larshp)](https://github.com/larshp)
+* Namespace renaming with [abaplint](https://abaplint.org/) [(larshp)](https://github.com/larshp)
 * Browser testing with [Playwright](https://playwright.dev/) [(contributors)](https://github.com/microsoft/playwright/graphs/contributors)
 * Live demos running via [web-abap2ui5-samples](https://github.com/abap2UI5/web-abap2ui5-samples) [(larshp)](https://github.com/larshp)
 * Code cleanup with [ABAP Cleaner](https://github.com/SAP/abap-cleaner) [(contributors)](https://github.com/SAP/abap-cleaner/graphs/contributors)
