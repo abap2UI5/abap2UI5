@@ -11,7 +11,7 @@ Pull abap2UI5 into the system with **abapGit**:
 - Works on NW 7.02+ (on-premise) and ABAP Cloud.
 
 Optionally also install the examples for reference:
-`https://github.com/abap2UI5/abap2UI5-samples`.
+`https://github.com/abap2UI5/samples`.
 
 ## 2. Create the HTTP entry point
 abap2UI5 needs one HTTP handler that hands incoming requests to the framework.

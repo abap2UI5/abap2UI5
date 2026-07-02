@@ -1,7 +1,7 @@
 # Examples Index — "which example shows what"
 
 A lookup over the official **abap2UI5/samples** repo
-(<https://github.com/abap2UI5/abap2UI5-samples>), mined from its launchpad app
+(<https://github.com/abap2UI5/samples>), mined from its launchpad app
 `z2ui5_cl_demo_app_000`. When the user asks for a feature, find the nearest entry
 here and **read that demo class first** — each is a complete, lint-clean,
 working implementation to adapt. The classes live at

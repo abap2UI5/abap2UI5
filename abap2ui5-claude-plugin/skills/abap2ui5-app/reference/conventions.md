@@ -71,6 +71,6 @@ Sensible defaults for a new app class (used by the bundled templates):
 If your project mandates full Hungarian notation, `FINAL`, etc., apply it — the
 templates are a starting point, not a constraint.
 
-> The **abap2UI5-samples** repo has its own stricter house style (lowercase class
+> The **samples** repo has its own stricter house style (lowercase class
 > names, no `FINAL`/`CREATE PUBLIC`). Follow that **only** when contributing demos
 > to that repo.
