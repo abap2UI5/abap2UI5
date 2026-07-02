@@ -54,9 +54,10 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
     r_result->mv_type             = i_type.
     r_result->mv_name             = i_name.
     r_result->mv_value            = i_file.
-    " packed target avoids the integer division that displayed 0 for small files
+    " packed target avoids the integer division that displayed 0 for small
+    " files, condense drops the trailing sign blank of the conversion
     lv_size_kb                    = strlen( i_file ) / 1000.
-    r_result->mv_size             = lv_size_kb.
+    r_result->mv_size             = condense( CONV string( lv_size_kb ) ).
 
   ENDMETHOD.
 
