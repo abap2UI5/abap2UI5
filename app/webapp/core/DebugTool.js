@@ -17,7 +17,13 @@ sap.ui.define(
     // `null` is used as a fallback so undefined values still produce output.
     function toJson(val) {
       const safe = val === undefined ? null : val;
-      return JSON.stringify(safe, null, 3);
+      try {
+        return JSON.stringify(safe, null, 3);
+      } catch (e) {
+        // e.g. circular references in ComponentData - the debug tool must
+        // never crash the host app, so degrade to the plain string form.
+        return String(safe);
+      }
     }
 
     // XSL stylesheet used by prettifyXml to reindent any XML string.

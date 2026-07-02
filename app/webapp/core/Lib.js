@@ -259,13 +259,12 @@ sap.ui.define([], () => {
       const isRowField = parts.length === 3 && rowIdx !== "" && !isNaN(rowIdx);
       if (isRowField) {
         // Table cell change -> ship only the changed cell.
-        if (!delta[attr] || !delta[attr].__delta) {
+        if (!delta[attr]?.__delta) {
           delta[attr] = { __delta: {} };
         }
         const attrDelta = delta[attr].__delta;
         if (!attrDelta[rowIdx]) attrDelta[rowIdx] = {};
-        const row = xx[attr] && xx[attr][+rowIdx];
-        attrDelta[rowIdx][field] = row ? row[field] : undefined;
+        attrDelta[rowIdx][field] = xx[attr]?.[+rowIdx]?.[field];
       } else {
         // Scalar change -> ship the whole attribute.
         delta[attr] = xx[attr];

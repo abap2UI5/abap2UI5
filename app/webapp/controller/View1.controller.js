@@ -280,8 +280,7 @@ sap.ui.define(
         }
         oView.setModel(oModel);
 
-        const nestParams =
-          z2ui5.oResponse?.PARAMS && z2ui5.oResponse.PARAMS[paramKey];
+        const nestParams = z2ui5.oResponse?.PARAMS?.[paramKey];
         if (!nestParams) {
           Lib.logError(`displayNestedView: missing PARAMS.${paramKey}`);
           oView.destroy();

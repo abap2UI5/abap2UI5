@@ -12,13 +12,10 @@ sap.ui.define(
         const oOwnerComponent = this.getOwnerComponent();
         z2ui5.oOwnerComponent = oOwnerComponent;
 
-        // Read the backend URI from the manifest, falling back step by step
-        // so a missing entry doesn't blow up.
+        // Read the backend URI from the manifest; optional chaining keeps a
+        // missing entry from blowing up.
         const manifest = oOwnerComponent.getManifest();
-        const sapApp = manifest?.["sap.app"];
-        const dataSources = sapApp?.dataSources;
-        const http = dataSources?.http;
-        const uri = http?.uri;
+        const uri = manifest?.["sap.app"]?.dataSources?.http?.uri;
         z2ui5.url = z2ui5.checkLocal ? window.location.href : uri;
 
         // Wire up the controller instances and the app container. All other

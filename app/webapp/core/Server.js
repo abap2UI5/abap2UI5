@@ -250,10 +250,7 @@ sap.ui.define(
         z2ui5.oBody = oBody;
 
         // Pick the first event argument (event name) safely.
-        let eventName;
-        if (oBody.ARGUMENTS?.[0]) {
-          eventName = oBody.ARGUMENTS[0][0];
-        }
+        const eventName = oBody.ARGUMENTS?.[0]?.[0];
 
         oBody.S_FRONT = {
           CONFIG: {

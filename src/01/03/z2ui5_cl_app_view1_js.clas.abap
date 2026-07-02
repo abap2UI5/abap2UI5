@@ -300,8 +300,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        oView.setModel(oModel);` && |\n| &&
              `` && |\n| &&
-             `        const nestParams =` && |\n| &&
-             `          z2ui5.oResponse?.PARAMS && z2ui5.oResponse.PARAMS[paramKey];` && |\n| &&
+             `        const nestParams = z2ui5.oResponse?.PARAMS?.[paramKey];` && |\n| &&
              `        if (!nestParams) {` && |\n| &&
              `          Lib.logError(``displayNestedView: missing PARAMS.${paramKey}``);` && |\n| &&
              `          oView.destroy();` && |\n| &&
@@ -417,9 +416,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        Lib.runCallbacks(z2ui5.onBeforeRoundtrip);` && |\n| &&
              `` && |\n| &&
-             `        // If the user edited /XX/ paths, send only the delta to keep the` && |\n|.
+             `        // If the user edited /XX/ paths, send only the delta to keep the` && |\n| &&
+             `        // payload small.` && |\n|.
     result = result &&
-             `        // payload small.` && |\n| &&
              `        if (oModel && z2ui5.xxChangedPaths.size > 0) {` && |\n| &&
              `          const data = oModel.getData();` && |\n| &&
              `          const xx = data?.XX;` && |\n| &&

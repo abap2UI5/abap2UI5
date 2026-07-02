@@ -91,7 +91,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evClipboardAppState() {` && |\n| &&
-             `      const id = z2ui5.oResponse?.ID;` && |\n| &&
+             `      // Guard against a missing response so the copied link never carries` && |\n| &&
+             `      // the literal "undefined" as its state id.` && |\n| &&
+             `      const id = z2ui5.oResponse?.ID || "";` && |\n| &&
              `      // Strip any existing hash (e.g. an active app-state) so the copied` && |\n| &&
              `      // link carries only the fresh state id.` && |\n| &&
              `      const base = window.location.href.split("#")[0];` && |\n| &&
@@ -415,10 +417,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        }` && |\n| &&
              `` && |\n| &&
              `        if (!handled) {` && |\n| &&
-             `          const dom =` && |\n| &&
-             `            document.getElementById(``${oElement.getId()}-inner``) ||` && |\n| &&
-             `            oElement.getDomRef();` && |\n|.
+             `          const dom =` && |\n|.
     result = result &&
+             `            document.getElementById(``${oElement.getId()}-inner``) ||` && |\n| &&
+             `            oElement.getDomRef();` && |\n| &&
              `          if (dom?.scrollTo) {` && |\n| &&
              `            dom.scrollTo({ top: y, left: x, behavior });` && |\n| &&
              `            handled = true;` && |\n| &&

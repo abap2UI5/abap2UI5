@@ -37,7 +37,13 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `    // ``null`` is used as a fallback so undefined values still produce output.` && |\n| &&
              `    function toJson(val) {` && |\n| &&
              `      const safe = val === undefined ? null : val;` && |\n| &&
-             `      return JSON.stringify(safe, null, 3);` && |\n| &&
+             `      try {` && |\n| &&
+             `        return JSON.stringify(safe, null, 3);` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        // e.g. circular references in ComponentData - the debug tool must` && |\n| &&
+             `        // never crash the host app, so degrade to the plain string form.` && |\n| &&
+             `        return String(safe);` && |\n| &&
+             `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // XSL stylesheet used by prettifyXml to reindent any XML string.` && |\n| &&

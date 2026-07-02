@@ -32,13 +32,10 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        const oOwnerComponent = this.getOwnerComponent();` && |\n| &&
              `        z2ui5.oOwnerComponent = oOwnerComponent;` && |\n| &&
              `` && |\n| &&
-             `        // Read the backend URI from the manifest, falling back step by step` && |\n| &&
-             `        // so a missing entry doesn't blow up.` && |\n| &&
+             `        // Read the backend URI from the manifest; optional chaining keeps a` && |\n| &&
+             `        // missing entry from blowing up.` && |\n| &&
              `        const manifest = oOwnerComponent.getManifest();` && |\n| &&
-             `        const sapApp = manifest?.["sap.app"];` && |\n| &&
-             `        const dataSources = sapApp?.dataSources;` && |\n| &&
-             `        const http = dataSources?.http;` && |\n| &&
-             `        const uri = http?.uri;` && |\n| &&
+             `        const uri = manifest?.["sap.app"]?.dataSources?.http?.uri;` && |\n| &&
              `        z2ui5.url = z2ui5.checkLocal ? window.location.href : uri;` && |\n| &&
              `` && |\n| &&
              `        // Wire up the controller instances and the app container. All other` && |\n| &&

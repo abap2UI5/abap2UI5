@@ -270,10 +270,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        z2ui5.oBody = oBody;` && |\n| &&
              `` && |\n| &&
              `        // Pick the first event argument (event name) safely.` && |\n| &&
-             `        let eventName;` && |\n| &&
-             `        if (oBody.ARGUMENTS?.[0]) {` && |\n| &&
-             `          eventName = oBody.ARGUMENTS[0][0];` && |\n| &&
-             `        }` && |\n| &&
+             `        const eventName = oBody.ARGUMENTS?.[0]?.[0];` && |\n| &&
              `` && |\n| &&
              `        oBody.S_FRONT = {` && |\n| &&
              `          CONFIG: {` && |\n| &&
@@ -417,11 +414,11 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          if (sView?.XML) {` && |\n| &&
              `            ViewSlots.destroy("MAIN");` && |\n| &&
              `            await oController.displayView(sView.XML, response.OVIEWMODEL);` && |\n| &&
-             `            return;` && |\n|.
-    result = result &&
+             `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
-             `          // Partial response: refresh whichever existing views the backend` && |\n| &&
+             `          // Partial response: refresh whichever existing views the backend` && |\n|.
+    result = result &&
              `          // sent updates for.` && |\n| &&
              `          for (const slot of ViewSlots.slots) {` && |\n| &&
              `            oController.updateModelIfRequired(slot.key);` && |\n| &&
