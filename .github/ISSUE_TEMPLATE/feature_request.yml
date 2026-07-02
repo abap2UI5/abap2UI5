@@ -1,0 +1,23 @@
+name: Feature request
+description: Suggest an improvement or new capability for abap2UI5
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the use case - what are you trying to build that is hard or impossible today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How could the framework support this? API sketches welcome. Remember the public API in src/02/ only changes additively.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Workarounds you tried, e.g. custom controls via z2ui5_cl_xml_view_cc or the exit framework.

@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://abap2ui5.github.io/docs/
+    about: Guides, API reference and samples for building apps with abap2UI5.
+  - name: Sample applications
+    url: https://github.com/abap2UI5/samples
+    about: Working example apps - check here before filing a how-do-I question.

@@ -53,8 +53,11 @@ sap.ui.define([], () => {
   }
 
   // `response` may be a string or an Error object; `title` overrides the
-  // default header text.
-  function show(response, title) {
+  // default header text; `options.onRetry` adds a Retry action that removes
+  // the overlay and re-runs the failed request (offered by Server.readHttp
+  // for network/timeout failures, where the request may never have reached
+  // the server and app state is still intact).
+  function show(response, title, options = {}) {
     const full = response?.stack ? String(response.stack) : String(response);
     let errorMessage;
     if (full.length > ERROR_MAX_LENGTH) {
@@ -70,12 +73,19 @@ sap.ui.define([], () => {
     const errorContainer = getOrCreateContainer();
     errorContainer.textContent = "";
 
+    // Announce the overlay to assistive technology: without a dialog role
+    // and focus move, a screen-reader user is never told the app crashed.
+    errorContainer.setAttribute("role", "alertdialog");
+    errorContainer.setAttribute("aria-modal", "true");
+    errorContainer.setAttribute("aria-labelledby", "serverErrorTitle");
+
     // Header bar with title and action buttons.
     const headerDiv = document.createElement("div");
     headerDiv.style.cssText =
       "padding: 15px; background: #d32f2f; color: white; display: flex; justify-content: space-between; align-items: center;";
 
     const h3 = document.createElement("h3");
+    h3.id = "serverErrorTitle";
     h3.textContent = title || "Application Error - Please Restart The App";
     h3.style.cssText = "margin: 0";
     headerDiv.appendChild(h3);
@@ -85,6 +95,18 @@ sap.ui.define([], () => {
 
     const actionsDiv = document.createElement("div");
     actionsDiv.style.cssText = "display: flex; gap: 8px;";
+
+    if (typeof options.onRetry === "function") {
+      const retryBtn = document.createElement("button");
+      retryBtn.type = "button";
+      retryBtn.textContent = "Retry";
+      retryBtn.style.cssText = btnStyle;
+      retryBtn.addEventListener("click", () => {
+        errorContainer.remove();
+        options.onRetry();
+      });
+      actionsDiv.appendChild(retryBtn);
+    }
 
     const refreshBtn = document.createElement("button");
     refreshBtn.type = "button";
@@ -102,6 +124,22 @@ sap.ui.define([], () => {
 
     headerDiv.appendChild(actionsDiv);
     errorContainer.appendChild(headerDiv);
+
+    // Keep keyboard focus inside the overlay: Tab cycles through the action
+    // buttons instead of escaping into the broken page behind it.
+    errorContainer.addEventListener("keydown", (event) => {
+      if (event.key !== "Tab") return;
+      const buttons = actionsDiv.querySelectorAll("button");
+      const first = buttons[0];
+      const last = buttons[buttons.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    });
 
     // The error text itself lives inside a sandboxed iframe so any HTML
     // in the backend response cannot execute or affect the main page.
@@ -130,6 +168,11 @@ sap.ui.define([], () => {
       pre.textContent = errorMessage;
       errorContainer.appendChild(pre);
     }
+
+    // Move focus into the dialog so keyboard and screen-reader users land on
+    // the primary action instead of the broken page behind the overlay.
+    const firstButton = actionsDiv.querySelector("button");
+    if (firstButton) firstButton.focus();
   }
 
   return { show };

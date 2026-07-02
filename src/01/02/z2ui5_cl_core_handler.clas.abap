@@ -256,17 +256,19 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   METHOD check_view_update_needed.
 
-    result = xsdbool(
-           ms_response-s_front-params-s_view-check_update_model       = abap_true
-        OR ms_response-s_front-params-s_view_nest-check_update_model  = abap_true
-        OR ms_response-s_front-params-s_view_nest2-check_update_model = abap_true
-        OR ms_response-s_front-params-s_popup-check_update_model      = abap_true
-        OR ms_response-s_front-params-s_popover-check_update_model    = abap_true
-        OR ms_response-s_front-params-s_view-xml       IS NOT INITIAL
-        OR ms_response-s_front-params-s_view_nest-xml  IS NOT INITIAL
-        OR ms_response-s_front-params-s_view_nest2-xml IS NOT INITIAL
-        OR ms_response-s_front-params-s_popup-xml      IS NOT INITIAL
-        OR ms_response-s_front-params-s_popover-xml    IS NOT INITIAL ).
+    SPLIT z2ui5_if_core_types=>cs_view_slot_list AT `,` INTO TABLE DATA(lt_slot).
+    LOOP AT lt_slot INTO DATA(lv_slot).
+      ASSIGN COMPONENT lv_slot OF STRUCTURE ms_response-s_front-params TO FIELD-SYMBOL(<slot>).
+      ASSERT sy-subrc = 0.
+      ASSIGN COMPONENT `CHECK_UPDATE_MODEL` OF STRUCTURE <slot> TO FIELD-SYMBOL(<check_update_model>).
+      ASSERT sy-subrc = 0.
+      ASSIGN COMPONENT `XML` OF STRUCTURE <slot> TO FIELD-SYMBOL(<xml>).
+      ASSERT sy-subrc = 0.
+      IF <check_update_model> = abap_true OR <xml> IS NOT INITIAL.
+        result = abap_true.
+        RETURN.
+      ENDIF.
+    ENDLOOP.
 
   ENDMETHOD.
 

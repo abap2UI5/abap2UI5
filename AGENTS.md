@@ -163,7 +163,8 @@ src/
 | `node/setup/` | `abap_transpile.json` (transpiler config), `setup.mjs` (SQLite bootstrap for Node unit tests) |
 | `node/tests/` | Playwright tests — browser tests in `e2e/` (`example.spec.js` shell smoke test, `roundtrip.spec.js` POST/draft wire contract, `lib-sanitizer.spec.js` XSS regression tests for `Lib.sanitizeMessageDetails`; run via `node/playwright.config.js` against the dev server), plus unit specs (`buildDeltaFromPaths.spec.js`, `utilHelpers.spec.js`, `appState.spec.js`, `viewSlots.spec.js`, `uiTableExt.spec.js`, `messages.spec.js`, `util.spec.js`) that load the **real** `app/webapp` modules via `loadModule.js` (stubbed `sap.ui.define`, stubbable dependencies); run them without a browser via `npx playwright test -c node/playwright-unit.config.js` (the unit config ignores `e2e/`) |
 | `node/tests-examples/` | Playwright example specs and performance benchmarks (reference material, not run in CI) — `modelUpdate.bench.spec.js` measures the model-update strategies and documents its own setup; run via `node/playwright-bench.config.js` |
-| `.github/workflows/` | 17 CI/CD workflows (see below) |
+| `.github/workflows/` | 15 CI/CD workflows (see below) |
+| `.github/scripts/` | `ui5lint-gate.mjs` — baseline gate for the UI5 linter (fails CI only when new errors are introduced; lower its `MAX_ERRORS` when findings are fixed) |
 | `.github/abaplint/` | Target-specific abaplint configs: `abap_702.jsonc`, `abap_standard.jsonc`, `abap_cloud.jsonc`, `auto_abaplint_fix.jsonc`, `rename_test.jsonc` |
 | `.github/app2abap/` | `trans2abap.js` — converts `app/webapp/*` files into embedded ABAP string constants in `src/01/03/` |
 | `.github/cleaner-profile.cfj` | ABAP Cleaner profile (SAP ABAP Cleaner tool configuration for automated code cleanup) |
@@ -190,8 +191,8 @@ Grouped by purpose:
 | Group | Workflows | Purpose |
 |---|---|---|
 | **Compatibility checks** | `ABAP_702.yaml`, `ABAP_STANDARD.yaml`, `ABAP_CLOUD.yaml` | Lint against each ABAP target environment |
-| **Frontend checks** | `UI5.yaml`, `check_app.yaml`, `check_frontend.yaml` | UI5 linter + frontend integrity checks |
-| **Tests** | `test_unit.yaml`, `test_node.yaml`, `test_browser.yaml`, `test_rename.yaml` | Unit tests, Node transpile tests, Playwright browser tests, namespace-rename test |
+| **Frontend checks** | `UI5.yaml` | UI5 linter, gated on a fixed error baseline via `.github/scripts/ui5lint-gate.mjs` |
+| **Tests** | `test_unit.yaml`, `test_node.yaml`, `test_browser.yaml`, `test_rename.yaml` | Unit tests, Node transpile tests, JS unit specs + Playwright browser tests, namespace-rename test |
 | **Automation** | `auto_downport.yaml`, `auto_abaplint_fix.yaml`, `auto_abaplint_fix_pr.yaml` | Scheduled downporting and auto-formatting (open PRs) |
 | **Generation** | `create_app2abap.yaml`, `create_frontend.yaml` | Regenerate `src/01/03/` from `app/webapp/` |
 | **Mirroring** | `mirror_ajson.yaml`, `mirror_srtti.yaml` | Sync `src/00/01/` (AJSON) and `src/00/02/` (S-RTTI) from upstream repos |

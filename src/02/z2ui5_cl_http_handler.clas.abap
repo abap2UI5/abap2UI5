@@ -233,7 +233,17 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
       CATCH cx_root INTO DATA(x).
 
-        result = VALUE #( body          = |abap2UI5 Error:{ x->get_text( ) }|
+        DATA(lv_error_text) = x->get_text( ).
+        TRY.
+            DATA(ls_config) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
+            z2ui5_cl_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config ).
+            IF ls_config-check_hide_error_details = abap_true.
+              lv_error_text = `An internal error occurred - error details are hidden by configuration (see z2ui5_if_exit->set_config_http_post)`.
+            ENDIF.
+          CATCH cx_root ##NO_HANDLER.
+        ENDTRY.
+
+        result = VALUE #( body          = |abap2UI5 Error:{ lv_error_text }|
                           status_code   = 500
                           status_reason = `error` ).
     ENDTRY.

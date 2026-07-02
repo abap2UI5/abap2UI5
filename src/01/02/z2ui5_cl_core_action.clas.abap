@@ -91,7 +91,11 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
               result->mo_app->ms_draft-id_prev_app_stack = ``.
               result->mo_app->ms_draft-id = z2ui5_cl_util=>uuid_get_c32( ).
               RETURN.
-            CATCH cx_root ##NO_HANDLER.
+            CATCH cx_root.
+              " expired or invalid bookmark draft - fall through to a fresh
+              " app start, but tell the user why the saved state is gone
+              result->ms_next-s_set-s_msg_toast-text =
+                `Bookmarked app state expired or could not be restored - starting with a fresh app`.
           ENDTRY.
         ENDIF.
 
@@ -154,11 +158,14 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
   METHOD reset_view_update_flags.
 
-    ms_next-s_set-s_view-check_update_model       = abap_false.
-    ms_next-s_set-s_view_nest-check_update_model  = abap_false.
-    ms_next-s_set-s_view_nest2-check_update_model = abap_false.
-    ms_next-s_set-s_popup-check_update_model      = abap_false.
-    ms_next-s_set-s_popover-check_update_model    = abap_false.
+    SPLIT z2ui5_if_core_types=>cs_view_slot_list AT `,` INTO TABLE DATA(lt_slot).
+    LOOP AT lt_slot INTO DATA(lv_slot).
+      ASSIGN COMPONENT lv_slot OF STRUCTURE ms_next-s_set TO FIELD-SYMBOL(<slot>).
+      ASSERT sy-subrc = 0.
+      ASSIGN COMPONENT `CHECK_UPDATE_MODEL` OF STRUCTURE <slot> TO FIELD-SYMBOL(<check_update_model>).
+      ASSERT sy-subrc = 0.
+      <check_update_model> = abap_false.
+    ENDLOOP.
 
   ENDMETHOD.
 

@@ -784,6 +784,9 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
         IF lo_row_d->get_node_type( lv_fld_path ) = z2ui5_if_ajson_types=>node_type-boolean.
           <comp> = lo_row_d->get_boolean( lv_fld_path ).
         ELSE.
+          " numbers intentionally go through get_string: the raw JSON text
+          " converts losslessly into any numeric target type, while
+          " get_number would round through a binary float first
           <comp> = lo_row_d->get_string( lv_fld_path ).
         ENDIF.
       ENDLOOP.

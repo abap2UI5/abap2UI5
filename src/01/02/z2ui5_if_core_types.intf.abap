@@ -16,6 +16,10 @@ INTERFACE z2ui5_if_core_types
       two_way  TYPE string VALUE `TWO_WAY`,
     END OF cs_bind_type.
 
+  " single source of truth for the five view slots in ty_s_next_frontend -
+  " consumers SPLIT at the comma and access the components dynamically
+  CONSTANTS cs_view_slot_list TYPE string VALUE `S_VIEW,S_VIEW_NEST,S_VIEW_NEST2,S_POPUP,S_POPOVER`.
+
   TYPES:
     BEGIN OF ty_s_http_res,
       body          TYPE string,

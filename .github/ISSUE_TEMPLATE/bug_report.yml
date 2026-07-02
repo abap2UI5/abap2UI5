@@ -1,0 +1,38 @@
+name: Bug report
+description: Report a problem with the abap2UI5 framework
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How to reproduce
+      description: Minimal app code or steps that trigger the problem.
+      render: abap
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: abap2UI5 version
+      description: See constant `version` in z2ui5_if_app (e.g. 1.142.0).
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: ABAP environment
+      description: NW 7.02 / standard ABAP (release) / ABAP Cloud, plus UI5 version if frontend-related.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Error messages, screenshots, launchpad vs. standalone, custom exit classes, etc.

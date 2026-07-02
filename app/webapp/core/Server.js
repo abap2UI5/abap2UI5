@@ -293,84 +293,114 @@ sap.ui.define(
         this.readHttp(oBody);
       },
 
+      // Returns an abort signal that fires after `ms` plus a cancel function
+      // that releases the underlying timer. Uses AbortSignal.timeout where
+      // available and falls back to a manual AbortController + setTimeout on
+      // older browsers, so the client-side timeout backstop works everywhere.
+      // (Exposed on the module for the unit specs.)
+      createTimeoutSignal(ms) {
+        if (AbortSignal.timeout) {
+          return { signal: AbortSignal.timeout(ms), cancel: () => {} };
+        }
+        const controller = new AbortController();
+        const handle = setTimeout(() => controller.abort(), ms);
+        return {
+          signal: controller.signal,
+          cancel: () => clearTimeout(handle),
+        };
+      },
+
       async readHttp(oBody) {
-        // Step 1: send the request.
-        let response;
         const timeoutMs = z2ui5.requestTimeoutMs || REQUEST_TIMEOUT_MS;
+        // The signal guards the fetch and the response body reads below; the
+        // finally releases the fallback timer once the roundtrip settled.
+        const { signal, cancel } = this.createTimeoutSignal(timeoutMs);
+        // A network blip or timeout may mean the request never reached the
+        // server, so the error overlay offers a retry that re-sends the
+        // exact same request body instead of forcing a full app restart.
+        const oRetry = { onRetry: () => this.readHttp(oBody) };
         try {
-          // Only forward "sap-contextid" once we actually own a valid session
-          // id - otherwise omit the header entirely (never send "" or
-          // "undefined"; see isValidContextId).
-          const headers = {
-            "Content-Type": "application/json",
-            "sap-contextid-accept": "header",
-          };
-          if (Lib.isValidContextId(z2ui5.contextId)) {
-            headers["sap-contextid"] = z2ui5.contextId;
-          }
-          response = await fetch(z2ui5.url, {
-            method: "POST",
-            headers: headers,
-            body: JSON.stringify({ value: oBody }),
-            // The signal also guards reading the response body below.
-            // Browsers without AbortSignal.timeout simply get no client-side
-            // timeout, as before.
-            signal: AbortSignal.timeout
-              ? AbortSignal.timeout(timeoutMs)
-              : undefined,
-          });
-        } catch (e) {
-          if (e.name === "TimeoutError" || e.name === "AbortError") {
-            this.responseError(
-              `No backend response within ${timeoutMs / 1000} seconds - request aborted`,
-            );
-          } else {
-            this.responseError(`Network error: ${e.message}`);
-          }
-          return;
-        }
-        // Keep the last valid session id; a response without the header
-        // (returns null) must not wipe an established session.
-        const contextId = response.headers.get("sap-contextid");
-        if (Lib.isValidContextId(contextId)) {
-          z2ui5.contextId = contextId;
-        }
-
-        // Step 2: if the HTTP status is not 2xx, treat the body as error text.
-        if (!response.ok) {
-          let text;
+          // Step 1: send the request.
+          let response;
           try {
-            text = await response.text();
+            // Only forward "sap-contextid" once we actually own a valid
+            // session id - otherwise omit the header entirely (never send ""
+            // or "undefined"; see isValidContextId).
+            const headers = {
+              "Content-Type": "application/json",
+              "sap-contextid-accept": "header",
+            };
+            if (Lib.isValidContextId(z2ui5.contextId)) {
+              headers["sap-contextid"] = z2ui5.contextId;
+            }
+            response = await fetch(z2ui5.url, {
+              method: "POST",
+              headers: headers,
+              body: JSON.stringify({ value: oBody }),
+              signal: signal,
+            });
           } catch (e) {
-            text = `HTTP ${response.status}: could not read error body`;
+            if (e.name === "TimeoutError" || e.name === "AbortError") {
+              this.responseError(
+                `No backend response within ${timeoutMs / 1000} seconds - request aborted`,
+                undefined,
+                oRetry,
+              );
+            } else {
+              this.responseError(
+                `Network error: ${e.message}`,
+                undefined,
+                oRetry,
+              );
+            }
+            return;
           }
-          // An empty error body would render an empty overlay - fall back
-          // to the status code so the user sees at least what failed.
-          this.responseError(text || `HTTP ${response.status}`);
-          return;
-        }
+          // Keep the last valid session id; a response without the header
+          // (returns null) must not wipe an established session.
+          const contextId = response.headers.get("sap-contextid");
+          if (Lib.isValidContextId(contextId)) {
+            z2ui5.contextId = contextId;
+          }
 
-        // Step 3: parse the JSON body.
-        let responseData;
-        try {
-          responseData = await response.json();
-        } catch (e) {
-          this.responseError(`Invalid JSON response: ${e.message}`);
-          return;
-        }
-        if (!responseData || !responseData.S_FRONT) {
-          this.responseError("Invalid response: missing S_FRONT");
-          return;
-        }
+          // Step 2: if the HTTP status is not 2xx, treat the body as error
+          // text.
+          if (!response.ok) {
+            let text;
+            try {
+              text = await response.text();
+            } catch (e) {
+              text = `HTTP ${response.status}: could not read error body`;
+            }
+            // An empty error body would render an empty overlay - fall back
+            // to the status code so the user sees at least what failed.
+            this.responseError(text || `HTTP ${response.status}`);
+            return;
+          }
 
-        // Step 4: hand the parsed response to the success handler.
-        z2ui5.responseData = responseData;
-        z2ui5.xxChangedPaths = new Set();
-        this.responseSuccess({
-          ID: responseData.S_FRONT.ID,
-          PARAMS: responseData.S_FRONT.PARAMS,
-          OVIEWMODEL: responseData.MODEL,
-        });
+          // Step 3: parse the JSON body.
+          let responseData;
+          try {
+            responseData = await response.json();
+          } catch (e) {
+            this.responseError(`Invalid JSON response: ${e.message}`);
+            return;
+          }
+          if (!responseData || !responseData.S_FRONT) {
+            this.responseError("Invalid response: missing S_FRONT");
+            return;
+          }
+
+          // Step 4: hand the parsed response to the success handler.
+          z2ui5.responseData = responseData;
+          z2ui5.xxChangedPaths = new Set();
+          this.responseSuccess({
+            ID: responseData.S_FRONT.ID,
+            PARAMS: responseData.S_FRONT.PARAMS,
+            OVIEWMODEL: responseData.MODEL,
+          });
+        } finally {
+          cancel();
+        }
       },
 
       async responseSuccess(response) {
@@ -475,11 +505,13 @@ sap.ui.define(
       // Terminate the roundtrip in an unrecoverable state: clear the busy
       // state and show the fatal-error overlay (core/ErrorView). `response`
       // may be a string or an Error object; `title` overrides the default
-      // header text.
-      responseError(response, title) {
+      // header text; `oOptions.onRetry` adds a Retry action to the overlay
+      // (used for network/timeout failures where the request may never have
+      // reached the server).
+      responseError(response, title, oOptions) {
         BusyIndicator.hide();
         z2ui5.isBusy = false;
-        ErrorView.show(response, title);
+        ErrorView.show(response, title, oOptions);
       },
     };
   },
