@@ -3,14 +3,34 @@ const { test, expect } = require("@playwright/test");
 
 // Exercises the fatal-error overlay (core/ErrorView) in a real browser:
 // accessibility semantics, focus management and the optional Retry action.
+//
+// One page is shared across the cases and the overlay is rebuilt per test:
+// loading UI5 from the CDN once per test made the suite slow and
+// timeout-flaky in CI.
 
-/** @param {import('@playwright/test').Page} page */
-async function showErrorView(page, withRetry) {
-  await page.goto("/");
-  await page.waitForFunction(() => !!window["sap"]?.ui?.require);
+/** @type {import('@playwright/test').Page} */
+let page;
+
+test.beforeAll(async ({ browser }) => {
+  page = await browser.newPage();
+  await page.goto("http://localhost:3000/");
+  // window.z2ui5 is created by onInitComponent AFTER sap.ui.require.preload
+  // registered the embedded z2ui5/* modules - waiting on sap.ui.require
+  // alone races the preload and the require below would then try (and fail)
+  // to fetch the module from the server.
+  await page.waitForFunction(() => !!window["z2ui5"]);
+});
+
+test.afterAll(async () => {
+  await page.close();
+});
+
+async function showErrorView(/** @type {boolean} */ withRetry) {
   await page.evaluate(
     (retry) =>
       new Promise((resolve) => {
+        document.getElementById("serverErrorContainer")?.remove();
+        window["__retried"] = false;
         window["sap"].ui.require(
           ["z2ui5/core/ErrorView"],
           (/** @type {any} */ ErrorView) => {
@@ -26,10 +46,8 @@ async function showErrorView(page, withRetry) {
   );
 }
 
-test("is an accessible alertdialog with focus on the primary action", async ({
-  page,
-}) => {
-  await showErrorView(page, false);
+test("is an accessible alertdialog with focus on the primary action", async () => {
+  await showErrorView(false);
 
   const dialog = page.locator("#serverErrorContainer");
   await expect(dialog).toHaveAttribute("role", "alertdialog");
@@ -41,20 +59,16 @@ test("is an accessible alertdialog with focus on the primary action", async ({
   await expect(page.getByRole("button", { name: "Refresh" })).toBeFocused();
 });
 
-test("offers no Retry action for client-side fatal errors", async ({
-  page,
-}) => {
-  await showErrorView(page, false);
+test("offers no Retry action for client-side fatal errors", async () => {
+  await showErrorView(false);
 
   await expect(page.getByRole("button", { name: "Retry" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Refresh" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Logout" })).toBeVisible();
 });
 
-test("Retry removes the overlay and runs the retry handler", async ({
-  page,
-}) => {
-  await showErrorView(page, true);
+test("Retry removes the overlay and runs the retry handler", async () => {
+  await showErrorView(true);
 
   const retryButton = page.getByRole("button", { name: "Retry" });
   await expect(retryButton).toBeFocused();
@@ -64,8 +78,8 @@ test("Retry removes the overlay and runs the retry handler", async ({
   expect(await page.evaluate(() => window["__retried"])).toBe(true);
 });
 
-test("keeps keyboard focus inside the overlay", async ({ page }) => {
-  await showErrorView(page, false);
+test("keeps keyboard focus inside the overlay", async () => {
+  await showErrorView(false);
 
   // Focus starts on Refresh; Tab moves to Logout; another Tab must wrap
   // around to the first button instead of escaping into the page behind.

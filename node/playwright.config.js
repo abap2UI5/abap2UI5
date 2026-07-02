@@ -15,6 +15,9 @@ module.exports = defineConfig({
   /* Browser tests live in tests/e2e/ and need the dev server on port 3000;
      everything else in tests/ is a unit spec run via playwright-unit.config.js */
   testMatch: '**/e2e/**/*.spec.js',
+  /* UI5 loads from the CDN on every fresh page - give slow CI runners more
+     headroom than the 30s default before a test counts as hung */
+  timeout: 60000,
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
