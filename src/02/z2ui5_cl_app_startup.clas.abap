@@ -193,11 +193,10 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                href    = client->_bind( ms_home-url )
                enabled = |\{= ${ client->_bind( val = ms_home-class_editable ) } === false \}| ).
 
-    DATA(lv_url_samples) = get_app_url( `z2ui5_cl_demo_app_000` ).
-
     simple_form->toolbar( )->title( `What's next?` ).
 
     IF z2ui5_cl_util=>rtti_check_class_exists( `z2ui5_cl_demo_app_000` ).
+      DATA(lv_url_samples) = get_app_url( `z2ui5_cl_demo_app_000` ).
       simple_form->label( `Start Developing` ).
       simple_form->button( text  = `Explore Code Samples`
                            press = client->_event_client( val   = client->cs_event-open_new_tab
