@@ -90,21 +90,21 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
         AND z2ui5_cl_util=>rtti_get_classname_by_ref( mr_attri->custom_mapper )
          <> z2ui5_cl_util=>rtti_get_classname_by_ref( ms_config-custom_mapper ).
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = |<p>Binding Error - Two different mapper for same attribute used ({ mr_attri->name }).|.
+        EXPORTING val = |<p>Binding Error - Two different mappers used for the same attribute ({ mr_attri->name }).|.
     ENDIF.
 
     IF mr_attri->custom_mapper_back IS BOUND AND ms_config-custom_mapper_back IS BOUND
         AND z2ui5_cl_util=>rtti_get_classname_by_ref( mr_attri->custom_mapper_back )
          <> z2ui5_cl_util=>rtti_get_classname_by_ref( ms_config-custom_mapper_back ).
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = |<p>Binding Error - Two different mapper back for same attribute used ({ mr_attri->name }).|.
+        EXPORTING val = |<p>Binding Error - Two different mappers back used for the same attribute ({ mr_attri->name }).|.
     ENDIF.
 
     IF mr_attri->custom_filter IS BOUND AND ms_config-custom_filter IS BOUND
         AND z2ui5_cl_util=>rtti_get_classname_by_ref( mr_attri->custom_filter )
          <> z2ui5_cl_util=>rtti_get_classname_by_ref( ms_config-custom_filter ).
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = |<p>Binding Error - Two different filter for same attribute used ({ mr_attri->name }).|.
+        EXPORTING val = |<p>Binding Error - Two different filters used for the same attribute ({ mr_attri->name }).|.
     ENDIF.
 
   ENDMETHOD.
