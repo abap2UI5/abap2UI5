@@ -193,7 +193,6 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
   METHOD main_cell.
 
     ms_config = config.
-    mv_type   = type.
 
     DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( mo_app ).
     result = lo_bind->main( val    = config-tab
