@@ -313,6 +313,13 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        oDialog.destroy();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      // The dialog is no aggregation of this control, so destroy() alone` && |\n| &&
+             `      // would leave it (and its fragment controls) alive - clean it up when` && |\n| &&
+             `      // the control is destroyed (Component.exit).` && |\n| &&
+             `      exit() {` && |\n| &&
+             `        this.close();` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      toggle() {` && |\n| &&
              `        if (this.oDialog) {` && |\n| &&
              `          this.close();` && |\n| &&

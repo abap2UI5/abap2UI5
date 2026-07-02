@@ -16,7 +16,9 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
       try {
         const shell = z2ui5.oLaunchpad?.ShellUIService;
         if (!shell || !shell.setTitle) return;
-        const result = shell.setTitle(val);
+        // Same normalization as the SET_TITLE_LAUNCHPAD frontend action:
+        // never hand undefined/null to the shell service.
+        const result = shell.setTitle(Lib.toText(val));
         // setTitle may return a Promise; report any async failure.
         if (result?.catch) {
           result.catch((e) =>

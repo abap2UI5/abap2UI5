@@ -18,7 +18,7 @@ app.all(["/", "/{*path}"], async function (req, res) {
 });
 
 const server = app.listen(PORT, () => {
-  console.log("Listening on port http://localhost:" + PORT);
+  console.log("Listening on http://localhost:" + PORT);
 });
 server.on("error", (err) => {
   console.error("Failed to start server:", err.message);

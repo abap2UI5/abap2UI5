@@ -278,6 +278,10 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      // via corresponding-based deserialization.` && |\n| &&
              `      const isRowField = parts.length === 3 && rowIdx !== "" && !isNaN(rowIdx);` && |\n| &&
              `      if (isRowField) {` && |\n| &&
+             `        // A full attribute queued by another path already carries every` && |\n| &&
+             `        // cell (both read the same current model data) - never downgrade` && |\n| &&
+             `        // it to a partial delta, regardless of Set iteration order.` && |\n| &&
+             `        if (attr in delta && !delta[attr]?.__delta) continue;` && |\n| &&
              `        // Table cell change -> ship only the changed cell.` && |\n| &&
              `        if (!delta[attr]?.__delta) {` && |\n| &&
              `          delta[attr] = { __delta: {} };` && |\n| &&
@@ -305,7 +309,11 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      _sanitizeEl = document.createElement("div");` && |\n| &&
              `    }` && |\n| &&
              `    const doc = _msgParser.parseFromString(html, "text/html");` && |\n| &&
-             `    const items = Array.from(doc.querySelectorAll("li"));` && |\n| &&
+             `    // Only top-level list items: a nested <li>'s text is already part of` && |\n| &&
+             `    // its ancestor's textContent, so including it too would duplicate it.` && |\n| &&
+             `    const items = Array.from(doc.querySelectorAll("li")).filter(` && |\n| &&
+             `      (li) => !li.parentElement?.closest("li"),` && |\n| &&
+             `    );` && |\n| &&
              `    if (items.length > 0) {` && |\n| &&
              `      const safeItems = items.map((li) => {` && |\n| &&
              `        _sanitizeEl.textContent = li.textContent;` && |\n| &&

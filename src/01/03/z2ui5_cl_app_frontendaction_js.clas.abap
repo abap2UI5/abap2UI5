@@ -493,7 +493,14 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    function evZ2ui5Custom(oController, args) {` && |\n| &&
              `      try {` && |\n| &&
              `        const fn = z2ui5[args[1]];` && |\n| &&
-             `        if (fn) fn(args.slice(2));` && |\n| &&
+             `        if (typeof fn === "function") {` && |\n| &&
+             `          fn(args.slice(2));` && |\n| &&
+             `        } else {` && |\n| &&
+             `          // Missing or not callable (e.g. the app never registered it via` && |\n| &&
+             `          // the js_loader popup) - log it instead of failing silently or` && |\n| &&
+             `          // with a generic TypeError.` && |\n| &&
+             `          Lib.logError(``Z2UI5: 'z2ui5.${args[1]}' is not a function``);` && |\n| &&
+             `        }` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError(``Z2UI5: '${args[1]}' failed``, e);` && |\n| &&
              `      }` && |\n| &&

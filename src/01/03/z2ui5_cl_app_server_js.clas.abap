@@ -161,14 +161,17 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        return fullId.startsWith(prefix) ? fullId.slice(prefix.length) : fullId;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      // Returning undefined when no UI5 control owns the focus lets` && |\n| &&
+             `      // JSON.stringify omit S_FOCUS from the request entirely, matching` && |\n| &&
+             `      // _getScrollInfo (the backend treats a missing key like an empty one).` && |\n| &&
              `      _getFocusInfo() {` && |\n| &&
              `        try {` && |\n| &&
              `          const active = document.activeElement;` && |\n| &&
-             `          if (!active) return {};` && |\n| &&
+             `          if (!active) return undefined;` && |\n| &&
              `          // Element.closestTo exists as of UI5 1.106; keep the feature check` && |\n| &&
              `          // so older releases simply skip the focus restore.` && |\n| &&
              `          const ui5El = Element.closestTo?.(active) ?? null;` && |\n| &&
-             `          if (!ui5El) return {};` && |\n| &&
+             `          if (!ui5El) return undefined;` && |\n| &&
              `          const fullId = ui5El.getId();` && |\n| &&
              `          let id = fullId;` && |\n| &&
              `          for (const slot of ViewSlots.slots) {` && |\n| &&
@@ -187,7 +190,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            SELECTION_END: active.selectionEnd || 0,` && |\n| &&
              `          };` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          return {};` && |\n| &&
+             `          return undefined;` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -361,7 +364,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          } catch (e) {` && |\n| &&
              `            text = ``HTTP ${response.status}: could not read error body``;` && |\n| &&
              `          }` && |\n| &&
-             `          this.responseError(text);` && |\n| &&
+             `          // An empty error body would render an empty overlay - fall back` && |\n| &&
+             `          // to the status code so the user sees at least what failed.` && |\n| &&
+             `          this.responseError(text || ``HTTP ${response.status}``);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -412,13 +417,13 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `          // Full view replacement -> destroy & rebuild, nothing more to do.` && |\n| &&
              `          if (sView?.XML) {` && |\n| &&
-             `            ViewSlots.destroy("MAIN");` && |\n| &&
+             `            ViewSlots.destroy("MAIN");` && |\n|.
+    result = result &&
              `            await oController.displayView(sView.XML, response.OVIEWMODEL);` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
-             `          // Partial response: refresh whichever existing views the backend` && |\n|.
-    result = result &&
+             `          // Partial response: refresh whichever existing views the backend` && |\n| &&
              `          // sent updates for.` && |\n| &&
              `          for (const slot of ViewSlots.slots) {` && |\n| &&
              `            oController.updateModelIfRequired(slot.key);` && |\n| &&

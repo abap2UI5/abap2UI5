@@ -141,14 +141,17 @@ sap.ui.define(
         return fullId.startsWith(prefix) ? fullId.slice(prefix.length) : fullId;
       },
 
+      // Returning undefined when no UI5 control owns the focus lets
+      // JSON.stringify omit S_FOCUS from the request entirely, matching
+      // _getScrollInfo (the backend treats a missing key like an empty one).
       _getFocusInfo() {
         try {
           const active = document.activeElement;
-          if (!active) return {};
+          if (!active) return undefined;
           // Element.closestTo exists as of UI5 1.106; keep the feature check
           // so older releases simply skip the focus restore.
           const ui5El = Element.closestTo?.(active) ?? null;
-          if (!ui5El) return {};
+          if (!ui5El) return undefined;
           const fullId = ui5El.getId();
           let id = fullId;
           for (const slot of ViewSlots.slots) {
@@ -167,7 +170,7 @@ sap.ui.define(
             SELECTION_END: active.selectionEnd || 0,
           };
         } catch (e) {
-          return {};
+          return undefined;
         }
       },
 
@@ -341,7 +344,9 @@ sap.ui.define(
           } catch (e) {
             text = `HTTP ${response.status}: could not read error body`;
           }
-          this.responseError(text);
+          // An empty error body would render an empty overlay - fall back
+          // to the status code so the user sees at least what failed.
+          this.responseError(text || `HTTP ${response.status}`);
           return;
         }
 

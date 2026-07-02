@@ -258,6 +258,10 @@ sap.ui.define([], () => {
       // via corresponding-based deserialization.
       const isRowField = parts.length === 3 && rowIdx !== "" && !isNaN(rowIdx);
       if (isRowField) {
+        // A full attribute queued by another path already carries every
+        // cell (both read the same current model data) - never downgrade
+        // it to a partial delta, regardless of Set iteration order.
+        if (attr in delta && !delta[attr]?.__delta) continue;
         // Table cell change -> ship only the changed cell.
         if (!delta[attr]?.__delta) {
           delta[attr] = { __delta: {} };
@@ -285,7 +289,11 @@ sap.ui.define([], () => {
       _sanitizeEl = document.createElement("div");
     }
     const doc = _msgParser.parseFromString(html, "text/html");
-    const items = Array.from(doc.querySelectorAll("li"));
+    // Only top-level list items: a nested <li>'s text is already part of
+    // its ancestor's textContent, so including it too would duplicate it.
+    const items = Array.from(doc.querySelectorAll("li")).filter(
+      (li) => !li.parentElement?.closest("li"),
+    );
     if (items.length > 0) {
       const safeItems = items.map((li) => {
         _sanitizeEl.textContent = li.textContent;
