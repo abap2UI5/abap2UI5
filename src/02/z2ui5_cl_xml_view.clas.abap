@@ -12378,7 +12378,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
             ( n = `height`         v = height )
             ( n = `icon`       v = icon )
             ( n = `iconSize`        v = iconsize )
-            ( n = `iconSize` v = iconsize )
             ( n = `key` v = key )
             ( n = `maxWidth` v = maxwidth )
             ( n = `title` v = title )
@@ -12518,7 +12517,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                      ( n = `selected`           v = z2ui5_cl_util=>boolean_abap_2_json( selected ) )
                      ( n = `showButtons`           v = z2ui5_cl_util=>boolean_abap_2_json( showbuttons ) )
                      ( n = `showCloseButton`           v = z2ui5_cl_util=>boolean_abap_2_json( showclosebutton ) )
-                     ( n = `truncate`           v = z2ui5_cl_util=>boolean_abap_2_json( truncate ) )
                      ( n = `unread`           v = z2ui5_cl_util=>boolean_abap_2_json( unread ) ) ) ).
   ENDMETHOD.
 
@@ -13142,7 +13140,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                    ( n = `focused`              v = z2ui5_cl_util=>boolean_abap_2_json( focused ) )
                                    ( n = `selected`             v = z2ui5_cl_util=>boolean_abap_2_json( selected ) )
                                    ( n = `tag`                  v = tag )
-                                   ( n = `texts`                v = texts )
                                    ( n = `type`                 v = type ) ) ).
   ENDMETHOD.
 
@@ -13276,17 +13273,15 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = me.
     _generic( name   = `RangeSlider`
               t_prop = VALUE #( ( n = `class`           v = class )
-                                ( n = `endValue`        v = endvalue )
                                 ( n = `id`          v = id )
                                 ( n = `labelInterval`  v = labelinterval )
                                 ( n = `max`   v = max )
                                 ( n = `min`   v = min )
-                                ( n = `showTickmarks`   v = z2ui5_cl_util=>boolean_abap_2_json( showtickmarks ) )
-                                ( n = `startValue`   v = startvalue )
+                                ( n = `enableTickmarks`   v = z2ui5_cl_util=>boolean_abap_2_json( showtickmarks ) )
                                 ( n = `step`   v = step )
                                 ( n = `width`   v = width )
-                                ( n = `value`   v = value )
-                                ( n = `value2`   v = value2 )
+                                ( n = `value`   v = COND #( WHEN value IS NOT INITIAL THEN value ELSE startvalue ) )
+                                ( n = `value2`   v = COND #( WHEN value2 IS NOT INITIAL THEN value2 ELSE endvalue ) )
                                 ( n = `change`   v = change ) ) ).
   ENDMETHOD.
 
@@ -14816,7 +14811,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                            ( n = `title`                    v = title )
                            ( n = `selectedGroupItem`        v = selectedgroupitem )
                            ( n = `selectedPresetFilterItem` v = selectedpresetfilteritem )
-                           ( n = `selectedSortItem`         v = selectedsortitem )
                            ( n = `selectedSortItem`         v = selectedsortitem )
                            ( n = `filterItems`              v = filteritems )
                            ( n = `sortItems`                v = sortitems )
