@@ -472,7 +472,14 @@ sap.ui.define(
     function evZ2ui5Custom(oController, args) {
       try {
         const fn = z2ui5[args[1]];
-        if (fn) fn(args.slice(2));
+        if (typeof fn === "function") {
+          fn(args.slice(2));
+        } else {
+          // Missing or not callable (e.g. the app never registered it via
+          // the js_loader popup) - log it instead of failing silently or
+          // with a generic TypeError.
+          Lib.logError(`Z2UI5: 'z2ui5.${args[1]}' is not a function`);
+        }
       } catch (e) {
         Lib.logError(`Z2UI5: '${args[1]}' failed`, e);
       }

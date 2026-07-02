@@ -278,6 +278,10 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      // via corresponding-based deserialization.` && |\n| &&
              `      const isRowField = parts.length === 3 && rowIdx !== "" && !isNaN(rowIdx);` && |\n| &&
              `      if (isRowField) {` && |\n| &&
+             `        // A full attribute queued by another path already carries every` && |\n| &&
+             `        // cell (both read the same current model data) - never downgrade` && |\n| &&
+             `        // it to a partial delta, regardless of Set iteration order.` && |\n| &&
+             `        if (attr in delta && !delta[attr]?.__delta) continue;` && |\n| &&
              `        // Table cell change -> ship only the changed cell.` && |\n| &&
              `        if (!delta[attr]?.__delta) {` && |\n| &&
              `          delta[attr] = { __delta: {} };` && |\n| &&

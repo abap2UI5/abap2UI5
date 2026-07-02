@@ -361,7 +361,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          } catch (e) {` && |\n| &&
              `            text = ``HTTP ${response.status}: could not read error body``;` && |\n| &&
              `          }` && |\n| &&
-             `          this.responseError(text);` && |\n| &&
+             `          // An empty error body would render an empty overlay - fall back` && |\n| &&
+             `          // to the status code so the user sees at least what failed.` && |\n| &&
+             `          this.responseError(text || ``HTTP ${response.status}``);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -415,10 +417,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            ViewSlots.destroy("MAIN");` && |\n| &&
              `            await oController.displayView(sView.XML, response.OVIEWMODEL);` && |\n| &&
              `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `` && |\n| &&
-             `          // Partial response: refresh whichever existing views the backend` && |\n|.
+             `          }` && |\n|.
     result = result &&
+             `` && |\n| &&
+             `          // Partial response: refresh whichever existing views the backend` && |\n| &&
              `          // sent updates for.` && |\n| &&
              `          for (const slot of ViewSlots.slots) {` && |\n| &&
              `            oController.updateModelIfRequired(slot.key);` && |\n| &&

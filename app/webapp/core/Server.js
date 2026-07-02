@@ -341,7 +341,9 @@ sap.ui.define(
           } catch (e) {
             text = `HTTP ${response.status}: could not read error body`;
           }
-          this.responseError(text);
+          // An empty error body would render an empty overlay - fall back
+          // to the status code so the user sees at least what failed.
+          this.responseError(text || `HTTP ${response.status}`);
           return;
         }
 

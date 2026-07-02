@@ -258,6 +258,10 @@ sap.ui.define([], () => {
       // via corresponding-based deserialization.
       const isRowField = parts.length === 3 && rowIdx !== "" && !isNaN(rowIdx);
       if (isRowField) {
+        // A full attribute queued by another path already carries every
+        // cell (both read the same current model data) - never downgrade
+        // it to a partial delta, regardless of Set iteration order.
+        if (attr in delta && !delta[attr]?.__delta) continue;
         // Table cell change -> ship only the changed cell.
         if (!delta[attr]?.__delta) {
           delta[attr] = { __delta: {} };
