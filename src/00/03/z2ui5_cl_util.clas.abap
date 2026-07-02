@@ -492,6 +492,14 @@ CLASS z2ui5_cl_util DEFINITION
       CHANGING
         !tab TYPE STANDARD TABLE.
 
+    CLASS-METHODS itab_filter_by_search_string
+      IMPORTING
+        val         TYPE clike
+        fields      TYPE string_table OPTIONAL
+        ignore_case TYPE abap_bool DEFAULT abap_false
+      CHANGING
+        !tab        TYPE STANDARD TABLE.
+
     CLASS-METHODS itab_get_by_struc
       IMPORTING
         val           TYPE any
@@ -521,6 +529,12 @@ CLASS z2ui5_cl_util DEFINITION
         !from         TYPE any
       RETURNING
         VALUE(result) TYPE REF TO data.
+
+    CLASS-METHODS conv_get_xstring_by_data_uri
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE xstring.
 
     CLASS-METHODS source_get_file_types
       RETURNING
@@ -917,6 +931,17 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD conv_get_xstring_by_data_uri.
+
+    DATA lv_metadata TYPE string ##NEEDED.
+    DATA lv_base64   TYPE string.
+
+    SPLIT val AT `,` INTO lv_metadata lv_base64.
+    result = conv_decode_x_base64( lv_base64 ).
+
+  ENDMETHOD.
+
+
   METHOD c_trim.
 
     result = shift_left( shift_right( CONV string( val ) ) ).
@@ -1127,6 +1152,58 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
       IF lv_row NS val.
         DELETE tab.
       ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD itab_filter_by_search_string.
+
+    FIELD-SYMBOLS <row>   TYPE any.
+    FIELD-SYMBOLS <field> TYPE any.
+
+    DATA(lv_search) = COND string( WHEN ignore_case = abap_true
+                                   THEN to_upper( val )
+                                   ELSE val ).
+
+    LOOP AT tab ASSIGNING <row>.
+
+      DATA(lv_check_found) = abap_false.
+      DATA(lv_index) = 1.
+      DO.
+        IF fields IS INITIAL.
+          ASSIGN COMPONENT lv_index OF STRUCTURE <row> TO <field>.
+          IF sy-subrc <> 0.
+            EXIT.
+          ENDIF.
+        ELSE.
+          IF lv_index > lines( fields ).
+            EXIT.
+          ENDIF.
+          DATA(lv_name) = fields[ lv_index ].
+          ASSIGN COMPONENT lv_name OF STRUCTURE <row> TO <field>.
+          IF sy-subrc <> 0.
+            lv_index = lv_index + 1.
+            CONTINUE.
+          ENDIF.
+        ENDIF.
+
+        DATA(lv_value) = |{ <field> }|.
+        IF ignore_case = abap_true.
+          lv_value = to_upper( lv_value ).
+        ENDIF.
+        IF lv_value CS lv_search.
+          lv_check_found = abap_true.
+          EXIT.
+        ENDIF.
+
+        lv_index = lv_index + 1.
+      ENDDO.
+
+      IF lv_check_found = abap_false.
+        DELETE tab.
+      ENDIF.
+
     ENDLOOP.
 
   ENDMETHOD.
