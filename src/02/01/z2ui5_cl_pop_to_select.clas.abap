@@ -246,6 +246,9 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
     ASSIGN ms_result-table->* TO <table_result>.
     ASSIGN ms_result-row->* TO <row_result>.
 
+    " the result only contains rows of this confirmation
+    CLEAR <table_result>.
+
     LOOP AT <tab> ASSIGNING <row_selected>.
 
       ASSIGN COMPONENT `ZZSELKZ` OF STRUCTURE <row_selected> TO <selkz>.
