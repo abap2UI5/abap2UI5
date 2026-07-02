@@ -62,13 +62,14 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD factory.
 
-    result = NEW #( ).
+    CREATE OBJECT result.
 
   ENDMETHOD.
 
   METHOD get_app_url.
 
-    DATA(ls_config) = client->get( )-s_config.
+    DATA ls_config TYPE z2ui5_if_types=>ty_s_config.
+    ls_config = client->get( )-s_config.
     result = z2ui5_cl_util=>app_get_url( classname = classname
                                          origin    = ls_config-origin
                                          pathname  = ls_config-pathname
@@ -110,6 +111,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
   METHOD on_event_check.
 
     DATA li_app_test TYPE REF TO z2ui5_if_app.
+        DATA lx TYPE REF TO cx_root.
 
     TRY.
         ms_home-classname = z2ui5_cl_util=>c_trim_upper( ms_home-classname ).
@@ -124,7 +126,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
         ms_home-url               = get_app_url( ms_home-classname ).
 
-      CATCH cx_root INTO DATA(lx) ##CATCH_ALL.
+
+      CATCH cx_root INTO lx.
         ms_home-class_value_state_text = lx->get_text( ).
         ms_home-class_value_state      = `Warning`.
         client->message_box_display( text = ms_home-class_value_state_text
@@ -135,11 +138,17 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD view_display_start.
 
-    DATA(page) = z2ui5_cl_xml_view=>factory( )->shell( )->page(
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    DATA toolbar TYPE REF TO z2ui5_cl_xml_view.
+    DATA simple_form TYPE REF TO z2ui5_cl_xml_view.
+    DATA lv_url_samples TYPE string.
+      DATA temp1 TYPE string_table.
+    page = z2ui5_cl_xml_view=>factory( )->shell( )->page(
                      title         = `abap2UI5 - Building UI5 Apps Purely in ABAP`
                      shownavbutton = abap_false ).
 
-    DATA(toolbar) = page->header_content( ).
+
+    toolbar = page->header_content( ).
     toolbar->toolbar_spacer(
       )->button( text  = `Debugging Tools`
                  icon  = `sap-icon://enablement`
@@ -147,13 +156,14 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
       )->button( text  = `System`
                  icon  = `sap-icon://information`
                  press = client->_event( cs_event-open_info ) ).
-    IF z2ui5_cl_util=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ).
+    IF z2ui5_cl_util=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ) IS NOT INITIAL.
       toolbar->button( text  = `Config`
                        icon  = `sap-icon://settings`
                        press = client->_event( cs_event-set_config ) ).
     ENDIF.
 
-    DATA(simple_form) = create_layout_form( page ).
+
+    simple_form = create_layout_form( page ).
 
     simple_form->toolbar( )->title( `Quickstart` ).
     simple_form->label( `Step 1`
@@ -193,15 +203,19 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                href    = client->_bind( ms_home-url )
                enabled = |\{= ${ client->_bind( val = ms_home-class_editable ) } === false \}| ).
 
-    DATA(lv_url_samples) = get_app_url( `z2ui5_cl_demo_app_000` ).
+
+    lv_url_samples = get_app_url( `z2ui5_cl_demo_app_000` ).
 
     simple_form->toolbar( )->title( `What's next?` ).
 
-    IF z2ui5_cl_util=>rtti_check_class_exists( `z2ui5_cl_demo_app_000` ).
+    IF z2ui5_cl_util=>rtti_check_class_exists( `z2ui5_cl_demo_app_000` ) IS NOT INITIAL.
       simple_form->label( `Start Developing` ).
+
+      CLEAR temp1.
+      INSERT lv_url_samples INTO TABLE temp1.
       simple_form->button( text  = `Explore Code Samples`
                            press = client->_event_client( val   = client->cs_event-open_new_tab
-                                                          t_arg = VALUE #( ( lv_url_samples ) ) )
+                                                          t_arg = temp1 )
                            width = `70%` ).
 
     ELSE.
@@ -234,10 +248,14 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD z2ui5_if_app~main.
+          DATA temp3 TYPE REF TO z2ui5_cl_pop_to_select.
+          DATA lo_f4 LIKE temp3.
+          DATA ls_result TYPE z2ui5_cl_pop_to_select=>ty_s_result.
+            FIELD-SYMBOLS <class> TYPE data.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       z2ui5_on_init( ).
       view_display_start( ).
       RETURN.
@@ -245,12 +263,18 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     IF client->get( )-check_on_navigated = abap_true.
       TRY.
-          DATA(lo_f4) = CAST z2ui5_cl_pop_to_select( client->get_app_prev( ) ).
-          DATA(ls_result) = lo_f4->result( ).
+
+          temp3 ?= client->get_app_prev( ).
+
+          lo_f4 = temp3.
+
+          ls_result = lo_f4->result( ).
           IF ls_result-check_confirmed = abap_true.
 
-            ASSIGN ls_result-row->* TO FIELD-SYMBOL(<class>).
-            ms_home = CORRESPONDING #( BASE ( ms_home ) <class> ).
+
+            ASSIGN ls_result-row->* TO <class>.
+            ms_home = ms_home.
+MOVE-CORRESPONDING <class> TO ms_home.
             view_display_start( ).
             RETURN.
           ENDIF.
@@ -264,17 +288,27 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD view_display_popup.
 
-    DATA(page2) = z2ui5_cl_xml_view=>factory_popup(
+    DATA page2 TYPE REF TO z2ui5_cl_xml_view.
+    DATA content TYPE REF TO z2ui5_cl_xml_view.
+    DATA simple_form2 TYPE REF TO z2ui5_cl_xml_view.
+    DATA ls_client TYPE z2ui5_if_types=>ty_s_get.
+    DATA temp4 TYPE string.
+    DATA temp1 TYPE REF TO z2ui5_cl_core_srv_draft.
+    DATA lv_count LIKE temp4.
+    page2 = z2ui5_cl_xml_view=>factory_popup(
          )->dialog( title      = `abap2UI5 - System Information`
                     afterclose = client->_event( cs_event-close ) ).
 
-    DATA(content) = page2->content( ).
 
-    DATA(simple_form2) = create_layout_form( content ).
+    content = page2->content( ).
+
+
+    simple_form2 = create_layout_form( content ).
 
     simple_form2->toolbar( )->title( `Frontend` ).
 
-    DATA(ls_client) = client->get( ).
+
+    ls_client = client->get( ).
     simple_form2->label( `UI5 Version` ).
     simple_form2->text( ls_client-s_ui5-version ).
     simple_form2->label( `Launchpad active` ).
@@ -290,7 +324,12 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     simple_form2->label( `User Exit` ).
     simple_form2->text( z2ui5_cl_exit=>get_user_exit_class( ) ).
 
-    DATA(lv_count) = CONV string( NEW z2ui5_cl_core_srv_draft( )->count_entries( ) ).
+
+
+    CREATE OBJECT temp1 TYPE z2ui5_cl_core_srv_draft.
+    temp4 = temp1->count_entries( ).
+
+    lv_count = temp4.
     simple_form2->toolbar( )->title( `abap2UI5` ).
     simple_form2->label( `Version` ).
     simple_form2->text( z2ui5_if_app=>version ).
@@ -345,9 +384,12 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD z2ui5_on_init.
+    DATA temp5 TYPE REF TO z2ui5_cl_app_hello_world.
 
     reset_button_state( ).
-    ms_home-classname = z2ui5_cl_util=>rtti_get_classname_by_ref( NEW z2ui5_cl_app_hello_world( ) ).
+
+    CREATE OBJECT temp5 TYPE z2ui5_cl_app_hello_world.
+    ms_home-classname = z2ui5_cl_util=>rtti_get_classname_by_ref( temp5 ).
 
   ENDMETHOD.
 

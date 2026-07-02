@@ -392,7 +392,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   METHOD context_get_user_tech.
 
-    IF context_check_abap_cloud( ).
+    IF context_check_abap_cloud( ) IS NOT INITIAL.
       result = z2ui5_cl_util_api_c=>context_get_user_tech( ).
     ELSE.
       result = z2ui5_cl_util_api_s=>context_get_user_tech( ).
@@ -705,8 +705,9 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
     DATA lr_impl LIKE REF TO temp5.
     FIELD-SYMBOLS <description> TYPE any.
     DATA temp6 TYPE z2ui5_cl_util_api=>ty_s_class_descr.
+      DATA lv_fm TYPE string.
 
-    IF context_check_abap_cloud( ).
+    IF context_check_abap_cloud( ) IS NOT INITIAL.
 
       ls_clskey-clsname = val.
 
@@ -747,7 +748,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
       ls_key-intkey = val.
 
-      DATA lv_fm               TYPE string.
+
       lv_fm = `SEO_INTERFACE_IMPLEM_GET_ALL`.
       CALL FUNCTION lv_fm
         EXPORTING
@@ -823,6 +824,9 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
     DATA lo_typedescr           TYPE REF TO cl_abap_typedescr.
     DATA temp8                  TYPE REF TO cl_abap_datadescr.
     DATA data_descr             LIKE temp8.
+            DATA lv_xco_cp_abap_dictionary TYPE string.
+            DATA x TYPE REF TO cx_root.
+            DATA error TYPE string.
 
     data_element_name = val.
 
@@ -868,7 +872,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
       CATCH cx_root.
         TRY.
-            DATA lv_xco_cp_abap_dictionary TYPE string.
+
             lv_xco_cp_abap_dictionary = `XCO_CP_ABAP_DICTIONARY`.
             CALL METHOD (lv_xco_cp_abap_dictionary)=>(`DATA_ELEMENT`)
               EXPORTING
@@ -904,8 +908,10 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
               RECEIVING
                 rs_long_field_label = result-long.
 
-          CATCH cx_root INTO DATA(x).
-            DATA(error) = x->get_text( ).
+
+          CATCH cx_root INTO x.
+
+            error = x->get_text( ).
         ENDTRY.
     ENDTRY.
 
@@ -998,12 +1004,18 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD rtti_get_class_descr_on_cloud.
+        DATA obj TYPE REF TO object.
+        DATA content TYPE REF TO object.
+        DATA lv_classname TYPE c LENGTH 30.
+        DATA xco_cp_abap TYPE c LENGTH 11.
+        DATA x TYPE REF TO cx_root.
+        DATA lv_error TYPE string.
     TRY.
 
-        DATA obj          TYPE REF TO object.
-        DATA content      TYPE REF TO object.
-        DATA lv_classname TYPE c LENGTH 30.
-        DATA xco_cp_abap  TYPE c LENGTH 11.
+
+
+
+
 
         lv_classname = i_classname.
 
@@ -1022,33 +1034,39 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
           RECEIVING
             rv_short_description = result.
 
-      CATCH cx_root INTO DATA(x).
-        DATA(lv_error) = x->get_text( ).
+
+      CATCH cx_root INTO x.
+
+        lv_error = x->get_text( ).
     ENDTRY.
   ENDMETHOD.
 
   METHOD rtti_get_table_desrc.
 
     DATA ddtext TYPE c LENGTH 60.
+      DATA lan LIKE sy-langu.
+      DATA lv_tabname TYPE string.
 
     IF langu IS NOT SUPPLIED.
-      DATA(lan) = sy-langu.
+
+      lan = sy-langu.
     ELSE.
       lan = langu.
     ENDIF.
 
-    IF context_check_abap_cloud( ).
+    IF context_check_abap_cloud( ) IS NOT INITIAL.
 
       ddtext = tabname.
 
     ELSE.
 
-      DATA(lv_tabname) = `dd02t`.
+
+      lv_tabname = `dd02t`.
       SELECT SINGLE ddtext
-        FROM (lv_tabname)
-        WHERE tabname    = @tabname
-          AND ddlanguage = @lan
-        INTO @ddtext.
+        FROM (lv_tabname) INTO ddtext
+        WHERE tabname    = tabname
+          AND ddlanguage = lan
+        .
 
     ENDIF.
 
@@ -1070,7 +1088,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
   METHOD context_get_callstack.
 
     DATA lo_util TYPE REF TO object.
-    IF context_check_abap_cloud( ).
+    IF context_check_abap_cloud( ) IS NOT INITIAL.
 
       CREATE OBJECT lo_util TYPE (`Z2UI5_CL_UTIL_API_C`).
       CALL METHOD lo_util->(`CONTEXT_GET_CALLSTACK`)
@@ -1112,7 +1130,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   METHOD bal_create.
 
-    IF context_check_abap_cloud( ).
+    IF context_check_abap_cloud( ) IS NOT INITIAL.
       z2ui5_cl_util_api_c=>bal_create(
         object    = object
         subobject = subobject
@@ -1130,7 +1148,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   METHOD bal_read.
 
-    IF context_check_abap_cloud( ).
+    IF context_check_abap_cloud( ) IS NOT INITIAL.
       result = z2ui5_cl_util_api_c=>bal_read(
         object    = object
         subobject = subobject
@@ -1146,7 +1164,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   METHOD bal_update.
 
-    IF context_check_abap_cloud( ).
+    IF context_check_abap_cloud( ) IS NOT INITIAL.
       z2ui5_cl_util_api_c=>bal_update(
         object    = object
         subobject = subobject
@@ -1164,7 +1182,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   METHOD bal_delete.
 
-    IF context_check_abap_cloud( ).
+    IF context_check_abap_cloud( ) IS NOT INITIAL.
       z2ui5_cl_util_api_c=>bal_delete(
         object    = object
         subobject = subobject
@@ -1180,11 +1198,16 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   METHOD context_get_sy.
 
-    result = CORRESPONDING #( sy ).
+    MOVE-CORRESPONDING sy TO result.
 
   ENDMETHOD.
 
   METHOD tr_create.
+        DATA lr_header TYPE REF TO data.
+        FIELD-SYMBOLS <header> TYPE any.
+        FIELD-SYMBOLS <trkorr> TYPE any.
+        DATA lv_class TYPE string.
+        DATA x TYPE REF TO cx_root.
 
     " Create an empty transport request (default type `T` = transport of copies).
     " Uses the released class CL_ADT_CTS_MANAGEMENT, available on standard ABAP
@@ -1193,10 +1216,10 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
     " z2ui5_cx_util_error is raised instead of a short dump.
     TRY.
 
-        DATA lr_header TYPE REF TO data.
-        FIELD-SYMBOLS <header> TYPE any.
-        FIELD-SYMBOLS <trkorr> TYPE any.
-        DATA lv_class TYPE string.
+
+
+
+
 
         CREATE DATA lr_header TYPE (`TRWBO_REQUEST_HEADER`).
         ASSIGN lr_header->* TO <header>.
@@ -1213,7 +1236,8 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
         ASSIGN COMPONENT `TRKORR` OF STRUCTURE <header> TO <trkorr>.
         result = <trkorr>.
 
-      CATCH cx_root INTO DATA(x).
+
+      CATCH cx_root INTO x.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
           EXPORTING
             previous = x.
@@ -1222,13 +1246,16 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD tr_release.
+        DATA lo_api TYPE REF TO object.
+        DATA lv_class TYPE string.
+        DATA x TYPE REF TO cx_root.
 
     " Release a transport request via the released CTS REST API
     " (CL_CTS_REST_API_FACTORY). Works on standard ABAP and ABAP Cloud.
     TRY.
 
-        DATA lo_api   TYPE REF TO object.
-        DATA lv_class TYPE string.
+
+
 
         lv_class = `CL_CTS_REST_API_FACTORY`.
         CALL METHOD (lv_class)=>(`CREATE_INSTANCE`)
@@ -1240,7 +1267,8 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
             iv_trkorr       = trkorr
             iv_ignore_locks = ignore_locks.
 
-      CATCH cx_root INTO DATA(x).
+
+      CATCH cx_root INTO x.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
           EXPORTING
             previous = x.
@@ -1250,7 +1278,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   METHOD tr_copy_objects.
 
-    IF context_check_abap_cloud( ).
+    IF context_check_abap_cloud( ) IS NOT INITIAL.
       z2ui5_cl_util_api_c=>tr_copy_objects( source = source destination = destination ).
     ELSE.
       z2ui5_cl_util_api_s=>tr_copy_objects( source = source destination = destination ).
@@ -1260,7 +1288,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   METHOD tr_import.
 
-    IF context_check_abap_cloud( ).
+    IF context_check_abap_cloud( ) IS NOT INITIAL.
       result = z2ui5_cl_util_api_c=>tr_import(
                  trkorr         = trkorr
                  target_system  = target_system
@@ -1278,7 +1306,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   METHOD tr_check_status.
 
-    IF context_check_abap_cloud( ).
+    IF context_check_abap_cloud( ) IS NOT INITIAL.
       z2ui5_cl_util_api_c=>tr_check_status(
         EXPORTING
           trkorr   = trkorr

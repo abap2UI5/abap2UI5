@@ -64,12 +64,12 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
     DATA lo_test_app TYPE REF TO ltcl_test_app.
-    lo_http = NEW #( val = `` ).
-    mo_action = NEW #( val = lo_http ).
-    lo_test_app = NEW #( ).
+    CREATE OBJECT lo_http EXPORTING val = ``.
+    CREATE OBJECT mo_action EXPORTING val = lo_http.
+    CREATE OBJECT lo_test_app.
     lo_test_app->z2ui5_if_app~check_initialized = abap_false.
     mo_action->mo_app->mo_app = lo_test_app.
-    mo_client = NEW #( action = mo_action ).
+    CREATE OBJECT mo_client EXPORTING action = mo_action.
 
   ENDMETHOD.
 
@@ -344,18 +344,42 @@ CLASS ltcl_test_client IMPLEMENTATION.
   METHOD test_action.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA temp1 TYPE string_table.
+    DATA temp3 LIKE LINE OF mo_action->ms_next-s_set-s_follow_up_action-custom_js.
+    DATA temp4 LIKE sy-tabix.
+    DATA temp5 LIKE LINE OF mo_action->ms_next-s_set-s_follow_up_action-custom_js.
+    DATA temp6 LIKE sy-tabix.
     li_client ?= mo_client.
 
+
+    CLEAR temp1.
+    INSERT `My Title` INTO TABLE temp1.
     li_client->action->gen( val   = z2ui5_if_client=>cs_event-set_title
-                            t_arg = VALUE #( ( `My Title` ) ) ).
+                            t_arg = temp1 ).
     li_client->action->gen( z2ui5_if_client=>cs_event-history_back ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( mo_action->ms_next-s_set-s_follow_up_action-custom_js ) ).
+
+
+    temp4 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js INDEX 1 INTO temp3.
+    sy-tabix = temp4.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `.eF('SET_TITLE', 'My Title')`
-                                        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 1 ] ).
+                                        act = temp3 ).
+
+
+    temp6 = sy-tabix.
+    READ TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js INDEX 2 INTO temp5.
+    sy-tabix = temp6.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
     cl_abap_unit_assert=>assert_equals( exp = `.eF('HISTORY_BACK')`
-                                        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 2 ] ).
+                                        act = temp5 ).
 
   ENDMETHOD.
 
@@ -473,7 +497,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA temp24 TYPE REF TO z2ui5_if_client.
     DATA li_client LIKE temp24.
     DATA lv_id TYPE string.
-    lo_new_app = NEW #( ).
+    CREATE OBJECT lo_new_app.
 
     temp24 ?= mo_client.
 
@@ -493,7 +517,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA li_client TYPE REF TO z2ui5_if_client.
     DATA lv_id_first TYPE string.
     DATA lv_id_second TYPE string.
-    lo_new_app = NEW #( ).
+    CREATE OBJECT lo_new_app.
     li_client ?= mo_client.
 
     lv_id_first  = li_client->nav_app_call( lo_new_app ).
@@ -511,7 +535,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     DATA lo_app TYPE REF TO ltcl_test_app.
     DATA li_client TYPE REF TO z2ui5_if_client.
-    lo_app = NEW #( ).
+    CREATE OBJECT lo_app.
     li_client ?= mo_client.
 
     li_client->nav_app_leave( app   = lo_app
@@ -531,7 +555,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA lo_app TYPE REF TO ltcl_test_app.
     DATA li_client TYPE REF TO z2ui5_if_client.
     DATA lv_data TYPE string VALUE `payload`.
-    lo_app = NEW #( ).
+    CREATE OBJECT lo_app.
     li_client ?= mo_client.
 
     li_client->nav_app_leave( app    = lo_app
