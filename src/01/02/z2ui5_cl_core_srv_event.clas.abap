@@ -44,8 +44,7 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
 
   METHOD get_event_client.
 
-    result = |{ z2ui5_if_core_types=>cs_ui5-event_frontend_function }('{ val }'|.
-    result = result && get_t_arg( t_arg ).
+    result = |{ z2ui5_if_core_types=>cs_ui5-event_frontend_function }('{ val }'{ get_t_arg( t_arg ) }|.
 
   ENDMETHOD.
 

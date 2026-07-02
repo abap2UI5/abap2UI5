@@ -111,8 +111,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD db_load.
 
-    DATA lv_id TYPE string.
-    lv_id = id.
+    DATA(lv_id) = CONV string( id ).
 
     READ TABLE mt_buffer REFERENCE INTO DATA(lr_buf) WITH KEY id = lv_id.
     IF sy-subrc = 0.

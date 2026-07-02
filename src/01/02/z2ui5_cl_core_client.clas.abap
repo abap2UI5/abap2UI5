@@ -29,7 +29,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
+CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -72,7 +72,7 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
     IF val IS NOT INITIAL.
       result = xsdbool( mo_action->ms_actual-event = val ).
     ELSE.
-      result = xsdbool( mo_action->ms_actual-event <> `` ).
+      result = xsdbool( mo_action->ms_actual-event IS NOT INITIAL ).
     ENDIF.
 
   ENDMETHOD.
@@ -136,7 +136,7 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
       DATA(lo_app) = z2ui5_cl_core_app=>db_load( id ).
       result = CAST #( lo_app->mo_app ).
     ELSE.
-      result = CAST #( mo_action->mo_app->mo_app ).
+      result = get_if_app( ).
     ENDIF.
 
   ENDMETHOD.
@@ -172,7 +172,7 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    IF lv_type = ``.
+    IF lv_type IS INITIAL.
       lv_type = `show`.
     ENDIF.
 
@@ -220,7 +220,9 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
           val = `NAV_APP_LEAVE_TO_INITIAL_APP_ERROR`.
     ENDIF.
 
-    app->id_app = COND #( WHEN app->id_app IS INITIAL THEN z2ui5_cl_util=>uuid_get_c32( ) ).
+    IF app->id_app IS INITIAL.
+      app->id_app = z2ui5_cl_util=>uuid_get_c32( ).
+    ENDIF.
     result = app->id_app.
 
   ENDMETHOD.

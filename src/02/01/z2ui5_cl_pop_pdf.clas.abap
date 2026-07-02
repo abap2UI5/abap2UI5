@@ -94,14 +94,11 @@ CLASS z2ui5_cl_pop_pdf IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CASE client->get( )-event.
+    DATA(lv_event) = client->get( )-event.
+    CASE lv_event.
 
-      WHEN `BUTTON_CONFIRM`.
-        ms_result-check_confirmed = abap_true.
-        client->popup_destroy( ).
-        client->nav_app_leave( ).
-      WHEN `BUTTON_CANCEL`.
-        ms_result-check_confirmed = abap_false.
+      WHEN `BUTTON_CONFIRM` OR `BUTTON_CANCEL`.
+        ms_result-check_confirmed = xsdbool( lv_event = `BUTTON_CONFIRM` ).
         client->popup_destroy( ).
         client->nav_app_leave( ).
     ENDCASE.

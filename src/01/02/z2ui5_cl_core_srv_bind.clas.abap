@@ -86,14 +86,11 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
         EXPORTING val = |<p>Binding Error - Two different binding types for same attribute used ({ mr_attri->name }).|.
     ENDIF.
 
-    IF mr_attri->custom_mapper IS BOUND AND ms_config-custom_mapper IS BOUND.
-
-      DATA(lv_name1) = z2ui5_cl_util=>rtti_get_classname_by_ref( mr_attri->custom_mapper ).
-      DATA(lv_name2) = z2ui5_cl_util=>rtti_get_classname_by_ref( ms_config-custom_mapper ).
-      IF lv_name1 <> lv_name2.
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error
-          EXPORTING val = |<p>Binding Error - Two different mapper for same attribute used ({ mr_attri->name }).|.
-      ENDIF.
+    IF mr_attri->custom_mapper IS BOUND AND ms_config-custom_mapper IS BOUND
+        AND z2ui5_cl_util=>rtti_get_classname_by_ref( mr_attri->custom_mapper )
+         <> z2ui5_cl_util=>rtti_get_classname_by_ref( ms_config-custom_mapper ).
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING val = |<p>Binding Error - Two different mapper for same attribute used ({ mr_attri->name }).|.
     ENDIF.
 
     IF mr_attri->custom_mapper_back IS BOUND AND ms_config-custom_mapper_back IS BOUND
@@ -116,11 +113,11 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
     IF z2ui5_cl_util=>rtti_check_serializable( mr_attri->custom_filter_back ) = abap_false.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = |<p>custom_filter_back used but it is not serializable, Please use if_serializable_object|.
+        EXPORTING val = `<p>custom_filter_back used but it is not serializable, Please use if_serializable_object`.
     ENDIF.
     IF z2ui5_cl_util=>rtti_check_serializable( mr_attri->custom_mapper_back ) = abap_false.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = |<p>custom_mapper_back used but it is not serializable, Please use if_serializable_object|.
+        EXPORTING val = `<p>custom_mapper_back used but it is not serializable, Please use if_serializable_object`.
     ENDIF.
 
   ENDMETHOD.
@@ -177,7 +174,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     ENDIF.
     result = mr_attri->name_client.
 
-    IF |/{ z2ui5_if_core_types=>cs_ui5-two_way_model }| = result.
+    IF result = |/{ z2ui5_if_core_types=>cs_ui5-two_way_model }|.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING val = `<p>Name of variable not allowed - XX is reserved word - use another name for your attribute`.
 

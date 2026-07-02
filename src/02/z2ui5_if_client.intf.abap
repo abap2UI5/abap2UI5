@@ -31,9 +31,9 @@ INTERFACE z2ui5_if_client
       scroll_into_view          TYPE string VALUE `SCROLL_INTO_VIEW`,
       start_timer               TYPE string VALUE `START_TIMER`,
       keyboard_set_mode         TYPE string VALUE `KEYBOARD_SET_MODE`,
-      z2ui5                TYPE string VALUE `Z2UI5`,
-      wizard_set_next_step TYPE string VALUE `WIZARD_SET_NEXT_STEP`,
-      play_audio           TYPE string VALUE `PLAY_AUDIO`,
+      z2ui5                     TYPE string VALUE `Z2UI5`,
+      wizard_set_next_step      TYPE string VALUE `WIZARD_SET_NEXT_STEP`,
+      play_audio                TYPE string VALUE `PLAY_AUDIO`,
     END OF cs_event.
 
   CONSTANTS:
