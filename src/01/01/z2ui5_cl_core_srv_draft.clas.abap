@@ -94,14 +94,14 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
 
       SELECT SINGLE * FROM z2ui5_t_01
         WHERE id = @id
-        INTO @result ##SUBRC_OK.
+        INTO @result.
 
     ELSE.
 
       SELECT SINGLE id, id_prev, id_prev_app, id_prev_app_stack
         FROM z2ui5_t_01
         WHERE id = @id
-        INTO CORRESPONDING FIELDS OF @result ##SUBRC_OK.
+        INTO CORRESPONDING FIELDS OF @result.
 
     ENDIF.
 

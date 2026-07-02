@@ -50,7 +50,8 @@
 //   isBusy            roundtrip in flight (View1.eB / Server)
 //   xxChangedPaths    Set of edited /XX/ model paths for the delta (View1)
 //   checkNestAfter, checkNestAfter2  nested views rebuilt this roundtrip
-//   search            overrides location.search in S_FRONT (History control)
+//   search            overrides location.search in S_FRONT; never written
+//                     by the framework itself, set externally (custom JS)
 //   pendingCustomJs   follow-up JS to run after rendering (Server)
 //
 // Control / helper state

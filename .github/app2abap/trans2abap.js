@@ -60,7 +60,6 @@ function generateClassName(filePath) {
     if (fileName.length > 2) {
         fileName.splice(1, 1); // Remove the middle part
     }
-    const folderPath = parts.map(part => part.substring(0, 4)).join('_').toLowerCase();
     let className = `z2ui5_cl_app_${fileName.join('_').toLowerCase()}`;
     // ABAP object names are limited to 30 characters. Shorten the stem but
     // keep the extension suffix so the kind of file stays recognizable

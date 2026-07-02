@@ -67,15 +67,8 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
     cs_config-theme = `sap_horizon`.
 
     cs_config-src = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js`.
-*      ms_req_config-src     = `https://sdk.openui5.org/1.71.67/resources/sap-ui-core.js`.
-*      ms_req_config-src     = `https://sdk.openui5.org/nightly/2/resources/sap-ui-core.js`.
 
-    " before 21.11.2025
-*      cs_config-content_security_policy = |<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: | &&
-*        |ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com openui5.hana.ondemand.com *.openui5.hana.ondemand.com | &&
-*        |sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas; worker-src 'self' blob:; "/>|.
-
-    " after 21.11.2025 unsafe-inline, unsafe-eval deleted
+    " since 21.11.2025 without unsafe-eval
     cs_config-content_security_policy =
       |<meta http-equiv="Content-Security-Policy" | &&
       |content="default-src 'self' 'unsafe-inline' data: | &&
@@ -115,7 +108,7 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
     cs_config-draft_exp_time_in_hours = 4.
 
     IF gi_user_exit IS NOT INITIAL.
-      gi_user_exit->set_config_http_post( EXPORTING is_context = me->context
+      gi_user_exit->set_config_http_post( EXPORTING is_context = context
                                           CHANGING  cs_config  = cs_config ).
     ENDIF.
 

@@ -127,6 +127,7 @@ sap.ui.define(
           }
 
           oControl.oFileUploader = new FileUploader({
+            tooltip: oControl.getProperty("tooltip"),
             icon: oControl.getProperty("icon"),
             iconOnly: oControl.getProperty("iconOnly"),
             buttonOnly: oControl.getProperty("buttonOnly"),
