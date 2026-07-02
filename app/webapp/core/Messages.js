@@ -55,8 +55,23 @@ sap.ui.define(
         closeOnNavigation: !!msg.CLOSEONNAVIGATION,
       };
       if (msg.ICON && msg.ICON !== "NONE") oParams.icon = msg.ICON;
-      const showFn = MessageBox[msg.TYPE];
-      if (showFn) showFn(msg.TEXT, oParams);
+      // MessageBox display methods are lowercase (show, error, warning,
+      // ...), but the type can arrive capitalized - the ABAP message
+      // formatter sends e.g. "Error" for multi-message boxes - or as a
+      // typo from an app. Restrict the lookup to functions (MessageBox
+      // also carries enum objects like Action and Icon) and never drop a
+      // requested message box silently: fall back to a plain show().
+      let showFn = MessageBox[msg.TYPE];
+      if (typeof showFn !== "function") {
+        showFn = MessageBox[String(msg.TYPE).toLowerCase()];
+      }
+      if (typeof showFn !== "function") {
+        Lib.logError(
+          `Messages: unknown message box type '${msg.TYPE}', shown via show()`,
+        );
+        showFn = MessageBox.show;
+      }
+      showFn(msg.TEXT, oParams);
     }
 
     // Display the message of type `msgType` ("S_MSG_TOAST" / "S_MSG_BOX")

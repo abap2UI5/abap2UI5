@@ -222,6 +222,14 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `          capture: true,` && |\n| &&
              `        });` && |\n| &&
              `` && |\n| &&
+             `        // The debug tool is created lazily by the Ctrl+F12 shortcut -` && |\n| &&
+             `        // destroy it (which also closes its dialog) so a re-launch (FLP)` && |\n| &&
+             `        // does not leak the control instance.` && |\n| &&
+             `        if (z2ui5.debugTool) {` && |\n| &&
+             `          z2ui5.debugTool.destroy();` && |\n| &&
+             `          z2ui5.debugTool = null;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
              `        Server.endSession();` && |\n| &&
              `` && |\n| &&
              `        // Robust launchpad teardown:` && |\n| &&

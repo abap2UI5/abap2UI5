@@ -202,6 +202,14 @@ sap.ui.define(
           capture: true,
         });
 
+        // The debug tool is created lazily by the Ctrl+F12 shortcut -
+        // destroy it (which also closes its dialog) so a re-launch (FLP)
+        // does not leak the control instance.
+        if (z2ui5.debugTool) {
+          z2ui5.debugTool.destroy();
+          z2ui5.debugTool = null;
+        }
+
         Server.endSession();
 
         // Robust launchpad teardown:

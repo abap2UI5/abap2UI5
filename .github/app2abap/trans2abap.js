@@ -139,26 +139,11 @@ function getAllFiles(dirPath, arrayOfFiles) {
     return arrayOfFiles;
 }
 
-// Function to delete the target directory
-function deleteTargetDir(dirPath) {
-    if (fs.existsSync(dirPath)) {
-        fs.readdirSync(dirPath).forEach(file => {
-            const curPath = path.join(dirPath, file);
-            if (fs.lstatSync(curPath).isDirectory()) {
-                deleteTargetDir(curPath);
-            } else {
-                fs.unlinkSync(curPath);
-            }
-        });
-        fs.rmdirSync(dirPath);
-    }
-}
-
 // Main function to read the source files and create new target files
 async function main() {
     try {
         // Delete the target directory if it exists
-        deleteTargetDir(targetDir);
+        fs.rmSync(targetDir, { recursive: true, force: true });
 
         // Recreate the target directory
         fs.mkdirSync(targetDir, { recursive: true });

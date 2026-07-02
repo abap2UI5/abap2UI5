@@ -78,9 +78,11 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    const full = response?.stack ? String(response.stack) : String(response);` && |\n| &&
              `    let errorMessage;` && |\n| &&
              `    if (full.length > ERROR_MAX_LENGTH) {` && |\n| &&
+             `      // Rendered via textContent, so use plain text (an HTML comment would` && |\n| &&
+             `      // show up literally).` && |\n| &&
              `      errorMessage =` && |\n| &&
              `        full.slice(0, ERROR_MAX_LENGTH) +` && |\n| &&
-             `        "\n\n<!-- Content truncated - too long -->";` && |\n| &&
+             `        ``\n\n[... truncated after ${ERROR_MAX_LENGTH} characters]``;` && |\n| &&
              `    } else {` && |\n| &&
              `      errorMessage = full;` && |\n| &&
              `    }` && |\n| &&

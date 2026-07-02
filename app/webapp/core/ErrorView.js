@@ -58,9 +58,11 @@ sap.ui.define([], () => {
     const full = response?.stack ? String(response.stack) : String(response);
     let errorMessage;
     if (full.length > ERROR_MAX_LENGTH) {
+      // Rendered via textContent, so use plain text (an HTML comment would
+      // show up literally).
       errorMessage =
         full.slice(0, ERROR_MAX_LENGTH) +
-        "\n\n<!-- Content truncated - too long -->";
+        `\n\n[... truncated after ${ERROR_MAX_LENGTH} characters]`;
     } else {
       errorMessage = full;
     }

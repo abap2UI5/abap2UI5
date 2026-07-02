@@ -408,9 +408,12 @@ sap.ui.define(
 
         oBody.ID = z2ui5.oResponse?.ID;
         // Object arguments are stringified for transport; the event name in
-        // args[0] is left as-is.
+        // args[0] is left as-is. null is excluded - it would stringify to
+        // the literal "null" instead of staying an empty value.
         oBody.ARGUMENTS = args.map((item, i) => {
-          if (i > 0 && typeof item === "object") return JSON.stringify(item);
+          if (i > 0 && item !== null && typeof item === "object") {
+            return JSON.stringify(item);
+          }
           return item;
         });
 
