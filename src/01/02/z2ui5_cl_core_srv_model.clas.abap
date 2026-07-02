@@ -108,11 +108,9 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   METHOD main_json_to_attri.
 
-    IF line_exists( mt_attri->*[ view = view ] ).       "#EC CI_SORTSEQ
-      DATA(lv_view) = view.
-    ELSE.
-      lv_view = z2ui5_if_client=>cs_view-main.
-    ENDIF.
+    DATA(lv_view) = COND #( WHEN line_exists( mt_attri->*[ view = view ] ) "#EC CI_SORTSEQ
+                            THEN view
+                            ELSE z2ui5_if_client=>cs_view-main ).
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
          WHERE bind_type = z2ui5_if_core_types=>cs_bind_type-two_way "#EC CI_SORTSEQ
@@ -162,8 +160,8 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     TRY.
 
         DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
-        DATA(lo_upper_mapper) = z2ui5_cl_ajson_mapping=>create_upper_case( ).
-        DATA(ajson_default) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ii_custom_mapping = lo_upper_mapper ) ).
+        DATA(ajson_default) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
+                                       ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
 
         TYPES: BEGIN OF ty_s_mapper_cache,
                  mapper TYPE REF TO z2ui5_if_ajson_mapping,
@@ -212,7 +210,9 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
         ENDLOOP.
 
         result = ajson_result->stringify( ).
-        result = COND #( WHEN result IS INITIAL THEN `{}` ELSE result ).
+        IF result IS INITIAL.
+          result = `{}`.
+        ENDIF.
 
       CATCH cx_root INTO DATA(x).
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
@@ -455,7 +455,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
         OR lo_datadescr->type_kind = cl_abap_typedescr=>typekind_oref.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING
-          val = |NO DATA REFERENCES FOR BINDING ALLOWED: DEREFERENCE YOUR DATA FIRST|.
+          val = `NO DATA REFERENCES FOR BINDING ALLOWED: DEREFERENCE YOUR DATA FIRST`.
     ENDIF.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ

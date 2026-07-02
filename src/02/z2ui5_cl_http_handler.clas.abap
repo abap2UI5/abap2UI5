@@ -85,9 +85,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD factory.
 
-    result = NEW #( ).
-
     IF server IS BOUND.
+      result = NEW #( ).
       result->mo_server = z2ui5_cl_util_http=>factory( server ).
     ELSEIF req IS BOUND AND res IS BOUND.
       result = factory_cloud( req = req
@@ -125,8 +124,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                |    <meta name="viewport" content="width=device-width, initial-scale=1.0">| && |\n| &&
                |    <meta http-equiv="X-UA-Compatible" content="IE=edge">| && |\n| &&
                 | <title> { ls_config-title }</title> \n| &&
-                | <style>        html, body, body > div, #container, #container-uiarea \{\n| &
-                |            height: 100%;\n| &
+                | <style>        html, body, body > div, #container, #container-uiarea \{\n| &&
+                |            height: 100%;\n| &&
                 |        \}</style> \n| &&
                 |<script>| && |\n| &&
              |  function onInitComponent()\{| && |\n| &&
@@ -221,13 +220,11 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
         result = lo_post->main( ).
 
         TRY.
-            IF lo_post IS BOUND.
-              DATA(li_app) = CAST z2ui5_if_app( lo_post->mo_action->mo_app->mo_app ).
-              IF li_app->check_sticky = abap_true.
-                so_sticky_handler = lo_post.
-              ELSE.
-                CLEAR so_sticky_handler.
-              ENDIF.
+            DATA(li_app) = CAST z2ui5_if_app( lo_post->mo_action->mo_app->mo_app ).
+            IF li_app->check_sticky = abap_true.
+              so_sticky_handler = lo_post.
+            ELSE.
+              CLEAR so_sticky_handler.
             ENDIF.
           CATCH cx_root.
             CLEAR so_sticky_handler.

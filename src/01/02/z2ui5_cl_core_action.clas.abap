@@ -71,9 +71,8 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
                                         io_model = mo_http_post->ms_request-o_model ).
     ENDIF.
 
-    result->ms_actual-event              = mo_http_post->ms_request-s_front-event.
-    result->ms_actual-t_event_arg        = mo_http_post->ms_request-s_front-t_event_arg.
-    result->ms_actual-check_on_navigated = abap_false.
+    result->ms_actual-event       = mo_http_post->ms_request-s_front-event.
+    result->ms_actual-t_event_arg = mo_http_post->ms_request-s_front-t_event_arg.
 
   ENDMETHOD.
 
@@ -193,8 +192,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
     IF ms_next-next_event IS NOT INITIAL.
       result->ms_actual-event = ms_next-next_event.
-    ELSEIF ms_next-s_set-s_follow_up_action IS NOT INITIAL AND
-        lines( ms_next-s_set-s_follow_up_action-custom_js ) > 0.
+    ELSEIF lines( ms_next-s_set-s_follow_up_action-custom_js ) > 0.
       " backward compatibility: derive the next event from a legacy
       " follow_up_action( _event( ) ) snippet ( deprecated mechanism )
       DATA(lv_action) = ms_next-s_set-s_follow_up_action-custom_js[ 1 ].

@@ -103,8 +103,8 @@ CLASS z2ui5_cl_pop_image_editor IMPLEMENTATION.
                                              icon                = `sap-icon://edit`
                                              contentheight       = `80%`
                                              contentwidth        = `80%`
-                                             verticalscrolling   = `false`
-                                             horizontalscrolling = `false` ).
+                                             verticalscrolling   = abap_false
+                                             horizontalscrolling = abap_false ).
 
     popup->image_editor_container( enabledbuttons = mv_enabledbuttons
                                    mode           = mv_mode

@@ -99,10 +99,10 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
         )->button( text  = `Delete All`
                    icon  = `sap-icon://delete`
                    type  = `Transparent`
-                   press = client->_event( val = `POPUP_DELETE_ALL` )
+                   press = client->_event( `POPUP_DELETE_ALL` )
         )->button( text  = `Add Item`
                    icon  = `sap-icon://add`
-                   press = client->_event( val = `POPUP_ADD` )
+                   press = client->_event( `POPUP_ADD` )
        )->button( text  = `Cancel`
                   press = client->_event( `BUTTON_CANCEL` )
        )->button( text  = `OK`
@@ -166,7 +166,7 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
         client->popup_model_update( ).
 
       WHEN `POPUP_DELETE_ALL`.
-        mt_filter = VALUE #( ).
+        CLEAR mt_filter.
         client->popup_model_update( ).
 
     ENDCASE.
