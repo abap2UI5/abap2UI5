@@ -36,7 +36,9 @@ CLASS z2ui5_cl_app_lptitle_js IMPLEMENTATION.
              `      try {` && |\n| &&
              `        const shell = z2ui5.oLaunchpad?.ShellUIService;` && |\n| &&
              `        if (!shell || !shell.setTitle) return;` && |\n| &&
-             `        const result = shell.setTitle(val);` && |\n| &&
+             `        // Same normalization as the SET_TITLE_LAUNCHPAD frontend action:` && |\n| &&
+             `        // never hand undefined/null to the shell service.` && |\n| &&
+             `        const result = shell.setTitle(Lib.toText(val));` && |\n| &&
              `        // setTitle may return a Promise; report any async failure.` && |\n| &&
              `        if (result?.catch) {` && |\n| &&
              `          result.catch((e) =>` && |\n| &&

@@ -4,9 +4,9 @@ CLASS ltcl_test DEFINITION FINAL
 
   PRIVATE SECTION.
 
-    METHODS test_factory          FOR TESTING RAISING cx_static_check.
-    METHODS test_factory_div      FOR TESTING RAISING cx_static_check.
-    METHODS test_factory_custom   FOR TESTING RAISING cx_static_check.
+    METHODS test_factory            FOR TESTING RAISING cx_static_check.
+    METHODS test_factory_util_error FOR TESTING RAISING cx_static_check.
+    METHODS test_factory_custom     FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -25,7 +25,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_factory_div.
+  METHOD test_factory_util_error.
 
     DATA(lx) = NEW z2ui5_cx_util_error( val = `test error` ).
     DATA(lo_pop) = z2ui5_cl_pop_error=>factory( lx ).

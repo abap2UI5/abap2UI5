@@ -429,9 +429,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        oBody.ID = z2ui5.oResponse?.ID;` && |\n| &&
              `        // Object arguments are stringified for transport; the event name in` && |\n| &&
-             `        // args[0] is left as-is.` && |\n| &&
+             `        // args[0] is left as-is. null is excluded - it would stringify to` && |\n| &&
+             `        // the literal "null" instead of staying an empty value.` && |\n| &&
              `        oBody.ARGUMENTS = args.map((item, i) => {` && |\n| &&
-             `          if (i > 0 && typeof item === "object") return JSON.stringify(item);` && |\n| &&
+             `          if (i > 0 && item !== null && typeof item === "object") {` && |\n| &&
+             `            return JSON.stringify(item);` && |\n| &&
+             `          }` && |\n| &&
              `          return item;` && |\n| &&
              `        });` && |\n| &&
              `` && |\n| &&

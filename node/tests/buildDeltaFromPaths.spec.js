@@ -289,21 +289,28 @@ test.describe("Row insert/delete scenarios", () => {
 
 // ── 7. Overwrite behavior ───────────────────────────────────────────────
 test.describe("Overwrite / priority behavior", () => {
+  // If both a cell path AND a full-table path exist for the same attribute,
+  // the full attribute always wins regardless of Set iteration order: both
+  // read the same current model data, so the full array is a superset of
+  // any cell delta and can never lose changes.
   test("full-table path after cell path overwrites delta with full array", () => {
-    // If both a cell path AND a full-table path exist for the same attribute,
-    // iteration order of Set determines which wins (last write wins)
     const paths = new Set(["/XX/TABLE1/0/COL1", "/XX/TABLE1"]);
     const result = _buildDeltaFromPaths(paths, SAMPLE_XX);
-    // The full-table path "/XX/TABLE1" comes second → overwrites the delta
     expect(result).toEqual({ TABLE1: SAMPLE_XX.TABLE1 });
   });
 
-  test("cell path after full-table path overwrites array with delta", () => {
+  test("cell path after full-table path keeps the full array", () => {
     const paths = new Set(["/XX/TABLE1", "/XX/TABLE1/0/COL1"]);
     const result = _buildDeltaFromPaths(paths, SAMPLE_XX);
-    // The cell path comes second → overwrites with __delta
+    expect(result).toEqual({ TABLE1: SAMPLE_XX.TABLE1 });
+  });
+
+  test("full array for one table does not affect the delta of another", () => {
+    const paths = new Set(["/XX/TABLE1", "/XX/TABLE2/1/VALUE"]);
+    const result = _buildDeltaFromPaths(paths, SAMPLE_XX);
     expect(result).toEqual({
-      TABLE1: { __delta: { 0: { COL1: "A1" } } },
+      TABLE1: SAMPLE_XX.TABLE1,
+      TABLE2: { __delta: { 1: { VALUE: "200" } } },
     });
   });
 });
