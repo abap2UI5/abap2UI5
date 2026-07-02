@@ -9628,6 +9628,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         ct_parts TYPE string_table.
 
   PRIVATE SECTION.
+    CLASS-DATA st_ns_map TYPE HASHED TABLE OF z2ui5_if_types=>ty_s_name_value WITH UNIQUE KEY n.
 ENDCLASS.
 
 
@@ -14913,8 +14914,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD xml_get_parts.
 
-    DATA lt_prop TYPE HASHED TABLE OF z2ui5_if_types=>ty_s_name_value WITH UNIQUE KEY n.
-
     IF mv_name = `ZZPLAIN`.
       APPEND mt_prop[ n = `VALUE` ]-v TO ct_parts.
       RETURN.
@@ -14922,7 +14921,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     IF me = mo_root.
 
-      lt_prop = VALUE #(
+      IF st_ns_map IS INITIAL.
+
+        st_ns_map = VALUE #(
           ( n = `z2ui5`             v = `z2ui5.cc` )
           ( n = `layout`            v = `sap.ui.layout` )
           ( n = `networkgraph`      v = `sap.suite.ui.commons.networkgraph` )
@@ -14975,11 +14976,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
           ( n = `smi`               v = `sap.ui.comp.smartmultiinput` )
           ( n = `ie`                v = `sap.suite.ui.commons.imageeditor` ) ).
 
+      ENDIF.
+
       LOOP AT mt_ns REFERENCE INTO DATA(lr_ns) WHERE table_line IS NOT INITIAL  "#EC CI_SORTSEQ
                                                      AND table_line <> `mvc`
                                                      AND table_line <> `core`.
         TRY.
-            DATA(ls_prop) = lt_prop[ n = lr_ns->* ].
+            DATA(ls_prop) = st_ns_map[ n = lr_ns->* ].
             INSERT VALUE #( n = |xmlns:{ ls_prop-n }|
                             v = ls_prop-v ) INTO TABLE mt_prop.
           CATCH cx_root.

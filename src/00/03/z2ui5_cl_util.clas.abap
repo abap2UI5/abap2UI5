@@ -1266,10 +1266,19 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     TRY.
         DATA(lo_descr) = cl_abap_elemdescr=>describe_by_data( val ).
+
+        " all supported boolean types are character-like flags, this check
+        " filters out every other type before the name based cache lookup
+        IF lo_descr->type_kind <> cl_abap_typedescr=>typekind_char.
+          RETURN.
+        ENDIF.
+
         DATA(lv_abs_name) = CONV string( lo_descr->absolute_name ).
 
-        IF line_exists( mt_bool_cache[ absolute_name = lv_abs_name ] ).
-          result = mt_bool_cache[ absolute_name = lv_abs_name ]-is_bool.
+        READ TABLE mt_bool_cache REFERENCE INTO DATA(lr_cache)
+             WITH TABLE KEY absolute_name = lv_abs_name.
+        IF sy-subrc = 0.
+          result = lr_cache->is_bool.
           RETURN.
         ENDIF.
 
