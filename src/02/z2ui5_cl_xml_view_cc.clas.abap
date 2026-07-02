@@ -364,7 +364,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
             (  n = `items`         v = items )
             (  n = `id`         v = id )
             (  n = `class`         v = class )
-            (  n = `selectionchange`         v = selectionchange )
+            (  n = `selectionChange`         v = selectionchange )
             (  n = `selectedItem`         v = selecteditem )
             (  n = `selectedItemId`         v = selecteditemid )
             (  n = `name`         v = name )

@@ -59,9 +59,8 @@ CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
     DATA(vbox) = lo_popup->vbox( height         = `100%`
                                  justifycontent = `SpaceBetween` ).
 
-    DATA(item) = vbox->list( nodata          = `No conditions defined`
-                             items           = client->_bind( ms_result-t_filter )
-                             selectionchange = client->_event( `SELCHANGE` )
+    DATA(item) = vbox->list( nodata = `No conditions defined`
+                             items  = client->_bind( ms_result-t_filter )
                 )->custom_list_item( ).
 
     DATA(grid) = item->grid( class = `sapUiSmallMarginTop sapUiSmallMarginBottom sapUiSmallMarginBegin` ).
@@ -151,9 +150,9 @@ CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
         client->nav_app_leave( ).
 
       WHEN `POPUP_DELETE_ALL`.
-        LOOP AT ms_result-t_filter REFERENCE INTO DATA(lr_sql).
-          CLEAR lr_sql->t_range.
-          CLEAR lr_sql->t_token.
+        LOOP AT ms_result-t_filter REFERENCE INTO DATA(lr_filter).
+          CLEAR lr_filter->t_range.
+          CLEAR lr_filter->t_token.
         ENDLOOP.
         client->popup_model_update( ).
 
