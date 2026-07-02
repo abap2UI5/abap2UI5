@@ -62,16 +62,13 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
 
     DATA(columns) = tab->columns( ).
 
-    DATA lv_ddic_field_label TYPE string.
-
     LOOP AT lt_comp INTO ls_comp.
       IF ls_comp-type IS BOUND AND
           ls_comp-type->is_ddic_type( ) = abap_true.
-        CLEAR lv_ddic_field_label.
 
         DATA(lv_name) = substring_after( val = CAST cl_abap_elemdescr( ls_comp-type )->absolute_name
                                          sub = `\TYPE=` ).
-        lv_ddic_field_label = z2ui5_cl_util=>rtti_get_data_element_text_l( lv_name ).
+        DATA(lv_ddic_field_label) = z2ui5_cl_util=>rtti_get_data_element_text_l( lv_name ).
 
         IF lv_ddic_field_label IS NOT INITIAL.
           columns->column( `8rem` )->header( `` )->text( lv_ddic_field_label ).
@@ -93,17 +90,13 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD factory.
-    FIELD-SYMBOLS <tab> TYPE any.
 
     r_result = NEW #( ).
     IF i_title IS NOT INITIAL.
       r_result->title = i_title.
     ENDIF.
-    CREATE DATA r_result->mr_tab LIKE i_tab.
+    r_result->mr_tab = z2ui5_cl_util=>conv_copy_ref_data( i_tab ).
     CREATE DATA r_result->ms_result-row LIKE LINE OF i_tab.
-
-    ASSIGN r_result->mr_tab->* TO <tab>.
-    <tab> = i_tab.
 
   ENDMETHOD.
 

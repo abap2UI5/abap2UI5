@@ -84,9 +84,7 @@ CLASS z2ui5_cl_pop_js_loader IMPLEMENTATION.
 
     CASE client->get( )-event.
       WHEN `INFO_FINISHED`.
-        IF to_upper( ui5_gav ) CS `OPEN`.
-          mv_is_open_ui5 = abap_true.
-        ENDIF.
+        mv_is_open_ui5 = xsdbool( ui5_gav CS `OPEN` ).
         client->popup_destroy( ).
         client->nav_app_leave( ).
 
