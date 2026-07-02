@@ -81,8 +81,6 @@ CLASS z2ui5_cl_util_db IMPLEMENTATION.
 
   METHOD load_by_handle.
 
-    DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_91 WITH EMPTY KEY.
-
     SELECT SINGLE data
       FROM z2ui5_t_91
        WHERE
@@ -139,13 +137,15 @@ CLASS z2ui5_cl_util_db IMPLEMENTATION.
 
   METHOD load_by_id.
 
-    DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_91 WITH EMPTY KEY.
-
     SELECT SINGLE data
       FROM z2ui5_t_91
       WHERE id = @id  "#EC WARNOK
       INTO @DATA(lv_data).
-    ASSERT sy-subrc = 0.
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING
+          val = |NO_ENTRY_FOR_ID_EXISTS: { id }|.
+    ENDIF.
 
     z2ui5_cl_util=>xml_parse(
       EXPORTING
@@ -158,7 +158,6 @@ CLASS z2ui5_cl_util_db IMPLEMENTATION.
 
   METHOD save.
 
-    DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_91 WITH EMPTY KEY.
     SELECT SINGLE id
       FROM z2ui5_t_91
        WHERE
@@ -182,7 +181,11 @@ CLASS z2ui5_cl_util_db IMPLEMENTATION.
     ENDIF.
 
     MODIFY z2ui5_t_91 FROM @ls_db.
-    ASSERT sy-subrc = 0.
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING
+          val = `DB_SAVE_FAILED`.
+    ENDIF.
 
     IF check_commit = abap_true.
       COMMIT WORK AND WAIT.

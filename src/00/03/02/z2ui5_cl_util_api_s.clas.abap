@@ -999,8 +999,10 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
           COMMIT WORK AND WAIT.
         ENDIF.
 
-      CATCH cx_root.
-        RETURN.
+      CATCH cx_root INTO DATA(lx_create).
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING
+            val = lx_create.
     ENDTRY.
 
   ENDMETHOD.
@@ -1070,8 +1072,10 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
 
         ENDLOOP.
 
-      CATCH cx_root.
-        RETURN.
+      CATCH cx_root INTO DATA(lx_read).
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING
+            val = lx_read.
     ENDTRY.
 
   ENDMETHOD.
@@ -1119,8 +1123,10 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
           COMMIT WORK AND WAIT.
         ENDIF.
 
-      CATCH cx_root.
-        RETURN.
+      CATCH cx_root INTO DATA(lx_update).
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING
+            val = lx_update.
     ENDTRY.
 
   ENDMETHOD.
@@ -1147,8 +1153,10 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
           COMMIT WORK AND WAIT.
         ENDIF.
 
-      CATCH cx_root.
-        RETURN.
+      CATCH cx_root INTO DATA(lx_delete).
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING
+            val = lx_delete.
     ENDTRY.
 
   ENDMETHOD.
@@ -1216,8 +1224,8 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
     DATA lr_filter  TYPE REF TO data.
     DATA lr_headers TYPE REF TO data.
     FIELD-SYMBOLS <filter>  TYPE any.
-    FIELD-SYMBOLS <headers> TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <handles> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <headers> TYPE SORTED TABLE.
+    FIELD-SYMBOLS <handles> TYPE SORTED TABLE.
 
     lr_filter = bal_build_filter( object    = object
                                   subobject = subobject

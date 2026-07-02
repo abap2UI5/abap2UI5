@@ -510,8 +510,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
         ENDLOOP.
 
-      CATCH cx_root INTO DATA(x).
-        DATA(error) = x->get_text( ).
+      CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
   ENDMETHOD.
@@ -564,8 +563,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
               APPEND <field> TO names.
             ENDLOOP.
         ENDTRY.
-      CATCH cx_root INTO DATA(x).
-        DATA(error) = x->get_text( ).
+      CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
 
@@ -823,7 +821,9 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
           inconsistent_help = 3
           OTHERS            = 4.
       IF sy-subrc <> 0.
-        " FEHLER
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING
+            val = |F4IF_DETERMINE_SEARCHHELP failed for { lv_tabname }-{ lv_fieldname }|.
       ENDIF.
       ms_shlp = CORRESPONDING #( <shlp> ).
 
@@ -984,10 +984,9 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
           CATCH cx_root.
 
             TRY.
-                " Sting table will crash if value length <> outputlen
+                " String table will crash if value length <> outputlen
                 <line_content> = result_line+result_desc-offset.
-              CATCH cx_root INTO DATA(x).
-                DATA(error) = x->get_text( ).
+              CATCH cx_root ##NO_HANDLER.
             ENDTRY.
         ENDTRY.
 
@@ -1220,8 +1219,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
         ASSIGN t_e071k->* TO <t_e071k>.
         ASSIGN s_e071k->* TO <s_e071k>.
 
-      CATCH cx_root INTO DATA(x).
-        DATA(error) = x->get_text( ).
+      CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
     DATA(dfies) = rtti_get_t_dfies_by_table_name( iv_tabname ).
@@ -1320,8 +1318,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
         ASSIGN t_e071->* TO <t_e071>.
         ASSIGN s_e071->* TO <s_e071>.
 
-      CATCH cx_root INTO DATA(x).
-        DATA(error) = x->get_text( ).
+      CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
     ASSIGN COMPONENT 'TRKORR' OF STRUCTURE <s_e071> TO <value>.
@@ -1410,8 +1407,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
         IF sy-subrc <> 0.
           RETURN.
         ENDIF.
-      CATCH cx_root INTO DATA(x).
-        DATA(error) = x->get_text( ).
+      CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
     LOOP AT <table> INTO <line>.
@@ -1512,7 +1508,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
             IF index = 1.
               DATA(where) = |TRKORR EQ '{ line-task }'|.
             ELSE.
-              where = |{ where }OR TRKORR EQ '{ line-task }'|.
+              where = |{ where } OR TRKORR EQ '{ line-task }'|.
             ENDIF.
             where = |( { where } )|.
           ENDLOOP.
@@ -1527,8 +1523,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
             RETURN.
           ENDIF.
 
-        CATCH cx_root INTO DATA(x).
-          DATA(error) = x->get_text( ).
+        CATCH cx_root ##NO_HANDLER.
       ENDTRY.
 
       LOOP AT <table> INTO <line>.
@@ -1574,8 +1569,7 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
         TRY.
             <row> = sy-mandt.
-          CATCH cx_root INTO DATA(x).
-            DATA(error) = x->get_text( ).
+          CATCH cx_root ##NO_HANDLER.
         ENDTRY.
 
       ENDIF.

@@ -977,8 +977,7 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
   METHOD bal_read.
 
     " Load the persisted logs (incl. items) via the released filter API and map
-    " each item's message text. cl_bali_log_db->load_logs_via_filter loads items
-    " by default (read_only_header not set).
+    " each item back to the framework's ty_s_msg structure with full metadata.
     TYPES:
       BEGIN OF ty_item,
         log_item_number TYPE i,
@@ -990,6 +989,13 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
     DATA lt_logs   TYPE STANDARD TABLE OF REF TO object.
     DATA lv_text   TYPE string.
     DATA lv_class  TYPE string.
+    DATA lv_severity TYPE c LENGTH 1.
+    DATA lv_msgid  TYPE string.
+    DATA lv_msgno  TYPE string.
+    DATA lv_msgv1  TYPE string.
+    DATA lv_msgv2  TYPE string.
+    DATA lv_msgv3  TYPE string.
+    DATA lv_msgv4  TYPE string.
 
     TRY.
         lo_filter = bal_build_filter( object    = object
@@ -1018,11 +1024,60 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
             IF ls_item-item IS NOT BOUND.
               CONTINUE.
             ENDIF.
+
+            DATA(ls_msg) = VALUE z2ui5_cl_util=>ty_s_msg( ).
+
             lv_text = ``.
             CALL METHOD ls_item-item->(`GET_MESSAGE_TEXT`)
               RECEIVING
                 message_text = lv_text.
-            INSERT VALUE #( text = lv_text ) INTO TABLE result.
+            ls_msg-text = lv_text.
+
+            TRY.
+                CALL METHOD ls_item-item->(`GET_SEVERITY`)
+                  RECEIVING
+                    severity = lv_severity.
+                ls_msg-type = lv_severity.
+              CATCH cx_root ##NO_HANDLER.
+            ENDTRY.
+
+            TRY.
+                CALL METHOD ls_item-item->(`GET_MESSAGE_ID`)
+                  RECEIVING
+                    id = lv_msgid.
+                ls_msg-id = lv_msgid.
+              CATCH cx_root ##NO_HANDLER.
+            ENDTRY.
+
+            TRY.
+                CALL METHOD ls_item-item->(`GET_MESSAGE_NUMBER`)
+                  RECEIVING
+                    number = lv_msgno.
+                ls_msg-no = lv_msgno.
+              CATCH cx_root ##NO_HANDLER.
+            ENDTRY.
+
+            TRY.
+                CALL METHOD ls_item-item->(`GET_MESSAGE_VARIABLE_1`)
+                  RECEIVING
+                    variable_1 = lv_msgv1.
+                ls_msg-v1 = lv_msgv1.
+                CALL METHOD ls_item-item->(`GET_MESSAGE_VARIABLE_2`)
+                  RECEIVING
+                    variable_2 = lv_msgv2.
+                ls_msg-v2 = lv_msgv2.
+                CALL METHOD ls_item-item->(`GET_MESSAGE_VARIABLE_3`)
+                  RECEIVING
+                    variable_3 = lv_msgv3.
+                ls_msg-v3 = lv_msgv3.
+                CALL METHOD ls_item-item->(`GET_MESSAGE_VARIABLE_4`)
+                  RECEIVING
+                    variable_4 = lv_msgv4.
+                ls_msg-v4 = lv_msgv4.
+              CATCH cx_root ##NO_HANDLER.
+            ENDTRY.
+
+            INSERT ls_msg INTO TABLE result.
           ENDLOOP.
 
         ENDLOOP.
@@ -1035,13 +1090,54 @@ CLASS z2ui5_cl_util_api_c IMPLEMENTATION.
 
   METHOD bal_update.
 
-    " Classic in-place append needs a reliable load of the existing log, which on
-    " ABAP Cloud depends on the released filter API. As a safe fallback the messages
-    " are persisted as a new log for the same object / subobject / external id.
-    bal_create( object    = object
-                subobject = subobject
-                id        = id
-                t_log     = t_log ).
+    " Load the existing log and append items. If no log exists, create a new one.
+    DATA lo_filter TYPE REF TO object.
+    DATA lo_db     TYPE REF TO object.
+    DATA lt_logs   TYPE STANDARD TABLE OF REF TO object.
+    DATA lv_class  TYPE string.
+
+    TRY.
+        lo_filter = bal_build_filter( object    = object
+                                      subobject = subobject
+                                      id        = id ).
+
+        lv_class = `CL_BALI_LOG_DB`.
+        CALL METHOD (lv_class)=>(`GET_INSTANCE`)
+          RECEIVING
+            db_handler = lo_db.
+
+        CALL METHOD lo_db->(`LOAD_LOGS_VIA_FILTER`)
+          EXPORTING
+            filter    = lo_filter
+          RECEIVING
+            log_table = lt_logs.
+
+        IF lt_logs IS INITIAL.
+          bal_create( object    = object
+                      subobject = subobject
+                      id        = id
+                      t_log     = t_log ).
+          RETURN.
+        ENDIF.
+
+        " Append to the first (most recent) log
+        DATA(lo_log) = lt_logs[ 1 ].
+        bal_add_items( log   = lo_log
+                       t_log = t_log ).
+
+        CALL METHOD lo_db->(`SAVE_LOG`)
+          EXPORTING
+            log = lo_log.
+
+        COMMIT WORK AND WAIT.
+
+      CATCH cx_root.
+        " Fallback: create new log if update fails
+        bal_create( object    = object
+                    subobject = subobject
+                    id        = id
+                    t_log     = t_log ).
+    ENDTRY.
 
   ENDMETHOD.
 
