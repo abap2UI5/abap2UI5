@@ -81,7 +81,8 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
     cl_abap_unit_assert=>assert_bound( lo_pop ).
     DATA(lv_xml) = mo_action->ms_next-s_set-s_popup-xml.
     cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `Define Filter Conditions` ) ).
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `MATNR` ) ).
+    " the filter names live in the model, the list only carries the binding
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `T_FILTER` ) ).
 
   ENDMETHOD.
 
