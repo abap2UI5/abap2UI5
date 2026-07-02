@@ -22,4 +22,4 @@ jobs:
         cache: 'npm'
     - run: npm ci
     - name: Run JS unit tests
-      run: cd node && npx playwright test buildDeltaFromPaths.spec.js --config=playwright-unit.config.js
+      run: cd node && npx playwright test --config=playwright-unit.config.js

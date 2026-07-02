@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  group: create_app2abap
+
 permissions:
   contents: read
 
@@ -28,9 +31,7 @@ jobs:
         run: |
           npm ci
           npm --prefix app ci
-          npm --prefix app run format
-          npm run auto_app2abap
-          npm run auto_abaplint
+          npm run app2abap
 
       - name: Open PR
         uses: peter-evans/create-pull-request@v8

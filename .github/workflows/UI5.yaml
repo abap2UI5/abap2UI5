@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main ]
 
+concurrency:
+  group: UI5_2X-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -19,5 +23,5 @@ jobs:
       with:
         node-version: '20'
         cache: 'npm'
-    - run: cd app && npm i && npx ui5lint --ignore-pattern "webapp/index.html" --details
+    - run: cd app && npm ci && npx ui5lint --ignore-pattern "webapp/index.html" --details
       continue-on-error: true
