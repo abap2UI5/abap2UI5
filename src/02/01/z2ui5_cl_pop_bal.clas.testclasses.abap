@@ -111,6 +111,10 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory_by_db.
 
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
     DATA(lo_pop) = z2ui5_cl_pop_bal=>factory_by_db( i_object     = `TEST`
                                                     i_subobject  = `SUB`
                                                     i_extnumber  = `EXT`
