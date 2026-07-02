@@ -1,3 +1,5 @@
+CLASS ltcl_test DEFINITION DEFERRED.
+CLASS z2ui5_cl_pop_to_select DEFINITION LOCAL FRIENDS ltcl_test.
 
 CLASS ltcl_test DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
@@ -78,7 +80,8 @@ CLASS ltcl_test IMPLEMENTATION.
       i_tab   = lt_tab
       i_title = `Custom` ).
 
-    cl_abap_unit_assert=>assert_bound( lo_pop ).
+    cl_abap_unit_assert=>assert_equals( exp = `Custom`
+                                        act = lo_pop->title ).
 
   ENDMETHOD.
 
@@ -131,8 +134,10 @@ CLASS ltcl_test IMPLEMENTATION.
       i_tab         = lt_tab
       i_multiselect = abap_true ).
 
-    cl_abap_unit_assert=>assert_bound( lo_single ).
-    cl_abap_unit_assert=>assert_bound( lo_multi ).
+    cl_abap_unit_assert=>assert_equals( exp = `Single Select`
+                                        act = lo_single->title ).
+    cl_abap_unit_assert=>assert_equals( exp = `Multi Select`
+                                        act = lo_multi->title ).
 
   ENDMETHOD.
 

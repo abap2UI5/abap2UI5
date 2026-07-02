@@ -73,9 +73,8 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
     DATA(vbox) = lo_popup->vbox( height         = `100%`
                                  justifycontent = `SpaceBetween` ).
 
-    DATA(item) = vbox->list( nodata          = `No conditions defined`
-                             items           = client->_bind_edit( mt_filter )
-                             selectionchange = client->_event( `SELCHANGE` )
+    DATA(item) = vbox->list( nodata = `No conditions defined`
+                             items  = client->_bind_edit( mt_filter )
                 )->custom_list_item( ).
 
     DATA(grid) = item->grid( ).
@@ -121,10 +120,10 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
       mt_mapping = z2ui5_cl_util=>filter_get_token_range_mapping( ).
 
       CLEAR mt_filter.
-      LOOP AT ms_result-t_range REFERENCE INTO DATA(lr_product).
-        INSERT VALUE #( low    = lr_product->low
-                        high   = lr_product->high
-                        option = lr_product->option
+      LOOP AT ms_result-t_range REFERENCE INTO DATA(lr_range).
+        INSERT VALUE #( low    = lr_range->low
+                        high   = lr_range->high
+                        option = lr_range->option
                         key    = z2ui5_cl_util=>uuid_get_c32( )
           ) INTO TABLE mt_filter.
       ENDLOOP.

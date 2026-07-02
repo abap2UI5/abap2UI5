@@ -177,7 +177,6 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
   METHOD test_oref_dref.
 
     DATA(lo_app) = NEW ltcl_test_dissolve( ).
-    lo_app->mo_app = NEW #( ).
     DATA(lo_app2) = NEW ltcl_test_dissolve( ).
     lo_app->mo_app = lo_app2.
 
@@ -198,7 +197,6 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
   METHOD test_oref_dref_struc.
 
     DATA(lo_app) = NEW ltcl_test_dissolve( ).
-    lo_app->mo_app = NEW #( ).
     DATA(lo_app2) = NEW ltcl_test_dissolve( ).
     lo_app->mo_app = lo_app2.
 
@@ -1732,8 +1730,9 @@ CLASS ltcl_test_json_types IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_multiple_attrs_same_var.
-    " Bind the same variable (MV_SIMPLE) under two different name_client paths
-    " and verify that the last written value wins (both writes target the same memory).
+    " Bind the same variable (MV_SIMPLE) under two different name_client paths;
+    " only the canonical path is present in the JSON, so its value is written
+    " to the shared variable while the alias entry is skipped.
     DATA(lo_app) = NEW ltcl_app_complex( ).
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
     DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )

@@ -9661,7 +9661,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                  name   = `ActionSheet`
                  t_prop = VALUE #( ( n = `id`  v = id )
                                    ( n = `class`  v = class )
-                                   ( n = `cancelbuttontext`  v = cancelbuttontext )
+                                   ( n = `cancelButtonText`  v = cancelbuttontext )
                                    ( n = `placement`         v = placement )
                                    ( n = `showCancelButton`  v = showcancelbutton )
                                    ( n = `title`             v = title )
@@ -9757,7 +9757,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        ns     = `f`
                        t_prop = VALUE #( ( n = `id` v = id )
                                          ( n = `avatarCustomDisplaySize` v = avatarcustomdisplaysize )
-                                         ( n = `avatarCustomDispavatarCustomFontSizelaySize` v = avatarcustomfontsize )
+                                         ( n = `avatarCustomFontSize` v = avatarcustomfontsize )
                                          ( n = `avatarDisplaySize` v = avatardisplaysize )
                                          ( n = `blocked` v = z2ui5_cl_util=>boolean_abap_2_json( blocked ) )
                                          ( n = `busy` v = z2ui5_cl_util=>boolean_abap_2_json( busy ) )
@@ -10320,7 +10320,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
             (  n = `items`         v = items )
             (  n = `id`         v = id )
             (  n = `class`         v = class )
-            (  n = `selectionchange`         v = selectionchange )
+            (  n = `selectionChange`         v = selectionchange )
             (  n = `selectedItem`         v = selecteditem )
             (  n = `selectedItemId`         v = selecteditemid )
             (  n = `name`         v = name )
@@ -10394,7 +10394,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
             ( n = `alignCustomContentToRight` v = z2ui5_cl_util=>boolean_abap_2_json( aligncustomcontenttoright ) )
             ( n = `findMode`                  v = findmode )
             ( n = `infoOfSelectItems`         v = infoofselectitems )
-            ( n = `findbuttonpress`           v = findbuttonpress )
+            ( n = `findButtonPress`           v = findbuttonpress )
             ( n = `showBirdEyeButton`         v = z2ui5_cl_util=>boolean_abap_2_json( showbirdeyebutton ) )
             ( n = `showDisplayTypeButton`     v = z2ui5_cl_util=>boolean_abap_2_json( showdisplaytypebutton ) )
             ( n = `showLegendButton`          v = z2ui5_cl_util=>boolean_abap_2_json( showlegendbutton ) )
@@ -10747,7 +10747,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
             ( n = `includeItemInSelection` v = z2ui5_cl_util=>boolean_abap_2_json( includeiteminselection ) )
             ( n = `inset` v = z2ui5_cl_util=>boolean_abap_2_json( inset ) )
             ( n = `key` v = key )
-            ( n = `swipedirection` v = swipedirection )
+            ( n = `swipeDirection` v = swipedirection )
             ( n = `headerText` v = headertext )
             ( n = `keyboardMode` v = keyboardmode )
             ( n = `mode` v = mode )
@@ -12378,7 +12378,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
             ( n = `height`         v = height )
             ( n = `icon`       v = icon )
             ( n = `iconSize`        v = iconsize )
-            ( n = `iconSize` v = iconsize )
             ( n = `key` v = key )
             ( n = `maxWidth` v = maxwidth )
             ( n = `title` v = title )
@@ -12518,7 +12517,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                      ( n = `selected`           v = z2ui5_cl_util=>boolean_abap_2_json( selected ) )
                      ( n = `showButtons`           v = z2ui5_cl_util=>boolean_abap_2_json( showbuttons ) )
                      ( n = `showCloseButton`           v = z2ui5_cl_util=>boolean_abap_2_json( showclosebutton ) )
-                     ( n = `truncate`           v = z2ui5_cl_util=>boolean_abap_2_json( truncate ) )
                      ( n = `unread`           v = z2ui5_cl_util=>boolean_abap_2_json( unread ) ) ) ).
   ENDMETHOD.
 
@@ -12558,7 +12556,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        t_prop = VALUE #(
                            ( n = `id`  v = id )
                            ( n = `class`  v = class )
-                           ( n = `datatimestamp`  v = datatimestamp )
+                           ( n = `dataTimestamp`  v = datatimestamp )
                            ( n = `press`  v = press )
                            ( n = `details`  v = details )
                            ( n = `detailsMaxLines`  v = detailsmaxlines )
@@ -12616,37 +12614,37 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     result = _generic(
         name   = `ObjectHeader`
-        t_prop = VALUE #( ( n = `backgrounddesign`     v = backgrounddesign )
+        t_prop = VALUE #( ( n = `backgroundDesign`     v = backgrounddesign )
                           ( n = `condensed`            v = z2ui5_cl_util=>boolean_abap_2_json( condensed ) )
-                          ( n = `fullscreenoptimized`  v = z2ui5_cl_util=>boolean_abap_2_json( fullscreenoptimized ) )
+                          ( n = `fullScreenOptimized`  v = z2ui5_cl_util=>boolean_abap_2_json( fullscreenoptimized ) )
                           ( n = `icon`                 v = icon )
-                          ( n = `iconactive`           v = z2ui5_cl_util=>boolean_abap_2_json( iconactive ) )
-                          ( n = `iconalt`              v = iconalt )
-                          ( n = `icondensityaware`     v = z2ui5_cl_util=>boolean_abap_2_json( icondensityaware ) )
-                          ( n = `icontooltip`          v = icontooltip )
+                          ( n = `iconActive`           v = z2ui5_cl_util=>boolean_abap_2_json( iconactive ) )
+                          ( n = `iconAlt`              v = iconalt )
+                          ( n = `iconDensityAware`     v = z2ui5_cl_util=>boolean_abap_2_json( icondensityaware ) )
+                          ( n = `iconTooltip`          v = icontooltip )
                           ( n = `imageShape`           v = imageshape )
                           ( n = `intro`                v = intro )
-                          ( n = `introactive`          v = z2ui5_cl_util=>boolean_abap_2_json( introactive ) )
-                          ( n = `introhref`            v = introhref )
-                          ( n = `introtarget`          v = introtarget )
-                          ( n = `introtextdirection`   v = introtextdirection )
+                          ( n = `introActive`          v = z2ui5_cl_util=>boolean_abap_2_json( introactive ) )
+                          ( n = `introHref`            v = introhref )
+                          ( n = `introTarget`          v = introtarget )
+                          ( n = `introTextDirection`   v = introtextdirection )
                           ( n = `number`               v = number )
-                          ( n = `numberstate`          v = numberstate )
-                          ( n = `numbertextdirection`  v = numbertextdirection )
-                          ( n = `numberunit`           v = numberunit )
+                          ( n = `numberState`          v = numberstate )
+                          ( n = `numberTextDirection`  v = numbertextdirection )
+                          ( n = `numberUnit`           v = numberunit )
                           ( n = `responsive`           v = z2ui5_cl_util=>boolean_abap_2_json( responsive ) )
-                          ( n = `showtitleselector`    v = z2ui5_cl_util=>boolean_abap_2_json( showtitleselector ) )
+                          ( n = `showTitleSelector`    v = z2ui5_cl_util=>boolean_abap_2_json( showtitleselector ) )
                           ( n = `title`                v = title )
-                          ( n = `titleactive`          v = z2ui5_cl_util=>boolean_abap_2_json( titleactive ) )
-                          ( n = `titlehref`            v = titlehref )
-                          ( n = `titlelevel`           v = titlelevel )
-                          ( n = `titleselectortooltip` v = titleselectortooltip )
-                          ( n = `titletarget`          v = titletarget )
-                          ( n = `titletextdirection`   v = titletextdirection )
-                          ( n = `iconpress`            v = iconpress )
-                          ( n = `intropress`           v = intropress )
-                          ( n = `titlepress`           v = titlepress )
-                          ( n = `titleselectorpress`   v = titleselectorpress )
+                          ( n = `titleActive`          v = z2ui5_cl_util=>boolean_abap_2_json( titleactive ) )
+                          ( n = `titleHref`            v = titlehref )
+                          ( n = `titleLevel`           v = titlelevel )
+                          ( n = `titleSelectorTooltip` v = titleselectortooltip )
+                          ( n = `titleTarget`          v = titletarget )
+                          ( n = `titleTextDirection`   v = titletextdirection )
+                          ( n = `iconPress`            v = iconpress )
+                          ( n = `introPress`           v = intropress )
+                          ( n = `titlePress`           v = titlepress )
+                          ( n = `titleSelectorPress`   v = titleselectorpress )
                           ( n = `class`                v = class ) ) ).
   ENDMETHOD.
 
@@ -12700,7 +12698,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `textAlign`          v = textalign )
                                 ( n = `textDirection`      v = textdirection )
                                 ( n = `emptyIndicatorMode` v = emptyindicatormode )
-                                ( n = `numberunit`         v = numberunit )
+                                ( n = `numberUnit`         v = numberunit )
                                 ( n = `active`             v = z2ui5_cl_util=>boolean_abap_2_json( active ) )
                                 ( n = `inverted`           v = z2ui5_cl_util=>boolean_abap_2_json( inverted ) )
                                 ( n = `visible`            v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
@@ -13032,7 +13030,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
             ( n = `noAppointmentsText`                             v = noappointmentstext )
             ( n = `nonWorkingHours`                             v = nonworkinghours )
             ( n = `rowHeaderDescription`                             v = rowheaderdescription )
-            ( n = `nonworkingdays`                             v = nonworkingdays )
             ( n = `enableAppointmentsCreate`        v = z2ui5_cl_util=>boolean_abap_2_json( enableappointmentscreate ) )
             ( n = `appointmentResize`               v = appointmentresize )
             ( n = `appointmentDrop`                 v = appointmentdrop )
@@ -13143,7 +13140,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                    ( n = `focused`              v = z2ui5_cl_util=>boolean_abap_2_json( focused ) )
                                    ( n = `selected`             v = z2ui5_cl_util=>boolean_abap_2_json( selected ) )
                                    ( n = `tag`                  v = tag )
-                                   ( n = `texts`                v = texts )
                                    ( n = `type`                 v = type ) ) ).
   ENDMETHOD.
 
@@ -13277,17 +13273,15 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = me.
     _generic( name   = `RangeSlider`
               t_prop = VALUE #( ( n = `class`           v = class )
-                                ( n = `endValue`        v = endvalue )
                                 ( n = `id`          v = id )
                                 ( n = `labelInterval`  v = labelinterval )
                                 ( n = `max`   v = max )
                                 ( n = `min`   v = min )
-                                ( n = `showTickmarks`   v = z2ui5_cl_util=>boolean_abap_2_json( showtickmarks ) )
-                                ( n = `startValue`   v = startvalue )
+                                ( n = `enableTickmarks`   v = z2ui5_cl_util=>boolean_abap_2_json( showtickmarks ) )
                                 ( n = `step`   v = step )
                                 ( n = `width`   v = width )
-                                ( n = `value`   v = value )
-                                ( n = `value2`   v = value2 )
+                                ( n = `value`   v = COND #( WHEN value IS NOT INITIAL THEN value ELSE startvalue ) )
+                                ( n = `value2`   v = COND #( WHEN value2 IS NOT INITIAL THEN value2 ELSE endvalue ) )
                                 ( n = `change`   v = change ) ) ).
   ENDMETHOD.
 
@@ -13874,7 +13868,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `stepMode`              v = stepmode )
                                 ( n = `editable`              v = z2ui5_cl_util=>boolean_abap_2_json( editable ) )
                                 ( n = `fieldWidth`            v = fieldwidth )
-                                ( n = `textalign`             v = textalign )
+                                ( n = `textAlign`             v = textalign )
                                 ( n = `validationMode`        v = validationmode )
                                 ( n = `change`                v = change ) ) ).
   ENDMETHOD.
@@ -14461,7 +14455,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                            ( n = `showSortMenuEntry`    v = showsortmenuentry )
                            ( n = `sortProperty`         v = sortproperty )
                            ( n = `showFilterMenuEntry`  v = showfiltermenuentry )
-                           ( n = `autoresizable`  v = z2ui5_cl_util=>boolean_abap_2_json( autoresizable ) )
+                           ( n = `autoResizable`  v = z2ui5_cl_util=>boolean_abap_2_json( autoresizable ) )
                            ( n = `defaultFilterOperator` v = defaultfilteroperator )
                            ( n = `filterProperty` v = filterproperty )
                            ( n = `filterType` v = filtertype )
@@ -14817,7 +14811,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                            ( n = `title`                    v = title )
                            ( n = `selectedGroupItem`        v = selectedgroupitem )
                            ( n = `selectedPresetFilterItem` v = selectedpresetfilteritem )
-                           ( n = `selectedSortItem`         v = selectedsortitem )
                            ( n = `selectedSortItem`         v = selectedsortitem )
                            ( n = `filterItems`              v = filteritems )
                            ( n = `sortItems`                v = sortitems )
@@ -15270,7 +15263,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic(
         ns     = ns
         name   = `Breadcrumbs`
-        t_prop = VALUE #( ( n = `link`                    v = link )
+        t_prop = VALUE #( ( n = `links`                   v = link )
                           ( n = `id`                      v = id )
                           ( n = `class`                   v = class )
                           ( n = `currentLocationText`     v = currentlocationtext )

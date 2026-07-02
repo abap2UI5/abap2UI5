@@ -1,3 +1,6 @@
+CLASS ltcl_test DEFINITION DEFERRED.
+CLASS z2ui5_cl_pop_table DEFINITION LOCAL FRIENDS ltcl_test.
+
 CLASS ltcl_test DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
@@ -39,7 +42,8 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(lo_pop) = z2ui5_cl_pop_table=>factory( i_tab   = lt_tab
                                                 i_title = `Custom Title` ).
 
-    cl_abap_unit_assert=>assert_bound( lo_pop ).
+    cl_abap_unit_assert=>assert_equals( exp = `Custom Title`
+                                        act = lo_pop->title ).
   ENDMETHOD.
 
   METHOD test_result_initial.
