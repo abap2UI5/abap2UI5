@@ -185,10 +185,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
         DATA(lv_model) = COND string( WHEN val-model IS NOT INITIAL THEN val-model ELSE `{}` ).
 
-        result = |\{| &&
-            |"S_FRONT":{ lv_frontend },| &&
-            |"MODEL":{ lv_model }| &&
-          |\}|.
+        result = |\{"S_FRONT":{ lv_frontend },"MODEL":{ lv_model }\}|.
 
       CATCH cx_root INTO DATA(x).
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
@@ -239,34 +236,16 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
   METHOD check_view_update_needed.
 
     result = xsdbool(
-        ms_response-s_front-params-s_view-check_update_model           = abap_true
-        OR ms_response-s_front-params-s_view_nest-check_update_model   = abap_true ).
-
-    IF result = abap_false.
-
-      result = xsdbool(
-        ms_response-s_front-params-s_view_nest2-check_update_model  = abap_true
-        OR ms_response-s_front-params-s_popup-check_update_model    = abap_true
-        OR ms_response-s_front-params-s_popover-check_update_model  = abap_true ).
-
-    ENDIF.
-
-    IF result = abap_false.
-
-      result = xsdbool(
-        ms_response-s_front-params-s_view-xml          IS NOT INITIAL
+           ms_response-s_front-params-s_view-check_update_model       = abap_true
+        OR ms_response-s_front-params-s_view_nest-check_update_model  = abap_true
+        OR ms_response-s_front-params-s_view_nest2-check_update_model = abap_true
+        OR ms_response-s_front-params-s_popup-check_update_model      = abap_true
+        OR ms_response-s_front-params-s_popover-check_update_model    = abap_true
+        OR ms_response-s_front-params-s_view-xml       IS NOT INITIAL
         OR ms_response-s_front-params-s_view_nest-xml  IS NOT INITIAL
-        OR ms_response-s_front-params-s_view_nest2-xml IS NOT INITIAL ).
-
-    ENDIF.
-
-    IF result = abap_false.
-
-      result = xsdbool(
-        ms_response-s_front-params-s_popup-xml      IS NOT INITIAL
-        OR ms_response-s_front-params-s_popover-xml IS NOT INITIAL ).
-
-    ENDIF.
+        OR ms_response-s_front-params-s_view_nest2-xml IS NOT INITIAL
+        OR ms_response-s_front-params-s_popup-xml      IS NOT INITIAL
+        OR ms_response-s_front-params-s_popover-xml    IS NOT INITIAL ).
 
   ENDMETHOD.
 
@@ -305,7 +284,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       ROLLBACK WORK.
     ENDIF.
     TRY.
-        IF li_client->get( )-event = z2ui5_if_core_types=>cs_event_nav_app_leave.
+        IF mo_action->ms_actual-event = z2ui5_if_core_types=>cs_event_nav_app_leave.
           li_client->popup_destroy( ).
           li_client->nav_app_leave( ).
         ELSE.

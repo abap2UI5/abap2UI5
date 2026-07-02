@@ -28,7 +28,7 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
 
   METHOD get_instance.
 
-    IF gi_me IS NOT INITIAL.
+    IF gi_me IS BOUND.
       ri_exit = gi_me.
       RETURN.
     ENDIF.
@@ -53,9 +53,7 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
         DATA(exit_classes) = z2ui5_cl_util=>rtti_get_classes_impl_intf( `Z2UI5_IF_EXIT` ).
         DELETE exit_classes WHERE classname = `Z2UI5_CL_EXIT`.
 
-        IF exit_classes IS NOT INITIAL.
-          r_class_name = exit_classes[ 1 ]-classname.
-        ENDIF.
+        r_class_name = VALUE #( exit_classes[ 1 ]-classname OPTIONAL ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
 
@@ -96,7 +94,7 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
         ( n = `Referrer-Policy`        v = `strict-origin-when-cross-origin` )
         ( n = `Permissions-Policy`     v = `geolocation=(self), microphone=(self), camera=(self), payment=(), usb=()` ) ).
 
-    IF gi_user_exit IS NOT INITIAL.
+    IF gi_user_exit IS BOUND.
       gi_user_exit->set_config_http_get( EXPORTING is_context = context
                                          CHANGING  cs_config  = cs_config ).
     ENDIF.
@@ -107,7 +105,7 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
 
     cs_config-draft_exp_time_in_hours = 4.
 
-    IF gi_user_exit IS NOT INITIAL.
+    IF gi_user_exit IS BOUND.
       gi_user_exit->set_config_http_post( EXPORTING is_context = context
                                           CHANGING  cs_config  = cs_config ).
     ENDIF.

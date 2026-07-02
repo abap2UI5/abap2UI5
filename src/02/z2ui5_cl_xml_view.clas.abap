@@ -10777,9 +10777,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     result = NEW #( ).
 
-    IF t_ns IS NOT INITIAL.
-      result->mt_prop = t_ns.
-    ENDIF.
+    result->mt_prop = t_ns.
 
     result->mt_prop   = VALUE #( BASE result->mt_prop
                                  (  n = `displayBlock`   v = `true` )
@@ -10812,9 +10810,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     result = NEW #( ).
 
-    IF t_ns IS NOT INITIAL.
-      result->mt_prop = t_ns.
-    ENDIF.
+    result->mt_prop = t_ns.
 
     result->mv_name   = `FragmentDefinition`.
     result->mv_ns     = `core`.
@@ -11422,7 +11418,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD heading.
 
-    result = me.
     result = _generic( name = `heading`
                        ns   = ns ).
 
@@ -13675,7 +13670,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD snapped_heading.
-    result = me.
     result = _generic( name = `snappedHeading`
                        ns   = `uxap` ).
   ENDMETHOD.
@@ -13900,7 +13894,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD sub_sections.
-    result = me.
     result = _generic( name = `subSections`
                        ns   = `uxap` ).
   ENDMETHOD.
@@ -14922,12 +14915,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     DATA lt_prop TYPE HASHED TABLE OF z2ui5_if_types=>ty_s_name_value WITH UNIQUE KEY n.
 
-    CASE mv_name.
-      WHEN `ZZPLAIN`.
-        APPEND mt_prop[ n = `VALUE` ]-v TO ct_parts.
-        RETURN.
-      WHEN OTHERS.
-    ENDCASE.
+    IF mv_name = `ZZPLAIN`.
+      APPEND mt_prop[ n = `VALUE` ]-v TO ct_parts.
+      RETURN.
+    ENDIF.
 
     IF me = mo_root.
 

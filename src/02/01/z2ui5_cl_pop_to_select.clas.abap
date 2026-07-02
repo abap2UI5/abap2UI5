@@ -94,7 +94,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
                           && client->_bind_edit( val  = <tab_out>
                                                  path = abap_true )
                           && |', sorter : \{ path : '{ to_upper( sort_field ) }', descending : |
-                          && z2ui5_cl_util=>boolean_abap_2_json( me->descending )
+                          && z2ui5_cl_util=>boolean_abap_2_json( descending )
                           && | \} \}|
         cancel           = client->_event( `CANCEL` )
         search           = client->_event(
@@ -189,8 +189,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
     ASSIGN mr_tab->* TO <tab>.
 
-    DATA(lo_type) = cl_abap_structdescr=>describe_by_data( <tab> ).
-    DATA(lo_table) = CAST cl_abap_tabledescr( lo_type ).
+    DATA(lo_table) = CAST cl_abap_tabledescr( cl_abap_typedescr=>describe_by_data( <tab> ) ).
     TRY.
         DATA(lo_struct) = CAST cl_abap_structdescr( lo_table->get_table_line_type( ) ).
         DATA(lt_comp) = lo_struct->get_components( ).
@@ -198,11 +197,11 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
         check_table_line = abap_true.
         DATA(lo_elem) = CAST cl_abap_elemdescr( lo_table->get_table_line_type( ) ).
         INSERT VALUE #( name = `TAB_LINE`
-                        type = CAST #( lo_elem ) ) INTO TABLE lt_comp.
+                        type = lo_elem ) INTO TABLE lt_comp.
     ENDTRY.
 
     IF NOT line_exists( lt_comp[ name = `ZZSELKZ` ] ).
-      DATA(lo_type_bool) = cl_abap_structdescr=>describe_by_name( `ABAP_BOOL` ).
+      DATA(lo_type_bool) = cl_abap_typedescr=>describe_by_name( `ABAP_BOOL` ).
       INSERT VALUE #( name = `ZZSELKZ`
                       type = CAST #( lo_type_bool ) ) INTO TABLE lt_comp.
     ENDIF.
@@ -224,7 +223,6 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
         ASSERT sy-subrc = 0.
         <field> = <row>.
       ELSE.
-        CLEAR <row2>.
         MOVE-CORRESPONDING <row> TO <row2>.
       ENDIF.
       INSERT <row2> INTO TABLE <tab_out>.
@@ -246,6 +244,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
     ASSIGN mr_tab_popup->* TO <tab>.
     ASSIGN ms_result-table->* TO <table_result>.
+    ASSIGN ms_result-row->* TO <row_result>.
 
     LOOP AT <tab> ASSIGNING <row_selected>.
 
@@ -255,7 +254,6 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-      ASSIGN ms_result-row->* TO <row_result>.
       IF check_table_line = abap_true.
         ASSIGN (`<ROW_SELECTED>-TAB_LINE`) TO <table_line_selected>.
         ASSERT sy-subrc = 0.
