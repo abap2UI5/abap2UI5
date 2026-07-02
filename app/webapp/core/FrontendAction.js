@@ -72,7 +72,10 @@ sap.ui.define(
 
     function evClipboardAppState() {
       const id = z2ui5.oResponse?.ID;
-      Lib.copyToClipboard(`${window.location.href}#/z2ui5-xapp-state=${id}`);
+      // Strip any existing hash (e.g. an active app-state) so the copied
+      // link carries only the fresh state id.
+      const base = window.location.href.split("#")[0];
+      Lib.copyToClipboard(`${base}#/z2ui5-xapp-state=${id}`);
     }
 
     function evDownloadB64File(oController, args) {

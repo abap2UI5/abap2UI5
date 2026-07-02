@@ -71,9 +71,8 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
                                         io_model = mo_http_post->ms_request-o_model ).
     ENDIF.
 
-    result->ms_actual-event              = mo_http_post->ms_request-s_front-event.
-    result->ms_actual-t_event_arg        = mo_http_post->ms_request-s_front-t_event_arg.
-    result->ms_actual-check_on_navigated = abap_false.
+    result->ms_actual-event       = mo_http_post->ms_request-s_front-event.
+    result->ms_actual-t_event_arg = mo_http_post->ms_request-s_front-t_event_arg.
 
   ENDMETHOD.
 
@@ -167,12 +166,11 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
     mo_app->db_save( ).
 
+    " val is always the ms_next-o_app_leave / ms_next-o_app_call reference
+    " itself (see factory_stack_leave / factory_stack_call), so an already
+    " assigned draft id is kept as is
     IF val->id_draft IS INITIAL.
       val->id_draft = z2ui5_cl_util=>uuid_get_c32( ).
-    ELSEIF ms_next-o_app_leave IS BOUND.
-      val->id_draft = ms_next-o_app_leave->id_draft.
-    ELSE.
-      val->id_draft = ms_next-o_app_call->id_draft.
     ENDIF.
 
     result = NEW #( mo_http_post ).
@@ -193,8 +191,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
     IF ms_next-next_event IS NOT INITIAL.
       result->ms_actual-event = ms_next-next_event.
-    ELSEIF ms_next-s_set-s_follow_up_action IS NOT INITIAL AND
-        lines( ms_next-s_set-s_follow_up_action-custom_js ) > 0.
+    ELSEIF lines( ms_next-s_set-s_follow_up_action-custom_js ) > 0.
       " backward compatibility: derive the next event from a legacy
       " follow_up_action( _event( ) ) snippet ( deprecated mechanism )
       DATA(lv_action) = ms_next-s_set-s_follow_up_action-custom_js[ 1 ].

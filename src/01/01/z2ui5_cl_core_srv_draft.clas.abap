@@ -92,6 +92,7 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
 
     IF check_load_app = abap_true.
 
+      " sy-subrc is checked after ENDIF, the pragma silences check_subrc here
       SELECT SINGLE * FROM z2ui5_t_01
         WHERE id = @id
         INTO @result ##SUBRC_OK.

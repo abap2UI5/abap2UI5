@@ -91,7 +91,7 @@ CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
         )->button( text  = `Clear All`
                    icon  = `sap-icon://delete`
                    type  = `Transparent`
-                   press = client->_event( val = `POPUP_DELETE_ALL` )
+                   press = client->_event( `POPUP_DELETE_ALL` )
        )->button( text  = `Cancel`
                   press = client->_event( `BUTTON_CANCEL` )
        )->button( text  = `OK`
@@ -113,9 +113,11 @@ CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    IF client->get( )-check_on_navigated = abap_true.
+    DATA(ls_get) = client->get( ).
 
-      DATA(lo_popup) = CAST z2ui5_cl_pop_get_range( client->get_app( client->get( )-s_draft-id_prev_app ) ).
+    IF ls_get-check_on_navigated = abap_true.
+
+      DATA(lo_popup) = CAST z2ui5_cl_pop_get_range( client->get_app_prev( ) ).
       DATA(ls_popup_result) = lo_popup->result( ).
       IF ls_popup_result-check_confirmed = abap_true.
         ASSIGN ms_result-t_filter[ name = mv_popup_name ] TO FIELD-SYMBOL(<tab>).
@@ -126,7 +128,7 @@ CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
 
     ENDIF.
 
-    CASE client->get( )-event.
+    CASE ls_get-event.
 
       WHEN `LIST_DELETE`.
         ASSIGN ms_result-t_filter[ name = client->get_event_arg( 1 ) ] TO <tab>.

@@ -94,26 +94,21 @@ CLASS z2ui5_cl_pop_file_ul IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    CASE client->get( )-event.
+    DATA(lv_event) = client->get( )-event.
+    CASE lv_event.
 
       WHEN `UPLOAD`.
 
-        SPLIT mv_value AT `;` INTO DATA(lv_dummy) DATA(lv_data).
-        SPLIT lv_data AT `,` INTO lv_dummy lv_data.
-
-        DATA(lv_data2) = z2ui5_cl_util=>conv_decode_x_base64( lv_data ).
-        ms_result-value = z2ui5_cl_util=>conv_get_string_by_xstring( lv_data2 ).
+        DATA(lv_data) = z2ui5_cl_util=>conv_get_xstring_by_data_uri( mv_value ).
+        ms_result-value = z2ui5_cl_util=>conv_get_string_by_xstring( lv_data ).
         check_confirm_enabled = abap_true.
 
         CLEAR mv_value.
         CLEAR mv_path.
         client->popup_model_update( ).
 
-      WHEN `BUTTON_CONFIRM`.
-        ms_result-check_confirmed = abap_true.
-        client->popup_destroy( ).
-        client->nav_app_leave( ).
-      WHEN `BUTTON_CANCEL`.
+      WHEN `BUTTON_CONFIRM` OR `BUTTON_CANCEL`.
+        ms_result-check_confirmed = xsdbool( lv_event = `BUTTON_CONFIRM` ).
         client->popup_destroy( ).
         client->nav_app_leave( ).
     ENDCASE.

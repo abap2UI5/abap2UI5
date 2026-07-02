@@ -29,8 +29,8 @@ jobs:
       - name: Run app2abap and abaplint autofix
         run: |
           npm ci
-          npm run auto_app2abap
-          npm run auto_abaplint
+          npm --prefix app ci
+          npm run app2abap
 
       - name: Commit and push fixes
         uses: stefanzweifel/git-auto-commit-action@v7

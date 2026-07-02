@@ -1173,6 +1173,8 @@ CLASS ltcl_unit_test_filter DEFINITION FINAL
     METHODS test_sql_string_no_fields   FOR TESTING RAISING cx_static_check.
 
     METHODS test_filter_itab            FOR TESTING RAISING cx_static_check.
+    METHODS test_itab_filter_by_val_ci  FOR TESTING RAISING cx_static_check.
+    METHODS test_itab_filter_by_val_fld FOR TESTING RAISING cx_static_check.
     METHODS test_update_tokens          FOR TESTING RAISING cx_static_check.
     METHODS test_update_tokens_remove   FOR TESTING RAISING cx_static_check.
 
@@ -1693,6 +1695,64 @@ CLASS ltcl_unit_test_filter IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 2 act = lines( lt_data ) ).
     cl_abap_unit_assert=>assert_equals( exp = `beta` act = lt_data[ 1 ]-name ).
     cl_abap_unit_assert=>assert_equals( exp = `gamma` act = lt_data[ 2 ]-name ).
+
+  ENDMETHOD.
+
+  METHOD test_itab_filter_by_val_ci.
+
+    TYPES:
+      BEGIN OF ty_row,
+        name  TYPE string,
+        value TYPE string,
+      END OF ty_row.
+
+    DATA lt_data TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+
+    INSERT VALUE #( name = `alpha` value = `low` ) INTO TABLE lt_data.
+    INSERT VALUE #( name = `beta`  value = `mid` ) INTO TABLE lt_data.
+    INSERT VALUE #( name = `gamma` value = `top` ) INTO TABLE lt_data.
+
+    z2ui5_cl_util=>itab_filter_by_val( EXPORTING val = `mid`
+                                       CHANGING  tab = lt_data ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1 act = lines( lt_data ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `beta` act = lt_data[ 1 ]-name ).
+
+    lt_data = VALUE #( ( name = `alpha` value = `low` )
+                       ( name = `beta`  value = `MID` ) ).
+
+    z2ui5_cl_util=>itab_filter_by_val( EXPORTING val         = `mid`
+                                                 ignore_case = abap_true
+                                       CHANGING  tab         = lt_data ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1 act = lines( lt_data ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `beta` act = lt_data[ 1 ]-name ).
+
+  ENDMETHOD.
+
+  METHOD test_itab_filter_by_val_fld.
+
+    TYPES:
+      BEGIN OF ty_row,
+        name  TYPE string,
+        value TYPE string,
+      END OF ty_row.
+
+    DATA lt_data TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+
+    INSERT VALUE #( name = `alpha` value = `low` ) INTO TABLE lt_data.
+    INSERT VALUE #( name = `beta`  value = `mid` ) INTO TABLE lt_data.
+    INSERT VALUE #( name = `low`   value = `top` ) INTO TABLE lt_data.
+
+    z2ui5_cl_util=>itab_filter_by_val(
+      EXPORTING
+        val    = `low`
+        fields = VALUE #( ( `NAME` ) )
+      CHANGING
+        tab    = lt_data ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1 act = lines( lt_data ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `top` act = lt_data[ 1 ]-value ).
 
   ENDMETHOD.
 

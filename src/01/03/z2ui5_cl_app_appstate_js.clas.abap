@@ -70,7 +70,8 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `//   isBusy            roundtrip in flight (View1.eB / Server)` && |\n| &&
              `//   xxChangedPaths    Set of edited /XX/ model paths for the delta (View1)` && |\n| &&
              `//   checkNestAfter, checkNestAfter2  nested views rebuilt this roundtrip` && |\n| &&
-             `//   search            overrides location.search in S_FRONT (History control)` && |\n| &&
+             `//   search            overrides location.search in S_FRONT; never written` && |\n| &&
+             `//                     by the framework itself, set externally (custom JS)` && |\n| &&
              `//   pendingCustomJs   follow-up JS to run after rendering (Server)` && |\n| &&
              `//` && |\n| &&
              `// Control / helper state` && |\n| &&

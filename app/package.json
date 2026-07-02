@@ -9,6 +9,9 @@
     "sapui5"
   ],
   "main": "webapp/index.html",
+  "engines": {
+    "node": ">=20"
+  },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@sap/ui5-builder-webide-extension": "^1.1.10",

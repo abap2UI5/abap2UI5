@@ -46,6 +46,7 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_check_on_event_empty FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_navigated   FOR TESTING RAISING cx_static_check.
     METHODS test_nav_app_call         FOR TESTING RAISING cx_static_check.
+    METHODS test_nav_app_call_id_stable FOR TESTING RAISING cx_static_check.
     METHODS test_nav_app_leave_event  FOR TESTING RAISING cx_static_check.
     METHODS test_nav_app_leave_r_data FOR TESTING RAISING cx_static_check.
     METHODS test_check_app_prev_stack FOR TESTING RAISING cx_static_check.
@@ -483,6 +484,26 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_not_initial( lv_id ).
     cl_abap_unit_assert=>assert_bound( mo_action->ms_next-o_app_call ).
+
+  ENDMETHOD.
+
+  METHOD test_nav_app_call_id_stable.
+
+    DATA lo_new_app TYPE REF TO ltcl_test_app.
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA lv_id_first TYPE string.
+    DATA lv_id_second TYPE string.
+    lo_new_app = NEW #( ).
+    li_client ?= mo_client.
+
+    lv_id_first  = li_client->nav_app_call( lo_new_app ).
+    lv_id_second = li_client->nav_app_call( lo_new_app ).
+
+    cl_abap_unit_assert=>assert_not_initial( lv_id_second ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_id_first
+                                        act = lv_id_second ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_id_first
+                                        act = lo_new_app->z2ui5_if_app~id_app ).
 
   ENDMETHOD.
 

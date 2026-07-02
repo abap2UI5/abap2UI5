@@ -43,6 +43,18 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
 
   PRIVATE SECTION.
     METHODS reset_button_state.
+
+    METHODS get_app_url
+      IMPORTING
+        classname     TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS create_layout_form
+      IMPORTING
+        view          TYPE REF TO z2ui5_cl_xml_view
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 ENDCLASS.
 
 
@@ -51,6 +63,38 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
   METHOD factory.
 
     result = NEW #( ).
+
+  ENDMETHOD.
+
+  METHOD get_app_url.
+
+    DATA(ls_config) = client->get( )-s_config.
+    result = z2ui5_cl_util=>app_get_url( classname = classname
+                                         origin    = ls_config-origin
+                                         pathname  = ls_config-pathname
+                                         search    = ls_config-search
+                                         hash      = ls_config-hash ).
+
+  ENDMETHOD.
+
+  METHOD create_layout_form.
+
+    result = view->simple_form( editable                = abap_true
+                                layout                  = `ResponsiveGridLayout`
+                                labelspanxl             = `4`
+                                labelspanl              = `3`
+                                labelspanm              = `4`
+                                labelspans              = `12`
+                                adjustlabelspan         = abap_false
+                                emptyspanxl             = `0`
+                                emptyspanl              = `4`
+                                emptyspanm              = `0`
+                                emptyspans              = `0`
+                                columnsxl               = `1`
+                                columnsl                = `1`
+                                columnsm                = `1`
+                                singlecontainerfullsize = abap_false
+      )->content( `form` ).
 
   ENDMETHOD.
 
@@ -78,12 +122,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         ms_home-class_value_state = `Success`.
         ms_home-class_editable    = abap_false.
 
-        DATA(ls_config) = client->get( )-s_config.
-        ms_home-url               = z2ui5_cl_util=>app_get_url( classname = ms_home-classname
-                                                                origin    = ls_config-origin
-                                                                pathname  = ls_config-pathname
-                                                                search    = ls_config-search
-                                                                hash      = ls_config-hash ).
+        ms_home-url               = get_app_url( ms_home-classname ).
 
       CATCH cx_root INTO DATA(lx) ##CATCH_ALL.
         ms_home-class_value_state_text = lx->get_text( ).
@@ -114,22 +153,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                        press = client->_event( cs_event-set_config ) ).
     ENDIF.
 
-    DATA(simple_form) = page->simple_form( editable                = abap_true
-                                           layout                  = `ResponsiveGridLayout`
-                                           labelspanxl             = `4`
-                                           labelspanl              = `3`
-                                           labelspanm              = `4`
-                                           labelspans              = `12`
-                                           adjustlabelspan         = abap_false
-                                           emptyspanxl             = `0`
-                                           emptyspanl              = `4`
-                                           emptyspanm              = `0`
-                                           emptyspans              = `0`
-                                           columnsxl               = `1`
-                                           columnsl                = `1`
-                                           columnsm                = `1`
-                                           singlecontainerfullsize = abap_false
-      )->content( `form` ).
+    DATA(simple_form) = create_layout_form( page ).
 
     simple_form->toolbar( )->title( `Quickstart` ).
     simple_form->label( `Step 1`
@@ -169,12 +193,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                href    = client->_bind( ms_home-url )
                enabled = |\{= ${ client->_bind( val = ms_home-class_editable ) } === false \}| ).
 
-    DATA(ls_config2) = client->get( )-s_config.
-    DATA(lv_url_samples) = z2ui5_cl_util=>app_get_url( classname = `z2ui5_cl_demo_app_000`
-                                                        origin   = ls_config2-origin
-                                                        pathname = ls_config2-pathname
-                                                        search   = ls_config2-search
-                                                        hash     = ls_config2-hash ).
+    DATA(lv_url_samples) = get_app_url( `z2ui5_cl_demo_app_000` ).
 
     simple_form->toolbar( )->title( `What's next?` ).
 
@@ -251,30 +270,16 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     DATA(content) = page2->content( ).
 
-    DATA(simple_form2) = content->simple_form( editable                = abap_true
-                                               layout                  = `ResponsiveGridLayout`
-                                               labelspanxl             = `4`
-                                               labelspanl              = `3`
-                                               labelspanm              = `4`
-                                               labelspans              = `12`
-                                               adjustlabelspan         = abap_false
-                                               emptyspanxl             = `0`
-                                               emptyspanl              = `4`
-                                               emptyspanm              = `0`
-                                               emptyspans              = `0`
-                                               columnsxl               = `1`
-                                               columnsl                = `1`
-                                               columnsm                = `1`
-                                               singlecontainerfullsize = abap_false
-      )->content( `form` ).
+    DATA(simple_form2) = create_layout_form( content ).
 
     simple_form2->toolbar( )->title( `Frontend` ).
 
+    DATA(ls_client) = client->get( ).
     simple_form2->label( `UI5 Version` ).
-    simple_form2->text( client->get( )-s_ui5-version ).
+    simple_form2->text( ls_client-s_ui5-version ).
     simple_form2->label( `Launchpad active` ).
     simple_form2->checkbox( enabled  = abap_false
-                            selected = client->get( )-check_launchpad_active ).
+                            selected = ls_client-check_launchpad_active ).
 
     simple_form2->toolbar( )->title( `Backend` ).
 
@@ -302,14 +307,14 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD z2ui5_on_event.
 
-    DATA lo_app TYPE REF TO z2ui5_if_app.
+    DATA li_app_config TYPE REF TO z2ui5_if_app.
     DATA li_app TYPE REF TO z2ui5_if_app.
 
     CASE client->get( )-event.
 
       WHEN cs_event-set_config.
-        CREATE OBJECT lo_app TYPE (`Z2UI5_CL_APP_ICF_CONFIG`).
-        client->nav_app_call( lo_app ).
+        CREATE OBJECT li_app_config TYPE (`Z2UI5_CL_APP_ICF_CONFIG`).
+        client->nav_app_call( li_app_config ).
 
       WHEN cs_event-close.
         client->popup_destroy( ).
@@ -318,7 +323,6 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         client->message_box_display( `Press CTRL+F12 to open the debugging tools` ).
       WHEN cs_event-open_info.
         view_display_popup( ).
-        RETURN.
 
       WHEN cs_event-button_check.
         on_event_check( ).
