@@ -25,6 +25,8 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
 
     METHODS main_begin.
 
+    METHODS main_loop.
+
     METHODS main_process
       RETURNING
         VALUE(check_go_client) TYPE abap_bool.
@@ -38,6 +40,11 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
         VALUE(result) TYPE string.
 
   PRIVATE SECTION.
+    " upper bound for nav_app_call/nav_app_leave hops within a single
+    " request - an app that navigates unconditionally in main( ) would
+    " otherwise loop the work process forever
+    DATA mv_dispatch_limit TYPE i VALUE 1000.
+
     METHODS check_view_update_needed
       RETURNING
         VALUE(result) TYPE abap_bool.
@@ -203,16 +210,30 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
   METHOD main.
 
     main_begin( ).
-    DO.
-      IF main_process( ).
-        EXIT.
-      ENDIF.
-    ENDDO.
+    main_loop( ).
 
     result = VALUE #( body          = mv_response
                       s_stateful    = ms_response-s_front-params-s_stateful
                       status_code   = 200
                       status_reason = `success` ).
+
+  ENDMETHOD.
+
+  METHOD main_loop.
+
+    DATA(lv_dispatch_count) = 0.
+
+    DO.
+      IF main_process( ).
+        RETURN.
+      ENDIF.
+      lv_dispatch_count = lv_dispatch_count + 1.
+      IF lv_dispatch_count >= mv_dispatch_limit.
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING
+            val = |Dispatch limit of { mv_dispatch_limit } app navigations in one request reached - check for an endless nav_app_call/nav_app_leave loop in main( )|.
+      ENDIF.
+    ENDDO.
 
   ENDMETHOD.
 

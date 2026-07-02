@@ -1,8 +1,24 @@
+CLASS ltcl_app_nav_loop DEFINITION FINAL.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS ltcl_app_nav_loop IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+    client->nav_app_call( NEW ltcl_app_nav_loop( ) ).
+  ENDMETHOD.
+
+ENDCLASS.
+
 CLASS ltcl_test_handler_post DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
   PRIVATE SECTION.
     METHODS load_startup_app       FOR TESTING RAISING cx_static_check.
+    METHODS test_dispatch_loop_guard FOR TESTING RAISING cx_static_check.
     METHODS test_request_parse     FOR TESTING RAISING cx_static_check.
     METHODS test_request_origin    FOR TESTING RAISING cx_static_check.
     METHODS test_request_launchpad FOR TESTING RAISING cx_static_check.
@@ -233,6 +249,31 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = abap_false
                                         act = lo_handler->check_view_update_needed( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_dispatch_loop_guard.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_loop_app TYPE REF TO ltcl_app_nav_loop.
+    DATA lx TYPE REF TO z2ui5_cx_util_error.
+
+    " an app that calls nav_app_call unconditionally in main( ) must not
+    " loop the dispatch forever - the handler raises once the limit is hit
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mv_dispatch_limit = 5.
+    lo_loop_app = NEW #( ).
+    lo_handler->mo_action->mo_app->mo_app = lo_loop_app.
+    " db_save asserts a draft id, normally set by the action factories
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_util=>uuid_get_c32( ).
+
+    TRY.
+        lo_handler->main_loop( ).
+        cl_abap_unit_assert=>fail( `dispatch loop guard did not raise` ).
+      CATCH z2ui5_cx_util_error INTO lx.
+        cl_abap_unit_assert=>assert_char_cp( act = lx->get_text( )
+                                             exp = `*nav_app_call*` ).
+    ENDTRY.
 
   ENDMETHOD.
 
