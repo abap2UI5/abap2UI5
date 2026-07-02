@@ -464,7 +464,15 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
                AND type_kind  = lo_datadescr->type_kind
                AND kind       = lo_datadescr->kind.
 
-      IF lr_attri->o_typedescr <> lo_datadescr.
+      " compare by name - descriptor instances are not stable in the
+      " abaplint transpiler runtime; the data reference check below is
+      " the definitive match, this is only a prefilter. Generated names
+      " of anonymous types (containing %) are not comparable either
+      DATA(lv_name_attri) = lr_attri->o_typedescr->absolute_name.
+      DATA(lv_name_val) = lo_datadescr->absolute_name.
+      IF lv_name_attri <> lv_name_val
+          AND lv_name_attri NS `%`
+          AND lv_name_val NS `%`.
         CONTINUE.
       ENDIF.
 

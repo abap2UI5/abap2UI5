@@ -853,3 +853,89 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
+
+
+CLASS ltcl_test_xml_output DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+    METHODS test_attribute_escaping   FOR TESTING RAISING cx_static_check.
+    METHODS test_no_raw_specials      FOR TESTING RAISING cx_static_check.
+    METHODS test_closing_tags         FOR TESTING RAISING cx_static_check.
+    METHODS test_stringify_idempotent FOR TESTING RAISING cx_static_check.
+    METHODS test_z2ui5_cc_namespace   FOR TESTING RAISING cx_static_check.
+
+ENDCLASS.
+
+
+CLASS ltcl_test_xml_output IMPLEMENTATION.
+
+  METHOD test_attribute_escaping.
+
+    DATA(lv_xml) = z2ui5_cl_xml_view=>factory(
+        )->shell(
+        )->page( `Escape Test`
+        )->button( text = `A & B "quoted" <tag>`
+        )->stringify( ).
+
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `&amp;` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `&lt;` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `&quot;` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_no_raw_specials.
+
+    DATA(lv_xml) = z2ui5_cl_xml_view=>factory(
+        )->shell(
+        )->page( `Escape Test`
+        )->button( text = `A & B <tag>`
+        )->stringify( ).
+
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_xml CS `<tag>` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_xml CS `A & B` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_closing_tags.
+
+    DATA(lv_xml) = z2ui5_cl_xml_view=>factory(
+        )->shell(
+        )->page( `Nest Test`
+        )->vbox(
+        )->button( text = `Click`
+        )->stringify( ).
+
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `</Page>` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `</Shell>` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `<Button` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_stringify_idempotent.
+
+    DATA(lo_view) = z2ui5_cl_xml_view=>factory(
+        )->shell(
+        )->page( `Stable Test`
+        )->button( text = `Click` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = lo_view->stringify( )
+                                        act = lo_view->stringify( ) ).
+
+  ENDMETHOD.
+
+  METHOD test_z2ui5_cc_namespace.
+
+    DATA(lv_xml) = z2ui5_cl_xml_view=>factory_popup(
+        )->dialog( `NS Test`
+        )->content(
+        )->_z2ui5(
+        )->timer( `MY_EVENT`
+        )->stringify( ).
+
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `z2ui5:Timer` ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `z2ui5.cc` ) ).
+
+  ENDMETHOD.
+
+ENDCLASS.

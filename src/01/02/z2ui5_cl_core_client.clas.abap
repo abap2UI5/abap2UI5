@@ -465,7 +465,11 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~check_on_init.
 
-    result = xsdbool( get_if_app( )->check_initialized = abap_false ).
+    " keep the interface access on a typed variable - reading the attribute
+    " directly on the method-call chain breaks in the abaplint transpiler
+    " runtime (plain property access misses the interface attribute alias)
+    DATA(li_app) = get_if_app( ).
+    result = xsdbool( li_app->check_initialized = abap_false ).
 
   ENDMETHOD.
 
