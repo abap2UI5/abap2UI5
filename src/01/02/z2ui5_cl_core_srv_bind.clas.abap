@@ -43,17 +43,6 @@ CLASS z2ui5_cl_core_srv_bind DEFINITION PUBLIC FINAL.
     METHODS check_raise_new.
 
   PRIVATE SECTION.
-
-    TYPES:
-      BEGIN OF ty_s_tab_path_buffer,
-        tab  TYPE REF TO data,
-        type TYPE string,
-        path TYPE string,
-      END OF ty_s_tab_path_buffer.
-    DATA mt_tab_path_buffer TYPE STANDARD TABLE OF ty_s_tab_path_buffer WITH EMPTY KEY.
-
-    DATA mo_model TYPE REF TO z2ui5_cl_core_srv_model.
-
 ENDCLASS.
 
 
@@ -136,8 +125,6 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
   METHOD constructor.
 
     mo_app = app.
-    mo_model = NEW z2ui5_cl_core_srv_model( attri = mo_app->mt_attri
-                                            app   = mo_app->mo_app ).
 
   ENDMETHOD.
 
@@ -170,7 +157,10 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     ms_config = config.
     mv_type   = type.
 
-    mr_attri = mo_model->main_attri_search( val ).
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = mo_app->mt_attri
+                                                  app   = mo_app->mo_app ).
+
+    mr_attri = lo_model->main_attri_search( val ).
 
     IF mr_attri->name_ref IS NOT INITIAL.
       mr_attri = REF #( mo_app->mt_attri->*[ name = mr_attri->name_ref ] ).
@@ -204,24 +194,12 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
     ms_config = config.
 
-    " the table path is the same for every bound cell of a table,
-    " resolve it only once per table and binding type
-    READ TABLE mt_tab_path_buffer REFERENCE INTO DATA(lr_buffer)
-         WITH KEY tab  = config-tab
-                  type = type.
-    IF sy-subrc = 0.
-      DATA(lv_path) = lr_buffer->path.
-    ELSE.
-      DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( mo_app ).
-      lv_path = lo_bind->main( val    = config-tab
-                               type   = type
-                               config = VALUE #( path_only = abap_true ) ).
-      INSERT VALUE #( tab  = config-tab
-                      type = type
-                      path = lv_path ) INTO TABLE mt_tab_path_buffer.
-    ENDIF.
+    DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( mo_app ).
+    result = lo_bind->main( val    = config-tab
+                            type   = type
+                            config = VALUE #( path_only = abap_true ) ).
 
-    result = bind_tab_cell( iv_name = lv_path
+    result = bind_tab_cell( iv_name = result
                             iv_val  = val ).
 
     IF ms_config-path_only = abap_false.

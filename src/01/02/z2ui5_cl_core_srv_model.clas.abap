@@ -101,19 +101,6 @@ CLASS z2ui5_cl_core_srv_model DEFINITION PUBLIC FINAL.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
-    TYPES:
-      BEGIN OF ty_s_ref_buffer,
-        name TYPE string,
-        ref  TYPE REF TO data,
-      END OF ty_s_ref_buffer.
-    DATA mt_ref_buffer TYPE HASHED TABLE OF ty_s_ref_buffer WITH UNIQUE KEY name.
-
-    METHODS attri_get_val_ref_buffered
-      IMPORTING
-        iv_path       TYPE clike
-      RETURNING
-        VALUE(result) TYPE REF TO data.
-
 ENDCLASS.
 
 
@@ -461,26 +448,6 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD attri_get_val_ref_buffered.
-
-    READ TABLE mt_ref_buffer REFERENCE INTO DATA(lr_buffer)
-         WITH TABLE KEY name = iv_path.
-    IF sy-subrc = 0.
-      result = lr_buffer->ref.
-      RETURN.
-    ENDIF.
-
-    result = attri_get_val_ref( iv_path ).
-
-    " references to plain attributes and structure components are address-stable,
-    " only paths with a dereference (->) can point somewhere else later
-    IF iv_path NS `->`.
-      INSERT VALUE #( name = iv_path
-                      ref  = result ) INTO TABLE mt_ref_buffer.
-    ENDIF.
-
-  ENDMETHOD.
-
   METHOD attri_search.
 
     DATA(lo_datadescr) = cl_abap_datadescr=>describe_by_data_ref( val ).
@@ -502,7 +469,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
       ENDIF.
 
       TRY.
-          DATA(lr_ref) = attri_get_val_ref_buffered( lr_attri->name ).
+          DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
         CATCH cx_root.
           CONTINUE.
       ENDTRY.
@@ -641,7 +608,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
                AND name_ref        IS INITIAL.
 
       TRY.
-          DATA(lr_ref) = attri_get_val_ref_buffered( lr_attri->name ).
+          DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
         CATCH cx_root.
           CONTINUE.
       ENDTRY.
@@ -657,7 +624,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
                      AND type_kind        = cl_abap_typedescr=>typekind_table.
 
             TRY.
-                DATA(lr_attri_ref_ref) = attri_get_val_ref_buffered( lr_attri_ref->name ).
+                DATA(lr_attri_ref_ref) = attri_get_val_ref( lr_attri_ref->name ).
               CATCH cx_root.
                 CONTINUE.
             ENDTRY.
@@ -681,7 +648,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
                            OR type_kind = cl_abap_typedescr=>typekind_struct2 ).
 
             TRY.
-                lr_attri_ref_ref = attri_get_val_ref_buffered( lr_attri_ref->name ).
+                lr_attri_ref_ref = attri_get_val_ref( lr_attri_ref->name ).
               CATCH cx_root.
                 CONTINUE.
             ENDTRY.
