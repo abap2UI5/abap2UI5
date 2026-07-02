@@ -75,8 +75,23 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `        closeOnNavigation: !!msg.CLOSEONNAVIGATION,` && |\n| &&
              `      };` && |\n| &&
              `      if (msg.ICON && msg.ICON !== "NONE") oParams.icon = msg.ICON;` && |\n| &&
-             `      const showFn = MessageBox[msg.TYPE];` && |\n| &&
-             `      if (showFn) showFn(msg.TEXT, oParams);` && |\n| &&
+             `      // MessageBox display methods are lowercase (show, error, warning,` && |\n| &&
+             `      // ...), but the type can arrive capitalized - the ABAP message` && |\n| &&
+             `      // formatter sends e.g. "Error" for multi-message boxes - or as a` && |\n| &&
+             `      // typo from an app. Restrict the lookup to functions (MessageBox` && |\n| &&
+             `      // also carries enum objects like Action and Icon) and never drop a` && |\n| &&
+             `      // requested message box silently: fall back to a plain show().` && |\n| &&
+             `      let showFn = MessageBox[msg.TYPE];` && |\n| &&
+             `      if (typeof showFn !== "function") {` && |\n| &&
+             `        showFn = MessageBox[String(msg.TYPE).toLowerCase()];` && |\n| &&
+             `      }` && |\n| &&
+             `      if (typeof showFn !== "function") {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``Messages: unknown message box type '${msg.TYPE}', shown via show()``,` && |\n| &&
+             `        );` && |\n| &&
+             `        showFn = MessageBox.show;` && |\n| &&
+             `      }` && |\n| &&
+             `      showFn(msg.TEXT, oParams);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Display the message of type ``msgType`` ("S_MSG_TOAST" / "S_MSG_BOX")` && |\n| &&

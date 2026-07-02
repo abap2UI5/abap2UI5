@@ -289,7 +289,11 @@ sap.ui.define([], () => {
       _sanitizeEl = document.createElement("div");
     }
     const doc = _msgParser.parseFromString(html, "text/html");
-    const items = Array.from(doc.querySelectorAll("li"));
+    // Only top-level list items: a nested <li>'s text is already part of
+    // its ancestor's textContent, so including it too would duplicate it.
+    const items = Array.from(doc.querySelectorAll("li")).filter(
+      (li) => !li.parentElement?.closest("li"),
+    );
     if (items.length > 0) {
       const safeItems = items.map((li) => {
         _sanitizeEl.textContent = li.textContent;
