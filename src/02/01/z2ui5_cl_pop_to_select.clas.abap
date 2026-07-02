@@ -282,33 +282,15 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
     FIELD-SYMBOLS <tab_out>        TYPE STANDARD TABLE.
     FIELD-SYMBOLS <tab_out_backup> TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <row2>           TYPE any.
-    FIELD-SYMBOLS <field2>         TYPE any.
-
-    DATA(lv_arg_upper) = to_upper( client->get_event_arg( 1 ) ).
 
     ASSIGN mr_tab_popup->* TO <tab_out>.
     ASSIGN mr_tab_popup_backup->* TO <tab_out_backup>.
 
     <tab_out> = <tab_out_backup>.
 
-    DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_any( <tab_out> ).
-    LOOP AT <tab_out> ASSIGNING <row2>.
-      DATA(lv_check_continue) = abap_false.
-      LOOP AT lt_comp INTO DATA(ls_comp).
-        DATA(lv_assign) = |<ROW2>-{ ls_comp-name }|.
-        ASSIGN (lv_assign) TO <field2>.
-        ASSERT sy-subrc = 0.
-        IF to_upper( <field2> ) CS lv_arg_upper.
-          lv_check_continue = abap_true.
-          EXIT.
-        ENDIF.
-      ENDLOOP.
-      IF lv_check_continue = abap_true.
-        CONTINUE.
-      ENDIF.
-      DELETE <tab_out>.
-    ENDLOOP.
+    z2ui5_cl_util=>itab_filter_by_val( EXPORTING val         = client->get_event_arg( 1 )
+                                                 ignore_case = abap_true
+                                       CHANGING  tab         = <tab_out> ).
     client->popup_model_update( ).
 
   ENDMETHOD.
