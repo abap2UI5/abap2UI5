@@ -220,7 +220,9 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
           val = `NAV_APP_LEAVE_TO_INITIAL_APP_ERROR`.
     ENDIF.
 
-    app->id_app = COND #( WHEN app->id_app IS INITIAL THEN z2ui5_cl_util=>uuid_get_c32( ) ).
+    IF app->id_app IS INITIAL.
+      app->id_app = z2ui5_cl_util=>uuid_get_c32( ).
+    ENDIF.
     result = app->id_app.
 
   ENDMETHOD.
