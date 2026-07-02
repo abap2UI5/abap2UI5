@@ -166,12 +166,11 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
     mo_app->db_save( ).
 
+    " val is always the ms_next-o_app_leave / ms_next-o_app_call reference
+    " itself (see factory_stack_leave / factory_stack_call), so an already
+    " assigned draft id is kept as is
     IF val->id_draft IS INITIAL.
       val->id_draft = z2ui5_cl_util=>uuid_get_c32( ).
-    ELSEIF ms_next-o_app_leave IS BOUND.
-      val->id_draft = ms_next-o_app_leave->id_draft.
-    ELSE.
-      val->id_draft = ms_next-o_app_call->id_draft.
     ENDIF.
 
     result = NEW #( mo_http_post ).
