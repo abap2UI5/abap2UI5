@@ -71,8 +71,9 @@ test.describe("DateAbapDateTimeToDateObject (ABAP date + time HHMMSS)", () => {
 
 test.describe("DateCreateObject", () => {
   test("delegates to the Date constructor", () => {
+    // no instanceof check: the module runs in its own vm realm, so its
+    // Date constructor is not identical to the test runner's
     const d = Util.DateCreateObject("2026-07-02T13:45:01Z");
-    expect(d).toBeInstanceOf(Date);
     expect(d.toISOString()).toBe("2026-07-02T13:45:01.000Z");
   });
 });

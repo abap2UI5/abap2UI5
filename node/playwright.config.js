@@ -12,6 +12,9 @@ const { defineConfig, devices } = require('@playwright/test');
  */
 module.exports = defineConfig({
   testDir: './tests',
+  /* Browser tests live in tests/e2e/ and need the dev server on port 3000;
+     everything else in tests/ is a unit spec run via playwright-unit.config.js */
+  testMatch: '**/e2e/**/*.spec.js',
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
