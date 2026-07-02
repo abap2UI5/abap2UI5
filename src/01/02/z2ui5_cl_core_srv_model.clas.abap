@@ -232,6 +232,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
                       name        = lr_pre->name ) INTO TABLE lt_child_idx.
     ENDLOOP.
 
+    DATA(lr_child_idx) = REF #( lt_child_idx ).
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE name_ref IS NOT INITIAL.
       CASE lr_attri->type_kind.
@@ -239,7 +240,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
           main_attri_db_load_table( lr_attri ).
         WHEN cl_abap_datadescr=>typekind_dref.
           main_attri_db_load_dref( ir_attri     = lr_attri
-                                   ir_child_idx = REF #( lt_child_idx ) ).
+                                   ir_child_idx = lr_child_idx ).
       ENDCASE.
     ENDLOOP.
 
@@ -536,14 +537,15 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     DATA(lr_ref) = z2ui5_cl_util=>unassign_object( lr_val ).
     DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_oref( lr_ref ).
 
+    DATA(lv_prefix) = COND string( WHEN ir_attri->name IS NOT INITIAL THEN |{ ir_attri->name }->| ).
+
     LOOP AT lt_attri REFERENCE INTO DATA(lr_attri)
          WHERE visibility   = cl_abap_objectdescr=>public
                AND is_interface = abap_false
                AND is_class     = abap_false
                AND is_constant  = abap_false.
       TRY.
-          DATA(lv_name) = COND #( WHEN ir_attri->name IS NOT INITIAL THEN |{ ir_attri->name }->| ) && lr_attri->name.
-          DATA(ls_new) = attri_create_new( lv_name ).
+          DATA(ls_new) = attri_create_new( lv_prefix && lr_attri->name ).
           ls_new-name_parent = ir_attri->name.
           INSERT ls_new INTO TABLE result.
 

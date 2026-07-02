@@ -138,8 +138,8 @@ CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
 
       WHEN `LIST_OPEN`.
         mv_popup_name = client->get_event_arg( 1 ).
-        DATA(ls_sql) = ms_result-t_filter[ name = mv_popup_name ].
-        client->nav_app_call( z2ui5_cl_pop_get_range=>factory( ls_sql-t_range ) ).
+        client->nav_app_call( z2ui5_cl_pop_get_range=>factory(
+            ms_result-t_filter[ name = mv_popup_name ]-t_range ) ).
 
       WHEN `BUTTON_CONFIRM`.
         ms_result-check_confirmed = abap_true.

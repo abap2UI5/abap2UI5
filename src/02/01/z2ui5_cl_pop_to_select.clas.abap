@@ -266,8 +266,6 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
       INSERT <row_result> INTO TABLE <table_result>.
       IF multiselect = abap_false.
         EXIT.
-      ELSE.
-        CLEAR <row_result>.
       ENDIF.
 
     ENDLOOP.
