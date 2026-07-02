@@ -114,9 +114,14 @@ npx abaplint
 # Apply automatic formatting fixes
 npx abaplint .github/abaplint/auto_abaplint_fix.jsonc --fix
 
-# Check NetWeaver 7.02 compatibility
-npx abaplint .github/abaplint/abap_702.jsonc --fix
+# Check NetWeaver 7.02 compatibility (check only - see warning below)
+npx abaplint .github/abaplint/abap_702.jsonc
 ```
+
+> **Warning:** never run the 7.02 config with `--fix` (or `npm run auto_downport`)
+> on a working tree with uncommitted changes - it rewrites `src/` in place and
+> overwrites `abaplint.jsonc`. It is meant for throwaway CI checkouts. Commit
+> first and restore afterwards with `git checkout -- src/ abaplint.jsonc`.
 
 #### abaplint Configuration
 

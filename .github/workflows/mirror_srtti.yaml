@@ -14,13 +14,14 @@ jobs:
     permissions:
       contents: write  # for peter-evans/create-pull-request to create branch
       pull-requests: write  # for peter-evans/create-pull-request to create a PR
+      issues: write  # to report failed scheduled runs
     if: github.repository == 'abap2UI5/abap2UI5'
 
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
     - name: run
       run: |
         git clone https://github.com/abap2UI5/srtti_mirror.git
@@ -29,7 +30,31 @@ jobs:
         rm -rf srtti_mirror
         git status
     - name: Open PR
-      uses: peter-evans/create-pull-request@v8
+      uses: peter-evans/create-pull-request@98357b18bf14b5342f975ff684046ec3b2a07725 # v8.0.0
       with:
         title: mirror-srtti-update
         branch: mirror-srtti-update
+    # A silently failing cron job means the breakage quietly goes unnoticed -
+    # open (or bump) an issue so somebody sees it.
+    - name: Report scheduled failure as issue
+      if: failure() && github.event_name == 'schedule'
+      uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8.0.0
+      with:
+        script: |
+          const title = `Scheduled workflow failed: ${context.workflow}`;
+          const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+          const { data: issues } = await github.rest.issues.listForRepo({
+            owner: context.repo.owner, repo: context.repo.repo, state: 'open', per_page: 100,
+          });
+          const existing = issues.find((issue) => issue.title === title);
+          if (existing) {
+            await github.rest.issues.createComment({
+              owner: context.repo.owner, repo: context.repo.repo,
+              issue_number: existing.number, body: `Failed again: ${runUrl}`,
+            });
+          } else {
+            await github.rest.issues.create({
+              owner: context.repo.owner, repo: context.repo.repo, title,
+              body: `The scheduled run failed. Without this issue the breakage would go unnoticed until the next manual check.\n\nRun: ${runUrl}`,
+            });
+          }

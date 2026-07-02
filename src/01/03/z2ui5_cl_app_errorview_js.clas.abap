@@ -73,8 +73,11 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  // ``response`` may be a string or an Error object; ``title`` overrides the` && |\n| &&
-             `  // default header text.` && |\n| &&
-             `  function show(response, title) {` && |\n| &&
+             `  // default header text; ``options.onRetry`` adds a Retry action that removes` && |\n| &&
+             `  // the overlay and re-runs the failed request (offered by Server.readHttp` && |\n| &&
+             `  // for network/timeout failures, where the request may never have reached` && |\n| &&
+             `  // the server and app state is still intact).` && |\n| &&
+             `  function show(response, title, options = {}) {` && |\n| &&
              `    const full = response?.stack ? String(response.stack) : String(response);` && |\n| &&
              `    let errorMessage;` && |\n| &&
              `    if (full.length > ERROR_MAX_LENGTH) {` && |\n| &&
@@ -90,12 +93,19 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    const errorContainer = getOrCreateContainer();` && |\n| &&
              `    errorContainer.textContent = "";` && |\n| &&
              `` && |\n| &&
+             `    // Announce the overlay to assistive technology: without a dialog role` && |\n| &&
+             `    // and focus move, a screen-reader user is never told the app crashed.` && |\n| &&
+             `    errorContainer.setAttribute("role", "alertdialog");` && |\n| &&
+             `    errorContainer.setAttribute("aria-modal", "true");` && |\n| &&
+             `    errorContainer.setAttribute("aria-labelledby", "serverErrorTitle");` && |\n| &&
+             `` && |\n| &&
              `    // Header bar with title and action buttons.` && |\n| &&
              `    const headerDiv = document.createElement("div");` && |\n| &&
              `    headerDiv.style.cssText =` && |\n| &&
              `      "padding: 15px; background: #d32f2f; color: white; display: flex; justify-content: space-between; align-items: center;";` && |\n| &&
              `` && |\n| &&
              `    const h3 = document.createElement("h3");` && |\n| &&
+             `    h3.id = "serverErrorTitle";` && |\n| &&
              `    h3.textContent = title || "Application Error - Please Restart The App";` && |\n| &&
              `    h3.style.cssText = "margin: 0";` && |\n| &&
              `    headerDiv.appendChild(h3);` && |\n| &&
@@ -105,6 +115,18 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `` && |\n| &&
              `    const actionsDiv = document.createElement("div");` && |\n| &&
              `    actionsDiv.style.cssText = "display: flex; gap: 8px;";` && |\n| &&
+             `` && |\n| &&
+             `    if (typeof options.onRetry === "function") {` && |\n| &&
+             `      const retryBtn = document.createElement("button");` && |\n| &&
+             `      retryBtn.type = "button";` && |\n| &&
+             `      retryBtn.textContent = "Retry";` && |\n| &&
+             `      retryBtn.style.cssText = btnStyle;` && |\n| &&
+             `      retryBtn.addEventListener("click", () => {` && |\n| &&
+             `        errorContainer.remove();` && |\n| &&
+             `        options.onRetry();` && |\n| &&
+             `      });` && |\n| &&
+             `      actionsDiv.appendChild(retryBtn);` && |\n| &&
+             `    }` && |\n| &&
              `` && |\n| &&
              `    const refreshBtn = document.createElement("button");` && |\n| &&
              `    refreshBtn.type = "button";` && |\n| &&
@@ -122,6 +144,22 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `` && |\n| &&
              `    headerDiv.appendChild(actionsDiv);` && |\n| &&
              `    errorContainer.appendChild(headerDiv);` && |\n| &&
+             `` && |\n| &&
+             `    // Keep keyboard focus inside the overlay: Tab cycles through the action` && |\n| &&
+             `    // buttons instead of escaping into the broken page behind it.` && |\n| &&
+             `    errorContainer.addEventListener("keydown", (event) => {` && |\n| &&
+             `      if (event.key !== "Tab") return;` && |\n| &&
+             `      const buttons = actionsDiv.querySelectorAll("button");` && |\n| &&
+             `      const first = buttons[0];` && |\n| &&
+             `      const last = buttons[buttons.length - 1];` && |\n| &&
+             `      if (event.shiftKey && document.activeElement === first) {` && |\n| &&
+             `        event.preventDefault();` && |\n| &&
+             `        last.focus();` && |\n| &&
+             `      } else if (!event.shiftKey && document.activeElement === last) {` && |\n| &&
+             `        event.preventDefault();` && |\n| &&
+             `        first.focus();` && |\n| &&
+             `      }` && |\n| &&
+             `    });` && |\n| &&
              `` && |\n| &&
              `    // The error text itself lives inside a sandboxed iframe so any HTML` && |\n| &&
              `    // in the backend response cannot execute or affect the main page.` && |\n| &&
@@ -150,6 +188,11 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `      pre.textContent = errorMessage;` && |\n| &&
              `      errorContainer.appendChild(pre);` && |\n| &&
              `    }` && |\n| &&
+             `` && |\n| &&
+             `    // Move focus into the dialog so keyboard and screen-reader users land on` && |\n| &&
+             `    // the primary action instead of the broken page behind the overlay.` && |\n| &&
+             `    const firstButton = actionsDiv.querySelector("button");` && |\n| &&
+             `    if (firstButton) firstButton.focus();` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  return { show };` && |\n| &&

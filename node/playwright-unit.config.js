@@ -7,10 +7,10 @@ const { defineConfig } = require('@playwright/test');
 module.exports = defineConfig({
   testDir: './tests',
   testMatch: '**/*.spec.js',
-  // example.spec.js is a browser test (needs Chromium + the dev server on
-  // port 3000) and runs via playwright.config.js - everything else in
+  // tests/e2e/ holds the browser tests (they need Chromium + the dev server
+  // on port 3000) and runs via playwright.config.js - everything else in
   // tests/ must stay runnable without a browser.
-  testIgnore: '**/example.spec.js',
+  testIgnore: '**/e2e/**',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: 0,

@@ -18,6 +18,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_system_startup     FOR TESTING RAISING cx_static_check.
     METHODS test_first_start        FOR TESTING RAISING cx_static_check.
     METHODS test_first_start_error  FOR TESTING RAISING cx_static_check.
+    METHODS test_first_start_draft_gone FOR TESTING RAISING cx_static_check.
     METHODS test_factory_by_frontend FOR TESTING RAISING cx_static_check.
     METHODS test_reset_view_flags   FOR TESTING RAISING cx_static_check.
     METHODS test_stack_call         FOR TESTING RAISING cx_static_check.
@@ -91,6 +92,34 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_not_initial( lo_result->mo_app->ms_draft-id ).
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = lo_result->ms_actual-check_on_navigated ).
+
+  ENDMETHOD.
+
+  METHOD test_first_start_draft_gone.
+
+    DATA lv_payload TYPE string.
+    DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_result TYPE REF TO z2ui5_cl_core_action.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_APP_HELLO_WORLD"}}}`.
+
+    lo_http = NEW #( val = lv_payload ).
+    lo_http->ms_request = lo_http->request_json_to_abap( lv_payload ).
+    lo_http->ms_request-s_control-app_start_draft = `THIS_DRAFT_DOES_NOT_EXIST`.
+
+    lo_action = NEW #( val = lo_http ).
+
+    lo_result = lo_action->factory_first_start( ).
+
+    " the expired bookmark draft must not block the fresh app start...
+    cl_abap_unit_assert=>assert_bound( lo_result->mo_app->mo_app ).
+    " ...and the user is told why the saved state is gone
+    cl_abap_unit_assert=>assert_not_initial( lo_result->ms_next-s_set-s_msg_toast-text ).
 
   ENDMETHOD.
 

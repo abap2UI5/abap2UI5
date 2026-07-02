@@ -64,7 +64,11 @@ INTERFACE z2ui5_if_types
 
   TYPES:
     BEGIN OF ty_s_http_config_post,
-      draft_exp_time_in_hours TYPE i,
+      draft_exp_time_in_hours  TYPE i,
+      " when set via the exit, framework errors answer with a generic 500
+      " message instead of the raw exception text (avoids leaking internal
+      " details to the client in hardened installations)
+      check_hide_error_details TYPE abap_bool,
     END OF ty_s_http_config_post.
 
   TYPES:

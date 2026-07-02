@@ -313,84 +313,115 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        this.readHttp(oBody);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      // Returns an abort signal that fires after ``ms`` plus a cancel function` && |\n| &&
+             `      // that releases the underlying timer. Uses AbortSignal.timeout where` && |\n| &&
+             `      // available and falls back to a manual AbortController + setTimeout on` && |\n| &&
+             `      // older browsers, so the client-side timeout backstop works everywhere.` && |\n| &&
+             `      // (Exposed on the module for the unit specs.)` && |\n| &&
+             `      createTimeoutSignal(ms) {` && |\n| &&
+             `        if (AbortSignal.timeout) {` && |\n| &&
+             `          return { signal: AbortSignal.timeout(ms), cancel: () => {} };` && |\n| &&
+             `        }` && |\n| &&
+             `        const controller = new AbortController();` && |\n| &&
+             `        const handle = setTimeout(() => controller.abort(), ms);` && |\n| &&
+             `        return {` && |\n| &&
+             `          signal: controller.signal,` && |\n| &&
+             `          cancel: () => clearTimeout(handle),` && |\n| &&
+             `        };` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      async readHttp(oBody) {` && |\n| &&
-             `        // Step 1: send the request.` && |\n| &&
-             `        let response;` && |\n| &&
              `        const timeoutMs = z2ui5.requestTimeoutMs || REQUEST_TIMEOUT_MS;` && |\n| &&
+             `        // The signal guards the fetch and the response body reads below; the` && |\n| &&
+             `        // finally releases the fallback timer once the roundtrip settled.` && |\n| &&
+             `        const { signal, cancel } = this.createTimeoutSignal(timeoutMs);` && |\n| &&
+             `        // A network blip or timeout may mean the request never reached the` && |\n| &&
+             `        // server, so the error overlay offers a retry that re-sends the` && |\n| &&
+             `        // exact same request body instead of forcing a full app restart.` && |\n| &&
+             `        const oRetry = { onRetry: () => this.readHttp(oBody) };` && |\n| &&
              `        try {` && |\n| &&
-             `          // Only forward "sap-contextid" once we actually own a valid session` && |\n| &&
-             `          // id - otherwise omit the header entirely (never send "" or` && |\n| &&
-             `          // "undefined"; see isValidContextId).` && |\n| &&
-             `          const headers = {` && |\n| &&
-             `            "Content-Type": "application/json",` && |\n| &&
-             `            "sap-contextid-accept": "header",` && |\n| &&
-             `          };` && |\n| &&
-             `          if (Lib.isValidContextId(z2ui5.contextId)) {` && |\n| &&
-             `            headers["sap-contextid"] = z2ui5.contextId;` && |\n| &&
-             `          }` && |\n| &&
-             `          response = await fetch(z2ui5.url, {` && |\n| &&
-             `            method: "POST",` && |\n| &&
-             `            headers: headers,` && |\n| &&
-             `            body: JSON.stringify({ value: oBody }),` && |\n| &&
-             `            // The signal also guards reading the response body below.` && |\n| &&
-             `            // Browsers without AbortSignal.timeout simply get no client-side` && |\n| &&
-             `            // timeout, as before.` && |\n| &&
-             `            signal: AbortSignal.timeout` && |\n| &&
-             `              ? AbortSignal.timeout(timeoutMs)` && |\n| &&
-             `              : undefined,` && |\n| &&
-             `          });` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          if (e.name === "TimeoutError" || e.name === "AbortError") {` && |\n| &&
-             `            this.responseError(` && |\n| &&
-             `              ``No backend response within ${timeoutMs / 1000} seconds - request aborted``,` && |\n| &&
-             `            );` && |\n| &&
-             `          } else {` && |\n| &&
-             `            this.responseError(``Network error: ${e.message}``);` && |\n| &&
-             `          }` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        // Keep the last valid session id; a response without the header` && |\n| &&
-             `        // (returns null) must not wipe an established session.` && |\n| &&
-             `        const contextId = response.headers.get("sap-contextid");` && |\n| &&
-             `        if (Lib.isValidContextId(contextId)) {` && |\n| &&
-             `          z2ui5.contextId = contextId;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        // Step 2: if the HTTP status is not 2xx, treat the body as error text.` && |\n| &&
-             `        if (!response.ok) {` && |\n| &&
-             `          let text;` && |\n| &&
+             `          // Step 1: send the request.` && |\n| &&
+             `          let response;` && |\n| &&
              `          try {` && |\n| &&
-             `            text = await response.text();` && |\n| &&
+             `            // Only forward "sap-contextid" once we actually own a valid` && |\n| &&
+             `            // session id - otherwise omit the header entirely (never send ""` && |\n| &&
+             `            // or "undefined"; see isValidContextId).` && |\n| &&
+             `            const headers = {` && |\n| &&
+             `              "Content-Type": "application/json",` && |\n| &&
+             `              "sap-contextid-accept": "header",` && |\n| &&
+             `            };` && |\n| &&
+             `            if (Lib.isValidContextId(z2ui5.contextId)) {` && |\n| &&
+             `              headers["sap-contextid"] = z2ui5.contextId;` && |\n| &&
+             `            }` && |\n| &&
+             `            response = await fetch(z2ui5.url, {` && |\n| &&
+             `              method: "POST",` && |\n| &&
+             `              headers: headers,` && |\n| &&
+             `              body: JSON.stringify({ value: oBody }),` && |\n| &&
+             `              signal: signal,` && |\n| &&
+             `            });` && |\n| &&
              `          } catch (e) {` && |\n| &&
-             `            text = ``HTTP ${response.status}: could not read error body``;` && |\n| &&
+             `            if (e.name === "TimeoutError" || e.name === "AbortError") {` && |\n| &&
+             `              this.responseError(` && |\n| &&
+             `                ``No backend response within ${timeoutMs / 1000} seconds - request aborted``,` && |\n| &&
+             `                undefined,` && |\n| &&
+             `                oRetry,` && |\n| &&
+             `              );` && |\n| &&
+             `            } else {` && |\n| &&
+             `              this.responseError(` && |\n| &&
+             `                ``Network error: ${e.message}``,` && |\n| &&
+             `                undefined,` && |\n| &&
+             `                oRetry,` && |\n| &&
+             `              );` && |\n| &&
+             `            }` && |\n| &&
+             `            return;` && |\n| &&
              `          }` && |\n| &&
-             `          // An empty error body would render an empty overlay - fall back` && |\n| &&
-             `          // to the status code so the user sees at least what failed.` && |\n| &&
-             `          this.responseError(text || ``HTTP ${response.status}``);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
+             `          // Keep the last valid session id; a response without the header` && |\n| &&
+             `          // (returns null) must not wipe an established session.` && |\n| &&
+             `          const contextId = response.headers.get("sap-contextid");` && |\n| &&
+             `          if (Lib.isValidContextId(contextId)) {` && |\n| &&
+             `            z2ui5.contextId = contextId;` && |\n| &&
+             `          }` && |\n| &&
              `` && |\n| &&
-             `        // Step 3: parse the JSON body.` && |\n| &&
-             `        let responseData;` && |\n| &&
-             `        try {` && |\n| &&
-             `          responseData = await response.json();` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          this.responseError(``Invalid JSON response: ${e.message}``);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        if (!responseData || !responseData.S_FRONT) {` && |\n| &&
-             `          this.responseError("Invalid response: missing S_FRONT");` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
+             `          // Step 2: if the HTTP status is not 2xx, treat the body as error` && |\n| &&
+             `          // text.` && |\n| &&
+             `          if (!response.ok) {` && |\n| &&
+             `            let text;` && |\n| &&
+             `            try {` && |\n| &&
+             `              text = await response.text();` && |\n| &&
+             `            } catch (e) {` && |\n| &&
+             `              text = ``HTTP ${response.status}: could not read error body``;` && |\n| &&
+             `            }` && |\n| &&
+             `            // An empty error body would render an empty overlay - fall back` && |\n| &&
+             `            // to the status code so the user sees at least what failed.` && |\n| &&
+             `            this.responseError(text || ``HTTP ${response.status}``);` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
              `` && |\n| &&
-             `        // Step 4: hand the parsed response to the success handler.` && |\n| &&
-             `        z2ui5.responseData = responseData;` && |\n| &&
-             `        z2ui5.xxChangedPaths = new Set();` && |\n| &&
-             `        this.responseSuccess({` && |\n| &&
-             `          ID: responseData.S_FRONT.ID,` && |\n| &&
-             `          PARAMS: responseData.S_FRONT.PARAMS,` && |\n| &&
-             `          OVIEWMODEL: responseData.MODEL,` && |\n| &&
-             `        });` && |\n| &&
+             `          // Step 3: parse the JSON body.` && |\n| &&
+             `          let responseData;` && |\n| &&
+             `          try {` && |\n| &&
+             `            responseData = await response.json();` && |\n| &&
+             `          } catch (e) {` && |\n| &&
+             `            this.responseError(``Invalid JSON response: ${e.message}``);` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
+             `          if (!responseData || !responseData.S_FRONT) {` && |\n| &&
+             `            this.responseError("Invalid response: missing S_FRONT");` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
+             `` && |\n| &&
+             `          // Step 4: hand the parsed response to the success handler.` && |\n| &&
+             `          z2ui5.responseData = responseData;` && |\n| &&
+             `          z2ui5.xxChangedPaths = new Set();` && |\n| &&
+             `          this.responseSuccess({` && |\n| &&
+             `            ID: responseData.S_FRONT.ID,` && |\n| &&
+             `            PARAMS: responseData.S_FRONT.PARAMS,` && |\n| &&
+             `            OVIEWMODEL: responseData.MODEL,` && |\n| &&
+             `          });` && |\n|.
+    result = result &&
+             `        } finally {` && |\n| &&
+             `          cancel();` && |\n| &&
+             `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      async responseSuccess(response) {` && |\n| &&
@@ -417,8 +448,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `          // Full view replacement -> destroy & rebuild, nothing more to do.` && |\n| &&
              `          if (sView?.XML) {` && |\n| &&
-             `            ViewSlots.destroy("MAIN");` && |\n|.
-    result = result &&
+             `            ViewSlots.destroy("MAIN");` && |\n| &&
              `            await oController.displayView(sView.XML, response.OVIEWMODEL);` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
@@ -496,11 +526,13 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      // Terminate the roundtrip in an unrecoverable state: clear the busy` && |\n| &&
              `      // state and show the fatal-error overlay (core/ErrorView). ``response``` && |\n| &&
              `      // may be a string or an Error object; ``title`` overrides the default` && |\n| &&
-             `      // header text.` && |\n| &&
-             `      responseError(response, title) {` && |\n| &&
+             `      // header text; ``oOptions.onRetry`` adds a Retry action to the overlay` && |\n| &&
+             `      // (used for network/timeout failures where the request may never have` && |\n| &&
+             `      // reached the server).` && |\n| &&
+             `      responseError(response, title, oOptions) {` && |\n| &&
              `        BusyIndicator.hide();` && |\n| &&
              `        z2ui5.isBusy = false;` && |\n| &&
-             `        ErrorView.show(response, title);` && |\n| &&
+             `        ErrorView.show(response, title, oOptions);` && |\n| &&
              `      },` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&
