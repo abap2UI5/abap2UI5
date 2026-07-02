@@ -92,7 +92,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `` && |\n| &&
              `    function evClipboardAppState() {` && |\n| &&
              `      const id = z2ui5.oResponse?.ID;` && |\n| &&
-             `      Lib.copyToClipboard(``${window.location.href}#/z2ui5-xapp-state=${id}``);` && |\n| &&
+             `      // Strip any existing hash (e.g. an active app-state) so the copied` && |\n| &&
+             `      // link carries only the fresh state id.` && |\n| &&
+             `      const base = window.location.href.split("#")[0];` && |\n| &&
+             `      Lib.copyToClipboard(``${base}#/z2ui5-xapp-state=${id}``);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evDownloadB64File(oController, args) {` && |\n| &&
@@ -414,11 +417,11 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        if (!handled) {` && |\n| &&
              `          const dom =` && |\n| &&
              `            document.getElementById(``${oElement.getId()}-inner``) ||` && |\n| &&
-             `            oElement.getDomRef();` && |\n| &&
+             `            oElement.getDomRef();` && |\n|.
+    result = result &&
              `          if (dom?.scrollTo) {` && |\n| &&
              `            dom.scrollTo({ top: y, left: x, behavior });` && |\n| &&
-             `            handled = true;` && |\n|.
-    result = result &&
+             `            handled = true;` && |\n| &&
              `          } else if (dom) {` && |\n| &&
              `            dom.scrollTop = y;` && |\n| &&
              `            dom.scrollLeft = x;` && |\n| &&

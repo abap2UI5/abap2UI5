@@ -296,7 +296,6 @@ The `app/` folder has its own `package.json` (name `z2ui5`, `sapuxLayer: CUSTOME
 | `npm run build` | UI5 production build |
 | `npm run format` / `format:check` | Prettier |
 | `npm run lint` | ESLint on `webapp/**/*.js` (eslint:recommended + `eqeqeq` "smart", `prefer-const`, `no-new-func`) |
-| `npm run unit-tests` / `int-tests` | QUnit / OPA test runners |
 | `npm run deploy` / `build:cf` / `build:mta` | Cloud Foundry / MTA deployment |
 
 Config files: `eslint.config.mjs`, `.prettierrc`, `.editorconfig`, `ui5.yaml`, `ui5-local.yaml`, `ui5-mock.yaml`.

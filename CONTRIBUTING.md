@@ -16,7 +16,7 @@ Thank you for your interest in contributing to abap2UI5! This guide helps ABAP d
 
 ### What is abap2UI5?
 
-abap2UI5 is a framework for developing UI5 applications purely in ABAP, without JavaScript, OData, or RAP. [1](#4-0)  It supports all ABAP releases from NW 7.02 to ABAP Cloud and works in both cloud and on-premise environments. [2](#4-1) 
+abap2UI5 is a framework for developing UI5 applications purely in ABAP, without JavaScript, OData, or RAP. It supports all ABAP releases from NW 7.02 to ABAP Cloud and works in both cloud and on-premise environments.
 
 ### Prerequisites
 
@@ -33,7 +33,7 @@ abap2UI5 is a framework for developing UI5 applications purely in ABAP, without 
 
 ### Understanding the Project
 
-The repository structure: [3](#4-2) 
+The repository structure:
 - `src/` - Core ABAP framework classes
 - `node/` - Node.js transpilation setup
 - `.github/` - CI/CD workflows and configurations
@@ -61,13 +61,13 @@ Only needed if you plan to run transpilation tests locally:
 npm install
 ```
 
-This installs abaplint-cli and other tools automatically. [4](#4-3) 
+This installs the abaplint CLI (`@abaplint/cli`) and other tools automatically.
 
 ## ABAP Development with abapGit
 
 ### Installation in ABAP System
 
-The framework supports easy installation via abapGit with no extra deployment needed. [5](#4-4) 
+The framework supports easy installation via abapGit with no extra deployment needed.
 
 1. **Install in Your ABAP System:**
    - Open abapGit in your ABAP system (SE80 → Utilities → abapGit)
@@ -103,9 +103,9 @@ The framework supports easy installation via abapGit with no extra deployment ne
 
 ### Local Code Quality Checks
 
-#### abaplint-cli Usage
+#### abaplint CLI Usage
 
-abaplint-cli is automatically installed with `npm install`. [4](#4-3)  Use these commands:
+The abaplint CLI (`@abaplint/cli`) is automatically installed with `npm install`. Use these commands:
 
 ```bash
 # Check code quality with main rules
@@ -120,10 +120,10 @@ npx abaplint .github/abaplint/abap_702.jsonc --fix
 
 #### abaplint Configuration
 
-The project uses multiple configurations: [6](#4-5) 
+The project uses multiple configurations:
 - `abaplint.jsonc` - Main quality rules (v750 syntax)
-- `.github/abaplint/auto_abaplint_fix.jsonc` - Automatic formatting fixes [7](#4-6) 
-- `.github/abaplint/abap_702.jsonc` - NetWeaver 7.02 compatibility [8](#4-7) 
+- `.github/abaplint/auto_abaplint_fix.jsonc` - Automatic formatting fixes
+- `.github/abaplint/abap_702.jsonc` - NetWeaver 7.02 compatibility
 
 For rule customization, see [abaplint documentation](https://abaplint.org/).
 
@@ -147,7 +147,7 @@ npm run unit
 
 ### Automated Testing
 
-The project uses comprehensive automated testing: [9](#4-8) 
+The project uses comprehensive automated testing:
 - **abaplint** - Static code analysis
 - **Transpilation Tests** - ABAP to JavaScript conversion
 - **Unit Tests** - Functionality validation
@@ -157,7 +157,7 @@ The project uses comprehensive automated testing: [9](#4-8)
 
 ### Types of Contributions
 
-1. **Bug Reports** - [Open an issue](https://github.com/abap2UI5/abap2UI5/issues) [10](#4-9) 
+1. **Bug Reports** - [Open an issue](https://github.com/abap2UI5/abap2UI5/issues)
 2. **Feature Requests** - Discuss in issues first
 3. **Documentation** - Improve guides, comments, or examples
 4. **Code Contributions** - Bug fixes, new features, improvements
@@ -249,17 +249,17 @@ Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ### Getting Help
 - **Issues:** [GitHub Issues](https://github.com/abap2UI5/abap2UI5/issues)
-- **Documentation:** [abap2UI5.org](https://abap2UI5.org) [11](#4-10) 
+- **Documentation:** [abap2UI5.org](https://abap2UI5.org)
 - **Git Help:** [Git Documentation](https://git-scm.com/doc)
 - **abapGit Help:** [abapGit Documentation](https://docs.abapgit.org/)
 
 ### Recognition
-Contributors are recognized in the [GitHub contributors page](https://github.com/abap2UI5/abap2UI5/graphs/contributors) and project documentation. [12](#4-11) 
+Contributors are recognized in the [GitHub contributors page](https://github.com/abap2UI5/abap2UI5/graphs/contributors) and project documentation.
 
 ## Advanced Topics
 
 ### Multi-Environment Support
-The framework supports multiple ABAP environments: [2](#4-1) 
+The framework supports multiple ABAP environments:
 - ABAP Cloud
 - ABAP Standard
 - NetWeaver 7.02+
@@ -271,7 +271,7 @@ The framework supports multiple ABAP environments: [2](#4-1)
 - Use meaningful commit messages
 
 ### Build Pipeline
-The project uses sophisticated build automation: [13](#4-12) 
+The project uses sophisticated build automation:
 - Automatic downporting for NetWeaver 7.02 compatibility
 - ABAP to JavaScript transpilation
 - Comprehensive quality checks

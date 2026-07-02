@@ -147,6 +147,7 @@ CLASS z2ui5_cl_app_fileuploader_js IMPLEMENTATION.
              `          }` && |\n| &&
              `` && |\n| &&
              `          oControl.oFileUploader = new FileUploader({` && |\n| &&
+             `            tooltip: oControl.getProperty("tooltip"),` && |\n| &&
              `            icon: oControl.getProperty("icon"),` && |\n| &&
              `            iconOnly: oControl.getProperty("iconOnly"),` && |\n| &&
              `            buttonOnly: oControl.getProperty("buttonOnly"),` && |\n| &&

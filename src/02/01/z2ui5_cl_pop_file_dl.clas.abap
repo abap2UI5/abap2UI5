@@ -11,6 +11,7 @@ CLASS z2ui5_cl_pop_file_dl DEFINITION PUBLIC.
         i_button_text_cancel  TYPE string DEFAULT `Cancel`
         i_file                TYPE string
         i_type                TYPE string DEFAULT `data:text/csv;base64,`
+        i_name                TYPE string OPTIONAL
       RETURNING
         VALUE(r_result)       TYPE REF TO z2ui5_cl_pop_file_dl.
 
@@ -42,6 +43,8 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
 
   METHOD factory.
 
+    DATA lv_size_kb TYPE p LENGTH 8 DECIMALS 2.
+
     r_result = NEW #( ).
     r_result->title               = i_title.
 
@@ -49,8 +52,12 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
     r_result->button_text_confirm = i_button_text_confirm.
     r_result->button_text_cancel  = i_button_text_cancel.
     r_result->mv_type             = i_type.
+    r_result->mv_name             = i_name.
     r_result->mv_value            = i_file.
-    r_result->mv_size             = strlen( i_file ) / 1000.
+    " packed target avoids the integer division that displayed 0 for small
+    " files, condense drops the trailing sign blank of the conversion
+    lv_size_kb                    = strlen( i_file ) / 1000.
+    r_result->mv_size             = condense( CONV string( lv_size_kb ) ).
 
   ENDMETHOD.
 
