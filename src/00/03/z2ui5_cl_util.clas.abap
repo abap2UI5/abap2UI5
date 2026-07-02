@@ -798,7 +798,7 @@ CLASS z2ui5_cl_util DEFINITION
       IMPORTING
         val           TYPE clike
         sub           TYPE clike
-        !with         TYPE clike
+        new_val       TYPE clike
       RETURNING
         VALUE(result) TYPE string.
 
@@ -3572,7 +3572,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   METHOD c_replace_all.
 
     result = val.
-    REPLACE ALL OCCURRENCES OF sub IN result WITH with.
+    REPLACE ALL OCCURRENCES OF sub IN result WITH new_val.
 
   ENDMETHOD.
 
@@ -3892,7 +3892,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   METHOD check_is_guid.
 
     DATA(lv_val) = c_trim( CONV string( val ) ).
-    DATA(lv_clean) = c_replace_all( val = lv_val sub = `-` with = `` ).
+    DATA(lv_clean) = c_replace_all( val = lv_val sub = `-` new_val = `` ).
     DATA(lv_len) = strlen( lv_clean ).
 
     " Accept 32 chars (raw) or 36 chars (with dashes)
