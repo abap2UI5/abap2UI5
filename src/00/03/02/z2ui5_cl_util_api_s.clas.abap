@@ -1216,8 +1216,8 @@ CLASS z2ui5_cl_util_api_s IMPLEMENTATION.
     DATA lr_filter  TYPE REF TO data.
     DATA lr_headers TYPE REF TO data.
     FIELD-SYMBOLS <filter>  TYPE any.
-    FIELD-SYMBOLS <headers> TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <handles> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <headers> TYPE SORTED TABLE.
+    FIELD-SYMBOLS <handles> TYPE SORTED TABLE.
 
     lr_filter = bal_build_filter( object    = object
                                   subobject = subobject
