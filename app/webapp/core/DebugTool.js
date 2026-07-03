@@ -293,7 +293,7 @@ sap.ui.define(
         oDialog.destroy();
       },
 
-      // The dialog is no aggregation of this control, so destroy() alone
+      // The dialog is not an aggregation of this control, so destroy() alone
       // would leave it (and its fragment controls) alive - clean it up when
       // the control is destroyed (Component.exit).
       exit() {
