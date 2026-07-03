@@ -150,7 +150,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
         CATCH cx_root INTO DATA(x).
           RAISE EXCEPTION TYPE z2ui5_cx_util_error
             EXPORTING
-              val = |JSON_PARSING_ERROR: { x->get_text( ) } |.
+              val = |JSON_PARSING_ERROR: { x->get_text( ) }|.
       ENDTRY.
     ENDLOOP.
 

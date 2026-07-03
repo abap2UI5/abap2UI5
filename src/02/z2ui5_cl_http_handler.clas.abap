@@ -186,7 +186,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     mo_server->set_status( code   = ms_res-status_code
                            reason = ms_res-status_reason ).
 
-    " transform cookie to header based contextid handling
+    " transform cookie into header-based contextid handling
     DATA lv_contextid TYPE string.
     IF ms_res-s_stateful-switched = abap_true.
       mo_server->set_session_stateful( ms_res-s_stateful-active ).
@@ -243,7 +243,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
           CATCH cx_root ##NO_HANDLER.
         ENDTRY.
 
-        result = VALUE #( body          = |abap2UI5 Error:{ lv_error_text }|
+        result = VALUE #( body          = |abap2UI5 Error: { lv_error_text }|
                           status_code   = 500
                           status_reason = `error` ).
     ENDTRY.

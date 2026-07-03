@@ -20,7 +20,7 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
           )->simple_form( editable = abap_true
             )->content( `form`
               )->title( ns   = `core`
-                        text = `Make an input here and send it to the server...`
+                        text = `Enter a value and send it to the server...`
               )->label( `Name`
               )->input( client->_bind_edit( name )
               )->button( text  = `Send`
