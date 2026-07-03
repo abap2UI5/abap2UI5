@@ -113,11 +113,11 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
     IF z2ui5_cl_util=>rtti_check_serializable( mr_attri->custom_filter_back ) = abap_false.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = `<p>custom_filter_back used but it is not serializable, Please use if_serializable_object`.
+        EXPORTING val = `<p>custom_filter_back used but it is not serializable - please use if_serializable_object`.
     ENDIF.
     IF z2ui5_cl_util=>rtti_check_serializable( mr_attri->custom_mapper_back ) = abap_false.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = `<p>custom_mapper_back used but it is not serializable, Please use if_serializable_object`.
+        EXPORTING val = `<p>custom_mapper_back used but it is not serializable - please use if_serializable_object`.
     ENDIF.
 
   ENDMETHOD.
@@ -176,7 +176,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
     IF result = |/{ z2ui5_if_core_types=>cs_ui5-two_way_model }|.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING val = `<p>Name of variable not allowed - XX is reserved word - use another name for your attribute`.
+        EXPORTING val = `<p>Name of variable not allowed - XX is a reserved word - use another name for your attribute`.
 
     ENDIF.
 

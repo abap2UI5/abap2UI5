@@ -205,9 +205,9 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     ELSE.
       simple_form->label( `Install the sample repository` ).
-      simple_form->link( text   = `And explore more than 200 sample apps...`
+      simple_form->link( text   = `And explore more than 250 sample apps...`
                          target = `_blank`
-                         href   = `https://github.com/abap2UI5/abap2UI5-samples` ).
+                         href   = `https://github.com/abap2UI5/samples` ).
     ENDIF.
 
     simple_form->toolbar( )->title( `Contribution` ).
