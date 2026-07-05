@@ -175,7 +175,10 @@ CLASS z2ui5_cl_app_camerapicture_js IMPLEMENTATION.
              `` && |\n| &&
              `          try {` && |\n| &&
              `            const md = navigator.mediaDevices;` && |\n| &&
-             `            if (!md || !md.getUserMedia) return;` && |\n| &&
+             `            if (!md?.getUserMedia) {` && |\n| &&
+             `              Lib.logError("CameraPicture: mediaDevices API not available");` && |\n| &&
+             `              return;` && |\n| &&
+             `            }` && |\n| &&
              `            const stream = await md.getUserMedia(options);` && |\n| &&
              `            if (!stream) return;` && |\n| &&
              `            // Guard: during the getUserMedia await the control could have` && |\n| &&

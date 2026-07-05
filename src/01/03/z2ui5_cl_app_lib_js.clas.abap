@@ -42,7 +42,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `  // Node specs that load this module with a bare z2ui5 stub.` && |\n| &&
              `  function logError(message, error) {` && |\n| &&
              `    if (!z2ui5.errors) z2ui5.errors = [];` && |\n| &&
-             `    const entry = { message: message, ts: new Date().toISOString() };` && |\n| &&
+             `    const entry = { message, ts: new Date().toISOString() };` && |\n| &&
              `    if (error !== undefined) entry.error = error;` && |\n| &&
              `    z2ui5.errors.push(entry);` && |\n| &&
              `    if (z2ui5.errors.length > MAX_ERRORS) z2ui5.errors.shift();` && |\n| &&

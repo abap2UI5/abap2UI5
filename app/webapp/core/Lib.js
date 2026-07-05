@@ -22,7 +22,7 @@ sap.ui.define([], () => {
   // Node specs that load this module with a bare z2ui5 stub.
   function logError(message, error) {
     if (!z2ui5.errors) z2ui5.errors = [];
-    const entry = { message: message, ts: new Date().toISOString() };
+    const entry = { message, ts: new Date().toISOString() };
     if (error !== undefined) entry.error = error;
     z2ui5.errors.push(entry);
     if (z2ui5.errors.length > MAX_ERRORS) z2ui5.errors.shift();

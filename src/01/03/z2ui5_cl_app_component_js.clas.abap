@@ -239,10 +239,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        //     starts from a clean state and any still-pending init Promises` && |\n| &&
              `        //     become no-ops via setIfAlive().` && |\n| &&
              `        try {` && |\n| &&
-             `          const setDirtyFlag =` && |\n| &&
-             `            this._launchpad?.Container &&` && |\n| &&
-             `            this._launchpad.Container.setDirtyFlag;` && |\n| &&
-             `          if (setDirtyFlag) setDirtyFlag.call(this._launchpad.Container, false);` && |\n| &&
+             `          this._launchpad?.Container?.setDirtyFlag?.(false);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("Component: clearing FLP dirty flag failed", e);` && |\n| &&
              `        }` && |\n| &&

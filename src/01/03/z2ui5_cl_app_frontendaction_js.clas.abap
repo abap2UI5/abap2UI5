@@ -61,7 +61,14 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    function navigateContainer(lookup, args) {` && |\n| &&
              `      try {` && |\n| &&
              `        const container = lookup(args[1]);` && |\n| &&
-             `        if (container) container.to(lookup(args[2]));` && |\n| &&
+             `        const target = lookup(args[2]);` && |\n| &&
+             `        if (!container || !target) {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``navigateContainer: control '${!container ? args[1] : args[2]}' not found``,` && |\n| &&
+             `          );` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        container.to(target);` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("navigateContainer: navigation failed", e);` && |\n| &&
              `      }` && |\n| &&
@@ -128,21 +135,18 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      const hasLimit = args[2] !== undefined && args[2] !== "";` && |\n| &&
              `      const viewKey = hasLimit ? args[2] : args[1];` && |\n| &&
              `      const limit = hasLimit ? Number(args[1]) : NaN;` && |\n| &&
-             `      const view = ViewSlots.getView(viewKey);` && |\n| &&
-             `      const model = view?.getModel();` && |\n| &&
+             `      const model = ViewSlots.getView(viewKey)?.getModel();` && |\n| &&
              `` && |\n| &&
-             `      if (Number.isFinite(limit) && limit > 0) {` && |\n| &&
+             `      const isValidLimit = Number.isFinite(limit) && limit > 0;` && |\n| &&
+             `      if (isValidLimit) {` && |\n| &&
              `        z2ui5.viewSizeLimits[viewKey] = limit;` && |\n| &&
-             `        if (model) {` && |\n| &&
-             `          model.setSizeLimit(limit);` && |\n| &&
-             `          model.refresh(true);` && |\n| &&
-             `        }` && |\n| &&
              `      } else {` && |\n| &&
              `        delete z2ui5.viewSizeLimits[viewKey];` && |\n| &&
-             `        if (model) {` && |\n| &&
-             `          model.setSizeLimit(100);` && |\n| &&
-             `          model.refresh(true);` && |\n| &&
-             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `      if (model) {` && |\n| &&
+             `        // 100 is the UI5 JSONModel default size limit.` && |\n| &&
+             `        model.setSizeLimit(isValidLimit ? limit : 100);` && |\n| &&
+             `        model.refresh(true);` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -165,7 +169,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evStoreData(oController, args) {` && |\n| &&
-             `      const { TYPE, PREFIX, VALUE, KEY } = args[1];` && |\n| &&
+             `      // Guard against a missing payload so the try below logs a` && |\n| &&
+             `      // STORE_DATA-specific error instead of a generic dispatch failure.` && |\n| &&
+             `      const { TYPE, PREFIX, VALUE, KEY } = args[1] ?? {};` && |\n| &&
              `      try {` && |\n| &&
              `        const storageType = Storage.Type[TYPE] || Storage.Type.session;` && |\n| &&
              `        const oStorage = new Storage(storageType, PREFIX);` && |\n| &&
@@ -285,7 +291,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evUrlHelper(oController, args) {` && |\n| &&
-             `      const params = args[2];` && |\n| &&
+             `      const params = args[2] ?? {};` && |\n| &&
              `      const actions = {` && |\n| &&
              `        REDIRECT: () => {` && |\n| &&
              `          if (!Lib.isSafeRedirectProtocol(params.URL)) {` && |\n| &&
@@ -411,14 +417,14 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            // ScrollEnablement / iScroll delegate: scrollTo(x, y, time)` && |\n| &&
              `            d.scrollTo(x, y, smooth ? 300 : 0);` && |\n| &&
              `            handled = true;` && |\n| &&
-             `          }` && |\n| &&
+             `          }` && |\n|.
+    result = result &&
              `        } catch (e) {` && |\n| &&
              `          // fall through` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        if (!handled) {` && |\n| &&
-             `          const dom =` && |\n|.
-    result = result &&
+             `          const dom =` && |\n| &&
              `            document.getElementById(``${oElement.getId()}-inner``) ||` && |\n| &&
              `            oElement.getDomRef();` && |\n| &&
              `          if (dom?.scrollTo) {` && |\n| &&

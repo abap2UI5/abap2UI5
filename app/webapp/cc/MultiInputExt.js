@@ -50,14 +50,14 @@ sap.ui.define(
       },
       renderer: { apiVersion: 2, render() {} },
       setControl() {
-        const table = ViewSlots.byId("MAIN", this.getProperty("MultiInputId"));
-        if (!table || this.getProperty("checkInit")) return;
+        const input = ViewSlots.byId("MAIN", this.getProperty("MultiInputId"));
+        if (!input || this.getProperty("checkInit")) return;
         this.setProperty("checkInit", true);
         try {
-          table.attachTokenUpdate(this.onTokenUpdate.bind(this));
+          input.attachTokenUpdate(this.onTokenUpdate.bind(this));
           // Custom validator: turn any free-text entry into a Token where
           // both key and visible text equal the input string.
-          table.addValidator(({ text }) => new Token({ key: text, text }));
+          input.addValidator(({ text }) => new Token({ key: text, text }));
         } catch (e) {
           Lib.logError("MultiInputExt.setControl: setup failed", e);
         }

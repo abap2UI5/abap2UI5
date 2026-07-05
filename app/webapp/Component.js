@@ -219,10 +219,7 @@ sap.ui.define(
         //     starts from a clean state and any still-pending init Promises
         //     become no-ops via setIfAlive().
         try {
-          const setDirtyFlag =
-            this._launchpad?.Container &&
-            this._launchpad.Container.setDirtyFlag;
-          if (setDirtyFlag) setDirtyFlag.call(this._launchpad.Container, false);
+          this._launchpad?.Container?.setDirtyFlag?.(false);
         } catch (e) {
           Lib.logError("Component: clearing FLP dirty flag failed", e);
         }

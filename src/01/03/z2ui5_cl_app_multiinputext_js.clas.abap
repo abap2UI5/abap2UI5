@@ -70,14 +70,14 @@ CLASS z2ui5_cl_app_multiinputext_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
              `      setControl() {` && |\n| &&
-             `        const table = ViewSlots.byId("MAIN", this.getProperty("MultiInputId"));` && |\n| &&
-             `        if (!table || this.getProperty("checkInit")) return;` && |\n| &&
+             `        const input = ViewSlots.byId("MAIN", this.getProperty("MultiInputId"));` && |\n| &&
+             `        if (!input || this.getProperty("checkInit")) return;` && |\n| &&
              `        this.setProperty("checkInit", true);` && |\n| &&
              `        try {` && |\n| &&
-             `          table.attachTokenUpdate(this.onTokenUpdate.bind(this));` && |\n| &&
+             `          input.attachTokenUpdate(this.onTokenUpdate.bind(this));` && |\n| &&
              `          // Custom validator: turn any free-text entry into a Token where` && |\n| &&
              `          // both key and visible text equal the input string.` && |\n| &&
-             `          table.addValidator(({ text }) => new Token({ key: text, text }));` && |\n| &&
+             `          input.addValidator(({ text }) => new Token({ key: text, text }));` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("MultiInputExt.setControl: setup failed", e);` && |\n| &&
              `        }` && |\n| &&

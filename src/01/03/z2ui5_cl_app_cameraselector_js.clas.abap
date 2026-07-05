@@ -32,7 +32,7 @@ CLASS z2ui5_cl_app_cameraselector_js IMPLEMENTATION.
              `        ComboBox.prototype.init.call(this);` && |\n| &&
              `        try {` && |\n| &&
              `          const md = navigator.mediaDevices;` && |\n| &&
-             `          if (!md || !md.enumerateDevices) return;` && |\n| &&
+             `          if (!md?.enumerateDevices) return;` && |\n| &&
              `          const devices = await md.enumerateDevices();` && |\n| &&
              `          if (!devices) return;` && |\n| &&
              `          for (const device of devices) {` && |\n| &&

@@ -304,9 +304,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `        // Remove empty / undefined fields so the backend request stays small` && |\n| &&
              `        // and these keys are not present in the JSON sent over the wire.` && |\n| &&
-             `        if (!sFront.T_EVENT_ARG || sFront.T_EVENT_ARG.length === 0) {` && |\n| &&
-             `          delete sFront.T_EVENT_ARG;` && |\n| &&
-             `        }` && |\n| &&
+             `        if (!sFront.T_EVENT_ARG?.length) delete sFront.T_EVENT_ARG;` && |\n| &&
              `        if (sFront.SEARCH === "") delete sFront.SEARCH;` && |\n| &&
              `        if (!oBody.XX) delete oBody.XX;` && |\n| &&
              `` && |\n| &&
@@ -355,9 +353,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            }` && |\n| &&
              `            response = await fetch(z2ui5.url, {` && |\n| &&
              `              method: "POST",` && |\n| &&
-             `              headers: headers,` && |\n| &&
+             `              headers,` && |\n| &&
              `              body: JSON.stringify({ value: oBody }),` && |\n| &&
-             `              signal: signal,` && |\n| &&
+             `              signal,` && |\n| &&
              `            });` && |\n| &&
              `          } catch (e) {` && |\n| &&
              `            if (e.name === "TimeoutError" || e.name === "AbortError") {` && |\n| &&
@@ -417,10 +415,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            ID: responseData.S_FRONT.ID,` && |\n| &&
              `            PARAMS: responseData.S_FRONT.PARAMS,` && |\n| &&
              `            OVIEWMODEL: responseData.MODEL,` && |\n| &&
-             `          });` && |\n|.
-    result = result &&
+             `          });` && |\n| &&
              `        } finally {` && |\n| &&
-             `          cancel();` && |\n| &&
+             `          cancel();` && |\n|.
+    result = result &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&

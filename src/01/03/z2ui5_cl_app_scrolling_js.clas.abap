@@ -65,12 +65,8 @@ CLASS z2ui5_cl_app_scrolling_js IMPLEMENTATION.
              `          // Resolve the binding path so we can mark only changed entries` && |\n| &&
              `          // as dirty in xxChangedPaths.` && |\n| &&
              `          const bindingInfo = this.getBindingInfo("items");` && |\n| &&
-             `          let bindingPath;` && |\n| &&
-             `          if (bindingInfo) {` && |\n| &&
-             `            const parts = bindingInfo.parts;` && |\n| &&
-             `            if (parts?.[0]) bindingPath = parts[0].path;` && |\n| &&
-             `            if (!bindingPath) bindingPath = bindingInfo.path;` && |\n| &&
-             `          }` && |\n| &&
+             `          const bindingPath =` && |\n| &&
+             `            bindingInfo?.parts?.[0]?.path ?? bindingInfo?.path;` && |\n| &&
              `          for (const [index, item] of items.entries()) {` && |\n| &&
              `            const scrollTop = this._getScrollTop(item);` && |\n| &&
              `            if (item.V !== scrollTop) {` && |\n| &&

@@ -90,14 +90,12 @@ CLASS z2ui5_cl_app_uploadsetext_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      onItemAdded(oEvent) {` && |\n| &&
-             `        const item = oEvent.getParameter("item");` && |\n| &&
-             `        const file = item?.getFileObject ? item.getFileObject() : null;` && |\n| &&
+             `        const file = oEvent.getParameter("item")?.getFileObject?.();` && |\n| &&
              `        if (file) this._readFile(file);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onItemRemoved(oEvent) {` && |\n| &&
-             `        const item = oEvent.getParameter("item");` && |\n| &&
-             `        const name = item?.getFileName ? item.getFileName() : "";` && |\n| &&
+             `        const name = oEvent.getParameter("item")?.getFileName?.() ?? "";` && |\n| &&
              `        this.setProperty("removedFileName", name);` && |\n| &&
              `        this.fireRemove();` && |\n| &&
              `      },` && |\n| &&

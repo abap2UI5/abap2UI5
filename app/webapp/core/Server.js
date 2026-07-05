@@ -284,9 +284,7 @@ sap.ui.define(
 
         // Remove empty / undefined fields so the backend request stays small
         // and these keys are not present in the JSON sent over the wire.
-        if (!sFront.T_EVENT_ARG || sFront.T_EVENT_ARG.length === 0) {
-          delete sFront.T_EVENT_ARG;
-        }
+        if (!sFront.T_EVENT_ARG?.length) delete sFront.T_EVENT_ARG;
         if (sFront.SEARCH === "") delete sFront.SEARCH;
         if (!oBody.XX) delete oBody.XX;
 
@@ -335,9 +333,9 @@ sap.ui.define(
             }
             response = await fetch(z2ui5.url, {
               method: "POST",
-              headers: headers,
+              headers,
               body: JSON.stringify({ value: oBody }),
-              signal: signal,
+              signal,
             });
           } catch (e) {
             if (e.name === "TimeoutError" || e.name === "AbortError") {

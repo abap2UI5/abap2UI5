@@ -12,7 +12,7 @@ sap.ui.define(
         ComboBox.prototype.init.call(this);
         try {
           const md = navigator.mediaDevices;
-          if (!md || !md.enumerateDevices) return;
+          if (!md?.enumerateDevices) return;
           const devices = await md.enumerateDevices();
           if (!devices) return;
           for (const device of devices) {

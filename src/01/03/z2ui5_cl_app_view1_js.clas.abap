@@ -81,12 +81,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const ctx = params.context;` && |\n| &&
              `          if (!raw) return;` && |\n| &&
              `          // Resolve relative paths against the binding context.` && |\n| &&
-             `          let p;` && |\n| &&
-             `          if (ctx && !raw.startsWith("/")) {` && |\n| &&
-             `            p = ``${ctx.getPath()}/${raw}``;` && |\n| &&
-             `          } else {` && |\n| &&
-             `            p = raw;` && |\n| &&
-             `          }` && |\n| &&
+             `          const p =` && |\n| &&
+             `            ctx && !raw.startsWith("/") ? ``${ctx.getPath()}/${raw}`` : raw;` && |\n| &&
              `          if (p.startsWith("/XX/")) {` && |\n| &&
              `            z2ui5.xxChangedPaths.add(p);` && |\n| &&
              `          }` && |\n| &&
@@ -417,12 +413,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        Lib.runCallbacks(z2ui5.onBeforeRoundtrip);` && |\n| &&
              `` && |\n| &&
              `        // If the user edited /XX/ paths, send only the delta to keep the` && |\n| &&
-             `        // payload small.` && |\n|.
-    result = result &&
+             `        // payload small.` && |\n| &&
              `        if (oModel && z2ui5.xxChangedPaths.size > 0) {` && |\n| &&
              `          const data = oModel.getData();` && |\n| &&
              `          const xx = data?.XX;` && |\n| &&
-             `          if (xx) {` && |\n| &&
+             `          if (xx) {` && |\n|.
+    result = result &&
              `            oBody.XX = Lib.buildDeltaFromPaths(z2ui5.xxChangedPaths, xx);` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&

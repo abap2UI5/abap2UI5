@@ -41,7 +41,14 @@ sap.ui.define(
     function navigateContainer(lookup, args) {
       try {
         const container = lookup(args[1]);
-        if (container) container.to(lookup(args[2]));
+        const target = lookup(args[2]);
+        if (!container || !target) {
+          Lib.logError(
+            `navigateContainer: control '${!container ? args[1] : args[2]}' not found`,
+          );
+          return;
+        }
+        container.to(target);
       } catch (e) {
         Lib.logError("navigateContainer: navigation failed", e);
       }
@@ -108,21 +115,18 @@ sap.ui.define(
       const hasLimit = args[2] !== undefined && args[2] !== "";
       const viewKey = hasLimit ? args[2] : args[1];
       const limit = hasLimit ? Number(args[1]) : NaN;
-      const view = ViewSlots.getView(viewKey);
-      const model = view?.getModel();
+      const model = ViewSlots.getView(viewKey)?.getModel();
 
-      if (Number.isFinite(limit) && limit > 0) {
+      const isValidLimit = Number.isFinite(limit) && limit > 0;
+      if (isValidLimit) {
         z2ui5.viewSizeLimits[viewKey] = limit;
-        if (model) {
-          model.setSizeLimit(limit);
-          model.refresh(true);
-        }
       } else {
         delete z2ui5.viewSizeLimits[viewKey];
-        if (model) {
-          model.setSizeLimit(100);
-          model.refresh(true);
-        }
+      }
+      if (model) {
+        // 100 is the UI5 JSONModel default size limit.
+        model.setSizeLimit(isValidLimit ? limit : 100);
+        model.refresh(true);
       }
     }
 
@@ -145,7 +149,9 @@ sap.ui.define(
     }
 
     function evStoreData(oController, args) {
-      const { TYPE, PREFIX, VALUE, KEY } = args[1];
+      // Guard against a missing payload so the try below logs a
+      // STORE_DATA-specific error instead of a generic dispatch failure.
+      const { TYPE, PREFIX, VALUE, KEY } = args[1] ?? {};
       try {
         const storageType = Storage.Type[TYPE] || Storage.Type.session;
         const oStorage = new Storage(storageType, PREFIX);
@@ -265,7 +271,7 @@ sap.ui.define(
     }
 
     function evUrlHelper(oController, args) {
-      const params = args[2];
+      const params = args[2] ?? {};
       const actions = {
         REDIRECT: () => {
           if (!Lib.isSafeRedirectProtocol(params.URL)) {

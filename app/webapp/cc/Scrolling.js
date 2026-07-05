@@ -45,12 +45,8 @@ sap.ui.define(
           // Resolve the binding path so we can mark only changed entries
           // as dirty in xxChangedPaths.
           const bindingInfo = this.getBindingInfo("items");
-          let bindingPath;
-          if (bindingInfo) {
-            const parts = bindingInfo.parts;
-            if (parts?.[0]) bindingPath = parts[0].path;
-            if (!bindingPath) bindingPath = bindingInfo.path;
-          }
+          const bindingPath =
+            bindingInfo?.parts?.[0]?.path ?? bindingInfo?.path;
           for (const [index, item] of items.entries()) {
             const scrollTop = this._getScrollTop(item);
             if (item.V !== scrollTop) {

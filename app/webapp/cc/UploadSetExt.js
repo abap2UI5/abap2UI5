@@ -70,14 +70,12 @@ sap.ui.define(
       },
 
       onItemAdded(oEvent) {
-        const item = oEvent.getParameter("item");
-        const file = item?.getFileObject ? item.getFileObject() : null;
+        const file = oEvent.getParameter("item")?.getFileObject?.();
         if (file) this._readFile(file);
       },
 
       onItemRemoved(oEvent) {
-        const item = oEvent.getParameter("item");
-        const name = item?.getFileName ? item.getFileName() : "";
+        const name = oEvent.getParameter("item")?.getFileName?.() ?? "";
         this.setProperty("removedFileName", name);
         this.fireRemove();
       },

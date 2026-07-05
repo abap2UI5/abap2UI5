@@ -61,12 +61,8 @@ sap.ui.define(
           const ctx = params.context;
           if (!raw) return;
           // Resolve relative paths against the binding context.
-          let p;
-          if (ctx && !raw.startsWith("/")) {
-            p = `${ctx.getPath()}/${raw}`;
-          } else {
-            p = raw;
-          }
+          const p =
+            ctx && !raw.startsWith("/") ? `${ctx.getPath()}/${raw}` : raw;
           if (p.startsWith("/XX/")) {
             z2ui5.xxChangedPaths.add(p);
           }

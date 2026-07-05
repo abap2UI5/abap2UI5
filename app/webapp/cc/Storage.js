@@ -70,12 +70,7 @@ sap.ui.define(
         // current property to avoid feedback loops.
         if (stored !== value) {
           this.setProperty("value", stored, true);
-          this.fireFinished({
-            type: type,
-            prefix: prefix,
-            key: key,
-            value: stored,
-          });
+          this.fireFinished({ type, prefix, key, value: stored });
         }
       },
 

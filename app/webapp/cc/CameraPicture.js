@@ -155,7 +155,10 @@ sap.ui.define(
 
           try {
             const md = navigator.mediaDevices;
-            if (!md || !md.getUserMedia) return;
+            if (!md?.getUserMedia) {
+              Lib.logError("CameraPicture: mediaDevices API not available");
+              return;
+            }
             const stream = await md.getUserMedia(options);
             if (!stream) return;
             // Guard: during the getUserMedia await the control could have

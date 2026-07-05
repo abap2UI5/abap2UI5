@@ -90,12 +90,7 @@ CLASS z2ui5_cl_app_storage_js IMPLEMENTATION.
              `        // current property to avoid feedback loops.` && |\n| &&
              `        if (stored !== value) {` && |\n| &&
              `          this.setProperty("value", stored, true);` && |\n| &&
-             `          this.fireFinished({` && |\n| &&
-             `            type: type,` && |\n| &&
-             `            prefix: prefix,` && |\n| &&
-             `            key: key,` && |\n| &&
-             `            value: stored,` && |\n| &&
-             `          });` && |\n| &&
+             `          this.fireFinished({ type, prefix, key, value: stored });` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
