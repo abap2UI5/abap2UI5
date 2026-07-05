@@ -23,6 +23,9 @@ CLASS z2ui5_cl_app_scrolling_js IMPLEMENTATION.
              `  (Control, Lib, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
+             `    // Invisible control that saves the scroll positions of the controls` && |\n| &&
+             `    // listed in ``items`` into the model before each roundtrip and restores` && |\n| &&
+             `    // them after the next rendering.` && |\n| &&
              `    return Control.extend("z2ui5.cc.Scrolling", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -46,10 +49,8 @@ CLASS z2ui5_cl_app_scrolling_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          const control = ViewSlots.byId("MAIN", item.N);` && |\n| &&
              `          // Some controls expose a scroll delegate; prefer it when available.` && |\n| &&
-             `          if (control?.getScrollDelegate) {` && |\n| &&
-             `            const delegate = control.getScrollDelegate();` && |\n| &&
-             `            if (delegate) return delegate.getScrollTop();` && |\n| &&
-             `          }` && |\n| &&
+             `          const delegate = control?.getScrollDelegate?.();` && |\n| &&
+             `          if (delegate) return delegate.getScrollTop();` && |\n| &&
              `          const element = this._getDomInnerElement(item.ID);` && |\n| &&
              `          return element ? element.scrollTop : 0;` && |\n| &&
              `        } catch (e) {` && |\n| &&
@@ -65,12 +66,8 @@ CLASS z2ui5_cl_app_scrolling_js IMPLEMENTATION.
              `          // Resolve the binding path so we can mark only changed entries` && |\n| &&
              `          // as dirty in xxChangedPaths.` && |\n| &&
              `          const bindingInfo = this.getBindingInfo("items");` && |\n| &&
-             `          let bindingPath;` && |\n| &&
-             `          if (bindingInfo) {` && |\n| &&
-             `            const parts = bindingInfo.parts;` && |\n| &&
-             `            if (parts?.[0]) bindingPath = parts[0].path;` && |\n| &&
-             `            if (!bindingPath) bindingPath = bindingInfo.path;` && |\n| &&
-             `          }` && |\n| &&
+             `          const bindingPath =` && |\n| &&
+             `            bindingInfo?.parts?.[0]?.path ?? bindingInfo?.path;` && |\n| &&
              `          for (const [index, item] of items.entries()) {` && |\n| &&
              `            const scrollTop = this._getScrollTop(item);` && |\n| &&
              `            if (item.V !== scrollTop) {` && |\n| &&

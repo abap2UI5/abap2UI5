@@ -3,6 +3,10 @@ sap.ui.define(
   (Control, Storage, Lib) => {
     "use strict";
 
+    // Invisible control that reads a value from browser storage
+    // (session/local, see sap.ui.util.Storage) into its `value` property
+    // and fires `finished` when the stored value differs from the current
+    // one. The write side is handled by the STORE_DATA frontend action.
     return Control.extend("z2ui5.cc.Storage", {
       metadata: {
         properties: {
@@ -59,8 +63,7 @@ sap.ui.define(
         try {
           const storageType = Storage.Type[type] || Storage.Type.session;
           const storage = new Storage(storageType, prefix);
-          const read = storage.get(key);
-          stored = read == null ? "" : read;
+          stored = storage.get(key) ?? "";
         } catch (e) {
           Lib.logError(`Storage: read failed for key '${key}'`, e);
           return;
@@ -70,12 +73,7 @@ sap.ui.define(
         // current property to avoid feedback loops.
         if (stored !== value) {
           this.setProperty("value", stored, true);
-          this.fireFinished({
-            type: type,
-            prefix: prefix,
-            key: key,
-            value: stored,
-          });
+          this.fireFinished({ type, prefix, key, value: stored });
         }
       },
 

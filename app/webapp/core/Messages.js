@@ -7,12 +7,12 @@ sap.ui.define(
   (MessageBox, MessageToast, Lib) => {
     "use strict";
 
-    // Parse a value as integer milliseconds, falling back to `def` when the
-    // input is empty / undefined / not a finite number (so a stray
+    // Parse a value as integer milliseconds, falling back to `fallback`
+    // when the input is empty / undefined / not a finite number (so a stray
     // non-numeric value never reaches MessageToast as NaN).
-    function parseMs(val, def) {
-      const n = +val;
-      return val && Number.isFinite(n) ? n : def;
+    function parseMs(val, fallback) {
+      const parsed = Number(val);
+      return val && Number.isFinite(parsed) ? parsed : fallback;
     }
 
     function showToast(msg, oController) {
@@ -20,10 +20,10 @@ sap.ui.define(
         duration: parseMs(msg.DURATION, 3000),
         width: msg.WIDTH || "15em",
         onClose: msg.ONCLOSE ? () => oController.eB([msg.ONCLOSE]) : null,
-        autoClose: !!msg.AUTOCLOSE,
+        autoClose: Boolean(msg.AUTOCLOSE),
         animationTimingFunction: msg.ANIMATIONTIMINGFUNCTION || "ease",
         animationDuration: parseMs(msg.ANIMATIONDURATION, 1000),
-        closeOnBrowserNavigation: !!msg.CLOSEONBROWSERNAVIGATION,
+        closeOnBrowserNavigation: Boolean(msg.CLOSEONBROWSERNAVIGATION),
       });
       if (msg.CLASS) {
         const classes = msg.CLASS.trim().split(/\s+/).filter(Boolean);
@@ -34,7 +34,7 @@ sap.ui.define(
           const toasts = document.querySelectorAll(".sapMMessageToast");
           const toastEl = toasts[toasts.length - 1];
           if (toastEl) toastEl.classList.add(...classes);
-          return !!toastEl;
+          return Boolean(toastEl);
         };
         if (!applyClass()) requestAnimationFrame(applyClass);
       }
@@ -52,7 +52,7 @@ sap.ui.define(
         initialFocus: msg.INITIALFOCUS || null,
         textDirection: msg.TEXTDIRECTION || "Inherit",
         details: msg.DETAILS ? Lib.sanitizeMessageDetails(msg.DETAILS) : "",
-        closeOnNavigation: !!msg.CLOSEONNAVIGATION,
+        closeOnNavigation: Boolean(msg.CLOSEONNAVIGATION),
       };
       if (msg.ICON && msg.ICON !== "NONE") oParams.icon = msg.ICON;
       // MessageBox display methods are lowercase (show, error, warning,

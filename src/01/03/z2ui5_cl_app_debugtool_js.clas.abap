@@ -39,7 +39,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      const safe = val === undefined ? null : val;` && |\n| &&
              `      try {` && |\n| &&
              `        return JSON.stringify(safe, null, 3);` && |\n| &&
-             `      } catch (e) {` && |\n| &&
+             `      } catch {` && |\n| &&
              `        // e.g. circular references in ComponentData - the debug tool must` && |\n| &&
              `        // never crash the host app, so degrade to the plain string form.` && |\n| &&
              `        return String(safe);` && |\n| &&
@@ -167,10 +167,10 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `          const resultXml = _xmlSerializer.serializeToString(resultDoc);` && |\n| &&
              `          // The serializer escapes < and > inside text nodes; undo this so` && |\n| &&
              `          // the output is browseable XML again.` && |\n| &&
-             `          return resultXml.replace(/&gt;|&lt;/g, (m) =>` && |\n| &&
-             `            m === "&gt;" ? ">" : "<",` && |\n| &&
+             `          return resultXml.replace(/&gt;|&lt;/g, (match) =>` && |\n| &&
+             `            match === "&gt;" ? ">" : "<",` && |\n| &&
              `          );` && |\n| &&
-             `        } catch (e) {` && |\n| &&
+             `        } catch {` && |\n| &&
              `          return sourceXml;` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
@@ -230,7 +230,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        const modelData = oModel.getData();` && |\n| &&
              `        modelData.editor_visible = true;` && |\n| &&
              `        modelData.source_visible = false;` && |\n| &&
-             `        modelData.isTemplating = !!content?.includes("xmlns:template");` && |\n| &&
+             `        modelData.isTemplating = Boolean(content?.includes("xmlns:template"));` && |\n| &&
              `        modelData.value = content;` && |\n| &&
              `        modelData.previousValue = content;` && |\n| &&
              `        modelData.xContent = xcontent;` && |\n| &&
@@ -244,11 +244,9 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        const modelData = oModel.getData();` && |\n| &&
              `        // Toggle between the original (previousValue) and the rendered DOM` && |\n| &&
              `        // (xContent) representation.` && |\n| &&
-             `        if (oSource.getPressed()) {` && |\n| &&
-             `          modelData.value = modelData.xContent;` && |\n| &&
-             `        } else {` && |\n| &&
-             `          modelData.value = modelData.previousValue;` && |\n| &&
-             `        }` && |\n| &&
+             `        modelData.value = oSource.getPressed()` && |\n| &&
+             `          ? modelData.xContent` && |\n| &&
+             `          : modelData.previousValue;` && |\n| &&
              `        oModel.refresh();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -287,10 +285,10 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `            previousValue: value,` && |\n| &&
              `            isTemplating: false,` && |\n| &&
              `            templatingSource: false,` && |\n| &&
-             `            activeNest1: !!getViewContent(ViewSlots.getView("NEST")),` && |\n| &&
-             `            activeNest2: !!getViewContent(ViewSlots.getView("NEST2")),` && |\n| &&
-             `            activePopup: !!getResponseXml("S_POPUP"),` && |\n| &&
-             `            activePopover: !!getResponseXml("S_POPOVER"),` && |\n| &&
+             `            activeNest1: Boolean(getViewContent(ViewSlots.getView("NEST"))),` && |\n| &&
+             `            activeNest2: Boolean(getViewContent(ViewSlots.getView("NEST2"))),` && |\n| &&
+             `            activePopup: Boolean(getResponseXml("S_POPUP")),` && |\n| &&
+             `            activePopover: Boolean(getResponseXml("S_POPOVER")),` && |\n| &&
              `          };` && |\n| &&
              `` && |\n| &&
              `          const oModel = new JSONModel(oData);` && |\n| &&

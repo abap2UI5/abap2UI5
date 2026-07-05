@@ -1,3 +1,6 @@
+// Invisible control that reads the device position once after rendering
+// into its bindable properties (longitude, latitude, ...) and fires
+// `finished` so the backend can pick the values up.
 sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
   "use strict";
 
@@ -63,9 +66,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
       // The control could be torn down while the geolocation API was busy.
       if (Lib.isDestroyed(this)) return;
       for (const prop of _GEO_PROPS) {
-        const raw = coords[prop];
-        const val = Lib.toText(raw);
-        this.setProperty(prop, val, true);
+        this.setProperty(prop, Lib.toText(coords[prop]), true);
       }
       this.fireFinished();
     },
@@ -89,7 +90,9 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
             Lib.logError(`Geolocation error (${error.code}): ${error.message}`),
           {
             enableHighAccuracy: this.getProperty("enableHighAccuracy"),
-            timeout: +this.getProperty("timeout"),
+            // Guard against an empty or non-numeric property - NaN or 0
+            // would make getCurrentPosition fail immediately.
+            timeout: Number(this.getProperty("timeout")) || 5000,
           },
         );
       } catch (e) {

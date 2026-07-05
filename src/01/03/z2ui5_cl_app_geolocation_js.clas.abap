@@ -18,7 +18,10 @@ CLASS z2ui5_cl_app_geolocation_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
+    result = `// Invisible control that reads the device position once after rendering` && |\n| &&
+             `// into its bindable properties (longitude, latitude, ...) and fires` && |\n| &&
+             `// ``finished`` so the backend can pick the values up.` && |\n| &&
+             `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
              `  const _GEO_PROPS = [` && |\n| &&
@@ -83,9 +86,7 @@ CLASS z2ui5_cl_app_geolocation_js IMPLEMENTATION.
              `      // The control could be torn down while the geolocation API was busy.` && |\n| &&
              `      if (Lib.isDestroyed(this)) return;` && |\n| &&
              `      for (const prop of _GEO_PROPS) {` && |\n| &&
-             `        const raw = coords[prop];` && |\n| &&
-             `        const val = Lib.toText(raw);` && |\n| &&
-             `        this.setProperty(prop, val, true);` && |\n| &&
+             `        this.setProperty(prop, Lib.toText(coords[prop]), true);` && |\n| &&
              `      }` && |\n| &&
              `      this.fireFinished();` && |\n| &&
              `    },` && |\n| &&
@@ -109,7 +110,9 @@ CLASS z2ui5_cl_app_geolocation_js IMPLEMENTATION.
              `            Lib.logError(``Geolocation error (${error.code}): ${error.message}``),` && |\n| &&
              `          {` && |\n| &&
              `            enableHighAccuracy: this.getProperty("enableHighAccuracy"),` && |\n| &&
-             `            timeout: +this.getProperty("timeout"),` && |\n| &&
+             `            // Guard against an empty or non-numeric property - NaN or 0` && |\n| &&
+             `            // would make getCurrentPosition fail immediately.` && |\n| &&
+             `            timeout: Number(this.getProperty("timeout")) || 5000,` && |\n| &&
              `          },` && |\n| &&
              `        );` && |\n| &&
              `      } catch (e) {` && |\n| &&

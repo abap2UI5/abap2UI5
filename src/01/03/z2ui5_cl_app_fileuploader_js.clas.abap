@@ -29,6 +29,11 @@ CLASS z2ui5_cl_app_fileuploader_js IMPLEMENTATION.
              `  (Control, Button, FileUploader, HBox, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
+             `    // File picker: wraps sap.ui.unified.FileUploader plus an optional` && |\n| &&
+             `    // Upload button. The chosen file is read as a base64 data URL into` && |\n| &&
+             `    // ``value`` and handed to the backend via the ``upload`` event - either` && |\n| &&
+             `    // when the button is pressed or, with checkDirectUpload, right after` && |\n| &&
+             `    // the file was selected.` && |\n| &&
              `    return Control.extend("z2ui5.cc.FileUploader", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -171,8 +176,7 @@ CLASS z2ui5_cl_app_fileuploader_js IMPLEMENTATION.
              `              const value = oEvent.getSource().getProperty("value");` && |\n| &&
              `              oControl.setProperty("path", value);` && |\n| &&
              `              if (oControl.oUploadButton) {` && |\n| &&
-             `                oControl.oUploadButton.setEnabled(!!value);` && |\n| &&
-             `                oControl.oUploadButton.invalidate();` && |\n| &&
+             `                oControl.oUploadButton.setEnabled(Boolean(value));` && |\n| &&
              `              }` && |\n| &&
              `            },` && |\n| &&
              `            uploadComplete: (oEvent) => {` && |\n| &&

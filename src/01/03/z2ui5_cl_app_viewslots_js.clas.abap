@@ -68,8 +68,14 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `    },` && |\n| &&
              `  ];` && |\n| &&
              `` && |\n| &&
+             `  // Constant-time lookups for the frequently used resolutions (byId,` && |\n| &&
+             `  // getView, paramByKey run on every roundtrip and scroll/focus capture)` && |\n| &&
+             `  // instead of a linear find() per call.` && |\n| &&
+             `  const slotsByKey = new Map(slots.map((s) => [s.key, s]));` && |\n| &&
+             `  const slotsByParam = new Map(slots.map((s) => [s.param, s]));` && |\n| &&
+             `` && |\n| &&
              `  function byKey(key) {` && |\n| &&
-             `    return slots.find((s) => s.key === key);` && |\n| &&
+             `    return slotsByKey.get(key);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // Live view (or fragment) instance of a slot, undefined when not open.` && |\n| &&
@@ -91,8 +97,7 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `` && |\n| &&
              `  // Returns the slot key for a response param key ("S_VIEW" -> "MAIN").` && |\n| &&
              `  function keyByParam(param) {` && |\n| &&
-             `    const slot = slots.find((s) => s.param === param);` && |\n| &&
-             `    return slot ? slot.key : undefined;` && |\n| &&
+             `    return slotsByParam.get(param)?.key;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // Returns the response param key for a slot key ("MAIN" -> "S_VIEW").` && |\n| &&

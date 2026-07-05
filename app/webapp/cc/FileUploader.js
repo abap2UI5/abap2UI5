@@ -9,6 +9,11 @@ sap.ui.define(
   (Control, Button, FileUploader, HBox, Lib) => {
     "use strict";
 
+    // File picker: wraps sap.ui.unified.FileUploader plus an optional
+    // Upload button. The chosen file is read as a base64 data URL into
+    // `value` and handed to the backend via the `upload` event - either
+    // when the button is pressed or, with checkDirectUpload, right after
+    // the file was selected.
     return Control.extend("z2ui5.cc.FileUploader", {
       metadata: {
         properties: {
@@ -151,8 +156,7 @@ sap.ui.define(
               const value = oEvent.getSource().getProperty("value");
               oControl.setProperty("path", value);
               if (oControl.oUploadButton) {
-                oControl.oUploadButton.setEnabled(!!value);
-                oControl.oUploadButton.invalidate();
+                oControl.oUploadButton.setEnabled(Boolean(value));
               }
             },
             uploadComplete: (oEvent) => {

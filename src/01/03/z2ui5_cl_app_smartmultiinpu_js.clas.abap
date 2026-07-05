@@ -23,6 +23,10 @@ CLASS z2ui5_cl_app_smartmultiinpu_js IMPLEMENTATION.
              `  (Control, Lib, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
+             `    // Invisible companion control for a SmartMultiInput (referenced via` && |\n| &&
+             `    // multiInputId): mirrors token updates and the select-option style` && |\n| &&
+             `    // range data into bindable properties so the backend can read and` && |\n| &&
+             `    // restore the input's state across roundtrips.` && |\n| &&
              `    return Control.extend("z2ui5.cc.SmartMultiInputExt", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -78,8 +82,8 @@ CLASS z2ui5_cl_app_smartmultiinpu_js IMPLEMENTATION.
              `        const rangeData = source.getRangeData() || [];` && |\n| &&
              `        const enrichedRanges = rangeData.map((oRangeData, index) => {` && |\n| &&
              `          const token = tokens[index];` && |\n| &&
-             `          oRangeData.tokenText = token ? token.getText() : "";` && |\n| &&
-             `          oRangeData.tokenLongKey = token ? token.data("longKey") : undefined;` && |\n| &&
+             `          oRangeData.tokenText = token?.getText() ?? "";` && |\n| &&
+             `          oRangeData.tokenLongKey = token?.data("longKey");` && |\n| &&
              `          return oRangeData;` && |\n| &&
              `        });` && |\n| &&
              `        this.setProperty("rangeData", enrichedRanges);` && |\n| &&

@@ -18,7 +18,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(` && |\n| &&
+    result = `// The central view controller. One instance serves each of the five view` && |\n| &&
+             `// slots (main view, two nested views, popup, popover - see` && |\n| &&
+             `// core/ViewSlots.js). It builds the request for backend events (eB),` && |\n| &&
+             `// dispatches frontend-only events (eF), renders the views and fragments a` && |\n| &&
+             `// response asks for, and runs the post-render follow-ups.` && |\n| &&
+             `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
              `    "sap/ui/core/mvc/Controller",` && |\n| &&
              `    "sap/ui/core/mvc/XMLView",` && |\n| &&
@@ -81,14 +86,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const ctx = params.context;` && |\n| &&
              `          if (!raw) return;` && |\n| &&
              `          // Resolve relative paths against the binding context.` && |\n| &&
-             `          let p;` && |\n| &&
-             `          if (ctx && !raw.startsWith("/")) {` && |\n| &&
-             `            p = ``${ctx.getPath()}/${raw}``;` && |\n| &&
-             `          } else {` && |\n| &&
-             `            p = raw;` && |\n| &&
-             `          }` && |\n| &&
-             `          if (p.startsWith("/XX/")) {` && |\n| &&
-             `            z2ui5.xxChangedPaths.add(p);` && |\n| &&
+             `          const changedPath =` && |\n| &&
+             `            ctx && !raw.startsWith("/") ? ``${ctx.getPath()}/${raw}`` : raw;` && |\n| &&
+             `          if (changedPath.startsWith("/XX/")) {` && |\n| &&
+             `            z2ui5.xxChangedPaths.add(changedPath);` && |\n| &&
              `          }` && |\n| &&
              `        });` && |\n| &&
              `        return oModel;` && |\n| &&
@@ -416,9 +417,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        Lib.runCallbacks(z2ui5.onBeforeRoundtrip);` && |\n| &&
              `` && |\n| &&
-             `        // If the user edited /XX/ paths, send only the delta to keep the` && |\n| &&
-             `        // payload small.` && |\n|.
+             `        // If the user edited /XX/ paths, send only the delta to keep the` && |\n|.
     result = result &&
+             `        // payload small.` && |\n| &&
              `        if (oModel && z2ui5.xxChangedPaths.size > 0) {` && |\n| &&
              `          const data = oModel.getData();` && |\n| &&
              `          const xx = data?.XX;` && |\n| &&
@@ -449,7 +450,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (!slotKey) return undefined;` && |\n| &&
              `` && |\n| &&
              `        if (slotKey === "MAIN") {` && |\n| &&
-             `          const sView = z2ui5.oResponse?.PARAMS?.S_VIEW ?? null;` && |\n| &&
+             `          const sView = z2ui5.oResponse?.PARAMS?.S_VIEW;` && |\n| &&
              `          if (sView?.SWITCH_DEFAULT_MODEL_PATH) {` && |\n| &&
              `            return ViewSlots.getView("MAIN")?.getModel("http");` && |\n| &&
              `          }` && |\n| &&
@@ -470,7 +471,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      updateModelIfRequired(slotKey) {` && |\n| &&
              `        const params = z2ui5.oResponse?.PARAMS;` && |\n| &&
              `        const slotParams = params?.[ViewSlots.paramByKey(slotKey)];` && |\n| &&
-             `        if (!slotParams || !slotParams.CHECK_UPDATE_MODEL) return;` && |\n| &&
+             `        if (!slotParams?.CHECK_UPDATE_MODEL) return;` && |\n| &&
              `` && |\n| &&
              `        const oView = ViewSlots.getView(slotKey);` && |\n| &&
              `        if (!oView) return;` && |\n| &&
@@ -499,7 +500,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      async displayView(xml, viewModel) {` && |\n| &&
              `        const oViewModel = this._trackChanges(new JSONModel(viewModel));` && |\n| &&
              `` && |\n| &&
-             `        const sView = z2ui5.oResponse?.PARAMS?.S_VIEW ?? null;` && |\n| &&
+             `        const sView = z2ui5.oResponse?.PARAMS?.S_VIEW;` && |\n| &&
              `        const switchPath = sView?.SWITCH_DEFAULT_MODEL_PATH;` && |\n| &&
              `` && |\n| &&
              `        // When the app wants OData as the default model, build it here and` && |\n| &&

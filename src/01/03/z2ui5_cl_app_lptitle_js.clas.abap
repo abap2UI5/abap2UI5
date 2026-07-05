@@ -18,7 +18,10 @@ CLASS z2ui5_cl_app_lptitle_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
+    result = `// Invisible control that sets the Launchpad shell title and the` && |\n| &&
+             `// full-width mode when the app runs inside the FLP; does nothing when` && |\n| &&
+             `// running standalone.` && |\n| &&
+             `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `  return Control.extend("z2ui5.cc.LPTitle", {` && |\n| &&
              `    metadata: {` && |\n| &&
@@ -35,7 +38,7 @@ CLASS z2ui5_cl_app_lptitle_js IMPLEMENTATION.
              `      this.setProperty("title", val);` && |\n| &&
              `      try {` && |\n| &&
              `        const shell = z2ui5.oLaunchpad?.ShellUIService;` && |\n| &&
-             `        if (!shell || !shell.setTitle) return;` && |\n| &&
+             `        if (!shell?.setTitle) return;` && |\n| &&
              `        // Same normalization as the SET_TITLE_LAUNCHPAD frontend action:` && |\n| &&
              `        // never hand undefined/null to the shell service.` && |\n| &&
              `        const result = shell.setTitle(Lib.toText(val));` && |\n| &&

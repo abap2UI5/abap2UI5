@@ -23,6 +23,9 @@ CLASS z2ui5_cl_app_tree_js IMPLEMENTATION.
              `  (Control, Lib, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
+             `    // Invisible control that preserves the expand/collapse state of a` && |\n| &&
+             `    // sap.m.Tree (referenced via tree_id) across roundtrips - a rebuilt` && |\n| &&
+             `    // binding would otherwise start fully collapsed.` && |\n| &&
              `    return Control.extend("z2ui5.cc.Tree", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -34,8 +37,7 @@ CLASS z2ui5_cl_app_tree_js IMPLEMENTATION.
              `` && |\n| &&
              `      _getTreeBinding() {` && |\n| &&
              `        const treeControl = ViewSlots.byId("MAIN", this.getProperty("tree_id"));` && |\n| &&
-             `        if (!treeControl) return undefined;` && |\n| &&
-             `        return treeControl.getBinding("items");` && |\n| &&
+             `        return treeControl?.getBinding("items");` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      setBackend() {` && |\n| &&

@@ -23,6 +23,11 @@ CLASS z2ui5_cl_app_uitableext_js IMPLEMENTATION.
              `  (Control, Lib, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
+             `    // Invisible companion control for a sap.ui.table.Table (referenced via` && |\n| &&
+             `    // tableId): saves the user's filters and sort order before each` && |\n| &&
+             `    // roundtrip and re-applies them - including the column indicators -` && |\n| &&
+             `    // when the response rebuilt the table binding, which would otherwise` && |\n| &&
+             `    // lose them.` && |\n| &&
              `    const opSymbols = { EQ: "", NE: "!", LT: "<", LE: "<=", GT: ">", GE: ">=" };` && |\n| &&
              `    const filterDisplayFns = {` && |\n| &&
              `      Contains: (v) => ``*${v ?? ""}*``,` && |\n| &&
@@ -71,11 +76,9 @@ CLASS z2ui5_cl_app_uitableext_js IMPLEMENTATION.
              `          this._filterBinding = binding;` && |\n| &&
              `          // Prefer the public getFilters API (UI5 >= 1.96); older releases` && |\n| &&
              `          // only expose the private aFilters member.` && |\n| &&
-             `          this.aFilters = !binding` && |\n| &&
-             `            ? undefined` && |\n| &&
-             `            : binding.getFilters` && |\n| &&
-             `              ? binding.getFilters("Application")` && |\n| &&
-             `              : binding.aFilters;` && |\n| &&
+             `          this.aFilters = binding?.getFilters` && |\n| &&
+             `            ? binding.getFilters("Application")` && |\n| &&
+             `            : binding?.aFilters;` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("UITableExt.readFilter failed", e);` && |\n| &&
              `        }` && |\n| &&
@@ -134,7 +137,7 @@ CLASS z2ui5_cl_app_uitableext_js IMPLEMENTATION.
              `          for (const oCol of columns) {` && |\n| &&
              `            if (oCol.getFilterProperty?.() === sProperty) {` && |\n| &&
              `              oCol.setFilterValue(display);` && |\n| &&
-             `              oCol.setFiltered(!!display);` && |\n| &&
+             `              oCol.setFiltered(Boolean(display));` && |\n| &&
              `            }` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
@@ -184,13 +187,15 @@ CLASS z2ui5_cl_app_uitableext_js IMPLEMENTATION.
              `        binding.sort(aSorters);` && |\n| &&
              `` && |\n| &&
              `        const columns = oTable.getColumns();` && |\n| &&
-             `        for (const [idx, srt] of aSorters.entries()) {` && |\n| &&
+             `        for (const [index, sorter] of aSorters.entries()) {` && |\n| &&
              `          for (const oCol of columns) {` && |\n| &&
-             `            if (oCol.getSortProperty?.() === srt.sPath) {` && |\n| &&
+             `            if (oCol.getSortProperty?.() === sorter.sPath) {` && |\n| &&
              `              oCol.setSorted(true);` && |\n| &&
-             `              oCol.setSortOrder(srt.bDescending ? "Descending" : "Ascending");` && |\n| &&
+             `              oCol.setSortOrder(` && |\n| &&
+             `                sorter.bDescending ? "Descending" : "Ascending",` && |\n| &&
+             `              );` && |\n| &&
              `              // setSortIndex is only available on some column variants.` && |\n| &&
-             `              if (oCol.setSortIndex) oCol.setSortIndex(idx);` && |\n| &&
+             `              if (oCol.setSortIndex) oCol.setSortIndex(index);` && |\n| &&
              `            }` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&

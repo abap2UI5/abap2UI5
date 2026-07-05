@@ -31,9 +31,11 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `  // so a stack trace from the backend cannot blow up the error overlay.` && |\n| &&
              `  const ERROR_MAX_LENGTH = 50000;` && |\n| &&
              `` && |\n| &&
-             `  function getOrCreateContainer() {` && |\n| &&
-             `    const existing = document.getElementById("serverErrorContainer");` && |\n| &&
-             `    if (existing) return existing;` && |\n| &&
+             `  function createContainer() {` && |\n| &&
+             `    // Always start from a fresh element: reusing a previous overlay would` && |\n| &&
+             `    // keep its keydown focus-trap listener alive and stack a duplicate on` && |\n| &&
+             `    // every further show() call.` && |\n| &&
+             `    document.getElementById("serverErrorContainer")?.remove();` && |\n| &&
              `` && |\n| &&
              `    const container = document.createElement("div");` && |\n| &&
              `    container.id = "serverErrorContainer";` && |\n| &&
@@ -67,7 +69,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `      } else {` && |\n| &&
              `        fallback();` && |\n| &&
              `      }` && |\n| &&
-             `    } catch (e) {` && |\n| &&
+             `    } catch {` && |\n| &&
              `      fallback();` && |\n| &&
              `    }` && |\n| &&
              `  }` && |\n| &&
@@ -79,19 +81,14 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `  // the server and app state is still intact).` && |\n| &&
              `  function show(response, title, options = {}) {` && |\n| &&
              `    const full = response?.stack ? String(response.stack) : String(response);` && |\n| &&
-             `    let errorMessage;` && |\n| &&
-             `    if (full.length > ERROR_MAX_LENGTH) {` && |\n| &&
-             `      // Rendered via textContent, so use plain text (an HTML comment would` && |\n| &&
-             `      // show up literally).` && |\n| &&
-             `      errorMessage =` && |\n| &&
-             `        full.slice(0, ERROR_MAX_LENGTH) +` && |\n| &&
-             `        ``\n\n[... truncated after ${ERROR_MAX_LENGTH} characters]``;` && |\n| &&
-             `    } else {` && |\n| &&
-             `      errorMessage = full;` && |\n| &&
-             `    }` && |\n| &&
+             `    // Rendered via textContent, so the truncation marker is plain text (an` && |\n| &&
+             `    // HTML comment would show up literally).` && |\n| &&
+             `    const errorMessage =` && |\n| &&
+             `      full.length > ERROR_MAX_LENGTH` && |\n| &&
+             `        ? ``${full.slice(0, ERROR_MAX_LENGTH)}\n\n[... truncated after ${ERROR_MAX_LENGTH} characters]``` && |\n| &&
+             `        : full;` && |\n| &&
              `` && |\n| &&
-             `    const errorContainer = getOrCreateContainer();` && |\n| &&
-             `    errorContainer.textContent = "";` && |\n| &&
+             `    const errorContainer = createContainer();` && |\n| &&
              `` && |\n| &&
              `    // Announce the overlay to assistive technology: without a dialog role` && |\n| &&
              `    // and focus move, a screen-reader user is never told the app crashed.` && |\n| &&

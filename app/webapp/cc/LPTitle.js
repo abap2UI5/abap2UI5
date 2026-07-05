@@ -1,3 +1,6 @@
+// Invisible control that sets the Launchpad shell title and the
+// full-width mode when the app runs inside the FLP; does nothing when
+// running standalone.
 sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
   "use strict";
   return Control.extend("z2ui5.cc.LPTitle", {
@@ -15,7 +18,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
       this.setProperty("title", val);
       try {
         const shell = z2ui5.oLaunchpad?.ShellUIService;
-        if (!shell || !shell.setTitle) return;
+        if (!shell?.setTitle) return;
         // Same normalization as the SET_TITLE_LAUNCHPAD frontend action:
         // never hand undefined/null to the shell service.
         const result = shell.setTitle(Lib.toText(val));

@@ -48,8 +48,14 @@ sap.ui.define(["sap/ui/core/Fragment", "z2ui5/core/Lib"], (Fragment, Lib) => {
     },
   ];
 
+  // Constant-time lookups for the frequently used resolutions (byId,
+  // getView, paramByKey run on every roundtrip and scroll/focus capture)
+  // instead of a linear find() per call.
+  const slotsByKey = new Map(slots.map((s) => [s.key, s]));
+  const slotsByParam = new Map(slots.map((s) => [s.param, s]));
+
   function byKey(key) {
-    return slots.find((s) => s.key === key);
+    return slotsByKey.get(key);
   }
 
   // Live view (or fragment) instance of a slot, undefined when not open.
@@ -71,8 +77,7 @@ sap.ui.define(["sap/ui/core/Fragment", "z2ui5/core/Lib"], (Fragment, Lib) => {
 
   // Returns the slot key for a response param key ("S_VIEW" -> "MAIN").
   function keyByParam(param) {
-    const slot = slots.find((s) => s.param === param);
-    return slot ? slot.key : undefined;
+    return slotsByParam.get(param)?.key;
   }
 
   // Returns the response param key for a slot key ("MAIN" -> "S_VIEW").

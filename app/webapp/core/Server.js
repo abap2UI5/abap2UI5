@@ -100,34 +100,33 @@ sap.ui.define(
       },
 
       _getDeviceInfo() {
-        const d = Device;
         // SYSTEM / BROWSER / OS / SUPPORT are fixed for the lifetime of the
         // session, so resolve them once and reuse the cached block; only
         // ORIENTATION and RESIZE are read fresh on every roundtrip.
         if (!this._deviceStatic) {
           this._deviceStatic = {
-            SYSTEM: Lib.deriveSystemType(d.system),
+            SYSTEM: Lib.deriveSystemType(Device.system),
             BROWSER: {
-              NAME: d.browser.name || "",
-              VERSION: String(d.browser.version || ""),
+              NAME: Device.browser.name || "",
+              VERSION: String(Device.browser.version || ""),
             },
             OS: {
-              NAME: d.os.name || "",
-              VERSION: String(d.os.version || ""),
+              NAME: Device.os.name || "",
+              VERSION: String(Device.os.version || ""),
             },
             SUPPORT: {
-              TOUCH: d.support.touch || false,
-              POINTER: d.support.pointer || false,
-              RETINA: d.support.retina || false,
+              TOUCH: Device.support.touch || false,
+              POINTER: Device.support.pointer || false,
+              RETINA: Device.support.retina || false,
             },
           };
         }
         return {
           ...this._deviceStatic,
-          ORIENTATION: d.orientation.portrait ? "portrait" : "landscape",
+          ORIENTATION: Device.orientation.portrait ? "portrait" : "landscape",
           RESIZE: {
-            WIDTH: d.resize.width || window.innerWidth,
-            HEIGHT: d.resize.height || window.innerHeight,
+            WIDTH: Device.resize.width || window.innerWidth,
+            HEIGHT: Device.resize.height || window.innerHeight,
           },
         };
       },
@@ -169,7 +168,7 @@ sap.ui.define(
             SELECTION_START: active.selectionStart || 0,
             SELECTION_END: active.selectionEnd || 0,
           };
-        } catch (e) {
+        } catch {
           return undefined;
         }
       },
@@ -284,9 +283,7 @@ sap.ui.define(
 
         // Remove empty / undefined fields so the backend request stays small
         // and these keys are not present in the JSON sent over the wire.
-        if (!sFront.T_EVENT_ARG || sFront.T_EVENT_ARG.length === 0) {
-          delete sFront.T_EVENT_ARG;
-        }
+        if (!sFront.T_EVENT_ARG?.length) delete sFront.T_EVENT_ARG;
         if (sFront.SEARCH === "") delete sFront.SEARCH;
         if (!oBody.XX) delete oBody.XX;
 
@@ -335,9 +332,9 @@ sap.ui.define(
             }
             response = await fetch(z2ui5.url, {
               method: "POST",
-              headers: headers,
+              headers,
               body: JSON.stringify({ value: oBody }),
-              signal: signal,
+              signal,
             });
           } catch (e) {
             if (e.name === "TimeoutError" || e.name === "AbortError") {
@@ -368,7 +365,7 @@ sap.ui.define(
             let text;
             try {
               text = await response.text();
-            } catch (e) {
+            } catch {
               text = `HTTP ${response.status}: could not read error body`;
             }
             // An empty error body would render an empty overlay - fall back

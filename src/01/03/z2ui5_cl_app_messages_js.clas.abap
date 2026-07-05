@@ -27,12 +27,12 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `  (MessageBox, MessageToast, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // Parse a value as integer milliseconds, falling back to ``def`` when the` && |\n| &&
-             `    // input is empty / undefined / not a finite number (so a stray` && |\n| &&
+             `    // Parse a value as integer milliseconds, falling back to ``fallback``` && |\n| &&
+             `    // when the input is empty / undefined / not a finite number (so a stray` && |\n| &&
              `    // non-numeric value never reaches MessageToast as NaN).` && |\n| &&
-             `    function parseMs(val, def) {` && |\n| &&
-             `      const n = +val;` && |\n| &&
-             `      return val && Number.isFinite(n) ? n : def;` && |\n| &&
+             `    function parseMs(val, fallback) {` && |\n| &&
+             `      const parsed = Number(val);` && |\n| &&
+             `      return val && Number.isFinite(parsed) ? parsed : fallback;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function showToast(msg, oController) {` && |\n| &&
@@ -40,10 +40,10 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `        duration: parseMs(msg.DURATION, 3000),` && |\n| &&
              `        width: msg.WIDTH || "15em",` && |\n| &&
              `        onClose: msg.ONCLOSE ? () => oController.eB([msg.ONCLOSE]) : null,` && |\n| &&
-             `        autoClose: !!msg.AUTOCLOSE,` && |\n| &&
+             `        autoClose: Boolean(msg.AUTOCLOSE),` && |\n| &&
              `        animationTimingFunction: msg.ANIMATIONTIMINGFUNCTION || "ease",` && |\n| &&
              `        animationDuration: parseMs(msg.ANIMATIONDURATION, 1000),` && |\n| &&
-             `        closeOnBrowserNavigation: !!msg.CLOSEONBROWSERNAVIGATION,` && |\n| &&
+             `        closeOnBrowserNavigation: Boolean(msg.CLOSEONBROWSERNAVIGATION),` && |\n| &&
              `      });` && |\n| &&
              `      if (msg.CLASS) {` && |\n| &&
              `        const classes = msg.CLASS.trim().split(/\s+/).filter(Boolean);` && |\n| &&
@@ -54,7 +54,7 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `          const toasts = document.querySelectorAll(".sapMMessageToast");` && |\n| &&
              `          const toastEl = toasts[toasts.length - 1];` && |\n| &&
              `          if (toastEl) toastEl.classList.add(...classes);` && |\n| &&
-             `          return !!toastEl;` && |\n| &&
+             `          return Boolean(toastEl);` && |\n| &&
              `        };` && |\n| &&
              `        if (!applyClass()) requestAnimationFrame(applyClass);` && |\n| &&
              `      }` && |\n| &&
@@ -72,7 +72,7 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `        initialFocus: msg.INITIALFOCUS || null,` && |\n| &&
              `        textDirection: msg.TEXTDIRECTION || "Inherit",` && |\n| &&
              `        details: msg.DETAILS ? Lib.sanitizeMessageDetails(msg.DETAILS) : "",` && |\n| &&
-             `        closeOnNavigation: !!msg.CLOSEONNAVIGATION,` && |\n| &&
+             `        closeOnNavigation: Boolean(msg.CLOSEONNAVIGATION),` && |\n| &&
              `      };` && |\n| &&
              `      if (msg.ICON && msg.ICON !== "NONE") oParams.icon = msg.ICON;` && |\n| &&
              `      // MessageBox display methods are lowercase (show, error, warning,` && |\n| &&

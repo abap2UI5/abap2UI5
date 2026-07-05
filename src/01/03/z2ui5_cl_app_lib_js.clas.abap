@@ -42,7 +42,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `  // Node specs that load this module with a bare z2ui5 stub.` && |\n| &&
              `  function logError(message, error) {` && |\n| &&
              `    if (!z2ui5.errors) z2ui5.errors = [];` && |\n| &&
-             `    const entry = { message: message, ts: new Date().toISOString() };` && |\n| &&
+             `    const entry = { message, ts: new Date().toISOString() };` && |\n| &&
              `    if (error !== undefined) entry.error = error;` && |\n| &&
              `    z2ui5.errors.push(entry);` && |\n| &&
              `    if (z2ui5.errors.length > MAX_ERRORS) z2ui5.errors.shift();` && |\n| &&
@@ -50,14 +50,14 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `` && |\n| &&
              `  // True when the object supports isDestroyed() and reports destroyed.` && |\n| &&
              `  function isDestroyed(obj) {` && |\n| &&
-             `    return !!(obj?.isDestroyed && obj.isDestroyed());` && |\n| &&
+             `    return Boolean(obj?.isDestroyed && obj.isDestroyed());` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // True when the object exists and is not destroyed. Used to guard` && |\n| &&
              `  // async continuations (await, FileReader, getUserMedia, ...) against` && |\n| &&
              `  // controls or views that were torn down in the meantime.` && |\n| &&
              `  function isAlive(obj) {` && |\n| &&
-             `    return !!obj && !isDestroyed(obj);` && |\n| &&
+             `    return Boolean(obj) && !isDestroyed(obj);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // Helpers for managing z2ui5 callback arrays (onBeforeRoundtrip,` && |\n| &&
@@ -194,26 +194,35 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `    return "desktop";` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // Returns true only if the URL is on the same origin and uses http/https.` && |\n| &&
-             `  function isValidRedirectURL(url) {` && |\n| &&
-             `    if (!url) return false;` && |\n| &&
+             `  // Shared first step of the URL validators below: resolve the URL against` && |\n| &&
+             `  // the current origin, log and return null when it is empty or malformed.` && |\n| &&
+             `  function parseUrl(url) {` && |\n| &&
+             `    if (!url) return null;` && |\n| &&
              `    try {` && |\n| &&
-             `      const parsed = new URL(url, window.location.origin);` && |\n| &&
-             `      if (parsed.origin !== window.location.origin) {` && |\n| &&
-             `        logError(``Security: Blocked redirect to different origin: ${url}``);` && |\n| &&
-             `        return false;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (!SAFE_PROTOCOLS.includes(parsed.protocol)) {` && |\n| &&
-             `        logError(` && |\n| &&
-             `          ``Security: Blocked redirect with invalid protocol: ${parsed.protocol}``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return false;` && |\n| &&
-             `      }` && |\n| &&
-             `      return true;` && |\n| &&
+             `      return new URL(url, window.location.origin);` && |\n| &&
              `    } catch (e) {` && |\n| &&
              `      logError(``Security: Invalid URL format: ${url}``, e);` && |\n| &&
+             `      return null;` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function hasSafeProtocol(parsed) {` && |\n| &&
+             `    if (SAFE_PROTOCOLS.includes(parsed.protocol)) return true;` && |\n| &&
+             `    logError(` && |\n| &&
+             `      ``Security: Blocked redirect with invalid protocol: ${parsed.protocol}``,` && |\n| &&
+             `    );` && |\n| &&
+             `    return false;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // Returns true only if the URL is on the same origin and uses http/https.` && |\n| &&
+             `  function isValidRedirectURL(url) {` && |\n| &&
+             `    const parsed = parseUrl(url);` && |\n| &&
+             `    if (!parsed) return false;` && |\n| &&
+             `    if (parsed.origin !== window.location.origin) {` && |\n| &&
+             `      logError(``Security: Blocked redirect to different origin: ${url}``);` && |\n| &&
              `      return false;` && |\n| &&
              `    }` && |\n| &&
+             `    return hasSafeProtocol(parsed);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // Returns true if the URL uses a safe (http/https) protocol. Unlike` && |\n| &&
@@ -221,38 +230,21 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `  // outbound redirects to external sites while still blocking dangerous` && |\n| &&
              `  // schemes such as javascript:, data: or vbscript:.` && |\n| &&
              `  function isSafeRedirectProtocol(url) {` && |\n| &&
-             `    if (!url) return false;` && |\n| &&
-             `    try {` && |\n| &&
-             `      const parsed = new URL(url, window.location.origin);` && |\n| &&
-             `      if (!SAFE_PROTOCOLS.includes(parsed.protocol)) {` && |\n| &&
-             `        logError(` && |\n| &&
-             `          ``Security: Blocked redirect with invalid protocol: ${parsed.protocol}``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return false;` && |\n| &&
-             `      }` && |\n| &&
-             `      return true;` && |\n| &&
-             `    } catch (e) {` && |\n| &&
-             `      logError(``Security: Invalid URL format: ${url}``, e);` && |\n| &&
-             `      return false;` && |\n| &&
-             `    }` && |\n| &&
+             `    const parsed = parseUrl(url);` && |\n| &&
+             `    return parsed !== null && hasSafeProtocol(parsed);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // Returns true for URLs that are safe as download targets: data: and` && |\n| &&
              `  // blob: (generated content) plus http(s). Blocks javascript: and other` && |\n| &&
              `  // active schemes, consistent with the redirect validators above.` && |\n| &&
              `  function isSafeDownloadURL(url) {` && |\n| &&
-             `    if (!url) return false;` && |\n| &&
-             `    try {` && |\n| &&
-             `      const parsed = new URL(url, window.location.origin);` && |\n| &&
-             `      return (` && |\n| &&
-             `        parsed.protocol === "data:" ||` && |\n| &&
+             `    const parsed = parseUrl(url);` && |\n| &&
+             `    return (` && |\n| &&
+             `      parsed !== null &&` && |\n| &&
+             `      (parsed.protocol === "data:" ||` && |\n| &&
              `        parsed.protocol === "blob:" ||` && |\n| &&
-             `        SAFE_PROTOCOLS.includes(parsed.protocol)` && |\n| &&
-             `      );` && |\n| &&
-             `    } catch (e) {` && |\n| &&
-             `      logError(``Security: Invalid URL format: ${url}``, e);` && |\n| &&
-             `      return false;` && |\n| &&
-             `    }` && |\n| &&
+             `        SAFE_PROTOCOLS.includes(parsed.protocol))` && |\n| &&
+             `    );` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // A usable stateful session id ("sap-contextid"). We must never put a` && |\n| &&
@@ -276,7 +268,8 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      // delta. Deeper paths (e.g. tree tables: attr/row/<subtable>/<row>/<field>)` && |\n| &&
              `      // fall back to shipping the whole attribute, which the backend applies` && |\n| &&
              `      // via corresponding-based deserialization.` && |\n| &&
-             `      const isRowField = parts.length === 3 && rowIdx !== "" && !isNaN(rowIdx);` && |\n| &&
+             `      const isRowField =` && |\n| &&
+             `        parts.length === 3 && rowIdx !== "" && !Number.isNaN(Number(rowIdx));` && |\n| &&
              `      if (isRowField) {` && |\n| &&
              `        // A full attribute queued by another path already carries every` && |\n| &&
              `        // cell (both read the same current model data) - never downgrade` && |\n| &&
@@ -288,7 +281,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        const attrDelta = delta[attr].__delta;` && |\n| &&
              `        if (!attrDelta[rowIdx]) attrDelta[rowIdx] = {};` && |\n| &&
-             `        attrDelta[rowIdx][field] = xx[attr]?.[+rowIdx]?.[field];` && |\n| &&
+             `        attrDelta[rowIdx][field] = xx[attr]?.[Number(rowIdx)]?.[field];` && |\n| &&
              `      } else {` && |\n| &&
              `        // Scalar change -> ship the whole attribute.` && |\n| &&
              `        delta[attr] = xx[attr];` && |\n| &&

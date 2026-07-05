@@ -23,6 +23,10 @@ CLASS z2ui5_cl_app_storage_js IMPLEMENTATION.
              `  (Control, Storage, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
+             `    // Invisible control that reads a value from browser storage` && |\n| &&
+             `    // (session/local, see sap.ui.util.Storage) into its ``value`` property` && |\n| &&
+             `    // and fires ``finished`` when the stored value differs from the current` && |\n| &&
+             `    // one. The write side is handled by the STORE_DATA frontend action.` && |\n| &&
              `    return Control.extend("z2ui5.cc.Storage", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -79,8 +83,7 @@ CLASS z2ui5_cl_app_storage_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          const storageType = Storage.Type[type] || Storage.Type.session;` && |\n| &&
              `          const storage = new Storage(storageType, prefix);` && |\n| &&
-             `          const read = storage.get(key);` && |\n| &&
-             `          stored = read == null ? "" : read;` && |\n| &&
+             `          stored = storage.get(key) ?? "";` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError(``Storage: read failed for key '${key}'``, e);` && |\n| &&
              `          return;` && |\n| &&
@@ -90,12 +93,7 @@ CLASS z2ui5_cl_app_storage_js IMPLEMENTATION.
              `        // current property to avoid feedback loops.` && |\n| &&
              `        if (stored !== value) {` && |\n| &&
              `          this.setProperty("value", stored, true);` && |\n| &&
-             `          this.fireFinished({` && |\n| &&
-             `            type: type,` && |\n| &&
-             `            prefix: prefix,` && |\n| &&
-             `            key: key,` && |\n| &&
-             `            value: stored,` && |\n| &&
-             `          });` && |\n| &&
+             `          this.fireFinished({ type, prefix, key, value: stored });` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&

@@ -120,34 +120,33 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _getDeviceInfo() {` && |\n| &&
-             `        const d = Device;` && |\n| &&
              `        // SYSTEM / BROWSER / OS / SUPPORT are fixed for the lifetime of the` && |\n| &&
              `        // session, so resolve them once and reuse the cached block; only` && |\n| &&
              `        // ORIENTATION and RESIZE are read fresh on every roundtrip.` && |\n| &&
              `        if (!this._deviceStatic) {` && |\n| &&
              `          this._deviceStatic = {` && |\n| &&
-             `            SYSTEM: Lib.deriveSystemType(d.system),` && |\n| &&
+             `            SYSTEM: Lib.deriveSystemType(Device.system),` && |\n| &&
              `            BROWSER: {` && |\n| &&
-             `              NAME: d.browser.name || "",` && |\n| &&
-             `              VERSION: String(d.browser.version || ""),` && |\n| &&
+             `              NAME: Device.browser.name || "",` && |\n| &&
+             `              VERSION: String(Device.browser.version || ""),` && |\n| &&
              `            },` && |\n| &&
              `            OS: {` && |\n| &&
-             `              NAME: d.os.name || "",` && |\n| &&
-             `              VERSION: String(d.os.version || ""),` && |\n| &&
+             `              NAME: Device.os.name || "",` && |\n| &&
+             `              VERSION: String(Device.os.version || ""),` && |\n| &&
              `            },` && |\n| &&
              `            SUPPORT: {` && |\n| &&
-             `              TOUCH: d.support.touch || false,` && |\n| &&
-             `              POINTER: d.support.pointer || false,` && |\n| &&
-             `              RETINA: d.support.retina || false,` && |\n| &&
+             `              TOUCH: Device.support.touch || false,` && |\n| &&
+             `              POINTER: Device.support.pointer || false,` && |\n| &&
+             `              RETINA: Device.support.retina || false,` && |\n| &&
              `            },` && |\n| &&
              `          };` && |\n| &&
              `        }` && |\n| &&
              `        return {` && |\n| &&
              `          ...this._deviceStatic,` && |\n| &&
-             `          ORIENTATION: d.orientation.portrait ? "portrait" : "landscape",` && |\n| &&
+             `          ORIENTATION: Device.orientation.portrait ? "portrait" : "landscape",` && |\n| &&
              `          RESIZE: {` && |\n| &&
-             `            WIDTH: d.resize.width || window.innerWidth,` && |\n| &&
-             `            HEIGHT: d.resize.height || window.innerHeight,` && |\n| &&
+             `            WIDTH: Device.resize.width || window.innerWidth,` && |\n| &&
+             `            HEIGHT: Device.resize.height || window.innerHeight,` && |\n| &&
              `          },` && |\n| &&
              `        };` && |\n| &&
              `      },` && |\n| &&
@@ -189,7 +188,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            SELECTION_START: active.selectionStart || 0,` && |\n| &&
              `            SELECTION_END: active.selectionEnd || 0,` && |\n| &&
              `          };` && |\n| &&
-             `        } catch (e) {` && |\n| &&
+             `        } catch {` && |\n| &&
              `          return undefined;` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
@@ -304,9 +303,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `        // Remove empty / undefined fields so the backend request stays small` && |\n| &&
              `        // and these keys are not present in the JSON sent over the wire.` && |\n| &&
-             `        if (!sFront.T_EVENT_ARG || sFront.T_EVENT_ARG.length === 0) {` && |\n| &&
-             `          delete sFront.T_EVENT_ARG;` && |\n| &&
-             `        }` && |\n| &&
+             `        if (!sFront.T_EVENT_ARG?.length) delete sFront.T_EVENT_ARG;` && |\n| &&
              `        if (sFront.SEARCH === "") delete sFront.SEARCH;` && |\n| &&
              `        if (!oBody.XX) delete oBody.XX;` && |\n| &&
              `` && |\n| &&
@@ -355,9 +352,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            }` && |\n| &&
              `            response = await fetch(z2ui5.url, {` && |\n| &&
              `              method: "POST",` && |\n| &&
-             `              headers: headers,` && |\n| &&
+             `              headers,` && |\n| &&
              `              body: JSON.stringify({ value: oBody }),` && |\n| &&
-             `              signal: signal,` && |\n| &&
+             `              signal,` && |\n| &&
              `            });` && |\n| &&
              `          } catch (e) {` && |\n| &&
              `            if (e.name === "TimeoutError" || e.name === "AbortError") {` && |\n| &&
@@ -388,7 +385,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            let text;` && |\n| &&
              `            try {` && |\n| &&
              `              text = await response.text();` && |\n| &&
-             `            } catch (e) {` && |\n| &&
+             `            } catch {` && |\n| &&
              `              text = ``HTTP ${response.status}: could not read error body``;` && |\n| &&
              `            }` && |\n| &&
              `            // An empty error body would render an empty overlay - fall back` && |\n| &&
@@ -417,11 +414,11 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            ID: responseData.S_FRONT.ID,` && |\n| &&
              `            PARAMS: responseData.S_FRONT.PARAMS,` && |\n| &&
              `            OVIEWMODEL: responseData.MODEL,` && |\n| &&
-             `          });` && |\n|.
-    result = result &&
+             `          });` && |\n| &&
              `        } finally {` && |\n| &&
              `          cancel();` && |\n| &&
-             `        }` && |\n| &&
+             `        }` && |\n|.
+    result = result &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      async responseSuccess(response) {` && |\n| &&

@@ -8,8 +8,13 @@ sap.ui.define(
   ],
   (Control, Dialog, Button, HTML, Lib) => {
     "use strict";
+    // Camera button: opens a dialog with the live camera stream, captures
+    // a photo on demand and hands it to the backend as a base64 JPEG in
+    // `value` (plus a small preview thumbnail) via the OnPhoto event.
     const _CTX_2D_OPTS = { willReadFrequently: true };
     const _THUMB_W = 300;
+    // width/height size the trigger button; a bare number is treated as px.
+    const toCssSize = (val) => (/^\d+$/.test(val) ? `${val}px` : val);
     return Control.extend("z2ui5.cc.CameraPicture", {
       metadata: {
         properties: {
@@ -155,7 +160,10 @@ sap.ui.define(
 
           try {
             const md = navigator.mediaDevices;
-            if (!md || !md.getUserMedia) return;
+            if (!md?.getUserMedia) {
+              Lib.logError("CameraPicture: mediaDevices API not available");
+              return;
+            }
             const stream = await md.getUserMedia(options);
             if (!stream) return;
             // Guard: during the getUserMedia await the control could have
@@ -186,7 +194,7 @@ sap.ui.define(
       onAfterRendering() {
         const h = this.getHeight();
         const dom = this._oButton?.getDomRef();
-        if (h && dom) dom.style.height = /^\d+$/.test(h) ? `${h}px` : h;
+        if (h && dom) dom.style.height = toCssSize(h);
       },
 
       renderer: {
@@ -204,9 +212,7 @@ sap.ui.define(
               },
             });
           }
-          // width, when set, sizes the trigger button; a bare number is px.
-          const w = oControl.getWidth();
-          oControl._oButton.setWidth(/^\d+$/.test(w) ? `${w}px` : w);
+          oControl._oButton.setWidth(toCssSize(oControl.getWidth()));
           oRm.renderControl(oControl._oButton);
         },
       },

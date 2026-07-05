@@ -18,7 +18,11 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(` && |\n| &&
+    result = `// Controller of the outer shell view (App.view.xml). Runs once at startup:` && |\n| &&
+             `// stores the backend URL, creates the five View1 controller instances (one` && |\n| &&
+             `// per view slot) and kicks off the initial roundtrip when the URL already` && |\n| &&
+             `// carries an app-state hash.` && |\n| &&
+             `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
              `    "sap/ui/core/mvc/Controller",` && |\n| &&
              `    "z2ui5/controller/View1.controller",` && |\n| &&

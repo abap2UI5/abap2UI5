@@ -41,7 +41,14 @@ sap.ui.define(
     function navigateContainer(lookup, args) {
       try {
         const container = lookup(args[1]);
-        if (container) container.to(lookup(args[2]));
+        const target = lookup(args[2]);
+        if (!container || !target) {
+          Lib.logError(
+            `navigateContainer: control '${!container ? args[1] : args[2]}' not found`,
+          );
+          return;
+        }
+        container.to(target);
       } catch (e) {
         Lib.logError("navigateContainer: navigation failed", e);
       }
@@ -108,21 +115,18 @@ sap.ui.define(
       const hasLimit = args[2] !== undefined && args[2] !== "";
       const viewKey = hasLimit ? args[2] : args[1];
       const limit = hasLimit ? Number(args[1]) : NaN;
-      const view = ViewSlots.getView(viewKey);
-      const model = view?.getModel();
+      const model = ViewSlots.getView(viewKey)?.getModel();
 
-      if (Number.isFinite(limit) && limit > 0) {
+      const isValidLimit = Number.isFinite(limit) && limit > 0;
+      if (isValidLimit) {
         z2ui5.viewSizeLimits[viewKey] = limit;
-        if (model) {
-          model.setSizeLimit(limit);
-          model.refresh(true);
-        }
       } else {
         delete z2ui5.viewSizeLimits[viewKey];
-        if (model) {
-          model.setSizeLimit(100);
-          model.refresh(true);
-        }
+      }
+      if (model) {
+        // 100 is the UI5 JSONModel default size limit.
+        model.setSizeLimit(isValidLimit ? limit : 100);
+        model.refresh(true);
       }
     }
 
@@ -145,7 +149,9 @@ sap.ui.define(
     }
 
     function evStoreData(oController, args) {
-      const { TYPE, PREFIX, VALUE, KEY } = args[1];
+      // Guard against a missing payload so the try below logs a
+      // STORE_DATA-specific error instead of a generic dispatch failure.
+      const { TYPE, PREFIX, VALUE, KEY } = args[1] ?? {};
       try {
         const storageType = Storage.Type[TYPE] || Storage.Type.session;
         const oStorage = new Storage(storageType, PREFIX);
@@ -220,8 +226,8 @@ sap.ui.define(
         return;
       }
 
-      const sep = path.indexOf("?") >= 0 ? "&" : "?";
-      const bspKill = `${path}${sep}sap-sessioncmd=logoff`;
+      const separator = path.includes("?") ? "&" : "?";
+      const bspKill = `${path}${separator}sap-sessioncmd=logoff`;
       let done = false;
       const finish = () => {
         if (done) return;
@@ -229,12 +235,12 @@ sap.ui.define(
         redirectToLogout(logoutUrl);
       };
       try {
-        const f = document.createElement("iframe");
-        f.style.display = "none";
-        f.src = bspKill;
-        f.addEventListener("load", finish);
-        document.body.appendChild(f);
-      } catch (e) {
+        const frame = document.createElement("iframe");
+        frame.style.display = "none";
+        frame.src = bspKill;
+        frame.addEventListener("load", finish);
+        document.body.appendChild(frame);
+      } catch {
         finish();
         return;
       }
@@ -265,7 +271,7 @@ sap.ui.define(
     }
 
     function evUrlHelper(oController, args) {
-      const params = args[2];
+      const params = args[2] ?? {};
       const actions = {
         REDIRECT: () => {
           if (!Lib.isSafeRedirectProtocol(params.URL)) {
@@ -315,7 +321,7 @@ sap.ui.define(
       // by design, not a bug.
       const timerKey = args[0];
       const callbackEvent = args[1];
-      const delay = +args[2] || 0;
+      const delay = Number(args[2]) || 0;
       clearTimeout(z2ui5.timers[timerKey]);
       z2ui5.timers[timerKey] = setTimeout(() => {
         delete z2ui5.timers[timerKey];
@@ -349,8 +355,12 @@ sap.ui.define(
       const applyFocus = () => {
         try {
           const info = oElement.getFocusInfo();
-          if (args[2] != null && args[2] !== "") info.selectionStart = +args[2];
-          if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];
+          if (args[2] != null && args[2] !== "") {
+            info.selectionStart = Number(args[2]);
+          }
+          if (args[3] != null && args[3] !== "") {
+            info.selectionEnd = Number(args[3]);
+          }
           oElement.applyFocusInfo(info);
         } catch (e) {
           Lib.logError(`SET_FOCUS: failed for '${args[1]}'`, e);
@@ -379,20 +389,20 @@ sap.ui.define(
       try {
         const oElement = ViewSlots.byId("MAIN", args[1]);
         if (!oElement) return;
-        const y = +args[2] || 0;
-        const x = +args[3] || 0;
+        const y = Number(args[2]) || 0;
+        const x = Number(args[3]) || 0;
         const behavior = args[4] || "auto";
         const smooth = behavior === "smooth";
 
         let handled = false;
         try {
-          const d = oElement.getScrollDelegate?.();
-          if (d?.scrollTo) {
+          const delegate = oElement.getScrollDelegate?.();
+          if (delegate?.scrollTo) {
             // ScrollEnablement / iScroll delegate: scrollTo(x, y, time)
-            d.scrollTo(x, y, smooth ? 300 : 0);
+            delegate.scrollTo(x, y, smooth ? 300 : 0);
             handled = true;
           }
-        } catch (e) {
+        } catch {
           // fall through
         }
 

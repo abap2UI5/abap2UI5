@@ -28,8 +28,13 @@ CLASS z2ui5_cl_app_camerapicture_js IMPLEMENTATION.
              `  ],` && |\n| &&
              `  (Control, Dialog, Button, HTML, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&
+             `    // Camera button: opens a dialog with the live camera stream, captures` && |\n| &&
+             `    // a photo on demand and hands it to the backend as a base64 JPEG in` && |\n| &&
+             `    // ``value`` (plus a small preview thumbnail) via the OnPhoto event.` && |\n| &&
              `    const _CTX_2D_OPTS = { willReadFrequently: true };` && |\n| &&
              `    const _THUMB_W = 300;` && |\n| &&
+             `    // width/height size the trigger button; a bare number is treated as px.` && |\n| &&
+             `    const toCssSize = (val) => (/^\d+$/.test(val) ? ``${val}px`` : val);` && |\n| &&
              `    return Control.extend("z2ui5.cc.CameraPicture", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -175,7 +180,10 @@ CLASS z2ui5_cl_app_camerapicture_js IMPLEMENTATION.
              `` && |\n| &&
              `          try {` && |\n| &&
              `            const md = navigator.mediaDevices;` && |\n| &&
-             `            if (!md || !md.getUserMedia) return;` && |\n| &&
+             `            if (!md?.getUserMedia) {` && |\n| &&
+             `              Lib.logError("CameraPicture: mediaDevices API not available");` && |\n| &&
+             `              return;` && |\n| &&
+             `            }` && |\n| &&
              `            const stream = await md.getUserMedia(options);` && |\n| &&
              `            if (!stream) return;` && |\n| &&
              `            // Guard: during the getUserMedia await the control could have` && |\n| &&
@@ -206,7 +214,7 @@ CLASS z2ui5_cl_app_camerapicture_js IMPLEMENTATION.
              `      onAfterRendering() {` && |\n| &&
              `        const h = this.getHeight();` && |\n| &&
              `        const dom = this._oButton?.getDomRef();` && |\n| &&
-             `        if (h && dom) dom.style.height = /^\d+$/.test(h) ? ``${h}px`` : h;` && |\n| &&
+             `        if (h && dom) dom.style.height = toCssSize(h);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      renderer: {` && |\n| &&
@@ -224,9 +232,7 @@ CLASS z2ui5_cl_app_camerapicture_js IMPLEMENTATION.
              `              },` && |\n| &&
              `            });` && |\n| &&
              `          }` && |\n| &&
-             `          // width, when set, sizes the trigger button; a bare number is px.` && |\n| &&
-             `          const w = oControl.getWidth();` && |\n| &&
-             `          oControl._oButton.setWidth(/^\d+$/.test(w) ? ``${w}px`` : w);` && |\n| &&
+             `          oControl._oButton.setWidth(toCssSize(oControl.getWidth()));` && |\n| &&
              `          oRm.renderControl(oControl._oButton);` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&

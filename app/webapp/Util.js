@@ -1,3 +1,6 @@
+// PUBLIC date helpers for apps: exposed as the z2ui5.Util global and as
+// the z2ui5/Util module (used in XML view formatter strings). Part of the
+// public contract - do not rename or change the existing functions.
 sap.ui.define([], () => {
   "use strict";
 
@@ -5,7 +8,11 @@ sap.ui.define([], () => {
   // day] tuple JavaScript's Date constructor expects. Note: Date months are
   // 0-based, so we subtract 1 from the month component.
   function parseYmd(d) {
-    return [+d.slice(0, 4), +d.slice(4, 6) - 1, +d.slice(6, 8)];
+    return [
+      Number(d.slice(0, 4)),
+      Number(d.slice(4, 6)) - 1,
+      Number(d.slice(6, 8)),
+    ];
   }
 
   return {
@@ -19,9 +26,9 @@ sap.ui.define([], () => {
     DateAbapDateTimeToDateObject(d, t = "000000") {
       return new Date(
         ...parseYmd(d),
-        +t.slice(0, 2),
-        +t.slice(2, 4),
-        +t.slice(4, 6),
+        Number(t.slice(0, 2)),
+        Number(t.slice(2, 4)),
+        Number(t.slice(4, 6)),
       );
     },
   };

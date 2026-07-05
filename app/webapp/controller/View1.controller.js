@@ -1,3 +1,8 @@
+// The central view controller. One instance serves each of the five view
+// slots (main view, two nested views, popup, popover - see
+// core/ViewSlots.js). It builds the request for backend events (eB),
+// dispatches frontend-only events (eF), renders the views and fragments a
+// response asks for, and runs the post-render follow-ups.
 sap.ui.define(
   [
     "sap/ui/core/mvc/Controller",
@@ -61,14 +66,10 @@ sap.ui.define(
           const ctx = params.context;
           if (!raw) return;
           // Resolve relative paths against the binding context.
-          let p;
-          if (ctx && !raw.startsWith("/")) {
-            p = `${ctx.getPath()}/${raw}`;
-          } else {
-            p = raw;
-          }
-          if (p.startsWith("/XX/")) {
-            z2ui5.xxChangedPaths.add(p);
+          const changedPath =
+            ctx && !raw.startsWith("/") ? `${ctx.getPath()}/${raw}` : raw;
+          if (changedPath.startsWith("/XX/")) {
+            z2ui5.xxChangedPaths.add(changedPath);
           }
         });
         return oModel;
@@ -428,7 +429,7 @@ sap.ui.define(
         if (!slotKey) return undefined;
 
         if (slotKey === "MAIN") {
-          const sView = z2ui5.oResponse?.PARAMS?.S_VIEW ?? null;
+          const sView = z2ui5.oResponse?.PARAMS?.S_VIEW;
           if (sView?.SWITCH_DEFAULT_MODEL_PATH) {
             return ViewSlots.getView("MAIN")?.getModel("http");
           }
@@ -449,7 +450,7 @@ sap.ui.define(
       updateModelIfRequired(slotKey) {
         const params = z2ui5.oResponse?.PARAMS;
         const slotParams = params?.[ViewSlots.paramByKey(slotKey)];
-        if (!slotParams || !slotParams.CHECK_UPDATE_MODEL) return;
+        if (!slotParams?.CHECK_UPDATE_MODEL) return;
 
         const oView = ViewSlots.getView(slotKey);
         if (!oView) return;
@@ -478,7 +479,7 @@ sap.ui.define(
       async displayView(xml, viewModel) {
         const oViewModel = this._trackChanges(new JSONModel(viewModel));
 
-        const sView = z2ui5.oResponse?.PARAMS?.S_VIEW ?? null;
+        const sView = z2ui5.oResponse?.PARAMS?.S_VIEW;
         const switchPath = sView?.SWITCH_DEFAULT_MODEL_PATH;
 
         // When the app wants OData as the default model, build it here and

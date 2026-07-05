@@ -22,7 +22,7 @@ sap.ui.define([], () => {
   // Node specs that load this module with a bare z2ui5 stub.
   function logError(message, error) {
     if (!z2ui5.errors) z2ui5.errors = [];
-    const entry = { message: message, ts: new Date().toISOString() };
+    const entry = { message, ts: new Date().toISOString() };
     if (error !== undefined) entry.error = error;
     z2ui5.errors.push(entry);
     if (z2ui5.errors.length > MAX_ERRORS) z2ui5.errors.shift();
@@ -30,14 +30,14 @@ sap.ui.define([], () => {
 
   // True when the object supports isDestroyed() and reports destroyed.
   function isDestroyed(obj) {
-    return !!(obj?.isDestroyed && obj.isDestroyed());
+    return Boolean(obj?.isDestroyed && obj.isDestroyed());
   }
 
   // True when the object exists and is not destroyed. Used to guard
   // async continuations (await, FileReader, getUserMedia, ...) against
   // controls or views that were torn down in the meantime.
   function isAlive(obj) {
-    return !!obj && !isDestroyed(obj);
+    return Boolean(obj) && !isDestroyed(obj);
   }
 
   // Helpers for managing z2ui5 callback arrays (onBeforeRoundtrip,
@@ -174,26 +174,35 @@ sap.ui.define([], () => {
     return "desktop";
   }
 
-  // Returns true only if the URL is on the same origin and uses http/https.
-  function isValidRedirectURL(url) {
-    if (!url) return false;
+  // Shared first step of the URL validators below: resolve the URL against
+  // the current origin, log and return null when it is empty or malformed.
+  function parseUrl(url) {
+    if (!url) return null;
     try {
-      const parsed = new URL(url, window.location.origin);
-      if (parsed.origin !== window.location.origin) {
-        logError(`Security: Blocked redirect to different origin: ${url}`);
-        return false;
-      }
-      if (!SAFE_PROTOCOLS.includes(parsed.protocol)) {
-        logError(
-          `Security: Blocked redirect with invalid protocol: ${parsed.protocol}`,
-        );
-        return false;
-      }
-      return true;
+      return new URL(url, window.location.origin);
     } catch (e) {
       logError(`Security: Invalid URL format: ${url}`, e);
+      return null;
+    }
+  }
+
+  function hasSafeProtocol(parsed) {
+    if (SAFE_PROTOCOLS.includes(parsed.protocol)) return true;
+    logError(
+      `Security: Blocked redirect with invalid protocol: ${parsed.protocol}`,
+    );
+    return false;
+  }
+
+  // Returns true only if the URL is on the same origin and uses http/https.
+  function isValidRedirectURL(url) {
+    const parsed = parseUrl(url);
+    if (!parsed) return false;
+    if (parsed.origin !== window.location.origin) {
+      logError(`Security: Blocked redirect to different origin: ${url}`);
       return false;
     }
+    return hasSafeProtocol(parsed);
   }
 
   // Returns true if the URL uses a safe (http/https) protocol. Unlike
@@ -201,38 +210,21 @@ sap.ui.define([], () => {
   // outbound redirects to external sites while still blocking dangerous
   // schemes such as javascript:, data: or vbscript:.
   function isSafeRedirectProtocol(url) {
-    if (!url) return false;
-    try {
-      const parsed = new URL(url, window.location.origin);
-      if (!SAFE_PROTOCOLS.includes(parsed.protocol)) {
-        logError(
-          `Security: Blocked redirect with invalid protocol: ${parsed.protocol}`,
-        );
-        return false;
-      }
-      return true;
-    } catch (e) {
-      logError(`Security: Invalid URL format: ${url}`, e);
-      return false;
-    }
+    const parsed = parseUrl(url);
+    return parsed !== null && hasSafeProtocol(parsed);
   }
 
   // Returns true for URLs that are safe as download targets: data: and
   // blob: (generated content) plus http(s). Blocks javascript: and other
   // active schemes, consistent with the redirect validators above.
   function isSafeDownloadURL(url) {
-    if (!url) return false;
-    try {
-      const parsed = new URL(url, window.location.origin);
-      return (
-        parsed.protocol === "data:" ||
+    const parsed = parseUrl(url);
+    return (
+      parsed !== null &&
+      (parsed.protocol === "data:" ||
         parsed.protocol === "blob:" ||
-        SAFE_PROTOCOLS.includes(parsed.protocol)
-      );
-    } catch (e) {
-      logError(`Security: Invalid URL format: ${url}`, e);
-      return false;
-    }
+        SAFE_PROTOCOLS.includes(parsed.protocol))
+    );
   }
 
   // A usable stateful session id ("sap-contextid"). We must never put a
@@ -256,7 +248,8 @@ sap.ui.define([], () => {
       // delta. Deeper paths (e.g. tree tables: attr/row/<subtable>/<row>/<field>)
       // fall back to shipping the whole attribute, which the backend applies
       // via corresponding-based deserialization.
-      const isRowField = parts.length === 3 && rowIdx !== "" && !isNaN(rowIdx);
+      const isRowField =
+        parts.length === 3 && rowIdx !== "" && !Number.isNaN(Number(rowIdx));
       if (isRowField) {
         // A full attribute queued by another path already carries every
         // cell (both read the same current model data) - never downgrade
@@ -268,7 +261,7 @@ sap.ui.define([], () => {
         }
         const attrDelta = delta[attr].__delta;
         if (!attrDelta[rowIdx]) attrDelta[rowIdx] = {};
-        attrDelta[rowIdx][field] = xx[attr]?.[+rowIdx]?.[field];
+        attrDelta[rowIdx][field] = xx[attr]?.[Number(rowIdx)]?.[field];
       } else {
         // Scalar change -> ship the whole attribute.
         delta[attr] = xx[attr];

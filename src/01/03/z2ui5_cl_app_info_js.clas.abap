@@ -23,6 +23,9 @@ CLASS z2ui5_cl_app_info_js IMPLEMENTATION.
              `  (Control, Lib, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
+             `    // Invisible control that reports the UI5 version/theme and the device` && |\n| &&
+             `    // info (system type, screen size, OS, browser) back to the backend via` && |\n| &&
+             `    // its bindable properties, then fires ``finished``.` && |\n| &&
              `    return Control.extend("z2ui5.cc.Info", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -108,8 +111,7 @@ CLASS z2ui5_cl_app_info_js IMPLEMENTATION.
              `            ["device_browser", browser.name],` && |\n| &&
              `          ];` && |\n| &&
              `          for (const [prop, val] of props) {` && |\n| &&
-             `            const safe = Lib.toText(val);` && |\n| &&
-             `            this.setProperty(prop, safe, true);` && |\n| &&
+             `            this.setProperty(prop, Lib.toText(val), true);` && |\n| &&
              `          }` && |\n| &&
              `          this.fireFinished();` && |\n| &&
              `        } catch (e) {` && |\n| &&

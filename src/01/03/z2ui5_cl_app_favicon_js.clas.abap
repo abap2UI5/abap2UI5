@@ -18,7 +18,9 @@ CLASS z2ui5_cl_app_favicon_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
+    result = `// Invisible control that sets the browser favicon from its bound` && |\n| &&
+             `// ``favicon`` URL (updates the existing <link> tag or creates one).` && |\n| &&
+             `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `  return Control.extend("z2ui5.cc.Favicon", {` && |\n| &&
              `    metadata: {` && |\n| &&

@@ -22,6 +22,9 @@ CLASS z2ui5_cl_app_focus_js IMPLEMENTATION.
              `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],` && |\n| &&
              `  (Control, Lib, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
+             `    // Invisible control that restores the keyboard focus (and the cursor` && |\n| &&
+             `    // selection range) to the control given by focusId after a rerender -` && |\n| &&
+             `    // the backend uses it to keep the focus stable across roundtrips.` && |\n| &&
              `    return Control.extend("z2ui5.cc.Focus", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -60,8 +63,8 @@ CLASS z2ui5_cl_app_focus_js IMPLEMENTATION.
              `          // Merge the additional selection info into the existing focus info,` && |\n| &&
              `          // then apply both at once.` && |\n| &&
              `          const info = oElement.getFocusInfo();` && |\n| &&
-             `          info.selectionStart = +this.getProperty("selectionStart");` && |\n| &&
-             `          info.selectionEnd = +this.getProperty("selectionEnd");` && |\n| &&
+             `          info.selectionStart = Number(this.getProperty("selectionStart"));` && |\n| &&
+             `          info.selectionEnd = Number(this.getProperty("selectionEnd"));` && |\n| &&
              `          oElement.applyFocusInfo(info);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("Focus.onAfterRendering: applyFocusInfo failed", e);` && |\n| &&

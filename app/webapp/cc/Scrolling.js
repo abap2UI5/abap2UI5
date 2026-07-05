@@ -3,6 +3,9 @@ sap.ui.define(
   (Control, Lib, ViewSlots) => {
     "use strict";
 
+    // Invisible control that saves the scroll positions of the controls
+    // listed in `items` into the model before each roundtrip and restores
+    // them after the next rendering.
     return Control.extend("z2ui5.cc.Scrolling", {
       metadata: {
         properties: {
@@ -26,10 +29,8 @@ sap.ui.define(
         try {
           const control = ViewSlots.byId("MAIN", item.N);
           // Some controls expose a scroll delegate; prefer it when available.
-          if (control?.getScrollDelegate) {
-            const delegate = control.getScrollDelegate();
-            if (delegate) return delegate.getScrollTop();
-          }
+          const delegate = control?.getScrollDelegate?.();
+          if (delegate) return delegate.getScrollTop();
           const element = this._getDomInnerElement(item.ID);
           return element ? element.scrollTop : 0;
         } catch (e) {
@@ -45,12 +46,8 @@ sap.ui.define(
           // Resolve the binding path so we can mark only changed entries
           // as dirty in xxChangedPaths.
           const bindingInfo = this.getBindingInfo("items");
-          let bindingPath;
-          if (bindingInfo) {
-            const parts = bindingInfo.parts;
-            if (parts?.[0]) bindingPath = parts[0].path;
-            if (!bindingPath) bindingPath = bindingInfo.path;
-          }
+          const bindingPath =
+            bindingInfo?.parts?.[0]?.path ?? bindingInfo?.path;
           for (const [index, item] of items.entries()) {
             const scrollTop = this._getScrollTop(item);
             if (item.V !== scrollTop) {

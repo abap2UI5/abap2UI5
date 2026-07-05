@@ -2,6 +2,9 @@ sap.ui.define(
   ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],
   (Control, Lib, ViewSlots) => {
     "use strict";
+    // Invisible control that restores the keyboard focus (and the cursor
+    // selection range) to the control given by focusId after a rerender -
+    // the backend uses it to keep the focus stable across roundtrips.
     return Control.extend("z2ui5.cc.Focus", {
       metadata: {
         properties: {
@@ -40,8 +43,8 @@ sap.ui.define(
           // Merge the additional selection info into the existing focus info,
           // then apply both at once.
           const info = oElement.getFocusInfo();
-          info.selectionStart = +this.getProperty("selectionStart");
-          info.selectionEnd = +this.getProperty("selectionEnd");
+          info.selectionStart = Number(this.getProperty("selectionStart"));
+          info.selectionEnd = Number(this.getProperty("selectionEnd"));
           oElement.applyFocusInfo(info);
         } catch (e) {
           Lib.logError("Focus.onAfterRendering: applyFocusInfo failed", e);

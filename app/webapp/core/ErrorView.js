@@ -11,9 +11,11 @@ sap.ui.define([], () => {
   // so a stack trace from the backend cannot blow up the error overlay.
   const ERROR_MAX_LENGTH = 50000;
 
-  function getOrCreateContainer() {
-    const existing = document.getElementById("serverErrorContainer");
-    if (existing) return existing;
+  function createContainer() {
+    // Always start from a fresh element: reusing a previous overlay would
+    // keep its keydown focus-trap listener alive and stack a duplicate on
+    // every further show() call.
+    document.getElementById("serverErrorContainer")?.remove();
 
     const container = document.createElement("div");
     container.id = "serverErrorContainer";
@@ -47,7 +49,7 @@ sap.ui.define([], () => {
       } else {
         fallback();
       }
-    } catch (e) {
+    } catch {
       fallback();
     }
   }
@@ -59,19 +61,14 @@ sap.ui.define([], () => {
   // the server and app state is still intact).
   function show(response, title, options = {}) {
     const full = response?.stack ? String(response.stack) : String(response);
-    let errorMessage;
-    if (full.length > ERROR_MAX_LENGTH) {
-      // Rendered via textContent, so use plain text (an HTML comment would
-      // show up literally).
-      errorMessage =
-        full.slice(0, ERROR_MAX_LENGTH) +
-        `\n\n[... truncated after ${ERROR_MAX_LENGTH} characters]`;
-    } else {
-      errorMessage = full;
-    }
+    // Rendered via textContent, so the truncation marker is plain text (an
+    // HTML comment would show up literally).
+    const errorMessage =
+      full.length > ERROR_MAX_LENGTH
+        ? `${full.slice(0, ERROR_MAX_LENGTH)}\n\n[... truncated after ${ERROR_MAX_LENGTH} characters]`
+        : full;
 
-    const errorContainer = getOrCreateContainer();
-    errorContainer.textContent = "";
+    const errorContainer = createContainer();
 
     // Announce the overlay to assistive technology: without a dialog role
     // and focus move, a screen-reader user is never told the app crashed.
