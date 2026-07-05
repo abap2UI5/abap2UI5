@@ -131,6 +131,23 @@ sap.ui.define(
         };
       },
 
+      // Resolve the UI5 element owning a DOM node. Element.closestTo exists
+      // as of UI5 1.106; on older bootstraps walk up the DOM to the nearest
+      // rendered control root (marked with the data-sap-ui attribute) and
+      // resolve it via the core registry, so scroll and focus capture also
+      // work there.
+      _closestUi5Element(dom) {
+        if (Element.closestTo) return Element.closestTo(dom) ?? null;
+        let el = dom;
+        while (el && el.getAttribute) {
+          if (el.hasAttribute("data-sap-ui")) {
+            return sap.ui.getCore().byId(el.id) || null;
+          }
+          el = el.parentElement;
+        }
+        return null;
+      },
+
       // Strip the owning view's "<viewId>--" prefix from a control id so the
       // backend gets the id as the app declared it. Returns the id unchanged
       // when it does not belong to that view.
@@ -147,9 +164,7 @@ sap.ui.define(
         try {
           const active = document.activeElement;
           if (!active) return undefined;
-          // Element.closestTo exists as of UI5 1.106; keep the feature check
-          // so older releases simply skip the focus restore.
-          const ui5El = Element.closestTo?.(active) ?? null;
+          const ui5El = this._closestUi5Element(active);
           if (!ui5El) return undefined;
           const fullId = ui5El.getId();
           let id = fullId;
@@ -185,13 +200,13 @@ sap.ui.define(
 
         // Scroll events fire up to once per frame per element while the user
         // drags, but the same DOM element keeps firing throughout a gesture.
-        // Resolving the UI5 control (Element.closestTo) and walking it up to
+        // Resolving the UI5 control (_closestUi5Element) and walking it up to
         // its view slot (ViewSlots.containingSlotKey) is the expensive part,
         // so cache that resolution keyed by the element: it runs once per
         // scrolled element instead of once per event. Only the cheap
         // scroll-position record stays per event.
         if (target !== this._lastScrollTarget) {
-          const ui5El = Element.closestTo?.(target) ?? null;
+          const ui5El = this._closestUi5Element(target);
           this._lastScrollTarget = target;
           this._lastScrollUi5El = ui5El;
           this._lastScrollSlotKey = ui5El

@@ -151,6 +151,23 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        };` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      // Resolve the UI5 element owning a DOM node. Element.closestTo exists` && |\n| &&
+             `      // as of UI5 1.106; on older bootstraps walk up the DOM to the nearest` && |\n| &&
+             `      // rendered control root (marked with the data-sap-ui attribute) and` && |\n| &&
+             `      // resolve it via the core registry, so scroll and focus capture also` && |\n| &&
+             `      // work there.` && |\n| &&
+             `      _closestUi5Element(dom) {` && |\n| &&
+             `        if (Element.closestTo) return Element.closestTo(dom) ?? null;` && |\n| &&
+             `        let el = dom;` && |\n| &&
+             `        while (el && el.getAttribute) {` && |\n| &&
+             `          if (el.hasAttribute("data-sap-ui")) {` && |\n| &&
+             `            return sap.ui.getCore().byId(el.id) || null;` && |\n| &&
+             `          }` && |\n| &&
+             `          el = el.parentElement;` && |\n| &&
+             `        }` && |\n| &&
+             `        return null;` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      // Strip the owning view's "<viewId>--" prefix from a control id so the` && |\n| &&
              `      // backend gets the id as the app declared it. Returns the id unchanged` && |\n| &&
              `      // when it does not belong to that view.` && |\n| &&
@@ -167,9 +184,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          const active = document.activeElement;` && |\n| &&
              `          if (!active) return undefined;` && |\n| &&
-             `          // Element.closestTo exists as of UI5 1.106; keep the feature check` && |\n| &&
-             `          // so older releases simply skip the focus restore.` && |\n| &&
-             `          const ui5El = Element.closestTo?.(active) ?? null;` && |\n| &&
+             `          const ui5El = this._closestUi5Element(active);` && |\n| &&
              `          if (!ui5El) return undefined;` && |\n| &&
              `          const fullId = ui5El.getId();` && |\n| &&
              `          let id = fullId;` && |\n| &&
@@ -205,13 +220,13 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `        // Scroll events fire up to once per frame per element while the user` && |\n| &&
              `        // drags, but the same DOM element keeps firing throughout a gesture.` && |\n| &&
-             `        // Resolving the UI5 control (Element.closestTo) and walking it up to` && |\n| &&
+             `        // Resolving the UI5 control (_closestUi5Element) and walking it up to` && |\n| &&
              `        // its view slot (ViewSlots.containingSlotKey) is the expensive part,` && |\n| &&
              `        // so cache that resolution keyed by the element: it runs once per` && |\n| &&
              `        // scrolled element instead of once per event. Only the cheap` && |\n| &&
              `        // scroll-position record stays per event.` && |\n| &&
              `        if (target !== this._lastScrollTarget) {` && |\n| &&
-             `          const ui5El = Element.closestTo?.(target) ?? null;` && |\n| &&
+             `          const ui5El = this._closestUi5Element(target);` && |\n| &&
              `          this._lastScrollTarget = target;` && |\n| &&
              `          this._lastScrollUi5El = ui5El;` && |\n| &&
              `          this._lastScrollSlotKey = ui5El` && |\n| &&
@@ -402,7 +417,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            this.responseError(``Invalid JSON response: ${e.message}``);` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
-             `          if (!responseData || !responseData.S_FRONT) {` && |\n| &&
+             `          if (!responseData || !responseData.S_FRONT) {` && |\n|.
+    result = result &&
              `            this.responseError("Invalid response: missing S_FRONT");` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
@@ -417,8 +433,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          });` && |\n| &&
              `        } finally {` && |\n| &&
              `          cancel();` && |\n| &&
-             `        }` && |\n|.
-    result = result &&
+             `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      async responseSuccess(response) {` && |\n| &&
