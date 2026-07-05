@@ -19,13 +19,16 @@ jobs:
     timeout-minutes: 10
     steps:
     - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-    - name: send to bsp repository
+    # main is the single source branch of abap2UI5/frontend; its build_<branch>
+    # workflows regenerate the cloud/cloud_v2/standard/standard_v2 branches
+    # from main on every push.
+    - name: send to frontend repository
       uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
       with:
         external_repository: abap2UI5/frontend
         user_name: 'github-actions[bot]'
         user_email: 'github-actions[bot]@users.noreply.github.com'
-        publish_branch: cloud
+        publish_branch: main
         publish_dir: ./app/webapp
         deploy_key: ${{ secrets.ACTION_KEY_FRONTEND }}
         destination_dir: ./app/webapp
