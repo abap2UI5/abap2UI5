@@ -11,9 +11,11 @@ sap.ui.define([], () => {
   // so a stack trace from the backend cannot blow up the error overlay.
   const ERROR_MAX_LENGTH = 50000;
 
-  function getOrCreateContainer() {
-    const existing = document.getElementById("serverErrorContainer");
-    if (existing) return existing;
+  function createContainer() {
+    // Always start from a fresh element: reusing a previous overlay would
+    // keep its keydown focus-trap listener alive and stack a duplicate on
+    // every further show() call.
+    document.getElementById("serverErrorContainer")?.remove();
 
     const container = document.createElement("div");
     container.id = "serverErrorContainer";
@@ -47,7 +49,7 @@ sap.ui.define([], () => {
       } else {
         fallback();
       }
-    } catch (e) {
+    } catch {
       fallback();
     }
   }
@@ -70,8 +72,7 @@ sap.ui.define([], () => {
       errorMessage = full;
     }
 
-    const errorContainer = getOrCreateContainer();
-    errorContainer.textContent = "";
+    const errorContainer = createContainer();
 
     // Announce the overlay to assistive technology: without a dialog role
     // and focus move, a screen-reader user is never told the app crashed.

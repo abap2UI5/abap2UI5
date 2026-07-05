@@ -26,10 +26,8 @@ sap.ui.define(
         try {
           const control = ViewSlots.byId("MAIN", item.N);
           // Some controls expose a scroll delegate; prefer it when available.
-          if (control?.getScrollDelegate) {
-            const delegate = control.getScrollDelegate();
-            if (delegate) return delegate.getScrollTop();
-          }
+          const delegate = control?.getScrollDelegate?.();
+          if (delegate) return delegate.getScrollTop();
           const element = this._getDomInnerElement(item.ID);
           return element ? element.scrollTop : 0;
         } catch (e) {

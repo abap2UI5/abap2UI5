@@ -31,9 +31,11 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `  // so a stack trace from the backend cannot blow up the error overlay.` && |\n| &&
              `  const ERROR_MAX_LENGTH = 50000;` && |\n| &&
              `` && |\n| &&
-             `  function getOrCreateContainer() {` && |\n| &&
-             `    const existing = document.getElementById("serverErrorContainer");` && |\n| &&
-             `    if (existing) return existing;` && |\n| &&
+             `  function createContainer() {` && |\n| &&
+             `    // Always start from a fresh element: reusing a previous overlay would` && |\n| &&
+             `    // keep its keydown focus-trap listener alive and stack a duplicate on` && |\n| &&
+             `    // every further show() call.` && |\n| &&
+             `    document.getElementById("serverErrorContainer")?.remove();` && |\n| &&
              `` && |\n| &&
              `    const container = document.createElement("div");` && |\n| &&
              `    container.id = "serverErrorContainer";` && |\n| &&
@@ -67,7 +69,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `      } else {` && |\n| &&
              `        fallback();` && |\n| &&
              `      }` && |\n| &&
-             `    } catch (e) {` && |\n| &&
+             `    } catch {` && |\n| &&
              `      fallback();` && |\n| &&
              `    }` && |\n| &&
              `  }` && |\n| &&
@@ -90,8 +92,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `      errorMessage = full;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    const errorContainer = getOrCreateContainer();` && |\n| &&
-             `    errorContainer.textContent = "";` && |\n| &&
+             `    const errorContainer = createContainer();` && |\n| &&
              `` && |\n| &&
              `    // Announce the overlay to assistive technology: without a dialog role` && |\n| &&
              `    // and focus move, a screen-reader user is never told the app crashed.` && |\n| &&

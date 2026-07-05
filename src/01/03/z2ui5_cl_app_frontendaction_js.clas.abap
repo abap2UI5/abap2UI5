@@ -419,7 +419,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            handled = true;` && |\n| &&
              `          }` && |\n|.
     result = result &&
-             `        } catch (e) {` && |\n| &&
+             `        } catch {` && |\n| &&
              `          // fall through` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&

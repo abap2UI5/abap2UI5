@@ -109,7 +109,9 @@ CLASS z2ui5_cl_app_geolocation_js IMPLEMENTATION.
              `            Lib.logError(``Geolocation error (${error.code}): ${error.message}``),` && |\n| &&
              `          {` && |\n| &&
              `            enableHighAccuracy: this.getProperty("enableHighAccuracy"),` && |\n| &&
-             `            timeout: +this.getProperty("timeout"),` && |\n| &&
+             `            // Guard against an empty or non-numeric property - NaN or 0` && |\n| &&
+             `            // would make getCurrentPosition fail immediately.` && |\n| &&
+             `            timeout: +this.getProperty("timeout") || 5000,` && |\n| &&
              `          },` && |\n| &&
              `        );` && |\n| &&
              `      } catch (e) {` && |\n| &&

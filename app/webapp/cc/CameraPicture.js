@@ -10,6 +10,8 @@ sap.ui.define(
     "use strict";
     const _CTX_2D_OPTS = { willReadFrequently: true };
     const _THUMB_W = 300;
+    // width/height size the trigger button; a bare number is treated as px.
+    const toCssSize = (val) => (/^\d+$/.test(val) ? `${val}px` : val);
     return Control.extend("z2ui5.cc.CameraPicture", {
       metadata: {
         properties: {
@@ -189,7 +191,7 @@ sap.ui.define(
       onAfterRendering() {
         const h = this.getHeight();
         const dom = this._oButton?.getDomRef();
-        if (h && dom) dom.style.height = /^\d+$/.test(h) ? `${h}px` : h;
+        if (h && dom) dom.style.height = toCssSize(h);
       },
 
       renderer: {
@@ -207,9 +209,7 @@ sap.ui.define(
               },
             });
           }
-          // width, when set, sizes the trigger button; a bare number is px.
-          const w = oControl.getWidth();
-          oControl._oButton.setWidth(/^\d+$/.test(w) ? `${w}px` : w);
+          oControl._oButton.setWidth(toCssSize(oControl.getWidth()));
           oRm.renderControl(oControl._oButton);
         },
       },

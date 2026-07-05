@@ -30,6 +30,8 @@ CLASS z2ui5_cl_app_camerapicture_js IMPLEMENTATION.
              `    "use strict";` && |\n| &&
              `    const _CTX_2D_OPTS = { willReadFrequently: true };` && |\n| &&
              `    const _THUMB_W = 300;` && |\n| &&
+             `    // width/height size the trigger button; a bare number is treated as px.` && |\n| &&
+             `    const toCssSize = (val) => (/^\d+$/.test(val) ? ``${val}px`` : val);` && |\n| &&
              `    return Control.extend("z2ui5.cc.CameraPicture", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -209,7 +211,7 @@ CLASS z2ui5_cl_app_camerapicture_js IMPLEMENTATION.
              `      onAfterRendering() {` && |\n| &&
              `        const h = this.getHeight();` && |\n| &&
              `        const dom = this._oButton?.getDomRef();` && |\n| &&
-             `        if (h && dom) dom.style.height = /^\d+$/.test(h) ? ``${h}px`` : h;` && |\n| &&
+             `        if (h && dom) dom.style.height = toCssSize(h);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      renderer: {` && |\n| &&
@@ -227,9 +229,7 @@ CLASS z2ui5_cl_app_camerapicture_js IMPLEMENTATION.
              `              },` && |\n| &&
              `            });` && |\n| &&
              `          }` && |\n| &&
-             `          // width, when set, sizes the trigger button; a bare number is px.` && |\n| &&
-             `          const w = oControl.getWidth();` && |\n| &&
-             `          oControl._oButton.setWidth(/^\d+$/.test(w) ? ``${w}px`` : w);` && |\n| &&
+             `          oControl._oButton.setWidth(toCssSize(oControl.getWidth()));` && |\n| &&
              `          oRm.renderControl(oControl._oButton);` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&

@@ -152,7 +152,6 @@ sap.ui.define(
               oControl.setProperty("path", value);
               if (oControl.oUploadButton) {
                 oControl.oUploadButton.setEnabled(!!value);
-                oControl.oUploadButton.invalidate();
               }
             },
             uploadComplete: (oEvent) => {

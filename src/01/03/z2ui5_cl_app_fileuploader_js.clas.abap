@@ -172,7 +172,6 @@ CLASS z2ui5_cl_app_fileuploader_js IMPLEMENTATION.
              `              oControl.setProperty("path", value);` && |\n| &&
              `              if (oControl.oUploadButton) {` && |\n| &&
              `                oControl.oUploadButton.setEnabled(!!value);` && |\n| &&
-             `                oControl.oUploadButton.invalidate();` && |\n| &&
              `              }` && |\n| &&
              `            },` && |\n| &&
              `            uploadComplete: (oEvent) => {` && |\n| &&

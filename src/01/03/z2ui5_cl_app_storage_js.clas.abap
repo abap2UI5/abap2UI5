@@ -79,8 +79,7 @@ CLASS z2ui5_cl_app_storage_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          const storageType = Storage.Type[type] || Storage.Type.session;` && |\n| &&
              `          const storage = new Storage(storageType, prefix);` && |\n| &&
-             `          const read = storage.get(key);` && |\n| &&
-             `          stored = read == null ? "" : read;` && |\n| &&
+             `          stored = storage.get(key) ?? "";` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError(``Storage: read failed for key '${key}'``, e);` && |\n| &&
              `          return;` && |\n| &&

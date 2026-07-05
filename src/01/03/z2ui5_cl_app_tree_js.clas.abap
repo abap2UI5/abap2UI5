@@ -34,8 +34,7 @@ CLASS z2ui5_cl_app_tree_js IMPLEMENTATION.
              `` && |\n| &&
              `      _getTreeBinding() {` && |\n| &&
              `        const treeControl = ViewSlots.byId("MAIN", this.getProperty("tree_id"));` && |\n| &&
-             `        if (!treeControl) return undefined;` && |\n| &&
-             `        return treeControl.getBinding("items");` && |\n| &&
+             `        return treeControl?.getBinding("items");` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      setBackend() {` && |\n| &&

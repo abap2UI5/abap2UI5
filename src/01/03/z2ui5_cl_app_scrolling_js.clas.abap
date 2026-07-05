@@ -46,10 +46,8 @@ CLASS z2ui5_cl_app_scrolling_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          const control = ViewSlots.byId("MAIN", item.N);` && |\n| &&
              `          // Some controls expose a scroll delegate; prefer it when available.` && |\n| &&
-             `          if (control?.getScrollDelegate) {` && |\n| &&
-             `            const delegate = control.getScrollDelegate();` && |\n| &&
-             `            if (delegate) return delegate.getScrollTop();` && |\n| &&
-             `          }` && |\n| &&
+             `          const delegate = control?.getScrollDelegate?.();` && |\n| &&
+             `          if (delegate) return delegate.getScrollTop();` && |\n| &&
              `          const element = this._getDomInnerElement(item.ID);` && |\n| &&
              `          return element ? element.scrollTop : 0;` && |\n| &&
              `        } catch (e) {` && |\n| &&

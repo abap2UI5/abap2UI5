@@ -14,8 +14,7 @@ sap.ui.define(
 
       _getTreeBinding() {
         const treeControl = ViewSlots.byId("MAIN", this.getProperty("tree_id"));
-        if (!treeControl) return undefined;
-        return treeControl.getBinding("items");
+        return treeControl?.getBinding("items");
       },
 
       setBackend() {

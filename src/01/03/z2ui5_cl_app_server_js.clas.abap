@@ -189,7 +189,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            SELECTION_START: active.selectionStart || 0,` && |\n| &&
              `            SELECTION_END: active.selectionEnd || 0,` && |\n| &&
              `          };` && |\n| &&
-             `        } catch (e) {` && |\n| &&
+             `        } catch {` && |\n| &&
              `          return undefined;` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
@@ -386,7 +386,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            let text;` && |\n| &&
              `            try {` && |\n| &&
              `              text = await response.text();` && |\n| &&
-             `            } catch (e) {` && |\n| &&
+             `            } catch {` && |\n| &&
              `              text = ``HTTP ${response.status}: could not read error body``;` && |\n| &&
              `            }` && |\n| &&
              `            // An empty error body would render an empty overlay - fall back` && |\n| &&

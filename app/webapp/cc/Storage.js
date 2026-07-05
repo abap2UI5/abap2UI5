@@ -59,8 +59,7 @@ sap.ui.define(
         try {
           const storageType = Storage.Type[type] || Storage.Type.session;
           const storage = new Storage(storageType, prefix);
-          const read = storage.get(key);
-          stored = read == null ? "" : read;
+          stored = storage.get(key) ?? "";
         } catch (e) {
           Lib.logError(`Storage: read failed for key '${key}'`, e);
           return;

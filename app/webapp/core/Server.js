@@ -169,7 +169,7 @@ sap.ui.define(
             SELECTION_START: active.selectionStart || 0,
             SELECTION_END: active.selectionEnd || 0,
           };
-        } catch (e) {
+        } catch {
           return undefined;
         }
       },
@@ -366,7 +366,7 @@ sap.ui.define(
             let text;
             try {
               text = await response.text();
-            } catch (e) {
+            } catch {
               text = `HTTP ${response.status}: could not read error body`;
             }
             // An empty error body would render an empty overlay - fall back

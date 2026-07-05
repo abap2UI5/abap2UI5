@@ -398,7 +398,7 @@ sap.ui.define(
             d.scrollTo(x, y, smooth ? 300 : 0);
             handled = true;
           }
-        } catch (e) {
+        } catch {
           // fall through
         }
 

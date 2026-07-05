@@ -89,7 +89,9 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
             Lib.logError(`Geolocation error (${error.code}): ${error.message}`),
           {
             enableHighAccuracy: this.getProperty("enableHighAccuracy"),
-            timeout: +this.getProperty("timeout"),
+            // Guard against an empty or non-numeric property - NaN or 0
+            // would make getCurrentPosition fail immediately.
+            timeout: +this.getProperty("timeout") || 5000,
           },
         );
       } catch (e) {

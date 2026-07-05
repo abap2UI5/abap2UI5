@@ -88,8 +88,7 @@ sap.ui.define(
             ["device_browser", browser.name],
           ];
           for (const [prop, val] of props) {
-            const safe = Lib.toText(val);
-            this.setProperty(prop, safe, true);
+            this.setProperty(prop, Lib.toText(val), true);
           }
           this.fireFinished();
         } catch (e) {

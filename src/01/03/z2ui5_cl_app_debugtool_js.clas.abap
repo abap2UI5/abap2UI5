@@ -39,7 +39,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      const safe = val === undefined ? null : val;` && |\n| &&
              `      try {` && |\n| &&
              `        return JSON.stringify(safe, null, 3);` && |\n| &&
-             `      } catch (e) {` && |\n| &&
+             `      } catch {` && |\n| &&
              `        // e.g. circular references in ComponentData - the debug tool must` && |\n| &&
              `        // never crash the host app, so degrade to the plain string form.` && |\n| &&
              `        return String(safe);` && |\n| &&
@@ -170,7 +170,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `          return resultXml.replace(/&gt;|&lt;/g, (m) =>` && |\n| &&
              `            m === "&gt;" ? ">" : "<",` && |\n| &&
              `          );` && |\n| &&
-             `        } catch (e) {` && |\n| &&
+             `        } catch {` && |\n| &&
              `          return sourceXml;` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&

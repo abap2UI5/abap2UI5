@@ -19,7 +19,7 @@ sap.ui.define(
       const safe = val === undefined ? null : val;
       try {
         return JSON.stringify(safe, null, 3);
-      } catch (e) {
+      } catch {
         // e.g. circular references in ComponentData - the debug tool must
         // never crash the host app, so degrade to the plain string form.
         return String(safe);
@@ -150,7 +150,7 @@ sap.ui.define(
           return resultXml.replace(/&gt;|&lt;/g, (m) =>
             m === "&gt;" ? ">" : "<",
           );
-        } catch (e) {
+        } catch {
           return sourceXml;
         }
       },
