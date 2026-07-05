@@ -78,8 +78,8 @@ CLASS z2ui5_cl_app_smartmultiinpu_js IMPLEMENTATION.
              `        const rangeData = source.getRangeData() || [];` && |\n| &&
              `        const enrichedRanges = rangeData.map((oRangeData, index) => {` && |\n| &&
              `          const token = tokens[index];` && |\n| &&
-             `          oRangeData.tokenText = token ? token.getText() : "";` && |\n| &&
-             `          oRangeData.tokenLongKey = token ? token.data("longKey") : undefined;` && |\n| &&
+             `          oRangeData.tokenText = token?.getText() ?? "";` && |\n| &&
+             `          oRangeData.tokenLongKey = token?.data("longKey");` && |\n| &&
              `          return oRangeData;` && |\n| &&
              `        });` && |\n| &&
              `        this.setProperty("rangeData", enrichedRanges);` && |\n| &&

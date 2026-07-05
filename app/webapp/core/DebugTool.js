@@ -224,11 +224,9 @@ sap.ui.define(
         const modelData = oModel.getData();
         // Toggle between the original (previousValue) and the rendered DOM
         // (xContent) representation.
-        if (oSource.getPressed()) {
-          modelData.value = modelData.xContent;
-        } else {
-          modelData.value = modelData.previousValue;
-        }
+        modelData.value = oSource.getPressed()
+          ? modelData.xContent
+          : modelData.previousValue;
         oModel.refresh();
       },
 

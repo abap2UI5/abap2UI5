@@ -51,11 +51,9 @@ sap.ui.define(
           this._filterBinding = binding;
           // Prefer the public getFilters API (UI5 >= 1.96); older releases
           // only expose the private aFilters member.
-          this.aFilters = !binding
-            ? undefined
-            : binding.getFilters
-              ? binding.getFilters("Application")
-              : binding.aFilters;
+          this.aFilters = binding?.getFilters
+            ? binding.getFilters("Application")
+            : binding?.aFilters;
         } catch (e) {
           Lib.logError("UITableExt.readFilter failed", e);
         }

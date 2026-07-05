@@ -81,16 +81,12 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `  // the server and app state is still intact).` && |\n| &&
              `  function show(response, title, options = {}) {` && |\n| &&
              `    const full = response?.stack ? String(response.stack) : String(response);` && |\n| &&
-             `    let errorMessage;` && |\n| &&
-             `    if (full.length > ERROR_MAX_LENGTH) {` && |\n| &&
-             `      // Rendered via textContent, so use plain text (an HTML comment would` && |\n| &&
-             `      // show up literally).` && |\n| &&
-             `      errorMessage =` && |\n| &&
-             `        full.slice(0, ERROR_MAX_LENGTH) +` && |\n| &&
-             `        ``\n\n[... truncated after ${ERROR_MAX_LENGTH} characters]``;` && |\n| &&
-             `    } else {` && |\n| &&
-             `      errorMessage = full;` && |\n| &&
-             `    }` && |\n| &&
+             `    // Rendered via textContent, so the truncation marker is plain text (an` && |\n| &&
+             `    // HTML comment would show up literally).` && |\n| &&
+             `    const errorMessage =` && |\n| &&
+             `      full.length > ERROR_MAX_LENGTH` && |\n| &&
+             `        ? ``${full.slice(0, ERROR_MAX_LENGTH)}\n\n[... truncated after ${ERROR_MAX_LENGTH} characters]``` && |\n| &&
+             `        : full;` && |\n| &&
              `` && |\n| &&
              `    const errorContainer = createContainer();` && |\n| &&
              `` && |\n| &&

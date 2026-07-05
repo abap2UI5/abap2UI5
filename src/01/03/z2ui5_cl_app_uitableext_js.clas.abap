@@ -71,11 +71,9 @@ CLASS z2ui5_cl_app_uitableext_js IMPLEMENTATION.
              `          this._filterBinding = binding;` && |\n| &&
              `          // Prefer the public getFilters API (UI5 >= 1.96); older releases` && |\n| &&
              `          // only expose the private aFilters member.` && |\n| &&
-             `          this.aFilters = !binding` && |\n| &&
-             `            ? undefined` && |\n| &&
-             `            : binding.getFilters` && |\n| &&
-             `              ? binding.getFilters("Application")` && |\n| &&
-             `              : binding.aFilters;` && |\n| &&
+             `          this.aFilters = binding?.getFilters` && |\n| &&
+             `            ? binding.getFilters("Application")` && |\n| &&
+             `            : binding?.aFilters;` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("UITableExt.readFilter failed", e);` && |\n| &&
              `        }` && |\n| &&

@@ -58,8 +58,8 @@ sap.ui.define(
         const rangeData = source.getRangeData() || [];
         const enrichedRanges = rangeData.map((oRangeData, index) => {
           const token = tokens[index];
-          oRangeData.tokenText = token ? token.getText() : "";
-          oRangeData.tokenLongKey = token ? token.data("longKey") : undefined;
+          oRangeData.tokenText = token?.getText() ?? "";
+          oRangeData.tokenLongKey = token?.data("longKey");
           return oRangeData;
         });
         this.setProperty("rangeData", enrichedRanges);

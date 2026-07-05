@@ -34,12 +34,11 @@ CLASS z2ui5_cl_app_cameraselector_js IMPLEMENTATION.
              `          const md = navigator.mediaDevices;` && |\n| &&
              `          if (!md?.enumerateDevices) return;` && |\n| &&
              `          const devices = await md.enumerateDevices();` && |\n| &&
-             `          if (!devices) return;` && |\n| &&
+             `          // The ComboBox may have been destroyed during the await.` && |\n| &&
+             `          if (!devices || Lib.isDestroyed(this)) return;` && |\n| &&
              `          for (const device of devices) {` && |\n| &&
-             `            // Only video inputs are relevant; also stop adding items when the` && |\n| &&
-             `            // ComboBox has been destroyed during the await.` && |\n| &&
+             `            // Only video inputs are relevant.` && |\n| &&
              `            if (device.kind !== "videoinput") continue;` && |\n| &&
-             `            if (Lib.isDestroyed(this)) return;` && |\n| &&
              `            this.addItem(` && |\n| &&
              `              new Item({ key: device.deviceId, text: device.label }),` && |\n| &&
              `            );` && |\n| &&

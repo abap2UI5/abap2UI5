@@ -61,16 +61,12 @@ sap.ui.define([], () => {
   // the server and app state is still intact).
   function show(response, title, options = {}) {
     const full = response?.stack ? String(response.stack) : String(response);
-    let errorMessage;
-    if (full.length > ERROR_MAX_LENGTH) {
-      // Rendered via textContent, so use plain text (an HTML comment would
-      // show up literally).
-      errorMessage =
-        full.slice(0, ERROR_MAX_LENGTH) +
-        `\n\n[... truncated after ${ERROR_MAX_LENGTH} characters]`;
-    } else {
-      errorMessage = full;
-    }
+    // Rendered via textContent, so the truncation marker is plain text (an
+    // HTML comment would show up literally).
+    const errorMessage =
+      full.length > ERROR_MAX_LENGTH
+        ? `${full.slice(0, ERROR_MAX_LENGTH)}\n\n[... truncated after ${ERROR_MAX_LENGTH} characters]`
+        : full;
 
     const errorContainer = createContainer();
 

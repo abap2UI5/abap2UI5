@@ -174,26 +174,35 @@ sap.ui.define([], () => {
     return "desktop";
   }
 
-  // Returns true only if the URL is on the same origin and uses http/https.
-  function isValidRedirectURL(url) {
-    if (!url) return false;
+  // Shared first step of the URL validators below: resolve the URL against
+  // the current origin, log and return null when it is empty or malformed.
+  function parseUrl(url) {
+    if (!url) return null;
     try {
-      const parsed = new URL(url, window.location.origin);
-      if (parsed.origin !== window.location.origin) {
-        logError(`Security: Blocked redirect to different origin: ${url}`);
-        return false;
-      }
-      if (!SAFE_PROTOCOLS.includes(parsed.protocol)) {
-        logError(
-          `Security: Blocked redirect with invalid protocol: ${parsed.protocol}`,
-        );
-        return false;
-      }
-      return true;
+      return new URL(url, window.location.origin);
     } catch (e) {
       logError(`Security: Invalid URL format: ${url}`, e);
+      return null;
+    }
+  }
+
+  function hasSafeProtocol(parsed) {
+    if (SAFE_PROTOCOLS.includes(parsed.protocol)) return true;
+    logError(
+      `Security: Blocked redirect with invalid protocol: ${parsed.protocol}`,
+    );
+    return false;
+  }
+
+  // Returns true only if the URL is on the same origin and uses http/https.
+  function isValidRedirectURL(url) {
+    const parsed = parseUrl(url);
+    if (!parsed) return false;
+    if (parsed.origin !== window.location.origin) {
+      logError(`Security: Blocked redirect to different origin: ${url}`);
       return false;
     }
+    return hasSafeProtocol(parsed);
   }
 
   // Returns true if the URL uses a safe (http/https) protocol. Unlike
@@ -201,38 +210,21 @@ sap.ui.define([], () => {
   // outbound redirects to external sites while still blocking dangerous
   // schemes such as javascript:, data: or vbscript:.
   function isSafeRedirectProtocol(url) {
-    if (!url) return false;
-    try {
-      const parsed = new URL(url, window.location.origin);
-      if (!SAFE_PROTOCOLS.includes(parsed.protocol)) {
-        logError(
-          `Security: Blocked redirect with invalid protocol: ${parsed.protocol}`,
-        );
-        return false;
-      }
-      return true;
-    } catch (e) {
-      logError(`Security: Invalid URL format: ${url}`, e);
-      return false;
-    }
+    const parsed = parseUrl(url);
+    return !!parsed && hasSafeProtocol(parsed);
   }
 
   // Returns true for URLs that are safe as download targets: data: and
   // blob: (generated content) plus http(s). Blocks javascript: and other
   // active schemes, consistent with the redirect validators above.
   function isSafeDownloadURL(url) {
-    if (!url) return false;
-    try {
-      const parsed = new URL(url, window.location.origin);
-      return (
-        parsed.protocol === "data:" ||
+    const parsed = parseUrl(url);
+    return (
+      !!parsed &&
+      (parsed.protocol === "data:" ||
         parsed.protocol === "blob:" ||
-        SAFE_PROTOCOLS.includes(parsed.protocol)
-      );
-    } catch (e) {
-      logError(`Security: Invalid URL format: ${url}`, e);
-      return false;
-    }
+        SAFE_PROTOCOLS.includes(parsed.protocol))
+    );
   }
 
   // A usable stateful session id ("sap-contextid"). We must never put a

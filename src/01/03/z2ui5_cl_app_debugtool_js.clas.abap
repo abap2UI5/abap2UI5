@@ -244,11 +244,9 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        const modelData = oModel.getData();` && |\n| &&
              `        // Toggle between the original (previousValue) and the rendered DOM` && |\n| &&
              `        // (xContent) representation.` && |\n| &&
-             `        if (oSource.getPressed()) {` && |\n| &&
-             `          modelData.value = modelData.xContent;` && |\n| &&
-             `        } else {` && |\n| &&
-             `          modelData.value = modelData.previousValue;` && |\n| &&
-             `        }` && |\n| &&
+             `        modelData.value = oSource.getPressed()` && |\n| &&
+             `          ? modelData.xContent` && |\n| &&
+             `          : modelData.previousValue;` && |\n| &&
              `        oModel.refresh();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&

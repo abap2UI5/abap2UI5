@@ -445,7 +445,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (!slotKey) return undefined;` && |\n| &&
              `` && |\n| &&
              `        if (slotKey === "MAIN") {` && |\n| &&
-             `          const sView = z2ui5.oResponse?.PARAMS?.S_VIEW ?? null;` && |\n| &&
+             `          const sView = z2ui5.oResponse?.PARAMS?.S_VIEW;` && |\n| &&
              `          if (sView?.SWITCH_DEFAULT_MODEL_PATH) {` && |\n| &&
              `            return ViewSlots.getView("MAIN")?.getModel("http");` && |\n| &&
              `          }` && |\n| &&
@@ -466,7 +466,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      updateModelIfRequired(slotKey) {` && |\n| &&
              `        const params = z2ui5.oResponse?.PARAMS;` && |\n| &&
              `        const slotParams = params?.[ViewSlots.paramByKey(slotKey)];` && |\n| &&
-             `        if (!slotParams || !slotParams.CHECK_UPDATE_MODEL) return;` && |\n| &&
+             `        if (!slotParams?.CHECK_UPDATE_MODEL) return;` && |\n| &&
              `` && |\n| &&
              `        const oView = ViewSlots.getView(slotKey);` && |\n| &&
              `        if (!oView) return;` && |\n| &&
@@ -495,7 +495,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      async displayView(xml, viewModel) {` && |\n| &&
              `        const oViewModel = this._trackChanges(new JSONModel(viewModel));` && |\n| &&
              `` && |\n| &&
-             `        const sView = z2ui5.oResponse?.PARAMS?.S_VIEW ?? null;` && |\n| &&
+             `        const sView = z2ui5.oResponse?.PARAMS?.S_VIEW;` && |\n| &&
              `        const switchPath = sView?.SWITCH_DEFAULT_MODEL_PATH;` && |\n| &&
              `` && |\n| &&
              `        // When the app wants OData as the default model, build it here and` && |\n| &&

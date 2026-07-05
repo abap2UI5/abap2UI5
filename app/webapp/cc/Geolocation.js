@@ -63,9 +63,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
       // The control could be torn down while the geolocation API was busy.
       if (Lib.isDestroyed(this)) return;
       for (const prop of _GEO_PROPS) {
-        const raw = coords[prop];
-        const val = Lib.toText(raw);
-        this.setProperty(prop, val, true);
+        this.setProperty(prop, Lib.toText(coords[prop]), true);
       }
       this.fireFinished();
     },
