@@ -167,8 +167,8 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `          const resultXml = _xmlSerializer.serializeToString(resultDoc);` && |\n| &&
              `          // The serializer escapes < and > inside text nodes; undo this so` && |\n| &&
              `          // the output is browseable XML again.` && |\n| &&
-             `          return resultXml.replace(/&gt;|&lt;/g, (m) =>` && |\n| &&
-             `            m === "&gt;" ? ">" : "<",` && |\n| &&
+             `          return resultXml.replace(/&gt;|&lt;/g, (match) =>` && |\n| &&
+             `            match === "&gt;" ? ">" : "<",` && |\n| &&
              `          );` && |\n| &&
              `        } catch {` && |\n| &&
              `          return sourceXml;` && |\n| &&
@@ -230,7 +230,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        const modelData = oModel.getData();` && |\n| &&
              `        modelData.editor_visible = true;` && |\n| &&
              `        modelData.source_visible = false;` && |\n| &&
-             `        modelData.isTemplating = !!content?.includes("xmlns:template");` && |\n| &&
+             `        modelData.isTemplating = Boolean(content?.includes("xmlns:template"));` && |\n| &&
              `        modelData.value = content;` && |\n| &&
              `        modelData.previousValue = content;` && |\n| &&
              `        modelData.xContent = xcontent;` && |\n| &&
@@ -285,10 +285,10 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `            previousValue: value,` && |\n| &&
              `            isTemplating: false,` && |\n| &&
              `            templatingSource: false,` && |\n| &&
-             `            activeNest1: !!getViewContent(ViewSlots.getView("NEST")),` && |\n| &&
-             `            activeNest2: !!getViewContent(ViewSlots.getView("NEST2")),` && |\n| &&
-             `            activePopup: !!getResponseXml("S_POPUP"),` && |\n| &&
-             `            activePopover: !!getResponseXml("S_POPOVER"),` && |\n| &&
+             `            activeNest1: Boolean(getViewContent(ViewSlots.getView("NEST"))),` && |\n| &&
+             `            activeNest2: Boolean(getViewContent(ViewSlots.getView("NEST2"))),` && |\n| &&
+             `            activePopup: Boolean(getResponseXml("S_POPUP")),` && |\n| &&
+             `            activePopover: Boolean(getResponseXml("S_POPOVER")),` && |\n| &&
              `          };` && |\n| &&
              `` && |\n| &&
              `          const oModel = new JSONModel(oData);` && |\n| &&

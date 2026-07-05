@@ -8,6 +8,11 @@ sap.ui.define(
   (Control, Token, Lib, ViewSlots) => {
     "use strict";
 
+    // Invisible companion control for a sap.m.MultiInput (referenced via
+    // MultiInputId): mirrors added/removed tokens into the bindable
+    // addedTokens/removedTokens properties and fires `change` so the
+    // backend sees every token update. Also installs a validator that
+    // turns free-text entries into tokens.
     return Control.extend("z2ui5.cc.MultiInputExt", {
       metadata: {
         properties: {

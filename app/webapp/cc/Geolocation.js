@@ -1,3 +1,6 @@
+// Invisible control that reads the device position once after rendering
+// into its bindable properties (longitude, latitude, ...) and fires
+// `finished` so the backend can pick the values up.
 sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
   "use strict";
 
@@ -89,7 +92,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
             enableHighAccuracy: this.getProperty("enableHighAccuracy"),
             // Guard against an empty or non-numeric property - NaN or 0
             // would make getCurrentPosition fail immediately.
-            timeout: +this.getProperty("timeout") || 5000,
+            timeout: Number(this.getProperty("timeout")) || 5000,
           },
         );
       } catch (e) {

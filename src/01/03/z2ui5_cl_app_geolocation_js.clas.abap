@@ -18,7 +18,10 @@ CLASS z2ui5_cl_app_geolocation_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
+    result = `// Invisible control that reads the device position once after rendering` && |\n| &&
+             `// into its bindable properties (longitude, latitude, ...) and fires` && |\n| &&
+             `// ``finished`` so the backend can pick the values up.` && |\n| &&
+             `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
              `  const _GEO_PROPS = [` && |\n| &&
@@ -109,7 +112,7 @@ CLASS z2ui5_cl_app_geolocation_js IMPLEMENTATION.
              `            enableHighAccuracy: this.getProperty("enableHighAccuracy"),` && |\n| &&
              `            // Guard against an empty or non-numeric property - NaN or 0` && |\n| &&
              `            // would make getCurrentPosition fail immediately.` && |\n| &&
-             `            timeout: +this.getProperty("timeout") || 5000,` && |\n| &&
+             `            timeout: Number(this.getProperty("timeout")) || 5000,` && |\n| &&
              `          },` && |\n| &&
              `        );` && |\n| &&
              `      } catch (e) {` && |\n| &&

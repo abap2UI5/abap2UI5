@@ -50,14 +50,14 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `` && |\n| &&
              `  // True when the object supports isDestroyed() and reports destroyed.` && |\n| &&
              `  function isDestroyed(obj) {` && |\n| &&
-             `    return !!(obj?.isDestroyed && obj.isDestroyed());` && |\n| &&
+             `    return Boolean(obj?.isDestroyed && obj.isDestroyed());` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // True when the object exists and is not destroyed. Used to guard` && |\n| &&
              `  // async continuations (await, FileReader, getUserMedia, ...) against` && |\n| &&
              `  // controls or views that were torn down in the meantime.` && |\n| &&
              `  function isAlive(obj) {` && |\n| &&
-             `    return !!obj && !isDestroyed(obj);` && |\n| &&
+             `    return Boolean(obj) && !isDestroyed(obj);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // Helpers for managing z2ui5 callback arrays (onBeforeRoundtrip,` && |\n| &&
@@ -231,7 +231,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `  // schemes such as javascript:, data: or vbscript:.` && |\n| &&
              `  function isSafeRedirectProtocol(url) {` && |\n| &&
              `    const parsed = parseUrl(url);` && |\n| &&
-             `    return !!parsed && hasSafeProtocol(parsed);` && |\n| &&
+             `    return parsed !== null && hasSafeProtocol(parsed);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // Returns true for URLs that are safe as download targets: data: and` && |\n| &&
@@ -240,7 +240,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `  function isSafeDownloadURL(url) {` && |\n| &&
              `    const parsed = parseUrl(url);` && |\n| &&
              `    return (` && |\n| &&
-             `      !!parsed &&` && |\n| &&
+             `      parsed !== null &&` && |\n| &&
              `      (parsed.protocol === "data:" ||` && |\n| &&
              `        parsed.protocol === "blob:" ||` && |\n| &&
              `        SAFE_PROTOCOLS.includes(parsed.protocol))` && |\n| &&
@@ -268,7 +268,8 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      // delta. Deeper paths (e.g. tree tables: attr/row/<subtable>/<row>/<field>)` && |\n| &&
              `      // fall back to shipping the whole attribute, which the backend applies` && |\n| &&
              `      // via corresponding-based deserialization.` && |\n| &&
-             `      const isRowField = parts.length === 3 && rowIdx !== "" && !isNaN(rowIdx);` && |\n| &&
+             `      const isRowField =` && |\n| &&
+             `        parts.length === 3 && rowIdx !== "" && !Number.isNaN(Number(rowIdx));` && |\n| &&
              `      if (isRowField) {` && |\n| &&
              `        // A full attribute queued by another path already carries every` && |\n| &&
              `        // cell (both read the same current model data) - never downgrade` && |\n| &&
@@ -280,7 +281,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        const attrDelta = delta[attr].__delta;` && |\n| &&
              `        if (!attrDelta[rowIdx]) attrDelta[rowIdx] = {};` && |\n| &&
-             `        attrDelta[rowIdx][field] = xx[attr]?.[+rowIdx]?.[field];` && |\n| &&
+             `        attrDelta[rowIdx][field] = xx[attr]?.[Number(rowIdx)]?.[field];` && |\n| &&
              `      } else {` && |\n| &&
              `        // Scalar change -> ship the whole attribute.` && |\n| &&
              `        delta[attr] = xx[attr];` && |\n| &&

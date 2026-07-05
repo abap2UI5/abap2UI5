@@ -8,6 +8,9 @@ sap.ui.define(
   ],
   (Control, Dialog, Button, HTML, Lib) => {
     "use strict";
+    // Camera button: opens a dialog with the live camera stream, captures
+    // a photo on demand and hands it to the backend as a base64 JPEG in
+    // `value` (plus a small preview thumbnail) via the OnPhoto event.
     const _CTX_2D_OPTS = { willReadFrequently: true };
     const _THUMB_W = 300;
     // width/height size the trigger button; a bare number is treated as px.

@@ -18,7 +18,10 @@ CLASS z2ui5_cl_app_history_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
+    result = `// Invisible control that rewrites the query string of the current browser` && |\n| &&
+             `// URL (history.replaceState) from its bound ``search`` property - no page` && |\n| &&
+             `// reload, no new history entry.` && |\n| &&
+             `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `  return Control.extend("z2ui5.cc.History", {` && |\n| &&
              `    metadata: {` && |\n| &&

@@ -3,6 +3,9 @@ sap.ui.define(
   (Control, Lib, ViewSlots) => {
     "use strict";
 
+    // Invisible control that saves the scroll positions of the controls
+    // listed in `items` into the model before each roundtrip and restores
+    // them after the next rendering.
     return Control.extend("z2ui5.cc.Scrolling", {
       metadata: {
         properties: {

@@ -80,8 +80,8 @@ sap.ui.define(
 
       _installDebugToolShortcut() {
         // Ctrl + F12 opens / closes the in-app debug tool.
-        this._boundKeydown = (zEvent) => {
-          if (zEvent.ctrlKey && zEvent.key === "F12") {
+        this._boundKeydown = (event) => {
+          if (event.ctrlKey && event.key === "F12") {
             if (!z2ui5.debugTool) z2ui5.debugTool = new DebugTool();
             z2ui5.debugTool.toggle();
           }

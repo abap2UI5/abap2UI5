@@ -18,7 +18,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(` && |\n| &&
+    result = `// The central view controller. One instance serves each of the five view` && |\n| &&
+             `// slots (main view, two nested views, popup, popover - see` && |\n| &&
+             `// core/ViewSlots.js). It builds the request for backend events (eB),` && |\n| &&
+             `// dispatches frontend-only events (eF), renders the views and fragments a` && |\n| &&
+             `// response asks for, and runs the post-render follow-ups.` && |\n| &&
+             `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
              `    "sap/ui/core/mvc/Controller",` && |\n| &&
              `    "sap/ui/core/mvc/XMLView",` && |\n| &&
@@ -81,10 +86,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const ctx = params.context;` && |\n| &&
              `          if (!raw) return;` && |\n| &&
              `          // Resolve relative paths against the binding context.` && |\n| &&
-             `          const p =` && |\n| &&
+             `          const changedPath =` && |\n| &&
              `            ctx && !raw.startsWith("/") ? ``${ctx.getPath()}/${raw}`` : raw;` && |\n| &&
-             `          if (p.startsWith("/XX/")) {` && |\n| &&
-             `            z2ui5.xxChangedPaths.add(p);` && |\n| &&
+             `          if (changedPath.startsWith("/XX/")) {` && |\n| &&
+             `            z2ui5.xxChangedPaths.add(changedPath);` && |\n| &&
              `          }` && |\n| &&
              `        });` && |\n| &&
              `        return oModel;` && |\n| &&
@@ -412,13 +417,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        Lib.runCallbacks(z2ui5.onBeforeRoundtrip);` && |\n| &&
              `` && |\n| &&
-             `        // If the user edited /XX/ paths, send only the delta to keep the` && |\n| &&
+             `        // If the user edited /XX/ paths, send only the delta to keep the` && |\n|.
+    result = result &&
              `        // payload small.` && |\n| &&
              `        if (oModel && z2ui5.xxChangedPaths.size > 0) {` && |\n| &&
              `          const data = oModel.getData();` && |\n| &&
              `          const xx = data?.XX;` && |\n| &&
-             `          if (xx) {` && |\n|.
-    result = result &&
+             `          if (xx) {` && |\n| &&
              `            oBody.XX = Lib.buildDeltaFromPaths(z2ui5.xxChangedPaths, xx);` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&

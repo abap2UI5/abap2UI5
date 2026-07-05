@@ -100,34 +100,33 @@ sap.ui.define(
       },
 
       _getDeviceInfo() {
-        const d = Device;
         // SYSTEM / BROWSER / OS / SUPPORT are fixed for the lifetime of the
         // session, so resolve them once and reuse the cached block; only
         // ORIENTATION and RESIZE are read fresh on every roundtrip.
         if (!this._deviceStatic) {
           this._deviceStatic = {
-            SYSTEM: Lib.deriveSystemType(d.system),
+            SYSTEM: Lib.deriveSystemType(Device.system),
             BROWSER: {
-              NAME: d.browser.name || "",
-              VERSION: String(d.browser.version || ""),
+              NAME: Device.browser.name || "",
+              VERSION: String(Device.browser.version || ""),
             },
             OS: {
-              NAME: d.os.name || "",
-              VERSION: String(d.os.version || ""),
+              NAME: Device.os.name || "",
+              VERSION: String(Device.os.version || ""),
             },
             SUPPORT: {
-              TOUCH: d.support.touch || false,
-              POINTER: d.support.pointer || false,
-              RETINA: d.support.retina || false,
+              TOUCH: Device.support.touch || false,
+              POINTER: Device.support.pointer || false,
+              RETINA: Device.support.retina || false,
             },
           };
         }
         return {
           ...this._deviceStatic,
-          ORIENTATION: d.orientation.portrait ? "portrait" : "landscape",
+          ORIENTATION: Device.orientation.portrait ? "portrait" : "landscape",
           RESIZE: {
-            WIDTH: d.resize.width || window.innerWidth,
-            HEIGHT: d.resize.height || window.innerHeight,
+            WIDTH: Device.resize.width || window.innerWidth,
+            HEIGHT: Device.resize.height || window.innerHeight,
           },
         };
       },

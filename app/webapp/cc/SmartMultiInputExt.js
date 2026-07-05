@@ -3,6 +3,10 @@ sap.ui.define(
   (Control, Lib, ViewSlots) => {
     "use strict";
 
+    // Invisible companion control for a SmartMultiInput (referenced via
+    // multiInputId): mirrors token updates and the select-option style
+    // range data into bindable properties so the backend can read and
+    // restore the input's state across roundtrips.
     return Control.extend("z2ui5.cc.SmartMultiInputExt", {
       metadata: {
         properties: {

@@ -3,6 +3,10 @@ sap.ui.define(
   (Control, Lib, ViewSlots) => {
     "use strict";
 
+    // Invisible companion control for a sap.m.upload.UploadSet (referenced
+    // via uploadSetId): reads every added file as a base64 data URL into
+    // the bindable fileData/fileName/... properties and reports removals,
+    // so the backend receives the file content without an upload endpoint.
     return Control.extend("z2ui5.cc.UploadSetExt", {
       metadata: {
         properties: {

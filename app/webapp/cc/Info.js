@@ -3,6 +3,9 @@ sap.ui.define(
   (Control, Lib, ViewSlots) => {
     "use strict";
 
+    // Invisible control that reports the UI5 version/theme and the device
+    // info (system type, screen size, OS, browser) back to the backend via
+    // its bindable properties, then fires `finished`.
     return Control.extend("z2ui5.cc.Info", {
       metadata: {
         properties: {

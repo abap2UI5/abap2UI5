@@ -3,6 +3,10 @@ sap.ui.define(
   (Control, Storage, Lib) => {
     "use strict";
 
+    // Invisible control that reads a value from browser storage
+    // (session/local, see sap.ui.util.Storage) into its `value` property
+    // and fires `finished` when the stored value differs from the current
+    // one. The write side is handled by the STORE_DATA frontend action.
     return Control.extend("z2ui5.cc.Storage", {
       metadata: {
         properties: {

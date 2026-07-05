@@ -27,6 +27,8 @@ CLASS z2ui5_cl_app_cameraselector_js IMPLEMENTATION.
              `  ],` && |\n| &&
              `  (ComboBox, Item, ComboBoxRenderer, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&
+             `    // ComboBox pre-filled with the device's cameras (video inputs) so the` && |\n| &&
+             `    // user can pick which one the CameraPicture control should use.` && |\n| &&
              `    return ComboBox.extend("z2ui5.cc.CameraSelector", {` && |\n| &&
              `      async init() {` && |\n| &&
              `        ComboBox.prototype.init.call(this);` && |\n| &&

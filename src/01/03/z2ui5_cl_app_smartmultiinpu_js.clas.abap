@@ -23,6 +23,10 @@ CLASS z2ui5_cl_app_smartmultiinpu_js IMPLEMENTATION.
              `  (Control, Lib, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
+             `    // Invisible companion control for a SmartMultiInput (referenced via` && |\n| &&
+             `    // multiInputId): mirrors token updates and the select-option style` && |\n| &&
+             `    // range data into bindable properties so the backend can read and` && |\n| &&
+             `    // restore the input's state across roundtrips.` && |\n| &&
              `    return Control.extend("z2ui5.cc.SmartMultiInputExt", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&

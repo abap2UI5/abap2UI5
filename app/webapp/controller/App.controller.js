@@ -1,3 +1,7 @@
+// Controller of the outer shell view (App.view.xml). Runs once at startup:
+// stores the backend URL, creates the five View1 controller instances (one
+// per view slot) and kicks off the initial roundtrip when the URL already
+// carries an app-state hash.
 sap.ui.define(
   [
     "sap/ui/core/mvc/Controller",

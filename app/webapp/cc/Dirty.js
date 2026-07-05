@@ -1,3 +1,6 @@
+// Invisible control that marks the session as having unsaved changes:
+// inside the Launchpad via the FLP dirty flag, standalone via the
+// browser's "leave page?" confirmation prompt.
 sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
   "use strict";
   return Control.extend("z2ui5.cc.Dirty", {

@@ -1,3 +1,7 @@
+// Invisible control that fires its `finished` event once `delayMS`
+// milliseconds after rendering - the backend binds the event to trigger
+// time-driven roundtrips (auto-refresh, polling). With checkRepeat the
+// timer re-arms itself after every firing.
 sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
   "use strict";
 

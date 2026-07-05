@@ -246,8 +246,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
-             `      const sep = path.indexOf("?") >= 0 ? "&" : "?";` && |\n| &&
-             `      const bspKill = ``${path}${sep}sap-sessioncmd=logoff``;` && |\n| &&
+             `      const separator = path.includes("?") ? "&" : "?";` && |\n| &&
+             `      const bspKill = ``${path}${separator}sap-sessioncmd=logoff``;` && |\n| &&
              `      let done = false;` && |\n| &&
              `      const finish = () => {` && |\n| &&
              `        if (done) return;` && |\n| &&
@@ -255,12 +255,12 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        redirectToLogout(logoutUrl);` && |\n| &&
              `      };` && |\n| &&
              `      try {` && |\n| &&
-             `        const f = document.createElement("iframe");` && |\n| &&
-             `        f.style.display = "none";` && |\n| &&
-             `        f.src = bspKill;` && |\n| &&
-             `        f.addEventListener("load", finish);` && |\n| &&
-             `        document.body.appendChild(f);` && |\n| &&
-             `      } catch (e) {` && |\n| &&
+             `        const frame = document.createElement("iframe");` && |\n| &&
+             `        frame.style.display = "none";` && |\n| &&
+             `        frame.src = bspKill;` && |\n| &&
+             `        frame.addEventListener("load", finish);` && |\n| &&
+             `        document.body.appendChild(frame);` && |\n| &&
+             `      } catch {` && |\n| &&
              `        finish();` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
@@ -341,7 +341,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // by design, not a bug.` && |\n| &&
              `      const timerKey = args[0];` && |\n| &&
              `      const callbackEvent = args[1];` && |\n| &&
-             `      const delay = +args[2] || 0;` && |\n| &&
+             `      const delay = Number(args[2]) || 0;` && |\n| &&
              `      clearTimeout(z2ui5.timers[timerKey]);` && |\n| &&
              `      z2ui5.timers[timerKey] = setTimeout(() => {` && |\n| &&
              `        delete z2ui5.timers[timerKey];` && |\n| &&
@@ -375,8 +375,12 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      const applyFocus = () => {` && |\n| &&
              `        try {` && |\n| &&
              `          const info = oElement.getFocusInfo();` && |\n| &&
-             `          if (args[2] != null && args[2] !== "") info.selectionStart = +args[2];` && |\n| &&
-             `          if (args[3] != null && args[3] !== "") info.selectionEnd = +args[3];` && |\n| &&
+             `          if (args[2] != null && args[2] !== "") {` && |\n| &&
+             `            info.selectionStart = Number(args[2]);` && |\n| &&
+             `          }` && |\n| &&
+             `          if (args[3] != null && args[3] !== "") {` && |\n| &&
+             `            info.selectionEnd = Number(args[3]);` && |\n| &&
+             `          }` && |\n| &&
              `          oElement.applyFocusInfo(info);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError(``SET_FOCUS: failed for '${args[1]}'``, e);` && |\n| &&
@@ -405,20 +409,20 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      try {` && |\n| &&
              `        const oElement = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
-             `        const y = +args[2] || 0;` && |\n| &&
-             `        const x = +args[3] || 0;` && |\n| &&
+             `        const y = Number(args[2]) || 0;` && |\n| &&
+             `        const x = Number(args[3]) || 0;` && |\n| &&
              `        const behavior = args[4] || "auto";` && |\n| &&
              `        const smooth = behavior === "smooth";` && |\n| &&
              `` && |\n| &&
              `        let handled = false;` && |\n| &&
              `        try {` && |\n| &&
-             `          const d = oElement.getScrollDelegate?.();` && |\n| &&
-             `          if (d?.scrollTo) {` && |\n| &&
-             `            // ScrollEnablement / iScroll delegate: scrollTo(x, y, time)` && |\n| &&
-             `            d.scrollTo(x, y, smooth ? 300 : 0);` && |\n| &&
-             `            handled = true;` && |\n| &&
-             `          }` && |\n|.
+             `          const delegate = oElement.getScrollDelegate?.();` && |\n| &&
+             `          if (delegate?.scrollTo) {` && |\n|.
     result = result &&
+             `            // ScrollEnablement / iScroll delegate: scrollTo(x, y, time)` && |\n| &&
+             `            delegate.scrollTo(x, y, smooth ? 300 : 0);` && |\n| &&
+             `            handled = true;` && |\n| &&
+             `          }` && |\n| &&
              `        } catch {` && |\n| &&
              `          // fall through` && |\n| &&
              `        }` && |\n| &&

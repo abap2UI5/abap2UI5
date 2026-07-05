@@ -7,6 +7,8 @@ sap.ui.define(
   ],
   (ComboBox, Item, ComboBoxRenderer, Lib) => {
     "use strict";
+    // ComboBox pre-filled with the device's cameras (video inputs) so the
+    // user can pick which one the CameraPicture control should use.
     return ComboBox.extend("z2ui5.cc.CameraSelector", {
       async init() {
         ComboBox.prototype.init.call(this);

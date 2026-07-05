@@ -100,8 +100,8 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n| &&
              `      _installDebugToolShortcut() {` && |\n| &&
              `        // Ctrl + F12 opens / closes the in-app debug tool.` && |\n| &&
-             `        this._boundKeydown = (zEvent) => {` && |\n| &&
-             `          if (zEvent.ctrlKey && zEvent.key === "F12") {` && |\n| &&
+             `        this._boundKeydown = (event) => {` && |\n| &&
+             `          if (event.ctrlKey && event.key === "F12") {` && |\n| &&
              `            if (!z2ui5.debugTool) z2ui5.debugTool = new DebugTool();` && |\n| &&
              `            z2ui5.debugTool.toggle();` && |\n| &&
              `          }` && |\n| &&

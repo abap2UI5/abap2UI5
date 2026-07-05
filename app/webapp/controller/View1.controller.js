@@ -1,3 +1,8 @@
+// The central view controller. One instance serves each of the five view
+// slots (main view, two nested views, popup, popover - see
+// core/ViewSlots.js). It builds the request for backend events (eB),
+// dispatches frontend-only events (eF), renders the views and fragments a
+// response asks for, and runs the post-render follow-ups.
 sap.ui.define(
   [
     "sap/ui/core/mvc/Controller",
@@ -61,10 +66,10 @@ sap.ui.define(
           const ctx = params.context;
           if (!raw) return;
           // Resolve relative paths against the binding context.
-          const p =
+          const changedPath =
             ctx && !raw.startsWith("/") ? `${ctx.getPath()}/${raw}` : raw;
-          if (p.startsWith("/XX/")) {
-            z2ui5.xxChangedPaths.add(p);
+          if (changedPath.startsWith("/XX/")) {
+            z2ui5.xxChangedPaths.add(changedPath);
           }
         });
         return oModel;

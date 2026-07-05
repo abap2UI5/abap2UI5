@@ -147,8 +147,8 @@ sap.ui.define(
           const resultXml = _xmlSerializer.serializeToString(resultDoc);
           // The serializer escapes < and > inside text nodes; undo this so
           // the output is browseable XML again.
-          return resultXml.replace(/&gt;|&lt;/g, (m) =>
-            m === "&gt;" ? ">" : "<",
+          return resultXml.replace(/&gt;|&lt;/g, (match) =>
+            match === "&gt;" ? ">" : "<",
           );
         } catch {
           return sourceXml;
@@ -210,7 +210,7 @@ sap.ui.define(
         const modelData = oModel.getData();
         modelData.editor_visible = true;
         modelData.source_visible = false;
-        modelData.isTemplating = !!content?.includes("xmlns:template");
+        modelData.isTemplating = Boolean(content?.includes("xmlns:template"));
         modelData.value = content;
         modelData.previousValue = content;
         modelData.xContent = xcontent;
@@ -265,10 +265,10 @@ sap.ui.define(
             previousValue: value,
             isTemplating: false,
             templatingSource: false,
-            activeNest1: !!getViewContent(ViewSlots.getView("NEST")),
-            activeNest2: !!getViewContent(ViewSlots.getView("NEST2")),
-            activePopup: !!getResponseXml("S_POPUP"),
-            activePopover: !!getResponseXml("S_POPOVER"),
+            activeNest1: Boolean(getViewContent(ViewSlots.getView("NEST"))),
+            activeNest2: Boolean(getViewContent(ViewSlots.getView("NEST2"))),
+            activePopup: Boolean(getResponseXml("S_POPUP")),
+            activePopover: Boolean(getResponseXml("S_POPOVER")),
           };
 
           const oModel = new JSONModel(oData);

@@ -18,7 +18,11 @@ CLASS z2ui5_cl_app_timer_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
+    result = `// Invisible control that fires its ``finished`` event once ``delayMS``` && |\n| &&
+             `// milliseconds after rendering - the backend binds the event to trigger` && |\n| &&
+             `// time-driven roundtrips (auto-refresh, polling). With checkRepeat the` && |\n| &&
+             `// timer re-arms itself after every firing.` && |\n| &&
+             `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
              `  return Control.extend("z2ui5.cc.Timer", {` && |\n| &&

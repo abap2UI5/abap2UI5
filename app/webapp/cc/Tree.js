@@ -3,6 +3,9 @@ sap.ui.define(
   (Control, Lib, ViewSlots) => {
     "use strict";
 
+    // Invisible control that preserves the expand/collapse state of a
+    // sap.m.Tree (referenced via tree_id) across roundtrips - a rebuilt
+    // binding would otherwise start fully collapsed.
     return Control.extend("z2ui5.cc.Tree", {
       metadata: {
         properties: {

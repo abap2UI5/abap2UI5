@@ -3,6 +3,11 @@ sap.ui.define(
   (Control, Lib, ViewSlots) => {
     "use strict";
 
+    // Invisible companion control for a sap.ui.table.Table (referenced via
+    // tableId): saves the user's filters and sort order before each
+    // roundtrip and re-applies them - including the column indicators -
+    // when the response rebuilt the table binding, which would otherwise
+    // lose them.
     const opSymbols = { EQ: "", NE: "!", LT: "<", LE: "<=", GT: ">", GE: ">=" };
     const filterDisplayFns = {
       Contains: (v) => `*${v ?? ""}*`,
@@ -112,7 +117,7 @@ sap.ui.define(
           for (const oCol of columns) {
             if (oCol.getFilterProperty?.() === sProperty) {
               oCol.setFilterValue(display);
-              oCol.setFiltered(!!display);
+              oCol.setFiltered(Boolean(display));
             }
           }
         }
@@ -162,13 +167,15 @@ sap.ui.define(
         binding.sort(aSorters);
 
         const columns = oTable.getColumns();
-        for (const [idx, srt] of aSorters.entries()) {
+        for (const [index, sorter] of aSorters.entries()) {
           for (const oCol of columns) {
-            if (oCol.getSortProperty?.() === srt.sPath) {
+            if (oCol.getSortProperty?.() === sorter.sPath) {
               oCol.setSorted(true);
-              oCol.setSortOrder(srt.bDescending ? "Descending" : "Ascending");
+              oCol.setSortOrder(
+                sorter.bDescending ? "Descending" : "Ascending",
+              );
               // setSortIndex is only available on some column variants.
-              if (oCol.setSortIndex) oCol.setSortIndex(idx);
+              if (oCol.setSortIndex) oCol.setSortIndex(index);
             }
           }
         }

@@ -28,6 +28,9 @@ CLASS z2ui5_cl_app_camerapicture_js IMPLEMENTATION.
              `  ],` && |\n| &&
              `  (Control, Dialog, Button, HTML, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&
+             `    // Camera button: opens a dialog with the live camera stream, captures` && |\n| &&
+             `    // a photo on demand and hands it to the backend as a base64 JPEG in` && |\n| &&
+             `    // ``value`` (plus a small preview thumbnail) via the OnPhoto event.` && |\n| &&
              `    const _CTX_2D_OPTS = { willReadFrequently: true };` && |\n| &&
              `    const _THUMB_W = 300;` && |\n| &&
              `    // width/height size the trigger button; a bare number is treated as px.` && |\n| &&

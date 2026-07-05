@@ -23,6 +23,10 @@ CLASS z2ui5_cl_app_uploadsetext_js IMPLEMENTATION.
              `  (Control, Lib, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
+             `    // Invisible companion control for a sap.m.upload.UploadSet (referenced` && |\n| &&
+             `    // via uploadSetId): reads every added file as a base64 data URL into` && |\n| &&
+             `    // the bindable fileData/fileName/... properties and reports removals,` && |\n| &&
+             `    // so the backend receives the file content without an upload endpoint.` && |\n| &&
              `    return Control.extend("z2ui5.cc.UploadSetExt", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&

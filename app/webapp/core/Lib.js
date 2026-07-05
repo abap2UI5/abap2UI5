@@ -30,14 +30,14 @@ sap.ui.define([], () => {
 
   // True when the object supports isDestroyed() and reports destroyed.
   function isDestroyed(obj) {
-    return !!(obj?.isDestroyed && obj.isDestroyed());
+    return Boolean(obj?.isDestroyed && obj.isDestroyed());
   }
 
   // True when the object exists and is not destroyed. Used to guard
   // async continuations (await, FileReader, getUserMedia, ...) against
   // controls or views that were torn down in the meantime.
   function isAlive(obj) {
-    return !!obj && !isDestroyed(obj);
+    return Boolean(obj) && !isDestroyed(obj);
   }
 
   // Helpers for managing z2ui5 callback arrays (onBeforeRoundtrip,
@@ -211,7 +211,7 @@ sap.ui.define([], () => {
   // schemes such as javascript:, data: or vbscript:.
   function isSafeRedirectProtocol(url) {
     const parsed = parseUrl(url);
-    return !!parsed && hasSafeProtocol(parsed);
+    return parsed !== null && hasSafeProtocol(parsed);
   }
 
   // Returns true for URLs that are safe as download targets: data: and
@@ -220,7 +220,7 @@ sap.ui.define([], () => {
   function isSafeDownloadURL(url) {
     const parsed = parseUrl(url);
     return (
-      !!parsed &&
+      parsed !== null &&
       (parsed.protocol === "data:" ||
         parsed.protocol === "blob:" ||
         SAFE_PROTOCOLS.includes(parsed.protocol))
@@ -248,7 +248,8 @@ sap.ui.define([], () => {
       // delta. Deeper paths (e.g. tree tables: attr/row/<subtable>/<row>/<field>)
       // fall back to shipping the whole attribute, which the backend applies
       // via corresponding-based deserialization.
-      const isRowField = parts.length === 3 && rowIdx !== "" && !isNaN(rowIdx);
+      const isRowField =
+        parts.length === 3 && rowIdx !== "" && !Number.isNaN(Number(rowIdx));
       if (isRowField) {
         // A full attribute queued by another path already carries every
         // cell (both read the same current model data) - never downgrade
@@ -260,7 +261,7 @@ sap.ui.define([], () => {
         }
         const attrDelta = delta[attr].__delta;
         if (!attrDelta[rowIdx]) attrDelta[rowIdx] = {};
-        attrDelta[rowIdx][field] = xx[attr]?.[+rowIdx]?.[field];
+        attrDelta[rowIdx][field] = xx[attr]?.[Number(rowIdx)]?.[field];
       } else {
         // Scalar change -> ship the whole attribute.
         delta[attr] = xx[attr];
