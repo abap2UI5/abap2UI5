@@ -1,7 +1,7 @@
-// Shared helper module of the z2ui5 frontend. The global `z2ui5` object
-// holds the shared frontend state; core/AppState.js owns that state and
-// documents the complete field inventory (public contract vs. internal
-// fields, plus their defaults).
+// Shared helper module of the z2ui5 frontend. core/AppState.js owns the
+// shared frontend state and documents the complete field inventory
+// (public contract vs. internal fields, plus their defaults); the helpers
+// here reach it via AppState.state instead of the z2ui5 global.
 //
 // Shared rendering pattern of the custom controls (Timer.js, Focus.js,
 // Scrolling.js, Tree.js, ...): the renderer only *marks* work by setting a
@@ -10,22 +10,23 @@
 // state). Renderers must stay cheap and free of visible side effects
 // (rendering API v2); deferring to onAfterRendering also guarantees the
 // control's DOM exists.
-sap.ui.define([], () => {
+sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   "use strict";
 
   // Cap the error log so a long-running session cannot grow it unbounded.
   const MAX_ERRORS = 100;
 
-  // Append an entry to the global error log and drop the oldest entry once
+  // Append an entry to the shared error log and drop the oldest entry once
   // the cap is reached. In the app the array always exists (AppState
   // default); the guard keeps the helper usable standalone, e.g. in the
-  // Node specs that load this module with a bare z2ui5 stub.
+  // Node specs that load this module with a bare AppState stub.
   function logError(message, error) {
-    if (!z2ui5.errors) z2ui5.errors = [];
+    const state = AppState.state;
+    if (!state.errors) state.errors = [];
     const entry = { message, ts: new Date().toISOString() };
     if (error !== undefined) entry.error = error;
-    z2ui5.errors.push(entry);
-    if (z2ui5.errors.length > MAX_ERRORS) z2ui5.errors.shift();
+    state.errors.push(entry);
+    if (state.errors.length > MAX_ERRORS) state.errors.shift();
   }
 
   // True when the object supports isDestroyed() and reports destroyed.
@@ -40,18 +41,20 @@ sap.ui.define([], () => {
     return Boolean(obj) && !isDestroyed(obj);
   }
 
-  // Helpers for managing z2ui5 callback arrays (onBeforeRoundtrip,
+  // Helpers for managing the shared callback arrays (onBeforeRoundtrip,
   // onAfterRendering, ...). Several custom controls register hooks here in
   // init() and remove them in exit(). The arrays always exist in the app
   // (AppState defaults); the guard keeps the helper standalone-safe.
   function registerCallback(name, fn) {
-    if (!z2ui5[name]) z2ui5[name] = [];
-    z2ui5[name].push(fn);
+    const state = AppState.state;
+    if (!state[name]) state[name] = [];
+    state[name].push(fn);
   }
 
   function unregisterCallback(name, fn) {
-    if (!z2ui5[name]) return;
-    z2ui5[name] = z2ui5[name].filter((f) => f !== fn);
+    const state = AppState.state;
+    if (!state[name]) return;
+    state[name] = state[name].filter((f) => f !== fn);
   }
 
   // Read a File object as a data URL and hand the result to onLoaded.
@@ -83,7 +86,7 @@ sap.ui.define([], () => {
     control.setProperty("removedTokens", isRemoved ? tokens : []);
   }
 
-  // Run every callback in `callbacks` (the z2ui5 callback arrays above),
+  // Run every callback in `callbacks` (the shared callback arrays above),
   // swallowing individual failures so one bad callback cannot break the
   // whole event sequence.
   function runCallbacks(callbacks, ...args) {

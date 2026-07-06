@@ -19,6 +19,7 @@ sap.ui.define(
     "z2ui5/core/Lib",
     "z2ui5/core/FrontendAction",
     "z2ui5/core/ViewSlots",
+    "z2ui5/core/AppState",
   ],
   (
     Controller,
@@ -35,6 +36,7 @@ sap.ui.define(
     Lib,
     FrontendAction,
     ViewSlots,
+    AppState,
   ) => {
     "use strict";
 
@@ -47,7 +49,7 @@ sap.ui.define(
 
     function applyStoredSizeLimit(viewKey, oModel) {
       if (!oModel) return;
-      const limit = z2ui5.viewSizeLimits[viewKey];
+      const limit = AppState.state.viewSizeLimits[viewKey];
       if (limit !== undefined) oModel.setSizeLimit(limit);
     }
 
@@ -69,20 +71,20 @@ sap.ui.define(
           const changedPath =
             ctx && !raw.startsWith("/") ? `${ctx.getPath()}/${raw}` : raw;
           if (changedPath.startsWith("/XX/")) {
-            z2ui5.xxChangedPaths.add(changedPath);
+            AppState.state.xxChangedPaths.add(changedPath);
           }
         });
         return oModel;
       },
 
       onInit() {
-        z2ui5.oRouter.attachRouteMatched(() => {
+        AppState.state.oRouter.attachRouteMatched(() => {
           Server.roundtrip();
         });
       },
 
       onAfterRendering() {
-        if (z2ui5.oResponse && !z2ui5.oResponse._processed) {
+        if (AppState.state.oResponse && !AppState.state.oResponse._processed) {
           this._processAfterRendering();
         }
       },
@@ -92,7 +94,7 @@ sap.ui.define(
       // browser history/hash.
       async _processAfterRendering() {
         try {
-          const oResponse = z2ui5.oResponse;
+          const oResponse = AppState.state.oResponse;
           if (oResponse._processed) return;
           oResponse._processed = true;
 
@@ -103,13 +105,13 @@ sap.ui.define(
           this._updateBrowserHistory(PARAMS, oResponse.ID);
           if (PARAMS.SET_NAV_BACK) history.back();
 
-          Lib.runCallbacks(z2ui5.onAfterRendering);
+          Lib.runCallbacks(AppState.state.onAfterRendering);
         } catch (e) {
           Lib.logError("_processAfterRendering: unexpected error", e);
           Server.responseError(e, "Unexpected Error Occurred - App Terminated");
         } finally {
           BusyIndicator.hide();
-          z2ui5.isBusy = false;
+          AppState.state.isBusy = false;
           // Now that the view is rendered (and any busy indicator is gone),
           // run the follow-up JS snippets the backend asked for. Doing it here
           // - rather than as an early microtask - guarantees render-dependent
@@ -134,16 +136,16 @@ sap.ui.define(
           await this.displayFragment(S_POPUP.XML);
         }
 
-        if (!z2ui5.checkNestAfter && S_VIEW_NEST?.XML) {
+        if (!AppState.state.checkNestAfter && S_VIEW_NEST?.XML) {
           this.destroyNestView();
           await this.displayNestedView(S_VIEW_NEST.XML, "NEST");
-          z2ui5.checkNestAfter = true;
+          AppState.state.checkNestAfter = true;
         }
 
-        if (!z2ui5.checkNestAfter2 && S_VIEW_NEST2?.XML) {
+        if (!AppState.state.checkNestAfter2 && S_VIEW_NEST2?.XML) {
           this.destroyNestView2();
           await this.displayNestedView(S_VIEW_NEST2.XML, "NEST2");
-          z2ui5.checkNestAfter2 = true;
+          AppState.state.checkNestAfter2 = true;
         }
 
         if (S_POPOVER?.XML) {
@@ -173,8 +175,8 @@ sap.ui.define(
       // Execute the follow-up JS snippets stashed by Server.responseSuccess.
       // Runs once per roundtrip, after the view has rendered.
       _runPendingCustomJs() {
-        const customJs = z2ui5.pendingCustomJs;
-        z2ui5.pendingCustomJs = null;
+        const customJs = AppState.state.pendingCustomJs;
+        AppState.state.pendingCustomJs = null;
         if (!customJs) return;
         if (Lib.isDestroyed(this)) return;
         for (const item of customJs) {
@@ -183,7 +185,7 @@ sap.ui.define(
       },
 
       _createViewModel() {
-        const data = z2ui5.oResponse?.OVIEWMODEL;
+        const data = AppState.state.oResponse?.OVIEWMODEL;
         return this._trackChanges(new JSONModel(data));
       },
 
@@ -200,7 +202,7 @@ sap.ui.define(
           id: "popupId",
         });
         // The app might have been torn down while the fragment loaded.
-        if (!Lib.isAlive(z2ui5.oApp)) {
+        if (!Lib.isAlive(AppState.state.oApp)) {
           oFragment.destroy();
           return;
         }
@@ -224,7 +226,7 @@ sap.ui.define(
           controller: ViewSlots.getController("POPOVER"),
           id: "popoverId",
         });
-        if (!Lib.isAlive(z2ui5.oApp)) {
+        if (!Lib.isAlive(AppState.state.oApp)) {
           oFragment.destroy();
           return;
         }
@@ -275,13 +277,13 @@ sap.ui.define(
           preprocessors: { xml: { models: { template: oModel } } },
         });
 
-        if (!Lib.isAlive(z2ui5.oApp)) {
+        if (!Lib.isAlive(AppState.state.oApp)) {
           oView.destroy();
           return;
         }
         oView.setModel(oModel);
 
-        const nestParams = z2ui5.oResponse?.PARAMS?.[paramKey];
+        const nestParams = AppState.state.oResponse?.PARAMS?.[paramKey];
         if (!nestParams) {
           Lib.logError(`displayNestedView: missing PARAMS.${paramKey}`);
           oView.destroy();
@@ -366,7 +368,7 @@ sap.ui.define(
 
         // If a roundtrip is already in flight, briefly show a BusyDialog so
         // the user gets visual feedback instead of a silent click.
-        if (z2ui5.isBusy && !ignoreBusy) {
+        if (AppState.state.isBusy && !ignoreBusy) {
           if (!_busyDialog) _busyDialog = new BusyDialog();
           _busyDialog.open();
           queueMicrotask(() => _busyDialog.close());
@@ -376,38 +378,41 @@ sap.ui.define(
         // A new roundtrip overrides any pending timer - timers that fired
         // already removed themselves before calling eB, so this only cancels
         // timers that are still waiting.
-        for (const key in z2ui5.timers) {
-          clearTimeout(z2ui5.timers[key]);
-          delete z2ui5.timers[key];
+        for (const key in AppState.state.timers) {
+          clearTimeout(AppState.state.timers[key]);
+          delete AppState.state.timers[key];
         }
 
-        z2ui5.isBusy = true;
+        AppState.state.isBusy = true;
         BusyIndicator.show();
 
         // The request body is built locally and handed explicitly through
-        // Server.roundtrip/readHttp. It is mirrored to z2ui5.oBody right
+        // Server.roundtrip/readHttp. It is mirrored to AppState.state.oBody right
         // away so onBeforeRoundtrip hooks and the debug tool see it.
         const oBody = { VIEWNAME: "MAIN" };
-        z2ui5.oBody = oBody;
+        AppState.state.oBody = oBody;
 
         // Decide which view's model holds the data we need to send back. The
         // mapping is: main app controller -> main view, popup controller ->
         // popup view, etc.
         const oModel = this._pickModelForRoundtrip(useMainModel, oBody);
 
-        Lib.runCallbacks(z2ui5.onBeforeRoundtrip);
+        Lib.runCallbacks(AppState.state.onBeforeRoundtrip);
 
         // If the user edited /XX/ paths, send only the delta to keep the
         // payload small.
-        if (oModel && z2ui5.xxChangedPaths.size > 0) {
+        if (oModel && AppState.state.xxChangedPaths.size > 0) {
           const data = oModel.getData();
           const xx = data?.XX;
           if (xx) {
-            oBody.XX = Lib.buildDeltaFromPaths(z2ui5.xxChangedPaths, xx);
+            oBody.XX = Lib.buildDeltaFromPaths(
+              AppState.state.xxChangedPaths,
+              xx,
+            );
           }
         }
 
-        oBody.ID = z2ui5.oResponse?.ID;
+        oBody.ID = AppState.state.oResponse?.ID;
         // Object arguments are stringified for transport; the event name in
         // args[0] is left as-is. null is excluded - it would stringify to
         // the literal "null" instead of staying an empty value.
@@ -419,7 +424,7 @@ sap.ui.define(
         });
 
         Server.roundtrip(oBody);
-        Lib.runCallbacks(z2ui5.onAfterRoundtrip);
+        Lib.runCallbacks(AppState.state.onAfterRoundtrip);
       },
 
       _pickModelForRoundtrip(useMainModel, oBody) {
@@ -429,7 +434,7 @@ sap.ui.define(
         if (!slotKey) return undefined;
 
         if (slotKey === "MAIN") {
-          const sView = z2ui5.oResponse?.PARAMS?.S_VIEW;
+          const sView = AppState.state.oResponse?.PARAMS?.S_VIEW;
           if (sView?.SWITCH_DEFAULT_MODEL_PATH) {
             return ViewSlots.getView("MAIN")?.getModel("http");
           }
@@ -448,7 +453,7 @@ sap.ui.define(
       // (CHECK_UPDATE_MODEL - the data-only roundtrip every app triggers
       // via client->view_model_update( )).
       updateModelIfRequired(slotKey) {
-        const params = z2ui5.oResponse?.PARAMS;
+        const params = AppState.state.oResponse?.PARAMS;
         const slotParams = params?.[ViewSlots.paramByKey(slotKey)];
         if (!slotParams?.CHECK_UPDATE_MODEL) return;
 
@@ -463,7 +468,7 @@ sap.ui.define(
         const existing = oView.getModel();
         if (existing?._z2ui5Tracked) {
           applyStoredSizeLimit(slotKey, existing);
-          existing.setData(z2ui5.oResponse?.OVIEWMODEL);
+          existing.setData(AppState.state.oResponse?.OVIEWMODEL);
           return;
         }
 
@@ -479,7 +484,7 @@ sap.ui.define(
       async displayView(xml, viewModel) {
         const oViewModel = this._trackChanges(new JSONModel(viewModel));
 
-        const sView = z2ui5.oResponse?.PARAMS?.S_VIEW;
+        const sView = AppState.state.oResponse?.PARAMS?.S_VIEW;
         const switchPath = sView?.SWITCH_DEFAULT_MODEL_PATH;
 
         // When the app wants OData as the default model, build it here and
@@ -504,17 +509,17 @@ sap.ui.define(
         });
 
         // Guard against the app being destroyed during the await above.
-        if (!Lib.isAlive(z2ui5.oApp)) {
+        if (!Lib.isAlive(AppState.state.oApp)) {
           oView.destroy();
           if (switchPath) oModel.destroy();
           return;
         }
 
         ViewSlots.setView("MAIN", oView);
-        oView.setModel(z2ui5.oDeviceModel, "device");
+        oView.setModel(AppState.state.oDeviceModel, "device");
         if (switchPath) oView.setModel(oViewModel, "http");
-        z2ui5.oApp.removeAllPages();
-        z2ui5.oApp.insertPage(oView);
+        AppState.state.oApp.removeAllPages();
+        AppState.state.oApp.insertPage(oView);
       },
     });
   },

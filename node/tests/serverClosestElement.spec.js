@@ -71,23 +71,24 @@ test("fallback returns null when no control root is found", () => {
 
 test("onScrollCapture records the scrolled slot via the fallback", () => {
   const control = { id: "page" };
+  const state = { lastScrolled: {} };
   const { module: Server, sandbox } = loadServer({
     deps: {
       "z2ui5/core/ViewSlots": {
         containingSlotKey: (el) => (el === control ? "MAIN" : undefined),
       },
+      "z2ui5/core/AppState": { state },
     },
   });
   sandbox.sap.ui.getCore = () => ({
     byId: (id) => (id === "page" ? control : undefined),
   });
-  sandbox.z2ui5 = { lastScrolled: {} };
 
   const root = fakeDomNode({ id: "page", isControlRoot: true });
   const scrolled = fakeDomNode({ id: "page-cont", parent: root });
   Server.onScrollCapture({ target: scrolled });
 
-  expect(sandbox.z2ui5.lastScrolled.MAIN).toEqual({
+  expect(state.lastScrolled.MAIN).toEqual({
     control,
     dom: scrolled,
   });

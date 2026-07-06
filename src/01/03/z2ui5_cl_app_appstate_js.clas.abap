@@ -18,19 +18,27 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// Owner of the shared frontend state. Historically all state lived as` && |\n| &&
+    result = `/* ui5lint-disable no-project-globals -- this module owns the public` && |\n| &&
+             `   z2ui5 global facade; it is the single place that may touch it */` && |\n| &&
+             `// Owner of the shared frontend state. Historically all state lived as` && |\n| &&
              `// plain properties on the global ``z2ui5`` object, written and lazily` && |\n| &&
              `// created from many modules. This module is the single owner now:` && |\n| &&
              `//` && |\n| &&
              `//  - the PUBLIC fields stay plain properties on the global (they are a` && |\n| &&
-             `//    contract with apps and the backend-generated HTML),` && |\n| &&
-             `//  - every INTERNAL field lives in the private ``state`` object below and` && |\n| &&
-             `//    is exposed on the global through transitional accessors, so all` && |\n| &&
-             `//    existing consumers (including apps poking at internals via the` && |\n| &&
-             `//    js_loader popup) keep working unchanged,` && |\n| &&
+             `//    contract with apps and the backend-generated HTML); framework` && |\n| &&
+             `//    modules read/write them via getGlobal()/setGlobal() below,` && |\n| &&
+             `//  - every INTERNAL field lives in the private ``state`` object below;` && |\n| &&
+             `//    framework modules access it via the ``state`` export, and the global` && |\n| &&
+             `//    additionally exposes it through accessors so external consumers` && |\n| &&
+             `//    (apps poking at internals via the js_loader popup) keep working` && |\n| &&
+             `//    unchanged,` && |\n| &&
              `//  - initGlobal() creates/resets everything in one place - no other` && |\n| &&
              `//    module needs lazy ``if (!z2ui5.x) z2ui5.x = ...`` bootstrapping for` && |\n| &&
              `//    the fields listed here.` && |\n| &&
+             `//` && |\n| &&
+             `// No other framework module may reference the z2ui5 global directly:` && |\n| &&
+             `// internal fields go through ``AppState.state``, public-contract fields` && |\n| &&
+             `// through ``AppState.getGlobal()/setGlobal()``.` && |\n| &&
              `//` && |\n| &&
              `// PUBLIC contract on the global (plain properties, not managed here):` && |\n| &&
              `//   checkLocal        true when served by the backend GET page (backend HTML)` && |\n| &&
@@ -181,7 +189,31 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `    z2ui5.oConfig = {};` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  return { initGlobal, reset };` && |\n| &&
+             `  // Read/write a field on the public z2ui5 global facade - the PUBLIC` && |\n| &&
+             `  // contract fields listed in the header (checkLocal, url, oConfig, Util,` && |\n| &&
+             `  // requestTimeoutMs) and app-registered custom members (js_loader).` && |\n| &&
+             `  // Internal fields are accessed via the ``state`` export instead. Reads and` && |\n| &&
+             `  // writes go through the global on purpose: these fields are shared with` && |\n| &&
+             `  // apps and the backend-generated HTML.` && |\n| &&
+             `  function getGlobal(name) {` && |\n| &&
+             `    return window.z2ui5?.[name];` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  function setGlobal(name, value) {` && |\n| &&
+             `    if (typeof z2ui5 === "undefined") window.z2ui5 = {};` && |\n| &&
+             `    window.z2ui5[name] = value;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  return {` && |\n| &&
+             `    initGlobal,` && |\n| &&
+             `    reset,` && |\n| &&
+             `    getGlobal,` && |\n| &&
+             `    setGlobal,` && |\n| &&
+             `    // Live internal state - always the current object, also after reset().` && |\n| &&
+             `    get state() {` && |\n| &&
+             `      return state;` && |\n| &&
+             `    },` && |\n| &&
+             `  };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
               ``.

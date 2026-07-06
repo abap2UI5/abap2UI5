@@ -5,8 +5,9 @@ sap.ui.define(
     "sap/ui/model/json/JSONModel",
     "z2ui5/core/Lib",
     "z2ui5/core/ViewSlots",
+    "z2ui5/core/AppState",
   ],
-  (Control, Fragment, JSONModel, Lib, ViewSlots) => {
+  (Control, Fragment, JSONModel, Lib, ViewSlots, AppState) => {
     "use strict";
 
     // Fragment id under which the debug dialog's controls are registered;
@@ -74,7 +75,7 @@ sap.ui.define(
     }
 
     function getResponseXml(key) {
-      const params = z2ui5.oResponse?.PARAMS;
+      const params = AppState.state.oResponse?.PARAMS;
       const slot = params?.[key];
       return slot?.XML;
     }
@@ -101,10 +102,10 @@ sap.ui.define(
     // (the latter optionally with the rendered DOM for the templating
     // toggle). The "SOURCE" entry is handled separately in onItemSelect.
     const jsonSources = {
-      CONFIG: () => z2ui5.oConfig,
+      CONFIG: () => AppState.getGlobal("oConfig"),
       MODEL: () => getModelJson(ViewSlots.getView("MAIN")),
-      PLAIN: () => z2ui5.responseData,
-      REQUEST: () => z2ui5.oBody,
+      PLAIN: () => AppState.state.responseData,
+      REQUEST: () => AppState.state.oBody,
       POPUP_MODEL: () => getModelJson(ViewSlots.getView("POPUP")),
       POPOVER_MODEL: () => getModelJson(ViewSlots.getView("POPOVER")),
       NEST1_MODEL: () => getModelJson(ViewSlots.getView("NEST")),
@@ -185,7 +186,7 @@ sap.ui.define(
         const contentControl = Fragment.byId(FRAGMENT_ID, "sourceHtml");
         if (!contentControl) return;
 
-        const sFront = z2ui5.responseData?.S_FRONT;
+        const sFront = AppState.state.responseData?.S_FRONT;
         const appName = sFront?.APP || "";
         const appId = encodeURIComponent(appName);
         const url = `${window.location.origin}/sap/bc/adt/oo/classes/${appId}/source/main`;
@@ -255,7 +256,7 @@ sap.ui.define(
             return;
           }
 
-          const value = toJson(z2ui5.responseData);
+          const value = toJson(AppState.state.responseData);
           const oData = {
             type: "json",
             source_visible: false,

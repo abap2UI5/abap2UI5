@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 // Gates the UI5 linter on a fixed error baseline.
 //
-// ui5lint cannot deactivate individual rules via its config file yet, and
-// most of the existing findings are design-accepted: the z2ui5.* globals are
-// the documented public frontend contract (see AGENTS.md / core/AppState.js),
-// the sap.ui.getCore() fallbacks keep old UI5 releases working, and the
-// manifest v2 migration is pending. This gate keeps CI green on those
-// accepted findings but FAILS the build when new errors are introduced.
+// The framework modules no longer touch the z2ui5 global directly - shared
+// state goes through the core/AppState module API, and only AppState itself
+// maintains the public global facade (see AGENTS.md). The remaining baseline
+// covers findings that are design-accepted and cannot be fixed yet: the
+// sap.ui.getCore() theme fallback in Component.js keeps old UI5 releases
+// working, and the manifest v2 / minUI5Version migration is pending (both
+// would drop support for old UI5 bootstraps). This gate keeps CI green on
+// those accepted findings but FAILS the build when new errors are introduced.
 //
 // Lower MAX_ERRORS whenever findings are fixed so the baseline only shrinks.
 import { execFile } from "node:child_process";
@@ -14,7 +16,7 @@ import { promisify } from "node:util";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const MAX_ERRORS = 128;
+const MAX_ERRORS = 7;
 
 const appDir = path.join(
   path.dirname(fileURLToPath(import.meta.url)),

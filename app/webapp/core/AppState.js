@@ -1,16 +1,24 @@
+/* ui5lint-disable no-project-globals -- this module owns the public
+   z2ui5 global facade; it is the single place that may touch it */
 // Owner of the shared frontend state. Historically all state lived as
 // plain properties on the global `z2ui5` object, written and lazily
 // created from many modules. This module is the single owner now:
 //
 //  - the PUBLIC fields stay plain properties on the global (they are a
-//    contract with apps and the backend-generated HTML),
-//  - every INTERNAL field lives in the private `state` object below and
-//    is exposed on the global through transitional accessors, so all
-//    existing consumers (including apps poking at internals via the
-//    js_loader popup) keep working unchanged,
+//    contract with apps and the backend-generated HTML); framework
+//    modules read/write them via getGlobal()/setGlobal() below,
+//  - every INTERNAL field lives in the private `state` object below;
+//    framework modules access it via the `state` export, and the global
+//    additionally exposes it through accessors so external consumers
+//    (apps poking at internals via the js_loader popup) keep working
+//    unchanged,
 //  - initGlobal() creates/resets everything in one place - no other
 //    module needs lazy `if (!z2ui5.x) z2ui5.x = ...` bootstrapping for
 //    the fields listed here.
+//
+// No other framework module may reference the z2ui5 global directly:
+// internal fields go through `AppState.state`, public-contract fields
+// through `AppState.getGlobal()/setGlobal()`.
 //
 // PUBLIC contract on the global (plain properties, not managed here):
 //   checkLocal        true when served by the backend GET page (backend HTML)
@@ -161,5 +169,29 @@ sap.ui.define([], () => {
     z2ui5.oConfig = {};
   }
 
-  return { initGlobal, reset };
+  // Read/write a field on the public z2ui5 global facade - the PUBLIC
+  // contract fields listed in the header (checkLocal, url, oConfig, Util,
+  // requestTimeoutMs) and app-registered custom members (js_loader).
+  // Internal fields are accessed via the `state` export instead. Reads and
+  // writes go through the global on purpose: these fields are shared with
+  // apps and the backend-generated HTML.
+  function getGlobal(name) {
+    return window.z2ui5?.[name];
+  }
+
+  function setGlobal(name, value) {
+    if (typeof z2ui5 === "undefined") window.z2ui5 = {};
+    window.z2ui5[name] = value;
+  }
+
+  return {
+    initGlobal,
+    reset,
+    getGlobal,
+    setGlobal,
+    // Live internal state - always the current object, also after reset().
+    get state() {
+      return state;
+    },
+  };
 });

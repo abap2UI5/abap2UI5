@@ -4,7 +4,7 @@
 // view XML, post-render crash, missing SDK module). The only way out is a
 // restart, hence the Refresh / Logout actions. Built from raw DOM so it
 // still works when the UI5 core itself is in a broken state.
-sap.ui.define([], () => {
+sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   "use strict";
 
   // Errors longer than this are truncated before being shown to the user,
@@ -44,8 +44,8 @@ sap.ui.define([], () => {
       window.location.href = "/sap/public/bc/icf/logoff";
     };
     try {
-      if (z2ui5.oLaunchpad?.Container?.logout) {
-        z2ui5.oLaunchpad.Container.logout();
+      if (AppState.state.oLaunchpad?.Container?.logout) {
+        AppState.state.oLaunchpad.Container.logout();
       } else {
         fallback();
       }

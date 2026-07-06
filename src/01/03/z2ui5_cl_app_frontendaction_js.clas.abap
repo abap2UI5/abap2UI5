@@ -26,8 +26,17 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    "sap/ui/util/Storage",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/core/AppState",` && |\n| &&
              `  ],` && |\n| &&
-             `  (MessageBox, ODataModel, mobileLibrary, Storage, Lib, ViewSlots) => {` && |\n| &&
+             `  (` && |\n| &&
+             `    MessageBox,` && |\n| &&
+             `    ODataModel,` && |\n| &&
+             `    mobileLibrary,` && |\n| &&
+             `    Storage,` && |\n| &&
+             `    Lib,` && |\n| &&
+             `    ViewSlots,` && |\n| &&
+             `    AppState,` && |\n| &&
+             `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
@@ -46,7 +55,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
              `    function withCrossAppNavigator(callback) {` && |\n| &&
-             `      const nav = z2ui5.oLaunchpad?.CrossAppNavigator;` && |\n| &&
+             `      const nav = AppState.state.oLaunchpad?.CrossAppNavigator;` && |\n| &&
              `      if (!nav) {` && |\n| &&
              `        Lib.logError("CrossAppNav: not running inside Launchpad");` && |\n| &&
              `        return;` && |\n| &&
@@ -100,7 +109,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    function evClipboardAppState() {` && |\n| &&
              `      // Guard against a missing response so the copied link never carries` && |\n| &&
              `      // the literal "undefined" as its state id.` && |\n| &&
-             `      const id = z2ui5.oResponse?.ID || "";` && |\n| &&
+             `      const id = AppState.state.oResponse?.ID || "";` && |\n| &&
              `      // Strip any existing hash (e.g. an active app-state) so the copied` && |\n| &&
              `      // link carries only the fresh state id.` && |\n| &&
              `      const base = window.location.href.split("#")[0];` && |\n| &&
@@ -139,9 +148,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `` && |\n| &&
              `      const isValidLimit = Number.isFinite(limit) && limit > 0;` && |\n| &&
              `      if (isValidLimit) {` && |\n| &&
-             `        z2ui5.viewSizeLimits[viewKey] = limit;` && |\n| &&
+             `        AppState.state.viewSizeLimits[viewKey] = limit;` && |\n| &&
              `      } else {` && |\n| &&
-             `        delete z2ui5.viewSizeLimits[viewKey];` && |\n| &&
+             `        delete AppState.state.viewSizeLimits[viewKey];` && |\n| &&
              `      }` && |\n| &&
              `      if (model) {` && |\n| &&
              `        // 100 is the UI5 JSONModel default size limit.` && |\n| &&
@@ -218,7 +227,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    function evSystemLogout(oController, args) {` && |\n| &&
              `      const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";` && |\n| &&
              `      try {` && |\n| &&
-             `        const container = z2ui5.oLaunchpad?.Container;` && |\n| &&
+             `        const container = AppState.state.oLaunchpad?.Container;` && |\n| &&
              `        // No explicit logout URL was passed (args is just the event name):` && |\n| &&
              `        // inside the launchpad, prefer its own logout over the BSP/ICF` && |\n| &&
              `        // redirect below.` && |\n| &&
@@ -342,9 +351,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      const timerKey = args[0];` && |\n| &&
              `      const callbackEvent = args[1];` && |\n| &&
              `      const delay = Number(args[2]) || 0;` && |\n| &&
-             `      clearTimeout(z2ui5.timers[timerKey]);` && |\n| &&
-             `      z2ui5.timers[timerKey] = setTimeout(() => {` && |\n| &&
-             `        delete z2ui5.timers[timerKey];` && |\n| &&
+             `      const timers = AppState.state.timers;` && |\n| &&
+             `      clearTimeout(timers[timerKey]);` && |\n| &&
+             `      timers[timerKey] = setTimeout(() => {` && |\n| &&
+             `        delete timers[timerKey];` && |\n| &&
              `        oController.eB([callbackEvent]);` && |\n| &&
              `      }, delay);` && |\n| &&
              `    }` && |\n| &&
@@ -407,7 +417,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // Native Element.scrollTo is only used as a fallback for controls` && |\n| &&
              `      // without a delegate.` && |\n| &&
              `      try {` && |\n| &&
-             `        const oElement = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
+             `        const oElement = ViewSlots.byId("MAIN", args[1]);` && |\n|.
+    result = result &&
              `        if (!oElement) return;` && |\n| &&
              `        const y = Number(args[2]) || 0;` && |\n| &&
              `        const x = Number(args[3]) || 0;` && |\n| &&
@@ -417,8 +428,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        let handled = false;` && |\n| &&
              `        try {` && |\n| &&
              `          const delegate = oElement.getScrollDelegate?.();` && |\n| &&
-             `          if (delegate?.scrollTo) {` && |\n|.
-    result = result &&
+             `          if (delegate?.scrollTo) {` && |\n| &&
              `            // ScrollEnablement / iScroll delegate: scrollTo(x, y, time)` && |\n| &&
              `            delegate.scrollTo(x, y, smooth ? 300 : 0);` && |\n| &&
              `            handled = true;` && |\n| &&
@@ -483,7 +493,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    function evSetTitleLaunchpad(oController, args) {` && |\n| &&
              `      const title = Lib.toText(args[1]);` && |\n| &&
              `      try {` && |\n| &&
-             `        const shell = z2ui5.oLaunchpad?.ShellUIService;` && |\n| &&
+             `        const shell = AppState.state.oLaunchpad?.ShellUIService;` && |\n| &&
              `        if (shell?.setTitle) {` && |\n| &&
              `          const result = shell.setTitle(title);` && |\n| &&
              `          if (result?.catch) {` && |\n| &&
@@ -502,7 +512,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `` && |\n| &&
              `    function evZ2ui5Custom(oController, args) {` && |\n| &&
              `      try {` && |\n| &&
-             `        const fn = z2ui5[args[1]];` && |\n| &&
+             `        // Custom functions are registered by apps on the public z2ui5` && |\n| &&
+             `        // global (js_loader popup), so resolve them via the facade.` && |\n| &&
+             `        const fn = AppState.getGlobal(args[1]);` && |\n| &&
              `        if (typeof fn === "function") {` && |\n| &&
              `          fn(args.slice(2));` && |\n| &&
              `        } else {` && |\n| &&
@@ -578,7 +590,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `` && |\n| &&
              `    // Entry point called by View1.controller's eF().` && |\n| &&
              `    function execute(oController, args) {` && |\n| &&
-             `      Lib.runCallbacks(z2ui5.onBeforeEventFrontend, args);` && |\n| &&
+             `      Lib.runCallbacks(AppState.state.onBeforeEventFrontend, args);` && |\n| &&
              `` && |\n| &&
              `      try {` && |\n| &&
              `        // NavContainer navigation is dispatched via lookup table.` && |\n| &&

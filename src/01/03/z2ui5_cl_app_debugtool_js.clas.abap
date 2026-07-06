@@ -25,8 +25,9 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `    "sap/ui/model/json/JSONModel",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/core/AppState",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Control, Fragment, JSONModel, Lib, ViewSlots) => {` && |\n| &&
+             `  (Control, Fragment, JSONModel, Lib, ViewSlots, AppState) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Fragment id under which the debug dialog's controls are registered;` && |\n| &&
@@ -94,7 +95,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function getResponseXml(key) {` && |\n| &&
-             `      const params = z2ui5.oResponse?.PARAMS;` && |\n| &&
+             `      const params = AppState.state.oResponse?.PARAMS;` && |\n| &&
              `      const slot = params?.[key];` && |\n| &&
              `      return slot?.XML;` && |\n| &&
              `    }` && |\n| &&
@@ -121,10 +122,10 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `    // (the latter optionally with the rendered DOM for the templating` && |\n| &&
              `    // toggle). The "SOURCE" entry is handled separately in onItemSelect.` && |\n| &&
              `    const jsonSources = {` && |\n| &&
-             `      CONFIG: () => z2ui5.oConfig,` && |\n| &&
+             `      CONFIG: () => AppState.getGlobal("oConfig"),` && |\n| &&
              `      MODEL: () => getModelJson(ViewSlots.getView("MAIN")),` && |\n| &&
-             `      PLAIN: () => z2ui5.responseData,` && |\n| &&
-             `      REQUEST: () => z2ui5.oBody,` && |\n| &&
+             `      PLAIN: () => AppState.state.responseData,` && |\n| &&
+             `      REQUEST: () => AppState.state.oBody,` && |\n| &&
              `      POPUP_MODEL: () => getModelJson(ViewSlots.getView("POPUP")),` && |\n| &&
              `      POPOVER_MODEL: () => getModelJson(ViewSlots.getView("POPOVER")),` && |\n| &&
              `      NEST1_MODEL: () => getModelJson(ViewSlots.getView("NEST")),` && |\n| &&
@@ -205,7 +206,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        const contentControl = Fragment.byId(FRAGMENT_ID, "sourceHtml");` && |\n| &&
              `        if (!contentControl) return;` && |\n| &&
              `` && |\n| &&
-             `        const sFront = z2ui5.responseData?.S_FRONT;` && |\n| &&
+             `        const sFront = AppState.state.responseData?.S_FRONT;` && |\n| &&
              `        const appName = sFront?.APP || "";` && |\n| &&
              `        const appId = encodeURIComponent(appName);` && |\n| &&
              `        const url = ``${window.location.origin}/sap/bc/adt/oo/classes/${appId}/source/main``;` && |\n| &&
@@ -275,7 +276,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
-             `          const value = toJson(z2ui5.responseData);` && |\n| &&
+             `          const value = toJson(AppState.state.responseData);` && |\n| &&
              `          const oData = {` && |\n| &&
              `            type: "json",` && |\n| &&
              `            source_visible: false,` && |\n| &&

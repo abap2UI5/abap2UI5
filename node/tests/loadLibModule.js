@@ -6,11 +6,16 @@
 const { loadModule } = require("./loadModule");
 
 function loadLib(overrides = {}) {
+  // Lib reaches the shared state via its AppState dependency. The stub's
+  // `state` is the same object that is exposed as sandbox.z2ui5, so the
+  // existing spec assertions on sandbox.z2ui5.errors keep observing what
+  // the helpers write.
+  const state = overrides.z2ui5 ?? {};
   const { module, sandbox } = loadModule("core/Lib.js", {
+    deps: { "z2ui5/core/AppState": { state } },
     sandbox: {
-      // Globals the helpers touch at runtime: z2ui5 receives the error
-      // log, window.location.origin anchors relative URL resolution.
-      z2ui5: {},
+      // window.location.origin anchors relative URL resolution.
+      z2ui5: state,
       window: { location: { origin: "http://localhost:3000" } },
       ...overrides,
     },

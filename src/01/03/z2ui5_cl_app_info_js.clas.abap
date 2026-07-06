@@ -19,8 +19,13 @@ CLASS z2ui5_cl_app_info_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],` && |\n| &&
-             `  (Control, Lib, ViewSlots) => {` && |\n| &&
+             `  [` && |\n| &&
+             `    "sap/ui/core/Control",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/core/AppState",` && |\n| &&
+             `  ],` && |\n| &&
+             `  (Control, Lib, ViewSlots, AppState) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Invisible control that reports the UI5 version/theme and the device` && |\n| &&
@@ -90,7 +95,7 @@ CLASS z2ui5_cl_app_info_js IMPLEMENTATION.
              `          const { system, resize, os, browser } = deviceData;` && |\n| &&
              `          // Filled by Component._initVersionInfo (async, may not have` && |\n| &&
              `          // resolved yet on the very first render).` && |\n| &&
-             `          const ui5Info = z2ui5.oConfig?.S_UI5;` && |\n| &&
+             `          const ui5Info = AppState.getGlobal("oConfig")?.S_UI5;` && |\n| &&
              `          const ui5Version = ui5Info?.VERSION || "";` && |\n| &&
              `` && |\n| &&
              `          // Single system-type label, same derivation as Server._getDeviceInfo.` && |\n| &&

@@ -18,10 +18,10 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// Shared helper module of the z2ui5 frontend. The global ``z2ui5`` object` && |\n| &&
-             `// holds the shared frontend state; core/AppState.js owns that state and` && |\n| &&
-             `// documents the complete field inventory (public contract vs. internal` && |\n| &&
-             `// fields, plus their defaults).` && |\n| &&
+    result = `// Shared helper module of the z2ui5 frontend. core/AppState.js owns the` && |\n| &&
+             `// shared frontend state and documents the complete field inventory` && |\n| &&
+             `// (public contract vs. internal fields, plus their defaults); the helpers` && |\n| &&
+             `// here reach it via AppState.state instead of the z2ui5 global.` && |\n| &&
              `//` && |\n| &&
              `// Shared rendering pattern of the custom controls (Timer.js, Focus.js,` && |\n| &&
              `// Scrolling.js, Tree.js, ...): the renderer only *marks* work by setting a` && |\n| &&
@@ -30,22 +30,23 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `// state). Renderers must stay cheap and free of visible side effects` && |\n| &&
              `// (rendering API v2); deferring to onAfterRendering also guarantees the` && |\n| &&
              `// control's DOM exists.` && |\n| &&
-             `sap.ui.define([], () => {` && |\n| &&
+             `sap.ui.define(["z2ui5/core/AppState"], (AppState) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
              `  // Cap the error log so a long-running session cannot grow it unbounded.` && |\n| &&
              `  const MAX_ERRORS = 100;` && |\n| &&
              `` && |\n| &&
-             `  // Append an entry to the global error log and drop the oldest entry once` && |\n| &&
+             `  // Append an entry to the shared error log and drop the oldest entry once` && |\n| &&
              `  // the cap is reached. In the app the array always exists (AppState` && |\n| &&
              `  // default); the guard keeps the helper usable standalone, e.g. in the` && |\n| &&
-             `  // Node specs that load this module with a bare z2ui5 stub.` && |\n| &&
+             `  // Node specs that load this module with a bare AppState stub.` && |\n| &&
              `  function logError(message, error) {` && |\n| &&
-             `    if (!z2ui5.errors) z2ui5.errors = [];` && |\n| &&
+             `    const state = AppState.state;` && |\n| &&
+             `    if (!state.errors) state.errors = [];` && |\n| &&
              `    const entry = { message, ts: new Date().toISOString() };` && |\n| &&
              `    if (error !== undefined) entry.error = error;` && |\n| &&
-             `    z2ui5.errors.push(entry);` && |\n| &&
-             `    if (z2ui5.errors.length > MAX_ERRORS) z2ui5.errors.shift();` && |\n| &&
+             `    state.errors.push(entry);` && |\n| &&
+             `    if (state.errors.length > MAX_ERRORS) state.errors.shift();` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // True when the object supports isDestroyed() and reports destroyed.` && |\n| &&
@@ -60,18 +61,20 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `    return Boolean(obj) && !isDestroyed(obj);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // Helpers for managing z2ui5 callback arrays (onBeforeRoundtrip,` && |\n| &&
+             `  // Helpers for managing the shared callback arrays (onBeforeRoundtrip,` && |\n| &&
              `  // onAfterRendering, ...). Several custom controls register hooks here in` && |\n| &&
              `  // init() and remove them in exit(). The arrays always exist in the app` && |\n| &&
              `  // (AppState defaults); the guard keeps the helper standalone-safe.` && |\n| &&
              `  function registerCallback(name, fn) {` && |\n| &&
-             `    if (!z2ui5[name]) z2ui5[name] = [];` && |\n| &&
-             `    z2ui5[name].push(fn);` && |\n| &&
+             `    const state = AppState.state;` && |\n| &&
+             `    if (!state[name]) state[name] = [];` && |\n| &&
+             `    state[name].push(fn);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  function unregisterCallback(name, fn) {` && |\n| &&
-             `    if (!z2ui5[name]) return;` && |\n| &&
-             `    z2ui5[name] = z2ui5[name].filter((f) => f !== fn);` && |\n| &&
+             `    const state = AppState.state;` && |\n| &&
+             `    if (!state[name]) return;` && |\n| &&
+             `    state[name] = state[name].filter((f) => f !== fn);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // Read a File object as a data URL and hand the result to onLoaded.` && |\n| &&
@@ -103,7 +106,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `    control.setProperty("removedTokens", isRemoved ? tokens : []);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // Run every callback in ``callbacks`` (the z2ui5 callback arrays above),` && |\n| &&
+             `  // Run every callback in ``callbacks`` (the shared callback arrays above),` && |\n| &&
              `  // swallowing individual failures so one bad callback cannot break the` && |\n| &&
              `  // whole event sequence.` && |\n| &&
              `  function runCallbacks(callbacks, ...args) {` && |\n| &&

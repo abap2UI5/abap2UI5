@@ -8,30 +8,36 @@ sap.ui.define(
     "z2ui5/controller/View1.controller",
     "z2ui5/core/Server",
     "sap/ui/core/routing/HashChanger",
+    "z2ui5/core/AppState",
   ],
-  (BaseController, Controller, Server, HashChanger) => {
+  (BaseController, Controller, Server, HashChanger, AppState) => {
     "use strict";
     return BaseController.extend("z2ui5.controller.App", {
       onInit() {
-        const oOwnerComponent = this.getOwnerComponent();
-        z2ui5.oOwnerComponent = oOwnerComponent;
+        const state = AppState.state;
+        state.oOwnerComponent = this.getOwnerComponent();
 
         // Read the backend URI from the manifest; optional chaining keeps a
-        // missing entry from blowing up.
-        const manifest = oOwnerComponent.getManifest();
+        // missing entry from blowing up. checkLocal and url are public
+        // contract fields on the z2ui5 global (the backend GET page sets
+        // checkLocal), so they go through the AppState facade.
+        const manifest = state.oOwnerComponent.getManifest();
         const uri = manifest?.["sap.app"]?.dataSources?.http?.uri;
-        z2ui5.url = z2ui5.checkLocal ? window.location.href : uri;
+        AppState.setGlobal(
+          "url",
+          AppState.getGlobal("checkLocal") ? window.location.href : uri,
+        );
 
         // Wire up the controller instances and the app container. All other
         // shared state (callback arrays, error log, roundtrip flags, ...)
         // starts from the defaults that core/AppState set during
         // Component.init.
-        z2ui5.oController = new Controller();
-        z2ui5.oApp = this.getView().byId("app");
-        z2ui5.oControllerNest = new Controller();
-        z2ui5.oControllerNest2 = new Controller();
-        z2ui5.oControllerPopup = new Controller();
-        z2ui5.oControllerPopover = new Controller();
+        state.oController = new Controller();
+        state.oApp = this.getView().byId("app");
+        state.oControllerNest = new Controller();
+        state.oControllerNest2 = new Controller();
+        state.oControllerPopup = new Controller();
+        state.oControllerPopover = new Controller();
 
         // If the URL already contains a hash, kick off the initial roundtrip
         // so the backend can restore that state.

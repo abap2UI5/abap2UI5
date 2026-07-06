@@ -1,6 +1,11 @@
 sap.ui.define(
-  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],
-  (Control, Lib, ViewSlots) => {
+  [
+    "sap/ui/core/Control",
+    "z2ui5/core/Lib",
+    "z2ui5/core/ViewSlots",
+    "z2ui5/core/AppState",
+  ],
+  (Control, Lib, ViewSlots, AppState) => {
     "use strict";
 
     // Invisible control that reports the UI5 version/theme and the device
@@ -70,7 +75,7 @@ sap.ui.define(
           const { system, resize, os, browser } = deviceData;
           // Filled by Component._initVersionInfo (async, may not have
           // resolved yet on the very first render).
-          const ui5Info = z2ui5.oConfig?.S_UI5;
+          const ui5Info = AppState.getGlobal("oConfig")?.S_UI5;
           const ui5Version = ui5Info?.VERSION || "";
 
           // Single system-type label, same derivation as Server._getDeviceInfo.

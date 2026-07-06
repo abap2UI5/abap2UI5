@@ -1,6 +1,11 @@
 sap.ui.define(
-  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],
-  (Control, Lib, ViewSlots) => {
+  [
+    "sap/ui/core/Control",
+    "z2ui5/core/Lib",
+    "z2ui5/core/ViewSlots",
+    "z2ui5/core/AppState",
+  ],
+  (Control, Lib, ViewSlots, AppState) => {
     "use strict";
 
     // Invisible control that preserves the expand/collapse state of a
@@ -23,7 +28,9 @@ sap.ui.define(
       setBackend() {
         try {
           const binding = this._getTreeBinding();
-          z2ui5.treeState = binding ? binding.getCurrentTreeState() : undefined;
+          AppState.state.treeState = binding
+            ? binding.getCurrentTreeState()
+            : undefined;
         } catch (e) {
           Lib.logError("Tree.setBackend: failed", e);
         }
@@ -43,7 +50,7 @@ sap.ui.define(
         this._pendingTreeState = false;
         try {
           const binding = this._getTreeBinding();
-          if (binding) binding.setTreeState(z2ui5.treeState);
+          if (binding) binding.setTreeState(AppState.state.treeState);
         } catch (e) {
           Lib.logError("Tree.onAfterRendering: setTreeState failed", e);
         }
@@ -56,7 +63,7 @@ sap.ui.define(
           oRm.style("display", "none");
           oRm.openEnd();
           oRm.close("span");
-          if (!z2ui5.treeState) return;
+          if (!AppState.state.treeState) return;
           oControl._pendingTreeState = true;
         },
       },

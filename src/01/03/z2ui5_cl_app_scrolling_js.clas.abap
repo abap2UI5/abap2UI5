@@ -19,8 +19,13 @@ CLASS z2ui5_cl_app_scrolling_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],` && |\n| &&
-             `  (Control, Lib, ViewSlots) => {` && |\n| &&
+             `  [` && |\n| &&
+             `    "sap/ui/core/Control",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/core/AppState",` && |\n| &&
+             `  ],` && |\n| &&
+             `  (Control, Lib, ViewSlots, AppState) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Invisible control that saves the scroll positions of the controls` && |\n| &&
@@ -73,7 +78,7 @@ CLASS z2ui5_cl_app_scrolling_js IMPLEMENTATION.
              `            if (item.V !== scrollTop) {` && |\n| &&
              `              item.V = scrollTop;` && |\n| &&
              `              if (bindingPath) {` && |\n| &&
-             `                z2ui5.xxChangedPaths.add(``${bindingPath}/${index}/V``);` && |\n| &&
+             `                AppState.state.xxChangedPaths.add(``${bindingPath}/${index}/V``);` && |\n| &&
              `              }` && |\n| &&
              `            }` && |\n| &&
              `          }` && |\n| &&

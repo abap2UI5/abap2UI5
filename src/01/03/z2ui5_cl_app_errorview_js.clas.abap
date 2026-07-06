@@ -24,7 +24,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `// view XML, post-render crash, missing SDK module). The only way out is a` && |\n| &&
              `// restart, hence the Refresh / Logout actions. Built from raw DOM so it` && |\n| &&
              `// still works when the UI5 core itself is in a broken state.` && |\n| &&
-             `sap.ui.define([], () => {` && |\n| &&
+             `sap.ui.define(["z2ui5/core/AppState"], (AppState) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
              `  // Errors longer than this are truncated before being shown to the user,` && |\n| &&
@@ -64,8 +64,8 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `      window.location.href = "/sap/public/bc/icf/logoff";` && |\n| &&
              `    };` && |\n| &&
              `    try {` && |\n| &&
-             `      if (z2ui5.oLaunchpad?.Container?.logout) {` && |\n| &&
-             `        z2ui5.oLaunchpad.Container.logout();` && |\n| &&
+             `      if (AppState.state.oLaunchpad?.Container?.logout) {` && |\n| &&
+             `        AppState.state.oLaunchpad.Container.logout();` && |\n| &&
              `      } else {` && |\n| &&
              `        fallback();` && |\n| &&
              `      }` && |\n| &&

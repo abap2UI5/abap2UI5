@@ -28,6 +28,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/ErrorView",` && |\n| &&
              `    "z2ui5/core/Messages",` && |\n| &&
+             `    "z2ui5/core/AppState",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    BusyIndicator,` && |\n| &&
@@ -38,6 +39,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    ViewSlots,` && |\n| &&
              `    ErrorView,` && |\n| &&
              `    Messages,` && |\n| &&
+             `    AppState,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -102,21 +104,19 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    // Request" and "Response".` && |\n| &&
              `    return {` && |\n| &&
              `      endSession() {` && |\n| &&
-             `        if (!Lib.isValidContextId(z2ui5.contextId)) return;` && |\n| &&
+             `        if (!Lib.isValidContextId(AppState.state.contextId)) return;` && |\n| &&
              `        // Best-effort notify the backend that the session ends. Errors are` && |\n| &&
              `        // intentionally swallowed: the browser tab is closing anyway.` && |\n| &&
-             `        fetch(z2ui5.url, {` && |\n| &&
+             `        fetch(AppState.getGlobal("url"), {` && |\n| &&
              `          method: "HEAD",` && |\n| &&
              `          keepalive: true,` && |\n| &&
              `          headers: {` && |\n| &&
              `            "sap-terminate": "session",` && |\n| &&
-             `            "sap-contextid": z2ui5.contextId,` && |\n| &&
+             `            "sap-contextid": AppState.state.contextId,` && |\n| &&
              `            "sap-contextid-accept": "header",` && |\n| &&
              `          },` && |\n| &&
              `        }).catch(() => {});` && |\n| &&
-             `        // Null instead of delete: contextId is an accessor installed by` && |\n| &&
-             `        // core/AppState, deleting it would remove the accessor itself.` && |\n| &&
-             `        z2ui5.contextId = null;` && |\n| &&
+             `        AppState.state.contextId = null;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _getDeviceInfo() {` && |\n| &&
@@ -236,7 +236,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        }` && |\n| &&
              `` && |\n| &&
              `        if (this._lastScrollSlotKey) {` && |\n| &&
-             `          z2ui5.lastScrolled[this._lastScrollSlotKey] = {` && |\n| &&
+             `          AppState.state.lastScrolled[this._lastScrollSlotKey] = {` && |\n| &&
              `            control: this._lastScrollUi5El,` && |\n| &&
              `            dom: target,` && |\n| &&
              `          };` && |\n| &&
@@ -248,7 +248,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        // last scrolled in each view slot (recorded by onScrollCapture).` && |\n| &&
              `        // X = scrollLeft, Y = scrollTop. Slots the user never scrolled are` && |\n| &&
              `        // absent from the result - restoring 0/0 would be a no-op anyway.` && |\n| &&
-             `        const store = z2ui5.lastScrolled;` && |\n| &&
+             `        const store = AppState.state.lastScrolled;` && |\n| &&
              `        const out = {};` && |\n| &&
              `        for (const slot of ViewSlots.slots) {` && |\n| &&
              `          const entry = store[slot.key];` && |\n| &&
@@ -279,29 +279,31 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      roundtrip(oBody = {}) {` && |\n| &&
-             `        z2ui5.checkNestAfter = false;` && |\n| &&
-             `        z2ui5.checkNestAfter2 = false;` && |\n| &&
+             `        const state = AppState.state;` && |\n| &&
+             `        state.checkNestAfter = false;` && |\n| &&
+             `        state.checkNestAfter2 = false;` && |\n| &&
              `` && |\n| &&
-             `        // Keep the global record in sync (debug tool "Previous Request",` && |\n| &&
+             `        // Keep the shared record in sync (debug tool "Previous Request",` && |\n| &&
              `        // app hooks); the parameter stays the working object. Calls without` && |\n| &&
              `        // a body (initial roundtrip, route changes) start from scratch.` && |\n| &&
-             `        z2ui5.oBody = oBody;` && |\n| &&
+             `        state.oBody = oBody;` && |\n| &&
              `` && |\n| &&
              `        // Pick the first event argument (event name) safely.` && |\n| &&
              `        const eventName = oBody.ARGUMENTS?.[0]?.[0];` && |\n| &&
              `` && |\n| &&
+             `        const oConfig = AppState.getGlobal("oConfig");` && |\n| &&
              `        oBody.S_FRONT = {` && |\n| &&
              `          CONFIG: {` && |\n| &&
-             `            S_UI5: z2ui5.oConfig?.S_UI5,` && |\n| &&
+             `            S_UI5: oConfig?.S_UI5,` && |\n| &&
              `            S_DEVICE: this._getDeviceInfo(),` && |\n| &&
              `            S_FOCUS: this._getFocusInfo(),` && |\n| &&
              `            S_SCROLL: this._getScrollInfo(),` && |\n| &&
-             `            ComponentData: z2ui5.oConfig?.ComponentData,` && |\n| &&
+             `            ComponentData: oConfig?.ComponentData,` && |\n| &&
              `          },` && |\n| &&
              `          ID: oBody.ID,` && |\n| &&
              `          ORIGIN: window.location.origin,` && |\n| &&
              `          PATHNAME: window.location.pathname,` && |\n| &&
-             `          SEARCH: z2ui5.search || window.location.search,` && |\n| &&
+             `          SEARCH: state.search || window.location.search,` && |\n| &&
              `          VIEW: oBody.VIEWNAME,` && |\n| &&
              `          EVENT: eventName,` && |\n| &&
              `          HASH: window.location.hash,` && |\n| &&
@@ -344,7 +346,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      async readHttp(oBody) {` && |\n| &&
-             `        const timeoutMs = z2ui5.requestTimeoutMs || REQUEST_TIMEOUT_MS;` && |\n| &&
+             `        const timeoutMs =` && |\n| &&
+             `          AppState.getGlobal("requestTimeoutMs") || REQUEST_TIMEOUT_MS;` && |\n| &&
              `        // The signal guards the fetch and the response body reads below; the` && |\n| &&
              `        // finally releases the fallback timer once the roundtrip settled.` && |\n| &&
              `        const { signal, cancel } = this.createTimeoutSignal(timeoutMs);` && |\n| &&
@@ -363,10 +366,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `              "Content-Type": "application/json",` && |\n| &&
              `              "sap-contextid-accept": "header",` && |\n| &&
              `            };` && |\n| &&
-             `            if (Lib.isValidContextId(z2ui5.contextId)) {` && |\n| &&
-             `              headers["sap-contextid"] = z2ui5.contextId;` && |\n| &&
+             `            if (Lib.isValidContextId(AppState.state.contextId)) {` && |\n| &&
+             `              headers["sap-contextid"] = AppState.state.contextId;` && |\n| &&
              `            }` && |\n| &&
-             `            response = await fetch(z2ui5.url, {` && |\n| &&
+             `            response = await fetch(AppState.getGlobal("url"), {` && |\n| &&
              `              method: "POST",` && |\n| &&
              `              headers,` && |\n| &&
              `              body: JSON.stringify({ value: oBody }),` && |\n| &&
@@ -392,7 +395,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // (returns null) must not wipe an established session.` && |\n| &&
              `          const contextId = response.headers.get("sap-contextid");` && |\n| &&
              `          if (Lib.isValidContextId(contextId)) {` && |\n| &&
-             `            z2ui5.contextId = contextId;` && |\n| &&
+             `            AppState.state.contextId = contextId;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
              `          // Step 2: if the HTTP status is not 2xx, treat the body as error` && |\n| &&
@@ -414,19 +417,19 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          let responseData;` && |\n| &&
              `          try {` && |\n| &&
              `            responseData = await response.json();` && |\n| &&
-             `          } catch (e) {` && |\n| &&
+             `          } catch (e) {` && |\n|.
+    result = result &&
              `            this.responseError(``Invalid JSON response: ${e.message}``);` && |\n| &&
              `            return;` && |\n| &&
-             `          }` && |\n|.
-    result = result &&
+             `          }` && |\n| &&
              `          if (!responseData || !responseData.S_FRONT) {` && |\n| &&
              `            this.responseError("Invalid response: missing S_FRONT");` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
              `          // Step 4: hand the parsed response to the success handler.` && |\n| &&
-             `          z2ui5.responseData = responseData;` && |\n| &&
-             `          z2ui5.xxChangedPaths = new Set();` && |\n| &&
+             `          AppState.state.responseData = responseData;` && |\n| &&
+             `          AppState.state.xxChangedPaths = new Set();` && |\n| &&
              `          this.responseSuccess({` && |\n| &&
              `            ID: responseData.S_FRONT.ID,` && |\n| &&
              `            PARAMS: responseData.S_FRONT.PARAMS,` && |\n| &&
@@ -440,7 +443,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      async responseSuccess(response) {` && |\n| &&
              `        const oController = ViewSlots.getController("MAIN");` && |\n| &&
              `        try {` && |\n| &&
-             `          z2ui5.oResponse = response;` && |\n| &&
+             `          AppState.state.oResponse = response;` && |\n| &&
              `          const params = response.PARAMS;` && |\n| &&
              `          const sView = params?.S_VIEW;` && |\n| &&
              `` && |\n| &&
@@ -455,7 +458,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // SET_FOCUS on the initial view, where the target control does not` && |\n| &&
              `          // exist in the DOM yet.` && |\n| &&
              `          const followUp = params?.S_FOLLOW_UP_ACTION;` && |\n| &&
-             `          z2ui5.pendingCustomJs = followUp?.CUSTOM_JS || null;` && |\n| &&
+             `          AppState.state.pendingCustomJs = followUp?.CUSTOM_JS || null;` && |\n| &&
              `` && |\n| &&
              `          for (const t of _MSG_TYPES) Messages.show(t, params, oController);` && |\n| &&
              `` && |\n| &&
@@ -474,7 +477,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          oController._processAfterRendering();` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          BusyIndicator.hide();` && |\n| &&
-             `          z2ui5.isBusy = false;` && |\n| &&
+             `          AppState.state.isBusy = false;` && |\n| &&
              `          Lib.logError("responseSuccess: unexpected error", e);` && |\n| &&
              `          const msg = e.message || "";` && |\n| &&
              `          if (msg.includes("openui5") && msg.includes("script load error")) {` && |\n| &&
@@ -544,7 +547,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      // reached the server).` && |\n| &&
              `      responseError(response, title, oOptions) {` && |\n| &&
              `        BusyIndicator.hide();` && |\n| &&
-             `        z2ui5.isBusy = false;` && |\n| &&
+             `        AppState.state.isBusy = false;` && |\n| &&
              `        ErrorView.show(response, title, oOptions);` && |\n| &&
              `      },` && |\n| &&
              `    };` && |\n| &&
