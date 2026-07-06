@@ -141,6 +141,7 @@ sap.ui.define(
         let el = dom;
         while (el && el.getAttribute) {
           if (el.hasAttribute("data-sap-ui")) {
+            // ui5lint-disable-next-line no-globals, no-deprecated-api -- only resolution path on UI5 < 1.106
             return sap.ui.getCore().byId(el.id) || null;
           }
           el = el.parentElement;
