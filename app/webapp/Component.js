@@ -178,9 +178,13 @@ sap.ui.define(
         try {
           const Theming = sap.ui.require("sap/ui/core/Theming");
           if (Theming?.getTheme) return Theming.getTheme();
+          /* ui5lint-disable no-globals, no-deprecated-api --
+             deliberate fallback for UI5 releases without sap/ui/core/Theming
+             (added in 1.118); the modern API is used in the branch above. */
           if (sap.ui.getCore) {
             return sap.ui.getCore().getConfiguration().getTheme();
           }
+          /* ui5lint-enable no-globals, no-deprecated-api */
         } catch (e) {
           Lib.logError("Component: reading theme failed", e);
         }

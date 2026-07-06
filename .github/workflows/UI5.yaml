@@ -24,5 +24,5 @@ jobs:
         node-version: '20'
         cache: 'npm'
     - run: cd app && npm ci
-    - name: ui5lint (fails when new errors exceed the accepted baseline)
+    - name: ui5lint (fails on any error)
       run: node .github/scripts/ui5lint-gate.mjs

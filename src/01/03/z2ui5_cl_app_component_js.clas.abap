@@ -198,9 +198,13 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          const Theming = sap.ui.require("sap/ui/core/Theming");` && |\n| &&
              `          if (Theming?.getTheme) return Theming.getTheme();` && |\n| &&
+             `          /* ui5lint-disable no-globals, no-deprecated-api --` && |\n| &&
+             `             deliberate fallback for UI5 releases without sap/ui/core/Theming` && |\n| &&
+             `             (added in 1.118); the modern API is used in the branch above. */` && |\n| &&
              `          if (sap.ui.getCore) {` && |\n| &&
              `            return sap.ui.getCore().getConfiguration().getTheme();` && |\n| &&
              `          }` && |\n| &&
+             `          /* ui5lint-enable no-globals, no-deprecated-api */` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("Component: reading theme failed", e);` && |\n| &&
              `        }` && |\n| &&
