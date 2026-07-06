@@ -37,17 +37,17 @@ sap.ui.define(
 
         UIComponent.prototype.init.call(this);
 
-        z2ui5.oConfig.ComponentData = this.getComponentData();
+        AppState.getGlobal("oConfig").ComponentData = this.getComponentData();
 
         // The date helpers are a public contract: apps use them via the
         // z2ui5.Util global (XML view formatter strings) or via
         // core:require of the z2ui5/Util module. Publish the global here -
         // since the custom controls were split out of App.controller.js,
         // nothing else loads the module eagerly anymore.
-        z2ui5.Util = DateUtil;
+        AppState.setGlobal("Util", DateUtil);
 
-        z2ui5.oDeviceModel = Models.createDeviceModel();
-        this.setModel(z2ui5.oDeviceModel, "device");
+        AppState.state.oDeviceModel = Models.createDeviceModel();
+        this.setModel(AppState.state.oDeviceModel, "device");
 
         this._initLaunchpad();
         this._initVersionInfo();
@@ -56,9 +56,9 @@ sap.ui.define(
         this._installDebugToolShortcut();
         this._installScrollListener();
 
-        z2ui5.oRouter = this.getRouter();
-        z2ui5.oRouter.initialize();
-        z2ui5.oRouter.stop();
+        AppState.state.oRouter = this.getRouter();
+        AppState.state.oRouter.initialize();
+        AppState.state.oRouter.stop();
       },
 
       // ------------------------------------------------------------------
@@ -82,8 +82,9 @@ sap.ui.define(
         // Ctrl + F12 opens / closes the in-app debug tool.
         this._boundKeydown = (event) => {
           if (event.ctrlKey && event.key === "F12") {
-            if (!z2ui5.debugTool) z2ui5.debugTool = new DebugTool();
-            z2ui5.debugTool.toggle();
+            const state = AppState.state;
+            if (!state.debugTool) state.debugTool = new DebugTool();
+            state.debugTool.toggle();
           }
         };
         document.addEventListener("keydown", this._boundKeydown);
@@ -111,7 +112,7 @@ sap.ui.define(
 
         const launchpad = { Container };
         this._launchpad = launchpad;
-        z2ui5.oLaunchpad = launchpad;
+        AppState.state.oLaunchpad = launchpad;
 
         // The FLP services load asynchronously. By the time they resolve, the
         // component may already have been destroyed (e.g. user navigated away
@@ -156,7 +157,7 @@ sap.ui.define(
         try {
           const info = await VersionInfo.load();
           if (Lib.isAlive(this)) {
-            z2ui5.oConfig.S_UI5 = {
+            AppState.getGlobal("oConfig").S_UI5 = {
               VERSION: info.version,
               BUILDTIMESTAMP: info.buildTimestamp,
               GAV: info.gav,
@@ -177,9 +178,13 @@ sap.ui.define(
         try {
           const Theming = sap.ui.require("sap/ui/core/Theming");
           if (Theming?.getTheme) return Theming.getTheme();
+          /* ui5lint-disable no-globals, no-deprecated-api --
+             deliberate fallback for UI5 releases without sap/ui/core/Theming
+             (added in 1.118); the modern API is used in the branch above. */
           if (sap.ui.getCore) {
             return sap.ui.getCore().getConfiguration().getTheme();
           }
+          /* ui5lint-enable no-globals, no-deprecated-api */
         } catch (e) {
           Lib.logError("Component: reading theme failed", e);
         }
@@ -205,9 +210,9 @@ sap.ui.define(
         // The debug tool is created lazily by the Ctrl+F12 shortcut -
         // destroy it (which also closes its dialog) so a re-launch (FLP)
         // does not leak the control instance.
-        if (z2ui5.debugTool) {
-          z2ui5.debugTool.destroy();
-          z2ui5.debugTool = null;
+        if (AppState.state.debugTool) {
+          AppState.state.debugTool.destroy();
+          AppState.state.debugTool = null;
         }
 
         Server.endSession();
@@ -223,7 +228,9 @@ sap.ui.define(
         } catch (e) {
           Lib.logError("Component: clearing FLP dirty flag failed", e);
         }
-        if (z2ui5.oLaunchpad === this._launchpad) z2ui5.oLaunchpad = null;
+        if (AppState.state.oLaunchpad === this._launchpad) {
+          AppState.state.oLaunchpad = null;
+        }
         this._launchpad = null;
 
         if (UIComponent.prototype.exit) UIComponent.prototype.exit.call(this);

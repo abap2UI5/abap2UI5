@@ -78,6 +78,45 @@ test.describe("initGlobal", () => {
   });
 });
 
+test.describe("module API", () => {
+  test("state exposes the same internal fields as the global accessors", () => {
+    const { AppState, ctx } = load();
+    AppState.initGlobal();
+    ctx.z2ui5.contextId = "abc";
+    expect(AppState.state.contextId).toBe("abc");
+    AppState.state.isBusy = true;
+    expect(ctx.z2ui5.isBusy).toBe(true);
+  });
+
+  test("state always returns the current object, also after reset", () => {
+    const { AppState } = load();
+    AppState.initGlobal();
+    AppState.state.isBusy = true;
+    AppState.reset();
+    expect(AppState.state.isBusy).toBe(false);
+  });
+
+  test("getGlobal/setGlobal read and write the public facade", () => {
+    const { AppState, ctx } = load();
+    AppState.initGlobal();
+    AppState.setGlobal("Util", "helpers");
+    expect(ctx.z2ui5.Util).toBe("helpers");
+    ctx.z2ui5.requestTimeoutMs = 5000;
+    expect(AppState.getGlobal("requestTimeoutMs")).toBe(5000);
+  });
+
+  test("getGlobal is undefined-safe before initGlobal ran", () => {
+    const { AppState } = load();
+    expect(AppState.getGlobal("url")).toBeUndefined();
+  });
+
+  test("setGlobal creates the global when it does not exist yet", () => {
+    const { AppState, ctx } = load();
+    AppState.setGlobal("url", "/sap/z2ui5");
+    expect(ctx.z2ui5.url).toBe("/sap/z2ui5");
+  });
+});
+
 test.describe("accessors and reset", () => {
   test("accessor writes go through to the internal state", () => {
     const { AppState, ctx } = load();

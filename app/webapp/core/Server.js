@@ -8,6 +8,7 @@ sap.ui.define(
     "z2ui5/core/ViewSlots",
     "z2ui5/core/ErrorView",
     "z2ui5/core/Messages",
+    "z2ui5/core/AppState",
   ],
   (
     BusyIndicator,
@@ -18,6 +19,7 @@ sap.ui.define(
     ViewSlots,
     ErrorView,
     Messages,
+    AppState,
   ) => {
     "use strict";
 
@@ -82,21 +84,19 @@ sap.ui.define(
     // Request" and "Response".
     return {
       endSession() {
-        if (!Lib.isValidContextId(z2ui5.contextId)) return;
+        if (!Lib.isValidContextId(AppState.state.contextId)) return;
         // Best-effort notify the backend that the session ends. Errors are
         // intentionally swallowed: the browser tab is closing anyway.
-        fetch(z2ui5.url, {
+        fetch(AppState.getGlobal("url"), {
           method: "HEAD",
           keepalive: true,
           headers: {
             "sap-terminate": "session",
-            "sap-contextid": z2ui5.contextId,
+            "sap-contextid": AppState.state.contextId,
             "sap-contextid-accept": "header",
           },
         }).catch(() => {});
-        // Null instead of delete: contextId is an accessor installed by
-        // core/AppState, deleting it would remove the accessor itself.
-        z2ui5.contextId = null;
+        AppState.state.contextId = null;
       },
 
       _getDeviceInfo() {
@@ -216,7 +216,7 @@ sap.ui.define(
         }
 
         if (this._lastScrollSlotKey) {
-          z2ui5.lastScrolled[this._lastScrollSlotKey] = {
+          AppState.state.lastScrolled[this._lastScrollSlotKey] = {
             control: this._lastScrollUi5El,
             dom: target,
           };
@@ -228,7 +228,7 @@ sap.ui.define(
         // last scrolled in each view slot (recorded by onScrollCapture).
         // X = scrollLeft, Y = scrollTop. Slots the user never scrolled are
         // absent from the result - restoring 0/0 would be a no-op anyway.
-        const store = z2ui5.lastScrolled;
+        const store = AppState.state.lastScrolled;
         const out = {};
         for (const slot of ViewSlots.slots) {
           const entry = store[slot.key];
@@ -259,29 +259,31 @@ sap.ui.define(
       },
 
       roundtrip(oBody = {}) {
-        z2ui5.checkNestAfter = false;
-        z2ui5.checkNestAfter2 = false;
+        const state = AppState.state;
+        state.checkNestAfter = false;
+        state.checkNestAfter2 = false;
 
-        // Keep the global record in sync (debug tool "Previous Request",
+        // Keep the shared record in sync (debug tool "Previous Request",
         // app hooks); the parameter stays the working object. Calls without
         // a body (initial roundtrip, route changes) start from scratch.
-        z2ui5.oBody = oBody;
+        state.oBody = oBody;
 
         // Pick the first event argument (event name) safely.
         const eventName = oBody.ARGUMENTS?.[0]?.[0];
 
+        const oConfig = AppState.getGlobal("oConfig");
         oBody.S_FRONT = {
           CONFIG: {
-            S_UI5: z2ui5.oConfig?.S_UI5,
+            S_UI5: oConfig?.S_UI5,
             S_DEVICE: this._getDeviceInfo(),
             S_FOCUS: this._getFocusInfo(),
             S_SCROLL: this._getScrollInfo(),
-            ComponentData: z2ui5.oConfig?.ComponentData,
+            ComponentData: oConfig?.ComponentData,
           },
           ID: oBody.ID,
           ORIGIN: window.location.origin,
           PATHNAME: window.location.pathname,
-          SEARCH: z2ui5.search || window.location.search,
+          SEARCH: state.search || window.location.search,
           VIEW: oBody.VIEWNAME,
           EVENT: eventName,
           HASH: window.location.hash,
@@ -324,7 +326,8 @@ sap.ui.define(
       },
 
       async readHttp(oBody) {
-        const timeoutMs = z2ui5.requestTimeoutMs || REQUEST_TIMEOUT_MS;
+        const timeoutMs =
+          AppState.getGlobal("requestTimeoutMs") || REQUEST_TIMEOUT_MS;
         // The signal guards the fetch and the response body reads below; the
         // finally releases the fallback timer once the roundtrip settled.
         const { signal, cancel } = this.createTimeoutSignal(timeoutMs);
@@ -343,10 +346,10 @@ sap.ui.define(
               "Content-Type": "application/json",
               "sap-contextid-accept": "header",
             };
-            if (Lib.isValidContextId(z2ui5.contextId)) {
-              headers["sap-contextid"] = z2ui5.contextId;
+            if (Lib.isValidContextId(AppState.state.contextId)) {
+              headers["sap-contextid"] = AppState.state.contextId;
             }
-            response = await fetch(z2ui5.url, {
+            response = await fetch(AppState.getGlobal("url"), {
               method: "POST",
               headers,
               body: JSON.stringify({ value: oBody }),
@@ -372,7 +375,7 @@ sap.ui.define(
           // (returns null) must not wipe an established session.
           const contextId = response.headers.get("sap-contextid");
           if (Lib.isValidContextId(contextId)) {
-            z2ui5.contextId = contextId;
+            AppState.state.contextId = contextId;
           }
 
           // Step 2: if the HTTP status is not 2xx, treat the body as error
@@ -404,8 +407,8 @@ sap.ui.define(
           }
 
           // Step 4: hand the parsed response to the success handler.
-          z2ui5.responseData = responseData;
-          z2ui5.xxChangedPaths = new Set();
+          AppState.state.responseData = responseData;
+          AppState.state.xxChangedPaths = new Set();
           this.responseSuccess({
             ID: responseData.S_FRONT.ID,
             PARAMS: responseData.S_FRONT.PARAMS,
@@ -419,7 +422,7 @@ sap.ui.define(
       async responseSuccess(response) {
         const oController = ViewSlots.getController("MAIN");
         try {
-          z2ui5.oResponse = response;
+          AppState.state.oResponse = response;
           const params = response.PARAMS;
           const sView = params?.S_VIEW;
 
@@ -434,7 +437,7 @@ sap.ui.define(
           // SET_FOCUS on the initial view, where the target control does not
           // exist in the DOM yet.
           const followUp = params?.S_FOLLOW_UP_ACTION;
-          z2ui5.pendingCustomJs = followUp?.CUSTOM_JS || null;
+          AppState.state.pendingCustomJs = followUp?.CUSTOM_JS || null;
 
           for (const t of _MSG_TYPES) Messages.show(t, params, oController);
 
@@ -453,7 +456,7 @@ sap.ui.define(
           oController._processAfterRendering();
         } catch (e) {
           BusyIndicator.hide();
-          z2ui5.isBusy = false;
+          AppState.state.isBusy = false;
           Lib.logError("responseSuccess: unexpected error", e);
           const msg = e.message || "";
           if (msg.includes("openui5") && msg.includes("script load error")) {
@@ -523,7 +526,7 @@ sap.ui.define(
       // reached the server).
       responseError(response, title, oOptions) {
         BusyIndicator.hide();
-        z2ui5.isBusy = false;
+        AppState.state.isBusy = false;
         ErrorView.show(response, title, oOptions);
       },
     };

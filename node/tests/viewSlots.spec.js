@@ -2,8 +2,11 @@
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
-// Tests the real app/webapp/core/ViewSlots.js against a stubbed z2ui5
-// global, a recording Fragment stub and a recording Lib.logError stub.
+// Tests the real app/webapp/core/ViewSlots.js against a stubbed AppState
+// state object, a recording Fragment stub and a recording Lib.logError
+// stub. The state stub is returned as `z2ui5` because in the app the
+// same fields are also visible on the z2ui5 global via the AppState
+// accessors.
 
 function load() {
   const fragmentCalls = [];
@@ -20,8 +23,8 @@ function load() {
       "z2ui5/core/Lib": {
         logError: (message) => errors.push(message),
       },
+      "z2ui5/core/AppState": { state: z2ui5 },
     },
-    sandbox: { z2ui5 },
   });
   return { ViewSlots: module, z2ui5, fragmentCalls, errors };
 }

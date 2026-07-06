@@ -19,8 +19,13 @@ CLASS z2ui5_cl_app_tree_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],` && |\n| &&
-             `  (Control, Lib, ViewSlots) => {` && |\n| &&
+             `  [` && |\n| &&
+             `    "sap/ui/core/Control",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/ViewSlots",` && |\n| &&
+             `    "z2ui5/core/AppState",` && |\n| &&
+             `  ],` && |\n| &&
+             `  (Control, Lib, ViewSlots, AppState) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Invisible control that preserves the expand/collapse state of a` && |\n| &&
@@ -43,7 +48,9 @@ CLASS z2ui5_cl_app_tree_js IMPLEMENTATION.
              `      setBackend() {` && |\n| &&
              `        try {` && |\n| &&
              `          const binding = this._getTreeBinding();` && |\n| &&
-             `          z2ui5.treeState = binding ? binding.getCurrentTreeState() : undefined;` && |\n| &&
+             `          AppState.state.treeState = binding` && |\n| &&
+             `            ? binding.getCurrentTreeState()` && |\n| &&
+             `            : undefined;` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("Tree.setBackend: failed", e);` && |\n| &&
              `        }` && |\n| &&
@@ -63,7 +70,7 @@ CLASS z2ui5_cl_app_tree_js IMPLEMENTATION.
              `        this._pendingTreeState = false;` && |\n| &&
              `        try {` && |\n| &&
              `          const binding = this._getTreeBinding();` && |\n| &&
-             `          if (binding) binding.setTreeState(z2ui5.treeState);` && |\n| &&
+             `          if (binding) binding.setTreeState(AppState.state.treeState);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("Tree.onAfterRendering: setTreeState failed", e);` && |\n| &&
              `        }` && |\n| &&
@@ -76,7 +83,7 @@ CLASS z2ui5_cl_app_tree_js IMPLEMENTATION.
              `          oRm.style("display", "none");` && |\n| &&
              `          oRm.openEnd();` && |\n| &&
              `          oRm.close("span");` && |\n| &&
-             `          if (!z2ui5.treeState) return;` && |\n| &&
+             `          if (!AppState.state.treeState) return;` && |\n| &&
              `          oControl._pendingTreeState = true;` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&

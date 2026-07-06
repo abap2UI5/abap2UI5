@@ -1,6 +1,11 @@
 sap.ui.define(
-  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],
-  (Control, Lib, ViewSlots) => {
+  [
+    "sap/ui/core/Control",
+    "z2ui5/core/Lib",
+    "z2ui5/core/ViewSlots",
+    "z2ui5/core/AppState",
+  ],
+  (Control, Lib, ViewSlots, AppState) => {
     "use strict";
 
     // Invisible control that saves the scroll positions of the controls
@@ -53,7 +58,7 @@ sap.ui.define(
             if (item.V !== scrollTop) {
               item.V = scrollTop;
               if (bindingPath) {
-                z2ui5.xxChangedPaths.add(`${bindingPath}/${index}/V`);
+                AppState.state.xxChangedPaths.add(`${bindingPath}/${index}/V`);
               }
             }
           }

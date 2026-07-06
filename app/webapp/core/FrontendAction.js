@@ -6,8 +6,17 @@ sap.ui.define(
     "sap/ui/util/Storage",
     "z2ui5/core/Lib",
     "z2ui5/core/ViewSlots",
+    "z2ui5/core/AppState",
   ],
-  (MessageBox, ODataModel, mobileLibrary, Storage, Lib, ViewSlots) => {
+  (
+    MessageBox,
+    ODataModel,
+    mobileLibrary,
+    Storage,
+    Lib,
+    ViewSlots,
+    AppState,
+  ) => {
     "use strict";
 
     // ------------------------------------------------------------------
@@ -26,7 +35,7 @@ sap.ui.define(
     // ------------------------------------------------------------------
 
     function withCrossAppNavigator(callback) {
-      const nav = z2ui5.oLaunchpad?.CrossAppNavigator;
+      const nav = AppState.state.oLaunchpad?.CrossAppNavigator;
       if (!nav) {
         Lib.logError("CrossAppNav: not running inside Launchpad");
         return;
@@ -80,7 +89,7 @@ sap.ui.define(
     function evClipboardAppState() {
       // Guard against a missing response so the copied link never carries
       // the literal "undefined" as its state id.
-      const id = z2ui5.oResponse?.ID || "";
+      const id = AppState.state.oResponse?.ID || "";
       // Strip any existing hash (e.g. an active app-state) so the copied
       // link carries only the fresh state id.
       const base = window.location.href.split("#")[0];
@@ -119,9 +128,9 @@ sap.ui.define(
 
       const isValidLimit = Number.isFinite(limit) && limit > 0;
       if (isValidLimit) {
-        z2ui5.viewSizeLimits[viewKey] = limit;
+        AppState.state.viewSizeLimits[viewKey] = limit;
       } else {
-        delete z2ui5.viewSizeLimits[viewKey];
+        delete AppState.state.viewSizeLimits[viewKey];
       }
       if (model) {
         // 100 is the UI5 JSONModel default size limit.
@@ -198,7 +207,7 @@ sap.ui.define(
     function evSystemLogout(oController, args) {
       const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";
       try {
-        const container = z2ui5.oLaunchpad?.Container;
+        const container = AppState.state.oLaunchpad?.Container;
         // No explicit logout URL was passed (args is just the event name):
         // inside the launchpad, prefer its own logout over the BSP/ICF
         // redirect below.
@@ -322,9 +331,10 @@ sap.ui.define(
       const timerKey = args[0];
       const callbackEvent = args[1];
       const delay = Number(args[2]) || 0;
-      clearTimeout(z2ui5.timers[timerKey]);
-      z2ui5.timers[timerKey] = setTimeout(() => {
-        delete z2ui5.timers[timerKey];
+      const timers = AppState.state.timers;
+      clearTimeout(timers[timerKey]);
+      timers[timerKey] = setTimeout(() => {
+        delete timers[timerKey];
         oController.eB([callbackEvent]);
       }, delay);
     }
@@ -462,7 +472,7 @@ sap.ui.define(
     function evSetTitleLaunchpad(oController, args) {
       const title = Lib.toText(args[1]);
       try {
-        const shell = z2ui5.oLaunchpad?.ShellUIService;
+        const shell = AppState.state.oLaunchpad?.ShellUIService;
         if (shell?.setTitle) {
           const result = shell.setTitle(title);
           if (result?.catch) {
@@ -481,7 +491,9 @@ sap.ui.define(
 
     function evZ2ui5Custom(oController, args) {
       try {
-        const fn = z2ui5[args[1]];
+        // Custom functions are registered by apps on the public z2ui5
+        // global (js_loader popup), so resolve them via the facade.
+        const fn = AppState.getGlobal(args[1]);
         if (typeof fn === "function") {
           fn(args.slice(2));
         } else {
@@ -557,7 +569,7 @@ sap.ui.define(
 
     // Entry point called by View1.controller's eF().
     function execute(oController, args) {
-      Lib.runCallbacks(z2ui5.onBeforeEventFrontend, args);
+      Lib.runCallbacks(AppState.state.onBeforeEventFrontend, args);
 
       try {
         // NavContainer navigation is dispatched via lookup table.

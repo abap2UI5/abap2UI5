@@ -57,17 +57,17 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n| &&
              `        UIComponent.prototype.init.call(this);` && |\n| &&
              `` && |\n| &&
-             `        z2ui5.oConfig.ComponentData = this.getComponentData();` && |\n| &&
+             `        AppState.getGlobal("oConfig").ComponentData = this.getComponentData();` && |\n| &&
              `` && |\n| &&
              `        // The date helpers are a public contract: apps use them via the` && |\n| &&
              `        // z2ui5.Util global (XML view formatter strings) or via` && |\n| &&
              `        // core:require of the z2ui5/Util module. Publish the global here -` && |\n| &&
              `        // since the custom controls were split out of App.controller.js,` && |\n| &&
              `        // nothing else loads the module eagerly anymore.` && |\n| &&
-             `        z2ui5.Util = DateUtil;` && |\n| &&
+             `        AppState.setGlobal("Util", DateUtil);` && |\n| &&
              `` && |\n| &&
-             `        z2ui5.oDeviceModel = Models.createDeviceModel();` && |\n| &&
-             `        this.setModel(z2ui5.oDeviceModel, "device");` && |\n| &&
+             `        AppState.state.oDeviceModel = Models.createDeviceModel();` && |\n| &&
+             `        this.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&
              `` && |\n| &&
              `        this._initLaunchpad();` && |\n| &&
              `        this._initVersionInfo();` && |\n| &&
@@ -76,9 +76,9 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        this._installDebugToolShortcut();` && |\n| &&
              `        this._installScrollListener();` && |\n| &&
              `` && |\n| &&
-             `        z2ui5.oRouter = this.getRouter();` && |\n| &&
-             `        z2ui5.oRouter.initialize();` && |\n| &&
-             `        z2ui5.oRouter.stop();` && |\n| &&
+             `        AppState.state.oRouter = this.getRouter();` && |\n| &&
+             `        AppState.state.oRouter.initialize();` && |\n| &&
+             `        AppState.state.oRouter.stop();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
@@ -102,8 +102,9 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        // Ctrl + F12 opens / closes the in-app debug tool.` && |\n| &&
              `        this._boundKeydown = (event) => {` && |\n| &&
              `          if (event.ctrlKey && event.key === "F12") {` && |\n| &&
-             `            if (!z2ui5.debugTool) z2ui5.debugTool = new DebugTool();` && |\n| &&
-             `            z2ui5.debugTool.toggle();` && |\n| &&
+             `            const state = AppState.state;` && |\n| &&
+             `            if (!state.debugTool) state.debugTool = new DebugTool();` && |\n| &&
+             `            state.debugTool.toggle();` && |\n| &&
              `          }` && |\n| &&
              `        };` && |\n| &&
              `        document.addEventListener("keydown", this._boundKeydown);` && |\n| &&
@@ -131,7 +132,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `` && |\n| &&
              `        const launchpad = { Container };` && |\n| &&
              `        this._launchpad = launchpad;` && |\n| &&
-             `        z2ui5.oLaunchpad = launchpad;` && |\n| &&
+             `        AppState.state.oLaunchpad = launchpad;` && |\n| &&
              `` && |\n| &&
              `        // The FLP services load asynchronously. By the time they resolve, the` && |\n| &&
              `        // component may already have been destroyed (e.g. user navigated away` && |\n| &&
@@ -176,7 +177,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          const info = await VersionInfo.load();` && |\n| &&
              `          if (Lib.isAlive(this)) {` && |\n| &&
-             `            z2ui5.oConfig.S_UI5 = {` && |\n| &&
+             `            AppState.getGlobal("oConfig").S_UI5 = {` && |\n| &&
              `              VERSION: info.version,` && |\n| &&
              `              BUILDTIMESTAMP: info.buildTimestamp,` && |\n| &&
              `              GAV: info.gav,` && |\n| &&
@@ -197,9 +198,13 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          const Theming = sap.ui.require("sap/ui/core/Theming");` && |\n| &&
              `          if (Theming?.getTheme) return Theming.getTheme();` && |\n| &&
+             `          /* ui5lint-disable no-globals, no-deprecated-api --` && |\n| &&
+             `             deliberate fallback for UI5 releases without sap/ui/core/Theming` && |\n| &&
+             `             (added in 1.118); the modern API is used in the branch above. */` && |\n| &&
              `          if (sap.ui.getCore) {` && |\n| &&
              `            return sap.ui.getCore().getConfiguration().getTheme();` && |\n| &&
              `          }` && |\n| &&
+             `          /* ui5lint-enable no-globals, no-deprecated-api */` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("Component: reading theme failed", e);` && |\n| &&
              `        }` && |\n| &&
@@ -225,9 +230,9 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        // The debug tool is created lazily by the Ctrl+F12 shortcut -` && |\n| &&
              `        // destroy it (which also closes its dialog) so a re-launch (FLP)` && |\n| &&
              `        // does not leak the control instance.` && |\n| &&
-             `        if (z2ui5.debugTool) {` && |\n| &&
-             `          z2ui5.debugTool.destroy();` && |\n| &&
-             `          z2ui5.debugTool = null;` && |\n| &&
+             `        if (AppState.state.debugTool) {` && |\n| &&
+             `          AppState.state.debugTool.destroy();` && |\n| &&
+             `          AppState.state.debugTool = null;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        Server.endSession();` && |\n| &&
@@ -243,7 +248,9 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("Component: clearing FLP dirty flag failed", e);` && |\n| &&
              `        }` && |\n| &&
-             `        if (z2ui5.oLaunchpad === this._launchpad) z2ui5.oLaunchpad = null;` && |\n| &&
+             `        if (AppState.state.oLaunchpad === this._launchpad) {` && |\n| &&
+             `          AppState.state.oLaunchpad = null;` && |\n| &&
+             `        }` && |\n| &&
              `        this._launchpad = null;` && |\n| &&
              `` && |\n| &&
              `        if (UIComponent.prototype.exit) UIComponent.prototype.exit.call(this);` && |\n| &&
