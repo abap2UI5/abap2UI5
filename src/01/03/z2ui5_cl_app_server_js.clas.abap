@@ -161,6 +161,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        let el = dom;` && |\n| &&
              `        while (el && el.getAttribute) {` && |\n| &&
              `          if (el.hasAttribute("data-sap-ui")) {` && |\n| &&
+             `            // ui5lint-disable-next-line no-globals, no-deprecated-api -- only resolution path on UI5 < 1.106` && |\n| &&
              `            return sap.ui.getCore().byId(el.id) || null;` && |\n| &&
              `          }` && |\n| &&
              `          el = el.parentElement;` && |\n| &&
@@ -416,9 +417,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          } catch (e) {` && |\n| &&
              `            this.responseError(``Invalid JSON response: ${e.message}``);` && |\n| &&
              `            return;` && |\n| &&
-             `          }` && |\n| &&
-             `          if (!responseData || !responseData.S_FRONT) {` && |\n|.
+             `          }` && |\n|.
     result = result &&
+             `          if (!responseData || !responseData.S_FRONT) {` && |\n| &&
              `            this.responseError("Invalid response: missing S_FRONT");` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
