@@ -1,0 +1,31 @@
+name: trigger_local
+
+# Keeps abap2UI5/abap2UI5-local in sync with this repository, analogous to
+# create_frontend for abap2UI5/frontend: every push to main dispatches the
+# update_input workflow over there, which copies the current src/ into its
+# input/ folder and then rebuilds the 702/standard/cloud artifact branches
+# (via its own workflow_run chain). The monthly cron in abap2UI5-local
+# remains as a safety net in case a dispatch is lost.
+#
+# Requires the secret ACTION_TOKEN_LOCAL: a fine-grained PAT (or GitHub App
+# token) scoped to abap2UI5/abap2UI5-local with "Actions: read and write"
+# permission — deploy keys cannot call the workflow-dispatch API.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  trigger_local:
+    if: github.repository == 'abap2UI5/abap2UI5'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+    - name: dispatch update_input in abap2UI5-local
+      env:
+        GH_TOKEN: ${{ secrets.ACTION_TOKEN_LOCAL }}
+      run: gh workflow run update_input.yaml --repo abap2UI5/abap2UI5-local --ref main
