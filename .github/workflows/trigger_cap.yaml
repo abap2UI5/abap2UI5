@@ -1,15 +1,15 @@
 name: trigger_cap
 
 # Keeps cap2UI5/cap2UI5 in sync with this repository, analogous to
-# trigger_local for abap2UI5-local: every push to main sends a
-# repository_dispatch (upstream-update) to cap2UI5/cap2UI5, which starts
-# its sync pipeline (mirror -> transpile -> copy into CAP). The weekly
-# cron over there remains as a safety net.
+# trigger_local for abap2UI5-local: every push to main refreshes the
+# input/abap2UI5 snapshot in cap2UI5 and pushes it to its main branch via
+# a deploy key. That push then starts the sync pipeline over there
+# (mirror -> transpile -> copy into CAP). The weekly cron over there
+# remains as a safety net.
 #
-# Requires the secret ACTION_TOKEN_CAP: a fine-grained personal access
-# token with "Contents: Read and write" permission on cap2UI5/cap2UI5
-# (repository_dispatch needs write access; a classic token with repo
-# scope works too).
+# Requires the secret ACTION_KEY_CAP: the private half of a deploy key
+# registered on cap2UI5/cap2UI5 with write access (same pattern as
+# ACTION_KEY_LOCAL for abap2UI5-local).
 
 on:
   push:
@@ -27,13 +27,42 @@ jobs:
   trigger_cap:
     if: github.repository == 'abap2UI5/abap2UI5'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
-    - name: Dispatch cap2UI5 sync pipeline
+    - name: Checkout abap2UI5 (this repo)
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      with:
+        path: upstream
+
+    - name: Checkout cap2UI5 via deploy key
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      with:
+        repository: cap2UI5/cap2UI5
+        ref: main
+        ssh-key: ${{ secrets.ACTION_KEY_CAP }}
+        path: cap
+
+    - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+      with:
+        node-version: 22
+
+    # Same snapshot as step 1 of the sync pipeline over there, only built
+    # from this checkout instead of a fresh clone (MIRROR_SOURCE), so the
+    # pushed input/ state always matches the commit that triggered this run.
+    - name: Mirror current sources into input/abap2UI5
+      working-directory: cap
+      run: MIRROR_SOURCE="${{ github.workspace }}/upstream" node scripts/mirror-input.js abap2UI5
+
+    - name: Commit and push to cap2UI5 main
+      working-directory: cap
       run: |
-        curl -sS --fail-with-body -X POST \
-          -H "Accept: application/vnd.github+json" \
-          -H "Authorization: Bearer ${{ secrets.ACTION_TOKEN_CAP }}" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          https://api.github.com/repos/cap2UI5/cap2UI5/dispatches \
-          -d "{\"event_type\":\"upstream-update\",\"client_payload\":{\"repository\":\"${{ github.repository }}\",\"ref\":\"${{ github.ref_name }}\",\"sha\":\"${{ github.sha }}\"}}"
+        git config user.name 'github-actions[bot]'
+        git config user.email 'github-actions[bot]@users.noreply.github.com'
+        git add -A input/abap2UI5
+        if git diff --cached --quiet; then
+          echo "input/abap2UI5: no changes"
+        else
+          git commit -m "mirror: update input/abap2UI5 ($(cut -c1-12 input/abap2UI5/UPSTREAM_COMMIT))"
+          git pull --rebase origin main
+          git push origin main
+        fi
