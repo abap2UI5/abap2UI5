@@ -98,7 +98,6 @@ CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
              `    },` &&
              `    "routing": {` &&
              `      "config": {` &&
-             `        "async": true,` &&
              `        "routerClass": "sap.m.routing.Router",` &&
              `        "viewType": "XML",` &&
              `        "viewPath": "z2ui5.view",` &&
@@ -128,8 +127,7 @@ CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
              `    "rootView": {` &&
              `      "viewName": "z2ui5.view.App",` &&
              `      "type": "XML",` &&
-             `      "id": "App",` &&
-             `      "async": true` &&
+             `      "id": "App"` &&
              `    }` &&
              `  },` &&
              `  "sap.cloud": {` &&
