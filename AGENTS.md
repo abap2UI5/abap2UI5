@@ -196,7 +196,7 @@ Grouped by purpose:
 | **Automation** | `auto_downport.yaml`, `auto_abaplint_fix.yaml`, `auto_abaplint_fix_pr.yaml` | Scheduled downporting and auto-formatting (open PRs) |
 | **Generation** | `create_app2abap.yaml`, `create_frontend.yaml` | Regenerate `src/01/03/` from `app/webapp/` |
 | **Mirroring** | `mirror_ajson.yaml`, `mirror_srtti.yaml` | Sync `src/00/01/` (AJSON) and `src/00/02/` (S-RTTI) from upstream repos |
-| **Downstream sync** | `trigger_local.yaml`, `trigger_cap.yaml` | On every push to `main`: `trigger_local.yaml` refreshes the `input/` copy in [abap2UI5-local](https://github.com/abap2UI5/abap2UI5-local) and pushes it to its `main` via deploy key (secret `ACTION_KEY_LOCAL`), which rebuilds its artifact branches; `create_frontend.yaml` covers [frontend](https://github.com/abap2UI5/frontend) the same way; `trigger_cap.yaml` sends a `repository_dispatch` (`upstream-update`, token secret `ACTION_TOKEN_CAP`) to [cap2UI5](https://github.com/cap2UI5/cap2UI5), which starts its sync pipeline |
+| **Downstream sync** | `trigger_local.yaml`, `trigger_cap.yaml` | On every push to `main`: `trigger_local.yaml` refreshes the `input/` copy in [abap2UI5-local](https://github.com/abap2UI5/abap2UI5-local) and pushes it to its `main` via deploy key (secret `ACTION_KEY_LOCAL`), which rebuilds its artifact branches; `create_frontend.yaml` covers [frontend](https://github.com/abap2UI5/frontend) the same way; `trigger_cap.yaml` refreshes the `input/abap2UI5` snapshot in [cap2UI5](https://github.com/cap2UI5/cap2UI5) and pushes it to its `main` via deploy key (secret `ACTION_KEY_CAP`), which starts its transpile/copy pipeline |
 
 ## Language & Code Rules
 
