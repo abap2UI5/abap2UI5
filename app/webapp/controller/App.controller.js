@@ -1,16 +1,14 @@
 // Controller of the outer shell view (App.view.xml). Runs once at startup:
 // stores the backend URL, creates the five View1 controller instances (one
-// per view slot) and kicks off the initial roundtrip when the URL already
-// carries an app-state hash.
+// per view slot) and kicks off the initial roundtrip.
 sap.ui.define(
   [
     "sap/ui/core/mvc/Controller",
     "z2ui5/controller/View1.controller",
     "z2ui5/core/Server",
-    "sap/ui/core/routing/HashChanger",
     "z2ui5/core/AppState",
   ],
-  (BaseController, Controller, Server, HashChanger, AppState) => {
+  (BaseController, Controller, Server, AppState) => {
     "use strict";
     return BaseController.extend("z2ui5.controller.App", {
       onInit() {
@@ -39,11 +37,13 @@ sap.ui.define(
         state.oControllerPopup = new Controller();
         state.oControllerPopover = new Controller();
 
-        // If the URL already contains a hash, kick off the initial roundtrip
-        // so the backend can restore that state.
-        if (HashChanger.getInstance().getHash()) {
-          Server.roundtrip();
-        }
+        // Kick off the initial roundtrip. Historically a stopped router's
+        // initial routeMatched event triggered this; the manifest carries no
+        // routing section anymore (the legacy-free UI5 2.x manifest schema
+        // rejects the classic routing options), so the shell controller
+        // starts the app directly. When the URL carries an app-state hash,
+        // the backend restores that state from S_FRONT.
+        Server.roundtrip();
       },
     });
   },

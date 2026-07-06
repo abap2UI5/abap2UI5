@@ -77,12 +77,6 @@ sap.ui.define(
         return oModel;
       },
 
-      onInit() {
-        AppState.state.oRouter.attachRouteMatched(() => {
-          Server.roundtrip();
-        });
-      },
-
       onAfterRendering() {
         if (AppState.state.oResponse && !AppState.state.oResponse._processed) {
           this._processAfterRendering();

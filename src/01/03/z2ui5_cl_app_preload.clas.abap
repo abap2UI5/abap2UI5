@@ -56,8 +56,7 @@ CLASS z2ui5_cl_app_preload IMPLEMENTATION.
              |      "z2ui5/manifest.json": '{ z2ui5_cl_app_manifest_json=>get( ) }',| && |\n| &&
              |      "z2ui5/model/models.js": function()\{{ z2ui5_cl_app_models_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/Util.js": function()\{{ z2ui5_cl_app_util_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/view/App.view.xml": '{ z2ui5_cl_app_app_xml=>get( ) }',| && |\n| &&
-             |      "z2ui5/view/View1.view.xml": '{ z2ui5_cl_app_view1_xml=>get( ) }',| && |\n|.
+             |      "z2ui5/view/App.view.xml": '{ z2ui5_cl_app_app_xml=>get( ) }',| && |\n|.
 
   ENDMETHOD.
 

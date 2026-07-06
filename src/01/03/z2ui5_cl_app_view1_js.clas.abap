@@ -97,12 +97,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        return oModel;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      onInit() {` && |\n| &&
-             `        AppState.state.oRouter.attachRouteMatched(() => {` && |\n| &&
-             `          Server.roundtrip();` && |\n| &&
-             `        });` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
              `      onAfterRendering() {` && |\n| &&
              `        if (AppState.state.oResponse && !AppState.state.oResponse._processed) {` && |\n| &&
              `          this._processAfterRendering();` && |\n| &&
@@ -417,14 +411,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // popup view, etc.` && |\n| &&
              `        const oModel = this._pickModelForRoundtrip(useMainModel, oBody);` && |\n| &&
              `` && |\n| &&
-             `        Lib.runCallbacks(AppState.state.onBeforeRoundtrip);` && |\n|.
-    result = result &&
+             `        Lib.runCallbacks(AppState.state.onBeforeRoundtrip);` && |\n| &&
              `` && |\n| &&
              `        // If the user edited /XX/ paths, send only the delta to keep the` && |\n| &&
              `        // payload small.` && |\n| &&
              `        if (oModel && AppState.state.xxChangedPaths.size > 0) {` && |\n| &&
              `          const data = oModel.getData();` && |\n| &&
-             `          const xx = data?.XX;` && |\n| &&
+             `          const xx = data?.XX;` && |\n|.
+    result = result &&
              `          if (xx) {` && |\n| &&
              `            oBody.XX = Lib.buildDeltaFromPaths(` && |\n| &&
              `              AppState.state.xxChangedPaths,` && |\n| &&

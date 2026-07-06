@@ -35,7 +35,7 @@
 //
 // Views / controllers / UI5 objects
 //   oApp              sap.m.App hosting the main view (App.controller)
-//   oOwnerComponent, oRouter, oDeviceModel (Component / App.controller)
+//   oOwnerComponent, oDeviceModel (Component / App.controller)
 //   oView, oViewNest, oViewNest2, oViewPopup, oViewPopover
 //                     the five view slots, see core/ViewSlots.js (View1)
 //   oController, oControllerNest, oControllerNest2, oControllerPopup,
@@ -81,7 +81,6 @@ sap.ui.define([], () => {
       // Views / controllers / UI5 objects
       oApp: null,
       oOwnerComponent: null,
-      oRouter: null,
       oDeviceModel: null,
       oView: null,
       oViewNest: null,

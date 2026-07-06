@@ -55,7 +55,7 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `//` && |\n| &&
              `// Views / controllers / UI5 objects` && |\n| &&
              `//   oApp              sap.m.App hosting the main view (App.controller)` && |\n| &&
-             `//   oOwnerComponent, oRouter, oDeviceModel (Component / App.controller)` && |\n| &&
+             `//   oOwnerComponent, oDeviceModel (Component / App.controller)` && |\n| &&
              `//   oView, oViewNest, oViewNest2, oViewPopup, oViewPopover` && |\n| &&
              `//                     the five view slots, see core/ViewSlots.js (View1)` && |\n| &&
              `//   oController, oControllerNest, oControllerNest2, oControllerPopup,` && |\n| &&
@@ -101,7 +101,6 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `      // Views / controllers / UI5 objects` && |\n| &&
              `      oApp: null,` && |\n| &&
              `      oOwnerComponent: null,` && |\n| &&
-             `      oRouter: null,` && |\n| &&
              `      oDeviceModel: null,` && |\n| &&
              `      oView: null,` && |\n| &&
              `      oViewNest: null,` && |\n| &&

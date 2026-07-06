@@ -96,34 +96,6 @@ CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
              `        }` &&
              `      ]` &&
              `    },` &&
-             `    "routing": {` &&
-             `      "config": {` &&
-             `        "routerClass": "sap.m.routing.Router",` &&
-             `        "viewType": "XML",` &&
-             `        "viewPath": "z2ui5.view",` &&
-             `        "controlAggregation": "pages",` &&
-             `        "controlId": "app",` &&
-             `        "clearControlAggregation": false` &&
-             `      },` &&
-             `      "routes": [` &&
-             `        {` &&
-             `          "name": "RouteView1",` &&
-             `          "pattern": ":?query:",` &&
-             `          "target": [` &&
-             `            "TargetView1"` &&
-             `          ]` &&
-             `        }` &&
-             `      ],` &&
-             `      "targets": {` &&
-             `        "TargetView1": {` &&
-             `          "viewType": "XML",` &&
-             `          "transition": "flip",` &&
-             `          "clearControlAggregation": false,` &&
-             `          "viewId": "View1",` &&
-             `          "viewName": "View1"` &&
-             `        }` &&
-             `      }` &&
-             `    },` &&
              `    "rootView": {` &&
              `      "viewName": "z2ui5.view.App",` &&
              `      "type": "XML",` &&
