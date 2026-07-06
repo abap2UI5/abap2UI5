@@ -163,7 +163,7 @@ src/
 | `node/setup/` | `abap_transpile.json` (transpiler config), `setup.mjs` (SQLite bootstrap for Node unit tests) |
 | `node/tests/` | Playwright tests — browser tests in `e2e/` (`example.spec.js` shell smoke test, `roundtrip.spec.js` POST/draft wire contract, `lib-sanitizer.spec.js` XSS regression tests for `Lib.sanitizeMessageDetails`, `error-view.spec.js` fatal-error overlay accessibility/focus/Retry tests; run via `node/playwright.config.js` against the dev server), plus unit specs (`buildDeltaFromPaths.spec.js`, `utilHelpers.spec.js`, `appState.spec.js`, `viewSlots.spec.js`, `uiTableExt.spec.js`, `messages.spec.js`, `util.spec.js`, `serverTimeout.spec.js`, `serverClosestElement.spec.js`) that load the **real** `app/webapp` modules via `loadModule.js` (stubbed `sap.ui.define`, stubbable dependencies); run them without a browser via `npx playwright test -c node/playwright-unit.config.js` (the unit config ignores `e2e/`) |
 | `node/tests-examples/` | Playwright example specs and performance benchmarks (reference material, not run in CI) — `modelUpdate.bench.spec.js` measures the model-update strategies and documents its own setup; run via `node/playwright-bench.config.js` |
-| `.github/workflows/` | 15 CI/CD workflows (see below) |
+| `.github/workflows/` | 17 CI/CD workflows (see below) |
 | `.github/scripts/` | `ui5lint-gate.mjs` — runs the UI5 linter and fails on any error; design-accepted findings are suppressed at the source (inline `ui5lint-disable` comments, whole files in `app/ui5lint.config.mjs`) |
 | `.github/abaplint/` | Target-specific abaplint configs: `abap_702.jsonc`, `abap_standard.jsonc`, `abap_cloud.jsonc`, `auto_abaplint_fix.jsonc`, `rename_test.jsonc` |
 | `.github/app2abap/` | `trans2abap.js` — converts `app/webapp/*` files into embedded ABAP string constants in `src/01/03/` |
@@ -196,7 +196,7 @@ Grouped by purpose:
 | **Automation** | `auto_downport.yaml`, `auto_abaplint_fix.yaml`, `auto_abaplint_fix_pr.yaml` | Scheduled downporting and auto-formatting (open PRs) |
 | **Generation** | `create_app2abap.yaml`, `create_frontend.yaml` | Regenerate `src/01/03/` from `app/webapp/` |
 | **Mirroring** | `mirror_ajson.yaml`, `mirror_srtti.yaml` | Sync `src/00/01/` (AJSON) and `src/00/02/` (S-RTTI) from upstream repos |
-| **Downstream sync** | `trigger_local.yaml` | On every push to `main`, refresh the `input/` copy in [abap2UI5-local](https://github.com/abap2UI5/abap2UI5-local) and push it to its `main` via deploy key (secret `ACTION_KEY_LOCAL`), which rebuilds its artifact branches; `create_frontend.yaml` covers [frontend](https://github.com/abap2UI5/frontend) the same way |
+| **Downstream sync** | `trigger_local.yaml`, `trigger_cap.yaml` | On every push to `main`: `trigger_local.yaml` refreshes the `input/` copy in [abap2UI5-local](https://github.com/abap2UI5/abap2UI5-local) and pushes it to its `main` via deploy key (secret `ACTION_KEY_LOCAL`), which rebuilds its artifact branches; `create_frontend.yaml` covers [frontend](https://github.com/abap2UI5/frontend) the same way; `trigger_cap.yaml` sends a `repository_dispatch` (`upstream-update`, token secret `ACTION_TOKEN_CAP`) to [cap2UI5](https://github.com/cap2UI5/cap2UI5), which starts its sync pipeline |
 
 ## Language & Code Rules
 
