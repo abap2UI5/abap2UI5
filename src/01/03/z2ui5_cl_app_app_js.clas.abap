@@ -20,17 +20,15 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
 
     result = `// Controller of the outer shell view (App.view.xml). Runs once at startup:` && |\n| &&
              `// stores the backend URL, creates the five View1 controller instances (one` && |\n| &&
-             `// per view slot) and kicks off the initial roundtrip when the URL already` && |\n| &&
-             `// carries an app-state hash.` && |\n| &&
+             `// per view slot) and kicks off the initial roundtrip.` && |\n| &&
              `sap.ui.define(` && |\n| &&
              `  [` && |\n| &&
              `    "sap/ui/core/mvc/Controller",` && |\n| &&
              `    "z2ui5/controller/View1.controller",` && |\n| &&
              `    "z2ui5/core/Server",` && |\n| &&
-             `    "sap/ui/core/routing/HashChanger",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `  ],` && |\n| &&
-             `  (BaseController, Controller, Server, HashChanger, AppState) => {` && |\n| &&
+             `  (BaseController, Controller, Server, AppState) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `    return BaseController.extend("z2ui5.controller.App", {` && |\n| &&
              `      onInit() {` && |\n| &&
@@ -59,11 +57,13 @@ CLASS z2ui5_cl_app_app_js IMPLEMENTATION.
              `        state.oControllerPopup = new Controller();` && |\n| &&
              `        state.oControllerPopover = new Controller();` && |\n| &&
              `` && |\n| &&
-             `        // If the URL already contains a hash, kick off the initial roundtrip` && |\n| &&
-             `        // so the backend can restore that state.` && |\n| &&
-             `        if (HashChanger.getInstance().getHash()) {` && |\n| &&
-             `          Server.roundtrip();` && |\n| &&
-             `        }` && |\n| &&
+             `        // Kick off the initial roundtrip. Historically a stopped router's` && |\n| &&
+             `        // initial routeMatched event triggered this; the manifest carries no` && |\n| &&
+             `        // routing section anymore (the legacy-free UI5 2.x manifest schema` && |\n| &&
+             `        // rejects the classic routing options), so the shell controller` && |\n| &&
+             `        // starts the app directly. When the URL carries an app-state hash,` && |\n| &&
+             `        // the backend restores that state from S_FRONT.` && |\n| &&
+             `        Server.roundtrip();` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
              `  },` && |\n| &&

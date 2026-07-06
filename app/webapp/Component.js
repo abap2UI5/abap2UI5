@@ -55,10 +55,6 @@ sap.ui.define(
         this._installUnloadListener();
         this._installDebugToolShortcut();
         this._installScrollListener();
-
-        AppState.state.oRouter = this.getRouter();
-        AppState.state.oRouter.initialize();
-        AppState.state.oRouter.stop();
       },
 
       // ------------------------------------------------------------------

@@ -75,10 +75,6 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        this._installUnloadListener();` && |\n| &&
              `        this._installDebugToolShortcut();` && |\n| &&
              `        this._installScrollListener();` && |\n| &&
-             `` && |\n| &&
-             `        AppState.state.oRouter = this.getRouter();` && |\n| &&
-             `        AppState.state.oRouter.initialize();` && |\n| &&
-             `        AppState.state.oRouter.stop();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
