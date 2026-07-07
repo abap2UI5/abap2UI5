@@ -19,6 +19,7 @@
 [![create_app2abap](https://github.com/abap2UI5/abap2UI5/actions/workflows/create_app2abap.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/create_app2abap.yaml)
 [![create_frontend](https://github.com/abap2UI5/abap2UI5/actions/workflows/create_frontend.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/create_frontend.yaml)
 [![trigger_local](https://github.com/abap2UI5/abap2UI5/actions/workflows/trigger_local.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/trigger_local.yaml)
+[![trigger_cap](https://github.com/abap2UI5/abap2UI5/actions/workflows/trigger_cap.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/trigger_cap.yaml)
 <br>
 [![mirror_ajson](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_ajson.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_ajson.yaml)
 [![mirror_srtti](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_srtti.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_srtti.yaml)
