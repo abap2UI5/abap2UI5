@@ -165,7 +165,7 @@ src/
 | `node/tests-examples/` | Playwright example specs and performance benchmarks (reference material, not run in CI) — `modelUpdate.bench.spec.js` measures the model-update strategies and documents its own setup; run via `node/playwright-bench.config.js` |
 | `.github/workflows/` | 18 CI/CD workflows (see below) |
 | `.github/scripts/` | `ui5lint-gate.mjs` — runs the UI5 linter and fails on any error; design-accepted findings are suppressed at the source (inline `ui5lint-disable` comments, whole files in `app/ui5lint.config.mjs`) |
-| `.github/abaplint/` | Target-specific abaplint configs: `abap_702.jsonc`, `abap_standard.jsonc`, `abap_cloud.jsonc`, `auto_abaplint_fix.jsonc`, `rename_test.jsonc` (also drives the `build_rename` workflow) |
+| `.github/abaplint/` | Target-specific abaplint configs: `abap_702.jsonc`, `abap_standard.jsonc`, `abap_cloud.jsonc`, `auto_abaplint_fix.jsonc`, `rename_test.jsonc`, `rename.jsonc` (namespace rename for the `build_rename` workflow, placeholder `zabap2ui5`) |
 | `.github/app2abap/` | `trans2abap.js` — converts `app/webapp/*` files into embedded ABAP string constants in `src/01/03/` |
 | `.github/cleaner-profile.cfj` | ABAP Cleaner profile (SAP ABAP Cleaner tool configuration for automated code cleanup) |
 
@@ -195,7 +195,7 @@ Grouped by purpose:
 | **Tests** | `test_unit.yaml`, `test_node.yaml`, `test_browser.yaml`, `test_rename.yaml` | Unit tests, Node transpile tests, JS unit specs + Playwright browser tests, namespace-rename test |
 | **Automation** | `auto_downport.yaml`, `auto_abaplint_fix.yaml`, `auto_abaplint_fix_pr.yaml` | Scheduled downporting and auto-formatting (open PRs) |
 | **Generation** | `create_app2abap.yaml`, `create_frontend.yaml` | Regenerate `src/01/03/` from `app/webapp/` |
-| **Renamed variants** | `build_rename.yaml` | On demand (`workflow_dispatch`): run the existing rename script (`npm run rename`, config `.github/abaplint/rename_test.jsonc`) and push the renamed sources to the branch `rename` (re-running updates the branch; no push without content changes) |
+| **Renamed variants** | `build_rename.yaml` | On demand (`workflow_dispatch`): rename all artifacts to a chosen namespace (max. 9 characters) via `abaplint --rename` with `.github/abaplint/rename.jsonc` and push the renamed sources to the branch `rename_<name>` (re-running updates the branch; no push without content changes) |
 | **Mirroring** | `mirror_ajson.yaml`, `mirror_srtti.yaml` | Sync `src/00/01/` (AJSON) and `src/00/02/` (S-RTTI) from upstream repos |
 | **Downstream sync** | `trigger_local.yaml`, `trigger_cap.yaml` | On every push to `main`: `trigger_local.yaml` refreshes the `input/` copy in [abap2UI5-local](https://github.com/abap2UI5/abap2UI5-local) and pushes it to its `main` via deploy key (secret `ACTION_KEY_LOCAL`), which rebuilds its artifact branches; `create_frontend.yaml` covers [frontend](https://github.com/abap2UI5/frontend) the same way; `trigger_cap.yaml` refreshes the `input/abap2UI5/` snapshot in [cap2UI5](https://github.com/cap2UI5/cap2UI5) and pushes it to its `main` via deploy key (secret `ACTION_KEY_CAP`), which starts its sync pipeline |
 

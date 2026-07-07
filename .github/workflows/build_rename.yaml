@@ -1,41 +1,73 @@
 name: build_rename
 
-# Runs the existing rename script (npm run rename, config
-# .github/abaplint/rename_test.jsonc) and pushes the renamed sources to
-# the branch "rename" — ready to pull with abapGit. The renaming itself
-# is fully defined by the script and its config; this workflow only wraps
-# it and stores the result. Re-running updates the branch to the current
-# main state; without content changes nothing is pushed. The main commit
-# is carried as second parent so GitHub shows the branch as "ahead"
-# instead of "behind" main.
+# Renames all artifacts to a chosen namespace and pushes the result to
+# the branch rename_<name>, e.g. rename_zmyui5 — ready to pull with
+# abapGit for a parallel installation in the same SAP system (see
+# https://abap2ui5.github.io/docs/advanced/renaming.html). The renaming
+# itself is the plain abaplint rename with the checked-in config
+# .github/abaplint/rename.jsonc; this workflow only sets the chosen name
+# in the config (placeholder "zabap2ui5") and stores the result.
+# Re-running with the same name updates the branch to the current main
+# state; without content changes nothing is pushed. The main commit is
+# carried as second parent so GitHub shows the branch as "ahead" instead
+# of "behind" main.
 
 on:
   workflow_dispatch:
+    inputs:
+      namespace:
+        description: "New namespace (max. 9 characters), e.g. ZMYUI5"
+        required: true
+        type: string
+        default: zabap2ui5
 
 permissions:
   contents: write
 
 concurrency:
-  group: build_rename
+  group: build_rename-${{ inputs.namespace }}
   cancel-in-progress: false
 
 jobs:
   build_rename:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      NAMESPACE: ${{ inputs.namespace }}
     steps:
+    # validate the input and derive the branch name before building
+    - name: Derive branch name
+      run: |
+        if ! printf '%s' "$NAMESPACE" | grep -Eq '^[A-Za-z][A-Za-z0-9_]{0,8}$'; then
+          echo "::error::Invalid namespace '$NAMESPACE' (letter + letters/digits/underscore, max. 9 characters)"
+          exit 1
+        fi
+        ns=$(printf '%s' "$NAMESPACE" | tr '[:upper:]' '[:lower:]')
+        if [ "$ns" = "z2ui5" ]; then
+          echo "::error::Namespace '$NAMESPACE' is the original namespace - nothing to rename"
+          exit 1
+        fi
+        echo "NS=$ns" >> "$GITHUB_ENV"
+        echo "BRANCH=rename_$ns" >> "$GITHUB_ENV"
+        echo "Building branch: rename_$ns"
+
     - uses: actions/checkout@v7
     - uses: actions/setup-node@v6
       with:
         node-version: '20'
         cache: 'npm'
+    - run: npm ci
 
-    # the existing rename script; writes the renamed sources to
+    # set the chosen name in the rename config and run the abaplint
+    # rename; it writes the renamed sources to
     # .github/abaplint/output/<workspace path>/src
-    - run: npm run rename
+    - name: Rename to ${{ inputs.namespace }}
+      run: |
+        sed "s/zabap2ui5/$NS/g" .github/abaplint/rename.jsonc > .github/abaplint/rename_run.jsonc
+        npx abaplint .github/abaplint/rename_run.jsonc --rename
 
     # branch content: the renamed src tree plus the abapGit descriptor
-    # and the license from main
+    # (version constant turned to the renamed interface) and the license
     - name: Assemble branch content
       run: |
         src=$(find .github/abaplint/output -type d -name src | head -n 1)
@@ -43,15 +75,17 @@ jobs:
           echo "::error::no renamed src folder found under .github/abaplint/output"
           exit 1
         fi
-        out=.github/out/rename
+        out=".github/out/$BRANCH"
         rm -rf "$out"
         mkdir -p "$out"
         cp -r "$src" "$out/src"
-        cp .abapgit.xml LICENSE "$out/"
+        cp LICENSE "$out/"
+        ns_upper=$(printf '%s' "$NS" | tr '[:lower:]' '[:upper:]')
+        sed "s/Z2UI5_IF_APP/${ns_upper}_IF_APP/" .abapgit.xml > "$out/.abapgit.xml"
 
-    - name: Push branch rename
+    - name: Push renamed branch
       run: |
-        b=rename
+        b="$BRANCH"
         git config user.name 'github-actions[bot]'
         git config user.email 'github-actions[bot]@users.noreply.github.com'
         git fetch origin "$b" --depth 1 2>/dev/null || true

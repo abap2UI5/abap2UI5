@@ -3,6 +3,7 @@ node_modules
 output
 node/output
 .github/out
+.github/abaplint/rename_run.jsonc
 
 # Environment files
 .env

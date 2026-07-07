@@ -1,0 +1,101 @@
+{
+  // Namespace rename config for the build_rename workflow: renames all
+  // artifacts from z2ui5 to the placeholder namespace "zabap2ui5". The
+  // workflow replaces the placeholder with the chosen name (max. 9
+  // characters) before running `abaplint <config> --rename` - see
+  // .github/workflows/build_rename.yaml. Runs standalone as well:
+  //   npx abaplint .github/abaplint/rename.jsonc --rename
+  "global": {
+    "files": "/../../src/**/*.*"
+  },
+  "dependencies": [
+    {
+      "url": "https://github.com/abapedia/steampunk-2305-api-intersect-702",
+      "files": "/src/**/*.*"
+    }
+  ],
+  "rename": {
+    "output": "output",
+    "patterns": [
+      // Names longer than 26 characters would exceed the 30-character
+      // ABAP name limit with a 9-character namespace, so they get
+      // explicit truncated names (same stem-truncation scheme as
+      // .github/app2abap/trans2abap.js, which generates these classes).
+      // Patterns are applied first-match-wins, so these must stay above
+      // the generic catch-all. When a new over-long z2ui5_cl_app_*
+      // class appears, add a pattern here - otherwise the rename run
+      // aborts with "Name not allowed".
+      {
+        "type": "CLAS",
+        "oldName": "^z2ui5_cl_app_smartmultiinpu_js$",
+        "newName": "zabap2ui5_cl_app_smartmulti_js"
+      },
+      {
+        "type": "CLAS",
+        "oldName": "^z2ui5_cl_app_frontendaction_js$",
+        "newName": "zabap2ui5_cl_app_frontendac_js"
+      },
+      {
+        "type": "CLAS",
+        "oldName": "^z2ui5_cl_app_cameraselector_js$",
+        "newName": "zabap2ui5_cl_app_camerasele_js"
+      },
+      {
+        "type": "CLAS",
+        "oldName": "^z2ui5_cl_app_multiinputext_js$",
+        "newName": "zabap2ui5_cl_app_multiinput_js"
+      },
+      {
+        "type": "CLAS",
+        "oldName": "^z2ui5_cl_app_camerapicture_js$",
+        "newName": "zabap2ui5_cl_app_camerapict_js"
+      },
+      {
+        "type": "CLAS",
+        "oldName": "^z2ui5_cl_app_uploadsetext_js$",
+        "newName": "zabap2ui5_cl_app_uploadsete_js"
+      },
+      {
+        "type": "CLAS",
+        "oldName": "^z2ui5_cl_app_fileuploader_js$",
+        "newName": "zabap2ui5_cl_app_fileupload_js"
+      },
+      {
+        "type": "CLAS",
+        "oldName": "^z2ui5_cl_app_geolocation_js$",
+        "newName": "zabap2ui5_cl_app_geolocatio_js"
+      },
+      {
+        "type": "CLAS|INTF|TABL",
+        "oldName": "^z2ui5(.*)$",
+        "newName": "zabap2ui5$1"
+      }
+    ]
+  },
+  "syntax": {
+    "version": "v750",
+    "errorNamespace": "."
+  },
+  "rules": {
+    "allowed_object_types": {
+      "allowed": [
+        "CLAS",
+        "DEVC",
+        "INTF",
+        "TABL"
+      ]
+    },
+    "allowed_object_naming": true,
+    "begin_end_names": true,
+    "check_ddic": true,
+    "check_include": true,
+    "check_syntax": true,
+    "global_class": true,
+    "implement_methods": true,
+    "method_implemented_twice": true,
+    "parser_error": true,
+    "superclass_final": true,
+    "unknown_types": true,
+    "xml_consistency": true
+  }
+}
