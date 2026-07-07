@@ -23,7 +23,7 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
                         text = `Enter a value and send it to the server...`
               )->label( `Name`
               )->input( client->_bind_edit( name )
-              )->button( text  = `Send`
+              )->button( text  = `Post`
                          press = client->_event( `BUTTON_POST` ) ).
       client->view_display( view->stringify( ) ).
 
