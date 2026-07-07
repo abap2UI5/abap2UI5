@@ -1,0 +1,83 @@
+name: build_rename
+
+# Builds a renamed variant of abap2UI5 (parallel installation in the same
+# SAP system, see .github/rename/README.md) and pushes it to the branch
+# rename_<name>, e.g. rename_zmyui5 — ready to pull with abapGit.
+# Re-running with the same name updates the branch to the current main
+# state. Without content changes nothing is pushed. The main commit is
+# carried as second parent so GitHub shows the branch as "ahead" instead
+# of "behind" main.
+
+on:
+  workflow_dispatch:
+    inputs:
+      namespace:
+        description: "New namespace (max. 9 characters), e.g. ZMYUI5"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build_rename-${{ inputs.namespace }}
+  cancel-in-progress: false
+
+jobs:
+  build_rename:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NAMESPACE: ${{ inputs.namespace }}
+    steps:
+    # validate the input and derive the branch name before building
+    - name: Derive branch name
+      run: |
+        if ! printf '%s' "$NAMESPACE" | grep -Eq '^[A-Za-z][A-Za-z0-9_]{0,8}$'; then
+          echo "::error::Invalid namespace '$NAMESPACE' (letter + letters/digits/underscore, max. 9 characters)"
+          exit 1
+        fi
+        ns=$(printf '%s' "$NAMESPACE" | tr '[:upper:]' '[:lower:]')
+        if [ "$ns" = "z2ui5" ]; then
+          echo "::error::Namespace '$NAMESPACE' is the original namespace - nothing to rename"
+          exit 1
+        fi
+        echo "BRANCH=rename_$ns" >> "$GITHUB_ENV"
+        echo "Building branch: rename_$ns"
+
+    - uses: actions/checkout@v7
+    - uses: actions/setup-node@v6
+      with:
+        node-version: '20'
+        cache: 'npm'
+    - run: npm ci
+
+    # abaplint check of main before building, like the other checks
+    - run: npx abaplint
+
+    - name: Build ${{ inputs.namespace }}
+      run: node .github/rename/build-rename.mjs "$NAMESPACE"
+
+    # abaplint check of the renamed tree; the generated abaplint.jsonc in
+    # the output carries the naming rules turned to the new namespace
+    - name: Lint renamed src
+      run: (cd ".github/out/$BRANCH" && npx abaplint)
+
+    - name: Push renamed branch
+      run: |
+        b="$BRANCH"
+        git config user.name 'github-actions[bot]'
+        git config user.email 'github-actions[bot]@users.noreply.github.com'
+        git fetch origin "$b" --depth 1 2>/dev/null || true
+        parent=$(git rev-parse -q --verify "refs/remotes/origin/$b" || true)
+        index="$RUNNER_TEMP/index-$b"
+        rm -f "$index"
+        (cd ".github/out/$b" && GIT_DIR="$GITHUB_WORKSPACE/.git" GIT_WORK_TREE=. GIT_INDEX_FILE="$index" git add -A)
+        tree=$(GIT_INDEX_FILE="$index" git write-tree)
+        if [ -n "$parent" ] && [ "$(git rev-parse "$parent^{tree}")" = "$tree" ]; then
+          echo "$b: no changes"
+          exit 0
+        fi
+        commit=$(git commit-tree "$tree" ${parent:+-p "$parent"} -p "$GITHUB_SHA" -m "build: $b from $GITHUB_SHA")
+        git push origin "$commit:refs/heads/$b"
+        echo "$b: pushed $commit"

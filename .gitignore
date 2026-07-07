@@ -2,6 +2,7 @@ downport
 node_modules
 output
 node/output
+.github/out
 
 # Environment files
 .env
