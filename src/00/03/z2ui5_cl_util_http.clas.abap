@@ -10,6 +10,29 @@ CLASS z2ui5_cl_util_http DEFINITION PUBLIC.
         t_params TYPE z2ui5_cl_util=>ty_t_name_value,
       END OF ty_s_http_req.
 
+    TYPES:
+      BEGIN OF ty_s_http_res,
+        body          TYPE string,
+        status_code   TYPE i,
+        status_reason TYPE string,
+      END OF ty_s_http_res.
+
+    CLASS-METHODS client_create
+      IMPORTING
+        !destination  TYPE clike OPTIONAL
+        url           TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO object.
+
+    CLASS-METHODS client_call
+      IMPORTING
+        !method       TYPE clike
+        body          TYPE clike OPTIONAL
+        !destination  TYPE clike OPTIONAL
+        url           TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE ty_s_http_res.
+
     CLASS-METHODS factory
       IMPORTING
         server        TYPE REF TO object
@@ -80,6 +103,139 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_util_http IMPLEMENTATION.
+
+  METHOD client_create.
+
+    DATA lv_classname TYPE c LENGTH 14.
+    lv_classname = `CL_HTTP_CLIENT`.
+
+    DATA lv_destination TYPE c LENGTH 32.
+    lv_destination = destination.
+    DATA(lv_url) = CONV string( url ).
+
+    TRY.
+
+        IF lv_destination IS NOT INITIAL AND lv_destination <> `NONE`.
+
+          CALL METHOD (lv_classname)=>create_by_destination
+            EXPORTING
+              destination              = lv_destination
+            IMPORTING
+              client                   = result
+            EXCEPTIONS
+              argument_not_found       = 1
+              destination_not_found    = 2
+              destination_no_authority = 3
+              plugin_not_active        = 4
+              internal_error           = 5
+              OTHERS                   = 6.
+
+        ELSE.
+
+          CALL METHOD (lv_classname)=>create_by_url
+            EXPORTING
+              url                = lv_url
+            IMPORTING
+              client             = result
+            EXCEPTIONS
+              argument_not_found = 1
+              plugin_not_active  = 2
+              internal_error     = 3
+              OTHERS             = 4.
+
+        ENDIF.
+
+        IF sy-subrc <> 0.
+          CLEAR result.
+        ENDIF.
+
+      CATCH cx_root INTO DATA(x).
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING val = x.
+    ENDTRY.
+
+    IF result IS NOT BOUND.
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING val = `HTTP_CLIENT_CREATE_ERROR - check the destination/url configuration`.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD client_call.
+
+    DATA lo_request  TYPE REF TO object.
+    DATA lo_response TYPE REF TO object.
+    DATA lv_message  TYPE string.
+    FIELD-SYMBOLS <any> TYPE any.
+
+    DATA(lo_client) = client_create( destination = destination
+                                     url         = url ).
+
+    TRY.
+
+        ASSIGN lo_client->(`REQUEST`) TO <any>.
+        lo_request = <any>.
+
+        DATA(lv_method) = CONV string( method ).
+        CALL METHOD lo_request->(`SET_METHOD`)
+          EXPORTING
+            method = lv_method.
+
+        DATA(lv_body) = CONV string( body ).
+        CALL METHOD lo_request->(`SET_CDATA`)
+          EXPORTING
+            data = lv_body.
+
+        CALL METHOD lo_client->(`SEND`)
+          EXCEPTIONS
+            http_communication_failure = 1
+            http_invalid_state         = 2
+            http_processing_failed     = 3
+            http_invalid_timeout       = 4
+            OTHERS                     = 5.
+
+        IF sy-subrc = 0.
+          CALL METHOD lo_client->(`RECEIVE`)
+            EXCEPTIONS
+              http_communication_failure = 1
+              http_invalid_state         = 2
+              http_processing_failed     = 3
+              OTHERS                     = 4.
+        ENDIF.
+
+        IF sy-subrc <> 0.
+          CALL METHOD lo_client->(`GET_LAST_ERROR`)
+            IMPORTING
+              message = lv_message.
+          CALL METHOD lo_client->(`CLOSE`)
+            EXCEPTIONS
+              OTHERS = 1.
+          RAISE EXCEPTION TYPE z2ui5_cx_util_error
+            EXPORTING val = |HTTP_COMMUNICATION_ERROR - { lv_message }|.
+        ENDIF.
+
+        ASSIGN lo_client->(`RESPONSE`) TO <any>.
+        lo_response = <any>.
+
+        CALL METHOD lo_response->(`GET_CDATA`)
+          RECEIVING
+            data = result-body.
+
+        CALL METHOD lo_response->(`GET_STATUS`)
+          IMPORTING
+            code   = result-status_code
+            reason = result-status_reason.
+
+        CALL METHOD lo_client->(`CLOSE`)
+          EXCEPTIONS
+            OTHERS = 1.
+
+      CATCH cx_root INTO DATA(x).
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING val = x.
+    ENDTRY.
+
+  ENDMETHOD.
 
   METHOD delete_response_cookie.
 
