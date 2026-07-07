@@ -84,3 +84,29 @@ test("boots the UI5 shell in the browser and issues the initial roundtrip", asyn
   expect(body.S_FRONT.APP).toBe(HELLO_WORLD);
   expect(body.S_FRONT.ID).toMatch(/^[0-9A-F]{32}$/);
 });
+
+test("does not append a dangling '#' to the URL after app start", async ({
+  page,
+}) => {
+  // Regression: with the manifest routing gone, nothing initialized the
+  // HashChanger's hasher singleton anymore, so the app-state cleanup in
+  // View1._updateBrowserHistory (replaceHash("")) rewrote every started
+  // app's URL to ".../path#". Component.init now initializes the
+  // HashChanger explicitly.
+  const responsePromise = page.waitForResponse(
+    (r) => r.request().method() === "POST",
+  );
+  await page.goto("/?app_start=z2ui5_cl_app_hello_world");
+  await responsePromise;
+
+  // _updateBrowserHistory runs inside _processAfterRendering, which flags
+  // the response as processed right before the history update phase - wait
+  // for the flag plus a settle tick so the (synchronous) hash rewrite, if
+  // any, has happened before asserting.
+  await page.waitForFunction(
+    () => window.z2ui5?.oResponse?._processed === true,
+  );
+  await page.waitForTimeout(100);
+
+  expect(page.url()).not.toContain("#");
+});

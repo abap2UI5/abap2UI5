@@ -8,6 +8,7 @@ sap.ui.define(
     "z2ui5/core/Lib",
     "z2ui5/core/AppState",
     "z2ui5/Util",
+    "sap/ui/core/routing/HashChanger",
   ],
   (
     UIComponent,
@@ -18,6 +19,7 @@ sap.ui.define(
     Lib,
     AppState,
     DateUtil,
+    HashChanger,
   ) => {
     "use strict";
 
@@ -55,6 +57,17 @@ sap.ui.define(
         this._installUnloadListener();
         this._installDebugToolShortcut();
         this._installScrollListener();
+
+        // The stopped router removed with the manifest routing section used
+        // to initialize the HashChanger (and its underlying hasher
+        // singleton) as a side effect. Without that init hasher never
+        // learns the URL's current hash, so the app-state cleanup after
+        // every roundtrip (View1._updateBrowserHistory calling
+        // replaceHash("")) is treated as a change and rewrites the URL to
+        // "...#" - every app start ended with a dangling "#". Initialize it
+        // explicitly; inside the FLP the shell has already done this and
+        // init() is a guarded no-op.
+        HashChanger.getInstance().init();
       },
 
       // ------------------------------------------------------------------

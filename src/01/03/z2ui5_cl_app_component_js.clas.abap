@@ -28,6 +28,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/Util",` && |\n| &&
+             `    "sap/ui/core/routing/HashChanger",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    UIComponent,` && |\n| &&
@@ -38,6 +39,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `    Lib,` && |\n| &&
              `    AppState,` && |\n| &&
              `    DateUtil,` && |\n| &&
+             `    HashChanger,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -75,6 +77,17 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        this._installUnloadListener();` && |\n| &&
              `        this._installDebugToolShortcut();` && |\n| &&
              `        this._installScrollListener();` && |\n| &&
+             `` && |\n| &&
+             `        // The stopped router removed with the manifest routing section used` && |\n| &&
+             `        // to initialize the HashChanger (and its underlying hasher` && |\n| &&
+             `        // singleton) as a side effect. Without that init hasher never` && |\n| &&
+             `        // learns the URL's current hash, so the app-state cleanup after` && |\n| &&
+             `        // every roundtrip (View1._updateBrowserHistory calling` && |\n| &&
+             `        // replaceHash("")) is treated as a change and rewrites the URL to` && |\n| &&
+             `        // "...#" - every app start ended with a dangling "#". Initialize it` && |\n| &&
+             `        // explicitly; inside the FLP the shell has already done this and` && |\n| &&
+             `        // init() is a guarded no-op.` && |\n| &&
+             `        HashChanger.getInstance().init();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
