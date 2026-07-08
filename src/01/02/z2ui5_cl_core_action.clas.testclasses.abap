@@ -237,12 +237,31 @@ CLASS ltcl_test IMPLEMENTATION.
     lo_new_app = NEW #( ).
     lo_action->ms_next-o_app_call = lo_new_app.
 
+    " frontend actions queued by the calling app - messages and follow-up
+    " actions must not leak into the newly called app...
+    lo_action->ms_next-s_set-s_msg_box-text   = `box`.
+    lo_action->ms_next-s_set-s_msg_toast-text = `toast`.
+    INSERT `some_js` INTO TABLE lo_action->ms_next-s_set-s_follow_up_action-custom_js.
+    " ...while popups / popovers are deliberately carried across the app stack
+    lo_action->ms_next-s_set-s_popup-xml   = `<popup/>`.
+    lo_action->ms_next-s_set-s_popover-xml = `<popover/>`.
+
 
     lo_result = lo_action->factory_stack_call( ).
 
     cl_abap_unit_assert=>assert_bound( lo_result ).
     cl_abap_unit_assert=>assert_equals( exp = `CURRENT_DRAFT`
                                         act = lo_result->mo_app->ms_draft-id_prev_app_stack ).
+
+    " messages and follow-up actions are reset for the called app
+    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_msg_box ).
+    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_msg_toast ).
+    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_follow_up_action ).
+    " popups / popovers survive the navigation ( popup close lifecycle )
+    cl_abap_unit_assert=>assert_equals( exp = `<popup/>`
+                                        act = lo_result->ms_next-s_set-s_popup-xml ).
+    cl_abap_unit_assert=>assert_equals( exp = `<popover/>`
+                                        act = lo_result->ms_next-s_set-s_popover-xml ).
 
   ENDMETHOD.
 

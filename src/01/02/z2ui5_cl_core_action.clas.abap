@@ -122,6 +122,16 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     result = prepare_app_stack( ms_next-o_app_call ).
     result->mo_app->ms_draft-id_prev_app_stack = mo_app->ms_draft-id.
 
+    " when navigating forward into a new app, start with a clean frontend
+    " state - messages and follow-up actions queued by the calling app must
+    " not leak into the newly called app.
+    " ( popups / popovers are deliberately left untouched: an app may open a
+    "   popup app via nav_app_call and relies on the popup close / destroy
+    "   lifecycle being carried across the app stack )
+    CLEAR result->ms_next-s_set-s_msg_box.
+    CLEAR result->ms_next-s_set-s_msg_toast.
+    CLEAR result->ms_next-s_set-s_follow_up_action.
+
   ENDMETHOD.
 
   METHOD factory_stack_leave.
