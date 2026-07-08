@@ -51,7 +51,7 @@ jobs:
     # pushed input/ state always matches the commit that triggered this run.
     - name: Mirror current sources into input/abap2UI5
       working-directory: cap
-      run: MIRROR_SOURCE="${{ github.workspace }}/upstream" node scripts/mirror-input.js abap2UI5
+      run: MIRROR_SOURCE="${{ github.workspace }}/upstream" node tools/scripts/mirror-input.js abap2UI5
 
     - name: Commit and push to cap2UI5 main
       working-directory: cap
