@@ -211,12 +211,16 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     " when navigating between apps ( both nav_app_call and nav_app_leave ),
     " start the next app with a clean frontend state - messages and follow-up
     " actions queued by the previous app must not leak into the next one.
-    " ( popups / popovers are deliberately left untouched: an app may open a
-    "   popup app via nav_app_call and relies on the popup close / destroy
-    "   lifecycle being carried across the app stack )
     CLEAR result->ms_next-s_set-s_msg_box.
     CLEAR result->ms_next-s_set-s_msg_toast.
     CLEAR result->ms_next-s_set-s_follow_up_action.
+
+    " always destroy an open popup on navigation, so an app never has to close
+    " a popup explicitly before nav_app_call / nav_app_leave. If the app that
+    " is navigated to renders a popup itself, its popup_display( ) overwrites
+    " this destroy request again ( the frontend processes CHECK_DESTROY before
+    " the new popup XML ). Destroying when no popup is open is a no-op.
+    result->ms_next-s_set-s_popup = VALUE #( check_destroy = abap_true ).
 
   ENDMETHOD.
 

@@ -243,9 +243,8 @@ CLASS ltcl_test IMPLEMENTATION.
     lo_action->ms_next-s_set-s_msg_box-text   = `box`.
     lo_action->ms_next-s_set-s_msg_toast-text = `toast`.
     INSERT `some_js` INTO TABLE lo_action->ms_next-s_set-s_follow_up_action-custom_js.
-    " ...while popups / popovers are deliberately carried across the app stack
-    lo_action->ms_next-s_set-s_popup-xml   = `<popup/>`.
-    lo_action->ms_next-s_set-s_popover-xml = `<popover/>`.
+    lo_action->ms_next-s_set-s_popup-xml    = `<popup/>`.
+    lo_action->ms_next-s_set-s_popover-xml  = `<popover/>`.
 
 
     lo_result = lo_action->factory_stack_call( ).
@@ -258,9 +257,12 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_msg_box ).
     cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_msg_toast ).
     cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_follow_up_action ).
-    " popups / popovers survive the navigation ( popup close lifecycle )
-    cl_abap_unit_assert=>assert_equals( exp = `<popup/>`
-                                        act = lo_result->ms_next-s_set-s_popup-xml ).
+    " a popup is always destroyed on navigation ( a called app that renders
+    " its own popup overwrites this destroy request again )
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = lo_result->ms_next-s_set-s_popup-check_destroy ).
+    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_popup-xml ).
+    " popovers are carried across the app stack
     cl_abap_unit_assert=>assert_equals( exp = `<popover/>`
                                         act = lo_result->ms_next-s_set-s_popover-xml ).
 
@@ -292,10 +294,8 @@ CLASS ltcl_test IMPLEMENTATION.
     lo_action->ms_next-s_set-s_msg_box-text   = `box`.
     lo_action->ms_next-s_set-s_msg_toast-text = `toast`.
     INSERT `some_js` INTO TABLE lo_action->ms_next-s_set-s_follow_up_action-custom_js.
-    " ...while popups / popovers are deliberately carried across the app stack
-    " ( e.g. a popup_destroy( ) issued right before nav_app_leave( ) )
-    lo_action->ms_next-s_set-s_popup-xml   = `<popup/>`.
-    lo_action->ms_next-s_set-s_popover-xml = `<popover/>`.
+    lo_action->ms_next-s_set-s_popup-xml    = `<popup/>`.
+    lo_action->ms_next-s_set-s_popover-xml  = `<popover/>`.
 
 
     lo_result = lo_action->factory_stack_leave( ).
@@ -306,9 +306,11 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_msg_box ).
     cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_msg_toast ).
     cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_follow_up_action ).
-    " popups / popovers survive the navigation ( popup close lifecycle )
-    cl_abap_unit_assert=>assert_equals( exp = `<popup/>`
-                                        act = lo_result->ms_next-s_set-s_popup-xml ).
+    " a popup is always destroyed on navigation, also on leave
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = lo_result->ms_next-s_set-s_popup-check_destroy ).
+    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_popup-xml ).
+    " popovers are carried across the app stack
     cl_abap_unit_assert=>assert_equals( exp = `<popover/>`
                                         act = lo_result->ms_next-s_set-s_popover-xml ).
 
