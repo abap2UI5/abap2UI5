@@ -162,7 +162,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! <p class="shorttext synchronized" lang="en">sap.m.IllustratedMessage</p>
     "!
     "! Empty-state / error / success message with illustration, title and description.
-    "! See https://ui5.sap.com/#/api/sap.m.IllustratedMessage.
+    "! See https://ui5.sap.com/#/api/sap.m.IllustratedMessage. Since 1.98.
     "!
     "! @parameter enableverticalresponsiveness | (boolean) Resize illustration based on container height when `illustrationSize=Auto`. Default: false.
     "! @parameter enableformattedtext          | (boolean) Render description as formatted text (HTML subset). Default: false.
@@ -475,7 +475,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.table.rowmodes.Auto</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Auto. Used inside `rowMode` of sap.ui.table.Table / AnalyticalTable.
+    "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Auto. Used inside `rowMode` of sap.ui.table.Table / AnalyticalTable. Since 1.119.
     "!
     "! @parameter ns                  | (string) XML namespace prefix (typically `t`).
     "! @parameter rowcontentheight    | (int) Row content height in pixels. 0 = theme-based default. Default: 0.
@@ -496,7 +496,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.table.rowmodes.Fixed</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Fixed. Used inside `rowMode` of sap.ui.table.Table / AnalyticalTable.
+    "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Fixed. Used inside `rowMode` of sap.ui.table.Table / AnalyticalTable. Since 1.119.
     "!
     "! @parameter ns                  | (string) XML namespace prefix (typically `t`).
     "! @parameter rowcount            | (int) Number of displayed rows. Default: 10.
@@ -515,7 +515,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.table.rowmodes.Interactive</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Interactive. Used inside `rowMode` of sap.ui.table.Table / AnalyticalTable.
+    "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Interactive. Used inside `rowMode` of sap.ui.table.Table / AnalyticalTable. Since 1.119.
     "!
     "! @parameter ns                  | (string) XML namespace prefix (typically `t`).
     "! @parameter rowcount            | (int) Initial number of displayed rows. Default: 10.
@@ -1016,7 +1016,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.Avatar</p>
     "!
-    "! Avatar control. See https://ui5.sap.com/#/api/sap.m.Avatar.
+    "! Avatar control. See https://ui5.sap.com/#/api/sap.m.Avatar. Since 1.73.
     "!
     "! IMPORTANT: leave `ns` empty (or default) to emit `Avatar` resolving to sap.m.Avatar via the View's xmlns.
     "! Never pass `ns = 'f'` - that produces the deprecated `sap.f.Avatar` (deprecated since 1.73, replaced by sap.m.Avatar).
@@ -1067,7 +1067,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.f.AvatarGroup</p>
     "!
-    "! Avatar group rendered with `ns='f'`. See https://ui5.sap.com/#/api/sap.f.AvatarGroup.
+    "! Avatar group rendered with `ns='f'`. See https://ui5.sap.com/#/api/sap.f.AvatarGroup. Since 1.73.
     "!
     "! @parameter avatarcustomdisplaysize | (sap.ui.core.AbsoluteCSSSize) Custom avatar size (with avatarDisplaySize=Custom). Default: 3rem.
     "! @parameter avatarcustomfontsize    | (sap.ui.core.AbsoluteCSSSize) Custom avatar font size. Default: 1.125rem.
@@ -1103,7 +1103,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.f.AvatarGroupItem</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.f.AvatarGroupItem.
+    "! See https://ui5.sap.com/#/api/sap.f.AvatarGroupItem. Since 1.73.
     "!
     "! @parameter busy               | (boolean, Control) Inherited busy state. Default: false.
     "! @parameter busyindicatordelay | (int, Control) Delay before busy indicator shows. Default: 1000.
@@ -2199,7 +2199,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! <p class="shorttext synchronized" lang="en">sap.ndc.BarcodeScannerButton</p>
     "!
     "! Button that opens a camera-based barcode scanner. Requires the sap.ndc library and a camera-enabled device.
-    "! See https://ui5.sap.com/#/api/sap.ndc.BarcodeScannerButton.
+    "! See https://ui5.sap.com/#/api/sap.ndc.BarcodeScannerButton. Since 1.102.
     "!
     "! @parameter scansuccess               | (event) Fired with the scanned text. Provides `text`, `format`.
     "! @parameter scanfail                  | (event) Fired when the scan fails.
@@ -7105,7 +7105,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.f.SidePanel</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.f.SidePanel.
+    "! See https://ui5.sap.com/#/api/sap.f.SidePanel. Since 1.107.
     "!
     "! @parameter actionbarexpanded         | (boolean) Initial action bar state. Default: false.
     "! @parameter arialabel                 | (string) ARIA label.
@@ -7133,6 +7133,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         VALUE(result)             TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.f.SidePanelItem</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.f.SidePanelItem. Since 1.107.
     "!
     "! @parameter icon    | (sap.ui.core.URI) Action icon.
     "! @parameter text    | (string) Action text.
@@ -9048,6 +9050,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.Menu</p>
     "!
+    "! See https://ui5.sap.com/#/api/sap.m.table.columnmenu.Menu. Since 1.110.
+    "!
     "! @parameter visible    | (boolean) Whether visible. Default: true.
     "! @parameter afterclose | (event) Fired after the menu has closed.
     "! @parameter beforeopen | (event) Fired before the menu opens.
@@ -9062,6 +9066,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.Item</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.table.columnmenu.Item. Since 1.110.
     "!
     "! @parameter icon               | (sap.ui.core.URI) Icon URI.
     "! @parameter label              | (string) Item label.
@@ -9092,6 +9098,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.ActionItem</p>
     "!
+    "! See https://ui5.sap.com/#/api/sap.m.table.columnmenu.ActionItem. Since 1.110.
+    "!
     "! @parameter icon    | (sap.ui.core.URI) Icon URI.
     "! @parameter label   | (string) Item label.
     "! @parameter visible | (boolean) Whether visible. Default: true.
@@ -9109,6 +9117,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.QuickAction</p>
     "!
+    "! See https://ui5.sap.com/#/api/sap.m.table.columnmenu.QuickAction. Since 1.110.
+    "!
     "! @parameter category | (sap.m.table.columnmenu.Category) Generic | Sort | Filter | Group | Aggregate.
     "! @parameter label    | (string) Action label.
     "! @parameter visible  | (boolean) Whether visible. Default: true.
@@ -9123,6 +9133,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.QuickActionItem</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.table.columnmenu.QuickActionItem. Since 1.110.
     "!
     "! @parameter key     | (string) Item key.
     "! @parameter label   | (string) Item label.
@@ -9139,6 +9151,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.QuickGroup</p>
     "!
+    "! See https://ui5.sap.com/#/api/sap.m.table.columnmenu.QuickGroup. Since 1.110.
+    "!
     "! @parameter change  | (event) Fired when the grouping changes.
     "! @parameter visible | (boolean) Whether visible. Default: true.
     METHODS column_menu_quick_group
@@ -9151,6 +9165,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.QuickGroupItem</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.table.columnmenu.QuickGroupItem. Since 1.110.
     "!
     "! @parameter grouped | (boolean) Whether the column is grouped. Default: false.
     "! @parameter key     | (string) Item key.
@@ -9169,6 +9185,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.QuickSort</p>
     "!
+    "! See https://ui5.sap.com/#/api/sap.m.table.columnmenu.QuickSort. Since 1.110.
+    "!
     "! @parameter change  | (event) Fired when the sort changes.
     "! @parameter visible | (boolean) Whether visible. Default: true.
     METHODS column_menu_quick_sort
@@ -9181,6 +9199,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.QuickSortItem</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.table.columnmenu.QuickSortItem. Since 1.110.
     "!
     "! @parameter sortorder | (sap.ui.core.SortOrder) None | Ascending | Descending. Default: None.
     "! @parameter key       | (string) Item key.
@@ -9199,6 +9219,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.QuickTotal</p>
     "!
+    "! See https://ui5.sap.com/#/api/sap.m.table.columnmenu.QuickTotal. Since 1.110.
+    "!
     "! @parameter change  | (event) Fired when the total changes.
     "! @parameter visible | (boolean) Whether visible. Default: true.
     METHODS column_menu_quick_total
@@ -9211,6 +9233,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.QuickTotalItem</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.table.columnmenu.QuickTotalItem. Since 1.110.
     "!
     "! @parameter totaled | (boolean) Whether the column is totalled. Default: false.
     "! @parameter key     | (string) Item key.
