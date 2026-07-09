@@ -22,6 +22,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_factory_by_frontend FOR TESTING RAISING cx_static_check.
     METHODS test_reset_view_flags   FOR TESTING RAISING cx_static_check.
     METHODS test_stack_call         FOR TESTING RAISING cx_static_check.
+    METHODS test_stack_leave        FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 CLASS z2ui5_cl_core_action DEFINITION LOCAL FRIENDS ltcl_test.
@@ -254,6 +255,54 @@ CLASS ltcl_test IMPLEMENTATION.
                                         act = lo_result->mo_app->ms_draft-id_prev_app_stack ).
 
     " messages and follow-up actions are reset for the called app
+    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_msg_box ).
+    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_msg_toast ).
+    cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_follow_up_action ).
+    " popups / popovers survive the navigation ( popup close lifecycle )
+    cl_abap_unit_assert=>assert_equals( exp = `<popup/>`
+                                        act = lo_result->ms_next-s_set-s_popup-xml ).
+    cl_abap_unit_assert=>assert_equals( exp = `<popover/>`
+                                        act = lo_result->ms_next-s_set-s_popover-xml ).
+
+  ENDMETHOD.
+
+  METHOD test_stack_leave.
+    DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_action TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_prev_app TYPE REF TO ltcl_test_app.
+    DATA lo_result TYPE REF TO z2ui5_cl_core_action.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+
+    lo_http = NEW #( val = `` ).
+
+    lo_action = NEW #( val = lo_http ).
+    lo_action->mo_app->mo_app = NEW ltcl_test_app( ).
+    lo_action->mo_app->ms_draft-id = `CURRENT_DRAFT`.
+
+
+    lo_prev_app = NEW #( ).
+    lo_action->ms_next-o_app_leave = lo_prev_app.
+
+    " frontend actions queued by the leaving app - messages and follow-up
+    " actions must not leak into the app that is navigated back to...
+    lo_action->ms_next-s_set-s_msg_box-text   = `box`.
+    lo_action->ms_next-s_set-s_msg_toast-text = `toast`.
+    INSERT `some_js` INTO TABLE lo_action->ms_next-s_set-s_follow_up_action-custom_js.
+    " ...while popups / popovers are deliberately carried across the app stack
+    " ( e.g. a popup_destroy( ) issued right before nav_app_leave( ) )
+    lo_action->ms_next-s_set-s_popup-xml   = `<popup/>`.
+    lo_action->ms_next-s_set-s_popover-xml = `<popover/>`.
+
+
+    lo_result = lo_action->factory_stack_leave( ).
+
+    cl_abap_unit_assert=>assert_bound( lo_result ).
+
+    " leave behaves like call: messages and follow-up actions are reset
     cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_msg_box ).
     cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_msg_toast ).
     cl_abap_unit_assert=>assert_initial( lo_result->ms_next-s_set-s_follow_up_action ).
