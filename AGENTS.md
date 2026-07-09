@@ -338,7 +338,7 @@ Config files: `eslint.config.mjs`, `.prettierrc`, `.editorconfig`, `ui5.yaml`, `
 | `src/01/02/z2ui5_cl_core_srv_event.clas.abap` | Event registration and payload assembly |
 | `src/01/01/z2ui5_cl_core_srv_draft.clas.abap` | Draft/session persistence |
 | `src/00/03/z2ui5_cl_util.clas.abap` | General utility class |
-| `src/00/03/z2ui5_cl_util_xml.clas.abap` | Generic XML builder (preferred for new code) |
+| `src/00/03/z2ui5_cl_util_xml.clas.abap` | Generic XML builder — equally supported alongside `z2ui5_cl_xml_view`; both may be used and extended |
 | `app/webapp/core/AppState.js` | Owner of the shared frontend state + `z2ui5.*` globals inventory |
 | `app/webapp/core/ViewSlots.js` | View-slot access layer (get/set/byId/destroy per slot) |
 | `app/webapp/core/Lib.js` | Shared frontend helpers |
@@ -387,4 +387,4 @@ The following items may look like gaps but are intentional design choices:
 
 - **Draft table `Z2UI5_T_01` has no version column** — Drafts are session-scoped (deleted after a few hours). There is no long-lived state that needs schema migration. Versioning would add complexity with no benefit.
 - **Changelog** — The project maintains a `changelog.txt` in the repository root. A `CHANGELOG.md` is not needed separately.
-- **`z2ui5_cl_xml_view` size (~11K lines)** — This class is intentionally large: each method wraps one UI5 control for the fluent API. Both this builder and `z2ui5_cl_util_xml` are supported equally; do not add new wrapper methods.
+- **`z2ui5_cl_xml_view` size (~11K lines)** — This class is intentionally large: each method wraps one UI5 control for the fluent API. Both this builder and `z2ui5_cl_util_xml` are supported and may be used and extended equally. New wrapper methods, new controls, and new parameters are allowed — but they **must mirror the UI5 SDK API strictly 1:1**: method names, property names, event names, allowed values, and nesting must match the corresponding UI5 control exactly as documented in the UI5 SDK. Never invent convenience shortcuts, renamed properties, or combined helpers that have no direct counterpart in the UI5 control API. When a UI5 control offers a new property/aggregation (e.g. the `rowMode` variants `Auto`/`Fixed`/`Interactive` with their respective properties), model it exactly as the SDK does rather than folding it into an unrelated existing method.
