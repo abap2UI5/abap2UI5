@@ -477,14 +477,64 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "!
     "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Auto. Used inside `rowMode` of sap.ui.table.Table / AnalyticalTable.
     "!
-    "! @parameter ns               | (string) XML namespace prefix (typically `t`).
-    "! @parameter rowcontentheight | (int) Row content height in pixels. 0 = theme-based default. Default: 0.
+    "! @parameter ns                  | (string) XML namespace prefix (typically `t`).
+    "! @parameter rowcontentheight    | (int) Row content height in pixels. 0 = theme-based default. Default: 0.
+    "! @parameter minrowcount         | (int) Minimum number of displayed rows. Default: 5.
+    "! @parameter maxrowcount         | (int) Maximum number of displayed rows (-1 = no limit). Default: -1.
+    "! @parameter fixedtoprowcount    | (int) Number of fixed rows at the top. Default: 0.
+    "! @parameter fixedbottomrowcount | (int) Number of fixed rows at the bottom. Default: 0.
     METHODS auto
       IMPORTING
-        ns               TYPE clike OPTIONAL
-        rowcontentheight TYPE clike OPTIONAL
+        ns                  TYPE clike OPTIONAL
+        rowcontentheight    TYPE clike OPTIONAL
+        minrowcount         TYPE clike OPTIONAL
+        maxrowcount         TYPE clike OPTIONAL
+        fixedtoprowcount    TYPE clike OPTIONAL
+        fixedbottomrowcount TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
+    "! <p class="shorttext synchronized" lang="en">sap.ui.table.rowmodes.Fixed</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Fixed. Used inside `rowMode` of sap.ui.table.Table / AnalyticalTable.
+    "!
+    "! @parameter ns                  | (string) XML namespace prefix (typically `t`).
+    "! @parameter rowcount            | (int) Number of displayed rows. Default: 10.
+    "! @parameter rowcontentheight    | (int) Row content height in pixels. 0 = theme-based default. Default: 0.
+    "! @parameter fixedtoprowcount    | (int) Number of fixed rows at the top. Default: 0.
+    "! @parameter fixedbottomrowcount | (int) Number of fixed rows at the bottom. Default: 0.
+    METHODS fixed
+      IMPORTING
+        ns                  TYPE clike OPTIONAL
+        rowcount            TYPE clike OPTIONAL
+        rowcontentheight    TYPE clike OPTIONAL
+        fixedtoprowcount    TYPE clike OPTIONAL
+        fixedbottomrowcount TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
+    "! <p class="shorttext synchronized" lang="en">sap.ui.table.rowmodes.Interactive</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Interactive. Used inside `rowMode` of sap.ui.table.Table / AnalyticalTable.
+    "!
+    "! @parameter ns                  | (string) XML namespace prefix (typically `t`).
+    "! @parameter rowcount            | (int) Initial number of displayed rows. Default: 10.
+    "! @parameter minrowcount         | (int) Minimum number of displayed rows. Default: 5.
+    "! @parameter maxrowcount         | (int) Maximum number of displayed rows (-1 = no limit). Default: -1.
+    "! @parameter rowcontentheight    | (int) Row content height in pixels. 0 = theme-based default. Default: 0.
+    "! @parameter fixedtoprowcount    | (int) Number of fixed rows at the top. Default: 0.
+    "! @parameter fixedbottomrowcount | (int) Number of fixed rows at the bottom. Default: 0.
+    METHODS interactive
+      IMPORTING
+        ns                  TYPE clike OPTIONAL
+        rowcount            TYPE clike OPTIONAL
+        minrowcount         TYPE clike OPTIONAL
+        maxrowcount         TYPE clike OPTIONAL
+        rowcontentheight    TYPE clike OPTIONAL
+        fixedtoprowcount    TYPE clike OPTIONAL
+        fixedbottomrowcount TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.MessageStrip</p>
     "!
@@ -6404,6 +6454,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         numberstate         TYPE clike OPTIONAL
         numbertextdirection TYPE clike OPTIONAL
         numberunit          TYPE clike OPTIONAL
+        unit                TYPE clike OPTIONAL
         title               TYPE clike OPTIONAL
         titletextdirection  TYPE clike OPTIONAL
         press               TYPE clike OPTIONAL
@@ -12670,6 +12721,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                           ( n = `numberState`         v = numberstate )
                           ( n = `numberTextDirection` v = numbertextdirection )
                           ( n = `numberUnit`          v = numberunit )
+                          ( n = `unit`                v = unit )
                           ( n = `title`               v = title )
                           ( n = `titleTextDirection`  v = titletextdirection )
                           ( n = `iconDensityAware`    v = z2ui5_cl_util=>boolean_abap_2_json( icondensityaware ) )
@@ -15251,7 +15303,31 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD auto.
     result = _generic( ns     = ns
                        name   = `Auto`
-                       t_prop = VALUE #( ( n = `rowContentHeight`           v = rowcontentheight ) ) ).
+                       t_prop = VALUE #( ( n = `rowContentHeight`    v = rowcontentheight )
+                                         ( n = `minRowCount`         v = minrowcount )
+                                         ( n = `maxRowCount`         v = maxrowcount )
+                                         ( n = `fixedTopRowCount`    v = fixedtoprowcount )
+                                         ( n = `fixedBottomRowCount` v = fixedbottomrowcount ) ) ).
+  ENDMETHOD.
+
+  METHOD fixed.
+    result = _generic( ns     = ns
+                       name   = `Fixed`
+                       t_prop = VALUE #( ( n = `rowCount`            v = rowcount )
+                                         ( n = `rowContentHeight`    v = rowcontentheight )
+                                         ( n = `fixedTopRowCount`    v = fixedtoprowcount )
+                                         ( n = `fixedBottomRowCount` v = fixedbottomrowcount ) ) ).
+  ENDMETHOD.
+
+  METHOD interactive.
+    result = _generic( ns     = ns
+                       name   = `Interactive`
+                       t_prop = VALUE #( ( n = `rowCount`            v = rowcount )
+                                         ( n = `minRowCount`         v = minrowcount )
+                                         ( n = `maxRowCount`         v = maxrowcount )
+                                         ( n = `rowContentHeight`    v = rowcontentheight )
+                                         ( n = `fixedTopRowCount`    v = fixedtoprowcount )
+                                         ( n = `fixedBottomRowCount` v = fixedbottomrowcount ) ) ).
   ENDMETHOD.
 
   METHOD rowmode.
