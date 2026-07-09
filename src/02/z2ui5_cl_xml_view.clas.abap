@@ -536,6 +536,138 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">sap.f.ProductSwitch</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.f.ProductSwitch. Since 1.72. Rendered with `ns='f'`.
+    "!
+    "! @parameter id     | (string) Stable control id.
+    "! @parameter change | (event) Fired when an item is selected.
+    METHODS product_switch
+      IMPORTING
+        id            TYPE clike OPTIONAL
+        change        TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    "! <p class="shorttext synchronized" lang="en">sap.f.ProductSwitchItem</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.f.ProductSwitchItem. Since 1.72. Rendered with `ns='f'`.
+    "!
+    "! @parameter id        | (string) Stable control id.
+    "! @parameter src       | (sap.ui.core.URI) Icon/image source.
+    "! @parameter imagesrc  | (sap.ui.core.URI) Image source; takes precedence over `src`. Since 1.140.
+    "! @parameter title     | (string) Title text.
+    "! @parameter subtitle  | (string) Subtitle text.
+    "! @parameter target    | (string) Browsing context of the link.
+    "! @parameter targetsrc | (sap.ui.core.URI) Link target URI.
+    METHODS product_switch_item
+      IMPORTING
+        id            TYPE clike OPTIONAL
+        src           TYPE clike OPTIONAL
+        imagesrc      TYPE clike OPTIONAL
+        title         TYPE clike OPTIONAL
+        subtitle      TYPE clike OPTIONAL
+        target        TYPE clike OPTIONAL
+        targetsrc     TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    "! <p class="shorttext synchronized" lang="en">sap.f.GridContainer</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.f.GridContainer. Since 1.65. Rendered with `ns='f'`. Items are added to the default `items` aggregation; column sizing goes into the `layout` aggregation via `grid_container_settings`.
+    "!
+    "! @parameter id                | (string) Stable control id.
+    "! @parameter width             | (sap.ui.core.CSSSize) Width of the control.
+    "! @parameter minheight         | (sap.ui.core.CSSSize) Minimum height. Default: 2rem.
+    "! @parameter containerquery    | (boolean) Base breakpoints on the container width instead of the device. Default: false.
+    "! @parameter snaptorow         | (boolean) Snap items to rows. Default: false.
+    "! @parameter allowdensefill    | (boolean) Increase item density by reordering. Default: false.
+    "! @parameter inlineblocklayout | (boolean) One-dimensional layout with fixed row height. Default: false.
+    "! @parameter layoutchange      | (event) Fired when the currently active layout changes.
+    "! @parameter columnschange     | (event) Fired when the number of columns changes.
+    "! @parameter borderreached     | (event) Fired when keyboard navigation reaches a border.
+    METHODS grid_container
+      IMPORTING
+        id                TYPE clike OPTIONAL
+        width             TYPE clike OPTIONAL
+        minheight         TYPE clike OPTIONAL
+        containerquery    TYPE clike OPTIONAL
+        snaptorow         TYPE clike OPTIONAL
+        allowdensefill    TYPE clike OPTIONAL
+        inlineblocklayout TYPE clike OPTIONAL
+        layoutchange      TYPE clike OPTIONAL
+        columnschange     TYPE clike OPTIONAL
+        borderreached     TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
+
+    "! <p class="shorttext synchronized" lang="en">sap.f.GridContainerSettings</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.f.GridContainerSettings. Since 1.65. Rendered with `ns='f'`, used inside the `layout` aggregation of `grid_container`. Use only `px` or `rem`.
+    "!
+    "! @parameter columns       | (int) Number of columns.
+    "! @parameter columnsize    | (sap.ui.core.CSSSize) Width of the columns. Default: 80px.
+    "! @parameter mincolumnsize | (sap.ui.core.CSSSize) Minimum column width.
+    "! @parameter maxcolumnsize | (sap.ui.core.CSSSize) Maximum column width.
+    "! @parameter rowsize       | (sap.ui.core.CSSSize) Height of the rows. Default: 80px.
+    "! @parameter gap           | (sap.ui.core.CSSSize) Gap between rows and columns. Default: 16px.
+    METHODS grid_container_settings
+      IMPORTING
+        columns       TYPE clike OPTIONAL
+        columnsize    TYPE clike OPTIONAL
+        mincolumnsize TYPE clike OPTIONAL
+        maxcolumnsize TYPE clike OPTIONAL
+        rowsize       TYPE clike OPTIONAL
+        gap           TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    "! <p class="shorttext synchronized" lang="en">Aggregation `layout`</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
+    METHODS layout
+      IMPORTING
+        ns            TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    "! <p class="shorttext synchronized" lang="en">sap.m.DynamicDateRange</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.DynamicDateRange. Since 1.92.
+    "!
+    "! @parameter id                 | (string) Stable control id.
+    "! @parameter value              | (object) Current value; typically set via data binding.
+    "! @parameter width              | (sap.ui.core.CSSSize) Width of the control.
+    "! @parameter enabled            | (boolean) Whether the control is enabled. Default: true.
+    "! @parameter editable           | (boolean) Whether the control is editable. Default: true.
+    "! @parameter required           | (boolean) Whether the field is required. Default: false.
+    "! @parameter name               | (string) Form submit name.
+    "! @parameter placeholder        | (string) Placeholder text.
+    "! @parameter valuestate         | (sap.ui.core.ValueState) None | Error | Warning | Success | Information. Default: None.
+    "! @parameter valuestatetext     | (string) Text shown for the value state.
+    "! @parameter enablegroupheaders | (boolean) Group the options in the value help. Default: true.
+    "! @parameter hideinput          | (boolean) Hide the input field (icon-only). Default: false.
+    "! @parameter showclearicon      | (boolean) Show the clear icon. Default: false. Since 1.97.
+    "! @parameter change             | (event) Fired when the value changes.
+    METHODS dynamic_date_range
+      IMPORTING
+        id                 TYPE clike OPTIONAL
+        value              TYPE clike OPTIONAL
+        width              TYPE clike OPTIONAL
+        enabled            TYPE clike OPTIONAL
+        editable           TYPE clike OPTIONAL
+        required           TYPE clike OPTIONAL
+        name               TYPE clike OPTIONAL
+        placeholder        TYPE clike OPTIONAL
+        valuestate         TYPE clike OPTIONAL
+        valuestatetext     TYPE clike OPTIONAL
+        enablegroupheaders TYPE clike OPTIONAL
+        hideinput          TYPE clike OPTIONAL
+        showclearicon      TYPE clike OPTIONAL
+        change             TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
+
     "! <p class="shorttext synchronized" lang="en">sap.m.MessageStrip</p>
     "!
     "! Inline coloured notification strip. See https://ui5.sap.com/#/api/sap.m.MessageStrip.
@@ -15352,6 +15484,74 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `rowContentHeight`    v = rowcontentheight )
                                          ( n = `fixedTopRowCount`    v = fixedtoprowcount )
                                          ( n = `fixedBottomRowCount` v = fixedbottomrowcount ) ) ).
+  ENDMETHOD.
+
+  METHOD product_switch.
+    result = _generic( ns     = `f`
+                       name   = `ProductSwitch`
+                       t_prop = VALUE #( ( n = `id`     v = id )
+                                         ( n = `change` v = change ) ) ).
+  ENDMETHOD.
+
+  METHOD product_switch_item.
+    result = _generic( ns     = `f`
+                       name   = `ProductSwitchItem`
+                       t_prop = VALUE #( ( n = `id`        v = id )
+                                         ( n = `src`       v = src )
+                                         ( n = `imageSrc`  v = imagesrc )
+                                         ( n = `title`     v = title )
+                                         ( n = `subTitle`  v = subtitle )
+                                         ( n = `target`    v = target )
+                                         ( n = `targetSrc` v = targetsrc ) ) ).
+  ENDMETHOD.
+
+  METHOD grid_container.
+    result = _generic( ns     = `f`
+                       name   = `GridContainer`
+                       t_prop = VALUE #( ( n = `id`                v = id )
+                                         ( n = `width`             v = width )
+                                         ( n = `minHeight`         v = minheight )
+                                         ( n = `containerQuery`    v = z2ui5_cl_util=>boolean_abap_2_json( containerquery ) )
+                                         ( n = `snapToRow`         v = z2ui5_cl_util=>boolean_abap_2_json( snaptorow ) )
+                                         ( n = `allowDenseFill`    v = z2ui5_cl_util=>boolean_abap_2_json( allowdensefill ) )
+                                         ( n = `inlineBlockLayout` v = z2ui5_cl_util=>boolean_abap_2_json( inlineblocklayout ) )
+                                         ( n = `layoutChange`      v = layoutchange )
+                                         ( n = `columnsChange`     v = columnschange )
+                                         ( n = `borderReached`     v = borderreached ) ) ).
+  ENDMETHOD.
+
+  METHOD grid_container_settings.
+    result = _generic( ns     = `f`
+                       name   = `GridContainerSettings`
+                       t_prop = VALUE #( ( n = `columns`       v = columns )
+                                         ( n = `columnSize`    v = columnsize )
+                                         ( n = `minColumnSize` v = mincolumnsize )
+                                         ( n = `maxColumnSize` v = maxcolumnsize )
+                                         ( n = `rowSize`       v = rowsize )
+                                         ( n = `gap`           v = gap ) ) ).
+  ENDMETHOD.
+
+  METHOD layout.
+    result = _generic( name = `layout`
+                       ns   = ns ).
+  ENDMETHOD.
+
+  METHOD dynamic_date_range.
+    result = _generic( name   = `DynamicDateRange`
+                       t_prop = VALUE #( ( n = `id`                 v = id )
+                                         ( n = `value`              v = value )
+                                         ( n = `width`              v = width )
+                                         ( n = `enabled`            v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
+                                         ( n = `editable`           v = z2ui5_cl_util=>boolean_abap_2_json( editable ) )
+                                         ( n = `required`           v = z2ui5_cl_util=>boolean_abap_2_json( required ) )
+                                         ( n = `name`               v = name )
+                                         ( n = `placeholder`        v = placeholder )
+                                         ( n = `valueState`         v = valuestate )
+                                         ( n = `valueStateText`     v = valuestatetext )
+                                         ( n = `enableGroupHeaders` v = z2ui5_cl_util=>boolean_abap_2_json( enablegroupheaders ) )
+                                         ( n = `hideInput`          v = z2ui5_cl_util=>boolean_abap_2_json( hideinput ) )
+                                         ( n = `showClearIcon`      v = z2ui5_cl_util=>boolean_abap_2_json( showclearicon ) )
+                                         ( n = `change`             v = change ) ) ).
   ENDMETHOD.
 
   METHOD rowmode.
