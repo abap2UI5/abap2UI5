@@ -195,8 +195,12 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     simple_form->toolbar( )->title( `What's next?` ).
 
-    IF z2ui5_cl_util=>rtti_check_class_exists( `z2ui5_cl_demo_app_000` ).
-      DATA(lv_url_samples) = get_app_url( `z2ui5_cl_demo_app_000` ).
+    DATA(lv_class_samples) = COND string(
+      WHEN z2ui5_cl_util=>rtti_check_class_exists( `z2ui5_cl_sample_000` )   THEN `z2ui5_cl_sample_000`
+      WHEN z2ui5_cl_util=>rtti_check_class_exists( `z2ui5_cl_demo_app_000` ) THEN `z2ui5_cl_demo_app_000` ).
+
+    IF lv_class_samples IS NOT INITIAL.
+      DATA(lv_url_samples) = get_app_url( lv_class_samples ).
       simple_form->label( `Start Developing` ).
       simple_form->button( text  = `Explore Code Samples`
                            press = client->_event_client( val   = client->cs_event-open_new_tab
