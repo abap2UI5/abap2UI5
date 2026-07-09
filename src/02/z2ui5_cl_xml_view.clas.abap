@@ -400,7 +400,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.table.AnalyticalTable</p>
     "!
-    "! Grid table with built-in OData v2 grouping and aggregation. See https://ui5.sap.com/#/api/sap.ui.table.AnalyticalTable.
+    "! Grid table with built-in OData v2 grouping and aggregation. See https://ui5.sap.com/#/api/sap.ui.table.AnalyticalTable. DEPRECATED as of 2.0 - replaced by the OData V4 Table Building Block.
     "! Most properties (selectionMode, rowMode, toolbar, columns) are inherited from sap.ui.table.Table.
     "!
     "! @parameter ns            | (string) XML namespace prefix (typically `t` for sap.ui.table).
@@ -1801,7 +1801,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.table.AnalyticalColumn</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.table.AnalyticalColumn. Use the `column` builder for sap.m and `analytical_column` for AnalyticalTable.
+    "! See https://ui5.sap.com/#/api/sap.ui.table.AnalyticalColumn. Use the `column` builder for sap.m and `analytical_column` for AnalyticalTable. DEPRECATED as of 2.0 - replaced by the OData V4 Table Building Block.
     "!
     "! @parameter ns | (string) XML namespace prefix (typically `t`).
     METHODS analytical_column
@@ -7863,7 +7863,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.ActionSheet</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.ActionSheet.
+    "! See https://ui5.sap.com/#/api/sap.m.ActionSheet. DEPRECATED as of 1.149 - use sap.m.Menu / sap.m.MenuItem instead.
     "!
     "! @parameter cancelbuttontext  | (string) Custom cancel button text.
     "! @parameter placement         | (sap.m.PlacementType) Top | Bottom | Vertical | Auto | Right | Left | Horizontal. Default: Bottom.
