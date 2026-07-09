@@ -6454,6 +6454,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         numberstate         TYPE clike OPTIONAL
         numbertextdirection TYPE clike OPTIONAL
         numberunit          TYPE clike OPTIONAL
+        unit                TYPE clike OPTIONAL
         title               TYPE clike OPTIONAL
         titletextdirection  TYPE clike OPTIONAL
         press               TYPE clike OPTIONAL
@@ -12720,6 +12721,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                           ( n = `numberState`         v = numberstate )
                           ( n = `numberTextDirection` v = numbertextdirection )
                           ( n = `numberUnit`          v = numberunit )
+                          ( n = `unit`                v = unit )
                           ( n = `title`               v = title )
                           ( n = `titleTextDirection`  v = titletextdirection )
                           ( n = `iconDensityAware`    v = z2ui5_cl_util=>boolean_abap_2_json( icondensityaware ) )
