@@ -1346,7 +1346,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.f.ShellBar</p>
     "!
-    "! Top-level shell/navigation bar. See https://ui5.sap.com/#/api/sap.f.ShellBar.
+    "! Top-level shell/navigation bar. See https://ui5.sap.com/#/api/sap.f.ShellBar. Since 1.63.
     "!
     "! @parameter homeicon               | (sap.ui.core.URI) Home icon (company/product logo).
     "! @parameter homeicontooltip        | (string) Custom tooltip for the home icon.
@@ -3730,7 +3730,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.GenericTag</p>
     "!
-    "! Badge-style status tag. See https://ui5.sap.com/#/api/sap.m.GenericTag.
+    "! Badge-style status tag. See https://ui5.sap.com/#/api/sap.m.GenericTag. Since 1.62.
     "!
     "! @parameter arialabelledby | (sap.ui.core.ID[]) Ids of labelling controls (ARIA).
     "! @parameter text           | (string) Tag text.
@@ -7399,7 +7399,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! @parameter required                | (boolean) Required field marker. Default: false.
     "! @parameter visible                 | (boolean) Whether visible. Default: true.
     "! @parameter width                   | (sap.ui.core.CSSSize) Width.
-    "! @parameter showcurrentdatebutton   | (boolean) Show "Today" button. Default: false.
+    "! @parameter showcurrentdatebutton   | (boolean) Show "Today" button. Default: false. Since 1.95.
     "! @parameter showfooter              | (boolean) Show calendar footer. Default: false.
     "! @parameter hideinput               | (boolean) Hide the input field. Default: false.
     "! @parameter placeholder             | (string) Placeholder text.
