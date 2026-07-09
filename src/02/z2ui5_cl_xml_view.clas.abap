@@ -162,7 +162,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! <p class="shorttext synchronized" lang="en">sap.m.IllustratedMessage</p>
     "!
     "! Empty-state / error / success message with illustration, title and description.
-    "! See https://ui5.sap.com/#/api/sap.m.IllustratedMessage.
+    "! See https://ui5.sap.com/#/api/sap.m.IllustratedMessage. Since 1.98.
     "!
     "! @parameter enableverticalresponsiveness | (boolean) Resize illustration based on container height when `illustrationSize=Auto`. Default: false.
     "! @parameter enableformattedtext          | (boolean) Render description as formatted text (HTML subset). Default: false.
@@ -400,7 +400,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.table.AnalyticalTable</p>
     "!
-    "! Grid table with built-in OData v2 grouping and aggregation. See https://ui5.sap.com/#/api/sap.ui.table.AnalyticalTable.
+    "! Grid table with built-in OData v2 grouping and aggregation. See https://ui5.sap.com/#/api/sap.ui.table.AnalyticalTable. DEPRECATED as of 2.0 - replaced by the OData V4 Table Building Block.
     "! Most properties (selectionMode, rowMode, toolbar, columns) are inherited from sap.ui.table.Table.
     "!
     "! @parameter ns            | (string) XML namespace prefix (typically `t` for sap.ui.table).
@@ -475,7 +475,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.table.rowmodes.Auto</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Auto. Used inside `rowMode` of sap.ui.table.Table / AnalyticalTable.
+    "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Auto. Used inside `rowMode` of sap.ui.table.Table / AnalyticalTable. Since 1.119.
     "!
     "! @parameter ns                  | (string) XML namespace prefix (typically `t`).
     "! @parameter rowcontentheight    | (int) Row content height in pixels. 0 = theme-based default. Default: 0.
@@ -496,7 +496,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.table.rowmodes.Fixed</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Fixed. Used inside `rowMode` of sap.ui.table.Table / AnalyticalTable.
+    "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Fixed. Used inside `rowMode` of sap.ui.table.Table / AnalyticalTable. Since 1.119.
     "!
     "! @parameter ns                  | (string) XML namespace prefix (typically `t`).
     "! @parameter rowcount            | (int) Number of displayed rows. Default: 10.
@@ -515,7 +515,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.table.rowmodes.Interactive</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Interactive. Used inside `rowMode` of sap.ui.table.Table / AnalyticalTable.
+    "! See https://ui5.sap.com/#/api/sap.ui.table.rowmodes.Interactive. Used inside `rowMode` of sap.ui.table.Table / AnalyticalTable. Since 1.119.
     "!
     "! @parameter ns                  | (string) XML namespace prefix (typically `t`).
     "! @parameter rowcount            | (int) Initial number of displayed rows. Default: 10.
@@ -535,6 +535,138 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         fixedbottomrowcount TYPE clike OPTIONAL
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
+    "! <p class="shorttext synchronized" lang="en">sap.f.ProductSwitch</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.f.ProductSwitch. Since 1.72. Rendered with `ns='f'`.
+    "!
+    "! @parameter id     | (string) Stable control id.
+    "! @parameter change | (event) Fired when an item is selected.
+    METHODS product_switch
+      IMPORTING
+        id            TYPE clike OPTIONAL
+        change        TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    "! <p class="shorttext synchronized" lang="en">sap.f.ProductSwitchItem</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.f.ProductSwitchItem. Since 1.72. Rendered with `ns='f'`.
+    "!
+    "! @parameter id        | (string) Stable control id.
+    "! @parameter src       | (sap.ui.core.URI) Icon/image source.
+    "! @parameter imagesrc  | (sap.ui.core.URI) Image source; takes precedence over `src`. Since 1.140.
+    "! @parameter title     | (string) Title text.
+    "! @parameter subtitle  | (string) Subtitle text.
+    "! @parameter target    | (string) Browsing context of the link.
+    "! @parameter targetsrc | (sap.ui.core.URI) Link target URI.
+    METHODS product_switch_item
+      IMPORTING
+        id            TYPE clike OPTIONAL
+        src           TYPE clike OPTIONAL
+        imagesrc      TYPE clike OPTIONAL
+        title         TYPE clike OPTIONAL
+        subtitle      TYPE clike OPTIONAL
+        target        TYPE clike OPTIONAL
+        targetsrc     TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    "! <p class="shorttext synchronized" lang="en">sap.f.GridContainer</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.f.GridContainer. Since 1.65. Rendered with `ns='f'`. Items are added to the default `items` aggregation; column sizing goes into the `layout` aggregation via `grid_container_settings`.
+    "!
+    "! @parameter id                | (string) Stable control id.
+    "! @parameter width             | (sap.ui.core.CSSSize) Width of the control.
+    "! @parameter minheight         | (sap.ui.core.CSSSize) Minimum height. Default: 2rem.
+    "! @parameter containerquery    | (boolean) Base breakpoints on the container width instead of the device. Default: false.
+    "! @parameter snaptorow         | (boolean) Snap items to rows. Default: false.
+    "! @parameter allowdensefill    | (boolean) Increase item density by reordering. Default: false.
+    "! @parameter inlineblocklayout | (boolean) One-dimensional layout with fixed row height. Default: false.
+    "! @parameter layoutchange      | (event) Fired when the currently active layout changes.
+    "! @parameter columnschange     | (event) Fired when the number of columns changes.
+    "! @parameter borderreached     | (event) Fired when keyboard navigation reaches a border.
+    METHODS grid_container
+      IMPORTING
+        id                TYPE clike OPTIONAL
+        width             TYPE clike OPTIONAL
+        minheight         TYPE clike OPTIONAL
+        containerquery    TYPE clike OPTIONAL
+        snaptorow         TYPE clike OPTIONAL
+        allowdensefill    TYPE clike OPTIONAL
+        inlineblocklayout TYPE clike OPTIONAL
+        layoutchange      TYPE clike OPTIONAL
+        columnschange     TYPE clike OPTIONAL
+        borderreached     TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
+
+    "! <p class="shorttext synchronized" lang="en">sap.f.GridContainerSettings</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.f.GridContainerSettings. Since 1.65. Rendered with `ns='f'`, used inside the `layout` aggregation of `grid_container`. Use only `px` or `rem`.
+    "!
+    "! @parameter columns       | (int) Number of columns.
+    "! @parameter columnsize    | (sap.ui.core.CSSSize) Width of the columns. Default: 80px.
+    "! @parameter mincolumnsize | (sap.ui.core.CSSSize) Minimum column width.
+    "! @parameter maxcolumnsize | (sap.ui.core.CSSSize) Maximum column width.
+    "! @parameter rowsize       | (sap.ui.core.CSSSize) Height of the rows. Default: 80px.
+    "! @parameter gap           | (sap.ui.core.CSSSize) Gap between rows and columns. Default: 16px.
+    METHODS grid_container_settings
+      IMPORTING
+        columns       TYPE clike OPTIONAL
+        columnsize    TYPE clike OPTIONAL
+        mincolumnsize TYPE clike OPTIONAL
+        maxcolumnsize TYPE clike OPTIONAL
+        rowsize       TYPE clike OPTIONAL
+        gap           TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    "! <p class="shorttext synchronized" lang="en">Aggregation `layout`</p>
+    "!
+    "! @parameter ns | (string) XML namespace prefix.
+    METHODS layout
+      IMPORTING
+        ns            TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    "! <p class="shorttext synchronized" lang="en">sap.m.DynamicDateRange</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.DynamicDateRange. Since 1.92.
+    "!
+    "! @parameter id                 | (string) Stable control id.
+    "! @parameter value              | (object) Current value; typically set via data binding.
+    "! @parameter width              | (sap.ui.core.CSSSize) Width of the control.
+    "! @parameter enabled            | (boolean) Whether the control is enabled. Default: true.
+    "! @parameter editable           | (boolean) Whether the control is editable. Default: true.
+    "! @parameter required           | (boolean) Whether the field is required. Default: false.
+    "! @parameter name               | (string) Form submit name.
+    "! @parameter placeholder        | (string) Placeholder text.
+    "! @parameter valuestate         | (sap.ui.core.ValueState) None | Error | Warning | Success | Information. Default: None.
+    "! @parameter valuestatetext     | (string) Text shown for the value state.
+    "! @parameter enablegroupheaders | (boolean) Group the options in the value help. Default: true.
+    "! @parameter hideinput          | (boolean) Hide the input field (icon-only). Default: false.
+    "! @parameter showclearicon      | (boolean) Show the clear icon. Default: false. Since 1.97.
+    "! @parameter change             | (event) Fired when the value changes.
+    METHODS dynamic_date_range
+      IMPORTING
+        id                 TYPE clike OPTIONAL
+        value              TYPE clike OPTIONAL
+        width              TYPE clike OPTIONAL
+        enabled            TYPE clike OPTIONAL
+        editable           TYPE clike OPTIONAL
+        required           TYPE clike OPTIONAL
+        name               TYPE clike OPTIONAL
+        placeholder        TYPE clike OPTIONAL
+        valuestate         TYPE clike OPTIONAL
+        valuestatetext     TYPE clike OPTIONAL
+        enablegroupheaders TYPE clike OPTIONAL
+        hideinput          TYPE clike OPTIONAL
+        showclearicon      TYPE clike OPTIONAL
+        change             TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.MessageStrip</p>
     "!
@@ -1016,7 +1148,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.Avatar</p>
     "!
-    "! Avatar control. See https://ui5.sap.com/#/api/sap.m.Avatar.
+    "! Avatar control. See https://ui5.sap.com/#/api/sap.m.Avatar. Since 1.73.
     "!
     "! IMPORTANT: leave `ns` empty (or default) to emit `Avatar` resolving to sap.m.Avatar via the View's xmlns.
     "! Never pass `ns = 'f'` - that produces the deprecated `sap.f.Avatar` (deprecated since 1.73, replaced by sap.m.Avatar).
@@ -1067,7 +1199,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.f.AvatarGroup</p>
     "!
-    "! Avatar group rendered with `ns='f'`. See https://ui5.sap.com/#/api/sap.f.AvatarGroup.
+    "! Avatar group rendered with `ns='f'`. See https://ui5.sap.com/#/api/sap.f.AvatarGroup. Since 1.73.
     "!
     "! @parameter avatarcustomdisplaysize | (sap.ui.core.AbsoluteCSSSize) Custom avatar size (with avatarDisplaySize=Custom). Default: 3rem.
     "! @parameter avatarcustomfontsize    | (sap.ui.core.AbsoluteCSSSize) Custom avatar font size. Default: 1.125rem.
@@ -1103,7 +1235,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.f.AvatarGroupItem</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.f.AvatarGroupItem.
+    "! See https://ui5.sap.com/#/api/sap.f.AvatarGroupItem. Since 1.73.
     "!
     "! @parameter busy               | (boolean, Control) Inherited busy state. Default: false.
     "! @parameter busyindicatordelay | (int, Control) Delay before busy indicator shows. Default: 1000.
@@ -1669,7 +1801,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.ui.table.AnalyticalColumn</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.ui.table.AnalyticalColumn. Use the `column` builder for sap.m and `analytical_column` for AnalyticalTable.
+    "! See https://ui5.sap.com/#/api/sap.ui.table.AnalyticalColumn. Use the `column` builder for sap.m and `analytical_column` for AnalyticalTable. DEPRECATED as of 2.0 - replaced by the OData V4 Table Building Block.
     "!
     "! @parameter ns | (string) XML namespace prefix (typically `t`).
     METHODS analytical_column
@@ -2199,7 +2331,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! <p class="shorttext synchronized" lang="en">sap.ndc.BarcodeScannerButton</p>
     "!
     "! Button that opens a camera-based barcode scanner. Requires the sap.ndc library and a camera-enabled device.
-    "! See https://ui5.sap.com/#/api/sap.ndc.BarcodeScannerButton.
+    "! See https://ui5.sap.com/#/api/sap.ndc.BarcodeScannerButton. Since 1.102.
     "!
     "! @parameter scansuccess               | (event) Fired with the scanned text. Provides `text`, `format`.
     "! @parameter scanfail                  | (event) Fired when the scan fails.
@@ -7105,7 +7237,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.f.SidePanel</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.f.SidePanel.
+    "! See https://ui5.sap.com/#/api/sap.f.SidePanel. Since 1.107.
     "!
     "! @parameter actionbarexpanded         | (boolean) Initial action bar state. Default: false.
     "! @parameter arialabel                 | (string) ARIA label.
@@ -7133,6 +7265,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         VALUE(result)             TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.f.SidePanelItem</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.f.SidePanelItem. Since 1.107.
     "!
     "! @parameter icon    | (sap.ui.core.URI) Action icon.
     "! @parameter text    | (string) Action text.
@@ -7729,7 +7863,7 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.ActionSheet</p>
     "!
-    "! See https://ui5.sap.com/#/api/sap.m.ActionSheet.
+    "! See https://ui5.sap.com/#/api/sap.m.ActionSheet. DEPRECATED as of 1.149 - use sap.m.Menu / sap.m.MenuItem instead.
     "!
     "! @parameter cancelbuttontext  | (string) Custom cancel button text.
     "! @parameter placement         | (sap.m.PlacementType) Top | Bottom | Vertical | Auto | Right | Left | Horizontal. Default: Bottom.
@@ -9048,6 +9182,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.Menu</p>
     "!
+    "! See https://ui5.sap.com/#/api/sap.m.table.columnmenu.Menu. Since 1.110.
+    "!
     "! @parameter visible    | (boolean) Whether visible. Default: true.
     "! @parameter afterclose | (event) Fired after the menu has closed.
     "! @parameter beforeopen | (event) Fired before the menu opens.
@@ -9062,6 +9198,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.Item</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.table.columnmenu.Item. Since 1.110.
     "!
     "! @parameter icon               | (sap.ui.core.URI) Icon URI.
     "! @parameter label              | (string) Item label.
@@ -9092,6 +9230,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.ActionItem</p>
     "!
+    "! See https://ui5.sap.com/#/api/sap.m.table.columnmenu.ActionItem. Since 1.110.
+    "!
     "! @parameter icon    | (sap.ui.core.URI) Icon URI.
     "! @parameter label   | (string) Item label.
     "! @parameter visible | (boolean) Whether visible. Default: true.
@@ -9109,6 +9249,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.QuickAction</p>
     "!
+    "! See https://ui5.sap.com/#/api/sap.m.table.columnmenu.QuickAction. Since 1.110.
+    "!
     "! @parameter category | (sap.m.table.columnmenu.Category) Generic | Sort | Filter | Group | Aggregate.
     "! @parameter label    | (string) Action label.
     "! @parameter visible  | (boolean) Whether visible. Default: true.
@@ -9123,6 +9265,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.QuickActionItem</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.table.columnmenu.QuickActionItem. Since 1.110.
     "!
     "! @parameter key     | (string) Item key.
     "! @parameter label   | (string) Item label.
@@ -9139,6 +9283,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.QuickGroup</p>
     "!
+    "! See https://ui5.sap.com/#/api/sap.m.table.columnmenu.QuickGroup. Since 1.110.
+    "!
     "! @parameter change  | (event) Fired when the grouping changes.
     "! @parameter visible | (boolean) Whether visible. Default: true.
     METHODS column_menu_quick_group
@@ -9151,6 +9297,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.QuickGroupItem</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.table.columnmenu.QuickGroupItem. Since 1.110.
     "!
     "! @parameter grouped | (boolean) Whether the column is grouped. Default: false.
     "! @parameter key     | (string) Item key.
@@ -9169,6 +9317,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.QuickSort</p>
     "!
+    "! See https://ui5.sap.com/#/api/sap.m.table.columnmenu.QuickSort. Since 1.110.
+    "!
     "! @parameter change  | (event) Fired when the sort changes.
     "! @parameter visible | (boolean) Whether visible. Default: true.
     METHODS column_menu_quick_sort
@@ -9181,6 +9331,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.QuickSortItem</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.table.columnmenu.QuickSortItem. Since 1.110.
     "!
     "! @parameter sortorder | (sap.ui.core.SortOrder) None | Ascending | Descending. Default: None.
     "! @parameter key       | (string) Item key.
@@ -9199,6 +9351,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.QuickTotal</p>
     "!
+    "! See https://ui5.sap.com/#/api/sap.m.table.columnmenu.QuickTotal. Since 1.110.
+    "!
     "! @parameter change  | (event) Fired when the total changes.
     "! @parameter visible | (boolean) Whether visible. Default: true.
     METHODS column_menu_quick_total
@@ -9211,6 +9365,8 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     "! <p class="shorttext synchronized" lang="en">sap.m.table.columnmenu.QuickTotalItem</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.table.columnmenu.QuickTotalItem. Since 1.110.
     "!
     "! @parameter totaled | (boolean) Whether the column is totalled. Default: false.
     "! @parameter key     | (string) Item key.
@@ -15328,6 +15484,74 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `rowContentHeight`    v = rowcontentheight )
                                          ( n = `fixedTopRowCount`    v = fixedtoprowcount )
                                          ( n = `fixedBottomRowCount` v = fixedbottomrowcount ) ) ).
+  ENDMETHOD.
+
+  METHOD product_switch.
+    result = _generic( ns     = `f`
+                       name   = `ProductSwitch`
+                       t_prop = VALUE #( ( n = `id`     v = id )
+                                         ( n = `change` v = change ) ) ).
+  ENDMETHOD.
+
+  METHOD product_switch_item.
+    result = _generic( ns     = `f`
+                       name   = `ProductSwitchItem`
+                       t_prop = VALUE #( ( n = `id`        v = id )
+                                         ( n = `src`       v = src )
+                                         ( n = `imageSrc`  v = imagesrc )
+                                         ( n = `title`     v = title )
+                                         ( n = `subTitle`  v = subtitle )
+                                         ( n = `target`    v = target )
+                                         ( n = `targetSrc` v = targetsrc ) ) ).
+  ENDMETHOD.
+
+  METHOD grid_container.
+    result = _generic( ns     = `f`
+                       name   = `GridContainer`
+                       t_prop = VALUE #( ( n = `id`                v = id )
+                                         ( n = `width`             v = width )
+                                         ( n = `minHeight`         v = minheight )
+                                         ( n = `containerQuery`    v = z2ui5_cl_util=>boolean_abap_2_json( containerquery ) )
+                                         ( n = `snapToRow`         v = z2ui5_cl_util=>boolean_abap_2_json( snaptorow ) )
+                                         ( n = `allowDenseFill`    v = z2ui5_cl_util=>boolean_abap_2_json( allowdensefill ) )
+                                         ( n = `inlineBlockLayout` v = z2ui5_cl_util=>boolean_abap_2_json( inlineblocklayout ) )
+                                         ( n = `layoutChange`      v = layoutchange )
+                                         ( n = `columnsChange`     v = columnschange )
+                                         ( n = `borderReached`     v = borderreached ) ) ).
+  ENDMETHOD.
+
+  METHOD grid_container_settings.
+    result = _generic( ns     = `f`
+                       name   = `GridContainerSettings`
+                       t_prop = VALUE #( ( n = `columns`       v = columns )
+                                         ( n = `columnSize`    v = columnsize )
+                                         ( n = `minColumnSize` v = mincolumnsize )
+                                         ( n = `maxColumnSize` v = maxcolumnsize )
+                                         ( n = `rowSize`       v = rowsize )
+                                         ( n = `gap`           v = gap ) ) ).
+  ENDMETHOD.
+
+  METHOD layout.
+    result = _generic( name = `layout`
+                       ns   = ns ).
+  ENDMETHOD.
+
+  METHOD dynamic_date_range.
+    result = _generic( name   = `DynamicDateRange`
+                       t_prop = VALUE #( ( n = `id`                 v = id )
+                                         ( n = `value`              v = value )
+                                         ( n = `width`              v = width )
+                                         ( n = `enabled`            v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
+                                         ( n = `editable`           v = z2ui5_cl_util=>boolean_abap_2_json( editable ) )
+                                         ( n = `required`           v = z2ui5_cl_util=>boolean_abap_2_json( required ) )
+                                         ( n = `name`               v = name )
+                                         ( n = `placeholder`        v = placeholder )
+                                         ( n = `valueState`         v = valuestate )
+                                         ( n = `valueStateText`     v = valuestatetext )
+                                         ( n = `enableGroupHeaders` v = z2ui5_cl_util=>boolean_abap_2_json( enablegroupheaders ) )
+                                         ( n = `hideInput`          v = z2ui5_cl_util=>boolean_abap_2_json( hideinput ) )
+                                         ( n = `showClearIcon`      v = z2ui5_cl_util=>boolean_abap_2_json( showclearicon ) )
+                                         ( n = `change`             v = change ) ) ).
   ENDMETHOD.
 
   METHOD rowmode.
