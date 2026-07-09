@@ -2841,6 +2841,23 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! <p class="shorttext synchronized" lang="en">sap.m.Menu</p>
+    "!
+    "! See https://ui5.sap.com/#/api/sap.m.Menu. Since 1.38. Hierarchical menu; the items are `sap.m.MenuItem`. Opened as a popover via `client->popover_display( by_id = ... )`.
+    "!
+    "! @parameter id           | (string) Stable control id.
+    "! @parameter title        | (string) Menu title.
+    "! @parameter itemselected | (event) Fired when a `MenuItem` is selected.
+    "! @parameter closed       | (event) Fired when the menu is closed.
+    METHODS menu
+      IMPORTING
+        id            TYPE clike OPTIONAL
+        title         TYPE clike OPTIONAL
+        itemselected  TYPE clike OPTIONAL
+        closed        TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     "! <p class="shorttext synchronized" lang="en">sap.m.MenuItem</p>
     "!
     "! See https://ui5.sap.com/#/api/sap.m.MenuItem.
@@ -12355,6 +12372,14 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `enabled`       v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
                                          ( n = `activeIcon`    v = activeicon )
                                          ( n = `type`          v = type ) ) ).
+  ENDMETHOD.
+
+  METHOD menu.
+    result = _generic( name   = `Menu`
+                       t_prop = VALUE #( ( n = `id`           v = id )
+                                         ( n = `title`        v = title )
+                                         ( n = `itemSelected` v = itemselected )
+                                         ( n = `closed`       v = closed ) ) ).
   ENDMETHOD.
 
   METHOD menu_item.
