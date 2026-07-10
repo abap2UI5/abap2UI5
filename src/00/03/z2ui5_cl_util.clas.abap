@@ -32,6 +32,11 @@ CLASS z2ui5_cl_util DEFINITION
 
     CLASS-METHODS class_constructor.
 
+    " Wraps the ABAP `ROLLBACK WORK` statement so the dependency on the
+    " database transaction control lives in one place and can be ported once
+    " for non-ABAP runtimes (e.g. transpiled JS).
+    CLASS-METHODS db_rollback.
+
     TYPES:
       BEGIN OF ty_s_name_value,
         n TYPE string,
@@ -1271,6 +1276,13 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     cv_abap_char_utilities_horizontal_tab = cl_abap_char_utilities=>horizontal_tab.
     cv_abap_char_utilities_charsize       = cl_abap_char_utilities=>charsize.
     cv_abap_format_e_xml_attr             = cl_abap_format=>e_xml_attr.
+
+  ENDMETHOD.
+
+
+  METHOD db_rollback.
+
+    ROLLBACK WORK.
 
   ENDMETHOD.
 

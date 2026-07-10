@@ -304,7 +304,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     DATA(li_app)    = CAST z2ui5_if_app( mo_action->mo_app->mo_app ).
 
     IF li_app->check_sticky = abap_false.
-      ROLLBACK WORK.
+      z2ui5_cl_util=>db_rollback( ).
     ENDIF.
     TRY.
         IF mo_action->ms_actual-event = z2ui5_if_core_types=>cs_event_nav_app_leave.
@@ -320,7 +320,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         li_client->nav_app_leave( z2ui5_cl_pop_error=>factory( lx2 ) ).
     ENDTRY.
     IF li_app->check_sticky = abap_false.
-      ROLLBACK WORK.
+      z2ui5_cl_util=>db_rollback( ).
     ENDIF.
 
     IF mo_action->ms_next-o_app_leave IS NOT INITIAL.
