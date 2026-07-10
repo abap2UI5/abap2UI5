@@ -167,7 +167,7 @@ CLASS z2ui5_cl_util_log IMPLEMENTATION.
 
   METHOD to_xlsx.
 
-    result = z2ui5_cl_util=>conv_get_xlsx_by_itab( mt_log ).
+    result = z2ui5_cl_util_ext=>conv_get_xlsx_by_itab( mt_log ).
 
   ENDMETHOD.
 

@@ -120,13 +120,6 @@ CLASS z2ui5_cl_util DEFINITION
         skip    TYPE abap_bool,
       END OF ty_s_msg_box.
 
-    TYPES:
-      BEGIN OF ty_s_zip_file,
-        name    TYPE string,
-        content TYPE xstring,
-      END OF ty_s_zip_file.
-    TYPES ty_t_zip_file TYPE STANDARD TABLE OF ty_s_zip_file WITH EMPTY KEY.
-
     CLASS-METHODS ui5_get_msg_type
       IMPORTING
         val           TYPE clike
@@ -715,53 +708,6 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    CLASS-METHODS cal_get_weekday
-      IMPORTING
-        !date         TYPE d
-      RETURNING
-        VALUE(result) TYPE i.
-
-    CLASS-METHODS cal_is_weekend
-      IMPORTING
-        !date         TYPE d
-      RETURNING
-        VALUE(result) TYPE abap_bool.
-
-    CLASS-METHODS cal_is_workday
-      IMPORTING
-        !date         TYPE d
-        !calendar_id  TYPE clike OPTIONAL
-      RETURNING
-        VALUE(result) TYPE abap_bool.
-
-    CLASS-METHODS cal_add_workdays
-      IMPORTING
-        !date         TYPE d
-        !days         TYPE i
-        !calendar_id  TYPE clike OPTIONAL
-      RETURNING
-        VALUE(result) TYPE d.
-
-    CLASS-METHODS cal_count_workdays
-      IMPORTING
-        !date_from    TYPE d
-        !date_to      TYPE d
-        !calendar_id  TYPE clike OPTIONAL
-      RETURNING
-        VALUE(result) TYPE i.
-
-    CLASS-METHODS zip_pack
-      IMPORTING
-        !files        TYPE ty_t_zip_file
-      RETURNING
-        VALUE(result) TYPE xstring.
-
-    CLASS-METHODS zip_unpack
-      IMPORTING
-        !val          TYPE xstring
-      RETURNING
-        VALUE(result) TYPE ty_t_zip_file.
-
     " ========== String Extras ==========
 
     CLASS-METHODS c_pad_left
@@ -1253,18 +1199,6 @@ CLASS z2ui5_cl_util DEFINITION
         val           TYPE string
       RETURNING
         VALUE(result) TYPE xstring.
-
-    CLASS-METHODS conv_get_xlsx_by_itab
-      IMPORTING
-        val           TYPE ANY TABLE
-      RETURNING
-        VALUE(result) TYPE xstring.
-
-    CLASS-METHODS conv_get_itab_by_xlsx
-      IMPORTING
-        val    TYPE xstring
-      EXPORTING
-        result TYPE REF TO data.
 
     CLASS-METHODS rtti_get_classes_impl_intf
       IMPORTING
@@ -3164,119 +3098,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD cal_get_weekday.
-
-    " 1900-01-01 was a Monday, so the day distance modulo 7 yields the weekday
-    DATA(lv_days) = date - CONV d( `19000101` ).
-    result = lv_days MOD 7 + 1.
-
-  ENDMETHOD.
-
-  METHOD cal_is_weekend.
-
-    result = xsdbool( cal_get_weekday( date ) >= 6 ).
-
-  ENDMETHOD.
-
-  METHOD cal_is_workday.
-
-    IF calendar_id IS NOT INITIAL.
-      z2ui5_cl_util=>x_raise( `cal_is_workday: factory calendar support is not yet implemented` ).
-    ENDIF.
-
-    result = xsdbool( cal_is_weekend( date ) = abap_false ).
-
-  ENDMETHOD.
-
-  METHOD cal_add_workdays.
-
-    DATA(lv_remaining) = abs( days ).
-    DATA(lv_step) = COND i( WHEN days < 0 THEN -1 ELSE 1 ).
-
-    result = date.
-    WHILE lv_remaining > 0.
-      result = result + lv_step.
-      IF cal_is_workday( date = result calendar_id = calendar_id ) = abap_true.
-        lv_remaining = lv_remaining - 1.
-      ENDIF.
-    ENDWHILE.
-
-  ENDMETHOD.
-
-  METHOD cal_count_workdays.
-
-    DATA(lv_date) = date_from.
-    DATA(lv_step) = COND i( WHEN date_to < date_from THEN -1 ELSE 1 ).
-
-    WHILE lv_date <> date_to.
-      lv_date = lv_date + lv_step.
-      IF cal_is_workday( date = lv_date calendar_id = calendar_id ) = abap_true.
-        result = result + 1.
-      ENDIF.
-    ENDWHILE.
-
-  ENDMETHOD.
-
-  METHOD zip_pack.
-
-    DATA lo_zip TYPE REF TO object.
-
-    TRY.
-
-        CREATE OBJECT lo_zip TYPE ('CL_ABAP_ZIP').
-        LOOP AT files INTO DATA(ls_file).
-          CALL METHOD lo_zip->('ADD')
-            EXPORTING
-              name    = ls_file-name
-              content = ls_file-content.
-        ENDLOOP.
-        CALL METHOD lo_zip->('SAVE')
-          RECEIVING
-            zip = result.
-
-      CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = x.
-    ENDTRY.
-
-  ENDMETHOD.
-
-  METHOD zip_unpack.
-
-    DATA lo_zip    TYPE REF TO object.
-    DATA lv_name   TYPE string.
-    DATA ls_result LIKE LINE OF result.
-
-    FIELD-SYMBOLS <files> TYPE ANY TABLE.
-    FIELD-SYMBOLS <file>  TYPE any.
-    FIELD-SYMBOLS <name>  TYPE any.
-
-    TRY.
-
-        CREATE OBJECT lo_zip TYPE ('CL_ABAP_ZIP').
-        CALL METHOD lo_zip->('LOAD')
-          EXPORTING
-            zip = val.
-
-        ASSIGN lo_zip->('FILES') TO <files>.
-        LOOP AT <files> ASSIGNING <file>.
-          ASSIGN COMPONENT `NAME` OF STRUCTURE <file> TO <name>.
-          lv_name = <name>.
-
-          ls_result = VALUE #( name = lv_name ).
-          CALL METHOD lo_zip->('GET')
-            EXPORTING
-              name    = lv_name
-            IMPORTING
-              content = ls_result-content.
-          INSERT ls_result INTO TABLE result.
-        ENDLOOP.
-
-      CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = x.
-    ENDTRY.
-
-  ENDMETHOD.
-
   " ========== String Extras ==========
 
   METHOD c_pad_left.
@@ -4484,33 +4305,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
       DELETE result INDEX 1.
 
     ENDIF.
-
-  ENDMETHOD.
-
-  METHOD conv_get_xlsx_by_itab.
-
-*    DATA(write_access) = xco_cp_xlsx=>document->empty( )->write_access( ).
-*    DATA(worksheet) = write_access->get_workbook( )->worksheet->at_position( 1 ).
-*    DATA(selection_pattern) = xco_cp_xlsx_selection=>pattern_builder->simple_from_to( )->get_pattern( ).
-*    worksheet->select( selection_pattern
-*               )->row_stream(
-*               )->operation->write_from( REF #( val )
-*               )->execute( ).
-*    result = write_access->get_file_content( ).
-
-  ENDMETHOD.
-
-  METHOD conv_get_itab_by_xlsx.
-
-*    CLEAR result.
-*    DATA(document) = xco_cp_xlsx=>document->for_file_content( val )->read_access( ).
-*    DATA(sheet) = document->get_workbook( )->worksheet->at_position( 1 ).
-*    DATA(pattern) = xco_cp_xlsx_selection=>pattern_builder->simple_from_to( )->get_pattern( ).
-*    sheet->select( pattern
-*            )->row_stream(
-*            )->operation->write_to( REF #( result )
-*            )->set_value_transformation( xco_cp_xlsx_read_access=>value_transformation->string_value
-*            )->execute( ).
 
   ENDMETHOD.
 

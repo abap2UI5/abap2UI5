@@ -1810,10 +1810,6 @@ CLASS ltcl_unit_test_conversion DEFINITION FINAL
     METHODS test_itab_get_by_struc       FOR TESTING RAISING cx_static_check.
     METHODS test_time_add_seconds        FOR TESTING RAISING cx_static_check.
     METHODS test_time_diff_seconds       FOR TESTING RAISING cx_static_check.
-    METHODS test_cal_weekday             FOR TESTING RAISING cx_static_check.
-    METHODS test_cal_workdays            FOR TESTING RAISING cx_static_check.
-    METHODS test_zip_pack                FOR TESTING RAISING cx_static_check.
-    METHODS test_zip_unpack              FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -1955,80 +1951,6 @@ CLASS ltcl_unit_test_conversion IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_cal_weekday.
-
-    " 2024-01-01 was a Monday, 2024-01-07 a Sunday
-    cl_abap_unit_assert=>assert_equals(
-        exp = 1
-        act = z2ui5_cl_util=>cal_get_weekday( CONV d( `20240101` ) ) ).
-    cl_abap_unit_assert=>assert_false(
-        z2ui5_cl_util=>cal_is_weekend( CONV d( `20240101` ) ) ).
-
-    cl_abap_unit_assert=>assert_equals(
-        exp = 7
-        act = z2ui5_cl_util=>cal_get_weekday( CONV d( `20240107` ) ) ).
-    cl_abap_unit_assert=>assert_true(
-        z2ui5_cl_util=>cal_is_weekend( CONV d( `20240107` ) ) ).
-
-  ENDMETHOD.
-
-  METHOD test_cal_workdays.
-
-    " Friday 2024-03-15 + 1 workday skips the weekend -> Monday 2024-03-18
-    cl_abap_unit_assert=>assert_equals(
-        exp = CONV d( `20240318` )
-        act = z2ui5_cl_util=>cal_add_workdays( date = CONV d( `20240315` )
-                                               days = 1 ) ).
-
-    " Monday 2024-01-01 to Monday 2024-01-08 -> 5 workdays
-    cl_abap_unit_assert=>assert_equals(
-        exp = 5
-        act = z2ui5_cl_util=>cal_count_workdays( date_from = CONV d( `20240101` )
-                                                 date_to   = CONV d( `20240108` ) ) ).
-
-  ENDMETHOD.
-
-  METHOD test_zip_pack.
-
-    " Skip when the runtime (e.g. the transpiler) does not provide CL_ABAP_ZIP
-    DATA lo_probe TYPE REF TO object.
-    TRY.
-        CREATE OBJECT lo_probe TYPE ('CL_ABAP_ZIP').
-      CATCH cx_root.
-        RETURN.
-    ENDTRY.
-
-    DATA(lt_in) = VALUE z2ui5_cl_util=>ty_t_zip_file(
-        ( name = `hello.txt` content = CONV xstring( `48656C6C6F` ) )
-        ( name = `world.txt` content = CONV xstring( `576F726C64` ) ) ).
-
-    DATA(lv_archive) = z2ui5_cl_util=>zip_pack( lt_in ).
-    cl_abap_unit_assert=>assert_not_initial( lv_archive ).
-
-  ENDMETHOD.
-
-  METHOD test_zip_unpack.
-
-    " Note: this full round-trip relies on CL_ABAP_ZIP=>LOAD, which the
-    " open-abap transpiler runtime does not implement - the method is therefore
-    " listed in the transpiler skip list (node/setup/abap_transpile.json).
-    DATA(lt_in) = VALUE z2ui5_cl_util=>ty_t_zip_file(
-        ( name = `hello.txt` content = CONV xstring( `48656C6C6F` ) )
-        ( name = `world.txt` content = CONV xstring( `576F726C64` ) ) ).
-
-    DATA(lv_archive) = z2ui5_cl_util=>zip_pack( lt_in ).
-    DATA(lt_out) = z2ui5_cl_util=>zip_unpack( lv_archive ).
-
-    cl_abap_unit_assert=>assert_equals( exp = 2 act = lines( lt_out ) ).
-
-    LOOP AT lt_in INTO DATA(ls_in).
-      DATA(ls_out) = VALUE #( lt_out[ name = ls_in-name ] OPTIONAL ).
-      cl_abap_unit_assert=>assert_equals( exp = ls_in-content
-                                          act = ls_out-content ).
-    ENDLOOP.
-
-  ENDMETHOD.
-
 ENDCLASS.
 
 
@@ -2049,8 +1971,6 @@ CLASS ltcl_unit_test_api DEFINITION FINAL
     METHODS test_conv_encode_x_base64      FOR TESTING RAISING cx_static_check.
     METHODS test_conv_decode_x_base64      FOR TESTING RAISING cx_static_check.
     METHODS test_encoding_roundtrip        FOR TESTING RAISING cx_static_check.
-    METHODS test_conv_get_xlsx_by_itab     FOR TESTING RAISING cx_static_check.
-    METHODS test_conv_get_itab_by_xlsx     FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_data_elem_texts  FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_classes_impl     FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_t_fixvalues      FOR TESTING RAISING cx_static_check.
@@ -2184,31 +2104,6 @@ CLASS ltcl_unit_test_api IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = lv_string
                                         act = lv_string3 ).
-
-  ENDMETHOD.
-
-  METHOD test_conv_get_xlsx_by_itab.
-
-    TYPES:
-      BEGIN OF ty_row,
-        col1 TYPE string,
-        col2 TYPE string,
-      END OF ty_row.
-
-    DATA lt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
-    lt_tab = VALUE #( ( col1 = `A` col2 = `B` ) ).
-
-    DATA(lv_result) = z2ui5_cl_util=>conv_get_xlsx_by_itab( lt_tab ) ##NEEDED.
-
-  ENDMETHOD.
-
-  METHOD test_conv_get_itab_by_xlsx.
-
-    DATA lv_xstring TYPE xstring.
-    DATA lr_result TYPE REF TO data.
-
-    z2ui5_cl_util=>conv_get_itab_by_xlsx( EXPORTING val    = lv_xstring
-                                              IMPORTING result = lr_result ) ##NEEDED.
 
   ENDMETHOD.
 
