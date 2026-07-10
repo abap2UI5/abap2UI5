@@ -190,17 +190,20 @@ CLASS z2ui5_cl_util DEFINITION
         check_table_line TYPE abap_bool,
       END OF ty_s_sel_tab_type.
 
-    " Builds the working table type for the selection popup: the line type of
-    " the source table plus an additional `ZZSELKZ` boolean flag column. If the
-    " source line is elementary it is wrapped into a `TAB_LINE` component.
-    " check_table_line reports whether that elementary wrapping happened.
+    " Builds a working table type from the line type of the source table. If
+    " the source line is elementary it is wrapped into a `TAB_LINE` component
+    " (check_table_line reports whether that happened). By default no extra
+    " column is added; when add_sel_field = abap_true an additional boolean
+    " flag column named sel_field_name (default `ZZSELKZ`) is inserted.
     " Keeps the dynamic RTTI type construction (describe_by_data / create) in
     " one place so it can be ported once for non-ABAP runtimes.
     CLASS-METHODS rtti_create_sel_tab_type
       IMPORTING
-        ir_tab        TYPE REF TO data
+        ir_tab         TYPE REF TO data
+        add_sel_field  TYPE abap_bool DEFAULT abap_false
+        sel_field_name TYPE clike     DEFAULT `ZZSELKZ`
       RETURNING
-        VALUE(result) TYPE ty_s_sel_tab_type.
+        VALUE(result)  TYPE ty_s_sel_tab_type.
 
     CLASS-METHODS msg_get
       IMPORTING
@@ -2992,9 +2995,10 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
                         type = lo_elem ) INTO TABLE lt_comp.
     ENDTRY.
 
-    IF NOT line_exists( lt_comp[ name = `ZZSELKZ` ] ).
+    IF add_sel_field = abap_true
+        AND NOT line_exists( lt_comp[ name = sel_field_name ] ).
       DATA(lo_type_bool) = cl_abap_typedescr=>describe_by_name( `ABAP_BOOL` ).
-      INSERT VALUE #( name = `ZZSELKZ`
+      INSERT VALUE #( name = sel_field_name
                       type = CAST #( lo_type_bool ) ) INTO TABLE lt_comp.
     ENDIF.
 

@@ -187,7 +187,8 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
     ASSIGN mr_tab->* TO <tab>.
 
-    DATA(ls_sel_tab_type) = z2ui5_cl_util=>rtti_create_sel_tab_type( mr_tab ).
+    DATA(ls_sel_tab_type) = z2ui5_cl_util=>rtti_create_sel_tab_type( ir_tab        = mr_tab
+                                                                     add_sel_field = abap_true ).
     check_table_line = ls_sel_tab_type-check_table_line.
 
     CREATE DATA mr_tab_popup TYPE HANDLE ls_sel_tab_type-tabledescr.
