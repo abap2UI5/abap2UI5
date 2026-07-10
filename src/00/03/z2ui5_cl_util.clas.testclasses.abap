@@ -1810,6 +1810,7 @@ CLASS ltcl_unit_test_conversion DEFINITION FINAL
     METHODS test_itab_get_by_struc       FOR TESTING RAISING cx_static_check.
     METHODS test_time_add_seconds        FOR TESTING RAISING cx_static_check.
     METHODS test_time_diff_seconds       FOR TESTING RAISING cx_static_check.
+    METHODS test_time_diff_hours_now     FOR TESTING RAISING cx_static_check.
     METHODS test_cal_weekday             FOR TESTING RAISING cx_static_check.
     METHODS test_cal_workdays            FOR TESTING RAISING cx_static_check.
     METHODS test_zip_pack                FOR TESTING RAISING cx_static_check.
@@ -1953,6 +1954,18 @@ CLASS ltcl_unit_test_conversion IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = 120
                                         act = lv_diff ).
+
+  ENDMETHOD.
+
+  METHOD test_time_diff_hours_now.
+
+    " a timestamp two hours in the past must yield ~2 hours until now
+    DATA(lv_past) = z2ui5_cl_util=>time_subtract_seconds( time    = z2ui5_cl_util=>time_get_timestampl( )
+                                                          seconds = 7200 ).
+
+    DATA(lv_hours) = z2ui5_cl_util=>time_diff_hours_until_now( lv_past ).
+
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_hours >= 2 AND lv_hours < 3 ) ).
 
   ENDMETHOD.
 

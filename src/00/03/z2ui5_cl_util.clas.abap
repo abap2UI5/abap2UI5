@@ -627,6 +627,12 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE i.
 
+    CLASS-METHODS time_diff_hours_until_now
+      IMPORTING
+        !time         TYPE timestampl
+      RETURNING
+        VALUE(result) TYPE decfloat34.
+
     CLASS-METHODS conv_string_to_date
       IMPORTING
         val           TYPE clike
@@ -2986,6 +2992,15 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     DATA(lv_diff) = cl_abap_tstmp=>subtract( tstmp1 = time_to
                                               tstmp2 = time_from ).
     result = lv_diff.
+
+  ENDMETHOD.
+
+
+  METHOD time_diff_hours_until_now.
+
+    DATA(lv_seconds) = cl_abap_tstmp=>subtract( tstmp1 = time_get_timestampl( )
+                                                tstmp2 = time ).
+    result = lv_seconds / 3600.
 
   ENDMETHOD.
 
