@@ -237,7 +237,7 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
   CATCH cx_root ##NO_HANDLER.
   ```
 - **API parameter types:** Use `TYPE clike` for string/char input parameters in public API methods (allows both string and char literals without conversion)
-- **Utility access:** Always call utilities via the facade `z2ui5_cl_util` — it inherits everything from `z2ui5_cl_util_api`. Never reference `z2ui5_cl_util_api` (or its environment-specific implementations `z2ui5_cl_util_api_s` / `z2ui5_cl_util_api_c`) directly outside `src/00/`
+- **Utility access:** Always call utilities via the facade `z2ui5_cl_util` — it inherits everything from `z2ui5_cl_util_api`. Never reference `z2ui5_cl_util_api` directly outside `src/00/`. Environment-specific behavior (ABAP Cloud vs. standard ABAP) is branched inside `z2ui5_cl_util_api` via `context_check_abap_cloud( )` using dynamic calls, so the single class compiles on all targets
   ```abap
   " good
   z2ui5_cl_util=>bal_read( ... ).
