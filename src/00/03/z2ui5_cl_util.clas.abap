@@ -629,7 +629,7 @@ CLASS z2ui5_cl_util DEFINITION
 
     CLASS-METHODS time_diff_hours_until_now
       IMPORTING
-        !time         TYPE timestampl
+        !time         TYPE timestamp
       RETURNING
         VALUE(result) TYPE decfloat34.
 

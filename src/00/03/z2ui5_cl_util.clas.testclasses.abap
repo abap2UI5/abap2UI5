@@ -1960,8 +1960,9 @@ CLASS ltcl_unit_test_conversion IMPLEMENTATION.
   METHOD test_time_diff_hours_now.
 
     " a timestamp two hours in the past must yield ~2 hours until now
-    DATA(lv_past) = z2ui5_cl_util=>time_subtract_seconds( time    = z2ui5_cl_util=>time_get_timestampl( )
-                                                          seconds = 7200 ).
+    DATA lv_past TYPE timestamp.
+    lv_past = z2ui5_cl_util=>time_subtract_seconds( time    = z2ui5_cl_util=>time_get_timestampl( )
+                                                    seconds = 7200 ).
 
     DATA(lv_hours) = z2ui5_cl_util=>time_diff_hours_until_now( lv_past ).
 
