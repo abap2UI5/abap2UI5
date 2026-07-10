@@ -227,6 +227,14 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE abap_component_tab.
 
+    TYPES:
+      BEGIN OF ty_s_fix_val,
+        low   TYPE string,
+        high  TYPE string,
+        descr TYPE string,
+      END OF ty_s_fix_val.
+    TYPES ty_t_fix_val TYPE STANDARD TABLE OF ty_s_fix_val WITH DEFAULT KEY.
+
     CLASS-METHODS rtti_get_t_ddic_fixed_values
       IMPORTING
         rollname      TYPE clike
@@ -934,14 +942,6 @@ CLASS z2ui5_cl_util DEFINITION
     " ========== Background Job ==========
 
     " ========== Email ==========
-
-    TYPES:
-      BEGIN OF ty_s_fix_val,
-        low   TYPE string,
-        high  TYPE string,
-        descr TYPE string,
-      END OF ty_s_fix_val.
-    TYPES ty_t_fix_val TYPE STANDARD TABLE OF ty_s_fix_val WITH DEFAULT KEY.
 
     TYPES:
       BEGIN OF ty_syst,
