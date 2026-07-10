@@ -2998,13 +2998,17 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD time_diff_hours_until_now.
 
-    " accept any timestamp representation (DEC 15 or DEC 21,7) and
-    " normalize to timestampl before the arithmetic
-    DATA lv_time TYPE timestampl.
-    lv_time = time.
+    " accept any timestamp representation (DEC 15 or DEC 21,7) and normalize
+    " to concrete timestampl variables - cl_abap_tstmp validates the operand
+    " type strictly at runtime, so both operands must be typed timestampl
+    DATA lv_from TYPE timestampl.
+    lv_from = time.
 
-    DATA(lv_seconds) = cl_abap_tstmp=>subtract( tstmp1 = time_get_timestampl( )
-                                                tstmp2 = lv_time ).
+    DATA lv_to TYPE timestampl.
+    lv_to = time_get_timestampl( ).
+
+    DATA(lv_seconds) = time_diff_seconds( time_from = lv_from
+                                          time_to   = lv_to ).
     result = lv_seconds / 3600.
 
   ENDMETHOD.
