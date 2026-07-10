@@ -24,23 +24,23 @@ CLASS z2ui5_cl_util DEFINITION
     " cl_abap_format directly, so the dependency on those SAP standard classes
     " lives in exactly one place (this class' class_constructor) and can be
     " ported once for non-ABAP runtimes (e.g. transpiled JS).
-    CLASS-DATA cv_abap_char_utilities_newline TYPE c LENGTH 1 READ-ONLY.
-    CLASS-DATA cv_abap_char_utilities_cr_lf TYPE c LENGTH 2 READ-ONLY.
-    CLASS-DATA cv_abap_char_utilities_horizontal_tab TYPE c LENGTH 1 READ-ONLY.
-    CLASS-DATA cv_abap_char_utilities_charsize TYPE i READ-ONLY.
-    CLASS-DATA cv_abap_format_e_xml_attr LIKE cl_abap_format=>e_xml_attr READ-ONLY.
+    CLASS-DATA cv_char_utilities_newline        TYPE c LENGTH 1 READ-ONLY.
+    CLASS-DATA cv_char_utilities_cr_lf          TYPE c LENGTH 2 READ-ONLY.
+    CLASS-DATA cv_char_utilities_horizontal_tab TYPE c LENGTH 1 READ-ONLY.
+    CLASS-DATA cv_char_utilities_charsize       TYPE i          READ-ONLY.
+    CLASS-DATA cv_format_e_xml_attr             TYPE i          READ-ONLY.
 
     " RTTI type-kind / kind / visibility constants, so callers can branch on
     " stored type_kind/kind fields without referencing cl_abap_typedescr /
     " cl_abap_objectdescr directly.
-    CLASS-DATA cv_abap_typedescr_typekind_table LIKE cl_abap_typedescr=>typekind_table READ-ONLY.
-    CLASS-DATA cv_abap_typedescr_typekind_dref LIKE cl_abap_typedescr=>typekind_dref READ-ONLY.
-    CLASS-DATA cv_abap_typedescr_typekind_oref LIKE cl_abap_typedescr=>typekind_oref READ-ONLY.
-    CLASS-DATA cv_abap_typedescr_typekind_struct1 LIKE cl_abap_typedescr=>typekind_struct1 READ-ONLY.
-    CLASS-DATA cv_abap_typedescr_typekind_struct2 LIKE cl_abap_typedescr=>typekind_struct2 READ-ONLY.
-    CLASS-DATA cv_abap_typedescr_kind_struct LIKE cl_abap_typedescr=>kind_struct READ-ONLY.
-    CLASS-DATA cv_abap_typedescr_kind_ref LIKE cl_abap_typedescr=>kind_ref READ-ONLY.
-    CLASS-DATA cv_abap_objectdescr_public LIKE cl_abap_objectdescr=>public READ-ONLY.
+    CLASS-DATA cv_typedescr_typekind_table   TYPE c LENGTH 1 READ-ONLY.
+    CLASS-DATA cv_typedescr_typekind_dref    TYPE c LENGTH 1 READ-ONLY.
+    CLASS-DATA cv_typedescr_typekind_oref    TYPE c LENGTH 1 READ-ONLY.
+    CLASS-DATA cv_typedescr_typekind_struct1 TYPE c LENGTH 1 READ-ONLY.
+    CLASS-DATA cv_typedescr_typekind_struct2 TYPE c LENGTH 1 READ-ONLY.
+    CLASS-DATA cv_typedescr_kind_struct      TYPE c LENGTH 1 READ-ONLY.
+    CLASS-DATA cv_typedescr_kind_ref         TYPE c LENGTH 1 READ-ONLY.
+    CLASS-DATA cv_objectdescr_public         TYPE c LENGTH 1 READ-ONLY.
 
     CLASS-METHODS class_constructor.
 
@@ -1329,20 +1329,20 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD class_constructor.
 
-    cv_abap_char_utilities_newline        = cl_abap_char_utilities=>newline.
-    cv_abap_char_utilities_cr_lf          = cl_abap_char_utilities=>cr_lf.
-    cv_abap_char_utilities_horizontal_tab = cl_abap_char_utilities=>horizontal_tab.
-    cv_abap_char_utilities_charsize       = cl_abap_char_utilities=>charsize.
-    cv_abap_format_e_xml_attr             = cl_abap_format=>e_xml_attr.
+    cv_char_utilities_newline        = cl_abap_char_utilities=>newline.
+    cv_char_utilities_cr_lf          = cl_abap_char_utilities=>cr_lf.
+    cv_char_utilities_horizontal_tab = cl_abap_char_utilities=>horizontal_tab.
+    cv_char_utilities_charsize       = cl_abap_char_utilities=>charsize.
+    cv_format_e_xml_attr             = cl_abap_format=>e_xml_attr.
 
-    cv_abap_typedescr_typekind_table      = cl_abap_typedescr=>typekind_table.
-    cv_abap_typedescr_typekind_dref       = cl_abap_typedescr=>typekind_dref.
-    cv_abap_typedescr_typekind_oref       = cl_abap_typedescr=>typekind_oref.
-    cv_abap_typedescr_typekind_struct1    = cl_abap_typedescr=>typekind_struct1.
-    cv_abap_typedescr_typekind_struct2    = cl_abap_typedescr=>typekind_struct2.
-    cv_abap_typedescr_kind_struct         = cl_abap_typedescr=>kind_struct.
-    cv_abap_typedescr_kind_ref            = cl_abap_typedescr=>kind_ref.
-    cv_abap_objectdescr_public            = cl_abap_objectdescr=>public.
+    cv_typedescr_typekind_table      = cl_abap_typedescr=>typekind_table.
+    cv_typedescr_typekind_dref       = cl_abap_typedescr=>typekind_dref.
+    cv_typedescr_typekind_oref       = cl_abap_typedescr=>typekind_oref.
+    cv_typedescr_typekind_struct1    = cl_abap_typedescr=>typekind_struct1.
+    cv_typedescr_typekind_struct2    = cl_abap_typedescr=>typekind_struct2.
+    cv_typedescr_kind_struct         = cl_abap_typedescr=>kind_struct.
+    cv_typedescr_kind_ref            = cl_abap_typedescr=>kind_ref.
+    cv_objectdescr_public            = cl_abap_objectdescr=>public.
 
   ENDMETHOD.
 
@@ -1480,9 +1480,9 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     result = shift_left( shift_right( CONV string( val ) ) ).
     result = shift_right( val = result
-                          sub = cv_abap_char_utilities_horizontal_tab ).
+                          sub = cv_char_utilities_horizontal_tab ).
     result = shift_left( val = result
-                         sub = cv_abap_char_utilities_horizontal_tab ).
+                         sub = cv_char_utilities_horizontal_tab ).
     result = shift_left( shift_right( result ) ).
 
   ENDMETHOD.
@@ -1755,7 +1755,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
       INSERT lv_line INTO TABLE lt_lines.
     ENDLOOP.
 
-    result = concat_lines_of( table = lt_lines sep = cv_abap_char_utilities_cr_lf ).
+    result = concat_lines_of( table = lt_lines sep = cv_char_utilities_cr_lf ).
 
   ENDMETHOD.
 
@@ -1768,7 +1768,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     DATA lr_row TYPE REF TO data.
 
-    SPLIT val AT cv_abap_char_utilities_newline INTO TABLE DATA(lt_rows).
+    SPLIT val AT cv_char_utilities_newline INTO TABLE DATA(lt_rows).
     SPLIT lt_rows[ 1 ] AT `;` INTO TABLE DATA(lt_cols).
 
     LOOP AT lt_cols REFERENCE INTO DATA(lr_col).
@@ -2136,9 +2136,9 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     LOOP AT it_source INTO DATA(lv_source).
       IF strlen( lv_source ) > 1.
-        result = result && lv_source+1 && cv_abap_char_utilities_newline.
+        result = result && lv_source+1 && cv_char_utilities_newline.
       ELSE.
-        result = result && cv_abap_char_utilities_newline.
+        result = result && cv_char_utilities_newline.
       ENDIF.
     ENDLOOP.
 
@@ -5408,7 +5408,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         CREATE DATA lr_line TYPE (`SOLI`).
         ASSIGN lr_line->* TO <line>.
 
-        DATA(lt_lines) = c_split( val = body sep = cv_abap_char_utilities_newline ).
+        DATA(lt_lines) = c_split( val = body sep = cv_char_utilities_newline ).
         LOOP AT lt_lines INTO DATA(lv_body_line).
           ASSIGN COMPONENT `LINE` OF STRUCTURE <line> TO <field>.
           <field> = lv_body_line.

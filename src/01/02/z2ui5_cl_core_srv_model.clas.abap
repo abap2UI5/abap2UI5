@@ -171,8 +171,8 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
         LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
              WHERE bind_type <> ``
-                   AND type_kind <> z2ui5_cl_util=>cv_abap_typedescr_typekind_dref
-                   AND type_kind <> z2ui5_cl_util=>cv_abap_typedescr_typekind_oref.
+                   AND type_kind <> z2ui5_cl_util=>cv_typedescr_typekind_dref
+                   AND type_kind <> z2ui5_cl_util=>cv_typedescr_typekind_oref.
 
           IF lr_attri->custom_mapper IS BOUND.
             READ TABLE lt_mapper_cache REFERENCE INTO DATA(lr_mapper_cache)
@@ -236,9 +236,9 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE name_ref IS NOT INITIAL.
       CASE lr_attri->type_kind.
-        WHEN z2ui5_cl_util=>cv_abap_typedescr_typekind_table.
+        WHEN z2ui5_cl_util=>cv_typedescr_typekind_table.
           main_attri_db_load_table( lr_attri ).
-        WHEN z2ui5_cl_util=>cv_abap_typedescr_typekind_dref.
+        WHEN z2ui5_cl_util=>cv_typedescr_typekind_dref.
           main_attri_db_load_dref( ir_attri     = lr_attri
                                    ir_child_idx = lr_child_idx ).
       ENDCASE.
@@ -324,7 +324,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE name_ref  IS INITIAL
-               AND type_kind  = z2ui5_cl_util=>cv_abap_typedescr_typekind_dref.
+               AND type_kind  = z2ui5_cl_util=>cv_typedescr_typekind_dref.
 
       DATA(lv_name5) = |MO_APP->{ lr_attri->name }|.
       ASSIGN (lv_name5) TO FIELD-SYMBOL(<ref>).
@@ -340,11 +340,11 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
       CASE lo_descr->type_kind.
 
-        WHEN z2ui5_cl_util=>cv_abap_typedescr_typekind_table.
+        WHEN z2ui5_cl_util=>cv_typedescr_typekind_table.
 
           LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_child) "#EC CI_SORTSEQ
                WHERE name_ref    IS INITIAL
-                     AND type_kind    = z2ui5_cl_util=>cv_abap_typedescr_typekind_table
+                     AND type_kind    = z2ui5_cl_util=>cv_typedescr_typekind_table
                      AND name_parent  = lr_attri->name.
 
             DATA(lv_name6) = |MO_APP->{ lr_attri_child->name }|.
@@ -359,7 +359,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
             EXIT.
           ENDLOOP.
 
-        WHEN z2ui5_cl_util=>cv_abap_typedescr_typekind_struct1 OR z2ui5_cl_util=>cv_abap_typedescr_typekind_struct2.
+        WHEN z2ui5_cl_util=>cv_typedescr_typekind_struct1 OR z2ui5_cl_util=>cv_typedescr_typekind_struct2.
           lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <val1> ).
 
       ENDCASE.
@@ -367,7 +367,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     ENDLOOP.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri2)  "#EC CI_SORTSEQ
-         WHERE type_kind = z2ui5_cl_util=>cv_abap_typedescr_typekind_dref.
+         WHERE type_kind = z2ui5_cl_util=>cv_typedescr_typekind_dref.
 
       DATA(lv_name8) = |MO_APP->{ lr_attri2->name }|.
       ASSIGN (lv_name8) TO FIELD-SYMBOL(<ref2>).
@@ -452,8 +452,8 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
     DATA(lo_datadescr) = z2ui5_cl_util=>rtti_get_datadescr_by_data_ref( val ).
 
-    IF lo_datadescr->type_kind = z2ui5_cl_util=>cv_abap_typedescr_typekind_dref
-        OR lo_datadescr->type_kind = z2ui5_cl_util=>cv_abap_typedescr_typekind_oref.
+    IF lo_datadescr->type_kind = z2ui5_cl_util=>cv_typedescr_typekind_dref
+        OR lo_datadescr->type_kind = z2ui5_cl_util=>cv_typedescr_typekind_oref.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING
           val = `NO DATA REFERENCES FOR BINDING ALLOWED: DEREFERENCE YOUR DATA FIRST`.
@@ -518,7 +518,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
     CASE ls_attri2-o_typedescr->kind.
 
-      WHEN z2ui5_cl_util=>cv_abap_typedescr_kind_struct.
+      WHEN z2ui5_cl_util=>cv_typedescr_kind_struct.
         DATA(lt_attri) = diss_struc( ir_attri ).
         INSERT LINES OF lt_attri INTO TABLE result.
 
@@ -548,7 +548,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     DATA(lv_prefix) = COND string( WHEN ir_attri->name IS NOT INITIAL THEN |{ ir_attri->name }->| ).
 
     LOOP AT lt_attri REFERENCE INTO DATA(lr_attri)
-         WHERE visibility   = z2ui5_cl_util=>cv_abap_objectdescr_public
+         WHERE visibility   = z2ui5_cl_util=>cv_objectdescr_public
                AND is_interface = abap_false
                AND is_class     = abap_false
                AND is_constant  = abap_false.
@@ -567,7 +567,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
     DATA(lr_val) = attri_get_val_ref( ir_attri->name ).
 
-    IF ir_attri->o_typedescr->kind = z2ui5_cl_util=>cv_abap_typedescr_kind_ref.
+    IF ir_attri->o_typedescr->kind = z2ui5_cl_util=>cv_typedescr_kind_ref.
       DATA(lv_name) = |{ ir_attri->name }->|.
       DATA(lr_ref) = z2ui5_cl_util=>unassign_data( lr_val ).
     ELSE.
@@ -623,13 +623,13 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
       CASE lr_attri->type_kind.
 
-        WHEN z2ui5_cl_util=>cv_abap_typedescr_typekind_table.
+        WHEN z2ui5_cl_util=>cv_typedescr_typekind_table.
 
           LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_ref) "#EC CI_SORTSEQ
                WHERE check_dissolved  = abap_true
                      AND name            <> lr_attri->name
                      AND name_ref        IS INITIAL
-                     AND type_kind        = z2ui5_cl_util=>cv_abap_typedescr_typekind_table.
+                     AND type_kind        = z2ui5_cl_util=>cv_typedescr_typekind_table.
 
             TRY.
                 DATA(lr_attri_ref_ref) = attri_get_val_ref( lr_attri_ref->name ).
@@ -644,7 +644,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
             lr_attri->name_ref = lr_attri_ref->name.
           ENDLOOP.
 
-        WHEN z2ui5_cl_util=>cv_abap_typedescr_typekind_dref.
+        WHEN z2ui5_cl_util=>cv_typedescr_typekind_dref.
 
           ASSIGN lr_ref->* TO FIELD-SYMBOL(<ref>).
 
@@ -652,8 +652,8 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
                WHERE check_dissolved  = abap_true
                      AND name            <> lr_attri->name
                      AND name_ref        IS INITIAL
-                     AND (    type_kind = z2ui5_cl_util=>cv_abap_typedescr_typekind_struct1
-                           OR type_kind = z2ui5_cl_util=>cv_abap_typedescr_typekind_struct2 ).
+                     AND (    type_kind = z2ui5_cl_util=>cv_typedescr_typekind_struct1
+                           OR type_kind = z2ui5_cl_util=>cv_typedescr_typekind_struct2 ).
 
             TRY.
                 lr_attri_ref_ref = attri_get_val_ref( lr_attri_ref->name ).
@@ -712,18 +712,18 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
       CASE lr_attri->o_typedescr->kind.
 
-        WHEN z2ui5_cl_util=>cv_abap_typedescr_kind_struct.
+        WHEN z2ui5_cl_util=>cv_typedescr_kind_struct.
           DATA(lt_attri_struc) = diss_struc( lr_attri ).
           INSERT LINES OF lt_attri_struc INTO TABLE lt_attri_new.
 
-        WHEN z2ui5_cl_util=>cv_abap_typedescr_kind_ref.
+        WHEN z2ui5_cl_util=>cv_typedescr_kind_ref.
 
           CASE lr_attri->o_typedescr->type_kind.
 
-            WHEN z2ui5_cl_util=>cv_abap_typedescr_typekind_oref.
+            WHEN z2ui5_cl_util=>cv_typedescr_typekind_oref.
               DATA(lt_attri_oref) = diss_oref( lr_attri ).
               INSERT LINES OF lt_attri_oref INTO TABLE lt_attri_new.
-            WHEN z2ui5_cl_util=>cv_abap_typedescr_typekind_dref.
+            WHEN z2ui5_cl_util=>cv_typedescr_typekind_dref.
               DATA(lt_attri_dref) = diss_dref( lr_attri ).
               INSERT LINES OF lt_attri_dref INTO TABLE lt_attri_new.
             WHEN OTHERS.
