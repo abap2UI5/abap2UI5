@@ -30,19 +30,18 @@ CLASS z2ui5_cl_pop_data IMPLEMENTATION.
 
     ASSIGN mr_data->* TO <data>.
 
-    CASE z2ui5_cl_util=>rtti_get_type_kind( <data> ).
+    IF z2ui5_cl_util=>rtti_check_table( <data> ).
 
-      WHEN cl_abap_typedescr=>typekind_table.
+      client->nav_app_call( z2ui5_cl_pop_table=>factory( i_tab   = <data>
+                                                         i_title = title ) ).
 
-        client->nav_app_call( z2ui5_cl_pop_table=>factory( i_tab   = <data>
-                                                           i_title = title ) ).
+    ELSEIF z2ui5_cl_util=>rtti_check_structure( <data> ).
 
-      WHEN cl_abap_typedescr=>typekind_struct1 OR cl_abap_typedescr=>typekind_struct2.
-        DATA(lt_result) = z2ui5_cl_util=>itab_get_by_struc( <data> ).
-        client->nav_app_call( z2ui5_cl_pop_table=>factory( i_tab   = lt_result
-                                                           i_title = title ) ).
+      DATA(lt_result) = z2ui5_cl_util=>itab_get_by_struc( <data> ).
+      client->nav_app_call( z2ui5_cl_pop_table=>factory( i_tab   = lt_result
+                                                         i_title = title ) ).
 
-    ENDCASE.
+    ENDIF.
 
   ENDMETHOD.
 

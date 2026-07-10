@@ -147,6 +147,15 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    " Extracts the DDIC data element name (`\TYPE=...` part of the absolute
+    " name) from a component's elementary type, so callers do not reference
+    " cl_abap_elemdescr directly.
+    CLASS-METHODS rtti_get_ddic_type_name
+      IMPORTING
+        type          TYPE REF TO cl_abap_datadescr
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS msg_get
       IMPORTING
         VALUE(val)    TYPE any
@@ -2884,6 +2893,14 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   METHOD rtti_get_data_element_text_l.
 
     result = rtti_get_data_element_texts( val )-long.
+
+  ENDMETHOD.
+
+
+  METHOD rtti_get_ddic_type_name.
+
+    result = substring_after( val = CAST cl_abap_elemdescr( type )->absolute_name
+                              sub = `\TYPE=` ).
 
   ENDMETHOD.
 

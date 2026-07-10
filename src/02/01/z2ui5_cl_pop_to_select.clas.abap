@@ -123,9 +123,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
     DATA(columns) = tab->columns( ).
     LOOP AT lt_comp INTO ls_comp.
       DATA(text) = COND #(
-                     LET data_element_name = substring_after(
-                                                 val = CAST cl_abap_elemdescr( ls_comp-type )->absolute_name
-                                                 sub = `\TYPE=` )
+                     LET data_element_name = z2ui5_cl_util=>rtti_get_ddic_type_name( ls_comp-type )
                          medium_label = z2ui5_cl_util=>rtti_get_data_element_texts( data_element_name )-medium IN
                      WHEN medium_label IS NOT INITIAL
                      THEN medium_label
