@@ -131,7 +131,7 @@ src/
 ├── 00/                        # Layer 0: Utilities (DO NOT MODIFY)
 │   ├── 01/                    #   AJSON — JSON serialization
 │   ├── 02/                    #   S-RTTI — Runtime type information
-│   └── 03/                    #   General utilities (z2ui5_cl_util, _http, _log, _msg, _range, _xml)
+│   └── 03/                    #   General utilities (z2ui5_cl_util, _http, _msg, _range, _xml; 01/: _ext, _db, _log)
 ├── 01/                        # Layer 1: Core Engine
 │   ├── 01/                    #   Draft service (z2ui5_cl_core_srv_draft + z2ui5_t_01)
 │   ├── 02/                    #   Core classes (handler, client, action, app, srv_bind, srv_event, srv_model)
@@ -237,9 +237,10 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
   CATCH cx_root ##NO_HANDLER.
   ```
 - **API parameter types:** Use `TYPE clike` for string/char input parameters in public API methods (allows both string and char literals without conversion)
-- **Utility access:** Always call utilities via `z2ui5_cl_util`. Environment-specific behavior (ABAP Cloud vs. standard ABAP) is branched inside the class via `context_check_abap_cloud( )` using dynamic calls, so the single class compiles on all targets
+- **Utility access:** General utilities live in `z2ui5_cl_util`; Business Application Log (`bal_*`) and transport request (`tr_*`) utilities live in `z2ui5_cl_util_ext` (`src/00/03/01/`). Environment-specific behavior (ABAP Cloud vs. standard ABAP) is branched inside these classes via `z2ui5_cl_util=>context_check_abap_cloud( )` using dynamic calls, so they compile on all targets
   ```abap
-  z2ui5_cl_util=>bal_read( ... ).
+  z2ui5_cl_util=>uuid_get_c32( ).
+  z2ui5_cl_util_ext=>bal_read( ... ).
   ```
 
 ### Naming (enforced by abaplint)

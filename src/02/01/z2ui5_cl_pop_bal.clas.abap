@@ -95,7 +95,7 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
 
   METHOD factory_by_db.
 
-    r_result = factory( i_messages   = z2ui5_cl_util=>bal_read( object    = i_object
+    r_result = factory( i_messages   = z2ui5_cl_util_ext=>bal_read( object    = i_object
                                                                 subobject = i_subobject
                                                                 id        = i_extnumber )
                         i_title      = i_title
@@ -167,7 +167,7 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
     ENDIF.
 
     TRY.
-        z2ui5_cl_util=>bal_create( object    = mv_object
+        z2ui5_cl_util_ext=>bal_create( object    = mv_object
                                    subobject = mv_subobject
                                    id        = mv_extnumber
                                    t_log     = mt_msg_bal ).
