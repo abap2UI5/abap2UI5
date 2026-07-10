@@ -472,6 +472,184 @@ CLASS z2ui5_cl_util_ext DEFINITION
         imported TYPE abap_bool
         rc       TYPE i.
 
+    " ========== Enqueue/Dequeue Locks ==========
+
+    TYPES:
+      BEGIN OF ty_s_lock_param,
+        name  TYPE c LENGTH 30,
+        value TYPE string,
+      END OF ty_s_lock_param.
+    TYPES ty_t_lock_param TYPE STANDARD TABLE OF ty_s_lock_param WITH DEFAULT KEY.
+
+    TYPES:
+      BEGIN OF ty_s_lock,
+        lock_object TYPE string,
+        argument    TYPE string,
+        user        TYPE string,
+        mode        TYPE string,
+        client      TYPE string,
+        date        TYPE d,
+        time        TYPE t,
+        owner       TYPE string,
+        owner_vb    TYPE string,
+      END OF ty_s_lock.
+    TYPES ty_t_lock TYPE STANDARD TABLE OF ty_s_lock WITH DEFAULT KEY.
+
+    CLASS-METHODS lock_set
+      IMPORTING
+        val           TYPE clike
+        t_param       TYPE ty_t_lock_param OPTIONAL
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS lock_set_wait
+      IMPORTING
+        val           TYPE clike
+        t_param       TYPE ty_t_lock_param OPTIONAL
+        retries       TYPE i DEFAULT 5
+        delay_ms      TYPE i DEFAULT 500
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS lock_is_locked
+      IMPORTING
+        val           TYPE clike
+        t_param       TYPE ty_t_lock_param OPTIONAL
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS lock_get_owner
+      IMPORTING
+        val           TYPE clike
+        t_param       TYPE ty_t_lock_param OPTIONAL
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS lock_get_dequeue_by_enqueue
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS lock_read
+      IMPORTING
+        lock_object   TYPE clike OPTIONAL
+        !user         TYPE clike OPTIONAL
+        client        TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE ty_t_lock.
+
+    CLASS-METHODS lock_delete
+      IMPORTING
+        val           TYPE clike
+        t_param       TYPE ty_t_lock_param OPTIONAL
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS lock_delete_entries
+      IMPORTING
+        t_lock        TYPE ty_t_lock
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    " ========== System Services ==========
+
+    TYPES:
+      BEGIN OF ty_s_changdoc,
+        changenr  TYPE string,
+        username  TYPE string,
+        udate     TYPE d,
+        utime     TYPE t,
+        tcode     TYPE string,
+        fieldname TYPE string,
+        old_value TYPE string,
+        new_value TYPE string,
+        tabname   TYPE string,
+        chngind   TYPE string,
+      END OF ty_s_changdoc.
+    TYPES ty_t_changdoc TYPE STANDARD TABLE OF ty_s_changdoc WITH EMPTY KEY.
+
+    CLASS-METHODS auth_check
+      IMPORTING
+        object        TYPE clike
+        field         TYPE clike
+        !value        TYPE clike
+        activity      TYPE clike DEFAULT '03'
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS text_get
+      IMPORTING
+        msgid         TYPE clike
+        msgno         TYPE clike
+        v1            TYPE clike OPTIONAL
+        v2            TYPE clike OPTIONAL
+        v3            TYPE clike OPTIONAL
+        v4            TYPE clike OPTIONAL
+        langu         TYPE clike DEFAULT sy-langu
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS mail_send
+      IMPORTING
+        !to      TYPE string
+        subject  TYPE string
+        body     TYPE string
+        html     TYPE abap_bool DEFAULT abap_false
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS job_submit_report
+      IMPORTING
+        report          TYPE clike
+        variant         TYPE clike OPTIONAL
+        start_immediate TYPE abap_bool DEFAULT abap_true
+        job_name        TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)   TYPE string.
+
+    CLASS-METHODS numrange_get_next
+      IMPORTING
+        object        TYPE clike
+        subobject     TYPE clike DEFAULT `01`
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS changdoc_read
+      IMPORTING
+        objectclass   TYPE clike
+        objectid      TYPE clike
+        date_from     TYPE d DEFAULT '19000101'
+        date_to       TYPE d DEFAULT '99991231'
+      RETURNING
+        VALUE(result) TYPE ty_t_changdoc.
+
+    " ========== Source Code / Dev Tools ==========
+
+    CLASS-METHODS source_get_method
+      IMPORTING
+        iv_classname  TYPE clike
+        iv_methodname TYPE clike
+      RETURNING
+        VALUE(result) TYPE string_table.
+
+    CLASS-METHODS source_get_method2
+      IMPORTING
+        iv_classname  TYPE clike
+        iv_methodname TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS source_get_file_types
+      RETURNING
+        VALUE(result) TYPE string_table.
+
+    CLASS-METHODS source_method_to_file
+      IMPORTING
+        it_source     TYPE string_table
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
     CLASS-METHODS _set_e071k
       IMPORTING
@@ -570,6 +748,13 @@ CLASS z2ui5_cl_util_ext DEFINITION
         msg           TYPE any
       RETURNING
         VALUE(result) TYPE z2ui5_cl_util=>ty_s_msg.
+
+    CLASS-METHODS lock_call_function
+      IMPORTING
+        val           TYPE clike
+        t_param       TYPE ty_t_lock_param OPTIONAL
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 ENDCLASS.
 
 
@@ -3530,6 +3715,927 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
         result-text = lv_text.
       CATCH cx_root.
         result-text = result-v1.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD lock_set.
+
+    result = lock_call_function( val     = val
+                                 t_param = t_param ).
+
+  ENDMETHOD.
+
+  METHOD lock_set_wait.
+
+    DATA(lv_remaining) = retries.
+
+    WHILE lv_remaining > 0.
+      result = lock_set( val     = val
+                          t_param = t_param ).
+      IF result = abap_true.
+        RETURN.
+      ENDIF.
+      lv_remaining = lv_remaining - 1.
+      IF lv_remaining > 0.
+        WAIT UP TO delay_ms / 1000 SECONDS.
+      ENDIF.
+    ENDWHILE.
+
+  ENDMETHOD.
+
+  METHOD lock_is_locked.
+
+    " Try to set the lock — if it fails, the object is locked.
+    DATA(lv_locked) = lock_set( val     = val
+                                 t_param = t_param ).
+    IF lv_locked = abap_true.
+      " We got it — release immediately
+      lock_delete( val     = val
+                   t_param = t_param ).
+      result = abap_false.
+    ELSE.
+      result = abap_true.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD lock_get_owner.
+
+    TRY.
+        DATA(lt_locks) = lock_read( ).
+
+        " Build the lock argument from params for matching
+        DATA(lv_arg) = ``.
+        LOOP AT t_param INTO DATA(ls_param).
+          lv_arg = lv_arg && ls_param-value.
+        ENDLOOP.
+
+        DATA(lv_name) = z2ui5_cl_util=>c_trim_upper( val ).
+        REPLACE `ENQUEUE_` IN lv_name WITH ``.
+
+        LOOP AT lt_locks INTO DATA(ls_lock)
+             WHERE lock_object CS lv_name.
+          IF lv_arg IS INITIAL OR ls_lock-argument CS lv_arg.
+            result = ls_lock-user.
+            RETURN.
+          ENDIF.
+        ENDLOOP.
+
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD lock_get_dequeue_by_enqueue.
+
+    result = replace( val  = z2ui5_cl_util=>c_trim_upper( val )
+                      sub  = `ENQUEUE_`
+                      with = `DEQUEUE_` ).
+
+  ENDMETHOD.
+
+  METHOD lock_read.
+
+    DATA lr_enq TYPE REF TO data.
+    FIELD-SYMBOLS <lt_enq>   TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <ls_enq>   TYPE any.
+    FIELD-SYMBOLS <lv_value> TYPE any.
+    DATA lv_client     TYPE c LENGTH 3.
+    DATA lv_name       TYPE c LENGTH 30.
+    DATA lv_uname      TYPE c LENGTH 12.
+    DATA lt_param      TYPE abap_func_parmbind_tab.
+    DATA ls_param      TYPE abap_func_parmbind.
+    DATA lt_exception  TYPE abap_func_excpbind_tab.
+    DATA ls_exception  TYPE abap_func_excpbind.
+    DATA lv_function   TYPE string.
+    DATA ls_lock       TYPE ty_s_lock.
+
+    TRY.
+        CREATE DATA lr_enq TYPE STANDARD TABLE OF (`SEQG3`).
+        ASSIGN lr_enq->* TO <lt_enq>.
+
+        IF client IS INITIAL.
+          lv_client = z2ui5_cl_util=>context_get_sy( )-mandt.
+        ELSE.
+          lv_client = client.
+        ENDIF.
+        lv_name  = lock_object.
+        lv_uname = user.
+
+        ls_param-name = `GCLIENT`.
+        ls_param-kind = abap_func_exporting.
+        GET REFERENCE OF lv_client INTO ls_param-value.
+        INSERT ls_param INTO TABLE lt_param.
+
+        ls_param-name = `GNAME`.
+        GET REFERENCE OF lv_name INTO ls_param-value.
+        INSERT ls_param INTO TABLE lt_param.
+
+        ls_param-name = `GUNAME`.
+        GET REFERENCE OF lv_uname INTO ls_param-value.
+        INSERT ls_param INTO TABLE lt_param.
+
+        ls_param-name = `ENQ`.
+        ls_param-kind = abap_func_tables.
+        GET REFERENCE OF <lt_enq> INTO ls_param-value.
+        INSERT ls_param INTO TABLE lt_param.
+
+        ls_exception-name  = `OTHERS`.
+        ls_exception-value = 4.
+        INSERT ls_exception INTO TABLE lt_exception.
+
+        lv_function = `ENQUEUE_READ`.
+        CALL FUNCTION lv_function
+          PARAMETER-TABLE lt_param
+          EXCEPTION-TABLE lt_exception.
+        IF sy-subrc <> 0.
+          RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = `LOCK_READ_FAILED`.
+        ENDIF.
+
+        LOOP AT <lt_enq> ASSIGNING <ls_enq>.
+          CLEAR ls_lock.
+          ASSIGN COMPONENT `GNAME` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            ls_lock-lock_object = <lv_value>.
+          ENDIF.
+          ASSIGN COMPONENT `GARG` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            ls_lock-argument = <lv_value>.
+          ENDIF.
+          ASSIGN COMPONENT `GUNAME` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            ls_lock-user = <lv_value>.
+          ENDIF.
+          ASSIGN COMPONENT `GMODE` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            ls_lock-mode = <lv_value>.
+          ENDIF.
+          ASSIGN COMPONENT `GCLIENT` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            ls_lock-client = <lv_value>.
+          ENDIF.
+          ASSIGN COMPONENT `GTDATE` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            ls_lock-date = <lv_value>.
+          ENDIF.
+          ASSIGN COMPONENT `GTTIME` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            ls_lock-time = <lv_value>.
+          ENDIF.
+          ASSIGN COMPONENT `GUSR` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            ls_lock-owner = <lv_value>.
+          ENDIF.
+          ASSIGN COMPONENT `GUSRVB` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            ls_lock-owner_vb = <lv_value>.
+          ENDIF.
+          INSERT ls_lock INTO TABLE result.
+        ENDLOOP.
+
+      CATCH z2ui5_cx_util_error INTO DATA(lx_error).
+        RAISE EXCEPTION lx_error.
+      CATCH cx_root INTO DATA(lx_root).
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = lx_root.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD lock_delete.
+
+    result = lock_call_function( val     = lock_get_dequeue_by_enqueue( val )
+                                 t_param = t_param ).
+
+  ENDMETHOD.
+
+  METHOD lock_delete_entries.
+
+    DATA lr_enq TYPE REF TO data.
+    FIELD-SYMBOLS <lt_enq>   TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <ls_enq>   TYPE any.
+    FIELD-SYMBOLS <lv_value> TYPE any.
+    DATA lr_row        TYPE REF TO data.
+    DATA ls_lock       TYPE ty_s_lock.
+    DATA lv_check_upd  TYPE i.
+    DATA lv_subrc      TYPE sy-subrc.
+    DATA lt_param      TYPE abap_func_parmbind_tab.
+    DATA ls_param      TYPE abap_func_parmbind.
+    DATA lt_exception  TYPE abap_func_excpbind_tab.
+    DATA ls_exception  TYPE abap_func_excpbind.
+    DATA lv_function   TYPE string.
+
+    TRY.
+        CREATE DATA lr_enq TYPE STANDARD TABLE OF (`SEQG3`).
+        ASSIGN lr_enq->* TO <lt_enq>.
+        CREATE DATA lr_row TYPE (`SEQG3`).
+        ASSIGN lr_row->* TO <ls_enq>.
+
+        LOOP AT t_lock INTO ls_lock.
+          CLEAR <ls_enq>.
+          ASSIGN COMPONENT `GNAME` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            <lv_value> = ls_lock-lock_object.
+          ENDIF.
+          ASSIGN COMPONENT `GARG` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            <lv_value> = ls_lock-argument.
+          ENDIF.
+          ASSIGN COMPONENT `GUNAME` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            <lv_value> = ls_lock-user.
+          ENDIF.
+          ASSIGN COMPONENT `GMODE` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            <lv_value> = ls_lock-mode.
+          ENDIF.
+          ASSIGN COMPONENT `GCLIENT` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            <lv_value> = ls_lock-client.
+          ENDIF.
+          ASSIGN COMPONENT `GUSR` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            <lv_value> = ls_lock-owner.
+          ENDIF.
+          ASSIGN COMPONENT `GUSRVB` OF STRUCTURE <ls_enq> TO <lv_value>.
+          IF sy-subrc = 0.
+            <lv_value> = ls_lock-owner_vb.
+          ENDIF.
+          INSERT <ls_enq> INTO TABLE <lt_enq>.
+        ENDLOOP.
+
+        IF <lt_enq> IS INITIAL.
+          result = abap_true.
+          RETURN.
+        ENDIF.
+
+        ls_param-name = `CHECK_UPD_REQUESTS`.
+        ls_param-kind = abap_func_exporting.
+        GET REFERENCE OF lv_check_upd INTO ls_param-value.
+        INSERT ls_param INTO TABLE lt_param.
+
+        ls_param-name = `SUBRC`.
+        ls_param-kind = abap_func_importing.
+        GET REFERENCE OF lv_subrc INTO ls_param-value.
+        INSERT ls_param INTO TABLE lt_param.
+
+        ls_param-name = `ENQ`.
+        ls_param-kind = abap_func_tables.
+        GET REFERENCE OF <lt_enq> INTO ls_param-value.
+        INSERT ls_param INTO TABLE lt_param.
+
+        ls_exception-name  = `OTHERS`.
+        ls_exception-value = 4.
+        INSERT ls_exception INTO TABLE lt_exception.
+
+        lv_function = `ENQUE_DELETE`.
+        CALL FUNCTION lv_function
+          PARAMETER-TABLE lt_param
+          EXCEPTION-TABLE lt_exception.
+
+        result = xsdbool( sy-subrc = 0 AND lv_subrc = 0 ).
+
+      CATCH cx_root.
+        result = abap_false.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD auth_check.
+
+    DATA lv_object   TYPE c LENGTH 10.
+    DATA lv_field    TYPE c LENGTH 10.
+    DATA lv_value    TYPE c LENGTH 40.
+    DATA lv_activity TYPE c LENGTH 2.
+
+    lv_object   = object.
+    lv_field    = field.
+    lv_value    = value.
+    lv_activity = activity.
+
+    AUTHORITY-CHECK OBJECT lv_object
+      ID lv_field FIELD lv_value
+      ID 'ACTVT' FIELD lv_activity.
+
+    result = xsdbool( sy-subrc = 0 ).
+
+  ENDMETHOD.
+
+  METHOD text_get.
+
+    DATA lv_msgid TYPE c LENGTH 20.
+    DATA lv_msgno TYPE n LENGTH 3.
+    DATA lv_msgv1 TYPE c LENGTH 50.
+    DATA lv_msgv2 TYPE c LENGTH 50.
+    DATA lv_msgv3 TYPE c LENGTH 50.
+    DATA lv_msgv4 TYPE c LENGTH 50.
+    DATA lv_text  TYPE c LENGTH 200.
+
+    lv_msgid = msgid.
+    lv_msgno = msgno.
+    lv_msgv1 = v1.
+    lv_msgv2 = v2.
+    lv_msgv3 = v3.
+    lv_msgv4 = v4.
+
+    TRY.
+        DATA(lv_fm) = `MESSAGE_TEXT_BUILD`.
+        CALL FUNCTION lv_fm
+          EXPORTING
+            msgid               = lv_msgid
+            msgnr               = lv_msgno
+            msgv1               = lv_msgv1
+            msgv2               = lv_msgv2
+            msgv3               = lv_msgv3
+            msgv4               = lv_msgv4
+          IMPORTING
+            message_text_output = lv_text.
+        result = lv_text.
+      CATCH cx_root.
+        result = |{ lv_msgid } { lv_msgno }: { lv_msgv1 } { lv_msgv2 } { lv_msgv3 } { lv_msgv4 }|.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD mail_send.
+
+    IF z2ui5_cl_util=>context_check_abap_cloud( ).
+      " Cloud: use CL_BCS_MAIL_MESSAGE (released cloud mail API)
+      DATA lo_mail_c TYPE REF TO object.
+      DATA lv_cls_c  TYPE string.
+
+      TRY.
+          lv_cls_c = `CL_BCS_MAIL_MESSAGE`.
+          CALL METHOD (lv_cls_c)=>(`CREATE_INSTANCE`)
+            RECEIVING
+              result = lo_mail_c.
+
+          CALL METHOD lo_mail_c->(`SET_SENDER`)
+            EXPORTING
+              iv_address = z2ui5_cl_util=>context_get_user_tech( ) && `@placeholder.local`.
+
+          CALL METHOD lo_mail_c->(`ADD_RECIPIENT`)
+            EXPORTING
+              iv_address = to.
+
+          CALL METHOD lo_mail_c->(`SET_SUBJECT`)
+            EXPORTING
+              iv_subject = subject.
+
+          IF html = abap_true.
+            CALL METHOD lo_mail_c->(`SET_MAIN`)
+              EXPORTING
+                iv_content_type = `text/html`
+                iv_content_text = body.
+          ELSE.
+            CALL METHOD lo_mail_c->(`SET_MAIN`)
+              EXPORTING
+                iv_content_type = `text/plain`
+                iv_content_text = body.
+          ENDIF.
+
+          CALL METHOD lo_mail_c->(`SEND`)
+            RECEIVING
+              result = result.
+
+        CATCH cx_root.
+          result = abap_false.
+      ENDTRY.
+      RETURN.
+    ENDIF.
+
+    " Standard ABAP: use CL_BCS
+    DATA lo_mail      TYPE REF TO object.
+    DATA lo_sender    TYPE REF TO object.
+    DATA lo_recipient TYPE REF TO object.
+    DATA lo_doc       TYPE REF TO object.
+    DATA lr_body      TYPE REF TO data.
+    DATA lr_line      TYPE REF TO data.
+    DATA lv_class     TYPE string.
+    DATA lv_subject   TYPE c LENGTH 50.
+    DATA lv_type      TYPE c LENGTH 3.
+    DATA lv_address   TYPE c LENGTH 241.
+    FIELD-SYMBOLS <body>  TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <line>  TYPE any.
+    FIELD-SYMBOLS <field> TYPE any.
+
+    lv_subject = subject.
+    lv_address = to.
+    lv_type    = COND #( WHEN html = abap_true THEN `HTM` ELSE `RAW` ).
+
+    TRY.
+        " Create BCS instance
+        lv_class = `CL_BCS`.
+        CALL METHOD (lv_class)=>(`CREATE_PERSISTENT`)
+          RECEIVING
+            result = lo_mail.
+
+        " Sender
+        lv_class = `CL_SAPUSER_BCS`.
+        CALL METHOD (lv_class)=>(`CREATE`)
+          EXPORTING
+            i_user = sy-uname
+          RECEIVING
+            result = lo_sender.
+        CALL METHOD lo_mail->(`SET_SENDER`)
+          EXPORTING
+            i_sender = lo_sender.
+
+        " Recipient
+        lv_class = `CL_CAM_ADDRESS_BCS`.
+        CALL METHOD (lv_class)=>(`CREATE_INTERNET_ADDRESS`)
+          EXPORTING
+            i_address_string = lv_address
+          RECEIVING
+            result           = lo_recipient.
+        CALL METHOD lo_mail->(`ADD_RECIPIENT`)
+          EXPORTING
+            i_recipient = lo_recipient.
+
+        " Build body text table
+        CREATE DATA lr_body TYPE (`BCSY_TEXT`).
+        ASSIGN lr_body->* TO <body>.
+        CREATE DATA lr_line TYPE (`SOLI`).
+        ASSIGN lr_line->* TO <line>.
+
+        DATA(lt_lines) = z2ui5_cl_util=>c_split( val = body sep = z2ui5_cl_util=>cv_char_util_newline ).
+        LOOP AT lt_lines INTO DATA(lv_body_line).
+          ASSIGN COMPONENT `LINE` OF STRUCTURE <line> TO <field>.
+          <field> = lv_body_line.
+          INSERT <line> INTO TABLE <body>.
+        ENDLOOP.
+
+        " Create document
+        lv_class = `CL_DOCUMENT_BCS`.
+        CALL METHOD (lv_class)=>(`CREATE_DOCUMENT`)
+          EXPORTING
+            i_type    = lv_type
+            i_text    = <body>
+            i_subject = lv_subject
+          RECEIVING
+            result    = lo_doc.
+
+        CALL METHOD lo_mail->(`SET_DOCUMENT`)
+          EXPORTING
+            i_document = lo_doc.
+        CALL METHOD lo_mail->(`SET_SEND_IMMEDIATELY`)
+          EXPORTING
+            i_send_immediately = abap_true.
+
+        CALL METHOD lo_mail->(`SEND`)
+          RECEIVING
+            result = result.
+        COMMIT WORK AND WAIT.
+
+      CATCH cx_root.
+        result = abap_false.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD job_submit_report.
+
+    IF z2ui5_cl_util=>context_check_abap_cloud( ).
+      " Cloud: Application Jobs have a different architecture (job catalog + templates).
+      " Direct report submission is not available. Raise informative exception.
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING
+          val = `job_submit_report: On ABAP Cloud use CL_APJ_RT_API with a registered job catalog entry instead`.
+    ENDIF.
+
+    " Standard ABAP: JOB_OPEN / JOB_SUBMIT / JOB_CLOSE
+    DATA lv_fm       TYPE string.
+    DATA lv_jobname  TYPE c LENGTH 32.
+    DATA lv_jobcount TYPE c LENGTH 8.
+    DATA lv_report   TYPE c LENGTH 40.
+    DATA lv_variant  TYPE c LENGTH 14.
+
+    lv_report = report.
+    lv_variant = variant.
+    lv_jobname = COND #( WHEN job_name IS NOT INITIAL THEN job_name
+                         ELSE |Z2UI5_{ sy-datum }{ sy-uzeit }| ).
+
+    TRY.
+        lv_fm = `JOB_OPEN`.
+        CALL FUNCTION lv_fm
+          EXPORTING
+            jobname  = lv_jobname
+          IMPORTING
+            jobcount = lv_jobcount
+          EXCEPTIONS
+            OTHERS   = 1.
+        IF sy-subrc <> 0.
+          RAISE EXCEPTION TYPE z2ui5_cx_util_error
+            EXPORTING
+              val = `JOB_OPEN failed`.
+        ENDIF.
+
+        lv_fm = `JOB_SUBMIT`.
+        CALL FUNCTION lv_fm
+          EXPORTING
+            authcknam = sy-uname
+            jobcount  = lv_jobcount
+            jobname   = lv_jobname
+            report    = lv_report
+            variant   = lv_variant
+          EXCEPTIONS
+            OTHERS    = 1.
+        IF sy-subrc <> 0.
+          RAISE EXCEPTION TYPE z2ui5_cx_util_error
+            EXPORTING
+              val = `JOB_SUBMIT failed`.
+        ENDIF.
+
+        lv_fm = `JOB_CLOSE`.
+        IF start_immediate = abap_true.
+          CALL FUNCTION lv_fm
+            EXPORTING
+              jobcount  = lv_jobcount
+              jobname   = lv_jobname
+              strtimmed = abap_true
+            EXCEPTIONS
+              OTHERS    = 1.
+        ELSE.
+          CALL FUNCTION lv_fm
+            EXPORTING
+              jobcount  = lv_jobcount
+              jobname   = lv_jobname
+            EXCEPTIONS
+              OTHERS    = 1.
+        ENDIF.
+        IF sy-subrc <> 0.
+          RAISE EXCEPTION TYPE z2ui5_cx_util_error
+            EXPORTING
+              val = `JOB_CLOSE failed`.
+        ENDIF.
+
+        result = lv_jobname.
+
+      CATCH z2ui5_cx_util_error INTO DATA(lx).
+        RAISE EXCEPTION lx.
+      CATCH cx_root INTO DATA(x).
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING
+            val = x.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD numrange_get_next.
+
+    DATA lv_object  TYPE c LENGTH 10.
+    DATA lv_nr_sub  TYPE c LENGTH 2.
+    DATA lv_number  TYPE c LENGTH 20.
+
+    lv_object = object.
+    lv_nr_sub = subobject.
+
+    TRY.
+        IF z2ui5_cl_util=>context_check_abap_cloud( ).
+          " Cloud: use CL_NUMBERRANGE_RUNTIME
+          DATA(lv_cls) = `CL_NUMBERRANGE_RUNTIME`.
+          CALL METHOD (lv_cls)=>(`NUMBER_GET`)
+            EXPORTING
+              nr_range_nr = lv_nr_sub
+              object      = lv_object
+            IMPORTING
+              number      = lv_number.
+        ELSE.
+          " Standard: use NUMBER_GET_NEXT FM
+          DATA(lv_fm) = `NUMBER_GET_NEXT`.
+          CALL FUNCTION lv_fm
+            EXPORTING
+              nr_range_nr = lv_nr_sub
+              object      = lv_object
+            IMPORTING
+              number      = lv_number
+            EXCEPTIONS
+              OTHERS      = 1.
+          IF sy-subrc <> 0.
+            RAISE EXCEPTION TYPE z2ui5_cx_util_error
+              EXPORTING
+                val = |NUMBER_GET_NEXT failed for { lv_object }/{ lv_nr_sub }|.
+          ENDIF.
+        ENDIF.
+
+        result = lv_number.
+
+      CATCH z2ui5_cx_util_error INTO DATA(lx).
+        RAISE EXCEPTION lx.
+      CATCH cx_root INTO DATA(x).
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING
+            val = x.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD changdoc_read.
+
+    IF z2ui5_cl_util=>context_check_abap_cloud( ).
+      " Cloud: use released CDS view I_ChangeDocument
+      TRY.
+          DATA(lv_cds) = `I_CHANGEDOCUMENTITEM`.
+          DATA(lv_where_c) = |OBJECTCLASS = '{ objectclass }' AND OBJECTID = '{ objectid }'|.
+          IF date_from IS NOT INITIAL.
+            lv_where_c = |{ lv_where_c } AND CREATIONDATE >= '{ date_from }'|.
+          ENDIF.
+          IF date_to IS NOT INITIAL AND date_to <> '99991231'.
+            lv_where_c = |{ lv_where_c } AND CREATIONDATE <= '{ date_to }'|.
+          ENDIF.
+
+          FIELD-SYMBOLS <cds_tab> TYPE STANDARD TABLE.
+          FIELD-SYMBOLS <cds_row> TYPE any.
+          FIELD-SYMBOLS <cds_fld> TYPE any.
+          DATA lr_cds_tab TYPE REF TO data.
+
+          DATA(lt_comp_c) = z2ui5_cl_util=>rtti_get_t_attri_by_table_name( lv_cds ).
+          DATA(lo_struct_c) = cl_abap_structdescr=>create( lt_comp_c ).
+          DATA(lo_table_c) = cl_abap_tabledescr=>create( lo_struct_c ).
+          CREATE DATA lr_cds_tab TYPE HANDLE lo_table_c.
+          ASSIGN lr_cds_tab->* TO <cds_tab>.
+
+          SELECT *
+            FROM (lv_cds)
+            WHERE (lv_where_c)
+            INTO CORRESPONDING FIELDS OF TABLE @<cds_tab>.
+
+          LOOP AT <cds_tab> ASSIGNING <cds_row>.
+            DATA(ls_doc_c) = VALUE ty_s_changdoc( ).
+            ASSIGN COMPONENT `CHANGEDOCOBJECTCLASS` OF STRUCTURE <cds_row> TO <cds_fld>.
+            IF sy-subrc <> 0.
+              ASSIGN COMPONENT `OBJECTCLASS` OF STRUCTURE <cds_row> TO <cds_fld>.
+            ENDIF.
+            ASSIGN COMPONENT `CHANGEDOCUMENT` OF STRUCTURE <cds_row> TO <cds_fld>.
+            IF sy-subrc = 0. ls_doc_c-changenr = <cds_fld>. ENDIF.
+            ASSIGN COMPONENT `CREATEDBYUSER` OF STRUCTURE <cds_row> TO <cds_fld>.
+            IF sy-subrc = 0. ls_doc_c-username = <cds_fld>. ENDIF.
+            ASSIGN COMPONENT `CREATIONDATE` OF STRUCTURE <cds_row> TO <cds_fld>.
+            IF sy-subrc = 0. ls_doc_c-udate = <cds_fld>. ENDIF.
+            ASSIGN COMPONENT `CREATIONTIME` OF STRUCTURE <cds_row> TO <cds_fld>.
+            IF sy-subrc = 0. ls_doc_c-utime = <cds_fld>. ENDIF.
+            ASSIGN COMPONENT `TRANSACTIONCODE` OF STRUCTURE <cds_row> TO <cds_fld>.
+            IF sy-subrc = 0. ls_doc_c-tcode = <cds_fld>. ENDIF.
+            ASSIGN COMPONENT `CHNGEDOCITEMFIELDNAME` OF STRUCTURE <cds_row> TO <cds_fld>.
+            IF sy-subrc = 0. ls_doc_c-fieldname = <cds_fld>. ENDIF.
+            ASSIGN COMPONENT `CHNGEDOCITEMNEWVALUE` OF STRUCTURE <cds_row> TO <cds_fld>.
+            IF sy-subrc = 0. ls_doc_c-new_value = <cds_fld>. ENDIF.
+            ASSIGN COMPONENT `CHNGEDOCITEMOLDVALUE` OF STRUCTURE <cds_row> TO <cds_fld>.
+            IF sy-subrc = 0. ls_doc_c-old_value = <cds_fld>. ENDIF.
+            ASSIGN COMPONENT `CHANGEDOCITEMTABLENAME` OF STRUCTURE <cds_row> TO <cds_fld>.
+            IF sy-subrc = 0. ls_doc_c-tabname = <cds_fld>. ENDIF.
+            ASSIGN COMPONENT `CHNGEDOCITEMCHNGIND` OF STRUCTURE <cds_row> TO <cds_fld>.
+            IF sy-subrc = 0. ls_doc_c-chngind = <cds_fld>. ENDIF.
+            INSERT ls_doc_c INTO TABLE result.
+          ENDLOOP.
+
+        CATCH cx_root ##NO_HANDLER.
+      ENDTRY.
+      RETURN.
+    ENDIF.
+
+    " Standard ABAP: use CHANGEDOCUMENT_READ_HEADERS/POSITIONS FMs
+    DATA lv_fm         TYPE string.
+    DATA lv_objectclas TYPE c LENGTH 15.
+    DATA lv_objectid   TYPE c LENGTH 90.
+    DATA lr_headers    TYPE REF TO data.
+    DATA lr_positions  TYPE REF TO data.
+    FIELD-SYMBOLS <headers>   TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <positions> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <hdr>       TYPE any.
+    FIELD-SYMBOLS <pos>       TYPE any.
+    FIELD-SYMBOLS <comp>      TYPE any.
+
+    lv_objectclas = objectclass.
+    lv_objectid   = objectid.
+
+    TRY.
+        CREATE DATA lr_headers TYPE STANDARD TABLE OF (`CDHDR`).
+        CREATE DATA lr_positions TYPE STANDARD TABLE OF (`CDPOS`).
+        ASSIGN lr_headers->* TO <headers>.
+        ASSIGN lr_positions->* TO <positions>.
+
+        lv_fm = `CHANGEDOCUMENT_READ_HEADERS`.
+        CALL FUNCTION lv_fm
+          EXPORTING
+            objectclass = lv_objectclas
+            objectid    = lv_objectid
+            date_of_change = date_from
+          TABLES
+            i_cdhdr     = <headers>
+          EXCEPTIONS
+            OTHERS      = 1.
+        IF sy-subrc <> 0.
+          RETURN.
+        ENDIF.
+
+        LOOP AT <headers> ASSIGNING <hdr>.
+
+          DATA(ls_doc) = VALUE ty_s_changdoc( ).
+          ASSIGN COMPONENT `CHANGENR` OF STRUCTURE <hdr> TO <comp>.
+          IF sy-subrc = 0. ls_doc-changenr = <comp>. ENDIF.
+          ASSIGN COMPONENT `USERNAME` OF STRUCTURE <hdr> TO <comp>.
+          IF sy-subrc = 0. ls_doc-username = <comp>. ENDIF.
+          ASSIGN COMPONENT `UDATE` OF STRUCTURE <hdr> TO <comp>.
+          IF sy-subrc = 0. ls_doc-udate = <comp>. ENDIF.
+          ASSIGN COMPONENT `UTIME` OF STRUCTURE <hdr> TO <comp>.
+          IF sy-subrc = 0. ls_doc-utime = <comp>. ENDIF.
+          ASSIGN COMPONENT `TCODE` OF STRUCTURE <hdr> TO <comp>.
+          IF sy-subrc = 0. ls_doc-tcode = <comp>. ENDIF.
+
+          " Read positions for this change number
+          CLEAR <positions>.
+          lv_fm = `CHANGEDOCUMENT_READ_POSITIONS`.
+          CALL FUNCTION lv_fm
+            EXPORTING
+              changenumber = ls_doc-changenr
+            TABLES
+              editpos      = <positions>
+            EXCEPTIONS
+              OTHERS       = 1.
+
+          IF <positions> IS INITIAL.
+            INSERT ls_doc INTO TABLE result.
+          ELSE.
+            LOOP AT <positions> ASSIGNING <pos>.
+              DATA(ls_pos) = ls_doc.
+              ASSIGN COMPONENT `FNAME` OF STRUCTURE <pos> TO <comp>.
+              IF sy-subrc = 0. ls_pos-fieldname = <comp>. ENDIF.
+              ASSIGN COMPONENT `VALUE_OLD` OF STRUCTURE <pos> TO <comp>.
+              IF sy-subrc = 0. ls_pos-old_value = <comp>. ENDIF.
+              ASSIGN COMPONENT `VALUE_NEW` OF STRUCTURE <pos> TO <comp>.
+              IF sy-subrc = 0. ls_pos-new_value = <comp>. ENDIF.
+              ASSIGN COMPONENT `TABNAME` OF STRUCTURE <pos> TO <comp>.
+              IF sy-subrc = 0. ls_pos-tabname = <comp>. ENDIF.
+              ASSIGN COMPONENT `CHNGIND` OF STRUCTURE <pos> TO <comp>.
+              IF sy-subrc = 0. ls_pos-chngind = <comp>. ENDIF.
+              INSERT ls_pos INTO TABLE result.
+            ENDLOOP.
+          ENDIF.
+
+        ENDLOOP.
+
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD source_get_method.
+
+    DATA object TYPE REF TO object.
+    FIELD-SYMBOLS <any> TYPE any.
+    DATA lt_source       TYPE string_table.
+    DATA lt_string       TYPE string_table.
+    DATA lv_class        TYPE string.
+    DATA lv_method       TYPE string.
+    DATA xco_cp_abap     TYPE c LENGTH 11.
+    DATA lv_name         TYPE c LENGTH 13.
+    DATA lv_check_method LIKE abap_false.
+    DATA lv_source       LIKE LINE OF lt_source.
+    DATA lv_source_upper TYPE string.
+
+    TRY.
+
+        lv_class  = to_upper( iv_classname ).
+        lv_method = to_upper( iv_methodname ).
+
+        xco_cp_abap = `XCO_CP_ABAP`.
+        CALL METHOD (xco_cp_abap)=>(`CLASS`)
+          EXPORTING
+            iv_name  = lv_class
+          RECEIVING
+            ro_class = object.
+
+        ASSIGN object->(`IF_XCO_AO_CLASS~IMPLEMENTATION`) TO <any>.
+        ASSERT sy-subrc = 0.
+        object = <any>.
+
+        CALL METHOD object->(`IF_XCO_CLAS_IMPLEMENTATION~METHOD`)
+          EXPORTING
+            iv_name   = lv_method
+          RECEIVING
+            ro_method = object.
+
+        CALL METHOD object->(`IF_XCO_CLAS_I_METHOD~CONTENT`)
+          RECEIVING
+            ro_content = object.
+
+        CALL METHOD object->(`IF_XCO_CLAS_I_METHOD_CONTENT~GET_SOURCE`)
+          RECEIVING
+            rt_source = result.
+
+      CATCH cx_root.
+
+        lv_name = `CL_OO_FACTORY`.
+        CALL METHOD (lv_name)=>(`CREATE_INSTANCE`)
+          RECEIVING
+            result = object.
+
+        CALL METHOD object->(`IF_OO_CLIF_SOURCE_FACTORY~CREATE_CLIF_SOURCE`)
+          EXPORTING
+            clif_name = lv_class
+          RECEIVING
+            result    = object.
+
+        CALL METHOD object->(`IF_OO_CLIF_SOURCE~GET_SOURCE`)
+          IMPORTING
+            source = lt_source.
+
+        lv_check_method = abap_false.
+
+        LOOP AT lt_source INTO lv_source.
+
+          lv_source_upper = to_upper( lv_source ).
+
+          IF lv_source_upper CS `ENDMETHOD`.
+            lv_check_method = abap_false.
+          ENDIF.
+
+          IF lv_source_upper CS |METHOD { lv_method }|.
+            lv_check_method = abap_true.
+            CONTINUE.
+          ENDIF.
+
+          IF lv_check_method = abap_true.
+            INSERT lv_source INTO TABLE lt_string.
+          ENDIF.
+
+        ENDLOOP.
+
+        result = lt_string.
+
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD source_get_method2.
+
+    DATA(lt_source) = source_get_method( iv_classname  = iv_classname
+                                         iv_methodname = iv_methodname ).
+
+    result = source_method_to_file( lt_source ).
+
+  ENDMETHOD.
+
+  METHOD source_get_file_types.
+
+    DATA(lv_types) = |abap, abc, actionscript, ada, apache_conf, applescript, asciidoc, assembly_x86, autohotkey, batchfile, bro, c9search, c_cpp, cirru, clojure, cobol, coffee, coldfusion, csharp, css, curly, d, dart, diff, django, dockerfile, | &&
+|dot, drools, eiffel, yaml, ejs, elixir, elm, erlang, forth, fortran, ftl, gcode, gherkin, gitignore, glsl, gobstones, golang, groovy, haml, handlebars, haskell, haskell_cabal, haxe, hjson, html, html_elixir, html_ruby, ini, io, jack, jade, java, ja| &&
+      |vascri| &&
+|pt, json, jsoniq, jsp, jsx, julia, kotlin, latex, lean, less, liquid, lisp, live_script, livescript, logiql, lsl, lua, luapage, lucene, makefile, markdown, mask, matlab, mavens_mate_log, maze, mel, mips_assembler, mipsassembler, mushcode, mysql, ni| &&
+|x, nsis, objectivec, ocaml, pascal, perl, pgsql, php, plain_text, powershell, praat, prolog, properties, protobuf, python, r, razor, rdoc, rhtml, rst, ruby, rust, sass, scad, scala, scheme, scss, sh, sjs, smarty, snippets, soy_template, space, sql,| &&
+      | sqlserver, stylus, svg, swift, swig, tcl, tex, text, textile, toml, tsx, twig, typescript, vala, vbscript, velocity, verilog, vhdl, wollok, xml, xquery, terraform, slim, redshift, red, puppet, php_laravel_blade, mixal, jssm, fsharp, edifact,| &&
+      | csp, cssound_score, cssound_orchestra, cssound_document| ##NO_TEXT.
+    SPLIT lv_types AT `,` INTO TABLE result.
+
+  ENDMETHOD.
+
+  METHOD source_method_to_file.
+
+    LOOP AT it_source INTO DATA(lv_source).
+      IF strlen( lv_source ) > 1.
+        result = result && lv_source+1 && z2ui5_cl_util=>cv_char_util_newline.
+      ELSE.
+        result = result && z2ui5_cl_util=>cv_char_util_newline.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD lock_call_function.
+
+    DATA lt_param      TYPE abap_func_parmbind_tab.
+    DATA ls_param      TYPE abap_func_parmbind.
+    DATA ls_lock_param TYPE ty_s_lock_param.
+    DATA lr_value      TYPE REF TO string.
+    DATA lt_exception  TYPE abap_func_excpbind_tab.
+    DATA ls_exception  TYPE abap_func_excpbind.
+    DATA lv_function   TYPE string.
+
+    TRY.
+        LOOP AT t_param INTO ls_lock_param.
+          ls_param-name = ls_lock_param-name.
+          ls_param-kind = abap_func_exporting.
+          CREATE DATA lr_value.
+          lr_value->* = ls_lock_param-value.
+          ls_param-value = lr_value.
+          INSERT ls_param INTO TABLE lt_param.
+        ENDLOOP.
+
+        ls_exception-name  = `OTHERS`.
+        ls_exception-value = 4.
+        INSERT ls_exception INTO TABLE lt_exception.
+
+        lv_function = z2ui5_cl_util=>c_trim_upper( val ).
+        CALL FUNCTION lv_function
+          PARAMETER-TABLE lt_param
+          EXCEPTION-TABLE lt_exception.
+
+        result = xsdbool( sy-subrc = 0 ).
+
+      CATCH cx_root.
+        result = abap_false.
     ENDTRY.
 
   ENDMETHOD.

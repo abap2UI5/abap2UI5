@@ -1814,7 +1814,6 @@ CLASS ltcl_unit_test_conversion DEFINITION FINAL
     METHODS test_cal_workdays            FOR TESTING RAISING cx_static_check.
     METHODS test_zip_pack                FOR TESTING RAISING cx_static_check.
     METHODS test_zip_unpack              FOR TESTING RAISING cx_static_check.
-    METHODS test_lock_get_dequeue        FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -2030,24 +2029,6 @@ CLASS ltcl_unit_test_conversion IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_lock_get_dequeue.
-
-    DATA lv_result TYPE string.
-
-    lv_result = z2ui5_cl_util=>lock_get_dequeue_by_enqueue( `ENQUEUE_EVVBAKE` ).
-    cl_abap_unit_assert=>assert_equals( exp = `DEQUEUE_EVVBAKE`
-                                        act = lv_result ).
-
-    lv_result = z2ui5_cl_util=>lock_get_dequeue_by_enqueue( `enqueue_evvbake` ).
-    cl_abap_unit_assert=>assert_equals( exp = `DEQUEUE_EVVBAKE`
-                                        act = lv_result ).
-
-    lv_result = z2ui5_cl_util=>lock_get_dequeue_by_enqueue( `DEQUEUE_EVVBAKE` ).
-    cl_abap_unit_assert=>assert_equals( exp = `DEQUEUE_EVVBAKE`
-                                        act = lv_result ).
-
-  ENDMETHOD.
-
 ENDCLASS.
 
 
@@ -2074,7 +2055,6 @@ CLASS ltcl_unit_test_api DEFINITION FINAL
     METHODS test_rtti_get_classes_impl     FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_t_fixvalues      FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_table_desrc      FOR TESTING RAISING cx_static_check.
-    METHODS test_source_get_method         FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -2286,18 +2266,6 @@ CLASS ltcl_unit_test_api IMPLEMENTATION.
 
     DATA(lv_result) = z2ui5_cl_util=>rtti_get_table_desrc( tabname = `T100` ).
     cl_abap_unit_assert=>assert_not_initial( lv_result ).
-
-  ENDMETHOD.
-
-  METHOD test_source_get_method.
-
-    IF sy-sysid = `ABC`.
-      RETURN.
-    ENDIF.
-
-    DATA(lt_source) = z2ui5_cl_util=>source_get_method(
-      iv_classname  = `Z2UI5_CL_UTIL`
-      iv_methodname = `UUID_GET_C32` ) ##NEEDED.
 
   ENDMETHOD.
 
