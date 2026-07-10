@@ -55,7 +55,7 @@ CLASS z2ui5_cx_util_error IMPLEMENTATION.
     IF previous IS BOUND.
       DATA(lo_x) = previous.
       WHILE lo_x IS BOUND.
-        result = result && cl_abap_char_utilities=>newline && lo_x->get_text( ).
+        result = result && z2ui5_cl_util=>cv_char_utilities_newline && lo_x->get_text( ).
         lo_x = lo_x->previous.
       ENDWHILE.
     ENDIF.

@@ -123,9 +123,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
     DATA(columns) = tab->columns( ).
     LOOP AT lt_comp INTO ls_comp.
       DATA(text) = COND #(
-                     LET data_element_name = substring_after(
-                                                 val = CAST cl_abap_elemdescr( ls_comp-type )->absolute_name
-                                                 sub = `\TYPE=` )
+                     LET data_element_name = z2ui5_cl_util=>rtti_get_ddic_type_name( ls_comp-type )
                          medium_label = z2ui5_cl_util=>rtti_get_data_element_texts( data_element_name )-medium IN
                      WHEN medium_label IS NOT INITIAL
                      THEN medium_label
@@ -189,28 +187,12 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
     ASSIGN mr_tab->* TO <tab>.
 
-    DATA(lo_table) = CAST cl_abap_tabledescr( cl_abap_typedescr=>describe_by_data( <tab> ) ).
-    TRY.
-        DATA(lo_struct) = CAST cl_abap_structdescr( lo_table->get_table_line_type( ) ).
-        DATA(lt_comp) = lo_struct->get_components( ).
-      CATCH cx_root.
-        check_table_line = abap_true.
-        DATA(lo_elem) = CAST cl_abap_elemdescr( lo_table->get_table_line_type( ) ).
-        INSERT VALUE #( name = `TAB_LINE`
-                        type = lo_elem ) INTO TABLE lt_comp.
-    ENDTRY.
+    DATA(ls_sel_tab_type) = z2ui5_cl_util=>rtti_create_sel_tab_type( ir_tab        = mr_tab
+                                                                     add_sel_field = abap_true ).
+    check_table_line = ls_sel_tab_type-check_table_line.
 
-    IF NOT line_exists( lt_comp[ name = `ZZSELKZ` ] ).
-      DATA(lo_type_bool) = cl_abap_typedescr=>describe_by_name( `ABAP_BOOL` ).
-      INSERT VALUE #( name = `ZZSELKZ`
-                      type = CAST #( lo_type_bool ) ) INTO TABLE lt_comp.
-    ENDIF.
-
-    DATA(lo_line_type) = cl_abap_structdescr=>create( lt_comp ).
-    DATA(lo_tab_type) = cl_abap_tabledescr=>create( lo_line_type ).
-
-    CREATE DATA mr_tab_popup TYPE HANDLE lo_tab_type.
-    CREATE DATA mr_tab_popup_backup TYPE HANDLE lo_tab_type.
+    CREATE DATA mr_tab_popup TYPE HANDLE ls_sel_tab_type-tabledescr.
+    CREATE DATA mr_tab_popup_backup TYPE HANDLE ls_sel_tab_type-tabledescr.
 
     ASSIGN mr_tab_popup->* TO <tab_out>.
     ASSIGN mr_tab_popup_backup->* TO <tab_out2>.

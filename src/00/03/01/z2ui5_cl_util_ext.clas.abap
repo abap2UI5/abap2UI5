@@ -1112,10 +1112,10 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
         rv_tabkey = lv_tabkey.
         RETURN.
       ELSE.
-        lv_field_len = cl_abap_typedescr=>describe_by_data( <value> )->length / cl_abap_char_utilities=>charsize.
+        lv_field_len = cl_abap_typedescr=>describe_by_data( <value> )->length / z2ui5_cl_util=>cv_char_utilities_charsize.
       ENDIF.
 
-      lv_field_len = cl_abap_typedescr=>describe_by_data( <value> )->length / cl_abap_char_utilities=>charsize.
+      lv_field_len = cl_abap_typedescr=>describe_by_data( <value> )->length / z2ui5_cl_util=>cv_char_utilities_charsize.
       lv_tabkey+lv_tabkey_len(lv_field_len) = <value>.
       lv_tabkey_len = lv_tabkey_len + lv_field_len.
 

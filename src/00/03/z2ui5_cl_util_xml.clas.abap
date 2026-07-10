@@ -248,7 +248,7 @@ CLASS z2ui5_cl_util_xml IMPLEMENTATION.
                           NEXT val = |{ val } { row-n }="{ escape( val    = COND string( WHEN row-v = abap_true
                                                                                          THEN `true`
                                                                                          ELSE row-v )
-                                                                   format = cl_abap_format=>e_xml_attr ) }"| ).
+                                                                   format = z2ui5_cl_util=>cv_format_e_xml_attr ) }"| ).
 
     IF mt_child IS INITIAL.
       APPEND | <{ lv_tmp2 }{ mv_name }{ lv_tmp3 }/>| TO ct_parts.
@@ -281,7 +281,7 @@ CLASS z2ui5_cl_util_xml IMPLEMENTATION.
                           NEXT val = |{ val } { row-n }="{ escape( val    = COND string( WHEN row-v = abap_true
                                                                                          THEN `true`
                                                                                          ELSE row-v )
-                                                                   format = cl_abap_format=>e_xml_attr ) }"| ).
+                                                                   format = z2ui5_cl_util=>cv_format_e_xml_attr ) }"| ).
 
     IF mt_child IS INITIAL.
       APPEND |{ lv_pad }<{ lv_ns }{ mv_name }{ lv_attr }/>| TO ct_parts.

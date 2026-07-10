@@ -19,6 +19,36 @@ CLASS z2ui5_cl_util DEFINITION
         i TYPE string VALUE `Information` ##NO_TEXT,
       END OF cs_ui5_msg_type.
 
+    " Environment-abstracted character/format constants. Callers must read
+    " these from z2ui5_cl_util instead of referencing cl_abap_char_utilities /
+    " cl_abap_format directly, so the dependency on those SAP standard classes
+    " lives in exactly one place (this class' class_constructor) and can be
+    " ported once for non-ABAP runtimes (e.g. transpiled JS).
+    CLASS-DATA cv_char_utilities_newline        TYPE c LENGTH 1 READ-ONLY.
+    CLASS-DATA cv_char_utilities_cr_lf          TYPE c LENGTH 2 READ-ONLY.
+    CLASS-DATA cv_char_utilities_horizontal_tab TYPE c LENGTH 1 READ-ONLY.
+    CLASS-DATA cv_char_utilities_charsize       TYPE i          READ-ONLY.
+    CLASS-DATA cv_format_e_xml_attr             TYPE i          READ-ONLY.
+
+    " RTTI type-kind / kind / visibility constants, so callers can branch on
+    " stored type_kind/kind fields without referencing cl_abap_typedescr /
+    " cl_abap_objectdescr directly.
+    CLASS-DATA cv_typedescr_typekind_table   TYPE c LENGTH 1 READ-ONLY.
+    CLASS-DATA cv_typedescr_typekind_dref    TYPE c LENGTH 1 READ-ONLY.
+    CLASS-DATA cv_typedescr_typekind_oref    TYPE c LENGTH 1 READ-ONLY.
+    CLASS-DATA cv_typedescr_typekind_struct1 TYPE c LENGTH 1 READ-ONLY.
+    CLASS-DATA cv_typedescr_typekind_struct2 TYPE c LENGTH 1 READ-ONLY.
+    CLASS-DATA cv_typedescr_kind_struct      TYPE c LENGTH 1 READ-ONLY.
+    CLASS-DATA cv_typedescr_kind_ref         TYPE c LENGTH 1 READ-ONLY.
+    CLASS-DATA cv_objectdescr_public         TYPE c LENGTH 1 READ-ONLY.
+
+    CLASS-METHODS class_constructor.
+
+    " Wraps the ABAP `ROLLBACK WORK` statement so the dependency on the
+    " database transaction control lives in one place and can be ported once
+    " for non-ABAP runtimes (e.g. transpiled JS).
+    CLASS-METHODS db_rollback.
+
     TYPES:
       BEGIN OF ty_s_name_value,
         n TYPE string,
@@ -128,6 +158,51 @@ CLASS z2ui5_cl_util DEFINITION
         VALUE(val)    TYPE any
       RETURNING
         VALUE(result) TYPE string.
+
+    " Extracts the DDIC data element name (`\TYPE=...` part of the absolute
+    " name) from a component's elementary type, so callers do not reference
+    " cl_abap_elemdescr directly.
+    CLASS-METHODS rtti_get_ddic_type_name
+      IMPORTING
+        type          TYPE REF TO cl_abap_datadescr
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " Thin wrappers around cl_abap_typedescr=>describe_by_data(_ref), so the
+    " RTTI describe calls live in one place. Return cl_abap_typedescr, which
+    " already carries type_kind / kind / absolute_name.
+    CLASS-METHODS rtti_get_typedescr_by_data_ref
+      IMPORTING
+        val           TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE REF TO cl_abap_typedescr.
+
+    CLASS-METHODS rtti_get_typedescr_by_data
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE REF TO cl_abap_typedescr.
+
+    TYPES:
+      BEGIN OF ty_s_sel_tab_type,
+        tabledescr       TYPE REF TO cl_abap_tabledescr,
+        check_table_line TYPE abap_bool,
+      END OF ty_s_sel_tab_type.
+
+    " Builds a working table type from the line type of the source table. If
+    " the source line is elementary it is wrapped into a `TAB_LINE` component
+    " (check_table_line reports whether that happened). By default no extra
+    " column is added; when add_sel_field = abap_true an additional boolean
+    " flag column named sel_field_name (default `ZZSELKZ`) is inserted.
+    " Keeps the dynamic RTTI type construction (describe_by_data / create) in
+    " one place so it can be ported once for non-ABAP runtimes.
+    CLASS-METHODS rtti_create_sel_tab_type
+      IMPORTING
+        ir_tab         TYPE REF TO data
+        add_sel_field  TYPE abap_bool DEFAULT abap_false
+        sel_field_name TYPE clike     DEFAULT `ZZSELKZ`
+      RETURNING
+        VALUE(result)  TYPE ty_s_sel_tab_type.
 
     CLASS-METHODS msg_get
       IMPORTING
@@ -1251,6 +1326,33 @@ ENDCLASS.
 CLASS z2ui5_cl_util IMPLEMENTATION.
 
 
+  METHOD class_constructor.
+
+    cv_char_utilities_newline        = cl_abap_char_utilities=>newline.
+    cv_char_utilities_cr_lf          = cl_abap_char_utilities=>cr_lf.
+    cv_char_utilities_horizontal_tab = cl_abap_char_utilities=>horizontal_tab.
+    cv_char_utilities_charsize       = cl_abap_char_utilities=>charsize.
+    cv_format_e_xml_attr             = cl_abap_format=>e_xml_attr.
+
+    cv_typedescr_typekind_table      = cl_abap_typedescr=>typekind_table.
+    cv_typedescr_typekind_dref       = cl_abap_typedescr=>typekind_dref.
+    cv_typedescr_typekind_oref       = cl_abap_typedescr=>typekind_oref.
+    cv_typedescr_typekind_struct1    = cl_abap_typedescr=>typekind_struct1.
+    cv_typedescr_typekind_struct2    = cl_abap_typedescr=>typekind_struct2.
+    cv_typedescr_kind_struct         = cl_abap_typedescr=>kind_struct.
+    cv_typedescr_kind_ref            = cl_abap_typedescr=>kind_ref.
+    cv_objectdescr_public            = cl_abap_objectdescr=>public.
+
+  ENDMETHOD.
+
+
+  METHOD db_rollback.
+
+    ROLLBACK WORK.
+
+  ENDMETHOD.
+
+
   METHOD boolean_abap_2_json.
 
     IF boolean_check_by_data( val ).
@@ -1377,9 +1479,9 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     result = shift_left( shift_right( CONV string( val ) ) ).
     result = shift_right( val = result
-                          sub = cl_abap_char_utilities=>horizontal_tab ).
+                          sub = cv_char_utilities_horizontal_tab ).
     result = shift_left( val = result
-                         sub = cl_abap_char_utilities=>horizontal_tab ).
+                         sub = cv_char_utilities_horizontal_tab ).
     result = shift_left( shift_right( result ) ).
 
   ENDMETHOD.
@@ -1652,7 +1754,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
       INSERT lv_line INTO TABLE lt_lines.
     ENDLOOP.
 
-    result = concat_lines_of( table = lt_lines sep = cl_abap_char_utilities=>cr_lf ).
+    result = concat_lines_of( table = lt_lines sep = cv_char_utilities_cr_lf ).
 
   ENDMETHOD.
 
@@ -1665,7 +1767,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     DATA lr_row TYPE REF TO data.
 
-    SPLIT val AT cl_abap_char_utilities=>newline INTO TABLE DATA(lt_rows).
+    SPLIT val AT cv_char_utilities_newline INTO TABLE DATA(lt_rows).
     SPLIT lt_rows[ 1 ] AT `;` INTO TABLE DATA(lt_cols).
 
     LOOP AT lt_cols REFERENCE INTO DATA(lr_col).
@@ -2033,9 +2135,9 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     LOOP AT it_source INTO DATA(lv_source).
       IF strlen( lv_source ) > 1.
-        result = result && lv_source+1 && cl_abap_char_utilities=>newline.
+        result = result && lv_source+1 && cv_char_utilities_newline.
       ELSE.
-        result = result && cl_abap_char_utilities=>newline.
+        result = result && cv_char_utilities_newline.
       ENDIF.
     ENDLOOP.
 
@@ -2848,6 +2950,59 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   METHOD rtti_get_data_element_text_l.
 
     result = rtti_get_data_element_texts( val )-long.
+
+  ENDMETHOD.
+
+
+  METHOD rtti_get_ddic_type_name.
+
+    result = substring_after( val = CAST cl_abap_elemdescr( type )->absolute_name
+                              sub = `\TYPE=` ).
+
+  ENDMETHOD.
+
+
+  METHOD rtti_get_typedescr_by_data_ref.
+
+    result = cl_abap_typedescr=>describe_by_data_ref( val ).
+
+  ENDMETHOD.
+
+
+  METHOD rtti_get_typedescr_by_data.
+
+    result = cl_abap_typedescr=>describe_by_data( val ).
+
+  ENDMETHOD.
+
+
+  METHOD rtti_create_sel_tab_type.
+
+    DATA lt_comp TYPE cl_abap_structdescr=>component_table.
+
+    FIELD-SYMBOLS <tab> TYPE ANY TABLE.
+    ASSIGN ir_tab->* TO <tab>.
+
+    DATA(lo_table) = CAST cl_abap_tabledescr( cl_abap_typedescr=>describe_by_data( <tab> ) ).
+    TRY.
+        DATA(lo_struct) = CAST cl_abap_structdescr( lo_table->get_table_line_type( ) ).
+        lt_comp = lo_struct->get_components( ).
+      CATCH cx_root.
+        result-check_table_line = abap_true.
+        DATA(lo_elem) = CAST cl_abap_elemdescr( lo_table->get_table_line_type( ) ).
+        INSERT VALUE #( name = `TAB_LINE`
+                        type = lo_elem ) INTO TABLE lt_comp.
+    ENDTRY.
+
+    IF add_sel_field = abap_true
+        AND NOT line_exists( lt_comp[ name = sel_field_name ] ).
+      DATA(lo_type_bool) = cl_abap_typedescr=>describe_by_name( `ABAP_BOOL` ).
+      INSERT VALUE #( name = sel_field_name
+                      type = CAST #( lo_type_bool ) ) INTO TABLE lt_comp.
+    ENDIF.
+
+    DATA(lo_line_type) = cl_abap_structdescr=>create( lt_comp ).
+    result-tabledescr = cl_abap_tabledescr=>create( lo_line_type ).
 
   ENDMETHOD.
 
@@ -5252,7 +5407,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         CREATE DATA lr_line TYPE (`SOLI`).
         ASSIGN lr_line->* TO <line>.
 
-        DATA(lt_lines) = c_split( val = body sep = cl_abap_char_utilities=>newline ).
+        DATA(lt_lines) = c_split( val = body sep = cv_char_utilities_newline ).
         LOOP AT lt_lines INTO DATA(lv_body_line).
           ASSIGN COMPONENT `LINE` OF STRUCTURE <line> TO <field>.
           <field> = lv_body_line.
