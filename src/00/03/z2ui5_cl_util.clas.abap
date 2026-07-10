@@ -30,6 +30,18 @@ CLASS z2ui5_cl_util DEFINITION
     CLASS-DATA cv_abap_char_utilities_charsize TYPE i READ-ONLY.
     CLASS-DATA cv_abap_format_e_xml_attr LIKE cl_abap_format=>e_xml_attr READ-ONLY.
 
+    " RTTI type-kind / kind / visibility constants, so callers can branch on
+    " stored type_kind/kind fields without referencing cl_abap_typedescr /
+    " cl_abap_objectdescr directly.
+    CLASS-DATA cv_abap_typedescr_typekind_table LIKE cl_abap_typedescr=>typekind_table READ-ONLY.
+    CLASS-DATA cv_abap_typedescr_typekind_dref LIKE cl_abap_typedescr=>typekind_dref READ-ONLY.
+    CLASS-DATA cv_abap_typedescr_typekind_oref LIKE cl_abap_typedescr=>typekind_oref READ-ONLY.
+    CLASS-DATA cv_abap_typedescr_typekind_struct1 LIKE cl_abap_typedescr=>typekind_struct1 READ-ONLY.
+    CLASS-DATA cv_abap_typedescr_typekind_struct2 LIKE cl_abap_typedescr=>typekind_struct2 READ-ONLY.
+    CLASS-DATA cv_abap_typedescr_kind_struct LIKE cl_abap_typedescr=>kind_struct READ-ONLY.
+    CLASS-DATA cv_abap_typedescr_kind_ref LIKE cl_abap_typedescr=>kind_ref READ-ONLY.
+    CLASS-DATA cv_abap_objectdescr_public LIKE cl_abap_objectdescr=>public READ-ONLY.
+
     CLASS-METHODS class_constructor.
 
     " Wraps the ABAP `ROLLBACK WORK` statement so the dependency on the
@@ -155,6 +167,22 @@ CLASS z2ui5_cl_util DEFINITION
         type          TYPE REF TO cl_abap_datadescr
       RETURNING
         VALUE(result) TYPE string.
+
+    " Thin wrappers around cl_abap_datadescr=>describe_by_data(_ref), so the
+    " RTTI describe calls live in one place. Return cl_abap_datadescr (the most
+    " derived type carrying type_kind) — callers assign it to REF TO
+    " cl_abap_typedescr fields via implicit widening.
+    CLASS-METHODS rtti_get_datadescr_by_data_ref
+      IMPORTING
+        val           TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE REF TO cl_abap_datadescr.
+
+    CLASS-METHODS rtti_get_datadescr_by_data
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE REF TO cl_abap_datadescr.
 
     TYPES:
       BEGIN OF ty_s_sel_tab_type,
@@ -1303,6 +1331,15 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     cv_abap_char_utilities_horizontal_tab = cl_abap_char_utilities=>horizontal_tab.
     cv_abap_char_utilities_charsize       = cl_abap_char_utilities=>charsize.
     cv_abap_format_e_xml_attr             = cl_abap_format=>e_xml_attr.
+
+    cv_abap_typedescr_typekind_table      = cl_abap_typedescr=>typekind_table.
+    cv_abap_typedescr_typekind_dref       = cl_abap_typedescr=>typekind_dref.
+    cv_abap_typedescr_typekind_oref       = cl_abap_typedescr=>typekind_oref.
+    cv_abap_typedescr_typekind_struct1    = cl_abap_typedescr=>typekind_struct1.
+    cv_abap_typedescr_typekind_struct2    = cl_abap_typedescr=>typekind_struct2.
+    cv_abap_typedescr_kind_struct         = cl_abap_typedescr=>kind_struct.
+    cv_abap_typedescr_kind_ref            = cl_abap_typedescr=>kind_ref.
+    cv_abap_objectdescr_public            = cl_abap_objectdescr=>public.
 
   ENDMETHOD.
 
@@ -2919,6 +2956,20 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     result = substring_after( val = CAST cl_abap_elemdescr( type )->absolute_name
                               sub = `\TYPE=` ).
+
+  ENDMETHOD.
+
+
+  METHOD rtti_get_datadescr_by_data_ref.
+
+    result = cl_abap_datadescr=>describe_by_data_ref( val ).
+
+  ENDMETHOD.
+
+
+  METHOD rtti_get_datadescr_by_data.
+
+    result = cl_abap_datadescr=>describe_by_data( val ).
 
   ENDMETHOD.
 
