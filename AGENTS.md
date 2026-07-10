@@ -237,12 +237,9 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
   CATCH cx_root ##NO_HANDLER.
   ```
 - **API parameter types:** Use `TYPE clike` for string/char input parameters in public API methods (allows both string and char literals without conversion)
-- **Utility access:** Always call utilities via the facade `z2ui5_cl_util` — it inherits everything from `z2ui5_cl_util_api`. Never reference `z2ui5_cl_util_api` directly outside `src/00/`. Environment-specific behavior (ABAP Cloud vs. standard ABAP) is branched inside `z2ui5_cl_util_api` via `context_check_abap_cloud( )` using dynamic calls, so the single class compiles on all targets
+- **Utility access:** Always call utilities via `z2ui5_cl_util`. Environment-specific behavior (ABAP Cloud vs. standard ABAP) is branched inside the class via `context_check_abap_cloud( )` using dynamic calls, so the single class compiles on all targets
   ```abap
-  " good
   z2ui5_cl_util=>bal_read( ... ).
-  " bad
-  z2ui5_cl_util_api=>bal_read( ... ).
   ```
 
 ### Naming (enforced by abaplint)
@@ -305,7 +302,7 @@ Config files: `eslint.config.mjs`, `.prettierrc`, `.editorconfig`, `ui5.yaml`, `
 
 ### Testing
 
-- **Unit tests:** Embedded in source files as `.testclasses.abap` (46 files as of v1.142.0), run via abaplint transpiler in Node.js
+- **Unit tests:** Embedded in source files as `.testclasses.abap` (47 files as of v1.142.0), run via abaplint transpiler in Node.js
 - **Browser tests:** Playwright in `node/tests/e2e/` — Chromium, Firefox, WebKit against localhost:3000 (config: `node/playwright.config.js`; run in CI by `test_browser.yaml` after downport + transpile). Covers the POST/draft wire contract (`roundtrip.spec.js`), XSS regression tests for `Lib.sanitizeMessageDetails` in a real DOM (`lib-sanitizer.spec.js`), the fatal-error overlay (`error-view.spec.js` — accessibility semantics, focus management, Retry action) and the shell smoke test (`example.spec.js`). Note: the transpiled Node backend currently never returns backend-built view XML — interface attributes read through an interface-typed reference resolve to a missing JS property in the transpiler output, so `check_on_init( )` is always false there; extend the roundtrip tests with view-rendering assertions once that upstream `@abaplint/transpiler` issue is fixed
 - **JS unit specs:** the specs under `node/tests/` load the **real** `app/webapp` modules through a stubbed `sap.ui.define` (`loadModule.js`, with stubbable module dependencies) — never test a copied function. Covered: `core/Lib.js` (`buildDeltaFromPaths.spec.js`, `utilHelpers.spec.js`), `core/AppState.js` (`appState.spec.js`), `core/ViewSlots.js` (`viewSlots.spec.js`), `cc/UITableExt.js` (`uiTableExt.spec.js`), `core/Messages.js` (`messages.spec.js`), `core/Server.js` timeout handling (`serverTimeout.spec.js`) and UI5-element resolution incl. the pre-1.106 fallback for scroll/focus capture (`serverClosestElement.spec.js`), the public `Util.js` date helpers (`util.spec.js`). Run without a browser: `npx playwright test -c node/playwright-unit.config.js`
 - **Unit test metadata:** When a class has a `.testclasses.abap` file, its `.clas.xml` **must** contain `<WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>`. When a class has no test file, this flag **must not** be present. Mismatches cause `local_testclass_consistency` lint errors.
