@@ -629,7 +629,7 @@ CLASS z2ui5_cl_util DEFINITION
 
     CLASS-METHODS time_diff_hours_until_now
       IMPORTING
-        !time         TYPE timestamp
+        !time         TYPE numeric
       RETURNING
         VALUE(result) TYPE decfloat34.
 
@@ -2998,8 +2998,13 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD time_diff_hours_until_now.
 
+    " accept any timestamp representation (DEC 15 or DEC 21,7) and
+    " normalize to timestampl before the arithmetic
+    DATA lv_time TYPE timestampl.
+    lv_time = time.
+
     DATA(lv_seconds) = cl_abap_tstmp=>subtract( tstmp1 = time_get_timestampl( )
-                                                tstmp2 = time ).
+                                                tstmp2 = lv_time ).
     result = lv_seconds / 3600.
 
   ENDMETHOD.
