@@ -24,11 +24,11 @@ CLASS z2ui5_cl_util DEFINITION
     " cl_abap_format directly, so the dependency on those SAP standard classes
     " lives in exactly one place (this class' class_constructor) and can be
     " ported once for non-ABAP runtimes (e.g. transpiled JS).
-    CLASS-DATA newline TYPE c LENGTH 1 READ-ONLY.
-    CLASS-DATA cr_lf TYPE c LENGTH 2 READ-ONLY.
-    CLASS-DATA horizontal_tab TYPE c LENGTH 1 READ-ONLY.
-    CLASS-DATA charsize TYPE i READ-ONLY.
-    CLASS-DATA e_xml_attr LIKE cl_abap_format=>e_xml_attr READ-ONLY.
+    CLASS-DATA cv_abap_char_utilities_newline TYPE c LENGTH 1 READ-ONLY.
+    CLASS-DATA cv_abap_char_utilities_cr_lf TYPE c LENGTH 2 READ-ONLY.
+    CLASS-DATA cv_abap_char_utilities_horizontal_tab TYPE c LENGTH 1 READ-ONLY.
+    CLASS-DATA cv_abap_char_utilities_charsize TYPE i READ-ONLY.
+    CLASS-DATA cv_abap_format_e_xml_attr LIKE cl_abap_format=>e_xml_attr READ-ONLY.
 
     CLASS-METHODS class_constructor.
 
@@ -1266,11 +1266,11 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD class_constructor.
 
-    newline        = cl_abap_char_utilities=>newline.
-    cr_lf          = cl_abap_char_utilities=>cr_lf.
-    horizontal_tab = cl_abap_char_utilities=>horizontal_tab.
-    charsize       = cl_abap_char_utilities=>charsize.
-    e_xml_attr     = cl_abap_format=>e_xml_attr.
+    cv_abap_char_utilities_newline        = cl_abap_char_utilities=>newline.
+    cv_abap_char_utilities_cr_lf          = cl_abap_char_utilities=>cr_lf.
+    cv_abap_char_utilities_horizontal_tab = cl_abap_char_utilities=>horizontal_tab.
+    cv_abap_char_utilities_charsize       = cl_abap_char_utilities=>charsize.
+    cv_abap_format_e_xml_attr             = cl_abap_format=>e_xml_attr.
 
   ENDMETHOD.
 
@@ -1401,9 +1401,9 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     result = shift_left( shift_right( CONV string( val ) ) ).
     result = shift_right( val = result
-                          sub = horizontal_tab ).
+                          sub = cv_abap_char_utilities_horizontal_tab ).
     result = shift_left( val = result
-                         sub = horizontal_tab ).
+                         sub = cv_abap_char_utilities_horizontal_tab ).
     result = shift_left( shift_right( result ) ).
 
   ENDMETHOD.
@@ -1676,7 +1676,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
       INSERT lv_line INTO TABLE lt_lines.
     ENDLOOP.
 
-    result = concat_lines_of( table = lt_lines sep = cr_lf ).
+    result = concat_lines_of( table = lt_lines sep = cv_abap_char_utilities_cr_lf ).
 
   ENDMETHOD.
 
@@ -1689,7 +1689,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     DATA lr_row TYPE REF TO data.
 
-    SPLIT val AT newline INTO TABLE DATA(lt_rows).
+    SPLIT val AT cv_abap_char_utilities_newline INTO TABLE DATA(lt_rows).
     SPLIT lt_rows[ 1 ] AT `;` INTO TABLE DATA(lt_cols).
 
     LOOP AT lt_cols REFERENCE INTO DATA(lr_col).
@@ -2057,9 +2057,9 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     LOOP AT it_source INTO DATA(lv_source).
       IF strlen( lv_source ) > 1.
-        result = result && lv_source+1 && newline.
+        result = result && lv_source+1 && cv_abap_char_utilities_newline.
       ELSE.
-        result = result && newline.
+        result = result && cv_abap_char_utilities_newline.
       ENDIF.
     ENDLOOP.
 
@@ -5276,7 +5276,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         CREATE DATA lr_line TYPE (`SOLI`).
         ASSIGN lr_line->* TO <line>.
 
-        DATA(lt_lines) = c_split( val = body sep = newline ).
+        DATA(lt_lines) = c_split( val = body sep = cv_abap_char_utilities_newline ).
         LOOP AT lt_lines INTO DATA(lv_body_line).
           ASSIGN COMPONENT `LINE` OF STRUCTURE <line> TO <field>.
           <field> = lv_body_line.
