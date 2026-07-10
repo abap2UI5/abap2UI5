@@ -252,7 +252,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
          WHERE name_ref IS INITIAL.
       TRY.
           DATA(lr_ref) = attri_get_val_ref( lr_attri->name ).
-          lr_attri->o_typedescr = z2ui5_cl_util=>rtti_get_datadescr_by_data_ref( lr_ref ).
+          lr_attri->o_typedescr = z2ui5_cl_util=>rtti_get_typedescr_by_data_ref( lr_ref ).
           IF lr_attri->srtti_data IS NOT INITIAL.
             ASSIGN lr_ref->* TO FIELD-SYMBOL(<val>).
             <val> = z2ui5_cl_util=>xml_srtti_parse( lr_attri->srtti_data ).
@@ -267,7 +267,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
   METHOD main_attri_db_load_table.
 
     DATA(lr_ref_source) = attri_get_val_ref( ir_attri->name_ref ).
-    ir_attri->o_typedescr = z2ui5_cl_util=>rtti_get_datadescr_by_data_ref( lr_ref_source ).
+    ir_attri->o_typedescr = z2ui5_cl_util=>rtti_get_typedescr_by_data_ref( lr_ref_source ).
 
     READ TABLE mt_attri->* REFERENCE INTO DATA(lr_attri_parent)
          WITH KEY name = ir_attri->name_parent.
@@ -285,7 +285,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     GET REFERENCE OF <source_value> INTO <parent_ref>.
 
     DATA(lr_ref_parent) = REF #( <parent_ref> ).
-    lr_attri_parent->o_typedescr = z2ui5_cl_util=>rtti_get_datadescr_by_data_ref( lr_ref_parent ).
+    lr_attri_parent->o_typedescr = z2ui5_cl_util=>rtti_get_typedescr_by_data_ref( lr_ref_parent ).
 
   ENDMETHOD.
 
@@ -303,7 +303,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
       RETURN.
     ENDIF.
     GET REFERENCE OF <source_ref> INTO <parent_ref>.
-    ir_attri->o_typedescr = z2ui5_cl_util=>rtti_get_datadescr_by_data_ref( <parent_ref> ).
+    ir_attri->o_typedescr = z2ui5_cl_util=>rtti_get_typedescr_by_data_ref( <parent_ref> ).
 
     LOOP AT ir_child_idx->* REFERENCE INTO DATA(lr_child_idx)
          WHERE name_parent = ir_attri->name.
@@ -313,7 +313,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
         CONTINUE.
       ENDIF.
       DATA(lr_child_ref) = attri_get_val_ref( lr_child->name ).
-      lr_child->o_typedescr = z2ui5_cl_util=>rtti_get_datadescr_by_data_ref( lr_child_ref ).
+      lr_child->o_typedescr = z2ui5_cl_util=>rtti_get_typedescr_by_data_ref( lr_child_ref ).
     ENDLOOP.
 
   ENDMETHOD.
@@ -336,7 +336,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      DATA(lo_descr) = z2ui5_cl_util=>rtti_get_datadescr_by_data( <val1> ).
+      DATA(lo_descr) = z2ui5_cl_util=>rtti_get_typedescr_by_data( <val1> ).
 
       CASE lo_descr->type_kind.
 
@@ -450,7 +450,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   METHOD attri_search.
 
-    DATA(lo_datadescr) = z2ui5_cl_util=>rtti_get_datadescr_by_data_ref( val ).
+    DATA(lo_datadescr) = z2ui5_cl_util=>rtti_get_typedescr_by_data_ref( val ).
 
     IF lo_datadescr->type_kind = z2ui5_cl_util=>cv_typedescr_typekind_dref
         OR lo_datadescr->type_kind = z2ui5_cl_util=>cv_typedescr_typekind_oref.
@@ -492,7 +492,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   METHOD attri_create_new.
 
-    DATA(lo_descr) = z2ui5_cl_util=>rtti_get_datadescr_by_data_ref( attri_get_val_ref( name ) ).
+    DATA(lo_descr) = z2ui5_cl_util=>rtti_get_typedescr_by_data_ref( attri_get_val_ref( name ) ).
     result = VALUE z2ui5_if_core_types=>ty_s_attri( name         = name
                                                      o_typedescr = lo_descr
                                                      type_kind   = lo_descr->type_kind
@@ -514,7 +514,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     ENDIF.
 
     DATA(ls_attri2) = VALUE z2ui5_if_core_types=>ty_s_attri( ).
-    ls_attri2-o_typedescr = z2ui5_cl_util=>rtti_get_datadescr_by_data_ref( lr_ref ).
+    ls_attri2-o_typedescr = z2ui5_cl_util=>rtti_get_typedescr_by_data_ref( lr_ref ).
 
     CASE ls_attri2-o_typedescr->kind.
 

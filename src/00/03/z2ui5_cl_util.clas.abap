@@ -168,21 +168,20 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    " Thin wrappers around cl_abap_datadescr=>describe_by_data(_ref), so the
-    " RTTI describe calls live in one place. Return cl_abap_datadescr (the most
-    " derived type carrying type_kind) — callers assign it to REF TO
-    " cl_abap_typedescr fields via implicit widening.
-    CLASS-METHODS rtti_get_datadescr_by_data_ref
+    " Thin wrappers around cl_abap_typedescr=>describe_by_data(_ref), so the
+    " RTTI describe calls live in one place. Return cl_abap_typedescr, which
+    " already carries type_kind / kind / absolute_name.
+    CLASS-METHODS rtti_get_typedescr_by_data_ref
       IMPORTING
         val           TYPE REF TO data
       RETURNING
-        VALUE(result) TYPE REF TO cl_abap_datadescr.
+        VALUE(result) TYPE REF TO cl_abap_typedescr.
 
-    CLASS-METHODS rtti_get_datadescr_by_data
+    CLASS-METHODS rtti_get_typedescr_by_data
       IMPORTING
         val           TYPE any
       RETURNING
-        VALUE(result) TYPE REF TO cl_abap_datadescr.
+        VALUE(result) TYPE REF TO cl_abap_typedescr.
 
     TYPES:
       BEGIN OF ty_s_sel_tab_type,
@@ -2963,16 +2962,16 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD rtti_get_datadescr_by_data_ref.
+  METHOD rtti_get_typedescr_by_data_ref.
 
-    result = cl_abap_datadescr=>describe_by_data_ref( val ).
+    result = cl_abap_typedescr=>describe_by_data_ref( val ).
 
   ENDMETHOD.
 
 
-  METHOD rtti_get_datadescr_by_data.
+  METHOD rtti_get_typedescr_by_data.
 
-    result = cl_abap_datadescr=>describe_by_data( val ).
+    result = cl_abap_typedescr=>describe_by_data( val ).
 
   ENDMETHOD.
 
