@@ -156,6 +156,24 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    TYPES:
+      BEGIN OF ty_s_sel_tab_type,
+        tabledescr       TYPE REF TO cl_abap_tabledescr,
+        check_table_line TYPE abap_bool,
+      END OF ty_s_sel_tab_type.
+
+    " Builds the working table type for the selection popup: the line type of
+    " the source table plus an additional `ZZSELKZ` boolean flag column. If the
+    " source line is elementary it is wrapped into a `TAB_LINE` component.
+    " check_table_line reports whether that elementary wrapping happened.
+    " Keeps the dynamic RTTI type construction (describe_by_data / create) in
+    " one place so it can be ported once for non-ABAP runtimes.
+    CLASS-METHODS rtti_create_sel_tab_type
+      IMPORTING
+        ir_tab        TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE ty_s_sel_tab_type.
+
     CLASS-METHODS msg_get
       IMPORTING
         VALUE(val)    TYPE any
@@ -2901,6 +2919,36 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     result = substring_after( val = CAST cl_abap_elemdescr( type )->absolute_name
                               sub = `\TYPE=` ).
+
+  ENDMETHOD.
+
+
+  METHOD rtti_create_sel_tab_type.
+
+    DATA lt_comp TYPE cl_abap_structdescr=>component_table.
+
+    FIELD-SYMBOLS <tab> TYPE ANY TABLE.
+    ASSIGN ir_tab->* TO <tab>.
+
+    DATA(lo_table) = CAST cl_abap_tabledescr( cl_abap_typedescr=>describe_by_data( <tab> ) ).
+    TRY.
+        DATA(lo_struct) = CAST cl_abap_structdescr( lo_table->get_table_line_type( ) ).
+        lt_comp = lo_struct->get_components( ).
+      CATCH cx_root.
+        result-check_table_line = abap_true.
+        DATA(lo_elem) = CAST cl_abap_elemdescr( lo_table->get_table_line_type( ) ).
+        INSERT VALUE #( name = `TAB_LINE`
+                        type = lo_elem ) INTO TABLE lt_comp.
+    ENDTRY.
+
+    IF NOT line_exists( lt_comp[ name = `ZZSELKZ` ] ).
+      DATA(lo_type_bool) = cl_abap_typedescr=>describe_by_name( `ABAP_BOOL` ).
+      INSERT VALUE #( name = `ZZSELKZ`
+                      type = CAST #( lo_type_bool ) ) INTO TABLE lt_comp.
+    ENDIF.
+
+    DATA(lo_line_type) = cl_abap_structdescr=>create( lt_comp ).
+    result-tabledescr = cl_abap_tabledescr=>create( lo_line_type ).
 
   ENDMETHOD.
 
