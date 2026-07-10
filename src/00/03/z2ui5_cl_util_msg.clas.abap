@@ -286,7 +286,7 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
 
     result = concat_lines_of(
       table = VALUE string_table( FOR <r> IN msg_get( val = val val2 = val2 ) ( |- { <r>-text }| ) )
-      sep   = z2ui5_cl_util=>cv_char_utilities_newline ).
+      sep   = z2ui5_cl_util=>cv_char_util_newline ).
 
   ENDMETHOD.
 

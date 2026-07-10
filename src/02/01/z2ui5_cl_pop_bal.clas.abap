@@ -95,9 +95,9 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
 
   METHOD factory_by_db.
 
-    r_result = factory( i_messages   = z2ui5_cl_util=>bal_read( object    = i_object
-                                                                subobject = i_subobject
-                                                                id        = i_extnumber )
+    r_result = factory( i_messages   = z2ui5_cl_util_ext=>bal_read( object = i_object
+                                                                subobject  = i_subobject
+                                                                id         = i_extnumber )
                         i_title      = i_title
                         i_object     = i_object
                         i_subobject  = i_subobject
@@ -167,10 +167,10 @@ CLASS z2ui5_cl_pop_bal IMPLEMENTATION.
     ENDIF.
 
     TRY.
-        z2ui5_cl_util=>bal_create( object    = mv_object
-                                   subobject = mv_subobject
-                                   id        = mv_extnumber
-                                   t_log     = mt_msg_bal ).
+        z2ui5_cl_util_ext=>bal_create( object = mv_object
+                                   subobject  = mv_subobject
+                                   id         = mv_extnumber
+                                   t_log      = mt_msg_bal ).
         client->message_toast_display( `Business Application Log saved` ).
       CATCH cx_root INTO DATA(x).
         client->message_box_display( text = x->get_text( )

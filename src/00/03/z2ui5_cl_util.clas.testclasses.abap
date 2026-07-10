@@ -1810,11 +1810,6 @@ CLASS ltcl_unit_test_conversion DEFINITION FINAL
     METHODS test_itab_get_by_struc       FOR TESTING RAISING cx_static_check.
     METHODS test_time_add_seconds        FOR TESTING RAISING cx_static_check.
     METHODS test_time_diff_seconds       FOR TESTING RAISING cx_static_check.
-    METHODS test_cal_weekday             FOR TESTING RAISING cx_static_check.
-    METHODS test_cal_workdays            FOR TESTING RAISING cx_static_check.
-    METHODS test_zip_pack                FOR TESTING RAISING cx_static_check.
-    METHODS test_zip_unpack              FOR TESTING RAISING cx_static_check.
-    METHODS test_lock_get_dequeue        FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -1956,95 +1951,216 @@ CLASS ltcl_unit_test_conversion IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_cal_weekday.
+ENDCLASS.
 
-    " 2024-01-01 was a Monday, 2024-01-07 a Sunday
-    cl_abap_unit_assert=>assert_equals(
-        exp = 1
-        act = z2ui5_cl_util=>cal_get_weekday( CONV d( `20240101` ) ) ).
-    cl_abap_unit_assert=>assert_false(
-        z2ui5_cl_util=>cal_is_weekend( CONV d( `20240101` ) ) ).
 
-    cl_abap_unit_assert=>assert_equals(
-        exp = 7
-        act = z2ui5_cl_util=>cal_get_weekday( CONV d( `20240107` ) ) ).
+CLASS ltcl_unit_test_api DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PRIVATE SECTION.
+
+    METHODS test_uuid_get_c32              FOR TESTING RAISING cx_static_check.
+    METHODS test_uuid_get_c22              FOR TESTING RAISING cx_static_check.
+    METHODS test_context_check_abap_cloud  FOR TESTING RAISING cx_static_check.
+    METHODS test_context_get_user_tech     FOR TESTING RAISING cx_static_check.
+    METHODS test_context_get_sy            FOR TESTING RAISING cx_static_check.
+    METHODS test_context_get_tenant        FOR TESTING RAISING cx_static_check.
+    METHODS test_context_get_callstack     FOR TESTING RAISING cx_static_check.
+    METHODS test_conv_get_xstring_by_str   FOR TESTING RAISING cx_static_check.
+    METHODS test_conv_get_string_by_xstr   FOR TESTING RAISING cx_static_check.
+    METHODS test_conv_encode_x_base64      FOR TESTING RAISING cx_static_check.
+    METHODS test_conv_decode_x_base64      FOR TESTING RAISING cx_static_check.
+    METHODS test_encoding_roundtrip        FOR TESTING RAISING cx_static_check.
+    METHODS test_rtti_get_data_elem_texts  FOR TESTING RAISING cx_static_check.
+    METHODS test_rtti_get_classes_impl     FOR TESTING RAISING cx_static_check.
+    METHODS test_rtti_get_t_fixvalues      FOR TESTING RAISING cx_static_check.
+    METHODS test_rtti_get_table_desrc      FOR TESTING RAISING cx_static_check.
+
+ENDCLASS.
+
+
+CLASS ltcl_unit_test_api IMPLEMENTATION.
+
+  METHOD test_uuid_get_c32.
+
+    DATA(lv_uuid) = z2ui5_cl_util=>uuid_get_c32( ).
+    cl_abap_unit_assert=>assert_not_initial( lv_uuid ).
+    cl_abap_unit_assert=>assert_equals( exp = 32
+                                        act = strlen( lv_uuid ) ).
+
+  ENDMETHOD.
+
+  METHOD test_uuid_get_c22.
+
+    DATA(lv_uuid) = z2ui5_cl_util=>uuid_get_c22( ).
+    cl_abap_unit_assert=>assert_not_initial( lv_uuid ).
+    cl_abap_unit_assert=>assert_equals( exp = 22
+                                        act = strlen( lv_uuid ) ).
+
+  ENDMETHOD.
+
+  METHOD test_context_check_abap_cloud.
+
+    DATA(lv_result) = z2ui5_cl_util=>context_check_abap_cloud( ).
     cl_abap_unit_assert=>assert_true(
-        z2ui5_cl_util=>cal_is_weekend( CONV d( `20240107` ) ) ).
+      xsdbool( lv_result = abap_true OR lv_result = abap_false ) ).
 
   ENDMETHOD.
 
-  METHOD test_cal_workdays.
+  METHOD test_context_get_user_tech.
 
-    " Friday 2024-03-15 + 1 workday skips the weekend -> Monday 2024-03-18
-    cl_abap_unit_assert=>assert_equals(
-        exp = CONV d( `20240318` )
-        act = z2ui5_cl_util=>cal_add_workdays( date = CONV d( `20240315` )
-                                               days = 1 ) ).
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
 
-    " Monday 2024-01-01 to Monday 2024-01-08 -> 5 workdays
-    cl_abap_unit_assert=>assert_equals(
-        exp = 5
-        act = z2ui5_cl_util=>cal_count_workdays( date_from = CONV d( `20240101` )
-                                                 date_to   = CONV d( `20240108` ) ) ).
+    DATA lv_user_tech TYPE string.
 
-  ENDMETHOD.
-
-  METHOD test_zip_pack.
-
-    " Skip when the runtime (e.g. the transpiler) does not provide CL_ABAP_ZIP
-    DATA lo_probe TYPE REF TO object.
     TRY.
-        CREATE OBJECT lo_probe TYPE ('CL_ABAP_ZIP').
-      CATCH cx_root.
+        lv_user_tech = z2ui5_cl_util=>context_get_user_tech( ).
+      CATCH z2ui5_cx_util_error.
+        " No business partner is associated with the current user (e.g. TECH-USER).
+        " This is an environmental prerequisite, not a product defect — skip the test.
         RETURN.
     ENDTRY.
 
-    DATA(lt_in) = VALUE z2ui5_cl_util=>ty_t_zip_file(
-        ( name = `hello.txt` content = CONV xstring( `48656C6C6F` ) )
-        ( name = `world.txt` content = CONV xstring( `576F726C64` ) ) ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_user_tech
+                                        act = sy-uname ).
 
-    DATA(lv_archive) = z2ui5_cl_util=>zip_pack( lt_in ).
-    cl_abap_unit_assert=>assert_not_initial( lv_archive ).
+    cl_abap_unit_assert=>assert_not_initial( lv_user_tech ).
 
   ENDMETHOD.
 
-  METHOD test_zip_unpack.
+  METHOD test_context_get_sy.
 
-    " Note: this full round-trip relies on CL_ABAP_ZIP=>LOAD, which the
-    " open-abap transpiler runtime does not implement - the method is therefore
-    " listed in the transpiler skip list (node/setup/abap_transpile.json).
-    DATA(lt_in) = VALUE z2ui5_cl_util=>ty_t_zip_file(
-        ( name = `hello.txt` content = CONV xstring( `48656C6C6F` ) )
-        ( name = `world.txt` content = CONV xstring( `576F726C64` ) ) ).
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
 
-    DATA(lv_archive) = z2ui5_cl_util=>zip_pack( lt_in ).
-    DATA(lt_out) = z2ui5_cl_util=>zip_unpack( lv_archive ).
-
-    cl_abap_unit_assert=>assert_equals( exp = 2 act = lines( lt_out ) ).
-
-    LOOP AT lt_in INTO DATA(ls_in).
-      DATA(ls_out) = VALUE #( lt_out[ name = ls_in-name ] OPTIONAL ).
-      cl_abap_unit_assert=>assert_equals( exp = ls_in-content
-                                          act = ls_out-content ).
-    ENDLOOP.
+    DATA(ls_sy) = z2ui5_cl_util=>context_get_sy( ).
+    cl_abap_unit_assert=>assert_not_initial( ls_sy-datum ).
+    cl_abap_unit_assert=>assert_not_initial( ls_sy-uname ).
+    cl_abap_unit_assert=>assert_equals( exp = sy-datum
+                                        act = ls_sy-datum ).
 
   ENDMETHOD.
 
-  METHOD test_lock_get_dequeue.
+  METHOD test_context_get_tenant.
 
-    DATA lv_result TYPE string.
+    DATA(lv_tenant) = z2ui5_cl_util=>context_get_tenant( ) ##NEEDED.
 
-    lv_result = z2ui5_cl_util=>lock_get_dequeue_by_enqueue( `ENQUEUE_EVVBAKE` ).
-    cl_abap_unit_assert=>assert_equals( exp = `DEQUEUE_EVVBAKE`
-                                        act = lv_result ).
+  ENDMETHOD.
 
-    lv_result = z2ui5_cl_util=>lock_get_dequeue_by_enqueue( `enqueue_evvbake` ).
-    cl_abap_unit_assert=>assert_equals( exp = `DEQUEUE_EVVBAKE`
-                                        act = lv_result ).
+  METHOD test_context_get_callstack.
 
-    lv_result = z2ui5_cl_util=>lock_get_dequeue_by_enqueue( `DEQUEUE_EVVBAKE` ).
-    cl_abap_unit_assert=>assert_equals( exp = `DEQUEUE_EVVBAKE`
-                                        act = lv_result ).
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    DATA(lt_stack) = z2ui5_cl_util=>context_get_callstack( ) ##NEEDED.
+
+  ENDMETHOD.
+
+  METHOD test_conv_get_xstring_by_str.
+
+    DATA(lv_xstring) = z2ui5_cl_util=>conv_get_xstring_by_string( `test` ).
+    cl_abap_unit_assert=>assert_not_initial( lv_xstring ).
+
+  ENDMETHOD.
+
+  METHOD test_conv_get_string_by_xstr.
+
+    DATA(lv_xstring) = z2ui5_cl_util=>conv_get_xstring_by_string( `hello` ).
+    DATA(lv_string) = z2ui5_cl_util=>conv_get_string_by_xstring( lv_xstring ).
+    cl_abap_unit_assert=>assert_equals( exp = `hello`
+                                        act = lv_string ).
+
+  ENDMETHOD.
+
+  METHOD test_conv_encode_x_base64.
+
+    DATA(lv_xstring) = z2ui5_cl_util=>conv_get_xstring_by_string( `base64 test` ).
+    DATA(lv_base64) = z2ui5_cl_util=>conv_encode_x_base64( lv_xstring ).
+    cl_abap_unit_assert=>assert_not_initial( lv_base64 ).
+
+  ENDMETHOD.
+
+  METHOD test_conv_decode_x_base64.
+
+    DATA(lv_xstring) = z2ui5_cl_util=>conv_get_xstring_by_string( `decode test` ).
+    DATA(lv_base64) = z2ui5_cl_util=>conv_encode_x_base64( lv_xstring ).
+    DATA(lv_decoded) = z2ui5_cl_util=>conv_decode_x_base64( lv_base64 ).
+    cl_abap_unit_assert=>assert_equals( exp = lv_xstring
+                                        act = lv_decoded ).
+
+  ENDMETHOD.
+
+  METHOD test_encoding_roundtrip.
+
+    DATA(lv_string)   = `my string`.
+    DATA(lv_xstring)  = z2ui5_cl_util=>conv_get_xstring_by_string( lv_string ).
+    DATA(lv_string2)  = z2ui5_cl_util=>conv_encode_x_base64( lv_xstring ).
+    DATA(lv_xstring2) = z2ui5_cl_util=>conv_decode_x_base64( lv_string2 ).
+    DATA(lv_string3)  = z2ui5_cl_util=>conv_get_string_by_xstring( lv_xstring2 ).
+
+    cl_abap_unit_assert=>assert_equals( exp = lv_string
+                                        act = lv_string3 ).
+
+  ENDMETHOD.
+
+  METHOD test_rtti_get_data_elem_texts.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    DATA(ls_result) = z2ui5_cl_util=>rtti_get_data_element_texts( `UNAME` ).
+    IF z2ui5_cl_util=>context_check_abap_cloud( ) = abap_false.
+      cl_abap_unit_assert=>assert_not_initial( ls_result ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_rtti_get_classes_impl.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    DATA(mt_classes) = z2ui5_cl_util=>rtti_get_classes_impl_intf( `IF_SERIALIZABLE_OBJECT` ).
+    cl_abap_unit_assert=>assert_not_initial( mt_classes ).
+
+  ENDMETHOD.
+
+  METHOD test_rtti_get_t_fixvalues.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    IF z2ui5_cl_util=>context_check_abap_cloud( ).
+      RETURN.
+    ENDIF.
+
+    DATA(lo_elem) = CAST cl_abap_elemdescr(
+      cl_abap_elemdescr=>describe_by_name( `ABAP_BOOL` ) ).
+
+    DATA(lt_result) = z2ui5_cl_util=>rtti_get_t_fixvalues( elemdescr = lo_elem
+                                                                langu     = sy-langu ) ##NEEDED.
+
+  ENDMETHOD.
+
+  METHOD test_rtti_get_table_desrc.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    IF z2ui5_cl_util=>context_check_abap_cloud( ).
+      RETURN.
+    ENDIF.
+
+    DATA(lv_result) = z2ui5_cl_util=>rtti_get_table_desrc( tabname = `T100` ).
+    cl_abap_unit_assert=>assert_not_initial( lv_result ).
 
   ENDMETHOD.
 

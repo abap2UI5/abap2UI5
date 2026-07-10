@@ -1,6 +1,5 @@
 CLASS z2ui5_cl_util DEFINITION
   PUBLIC
-  INHERITING FROM z2ui5_cl_util_api
   CREATE PUBLIC.
 
   PUBLIC SECTION.
@@ -24,10 +23,10 @@ CLASS z2ui5_cl_util DEFINITION
     " cl_abap_format directly, so the dependency on those SAP standard classes
     " lives in exactly one place (this class' class_constructor) and can be
     " ported once for non-ABAP runtimes (e.g. transpiled JS).
-    CLASS-DATA cv_char_utilities_newline        TYPE c LENGTH 1 READ-ONLY.
-    CLASS-DATA cv_char_utilities_cr_lf          TYPE c LENGTH 2 READ-ONLY.
-    CLASS-DATA cv_char_utilities_horizontal_tab TYPE c LENGTH 1 READ-ONLY.
-    CLASS-DATA cv_char_utilities_charsize       TYPE i          READ-ONLY.
+    CLASS-DATA cv_char_util_newline        TYPE c LENGTH 1 READ-ONLY.
+    CLASS-DATA cv_char_util_cr_lf          TYPE c LENGTH 2 READ-ONLY.
+    CLASS-DATA cv_char_util_horizontal_tab TYPE c LENGTH 1 READ-ONLY.
+    CLASS-DATA cv_char_util_charsize       TYPE i          READ-ONLY.
     CLASS-DATA cv_format_e_xml_attr             TYPE i          READ-ONLY.
 
     " RTTI type-kind / kind / visibility constants, so callers can branch on
@@ -120,13 +119,6 @@ CLASS z2ui5_cl_util DEFINITION
         details TYPE string,
         skip    TYPE abap_bool,
       END OF ty_s_msg_box.
-
-    TYPES:
-      BEGIN OF ty_s_zip_file,
-        name    TYPE string,
-        content TYPE xstring,
-      END OF ty_s_zip_file.
-    TYPES ty_t_zip_file TYPE STANDARD TABLE OF ty_s_zip_file WITH EMPTY KEY.
 
     CLASS-METHODS ui5_get_msg_type
       IMPORTING
@@ -235,19 +227,20 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE abap_component_tab.
 
+    TYPES:
+      BEGIN OF ty_s_fix_val,
+        low   TYPE string,
+        high  TYPE string,
+        descr TYPE string,
+      END OF ty_s_fix_val.
+    TYPES ty_t_fix_val TYPE STANDARD TABLE OF ty_s_fix_val WITH DEFAULT KEY.
+
     CLASS-METHODS rtti_get_t_ddic_fixed_values
       IMPORTING
         rollname      TYPE clike
         langu         TYPE clike DEFAULT sy-langu
       RETURNING
-        VALUE(result) TYPE z2ui5_cl_util_api=>ty_t_fix_val ##NEEDED.
-
-    CLASS-METHODS source_get_method2
-      IMPORTING
-        iv_classname  TYPE clike
-        iv_methodname TYPE clike
-      RETURNING
-        VALUE(result) TYPE string.
+        VALUE(result) TYPE ty_t_fix_val ##NEEDED.
 
     CLASS-METHODS check_bound_a_not_initial
       IMPORTING
@@ -278,12 +271,6 @@ CLASS z2ui5_cl_util DEFINITION
         val           TYPE data
       RETURNING
         VALUE(result) TYPE REF TO data.
-
-    CLASS-METHODS source_method_to_file
-      IMPORTING
-        it_source     TYPE string_table
-      RETURNING
-        VALUE(result) TYPE string.
 
     CLASS-METHODS itab_get_itab_by_csv
       IMPORTING
@@ -605,10 +592,6 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE xstring.
 
-    CLASS-METHODS source_get_file_types
-      RETURNING
-        VALUE(result) TYPE string_table.
-
     CLASS-METHODS rtti_tab_get_relative_name
       IMPORTING
         !table        TYPE any
@@ -733,108 +716,6 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    CLASS-METHODS cal_get_weekday
-      IMPORTING
-        !date         TYPE d
-      RETURNING
-        VALUE(result) TYPE i.
-
-    CLASS-METHODS cal_is_weekend
-      IMPORTING
-        !date         TYPE d
-      RETURNING
-        VALUE(result) TYPE abap_bool.
-
-    CLASS-METHODS cal_is_workday
-      IMPORTING
-        !date         TYPE d
-        !calendar_id  TYPE clike OPTIONAL
-      RETURNING
-        VALUE(result) TYPE abap_bool.
-
-    CLASS-METHODS cal_add_workdays
-      IMPORTING
-        !date         TYPE d
-        !days         TYPE i
-        !calendar_id  TYPE clike OPTIONAL
-      RETURNING
-        VALUE(result) TYPE d.
-
-    CLASS-METHODS cal_count_workdays
-      IMPORTING
-        !date_from    TYPE d
-        !date_to      TYPE d
-        !calendar_id  TYPE clike OPTIONAL
-      RETURNING
-        VALUE(result) TYPE i.
-
-    CLASS-METHODS zip_pack
-      IMPORTING
-        !files        TYPE ty_t_zip_file
-      RETURNING
-        VALUE(result) TYPE xstring.
-
-    CLASS-METHODS zip_unpack
-      IMPORTING
-        !val          TYPE xstring
-      RETURNING
-        VALUE(result) TYPE ty_t_zip_file.
-
-    TYPES:
-      BEGIN OF ty_s_lock_param,
-        name  TYPE c LENGTH 30,
-        value TYPE string,
-      END OF ty_s_lock_param.
-    TYPES ty_t_lock_param TYPE STANDARD TABLE OF ty_s_lock_param WITH DEFAULT KEY.
-
-    TYPES:
-      BEGIN OF ty_s_lock,
-        lock_object TYPE string,
-        argument    TYPE string,
-        user        TYPE string,
-        mode        TYPE string,
-        client      TYPE string,
-        date        TYPE d,
-        time        TYPE t,
-        owner       TYPE string,
-        owner_vb    TYPE string,
-      END OF ty_s_lock.
-    TYPES ty_t_lock TYPE STANDARD TABLE OF ty_s_lock WITH DEFAULT KEY.
-
-    CLASS-METHODS lock_set
-      IMPORTING
-        val           TYPE clike
-        t_param       TYPE ty_t_lock_param OPTIONAL
-      RETURNING
-        VALUE(result) TYPE abap_bool.
-
-    CLASS-METHODS lock_delete
-      IMPORTING
-        val           TYPE clike
-        t_param       TYPE ty_t_lock_param OPTIONAL
-      RETURNING
-        VALUE(result) TYPE abap_bool.
-
-    CLASS-METHODS lock_read
-      IMPORTING
-        lock_object   TYPE clike OPTIONAL
-        !user         TYPE clike OPTIONAL
-        client        TYPE clike OPTIONAL
-      RETURNING
-        VALUE(result) TYPE ty_t_lock.
-
-    CLASS-METHODS lock_delete_entries
-      IMPORTING
-        t_lock        TYPE ty_t_lock
-      RETURNING
-        VALUE(result) TYPE abap_bool.
-
-    CLASS-METHODS lock_get_dequeue_by_enqueue
-      IMPORTING
-        val           TYPE clike
-      RETURNING
-        VALUE(result) TYPE string.
-
     " ========== String Extras ==========
 
     CLASS-METHODS c_pad_left
@@ -900,18 +781,6 @@ CLASS z2ui5_cl_util DEFINITION
         VALUE(result) TYPE decfloat34.
 
     " ========== i18n / Text Resolution ==========
-
-    CLASS-METHODS text_get
-      IMPORTING
-        msgid         TYPE clike
-        msgno         TYPE clike
-        v1            TYPE clike OPTIONAL
-        v2            TYPE clike OPTIONAL
-        v3            TYPE clike OPTIONAL
-        v4            TYPE clike OPTIONAL
-        langu         TYPE clike DEFAULT sy-langu
-      RETURNING
-        VALUE(result) TYPE string.
 
     " ========== Itab Extras ==========
 
@@ -1031,15 +900,6 @@ CLASS z2ui5_cl_util DEFINITION
 
     " ========== Authorization Check ==========
 
-    CLASS-METHODS auth_check
-      IMPORTING
-        object        TYPE clike
-        field         TYPE clike
-        !value        TYPE clike
-        activity      TYPE clike DEFAULT '03'
-      RETURNING
-        VALUE(result) TYPE abap_bool.
-
     " ========== Enum/Domain Helpers ==========
 
     CLASS-METHODS enum_to_text
@@ -1073,198 +933,300 @@ CLASS z2ui5_cl_util DEFINITION
       CHANGING
         data  TYPE any.
 
-    " ========== BAL Extensions ==========
-
-    TYPES:
-      BEGIN OF ty_s_bal_header,
-        log_handle  TYPE string,
-        object      TYPE string,
-        subobject   TYPE string,
-        external_id TYPE string,
-        log_date    TYPE d,
-        log_time    TYPE t,
-        user        TYPE string,
-        msg_count   TYPE i,
-      END OF ty_s_bal_header.
-    TYPES ty_t_bal_header TYPE STANDARD TABLE OF ty_s_bal_header WITH EMPTY KEY.
-
-    CLASS-METHODS bal_search
-      IMPORTING
-        object        TYPE clike OPTIONAL
-        subobject     TYPE clike OPTIONAL
-        id            TYPE clike OPTIONAL
-        date_from     TYPE d OPTIONAL
-        date_to       TYPE d OPTIONAL
-        !user         TYPE clike OPTIONAL
-      RETURNING
-        VALUE(result) TYPE ty_t_bal_header.
-
-    CLASS-METHODS bal_read_latest
-      IMPORTING
-        object        TYPE clike
-        subobject     TYPE clike
-        id            TYPE clike
-      RETURNING
-        VALUE(result) TYPE ty_s_msg.
-
-    CLASS-METHODS bal_delete_before
-      IMPORTING
-        object    TYPE clike
-        subobject TYPE clike OPTIONAL
-        !days     TYPE i DEFAULT 30.
-
-    CLASS-METHODS bal_read_by_type
-      IMPORTING
-        object        TYPE clike
-        subobject     TYPE clike
-        id            TYPE clike
-        msg_type      TYPE clike DEFAULT `E`
-      RETURNING
-        VALUE(result) TYPE ty_t_msg.
-
-    CLASS-METHODS bal_count
-      IMPORTING
-        object        TYPE clike
-        subobject     TYPE clike
-        id            TYPE clike
-      RETURNING
-        VALUE(result) TYPE i.
-
-    " ========== Transport Extensions ==========
-
-    TYPES:
-      BEGIN OF ty_s_tr_object,
-        pgmid    TYPE string,
-        object   TYPE string,
-        obj_name TYPE string,
-      END OF ty_s_tr_object.
-    TYPES ty_t_tr_object TYPE STANDARD TABLE OF ty_s_tr_object WITH EMPTY KEY.
-
-    TYPES:
-      BEGIN OF ty_s_tr_request,
-        trkorr      TYPE string,
-        description TYPE string,
-        owner       TYPE string,
-        status      TYPE string,
-        type        TYPE string,
-      END OF ty_s_tr_request.
-    TYPES ty_t_tr_request TYPE STANDARD TABLE OF ty_s_tr_request WITH EMPTY KEY.
-
-    CLASS-METHODS tr_get_objects
-      IMPORTING
-        trkorr        TYPE clike
-      RETURNING
-        VALUE(result) TYPE ty_t_tr_object.
-
-    CLASS-METHODS tr_get_user_requests
-      IMPORTING
-        !user         TYPE clike DEFAULT sy-uname
-        request_type  TYPE clike OPTIONAL
-      RETURNING
-        VALUE(result) TYPE ty_t_tr_request.
-
-    CLASS-METHODS tr_get_description
-      IMPORTING
-        trkorr        TYPE clike
-      RETURNING
-        VALUE(result) TYPE string.
-
-    CLASS-METHODS tr_is_released
-      IMPORTING
-        trkorr        TYPE clike
-      RETURNING
-        VALUE(result) TYPE abap_bool.
-
-    CLASS-METHODS tr_add_object
-      IMPORTING
-        trkorr  TYPE clike
-        pgmid   TYPE clike DEFAULT 'R3TR'
-        object  TYPE clike
-        obj_name TYPE clike.
-
     " ========== Lock Extensions ==========
-
-    CLASS-METHODS lock_is_locked
-      IMPORTING
-        val           TYPE clike
-        t_param       TYPE ty_t_lock_param OPTIONAL
-      RETURNING
-        VALUE(result) TYPE abap_bool.
-
-    CLASS-METHODS lock_get_owner
-      IMPORTING
-        val           TYPE clike
-        t_param       TYPE ty_t_lock_param OPTIONAL
-      RETURNING
-        VALUE(result) TYPE string.
-
-    CLASS-METHODS lock_set_wait
-      IMPORTING
-        val           TYPE clike
-        t_param       TYPE ty_t_lock_param OPTIONAL
-        retries       TYPE i DEFAULT 5
-        delay_ms      TYPE i DEFAULT 500
-      RETURNING
-        VALUE(result) TYPE abap_bool.
 
     " ========== Number Range ==========
 
-    CLASS-METHODS numrange_get_next
-      IMPORTING
-        object        TYPE clike
-        subobject     TYPE clike DEFAULT `01`
-      RETURNING
-        VALUE(result) TYPE string.
-
     " ========== Change Documents ==========
-
-    TYPES:
-      BEGIN OF ty_s_changdoc,
-        changenr  TYPE string,
-        username  TYPE string,
-        udate     TYPE d,
-        utime     TYPE t,
-        tcode     TYPE string,
-        fieldname TYPE string,
-        old_value TYPE string,
-        new_value TYPE string,
-        tabname   TYPE string,
-        chngind   TYPE string,
-      END OF ty_s_changdoc.
-    TYPES ty_t_changdoc TYPE STANDARD TABLE OF ty_s_changdoc WITH EMPTY KEY.
-
-    CLASS-METHODS changdoc_read
-      IMPORTING
-        objectclass   TYPE clike
-        objectid      TYPE clike
-        date_from     TYPE d DEFAULT '19000101'
-        date_to       TYPE d DEFAULT '99991231'
-      RETURNING
-        VALUE(result) TYPE ty_t_changdoc.
 
     " ========== Background Job ==========
 
-    CLASS-METHODS job_submit_report
-      IMPORTING
-        report          TYPE clike
-        variant         TYPE clike OPTIONAL
-        start_immediate TYPE abap_bool DEFAULT abap_true
-        job_name        TYPE clike OPTIONAL
-      RETURNING
-        VALUE(result)   TYPE string.
-
     " ========== Email ==========
 
-    CLASS-METHODS mail_send
-      IMPORTING
-        !to      TYPE string
-        subject  TYPE string
-        body     TYPE string
-        html     TYPE abap_bool DEFAULT abap_false
+    TYPES:
+      BEGIN OF ty_syst,
+        index TYPE i,
+        pagno TYPE i,
+        tabix TYPE i,
+        tfill TYPE i,
+        tlopc TYPE i,
+        tmaxl TYPE i,
+        toccu TYPE i,
+        ttabc TYPE i,
+        tstis TYPE i,
+        ttabi TYPE i,
+        dbcnt TYPE i,
+        fdpos TYPE i,
+        colno TYPE i,
+        linct TYPE i,
+        linno TYPE i,
+        linsz TYPE i,
+        pagct TYPE i,
+        macol TYPE i,
+        marow TYPE i,
+        tleng TYPE i,
+        sfoff TYPE i,
+        willi TYPE i,
+        lilli TYPE i,
+        subrc TYPE i,
+        fleng TYPE i,
+        cucol TYPE i,
+        curow TYPE i,
+        lsind TYPE i,
+        listi TYPE i,
+        stepl TYPE i,
+        tpagi TYPE i,
+        winx1 TYPE i,
+        winy1 TYPE i,
+        winx2 TYPE i,
+        winy2 TYPE i,
+        winco TYPE i,
+        winro TYPE i,
+        windi TYPE i,
+        srows TYPE i,
+        scols TYPE i,
+        loopc TYPE i,
+        folen TYPE i,
+        fodec TYPE i,
+        tzone TYPE i,
+        dayst TYPE c LENGTH 1,
+        ftype TYPE c LENGTH 1,
+        appli TYPE x LENGTH 2,
+        fdayw TYPE int1,
+        ccurs TYPE p LENGTH 9 DECIMALS 0,
+        ccurt TYPE p LENGTH 9 DECIMALS 0,
+        debug TYPE c LENGTH 1,
+        ctype TYPE c LENGTH 1,
+        input TYPE c LENGTH 1,
+        langu TYPE c LENGTH 1,
+        modno TYPE i,
+        batch TYPE c LENGTH 1,
+        binpt TYPE c LENGTH 1,
+        calld TYPE c LENGTH 1,
+        dynnr TYPE c LENGTH 4,
+        dyngr TYPE c LENGTH 4,
+        newpa TYPE c LENGTH 1,
+        pri40 TYPE c LENGTH 1,
+        rstrt TYPE c LENGTH 1,
+        wtitl TYPE c LENGTH 1,
+        cpage TYPE i,
+        dbnam TYPE c LENGTH 20,
+        mandt TYPE c LENGTH 3,
+        prefx TYPE c LENGTH 3,
+        fmkey TYPE c LENGTH 3,
+        pexpi TYPE n LENGTH 1,
+        prini TYPE n LENGTH 1,
+        primm TYPE c LENGTH 1,
+        prrel TYPE c LENGTH 1,
+        playo TYPE c LENGTH 5,
+        prbig TYPE c LENGTH 1,
+        playp TYPE c LENGTH 1,
+        prnew TYPE c LENGTH 1,
+        prlog TYPE c LENGTH 1,
+        pdest TYPE c LENGTH 4,
+        plist TYPE c LENGTH 12,
+        pauth TYPE n LENGTH 2,
+        prdsn TYPE c LENGTH 6,
+        pnwpa TYPE c LENGTH 1,
+        callr TYPE c LENGTH 8,
+        repi2 TYPE c LENGTH 40,
+        rtitl TYPE c LENGTH 70,
+        prrec TYPE c LENGTH 12,
+        prtxt TYPE c LENGTH 68,
+        prabt TYPE c LENGTH 12,
+        lpass TYPE c LENGTH 4,
+        nrpag TYPE c LENGTH 1,
+        paart TYPE c LENGTH 16,
+        prcop TYPE n LENGTH 3,
+        batzs TYPE c LENGTH 1,
+        bspld TYPE c LENGTH 1,
+        brep4 TYPE c LENGTH 4,
+        batzo TYPE c LENGTH 1,
+        batzd TYPE c LENGTH 1,
+        batzw TYPE c LENGTH 1,
+        batzm TYPE c LENGTH 1,
+        ctabl TYPE c LENGTH 4,
+        dbsys TYPE c LENGTH 10,
+        dcsys TYPE c LENGTH 4,
+        macdb TYPE c LENGTH 4,
+        sysid TYPE c LENGTH 8,
+        opsys TYPE c LENGTH 10,
+        pfkey TYPE c LENGTH 20,
+        saprl TYPE c LENGTH 4,
+        tcode TYPE c LENGTH 20,
+        ucomm TYPE c LENGTH 70,
+        cfwae TYPE c LENGTH 5,
+        chwae TYPE c LENGTH 5,
+        spono TYPE n LENGTH 10,
+        sponr TYPE n LENGTH 10,
+        waers TYPE c LENGTH 5,
+        cdate TYPE d,
+        datum TYPE d,
+        slset TYPE c LENGTH 14,
+        subty TYPE x LENGTH 1,
+        subcs TYPE c LENGTH 1,
+        group TYPE c LENGTH 1,
+        ffile TYPE c LENGTH 8,
+        uzeit TYPE t,
+        dsnam TYPE c LENGTH 8,
+        tabid TYPE c LENGTH 8,
+        tfdsn TYPE c LENGTH 8,
+        uname TYPE c LENGTH 12,
+        lstat TYPE c LENGTH 16,
+        abcde TYPE c LENGTH 26,
+        marky TYPE c LENGTH 1,
+        sfnam TYPE c LENGTH 30,
+        tname TYPE c LENGTH 30,
+        msgli TYPE c LENGTH 60,
+        title TYPE c LENGTH 70,
+        entry TYPE c LENGTH 72,
+        lisel TYPE c LENGTH 255,
+        uline TYPE c LENGTH 255,
+        xcode TYPE c LENGTH 70,
+        cprog TYPE c LENGTH 40,
+        xprog TYPE c LENGTH 40,
+        xform TYPE c LENGTH 30,
+        ldbpg TYPE c LENGTH 40,
+        tvar0 TYPE c LENGTH 20,
+        tvar1 TYPE c LENGTH 20,
+        tvar2 TYPE c LENGTH 20,
+        tvar3 TYPE c LENGTH 20,
+        tvar4 TYPE c LENGTH 20,
+        tvar5 TYPE c LENGTH 20,
+        tvar6 TYPE c LENGTH 20,
+        tvar7 TYPE c LENGTH 20,
+        tvar8 TYPE c LENGTH 20,
+        tvar9 TYPE c LENGTH 20,
+        msgid TYPE c LENGTH 20,
+        msgty TYPE c LENGTH 1,
+        msgno TYPE n LENGTH 3,
+        msgv1 TYPE c LENGTH 50,
+        msgv2 TYPE c LENGTH 50,
+        msgv3 TYPE c LENGTH 50,
+        msgv4 TYPE c LENGTH 50,
+        oncom TYPE c LENGTH 1,
+        vline TYPE c LENGTH 1,
+        winsl TYPE c LENGTH 79,
+        staco TYPE i,
+        staro TYPE i,
+        datar TYPE c LENGTH 1,
+        host  TYPE c LENGTH 32,
+        locdb TYPE c LENGTH 1,
+        locop TYPE c LENGTH 1,
+        datlo TYPE d,
+        timlo TYPE t,
+        zonlo TYPE c LENGTH 6,
+      END OF ty_syst.
+
+    TYPES:
+      BEGIN OF ty_s_data_element_text,
+        header TYPE string,
+        short  TYPE string,
+        medium TYPE string,
+        long   TYPE string,
+      END OF ty_s_data_element_text.
+
+    TYPES:
+      BEGIN OF ty_s_class_descr,
+        classname   TYPE string,
+        description TYPE string,
+      END OF ty_s_class_descr.
+    TYPES ty_t_classes TYPE STANDARD TABLE OF ty_s_class_descr WITH DEFAULT KEY.
+
+    TYPES:
+      BEGIN OF ty_s_stack,
+        class   TYPE string,
+        include TYPE string,
+        method  TYPE string,
+        line    TYPE string,
+      END OF ty_s_stack.
+    TYPES ty_t_stack TYPE STANDARD TABLE OF ty_s_stack WITH DEFAULT KEY.
+
+    CLASS-METHODS context_get_callstack
+      RETURNING
+        VALUE(result) TYPE ty_t_stack.
+
+    CLASS-METHODS context_get_tenant
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS context_get_sy
+      RETURNING
+        VALUE(result) TYPE ty_syst.
+
+    CLASS-METHODS context_check_abap_cloud
       RETURNING
         VALUE(result) TYPE abap_bool.
 
+    CLASS-METHODS context_get_user_tech
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS uuid_get_c32
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS uuid_get_c22
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS rtti_get_data_element_texts
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE ty_s_data_element_text.
+
+    CLASS-METHODS conv_decode_x_base64
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE xstring.
+
+    CLASS-METHODS conv_encode_x_base64
+      IMPORTING
+        val           TYPE xstring
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS conv_get_string_by_xstring
+      IMPORTING
+        val           TYPE xstring
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS conv_get_xstring_by_string
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE xstring.
+
+    CLASS-METHODS rtti_get_classes_impl_intf
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE ty_t_classes.
+
+    CLASS-METHODS rtti_get_t_fixvalues
+      IMPORTING
+        elemdescr     TYPE REF TO cl_abap_elemdescr
+        langu         TYPE clike
+      RETURNING
+        VALUE(result) TYPE ty_t_fix_val.
+
+    CLASS-METHODS rtti_get_table_desrc
+      IMPORTING
+        tabname       TYPE clike
+        langu         TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE string ##NEEDED.
+
   PROTECTED SECTION.
+
+    CLASS-METHODS rtti_get_class_descr_on_cloud
+      IMPORTING
+        i_classname   TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
 
   PRIVATE SECTION.
 
@@ -1312,26 +1274,19 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    CLASS-METHODS lock_call_function
-      IMPORTING
-        val           TYPE clike
-        t_param       TYPE ty_t_lock_param OPTIONAL
-      RETURNING
-        VALUE(result) TYPE abap_bool.
+    CLASS-DATA gv_check_cloud TYPE abap_bool.
+    CLASS-DATA gv_check_cloud_cached TYPE abap_bool.
 
 ENDCLASS.
 
-
-
 CLASS z2ui5_cl_util IMPLEMENTATION.
-
 
   METHOD class_constructor.
 
-    cv_char_utilities_newline        = cl_abap_char_utilities=>newline.
-    cv_char_utilities_cr_lf          = cl_abap_char_utilities=>cr_lf.
-    cv_char_utilities_horizontal_tab = cl_abap_char_utilities=>horizontal_tab.
-    cv_char_utilities_charsize       = cl_abap_char_utilities=>charsize.
+    cv_char_util_newline        = cl_abap_char_utilities=>newline.
+    cv_char_util_cr_lf          = cl_abap_char_utilities=>cr_lf.
+    cv_char_util_horizontal_tab = cl_abap_char_utilities=>horizontal_tab.
+    cv_char_util_charsize       = cl_abap_char_utilities=>charsize.
     cv_format_e_xml_attr             = cl_abap_format=>e_xml_attr.
 
     cv_typedescr_typekind_table      = cl_abap_typedescr=>typekind_table.
@@ -1345,13 +1300,11 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD db_rollback.
 
     ROLLBACK WORK.
 
   ENDMETHOD.
-
 
   METHOD boolean_abap_2_json.
 
@@ -1362,7 +1315,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
-
 
   METHOD boolean_check_by_data.
 
@@ -1394,7 +1346,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD boolean_check_by_name.
 
     CASE val.
@@ -1412,7 +1363,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD check_bound_a_not_initial.
 
     IF val IS NOT BOUND.
@@ -1422,7 +1372,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     result = xsdbool( check_unassign_initial( val ) = abap_false ).
 
   ENDMETHOD.
-
 
   METHOD check_unassign_initial.
 
@@ -1437,7 +1386,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     result = xsdbool( <any> IS INITIAL ).
 
   ENDMETHOD.
-
 
   METHOD conv_copy_ref_data.
 
@@ -1456,13 +1404,11 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD conv_get_as_data_ref.
 
     GET REFERENCE OF val INTO result.
 
   ENDMETHOD.
-
 
   METHOD conv_get_xstring_by_data_uri.
 
@@ -1474,18 +1420,16 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD c_trim.
 
     result = shift_left( shift_right( CONV string( val ) ) ).
     result = shift_right( val = result
-                          sub = cv_char_utilities_horizontal_tab ).
+                          sub = cv_char_util_horizontal_tab ).
     result = shift_left( val = result
-                         sub = cv_char_utilities_horizontal_tab ).
+                         sub = cv_char_util_horizontal_tab ).
     result = shift_left( shift_right( result ) ).
 
   ENDMETHOD.
-
 
   METHOD c_trim_lower.
 
@@ -1493,13 +1437,11 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD c_trim_upper.
 
     result = to_upper( c_trim( CONV string( val ) ) ).
 
   ENDMETHOD.
-
 
   METHOD filter_itab.
 
@@ -1524,7 +1466,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD filter_get_multi_by_data.
 
     LOOP AT rtti_get_t_attri_by_any( val ) REFERENCE INTO DATA(lr_comp).
@@ -1532,7 +1473,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
-
 
   METHOD filter_get_range_by_token.
 
@@ -1589,7 +1529,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD filter_update_tokens.
 
     result = val.
@@ -1613,7 +1552,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD filter_get_range_t_by_token_t.
 
     LOOP AT val INTO DATA(ls_token).
@@ -1621,7 +1559,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
-
 
   METHOD filter_get_token_range_mapping.
 
@@ -1639,7 +1576,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
                       (   n = `<leer>`  v = `<leer>` ) ).
 
   ENDMETHOD.
-
 
   METHOD filter_get_token_t_by_range_t.
 
@@ -1664,7 +1600,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
-
 
   METHOD itab_filter_by_val.
 
@@ -1717,7 +1652,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD itab_get_csv_by_itab.
 
     FIELD-SYMBOLS <tab> TYPE table.
@@ -1754,12 +1688,9 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
       INSERT lv_line INTO TABLE lt_lines.
     ENDLOOP.
 
-    result = concat_lines_of( table = lt_lines sep = cv_char_utilities_cr_lf ).
+    result = concat_lines_of( table = lt_lines sep = cv_char_util_cr_lf ).
 
   ENDMETHOD.
-
-
-
 
   METHOD itab_get_itab_by_csv.
 
@@ -1767,7 +1698,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     DATA lr_row TYPE REF TO data.
 
-    SPLIT val AT cv_char_utilities_newline INTO TABLE DATA(lt_rows).
+    SPLIT val AT cv_char_util_newline INTO TABLE DATA(lt_rows).
     SPLIT lt_rows[ 1 ] AT `;` INTO TABLE DATA(lt_cols).
 
     LOOP AT lt_cols REFERENCE INTO DATA(lr_col).
@@ -1808,7 +1739,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD json_parse.
     TRY.
 
@@ -1821,7 +1751,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
             val = x.
     ENDTRY.
   ENDMETHOD.
-
 
   METHOD json_stringify.
     TRY.
@@ -1837,7 +1766,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDTRY.
   ENDMETHOD.
 
-
   METHOD rtti_check_class_exists.
 
     TRY.
@@ -1852,7 +1780,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD rtti_check_ref_data.
 
     TRY.
@@ -1864,14 +1791,12 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD rtti_check_type_kind_dref.
 
     DATA(lv_type_kind) = cl_abap_datadescr=>get_data_type_kind( val ).
     result = xsdbool( lv_type_kind = cl_abap_typedescr=>typekind_dref ).
 
   ENDMETHOD.
-
 
   METHOD rtti_get_classname_by_ref.
 
@@ -1880,7 +1805,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
                               sub = `\CLASS=` ).
 
   ENDMETHOD.
-
 
   METHOD rtti_get_intfname_by_ref.
 
@@ -1892,13 +1816,11 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD rtti_get_type_kind.
 
     result = cl_abap_datadescr=>get_data_type_kind( val ).
 
   ENDMETHOD.
-
 
   METHOD rtti_get_type_name.
     TRY.
@@ -1910,7 +1832,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
   ENDMETHOD.
-
 
   METHOD rtti_get_t_attri_by_include.
 
@@ -1948,14 +1869,12 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD rtti_get_t_attri_by_oref.
 
     DATA(lo_obj_ref) = cl_abap_objectdescr=>describe_by_object_ref( val ).
     result = CAST cl_abap_classdescr( lo_obj_ref )->attributes.
 
   ENDMETHOD.
-
 
   METHOD rtti_get_t_attri_by_any.
 
@@ -2017,7 +1936,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD rtti_get_t_ddic_fixed_values.
 
     IF rollname IS INITIAL.
@@ -2043,7 +1961,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
-
 
   METHOD rtti_tab_get_relative_name.
 
@@ -2106,44 +2023,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD source_get_file_types.
-
-    DATA(lv_types) = |abap, abc, actionscript, ada, apache_conf, applescript, asciidoc, assembly_x86, autohotkey, batchfile, bro, c9search, c_cpp, cirru, clojure, cobol, coffee, coldfusion, csharp, css, curly, d, dart, diff, django, dockerfile, | &&
-|dot, drools, eiffel, yaml, ejs, elixir, elm, erlang, forth, fortran, ftl, gcode, gherkin, gitignore, glsl, gobstones, golang, groovy, haml, handlebars, haskell, haskell_cabal, haxe, hjson, html, html_elixir, html_ruby, ini, io, jack, jade, java, ja| &&
-      |vascri| &&
-|pt, json, jsoniq, jsp, jsx, julia, kotlin, latex, lean, less, liquid, lisp, live_script, livescript, logiql, lsl, lua, luapage, lucene, makefile, markdown, mask, matlab, mavens_mate_log, maze, mel, mips_assembler, mipsassembler, mushcode, mysql, ni| &&
-|x, nsis, objectivec, ocaml, pascal, perl, pgsql, php, plain_text, powershell, praat, prolog, properties, protobuf, python, r, razor, rdoc, rhtml, rst, ruby, rust, sass, scad, scala, scheme, scss, sh, sjs, smarty, snippets, soy_template, space, sql,| &&
-      | sqlserver, stylus, svg, swift, swig, tcl, tex, text, textile, toml, tsx, twig, typescript, vala, vbscript, velocity, verilog, vhdl, wollok, xml, xquery, terraform, slim, redshift, red, puppet, php_laravel_blade, mixal, jssm, fsharp, edifact,| &&
-      | csp, cssound_score, cssound_orchestra, cssound_document| ##NO_TEXT.
-    SPLIT lv_types AT `,` INTO TABLE result.
-
-  ENDMETHOD.
-
-
-  METHOD source_get_method2.
-
-    DATA(lt_source) = source_get_method( iv_classname  = iv_classname
-                                         iv_methodname = iv_methodname ).
-
-    result = source_method_to_file( lt_source ).
-
-  ENDMETHOD.
-
-
-  METHOD source_method_to_file.
-
-    LOOP AT it_source INTO DATA(lv_source).
-      IF strlen( lv_source ) > 1.
-        result = result && lv_source+1 && cv_char_utilities_newline.
-      ELSE.
-        result = result && cv_char_utilities_newline.
-      ENDIF.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
   METHOD filter_get_sql_by_sql_string.
 
     DATA(lv_sql) = CONV string( val ).
@@ -2167,23 +2046,19 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD time_get_date_by_stampl.
     DATA(ls_sy) = z2ui5_cl_util=>context_get_sy( ).
     CONVERT TIME STAMP val TIME ZONE ls_sy-zonlo INTO DATE result TIME DATA(lv_dummy).
   ENDMETHOD.
 
-
   METHOD time_get_timestampl.
     GET TIME STAMP FIELD result.
   ENDMETHOD.
-
 
   METHOD time_get_time_by_stampl.
     DATA(ls_sy) = z2ui5_cl_util=>context_get_sy( ).
     CONVERT TIME STAMP val TIME ZONE ls_sy-zonlo INTO DATE DATA(lv_dummy) TIME result.
   ENDMETHOD.
-
 
   METHOD time_subtract_seconds.
 
@@ -2191,7 +2066,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
                                           secs  = seconds ).
 
   ENDMETHOD.
-
 
   METHOD unassign_data.
 
@@ -2202,7 +2076,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD unassign_object.
 
     FIELD-SYMBOLS <unassign> TYPE any.
@@ -2211,7 +2084,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     result = <unassign>.
 
   ENDMETHOD.
-
 
   METHOD url_param_create_url.
 
@@ -2223,7 +2095,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD url_param_get.
 
     DATA(lt_params) = url_param_get_tab( url ).
@@ -2231,7 +2102,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     result = VALUE #( lt_params[ n = lv_val ]-v OPTIONAL ).
 
   ENDMETHOD.
-
 
   METHOD url_param_get_tab.
 
@@ -2268,7 +2138,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD url_param_set.
 
     DATA(lt_params) = url_param_get_tab( url ).
@@ -2287,7 +2156,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD xml_parse.
 
     IF xml IS INITIAL.
@@ -2300,7 +2168,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
          RESULT data = any.
 
   ENDMETHOD.
-
 
   METHOD xml_srtti_parse.
 
@@ -2320,7 +2187,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     CALL TRANSFORMATION id SOURCE XML rtti_data RESULT dobj = <variable>.
 
   ENDMETHOD.
-
 
   METHOD xml_srtti_stringify.
 
@@ -2357,7 +2223,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD xml_stringify.
 
     CALL TRANSFORMATION id
@@ -2366,7 +2231,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
          OPTIONS data_refs = `heap-or-create`.
 
   ENDMETHOD.
-
 
   METHOD x_check_raise.
 
@@ -2377,7 +2241,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
-
 
   METHOD x_get_last_t100.
 
@@ -2396,7 +2259,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD x_raise.
 
     RAISE EXCEPTION TYPE z2ui5_cx_util_error
@@ -2404,7 +2266,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         val = v.
 
   ENDMETHOD.
-
 
   METHOD rtti_get_t_attri_by_table_name.
 
@@ -2463,7 +2324,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD itab_corresponding.
 
     FIELD-SYMBOLS <row_in>  TYPE any.
@@ -2475,7 +2335,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
-
 
   METHOD itab_get_by_struc.
 
@@ -2527,7 +2386,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD filter_get_data_by_multi.
 
     LOOP AT val INTO DATA(ls_filter).
@@ -2538,7 +2396,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
-
 
   METHOD filter_get_sql_where.
 
@@ -2575,7 +2432,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
-
 
   METHOD filter_get_sql_cond_by_range.
 
@@ -2635,7 +2491,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
-
 
   METHOD filter_get_multi_by_sql_where.
 
@@ -2698,7 +2553,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
-
 
   METHOD filter_get_range_by_sql_cond.
 
@@ -2795,7 +2649,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD filter_sql_split_top_level.
 
     DATA(lv_val) = CONV string( val ).
@@ -2867,7 +2720,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD filter_sql_strip_quotes.
 
     result = c_trim( val ).
@@ -2889,13 +2741,11 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD msg_get_t.
 
     result = z2ui5_cl_util_msg=>msg_get( val = val val2 = val2 ).
 
   ENDMETHOD.
-
 
   METHOD rtti_check_clike.
 
@@ -2910,7 +2760,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD ui5_get_msg_type.
 
     result = SWITCH #( val
@@ -2921,7 +2770,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD rtti_create_tab_by_name.
 
     DATA(struct_desc) = cl_abap_structdescr=>describe_by_name( val ).
@@ -2931,7 +2779,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD msg_get.
 
     DATA(lt_msg) = msg_get_t( val = val val2 = val2 ).
@@ -2939,20 +2786,17 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD msg_get_collect.
 
     result = z2ui5_cl_util_msg=>msg_get_collect( val = val val2 = val2 ).
 
   ENDMETHOD.
 
-
   METHOD rtti_get_data_element_text_l.
 
     result = rtti_get_data_element_texts( val )-long.
 
   ENDMETHOD.
-
 
   METHOD rtti_get_ddic_type_name.
 
@@ -2961,20 +2805,17 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD rtti_get_typedescr_by_data_ref.
 
     result = cl_abap_typedescr=>describe_by_data_ref( val ).
 
   ENDMETHOD.
 
-
   METHOD rtti_get_typedescr_by_data.
 
     result = cl_abap_typedescr=>describe_by_data( val ).
 
   ENDMETHOD.
-
 
   METHOD rtti_create_sel_tab_type.
 
@@ -3006,7 +2847,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD msg_get_by_msg.
 
     DATA(ls_msg) = VALUE ty_s_msg(
@@ -3020,13 +2860,11 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD c_contains.
 
     result = xsdbool( CONV string( val ) CS sub ).
 
   ENDMETHOD.
-
 
   METHOD c_starts_with.
 
@@ -3042,7 +2880,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     result = xsdbool( lv_val(lv_len) = lv_prefix ).
 
   ENDMETHOD.
-
 
   METHOD c_ends_with.
 
@@ -3061,13 +2898,11 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD c_split.
 
     SPLIT val AT sep INTO TABLE result.
 
   ENDMETHOD.
-
 
   METHOD c_join.
 
@@ -3080,14 +2915,12 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD rtti_check_table.
 
     DATA(lv_type_kind) = cl_abap_datadescr=>get_data_type_kind( val ).
     result = xsdbool( lv_type_kind = cl_abap_typedescr=>typekind_table ).
 
   ENDMETHOD.
-
 
   METHOD rtti_check_structure.
 
@@ -3099,7 +2932,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
-
 
   METHOD rtti_check_numeric.
 
@@ -3119,14 +2951,12 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD time_add_seconds.
 
     result = cl_abap_tstmp=>add( tstmp = time
                                  secs  = seconds ).
 
   ENDMETHOD.
-
 
   METHOD time_get_stampl_by_date_time.
 
@@ -3135,7 +2965,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD time_diff_seconds.
 
     DATA(lv_diff) = cl_abap_tstmp=>subtract( tstmp1 = time_to
@@ -3143,7 +2972,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     result = lv_diff.
 
   ENDMETHOD.
-
 
   METHOD conv_string_to_date.
 
@@ -3197,7 +3025,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD conv_date_to_string.
 
     DATA(lv_fmt) = CONV string( format ).
@@ -3213,7 +3040,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     REPLACE `DD`   IN result WITH lv_day.
 
   ENDMETHOD.
-
 
   METHOD ui5_msg_box_format.
 
@@ -3240,7 +3066,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD rtti_check_serializable.
 
     IF val IS NOT BOUND.
@@ -3256,7 +3081,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD app_get_url.
 
     DATA(lt_param) = url_param_get_tab( search ).
@@ -3268,397 +3092,11 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD app_get_url_source_code.
 
     result = |{ origin }/sap/bc/adt/oo/classes/{ classname }/source/main|.
 
   ENDMETHOD.
-
-
-  METHOD cal_get_weekday.
-
-    " 1900-01-01 was a Monday, so the day distance modulo 7 yields the weekday
-    DATA(lv_days) = date - CONV d( `19000101` ).
-    result = lv_days MOD 7 + 1.
-
-  ENDMETHOD.
-
-
-  METHOD cal_is_weekend.
-
-    result = xsdbool( cal_get_weekday( date ) >= 6 ).
-
-  ENDMETHOD.
-
-
-  METHOD cal_is_workday.
-
-    IF calendar_id IS NOT INITIAL.
-      z2ui5_cl_util=>x_raise( `cal_is_workday: factory calendar support is not yet implemented` ).
-    ENDIF.
-
-    result = xsdbool( cal_is_weekend( date ) = abap_false ).
-
-  ENDMETHOD.
-
-
-  METHOD cal_add_workdays.
-
-    DATA(lv_remaining) = abs( days ).
-    DATA(lv_step) = COND i( WHEN days < 0 THEN -1 ELSE 1 ).
-
-    result = date.
-    WHILE lv_remaining > 0.
-      result = result + lv_step.
-      IF cal_is_workday( date = result calendar_id = calendar_id ) = abap_true.
-        lv_remaining = lv_remaining - 1.
-      ENDIF.
-    ENDWHILE.
-
-  ENDMETHOD.
-
-
-  METHOD cal_count_workdays.
-
-    DATA(lv_date) = date_from.
-    DATA(lv_step) = COND i( WHEN date_to < date_from THEN -1 ELSE 1 ).
-
-    WHILE lv_date <> date_to.
-      lv_date = lv_date + lv_step.
-      IF cal_is_workday( date = lv_date calendar_id = calendar_id ) = abap_true.
-        result = result + 1.
-      ENDIF.
-    ENDWHILE.
-
-  ENDMETHOD.
-
-
-  METHOD zip_pack.
-
-    DATA lo_zip TYPE REF TO object.
-
-    TRY.
-
-        CREATE OBJECT lo_zip TYPE ('CL_ABAP_ZIP').
-        LOOP AT files INTO DATA(ls_file).
-          CALL METHOD lo_zip->('ADD')
-            EXPORTING
-              name    = ls_file-name
-              content = ls_file-content.
-        ENDLOOP.
-        CALL METHOD lo_zip->('SAVE')
-          RECEIVING
-            zip = result.
-
-      CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = x.
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD zip_unpack.
-
-    DATA lo_zip    TYPE REF TO object.
-    DATA lv_name   TYPE string.
-    DATA ls_result LIKE LINE OF result.
-
-    FIELD-SYMBOLS <files> TYPE ANY TABLE.
-    FIELD-SYMBOLS <file>  TYPE any.
-    FIELD-SYMBOLS <name>  TYPE any.
-
-    TRY.
-
-        CREATE OBJECT lo_zip TYPE ('CL_ABAP_ZIP').
-        CALL METHOD lo_zip->('LOAD')
-          EXPORTING
-            zip = val.
-
-        ASSIGN lo_zip->('FILES') TO <files>.
-        LOOP AT <files> ASSIGNING <file>.
-          ASSIGN COMPONENT `NAME` OF STRUCTURE <file> TO <name>.
-          lv_name = <name>.
-
-          ls_result = VALUE #( name = lv_name ).
-          CALL METHOD lo_zip->('GET')
-            EXPORTING
-              name    = lv_name
-            IMPORTING
-              content = ls_result-content.
-          INSERT ls_result INTO TABLE result.
-        ENDLOOP.
-
-      CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = x.
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD lock_set.
-
-    result = lock_call_function( val     = val
-                                 t_param = t_param ).
-
-  ENDMETHOD.
-
-
-  METHOD lock_delete.
-
-    result = lock_call_function( val     = lock_get_dequeue_by_enqueue( val )
-                                 t_param = t_param ).
-
-  ENDMETHOD.
-
-
-  METHOD lock_get_dequeue_by_enqueue.
-
-    result = replace( val  = c_trim_upper( val )
-                      sub  = `ENQUEUE_`
-                      with = `DEQUEUE_` ).
-
-  ENDMETHOD.
-
-
-  METHOD lock_call_function.
-
-    DATA lt_param      TYPE abap_func_parmbind_tab.
-    DATA ls_param      TYPE abap_func_parmbind.
-    DATA ls_lock_param TYPE ty_s_lock_param.
-    DATA lr_value      TYPE REF TO string.
-    DATA lt_exception  TYPE abap_func_excpbind_tab.
-    DATA ls_exception  TYPE abap_func_excpbind.
-    DATA lv_function   TYPE string.
-
-    TRY.
-        LOOP AT t_param INTO ls_lock_param.
-          ls_param-name = ls_lock_param-name.
-          ls_param-kind = abap_func_exporting.
-          CREATE DATA lr_value.
-          lr_value->* = ls_lock_param-value.
-          ls_param-value = lr_value.
-          INSERT ls_param INTO TABLE lt_param.
-        ENDLOOP.
-
-        ls_exception-name  = `OTHERS`.
-        ls_exception-value = 4.
-        INSERT ls_exception INTO TABLE lt_exception.
-
-        lv_function = c_trim_upper( val ).
-        CALL FUNCTION lv_function
-          PARAMETER-TABLE lt_param
-          EXCEPTION-TABLE lt_exception.
-
-        result = xsdbool( sy-subrc = 0 ).
-
-      CATCH cx_root.
-        result = abap_false.
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD lock_read.
-
-    DATA lr_enq TYPE REF TO data.
-    FIELD-SYMBOLS <lt_enq>   TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <ls_enq>   TYPE any.
-    FIELD-SYMBOLS <lv_value> TYPE any.
-    DATA lv_client     TYPE c LENGTH 3.
-    DATA lv_name       TYPE c LENGTH 30.
-    DATA lv_uname      TYPE c LENGTH 12.
-    DATA lt_param      TYPE abap_func_parmbind_tab.
-    DATA ls_param      TYPE abap_func_parmbind.
-    DATA lt_exception  TYPE abap_func_excpbind_tab.
-    DATA ls_exception  TYPE abap_func_excpbind.
-    DATA lv_function   TYPE string.
-    DATA ls_lock       TYPE ty_s_lock.
-
-    TRY.
-        CREATE DATA lr_enq TYPE STANDARD TABLE OF (`SEQG3`).
-        ASSIGN lr_enq->* TO <lt_enq>.
-
-        IF client IS INITIAL.
-          lv_client = context_get_sy( )-mandt.
-        ELSE.
-          lv_client = client.
-        ENDIF.
-        lv_name  = lock_object.
-        lv_uname = user.
-
-        ls_param-name = `GCLIENT`.
-        ls_param-kind = abap_func_exporting.
-        GET REFERENCE OF lv_client INTO ls_param-value.
-        INSERT ls_param INTO TABLE lt_param.
-
-        ls_param-name = `GNAME`.
-        GET REFERENCE OF lv_name INTO ls_param-value.
-        INSERT ls_param INTO TABLE lt_param.
-
-        ls_param-name = `GUNAME`.
-        GET REFERENCE OF lv_uname INTO ls_param-value.
-        INSERT ls_param INTO TABLE lt_param.
-
-        ls_param-name = `ENQ`.
-        ls_param-kind = abap_func_tables.
-        GET REFERENCE OF <lt_enq> INTO ls_param-value.
-        INSERT ls_param INTO TABLE lt_param.
-
-        ls_exception-name  = `OTHERS`.
-        ls_exception-value = 4.
-        INSERT ls_exception INTO TABLE lt_exception.
-
-        lv_function = `ENQUEUE_READ`.
-        CALL FUNCTION lv_function
-          PARAMETER-TABLE lt_param
-          EXCEPTION-TABLE lt_exception.
-        IF sy-subrc <> 0.
-          RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = `LOCK_READ_FAILED`.
-        ENDIF.
-
-        LOOP AT <lt_enq> ASSIGNING <ls_enq>.
-          CLEAR ls_lock.
-          ASSIGN COMPONENT `GNAME` OF STRUCTURE <ls_enq> TO <lv_value>.
-          IF sy-subrc = 0.
-            ls_lock-lock_object = <lv_value>.
-          ENDIF.
-          ASSIGN COMPONENT `GARG` OF STRUCTURE <ls_enq> TO <lv_value>.
-          IF sy-subrc = 0.
-            ls_lock-argument = <lv_value>.
-          ENDIF.
-          ASSIGN COMPONENT `GUNAME` OF STRUCTURE <ls_enq> TO <lv_value>.
-          IF sy-subrc = 0.
-            ls_lock-user = <lv_value>.
-          ENDIF.
-          ASSIGN COMPONENT `GMODE` OF STRUCTURE <ls_enq> TO <lv_value>.
-          IF sy-subrc = 0.
-            ls_lock-mode = <lv_value>.
-          ENDIF.
-          ASSIGN COMPONENT `GCLIENT` OF STRUCTURE <ls_enq> TO <lv_value>.
-          IF sy-subrc = 0.
-            ls_lock-client = <lv_value>.
-          ENDIF.
-          ASSIGN COMPONENT `GTDATE` OF STRUCTURE <ls_enq> TO <lv_value>.
-          IF sy-subrc = 0.
-            ls_lock-date = <lv_value>.
-          ENDIF.
-          ASSIGN COMPONENT `GTTIME` OF STRUCTURE <ls_enq> TO <lv_value>.
-          IF sy-subrc = 0.
-            ls_lock-time = <lv_value>.
-          ENDIF.
-          ASSIGN COMPONENT `GUSR` OF STRUCTURE <ls_enq> TO <lv_value>.
-          IF sy-subrc = 0.
-            ls_lock-owner = <lv_value>.
-          ENDIF.
-          ASSIGN COMPONENT `GUSRVB` OF STRUCTURE <ls_enq> TO <lv_value>.
-          IF sy-subrc = 0.
-            ls_lock-owner_vb = <lv_value>.
-          ENDIF.
-          INSERT ls_lock INTO TABLE result.
-        ENDLOOP.
-
-      CATCH z2ui5_cx_util_error INTO DATA(lx_error).
-        RAISE EXCEPTION lx_error.
-      CATCH cx_root INTO DATA(lx_root).
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = lx_root.
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD lock_delete_entries.
-
-    DATA lr_enq TYPE REF TO data.
-    FIELD-SYMBOLS <lt_enq>   TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <ls_enq>   TYPE any.
-    FIELD-SYMBOLS <lv_value> TYPE any.
-    DATA lr_row        TYPE REF TO data.
-    DATA ls_lock       TYPE ty_s_lock.
-    DATA lv_check_upd  TYPE i.
-    DATA lv_subrc      TYPE sy-subrc.
-    DATA lt_param      TYPE abap_func_parmbind_tab.
-    DATA ls_param      TYPE abap_func_parmbind.
-    DATA lt_exception  TYPE abap_func_excpbind_tab.
-    DATA ls_exception  TYPE abap_func_excpbind.
-    DATA lv_function   TYPE string.
-
-    TRY.
-        CREATE DATA lr_enq TYPE STANDARD TABLE OF (`SEQG3`).
-        ASSIGN lr_enq->* TO <lt_enq>.
-        CREATE DATA lr_row TYPE (`SEQG3`).
-        ASSIGN lr_row->* TO <ls_enq>.
-
-        LOOP AT t_lock INTO ls_lock.
-          CLEAR <ls_enq>.
-          ASSIGN COMPONENT `GNAME` OF STRUCTURE <ls_enq> TO <lv_value>.
-          IF sy-subrc = 0.
-            <lv_value> = ls_lock-lock_object.
-          ENDIF.
-          ASSIGN COMPONENT `GARG` OF STRUCTURE <ls_enq> TO <lv_value>.
-          IF sy-subrc = 0.
-            <lv_value> = ls_lock-argument.
-          ENDIF.
-          ASSIGN COMPONENT `GUNAME` OF STRUCTURE <ls_enq> TO <lv_value>.
-          IF sy-subrc = 0.
-            <lv_value> = ls_lock-user.
-          ENDIF.
-          ASSIGN COMPONENT `GMODE` OF STRUCTURE <ls_enq> TO <lv_value>.
-          IF sy-subrc = 0.
-            <lv_value> = ls_lock-mode.
-          ENDIF.
-          ASSIGN COMPONENT `GCLIENT` OF STRUCTURE <ls_enq> TO <lv_value>.
-          IF sy-subrc = 0.
-            <lv_value> = ls_lock-client.
-          ENDIF.
-          ASSIGN COMPONENT `GUSR` OF STRUCTURE <ls_enq> TO <lv_value>.
-          IF sy-subrc = 0.
-            <lv_value> = ls_lock-owner.
-          ENDIF.
-          ASSIGN COMPONENT `GUSRVB` OF STRUCTURE <ls_enq> TO <lv_value>.
-          IF sy-subrc = 0.
-            <lv_value> = ls_lock-owner_vb.
-          ENDIF.
-          INSERT <ls_enq> INTO TABLE <lt_enq>.
-        ENDLOOP.
-
-        IF <lt_enq> IS INITIAL.
-          result = abap_true.
-          RETURN.
-        ENDIF.
-
-        ls_param-name = `CHECK_UPD_REQUESTS`.
-        ls_param-kind = abap_func_exporting.
-        GET REFERENCE OF lv_check_upd INTO ls_param-value.
-        INSERT ls_param INTO TABLE lt_param.
-
-        ls_param-name = `SUBRC`.
-        ls_param-kind = abap_func_importing.
-        GET REFERENCE OF lv_subrc INTO ls_param-value.
-        INSERT ls_param INTO TABLE lt_param.
-
-        ls_param-name = `ENQ`.
-        ls_param-kind = abap_func_tables.
-        GET REFERENCE OF <lt_enq> INTO ls_param-value.
-        INSERT ls_param INTO TABLE lt_param.
-
-        ls_exception-name  = `OTHERS`.
-        ls_exception-value = 4.
-        INSERT ls_exception INTO TABLE lt_exception.
-
-        lv_function = `ENQUE_DELETE`.
-        CALL FUNCTION lv_function
-          PARAMETER-TABLE lt_param
-          EXCEPTION-TABLE lt_exception.
-
-        result = xsdbool( sy-subrc = 0 AND lv_subrc = 0 ).
-
-      CATCH cx_root.
-        result = abap_false.
-    ENDTRY.
-
-  ENDMETHOD.
-
 
   " ========== String Extras ==========
 
@@ -3671,7 +3109,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD c_pad_right.
 
     result = val.
@@ -3680,7 +3117,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDWHILE.
 
   ENDMETHOD.
-
 
   METHOD c_truncate.
 
@@ -3698,7 +3134,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
-
 
   METHOD c_substring_safe.
 
@@ -3723,7 +3158,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD c_replace_all.
 
     result = val.
@@ -3731,14 +3165,12 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD c_is_blank.
 
     DATA(lv_val) = CONV string( val ).
     result = xsdbool( c_trim( lv_val ) IS INITIAL ).
 
   ENDMETHOD.
-
 
   " ========== Number Formatting ==========
 
@@ -3797,7 +3229,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD conv_string_to_number.
 
     DATA(lv_val) = c_trim( CONV string( val ) ).
@@ -3833,45 +3264,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   " ========== i18n / Text Resolution ==========
-
-  METHOD text_get.
-
-    DATA lv_msgid TYPE c LENGTH 20.
-    DATA lv_msgno TYPE n LENGTH 3.
-    DATA lv_msgv1 TYPE c LENGTH 50.
-    DATA lv_msgv2 TYPE c LENGTH 50.
-    DATA lv_msgv3 TYPE c LENGTH 50.
-    DATA lv_msgv4 TYPE c LENGTH 50.
-    DATA lv_text  TYPE c LENGTH 200.
-
-    lv_msgid = msgid.
-    lv_msgno = msgno.
-    lv_msgv1 = v1.
-    lv_msgv2 = v2.
-    lv_msgv3 = v3.
-    lv_msgv4 = v4.
-
-    TRY.
-        DATA(lv_fm) = `MESSAGE_TEXT_BUILD`.
-        CALL FUNCTION lv_fm
-          EXPORTING
-            msgid               = lv_msgid
-            msgnr               = lv_msgno
-            msgv1               = lv_msgv1
-            msgv2               = lv_msgv2
-            msgv3               = lv_msgv3
-            msgv4               = lv_msgv4
-          IMPORTING
-            message_text_output = lv_text.
-        result = lv_text.
-      CATCH cx_root.
-        result = |{ lv_msgid } { lv_msgno }: { lv_msgv1 } { lv_msgv2 } { lv_msgv3 } { lv_msgv4 }|.
-    ENDTRY.
-
-  ENDMETHOD.
-
 
   " ========== Itab Extras ==========
 
@@ -3885,7 +3278,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
-
 
   METHOD itab_slice.
 
@@ -3908,7 +3300,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD itab_paginate.
 
     total_count = lines( tab ).
@@ -3924,13 +3315,11 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD itab_to_json.
 
     result = json_stringify( val ).
 
   ENDMETHOD.
-
 
   METHOD itab_from_json.
 
@@ -3938,7 +3327,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
                 CHANGING data = data ).
 
   ENDMETHOD.
-
 
   METHOD itab_count_by.
 
@@ -3961,7 +3349,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
-
 
   " ========== Validation Helpers ==========
 
@@ -3990,7 +3377,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     result = abap_true.
 
   ENDMETHOD.
-
 
   METHOD check_is_numeric_string.
 
@@ -4024,7 +3410,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD check_is_date_valid.
 
     TRY.
@@ -4042,7 +3427,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
-
 
   METHOD check_is_guid.
 
@@ -4072,14 +3456,12 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD check_max_length.
 
     DATA(lv_val) = CONV string( val ).
     result = xsdbool( strlen( lv_val ) <= max ).
 
   ENDMETHOD.
-
 
   " ========== Deep Comparison ==========
 
@@ -4092,7 +3474,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
-
 
   METHOD data_diff.
 
@@ -4119,7 +3500,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   " ========== Stopwatch ==========
 
   METHOD time_measure_start.
@@ -4127,7 +3507,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     GET TIME STAMP FIELD result.
 
   ENDMETHOD.
-
 
   METHOD time_measure_stop.
 
@@ -4138,29 +3517,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   " ========== Authorization Check ==========
-
-  METHOD auth_check.
-
-    DATA lv_object   TYPE c LENGTH 10.
-    DATA lv_field    TYPE c LENGTH 10.
-    DATA lv_value    TYPE c LENGTH 40.
-    DATA lv_activity TYPE c LENGTH 2.
-
-    lv_object   = object.
-    lv_field    = field.
-    lv_value    = value.
-    lv_activity = activity.
-
-    AUTHORITY-CHECK OBJECT lv_object
-      ID lv_field FIELD lv_value
-      ID 'ACTVT' FIELD lv_activity.
-
-    result = xsdbool( sy-subrc = 0 ).
-
-  ENDMETHOD.
-
 
   " ========== Enum/Domain Helpers ==========
 
@@ -4171,7 +3528,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     result = VALUE #( lt_all[ n = lv_val ]-v OPTIONAL ).
 
   ENDMETHOD.
-
 
   METHOD enum_get_all.
 
@@ -4197,7 +3553,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
-
 
   " ========== Deep Field Access ==========
 
@@ -4227,7 +3582,6 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD data_set_by_path.
 
     FIELD-SYMBOLS <current> TYPE any.
@@ -4256,1189 +3610,707 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   " ========== BAL Extensions ==========
 
-  METHOD bal_search.
+  " ========== Transport Extensions ==========
 
-    IF context_check_abap_cloud( ).
-      " Cloud: use CL_BALI_LOG_FILTER + CL_BALI_LOG_DB
-      DATA lo_filter TYPE REF TO object.
-      DATA lo_db     TYPE REF TO object.
-      DATA lt_logs   TYPE STANDARD TABLE OF REF TO object.
-      DATA lv_class  TYPE string.
+  " ========== Lock Extensions ==========
 
-      TRY.
-          lv_class = `CL_BALI_LOG_FILTER`.
-          CALL METHOD (lv_class)=>(`CREATE`)
-            RECEIVING
-              filter = lo_filter.
+  " ========== Number Range ==========
 
-          DATA(lv_obj_f) = COND string( WHEN object IS NOT INITIAL THEN object ELSE `` ).
-          DATA(lv_sub_f) = COND string( WHEN subobject IS NOT INITIAL THEN subobject ELSE `` ).
-          DATA(lv_id_f)  = COND string( WHEN id IS NOT INITIAL THEN id ELSE `` ).
-          CALL METHOD lo_filter->(`SET_DESCRIPTOR`)
-            EXPORTING
-              object      = lv_obj_f
-              subobject   = lv_sub_f
-              external_id = lv_id_f.
+  " ========== Change Documents ==========
 
-          IF date_from IS NOT INITIAL OR date_to IS NOT INITIAL.
-            DATA(lv_from) = COND d( WHEN date_from IS NOT INITIAL THEN date_from ELSE '19000101' ).
-            DATA(lv_to)   = COND d( WHEN date_to IS NOT INITIAL THEN date_to ELSE sy-datum ).
-            CALL METHOD lo_filter->(`SET_CREATE_DATE`)
-              EXPORTING
-                from_date = lv_from
-                to_date   = lv_to.
-          ENDIF.
+  " ========== Background Job ==========
 
-          lv_class = `CL_BALI_LOG_DB`.
-          CALL METHOD (lv_class)=>(`GET_INSTANCE`)
-            RECEIVING
-              db_handler = lo_db.
+  " ========== Email ==========
 
-          CALL METHOD lo_db->(`LOAD_LOGS_VIA_FILTER`)
-            EXPORTING
-              filter           = lo_filter
-              read_only_header = abap_true
-            RECEIVING
-              log_table        = lt_logs.
-
-          LOOP AT lt_logs INTO DATA(lo_log).
-            DATA(ls_hdr_c) = VALUE ty_s_bal_header( ).
-            TRY.
-                DATA lo_header TYPE REF TO object.
-                CALL METHOD lo_log->(`GET_HEADER`)
-                  RECEIVING
-                    header = lo_header.
-                CALL METHOD lo_header->(`GET_OBJECT`)
-                  RECEIVING
-                    object = ls_hdr_c-object.
-                CALL METHOD lo_header->(`GET_SUBOBJECT`)
-                  RECEIVING
-                    subobject = ls_hdr_c-subobject.
-                CALL METHOD lo_header->(`GET_EXTERNAL_ID`)
-                  RECEIVING
-                    external_id = ls_hdr_c-external_id.
-              CATCH cx_root ##NO_HANDLER.
-            ENDTRY.
-            INSERT ls_hdr_c INTO TABLE result.
-          ENDLOOP.
-
-        CATCH cx_root ##NO_HANDLER.
-      ENDTRY.
-      RETURN.
-    ENDIF.
-
-    " Standard ABAP: use BAL_DB_SEARCH
-    DATA lv_fm      TYPE string.
-    DATA lr_filter  TYPE REF TO data.
-    DATA lr_headers TYPE REF TO data.
-    FIELD-SYMBOLS <filter>  TYPE any.
-    FIELD-SYMBOLS <headers> TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <header>  TYPE any.
-    FIELD-SYMBOLS <comp>    TYPE any.
-    FIELD-SYMBOLS <range>   TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <rline>   TYPE any.
-    DATA lr_rline TYPE REF TO data.
+  METHOD context_get_user_tech.
 
     TRY.
-        CREATE DATA lr_filter TYPE ('BAL_S_LFIL').
-        ASSIGN lr_filter->* TO <filter>.
 
-        IF object IS NOT INITIAL.
-          ASSIGN COMPONENT `OBJECT` OF STRUCTURE <filter> TO <range>.
-          CREATE DATA lr_rline LIKE LINE OF <range>.
-          ASSIGN lr_rline->* TO <rline>.
-          ASSIGN COMPONENT `SIGN` OF STRUCTURE <rline> TO <comp>. <comp> = `I`.
-          ASSIGN COMPONENT `OPTION` OF STRUCTURE <rline> TO <comp>. <comp> = `EQ`.
-          ASSIGN COMPONENT `LOW` OF STRUCTURE <rline> TO <comp>. <comp> = object.
-          INSERT <rline> INTO TABLE <range>.
+        DATA(lv_result) = VALUE string( ).
+        DATA(lv_class) = `CL_ABAP_CONTEXT_INFO`.
+
+        IF context_check_abap_cloud( ).
+          CALL METHOD (lv_class)=>(`GET_USER_TECHNICAL_NAME`)
+            RECEIVING
+              rv_technical_name = lv_result.
+        ELSE.
+          CALL METHOD (lv_class)=>(`GET_USER_BUSINESS_PARTNER_ID`)
+            RECEIVING
+              rv_business_partner_id = lv_result.
         ENDIF.
 
-        IF subobject IS NOT INITIAL.
-          ASSIGN COMPONENT `SUBOBJECT` OF STRUCTURE <filter> TO <range>.
-          CREATE DATA lr_rline LIKE LINE OF <range>.
-          ASSIGN lr_rline->* TO <rline>.
-          ASSIGN COMPONENT `SIGN` OF STRUCTURE <rline> TO <comp>. <comp> = `I`.
-          ASSIGN COMPONENT `OPTION` OF STRUCTURE <rline> TO <comp>. <comp> = `EQ`.
-          ASSIGN COMPONENT `LOW` OF STRUCTURE <rline> TO <comp>. <comp> = subobject.
-          INSERT <rline> INTO TABLE <range>.
-        ENDIF.
+        result = lv_result.
 
-        IF id IS NOT INITIAL.
-          ASSIGN COMPONENT `EXTNUMBER` OF STRUCTURE <filter> TO <range>.
-          CREATE DATA lr_rline LIKE LINE OF <range>.
-          ASSIGN lr_rline->* TO <rline>.
-          ASSIGN COMPONENT `SIGN` OF STRUCTURE <rline> TO <comp>. <comp> = `I`.
-          ASSIGN COMPONENT `OPTION` OF STRUCTURE <rline> TO <comp>. <comp> = `EQ`.
-          ASSIGN COMPONENT `LOW` OF STRUCTURE <rline> TO <comp>. <comp> = id.
-          INSERT <rline> INTO TABLE <range>.
-        ENDIF.
-
-        IF date_from IS NOT INITIAL OR date_to IS NOT INITIAL.
-          ASSIGN COMPONENT `ALDATE` OF STRUCTURE <filter> TO <range>.
-          CREATE DATA lr_rline LIKE LINE OF <range>.
-          ASSIGN lr_rline->* TO <rline>.
-          ASSIGN COMPONENT `SIGN` OF STRUCTURE <rline> TO <comp>. <comp> = `I`.
-          ASSIGN COMPONENT `OPTION` OF STRUCTURE <rline> TO <comp>. <comp> = `BT`.
-          ASSIGN COMPONENT `LOW` OF STRUCTURE <rline> TO <comp>.
-          <comp> = COND d( WHEN date_from IS NOT INITIAL THEN date_from ELSE '19000101' ).
-          ASSIGN COMPONENT `HIGH` OF STRUCTURE <rline> TO <comp>.
-          <comp> = COND d( WHEN date_to IS NOT INITIAL THEN date_to ELSE sy-datum ).
-          INSERT <rline> INTO TABLE <range>.
-        ENDIF.
-
-        IF user IS NOT INITIAL.
-          ASSIGN COMPONENT `ALUSER` OF STRUCTURE <filter> TO <range>.
-          CREATE DATA lr_rline LIKE LINE OF <range>.
-          ASSIGN lr_rline->* TO <rline>.
-          ASSIGN COMPONENT `SIGN` OF STRUCTURE <rline> TO <comp>. <comp> = `I`.
-          ASSIGN COMPONENT `OPTION` OF STRUCTURE <rline> TO <comp>. <comp> = `EQ`.
-          ASSIGN COMPONENT `LOW` OF STRUCTURE <rline> TO <comp>. <comp> = user.
-          INSERT <rline> INTO TABLE <range>.
-        ENDIF.
-
-        CREATE DATA lr_headers TYPE ('BALHDR_T').
-        ASSIGN lr_headers->* TO <headers>.
-
-        lv_fm = `BAL_DB_SEARCH`.
-        CALL FUNCTION lv_fm
+      CATCH cx_root INTO DATA(x).
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
           EXPORTING
-            i_s_log_filter = <filter>
-          IMPORTING
-            e_t_log_header = <headers>
-          EXCEPTIONS
-            OTHERS         = 1.
-        IF sy-subrc <> 0.
-          RETURN.
-        ENDIF.
-
-        LOOP AT <headers> ASSIGNING <header>.
-          DATA(ls_hdr) = VALUE ty_s_bal_header( ).
-          ASSIGN COMPONENT `LOG_HANDLE` OF STRUCTURE <header> TO <comp>.
-          IF sy-subrc = 0. ls_hdr-log_handle = <comp>. ENDIF.
-          ASSIGN COMPONENT `OBJECT` OF STRUCTURE <header> TO <comp>.
-          IF sy-subrc = 0. ls_hdr-object = <comp>. ENDIF.
-          ASSIGN COMPONENT `SUBOBJECT` OF STRUCTURE <header> TO <comp>.
-          IF sy-subrc = 0. ls_hdr-subobject = <comp>. ENDIF.
-          ASSIGN COMPONENT `EXTNUMBER` OF STRUCTURE <header> TO <comp>.
-          IF sy-subrc = 0. ls_hdr-external_id = <comp>. ENDIF.
-          ASSIGN COMPONENT `ALDATE` OF STRUCTURE <header> TO <comp>.
-          IF sy-subrc = 0. ls_hdr-log_date = <comp>. ENDIF.
-          ASSIGN COMPONENT `ALTIME` OF STRUCTURE <header> TO <comp>.
-          IF sy-subrc = 0. ls_hdr-log_time = <comp>. ENDIF.
-          ASSIGN COMPONENT `ALUSER` OF STRUCTURE <header> TO <comp>.
-          IF sy-subrc = 0. ls_hdr-user = <comp>. ENDIF.
-          INSERT ls_hdr INTO TABLE result.
-        ENDLOOP.
-
-      CATCH cx_root ##NO_HANDLER.
+            previous = x.
     ENDTRY.
 
   ENDMETHOD.
 
+  METHOD context_check_abap_cloud.
 
-  METHOD bal_read_latest.
-
-    DATA(lt_msgs) = bal_read( object    = object
-                              subobject = subobject
-                              id        = id ).
-    IF lt_msgs IS NOT INITIAL.
-      result = lt_msgs[ lines( lt_msgs ) ].
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD bal_delete_before.
-
-    DATA(lv_cutoff) = CONV d( sy-datum - days ).
-
-    IF context_check_abap_cloud( ).
-      " Cloud: use CL_BALI_LOG_DB to delete via filter
-      DATA lo_filter_c TYPE REF TO object.
-      DATA lo_db_c     TYPE REF TO object.
-      DATA lt_logs_c   TYPE STANDARD TABLE OF REF TO object.
-      DATA lv_cls      TYPE string.
-
-      TRY.
-          lv_cls = `CL_BALI_LOG_FILTER`.
-          CALL METHOD (lv_cls)=>(`CREATE`)
-            RECEIVING
-              filter = lo_filter_c.
-
-          DATA(lv_sub_c) = COND string( WHEN subobject IS NOT INITIAL THEN subobject ELSE `` ).
-          CALL METHOD lo_filter_c->(`SET_DESCRIPTOR`)
-            EXPORTING
-              object      = object
-              subobject   = lv_sub_c
-              external_id = ``.
-
-          CALL METHOD lo_filter_c->(`SET_CREATE_DATE`)
-            EXPORTING
-              from_date = CONV d( '19000101' )
-              to_date   = lv_cutoff.
-
-          lv_cls = `CL_BALI_LOG_DB`.
-          CALL METHOD (lv_cls)=>(`GET_INSTANCE`)
-            RECEIVING
-              db_handler = lo_db_c.
-
-          CALL METHOD lo_db_c->(`LOAD_LOGS_VIA_FILTER`)
-            EXPORTING
-              filter    = lo_filter_c
-            RECEIVING
-              log_table = lt_logs_c.
-
-          LOOP AT lt_logs_c INTO DATA(lo_log_c).
-            CALL METHOD lo_db_c->(`DELETE_LOG`)
-              EXPORTING
-                log = lo_log_c.
-          ENDLOOP.
-
-          COMMIT WORK AND WAIT.
-
-        CATCH cx_root ##NO_HANDLER.
-      ENDTRY.
+    IF gv_check_cloud_cached = abap_true.
+      result = gv_check_cloud.
       RETURN.
     ENDIF.
 
-    " Standard ABAP: use BAL_DB_DELETE
-    DATA lv_fm     TYPE string.
-    DATA lr_filter TYPE REF TO data.
-    FIELD-SYMBOLS <filter> TYPE any.
-    FIELD-SYMBOLS <range>  TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <rline>  TYPE any.
-    FIELD-SYMBOLS <comp>   TYPE any.
-    DATA lr_rline TYPE REF TO data.
-
     TRY.
-        CREATE DATA lr_filter TYPE ('BAL_S_LFIL').
-        ASSIGN lr_filter->* TO <filter>.
-
-        ASSIGN COMPONENT `OBJECT` OF STRUCTURE <filter> TO <range>.
-        CREATE DATA lr_rline LIKE LINE OF <range>.
-        ASSIGN lr_rline->* TO <rline>.
-        ASSIGN COMPONENT `SIGN` OF STRUCTURE <rline> TO <comp>. <comp> = `I`.
-        ASSIGN COMPONENT `OPTION` OF STRUCTURE <rline> TO <comp>. <comp> = `EQ`.
-        ASSIGN COMPONENT `LOW` OF STRUCTURE <rline> TO <comp>. <comp> = object.
-        INSERT <rline> INTO TABLE <range>.
-
-        IF subobject IS NOT INITIAL.
-          ASSIGN COMPONENT `SUBOBJECT` OF STRUCTURE <filter> TO <range>.
-          CREATE DATA lr_rline LIKE LINE OF <range>.
-          ASSIGN lr_rline->* TO <rline>.
-          ASSIGN COMPONENT `SIGN` OF STRUCTURE <rline> TO <comp>. <comp> = `I`.
-          ASSIGN COMPONENT `OPTION` OF STRUCTURE <rline> TO <comp>. <comp> = `EQ`.
-          ASSIGN COMPONENT `LOW` OF STRUCTURE <rline> TO <comp>. <comp> = subobject.
-          INSERT <rline> INTO TABLE <range>.
-        ENDIF.
-
-        ASSIGN COMPONENT `ALDATE` OF STRUCTURE <filter> TO <range>.
-        CREATE DATA lr_rline LIKE LINE OF <range>.
-        ASSIGN lr_rline->* TO <rline>.
-        ASSIGN COMPONENT `SIGN` OF STRUCTURE <rline> TO <comp>. <comp> = `I`.
-        ASSIGN COMPONENT `OPTION` OF STRUCTURE <rline> TO <comp>. <comp> = `BT`.
-        ASSIGN COMPONENT `LOW` OF STRUCTURE <rline> TO <comp>. <comp> = '19000101'.
-        ASSIGN COMPONENT `HIGH` OF STRUCTURE <rline> TO <comp>. <comp> = lv_cutoff.
-        INSERT <rline> INTO TABLE <range>.
-
-        lv_fm = `BAL_DB_DELETE`.
-        CALL FUNCTION lv_fm
-          EXPORTING
-            i_s_log_filter = <filter>
-          EXCEPTIONS
-            OTHERS         = 1.
-        IF sy-subrc = 0.
-          COMMIT WORK AND WAIT.
-        ENDIF.
-
-      CATCH cx_root ##NO_HANDLER.
+        cl_abap_typedescr=>describe_by_name( `T100` ).
+        gv_check_cloud = abap_false.
+      CATCH cx_root.
+        gv_check_cloud = abap_true.
     ENDTRY.
+    gv_check_cloud_cached = abap_true.
+    result = gv_check_cloud.
 
   ENDMETHOD.
 
+  METHOD rtti_get_t_fixvalues.
 
-  METHOD bal_read_by_type.
+    TYPES:
+      BEGIN OF fixvalue,
+        low        TYPE c LENGTH 10,
+        high       TYPE c LENGTH 10,
+        option     TYPE c LENGTH 2,
+        ddlanguage TYPE c LENGTH 1,
+        ddtext     TYPE c LENGTH 60,
+      END OF fixvalue.
+    TYPES fixvalues TYPE STANDARD TABLE OF fixvalue WITH DEFAULT KEY.
+    DATA lt_values TYPE fixvalues.
 
-    DATA(lt_all) = bal_read( object    = object
-                             subobject = subobject
-                             id        = id ).
+    DATA lv_langu  TYPE c LENGTH 1.
+    DATA temp1     LIKE LINE OF lt_values.
+    DATA lr_fix    LIKE REF TO temp1.
+    DATA temp2     TYPE ty_s_fix_val.
 
-    LOOP AT lt_all INTO DATA(ls_msg)
-         WHERE type = msg_type.
-      INSERT ls_msg INTO TABLE result.
+    lv_langu = ` `.
+    lv_langu = langu.
+
+    CALL METHOD elemdescr->(`GET_DDIC_FIXED_VALUES`)
+      EXPORTING
+        p_langu        = lv_langu
+      RECEIVING
+        p_fixed_values = lt_values
+      EXCEPTIONS
+        not_found      = 1
+        no_ddic_type   = 2
+        OTHERS         = 3.
+
+    LOOP AT lt_values REFERENCE INTO lr_fix.
+
+      CLEAR temp2.
+      temp2-low   = lr_fix->low.
+      temp2-high  = lr_fix->high.
+      temp2-descr = lr_fix->ddtext.
+      INSERT temp2
+             INTO TABLE result.
+
     ENDLOOP.
 
   ENDMETHOD.
 
-
-  METHOD bal_count.
-
-    DATA(lt_msgs) = bal_read( object    = object
-                              subobject = subobject
-                              id        = id ).
-    result = lines( lt_msgs ).
-
-  ENDMETHOD.
-
-
-  " ========== Transport Extensions ==========
-
-  METHOD tr_get_objects.
-
-    IF context_check_abap_cloud( ).
-      " Cloud: use XCO_CP_CTS
-      TRY.
-          DATA lo_transport TYPE REF TO object.
-          DATA lt_objects_c TYPE STANDARD TABLE OF REF TO object.
-          DATA(lv_xco) = `XCO_CP_CTS`.
-          DATA(lv_trkorr_c) = CONV string( trkorr ).
-
-          CALL METHOD (lv_xco)=>(`TRANSPORT`)
-            EXPORTING
-              iv_transport = lv_trkorr_c
-            RECEIVING
-              ro_transport = lo_transport.
-
-          DATA lo_objects_api TYPE REF TO object.
-          CALL METHOD lo_transport->(`OBJECTS`)
-            RECEIVING
-              ro_objects = lo_objects_api.
-
-          DATA lo_all TYPE REF TO object.
-          CALL METHOD lo_objects_api->(`ALL`)
-            RECEIVING
-              ro_all = lo_all.
-
-          CALL METHOD lo_all->(`GET`)
-            RECEIVING
-              rt_objects = lt_objects_c.
-
-          LOOP AT lt_objects_c INTO DATA(lo_obj).
-            DATA ls_obj_c TYPE ty_s_tr_object.
-            CLEAR ls_obj_c.
-            TRY.
-                CALL METHOD lo_obj->(`GET_PGMID`)
-                  RECEIVING
-                    rv_pgmid = ls_obj_c-pgmid.
-                CALL METHOD lo_obj->(`GET_TYPE`)
-                  RECEIVING
-                    rv_type = ls_obj_c-object.
-                CALL METHOD lo_obj->(`GET_NAME`)
-                  RECEIVING
-                    rv_name = ls_obj_c-obj_name.
-              CATCH cx_root ##NO_HANDLER.
-            ENDTRY.
-            INSERT ls_obj_c INTO TABLE result.
-          ENDLOOP.
-
-        CATCH cx_root ##NO_HANDLER.
-      ENDTRY.
-      RETURN.
-    ENDIF.
-
-    " Standard ABAP: use TR_GET_OBJECTS_OF_REQ_AN_TASKS
-    DATA lr_objects TYPE REF TO data.
-    DATA lr_header  TYPE REF TO data.
-    FIELD-SYMBOLS <objects> TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <object>  TYPE any.
-    FIELD-SYMBOLS <header>  TYPE any.
-    FIELD-SYMBOLS <comp>    TYPE any.
-    DATA lv_fm TYPE string.
+  METHOD conv_decode_x_base64.
+    DATA lv_web_http_name TYPE c LENGTH 19.
+    DATA classname        TYPE c LENGTH 15.
 
     TRY.
-        CREATE DATA lr_objects TYPE STANDARD TABLE OF (`E071`).
-        ASSIGN lr_objects->* TO <objects>.
 
-        CREATE DATA lr_header TYPE (`TRWBO_REQUEST_HEADER`).
-        ASSIGN lr_header->* TO <header>.
-        ASSIGN COMPONENT `TRKORR` OF STRUCTURE <header> TO <comp>.
-        <comp> = trkorr.
-
-        lv_fm = `TR_GET_OBJECTS_OF_REQ_AN_TASKS`.
-        CALL FUNCTION lv_fm
+        lv_web_http_name = `CL_WEB_HTTP_UTILITY`.
+        CALL METHOD (lv_web_http_name)=>(`DECODE_X_BASE64`)
           EXPORTING
-            is_request_header = <header>
-          IMPORTING
-            et_objects        = <objects>
-          EXCEPTIONS
-            OTHERS            = 1.
-        IF sy-subrc <> 0.
-          RETURN.
-        ENDIF.
+            encoded = val
+          RECEIVING
+            decoded = result.
 
-        LOOP AT <objects> ASSIGNING <object>.
-          DATA(ls_obj) = VALUE ty_s_tr_object( ).
-          ASSIGN COMPONENT `PGMID` OF STRUCTURE <object> TO <comp>.
-          IF sy-subrc = 0. ls_obj-pgmid = <comp>. ENDIF.
-          ASSIGN COMPONENT `OBJECT` OF STRUCTURE <object> TO <comp>.
-          IF sy-subrc = 0. ls_obj-object = <comp>. ENDIF.
-          ASSIGN COMPONENT `OBJ_NAME` OF STRUCTURE <object> TO <comp>.
-          IF sy-subrc = 0. ls_obj-obj_name = <comp>. ENDIF.
-          INSERT ls_obj INTO TABLE result.
-        ENDLOOP.
-
-      CATCH cx_root ##NO_HANDLER.
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD tr_get_user_requests.
-
-    IF context_check_abap_cloud( ).
-      " Cloud: use XCO_CP_CTS transport filter
-      TRY.
-          DATA(lv_xco) = `XCO_CP_CTS`.
-          DATA lo_filter_tr  TYPE REF TO object.
-          DATA lo_status_f   TYPE REF TO object.
-          DATA lo_owner_f    TYPE REF TO object.
-          DATA lt_transports TYPE STANDARD TABLE OF REF TO object.
-
-          DATA(lv_user_c) = CONV string( COND #( WHEN user IS NOT INITIAL THEN user ELSE sy-uname ) ).
-
-          " Get modifiable transports for user
-          CALL METHOD (lv_xco)=>(`TRANSPORTS`)
-            RECEIVING
-              ro_transports = lo_filter_tr.
-
-          DATA lo_where TYPE REF TO object.
-          CALL METHOD lo_filter_tr->(`ALL`)
-            RECEIVING
-              ro_all = lo_where.
-
-          CALL METHOD lo_where->(`GET`)
-            RECEIVING
-              rt_transports = lt_transports.
-
-          LOOP AT lt_transports INTO DATA(lo_tr).
-            DATA ls_req_c TYPE ty_s_tr_request.
-            CLEAR ls_req_c.
-            TRY.
-                DATA lo_props TYPE REF TO object.
-                CALL METHOD lo_tr->(`PROPERTIES`)
-                  RECEIVING
-                    ro_properties = lo_props.
-                DATA ls_prop TYPE REF TO data.
-                CALL METHOD lo_props->(`GET`)
-                  RECEIVING
-                    rs_properties = ls_prop.
-                FIELD-SYMBOLS <prop> TYPE any.
-                FIELD-SYMBOLS <pcomp> TYPE any.
-                ASSIGN ls_prop->* TO <prop>.
-                ASSIGN COMPONENT `OWNER` OF STRUCTURE <prop> TO <pcomp>.
-                IF sy-subrc = 0. ls_req_c-owner = <pcomp>. ENDIF.
-                IF ls_req_c-owner <> lv_user_c.
-                  CONTINUE.
-                ENDIF.
-                ASSIGN COMPONENT `SHORT_DESCRIPTION` OF STRUCTURE <prop> TO <pcomp>.
-                IF sy-subrc = 0. ls_req_c-description = <pcomp>. ENDIF.
-                ASSIGN COMPONENT `STATUS` OF STRUCTURE <prop> TO <pcomp>.
-                IF sy-subrc = 0. ls_req_c-status = <pcomp>. ENDIF.
-                ASSIGN COMPONENT `TYPE` OF STRUCTURE <prop> TO <pcomp>.
-                IF sy-subrc = 0. ls_req_c-type = <pcomp>. ENDIF.
-
-                DATA lv_tr_value TYPE string.
-                CALL METHOD lo_tr->(`GET_VALUE`)
-                  RECEIVING
-                    rv_value = lv_tr_value.
-                ls_req_c-trkorr = lv_tr_value.
-
-              CATCH cx_root ##NO_HANDLER.
-            ENDTRY.
-            IF ls_req_c-trkorr IS NOT INITIAL.
-              INSERT ls_req_c INTO TABLE result.
-            ENDIF.
-          ENDLOOP.
-
-        CATCH cx_root ##NO_HANDLER.
-      ENDTRY.
-      RETURN.
-    ENDIF.
-
-    " Standard ABAP: use dynamic SELECT from E070/E07T
-    DATA lv_user  TYPE c LENGTH 12.
-    DATA lv_type  TYPE c LENGTH 1.
-    DATA lr_data  TYPE REF TO data.
-    FIELD-SYMBOLS <tab>   TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <row>   TYPE any.
-    FIELD-SYMBOLS <comp>  TYPE any.
-
-    TRY.
-        lv_user = user.
-        lv_type = request_type.
-
-        DATA(lv_tab1) = `E070`.
-        DATA(lv_tab2) = `E07T`.
-        DATA(lv_where) = |AS4USER = '{ lv_user }' AND TRSTATUS IN ('D','L')|.
-
-        " First read transports from E070
-        DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_table_name( lv_tab1 ).
-        DATA(lo_struct) = cl_abap_structdescr=>create( lt_comp ).
-        DATA(lo_table) = cl_abap_tabledescr=>create( lo_struct ).
-        CREATE DATA lr_data TYPE HANDLE lo_table.
-        ASSIGN lr_data->* TO <tab>.
-
-        SELECT trkorr, as4user, trstatus, trfunction
-          FROM (lv_tab1)
-          WHERE (lv_where)
-          INTO CORRESPONDING FIELDS OF TABLE @<tab>.
-
-        LOOP AT <tab> ASSIGNING <row>.
-          DATA(ls_req) = VALUE ty_s_tr_request( ).
-          ASSIGN COMPONENT `TRKORR` OF STRUCTURE <row> TO <comp>.
-          IF sy-subrc = 0. ls_req-trkorr = <comp>. ENDIF.
-          ASSIGN COMPONENT `AS4USER` OF STRUCTURE <row> TO <comp>.
-          IF sy-subrc = 0. ls_req-owner = <comp>. ENDIF.
-          ASSIGN COMPONENT `TRSTATUS` OF STRUCTURE <row> TO <comp>.
-          IF sy-subrc = 0. ls_req-status = <comp>. ENDIF.
-          ASSIGN COMPONENT `TRFUNCTION` OF STRUCTURE <row> TO <comp>.
-          IF sy-subrc = 0. ls_req-type = <comp>. ENDIF.
-
-          IF lv_type IS NOT INITIAL AND ls_req-type <> lv_type.
-            CONTINUE.
-          ENDIF.
-
-          " Get description from E07T
-          ls_req-description = tr_get_description( ls_req-trkorr ).
-          INSERT ls_req INTO TABLE result.
-        ENDLOOP.
-
-      CATCH cx_root ##NO_HANDLER.
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD tr_get_description.
-
-    IF context_check_abap_cloud( ).
-      " Cloud: use XCO_CP_CTS
-      TRY.
-          DATA lo_tr_d TYPE REF TO object.
-          DATA(lv_xco_d) = `XCO_CP_CTS`.
-          CALL METHOD (lv_xco_d)=>(`TRANSPORT`)
-            EXPORTING
-              iv_transport = CONV string( trkorr )
-            RECEIVING
-              ro_transport = lo_tr_d.
-          DATA lo_props_d TYPE REF TO object.
-          CALL METHOD lo_tr_d->(`PROPERTIES`)
-            RECEIVING
-              ro_properties = lo_props_d.
-          CALL METHOD lo_props_d->(`GET_SHORT_DESCRIPTION`)
-            RECEIVING
-              rv_short_description = result.
-        CATCH cx_root ##NO_HANDLER.
-      ENDTRY.
-      RETURN.
-    ENDIF.
-
-    " Standard: dynamic SELECT from E07T
-    DATA lv_trkorr TYPE c LENGTH 20.
-    lv_trkorr = trkorr.
-
-    TRY.
-        DATA(lv_tab) = `E07T`.
-        DATA(lv_where) = |TRKORR = '{ lv_trkorr }' AND LANGU = '{ sy-langu }'|.
-
-        SELECT SINGLE as4text
-          FROM (lv_tab)
-          WHERE (lv_where)
-          INTO @result.
-      CATCH cx_root ##NO_HANDLER.
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD tr_is_released.
-
-    IF context_check_abap_cloud( ).
-      " Cloud: use XCO_CP_CTS
-      TRY.
-          DATA lo_tr_r TYPE REF TO object.
-          DATA(lv_xco_r) = `XCO_CP_CTS`.
-          CALL METHOD (lv_xco_r)=>(`TRANSPORT`)
-            EXPORTING
-              iv_transport = CONV string( trkorr )
-            RECEIVING
-              ro_transport = lo_tr_r.
-          DATA lo_props_r TYPE REF TO object.
-          CALL METHOD lo_tr_r->(`PROPERTIES`)
-            RECEIVING
-              ro_properties = lo_props_r.
-          DATA lv_status_c TYPE string.
-          CALL METHOD lo_props_r->(`GET_STATUS`)
-            RECEIVING
-              rv_status = lv_status_c.
-          result = xsdbool( lv_status_c = `RELEASED` OR lv_status_c = `R` ).
-        CATCH cx_root.
-          result = abap_false.
-      ENDTRY.
-      RETURN.
-    ENDIF.
-
-    " Standard: dynamic SELECT from E070
-    DATA lv_trkorr TYPE c LENGTH 20.
-    DATA lv_status TYPE c LENGTH 1.
-    lv_trkorr = trkorr.
-
-    TRY.
-        DATA(lv_tab) = `E070`.
-        DATA(lv_where) = |TRKORR = '{ lv_trkorr }'|.
-
-        SELECT SINGLE trstatus
-          FROM (lv_tab)
-          WHERE (lv_where)
-          INTO @lv_status.
-        result = xsdbool( lv_status = `R` ).
       CATCH cx_root.
-        result = abap_false.
-    ENDTRY.
 
-  ENDMETHOD.
-
-
-  METHOD tr_add_object.
-
-    DATA lv_fm       TYPE string.
-    DATA lv_trkorr   TYPE c LENGTH 20.
-    DATA lv_pgmid    TYPE c LENGTH 4.
-    DATA lv_object   TYPE c LENGTH 4.
-    DATA lv_obj_name TYPE c LENGTH 120.
-
-    lv_trkorr   = trkorr.
-    lv_pgmid    = pgmid.
-    lv_object   = object.
-    lv_obj_name = obj_name.
-
-    TRY.
-        lv_fm = `TR_ORDER_CHOICE_CORRECTION`.
-        CALL FUNCTION lv_fm
+        classname = `CL_HTTP_UTILITY`.
+        CALL METHOD (classname)=>(`DECODE_X_BASE64`)
           EXPORTING
-            iv_category    = lv_pgmid
-            iv_object      = lv_object
-            iv_obj_name    = lv_obj_name
-            iv_order       = lv_trkorr
-          EXCEPTIONS
-            OTHERS         = 1.
-        IF sy-subrc <> 0.
-          RAISE EXCEPTION TYPE z2ui5_cx_util_error
-            EXPORTING
-              val = `TR_ADD_OBJECT failed`.
-        ENDIF.
-
-      CATCH z2ui5_cx_util_error INTO DATA(lx).
-        RAISE EXCEPTION lx.
-      CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error
-          EXPORTING
-            val = x.
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  " ========== Lock Extensions ==========
-
-  METHOD lock_is_locked.
-
-    " Try to set the lock — if it fails, the object is locked.
-    DATA(lv_locked) = lock_set( val     = val
-                                 t_param = t_param ).
-    IF lv_locked = abap_true.
-      " We got it — release immediately
-      lock_delete( val     = val
-                   t_param = t_param ).
-      result = abap_false.
-    ELSE.
-      result = abap_true.
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD lock_get_owner.
-
-    TRY.
-        DATA(lt_locks) = lock_read( ).
-
-        " Build the lock argument from params for matching
-        DATA(lv_arg) = ``.
-        LOOP AT t_param INTO DATA(ls_param).
-          lv_arg = lv_arg && ls_param-value.
-        ENDLOOP.
-
-        DATA(lv_name) = c_trim_upper( val ).
-        REPLACE `ENQUEUE_` IN lv_name WITH ``.
-
-        LOOP AT lt_locks INTO DATA(ls_lock)
-             WHERE lock_object CS lv_name.
-          IF lv_arg IS INITIAL OR ls_lock-argument CS lv_arg.
-            result = ls_lock-user.
-            RETURN.
-          ENDIF.
-        ENDLOOP.
-
-      CATCH cx_root ##NO_HANDLER.
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD lock_set_wait.
-
-    DATA(lv_remaining) = retries.
-
-    WHILE lv_remaining > 0.
-      result = lock_set( val     = val
-                          t_param = t_param ).
-      IF result = abap_true.
-        RETURN.
-      ENDIF.
-      lv_remaining = lv_remaining - 1.
-      IF lv_remaining > 0.
-        WAIT UP TO delay_ms / 1000 SECONDS.
-      ENDIF.
-    ENDWHILE.
-
-  ENDMETHOD.
-
-
-  " ========== Number Range ==========
-
-  METHOD numrange_get_next.
-
-    DATA lv_object  TYPE c LENGTH 10.
-    DATA lv_nr_sub  TYPE c LENGTH 2.
-    DATA lv_number  TYPE c LENGTH 20.
-
-    lv_object = object.
-    lv_nr_sub = subobject.
-
-    TRY.
-        IF context_check_abap_cloud( ).
-          " Cloud: use CL_NUMBERRANGE_RUNTIME
-          DATA(lv_cls) = `CL_NUMBERRANGE_RUNTIME`.
-          CALL METHOD (lv_cls)=>(`NUMBER_GET`)
-            EXPORTING
-              nr_range_nr = lv_nr_sub
-              object      = lv_object
-            IMPORTING
-              number      = lv_number.
-        ELSE.
-          " Standard: use NUMBER_GET_NEXT FM
-          DATA(lv_fm) = `NUMBER_GET_NEXT`.
-          CALL FUNCTION lv_fm
-            EXPORTING
-              nr_range_nr = lv_nr_sub
-              object      = lv_object
-            IMPORTING
-              number      = lv_number
-            EXCEPTIONS
-              OTHERS      = 1.
-          IF sy-subrc <> 0.
-            RAISE EXCEPTION TYPE z2ui5_cx_util_error
-              EXPORTING
-                val = |NUMBER_GET_NEXT failed for { lv_object }/{ lv_nr_sub }|.
-          ENDIF.
-        ENDIF.
-
-        result = lv_number.
-
-      CATCH z2ui5_cx_util_error INTO DATA(lx).
-        RAISE EXCEPTION lx.
-      CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error
-          EXPORTING
-            val = x.
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  " ========== Change Documents ==========
-
-  METHOD changdoc_read.
-
-    IF context_check_abap_cloud( ).
-      " Cloud: use released CDS view I_ChangeDocument
-      TRY.
-          DATA(lv_cds) = `I_CHANGEDOCUMENTITEM`.
-          DATA(lv_where_c) = |OBJECTCLASS = '{ objectclass }' AND OBJECTID = '{ objectid }'|.
-          IF date_from IS NOT INITIAL.
-            lv_where_c = |{ lv_where_c } AND CREATIONDATE >= '{ date_from }'|.
-          ENDIF.
-          IF date_to IS NOT INITIAL AND date_to <> '99991231'.
-            lv_where_c = |{ lv_where_c } AND CREATIONDATE <= '{ date_to }'|.
-          ENDIF.
-
-          FIELD-SYMBOLS <cds_tab> TYPE STANDARD TABLE.
-          FIELD-SYMBOLS <cds_row> TYPE any.
-          FIELD-SYMBOLS <cds_fld> TYPE any.
-          DATA lr_cds_tab TYPE REF TO data.
-
-          DATA(lt_comp_c) = rtti_get_t_attri_by_table_name( lv_cds ).
-          DATA(lo_struct_c) = cl_abap_structdescr=>create( lt_comp_c ).
-          DATA(lo_table_c) = cl_abap_tabledescr=>create( lo_struct_c ).
-          CREATE DATA lr_cds_tab TYPE HANDLE lo_table_c.
-          ASSIGN lr_cds_tab->* TO <cds_tab>.
-
-          SELECT *
-            FROM (lv_cds)
-            WHERE (lv_where_c)
-            INTO CORRESPONDING FIELDS OF TABLE @<cds_tab>.
-
-          LOOP AT <cds_tab> ASSIGNING <cds_row>.
-            DATA(ls_doc_c) = VALUE ty_s_changdoc( ).
-            ASSIGN COMPONENT `CHANGEDOCOBJECTCLASS` OF STRUCTURE <cds_row> TO <cds_fld>.
-            IF sy-subrc <> 0.
-              ASSIGN COMPONENT `OBJECTCLASS` OF STRUCTURE <cds_row> TO <cds_fld>.
-            ENDIF.
-            ASSIGN COMPONENT `CHANGEDOCUMENT` OF STRUCTURE <cds_row> TO <cds_fld>.
-            IF sy-subrc = 0. ls_doc_c-changenr = <cds_fld>. ENDIF.
-            ASSIGN COMPONENT `CREATEDBYUSER` OF STRUCTURE <cds_row> TO <cds_fld>.
-            IF sy-subrc = 0. ls_doc_c-username = <cds_fld>. ENDIF.
-            ASSIGN COMPONENT `CREATIONDATE` OF STRUCTURE <cds_row> TO <cds_fld>.
-            IF sy-subrc = 0. ls_doc_c-udate = <cds_fld>. ENDIF.
-            ASSIGN COMPONENT `CREATIONTIME` OF STRUCTURE <cds_row> TO <cds_fld>.
-            IF sy-subrc = 0. ls_doc_c-utime = <cds_fld>. ENDIF.
-            ASSIGN COMPONENT `TRANSACTIONCODE` OF STRUCTURE <cds_row> TO <cds_fld>.
-            IF sy-subrc = 0. ls_doc_c-tcode = <cds_fld>. ENDIF.
-            ASSIGN COMPONENT `CHNGEDOCITEMFIELDNAME` OF STRUCTURE <cds_row> TO <cds_fld>.
-            IF sy-subrc = 0. ls_doc_c-fieldname = <cds_fld>. ENDIF.
-            ASSIGN COMPONENT `CHNGEDOCITEMNEWVALUE` OF STRUCTURE <cds_row> TO <cds_fld>.
-            IF sy-subrc = 0. ls_doc_c-new_value = <cds_fld>. ENDIF.
-            ASSIGN COMPONENT `CHNGEDOCITEMOLDVALUE` OF STRUCTURE <cds_row> TO <cds_fld>.
-            IF sy-subrc = 0. ls_doc_c-old_value = <cds_fld>. ENDIF.
-            ASSIGN COMPONENT `CHANGEDOCITEMTABLENAME` OF STRUCTURE <cds_row> TO <cds_fld>.
-            IF sy-subrc = 0. ls_doc_c-tabname = <cds_fld>. ENDIF.
-            ASSIGN COMPONENT `CHNGEDOCITEMCHNGIND` OF STRUCTURE <cds_row> TO <cds_fld>.
-            IF sy-subrc = 0. ls_doc_c-chngind = <cds_fld>. ENDIF.
-            INSERT ls_doc_c INTO TABLE result.
-          ENDLOOP.
-
-        CATCH cx_root ##NO_HANDLER.
-      ENDTRY.
-      RETURN.
-    ENDIF.
-
-    " Standard ABAP: use CHANGEDOCUMENT_READ_HEADERS/POSITIONS FMs
-    DATA lv_fm         TYPE string.
-    DATA lv_objectclas TYPE c LENGTH 15.
-    DATA lv_objectid   TYPE c LENGTH 90.
-    DATA lr_headers    TYPE REF TO data.
-    DATA lr_positions  TYPE REF TO data.
-    FIELD-SYMBOLS <headers>   TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <positions> TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <hdr>       TYPE any.
-    FIELD-SYMBOLS <pos>       TYPE any.
-    FIELD-SYMBOLS <comp>      TYPE any.
-
-    lv_objectclas = objectclass.
-    lv_objectid   = objectid.
-
-    TRY.
-        CREATE DATA lr_headers TYPE STANDARD TABLE OF (`CDHDR`).
-        CREATE DATA lr_positions TYPE STANDARD TABLE OF (`CDPOS`).
-        ASSIGN lr_headers->* TO <headers>.
-        ASSIGN lr_positions->* TO <positions>.
-
-        lv_fm = `CHANGEDOCUMENT_READ_HEADERS`.
-        CALL FUNCTION lv_fm
-          EXPORTING
-            objectclass = lv_objectclas
-            objectid    = lv_objectid
-            date_of_change = date_from
-          TABLES
-            i_cdhdr     = <headers>
-          EXCEPTIONS
-            OTHERS      = 1.
-        IF sy-subrc <> 0.
-          RETURN.
-        ENDIF.
-
-        LOOP AT <headers> ASSIGNING <hdr>.
-
-          DATA(ls_doc) = VALUE ty_s_changdoc( ).
-          ASSIGN COMPONENT `CHANGENR` OF STRUCTURE <hdr> TO <comp>.
-          IF sy-subrc = 0. ls_doc-changenr = <comp>. ENDIF.
-          ASSIGN COMPONENT `USERNAME` OF STRUCTURE <hdr> TO <comp>.
-          IF sy-subrc = 0. ls_doc-username = <comp>. ENDIF.
-          ASSIGN COMPONENT `UDATE` OF STRUCTURE <hdr> TO <comp>.
-          IF sy-subrc = 0. ls_doc-udate = <comp>. ENDIF.
-          ASSIGN COMPONENT `UTIME` OF STRUCTURE <hdr> TO <comp>.
-          IF sy-subrc = 0. ls_doc-utime = <comp>. ENDIF.
-          ASSIGN COMPONENT `TCODE` OF STRUCTURE <hdr> TO <comp>.
-          IF sy-subrc = 0. ls_doc-tcode = <comp>. ENDIF.
-
-          " Read positions for this change number
-          CLEAR <positions>.
-          lv_fm = `CHANGEDOCUMENT_READ_POSITIONS`.
-          CALL FUNCTION lv_fm
-            EXPORTING
-              changenumber = ls_doc-changenr
-            TABLES
-              editpos      = <positions>
-            EXCEPTIONS
-              OTHERS       = 1.
-
-          IF <positions> IS INITIAL.
-            INSERT ls_doc INTO TABLE result.
-          ELSE.
-            LOOP AT <positions> ASSIGNING <pos>.
-              DATA(ls_pos) = ls_doc.
-              ASSIGN COMPONENT `FNAME` OF STRUCTURE <pos> TO <comp>.
-              IF sy-subrc = 0. ls_pos-fieldname = <comp>. ENDIF.
-              ASSIGN COMPONENT `VALUE_OLD` OF STRUCTURE <pos> TO <comp>.
-              IF sy-subrc = 0. ls_pos-old_value = <comp>. ENDIF.
-              ASSIGN COMPONENT `VALUE_NEW` OF STRUCTURE <pos> TO <comp>.
-              IF sy-subrc = 0. ls_pos-new_value = <comp>. ENDIF.
-              ASSIGN COMPONENT `TABNAME` OF STRUCTURE <pos> TO <comp>.
-              IF sy-subrc = 0. ls_pos-tabname = <comp>. ENDIF.
-              ASSIGN COMPONENT `CHNGIND` OF STRUCTURE <pos> TO <comp>.
-              IF sy-subrc = 0. ls_pos-chngind = <comp>. ENDIF.
-              INSERT ls_pos INTO TABLE result.
-            ENDLOOP.
-          ENDIF.
-
-        ENDLOOP.
-
-      CATCH cx_root ##NO_HANDLER.
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  " ========== Background Job ==========
-
-  METHOD job_submit_report.
-
-    IF context_check_abap_cloud( ).
-      " Cloud: Application Jobs have a different architecture (job catalog + templates).
-      " Direct report submission is not available. Raise informative exception.
-      RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING
-          val = `job_submit_report: On ABAP Cloud use CL_APJ_RT_API with a registered job catalog entry instead`.
-    ENDIF.
-
-    " Standard ABAP: JOB_OPEN / JOB_SUBMIT / JOB_CLOSE
-    DATA lv_fm       TYPE string.
-    DATA lv_jobname  TYPE c LENGTH 32.
-    DATA lv_jobcount TYPE c LENGTH 8.
-    DATA lv_report   TYPE c LENGTH 40.
-    DATA lv_variant  TYPE c LENGTH 14.
-
-    lv_report = report.
-    lv_variant = variant.
-    lv_jobname = COND #( WHEN job_name IS NOT INITIAL THEN job_name
-                         ELSE |Z2UI5_{ sy-datum }{ sy-uzeit }| ).
-
-    TRY.
-        lv_fm = `JOB_OPEN`.
-        CALL FUNCTION lv_fm
-          EXPORTING
-            jobname  = lv_jobname
-          IMPORTING
-            jobcount = lv_jobcount
-          EXCEPTIONS
-            OTHERS   = 1.
-        IF sy-subrc <> 0.
-          RAISE EXCEPTION TYPE z2ui5_cx_util_error
-            EXPORTING
-              val = `JOB_OPEN failed`.
-        ENDIF.
-
-        lv_fm = `JOB_SUBMIT`.
-        CALL FUNCTION lv_fm
-          EXPORTING
-            authcknam = sy-uname
-            jobcount  = lv_jobcount
-            jobname   = lv_jobname
-            report    = lv_report
-            variant   = lv_variant
-          EXCEPTIONS
-            OTHERS    = 1.
-        IF sy-subrc <> 0.
-          RAISE EXCEPTION TYPE z2ui5_cx_util_error
-            EXPORTING
-              val = `JOB_SUBMIT failed`.
-        ENDIF.
-
-        lv_fm = `JOB_CLOSE`.
-        IF start_immediate = abap_true.
-          CALL FUNCTION lv_fm
-            EXPORTING
-              jobcount  = lv_jobcount
-              jobname   = lv_jobname
-              strtimmed = abap_true
-            EXCEPTIONS
-              OTHERS    = 1.
-        ELSE.
-          CALL FUNCTION lv_fm
-            EXPORTING
-              jobcount  = lv_jobcount
-              jobname   = lv_jobname
-            EXCEPTIONS
-              OTHERS    = 1.
-        ENDIF.
-        IF sy-subrc <> 0.
-          RAISE EXCEPTION TYPE z2ui5_cx_util_error
-            EXPORTING
-              val = `JOB_CLOSE failed`.
-        ENDIF.
-
-        result = lv_jobname.
-
-      CATCH z2ui5_cx_util_error INTO DATA(lx).
-        RAISE EXCEPTION lx.
-      CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error
-          EXPORTING
-            val = x.
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  " ========== Email ==========
-
-  METHOD mail_send.
-
-    IF context_check_abap_cloud( ).
-      " Cloud: use CL_BCS_MAIL_MESSAGE (released cloud mail API)
-      DATA lo_mail_c TYPE REF TO object.
-      DATA lv_cls_c  TYPE string.
-
-      TRY.
-          lv_cls_c = `CL_BCS_MAIL_MESSAGE`.
-          CALL METHOD (lv_cls_c)=>(`CREATE_INSTANCE`)
-            RECEIVING
-              result = lo_mail_c.
-
-          CALL METHOD lo_mail_c->(`SET_SENDER`)
-            EXPORTING
-              iv_address = context_get_user_tech( ) && `@placeholder.local`.
-
-          CALL METHOD lo_mail_c->(`ADD_RECIPIENT`)
-            EXPORTING
-              iv_address = to.
-
-          CALL METHOD lo_mail_c->(`SET_SUBJECT`)
-            EXPORTING
-              iv_subject = subject.
-
-          IF html = abap_true.
-            CALL METHOD lo_mail_c->(`SET_MAIN`)
-              EXPORTING
-                iv_content_type = `text/html`
-                iv_content_text = body.
-          ELSE.
-            CALL METHOD lo_mail_c->(`SET_MAIN`)
-              EXPORTING
-                iv_content_type = `text/plain`
-                iv_content_text = body.
-          ENDIF.
-
-          CALL METHOD lo_mail_c->(`SEND`)
-            RECEIVING
-              result = result.
-
-        CATCH cx_root.
-          result = abap_false.
-      ENDTRY.
-      RETURN.
-    ENDIF.
-
-    " Standard ABAP: use CL_BCS
-    DATA lo_mail      TYPE REF TO object.
-    DATA lo_sender    TYPE REF TO object.
-    DATA lo_recipient TYPE REF TO object.
-    DATA lo_doc       TYPE REF TO object.
-    DATA lr_body      TYPE REF TO data.
-    DATA lr_line      TYPE REF TO data.
-    DATA lv_class     TYPE string.
-    DATA lv_subject   TYPE c LENGTH 50.
-    DATA lv_type      TYPE c LENGTH 3.
-    DATA lv_address   TYPE c LENGTH 241.
-    FIELD-SYMBOLS <body>  TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <line>  TYPE any.
-    FIELD-SYMBOLS <field> TYPE any.
-
-    lv_subject = subject.
-    lv_address = to.
-    lv_type    = COND #( WHEN html = abap_true THEN `HTM` ELSE `RAW` ).
-
-    TRY.
-        " Create BCS instance
-        lv_class = `CL_BCS`.
-        CALL METHOD (lv_class)=>(`CREATE_PERSISTENT`)
+            encoded = val
           RECEIVING
-            result = lo_mail.
+            decoded = result.
 
-        " Sender
-        lv_class = `CL_SAPUSER_BCS`.
-        CALL METHOD (lv_class)=>(`CREATE`)
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD conv_encode_x_base64.
+    DATA lv_web_http_name TYPE c LENGTH 19.
+    DATA classname        TYPE c LENGTH 15.
+
+    TRY.
+
+        lv_web_http_name = `CL_WEB_HTTP_UTILITY`.
+        CALL METHOD (lv_web_http_name)=>(`ENCODE_X_BASE64`)
           EXPORTING
-            i_user = sy-uname
+            unencoded = val
           RECEIVING
-            result = lo_sender.
-        CALL METHOD lo_mail->(`SET_SENDER`)
-          EXPORTING
-            i_sender = lo_sender.
+            encoded   = result.
 
-        " Recipient
-        lv_class = `CL_CAM_ADDRESS_BCS`.
-        CALL METHOD (lv_class)=>(`CREATE_INTERNET_ADDRESS`)
+      CATCH cx_root.
+
+        classname = `CL_HTTP_UTILITY`.
+        CALL METHOD (classname)=>(`ENCODE_X_BASE64`)
           EXPORTING
-            i_address_string = lv_address
+            unencoded = val
           RECEIVING
-            result           = lo_recipient.
-        CALL METHOD lo_mail->(`ADD_RECIPIENT`)
-          EXPORTING
-            i_recipient = lo_recipient.
+            encoded   = result.
 
-        " Build body text table
-        CREATE DATA lr_body TYPE (`BCSY_TEXT`).
-        ASSIGN lr_body->* TO <body>.
-        CREATE DATA lr_line TYPE (`SOLI`).
-        ASSIGN lr_line->* TO <line>.
+    ENDTRY.
 
-        DATA(lt_lines) = c_split( val = body sep = cv_char_utilities_newline ).
-        LOOP AT lt_lines INTO DATA(lv_body_line).
-          ASSIGN COMPONENT `LINE` OF STRUCTURE <line> TO <field>.
-          <field> = lv_body_line.
-          INSERT <line> INTO TABLE <body>.
-        ENDLOOP.
+  ENDMETHOD.
 
-        " Create document
-        lv_class = `CL_DOCUMENT_BCS`.
-        CALL METHOD (lv_class)=>(`CREATE_DOCUMENT`)
-          EXPORTING
-            i_type    = lv_type
-            i_text    = <body>
-            i_subject = lv_subject
+  METHOD conv_get_string_by_xstring.
+
+    DATA conv          TYPE REF TO object.
+    DATA conv_codepage TYPE c LENGTH 21.
+    DATA conv_in_class TYPE c LENGTH 18.
+
+    TRY.
+
+        conv_codepage = `CL_ABAP_CONV_CODEPAGE`.
+        CALL METHOD (conv_codepage)=>create_in
           RECEIVING
-            result    = lo_doc.
+            instance = conv.
 
-        CALL METHOD lo_mail->(`SET_DOCUMENT`)
+        CALL METHOD conv->(`IF_ABAP_CONV_IN~CONVERT`)
           EXPORTING
-            i_document = lo_doc.
-        CALL METHOD lo_mail->(`SET_SEND_IMMEDIATELY`)
-          EXPORTING
-            i_send_immediately = abap_true.
-
-        CALL METHOD lo_mail->(`SEND`)
+            source = val
           RECEIVING
             result = result.
-        COMMIT WORK AND WAIT.
 
       CATCH cx_root.
-        result = abap_false.
+
+        conv_in_class = `CL_ABAP_CONV_IN_CE`.
+        CALL METHOD (conv_in_class)=>create
+          EXPORTING
+            encoding = `UTF-8`
+          RECEIVING
+            conv     = conv.
+
+        CALL METHOD conv->(`CONVERT`)
+          EXPORTING
+            input = val
+          IMPORTING
+            data  = result.
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD conv_get_xstring_by_string.
+
+    DATA conv           TYPE REF TO object.
+    DATA conv_codepage  TYPE c LENGTH 21.
+    DATA conv_out_class TYPE c LENGTH 19.
+
+    TRY.
+
+        conv_codepage = `CL_ABAP_CONV_CODEPAGE`.
+        CALL METHOD (conv_codepage)=>create_out
+          RECEIVING
+            instance = conv.
+
+        CALL METHOD conv->(`IF_ABAP_CONV_OUT~CONVERT`)
+          EXPORTING
+            source = val
+          RECEIVING
+            result = result.
+
+      CATCH cx_root.
+
+        conv_out_class = `CL_ABAP_CONV_OUT_CE`.
+        CALL METHOD (conv_out_class)=>create
+          EXPORTING
+            encoding = `UTF-8`
+          RECEIVING
+            conv     = conv.
+
+        CALL METHOD conv->(`CONVERT`)
+          EXPORTING
+            data   = val
+          IMPORTING
+            buffer = result.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD rtti_get_classes_impl_intf.
+
+    DATA obj TYPE REF TO object.
+    FIELD-SYMBOLS <any> TYPE any.
+    DATA lt_implementation_names TYPE string_table.
+    TYPES BEGIN OF ty_s_impl.
+    TYPES   clsname    TYPE c LENGTH 30.
+    TYPES   refclsname TYPE c LENGTH 30.
+    TYPES END OF ty_s_impl.
+    DATA lt_impl TYPE STANDARD TABLE OF ty_s_impl WITH DEFAULT KEY.
+    TYPES BEGIN OF ty_s_key.
+    TYPES   intkey TYPE c LENGTH 30.
+    TYPES END OF ty_s_key.
+    DATA ls_key TYPE ty_s_key.
+    DATA BEGIN OF ls_clskey.
+    DATA   clsname TYPE c LENGTH 30.
+    DATA END OF ls_clskey.
+    DATA class               TYPE REF TO data.
+    DATA xco_cp_abap         TYPE c LENGTH 11.
+    DATA temp3               TYPE ty_t_classes.
+    DATA implementation_name LIKE LINE OF lt_implementation_names.
+    DATA temp4               LIKE LINE OF temp3.
+
+    DATA type                TYPE c LENGTH 12.
+    FIELD-SYMBOLS <class> TYPE data.
+    DATA temp5   LIKE LINE OF lt_impl.
+    DATA lr_impl LIKE REF TO temp5.
+    FIELD-SYMBOLS <description> TYPE any.
+    DATA temp6 TYPE ty_s_class_descr.
+
+    IF context_check_abap_cloud( ).
+
+      ls_clskey-clsname = val.
+
+      xco_cp_abap = `XCO_CP_ABAP`.
+      CALL METHOD (xco_cp_abap)=>interface
+        EXPORTING
+          iv_name      = ls_clskey-clsname
+        RECEIVING
+          ro_interface = obj.
+
+      ASSIGN obj->(`IF_XCO_AO_INTERFACE~IMPLEMENTATIONS`) TO <any>.
+      IF sy-subrc <> 0.
+        RAISE EXCEPTION TYPE cx_sy_dyn_call_illegal_class.
+      ENDIF.
+      obj = <any>.
+
+      ASSIGN obj->(`IF_XCO_INTF_IMPLEMENTATIONS_FC~ALL`) TO <any>.
+      IF sy-subrc <> 0.
+        RAISE EXCEPTION TYPE cx_sy_dyn_call_illegal_class.
+      ENDIF.
+      obj = <any>.
+
+      CALL METHOD obj->(`IF_XCO_INTF_IMPLEMENTATIONS~GET_NAMES`)
+        RECEIVING
+          rt_names = lt_implementation_names.
+
+      CLEAR temp3.
+
+      LOOP AT lt_implementation_names INTO implementation_name.
+
+        temp4-classname   = implementation_name.
+        temp4-description = rtti_get_class_descr_on_cloud( implementation_name ).
+        INSERT temp4 INTO TABLE temp3.
+      ENDLOOP.
+      result = temp3.
+
+    ELSE.
+
+      ls_key-intkey = val.
+
+      DATA lv_fm               TYPE string.
+      lv_fm = `SEO_INTERFACE_IMPLEM_GET_ALL`.
+      CALL FUNCTION lv_fm
+        EXPORTING
+          intkey        = ls_key
+        IMPORTING
+          impkeys       = lt_impl
+        EXCEPTIONS
+          error_message = 1
+          OTHERS        = 2.
+      IF sy-subrc <> 0.
+        RETURN.
+      ENDIF.
+
+      type = `SEOC_CLASS_R`.
+      CREATE DATA class TYPE (type).
+
+      ASSIGN class->* TO <class>.
+
+      LOOP AT lt_impl REFERENCE INTO lr_impl.
+
+        CLEAR <class>.
+
+        ls_clskey-clsname = lr_impl->clsname.
+
+        lv_fm = `SEO_CLASS_READ`.
+        CALL FUNCTION lv_fm
+          EXPORTING
+            clskey        = ls_clskey
+          IMPORTING
+            class         = <class>
+          EXCEPTIONS
+            error_message = 1
+            OTHERS        = 2.
+        IF sy-subrc <> 0.
+          RAISE EXCEPTION TYPE z2ui5_cx_util_error.
+        ENDIF.
+
+        ASSIGN
+          COMPONENT `DESCRIPT`
+          OF STRUCTURE <class>
+          TO <description>.
+        ASSERT sy-subrc = 0.
+
+        CLEAR temp6.
+        temp6-classname   = lr_impl->clsname.
+        temp6-description = <description>.
+        INSERT
+          temp6
+          INTO TABLE result.
+      ENDLOOP.
+
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD rtti_get_data_element_texts.
+
+    DATA ddic_ref     TYPE REF TO data.
+    DATA data_element TYPE REF TO object.
+    DATA content      TYPE REF TO object.
+    DATA: BEGIN OF ddic,
+            reptext   TYPE string,
+            scrtext_s TYPE string,
+            scrtext_m TYPE string,
+            scrtext_l TYPE string,
+          END OF ddic.
+    DATA exists            TYPE abap_bool.
+
+    DATA data_element_name TYPE string.
+    DATA temp7             TYPE REF TO cl_abap_structdescr.
+    DATA struct_desrc      LIKE temp7.
+    FIELD-SYMBOLS <ddic> TYPE data.
+    DATA lo_typedescr           TYPE REF TO cl_abap_typedescr.
+    DATA temp8                  TYPE REF TO cl_abap_datadescr.
+    DATA data_descr             LIKE temp8.
+
+    data_element_name = val.
+
+    TRY.
+        cl_abap_typedescr=>describe_by_name( `T100` ).
+
+        temp7 ?= cl_abap_structdescr=>describe_by_name( `DFIES` ).
+
+        struct_desrc = temp7.
+
+        CREATE DATA ddic_ref TYPE HANDLE struct_desrc.
+
+        ASSIGN ddic_ref->* TO <ddic>.
+        ASSERT sy-subrc = 0.
+
+        cl_abap_elemdescr=>describe_by_name( EXPORTING  p_name      = data_element_name
+                                             RECEIVING  p_descr_ref = lo_typedescr
+                                             EXCEPTIONS OTHERS      = 1 ).
+        IF sy-subrc <> 0.
+          RETURN.
+        ENDIF.
+
+        temp8 ?= lo_typedescr.
+
+        data_descr = temp8.
+
+        CALL METHOD data_descr->(`GET_DDIC_FIELD`)
+          RECEIVING
+            p_flddescr   = <ddic>
+          EXCEPTIONS
+            not_found    = 1
+            no_ddic_type = 2
+            OTHERS       = 3.
+        IF sy-subrc <> 0.
+          RETURN.
+        ENDIF.
+
+        MOVE-CORRESPONDING <ddic> TO ddic.
+        result-header = ddic-reptext.
+        result-short  = ddic-scrtext_s.
+        result-medium = ddic-scrtext_m.
+        result-long   = ddic-scrtext_l.
+
+      CATCH cx_root.
+        TRY.
+            DATA lv_xco_cp_abap_dictionary TYPE string.
+            lv_xco_cp_abap_dictionary = `XCO_CP_ABAP_DICTIONARY`.
+            CALL METHOD (lv_xco_cp_abap_dictionary)=>(`DATA_ELEMENT`)
+              EXPORTING
+                iv_name         = data_element_name
+              RECEIVING
+                ro_data_element = data_element.
+
+            CALL METHOD data_element->(`IF_XCO_AD_DATA_ELEMENT~EXISTS`)
+              RECEIVING
+                rv_exists = exists.
+
+            IF exists = abap_false.
+              RETURN.
+            ENDIF.
+
+            CALL METHOD data_element->(`IF_XCO_AD_DATA_ELEMENT~CONTENT`)
+              RECEIVING
+                ro_content = content.
+
+            CALL METHOD content->(`IF_XCO_DTEL_CONTENT~GET_HEADING_FIELD_LABEL`)
+              RECEIVING
+                rs_heading_field_label = result-header.
+
+            CALL METHOD content->(`IF_XCO_DTEL_CONTENT~GET_SHORT_FIELD_LABEL`)
+              RECEIVING
+                rs_short_field_label = result-short.
+
+            CALL METHOD content->(`IF_XCO_DTEL_CONTENT~GET_MEDIUM_FIELD_LABEL`)
+              RECEIVING
+                rs_medium_field_label = result-medium.
+
+            CALL METHOD content->(`IF_XCO_DTEL_CONTENT~GET_LONG_FIELD_LABEL`)
+              RECEIVING
+                rs_long_field_label = result-long.
+
+          CATCH cx_root INTO DATA(x).
+            DATA(error) = x->get_text( ).
+        ENDTRY.
+    ENDTRY.
+
+    IF result IS INITIAL.
+      result-header = val.
+      result-long = val.
+      result-medium = val.
+      result-short = val.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD uuid_get_c22.
+
+    DATA lv_uuid      TYPE c LENGTH 22.
+    DATA lv_classname TYPE string.
+    DATA lv_fm        TYPE string.
+
+    TRY.
+
+        TRY.
+
+            lv_classname = `CL_SYSTEM_UUID`.
+            CALL METHOD (lv_classname)=>if_system_uuid_static~create_uuid_c22
+              RECEIVING
+                uuid = lv_uuid.
+
+          CATCH cx_sy_dyn_call_illegal_class.
+
+            lv_fm = `GUID_CREATE`.
+            CALL FUNCTION lv_fm
+              IMPORTING
+                ev_guid_22 = lv_uuid.
+
+        ENDTRY.
+
+        result = lv_uuid.
+
+      CATCH cx_root.
+        ASSERT 1 = 0.
+    ENDTRY.
+
+    result = replace( val  = result
+                      sub  = `}`
+                      with = `0`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `{`
+                      with = `0`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `"`
+                      with = `0`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `'`
+                      with = `0`
+                      occ  = 0 ).
+
+  ENDMETHOD.
+
+  METHOD uuid_get_c32.
+    DATA lv_uuid      TYPE c LENGTH 32.
+    DATA lv_classname TYPE string.
+    DATA lv_fm        TYPE string.
+
+    TRY.
+
+        TRY.
+
+            lv_classname = `CL_SYSTEM_UUID`.
+            CALL METHOD (lv_classname)=>if_system_uuid_static~create_uuid_c32
+              RECEIVING
+                uuid = lv_uuid.
+
+          CATCH cx_root.
+
+            lv_fm = `GUID_CREATE`.
+            CALL FUNCTION lv_fm
+              IMPORTING
+                ev_guid_32 = lv_uuid.
+
+        ENDTRY.
+
+        result = lv_uuid.
+
+      CATCH cx_root.
+        ASSERT 1 = 0.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD rtti_get_class_descr_on_cloud.
+    TRY.
+
+        DATA obj          TYPE REF TO object.
+        DATA content      TYPE REF TO object.
+        DATA lv_classname TYPE c LENGTH 30.
+        DATA xco_cp_abap  TYPE c LENGTH 11.
+
+        lv_classname = i_classname.
+
+        xco_cp_abap = `XCO_CP_ABAP`.
+        CALL METHOD (xco_cp_abap)=>(`CLASS`)
+          EXPORTING
+            iv_name  = lv_classname
+          RECEIVING
+            ro_class = obj.
+
+        CALL METHOD obj->(`IF_XCO_AO_CLASS~CONTENT`)
+          RECEIVING
+            ro_content = content.
+
+        CALL METHOD content->(`IF_XCO_CLAS_CONTENT~GET_SHORT_DESCRIPTION`)
+          RECEIVING
+            rv_short_description = result.
+
+      CATCH cx_root INTO DATA(x).
+        DATA(lv_error) = x->get_text( ).
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD rtti_get_table_desrc.
+
+    DATA ddtext TYPE c LENGTH 60.
+
+    IF langu IS NOT SUPPLIED.
+      DATA(lan) = sy-langu.
+    ELSE.
+      lan = langu.
+    ENDIF.
+
+    IF context_check_abap_cloud( ).
+
+      ddtext = tabname.
+
+    ELSE.
+
+      DATA(lv_tabname) = `dd02t`.
+      SELECT SINGLE ddtext
+        FROM (lv_tabname)
+        WHERE tabname    = @tabname
+          AND ddlanguage = @lan
+        INTO @ddtext.
+
+    ENDIF.
+
+    IF ddtext IS NOT INITIAL.
+      result = ddtext.
+    ELSE.
+      result = tabname.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD context_get_tenant.
+
+    "DATA(tenant_info) = xco_cp=>current->tenant( ).
+    "DATA(account_id) = tenant_info->get_global_account_id( ).
+
+  ENDMETHOD.
+
+  METHOD context_get_callstack.
+
+    IF context_check_abap_cloud( ).
+
+      DATA current_obj TYPE REF TO object.
+      DATA stack TYPE REF TO object.
+      DATA full_stack TYPE REF TO object.
+      DATA format_source TYPE REF TO object.
+      DATA format_obj2 TYPE REF TO object.
+      DATA format_obj3 TYPE REF TO object.
+      DATA text_obj TYPE REF TO object.
+      DATA lv_xco_cp TYPE c LENGTH 6.
+      DATA ro_lines TYPE REF TO object.
+      FIELD-SYMBOLS <current> TYPE any.
+      FIELD-SYMBOLS <any> TYPE any.
+      FIELD-SYMBOLS <call_stack> TYPE any.
+      FIELD-SYMBOLS <format> TYPE any.
+      FIELD-SYMBOLS <format2> TYPE any.
+
+      "1 format source
+      DATA(lv_assign) = `XCO_CP_CALL_STACK=>LINE_NUMBER_FLAVOR->SOURCE`.
+      ASSIGN (lv_assign) TO <format>.
+
+      lv_assign = `XCO_CP_CALL_STACK=>FORMAT`.
+      ASSIGN (lv_assign) TO <format2>.
+      format_obj2 = <format2>.
+
+      CALL METHOD format_obj2->(`IF_XCO_CP_CS_FORMAT_FACTORY~ADT`)
+        RECEIVING
+          ro_adt = format_obj3.
+
+      CALL METHOD format_obj3->(`WITH_LINE_NUMBER_FLAVOR`)
+        EXPORTING
+          io_line_number_flavor = <format>
+        RECEIVING
+          ro_me                 = format_source.
+
+      lv_xco_cp = `XCO_CP`.
+      ASSIGN (lv_xco_cp)=>(`CURRENT`) TO <current>.
+      current_obj = <current>.
+
+      ASSIGN current_obj->(`IF_XCO_CP_STD_CURRENT~CALL_STACK`) TO <call_stack>.
+      stack = <call_stack>.
+
+      CALL METHOD stack->(`IF_XCO_CP_STD_CUR_API_CLL_STCK~FULL`)
+        RECEIVING
+          ro_full = full_stack.
+
+      DATA r TYPE REF TO data.
+      CREATE DATA r TYPE REF TO (`IF_XCO_CS_FORMAT`).
+      ASSIGN r->* TO <any>.
+      <any> ?= format_source.
+
+      CALL METHOD full_stack->(`IF_XCO_CP_CALL_STACK~AS_TEXT`)
+        EXPORTING
+          io_format = <any>
+        RECEIVING
+          ro_text   = text_obj.
+
+      CALL METHOD text_obj->(`IF_XCO_TEXT~GET_LINES`)
+        RECEIVING
+          ro_lines = ro_lines.
+
+      FIELD-SYMBOLS <lt_lines> TYPE string_table.
+      ASSIGN ro_lines->(`IF_XCO_STRINGS~VALUE`) TO <lt_lines>.
+
+      LOOP AT <lt_lines> INTO DATA(text).
+        DATA(ls_stack) = VALUE ty_s_stack( ).
+        SPLIT text AT ` ` INTO ls_stack-class ls_stack-include ls_stack-method.
+        INSERT ls_stack INTO TABLE result.
+      ENDLOOP.
+
+      DELETE result INDEX 1.
+
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD context_get_sy.
+
+    result = CORRESPONDING #( sy ).
 
   ENDMETHOD.
 
