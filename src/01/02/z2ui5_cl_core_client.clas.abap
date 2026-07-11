@@ -55,7 +55,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     lv_val = val.
 
     IF lv_val IS INITIAL OR lv_val CN `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_`.
-      RAISE EXCEPTION TYPE z2ui5_cl_abap2ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
         EXPORTING
           val = |action: invalid event name '{ val }' - only A-Z, a-z, 0-9 and _ allowed|.
     ENDIF.
@@ -215,7 +215,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   METHOD nav_app_set_id.
 
     IF app IS NOT BOUND.
-      RAISE EXCEPTION TYPE z2ui5_cl_abap2ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
         EXPORTING
           val = `NAV_APP_LEAVE_TO_INITIAL_APP_ERROR`.
     ENDIF.

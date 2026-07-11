@@ -15212,7 +15212,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
             INSERT VALUE #( n = |xmlns:{ ls_prop-n }|
                             v = ls_prop-v ) INTO TABLE mt_prop.
           CATCH cx_root.
-            RAISE EXCEPTION TYPE z2ui5_cl_abap2ui5_error
+            RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
               EXPORTING val = |XML_VIEW_ERROR_NO_NAMESPACE_FOUND_FOR:  { lr_ns->* }|.
         ENDTRY.
       ENDLOOP.

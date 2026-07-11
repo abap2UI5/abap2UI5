@@ -148,7 +148,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
                                  IMPORTING ev_container     = <val> ).
 
         CATCH cx_root INTO DATA(x).
-          RAISE EXCEPTION TYPE z2ui5_cl_abap2ui5_error
+          RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
             EXPORTING
               val = |JSON_PARSING_ERROR: { x->get_text( ) }|.
       ENDTRY.
@@ -215,7 +215,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
         ENDIF.
 
       CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cl_abap2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
           EXPORTING
             val = x.
     ENDTRY.
@@ -409,7 +409,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    RAISE EXCEPTION TYPE z2ui5_cl_abap2ui5_error
+    RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
       EXPORTING
         val = `BINDING_ERROR - No class attribute for binding found - Please check if the bound values are public attributes of your class`.
 
@@ -427,14 +427,14 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     ENDIF.
 
     IF <attri> IS NOT ASSIGNED.
-      RAISE EXCEPTION TYPE z2ui5_cl_abap2ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
         EXPORTING
           val = `ATTRI_GET_VAL_REF_ERROR`.
     ENDIF.
 
     GET REFERENCE OF <attri> INTO result.
     IF result IS NOT BOUND.
-      RAISE EXCEPTION TYPE z2ui5_cl_abap2ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
         EXPORTING
           val = `ATTRI_GET_VAL_REF_ERROR`.
     ENDIF.
@@ -454,7 +454,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
     IF lo_datadescr->type_kind = z2ui5_cl_abap2ui5_context=>cv_typedescr_typekind_dref
         OR lo_datadescr->type_kind = z2ui5_cl_abap2ui5_context=>cv_typedescr_typekind_oref.
-      RAISE EXCEPTION TYPE z2ui5_cl_abap2ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
         EXPORTING
           val = `NO DATA REFERENCES FOR BINDING ALLOWED: DEREFERENCE YOUR DATA FIRST`.
     ENDIF.

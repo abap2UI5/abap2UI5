@@ -92,7 +92,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
       result = factory_cloud( req = req
                               res = res ).
     ELSE.
-      RAISE EXCEPTION TYPE z2ui5_cl_abap2ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
         EXPORTING val = `EMPTY_HTTP_HANDLER_CALL_ERROR`.
     ENDIF.
 
