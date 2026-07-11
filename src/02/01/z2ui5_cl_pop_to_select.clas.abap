@@ -187,8 +187,8 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
     ASSIGN mr_tab->* TO <tab>.
 
-    DATA(ls_sel_tab_type) = z2ui5_cl_abap2ui5_context=>rtti_create_sel_tab_type( ir_tab        = mr_tab
-                                                                     add_sel_field = abap_true ).
+    DATA(ls_sel_tab_type) = z2ui5_cl_abap2ui5_context=>rtti_create_sel_tab_type( ir_tab = mr_tab
+                                                                     add_sel_field      = abap_true ).
     check_table_line = ls_sel_tab_type-check_table_line.
 
     CREATE DATA mr_tab_popup TYPE HANDLE ls_sel_tab_type-tabledescr.
@@ -271,9 +271,9 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
     <tab_out> = <tab_out_backup>.
 
-    z2ui5_cl_abap2ui5_context=>itab_filter_by_val( EXPORTING val         = client->get_event_arg( 1 )
-                                                 ignore_case = abap_true
-                                       CHANGING  tab         = <tab_out> ).
+    z2ui5_cl_abap2ui5_context=>itab_filter_by_val( EXPORTING val = client->get_event_arg( 1 )
+                                                 ignore_case     = abap_true
+                                       CHANGING  tab             = <tab_out> ).
     client->popup_model_update( ).
 
   ENDMETHOD.

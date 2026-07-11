@@ -437,13 +437,13 @@ CLASS z2ui5_cl_abap2ui5_context DEFINITION
 
     CLASS-METHODS app_get_url
       IMPORTING
-        !classname       TYPE clike
-        !origin          TYPE clike
-        !pathname        TYPE clike
-        !search          TYPE clike
-        !hash            TYPE clike OPTIONAL
+        !classname    TYPE clike
+        !origin       TYPE clike
+        !pathname     TYPE clike
+        !search       TYPE clike
+        !hash         TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)    TYPE string.
+        VALUE(result) TYPE string.
 
     TYPES:
       BEGIN OF ty_s_data_element_text,
@@ -849,8 +849,7 @@ CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
     DATA(lt_tab) = VALUE ty_t_range( ).
 
     itab_corresponding( EXPORTING val = val
-                        CHANGING  tab = lt_tab
-    ).
+                        CHANGING  tab = lt_tab ).
 
     LOOP AT lt_tab REFERENCE INTO DATA(lr_row).
 
@@ -909,7 +908,8 @@ CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
             lv_check_found = abap_true.
             EXIT.
           ENDIF.
-        ELSEIF find( val = lv_value sub = lv_search ) >= 0.
+        ELSEIF find( val = lv_value
+                     sub = lv_search ) >= 0.
           " Case-sensitive: use find() because CS is always case-insensitive
           lv_check_found = abap_true.
           EXIT.
@@ -961,7 +961,7 @@ CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
 
   METHOD rtti_get_intfname_by_ref.
 
-    DATA(rtti) = cl_abap_typedescr=>describe_by_data( in  ).
+    DATA(rtti) = cl_abap_typedescr=>describe_by_data( in ).
     DATA(ref) = CAST cl_abap_refdescr( rtti ).
     DATA(name) = ref->get_referenced_type( )->absolute_name.
     result = substring_after( val = name
@@ -980,7 +980,7 @@ CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
     TRY.
 
         cl_abap_typedescr=>describe_by_name( EXPORTING  p_name         = type->absolute_name
-                                             RECEIVING  p_descr_ref    = DATA(type_desc)
+                                             RECEIVING p_descr_ref     = DATA(type_desc)
                                              EXCEPTIONS type_not_found = 1 ).
 
       CATCH cx_root INTO DATA(x).
@@ -1307,7 +1307,8 @@ CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
 
   METHOD msg_get.
 
-    DATA(lt_msg) = msg_get_t( val = val val2 = val2 ).
+    DATA(lt_msg) = msg_get_t( val  = val
+                              val2 = val2 ).
     result = lt_msg[ 1 ].
 
   ENDMETHOD.
@@ -1596,7 +1597,7 @@ CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
     FIELD-SYMBOLS <any> TYPE any.
     DATA lt_implementation_names TYPE string_table.
     DATA BEGIN OF ls_clskey.
-    DATA   clsname TYPE c LENGTH 30.
+    DATA clsname TYPE c LENGTH 30.
     DATA END OF ls_clskey.
     DATA xco_cp_abap         TYPE c LENGTH 11.
     DATA implementation_name LIKE LINE OF lt_implementation_names.
@@ -1639,16 +1640,16 @@ CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
   METHOD rtti_get_classes_intf_std.
 
     TYPES BEGIN OF ty_s_impl.
-    TYPES   clsname    TYPE c LENGTH 30.
-    TYPES   refclsname TYPE c LENGTH 30.
+    TYPES clsname    TYPE c LENGTH 30.
+    TYPES refclsname TYPE c LENGTH 30.
     TYPES END OF ty_s_impl.
     DATA lt_impl TYPE STANDARD TABLE OF ty_s_impl WITH EMPTY KEY.
     TYPES BEGIN OF ty_s_key.
-    TYPES   intkey TYPE c LENGTH 30.
+    TYPES intkey TYPE c LENGTH 30.
     TYPES END OF ty_s_key.
     DATA ls_key TYPE ty_s_key.
     DATA BEGIN OF ls_clskey.
-    DATA   clsname TYPE c LENGTH 30.
+    DATA clsname TYPE c LENGTH 30.
     DATA END OF ls_clskey.
     DATA class    TYPE REF TO data.
     DATA type     TYPE c LENGTH 12.
@@ -1765,9 +1766,9 @@ CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
     ASSIGN ddic_ref->* TO <ddic>.
     ASSERT sy-subrc = 0.
 
-    cl_abap_elemdescr=>describe_by_name( EXPORTING  p_name      = name
-                                         RECEIVING  p_descr_ref = lo_typedescr
-                                         EXCEPTIONS OTHERS      = 1 ).
+    cl_abap_elemdescr=>describe_by_name( EXPORTING  p_name     = name
+                                         RECEIVING p_descr_ref = lo_typedescr
+                                         EXCEPTIONS OTHERS     = 1 ).
     IF sy-subrc <> 0.
       RETURN.
     ENDIF.
@@ -1946,7 +1947,9 @@ CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
             INSERT LINES OF lt_tab INTO TABLE result.
             RETURN.
           ELSE.
-            ls_result = msg_map( name = ls_attri->name val = <comp> is_msg = ls_result ).
+            ls_result = msg_map( name   = ls_attri->name
+                                 val    = <comp>
+                                 is_msg = ls_result ).
           ENDIF.
 
         ENDLOOP.
@@ -1985,7 +1988,9 @@ CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
           IF sy-subrc <> 0.
             CONTINUE.
           ENDIF.
-          ls_result = msg_map( name = ls_attri_o->name val = <comp> is_msg = ls_result ).
+          ls_result = msg_map( name   = ls_attri_o->name
+                               val    = <comp>
+                               is_msg = ls_result ).
         ENDLOOP.
         INSERT ls_result INTO TABLE result.
       CATCH cx_root.
@@ -2030,7 +2035,9 @@ CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
                   IF sy-subrc <> 0.
                     CONTINUE.
                   ENDIF.
-                  ls_result = msg_map( name = ls_attri_o->name val = <comp> is_msg = ls_result ).
+                  ls_result = msg_map( name   = ls_attri_o->name
+                                       val    = <comp>
+                                       is_msg = ls_result ).
                 ENDLOOP.
                 INSERT ls_result INTO TABLE result.
 
@@ -2104,7 +2111,7 @@ CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
 
     DATA(lv_kind) = rtti_get_type_kind( val ).
     IF lv_kind <> cl_abap_datadescr=>typekind_struct1
-       AND lv_kind <> cl_abap_datadescr=>typekind_struct2.
+        AND lv_kind <> cl_abap_datadescr=>typekind_struct2.
       RETURN.
     ENDIF.
 
@@ -2258,7 +2265,7 @@ CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
 
     DATA(lv_kind) = rtti_get_type_kind( val ).
     IF lv_kind <> cl_abap_datadescr=>typekind_struct1
-       AND lv_kind <> cl_abap_datadescr=>typekind_struct2.
+        AND lv_kind <> cl_abap_datadescr=>typekind_struct2.
       RETURN.
     ENDIF.
 
@@ -2269,7 +2276,7 @@ CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
 
       DATA(lv_sub_kind) = rtti_get_type_kind( <comp> ).
       IF lv_sub_kind = cl_abap_datadescr=>typekind_struct1
-         OR lv_sub_kind = cl_abap_datadescr=>typekind_struct2.
+          OR lv_sub_kind = cl_abap_datadescr=>typekind_struct2.
         DATA(lv_sub) = msg_get_rap_flatten( <comp> ).
         IF lv_sub IS NOT INITIAL.
           IF result IS NOT INITIAL.
@@ -2343,7 +2350,7 @@ CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
       WHEN 9  THEN `Determination failed`
       WHEN 10 THEN `Permission denied`
       WHEN 11 THEN `Validation failed`
-      ELSE         |Operation failed (cause code { cause })| ).
+      ELSE |Operation failed (cause code { cause })| ).
 
   ENDMETHOD.
 

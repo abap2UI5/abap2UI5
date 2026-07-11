@@ -88,9 +88,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_chain_texts.
 
     DATA(lx_inner) = NEW z2ui5_cx_abap2ui5_error( val = `inner` ).
-    DATA(lx_middle) = NEW z2ui5_cx_abap2ui5_error( val      = `middle`
+    DATA(lx_middle) = NEW z2ui5_cx_abap2ui5_error( val   = `middle`
                                                 previous = lx_inner ).
-    DATA(lx_outer) = NEW z2ui5_cx_abap2ui5_error( val      = `outer`
+    DATA(lx_outer) = NEW z2ui5_cx_abap2ui5_error( val   = `outer`
                                                previous = lx_middle ).
 
     DATA(lv_text) = lx_outer->get_text( ).

@@ -49,7 +49,7 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
     r_result = NEW #( ).
 
     z2ui5_cl_abap2ui5_context=>itab_corresponding( EXPORTING val = t_range
-                                       CHANGING  tab = r_result->ms_result-t_range ).
+                                       CHANGING  tab             = r_result->ms_result-t_range ).
 
     INSERT VALUE #( ) INTO TABLE r_result->ms_result-t_range.
 
