@@ -21,7 +21,7 @@ jobs:
     - uses: actions/checkout@v7
     - uses: actions/setup-node@v6
       with:
-        node-version: '20'
+        node-version: '22'
         cache: 'npm'
     - run: cd app && npm ci
     - name: ui5lint (fails on any error)
