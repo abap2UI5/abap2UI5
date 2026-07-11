@@ -1,0 +1,55 @@
+name: mirror
+
+# Shared implementation for the mirror_* workflows: replaces the target
+# folder under src/00/ with the current content of the given mirror
+# repository and opens a PR with the diff. The thin mirror_<name> callers
+# provide the schedule and the parameters.
+
+on:
+  workflow_call:
+    inputs:
+      mirror_repo:
+        description: "Mirror repository under abap2UI5 (e.g. ajson_mirror)"
+        required: true
+        type: string
+      target_path:
+        description: "Target folder of the mirrored sources (e.g. src/00/01)"
+        required: true
+        type: string
+      pr_branch:
+        description: "Branch name and PR title (e.g. mirror-ajson-update)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  mirror:
+    # Origin repo only
+    permissions:
+      contents: write  # for peter-evans/create-pull-request to create branch
+      pull-requests: write  # for peter-evans/create-pull-request to create a PR
+      issues: write  # to report failed scheduled runs
+    if: github.repository == 'abap2UI5/abap2UI5'
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+    - name: run
+      run: |
+        git clone "https://github.com/abap2UI5/${{ inputs.mirror_repo }}.git"
+        rm ${{ inputs.target_path }}/z*
+        cp "${{ inputs.mirror_repo }}"/src/z* ${{ inputs.target_path }}/
+        rm -rf "${{ inputs.mirror_repo }}"
+        git status
+    - name: Open PR
+      uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+      with:
+        title: ${{ inputs.pr_branch }}
+        branch: ${{ inputs.pr_branch }}
+    - name: Report scheduled failure as issue
+      if: failure() && github.event_name == 'schedule'
+      uses: ./.github/actions/report-scheduled-failure
