@@ -1477,6 +1477,9 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   METHOD filter_get_range_by_token.
 
     DATA(lv_value) = val.
+    IF lv_value IS INITIAL.
+      RETURN.
+    ENDIF.
     DATA(lv_length) = strlen( lv_value ) - 1.
 
     CASE lv_value(1).
@@ -1507,11 +1510,16 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         ENDIF.
 
       WHEN `*`.
-        IF lv_value+lv_length(1) = `*`.
+        IF lv_length > 0 AND lv_value+lv_length(1) = `*`.
           lv_value = substring( val = lv_value off = 1 len = lv_length - 1 ).
           result = VALUE #( sign   = `I`
                             option = `CP`
                             low    = lv_value ).
+        ELSEIF lv_length = 0.
+          " Single '*' means contains-pattern with empty value
+          result = VALUE #( sign   = `I`
+                            option = `CP`
+                            low    = `` ).
         ENDIF.
 
       WHEN OTHERS.
@@ -1602,7 +1610,10 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD itab_filter_by_val.
-
+    " TRANSPILER NOTE: ABAP CS operator is ALWAYS case-insensitive regardless
+    " of the ignore_case flag. The flag only pre-converts to uppercase for
+    " consistency, but CS itself never does case-sensitive matching.
+    " JS equivalent: always use toLowerCase().includes(toLowerCase()).
     FIELD-SYMBOLS <row>   TYPE any.
     FIELD-SYMBOLS <field> TYPE any.
 
@@ -1635,10 +1646,16 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         DATA(lv_value) = |{ <field> }|.
         IF ignore_case = abap_true.
           lv_value = to_upper( lv_value ).
-        ENDIF.
-        IF lv_value CS lv_search.
-          lv_check_found = abap_true.
-          EXIT.
+          IF lv_value CS lv_search.
+            lv_check_found = abap_true.
+            EXIT.
+          ENDIF.
+        ELSE.
+          " Case-sensitive: use find() because CS is always case-insensitive
+          IF find( val = lv_value sub = lv_search ) >= 0.
+            lv_check_found = abap_true.
+            EXIT.
+          ENDIF.
         ENDIF.
 
         lv_index = lv_index + 1.
@@ -2142,14 +2159,15 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     DATA(lt_params) = url_param_get_tab( url ).
     DATA(lv_n) = c_trim_lower( name ).
+    DATA(lv_v) = c_trim( value ).
 
     LOOP AT lt_params REFERENCE INTO DATA(lr_params)
          WHERE n = lv_n.
-      lr_params->v = c_trim_lower( value ).
+      lr_params->v = lv_v.
     ENDLOOP.
     IF sy-subrc <> 0.
       INSERT VALUE #( n = lv_n
-                      v = c_trim_lower( value ) ) INTO TABLE lt_params.
+                      v = lv_v ) INTO TABLE lt_params.
     ENDIF.
 
     result = url_param_create_url( lt_params ).
@@ -2659,6 +2677,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     DATA(lv_start) = 0.
     DATA(lv_pos) = 0.
     DATA(lv_in_quote) = abap_false.
+    DATA(lv_in_between) = abap_false.
 
     IF lv_val IS INITIAL.
       RETURN.
@@ -2700,7 +2719,30 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
+      " Track BETWEEN ... AND to avoid splitting at the AND inside BETWEEN
+      " Only check when current char is B or b (performance: skip to_upper on every pos)
+      IF lv_depth = 0 AND lv_in_between = abap_false
+         AND ( lv_char = `B` OR lv_char = `b` )
+         AND lv_pos + 8 <= lv_len
+         AND to_upper( lv_val+lv_pos(8) ) = `BETWEEN `.
+        lv_in_between = abap_true.
+        lv_pos = lv_pos + 8.
+        CONTINUE.
+      ENDIF.
+
+      " The first AND after BETWEEN is the range AND, not a logical AND
+      " Only check when current char is space (the ` AND ` pattern starts with space)
+      IF lv_in_between = abap_true
+         AND lv_char = ` `
+         AND lv_pos + 5 <= lv_len
+         AND to_upper( lv_val+lv_pos(5) ) = ` AND `.
+        lv_in_between = abap_false.
+        lv_pos = lv_pos + 5.
+        CONTINUE.
+      ENDIF.
+
       IF lv_depth = 0
+         AND lv_in_between = abap_false
          AND lv_pos + lv_sep_len <= lv_len
          AND lv_val+lv_pos(lv_sep_len) = lv_sep.
         INSERT substring( val = lv_val
@@ -2861,7 +2903,9 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD c_contains.
-
+    " Note: ABAP CS operator is CASE-INSENSITIVE.
+    " JS transpilation must use a case-insensitive comparison
+    " (e.g. val.toLowerCase().includes(sub.toLowerCase())).
     result = xsdbool( CONV string( val ) CS sub ).
 
   ENDMETHOD.
@@ -3103,8 +3147,10 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   METHOD c_pad_left.
 
     result = val.
+    " pad is TYPE c - space value would be trimmed by && (same as c_pad_right fix)
+    DATA(lv_pad) = COND string( WHEN pad IS INITIAL THEN ` ` ELSE CONV #( pad ) ).
     WHILE strlen( result ) < len.
-      result = pad && result.
+      result = lv_pad && result.
     ENDWHILE.
 
   ENDMETHOD.
@@ -3112,8 +3158,11 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   METHOD c_pad_right.
 
     result = val.
+    " pad is TYPE c - a space value IS INITIAL in ABAP and CONV string trims it.
+    " Preserve the space explicitly via COND.
+    DATA(lv_pad) = COND string( WHEN pad IS INITIAL THEN ` ` ELSE CONV #( pad ) ).
     WHILE strlen( result ) < len.
-      result = result && pad.
+      result = result && lv_pad.
     ENDWHILE.
 
   ENDMETHOD.
@@ -3233,7 +3282,11 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     DATA(lv_val) = c_trim( CONV string( val ) ).
 
-    " Remove thousands separators (comma or period depending on format)
+    " Heuristic: A comma is treated as DECIMAL separator when it is the
+    " LAST separator in the string (no further comma or dot follows).
+    " Otherwise it is treated as THOUSANDS separator and skipped.
+    " Edge case: '1,000' (no dot) is interpreted as 1.000 (decimal), NOT 1000.
+    " This matches European number formatting conventions.
     " Normalize: keep only digits, minus, and decimal point
     DATA(lv_clean) = ``.
     DATA(lv_i) = 0.
