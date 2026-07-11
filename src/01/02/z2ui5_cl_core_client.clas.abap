@@ -245,7 +245,9 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     mo_action->ms_next-o_app_leave = app.
     mo_action->ms_next-next_event  = event.
 
-    IF r_data IS NOT INITIAL.
+    " IS SUPPLIED (not IS NOT INITIAL) so an intentionally empty return
+    " value still reaches the previous app (https://github.com/abap2UI5/abap2UI5/issues/2404)
+    IF r_data IS SUPPLIED.
       mo_action->ms_next-r_data = z2ui5_cl_abap2ui5_context=>conv_copy_ref_data( r_data ).
     ENDIF.
 

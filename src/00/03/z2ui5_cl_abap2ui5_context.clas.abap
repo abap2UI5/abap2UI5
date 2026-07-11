@@ -776,6 +776,10 @@ CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
 
     IF rtti_check_ref_data( from ).
       ASSIGN from->* TO <from>.
+      IF <from> IS NOT ASSIGNED.
+        " unbound data reference - nothing to copy, return an initial reference
+        RETURN.
+      ENDIF.
     ELSE.
       ASSIGN from TO <from>.
     ENDIF.

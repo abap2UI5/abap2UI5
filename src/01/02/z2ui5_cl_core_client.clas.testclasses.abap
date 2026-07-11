@@ -49,6 +49,9 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_nav_app_call_id_stable FOR TESTING RAISING cx_static_check.
     METHODS test_nav_app_leave_event  FOR TESTING RAISING cx_static_check.
     METHODS test_nav_app_leave_r_data FOR TESTING RAISING cx_static_check.
+    METHODS test_nav_leave_r_data_empty FOR TESTING RAISING cx_static_check.
+    METHODS test_nav_leave_r_data_not_sup FOR TESTING RAISING cx_static_check.
+    METHODS test_nav_leave_r_data_unbound FOR TESTING RAISING cx_static_check.
     METHODS test_check_app_prev_stack FOR TESTING RAISING cx_static_check.
     METHODS test_set_push_state       FOR TESTING RAISING cx_static_check.
     METHODS test_set_nav_back         FOR TESTING RAISING cx_static_check.
@@ -539,6 +542,57 @@ CLASS ltcl_test_client IMPLEMENTATION.
                               r_data = lv_data ).
 
     cl_abap_unit_assert=>assert_bound( mo_action->ms_next-r_data ).
+
+  ENDMETHOD.
+
+  METHOD test_nav_leave_r_data_empty.
+
+    DATA lo_app TYPE REF TO ltcl_test_app.
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA lv_data TYPE string.
+    FIELD-SYMBOLS <data> TYPE data.
+    lo_app = NEW #( ).
+    li_client ?= mo_client.
+
+    li_client->nav_app_leave( app    = lo_app
+                              event  = `MY_EVENT`
+                              r_data = lv_data ).
+
+    " an intentionally empty return value must still reach the previous app (issue #2404)
+    cl_abap_unit_assert=>assert_bound( mo_action->ms_next-r_data ).
+    ASSIGN mo_action->ms_next-r_data->* TO <data>.
+    cl_abap_unit_assert=>assert_initial( <data> ).
+
+  ENDMETHOD.
+
+  METHOD test_nav_leave_r_data_not_sup.
+
+    DATA lo_app TYPE REF TO ltcl_test_app.
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    lo_app = NEW #( ).
+    li_client ?= mo_client.
+
+    li_client->nav_app_leave( app   = lo_app
+                              event = `MY_EVENT` ).
+
+    cl_abap_unit_assert=>assert_not_bound( mo_action->ms_next-r_data ).
+
+  ENDMETHOD.
+
+  METHOD test_nav_leave_r_data_unbound.
+
+    DATA lo_app TYPE REF TO ltcl_test_app.
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    DATA lr_data TYPE REF TO data.
+    lo_app = NEW #( ).
+    li_client ?= mo_client.
+
+    li_client->nav_app_leave( app    = lo_app
+                              event  = `MY_EVENT`
+                              r_data = lr_data ).
+
+    " an unbound data reference has no value to copy and must not dump
+    cl_abap_unit_assert=>assert_not_bound( mo_action->ms_next-r_data ).
 
   ENDMETHOD.
 
