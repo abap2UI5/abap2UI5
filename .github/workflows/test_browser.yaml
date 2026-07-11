@@ -36,7 +36,20 @@ jobs:
     - run: npm ci
     - run: npm run auto_downport
     - run: npm run auto_transpile
+    - name: Get Playwright version
+      id: playwright-version
+      run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+    - name: Cache Playwright browsers
+      id: playwright-cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
     - name: Install Playwright browsers
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
       run: npx playwright install --with-deps
+    - name: Install Playwright OS dependencies
+      if: steps.playwright-cache.outputs.cache-hit == 'true'
+      run: npx playwright install-deps
     - name: Run browser tests against the transpiled backend
       run: cd node && npx playwright test --config=playwright.config.js
