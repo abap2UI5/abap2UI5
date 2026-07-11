@@ -18,7 +18,7 @@ jobs:
     - uses: actions/checkout@v7
     - uses: actions/setup-node@v6
       with:
-        node-version: '20'
+        node-version: '22'
         cache: 'npm'
     - run: npm ci
     - name: Run JS unit tests
@@ -31,7 +31,7 @@ jobs:
     - uses: actions/checkout@v7
     - uses: actions/setup-node@v6
       with:
-        node-version: '20'
+        node-version: '22'
         cache: 'npm'
     - run: npm ci
     - run: npm run auto_downport
