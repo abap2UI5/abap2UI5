@@ -3,8 +3,8 @@
 Ranked by real usage across the 360 sample apps. Use this to pick the right
 fluent method. Names are the `z2ui5_cl_xml_view` builder methods (each wraps one
 UI5 control) and the `client->` methods. **Do not invent method names** — if a
-control is missing here, either find it in a sample or fall back to the generic
-builder (`_generic` / `z2ui5_cl_util_xml`).
+control is missing here, either find it in a sample or fall back to the raw-XML
+escape hatch (`_generic`).
 
 ## Most-used view-builder methods
 

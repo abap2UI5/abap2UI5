@@ -1,7 +1,6 @@
 "! <p class="shorttext synchronized" lang="en">abap2UI5 - view parser</p>
 "!
 "! Builder for SAPUI5 XML views. See CLAUDE.md and the project README for usage.
-"! Note: AI assistants should use the generic builder `z2ui5_cl_util_xml` instead - see project guidelines.
 CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
 
   PUBLIC SECTION.

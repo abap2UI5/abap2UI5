@@ -273,7 +273,7 @@ and data. Class names are case-insensitive at runtime.
 | z2ui5_cl_demo_app_031 | Import view — copy & paste views from the UI5 docs |
 | z2ui5_cl_demo_app_s_05 | Websocket — consume APC messages |
 
-## Generic XML Builder (z2ui5_cl_util_xml, pkg 02)
+## Generic XML Builder (z2ui5_cl_util_xml — obsolete, now pkg 99; avoid in new apps)
 | App class | Title |
 |---|---|
 | z2ui5_cl_demo_app_355 | InputListItem sample |
