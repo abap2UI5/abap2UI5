@@ -16,7 +16,7 @@ CLASS z2ui5_cl_util_xml DEFINITION
         ns            TYPE clike                           OPTIONAL
         a             TYPE clike                           OPTIONAL
         v             TYPE clike                           OPTIONAL
-        p             TYPE z2ui5_cl_util=>ty_t_name_value OPTIONAL
+        p             TYPE z2ui5_cl_abap2ui5_context=>ty_t_name_value OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
 
@@ -26,7 +26,7 @@ CLASS z2ui5_cl_util_xml DEFINITION
         ns            TYPE clike                           OPTIONAL
         a             TYPE clike                           OPTIONAL
         v             TYPE clike                           OPTIONAL
-        p             TYPE z2ui5_cl_util=>ty_t_name_value OPTIONAL
+        p             TYPE z2ui5_cl_abap2ui5_context=>ty_t_name_value OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
 
@@ -37,7 +37,7 @@ CLASS z2ui5_cl_util_xml DEFINITION
         ns            TYPE clike                           OPTIONAL
         a             TYPE clike                           OPTIONAL
         v             TYPE clike                           OPTIONAL
-        p             TYPE z2ui5_cl_util=>ty_t_name_value OPTIONAL
+        p             TYPE z2ui5_cl_abap2ui5_context=>ty_t_name_value OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
 
@@ -48,7 +48,7 @@ CLASS z2ui5_cl_util_xml DEFINITION
         ns            TYPE clike                           OPTIONAL
         a             TYPE clike                           OPTIONAL
         v             TYPE clike                           OPTIONAL
-        p             TYPE z2ui5_cl_util=>ty_t_name_value OPTIONAL
+        p             TYPE z2ui5_cl_abap2ui5_context=>ty_t_name_value OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_util_xml.
 
@@ -84,7 +84,7 @@ CLASS z2ui5_cl_util_xml DEFINITION
 
     DATA mv_name   TYPE string.
     DATA mv_ns     TYPE string.
-    DATA mt_prop   TYPE SORTED TABLE OF z2ui5_cl_util=>ty_s_name_value WITH NON-UNIQUE KEY n.
+    DATA mt_prop   TYPE SORTED TABLE OF z2ui5_cl_abap2ui5_context=>ty_s_name_value WITH NON-UNIQUE KEY n.
 
     DATA mo_root   TYPE REF TO z2ui5_cl_util_xml.
     DATA mo_previous TYPE REF TO z2ui5_cl_util_xml.
@@ -248,7 +248,7 @@ CLASS z2ui5_cl_util_xml IMPLEMENTATION.
                           NEXT val = |{ val } { row-n }="{ escape( val    = COND string( WHEN row-v = abap_true
                                                                                          THEN `true`
                                                                                          ELSE row-v )
-                                                                   format = z2ui5_cl_util=>cv_format_e_xml_attr ) }"| ).
+                                                                   format = z2ui5_cl_abap2ui5_context=>cv_format_e_xml_attr ) }"| ).
 
     IF mt_child IS INITIAL.
       APPEND | <{ lv_tmp2 }{ mv_name }{ lv_tmp3 }/>| TO ct_parts.
@@ -281,7 +281,7 @@ CLASS z2ui5_cl_util_xml IMPLEMENTATION.
                           NEXT val = |{ val } { row-n }="{ escape( val    = COND string( WHEN row-v = abap_true
                                                                                          THEN `true`
                                                                                          ELSE row-v )
-                                                                   format = z2ui5_cl_util=>cv_format_e_xml_attr ) }"| ).
+                                                                   format = z2ui5_cl_abap2ui5_context=>cv_format_e_xml_attr ) }"| ).
 
     IF mt_child IS INITIAL.
       APPEND |{ lv_pad }<{ lv_ns }{ mv_name }{ lv_attr }/>| TO ct_parts.

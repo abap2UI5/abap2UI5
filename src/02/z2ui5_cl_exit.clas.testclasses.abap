@@ -74,7 +74,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_init_context.
 
-    DATA ls_req TYPE z2ui5_cl_util_http=>ty_s_http_req.
+    DATA ls_req TYPE z2ui5_cl_abap2ui5_http=>ty_s_http_req.
     ls_req-path = `/sap/test`.
     ls_req-t_params = VALUE #( ( n = `app_start` v = `z2ui5_cl_app_hello_world` )
                                 ( n = `sap-client` v = `100` ) ).

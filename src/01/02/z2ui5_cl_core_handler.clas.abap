@@ -91,7 +91,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
           request_app_start_draft( result-s_front-hash ).
 
       CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        RAISE EXCEPTION TYPE z2ui5_cl_abap2ui5_error
           EXPORTING val = x.
     ENDTRY.
   ENDMETHOD.
@@ -195,7 +195,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         result = |\{"S_FRONT":{ lv_frontend },"MODEL":{ lv_model }\}|.
 
       CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        RAISE EXCEPTION TYPE z2ui5_cl_abap2ui5_error
           EXPORTING val = x.
     ENDTRY.
   ENDMETHOD.
@@ -229,7 +229,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       ENDIF.
       lv_dispatch_count = lv_dispatch_count + 1.
       IF lv_dispatch_count >= mv_dispatch_limit.
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        RAISE EXCEPTION TYPE z2ui5_cl_abap2ui5_error
           EXPORTING
             val = |Dispatch limit of { mv_dispatch_limit } app navigations in one request reached - check for an endless nav_app_call/nav_app_leave loop in main( )|.
       ENDIF.
@@ -315,7 +315,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         ENDIF.
       CATCH cx_root INTO DATA(lx).
 
-        DATA(lx2) = NEW z2ui5_cx_util_error( val      = `UNCAUGHT EXCEPTION - Please Restart App:`
+        DATA(lx2) = NEW z2ui5_cl_abap2ui5_error( val      = `UNCAUGHT EXCEPTION - Please Restart App:`
                                              previous = lx ).
         li_client->nav_app_leave( z2ui5_cl_pop_error=>factory( lx2 ) ).
     ENDTRY.

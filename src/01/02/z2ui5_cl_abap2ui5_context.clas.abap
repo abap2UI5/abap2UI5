@@ -984,7 +984,7 @@ CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
                                              EXCEPTIONS type_not_found = 1 ).
 
       CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        RAISE EXCEPTION TYPE z2ui5_cl_abap2ui5_error
           EXPORTING
             previous = x.
     ENDTRY.
@@ -1218,7 +1218,7 @@ CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
         CATCH cx_root.
 
           DATA(lv_text) = `UNSUPPORTED_FEATURE`.
-          RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          RAISE EXCEPTION TYPE z2ui5_cl_abap2ui5_error
             EXPORTING
               val = lv_text.
 
@@ -1694,7 +1694,7 @@ CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
           error_message = 1
           OTHERS        = 2.
       IF sy-subrc <> 0.
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error.
+        RAISE EXCEPTION TYPE z2ui5_cl_abap2ui5_error.
       ENDIF.
 
       ASSIGN
