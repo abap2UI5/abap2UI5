@@ -1241,12 +1241,17 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
     ELSE.
 
-      DATA(lv_tabname) = `dd02t`.
-      SELECT SINGLE ddtext
-        FROM (lv_tabname)
-        WHERE tabname    = @tabname
-          AND ddlanguage = @lan
-        INTO @ddtext.
+      TRY.
+          DATA(lv_tabname) = `dd02t`.
+          SELECT SINGLE ddtext
+            FROM (lv_tabname)
+            WHERE tabname    = @tabname
+              AND ddlanguage = @lan
+            INTO @ddtext.
+        CATCH cx_root ##NO_HANDLER.
+          " DD02T not available (e.g. JS transpiler runtime) - fall
+          " back to the table name below
+      ENDTRY.
 
     ENDIF.
 

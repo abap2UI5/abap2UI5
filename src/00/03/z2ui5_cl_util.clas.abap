@@ -3309,6 +3309,17 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
       lv_i = lv_i + 1.
     ENDWHILE.
 
+    " Validate the normalized value explicitly: it needs at least one
+    " digit and at most one decimal point (e.g. European format `1.234,56`
+    " normalizes to the invalid `1.234.56`). Return 0 for invalid input -
+    " the JS transpiler converts such strings leniently instead of raising
+    DATA lv_dot_count TYPE i.
+    FIND ALL OCCURRENCES OF `.` IN lv_clean MATCH COUNT lv_dot_count.
+    IF lv_dot_count > 1 OR lv_clean NA `0123456789`.
+      result = 0.
+      RETURN.
+    ENDIF.
+
     TRY.
         result = lv_clean.
       CATCH cx_root.
@@ -3323,12 +3334,56 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD itab_sort_by.
 
-    DATA(lv_field) = CONV string( fieldname ).
+    " SORT itab BY (dynamic) is not supported by the JS transpiler used
+    " for the Node unit tests - extract the sort key per row into a
+    " helper table, sort that statically and rebuild the table
+    TYPES: BEGIN OF ty_s_sort_key,
+             key_str TYPE string,
+             key_num TYPE decfloat34,
+             idx     TYPE i,
+           END OF ty_s_sort_key.
+    DATA lt_key TYPE STANDARD TABLE OF ty_s_sort_key WITH EMPTY KEY.
+    DATA lv_numeric TYPE abap_bool.
+
+    DATA(lv_field) = to_upper( fieldname ).
+
+    LOOP AT tab ASSIGNING FIELD-SYMBOL(<row>).
+      DATA(lv_tabix) = sy-tabix.
+      ASSIGN COMPONENT lv_field OF STRUCTURE <row> TO FIELD-SYMBOL(<val>).
+      IF sy-subrc <> 0.
+        RETURN.
+      ENDIF.
+      IF lv_tabix = 1.
+        lv_numeric = rtti_check_numeric( <val> ).
+      ENDIF.
+      APPEND INITIAL LINE TO lt_key ASSIGNING FIELD-SYMBOL(<key>).
+      IF lv_numeric = abap_true.
+        <key>-key_num = <val>.
+      ELSE.
+        <key>-key_str = <val>.
+      ENDIF.
+      <key>-idx = lv_tabix.
+    ENDLOOP.
+
     IF descending = abap_true.
-      SORT tab BY (lv_field) DESCENDING.
+      SORT lt_key BY key_num DESCENDING key_str DESCENDING.
     ELSE.
-      SORT tab BY (lv_field) ASCENDING.
+      SORT lt_key BY key_num ASCENDING key_str ASCENDING.
     ENDIF.
+
+    DATA lr_copy TYPE REF TO data.
+    CREATE DATA lr_copy LIKE tab.
+    FIELD-SYMBOLS <tab_copy> TYPE STANDARD TABLE.
+    ASSIGN lr_copy->* TO <tab_copy>.
+    <tab_copy> = tab.
+
+    CLEAR tab.
+    LOOP AT lt_key ASSIGNING <key>.
+      READ TABLE <tab_copy> INDEX <key>-idx ASSIGNING FIELD-SYMBOL(<src>).
+      IF sy-subrc = 0.
+        APPEND <src> TO tab.
+      ENDIF.
+    ENDLOOP.
 
   ENDMETHOD.
 

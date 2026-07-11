@@ -221,6 +221,12 @@ CLASS ltcl_rtti_ext DEFINITION FINAL
 
   PRIVATE SECTION.
 
+    " The on-prem RTTI path needs the DDIC type DFIES and table DD02T,
+    " neither exists in the JS transpiler runtime - probe and skip there
+    METHODS check_dfies_available
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     METHODS dfies_by_table_basic           FOR TESTING.
     METHODS dfies_by_table_has_fields      FOR TESTING.
     METHODS table_descr_basic              FOR TESTING.
@@ -229,16 +235,35 @@ ENDCLASS.
 
 CLASS ltcl_rtti_ext IMPLEMENTATION.
 
+  METHOD check_dfies_available.
+    DATA lo_descr TYPE REF TO cl_abap_typedescr.
+    cl_abap_typedescr=>describe_by_name(
+      EXPORTING
+        p_name         = `DFIES`
+      RECEIVING
+        p_descr_ref    = lo_descr
+      EXCEPTIONS
+        type_not_found = 1
+        OTHERS         = 2 ).
+    result = xsdbool( sy-subrc = 0 ).
+  ENDMETHOD.
+
   METHOD dfies_by_table_basic.
-    DATA(lt_result) = z2ui5_cl_util_ext=>rtti_get_t_dfies_by_table_name( `MARA` ).
+    IF check_dfies_available( ) = abap_false.
+      RETURN.
+    ENDIF.
+    DATA(lt_result) = z2ui5_cl_util_ext=>rtti_get_t_dfies_by_table_name( `Z2UI5_T_01` ).
     cl_abap_unit_assert=>assert_not_initial( lt_result ).
   ENDMETHOD.
 
   METHOD dfies_by_table_has_fields.
-    DATA(lt_result) = z2ui5_cl_util_ext=>rtti_get_t_dfies_by_table_name( `MARA` ).
+    IF check_dfies_available( ) = abap_false.
+      RETURN.
+    ENDIF.
+    DATA(lt_result) = z2ui5_cl_util_ext=>rtti_get_t_dfies_by_table_name( `Z2UI5_T_01` ).
     DATA(lv_found) = abap_false.
     LOOP AT lt_result INTO DATA(ls_dfies).
-      IF ls_dfies-fieldname = `MATNR`.
+      IF ls_dfies-fieldname = `ID`.
         lv_found = abap_true.
         EXIT.
       ENDIF.
@@ -247,7 +272,10 @@ CLASS ltcl_rtti_ext IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD table_descr_basic.
-    DATA(lv_result) = z2ui5_cl_util_ext=>rtti_get_table_desrc( `MARA` ).
+    IF check_dfies_available( ) = abap_false.
+      RETURN.
+    ENDIF.
+    DATA(lv_result) = z2ui5_cl_util_ext=>rtti_get_table_desrc( `Z2UI5_T_01` ).
     cl_abap_unit_assert=>assert_not_initial( lv_result ).
   ENDMETHOD.
 
