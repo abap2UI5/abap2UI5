@@ -68,7 +68,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
   METHOD test_http_post_ok.
 
-    DATA ls_req TYPE z2ui5_cl_util_http=>ty_s_http_req.
+    DATA ls_req TYPE z2ui5_cl_abap2ui5_http=>ty_s_http_req.
     DATA ls_result TYPE z2ui5_if_core_types=>ty_s_http_res.
     DATA temp6 TYPE xsdboolean.
 
@@ -91,7 +91,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
   METHOD test_http_post_error.
 
-    DATA ls_req TYPE z2ui5_cl_util_http=>ty_s_http_req.
+    DATA ls_req TYPE z2ui5_cl_abap2ui5_http=>ty_s_http_req.
     DATA ls_result TYPE z2ui5_if_core_types=>ty_s_http_res.
     DATA temp7 TYPE xsdboolean.
 
@@ -110,7 +110,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
   METHOD test_main_get_routing.
 
-    DATA ls_req TYPE z2ui5_cl_util_http=>ty_s_http_req.
+    DATA ls_req TYPE z2ui5_cl_abap2ui5_http=>ty_s_http_req.
     DATA ls_result TYPE z2ui5_if_core_types=>ty_s_http_res.
     DATA temp8 TYPE xsdboolean.
 
@@ -128,7 +128,7 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
   METHOD test_main_post_routing.
 
-    DATA ls_req TYPE z2ui5_cl_util_http=>ty_s_http_req.
+    DATA ls_req TYPE z2ui5_cl_abap2ui5_http=>ty_s_http_req.
     DATA ls_result TYPE z2ui5_if_core_types=>ty_s_http_res.
 
     IF sy-sysid = `ABC`.

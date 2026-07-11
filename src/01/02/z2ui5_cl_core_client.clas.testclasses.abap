@@ -367,7 +367,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     TRY.
         li_client->action->gen( `EVT'); alert(1);//` ).
-      CATCH z2ui5_cx_util_error.
+      CATCH z2ui5_cx_abap2ui5_error.
         lv_raised = abap_true.
     ENDTRY.
 
@@ -386,7 +386,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     TRY.
         li_client->action->gen( `` ).
-      CATCH z2ui5_cx_util_error.
+      CATCH z2ui5_cx_abap2ui5_error.
         lv_raised = abap_true.
     ENDTRY.
 

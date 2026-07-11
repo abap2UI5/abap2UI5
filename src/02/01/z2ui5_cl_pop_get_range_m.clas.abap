@@ -5,13 +5,13 @@ CLASS z2ui5_cl_pop_get_range_m DEFINITION PUBLIC.
 
     CLASS-METHODS factory
       IMPORTING
-        val             TYPE z2ui5_cl_util=>ty_t_filter_multi
+        val             TYPE z2ui5_cl_abap2ui5_context=>ty_t_filter_multi
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_pop_get_range_m.
 
     TYPES:
       BEGIN OF ty_s_result,
-        t_filter        TYPE z2ui5_cl_util=>ty_t_filter_multi,
+        t_filter        TYPE z2ui5_cl_abap2ui5_context=>ty_t_filter_multi,
         check_confirmed TYPE abap_bool,
       END OF ty_s_result.
 
@@ -121,7 +121,7 @@ CLASS z2ui5_cl_pop_get_range_m IMPLEMENTATION.
       IF ls_popup_result-check_confirmed = abap_true.
         ASSIGN ms_result-t_filter[ name = mv_popup_name ] TO FIELD-SYMBOL(<tab>).
         <tab>-t_range = ls_popup_result-t_range.
-        <tab>-t_token = z2ui5_cl_util=>filter_get_token_t_by_range_t( <tab>-t_range ).
+        <tab>-t_token = z2ui5_cl_abap2ui5_context=>filter_get_token_t_by_range_t( <tab>-t_range ).
       ENDIF.
       popup_display( ).
 

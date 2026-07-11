@@ -65,7 +65,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory_empty_input.
 
-    DATA(lx) = NEW z2ui5_cx_util_error( val = `test` ).
+    DATA(lx) = NEW z2ui5_cx_abap2ui5_error( val = `test` ).
     DATA(lo_pop) = z2ui5_cl_pop_messages=>factory( lx ).
 
     cl_abap_unit_assert=>assert_bound( lo_pop ).

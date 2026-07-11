@@ -43,9 +43,9 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
   METHOD factory.
 
     r_result = NEW #( ).
-    LOOP AT z2ui5_cl_util=>msg_get_t( i_messages ) REFERENCE INTO DATA(lr_row).
+    LOOP AT z2ui5_cl_abap2ui5_context=>msg_get_t( i_messages ) REFERENCE INTO DATA(lr_row).
       INSERT VALUE ty_s_msg(
-        type     = z2ui5_cl_util=>ui5_get_msg_type( lr_row->type )
+        type     = z2ui5_cl_abap2ui5_context=>ui5_get_msg_type( lr_row->type )
         title    = lr_row->text
         subtitle = |{ lr_row->id } { lr_row->no }|
         ) INTO TABLE r_result->mt_msg.

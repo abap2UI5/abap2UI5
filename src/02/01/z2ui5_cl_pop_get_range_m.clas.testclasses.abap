@@ -14,7 +14,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory.
 
-    DATA(lt_filter) = VALUE z2ui5_cl_util=>ty_t_filter_multi(
+    DATA(lt_filter) = VALUE z2ui5_cl_abap2ui5_context=>ty_t_filter_multi(
       ( name = `CARRID` t_range = VALUE #( ( sign = `I` option = `EQ` low = `AA` ) ) )
       ( name = `CONNID` ) ).
 
@@ -25,7 +25,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_result_initial.
 
-    DATA(lt_filter) = VALUE z2ui5_cl_util=>ty_t_filter_multi(
+    DATA(lt_filter) = VALUE z2ui5_cl_abap2ui5_context=>ty_t_filter_multi(
       ( name = `FIELD1` ) ).
 
     DATA(lo_pop) = z2ui5_cl_pop_get_range_m=>factory( lt_filter ).

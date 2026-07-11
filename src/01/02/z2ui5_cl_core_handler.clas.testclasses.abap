@@ -256,7 +256,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
     DATA lo_loop_app TYPE REF TO ltcl_app_nav_loop.
-    DATA lx TYPE REF TO z2ui5_cx_util_error.
+    DATA lx TYPE REF TO z2ui5_cx_abap2ui5_error.
 
     " an app that calls nav_app_call unconditionally in main( ) must not
     " loop the dispatch forever - the handler raises once the limit is hit
@@ -265,12 +265,12 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     lo_loop_app = NEW #( ).
     lo_handler->mo_action->mo_app->mo_app = lo_loop_app.
     " db_save asserts a draft id, normally set by the action factories
-    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_util=>uuid_get_c32( ).
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_abap2ui5_context=>uuid_get_c32( ).
 
     TRY.
         lo_handler->main_loop( ).
         cl_abap_unit_assert=>fail( `dispatch loop guard did not raise` ).
-      CATCH z2ui5_cx_util_error INTO lx.
+      CATCH z2ui5_cx_abap2ui5_error INTO lx.
         cl_abap_unit_assert=>assert_char_cp( act = lx->get_text( )
                                              exp = `*nav_app_call*` ).
     ENDTRY.

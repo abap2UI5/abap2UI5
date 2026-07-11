@@ -21,7 +21,7 @@ CLASS z2ui5_cl_pop_get_range DEFINITION PUBLIC.
 
     TYPES:
       BEGIN OF ty_s_result,
-        t_range         TYPE z2ui5_cl_util=>ty_t_range,
+        t_range         TYPE z2ui5_cl_abap2ui5_context=>ty_t_range,
         check_confirmed TYPE abap_bool,
       END OF ty_s_result.
 
@@ -48,8 +48,8 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
 
     r_result = NEW #( ).
 
-    z2ui5_cl_util=>itab_corresponding( EXPORTING val = t_range
-                                       CHANGING  tab = r_result->ms_result-t_range ).
+    z2ui5_cl_abap2ui5_context=>itab_corresponding( EXPORTING val = t_range
+                                       CHANGING  tab             = r_result->ms_result-t_range ).
 
     INSERT VALUE #( ) INTO TABLE r_result->ms_result-t_range.
 
@@ -117,14 +117,14 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
     me->client = client.
 
     IF client->check_on_init( ).
-      mt_mapping = z2ui5_cl_util=>filter_get_token_range_mapping( ).
+      mt_mapping = z2ui5_cl_abap2ui5_context=>filter_get_token_range_mapping( ).
 
       CLEAR mt_filter.
       LOOP AT ms_result-t_range REFERENCE INTO DATA(lr_range).
         INSERT VALUE #( low    = lr_range->low
                         high   = lr_range->high
                         option = lr_range->option
-                        key    = z2ui5_cl_util=>uuid_get_c32( )
+                        key    = z2ui5_cl_abap2ui5_context=>uuid_get_c32( )
           ) INTO TABLE mt_filter.
       ENDLOOP.
 
@@ -157,7 +157,7 @@ CLASS z2ui5_cl_pop_get_range IMPLEMENTATION.
         client->nav_app_leave( ).
 
       WHEN `POPUP_ADD`.
-        INSERT VALUE #( key = z2ui5_cl_util=>uuid_get_c32( ) ) INTO TABLE mt_filter.
+        INSERT VALUE #( key = z2ui5_cl_abap2ui5_context=>uuid_get_c32( ) ) INTO TABLE mt_filter.
         client->popup_model_update( ).
 
       WHEN `POPUP_DELETE`.

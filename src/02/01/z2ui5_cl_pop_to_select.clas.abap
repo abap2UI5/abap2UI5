@@ -76,7 +76,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
     r_result->event_confirmed   = i_event_confirmed.
     r_result->event_canceled    = i_event_canceled.
 
-    r_result->mr_tab            = z2ui5_cl_util=>conv_copy_ref_data( i_tab ).
+    r_result->mr_tab            = z2ui5_cl_abap2ui5_context=>conv_copy_ref_data( i_tab ).
     CREATE DATA r_result->ms_result-row LIKE LINE OF i_tab.
     CREATE DATA r_result->ms_result-table LIKE i_tab.
 
@@ -94,7 +94,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
                           && client->_bind_edit( val  = <tab_out>
                                                  path = abap_true )
                           && |', sorter : \{ path : '{ to_upper( sort_field ) }', descending : |
-                          && z2ui5_cl_util=>boolean_abap_2_json( descending )
+                          && z2ui5_cl_abap2ui5_context=>boolean_abap_2_json( descending )
                           && | \} \}|
         cancel           = client->_event( `CANCEL` )
         search           = client->_event(
@@ -109,7 +109,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
         title            = title
         multiselect      = multiselect ).
 
-    DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_any( <tab_out> ).
+    DATA(lt_comp) = z2ui5_cl_abap2ui5_context=>rtti_get_t_attri_by_any( <tab_out> ).
     DELETE lt_comp WHERE name = `ZZSELKZ`.
 
     DATA(list) = tab->column_list_item( valign   = `Top`
@@ -123,8 +123,8 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
     DATA(columns) = tab->columns( ).
     LOOP AT lt_comp INTO ls_comp.
       DATA(text) = COND #(
-                     LET data_element_name = z2ui5_cl_util=>rtti_get_ddic_type_name( ls_comp-type )
-                         medium_label = z2ui5_cl_util=>rtti_get_data_element_texts( data_element_name )-medium IN
+                     LET data_element_name = z2ui5_cl_abap2ui5_context=>rtti_get_ddic_type_name( ls_comp-type )
+                         medium_label = z2ui5_cl_abap2ui5_context=>rtti_get_data_element_texts( data_element_name )-medium IN
                      WHEN medium_label IS NOT INITIAL
                      THEN medium_label
                      ELSE ls_comp-name ).
@@ -187,8 +187,8 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
     ASSIGN mr_tab->* TO <tab>.
 
-    DATA(ls_sel_tab_type) = z2ui5_cl_util=>rtti_create_sel_tab_type( ir_tab        = mr_tab
-                                                                     add_sel_field = abap_true ).
+    DATA(ls_sel_tab_type) = z2ui5_cl_abap2ui5_context=>rtti_create_sel_tab_type( ir_tab = mr_tab
+                                                                     add_sel_field      = abap_true ).
     check_table_line = ls_sel_tab_type-check_table_line.
 
     CREATE DATA mr_tab_popup TYPE HANDLE ls_sel_tab_type-tabledescr.
@@ -271,9 +271,9 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
     <tab_out> = <tab_out_backup>.
 
-    z2ui5_cl_util=>itab_filter_by_val( EXPORTING val         = client->get_event_arg( 1 )
-                                                 ignore_case = abap_true
-                                       CHANGING  tab         = <tab_out> ).
+    z2ui5_cl_abap2ui5_context=>itab_filter_by_val( EXPORTING val = client->get_event_arg( 1 )
+                                                 ignore_case     = abap_true
+                                       CHANGING  tab             = <tab_out> ).
     client->popup_model_update( ).
 
   ENDMETHOD.
