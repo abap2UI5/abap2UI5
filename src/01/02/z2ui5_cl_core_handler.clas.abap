@@ -146,7 +146,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
   METHOD request_app_start.
     TRY.
         IF io_comp_data IS BOUND.
-          result = z2ui5_cl_util=>c_trim_upper(
+          result = z2ui5_cl_abap2ui5_context=>c_trim_upper(
               io_comp_data->get( `/startupParameters/app_start/1` ) ).
         ENDIF.
       CATCH cx_root ##NO_HANDLER.
@@ -160,8 +160,8 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    result = z2ui5_cl_util=>c_trim_upper(
-        z2ui5_cl_util=>url_param_get( val = `app_start`
+    result = z2ui5_cl_abap2ui5_context=>c_trim_upper(
+        z2ui5_cl_abap2ui5_context=>url_param_get( val = `app_start`
                                       url = iv_search ) ).
   ENDMETHOD.
 
@@ -172,8 +172,8 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         IF lv_hash IS INITIAL.
           lv_hash = iv_hash+2.
         ENDIF.
-        result = z2ui5_cl_util=>c_trim_upper(
-            z2ui5_cl_util=>url_param_get( val = `z2ui5-xapp-state`
+        result = z2ui5_cl_abap2ui5_context=>c_trim_upper(
+            z2ui5_cl_abap2ui5_context=>url_param_get( val = `z2ui5-xapp-state`
                                           url = lv_hash ) ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
@@ -276,7 +276,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
     ms_response = VALUE #( s_front-params = mo_action->ms_next-s_set
                            s_front-id     = mo_action->mo_app->ms_draft-id
-                           s_front-app    = z2ui5_cl_util=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app ) ).
+                           s_front-app    = z2ui5_cl_abap2ui5_context=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app ) ).
 
     IF check_view_update_needed( ).
       ms_response-model = mo_action->mo_app->model_json_stringify( ).
@@ -304,7 +304,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     DATA(li_app)    = CAST z2ui5_if_app( mo_action->mo_app->mo_app ).
 
     IF li_app->check_sticky = abap_false.
-      z2ui5_cl_util=>db_rollback( ).
+      z2ui5_cl_abap2ui5_context=>db_rollback( ).
     ENDIF.
     TRY.
         IF mo_action->ms_actual-event = z2ui5_if_core_types=>cs_event_nav_app_leave.
@@ -320,7 +320,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         li_client->nav_app_leave( z2ui5_cl_pop_error=>factory( lx2 ) ).
     ENDTRY.
     IF li_app->check_sticky = abap_false.
-      z2ui5_cl_util=>db_rollback( ).
+      z2ui5_cl_abap2ui5_context=>db_rollback( ).
     ENDIF.
 
     IF mo_action->ms_next-o_app_leave IS NOT INITIAL.

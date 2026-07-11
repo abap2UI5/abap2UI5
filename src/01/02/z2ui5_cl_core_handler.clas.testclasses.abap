@@ -265,7 +265,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     lo_loop_app = NEW #( ).
     lo_handler->mo_action->mo_app->mo_app = lo_loop_app.
     " db_save asserts a draft id, normally set by the action factories
-    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_util=>uuid_get_c32( ).
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_abap2ui5_context=>uuid_get_c32( ).
 
     TRY.
         lo_handler->main_loop( ).

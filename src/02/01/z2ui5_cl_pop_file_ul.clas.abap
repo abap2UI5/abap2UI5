@@ -99,8 +99,8 @@ CLASS z2ui5_cl_pop_file_ul IMPLEMENTATION.
 
       WHEN `UPLOAD`.
 
-        DATA(lv_data) = z2ui5_cl_util=>conv_get_xstring_by_data_uri( mv_value ).
-        ms_result-value = z2ui5_cl_util=>conv_get_string_by_xstring( lv_data ).
+        DATA(lv_data) = z2ui5_cl_abap2ui5_context=>conv_get_xstring_by_data_uri( mv_value ).
+        ms_result-value = z2ui5_cl_abap2ui5_context=>conv_get_string_by_xstring( lv_data ).
         check_confirm_enabled = abap_true.
 
         CLEAR mv_value.
