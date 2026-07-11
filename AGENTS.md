@@ -78,14 +78,16 @@ Both scenarios are covered by unit tests in `z2ui5_cl_core_handler.clas.testclas
 
 ```
 src/
-├── 00/   Layer 0: Utilities (AJSON, S-RTTI, general utils) — mirrored from external projects, DO NOT MODIFY
+├── 00/   Layer 0: Utilities (AJSON, S-RTTI, framework context/HTTP abstractions)
 ├── 01/   Layer 1: Core engine (handler, action, binding, model, events, draft service, embedded frontend)
-└── 02/   Layer 2: Public API (interfaces, XML view builder, HTTP handler, exit framework, built-in popups)
+├── 02/   Layer 2: Public API (interfaces, XML view builder, HTTP handler, exit framework, built-in popups)
+└── 99/   Obsolete package (retired z2ui5_cl_util* classes) — kept for downstream compatibility only
 ```
 
-- **Layer 0 (`src/00/`)** — Self-contained utility libraries. AJSON handles JSON; S-RTTI provides runtime type reflection. General utilities in `src/00/03/` (HTTP, logging, messaging, ranges, XML builder). The `noIssues` flag in `abaplint.jsonc` suppresses lint warnings here.
+- **Layer 0 (`src/00/`)** — Self-contained utility libraries. AJSON (`src/00/01/`) handles JSON; S-RTTI (`src/00/02/`) provides runtime type reflection — both are mirrored from external projects, DO NOT MODIFY. `src/00/03/` holds the framework-owned context/HTTP abstractions (`z2ui5_cl_abap2ui5_context`, `z2ui5_cl_abap2ui5_http`, `z2ui5_cl_abap2ui5_json_fltr`, `z2ui5_cx_abap2ui5_error`). The `noIssues` flag in `abaplint.jsonc` suppresses lint warnings for all of `src/00`.
 - **Layer 1 (`src/01/`)** — Core engine. Session drafts (`src/01/01/`), request processing, event routing, data binding, model management, app lifecycle (`src/01/02/`). Embedded UI5 frontend resources as ABAP string constants (`src/01/03/` — auto-generated, never manually edit).
 - **Layer 2 (`src/02/`)** — Public API. The stable contract for app developers. Includes built-in popup/dialog apps (`src/02/01/`) and the exit/customization framework.
+- **Obsolete package (`src/99/`)** — The retired utility classes (`z2ui5_cl_util`, `z2ui5_cl_util_db`, `_ext`, `_http`, `_log`, `_msg`, `_range`, `_xml`, `z2ui5_cx_util_error`, table `z2ui5_t_91`). The framework no longer uses any of them (replaced by the `z2ui5_cl_abap2ui5_*` classes in `src/00/03/`); they remain only so existing downstream apps keep compiling and are removal candidates. Do not add new consumers and do not extend them. Also covered by the `noIssues` lint exemption.
 
 ### Data Binding
 
@@ -114,7 +116,6 @@ App state is persisted between roundtrips via the draft service (`z2ui5_cl_core_
 
 - **Factory:** `z2ui5_cl_http_handler=>factory()` / `factory_cloud()` for on-premise vs. cloud
 - **Fluent Builder:** `z2ui5_cl_xml_view=>factory()->shell()->page()->...->stringify()` builds XML views
-- **Generic XML Builder:** `z2ui5_cl_util_xml=>factory()` builds any XML view (see below)
 - **Event Routing:** `client->_event('ID')` registers; `client->check_on_event('ID')` checks
 - **App Navigation:** `client->nav_app_call(app)` pushes; `client->nav_app_leave()` pops (executed in a loop within one roundtrip)
 - **Multi-View:** Main view, nested views (nest/nest2), popups, and popovers simultaneously
@@ -128,29 +129,31 @@ App-building guidance (view builder choice, deprecated controls, lifecycle patte
 
 ```
 src/
-├── 00/                        # Layer 0: Utilities (DO NOT MODIFY)
-│   ├── 01/                    #   AJSON — JSON serialization
-│   ├── 02/                    #   S-RTTI — Runtime type information
-│   └── 03/                    #   General utilities (z2ui5_cl_util, _http, _msg, _range, _xml; 01/: _ext, _db, _log)
+├── 00/                        # Layer 0: Utilities
+│   ├── 01/                    #   AJSON — JSON serialization (mirrored, DO NOT MODIFY)
+│   ├── 02/                    #   S-RTTI — Runtime type information (mirrored, DO NOT MODIFY)
+│   └── 03/                    #   Framework context/HTTP abstractions (z2ui5_cl_abap2ui5_context, _http, _json_fltr, z2ui5_cx_abap2ui5_error)
 ├── 01/                        # Layer 1: Core Engine
 │   ├── 01/                    #   Draft service (z2ui5_cl_core_srv_draft + z2ui5_t_01)
 │   ├── 02/                    #   Core classes (handler, client, action, app, srv_bind, srv_event, srv_model)
 │   └── 03/                    #   Embedded UI5 frontend (auto-generated, DO NOT EDIT)
-└── 02/                        # Layer 2: Public API
-    ├── z2ui5_if_app.intf.abap          # Main app interface (version constant)
-    ├── z2ui5_if_client.intf.abap       # Client interaction methods
-    ├── z2ui5_if_types.intf.abap        # Shared type definitions
-    ├── z2ui5_if_exit.intf.abap         # Customization exit points
-    ├── z2ui5_cl_http_handler.clas.abap # HTTP entry point
-    ├── z2ui5_cl_xml_view.clas.abap     # Fluent XML view builder (~511KB)
-    ├── z2ui5_cl_xml_view_cc.clas.abap  # Custom controls builder
-    ├── z2ui5_cl_exit.clas.abap         # Default exit implementation
-    ├── z2ui5_cl_app_startup.clas.abap  # Default startup app
-    ├── z2ui5_cl_app_hello_world.clas.abap # Hello world example app
-    └── 01/                             # Built-in popups (z2ui5_cl_pop_*)
-        # to_confirm, to_inform, to_select, file_dl, file_ul, table, textedit,
-        # pdf, html, messages, error, bal, input_val, data, image_editor,
-        # js_loader, get_range, get_range_m
+├── 02/                        # Layer 2: Public API
+│   ├── z2ui5_if_app.intf.abap          # Main app interface (version constant)
+│   ├── z2ui5_if_client.intf.abap       # Client interaction methods
+│   ├── z2ui5_if_types.intf.abap        # Shared type definitions
+│   ├── z2ui5_if_exit.intf.abap         # Customization exit points
+│   ├── z2ui5_cl_http_handler.clas.abap # HTTP entry point
+│   ├── z2ui5_cl_xml_view.clas.abap     # Fluent XML view builder (~511KB)
+│   ├── z2ui5_cl_xml_view_cc.clas.abap  # Custom controls builder
+│   ├── z2ui5_cl_exit.clas.abap         # Default exit implementation
+│   ├── z2ui5_cl_app_startup.clas.abap  # Default startup app
+│   ├── z2ui5_cl_app_hello_world.clas.abap # Hello world example app
+│   └── 01/                             # Built-in popups (z2ui5_cl_pop_*)
+│       # to_confirm, to_inform, to_select, file_dl, file_ul, table, textedit,
+│       # pdf, html, messages, error, bal, input_val, data, image_editor,
+│       # js_loader, get_range, get_range_m
+└── 99/                        # Obsolete package — retired z2ui5_cl_util* classes + z2ui5_t_91
+                               # (kept for downstream compatibility, removal candidates, no new consumers)
 ```
 
 ### Additional Directories
@@ -229,18 +232,17 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
     PRIVATE SECTION.
   ENDCLASS.
   ```
-- **Exception handling:** Use `cx_root` as catch-all; re-raise as `z2ui5_cx_util_error`; use `##NO_HANDLER` when intentionally ignoring
+- **Exception handling:** Use `cx_root` as catch-all; re-raise as `z2ui5_cx_abap2ui5_error`; use `##NO_HANDLER` when intentionally ignoring
   ```abap
   CATCH cx_root INTO DATA(x).
-    RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = x.
+    RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error EXPORTING val = x.
 
   CATCH cx_root ##NO_HANDLER.
   ```
 - **API parameter types:** Use `TYPE clike` for string/char input parameters in public API methods (allows both string and char literals without conversion)
-- **Utility access:** General utilities live in `z2ui5_cl_util`; Business Application Log (`bal_*`) and transport request (`tr_*`) utilities live in `z2ui5_cl_util_ext` (`src/00/03/01/`). Environment-specific behavior (ABAP Cloud vs. standard ABAP) is branched inside these classes via `z2ui5_cl_util=>context_check_abap_cloud( )` using dynamic calls, so they compile on all targets
+- **Utility access:** Framework utilities live in `z2ui5_cl_abap2ui5_context` (`src/00/03/`). Environment-specific behavior (ABAP Cloud vs. standard ABAP) is branched inside this class via `z2ui5_cl_abap2ui5_context=>context_check_abap_cloud( )` using dynamic calls, so it compiles on all targets. The former utility classes (`z2ui5_cl_util`, `z2ui5_cl_util_ext`, …) are retired in `src/99/` — do not use them in framework code
   ```abap
-  z2ui5_cl_util=>uuid_get_c32( ).
-  z2ui5_cl_util_ext=>bal_read( ... ).
+  z2ui5_cl_abap2ui5_context=>uuid_get_c32( ).
   ```
 
 ### Naming (enforced by abaplint)
@@ -335,8 +337,7 @@ Config files: `eslint.config.mjs`, `.prettierrc`, `.editorconfig`, `ui5.yaml`, `
 | `src/01/02/z2ui5_cl_core_srv_model.clas.abap` | JSON model management |
 | `src/01/02/z2ui5_cl_core_srv_event.clas.abap` | Event registration and payload assembly |
 | `src/01/01/z2ui5_cl_core_srv_draft.clas.abap` | Draft/session persistence |
-| `src/00/03/z2ui5_cl_util.clas.abap` | General utility class |
-| `src/00/03/z2ui5_cl_util_xml.clas.abap` | Generic XML builder — equally supported alongside `z2ui5_cl_xml_view`; both may be used and extended |
+| `src/00/03/z2ui5_cl_abap2ui5_context.clas.abap` | Framework utility/context class (RTTI, conversions, UUID, messages, environment detection) |
 | `app/webapp/core/AppState.js` | Owner of the shared frontend state + `z2ui5.*` globals inventory |
 | `app/webapp/core/ViewSlots.js` | View-slot access layer (get/set/byId/destroy per slot) |
 | `app/webapp/core/Lib.js` | Shared frontend helpers |
@@ -357,7 +358,7 @@ test: add unit tests for utility class
 
 These rules apply to AI assistants **modifying the framework** (this repo). For AI assistants **building apps**, see <https://abap2ui5.github.io/docs/advanced/agent.html> instead.
 
-1. **Do not modify `src/00/`** — mirrored from external projects, synced by automated workflows.
+1. **Do not modify `src/00/01/` (AJSON) and `src/00/02/` (S-RTTI)** — mirrored from external projects, synced by automated workflows. `src/00/03/` is framework-owned and may be changed. **Do not touch `src/99/`** — obsolete classes kept only for downstream compatibility; never add new consumers of them.
 2. **NEVER manually edit any ABAP file under `src/01/03/`.** These files are the embedded frontend (auto-generated from `app/webapp/` via the `app2abap` job — see `.github/app2abap/trans2abap.js` and the `create_app2abap.yaml` workflow). The **only** allowed way to update them is:
    - Change the source under `app/webapp/`
    - Run **`npm run app2abap`** locally (or trigger the `create_app2abap.yaml` workflow). This single command runs the full pipeline in the correct order — `npm --prefix app run format` (Prettier) → `npm run auto_app2abap` (generate) → `npm run auto_abaplint` (normalize) — exactly as CI does. Running `auto_app2abap` on its own produces **un-normalized** ABAP that differs from the committed form in *every* `src/01/03/` file (alignment/whitespace drift); the `auto_abaplint` step reverts that drift so only the files whose `app/webapp/` source actually changed remain modified.
@@ -385,4 +386,4 @@ The following items may look like gaps but are intentional design choices:
 
 - **Draft table `Z2UI5_T_01` has no version column** — Drafts are session-scoped (deleted after a few hours). There is no long-lived state that needs schema migration. Versioning would add complexity with no benefit.
 - **Changelog** — The project maintains a `changelog.txt` in the repository root. A `CHANGELOG.md` is not needed separately.
-- **`z2ui5_cl_xml_view` size (~11K lines)** — This class is intentionally large: each method wraps one UI5 control for the fluent API. Both this builder and `z2ui5_cl_util_xml` are supported and may be used and extended equally. New wrapper methods, new controls, and new parameters are allowed — but they **must mirror the UI5 SDK API strictly 1:1**: method names, property names, event names, allowed values, and nesting must match the corresponding UI5 control exactly as documented in the UI5 SDK. Never invent convenience shortcuts, renamed properties, or combined helpers that have no direct counterpart in the UI5 control API. When a UI5 control offers a new property/aggregation (e.g. the `rowMode` variants `Auto`/`Fixed`/`Interactive` with their respective properties), model it exactly as the SDK does rather than folding it into an unrelated existing method.
+- **`z2ui5_cl_xml_view` size (~11K lines)** — This class is intentionally large: each method wraps one UI5 control for the fluent API. New wrapper methods, new controls, and new parameters are allowed — but they **must mirror the UI5 SDK API strictly 1:1**: method names, property names, event names, allowed values, and nesting must match the corresponding UI5 control exactly as documented in the UI5 SDK. Never invent convenience shortcuts, renamed properties, or combined helpers that have no direct counterpart in the UI5 control API. When a UI5 control offers a new property/aggregation (e.g. the `rowMode` variants `Auto`/`Fixed`/`Interactive` with their respective properties), model it exactly as the SDK does rather than folding it into an unrelated existing method.

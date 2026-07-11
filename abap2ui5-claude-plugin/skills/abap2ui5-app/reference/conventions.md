@@ -40,8 +40,9 @@ essentials first, then the two established style flavors so you can pick.
   `check_on_navigated` branch via `CAST zcl_other( client->get_app_prev( ) )`.
 
 ## Deprecated / avoid
-- Prefer the fluent `z2ui5_cl_xml_view` or the generic `z2ui5_cl_util_xml`
-  builder over hand-assembling XML strings.
+- Prefer the fluent `z2ui5_cl_xml_view` builder over hand-assembling XML
+  strings. The former generic builder `z2ui5_cl_util_xml` is obsolete (moved
+  to package `src/99`) — do not use it in new apps.
 - Avoid `boolc( )` — use `xsdbool( )`.
 - The canonical, always-current list of deprecated controls and patterns is in
   the official guide: <https://abap2ui5.github.io/docs/advanced/agent.html>.
