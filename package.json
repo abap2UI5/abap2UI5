@@ -32,7 +32,7 @@
   "devDependencies": {
     "@abaplint/cli": "^2.119.63",
     "@abaplint/database-sqlite": "^2.13.40",
-    "@abaplint/runtime": "^2.13.38",
+    "@abaplint/runtime": "2.13.37",
     "@abaplint/transpiler-cli": "^2.13.38",
     "@playwright/test": "^1.61.1",
     "express": "^5.2.1"
