@@ -36,27 +36,6 @@ jobs:
         with:
           title: abaplint-auto-fixes-formatting
           branch: abaplint-auto-fixes-formatting
-      # A silently failing cron job means the breakage quietly goes unnoticed -
-      # open (or bump) an issue so somebody sees it.
       - name: Report scheduled failure as issue
         if: failure() && github.event_name == 'schedule'
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
-        with:
-          script: |
-            const title = `Scheduled workflow failed: ${context.workflow}`;
-            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-            const { data: issues } = await github.rest.issues.listForRepo({
-              owner: context.repo.owner, repo: context.repo.repo, state: 'open', per_page: 100,
-            });
-            const existing = issues.find((issue) => issue.title === title);
-            if (existing) {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner, repo: context.repo.repo,
-                issue_number: existing.number, body: `Failed again: ${runUrl}`,
-              });
-            } else {
-              await github.rest.issues.create({
-                owner: context.repo.owner, repo: context.repo.repo, title,
-                body: `The scheduled run failed. Without this issue the breakage would go unnoticed until the next manual check.\n\nRun: ${runUrl}`,
-              });
-            }
+        uses: ./.github/actions/report-scheduled-failure
