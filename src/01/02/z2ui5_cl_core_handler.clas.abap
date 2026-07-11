@@ -187,7 +187,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
         ajson_result->set( iv_path = `/`
                            iv_val  = val-s_front ).
-        ajson_result = ajson_result->filter( z2ui5_cl_util_json_fltr=>create_no_empty_values( ) ).
+        ajson_result = ajson_result->filter( z2ui5_cl_abap2ui5_json_fltr=>create_no_empty_values( ) ).
         DATA(lv_frontend) = ajson_result->stringify( ).
 
         DATA(lv_model) = COND string( WHEN val-model IS NOT INITIAL THEN val-model ELSE `{}` ).
