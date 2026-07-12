@@ -1,7 +1,8 @@
 # AGENTS.md — AI Assistant Guide for abap2UI5
 
-> This file follows the cross-tool AGENTS.md convention. `CLAUDE.md` is a
-> pointer to this file so Claude Code picks it up automatically.
+> This file follows the cross-tool AGENTS.md convention and is the single
+> agent instruction file of this repository — there is no separate
+> `CLAUDE.md`; Claude Code reads `AGENTS.md` natively.
 
 ## Project Overview
 
