@@ -80,14 +80,14 @@ Both scenarios are covered by unit tests in `z2ui5_cl_core_handler.clas.testclas
 src/
 ├── 00/   Layer 0: Utilities (AJSON, S-RTTI, framework context/HTTP abstractions)
 ├── 01/   Layer 1: Core engine (handler, action, binding, model, events, draft service, embedded frontend)
-├── 02/   Layer 2: Public API (interfaces, XML view builder, HTTP handler, exit framework, built-in popups)
-└── 99/   Obsolete package (retired z2ui5_cl_util* classes) — kept for downstream compatibility only
+├── 02/   Layer 2: Public API (interfaces, XML view builder, HTTP handler, exit framework)
+└── 99/   Obsolete package — retired z2ui5_cl_util* classes (99/01) and built-in popups (99/02), kept for downstream compatibility only
 ```
 
 - **Layer 0 (`src/00/`)** — Self-contained utility libraries. AJSON (`src/00/01/`) handles JSON; S-RTTI (`src/00/02/`) provides runtime type reflection — both are mirrored from external projects, DO NOT MODIFY. `src/00/03/` holds the framework-owned context/HTTP abstractions (`z2ui5_cl_abap2ui5_context`, `z2ui5_cl_abap2ui5_http`, `z2ui5_cl_abap2ui5_json_fltr`, `z2ui5_cx_abap2ui5_error`). The `noIssues` flag in `abaplint.jsonc` suppresses lint warnings for all of `src/00`.
 - **Layer 1 (`src/01/`)** — Core engine. Session drafts (`src/01/01/`), request processing, event routing, data binding, model management, app lifecycle (`src/01/02/`). Embedded UI5 frontend resources as ABAP string constants (`src/01/03/` — auto-generated, never manually edit).
-- **Layer 2 (`src/02/`)** — Public API. The stable contract for app developers. Includes built-in popup/dialog apps (`src/02/01/`) and the exit/customization framework.
-- **Obsolete package (`src/99/`)** — The retired utility classes (`z2ui5_cl_util`, `z2ui5_cl_util_db`, `_ext`, `_http`, `_log`, `_msg`, `_range`, `_xml`, `z2ui5_cx_util_error`, table `z2ui5_t_91`). The framework no longer uses any of them (replaced by the `z2ui5_cl_abap2ui5_*` classes in `src/00/03/`); they remain only so existing downstream apps keep compiling and are removal candidates. Do not add new consumers and do not extend them. Also covered by the `noIssues` lint exemption.
+- **Layer 2 (`src/02/`)** — Public API. The stable contract for app developers. Includes the exit/customization framework.
+- **Obsolete package (`src/99/`)** — Two subpackages: `src/99/01/` holds the retired utility classes (`z2ui5_cl_util`, `z2ui5_cl_util_db`, `_ext`, `_http`, `_log`, `_msg`, `_range`, `_xml`, `z2ui5_cx_util_error`, table `z2ui5_t_91`) — the framework no longer uses any of them (replaced by the `z2ui5_cl_abap2ui5_*` classes in `src/00/03/`); `src/99/02/` holds the built-in popup/dialog apps (`z2ui5_cl_pop_*`, formerly `src/02/01/`). Everything here remains only so existing downstream apps keep compiling; the contents are removal candidates. Do not add new consumers and do not extend them. Also covered by the `noIssues` lint exemption.
 
 ### Data Binding
 
@@ -147,13 +147,13 @@ src/
 │   ├── z2ui5_cl_xml_view_cc.clas.abap  # Custom controls builder
 │   ├── z2ui5_cl_exit.clas.abap         # Default exit implementation
 │   ├── z2ui5_cl_app_startup.clas.abap  # Default startup app
-│   ├── z2ui5_cl_app_hello_world.clas.abap # Hello world example app
-│   └── 01/                             # Built-in popups (z2ui5_cl_pop_*)
-│       # to_confirm, to_inform, to_select, file_dl, file_ul, table, textedit,
-│       # pdf, html, messages, error, bal, input_val, data, image_editor,
-│       # js_loader, get_range, get_range_m
-└── 99/                        # Obsolete package — retired z2ui5_cl_util* classes + z2ui5_t_91
-                               # (kept for downstream compatibility, removal candidates, no new consumers)
+│   └── z2ui5_cl_app_hello_world.clas.abap # Hello world example app
+└── 99/                        # Obsolete package (kept for downstream compatibility, removal candidates, no new consumers)
+    ├── 01/                    #   Retired z2ui5_cl_util* classes + z2ui5_t_91
+    └── 02/                    #   Built-in popups (z2ui5_cl_pop_*, formerly src/02/01/)
+                               #   to_confirm, to_inform, to_select, file_dl, file_ul, table, textedit,
+                               #   pdf, html, messages, error, bal, input_val, data, image_editor,
+                               #   js_loader, get_range, get_range_m
 ```
 
 ### Additional Directories
