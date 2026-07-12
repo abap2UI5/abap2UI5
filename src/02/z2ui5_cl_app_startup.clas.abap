@@ -70,10 +70,10 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     DATA(ls_config) = client->get( )-s_config.
     result = z2ui5_cl_a2ui5_context=>app_get_url( classname = classname
-                                         origin                = ls_config-origin
-                                         pathname              = ls_config-pathname
-                                         search                = ls_config-search
-                                         hash                  = ls_config-hash ).
+                                         origin             = ls_config-origin
+                                         pathname           = ls_config-pathname
+                                         search             = ls_config-search
+                                         hash               = ls_config-hash ).
 
   ENDMETHOD.
 

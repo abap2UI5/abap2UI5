@@ -162,7 +162,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
     result = z2ui5_cl_a2ui5_context=>c_trim_upper(
         z2ui5_cl_a2ui5_context=>url_param_get( val = `app_start`
-                                      url             = iv_search ) ).
+                                      url          = iv_search ) ).
   ENDMETHOD.
 
   METHOD request_app_start_draft.
@@ -174,7 +174,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         ENDIF.
         result = z2ui5_cl_a2ui5_context=>c_trim_upper(
             z2ui5_cl_a2ui5_context=>url_param_get( val = `z2ui5-xapp-state`
-                                          url             = lv_hash ) ).
+                                          url          = lv_hash ) ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
   ENDMETHOD.
@@ -315,7 +315,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         ENDIF.
       CATCH cx_root INTO DATA(lx).
 
-        DATA(lx2) = NEW z2ui5_cx_a2ui5_error( val  = `UNCAUGHT EXCEPTION - Please Restart App:`
+        DATA(lx2) = NEW z2ui5_cx_a2ui5_error( val     = `UNCAUGHT EXCEPTION - Please Restart App:`
                                              previous = lx ).
         li_client->nav_app_leave( z2ui5_cl_pop_error=>factory( lx2 ) ).
     ENDTRY.
