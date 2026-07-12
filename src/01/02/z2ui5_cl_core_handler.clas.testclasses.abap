@@ -24,6 +24,10 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_request_launchpad FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_with_wrapper    FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_no_wrapper FOR TESTING RAISING cx_static_check.
+    METHODS test_parse_body_model  FOR TESTING RAISING cx_static_check.
+    METHODS test_parse_body_model_no_wrap FOR TESTING RAISING cx_static_check.
+    METHODS test_parse_body_config FOR TESTING RAISING cx_static_check.
+    METHODS test_parse_body_no_config FOR TESTING RAISING cx_static_check.
     METHODS test_request_app_start FOR TESTING RAISING cx_static_check.
     METHODS test_request_with_id   FOR TESTING RAISING cx_static_check.
     METHODS test_response_json     FOR TESTING RAISING cx_static_check.
@@ -153,6 +157,86 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
                                         act = ls_request-s_front-origin ).
     cl_abap_unit_assert=>assert_equals( exp = abap_true
                                         act = ls_request-s_control-check_launchpad ).
+  ENDMETHOD.
+
+  METHOD test_parse_body_model.
+    " the two-way model (XX) is extracted from the request root and has to
+    " stay reachable under /XX/... for main_json_to_attri
+    DATA lv_payload TYPE string.
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
+    lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":""},"XX":{"NAME":"test-value"}}}`.
+
+    lo_handler = NEW #( val = lv_payload ).
+    ls_request = lo_handler->request_json_to_abap( lv_payload ).
+
+    cl_abap_unit_assert=>assert_bound( ls_request-o_model ).
+    cl_abap_unit_assert=>assert_equals( exp = `test-value`
+                                        act = ls_request-o_model->get_string( `/XX/NAME` ) ).
+  ENDMETHOD.
+
+  METHOD test_parse_body_model_no_wrap.
+    " launchpad/gateway scenario: the model extraction also has to work
+    " when the value envelope was stripped by the infrastructure
+    DATA lv_payload TYPE string.
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
+    lv_payload = `{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":""},"XX":{"NAME":"test-value"}}`.
+
+    lo_handler = NEW #( val = lv_payload ).
+    ls_request = lo_handler->request_json_to_abap( lv_payload ).
+
+    cl_abap_unit_assert=>assert_bound( ls_request-o_model ).
+    cl_abap_unit_assert=>assert_equals( exp = `test-value`
+                                        act = ls_request-o_model->get_string( `/XX/NAME` ) ).
+  ENDMETHOD.
+
+  METHOD test_parse_body_config.
+
+    DATA lv_payload TYPE string.
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
+    lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
+                 `"CONFIG":{"ComponentData":{"startupParameters":{}},` &&
+                 `"S_DEVICE":{"SYSTEM":"desktop"},` &&
+                 `"S_FOCUS":{"ID":"my-input","SELECTION_START":2,"SELECTION_END":5},` &&
+                 `"S_SCROLL":{"MAIN":{"ID":"page","X":0,"Y":150}},` &&
+                 `"S_UI5":{"VERSION":"1.120.0","BUILDTIMESTAMP":"20240101","GAV":"com.sap.ui:sdk:1.120.0","THEME":"sap_horizon"}}}}}`.
+
+    lo_handler = NEW #( val = lv_payload ).
+    ls_request = lo_handler->request_json_to_abap( lv_payload ).
+
+    cl_abap_unit_assert=>assert_bound( ls_request-s_front-o_comp_data ).
+    cl_abap_unit_assert=>assert_equals( exp = `desktop`
+                                        act = ls_request-s_front-s_device-system ).
+    cl_abap_unit_assert=>assert_equals( exp = `my-input`
+                                        act = ls_request-s_front-s_focus-id ).
+    cl_abap_unit_assert=>assert_equals( exp = 150
+                                        act = ls_request-s_front-s_scroll-main-y ).
+    cl_abap_unit_assert=>assert_equals( exp = `1.120.0`
+                                        act = ls_request-s_front-s_ui5-version ).
+    cl_abap_unit_assert=>assert_equals( exp = `20240101`
+                                        act = ls_request-s_front-s_ui5-build_timestamp ).
+    cl_abap_unit_assert=>assert_equals( exp = `sap_horizon`
+                                        act = ls_request-s_front-s_ui5-theme ).
+
+  ENDMETHOD.
+
+  METHOD test_parse_body_no_config.
+    " a request without CONFIG section has to parse without errors and
+    " leave the config fields initial
+    DATA lv_payload TYPE string.
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
+    lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":""}}}`.
+
+    lo_handler = NEW #( val = lv_payload ).
+    ls_request = lo_handler->request_json_to_abap( lv_payload ).
+
+    cl_abap_unit_assert=>assert_not_bound( ls_request-s_front-o_comp_data ).
+    cl_abap_unit_assert=>assert_initial( ls_request-s_front-s_device ).
+    cl_abap_unit_assert=>assert_initial( ls_request-s_front-s_ui5 ).
+
   ENDMETHOD.
 
   METHOD test_request_app_start.

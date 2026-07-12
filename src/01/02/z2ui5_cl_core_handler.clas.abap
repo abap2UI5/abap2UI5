@@ -98,44 +98,54 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   METHOD request_parse_body.
     DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( val ) ).
-    DATA(lo_ajson2) = lo_ajson->slice( `value` ).
 
-    IF lo_ajson2 IS BOUND.
-      lo_ajson = lo_ajson2.
-    ENDIF.
+    " standalone requests arrive wrapped as { "value": <payload> } (see
+    " app/webapp/core/Server.js), launchpad/gateway proxies may strip the
+    " envelope - a keyed lookup detects it, slicing the whole tree only to
+    " unwrap it would walk and copy every node of the request
+    DATA(lv_root) = COND string( WHEN lo_ajson->exists( `/value` ) = abap_true
+                                 THEN `/value` ).
 
     DATA(lv_model_edit_name) = |/{ z2ui5_if_core_types=>cs_ui5-two_way_model }|.
     result-o_model = z2ui5_cl_ajson=>create_empty( ).
-    DATA(lo_model) = lo_ajson->slice( lv_model_edit_name ).
+    DATA(lo_model) = lo_ajson->slice( lv_root && lv_model_edit_name ).
     result-o_model->set( iv_path = lv_model_edit_name
                          iv_val  = lo_model ).
-    lo_ajson->delete( lv_model_edit_name ).
 
-    lo_ajson = lo_ajson->slice( `/S_FRONT` ).
+    lo_ajson = lo_ajson->slice( lv_root && `/S_FRONT` ).
     lo_ajson->to_abap( EXPORTING iv_corresponding = abap_true
                        IMPORTING ev_container     = result-s_front ).
-    result-s_front-o_comp_data = lo_ajson->slice( `/CONFIG/ComponentData` ).
 
-    DATA(lo_device) = lo_ajson->slice( `/CONFIG/S_DEVICE` ).
-    IF lo_device IS BOUND.
-      lo_device->to_abap( EXPORTING iv_corresponding = abap_true
-                          IMPORTING ev_container     = result-s_front-s_device ).
-    ENDIF.
-    DATA(lo_focus) = lo_ajson->slice( `/CONFIG/S_FOCUS` ).
-    IF lo_focus IS BOUND.
-      lo_focus->to_abap( EXPORTING iv_corresponding = abap_true
-                         IMPORTING ev_container     = result-s_front-s_focus ).
-    ENDIF.
-    DATA(lo_scroll) = lo_ajson->slice( `/CONFIG/S_SCROLL` ).
-    IF lo_scroll IS BOUND.
-      lo_scroll->to_abap( EXPORTING iv_corresponding = abap_true
-                          IMPORTING ev_container     = result-s_front-s_scroll ).
-    ENDIF.
+    " slice the small CONFIG subtree once - every slice walks the whole
+    " node table of its tree, so the per-section slices below only pay
+    " for the CONFIG nodes instead of the full S_FRONT tree each time
+    DATA(lo_config) = lo_ajson->slice( `/CONFIG` ).
+    IF lo_config IS BOUND.
 
-    result-s_front-s_ui5-version         = lo_ajson->get_string( `/CONFIG/S_UI5/VERSION` ).
-    result-s_front-s_ui5-build_timestamp = lo_ajson->get_string( `/CONFIG/S_UI5/BUILDTIMESTAMP` ).
-    result-s_front-s_ui5-gav             = lo_ajson->get_string( `/CONFIG/S_UI5/GAV` ).
-    result-s_front-s_ui5-theme           = lo_ajson->get_string( `/CONFIG/S_UI5/THEME` ).
+      result-s_front-o_comp_data = lo_config->slice( `/ComponentData` ).
+
+      DATA(lo_device) = lo_config->slice( `/S_DEVICE` ).
+      IF lo_device IS BOUND.
+        lo_device->to_abap( EXPORTING iv_corresponding = abap_true
+                            IMPORTING ev_container     = result-s_front-s_device ).
+      ENDIF.
+      DATA(lo_focus) = lo_config->slice( `/S_FOCUS` ).
+      IF lo_focus IS BOUND.
+        lo_focus->to_abap( EXPORTING iv_corresponding = abap_true
+                           IMPORTING ev_container     = result-s_front-s_focus ).
+      ENDIF.
+      DATA(lo_scroll) = lo_config->slice( `/S_SCROLL` ).
+      IF lo_scroll IS BOUND.
+        lo_scroll->to_abap( EXPORTING iv_corresponding = abap_true
+                            IMPORTING ev_container     = result-s_front-s_scroll ).
+      ENDIF.
+
+      result-s_front-s_ui5-version         = lo_config->get_string( `/S_UI5/VERSION` ).
+      result-s_front-s_ui5-build_timestamp = lo_config->get_string( `/S_UI5/BUILDTIMESTAMP` ).
+      result-s_front-s_ui5-gav             = lo_config->get_string( `/S_UI5/GAV` ).
+      result-s_front-s_ui5-theme           = lo_config->get_string( `/S_UI5/THEME` ).
+
+    ENDIF.
 
     result-s_control-check_launchpad = xsdbool(
         result-s_front-search   CS `scenario=LAUNCHPAD`
