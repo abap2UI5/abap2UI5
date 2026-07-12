@@ -1301,11 +1301,16 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
 
   METHOD ui5_get_msg_type.
 
-    result = SWITCH #( val
-                       WHEN `E` THEN cs_ui5_msg_type-e
-                       WHEN `S` THEN cs_ui5_msg_type-s
-                       WHEN `W` THEN cs_ui5_msg_type-w
-                       ELSE cs_ui5_msg_type-i ).
+    CASE val.
+      WHEN `E`.
+        result = cs_ui5_msg_type-e.
+      WHEN `S`.
+        result = cs_ui5_msg_type-s.
+      WHEN `W`.
+        result = cs_ui5_msg_type-w.
+      WHEN OTHERS.
+        result = cs_ui5_msg_type-i.
+    ENDCASE.
 
   ENDMETHOD.
 
