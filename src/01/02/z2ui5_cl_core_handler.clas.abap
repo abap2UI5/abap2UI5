@@ -57,6 +57,15 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
       RAISING
         z2ui5_cx_ajson_error.
 
+    METHODS request_parse_event_args
+      IMPORTING
+        io_front          TYPE REF TO z2ui5_if_ajson
+      EXPORTING
+        ev_check_override TYPE abap_bool
+        et_event_arg      TYPE string_table
+      RAISING
+        z2ui5_cx_ajson_error.
+
     METHODS request_app_start
       IMPORTING
         iv_search     TYPE string
@@ -113,8 +122,17 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
                          iv_val  = lo_model ).
 
     lo_ajson = lo_ajson->slice( lv_root && `/S_FRONT` ).
+
+    request_parse_event_args( EXPORTING io_front          = lo_ajson
+                              IMPORTING ev_check_override = DATA(lv_check_arg_object)
+                                        et_event_arg      = DATA(lt_event_arg) ).
+
     lo_ajson->to_abap( EXPORTING iv_corresponding = abap_true
                        IMPORTING ev_container     = result-s_front ).
+
+    IF lv_check_arg_object = abap_true.
+      result-s_front-t_event_arg = lt_event_arg.
+    ENDIF.
 
     " slice the small CONFIG subtree once - every slice walks the whole
     " node table of its tree, so the per-section slices below only pay
@@ -151,6 +169,40 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         result-s_front-search   CS `scenario=LAUNCHPAD`
         OR result-s_front-pathname CS `/ui2/flp`
         OR result-s_front-pathname CS `test/flpSandbox` ).
+  ENDMETHOD.
+
+  METHOD request_parse_event_args.
+
+    " object event arguments arrive as raw JSON - the frontend sends them
+    " unserialized so the request body is only encoded once - and to_abap
+    " cannot place them in a string table, so they are serialized here and
+    " apps keep receiving every argument as a string
+    CLEAR et_event_arg.
+    CLEAR ev_check_override.
+
+    DATA(lv_arg_index) = 1.
+    DO.
+      DATA(lv_arg_path) = |/T_EVENT_ARG/{ lv_arg_index }|.
+      CASE io_front->get_node_type( lv_arg_path ).
+        WHEN ``.
+          EXIT.
+        WHEN z2ui5_if_ajson_types=>node_type-object OR z2ui5_if_ajson_types=>node_type-array.
+          ev_check_override = abap_true.
+          APPEND io_front->slice( lv_arg_path )->stringify( ) TO et_event_arg.
+        WHEN z2ui5_if_ajson_types=>node_type-boolean.
+          " same result as the to_abap conversion of a boolean node
+          APPEND CONV string( io_front->get_boolean( lv_arg_path ) ) TO et_event_arg.
+        WHEN OTHERS.
+          APPEND io_front->get_string( lv_arg_path ) TO et_event_arg.
+      ENDCASE.
+      lv_arg_index = lv_arg_index + 1.
+    ENDDO.
+
+    IF ev_check_override = abap_true.
+      " to_abap raises on non-scalar members of a string table
+      io_front->delete( `/T_EVENT_ARG` ).
+    ENDIF.
+
   ENDMETHOD.
 
   METHOD request_app_start.

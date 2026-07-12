@@ -28,6 +28,8 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_parse_body_model_no_wrap FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_config FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_no_config FOR TESTING RAISING cx_static_check.
+    METHODS test_parse_body_arg_string FOR TESTING RAISING cx_static_check.
+    METHODS test_parse_body_arg_object FOR TESTING RAISING cx_static_check.
     METHODS test_request_app_start FOR TESTING RAISING cx_static_check.
     METHODS test_request_with_id   FOR TESTING RAISING cx_static_check.
     METHODS test_response_json     FOR TESTING RAISING cx_static_check.
@@ -237,6 +239,52 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     cl_abap_unit_assert=>assert_initial( ls_request-s_front-s_device ).
     cl_abap_unit_assert=>assert_initial( ls_request-s_front-s_ui5 ).
 
+  ENDMETHOD.
+
+  METHOD test_parse_body_arg_string.
+    " plain string arguments take the unchanged to_abap path
+    DATA lv_payload TYPE string.
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
+    lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
+                 `"EVENT":"MY_EVENT","T_EVENT_ARG":["first","second"]}}}`.
+
+    lo_handler = NEW #( val = lv_payload ).
+    ls_request = lo_handler->request_json_to_abap( lv_payload ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( ls_request-s_front-t_event_arg ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `first`
+                                        act = ls_request-s_front-t_event_arg[ 1 ] ).
+    cl_abap_unit_assert=>assert_equals( exp = `second`
+                                        act = ls_request-s_front-t_event_arg[ 2 ] ).
+  ENDMETHOD.
+
+  METHOD test_parse_body_arg_object.
+    " object and array arguments arrive as raw JSON from the frontend and
+    " have to reach the app as JSON strings, scalar arguments in the same
+    " event keep their previous string form
+    DATA lv_payload TYPE string.
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
+    lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":"",` &&
+                 `"EVENT":"MY_EVENT","T_EVENT_ARG":["plain",5,true,{"KEY":"val"},[1,2]]}}}`.
+
+    lo_handler = NEW #( val = lv_payload ).
+    ls_request = lo_handler->request_json_to_abap( lv_payload ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 5
+                                        act = lines( ls_request-s_front-t_event_arg ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `plain`
+                                        act = ls_request-s_front-t_event_arg[ 1 ] ).
+    cl_abap_unit_assert=>assert_equals( exp = `5`
+                                        act = ls_request-s_front-t_event_arg[ 2 ] ).
+    cl_abap_unit_assert=>assert_equals( exp = `X`
+                                        act = ls_request-s_front-t_event_arg[ 3 ] ).
+    cl_abap_unit_assert=>assert_equals( exp = `{"KEY":"val"}`
+                                        act = ls_request-s_front-t_event_arg[ 4 ] ).
+    cl_abap_unit_assert=>assert_equals( exp = `[1,2]`
+                                        act = ls_request-s_front-t_event_arg[ 5 ] ).
   ENDMETHOD.
 
   METHOD test_request_app_start.

@@ -428,15 +428,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `` && |\n| &&
              `        oBody.ID = AppState.state.oResponse?.ID;` && |\n| &&
-             `        // Object arguments are stringified for transport; the event name in` && |\n| &&
-             `        // args[0] is left as-is. null is excluded - it would stringify to` && |\n| &&
-             `        // the literal "null" instead of staying an empty value.` && |\n| &&
-             `        oBody.ARGUMENTS = args.map((item, i) => {` && |\n| &&
-             `          if (i > 0 && item !== null && typeof item === "object") {` && |\n| &&
-             `            return JSON.stringify(item);` && |\n| &&
-             `          }` && |\n| &&
-             `          return item;` && |\n| &&
-             `        });` && |\n| &&
+             `        // Arguments travel as raw JSON values - the request body is` && |\n| &&
+             `        // serialized exactly once in Server.readHttp. Object arguments are` && |\n| &&
+             `        // turned into JSON strings by the backend when it fills` && |\n| &&
+             `        // T_EVENT_ARG, so apps keep receiving them as strings; stringifying` && |\n| &&
+             `        // them here as well would encode (and escape) the payload twice.` && |\n| &&
+             `        oBody.ARGUMENTS = args.slice();` && |\n| &&
              `` && |\n| &&
              `        Server.roundtrip(oBody);` && |\n| &&
              `        Lib.runCallbacks(AppState.state.onAfterRoundtrip);` && |\n| &&
