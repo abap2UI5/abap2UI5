@@ -65,7 +65,11 @@ sap.ui.define(
     }
 
     function getViewContent(view) {
-      return view?.getProperty("viewContent");
+      // Private member access (debug tool only): XMLView keeps the raw XML
+      // string as a pseudo property in mProperties, but does not declare it
+      // in its metadata - getProperty("viewContent") therefore throws and
+      // would abort the whole tab selection. Read the plain object instead.
+      return view?.mProperties?.viewContent;
     }
 
     function getRenderedContent(view) {
