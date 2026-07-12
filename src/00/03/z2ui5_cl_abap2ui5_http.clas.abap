@@ -7,7 +7,7 @@ CLASS z2ui5_cl_abap2ui5_http DEFINITION PUBLIC.
         method   TYPE string,
         body     TYPE string,
         path     TYPE string,
-        t_params TYPE z2ui5_cl_abap2ui5_context=>ty_t_name_value,
+        t_params TYPE z2ui5_cl_a2ui5_context=>ty_t_name_value,
       END OF ty_s_http_req.
 
     TYPES:
@@ -480,7 +480,7 @@ CLASS z2ui5_cl_abap2ui5_http IMPLEMENTATION.
     result-body     = get_cdata( ).
     result-method   = get_method( ).
     result-path     = get_header_field( `~path` ).
-    result-t_params = z2ui5_cl_abap2ui5_context=>url_param_get_tab( get_header_field( `~request_uri` ) ).
+    result-t_params = z2ui5_cl_a2ui5_context=>url_param_get_tab( get_header_field( `~request_uri` ) ).
 
   ENDMETHOD.
 

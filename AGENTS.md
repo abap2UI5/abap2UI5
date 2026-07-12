@@ -86,7 +86,7 @@ src/
 └── 99/   Obsolete package — retired z2ui5_cl_util* classes (99/01) and built-in popups (99/02), kept for downstream compatibility only
 ```
 
-- **Layer 0 (`src/00/`)** — Self-contained utility libraries. AJSON (`src/00/01/`) handles JSON; S-RTTI (`src/00/02/`) provides runtime type reflection — both are mirrored from external projects, DO NOT MODIFY. `src/00/03/` holds the context/HTTP abstractions (`z2ui5_cl_abap2ui5_context`, `z2ui5_cl_abap2ui5_http`, `z2ui5_cl_abap2ui5_json_fltr`, `z2ui5_cx_abap2ui5_error`) — `z2ui5_cl_abap2ui5_context`, `z2ui5_cl_abap2ui5_http` and `z2ui5_cx_abap2ui5_error` are **vendored copies** from the [abap-util](https://github.com/abap-util/abap-util) master repository (see "Vendored utility classes" below). The `noIssues` flag in `abaplint.jsonc` suppresses lint warnings for all of `src/00`.
+- **Layer 0 (`src/00/`)** — Self-contained utility libraries. AJSON (`src/00/01/`) handles JSON; S-RTTI (`src/00/02/`) provides runtime type reflection — both are mirrored from external projects, DO NOT MODIFY. `src/00/03/` holds the context/HTTP abstractions (`z2ui5_cl_a2ui5_context`, `z2ui5_cl_abap2ui5_http`, `z2ui5_cl_abap2ui5_json_fltr`, `z2ui5_cx_abap2ui5_error`) — `z2ui5_cl_a2ui5_context`, `z2ui5_cl_abap2ui5_http` and `z2ui5_cx_abap2ui5_error` are **vendored copies** from the [abap-util](https://github.com/abap-util/abap-util) master repository (see "Vendored utility classes" below). The `noIssues` flag in `abaplint.jsonc` suppresses lint warnings for all of `src/00`.
 - **Layer 1 (`src/01/`)** — Core engine. Session drafts (`src/01/01/`), request processing, event routing, data binding, model management, app lifecycle (`src/01/02/`). Embedded UI5 frontend resources as ABAP string constants (`src/01/03/` — auto-generated, never manually edit).
 - **Layer 2 (`src/02/`)** — Public API. The stable contract for app developers. Includes the exit/customization framework.
 - **Obsolete package (`src/99/`)** — Two subpackages: `src/99/01/` holds the retired utility classes (`z2ui5_cl_util`, `z2ui5_cl_util_db`, `_ext`, `_http`, `_log`, `_msg`, `_range`, `_xml`, `z2ui5_cx_util_error`, table `z2ui5_t_91`) — the framework no longer uses any of them (replaced by the `z2ui5_cl_abap2ui5_*` classes in `src/00/03/`); `src/99/02/` holds the built-in popup/dialog apps (`z2ui5_cl_pop_*`, formerly `src/02/01/`). Everything here remains only so existing downstream apps keep compiling; the contents are removal candidates. Do not add new consumers and do not extend them. Also covered by the `noIssues` lint exemption.
@@ -97,7 +97,7 @@ Platform-abstraction utilities (RTTI, conversions, UUID, messages, HTTP, environ
 
 | Copy in this repo (`src/00/03/`) | Master in abap-util |
 |---|---|
-| `z2ui5_cl_abap2ui5_context` | `zabaputil_cl_util_context` (subset of its methods) |
+| `z2ui5_cl_a2ui5_context` | `zabaputil_cl_util_context` (subset of its methods) |
 | `z2ui5_cl_abap2ui5_http` | `zabaputil_cl_util_http` |
 | `z2ui5_cx_abap2ui5_error` | `zabaputil_cx_error` |
 
@@ -154,7 +154,7 @@ src/
 ├── 00/                        # Layer 0: Utilities
 │   ├── 01/                    #   AJSON — JSON serialization (mirrored, DO NOT MODIFY)
 │   ├── 02/                    #   S-RTTI — Runtime type information (mirrored, DO NOT MODIFY)
-│   └── 03/                    #   Context/HTTP abstractions (z2ui5_cl_abap2ui5_context, _http, _json_fltr, z2ui5_cx_abap2ui5_error) — vendored copies from abap-util (except _json_fltr)
+│   └── 03/                    #   Context/HTTP abstractions (z2ui5_cl_a2ui5_context, _http, _json_fltr, z2ui5_cx_abap2ui5_error) — vendored copies from abap-util (except _json_fltr)
 ├── 01/                        # Layer 1: Core Engine
 │   ├── 01/                    #   Draft service (z2ui5_cl_core_srv_draft + z2ui5_t_01)
 │   ├── 02/                    #   Core classes (handler, client, action, app, srv_bind, srv_event, srv_model)
@@ -262,9 +262,9 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
   CATCH cx_root ##NO_HANDLER.
   ```
 - **API parameter types:** Use `TYPE clike` for string/char input parameters in public API methods (allows both string and char literals without conversion)
-- **Utility access:** Framework utilities live in `z2ui5_cl_abap2ui5_context` (`src/00/03/`) — a vendored copy of `zabaputil_cl_util_context` from [abap-util](https://github.com/abap-util/abap-util), trimmed to the methods the framework uses (see "Vendored Utility Classes" in the Architecture section). Environment-specific behavior (ABAP Cloud vs. standard ABAP) is branched inside this class via `z2ui5_cl_abap2ui5_context=>context_check_abap_cloud( )` using dynamic calls, so it compiles on all targets. The former utility classes (`z2ui5_cl_util`, `z2ui5_cl_util_ext`, …) are retired in `src/99/` — do not use them in framework code
+- **Utility access:** Framework utilities live in `z2ui5_cl_a2ui5_context` (`src/00/03/`) — a vendored copy of `zabaputil_cl_util_context` from [abap-util](https://github.com/abap-util/abap-util), trimmed to the methods the framework uses (see "Vendored Utility Classes" in the Architecture section). Environment-specific behavior (ABAP Cloud vs. standard ABAP) is branched inside this class via `z2ui5_cl_a2ui5_context=>context_check_abap_cloud( )` using dynamic calls, so it compiles on all targets. The former utility classes (`z2ui5_cl_util`, `z2ui5_cl_util_ext`, …) are retired in `src/99/` — do not use them in framework code
   ```abap
-  z2ui5_cl_abap2ui5_context=>uuid_get_c32( ).
+  z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
   ```
 
 ### Naming (enforced by abaplint)
@@ -359,7 +359,7 @@ Config files: `eslint.config.mjs`, `.prettierrc`, `.editorconfig`, `ui5.yaml`, `
 | `src/01/02/z2ui5_cl_core_srv_model.clas.abap` | JSON model management |
 | `src/01/02/z2ui5_cl_core_srv_event.clas.abap` | Event registration and payload assembly |
 | `src/01/01/z2ui5_cl_core_srv_draft.clas.abap` | Draft/session persistence |
-| `src/00/03/z2ui5_cl_abap2ui5_context.clas.abap` | Framework utility/context class (RTTI, conversions, UUID, messages, environment detection) — vendored copy from [abap-util](https://github.com/abap-util/abap-util), fixes go upstream first |
+| `src/00/03/z2ui5_cl_a2ui5_context.clas.abap` | Framework utility/context class (RTTI, conversions, UUID, messages, environment detection) — vendored copy from [abap-util](https://github.com/abap-util/abap-util), fixes go upstream first |
 | `app/webapp/core/AppState.js` | Owner of the shared frontend state + `z2ui5.*` globals inventory |
 | `app/webapp/core/ViewSlots.js` | View-slot access layer (get/set/byId/destroy per slot) |
 | `app/webapp/core/Lib.js` | Shared frontend helpers |

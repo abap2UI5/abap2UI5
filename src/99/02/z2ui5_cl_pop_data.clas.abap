@@ -30,14 +30,14 @@ CLASS z2ui5_cl_pop_data IMPLEMENTATION.
 
     ASSIGN mr_data->* TO <data>.
 
-    IF z2ui5_cl_abap2ui5_context=>rtti_check_table( <data> ).
+    IF z2ui5_cl_a2ui5_context=>rtti_check_table( <data> ).
 
       client->nav_app_call( z2ui5_cl_pop_table=>factory( i_tab   = <data>
                                                          i_title = title ) ).
 
-    ELSEIF z2ui5_cl_abap2ui5_context=>rtti_check_structure( <data> ).
+    ELSEIF z2ui5_cl_a2ui5_context=>rtti_check_structure( <data> ).
 
-      DATA(lt_result) = z2ui5_cl_abap2ui5_context=>itab_get_by_struc( <data> ).
+      DATA(lt_result) = z2ui5_cl_a2ui5_context=>itab_get_by_struc( <data> ).
       client->nav_app_call( z2ui5_cl_pop_table=>factory( i_tab   = lt_result
                                                          i_title = title ) ).
 

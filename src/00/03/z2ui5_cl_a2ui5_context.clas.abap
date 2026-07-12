@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_abap2ui5_context DEFINITION
+CLASS z2ui5_cl_a2ui5_context DEFINITION
   PUBLIC FINAL
   CREATE PUBLIC.
 
@@ -18,7 +18,7 @@ CLASS z2ui5_cl_abap2ui5_context DEFINITION
       END OF cs_ui5_msg_type.
 
     " Environment-abstracted character/format constants. Callers must read
-    " these from z2ui5_cl_abap2ui5_context instead of referencing cl_abap_char_utilities /
+    " these from z2ui5_cl_a2ui5_context instead of referencing cl_abap_char_utilities /
     " cl_abap_format directly, so the dependency on those SAP standard classes
     " lives in exactly one place (this class' class_constructor) and can be
     " ported once for non-ABAP runtimes (e.g. transpiled JS).
@@ -661,7 +661,7 @@ CLASS z2ui5_cl_abap2ui5_context DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
+CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
 
   METHOD class_constructor.
 

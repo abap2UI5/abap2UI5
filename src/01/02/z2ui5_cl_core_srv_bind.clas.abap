@@ -59,7 +59,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     ASSIGN ms_config-tab->* TO <tab>.
     ASSIGN <tab>[ ms_config-tab_index ] TO <row>.
 
-    DATA(lt_attri) = z2ui5_cl_abap2ui5_context=>rtti_get_t_attri_by_any( ms_config-tab ).
+    DATA(lt_attri) = z2ui5_cl_a2ui5_context=>rtti_get_t_attri_by_any( ms_config-tab ).
     LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
 
       ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
@@ -87,22 +87,22 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     ENDIF.
 
     IF mr_attri->custom_mapper IS BOUND AND ms_config-custom_mapper IS BOUND
-        AND z2ui5_cl_abap2ui5_context=>rtti_get_classname_by_ref( mr_attri->custom_mapper )
-         <> z2ui5_cl_abap2ui5_context=>rtti_get_classname_by_ref( ms_config-custom_mapper ).
+        AND z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( mr_attri->custom_mapper )
+         <> z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( ms_config-custom_mapper ).
       RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
         EXPORTING val = |<p>Binding Error - Two different mappers used for the same attribute ({ mr_attri->name }).|.
     ENDIF.
 
     IF mr_attri->custom_mapper_back IS BOUND AND ms_config-custom_mapper_back IS BOUND
-        AND z2ui5_cl_abap2ui5_context=>rtti_get_classname_by_ref( mr_attri->custom_mapper_back )
-         <> z2ui5_cl_abap2ui5_context=>rtti_get_classname_by_ref( ms_config-custom_mapper_back ).
+        AND z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( mr_attri->custom_mapper_back )
+         <> z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( ms_config-custom_mapper_back ).
       RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
         EXPORTING val = |<p>Binding Error - Two different mappers back used for the same attribute ({ mr_attri->name }).|.
     ENDIF.
 
     IF mr_attri->custom_filter IS BOUND AND ms_config-custom_filter IS BOUND
-        AND z2ui5_cl_abap2ui5_context=>rtti_get_classname_by_ref( mr_attri->custom_filter )
-         <> z2ui5_cl_abap2ui5_context=>rtti_get_classname_by_ref( ms_config-custom_filter ).
+        AND z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( mr_attri->custom_filter )
+         <> z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( ms_config-custom_filter ).
       RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
         EXPORTING val = |<p>Binding Error - Two different filters used for the same attribute ({ mr_attri->name }).|.
     ENDIF.
@@ -111,11 +111,11 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
   METHOD check_raise_new.
 
-    IF z2ui5_cl_abap2ui5_context=>rtti_check_serializable( mr_attri->custom_filter_back ) = abap_false.
+    IF z2ui5_cl_a2ui5_context=>rtti_check_serializable( mr_attri->custom_filter_back ) = abap_false.
       RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
         EXPORTING val = `<p>custom_filter_back used but it is not serializable - please use if_serializable_object`.
     ENDIF.
-    IF z2ui5_cl_abap2ui5_context=>rtti_check_serializable( mr_attri->custom_mapper_back ) = abap_false.
+    IF z2ui5_cl_a2ui5_context=>rtti_check_serializable( mr_attri->custom_mapper_back ) = abap_false.
       RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
         EXPORTING val = `<p>custom_mapper_back used but it is not serializable - please use if_serializable_object`.
     ENDIF.
@@ -145,7 +145,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
   METHOD main.
 
-    IF z2ui5_cl_abap2ui5_context=>check_bound_a_not_initial( config-tab ).
+    IF z2ui5_cl_a2ui5_context=>check_bound_a_not_initial( config-tab ).
 
       result = main_cell( val    = val
                           type   = type
