@@ -26,7 +26,7 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
 
     CLASS-METHODS _http_post
       IMPORTING
-        is_req        TYPE z2ui5_cl_abap2ui5_http=>ty_s_http_req
+        is_req        TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req
       RETURNING
         VALUE(result) TYPE z2ui5_if_core_types=>ty_s_http_res.
 
@@ -38,7 +38,7 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
 
     CLASS-METHODS _main
       IMPORTING
-        is_req        TYPE z2ui5_cl_abap2ui5_http=>ty_s_http_req
+        is_req        TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req
       RETURNING
         VALUE(result) TYPE z2ui5_if_core_types=>ty_s_http_res.
 
@@ -49,13 +49,13 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
         res           TYPE REF TO object OPTIONAL
           PREFERRED PARAMETER server
       RETURNING
-        VALUE(result) TYPE z2ui5_cl_abap2ui5_http=>ty_s_http_req.
+        VALUE(result) TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
 
   PROTECTED SECTION.
     CLASS-DATA so_sticky_handler TYPE REF TO z2ui5_cl_core_handler.
 
-    DATA mo_server TYPE REF TO z2ui5_cl_abap2ui5_http.
-    DATA ms_req    TYPE z2ui5_cl_abap2ui5_http=>ty_s_http_req.
+    DATA mo_server TYPE REF TO z2ui5_cl_a2ui5_http.
+    DATA ms_req    TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
     DATA ms_res    TYPE z2ui5_if_core_types=>ty_s_http_res.
 
     METHODS set_response.
@@ -87,12 +87,12 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     IF server IS BOUND.
       result = NEW #( ).
-      result->mo_server = z2ui5_cl_abap2ui5_http=>factory( server ).
+      result->mo_server = z2ui5_cl_a2ui5_http=>factory( server ).
     ELSEIF req IS BOUND AND res IS BOUND.
       result = factory_cloud( req = req
                               res = res ).
     ELSE.
-      RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
         EXPORTING val = `EMPTY_HTTP_HANDLER_CALL_ERROR`.
     ENDIF.
 
@@ -101,8 +101,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
   METHOD factory_cloud.
 
     result = NEW #( ).
-    result->mo_server = z2ui5_cl_abap2ui5_http=>factory_cloud( req = req
-                                                           res     = res ).
+    result->mo_server = z2ui5_cl_a2ui5_http=>factory_cloud( req = req
+                                                           res  = res ).
 
   ENDMETHOD.
 

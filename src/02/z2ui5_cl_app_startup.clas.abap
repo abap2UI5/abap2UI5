@@ -39,7 +39,7 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
     METHODS view_display_popup.
 
   PROTECTED SECTION.
-    DATA mt_classes TYPE z2ui5_cl_abap2ui5_context=>ty_t_classes.
+    DATA mt_classes TYPE z2ui5_cl_a2ui5_context=>ty_t_classes.
 
   PRIVATE SECTION.
     METHODS reset_button_state.
@@ -69,11 +69,11 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
   METHOD get_app_url.
 
     DATA(ls_config) = client->get( )-s_config.
-    result = z2ui5_cl_abap2ui5_context=>app_get_url( classname = classname
-                                         origin                = ls_config-origin
-                                         pathname              = ls_config-pathname
-                                         search                = ls_config-search
-                                         hash                  = ls_config-hash ).
+    result = z2ui5_cl_a2ui5_context=>app_get_url( classname = classname
+                                         origin             = ls_config-origin
+                                         pathname           = ls_config-pathname
+                                         search             = ls_config-search
+                                         hash               = ls_config-hash ).
 
   ENDMETHOD.
 
@@ -112,7 +112,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     DATA li_app_test TYPE REF TO z2ui5_if_app.
 
     TRY.
-        ms_home-classname = z2ui5_cl_abap2ui5_context=>c_trim_upper( ms_home-classname ).
+        ms_home-classname = z2ui5_cl_a2ui5_context=>c_trim_upper( ms_home-classname ).
         CREATE OBJECT li_app_test TYPE (ms_home-classname).
 
         client->message_toast_display( `App is ready to start!` ).
@@ -147,7 +147,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
       )->button( text  = `System`
                  icon  = `sap-icon://information`
                  press = client->_event( cs_event-open_info ) ).
-    IF z2ui5_cl_abap2ui5_context=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ).
+    IF z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ).
       toolbar->button( text  = `Config`
                        icon  = `sap-icon://settings`
                        press = client->_event( cs_event-set_config ) ).
@@ -196,8 +196,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     simple_form->toolbar( )->title( `What's next?` ).
 
     DATA(lv_class_samples) = COND string(
-      WHEN z2ui5_cl_abap2ui5_context=>rtti_check_class_exists( `z2ui5_cl_sample_app_001` ) THEN `z2ui5_cl_sample_app_001`
-      WHEN z2ui5_cl_abap2ui5_context=>rtti_check_class_exists( `z2ui5_cl_demo_app_000` ) THEN `z2ui5_cl_demo_app_000` ).
+      WHEN z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_sample_app_001` ) THEN `z2ui5_cl_sample_app_001`
+      WHEN z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_demo_app_000` ) THEN `z2ui5_cl_demo_app_000` ).
 
     IF lv_class_samples IS NOT INITIAL.
       DATA(lv_url_samples) = get_app_url( lv_class_samples ).
@@ -288,7 +288,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     simple_form2->label( `ABAP for Cloud` ).
     simple_form2->checkbox( enabled  = abap_false
-                            selected = z2ui5_cl_abap2ui5_context=>context_check_abap_cloud( ) ).
+                            selected = z2ui5_cl_a2ui5_context=>context_check_abap_cloud( ) ).
 
     simple_form2->label( `User Exit` ).
     simple_form2->text( z2ui5_cl_exit=>get_user_exit_class( ) ).
@@ -337,7 +337,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
       WHEN cs_event-value_help.
         TRY.
-            mt_classes = z2ui5_cl_abap2ui5_context=>rtti_get_classes_impl_intf( z2ui5_cl_abap2ui5_context=>rtti_get_intfname_by_ref( li_app ) ).
+            mt_classes = z2ui5_cl_a2ui5_context=>rtti_get_classes_impl_intf( z2ui5_cl_a2ui5_context=>rtti_get_intfname_by_ref( li_app ) ).
           CATCH cx_root.
             client->message_box_display( `Unfortunately the value help is not available on your ABAP release!` ).
             RETURN.
@@ -350,7 +350,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
   METHOD z2ui5_on_init.
 
     reset_button_state( ).
-    ms_home-classname = z2ui5_cl_abap2ui5_context=>rtti_get_classname_by_ref( NEW z2ui5_cl_app_hello_world( ) ).
+    ms_home-classname = z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( NEW z2ui5_cl_app_hello_world( ) ).
 
   ENDMETHOD.
 

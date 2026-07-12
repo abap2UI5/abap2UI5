@@ -3,14 +3,13 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>Z2UI5_CL_ABAP2UI5_JSON_FLTR</CLSNAME>
+    <CLSNAME>Z2UI5_CL_A2UI5_CONTEXT</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>util - json filter for empty values</DESCRIPT>
+    <DESCRIPT>utility context for the abap2UI5 framework</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
     <UNICODE>X</UNICODE>
-    <WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>
    </VSEOCLASS>
   </asx:values>
  </asx:abap>

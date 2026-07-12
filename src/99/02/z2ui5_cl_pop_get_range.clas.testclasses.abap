@@ -25,7 +25,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory_w_range.
 
-    DATA(lt_range) = VALUE z2ui5_cl_abap2ui5_context=>ty_t_range(
+    DATA(lt_range) = VALUE z2ui5_cl_a2ui5_context=>ty_t_range(
       ( sign = `I` option = `EQ` low = `100` ) ).
 
     DATA(lo_pop) = z2ui5_cl_pop_get_range=>factory( lt_range ).
@@ -46,7 +46,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory_range_count.
 
-    DATA(lt_range) = VALUE z2ui5_cl_abap2ui5_context=>ty_t_range(
+    DATA(lt_range) = VALUE z2ui5_cl_a2ui5_context=>ty_t_range(
       ( sign = `I` option = `EQ` low = `100` )
       ( sign = `I` option = `BT` low = `200` high = `300` ) ).
 
@@ -72,7 +72,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory_multi_range.
 
-    DATA(lt_range) = VALUE z2ui5_cl_abap2ui5_context=>ty_t_range(
+    DATA(lt_range) = VALUE z2ui5_cl_a2ui5_context=>ty_t_range(
       ( sign = `I` option = `EQ` low = `A` )
       ( sign = `E` option = `EQ` low = `B` )
       ( sign = `I` option = `GE` low = `C` ) ).

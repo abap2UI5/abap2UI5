@@ -51,7 +51,7 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
 
     DATA(tab) = popup->table( client->_bind( <tab_out> ) ).
 
-    DATA(lt_comp) = z2ui5_cl_abap2ui5_context=>rtti_get_t_attri_by_any( <tab_out> ).
+    DATA(lt_comp) = z2ui5_cl_a2ui5_context=>rtti_get_t_attri_by_any( <tab_out> ).
 
     DATA(list) = tab->column_list_item( valign = `Top` ).
     DATA(cells) = list->cells( ).
@@ -66,8 +66,8 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
       IF ls_comp-type IS BOUND AND
           ls_comp-type->is_ddic_type( ) = abap_true.
 
-        DATA(lv_name) = z2ui5_cl_abap2ui5_context=>rtti_get_ddic_type_name( ls_comp-type ).
-        DATA(lv_ddic_field_label) = z2ui5_cl_abap2ui5_context=>rtti_get_data_element_text_l( lv_name ).
+        DATA(lv_name) = z2ui5_cl_a2ui5_context=>rtti_get_ddic_type_name( ls_comp-type ).
+        DATA(lv_ddic_field_label) = z2ui5_cl_a2ui5_context=>rtti_get_data_element_text_l( lv_name ).
 
         IF lv_ddic_field_label IS NOT INITIAL.
           columns->column( `8rem` )->header( `` )->text( lv_ddic_field_label ).
@@ -94,7 +94,7 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
     IF i_title IS NOT INITIAL.
       r_result->title = i_title.
     ENDIF.
-    r_result->mr_tab = z2ui5_cl_abap2ui5_context=>conv_copy_ref_data( i_tab ).
+    r_result->mr_tab = z2ui5_cl_a2ui5_context=>conv_copy_ref_data( i_tab ).
     CREATE DATA r_result->ms_result-row LIKE LINE OF i_tab.
 
   ENDMETHOD.

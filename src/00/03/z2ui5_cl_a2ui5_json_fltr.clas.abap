@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_abap2ui5_json_fltr DEFINITION
+CLASS z2ui5_cl_a2ui5_json_fltr DEFINITION
   PUBLIC FINAL
   CREATE PUBLIC.
 
@@ -14,11 +14,11 @@ CLASS z2ui5_cl_abap2ui5_json_fltr DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_abap2ui5_json_fltr IMPLEMENTATION.
+CLASS z2ui5_cl_a2ui5_json_fltr IMPLEMENTATION.
 
   METHOD create_no_empty_values.
 
-    result = NEW z2ui5_cl_abap2ui5_json_fltr( ).
+    result = NEW z2ui5_cl_a2ui5_json_fltr( ).
 
   ENDMETHOD.
 

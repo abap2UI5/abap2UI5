@@ -27,7 +27,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory_util_error.
 
-    DATA(lx) = NEW z2ui5_cx_abap2ui5_error( val = `test error` ).
+    DATA(lx) = NEW z2ui5_cx_a2ui5_error( val = `test error` ).
     DATA(lo_pop) = z2ui5_cl_pop_error=>factory( lx ).
     cl_abap_unit_assert=>assert_bound( lo_pop ).
 
@@ -35,7 +35,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory_custom.
 
-    DATA(lx) = NEW z2ui5_cx_abap2ui5_error( val = `custom error` ).
+    DATA(lx) = NEW z2ui5_cx_a2ui5_error( val = `custom error` ).
     DATA(lo_pop) = z2ui5_cl_pop_error=>factory(
       x_root  = lx
       i_title = `My Error Title` ).
@@ -89,7 +89,7 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
   METHOD test_init_displays_error.
 
-    DATA(lo_pop) = z2ui5_cl_pop_error=>factory( NEW z2ui5_cx_abap2ui5_error( `MY_ERROR_TEXT` ) ).
+    DATA(lo_pop) = z2ui5_cl_pop_error=>factory( NEW z2ui5_cx_a2ui5_error( `MY_ERROR_TEXT` ) ).
     client_create( lo_pop ).
 
     lo_pop->z2ui5_if_app~main( mi_client ).
@@ -102,7 +102,7 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
   METHOD test_confirm_closes.
 
-    DATA(lo_pop) = z2ui5_cl_pop_error=>factory( NEW z2ui5_cx_abap2ui5_error( `MY_ERROR_TEXT` ) ).
+    DATA(lo_pop) = z2ui5_cl_pop_error=>factory( NEW z2ui5_cx_a2ui5_error( `MY_ERROR_TEXT` ) ).
     roundtrip_event( io_app   = lo_pop
                      iv_event = `BUTTON_CONFIRM` ).
 

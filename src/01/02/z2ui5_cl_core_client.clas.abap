@@ -55,7 +55,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     lv_val = val.
 
     IF lv_val IS INITIAL OR lv_val CN `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_`.
-      RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
         EXPORTING
           val = |action: invalid event name '{ val }' - only A-Z, a-z, 0-9 and _ allowed|.
     ENDIF.
@@ -149,8 +149,8 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     DATA lv_title   TYPE string.
     DATA lv_details TYPE string.
 
-    IF z2ui5_cl_abap2ui5_context=>rtti_check_clike( text ) = abap_false.
-      DATA(ls_msg_box) = z2ui5_cl_abap2ui5_context=>ui5_msg_box_format( text ).
+    IF z2ui5_cl_a2ui5_context=>rtti_check_clike( text ) = abap_false.
+      DATA(ls_msg_box) = z2ui5_cl_a2ui5_context=>ui5_msg_box_format( text ).
       IF ls_msg_box-skip = abap_true.
         RETURN.
       ENDIF.
@@ -215,13 +215,13 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   METHOD nav_app_set_id.
 
     IF app IS NOT BOUND.
-      RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
         EXPORTING
           val = `NAV_APP_LEAVE_TO_INITIAL_APP_ERROR`.
     ENDIF.
 
     IF app->id_app IS INITIAL.
-      app->id_app = z2ui5_cl_abap2ui5_context=>uuid_get_c32( ).
+      app->id_app = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
     ENDIF.
     result = app->id_app.
 
@@ -248,7 +248,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     " IS SUPPLIED (not IS NOT INITIAL) so an intentionally empty return
     " value still reaches the previous app (https://github.com/abap2UI5/abap2UI5/issues/2404)
     IF r_data IS SUPPLIED.
-      mo_action->ms_next-r_data = z2ui5_cl_abap2ui5_context=>conv_copy_ref_data( r_data ).
+      mo_action->ms_next-r_data = z2ui5_cl_a2ui5_context=>conv_copy_ref_data( r_data ).
     ENDIF.
 
     result = nav_app_set_id( app ).
@@ -374,12 +374,12 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind.
 
-    result = mo_srv_bind->main( val = z2ui5_cl_abap2ui5_context=>conv_get_as_data_ref( val )
+    result = mo_srv_bind->main( val = z2ui5_cl_a2ui5_context=>conv_get_as_data_ref( val )
                             type    = z2ui5_if_core_types=>cs_bind_type-one_way
                             config  = VALUE #( path_only           = path
                                               custom_filter        = custom_filter
                                               custom_mapper        = custom_mapper
-                                              tab                  = z2ui5_cl_abap2ui5_context=>conv_get_as_data_ref( tab )
+                                              tab                  = z2ui5_cl_a2ui5_context=>conv_get_as_data_ref( tab )
                                               tab_index            = tab_index
                                               switch_default_model = switch_default_model ) ).
 
@@ -388,14 +388,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_edit.
 
-    result = mo_srv_bind->main( val = z2ui5_cl_abap2ui5_context=>conv_get_as_data_ref( val )
+    result = mo_srv_bind->main( val = z2ui5_cl_a2ui5_context=>conv_get_as_data_ref( val )
                             type    = z2ui5_if_core_types=>cs_bind_type-two_way
                             config  = VALUE #( path_only           = path
                                               custom_filter        = custom_filter
                                               custom_filter_back   = custom_filter_back
                                               custom_mapper        = custom_mapper
                                               custom_mapper_back   = custom_mapper_back
-                                              tab                  = z2ui5_cl_abap2ui5_context=>conv_get_as_data_ref( tab )
+                                              tab                  = z2ui5_cl_a2ui5_context=>conv_get_as_data_ref( tab )
                                               tab_index            = tab_index
                                               switch_default_model = switch_default_model ) ).
 
@@ -409,7 +409,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                                 s_cnt     = s_ctrl ).
 
     IF r_data IS NOT INITIAL.
-      mo_action->ms_next-r_data = z2ui5_cl_abap2ui5_context=>conv_copy_ref_data( r_data ).
+      mo_action->ms_next-r_data = z2ui5_cl_a2ui5_context=>conv_copy_ref_data( r_data ).
     ENDIF.
 
   ENDMETHOD.

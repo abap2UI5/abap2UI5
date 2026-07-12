@@ -91,7 +91,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
           request_app_start_draft( result-s_front-hash ).
 
       CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING val = x.
     ENDTRY.
   ENDMETHOD.
@@ -146,7 +146,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
   METHOD request_app_start.
     TRY.
         IF io_comp_data IS BOUND.
-          result = z2ui5_cl_abap2ui5_context=>c_trim_upper(
+          result = z2ui5_cl_a2ui5_context=>c_trim_upper(
               io_comp_data->get( `/startupParameters/app_start/1` ) ).
         ENDIF.
       CATCH cx_root ##NO_HANDLER.
@@ -160,9 +160,9 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    result = z2ui5_cl_abap2ui5_context=>c_trim_upper(
-        z2ui5_cl_abap2ui5_context=>url_param_get( val = `app_start`
-                                      url             = iv_search ) ).
+    result = z2ui5_cl_a2ui5_context=>c_trim_upper(
+        z2ui5_cl_a2ui5_context=>url_param_get( val = `app_start`
+                                      url          = iv_search ) ).
   ENDMETHOD.
 
   METHOD request_app_start_draft.
@@ -172,9 +172,9 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         IF lv_hash IS INITIAL.
           lv_hash = iv_hash+2.
         ENDIF.
-        result = z2ui5_cl_abap2ui5_context=>c_trim_upper(
-            z2ui5_cl_abap2ui5_context=>url_param_get( val = `z2ui5-xapp-state`
-                                          url             = lv_hash ) ).
+        result = z2ui5_cl_a2ui5_context=>c_trim_upper(
+            z2ui5_cl_a2ui5_context=>url_param_get( val = `z2ui5-xapp-state`
+                                          url          = lv_hash ) ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
   ENDMETHOD.
@@ -187,7 +187,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
         ajson_result->set( iv_path = `/`
                            iv_val  = val-s_front ).
-        ajson_result = ajson_result->filter( z2ui5_cl_abap2ui5_json_fltr=>create_no_empty_values( ) ).
+        ajson_result = ajson_result->filter( z2ui5_cl_a2ui5_json_fltr=>create_no_empty_values( ) ).
         DATA(lv_frontend) = ajson_result->stringify( ).
 
         DATA(lv_model) = COND string( WHEN val-model IS NOT INITIAL THEN val-model ELSE `{}` ).
@@ -195,7 +195,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         result = |\{"S_FRONT":{ lv_frontend },"MODEL":{ lv_model }\}|.
 
       CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING val = x.
     ENDTRY.
   ENDMETHOD.
@@ -229,7 +229,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       ENDIF.
       lv_dispatch_count = lv_dispatch_count + 1.
       IF lv_dispatch_count >= mv_dispatch_limit.
-        RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING
             val = |Dispatch limit of { mv_dispatch_limit } app navigations in one request reached - check for an endless nav_app_call/nav_app_leave loop in main( )|.
       ENDIF.
@@ -276,7 +276,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
     ms_response = VALUE #( s_front-params = mo_action->ms_next-s_set
                            s_front-id     = mo_action->mo_app->ms_draft-id
-                           s_front-app    = z2ui5_cl_abap2ui5_context=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app ) ).
+                           s_front-app    = z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app ) ).
 
     IF check_view_update_needed( ).
       ms_response-model = mo_action->mo_app->model_json_stringify( ).
@@ -304,7 +304,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     DATA(li_app)    = CAST z2ui5_if_app( mo_action->mo_app->mo_app ).
 
     IF li_app->check_sticky = abap_false.
-      z2ui5_cl_abap2ui5_context=>db_rollback( ).
+      z2ui5_cl_a2ui5_context=>db_rollback( ).
     ENDIF.
     TRY.
         IF mo_action->ms_actual-event = z2ui5_if_core_types=>cs_event_nav_app_leave.
@@ -315,12 +315,12 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         ENDIF.
       CATCH cx_root INTO DATA(lx).
 
-        DATA(lx2) = NEW z2ui5_cx_abap2ui5_error( val  = `UNCAUGHT EXCEPTION - Please Restart App:`
+        DATA(lx2) = NEW z2ui5_cx_a2ui5_error( val     = `UNCAUGHT EXCEPTION - Please Restart App:`
                                              previous = lx ).
         li_client->nav_app_leave( z2ui5_cl_pop_error=>factory( lx2 ) ).
     ENDTRY.
     IF li_app->check_sticky = abap_false.
-      z2ui5_cl_abap2ui5_context=>db_rollback( ).
+      z2ui5_cl_a2ui5_context=>db_rollback( ).
     ENDIF.
 
     IF mo_action->ms_next-o_app_leave IS NOT INITIAL.
