@@ -65,7 +65,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `    // Single reusable BusyDialog flashed when the user clicks while a` && |\n| &&
              `    // roundtrip is already in flight (created lazily, kept for reuse).` && |\n| &&
+             `    // The timestamp throttles the flash: rapid clicking during a slow` && |\n| &&
+             `    // roundtrip would otherwise run a full open/render/close cycle per` && |\n| &&
+             `    // click without adding any feedback.` && |\n| &&
              `    let _busyDialog = null;` && |\n| &&
+             `    let _busyFlashUntil = 0;` && |\n| &&
              `` && |\n| &&
              `    function applyStoredSizeLimit(viewKey, oModel) {` && |\n| &&
              `      if (!oModel) return;` && |\n| &&
@@ -381,11 +385,15 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `` && |\n| &&
              `        // If a roundtrip is already in flight, briefly show a BusyDialog so` && |\n| &&
-             `        // the user gets visual feedback instead of a silent click.` && |\n| &&
+             `        // the user gets visual feedback instead of a silent click - at most` && |\n| &&
+             `        // once per second, further clicks inside that window are ignored.` && |\n| &&
              `        if (AppState.state.isBusy && !ignoreBusy) {` && |\n| &&
-             `          if (!_busyDialog) _busyDialog = new BusyDialog();` && |\n| &&
-             `          _busyDialog.open();` && |\n| &&
-             `          queueMicrotask(() => _busyDialog.close());` && |\n| &&
+             `          if (Date.now() >= _busyFlashUntil) {` && |\n| &&
+             `            _busyFlashUntil = Date.now() + 1000;` && |\n| &&
+             `            if (!_busyDialog) _busyDialog = new BusyDialog();` && |\n| &&
+             `            _busyDialog.open();` && |\n| &&
+             `            queueMicrotask(() => _busyDialog.close());` && |\n| &&
+             `          }` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -409,7 +417,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // Decide which view's model holds the data we need to send back. The` && |\n| &&
              `        // mapping is: main app controller -> main view, popup controller ->` && |\n| &&
              `        // popup view, etc.` && |\n| &&
-             `        const oModel = this._pickModelForRoundtrip(useMainModel, oBody);` && |\n| &&
+             `        const oModel = this._pickModelForRoundtrip(useMainModel, oBody);` && |\n|.
+    result = result &&
              `` && |\n| &&
              `        Lib.runCallbacks(AppState.state.onBeforeRoundtrip);` && |\n| &&
              `` && |\n| &&
@@ -417,8 +426,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // payload small.` && |\n| &&
              `        if (oModel && AppState.state.xxChangedPaths.size > 0) {` && |\n| &&
              `          const data = oModel.getData();` && |\n| &&
-             `          const xx = data?.XX;` && |\n|.
-    result = result &&
+             `          const xx = data?.XX;` && |\n| &&
              `          if (xx) {` && |\n| &&
              `            oBody.XX = Lib.buildDeltaFromPaths(` && |\n| &&
              `              AppState.state.xxChangedPaths,` && |\n| &&
