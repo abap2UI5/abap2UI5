@@ -91,7 +91,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
           request_app_start_draft( result-s_front-hash ).
 
       CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING val = x.
     ENDTRY.
   ENDMETHOD.
@@ -187,7 +187,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
         ajson_result->set( iv_path = `/`
                            iv_val  = val-s_front ).
-        ajson_result = ajson_result->filter( z2ui5_cl_abap2ui5_json_fltr=>create_no_empty_values( ) ).
+        ajson_result = ajson_result->filter( z2ui5_cl_a2ui5_json_fltr=>create_no_empty_values( ) ).
         DATA(lv_frontend) = ajson_result->stringify( ).
 
         DATA(lv_model) = COND string( WHEN val-model IS NOT INITIAL THEN val-model ELSE `{}` ).
@@ -195,7 +195,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         result = |\{"S_FRONT":{ lv_frontend },"MODEL":{ lv_model }\}|.
 
       CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING val = x.
     ENDTRY.
   ENDMETHOD.
@@ -229,7 +229,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       ENDIF.
       lv_dispatch_count = lv_dispatch_count + 1.
       IF lv_dispatch_count >= mv_dispatch_limit.
-        RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING
             val = |Dispatch limit of { mv_dispatch_limit } app navigations in one request reached - check for an endless nav_app_call/nav_app_leave loop in main( )|.
       ENDIF.
@@ -315,7 +315,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         ENDIF.
       CATCH cx_root INTO DATA(lx).
 
-        DATA(lx2) = NEW z2ui5_cx_abap2ui5_error( val  = `UNCAUGHT EXCEPTION - Please Restart App:`
+        DATA(lx2) = NEW z2ui5_cx_a2ui5_error( val  = `UNCAUGHT EXCEPTION - Please Restart App:`
                                              previous = lx ).
         li_client->nav_app_leave( z2ui5_cl_pop_error=>factory( lx2 ) ).
     ENDTRY.

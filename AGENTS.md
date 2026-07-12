@@ -86,10 +86,10 @@ src/
 └── 99/   Obsolete package — retired z2ui5_cl_util* classes (99/01) and built-in popups (99/02), kept for downstream compatibility only
 ```
 
-- **Layer 0 (`src/00/`)** — Self-contained utility libraries. AJSON (`src/00/01/`) handles JSON; S-RTTI (`src/00/02/`) provides runtime type reflection — both are mirrored from external projects, DO NOT MODIFY. `src/00/03/` holds the context/HTTP abstractions (`z2ui5_cl_a2ui5_context`, `z2ui5_cl_abap2ui5_http`, `z2ui5_cl_abap2ui5_json_fltr`, `z2ui5_cx_abap2ui5_error`) — `z2ui5_cl_a2ui5_context`, `z2ui5_cl_abap2ui5_http` and `z2ui5_cx_abap2ui5_error` are **vendored copies** from the [abap-util](https://github.com/abap-util/abap-util) master repository (see "Vendored utility classes" below). The `noIssues` flag in `abaplint.jsonc` suppresses lint warnings for all of `src/00`.
+- **Layer 0 (`src/00/`)** — Self-contained utility libraries. AJSON (`src/00/01/`) handles JSON; S-RTTI (`src/00/02/`) provides runtime type reflection — both are mirrored from external projects, DO NOT MODIFY. `src/00/03/` holds the context/HTTP abstractions (`z2ui5_cl_a2ui5_context`, `z2ui5_cl_a2ui5_http`, `z2ui5_cl_a2ui5_json_fltr`, `z2ui5_cx_a2ui5_error`) — `z2ui5_cl_a2ui5_context`, `z2ui5_cl_a2ui5_http` and `z2ui5_cx_a2ui5_error` are **vendored copies** from the [abap-util](https://github.com/abap-util/abap-util) master repository (see "Vendored utility classes" below). The `noIssues` flag in `abaplint.jsonc` suppresses lint warnings for all of `src/00`.
 - **Layer 1 (`src/01/`)** — Core engine. Session drafts (`src/01/01/`), request processing, event routing, data binding, model management, app lifecycle (`src/01/02/`). Embedded UI5 frontend resources as ABAP string constants (`src/01/03/` — auto-generated, never manually edit).
 - **Layer 2 (`src/02/`)** — Public API. The stable contract for app developers. Includes the exit/customization framework.
-- **Obsolete package (`src/99/`)** — Two subpackages: `src/99/01/` holds the retired utility classes (`z2ui5_cl_util`, `z2ui5_cl_util_db`, `_ext`, `_http`, `_log`, `_msg`, `_range`, `_xml`, `z2ui5_cx_util_error`, table `z2ui5_t_91`) — the framework no longer uses any of them (replaced by the `z2ui5_cl_abap2ui5_*` classes in `src/00/03/`); `src/99/02/` holds the built-in popup/dialog apps (`z2ui5_cl_pop_*`, formerly `src/02/01/`). Everything here remains only so existing downstream apps keep compiling; the contents are removal candidates. Do not add new consumers and do not extend them. Also covered by the `noIssues` lint exemption.
+- **Obsolete package (`src/99/`)** — Two subpackages: `src/99/01/` holds the retired utility classes (`z2ui5_cl_util`, `z2ui5_cl_util_db`, `_ext`, `_http`, `_log`, `_msg`, `_range`, `_xml`, `z2ui5_cx_util_error`, table `z2ui5_t_91`) — the framework no longer uses any of them (replaced by the `z2ui5_cl_a2ui5_*` classes in `src/00/03/`); `src/99/02/` holds the built-in popup/dialog apps (`z2ui5_cl_pop_*`, formerly `src/02/01/`). Everything here remains only so existing downstream apps keep compiling; the contents are removal candidates. Do not add new consumers and do not extend them. Also covered by the `noIssues` lint exemption.
 
 ### Vendored Utility Classes (`src/00/03/` ← abap-util)
 
@@ -98,10 +98,10 @@ Platform-abstraction utilities (RTTI, conversions, UUID, messages, HTTP, environ
 | Copy in this repo (`src/00/03/`) | Master in abap-util |
 |---|---|
 | `z2ui5_cl_a2ui5_context` | `zabaputil_cl_util_context` (subset of its methods) |
-| `z2ui5_cl_abap2ui5_http` | `zabaputil_cl_util_http` |
-| `z2ui5_cx_abap2ui5_error` | `zabaputil_cx_error` |
+| `z2ui5_cl_a2ui5_http` | `zabaputil_cl_util_http` |
+| `z2ui5_cx_a2ui5_error` | `zabaputil_cx_error` |
 
-(`z2ui5_cl_abap2ui5_json_fltr` is framework-owned and has no abap-util master.)
+(`z2ui5_cl_a2ui5_json_fltr` is framework-owned and has no abap-util master.)
 
 **Rules for working with these copies:**
 - **Fix bugs upstream first.** A defect in shared utility logic is fixed and unit-tested in abap-util, then the fix is applied identically to the copy here. Never let the copy's logic diverge from the master — a copy-only fix is lost for every other consumer and overwritten by the next sync.
@@ -154,7 +154,7 @@ src/
 ├── 00/                        # Layer 0: Utilities
 │   ├── 01/                    #   AJSON — JSON serialization (mirrored, DO NOT MODIFY)
 │   ├── 02/                    #   S-RTTI — Runtime type information (mirrored, DO NOT MODIFY)
-│   └── 03/                    #   Context/HTTP abstractions (z2ui5_cl_a2ui5_context, _http, _json_fltr, z2ui5_cx_abap2ui5_error) — vendored copies from abap-util (except _json_fltr)
+│   └── 03/                    #   Context/HTTP abstractions (z2ui5_cl_a2ui5_context, _http, _json_fltr, z2ui5_cx_a2ui5_error) — vendored copies from abap-util (except _json_fltr)
 ├── 01/                        # Layer 1: Core Engine
 │   ├── 01/                    #   Draft service (z2ui5_cl_core_srv_draft + z2ui5_t_01)
 │   ├── 02/                    #   Core classes (handler, client, action, app, srv_bind, srv_event, srv_model)
@@ -254,10 +254,10 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
     PRIVATE SECTION.
   ENDCLASS.
   ```
-- **Exception handling:** Use `cx_root` as catch-all; re-raise as `z2ui5_cx_abap2ui5_error`; use `##NO_HANDLER` when intentionally ignoring
+- **Exception handling:** Use `cx_root` as catch-all; re-raise as `z2ui5_cx_a2ui5_error`; use `##NO_HANDLER` when intentionally ignoring
   ```abap
   CATCH cx_root INTO DATA(x).
-    RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error EXPORTING val = x.
+    RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error EXPORTING val = x.
 
   CATCH cx_root ##NO_HANDLER.
   ```

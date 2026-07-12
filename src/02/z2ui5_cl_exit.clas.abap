@@ -5,7 +5,7 @@ CLASS z2ui5_cl_exit DEFINITION PUBLIC.
 
     CLASS-METHODS init_context
       IMPORTING
-        http_info TYPE z2ui5_cl_abap2ui5_http=>ty_s_http_req.
+        http_info TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
 
     CLASS-METHODS get_instance
       RETURNING

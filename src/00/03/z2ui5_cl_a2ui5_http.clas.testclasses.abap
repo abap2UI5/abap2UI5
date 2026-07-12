@@ -140,7 +140,7 @@ CLASS ltcl_test DEFINITION FINAL
 
   PRIVATE SECTION.
     DATA mo_server TYPE REF TO ltcl_fake_server.
-    DATA mo_cut    TYPE REF TO z2ui5_cl_abap2ui5_http.
+    DATA mo_cut    TYPE REF TO z2ui5_cl_a2ui5_http.
 
     METHODS setup.
 
@@ -162,7 +162,7 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD setup.
 
     mo_server = NEW #( ).
-    mo_cut = z2ui5_cl_abap2ui5_http=>factory( mo_server ).
+    mo_cut = z2ui5_cl_a2ui5_http=>factory( mo_server ).
 
   ENDMETHOD.
 
@@ -175,7 +175,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory_cloud.
 
-    DATA(lo_cut) = z2ui5_cl_abap2ui5_http=>factory_cloud( req = NEW ltcl_fake_request( )
+    DATA(lo_cut) = z2ui5_cl_a2ui5_http=>factory_cloud( req = NEW ltcl_fake_request( )
                                                       res     = NEW ltcl_fake_response( ) ).
 
     cl_abap_unit_assert=>assert_bound( lo_cut->mo_request_cloud ).

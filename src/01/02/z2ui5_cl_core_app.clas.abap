@@ -97,7 +97,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
       CATCH cx_root INTO DATA(x) ##NO_HANDLER.
     ENDTRY.
 
-    RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
+    RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
       EXPORTING
         val = |<p>{ x->get_text( ) }<p>Please check if all generic data references are public attributes of your class|.
 

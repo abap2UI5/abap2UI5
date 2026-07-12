@@ -109,7 +109,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
         result->ms_actual-check_on_navigated = abap_true.
 
       CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING
             val      = |App with name { mo_http_post->ms_request-s_control-app_start } not found...|
             previous = x.

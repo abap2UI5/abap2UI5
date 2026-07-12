@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_abap2ui5_http DEFINITION PUBLIC.
+CLASS z2ui5_cl_a2ui5_http DEFINITION PUBLIC.
 
   PUBLIC SECTION.
 
@@ -37,14 +37,14 @@ CLASS z2ui5_cl_abap2ui5_http DEFINITION PUBLIC.
       IMPORTING
         server        TYPE REF TO object
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_abap2ui5_http.
+        VALUE(result) TYPE REF TO z2ui5_cl_a2ui5_http.
 
     CLASS-METHODS factory_cloud
       IMPORTING
         req           TYPE REF TO object
         res           TYPE REF TO object
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_abap2ui5_http.
+        VALUE(result) TYPE REF TO z2ui5_cl_a2ui5_http.
 
     METHODS get_req_info
       RETURNING
@@ -102,7 +102,7 @@ CLASS z2ui5_cl_abap2ui5_http DEFINITION PUBLIC.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_abap2ui5_http IMPLEMENTATION.
+CLASS z2ui5_cl_a2ui5_http IMPLEMENTATION.
 
   METHOD client_create.
 
@@ -150,12 +150,12 @@ CLASS z2ui5_cl_abap2ui5_http IMPLEMENTATION.
         ENDIF.
 
       CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING val = x.
     ENDTRY.
 
     IF result IS NOT BOUND.
-      RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
         EXPORTING val = `HTTP_CLIENT_CREATE_ERROR - check the destination/url configuration`.
     ENDIF.
 
@@ -211,7 +211,7 @@ CLASS z2ui5_cl_abap2ui5_http IMPLEMENTATION.
           CALL METHOD lo_client->(`CLOSE`)
             EXCEPTIONS
               OTHERS = 1.
-          RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
+          RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
             EXPORTING val = |HTTP_COMMUNICATION_ERROR - { lv_message }|.
         ENDIF.
 
@@ -233,7 +233,7 @@ CLASS z2ui5_cl_abap2ui5_http IMPLEMENTATION.
             OTHERS = 1.
 
       CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING val = x.
     ENDTRY.
 

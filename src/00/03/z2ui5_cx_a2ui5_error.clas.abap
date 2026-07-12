@@ -1,4 +1,4 @@
-CLASS z2ui5_cx_abap2ui5_error DEFINITION
+CLASS z2ui5_cx_a2ui5_error DEFINITION
   PUBLIC
   INHERITING FROM cx_no_check FINAL
   CREATE PUBLIC.
@@ -26,7 +26,7 @@ CLASS z2ui5_cx_abap2ui5_error DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cx_abap2ui5_error IMPLEMENTATION.
+CLASS z2ui5_cx_a2ui5_error IMPLEMENTATION.
   METHOD constructor ##ADT_SUPPRESS_GENERATION.
 
     super->constructor( previous = previous ).

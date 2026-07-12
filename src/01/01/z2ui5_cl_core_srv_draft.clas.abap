@@ -81,7 +81,7 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
 
     MODIFY z2ui5_t_01 FROM @ls_db.
     IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
         EXPORTING val = `CREATE_OF_DRAFT_ENTRY_ON_DATABASE_FAILED`.
     ENDIF.
     COMMIT WORK AND WAIT.
@@ -107,7 +107,7 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
     ENDIF.
 
     IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
         EXPORTING val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
     ENDIF.
 

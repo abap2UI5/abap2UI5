@@ -3,7 +3,7 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>Z2UI5_CL_ABAP2UI5_HTTP</CLSNAME>
+    <CLSNAME>Z2UI5_CL_A2UI5_HTTP</CLSNAME>
     <LANGU>E</LANGU>
     <DESCRIPT>abap2UI5 - http handling</DESCRIPT>
     <STATE>1</STATE>
