@@ -190,7 +190,7 @@ CLASS z2ui5_cl_util_msg IMPLEMENTATION.
             LOOP AT lt_attri_o REFERENCE INTO DATA(ls_attri_o)
                  WHERE visibility = `U`.
               DATA(lv_name) = ls_attri_o->name.
-              ASSIGN val->(lv_name) TO <comp>.
+              ASSIGN lx->(lv_name) TO <comp>.
               ls_result = msg_map( name = ls_attri_o->name val = <comp> is_msg = ls_result ).
             ENDLOOP.
             INSERT ls_result INTO TABLE result.
