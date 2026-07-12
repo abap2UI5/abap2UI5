@@ -10,12 +10,6 @@ INTERFACE z2ui5_if_client
       cross_app_nav_to_ext      TYPE string VALUE `CROSS_APP_NAV_TO_EXT`,
       cross_app_nav_to_prev_app TYPE string VALUE `CROSS_APP_NAV_TO_PREV_APP`,
 
-*      nav_container_to          TYPE string VALUE `NAV_CONTAINER_TO`,
-*      nest_nav_container_to     TYPE string VALUE `NEST_NAV_CONTAINER_TO`,
-*      nest2_nav_container_to    TYPE string VALUE `NEST2_NAV_CONTAINER_TO`,
-*      popup_nav_container_to    TYPE string VALUE `POPUP_NAV_CONTAINER_TO`,
-*      popover_nav_container_to  TYPE string VALUE `POPOVER_NAV_CONTAINER_TO`,
-
       set_title                 TYPE string VALUE `SET_TITLE`,
       set_title_launchpad       TYPE string VALUE `SET_TITLE_LAUNCHPAD`,
       set_focus                 TYPE string VALUE `SET_FOCUS`,
@@ -24,6 +18,7 @@ INTERFACE z2ui5_if_client
       start_timer               TYPE string VALUE `START_TIMER`,
 
       system_logout             TYPE string VALUE `SYSTEM_LOGOUT`,
+
 
       location_reload           TYPE string VALUE `LOCATION_RELOAD`,
       download_b64_file         TYPE string VALUE `DOWNLOAD_B64_FILE`,
@@ -35,6 +30,12 @@ INTERFACE z2ui5_if_client
       clipboard_copy            TYPE string VALUE `CLIPBOARD_COPY`,
       store_data                TYPE string VALUE `STORE_DATA`,
       image_editor_popup_close  TYPE string VALUE `IMAGE_EDITOR_POPUP_CLOSE`,
+
+      nav_container_to          TYPE string VALUE `NAV_CONTAINER_TO`,
+      nest_nav_container_to     TYPE string VALUE `NEST_NAV_CONTAINER_TO`,
+      nest2_nav_container_to    TYPE string VALUE `NEST2_NAV_CONTAINER_TO`,
+      popup_nav_container_to    TYPE string VALUE `POPUP_NAV_CONTAINER_TO`,
+      popover_nav_container_to  TYPE string VALUE `POPOVER_NAV_CONTAINER_TO`,
 
       keyboard_set_mode         TYPE string VALUE `KEYBOARD_SET_MODE`,
       z2ui5                     TYPE string VALUE `Z2UI5`,
