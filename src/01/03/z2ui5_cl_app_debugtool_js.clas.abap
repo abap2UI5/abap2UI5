@@ -85,7 +85,11 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function getViewContent(view) {` && |\n| &&
-             `      return view?.getProperty("viewContent");` && |\n| &&
+             `      // Private member access (debug tool only): XMLView keeps the raw XML` && |\n| &&
+             `      // string as a pseudo property in mProperties, but does not declare it` && |\n| &&
+             `      // in its metadata - getProperty("viewContent") therefore throws and` && |\n| &&
+             `      // would abort the whole tab selection. Read the plain object instead.` && |\n| &&
+             `      return view?.mProperties?.viewContent;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function getRenderedContent(view) {` && |\n| &&
