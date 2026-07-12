@@ -15,7 +15,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@sap/ui5-builder-webide-extension": "^1.1.10",
-    "@sap/ux-ui5-tooling": "^1.27.0",
+    "@sap/ux-ui5-tooling": "^1.28.0",
     "@ui5/cli": "^4.0.57",
     "@ui5/linter": "^1.23.1",
     "eslint": "^10.6.0",
