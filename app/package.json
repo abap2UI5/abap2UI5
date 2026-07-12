@@ -18,7 +18,7 @@
     "@sap/ux-ui5-tooling": "^1.27.0",
     "@ui5/cli": "^4.0.57",
     "@ui5/linter": "^1.23.1",
-    "eslint": "^10.6.0",
+    "eslint": "^10.7.0",
     "globals": "^17.7.0",
     "mbt": "^1.2.49",
     "prettier": "^3.9.4",
