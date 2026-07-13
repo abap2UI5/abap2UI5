@@ -1269,12 +1269,64 @@ CLASS ltcl_test_entry_refs_children IMPLEMENTATION.
 ENDCLASS.
 
 
+"------------------------------------------------------------------------
+" Helper: app with a tree-like table (rows carry a sub-table and a struct)
+"------------------------------------------------------------------------
+CLASS ltcl_app_tree DEFINITION FINAL
+  FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+
+    TYPES:
+      BEGIN OF ty_s_node,
+        user      TYPE string,
+        validated TYPE abap_bool,
+      END OF ty_s_node.
+    TYPES ty_t_nodes TYPE STANDARD TABLE OF ty_s_node WITH EMPTY KEY.
+
+    TYPES:
+      BEGIN OF ty_s_adr,
+        city TYPE string,
+        zip  TYPE string,
+      END OF ty_s_adr.
+
+    TYPES:
+      BEGIN OF ty_s_root,
+        user    TYPE string,
+        enabled TYPE abap_bool,
+        s_adr   TYPE ty_s_adr,
+        nodes   TYPE ty_t_nodes,
+      END OF ty_s_root.
+    TYPES ty_t_tree TYPE STANDARD TABLE OF ty_s_root WITH EMPTY KEY.
+
+    DATA mt_tree TYPE ty_t_tree.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+CLASS ltcl_app_tree IMPLEMENTATION.
+  METHOD z2ui5_if_app~main ##NEEDED.
+  ENDMETHOD.
+ENDCLASS.
+
+
 CLASS ltcl_test_delta_apply DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
   PRIVATE SECTION.
     METHODS test_update_first_row  FOR TESTING RAISING cx_static_check.
     METHODS test_update_second_row FOR TESTING RAISING cx_static_check.
     METHODS test_out_of_range      FOR TESTING RAISING cx_static_check.
+    METHODS test_nested_cell       FOR TESTING RAISING cx_static_check.
+    METHODS test_nested_mixed      FOR TESTING RAISING cx_static_check.
+    METHODS test_struct_component  FOR TESTING RAISING cx_static_check.
+    METHODS test_subtable_replace  FOR TESTING RAISING cx_static_check.
+
+    METHODS tree_app_create
+      RETURNING
+        VALUE(result) TYPE REF TO ltcl_app_tree.
 ENDCLASS.
 
 CLASS ltcl_test_delta_apply IMPLEMENTATION.
@@ -1349,6 +1401,104 @@ CLASS ltcl_test_delta_apply IMPLEMENTATION.
                                         act = lines( lo_app->mt_tab ) ).
     cl_abap_unit_assert=>assert_equals( exp = `A`
                                         act = lo_app->mt_tab[ 1 ]-col1 ).
+  ENDMETHOD.
+
+  METHOD tree_app_create.
+
+    result = NEW #( ).
+    result->mt_tree = VALUE #( ( user    = `Manager`
+                                 enabled = abap_false
+                                 s_adr   = VALUE #( city = `Old Town`
+                                                    zip  = `00000` )
+                                 nodes   = VALUE #( ( user = `E1` validated = abap_false )
+                                                    ( user = `E2` validated = abap_false ) ) ) ).
+
+  ENDMETHOD.
+
+  METHOD test_nested_cell.
+    DATA(lo_app) = tree_app_create( ).
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                  app   = lo_app ).
+
+    " a cell edit inside the nested table arrives as a nested __delta
+    DATA(lo_delta) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse(
+        `{"__delta":{"0":{"NODES":{"__delta":{"1":{"VALIDATED":true}}}}}}` ) ).
+
+    lo_model->delta_apply_to_table( io_val_front = lo_delta
+                                    iv_name      = `MT_TREE` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = lo_app->mt_tree[ 1 ]-nodes[ 2 ]-validated ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_false
+                                        act = lo_app->mt_tree[ 1 ]-nodes[ 1 ]-validated ).
+    cl_abap_unit_assert=>assert_equals( exp = `E1`
+                                        act = lo_app->mt_tree[ 1 ]-nodes[ 1 ]-user ).
+    cl_abap_unit_assert=>assert_equals( exp = `Manager`
+                                        act = lo_app->mt_tree[ 1 ]-user ).
+  ENDMETHOD.
+
+  METHOD test_nested_mixed.
+    DATA(lo_app) = tree_app_create( ).
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                  app   = lo_app ).
+
+    " a root-level cell and a nested cell change in the same delta
+    DATA(lo_delta) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse(
+        `{"__delta":{"0":{"ENABLED":true,"NODES":{"__delta":{"0":{"USER":"E1-NEW"}}}}}}` ) ).
+
+    lo_model->delta_apply_to_table( io_val_front = lo_delta
+                                    iv_name      = `MT_TREE` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = lo_app->mt_tree[ 1 ]-enabled ).
+    cl_abap_unit_assert=>assert_equals( exp = `E1-NEW`
+                                        act = lo_app->mt_tree[ 1 ]-nodes[ 1 ]-user ).
+    cl_abap_unit_assert=>assert_equals( exp = `E2`
+                                        act = lo_app->mt_tree[ 1 ]-nodes[ 2 ]-user ).
+  ENDMETHOD.
+
+  METHOD test_struct_component.
+    DATA(lo_app) = tree_app_create( ).
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                  app   = lo_app ).
+
+    " a struct member edit ships the whole struct value (no __delta marker)
+    DATA(lo_delta) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse(
+        `{"__delta":{"0":{"S_ADR":{"CITY":"Berlin","ZIP":"10115"}}}}` ) ).
+
+    lo_model->delta_apply_to_table( io_val_front = lo_delta
+                                    iv_name      = `MT_TREE` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `Berlin`
+                                        act = lo_app->mt_tree[ 1 ]-s_adr-city ).
+    cl_abap_unit_assert=>assert_equals( exp = `10115`
+                                        act = lo_app->mt_tree[ 1 ]-s_adr-zip ).
+    cl_abap_unit_assert=>assert_equals( exp = `Manager`
+                                        act = lo_app->mt_tree[ 1 ]-user ).
+  ENDMETHOD.
+
+  METHOD test_subtable_replace.
+    DATA(lo_app) = tree_app_create( ).
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
+                                                  app   = lo_app ).
+
+    " a whole sub-table value (array leaf) replaces the nested table
+    DATA(lo_delta) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse(
+        `{"__delta":{"0":{"NODES":[{"USER":"NEW","VALIDATED":true}]}}}` ) ).
+
+    lo_model->delta_apply_to_table( io_val_front = lo_delta
+                                    iv_name      = `MT_TREE` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 1
+                                        act = lines( lo_app->mt_tree[ 1 ]-nodes ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `NEW`
+                                        act = lo_app->mt_tree[ 1 ]-nodes[ 1 ]-user ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = lo_app->mt_tree[ 1 ]-nodes[ 1 ]-validated ).
   ENDMETHOD.
 
 ENDCLASS.

@@ -96,10 +96,20 @@ CLASS z2ui5_cl_core_srv_model DEFINITION PUBLIC FINAL.
     METHODS delta_apply_to_table
       IMPORTING
         io_val_front TYPE REF TO z2ui5_if_ajson
-        iv_name      TYPE string.
+        iv_name      TYPE string
+      RAISING
+        z2ui5_cx_ajson_error.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
+
+    METHODS delta_apply_nodes
+      IMPORTING
+        io_delta TYPE REF TO z2ui5_if_ajson
+      CHANGING
+        ct_tab   TYPE STANDARD TABLE
+      RAISING
+        z2ui5_cx_ajson_error.
 
 ENDCLASS.
 
@@ -771,16 +781,22 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lo_delta) = io_val_front->slice( `/__delta` ).
-    DATA(lt_idx) = lo_delta->members( `/` ).
+    delta_apply_nodes( EXPORTING io_delta = io_val_front->slice( `/__delta` )
+                       CHANGING  ct_tab   = <delta_tab> ).
+
+  ENDMETHOD.
+
+  METHOD delta_apply_nodes.
+
+    DATA(lt_idx) = io_delta->members( `/` ).
     LOOP AT lt_idx INTO DATA(lv_idx_str).
       DATA(lv_tabix) = CONV i( lv_idx_str ) + 1.
       FIELD-SYMBOLS <delta_row> TYPE any.
-      READ TABLE <delta_tab> INDEX lv_tabix ASSIGNING <delta_row>.
+      READ TABLE ct_tab INDEX lv_tabix ASSIGNING <delta_row>.
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      DATA(lo_row_d) = lo_delta->slice( |/{ lv_idx_str }| ).
+      DATA(lo_row_d) = io_delta->slice( |/{ lv_idx_str }| ).
       DATA(lt_fld) = lo_row_d->members( `/` ).
       LOOP AT lt_fld INTO DATA(lv_fld).
         FIELD-SYMBOLS <comp> TYPE any.
@@ -789,14 +805,42 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
           CONTINUE.
         ENDIF.
         DATA(lv_fld_path) = |/{ lv_fld }|.
-        IF lo_row_d->get_node_type( lv_fld_path ) = z2ui5_if_ajson_types=>node_type-boolean.
-          <comp> = lo_row_d->get_boolean( lv_fld_path ).
-        ELSE.
-          " numbers intentionally go through get_string: the raw JSON text
-          " converts losslessly into any numeric target type, while
-          " get_number would round through a binary float first
-          <comp> = lo_row_d->get_string( lv_fld_path ).
-        ENDIF.
+
+        CASE lo_row_d->get_node_type( lv_fld_path ).
+
+          WHEN z2ui5_if_ajson_types=>node_type-boolean.
+            <comp> = lo_row_d->get_boolean( lv_fld_path ).
+
+          WHEN z2ui5_if_ajson_types=>node_type-object.
+            " either a nested table delta (marked by __delta) or a
+            " structure component shipped as a whole value
+            DATA(lo_sub) = lo_row_d->slice( lv_fld_path ).
+            IF lo_sub->exists( `/__delta` ) = abap_true.
+              DATA lr_sub TYPE REF TO data.
+              GET REFERENCE OF <comp> INTO lr_sub.
+              FIELD-SYMBOLS <sub_tab> TYPE STANDARD TABLE.
+              ASSIGN lr_sub->* TO <sub_tab>.
+              IF sy-subrc = 0.
+                delta_apply_nodes( EXPORTING io_delta = lo_sub->slice( `/__delta` )
+                                   CHANGING  ct_tab   = <sub_tab> ).
+              ENDIF.
+            ELSE.
+              lo_sub->to_abap( EXPORTING iv_corresponding = abap_true
+                               IMPORTING ev_container     = <comp> ).
+            ENDIF.
+
+          WHEN z2ui5_if_ajson_types=>node_type-array.
+            " a whole sub-table value replaced a nested delta on the client
+            lo_row_d->slice( lv_fld_path )->to_abap( EXPORTING iv_corresponding = abap_true
+                                                     IMPORTING ev_container     = <comp> ).
+
+          WHEN OTHERS.
+            " numbers intentionally go through get_string: the raw JSON text
+            " converts losslessly into any numeric target type, while
+            " get_number would round through a binary float first
+            <comp> = lo_row_d->get_string( lv_fld_path ).
+        ENDCASE.
+
       ENDLOOP.
     ENDLOOP.
 
