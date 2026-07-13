@@ -13920,29 +13920,28 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD split_container.
 
-    result = me.
-    _generic( name   = `SplitContainer`
-              t_prop = VALUE #( ( n = `id`                          v = id )
-                                ( n = `initialDetail`               v = initialdetail )
-                                ( n = `initialMaster`               v = initialmaster )
-                                ( n = `backgroundColor`             v = backgroundcolor )
-                                ( n = `backgroundImage`             v = backgroundimage )
-                                ( n = `backgroundOpacity`           v = backgroundopacity )
-                                ( n = `backgroundRepeat`            v = backgroundrepeat )
-                                ( n = `defaultTransitionNameDetail` v = defaulttransitionnamedetail )
-                                ( n = `defaultTransitionNameMaster` v = defaulttransitionnamemaster )
-                                ( n = `masterButtonText`            v = masterbuttontext )
-                                ( n = `masterButtonTooltip`         v = masterbuttontooltip )
-                                ( n = `afterDetailNavigate`         v = afterdetailnavigate )
-                                ( n = `afterMasterClose`            v = aftermasterclose )
-                                ( n = `afterMasterNavigate`         v = aftermasternavigate )
-                                ( n = `afterMasterOpen`             v = aftermasteropen )
-                                ( n = `beforeMasterClose`           v = beforemasterclose )
-                                ( n = `beforeMasterOpen`            v = beforemasteropen )
-                                ( n = `detailNavigate`              v = detailnavigate )
-                                ( n = `masterButton`                v = masterbutton )
-                                ( n = `masterNavigate`              v = masternavigate )
-                                ( n = `mode`                        v = mode ) ) ).
+    result = _generic( name   = `SplitContainer`
+                       t_prop = VALUE #( ( n = `id`                          v = id )
+                                         ( n = `initialDetail`               v = initialdetail )
+                                         ( n = `initialMaster`               v = initialmaster )
+                                         ( n = `backgroundColor`             v = backgroundcolor )
+                                         ( n = `backgroundImage`             v = backgroundimage )
+                                         ( n = `backgroundOpacity`           v = backgroundopacity )
+                                         ( n = `backgroundRepeat`            v = backgroundrepeat )
+                                         ( n = `defaultTransitionNameDetail` v = defaulttransitionnamedetail )
+                                         ( n = `defaultTransitionNameMaster` v = defaulttransitionnamemaster )
+                                         ( n = `masterButtonText`            v = masterbuttontext )
+                                         ( n = `masterButtonTooltip`         v = masterbuttontooltip )
+                                         ( n = `afterDetailNavigate`         v = afterdetailnavigate )
+                                         ( n = `afterMasterClose`            v = aftermasterclose )
+                                         ( n = `afterMasterNavigate`         v = aftermasternavigate )
+                                         ( n = `afterMasterOpen`             v = aftermasteropen )
+                                         ( n = `beforeMasterClose`           v = beforemasterclose )
+                                         ( n = `beforeMasterOpen`            v = beforemasteropen )
+                                         ( n = `detailNavigate`              v = detailnavigate )
+                                         ( n = `masterButton`                v = masterbutton )
+                                         ( n = `masterNavigate`              v = masternavigate )
+                                         ( n = `mode`                        v = mode ) ) ).
 
   ENDMETHOD.
 
@@ -15219,11 +15218,17 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     ENDIF.
 
     DATA(lv_tmp2) = COND #( WHEN mv_ns <> `` THEN |{ mv_ns }:| ).
-    DATA(lv_tmp3) = REDUCE string( INIT val = `` FOR row IN mt_prop WHERE ( v <> `` ) "#EC CI_SORTSEQ
-                          NEXT val = |{ val } { row-n }="{ escape( val    = COND string( WHEN row-v = abap_true
-                                                                                         THEN `true`
-                                                                                         ELSE row-v )
-                                                                   format = z2ui5_cl_a2ui5_context=>cv_format_e_xml_attr ) }"| ).
+
+    " collect the attribute fragments and join them once - the previous
+    " REDUCE re-allocated the growing attribute string per property
+    DATA(lt_attr) = VALUE string_table( ).
+    LOOP AT mt_prop REFERENCE INTO DATA(lr_prop) WHERE v <> ``. "#EC CI_SORTSEQ
+      APPEND | { lr_prop->n }="{ escape( val    = COND string( WHEN lr_prop->v = abap_true
+                                                               THEN `true`
+                                                               ELSE lr_prop->v )
+                                         format = z2ui5_cl_a2ui5_context=>cv_format_e_xml_attr ) }"| TO lt_attr.
+    ENDLOOP.
+    DATA(lv_tmp3) = concat_lines_of( lt_attr ).
 
     IF mt_child IS INITIAL.
       APPEND | <{ lv_tmp2 }{ mv_name }{ lv_tmp3 }/>| TO ct_parts.

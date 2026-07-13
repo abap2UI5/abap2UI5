@@ -45,7 +45,11 @@ sap.ui.define(
 
     // Single reusable BusyDialog flashed when the user clicks while a
     // roundtrip is already in flight (created lazily, kept for reuse).
+    // The timestamp throttles the flash: rapid clicking during a slow
+    // roundtrip would otherwise run a full open/render/close cycle per
+    // click without adding any feedback.
     let _busyDialog = null;
+    let _busyFlashUntil = 0;
 
     function applyStoredSizeLimit(viewKey, oModel) {
       if (!oModel) return;
@@ -361,11 +365,15 @@ sap.ui.define(
         }
 
         // If a roundtrip is already in flight, briefly show a BusyDialog so
-        // the user gets visual feedback instead of a silent click.
+        // the user gets visual feedback instead of a silent click - at most
+        // once per second, further clicks inside that window are ignored.
         if (AppState.state.isBusy && !ignoreBusy) {
-          if (!_busyDialog) _busyDialog = new BusyDialog();
-          _busyDialog.open();
-          queueMicrotask(() => _busyDialog.close());
+          if (Date.now() >= _busyFlashUntil) {
+            _busyFlashUntil = Date.now() + 1000;
+            if (!_busyDialog) _busyDialog = new BusyDialog();
+            _busyDialog.open();
+            queueMicrotask(() => _busyDialog.close());
+          }
           return;
         }
 
@@ -407,15 +415,12 @@ sap.ui.define(
         }
 
         oBody.ID = AppState.state.oResponse?.ID;
-        // Object arguments are stringified for transport; the event name in
-        // args[0] is left as-is. null is excluded - it would stringify to
-        // the literal "null" instead of staying an empty value.
-        oBody.ARGUMENTS = args.map((item, i) => {
-          if (i > 0 && item !== null && typeof item === "object") {
-            return JSON.stringify(item);
-          }
-          return item;
-        });
+        // Arguments travel as raw JSON values - the request body is
+        // serialized exactly once in Server.readHttp. Object arguments are
+        // turned into JSON strings by the backend when it fills
+        // T_EVENT_ARG, so apps keep receiving them as strings; stringifying
+        // them here as well would encode (and escape) the payload twice.
+        oBody.ARGUMENTS = args.slice();
 
         Server.roundtrip(oBody);
         Lib.runCallbacks(AppState.state.onAfterRoundtrip);

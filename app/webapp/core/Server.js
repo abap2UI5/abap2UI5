@@ -224,6 +224,16 @@ sap.ui.define(
       },
 
       _getScrollInfo() {
+        // Release the per-element resolution cache of onScrollCapture once
+        // its DOM node left the document (view replaced/destroyed) - the
+        // detached element and its control would otherwise stay referenced
+        // until the user scrolls the next time.
+        if (this._lastScrollTarget && !this._lastScrollTarget.isConnected) {
+          this._lastScrollTarget = undefined;
+          this._lastScrollUi5El = undefined;
+          this._lastScrollSlotKey = undefined;
+        }
+
         // Reads scrollLeft/scrollTop straight from the DOM element the user
         // last scrolled in each view slot (recorded by onScrollCapture).
         // X = scrollLeft, Y = scrollTop. Slots the user never scrolled are

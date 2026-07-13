@@ -153,6 +153,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_get_response_cookie  FOR TESTING RAISING cx_static_check.
     METHODS test_delete_resp_cookie   FOR TESTING RAISING cx_static_check.
     METHODS test_set_session_stateful FOR TESTING RAISING cx_static_check.
+    METHODS test_request_cached       FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -248,6 +249,24 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = 1
                                         act = mo_server->mv_stateful ).
+
+  ENDMETHOD.
+
+  METHOD test_request_cached.
+
+    mo_server->request->mv_cdata = `first`.
+
+    cl_abap_unit_assert=>assert_equals( exp = `first`
+                                        act = mo_cut->get_cdata( ) ).
+
+    " the resolved request object is cached per instance - a wrapper
+    " always serves exactly one request, so swapping the server's
+    " request object afterwards has no effect anymore
+    mo_server->request = NEW #( ).
+    mo_server->request->mv_cdata = `second`.
+
+    cl_abap_unit_assert=>assert_equals( exp = `first`
+                                        act = mo_cut->get_cdata( ) ).
 
   ENDMETHOD.
 

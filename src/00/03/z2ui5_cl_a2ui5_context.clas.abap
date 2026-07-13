@@ -517,11 +517,11 @@ CLASS z2ui5_cl_a2ui5_context DEFINITION
 
     TYPES:
       BEGIN OF ty_s_bool_cache,
-        absolute_name TYPE string,
-        is_bool       TYPE abap_bool,
+        typedescr TYPE REF TO cl_abap_typedescr,
+        is_bool   TYPE abap_bool,
       END OF ty_s_bool_cache.
 
-    CLASS-DATA mt_bool_cache TYPE HASHED TABLE OF ty_s_bool_cache WITH UNIQUE KEY absolute_name.
+    CLASS-DATA mt_bool_cache TYPE HASHED TABLE OF ty_s_bool_cache WITH UNIQUE KEY typedescr.
 
     TYPES:
       BEGIN OF ty_s_attri_cache,
@@ -704,15 +704,15 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
         DATA(lo_descr) = cl_abap_elemdescr=>describe_by_data( val ).
 
         " all supported boolean types are character-like flags, this check
-        " filters out every other type before the name based cache lookup
+        " filters out every other type before the cache lookup
         IF lo_descr->type_kind <> cl_abap_typedescr=>typekind_char.
           RETURN.
         ENDIF.
 
-        DATA(lv_abs_name) = CONV string( lo_descr->absolute_name ).
-
+        " type descriptors are singletons, so the reference identifies the
+        " type without converting/hashing the absolute name on every call
         READ TABLE mt_bool_cache REFERENCE INTO DATA(lr_cache)
-             WITH TABLE KEY absolute_name = lv_abs_name.
+             WITH TABLE KEY typedescr = lo_descr.
         IF sy-subrc = 0.
           result = lr_cache->is_bool.
           RETURN.
@@ -721,7 +721,7 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
         DATA(lo_ele) = CAST cl_abap_elemdescr( lo_descr ).
         result = boolean_check_by_name( lo_ele->get_relative_name( ) ).
 
-        INSERT VALUE #( absolute_name = lv_abs_name is_bool = result ) INTO TABLE mt_bool_cache.
+        INSERT VALUE #( typedescr = lo_descr is_bool = result ) INTO TABLE mt_bool_cache.
 
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
