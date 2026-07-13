@@ -3,7 +3,7 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <DEVC>
-    <CTEXT>abap-util - https://github.com/oblomov-dev/abap-util</CTEXT>
+    <CTEXT>abap-util - https://github.com/abap-util/abap-util</CTEXT>
    </DEVC>
   </asx:values>
  </asx:abap>
