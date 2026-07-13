@@ -12,6 +12,10 @@ env:
   # execute it on node24 until upstream publishes a node24-based release.
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
+concurrency:
+  group: create_frontend
+  cancel-in-progress: false
+
 jobs:
   create_frontend:
     if: github.repository == 'abap2UI5/abap2UI5'
