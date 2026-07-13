@@ -157,12 +157,13 @@ src/
 │   └── 03/                    #   Context/HTTP abstractions (z2ui5_cl_a2ui5_context, _http, _json_fltr, z2ui5_cx_a2ui5_error) — vendored copies from abap-util (except _json_fltr)
 ├── 01/                        # Layer 1: Core Engine
 │   ├── 01/                    #   Draft service (z2ui5_cl_core_srv_draft + z2ui5_t_01)
-│   ├── 02/                    #   Core classes (handler, client, action, app, srv_bind, srv_event, srv_model)
+│   ├── 02/                    #   Core classes (handler, client, action, app, srv_bind, srv_event, srv_model + z2ui5_if_core_types)
 │   └── 03/                    #   Embedded UI5 frontend (auto-generated, DO NOT EDIT)
 ├── 02/                        # Layer 2: Public API
 │   ├── z2ui5_if_app.intf.abap          # Main app interface (version constant)
 │   ├── z2ui5_if_client.intf.abap       # Client interaction methods
 │   ├── z2ui5_if_types.intf.abap        # Shared type definitions
+│   ├── z2ui5_if_action.intf.abap       # Generic action interface (gen method)
 │   ├── z2ui5_if_exit.intf.abap         # Customization exit points
 │   ├── z2ui5_cl_http_handler.clas.abap # HTTP entry point
 │   ├── z2ui5_cl_xml_view.clas.abap     # Fluent XML view builder (~511KB)
@@ -174,8 +175,8 @@ src/
     ├── 01/                    #   Retired z2ui5_cl_util* classes + z2ui5_t_91
     └── 02/                    #   Built-in popups (z2ui5_cl_pop_*, formerly src/02/01/)
                                #   to_confirm, to_inform, to_select, file_dl, file_ul, table, textedit,
-                               #   pdf, html, messages, error, bal, input_val, data, image_editor,
-                               #   js_loader, get_range, get_range_m
+                               #   pdf, html, messages, error, input_val, data, demo_output,
+                               #   image_editor, js_loader, get_range, get_range_m
 ```
 
 ### Additional Directories
@@ -327,7 +328,7 @@ Config files: `eslint.config.mjs`, `.prettierrc`, `.editorconfig`, `ui5.yaml`, `
 
 ### Testing
 
-- **Unit tests:** Embedded in source files as `.testclasses.abap` (47 files as of v1.142.0), run via abaplint transpiler in Node.js
+- **Unit tests:** Embedded in source files as `.testclasses.abap` (50 files as of v1.142.0), run via abaplint transpiler in Node.js
 - **Browser tests:** Playwright in `node/tests/e2e/` — Chromium, Firefox, WebKit against localhost:3000 (config: `node/playwright.config.js`; run in CI by `test_browser.yaml` after downport + transpile). Covers the POST/draft wire contract (`roundtrip.spec.js`), XSS regression tests for `Lib.sanitizeMessageDetails` in a real DOM (`lib-sanitizer.spec.js`), the fatal-error overlay (`error-view.spec.js` — accessibility semantics, focus management, Retry action) and the shell smoke test (`example.spec.js`). Note: the transpiled Node backend currently never returns backend-built view XML — interface attributes read through an interface-typed reference resolve to a missing JS property in the transpiler output, so `check_on_init( )` is always false there; extend the roundtrip tests with view-rendering assertions once that upstream `@abaplint/transpiler` issue is fixed
 - **JS unit specs:** the specs under `node/tests/` load the **real** `app/webapp` modules through a stubbed `sap.ui.define` (`loadModule.js`, with stubbable module dependencies) — never test a copied function. Covered: `core/Lib.js` (`buildDeltaFromPaths.spec.js`, `utilHelpers.spec.js`), `core/AppState.js` (`appState.spec.js`), `core/ViewSlots.js` (`viewSlots.spec.js`), `cc/UITableExt.js` (`uiTableExt.spec.js`), `core/Messages.js` (`messages.spec.js`), `core/DebugTool.js` (`debugTool.spec.js`), `core/Server.js` timeout handling (`serverTimeout.spec.js`) and UI5-element resolution incl. the pre-1.106 fallback for scroll/focus capture (`serverClosestElement.spec.js`), the public `Util.js` date helpers (`util.spec.js`). Run without a browser: `npx playwright test -c node/playwright-unit.config.js`
 - **Unit test metadata:** When a class has a `.testclasses.abap` file, its `.clas.xml` **must** contain `<WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>`. When a class has no test file, this flag **must not** be present. Mismatches cause `local_testclass_consistency` lint errors.
