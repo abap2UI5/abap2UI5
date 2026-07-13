@@ -59,17 +59,15 @@ CLASS z2ui5_cl_app_smartmultiinpu_js IMPLEMENTATION.
              `      init() {` && |\n| &&
              `        this._setControlBound = this.setControl.bind(this);` && |\n| &&
              `        this._oInput = null;` && |\n| &&
-             `        this._oPendingInnerControlsCreated = null;` && |\n| &&
+             `        this._aPendingInnerControlsCreated = [];` && |\n| &&
              `        this._bInnerControlsCreated = false;` && |\n| &&
              `        Lib.registerCallback("onAfterRendering", this._setControlBound);` && |\n| &&
              `      },` && |\n| &&
              `      exit() {` && |\n| &&
              `        Lib.unregisterCallback("onAfterRendering", this._setControlBound);` && |\n| &&
-             `        // Resolve any still-pending promise so awaiters don't hang.` && |\n| &&
-             `        if (this._oPendingInnerControlsCreated) {` && |\n| &&
-             `          this._oPendingInnerControlsCreated(null);` && |\n| &&
-             `        }` && |\n| &&
-             `        this._oPendingInnerControlsCreated = null;` && |\n| &&
+             `        // Resolve any still-pending promises so awaiters don't hang.` && |\n| &&
+             `        this._aPendingInnerControlsCreated.forEach((resolve) => resolve(null));` && |\n| &&
+             `        this._aPendingInnerControlsCreated = [];` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onTokenUpdate(oEvent) {` && |\n| &&
@@ -145,17 +143,17 @@ CLASS z2ui5_cl_app_smartmultiinpu_js IMPLEMENTATION.
              `          if (this._bInnerControlsCreated) {` && |\n| &&
              `            resolve(this._oInput);` && |\n| &&
              `          } else {` && |\n| &&
-             `            this._oPendingInnerControlsCreated = resolve;` && |\n| &&
+             `            this._aPendingInnerControlsCreated.push(resolve);` && |\n| &&
              `          }` && |\n| &&
              `        });` && |\n| &&
              `      },` && |\n| &&
              `      onInnerControlsCreated(oEvent) {` && |\n| &&
              `        this._oInput = oEvent.getSource();` && |\n| &&
-             `        if (this._oPendingInnerControlsCreated) {` && |\n| &&
-             `          this._oPendingInnerControlsCreated(this._oInput);` && |\n| &&
-             `        }` && |\n| &&
-             `        this._oPendingInnerControlsCreated = null;` && |\n| &&
              `        this._bInnerControlsCreated = true;` && |\n| &&
+             `        this._aPendingInnerControlsCreated.forEach((resolve) =>` && |\n| &&
+             `          resolve(this._oInput),` && |\n| &&
+             `        );` && |\n| &&
+             `        this._aPendingInnerControlsCreated = [];` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&
              `  },` && |\n| &&
