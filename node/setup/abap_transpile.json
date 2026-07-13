@@ -29,6 +29,8 @@
       {"object": "Z2UI5_CL_AJSON", "class": "ltcl_parser_test", "method": "unicode_characters", "note": "CL_ABAP_CONV_IN_CE=>uccpi dynamic call not supported in NodeJS runtime"},
       {"object": "Z2UI5_CL_AJSON", "class": "ltcl_writer_test", "method": "set_timestampl", "note": "NodeJS timestamp precision is milliseconds, ABAP expects microseconds"},
       {"object": "Z2UI5_CL_AJSON", "class": "ltcl_abap_to_json", "method": "set_value_timestampl", "note": "NodeJS timestamp precision is milliseconds, ABAP expects microseconds"},
+      {"object": "Z2UI5_CL_UTIL", "class": "ltcl_time_ops", "method": "add_seconds", "note": "CL_ABAP_TSTMP loses sub-second timestampl precision in the NodeJS runtime, exact second diffs are unreliable"},
+      {"object": "Z2UI5_CL_UTIL", "class": "ltcl_time_ops", "method": "diff_seconds", "note": "CL_ABAP_TSTMP loses sub-second timestampl precision in the NodeJS runtime, exact second diffs are unreliable"},
       {"object": "Z2UI5_CL_UTIL_EXT", "class": "ltcl_zip_ops", "method": "roundtrip", "note": "CL_ABAP_ZIP=>LOAD is not implemented in the open-abap transpiler runtime"},
       {"object": "Z2UI5_CL_UTIL_EXT", "class": "ltcl_source_ops", "method": "source_get_method_basic", "note": "CL_OO_FACTORY stub lacks the IF_OO_CLIF_SOURCE_FACTORY interface and REPOSRC is not populated in the NodeJS runtime"}
     ]
