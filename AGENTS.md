@@ -20,7 +20,7 @@ abap2UI5 is a framework for building SAP UI5 applications purely in ABAP — no 
 | [abap2UI5](https://github.com/abap2UI5/abap2UI5) | Core framework (this repo) |
 | [samples](https://github.com/abap2UI5/samples) | Sample applications and usage examples |
 | [docs](https://github.com/abap2UI5/docs) | Project documentation |
-| [abap-util](https://github.com/abap-util/abap-util) | Master repository of the platform utilities — `src/00/03/` is a trimmed, renamed copy of its classes (see "Vendored utility classes" below) |
+| [abap-util](https://github.com/abap-util/abap-util) | Master catalog of the platform utilities (all classes, all methods) — `src/00/03/` holds renamed copies of the classes the framework needs, with the context class trimmed to the used methods (see "Vendored utility classes" below) |
 
 > **Building apps?** This file is the briefing for AI assistants working **on the framework itself**. For everything an AI needs to **build apps with** abap2UI5 — app template, client API, view-building patterns, lifecycle, deprecated controls — see the single canonical guide at <https://abap2ui5.github.io/docs/advanced/agent.html>.
 
@@ -86,28 +86,28 @@ src/
 └── 99/   Obsolete package — retired z2ui5_cl_util* classes (99/01) and built-in popups (99/02), kept for downstream compatibility only
 ```
 
-- **Layer 0 (`src/00/`)** — Self-contained utility libraries. AJSON (`src/00/01/`) handles JSON; S-RTTI (`src/00/02/`) provides runtime type reflection — both are mirrored from external projects, DO NOT MODIFY. `src/00/03/` holds the context/HTTP abstractions (`z2ui5_cl_a2ui5_context`, `z2ui5_cl_a2ui5_http`, `z2ui5_cl_a2ui5_json_fltr`, `z2ui5_cx_a2ui5_error`) — `z2ui5_cl_a2ui5_context`, `z2ui5_cl_a2ui5_http` and `z2ui5_cx_a2ui5_error` are **vendored copies** from the [abap-util](https://github.com/abap-util/abap-util) master repository (see "Vendored utility classes" below). The `noIssues` flag in `abaplint.jsonc` suppresses lint warnings for all of `src/00`.
+- **Layer 0 (`src/00/`)** — Self-contained utility libraries. AJSON (`src/00/01/`) handles JSON; S-RTTI (`src/00/02/`) provides runtime type reflection — both are mirrored from external projects, DO NOT MODIFY. `src/00/03/` holds the context/HTTP abstractions (`z2ui5_cl_a2ui5_context`, `z2ui5_cl_a2ui5_http`, `z2ui5_cl_a2ui5_json_fltr`, `z2ui5_cx_a2ui5_error`) — `z2ui5_cl_a2ui5_context`, `z2ui5_cl_a2ui5_http` and `z2ui5_cx_a2ui5_error` are **vendored copies** from the [abap-util](https://github.com/abap-util/abap-util) master catalog (see "Vendored utility classes" below). The `noIssues` flag in `abaplint.jsonc` suppresses lint warnings for all of `src/00`.
 - **Layer 1 (`src/01/`)** — Core engine. Session drafts (`src/01/01/`), request processing, event routing, data binding, model management, app lifecycle (`src/01/02/`). Embedded UI5 frontend resources as ABAP string constants (`src/01/03/` — auto-generated, never manually edit).
 - **Layer 2 (`src/02/`)** — Public API. The stable contract for app developers. Includes the exit/customization framework.
 - **Obsolete package (`src/99/`)** — Two subpackages: `src/99/01/` holds the retired utility classes (`z2ui5_cl_util`, `z2ui5_cl_util_db`, `_ext`, `_http`, `_log`, `_msg`, `_range`, `_xml`, `z2ui5_cx_util_error`, table `z2ui5_t_91`) — the framework no longer uses any of them (replaced by the `z2ui5_cl_a2ui5_*` classes in `src/00/03/`); `src/99/02/` holds the built-in popup/dialog apps (`z2ui5_cl_pop_*`, formerly `src/02/01/`). Everything here remains only so existing downstream apps keep compiling; the contents are removal candidates. Do not add new consumers and do not extend them. Also covered by the `noIssues` lint exemption.
 
 ### Vendored Utility Classes (`src/00/03/` ← abap-util)
 
-Platform-abstraction utilities (RTTI, conversions, UUID, messages, HTTP, environment detection, …) are developed and tested in the **[abap-util](https://github.com/abap-util/abap-util) master repository**. abap2UI5 does **not** depend on abap-util at install time — abapGit has no dependency management, and abap2UI5 must stay "clone and go". Instead, `src/00/03/` contains a **renamed copy** of the needed classes, **trimmed to the methods the framework actually uses**:
+Platform-abstraction utilities (RTTI, conversions, UUID, messages, HTTP, environment detection, …) come from the **[abap-util](https://github.com/abap-util/abap-util) master catalog**, which contains all utility classes with all methods. abap2UI5 does **not** depend on abap-util at install time — abapGit has no dependency management, and abap2UI5 must stay "clone and go". Instead, `src/00/03/` contains a **renamed copy** of the classes the framework needs; the context class is additionally **trimmed to the methods the framework actually uses**:
 
 | Copy in this repo (`src/00/03/`) | Master in abap-util |
 |---|---|
-| `z2ui5_cl_a2ui5_context` | `zabaputil_cl_util_context` (subset of its methods) |
-| `z2ui5_cl_a2ui5_http` | `zabaputil_cl_util_http` |
-| `z2ui5_cx_a2ui5_error` | `zabaputil_cx_error` |
+| `z2ui5_cl_a2ui5_context` | `zabaputil_cl_util_context` (trimmed to the used methods) |
+| `z2ui5_cl_a2ui5_http` | `zabaputil_cl_util_http` (copied as-is) |
+| `z2ui5_cx_a2ui5_error` | `zabaputil_cx_error` (copied as-is) |
 
 (`z2ui5_cl_a2ui5_json_fltr` is framework-owned and has no abap-util master.)
 
-**Rules for working with these copies:**
-- **Fix bugs upstream first.** A defect in shared utility logic is fixed and unit-tested in abap-util, then the fix is applied identically to the copy here. Never let the copy's logic diverge from the master — a copy-only fix is lost for every other consumer and overwritten by the next sync.
-- **A copy may differ from the master only in class name and method set.** Method implementations stay textually identical.
-- **Need a utility method that isn't in the copy yet?** Copy it (together with any private helpers it calls) from the current abap-util master state — do not write a new implementation here.
-- **Framework-specific logic does not belong in the copy.** If a helper is abap2UI5-specific, put it in the appropriate core class instead, or add it to abap-util if it is generic enough to be reused.
+**How the copies are maintained:**
+- **Class-level selection, method-level trimming for the context class only.** The framework vendors just the classes it needs; `z2ui5_cl_a2ui5_context` carries only the methods the framework uses (plus the private helpers those methods need), while the other vendored classes are copied as-is.
+- **New methods are added locally.** When the framework needs a utility method the context class doesn't have yet, write it directly into `z2ui5_cl_a2ui5_context`. If the method already exists in abap-util, copy it from there (with its helper closure) instead of re-implementing it.
+- **Periodic AI sync-back:** every few weeks an AI compares abap-util with all consumers and merges methods that were added locally back into abap-util, so the master catalog stays the superset of all methods and other projects can reuse them.
+- **Framework-specific logic does not belong in the context class.** Only generic, reusable utilities go there (they will be harvested into abap-util by the sync); abap2UI5-specific helpers live in the appropriate core class instead.
 
 The same pattern is used by other projects in the ecosystem (e.g. [popups](https://github.com/abap2UI5-addons/popups) with `z2ui5_cl_popup_context`), each with its own namespace and its own method subset.
 
@@ -360,7 +360,7 @@ Config files: `eslint.config.mjs`, `.prettierrc`, `.editorconfig`, `ui5.yaml`, `
 | `src/01/02/z2ui5_cl_core_srv_model.clas.abap` | JSON model management |
 | `src/01/02/z2ui5_cl_core_srv_event.clas.abap` | Event registration and payload assembly |
 | `src/01/01/z2ui5_cl_core_srv_draft.clas.abap` | Draft/session persistence |
-| `src/00/03/z2ui5_cl_a2ui5_context.clas.abap` | Framework utility/context class (RTTI, conversions, UUID, messages, environment detection) — vendored copy from [abap-util](https://github.com/abap-util/abap-util), fixes go upstream first |
+| `src/00/03/z2ui5_cl_a2ui5_context.clas.abap` | Framework utility/context class (RTTI, conversions, UUID, messages, environment detection) — vendored copy from [abap-util](https://github.com/abap-util/abap-util), trimmed to used methods; new methods may be added locally and are periodically synced back to abap-util |
 | `app/webapp/core/AppState.js` | Owner of the shared frontend state + `z2ui5.*` globals inventory |
 | `app/webapp/core/ViewSlots.js` | View-slot access layer (get/set/byId/destroy per slot) |
 | `app/webapp/core/Lib.js` | Shared frontend helpers |
