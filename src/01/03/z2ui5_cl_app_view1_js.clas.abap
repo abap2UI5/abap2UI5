@@ -417,10 +417,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        AppState.state.oBody = oBody;` && |\n| &&
              `` && |\n| &&
              `        // Decide which view's model holds the data we need to send back. The` && |\n| &&
-             `        // mapping is: main app controller -> main view, popup controller ->` && |\n| &&
-             `        // popup view, etc.` && |\n| &&
-             `        const oModel = this._pickModelForRoundtrip(useMainModel, oBody);` && |\n|.
+             `        // mapping is: main app controller -> main view, popup controller ->` && |\n|.
     result = result &&
+             `        // popup view, etc.` && |\n| &&
+             `        const oModel = this._pickModelForRoundtrip(useMainModel, oBody);` && |\n| &&
              `` && |\n| &&
              `        Lib.runCallbacks(AppState.state.onBeforeRoundtrip);` && |\n| &&
              `` && |\n| &&
