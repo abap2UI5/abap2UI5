@@ -258,7 +258,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest2_view_destroy.
 
-    mo_action->ms_next-s_set-s_view_nest2-check_update_model = abap_true.
+    mo_action->ms_next-s_set-s_view_nest2-check_destroy = abap_true.
 
   ENDMETHOD.
 
@@ -282,7 +282,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest_view_destroy.
 
-    mo_action->ms_next-s_set-s_view_nest-check_update_model = abap_true.
+    mo_action->ms_next-s_set-s_view_nest-check_destroy = abap_true.
 
   ENDMETHOD.
 

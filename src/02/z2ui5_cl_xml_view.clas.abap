@@ -10881,7 +10881,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD end_column_pages.
-    result = me.
+
+    result = _generic( name = `endColumnPages`
+                       ns   = `f` ).
+
   ENDMETHOD.
 
   METHOD expandable_text.
@@ -11858,7 +11861,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                            ( n = `id`               v = id )
                            ( n = `class`               v = class )
                            ( n = `text`             v = text )
-                           ( n = `renderMode `      v = rendermode )
+                           ( n = `renderMode`      v = rendermode )
                            ( n = `colorScheme`      v = colorscheme )
                            ( n = `displayOnly`      v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( displayonly ) )
                            ( n = `icon`             v = icon )
@@ -15223,6 +15226,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     " REDUCE re-allocated the growing attribute string per property
     DATA(lt_attr) = VALUE string_table( ).
     LOOP AT mt_prop REFERENCE INTO DATA(lr_prop) WHERE v <> ``. "#EC CI_SORTSEQ
+      " Note: abap_true is the character 'X', so a property value of exactly
+      " `X` is rendered as "true". This is intentional - callers pass abap_true
+      " for boolean UI5 attributes. A literal `X` value is not distinguishable
+      " here; use a different representation if you need to render the letter X.
       APPEND | { lr_prop->n }="{ escape( val    = COND string( WHEN lr_prop->v = abap_true
                                                                THEN `true`
                                                                ELSE lr_prop->v )

@@ -166,7 +166,7 @@ src/
 │   ├── z2ui5_if_action.intf.abap       # Generic action interface (gen method)
 │   ├── z2ui5_if_exit.intf.abap         # Customization exit points
 │   ├── z2ui5_cl_http_handler.clas.abap # HTTP entry point
-│   ├── z2ui5_cl_xml_view.clas.abap     # Fluent XML view builder (~511KB)
+│   ├── z2ui5_cl_xml_view.clas.abap     # Fluent XML view builder (~850KB)
 │   ├── z2ui5_cl_xml_view_cc.clas.abap  # Custom controls builder
 │   ├── z2ui5_cl_exit.clas.abap         # Default exit implementation
 │   ├── z2ui5_cl_app_startup.clas.abap  # Default startup app
@@ -276,7 +276,7 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
 
 ### Style Rules
 
-- Max 100 statements per method, max cyclomatic complexity 20, max nesting depth 5
+- Max 50 statements per method, max cyclomatic complexity 10, max nesting depth 5
 - No aliases, no STATICS, no BREAK-POINT, no DEFINE macros
 - `NEW #()` instead of `CREATE OBJECT`; `xsdbool()` for booleans (NEVER use `boolc()` — the downport pipeline converts `xsdbool` to `boolc` automatically); `line_exists()` instead of READ TABLE
 - Backtick string literals (`` ` ``) preferred over single quotes
@@ -314,7 +314,7 @@ npm run unit                  # Unit tests
 
 ### Frontend Tooling (`app/`)
 
-The `app/` folder has its own `package.json` (name `z2ui5`, `sapuxLayer: CUSTOMER_BASE`) with UI5-specific dev dependencies (`@ui5/cli`, `@ui5/linter`, `@sap/ui5-builder-webide-extension`, `@sap/ux-ui5-tooling`, `eslint`, `prettier`, `mbt`, `rimraf`). Key scripts:
+The `app/` folder has its own `package.json` (name `z2ui5`, `sapuxLayer: CUSTOMER_BASE`) with UI5-specific dev dependencies (`@ui5/cli`, `@ui5/linter`, `@sap/ui5-builder-webide-extension`, `@sap/ux-ui5-tooling`, `eslint`, `prettier`). Key scripts:
 
 | Script (run inside `app/`) | Purpose |
 |---|---|
@@ -322,7 +322,6 @@ The `app/` folder has its own `package.json` (name `z2ui5`, `sapuxLayer: CUSTOME
 | `npm run build` | UI5 production build |
 | `npm run format` / `format:check` | Prettier |
 | `npm run lint` | ESLint on `webapp/**/*.js` (eslint:recommended + `eqeqeq` "smart", `prefer-const`, `no-new-func`) |
-| `npm run deploy` / `build:cf` / `build:mta` | Cloud Foundry / MTA deployment |
 
 Config files: `eslint.config.mjs`, `.prettierrc`, `.editorconfig`, `ui5.yaml`, `ui5-local.yaml`, `ui5-mock.yaml`.
 
@@ -342,7 +341,7 @@ Config files: `eslint.config.mjs`, `.prettierrc`, `.editorconfig`, `ui5.yaml`, `
 |---|---|
 | `src/02/z2ui5_if_app.intf.abap` | Main app interface + version constant |
 | `src/02/z2ui5_if_client.intf.abap` | All client methods (view, events, binding, navigation) |
-| `src/02/z2ui5_cl_xml_view.clas.abap` | Fluent view builder (~511KB) — read only sections you need |
+| `src/02/z2ui5_cl_xml_view.clas.abap` | Fluent view builder (~850KB) — read only sections you need |
 | `src/01/02/z2ui5_cl_core_handler.clas.abap` | Central request processor + main loop |
 | `src/01/02/z2ui5_cl_core_client.clas.abap` | Implements z2ui5_if_client |
 | `abaplint.jsonc` | Linter rules — source of truth for code standards |
@@ -408,6 +407,6 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
 The following items may look like gaps but are intentional design choices:
 
 - **Draft table `Z2UI5_T_01` has no version column** — Drafts are session-scoped (deleted after a few hours). There is no long-lived state that needs schema migration. Versioning would add complexity with no benefit.
-- **No `componentPreload` declaration in `app/webapp/manifest.json` / `index.html`** — both production delivery paths already bundle all modules: the ABAP-served page inlines every `app/webapp` file via the generated `z2ui5_cl_app_preload` (`sap.ui.require.preload` in the GET response), and the standalone build (`npm run build` / `build:cf`) emits a `Component-preload.js` through the standard `generateComponentPreload` task, which the async bootstrap loads by convention. Per-module requests only occur in dev flows (`fiori run`, `node/srv/express.mjs`), which is intentional.
+- **No `componentPreload` declaration in `app/webapp/manifest.json` / `index.html`** — both production delivery paths already bundle all modules: the ABAP-served page inlines every `app/webapp` file via the generated `z2ui5_cl_app_preload` (`sap.ui.require.preload` in the GET response), and the standalone build (`npm run build`) emits a `Component-preload.js` through the standard `generateComponentPreload` task, which the async bootstrap loads by convention. Per-module requests only occur in dev flows (`fiori run`, `node/srv/express.mjs`), which is intentional.
 - **Changelog** — The project maintains a `changelog.txt` in the repository root. A `CHANGELOG.md` is not needed separately.
-- **`z2ui5_cl_xml_view` size (~11K lines)** — This class is intentionally large: each method wraps one UI5 control for the fluent API. New wrapper methods, new controls, and new parameters are allowed — but they **must mirror the UI5 SDK API strictly 1:1**: method names, property names, event names, allowed values, and nesting must match the corresponding UI5 control exactly as documented in the UI5 SDK. Never invent convenience shortcuts, renamed properties, or combined helpers that have no direct counterpart in the UI5 control API. When a UI5 control offers a new property/aggregation (e.g. the `rowMode` variants `Auto`/`Fixed`/`Interactive` with their respective properties), model it exactly as the SDK does rather than folding it into an unrelated existing method.
+- **`z2ui5_cl_xml_view` size (~16K lines)** — This class is intentionally large: each method wraps one UI5 control for the fluent API. New wrapper methods, new controls, and new parameters are allowed — but they **must mirror the UI5 SDK API strictly 1:1**: method names, property names, event names, allowed values, and nesting must match the corresponding UI5 control exactly as documented in the UI5 SDK. Never invent convenience shortcuts, renamed properties, or combined helpers that have no direct counterpart in the UI5 control API. When a UI5 control offers a new property/aggregation (e.g. the `rowMode` variants `Auto`/`Fixed`/`Interactive` with their respective properties), model it exactly as the SDK does rather than folding it into an unrelated existing method.

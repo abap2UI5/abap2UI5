@@ -679,10 +679,10 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
 
   METHOD uitableext.
 
-    result = mo_view->_generic( name   = `UITableExt`
-                                ns     = `z2ui5`
-                                t_prop = VALUE #( ( n = `tableId` v = tableid )
-                          ) ).
+    result = mo_view.
+    mo_view->_generic( name   = `UITableExt`
+                       ns     = `z2ui5`
+                       t_prop = VALUE #( ( n = `tableId` v = tableid ) ) ).
 
   ENDMETHOD.
 

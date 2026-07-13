@@ -22,7 +22,7 @@
     "align_parameters": true,
     "align_pseudo_comments": false,
     "align_type_expressions": true,
-    "keyword_case": true,    
+    "keyword_case": true,
     "contains_tab": true,
     "colon_missing_space": true,
     "line_break_multiple_parameters": true,

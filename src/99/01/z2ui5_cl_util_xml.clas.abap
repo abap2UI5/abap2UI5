@@ -244,6 +244,9 @@ CLASS z2ui5_cl_util_xml IMPLEMENTATION.
     ENDIF.
 
     DATA(lv_tmp2) = COND #( WHEN mv_ns <> `` THEN |{ mv_ns }:| ).
+    " Note: abap_true is the character 'X', so a property value of exactly `X`
+    " is rendered as "true". Intentional - callers pass abap_true for boolean
+    " UI5 attributes; a literal `X` value is not distinguishable here.
     DATA(lv_tmp3) = REDUCE string( INIT val = `` FOR row IN mt_prop WHERE ( v <> `` ) "#EC CI_SORTSEQ
                           NEXT val = |{ val } { row-n }="{ escape( val    = COND string( WHEN row-v = abap_true
                                                                                          THEN `true`
@@ -277,6 +280,9 @@ CLASS z2ui5_cl_util_xml IMPLEMENTATION.
 
     DATA(lv_pad)  = repeat( val = ` ` occ = iv_depth * 2 ).
     DATA(lv_ns)   = COND #( WHEN mv_ns <> `` THEN |{ mv_ns }:| ).
+    " Note: abap_true is the character 'X', so a property value of exactly `X`
+    " is rendered as "true". Intentional - callers pass abap_true for boolean
+    " UI5 attributes; a literal `X` value is not distinguishable here.
     DATA(lv_attr) = REDUCE string( INIT val = `` FOR row IN mt_prop WHERE ( v <> `` ) "#EC CI_SORTSEQ
                           NEXT val = |{ val } { row-n }="{ escape( val    = COND string( WHEN row-v = abap_true
                                                                                          THEN `true`

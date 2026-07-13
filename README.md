@@ -1,5 +1,5 @@
 <details>
-  
+
 <summary>🚦</summary>
 <br>
 
@@ -37,7 +37,7 @@
 
 <p align="center">
   <a href="https://abap2UI5.org">📚 Documentation</a> •
-  <a href="https://github.com/abap2UI5/samples">🎯 Samples (250+ apps)</a> •
+  <a href="https://github.com/abap2UI5/samples">🎯 Samples (350+ apps)</a> •
   <a href="https://github.com/abap2UI5/abap2UI5/issues">💬 Issues</a> •
   <a href="https://www.linkedin.com/company/abap2ui5">🔗 LinkedIn</a> •
   <a href="https://communityinviter.com/apps/abapgit/abap">👥 Slack</a> •
@@ -110,11 +110,14 @@ You never touch JSON, HTTP, or JavaScript yourself. You implement `z2ui5_if_app~
 * Highlighted in the Boring Enterprise Nerdletter [(YouTube)](https://www.youtube.com/watch?v=G62exySitCo&list=PLlxj8-g1r2GlVYXVQnnV5izKwKtEn6KIp&t=1008s) [(Newsletter - 08.03.2023)](https://boringenterprisenerds.substack.com/p/34-abap2ui5-sap-cva-burnout-c2c-shortwave)
 * Featured on SAP Developer News [(YouTube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
 
+#### Dependencies
+abap2UI5 is standalone — it has **no external dependencies** and installs with a single abapGit pull. The [ajson](https://github.com/sbcgua/ajson) and [S-RTTI](https://github.com/sandraros/S-RTTI) libraries it uses are bundled (vendored) in `src/00`.
+
 #### Credits
 This project thrives thanks to its [contributors](https://github.com/abap2UI5/abap2UI5/graphs/contributors) and these awesome tools:
 * Code versioning & distribution via [abapGit](https://abapgit.org/) [(contributors)](https://abapgit.org/sponsor.html)
-* Static Code Checks via [abaplint](https://abaplint.org/) [(contributors)](https://github.com/abaplint/abaplint/graphs/contributors) 
-* Unit Testing via [open-abap](https://github.com/open-abap) [(contributors)](https://github.com/open-abap/open-abap-core/graphs/contributors) 
+* Static Code Checks via [abaplint](https://abaplint.org/) [(contributors)](https://github.com/abaplint/abaplint/graphs/contributors)
+* Unit Testing via [open-abap](https://github.com/open-abap) [(contributors)](https://github.com/open-abap/open-abap-core/graphs/contributors)
 * JSON handling through [ajson](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
 * Runtime serialization using [S-RTTI](https://github.com/sandraros/S-RTTI) [(sandrarossi)](https://github.com/sandraros)
 * Platform utilities vendored from [abap-util](https://github.com/abap-util/abap-util) (`src/00/03/` holds renamed copies of the needed classes, the context class trimmed to used methods — locally added methods are periodically synced back to abap-util)
