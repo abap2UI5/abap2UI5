@@ -13920,29 +13920,28 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD split_container.
 
-    result = me.
-    _generic( name   = `SplitContainer`
-              t_prop = VALUE #( ( n = `id`                          v = id )
-                                ( n = `initialDetail`               v = initialdetail )
-                                ( n = `initialMaster`               v = initialmaster )
-                                ( n = `backgroundColor`             v = backgroundcolor )
-                                ( n = `backgroundImage`             v = backgroundimage )
-                                ( n = `backgroundOpacity`           v = backgroundopacity )
-                                ( n = `backgroundRepeat`            v = backgroundrepeat )
-                                ( n = `defaultTransitionNameDetail` v = defaulttransitionnamedetail )
-                                ( n = `defaultTransitionNameMaster` v = defaulttransitionnamemaster )
-                                ( n = `masterButtonText`            v = masterbuttontext )
-                                ( n = `masterButtonTooltip`         v = masterbuttontooltip )
-                                ( n = `afterDetailNavigate`         v = afterdetailnavigate )
-                                ( n = `afterMasterClose`            v = aftermasterclose )
-                                ( n = `afterMasterNavigate`         v = aftermasternavigate )
-                                ( n = `afterMasterOpen`             v = aftermasteropen )
-                                ( n = `beforeMasterClose`           v = beforemasterclose )
-                                ( n = `beforeMasterOpen`            v = beforemasteropen )
-                                ( n = `detailNavigate`              v = detailnavigate )
-                                ( n = `masterButton`                v = masterbutton )
-                                ( n = `masterNavigate`              v = masternavigate )
-                                ( n = `mode`                        v = mode ) ) ).
+    result = _generic( name   = `SplitContainer`
+                       t_prop = VALUE #( ( n = `id`                          v = id )
+                                         ( n = `initialDetail`               v = initialdetail )
+                                         ( n = `initialMaster`               v = initialmaster )
+                                         ( n = `backgroundColor`             v = backgroundcolor )
+                                         ( n = `backgroundImage`             v = backgroundimage )
+                                         ( n = `backgroundOpacity`           v = backgroundopacity )
+                                         ( n = `backgroundRepeat`            v = backgroundrepeat )
+                                         ( n = `defaultTransitionNameDetail` v = defaulttransitionnamedetail )
+                                         ( n = `defaultTransitionNameMaster` v = defaulttransitionnamemaster )
+                                         ( n = `masterButtonText`            v = masterbuttontext )
+                                         ( n = `masterButtonTooltip`         v = masterbuttontooltip )
+                                         ( n = `afterDetailNavigate`         v = afterdetailnavigate )
+                                         ( n = `afterMasterClose`            v = aftermasterclose )
+                                         ( n = `afterMasterNavigate`         v = aftermasternavigate )
+                                         ( n = `afterMasterOpen`             v = aftermasteropen )
+                                         ( n = `beforeMasterClose`           v = beforemasterclose )
+                                         ( n = `beforeMasterOpen`            v = beforemasteropen )
+                                         ( n = `detailNavigate`              v = detailnavigate )
+                                         ( n = `masterButton`                v = masterbutton )
+                                         ( n = `masterNavigate`              v = masternavigate )
+                                         ( n = `mode`                        v = mode ) ) ).
 
   ENDMETHOD.
 
