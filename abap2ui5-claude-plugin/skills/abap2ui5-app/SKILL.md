@@ -19,7 +19,7 @@ shell once, then exchanges JSON with your ABAP class. You build views with the
 fluent `z2ui5_cl_xml_view` builder, bind
 ABAP variables to controls, and react to events — all in ABAP.
 
-This skill carries a **control catalog** and **recipe book** mined from the ~360
+This skill carries a **control catalog** and **recipe book** mined from the 360+
 official samples, so you build from proven patterns rather than guesswork.
 
 ## Step 0 — Prerequisites (check once per project)

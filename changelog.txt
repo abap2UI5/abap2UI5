@@ -9,6 +9,24 @@ Legend
 - : removed
 
 
+2026-07-13 v1.142.0
+-------------------
++ Added outbound HTTP client helper to z2ui5_cl_util_http
++ Added sap.m.Menu wrapper and ProductSwitch, GridContainer, DynamicDateRange controls
++ Added Fixed and Interactive table row modes with expanded Auto mode parameters
++ Added support for nested table deltas with improved request parsing
+! Documented Since versions and deprecated controls in the XML view API
+! Renamed abap2ui5 utility classes to shorter a2ui5 names
+! Refactored utility classes into context and HTTP abstractions
+! Linked startup page to the new samples overview when present
+* Fixed frontend state leakage during app navigation
+* Fixed dangling '#' in URLs by initializing the HashChanger at startup
+* Fixed scroll/focus capture on UI5 bootstraps older than 1.106
+* Fixed nav_app_leave to pass a supplied empty r_data to the previous app
+* Fixed DebugTool View tab by reading mProperties
+- Removed nav app constants and obsolete utility classes
+
+
 2025-12-14 v1.141.0
 -------------------
 + Added Image Editor popup for image manipulation

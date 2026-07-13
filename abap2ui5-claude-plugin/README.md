@@ -3,7 +3,7 @@
 A portable [Claude Code](https://claude.com/claude-code) plugin that helps you
 build [abap2UI5](https://abap2ui5.org) applications in **pure ABAP** — UI5 apps
 with no JavaScript, OData or RAP. It ships one skill, `abap2ui5-app`, backed by a
-control catalog, recipe book and example index mined from the ~360 official
+control catalog, recipe book and example index mined from the 360+ official
 samples.
 
 ## What it does
