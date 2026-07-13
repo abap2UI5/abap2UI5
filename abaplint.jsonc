@@ -2,7 +2,8 @@
   "global": {
     "files": "/src/**/*.*",
     "noIssues": [
-      "/src/00"
+      "/src/00",
+      "/src/99"
     ]
   },
   "dependencies": [
@@ -129,7 +130,7 @@
     "description_empty": true,
     "double_space": false,
     "downport": true,
-    "empty_line_in_statement": true,
+    "empty_line_in_statement": false,
     "empty_statement": true,
     "empty_structure": {
       "loop": false,

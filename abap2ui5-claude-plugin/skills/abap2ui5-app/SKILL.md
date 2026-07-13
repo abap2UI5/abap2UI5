@@ -16,7 +16,7 @@ abap2UI5 lets you build SAP UI5 apps purely in ABAP. Every app is **one ABAP
 class** implementing `z2ui5_if_app` with a single `main( client )` method that
 the framework calls on every HTTP roundtrip. The browser loads a generic UI5
 shell once, then exchanges JSON with your ABAP class. You build views with the
-fluent `z2ui5_cl_xml_view` builder (or the generic `z2ui5_cl_util_xml`), bind
+fluent `z2ui5_cl_xml_view` builder, bind
 ABAP variables to controls, and react to events — all in ABAP.
 
 This skill carries a **control catalog** and **recipe book** mined from the ~360
@@ -96,7 +96,7 @@ flow.
 - **`_bind_edit` = editable/two-way, `_bind` = read-only.** Picking the wrong one
   is the most common bug.
 - **Don't invent control or client-method names** — confirm in `controls.md` /a
-  sample, else use the generic builder (`z2ui5_cl_util_xml` / `_generic`).
+  sample, else use the raw-XML escape hatch `_generic`.
 - **Match the project's ABAP conventions**; don't impose the demo naming.
 
 ## Reference files

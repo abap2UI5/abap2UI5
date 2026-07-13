@@ -117,6 +117,7 @@ This project thrives thanks to its [contributors](https://github.com/abap2UI5/ab
 * Unit Testing via [open-abap](https://github.com/open-abap) [(contributors)](https://github.com/open-abap/open-abap-core/graphs/contributors) 
 * JSON handling through [ajson](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
 * Runtime serialization using [S-RTTI](https://github.com/sandraros/S-RTTI) [(sandrarossi)](https://github.com/sandraros)
+* Platform utilities vendored from [abap-util](https://github.com/abap-util/abap-util) (`src/00/03/` holds renamed copies of the needed classes, the context class trimmed to used methods — locally added methods are periodically synced back to abap-util)
 * ABAP Cloud & Standard compatibility with [Steampunkification](https://github.com/heliconialabs/steampunkification) [(contributors)](https://github.com/heliconialabs/steampunkification/graphs/contributors)
 * Syntax downporting via the [downport branch](https://github.com/abap2UI5/abap2UI5/tree/702) by [abaplint](https://abaplint.org/) [(larshp)](https://github.com/larshp)
 * Namespace renaming with [abaplint](https://abaplint.org/) [(larshp)](https://github.com/larshp)

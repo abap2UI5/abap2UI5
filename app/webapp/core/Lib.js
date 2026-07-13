@@ -239,35 +239,77 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     return typeof id === "string" && id !== "" && id !== "undefined";
   }
 
+  // Parse the path segments behind the attribute into (row, field) steps.
+  // Returns null when the segments do not follow the alternating
+  // <numeric row>/<field name> shape - the caller then ships the whole
+  // attribute. A non-numeric segment after a field (a struct member, e.g.
+  // attr/3/S_ADR/CITY) marks the field as leaf: the whole current value at
+  // row/field is shipped, which always covers the deeper edit too.
+  function parseDeltaSteps(segs) {
+    const steps = [];
+    let i = 0;
+    while (i < segs.length) {
+      const row = segs[i];
+      if (row === "" || Number.isNaN(Number(row))) return null;
+      const field = segs[i + 1];
+      if (field === undefined || field === "" || !Number.isNaN(Number(field))) {
+        return null;
+      }
+      i += 2;
+      if (i >= segs.length || Number.isNaN(Number(segs[i]))) {
+        steps.push({ row, field, leaf: true });
+        return steps;
+      }
+      // a numeric segment follows -> field is a nested table, walk deeper
+      steps.push({ row, field, leaf: false });
+    }
+    return null;
+  }
+
   // Build the delta object sent to the backend. `paths` is the set of
   // /XX/... paths that the user edited; `xx` is the full XX model data.
+  // Table edits become (recursively nested) __delta structures, so a cell
+  // edit in a nested/tree table ships only the changed cell instead of
+  // the whole outer table.
   function buildDeltaFromPaths(paths, xx) {
     const delta = {};
     for (const path of paths) {
-      // path looks like "/XX/<attr>" or "/XX/<attr>/<row>/<field>"
+      // path looks like "/XX/<attr>" or "/XX/<attr>/<row>/<field>" with
+      // arbitrarily deep <row>/<subtable> repetitions for nested tables
       const parts = path.slice(4).split("/");
-      const [attr, rowIdx, field] = parts;
-      // Only a flat table cell (exactly attr/row/field) qualifies for a
-      // delta. Deeper paths (e.g. tree tables: attr/row/<subtable>/<row>/<field>)
-      // fall back to shipping the whole attribute, which the backend applies
-      // via corresponding-based deserialization.
-      const isRowField =
-        parts.length === 3 && rowIdx !== "" && !Number.isNaN(Number(rowIdx));
-      if (isRowField) {
-        // A full attribute queued by another path already carries every
-        // cell (both read the same current model data) - never downgrade
-        // it to a partial delta, regardless of Set iteration order.
-        if (attr in delta && !delta[attr]?.__delta) continue;
-        // Table cell change -> ship only the changed cell.
-        if (!delta[attr]?.__delta) {
-          delta[attr] = { __delta: {} };
-        }
-        const attrDelta = delta[attr].__delta;
-        if (!attrDelta[rowIdx]) attrDelta[rowIdx] = {};
-        attrDelta[rowIdx][field] = xx[attr]?.[Number(rowIdx)]?.[field];
-      } else {
-        // Scalar change -> ship the whole attribute.
+      const attr = parts[0];
+      const steps = parseDeltaSteps(parts.slice(1));
+      if (!steps) {
+        // Scalar or unrecognized shape -> ship the whole attribute. The
+        // full value always wins over any queued delta: both read the
+        // same current model data, so it is a superset of every delta.
         delta[attr] = xx[attr];
+        continue;
+      }
+      // A full attribute queued by another path already carries every
+      // cell (both read the same current model data) - never downgrade
+      // it to a partial delta, regardless of Set iteration order.
+      if (attr in delta && !delta[attr]?.__delta) continue;
+      if (!delta[attr]?.__delta) delta[attr] = { __delta: {} };
+      let node = delta[attr];
+      let model = xx[attr];
+      for (const { row, field, leaf } of steps) {
+        const rows = node.__delta;
+        if (!rows[row]) rows[row] = {};
+        const rowDelta = rows[row];
+        model = model?.[Number(row)]?.[field];
+        if (leaf) {
+          // The leaf value (cell, struct or whole sub-table) replaces any
+          // nested delta queued for the same field - it reads the same
+          // current model data and therefore carries those edits too.
+          rowDelta[field] = model;
+          break;
+        }
+        // Nested table step - a whole sub-value queued by another path
+        // already covers this deeper edit.
+        if (field in rowDelta && !rowDelta[field]?.__delta) break;
+        if (!rowDelta[field]?.__delta) rowDelta[field] = { __delta: {} };
+        node = rowDelta[field];
       }
     }
     return delta;

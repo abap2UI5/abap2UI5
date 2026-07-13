@@ -194,18 +194,20 @@ test.describe("Edge cases", () => {
     });
   });
 
-  test("deeply nested path (4+ parts) falls back to full array", () => {
-    // "/XX/TABLE1/0/COL1/deep" → parts = ["TABLE1","0","COL1","deep"]
-    // parts.length !== 3 → cannot be expressed as a flat cell delta, so the
-    // whole attribute is shipped instead.
+  test("struct member below a field ships the whole field value", () => {
+    // "/XX/TABLE1/0/COL1/deep" → COL1 carries something deeper, so the
+    // whole current value at row 0 / COL1 is shipped as the leaf - that
+    // always covers the deeper edit too.
     const paths = new Set(["/XX/TABLE1/0/COL1/deep"]);
     const result = _buildDeltaFromPaths(paths, SAMPLE_XX);
-    expect(result).toEqual({ TABLE1: SAMPLE_XX.TABLE1 });
+    expect(result).toEqual({
+      TABLE1: { __delta: { 0: { COL1: "A1" } } },
+    });
   });
 });
 
 // ── 5b. Tree table (nested sub-table) edits ─────────────────────────────
-test.describe("Tree table nested edits → full array fallback", () => {
+test.describe("Tree table nested edits → nested __delta", () => {
   const TREE_XX = {
     MT_TREE: [
       {
@@ -220,12 +222,17 @@ test.describe("Tree table nested edits → full array fallback", () => {
     ],
   };
 
-  test("checkbox on a tree child node ships the whole attribute", () => {
+  test("checkbox on a tree child node ships a nested cell delta", () => {
     // UI5 tree table edit path: /XX/MT_TREE/0/NODES/1/VALIDATED
-    // parts = ["MT_TREE","0","NODES","1","VALIDATED"] → length 5 → fallback.
     const paths = new Set(["/XX/MT_TREE/0/NODES/1/VALIDATED"]);
     const result = _buildDeltaFromPaths(paths, TREE_XX);
-    expect(result).toEqual({ MT_TREE: TREE_XX.MT_TREE });
+    expect(result).toEqual({
+      MT_TREE: {
+        __delta: {
+          0: { NODES: { __delta: { 1: { VALIDATED: false } } } },
+        },
+      },
+    });
   });
 
   test("edit on a tree root node still uses a flat cell delta", () => {
@@ -233,6 +240,88 @@ test.describe("Tree table nested edits → full array fallback", () => {
     const result = _buildDeltaFromPaths(paths, TREE_XX);
     expect(result).toEqual({
       MT_TREE: { __delta: { 0: { VALIDATED: false } } },
+    });
+  });
+
+  test("edits on several tree levels merge into one delta", () => {
+    const paths = new Set([
+      "/XX/MT_TREE/0/ENABLED",
+      "/XX/MT_TREE/0/NODES/0/USER",
+      "/XX/MT_TREE/0/NODES/1/VALIDATED",
+    ]);
+    const result = _buildDeltaFromPaths(paths, TREE_XX);
+    expect(result).toEqual({
+      MT_TREE: {
+        __delta: {
+          0: {
+            ENABLED: false,
+            NODES: {
+              __delta: {
+                0: { USER: "Employee 1" },
+                1: { VALIDATED: false },
+              },
+            },
+          },
+        },
+      },
+    });
+  });
+
+  test("two-level nesting ships only the innermost cell", () => {
+    const DEEP_XX = {
+      T_OUTER: [{ T_MID: [{ T_INNER: [{ VAL: "leaf" }] }] }],
+    };
+    const paths = new Set(["/XX/T_OUTER/0/T_MID/0/T_INNER/0/VAL"]);
+    const result = _buildDeltaFromPaths(paths, DEEP_XX);
+    expect(result).toEqual({
+      T_OUTER: {
+        __delta: {
+          0: {
+            T_MID: {
+              __delta: {
+                0: { T_INNER: { __delta: { 0: { VAL: "leaf" } } } },
+              },
+            },
+          },
+        },
+      },
+    });
+  });
+
+  test("struct member inside a row ships the whole struct", () => {
+    const STRUCT_XX = {
+      T_TAB: [{ S_ADR: { CITY: "Berlin", ZIP: "10115" } }],
+    };
+    const paths = new Set(["/XX/T_TAB/0/S_ADR/CITY"]);
+    const result = _buildDeltaFromPaths(paths, STRUCT_XX);
+    expect(result).toEqual({
+      T_TAB: {
+        __delta: { 0: { S_ADR: { CITY: "Berlin", ZIP: "10115" } } },
+      },
+    });
+  });
+
+  test("leaf edit on a subtable field wins over its nested delta", () => {
+    // e.g. setProperty("/XX/MT_TREE/0/NODES", newArray) after a cell edit:
+    // the whole current sub-table replaces the queued nested delta.
+    const paths = new Set([
+      "/XX/MT_TREE/0/NODES/1/VALIDATED",
+      "/XX/MT_TREE/0/NODES",
+    ]);
+    const result = _buildDeltaFromPaths(paths, TREE_XX);
+    expect(result).toEqual({
+      MT_TREE: { __delta: { 0: { NODES: TREE_XX.MT_TREE[0].NODES } } },
+    });
+  });
+
+  test("nested edit after a whole subtable value keeps the whole value", () => {
+    const paths = new Set([
+      "/XX/MT_TREE/0/NODES",
+      "/XX/MT_TREE/0/NODES/1/VALIDATED",
+    ]);
+    const result = _buildDeltaFromPaths(paths, TREE_XX);
+    expect(result).toEqual({
+      MT_TREE: { __delta: { 0: { NODES: TREE_XX.MT_TREE[0].NODES } } },
     });
   });
 });

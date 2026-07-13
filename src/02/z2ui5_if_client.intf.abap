@@ -3,37 +3,53 @@ INTERFACE z2ui5_if_client
 
   CONSTANTS:
     BEGIN OF cs_event,
+
+      "Framework
       popup_close               TYPE string VALUE `POPUP_CLOSE`,
-      open_new_tab              TYPE string VALUE `OPEN_NEW_TAB`,
       popover_close             TYPE string VALUE `POPOVER_CLOSE`,
-      location_reload           TYPE string VALUE `LOCATION_RELOAD`,
-      nav_container_to          TYPE string VALUE `NAV_CONTAINER_TO`,
-      nest_nav_container_to     TYPE string VALUE `NEST_NAV_CONTAINER_TO`,
-      nest2_nav_container_to    TYPE string VALUE `NEST2_NAV_CONTAINER_TO`,
-      cross_app_nav_to_ext      TYPE string VALUE `CROSS_APP_NAV_TO_EXT`,
-      cross_app_nav_to_prev_app TYPE string VALUE `CROSS_APP_NAV_TO_PREV_APP`,
-      popup_nav_container_to    TYPE string VALUE `POPUP_NAV_CONTAINER_TO`,
-      popover_nav_container_to  TYPE string VALUE `POPOVER_NAV_CONTAINER_TO`,
-      download_b64_file         TYPE string VALUE `DOWNLOAD_B64_FILE`,
+
       set_size_limit            TYPE string VALUE `SET_SIZE_LIMIT`,
       set_odata_model           TYPE string VALUE `SET_ODATA_MODEL`,
-      urlhelper                 TYPE string VALUE `URLHELPER`,
-      history_back              TYPE string VALUE `HISTORY_BACK`,
-      clipboard_app_state       TYPE string VALUE `CLIPBOARD_APP_STATE`,
-      clipboard_copy            TYPE string VALUE `CLIPBOARD_COPY`,
-      store_data                TYPE string VALUE `STORE_DATA`,
-      image_editor_popup_close  TYPE string VALUE `IMAGE_EDITOR_POPUP_CLOSE`,
-      system_logout             TYPE string VALUE `SYSTEM_LOGOUT`,
+
+      cross_app_nav_to_ext      TYPE string VALUE `CROSS_APP_NAV_TO_EXT`,
+      cross_app_nav_to_prev_app TYPE string VALUE `CROSS_APP_NAV_TO_PREV_APP`,
+
+
+      "Action
       set_title                 TYPE string VALUE `SET_TITLE`,
       set_title_launchpad       TYPE string VALUE `SET_TITLE_LAUNCHPAD`,
       set_focus                 TYPE string VALUE `SET_FOCUS`,
       scroll_to                 TYPE string VALUE `SCROLL_TO`,
       scroll_into_view          TYPE string VALUE `SCROLL_INTO_VIEW`,
       start_timer               TYPE string VALUE `START_TIMER`,
+
+      system_logout             TYPE string VALUE `SYSTEM_LOGOUT`,
       keyboard_set_mode         TYPE string VALUE `KEYBOARD_SET_MODE`,
-      z2ui5                     TYPE string VALUE `Z2UI5`,
-      wizard_set_next_step      TYPE string VALUE `WIZARD_SET_NEXT_STEP`,
+      open_new_tab              TYPE string VALUE `OPEN_NEW_TAB`,
+      location_reload           TYPE string VALUE `LOCATION_RELOAD`,
+      download_b64_file         TYPE string VALUE `DOWNLOAD_B64_FILE`,
+      urlhelper                 TYPE string VALUE `URLHELPER`,
+      history_back              TYPE string VALUE `HISTORY_BACK`,
+      clipboard_app_state       TYPE string VALUE `CLIPBOARD_APP_STATE`,
+      clipboard_copy            TYPE string VALUE `CLIPBOARD_COPY`,
+      store_data                TYPE string VALUE `STORE_DATA`,
       play_audio                TYPE string VALUE `PLAY_AUDIO`,
+
+
+      "Control
+      image_editor_popup_close  TYPE string VALUE `IMAGE_EDITOR_POPUP_CLOSE`,
+      wizard_set_next_step      TYPE string VALUE `WIZARD_SET_NEXT_STEP`,
+
+      nav_container_to          TYPE string VALUE `NAV_CONTAINER_TO`,
+      nest_nav_container_to     TYPE string VALUE `NEST_NAV_CONTAINER_TO`,
+      nest2_nav_container_to    TYPE string VALUE `NEST2_NAV_CONTAINER_TO`,
+      popup_nav_container_to    TYPE string VALUE `POPUP_NAV_CONTAINER_TO`,
+      popover_nav_container_to  TYPE string VALUE `POPOVER_NAV_CONTAINER_TO`,
+
+
+      "todo
+      z2ui5                     TYPE string VALUE `Z2UI5`,
+
     END OF cs_event.
 
   CONSTANTS:

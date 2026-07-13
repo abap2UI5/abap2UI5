@@ -41,6 +41,7 @@ CLASS ltcl_unit_test DEFINITION FINAL
     METHODS test_generic_method   FOR TESTING RAISING cx_static_check.
     METHODS test_segmented_button FOR TESTING RAISING cx_static_check.
     METHODS test_object_header    FOR TESTING RAISING cx_static_check.
+    METHODS test_split_container  FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -849,6 +850,35 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     temp74 = xsdbool( lv_xml CS `Order 123` ).
     cl_abap_unit_assert=>assert_true( temp74 ).
+
+  ENDMETHOD.
+
+  METHOD test_split_container.
+
+    " split_container has to return the new SplitContainer element so the
+    " masterPages/detailPages aggregations nest inside it - it previously
+    " returned the parent and the aggregations ended up next to it
+    DATA(lo_split) = z2ui5_cl_xml_view=>factory(
+      )->page( `Test`
+      )->split_container( mode = `ShowHideMode` ).
+    lo_split->master_pages( )->page( `Master` ).
+    lo_split->detail_pages( )->page( `Detail` ).
+
+    DATA(lv_xml) = lo_split->stringify( ).
+
+    DATA(lv_off_open)   = find( val = lv_xml
+                                sub = `<SplitContainer` ).
+    DATA(lv_off_master) = find( val = lv_xml
+                                sub = `<masterPages` ).
+    DATA(lv_off_detail) = find( val = lv_xml
+                                sub = `<detailPages` ).
+    DATA(lv_off_close)  = find( val = lv_xml
+                                sub = `</SplitContainer>` ).
+
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_off_open >= 0 ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_off_master > lv_off_open ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_off_detail > lv_off_master ) ).
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_off_close > lv_off_detail ) ).
 
   ENDMETHOD.
 

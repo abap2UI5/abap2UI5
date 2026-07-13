@@ -7,11 +7,17 @@ const { loadModule } = require("./loadModule");
 // bootstraps (e.g. 1.71) via the DOM-walk fallback, so scroll and focus
 // capture are not silently skipped there.
 
-function fakeDomNode({ id, isControlRoot = false, parent = null } = {}) {
+function fakeDomNode({
+  id,
+  isControlRoot = false,
+  parent = null,
+  isConnected = false,
+} = {}) {
   return {
     nodeType: 1,
     id,
     parentElement: parent,
+    isConnected,
     hasAttribute: (name) => name === "data-sap-ui" && isControlRoot,
     getAttribute: () => null,
   };
@@ -92,4 +98,52 @@ test("onScrollCapture records the scrolled slot via the fallback", () => {
     control,
     dom: scrolled,
   });
+});
+
+// The per-element resolution cache of onScrollCapture must not retain a
+// detached DOM node (and its control) after the view was replaced - it is
+// released on the next roundtrip's _getScrollInfo.
+
+function loadServerWithScrollCache({ connected }) {
+  const control = { id: "page" };
+  const { module: Server, sandbox } = loadServer({
+    deps: {
+      "z2ui5/core/ViewSlots": {
+        containingSlotKey: (el) => (el === control ? "MAIN" : undefined),
+        slots: [],
+      },
+      "z2ui5/core/AppState": { state: { lastScrolled: {} } },
+    },
+  });
+  sandbox.sap.ui.getCore = () => ({
+    byId: (id) => (id === "page" ? control : undefined),
+  });
+
+  const root = fakeDomNode({ id: "page", isControlRoot: true });
+  const scrolled = fakeDomNode({
+    id: "page-cont",
+    parent: root,
+    isConnected: connected,
+  });
+  Server.onScrollCapture({ target: scrolled });
+  return { Server, scrolled };
+}
+
+test("_getScrollInfo releases the scroll cache once its DOM node is detached", () => {
+  const { Server, scrolled } = loadServerWithScrollCache({ connected: false });
+  expect(Server._lastScrollTarget).toBe(scrolled);
+
+  Server._getScrollInfo();
+
+  expect(Server._lastScrollTarget).toBe(undefined);
+  expect(Server._lastScrollUi5El).toBe(undefined);
+  expect(Server._lastScrollSlotKey).toBe(undefined);
+});
+
+test("_getScrollInfo keeps the scroll cache while its DOM node is connected", () => {
+  const { Server, scrolled } = loadServerWithScrollCache({ connected: true });
+
+  Server._getScrollInfo();
+
+  expect(Server._lastScrollTarget).toBe(scrolled);
 });

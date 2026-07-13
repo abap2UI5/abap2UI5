@@ -259,35 +259,77 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `    return typeof id === "string" && id !== "" && id !== "undefined";` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  // Parse the path segments behind the attribute into (row, field) steps.` && |\n| &&
+             `  // Returns null when the segments do not follow the alternating` && |\n| &&
+             `  // <numeric row>/<field name> shape - the caller then ships the whole` && |\n| &&
+             `  // attribute. A non-numeric segment after a field (a struct member, e.g.` && |\n| &&
+             `  // attr/3/S_ADR/CITY) marks the field as leaf: the whole current value at` && |\n| &&
+             `  // row/field is shipped, which always covers the deeper edit too.` && |\n| &&
+             `  function parseDeltaSteps(segs) {` && |\n| &&
+             `    const steps = [];` && |\n| &&
+             `    let i = 0;` && |\n| &&
+             `    while (i < segs.length) {` && |\n| &&
+             `      const row = segs[i];` && |\n| &&
+             `      if (row === "" || Number.isNaN(Number(row))) return null;` && |\n| &&
+             `      const field = segs[i + 1];` && |\n| &&
+             `      if (field === undefined || field === "" || !Number.isNaN(Number(field))) {` && |\n| &&
+             `        return null;` && |\n| &&
+             `      }` && |\n| &&
+             `      i += 2;` && |\n| &&
+             `      if (i >= segs.length || Number.isNaN(Number(segs[i]))) {` && |\n| &&
+             `        steps.push({ row, field, leaf: true });` && |\n| &&
+             `        return steps;` && |\n| &&
+             `      }` && |\n| &&
+             `      // a numeric segment follows -> field is a nested table, walk deeper` && |\n| &&
+             `      steps.push({ row, field, leaf: false });` && |\n| &&
+             `    }` && |\n| &&
+             `    return null;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  // Build the delta object sent to the backend. ``paths`` is the set of` && |\n| &&
              `  // /XX/... paths that the user edited; ``xx`` is the full XX model data.` && |\n| &&
+             `  // Table edits become (recursively nested) __delta structures, so a cell` && |\n| &&
+             `  // edit in a nested/tree table ships only the changed cell instead of` && |\n| &&
+             `  // the whole outer table.` && |\n| &&
              `  function buildDeltaFromPaths(paths, xx) {` && |\n| &&
              `    const delta = {};` && |\n| &&
              `    for (const path of paths) {` && |\n| &&
-             `      // path looks like "/XX/<attr>" or "/XX/<attr>/<row>/<field>"` && |\n| &&
+             `      // path looks like "/XX/<attr>" or "/XX/<attr>/<row>/<field>" with` && |\n| &&
+             `      // arbitrarily deep <row>/<subtable> repetitions for nested tables` && |\n| &&
              `      const parts = path.slice(4).split("/");` && |\n| &&
-             `      const [attr, rowIdx, field] = parts;` && |\n| &&
-             `      // Only a flat table cell (exactly attr/row/field) qualifies for a` && |\n| &&
-             `      // delta. Deeper paths (e.g. tree tables: attr/row/<subtable>/<row>/<field>)` && |\n| &&
-             `      // fall back to shipping the whole attribute, which the backend applies` && |\n| &&
-             `      // via corresponding-based deserialization.` && |\n| &&
-             `      const isRowField =` && |\n| &&
-             `        parts.length === 3 && rowIdx !== "" && !Number.isNaN(Number(rowIdx));` && |\n| &&
-             `      if (isRowField) {` && |\n| &&
-             `        // A full attribute queued by another path already carries every` && |\n| &&
-             `        // cell (both read the same current model data) - never downgrade` && |\n| &&
-             `        // it to a partial delta, regardless of Set iteration order.` && |\n| &&
-             `        if (attr in delta && !delta[attr]?.__delta) continue;` && |\n| &&
-             `        // Table cell change -> ship only the changed cell.` && |\n| &&
-             `        if (!delta[attr]?.__delta) {` && |\n| &&
-             `          delta[attr] = { __delta: {} };` && |\n| &&
-             `        }` && |\n| &&
-             `        const attrDelta = delta[attr].__delta;` && |\n| &&
-             `        if (!attrDelta[rowIdx]) attrDelta[rowIdx] = {};` && |\n| &&
-             `        attrDelta[rowIdx][field] = xx[attr]?.[Number(rowIdx)]?.[field];` && |\n| &&
-             `      } else {` && |\n| &&
-             `        // Scalar change -> ship the whole attribute.` && |\n| &&
+             `      const attr = parts[0];` && |\n| &&
+             `      const steps = parseDeltaSteps(parts.slice(1));` && |\n| &&
+             `      if (!steps) {` && |\n| &&
+             `        // Scalar or unrecognized shape -> ship the whole attribute. The` && |\n| &&
+             `        // full value always wins over any queued delta: both read the` && |\n| &&
+             `        // same current model data, so it is a superset of every delta.` && |\n| &&
              `        delta[attr] = xx[attr];` && |\n| &&
+             `        continue;` && |\n| &&
+             `      }` && |\n| &&
+             `      // A full attribute queued by another path already carries every` && |\n| &&
+             `      // cell (both read the same current model data) - never downgrade` && |\n| &&
+             `      // it to a partial delta, regardless of Set iteration order.` && |\n| &&
+             `      if (attr in delta && !delta[attr]?.__delta) continue;` && |\n| &&
+             `      if (!delta[attr]?.__delta) delta[attr] = { __delta: {} };` && |\n| &&
+             `      let node = delta[attr];` && |\n| &&
+             `      let model = xx[attr];` && |\n| &&
+             `      for (const { row, field, leaf } of steps) {` && |\n| &&
+             `        const rows = node.__delta;` && |\n| &&
+             `        if (!rows[row]) rows[row] = {};` && |\n| &&
+             `        const rowDelta = rows[row];` && |\n| &&
+             `        model = model?.[Number(row)]?.[field];` && |\n| &&
+             `        if (leaf) {` && |\n| &&
+             `          // The leaf value (cell, struct or whole sub-table) replaces any` && |\n| &&
+             `          // nested delta queued for the same field - it reads the same` && |\n| &&
+             `          // current model data and therefore carries those edits too.` && |\n| &&
+             `          rowDelta[field] = model;` && |\n| &&
+             `          break;` && |\n| &&
+             `        }` && |\n| &&
+             `        // Nested table step - a whole sub-value queued by another path` && |\n| &&
+             `        // already covers this deeper edit.` && |\n| &&
+             `        if (field in rowDelta && !rowDelta[field]?.__delta) break;` && |\n| &&
+             `        if (!rowDelta[field]?.__delta) rowDelta[field] = { __delta: {} };` && |\n| &&
+             `        node = rowDelta[field];` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `    return delta;` && |\n| &&

@@ -244,6 +244,16 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _getScrollInfo() {` && |\n| &&
+             `        // Release the per-element resolution cache of onScrollCapture once` && |\n| &&
+             `        // its DOM node left the document (view replaced/destroyed) - the` && |\n| &&
+             `        // detached element and its control would otherwise stay referenced` && |\n| &&
+             `        // until the user scrolls the next time.` && |\n| &&
+             `        if (this._lastScrollTarget && !this._lastScrollTarget.isConnected) {` && |\n| &&
+             `          this._lastScrollTarget = undefined;` && |\n| &&
+             `          this._lastScrollUi5El = undefined;` && |\n| &&
+             `          this._lastScrollSlotKey = undefined;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
              `        // Reads scrollLeft/scrollTop straight from the DOM element the user` && |\n| &&
              `        // last scrolled in each view slot (recorded by onScrollCapture).` && |\n| &&
              `        // X = scrollLeft, Y = scrollTop. Slots the user never scrolled are` && |\n| &&
@@ -407,7 +417,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            } catch {` && |\n| &&
              `              text = ``HTTP ${response.status}: could not read error body``;` && |\n| &&
              `            }` && |\n| &&
-             `            // An empty error body would render an empty overlay - fall back` && |\n| &&
+             `            // An empty error body would render an empty overlay - fall back` && |\n|.
+    result = result &&
              `            // to the status code so the user sees at least what failed.` && |\n| &&
              `            this.responseError(text || ``HTTP ${response.status}``);` && |\n| &&
              `            return;` && |\n| &&
@@ -417,8 +428,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          let responseData;` && |\n| &&
              `          try {` && |\n| &&
              `            responseData = await response.json();` && |\n| &&
-             `          } catch (e) {` && |\n|.
-    result = result &&
+             `          } catch (e) {` && |\n| &&
              `            this.responseError(``Invalid JSON response: ${e.message}``);` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
