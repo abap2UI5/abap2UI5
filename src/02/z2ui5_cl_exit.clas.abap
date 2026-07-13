@@ -5,7 +5,7 @@ CLASS z2ui5_cl_exit DEFINITION PUBLIC.
 
     CLASS-METHODS init_context
       IMPORTING
-        http_info TYPE z2ui5_cl_abap2ui5_http=>ty_s_http_req.
+        http_info TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
 
     CLASS-METHODS get_instance
       RETURNING
@@ -50,7 +50,7 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
   METHOD get_user_exit_class.
 
     TRY.
-        DATA(exit_classes) = z2ui5_cl_abap2ui5_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_EXIT` ).
+        DATA(exit_classes) = z2ui5_cl_a2ui5_context=>rtti_get_classes_impl_intf( `Z2UI5_IF_EXIT` ).
         DELETE exit_classes WHERE classname = `Z2UI5_CL_EXIT`.
 
         r_class_name = VALUE #( exit_classes[ 1 ]-classname OPTIONAL ).

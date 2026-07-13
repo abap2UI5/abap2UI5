@@ -20,7 +20,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `true`
-        act = z2ui5_cl_abap2ui5_context=>boolean_abap_2_json( abap_true ) ).
+        act = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( abap_true ) ).
 
   ENDMETHOD.
 
@@ -30,7 +30,7 @@ CLASS ltcl_test IMPLEMENTATION.
     " it must not be confused with an initial string (see below)
     cl_abap_unit_assert=>assert_equals(
         exp = `false`
-        act = z2ui5_cl_abap2ui5_context=>boolean_abap_2_json( abap_false ) ).
+        act = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( abap_false ) ).
 
   ENDMETHOD.
 
@@ -42,7 +42,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `X`
-        act = z2ui5_cl_abap2ui5_context=>boolean_abap_2_json( lv_char ) ).
+        act = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( lv_char ) ).
 
   ENDMETHOD.
 
@@ -54,7 +54,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
         exp = ``
-        act = z2ui5_cl_abap2ui5_context=>boolean_abap_2_json( lv_string ) ).
+        act = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( lv_string ) ).
 
   ENDMETHOD.
 
@@ -62,7 +62,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `true`
-        act = z2ui5_cl_abap2ui5_context=>boolean_abap_2_json( `true` ) ).
+        act = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( `true` ) ).
 
   ENDMETHOD.
 
@@ -70,7 +70,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
         exp = `{path}`
-        act = z2ui5_cl_abap2ui5_context=>boolean_abap_2_json( `{path}` ) ).
+        act = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( `{path}` ) ).
 
   ENDMETHOD.
 
@@ -79,11 +79,11 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_char TYPE c LENGTH 1 VALUE 'X'.
     DATA lv_int  TYPE i VALUE 5.
 
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_abap2ui5_context=>boolean_check_by_data( abap_true ) ).
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_abap2ui5_context=>boolean_check_by_data( abap_false ) ).
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_abap2ui5_context=>boolean_check_by_data( lv_char ) ).
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_abap2ui5_context=>boolean_check_by_data( `X` ) ).
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_abap2ui5_context=>boolean_check_by_data( lv_int ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_a2ui5_context=>boolean_check_by_data( abap_true ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_a2ui5_context=>boolean_check_by_data( abap_false ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_a2ui5_context=>boolean_check_by_data( lv_char ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_a2ui5_context=>boolean_check_by_data( `X` ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_a2ui5_context=>boolean_check_by_data( lv_int ) ).
 
   ENDMETHOD.
 
@@ -91,15 +91,15 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " second call for the same type is answered from the
     " descriptor-keyed cache and has to return the same result
-    z2ui5_cl_abap2ui5_context=>boolean_abap_2_json( abap_true ).
+    z2ui5_cl_a2ui5_context=>boolean_abap_2_json( abap_true ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `true`
-        act = z2ui5_cl_abap2ui5_context=>boolean_abap_2_json( abap_true ) ).
+        act = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( abap_true ) ).
 
     cl_abap_unit_assert=>assert_equals(
         exp = `false`
-        act = z2ui5_cl_abap2ui5_context=>boolean_abap_2_json( abap_false ) ).
+        act = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( abap_false ) ).
 
   ENDMETHOD.
 

@@ -129,7 +129,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_payload TYPE string.
     DATA lo_http TYPE REF TO z2ui5_cl_core_handler.
     DATA lo_action TYPE REF TO z2ui5_cl_core_action.
-    DATA lx TYPE REF TO z2ui5_cx_abap2ui5_error.
+    DATA lx TYPE REF TO z2ui5_cx_a2ui5_error.
     DATA temp1 TYPE xsdboolean.
     lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=NONEXISTENT_CLASS"}}}`.
 
@@ -143,7 +143,7 @@ CLASS ltcl_test IMPLEMENTATION.
         lo_action->factory_first_start( ).
         cl_abap_unit_assert=>fail( `Expected exception for nonexistent class` ).
 
-      CATCH z2ui5_cx_abap2ui5_error INTO lx.
+      CATCH z2ui5_cx_a2ui5_error INTO lx.
 
         temp1 = xsdbool( lx->get_text( ) CS `NONEXISTENT_CLASS` ).
         cl_abap_unit_assert=>assert_true( temp1 ).

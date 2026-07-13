@@ -1,4 +1,4 @@
-CLASS z2ui5_cx_abap2ui5_error DEFINITION
+CLASS z2ui5_cx_a2ui5_error DEFINITION
   PUBLIC
   INHERITING FROM cx_no_check FINAL
   CREATE PUBLIC.
@@ -26,7 +26,7 @@ CLASS z2ui5_cx_abap2ui5_error DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cx_abap2ui5_error IMPLEMENTATION.
+CLASS z2ui5_cx_a2ui5_error IMPLEMENTATION.
   METHOD constructor ##ADT_SUPPRESS_GENERATION.
 
     super->constructor( previous = previous ).
@@ -37,7 +37,7 @@ CLASS z2ui5_cx_abap2ui5_error IMPLEMENTATION.
       CATCH cx_root.
         ms_error-text = val.
     ENDTRY.
-    ms_error-uuid = z2ui5_cl_abap2ui5_context=>uuid_get_c32( ).
+    ms_error-uuid = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
 
   ENDMETHOD.
 
@@ -55,7 +55,7 @@ CLASS z2ui5_cx_abap2ui5_error IMPLEMENTATION.
     IF previous IS BOUND.
       DATA(lo_x) = previous.
       WHILE lo_x IS BOUND.
-        result = result && z2ui5_cl_abap2ui5_context=>cv_char_util_newline && lo_x->get_text( ).
+        result = result && z2ui5_cl_a2ui5_context=>cv_char_util_newline && lo_x->get_text( ).
         lo_x = lo_x->previous.
       ENDWHILE.
     ENDIF.

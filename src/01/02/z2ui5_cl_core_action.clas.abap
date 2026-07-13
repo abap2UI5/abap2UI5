@@ -62,7 +62,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
       result->mo_app = z2ui5_cl_core_app=>db_load( mo_http_post->ms_request-s_front-id ).
     ENDIF.
 
-    result->mo_app->ms_draft-id      = z2ui5_cl_abap2ui5_context=>uuid_get_c32( ).
+    result->mo_app->ms_draft-id      = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
     result->mo_app->ms_draft-id_prev = mo_http_post->ms_request-s_front-id.
     result->ms_actual-view           = mo_http_post->ms_request-s_front-view.
 
@@ -89,7 +89,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
               result->ms_actual-check_on_navigated = abap_true.
               result->ms_next-s_set-set_app_state_active = abap_true.
               result->mo_app->ms_draft-id_prev_app_stack = ``.
-              result->mo_app->ms_draft-id = z2ui5_cl_abap2ui5_context=>uuid_get_c32( ).
+              result->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
               RETURN.
             CATCH cx_root.
               " expired or invalid bookmark draft - fall through to a fresh
@@ -99,7 +99,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
           ENDTRY.
         ENDIF.
 
-        result->mo_app->ms_draft-id = z2ui5_cl_abap2ui5_context=>uuid_get_c32( ).
+        result->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
 
         DATA li_app TYPE REF TO z2ui5_if_app.
         CREATE OBJECT li_app TYPE (mo_http_post->ms_request-s_control-app_start).
@@ -109,7 +109,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
         result->ms_actual-check_on_navigated = abap_true.
 
       CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING
             val      = |App with name { mo_http_post->ms_request-s_control-app_start } not found...|
             previous = x.
@@ -148,7 +148,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
     result = NEW #( mo_http_post ).
 
-    result->mo_app->ms_draft-id          = z2ui5_cl_abap2ui5_context=>uuid_get_c32( ).
+    result->mo_app->ms_draft-id          = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
     result->ms_actual-check_on_navigated = abap_true.
     result->mo_app->mo_app               = z2ui5_cl_app_startup=>factory( ).
 
@@ -177,7 +177,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     " itself (see factory_stack_leave / factory_stack_call), so an already
     " assigned draft id is kept as is
     IF val->id_draft IS INITIAL.
-      val->id_draft = z2ui5_cl_abap2ui5_context=>uuid_get_c32( ).
+      val->id_draft = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
     ENDIF.
 
     result = NEW #( mo_http_post ).

@@ -59,8 +59,8 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
       lv_exp_time_in_hours = c_min_exp_time_in_hours.
     ENDIF.
 
-    DATA(lv_n_hours_ago) = z2ui5_cl_abap2ui5_context=>time_subtract_seconds(
-                               time    = z2ui5_cl_abap2ui5_context=>time_get_timestampl( )
+    DATA(lv_n_hours_ago) = z2ui5_cl_a2ui5_context=>time_subtract_seconds(
+                               time    = z2ui5_cl_a2ui5_context=>time_get_timestampl( )
                                seconds = c_seconds_per_hour * lv_exp_time_in_hours ).
 
     DELETE FROM z2ui5_t_01 WHERE timestampl < @lv_n_hours_ago ##SUBRC_OK.
@@ -76,12 +76,12 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
                                  id_prev           = draft-id_prev
                                  id_prev_app       = draft-id_prev_app
                                  id_prev_app_stack = draft-id_prev_app_stack
-                                 timestampl        = z2ui5_cl_abap2ui5_context=>time_get_timestampl( )
+                                 timestampl        = z2ui5_cl_a2ui5_context=>time_get_timestampl( )
                                  data              = model_xml ).
 
     MODIFY z2ui5_t_01 FROM @ls_db.
     IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
         EXPORTING val = `CREATE_OF_DRAFT_ENTRY_ON_DATABASE_FAILED`.
     ENDIF.
     COMMIT WORK AND WAIT.
@@ -107,7 +107,7 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
     ENDIF.
 
     IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
+      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
         EXPORTING val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
     ENDIF.
 

@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_abap2ui5_context DEFINITION
+CLASS z2ui5_cl_a2ui5_context DEFINITION
   PUBLIC FINAL
   CREATE PUBLIC.
 
@@ -18,7 +18,7 @@ CLASS z2ui5_cl_abap2ui5_context DEFINITION
       END OF cs_ui5_msg_type.
 
     " Environment-abstracted character/format constants. Callers must read
-    " these from z2ui5_cl_abap2ui5_context instead of referencing cl_abap_char_utilities /
+    " these from z2ui5_cl_a2ui5_context instead of referencing cl_abap_char_utilities /
     " cl_abap_format directly, so the dependency on those SAP standard classes
     " lives in exactly one place (this class' class_constructor) and can be
     " ported once for non-ABAP runtimes (e.g. transpiled JS).
@@ -661,7 +661,7 @@ CLASS z2ui5_cl_abap2ui5_context DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
+CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
 
   METHOD class_constructor.
 
@@ -988,7 +988,7 @@ CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
                                              EXCEPTIONS type_not_found = 1 ).
 
       CATCH cx_root INTO DATA(x).
-        RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING
             previous = x.
     ENDTRY.
@@ -1222,7 +1222,7 @@ CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
         CATCH cx_root.
 
           DATA(lv_text) = `UNSUPPORTED_FEATURE`.
-          RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error
+          RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
             EXPORTING
               val = lv_text.
 
@@ -1301,11 +1301,16 @@ CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
 
   METHOD ui5_get_msg_type.
 
-    result = SWITCH #( val
-                       WHEN `E` THEN cs_ui5_msg_type-e
-                       WHEN `S` THEN cs_ui5_msg_type-s
-                       WHEN `W` THEN cs_ui5_msg_type-w
-                       ELSE cs_ui5_msg_type-i ).
+    CASE val.
+      WHEN `E`.
+        result = cs_ui5_msg_type-e.
+      WHEN `S`.
+        result = cs_ui5_msg_type-s.
+      WHEN `W`.
+        result = cs_ui5_msg_type-w.
+      WHEN OTHERS.
+        result = cs_ui5_msg_type-i.
+    ENDCASE.
 
   ENDMETHOD.
 
@@ -1699,7 +1704,7 @@ CLASS z2ui5_cl_abap2ui5_context IMPLEMENTATION.
           error_message = 1
           OTHERS        = 2.
       IF sy-subrc <> 0.
-        RAISE EXCEPTION TYPE z2ui5_cx_abap2ui5_error.
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error.
       ENDIF.
 
       ASSIGN

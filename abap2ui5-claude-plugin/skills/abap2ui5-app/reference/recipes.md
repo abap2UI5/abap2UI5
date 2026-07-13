@@ -145,7 +145,7 @@ client->nav_app_call( li_app ).` (see `z2ui5_cl_demo_app_000`).
 ## 6. File upload and download (base64)
 
 Files cross the wire as base64 data URIs. Decode with
-`z2ui5_cl_abap2ui5_context=>conv_decode_x_base64( )` ->
+`z2ui5_cl_a2ui5_context=>conv_decode_x_base64( )` ->
 `conv_get_string_by_xstring( )`. (Older samples call the same methods on
 `z2ui5_cl_util`, which is obsolete — moved to package `src/99`.)
 **Upload canonical: `z2ui5_cl_demo_app_075`**, **download: `z2ui5_cl_demo_app_186`**.
@@ -154,8 +154,8 @@ Files cross the wire as base64 data URIs. Decode with
 " Upload: strip the "data:mime;base64," prefix, then decode
 SPLIT mv_value AT `;` INTO DATA(lv_dummy) DATA(lv_data).
 SPLIT lv_data  AT `,` INTO lv_dummy lv_data.
-DATA(lv_x)  = z2ui5_cl_abap2ui5_context=>conv_decode_x_base64( lv_data ).
-mv_file     = z2ui5_cl_abap2ui5_context=>conv_get_string_by_xstring( lv_x ).
+DATA(lv_x)  = z2ui5_cl_a2ui5_context=>conv_decode_x_base64( lv_data ).
+mv_file     = z2ui5_cl_a2ui5_context=>conv_get_string_by_xstring( lv_x ).
 
 " Download via client action
 client->action->gen(
