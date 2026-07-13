@@ -10881,7 +10881,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD end_column_pages.
-    result = me.
+
+    result = _generic( name = `endColumnPages`
+                       ns   = `f` ).
+
   ENDMETHOD.
 
   METHOD expandable_text.
@@ -11858,7 +11861,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                            ( n = `id`               v = id )
                            ( n = `class`               v = class )
                            ( n = `text`             v = text )
-                           ( n = `renderMode `      v = rendermode )
+                           ( n = `renderMode`      v = rendermode )
                            ( n = `colorScheme`      v = colorscheme )
                            ( n = `displayOnly`      v = z2ui5_cl_a2ui5_context=>boolean_abap_2_json( displayonly ) )
                            ( n = `icon`             v = icon )
