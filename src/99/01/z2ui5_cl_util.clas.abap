@@ -3215,7 +3215,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
       ENDLOOP.
       result-details = `<ul>` && concat_lines_of( lt_detail_items ) && `</ul>`.
       result-title   = ui5_get_msg_type( lt_msg[ 1 ]-type ).
-      result-type    = ui5_get_msg_type( lt_msg[ 1 ]-type ).
+      result-type    = to_lower( ui5_get_msg_type( lt_msg[ 1 ]-type ) ).
 
     ELSE.
       result-skip = abap_true.
