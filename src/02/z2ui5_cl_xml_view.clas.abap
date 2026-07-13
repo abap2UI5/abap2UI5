@@ -15223,6 +15223,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     " REDUCE re-allocated the growing attribute string per property
     DATA(lt_attr) = VALUE string_table( ).
     LOOP AT mt_prop REFERENCE INTO DATA(lr_prop) WHERE v <> ``. "#EC CI_SORTSEQ
+      " Note: abap_true is the character 'X', so a property value of exactly
+      " `X` is rendered as "true". This is intentional - callers pass abap_true
+      " for boolean UI5 attributes. A literal `X` value is not distinguishable
+      " here; use a different representation if you need to render the letter X.
       APPEND | { lr_prop->n }="{ escape( val    = COND string( WHEN lr_prop->v = abap_true
                                                                THEN `true`
                                                                ELSE lr_prop->v )
