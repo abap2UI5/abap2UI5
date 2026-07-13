@@ -247,7 +247,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->nest_view_destroy( ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_action->ms_next-s_set-s_view_nest-check_update_model ).
+                                        act = mo_action->ms_next-s_set-s_view_nest-check_destroy ).
 
   ENDMETHOD.
 
@@ -279,7 +279,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client->nest2_view_destroy( ).
 
     cl_abap_unit_assert=>assert_equals( exp = abap_true
-                                        act = mo_action->ms_next-s_set-s_view_nest2-check_update_model ).
+                                        act = mo_action->ms_next-s_set-s_view_nest2-check_destroy ).
 
   ENDMETHOD.
 

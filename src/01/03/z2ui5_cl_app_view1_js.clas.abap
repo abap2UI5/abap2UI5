@@ -148,6 +148,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        if (S_POPUP?.CHECK_DESTROY) this.destroyPopup();` && |\n| &&
              `        if (S_POPOVER?.CHECK_DESTROY) this.destroyPopover();` && |\n| &&
+             `        if (S_VIEW_NEST?.CHECK_DESTROY) this.destroyNestView();` && |\n| &&
+             `        if (S_VIEW_NEST2?.CHECK_DESTROY) this.destroyNestView2();` && |\n| &&
              `` && |\n| &&
              `        if (S_POPUP?.XML) {` && |\n| &&
              `          this.destroyPopup();` && |\n| &&

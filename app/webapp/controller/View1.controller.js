@@ -128,6 +128,8 @@ sap.ui.define(
 
         if (S_POPUP?.CHECK_DESTROY) this.destroyPopup();
         if (S_POPOVER?.CHECK_DESTROY) this.destroyPopover();
+        if (S_VIEW_NEST?.CHECK_DESTROY) this.destroyNestView();
+        if (S_VIEW_NEST2?.CHECK_DESTROY) this.destroyNestView2();
 
         if (S_POPUP?.XML) {
           this.destroyPopup();
