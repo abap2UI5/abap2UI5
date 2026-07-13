@@ -866,10 +866,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lv_xml) = lo_split->stringify( ).
 
-    DATA(lv_off_open)   = find( val = lv_xml sub = `<SplitContainer` ).
-    DATA(lv_off_master) = find( val = lv_xml sub = `<masterPages` ).
-    DATA(lv_off_detail) = find( val = lv_xml sub = `<detailPages` ).
-    DATA(lv_off_close)  = find( val = lv_xml sub = `</SplitContainer>` ).
+    DATA(lv_off_open)   = find( val = lv_xml
+                                sub = `<SplitContainer` ).
+    DATA(lv_off_master) = find( val = lv_xml
+                                sub = `<masterPages` ).
+    DATA(lv_off_detail) = find( val = lv_xml
+                                sub = `<detailPages` ).
+    DATA(lv_off_close)  = find( val = lv_xml
+                                sub = `</SplitContainer>` ).
 
     cl_abap_unit_assert=>assert_true( xsdbool( lv_off_open >= 0 ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_off_master > lv_off_open ) ).
