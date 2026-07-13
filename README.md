@@ -110,6 +110,9 @@ You never touch JSON, HTTP, or JavaScript yourself. You implement `z2ui5_if_app~
 * Highlighted in the Boring Enterprise Nerdletter [(YouTube)](https://www.youtube.com/watch?v=G62exySitCo&list=PLlxj8-g1r2GlVYXVQnnV5izKwKtEn6KIp&t=1008s) [(Newsletter - 08.03.2023)](https://boringenterprisenerds.substack.com/p/34-abap2ui5-sap-cva-burnout-c2c-shortwave)
 * Featured on SAP Developer News [(YouTube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
 
+#### Dependencies
+abap2UI5 is standalone — it has **no external dependencies** and installs with a single abapGit pull. The [ajson](https://github.com/sbcgua/ajson) and [S-RTTI](https://github.com/sandraros/S-RTTI) libraries it uses are bundled (vendored) in `src/00`.
+
 #### Credits
 This project thrives thanks to its [contributors](https://github.com/abap2UI5/abap2UI5/graphs/contributors) and these awesome tools:
 * Code versioning & distribution via [abapGit](https://abapgit.org/) [(contributors)](https://abapgit.org/sponsor.html)
