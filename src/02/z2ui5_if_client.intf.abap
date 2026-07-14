@@ -37,17 +37,15 @@ INTERFACE z2ui5_if_client
 
 
       "Control
-      image_editor_popup_close  TYPE string VALUE `IMAGE_EDITOR_POPUP_CLOSE`,
       wizard_set_next_step      TYPE string VALUE `WIZARD_SET_NEXT_STEP`,
 
+      "obsolet?
+      image_editor_popup_close  TYPE string VALUE `IMAGE_EDITOR_POPUP_CLOSE`,
       nav_container_to          TYPE string VALUE `NAV_CONTAINER_TO`,
       nest_nav_container_to     TYPE string VALUE `NEST_NAV_CONTAINER_TO`,
       nest2_nav_container_to    TYPE string VALUE `NEST2_NAV_CONTAINER_TO`,
       popup_nav_container_to    TYPE string VALUE `POPUP_NAV_CONTAINER_TO`,
       popover_nav_container_to  TYPE string VALUE `POPOVER_NAV_CONTAINER_TO`,
-
-
-      "todo
       z2ui5                     TYPE string VALUE `Z2UI5`,
 
     END OF cs_event.
