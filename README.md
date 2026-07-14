@@ -1,29 +1,10 @@
-<details>
-
-<summary>🚦</summary>
-<br>
-
 [![ABAP_702](https://github.com/abap2UI5/abap2UI5/actions/workflows/ABAP_702.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/ABAP_702.yaml)
 [![ABAP_STANDARD](https://github.com/abap2UI5/abap2UI5/actions/workflows/ABAP_STANDARD.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/ABAP_STANDARD.yaml)
 [![ABAP_CLOUD](https://github.com/abap2UI5/abap2UI5/actions/workflows/ABAP_CLOUD.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/ABAP_CLOUD.yaml)
-[![UI5_2X](https://github.com/abap2UI5/abap2UI5/actions/workflows/UI5.yaml/badge.svg?branch=main)](https://github.com/abap2UI5/abap2UI5/actions/workflows/UI5.yaml)
-<br>
-[![auto_downport](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_downport.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_downport.yaml)
-[![auto_abaplint_fix](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_abaplint_fix.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/auto_abaplint_fix.yaml)
-<br>
-[![test_unit](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_unit.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_unit.yaml)
-[![test_node](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_node.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_node.yaml)
-[![test_browser](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_browser.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_browser.yaml)
-[![test_rename](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_rename.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/test_rename.yaml)
-<br>
-[![create_app2abap](https://github.com/abap2UI5/abap2UI5/actions/workflows/create_app2abap.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/create_app2abap.yaml)
-[![create_frontend](https://github.com/abap2UI5/abap2UI5/actions/workflows/create_frontend.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/create_frontend.yaml)
-[![trigger_local](https://github.com/abap2UI5/abap2UI5/actions/workflows/trigger_local.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/trigger_local.yaml)
 <br>
 [![mirror_ajson](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_ajson.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_ajson.yaml)
 [![mirror_srtti](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_srtti.yaml/badge.svg)](https://github.com/abap2UI5/abap2UI5/actions/workflows/mirror_srtti.yaml)
 
-</details>
 
 <p align="center"><a href="https://www.abap2ui5.org" target="_blank"><img src="https://github.com/abap2UI5/abap2UI5/assets/102328295/52ac0bb6-a219-4e9d-9e4f-62698dab3063" width="200"></a></p>
 
