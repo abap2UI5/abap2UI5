@@ -63,17 +63,25 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `    function showBox(msg, oController) {` && |\n| &&
              `      const oParams = {` && |\n| &&
              `        styleClass: msg.STYLECLASS || "",` && |\n| &&
-             `        title: msg.TITLE || "",` && |\n| &&
              `        onClose: msg.ONCLOSE` && |\n| &&
              `          ? (sAction) => oController.eB([msg.ONCLOSE, sAction])` && |\n| &&
              `          : null,` && |\n| &&
-             `        actions: msg.ACTIONS || "OK",` && |\n| &&
-             `        emphasizedAction: msg.EMPHASIZEDACTION || "OK",` && |\n| &&
              `        initialFocus: msg.INITIALFOCUS || null,` && |\n| &&
              `        textDirection: msg.TEXTDIRECTION || "Inherit",` && |\n| &&
              `        details: msg.DETAILS ? Lib.sanitizeMessageDetails(msg.DETAILS) : "",` && |\n| &&
              `        closeOnNavigation: Boolean(msg.CLOSEONNAVIGATION),` && |\n| &&
              `      };` && |\n| &&
+             `      // Only forward title / actions / emphasizedAction / icon when the` && |\n| &&
+             `      // app actually set them. The convenience methods (confirm, error,` && |\n| &&
+             `      // warning, success, information, alert) each apply their own` && |\n| &&
+             `      // per-type defaults for these - e.g. confirm defaults to` && |\n| &&
+             `      // [OK, CANCEL] and error to CLOSE. Hard-coding "OK" here would` && |\n| &&
+             `      // strip the Cancel button off a confirm box and turn error's` && |\n| &&
+             `      // Close into OK. Empty values never reach the frontend (the ABAP` && |\n| &&
+             `      // response filters them out), so a falsy check is enough.` && |\n| &&
+             `      if (msg.TITLE) oParams.title = msg.TITLE;` && |\n| &&
+             `      if (msg.ACTIONS) oParams.actions = msg.ACTIONS;` && |\n| &&
+             `      if (msg.EMPHASIZEDACTION) oParams.emphasizedAction = msg.EMPHASIZEDACTION;` && |\n| &&
              `      if (msg.ICON && msg.ICON !== "NONE") oParams.icon = msg.ICON;` && |\n| &&
              `      // MessageBox display methods are lowercase (show, error, warning,` && |\n| &&
              `      // ...), but the type can arrive capitalized - the ABAP message` && |\n| &&
