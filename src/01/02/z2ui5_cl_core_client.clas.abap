@@ -44,7 +44,15 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~follow_up_action.
 
-    INSERT val INTO TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js.
+    DATA(lv_js) = val.
+
+    IF val IS NOT INITIAL
+        AND val CO `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_`.
+      lv_js = mo_srv_event->get_event_client( val   = val
+                                              t_arg = t_arg ).
+    ENDIF.
+
+    INSERT lv_js INTO TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js.
 
   ENDMETHOD.
 
