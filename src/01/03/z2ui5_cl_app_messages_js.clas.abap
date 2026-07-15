@@ -36,15 +36,24 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function showToast(msg, oController) {` && |\n| &&
-             `      MessageToast.show(msg.TEXT, {` && |\n| &&
+             `      const oParams = {` && |\n| &&
              `        duration: parseMs(msg.DURATION, 3000),` && |\n| &&
              `        width: msg.WIDTH || "15em",` && |\n| &&
+             `        my: msg.MY || "center bottom",` && |\n| &&
+             `        at: msg.AT || "center bottom",` && |\n| &&
+             `        offset: msg.OFFSET || "0 0",` && |\n| &&
+             `        collision: msg.COLLISION || "fit fit",` && |\n| &&
              `        onClose: msg.ONCLOSE ? () => oController.eB([msg.ONCLOSE]) : null,` && |\n| &&
              `        autoClose: Boolean(msg.AUTOCLOSE),` && |\n| &&
              `        animationTimingFunction: msg.ANIMATIONTIMINGFUNCTION || "ease",` && |\n| &&
              `        animationDuration: parseMs(msg.ANIMATIONDURATION, 1000),` && |\n| &&
              `        closeOnBrowserNavigation: Boolean(msg.CLOSEONBROWSERNAVIGATION),` && |\n| &&
-             `      });` && |\n| &&
+             `      };` && |\n| &&
+             `      // ``of`` positions the toast relative to a DOM element / selector;` && |\n| &&
+             `      // its default is the whole window, so only forward it when the app` && |\n| &&
+             `      // set it - passing undefined would break the default positioning.` && |\n| &&
+             `      if (msg.OF) oParams.of = msg.OF;` && |\n| &&
+             `      MessageToast.show(msg.TEXT, oParams);` && |\n| &&
              `      if (msg.CLASS) {` && |\n| &&
              `        const classes = msg.CLASS.trim().split(/\s+/).filter(Boolean);` && |\n| &&
              `        // Pick the newest toast (several can be open at once). The` && |\n| &&
