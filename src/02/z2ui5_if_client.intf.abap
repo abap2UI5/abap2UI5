@@ -240,10 +240,14 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result)        TYPE string.
 
+  "! Schedule a frontend action to run after the backend response has been
+  "! processed. This is the recommended way to trigger a frontend action from
+  "! the backend - it supersedes the obsolete action->gen( ) mechanism.
   METHODS follow_up_action
     IMPORTING
       val TYPE string.
 
+  "! Obsolete - use follow_up_action( ) instead. Kept for backward compatibility.
   DATA action TYPE REF TO z2ui5_if_action.
 
   METHODS check_on_event
