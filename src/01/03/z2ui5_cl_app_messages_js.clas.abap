@@ -36,24 +36,15 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function showToast(msg, oController) {` && |\n| &&
-             `      const oParams = {` && |\n| &&
+             `      MessageToast.show(msg.TEXT, {` && |\n| &&
              `        duration: parseMs(msg.DURATION, 3000),` && |\n| &&
              `        width: msg.WIDTH || "15em",` && |\n| &&
-             `        my: msg.MY || "center bottom",` && |\n| &&
-             `        at: msg.AT || "center bottom",` && |\n| &&
-             `        offset: msg.OFFSET || "0 0",` && |\n| &&
-             `        collision: msg.COLLISION || "fit fit",` && |\n| &&
              `        onClose: msg.ONCLOSE ? () => oController.eB([msg.ONCLOSE]) : null,` && |\n| &&
              `        autoClose: Boolean(msg.AUTOCLOSE),` && |\n| &&
              `        animationTimingFunction: msg.ANIMATIONTIMINGFUNCTION || "ease",` && |\n| &&
              `        animationDuration: parseMs(msg.ANIMATIONDURATION, 1000),` && |\n| &&
              `        closeOnBrowserNavigation: Boolean(msg.CLOSEONBROWSERNAVIGATION),` && |\n| &&
-             `      };` && |\n| &&
-             `      // ``of`` positions the toast relative to a DOM element / selector;` && |\n| &&
-             `      // its default is the whole window, so only forward it when the app` && |\n| &&
-             `      // set it - passing undefined would break the default positioning.` && |\n| &&
-             `      if (msg.OF) oParams.of = msg.OF;` && |\n| &&
-             `      MessageToast.show(msg.TEXT, oParams);` && |\n| &&
+             `      });` && |\n| &&
              `      if (msg.CLASS) {` && |\n| &&
              `        const classes = msg.CLASS.trim().split(/\s+/).filter(Boolean);` && |\n| &&
              `        // Pick the newest toast (several can be open at once). The` && |\n| &&
@@ -72,25 +63,17 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `    function showBox(msg, oController) {` && |\n| &&
              `      const oParams = {` && |\n| &&
              `        styleClass: msg.STYLECLASS || "",` && |\n| &&
+             `        title: msg.TITLE || "",` && |\n| &&
              `        onClose: msg.ONCLOSE` && |\n| &&
              `          ? (sAction) => oController.eB([msg.ONCLOSE, sAction])` && |\n| &&
              `          : null,` && |\n| &&
+             `        actions: msg.ACTIONS || "OK",` && |\n| &&
+             `        emphasizedAction: msg.EMPHASIZEDACTION || "OK",` && |\n| &&
              `        initialFocus: msg.INITIALFOCUS || null,` && |\n| &&
              `        textDirection: msg.TEXTDIRECTION || "Inherit",` && |\n| &&
              `        details: msg.DETAILS ? Lib.sanitizeMessageDetails(msg.DETAILS) : "",` && |\n| &&
              `        closeOnNavigation: Boolean(msg.CLOSEONNAVIGATION),` && |\n| &&
              `      };` && |\n| &&
-             `      // Only forward title / actions / emphasizedAction / icon when the` && |\n| &&
-             `      // app actually set them. The convenience methods (confirm, error,` && |\n| &&
-             `      // warning, success, information, alert) each apply their own` && |\n| &&
-             `      // per-type defaults for these - e.g. confirm defaults to` && |\n| &&
-             `      // [OK, CANCEL] and error to CLOSE. Hard-coding "OK" here would` && |\n| &&
-             `      // strip the Cancel button off a confirm box and turn error's` && |\n| &&
-             `      // Close into OK. Empty values never reach the frontend (the ABAP` && |\n| &&
-             `      // response filters them out), so a falsy check is enough.` && |\n| &&
-             `      if (msg.TITLE) oParams.title = msg.TITLE;` && |\n| &&
-             `      if (msg.ACTIONS) oParams.actions = msg.ACTIONS;` && |\n| &&
-             `      if (msg.EMPHASIZEDACTION) oParams.emphasizedAction = msg.EMPHASIZEDACTION;` && |\n| &&
              `      if (msg.ICON && msg.ICON !== "NONE") oParams.icon = msg.ICON;` && |\n| &&
              `      // MessageBox display methods are lowercase (show, error, warning,` && |\n| &&
              `      // ...), but the type can arrive capitalized - the ABAP message` && |\n| &&

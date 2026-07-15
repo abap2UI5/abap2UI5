@@ -35,7 +35,6 @@ INTERFACE z2ui5_if_client
 
 
 
-
       download_b64_file         TYPE string VALUE `DOWNLOAD_B64_FILE`,
       urlhelper                 TYPE string VALUE `URLHELPER`,
       history_back              TYPE string VALUE `HISTORY_BACK`,
