@@ -37,7 +37,6 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_message_box_type     FOR TESTING RAISING cx_static_check.
     METHODS test_message_toast        FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action     FOR TESTING RAISING cx_static_check.
-    METHODS test_follow_up_action_ev  FOR TESTING RAISING cx_static_check.
     METHODS test_action               FOR TESTING RAISING cx_static_check.
     METHODS test_action_reject_js     FOR TESTING RAISING cx_static_check.
     METHODS test_action_reject_empty  FOR TESTING RAISING cx_static_check.
@@ -345,32 +344,14 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_follow_up_action_ev.
-
-    DATA li_client TYPE REF TO z2ui5_if_client.
-    li_client ?= mo_client.
-
-    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-set_title
-                                 t_arg = VALUE #( ( `My Title` ) ) ).
-    li_client->follow_up_action( z2ui5_if_client=>cs_event-history_back ).
-
-    cl_abap_unit_assert=>assert_equals( exp = 2
-                                        act = lines( mo_action->ms_next-s_set-s_follow_up_action-custom_js ) ).
-    cl_abap_unit_assert=>assert_equals( exp = `.eF('SET_TITLE', 'My Title')`
-                                        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 1 ] ).
-    cl_abap_unit_assert=>assert_equals( exp = `.eF('HISTORY_BACK')`
-                                        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 2 ] ).
-
-  ENDMETHOD.
-
   METHOD test_action.
 
     DATA li_client TYPE REF TO z2ui5_if_client.
     li_client ?= mo_client.
 
-    li_client->action->gen( val   = z2ui5_if_client=>cs_event-set_title
+    li_client->action( val   = z2ui5_if_client=>cs_event-set_title
                             t_arg = VALUE #( ( `My Title` ) ) ).
-    li_client->action->gen( z2ui5_if_client=>cs_event-history_back ).
+    li_client->action( z2ui5_if_client=>cs_event-history_back ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2
                                         act = lines( mo_action->ms_next-s_set-s_follow_up_action-custom_js ) ).
@@ -388,7 +369,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client ?= mo_client.
 
     TRY.
-        li_client->action->gen( `EVT'); alert(1);//` ).
+        li_client->action( `EVT'); alert(1);//` ).
       CATCH z2ui5_cx_a2ui5_error.
         lv_raised = abap_true.
     ENDTRY.
@@ -407,7 +388,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     li_client ?= mo_client.
 
     TRY.
-        li_client->action->gen( `` ).
+        li_client->action( `` ).
       CATCH z2ui5_cx_a2ui5_error.
         lv_raised = abap_true.
     ENDTRY.
