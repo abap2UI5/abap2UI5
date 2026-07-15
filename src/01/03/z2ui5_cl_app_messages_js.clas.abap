@@ -39,6 +39,11 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `      MessageToast.show(msg.TEXT, {` && |\n| &&
              `        duration: parseMs(msg.DURATION, 3000),` && |\n| &&
              `        width: msg.WIDTH || "15em",` && |\n| &&
+             `        my: msg.MY || "center bottom",` && |\n| &&
+             `        at: msg.AT || "center bottom",` && |\n| &&
+             `        offset: msg.OFFSET || "0 0",` && |\n| &&
+             `        collision: msg.COLLISION || "fit fit",` && |\n| &&
+             `        ...(msg.OF && { of: msg.OF }),` && |\n| &&
              `        onClose: msg.ONCLOSE ? () => oController.eB([msg.ONCLOSE]) : null,` && |\n| &&
              `        autoClose: Boolean(msg.AUTOCLOSE),` && |\n| &&
              `        animationTimingFunction: msg.ANIMATIONTIMINGFUNCTION || "ease",` && |\n| &&

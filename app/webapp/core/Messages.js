@@ -19,6 +19,11 @@ sap.ui.define(
       MessageToast.show(msg.TEXT, {
         duration: parseMs(msg.DURATION, 3000),
         width: msg.WIDTH || "15em",
+        my: msg.MY || "center bottom",
+        at: msg.AT || "center bottom",
+        offset: msg.OFFSET || "0 0",
+        collision: msg.COLLISION || "fit fit",
+        ...(msg.OF && { of: msg.OF }),
         onClose: msg.ONCLOSE ? () => oController.eB([msg.ONCLOSE]) : null,
         autoClose: Boolean(msg.AUTOCLOSE),
         animationTimingFunction: msg.ANIMATIONTIMINGFUNCTION || "ease",
