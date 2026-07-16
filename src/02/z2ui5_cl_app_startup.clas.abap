@@ -170,13 +170,13 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     IF ms_home-class_editable = abap_true.
 
-      simple_form->input( placeholder      = `fill in the class name and press 'check'`
-                          enabled          = client->_bind( ms_home-class_editable )
-                          value            = client->_bind_edit( ms_home-classname )
-                          submit           = client->_event( ms_home-btn_event_id )
+      simple_form->input( placeholder = `fill in the class name and press 'check'`
+                          enabled     = client->_bind( ms_home-class_editable )
+                          value       = client->_bind_edit( ms_home-classname )
+                          submit      = client->_event( ms_home-btn_event_id )
 *                          valuehelprequest = client->_event( cs_event-value_help )
 *                          showvaluehelp    = abap_true
-                          width            = `70%` ).
+                          width       = `70%` ).
 
     ELSE.
       simple_form->text( ms_home-classname ).
