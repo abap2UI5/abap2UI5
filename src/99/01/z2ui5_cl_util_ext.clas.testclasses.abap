@@ -1,13 +1,13 @@
-"! ================================================================
-"! Z2UI5_CL_UTIL_EXT - Comprehensive Unit Tests for JS Transpilation
-"! ================================================================
-"! BAL tests removed: bal_search has ASSIGN_TYPE_CONFLICT bug in
-"! production code (runtime error at line ~142). Fix BAL impl first.
-"! ================================================================
+" ================================================================
+" Z2UI5_CL_UTIL_EXT - Comprehensive Unit Tests for JS Transpilation
+" ================================================================
+" BAL tests removed: bal_search has ASSIGN_TYPE_CONFLICT bug in
+" production code (runtime error at line ~142). Fix BAL impl first.
+" ================================================================
 
-"! ================================================================
-"! LOCK / DEQUEUE HELPER
-"! ================================================================
+" ================================================================
+" LOCK / DEQUEUE HELPER
+" ================================================================
 CLASS ltcl_lock_ops DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
@@ -49,9 +49,9 @@ CLASS ltcl_lock_ops IMPLEMENTATION.
 ENDCLASS.
 
 
-"! ================================================================
-"! CALENDAR OPERATIONS
-"! ================================================================
+" ================================================================
+" CALENDAR OPERATIONS
+" ================================================================
 CLASS ltcl_calendar_ops DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
@@ -144,9 +144,9 @@ CLASS ltcl_calendar_ops IMPLEMENTATION.
 ENDCLASS.
 
 
-"! ================================================================
-"! ZIP OPERATIONS
-"! ================================================================
+" ================================================================
+" ZIP OPERATIONS
+" ================================================================
 CLASS ltcl_zip_ops DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
@@ -213,9 +213,9 @@ CLASS ltcl_zip_ops IMPLEMENTATION.
 ENDCLASS.
 
 
-"! ================================================================
-"! RTTI / TABLE DESCRIPTION
-"! ================================================================
+" ================================================================
+" RTTI / TABLE DESCRIPTION
+" ================================================================
 CLASS ltcl_rtti_ext DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
@@ -282,9 +282,9 @@ CLASS ltcl_rtti_ext IMPLEMENTATION.
 ENDCLASS.
 
 
-"! ================================================================
-"! TRANSPORT REQUEST OPERATIONS
-"! ================================================================
+" ================================================================
+" TRANSPORT REQUEST OPERATIONS
+" ================================================================
 CLASS ltcl_transport_ops DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
@@ -303,9 +303,9 @@ CLASS ltcl_transport_ops IMPLEMENTATION.
 ENDCLASS.
 
 
-"! ================================================================
-"! XLSX CONVERSION
-"! ================================================================
+" ================================================================
+" XLSX CONVERSION
+" ================================================================
 CLASS ltcl_xlsx_ops DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
@@ -335,9 +335,9 @@ CLASS ltcl_xlsx_ops IMPLEMENTATION.
 ENDCLASS.
 
 
-"! ================================================================
-"! SOURCE CODE READING
-"! ================================================================
+" ================================================================
+" SOURCE CODE READING
+" ================================================================
 CLASS ltcl_source_ops DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
 
