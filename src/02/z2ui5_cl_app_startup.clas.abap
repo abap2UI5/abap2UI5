@@ -7,7 +7,7 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_app_startup.
 
-  PRIVATE SECTION.
+
 
     CONSTANTS:
       BEGIN OF cs_event,
@@ -64,6 +64,9 @@ CLASS z2ui5_cl_app_startup DEFINITION PUBLIC.
         classname     TYPE clike
       RETURNING
         VALUE(result) TYPE string.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 
 
