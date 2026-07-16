@@ -13,8 +13,8 @@
         >
             <items>
                 <IconTabFilter
-                    text="Config"
-                    key="CONFIG"
+                    text="System"
+                    key="SYSTEM"
                     enabled="true"
                 />
                 <IconTabFilter

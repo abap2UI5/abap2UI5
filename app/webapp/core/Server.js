@@ -25,6 +25,75 @@ sap.ui.define(
 
     const _MSG_TYPES = Object.freeze(["S_MSG_TOAST", "S_MSG_BOX"]);
 
+    // Quote characters recognised by the eF( ) argument parser below. The
+    // single quote is built from its char code on purpose: keeping a literal
+    // single-quote character out of this file avoids confusing the ABAP
+    // source generator, which ships this module as an ABAP string literal.
+    const CH_SQUOTE = String.fromCharCode(39);
+    const CH_DQUOTE = String.fromCharCode(34);
+
+    // Convert a single JS-literal argument (as produced by the backend
+    // get_t_arg) into a value WITHOUT eval: single- or double-quoted strings,
+    // JSON objects / arrays, numbers, booleans and null.
+    function parseEfValue(token) {
+      if (token === "") return undefined;
+      const first = token[0];
+      if (first === CH_SQUOTE) {
+        return token.slice(1, -1).replace(/\\([\x27\\])/g, "$1");
+      }
+      if (first === CH_DQUOTE || first === "{" || first === "[") {
+        try {
+          return JSON.parse(token);
+        } catch {
+          return token;
+        }
+      }
+      if (token === "true") return true;
+      if (token === "false") return false;
+      if (token === "null") return null;
+      if (token === "undefined") return undefined;
+      const num = Number(token);
+      return Number.isNaN(num) ? token : num;
+    }
+
+    // Split the argument list of an eF( ) call into its top-level arguments,
+    // respecting nested (), {}, [] and quoted strings, and convert each one
+    // to a value. Done manually (no eval / Function) so it works under a
+    // strict Content-Security-Policy without unsafe-eval, while keeping
+    // object, array and quoted-string arguments intact.
+    function parseEfArgs(str) {
+      const args = [];
+      let depth = 0;
+      let quote = null;
+      let token = "";
+      for (let i = 0; i < str.length; i++) {
+        const ch = str[i];
+        if (quote) {
+          token += ch;
+          if (ch === "\\" && i + 1 < str.length) token += str[++i];
+          else if (ch === quote) quote = null;
+          continue;
+        }
+        if (ch === CH_SQUOTE || ch === CH_DQUOTE) {
+          quote = ch;
+          token += ch;
+        } else if (ch === "{" || ch === "[" || ch === "(") {
+          depth++;
+          token += ch;
+        } else if (ch === "}" || ch === "]" || ch === ")") {
+          depth--;
+          token += ch;
+        } else if (ch === "," && depth === 0) {
+          args.push(parseEfValue(token.trim()));
+          token = "";
+        } else {
+          token += ch;
+        }
+      }
+      if (token.trim() !== "") args.push(parseEfValue(token.trim()));
+      return args;
+    }
+
     // Last-resort client-side timeout for backend roundtrips. Infrastructure
     // timeouts (ICM, web dispatcher, proxies) usually fire much earlier and
     // surface as a regular error response; this backstop only ensures that a
@@ -505,23 +574,23 @@ sap.ui.define(
       },
 
       // Executes a single custom-JS snippet from the backend.
-      // Format A:  "alert(123)"           -> runs the expression
-      // Format B:  "eF('A','B','C')"      -> calls oController.eF('A','B','C')
-      //
-      // OBSOLETE: this mechanism (including the quote-based argument parsing
-      // and the Function() evaluation) only exists for backward compatibility
-      // with older apps and will be removed in a future release. Do not
-      // extend or change it.
+      // Format A:  a raw expression such as alert(123) - needs a CSP that
+      //            allows unsafe-eval, otherwise it is a no-op.
+      // Format B:  a structured eF( ) frontend-event call - dispatched via
+      //            oController.eF( ). Its argument list is parsed manually
+      //            (no eval / Function) so it runs under a strict CSP while
+      //            keeping object / array / string arguments intact.
       _runCustomJs(item, oController) {
         try {
-          const parts = item.split("'");
-          // Arguments live at the odd indices between single quotes.
-          const args = parts.filter((_, index) => index % 2 === 1);
-          if (args.length > 0) {
-            oController.eF(...args);
+          const snippet = item.trim();
+          const match = /^\.?eF\s*\(([\s\S]*)\)\s*;?$/.exec(snippet);
+          if (match) {
+            oController.eF(...parseEfArgs(match[1]));
           } else {
+            // A raw JavaScript expression - only runs when the CSP allows
+            // unsafe-eval.
             // eslint-disable-next-line no-new-func
-            Function("return " + parts[0])();
+            Function("return " + item)();
           }
         } catch (e) {
           Lib.logError("customJs: execution failed", e);

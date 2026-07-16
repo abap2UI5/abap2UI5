@@ -33,8 +33,8 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `        >` &&
              `            <items>` &&
              `                <IconTabFilter` &&
-             `                    text="Config"` &&
-             `                    key="CONFIG"` &&
+             `                    text="System"` &&
+             `                    key="SYSTEM"` &&
              `                    enabled="true"` &&
              `                />` &&
              `                <IconTabFilter` &&
