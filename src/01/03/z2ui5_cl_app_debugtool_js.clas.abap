@@ -144,6 +144,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      // Util, app-registered members, ...). Read directly here on purpose:` && |\n| &&
              `      // this is the debug inspector, whose job is to surface the live global` && |\n| &&
              `      // as-is - functions drop out under JSON.stringify, which is fine.` && |\n| &&
+             `      // ui5lint-disable-next-line no-project-globals -- see reason above` && |\n| &&
              `      SYSTEM: () => window.z2ui5,` && |\n| &&
              `      MODEL: () => getModelJson(ViewSlots.getView("MAIN")),` && |\n| &&
              `      PLAIN: () => AppState.state.responseData,` && |\n| &&

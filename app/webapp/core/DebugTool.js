@@ -124,6 +124,7 @@ sap.ui.define(
       // Util, app-registered members, ...). Read directly here on purpose:
       // this is the debug inspector, whose job is to surface the live global
       // as-is - functions drop out under JSON.stringify, which is fine.
+      // ui5lint-disable-next-line no-project-globals -- see reason above
       SYSTEM: () => window.z2ui5,
       MODEL: () => getModelJson(ViewSlots.getView("MAIN")),
       PLAIN: () => AppState.state.responseData,

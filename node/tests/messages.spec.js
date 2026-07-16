@@ -31,10 +31,27 @@ function loadMessages() {
     logError: (message) => errors.push(message),
     sanitizeMessageDetails: (html) => html,
   };
+  // Stub sap.ui.core.Popup. toDockValue() looks dock positions up by their
+  // PascalCase key in Popup.Dock; newer UI5 spells the enum values in the
+  // same PascalCase form.
+  const Popup = {
+    Dock: {
+      BeginTop: "BeginTop",
+      BeginCenter: "BeginCenter",
+      BeginBottom: "BeginBottom",
+      CenterTop: "CenterTop",
+      CenterCenter: "CenterCenter",
+      CenterBottom: "CenterBottom",
+      EndTop: "EndTop",
+      EndCenter: "EndCenter",
+      EndBottom: "EndBottom",
+    },
+  };
   const { module } = loadModule("core/Messages.js", {
     deps: {
       "sap/m/MessageBox": MessageBox,
       "sap/m/MessageToast": MessageToast,
+      "sap/ui/core/Popup": Popup,
       "z2ui5/core/Lib": Lib,
     },
   });
