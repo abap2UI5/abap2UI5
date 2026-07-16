@@ -15,29 +15,39 @@ INTERFACE z2ui5_if_client
       cross_app_nav_to_prev_app TYPE string VALUE `CROSS_APP_NAV_TO_PREV_APP`,
 
 
-      "Action
+      "Actions base
+      clipboard_copy            TYPE string VALUE `CLIPBOARD_COPY`,
       set_title                 TYPE string VALUE `SET_TITLE`,
-      set_title_launchpad       TYPE string VALUE `SET_TITLE_LAUNCHPAD`,
       set_focus                 TYPE string VALUE `SET_FOCUS`,
       scroll_to                 TYPE string VALUE `SCROLL_TO`,
       scroll_into_view          TYPE string VALUE `SCROLL_INTO_VIEW`,
       start_timer               TYPE string VALUE `START_TIMER`,
-
       system_logout             TYPE string VALUE `SYSTEM_LOGOUT`,
       keyboard_set_mode         TYPE string VALUE `KEYBOARD_SET_MODE`,
       open_new_tab              TYPE string VALUE `OPEN_NEW_TAB`,
       location_reload           TYPE string VALUE `LOCATION_RELOAD`,
+
+      "Actions more
+      set_title_launchpad       TYPE string VALUE `SET_TITLE_LAUNCHPAD`,
+
+      "Control Action
+      wizard_set_next_step      TYPE string VALUE `WIZARD_SET_NEXT_STEP`,
+
+
+
       download_b64_file         TYPE string VALUE `DOWNLOAD_B64_FILE`,
       urlhelper                 TYPE string VALUE `URLHELPER`,
       history_back              TYPE string VALUE `HISTORY_BACK`,
       clipboard_app_state       TYPE string VALUE `CLIPBOARD_APP_STATE`,
-      clipboard_copy            TYPE string VALUE `CLIPBOARD_COPY`,
+
       store_data                TYPE string VALUE `STORE_DATA`,
       play_audio                TYPE string VALUE `PLAY_AUDIO`,
 
+      display_message_box       TYPE string VALUE `DISPLAY_MESSAGE_BOX`,
+      display_message_toast     TYPE string VALUE `DISPLAY_MESSAGE_TOAST`,
 
       "Control
-      wizard_set_next_step      TYPE string VALUE `WIZARD_SET_NEXT_STEP`,
+
 
       "obsolet?
       image_editor_popup_close  TYPE string VALUE `IMAGE_EDITOR_POPUP_CLOSE`,
@@ -233,11 +243,14 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result)        TYPE string.
 
+  "! Schedule a frontend action to run after the backend response is processed.
+  "! Two ways to call it: pass a frontend event as val (e.g. cs_event-set_title)
+  "! with its arguments in t_arg and the framework builds the event call; or pass
+  "! a raw JavaScript expression as val (without t_arg) to run it as-is.
   METHODS follow_up_action
     IMPORTING
-      val TYPE string.
-
-  DATA action TYPE REF TO z2ui5_if_action.
+      val   TYPE string
+      t_arg TYPE string_table OPTIONAL.
 
   METHODS check_on_event
     IMPORTING

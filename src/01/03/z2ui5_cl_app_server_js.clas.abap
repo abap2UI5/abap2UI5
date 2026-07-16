@@ -45,6 +45,75 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `    const _MSG_TYPES = Object.freeze(["S_MSG_TOAST", "S_MSG_BOX"]);` && |\n| &&
              `` && |\n| &&
+             `    // Quote characters recognised by the eF( ) argument parser below. The` && |\n| &&
+             `    // single quote is built from its char code on purpose: keeping a literal` && |\n| &&
+             `    // single-quote character out of this file avoids confusing the ABAP` && |\n| &&
+             `    // source generator, which ships this module as an ABAP string literal.` && |\n| &&
+             `    const CH_SQUOTE = String.fromCharCode(39);` && |\n| &&
+             `    const CH_DQUOTE = String.fromCharCode(34);` && |\n| &&
+             `` && |\n| &&
+             `    // Convert a single JS-literal argument (as produced by the backend` && |\n| &&
+             `    // get_t_arg) into a value WITHOUT eval: single- or double-quoted strings,` && |\n| &&
+             `    // JSON objects / arrays, numbers, booleans and null.` && |\n| &&
+             `    function parseEfValue(token) {` && |\n| &&
+             `      if (token === "") return undefined;` && |\n| &&
+             `      const first = token[0];` && |\n| &&
+             `      if (first === CH_SQUOTE) {` && |\n| &&
+             `        return token.slice(1, -1).replace(/\\([\x27\\])/g, "$1");` && |\n| &&
+             `      }` && |\n| &&
+             `      if (first === CH_DQUOTE || first === "{" || first === "[") {` && |\n| &&
+             `        try {` && |\n| &&
+             `          return JSON.parse(token);` && |\n| &&
+             `        } catch {` && |\n| &&
+             `          return token;` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `      if (token === "true") return true;` && |\n| &&
+             `      if (token === "false") return false;` && |\n| &&
+             `      if (token === "null") return null;` && |\n| &&
+             `      if (token === "undefined") return undefined;` && |\n| &&
+             `      const num = Number(token);` && |\n| &&
+             `      return Number.isNaN(num) ? token : num;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // Split the argument list of an eF( ) call into its top-level arguments,` && |\n| &&
+             `    // respecting nested (), {}, [] and quoted strings, and convert each one` && |\n| &&
+             `    // to a value. Done manually (no eval / Function) so it works under a` && |\n| &&
+             `    // strict Content-Security-Policy without unsafe-eval, while keeping` && |\n| &&
+             `    // object, array and quoted-string arguments intact.` && |\n| &&
+             `    function parseEfArgs(str) {` && |\n| &&
+             `      const args = [];` && |\n| &&
+             `      let depth = 0;` && |\n| &&
+             `      let quote = null;` && |\n| &&
+             `      let token = "";` && |\n| &&
+             `      for (let i = 0; i < str.length; i++) {` && |\n| &&
+             `        const ch = str[i];` && |\n| &&
+             `        if (quote) {` && |\n| &&
+             `          token += ch;` && |\n| &&
+             `          if (ch === "\\" && i + 1 < str.length) token += str[++i];` && |\n| &&
+             `          else if (ch === quote) quote = null;` && |\n| &&
+             `          continue;` && |\n| &&
+             `        }` && |\n| &&
+             `        if (ch === CH_SQUOTE || ch === CH_DQUOTE) {` && |\n| &&
+             `          quote = ch;` && |\n| &&
+             `          token += ch;` && |\n| &&
+             `        } else if (ch === "{" || ch === "[" || ch === "(") {` && |\n| &&
+             `          depth++;` && |\n| &&
+             `          token += ch;` && |\n| &&
+             `        } else if (ch === "}" || ch === "]" || ch === ")") {` && |\n| &&
+             `          depth--;` && |\n| &&
+             `          token += ch;` && |\n| &&
+             `        } else if (ch === "," && depth === 0) {` && |\n| &&
+             `          args.push(parseEfValue(token.trim()));` && |\n| &&
+             `          token = "";` && |\n| &&
+             `        } else {` && |\n| &&
+             `          token += ch;` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `      if (token.trim() !== "") args.push(parseEfValue(token.trim()));` && |\n| &&
+             `      return args;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    // Last-resort client-side timeout for backend roundtrips. Infrastructure` && |\n| &&
              `    // timeouts (ICM, web dispatcher, proxies) usually fire much earlier and` && |\n| &&
              `    // surface as a regular error response; this backstop only ensures that a` && |\n| &&
@@ -348,7 +417,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          return { signal: AbortSignal.timeout(ms), cancel: () => {} };` && |\n| &&
              `        }` && |\n| &&
              `        const controller = new AbortController();` && |\n| &&
-             `        const handle = setTimeout(() => controller.abort(), ms);` && |\n| &&
+             `        const handle = setTimeout(() => controller.abort(), ms);` && |\n|.
+    result = result &&
              `        return {` && |\n| &&
              `          signal: controller.signal,` && |\n| &&
              `          cancel: () => clearTimeout(handle),` && |\n| &&
@@ -417,8 +487,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            } catch {` && |\n| &&
              `              text = ``HTTP ${response.status}: could not read error body``;` && |\n| &&
              `            }` && |\n| &&
-             `            // An empty error body would render an empty overlay - fall back` && |\n|.
-    result = result &&
+             `            // An empty error body would render an empty overlay - fall back` && |\n| &&
              `            // to the status code so the user sees at least what failed.` && |\n| &&
              `            this.responseError(text || ``HTTP ${response.status}``);` && |\n| &&
              `            return;` && |\n| &&
@@ -526,23 +595,23 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Executes a single custom-JS snippet from the backend.` && |\n| &&
-             `      // Format A:  "alert(123)"           -> runs the expression` && |\n| &&
-             `      // Format B:  "eF('A','B','C')"      -> calls oController.eF('A','B','C')` && |\n| &&
-             `      //` && |\n| &&
-             `      // OBSOLETE: this mechanism (including the quote-based argument parsing` && |\n| &&
-             `      // and the Function() evaluation) only exists for backward compatibility` && |\n| &&
-             `      // with older apps and will be removed in a future release. Do not` && |\n| &&
-             `      // extend or change it.` && |\n| &&
+             `      // Format A:  a raw expression such as alert(123) - needs a CSP that` && |\n| &&
+             `      //            allows unsafe-eval, otherwise it is a no-op.` && |\n| &&
+             `      // Format B:  a structured eF( ) frontend-event call - dispatched via` && |\n| &&
+             `      //            oController.eF( ). Its argument list is parsed manually` && |\n| &&
+             `      //            (no eval / Function) so it runs under a strict CSP while` && |\n| &&
+             `      //            keeping object / array / string arguments intact.` && |\n| &&
              `      _runCustomJs(item, oController) {` && |\n| &&
              `        try {` && |\n| &&
-             `          const parts = item.split("'");` && |\n| &&
-             `          // Arguments live at the odd indices between single quotes.` && |\n| &&
-             `          const args = parts.filter((_, index) => index % 2 === 1);` && |\n| &&
-             `          if (args.length > 0) {` && |\n| &&
-             `            oController.eF(...args);` && |\n| &&
+             `          const snippet = item.trim();` && |\n| &&
+             `          const match = /^\.?eF\s*\(([\s\S]*)\)\s*;?$/.exec(snippet);` && |\n| &&
+             `          if (match) {` && |\n| &&
+             `            oController.eF(...parseEfArgs(match[1]));` && |\n| &&
              `          } else {` && |\n| &&
+             `            // A raw JavaScript expression - only runs when the CSP allows` && |\n| &&
+             `            // unsafe-eval.` && |\n| &&
              `            // eslint-disable-next-line no-new-func` && |\n| &&
-             `            Function("return " + parts[0])();` && |\n| &&
+             `            Function("return " + item)();` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("customJs: execution failed", e);` && |\n| &&

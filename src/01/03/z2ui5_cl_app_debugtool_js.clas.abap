@@ -36,13 +36,27 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `` && |\n| &&
              `    // Pretty-print any value (object, array, primitive) as indented JSON.` && |\n| &&
              `    // ``null`` is used as a fallback so undefined values still produce output.` && |\n| &&
+             `    // A replacer drops circular references (the z2ui5 global can hold them,` && |\n| &&
+             `    // e.g. via ComponentData) so the output stays useful JSON instead of` && |\n| &&
+             `    // throwing and degrading to a bare "[object Object]".` && |\n| &&
              `    function toJson(val) {` && |\n| &&
              `      const safe = val === undefined ? null : val;` && |\n| &&
+             `      const seen = new WeakSet();` && |\n| &&
              `      try {` && |\n| &&
-             `        return JSON.stringify(safe, null, 3);` && |\n| &&
+             `        return JSON.stringify(` && |\n| &&
+             `          safe,` && |\n| &&
+             `          (key, value) => {` && |\n| &&
+             `            if (typeof value === "object" && value !== null) {` && |\n| &&
+             `              if (seen.has(value)) return "[Circular]";` && |\n| &&
+             `              seen.add(value);` && |\n| &&
+             `            }` && |\n| &&
+             `            return value;` && |\n| &&
+             `          },` && |\n| &&
+             `          3,` && |\n| &&
+             `        );` && |\n| &&
              `      } catch {` && |\n| &&
-             `        // e.g. circular references in ComponentData - the debug tool must` && |\n| &&
-             `        // never crash the host app, so degrade to the plain string form.` && |\n| &&
+             `        // The debug tool must never crash the host app, so degrade to the` && |\n| &&
+             `        // plain string form if serialization still fails.` && |\n| &&
              `        return String(safe);` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
@@ -126,7 +140,11 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `    // (the latter optionally with the rendered DOM for the templating` && |\n| &&
              `    // toggle). The "SOURCE" entry is handled separately in onItemSelect.` && |\n| &&
              `    const jsonSources = {` && |\n| &&
-             `      CONFIG: () => AppState.getGlobal("oConfig"),` && |\n| &&
+             `      // The whole public z2ui5 global facade (oConfig, url, checkLocal,` && |\n| &&
+             `      // Util, app-registered members, ...). Read directly here on purpose:` && |\n| &&
+             `      // this is the debug inspector, whose job is to surface the live global` && |\n| &&
+             `      // as-is - functions drop out under JSON.stringify, which is fine.` && |\n| &&
+             `      SYSTEM: () => window.z2ui5,` && |\n| &&
              `      MODEL: () => getModelJson(ViewSlots.getView("MAIN")),` && |\n| &&
              `      PLAIN: () => AppState.state.responseData,` && |\n| &&
              `      REQUEST: () => AppState.state.oBody,` && |\n| &&

@@ -23,8 +23,13 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `// calling controller is only needed for the optional ONCLOSE follow-up` && |\n| &&
              `// events, which trigger a backend roundtrip through its eB().` && |\n| &&
              `sap.ui.define(` && |\n| &&
-             `  ["sap/m/MessageBox", "sap/m/MessageToast", "z2ui5/core/Lib"],` && |\n| &&
-             `  (MessageBox, MessageToast, Lib) => {` && |\n| &&
+             `  [` && |\n| &&
+             `    "sap/m/MessageBox",` && |\n| &&
+             `    "sap/m/MessageToast",` && |\n| &&
+             `    "sap/ui/core/Popup",` && |\n| &&
+             `    "z2ui5/core/Lib",` && |\n| &&
+             `  ],` && |\n| &&
+             `  (MessageBox, MessageToast, Popup, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Parse a value as integer milliseconds, falling back to ``fallback``` && |\n| &&
@@ -35,10 +40,32 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `      return val && Number.isFinite(parsed) ? parsed : fallback;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // Resolve a dock position ("center bottom", "begin top", ...) to the` && |\n| &&
+             `    // sap.ui.core.Popup.Dock value of the running UI5 version. Older UI5` && |\n| &&
+             `    // keeps the jQuery-style "center bottom" spelling, newer UI5 switched` && |\n| &&
+             `    // the enum to "CenterBottom" (and rejects the old form in MessageToast's` && |\n| &&
+             `    // dock validation with a console error). Looking the position up by its` && |\n| &&
+             `    // PascalCase key returns whichever spelling this version expects, so the` && |\n| &&
+             `    // value validates on both. Unknown values are passed through unchanged.` && |\n| &&
+             `    function toDockValue(pos) {` && |\n| &&
+             `      if (!pos) return pos;` && |\n| &&
+             `      const key = pos` && |\n| &&
+             `        .trim()` && |\n| &&
+             `        .split(/\s+/)` && |\n| &&
+             `        .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())` && |\n| &&
+             `        .join("");` && |\n| &&
+             `      return Popup.Dock[key] || pos;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function showToast(msg, oController) {` && |\n| &&
              `      MessageToast.show(msg.TEXT, {` && |\n| &&
              `        duration: parseMs(msg.DURATION, 3000),` && |\n| &&
              `        width: msg.WIDTH || "15em",` && |\n| &&
+             `        my: toDockValue(msg.MY || "center bottom"),` && |\n| &&
+             `        at: toDockValue(msg.AT || "center bottom"),` && |\n| &&
+             `        offset: msg.OFFSET || "0 0",` && |\n| &&
+             `        collision: msg.COLLISION || "fit fit",` && |\n| &&
+             `        ...(msg.OF && { of: msg.OF }),` && |\n| &&
              `        onClose: msg.ONCLOSE ? () => oController.eB([msg.ONCLOSE]) : null,` && |\n| &&
              `        autoClose: Boolean(msg.AUTOCLOSE),` && |\n| &&
              `        animationTimingFunction: msg.ANIMATIONTIMINGFUNCTION || "ease",` && |\n| &&
