@@ -505,23 +505,24 @@ sap.ui.define(
       },
 
       // Executes a single custom-JS snippet from the backend.
-      // Format A:  "alert(123)"           -> runs the expression
-      // Format B:  "eF('A','B','C')"      -> calls oController.eF('A','B','C')
-      //
-      // OBSOLETE: this mechanism (including the quote-based argument parsing
-      // and the Function() evaluation) only exists for backward compatibility
-      // with older apps and will be removed in a future release. Do not
-      // extend or change it.
+      // Format A:  "alert(123)"                -> runs the expression
+      // Format B:  "eF('A', 'B', { x: 1 })"    -> calls oController.eF( ) with
+      //            the arguments parsed by the JS engine.
       _runCustomJs(item, oController) {
         try {
-          const parts = item.split("'");
-          // Arguments live at the odd indices between single quotes.
-          const args = parts.filter((_, index) => index % 2 === 1);
-          if (args.length > 0) {
-            oController.eF(...args);
-          } else {
+          const snippet = item.trim();
+          if (/^\.?eF\s*\(/.test(snippet)) {
+            // Structured frontend-event call: evaluate it with eF bound to the
+            // controller. Evaluating the call (rather than splitting on quotes)
+            // keeps object, array and quoted-string arguments intact.
             // eslint-disable-next-line no-new-func
-            Function("return " + parts[0])();
+            Function("eF", snippet.replace(/^\./, ""))((...args) =>
+              oController.eF(...args),
+            );
+          } else {
+            // A raw JavaScript expression.
+            // eslint-disable-next-line no-new-func
+            Function("return " + item)();
           }
         } catch (e) {
           Lib.logError("customJs: execution failed", e);

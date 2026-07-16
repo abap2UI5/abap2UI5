@@ -526,23 +526,24 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Executes a single custom-JS snippet from the backend.` && |\n| &&
-             `      // Format A:  "alert(123)"           -> runs the expression` && |\n| &&
-             `      // Format B:  "eF('A','B','C')"      -> calls oController.eF('A','B','C')` && |\n| &&
-             `      //` && |\n| &&
-             `      // OBSOLETE: this mechanism (including the quote-based argument parsing` && |\n| &&
-             `      // and the Function() evaluation) only exists for backward compatibility` && |\n| &&
-             `      // with older apps and will be removed in a future release. Do not` && |\n| &&
-             `      // extend or change it.` && |\n| &&
+             `      // Format A:  "alert(123)"                -> runs the expression` && |\n| &&
+             `      // Format B:  "eF('A', 'B', { x: 1 })"    -> calls oController.eF( ) with` && |\n| &&
+             `      //            the arguments parsed by the JS engine.` && |\n| &&
              `      _runCustomJs(item, oController) {` && |\n| &&
              `        try {` && |\n| &&
-             `          const parts = item.split("'");` && |\n| &&
-             `          // Arguments live at the odd indices between single quotes.` && |\n| &&
-             `          const args = parts.filter((_, index) => index % 2 === 1);` && |\n| &&
-             `          if (args.length > 0) {` && |\n| &&
-             `            oController.eF(...args);` && |\n| &&
-             `          } else {` && |\n| &&
+             `          const snippet = item.trim();` && |\n| &&
+             `          if (/^\.?eF\s*\(/.test(snippet)) {` && |\n| &&
+             `            // Structured frontend-event call: evaluate it with eF bound to the` && |\n| &&
+             `            // controller. Evaluating the call (rather than splitting on quotes)` && |\n| &&
+             `            // keeps object, array and quoted-string arguments intact.` && |\n| &&
              `            // eslint-disable-next-line no-new-func` && |\n| &&
-             `            Function("return " + parts[0])();` && |\n| &&
+             `            Function("eF", snippet.replace(/^\./, ""))((...args) =>` && |\n| &&
+             `              oController.eF(...args),` && |\n| &&
+             `            );` && |\n| &&
+             `          } else {` && |\n| &&
+             `            // A raw JavaScript expression.` && |\n| &&
+             `            // eslint-disable-next-line no-new-func` && |\n| &&
+             `            Function("return " + item)();` && |\n| &&
              `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("customJs: execution failed", e);` && |\n| &&
