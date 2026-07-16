@@ -174,8 +174,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                           enabled          = client->_bind( ms_home-class_editable )
                           value            = client->_bind_edit( ms_home-classname )
                           submit           = client->_event( ms_home-btn_event_id )
-                          valuehelprequest = client->_event( cs_event-value_help )
-                          showvaluehelp    = abap_true
+*                          valuehelprequest = client->_event( cs_event-value_help )
+*                          showvaluehelp    = abap_true
                           width            = `70%` ).
 
     ELSE.
@@ -336,13 +336,13 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         view_display_start( ).
 
       WHEN cs_event-value_help.
-        TRY.
-            mt_classes = z2ui5_cl_a2ui5_context=>rtti_get_classes_impl_intf( z2ui5_cl_a2ui5_context=>rtti_get_intfname_by_ref( li_app ) ).
-          CATCH cx_root.
-            client->message_box_display( `Unfortunately the value help is not available on your ABAP release!` ).
-            RETURN.
-        ENDTRY.
-        client->nav_app_call( z2ui5_cl_pop_to_select=>factory( mt_classes ) ).
+*        TRY.
+*            mt_classes = z2ui5_cl_a2ui5_context=>rtti_get_classes_impl_intf( z2ui5_cl_a2ui5_context=>rtti_get_intfname_by_ref( li_app ) ).
+*          CATCH cx_root.
+*            client->message_box_display( `Unfortunately the value help is not available on your ABAP release!` ).
+*            RETURN.
+*        ENDTRY.
+*        client->nav_app_call( z2ui5_cl_pop_to_select=>factory( mt_classes ) ).
     ENDCASE.
 
   ENDMETHOD.
