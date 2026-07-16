@@ -42,25 +42,15 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~follow_up_action.
 
-    INSERT val INTO TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js.
+    DATA(lv_js) = val.
 
-  ENDMETHOD.
-
-
-  METHOD z2ui5_if_client~action.
-
-    DATA lv_val TYPE string.
-    lv_val = val.
-
-    IF lv_val IS INITIAL OR lv_val CN `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_`.
-      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
-        EXPORTING
-          val = |action: invalid event name '{ val }' - only A-Z, a-z, 0-9 and _ allowed|.
+    IF val IS NOT INITIAL
+        AND val CO `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_`.
+      lv_js = mo_srv_event->get_event_client( val   = val
+                                              t_arg = t_arg ).
     ENDIF.
 
-    INSERT mo_srv_event->get_event_client( val   = val
-                                           t_arg = t_arg )
-           INTO TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js.
+    INSERT lv_js INTO TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js.
 
   ENDMETHOD.
 

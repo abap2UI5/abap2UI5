@@ -240,13 +240,13 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result)        TYPE string.
 
+  "! Schedule a frontend action to run after the backend response is processed.
+  "! Two ways to call it: pass a frontend event as val (e.g. cs_event-set_title)
+  "! with its arguments in t_arg and the framework builds the event call; or pass
+  "! a raw JavaScript expression as val (without t_arg) to run it as-is.
   METHODS follow_up_action
     IMPORTING
-      val TYPE string.
-
-  METHODS action
-    IMPORTING
-      val   TYPE clike
+      val   TYPE string
       t_arg TYPE string_table OPTIONAL.
 
   METHODS check_on_event
