@@ -417,10 +417,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // does nothing on a Page. ScrollEnablement.scrollTo(x, y, time)` && |\n| &&
              `      // animates when time > 0, so "smooth" maps to a 300ms animation.` && |\n| &&
              `      // Native Element.scrollTo is only used as a fallback for controls` && |\n| &&
-             `      // without a delegate.` && |\n| &&
-             `      try {` && |\n| &&
-             `        const oElement = ViewSlots.byId("MAIN", args[1]);` && |\n|.
+             `      // without a delegate.` && |\n|.
     result = result &&
+             `      try {` && |\n| &&
+             `        const oElement = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
              `        const y = Number(args[2]) || 0;` && |\n| &&
              `        const x = Number(args[3]) || 0;` && |\n| &&
