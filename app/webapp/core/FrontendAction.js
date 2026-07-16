@@ -562,10 +562,15 @@ sap.ui.define(
       MessageToast.show(args[1], asOptions(args[2]));
     }
 
-    // DISPLAY_MESSAGE_BOX: args[1] message, args[2] options - forwarded 1:1
-    // to sap.m.MessageBox.show(vMessage, mOptions).
+    // DISPLAY_MESSAGE_BOX: args[1] MessageBox method (show / alert / confirm /
+    // error / information / success / warning), args[2] message, args[3]
+    // options - forwarded 1:1 to sap.m.MessageBox[method](vMessage, mOptions).
     function evDisplayMessageBox(oController, args) {
-      MessageBox.show(args[1], asOptions(args[2]));
+      const fn =
+        typeof MessageBox[args[1]] === "function"
+          ? MessageBox[args[1]]
+          : MessageBox.show;
+      fn(args[2], asOptions(args[3]));
     }
 
     const handlers = {

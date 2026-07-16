@@ -583,10 +583,15 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      MessageToast.show(args[1], asOptions(args[2]));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // DISPLAY_MESSAGE_BOX: args[1] message, args[2] options - forwarded 1:1` && |\n| &&
-             `    // to sap.m.MessageBox.show(vMessage, mOptions).` && |\n| &&
+             `    // DISPLAY_MESSAGE_BOX: args[1] MessageBox method (show / alert / confirm /` && |\n| &&
+             `    // error / information / success / warning), args[2] message, args[3]` && |\n| &&
+             `    // options - forwarded 1:1 to sap.m.MessageBox[method](vMessage, mOptions).` && |\n| &&
              `    function evDisplayMessageBox(oController, args) {` && |\n| &&
-             `      MessageBox.show(args[1], asOptions(args[2]));` && |\n| &&
+             `      const fn =` && |\n| &&
+             `        typeof MessageBox[args[1]] === "function"` && |\n| &&
+             `          ? MessageBox[args[1]]` && |\n| &&
+             `          : MessageBox.show;` && |\n| &&
+             `      fn(args[2], asOptions(args[3]));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    const handlers = {` && |\n| &&
