@@ -516,9 +516,10 @@ sap.ui.define(
             // controller. Evaluating the call (rather than splitting on quotes)
             // keeps object, array and quoted-string arguments intact.
             // eslint-disable-next-line no-new-func
-            Function("eF", snippet.replace(/^\./, ""))((...args) =>
-              oController.eF(...args),
-            );
+            Function(
+              "eF",
+              snippet.replace(/^\./, ""),
+            )((...args) => oController.eF(...args));
           } else {
             // A raw JavaScript expression.
             // eslint-disable-next-line no-new-func

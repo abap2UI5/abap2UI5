@@ -537,9 +537,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            // controller. Evaluating the call (rather than splitting on quotes)` && |\n| &&
              `            // keeps object, array and quoted-string arguments intact.` && |\n| &&
              `            // eslint-disable-next-line no-new-func` && |\n| &&
-             `            Function("eF", snippet.replace(/^\./, ""))((...args) =>` && |\n| &&
-             `              oController.eF(...args),` && |\n| &&
-             `            );` && |\n| &&
+             `            Function(` && |\n| &&
+             `              "eF",` && |\n| &&
+             `              snippet.replace(/^\./, ""),` && |\n| &&
+             `            )((...args) => oController.eF(...args));` && |\n| &&
              `          } else {` && |\n| &&
              `            // A raw JavaScript expression.` && |\n| &&
              `            // eslint-disable-next-line no-new-func` && |\n| &&
