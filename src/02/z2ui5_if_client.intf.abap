@@ -43,6 +43,9 @@ INTERFACE z2ui5_if_client
       store_data                TYPE string VALUE `STORE_DATA`,
       play_audio                TYPE string VALUE `PLAY_AUDIO`,
 
+      display_message_box       TYPE string VALUE `DISPLAY_MESSAGE_BOX`,
+      display_message_toast     TYPE string VALUE `DISPLAY_MESSAGE_TOAST`,
+
       "Control
 
 
