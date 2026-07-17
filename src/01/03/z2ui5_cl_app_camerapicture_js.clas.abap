@@ -145,7 +145,11 @@ CLASS z2ui5_cl_app_camerapicture_js IMPLEMENTATION.
              `            content: [` && |\n| &&
              `              new HTML({` && |\n| &&
              `                id: ``${this.getId()}PictureContainer``,` && |\n| &&
-             `                content: ``<video style="width:100%;height:100%;object-fit:contain;"${this.getAutoplay() ? " autoplay" : ""} id="${this.getId()}-video">``,` && |\n| &&
+             `                // playsinline + muted are required for autoplay of a live` && |\n| &&
+             `                // stream on iOS/Safari; min-height keeps the preview visible` && |\n| &&
+             `                // even if the dialog content box does not give it a height;` && |\n| &&
+             `                // the tag must be explicitly closed or the parser mangles it.` && |\n| &&
+             `                content: ``<video style="width:100%;height:100%;min-height:60vh;object-fit:contain;background:#000;" playsinline muted${this.getAutoplay() ? " autoplay" : ""} id="${this.getId()}-video"></video>``,` && |\n| &&
              `              }),` && |\n| &&
              `              new Button({` && |\n| &&
              `                text: "Capture",` && |\n| &&
@@ -204,6 +208,13 @@ CLASS z2ui5_cl_app_camerapicture_js IMPLEMENTATION.
              `            }` && |\n| &&
              `            this._stream = stream;` && |\n| &&
              `            video.srcObject = stream;` && |\n| &&
+             `            // Some browsers do not honour the autoplay attribute for a` && |\n| &&
+             `            // srcObject stream - start playback explicitly.` && |\n| &&
+             `            try {` && |\n| &&
+             `              await video.play();` && |\n| &&
+             `            } catch (e) {` && |\n| &&
+             `              Lib.logError("CameraPicture: video.play() failed", e);` && |\n| &&
+             `            }` && |\n| &&
              `          } catch (error) {` && |\n| &&
              `            Lib.logError("CameraPicture: getUserMedia failed", error);` && |\n| &&
              `          }` && |\n| &&

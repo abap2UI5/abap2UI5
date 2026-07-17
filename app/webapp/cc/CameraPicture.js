@@ -125,7 +125,11 @@ sap.ui.define(
             content: [
               new HTML({
                 id: `${this.getId()}PictureContainer`,
-                content: `<video style="width:100%;height:100%;object-fit:contain;"${this.getAutoplay() ? " autoplay" : ""} id="${this.getId()}-video">`,
+                // playsinline + muted are required for autoplay of a live
+                // stream on iOS/Safari; min-height keeps the preview visible
+                // even if the dialog content box does not give it a height;
+                // the tag must be explicitly closed or the parser mangles it.
+                content: `<video style="width:100%;height:100%;min-height:60vh;object-fit:contain;background:#000;" playsinline muted${this.getAutoplay() ? " autoplay" : ""} id="${this.getId()}-video"></video>`,
               }),
               new Button({
                 text: "Capture",
@@ -184,6 +188,13 @@ sap.ui.define(
             }
             this._stream = stream;
             video.srcObject = stream;
+            // Some browsers do not honour the autoplay attribute for a
+            // srcObject stream - start playback explicitly.
+            try {
+              await video.play();
+            } catch (e) {
+              Lib.logError("CameraPicture: video.play() failed", e);
+            }
           } catch (error) {
             Lib.logError("CameraPicture: getUserMedia failed", error);
           }
