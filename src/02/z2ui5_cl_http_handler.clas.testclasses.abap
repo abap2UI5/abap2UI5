@@ -92,19 +92,20 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
   METHOD test_http_post_error.
 
     DATA ls_req TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
-    DATA ls_result TYPE z2ui5_if_core_types=>ty_s_http_res.
-    DATA temp7 TYPE xsdboolean.
+    DATA lv_raised TYPE abap_bool.
 
     ls_req-method = `POST`.
     ls_req-body = `not valid json at all!!!`.
 
-    ls_result = z2ui5_cl_http_handler=>_http_post( ls_req ).
+    " uncaught exceptions are no longer swallowed into an HTTP 500 response -
+    " they propagate up so the ICF handler raises a real runtime error
+    TRY.
+        z2ui5_cl_http_handler=>_http_post( ls_req ).
+      CATCH cx_root.
+        lv_raised = abap_true.
+    ENDTRY.
 
-    cl_abap_unit_assert=>assert_equals( exp = 500
-                                        act = ls_result-status_code ).
-
-    temp7 = xsdbool( ls_result-body CS `abap2UI5 Error` ).
-    cl_abap_unit_assert=>assert_true( temp7 ).
+    cl_abap_unit_assert=>assert_true( lv_raised ).
 
   ENDMETHOD.
 
