@@ -116,6 +116,8 @@ INTERFACE z2ui5_if_core_types
         icon              TYPE string,
         details           TYPE string,
         closeonnavigation TYPE string,
+        dependenton       TYPE string,
+        contentwidth      TYPE string,
       END OF s_msg_box,
       BEGIN OF s_msg_toast,
         class                    TYPE string,

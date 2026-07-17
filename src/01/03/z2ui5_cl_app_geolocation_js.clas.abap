@@ -79,6 +79,15 @@ CLASS z2ui5_cl_app_geolocation_js IMPLEMENTATION.
              `          allowPreventDefault: true,` && |\n| &&
              `          parameters: {},` && |\n| &&
              `        },` && |\n| &&
+             `        // Fired when the position could not be read, so a backend can` && |\n| &&
+             `        // react. The control never surfaces any UI itself - handling is` && |\n| &&
+             `        // delegated entirely to whoever binds this event.` && |\n| &&
+             `        error: {` && |\n| &&
+             `          parameters: {` && |\n| &&
+             `            code: { type: "string" },` && |\n| &&
+             `            message: { type: "string" },` && |\n| &&
+             `          },` && |\n| &&
+             `        },` && |\n| &&
              `      },` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
@@ -89,6 +98,18 @@ CLASS z2ui5_cl_app_geolocation_js IMPLEMENTATION.
              `        this.setProperty(prop, Lib.toText(coords[prop]), true);` && |\n| &&
              `      }` && |\n| &&
              `      this.fireFinished();` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    // Reading the position failed (1 = permission denied, 2 = position` && |\n| &&
+             `    // unavailable, 3 = timeout). Log it and fire the ``error`` event so a` && |\n| &&
+             `    // backend can handle it; the control never surfaces UI on its own.` && |\n| &&
+             `    callbackError(error) {` && |\n| &&
+             `      if (Lib.isDestroyed(this)) return;` && |\n| &&
+             `      Lib.logError(``Geolocation error (${error.code}): ${error.message}``);` && |\n| &&
+             `      this.fireError({` && |\n| &&
+             `        code: String(error.code),` && |\n| &&
+             `        message: error.message,` && |\n| &&
+             `      });` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    init() {` && |\n| &&
@@ -106,8 +127,7 @@ CLASS z2ui5_cl_app_geolocation_js IMPLEMENTATION.
              `        if (!navigator.geolocation) return;` && |\n| &&
              `        navigator.geolocation.getCurrentPosition(` && |\n| &&
              `          this.callbackPosition.bind(this),` && |\n| &&
-             `          (error) =>` && |\n| &&
-             `            Lib.logError(``Geolocation error (${error.code}): ${error.message}``),` && |\n| &&
+             `          this.callbackError.bind(this),` && |\n| &&
              `          {` && |\n| &&
              `            enableHighAccuracy: this.getProperty("enableHighAccuracy"),` && |\n| &&
              `            // Guard against an empty or non-numeric property - NaN or 0` && |\n| &&

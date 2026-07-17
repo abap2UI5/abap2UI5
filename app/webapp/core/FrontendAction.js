@@ -2,6 +2,8 @@ sap.ui.define(
   [
     "sap/m/MessageBox",
     "sap/m/MessageToast",
+    "sap/ui/core/BusyIndicator",
+    "sap/ui/core/Theming",
     "sap/ui/model/odata/v2/ODataModel",
     "sap/m/library",
     "sap/ui/util/Storage",
@@ -12,6 +14,8 @@ sap.ui.define(
   (
     MessageBox,
     MessageToast,
+    BusyIndicator,
+    Theming,
     ODataModel,
     mobileLibrary,
     Storage,
@@ -73,6 +77,104 @@ sap.ui.define(
       POPUP_NAV_CONTAINER_TO: (id) => ViewSlots.byId("POPUP", id),
       POPOVER_NAV_CONTAINER_TO: (id) => ViewSlots.byId("POPOVER", id),
     };
+
+    // ------------------------------------------------------------------
+    // control_call / control_call_by_id: call a whitelisted method on a
+    // control (by id) or a global object. The whitelist is the safety
+    // boundary; each entry lists the kind of every positional argument so
+    // string payloads are cast/resolved (never "call anything with
+    // anything"). Scope: imperative methods that have no binding equivalent.
+    // ------------------------------------------------------------------
+
+    // control method -> kinds of its positional args.
+    const CONTROL_METHODS = {
+      to: ["controlId"],
+      back: [],
+      focus: [],
+      scrollToIndex: ["int"],
+      scrollTo: ["int", "int"],
+    };
+
+    // global object -> lazy getter + its allowed methods (with arg kinds).
+    const GLOBAL_TARGETS = {
+      MESSAGE_TOAST: { get: () => MessageToast, methods: { show: ["string"] } },
+      MESSAGE_BOX: {
+        get: () => MessageBox,
+        methods: {
+          show: ["string"],
+          information: ["string"],
+          warning: ["string"],
+          error: ["string"],
+          success: ["string"],
+        },
+      },
+      BUSY_INDICATOR: {
+        get: () => BusyIndicator,
+        methods: { show: ["int"], hide: [] },
+      },
+      THEMING: { get: () => Theming, methods: { setTheme: ["string"] } },
+    };
+
+    // Cast one raw string argument to the kind the whitelist declared.
+    function castArg(kind, raw) {
+      switch (kind) {
+        case "int":
+          return Number(raw);
+        case "bool":
+          return raw === "true" || raw === "X" || raw === true;
+        case "controlId":
+          return ViewSlots.resolveById(raw);
+        case "object":
+          try {
+            return JSON.parse(raw);
+          } catch {
+            return {};
+          }
+        default:
+          return raw;
+      }
+    }
+
+    function castArgs(kinds, rawArgs) {
+      return kinds.map((kind, i) => castArg(kind, rawArgs[i]));
+    }
+
+    // args: [_, id, view, method, ...params]
+    function evControlCallById(oController, args) {
+      const [id, view, method] = [args[1], args[2], args[3]];
+      const kinds = CONTROL_METHODS[method];
+      if (!kinds) {
+        Lib.logError(`control_call_by_id: method '${method}' not allowed`);
+        return;
+      }
+      const control = view
+        ? ViewSlots.byId(view.toUpperCase(), id)
+        : ViewSlots.resolveById(id);
+      if (!control || typeof control[method] !== "function") {
+        Lib.logError(
+          `control_call_by_id: '${method}' not callable on control '${id}'`,
+        );
+        return;
+      }
+      control[method](...castArgs(kinds, args.slice(4)));
+    }
+
+    // args: [_, object, method, ...params]
+    function evControlCall(oController, args) {
+      const [name, method] = [args[1], args[2]];
+      const target = GLOBAL_TARGETS[name];
+      const kinds = target?.methods[method];
+      if (!kinds) {
+        Lib.logError(`control_call: '${name}.${method}' not allowed`);
+        return;
+      }
+      const obj = target.get();
+      if (!obj || typeof obj[method] !== "function") {
+        Lib.logError(`control_call: '${name}.${method}' not available`);
+        return;
+      }
+      obj[method](...castArgs(kinds, args.slice(3)));
+    }
 
     // ------------------------------------------------------------------
     // Individual event handlers - one per entry in the dispatch table at
@@ -540,42 +642,7 @@ sap.ui.define(
     // Frontend event dispatch: maps the eF event name to its handler.
     // NavContainer events are dispatched separately via
     // navContainerLookups above.
-    // Normalise the options argument for DISPLAY_MESSAGE_*: an object when the
-    // event is fired from a view binding, a JSON string when it arrives as a
-    // custom-JS snippet, or nothing at all.
-    function asOptions(v) {
-      if (v == null) return {};
-      if (typeof v === "string") {
-        try {
-          return JSON.parse(v);
-        } catch (e) {
-          Lib.logError("DISPLAY_MESSAGE: invalid options JSON", e);
-          return {};
-        }
-      }
-      return v;
-    }
-
-    // DISPLAY_MESSAGE_TOAST: args[1] message, args[2] options - forwarded 1:1
-    // to sap.m.MessageToast.show(sMessage, mParameters).
-    function evDisplayMessageToast(oController, args) {
-      MessageToast.show(args[1], asOptions(args[2]));
-    }
-
-    // DISPLAY_MESSAGE_BOX: args[1] MessageBox method (show / alert / confirm /
-    // error / information / success / warning), args[2] message, args[3]
-    // options - forwarded 1:1 to sap.m.MessageBox[method](vMessage, mOptions).
-    function evDisplayMessageBox(oController, args) {
-      const fn =
-        typeof MessageBox[args[1]] === "function"
-          ? MessageBox[args[1]]
-          : MessageBox.show;
-      fn(args[2], asOptions(args[3]));
-    }
-
     const handlers = {
-      DISPLAY_MESSAGE_TOAST: evDisplayMessageToast,
-      DISPLAY_MESSAGE_BOX: evDisplayMessageBox,
       SET_SIZE_LIMIT: evSetSizeLimit,
       HISTORY_BACK: evHistoryBack,
       CLIPBOARD_COPY: evClipboardCopy,
@@ -602,6 +669,8 @@ sap.ui.define(
       Z2UI5: evZ2ui5Custom,
       WIZARD_SET_NEXT_STEP: evWizardSetNextStep,
       PLAY_AUDIO: evPlayAudio,
+      CONTROL_BY_ID: evControlCallById,
+      CONTROL_GLOBAL: evControlCall,
     };
 
     // Entry point called by View1.controller's eF().

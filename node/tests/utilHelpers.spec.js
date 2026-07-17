@@ -200,3 +200,19 @@ test.describe("logError", () => {
     expect(sandbox.z2ui5.errors[1].ts).toBeTruthy();
   });
 });
+
+test.describe("getElementById", () => {
+  const el = { id: "btn1" };
+
+  test("resolves a known control id to its element", () => {
+    const { Lib } = loadLib({ elements: { btn1: el } });
+    expect(Lib.getElementById("btn1")).toBe(el);
+  });
+
+  test("returns null for an empty or unknown id", () => {
+    const { Lib } = loadLib({ elements: { btn1: el } });
+    expect(Lib.getElementById("")).toBeNull();
+    expect(Lib.getElementById(undefined)).toBeNull();
+    expect(Lib.getElementById("missing")).toBeNull();
+  });
+});

@@ -35,7 +35,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    "z2ui5/core/Server",` && |\n| &&
              `    "sap/ui/model/odata/v2/ODataModel",` && |\n| &&
              `    "sap/ui/core/routing/HashChanger",` && |\n| &&
-             `    "sap/ui/core/Element",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/FrontendAction",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
@@ -52,7 +51,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    Server,` && |\n| &&
              `    ODataModel,` && |\n| &&
              `    HashChanger,` && |\n| &&
-             `    Element,` && |\n| &&
              `    Lib,` && |\n| &&
              `    FrontendAction,` && |\n| &&
              `    ViewSlots,` && |\n| &&
@@ -227,6 +225,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        oFragment.setModel(oModel);` && |\n| &&
+             `        // Share the one device model (created once in Component.js, never` && |\n| &&
+             `        // destroyed) so {device>...} bindings work in popups too.` && |\n| &&
+             `        oFragment.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&
              `        ViewSlots.setView("POPUP", oFragment);` && |\n| &&
              `        oFragment.open();` && |\n| &&
              `      },` && |\n| &&
@@ -251,30 +252,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        oFragment.setModel(oModel);` && |\n| &&
+             `        // Shared device model (see displayFragment) - for popovers too.` && |\n| &&
+             `        oFragment.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&
              `` && |\n| &&
-             `        // Find the control to attach the popover to. We search the main` && |\n| &&
-             `        // view first, then any open popup / nested views, then the global` && |\n| &&
-             `        // UI5 control registry as a last resort.` && |\n| &&
-             `        let oControl =` && |\n| &&
-             `          ViewSlots.byId("MAIN", openById) ||` && |\n| &&
-             `          ViewSlots.byId("POPUP", openById) ||` && |\n| &&
-             `          ViewSlots.byId("NEST", openById) ||` && |\n| &&
-             `          ViewSlots.byId("NEST2", openById);` && |\n| &&
-             `        if (!oControl) {` && |\n| &&
-             `          if (Element.getElementById) {` && |\n| &&
-             `            oControl = Element.getElementById(openById);` && |\n| &&
-             `          } else {` && |\n| &&
-             `            /* ui5lint-disable no-globals, no-deprecated-api --` && |\n| &&
-             `               deliberate fallback for UI5 releases that do not provide` && |\n| &&
-             `               Element.getElementById yet (added in 1.119); the modern` && |\n| &&
-             `               API is used in the branch above. */` && |\n| &&
-             `            if (sap.ui.getCore) {` && |\n| &&
-             `              const core = sap.ui.getCore();` && |\n| &&
-             `              if (core?.byId) oControl = core.byId(openById);` && |\n| &&
-             `            }` && |\n| &&
-             `            /* ui5lint-enable no-globals, no-deprecated-api */` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
+             `        // Find the control to attach the popover to: any open slot first,` && |\n| &&
+             `        // then the global UI5 control registry as a last resort.` && |\n| &&
+             `        const oControl = ViewSlots.resolveById(openById);` && |\n| &&
              `` && |\n| &&
              `        if (!oControl) {` && |\n| &&
              `          Lib.logError(` && |\n| &&
@@ -302,6 +285,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        oView.setModel(oModel);` && |\n| &&
+             `        // Shared device model (see displayFragment) - for nested views too.` && |\n| &&
+             `        oView.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&
              `` && |\n| &&
              `        const nestParams = AppState.state.oResponse?.PARAMS?.[paramKey];` && |\n| &&
              `        if (!nestParams) {` && |\n| &&
@@ -320,10 +305,18 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        try {` && |\n| &&
-             `          oParent[METHOD_DESTROY]();` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("displayNestedView: parent destroy method failed", e);` && |\n| &&
+             `        // METHOD_DESTROY is optional: only call it when the app asked for a` && |\n| &&
+             `        // parent teardown method. An empty value used to reach oParent[""]()` && |\n| &&
+             `        // and throw on every render (e.g. app 065 passes only method_insert).` && |\n| &&
+             `        if (METHOD_DESTROY) {` && |\n| &&
+             `          try {` && |\n| &&
+             `            oParent[METHOD_DESTROY]();` && |\n| &&
+             `          } catch (e) {` && |\n| &&
+             `            Lib.logError(` && |\n| &&
+             `              ``displayNestedView: parent destroy method '${METHOD_DESTROY}' failed``,` && |\n| &&
+             `              e,` && |\n| &&
+             `            );` && |\n| &&
+             `          }` && |\n| &&
              `        }` && |\n| &&
              `        try {` && |\n| &&
              `          oParent[METHOD_INSERT](oView);` && |\n| &&
@@ -417,15 +410,15 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        AppState.state.oBody = oBody;` && |\n| &&
              `` && |\n| &&
              `        // Decide which view's model holds the data we need to send back. The` && |\n| &&
-             `        // mapping is: main app controller -> main view, popup controller ->` && |\n|.
-    result = result &&
+             `        // mapping is: main app controller -> main view, popup controller ->` && |\n| &&
              `        // popup view, etc.` && |\n| &&
              `        const oModel = this._pickModelForRoundtrip(useMainModel, oBody);` && |\n| &&
              `` && |\n| &&
              `        Lib.runCallbacks(AppState.state.onBeforeRoundtrip);` && |\n| &&
              `` && |\n| &&
              `        // If the user edited /XX/ paths, send only the delta to keep the` && |\n| &&
-             `        // payload small.` && |\n| &&
+             `        // payload small.` && |\n|.
+    result = result &&
              `        if (oModel && AppState.state.xxChangedPaths.size > 0) {` && |\n| &&
              `          const data = oModel.getData();` && |\n| &&
              `          const xx = data?.XX;` && |\n| &&

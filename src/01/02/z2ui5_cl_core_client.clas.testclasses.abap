@@ -34,6 +34,7 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_nest2_view_display   FOR TESTING RAISING cx_static_check.
     METHODS test_nest2_view_destroy   FOR TESTING RAISING cx_static_check.
     METHODS test_message_box_display  FOR TESTING RAISING cx_static_check.
+    METHODS test_message_box_dependent FOR TESTING RAISING cx_static_check.
     METHODS test_message_box_type     FOR TESTING RAISING cx_static_check.
     METHODS test_message_toast        FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action     FOR TESTING RAISING cx_static_check.
@@ -311,6 +312,25 @@ CLASS ltcl_test_client IMPLEMENTATION.
                                         act = mo_action->ms_next-s_set-s_msg_box-text ).
     cl_abap_unit_assert=>assert_equals( exp = `error`
                                         act = mo_action->ms_next-s_set-s_msg_box-type ).
+
+  ENDMETHOD.
+
+  METHOD test_message_box_dependent.
+
+    DATA temp15b TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp15b.
+    temp15b ?= mo_client.
+
+    li_client = temp15b.
+    li_client->message_box_display( text         = `The quantity exceeds the plan.`
+                                    type         = `confirm`
+                                    dependenton  = `myPage`
+                                    contentwidth = `20rem` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `myPage`
+                                        act = mo_action->ms_next-s_set-s_msg_box-dependenton ).
+    cl_abap_unit_assert=>assert_equals( exp = `20rem`
+                                        act = mo_action->ms_next-s_set-s_msg_box-contentwidth ).
 
   ENDMETHOD.
 

@@ -15,7 +15,6 @@ sap.ui.define(
     "z2ui5/core/Server",
     "sap/ui/model/odata/v2/ODataModel",
     "sap/ui/core/routing/HashChanger",
-    "sap/ui/core/Element",
     "z2ui5/core/Lib",
     "z2ui5/core/FrontendAction",
     "z2ui5/core/ViewSlots",
@@ -32,7 +31,6 @@ sap.ui.define(
     Server,
     ODataModel,
     HashChanger,
-    Element,
     Lib,
     FrontendAction,
     ViewSlots,
@@ -207,6 +205,9 @@ sap.ui.define(
           return;
         }
         oFragment.setModel(oModel);
+        // Share the one device model (created once in Component.js, never
+        // destroyed) so {device>...} bindings work in popups too.
+        oFragment.setModel(AppState.state.oDeviceModel, "device");
         ViewSlots.setView("POPUP", oFragment);
         oFragment.open();
       },
@@ -231,30 +232,12 @@ sap.ui.define(
           return;
         }
         oFragment.setModel(oModel);
+        // Shared device model (see displayFragment) - for popovers too.
+        oFragment.setModel(AppState.state.oDeviceModel, "device");
 
-        // Find the control to attach the popover to. We search the main
-        // view first, then any open popup / nested views, then the global
-        // UI5 control registry as a last resort.
-        let oControl =
-          ViewSlots.byId("MAIN", openById) ||
-          ViewSlots.byId("POPUP", openById) ||
-          ViewSlots.byId("NEST", openById) ||
-          ViewSlots.byId("NEST2", openById);
-        if (!oControl) {
-          if (Element.getElementById) {
-            oControl = Element.getElementById(openById);
-          } else {
-            /* ui5lint-disable no-globals, no-deprecated-api --
-               deliberate fallback for UI5 releases that do not provide
-               Element.getElementById yet (added in 1.119); the modern
-               API is used in the branch above. */
-            if (sap.ui.getCore) {
-              const core = sap.ui.getCore();
-              if (core?.byId) oControl = core.byId(openById);
-            }
-            /* ui5lint-enable no-globals, no-deprecated-api */
-          }
-        }
+        // Find the control to attach the popover to: any open slot first,
+        // then the global UI5 control registry as a last resort.
+        const oControl = ViewSlots.resolveById(openById);
 
         if (!oControl) {
           Lib.logError(
@@ -282,6 +265,8 @@ sap.ui.define(
           return;
         }
         oView.setModel(oModel);
+        // Shared device model (see displayFragment) - for nested views too.
+        oView.setModel(AppState.state.oDeviceModel, "device");
 
         const nestParams = AppState.state.oResponse?.PARAMS?.[paramKey];
         if (!nestParams) {
@@ -300,10 +285,18 @@ sap.ui.define(
           return;
         }
 
-        try {
-          oParent[METHOD_DESTROY]();
-        } catch (e) {
-          Lib.logError("displayNestedView: parent destroy method failed", e);
+        // METHOD_DESTROY is optional: only call it when the app asked for a
+        // parent teardown method. An empty value used to reach oParent[""]()
+        // and throw on every render (e.g. app 065 passes only method_insert).
+        if (METHOD_DESTROY) {
+          try {
+            oParent[METHOD_DESTROY]();
+          } catch (e) {
+            Lib.logError(
+              `displayNestedView: parent destroy method '${METHOD_DESTROY}' failed`,
+              e,
+            );
+          }
         }
         try {
           oParent[METHOD_INSERT](oView);

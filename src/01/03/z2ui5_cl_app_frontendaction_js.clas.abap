@@ -22,6 +22,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `  [` && |\n| &&
              `    "sap/m/MessageBox",` && |\n| &&
              `    "sap/m/MessageToast",` && |\n| &&
+             `    "sap/ui/core/BusyIndicator",` && |\n| &&
+             `    "sap/ui/core/Theming",` && |\n| &&
              `    "sap/ui/model/odata/v2/ODataModel",` && |\n| &&
              `    "sap/m/library",` && |\n| &&
              `    "sap/ui/util/Storage",` && |\n| &&
@@ -32,6 +34,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `  (` && |\n| &&
              `    MessageBox,` && |\n| &&
              `    MessageToast,` && |\n| &&
+             `    BusyIndicator,` && |\n| &&
+             `    Theming,` && |\n| &&
              `    ODataModel,` && |\n| &&
              `    mobileLibrary,` && |\n| &&
              `    Storage,` && |\n| &&
@@ -93,6 +97,104 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      POPUP_NAV_CONTAINER_TO: (id) => ViewSlots.byId("POPUP", id),` && |\n| &&
              `      POPOVER_NAV_CONTAINER_TO: (id) => ViewSlots.byId("POPOVER", id),` && |\n| &&
              `    };` && |\n| &&
+             `` && |\n| &&
+             `    // ------------------------------------------------------------------` && |\n| &&
+             `    // control_call / control_call_by_id: call a whitelisted method on a` && |\n| &&
+             `    // control (by id) or a global object. The whitelist is the safety` && |\n| &&
+             `    // boundary; each entry lists the kind of every positional argument so` && |\n| &&
+             `    // string payloads are cast/resolved (never "call anything with` && |\n| &&
+             `    // anything"). Scope: imperative methods that have no binding equivalent.` && |\n| &&
+             `    // ------------------------------------------------------------------` && |\n| &&
+             `` && |\n| &&
+             `    // control method -> kinds of its positional args.` && |\n| &&
+             `    const CONTROL_METHODS = {` && |\n| &&
+             `      to: ["controlId"],` && |\n| &&
+             `      back: [],` && |\n| &&
+             `      focus: [],` && |\n| &&
+             `      scrollToIndex: ["int"],` && |\n| &&
+             `      scrollTo: ["int", "int"],` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
+             `    // global object -> lazy getter + its allowed methods (with arg kinds).` && |\n| &&
+             `    const GLOBAL_TARGETS = {` && |\n| &&
+             `      MESSAGE_TOAST: { get: () => MessageToast, methods: { show: ["string"] } },` && |\n| &&
+             `      MESSAGE_BOX: {` && |\n| &&
+             `        get: () => MessageBox,` && |\n| &&
+             `        methods: {` && |\n| &&
+             `          show: ["string"],` && |\n| &&
+             `          information: ["string"],` && |\n| &&
+             `          warning: ["string"],` && |\n| &&
+             `          error: ["string"],` && |\n| &&
+             `          success: ["string"],` && |\n| &&
+             `        },` && |\n| &&
+             `      },` && |\n| &&
+             `      BUSY_INDICATOR: {` && |\n| &&
+             `        get: () => BusyIndicator,` && |\n| &&
+             `        methods: { show: ["int"], hide: [] },` && |\n| &&
+             `      },` && |\n| &&
+             `      THEMING: { get: () => Theming, methods: { setTheme: ["string"] } },` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
+             `    // Cast one raw string argument to the kind the whitelist declared.` && |\n| &&
+             `    function castArg(kind, raw) {` && |\n| &&
+             `      switch (kind) {` && |\n| &&
+             `        case "int":` && |\n| &&
+             `          return Number(raw);` && |\n| &&
+             `        case "bool":` && |\n| &&
+             `          return raw === "true" || raw === "X" || raw === true;` && |\n| &&
+             `        case "controlId":` && |\n| &&
+             `          return ViewSlots.resolveById(raw);` && |\n| &&
+             `        case "object":` && |\n| &&
+             `          try {` && |\n| &&
+             `            return JSON.parse(raw);` && |\n| &&
+             `          } catch {` && |\n| &&
+             `            return {};` && |\n| &&
+             `          }` && |\n| &&
+             `        default:` && |\n| &&
+             `          return raw;` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function castArgs(kinds, rawArgs) {` && |\n| &&
+             `      return kinds.map((kind, i) => castArg(kind, rawArgs[i]));` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // args: [_, id, view, method, ...params]` && |\n| &&
+             `    function evControlCallById(oController, args) {` && |\n| &&
+             `      const [id, view, method] = [args[1], args[2], args[3]];` && |\n| &&
+             `      const kinds = CONTROL_METHODS[method];` && |\n| &&
+             `      if (!kinds) {` && |\n| &&
+             `        Lib.logError(``control_call_by_id: method '${method}' not allowed``);` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      const control = view` && |\n| &&
+             `        ? ViewSlots.byId(view.toUpperCase(), id)` && |\n| &&
+             `        : ViewSlots.resolveById(id);` && |\n| &&
+             `      if (!control || typeof control[method] !== "function") {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``control_call_by_id: '${method}' not callable on control '${id}'``,` && |\n| &&
+             `        );` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      control[method](...castArgs(kinds, args.slice(4)));` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // args: [_, object, method, ...params]` && |\n| &&
+             `    function evControlCall(oController, args) {` && |\n| &&
+             `      const [name, method] = [args[1], args[2]];` && |\n| &&
+             `      const target = GLOBAL_TARGETS[name];` && |\n| &&
+             `      const kinds = target?.methods[method];` && |\n| &&
+             `      if (!kinds) {` && |\n| &&
+             `        Lib.logError(``control_call: '${name}.${method}' not allowed``);` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      const obj = target.get();` && |\n| &&
+             `      if (!obj || typeof obj[method] !== "function") {` && |\n| &&
+             `        Lib.logError(``control_call: '${name}.${method}' not available``);` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      obj[method](...castArgs(kinds, args.slice(3)));` && |\n| &&
+             `    }` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `    // Individual event handlers - one per entry in the dispatch table at` && |\n| &&
@@ -315,7 +417,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        },` && |\n| &&
              `        TRIGGER_EMAIL: () =>` && |\n| &&
              `          _URLHelper.triggerEmail(` && |\n| &&
-             `            params.EMAIL,` && |\n| &&
+             `            params.EMAIL,` && |\n|.
+    result = result &&
              `            params.SUBJECT,` && |\n| &&
              `            params.BODY,` && |\n| &&
              `            params.CC,` && |\n| &&
@@ -417,8 +520,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // does nothing on a Page. ScrollEnablement.scrollTo(x, y, time)` && |\n| &&
              `      // animates when time > 0, so "smooth" maps to a 300ms animation.` && |\n| &&
              `      // Native Element.scrollTo is only used as a fallback for controls` && |\n| &&
-             `      // without a delegate.` && |\n|.
-    result = result &&
+             `      // without a delegate.` && |\n| &&
              `      try {` && |\n| &&
              `        const oElement = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
@@ -561,42 +663,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // Frontend event dispatch: maps the eF event name to its handler.` && |\n| &&
              `    // NavContainer events are dispatched separately via` && |\n| &&
              `    // navContainerLookups above.` && |\n| &&
-             `    // Normalise the options argument for DISPLAY_MESSAGE_*: an object when the` && |\n| &&
-             `    // event is fired from a view binding, a JSON string when it arrives as a` && |\n| &&
-             `    // custom-JS snippet, or nothing at all.` && |\n| &&
-             `    function asOptions(v) {` && |\n| &&
-             `      if (v == null) return {};` && |\n| &&
-             `      if (typeof v === "string") {` && |\n| &&
-             `        try {` && |\n| &&
-             `          return JSON.parse(v);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("DISPLAY_MESSAGE: invalid options JSON", e);` && |\n| &&
-             `          return {};` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      return v;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    // DISPLAY_MESSAGE_TOAST: args[1] message, args[2] options - forwarded 1:1` && |\n| &&
-             `    // to sap.m.MessageToast.show(sMessage, mParameters).` && |\n| &&
-             `    function evDisplayMessageToast(oController, args) {` && |\n| &&
-             `      MessageToast.show(args[1], asOptions(args[2]));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    // DISPLAY_MESSAGE_BOX: args[1] MessageBox method (show / alert / confirm /` && |\n| &&
-             `    // error / information / success / warning), args[2] message, args[3]` && |\n| &&
-             `    // options - forwarded 1:1 to sap.m.MessageBox[method](vMessage, mOptions).` && |\n| &&
-             `    function evDisplayMessageBox(oController, args) {` && |\n| &&
-             `      const fn =` && |\n| &&
-             `        typeof MessageBox[args[1]] === "function"` && |\n| &&
-             `          ? MessageBox[args[1]]` && |\n| &&
-             `          : MessageBox.show;` && |\n| &&
-             `      fn(args[2], asOptions(args[3]));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    const handlers = {` && |\n| &&
-             `      DISPLAY_MESSAGE_TOAST: evDisplayMessageToast,` && |\n| &&
-             `      DISPLAY_MESSAGE_BOX: evDisplayMessageBox,` && |\n| &&
              `      SET_SIZE_LIMIT: evSetSizeLimit,` && |\n| &&
              `      HISTORY_BACK: evHistoryBack,` && |\n| &&
              `      CLIPBOARD_COPY: evClipboardCopy,` && |\n| &&
@@ -623,6 +690,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      Z2UI5: evZ2ui5Custom,` && |\n| &&
              `      WIZARD_SET_NEXT_STEP: evWizardSetNextStep,` && |\n| &&
              `      PLAY_AUDIO: evPlayAudio,` && |\n| &&
+             `      CONTROL_BY_ID: evControlCallById,` && |\n| &&
+             `      CONTROL_GLOBAL: evControlCall,` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    // Entry point called by View1.controller's eF().` && |\n| &&

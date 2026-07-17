@@ -43,9 +43,6 @@ INTERFACE z2ui5_if_client
       store_data                TYPE string VALUE `STORE_DATA`,
       play_audio                TYPE string VALUE `PLAY_AUDIO`,
 
-      display_message_box       TYPE string VALUE `DISPLAY_MESSAGE_BOX`,
-      display_message_toast     TYPE string VALUE `DISPLAY_MESSAGE_TOAST`,
-
       "Control
 
 
@@ -180,7 +177,9 @@ INTERFACE z2ui5_if_client
       textdirection     TYPE clike        OPTIONAL
       icon              TYPE clike        OPTIONAL
       details           TYPE clike        OPTIONAL
-      closeonnavigation TYPE abap_bool    DEFAULT abap_true.
+      closeonnavigation TYPE abap_bool    DEFAULT abap_true
+      dependenton       TYPE clike        OPTIONAL
+      contentwidth      TYPE clike        OPTIONAL.
 
   METHODS message_toast_display
     IMPORTING
@@ -251,6 +250,23 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val   TYPE string
       t_arg TYPE string_table OPTIONAL.
+
+  "! Call a whitelisted method on a control (resolved by id) after the next
+  "! render - client-side, without a roundtrip.
+  METHODS control_call_by_id
+    IMPORTING
+      id     TYPE clike
+      method TYPE clike
+      view   TYPE clike        OPTIONAL
+      params TYPE string_table OPTIONAL.
+
+  "! Call a whitelisted method on a global object (MessageToast, Theming,
+  "! BusyIndicator, ...) after the next render - client-side, no roundtrip.
+  METHODS control_call
+    IMPORTING
+      object TYPE clike
+      method TYPE clike
+      params TYPE string_table OPTIONAL.
 
   METHODS check_on_event
     IMPORTING

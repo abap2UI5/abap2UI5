@@ -55,6 +55,31 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_if_client~control_call_by_id.
+
+    DATA(lt_arg) = VALUE string_table( ( CONV string( id ) )
+                                       ( CONV string( view ) )
+                                       ( CONV string( method ) ) ).
+    APPEND LINES OF params TO lt_arg.
+
+    z2ui5_if_client~follow_up_action( val   = `CONTROL_BY_ID`
+                                      t_arg = lt_arg ).
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~control_call.
+
+    DATA(lt_arg) = VALUE string_table( ( CONV string( object ) )
+                                       ( CONV string( method ) ) ).
+    APPEND LINES OF params TO lt_arg.
+
+    z2ui5_if_client~follow_up_action( val   = `CONTROL_GLOBAL`
+                                      t_arg = lt_arg ).
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_client~check_on_event.
 
     IF val IS NOT INITIAL.
@@ -175,7 +200,9 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                                                   textdirection     = textdirection
                                                   icon              = icon
                                                   details           = lv_details
-                                                  closeonnavigation = closeonnavigation ).
+                                                  closeonnavigation = closeonnavigation
+                                                  dependenton       = dependenton
+                                                  contentwidth      = contentwidth ).
 
   ENDMETHOD.
 

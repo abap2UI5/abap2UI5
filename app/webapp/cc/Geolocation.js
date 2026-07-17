@@ -59,6 +59,15 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
           allowPreventDefault: true,
           parameters: {},
         },
+        // Fired when the position could not be read, so a backend can
+        // react. The control never surfaces any UI itself - handling is
+        // delegated entirely to whoever binds this event.
+        error: {
+          parameters: {
+            code: { type: "string" },
+            message: { type: "string" },
+          },
+        },
       },
     },
 
@@ -69,6 +78,18 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
         this.setProperty(prop, Lib.toText(coords[prop]), true);
       }
       this.fireFinished();
+    },
+
+    // Reading the position failed (1 = permission denied, 2 = position
+    // unavailable, 3 = timeout). Log it and fire the `error` event so a
+    // backend can handle it; the control never surfaces UI on its own.
+    callbackError(error) {
+      if (Lib.isDestroyed(this)) return;
+      Lib.logError(`Geolocation error (${error.code}): ${error.message}`);
+      this.fireError({
+        code: String(error.code),
+        message: error.message,
+      });
     },
 
     init() {
@@ -86,8 +107,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
         if (!navigator.geolocation) return;
         navigator.geolocation.getCurrentPosition(
           this.callbackPosition.bind(this),
-          (error) =>
-            Lib.logError(`Geolocation error (${error.code}): ${error.message}`),
+          this.callbackError.bind(this),
           {
             enableHighAccuracy: this.getProperty("enableHighAccuracy"),
             // Guard against an empty or non-numeric property - NaN or 0

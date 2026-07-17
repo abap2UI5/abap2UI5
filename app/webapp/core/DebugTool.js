@@ -92,6 +92,15 @@ sap.ui.define(
       return view?._xContent?.outerHTML;
     }
 
+    // Minimal text dump of the shared error log (the entries Lib.logError
+    // pushes to AppState.state.errors): one "<ts>  <message>" line per entry,
+    // oldest first. Empty log yields a short placeholder.
+    function formatErrorLog() {
+      const errors = AppState.state.errors || [];
+      if (!errors.length) return "(log is empty)";
+      return errors.map((e) => `${e.ts}  ${e.message}`).join("\n");
+    }
+
     function getResponseXml(key) {
       const params = AppState.state.oResponse?.PARAMS;
       const slot = params?.[key];
@@ -198,6 +207,11 @@ sap.ui.define(
             "xml",
             this.prettifyXml(rendered),
           );
+          return;
+        }
+
+        if (selItem === "LOG") {
+          this.displayEditor(oEvent, formatErrorLog(), "text");
           return;
         }
 
