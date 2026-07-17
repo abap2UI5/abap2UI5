@@ -27,9 +27,13 @@ function loadMessages() {
   const MessageToast = {
     show: (text, opts) => toastCalls.push({ text, opts }),
   };
+  // Lib.getElementById resolves a control id to its element for the
+  // dependentOn option. Only "knownId" resolves here.
+  const elements = { knownId: { id: "knownId" } };
   const Lib = {
     logError: (message) => errors.push(message),
     sanitizeMessageDetails: (html) => html,
+    getElementById: (sId) => elements[sId] || null,
   };
   // Stub sap.ui.core.Popup. toDockValue() looks dock positions up by their
   // PascalCase key in Popup.Dock; newer UI5 spells the enum values in the
@@ -47,18 +51,11 @@ function loadMessages() {
       EndBottom: "EndBottom",
     },
   };
-  // Stub sap.ui.core.Element - dependentOn resolution maps a control id to
-  // its element via Element.getElementById. Only "knownId" resolves here.
-  const elements = { knownId: { id: "knownId" } };
-  const Element = {
-    getElementById: (sId) => elements[sId] || null,
-  };
   const { module } = loadModule("core/Messages.js", {
     deps: {
       "sap/m/MessageBox": MessageBox,
       "sap/m/MessageToast": MessageToast,
       "sap/ui/core/Popup": Popup,
-      "sap/ui/core/Element": Element,
       "z2ui5/core/Lib": Lib,
     },
   });

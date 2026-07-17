@@ -10,17 +10,24 @@ function loadLib(overrides = {}) {
   // `state` is the same object that is exposed as sandbox.z2ui5, so the
   // existing spec assertions on sandbox.z2ui5.errors keep observing what
   // the helpers write.
-  const state = overrides.z2ui5 ?? {};
+  const { elements = {}, ...rest } = overrides;
+  const state = rest.z2ui5 ?? {};
+  // Lib.getElementById resolves control ids through sap.ui.core.Element;
+  // the stub's registry lets a spec register elements to resolve.
+  const Element = { getElementById: (sId) => elements[sId] || null };
   const { module, sandbox } = loadModule("core/Lib.js", {
-    deps: { "z2ui5/core/AppState": { state } },
+    deps: {
+      "z2ui5/core/AppState": { state },
+      "sap/ui/core/Element": Element,
+    },
     sandbox: {
       // window.location.origin anchors relative URL resolution.
       z2ui5: state,
       window: { location: { origin: "http://localhost:3000" } },
-      ...overrides,
+      ...rest,
     },
   });
-  return { Lib: module, sandbox };
+  return { Lib: module, sandbox, elements };
 }
 
 module.exports = { loadLib };

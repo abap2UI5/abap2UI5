@@ -7,30 +7,10 @@ sap.ui.define(
     "sap/m/MessageBox",
     "sap/m/MessageToast",
     "sap/ui/core/Popup",
-    "sap/ui/core/Element",
     "z2ui5/core/Lib",
   ],
-  (MessageBox, MessageToast, Popup, Element, Lib) => {
+  (MessageBox, MessageToast, Popup, Lib) => {
     "use strict";
-
-    // Resolve a control id to its sap.ui.core.Element instance. MessageBox's
-    // dependentOn option expects an element (not an id), so a backend that
-    // sends DEPENDENTON has to be mapped here. Returns null when the id does
-    // not resolve, so the option is simply dropped rather than passed as
-    // undefined.
-    function resolveElement(sId) {
-      if (!sId) return null;
-      if (Element.getElementById) return Element.getElementById(sId) || null;
-      /* ui5lint-disable no-globals, no-deprecated-api --
-         deliberate fallback for UI5 releases without Element.getElementById
-         (added in 1.119); the modern API is used in the branch above. */
-      if (sap.ui.getCore) {
-        const core = sap.ui.getCore();
-        if (core?.byId) return core.byId(sId) || null;
-      }
-      /* ui5lint-enable no-globals, no-deprecated-api */
-      return null;
-    }
 
     // Parse a value as integer milliseconds, falling back to `fallback`
     // when the input is empty / undefined / not a finite number (so a stray
@@ -106,7 +86,7 @@ sap.ui.define(
       // dependentOn (UI5 >= 1.124) adds the message box to an element's
       // lifecycle - the backend sends the control id, resolved to the element
       // here. A missing/unresolvable id drops the option silently.
-      const oDependentOn = resolveElement(msg.DEPENDENTON);
+      const oDependentOn = Lib.getElementById(msg.DEPENDENTON);
       if (oDependentOn) oParams.dependentOn = oDependentOn;
       // MessageBox display methods are lowercase (show, error, warning,
       // ...), but the type can arrive capitalized - the ABAP message

@@ -15,7 +15,6 @@ sap.ui.define(
     "z2ui5/core/Server",
     "sap/ui/model/odata/v2/ODataModel",
     "sap/ui/core/routing/HashChanger",
-    "sap/ui/core/Element",
     "z2ui5/core/Lib",
     "z2ui5/core/FrontendAction",
     "z2ui5/core/ViewSlots",
@@ -32,7 +31,6 @@ sap.ui.define(
     Server,
     ODataModel,
     HashChanger,
-    Element,
     Lib,
     FrontendAction,
     ViewSlots,
@@ -234,27 +232,13 @@ sap.ui.define(
 
         // Find the control to attach the popover to. We search the main
         // view first, then any open popup / nested views, then the global
-        // UI5 control registry as a last resort.
-        let oControl =
+        // UI5 control registry as a last resort (Lib.getElementById).
+        const oControl =
           ViewSlots.byId("MAIN", openById) ||
           ViewSlots.byId("POPUP", openById) ||
           ViewSlots.byId("NEST", openById) ||
-          ViewSlots.byId("NEST2", openById);
-        if (!oControl) {
-          if (Element.getElementById) {
-            oControl = Element.getElementById(openById);
-          } else {
-            /* ui5lint-disable no-globals, no-deprecated-api --
-               deliberate fallback for UI5 releases that do not provide
-               Element.getElementById yet (added in 1.119); the modern
-               API is used in the branch above. */
-            if (sap.ui.getCore) {
-              const core = sap.ui.getCore();
-              if (core?.byId) oControl = core.byId(openById);
-            }
-            /* ui5lint-enable no-globals, no-deprecated-api */
-          }
-        }
+          ViewSlots.byId("NEST2", openById) ||
+          Lib.getElementById(openById);
 
         if (!oControl) {
           Lib.logError(

@@ -35,7 +35,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    "z2ui5/core/Server",` && |\n| &&
              `    "sap/ui/model/odata/v2/ODataModel",` && |\n| &&
              `    "sap/ui/core/routing/HashChanger",` && |\n| &&
-             `    "sap/ui/core/Element",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/FrontendAction",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
@@ -52,7 +51,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    Server,` && |\n| &&
              `    ODataModel,` && |\n| &&
              `    HashChanger,` && |\n| &&
-             `    Element,` && |\n| &&
              `    Lib,` && |\n| &&
              `    FrontendAction,` && |\n| &&
              `    ViewSlots,` && |\n| &&
@@ -254,27 +252,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        // Find the control to attach the popover to. We search the main` && |\n| &&
              `        // view first, then any open popup / nested views, then the global` && |\n| &&
-             `        // UI5 control registry as a last resort.` && |\n| &&
-             `        let oControl =` && |\n| &&
+             `        // UI5 control registry as a last resort (Lib.getElementById).` && |\n| &&
+             `        const oControl =` && |\n| &&
              `          ViewSlots.byId("MAIN", openById) ||` && |\n| &&
              `          ViewSlots.byId("POPUP", openById) ||` && |\n| &&
              `          ViewSlots.byId("NEST", openById) ||` && |\n| &&
-             `          ViewSlots.byId("NEST2", openById);` && |\n| &&
-             `        if (!oControl) {` && |\n| &&
-             `          if (Element.getElementById) {` && |\n| &&
-             `            oControl = Element.getElementById(openById);` && |\n| &&
-             `          } else {` && |\n| &&
-             `            /* ui5lint-disable no-globals, no-deprecated-api --` && |\n| &&
-             `               deliberate fallback for UI5 releases that do not provide` && |\n| &&
-             `               Element.getElementById yet (added in 1.119); the modern` && |\n| &&
-             `               API is used in the branch above. */` && |\n| &&
-             `            if (sap.ui.getCore) {` && |\n| &&
-             `              const core = sap.ui.getCore();` && |\n| &&
-             `              if (core?.byId) oControl = core.byId(openById);` && |\n| &&
-             `            }` && |\n| &&
-             `            /* ui5lint-enable no-globals, no-deprecated-api */` && |\n| &&
-             `          }` && |\n| &&
-             `        }` && |\n| &&
+             `          ViewSlots.byId("NEST2", openById) ||` && |\n| &&
+             `          Lib.getElementById(openById);` && |\n| &&
              `` && |\n| &&
              `        if (!oControl) {` && |\n| &&
              `          Lib.logError(` && |\n| &&
@@ -417,8 +401,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        AppState.state.oBody = oBody;` && |\n| &&
              `` && |\n| &&
              `        // Decide which view's model holds the data we need to send back. The` && |\n| &&
-             `        // mapping is: main app controller -> main view, popup controller ->` && |\n|.
-    result = result &&
+             `        // mapping is: main app controller -> main view, popup controller ->` && |\n| &&
              `        // popup view, etc.` && |\n| &&
              `        const oModel = this._pickModelForRoundtrip(useMainModel, oBody);` && |\n| &&
              `` && |\n| &&
@@ -434,7 +417,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `              AppState.state.xxChangedPaths,` && |\n| &&
              `              xx,` && |\n| &&
              `            );` && |\n| &&
-             `          }` && |\n| &&
+             `          }` && |\n|.
+    result = result &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        oBody.ID = AppState.state.oResponse?.ID;` && |\n| &&
