@@ -642,42 +642,7 @@ sap.ui.define(
     // Frontend event dispatch: maps the eF event name to its handler.
     // NavContainer events are dispatched separately via
     // navContainerLookups above.
-    // Normalise the options argument for DISPLAY_MESSAGE_*: an object when the
-    // event is fired from a view binding, a JSON string when it arrives as a
-    // custom-JS snippet, or nothing at all.
-    function asOptions(v) {
-      if (v == null) return {};
-      if (typeof v === "string") {
-        try {
-          return JSON.parse(v);
-        } catch (e) {
-          Lib.logError("DISPLAY_MESSAGE: invalid options JSON", e);
-          return {};
-        }
-      }
-      return v;
-    }
-
-    // DISPLAY_MESSAGE_TOAST: args[1] message, args[2] options - forwarded 1:1
-    // to sap.m.MessageToast.show(sMessage, mParameters).
-    function evDisplayMessageToast(oController, args) {
-      MessageToast.show(args[1], asOptions(args[2]));
-    }
-
-    // DISPLAY_MESSAGE_BOX: args[1] MessageBox method (show / alert / confirm /
-    // error / information / success / warning), args[2] message, args[3]
-    // options - forwarded 1:1 to sap.m.MessageBox[method](vMessage, mOptions).
-    function evDisplayMessageBox(oController, args) {
-      const fn =
-        typeof MessageBox[args[1]] === "function"
-          ? MessageBox[args[1]]
-          : MessageBox.show;
-      fn(args[2], asOptions(args[3]));
-    }
-
     const handlers = {
-      DISPLAY_MESSAGE_TOAST: evDisplayMessageToast,
-      DISPLAY_MESSAGE_BOX: evDisplayMessageBox,
       SET_SIZE_LIMIT: evSetSizeLimit,
       HISTORY_BACK: evHistoryBack,
       CLIPBOARD_COPY: evClipboardCopy,

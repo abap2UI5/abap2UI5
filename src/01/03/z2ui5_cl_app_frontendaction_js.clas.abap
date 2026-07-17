@@ -663,42 +663,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // Frontend event dispatch: maps the eF event name to its handler.` && |\n| &&
              `    // NavContainer events are dispatched separately via` && |\n| &&
              `    // navContainerLookups above.` && |\n| &&
-             `    // Normalise the options argument for DISPLAY_MESSAGE_*: an object when the` && |\n| &&
-             `    // event is fired from a view binding, a JSON string when it arrives as a` && |\n| &&
-             `    // custom-JS snippet, or nothing at all.` && |\n| &&
-             `    function asOptions(v) {` && |\n| &&
-             `      if (v == null) return {};` && |\n| &&
-             `      if (typeof v === "string") {` && |\n| &&
-             `        try {` && |\n| &&
-             `          return JSON.parse(v);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("DISPLAY_MESSAGE: invalid options JSON", e);` && |\n| &&
-             `          return {};` && |\n| &&
-             `        }` && |\n| &&
-             `      }` && |\n| &&
-             `      return v;` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    // DISPLAY_MESSAGE_TOAST: args[1] message, args[2] options - forwarded 1:1` && |\n| &&
-             `    // to sap.m.MessageToast.show(sMessage, mParameters).` && |\n| &&
-             `    function evDisplayMessageToast(oController, args) {` && |\n| &&
-             `      MessageToast.show(args[1], asOptions(args[2]));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    // DISPLAY_MESSAGE_BOX: args[1] MessageBox method (show / alert / confirm /` && |\n| &&
-             `    // error / information / success / warning), args[2] message, args[3]` && |\n| &&
-             `    // options - forwarded 1:1 to sap.m.MessageBox[method](vMessage, mOptions).` && |\n| &&
-             `    function evDisplayMessageBox(oController, args) {` && |\n| &&
-             `      const fn =` && |\n| &&
-             `        typeof MessageBox[args[1]] === "function"` && |\n| &&
-             `          ? MessageBox[args[1]]` && |\n| &&
-             `          : MessageBox.show;` && |\n| &&
-             `      fn(args[2], asOptions(args[3]));` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    const handlers = {` && |\n| &&
-             `      DISPLAY_MESSAGE_TOAST: evDisplayMessageToast,` && |\n| &&
-             `      DISPLAY_MESSAGE_BOX: evDisplayMessageBox,` && |\n| &&
              `      SET_SIZE_LIMIT: evSetSizeLimit,` && |\n| &&
              `      HISTORY_BACK: evHistoryBack,` && |\n| &&
              `      CLIPBOARD_COPY: evClipboardCopy,` && |\n| &&
