@@ -2,6 +2,8 @@ sap.ui.define(
   [
     "sap/m/MessageBox",
     "sap/m/MessageToast",
+    "sap/ui/core/BusyIndicator",
+    "sap/ui/core/Theming",
     "sap/ui/model/odata/v2/ODataModel",
     "sap/m/library",
     "sap/ui/util/Storage",
@@ -12,6 +14,8 @@ sap.ui.define(
   (
     MessageBox,
     MessageToast,
+    BusyIndicator,
+    Theming,
     ODataModel,
     mobileLibrary,
     Storage,
@@ -73,6 +77,104 @@ sap.ui.define(
       POPUP_NAV_CONTAINER_TO: (id) => ViewSlots.byId("POPUP", id),
       POPOVER_NAV_CONTAINER_TO: (id) => ViewSlots.byId("POPOVER", id),
     };
+
+    // ------------------------------------------------------------------
+    // control_call / control_call_by_id: call a whitelisted method on a
+    // control (by id) or a global object. The whitelist is the safety
+    // boundary; each entry lists the kind of every positional argument so
+    // string payloads are cast/resolved (never "call anything with
+    // anything"). Scope: imperative methods that have no binding equivalent.
+    // ------------------------------------------------------------------
+
+    // control method -> kinds of its positional args.
+    const CONTROL_METHODS = {
+      to: ["controlId"],
+      back: [],
+      focus: [],
+      scrollToIndex: ["int"],
+      scrollTo: ["int", "int"],
+    };
+
+    // global object -> lazy getter + its allowed methods (with arg kinds).
+    const GLOBAL_TARGETS = {
+      MESSAGE_TOAST: { get: () => MessageToast, methods: { show: ["string"] } },
+      MESSAGE_BOX: {
+        get: () => MessageBox,
+        methods: {
+          show: ["string"],
+          information: ["string"],
+          warning: ["string"],
+          error: ["string"],
+          success: ["string"],
+        },
+      },
+      BUSY_INDICATOR: {
+        get: () => BusyIndicator,
+        methods: { show: ["int"], hide: [] },
+      },
+      THEMING: { get: () => Theming, methods: { setTheme: ["string"] } },
+    };
+
+    // Cast one raw string argument to the kind the whitelist declared.
+    function castArg(kind, raw) {
+      switch (kind) {
+        case "int":
+          return Number(raw);
+        case "bool":
+          return raw === "true" || raw === "X" || raw === true;
+        case "controlId":
+          return ViewSlots.resolveById(raw);
+        case "object":
+          try {
+            return JSON.parse(raw);
+          } catch {
+            return {};
+          }
+        default:
+          return raw;
+      }
+    }
+
+    function castArgs(kinds, rawArgs) {
+      return kinds.map((kind, i) => castArg(kind, rawArgs[i]));
+    }
+
+    // args: [_, id, view, method, ...params]
+    function evControlCallById(oController, args) {
+      const [id, view, method] = [args[1], args[2], args[3]];
+      const kinds = CONTROL_METHODS[method];
+      if (!kinds) {
+        Lib.logError(`control_call_by_id: method '${method}' not allowed`);
+        return;
+      }
+      const control = view
+        ? ViewSlots.byId(view.toUpperCase(), id)
+        : ViewSlots.resolveById(id);
+      if (!control || typeof control[method] !== "function") {
+        Lib.logError(
+          `control_call_by_id: '${method}' not callable on control '${id}'`,
+        );
+        return;
+      }
+      control[method](...castArgs(kinds, args.slice(4)));
+    }
+
+    // args: [_, object, method, ...params]
+    function evControlCall(oController, args) {
+      const [name, method] = [args[1], args[2]];
+      const target = GLOBAL_TARGETS[name];
+      const kinds = target?.methods[method];
+      if (!kinds) {
+        Lib.logError(`control_call: '${name}.${method}' not allowed`);
+        return;
+      }
+      const obj = target.get();
+      if (!obj || typeof obj[method] !== "function") {
+        Lib.logError(`control_call: '${name}.${method}' not available`);
+        return;
+      }
+      obj[method](...castArgs(kinds, args.slice(3)));
+    }
 
     // ------------------------------------------------------------------
     // Individual event handlers - one per entry in the dispatch table at
@@ -602,6 +704,8 @@ sap.ui.define(
       Z2UI5: evZ2ui5Custom,
       WIZARD_SET_NEXT_STEP: evWizardSetNextStep,
       PLAY_AUDIO: evPlayAudio,
+      CONTROL_BY_ID: evControlCallById,
+      CONTROL_GLOBAL: evControlCall,
     };
 
     // Entry point called by View1.controller's eF().

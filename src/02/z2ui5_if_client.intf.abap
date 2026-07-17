@@ -254,6 +254,23 @@ INTERFACE z2ui5_if_client
       val   TYPE string
       t_arg TYPE string_table OPTIONAL.
 
+  "! Call a whitelisted method on a control (resolved by id) after the next
+  "! render - client-side, without a roundtrip.
+  METHODS control_call_by_id
+    IMPORTING
+      id     TYPE clike
+      method TYPE clike
+      view   TYPE clike        OPTIONAL
+      params TYPE string_table OPTIONAL.
+
+  "! Call a whitelisted method on a global object (MessageToast, Theming,
+  "! BusyIndicator, ...) after the next render - client-side, no roundtrip.
+  METHODS control_call
+    IMPORTING
+      object TYPE clike
+      method TYPE clike
+      params TYPE string_table OPTIONAL.
+
   METHODS check_on_event
     IMPORTING
       val           TYPE clike OPTIONAL
