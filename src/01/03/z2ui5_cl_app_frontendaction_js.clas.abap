@@ -57,7 +57,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    const _URLHelper = mobileLibrary.URLHelper;` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
-             `    // Launchpad / NavContainer helpers` && |\n| &&
+             `    // Launchpad helpers` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
              `    function withCrossAppNavigator(callback) {` && |\n| &&
@@ -73,30 +73,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function navigateContainer(lookup, args) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        const container = lookup(args[1]);` && |\n| &&
-             `        const target = lookup(args[2]);` && |\n| &&
-             `        if (!container || !target) {` && |\n| &&
-             `          Lib.logError(` && |\n| &&
-             `            ``navigateContainer: control '${!container ? args[1] : args[2]}' not found``,` && |\n| &&
-             `          );` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        container.to(target);` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        Lib.logError("navigateContainer: navigation failed", e);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
-             `    // Lookup tables mapping event names to the right view slot.` && |\n| &&
-             `    const navContainerLookups = {` && |\n| &&
-             `      NAV_CONTAINER_TO: (id) => ViewSlots.byId("MAIN", id),` && |\n| &&
-             `      NEST_NAV_CONTAINER_TO: (id) => ViewSlots.byId("NEST", id),` && |\n| &&
-             `      NEST2_NAV_CONTAINER_TO: (id) => ViewSlots.byId("NEST2", id),` && |\n| &&
-             `      POPUP_NAV_CONTAINER_TO: (id) => ViewSlots.byId("POPUP", id),` && |\n| &&
-             `      POPOVER_NAV_CONTAINER_TO: (id) => ViewSlots.byId("POPOVER", id),` && |\n| &&
-             `    };` && |\n| &&
+             `    // NavContainer navigation (NAV_CONTAINER_TO and the NEST/NEST2/POPUP/` && |\n| &&
+             `    // POPOVER variants) is no longer dispatched here: the backend routes those` && |\n| &&
+             `    // events through the generic control_call_by_id path (method "to", the` && |\n| &&
+             `    // slot passed as the view), so evControlCallById below handles them.` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `    // control_call / control_call_by_id: call a whitelisted method on a` && |\n| &&
@@ -136,14 +116,21 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    };` && |\n| &&
              `` && |\n| &&
              `    // Cast one raw string argument to the kind the whitelist declared.` && |\n| &&
-             `    function castArg(kind, raw) {` && |\n| &&
+             `    // ``view`` (optional) is the slot the owning control was resolved in, so a` && |\n| &&
+             `    // controlId argument resolves against the same view first - this keeps` && |\n| &&
+             `    // slot-local ids unambiguous (e.g. a NavContainer navigating to one of` && |\n| &&
+             `    // its own pages) before falling back to the global lookup.` && |\n| &&
+             `    function castArg(kind, raw, view) {` && |\n| &&
              `      switch (kind) {` && |\n| &&
              `        case "int":` && |\n| &&
              `          return Number(raw);` && |\n| &&
              `        case "bool":` && |\n| &&
              `          return raw === "true" || raw === "X" || raw === true;` && |\n| &&
              `        case "controlId":` && |\n| &&
-             `          return ViewSlots.resolveById(raw);` && |\n| &&
+             `          return (` && |\n| &&
+             `            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||` && |\n| &&
+             `            ViewSlots.resolveById(raw)` && |\n| &&
+             `          );` && |\n| &&
              `        case "object":` && |\n| &&
              `          try {` && |\n| &&
              `            return JSON.parse(raw);` && |\n| &&
@@ -155,8 +142,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function castArgs(kinds, rawArgs) {` && |\n| &&
-             `      return kinds.map((kind, i) => castArg(kind, rawArgs[i]));` && |\n| &&
+             `    function castArgs(kinds, rawArgs, view) {` && |\n| &&
+             `      return kinds.map((kind, i) => castArg(kind, rawArgs[i], view));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // args: [_, id, view, method, ...params]` && |\n| &&
@@ -176,7 +163,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        );` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      control[method](...castArgs(kinds, args.slice(4)));` && |\n| &&
+             `      control[method](...castArgs(kinds, args.slice(4), view));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // args: [_, object, method, ...params]` && |\n| &&
@@ -417,8 +404,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        },` && |\n| &&
              `        TRIGGER_EMAIL: () =>` && |\n| &&
              `          _URLHelper.triggerEmail(` && |\n| &&
-             `            params.EMAIL,` && |\n|.
-    result = result &&
+             `            params.EMAIL,` && |\n| &&
              `            params.SUBJECT,` && |\n| &&
              `            params.BODY,` && |\n| &&
              `            params.CC,` && |\n| &&
@@ -431,7 +417,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      try {` && |\n| &&
              `        const fn = actions[args[1]];` && |\n| &&
              `        if (fn) fn();` && |\n| &&
-             `      } catch (e) {` && |\n| &&
+             `      } catch (e) {` && |\n|.
+    result = result &&
              `        Lib.logError(``URLHELPER: '${args[1]}' failed``, e);` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
@@ -661,8 +648,6 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Frontend event dispatch: maps the eF event name to its handler.` && |\n| &&
-             `    // NavContainer events are dispatched separately via` && |\n| &&
-             `    // navContainerLookups above.` && |\n| &&
              `    const handlers = {` && |\n| &&
              `      SET_SIZE_LIMIT: evSetSizeLimit,` && |\n| &&
              `      HISTORY_BACK: evHistoryBack,` && |\n| &&
@@ -699,13 +684,6 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      Lib.runCallbacks(AppState.state.onBeforeEventFrontend, args);` && |\n| &&
              `` && |\n| &&
              `      try {` && |\n| &&
-             `        // NavContainer navigation is dispatched via lookup table.` && |\n| &&
-             `        const navLookup = navContainerLookups[args[0]];` && |\n| &&
-             `        if (navLookup) {` && |\n| &&
-             `          navigateContainer(navLookup, args);` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
              `        const handler = handlers[args[0]];` && |\n| &&
              `        if (handler) handler(oController, args);` && |\n| &&
              `      } catch (e) {` && |\n| &&
