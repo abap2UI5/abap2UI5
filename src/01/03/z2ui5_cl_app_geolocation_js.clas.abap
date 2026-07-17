@@ -104,26 +104,25 @@ CLASS z2ui5_cl_app_geolocation_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Reading the position failed (1 = permission denied, 2 = position` && |\n| &&
-             `      // unavailable, 3 = timeout). Always log it; then fire the ``error`` event` && |\n| &&
-             `      // and, unless an app prevented the default, surface the reason to the` && |\n| &&
-             `      // user so a silently empty form is not left unexplained.` && |\n| &&
+             `      // unavailable, 3 = timeout). Always log it and fire the ``error`` event` && |\n| &&
+             `      // so a backend can handle it. Only when no app listens on ``error`` fall` && |\n| &&
+             `      // back to a default dialog, so the failure is never silent.` && |\n| &&
              `      callbackError(error) {` && |\n| &&
              `        if (Lib.isDestroyed(this)) return;` && |\n| &&
              `        Lib.logError(``Geolocation error (${error.code}): ${error.message}``);` && |\n| &&
+             `        this.fireError({` && |\n| &&
+             `          code: String(error.code),` && |\n| &&
+             `          message: error.message,` && |\n| &&
+             `        });` && |\n| &&
+             `        if (this.hasListeners("error")) return;` && |\n| &&
              `        const reasons = {` && |\n| &&
              `          1: "permission denied",` && |\n| &&
              `          2: "position unavailable",` && |\n| &&
              `          3: "the request timed out",` && |\n| &&
              `        };` && |\n| &&
-             `        const notPrevented = this.fireError({` && |\n| &&
-             `          code: String(error.code),` && |\n| &&
-             `          message: error.message,` && |\n| &&
-             `        });` && |\n| &&
-             `        if (notPrevented) {` && |\n| &&
-             `          MessageBox.error(` && |\n| &&
-             `            ``Location unavailable: ${reasons[error.code] || error.message}``,` && |\n| &&
-             `          );` && |\n| &&
-             `        }` && |\n| &&
+             `        MessageBox.error(` && |\n| &&
+             `          ``Location unavailable: ${reasons[error.code] || error.message}``,` && |\n| &&
+             `        );` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      init() {` && |\n| &&

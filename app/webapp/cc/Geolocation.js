@@ -84,26 +84,25 @@ sap.ui.define(
       },
 
       // Reading the position failed (1 = permission denied, 2 = position
-      // unavailable, 3 = timeout). Always log it; then fire the `error` event
-      // and, unless an app prevented the default, surface the reason to the
-      // user so a silently empty form is not left unexplained.
+      // unavailable, 3 = timeout). Always log it and fire the `error` event
+      // so a backend can handle it. Only when no app listens on `error` fall
+      // back to a default dialog, so the failure is never silent.
       callbackError(error) {
         if (Lib.isDestroyed(this)) return;
         Lib.logError(`Geolocation error (${error.code}): ${error.message}`);
+        this.fireError({
+          code: String(error.code),
+          message: error.message,
+        });
+        if (this.hasListeners("error")) return;
         const reasons = {
           1: "permission denied",
           2: "position unavailable",
           3: "the request timed out",
         };
-        const notPrevented = this.fireError({
-          code: String(error.code),
-          message: error.message,
-        });
-        if (notPrevented) {
-          MessageBox.error(
-            `Location unavailable: ${reasons[error.code] || error.message}`,
-          );
-        }
+        MessageBox.error(
+          `Location unavailable: ${reasons[error.code] || error.message}`,
+        );
       },
 
       init() {

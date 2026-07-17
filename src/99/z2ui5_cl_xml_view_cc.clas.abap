@@ -112,6 +112,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION PUBLIC.
     METHODS geolocation
       IMPORTING
         finished           TYPE clike OPTIONAL
+        error              TYPE clike OPTIONAL
         longitude          TYPE any   OPTIONAL
         latitude           TYPE any   OPTIONAL
         altitude           TYPE any   OPTIONAL
@@ -470,6 +471,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                        ns     = `z2ui5`
                        t_prop = VALUE #(
                            ( n = `finished`  v = finished )
+                           ( n = `error`  v = error )
                            ( n = `longitude`  v = longitude )
                            ( n = `latitude`  v = latitude )
                            ( n = `altitude`  v = altitude )
