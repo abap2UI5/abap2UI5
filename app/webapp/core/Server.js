@@ -555,7 +555,11 @@ sap.ui.define(
           const info = await VersionInfo.load();
           gav = info.gav;
         } catch (e) {
+          // Could not determine the SDK - never swallow the original failure:
+          // fall back to the fatal-error overlay with the underlying error so
+          // every error case still surfaces one error popup.
           Lib.logError("_checkSDKcompatibility: VersionInfo.load failed", e);
+          this.responseError(err);
           return;
         }
         if (!gav || !gav.includes("com.sap.ui5")) {
