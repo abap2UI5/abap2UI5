@@ -205,6 +205,9 @@ sap.ui.define(
           return;
         }
         oFragment.setModel(oModel);
+        // Share the one device model (created once in Component.js, never
+        // destroyed) so {device>...} bindings work in popups too.
+        oFragment.setModel(AppState.state.oDeviceModel, "device");
         ViewSlots.setView("POPUP", oFragment);
         oFragment.open();
       },
@@ -229,6 +232,8 @@ sap.ui.define(
           return;
         }
         oFragment.setModel(oModel);
+        // Shared device model (see displayFragment) - for popovers too.
+        oFragment.setModel(AppState.state.oDeviceModel, "device");
 
         // Find the control to attach the popover to: any open slot first,
         // then the global UI5 control registry as a last resort.
@@ -260,6 +265,8 @@ sap.ui.define(
           return;
         }
         oView.setModel(oModel);
+        // Shared device model (see displayFragment) - for nested views too.
+        oView.setModel(AppState.state.oDeviceModel, "device");
 
         const nestParams = AppState.state.oResponse?.PARAMS?.[paramKey];
         if (!nestParams) {

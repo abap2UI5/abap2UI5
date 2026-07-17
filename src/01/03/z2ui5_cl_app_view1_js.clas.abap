@@ -225,6 +225,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        oFragment.setModel(oModel);` && |\n| &&
+             `        // Share the one device model (created once in Component.js, never` && |\n| &&
+             `        // destroyed) so {device>...} bindings work in popups too.` && |\n| &&
+             `        oFragment.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&
              `        ViewSlots.setView("POPUP", oFragment);` && |\n| &&
              `        oFragment.open();` && |\n| &&
              `      },` && |\n| &&
@@ -249,6 +252,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        oFragment.setModel(oModel);` && |\n| &&
+             `        // Shared device model (see displayFragment) - for popovers too.` && |\n| &&
+             `        oFragment.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&
              `` && |\n| &&
              `        // Find the control to attach the popover to: any open slot first,` && |\n| &&
              `        // then the global UI5 control registry as a last resort.` && |\n| &&
@@ -280,6 +285,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        oView.setModel(oModel);` && |\n| &&
+             `        // Shared device model (see displayFragment) - for nested views too.` && |\n| &&
+             `        oView.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&
              `` && |\n| &&
              `        const nestParams = AppState.state.oResponse?.PARAMS?.[paramKey];` && |\n| &&
              `        if (!nestParams) {` && |\n| &&
@@ -410,15 +417,15 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            oBody.XX = Lib.buildDeltaFromPaths(` && |\n| &&
              `              AppState.state.xxChangedPaths,` && |\n| &&
              `              xx,` && |\n| &&
-             `            );` && |\n| &&
+             `            );` && |\n|.
+    result = result &&
              `          }` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        oBody.ID = AppState.state.oResponse?.ID;` && |\n| &&
              `        // Arguments travel as raw JSON values - the request body is` && |\n| &&
              `        // serialized exactly once in Server.readHttp. Object arguments are` && |\n| &&
-             `        // turned into JSON strings by the backend when it fills` && |\n|.
-    result = result &&
+             `        // turned into JSON strings by the backend when it fills` && |\n| &&
              `        // T_EVENT_ARG, so apps keep receiving them as strings; stringifying` && |\n| &&
              `        // them here as well would encode (and escape) the payload twice.` && |\n| &&
              `        oBody.ARGUMENTS = args.slice();` && |\n| &&
