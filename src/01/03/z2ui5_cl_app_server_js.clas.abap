@@ -576,7 +576,11 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          const info = await VersionInfo.load();` && |\n| &&
              `          gav = info.gav;` && |\n| &&
              `        } catch (e) {` && |\n| &&
+             `          // Could not determine the SDK - never swallow the original failure:` && |\n| &&
+             `          // fall back to the fatal-error overlay with the underlying error so` && |\n| &&
+             `          // every error case still surfaces one error popup.` && |\n| &&
              `          Lib.logError("_checkSDKcompatibility: VersionInfo.load failed", e);` && |\n| &&
+             `          this.responseError(err);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        if (!gav || !gav.includes("com.sap.ui5")) {` && |\n| &&

@@ -11,6 +11,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS event_empty_arg   FOR TESTING.
     METHODS event_multi_req   FOR TESTING.
     METHODS event_client_args FOR TESTING.
+    METHODS event_nav_container FOR TESTING.
 
   PROTECTED SECTION.
 
@@ -42,6 +43,27 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = `.eF('POPOVER_CLOSE')`
                                         act = lv_event ).
+
+  ENDMETHOD.
+
+  METHOD event_nav_container.
+
+    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    lo_event = NEW #( ).
+
+    " a *_nav_container_to client event is remapped to the generic
+    " CONTROL_BY_ID call (container, slot, `to`, target) - this covers both the
+    " follow_up_action and the XML-bound _event_client path, since both format
+    " through get_event_client
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eF('CONTROL_BY_ID', 'myContainer', 'MAIN', 'to', 'myPage')`
+        act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-nav_container_to
+                                          t_arg = VALUE #( ( `myContainer` ) ( `myPage` ) ) ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eF('CONTROL_BY_ID', 'nestCon', 'NEST', 'to', 'nestPage')`
+        act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-nest_nav_container_to
+                                          t_arg = VALUE #( ( `nestCon` ) ( `nestPage` ) ) ) ).
 
   ENDMETHOD.
 

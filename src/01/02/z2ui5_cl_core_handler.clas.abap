@@ -368,19 +368,17 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     IF li_app->check_sticky = abap_false.
       z2ui5_cl_a2ui5_context=>db_rollback( ).
     ENDIF.
-    TRY.
-        IF mo_action->ms_actual-event = z2ui5_if_core_types=>cs_event_nav_app_leave.
-          li_client->popup_destroy( ).
-          li_client->nav_app_leave( ).
-        ELSE.
-          li_app->main( li_client ).
-        ENDIF.
-      CATCH cx_root INTO DATA(lx).
 
-        DATA(lx2) = NEW z2ui5_cx_a2ui5_error( val     = `UNCAUGHT EXCEPTION - Please Restart App:`
-                                             previous = lx ).
-        li_client->nav_app_leave( z2ui5_cl_pop_error=>factory( lx2 ) ).
-    ENDTRY.
+    " uncaught exceptions from main( ) are intentionally NOT caught here - they
+    " propagate all the way up to the ICF handler and trigger a real ABAP
+    " runtime error (ST22 short dump) instead of being turned into an error popup
+    IF mo_action->ms_actual-event = z2ui5_if_core_types=>cs_event_nav_app_leave.
+      li_client->popup_destroy( ).
+      li_client->nav_app_leave( ).
+    ELSE.
+      li_app->main( li_client ).
+    ENDIF.
+
     IF li_app->check_sticky = abap_false.
       z2ui5_cl_a2ui5_context=>db_rollback( ).
     ENDIF.

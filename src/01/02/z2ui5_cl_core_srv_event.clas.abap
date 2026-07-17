@@ -44,7 +44,34 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
 
   METHOD get_event_client.
 
-    result = |{ z2ui5_if_core_types=>cs_ui5-event_frontend_function }('{ val }'{ get_t_arg( t_arg ) }|.
+    DATA(lv_val) = CONV string( val ).
+    DATA(lt_arg) = t_arg.
+
+    " NavContainer navigation reuses the generic CONTROL_BY_ID client call so
+    " the frontend needs only the one generic dispatcher. Both the backend
+    " follow-up action and the XML-bound client event (_event_client) are
+    " formatted here, so this is the single place the *_nav_container_to events
+    " are remapped to `<container>, <slot>, to, <target>`. The public
+    " cs_event-*_nav_container_to constant values stay unchanged.
+    DATA(lv_slot) = SWITCH string( lv_val
+                                   WHEN z2ui5_if_client=>cs_event-nav_container_to         THEN `MAIN`
+                                   WHEN z2ui5_if_client=>cs_event-nest_nav_container_to    THEN `NEST`
+                                   WHEN z2ui5_if_client=>cs_event-nest2_nav_container_to   THEN `NEST2`
+                                   WHEN z2ui5_if_client=>cs_event-popup_nav_container_to   THEN `POPUP`
+                                   WHEN z2ui5_if_client=>cs_event-popover_nav_container_to THEN `POPOVER`
+                                   ELSE `` ).
+    IF lv_slot IS NOT INITIAL.
+      " read from t_arg (the unchanged importing parameter), never from lt_arg
+      " which is the assignment target here - referencing the target inside its
+      " own VALUE constructor reads it while it is being rebuilt in place
+      lt_arg = VALUE #( ( VALUE #( t_arg[ 1 ] OPTIONAL ) )
+                        ( lv_slot )
+                        ( `to` )
+                        ( VALUE #( t_arg[ 2 ] OPTIONAL ) ) ).
+      lv_val = `CONTROL_BY_ID`.
+    ENDIF.
+
+    result = |{ z2ui5_if_core_types=>cs_ui5-event_frontend_function }('{ lv_val }'{ get_t_arg( lt_arg ) }|.
 
   ENDMETHOD.
 

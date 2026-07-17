@@ -37,7 +37,7 @@ sap.ui.define(
     const _URLHelper = mobileLibrary.URLHelper;
 
     // ------------------------------------------------------------------
-    // Launchpad / NavContainer helpers
+    // Launchpad helpers
     // ------------------------------------------------------------------
 
     function withCrossAppNavigator(callback) {
@@ -53,30 +53,10 @@ sap.ui.define(
       }
     }
 
-    function navigateContainer(lookup, args) {
-      try {
-        const container = lookup(args[1]);
-        const target = lookup(args[2]);
-        if (!container || !target) {
-          Lib.logError(
-            `navigateContainer: control '${!container ? args[1] : args[2]}' not found`,
-          );
-          return;
-        }
-        container.to(target);
-      } catch (e) {
-        Lib.logError("navigateContainer: navigation failed", e);
-      }
-    }
-
-    // Lookup tables mapping event names to the right view slot.
-    const navContainerLookups = {
-      NAV_CONTAINER_TO: (id) => ViewSlots.byId("MAIN", id),
-      NEST_NAV_CONTAINER_TO: (id) => ViewSlots.byId("NEST", id),
-      NEST2_NAV_CONTAINER_TO: (id) => ViewSlots.byId("NEST2", id),
-      POPUP_NAV_CONTAINER_TO: (id) => ViewSlots.byId("POPUP", id),
-      POPOVER_NAV_CONTAINER_TO: (id) => ViewSlots.byId("POPOVER", id),
-    };
+    // NavContainer navigation (NAV_CONTAINER_TO and the NEST/NEST2/POPUP/
+    // POPOVER variants) is no longer dispatched here: the backend routes those
+    // events through the generic control_call_by_id path (method "to", the
+    // slot passed as the view), so evControlCallById below handles them.
 
     // ------------------------------------------------------------------
     // control_call / control_call_by_id: call a whitelisted method on a
@@ -116,14 +96,21 @@ sap.ui.define(
     };
 
     // Cast one raw string argument to the kind the whitelist declared.
-    function castArg(kind, raw) {
+    // `view` (optional) is the slot the owning control was resolved in, so a
+    // controlId argument resolves against the same view first - this keeps
+    // slot-local ids unambiguous (e.g. a NavContainer navigating to one of
+    // its own pages) before falling back to the global lookup.
+    function castArg(kind, raw, view) {
       switch (kind) {
         case "int":
           return Number(raw);
         case "bool":
           return raw === "true" || raw === "X" || raw === true;
         case "controlId":
-          return ViewSlots.resolveById(raw);
+          return (
+            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||
+            ViewSlots.resolveById(raw)
+          );
         case "object":
           try {
             return JSON.parse(raw);
@@ -135,8 +122,8 @@ sap.ui.define(
       }
     }
 
-    function castArgs(kinds, rawArgs) {
-      return kinds.map((kind, i) => castArg(kind, rawArgs[i]));
+    function castArgs(kinds, rawArgs, view) {
+      return kinds.map((kind, i) => castArg(kind, rawArgs[i], view));
     }
 
     // args: [_, id, view, method, ...params]
@@ -156,7 +143,7 @@ sap.ui.define(
         );
         return;
       }
-      control[method](...castArgs(kinds, args.slice(4)));
+      control[method](...castArgs(kinds, args.slice(4), view));
     }
 
     // args: [_, object, method, ...params]
@@ -640,8 +627,6 @@ sap.ui.define(
     }
 
     // Frontend event dispatch: maps the eF event name to its handler.
-    // NavContainer events are dispatched separately via
-    // navContainerLookups above.
     const handlers = {
       SET_SIZE_LIMIT: evSetSizeLimit,
       HISTORY_BACK: evHistoryBack,
@@ -678,13 +663,6 @@ sap.ui.define(
       Lib.runCallbacks(AppState.state.onBeforeEventFrontend, args);
 
       try {
-        // NavContainer navigation is dispatched via lookup table.
-        const navLookup = navContainerLookups[args[0]];
-        if (navLookup) {
-          navigateContainer(navLookup, args);
-          return;
-        }
-
         const handler = handlers[args[0]];
         if (handler) handler(oController, args);
       } catch (e) {

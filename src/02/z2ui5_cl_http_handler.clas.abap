@@ -209,44 +209,30 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD _http_post.
+
+    " uncaught exceptions are intentionally NOT caught here - they propagate up
+    " to the ICF handler and trigger a real ABAP runtime error (ST22 short dump)
+    " instead of being turned into an HTTP 500 "abap2UI5 Error" response
+    IF so_sticky_handler IS NOT BOUND.
+      DATA(lo_post) = NEW z2ui5_cl_core_handler( is_req-body ).
+    ELSE.
+      lo_post = so_sticky_handler.
+      lo_post->mv_request_json = is_req-body.
+    ENDIF.
+
+    result = lo_post->main( ).
+
     TRY.
-
-        IF so_sticky_handler IS NOT BOUND.
-          DATA(lo_post) = NEW z2ui5_cl_core_handler( is_req-body ).
+        DATA(li_app) = CAST z2ui5_if_app( lo_post->mo_action->mo_app->mo_app ).
+        IF li_app->check_sticky = abap_true.
+          so_sticky_handler = lo_post.
         ELSE.
-          lo_post = so_sticky_handler.
-          lo_post->mv_request_json = is_req-body.
+          CLEAR so_sticky_handler.
         ENDIF.
-
-        result = lo_post->main( ).
-
-        TRY.
-            DATA(li_app) = CAST z2ui5_if_app( lo_post->mo_action->mo_app->mo_app ).
-            IF li_app->check_sticky = abap_true.
-              so_sticky_handler = lo_post.
-            ELSE.
-              CLEAR so_sticky_handler.
-            ENDIF.
-          CATCH cx_root.
-            CLEAR so_sticky_handler.
-        ENDTRY.
-
-      CATCH cx_root INTO DATA(x).
-
-        DATA(lv_error_text) = x->get_text( ).
-        TRY.
-            DATA(ls_config) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
-            z2ui5_cl_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config ).
-            IF ls_config-check_hide_error_details = abap_true.
-              lv_error_text = `An internal error occurred - error details are hidden by configuration (see z2ui5_if_exit->set_config_http_post)`.
-            ENDIF.
-          CATCH cx_root ##NO_HANDLER.
-        ENDTRY.
-
-        result = VALUE #( body          = |abap2UI5 Error: { lv_error_text }|
-                          status_code   = 500
-                          status_reason = `error` ).
+      CATCH cx_root.
+        CLEAR so_sticky_handler.
     ENDTRY.
+
   ENDMETHOD.
 
   METHOD _main.
