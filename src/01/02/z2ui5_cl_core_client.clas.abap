@@ -42,26 +42,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~follow_up_action.
 
-    " NavContainer navigation is expressed through the generic
-    " control_call_by_id path so the frontend only needs the one generic
-    " dispatcher. The public cs_event-*_nav_container_to constants stay
-    " unchanged for backward compatibility; only the emitted client call
-    " changes (method `to`, the target slot passed as the view).
-    DATA(lv_slot) = SWITCH string( val
-                                   WHEN z2ui5_if_client=>cs_event-nav_container_to         THEN `MAIN`
-                                   WHEN z2ui5_if_client=>cs_event-nest_nav_container_to    THEN `NEST`
-                                   WHEN z2ui5_if_client=>cs_event-nest2_nav_container_to   THEN `NEST2`
-                                   WHEN z2ui5_if_client=>cs_event-popup_nav_container_to   THEN `POPUP`
-                                   WHEN z2ui5_if_client=>cs_event-popover_nav_container_to THEN `POPOVER`
-                                   ELSE `` ).
-    IF lv_slot IS NOT INITIAL.
-      z2ui5_if_client~control_call_by_id( id     = VALUE #( t_arg[ 1 ] OPTIONAL )
-                                          view   = lv_slot
-                                          method = `to`
-                                          params = VALUE #( ( VALUE #( t_arg[ 2 ] OPTIONAL ) ) ) ).
-      RETURN.
-    ENDIF.
-
     DATA(lv_js) = val.
 
     IF val IS NOT INITIAL
