@@ -376,6 +376,16 @@ refactor: extract methods in core handler
 test: add unit tests for utility class
 ```
 
+### Pull request titles
+
+- **The PR title becomes the squash-merge commit subject — make it describe
+  the change.** Before merging, replace any auto-generated title (e.g. a
+  branch name like `Claude/...-abc123`) with a short descriptive title that
+  states what actually changed.
+- **One topic per PR.** A structural change (moving classes between packages,
+  renaming, restructuring) must not ride along in a PR titled for an
+  unrelated fix — split it into its own PR so the history stays searchable.
+
 ## Important Rules for AI Assistants
 
 These rules apply to AI assistants **modifying the framework** (this repo). For AI assistants **building apps**, see <https://abap2ui5.github.io/docs/advanced/agent.html> instead.
