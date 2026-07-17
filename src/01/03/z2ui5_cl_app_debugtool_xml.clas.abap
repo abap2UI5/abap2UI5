@@ -33,6 +33,10 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `        >` &&
              `            <items>` &&
              `                <IconTabFilter` &&
+             `                    text="Log"` &&
+             `                    key="LOG"` &&
+             `                />` &&
+             `                <IconTabFilter` &&
              `                    text="System"` &&
              `                    key="SYSTEM"` &&
              `                    enabled="true"` &&
@@ -45,10 +49,6 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `                <IconTabFilter` &&
              `                    text="Response"` &&
              `                    key="PLAIN"` &&
-             `                />` &&
-             `                <IconTabFilter` &&
-             `                    text="Log"` &&
-             `                    key="LOG"` &&
              `                />` &&
              `                <IconTabFilter` &&
              `                    text="Source Code"` &&
