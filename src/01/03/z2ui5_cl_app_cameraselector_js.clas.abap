@@ -30,8 +30,14 @@ CLASS z2ui5_cl_app_cameraselector_js IMPLEMENTATION.
              `    // ComboBox pre-filled with the device's cameras (video inputs) so the` && |\n| &&
              `    // user can pick which one the CameraPicture control should use.` && |\n| &&
              `    return ComboBox.extend("z2ui5.cc.CameraSelector", {` && |\n| &&
-             `      async init() {` && |\n| &&
+             `      // init() is a UI5 lifecycle listener and must not return a value, so it` && |\n| &&
+             `      // cannot be async - kick off the (async) device enumeration separately.` && |\n| &&
+             `      init() {` && |\n| &&
              `        ComboBox.prototype.init.call(this);` && |\n| &&
+             `        this._loadCameras();` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      async _loadCameras() {` && |\n| &&
              `        try {` && |\n| &&
              `          const md = navigator.mediaDevices;` && |\n| &&
              `          if (!md?.enumerateDevices) return;` && |\n| &&

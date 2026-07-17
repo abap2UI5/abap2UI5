@@ -74,6 +74,13 @@ CLASS z2ui5_cl_app_camerapicture_js IMPLEMENTATION.
              `` && |\n| &&
              `        const videoWidth = video.videoWidth;` && |\n| &&
              `        const videoHeight = video.videoHeight;` && |\n| &&
+             `        // The camera may not have delivered a frame yet (Capture pressed too` && |\n| &&
+             `        // early, or the stream failed): videoWidth/Height are 0, which would` && |\n| &&
+             `        // make the canvas 0-sized and drawImage() throw an InvalidStateError.` && |\n| &&
+             `        if (!videoWidth || !videoHeight) {` && |\n| &&
+             `          Lib.logError("CameraPicture: camera not ready, no frame to capture");` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
              `        canvas.width = videoWidth;` && |\n| &&
              `        canvas.height = videoHeight;` && |\n| &&
              `` && |\n| &&

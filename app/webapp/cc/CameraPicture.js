@@ -54,6 +54,13 @@ sap.ui.define(
 
         const videoWidth = video.videoWidth;
         const videoHeight = video.videoHeight;
+        // The camera may not have delivered a frame yet (Capture pressed too
+        // early, or the stream failed): videoWidth/Height are 0, which would
+        // make the canvas 0-sized and drawImage() throw an InvalidStateError.
+        if (!videoWidth || !videoHeight) {
+          Lib.logError("CameraPicture: camera not ready, no frame to capture");
+          return;
+        }
         canvas.width = videoWidth;
         canvas.height = videoHeight;
 
