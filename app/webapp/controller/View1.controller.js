@@ -230,15 +230,9 @@ sap.ui.define(
         }
         oFragment.setModel(oModel);
 
-        // Find the control to attach the popover to. We search the main
-        // view first, then any open popup / nested views, then the global
-        // UI5 control registry as a last resort (Lib.getElementById).
-        const oControl =
-          ViewSlots.byId("MAIN", openById) ||
-          ViewSlots.byId("POPUP", openById) ||
-          ViewSlots.byId("NEST", openById) ||
-          ViewSlots.byId("NEST2", openById) ||
-          Lib.getElementById(openById);
+        // Find the control to attach the popover to: any open slot first,
+        // then the global UI5 control registry as a last resort.
+        const oControl = ViewSlots.resolveById(openById);
 
         if (!oControl) {
           Lib.logError(

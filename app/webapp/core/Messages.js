@@ -8,8 +8,9 @@ sap.ui.define(
     "sap/m/MessageToast",
     "sap/ui/core/Popup",
     "z2ui5/core/Lib",
+    "z2ui5/core/ViewSlots",
   ],
-  (MessageBox, MessageToast, Popup, Lib) => {
+  (MessageBox, MessageToast, Popup, Lib, ViewSlots) => {
     "use strict";
 
     // Parse a value as integer milliseconds, falling back to `fallback`
@@ -86,7 +87,7 @@ sap.ui.define(
       // dependentOn (UI5 >= 1.124) adds the message box to an element's
       // lifecycle - the backend sends the control id, resolved to the element
       // here. A missing/unresolvable id drops the option silently.
-      const oDependentOn = Lib.getElementById(msg.DEPENDENTON);
+      const oDependentOn = ViewSlots.resolveById(msg.DEPENDENTON);
       if (oDependentOn) oParams.dependentOn = oDependentOn;
       // MessageBox display methods are lowercase (show, error, warning,
       // ...), but the type can arrive capitalized - the ABAP message

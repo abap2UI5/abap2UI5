@@ -27,13 +27,15 @@ function loadMessages() {
   const MessageToast = {
     show: (text, opts) => toastCalls.push({ text, opts }),
   };
-  // Lib.getElementById resolves a control id to its element for the
-  // dependentOn option. Only "knownId" resolves here.
-  const elements = { knownId: { id: "knownId" } };
   const Lib = {
     logError: (message) => errors.push(message),
     sanitizeMessageDetails: (html) => html,
-    getElementById: (sId) => elements[sId] || null,
+  };
+  // ViewSlots.resolveById maps a control id to its element for the
+  // dependentOn option. Only "knownId" resolves here.
+  const elements = { knownId: { id: "knownId" } };
+  const ViewSlots = {
+    resolveById: (sId) => elements[sId] || null,
   };
   // Stub sap.ui.core.Popup. toDockValue() looks dock positions up by their
   // PascalCase key in Popup.Dock; newer UI5 spells the enum values in the
@@ -57,6 +59,7 @@ function loadMessages() {
       "sap/m/MessageToast": MessageToast,
       "sap/ui/core/Popup": Popup,
       "z2ui5/core/Lib": Lib,
+      "z2ui5/core/ViewSlots": ViewSlots,
     },
   });
   return { Messages: module, boxCalls, toastCalls, errors, elements };

@@ -12,6 +12,9 @@ function load() {
   const fragmentCalls = [];
   const errors = [];
   const z2ui5 = {};
+  // Global UI5 registry stub behind Lib.getElementById - the fallback path
+  // resolveById() takes when no open slot owns the id.
+  const globalElements = {};
   const { module } = loadModule("core/ViewSlots.js", {
     deps: {
       "sap/ui/core/Fragment": {
@@ -22,11 +25,12 @@ function load() {
       },
       "z2ui5/core/Lib": {
         logError: (message) => errors.push(message),
+        getElementById: (id) => globalElements[id] || null,
       },
       "z2ui5/core/AppState": { state: z2ui5 },
     },
   });
-  return { ViewSlots: module, z2ui5, fragmentCalls, errors };
+  return { ViewSlots: module, z2ui5, fragmentCalls, errors, globalElements };
 }
 
 test.describe("key mappings", () => {
@@ -87,6 +91,29 @@ test.describe("byId", () => {
     expect(ViewSlots.byId("UNKNOWN", "btn")).toBeUndefined();
     // A closed fragment slot must not hit the Fragment registry.
     expect(fragmentCalls).toEqual([]);
+  });
+});
+
+test.describe("resolveById", () => {
+  test("finds a control in an open slot before hitting the registry", () => {
+    const { ViewSlots, z2ui5, globalElements } = load();
+    z2ui5.oView = { byId: (id) => (id === "btn" ? "main-btn" : undefined) };
+    globalElements.btn = "global-btn";
+    // The slot match wins over the global registry entry of the same id.
+    expect(ViewSlots.resolveById("btn")).toBe("main-btn");
+  });
+
+  test("falls back to the global registry when no slot owns the id", () => {
+    const { ViewSlots, z2ui5, globalElements } = load();
+    z2ui5.oView = { byId: () => undefined };
+    globalElements["mainView--btn"] = "global-btn";
+    expect(ViewSlots.resolveById("mainView--btn")).toBe("global-btn");
+  });
+
+  test("returns null for an empty or unresolvable id", () => {
+    const { ViewSlots } = load();
+    expect(ViewSlots.resolveById("")).toBeNull();
+    expect(ViewSlots.resolveById("missing")).toBeNull();
   });
 });
 

@@ -28,8 +28,9 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `    "sap/m/MessageToast",` && |\n| &&
              `    "sap/ui/core/Popup",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
+             `    "z2ui5/core/ViewSlots",` && |\n| &&
              `  ],` && |\n| &&
-             `  (MessageBox, MessageToast, Popup, Lib) => {` && |\n| &&
+             `  (MessageBox, MessageToast, Popup, Lib, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Parse a value as integer milliseconds, falling back to ``fallback``` && |\n| &&
@@ -106,7 +107,7 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `      // dependentOn (UI5 >= 1.124) adds the message box to an element's` && |\n| &&
              `      // lifecycle - the backend sends the control id, resolved to the element` && |\n| &&
              `      // here. A missing/unresolvable id drops the option silently.` && |\n| &&
-             `      const oDependentOn = Lib.getElementById(msg.DEPENDENTON);` && |\n| &&
+             `      const oDependentOn = ViewSlots.resolveById(msg.DEPENDENTON);` && |\n| &&
              `      if (oDependentOn) oParams.dependentOn = oDependentOn;` && |\n| &&
              `      // MessageBox display methods are lowercase (show, error, warning,` && |\n| &&
              `      // ...), but the type can arrive capitalized - the ABAP message` && |\n| &&

@@ -250,15 +250,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        oFragment.setModel(oModel);` && |\n| &&
              `` && |\n| &&
-             `        // Find the control to attach the popover to. We search the main` && |\n| &&
-             `        // view first, then any open popup / nested views, then the global` && |\n| &&
-             `        // UI5 control registry as a last resort (Lib.getElementById).` && |\n| &&
-             `        const oControl =` && |\n| &&
-             `          ViewSlots.byId("MAIN", openById) ||` && |\n| &&
-             `          ViewSlots.byId("POPUP", openById) ||` && |\n| &&
-             `          ViewSlots.byId("NEST", openById) ||` && |\n| &&
-             `          ViewSlots.byId("NEST2", openById) ||` && |\n| &&
-             `          Lib.getElementById(openById);` && |\n| &&
+             `        // Find the control to attach the popover to: any open slot first,` && |\n| &&
+             `        // then the global UI5 control registry as a last resort.` && |\n| &&
+             `        const oControl = ViewSlots.resolveById(openById);` && |\n| &&
              `` && |\n| &&
              `        if (!oControl) {` && |\n| &&
              `          Lib.logError(` && |\n| &&
@@ -417,14 +411,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `              AppState.state.xxChangedPaths,` && |\n| &&
              `              xx,` && |\n| &&
              `            );` && |\n| &&
-             `          }` && |\n|.
-    result = result &&
+             `          }` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        oBody.ID = AppState.state.oResponse?.ID;` && |\n| &&
              `        // Arguments travel as raw JSON values - the request body is` && |\n| &&
              `        // serialized exactly once in Server.readHttp. Object arguments are` && |\n| &&
-             `        // turned into JSON strings by the backend when it fills` && |\n| &&
+             `        // turned into JSON strings by the backend when it fills` && |\n|.
+    result = result &&
              `        // T_EVENT_ARG, so apps keep receiving them as strings; stringifying` && |\n| &&
              `        // them here as well would encode (and escape) the payload twice.` && |\n| &&
              `        oBody.ARGUMENTS = args.slice();` && |\n| &&
