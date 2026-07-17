@@ -305,10 +305,18 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        try {` && |\n| &&
-             `          oParent[METHOD_DESTROY]();` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          Lib.logError("displayNestedView: parent destroy method failed", e);` && |\n| &&
+             `        // METHOD_DESTROY is optional: only call it when the app asked for a` && |\n| &&
+             `        // parent teardown method. An empty value used to reach oParent[""]()` && |\n| &&
+             `        // and throw on every render (e.g. app 065 passes only method_insert).` && |\n| &&
+             `        if (METHOD_DESTROY) {` && |\n| &&
+             `          try {` && |\n| &&
+             `            oParent[METHOD_DESTROY]();` && |\n| &&
+             `          } catch (e) {` && |\n| &&
+             `            Lib.logError(` && |\n| &&
+             `              ``displayNestedView: parent destroy method '${METHOD_DESTROY}' failed``,` && |\n| &&
+             `              e,` && |\n| &&
+             `            );` && |\n| &&
+             `          }` && |\n| &&
              `        }` && |\n| &&
              `        try {` && |\n| &&
              `          oParent[METHOD_INSERT](oView);` && |\n| &&
@@ -409,7 +417,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        Lib.runCallbacks(AppState.state.onBeforeRoundtrip);` && |\n| &&
              `` && |\n| &&
              `        // If the user edited /XX/ paths, send only the delta to keep the` && |\n| &&
-             `        // payload small.` && |\n| &&
+             `        // payload small.` && |\n|.
+    result = result &&
              `        if (oModel && AppState.state.xxChangedPaths.size > 0) {` && |\n| &&
              `          const data = oModel.getData();` && |\n| &&
              `          const xx = data?.XX;` && |\n| &&
@@ -417,8 +426,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            oBody.XX = Lib.buildDeltaFromPaths(` && |\n| &&
              `              AppState.state.xxChangedPaths,` && |\n| &&
              `              xx,` && |\n| &&
-             `            );` && |\n|.
-    result = result &&
+             `            );` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&

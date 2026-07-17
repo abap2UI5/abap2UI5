@@ -285,10 +285,18 @@ sap.ui.define(
           return;
         }
 
-        try {
-          oParent[METHOD_DESTROY]();
-        } catch (e) {
-          Lib.logError("displayNestedView: parent destroy method failed", e);
+        // METHOD_DESTROY is optional: only call it when the app asked for a
+        // parent teardown method. An empty value used to reach oParent[""]()
+        // and throw on every render (e.g. app 065 passes only method_insert).
+        if (METHOD_DESTROY) {
+          try {
+            oParent[METHOD_DESTROY]();
+          } catch (e) {
+            Lib.logError(
+              `displayNestedView: parent destroy method '${METHOD_DESTROY}' failed`,
+              e,
+            );
+          }
         }
         try {
           oParent[METHOD_INSERT](oView);
