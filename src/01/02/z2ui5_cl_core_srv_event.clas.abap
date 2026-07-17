@@ -61,10 +61,13 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
                                    WHEN z2ui5_if_client=>cs_event-popover_nav_container_to THEN `POPOVER`
                                    ELSE `` ).
     IF lv_slot IS NOT INITIAL.
-      lt_arg = VALUE #( ( VALUE #( lt_arg[ 1 ] OPTIONAL ) )
+      " read from t_arg (the unchanged importing parameter), never from lt_arg
+      " which is the assignment target here - referencing the target inside its
+      " own VALUE constructor reads it while it is being rebuilt in place
+      lt_arg = VALUE #( ( VALUE #( t_arg[ 1 ] OPTIONAL ) )
                         ( lv_slot )
                         ( `to` )
-                        ( VALUE #( lt_arg[ 2 ] OPTIONAL ) ) ).
+                        ( VALUE #( t_arg[ 2 ] OPTIONAL ) ) ).
       lv_val = `CONTROL_BY_ID`.
     ENDIF.
 
