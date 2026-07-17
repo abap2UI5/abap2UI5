@@ -23,9 +23,9 @@ function fakeXmlView(viewContent) {
   };
 }
 
-function loadDebugTool({ views = {}, oResponse = null } = {}) {
+function loadDebugTool({ views = {}, oResponse = null, errors } = {}) {
   const AppState = {
-    state: { oResponse, responseData: null, oBody: null },
+    state: { oResponse, responseData: null, oBody: null, errors },
     getGlobal: () => undefined,
   };
   const ViewSlots = { getView: (key) => views[key] };
@@ -99,6 +99,32 @@ test.describe("View tab", () => {
     DebugTool.onItemSelect(oEvent);
     expect(modelData.value).toBe("<Page/>");
     expect(modelData.type).toBe("xml");
+  });
+});
+
+test.describe("Log tab", () => {
+  test("dumps the error log as minimal ts + message lines", () => {
+    const { DebugTool } = loadDebugTool({
+      errors: [
+        { message: "boom", ts: "2026-01-01T00:00:00.000Z" },
+        { message: "bang", ts: "2026-01-01T00:00:01.000Z" },
+      ],
+    });
+    const { oEvent, modelData } = fakeSelectEvent("LOG");
+    DebugTool.onItemSelect(oEvent);
+    expect(modelData.value).toBe(
+      "2026-01-01T00:00:00.000Z  boom\n2026-01-01T00:00:01.000Z  bang",
+    );
+    expect(modelData.type).toBe("text");
+    expect(modelData.editor_visible).toBe(true);
+  });
+
+  test("shows a placeholder when the log is empty", () => {
+    const { DebugTool } = loadDebugTool();
+    const { oEvent, modelData } = fakeSelectEvent("LOG");
+    DebugTool.onItemSelect(oEvent);
+    expect(modelData.value).toBe("(log is empty)");
+    expect(modelData.type).toBe("text");
   });
 });
 

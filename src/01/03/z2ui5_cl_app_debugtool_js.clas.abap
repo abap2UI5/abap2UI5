@@ -112,6 +112,15 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      return view?._xContent?.outerHTML;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // Minimal text dump of the shared error log (the entries Lib.logError` && |\n| &&
+             `    // pushes to AppState.state.errors): one "<ts>  <message>" line per entry,` && |\n| &&
+             `    // oldest first. Empty log yields a short placeholder.` && |\n| &&
+             `    function formatErrorLog() {` && |\n| &&
+             `      const errors = AppState.state.errors || [];` && |\n| &&
+             `      if (!errors.length) return "(log is empty)";` && |\n| &&
+             `      return errors.map((e) => ``${e.ts}  ${e.message}``).join("\n");` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function getResponseXml(key) {` && |\n| &&
              `      const params = AppState.state.oResponse?.PARAMS;` && |\n| &&
              `      const slot = params?.[key];` && |\n| &&
@@ -218,6 +227,11 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `            "xml",` && |\n| &&
              `            this.prettifyXml(rendered),` && |\n| &&
              `          );` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        if (selItem === "LOG") {` && |\n| &&
+             `          this.displayEditor(oEvent, formatErrorLog(), "text");` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&

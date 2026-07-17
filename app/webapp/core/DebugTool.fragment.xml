@@ -27,6 +27,10 @@
                     key="PLAIN"
                 />
                 <IconTabFilter
+                    text="Log"
+                    key="LOG"
+                />
+                <IconTabFilter
                     text="Source Code"
                     key="SOURCE"
                 />

@@ -47,6 +47,10 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `                    key="PLAIN"` &&
              `                />` &&
              `                <IconTabFilter` &&
+             `                    text="Log"` &&
+             `                    key="LOG"` &&
+             `                />` &&
+             `                <IconTabFilter` &&
              `                    text="Source Code"` &&
              `                    key="SOURCE"` &&
              `                />` &&
