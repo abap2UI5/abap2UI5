@@ -27,10 +27,30 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `    "sap/m/MessageBox",` && |\n| &&
              `    "sap/m/MessageToast",` && |\n| &&
              `    "sap/ui/core/Popup",` && |\n| &&
+             `    "sap/ui/core/Element",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `  ],` && |\n| &&
-             `  (MessageBox, MessageToast, Popup, Lib) => {` && |\n| &&
+             `  (MessageBox, MessageToast, Popup, Element, Lib) => {` && |\n| &&
              `    "use strict";` && |\n| &&
+             `` && |\n| &&
+             `    // Resolve a control id to its sap.ui.core.Element instance. MessageBox's` && |\n| &&
+             `    // dependentOn option expects an element (not an id), so a backend that` && |\n| &&
+             `    // sends DEPENDENTON has to be mapped here. Returns null when the id does` && |\n| &&
+             `    // not resolve, so the option is simply dropped rather than passed as` && |\n| &&
+             `    // undefined.` && |\n| &&
+             `    function resolveElement(sId) {` && |\n| &&
+             `      if (!sId) return null;` && |\n| &&
+             `      if (Element.getElementById) return Element.getElementById(sId) || null;` && |\n| &&
+             `      /* ui5lint-disable no-globals, no-deprecated-api --` && |\n| &&
+             `         deliberate fallback for UI5 releases without Element.getElementById` && |\n| &&
+             `         (added in 1.119); the modern API is used in the branch above. */` && |\n| &&
+             `      if (sap.ui.getCore) {` && |\n| &&
+             `        const core = sap.ui.getCore();` && |\n| &&
+             `        if (core?.byId) return core.byId(sId) || null;` && |\n| &&
+             `      }` && |\n| &&
+             `      /* ui5lint-enable no-globals, no-deprecated-api */` && |\n| &&
+             `      return null;` && |\n| &&
+             `    }` && |\n| &&
              `` && |\n| &&
              `    // Parse a value as integer milliseconds, falling back to ``fallback``` && |\n| &&
              `    // when the input is empty / undefined / not a finite number (so a stray` && |\n| &&
@@ -102,6 +122,12 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `        closeOnNavigation: Boolean(msg.CLOSEONNAVIGATION),` && |\n| &&
              `      };` && |\n| &&
              `      if (msg.ICON && msg.ICON !== "NONE") oParams.icon = msg.ICON;` && |\n| &&
+             `      if (msg.CONTENTWIDTH) oParams.contentWidth = msg.CONTENTWIDTH;` && |\n| &&
+             `      // dependentOn (UI5 >= 1.124) adds the message box to an element's` && |\n| &&
+             `      // lifecycle - the backend sends the control id, resolved to the element` && |\n| &&
+             `      // here. A missing/unresolvable id drops the option silently.` && |\n| &&
+             `      const oDependentOn = resolveElement(msg.DEPENDENTON);` && |\n| &&
+             `      if (oDependentOn) oParams.dependentOn = oDependentOn;` && |\n| &&
              `      // MessageBox display methods are lowercase (show, error, warning,` && |\n| &&
              `      // ...), but the type can arrive capitalized - the ABAP message` && |\n| &&
              `      // formatter sends e.g. "Error" for multi-message boxes - or as a` && |\n| &&

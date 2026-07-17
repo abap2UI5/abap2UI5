@@ -47,15 +47,22 @@ function loadMessages() {
       EndBottom: "EndBottom",
     },
   };
+  // Stub sap.ui.core.Element - dependentOn resolution maps a control id to
+  // its element via Element.getElementById. Only "knownId" resolves here.
+  const elements = { knownId: { id: "knownId" } };
+  const Element = {
+    getElementById: (sId) => elements[sId] || null,
+  };
   const { module } = loadModule("core/Messages.js", {
     deps: {
       "sap/m/MessageBox": MessageBox,
       "sap/m/MessageToast": MessageToast,
       "sap/ui/core/Popup": Popup,
+      "sap/ui/core/Element": Element,
       "z2ui5/core/Lib": Lib,
     },
   });
-  return { Messages: module, boxCalls, toastCalls, errors };
+  return { Messages: module, boxCalls, toastCalls, errors, elements };
 }
 
 function showBox(msg) {
@@ -101,6 +108,38 @@ test.describe("S_MSG_BOX type resolution", () => {
   test("a message without TEXT shows nothing", () => {
     const { boxCalls } = showBox({ TYPE: "error" });
     expect(boxCalls).toHaveLength(0);
+  });
+
+  test("contentWidth is forwarded when set", () => {
+    const { boxCalls } = showBox({
+      TEXT: "boom",
+      TYPE: "show",
+      CONTENTWIDTH: "20rem",
+    });
+    expect(boxCalls[0].params.contentWidth).toBe("20rem");
+  });
+
+  test("empty contentWidth is not forwarded", () => {
+    const { boxCalls } = showBox({ TEXT: "boom", TYPE: "show" });
+    expect(boxCalls[0].params).not.toHaveProperty("contentWidth");
+  });
+
+  test("dependentOn resolves a control id to its element", () => {
+    const { boxCalls, elements } = showBox({
+      TEXT: "boom",
+      TYPE: "show",
+      DEPENDENTON: "knownId",
+    });
+    expect(boxCalls[0].params.dependentOn).toBe(elements.knownId);
+  });
+
+  test("an unresolvable dependentOn id drops the option", () => {
+    const { boxCalls } = showBox({
+      TEXT: "boom",
+      TYPE: "show",
+      DEPENDENTON: "missingId",
+    });
+    expect(boxCalls[0].params).not.toHaveProperty("dependentOn");
   });
 });
 

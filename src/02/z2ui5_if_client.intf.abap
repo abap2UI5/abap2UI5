@@ -180,7 +180,9 @@ INTERFACE z2ui5_if_client
       textdirection     TYPE clike        OPTIONAL
       icon              TYPE clike        OPTIONAL
       details           TYPE clike        OPTIONAL
-      closeonnavigation TYPE abap_bool    DEFAULT abap_true.
+      closeonnavigation TYPE abap_bool    DEFAULT abap_true
+      dependenton       TYPE clike        OPTIONAL
+      contentwidth      TYPE clike        OPTIONAL.
 
   METHODS message_toast_display
     IMPORTING

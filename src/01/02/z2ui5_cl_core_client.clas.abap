@@ -175,7 +175,9 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                                                   textdirection     = textdirection
                                                   icon              = icon
                                                   details           = lv_details
-                                                  closeonnavigation = closeonnavigation ).
+                                                  closeonnavigation = closeonnavigation
+                                                  dependenton       = dependenton
+                                                  contentwidth      = contentwidth ).
 
   ENDMETHOD.
 
