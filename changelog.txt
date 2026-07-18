@@ -11,6 +11,11 @@ Legend
 
 unreleased
 ----------
+! Framework-internal ASSERT guards (src/01) now raise a catchable
+  z2ui5_cx_a2ui5_error instead of the uncatchable ASSERTION_FAILED short
+  dump, so an unexpected internal state surfaces as a graceful error
+  (the error popup / DebugTool) rather than an ST22 dump. Vendored
+  (src/00) and obsolete (src/99) code is unchanged.
 + Added binding_call_by_id (declarative filter/sort on an aggregation binding) + cs_event-binding_call
 + Added the message> model on every view slot with automatic validation-message collection
 + Added the demo kit formatter pack to model/formatter (weightStateByValue, stockStatus*, round2DP, dimensions, deliveryStatusState)

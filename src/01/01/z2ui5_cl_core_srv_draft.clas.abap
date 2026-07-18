@@ -70,7 +70,10 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
 
   METHOD create.
 
-    ASSERT draft-id IS NOT INITIAL.
+    IF draft-id IS INITIAL.
+      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+        EXPORTING val = `Internal error - cannot persist a draft without an id`.
+    ENDIF.
 
     DATA(ls_db) = VALUE ty_s_db( id                = draft-id
                                  id_prev           = draft-id_prev

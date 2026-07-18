@@ -321,11 +321,20 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     SPLIT z2ui5_if_core_types=>cs_view_slot_list AT `,` INTO TABLE DATA(lt_slot).
     LOOP AT lt_slot INTO DATA(lv_slot).
       ASSIGN COMPONENT lv_slot OF STRUCTURE ms_response-s_front-params TO FIELD-SYMBOL(<slot>).
-      ASSERT sy-subrc = 0.
+      IF sy-subrc <> 0.
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+          EXPORTING val = |Internal error - view slot '{ lv_slot }' not found in response params|.
+      ENDIF.
       ASSIGN COMPONENT `CHECK_UPDATE_MODEL` OF STRUCTURE <slot> TO FIELD-SYMBOL(<check_update_model>).
-      ASSERT sy-subrc = 0.
+      IF sy-subrc <> 0.
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+          EXPORTING val = |Internal error - CHECK_UPDATE_MODEL missing in view slot '{ lv_slot }'|.
+      ENDIF.
       ASSIGN COMPONENT `XML` OF STRUCTURE <slot> TO FIELD-SYMBOL(<xml>).
-      ASSERT sy-subrc = 0.
+      IF sy-subrc <> 0.
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+          EXPORTING val = |Internal error - XML missing in view slot '{ lv_slot }'|.
+      ENDIF.
       IF <check_update_model> = abap_true OR <xml> IS NOT INITIAL.
         result = abap_true.
         RETURN.

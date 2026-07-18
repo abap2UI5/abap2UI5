@@ -71,7 +71,10 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
 
       ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
-      ASSERT sy-subrc = 0.
+      IF sy-subrc <> 0.
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+          EXPORTING val = |Binding Error - component '{ <comp>-name }' not found in the bound row|.
+      ENDIF.
       lr_ref_in = REF #( <ele> ).
 
       IF iv_val = lr_ref_in.
