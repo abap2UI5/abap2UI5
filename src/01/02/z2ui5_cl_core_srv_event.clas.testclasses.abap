@@ -9,6 +9,8 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS event_dollar_arg  FOR TESTING.
     METHODS event_binding_arg FOR TESTING.
     METHODS event_empty_arg   FOR TESTING.
+    METHODS event_empty_middle_arg FOR TESTING.
+    METHODS event_trailing_empty_arg FOR TESTING.
     METHODS event_multi_req   FOR TESTING.
     METHODS event_client_args FOR TESTING.
     METHODS event_nav_container FOR TESTING.
@@ -187,6 +189,36 @@ CLASS ltcl_test IMPLEMENTATION.
 
     temp11 = xsdbool( lv_event CS `'real'` ).
     cl_abap_unit_assert=>assert_true( temp11 ).
+
+  ENDMETHOD.
+
+  METHOD event_empty_middle_arg.
+
+    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    lo_event = NEW #( ).
+
+    " an empty argument BETWEEN filled ones keeps its position - dropping
+    " it would shift every following argument into the wrong slot (a
+    " control_call_by_id without a view lost its method name this way,
+    " live find in beta samples 448/449)
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eF('CONTROL_BY_ID', 'demoPanel', '', 'setExpanded', 'X')`
+        act = lo_event->get_event_client( val   = `CONTROL_BY_ID`
+                                          t_arg = VALUE #( ( `demoPanel` ) ( `` ) ( `setExpanded` ) ( `X` ) ) ) ).
+
+  ENDMETHOD.
+
+  METHOD event_trailing_empty_arg.
+
+    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    lo_event = NEW #( ).
+
+    " trailing empties still disappear - an ABAP false boolean param
+    " serializes to `` and simply ends the argument list
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eF('CONTROL_BY_ID', 'demoPanel', '', 'setExpanded')`
+        act = lo_event->get_event_client( val   = `CONTROL_BY_ID`
+                                          t_arg = VALUE #( ( `demoPanel` ) ( `` ) ( `setExpanded` ) ( `` ) ) ) ).
 
   ENDMETHOD.
 

@@ -226,8 +226,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    //           an empty/omitted value1 CLEARS the filter (the demo kit` && |\n| &&
              `    //           search pattern: empty query -> binding.filter([]))` && |\n| &&
              `    //   sort:   params = [path, descending?, group?] (ABAP bools "X"/"")` && |\n| &&
-             `    // Optional trailing args may be dropped entirely by the backend arg` && |\n| &&
-             `    // serializer (it skips empty strings), so all optionals sit at the end.` && |\n| &&
+             `    // The backend arg serializer keeps empty args between filled ones as ''` && |\n| &&
+             `    // placeholders but trims trailing empties, so all optionals sit at the` && |\n| &&
+             `    // end and may arrive as undefined.` && |\n| &&
              `    function evBindingCall(oController, args) {` && |\n| &&
              `      const [id, aggregation, method] = [args[1], args[2], args[3]];` && |\n| &&
              `      if (!BINDING_METHODS.includes(method)) {` && |\n| &&
@@ -416,9 +417,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // BSP context (sap-contextid stays bound to /sap/bc/bsp/sap/<app>/).` && |\n| &&
              `    // Hit the BSP path with ?sap-sessioncmd=logoff first so the BSP` && |\n| &&
              `    // runtime calls server->session->terminate( ), then go to the ICF` && |\n| &&
-             `    // logoff to also drop the SSO2 ticket. Outside a BSP path this goes` && |\n| &&
-             `    // straight to the logout URL.` && |\n|.
+             `    // logoff to also drop the SSO2 ticket. Outside a BSP path this goes` && |\n|.
     result = result &&
+             `    // straight to the logout URL.` && |\n| &&
              `    function logoutViaBspTerminate(logoutUrl) {` && |\n| &&
              `      const path = window.location.pathname;` && |\n| &&
              `      if (!path.startsWith("/sap/bc/bsp/")) {` && |\n| &&

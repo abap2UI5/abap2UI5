@@ -206,8 +206,9 @@ sap.ui.define(
     //           an empty/omitted value1 CLEARS the filter (the demo kit
     //           search pattern: empty query -> binding.filter([]))
     //   sort:   params = [path, descending?, group?] (ABAP bools "X"/"")
-    // Optional trailing args may be dropped entirely by the backend arg
-    // serializer (it skips empty strings), so all optionals sit at the end.
+    // The backend arg serializer keeps empty args between filled ones as ''
+    // placeholders but trims trailing empties, so all optionals sit at the
+    // end and may arrive as undefined.
     function evBindingCall(oController, args) {
       const [id, aggregation, method] = [args[1], args[2], args[3]];
       if (!BINDING_METHODS.includes(method)) {
