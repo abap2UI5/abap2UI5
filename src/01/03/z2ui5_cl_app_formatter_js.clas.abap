@@ -90,6 +90,61 @@ CLASS z2ui5_cl_app_formatter_js IMPLEMENTATION.
              `      if (adjusted < 5) return "Warning";` && |\n| &&
              `      return "Error";` && |\n| &&
              `    },` && |\n| &&
+             `` && |\n| &&
+             `    // The demo kit's second weightState shape (sap.m.sample.TableEditable` && |\n| &&
+             `    // Formatter.js and five sibling Table samples): a single unit-less` && |\n| &&
+             `    // value, thresholds < 1000 Success, < 2000 Warning, else Error;` && |\n| &&
+             `    // non-numeric or negative values map to None.` && |\n| &&
+             `    weightStateByValue(value) {` && |\n| &&
+             `      const adjusted = parseFloat(value);` && |\n| &&
+             `      if (isNaN(adjusted) || adjusted < 0) return "None";` && |\n| &&
+             `      if (adjusted < 1000) return "Success";` && |\n| &&
+             `      if (adjusted < 2000) return "Warning";` && |\n| &&
+             `      return "Error";` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    // Product stock status -> sap.ui.core.ValueState` && |\n| &&
+             `    // (sap.m.sample.StandardListItemInfo / ObjectListItem Formatter.js).` && |\n| &&
+             `    stockStatusState(status) {` && |\n| &&
+             `      if (status === "Available") return "Success";` && |\n| &&
+             `      if (status === "Out of Stock") return "Warning";` && |\n| &&
+             `      if (status === "Discontinued") return "Error";` && |\n| &&
+             `      return "None";` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    // Product stock status -> status icon` && |\n| &&
+             `    // (sap.m.sample.StandardListItemInfo Formatter.js).` && |\n| &&
+             `    stockStatusIcon(status) {` && |\n| &&
+             `      if (status === "Available") return "sap-icon://accept";` && |\n| &&
+             `      if (status === "Out of Stock") return "sap-icon://alert";` && |\n| &&
+             `      if (status === "Discontinued") return "sap-icon://decline";` && |\n| &&
+             `      return null;` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    // Round to two decimal places, always rendered with two digits` && |\n| &&
+             `    // (sap.m.sample.TableBreadcrumb Formatter.js).` && |\n| &&
+             `    round2DP(value) {` && |\n| &&
+             `      return (Math.round(value * 100) / 100).toFixed(2);` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    // Join the available dimensions with " x " and append the unit;` && |\n| &&
+             `    // missing components are skipped (sap.m.sample.TableBreadcrumb` && |\n| &&
+             `    // Formatter.js).` && |\n| &&
+             `    dimensions(width, depth, height, unit) {` && |\n| &&
+             `      let display = [width, depth, height]` && |\n| &&
+             `        .filter((component) => component)` && |\n| &&
+             `        .join(" x ");` && |\n| &&
+             `      if (display) display += `` ${unit}``;` && |\n| &&
+             `      return display;` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    // Delivery status -> sap.ui.core.ValueState` && |\n| &&
+             `    // (sap.m.sample.InitialPagePattern model/formatter.js).` && |\n| &&
+             `    deliveryStatusState(status) {` && |\n| &&
+             `      if (status === "Shipped") return "Success";` && |\n| &&
+             `      if (status === "Failed Shipping") return "Error";` && |\n| &&
+             `      return "None";` && |\n| &&
+             `    },` && |\n| &&
              `  };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&

@@ -80,6 +80,19 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_if_client~binding_call_by_id.
+
+    DATA(lt_arg) = VALUE string_table( ( CONV string( id ) )
+                                       ( CONV string( aggregation ) )
+                                       ( CONV string( method ) ) ).
+    APPEND LINES OF params TO lt_arg.
+
+    z2ui5_if_client~follow_up_action( val   = `BINDING_CALL`
+                                      t_arg = lt_arg ).
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_client~check_on_event.
 
     IF val IS NOT INITIAL.

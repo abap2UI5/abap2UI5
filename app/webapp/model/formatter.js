@@ -70,5 +70,60 @@ sap.ui.define([], () => {
       if (adjusted < 5) return "Warning";
       return "Error";
     },
+
+    // The demo kit's second weightState shape (sap.m.sample.TableEditable
+    // Formatter.js and five sibling Table samples): a single unit-less
+    // value, thresholds < 1000 Success, < 2000 Warning, else Error;
+    // non-numeric or negative values map to None.
+    weightStateByValue(value) {
+      const adjusted = parseFloat(value);
+      if (isNaN(adjusted) || adjusted < 0) return "None";
+      if (adjusted < 1000) return "Success";
+      if (adjusted < 2000) return "Warning";
+      return "Error";
+    },
+
+    // Product stock status -> sap.ui.core.ValueState
+    // (sap.m.sample.StandardListItemInfo / ObjectListItem Formatter.js).
+    stockStatusState(status) {
+      if (status === "Available") return "Success";
+      if (status === "Out of Stock") return "Warning";
+      if (status === "Discontinued") return "Error";
+      return "None";
+    },
+
+    // Product stock status -> status icon
+    // (sap.m.sample.StandardListItemInfo Formatter.js).
+    stockStatusIcon(status) {
+      if (status === "Available") return "sap-icon://accept";
+      if (status === "Out of Stock") return "sap-icon://alert";
+      if (status === "Discontinued") return "sap-icon://decline";
+      return null;
+    },
+
+    // Round to two decimal places, always rendered with two digits
+    // (sap.m.sample.TableBreadcrumb Formatter.js).
+    round2DP(value) {
+      return (Math.round(value * 100) / 100).toFixed(2);
+    },
+
+    // Join the available dimensions with " x " and append the unit;
+    // missing components are skipped (sap.m.sample.TableBreadcrumb
+    // Formatter.js).
+    dimensions(width, depth, height, unit) {
+      let display = [width, depth, height]
+        .filter((component) => component)
+        .join(" x ");
+      if (display) display += ` ${unit}`;
+      return display;
+    },
+
+    // Delivery status -> sap.ui.core.ValueState
+    // (sap.m.sample.InitialPagePattern model/formatter.js).
+    deliveryStatusState(status) {
+      if (status === "Shipped") return "Success";
+      if (status === "Failed Shipping") return "Error";
+      return "None";
+    },
   };
 });

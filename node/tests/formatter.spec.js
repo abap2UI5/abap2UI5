@@ -33,6 +33,50 @@ test.describe("Formatter module", () => {
     expect(Formatter.weightState("-1", "KG")).toBe("None");
   });
 
+  test("weightStateByValue maps unit-less weights to the 1000/2000 thresholds", () => {
+    const { Formatter } = load();
+    expect(Formatter.weightStateByValue("999")).toBe("Success");
+    expect(Formatter.weightStateByValue("1500")).toBe("Warning");
+    expect(Formatter.weightStateByValue("2000")).toBe("Error");
+    expect(Formatter.weightStateByValue("abc")).toBe("None");
+    expect(Formatter.weightStateByValue("-1")).toBe("None");
+  });
+
+  test("stockStatusState/-Icon map the stock status", () => {
+    const { Formatter } = load();
+    expect(Formatter.stockStatusState("Available")).toBe("Success");
+    expect(Formatter.stockStatusState("Out of Stock")).toBe("Warning");
+    expect(Formatter.stockStatusState("Discontinued")).toBe("Error");
+    expect(Formatter.stockStatusState("Unknown")).toBe("None");
+    expect(Formatter.stockStatusIcon("Available")).toBe("sap-icon://accept");
+    expect(Formatter.stockStatusIcon("Out of Stock")).toBe("sap-icon://alert");
+    expect(Formatter.stockStatusIcon("Discontinued")).toBe(
+      "sap-icon://decline",
+    );
+    expect(Formatter.stockStatusIcon("Unknown")).toBeNull();
+  });
+
+  test("round2DP always renders two decimal places", () => {
+    const { Formatter } = load();
+    expect(Formatter.round2DP(3.14159)).toBe("3.14");
+    expect(Formatter.round2DP(2)).toBe("2.00");
+    expect(Formatter.round2DP("10.005")).toBe("10.01");
+  });
+
+  test("dimensions joins available components and appends the unit", () => {
+    const { Formatter } = load();
+    expect(Formatter.dimensions(10, 20, 30, "cm")).toBe("10 x 20 x 30 cm");
+    expect(Formatter.dimensions(10, 0, 30, "cm")).toBe("10 x 30 cm");
+    expect(Formatter.dimensions(0, 0, 0, "cm")).toBe("");
+  });
+
+  test("deliveryStatusState maps the delivery status", () => {
+    const { Formatter } = load();
+    expect(Formatter.deliveryStatusState("Shipped")).toBe("Success");
+    expect(Formatter.deliveryStatusState("Failed Shipping")).toBe("Error");
+    expect(Formatter.deliveryStatusState("Pending")).toBe("None");
+  });
+
   test("z2ui5/Util re-exports the date helpers as the legacy alias", () => {
     const { Formatter, Util } = load();
     expect(Util.DateCreateObject).toBe(Formatter.DateCreateObject);

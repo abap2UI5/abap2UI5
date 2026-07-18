@@ -25,6 +25,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    "sap/ui/core/BusyIndicator",` && |\n| &&
              `    "sap/ui/core/Theming",` && |\n| &&
              `    "sap/ui/model/odata/v2/ODataModel",` && |\n| &&
+             `    "sap/ui/model/Filter",` && |\n| &&
+             `    "sap/ui/model/FilterOperator",` && |\n| &&
+             `    "sap/ui/model/Sorter",` && |\n| &&
              `    "sap/m/library",` && |\n| &&
              `    "sap/ui/util/Storage",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
@@ -37,6 +40,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    BusyIndicator,` && |\n| &&
              `    Theming,` && |\n| &&
              `    ODataModel,` && |\n| &&
+             `    Filter,` && |\n| &&
+             `    FilterOperator,` && |\n| &&
+             `    Sorter,` && |\n| &&
              `    mobileLibrary,` && |\n| &&
              `    Storage,` && |\n| &&
              `    Lib,` && |\n| &&
@@ -184,6 +190,76 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      obj[method](...castArgs(kinds, args.slice(3)));` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // ------------------------------------------------------------------` && |\n| &&
+             `    // binding_call: apply a declarative filter/sorter to an aggregation` && |\n| &&
+             `    // binding of a control resolved by id - the client-side equivalent of` && |\n| &&
+             `    // the classic demo kit controller pattern` && |\n| &&
+             `    // oList.getBinding("items").filter([new Filter(...)]). Same safety` && |\n| &&
+             `    // boundary as control_call_by_id: only whitelisted binding methods,` && |\n| &&
+             `    // only whitelisted filter operators, everything built from data` && |\n| &&
+             `    // (path/operator/values), never from code strings.` && |\n| &&
+             `    // ------------------------------------------------------------------` && |\n| &&
+             `` && |\n| &&
+             `    const BINDING_METHODS = ["filter", "sort"];` && |\n| &&
+             `` && |\n| &&
+             `    const FILTER_OPERATORS = new Set([` && |\n| &&
+             `      "BT",` && |\n| &&
+             `      "Contains",` && |\n| &&
+             `      "EndsWith",` && |\n| &&
+             `      "EQ",` && |\n| &&
+             `      "GE",` && |\n| &&
+             `      "GT",` && |\n| &&
+             `      "LE",` && |\n| &&
+             `      "LT",` && |\n| &&
+             `      "NB",` && |\n| &&
+             `      "NE",` && |\n| &&
+             `      "NotContains",` && |\n| &&
+             `      "NotEndsWith",` && |\n| &&
+             `      "NotStartsWith",` && |\n| &&
+             `      "StartsWith",` && |\n| &&
+             `    ]);` && |\n| &&
+             `` && |\n| &&
+             `    // args: [_, id, aggregation, method, ...params]` && |\n| &&
+             `    //   filter: params = [path, operator, value1, value2?]` && |\n| &&
+             `    //           an empty/omitted value1 CLEARS the filter (the demo kit` && |\n| &&
+             `    //           search pattern: empty query -> binding.filter([]))` && |\n| &&
+             `    //   sort:   params = [path, descending?, group?] (ABAP bools "X"/"")` && |\n| &&
+             `    // Optional trailing args may be dropped entirely by the backend arg` && |\n| &&
+             `    // serializer (it skips empty strings), so all optionals sit at the end.` && |\n| &&
+             `    function evBindingCall(oController, args) {` && |\n| &&
+             `      const [id, aggregation, method] = [args[1], args[2], args[3]];` && |\n| &&
+             `      if (!BINDING_METHODS.includes(method)) {` && |\n| &&
+             `        Lib.logError(``binding_call: method '${method}' not allowed``);` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      const binding = ViewSlots.resolveById(id)?.getBinding?.(aggregation);` && |\n| &&
+             `      if (!binding || typeof binding[method] !== "function") {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``binding_call: no '${aggregation}' binding with '${method}' on control '${id}'``,` && |\n| &&
+             `        );` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      if (method === "filter") {` && |\n| &&
+             `        const [path, operator, value1, value2] = args.slice(4);` && |\n| &&
+             `        if (value1 == null || value1 === "") {` && |\n| &&
+             `          binding.filter([]);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        if (!FILTER_OPERATORS.has(operator)) {` && |\n| &&
+             `          Lib.logError(``binding_call: operator '${operator}' not allowed``);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        binding.filter([` && |\n| &&
+             `          new Filter(path, FilterOperator[operator], value1, value2),` && |\n| &&
+             `        ]);` && |\n| &&
+             `      } else {` && |\n| &&
+             `        const [path, descending, group] = args.slice(4);` && |\n| &&
+             `        binding.sort([` && |\n| &&
+             `          new Sorter(path, castArg("bool", descending), castArg("bool", group)),` && |\n| &&
+             `        ]);` && |\n| &&
+             `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
@@ -341,7 +417,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // Hit the BSP path with ?sap-sessioncmd=logoff first so the BSP` && |\n| &&
              `    // runtime calls server->session->terminate( ), then go to the ICF` && |\n| &&
              `    // logoff to also drop the SSO2 ticket. Outside a BSP path this goes` && |\n| &&
-             `    // straight to the logout URL.` && |\n| &&
+             `    // straight to the logout URL.` && |\n|.
+    result = result &&
              `    function logoutViaBspTerminate(logoutUrl) {` && |\n| &&
              `      const path = window.location.pathname;` && |\n| &&
              `      if (!path.startsWith("/sap/bc/bsp/")) {` && |\n| &&
@@ -417,8 +494,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        TRIGGER_SMS: () => _URLHelper.triggerSms(params),` && |\n| &&
              `        TRIGGER_TEL: () => _URLHelper.triggerTel(params),` && |\n| &&
              `      };` && |\n| &&
-             `      try {` && |\n|.
-    result = result &&
+             `      try {` && |\n| &&
              `        const fn = actions[args[1]];` && |\n| &&
              `        if (fn) fn();` && |\n| &&
              `      } catch (e) {` && |\n| &&
@@ -680,6 +756,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      PLAY_AUDIO: evPlayAudio,` && |\n| &&
              `      CONTROL_BY_ID: evControlCallById,` && |\n| &&
              `      CONTROL_GLOBAL: evControlCall,` && |\n| &&
+             `      BINDING_CALL: evBindingCall,` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    // Entry point called by View1.controller's eF().` && |\n| &&

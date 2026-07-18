@@ -44,7 +44,7 @@ INTERFACE z2ui5_if_client
       play_audio                TYPE string VALUE `PLAY_AUDIO`,
 
       "Control
-
+      binding_call              TYPE string VALUE `BINDING_CALL`,
 
       "obsolet?
       image_editor_popup_close  TYPE string VALUE `IMAGE_EDITOR_POPUP_CLOSE`,
@@ -267,6 +267,20 @@ INTERFACE z2ui5_if_client
       object TYPE clike
       method TYPE clike
       params TYPE string_table OPTIONAL.
+
+  "! Apply a declarative filter/sorter to an aggregation binding of a control
+  "! resolved by id, after the next render - the client-side equivalent of the
+  "! UI5 controller pattern getBinding('items').filter(...); the model data
+  "! stays untouched. method 'filter': params = path, operator, value1, value2
+  "! (empty value1 clears the filter); method 'sort': params = path,
+  "! descending, group (abap_bool as 'X'/''). For the roundtrip-free variant
+  "! wire cs_event-binding_call with the same params via _event_client.
+  METHODS binding_call_by_id
+    IMPORTING
+      id          TYPE clike
+      method      TYPE clike        DEFAULT `filter`
+      aggregation TYPE clike        DEFAULT `items`
+      params      TYPE string_table OPTIONAL.
 
   METHODS check_on_event
     IMPORTING

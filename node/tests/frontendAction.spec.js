@@ -24,6 +24,13 @@ function load() {
   };
   const Lib = { logError: (m) => errors.push(m), runCallbacks: () => {} };
   const AppState = { state: { onBeforeEventFrontend: [] } };
+  function Filter(path, operator, value1, value2) {
+    Object.assign(this, { path, operator, value1, value2 });
+  }
+  function Sorter(path, descending, group) {
+    Object.assign(this, { path, descending, group });
+  }
+  const FilterOperator = new Proxy({}, { get: (_t, op) => op });
   const { module } = loadModule("core/FrontendAction.js", {
     deps: {
       "sap/m/MessageBox": MessageBox,
@@ -31,6 +38,9 @@ function load() {
       "sap/ui/core/BusyIndicator": BusyIndicator,
       "sap/ui/core/Theming": Theming,
       "sap/ui/model/odata/v2/ODataModel": function () {},
+      "sap/ui/model/Filter": Filter,
+      "sap/ui/model/FilterOperator": FilterOperator,
+      "sap/ui/model/Sorter": Sorter,
       "sap/m/library": {},
       "sap/ui/util/Storage": function () {},
       "z2ui5/core/Lib": Lib,
@@ -124,5 +134,113 @@ test.describe("control_call_by_id", () => {
       ["expand", true],
       ["expand", false],
     ]);
+  });
+});
+
+test.describe("binding_call", () => {
+  function withListBinding(controls, calls) {
+    const binding = {
+      filter: (f) => calls.push(["filter", f]),
+      sort: (s) => calls.push(["sort", s]),
+    };
+    controls.idList = { getBinding: (agg) => (agg === "items" ? binding : null) };
+    return binding;
+  }
+
+  test("filter builds a Filter from path/operator/value", () => {
+    const { FrontendAction, calls, controls } = load();
+    withListBinding(controls, calls);
+    FrontendAction.execute(null, [
+      "BINDING_CALL",
+      "idList",
+      "items",
+      "filter",
+      "NAME",
+      "Contains",
+      "Pro",
+    ]);
+    expect(calls).toHaveLength(1);
+    const [name, filters] = calls[0];
+    expect(name).toBe("filter");
+    expect(filters).toHaveLength(1);
+    expect(filters[0]).toMatchObject({
+      path: "NAME",
+      operator: "Contains",
+      value1: "Pro",
+    });
+  });
+
+  test("an empty (or dropped) value1 clears the filter", () => {
+    const { FrontendAction, calls, controls } = load();
+    withListBinding(controls, calls);
+    // the backend arg serializer drops empty strings, so the cleared-query
+    // call arrives without the value argument at all
+    FrontendAction.execute(null, [
+      "BINDING_CALL",
+      "idList",
+      "items",
+      "filter",
+      "NAME",
+      "Contains",
+    ]);
+    expect(calls).toEqual([["filter", []]]);
+  });
+
+  test("rejects a non-whitelisted operator or method", () => {
+    const { FrontendAction, calls, errors, controls } = load();
+    withListBinding(controls, calls);
+    FrontendAction.execute(null, [
+      "BINDING_CALL",
+      "idList",
+      "items",
+      "filter",
+      "NAME",
+      "Any",
+      "x",
+    ]);
+    FrontendAction.execute(null, [
+      "BINDING_CALL",
+      "idList",
+      "items",
+      "refresh",
+    ]);
+    expect(calls).toHaveLength(0);
+    expect(errors).toHaveLength(2);
+  });
+
+  test("sort builds a Sorter and casts the ABAP bools", () => {
+    const { FrontendAction, calls, controls } = load();
+    withListBinding(controls, calls);
+    FrontendAction.execute(null, [
+      "BINDING_CALL",
+      "idList",
+      "items",
+      "sort",
+      "NAME",
+      "X",
+    ]);
+    expect(calls).toHaveLength(1);
+    const [name, sorters] = calls[0];
+    expect(name).toBe("sort");
+    expect(sorters[0]).toMatchObject({
+      path: "NAME",
+      descending: true,
+      group: false,
+    });
+  });
+
+  test("logs when the control or binding is missing", () => {
+    const { FrontendAction, calls, errors } = load();
+    FrontendAction.execute(null, [
+      "BINDING_CALL",
+      "nope",
+      "items",
+      "filter",
+      "NAME",
+      "Contains",
+      "x",
+    ]);
+    expect(calls).toHaveLength(0);
+    expect(errors).toHaveLength(1);
   });
 });

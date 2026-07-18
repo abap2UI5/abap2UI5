@@ -5,6 +5,9 @@ sap.ui.define(
     "sap/ui/core/BusyIndicator",
     "sap/ui/core/Theming",
     "sap/ui/model/odata/v2/ODataModel",
+    "sap/ui/model/Filter",
+    "sap/ui/model/FilterOperator",
+    "sap/ui/model/Sorter",
     "sap/m/library",
     "sap/ui/util/Storage",
     "z2ui5/core/Lib",
@@ -17,6 +20,9 @@ sap.ui.define(
     BusyIndicator,
     Theming,
     ODataModel,
+    Filter,
+    FilterOperator,
+    Sorter,
     mobileLibrary,
     Storage,
     Lib,
@@ -164,6 +170,76 @@ sap.ui.define(
         return;
       }
       obj[method](...castArgs(kinds, args.slice(3)));
+    }
+
+    // ------------------------------------------------------------------
+    // binding_call: apply a declarative filter/sorter to an aggregation
+    // binding of a control resolved by id - the client-side equivalent of
+    // the classic demo kit controller pattern
+    // oList.getBinding("items").filter([new Filter(...)]). Same safety
+    // boundary as control_call_by_id: only whitelisted binding methods,
+    // only whitelisted filter operators, everything built from data
+    // (path/operator/values), never from code strings.
+    // ------------------------------------------------------------------
+
+    const BINDING_METHODS = ["filter", "sort"];
+
+    const FILTER_OPERATORS = new Set([
+      "BT",
+      "Contains",
+      "EndsWith",
+      "EQ",
+      "GE",
+      "GT",
+      "LE",
+      "LT",
+      "NB",
+      "NE",
+      "NotContains",
+      "NotEndsWith",
+      "NotStartsWith",
+      "StartsWith",
+    ]);
+
+    // args: [_, id, aggregation, method, ...params]
+    //   filter: params = [path, operator, value1, value2?]
+    //           an empty/omitted value1 CLEARS the filter (the demo kit
+    //           search pattern: empty query -> binding.filter([]))
+    //   sort:   params = [path, descending?, group?] (ABAP bools "X"/"")
+    // Optional trailing args may be dropped entirely by the backend arg
+    // serializer (it skips empty strings), so all optionals sit at the end.
+    function evBindingCall(oController, args) {
+      const [id, aggregation, method] = [args[1], args[2], args[3]];
+      if (!BINDING_METHODS.includes(method)) {
+        Lib.logError(`binding_call: method '${method}' not allowed`);
+        return;
+      }
+      const binding = ViewSlots.resolveById(id)?.getBinding?.(aggregation);
+      if (!binding || typeof binding[method] !== "function") {
+        Lib.logError(
+          `binding_call: no '${aggregation}' binding with '${method}' on control '${id}'`,
+        );
+        return;
+      }
+      if (method === "filter") {
+        const [path, operator, value1, value2] = args.slice(4);
+        if (value1 == null || value1 === "") {
+          binding.filter([]);
+          return;
+        }
+        if (!FILTER_OPERATORS.has(operator)) {
+          Lib.logError(`binding_call: operator '${operator}' not allowed`);
+          return;
+        }
+        binding.filter([
+          new Filter(path, FilterOperator[operator], value1, value2),
+        ]);
+      } else {
+        const [path, descending, group] = args.slice(4);
+        binding.sort([
+          new Sorter(path, castArg("bool", descending), castArg("bool", group)),
+        ]);
+      }
     }
 
     // ------------------------------------------------------------------
@@ -659,6 +735,7 @@ sap.ui.define(
       PLAY_AUDIO: evPlayAudio,
       CONTROL_BY_ID: evControlCallById,
       CONTROL_GLOBAL: evControlCall,
+      BINDING_CALL: evBindingCall,
     };
 
     // Entry point called by View1.controller's eF().
