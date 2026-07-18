@@ -47,8 +47,10 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `//   Util              PUBLIC date helpers for view formatters - apps rely on` && |\n| &&
              `//                     this global and on the z2ui5/Util module (Component)` && |\n| &&
              `//   Formatter         PUBLIC curated formatter module for view binding` && |\n| &&
-             `//                     strings (z2ui5/Formatter); re-exports the Util` && |\n| &&
-             `//                     helpers - grows via framework PRs only (Component)` && |\n| &&
+             `//                     strings (z2ui5/model/formatter, wired via` && |\n| &&
+             `//                     core:require; the global covers releases without` && |\n| &&
+             `//                     core:require); re-exports the Util helpers - grows` && |\n| &&
+             `//                     via framework PRs only (Component)` && |\n| &&
              `//   requestTimeoutMs  optional override for the roundtrip timeout (apps)` && |\n| &&
              `//   <custom>          apps can register functions via the js_loader popup` && |\n| &&
              `//                     and call them through the Z2UI5 frontend event` && |\n| &&

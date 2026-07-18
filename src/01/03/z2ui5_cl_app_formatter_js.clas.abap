@@ -18,14 +18,19 @@ CLASS z2ui5_cl_app_formatter_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `// The frontend app's formatter module - the file an original UI5 app would` && |\n| &&
-             `// keep as model/formatter.js, shipped by the framework and shared by every` && |\n| &&
-             `// abap2UI5 app. Exposed as the z2ui5.Formatter global and as the` && |\n| &&
-             `// z2ui5/Formatter module (core:require), so XML binding strings reference` && |\n| &&
-             `// the functions directly:` && |\n| &&
+    result = `// The frontend app's formatter module in the standard UI5 app layout` && |\n| &&
+             `// (webapp/model/formatter.js, next to model/models.js) - shipped by the` && |\n| &&
+             `// framework and shared by every abap2UI5 app. Wire it into an XML view via` && |\n| &&
+             `// core:require (UI5 >= 1.74) and reference the functions by alias:` && |\n| &&
              `//` && |\n| &&
-             `//   state="{ parts: [{path: 'WEIGHT'}, {path: 'UNIT'}],` && |\n| &&
-             `//            formatter: 'z2ui5.Formatter.weightState' }"` && |\n| &&
+             `//   <mvc:View xmlns:core="sap.ui.core"` && |\n| &&
+             `//             core:require="{Formatter: 'z2ui5/model/formatter'}">` && |\n| &&
+             `//     ... state="{ parts: [{path: 'WEIGHT'}, {path: 'UNIT'}],` && |\n| &&
+             `//                  formatter: 'Formatter.weightState' }"` && |\n| &&
+             `//` && |\n| &&
+             `// The module is also published as the z2ui5.Formatter global, so` && |\n| &&
+             `// formatter: 'z2ui5.Formatter.weightState' keeps working on releases` && |\n| &&
+             `// without core:require support.` && |\n| &&
              `//` && |\n| &&
              `// The set is CURATED and grows via framework PRs: every function here is a` && |\n| &&
              `// real, served script resource - CSP-clean, no runtime code generation (an` && |\n| &&

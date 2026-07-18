@@ -1,11 +1,16 @@
-// The frontend app's formatter module - the file an original UI5 app would
-// keep as model/formatter.js, shipped by the framework and shared by every
-// abap2UI5 app. Exposed as the z2ui5.Formatter global and as the
-// z2ui5/Formatter module (core:require), so XML binding strings reference
-// the functions directly:
+// The frontend app's formatter module in the standard UI5 app layout
+// (webapp/model/formatter.js, next to model/models.js) - shipped by the
+// framework and shared by every abap2UI5 app. Wire it into an XML view via
+// core:require (UI5 >= 1.74) and reference the functions by alias:
 //
-//   state="{ parts: [{path: 'WEIGHT'}, {path: 'UNIT'}],
-//            formatter: 'z2ui5.Formatter.weightState' }"
+//   <mvc:View xmlns:core="sap.ui.core"
+//             core:require="{Formatter: 'z2ui5/model/formatter'}">
+//     ... state="{ parts: [{path: 'WEIGHT'}, {path: 'UNIT'}],
+//                  formatter: 'Formatter.weightState' }"
+//
+// The module is also published as the z2ui5.Formatter global, so
+// formatter: 'z2ui5.Formatter.weightState' keeps working on releases
+// without core:require support.
 //
 // The set is CURATED and grows via framework PRs: every function here is a
 // real, served script resource - CSP-clean, no runtime code generation (an

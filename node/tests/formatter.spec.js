@@ -2,14 +2,15 @@
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
-// Tests the curated formatter module app/webapp/Formatter.js (loaded via a
-// stubbed sap.ui.define, with the real z2ui5/Util as its dependency). The
-// module backs the z2ui5.Formatter global referenced by XML binding
-// strings - functions here are a public contract, like z2ui5.Util.
+// Tests the curated formatter module app/webapp/model/formatter.js (loaded
+// via a stubbed sap.ui.define, with the real z2ui5/Util as its dependency).
+// The module backs core:require="{Formatter: 'z2ui5/model/formatter'}" and
+// the z2ui5.Formatter global referenced by XML binding strings - functions
+// here are a public contract, like z2ui5.Util.
 
 function load() {
   const { module: Util } = loadModule("Util.js");
-  const { module } = loadModule("Formatter.js", {
+  const { module } = loadModule("model/formatter.js", {
     deps: { "z2ui5/Util": Util },
   });
   return { Formatter: module, Util };

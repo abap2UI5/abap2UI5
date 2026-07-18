@@ -1,8 +1,10 @@
 // PUBLIC date helpers for apps: exposed as the z2ui5.Util global and as
 // the z2ui5/Util module (used in XML view formatter strings). Part of the
 // public contract - do not rename or change the existing functions.
-// z2ui5/Formatter re-exports these helpers; new code should reference
-// z2ui5.Formatter, this module stays as the stable legacy alias.
+// z2ui5/model/formatter re-exports these helpers; new code should
+// reference the formatter module (core:require of z2ui5/model/formatter
+// or the z2ui5.Formatter global), this module stays as the stable
+// legacy alias.
 sap.ui.define([], () => {
   "use strict";
 

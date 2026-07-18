@@ -8,7 +8,7 @@ sap.ui.define(
     "z2ui5/core/Lib",
     "z2ui5/core/AppState",
     "z2ui5/Util",
-    "z2ui5/Formatter",
+    "z2ui5/model/formatter",
     "sap/ui/core/routing/HashChanger",
   ],
   (
@@ -50,10 +50,11 @@ sap.ui.define(
         // nothing else loads the module eagerly anymore.
         AppState.setGlobal("Util", DateUtil);
 
-        // The curated formatter module (the app-level formatter.js of an
-        // original UI5 app, shipped by the framework): published the same
-        // way so binding strings can reference z2ui5.Formatter.<fn>. It
-        // re-exports the Util helpers - Util stays the legacy alias.
+        // The curated formatter module in the standard app layout
+        // (model/formatter.js): views wire it via core:require of
+        // z2ui5/model/formatter; the global keeps binding strings working
+        // on releases without core:require (< 1.74). It re-exports the
+        // Util helpers - Util stays the legacy alias.
         AppState.setGlobal("Formatter", Formatter);
 
         AppState.state.oDeviceModel = Models.createDeviceModel();
