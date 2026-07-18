@@ -53,8 +53,8 @@ sap.ui.define(
         // The curated formatter module in the standard app layout
         // (model/formatter.js): views wire it via core:require of
         // z2ui5/model/formatter; the global keeps binding strings working
-        // on releases without core:require (< 1.74). It re-exports the
-        // Util helpers - Util stays the legacy alias.
+        // on releases without core:require (< 1.74). It owns the date
+        // helpers - Util above is the thin legacy alias re-exporting them.
         AppState.setGlobal("Formatter", Formatter);
 
         AppState.state.oDeviceModel = Models.createDeviceModel();

@@ -73,8 +73,8 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        // The curated formatter module in the standard app layout` && |\n| &&
              `        // (model/formatter.js): views wire it via core:require of` && |\n| &&
              `        // z2ui5/model/formatter; the global keeps binding strings working` && |\n| &&
-             `        // on releases without core:require (< 1.74). It re-exports the` && |\n| &&
-             `        // Util helpers - Util stays the legacy alias.` && |\n| &&
+             `        // on releases without core:require (< 1.74). It owns the date` && |\n| &&
+             `        // helpers - Util above is the thin legacy alias re-exporting them.` && |\n| &&
              `        AppState.setGlobal("Formatter", Formatter);` && |\n| &&
              `` && |\n| &&
              `        AppState.state.oDeviceModel = Models.createDeviceModel();` && |\n| &&

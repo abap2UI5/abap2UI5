@@ -3,17 +3,18 @@ const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
 // Tests the curated formatter module app/webapp/model/formatter.js (loaded
-// via a stubbed sap.ui.define, with the real z2ui5/Util as its dependency).
-// The module backs core:require="{Formatter: 'z2ui5/model/formatter'}" and
-// the z2ui5.Formatter global referenced by XML binding strings - functions
-// here are a public contract, like z2ui5.Util.
+// via a stubbed sap.ui.define). The module backs
+// core:require="{Formatter: 'z2ui5/model/formatter'}" and the
+// z2ui5.Formatter global referenced by XML binding strings, and OWNS the
+// date-helper implementations that z2ui5/Util re-exports as its legacy
+// alias - everything here is a public contract.
 
 function load() {
-  const { module: Util } = loadModule("Util.js");
-  const { module } = loadModule("model/formatter.js", {
-    deps: { "z2ui5/Util": Util },
+  const { module: Formatter } = loadModule("model/formatter.js");
+  const { module: Util } = loadModule("Util.js", {
+    deps: { "z2ui5/model/formatter": Formatter },
   });
-  return { Formatter: module, Util };
+  return { Formatter, Util };
 }
 
 test.describe("Formatter module", () => {
@@ -32,14 +33,20 @@ test.describe("Formatter module", () => {
     expect(Formatter.weightState("-1", "KG")).toBe("None");
   });
 
-  test("re-exports the z2ui5.Util date helpers unchanged", () => {
+  test("z2ui5/Util re-exports the date helpers as the legacy alias", () => {
     const { Formatter, Util } = load();
-    expect(Formatter.DateCreateObject).toBe(Util.DateCreateObject);
-    expect(Formatter.DateAbapDateToDateObject).toBe(
-      Util.DateAbapDateToDateObject,
+    expect(Util.DateCreateObject).toBe(Formatter.DateCreateObject);
+    expect(Util.DateAbapDateToDateObject).toBe(
+      Formatter.DateAbapDateToDateObject,
     );
-    expect(Formatter.DateAbapDateTimeToDateObject).toBe(
-      Util.DateAbapDateTimeToDateObject,
+    expect(Util.DateAbapDateTimeToDateObject).toBe(
+      Formatter.DateAbapDateTimeToDateObject,
     );
+    // the alias exposes exactly the original contract, nothing more
+    expect(Object.keys(Util).sort()).toEqual([
+      "DateAbapDateTimeToDateObject",
+      "DateAbapDateToDateObject",
+      "DateCreateObject",
+    ]);
   });
 });

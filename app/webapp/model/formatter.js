@@ -19,13 +19,43 @@
 // ports commonly need; keep app-specific one-offs out (expression bindings
 // cover most of those).
 //
-// z2ui5.Util's date helpers are re-exported here so new code needs only
-// this one module; z2ui5.Util itself stays the stable legacy alias.
-sap.ui.define(["z2ui5/Util"], (Util) => {
+// This module also OWNS the public date helpers historically shipped as
+// z2ui5.Util: the implementations live here, Util.js re-exports them as
+// the stable legacy alias. Their names and behavior are a public contract
+// - do not rename or change them.
+sap.ui.define([], () => {
   "use strict";
 
+  // Splits an 8-character ABAP date string "YYYYMMDD" into the [year, month,
+  // day] tuple JavaScript's Date constructor expects. Note: Date months are
+  // 0-based, so we subtract 1 from the month component.
+  function parseYmd(d) {
+    return [
+      Number(d.slice(0, 4)),
+      Number(d.slice(4, 6)) - 1,
+      Number(d.slice(6, 8)),
+    ];
+  }
+
   return {
-    ...Util,
+    // --- date helpers (the z2ui5.Util legacy contract) ---
+    DateCreateObject(s) {
+      return new Date(s);
+    },
+    DateAbapDateToDateObject(d) {
+      return new Date(...parseYmd(d));
+    },
+    // t is an ABAP time string "HHMMSS"; if omitted we default to midnight.
+    DateAbapDateTimeToDateObject(d, t = "000000") {
+      return new Date(
+        ...parseYmd(d),
+        Number(t.slice(0, 2)),
+        Number(t.slice(2, 4)),
+        Number(t.slice(4, 6)),
+      );
+    },
+
+    // --- value formatters ---
 
     // Weight -> sap.ui.core.ValueState, the classic demo-kit formatter
     // (sap.m.sample.Table Formatter.js): thresholds in KG (< 1 Success,

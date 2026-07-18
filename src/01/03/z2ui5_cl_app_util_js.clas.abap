@@ -21,40 +21,18 @@ CLASS z2ui5_cl_app_util_js IMPLEMENTATION.
     result = `// PUBLIC date helpers for apps: exposed as the z2ui5.Util global and as` && |\n| &&
              `// the z2ui5/Util module (used in XML view formatter strings). Part of the` && |\n| &&
              `// public contract - do not rename or change the existing functions.` && |\n| &&
-             `// z2ui5/model/formatter re-exports these helpers; new code should` && |\n| &&
+             `// The implementations moved to z2ui5/model/formatter (the standard` && |\n| &&
+             `// app-layout formatter module); this module stays as the stable legacy` && |\n| &&
+             `// alias re-exporting exactly the original helpers. New code should` && |\n| &&
              `// reference the formatter module (core:require of z2ui5/model/formatter` && |\n| &&
-             `// or the z2ui5.Formatter global), this module stays as the stable` && |\n| &&
-             `// legacy alias.` && |\n| &&
-             `sap.ui.define([], () => {` && |\n| &&
+             `// or the z2ui5.Formatter global).` && |\n| &&
+             `sap.ui.define(["z2ui5/model/formatter"], (Formatter) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
-             `  // Splits an 8-character ABAP date string "YYYYMMDD" into the [year, month,` && |\n| &&
-             `  // day] tuple JavaScript's Date constructor expects. Note: Date months are` && |\n| &&
-             `  // 0-based, so we subtract 1 from the month component.` && |\n| &&
-             `  function parseYmd(d) {` && |\n| &&
-             `    return [` && |\n| &&
-             `      Number(d.slice(0, 4)),` && |\n| &&
-             `      Number(d.slice(4, 6)) - 1,` && |\n| &&
-             `      Number(d.slice(6, 8)),` && |\n| &&
-             `    ];` && |\n| &&
-             `  }` && |\n| &&
-             `` && |\n| &&
              `  return {` && |\n| &&
-             `    DateCreateObject(s) {` && |\n| &&
-             `      return new Date(s);` && |\n| &&
-             `    },` && |\n| &&
-             `    DateAbapDateToDateObject(d) {` && |\n| &&
-             `      return new Date(...parseYmd(d));` && |\n| &&
-             `    },` && |\n| &&
-             `    // t is an ABAP time string "HHMMSS"; if omitted we default to midnight.` && |\n| &&
-             `    DateAbapDateTimeToDateObject(d, t = "000000") {` && |\n| &&
-             `      return new Date(` && |\n| &&
-             `        ...parseYmd(d),` && |\n| &&
-             `        Number(t.slice(0, 2)),` && |\n| &&
-             `        Number(t.slice(2, 4)),` && |\n| &&
-             `        Number(t.slice(4, 6)),` && |\n| &&
-             `      );` && |\n| &&
-             `    },` && |\n| &&
+             `    DateCreateObject: Formatter.DateCreateObject,` && |\n| &&
+             `    DateAbapDateToDateObject: Formatter.DateAbapDateToDateObject,` && |\n| &&
+             `    DateAbapDateTimeToDateObject: Formatter.DateAbapDateTimeToDateObject,` && |\n| &&
              `  };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&

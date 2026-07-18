@@ -39,13 +39,43 @@ CLASS z2ui5_cl_app_formatter_js IMPLEMENTATION.
              `// ports commonly need; keep app-specific one-offs out (expression bindings` && |\n| &&
              `// cover most of those).` && |\n| &&
              `//` && |\n| &&
-             `// z2ui5.Util's date helpers are re-exported here so new code needs only` && |\n| &&
-             `// this one module; z2ui5.Util itself stays the stable legacy alias.` && |\n| &&
-             `sap.ui.define(["z2ui5/Util"], (Util) => {` && |\n| &&
+             `// This module also OWNS the public date helpers historically shipped as` && |\n| &&
+             `// z2ui5.Util: the implementations live here, Util.js re-exports them as` && |\n| &&
+             `// the stable legacy alias. Their names and behavior are a public contract` && |\n| &&
+             `// - do not rename or change them.` && |\n| &&
+             `sap.ui.define([], () => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
+             `  // Splits an 8-character ABAP date string "YYYYMMDD" into the [year, month,` && |\n| &&
+             `  // day] tuple JavaScript's Date constructor expects. Note: Date months are` && |\n| &&
+             `  // 0-based, so we subtract 1 from the month component.` && |\n| &&
+             `  function parseYmd(d) {` && |\n| &&
+             `    return [` && |\n| &&
+             `      Number(d.slice(0, 4)),` && |\n| &&
+             `      Number(d.slice(4, 6)) - 1,` && |\n| &&
+             `      Number(d.slice(6, 8)),` && |\n| &&
+             `    ];` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  return {` && |\n| &&
-             `    ...Util,` && |\n| &&
+             `    // --- date helpers (the z2ui5.Util legacy contract) ---` && |\n| &&
+             `    DateCreateObject(s) {` && |\n| &&
+             `      return new Date(s);` && |\n| &&
+             `    },` && |\n| &&
+             `    DateAbapDateToDateObject(d) {` && |\n| &&
+             `      return new Date(...parseYmd(d));` && |\n| &&
+             `    },` && |\n| &&
+             `    // t is an ABAP time string "HHMMSS"; if omitted we default to midnight.` && |\n| &&
+             `    DateAbapDateTimeToDateObject(d, t = "000000") {` && |\n| &&
+             `      return new Date(` && |\n| &&
+             `        ...parseYmd(d),` && |\n| &&
+             `        Number(t.slice(0, 2)),` && |\n| &&
+             `        Number(t.slice(2, 4)),` && |\n| &&
+             `        Number(t.slice(4, 6)),` && |\n| &&
+             `      );` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    // --- value formatters ---` && |\n| &&
              `` && |\n| &&
              `    // Weight -> sap.ui.core.ValueState, the classic demo-kit formatter` && |\n| &&
              `    // (sap.m.sample.Table Formatter.js): thresholds in KG (< 1 Success,` && |\n| &&
