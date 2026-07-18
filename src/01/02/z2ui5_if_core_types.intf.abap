@@ -66,6 +66,13 @@ INTERFACE z2ui5_if_core_types
   TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
 
   TYPES:
+    BEGIN OF ty_s_formatter,
+      name TYPE string,
+      js   TYPE string,
+    END OF ty_s_formatter.
+  TYPES ty_t_formatter TYPE STANDARD TABLE OF ty_s_formatter WITH EMPTY KEY.
+
+  TYPES:
     BEGIN OF ty_s_next_frontend,
       BEGIN OF s_view,
         xml                       TYPE string,
@@ -138,6 +145,7 @@ INTERFACE z2ui5_if_core_types
       BEGIN OF s_follow_up_action,
         custom_js TYPE string_table,
       END OF s_follow_up_action,
+      t_formatter          TYPE ty_t_formatter,
       set_app_state_active TYPE abap_bool,
       set_push_state       TYPE string,
       set_nav_back         TYPE abap_bool,

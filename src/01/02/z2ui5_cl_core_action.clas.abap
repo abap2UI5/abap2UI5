@@ -214,6 +214,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     CLEAR result->ms_next-s_set-s_msg_box.
     CLEAR result->ms_next-s_set-s_msg_toast.
     CLEAR result->ms_next-s_set-s_follow_up_action.
+    CLEAR result->ms_next-s_set-t_formatter.
 
     " always destroy an open popup on navigation, so an app never has to close
     " a popup explicitly before nav_app_call / nav_app_leave. If the app that

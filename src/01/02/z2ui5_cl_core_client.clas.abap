@@ -80,6 +80,18 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_if_client~register_formatter.
+
+    " re-registering the same name in one response keeps the last body -
+    " mirrors the client-side registry, which replaces per name
+    DATA(lv_name) = CONV string( name ).
+    DELETE mo_action->ms_next-s_set-t_formatter WHERE name = lv_name.
+    INSERT VALUE #( name = lv_name
+                    js   = js ) INTO TABLE mo_action->ms_next-s_set-t_formatter.
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_client~check_on_event.
 
     IF val IS NOT INITIAL.

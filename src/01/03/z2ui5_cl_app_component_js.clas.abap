@@ -28,6 +28,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/Util",` && |\n| &&
+             `    "z2ui5/core/Formatters",` && |\n| &&
              `    "sap/ui/core/routing/HashChanger",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
@@ -39,6 +40,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `    Lib,` && |\n| &&
              `    AppState,` && |\n| &&
              `    DateUtil,` && |\n| &&
+             `    Formatters,` && |\n| &&
              `    HashChanger,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
@@ -67,6 +69,11 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        // since the custom controls were split out of App.controller.js,` && |\n| &&
              `        // nothing else loads the module eagerly anymore.` && |\n| &&
              `        AppState.setGlobal("Util", DateUtil);` && |\n| &&
+             `` && |\n| &&
+             `        // App-supplied formatter functions (client->register_formatter) are` && |\n| &&
+             `        // referenced in XML binding strings as z2ui5.fmt.<name> - publish` && |\n| &&
+             `        // the registry the same way as z2ui5.Util.` && |\n| &&
+             `        AppState.setGlobal("fmt", Formatters.fmt);` && |\n| &&
              `` && |\n| &&
              `        AppState.state.oDeviceModel = Models.createDeviceModel();` && |\n| &&
              `        this.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&

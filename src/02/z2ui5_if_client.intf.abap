@@ -268,6 +268,17 @@ INTERFACE z2ui5_if_client
       method TYPE clike
       params TYPE string_table OPTIONAL.
 
+  "! Register a named client-side formatter function. js is a single JS
+  "! function expression; it is compiled once on the client BEFORE the views
+  "! of the same response are created, so XML binding strings can reference
+  "! it as formatter: 'z2ui5.fmt.<name>' (like the built-in z2ui5.Util).
+  "! Requires a CSP that allows 'unsafe-eval'; a rejected body is logged and
+  "! skipped, the binding then falls back to its unformatted value.
+  METHODS register_formatter
+    IMPORTING
+      name TYPE clike
+      js   TYPE clike.
+
   METHODS check_on_event
     IMPORTING
       val           TYPE clike OPTIONAL

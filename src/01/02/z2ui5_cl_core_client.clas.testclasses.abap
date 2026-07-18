@@ -40,6 +40,7 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_follow_up_action     FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action_ev  FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action_nav FOR TESTING RAISING cx_static_check.
+    METHODS test_register_formatter   FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_init        FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_init_done   FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_event       FOR TESTING RAISING cx_static_check.
@@ -401,6 +402,28 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eF('CONTROL_BY_ID', 'popContainer', 'POPUP', 'to', 'popPage')`
         act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 2 ] ).
+
+  ENDMETHOD.
+
+  METHOD test_register_formatter.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    li_client->register_formatter( name = `weightState`
+                                   js   = `(v) => v > 1 ? 'Error' : 'Success'` ).
+    " re-registering a name replaces its body instead of duplicating the entry
+    li_client->register_formatter( name = `weightState`
+                                   js   = `(v) => 'None'` ).
+    li_client->register_formatter( name = `other`
+                                   js   = `(v) => v` ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( mo_action->ms_next-s_set-t_formatter ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `(v) => 'None'`
+                                        act = mo_action->ms_next-s_set-t_formatter[ 1 ]-js ).
+    cl_abap_unit_assert=>assert_equals( exp = `other`
+                                        act = mo_action->ms_next-s_set-t_formatter[ 2 ]-name ).
 
   ENDMETHOD.
 

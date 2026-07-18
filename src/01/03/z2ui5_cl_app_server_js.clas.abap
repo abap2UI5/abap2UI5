@@ -29,6 +29,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    "z2ui5/core/ErrorView",` && |\n| &&
              `    "z2ui5/core/Messages",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
+             `    "z2ui5/core/Formatters",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
              `    BusyIndicator,` && |\n| &&
@@ -40,6 +41,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    ErrorView,` && |\n| &&
              `    Messages,` && |\n| &&
              `    AppState,` && |\n| &&
+             `    Formatters,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
@@ -415,10 +417,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      createTimeoutSignal(ms) {` && |\n| &&
              `        if (AbortSignal.timeout) {` && |\n| &&
              `          return { signal: AbortSignal.timeout(ms), cancel: () => {} };` && |\n| &&
-             `        }` && |\n| &&
-             `        const controller = new AbortController();` && |\n| &&
-             `        const handle = setTimeout(() => controller.abort(), ms);` && |\n|.
+             `        }` && |\n|.
     result = result &&
+             `        const controller = new AbortController();` && |\n| &&
+             `        const handle = setTimeout(() => controller.abort(), ms);` && |\n| &&
              `        return {` && |\n| &&
              `          signal: controller.signal,` && |\n| &&
              `          cancel: () => clearTimeout(handle),` && |\n| &&
@@ -538,6 +540,11 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // exist in the DOM yet.` && |\n| &&
              `          const followUp = params?.S_FOLLOW_UP_ACTION;` && |\n| &&
              `          AppState.state.pendingCustomJs = followUp?.CUSTOM_JS || null;` && |\n| &&
+             `` && |\n| &&
+             `          // App-supplied formatters (client->register_formatter) must exist` && |\n| &&
+             `          // BEFORE any view of this response is created - the XML binding` && |\n| &&
+             `          // strings reference them by global name (z2ui5.fmt.<name>).` && |\n| &&
+             `          Formatters.registerAll(params?.T_FORMATTER);` && |\n| &&
              `` && |\n| &&
              `          for (const t of _MSG_TYPES) Messages.show(t, params, oController);` && |\n| &&
              `` && |\n| &&
