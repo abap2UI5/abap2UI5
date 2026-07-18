@@ -50,6 +50,9 @@ function load() {
 
   const ViewSlots = {
     byId: (key) => (key === "MAIN" ? currentTable : undefined),
+    // UITableExt resolves the table in its own slot; the companion sits in
+    // MAIN in this test, so return the current table.
+    byIdOfOwner: () => currentTable,
   };
 
   const { module: Ext } = loadModule("cc/UITableExt.js", {

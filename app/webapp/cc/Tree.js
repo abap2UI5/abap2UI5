@@ -21,10 +21,14 @@ sap.ui.define(
       },
 
       _getTreeBinding() {
-        // Resolve across every open view slot (main, popup, popover,
-        // nested) - the companion may sit next to a tree in a dialog, not
-        // only in the main view.
-        const treeControl = ViewSlots.resolveById(this.getProperty("tree_id"));
+        // Resolve the tree in the companion's OWN slot (main, popup,
+        // popover, nested): byIdOfOwner works next to a tree in a dialog,
+        // and unlike resolveById it never picks a same-id tree from another
+        // open slot.
+        const treeControl = ViewSlots.byIdOfOwner(
+          this,
+          this.getProperty("tree_id"),
+        );
         return treeControl?.getBinding("items");
       },
 

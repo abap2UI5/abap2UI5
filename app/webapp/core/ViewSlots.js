@@ -160,6 +160,18 @@ sap.ui.define(
       return undefined;
     }
 
+    // Resolve a control id in the SAME slot as `owner` - an invisible
+    // companion control (Tree, Focus, Scrolling, MultiInputExt, ...) authored
+    // in that slot's view next to the control it drives. Preferred over
+    // resolveById for companions: it resolves the target in the companion's
+    // own slot, so a same local id in another open slot (e.g. a dialog) is
+    // never picked by accident, and it works when the companion sits in a
+    // popup/popover/nested view - not only in MAIN. Falls back to MAIN when
+    // the owner is not attached to a slot yet.
+    function byIdOfOwner(owner, id) {
+      return byId(containingSlotKey(owner) ?? "MAIN", id);
+    }
+
     // Shared teardown: close (popup/popover only), destroy and clear the
     // slot. Safe to call for slots that are not open.
     function destroy(key) {
@@ -202,6 +214,7 @@ sap.ui.define(
       paramByKey,
       keyOfController,
       byId,
+      byIdOfOwner,
       resolveById,
       containingSlotKey,
       destroy,

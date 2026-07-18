@@ -165,7 +165,10 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `    // is skipped when ``owner`` was destroyed in the meantime.` && |\n| &&
              `    function whenRendered(control, owner, fn) {` && |\n| &&
              `      if (control.getDomRef()) {` && |\n| &&
-             `        fn();` && |\n| &&
+             `        // Same owner-liveness guard as the deferred branch below: a caller` && |\n| &&
+             `        // resuming from an async continuation may reach here after its owner` && |\n| &&
+             `        // was torn down while the target control is still rendered.` && |\n| &&
+             `        if (!isDestroyed(owner)) fn();` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      const delegate = {` && |\n| &&
@@ -414,11 +417,11 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      unregisterCallback,` && |\n| &&
              `      readFileAsDataURL,` && |\n| &&
              `      applyTokenUpdate,` && |\n| &&
-             `      runCallbacks,` && |\n| &&
+             `      runCallbacks,` && |\n|.
+    result = result &&
              `      whenRendered,` && |\n| &&
              `      copyToClipboard,` && |\n| &&
-             `      toText,` && |\n|.
-    result = result &&
+             `      toText,` && |\n| &&
              `      deriveSystemType,` && |\n| &&
              `      isValidRedirectURL,` && |\n| &&
              `      isSafeRedirectProtocol,` && |\n| &&

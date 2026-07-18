@@ -340,8 +340,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evSetODataModel(oController, args) {` && |\n| &&
+             `      let oModel;` && |\n| &&
              `      try {` && |\n| &&
-             `        const oModel = new ODataModel({` && |\n| &&
+             `        oModel = new ODataModel({` && |\n| &&
              `          serviceUrl: args[1],` && |\n| &&
              `          annotationURI: args[3] || "",` && |\n| &&
              `        });` && |\n| &&
@@ -354,6 +355,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError(``SET_ODATA_MODEL: failed for '${args[1]}'``, e);` && |\n| &&
+             `        // setModel (or the model construction) threw after the model opened` && |\n| &&
+             `        // its metadata request - release it so it does not leak.` && |\n| &&
+             `        oModel?.destroy?.();` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -383,8 +387,16 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          nav.hrefForExternal({ target: args[1], params: args[2] }) || "";` && |\n| &&
              `        if (args[3] === "EXT") {` && |\n| &&
              `          // External redirect: replace the location while keeping the host.` && |\n| &&
+             `          // base is the current page (same origin) + a shell-hash fragment,` && |\n| &&
+             `          // so this is same-origin by construction; validate anyway to stay` && |\n| &&
+             `          // consistent with every other redirect handler in this file.` && |\n| &&
              `          const base = window.location.href.split("#")[0];` && |\n| &&
-             `          _URLHelper.redirect(``${base}${hash}``, true);` && |\n| &&
+             `          const url = ``${base}${hash}``;` && |\n| &&
+             `          if (!Lib.isValidRedirectURL(url)) {` && |\n| &&
+             `            Lib.logError(``CrossAppNav EXT: unsafe redirect URL '${url}'``);` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
+             `          _URLHelper.redirect(url, true);` && |\n| &&
              `        } else {` && |\n| &&
              `          nav.toExternal({ target: { shellHash: hash } });` && |\n| &&
              `        }` && |\n| &&
@@ -405,7 +417,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // FLP; otherwise terminate a possible stateful BSP session first and` && |\n| &&
              `    // then navigate to the logout URL.` && |\n| &&
              `    function evSystemLogout(oController, args) {` && |\n| &&
-             `      const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";` && |\n| &&
+             `      const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";` && |\n|.
+    result = result &&
              `      try {` && |\n| &&
              `        const container = AppState.state.oLaunchpad?.Container;` && |\n| &&
              `        // No explicit logout URL was passed (args is just the event name):` && |\n| &&
@@ -417,8 +430,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("SYSTEM_LOGOUT: ushell logout failed", e);` && |\n| &&
-             `      }` && |\n|.
-    result = result &&
+             `      }` && |\n| &&
              `      logoutViaBspTerminate(logoutUrl);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -439,13 +451,26 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      const separator = path.includes("?") ? "&" : "?";` && |\n| &&
              `      const bspKill = ``${path}${separator}sap-sessioncmd=logoff``;` && |\n| &&
              `      let done = false;` && |\n| &&
+             `      let frame;` && |\n| &&
              `      const finish = () => {` && |\n| &&
              `        if (done) return;` && |\n| &&
              `        done = true;` && |\n| &&
+             `        // Remove the hidden BSP-kill iframe. On a successful logout the page` && |\n| &&
+             `        // navigates away and unload cleans up anyway; but if redirectToLogout` && |\n| &&
+             `        // blocks an invalid URL (MessageBox, no navigation) the iframe would` && |\n| &&
+             `        // otherwise leak - and accumulate over repeated logout attempts.` && |\n| &&
+             `        if (frame) {` && |\n| &&
+             `          try {` && |\n| &&
+             `            frame.remove();` && |\n| &&
+             `          } catch {` && |\n| &&
+             `            /* already detached */` && |\n| &&
+             `          }` && |\n| &&
+             `          frame = null;` && |\n| &&
+             `        }` && |\n| &&
              `        redirectToLogout(logoutUrl);` && |\n| &&
              `      };` && |\n| &&
              `      try {` && |\n| &&
-             `        const frame = document.createElement("iframe");` && |\n| &&
+             `        frame = document.createElement("iframe");` && |\n| &&
              `        frame.style.display = "none";` && |\n| &&
              `        frame.src = bspKill;` && |\n| &&
              `        frame.addEventListener("load", finish);` && |\n| &&
@@ -771,6 +796,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `` && |\n| &&
              `    // Entry point called by View1.controller's eF().` && |\n| &&
              `    function execute(oController, args) {` && |\n| &&
+             `      // runCallbacks isolates each hook in its own try/catch, so a throwing` && |\n| &&
+             `      // before-event hook cannot escape here.` && |\n| &&
              `      Lib.runCallbacks(AppState.state.onBeforeEventFrontend, args);` && |\n| &&
              `` && |\n| &&
              `      try {` && |\n| &&

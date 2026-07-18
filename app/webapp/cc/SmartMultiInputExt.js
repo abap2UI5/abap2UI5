@@ -55,6 +55,13 @@ sap.ui.define(
 
         // Mirror each range entry with the visible token text + long key
         // so the backend has enough info to re-render the input later.
+        // NOTE: this pairs the i-th range entry with the i-th token by
+        // position, which assumes getRangeData() and getTokens() are index
+        // aligned. That holds only while every token is a range token; a
+        // mix of plain value tokens and range tokens would misalign the
+        // captions. The wrapped control is the SAPUI5-only sap.ui.comp
+        // SmartMultiInput, so a token-identity pairing needs verification
+        // against that control before it can replace the index pairing.
         const source = oEvent.getSource();
         const tokens = source.getTokens();
         const rangeData = source.getRangeData() || [];
@@ -104,7 +111,10 @@ sap.ui.define(
       },
       renderer: { apiVersion: 2, render() {} },
       setControl() {
-        const input = ViewSlots.byId("MAIN", this.getProperty("multiInputId"));
+        const input = ViewSlots.byIdOfOwner(
+          this,
+          this.getProperty("multiInputId"),
+        );
         if (!input || this.getProperty("checkInit")) return;
         this.setProperty("checkInit", true);
         try {

@@ -63,7 +63,7 @@ CLASS z2ui5_cl_app_uitableext_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _getTable() {` && |\n| &&
-             `        return ViewSlots.byId("MAIN", this.getProperty("tableId"));` && |\n| &&
+             `        return ViewSlots.byIdOfOwner(this, this.getProperty("tableId"));` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      readFilter() {` && |\n| &&

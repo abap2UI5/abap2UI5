@@ -320,8 +320,9 @@ sap.ui.define(
     }
 
     function evSetODataModel(oController, args) {
+      let oModel;
       try {
-        const oModel = new ODataModel({
+        oModel = new ODataModel({
           serviceUrl: args[1],
           annotationURI: args[3] || "",
         });
@@ -334,6 +335,9 @@ sap.ui.define(
         }
       } catch (e) {
         Lib.logError(`SET_ODATA_MODEL: failed for '${args[1]}'`, e);
+        // setModel (or the model construction) threw after the model opened
+        // its metadata request - release it so it does not leak.
+        oModel?.destroy?.();
       }
     }
 
@@ -363,8 +367,16 @@ sap.ui.define(
           nav.hrefForExternal({ target: args[1], params: args[2] }) || "";
         if (args[3] === "EXT") {
           // External redirect: replace the location while keeping the host.
+          // base is the current page (same origin) + a shell-hash fragment,
+          // so this is same-origin by construction; validate anyway to stay
+          // consistent with every other redirect handler in this file.
           const base = window.location.href.split("#")[0];
-          _URLHelper.redirect(`${base}${hash}`, true);
+          const url = `${base}${hash}`;
+          if (!Lib.isValidRedirectURL(url)) {
+            Lib.logError(`CrossAppNav EXT: unsafe redirect URL '${url}'`);
+            return;
+          }
+          _URLHelper.redirect(url, true);
         } else {
           nav.toExternal({ target: { shellHash: hash } });
         }
@@ -418,13 +430,26 @@ sap.ui.define(
       const separator = path.includes("?") ? "&" : "?";
       const bspKill = `${path}${separator}sap-sessioncmd=logoff`;
       let done = false;
+      let frame;
       const finish = () => {
         if (done) return;
         done = true;
+        // Remove the hidden BSP-kill iframe. On a successful logout the page
+        // navigates away and unload cleans up anyway; but if redirectToLogout
+        // blocks an invalid URL (MessageBox, no navigation) the iframe would
+        // otherwise leak - and accumulate over repeated logout attempts.
+        if (frame) {
+          try {
+            frame.remove();
+          } catch {
+            /* already detached */
+          }
+          frame = null;
+        }
         redirectToLogout(logoutUrl);
       };
       try {
-        const frame = document.createElement("iframe");
+        frame = document.createElement("iframe");
         frame.style.display = "none";
         frame.src = bspKill;
         frame.addEventListener("load", finish);
@@ -750,6 +775,8 @@ sap.ui.define(
 
     // Entry point called by View1.controller's eF().
     function execute(oController, args) {
+      // runCallbacks isolates each hook in its own try/catch, so a throwing
+      // before-event hook cannot escape here.
       Lib.runCallbacks(AppState.state.onBeforeEventFrontend, args);
 
       try {

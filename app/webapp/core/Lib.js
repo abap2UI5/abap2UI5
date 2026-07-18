@@ -145,7 +145,10 @@ sap.ui.define(
     // is skipped when `owner` was destroyed in the meantime.
     function whenRendered(control, owner, fn) {
       if (control.getDomRef()) {
-        fn();
+        // Same owner-liveness guard as the deferred branch below: a caller
+        // resuming from an async continuation may reach here after its owner
+        // was torn down while the target control is still rendered.
+        if (!isDestroyed(owner)) fn();
         return;
       }
       const delegate = {

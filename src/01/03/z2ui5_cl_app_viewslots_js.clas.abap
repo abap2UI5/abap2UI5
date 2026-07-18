@@ -180,6 +180,18 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `      return undefined;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // Resolve a control id in the SAME slot as ``owner`` - an invisible` && |\n| &&
+             `    // companion control (Tree, Focus, Scrolling, MultiInputExt, ...) authored` && |\n| &&
+             `    // in that slot's view next to the control it drives. Preferred over` && |\n| &&
+             `    // resolveById for companions: it resolves the target in the companion's` && |\n| &&
+             `    // own slot, so a same local id in another open slot (e.g. a dialog) is` && |\n| &&
+             `    // never picked by accident, and it works when the companion sits in a` && |\n| &&
+             `    // popup/popover/nested view - not only in MAIN. Falls back to MAIN when` && |\n| &&
+             `    // the owner is not attached to a slot yet.` && |\n| &&
+             `    function byIdOfOwner(owner, id) {` && |\n| &&
+             `      return byId(containingSlotKey(owner) ?? "MAIN", id);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    // Shared teardown: close (popup/popover only), destroy and clear the` && |\n| &&
              `    // slot. Safe to call for slots that are not open.` && |\n| &&
              `    function destroy(key) {` && |\n| &&
@@ -222,6 +234,7 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `      paramByKey,` && |\n| &&
              `      keyOfController,` && |\n| &&
              `      byId,` && |\n| &&
+             `      byIdOfOwner,` && |\n| &&
              `      resolveById,` && |\n| &&
              `      containingSlotKey,` && |\n| &&
              `      destroy,` && |\n| &&

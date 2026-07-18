@@ -106,8 +106,8 @@ CLASS z2ui5_cl_app_uploadsetext_js IMPLEMENTATION.
              `` && |\n| &&
              `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
              `      setControl() {` && |\n| &&
-             `        const uploadSet = ViewSlots.byId(` && |\n| &&
-             `          "MAIN",` && |\n| &&
+             `        const uploadSet = ViewSlots.byIdOfOwner(` && |\n| &&
+             `          this,` && |\n| &&
              `          this.getProperty("uploadSetId"),` && |\n| &&
              `        );` && |\n| &&
              `        if (!uploadSet || this.getProperty("checkInit")) return;` && |\n| &&

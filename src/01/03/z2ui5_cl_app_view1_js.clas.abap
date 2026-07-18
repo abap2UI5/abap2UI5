@@ -118,6 +118,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          if (!PARAMS) return;` && |\n| &&
              `` && |\n| &&
              `          await this._displayPendingViews(PARAMS);` && |\n| &&
+             `          // The app may have been torn down (reset / FLP re-launch) while the` && |\n| &&
+             `          // pending views loaded; don't mutate history or fire onAfterRendering` && |\n| &&
+             `          // hooks against a dead app (the custom-JS phase below guards the same` && |\n| &&
+             `          // way via isDestroyed).` && |\n| &&
+             `          if (Lib.isDestroyed(this)) return;` && |\n| &&
              `          this._updateBrowserHistory(PARAMS, oResponse.ID);` && |\n| &&
              `          if (PARAMS.SET_NAV_BACK) history.back();` && |\n| &&
              `` && |\n| &&
@@ -412,13 +417,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        Lib.runCallbacks(AppState.state.onBeforeRoundtrip);` && |\n| &&
              `` && |\n| &&
-             `        // If the user edited /XX/ paths, send only the delta to keep the` && |\n| &&
+             `        // If the user edited /XX/ paths, send only the delta to keep the` && |\n|.
+    result = result &&
              `        // payload small.` && |\n| &&
              `        if (oModel && AppState.state.xxChangedPaths.size > 0) {` && |\n| &&
              `          const data = oModel.getData();` && |\n| &&
              `          const xx = data?.XX;` && |\n| &&
-             `          if (xx) {` && |\n|.
-    result = result &&
+             `          if (xx) {` && |\n| &&
              `            oBody.XX = Lib.buildDeltaFromPaths(` && |\n| &&
              `              AppState.state.xxChangedPaths,` && |\n| &&
              `              xx,` && |\n| &&
@@ -476,16 +481,21 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // model + setModel() destroys and recreates every binding - measured` && |\n| &&
              `        // ~3x slower with all values changed and ~150x slower when little` && |\n| &&
              `        // changed (see node/tests-examples/modelUpdate.bench.spec.js).` && |\n| &&
-             `        const existing = oView.getModel();` && |\n| &&
-             `        if (existing?._z2ui5Tracked) {` && |\n| &&
-             `          applyStoredSizeLimit(slotKey, existing);` && |\n| &&
-             `          existing.setData(AppState.state.oResponse?.OVIEWMODEL);` && |\n| &&
+             `        // The framework-owned JSON model is the DEFAULT model normally, but` && |\n| &&
+             `        // the NAMED "http" model when SWITCH_DEFAULT_MODEL_PATH placed an` && |\n| &&
+             `        // OData model in the default slot - update whichever one is ours and` && |\n| &&
+             `        // never overwrite the OData default with a fresh JSON model.` && |\n| &&
+             `        const isOurs = (m) => (m?._z2ui5Tracked ? m : undefined);` && |\n| &&
+             `        const tracked =` && |\n| &&
+             `          isOurs(oView.getModel()) ?? isOurs(oView.getModel("http"));` && |\n| &&
+             `        if (tracked) {` && |\n| &&
+             `          applyStoredSizeLimit(slotKey, tracked);` && |\n| &&
+             `          tracked.setData(AppState.state.oResponse?.OVIEWMODEL);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        // The slot's default model is not framework-owned (e.g. an` && |\n| &&
-             `        // ODataModel via SWITCH_DEFAULT_MODEL_PATH): keep the previous` && |\n| &&
-             `        // behavior and bind a fresh JSON model.` && |\n| &&
+             `        // No framework-owned model on this slot at all: bind a fresh default` && |\n| &&
+             `        // JSON model (keeps the previous behavior for that edge case).` && |\n| &&
              `        const oModel = this._createViewModel();` && |\n| &&
              `        applyStoredSizeLimit(slotKey, oModel);` && |\n| &&
              `        oView.setModel(oModel);` && |\n| &&

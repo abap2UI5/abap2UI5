@@ -43,7 +43,7 @@ sap.ui.define(
       },
 
       _getTable() {
-        return ViewSlots.byId("MAIN", this.getProperty("tableId"));
+        return ViewSlots.byIdOfOwner(this, this.getProperty("tableId"));
       },
 
       readFilter() {

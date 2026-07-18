@@ -125,6 +125,27 @@ test.describe("byId", () => {
   });
 });
 
+test.describe("byIdOfOwner", () => {
+  test("resolves the id in the owner's own slot, not a same-id in MAIN", () => {
+    const { ViewSlots, z2ui5 } = load();
+    // Same local id "tree" exists in MAIN and in the open popup.
+    z2ui5.oView = { byId: (id) => (id === "tree" ? "main-tree" : undefined) };
+    const popupControl = {};
+    z2ui5.oViewPopup = popupControl;
+    // The owner (a companion) lives in the popup; walking up hits oViewPopup.
+    const owner = { getParent: () => popupControl };
+    // Fragment.byId is stubbed as `${fragmentId}--${id}` for popup slots.
+    expect(ViewSlots.byIdOfOwner(owner, "tree")).toBe("popupId--tree");
+  });
+
+  test("falls back to MAIN when the owner is in no slot", () => {
+    const { ViewSlots, z2ui5 } = load();
+    z2ui5.oView = { byId: (id) => `main-${id}` };
+    const owner = { getParent: () => undefined };
+    expect(ViewSlots.byIdOfOwner(owner, "btn")).toBe("main-btn");
+  });
+});
+
 test.describe("resolveById", () => {
   test("finds a control in an open slot before hitting the registry", () => {
     const { ViewSlots, z2ui5, globalElements } = load();

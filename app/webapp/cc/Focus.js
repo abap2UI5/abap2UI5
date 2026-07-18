@@ -28,7 +28,7 @@ sap.ui.define(
       setFocusId(val) {
         try {
           this.setProperty("focusId", val);
-          const oElement = ViewSlots.byId("MAIN", val);
+          const oElement = ViewSlots.byIdOfOwner(this, val);
           if (oElement) oElement.applyFocusInfo(oElement.getFocusInfo());
         } catch (e) {
           Lib.logError("Focus.setFocusId failed", e);
@@ -37,7 +37,10 @@ sap.ui.define(
       onAfterRendering() {
         if (!this._pendingFocus) return;
         this._pendingFocus = false;
-        const oElement = ViewSlots.byId("MAIN", this.getProperty("focusId"));
+        const oElement = ViewSlots.byIdOfOwner(
+          this,
+          this.getProperty("focusId"),
+        );
         if (!oElement) return;
         try {
           // Merge the additional selection info into the existing focus info,

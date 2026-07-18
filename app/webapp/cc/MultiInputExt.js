@@ -55,7 +55,10 @@ sap.ui.define(
       },
       renderer: { apiVersion: 2, render() {} },
       setControl() {
-        const input = ViewSlots.byId("MAIN", this.getProperty("MultiInputId"));
+        const input = ViewSlots.byIdOfOwner(
+          this,
+          this.getProperty("MultiInputId"),
+        );
         if (!input || this.getProperty("checkInit")) return;
         this.setProperty("checkInit", true);
         try {

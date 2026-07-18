@@ -75,7 +75,10 @@ CLASS z2ui5_cl_app_multiinputext_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
              `      setControl() {` && |\n| &&
-             `        const input = ViewSlots.byId("MAIN", this.getProperty("MultiInputId"));` && |\n| &&
+             `        const input = ViewSlots.byIdOfOwner(` && |\n| &&
+             `          this,` && |\n| &&
+             `          this.getProperty("MultiInputId"),` && |\n| &&
+             `        );` && |\n| &&
              `        if (!input || this.getProperty("checkInit")) return;` && |\n| &&
              `        this.setProperty("checkInit", true);` && |\n| &&
              `        try {` && |\n| &&
