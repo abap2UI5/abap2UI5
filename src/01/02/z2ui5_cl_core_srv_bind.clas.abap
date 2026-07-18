@@ -58,6 +58,14 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
     ASSIGN ms_config-tab->* TO <tab>.
     ASSIGN <tab>[ ms_config-tab_index ] TO <row>.
+    " an out-of-range tab_index leaves <row> unassigned; raise the intended
+    " binding error instead of dumping GETWA_NOT_ASSIGNED on the ASSIGN
+    " COMPONENT below
+    IF <row> IS NOT ASSIGNED.
+      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+        EXPORTING
+          val = `BINDING_ERROR_TAB_CELL_LEVEL - Row index out of range`.
+    ENDIF.
 
     DATA(lt_attri) = z2ui5_cl_a2ui5_context=>rtti_get_t_attri_by_any( ms_config-tab ).
     LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
@@ -163,7 +171,16 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     mr_attri = lo_model->main_attri_search( val ).
 
     IF mr_attri->name_ref IS NOT INITIAL.
-      mr_attri = REF #( mo_app->mt_attri->*[ name = mr_attri->name_ref ] ).
+      " name_ref may be a synthetic child name that no longer maps to a row
+      " (e.g. dissolve stopped at max depth); raise the binding error rather
+      " than dumping CX_SY_ITAB_LINE_NOT_FOUND while rendering the field
+      DATA(lr_ref_attri) = REF #( mo_app->mt_attri->*[ name = mr_attri->name_ref ] OPTIONAL ).
+      IF lr_ref_attri IS NOT BOUND.
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+          EXPORTING
+            val = |Binding Error - referenced attribute '{ mr_attri->name_ref }' not found|.
+      ENDIF.
+      mr_attri = lr_ref_attri.
     ENDIF.
 
     IF mr_attri->bind_type IS NOT INITIAL.

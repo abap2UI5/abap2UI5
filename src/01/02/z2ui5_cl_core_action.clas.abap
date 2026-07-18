@@ -136,8 +136,12 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    " check for already existing app?
-    IF mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL.
+    " check for already existing app? Guard the ancestor stack draft with
+    " check_exists too - in a long-lived session the ancestor may have been
+    " purged by cleanup( ) while the leave target still exists, and read_info
+    " would raise NO_DRAFT_ENTRY and break back-navigation
+    IF mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL
+        AND lo_draft->check_exists( mo_app->ms_draft-id_prev_app_stack ) = abap_true.
       DATA(ls_draft) = lo_draft->read_info( mo_app->ms_draft-id_prev_app_stack ).
       result->mo_app->ms_draft-id_prev_app_stack = ls_draft-id_prev_app_stack.
     ENDIF.
