@@ -9,7 +9,6 @@ sap.ui.define(
     "z2ui5/core/ErrorView",
     "z2ui5/core/Messages",
     "z2ui5/core/AppState",
-    "z2ui5/core/Formatters",
   ],
   (
     BusyIndicator,
@@ -21,7 +20,6 @@ sap.ui.define(
     ErrorView,
     Messages,
     AppState,
-    Formatters,
   ) => {
     "use strict";
 
@@ -519,11 +517,6 @@ sap.ui.define(
           // exist in the DOM yet.
           const followUp = params?.S_FOLLOW_UP_ACTION;
           AppState.state.pendingCustomJs = followUp?.CUSTOM_JS || null;
-
-          // App-supplied formatters (client->register_formatter) must exist
-          // BEFORE any view of this response is created - the XML binding
-          // strings reference them by global name (z2ui5.fmt.<name>).
-          Formatters.registerAll(params?.T_FORMATTER);
 
           for (const t of _MSG_TYPES) Messages.show(t, params, oController);
 

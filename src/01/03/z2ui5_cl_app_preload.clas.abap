@@ -47,7 +47,6 @@ CLASS z2ui5_cl_app_preload IMPLEMENTATION.
              |      "z2ui5/core/DebugTool.fragment.xml": '{ z2ui5_cl_app_debugtool_xml=>get( ) }',| && |\n| &&
              |      "z2ui5/core/DebugTool.js": function()\{{ z2ui5_cl_app_debugtool_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/ErrorView.js": function()\{{ z2ui5_cl_app_errorview_js=>get( ) }\},| && |\n| &&
-             |      "z2ui5/core/Formatters.js": function()\{{ z2ui5_cl_app_formatters_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/FrontendAction.js": function()\{{ z2ui5_cl_app_frontendaction_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/Lib.js": function()\{{ z2ui5_cl_app_lib_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/core/Messages.js": function()\{{ z2ui5_cl_app_messages_js=>get( ) }\},| && |\n| &&

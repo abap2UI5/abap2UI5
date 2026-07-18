@@ -8,7 +8,6 @@ sap.ui.define(
     "z2ui5/core/Lib",
     "z2ui5/core/AppState",
     "z2ui5/Util",
-    "z2ui5/core/Formatters",
     "sap/ui/core/routing/HashChanger",
   ],
   (
@@ -20,7 +19,6 @@ sap.ui.define(
     Lib,
     AppState,
     DateUtil,
-    Formatters,
     HashChanger,
   ) => {
     "use strict";
@@ -49,11 +47,6 @@ sap.ui.define(
         // since the custom controls were split out of App.controller.js,
         // nothing else loads the module eagerly anymore.
         AppState.setGlobal("Util", DateUtil);
-
-        // App-supplied formatter functions (client->register_formatter) are
-        // referenced in XML binding strings as z2ui5.fmt.<name> - publish
-        // the registry the same way as z2ui5.Util.
-        AppState.setGlobal("fmt", Formatters.fmt);
 
         AppState.state.oDeviceModel = Models.createDeviceModel();
         this.setModel(AppState.state.oDeviceModel, "device");
