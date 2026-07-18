@@ -38,6 +38,44 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     return container;
   }
 
+  // Open the DebugTool directly on its Error tab so the developer sees the
+  // full error text plus the Retry/Refresh/Logout actions.
+  function openDebugDetails() {
+    try {
+      AppState.state.debugTool?.show("ERROR");
+    } catch {
+      // The debug tool itself failed to open - nothing more we can do here;
+      // the fatal error is still recorded in AppState.state.lastError.
+    }
+  }
+
+  // The friendly UI5 error dialog shown first: a short message with a
+  // Details action (jump into the DebugTool) and a Restart action (reload).
+  // Returns true when it was shown, false when UI5 could not render it so
+  // the caller falls back to the raw-DOM overlay. sap/m/MessageBox is
+  // required lazily so ErrorView never hard-depends on a renderable core.
+  function showFriendlyDialog(title) {
+    try {
+      const MessageBox = sap.ui.require("sap/m/MessageBox");
+      if (!MessageBox) return false;
+      MessageBox.error("An unexpected error occurred.", {
+        title: title || "Application Error",
+        actions: ["Details", "Restart"],
+        emphasizedAction: "Restart",
+        onClose: (action) => {
+          if (action === "Details") {
+            openDebugDetails();
+          } else if (action === "Restart") {
+            window.location.reload();
+          }
+        },
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   // Logout via the launchpad if available; otherwise hit the SAP logoff URL.
   function handleLogout() {
     const fallback = () => {
@@ -75,6 +113,11 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
       text: errorMessage,
       onRetry: typeof options.onRetry === "function" ? options.onRetry : null,
     };
+
+    // Prefer a friendly UI5 dialog ("an unexpected error occurred" + Details
+    // / Restart). Only when UI5 cannot render it (broken core, missing
+    // module) do we fall back to the raw-DOM overlay below.
+    if (showFriendlyDialog(title)) return;
 
     const errorContainer = createContainer();
 

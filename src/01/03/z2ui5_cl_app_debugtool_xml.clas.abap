@@ -28,7 +28,7 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `        stretch="true"` &&
              `    >` &&
              `        <IconTabHeader` &&
-             `            selectedKey="PLAIN"` &&
+             `            selectedKey="{/selectedTab}"` &&
              `            select=".onItemSelect"` &&
              `        >` &&
              `            <items>` &&

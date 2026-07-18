@@ -219,20 +219,29 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Called when the user picks an entry in the dropdown of the debug` && |\n| &&
-             `      // dialog. The content shown per entry is defined declaratively in` && |\n| &&
-             `      // jsonSources / xmlSources above.` && |\n| &&
+             `      // dialog - resolve the model + key and render that tab.` && |\n| &&
              `      onItemSelect(oEvent) {` && |\n| &&
-             `        const selItem = oEvent.getSource().getSelectedKey();` && |\n| &&
+             `        this.renderTab(` && |\n| &&
+             `          oEvent.getSource().getSelectedKey(),` && |\n| &&
+             `          oEvent.getSource().getModel(),` && |\n| &&
+             `        );` && |\n| &&
+             `      },` && |\n| &&
              `` && |\n| &&
+             `      // Render one tab's content into the dialog model. Shared by the user's` && |\n| &&
+             `      // tab selection (onItemSelect) and show(initialTab), which opens the` && |\n| &&
+             `      // dialog directly on a given tab (e.g. the error popup's Details jumps` && |\n| &&
+             `      // to "ERROR"). The content per entry is defined declaratively in` && |\n| &&
+             `      // jsonSources / xmlSources above.` && |\n| &&
+             `      renderTab(selItem, oModel) {` && |\n| &&
              `        if (jsonSources[selItem]) {` && |\n| &&
-             `          this.displayEditor(oEvent, toJson(jsonSources[selItem]()), "json");` && |\n| &&
+             `          this.displayEditor(oModel, toJson(jsonSources[selItem]()), "json");` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        if (xmlSources[selItem]) {` && |\n| &&
              `          const { xml, rendered } = xmlSources[selItem]();` && |\n| &&
              `          this.displayEditor(` && |\n| &&
-             `            oEvent,` && |\n| &&
+             `            oModel,` && |\n| &&
              `            this.prettifyXml(xml),` && |\n| &&
              `            "xml",` && |\n| &&
              `            this.prettifyXml(rendered),` && |\n| &&
@@ -241,25 +250,24 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        }` && |\n| &&
              `` && |\n| &&
              `        if (selItem === "LOG") {` && |\n| &&
-             `          this.displayEditor(oEvent, formatErrorLog(), "text");` && |\n| &&
+             `          this.displayEditor(oModel, formatErrorLog(), "text");` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        if (selItem === "ERROR") {` && |\n| &&
-             `          this.showError(oEvent);` && |\n| &&
+             `          this.showError(oModel);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        if (selItem === "SOURCE") this.showAbapSource(oEvent);` && |\n| &&
+             `        if (selItem === "SOURCE") this.showAbapSource(oModel);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Show the last fatal error (the ErrorView overlay's content) plus its` && |\n| &&
              `      // action bar (Retry/Refresh/Logout). displayEditor writes the text and` && |\n| &&
              `      // resets error_visible=false, so re-enable it and expose whether a` && |\n| &&
              `      // Retry action was captured with this error.` && |\n| &&
-             `      showError(oEvent) {` && |\n| &&
-             `        this.displayEditor(oEvent, formatLastError(), "text");` && |\n| &&
-             `        const oModel = oEvent.getSource().getModel();` && |\n| &&
+             `      showError(oModel) {` && |\n| &&
+             `        this.displayEditor(oModel, formatLastError(), "text");` && |\n| &&
              `        const modelData = oModel.getData();` && |\n| &&
              `        modelData.error_visible = true;` && |\n| &&
              `        modelData.hasRetry =` && |\n| &&
@@ -283,7 +291,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Show the ABAP source of the running app inside an iframe.` && |\n| &&
-             `      showAbapSource(oEvent) {` && |\n| &&
+             `      showAbapSource(oModel) {` && |\n| &&
              `        const contentControl = Fragment.byId(FRAGMENT_ID, "sourceHtml");` && |\n| &&
              `        if (!contentControl) return;` && |\n| &&
              `` && |\n| &&
@@ -296,7 +304,6 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `          ``<iframe id="test" src="${url}" height="800px" width="1200px" />``,` && |\n| &&
              `        );` && |\n| &&
              `` && |\n| &&
-             `        const oModel = oEvent.getSource().getModel();` && |\n| &&
              `        if (!oModel) return;` && |\n| &&
              `        const modelData = oModel.getData();` && |\n| &&
              `        modelData.editor_visible = false;` && |\n| &&
@@ -308,8 +315,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      // Populates the dialog model so the right editor / source area is shown` && |\n| &&
              `      // with the given content. ``xcontent`` is the rendered DOM variant that` && |\n| &&
              `      // can be toggled in via the "Templating" button.` && |\n| &&
-             `      displayEditor(oEvent, content, type, xcontent = "") {` && |\n| &&
-             `        const oModel = oEvent.getSource().getModel();` && |\n| &&
+             `      displayEditor(oModel, content, type, xcontent = "") {` && |\n| &&
              `        const modelData = oModel.getData();` && |\n| &&
              `        modelData.editor_visible = true;` && |\n| &&
              `        modelData.source_visible = false;` && |\n| &&
@@ -340,7 +346,10 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        this.close();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      async show() {` && |\n| &&
+             `      // Open the debug dialog. ``initialTab`` (a tab key, e.g. "ERROR") opens` && |\n| &&
+             `      // it directly on that tab - used by the error popup's Details action;` && |\n| &&
+             `      // defaults to the response tab.` && |\n| &&
+             `      async show(initialTab) {` && |\n| &&
              `        // Guard against double-clicks while the fragment is still loading.` && |\n| &&
              `        if (this._showPending) return;` && |\n| &&
              `        this._showPending = true;` && |\n| &&
@@ -361,8 +370,11 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
+             `          const selectedTab =` && |\n| &&
+             `            typeof initialTab === "string" ? initialTab : "PLAIN";` && |\n| &&
              `          const value = toJson(AppState.state.responseData);` && |\n| &&
              `          const oData = {` && |\n| &&
+             `            selectedTab: selectedTab,` && |\n| &&
              `            type: "json",` && |\n| &&
              `            source_visible: false,` && |\n| &&
              `            editor_visible: true,` && |\n| &&
@@ -384,6 +396,12 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `          const oDialog = this.oDialog;` && |\n| &&
              `          oDialog.addStyleClass("dbg-ltr");` && |\n| &&
              `          oDialog.setModel(oModel);` && |\n| &&
+             `          // Render the requested tab's content (the default "PLAIN" already` && |\n| &&
+             `          // matches the JSON response seeded above, so only re-render when a` && |\n| &&
+             `          // specific tab was asked for).` && |\n| &&
+             `          if (initialTab && selectedTab !== "PLAIN") {` && |\n| &&
+             `            this.renderTab(selectedTab, oModel);` && |\n| &&
+             `          }` && |\n| &&
              `          oDialog.open();` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("DebugTool.show failed", e);` && |\n| &&
@@ -399,7 +417,8 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        oDialog.close();` && |\n| &&
              `        oDialog.destroy();` && |\n| &&
              `      },` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `      // The dialog is not an aggregation of this control, so destroy() alone` && |\n| &&
              `      // would leave it (and its fragment controls) alive - clean it up when` && |\n| &&
              `      // the control is destroyed (Component.exit).` && |\n| &&
@@ -417,8 +436,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `` && |\n| &&
              `      // The control itself renders nothing - it just provides the dialog API.` && |\n| &&
              `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
-             `    });` && |\n|.
-    result = result &&
+             `    });` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

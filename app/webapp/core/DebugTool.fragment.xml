@@ -8,7 +8,7 @@
         stretch="true"
     >
         <IconTabHeader
-            selectedKey="PLAIN"
+            selectedKey="{/selectedTab}"
             select=".onItemSelect"
         >
             <items>

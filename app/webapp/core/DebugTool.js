@@ -199,20 +199,29 @@ sap.ui.define(
       },
 
       // Called when the user picks an entry in the dropdown of the debug
-      // dialog. The content shown per entry is defined declaratively in
-      // jsonSources / xmlSources above.
+      // dialog - resolve the model + key and render that tab.
       onItemSelect(oEvent) {
-        const selItem = oEvent.getSource().getSelectedKey();
+        this.renderTab(
+          oEvent.getSource().getSelectedKey(),
+          oEvent.getSource().getModel(),
+        );
+      },
 
+      // Render one tab's content into the dialog model. Shared by the user's
+      // tab selection (onItemSelect) and show(initialTab), which opens the
+      // dialog directly on a given tab (e.g. the error popup's Details jumps
+      // to "ERROR"). The content per entry is defined declaratively in
+      // jsonSources / xmlSources above.
+      renderTab(selItem, oModel) {
         if (jsonSources[selItem]) {
-          this.displayEditor(oEvent, toJson(jsonSources[selItem]()), "json");
+          this.displayEditor(oModel, toJson(jsonSources[selItem]()), "json");
           return;
         }
 
         if (xmlSources[selItem]) {
           const { xml, rendered } = xmlSources[selItem]();
           this.displayEditor(
-            oEvent,
+            oModel,
             this.prettifyXml(xml),
             "xml",
             this.prettifyXml(rendered),
@@ -221,25 +230,24 @@ sap.ui.define(
         }
 
         if (selItem === "LOG") {
-          this.displayEditor(oEvent, formatErrorLog(), "text");
+          this.displayEditor(oModel, formatErrorLog(), "text");
           return;
         }
 
         if (selItem === "ERROR") {
-          this.showError(oEvent);
+          this.showError(oModel);
           return;
         }
 
-        if (selItem === "SOURCE") this.showAbapSource(oEvent);
+        if (selItem === "SOURCE") this.showAbapSource(oModel);
       },
 
       // Show the last fatal error (the ErrorView overlay's content) plus its
       // action bar (Retry/Refresh/Logout). displayEditor writes the text and
       // resets error_visible=false, so re-enable it and expose whether a
       // Retry action was captured with this error.
-      showError(oEvent) {
-        this.displayEditor(oEvent, formatLastError(), "text");
-        const oModel = oEvent.getSource().getModel();
+      showError(oModel) {
+        this.displayEditor(oModel, formatLastError(), "text");
         const modelData = oModel.getData();
         modelData.error_visible = true;
         modelData.hasRetry =
@@ -263,7 +271,7 @@ sap.ui.define(
       },
 
       // Show the ABAP source of the running app inside an iframe.
-      showAbapSource(oEvent) {
+      showAbapSource(oModel) {
         const contentControl = Fragment.byId(FRAGMENT_ID, "sourceHtml");
         if (!contentControl) return;
 
@@ -276,7 +284,6 @@ sap.ui.define(
           `<iframe id="test" src="${url}" height="800px" width="1200px" />`,
         );
 
-        const oModel = oEvent.getSource().getModel();
         if (!oModel) return;
         const modelData = oModel.getData();
         modelData.editor_visible = false;
@@ -288,8 +295,7 @@ sap.ui.define(
       // Populates the dialog model so the right editor / source area is shown
       // with the given content. `xcontent` is the rendered DOM variant that
       // can be toggled in via the "Templating" button.
-      displayEditor(oEvent, content, type, xcontent = "") {
-        const oModel = oEvent.getSource().getModel();
+      displayEditor(oModel, content, type, xcontent = "") {
         const modelData = oModel.getData();
         modelData.editor_visible = true;
         modelData.source_visible = false;
@@ -320,7 +326,10 @@ sap.ui.define(
         this.close();
       },
 
-      async show() {
+      // Open the debug dialog. `initialTab` (a tab key, e.g. "ERROR") opens
+      // it directly on that tab - used by the error popup's Details action;
+      // defaults to the response tab.
+      async show(initialTab) {
         // Guard against double-clicks while the fragment is still loading.
         if (this._showPending) return;
         this._showPending = true;
@@ -341,8 +350,11 @@ sap.ui.define(
             return;
           }
 
+          const selectedTab =
+            typeof initialTab === "string" ? initialTab : "PLAIN";
           const value = toJson(AppState.state.responseData);
           const oData = {
+            selectedTab: selectedTab,
             type: "json",
             source_visible: false,
             editor_visible: true,
@@ -364,6 +376,12 @@ sap.ui.define(
           const oDialog = this.oDialog;
           oDialog.addStyleClass("dbg-ltr");
           oDialog.setModel(oModel);
+          // Render the requested tab's content (the default "PLAIN" already
+          // matches the JSON response seeded above, so only re-render when a
+          // specific tab was asked for).
+          if (initialTab && selectedTab !== "PLAIN") {
+            this.renderTab(selectedTab, oModel);
+          }
           oDialog.open();
         } catch (e) {
           Lib.logError("DebugTool.show failed", e);

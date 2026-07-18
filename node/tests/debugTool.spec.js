@@ -204,6 +204,18 @@ test.describe("Error tab", () => {
     DebugTool.onErrorLogout();
     expect(logoutCalls).toEqual([true]);
   });
+
+  test("renderTab('ERROR') opens the tab directly (show initial tab path)", () => {
+    const { DebugTool } = loadDebugTool({
+      lastError: { title: "App Terminated", text: "boom", onRetry: () => {} },
+    });
+    const modelData = {};
+    const oModel = { getData: () => modelData, refresh() {} };
+    DebugTool.renderTab("ERROR", oModel);
+    expect(modelData.value).toBe("App Terminated\n\nboom");
+    expect(modelData.error_visible).toBe(true);
+    expect(modelData.hasRetry).toBe(true);
+  });
 });
 
 test.describe("Nest tabs", () => {

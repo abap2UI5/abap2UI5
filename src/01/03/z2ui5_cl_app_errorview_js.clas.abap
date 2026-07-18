@@ -58,6 +58,44 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    return container;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  // Open the DebugTool directly on its Error tab so the developer sees the` && |\n| &&
+             `  // full error text plus the Retry/Refresh/Logout actions.` && |\n| &&
+             `  function openDebugDetails() {` && |\n| &&
+             `    try {` && |\n| &&
+             `      AppState.state.debugTool?.show("ERROR");` && |\n| &&
+             `    } catch {` && |\n| &&
+             `      // The debug tool itself failed to open - nothing more we can do here;` && |\n| &&
+             `      // the fatal error is still recorded in AppState.state.lastError.` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // The friendly UI5 error dialog shown first: a short message with a` && |\n| &&
+             `  // Details action (jump into the DebugTool) and a Restart action (reload).` && |\n| &&
+             `  // Returns true when it was shown, false when UI5 could not render it so` && |\n| &&
+             `  // the caller falls back to the raw-DOM overlay. sap/m/MessageBox is` && |\n| &&
+             `  // required lazily so ErrorView never hard-depends on a renderable core.` && |\n| &&
+             `  function showFriendlyDialog(title) {` && |\n| &&
+             `    try {` && |\n| &&
+             `      const MessageBox = sap.ui.require("sap/m/MessageBox");` && |\n| &&
+             `      if (!MessageBox) return false;` && |\n| &&
+             `      MessageBox.error("An unexpected error occurred.", {` && |\n| &&
+             `        title: title || "Application Error",` && |\n| &&
+             `        actions: ["Details", "Restart"],` && |\n| &&
+             `        emphasizedAction: "Restart",` && |\n| &&
+             `        onClose: (action) => {` && |\n| &&
+             `          if (action === "Details") {` && |\n| &&
+             `            openDebugDetails();` && |\n| &&
+             `          } else if (action === "Restart") {` && |\n| &&
+             `            window.location.reload();` && |\n| &&
+             `          }` && |\n| &&
+             `        },` && |\n| &&
+             `      });` && |\n| &&
+             `      return true;` && |\n| &&
+             `    } catch {` && |\n| &&
+             `      return false;` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  // Logout via the launchpad if available; otherwise hit the SAP logoff URL.` && |\n| &&
              `  function handleLogout() {` && |\n| &&
              `    const fallback = () => {` && |\n| &&
@@ -95,6 +133,11 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `      text: errorMessage,` && |\n| &&
              `      onRetry: typeof options.onRetry === "function" ? options.onRetry : null,` && |\n| &&
              `    };` && |\n| &&
+             `` && |\n| &&
+             `    // Prefer a friendly UI5 dialog ("an unexpected error occurred" + Details` && |\n| &&
+             `    // / Restart). Only when UI5 cannot render it (broken core, missing` && |\n| &&
+             `    // module) do we fall back to the raw-DOM overlay below.` && |\n| &&
+             `    if (showFriendlyDialog(title)) return;` && |\n| &&
              `` && |\n| &&
              `    const errorContainer = createContainer();` && |\n| &&
              `` && |\n| &&
