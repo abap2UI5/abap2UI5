@@ -93,6 +93,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      focus: [],` && |\n| &&
              `      scrollToIndex: ["int"],` && |\n| &&
              `      scrollTo: ["int", "int"],` && |\n| &&
+             `      open: [],` && |\n| &&
+             `      close: [],` && |\n| &&
+             `      setExpanded: ["bool"],` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    // global object -> lazy getter + its allowed methods (with arg kinds).` && |\n| &&
@@ -414,11 +417,11 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        TRIGGER_SMS: () => _URLHelper.triggerSms(params),` && |\n| &&
              `        TRIGGER_TEL: () => _URLHelper.triggerTel(params),` && |\n| &&
              `      };` && |\n| &&
-             `      try {` && |\n| &&
+             `      try {` && |\n|.
+    result = result &&
              `        const fn = actions[args[1]];` && |\n| &&
              `        if (fn) fn();` && |\n| &&
-             `      } catch (e) {` && |\n|.
-    result = result &&
+             `      } catch (e) {` && |\n| &&
              `        Lib.logError(``URLHELPER: '${args[1]}' failed``, e);` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
