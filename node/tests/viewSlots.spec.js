@@ -26,11 +26,22 @@ function load() {
       "z2ui5/core/Lib": {
         logError: (message) => errors.push(message),
         getElementById: (id) => globalElements[id] || null,
+        getMessaging: () => ({
+          unregisterObject: (view) => unregisterCalls.push(view),
+        }),
       },
       "z2ui5/core/AppState": { state: z2ui5 },
     },
   });
-  return { ViewSlots: module, z2ui5, fragmentCalls, errors, globalElements };
+  const unregisterCalls = [];
+  return {
+    ViewSlots: module,
+    z2ui5,
+    fragmentCalls,
+    errors,
+    globalElements,
+    unregisterCalls,
+  };
 }
 
 test.describe("key mappings", () => {
@@ -182,5 +193,13 @@ test.describe("destroy", () => {
     ViewSlots.destroy("POPUP");
     ViewSlots.destroy("UNKNOWN");
     expect(z2ui5.oViewPopup).toBeUndefined();
+  });
+
+  test("unregisters the view from the messaging facade before destroy", () => {
+    const { ViewSlots, z2ui5, unregisterCalls } = load();
+    const view = { destroy: () => {} };
+    z2ui5.oView = view;
+    ViewSlots.destroy("MAIN");
+    expect(unregisterCalls).toEqual([view]);
   });
 });

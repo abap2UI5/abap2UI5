@@ -53,6 +53,25 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      return null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // Resolve the central UI5 messaging facade version-independently.` && |\n| &&
+             `    // sap/ui/core/Messaging arrived in 1.118 and is the only API left in` && |\n| &&
+             `    // UI5 2.x; older releases expose the same interface (getMessageModel,` && |\n| &&
+             `    // registerObject, unregisterObject) via the MessageManager singleton.` && |\n| &&
+             `    // Returns null when neither is available (bare test bootstraps).` && |\n| &&
+             `    function getMessaging() {` && |\n| &&
+             `      const Messaging = sap.ui.require("sap/ui/core/Messaging");` && |\n| &&
+             `      if (Messaging) return Messaging;` && |\n| &&
+             `      /* ui5lint-disable no-globals, no-deprecated-api --` && |\n| &&
+             `       deliberate fallback for UI5 releases without sap/ui/core/Messaging` && |\n| &&
+             `       (added in 1.118); the modern API is used in the branch above. */` && |\n| &&
+             `      if (sap.ui.getCore) {` && |\n| &&
+             `        const core = sap.ui.getCore();` && |\n| &&
+             `        if (core?.getMessageManager) return core.getMessageManager();` && |\n| &&
+             `      }` && |\n| &&
+             `      /* ui5lint-enable no-globals, no-deprecated-api */` && |\n| &&
+             `      return null;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    // Cap the error log so a long-running session cannot grow it unbounded.` && |\n| &&
              `    const MAX_ERRORS = 100;` && |\n| &&
              `` && |\n| &&
@@ -398,7 +417,8 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      runCallbacks,` && |\n| &&
              `      whenRendered,` && |\n| &&
              `      copyToClipboard,` && |\n| &&
-             `      toText,` && |\n| &&
+             `      toText,` && |\n|.
+    result = result &&
              `      deriveSystemType,` && |\n| &&
              `      isValidRedirectURL,` && |\n| &&
              `      isSafeRedirectProtocol,` && |\n| &&
@@ -407,6 +427,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      buildDeltaFromPaths,` && |\n| &&
              `      sanitizeMessageDetails,` && |\n| &&
              `      getElementById,` && |\n| &&
+             `      getMessaging,` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&

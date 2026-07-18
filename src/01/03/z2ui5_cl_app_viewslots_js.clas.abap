@@ -173,6 +173,17 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      }` && |\n| &&
              `      try {` && |\n| &&
+             `        // Drop the validation registration the controller added via` && |\n| &&
+             `        // _attachMessaging, so the messaging facade holds no stale entry` && |\n| &&
+             `        // for the destroyed view.` && |\n| &&
+             `        Lib.getMessaging?.()?.unregisterObject(view);` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``ViewSlots.destroy: unregisterObject failed for ${key}``,` && |\n| &&
+             `          e,` && |\n| &&
+             `        );` && |\n| &&
+             `      }` && |\n| &&
+             `      try {` && |\n| &&
              `        view.destroy();` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError(``ViewSlots.destroy: view.destroy() failed for ${key}``, e);` && |\n| &&

@@ -208,8 +208,22 @@ sap.ui.define(
         // Share the one device model (created once in Component.js, never
         // destroyed) so {device>...} bindings work in popups too.
         oFragment.setModel(AppState.state.oDeviceModel, "device");
+        this._attachMessaging(oFragment);
         ViewSlots.setView("POPUP", oFragment);
         oFragment.open();
+      },
+
+      // Attach the central UI5 message model as the named "message" model
+      // and register the target for automatic validation-message collection
+      // (the handleValidation contract): {message>/} bindings (MessagePopover,
+      // MessageView) work in every slot, and failed control validations
+      // (binding type / constraint errors) collect without any app code.
+      // ViewSlots.destroy unregisters the target again.
+      _attachMessaging(oTarget) {
+        const messaging = Lib.getMessaging();
+        if (!messaging) return;
+        oTarget.setModel(messaging.getMessageModel(), "message");
+        messaging.registerObject(oTarget, true);
       },
 
       async displayPopover(xml, openById) {
@@ -234,6 +248,7 @@ sap.ui.define(
         oFragment.setModel(oModel);
         // Shared device model (see displayFragment) - for popovers too.
         oFragment.setModel(AppState.state.oDeviceModel, "device");
+        this._attachMessaging(oFragment);
 
         // Find the control to attach the popover to: any open slot first,
         // then the global UI5 control registry as a last resort.
@@ -267,6 +282,7 @@ sap.ui.define(
         oView.setModel(oModel);
         // Shared device model (see displayFragment) - for nested views too.
         oView.setModel(AppState.state.oDeviceModel, "device");
+        this._attachMessaging(oView);
 
         const nestParams = AppState.state.oResponse?.PARAMS?.[paramKey];
         if (!nestParams) {
@@ -511,6 +527,7 @@ sap.ui.define(
 
         ViewSlots.setView("MAIN", oView);
         oView.setModel(AppState.state.oDeviceModel, "device");
+        this._attachMessaging(oView);
         if (switchPath) oView.setModel(oViewModel, "http");
         AppState.state.oApp.removeAllPages();
         AppState.state.oApp.insertPage(oView);
