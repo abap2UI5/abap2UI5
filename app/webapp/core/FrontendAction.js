@@ -73,6 +73,9 @@ sap.ui.define(
       focus: [],
       scrollToIndex: ["int"],
       scrollTo: ["int", "int"],
+      open: [],
+      close: [],
+      setExpanded: ["bool"],
     };
 
     // global object -> lazy getter + its allowed methods (with arg kinds).

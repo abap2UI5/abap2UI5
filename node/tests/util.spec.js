@@ -2,11 +2,16 @@
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
-// Tests the public z2ui5.Util date helpers shipped in app/webapp/Util.js.
-// These are a documented public contract (exposed as the z2ui5.Util global),
-// so their ABAP-date parsing must not change behavior.
+// Tests the public z2ui5.Util date helpers - a documented public contract
+// (exposed as the z2ui5.Util global), so their ABAP-date parsing must not
+// change behavior. The implementations live in z2ui5/model/formatter;
+// Util.js re-exports them as the legacy alias, and these tests exercise
+// them through that alias on purpose.
 
-const { module: Util } = loadModule("Util.js");
+const { module: Formatter } = loadModule("model/formatter.js");
+const { module: Util } = loadModule("Util.js", {
+  deps: { "z2ui5/model/formatter": Formatter },
+});
 
 test.describe("DateAbapDateToDateObject (ABAP date YYYYMMDD)", () => {
   test("parses year, month and day", () => {

@@ -8,6 +8,7 @@ sap.ui.define(
     "z2ui5/core/Lib",
     "z2ui5/core/AppState",
     "z2ui5/Util",
+    "z2ui5/model/formatter",
     "sap/ui/core/routing/HashChanger",
   ],
   (
@@ -19,6 +20,7 @@ sap.ui.define(
     Lib,
     AppState,
     DateUtil,
+    Formatter,
     HashChanger,
   ) => {
     "use strict";
@@ -47,6 +49,13 @@ sap.ui.define(
         // since the custom controls were split out of App.controller.js,
         // nothing else loads the module eagerly anymore.
         AppState.setGlobal("Util", DateUtil);
+
+        // The curated formatter module in the standard app layout
+        // (model/formatter.js): views wire it via core:require of
+        // z2ui5/model/formatter; the global keeps binding strings working
+        // on releases without core:require (< 1.74). It owns the date
+        // helpers - Util above is the thin legacy alias re-exporting them.
+        AppState.setGlobal("Formatter", Formatter);
 
         AppState.state.oDeviceModel = Models.createDeviceModel();
         this.setModel(AppState.state.oDeviceModel, "device");

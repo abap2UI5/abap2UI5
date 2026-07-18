@@ -103,4 +103,26 @@ test.describe("control_call_by_id", () => {
     expect(calls).toHaveLength(0);
     expect(errors).toHaveLength(1);
   });
+
+  test("open/close take no args (popup-mode PDFViewer, Dialog)", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.pdfViewer = {
+      open: () => calls.push(["open"]),
+      close: () => calls.push(["close"]),
+    };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "pdfViewer", "", "open"]);
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "pdfViewer", "", "close"]);
+    expect(calls).toEqual([["open"], ["close"]]);
+  });
+
+  test("setExpanded casts the ABAP bool ('X'/'')", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.panel = { setExpanded: (b) => calls.push(["expand", b]) };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "panel", "", "setExpanded", "X"]);
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "panel", "", "setExpanded", ""]);
+    expect(calls).toEqual([
+      ["expand", true],
+      ["expand", false],
+    ]);
+  });
 });

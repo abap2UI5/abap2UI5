@@ -28,6 +28,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/Util",` && |\n| &&
+             `    "z2ui5/model/formatter",` && |\n| &&
              `    "sap/ui/core/routing/HashChanger",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
@@ -39,6 +40,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `    Lib,` && |\n| &&
              `    AppState,` && |\n| &&
              `    DateUtil,` && |\n| &&
+             `    Formatter,` && |\n| &&
              `    HashChanger,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
@@ -67,6 +69,13 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        // since the custom controls were split out of App.controller.js,` && |\n| &&
              `        // nothing else loads the module eagerly anymore.` && |\n| &&
              `        AppState.setGlobal("Util", DateUtil);` && |\n| &&
+             `` && |\n| &&
+             `        // The curated formatter module in the standard app layout` && |\n| &&
+             `        // (model/formatter.js): views wire it via core:require of` && |\n| &&
+             `        // z2ui5/model/formatter; the global keeps binding strings working` && |\n| &&
+             `        // on releases without core:require (< 1.74). It owns the date` && |\n| &&
+             `        // helpers - Util above is the thin legacy alias re-exporting them.` && |\n| &&
+             `        AppState.setGlobal("Formatter", Formatter);` && |\n| &&
              `` && |\n| &&
              `        AppState.state.oDeviceModel = Models.createDeviceModel();` && |\n| &&
              `        this.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&
