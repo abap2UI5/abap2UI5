@@ -403,6 +403,33 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
 10. **`npm run auto_downport` rewrites `src/` in place** (and overwrites `abaplint.jsonc`) — it is meant for throwaway CI checkouts. When running the validation sequence locally, commit your work first and restore afterwards with `git checkout -- src/ abaplint.jsonc`.
 11. **Custom controls (`app/webapp/cc/`) delegate, they never decide** — a control exposes bindable **properties** and **events** and lets the backend drive the UI; it must not surface its own popups/toasts/dialogs (the `Geolocation` control fires an `error` event with code/message instead of showing a `MessageBox`). Lifecycle (UI5 2.x is strict): `init` and other lifecycle listeners **must not return a value** — never make them `async` (an async function returns a Promise → `_enforceNoReturnValue` FUTURE FATAL; kick the async work off in a separate helper, see `CameraSelector._loadCameras`). After every `await`, bail out when the control was destroyed (`Lib.isDestroyed`). Read the DOM defensively (guard a 0-size canvas, a missing `videoWidth`, an absent element) and **log, never throw** (`Lib.logError`). Prefer reusing a standard control or a binding over writing a new custom control at all.
 
+## Downstream JS Port Contract
+
+Two JS ports run this framework without a SAP backend and replicate parts of
+its internals rather than consuming a formal API: `node/` in this repository
+(official `@abaplint/transpiler` + Express + SQLite) and the
+[cap2UI5](https://github.com/cap2UI5) organization (hand-ported engine on
+CAP/Node.js plus a serverless browser build). For them, the following seams
+are **load-bearing contracts — treat them like the `src/02/` public API:
+additive changes only**, and when a restructuring is unavoidable, adjust both
+ports in the same change set:
+
+1. **HTTP wire format** (`z2ui5_cl_http_handler`): request body
+   `{ value: <oBody> }` with `S_FRONT` (`ORIGIN`/`PATHNAME`/`SEARCH`/`ID`/…),
+   response `{ body, status_code, status_reason }`, the `?app_start=<class>`
+   query contract, and the HEAD semantics (CSRF prefetch, `sap-terminate`).
+2. **Draft persistence** (`Z2UI5_T_01`): the `id` / `id_prev` / `data`
+   session-chaining layout — the ports inject their own stores
+   (CDS entity, SQLite, in-memory map) against exactly this shape.
+3. **App-class discovery** (`z2ui5_cl_util`): apps are addressed by their
+   lowercase class name; the directory walk resolves top-level files before
+   subdirectories and the first hit per class name wins. The browser build
+   replays this order in a generated registry.
+4. **Class/file naming and the `src/00`–`src/02` layering**: the JS class
+   files keep the ABAP class names as basenames — renames and directory
+   moves under `src/` are breaking changes for both ports (the cap2UI5
+   pipelines mirror the tree nightly).
+
 ## Design Decisions & Known Non-Issues
 
 The following items may look like gaps but are intentional design choices:
