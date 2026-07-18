@@ -225,25 +225,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        oFragment.setModel(oModel);` && |\n| &&
-             `        // Share the one device model (created once in Component.js, never` && |\n| &&
-             `        // destroyed) so {device>...} bindings work in popups too.` && |\n| &&
-             `        oFragment.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&
-             `        this._attachMessaging(oFragment);` && |\n| &&
+             `        // The shared device + message models are attached inside` && |\n| &&
+             `        // ViewSlots.setView (the single funnel), so error paths that` && |\n| &&
+             `        // destroy a view without reaching setView never register it.` && |\n| &&
              `        ViewSlots.setView("POPUP", oFragment);` && |\n| &&
              `        oFragment.open();` && |\n| &&
-             `      },` && |\n| &&
-             `` && |\n| &&
-             `      // Attach the central UI5 message model as the named "message" model` && |\n| &&
-             `      // and register the target for automatic validation-message collection` && |\n| &&
-             `      // (the handleValidation contract): {message>/} bindings (MessagePopover,` && |\n| &&
-             `      // MessageView) work in every slot, and failed control validations` && |\n| &&
-             `      // (binding type / constraint errors) collect without any app code.` && |\n| &&
-             `      // ViewSlots.destroy unregisters the target again.` && |\n| &&
-             `      _attachMessaging(oTarget) {` && |\n| &&
-             `        const messaging = Lib.getMessaging();` && |\n| &&
-             `        if (!messaging) return;` && |\n| &&
-             `        oTarget.setModel(messaging.getMessageModel(), "message");` && |\n| &&
-             `        messaging.registerObject(oTarget, true);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      async displayPopover(xml, openById) {` && |\n| &&
@@ -266,9 +252,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        oFragment.setModel(oModel);` && |\n| &&
-             `        // Shared device model (see displayFragment) - for popovers too.` && |\n| &&
-             `        oFragment.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&
-             `        this._attachMessaging(oFragment);` && |\n| &&
              `` && |\n| &&
              `        // Find the control to attach the popover to: any open slot first,` && |\n| &&
              `        // then the global UI5 control registry as a last resort.` && |\n| &&
@@ -300,9 +283,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        oView.setModel(oModel);` && |\n| &&
-             `        // Shared device model (see displayFragment) - for nested views too.` && |\n| &&
-             `        oView.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&
-             `        this._attachMessaging(oView);` && |\n| &&
              `` && |\n| &&
              `        const nestParams = AppState.state.oResponse?.PARAMS?.[paramKey];` && |\n| &&
              `        if (!nestParams) {` && |\n| &&
@@ -417,8 +397,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `` && |\n| &&
              `        AppState.state.isBusy = true;` && |\n| &&
-             `        BusyIndicator.show();` && |\n|.
-    result = result &&
+             `        BusyIndicator.show();` && |\n| &&
              `` && |\n| &&
              `        // The request body is built locally and handed explicitly through` && |\n| &&
              `        // Server.roundtrip/readHttp. It is mirrored to AppState.state.oBody right` && |\n| &&
@@ -438,7 +417,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (oModel && AppState.state.xxChangedPaths.size > 0) {` && |\n| &&
              `          const data = oModel.getData();` && |\n| &&
              `          const xx = data?.XX;` && |\n| &&
-             `          if (xx) {` && |\n| &&
+             `          if (xx) {` && |\n|.
+    result = result &&
              `            oBody.XX = Lib.buildDeltaFromPaths(` && |\n| &&
              `              AppState.state.xxChangedPaths,` && |\n| &&
              `              xx,` && |\n| &&
@@ -547,8 +527,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `` && |\n| &&
              `        ViewSlots.setView("MAIN", oView);` && |\n| &&
-             `        oView.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&
-             `        this._attachMessaging(oView);` && |\n| &&
              `        if (switchPath) oView.setModel(oViewModel, "http");` && |\n| &&
              `        AppState.state.oApp.removeAllPages();` && |\n| &&
              `        AppState.state.oApp.insertPage(oView);` && |\n| &&

@@ -72,7 +72,7 @@
 //   timers            single pending backend timer (FrontendAction)
 //   lastScrolled      last scrolled element per slot (Server.onScrollCapture)
 //   viewSizeLimits    per-slot model size limits (FrontendAction)
-//   treeState         tree binding state across rebuilds (Tree control)
+//   treeStates        tree binding state per tree_id across rebuilds (Tree control)
 //   debugTool         DebugTool instance (Component, Ctrl+F12)
 //   onBeforeRoundtrip, onAfterRoundtrip, onAfterRendering,
 //   onBeforeEventFrontend  callback arrays, see Lib.registerCallback
@@ -116,7 +116,7 @@ sap.ui.define([], () => {
       timers: {},
       lastScrolled: {},
       viewSizeLimits: {},
-      treeState: null,
+      treeStates: {},
       debugTool: null,
 
       // Callback arrays (see Lib.registerCallback / Lib.runCallbacks)

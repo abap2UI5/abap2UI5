@@ -57,6 +57,15 @@ CLASS z2ui5_cl_app_formatter_js IMPLEMENTATION.
              `    ];` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  // Product stock status -> its value state + status icon, kept as one` && |\n| &&
+             `  // entry per status so the two formatters below cannot drift apart` && |\n| &&
+             `  // (sap.m.sample.StandardListItemInfo / ObjectListItem Formatter.js).` && |\n| &&
+             `  const STOCK_STATUS = {` && |\n| &&
+             `    Available: { state: "Success", icon: "sap-icon://accept" },` && |\n| &&
+             `    "Out of Stock": { state: "Warning", icon: "sap-icon://alert" },` && |\n| &&
+             `    Discontinued: { state: "Error", icon: "sap-icon://decline" },` && |\n| &&
+             `  };` && |\n| &&
+             `` && |\n| &&
              `  return {` && |\n| &&
              `    // --- date helpers (the z2ui5.Util legacy contract) ---` && |\n| &&
              `    DateCreateObject(s) {` && |\n| &&
@@ -103,38 +112,35 @@ CLASS z2ui5_cl_app_formatter_js IMPLEMENTATION.
              `      return "Error";` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             `    // Product stock status -> sap.ui.core.ValueState` && |\n| &&
-             `    // (sap.m.sample.StandardListItemInfo / ObjectListItem Formatter.js).` && |\n| &&
+             `    // Product stock status -> sap.ui.core.ValueState.` && |\n| &&
              `    stockStatusState(status) {` && |\n| &&
-             `      if (status === "Available") return "Success";` && |\n| &&
-             `      if (status === "Out of Stock") return "Warning";` && |\n| &&
-             `      if (status === "Discontinued") return "Error";` && |\n| &&
-             `      return "None";` && |\n| &&
+             `      return STOCK_STATUS[status]?.state ?? "None";` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
-             `    // Product stock status -> status icon` && |\n| &&
-             `    // (sap.m.sample.StandardListItemInfo Formatter.js).` && |\n| &&
+             `    // Product stock status -> status icon.` && |\n| &&
              `    stockStatusIcon(status) {` && |\n| &&
-             `      if (status === "Available") return "sap-icon://accept";` && |\n| &&
-             `      if (status === "Out of Stock") return "sap-icon://alert";` && |\n| &&
-             `      if (status === "Discontinued") return "sap-icon://decline";` && |\n| &&
-             `      return null;` && |\n| &&
+             `      return STOCK_STATUS[status]?.icon ?? null;` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    // Round to two decimal places, always rendered with two digits` && |\n| &&
-             `    // (sap.m.sample.TableBreadcrumb Formatter.js).` && |\n| &&
+             `    // (sap.m.sample.TableBreadcrumb Formatter.js). Non-numeric input maps` && |\n| &&
+             `    // to an empty cell rather than the literal "NaN".` && |\n| &&
              `    round2DP(value) {` && |\n| &&
-             `      return (Math.round(value * 100) / 100).toFixed(2);` && |\n| &&
+             `      const n = parseFloat(value);` && |\n| &&
+             `      if (isNaN(n)) return "";` && |\n| &&
+             `      return (Math.round(n * 100) / 100).toFixed(2);` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&
              `    // Join the available dimensions with " x " and append the unit;` && |\n| &&
              `    // missing components are skipped (sap.m.sample.TableBreadcrumb` && |\n| &&
-             `    // Formatter.js).` && |\n| &&
+             `    // Formatter.js). A component is "missing" only when it is null/undefined` && |\n| &&
+             `    // or empty string - a real 0 (a zero-size dimension) is kept, and the` && |\n| &&
+             `    // unit is only appended when it is present.` && |\n| &&
              `    dimensions(width, depth, height, unit) {` && |\n| &&
              `      let display = [width, depth, height]` && |\n| &&
-             `        .filter((component) => component)` && |\n| &&
+             `        .filter((component) => component != null && component !== "")` && |\n| &&
              `        .join(" x ");` && |\n| &&
-             `      if (display) display += `` ${unit}``;` && |\n| &&
+             `      if (display && unit != null && unit !== "") display += `` ${unit}``;` && |\n| &&
              `      return display;` && |\n| &&
              `    },` && |\n| &&
              `` && |\n| &&

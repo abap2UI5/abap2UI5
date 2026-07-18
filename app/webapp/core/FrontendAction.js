@@ -182,8 +182,6 @@ sap.ui.define(
     // (path/operator/values), never from code strings.
     // ------------------------------------------------------------------
 
-    const BINDING_METHODS = ["filter", "sort"];
-
     const FILTER_OPERATORS = new Set([
       "BT",
       "Contains",
@@ -201,30 +199,23 @@ sap.ui.define(
       "StartsWith",
     ]);
 
-    // args: [_, id, aggregation, method, ...params]
+    const isEmpty = (v) => v == null || v === "";
+
+    // binding method -> builder that turns the trailing params into the
+    // aggregation-update call. Same declarative-whitelist shape as
+    // CONTROL_METHODS: an unlisted method fails closed at the lookup.
     //   filter: params = [path, operator, value1, value2?]
-    //           an empty/omitted value1 CLEARS the filter (the demo kit
-    //           search pattern: empty query -> binding.filter([]))
     //   sort:   params = [path, descending?, group?] (ABAP bools "X"/"")
     // The backend arg serializer keeps empty args between filled ones as ''
     // placeholders but trims trailing empties, so all optionals sit at the
     // end and may arrive as undefined.
-    function evBindingCall(oController, args) {
-      const [id, aggregation, method] = [args[1], args[2], args[3]];
-      if (!BINDING_METHODS.includes(method)) {
-        Lib.logError(`binding_call: method '${method}' not allowed`);
-        return;
-      }
-      const binding = ViewSlots.resolveById(id)?.getBinding?.(aggregation);
-      if (!binding || typeof binding[method] !== "function") {
-        Lib.logError(
-          `binding_call: no '${aggregation}' binding with '${method}' on control '${id}'`,
-        );
-        return;
-      }
-      if (method === "filter") {
-        const [path, operator, value1, value2] = args.slice(4);
-        if (value1 == null || value1 === "") {
+    const BINDING_METHODS = {
+      filter(binding, [path, operator, value1, value2]) {
+        // No filter values at all -> clear the filter (the demo kit search
+        // pattern: an emptied search field). A one-sided range (empty
+        // value1 but a set value2, e.g. BT with only an upper bound) is a
+        // real filter, so only clear when BOTH values are empty.
+        if (isEmpty(value1) && isEmpty(value2)) {
           binding.filter([]);
           return;
         }
@@ -235,12 +226,30 @@ sap.ui.define(
         binding.filter([
           new Filter(path, FilterOperator[operator], value1, value2),
         ]);
-      } else {
-        const [path, descending, group] = args.slice(4);
+      },
+      sort(binding, [path, descending, group]) {
         binding.sort([
           new Sorter(path, castArg("bool", descending), castArg("bool", group)),
         ]);
+      },
+    };
+
+    // args: [_, id, aggregation, method, ...params]
+    function evBindingCall(oController, args) {
+      const [id, aggregation, method] = [args[1], args[2], args[3]];
+      const build = BINDING_METHODS[method];
+      if (!build) {
+        Lib.logError(`binding_call: method '${method}' not allowed`);
+        return;
       }
+      const binding = ViewSlots.resolveById(id)?.getBinding?.(aggregation);
+      if (!binding || typeof binding[method] !== "function") {
+        Lib.logError(
+          `binding_call: no '${aggregation}' binding with '${method}' on control '${id}'`,
+        );
+        return;
+      }
+      build(binding, args.slice(4));
     }
 
     // ------------------------------------------------------------------

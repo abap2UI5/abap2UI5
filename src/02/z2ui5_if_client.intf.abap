@@ -274,12 +274,13 @@ INTERFACE z2ui5_if_client
   "! stays untouched. method 'filter': params = path, operator, value1, value2
   "! (empty value1 clears the filter); method 'sort': params = path,
   "! descending, group (abap_bool as 'X'/''). For the roundtrip-free variant
-  "! wire cs_event-binding_call with the same params via _event_client.
+  "! wire cs_event-binding_call via _event_client, passing t_arg in the same
+  "! order the parameters are declared here: id, aggregation, method, params.
   METHODS binding_call_by_id
     IMPORTING
       id          TYPE clike
-      method      TYPE clike        DEFAULT `filter`
       aggregation TYPE clike        DEFAULT `items`
+      method      TYPE clike        DEFAULT `filter`
       params      TYPE string_table OPTIONAL.
 
   METHODS check_on_event

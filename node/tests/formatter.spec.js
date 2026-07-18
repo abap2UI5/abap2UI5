@@ -56,18 +56,26 @@ test.describe("Formatter module", () => {
     expect(Formatter.stockStatusIcon("Unknown")).toBeNull();
   });
 
-  test("round2DP always renders two decimal places", () => {
+  test("round2DP renders two decimal places, empty for non-numeric", () => {
     const { Formatter } = load();
     expect(Formatter.round2DP(3.14159)).toBe("3.14");
     expect(Formatter.round2DP(2)).toBe("2.00");
     expect(Formatter.round2DP("10.005")).toBe("10.01");
+    // a missing/non-numeric value renders an empty cell, not "NaN"
+    expect(Formatter.round2DP(undefined)).toBe("");
+    expect(Formatter.round2DP("abc")).toBe("");
   });
 
-  test("dimensions joins available components and appends the unit", () => {
+  test("dimensions keeps a real 0, skips missing parts and unit", () => {
     const { Formatter } = load();
     expect(Formatter.dimensions(10, 20, 30, "cm")).toBe("10 x 20 x 30 cm");
-    expect(Formatter.dimensions(10, 0, 30, "cm")).toBe("10 x 30 cm");
-    expect(Formatter.dimensions(0, 0, 0, "cm")).toBe("");
+    // a real zero-size dimension is kept (was dropped by the falsy filter)
+    expect(Formatter.dimensions(40, 28, 0, "cm")).toBe("40 x 28 x 0 cm");
+    // null/undefined/"" parts are skipped
+    expect(Formatter.dimensions(10, null, 30, "cm")).toBe("10 x 30 cm");
+    // a missing unit is not appended as "undefined"
+    expect(Formatter.dimensions(10, 20, 30, undefined)).toBe("10 x 20 x 30");
+    expect(Formatter.dimensions(null, null, null, "cm")).toBe("");
   });
 
   test("deliveryStatusState maps the delivery status", () => {

@@ -92,7 +92,7 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `//   timers            single pending backend timer (FrontendAction)` && |\n| &&
              `//   lastScrolled      last scrolled element per slot (Server.onScrollCapture)` && |\n| &&
              `//   viewSizeLimits    per-slot model size limits (FrontendAction)` && |\n| &&
-             `//   treeState         tree binding state across rebuilds (Tree control)` && |\n| &&
+             `//   treeStates        tree binding state per tree_id across rebuilds (Tree control)` && |\n| &&
              `//   debugTool         DebugTool instance (Component, Ctrl+F12)` && |\n| &&
              `//   onBeforeRoundtrip, onAfterRoundtrip, onAfterRendering,` && |\n| &&
              `//   onBeforeEventFrontend  callback arrays, see Lib.registerCallback` && |\n| &&
@@ -136,7 +136,7 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `      timers: {},` && |\n| &&
              `      lastScrolled: {},` && |\n| &&
              `      viewSizeLimits: {},` && |\n| &&
-             `      treeState: null,` && |\n| &&
+             `      treeStates: {},` && |\n| &&
              `      debugTool: null,` && |\n| &&
              `` && |\n| &&
              `      // Callback arrays (see Lib.registerCallback / Lib.runCallbacks)` && |\n| &&

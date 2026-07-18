@@ -202,8 +202,6 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // (path/operator/values), never from code strings.` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
-             `    const BINDING_METHODS = ["filter", "sort"];` && |\n| &&
-             `` && |\n| &&
              `    const FILTER_OPERATORS = new Set([` && |\n| &&
              `      "BT",` && |\n| &&
              `      "Contains",` && |\n| &&
@@ -221,30 +219,23 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      "StartsWith",` && |\n| &&
              `    ]);` && |\n| &&
              `` && |\n| &&
-             `    // args: [_, id, aggregation, method, ...params]` && |\n| &&
+             `    const isEmpty = (v) => v == null || v === "";` && |\n| &&
+             `` && |\n| &&
+             `    // binding method -> builder that turns the trailing params into the` && |\n| &&
+             `    // aggregation-update call. Same declarative-whitelist shape as` && |\n| &&
+             `    // CONTROL_METHODS: an unlisted method fails closed at the lookup.` && |\n| &&
              `    //   filter: params = [path, operator, value1, value2?]` && |\n| &&
-             `    //           an empty/omitted value1 CLEARS the filter (the demo kit` && |\n| &&
-             `    //           search pattern: empty query -> binding.filter([]))` && |\n| &&
              `    //   sort:   params = [path, descending?, group?] (ABAP bools "X"/"")` && |\n| &&
              `    // The backend arg serializer keeps empty args between filled ones as ''` && |\n| &&
              `    // placeholders but trims trailing empties, so all optionals sit at the` && |\n| &&
              `    // end and may arrive as undefined.` && |\n| &&
-             `    function evBindingCall(oController, args) {` && |\n| &&
-             `      const [id, aggregation, method] = [args[1], args[2], args[3]];` && |\n| &&
-             `      if (!BINDING_METHODS.includes(method)) {` && |\n| &&
-             `        Lib.logError(``binding_call: method '${method}' not allowed``);` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      const binding = ViewSlots.resolveById(id)?.getBinding?.(aggregation);` && |\n| &&
-             `      if (!binding || typeof binding[method] !== "function") {` && |\n| &&
-             `        Lib.logError(` && |\n| &&
-             `          ``binding_call: no '${aggregation}' binding with '${method}' on control '${id}'``,` && |\n| &&
-             `        );` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (method === "filter") {` && |\n| &&
-             `        const [path, operator, value1, value2] = args.slice(4);` && |\n| &&
-             `        if (value1 == null || value1 === "") {` && |\n| &&
+             `    const BINDING_METHODS = {` && |\n| &&
+             `      filter(binding, [path, operator, value1, value2]) {` && |\n| &&
+             `        // No filter values at all -> clear the filter (the demo kit search` && |\n| &&
+             `        // pattern: an emptied search field). A one-sided range (empty` && |\n| &&
+             `        // value1 but a set value2, e.g. BT with only an upper bound) is a` && |\n| &&
+             `        // real filter, so only clear when BOTH values are empty.` && |\n| &&
+             `        if (isEmpty(value1) && isEmpty(value2)) {` && |\n| &&
              `          binding.filter([]);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -255,12 +246,30 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        binding.filter([` && |\n| &&
              `          new Filter(path, FilterOperator[operator], value1, value2),` && |\n| &&
              `        ]);` && |\n| &&
-             `      } else {` && |\n| &&
-             `        const [path, descending, group] = args.slice(4);` && |\n| &&
+             `      },` && |\n| &&
+             `      sort(binding, [path, descending, group]) {` && |\n| &&
              `        binding.sort([` && |\n| &&
              `          new Sorter(path, castArg("bool", descending), castArg("bool", group)),` && |\n| &&
              `        ]);` && |\n| &&
+             `      },` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
+             `    // args: [_, id, aggregation, method, ...params]` && |\n| &&
+             `    function evBindingCall(oController, args) {` && |\n| &&
+             `      const [id, aggregation, method] = [args[1], args[2], args[3]];` && |\n| &&
+             `      const build = BINDING_METHODS[method];` && |\n| &&
+             `      if (!build) {` && |\n| &&
+             `        Lib.logError(``binding_call: method '${method}' not allowed``);` && |\n| &&
+             `        return;` && |\n| &&
              `      }` && |\n| &&
+             `      const binding = ViewSlots.resolveById(id)?.getBinding?.(aggregation);` && |\n| &&
+             `      if (!binding || typeof binding[method] !== "function") {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``binding_call: no '${aggregation}' binding with '${method}' on control '${id}'``,` && |\n| &&
+             `        );` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      build(binding, args.slice(4));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
@@ -408,7 +417,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError("SYSTEM_LOGOUT: ushell logout failed", e);` && |\n| &&
-             `      }` && |\n| &&
+             `      }` && |\n|.
+    result = result &&
              `      logoutViaBspTerminate(logoutUrl);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -417,8 +427,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // BSP context (sap-contextid stays bound to /sap/bc/bsp/sap/<app>/).` && |\n| &&
              `    // Hit the BSP path with ?sap-sessioncmd=logoff first so the BSP` && |\n| &&
              `    // runtime calls server->session->terminate( ), then go to the ICF` && |\n| &&
-             `    // logoff to also drop the SSO2 ticket. Outside a BSP path this goes` && |\n|.
-    result = result &&
+             `    // logoff to also drop the SSO2 ticket. Outside a BSP path this goes` && |\n| &&
              `    // straight to the logout URL.` && |\n| &&
              `    function logoutViaBspTerminate(logoutUrl) {` && |\n| &&
              `      const path = window.location.pathname;` && |\n| &&

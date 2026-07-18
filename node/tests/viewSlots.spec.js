@@ -27,6 +27,8 @@ function load() {
         logError: (message) => errors.push(message),
         getElementById: (id) => globalElements[id] || null,
         getMessaging: () => ({
+          getMessageModel: () => messageModel,
+          registerObject: (view, bind) => registerCalls.push([view, bind]),
           unregisterObject: (view) => unregisterCalls.push(view),
         }),
       },
@@ -34,6 +36,8 @@ function load() {
     },
   });
   const unregisterCalls = [];
+  const registerCalls = [];
+  const messageModel = { id: "messageModel" };
   return {
     ViewSlots: module,
     z2ui5,
@@ -41,6 +45,8 @@ function load() {
     errors,
     globalElements,
     unregisterCalls,
+    registerCalls,
+    messageModel,
   };
 }
 
@@ -65,12 +71,26 @@ test.describe("key mappings", () => {
 test.describe("view and controller access", () => {
   test("setView/getView write and read the slot's z2ui5 field", () => {
     const { ViewSlots, z2ui5 } = load();
-    const view = {};
+    const view = { setModel() {} };
     ViewSlots.setView("NEST", view);
     expect(z2ui5.oViewNest).toBe(view);
     expect(ViewSlots.getView("NEST")).toBe(view);
     expect(ViewSlots.getView("POPUP")).toBeUndefined();
     expect(ViewSlots.getView("UNKNOWN")).toBeUndefined();
+  });
+
+  test("setView attaches the shared device + message models and registers", () => {
+    const { ViewSlots, z2ui5, registerCalls, messageModel } = load();
+    const models = [];
+    const deviceModel = { id: "deviceModel" };
+    z2ui5.oDeviceModel = deviceModel;
+    const view = { setModel: (m, name) => models.push([name, m]) };
+    ViewSlots.setView("MAIN", view);
+    expect(models).toEqual([
+      ["device", deviceModel],
+      ["message", messageModel],
+    ]);
+    expect(registerCalls).toEqual([[view, true]]);
   });
 
   test("keyOfController finds the slot a controller serves", () => {

@@ -170,10 +170,10 @@ test.describe("binding_call", () => {
     });
   });
 
-  test("an empty (or dropped) value1 clears the filter", () => {
+  test("no filter values clears the filter (emptied search field)", () => {
     const { FrontendAction, calls, controls } = load();
     withListBinding(controls, calls);
-    // the backend arg serializer drops empty strings, so the cleared-query
+    // the backend arg serializer trims trailing empties, so the cleared-query
     // call arrives without the value argument at all
     FrontendAction.execute(null, [
       "BINDING_CALL",
@@ -184,6 +184,31 @@ test.describe("binding_call", () => {
       "Contains",
     ]);
     expect(calls).toEqual([["filter", []]]);
+  });
+
+  test("a one-sided BT range (empty value1, set value2) is NOT cleared", () => {
+    const { FrontendAction, calls, controls } = load();
+    withListBinding(controls, calls);
+    // empty value1 arrives as an '' placeholder because value2 follows it
+    FrontendAction.execute(null, [
+      "BINDING_CALL",
+      "idList",
+      "items",
+      "filter",
+      "PRICE",
+      "BT",
+      "",
+      "100",
+    ]);
+    expect(calls).toHaveLength(1);
+    const [name, filters] = calls[0];
+    expect(name).toBe("filter");
+    expect(filters[0]).toMatchObject({
+      path: "PRICE",
+      operator: "BT",
+      value1: "",
+      value2: "100",
+    });
   });
 
   test("rejects a non-whitelisted operator or method", () => {

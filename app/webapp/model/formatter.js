@@ -37,6 +37,15 @@ sap.ui.define([], () => {
     ];
   }
 
+  // Product stock status -> its value state + status icon, kept as one
+  // entry per status so the two formatters below cannot drift apart
+  // (sap.m.sample.StandardListItemInfo / ObjectListItem Formatter.js).
+  const STOCK_STATUS = {
+    Available: { state: "Success", icon: "sap-icon://accept" },
+    "Out of Stock": { state: "Warning", icon: "sap-icon://alert" },
+    Discontinued: { state: "Error", icon: "sap-icon://decline" },
+  };
+
   return {
     // --- date helpers (the z2ui5.Util legacy contract) ---
     DateCreateObject(s) {
@@ -83,38 +92,35 @@ sap.ui.define([], () => {
       return "Error";
     },
 
-    // Product stock status -> sap.ui.core.ValueState
-    // (sap.m.sample.StandardListItemInfo / ObjectListItem Formatter.js).
+    // Product stock status -> sap.ui.core.ValueState.
     stockStatusState(status) {
-      if (status === "Available") return "Success";
-      if (status === "Out of Stock") return "Warning";
-      if (status === "Discontinued") return "Error";
-      return "None";
+      return STOCK_STATUS[status]?.state ?? "None";
     },
 
-    // Product stock status -> status icon
-    // (sap.m.sample.StandardListItemInfo Formatter.js).
+    // Product stock status -> status icon.
     stockStatusIcon(status) {
-      if (status === "Available") return "sap-icon://accept";
-      if (status === "Out of Stock") return "sap-icon://alert";
-      if (status === "Discontinued") return "sap-icon://decline";
-      return null;
+      return STOCK_STATUS[status]?.icon ?? null;
     },
 
     // Round to two decimal places, always rendered with two digits
-    // (sap.m.sample.TableBreadcrumb Formatter.js).
+    // (sap.m.sample.TableBreadcrumb Formatter.js). Non-numeric input maps
+    // to an empty cell rather than the literal "NaN".
     round2DP(value) {
-      return (Math.round(value * 100) / 100).toFixed(2);
+      const n = parseFloat(value);
+      if (isNaN(n)) return "";
+      return (Math.round(n * 100) / 100).toFixed(2);
     },
 
     // Join the available dimensions with " x " and append the unit;
     // missing components are skipped (sap.m.sample.TableBreadcrumb
-    // Formatter.js).
+    // Formatter.js). A component is "missing" only when it is null/undefined
+    // or empty string - a real 0 (a zero-size dimension) is kept, and the
+    // unit is only appended when it is present.
     dimensions(width, depth, height, unit) {
       let display = [width, depth, height]
-        .filter((component) => component)
+        .filter((component) => component != null && component !== "")
         .join(" x ");
-      if (display) display += ` ${unit}`;
+      if (display && unit != null && unit !== "") display += ` ${unit}`;
       return display;
     },
 

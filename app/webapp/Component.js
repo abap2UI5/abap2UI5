@@ -60,6 +60,20 @@ sap.ui.define(
         AppState.state.oDeviceModel = Models.createDeviceModel();
         this.setModel(AppState.state.oDeviceModel, "device");
 
+        // Warm-load the messaging module so Lib.getMessaging's synchronous
+        // sap.ui.require resolves it before the first view is displayed.
+        // On UI5 2.x sap/ui/core/Messaging is the only messaging API (the
+        // sap.ui.getCore().getMessageManager() fallback is gone), and
+        // nothing else pulls the module into the graph - without this the
+        // message> model and validation collection would silently no-op.
+        // The errback keeps releases < 1.118 (no such module) unaffected;
+        // there Lib.getMessaging uses the MessageManager fallback.
+        sap.ui.require(
+          ["sap/ui/core/Messaging"],
+          () => {},
+          () => {},
+        );
+
         this._initLaunchpad();
         this._initVersionInfo();
 

@@ -80,6 +80,20 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        AppState.state.oDeviceModel = Models.createDeviceModel();` && |\n| &&
              `        this.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&
              `` && |\n| &&
+             `        // Warm-load the messaging module so Lib.getMessaging's synchronous` && |\n| &&
+             `        // sap.ui.require resolves it before the first view is displayed.` && |\n| &&
+             `        // On UI5 2.x sap/ui/core/Messaging is the only messaging API (the` && |\n| &&
+             `        // sap.ui.getCore().getMessageManager() fallback is gone), and` && |\n| &&
+             `        // nothing else pulls the module into the graph - without this the` && |\n| &&
+             `        // message> model and validation collection would silently no-op.` && |\n| &&
+             `        // The errback keeps releases < 1.118 (no such module) unaffected;` && |\n| &&
+             `        // there Lib.getMessaging uses the MessageManager fallback.` && |\n| &&
+             `        sap.ui.require(` && |\n| &&
+             `          ["sap/ui/core/Messaging"],` && |\n| &&
+             `          () => {},` && |\n| &&
+             `          () => {},` && |\n| &&
+             `        );` && |\n| &&
+             `` && |\n| &&
              `        this._initLaunchpad();` && |\n| &&
              `        this._initVersionInfo();` && |\n| &&
              `` && |\n| &&

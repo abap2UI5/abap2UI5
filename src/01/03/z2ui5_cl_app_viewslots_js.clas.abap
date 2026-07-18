@@ -88,7 +88,29 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `` && |\n| &&
              `    function setView(key, view) {` && |\n| &&
              `      const slot = byKey(key);` && |\n| &&
-             `      if (slot) AppState.state[slot.prop] = view;` && |\n| &&
+             `      if (!slot) return;` && |\n| &&
+             `      AppState.state[slot.prop] = view;` && |\n| &&
+             `      attachSharedModels(view);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // Attach the models every slot shares: the one device model (created` && |\n| &&
+             `    // once in Component.js, never destroyed) and the central UI5 message` && |\n| &&
+             `    // model, plus register the view for automatic validation-message` && |\n| &&
+             `    // collection (handleValidation). Done HERE - the single funnel every` && |\n| &&
+             `    // successful display path goes through, and the module that also owns` && |\n| &&
+             `    // destroy() - so attach and the unregister in destroy() stay symmetric:` && |\n| &&
+             `    // a display path that destroys a view on an error guard never reached` && |\n| &&
+             `    // setView, so nothing was registered and nothing leaks.` && |\n| &&
+             `    function attachSharedModels(view) {` && |\n| &&
+             `      if (!view) return;` && |\n| &&
+             `      if (AppState.state.oDeviceModel) {` && |\n| &&
+             `        view.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&
+             `      }` && |\n| &&
+             `      const messaging = Lib.getMessaging?.();` && |\n| &&
+             `      if (messaging) {` && |\n| &&
+             `        view.setModel(messaging.getMessageModel(), "message");` && |\n| &&
+             `        messaging.registerObject(view, true);` && |\n| &&
+             `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Controller instance serving a slot (created once in App.controller).` && |\n| &&

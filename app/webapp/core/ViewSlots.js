@@ -68,7 +68,29 @@ sap.ui.define(
 
     function setView(key, view) {
       const slot = byKey(key);
-      if (slot) AppState.state[slot.prop] = view;
+      if (!slot) return;
+      AppState.state[slot.prop] = view;
+      attachSharedModels(view);
+    }
+
+    // Attach the models every slot shares: the one device model (created
+    // once in Component.js, never destroyed) and the central UI5 message
+    // model, plus register the view for automatic validation-message
+    // collection (handleValidation). Done HERE - the single funnel every
+    // successful display path goes through, and the module that also owns
+    // destroy() - so attach and the unregister in destroy() stay symmetric:
+    // a display path that destroys a view on an error guard never reached
+    // setView, so nothing was registered and nothing leaks.
+    function attachSharedModels(view) {
+      if (!view) return;
+      if (AppState.state.oDeviceModel) {
+        view.setModel(AppState.state.oDeviceModel, "device");
+      }
+      const messaging = Lib.getMessaging?.();
+      if (messaging) {
+        view.setModel(messaging.getMessageModel(), "message");
+        messaging.registerObject(view, true);
+      }
     }
 
     // Controller instance serving a slot (created once in App.controller).

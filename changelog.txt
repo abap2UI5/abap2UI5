@@ -9,6 +9,18 @@ Legend
 - : removed
 
 
+unreleased
+----------
++ Added binding_call_by_id (declarative filter/sort on an aggregation binding) + cs_event-binding_call
++ Added the message> model on every view slot with automatic validation-message collection
++ Added the demo kit formatter pack to model/formatter (weightStateByValue, stockStatus*, round2DP, dimensions, deliveryStatusState)
+! Event arg serialization no longer drops empty middle args: get_t_arg keeps an empty argument
+  between filled ones as an '' placeholder (only trailing empties are trimmed), so a control_call_by_id
+  without a view no longer loses its method position. Apps that passed a possibly-empty MIDDLE arg via
+  _event/_event_client/follow_up_action and read the following value by its previously-compacted position
+  now receive '' at that slot - pass the value at the intended position or drop the empty arg.
+
+
 2025-12-14 v1.141.0
 -------------------
 + Added Image Editor popup for image manipulation
