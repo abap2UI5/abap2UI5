@@ -41,7 +41,10 @@ CLASS z2ui5_cl_app_tree_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _getTreeBinding() {` && |\n| &&
-             `        const treeControl = ViewSlots.byId("MAIN", this.getProperty("tree_id"));` && |\n| &&
+             `        // Resolve across every open view slot (main, popup, popover,` && |\n| &&
+             `        // nested) - the companion may sit next to a tree in a dialog, not` && |\n| &&
+             `        // only in the main view.` && |\n| &&
+             `        const treeControl = ViewSlots.resolveById(this.getProperty("tree_id"));` && |\n| &&
              `        return treeControl?.getBinding("items");` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&

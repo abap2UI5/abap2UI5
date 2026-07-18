@@ -21,7 +21,10 @@ sap.ui.define(
       },
 
       _getTreeBinding() {
-        const treeControl = ViewSlots.byId("MAIN", this.getProperty("tree_id"));
+        // Resolve across every open view slot (main, popup, popover,
+        // nested) - the companion may sit next to a tree in a dialog, not
+        // only in the main view.
+        const treeControl = ViewSlots.resolveById(this.getProperty("tree_id"));
         return treeControl?.getBinding("items");
       },
 
