@@ -53,7 +53,14 @@ sap.ui.define(
         this._pendingTreeState = false;
         try {
           const binding = this._getTreeBinding();
-          if (binding) binding.setTreeState(AppState.state.treeState);
+          if (!binding) return;
+          // setTreeState only stores an INITIAL tree state - the binding
+          // adapter consumes it while creating its nodes, which already
+          // happened during this rendering cycle. Force a rebuild so the
+          // snapshot actually gets applied (headless-verified: without the
+          // refresh the tree stays collapsed).
+          binding.setTreeState(AppState.state.treeState);
+          binding.refresh(true);
         } catch (e) {
           Lib.logError("Tree.onAfterRendering: setTreeState failed", e);
         }

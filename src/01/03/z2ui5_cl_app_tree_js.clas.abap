@@ -73,7 +73,14 @@ CLASS z2ui5_cl_app_tree_js IMPLEMENTATION.
              `        this._pendingTreeState = false;` && |\n| &&
              `        try {` && |\n| &&
              `          const binding = this._getTreeBinding();` && |\n| &&
-             `          if (binding) binding.setTreeState(AppState.state.treeState);` && |\n| &&
+             `          if (!binding) return;` && |\n| &&
+             `          // setTreeState only stores an INITIAL tree state - the binding` && |\n| &&
+             `          // adapter consumes it while creating its nodes, which already` && |\n| &&
+             `          // happened during this rendering cycle. Force a rebuild so the` && |\n| &&
+             `          // snapshot actually gets applied (headless-verified: without the` && |\n| &&
+             `          // refresh the tree stays collapsed).` && |\n| &&
+             `          binding.setTreeState(AppState.state.treeState);` && |\n| &&
+             `          binding.refresh(true);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("Tree.onAfterRendering: setTreeState failed", e);` && |\n| &&
              `        }` && |\n| &&
