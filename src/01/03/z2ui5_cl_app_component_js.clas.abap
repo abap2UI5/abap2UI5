@@ -28,6 +28,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/Util",` && |\n| &&
+             `    "z2ui5/Formatter",` && |\n| &&
              `    "sap/ui/core/routing/HashChanger",` && |\n| &&
              `  ],` && |\n| &&
              `  (` && |\n| &&
@@ -39,6 +40,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `    Lib,` && |\n| &&
              `    AppState,` && |\n| &&
              `    DateUtil,` && |\n| &&
+             `    Formatter,` && |\n| &&
              `    HashChanger,` && |\n| &&
              `  ) => {` && |\n| &&
              `    "use strict";` && |\n| &&
@@ -67,6 +69,12 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        // since the custom controls were split out of App.controller.js,` && |\n| &&
              `        // nothing else loads the module eagerly anymore.` && |\n| &&
              `        AppState.setGlobal("Util", DateUtil);` && |\n| &&
+             `` && |\n| &&
+             `        // The curated formatter module (the app-level formatter.js of an` && |\n| &&
+             `        // original UI5 app, shipped by the framework): published the same` && |\n| &&
+             `        // way so binding strings can reference z2ui5.Formatter.<fn>. It` && |\n| &&
+             `        // re-exports the Util helpers - Util stays the legacy alias.` && |\n| &&
+             `        AppState.setGlobal("Formatter", Formatter);` && |\n| &&
              `` && |\n| &&
              `        AppState.state.oDeviceModel = Models.createDeviceModel();` && |\n| &&
              `        this.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&

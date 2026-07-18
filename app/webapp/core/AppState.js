@@ -26,6 +26,9 @@
 //   oConfig           { S_UI5: version info, ComponentData } (Component)
 //   Util              PUBLIC date helpers for view formatters - apps rely on
 //                     this global and on the z2ui5/Util module (Component)
+//   Formatter         PUBLIC curated formatter module for view binding
+//                     strings (z2ui5/Formatter); re-exports the Util
+//                     helpers - grows via framework PRs only (Component)
 //   requestTimeoutMs  optional override for the roundtrip timeout (apps)
 //   <custom>          apps can register functions via the js_loader popup
 //                     and call them through the Z2UI5 frontend event

@@ -21,6 +21,8 @@ CLASS z2ui5_cl_app_util_js IMPLEMENTATION.
     result = `// PUBLIC date helpers for apps: exposed as the z2ui5.Util global and as` && |\n| &&
              `// the z2ui5/Util module (used in XML view formatter strings). Part of the` && |\n| &&
              `// public contract - do not rename or change the existing functions.` && |\n| &&
+             `// z2ui5/Formatter re-exports these helpers; new code should reference` && |\n| &&
+             `// z2ui5.Formatter, this module stays as the stable legacy alias.` && |\n| &&
              `sap.ui.define([], () => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
