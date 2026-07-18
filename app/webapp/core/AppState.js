@@ -74,6 +74,8 @@
 //   viewSizeLimits    per-slot model size limits (FrontendAction)
 //   treeStates        tree binding state per tree_id across rebuilds (Tree control)
 //   debugTool         DebugTool instance (Component, Ctrl+F12)
+//   lastError         the last fatal error shown by ErrorView (title/text/
+//                     onRetry), so the DebugTool Error tab can re-show it
 //   onBeforeRoundtrip, onAfterRoundtrip, onAfterRendering,
 //   onBeforeEventFrontend  callback arrays, see Lib.registerCallback
 sap.ui.define([], () => {
@@ -118,6 +120,7 @@ sap.ui.define([], () => {
       viewSizeLimits: {},
       treeStates: {},
       debugTool: null,
+      lastError: null,
 
       // Callback arrays (see Lib.registerCallback / Lib.runCallbacks)
       onBeforeRoundtrip: [],

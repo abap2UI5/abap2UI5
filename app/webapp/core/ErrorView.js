@@ -68,6 +68,14 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
         ? `${full.slice(0, ERROR_MAX_LENGTH)}\n\n[... truncated after ${ERROR_MAX_LENGTH} characters]`
         : full;
 
+    // Record the fatal error so the DebugTool's Error tab can re-show it
+    // (title, text and the same Retry action) after the overlay is gone.
+    AppState.state.lastError = {
+      title: title || "Application Error - Please Restart The App",
+      text: errorMessage,
+      onRetry: typeof options.onRetry === "function" ? options.onRetry : null,
+    };
+
     const errorContainer = createContainer();
 
     // Announce the overlay to assistive technology: without a dialog role
@@ -172,5 +180,5 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     if (firstButton) firstButton.focus();
   }
 
-  return { show };
+  return { show, handleLogout };
 });

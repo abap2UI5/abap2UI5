@@ -88,6 +88,14 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `        ? ``${full.slice(0, ERROR_MAX_LENGTH)}\n\n[... truncated after ${ERROR_MAX_LENGTH} characters]``` && |\n| &&
              `        : full;` && |\n| &&
              `` && |\n| &&
+             `    // Record the fatal error so the DebugTool's Error tab can re-show it` && |\n| &&
+             `    // (title, text and the same Retry action) after the overlay is gone.` && |\n| &&
+             `    AppState.state.lastError = {` && |\n| &&
+             `      title: title || "Application Error - Please Restart The App",` && |\n| &&
+             `      text: errorMessage,` && |\n| &&
+             `      onRetry: typeof options.onRetry === "function" ? options.onRetry : null,` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
              `    const errorContainer = createContainer();` && |\n| &&
              `` && |\n| &&
              `    // Announce the overlay to assistive technology: without a dialog role` && |\n| &&
@@ -192,7 +200,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    if (firstButton) firstButton.focus();` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  return { show };` && |\n| &&
+             `  return { show, handleLogout };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
               ``.

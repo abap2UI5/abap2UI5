@@ -26,8 +26,9 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
+             `    "z2ui5/core/ErrorView",` && |\n| &&
              `  ],` && |\n| &&
-             `  (Control, Fragment, JSONModel, Lib, ViewSlots, AppState) => {` && |\n| &&
+             `  (Control, Fragment, JSONModel, Lib, ViewSlots, AppState, ErrorView) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Fragment id under which the debug dialog's controls are registered;` && |\n| &&
@@ -119,6 +120,15 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      const errors = AppState.state.errors || [];` && |\n| &&
              `      if (!errors.length) return "(log is empty)";` && |\n| &&
              `      return errors.map((e) => ``${e.ts}  ${e.message}``).join("\n");` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // The last fatal error the ErrorView overlay showed (title + full text),` && |\n| &&
+             `    // so the Error tab reproduces the overlay's content. Empty when the app` && |\n| &&
+             `    // has not hit a fatal error this session.` && |\n| &&
+             `    function formatLastError() {` && |\n| &&
+             `      const err = AppState.state.lastError;` && |\n| &&
+             `      if (!err) return "(no fatal error captured this session)";` && |\n| &&
+             `      return err.title ? ``${err.title}\n\n${err.text}`` : err.text;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function getResponseXml(key) {` && |\n| &&
@@ -235,7 +245,41 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
+             `        if (selItem === "ERROR") {` && |\n| &&
+             `          this.showError(oEvent);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
              `        if (selItem === "SOURCE") this.showAbapSource(oEvent);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // Show the last fatal error (the ErrorView overlay's content) plus its` && |\n| &&
+             `      // action bar (Retry/Refresh/Logout). displayEditor writes the text and` && |\n| &&
+             `      // resets error_visible=false, so re-enable it and expose whether a` && |\n| &&
+             `      // Retry action was captured with this error.` && |\n| &&
+             `      showError(oEvent) {` && |\n| &&
+             `        this.displayEditor(oEvent, formatLastError(), "text");` && |\n| &&
+             `        const oModel = oEvent.getSource().getModel();` && |\n| &&
+             `        const modelData = oModel.getData();` && |\n| &&
+             `        modelData.error_visible = true;` && |\n| &&
+             `        modelData.hasRetry =` && |\n| &&
+             `          typeof AppState.state.lastError?.onRetry === "function";` && |\n| &&
+             `        oModel.refresh();` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // The Error tab's buttons mirror the ErrorView overlay: re-run the` && |\n| &&
+             `      // captured request, hard-reload, or log out (reusing ErrorView's own` && |\n| &&
+             `      // logout so the launchpad/fallback logic stays in one place).` && |\n| &&
+             `      onErrorRetry() {` && |\n| &&
+             `        const onRetry = AppState.state.lastError?.onRetry;` && |\n| &&
+             `        this.close();` && |\n| &&
+             `        if (typeof onRetry === "function") onRetry();` && |\n| &&
+             `      },` && |\n| &&
+             `      onErrorRefresh() {` && |\n| &&
+             `        window.location.reload();` && |\n| &&
+             `      },` && |\n| &&
+             `      onErrorLogout() {` && |\n| &&
+             `        ErrorView.handleLogout();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Show the ABAP source of the running app inside an iframe.` && |\n| &&
@@ -257,6 +301,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        const modelData = oModel.getData();` && |\n| &&
              `        modelData.editor_visible = false;` && |\n| &&
              `        modelData.source_visible = true;` && |\n| &&
+             `        modelData.error_visible = false;` && |\n| &&
              `        oModel.refresh();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -268,6 +313,9 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        const modelData = oModel.getData();` && |\n| &&
              `        modelData.editor_visible = true;` && |\n| &&
              `        modelData.source_visible = false;` && |\n| &&
+             `        // The error action bar belongs to the Error tab only; showError` && |\n| &&
+             `        // re-enables it right after calling displayEditor.` && |\n| &&
+             `        modelData.error_visible = false;` && |\n| &&
              `        modelData.isTemplating = Boolean(content?.includes("xmlns:template"));` && |\n| &&
              `        modelData.value = content;` && |\n| &&
              `        modelData.previousValue = content;` && |\n| &&
@@ -318,6 +366,9 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `            type: "json",` && |\n| &&
              `            source_visible: false,` && |\n| &&
              `            editor_visible: true,` && |\n| &&
+             `            error_visible: false,` && |\n| &&
+             `            hasError: Boolean(AppState.state.lastError),` && |\n| &&
+             `            hasRetry: typeof AppState.state.lastError?.onRetry === "function",` && |\n| &&
              `            value: value,` && |\n| &&
              `            xContent: "",` && |\n| &&
              `            previousValue: value,` && |\n| &&
@@ -366,7 +417,8 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `` && |\n| &&
              `      // The control itself renders nothing - it just provides the dialog API.` && |\n| &&
              `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
-             `    });` && |\n| &&
+             `    });` && |\n|.
+    result = result &&
              `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&

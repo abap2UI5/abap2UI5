@@ -6,8 +6,9 @@ sap.ui.define(
     "z2ui5/core/Lib",
     "z2ui5/core/ViewSlots",
     "z2ui5/core/AppState",
+    "z2ui5/core/ErrorView",
   ],
-  (Control, Fragment, JSONModel, Lib, ViewSlots, AppState) => {
+  (Control, Fragment, JSONModel, Lib, ViewSlots, AppState, ErrorView) => {
     "use strict";
 
     // Fragment id under which the debug dialog's controls are registered;
@@ -99,6 +100,15 @@ sap.ui.define(
       const errors = AppState.state.errors || [];
       if (!errors.length) return "(log is empty)";
       return errors.map((e) => `${e.ts}  ${e.message}`).join("\n");
+    }
+
+    // The last fatal error the ErrorView overlay showed (title + full text),
+    // so the Error tab reproduces the overlay's content. Empty when the app
+    // has not hit a fatal error this session.
+    function formatLastError() {
+      const err = AppState.state.lastError;
+      if (!err) return "(no fatal error captured this session)";
+      return err.title ? `${err.title}\n\n${err.text}` : err.text;
     }
 
     function getResponseXml(key) {
@@ -215,7 +225,41 @@ sap.ui.define(
           return;
         }
 
+        if (selItem === "ERROR") {
+          this.showError(oEvent);
+          return;
+        }
+
         if (selItem === "SOURCE") this.showAbapSource(oEvent);
+      },
+
+      // Show the last fatal error (the ErrorView overlay's content) plus its
+      // action bar (Retry/Refresh/Logout). displayEditor writes the text and
+      // resets error_visible=false, so re-enable it and expose whether a
+      // Retry action was captured with this error.
+      showError(oEvent) {
+        this.displayEditor(oEvent, formatLastError(), "text");
+        const oModel = oEvent.getSource().getModel();
+        const modelData = oModel.getData();
+        modelData.error_visible = true;
+        modelData.hasRetry =
+          typeof AppState.state.lastError?.onRetry === "function";
+        oModel.refresh();
+      },
+
+      // The Error tab's buttons mirror the ErrorView overlay: re-run the
+      // captured request, hard-reload, or log out (reusing ErrorView's own
+      // logout so the launchpad/fallback logic stays in one place).
+      onErrorRetry() {
+        const onRetry = AppState.state.lastError?.onRetry;
+        this.close();
+        if (typeof onRetry === "function") onRetry();
+      },
+      onErrorRefresh() {
+        window.location.reload();
+      },
+      onErrorLogout() {
+        ErrorView.handleLogout();
       },
 
       // Show the ABAP source of the running app inside an iframe.
@@ -237,6 +281,7 @@ sap.ui.define(
         const modelData = oModel.getData();
         modelData.editor_visible = false;
         modelData.source_visible = true;
+        modelData.error_visible = false;
         oModel.refresh();
       },
 
@@ -248,6 +293,9 @@ sap.ui.define(
         const modelData = oModel.getData();
         modelData.editor_visible = true;
         modelData.source_visible = false;
+        // The error action bar belongs to the Error tab only; showError
+        // re-enables it right after calling displayEditor.
+        modelData.error_visible = false;
         modelData.isTemplating = Boolean(content?.includes("xmlns:template"));
         modelData.value = content;
         modelData.previousValue = content;
@@ -298,6 +346,9 @@ sap.ui.define(
             type: "json",
             source_visible: false,
             editor_visible: true,
+            error_visible: false,
+            hasError: Boolean(AppState.state.lastError),
+            hasRetry: typeof AppState.state.lastError?.onRetry === "function",
             value: value,
             xContent: "",
             previousValue: value,

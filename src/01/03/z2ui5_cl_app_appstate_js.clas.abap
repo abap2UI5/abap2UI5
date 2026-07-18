@@ -94,6 +94,8 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `//   viewSizeLimits    per-slot model size limits (FrontendAction)` && |\n| &&
              `//   treeStates        tree binding state per tree_id across rebuilds (Tree control)` && |\n| &&
              `//   debugTool         DebugTool instance (Component, Ctrl+F12)` && |\n| &&
+             `//   lastError         the last fatal error shown by ErrorView (title/text/` && |\n| &&
+             `//                     onRetry), so the DebugTool Error tab can re-show it` && |\n| &&
              `//   onBeforeRoundtrip, onAfterRoundtrip, onAfterRendering,` && |\n| &&
              `//   onBeforeEventFrontend  callback arrays, see Lib.registerCallback` && |\n| &&
              `sap.ui.define([], () => {` && |\n| &&
@@ -138,6 +140,7 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `      viewSizeLimits: {},` && |\n| &&
              `      treeStates: {},` && |\n| &&
              `      debugTool: null,` && |\n| &&
+             `      lastError: null,` && |\n| &&
              `` && |\n| &&
              `      // Callback arrays (see Lib.registerCallback / Lib.runCallbacks)` && |\n| &&
              `      onBeforeRoundtrip: [],` && |\n| &&

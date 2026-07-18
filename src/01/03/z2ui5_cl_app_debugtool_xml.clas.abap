@@ -33,6 +33,13 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `        >` &&
              `            <items>` &&
              `                <IconTabFilter` &&
+             `                    text="Error"` &&
+             `                    key="ERROR"` &&
+             `                    icon="sap-icon://alert"` &&
+             `                    iconColor="Negative"` &&
+             `                    enabled="{/hasError}"` &&
+             `                />` &&
+             `                <IconTabFilter` &&
              `                    text="Log"` &&
              `                    key="LOG"` &&
              `                />` &&
@@ -104,6 +111,25 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `                />` &&
              `            </items>` &&
              `        </IconTabHeader>` &&
+             `        <OverflowToolbar visible="{/error_visible}">` &&
+             `            <Button` &&
+             `                text="Retry"` &&
+             `                type="Emphasized"` &&
+             `                icon="sap-icon://refresh"` &&
+             `                visible="{/hasRetry}"` &&
+             `                press=".onErrorRetry"` &&
+             `            />` &&
+             `            <Button` &&
+             `                text="Refresh"` &&
+             `                icon="sap-icon://restart"` &&
+             `                press=".onErrorRefresh"` &&
+             `            />` &&
+             `            <Button` &&
+             `                text="Logout"` &&
+             `                icon="sap-icon://log"` &&
+             `                press=".onErrorLogout"` &&
+             `            />` &&
+             `        </OverflowToolbar>` &&
              `        <VBox>` &&
              `            <ToggleButton text="Source XML after Templating" visible="{/isTemplating}" pressed="{/templatingSource}" press=".onTemplatingPress" />` &&
              `            <ce:CodeEditor` &&

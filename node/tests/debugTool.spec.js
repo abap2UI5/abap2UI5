@@ -23,12 +23,21 @@ function fakeXmlView(viewContent) {
   };
 }
 
-function loadDebugTool({ views = {}, oResponse = null, errors } = {}) {
+function loadDebugTool({
+  views = {},
+  oResponse = null,
+  errors,
+  lastError = null,
+  logoutCalls,
+} = {}) {
   const AppState = {
-    state: { oResponse, responseData: null, oBody: null, errors },
+    state: { oResponse, responseData: null, oBody: null, errors, lastError },
     getGlobal: () => undefined,
   };
   const ViewSlots = { getView: (key) => views[key] };
+  const ErrorView = {
+    handleLogout: () => logoutCalls?.push(true),
+  };
   // Control.extend returns the class spec itself; the spec's methods are
   // then invoked with the spec as `this`, close enough to the UI5 runtime
   // for these prototype methods.
@@ -38,6 +47,7 @@ function loadDebugTool({ views = {}, oResponse = null, errors } = {}) {
       "sap/ui/core/Control": Control,
       "z2ui5/core/ViewSlots": ViewSlots,
       "z2ui5/core/AppState": AppState,
+      "z2ui5/core/ErrorView": ErrorView,
     },
     sandbox: {
       XMLSerializer: class {
@@ -125,6 +135,74 @@ test.describe("Log tab", () => {
     DebugTool.onItemSelect(oEvent);
     expect(modelData.value).toBe("(log is empty)");
     expect(modelData.type).toBe("text");
+  });
+});
+
+test.describe("Error tab", () => {
+  test("shows the captured fatal error title + text and the action bar", () => {
+    const { DebugTool } = loadDebugTool({
+      lastError: {
+        title: "App Terminated",
+        text: "backend dump...",
+        onRetry: () => {},
+      },
+    });
+    const { oEvent, modelData } = fakeSelectEvent("ERROR");
+    DebugTool.onItemSelect(oEvent);
+    expect(modelData.value).toBe("App Terminated\n\nbackend dump...");
+    expect(modelData.type).toBe("text");
+    expect(modelData.error_visible).toBe(true);
+    expect(modelData.hasRetry).toBe(true);
+  });
+
+  test("hides Retry when the fatal error carried no retry action", () => {
+    const { DebugTool } = loadDebugTool({
+      lastError: { title: "", text: "client crash", onRetry: null },
+    });
+    const { oEvent, modelData } = fakeSelectEvent("ERROR");
+    DebugTool.onItemSelect(oEvent);
+    expect(modelData.value).toBe("client crash");
+    expect(modelData.hasRetry).toBe(false);
+  });
+
+  test("placeholder when no fatal error was captured", () => {
+    const { DebugTool } = loadDebugTool();
+    const { oEvent, modelData } = fakeSelectEvent("ERROR");
+    DebugTool.onItemSelect(oEvent);
+    expect(modelData.value).toBe("(no fatal error captured this session)");
+    expect(modelData.error_visible).toBe(true);
+  });
+
+  test("switching to another tab hides the error action bar", () => {
+    const { DebugTool } = loadDebugTool({
+      lastError: { title: "x", text: "y", onRetry: null },
+      errors: [],
+    });
+    const err = fakeSelectEvent("ERROR");
+    DebugTool.onItemSelect(err.oEvent);
+    expect(err.modelData.error_visible).toBe(true);
+    const log = fakeSelectEvent("LOG");
+    DebugTool.onItemSelect(log.oEvent);
+    expect(log.modelData.error_visible).toBe(false);
+  });
+
+  test("onErrorRetry runs the captured retry action", () => {
+    let retried = 0;
+    const { DebugTool } = loadDebugTool({
+      lastError: { title: "x", text: "y", onRetry: () => (retried += 1) },
+    });
+    DebugTool.onErrorRetry();
+    expect(retried).toBe(1);
+  });
+
+  test("onErrorLogout delegates to ErrorView.handleLogout", () => {
+    const logoutCalls = [];
+    const { DebugTool } = loadDebugTool({
+      lastError: { title: "x", text: "y", onRetry: null },
+      logoutCalls,
+    });
+    DebugTool.onErrorLogout();
+    expect(logoutCalls).toEqual([true]);
   });
 });
 
