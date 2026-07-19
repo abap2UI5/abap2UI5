@@ -264,6 +264,28 @@ test.describe("System tab folding", () => {
   });
 });
 
+test.describe("Export", () => {
+  test("buildExport concatenates the available (non-empty) sections", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      lastError: { title: "App Terminated", text: "backend dump", onRetry: null },
+      errors: [{ message: "boom", ts: "2026-01-01T00:00:00.000Z" }],
+    });
+    const out = DeveloperTools.buildExport();
+    expect(out).toContain("===== ERROR =====");
+    expect(out).toContain("App Terminated");
+    expect(out).toContain("backend dump");
+    expect(out).toContain("===== LOG =====");
+    expect(out).toContain("2026-01-01T00:00:00.000Z  boom");
+  });
+
+  test("omits the ERROR section when no fatal error was captured", () => {
+    const { DeveloperTools } = loadDeveloperTools();
+    const out = DeveloperTools.buildExport();
+    expect(out).not.toContain("===== ERROR =====");
+    expect(out).toContain("===== LOG =====");
+  });
+});
+
 test.describe("Close / Escape returns to the error popup", () => {
   test("closing after Details re-shows the error popup", () => {
     const reopenCalls = [];

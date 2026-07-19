@@ -307,6 +307,87 @@ sap.ui.define(
         ErrorView.handleLogout();
       },
 
+      // Collect the content of every developer-tools tab into one plain-text
+      // blob so it can be copied elsewhere in one go. XML tabs are
+      // pretty-printed, JSON tabs serialized; empty / inactive sections are
+      // skipped so the export only carries what is actually there.
+      buildExport() {
+        const sections = [];
+        const add = (title, content) => {
+          if (content) sections.push(`===== ${title} =====\n${content}`);
+        };
+        const addJson = (title, value) => {
+          if (value !== undefined && value !== null) add(title, toJson(value));
+        };
+        const addXml = (title, xml) => add(title, this.prettifyXml(xml));
+
+        if (AppState.state.lastError) add("ERROR", formatLastError());
+        add("LOG", formatErrorLog());
+        addJson("SYSTEM", jsonSources.SYSTEM());
+        addJson("RESPONSE", jsonSources.PLAIN());
+        addJson("PREVIOUS REQUEST", jsonSources.REQUEST());
+        addXml("VIEW", xmlSources.VIEW().xml);
+        addJson("VIEW MODEL", jsonSources.MODEL());
+        if (getResponseXml("S_POPUP")) {
+          addXml("POPUP", xmlSources.POPUP().xml);
+          addJson("POPUP MODEL", jsonSources.POPUP_MODEL());
+        }
+        if (getResponseXml("S_POPOVER")) {
+          addXml("POPOVER", xmlSources.POPOVER().xml);
+          addJson("POPOVER MODEL", jsonSources.POPOVER_MODEL());
+        }
+        if (getViewContent(ViewSlots.getView("NEST"))) {
+          addXml("NEST1", xmlSources.NEST1().xml);
+          addJson("NEST1 MODEL", jsonSources.NEST1_MODEL());
+        }
+        if (getViewContent(ViewSlots.getView("NEST2"))) {
+          addXml("NEST2", xmlSources.NEST2().xml);
+          addJson("NEST2 MODEL", jsonSources.NEST2_MODEL());
+        }
+        return sections.join("\n\n");
+      },
+
+      // Show the whole export in a stretched popup with a read-through TextArea
+      // (selectable for manual copy) and a one-click "Copy to Clipboard".
+      onExport() {
+        const text = this.buildExport();
+        sap.ui.require(
+          ["sap/m/Dialog", "sap/m/TextArea", "sap/m/Button"],
+          (Dialog, TextArea, Button) => {
+            const area = new TextArea({
+              value: text,
+              editable: true,
+              width: "100%",
+              rows: 25,
+            });
+            const dialog = new Dialog({
+              title: "abap2UI5 - Developer Tools Export",
+              stretch: true,
+              content: [area],
+              beginButton: new Button({
+                text: "Copy to Clipboard",
+                type: "Emphasized",
+                press: () => {
+                  try {
+                    navigator.clipboard?.writeText(text);
+                  } catch {
+                    // Clipboard API unavailable (e.g. non-secure context);
+                    // the TextArea stays selectable for a manual copy.
+                  }
+                },
+              }),
+              endButton: new Button({
+                text: "Close",
+                press: () => dialog.close(),
+              }),
+              afterClose: () => dialog.destroy(),
+            });
+            dialog.addStyleClass("dbg-ltr");
+            dialog.open();
+          },
+        );
+      },
+
       // The CodeEditor's underlying ACE editor, or null if it does not exist
       // yet (created on the CodeEditor's first render) or the build exposes no
       // internal instance.

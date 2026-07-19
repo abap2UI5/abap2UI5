@@ -327,6 +327,87 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `        ErrorView.handleLogout();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      // Collect the content of every developer-tools tab into one plain-text` && |\n| &&
+             `      // blob so it can be copied elsewhere in one go. XML tabs are` && |\n| &&
+             `      // pretty-printed, JSON tabs serialized; empty / inactive sections are` && |\n| &&
+             `      // skipped so the export only carries what is actually there.` && |\n| &&
+             `      buildExport() {` && |\n| &&
+             `        const sections = [];` && |\n| &&
+             `        const add = (title, content) => {` && |\n| &&
+             `          if (content) sections.push(``===== ${title} =====\n${content}``);` && |\n| &&
+             `        };` && |\n| &&
+             `        const addJson = (title, value) => {` && |\n| &&
+             `          if (value !== undefined && value !== null) add(title, toJson(value));` && |\n| &&
+             `        };` && |\n| &&
+             `        const addXml = (title, xml) => add(title, this.prettifyXml(xml));` && |\n| &&
+             `` && |\n| &&
+             `        if (AppState.state.lastError) add("ERROR", formatLastError());` && |\n| &&
+             `        add("LOG", formatErrorLog());` && |\n| &&
+             `        addJson("SYSTEM", jsonSources.SYSTEM());` && |\n| &&
+             `        addJson("RESPONSE", jsonSources.PLAIN());` && |\n| &&
+             `        addJson("PREVIOUS REQUEST", jsonSources.REQUEST());` && |\n| &&
+             `        addXml("VIEW", xmlSources.VIEW().xml);` && |\n| &&
+             `        addJson("VIEW MODEL", jsonSources.MODEL());` && |\n| &&
+             `        if (getResponseXml("S_POPUP")) {` && |\n| &&
+             `          addXml("POPUP", xmlSources.POPUP().xml);` && |\n| &&
+             `          addJson("POPUP MODEL", jsonSources.POPUP_MODEL());` && |\n| &&
+             `        }` && |\n| &&
+             `        if (getResponseXml("S_POPOVER")) {` && |\n| &&
+             `          addXml("POPOVER", xmlSources.POPOVER().xml);` && |\n| &&
+             `          addJson("POPOVER MODEL", jsonSources.POPOVER_MODEL());` && |\n| &&
+             `        }` && |\n| &&
+             `        if (getViewContent(ViewSlots.getView("NEST"))) {` && |\n| &&
+             `          addXml("NEST1", xmlSources.NEST1().xml);` && |\n| &&
+             `          addJson("NEST1 MODEL", jsonSources.NEST1_MODEL());` && |\n| &&
+             `        }` && |\n| &&
+             `        if (getViewContent(ViewSlots.getView("NEST2"))) {` && |\n| &&
+             `          addXml("NEST2", xmlSources.NEST2().xml);` && |\n| &&
+             `          addJson("NEST2 MODEL", jsonSources.NEST2_MODEL());` && |\n| &&
+             `        }` && |\n| &&
+             `        return sections.join("\n\n");` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // Show the whole export in a stretched popup with a read-through TextArea` && |\n| &&
+             `      // (selectable for manual copy) and a one-click "Copy to Clipboard".` && |\n| &&
+             `      onExport() {` && |\n| &&
+             `        const text = this.buildExport();` && |\n| &&
+             `        sap.ui.require(` && |\n| &&
+             `          ["sap/m/Dialog", "sap/m/TextArea", "sap/m/Button"],` && |\n| &&
+             `          (Dialog, TextArea, Button) => {` && |\n| &&
+             `            const area = new TextArea({` && |\n| &&
+             `              value: text,` && |\n| &&
+             `              editable: true,` && |\n| &&
+             `              width: "100%",` && |\n| &&
+             `              rows: 25,` && |\n| &&
+             `            });` && |\n| &&
+             `            const dialog = new Dialog({` && |\n| &&
+             `              title: "abap2UI5 - Developer Tools Export",` && |\n| &&
+             `              stretch: true,` && |\n| &&
+             `              content: [area],` && |\n| &&
+             `              beginButton: new Button({` && |\n| &&
+             `                text: "Copy to Clipboard",` && |\n| &&
+             `                type: "Emphasized",` && |\n| &&
+             `                press: () => {` && |\n| &&
+             `                  try {` && |\n| &&
+             `                    navigator.clipboard?.writeText(text);` && |\n| &&
+             `                  } catch {` && |\n| &&
+             `                    // Clipboard API unavailable (e.g. non-secure context);` && |\n| &&
+             `                    // the TextArea stays selectable for a manual copy.` && |\n| &&
+             `                  }` && |\n| &&
+             `                },` && |\n| &&
+             `              }),` && |\n| &&
+             `              endButton: new Button({` && |\n| &&
+             `                text: "Close",` && |\n| &&
+             `                press: () => dialog.close(),` && |\n| &&
+             `              }),` && |\n| &&
+             `              afterClose: () => dialog.destroy(),` && |\n| &&
+             `            });` && |\n| &&
+             `            dialog.addStyleClass("dbg-ltr");` && |\n| &&
+             `            dialog.open();` && |\n| &&
+             `          },` && |\n| &&
+             `        );` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      // The CodeEditor's underlying ACE editor, or null if it does not exist` && |\n| &&
              `      // yet (created on the CodeEditor's first render) or the build exposes no` && |\n| &&
              `      // internal instance.` && |\n| &&
@@ -336,7 +417,8 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `          ? ce.getInternalEditorInstance()` && |\n| &&
              `          : null;` && |\n| &&
              `      },` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `      // Fold the System tab's JSON down to the first SYSTEM_OPEN_LEVELS levels.` && |\n| &&
              `      // The ACE editor is created lazily on the CodeEditor's first render, so` && |\n| &&
              `      // on the very first open we retry briefly until it exists. Best-effort:` && |\n| &&
@@ -417,8 +499,7 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `      onClose() {` && |\n| &&
              `        this.close();` && |\n| &&
              `      },` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `      // sap.m.Dialog closes on Escape without routing through onClose; handle` && |\n| &&
              `      // it ourselves (reject the default, run our close) so Escape behaves` && |\n| &&
              `      // exactly like the Close button - including re-showing the error popup.` && |\n| &&

@@ -138,6 +138,11 @@ CLASS z2ui5_cl_app_developertool_xml IMPLEMENTATION.
              `                />` &&
              `                <ToolbarSpacer/>` &&
              `                <Button` &&
+             `                    text="Export"` &&
+             `                    icon="sap-icon://download"` &&
+             `                    press=".onExport"` &&
+             `                />` &&
+             `                <Button` &&
              `                    text="Retry"` &&
              `                    type="Emphasized"` &&
              `                    icon="sap-icon://refresh"` &&
