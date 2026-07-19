@@ -15,29 +15,62 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   // full text stays on the DebugTool's Error tab); longer previews are cut.
   const PREVIEW_MAX_LENGTH = 500;
 
-  // Turn the raw error text into a one-glance preview for the friendly
-  // dialog. Backend errors often arrive as a whole HTML page (an ABAP dump
-  // rendered as a 500 error page), so drop <script>/<style> blocks and the
-  // remaining tags, decode the few common entities, collapse whitespace and
-  // cut to a readable length. Rendered as plain MessageBox text, so the
-  // stripped markup cannot execute.
-  function buildErrorPreview(text) {
-    if (!text) return "";
-    let preview = text;
-    if (/<[a-z][\s\S]*>/i.test(preview)) {
-      preview = preview
-        .replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ")
-        .replace(/<[^>]+>/g, " ");
-    }
-    preview = preview
+  // Decode the HTML entities that turn up in backend error pages. Non-ASCII
+  // replacements go through fromCharCode so this source file stays 7-bit ASCII
+  // (it is embedded verbatim into an ABAP class). &amp; is decoded last so an
+  // already-encoded entity is not decoded twice.
+  function decodeEntities(s) {
+    return s
       .replace(/&nbsp;/gi, " ")
       .replace(/&lt;/gi, "<")
       .replace(/&gt;/gi, ">")
       .replace(/&quot;/gi, '"')
-      .replace(/&#39;/gi, "'")
-      .replace(/&amp;/gi, "&")
+      .replace(/&apos;|&#0*39;/gi, "'")
+      .replace(/&copy;/gi, String.fromCharCode(169))
+      .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+      .replace(/&#x([0-9a-f]+);/gi, (_, n) =>
+        String.fromCharCode(parseInt(n, 16)),
+      )
+      .replace(/&amp;/gi, "&");
+  }
+
+  const cleanText = (s) =>
+    decodeEntities(s.replace(/<[^>]+>/g, " "))
       .replace(/\s+/g, " ")
       .trim();
+
+  // Pull just the meaningful message out of a SAP application-server error
+  // page: the error header (e.g. "500 Internal Server Error") and the message
+  // paragraphs (e.g. "Division by zero"). Everything else - page title, footer,
+  // copyright, the client-side clock <script> after "Server time:" - is noise
+  // and dropped. Returns "" when the text is not such a page.
+  function extractServerError(html) {
+    const parts = [];
+    const rx = /class="(?:errorTextHeader|detailText)"[^>]*>([\s\S]*?)<\/p>/gi;
+    let m;
+    while ((m = rx.exec(html))) parts.push(cleanText(m[1]));
+    return parts
+      .filter(Boolean)
+      .filter((t) => !/^server time:/i.test(t))
+      .join(" - ");
+  }
+
+  // Turn the raw error text into a one-glance preview for the friendly dialog.
+  // Backend errors often arrive as a whole HTML page (an ABAP dump rendered as
+  // a 500 error page): prefer the structured error message, else fall back to
+  // stripping script/style/title and the remaining tags. Rendered as plain
+  // MessageBox text, so the stripped markup cannot execute.
+  function buildErrorPreview(text) {
+    if (!text) return "";
+    let preview = text;
+    if (/<[a-z][\s\S]*>/i.test(preview)) {
+      preview =
+        extractServerError(preview) ||
+        cleanText(
+          preview.replace(/<(script|style|title)[\s\S]*?<\/\1>/gi, " "),
+        );
+    }
+    preview = preview.replace(/\s+/g, " ").trim();
     return preview.length > PREVIEW_MAX_LENGTH
       ? `${preview.slice(0, PREVIEW_MAX_LENGTH)}...`
       : preview;
@@ -93,20 +126,19 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     }
   }
 
-  // The friendly UI5 error dialog shown first: a short message - including a
-  // preview of the actual error so the cause is visible at a glance - with a
-  // Details action (jump into the DebugTool for the full text) and a Restart
-  // action (reload). Returns true when it was shown, false when UI5 could not
-  // render it so the caller falls back to the raw-DOM overlay. sap/m/MessageBox
-  // is required lazily so ErrorView never hard-depends on a renderable core.
+  // The friendly UI5 error dialog shown first: the extracted error text so the
+  // cause is visible at a glance, with a Details action (jump into the DebugTool
+  // for the full text) and a Restart action (reload). Returns true when it was
+  // shown, false when UI5 could not render it so the caller falls back to the
+  // raw-DOM overlay. sap/m/MessageBox is required lazily so ErrorView never
+  // hard-depends on a renderable core.
   function showFriendlyDialog(title, details) {
     try {
       const MessageBox = sap.ui.require("sap/m/MessageBox");
       if (!MessageBox) return false;
-      const preview = buildErrorPreview(details);
-      const message = preview
-        ? `An unexpected error occurred:\n\n${preview}`
-        : "An unexpected error occurred.";
+      // Show only the extracted error text; a short neutral fallback covers
+      // the rare case where nothing could be extracted.
+      const message = buildErrorPreview(details) || "An error occurred.";
       MessageBox.error(message, {
         title: title || "Application Error",
         actions: ["Details", "Restart"],

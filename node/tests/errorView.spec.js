@@ -56,7 +56,7 @@ test.describe("ErrorView friendly dialog", () => {
     expect(state.lastError.onRetry).toBe(onRetry);
   });
 
-  test("shows a MessageBox with Details + Restart actions and the error preview", () => {
+  test("shows a MessageBox with Details + Restart actions and only the error text", () => {
     const calls = [];
     const messageBox = {
       error: (message, opts) => calls.push({ message, opts }),
@@ -64,33 +64,38 @@ test.describe("ErrorView friendly dialog", () => {
     const { ErrorView } = load({ messageBox });
     ErrorView.show("some backend dump");
     expect(calls).toHaveLength(1);
-    expect(calls[0].message).toBe(
-      "An unexpected error occurred:\n\nsome backend dump",
-    );
+    // No "An unexpected error occurred" prefix - just the error text.
+    expect(calls[0].message).toBe("some backend dump");
     expect(calls[0].opts.actions).toEqual(["Details", "Restart"]);
     expect(calls[0].opts.emphasizedAction).toBe("Restart");
   });
 
-  test("previews the meaningful text of an HTML backend dump", () => {
+  test("extracts just the error message from a SAP server error page", () => {
     const calls = [];
     const messageBox = {
       error: (message, opts) => calls.push({ message, opts }),
     };
     const { ErrorView } = load({ messageBox });
     const htmlDump = [
-      "<!DOCTYPE html><html><head><style>body { color: red; }</style>",
+      "<!DOCTYPE html><html><head><title>Application Server Error</title>",
+      "<style>body { color: red; }</style>",
       '<script>var d = "20260719";</script></head><body>',
-      '<p class="errorTextHeader">500 Internal Server Error</p>',
-      '<p class="detailText">Division by zero</p>',
+      '<p class="errorTextHeader"> <span >500 Internal Server Error</span> </p>',
+      '<p class="detailText"> <span id="msgText">Division by zero</span></p>',
+      '<p class="detailText"> <span id="msgText">Server time: <script>document.write(d);</script></span> </p>',
+      '<div class="footerRight"><p class="bottomText"><span>&copy;</span> 2026 SAP SE, All rights reserved.</p></div>',
       "</body></html>",
     ].join("");
     ErrorView.show(htmlDump);
-    // <style>/<script> contents are dropped; the visible text survives.
-    expect(calls[0].message).toContain("500 Internal Server Error");
-    expect(calls[0].message).toContain("Division by zero");
+    // Only the header + the real message survive, joined with " - ".
+    expect(calls[0].message).toBe("500 Internal Server Error - Division by zero");
+    // Noise is gone: page title, clock, copyright, styles, scripts, tags.
+    expect(calls[0].message).not.toContain("Application Server Error");
+    expect(calls[0].message).not.toContain("Server time");
+    expect(calls[0].message).not.toContain("SAP SE");
     expect(calls[0].message).not.toContain("color: red");
     expect(calls[0].message).not.toContain("20260719");
-    expect(calls[0].message).not.toContain("<p");
+    expect(calls[0].message).not.toContain("<");
   });
 
   test("truncates a long preview but keeps the full text for the Error tab", () => {
