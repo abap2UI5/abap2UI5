@@ -548,9 +548,12 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `        const appName = sFront?.APP || "";` && |\n| &&
              `        const appId = encodeURIComponent(appName);` && |\n| &&
              `        const url = ``${window.location.origin}/sap/bc/adt/oo/classes/${appId}/source/main``;` && |\n| &&
-             `        contentControl.setProperty(` && |\n| &&
-             `          "content",` && |\n| &&
-             `          ``<iframe id="test" src="${url}" style="width:100%;height:85vh;border:none;" />``,` && |\n| &&
+             `        // setContent (not a bare setProperty) so an already rendered iframe` && |\n| &&
+             `        // is replaced in the live DOM; a plain property set never reached` && |\n| &&
+             `        // the DOM once the control had rendered, leaving a stale class` && |\n| &&
+             `        // on screen after navigating to another app.` && |\n| &&
+             `        contentControl.setContent(` && |\n| &&
+             `          ``<iframe src="${url}" style="width:100%;height:85vh;border:none;" />``,` && |\n| &&
              `        );` && |\n| &&
              `` && |\n| &&
              `        if (!oModel) return;` && |\n| &&
