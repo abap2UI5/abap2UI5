@@ -330,56 +330,135 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `      // Collect the content of every developer-tools tab into one plain-text` && |\n| &&
              `      // blob so it can be copied elsewhere in one go. XML tabs are` && |\n| &&
              `      // pretty-printed, JSON tabs serialized; empty / inactive sections are` && |\n| &&
-             `      // skipped so the export only carries what is actually there.` && |\n| &&
+             `      // skipped. Every source is guarded (a throwing one can never blank the` && |\n| &&
+             `      // whole export) and each section is capped, because the SYSTEM global can` && |\n| &&
+             `      // serialize to several MB - a value that large blanks a sap.m.TextArea.` && |\n| &&
              `      buildExport() {` && |\n| &&
+             `        // Max characters per section; long ones (mainly SYSTEM) are truncated` && |\n| &&
+             `        // so the popup's TextArea still renders.` && |\n| &&
+             `        const MAX_SECTION = 100000;` && |\n| &&
              `        const sections = [];` && |\n| &&
-             `        const add = (title, content) => {` && |\n| &&
-             `          if (content) sections.push(``===== ${title} =====\n${content}``);` && |\n| &&
+             `        const push = (title, content) => {` && |\n| &&
+             `          if (!content) return;` && |\n| &&
+             `          let body = String(content);` && |\n| &&
+             `          if (body.length > MAX_SECTION) {` && |\n| &&
+             `            body = ``${body.slice(0, MAX_SECTION)}\n\n... [truncated ${body.length - MAX_SECTION} more characters - open the ${title} tab for the full content]``;` && |\n| &&
+             `          }` && |\n| &&
+             `          sections.push(``===== ${title} =====\n${body}``);` && |\n| &&
              `        };` && |\n| &&
-             `        const addJson = (title, value) => {` && |\n| &&
-             `          if (value !== undefined && value !== null) add(title, toJson(value));` && |\n| &&
+             `        const json = (fn) => {` && |\n| &&
+             `          try {` && |\n| &&
+             `            const v = fn();` && |\n| &&
+             `            return v === undefined || v === null ? "" : toJson(v);` && |\n| &&
+             `          } catch {` && |\n| &&
+             `            return "";` && |\n| &&
+             `          }` && |\n| &&
              `        };` && |\n| &&
-             `        const addXml = (title, xml) => add(title, this.prettifyXml(xml));` && |\n| &&
+             `        const xml = (fn) => {` && |\n| &&
+             `          try {` && |\n| &&
+             `            return this.prettifyXml(fn());` && |\n| &&
+             `          } catch {` && |\n| &&
+             `            return "";` && |\n| &&
+             `          }` && |\n| &&
+             `        };` && |\n| &&
+             `        const text = (fn) => {` && |\n| &&
+             `          try {` && |\n| &&
+             `            return fn() || "";` && |\n| &&
+             `          } catch {` && |\n| &&
+             `            return "";` && |\n| &&
+             `          }` && |\n| &&
+             `        };` && |\n| &&
              `` && |\n| &&
-             `        if (AppState.state.lastError) add("ERROR", formatLastError());` && |\n| &&
-             `        add("LOG", formatErrorLog());` && |\n| &&
-             `        addJson("SYSTEM", jsonSources.SYSTEM());` && |\n| &&
-             `        addJson("RESPONSE", jsonSources.PLAIN());` && |\n| &&
-             `        addJson("PREVIOUS REQUEST", jsonSources.REQUEST());` && |\n| &&
-             `        addXml("VIEW", xmlSources.VIEW().xml);` && |\n| &&
-             `        addJson("VIEW MODEL", jsonSources.MODEL());` && |\n| &&
+             `        if (AppState.state.lastError) push("ERROR", text(formatLastError));` && |\n| &&
+             `        push("LOG", text(formatErrorLog));` && |\n| &&
+             `        push(` && |\n| &&
+             `          "RESPONSE",` && |\n| &&
+             `          json(() => jsonSources.PLAIN()),` && |\n| &&
+             `        );` && |\n| &&
+             `        push(` && |\n| &&
+             `          "PREVIOUS REQUEST",` && |\n| &&
+             `          json(() => jsonSources.REQUEST()),` && |\n| &&
+             `        );` && |\n| &&
+             `        push(` && |\n| &&
+             `          "VIEW",` && |\n| &&
+             `          xml(() => xmlSources.VIEW().xml),` && |\n| &&
+             `        );` && |\n| &&
+             `        push(` && |\n| &&
+             `          "VIEW MODEL",` && |\n| &&
+             `          json(() => jsonSources.MODEL()),` && |\n| &&
+             `        );` && |\n| &&
              `        if (getResponseXml("S_POPUP")) {` && |\n| &&
-             `          addXml("POPUP", xmlSources.POPUP().xml);` && |\n| &&
-             `          addJson("POPUP MODEL", jsonSources.POPUP_MODEL());` && |\n| &&
+             `          push(` && |\n| &&
+             `            "POPUP",` && |\n| &&
+             `            xml(() => xmlSources.POPUP().xml),` && |\n| &&
+             `          );` && |\n| &&
+             `          push(` && |\n| &&
+             `            "POPUP MODEL",` && |\n| &&
+             `            json(() => jsonSources.POPUP_MODEL()),` && |\n| &&
+             `          );` && |\n| &&
              `        }` && |\n| &&
              `        if (getResponseXml("S_POPOVER")) {` && |\n| &&
-             `          addXml("POPOVER", xmlSources.POPOVER().xml);` && |\n| &&
-             `          addJson("POPOVER MODEL", jsonSources.POPOVER_MODEL());` && |\n| &&
+             `          push(` && |\n| &&
+             `            "POPOVER",` && |\n| &&
+             `            xml(() => xmlSources.POPOVER().xml),` && |\n| &&
+             `          );` && |\n| &&
+             `          push(` && |\n| &&
+             `            "POPOVER MODEL",` && |\n| &&
+             `            json(() => jsonSources.POPOVER_MODEL()),` && |\n| &&
+             `          );` && |\n| &&
              `        }` && |\n| &&
              `        if (getViewContent(ViewSlots.getView("NEST"))) {` && |\n| &&
-             `          addXml("NEST1", xmlSources.NEST1().xml);` && |\n| &&
-             `          addJson("NEST1 MODEL", jsonSources.NEST1_MODEL());` && |\n| &&
+             `          push(` && |\n| &&
+             `            "NEST1",` && |\n| &&
+             `            xml(() => xmlSources.NEST1().xml),` && |\n| &&
+             `          );` && |\n| &&
+             `          push(` && |\n| &&
+             `            "NEST1 MODEL",` && |\n| &&
+             `            json(() => jsonSources.NEST1_MODEL()),` && |\n| &&
+             `          );` && |\n| &&
              `        }` && |\n| &&
-             `        if (getViewContent(ViewSlots.getView("NEST2"))) {` && |\n| &&
-             `          addXml("NEST2", xmlSources.NEST2().xml);` && |\n| &&
-             `          addJson("NEST2 MODEL", jsonSources.NEST2_MODEL());` && |\n| &&
+             `        if (getViewContent(ViewSlots.getView("NEST2"))) {` && |\n|.
+    result = result &&
+             `          push(` && |\n| &&
+             `            "NEST2",` && |\n| &&
+             `            xml(() => xmlSources.NEST2().xml),` && |\n| &&
+             `          );` && |\n| &&
+             `          push(` && |\n| &&
+             `            "NEST2 MODEL",` && |\n| &&
+             `            json(() => jsonSources.NEST2_MODEL()),` && |\n| &&
+             `          );` && |\n| &&
              `        }` && |\n| &&
-             `        return sections.join("\n\n");` && |\n| &&
+             `        // SYSTEM (the whole z2ui5 global) is the largest by far - keep it last` && |\n| &&
+             `        // so the useful sections come first even after truncation.` && |\n| &&
+             `        push(` && |\n| &&
+             `          "SYSTEM",` && |\n| &&
+             `          json(() => jsonSources.SYSTEM()),` && |\n| &&
+             `        );` && |\n| &&
+             `` && |\n| &&
+             `        return sections.join("\n\n") || "(nothing to export)";` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Show the whole export in a stretched popup with a read-through TextArea` && |\n| &&
              `      // (selectable for manual copy) and a one-click "Copy to Clipboard".` && |\n| &&
              `      onExport() {` && |\n| &&
-             `        const text = this.buildExport();` && |\n| &&
+             `        let text;` && |\n| &&
+             `        try {` && |\n| &&
+             `          text = this.buildExport();` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          text = ``(export failed: ${e?.message || e})``;` && |\n| &&
+             `        }` && |\n| &&
              `        sap.ui.require(` && |\n| &&
              `          ["sap/m/Dialog", "sap/m/TextArea", "sap/m/Button"],` && |\n| &&
              `          (Dialog, TextArea, Button) => {` && |\n| &&
              `            const area = new TextArea({` && |\n| &&
-             `              value: text,` && |\n| &&
              `              editable: true,` && |\n| &&
              `              width: "100%",` && |\n| &&
              `              rows: 25,` && |\n| &&
+             `              growing: false,` && |\n| &&
              `            });` && |\n| &&
+             `            // Set the value explicitly (not only via the constructor) so a` && |\n| &&
+             `            // large payload is applied reliably after the control exists.` && |\n| &&
+             `            area.setValue(text);` && |\n| &&
              `            const dialog = new Dialog({` && |\n| &&
              `              title: "abap2UI5 - Developer Tools Export",` && |\n| &&
              `              stretch: true,` && |\n| &&
@@ -417,8 +496,7 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `          ? ce.getInternalEditorInstance()` && |\n| &&
              `          : null;` && |\n| &&
              `      },` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `      // Fold the System tab's JSON down to the first SYSTEM_OPEN_LEVELS levels.` && |\n| &&
              `      // The ACE editor is created lazily on the CodeEditor's first render, so` && |\n| &&
              `      // on the very first open we retry briefly until it exists. Best-effort:` && |\n| &&

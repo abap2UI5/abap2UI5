@@ -310,56 +310,134 @@ sap.ui.define(
       // Collect the content of every developer-tools tab into one plain-text
       // blob so it can be copied elsewhere in one go. XML tabs are
       // pretty-printed, JSON tabs serialized; empty / inactive sections are
-      // skipped so the export only carries what is actually there.
+      // skipped. Every source is guarded (a throwing one can never blank the
+      // whole export) and each section is capped, because the SYSTEM global can
+      // serialize to several MB - a value that large blanks a sap.m.TextArea.
       buildExport() {
+        // Max characters per section; long ones (mainly SYSTEM) are truncated
+        // so the popup's TextArea still renders.
+        const MAX_SECTION = 100000;
         const sections = [];
-        const add = (title, content) => {
-          if (content) sections.push(`===== ${title} =====\n${content}`);
+        const push = (title, content) => {
+          if (!content) return;
+          let body = String(content);
+          if (body.length > MAX_SECTION) {
+            body = `${body.slice(0, MAX_SECTION)}\n\n... [truncated ${body.length - MAX_SECTION} more characters - open the ${title} tab for the full content]`;
+          }
+          sections.push(`===== ${title} =====\n${body}`);
         };
-        const addJson = (title, value) => {
-          if (value !== undefined && value !== null) add(title, toJson(value));
+        const json = (fn) => {
+          try {
+            const v = fn();
+            return v === undefined || v === null ? "" : toJson(v);
+          } catch {
+            return "";
+          }
         };
-        const addXml = (title, xml) => add(title, this.prettifyXml(xml));
+        const xml = (fn) => {
+          try {
+            return this.prettifyXml(fn());
+          } catch {
+            return "";
+          }
+        };
+        const text = (fn) => {
+          try {
+            return fn() || "";
+          } catch {
+            return "";
+          }
+        };
 
-        if (AppState.state.lastError) add("ERROR", formatLastError());
-        add("LOG", formatErrorLog());
-        addJson("SYSTEM", jsonSources.SYSTEM());
-        addJson("RESPONSE", jsonSources.PLAIN());
-        addJson("PREVIOUS REQUEST", jsonSources.REQUEST());
-        addXml("VIEW", xmlSources.VIEW().xml);
-        addJson("VIEW MODEL", jsonSources.MODEL());
+        if (AppState.state.lastError) push("ERROR", text(formatLastError));
+        push("LOG", text(formatErrorLog));
+        push(
+          "RESPONSE",
+          json(() => jsonSources.PLAIN()),
+        );
+        push(
+          "PREVIOUS REQUEST",
+          json(() => jsonSources.REQUEST()),
+        );
+        push(
+          "VIEW",
+          xml(() => xmlSources.VIEW().xml),
+        );
+        push(
+          "VIEW MODEL",
+          json(() => jsonSources.MODEL()),
+        );
         if (getResponseXml("S_POPUP")) {
-          addXml("POPUP", xmlSources.POPUP().xml);
-          addJson("POPUP MODEL", jsonSources.POPUP_MODEL());
+          push(
+            "POPUP",
+            xml(() => xmlSources.POPUP().xml),
+          );
+          push(
+            "POPUP MODEL",
+            json(() => jsonSources.POPUP_MODEL()),
+          );
         }
         if (getResponseXml("S_POPOVER")) {
-          addXml("POPOVER", xmlSources.POPOVER().xml);
-          addJson("POPOVER MODEL", jsonSources.POPOVER_MODEL());
+          push(
+            "POPOVER",
+            xml(() => xmlSources.POPOVER().xml),
+          );
+          push(
+            "POPOVER MODEL",
+            json(() => jsonSources.POPOVER_MODEL()),
+          );
         }
         if (getViewContent(ViewSlots.getView("NEST"))) {
-          addXml("NEST1", xmlSources.NEST1().xml);
-          addJson("NEST1 MODEL", jsonSources.NEST1_MODEL());
+          push(
+            "NEST1",
+            xml(() => xmlSources.NEST1().xml),
+          );
+          push(
+            "NEST1 MODEL",
+            json(() => jsonSources.NEST1_MODEL()),
+          );
         }
         if (getViewContent(ViewSlots.getView("NEST2"))) {
-          addXml("NEST2", xmlSources.NEST2().xml);
-          addJson("NEST2 MODEL", jsonSources.NEST2_MODEL());
+          push(
+            "NEST2",
+            xml(() => xmlSources.NEST2().xml),
+          );
+          push(
+            "NEST2 MODEL",
+            json(() => jsonSources.NEST2_MODEL()),
+          );
         }
-        return sections.join("\n\n");
+        // SYSTEM (the whole z2ui5 global) is the largest by far - keep it last
+        // so the useful sections come first even after truncation.
+        push(
+          "SYSTEM",
+          json(() => jsonSources.SYSTEM()),
+        );
+
+        return sections.join("\n\n") || "(nothing to export)";
       },
 
       // Show the whole export in a stretched popup with a read-through TextArea
       // (selectable for manual copy) and a one-click "Copy to Clipboard".
       onExport() {
-        const text = this.buildExport();
+        let text;
+        try {
+          text = this.buildExport();
+        } catch (e) {
+          text = `(export failed: ${e?.message || e})`;
+        }
         sap.ui.require(
           ["sap/m/Dialog", "sap/m/TextArea", "sap/m/Button"],
           (Dialog, TextArea, Button) => {
             const area = new TextArea({
-              value: text,
               editable: true,
               width: "100%",
               rows: 25,
+              growing: false,
             });
+            // Set the value explicitly (not only via the constructor) so a
+            // large payload is applied reliably after the control exists.
+            area.setValue(text);
             const dialog = new Dialog({
               title: "abap2UI5 - Developer Tools Export",
               stretch: true,
