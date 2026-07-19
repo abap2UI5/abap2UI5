@@ -114,15 +114,47 @@ test.describe("CONTROL_BY_ID", () => {
     expect(errors).toHaveLength(1);
   });
 
-  test("open/close take no args (popup-mode PDFViewer, Dialog)", () => {
+  test("open/close without args stay true no-arg calls (popup-mode PDFViewer, Dialog)", () => {
     const { FrontendAction, calls, controls } = load();
     controls.pdfViewer = {
-      open: () => calls.push(["open"]),
-      close: () => calls.push(["close"]),
+      open: (...a) => calls.push(["open", a.length]),
+      close: (...a) => calls.push(["close", a.length]),
     };
     FrontendAction.execute(null, ["CONTROL_BY_ID", "pdfViewer", "", "open"]);
     FrontendAction.execute(null, ["CONTROL_BY_ID", "pdfViewer", "", "close"]);
-    expect(calls).toEqual([["open"], ["close"]]);
+    expect(calls).toEqual([
+      ["open", 0],
+      ["close", 0],
+    ]);
+  });
+
+  test("open passes the optional page key through (ViewSettingsDialog)", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.vsd = { open: (page) => calls.push(["open", page]) };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "vsd", "", "open", "filter"]);
+    expect(calls).toEqual([["open", "filter"]]);
+  });
+
+  test("to passes the optional transitionName (NavContainer animation)", () => {
+    const { FrontendAction, calls, controls } = load();
+    const page2 = { id: "page2" };
+    controls.page2 = page2;
+    controls.NavCon = { to: (...a) => calls.push(["to", ...a]) };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "NavCon", "", "to", "page2", "fade"]);
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "NavCon", "", "to", "page2"]);
+    expect(calls).toEqual([
+      ["to", page2, "fade"],
+      ["to", page2],
+    ]);
+  });
+
+  test("goToStep resolves the step and casts the focus flag (Wizard)", () => {
+    const { FrontendAction, calls, controls } = load();
+    const step2 = { id: "STEP2" };
+    controls.STEP2 = step2;
+    controls.wiz = { goToStep: (s, b) => calls.push(["goToStep", s, b]) };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "wiz", "", "goToStep", "STEP2", "X"]);
+    expect(calls).toEqual([["goToStep", step2, true]]);
   });
 
   test("discardProgress/setNextStep resolve their controlId arg (wizard)", () => {

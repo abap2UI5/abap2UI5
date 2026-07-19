@@ -70,18 +70,21 @@ sap.ui.define(
     // anything"). Scope: imperative methods that have no binding equivalent.
     // ------------------------------------------------------------------
 
-    // control method -> kinds of its positional args.
+    // control method -> kinds of its positional args. Args beyond the
+    // declared kinds are dropped; trailing args the caller did not send are
+    // not passed at all (so `open()` stays a true no-arg call).
     const CONTROL_METHODS = {
-      to: ["controlId"],
+      to: ["controlId", "string"], // target page + optional transitionName
       back: [],
       focus: [],
       scrollToIndex: ["int"],
       scrollTo: ["int", "int"],
-      open: [],
+      open: ["string"], // optional page key (ViewSettingsDialog); PDFViewer/Dialog ignore it
       close: [],
       setExpanded: ["bool"],
       discardProgress: ["controlId"],
       setNextStep: ["controlId"],
+      goToStep: ["controlId", "bool"], // Wizard: target step + focus flag
     };
 
     // global object -> lazy getter + its allowed methods (with arg kinds).
@@ -139,7 +142,11 @@ sap.ui.define(
     }
 
     function castArgs(kinds, rawArgs, view) {
-      return kinds.map((kind, i) => castArg(kind, rawArgs[i], view));
+      // only cast args the caller actually sent - padding missing trailing
+      // args would turn open() into open(undefined) and ints into NaN
+      return kinds
+        .slice(0, rawArgs.length)
+        .map((kind, i) => castArg(kind, rawArgs[i], view));
     }
 
     // args: [_, id, view, method, ...params]

@@ -90,18 +90,21 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // anything"). Scope: imperative methods that have no binding equivalent.` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
-             `    // control method -> kinds of its positional args.` && |\n| &&
+             `    // control method -> kinds of its positional args. Args beyond the` && |\n| &&
+             `    // declared kinds are dropped; trailing args the caller did not send are` && |\n| &&
+             `    // not passed at all (so ``open()`` stays a true no-arg call).` && |\n| &&
              `    const CONTROL_METHODS = {` && |\n| &&
-             `      to: ["controlId"],` && |\n| &&
+             `      to: ["controlId", "string"], // target page + optional transitionName` && |\n| &&
              `      back: [],` && |\n| &&
              `      focus: [],` && |\n| &&
              `      scrollToIndex: ["int"],` && |\n| &&
              `      scrollTo: ["int", "int"],` && |\n| &&
-             `      open: [],` && |\n| &&
+             `      open: ["string"], // optional page key (ViewSettingsDialog); PDFViewer/Dialog ignore it` && |\n| &&
              `      close: [],` && |\n| &&
              `      setExpanded: ["bool"],` && |\n| &&
              `      discardProgress: ["controlId"],` && |\n| &&
              `      setNextStep: ["controlId"],` && |\n| &&
+             `      goToStep: ["controlId", "bool"], // Wizard: target step + focus flag` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    // global object -> lazy getter + its allowed methods (with arg kinds).` && |\n| &&
@@ -159,7 +162,11 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function castArgs(kinds, rawArgs, view) {` && |\n| &&
-             `      return kinds.map((kind, i) => castArg(kind, rawArgs[i], view));` && |\n| &&
+             `      // only cast args the caller actually sent - padding missing trailing` && |\n| &&
+             `      // args would turn open() into open(undefined) and ints into NaN` && |\n| &&
+             `      return kinds` && |\n| &&
+             `        .slice(0, rawArgs.length)` && |\n| &&
+             `        .map((kind, i) => castArg(kind, rawArgs[i], view));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // args: [_, id, view, method, ...params]` && |\n| &&
@@ -410,15 +417,15 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      });` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function evLocationReload(oController, args) {` && |\n| &&
+             `    function evLocationReload(oController, args) {` && |\n|.
+    result = result &&
              `      if (Lib.isValidRedirectURL(args[1])) {` && |\n| &&
              `        window.location.href = args[1];` && |\n| &&
              `      } else {` && |\n| &&
              `        MessageBox.error(` && |\n| &&
              `          "Invalid redirect URL. Only relative URLs to the same domain are allowed.",` && |\n| &&
              `        );` && |\n| &&
-             `      }` && |\n|.
-    result = result &&
+             `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // SYSTEM_LOGOUT: prefer the launchpad logout when running inside the` && |\n| &&
@@ -811,15 +818,15 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        const handler = handlers[args[0]];` && |\n| &&
              `        if (handler) handler(oController, args);` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        // Backstop: individual handlers already guard themselves, but a` && |\n| &&
+             `        // Backstop: individual handlers already guard themselves, but a` && |\n|.
+    result = result &&
              `        // malformed payload must never let an error escape into the caller.` && |\n| &&
              `        Lib.logError(``FrontendAction: handler '${args[0]}' failed``, e);` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    return { execute };` && |\n| &&
-             `  },` && |\n|.
-    result = result &&
+             `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&
               ``.
