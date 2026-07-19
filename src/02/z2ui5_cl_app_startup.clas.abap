@@ -246,8 +246,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     form->toolbar( )->title( `What's next?` ).
 
     DATA(lv_class_samples) = COND string(
-      WHEN z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_sample_app_001` ) THEN `z2ui5_cl_sample_app_001`
-      WHEN z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_demo_app_000` ) THEN `z2ui5_cl_demo_app_000` ).
+      WHEN z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_demo_app_g00` ) THEN `z2ui5_cl_demo_app_g00` ).
 
     IF lv_class_samples IS NOT INITIAL.
       form->label( `Start Developing` ).
