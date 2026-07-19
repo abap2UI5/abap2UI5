@@ -11,6 +11,12 @@ Legend
 
 unreleased
 ----------
+* Fixed user-exit discovery: the interface-implementation lookup in
+  z2ui5_cl_a2ui5_context passed a WITH EMPTY KEY table to the classic function
+  module SEO_INTERFACE_IMPLEM_GET_ALL, whose IMPORTING parameter is WITH DEFAULT
+  KEY. The incompatible table type made the CALL FUNCTION fail, so no
+  z2ui5_if_exit implementers were returned and the user exit was silently never
+  called. Restored WITH DEFAULT KEY.
 ! Framework-internal ASSERT guards (src/01) now raise a catchable
   z2ui5_cx_a2ui5_error instead of the uncatchable ASSERTION_FAILED short
   dump, so an unexpected internal state surfaces as a graceful error
