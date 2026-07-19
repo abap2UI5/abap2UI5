@@ -4,7 +4,7 @@ sap.ui.define(
     "z2ui5/model/models",
     "z2ui5/core/Server",
     "sap/ui/VersionInfo",
-    "z2ui5/core/DebugTool",
+    "z2ui5/core/DeveloperTools",
     "z2ui5/core/Lib",
     "z2ui5/core/AppState",
     "z2ui5/Util",
@@ -16,7 +16,7 @@ sap.ui.define(
     Models,
     Server,
     VersionInfo,
-    DebugTool,
+    DeveloperTools,
     Lib,
     AppState,
     DateUtil,
@@ -78,7 +78,7 @@ sap.ui.define(
         this._initVersionInfo();
 
         this._installUnloadListener();
-        this._installDebugToolShortcut();
+        this._installDeveloperToolsShortcut();
         this._installScrollListener();
 
         // The stopped router removed with the manifest routing section used
@@ -110,13 +110,14 @@ sap.ui.define(
         window.addEventListener(this._unloadEvent, this._boundUnload);
       },
 
-      _installDebugToolShortcut() {
-        // Ctrl + F12 opens / closes the in-app debug tool.
+      _installDeveloperToolsShortcut() {
+        // Ctrl + F12 opens / closes the in-app developer tools.
         this._boundKeydown = (event) => {
           if (event.ctrlKey && event.key === "F12") {
             const state = AppState.state;
-            if (!state.debugTool) state.debugTool = new DebugTool();
-            state.debugTool.toggle();
+            if (!state.developerTools)
+              state.developerTools = new DeveloperTools();
+            state.developerTools.toggle();
           }
         };
         document.addEventListener("keydown", this._boundKeydown);
@@ -239,12 +240,12 @@ sap.ui.define(
           capture: true,
         });
 
-        // The debug tool is created lazily by the Ctrl+F12 shortcut -
-        // destroy it (which also closes its dialog) so a re-launch (FLP)
-        // does not leak the control instance.
-        if (AppState.state.debugTool) {
-          AppState.state.debugTool.destroy();
-          AppState.state.debugTool = null;
+        // The developer tools control is created lazily by the Ctrl+F12
+        // shortcut - destroy it (which also closes its dialog) so a re-launch
+        // (FLP) does not leak the control instance.
+        if (AppState.state.developerTools) {
+          AppState.state.developerTools.destroy();
+          AppState.state.developerTools = null;
         }
 
         Server.endSession();

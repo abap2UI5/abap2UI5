@@ -12,11 +12,11 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   const ERROR_MAX_LENGTH = 50000;
 
   // The friendly dialog shows only a short preview of the error text (the
-  // full text stays on the DebugTool's Error tab); longer previews are cut.
+  // full text stays on the Developer Tools Error tab); longer previews are cut.
   const PREVIEW_MAX_LENGTH = 500;
 
-  // Remember the last dialog's inputs so the DebugTool can re-show the popup
-  // after the user closes the debugger they opened via its Details action.
+  // Remember the last dialog's inputs so the DeveloperTools can re-show the popup
+  // after the user closes the developer tools they opened via its Details action.
   let lastDialogTitle = "";
   let lastDialogDetails = "";
 
@@ -108,36 +108,36 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     return container;
   }
 
-  // Open the DebugTool directly on its Error tab so the developer sees the
-  // full error text plus the Retry/Refresh/Logout actions. The DebugTool is
+  // Open the DeveloperTools directly on its Error tab so the developer sees the
+  // full error text plus the Retry/Refresh/Logout actions. The DeveloperTools is
   // normally created lazily on first Ctrl+F12, so it may not exist yet when
   // the error popup's Details is clicked - create it on demand (requiring the
-  // module at runtime avoids a circular dependency, since DebugTool imports
+  // module at runtime avoids a circular dependency, since DeveloperTools imports
   // ErrorView). Without this, Details was a no-op and left a blank screen.
-  function openDebugDetails() {
+  function openDeveloperTools() {
     try {
-      let dbg = AppState.state.debugTool;
+      let dbg = AppState.state.developerTools;
       if (!dbg) {
-        const DebugTool = sap.ui.require("z2ui5/core/DebugTool");
-        if (DebugTool) {
-          dbg = new DebugTool();
-          AppState.state.debugTool = dbg;
+        const DeveloperTools = sap.ui.require("z2ui5/core/DeveloperTools");
+        if (DeveloperTools) {
+          dbg = new DeveloperTools();
+          AppState.state.developerTools = dbg;
         }
       }
       if (dbg) {
-        // Closing the DebugTool (Close or Escape) should land the user back on
+        // Closing the DeveloperTools (Close or Escape) should land the user back on
         // the error popup, not on the dismissed, broken app.
         dbg.reopenErrorOnClose = true;
         dbg.show("ERROR");
       }
     } catch {
-      // The debug tool itself failed to open - nothing more we can do here;
+      // The developer tools itself failed to open - nothing more we can do here;
       // the fatal error is still recorded in AppState.state.lastError.
     }
   }
 
   // The friendly UI5 error dialog shown first: the extracted error text so the
-  // cause is visible at a glance, with a Details action (jump into the DebugTool
+  // cause is visible at a glance, with a Details action (jump into the DeveloperTools
   // for the full text) and a Restart action (reload). Returns true when it was
   // shown, false when UI5 could not render it so the caller falls back to the
   // raw-DOM overlay. sap/m/MessageBox is required lazily so ErrorView never
@@ -159,7 +159,7 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
         initialFocus: "Restart",
         onClose: (action) => {
           if (action === "Details") {
-            openDebugDetails();
+            openDeveloperTools();
           } else if (action === "Restart") {
             window.location.reload();
           }
@@ -172,7 +172,7 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   }
 
   // Re-show the friendly error dialog with the last error's content - used when
-  // the user closes the DebugTool they opened via the popup's Details action so
+  // the user closes the DeveloperTools they opened via the popup's Details action so
   // they land back on the error popup. No-op if UI5 cannot render it.
   function reopenErrorDialog() {
     return showFriendlyDialog(lastDialogTitle, lastDialogDetails);
@@ -208,7 +208,7 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
         ? `${full.slice(0, ERROR_MAX_LENGTH)}\n\n[... truncated after ${ERROR_MAX_LENGTH} characters]`
         : full;
 
-    // Record the fatal error so the DebugTool's Error tab can re-show it
+    // Record the fatal error so the Developer Tools Error tab can re-show it
     // (title, text and the same Retry action) after the overlay is gone.
     AppState.state.lastError = {
       title: title || "Application Error - Please Restart The App",

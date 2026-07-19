@@ -11,9 +11,9 @@ sap.ui.define(
   (Control, Fragment, JSONModel, Lib, ViewSlots, AppState, ErrorView) => {
     "use strict";
 
-    // Fragment id under which the debug dialog's controls are registered;
+    // Fragment id under which the developer tools dialog's controls are registered;
     // used to resolve controls by their id instead of by content position.
-    const FRAGMENT_ID = "z2ui5DebugTool";
+    const FRAGMENT_ID = "z2ui5DeveloperTools";
 
     // toJson() pretty-prints with this many spaces per nesting level, so a
     // line's leading-space count divided by it gives that line's JSON depth.
@@ -71,7 +71,7 @@ sap.ui.define(
           3,
         );
       } catch {
-        // The debug tool must never crash the host app, so degrade to the
+        // The developer tools must never crash the host app, so degrade to the
         // plain string form if serialization still fails.
         return String(safe);
       }
@@ -115,7 +115,7 @@ sap.ui.define(
     }
 
     function getViewContent(view) {
-      // Private member access (debug tool only): XMLView keeps the raw XML
+      // Private member access (developer tools only): XMLView keeps the raw XML
       // string as a pseudo property in mProperties, but does not declare it
       // in its metadata - getProperty("viewContent") therefore throws and
       // would abort the whole tab selection. Read the plain object instead.
@@ -123,7 +123,7 @@ sap.ui.define(
     }
 
     function getRenderedContent(view) {
-      // Private member access (debug tool only): _xContent holds the view
+      // Private member access (developer tools only): _xContent holds the view
       // XML after XML templating ran; there is no public equivalent.
       return view?._xContent?.outerHTML;
     }
@@ -176,7 +176,7 @@ sap.ui.define(
     const jsonSources = {
       // The whole public z2ui5 global facade (oConfig, url, checkLocal,
       // Util, app-registered members, ...). Read directly here on purpose:
-      // this is the debug inspector, whose job is to surface the live global
+      // this is the developer tools inspector, whose job is to surface the live global
       // as-is - functions drop out under JSON.stringify, which is fine.
       // ui5lint-disable-next-line no-project-globals -- see reason above
       SYSTEM: () => window.z2ui5,
@@ -209,9 +209,9 @@ sap.ui.define(
       }),
     };
 
-    return Control.extend("z2ui5.core.DebugTool", {
+    return Control.extend("z2ui5.core.DeveloperTools", {
       // Reformat an XML string with indentation. If anything goes wrong the
-      // original input is returned unchanged - the debug tool must never
+      // original input is returned unchanged - the developer tools must never
       // crash the host app.
       prettifyXml(sourceXml) {
         if (!sourceXml) return "";
@@ -233,8 +233,8 @@ sap.ui.define(
         }
       },
 
-      // Called when the user picks an entry in the dropdown of the debug
-      // dialog - resolve the model + key and render that tab.
+      // Called when the user picks an entry in the dropdown of the developer
+      // tools dialog - resolve the model + key and render that tab.
       onItemSelect(oEvent) {
         this.renderTab(
           oEvent.getSource().getSelectedKey(),
@@ -311,7 +311,7 @@ sap.ui.define(
       // yet (created on the CodeEditor's first render) or the build exposes no
       // internal instance.
       getEditorInstance() {
-        const ce = Fragment.byId(FRAGMENT_ID, "debugEditor");
+        const ce = Fragment.byId(FRAGMENT_ID, "developerToolsEditor");
         return ce && typeof ce.getInternalEditorInstance === "function"
           ? ce.getInternalEditorInstance()
           : null;
@@ -321,13 +321,13 @@ sap.ui.define(
       // The ACE editor is created lazily on the CodeEditor's first render, so
       // on the very first open we retry briefly until it exists. Best-effort:
       // any failure leaves the tab fully expanded rather than breaking the
-      // debug tool.
+      // developer tools.
       foldSystemTab(triesLeft = 10) {
         let editor = null;
         try {
           editor = this.getEditorInstance();
         } catch (e) {
-          Lib.logError("DebugTool System fold failed", e);
+          Lib.logError("DeveloperTools System fold failed", e);
           return;
         }
         if (editor) {
@@ -337,7 +337,7 @@ sap.ui.define(
               foldSessionToLevel(session, SYSTEM_OPEN_LEVELS, INDENT_UNIT);
             }
           } catch (e) {
-            Lib.logError("DebugTool System fold failed", e);
+            Lib.logError("DeveloperTools System fold failed", e);
           }
           return;
         }
@@ -406,7 +406,7 @@ sap.ui.define(
         this.close();
       },
 
-      // Open the debug dialog. `initialTab` (a tab key, e.g. "ERROR") opens
+      // Open the developer tools dialog. `initialTab` (a tab key, e.g. "ERROR") opens
       // it directly on that tab - used by the error popup's Details action;
       // defaults to the response tab.
       async show(initialTab) {
@@ -417,7 +417,7 @@ sap.ui.define(
           if (!this.oDialog) {
             await preloadCodeEditor();
             this.oDialog = await Fragment.load({
-              name: "z2ui5.core.DebugTool",
+              name: "z2ui5.core.DeveloperTools",
               controller: this,
               id: FRAGMENT_ID,
             });
@@ -463,7 +463,7 @@ sap.ui.define(
           }
           oDialog.open();
         } catch (e) {
-          Lib.logError("DebugTool.show failed", e);
+          Lib.logError("DeveloperTools.show failed", e);
         } finally {
           this._showPending = false;
         }

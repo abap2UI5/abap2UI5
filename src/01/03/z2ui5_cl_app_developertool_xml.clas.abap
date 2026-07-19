@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_app_debugtool_xml DEFINITION
+CLASS z2ui5_cl_app_developertool_xml DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -14,7 +14,7 @@ CLASS z2ui5_cl_app_debugtool_xml DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
+CLASS z2ui5_cl_app_developertool_xml IMPLEMENTATION.
 
   METHOD get.
 
@@ -24,7 +24,7 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `    xmlns:ce="sap.ui.codeeditor"` &&
              `>` &&
              `    <Dialog` &&
-             `        title="abap2UI5 - DebugTool"` &&
+             `        title="abap2UI5 - Developer Tools"` &&
              `        stretch="true"` &&
              `        escapeHandler=".onEscape"` &&
              `    >` &&
@@ -113,7 +113,7 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `        <VBox>` &&
              `            <ToggleButton text="Source XML after Templating" visible="{/isTemplating}" pressed="{/templatingSource}" press=".onTemplatingPress" />` &&
              `            <ce:CodeEditor` &&
-             `                id="debugEditor"` &&
+             `                id="developerToolsEditor"` &&
              `                type="{/type}"` &&
              `                value="{/value}"` &&
              `                height="2000px"` &&

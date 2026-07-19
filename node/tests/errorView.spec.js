@@ -9,7 +9,7 @@ const { loadModule } = require("./loadModule");
 // the browser by node/tests/e2e/error-view.spec.js.
 
 function load({ messageBox } = {}) {
-  const state = { debugTool: null, lastError: null };
+  const state = { developerTools: null, lastError: null };
   const AppState = { state };
   const reloads = [];
   // Minimal DOM so the raw-overlay fallback path does not throw when it runs.
@@ -47,7 +47,7 @@ function load({ messageBox } = {}) {
 }
 
 test.describe("ErrorView friendly dialog", () => {
-  test("records the fatal error for the DebugTool Error tab", () => {
+  test("records the fatal error for the DeveloperTools Error tab", () => {
     const { ErrorView, state } = load({ messageBox: { error() {} } });
     const onRetry = () => {};
     ErrorView.show("Boom happened", "My Title", { onRetry });
@@ -108,18 +108,18 @@ test.describe("ErrorView friendly dialog", () => {
     ErrorView.show(long);
     expect(calls[0].message).toContain("...");
     expect(calls[0].message.length).toBeLessThan(long.length);
-    // The DebugTool Error tab still gets the untruncated text.
+    // The DeveloperTools Error tab still gets the untruncated text.
     expect(state.lastError.text).toBe(long);
   });
 
-  test("Details opens the DebugTool on the Error tab", () => {
+  test("Details opens the DeveloperTools on the Error tab", () => {
     const showCalls = [];
     let onClose;
     const messageBox = {
       error: (message, opts) => (onClose = opts.onClose),
     };
     const { ErrorView, state } = load({ messageBox });
-    state.debugTool = { show: (tab) => showCalls.push(tab) };
+    state.developerTools = { show: (tab) => showCalls.push(tab) };
     ErrorView.show("dump");
     onClose("Details");
     expect(showCalls).toEqual(["ERROR"]);

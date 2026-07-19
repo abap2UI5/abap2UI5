@@ -2,7 +2,7 @@
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
-// Tests the real implementation shipped in app/webapp/core/DebugTool.js
+// Tests the real implementation shipped in app/webapp/core/DeveloperTools.js
 // (loaded via a stubbed sap.ui.define) instead of a local copy that could
 // drift. The browser XML APIs used at module scope are stubbed minimally;
 // prettifyXml degrades to the identity function with these stubs, which is
@@ -11,7 +11,7 @@ const { loadModule } = require("./loadModule");
 // Mimics the relevant shape of a real sap.ui.core.mvc.XMLView: the raw XML
 // string is kept as a pseudo property in mProperties, but is NOT declared
 // in the control metadata - getProperty("viewContent") throws. Regression
-// guard: the debug tool must never call getProperty for it (#2318 switched
+// guard: the developer tools must never call getProperty for it (#2318 switched
 // to getProperty and broke the View tab).
 function fakeXmlView(viewContent) {
   return {
@@ -23,7 +23,7 @@ function fakeXmlView(viewContent) {
   };
 }
 
-function loadDebugTool({
+function loadDeveloperTools({
   views = {},
   oResponse = null,
   errors,
@@ -45,7 +45,7 @@ function loadDebugTool({
   // then invoked with the spec as `this`, close enough to the UI5 runtime
   // for these prototype methods.
   const Control = { extend: (_name, spec) => spec };
-  const { module } = loadModule("core/DebugTool.js", {
+  const { module } = loadModule("core/DeveloperTools.js", {
     deps: {
       "sap/ui/core/Control": Control,
       "sap/ui/core/Fragment": fragment,
@@ -74,7 +74,7 @@ function loadDebugTool({
       },
     },
   });
-  return { DebugTool: module };
+  return { DeveloperTools: module };
 }
 
 // Fake IconTabHeader select event carrying the dialog's JSON model.
@@ -94,23 +94,23 @@ function fakeSelectEvent(selectedKey) {
 
 test.describe("View tab", () => {
   test("shows the XML kept in the view's mProperties", () => {
-    const { DebugTool } = loadDebugTool({
+    const { DeveloperTools } = loadDeveloperTools({
       views: { MAIN: fakeXmlView("<mvc:View/>") },
     });
     const { oEvent, modelData } = fakeSelectEvent("VIEW");
-    DebugTool.onItemSelect(oEvent);
+    DeveloperTools.onItemSelect(oEvent);
     expect(modelData.value).toBe("<mvc:View/>");
     expect(modelData.type).toBe("xml");
     expect(modelData.editor_visible).toBe(true);
   });
 
   test("falls back to the last response XML when the view keeps none", () => {
-    const { DebugTool } = loadDebugTool({
+    const { DeveloperTools } = loadDeveloperTools({
       views: { MAIN: fakeXmlView(undefined) },
       oResponse: { PARAMS: { S_VIEW: { XML: "<Page/>" } } },
     });
     const { oEvent, modelData } = fakeSelectEvent("VIEW");
-    DebugTool.onItemSelect(oEvent);
+    DeveloperTools.onItemSelect(oEvent);
     expect(modelData.value).toBe("<Page/>");
     expect(modelData.type).toBe("xml");
   });
@@ -118,14 +118,14 @@ test.describe("View tab", () => {
 
 test.describe("Log tab", () => {
   test("dumps the error log as minimal ts + message lines", () => {
-    const { DebugTool } = loadDebugTool({
+    const { DeveloperTools } = loadDeveloperTools({
       errors: [
         { message: "boom", ts: "2026-01-01T00:00:00.000Z" },
         { message: "bang", ts: "2026-01-01T00:00:01.000Z" },
       ],
     });
     const { oEvent, modelData } = fakeSelectEvent("LOG");
-    DebugTool.onItemSelect(oEvent);
+    DeveloperTools.onItemSelect(oEvent);
     expect(modelData.value).toBe(
       "2026-01-01T00:00:00.000Z  boom\n2026-01-01T00:00:01.000Z  bang",
     );
@@ -134,9 +134,9 @@ test.describe("Log tab", () => {
   });
 
   test("shows a placeholder when the log is empty", () => {
-    const { DebugTool } = loadDebugTool();
+    const { DeveloperTools } = loadDeveloperTools();
     const { oEvent, modelData } = fakeSelectEvent("LOG");
-    DebugTool.onItemSelect(oEvent);
+    DeveloperTools.onItemSelect(oEvent);
     expect(modelData.value).toBe("(log is empty)");
     expect(modelData.type).toBe("text");
   });
@@ -144,7 +144,7 @@ test.describe("Log tab", () => {
 
 test.describe("Error tab", () => {
   test("shows the captured fatal error title + text and the action bar", () => {
-    const { DebugTool } = loadDebugTool({
+    const { DeveloperTools } = loadDeveloperTools({
       lastError: {
         title: "App Terminated",
         text: "backend dump...",
@@ -152,56 +152,56 @@ test.describe("Error tab", () => {
       },
     });
     const { oEvent, modelData } = fakeSelectEvent("ERROR");
-    DebugTool.onItemSelect(oEvent);
+    DeveloperTools.onItemSelect(oEvent);
     expect(modelData.value).toBe("App Terminated\n\nbackend dump...");
     expect(modelData.type).toBe("text");
     expect(modelData.hasRetry).toBe(true);
   });
 
   test("hides Retry when the fatal error carried no retry action", () => {
-    const { DebugTool } = loadDebugTool({
+    const { DeveloperTools } = loadDeveloperTools({
       lastError: { title: "", text: "client crash", onRetry: null },
     });
     const { oEvent, modelData } = fakeSelectEvent("ERROR");
-    DebugTool.onItemSelect(oEvent);
+    DeveloperTools.onItemSelect(oEvent);
     expect(modelData.value).toBe("client crash");
     expect(modelData.hasRetry).toBe(false);
   });
 
   test("placeholder when no fatal error was captured", () => {
-    const { DebugTool } = loadDebugTool();
+    const { DeveloperTools } = loadDeveloperTools();
     const { oEvent, modelData } = fakeSelectEvent("ERROR");
-    DebugTool.onItemSelect(oEvent);
+    DeveloperTools.onItemSelect(oEvent);
     expect(modelData.value).toBe("(no fatal error captured this session)");
     expect(modelData.type).toBe("text");
   });
 
   test("onErrorRetry runs the captured retry action", () => {
     let retried = 0;
-    const { DebugTool } = loadDebugTool({
+    const { DeveloperTools } = loadDeveloperTools({
       lastError: { title: "x", text: "y", onRetry: () => (retried += 1) },
     });
-    DebugTool.onErrorRetry();
+    DeveloperTools.onErrorRetry();
     expect(retried).toBe(1);
   });
 
   test("onErrorLogout delegates to ErrorView.handleLogout", () => {
     const logoutCalls = [];
-    const { DebugTool } = loadDebugTool({
+    const { DeveloperTools } = loadDeveloperTools({
       lastError: { title: "x", text: "y", onRetry: null },
       logoutCalls,
     });
-    DebugTool.onErrorLogout();
+    DeveloperTools.onErrorLogout();
     expect(logoutCalls).toEqual([true]);
   });
 
   test("renderTab('ERROR') opens the tab directly (show initial tab path)", () => {
-    const { DebugTool } = loadDebugTool({
+    const { DeveloperTools } = loadDeveloperTools({
       lastError: { title: "App Terminated", text: "boom", onRetry: () => {} },
     });
     const modelData = {};
     const oModel = { getData: () => modelData, refresh() {} };
-    DebugTool.renderTab("ERROR", oModel);
+    DeveloperTools.renderTab("ERROR", oModel);
     expect(modelData.value).toBe("App Terminated\n\nboom");
     expect(modelData.hasRetry).toBe(true);
   });
@@ -250,8 +250,8 @@ test.describe("System tab folding", () => {
       { line: "}", start: false },
     ];
     const { fragment, foldedStarts } = foldHarness(rows);
-    const { DebugTool } = loadDebugTool({ fragment });
-    DebugTool.foldSystemTab();
+    const { DeveloperTools } = loadDeveloperTools({ fragment });
+    DeveloperTools.foldSystemTab();
     // Root (level 0) and its direct children (level 1) stay open; the
     // level-2 object and the level-2 array entry are folded.
     expect(foldedStarts).toEqual([2, 8]);
@@ -259,37 +259,37 @@ test.describe("System tab folding", () => {
 
   test("is a no-op (no throw) when the editor instance does not exist yet", () => {
     const fragment = { byId: () => null };
-    const { DebugTool } = loadDebugTool({ fragment });
-    expect(() => DebugTool.foldSystemTab(0)).not.toThrow();
+    const { DeveloperTools } = loadDeveloperTools({ fragment });
+    expect(() => DeveloperTools.foldSystemTab(0)).not.toThrow();
   });
 });
 
 test.describe("Close / Escape returns to the error popup", () => {
   test("closing after Details re-shows the error popup", () => {
     const reopenCalls = [];
-    const { DebugTool } = loadDebugTool({ reopenCalls });
-    DebugTool.oDialog = { close() {}, destroy() {} };
-    DebugTool.reopenErrorOnClose = true;
-    DebugTool.close();
+    const { DeveloperTools } = loadDeveloperTools({ reopenCalls });
+    DeveloperTools.oDialog = { close() {}, destroy() {} };
+    DeveloperTools.reopenErrorOnClose = true;
+    DeveloperTools.close();
     expect(reopenCalls).toEqual([true]);
-    expect(DebugTool.oDialog).toBe(null);
+    expect(DeveloperTools.oDialog).toBe(null);
   });
 
   test("a normal close does not re-show the error popup", () => {
     const reopenCalls = [];
-    const { DebugTool } = loadDebugTool({ reopenCalls });
-    DebugTool.oDialog = { close() {}, destroy() {} };
-    DebugTool.close();
+    const { DeveloperTools } = loadDeveloperTools({ reopenCalls });
+    DeveloperTools.oDialog = { close() {}, destroy() {} };
+    DeveloperTools.close();
     expect(reopenCalls).toEqual([]);
   });
 
   test("Escape rejects the default close and behaves like Close", () => {
     const reopenCalls = [];
-    const { DebugTool } = loadDebugTool({ reopenCalls });
-    DebugTool.oDialog = { close() {}, destroy() {} };
-    DebugTool.reopenErrorOnClose = true;
+    const { DeveloperTools } = loadDeveloperTools({ reopenCalls });
+    DeveloperTools.oDialog = { close() {}, destroy() {} };
+    DeveloperTools.reopenErrorOnClose = true;
     let rejected = false;
-    DebugTool.onEscape({ reject: () => (rejected = true), resolve() {} });
+    DeveloperTools.onEscape({ reject: () => (rejected = true), resolve() {} });
     expect(rejected).toBe(true);
     expect(reopenCalls).toEqual([true]);
   });
@@ -297,11 +297,11 @@ test.describe("Close / Escape returns to the error popup", () => {
 
 test.describe("Nest tabs", () => {
   test("show the nested view's XML without touching getProperty", () => {
-    const { DebugTool } = loadDebugTool({
+    const { DeveloperTools } = loadDeveloperTools({
       views: { NEST: fakeXmlView("<core:View/>") },
     });
     const { oEvent, modelData } = fakeSelectEvent("NEST1");
-    DebugTool.onItemSelect(oEvent);
+    DeveloperTools.onItemSelect(oEvent);
     expect(modelData.value).toBe("<core:View/>");
     expect(modelData.type).toBe("xml");
   });

@@ -406,7 +406,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        // The request body is built locally and handed explicitly through` && |\n| &&
              `        // Server.roundtrip/readHttp. It is mirrored to AppState.state.oBody right` && |\n| &&
-             `        // away so onBeforeRoundtrip hooks and the debug tool see it.` && |\n| &&
+             `        // away so onBeforeRoundtrip hooks and the developer tools see it.` && |\n| &&
              `        const oBody = { VIEWNAME: "MAIN" };` && |\n| &&
              `        AppState.state.oBody = oBody;` && |\n| &&
              `` && |\n| &&

@@ -386,7 +386,7 @@ sap.ui.define(
 
         // The request body is built locally and handed explicitly through
         // Server.roundtrip/readHttp. It is mirrored to AppState.state.oBody right
-        // away so onBeforeRoundtrip hooks and the debug tool see it.
+        // away so onBeforeRoundtrip hooks and the developer tools see it.
         const oBody = { VIEWNAME: "MAIN" };
         AppState.state.oBody = oBody;
 

@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_app_debugtool_js DEFINITION
+CLASS z2ui5_cl_app_developertools_js DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -14,7 +14,7 @@ CLASS z2ui5_cl_app_debugtool_js DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
+CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
 
   METHOD get.
 
@@ -31,9 +31,9 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `  (Control, Fragment, JSONModel, Lib, ViewSlots, AppState, ErrorView) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // Fragment id under which the debug dialog's controls are registered;` && |\n| &&
+             `    // Fragment id under which the developer tools dialog's controls are registered;` && |\n| &&
              `    // used to resolve controls by their id instead of by content position.` && |\n| &&
-             `    const FRAGMENT_ID = "z2ui5DebugTool";` && |\n| &&
+             `    const FRAGMENT_ID = "z2ui5DeveloperTools";` && |\n| &&
              `` && |\n| &&
              `    // toJson() pretty-prints with this many spaces per nesting level, so a` && |\n| &&
              `    // line's leading-space count divided by it gives that line's JSON depth.` && |\n| &&
@@ -91,7 +91,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `          3,` && |\n| &&
              `        );` && |\n| &&
              `      } catch {` && |\n| &&
-             `        // The debug tool must never crash the host app, so degrade to the` && |\n| &&
+             `        // The developer tools must never crash the host app, so degrade to the` && |\n| &&
              `        // plain string form if serialization still fails.` && |\n| &&
              `        return String(safe);` && |\n| &&
              `      }` && |\n| &&
@@ -135,7 +135,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function getViewContent(view) {` && |\n| &&
-             `      // Private member access (debug tool only): XMLView keeps the raw XML` && |\n| &&
+             `      // Private member access (developer tools only): XMLView keeps the raw XML` && |\n| &&
              `      // string as a pseudo property in mProperties, but does not declare it` && |\n| &&
              `      // in its metadata - getProperty("viewContent") therefore throws and` && |\n| &&
              `      // would abort the whole tab selection. Read the plain object instead.` && |\n| &&
@@ -143,7 +143,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function getRenderedContent(view) {` && |\n| &&
-             `      // Private member access (debug tool only): _xContent holds the view` && |\n| &&
+             `      // Private member access (developer tools only): _xContent holds the view` && |\n| &&
              `      // XML after XML templating ran; there is no public equivalent.` && |\n| &&
              `      return view?._xContent?.outerHTML;` && |\n| &&
              `    }` && |\n| &&
@@ -196,7 +196,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `    const jsonSources = {` && |\n| &&
              `      // The whole public z2ui5 global facade (oConfig, url, checkLocal,` && |\n| &&
              `      // Util, app-registered members, ...). Read directly here on purpose:` && |\n| &&
-             `      // this is the debug inspector, whose job is to surface the live global` && |\n| &&
+             `      // this is the developer tools inspector, whose job is to surface the live global` && |\n| &&
              `      // as-is - functions drop out under JSON.stringify, which is fine.` && |\n| &&
              `      // ui5lint-disable-next-line no-project-globals -- see reason above` && |\n| &&
              `      SYSTEM: () => window.z2ui5,` && |\n| &&
@@ -229,9 +229,9 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      }),` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    return Control.extend("z2ui5.core.DebugTool", {` && |\n| &&
+             `    return Control.extend("z2ui5.core.DeveloperTools", {` && |\n| &&
              `      // Reformat an XML string with indentation. If anything goes wrong the` && |\n| &&
-             `      // original input is returned unchanged - the debug tool must never` && |\n| &&
+             `      // original input is returned unchanged - the developer tools must never` && |\n| &&
              `      // crash the host app.` && |\n| &&
              `      prettifyXml(sourceXml) {` && |\n| &&
              `        if (!sourceXml) return "";` && |\n| &&
@@ -253,8 +253,8 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Called when the user picks an entry in the dropdown of the debug` && |\n| &&
-             `      // dialog - resolve the model + key and render that tab.` && |\n| &&
+             `      // Called when the user picks an entry in the dropdown of the developer` && |\n| &&
+             `      // tools dialog - resolve the model + key and render that tab.` && |\n| &&
              `      onItemSelect(oEvent) {` && |\n| &&
              `        this.renderTab(` && |\n| &&
              `          oEvent.getSource().getSelectedKey(),` && |\n| &&
@@ -331,7 +331,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      // yet (created on the CodeEditor's first render) or the build exposes no` && |\n| &&
              `      // internal instance.` && |\n| &&
              `      getEditorInstance() {` && |\n| &&
-             `        const ce = Fragment.byId(FRAGMENT_ID, "debugEditor");` && |\n| &&
+             `        const ce = Fragment.byId(FRAGMENT_ID, "developerToolsEditor");` && |\n| &&
              `        return ce && typeof ce.getInternalEditorInstance === "function"` && |\n| &&
              `          ? ce.getInternalEditorInstance()` && |\n| &&
              `          : null;` && |\n| &&
@@ -341,13 +341,13 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      // The ACE editor is created lazily on the CodeEditor's first render, so` && |\n| &&
              `      // on the very first open we retry briefly until it exists. Best-effort:` && |\n| &&
              `      // any failure leaves the tab fully expanded rather than breaking the` && |\n| &&
-             `      // debug tool.` && |\n| &&
+             `      // developer tools.` && |\n| &&
              `      foldSystemTab(triesLeft = 10) {` && |\n| &&
              `        let editor = null;` && |\n| &&
              `        try {` && |\n| &&
              `          editor = this.getEditorInstance();` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Lib.logError("DebugTool System fold failed", e);` && |\n| &&
+             `          Lib.logError("DeveloperTools System fold failed", e);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        if (editor) {` && |\n| &&
@@ -357,7 +357,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `              foldSessionToLevel(session, SYSTEM_OPEN_LEVELS, INDENT_UNIT);` && |\n| &&
              `            }` && |\n| &&
              `          } catch (e) {` && |\n| &&
-             `            Lib.logError("DebugTool System fold failed", e);` && |\n| &&
+             `            Lib.logError("DeveloperTools System fold failed", e);` && |\n| &&
              `          }` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
@@ -427,7 +427,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        this.close();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Open the debug dialog. ``initialTab`` (a tab key, e.g. "ERROR") opens` && |\n| &&
+             `      // Open the developer tools dialog. ``initialTab`` (a tab key, e.g. "ERROR") opens` && |\n| &&
              `      // it directly on that tab - used by the error popup's Details action;` && |\n| &&
              `      // defaults to the response tab.` && |\n| &&
              `      async show(initialTab) {` && |\n| &&
@@ -438,7 +438,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `          if (!this.oDialog) {` && |\n| &&
              `            await preloadCodeEditor();` && |\n| &&
              `            this.oDialog = await Fragment.load({` && |\n| &&
-             `              name: "z2ui5.core.DebugTool",` && |\n| &&
+             `              name: "z2ui5.core.DeveloperTools",` && |\n| &&
              `              controller: this,` && |\n| &&
              `              id: FRAGMENT_ID,` && |\n| &&
              `            });` && |\n| &&
@@ -484,7 +484,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `          }` && |\n| &&
              `          oDialog.open();` && |\n| &&
              `        } catch (e) {` && |\n| &&
-             `          Lib.logError("DebugTool.show failed", e);` && |\n| &&
+             `          Lib.logError("DeveloperTools.show failed", e);` && |\n| &&
              `        } finally {` && |\n| &&
              `          this._showPending = false;` && |\n| &&
              `        }` && |\n| &&

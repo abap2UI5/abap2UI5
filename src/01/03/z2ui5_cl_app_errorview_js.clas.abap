@@ -32,11 +32,11 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `  const ERROR_MAX_LENGTH = 50000;` && |\n| &&
              `` && |\n| &&
              `  // The friendly dialog shows only a short preview of the error text (the` && |\n| &&
-             `  // full text stays on the DebugTool's Error tab); longer previews are cut.` && |\n| &&
+             `  // full text stays on the Developer Tools Error tab); longer previews are cut.` && |\n| &&
              `  const PREVIEW_MAX_LENGTH = 500;` && |\n| &&
              `` && |\n| &&
-             `  // Remember the last dialog's inputs so the DebugTool can re-show the popup` && |\n| &&
-             `  // after the user closes the debugger they opened via its Details action.` && |\n| &&
+             `  // Remember the last dialog's inputs so the DeveloperTools can re-show the popup` && |\n| &&
+             `  // after the user closes the developer tools they opened via its Details action.` && |\n| &&
              `  let lastDialogTitle = "";` && |\n| &&
              `  let lastDialogDetails = "";` && |\n| &&
              `` && |\n| &&
@@ -128,36 +128,36 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    return container;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // Open the DebugTool directly on its Error tab so the developer sees the` && |\n| &&
-             `  // full error text plus the Retry/Refresh/Logout actions. The DebugTool is` && |\n| &&
+             `  // Open the DeveloperTools directly on its Error tab so the developer sees the` && |\n| &&
+             `  // full error text plus the Retry/Refresh/Logout actions. The DeveloperTools is` && |\n| &&
              `  // normally created lazily on first Ctrl+F12, so it may not exist yet when` && |\n| &&
              `  // the error popup's Details is clicked - create it on demand (requiring the` && |\n| &&
-             `  // module at runtime avoids a circular dependency, since DebugTool imports` && |\n| &&
+             `  // module at runtime avoids a circular dependency, since DeveloperTools imports` && |\n| &&
              `  // ErrorView). Without this, Details was a no-op and left a blank screen.` && |\n| &&
-             `  function openDebugDetails() {` && |\n| &&
+             `  function openDeveloperTools() {` && |\n| &&
              `    try {` && |\n| &&
-             `      let dbg = AppState.state.debugTool;` && |\n| &&
+             `      let dbg = AppState.state.developerTools;` && |\n| &&
              `      if (!dbg) {` && |\n| &&
-             `        const DebugTool = sap.ui.require("z2ui5/core/DebugTool");` && |\n| &&
-             `        if (DebugTool) {` && |\n| &&
-             `          dbg = new DebugTool();` && |\n| &&
-             `          AppState.state.debugTool = dbg;` && |\n| &&
+             `        const DeveloperTools = sap.ui.require("z2ui5/core/DeveloperTools");` && |\n| &&
+             `        if (DeveloperTools) {` && |\n| &&
+             `          dbg = new DeveloperTools();` && |\n| &&
+             `          AppState.state.developerTools = dbg;` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
              `      if (dbg) {` && |\n| &&
-             `        // Closing the DebugTool (Close or Escape) should land the user back on` && |\n| &&
+             `        // Closing the DeveloperTools (Close or Escape) should land the user back on` && |\n| &&
              `        // the error popup, not on the dismissed, broken app.` && |\n| &&
              `        dbg.reopenErrorOnClose = true;` && |\n| &&
              `        dbg.show("ERROR");` && |\n| &&
              `      }` && |\n| &&
              `    } catch {` && |\n| &&
-             `      // The debug tool itself failed to open - nothing more we can do here;` && |\n| &&
+             `      // The developer tools itself failed to open - nothing more we can do here;` && |\n| &&
              `      // the fatal error is still recorded in AppState.state.lastError.` && |\n| &&
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // The friendly UI5 error dialog shown first: the extracted error text so the` && |\n| &&
-             `  // cause is visible at a glance, with a Details action (jump into the DebugTool` && |\n| &&
+             `  // cause is visible at a glance, with a Details action (jump into the DeveloperTools` && |\n| &&
              `  // for the full text) and a Restart action (reload). Returns true when it was` && |\n| &&
              `  // shown, false when UI5 could not render it so the caller falls back to the` && |\n| &&
              `  // raw-DOM overlay. sap/m/MessageBox is required lazily so ErrorView never` && |\n| &&
@@ -179,7 +179,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `        initialFocus: "Restart",` && |\n| &&
              `        onClose: (action) => {` && |\n| &&
              `          if (action === "Details") {` && |\n| &&
-             `            openDebugDetails();` && |\n| &&
+             `            openDeveloperTools();` && |\n| &&
              `          } else if (action === "Restart") {` && |\n| &&
              `            window.location.reload();` && |\n| &&
              `          }` && |\n| &&
@@ -192,7 +192,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  // Re-show the friendly error dialog with the last error's content - used when` && |\n| &&
-             `  // the user closes the DebugTool they opened via the popup's Details action so` && |\n| &&
+             `  // the user closes the DeveloperTools they opened via the popup's Details action so` && |\n| &&
              `  // they land back on the error popup. No-op if UI5 cannot render it.` && |\n| &&
              `  function reopenErrorDialog() {` && |\n| &&
              `    return showFriendlyDialog(lastDialogTitle, lastDialogDetails);` && |\n| &&
@@ -228,7 +228,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `        ? ``${full.slice(0, ERROR_MAX_LENGTH)}\n\n[... truncated after ${ERROR_MAX_LENGTH} characters]``` && |\n| &&
              `        : full;` && |\n| &&
              `` && |\n| &&
-             `    // Record the fatal error so the DebugTool's Error tab can re-show it` && |\n| &&
+             `    // Record the fatal error so the Developer Tools Error tab can re-show it` && |\n| &&
              `    // (title, text and the same Retry action) after the overlay is gone.` && |\n| &&
              `    AppState.state.lastError = {` && |\n| &&
              `      title: title || "Application Error - Please Restart The App",` && |\n| &&

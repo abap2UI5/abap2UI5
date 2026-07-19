@@ -4,7 +4,7 @@
     xmlns:ce="sap.ui.codeeditor"
 >
     <Dialog
-        title="abap2UI5 - DebugTool"
+        title="abap2UI5 - Developer Tools"
         stretch="true"
         escapeHandler=".onEscape"
     >
@@ -93,7 +93,7 @@
         <VBox>
             <ToggleButton text="Source XML after Templating" visible="{/isTemplating}" pressed="{/templatingSource}" press=".onTemplatingPress" />
             <ce:CodeEditor
-                id="debugEditor"
+                id="developerToolsEditor"
                 type="{/type}"
                 value="{/value}"
                 height="2000px"
