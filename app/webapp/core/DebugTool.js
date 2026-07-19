@@ -15,6 +15,41 @@ sap.ui.define(
     // used to resolve controls by their id instead of by content position.
     const FRAGMENT_ID = "z2ui5DebugTool";
 
+    // toJson() pretty-prints with this many spaces per nesting level, so a
+    // line's leading-space count divided by it gives that line's JSON depth.
+    const INDENT_UNIT = 3;
+
+    // The System tab shows the whole (deeply nested) z2ui5 global; open only
+    // the first two levels so it is readable - the rest can be unfolded by
+    // hand in the editor.
+    const SYSTEM_OPEN_LEVELS = 2;
+
+    // JSON nesting depth of a pretty-printed line, read from its indentation.
+    function indentLevel(line, unit) {
+      return Math.floor(/^ */.exec(line)[0].length / unit);
+    }
+
+    // Fold every foldable block in the ACE edit session that sits at or below
+    // `keepLevels` nesting levels, leaving the outer levels open. Uses only the
+    // public EditSession folding API (unfold / getFoldWidget /
+    // getFoldWidgetRange / addFold), so it works with any CodeEditor build; a
+    // block's depth is read from its line indentation. Skipping to the folded
+    // block's end row keeps us from descending into (already hidden) children.
+    function foldSessionToLevel(session, keepLevels, unit) {
+      session.unfold();
+      const rowCount = session.getLength();
+      for (let row = 0; row < rowCount; row++) {
+        if (session.getFoldWidget(row) !== "start") continue;
+        if (indentLevel(session.getLine(row) || "", unit) < keepLevels)
+          continue;
+        const range = session.getFoldWidgetRange(row);
+        if (range && range.isMultiLine()) {
+          session.addFold("...", range);
+          row = range.end.row;
+        }
+      }
+    }
+
     // Pretty-print any value (object, array, primitive) as indented JSON.
     // `null` is used as a fallback so undefined values still produce output.
     // A replacer drops circular references (the z2ui5 global can hold them,
@@ -215,6 +250,7 @@ sap.ui.define(
       renderTab(selItem, oModel) {
         if (jsonSources[selItem]) {
           this.displayEditor(oModel, toJson(jsonSources[selItem]()), "json");
+          if (selItem === "SYSTEM") this.foldSystemTab();
           return;
         }
 
@@ -267,6 +303,45 @@ sap.ui.define(
       },
       onErrorLogout() {
         ErrorView.handleLogout();
+      },
+
+      // The CodeEditor's underlying ACE editor, or null if it does not exist
+      // yet (created on the CodeEditor's first render) or the build exposes no
+      // internal instance.
+      getEditorInstance() {
+        const ce = Fragment.byId(FRAGMENT_ID, "debugEditor");
+        return ce && typeof ce.getInternalEditorInstance === "function"
+          ? ce.getInternalEditorInstance()
+          : null;
+      },
+
+      // Fold the System tab's JSON down to the first SYSTEM_OPEN_LEVELS levels.
+      // The ACE editor is created lazily on the CodeEditor's first render, so
+      // on the very first open we retry briefly until it exists. Best-effort:
+      // any failure leaves the tab fully expanded rather than breaking the
+      // debug tool.
+      foldSystemTab(triesLeft = 10) {
+        let editor = null;
+        try {
+          editor = this.getEditorInstance();
+        } catch (e) {
+          Lib.logError("DebugTool System fold failed", e);
+          return;
+        }
+        if (editor) {
+          try {
+            const session = editor.getSession && editor.getSession();
+            if (session && typeof session.getFoldWidget === "function") {
+              foldSessionToLevel(session, SYSTEM_OPEN_LEVELS, INDENT_UNIT);
+            }
+          } catch (e) {
+            Lib.logError("DebugTool System fold failed", e);
+          }
+          return;
+        }
+        if (triesLeft > 0) {
+          setTimeout(() => this.foldSystemTab(triesLeft - 1), 30);
+        }
       },
 
       // Show the ABAP source of the running app inside an iframe.

@@ -31,6 +31,38 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `  // so a stack trace from the backend cannot blow up the error overlay.` && |\n| &&
              `  const ERROR_MAX_LENGTH = 50000;` && |\n| &&
              `` && |\n| &&
+             `  // The friendly dialog shows only a short preview of the error text (the` && |\n| &&
+             `  // full text stays on the DebugTool's Error tab); longer previews are cut.` && |\n| &&
+             `  const PREVIEW_MAX_LENGTH = 500;` && |\n| &&
+             `` && |\n| &&
+             `  // Turn the raw error text into a one-glance preview for the friendly` && |\n| &&
+             `  // dialog. Backend errors often arrive as a whole HTML page (an ABAP dump` && |\n| &&
+             `  // rendered as a 500 error page), so drop <script>/<style> blocks and the` && |\n| &&
+             `  // remaining tags, decode the few common entities, collapse whitespace and` && |\n| &&
+             `  // cut to a readable length. Rendered as plain MessageBox text, so the` && |\n| &&
+             `  // stripped markup cannot execute.` && |\n| &&
+             `  function buildErrorPreview(text) {` && |\n| &&
+             `    if (!text) return "";` && |\n| &&
+             `    let preview = text;` && |\n| &&
+             `    if (/<[a-z][\s\S]*>/i.test(preview)) {` && |\n| &&
+             `      preview = preview` && |\n| &&
+             `        .replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ")` && |\n| &&
+             `        .replace(/<[^>]+>/g, " ");` && |\n| &&
+             `    }` && |\n| &&
+             `    preview = preview` && |\n| &&
+             `      .replace(/&nbsp;/gi, " ")` && |\n| &&
+             `      .replace(/&lt;/gi, "<")` && |\n| &&
+             `      .replace(/&gt;/gi, ">")` && |\n| &&
+             `      .replace(/&quot;/gi, '"')` && |\n| &&
+             `      .replace(/&#39;/gi, "'")` && |\n| &&
+             `      .replace(/&amp;/gi, "&")` && |\n| &&
+             `      .replace(/\s+/g, " ")` && |\n| &&
+             `      .trim();` && |\n| &&
+             `    return preview.length > PREVIEW_MAX_LENGTH` && |\n| &&
+             `      ? ``${preview.slice(0, PREVIEW_MAX_LENGTH)}...``` && |\n| &&
+             `      : preview;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  function createContainer() {` && |\n| &&
              `    // Always start from a fresh element: reusing a previous overlay would` && |\n| &&
              `    // keep its keydown focus-trap listener alive and stack a duplicate on` && |\n| &&
@@ -81,16 +113,21 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  // The friendly UI5 error dialog shown first: a short message with a` && |\n| &&
-             `  // Details action (jump into the DebugTool) and a Restart action (reload).` && |\n| &&
-             `  // Returns true when it was shown, false when UI5 could not render it so` && |\n| &&
-             `  // the caller falls back to the raw-DOM overlay. sap/m/MessageBox is` && |\n| &&
-             `  // required lazily so ErrorView never hard-depends on a renderable core.` && |\n| &&
-             `  function showFriendlyDialog(title) {` && |\n| &&
+             `  // The friendly UI5 error dialog shown first: a short message - including a` && |\n| &&
+             `  // preview of the actual error so the cause is visible at a glance - with a` && |\n| &&
+             `  // Details action (jump into the DebugTool for the full text) and a Restart` && |\n| &&
+             `  // action (reload). Returns true when it was shown, false when UI5 could not` && |\n| &&
+             `  // render it so the caller falls back to the raw-DOM overlay. sap/m/MessageBox` && |\n| &&
+             `  // is required lazily so ErrorView never hard-depends on a renderable core.` && |\n| &&
+             `  function showFriendlyDialog(title, details) {` && |\n| &&
              `    try {` && |\n| &&
              `      const MessageBox = sap.ui.require("sap/m/MessageBox");` && |\n| &&
              `      if (!MessageBox) return false;` && |\n| &&
-             `      MessageBox.error("An unexpected error occurred.", {` && |\n| &&
+             `      const preview = buildErrorPreview(details);` && |\n| &&
+             `      const message = preview` && |\n| &&
+             `        ? ``An unexpected error occurred:\n\n${preview}``` && |\n| &&
+             `        : "An unexpected error occurred.";` && |\n| &&
+             `      MessageBox.error(message, {` && |\n| &&
              `        title: title || "Application Error",` && |\n| &&
              `        actions: ["Details", "Restart"],` && |\n| &&
              `        emphasizedAction: "Restart",` && |\n| &&
@@ -149,7 +186,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    // Prefer a friendly UI5 dialog ("an unexpected error occurred" + Details` && |\n| &&
              `    // / Restart). Only when UI5 cannot render it (broken core, missing` && |\n| &&
              `    // module) do we fall back to the raw-DOM overlay below.` && |\n| &&
-             `    if (showFriendlyDialog(title)) return;` && |\n| &&
+             `    if (showFriendlyDialog(title, errorMessage)) return;` && |\n| &&
              `` && |\n| &&
              `    const errorContainer = createContainer();` && |\n| &&
              `` && |\n| &&

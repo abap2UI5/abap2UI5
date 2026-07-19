@@ -29,6 +29,7 @@ function loadDebugTool({
   errors,
   lastError = null,
   logoutCalls,
+  fragment,
 } = {}) {
   const AppState = {
     state: { oResponse, responseData: null, oBody: null, errors, lastError },
@@ -45,6 +46,7 @@ function loadDebugTool({
   const { module } = loadModule("core/DebugTool.js", {
     deps: {
       "sap/ui/core/Control": Control,
+      "sap/ui/core/Fragment": fragment,
       "z2ui5/core/ViewSlots": ViewSlots,
       "z2ui5/core/AppState": AppState,
       "z2ui5/core/ErrorView": ErrorView,
@@ -200,6 +202,63 @@ test.describe("Error tab", () => {
     DebugTool.renderTab("ERROR", oModel);
     expect(modelData.value).toBe("App Terminated\n\nboom");
     expect(modelData.hasRetry).toBe(true);
+  });
+});
+
+test.describe("System tab folding", () => {
+  // Drives foldSystemTab against a fake ACE edit session built from a table of
+  // pretty-printed JSON rows ({ line, start, end }), recording which foldable
+  // blocks get collapsed.
+  function foldHarness(rows) {
+    const foldedStarts = [];
+    const session = {
+      unfold() {},
+      getLength: () => rows.length,
+      getLine: (r) => rows[r].line,
+      getFoldWidget: (r) => (rows[r].start ? "start" : ""),
+      getFoldWidgetRange: (r) => ({
+        start: { row: r },
+        end: { row: rows[r].end },
+        isMultiLine: () => rows[r].end > r,
+      }),
+      addFold: (_placeholder, range) => foldedStarts.push(range.start.row),
+    };
+    const editor = { getSession: () => session };
+    const fragment = {
+      byId: () => ({ getInternalEditorInstance: () => editor }),
+    };
+    return { fragment, foldedStarts };
+  }
+
+  test("folds level-2 blocks and deeper, leaving the first two levels open", () => {
+    // {  "a": { "b": {...}, "d": 2 },  "e": [ {...} ]  } - 3-space indent.
+    const rows = [
+      { line: "{", start: true, end: 12 },
+      { line: '   "a": {', start: true, end: 6 },
+      { line: '      "b": {', start: true, end: 4 },
+      { line: '         "c": 1', start: false },
+      { line: "      },", start: false },
+      { line: '      "d": 2', start: false },
+      { line: "   },", start: false },
+      { line: '   "e": [', start: true, end: 11 },
+      { line: "      {", start: true, end: 10 },
+      { line: '         "f": 3', start: false },
+      { line: "      }", start: false },
+      { line: "   ]", start: false },
+      { line: "}", start: false },
+    ];
+    const { fragment, foldedStarts } = foldHarness(rows);
+    const { DebugTool } = loadDebugTool({ fragment });
+    DebugTool.foldSystemTab();
+    // Root (level 0) and its direct children (level 1) stay open; the
+    // level-2 object and the level-2 array entry are folded.
+    expect(foldedStarts).toEqual([2, 8]);
+  });
+
+  test("is a no-op (no throw) when the editor instance does not exist yet", () => {
+    const fragment = { byId: () => null };
+    const { DebugTool } = loadDebugTool({ fragment });
+    expect(() => DebugTool.foldSystemTab(0)).not.toThrow();
   });
 });
 

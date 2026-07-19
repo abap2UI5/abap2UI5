@@ -112,6 +112,7 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `        <VBox>` &&
              `            <ToggleButton text="Source XML after Templating" visible="{/isTemplating}" pressed="{/templatingSource}" press=".onTemplatingPress" />` &&
              `            <ce:CodeEditor` &&
+             `                id="debugEditor"` &&
              `                type="{/type}"` &&
              `                value="{/value}"` &&
              `                height="2000px"` &&
@@ -142,6 +143,7 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `            />` &&
              `            <Button` &&
              `                text="Close"` &&
+             `                enabled="{= ${/selectedTab} !== 'ERROR' }"` &&
              `                press=".onClose"` &&
              `            />` &&
              `        </buttons>` &&

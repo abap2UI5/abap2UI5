@@ -11,6 +11,38 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   // so a stack trace from the backend cannot blow up the error overlay.
   const ERROR_MAX_LENGTH = 50000;
 
+  // The friendly dialog shows only a short preview of the error text (the
+  // full text stays on the DebugTool's Error tab); longer previews are cut.
+  const PREVIEW_MAX_LENGTH = 500;
+
+  // Turn the raw error text into a one-glance preview for the friendly
+  // dialog. Backend errors often arrive as a whole HTML page (an ABAP dump
+  // rendered as a 500 error page), so drop <script>/<style> blocks and the
+  // remaining tags, decode the few common entities, collapse whitespace and
+  // cut to a readable length. Rendered as plain MessageBox text, so the
+  // stripped markup cannot execute.
+  function buildErrorPreview(text) {
+    if (!text) return "";
+    let preview = text;
+    if (/<[a-z][\s\S]*>/i.test(preview)) {
+      preview = preview
+        .replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ")
+        .replace(/<[^>]+>/g, " ");
+    }
+    preview = preview
+      .replace(/&nbsp;/gi, " ")
+      .replace(/&lt;/gi, "<")
+      .replace(/&gt;/gi, ">")
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'")
+      .replace(/&amp;/gi, "&")
+      .replace(/\s+/g, " ")
+      .trim();
+    return preview.length > PREVIEW_MAX_LENGTH
+      ? `${preview.slice(0, PREVIEW_MAX_LENGTH)}...`
+      : preview;
+  }
+
   function createContainer() {
     // Always start from a fresh element: reusing a previous overlay would
     // keep its keydown focus-trap listener alive and stack a duplicate on
@@ -61,16 +93,21 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     }
   }
 
-  // The friendly UI5 error dialog shown first: a short message with a
-  // Details action (jump into the DebugTool) and a Restart action (reload).
-  // Returns true when it was shown, false when UI5 could not render it so
-  // the caller falls back to the raw-DOM overlay. sap/m/MessageBox is
-  // required lazily so ErrorView never hard-depends on a renderable core.
-  function showFriendlyDialog(title) {
+  // The friendly UI5 error dialog shown first: a short message - including a
+  // preview of the actual error so the cause is visible at a glance - with a
+  // Details action (jump into the DebugTool for the full text) and a Restart
+  // action (reload). Returns true when it was shown, false when UI5 could not
+  // render it so the caller falls back to the raw-DOM overlay. sap/m/MessageBox
+  // is required lazily so ErrorView never hard-depends on a renderable core.
+  function showFriendlyDialog(title, details) {
     try {
       const MessageBox = sap.ui.require("sap/m/MessageBox");
       if (!MessageBox) return false;
-      MessageBox.error("An unexpected error occurred.", {
+      const preview = buildErrorPreview(details);
+      const message = preview
+        ? `An unexpected error occurred:\n\n${preview}`
+        : "An unexpected error occurred.";
+      MessageBox.error(message, {
         title: title || "Application Error",
         actions: ["Details", "Restart"],
         emphasizedAction: "Restart",
@@ -129,7 +166,7 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     // Prefer a friendly UI5 dialog ("an unexpected error occurred" + Details
     // / Restart). Only when UI5 cannot render it (broken core, missing
     // module) do we fall back to the raw-DOM overlay below.
-    if (showFriendlyDialog(title)) return;
+    if (showFriendlyDialog(title, errorMessage)) return;
 
     const errorContainer = createContainer();
 

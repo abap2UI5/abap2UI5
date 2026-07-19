@@ -56,7 +56,7 @@ test.describe("ErrorView friendly dialog", () => {
     expect(state.lastError.onRetry).toBe(onRetry);
   });
 
-  test("shows a MessageBox with Details + Restart actions", () => {
+  test("shows a MessageBox with Details + Restart actions and the error preview", () => {
     const calls = [];
     const messageBox = {
       error: (message, opts) => calls.push({ message, opts }),
@@ -64,9 +64,47 @@ test.describe("ErrorView friendly dialog", () => {
     const { ErrorView } = load({ messageBox });
     ErrorView.show("some backend dump");
     expect(calls).toHaveLength(1);
-    expect(calls[0].message).toBe("An unexpected error occurred.");
+    expect(calls[0].message).toBe(
+      "An unexpected error occurred:\n\nsome backend dump",
+    );
     expect(calls[0].opts.actions).toEqual(["Details", "Restart"]);
     expect(calls[0].opts.emphasizedAction).toBe("Restart");
+  });
+
+  test("previews the meaningful text of an HTML backend dump", () => {
+    const calls = [];
+    const messageBox = {
+      error: (message, opts) => calls.push({ message, opts }),
+    };
+    const { ErrorView } = load({ messageBox });
+    const htmlDump = [
+      "<!DOCTYPE html><html><head><style>body { color: red; }</style>",
+      '<script>var d = "20260719";</script></head><body>',
+      '<p class="errorTextHeader">500 Internal Server Error</p>',
+      '<p class="detailText">Division by zero</p>',
+      "</body></html>",
+    ].join("");
+    ErrorView.show(htmlDump);
+    // <style>/<script> contents are dropped; the visible text survives.
+    expect(calls[0].message).toContain("500 Internal Server Error");
+    expect(calls[0].message).toContain("Division by zero");
+    expect(calls[0].message).not.toContain("color: red");
+    expect(calls[0].message).not.toContain("20260719");
+    expect(calls[0].message).not.toContain("<p");
+  });
+
+  test("truncates a long preview but keeps the full text for the Error tab", () => {
+    const calls = [];
+    const messageBox = {
+      error: (message, opts) => calls.push({ message, opts }),
+    };
+    const { ErrorView, state } = load({ messageBox });
+    const long = "x".repeat(2000);
+    ErrorView.show(long);
+    expect(calls[0].message).toContain("...");
+    expect(calls[0].message.length).toBeLessThan(long.length);
+    // The DebugTool Error tab still gets the untruncated text.
+    expect(state.lastError.text).toBe(long);
   });
 
   test("Details opens the DebugTool on the Error tab", () => {

@@ -92,6 +92,7 @@
         <VBox>
             <ToggleButton text="Source XML after Templating" visible="{/isTemplating}" pressed="{/templatingSource}" press=".onTemplatingPress" />
             <ce:CodeEditor
+                id="debugEditor"
                 type="{/type}"
                 value="{/value}"
                 height="2000px"
@@ -122,6 +123,7 @@
             />
             <Button
                 text="Close"
+                enabled="{= ${/selectedTab} !== 'ERROR' }"
                 press=".onClose"
             />
         </buttons>
