@@ -24,14 +24,6 @@ CLASS z2ui5_cl_core_client DEFINITION PUBLIC FINAL.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
-    "! Queue a follow-up action whose t_arg is a fixed head (the control /
-    "! object / method identifiers) followed by the caller's params. The one
-    "! place the control_call / binding_call family serializes its head args.
-    METHODS follow_up_with_head
-      IMPORTING
-        val    TYPE string
-        head   TYPE string_table
-        params TYPE string_table.
 ENDCLASS.
 
 
@@ -59,49 +51,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     ENDIF.
 
     INSERT lv_js INTO TABLE mo_action->ms_next-s_set-s_follow_up_action-custom_js.
-
-  ENDMETHOD.
-
-
-  METHOD follow_up_with_head.
-
-    DATA(lt_arg) = head.
-    APPEND LINES OF params TO lt_arg.
-
-    z2ui5_if_client~follow_up_action( val   = val
-                                      t_arg = lt_arg ).
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_if_client~control_call_by_id.
-
-    follow_up_with_head( val    = `CONTROL_BY_ID`
-                         head   = VALUE #( ( CONV string( id ) )
-                                           ( CONV string( view ) )
-                                           ( CONV string( method ) ) )
-                         params = params ).
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_if_client~control_call.
-
-    follow_up_with_head( val    = `CONTROL_GLOBAL`
-                         head   = VALUE #( ( CONV string( object ) )
-                                           ( CONV string( method ) ) )
-                         params = params ).
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_if_client~binding_call_by_id.
-
-    follow_up_with_head( val    = `BINDING_CALL`
-                         head   = VALUE #( ( CONV string( id ) )
-                                           ( CONV string( aggregation ) )
-                                           ( CONV string( method ) ) )
-                         params = params ).
 
   ENDMETHOD.
 

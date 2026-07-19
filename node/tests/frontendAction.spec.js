@@ -2,7 +2,7 @@
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
-// Tests the control_call / control_call_by_id handlers in the real
+// Tests the CONTROL_GLOBAL / CONTROL_BY_ID handlers in the real
 // app/webapp/core/FrontendAction.js (loaded via a stubbed sap.ui.define).
 // The focus is the whitelist boundary and the argument casting.
 
@@ -51,7 +51,7 @@ function load() {
   return { FrontendAction: module, calls, errors, controls };
 }
 
-test.describe("control_call (global objects)", () => {
+test.describe("CONTROL_GLOBAL (global objects)", () => {
   test("calls a whitelisted global method with its param", () => {
     const { FrontendAction, calls } = load();
     FrontendAction.execute(null, [
@@ -83,7 +83,7 @@ test.describe("control_call (global objects)", () => {
   });
 });
 
-test.describe("control_call_by_id", () => {
+test.describe("CONTROL_BY_ID", () => {
   test("resolves the control and casts the args", () => {
     const { FrontendAction, calls, controls } = load();
     controls.myTable = { scrollToIndex: (i) => calls.push(["scroll", i]) };
@@ -137,7 +137,7 @@ test.describe("control_call_by_id", () => {
   });
 });
 
-test.describe("binding_call", () => {
+test.describe("BINDING_CALL", () => {
   function withListBinding(controls, calls) {
     const binding = {
       filter: (f) => calls.push(["filter", f]),

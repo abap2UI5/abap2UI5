@@ -44,6 +44,8 @@ INTERFACE z2ui5_if_client
       play_audio                TYPE string VALUE `PLAY_AUDIO`,
 
       "Control
+      control_by_id             TYPE string VALUE `CONTROL_BY_ID`,
+      control_global            TYPE string VALUE `CONTROL_GLOBAL`,
       binding_call              TYPE string VALUE `BINDING_CALL`,
 
       "obsolet?
@@ -246,42 +248,25 @@ INTERFACE z2ui5_if_client
   "! Two ways to call it: pass a frontend event as val (e.g. cs_event-set_title)
   "! with its arguments in t_arg and the framework builds the event call; or pass
   "! a raw JavaScript expression as val (without t_arg) to run it as-is.
+  "! The whitelisted control/binding calls are frontend events too; their t_arg
+  "! is positional (an empty argument between filled ones keeps its slot as ``):
+  "! cs_event-control_by_id - call a whitelisted method on a control resolved
+  "! by id: t_arg = id, view (`` = global lookup), method, params.
+  "! cs_event-control_global - call a whitelisted method on a global object
+  "! (MESSAGE_TOAST, MESSAGE_BOX, BUSY_INDICATOR, THEMING):
+  "! t_arg = object, method, params.
+  "! cs_event-binding_call - apply a declarative filter/sorter to an
+  "! aggregation binding, the client-side equivalent of the UI5 controller
+  "! pattern getBinding('items').filter(...); the model data stays untouched:
+  "! t_arg = id, aggregation, method, params. method `filter`: params = path,
+  "! operator, value1, value2 (empty values clear the filter); method `sort`:
+  "! params = path, descending, group (abap_bool as `X`/``).
+  "! Each of these events also works roundtrip-free when wired in the view via
+  "! _event_client with the same t_arg.
   METHODS follow_up_action
     IMPORTING
       val   TYPE string
       t_arg TYPE string_table OPTIONAL.
-
-  "! Call a whitelisted method on a control (resolved by id) after the next
-  "! render - client-side, without a roundtrip.
-  METHODS control_call_by_id
-    IMPORTING
-      id     TYPE clike
-      method TYPE clike
-      view   TYPE clike        OPTIONAL
-      params TYPE string_table OPTIONAL.
-
-  "! Call a whitelisted method on a global object (MessageToast, Theming,
-  "! BusyIndicator, ...) after the next render - client-side, no roundtrip.
-  METHODS control_call
-    IMPORTING
-      object TYPE clike
-      method TYPE clike
-      params TYPE string_table OPTIONAL.
-
-  "! Apply a declarative filter/sorter to an aggregation binding of a control
-  "! resolved by id, after the next render - the client-side equivalent of the
-  "! UI5 controller pattern getBinding('items').filter(...); the model data
-  "! stays untouched. method 'filter': params = path, operator, value1, value2
-  "! (empty value1 clears the filter); method 'sort': params = path,
-  "! descending, group (abap_bool as 'X'/''). For the roundtrip-free variant
-  "! wire cs_event-binding_call via _event_client, passing t_arg in the same
-  "! order the parameters are declared here: id, aggregation, method, params.
-  METHODS binding_call_by_id
-    IMPORTING
-      id          TYPE clike
-      aggregation TYPE clike        DEFAULT `items`
-      method      TYPE clike        DEFAULT `filter`
-      params      TYPE string_table OPTIONAL.
 
   METHODS check_on_event
     IMPORTING
