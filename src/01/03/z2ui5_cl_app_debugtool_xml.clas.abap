@@ -143,7 +143,7 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `            />` &&
              `            <Button` &&
              `                text="Close"` &&
-             `                enabled="{= ${/selectedTab} !== 'ERROR' }"` &&
+             `                enabled="{/closeEnabled}"` &&
              `                press=".onClose"` &&
              `            />` &&
              `        </buttons>` &&

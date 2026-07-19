@@ -154,6 +154,17 @@ test.describe("Error tab", () => {
     expect(modelData.value).toBe("App Terminated\n\nbackend dump...");
     expect(modelData.type).toBe("text");
     expect(modelData.hasRetry).toBe(true);
+    // Close is disabled on the Error tab (app is unrecoverable).
+    expect(modelData.closeEnabled).toBe(false);
+  });
+
+  test("re-enables Close when leaving the Error tab for another one", () => {
+    const { DebugTool } = loadDebugTool({
+      lastError: { title: "x", text: "y", onRetry: null },
+    });
+    const { oEvent, modelData } = fakeSelectEvent("LOG");
+    DebugTool.onItemSelect(oEvent);
+    expect(modelData.closeEnabled).toBe(true);
   });
 
   test("hides Retry when the fatal error carried no retry action", () => {

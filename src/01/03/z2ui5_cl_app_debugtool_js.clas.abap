@@ -268,6 +268,14 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      // to "ERROR"). The content per entry is defined declaratively in` && |\n| &&
              `      // jsonSources / xmlSources above.` && |\n| &&
              `      renderTab(selItem, oModel) {` && |\n| &&
+             `        // After a fatal error the app is unrecoverable, so Close is disabled` && |\n| &&
+             `        // while the Error tab is shown - the escape is Retry/Refresh/Logout.` && |\n| &&
+             `        // A plain model boolean is used (not an expression binding) because` && |\n| &&
+             `        // the app runs under a CSP without 'unsafe-eval', which UI5 needs to` && |\n| &&
+             `        // compile {= ... } expressions. The subsequent displayEditor/showError` && |\n| &&
+             `        // refresh propagates this to the button.` && |\n| &&
+             `        oModel.getData().closeEnabled = selItem !== "ERROR";` && |\n| &&
+             `` && |\n| &&
              `        if (jsonSources[selItem]) {` && |\n| &&
              `          this.displayEditor(oModel, toJson(jsonSources[selItem]()), "json");` && |\n| &&
              `          if (selItem === "SYSTEM") this.foldSystemTab();` && |\n| &&
@@ -409,7 +417,8 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        modelData.value = oSource.getPressed()` && |\n| &&
              `          ? modelData.xContent` && |\n| &&
              `          : modelData.previousValue;` && |\n| &&
-             `        oModel.refresh();` && |\n| &&
+             `        oModel.refresh();` && |\n|.
+    result = result &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onClose() {` && |\n| &&
@@ -417,8 +426,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Open the debug dialog. ``initialTab`` (a tab key, e.g. "ERROR") opens` && |\n| &&
-             `      // it directly on that tab - used by the error popup's Details action;` && |\n|.
-    result = result &&
+             `      // it directly on that tab - used by the error popup's Details action;` && |\n| &&
              `      // defaults to the response tab.` && |\n| &&
              `      async show(initialTab) {` && |\n| &&
              `        // Guard against double-clicks while the fragment is still loading.` && |\n| &&
@@ -451,6 +459,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `            editor_visible: true,` && |\n| &&
              `            hasError: Boolean(AppState.state.lastError),` && |\n| &&
              `            hasRetry: typeof AppState.state.lastError?.onRetry === "function",` && |\n| &&
+             `            closeEnabled: selectedTab !== "ERROR",` && |\n| &&
              `            value: value,` && |\n| &&
              `            xContent: "",` && |\n| &&
              `            previousValue: value,` && |\n| &&

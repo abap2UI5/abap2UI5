@@ -248,6 +248,14 @@ sap.ui.define(
       // to "ERROR"). The content per entry is defined declaratively in
       // jsonSources / xmlSources above.
       renderTab(selItem, oModel) {
+        // After a fatal error the app is unrecoverable, so Close is disabled
+        // while the Error tab is shown - the escape is Retry/Refresh/Logout.
+        // A plain model boolean is used (not an expression binding) because
+        // the app runs under a CSP without 'unsafe-eval', which UI5 needs to
+        // compile {= ... } expressions. The subsequent displayEditor/showError
+        // refresh propagates this to the button.
+        oModel.getData().closeEnabled = selItem !== "ERROR";
+
         if (jsonSources[selItem]) {
           this.displayEditor(oModel, toJson(jsonSources[selItem]()), "json");
           if (selItem === "SYSTEM") this.foldSystemTab();
@@ -430,6 +438,7 @@ sap.ui.define(
             editor_visible: true,
             hasError: Boolean(AppState.state.lastError),
             hasRetry: typeof AppState.state.lastError?.onRetry === "function",
+            closeEnabled: selectedTab !== "ERROR",
             value: value,
             xContent: "",
             previousValue: value,

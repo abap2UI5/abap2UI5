@@ -123,7 +123,7 @@
             />
             <Button
                 text="Close"
-                enabled="{= ${/selectedTab} !== 'ERROR' }"
+                enabled="{/closeEnabled}"
                 press=".onClose"
             />
         </buttons>
