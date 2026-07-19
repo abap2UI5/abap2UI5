@@ -467,11 +467,24 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `                text: "Copy to Clipboard",` && |\n| &&
              `                type: "Emphasized",` && |\n| &&
              `                press: () => {` && |\n| &&
-             `                  try {` && |\n| &&
-             `                    navigator.clipboard?.writeText(text);` && |\n| &&
-             `                  } catch {` && |\n| &&
-             `                    // Clipboard API unavailable (e.g. non-secure context);` && |\n| &&
-             `                    // the TextArea stays selectable for a manual copy.` && |\n| &&
+             `                  // navigator.clipboard needs a secure (HTTPS) context, which` && |\n| &&
+             `                  // an on-premise ABAP system often is not. Select the` && |\n| &&
+             `                  // TextArea and use the classic execCommand("copy") first` && |\n| &&
+             `                  // (works over plain HTTP), then fall back to the async API.` && |\n| &&
+             `                  const ta = area.getFocusDomRef();` && |\n| &&
+             `                  let copied = false;` && |\n| &&
+             `                  if (ta) {` && |\n| &&
+             `                    ta.focus();` && |\n| &&
+             `                    ta.select();` && |\n| &&
+             `                    ta.setSelectionRange(0, (ta.value || "").length);` && |\n| &&
+             `                    try {` && |\n| &&
+             `                      copied = document.execCommand("copy");` && |\n| &&
+             `                    } catch {` && |\n| &&
+             `                      copied = false;` && |\n| &&
+             `                    }` && |\n| &&
+             `                  }` && |\n| &&
+             `                  if (!copied && navigator.clipboard?.writeText) {` && |\n| &&
+             `                    navigator.clipboard.writeText(text).catch(() => {});` && |\n| &&
              `                  }` && |\n| &&
              `                },` && |\n| &&
              `              }),` && |\n| &&

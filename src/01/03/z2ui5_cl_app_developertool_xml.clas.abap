@@ -127,6 +127,11 @@ CLASS z2ui5_cl_app_developertool_xml IMPLEMENTATION.
              `        <footer>` &&
              `            <OverflowToolbar>` &&
              `                <Button` &&
+             `                    text="Export"` &&
+             `                    icon="sap-icon://download"` &&
+             `                    press=".onExport"` &&
+             `                />` &&
+             `                <Button` &&
              `                    text="Restart"` &&
              `                    icon="sap-icon://restart"` &&
              `                    press=".onErrorRestart"` &&
@@ -137,11 +142,6 @@ CLASS z2ui5_cl_app_developertool_xml IMPLEMENTATION.
              `                    press=".onErrorLogout"` &&
              `                />` &&
              `                <ToolbarSpacer/>` &&
-             `                <Button` &&
-             `                    text="Export"` &&
-             `                    icon="sap-icon://download"` &&
-             `                    press=".onExport"` &&
-             `                />` &&
              `                <Button` &&
              `                    text="Retry"` &&
              `                    type="Emphasized"` &&

@@ -446,11 +446,24 @@ sap.ui.define(
                 text: "Copy to Clipboard",
                 type: "Emphasized",
                 press: () => {
-                  try {
-                    navigator.clipboard?.writeText(text);
-                  } catch {
-                    // Clipboard API unavailable (e.g. non-secure context);
-                    // the TextArea stays selectable for a manual copy.
+                  // navigator.clipboard needs a secure (HTTPS) context, which
+                  // an on-premise ABAP system often is not. Select the
+                  // TextArea and use the classic execCommand("copy") first
+                  // (works over plain HTTP), then fall back to the async API.
+                  const ta = area.getFocusDomRef();
+                  let copied = false;
+                  if (ta) {
+                    ta.focus();
+                    ta.select();
+                    ta.setSelectionRange(0, (ta.value || "").length);
+                    try {
+                      copied = document.execCommand("copy");
+                    } catch {
+                      copied = false;
+                    }
+                  }
+                  if (!copied && navigator.clipboard?.writeText) {
+                    navigator.clipboard.writeText(text).catch(() => {});
                   }
                 },
               }),

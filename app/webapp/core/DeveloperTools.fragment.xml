@@ -107,6 +107,11 @@
         <footer>
             <OverflowToolbar>
                 <Button
+                    text="Export"
+                    icon="sap-icon://download"
+                    press=".onExport"
+                />
+                <Button
                     text="Restart"
                     icon="sap-icon://restart"
                     press=".onErrorRestart"
@@ -117,11 +122,6 @@
                     press=".onErrorLogout"
                 />
                 <ToolbarSpacer/>
-                <Button
-                    text="Export"
-                    icon="sap-icon://download"
-                    press=".onExport"
-                />
                 <Button
                     text="Retry"
                     type="Emphasized"
