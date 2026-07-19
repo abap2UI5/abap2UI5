@@ -89,13 +89,6 @@ CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
              `        "lazy": true` &&
              `      }` &&
              `    },` &&
-             `    "resources": {` &&
-             `      "css": [` &&
-             `        {` &&
-             `          "uri": "css/style.css"` &&
-             `        }` &&
-             `      ]` &&
-             `    },` &&
              `    "rootView": {` &&
              `      "viewName": "z2ui5.view.App",` &&
              `      "type": "XML",` &&

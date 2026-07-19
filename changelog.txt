@@ -26,6 +26,15 @@ unreleased
   which raced the close animation on UI5 1.71 and left the CodeEditor id
   registered. The dialog is now loaded once and reused across open/close, and
   destroyed only when the control itself exits.
+* Fixed "failed to load sap/m/footer.js" (404) when opening the Developer
+  Tools on OpenUI5 1.71: the dialog footer used a <footer> aggregation, which
+  sap.m.Dialog only exposes since ~1.110, so on older releases UI5 tried to
+  load a nonexistent sap.m.footer control. Switched to the cross-version
+  `buttons` aggregation (since 1.21.1).
+* Removed the empty css/style.css entry from manifest.json's
+  sap.ui5/resources: it was an empty placeholder stylesheet that UI5 loaded as
+  a physical <link>, which 404'd on the ABAP system (the file is served through
+  the module preload, not as an ICF resource). No styling is lost.
 * Restored 'unsafe-eval' in the default Content-Security-Policy: the OpenUI5
   1.71 ui5loader evaluates module source as a string, so without it the 1.71
   bootstrap failed with a CSP EvalError ("Failed to load component"). Modern

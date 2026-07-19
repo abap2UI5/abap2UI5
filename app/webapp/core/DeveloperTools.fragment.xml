@@ -104,36 +104,38 @@
         <VBox visible="{/source_visible}">
             <core:HTML id="sourceHtml"/>
         </VBox>
-        <footer>
-            <OverflowToolbar>
-                <Button
-                    text="Export"
-                    icon="sap-icon://download"
-                    press=".onExport"
-                />
-                <Button
-                    text="Restart"
-                    icon="sap-icon://restart"
-                    press=".onErrorRestart"
-                />
-                <Button
-                    text="Logout"
-                    icon="sap-icon://log"
-                    press=".onErrorLogout"
-                />
-                <ToolbarSpacer/>
-                <Button
-                    text="Retry"
-                    type="Emphasized"
-                    icon="sap-icon://refresh"
-                    visible="{/hasRetry}"
-                    press=".onErrorRetry"
-                />
-                <Button
-                    text="Close"
-                    press=".onClose"
-                />
-            </OverflowToolbar>
-        </footer>
+        <!-- sap.m.Dialog only gained a public `footer` aggregation around
+             1.110; on older releases (e.g. 1.71) a <footer> tag is resolved
+             as a control and fails with "failed to load sap/m/footer.js".
+             The `buttons` aggregation (since 1.21.1) is the cross-version
+             footer; UI5 lays the buttons out in an overflow toolbar. -->
+        <buttons>
+            <Button
+                text="Export"
+                icon="sap-icon://download"
+                press=".onExport"
+            />
+            <Button
+                text="Restart"
+                icon="sap-icon://restart"
+                press=".onErrorRestart"
+            />
+            <Button
+                text="Logout"
+                icon="sap-icon://log"
+                press=".onErrorLogout"
+            />
+            <Button
+                text="Retry"
+                type="Emphasized"
+                icon="sap-icon://refresh"
+                visible="{/hasRetry}"
+                press=".onErrorRetry"
+            />
+            <Button
+                text="Close"
+                press=".onClose"
+            />
+        </buttons>
     </Dialog>
 </core:FragmentDefinition>
