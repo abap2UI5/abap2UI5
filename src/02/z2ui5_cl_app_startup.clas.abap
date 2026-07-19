@@ -110,7 +110,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         client->nav_app_call( li_app_config ).
 
       WHEN cs_event-open_debug.
-        client->message_box_display( `Press CTRL+F12 to open the debugging tools` ).
+        client->message_box_display( `Press CTRL+F12 to open the developer tools` ).
 
       WHEN cs_event-open_info.
         render_system_popup( ).
@@ -186,7 +186,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     DATA(toolbar) = page->header_content( ).
     toolbar->toolbar_spacer(
-      )->button( text  = `Debugging Tools`
+      )->button( text  = `Developer Tools`
                  icon  = `sap-icon://enablement`
                  press = client->_event( cs_event-open_debug )
       )->button( text  = `System`
