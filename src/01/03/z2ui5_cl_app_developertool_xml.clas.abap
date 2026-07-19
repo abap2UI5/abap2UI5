@@ -154,6 +154,7 @@ CLASS z2ui5_cl_app_developertool_xml IMPLEMENTATION.
              `            />` &&
              `            <Button` &&
              `                text="Close"` &&
+             `                type="Emphasized"` &&
              `                press=".onClose"` &&
              `            />` &&
              `        </buttons>` &&

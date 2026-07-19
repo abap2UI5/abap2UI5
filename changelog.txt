@@ -35,6 +35,13 @@ unreleased
   sap.ui5/resources: it was an empty placeholder stylesheet that UI5 loaded as
   a physical <link>, which 404'd on the ABAP system (the file is served through
   the module preload, not as an ICF resource). No styling is lost.
+! The fatal-error popup can no longer be dismissed with Escape: it is now a
+  sap.m.Dialog with an escapeHandler that rejects (sap.m.MessageBox always
+  closes on Escape and offers no way to suppress it), so a broken app can only
+  be left via its explicit Details / Restart actions. Details -> Developer
+  Tools -> Escape still returns to the error popup.
+! Emphasized the Developer Tools "Close" button so it stands out among the
+  footer actions.
 * Restored 'unsafe-eval' in the default Content-Security-Policy: the OpenUI5
   1.71 ui5loader evaluates module source as a string, so without it the 1.71
   bootstrap failed with a CSP EvalError ("Failed to load component"). Modern

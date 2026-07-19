@@ -40,6 +40,10 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `  let lastDialogTitle = "";` && |\n| &&
              `  let lastDialogDetails = "";` && |\n| &&
              `` && |\n| &&
+             `  // The currently open friendly error dialog, so a second fatal error (or a` && |\n| &&
+             `  // reopen from the Developer Tools) never stacks two of them.` && |\n| &&
+             `  let friendlyDialog = null;` && |\n| &&
+             `` && |\n| &&
              `  // Decode the HTML entities that turn up in backend error pages. Non-ASCII` && |\n| &&
              `  // replacements go through fromCharCode so this source file stays 7-bit ASCII` && |\n| &&
              `  // (it is embedded verbatim into an ABAP class). &amp; is decoded last so an` && |\n| &&
@@ -157,34 +161,65 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  // The friendly UI5 error dialog shown first: the extracted error text so the` && |\n| &&
-             `  // cause is visible at a glance, with a Details action (jump into the DeveloperTools` && |\n| &&
-             `  // for the full text) and a Restart action (reload). Returns true when it was` && |\n| &&
-             `  // shown, false when UI5 could not render it so the caller falls back to the` && |\n| &&
-             `  // raw-DOM overlay. sap/m/MessageBox is required lazily so ErrorView never` && |\n| &&
-             `  // hard-depends on a renderable core.` && |\n| &&
+             `  // cause is visible at a glance, with a Details action (jump into the` && |\n| &&
+             `  // DeveloperTools for the full text) and a Restart action (reload). Returns` && |\n| &&
+             `  // true when it was shown, false when UI5 could not render it so the caller` && |\n| &&
+             `  // falls back to the raw-DOM overlay. sap.m.Dialog/Button/Text are required` && |\n| &&
+             `  // lazily so ErrorView never hard-depends on a renderable core.` && |\n| &&
+             `  //` && |\n| &&
+             `  // A plain Dialog (not sap.m.MessageBox) is used on purpose: a fatal error` && |\n| &&
+             `  // leaves the app in a broken state, so the popup must not be dismissable` && |\n| &&
+             `  // with Escape - MessageBox always closes on Escape and offers no way to` && |\n| &&
+             `  // suppress it, whereas a Dialog with an escapeHandler that rejects stays` && |\n| &&
+             `  // open until the user picks an explicit action.` && |\n| &&
              `  function showFriendlyDialog(title, details) {` && |\n| &&
              `    try {` && |\n| &&
-             `      const MessageBox = sap.ui.require("sap/m/MessageBox");` && |\n| &&
-             `      if (!MessageBox) return false;` && |\n| &&
+             `      const Dialog = sap.ui.require("sap/m/Dialog");` && |\n| &&
+             `      const Button = sap.ui.require("sap/m/Button");` && |\n| &&
+             `      const Text = sap.ui.require("sap/m/Text");` && |\n| &&
+             `      if (!Dialog || !Button || !Text) return false;` && |\n| &&
              `      lastDialogTitle = title;` && |\n| &&
              `      lastDialogDetails = details;` && |\n| &&
+             `      // Never stack two error popups (a second fatal error or a reopen).` && |\n| &&
+             `      if (friendlyDialog) {` && |\n| &&
+             `        friendlyDialog.destroy();` && |\n| &&
+             `        friendlyDialog = null;` && |\n| &&
+             `      }` && |\n| &&
              `      // Show only the extracted error text; a short neutral fallback covers` && |\n| &&
              `      // the rare case where nothing could be extracted.` && |\n| &&
              `      const message = buildErrorPreview(details) || "An error occurred.";` && |\n| &&
-             `      MessageBox.error(message, {` && |\n| &&
+             `      // Restart is the primary action, so it also gets the initial focus.` && |\n| &&
+             `      const restartButton = new Button({` && |\n| &&
+             `        text: "Restart",` && |\n| &&
+             `        type: "Emphasized",` && |\n| &&
+             `        press: () => window.location.reload(),` && |\n| &&
+             `      });` && |\n| &&
+             `      const dialog = new Dialog({` && |\n| &&
              `        title: title || "Application Error",` && |\n| &&
-             `        actions: ["Details", "Restart"],` && |\n| &&
-             `        emphasizedAction: "Restart",` && |\n| &&
-             `        // Restart is the primary action, so it also gets the initial focus.` && |\n| &&
-             `        initialFocus: "Restart",` && |\n| &&
-             `        onClose: (action) => {` && |\n| &&
-             `          if (action === "Details") {` && |\n| &&
+             `        type: "Message",` && |\n| &&
+             `        state: "Error",` && |\n| &&
+             `        icon: "sap-icon://message-error",` && |\n| &&
+             `        // Escape must not dismiss the fatal-error popup: rejecting the escape` && |\n| &&
+             `        // promise keeps it open, so the only ways out are the explicit` && |\n| &&
+             `        // Details / Restart actions below.` && |\n| &&
+             `        escapeHandler: (oPromise) => oPromise.reject(),` && |\n| &&
+             `        content: [new Text({ text: message })],` && |\n| &&
+             `        beginButton: new Button({` && |\n| &&
+             `          text: "Details",` && |\n| &&
+             `          press: () => {` && |\n| &&
+             `            dialog.close();` && |\n| &&
              `            openDeveloperTools();` && |\n| &&
-             `          } else if (action === "Restart") {` && |\n| &&
-             `            window.location.reload();` && |\n| &&
-             `          }` && |\n| &&
+             `          },` && |\n| &&
+             `        }),` && |\n| &&
+             `        endButton: restartButton,` && |\n| &&
+             `        initialFocus: restartButton,` && |\n| &&
+             `        afterClose: () => {` && |\n| &&
+             `          if (friendlyDialog === dialog) friendlyDialog = null;` && |\n| &&
+             `          dialog.destroy();` && |\n| &&
              `        },` && |\n| &&
              `      });` && |\n| &&
+             `      friendlyDialog = dialog;` && |\n| &&
+             `      dialog.open();` && |\n| &&
              `      return true;` && |\n| &&
              `    } catch {` && |\n| &&
              `      return false;` && |\n| &&

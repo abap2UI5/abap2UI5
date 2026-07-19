@@ -20,6 +20,10 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   let lastDialogTitle = "";
   let lastDialogDetails = "";
 
+  // The currently open friendly error dialog, so a second fatal error (or a
+  // reopen from the Developer Tools) never stacks two of them.
+  let friendlyDialog = null;
+
   // Decode the HTML entities that turn up in backend error pages. Non-ASCII
   // replacements go through fromCharCode so this source file stays 7-bit ASCII
   // (it is embedded verbatim into an ABAP class). &amp; is decoded last so an
@@ -137,34 +141,65 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   }
 
   // The friendly UI5 error dialog shown first: the extracted error text so the
-  // cause is visible at a glance, with a Details action (jump into the DeveloperTools
-  // for the full text) and a Restart action (reload). Returns true when it was
-  // shown, false when UI5 could not render it so the caller falls back to the
-  // raw-DOM overlay. sap/m/MessageBox is required lazily so ErrorView never
-  // hard-depends on a renderable core.
+  // cause is visible at a glance, with a Details action (jump into the
+  // DeveloperTools for the full text) and a Restart action (reload). Returns
+  // true when it was shown, false when UI5 could not render it so the caller
+  // falls back to the raw-DOM overlay. sap.m.Dialog/Button/Text are required
+  // lazily so ErrorView never hard-depends on a renderable core.
+  //
+  // A plain Dialog (not sap.m.MessageBox) is used on purpose: a fatal error
+  // leaves the app in a broken state, so the popup must not be dismissable
+  // with Escape - MessageBox always closes on Escape and offers no way to
+  // suppress it, whereas a Dialog with an escapeHandler that rejects stays
+  // open until the user picks an explicit action.
   function showFriendlyDialog(title, details) {
     try {
-      const MessageBox = sap.ui.require("sap/m/MessageBox");
-      if (!MessageBox) return false;
+      const Dialog = sap.ui.require("sap/m/Dialog");
+      const Button = sap.ui.require("sap/m/Button");
+      const Text = sap.ui.require("sap/m/Text");
+      if (!Dialog || !Button || !Text) return false;
       lastDialogTitle = title;
       lastDialogDetails = details;
+      // Never stack two error popups (a second fatal error or a reopen).
+      if (friendlyDialog) {
+        friendlyDialog.destroy();
+        friendlyDialog = null;
+      }
       // Show only the extracted error text; a short neutral fallback covers
       // the rare case where nothing could be extracted.
       const message = buildErrorPreview(details) || "An error occurred.";
-      MessageBox.error(message, {
+      // Restart is the primary action, so it also gets the initial focus.
+      const restartButton = new Button({
+        text: "Restart",
+        type: "Emphasized",
+        press: () => window.location.reload(),
+      });
+      const dialog = new Dialog({
         title: title || "Application Error",
-        actions: ["Details", "Restart"],
-        emphasizedAction: "Restart",
-        // Restart is the primary action, so it also gets the initial focus.
-        initialFocus: "Restart",
-        onClose: (action) => {
-          if (action === "Details") {
+        type: "Message",
+        state: "Error",
+        icon: "sap-icon://message-error",
+        // Escape must not dismiss the fatal-error popup: rejecting the escape
+        // promise keeps it open, so the only ways out are the explicit
+        // Details / Restart actions below.
+        escapeHandler: (oPromise) => oPromise.reject(),
+        content: [new Text({ text: message })],
+        beginButton: new Button({
+          text: "Details",
+          press: () => {
+            dialog.close();
             openDeveloperTools();
-          } else if (action === "Restart") {
-            window.location.reload();
-          }
+          },
+        }),
+        endButton: restartButton,
+        initialFocus: restartButton,
+        afterClose: () => {
+          if (friendlyDialog === dialog) friendlyDialog = null;
+          dialog.destroy();
         },
       });
+      friendlyDialog = dialog;
+      dialog.open();
       return true;
     } catch {
       return false;

@@ -134,6 +134,7 @@
             />
             <Button
                 text="Close"
+                type="Emphasized"
                 press=".onClose"
             />
         </buttons>
