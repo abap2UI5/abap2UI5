@@ -529,7 +529,7 @@ sap.ui.define(
         const url = `${window.location.origin}/sap/bc/adt/oo/classes/${appId}/source/main`;
         contentControl.setProperty(
           "content",
-          `<iframe id="test" src="${url}" height="800px" width="1200px" />`,
+          `<iframe id="test" src="${url}" style="width:100%;height:85vh;border:none;" />`,
         );
 
         if (!oModel) return;

@@ -550,7 +550,7 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `        const url = ``${window.location.origin}/sap/bc/adt/oo/classes/${appId}/source/main``;` && |\n| &&
              `        contentControl.setProperty(` && |\n| &&
              `          "content",` && |\n| &&
-             `          ``<iframe id="test" src="${url}" height="800px" width="1200px" />``,` && |\n| &&
+             `          ``<iframe id="test" src="${url}" style="width:100%;height:85vh;border:none;" />``,` && |\n| &&
              `        );` && |\n| &&
              `` && |\n| &&
              `        if (!oModel) return;` && |\n| &&
