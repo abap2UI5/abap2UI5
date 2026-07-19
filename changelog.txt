@@ -58,12 +58,20 @@ unreleased
   dump, so an unexpected internal state surfaces as a graceful error
   (the error popup / Developer Tools) rather than an ST22 dump. Vendored
   (src/00) and obsolete (src/99) code is unchanged.
-+ Added binding_call_by_id (declarative filter/sort on an aggregation binding) + cs_event-binding_call
++ Added the whitelisted frontend control calls as follow_up_action events: cs_event-control_by_id
+  (call a whitelisted method on a control resolved by id), cs_event-control_global (call a
+  whitelisted method on a global object - MessageToast, MessageBox, BusyIndicator, Theming) and
+  cs_event-binding_call (declarative filter/sort on an aggregation binding). All three are scheduled
+  via follow_up_action (or roundtrip-free via _event_client); the interim wrapper methods
+  control_call, control_call_by_id and binding_call_by_id existed only on this branch and are gone.
++ Whitelisted discardProgress and setNextStep (controlId arg) for CONTROL_BY_ID, so the wizard
+  step flow is expressible with two generic control calls (the dedicated WIZARD_SET_NEXT_STEP
+  event stays for compatibility).
 + Added the message> model on every view slot with automatic validation-message collection
 + Added the demo kit formatter pack to model/formatter (weightStateByValue, stockStatus*, round2DP, dimensions, deliveryStatusState)
 ! Event arg serialization no longer drops empty middle args: get_t_arg keeps an empty argument
-  between filled ones as an '' placeholder (only trailing empties are trimmed), so a control_call_by_id
-  without a view no longer loses its method position. Apps that passed a possibly-empty MIDDLE arg via
+  between filled ones as an '' placeholder (only trailing empties are trimmed), so a CONTROL_BY_ID
+  action without a view no longer loses its method position. Apps that passed a possibly-empty MIDDLE arg via
   _event/_event_client/follow_up_action and read the following value by its previously-compacted position
   now receive '' at that slot - pass the value at the intended position or drop the empty arg.
 

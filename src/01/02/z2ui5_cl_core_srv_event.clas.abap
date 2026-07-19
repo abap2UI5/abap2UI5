@@ -47,8 +47,8 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
     DATA(lv_val) = CONV string( val ).
     DATA(lt_arg) = t_arg.
 
-    " NavContainer navigation reuses the generic CONTROL_BY_ID client call so
-    " the frontend needs only the one generic dispatcher. Both the backend
+    " NavContainer navigation reuses the generic cs_event-control_by_id call
+    " so the frontend needs only the one generic dispatcher. Both the backend
     " follow-up action and the XML-bound client event (_event_client) are
     " formatted here, so this is the single place the *_nav_container_to events
     " are remapped to `<container>, <slot>, to, <target>`. The public
@@ -68,7 +68,7 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
                         ( lv_slot )
                         ( `to` )
                         ( VALUE #( t_arg[ 2 ] OPTIONAL ) ) ).
-      lv_val = `CONTROL_BY_ID`.
+      lv_val = z2ui5_if_client=>cs_event-control_by_id.
     ENDIF.
 
     result = |{ z2ui5_if_core_types=>cs_ui5-event_frontend_function }('{ lv_val }'{ get_t_arg( lt_arg ) }|.
@@ -85,7 +85,7 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
       IF lv_new IS INITIAL.
         " an empty argument between filled ones must keep its position -
         " dropping it would shift every following argument into the wrong
-        " slot (a control_call_by_id without a view lost its method name
+        " slot (a CONTROL_BY_ID action without a view lost its method name
         " this way). Buffer it and only flush when a later non-empty
         " argument follows, so trailing empties still disappear.
         lv_pending = |{ lv_pending }, ''|.

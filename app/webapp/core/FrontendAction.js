@@ -59,11 +59,11 @@ sap.ui.define(
 
     // NavContainer navigation (NAV_CONTAINER_TO and the NEST/NEST2/POPUP/
     // POPOVER variants) is no longer dispatched here: the backend routes those
-    // events through the generic control_call_by_id path (method "to", the
+    // events through the generic CONTROL_BY_ID path (method "to", the
     // slot passed as the view), so evControlCallById below handles them.
 
     // ------------------------------------------------------------------
-    // control_call / control_call_by_id: call a whitelisted method on a
+    // CONTROL_GLOBAL / CONTROL_BY_ID: call a whitelisted method on a
     // control (by id) or a global object. The whitelist is the safety
     // boundary; each entry lists the kind of every positional argument so
     // string payloads are cast/resolved (never "call anything with
@@ -80,6 +80,8 @@ sap.ui.define(
       open: [],
       close: [],
       setExpanded: ["bool"],
+      discardProgress: ["controlId"],
+      setNextStep: ["controlId"],
     };
 
     // global object -> lazy getter + its allowed methods (with arg kinds).
@@ -145,7 +147,7 @@ sap.ui.define(
       const [id, view, method] = [args[1], args[2], args[3]];
       const kinds = CONTROL_METHODS[method];
       if (!kinds) {
-        Lib.logError(`control_call_by_id: method '${method}' not allowed`);
+        Lib.logError(`CONTROL_BY_ID: method '${method}' not allowed`);
         return;
       }
       const control = view
@@ -153,7 +155,7 @@ sap.ui.define(
         : ViewSlots.resolveById(id);
       if (!control || typeof control[method] !== "function") {
         Lib.logError(
-          `control_call_by_id: '${method}' not callable on control '${id}'`,
+          `CONTROL_BY_ID: '${method}' not callable on control '${id}'`,
         );
         return;
       }
@@ -166,23 +168,23 @@ sap.ui.define(
       const target = GLOBAL_TARGETS[name];
       const kinds = target?.methods[method];
       if (!kinds) {
-        Lib.logError(`control_call: '${name}.${method}' not allowed`);
+        Lib.logError(`CONTROL_GLOBAL: '${name}.${method}' not allowed`);
         return;
       }
       const obj = target.get();
       if (!obj || typeof obj[method] !== "function") {
-        Lib.logError(`control_call: '${name}.${method}' not available`);
+        Lib.logError(`CONTROL_GLOBAL: '${name}.${method}' not available`);
         return;
       }
       obj[method](...castArgs(kinds, args.slice(3)));
     }
 
     // ------------------------------------------------------------------
-    // binding_call: apply a declarative filter/sorter to an aggregation
+    // BINDING_CALL: apply a declarative filter/sorter to an aggregation
     // binding of a control resolved by id - the client-side equivalent of
     // the classic demo kit controller pattern
     // oList.getBinding("items").filter([new Filter(...)]). Same safety
-    // boundary as control_call_by_id: only whitelisted binding methods,
+    // boundary as CONTROL_BY_ID: only whitelisted binding methods,
     // only whitelisted filter operators, everything built from data
     // (path/operator/values), never from code strings.
     // ------------------------------------------------------------------
@@ -225,7 +227,7 @@ sap.ui.define(
           return;
         }
         if (!FILTER_OPERATORS.has(operator)) {
-          Lib.logError(`binding_call: operator '${operator}' not allowed`);
+          Lib.logError(`BINDING_CALL: operator '${operator}' not allowed`);
           return;
         }
         binding.filter([
@@ -244,13 +246,13 @@ sap.ui.define(
       const [id, aggregation, method] = [args[1], args[2], args[3]];
       const build = BINDING_METHODS[method];
       if (!build) {
-        Lib.logError(`binding_call: method '${method}' not allowed`);
+        Lib.logError(`BINDING_CALL: method '${method}' not allowed`);
         return;
       }
       const binding = ViewSlots.resolveById(id)?.getBinding?.(aggregation);
       if (!binding || typeof binding[method] !== "function") {
         Lib.logError(
-          `binding_call: no '${aggregation}' binding with '${method}' on control '${id}'`,
+          `BINDING_CALL: no '${aggregation}' binding with '${method}' on control '${id}'`,
         );
         return;
       }

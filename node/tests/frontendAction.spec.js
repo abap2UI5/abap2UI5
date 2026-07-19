@@ -2,7 +2,7 @@
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
-// Tests the control_call / control_call_by_id handlers in the real
+// Tests the CONTROL_GLOBAL / CONTROL_BY_ID handlers in the real
 // app/webapp/core/FrontendAction.js (loaded via a stubbed sap.ui.define).
 // The focus is the whitelist boundary and the argument casting.
 
@@ -51,7 +51,7 @@ function load() {
   return { FrontendAction: module, calls, errors, controls };
 }
 
-test.describe("control_call (global objects)", () => {
+test.describe("CONTROL_GLOBAL (global objects)", () => {
   test("calls a whitelisted global method with its param", () => {
     const { FrontendAction, calls } = load();
     FrontendAction.execute(null, [
@@ -83,7 +83,7 @@ test.describe("control_call (global objects)", () => {
   });
 });
 
-test.describe("control_call_by_id", () => {
+test.describe("CONTROL_BY_ID", () => {
   test("resolves the control and casts the args", () => {
     const { FrontendAction, calls, controls } = load();
     controls.myTable = { scrollToIndex: (i) => calls.push(["scroll", i]) };
@@ -125,6 +125,34 @@ test.describe("control_call_by_id", () => {
     expect(calls).toEqual([["open"], ["close"]]);
   });
 
+  test("discardProgress/setNextStep resolve their controlId arg (wizard)", () => {
+    const { FrontendAction, calls, controls } = load();
+    const step2 = { id: "STEP2" };
+    const step22 = { id: "STEP22" };
+    controls.STEP2 = step2;
+    controls.STEP22 = step22;
+    controls.wiz = { discardProgress: (s) => calls.push(["discard", s]) };
+    step2.setNextStep = (s) => calls.push(["next", s]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "wiz",
+      "",
+      "discardProgress",
+      "STEP2",
+    ]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "STEP2",
+      "",
+      "setNextStep",
+      "STEP22",
+    ]);
+    expect(calls).toEqual([
+      ["discard", step2],
+      ["next", step22],
+    ]);
+  });
+
   test("setExpanded casts the ABAP bool ('X'/'')", () => {
     const { FrontendAction, calls, controls } = load();
     controls.panel = { setExpanded: (b) => calls.push(["expand", b]) };
@@ -137,7 +165,7 @@ test.describe("control_call_by_id", () => {
   });
 });
 
-test.describe("binding_call", () => {
+test.describe("BINDING_CALL", () => {
   function withListBinding(controls, calls) {
     const binding = {
       filter: (f) => calls.push(["filter", f]),

@@ -199,11 +199,11 @@ CLASS ltcl_test IMPLEMENTATION.
 
     " an empty argument BETWEEN filled ones keeps its position - dropping
     " it would shift every following argument into the wrong slot (a
-    " control_call_by_id without a view lost its method name this way,
+    " CONTROL_BY_ID action without a view lost its method name this way,
     " live find in beta samples 448/449)
     cl_abap_unit_assert=>assert_equals(
         exp = `.eF('CONTROL_BY_ID', 'demoPanel', '', 'setExpanded', 'X')`
-        act = lo_event->get_event_client( val   = `CONTROL_BY_ID`
+        act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-control_by_id
                                           t_arg = VALUE #( ( `demoPanel` ) ( `` ) ( `setExpanded` ) ( `X` ) ) ) ).
 
   ENDMETHOD.
@@ -217,7 +217,7 @@ CLASS ltcl_test IMPLEMENTATION.
     " serializes to `` and simply ends the argument list
     cl_abap_unit_assert=>assert_equals(
         exp = `.eF('CONTROL_BY_ID', 'demoPanel', '', 'setExpanded')`
-        act = lo_event->get_event_client( val   = `CONTROL_BY_ID`
+        act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-control_by_id
                                           t_arg = VALUE #( ( `demoPanel` ) ( `` ) ( `setExpanded` ) ( `` ) ) ) ).
 
   ENDMETHOD.

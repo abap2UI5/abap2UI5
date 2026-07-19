@@ -79,11 +79,11 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `` && |\n| &&
              `    // NavContainer navigation (NAV_CONTAINER_TO and the NEST/NEST2/POPUP/` && |\n| &&
              `    // POPOVER variants) is no longer dispatched here: the backend routes those` && |\n| &&
-             `    // events through the generic control_call_by_id path (method "to", the` && |\n| &&
+             `    // events through the generic CONTROL_BY_ID path (method "to", the` && |\n| &&
              `    // slot passed as the view), so evControlCallById below handles them.` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
-             `    // control_call / control_call_by_id: call a whitelisted method on a` && |\n| &&
+             `    // CONTROL_GLOBAL / CONTROL_BY_ID: call a whitelisted method on a` && |\n| &&
              `    // control (by id) or a global object. The whitelist is the safety` && |\n| &&
              `    // boundary; each entry lists the kind of every positional argument so` && |\n| &&
              `    // string payloads are cast/resolved (never "call anything with` && |\n| &&
@@ -100,6 +100,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      open: [],` && |\n| &&
              `      close: [],` && |\n| &&
              `      setExpanded: ["bool"],` && |\n| &&
+             `      discardProgress: ["controlId"],` && |\n| &&
+             `      setNextStep: ["controlId"],` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    // global object -> lazy getter + its allowed methods (with arg kinds).` && |\n| &&
@@ -165,7 +167,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      const [id, view, method] = [args[1], args[2], args[3]];` && |\n| &&
              `      const kinds = CONTROL_METHODS[method];` && |\n| &&
              `      if (!kinds) {` && |\n| &&
-             `        Lib.logError(``control_call_by_id: method '${method}' not allowed``);` && |\n| &&
+             `        Lib.logError(``CONTROL_BY_ID: method '${method}' not allowed``);` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      const control = view` && |\n| &&
@@ -173,7 +175,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        : ViewSlots.resolveById(id);` && |\n| &&
              `      if (!control || typeof control[method] !== "function") {` && |\n| &&
              `        Lib.logError(` && |\n| &&
-             `          ``control_call_by_id: '${method}' not callable on control '${id}'``,` && |\n| &&
+             `          ``CONTROL_BY_ID: '${method}' not callable on control '${id}'``,` && |\n| &&
              `        );` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
@@ -186,23 +188,23 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      const target = GLOBAL_TARGETS[name];` && |\n| &&
              `      const kinds = target?.methods[method];` && |\n| &&
              `      if (!kinds) {` && |\n| &&
-             `        Lib.logError(``control_call: '${name}.${method}' not allowed``);` && |\n| &&
+             `        Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not allowed``);` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      const obj = target.get();` && |\n| &&
              `      if (!obj || typeof obj[method] !== "function") {` && |\n| &&
-             `        Lib.logError(``control_call: '${name}.${method}' not available``);` && |\n| &&
+             `        Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not available``);` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      obj[method](...castArgs(kinds, args.slice(3)));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
-             `    // binding_call: apply a declarative filter/sorter to an aggregation` && |\n| &&
+             `    // BINDING_CALL: apply a declarative filter/sorter to an aggregation` && |\n| &&
              `    // binding of a control resolved by id - the client-side equivalent of` && |\n| &&
              `    // the classic demo kit controller pattern` && |\n| &&
              `    // oList.getBinding("items").filter([new Filter(...)]). Same safety` && |\n| &&
-             `    // boundary as control_call_by_id: only whitelisted binding methods,` && |\n| &&
+             `    // boundary as CONTROL_BY_ID: only whitelisted binding methods,` && |\n| &&
              `    // only whitelisted filter operators, everything built from data` && |\n| &&
              `    // (path/operator/values), never from code strings.` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
@@ -245,7 +247,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        if (!FILTER_OPERATORS.has(operator)) {` && |\n| &&
-             `          Lib.logError(``binding_call: operator '${operator}' not allowed``);` && |\n| &&
+             `          Lib.logError(``BINDING_CALL: operator '${operator}' not allowed``);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        binding.filter([` && |\n| &&
@@ -264,13 +266,13 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      const [id, aggregation, method] = [args[1], args[2], args[3]];` && |\n| &&
              `      const build = BINDING_METHODS[method];` && |\n| &&
              `      if (!build) {` && |\n| &&
-             `        Lib.logError(``binding_call: method '${method}' not allowed``);` && |\n| &&
+             `        Lib.logError(``BINDING_CALL: method '${method}' not allowed``);` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      const binding = ViewSlots.resolveById(id)?.getBinding?.(aggregation);` && |\n| &&
              `      if (!binding || typeof binding[method] !== "function") {` && |\n| &&
              `        Lib.logError(` && |\n| &&
-             `          ``binding_call: no '${aggregation}' binding with '${method}' on control '${id}'``,` && |\n| &&
+             `          ``BINDING_CALL: no '${aggregation}' binding with '${method}' on control '${id}'``,` && |\n| &&
              `        );` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
@@ -415,10 +417,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        MessageBox.error(` && |\n| &&
              `          "Invalid redirect URL. Only relative URLs to the same domain are allowed.",` && |\n| &&
              `        );` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n|.
+             `      }` && |\n|.
     result = result &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    // SYSTEM_LOGOUT: prefer the launchpad logout when running inside the` && |\n| &&
              `    // FLP; otherwise terminate a possible stateful BSP session first and` && |\n| &&
              `    // then navigate to the logout URL.` && |\n| &&
@@ -816,10 +818,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    return { execute };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n|.
+             `  },` && |\n|.
     result = result &&
+             `);` && |\n| &&
+             `` && |\n| &&
               ``.
 
   ENDMETHOD.

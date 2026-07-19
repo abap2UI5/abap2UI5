@@ -40,6 +40,7 @@ CLASS ltcl_test_client DEFINITION FINAL
     METHODS test_follow_up_action     FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action_ev  FOR TESTING RAISING cx_static_check.
     METHODS test_follow_up_action_nav FOR TESTING RAISING cx_static_check.
+    METHODS test_follow_up_action_ctrl FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_init        FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_init_done   FOR TESTING RAISING cx_static_check.
     METHODS test_check_on_event       FOR TESTING RAISING cx_static_check.
@@ -386,7 +387,7 @@ CLASS ltcl_test_client IMPLEMENTATION.
     DATA li_client TYPE REF TO z2ui5_if_client.
     li_client ?= mo_client.
 
-    " a *_nav_container_to event is rerouted to the generic control_call_by_id
+    " a *_nav_container_to event is rerouted to the generic CONTROL_BY_ID call
     " (method `to`, slot as the view) instead of emitting a dedicated event
     li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-nav_container_to
                                  t_arg = VALUE #( ( `myContainer` ) ( `myPage` ) ) ).
@@ -400,6 +401,30 @@ CLASS ltcl_test_client IMPLEMENTATION.
         act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 1 ] ).
     cl_abap_unit_assert=>assert_equals(
         exp = `.eF('CONTROL_BY_ID', 'popContainer', 'POPUP', 'to', 'popPage')`
+        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 2 ] ).
+
+  ENDMETHOD.
+
+  METHOD test_follow_up_action_ctrl.
+
+    DATA li_client TYPE REF TO z2ui5_if_client.
+    li_client ?= mo_client.
+
+    " the whitelisted control calls are plain follow-up events - t_arg is
+    " positional: control_global = object, method, params; control_by_id =
+    " id, view (`` keeps the slot), method, params
+    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_global
+                                 t_arg = VALUE #( ( `MESSAGE_TOAST` ) ( `show` ) ( `Hello` ) ) ).
+    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_by_id
+                                 t_arg = VALUE #( ( `demoPanel` ) ( `` ) ( `setExpanded` ) ( `X` ) ) ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 2
+                                        act = lines( mo_action->ms_next-s_set-s_follow_up_action-custom_js ) ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eF('CONTROL_GLOBAL', 'MESSAGE_TOAST', 'show', 'Hello')`
+        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 1 ] ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eF('CONTROL_BY_ID', 'demoPanel', '', 'setExpanded', 'X')`
         act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 2 ] ).
 
   ENDMETHOD.
