@@ -124,29 +124,32 @@ CLASS z2ui5_cl_app_developertool_xml IMPLEMENTATION.
              `        <VBox visible="{/source_visible}">` &&
              `            <core:HTML id="sourceHtml"/>` &&
              `        </VBox>` &&
-             `        <buttons>` &&
-             `            <Button` &&
-             `                text="Retry"` &&
-             `                type="Emphasized"` &&
-             `                icon="sap-icon://refresh"` &&
-             `                visible="{/hasRetry}"` &&
-             `                press=".onErrorRetry"` &&
-             `            />` &&
-             `            <Button` &&
-             `                text="Restart"` &&
-             `                icon="sap-icon://restart"` &&
-             `                press=".onErrorRestart"` &&
-             `            />` &&
-             `            <Button` &&
-             `                text="Logout"` &&
-             `                icon="sap-icon://log"` &&
-             `                press=".onErrorLogout"` &&
-             `            />` &&
-             `            <Button` &&
-             `                text="Close"` &&
-             `                press=".onClose"` &&
-             `            />` &&
-             `        </buttons>` &&
+             `        <footer>` &&
+             `            <OverflowToolbar>` &&
+             `                <Button` &&
+             `                    text="Restart"` &&
+             `                    icon="sap-icon://restart"` &&
+             `                    press=".onErrorRestart"` &&
+             `                />` &&
+             `                <Button` &&
+             `                    text="Logout"` &&
+             `                    icon="sap-icon://log"` &&
+             `                    press=".onErrorLogout"` &&
+             `                />` &&
+             `                <ToolbarSpacer/>` &&
+             `                <Button` &&
+             `                    text="Retry"` &&
+             `                    type="Emphasized"` &&
+             `                    icon="sap-icon://refresh"` &&
+             `                    visible="{/hasRetry}"` &&
+             `                    press=".onErrorRetry"` &&
+             `                />` &&
+             `                <Button` &&
+             `                    text="Close"` &&
+             `                    press=".onClose"` &&
+             `                />` &&
+             `            </OverflowToolbar>` &&
+             `        </footer>` &&
              `    </Dialog>` &&
              `</core:FragmentDefinition>` &&
              `` &&
