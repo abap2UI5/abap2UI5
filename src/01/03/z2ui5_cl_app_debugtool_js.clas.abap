@@ -262,14 +262,13 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        if (selItem === "SOURCE") this.showAbapSource(oModel);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Show the last fatal error (the ErrorView overlay's content) plus its` && |\n| &&
-             `      // action bar (Retry/Refresh/Logout). displayEditor writes the text and` && |\n| &&
-             `      // resets error_visible=false, so re-enable it and expose whether a` && |\n| &&
-             `      // Retry action was captured with this error.` && |\n| &&
+             `      // Show the last fatal error (the ErrorView overlay's content). The` && |\n| &&
+             `      // Retry/Refresh/Logout actions live in the dialog footer (always` && |\n| &&
+             `      // present); refresh hasRetry so the footer's Retry button shows only` && |\n| &&
+             `      // when this error carried a retry action.` && |\n| &&
              `      showError(oModel) {` && |\n| &&
              `        this.displayEditor(oModel, formatLastError(), "text");` && |\n| &&
              `        const modelData = oModel.getData();` && |\n| &&
-             `        modelData.error_visible = true;` && |\n| &&
              `        modelData.hasRetry =` && |\n| &&
              `          typeof AppState.state.lastError?.onRetry === "function";` && |\n| &&
              `        oModel.refresh();` && |\n| &&
@@ -308,7 +307,6 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        const modelData = oModel.getData();` && |\n| &&
              `        modelData.editor_visible = false;` && |\n| &&
              `        modelData.source_visible = true;` && |\n| &&
-             `        modelData.error_visible = false;` && |\n| &&
              `        oModel.refresh();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -319,9 +317,6 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        const modelData = oModel.getData();` && |\n| &&
              `        modelData.editor_visible = true;` && |\n| &&
              `        modelData.source_visible = false;` && |\n| &&
-             `        // The error action bar belongs to the Error tab only; showError` && |\n| &&
-             `        // re-enables it right after calling displayEditor.` && |\n| &&
-             `        modelData.error_visible = false;` && |\n| &&
              `        modelData.isTemplating = Boolean(content?.includes("xmlns:template"));` && |\n| &&
              `        modelData.value = content;` && |\n| &&
              `        modelData.previousValue = content;` && |\n| &&
@@ -378,7 +373,6 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `            type: "json",` && |\n| &&
              `            source_visible: false,` && |\n| &&
              `            editor_visible: true,` && |\n| &&
-             `            error_visible: false,` && |\n| &&
              `            hasError: Boolean(AppState.state.lastError),` && |\n| &&
              `            hasRetry: typeof AppState.state.lastError?.onRetry === "function",` && |\n| &&
              `            value: value,` && |\n| &&
@@ -417,14 +411,14 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        oDialog.close();` && |\n| &&
              `        oDialog.destroy();` && |\n| &&
              `      },` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `      // The dialog is not an aggregation of this control, so destroy() alone` && |\n| &&
              `      // would leave it (and its fragment controls) alive - clean it up when` && |\n| &&
              `      // the control is destroyed (Component.exit).` && |\n| &&
              `      exit() {` && |\n| &&
              `        this.close();` && |\n| &&
-             `      },` && |\n| &&
+             `      },` && |\n|.
+    result = result &&
              `` && |\n| &&
              `      toggle() {` && |\n| &&
              `        if (this.oDialog) {` && |\n| &&

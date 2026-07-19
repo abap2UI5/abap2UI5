@@ -59,10 +59,22 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `  }` && |\n| &&
              `` && |\n| &&
              `  // Open the DebugTool directly on its Error tab so the developer sees the` && |\n| &&
-             `  // full error text plus the Retry/Refresh/Logout actions.` && |\n| &&
+             `  // full error text plus the Retry/Refresh/Logout actions. The DebugTool is` && |\n| &&
+             `  // normally created lazily on first Ctrl+F12, so it may not exist yet when` && |\n| &&
+             `  // the error popup's Details is clicked - create it on demand (requiring the` && |\n| &&
+             `  // module at runtime avoids a circular dependency, since DebugTool imports` && |\n| &&
+             `  // ErrorView). Without this, Details was a no-op and left a blank screen.` && |\n| &&
              `  function openDebugDetails() {` && |\n| &&
              `    try {` && |\n| &&
-             `      AppState.state.debugTool?.show("ERROR");` && |\n| &&
+             `      let dbg = AppState.state.debugTool;` && |\n| &&
+             `      if (!dbg) {` && |\n| &&
+             `        const DebugTool = sap.ui.require("z2ui5/core/DebugTool");` && |\n| &&
+             `        if (DebugTool) {` && |\n| &&
+             `          dbg = new DebugTool();` && |\n| &&
+             `          AppState.state.debugTool = dbg;` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `      dbg?.show("ERROR");` && |\n| &&
              `    } catch {` && |\n| &&
              `      // The debug tool itself failed to open - nothing more we can do here;` && |\n| &&
              `      // the fatal error is still recorded in AppState.state.lastError.` && |\n| &&

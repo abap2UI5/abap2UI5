@@ -15,8 +15,6 @@
                 <IconTabFilter
                     text="Error"
                     key="ERROR"
-                    icon="sap-icon://alert"
-                    iconColor="Negative"
                     enabled="{/hasError}"
                 />
                 <IconTabFilter
@@ -91,7 +89,20 @@
                 />
             </items>
         </IconTabHeader>
-        <OverflowToolbar visible="{/error_visible}">
+        <VBox>
+            <ToggleButton text="Source XML after Templating" visible="{/isTemplating}" pressed="{/templatingSource}" press=".onTemplatingPress" />
+            <ce:CodeEditor
+                type="{/type}"
+                value="{/value}"
+                height="2000px"
+                width="10000px"
+                visible="{/editor_visible}"
+            />
+        </VBox>
+        <VBox visible="{/source_visible}">
+            <core:HTML id="sourceHtml"/>
+        </VBox>
+        <buttons>
             <Button
                 text="Retry"
                 type="Emphasized"
@@ -109,25 +120,10 @@
                 icon="sap-icon://log"
                 press=".onErrorLogout"
             />
-        </OverflowToolbar>
-        <VBox>
-            <ToggleButton text="Source XML after Templating" visible="{/isTemplating}" pressed="{/templatingSource}" press=".onTemplatingPress" />
-            <ce:CodeEditor
-                type="{/type}"
-                value="{/value}"
-                height="2000px"
-                width="10000px"
-                visible="{/editor_visible}"
-            />
-        </VBox>
-        <VBox visible="{/source_visible}">
-            <core:HTML id="sourceHtml"/>
-        </VBox>
-        <endButton>
             <Button
                 text="Close"
                 press=".onClose"
             />
-        </endButton>
+        </buttons>
     </Dialog>
 </core:FragmentDefinition>

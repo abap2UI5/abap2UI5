@@ -35,8 +35,6 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `                <IconTabFilter` &&
              `                    text="Error"` &&
              `                    key="ERROR"` &&
-             `                    icon="sap-icon://alert"` &&
-             `                    iconColor="Negative"` &&
              `                    enabled="{/hasError}"` &&
              `                />` &&
              `                <IconTabFilter` &&
@@ -111,7 +109,20 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `                />` &&
              `            </items>` &&
              `        </IconTabHeader>` &&
-             `        <OverflowToolbar visible="{/error_visible}">` &&
+             `        <VBox>` &&
+             `            <ToggleButton text="Source XML after Templating" visible="{/isTemplating}" pressed="{/templatingSource}" press=".onTemplatingPress" />` &&
+             `            <ce:CodeEditor` &&
+             `                type="{/type}"` &&
+             `                value="{/value}"` &&
+             `                height="2000px"` &&
+             `                width="10000px"` &&
+             `                visible="{/editor_visible}"` &&
+             `            />` &&
+             `        </VBox>` &&
+             `        <VBox visible="{/source_visible}">` &&
+             `            <core:HTML id="sourceHtml"/>` &&
+             `        </VBox>` &&
+             `        <buttons>` &&
              `            <Button` &&
              `                text="Retry"` &&
              `                type="Emphasized"` &&
@@ -129,26 +140,11 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `                icon="sap-icon://log"` &&
              `                press=".onErrorLogout"` &&
              `            />` &&
-             `        </OverflowToolbar>` &&
-             `        <VBox>` &&
-             `            <ToggleButton text="Source XML after Templating" visible="{/isTemplating}" pressed="{/templatingSource}" press=".onTemplatingPress" />` &&
-             `            <ce:CodeEditor` &&
-             `                type="{/type}"` &&
-             `                value="{/value}"` &&
-             `                height="2000px"` &&
-             `                width="10000px"` &&
-             `                visible="{/editor_visible}"` &&
-             `            />` &&
-             `        </VBox>` &&
-             `        <VBox visible="{/source_visible}">` &&
-             `            <core:HTML id="sourceHtml"/>` &&
-             `        </VBox>` &&
-             `        <endButton>` &&
              `            <Button` &&
              `                text="Close"` &&
              `                press=".onClose"` &&
              `            />` &&
-             `        </endButton>` &&
+             `        </buttons>` &&
              `    </Dialog>` &&
              `</core:FragmentDefinition>` &&
              `` &&

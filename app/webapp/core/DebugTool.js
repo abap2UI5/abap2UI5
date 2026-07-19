@@ -242,14 +242,13 @@ sap.ui.define(
         if (selItem === "SOURCE") this.showAbapSource(oModel);
       },
 
-      // Show the last fatal error (the ErrorView overlay's content) plus its
-      // action bar (Retry/Refresh/Logout). displayEditor writes the text and
-      // resets error_visible=false, so re-enable it and expose whether a
-      // Retry action was captured with this error.
+      // Show the last fatal error (the ErrorView overlay's content). The
+      // Retry/Refresh/Logout actions live in the dialog footer (always
+      // present); refresh hasRetry so the footer's Retry button shows only
+      // when this error carried a retry action.
       showError(oModel) {
         this.displayEditor(oModel, formatLastError(), "text");
         const modelData = oModel.getData();
-        modelData.error_visible = true;
         modelData.hasRetry =
           typeof AppState.state.lastError?.onRetry === "function";
         oModel.refresh();
@@ -288,7 +287,6 @@ sap.ui.define(
         const modelData = oModel.getData();
         modelData.editor_visible = false;
         modelData.source_visible = true;
-        modelData.error_visible = false;
         oModel.refresh();
       },
 
@@ -299,9 +297,6 @@ sap.ui.define(
         const modelData = oModel.getData();
         modelData.editor_visible = true;
         modelData.source_visible = false;
-        // The error action bar belongs to the Error tab only; showError
-        // re-enables it right after calling displayEditor.
-        modelData.error_visible = false;
         modelData.isTemplating = Boolean(content?.includes("xmlns:template"));
         modelData.value = content;
         modelData.previousValue = content;
@@ -358,7 +353,6 @@ sap.ui.define(
             type: "json",
             source_visible: false,
             editor_visible: true,
-            error_visible: false,
             hasError: Boolean(AppState.state.lastError),
             hasRetry: typeof AppState.state.lastError?.onRetry === "function",
             value: value,

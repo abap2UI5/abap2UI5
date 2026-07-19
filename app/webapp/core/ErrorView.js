@@ -39,10 +39,22 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   }
 
   // Open the DebugTool directly on its Error tab so the developer sees the
-  // full error text plus the Retry/Refresh/Logout actions.
+  // full error text plus the Retry/Refresh/Logout actions. The DebugTool is
+  // normally created lazily on first Ctrl+F12, so it may not exist yet when
+  // the error popup's Details is clicked - create it on demand (requiring the
+  // module at runtime avoids a circular dependency, since DebugTool imports
+  // ErrorView). Without this, Details was a no-op and left a blank screen.
   function openDebugDetails() {
     try {
-      AppState.state.debugTool?.show("ERROR");
+      let dbg = AppState.state.debugTool;
+      if (!dbg) {
+        const DebugTool = sap.ui.require("z2ui5/core/DebugTool");
+        if (DebugTool) {
+          dbg = new DebugTool();
+          AppState.state.debugTool = dbg;
+        }
+      }
+      dbg?.show("ERROR");
     } catch {
       // The debug tool itself failed to open - nothing more we can do here;
       // the fatal error is still recorded in AppState.state.lastError.

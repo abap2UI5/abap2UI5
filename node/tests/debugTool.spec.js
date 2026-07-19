@@ -151,7 +151,6 @@ test.describe("Error tab", () => {
     DebugTool.onItemSelect(oEvent);
     expect(modelData.value).toBe("App Terminated\n\nbackend dump...");
     expect(modelData.type).toBe("text");
-    expect(modelData.error_visible).toBe(true);
     expect(modelData.hasRetry).toBe(true);
   });
 
@@ -170,20 +169,7 @@ test.describe("Error tab", () => {
     const { oEvent, modelData } = fakeSelectEvent("ERROR");
     DebugTool.onItemSelect(oEvent);
     expect(modelData.value).toBe("(no fatal error captured this session)");
-    expect(modelData.error_visible).toBe(true);
-  });
-
-  test("switching to another tab hides the error action bar", () => {
-    const { DebugTool } = loadDebugTool({
-      lastError: { title: "x", text: "y", onRetry: null },
-      errors: [],
-    });
-    const err = fakeSelectEvent("ERROR");
-    DebugTool.onItemSelect(err.oEvent);
-    expect(err.modelData.error_visible).toBe(true);
-    const log = fakeSelectEvent("LOG");
-    DebugTool.onItemSelect(log.oEvent);
-    expect(log.modelData.error_visible).toBe(false);
+    expect(modelData.type).toBe("text");
   });
 
   test("onErrorRetry runs the captured retry action", () => {
@@ -213,7 +199,6 @@ test.describe("Error tab", () => {
     const oModel = { getData: () => modelData, refresh() {} };
     DebugTool.renderTab("ERROR", oModel);
     expect(modelData.value).toBe("App Terminated\n\nboom");
-    expect(modelData.error_visible).toBe(true);
     expect(modelData.hasRetry).toBe(true);
   });
 });
