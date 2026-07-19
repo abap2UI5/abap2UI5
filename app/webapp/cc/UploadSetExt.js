@@ -86,8 +86,8 @@ sap.ui.define(
 
       renderer: { apiVersion: 2, render() {} },
       setControl() {
-        const uploadSet = ViewSlots.byId(
-          "MAIN",
+        const uploadSet = ViewSlots.byIdOfOwner(
+          this,
           this.getProperty("uploadSetId"),
         );
         if (!uploadSet || this.getProperty("checkInit")) return;

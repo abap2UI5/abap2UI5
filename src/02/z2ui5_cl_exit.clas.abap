@@ -66,10 +66,14 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
 
     cs_config-src = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js`.
 
-    " since 21.11.2025 without unsafe-eval
+    " 'unsafe-eval' is required by the OpenUI5 1.71 ui5loader (it evaluates
+    " module source as a string); without it the 1.71 bootstrap fails with a
+    " CSP EvalError. Modern UI5 does not use eval, so keeping it here only
+    " affects older releases, and 'unsafe-inline' is already allowed so the
+    " delta is marginal. Apps pinning a modern UI5 can drop it via their exit.
     cs_config-content_security_policy =
       |<meta http-equiv="Content-Security-Policy" | &&
-      |content="default-src 'self' 'unsafe-inline' data: | &&
+      |content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: | &&
       |ui5.sap.com *.ui5.sap.com | &&
       |sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com | &&
       |openui5.hana.ondemand.com *.openui5.hana.ondemand.com | &&

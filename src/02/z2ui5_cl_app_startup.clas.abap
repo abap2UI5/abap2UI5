@@ -110,7 +110,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         client->nav_app_call( li_app_config ).
 
       WHEN cs_event-open_debug.
-        client->message_box_display( `Press CTRL+F12 to open the debugging tools` ).
+        client->message_box_display( `Press CTRL+F12 to open the developer tools` ).
 
       WHEN cs_event-open_info.
         render_system_popup( ).
@@ -186,7 +186,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     DATA(toolbar) = page->header_content( ).
     toolbar->toolbar_spacer(
-      )->button( text  = `Debugging Tools`
+      )->button( text  = `Developer Tools`
                  icon  = `sap-icon://enablement`
                  press = client->_event( cs_event-open_debug )
       )->button( text  = `System`
@@ -246,8 +246,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     form->toolbar( )->title( `What's next?` ).
 
     DATA(lv_class_samples) = COND string(
-      WHEN z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_sample_app_001` ) THEN `z2ui5_cl_sample_app_001`
-      WHEN z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_demo_app_000` ) THEN `z2ui5_cl_demo_app_000` ).
+      WHEN z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_demo_app_g00` ) THEN `z2ui5_cl_demo_app_g00` ).
 
     IF lv_class_samples IS NOT INITIAL.
       form->label( `Start Developing` ).

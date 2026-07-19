@@ -75,6 +75,13 @@ CLASS z2ui5_cl_app_smartmultiinpu_js IMPLEMENTATION.
              `` && |\n| &&
              `        // Mirror each range entry with the visible token text + long key` && |\n| &&
              `        // so the backend has enough info to re-render the input later.` && |\n| &&
+             `        // NOTE: this pairs the i-th range entry with the i-th token by` && |\n| &&
+             `        // position, which assumes getRangeData() and getTokens() are index` && |\n| &&
+             `        // aligned. That holds only while every token is a range token; a` && |\n| &&
+             `        // mix of plain value tokens and range tokens would misalign the` && |\n| &&
+             `        // captions. The wrapped control is the SAPUI5-only sap.ui.comp` && |\n| &&
+             `        // SmartMultiInput, so a token-identity pairing needs verification` && |\n| &&
+             `        // against that control before it can replace the index pairing.` && |\n| &&
              `        const source = oEvent.getSource();` && |\n| &&
              `        const tokens = source.getTokens();` && |\n| &&
              `        const rangeData = source.getRangeData() || [];` && |\n| &&
@@ -124,7 +131,10 @@ CLASS z2ui5_cl_app_smartmultiinpu_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      renderer: { apiVersion: 2, render() {} },` && |\n| &&
              `      setControl() {` && |\n| &&
-             `        const input = ViewSlots.byId("MAIN", this.getProperty("multiInputId"));` && |\n| &&
+             `        const input = ViewSlots.byIdOfOwner(` && |\n| &&
+             `          this,` && |\n| &&
+             `          this.getProperty("multiInputId"),` && |\n| &&
+             `        );` && |\n| &&
              `        if (!input || this.getProperty("checkInit")) return;` && |\n| &&
              `        this.setProperty("checkInit", true);` && |\n| &&
              `        try {` && |\n| &&

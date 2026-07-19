@@ -48,7 +48,7 @@ CLASS z2ui5_cl_app_focus_js IMPLEMENTATION.
              `      setFocusId(val) {` && |\n| &&
              `        try {` && |\n| &&
              `          this.setProperty("focusId", val);` && |\n| &&
-             `          const oElement = ViewSlots.byId("MAIN", val);` && |\n| &&
+             `          const oElement = ViewSlots.byIdOfOwner(this, val);` && |\n| &&
              `          if (oElement) oElement.applyFocusInfo(oElement.getFocusInfo());` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("Focus.setFocusId failed", e);` && |\n| &&
@@ -57,7 +57,10 @@ CLASS z2ui5_cl_app_focus_js IMPLEMENTATION.
              `      onAfterRendering() {` && |\n| &&
              `        if (!this._pendingFocus) return;` && |\n| &&
              `        this._pendingFocus = false;` && |\n| &&
-             `        const oElement = ViewSlots.byId("MAIN", this.getProperty("focusId"));` && |\n| &&
+             `        const oElement = ViewSlots.byIdOfOwner(` && |\n| &&
+             `          this,` && |\n| &&
+             `          this.getProperty("focusId"),` && |\n| &&
+             `        );` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
              `        try {` && |\n| &&
              `          // Merge the additional selection info into the existing focus info,` && |\n| &&

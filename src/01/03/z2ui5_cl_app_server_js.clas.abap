@@ -130,7 +130,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    //   5. View1._processAfterRendering()  popups, nested views, history,` && |\n| &&
              `    //      then runs pending follow-up JS once rendering is done` && |\n| &&
              `    // The request body travels through the steps as a parameter; it is` && |\n| &&
-             `    // mirrored to z2ui5.oBody so onBeforeRoundtrip hooks and the debug tool` && |\n| &&
+             `    // mirrored to z2ui5.oBody so onBeforeRoundtrip hooks and the developer tools` && |\n| &&
              `    // can inspect it. Only the response side still crosses an async boundary` && |\n| &&
              `    // (the rendering) via the globals oResponse and pendingCustomJs.` && |\n| &&
              `    //` && |\n| &&
@@ -169,7 +169,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    //     "MODEL": { "XX": {...}, ... }    // full JSON view model, becomes` && |\n| &&
              `    //   }                                  // the view's binding model` && |\n| &&
              `    //` && |\n| &&
-             `    // Inspect live payloads via the debug tool (Ctrl+F12): "Previous` && |\n| &&
+             `    // Inspect live payloads via the developer tools (Ctrl+F12): "Previous` && |\n| &&
              `    // Request" and "Response".` && |\n| &&
              `    return {` && |\n| &&
              `      endSession() {` && |\n| &&
@@ -362,7 +362,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        state.checkNestAfter = false;` && |\n| &&
              `        state.checkNestAfter2 = false;` && |\n| &&
              `` && |\n| &&
-             `        // Keep the shared record in sync (debug tool "Previous Request",` && |\n| &&
+             `        // Keep the shared record in sync (developer tools "Previous Request",` && |\n| &&
              `        // app hooks); the parameter stays the working object. Calls without` && |\n| &&
              `        // a body (initial roundtrip, route changes) start from scratch.` && |\n| &&
              `        state.oBody = oBody;` && |\n| &&

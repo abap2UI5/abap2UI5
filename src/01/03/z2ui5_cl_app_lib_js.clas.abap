@@ -53,6 +53,41 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      return null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // Resolve the central UI5 messaging facade version-independently.` && |\n| &&
+             `    // sap/ui/core/Messaging arrived in 1.118 and is the only API left in` && |\n| &&
+             `    // UI5 2.x; older releases expose the same interface (getMessageModel,` && |\n| &&
+             `    // registerObject, unregisterObject) via the MessageManager singleton.` && |\n| &&
+             `    // Returns null when neither is available (bare test bootstraps).` && |\n| &&
+             `    function getMessaging() {` && |\n| &&
+             `      const Messaging = sap.ui.require("sap/ui/core/Messaging");` && |\n| &&
+             `      if (Messaging) return Messaging;` && |\n| &&
+             `      /* ui5lint-disable no-globals, no-deprecated-api --` && |\n| &&
+             `       deliberate fallback for UI5 releases without sap/ui/core/Messaging` && |\n| &&
+             `       (added in 1.118); the modern API is used in the branch above. */` && |\n| &&
+             `      if (sap.ui.getCore) {` && |\n| &&
+             `        const core = sap.ui.getCore();` && |\n| &&
+             `        if (core?.getMessageManager) return core.getMessageManager();` && |\n| &&
+             `      }` && |\n| &&
+             `      /* ui5lint-enable no-globals, no-deprecated-api */` && |\n| &&
+             `      return null;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // True when the running UI5 ships the sap/ui/core/Messaging module (added` && |\n| &&
+             `    // in 1.118). Callers use it to skip warm-loading that module on older` && |\n| &&
+             `    // releases (e.g. 1.71) where an async require would 404 and make the` && |\n| &&
+             `    // ui5loader retry noisily via synchronous XHR. getMessaging()'s` && |\n| &&
+             `    // MessageManager fallback covers those releases instead.` && |\n| &&
+             `    function hasMessagingModule() {` && |\n| &&
+             `      /* ui5lint-disable no-globals --` && |\n| &&
+             `       sap.ui.version is the only way to read the running UI5 version; there` && |\n| &&
+             `       is no injected/module equivalent. */` && |\n| &&
+             `      const rawVersion = String(sap.ui.version || "");` && |\n| &&
+             `      /* ui5lint-enable no-globals */` && |\n| &&
+             `      const [major, minor] = rawVersion.split(".").map(Number);` && |\n| &&
+             `      if (!Number.isFinite(major) || !Number.isFinite(minor)) return false;` && |\n| &&
+             `      return major > 1 || (major === 1 && minor >= 118);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    // Cap the error log so a long-running session cannot grow it unbounded.` && |\n| &&
              `    const MAX_ERRORS = 100;` && |\n| &&
              `` && |\n| &&
@@ -146,7 +181,10 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `    // is skipped when ``owner`` was destroyed in the meantime.` && |\n| &&
              `    function whenRendered(control, owner, fn) {` && |\n| &&
              `      if (control.getDomRef()) {` && |\n| &&
-             `        fn();` && |\n| &&
+             `        // Same owner-liveness guard as the deferred branch below: a caller` && |\n| &&
+             `        // resuming from an async continuation may reach here after its owner` && |\n| &&
+             `        // was torn down while the target control is still rendered.` && |\n| &&
+             `        if (!isDestroyed(owner)) fn();` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      const delegate = {` && |\n| &&
@@ -379,7 +417,8 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      if (items.length > 0) {` && |\n| &&
              `        const safeItems = items.map((li) => {` && |\n| &&
              `          _sanitizeEl.textContent = li.textContent;` && |\n| &&
-             `          return ``<li>${_sanitizeEl.innerHTML}</li>``;` && |\n| &&
+             `          return ``<li>${_sanitizeEl.innerHTML}</li>``;` && |\n|.
+    result = result &&
              `        });` && |\n| &&
              `        return ``<ul>${safeItems.join("")}</ul>``;` && |\n| &&
              `      }` && |\n| &&
@@ -407,6 +446,8 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      buildDeltaFromPaths,` && |\n| &&
              `      sanitizeMessageDetails,` && |\n| &&
              `      getElementById,` && |\n| &&
+             `      getMessaging,` && |\n| &&
+             `      hasMessagingModule,` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&

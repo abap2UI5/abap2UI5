@@ -24,6 +24,14 @@ CLASS z2ui5_cl_core_client DEFINITION PUBLIC FINAL.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
+    "! Queue a follow-up action whose t_arg is a fixed head (the control /
+    "! object / method identifiers) followed by the caller's params. The one
+    "! place the control_call / binding_call family serializes its head args.
+    METHODS follow_up_with_head
+      IMPORTING
+        val    TYPE string
+        head   TYPE string_table
+        params TYPE string_table.
 ENDCLASS.
 
 
@@ -55,27 +63,45 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~control_call_by_id.
+  METHOD follow_up_with_head.
 
-    DATA(lt_arg) = VALUE string_table( ( CONV string( id ) )
-                                       ( CONV string( view ) )
-                                       ( CONV string( method ) ) ).
+    DATA(lt_arg) = head.
     APPEND LINES OF params TO lt_arg.
 
-    z2ui5_if_client~follow_up_action( val   = `CONTROL_BY_ID`
+    z2ui5_if_client~follow_up_action( val   = val
                                       t_arg = lt_arg ).
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~control_call_by_id.
+
+    follow_up_with_head( val    = `CONTROL_BY_ID`
+                         head   = VALUE #( ( CONV string( id ) )
+                                           ( CONV string( view ) )
+                                           ( CONV string( method ) ) )
+                         params = params ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~control_call.
 
-    DATA(lt_arg) = VALUE string_table( ( CONV string( object ) )
-                                       ( CONV string( method ) ) ).
-    APPEND LINES OF params TO lt_arg.
+    follow_up_with_head( val    = `CONTROL_GLOBAL`
+                         head   = VALUE #( ( CONV string( object ) )
+                                           ( CONV string( method ) ) )
+                         params = params ).
 
-    z2ui5_if_client~follow_up_action( val   = `CONTROL_GLOBAL`
-                                      t_arg = lt_arg ).
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~binding_call_by_id.
+
+    follow_up_with_head( val    = `BINDING_CALL`
+                         head   = VALUE #( ( CONV string( id ) )
+                                           ( CONV string( aggregation ) )
+                                           ( CONV string( method ) ) )
+                         params = params ).
 
   ENDMETHOD.
 

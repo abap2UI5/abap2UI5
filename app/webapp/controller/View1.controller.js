@@ -98,6 +98,11 @@ sap.ui.define(
           if (!PARAMS) return;
 
           await this._displayPendingViews(PARAMS);
+          // The app may have been torn down (reset / FLP re-launch) while the
+          // pending views loaded; don't mutate history or fire onAfterRendering
+          // hooks against a dead app (the custom-JS phase below guards the same
+          // way via isDestroyed).
+          if (Lib.isDestroyed(this)) return;
           this._updateBrowserHistory(PARAMS, oResponse.ID);
           if (PARAMS.SET_NAV_BACK) history.back();
 
@@ -205,9 +210,9 @@ sap.ui.define(
           return;
         }
         oFragment.setModel(oModel);
-        // Share the one device model (created once in Component.js, never
-        // destroyed) so {device>...} bindings work in popups too.
-        oFragment.setModel(AppState.state.oDeviceModel, "device");
+        // The shared device + message models are attached inside
+        // ViewSlots.setView (the single funnel), so error paths that
+        // destroy a view without reaching setView never register it.
         ViewSlots.setView("POPUP", oFragment);
         oFragment.open();
       },
@@ -232,8 +237,6 @@ sap.ui.define(
           return;
         }
         oFragment.setModel(oModel);
-        // Shared device model (see displayFragment) - for popovers too.
-        oFragment.setModel(AppState.state.oDeviceModel, "device");
 
         // Find the control to attach the popover to: any open slot first,
         // then the global UI5 control registry as a last resort.
@@ -265,8 +268,6 @@ sap.ui.define(
           return;
         }
         oView.setModel(oModel);
-        // Shared device model (see displayFragment) - for nested views too.
-        oView.setModel(AppState.state.oDeviceModel, "device");
 
         const nestParams = AppState.state.oResponse?.PARAMS?.[paramKey];
         if (!nestParams) {
@@ -385,7 +386,7 @@ sap.ui.define(
 
         // The request body is built locally and handed explicitly through
         // Server.roundtrip/readHttp. It is mirrored to AppState.state.oBody right
-        // away so onBeforeRoundtrip hooks and the debug tool see it.
+        // away so onBeforeRoundtrip hooks and the developer tools see it.
         const oBody = { VIEWNAME: "MAIN" };
         AppState.state.oBody = oBody;
 
@@ -459,16 +460,21 @@ sap.ui.define(
         // model + setModel() destroys and recreates every binding - measured
         // ~3x slower with all values changed and ~150x slower when little
         // changed (see node/tests-examples/modelUpdate.bench.spec.js).
-        const existing = oView.getModel();
-        if (existing?._z2ui5Tracked) {
-          applyStoredSizeLimit(slotKey, existing);
-          existing.setData(AppState.state.oResponse?.OVIEWMODEL);
+        // The framework-owned JSON model is the DEFAULT model normally, but
+        // the NAMED "http" model when SWITCH_DEFAULT_MODEL_PATH placed an
+        // OData model in the default slot - update whichever one is ours and
+        // never overwrite the OData default with a fresh JSON model.
+        const isOurs = (m) => (m?._z2ui5Tracked ? m : undefined);
+        const tracked =
+          isOurs(oView.getModel()) ?? isOurs(oView.getModel("http"));
+        if (tracked) {
+          applyStoredSizeLimit(slotKey, tracked);
+          tracked.setData(AppState.state.oResponse?.OVIEWMODEL);
           return;
         }
 
-        // The slot's default model is not framework-owned (e.g. an
-        // ODataModel via SWITCH_DEFAULT_MODEL_PATH): keep the previous
-        // behavior and bind a fresh JSON model.
+        // No framework-owned model on this slot at all: bind a fresh default
+        // JSON model (keeps the previous behavior for that edge case).
         const oModel = this._createViewModel();
         applyStoredSizeLimit(slotKey, oModel);
         oView.setModel(oModel);
@@ -510,7 +516,6 @@ sap.ui.define(
         }
 
         ViewSlots.setView("MAIN", oView);
-        oView.setModel(AppState.state.oDeviceModel, "device");
         if (switchPath) oView.setModel(oViewModel, "http");
         AppState.state.oApp.removeAllPages();
         AppState.state.oApp.insertPage(oView);

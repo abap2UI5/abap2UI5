@@ -45,14 +45,14 @@ CLASS z2ui5_cl_app_scrolling_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _getDomInnerElement(id) {` && |\n| &&
-             `        const control = ViewSlots.byId("MAIN", id);` && |\n| &&
+             `        const control = ViewSlots.byIdOfOwner(this, id);` && |\n| &&
              `        if (!control) return null;` && |\n| &&
              `        return document.getElementById(``${control.getId()}-inner``);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _getScrollTop(item) {` && |\n| &&
              `        try {` && |\n| &&
-             `          const control = ViewSlots.byId("MAIN", item.N);` && |\n| &&
+             `          const control = ViewSlots.byIdOfOwner(this, item.N);` && |\n| &&
              `          // Some controls expose a scroll delegate; prefer it when available.` && |\n| &&
              `          const delegate = control?.getScrollDelegate?.();` && |\n| &&
              `          if (delegate) return delegate.getScrollTop();` && |\n| &&
@@ -98,7 +98,7 @@ CLASS z2ui5_cl_app_scrolling_js IMPLEMENTATION.
              `` && |\n| &&
              `      _restoreScrollPosition(item) {` && |\n| &&
              `        try {` && |\n| &&
-             `          const control = ViewSlots.byId("MAIN", item.N);` && |\n| &&
+             `          const control = ViewSlots.byIdOfOwner(this, item.N);` && |\n| &&
              `          if (control?.scrollTo) {` && |\n| &&
              `            control.scrollTo(item.V);` && |\n| &&
              `            return;` && |\n| &&
@@ -119,7 +119,7 @@ CLASS z2ui5_cl_app_scrolling_js IMPLEMENTATION.
              `` && |\n| &&
              `        try {` && |\n| &&
              `          for (const item of items) {` && |\n| &&
-             `            const control = ViewSlots.byId("MAIN", item.N);` && |\n| &&
+             `            const control = ViewSlots.byIdOfOwner(this, item.N);` && |\n| &&
              `            if (!control) continue;` && |\n| &&
              `` && |\n| &&
              `            // Restore immediately when rendered, otherwise once it is.` && |\n| &&

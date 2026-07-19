@@ -6,13 +6,12 @@ const { test, expect } = require("@playwright/test");
 // app dispatch, draft persistence and session chaining) plus the UI5 shell
 // booting in a real browser and issuing the initial roundtrip.
 //
-// Known limitation: the transpiled Node backend never returns backend-built
-// view XML, because interface attributes read through an interface-typed
-// reference (client->check_on_init reading z2ui5_if_app~check_initialized)
-// resolve to a property that does not exist in the transpiled JS, so
-// check_on_init( ) is always false there. Once that upstream
-// @abaplint/transpiler issue is resolved, extend these tests to fill the
-// hello world input and assert the rendered view/message box.
+// The transpiled backend renders backend-built view XML since the
+// interface-attribute access in check_on_init went through a typed
+// variable (see the comment there) - the historical "never returns view
+// XML" limitation is gone, and the tests below assert the full cycle:
+// initial view XML, then an event roundtrip whose two-way model delta is
+// applied before on_event and answered with the message box.
 
 const HELLO_WORLD = "Z2UI5_CL_APP_HELLO_WORLD";
 
@@ -61,6 +60,59 @@ test("chains the session draft across roundtrips", async ({ request }) => {
   expect(second.S_FRONT.ID).not.toBe(first.S_FRONT.ID);
 });
 
+test("returns the backend-built view XML on app start", async ({
+  request,
+}) => {
+  const body = await (
+    await request.post("/", {
+      data: frontBody({ SEARCH: "?app_start=z2ui5_cl_app_hello_world" }),
+    })
+  ).json();
+
+  const xml = body.S_FRONT.PARAMS?.S_VIEW?.XML;
+  expect(xml).toContain("<mvc:View");
+  expect(xml).toContain('value="{/XX/NAME}"');
+  expect(xml).toContain("BUTTON_POST");
+  // the two-way bound attribute is seeded in the model
+  expect(body.MODEL.XX).toHaveProperty("NAME");
+});
+
+test("applies the model delta before on_event and answers the event", async ({
+  request,
+}) => {
+  const first = await (
+    await request.post("/", {
+      data: frontBody({ SEARCH: "?app_start=z2ui5_cl_app_hello_world" }),
+    })
+  ).json();
+
+  // fire the hello-world button event, shipping the edited input value as
+  // the two-way model delta - the backend must apply it to the app object
+  // BEFORE on_event runs and answer with the message box
+  const second = await (
+    await request.post("/", {
+      data: {
+        value: {
+          XX: { NAME: "Roundtrip" },
+          S_FRONT: {
+            ORIGIN: "http://localhost:3000",
+            PATHNAME: "/",
+            SEARCH: "",
+            ID: first.S_FRONT.ID,
+            EVENT: "BUTTON_POST",
+          },
+        },
+      },
+    })
+  ).json();
+
+  expect(second.S_FRONT.PARAMS?.S_MSG_BOX?.TEXT).toBe(
+    "Your name is Roundtrip",
+  );
+  // an event roundtrip without view_display must not resend the view
+  expect(second.S_FRONT.PARAMS?.S_VIEW?.XML).toBeUndefined();
+});
+
 test("rejects a broken request body with a framework error", async ({
   request,
 }) => {
@@ -83,6 +135,21 @@ test("boots the UI5 shell in the browser and issues the initial roundtrip", asyn
   const body = await response.json();
   expect(body.S_FRONT.APP).toBe(HELLO_WORLD);
   expect(body.S_FRONT.ID).toMatch(/^[0-9A-F]{32}$/);
+});
+
+test("renders the view, posts the input value and shows the message box", async ({
+  page,
+}) => {
+  await page.goto("/?app_start=z2ui5_cl_app_hello_world");
+
+  // the backend-built view really renders in the shell
+  const input = page.locator("input").first();
+  await input.waitFor();
+  await input.fill("Browser");
+  await page.getByRole("button", { name: "Post" }).click();
+
+  // BUTTON_POST answers with message_box_display - a real dialog opens
+  await expect(page.getByText("Your name is Browser")).toBeVisible();
 });
 
 test("does not append a dangling '#' to the URL after app start", async ({

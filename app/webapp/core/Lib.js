@@ -33,6 +33,41 @@ sap.ui.define(
       return null;
     }
 
+    // Resolve the central UI5 messaging facade version-independently.
+    // sap/ui/core/Messaging arrived in 1.118 and is the only API left in
+    // UI5 2.x; older releases expose the same interface (getMessageModel,
+    // registerObject, unregisterObject) via the MessageManager singleton.
+    // Returns null when neither is available (bare test bootstraps).
+    function getMessaging() {
+      const Messaging = sap.ui.require("sap/ui/core/Messaging");
+      if (Messaging) return Messaging;
+      /* ui5lint-disable no-globals, no-deprecated-api --
+       deliberate fallback for UI5 releases without sap/ui/core/Messaging
+       (added in 1.118); the modern API is used in the branch above. */
+      if (sap.ui.getCore) {
+        const core = sap.ui.getCore();
+        if (core?.getMessageManager) return core.getMessageManager();
+      }
+      /* ui5lint-enable no-globals, no-deprecated-api */
+      return null;
+    }
+
+    // True when the running UI5 ships the sap/ui/core/Messaging module (added
+    // in 1.118). Callers use it to skip warm-loading that module on older
+    // releases (e.g. 1.71) where an async require would 404 and make the
+    // ui5loader retry noisily via synchronous XHR. getMessaging()'s
+    // MessageManager fallback covers those releases instead.
+    function hasMessagingModule() {
+      /* ui5lint-disable no-globals --
+       sap.ui.version is the only way to read the running UI5 version; there
+       is no injected/module equivalent. */
+      const rawVersion = String(sap.ui.version || "");
+      /* ui5lint-enable no-globals */
+      const [major, minor] = rawVersion.split(".").map(Number);
+      if (!Number.isFinite(major) || !Number.isFinite(minor)) return false;
+      return major > 1 || (major === 1 && minor >= 118);
+    }
+
     // Cap the error log so a long-running session cannot grow it unbounded.
     const MAX_ERRORS = 100;
 
@@ -126,7 +161,10 @@ sap.ui.define(
     // is skipped when `owner` was destroyed in the meantime.
     function whenRendered(control, owner, fn) {
       if (control.getDomRef()) {
-        fn();
+        // Same owner-liveness guard as the deferred branch below: a caller
+        // resuming from an async continuation may reach here after its owner
+        // was torn down while the target control is still rendered.
+        if (!isDestroyed(owner)) fn();
         return;
       }
       const delegate = {
@@ -387,6 +425,8 @@ sap.ui.define(
       buildDeltaFromPaths,
       sanitizeMessageDetails,
       getElementById,
+      getMessaging,
+      hasMessagingModule,
     };
   },
 );

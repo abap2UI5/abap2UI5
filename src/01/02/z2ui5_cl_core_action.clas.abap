@@ -136,8 +136,12 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    " check for already existing app?
-    IF mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL.
+    " check for already existing app? Guard the ancestor stack draft with
+    " check_exists too - in a long-lived session the ancestor may have been
+    " purged by cleanup( ) while the leave target still exists, and read_info
+    " would raise NO_DRAFT_ENTRY and break back-navigation
+    IF mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL
+        AND lo_draft->check_exists( mo_app->ms_draft-id_prev_app_stack ) = abap_true.
       DATA(ls_draft) = lo_draft->read_info( mo_app->ms_draft-id_prev_app_stack ).
       result->mo_app->ms_draft-id_prev_app_stack = ls_draft-id_prev_app_stack.
     ENDIF.
@@ -161,9 +165,15 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     SPLIT z2ui5_if_core_types=>cs_view_slot_list AT `,` INTO TABLE DATA(lt_slot).
     LOOP AT lt_slot INTO DATA(lv_slot).
       ASSIGN COMPONENT lv_slot OF STRUCTURE ms_next-s_set TO FIELD-SYMBOL(<slot>).
-      ASSERT sy-subrc = 0.
+      IF sy-subrc <> 0.
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+          EXPORTING val = |Internal error - view slot '{ lv_slot }' not found in s_set|.
+      ENDIF.
       ASSIGN COMPONENT `CHECK_UPDATE_MODEL` OF STRUCTURE <slot> TO FIELD-SYMBOL(<check_update_model>).
-      ASSERT sy-subrc = 0.
+      IF sy-subrc <> 0.
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+          EXPORTING val = |Internal error - CHECK_UPDATE_MODEL missing in view slot '{ lv_slot }'|.
+      ENDIF.
       <check_update_model> = abap_false.
     ENDLOOP.
 

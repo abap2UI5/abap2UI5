@@ -88,7 +88,29 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `` && |\n| &&
              `    function setView(key, view) {` && |\n| &&
              `      const slot = byKey(key);` && |\n| &&
-             `      if (slot) AppState.state[slot.prop] = view;` && |\n| &&
+             `      if (!slot) return;` && |\n| &&
+             `      AppState.state[slot.prop] = view;` && |\n| &&
+             `      attachSharedModels(view);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // Attach the models every slot shares: the one device model (created` && |\n| &&
+             `    // once in Component.js, never destroyed) and the central UI5 message` && |\n| &&
+             `    // model, plus register the view for automatic validation-message` && |\n| &&
+             `    // collection (handleValidation). Done HERE - the single funnel every` && |\n| &&
+             `    // successful display path goes through, and the module that also owns` && |\n| &&
+             `    // destroy() - so attach and the unregister in destroy() stay symmetric:` && |\n| &&
+             `    // a display path that destroys a view on an error guard never reached` && |\n| &&
+             `    // setView, so nothing was registered and nothing leaks.` && |\n| &&
+             `    function attachSharedModels(view) {` && |\n| &&
+             `      if (!view) return;` && |\n| &&
+             `      if (AppState.state.oDeviceModel) {` && |\n| &&
+             `        view.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&
+             `      }` && |\n| &&
+             `      const messaging = Lib.getMessaging?.();` && |\n| &&
+             `      if (messaging) {` && |\n| &&
+             `        view.setModel(messaging.getMessageModel(), "message");` && |\n| &&
+             `        messaging.registerObject(view, true);` && |\n| &&
+             `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Controller instance serving a slot (created once in App.controller).` && |\n| &&
@@ -158,6 +180,18 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `      return undefined;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // Resolve a control id in the SAME slot as ``owner`` - an invisible` && |\n| &&
+             `    // companion control (Tree, Focus, Scrolling, MultiInputExt, ...) authored` && |\n| &&
+             `    // in that slot's view next to the control it drives. Preferred over` && |\n| &&
+             `    // resolveById for companions: it resolves the target in the companion's` && |\n| &&
+             `    // own slot, so a same local id in another open slot (e.g. a dialog) is` && |\n| &&
+             `    // never picked by accident, and it works when the companion sits in a` && |\n| &&
+             `    // popup/popover/nested view - not only in MAIN. Falls back to MAIN when` && |\n| &&
+             `    // the owner is not attached to a slot yet.` && |\n| &&
+             `    function byIdOfOwner(owner, id) {` && |\n| &&
+             `      return byId(containingSlotKey(owner) ?? "MAIN", id);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    // Shared teardown: close (popup/popover only), destroy and clear the` && |\n| &&
              `    // slot. Safe to call for slots that are not open.` && |\n| &&
              `    function destroy(key) {` && |\n| &&
@@ -171,6 +205,17 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `        } catch (e) {` && |\n| &&
              `          Lib.logError(``ViewSlots.destroy: view.close() failed for ${key}``, e);` && |\n| &&
              `        }` && |\n| &&
+             `      }` && |\n| &&
+             `      try {` && |\n| &&
+             `        // Drop the validation registration the controller added via` && |\n| &&
+             `        // _attachMessaging, so the messaging facade holds no stale entry` && |\n| &&
+             `        // for the destroyed view.` && |\n| &&
+             `        Lib.getMessaging?.()?.unregisterObject(view);` && |\n| &&
+             `      } catch (e) {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``ViewSlots.destroy: unregisterObject failed for ${key}``,` && |\n| &&
+             `          e,` && |\n| &&
+             `        );` && |\n| &&
              `      }` && |\n| &&
              `      try {` && |\n| &&
              `        view.destroy();` && |\n| &&
@@ -189,6 +234,7 @@ CLASS z2ui5_cl_app_viewslots_js IMPLEMENTATION.
              `      paramByKey,` && |\n| &&
              `      keyOfController,` && |\n| &&
              `      byId,` && |\n| &&
+             `      byIdOfOwner,` && |\n| &&
              `      resolveById,` && |\n| &&
              `      containingSlotKey,` && |\n| &&
              `      destroy,` && |\n| &&

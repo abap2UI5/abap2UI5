@@ -72,13 +72,13 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `//   oBody             mirror of the current request payload - the body` && |\n| &&
              `//                     itself travels as a parameter through` && |\n| &&
              `//                     Server.roundtrip/readHttp; this record exists for` && |\n| &&
-             `//                     onBeforeRoundtrip hooks and the debug tool` && |\n| &&
+             `//                     onBeforeRoundtrip hooks and the developer tools` && |\n| &&
              `//                     (View1.eB / Server)` && |\n| &&
              `//   oResponse         last processed response { ID, PARAMS, OVIEWMODEL }` && |\n| &&
              `//   responseData      raw parsed response JSON (Server.readHttp); kept` && |\n| &&
              `//                     besides oResponse because it carries fields the` && |\n| &&
              `//                     cooked record does not (e.g. S_FRONT.APP, used by` && |\n| &&
-             `//                     the debug tool)` && |\n| &&
+             `//                     the developer tools)` && |\n| &&
              `//   contextId         stateful session id, header transport (Server)` && |\n| &&
              `//   isBusy            roundtrip in flight (View1.eB / Server)` && |\n| &&
              `//   xxChangedPaths    Set of edited /XX/ model paths for the delta (View1)` && |\n| &&
@@ -92,8 +92,10 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `//   timers            single pending backend timer (FrontendAction)` && |\n| &&
              `//   lastScrolled      last scrolled element per slot (Server.onScrollCapture)` && |\n| &&
              `//   viewSizeLimits    per-slot model size limits (FrontendAction)` && |\n| &&
-             `//   treeState         tree binding state across rebuilds (Tree control)` && |\n| &&
-             `//   debugTool         DebugTool instance (Component, Ctrl+F12)` && |\n| &&
+             `//   treeStates        tree binding state per tree_id across rebuilds (Tree control)` && |\n| &&
+             `//   developerTools         DeveloperTools instance (Component, Ctrl+F12)` && |\n| &&
+             `//   lastError         the last fatal error shown by ErrorView (title/text/` && |\n| &&
+             `//                     onRetry), so the DeveloperTools Error tab can re-show it` && |\n| &&
              `//   onBeforeRoundtrip, onAfterRoundtrip, onAfterRendering,` && |\n| &&
              `//   onBeforeEventFrontend  callback arrays, see Lib.registerCallback` && |\n| &&
              `sap.ui.define([], () => {` && |\n| &&
@@ -136,8 +138,9 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `      timers: {},` && |\n| &&
              `      lastScrolled: {},` && |\n| &&
              `      viewSizeLimits: {},` && |\n| &&
-             `      treeState: null,` && |\n| &&
-             `      debugTool: null,` && |\n| &&
+             `      treeStates: {},` && |\n| &&
+             `      developerTools: null,` && |\n| &&
+             `      lastError: null,` && |\n| &&
              `` && |\n| &&
              `      // Callback arrays (see Lib.registerCallback / Lib.runCallbacks)` && |\n| &&
              `      onBeforeRoundtrip: [],` && |\n| &&

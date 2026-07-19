@@ -216,3 +216,30 @@ test.describe("getElementById", () => {
     expect(Lib.getElementById("missing")).toBeNull();
   });
 });
+
+test.describe("getMessaging (version-independent messaging facade)", () => {
+  test("prefers the sap/ui/core/Messaging module when loaded", () => {
+    const { Lib, sandbox } = loadLib();
+    const Messaging = { getMessageModel: () => ({}), registerObject: () => {} };
+    sandbox.sap.ui.require = (name) =>
+      name === "sap/ui/core/Messaging" ? Messaging : undefined;
+    sandbox.sap.ui.getCore = () => {
+      throw new Error("must not fall back when Messaging exists");
+    };
+    expect(Lib.getMessaging()).toBe(Messaging);
+  });
+
+  test("falls back to the MessageManager singleton on older releases", () => {
+    const { Lib, sandbox } = loadLib();
+    const mm = { getMessageModel: () => ({}) };
+    sandbox.sap.ui.require = () => undefined;
+    sandbox.sap.ui.getCore = () => ({ getMessageManager: () => mm });
+    expect(Lib.getMessaging()).toBe(mm);
+  });
+
+  test("returns null when neither API exists (bare bootstrap)", () => {
+    const { Lib, sandbox } = loadLib();
+    sandbox.sap.ui.require = () => undefined;
+    expect(Lib.getMessaging()).toBeNull();
+  });
+});

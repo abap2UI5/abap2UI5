@@ -78,16 +78,24 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
   METHOD get_t_arg.
 
     DATA lv_new TYPE string.
+    DATA lv_pending TYPE string.
     LOOP AT val REFERENCE INTO DATA(lr_arg).
 
       lv_new = lr_arg->*.
       IF lv_new IS INITIAL.
+        " an empty argument between filled ones must keep its position -
+        " dropping it would shift every following argument into the wrong
+        " slot (a control_call_by_id without a view lost its method name
+        " this way). Buffer it and only flush when a later non-empty
+        " argument follows, so trailing empties still disappear.
+        lv_pending = |{ lv_pending }, ''|.
         CONTINUE.
       ENDIF.
       IF lv_new(1) <> `$` AND lv_new(1) <> `{` AND lv_new NP `.eB(*`.
         lv_new = |'{ lv_new }'|.
       ENDIF.
-      result = |{ result }, { lv_new }|.
+      result = |{ result }{ lv_pending }, { lv_new }|.
+      lv_pending = ``.
     ENDLOOP.
 
     result = |{ result })|.

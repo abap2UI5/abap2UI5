@@ -26,11 +26,28 @@ function load() {
       "z2ui5/core/Lib": {
         logError: (message) => errors.push(message),
         getElementById: (id) => globalElements[id] || null,
+        getMessaging: () => ({
+          getMessageModel: () => messageModel,
+          registerObject: (view, bind) => registerCalls.push([view, bind]),
+          unregisterObject: (view) => unregisterCalls.push(view),
+        }),
       },
       "z2ui5/core/AppState": { state: z2ui5 },
     },
   });
-  return { ViewSlots: module, z2ui5, fragmentCalls, errors, globalElements };
+  const unregisterCalls = [];
+  const registerCalls = [];
+  const messageModel = { id: "messageModel" };
+  return {
+    ViewSlots: module,
+    z2ui5,
+    fragmentCalls,
+    errors,
+    globalElements,
+    unregisterCalls,
+    registerCalls,
+    messageModel,
+  };
 }
 
 test.describe("key mappings", () => {
@@ -54,12 +71,26 @@ test.describe("key mappings", () => {
 test.describe("view and controller access", () => {
   test("setView/getView write and read the slot's z2ui5 field", () => {
     const { ViewSlots, z2ui5 } = load();
-    const view = {};
+    const view = { setModel() {} };
     ViewSlots.setView("NEST", view);
     expect(z2ui5.oViewNest).toBe(view);
     expect(ViewSlots.getView("NEST")).toBe(view);
     expect(ViewSlots.getView("POPUP")).toBeUndefined();
     expect(ViewSlots.getView("UNKNOWN")).toBeUndefined();
+  });
+
+  test("setView attaches the shared device + message models and registers", () => {
+    const { ViewSlots, z2ui5, registerCalls, messageModel } = load();
+    const models = [];
+    const deviceModel = { id: "deviceModel" };
+    z2ui5.oDeviceModel = deviceModel;
+    const view = { setModel: (m, name) => models.push([name, m]) };
+    ViewSlots.setView("MAIN", view);
+    expect(models).toEqual([
+      ["device", deviceModel],
+      ["message", messageModel],
+    ]);
+    expect(registerCalls).toEqual([[view, true]]);
   });
 
   test("keyOfController finds the slot a controller serves", () => {
@@ -91,6 +122,27 @@ test.describe("byId", () => {
     expect(ViewSlots.byId("UNKNOWN", "btn")).toBeUndefined();
     // A closed fragment slot must not hit the Fragment registry.
     expect(fragmentCalls).toEqual([]);
+  });
+});
+
+test.describe("byIdOfOwner", () => {
+  test("resolves the id in the owner's own slot, not a same-id in MAIN", () => {
+    const { ViewSlots, z2ui5 } = load();
+    // Same local id "tree" exists in MAIN and in the open popup.
+    z2ui5.oView = { byId: (id) => (id === "tree" ? "main-tree" : undefined) };
+    const popupControl = {};
+    z2ui5.oViewPopup = popupControl;
+    // The owner (a companion) lives in the popup; walking up hits oViewPopup.
+    const owner = { getParent: () => popupControl };
+    // Fragment.byId is stubbed as `${fragmentId}--${id}` for popup slots.
+    expect(ViewSlots.byIdOfOwner(owner, "tree")).toBe("popupId--tree");
+  });
+
+  test("falls back to MAIN when the owner is in no slot", () => {
+    const { ViewSlots, z2ui5 } = load();
+    z2ui5.oView = { byId: (id) => `main-${id}` };
+    const owner = { getParent: () => undefined };
+    expect(ViewSlots.byIdOfOwner(owner, "btn")).toBe("main-btn");
   });
 });
 
@@ -182,5 +234,13 @@ test.describe("destroy", () => {
     ViewSlots.destroy("POPUP");
     ViewSlots.destroy("UNKNOWN");
     expect(z2ui5.oViewPopup).toBeUndefined();
+  });
+
+  test("unregisters the view from the messaging facade before destroy", () => {
+    const { ViewSlots, z2ui5, unregisterCalls } = load();
+    const view = { destroy: () => {} };
+    z2ui5.oView = view;
+    ViewSlots.destroy("MAIN");
+    expect(unregisterCalls).toEqual([view]);
   });
 });

@@ -110,7 +110,7 @@ sap.ui.define(
     //   5. View1._processAfterRendering()  popups, nested views, history,
     //      then runs pending follow-up JS once rendering is done
     // The request body travels through the steps as a parameter; it is
-    // mirrored to z2ui5.oBody so onBeforeRoundtrip hooks and the debug tool
+    // mirrored to z2ui5.oBody so onBeforeRoundtrip hooks and the developer tools
     // can inspect it. Only the response side still crosses an async boundary
     // (the rendering) via the globals oResponse and pendingCustomJs.
     //
@@ -149,7 +149,7 @@ sap.ui.define(
     //     "MODEL": { "XX": {...}, ... }    // full JSON view model, becomes
     //   }                                  // the view's binding model
     //
-    // Inspect live payloads via the debug tool (Ctrl+F12): "Previous
+    // Inspect live payloads via the developer tools (Ctrl+F12): "Previous
     // Request" and "Response".
     return {
       endSession() {
@@ -342,7 +342,7 @@ sap.ui.define(
         state.checkNestAfter = false;
         state.checkNestAfter2 = false;
 
-        // Keep the shared record in sync (debug tool "Previous Request",
+        // Keep the shared record in sync (developer tools "Previous Request",
         // app hooks); the parameter stays the working object. Calls without
         // a body (initial roundtrip, route changes) start from scratch.
         state.oBody = oBody;

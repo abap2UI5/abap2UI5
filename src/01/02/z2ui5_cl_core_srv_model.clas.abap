@@ -111,6 +111,17 @@ CLASS z2ui5_cl_core_srv_model DEFINITION PUBLIC FINAL.
       RAISING
         z2ui5_cx_ajson_error.
 
+    "! Apply one delta field value into the referenced row component. A
+    "! single malformed cell (e.g. text into a numeric target) is skipped
+    "! here so it cannot abort the whole model batch.
+    METHODS delta_apply_field
+      IMPORTING
+        io_row_d TYPE REF TO z2ui5_if_ajson
+        iv_path  TYPE string
+        ir_comp  TYPE REF TO data
+      RAISING
+        z2ui5_cx_ajson_error.
+
 ENDCLASS.
 
 
@@ -737,7 +748,10 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
               DATA(lt_attri_dref) = diss_dref( lr_attri ).
               INSERT LINES OF lt_attri_dref INTO TABLE lt_attri_new.
             WHEN OTHERS.
-              ASSERT 1 = 0.
+              " an unexpected ref type_kind is left as a non-dissolvable leaf
+              " (like the unknown-kind WHEN OTHERS below) - an ASSERT here
+              " would raise the uncatchable ASSERTION_FAILED and defeat the
+              " TRY/CATCH around dissolve_run, dumping the whole request
           ENDCASE.
         WHEN OTHERS.
       ENDCASE.
@@ -790,7 +804,14 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
     DATA(lt_idx) = io_delta->members( `/` ).
     LOOP AT lt_idx INTO DATA(lv_idx_str).
-      DATA(lv_tabix) = CONV i( lv_idx_str ) + 1.
+      DATA lv_tabix TYPE i.
+      TRY.
+          " the delta key is a client-supplied row index; a garbled
+          " (non-numeric) key must skip that row, not dump the request
+          lv_tabix = CONV i( lv_idx_str ) + 1.
+        CATCH cx_root.
+          CONTINUE.
+      ENDTRY.
       FIELD-SYMBOLS <delta_row> TYPE any.
       READ TABLE ct_tab INDEX lv_tabix ASSIGNING <delta_row>.
       IF sy-subrc <> 0.
@@ -804,22 +825,32 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
         IF sy-subrc <> 0.
           CONTINUE.
         ENDIF.
-        DATA(lv_fld_path) = |/{ lv_fld }|.
+        delta_apply_field( io_row_d = lo_row_d
+                           iv_path  = |/{ lv_fld }|
+                           ir_comp  = REF #( <comp> ) ).
+      ENDLOOP.
+    ENDLOOP.
 
-        CASE lo_row_d->get_node_type( lv_fld_path ).
+  ENDMETHOD.
+
+  METHOD delta_apply_field.
+
+    FIELD-SYMBOLS <comp> TYPE any.
+    ASSIGN ir_comp->* TO <comp>.
+
+    TRY.
+        CASE io_row_d->get_node_type( iv_path ).
 
           WHEN z2ui5_if_ajson_types=>node_type-boolean.
-            <comp> = lo_row_d->get_boolean( lv_fld_path ).
+            <comp> = io_row_d->get_boolean( iv_path ).
 
           WHEN z2ui5_if_ajson_types=>node_type-object.
             " either a nested table delta (marked by __delta) or a
             " structure component shipped as a whole value
-            DATA(lo_sub) = lo_row_d->slice( lv_fld_path ).
+            DATA(lo_sub) = io_row_d->slice( iv_path ).
             IF lo_sub->exists( `/__delta` ) = abap_true.
-              DATA lr_sub TYPE REF TO data.
-              GET REFERENCE OF <comp> INTO lr_sub.
               FIELD-SYMBOLS <sub_tab> TYPE STANDARD TABLE.
-              ASSIGN lr_sub->* TO <sub_tab>.
+              ASSIGN ir_comp->* TO <sub_tab>.
               IF sy-subrc = 0.
                 delta_apply_nodes( EXPORTING io_delta = lo_sub->slice( `/__delta` )
                                    CHANGING  ct_tab   = <sub_tab> ).
@@ -831,18 +862,21 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
           WHEN z2ui5_if_ajson_types=>node_type-array.
             " a whole sub-table value replaced a nested delta on the client
-            lo_row_d->slice( lv_fld_path )->to_abap( EXPORTING iv_corresponding = abap_true
-                                                     IMPORTING ev_container     = <comp> ).
+            io_row_d->slice( iv_path )->to_abap( EXPORTING iv_corresponding = abap_true
+                                                 IMPORTING ev_container     = <comp> ).
 
           WHEN OTHERS.
             " numbers intentionally go through get_string: the raw JSON text
             " converts losslessly into any numeric target type, while
             " get_number would round through a binary float first
-            <comp> = lo_row_d->get_string( lv_fld_path ).
+            <comp> = io_row_d->get_string( iv_path ).
         ENDCASE.
 
-      ENDLOOP.
-    ENDLOOP.
+      CATCH cx_root.
+        " a single malformed cell (e.g. text sent into a numeric target)
+        " must not discard every other edit in this batch - skip just it
+        RETURN.
+    ENDTRY.
 
   ENDMETHOD.
 

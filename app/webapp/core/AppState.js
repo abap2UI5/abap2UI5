@@ -52,13 +52,13 @@
 //   oBody             mirror of the current request payload - the body
 //                     itself travels as a parameter through
 //                     Server.roundtrip/readHttp; this record exists for
-//                     onBeforeRoundtrip hooks and the debug tool
+//                     onBeforeRoundtrip hooks and the developer tools
 //                     (View1.eB / Server)
 //   oResponse         last processed response { ID, PARAMS, OVIEWMODEL }
 //   responseData      raw parsed response JSON (Server.readHttp); kept
 //                     besides oResponse because it carries fields the
 //                     cooked record does not (e.g. S_FRONT.APP, used by
-//                     the debug tool)
+//                     the developer tools)
 //   contextId         stateful session id, header transport (Server)
 //   isBusy            roundtrip in flight (View1.eB / Server)
 //   xxChangedPaths    Set of edited /XX/ model paths for the delta (View1)
@@ -72,8 +72,10 @@
 //   timers            single pending backend timer (FrontendAction)
 //   lastScrolled      last scrolled element per slot (Server.onScrollCapture)
 //   viewSizeLimits    per-slot model size limits (FrontendAction)
-//   treeState         tree binding state across rebuilds (Tree control)
-//   debugTool         DebugTool instance (Component, Ctrl+F12)
+//   treeStates        tree binding state per tree_id across rebuilds (Tree control)
+//   developerTools         DeveloperTools instance (Component, Ctrl+F12)
+//   lastError         the last fatal error shown by ErrorView (title/text/
+//                     onRetry), so the DeveloperTools Error tab can re-show it
 //   onBeforeRoundtrip, onAfterRoundtrip, onAfterRendering,
 //   onBeforeEventFrontend  callback arrays, see Lib.registerCallback
 sap.ui.define([], () => {
@@ -116,8 +118,9 @@ sap.ui.define([], () => {
       timers: {},
       lastScrolled: {},
       viewSizeLimits: {},
-      treeState: null,
-      debugTool: null,
+      treeStates: {},
+      developerTools: null,
+      lastError: null,
 
       // Callback arrays (see Lib.registerCallback / Lib.runCallbacks)
       onBeforeRoundtrip: [],

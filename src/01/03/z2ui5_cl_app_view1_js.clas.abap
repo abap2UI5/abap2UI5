@@ -118,6 +118,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          if (!PARAMS) return;` && |\n| &&
              `` && |\n| &&
              `          await this._displayPendingViews(PARAMS);` && |\n| &&
+             `          // The app may have been torn down (reset / FLP re-launch) while the` && |\n| &&
+             `          // pending views loaded; don't mutate history or fire onAfterRendering` && |\n| &&
+             `          // hooks against a dead app (the custom-JS phase below guards the same` && |\n| &&
+             `          // way via isDestroyed).` && |\n| &&
+             `          if (Lib.isDestroyed(this)) return;` && |\n| &&
              `          this._updateBrowserHistory(PARAMS, oResponse.ID);` && |\n| &&
              `          if (PARAMS.SET_NAV_BACK) history.back();` && |\n| &&
              `` && |\n| &&
@@ -225,9 +230,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        oFragment.setModel(oModel);` && |\n| &&
-             `        // Share the one device model (created once in Component.js, never` && |\n| &&
-             `        // destroyed) so {device>...} bindings work in popups too.` && |\n| &&
-             `        oFragment.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&
+             `        // The shared device + message models are attached inside` && |\n| &&
+             `        // ViewSlots.setView (the single funnel), so error paths that` && |\n| &&
+             `        // destroy a view without reaching setView never register it.` && |\n| &&
              `        ViewSlots.setView("POPUP", oFragment);` && |\n| &&
              `        oFragment.open();` && |\n| &&
              `      },` && |\n| &&
@@ -252,8 +257,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        oFragment.setModel(oModel);` && |\n| &&
-             `        // Shared device model (see displayFragment) - for popovers too.` && |\n| &&
-             `        oFragment.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&
              `` && |\n| &&
              `        // Find the control to attach the popover to: any open slot first,` && |\n| &&
              `        // then the global UI5 control registry as a last resort.` && |\n| &&
@@ -285,8 +288,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        oView.setModel(oModel);` && |\n| &&
-             `        // Shared device model (see displayFragment) - for nested views too.` && |\n| &&
-             `        oView.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&
              `` && |\n| &&
              `        const nestParams = AppState.state.oResponse?.PARAMS?.[paramKey];` && |\n| &&
              `        if (!nestParams) {` && |\n| &&
@@ -405,7 +406,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        // The request body is built locally and handed explicitly through` && |\n| &&
              `        // Server.roundtrip/readHttp. It is mirrored to AppState.state.oBody right` && |\n| &&
-             `        // away so onBeforeRoundtrip hooks and the debug tool see it.` && |\n| &&
+             `        // away so onBeforeRoundtrip hooks and the developer tools see it.` && |\n| &&
              `        const oBody = { VIEWNAME: "MAIN" };` && |\n| &&
              `        AppState.state.oBody = oBody;` && |\n| &&
              `` && |\n| &&
@@ -416,9 +417,9 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        Lib.runCallbacks(AppState.state.onBeforeRoundtrip);` && |\n| &&
              `` && |\n| &&
-             `        // If the user edited /XX/ paths, send only the delta to keep the` && |\n| &&
-             `        // payload small.` && |\n|.
+             `        // If the user edited /XX/ paths, send only the delta to keep the` && |\n|.
     result = result &&
+             `        // payload small.` && |\n| &&
              `        if (oModel && AppState.state.xxChangedPaths.size > 0) {` && |\n| &&
              `          const data = oModel.getData();` && |\n| &&
              `          const xx = data?.XX;` && |\n| &&
@@ -480,16 +481,21 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // model + setModel() destroys and recreates every binding - measured` && |\n| &&
              `        // ~3x slower with all values changed and ~150x slower when little` && |\n| &&
              `        // changed (see node/tests-examples/modelUpdate.bench.spec.js).` && |\n| &&
-             `        const existing = oView.getModel();` && |\n| &&
-             `        if (existing?._z2ui5Tracked) {` && |\n| &&
-             `          applyStoredSizeLimit(slotKey, existing);` && |\n| &&
-             `          existing.setData(AppState.state.oResponse?.OVIEWMODEL);` && |\n| &&
+             `        // The framework-owned JSON model is the DEFAULT model normally, but` && |\n| &&
+             `        // the NAMED "http" model when SWITCH_DEFAULT_MODEL_PATH placed an` && |\n| &&
+             `        // OData model in the default slot - update whichever one is ours and` && |\n| &&
+             `        // never overwrite the OData default with a fresh JSON model.` && |\n| &&
+             `        const isOurs = (m) => (m?._z2ui5Tracked ? m : undefined);` && |\n| &&
+             `        const tracked =` && |\n| &&
+             `          isOurs(oView.getModel()) ?? isOurs(oView.getModel("http"));` && |\n| &&
+             `        if (tracked) {` && |\n| &&
+             `          applyStoredSizeLimit(slotKey, tracked);` && |\n| &&
+             `          tracked.setData(AppState.state.oResponse?.OVIEWMODEL);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        // The slot's default model is not framework-owned (e.g. an` && |\n| &&
-             `        // ODataModel via SWITCH_DEFAULT_MODEL_PATH): keep the previous` && |\n| &&
-             `        // behavior and bind a fresh JSON model.` && |\n| &&
+             `        // No framework-owned model on this slot at all: bind a fresh default` && |\n| &&
+             `        // JSON model (keeps the previous behavior for that edge case).` && |\n| &&
              `        const oModel = this._createViewModel();` && |\n| &&
              `        applyStoredSizeLimit(slotKey, oModel);` && |\n| &&
              `        oView.setModel(oModel);` && |\n| &&
@@ -531,7 +537,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        }` && |\n| &&
              `` && |\n| &&
              `        ViewSlots.setView("MAIN", oView);` && |\n| &&
-             `        oView.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&
              `        if (switchPath) oView.setModel(oViewModel, "http");` && |\n| &&
              `        AppState.state.oApp.removeAllPages();` && |\n| &&
              `        AppState.state.oApp.insertPage(oView);` && |\n| &&

@@ -57,6 +57,15 @@ CLASS z2ui5_cl_app_formatter_js IMPLEMENTATION.
              `    ];` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  // Product stock status -> its value state + status icon, kept as one` && |\n| &&
+             `  // entry per status so the two formatters below cannot drift apart` && |\n| &&
+             `  // (sap.m.sample.StandardListItemInfo / ObjectListItem Formatter.js).` && |\n| &&
+             `  const STOCK_STATUS = {` && |\n| &&
+             `    Available: { state: "Success", icon: "sap-icon://accept" },` && |\n| &&
+             `    "Out of Stock": { state: "Warning", icon: "sap-icon://alert" },` && |\n| &&
+             `    Discontinued: { state: "Error", icon: "sap-icon://decline" },` && |\n| &&
+             `  };` && |\n| &&
+             `` && |\n| &&
              `  return {` && |\n| &&
              `    // --- date helpers (the z2ui5.Util legacy contract) ---` && |\n| &&
              `    DateCreateObject(s) {` && |\n| &&
@@ -89,6 +98,58 @@ CLASS z2ui5_cl_app_formatter_js IMPLEMENTATION.
              `      if (adjusted < 1) return "Success";` && |\n| &&
              `      if (adjusted < 5) return "Warning";` && |\n| &&
              `      return "Error";` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    // The demo kit's second weightState shape (sap.m.sample.TableEditable` && |\n| &&
+             `    // Formatter.js and five sibling Table samples): a single unit-less` && |\n| &&
+             `    // value, thresholds < 1000 Success, < 2000 Warning, else Error;` && |\n| &&
+             `    // non-numeric or negative values map to None.` && |\n| &&
+             `    weightStateByValue(value) {` && |\n| &&
+             `      const adjusted = parseFloat(value);` && |\n| &&
+             `      if (isNaN(adjusted) || adjusted < 0) return "None";` && |\n| &&
+             `      if (adjusted < 1000) return "Success";` && |\n| &&
+             `      if (adjusted < 2000) return "Warning";` && |\n| &&
+             `      return "Error";` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    // Product stock status -> sap.ui.core.ValueState.` && |\n| &&
+             `    stockStatusState(status) {` && |\n| &&
+             `      return STOCK_STATUS[status]?.state ?? "None";` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    // Product stock status -> status icon.` && |\n| &&
+             `    stockStatusIcon(status) {` && |\n| &&
+             `      return STOCK_STATUS[status]?.icon ?? null;` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    // Round to two decimal places, always rendered with two digits` && |\n| &&
+             `    // (sap.m.sample.TableBreadcrumb Formatter.js). Non-numeric input maps` && |\n| &&
+             `    // to an empty cell rather than the literal "NaN".` && |\n| &&
+             `    round2DP(value) {` && |\n| &&
+             `      const n = parseFloat(value);` && |\n| &&
+             `      if (isNaN(n)) return "";` && |\n| &&
+             `      return (Math.round(n * 100) / 100).toFixed(2);` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    // Join the available dimensions with " x " and append the unit;` && |\n| &&
+             `    // missing components are skipped (sap.m.sample.TableBreadcrumb` && |\n| &&
+             `    // Formatter.js). A component is "missing" only when it is null/undefined` && |\n| &&
+             `    // or empty string - a real 0 (a zero-size dimension) is kept, and the` && |\n| &&
+             `    // unit is only appended when it is present.` && |\n| &&
+             `    dimensions(width, depth, height, unit) {` && |\n| &&
+             `      let display = [width, depth, height]` && |\n| &&
+             `        .filter((component) => component != null && component !== "")` && |\n| &&
+             `        .join(" x ");` && |\n| &&
+             `      if (display && unit != null && unit !== "") display += `` ${unit}``;` && |\n| &&
+             `      return display;` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    // Delivery status -> sap.ui.core.ValueState` && |\n| &&
+             `    // (sap.m.sample.InitialPagePattern model/formatter.js).` && |\n| &&
+             `    deliveryStatusState(status) {` && |\n| &&
+             `      if (status === "Shipped") return "Success";` && |\n| &&
+             `      if (status === "Failed Shipping") return "Error";` && |\n| &&
+             `      return "None";` && |\n| &&
              `    },` && |\n| &&
              `  };` && |\n| &&
              `});` && |\n| &&

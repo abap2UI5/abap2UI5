@@ -1657,7 +1657,12 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
     TYPES clsname    TYPE c LENGTH 30.
     TYPES refclsname TYPE c LENGTH 30.
     TYPES END OF ty_s_impl.
-    DATA lt_impl TYPE STANDARD TABLE OF ty_s_impl WITH EMPTY KEY.
+    " DEFAULT KEY on purpose: this table is passed to the classic function
+    " module SEO_INTERFACE_IMPLEM_GET_ALL (impkeys), whose formal parameter is
+    " a STANDARD TABLE WITH DEFAULT KEY. WITH EMPTY KEY makes the table type
+    " incompatible, so the CALL FUNCTION fails and no implementers are returned
+    " (silently breaking user-exit discovery). Never change this key type.
+    DATA lt_impl TYPE STANDARD TABLE OF ty_s_impl WITH DEFAULT KEY.
     TYPES BEGIN OF ty_s_key.
     TYPES intkey TYPE c LENGTH 30.
     TYPES END OF ty_s_key.

@@ -33,6 +33,58 @@ test.describe("Formatter module", () => {
     expect(Formatter.weightState("-1", "KG")).toBe("None");
   });
 
+  test("weightStateByValue maps unit-less weights to the 1000/2000 thresholds", () => {
+    const { Formatter } = load();
+    expect(Formatter.weightStateByValue("999")).toBe("Success");
+    expect(Formatter.weightStateByValue("1500")).toBe("Warning");
+    expect(Formatter.weightStateByValue("2000")).toBe("Error");
+    expect(Formatter.weightStateByValue("abc")).toBe("None");
+    expect(Formatter.weightStateByValue("-1")).toBe("None");
+  });
+
+  test("stockStatusState/-Icon map the stock status", () => {
+    const { Formatter } = load();
+    expect(Formatter.stockStatusState("Available")).toBe("Success");
+    expect(Formatter.stockStatusState("Out of Stock")).toBe("Warning");
+    expect(Formatter.stockStatusState("Discontinued")).toBe("Error");
+    expect(Formatter.stockStatusState("Unknown")).toBe("None");
+    expect(Formatter.stockStatusIcon("Available")).toBe("sap-icon://accept");
+    expect(Formatter.stockStatusIcon("Out of Stock")).toBe("sap-icon://alert");
+    expect(Formatter.stockStatusIcon("Discontinued")).toBe(
+      "sap-icon://decline",
+    );
+    expect(Formatter.stockStatusIcon("Unknown")).toBeNull();
+  });
+
+  test("round2DP renders two decimal places, empty for non-numeric", () => {
+    const { Formatter } = load();
+    expect(Formatter.round2DP(3.14159)).toBe("3.14");
+    expect(Formatter.round2DP(2)).toBe("2.00");
+    expect(Formatter.round2DP("10.005")).toBe("10.01");
+    // a missing/non-numeric value renders an empty cell, not "NaN"
+    expect(Formatter.round2DP(undefined)).toBe("");
+    expect(Formatter.round2DP("abc")).toBe("");
+  });
+
+  test("dimensions keeps a real 0, skips missing parts and unit", () => {
+    const { Formatter } = load();
+    expect(Formatter.dimensions(10, 20, 30, "cm")).toBe("10 x 20 x 30 cm");
+    // a real zero-size dimension is kept (was dropped by the falsy filter)
+    expect(Formatter.dimensions(40, 28, 0, "cm")).toBe("40 x 28 x 0 cm");
+    // null/undefined/"" parts are skipped
+    expect(Formatter.dimensions(10, null, 30, "cm")).toBe("10 x 30 cm");
+    // a missing unit is not appended as "undefined"
+    expect(Formatter.dimensions(10, 20, 30, undefined)).toBe("10 x 20 x 30");
+    expect(Formatter.dimensions(null, null, null, "cm")).toBe("");
+  });
+
+  test("deliveryStatusState maps the delivery status", () => {
+    const { Formatter } = load();
+    expect(Formatter.deliveryStatusState("Shipped")).toBe("Success");
+    expect(Formatter.deliveryStatusState("Failed Shipping")).toBe("Error");
+    expect(Formatter.deliveryStatusState("Pending")).toBe("None");
+  });
+
   test("z2ui5/Util re-exports the date helpers as the legacy alias", () => {
     const { Formatter, Util } = load();
     expect(Util.DateCreateObject).toBe(Formatter.DateCreateObject);

@@ -68,7 +68,29 @@ sap.ui.define(
 
     function setView(key, view) {
       const slot = byKey(key);
-      if (slot) AppState.state[slot.prop] = view;
+      if (!slot) return;
+      AppState.state[slot.prop] = view;
+      attachSharedModels(view);
+    }
+
+    // Attach the models every slot shares: the one device model (created
+    // once in Component.js, never destroyed) and the central UI5 message
+    // model, plus register the view for automatic validation-message
+    // collection (handleValidation). Done HERE - the single funnel every
+    // successful display path goes through, and the module that also owns
+    // destroy() - so attach and the unregister in destroy() stay symmetric:
+    // a display path that destroys a view on an error guard never reached
+    // setView, so nothing was registered and nothing leaks.
+    function attachSharedModels(view) {
+      if (!view) return;
+      if (AppState.state.oDeviceModel) {
+        view.setModel(AppState.state.oDeviceModel, "device");
+      }
+      const messaging = Lib.getMessaging?.();
+      if (messaging) {
+        view.setModel(messaging.getMessageModel(), "message");
+        messaging.registerObject(view, true);
+      }
     }
 
     // Controller instance serving a slot (created once in App.controller).
@@ -138,6 +160,18 @@ sap.ui.define(
       return undefined;
     }
 
+    // Resolve a control id in the SAME slot as `owner` - an invisible
+    // companion control (Tree, Focus, Scrolling, MultiInputExt, ...) authored
+    // in that slot's view next to the control it drives. Preferred over
+    // resolveById for companions: it resolves the target in the companion's
+    // own slot, so a same local id in another open slot (e.g. a dialog) is
+    // never picked by accident, and it works when the companion sits in a
+    // popup/popover/nested view - not only in MAIN. Falls back to MAIN when
+    // the owner is not attached to a slot yet.
+    function byIdOfOwner(owner, id) {
+      return byId(containingSlotKey(owner) ?? "MAIN", id);
+    }
+
     // Shared teardown: close (popup/popover only), destroy and clear the
     // slot. Safe to call for slots that are not open.
     function destroy(key) {
@@ -151,6 +185,17 @@ sap.ui.define(
         } catch (e) {
           Lib.logError(`ViewSlots.destroy: view.close() failed for ${key}`, e);
         }
+      }
+      try {
+        // Drop the validation registration the controller added via
+        // _attachMessaging, so the messaging facade holds no stale entry
+        // for the destroyed view.
+        Lib.getMessaging?.()?.unregisterObject(view);
+      } catch (e) {
+        Lib.logError(
+          `ViewSlots.destroy: unregisterObject failed for ${key}`,
+          e,
+        );
       }
       try {
         view.destroy();
@@ -169,6 +214,7 @@ sap.ui.define(
       paramByKey,
       keyOfController,
       byId,
+      byIdOfOwner,
       resolveById,
       containingSlotKey,
       destroy,

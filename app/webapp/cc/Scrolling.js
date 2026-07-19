@@ -25,14 +25,14 @@ sap.ui.define(
       },
 
       _getDomInnerElement(id) {
-        const control = ViewSlots.byId("MAIN", id);
+        const control = ViewSlots.byIdOfOwner(this, id);
         if (!control) return null;
         return document.getElementById(`${control.getId()}-inner`);
       },
 
       _getScrollTop(item) {
         try {
-          const control = ViewSlots.byId("MAIN", item.N);
+          const control = ViewSlots.byIdOfOwner(this, item.N);
           // Some controls expose a scroll delegate; prefer it when available.
           const delegate = control?.getScrollDelegate?.();
           if (delegate) return delegate.getScrollTop();
@@ -78,7 +78,7 @@ sap.ui.define(
 
       _restoreScrollPosition(item) {
         try {
-          const control = ViewSlots.byId("MAIN", item.N);
+          const control = ViewSlots.byIdOfOwner(this, item.N);
           if (control?.scrollTo) {
             control.scrollTo(item.V);
             return;
@@ -99,7 +99,7 @@ sap.ui.define(
 
         try {
           for (const item of items) {
-            const control = ViewSlots.byId("MAIN", item.N);
+            const control = ViewSlots.byIdOfOwner(this, item.N);
             if (!control) continue;
 
             // Restore immediately when rendered, otherwise once it is.

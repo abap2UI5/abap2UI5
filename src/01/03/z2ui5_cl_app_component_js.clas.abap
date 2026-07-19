@@ -24,7 +24,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `    "z2ui5/model/models",` && |\n| &&
              `    "z2ui5/core/Server",` && |\n| &&
              `    "sap/ui/VersionInfo",` && |\n| &&
-             `    "z2ui5/core/DebugTool",` && |\n| &&
+             `    "z2ui5/core/DeveloperTools",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
              `    "z2ui5/Util",` && |\n| &&
@@ -36,7 +36,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `    Models,` && |\n| &&
              `    Server,` && |\n| &&
              `    VersionInfo,` && |\n| &&
-             `    DebugTool,` && |\n| &&
+             `    DeveloperTools,` && |\n| &&
              `    Lib,` && |\n| &&
              `    AppState,` && |\n| &&
              `    DateUtil,` && |\n| &&
@@ -80,11 +80,29 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        AppState.state.oDeviceModel = Models.createDeviceModel();` && |\n| &&
              `        this.setModel(AppState.state.oDeviceModel, "device");` && |\n| &&
              `` && |\n| &&
+             `        // Warm-load the messaging module so Lib.getMessaging's synchronous` && |\n| &&
+             `        // sap.ui.require resolves it before the first view is displayed.` && |\n| &&
+             `        // On UI5 2.x sap/ui/core/Messaging is the only messaging API (the` && |\n| &&
+             `        // sap.ui.getCore().getMessageManager() fallback is gone), and` && |\n| &&
+             `        // nothing else pulls the module into the graph - without this the` && |\n| &&
+             `        // message> model and validation collection would silently no-op.` && |\n| &&
+             `        // Only attempt it where the module exists (1.118+): on older releases` && |\n| &&
+             `        // (e.g. 1.71) the require would 404 and make the ui5loader retry` && |\n| &&
+             `        // loudly via synchronous XHR; there Lib.getMessaging falls back to` && |\n| &&
+             `        // sap.ui.getCore().getMessageManager() instead.` && |\n| &&
+             `        if (Lib.hasMessagingModule()) {` && |\n| &&
+             `          sap.ui.require(` && |\n| &&
+             `            ["sap/ui/core/Messaging"],` && |\n| &&
+             `            () => {},` && |\n| &&
+             `            () => {},` && |\n| &&
+             `          );` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
              `        this._initLaunchpad();` && |\n| &&
              `        this._initVersionInfo();` && |\n| &&
              `` && |\n| &&
              `        this._installUnloadListener();` && |\n| &&
-             `        this._installDebugToolShortcut();` && |\n| &&
+             `        this._installDeveloperToolsShortcut();` && |\n| &&
              `        this._installScrollListener();` && |\n| &&
              `` && |\n| &&
              `        // The stopped router removed with the manifest routing section used` && |\n| &&
@@ -116,13 +134,14 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        window.addEventListener(this._unloadEvent, this._boundUnload);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      _installDebugToolShortcut() {` && |\n| &&
-             `        // Ctrl + F12 opens / closes the in-app debug tool.` && |\n| &&
+             `      _installDeveloperToolsShortcut() {` && |\n| &&
+             `        // Ctrl + F12 opens / closes the in-app developer tools.` && |\n| &&
              `        this._boundKeydown = (event) => {` && |\n| &&
              `          if (event.ctrlKey && event.key === "F12") {` && |\n| &&
              `            const state = AppState.state;` && |\n| &&
-             `            if (!state.debugTool) state.debugTool = new DebugTool();` && |\n| &&
-             `            state.debugTool.toggle();` && |\n| &&
+             `            if (!state.developerTools)` && |\n| &&
+             `              state.developerTools = new DeveloperTools();` && |\n| &&
+             `            state.developerTools.toggle();` && |\n| &&
              `          }` && |\n| &&
              `        };` && |\n| &&
              `        document.addEventListener("keydown", this._boundKeydown);` && |\n| &&
@@ -245,12 +264,12 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `          capture: true,` && |\n| &&
              `        });` && |\n| &&
              `` && |\n| &&
-             `        // The debug tool is created lazily by the Ctrl+F12 shortcut -` && |\n| &&
-             `        // destroy it (which also closes its dialog) so a re-launch (FLP)` && |\n| &&
-             `        // does not leak the control instance.` && |\n| &&
-             `        if (AppState.state.debugTool) {` && |\n| &&
-             `          AppState.state.debugTool.destroy();` && |\n| &&
-             `          AppState.state.debugTool = null;` && |\n| &&
+             `        // The developer tools control is created lazily by the Ctrl+F12` && |\n| &&
+             `        // shortcut - destroy it (which also closes its dialog) so a re-launch` && |\n| &&
+             `        // (FLP) does not leak the control instance.` && |\n| &&
+             `        if (AppState.state.developerTools) {` && |\n| &&
+             `          AppState.state.developerTools.destroy();` && |\n| &&
+             `          AppState.state.developerTools = null;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        Server.endSession();` && |\n| &&

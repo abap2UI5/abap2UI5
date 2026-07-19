@@ -3,8 +3,10 @@ sap.ui.define(
     "sap/m/MessageBox",
     "sap/m/MessageToast",
     "sap/ui/core/BusyIndicator",
-    "sap/ui/core/Theming",
     "sap/ui/model/odata/v2/ODataModel",
+    "sap/ui/model/Filter",
+    "sap/ui/model/FilterOperator",
+    "sap/ui/model/Sorter",
     "sap/m/library",
     "sap/ui/util/Storage",
     "z2ui5/core/Lib",
@@ -15,8 +17,10 @@ sap.ui.define(
     MessageBox,
     MessageToast,
     BusyIndicator,
-    Theming,
     ODataModel,
+    Filter,
+    FilterOperator,
+    Sorter,
     mobileLibrary,
     Storage,
     Lib,
@@ -95,7 +99,14 @@ sap.ui.define(
         get: () => BusyIndicator,
         methods: { show: ["int"], hide: [] },
       },
-      THEMING: { get: () => Theming, methods: { setTheme: ["string"] } },
+      // sap/ui/core/Theming only exists since UI5 1.118, so it must NOT be a
+      // hard dependency (it 404s on 1.71 and kills the whole component load).
+      // Resolve it lazily: on modern UI5 the core has it loaded, on 1.71 the
+      // require returns undefined and the dispatch reports "not available".
+      THEMING: {
+        get: () => sap.ui.require("sap/ui/core/Theming"),
+        methods: { setTheme: ["string"] },
+      },
     };
 
     // Cast one raw string argument to the kind the whitelist declared.
@@ -167,6 +178,86 @@ sap.ui.define(
     }
 
     // ------------------------------------------------------------------
+    // binding_call: apply a declarative filter/sorter to an aggregation
+    // binding of a control resolved by id - the client-side equivalent of
+    // the classic demo kit controller pattern
+    // oList.getBinding("items").filter([new Filter(...)]). Same safety
+    // boundary as control_call_by_id: only whitelisted binding methods,
+    // only whitelisted filter operators, everything built from data
+    // (path/operator/values), never from code strings.
+    // ------------------------------------------------------------------
+
+    const FILTER_OPERATORS = new Set([
+      "BT",
+      "Contains",
+      "EndsWith",
+      "EQ",
+      "GE",
+      "GT",
+      "LE",
+      "LT",
+      "NB",
+      "NE",
+      "NotContains",
+      "NotEndsWith",
+      "NotStartsWith",
+      "StartsWith",
+    ]);
+
+    const isEmpty = (v) => v == null || v === "";
+
+    // binding method -> builder that turns the trailing params into the
+    // aggregation-update call. Same declarative-whitelist shape as
+    // CONTROL_METHODS: an unlisted method fails closed at the lookup.
+    //   filter: params = [path, operator, value1, value2?]
+    //   sort:   params = [path, descending?, group?] (ABAP bools "X"/"")
+    // The backend arg serializer keeps empty args between filled ones as ''
+    // placeholders but trims trailing empties, so all optionals sit at the
+    // end and may arrive as undefined.
+    const BINDING_METHODS = {
+      filter(binding, [path, operator, value1, value2]) {
+        // No filter values at all -> clear the filter (the demo kit search
+        // pattern: an emptied search field). A one-sided range (empty
+        // value1 but a set value2, e.g. BT with only an upper bound) is a
+        // real filter, so only clear when BOTH values are empty.
+        if (isEmpty(value1) && isEmpty(value2)) {
+          binding.filter([]);
+          return;
+        }
+        if (!FILTER_OPERATORS.has(operator)) {
+          Lib.logError(`binding_call: operator '${operator}' not allowed`);
+          return;
+        }
+        binding.filter([
+          new Filter(path, FilterOperator[operator], value1, value2),
+        ]);
+      },
+      sort(binding, [path, descending, group]) {
+        binding.sort([
+          new Sorter(path, castArg("bool", descending), castArg("bool", group)),
+        ]);
+      },
+    };
+
+    // args: [_, id, aggregation, method, ...params]
+    function evBindingCall(oController, args) {
+      const [id, aggregation, method] = [args[1], args[2], args[3]];
+      const build = BINDING_METHODS[method];
+      if (!build) {
+        Lib.logError(`binding_call: method '${method}' not allowed`);
+        return;
+      }
+      const binding = ViewSlots.resolveById(id)?.getBinding?.(aggregation);
+      if (!binding || typeof binding[method] !== "function") {
+        Lib.logError(
+          `binding_call: no '${aggregation}' binding with '${method}' on control '${id}'`,
+        );
+        return;
+      }
+      build(binding, args.slice(4));
+    }
+
+    // ------------------------------------------------------------------
     // Individual event handlers - one per entry in the dispatch table at
     // the bottom. Uniform signature (oController, args) so the dispatch
     // stays trivial; handlers that don't need the controller ignore it.
@@ -234,8 +325,9 @@ sap.ui.define(
     }
 
     function evSetODataModel(oController, args) {
+      let oModel;
       try {
-        const oModel = new ODataModel({
+        oModel = new ODataModel({
           serviceUrl: args[1],
           annotationURI: args[3] || "",
         });
@@ -248,6 +340,9 @@ sap.ui.define(
         }
       } catch (e) {
         Lib.logError(`SET_ODATA_MODEL: failed for '${args[1]}'`, e);
+        // setModel (or the model construction) threw after the model opened
+        // its metadata request - release it so it does not leak.
+        oModel?.destroy?.();
       }
     }
 
@@ -277,8 +372,16 @@ sap.ui.define(
           nav.hrefForExternal({ target: args[1], params: args[2] }) || "";
         if (args[3] === "EXT") {
           // External redirect: replace the location while keeping the host.
+          // base is the current page (same origin) + a shell-hash fragment,
+          // so this is same-origin by construction; validate anyway to stay
+          // consistent with every other redirect handler in this file.
           const base = window.location.href.split("#")[0];
-          _URLHelper.redirect(`${base}${hash}`, true);
+          const url = `${base}${hash}`;
+          if (!Lib.isValidRedirectURL(url)) {
+            Lib.logError(`CrossAppNav EXT: unsafe redirect URL '${url}'`);
+            return;
+          }
+          _URLHelper.redirect(url, true);
         } else {
           nav.toExternal({ target: { shellHash: hash } });
         }
@@ -332,13 +435,26 @@ sap.ui.define(
       const separator = path.includes("?") ? "&" : "?";
       const bspKill = `${path}${separator}sap-sessioncmd=logoff`;
       let done = false;
+      let frame;
       const finish = () => {
         if (done) return;
         done = true;
+        // Remove the hidden BSP-kill iframe. On a successful logout the page
+        // navigates away and unload cleans up anyway; but if redirectToLogout
+        // blocks an invalid URL (MessageBox, no navigation) the iframe would
+        // otherwise leak - and accumulate over repeated logout attempts.
+        if (frame) {
+          try {
+            frame.remove();
+          } catch {
+            /* already detached */
+          }
+          frame = null;
+        }
         redirectToLogout(logoutUrl);
       };
       try {
-        const frame = document.createElement("iframe");
+        frame = document.createElement("iframe");
         frame.style.display = "none";
         frame.src = bspKill;
         frame.addEventListener("load", finish);
@@ -659,10 +775,13 @@ sap.ui.define(
       PLAY_AUDIO: evPlayAudio,
       CONTROL_BY_ID: evControlCallById,
       CONTROL_GLOBAL: evControlCall,
+      BINDING_CALL: evBindingCall,
     };
 
     // Entry point called by View1.controller's eF().
     function execute(oController, args) {
+      // runCallbacks isolates each hook in its own try/catch, so a throwing
+      // before-event hook cannot escape here.
       Lib.runCallbacks(AppState.state.onBeforeEventFrontend, args);
 
       try {

@@ -31,6 +31,80 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `  // so a stack trace from the backend cannot blow up the error overlay.` && |\n| &&
              `  const ERROR_MAX_LENGTH = 50000;` && |\n| &&
              `` && |\n| &&
+             `  // The friendly dialog shows only a short preview of the error text (the` && |\n| &&
+             `  // full text stays on the Developer Tools Error tab); longer previews are cut.` && |\n| &&
+             `  const PREVIEW_MAX_LENGTH = 500;` && |\n| &&
+             `` && |\n| &&
+             `  // Remember the last dialog's inputs so the DeveloperTools can re-show the popup` && |\n| &&
+             `  // after the user closes the developer tools they opened via its Details action.` && |\n| &&
+             `  let lastDialogTitle = "";` && |\n| &&
+             `  let lastDialogDetails = "";` && |\n| &&
+             `` && |\n| &&
+             `  // The currently open friendly error dialog, so a second fatal error (or a` && |\n| &&
+             `  // reopen from the Developer Tools) never stacks two of them.` && |\n| &&
+             `  let friendlyDialog = null;` && |\n| &&
+             `` && |\n| &&
+             `  // Decode the HTML entities that turn up in backend error pages. Non-ASCII` && |\n| &&
+             `  // replacements go through fromCharCode so this source file stays 7-bit ASCII` && |\n| &&
+             `  // (it is embedded verbatim into an ABAP class). &amp; is decoded last so an` && |\n| &&
+             `  // already-encoded entity is not decoded twice.` && |\n| &&
+             `  function decodeEntities(s) {` && |\n| &&
+             `    return s` && |\n| &&
+             `      .replace(/&nbsp;/gi, " ")` && |\n| &&
+             `      .replace(/&lt;/gi, "<")` && |\n| &&
+             `      .replace(/&gt;/gi, ">")` && |\n| &&
+             `      .replace(/&quot;/gi, '"')` && |\n| &&
+             `      .replace(/&apos;|&#0*39;/gi, "'")` && |\n| &&
+             `      .replace(/&copy;/gi, String.fromCharCode(169))` && |\n| &&
+             `      .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))` && |\n| &&
+             `      .replace(/&#x([0-9a-f]+);/gi, (_, n) =>` && |\n| &&
+             `        String.fromCharCode(parseInt(n, 16)),` && |\n| &&
+             `      )` && |\n| &&
+             `      .replace(/&amp;/gi, "&");` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  const cleanText = (s) =>` && |\n| &&
+             `    decodeEntities(s.replace(/<[^>]+>/g, " "))` && |\n| &&
+             `      .replace(/\s+/g, " ")` && |\n| &&
+             `      .trim();` && |\n| &&
+             `` && |\n| &&
+             `  // Pull just the meaningful message out of a SAP application-server error` && |\n| &&
+             `  // page: the error header (e.g. "500 Internal Server Error") and the message` && |\n| &&
+             `  // paragraphs (e.g. "Division by zero"). Everything else - page title, footer,` && |\n| &&
+             `  // copyright, the client-side clock <script> after "Server time:" - is noise` && |\n| &&
+             `  // and dropped. Returns "" when the text is not such a page.` && |\n| &&
+             `  function extractServerError(html) {` && |\n| &&
+             `    const parts = [];` && |\n| &&
+             `    const rx = /class="(?:errorTextHeader|detailText)"[^>]*>([\s\S]*?)<\/p>/gi;` && |\n| &&
+             `    let m;` && |\n| &&
+             `    while ((m = rx.exec(html))) parts.push(cleanText(m[1]));` && |\n| &&
+             `    return parts` && |\n| &&
+             `      .filter(Boolean)` && |\n| &&
+             `      .filter((t) => !/^server time:/i.test(t))` && |\n| &&
+             `      .join(" - ");` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // Turn the raw error text into a one-glance preview for the friendly dialog.` && |\n| &&
+             `  // Backend errors often arrive as a whole HTML page (an ABAP dump rendered as` && |\n| &&
+             `  // a 500 error page): prefer the structured error message, else fall back to` && |\n| &&
+             `  // stripping script/style/title and the remaining tags. Rendered as plain` && |\n| &&
+             `  // MessageBox text, so the stripped markup cannot execute.` && |\n| &&
+             `  function buildErrorPreview(text) {` && |\n| &&
+             `    if (!text) return "";` && |\n| &&
+             `    let preview = text;` && |\n| &&
+             `    if (/<[a-z][\s\S]*>/i.test(preview)) {` && |\n| &&
+             `      preview =` && |\n| &&
+             `        extractServerError(preview) ||` && |\n| &&
+             `        cleanText(` && |\n| &&
+             `          preview.replace(/<(script|style|title)[\s\S]*?<\/\1>/gi, " "),` && |\n| &&
+             `        );` && |\n| &&
+             `    }` && |\n| &&
+             `    preview = preview.replace(/\s+/g, " ").trim();` && |\n| &&
+             `    return preview.length > PREVIEW_MAX_LENGTH` && |\n| &&
+             `      ? ``${preview.slice(0, PREVIEW_MAX_LENGTH)}...``` && |\n| &&
+             `      : preview;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  function createContainer() {` && |\n| &&
              `    // Always start from a fresh element: reusing a previous overlay would` && |\n| &&
              `    // keep its keydown focus-trap listener alive and stack a duplicate on` && |\n| &&
@@ -56,6 +130,107 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    ``;` && |\n| &&
              `    document.body.appendChild(container);` && |\n| &&
              `    return container;` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // Open the DeveloperTools directly on its Error tab so the developer sees the` && |\n| &&
+             `  // full error text plus the Retry/Refresh/Logout actions. The DeveloperTools is` && |\n| &&
+             `  // normally created lazily on first Ctrl+F12, so it may not exist yet when` && |\n| &&
+             `  // the error popup's Details is clicked - create it on demand (requiring the` && |\n| &&
+             `  // module at runtime avoids a circular dependency, since DeveloperTools imports` && |\n| &&
+             `  // ErrorView). Without this, Details was a no-op and left a blank screen.` && |\n| &&
+             `  function openDeveloperTools() {` && |\n| &&
+             `    try {` && |\n| &&
+             `      let dbg = AppState.state.developerTools;` && |\n| &&
+             `      if (!dbg) {` && |\n| &&
+             `        const DeveloperTools = sap.ui.require("z2ui5/core/DeveloperTools");` && |\n| &&
+             `        if (DeveloperTools) {` && |\n| &&
+             `          dbg = new DeveloperTools();` && |\n| &&
+             `          AppState.state.developerTools = dbg;` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `      if (dbg) {` && |\n| &&
+             `        // Closing the DeveloperTools (Close or Escape) should land the user back on` && |\n| &&
+             `        // the error popup, not on the dismissed, broken app.` && |\n| &&
+             `        dbg.reopenErrorOnClose = true;` && |\n| &&
+             `        dbg.show("ERROR");` && |\n| &&
+             `      }` && |\n| &&
+             `    } catch {` && |\n| &&
+             `      // The developer tools itself failed to open - nothing more we can do here;` && |\n| &&
+             `      // the fatal error is still recorded in AppState.state.lastError.` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // The friendly UI5 error dialog shown first: the extracted error text so the` && |\n| &&
+             `  // cause is visible at a glance, with a Details action (jump into the` && |\n| &&
+             `  // DeveloperTools for the full text) and a Restart action (reload). Returns` && |\n| &&
+             `  // true when it was shown, false when UI5 could not render it so the caller` && |\n| &&
+             `  // falls back to the raw-DOM overlay. sap.m.Dialog/Button/Text are required` && |\n| &&
+             `  // lazily so ErrorView never hard-depends on a renderable core.` && |\n| &&
+             `  //` && |\n| &&
+             `  // A plain Dialog (not sap.m.MessageBox) is used on purpose: a fatal error` && |\n| &&
+             `  // leaves the app in a broken state, so the popup must not be dismissable` && |\n| &&
+             `  // with Escape - MessageBox always closes on Escape and offers no way to` && |\n| &&
+             `  // suppress it, whereas a Dialog with an escapeHandler that rejects stays` && |\n| &&
+             `  // open until the user picks an explicit action.` && |\n| &&
+             `  function showFriendlyDialog(title, details) {` && |\n| &&
+             `    try {` && |\n| &&
+             `      const Dialog = sap.ui.require("sap/m/Dialog");` && |\n| &&
+             `      const Button = sap.ui.require("sap/m/Button");` && |\n| &&
+             `      const Text = sap.ui.require("sap/m/Text");` && |\n| &&
+             `      if (!Dialog || !Button || !Text) return false;` && |\n| &&
+             `      lastDialogTitle = title;` && |\n| &&
+             `      lastDialogDetails = details;` && |\n| &&
+             `      // Never stack two error popups (a second fatal error or a reopen).` && |\n| &&
+             `      if (friendlyDialog) {` && |\n| &&
+             `        friendlyDialog.destroy();` && |\n| &&
+             `        friendlyDialog = null;` && |\n| &&
+             `      }` && |\n| &&
+             `      // Show only the extracted error text; a short neutral fallback covers` && |\n| &&
+             `      // the rare case where nothing could be extracted.` && |\n| &&
+             `      const message = buildErrorPreview(details) || "An error occurred.";` && |\n| &&
+             `      // Restart is the primary action, so it also gets the initial focus.` && |\n| &&
+             `      const restartButton = new Button({` && |\n| &&
+             `        text: "Restart",` && |\n| &&
+             `        type: "Emphasized",` && |\n| &&
+             `        press: () => window.location.reload(),` && |\n| &&
+             `      });` && |\n| &&
+             `      const dialog = new Dialog({` && |\n| &&
+             `        title: title || "Application Error",` && |\n| &&
+             `        type: "Message",` && |\n| &&
+             `        state: "Error",` && |\n| &&
+             `        icon: "sap-icon://message-error",` && |\n| &&
+             `        // Escape must not dismiss the fatal-error popup: rejecting the escape` && |\n| &&
+             `        // promise keeps it open, so the only ways out are the explicit` && |\n| &&
+             `        // Details / Restart actions below.` && |\n| &&
+             `        escapeHandler: (oPromise) => oPromise.reject(),` && |\n| &&
+             `        content: [new Text({ text: message })],` && |\n| &&
+             `        beginButton: new Button({` && |\n| &&
+             `          text: "Details",` && |\n| &&
+             `          press: () => {` && |\n| &&
+             `            dialog.close();` && |\n| &&
+             `            openDeveloperTools();` && |\n| &&
+             `          },` && |\n| &&
+             `        }),` && |\n| &&
+             `        endButton: restartButton,` && |\n| &&
+             `        initialFocus: restartButton,` && |\n| &&
+             `        afterClose: () => {` && |\n| &&
+             `          if (friendlyDialog === dialog) friendlyDialog = null;` && |\n| &&
+             `          dialog.destroy();` && |\n| &&
+             `        },` && |\n| &&
+             `      });` && |\n| &&
+             `      friendlyDialog = dialog;` && |\n| &&
+             `      dialog.open();` && |\n| &&
+             `      return true;` && |\n| &&
+             `    } catch {` && |\n| &&
+             `      return false;` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // Re-show the friendly error dialog with the last error's content - used when` && |\n| &&
+             `  // the user closes the DeveloperTools they opened via the popup's Details action so` && |\n| &&
+             `  // they land back on the error popup. No-op if UI5 cannot render it.` && |\n| &&
+             `  function reopenErrorDialog() {` && |\n| &&
+             `    return showFriendlyDialog(lastDialogTitle, lastDialogDetails);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // Logout via the launchpad if available; otherwise hit the SAP logoff URL.` && |\n| &&
@@ -87,6 +262,19 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `      full.length > ERROR_MAX_LENGTH` && |\n| &&
              `        ? ``${full.slice(0, ERROR_MAX_LENGTH)}\n\n[... truncated after ${ERROR_MAX_LENGTH} characters]``` && |\n| &&
              `        : full;` && |\n| &&
+             `` && |\n| &&
+             `    // Record the fatal error so the Developer Tools Error tab can re-show it` && |\n| &&
+             `    // (title, text and the same Retry action) after the overlay is gone.` && |\n| &&
+             `    AppState.state.lastError = {` && |\n| &&
+             `      title: title || "Application Error - Please Restart The App",` && |\n| &&
+             `      text: errorMessage,` && |\n| &&
+             `      onRetry: typeof options.onRetry === "function" ? options.onRetry : null,` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
+             `    // Prefer a friendly UI5 dialog ("an unexpected error occurred" + Details` && |\n| &&
+             `    // / Restart). Only when UI5 cannot render it (broken core, missing` && |\n| &&
+             `    // module) do we fall back to the raw-DOM overlay below.` && |\n| &&
+             `    if (showFriendlyDialog(title, errorMessage)) return;` && |\n| &&
              `` && |\n| &&
              `    const errorContainer = createContainer();` && |\n| &&
              `` && |\n| &&
@@ -192,7 +380,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    if (firstButton) firstButton.focus();` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  return { show };` && |\n| &&
+             `  return { show, handleLogout, reopenErrorDialog };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
               ``.

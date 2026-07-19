@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_app_debugtool_xml DEFINITION
+CLASS z2ui5_cl_app_developertool_xml DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -14,7 +14,7 @@ CLASS z2ui5_cl_app_debugtool_xml DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
+CLASS z2ui5_cl_app_developertool_xml IMPLEMENTATION.
 
   METHOD get.
 
@@ -24,14 +24,20 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `    xmlns:ce="sap.ui.codeeditor"` &&
              `>` &&
              `    <Dialog` &&
-             `        title="abap2UI5 - DebugTool"` &&
+             `        title="abap2UI5 - Developer Tools"` &&
              `        stretch="true"` &&
+             `        escapeHandler=".onEscape"` &&
              `    >` &&
              `        <IconTabHeader` &&
-             `            selectedKey="PLAIN"` &&
+             `            selectedKey="{/selectedTab}"` &&
              `            select=".onItemSelect"` &&
              `        >` &&
              `            <items>` &&
+             `                <IconTabFilter` &&
+             `                    text="Error"` &&
+             `                    key="ERROR"` &&
+             `                    enabled="{/hasError}"` &&
+             `                />` &&
              `                <IconTabFilter` &&
              `                    text="Log"` &&
              `                    key="LOG"` &&
@@ -107,6 +113,7 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `        <VBox>` &&
              `            <ToggleButton text="Source XML after Templating" visible="{/isTemplating}" pressed="{/templatingSource}" press=".onTemplatingPress" />` &&
              `            <ce:CodeEditor` &&
+             `                id="developerToolsEditor"` &&
              `                type="{/type}"` &&
              `                value="{/value}"` &&
              `                height="2000px"` &&
@@ -117,12 +124,40 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `        <VBox visible="{/source_visible}">` &&
              `            <core:HTML id="sourceHtml"/>` &&
              `        </VBox>` &&
-             `        <endButton>` &&
+             `        <!-- sap.m.Dialog only gained a public ``footer`` aggregation around` &&
+             `             1.110; on older releases (e.g. 1.71) a <footer> tag is resolved` &&
+             `             as a control and fails with "failed to load sap/m/footer.js".` &&
+             `             The ``buttons`` aggregation (since 1.21.1) is the cross-version` &&
+             `             footer; UI5 lays the buttons out in an overflow toolbar. -->` &&
+             `        <buttons>` &&
+             `            <Button` &&
+             `                text="Export"` &&
+             `                icon="sap-icon://download"` &&
+             `                press=".onExport"` &&
+             `            />` &&
+             `            <Button` &&
+             `                text="Restart"` &&
+             `                icon="sap-icon://restart"` &&
+             `                press=".onErrorRestart"` &&
+             `            />` &&
+             `            <Button` &&
+             `                text="Logout"` &&
+             `                icon="sap-icon://log"` &&
+             `                press=".onErrorLogout"` &&
+             `            />` &&
+             `            <Button` &&
+             `                text="Retry"` &&
+             `                type="Emphasized"` &&
+             `                icon="sap-icon://refresh"` &&
+             `                visible="{/hasRetry}"` &&
+             `                press=".onErrorRetry"` &&
+             `            />` &&
              `            <Button` &&
              `                text="Close"` &&
+             `                type="Emphasized"` &&
              `                press=".onClose"` &&
              `            />` &&
-             `        </endButton>` &&
+             `        </buttons>` &&
              `    </Dialog>` &&
              `</core:FragmentDefinition>` &&
              `` &&
