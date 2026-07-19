@@ -29,6 +29,7 @@ function loadDebugTool({
   errors,
   lastError = null,
   logoutCalls,
+  reopenCalls,
   fragment,
 } = {}) {
   const AppState = {
@@ -38,6 +39,7 @@ function loadDebugTool({
   const ViewSlots = { getView: (key) => views[key] };
   const ErrorView = {
     handleLogout: () => logoutCalls?.push(true),
+    reopenErrorDialog: () => reopenCalls?.push(true),
   };
   // Control.extend returns the class spec itself; the spec's methods are
   // then invoked with the spec as `this`, close enough to the UI5 runtime
@@ -154,17 +156,6 @@ test.describe("Error tab", () => {
     expect(modelData.value).toBe("App Terminated\n\nbackend dump...");
     expect(modelData.type).toBe("text");
     expect(modelData.hasRetry).toBe(true);
-    // Close is disabled on the Error tab (app is unrecoverable).
-    expect(modelData.closeEnabled).toBe(false);
-  });
-
-  test("re-enables Close when leaving the Error tab for another one", () => {
-    const { DebugTool } = loadDebugTool({
-      lastError: { title: "x", text: "y", onRetry: null },
-    });
-    const { oEvent, modelData } = fakeSelectEvent("LOG");
-    DebugTool.onItemSelect(oEvent);
-    expect(modelData.closeEnabled).toBe(true);
   });
 
   test("hides Retry when the fatal error carried no retry action", () => {
@@ -270,6 +261,37 @@ test.describe("System tab folding", () => {
     const fragment = { byId: () => null };
     const { DebugTool } = loadDebugTool({ fragment });
     expect(() => DebugTool.foldSystemTab(0)).not.toThrow();
+  });
+});
+
+test.describe("Close / Escape returns to the error popup", () => {
+  test("closing after Details re-shows the error popup", () => {
+    const reopenCalls = [];
+    const { DebugTool } = loadDebugTool({ reopenCalls });
+    DebugTool.oDialog = { close() {}, destroy() {} };
+    DebugTool.reopenErrorOnClose = true;
+    DebugTool.close();
+    expect(reopenCalls).toEqual([true]);
+    expect(DebugTool.oDialog).toBe(null);
+  });
+
+  test("a normal close does not re-show the error popup", () => {
+    const reopenCalls = [];
+    const { DebugTool } = loadDebugTool({ reopenCalls });
+    DebugTool.oDialog = { close() {}, destroy() {} };
+    DebugTool.close();
+    expect(reopenCalls).toEqual([]);
+  });
+
+  test("Escape rejects the default close and behaves like Close", () => {
+    const reopenCalls = [];
+    const { DebugTool } = loadDebugTool({ reopenCalls });
+    DebugTool.oDialog = { close() {}, destroy() {} };
+    DebugTool.reopenErrorOnClose = true;
+    let rejected = false;
+    DebugTool.onEscape({ reject: () => (rejected = true), resolve() {} });
+    expect(rejected).toBe(true);
+    expect(reopenCalls).toEqual([true]);
   });
 });
 

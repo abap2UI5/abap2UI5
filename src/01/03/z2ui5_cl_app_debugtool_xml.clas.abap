@@ -26,6 +26,7 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `    <Dialog` &&
              `        title="abap2UI5 - DebugTool"` &&
              `        stretch="true"` &&
+             `        escapeHandler=".onEscape"` &&
              `    >` &&
              `        <IconTabHeader` &&
              `            selectedKey="{/selectedTab}"` &&
@@ -143,7 +144,6 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `            />` &&
              `            <Button` &&
              `                text="Close"` &&
-             `                enabled="{/closeEnabled}"` &&
              `                press=".onClose"` &&
              `            />` &&
              `        </buttons>` &&

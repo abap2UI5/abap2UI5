@@ -268,14 +268,6 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      // to "ERROR"). The content per entry is defined declaratively in` && |\n| &&
              `      // jsonSources / xmlSources above.` && |\n| &&
              `      renderTab(selItem, oModel) {` && |\n| &&
-             `        // After a fatal error the app is unrecoverable, so Close is disabled` && |\n| &&
-             `        // while the Error tab is shown - the escape is Retry/Refresh/Logout.` && |\n| &&
-             `        // A plain model boolean is used (not an expression binding) because` && |\n| &&
-             `        // the app runs under a CSP without 'unsafe-eval', which UI5 needs to` && |\n| &&
-             `        // compile {= ... } expressions. The subsequent displayEditor/showError` && |\n| &&
-             `        // refresh propagates this to the button.` && |\n| &&
-             `        oModel.getData().closeEnabled = selItem !== "ERROR";` && |\n| &&
-             `` && |\n| &&
              `        if (jsonSources[selItem]) {` && |\n| &&
              `          this.displayEditor(oModel, toJson(jsonSources[selItem]()), "json");` && |\n| &&
              `          if (selItem === "SYSTEM") this.foldSystemTab();` && |\n| &&
@@ -323,6 +315,8 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      // logout so the launchpad/fallback logic stays in one place).` && |\n| &&
              `      onErrorRetry() {` && |\n| &&
              `        const onRetry = AppState.state.lastError?.onRetry;` && |\n| &&
+             `        // Retrying re-runs the request, so don't bounce back to the error popup.` && |\n| &&
+             `        this.reopenErrorOnClose = false;` && |\n| &&
              `        this.close();` && |\n| &&
              `        if (typeof onRetry === "function") onRetry();` && |\n| &&
              `      },` && |\n| &&
@@ -417,11 +411,19 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        modelData.value = oSource.getPressed()` && |\n| &&
              `          ? modelData.xContent` && |\n| &&
              `          : modelData.previousValue;` && |\n| &&
-             `        oModel.refresh();` && |\n|.
-    result = result &&
+             `        oModel.refresh();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      onClose() {` && |\n| &&
+             `        this.close();` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n|.
+    result = result &&
+             `      // sap.m.Dialog closes on Escape without routing through onClose; handle` && |\n| &&
+             `      // it ourselves (reject the default, run our close) so Escape behaves` && |\n| &&
+             `      // exactly like the Close button - including re-showing the error popup.` && |\n| &&
+             `      onEscape(oPromise) {` && |\n| &&
+             `        oPromise.reject();` && |\n| &&
              `        this.close();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -459,7 +461,6 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `            editor_visible: true,` && |\n| &&
              `            hasError: Boolean(AppState.state.lastError),` && |\n| &&
              `            hasRetry: typeof AppState.state.lastError?.onRetry === "function",` && |\n| &&
-             `            closeEnabled: selectedTab !== "ERROR",` && |\n| &&
              `            value: value,` && |\n| &&
              `            xContent: "",` && |\n| &&
              `            previousValue: value,` && |\n| &&
@@ -493,14 +494,22 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        if (!this.oDialog) return;` && |\n| &&
              `        const oDialog = this.oDialog;` && |\n| &&
              `        this.oDialog = null;` && |\n| &&
+             `        // When the dialog was opened from the error popup's Details action,` && |\n| &&
+             `        // closing it (Close or Escape) re-shows that popup so the user never` && |\n| &&
+             `        // ends up on the dismissed, broken app.` && |\n| &&
+             `        const reopenError = this.reopenErrorOnClose;` && |\n| &&
+             `        this.reopenErrorOnClose = false;` && |\n| &&
              `        oDialog.close();` && |\n| &&
              `        oDialog.destroy();` && |\n| &&
+             `        if (reopenError) ErrorView.reopenErrorDialog();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // The dialog is not an aggregation of this control, so destroy() alone` && |\n| &&
              `      // would leave it (and its fragment controls) alive - clean it up when` && |\n| &&
-             `      // the control is destroyed (Component.exit).` && |\n| &&
+             `      // the control is destroyed (Component.exit). Never re-show the error` && |\n| &&
+             `      // popup while the app itself is being torn down.` && |\n| &&
              `      exit() {` && |\n| &&
+             `        this.reopenErrorOnClose = false;` && |\n| &&
              `        this.close();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&

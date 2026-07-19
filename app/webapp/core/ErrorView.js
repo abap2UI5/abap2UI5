@@ -15,6 +15,11 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
   // full text stays on the DebugTool's Error tab); longer previews are cut.
   const PREVIEW_MAX_LENGTH = 500;
 
+  // Remember the last dialog's inputs so the DebugTool can re-show the popup
+  // after the user closes the debugger they opened via its Details action.
+  let lastDialogTitle = "";
+  let lastDialogDetails = "";
+
   // Decode the HTML entities that turn up in backend error pages. Non-ASCII
   // replacements go through fromCharCode so this source file stays 7-bit ASCII
   // (it is embedded verbatim into an ABAP class). &amp; is decoded last so an
@@ -119,7 +124,12 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
           AppState.state.debugTool = dbg;
         }
       }
-      dbg?.show("ERROR");
+      if (dbg) {
+        // Closing the DebugTool (Close or Escape) should land the user back on
+        // the error popup, not on the dismissed, broken app.
+        dbg.reopenErrorOnClose = true;
+        dbg.show("ERROR");
+      }
     } catch {
       // The debug tool itself failed to open - nothing more we can do here;
       // the fatal error is still recorded in AppState.state.lastError.
@@ -136,6 +146,8 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     try {
       const MessageBox = sap.ui.require("sap/m/MessageBox");
       if (!MessageBox) return false;
+      lastDialogTitle = title;
+      lastDialogDetails = details;
       // Show only the extracted error text; a short neutral fallback covers
       // the rare case where nothing could be extracted.
       const message = buildErrorPreview(details) || "An error occurred.";
@@ -143,6 +155,8 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
         title: title || "Application Error",
         actions: ["Details", "Restart"],
         emphasizedAction: "Restart",
+        // Restart is the primary action, so it also gets the initial focus.
+        initialFocus: "Restart",
         onClose: (action) => {
           if (action === "Details") {
             openDebugDetails();
@@ -155,6 +169,13 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     } catch {
       return false;
     }
+  }
+
+  // Re-show the friendly error dialog with the last error's content - used when
+  // the user closes the DebugTool they opened via the popup's Details action so
+  // they land back on the error popup. No-op if UI5 cannot render it.
+  function reopenErrorDialog() {
+    return showFriendlyDialog(lastDialogTitle, lastDialogDetails);
   }
 
   // Logout via the launchpad if available; otherwise hit the SAP logoff URL.
@@ -304,5 +325,5 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     if (firstButton) firstButton.focus();
   }
 
-  return { show, handleLogout };
+  return { show, handleLogout, reopenErrorDialog };
 });

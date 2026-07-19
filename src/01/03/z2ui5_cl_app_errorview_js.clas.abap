@@ -35,6 +35,11 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `  // full text stays on the DebugTool's Error tab); longer previews are cut.` && |\n| &&
              `  const PREVIEW_MAX_LENGTH = 500;` && |\n| &&
              `` && |\n| &&
+             `  // Remember the last dialog's inputs so the DebugTool can re-show the popup` && |\n| &&
+             `  // after the user closes the debugger they opened via its Details action.` && |\n| &&
+             `  let lastDialogTitle = "";` && |\n| &&
+             `  let lastDialogDetails = "";` && |\n| &&
+             `` && |\n| &&
              `  // Decode the HTML entities that turn up in backend error pages. Non-ASCII` && |\n| &&
              `  // replacements go through fromCharCode so this source file stays 7-bit ASCII` && |\n| &&
              `  // (it is embedded verbatim into an ABAP class). &amp; is decoded last so an` && |\n| &&
@@ -139,7 +144,12 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `          AppState.state.debugTool = dbg;` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
-             `      dbg?.show("ERROR");` && |\n| &&
+             `      if (dbg) {` && |\n| &&
+             `        // Closing the DebugTool (Close or Escape) should land the user back on` && |\n| &&
+             `        // the error popup, not on the dismissed, broken app.` && |\n| &&
+             `        dbg.reopenErrorOnClose = true;` && |\n| &&
+             `        dbg.show("ERROR");` && |\n| &&
+             `      }` && |\n| &&
              `    } catch {` && |\n| &&
              `      // The debug tool itself failed to open - nothing more we can do here;` && |\n| &&
              `      // the fatal error is still recorded in AppState.state.lastError.` && |\n| &&
@@ -156,6 +166,8 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    try {` && |\n| &&
              `      const MessageBox = sap.ui.require("sap/m/MessageBox");` && |\n| &&
              `      if (!MessageBox) return false;` && |\n| &&
+             `      lastDialogTitle = title;` && |\n| &&
+             `      lastDialogDetails = details;` && |\n| &&
              `      // Show only the extracted error text; a short neutral fallback covers` && |\n| &&
              `      // the rare case where nothing could be extracted.` && |\n| &&
              `      const message = buildErrorPreview(details) || "An error occurred.";` && |\n| &&
@@ -163,6 +175,8 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `        title: title || "Application Error",` && |\n| &&
              `        actions: ["Details", "Restart"],` && |\n| &&
              `        emphasizedAction: "Restart",` && |\n| &&
+             `        // Restart is the primary action, so it also gets the initial focus.` && |\n| &&
+             `        initialFocus: "Restart",` && |\n| &&
              `        onClose: (action) => {` && |\n| &&
              `          if (action === "Details") {` && |\n| &&
              `            openDebugDetails();` && |\n| &&
@@ -175,6 +189,13 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    } catch {` && |\n| &&
              `      return false;` && |\n| &&
              `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // Re-show the friendly error dialog with the last error's content - used when` && |\n| &&
+             `  // the user closes the DebugTool they opened via the popup's Details action so` && |\n| &&
+             `  // they land back on the error popup. No-op if UI5 cannot render it.` && |\n| &&
+             `  function reopenErrorDialog() {` && |\n| &&
+             `    return showFriendlyDialog(lastDialogTitle, lastDialogDetails);` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
              `  // Logout via the launchpad if available; otherwise hit the SAP logoff URL.` && |\n| &&
@@ -324,7 +345,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    if (firstButton) firstButton.focus();` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
-             `  return { show, handleLogout };` && |\n| &&
+             `  return { show, handleLogout, reopenErrorDialog };` && |\n| &&
              `});` && |\n| &&
              `` && |\n| &&
               ``.

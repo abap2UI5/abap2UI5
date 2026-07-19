@@ -248,14 +248,6 @@ sap.ui.define(
       // to "ERROR"). The content per entry is defined declaratively in
       // jsonSources / xmlSources above.
       renderTab(selItem, oModel) {
-        // After a fatal error the app is unrecoverable, so Close is disabled
-        // while the Error tab is shown - the escape is Retry/Refresh/Logout.
-        // A plain model boolean is used (not an expression binding) because
-        // the app runs under a CSP without 'unsafe-eval', which UI5 needs to
-        // compile {= ... } expressions. The subsequent displayEditor/showError
-        // refresh propagates this to the button.
-        oModel.getData().closeEnabled = selItem !== "ERROR";
-
         if (jsonSources[selItem]) {
           this.displayEditor(oModel, toJson(jsonSources[selItem]()), "json");
           if (selItem === "SYSTEM") this.foldSystemTab();
@@ -303,6 +295,8 @@ sap.ui.define(
       // logout so the launchpad/fallback logic stays in one place).
       onErrorRetry() {
         const onRetry = AppState.state.lastError?.onRetry;
+        // Retrying re-runs the request, so don't bounce back to the error popup.
+        this.reopenErrorOnClose = false;
         this.close();
         if (typeof onRetry === "function") onRetry();
       },
@@ -404,6 +398,14 @@ sap.ui.define(
         this.close();
       },
 
+      // sap.m.Dialog closes on Escape without routing through onClose; handle
+      // it ourselves (reject the default, run our close) so Escape behaves
+      // exactly like the Close button - including re-showing the error popup.
+      onEscape(oPromise) {
+        oPromise.reject();
+        this.close();
+      },
+
       // Open the debug dialog. `initialTab` (a tab key, e.g. "ERROR") opens
       // it directly on that tab - used by the error popup's Details action;
       // defaults to the response tab.
@@ -438,7 +440,6 @@ sap.ui.define(
             editor_visible: true,
             hasError: Boolean(AppState.state.lastError),
             hasRetry: typeof AppState.state.lastError?.onRetry === "function",
-            closeEnabled: selectedTab !== "ERROR",
             value: value,
             xContent: "",
             previousValue: value,
@@ -472,14 +473,22 @@ sap.ui.define(
         if (!this.oDialog) return;
         const oDialog = this.oDialog;
         this.oDialog = null;
+        // When the dialog was opened from the error popup's Details action,
+        // closing it (Close or Escape) re-shows that popup so the user never
+        // ends up on the dismissed, broken app.
+        const reopenError = this.reopenErrorOnClose;
+        this.reopenErrorOnClose = false;
         oDialog.close();
         oDialog.destroy();
+        if (reopenError) ErrorView.reopenErrorDialog();
       },
 
       // The dialog is not an aggregation of this control, so destroy() alone
       // would leave it (and its fragment controls) alive - clean it up when
-      // the control is destroyed (Component.exit).
+      // the control is destroyed (Component.exit). Never re-show the error
+      // popup while the app itself is being torn down.
       exit() {
+        this.reopenErrorOnClose = false;
         this.close();
       },
 
