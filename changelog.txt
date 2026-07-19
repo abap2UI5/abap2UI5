@@ -11,6 +11,10 @@ Legend
 
 unreleased
 ----------
+* Fixed OpenUI5 1.71 component load: core/FrontendAction hard-depended on
+  sap/ui/core/Theming (only present since UI5 1.118), so on 1.71 it 404'd and
+  the whole component failed to load. Theming is now resolved lazily (via
+  sap.ui.require) only when a THEMING frontend action fires.
 * Restored 'unsafe-eval' in the default Content-Security-Policy: the OpenUI5
   1.71 ui5loader evaluates module source as a string, so without it the 1.71
   bootstrap failed with a CSP EvalError ("Failed to load component"). Modern

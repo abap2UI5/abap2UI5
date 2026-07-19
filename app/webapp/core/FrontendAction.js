@@ -3,7 +3,6 @@ sap.ui.define(
     "sap/m/MessageBox",
     "sap/m/MessageToast",
     "sap/ui/core/BusyIndicator",
-    "sap/ui/core/Theming",
     "sap/ui/model/odata/v2/ODataModel",
     "sap/ui/model/Filter",
     "sap/ui/model/FilterOperator",
@@ -18,7 +17,6 @@ sap.ui.define(
     MessageBox,
     MessageToast,
     BusyIndicator,
-    Theming,
     ODataModel,
     Filter,
     FilterOperator,
@@ -101,7 +99,14 @@ sap.ui.define(
         get: () => BusyIndicator,
         methods: { show: ["int"], hide: [] },
       },
-      THEMING: { get: () => Theming, methods: { setTheme: ["string"] } },
+      // sap/ui/core/Theming only exists since UI5 1.118, so it must NOT be a
+      // hard dependency (it 404s on 1.71 and kills the whole component load).
+      // Resolve it lazily: on modern UI5 the core has it loaded, on 1.71 the
+      // require returns undefined and the dispatch reports "not available".
+      THEMING: {
+        get: () => sap.ui.require("sap/ui/core/Theming"),
+        methods: { setTheme: ["string"] },
+      },
     };
 
     // Cast one raw string argument to the kind the whitelist declared.

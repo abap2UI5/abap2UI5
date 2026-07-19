@@ -23,7 +23,6 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    "sap/m/MessageBox",` && |\n| &&
              `    "sap/m/MessageToast",` && |\n| &&
              `    "sap/ui/core/BusyIndicator",` && |\n| &&
-             `    "sap/ui/core/Theming",` && |\n| &&
              `    "sap/ui/model/odata/v2/ODataModel",` && |\n| &&
              `    "sap/ui/model/Filter",` && |\n| &&
              `    "sap/ui/model/FilterOperator",` && |\n| &&
@@ -38,7 +37,6 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    MessageBox,` && |\n| &&
              `    MessageToast,` && |\n| &&
              `    BusyIndicator,` && |\n| &&
-             `    Theming,` && |\n| &&
              `    ODataModel,` && |\n| &&
              `    Filter,` && |\n| &&
              `    FilterOperator,` && |\n| &&
@@ -121,7 +119,14 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        get: () => BusyIndicator,` && |\n| &&
              `        methods: { show: ["int"], hide: [] },` && |\n| &&
              `      },` && |\n| &&
-             `      THEMING: { get: () => Theming, methods: { setTheme: ["string"] } },` && |\n| &&
+             `      // sap/ui/core/Theming only exists since UI5 1.118, so it must NOT be a` && |\n| &&
+             `      // hard dependency (it 404s on 1.71 and kills the whole component load).` && |\n| &&
+             `      // Resolve it lazily: on modern UI5 the core has it loaded, on 1.71 the` && |\n| &&
+             `      // require returns undefined and the dispatch reports "not available".` && |\n| &&
+             `      THEMING: {` && |\n| &&
+             `        get: () => sap.ui.require("sap/ui/core/Theming"),` && |\n| &&
+             `        methods: { setTheme: ["string"] },` && |\n| &&
+             `      },` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    // Cast one raw string argument to the kind the whitelist declared.` && |\n| &&
@@ -412,13 +417,13 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        );` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `    // SYSTEM_LOGOUT: prefer the launchpad logout when running inside the` && |\n| &&
              `    // FLP; otherwise terminate a possible stateful BSP session first and` && |\n| &&
              `    // then navigate to the logout URL.` && |\n| &&
              `    function evSystemLogout(oController, args) {` && |\n| &&
-             `      const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";` && |\n|.
-    result = result &&
+             `      const logoutUrl = args[1] || "/sap/public/bc/icf/logoff";` && |\n| &&
              `      try {` && |\n| &&
              `        const container = AppState.state.oLaunchpad?.Container;` && |\n| &&
              `        // No explicit logout URL was passed (args is just the event name):` && |\n| &&
@@ -813,7 +818,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    return { execute };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
               ``.
 
   ENDMETHOD.
