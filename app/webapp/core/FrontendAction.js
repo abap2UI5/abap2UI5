@@ -80,6 +80,8 @@ sap.ui.define(
       open: [],
       close: [],
       setExpanded: ["bool"],
+      discardProgress: ["controlId"],
+      setNextStep: ["controlId"],
     };
 
     // global object -> lazy getter + its allowed methods (with arg kinds).

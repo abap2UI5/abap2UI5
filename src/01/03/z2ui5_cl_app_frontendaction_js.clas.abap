@@ -100,6 +100,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      open: [],` && |\n| &&
              `      close: [],` && |\n| &&
              `      setExpanded: ["bool"],` && |\n| &&
+             `      discardProgress: ["controlId"],` && |\n| &&
+             `      setNextStep: ["controlId"],` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    // global object -> lazy getter + its allowed methods (with arg kinds).` && |\n| &&
@@ -415,10 +417,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        MessageBox.error(` && |\n| &&
              `          "Invalid redirect URL. Only relative URLs to the same domain are allowed.",` && |\n| &&
              `        );` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n|.
+             `      }` && |\n|.
     result = result &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    // SYSTEM_LOGOUT: prefer the launchpad logout when running inside the` && |\n| &&
              `    // FLP; otherwise terminate a possible stateful BSP session first and` && |\n| &&
              `    // then navigate to the logout URL.` && |\n| &&
@@ -816,10 +818,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    return { execute };` && |\n| &&
-             `  },` && |\n| &&
-             `);` && |\n| &&
-             `` && |\n|.
+             `  },` && |\n|.
     result = result &&
+             `);` && |\n| &&
+             `` && |\n| &&
               ``.
 
   ENDMETHOD.

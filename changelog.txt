@@ -64,6 +64,9 @@ unreleased
   cs_event-binding_call (declarative filter/sort on an aggregation binding). All three are scheduled
   via follow_up_action (or roundtrip-free via _event_client); the interim wrapper methods
   control_call, control_call_by_id and binding_call_by_id existed only on this branch and are gone.
++ Whitelisted discardProgress and setNextStep (controlId arg) for CONTROL_BY_ID, so the wizard
+  step flow is expressible with two generic control calls (the dedicated WIZARD_SET_NEXT_STEP
+  event stays for compatibility).
 + Added the message> model on every view slot with automatic validation-message collection
 + Added the demo kit formatter pack to model/formatter (weightStateByValue, stockStatus*, round2DP, dimensions, deliveryStatusState)
 ! Event arg serialization no longer drops empty middle args: get_t_arg keeps an empty argument

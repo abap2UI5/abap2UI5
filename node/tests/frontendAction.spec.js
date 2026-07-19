@@ -125,6 +125,34 @@ test.describe("CONTROL_BY_ID", () => {
     expect(calls).toEqual([["open"], ["close"]]);
   });
 
+  test("discardProgress/setNextStep resolve their controlId arg (wizard)", () => {
+    const { FrontendAction, calls, controls } = load();
+    const step2 = { id: "STEP2" };
+    const step22 = { id: "STEP22" };
+    controls.STEP2 = step2;
+    controls.STEP22 = step22;
+    controls.wiz = { discardProgress: (s) => calls.push(["discard", s]) };
+    step2.setNextStep = (s) => calls.push(["next", s]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "wiz",
+      "",
+      "discardProgress",
+      "STEP2",
+    ]);
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "STEP2",
+      "",
+      "setNextStep",
+      "STEP22",
+    ]);
+    expect(calls).toEqual([
+      ["discard", step2],
+      ["next", step22],
+    ]);
+  });
+
   test("setExpanded casts the ABAP bool ('X'/'')", () => {
     const { FrontendAction, calls, controls } = load();
     controls.panel = { setExpanded: (b) => calls.push(["expand", b]) };
