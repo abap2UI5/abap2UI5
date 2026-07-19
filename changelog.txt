@@ -15,6 +15,17 @@ unreleased
   sap/ui/core/Theming (only present since UI5 1.118), so on 1.71 it 404'd and
   the whole component failed to load. Theming is now resolved lazily (via
   sap.ui.require) only when a THEMING frontend action fires.
+* Fixed a noisy 404 on OpenUI5 < 1.118: Component.init warm-loaded
+  sap/ui/core/Messaging unconditionally, so on 1.71 the async require 404'd and
+  the ui5loader retried loudly via synchronous XHR. The warm-load is now gated
+  on the running UI5 version (Lib.hasMessagingModule); older releases keep using
+  the sap.ui.getCore().getMessageManager() fallback.
+* Fixed "adding element with duplicate id
+  'z2ui5DeveloperTools--developerToolsEditor'" in the Developer Tools: the
+  dialog was destroyed on close and its fragment re-loaded on the next open,
+  which raced the close animation on UI5 1.71 and left the CodeEditor id
+  registered. The dialog is now loaded once and reused across open/close, and
+  destroyed only when the control itself exits.
 * Restored 'unsafe-eval' in the default Content-Security-Policy: the OpenUI5
   1.71 ui5loader evaluates module source as a string, so without it the 1.71
   bootstrap failed with a CSP EvalError ("Failed to load component"). Modern

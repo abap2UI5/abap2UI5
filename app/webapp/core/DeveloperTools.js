@@ -642,16 +642,20 @@ sap.ui.define(
       },
 
       close() {
-        if (!this.oDialog) return;
-        const oDialog = this.oDialog;
-        this.oDialog = null;
+        if (!this.oDialog || !this.oDialog.isOpen()) return;
         // When the dialog was opened from the error popup's Details action,
         // closing it (Close or Escape) re-shows that popup so the user never
         // ends up on the dismissed, broken app.
         const reopenError = this.reopenErrorOnClose;
         this.reopenErrorOnClose = false;
-        oDialog.close();
-        oDialog.destroy();
+        // Keep the dialog (and its fragment controls, e.g. the CodeEditor)
+        // and reuse it on the next show(). Destroying and re-loading the
+        // fragment each time raced the close animation on older UI5 (1.71):
+        // the CodeEditor's fragment-scoped id survived long enough that the
+        // reload threw "adding element with duplicate id
+        // 'z2ui5DeveloperTools--developerToolsEditor'". The instance is
+        // destroyed once in exit() when the control itself goes away.
+        this.oDialog.close();
         if (reopenError) ErrorView.reopenErrorDialog();
       },
 
@@ -661,11 +665,15 @@ sap.ui.define(
       // popup while the app itself is being torn down.
       exit() {
         this.reopenErrorOnClose = false;
-        this.close();
+        if (this.oDialog) {
+          this.oDialog.close();
+          this.oDialog.destroy();
+          this.oDialog = null;
+        }
       },
 
       toggle() {
-        if (this.oDialog) {
+        if (this.oDialog && this.oDialog.isOpen()) {
           this.close();
         } else {
           this.show();

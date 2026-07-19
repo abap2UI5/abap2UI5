@@ -52,6 +52,19 @@ sap.ui.define(
       return null;
     }
 
+    // True when the running UI5 ships the sap/ui/core/Messaging module (added
+    // in 1.118). Callers use it to skip warm-loading that module on older
+    // releases (e.g. 1.71) where an async require would 404 and make the
+    // ui5loader retry noisily via synchronous XHR. getMessaging()'s
+    // MessageManager fallback covers those releases instead.
+    function hasMessagingModule() {
+      const [major, minor] = String(sap.ui.version || "")
+        .split(".")
+        .map(Number);
+      if (!Number.isFinite(major) || !Number.isFinite(minor)) return false;
+      return major > 1 || (major === 1 && minor >= 118);
+    }
+
     // Cap the error log so a long-running session cannot grow it unbounded.
     const MAX_ERRORS = 100;
 
@@ -410,6 +423,7 @@ sap.ui.define(
       sanitizeMessageDetails,
       getElementById,
       getMessaging,
+      hasMessagingModule,
     };
   },
 );

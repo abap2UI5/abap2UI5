@@ -287,20 +287,49 @@ test.describe("Export", () => {
 });
 
 test.describe("Close / Escape returns to the error popup", () => {
+  // The dialog is loaded once and reused across open/close (destroying and
+  // re-loading its fragment each time raced the close animation on UI5 1.71
+  // and threw "duplicate id ...developerToolsEditor"), so close() only closes
+  // the still-open dialog and keeps the instance; exit() destroys it.
+  const openDialog = () => {
+    let closed = false;
+    return {
+      isOpen: () => !closed,
+      close() {
+        closed = true;
+      },
+      destroy() {},
+    };
+  };
+
   test("closing after Details re-shows the error popup", () => {
     const reopenCalls = [];
     const { DeveloperTools } = loadDeveloperTools({ reopenCalls });
-    DeveloperTools.oDialog = { close() {}, destroy() {} };
+    const oDialog = openDialog();
+    DeveloperTools.oDialog = oDialog;
     DeveloperTools.reopenErrorOnClose = true;
     DeveloperTools.close();
     expect(reopenCalls).toEqual([true]);
-    expect(DeveloperTools.oDialog).toBe(null);
+    // Reused, not destroyed: the instance stays for the next show().
+    expect(DeveloperTools.oDialog).toBe(oDialog);
+    expect(oDialog.isOpen()).toBe(false);
   });
 
   test("a normal close does not re-show the error popup", () => {
     const reopenCalls = [];
     const { DeveloperTools } = loadDeveloperTools({ reopenCalls });
-    DeveloperTools.oDialog = { close() {}, destroy() {} };
+    DeveloperTools.oDialog = openDialog();
+    DeveloperTools.close();
+    expect(reopenCalls).toEqual([]);
+  });
+
+  test("close on an already-closed dialog is a no-op", () => {
+    const reopenCalls = [];
+    const { DeveloperTools } = loadDeveloperTools({ reopenCalls });
+    const oDialog = openDialog();
+    oDialog.close(); // already closed
+    DeveloperTools.oDialog = oDialog;
+    DeveloperTools.reopenErrorOnClose = true;
     DeveloperTools.close();
     expect(reopenCalls).toEqual([]);
   });
@@ -308,12 +337,27 @@ test.describe("Close / Escape returns to the error popup", () => {
   test("Escape rejects the default close and behaves like Close", () => {
     const reopenCalls = [];
     const { DeveloperTools } = loadDeveloperTools({ reopenCalls });
-    DeveloperTools.oDialog = { close() {}, destroy() {} };
+    DeveloperTools.oDialog = openDialog();
     DeveloperTools.reopenErrorOnClose = true;
     let rejected = false;
     DeveloperTools.onEscape({ reject: () => (rejected = true), resolve() {} });
     expect(rejected).toBe(true);
     expect(reopenCalls).toEqual([true]);
+  });
+
+  test("exit() closes and destroys the reused dialog", () => {
+    const reopenCalls = [];
+    const { DeveloperTools } = loadDeveloperTools({ reopenCalls });
+    let destroyed = false;
+    const oDialog = openDialog();
+    oDialog.destroy = () => (destroyed = true);
+    DeveloperTools.oDialog = oDialog;
+    // A pending reopen must not fire while the app itself is torn down.
+    DeveloperTools.reopenErrorOnClose = true;
+    DeveloperTools.exit();
+    expect(destroyed).toBe(true);
+    expect(DeveloperTools.oDialog).toBe(null);
+    expect(reopenCalls).toEqual([]);
   });
 });
 

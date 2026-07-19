@@ -663,16 +663,20 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      close() {` && |\n| &&
-             `        if (!this.oDialog) return;` && |\n| &&
-             `        const oDialog = this.oDialog;` && |\n| &&
-             `        this.oDialog = null;` && |\n| &&
+             `        if (!this.oDialog || !this.oDialog.isOpen()) return;` && |\n| &&
              `        // When the dialog was opened from the error popup's Details action,` && |\n| &&
              `        // closing it (Close or Escape) re-shows that popup so the user never` && |\n| &&
              `        // ends up on the dismissed, broken app.` && |\n| &&
              `        const reopenError = this.reopenErrorOnClose;` && |\n| &&
              `        this.reopenErrorOnClose = false;` && |\n| &&
-             `        oDialog.close();` && |\n| &&
-             `        oDialog.destroy();` && |\n| &&
+             `        // Keep the dialog (and its fragment controls, e.g. the CodeEditor)` && |\n| &&
+             `        // and reuse it on the next show(). Destroying and re-loading the` && |\n| &&
+             `        // fragment each time raced the close animation on older UI5 (1.71):` && |\n| &&
+             `        // the CodeEditor's fragment-scoped id survived long enough that the` && |\n| &&
+             `        // reload threw "adding element with duplicate id` && |\n| &&
+             `        // 'z2ui5DeveloperTools--developerToolsEditor'". The instance is` && |\n| &&
+             `        // destroyed once in exit() when the control itself goes away.` && |\n| &&
+             `        this.oDialog.close();` && |\n| &&
              `        if (reopenError) ErrorView.reopenErrorDialog();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -682,11 +686,15 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `      // popup while the app itself is being torn down.` && |\n| &&
              `      exit() {` && |\n| &&
              `        this.reopenErrorOnClose = false;` && |\n| &&
-             `        this.close();` && |\n| &&
+             `        if (this.oDialog) {` && |\n| &&
+             `          this.oDialog.close();` && |\n| &&
+             `          this.oDialog.destroy();` && |\n| &&
+             `          this.oDialog = null;` && |\n| &&
+             `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      toggle() {` && |\n| &&
-             `        if (this.oDialog) {` && |\n| &&
+             `        if (this.oDialog && this.oDialog.isOpen()) {` && |\n| &&
              `          this.close();` && |\n| &&
              `        } else {` && |\n| &&
              `          this.show();` && |\n| &&

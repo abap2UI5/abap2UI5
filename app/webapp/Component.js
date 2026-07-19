@@ -66,13 +66,17 @@ sap.ui.define(
         // sap.ui.getCore().getMessageManager() fallback is gone), and
         // nothing else pulls the module into the graph - without this the
         // message> model and validation collection would silently no-op.
-        // The errback keeps releases < 1.118 (no such module) unaffected;
-        // there Lib.getMessaging uses the MessageManager fallback.
-        sap.ui.require(
-          ["sap/ui/core/Messaging"],
-          () => {},
-          () => {},
-        );
+        // Only attempt it where the module exists (1.118+): on older releases
+        // (e.g. 1.71) the require would 404 and make the ui5loader retry
+        // loudly via synchronous XHR; there Lib.getMessaging falls back to
+        // sap.ui.getCore().getMessageManager() instead.
+        if (Lib.hasMessagingModule()) {
+          sap.ui.require(
+            ["sap/ui/core/Messaging"],
+            () => {},
+            () => {},
+          );
+        }
 
         this._initLaunchpad();
         this._initVersionInfo();

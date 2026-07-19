@@ -86,13 +86,17 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        // sap.ui.getCore().getMessageManager() fallback is gone), and` && |\n| &&
              `        // nothing else pulls the module into the graph - without this the` && |\n| &&
              `        // message> model and validation collection would silently no-op.` && |\n| &&
-             `        // The errback keeps releases < 1.118 (no such module) unaffected;` && |\n| &&
-             `        // there Lib.getMessaging uses the MessageManager fallback.` && |\n| &&
-             `        sap.ui.require(` && |\n| &&
-             `          ["sap/ui/core/Messaging"],` && |\n| &&
-             `          () => {},` && |\n| &&
-             `          () => {},` && |\n| &&
-             `        );` && |\n| &&
+             `        // Only attempt it where the module exists (1.118+): on older releases` && |\n| &&
+             `        // (e.g. 1.71) the require would 404 and make the ui5loader retry` && |\n| &&
+             `        // loudly via synchronous XHR; there Lib.getMessaging falls back to` && |\n| &&
+             `        // sap.ui.getCore().getMessageManager() instead.` && |\n| &&
+             `        if (Lib.hasMessagingModule()) {` && |\n| &&
+             `          sap.ui.require(` && |\n| &&
+             `            ["sap/ui/core/Messaging"],` && |\n| &&
+             `            () => {},` && |\n| &&
+             `            () => {},` && |\n| &&
+             `          );` && |\n| &&
+             `        }` && |\n| &&
              `` && |\n| &&
              `        this._initLaunchpad();` && |\n| &&
              `        this._initVersionInfo();` && |\n| &&

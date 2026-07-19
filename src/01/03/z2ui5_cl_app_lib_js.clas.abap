@@ -72,6 +72,19 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      return null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // True when the running UI5 ships the sap/ui/core/Messaging module (added` && |\n| &&
+             `    // in 1.118). Callers use it to skip warm-loading that module on older` && |\n| &&
+             `    // releases (e.g. 1.71) where an async require would 404 and make the` && |\n| &&
+             `    // ui5loader retry noisily via synchronous XHR. getMessaging()'s` && |\n| &&
+             `    // MessageManager fallback covers those releases instead.` && |\n| &&
+             `    function hasMessagingModule() {` && |\n| &&
+             `      const [major, minor] = String(sap.ui.version || "")` && |\n| &&
+             `        .split(".")` && |\n| &&
+             `        .map(Number);` && |\n| &&
+             `      if (!Number.isFinite(major) || !Number.isFinite(minor)) return false;` && |\n| &&
+             `      return major > 1 || (major === 1 && minor >= 118);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    // Cap the error log so a long-running session cannot grow it unbounded.` && |\n| &&
              `    const MAX_ERRORS = 100;` && |\n| &&
              `` && |\n| &&
@@ -404,7 +417,8 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `          return ``<li>${_sanitizeEl.innerHTML}</li>``;` && |\n| &&
              `        });` && |\n| &&
              `        return ``<ul>${safeItems.join("")}</ul>``;` && |\n| &&
-             `      }` && |\n| &&
+             `      }` && |\n|.
+    result = result &&
              `      _sanitizeEl.textContent = doc.body.textContent;` && |\n| &&
              `      return _sanitizeEl.innerHTML;` && |\n| &&
              `    }` && |\n| &&
@@ -417,8 +431,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      unregisterCallback,` && |\n| &&
              `      readFileAsDataURL,` && |\n| &&
              `      applyTokenUpdate,` && |\n| &&
-             `      runCallbacks,` && |\n|.
-    result = result &&
+             `      runCallbacks,` && |\n| &&
              `      whenRendered,` && |\n| &&
              `      copyToClipboard,` && |\n| &&
              `      toText,` && |\n| &&
@@ -431,6 +444,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      sanitizeMessageDetails,` && |\n| &&
              `      getElementById,` && |\n| &&
              `      getMessaging,` && |\n| &&
+             `      hasMessagingModule,` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&
