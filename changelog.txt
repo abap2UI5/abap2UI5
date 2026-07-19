@@ -11,6 +11,11 @@ Legend
 
 unreleased
 ----------
+* Restored 'unsafe-eval' in the default Content-Security-Policy: the OpenUI5
+  1.71 ui5loader evaluates module source as a string, so without it the 1.71
+  bootstrap failed with a CSP EvalError ("Failed to load component"). Modern
+  UI5 does not use eval; 'unsafe-inline' was already allowed, so the delta is
+  marginal. Apps pinning a modern UI5 can drop it via their user exit.
 * Fixed user-exit discovery: the interface-implementation lookup in
   z2ui5_cl_a2ui5_context passed a WITH EMPTY KEY table to the classic function
   module SEO_INTERFACE_IMPLEM_GET_ALL, whose IMPORTING parameter is WITH DEFAULT
