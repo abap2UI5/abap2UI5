@@ -113,9 +113,9 @@
                 press=".onErrorRetry"
             />
             <Button
-                text="Refresh"
+                text="Restart"
                 icon="sap-icon://restart"
-                press=".onErrorRefresh"
+                press=".onErrorRestart"
             />
             <Button
                 text="Logout"

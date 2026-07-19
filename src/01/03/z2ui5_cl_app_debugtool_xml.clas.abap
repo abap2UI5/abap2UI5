@@ -133,9 +133,9 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `                press=".onErrorRetry"` &&
              `            />` &&
              `            <Button` &&
-             `                text="Refresh"` &&
+             `                text="Restart"` &&
              `                icon="sap-icon://restart"` &&
-             `                press=".onErrorRefresh"` &&
+             `                press=".onErrorRestart"` &&
              `            />` &&
              `            <Button` &&
              `                text="Logout"` &&

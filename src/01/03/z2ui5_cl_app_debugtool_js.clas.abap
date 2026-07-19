@@ -299,7 +299,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Show the last fatal error (the ErrorView overlay's content). The` && |\n| &&
-             `      // Retry/Refresh/Logout actions live in the dialog footer (always` && |\n| &&
+             `      // Retry/Restart/Logout actions live in the dialog footer (always` && |\n| &&
              `      // present); refresh hasRetry so the footer's Retry button shows only` && |\n| &&
              `      // when this error carried a retry action.` && |\n| &&
              `      showError(oModel) {` && |\n| &&
@@ -320,7 +320,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `        this.close();` && |\n| &&
              `        if (typeof onRetry === "function") onRetry();` && |\n| &&
              `      },` && |\n| &&
-             `      onErrorRefresh() {` && |\n| &&
+             `      onErrorRestart() {` && |\n| &&
              `        window.location.reload();` && |\n| &&
              `      },` && |\n| &&
              `      onErrorLogout() {` && |\n| &&

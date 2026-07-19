@@ -279,7 +279,7 @@ sap.ui.define(
       },
 
       // Show the last fatal error (the ErrorView overlay's content). The
-      // Retry/Refresh/Logout actions live in the dialog footer (always
+      // Retry/Restart/Logout actions live in the dialog footer (always
       // present); refresh hasRetry so the footer's Retry button shows only
       // when this error carried a retry action.
       showError(oModel) {
@@ -300,7 +300,7 @@ sap.ui.define(
         this.close();
         if (typeof onRetry === "function") onRetry();
       },
-      onErrorRefresh() {
+      onErrorRestart() {
         window.location.reload();
       },
       onErrorLogout() {
