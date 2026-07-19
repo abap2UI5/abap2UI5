@@ -527,9 +527,12 @@ sap.ui.define(
         const appName = sFront?.APP || "";
         const appId = encodeURIComponent(appName);
         const url = `${window.location.origin}/sap/bc/adt/oo/classes/${appId}/source/main`;
-        contentControl.setProperty(
-          "content",
-          `<iframe id="test" src="${url}" style="width:100%;height:85vh;border:none;" />`,
+        // setContent (not a bare setProperty) so an already rendered iframe
+        // is replaced in the live DOM; a plain property set never reached
+        // the DOM once the control had rendered, leaving a stale class
+        // on screen after navigating to another app.
+        contentControl.setContent(
+          `<iframe src="${url}" style="width:100%;height:85vh;border:none;" />`,
         );
 
         if (!oModel) return;

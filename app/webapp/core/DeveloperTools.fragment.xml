@@ -102,7 +102,11 @@
             />
         </VBox>
         <VBox visible="{/source_visible}">
-            <core:HTML id="sourceHtml"/>
+            <!-- preferDOM defaults to true, which restores the preserved
+                 iframe DOM of a previous open instead of the freshly set
+                 content - the Source Code tab then kept showing the class
+                 of the previously running app. -->
+            <core:HTML id="sourceHtml" preferDOM="false"/>
         </VBox>
         <!-- sap.m.Dialog only gained a public `footer` aggregation around
              1.110; on older releases (e.g. 1.71) a <footer> tag is resolved
