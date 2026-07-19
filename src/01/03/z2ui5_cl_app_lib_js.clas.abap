@@ -78,9 +78,12 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `    // ui5loader retry noisily via synchronous XHR. getMessaging()'s` && |\n| &&
              `    // MessageManager fallback covers those releases instead.` && |\n| &&
              `    function hasMessagingModule() {` && |\n| &&
-             `      const [major, minor] = String(sap.ui.version || "")` && |\n| &&
-             `        .split(".")` && |\n| &&
-             `        .map(Number);` && |\n| &&
+             `      /* ui5lint-disable no-globals --` && |\n| &&
+             `       sap.ui.version is the only way to read the running UI5 version; there` && |\n| &&
+             `       is no injected/module equivalent. */` && |\n| &&
+             `      const rawVersion = String(sap.ui.version || "");` && |\n| &&
+             `      /* ui5lint-enable no-globals */` && |\n| &&
+             `      const [major, minor] = rawVersion.split(".").map(Number);` && |\n| &&
              `      if (!Number.isFinite(major) || !Number.isFinite(minor)) return false;` && |\n| &&
              `      return major > 1 || (major === 1 && minor >= 118);` && |\n| &&
              `    }` && |\n| &&
@@ -414,11 +417,11 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      if (items.length > 0) {` && |\n| &&
              `        const safeItems = items.map((li) => {` && |\n| &&
              `          _sanitizeEl.textContent = li.textContent;` && |\n| &&
-             `          return ``<li>${_sanitizeEl.innerHTML}</li>``;` && |\n| &&
+             `          return ``<li>${_sanitizeEl.innerHTML}</li>``;` && |\n|.
+    result = result &&
              `        });` && |\n| &&
              `        return ``<ul>${safeItems.join("")}</ul>``;` && |\n| &&
-             `      }` && |\n|.
-    result = result &&
+             `      }` && |\n| &&
              `      _sanitizeEl.textContent = doc.body.textContent;` && |\n| &&
              `      return _sanitizeEl.innerHTML;` && |\n| &&
              `    }` && |\n| &&

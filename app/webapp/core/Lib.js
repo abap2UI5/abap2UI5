@@ -58,9 +58,12 @@ sap.ui.define(
     // ui5loader retry noisily via synchronous XHR. getMessaging()'s
     // MessageManager fallback covers those releases instead.
     function hasMessagingModule() {
-      const [major, minor] = String(sap.ui.version || "")
-        .split(".")
-        .map(Number);
+      /* ui5lint-disable no-globals --
+       sap.ui.version is the only way to read the running UI5 version; there
+       is no injected/module equivalent. */
+      const rawVersion = String(sap.ui.version || "");
+      /* ui5lint-enable no-globals */
+      const [major, minor] = rawVersion.split(".").map(Number);
       if (!Number.isFinite(major) || !Number.isFinite(minor)) return false;
       return major > 1 || (major === 1 && minor >= 118);
     }
