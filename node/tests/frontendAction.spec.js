@@ -175,6 +175,31 @@ test.describe("CONTROL_BY_ID", () => {
     expect(calls).toEqual([["openBy", anchor]]);
   });
 
+  test("toggleBy opens the control anchored to the DOM ref when closed", () => {
+    const { FrontendAction, calls, controls } = load();
+    const dom = { tagName: "BUTTON" };
+    controls.anchorBtn = { getDomRef: () => dom };
+    controls.theMenu = {
+      isOpen: () => false,
+      openBy: (ref) => calls.push(["openBy", ref]),
+      close: () => calls.push(["close"]),
+    };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "theMenu", "", "toggleBy", "anchorBtn"]);
+    expect(calls).toEqual([["openBy", dom]]);
+  });
+
+  test("toggleBy closes the control when it is already open", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.anchorBtn = { getDomRef: () => ({}) };
+    controls.theMenu = {
+      isOpen: () => true,
+      openBy: (ref) => calls.push(["openBy", ref]),
+      close: () => calls.push(["close"]),
+    };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "theMenu", "", "toggleBy", "anchorBtn"]);
+    expect(calls).toEqual([["close"]]);
+  });
+
   test("setActivePage resolves the page control (Carousel)", () => {
     const { FrontendAction, calls, controls } = load();
     const page2 = { id: "carPage2" };

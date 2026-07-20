@@ -86,6 +86,7 @@ sap.ui.define(
       setNextStep: ["controlId"],
       goToStep: ["controlId", "bool"], // Wizard: target step + focus flag
       openBy: ["domRef"], // DatePicker/TimePicker/Menu... anchored open
+      toggleBy: ["domRef"], // sap.m.Menu/Popover: open anchored if closed, close if open
       setActivePage: ["controlId"], // sap.m.Carousel
       expandToLevel: ["int"], // sap.m.Tree / sap.ui.table.TreeTable: expand to N levels
       collapseAll: [], // sap.m.Tree / sap.ui.table.TreeTable: collapse every node
@@ -173,6 +174,25 @@ sap.ui.define(
       const control = view
         ? ViewSlots.byId(view.toUpperCase(), id)
         : ViewSlots.resolveById(id);
+      // toggleBy is not a real control method: open the control anchored to
+      // the domRef if it is closed, close it if it is already open (mirrors
+      // openBy for a press-to-toggle button). The popup's open state lives
+      // client-side, so the decision stays here rather than round-tripping.
+      if (method === "toggleBy") {
+        if (!control || typeof control.openBy !== "function") {
+          Lib.logError(
+            `CONTROL_BY_ID: 'toggleBy' not callable on control '${id}'`,
+          );
+          return;
+        }
+        const anchor = castArgs(kinds, args.slice(4), view)[0];
+        if (control.isOpen?.()) {
+          control.close();
+        } else {
+          control.openBy(anchor);
+        }
+        return;
+      }
       if (!control || typeof control[method] !== "function") {
         Lib.logError(
           `CONTROL_BY_ID: '${method}' not callable on control '${id}'`,

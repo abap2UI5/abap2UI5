@@ -31,6 +31,7 @@ CLASS z2ui5_cl_app_preload IMPLEMENTATION.
              |      "z2ui5/cc/History.js": function()\{{ z2ui5_cl_app_history_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/Info.js": function()\{{ z2ui5_cl_app_info_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/LPTitle.js": function()\{{ z2ui5_cl_app_lptitle_js=>get( ) }\},| && |\n| &&
+             |      "z2ui5/cc/MessageManager.js": function()\{{ z2ui5_cl_app_messagemanager_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/MultiInputExt.js": function()\{{ z2ui5_cl_app_multiinputext_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/Scrolling.js": function()\{{ z2ui5_cl_app_scrolling_js=>get( ) }\},| && |\n| &&
              |      "z2ui5/cc/SmartMultiInputExt.js": function()\{{ z2ui5_cl_app_smartmultiinpu_js=>get( ) }\},| && |\n| &&
