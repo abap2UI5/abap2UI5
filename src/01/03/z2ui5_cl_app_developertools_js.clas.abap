@@ -539,27 +539,52 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      // The ADT REST endpoint that renders the running app's ABAP class` && |\n| &&
+             `      // source. Empty when the app class name is unknown (no response yet).` && |\n| &&
+             `      getAbapSourceUrl() {` && |\n| &&
+             `        const appName = AppState.state.responseData?.S_FRONT?.APP || "";` && |\n| &&
+             `        if (!appName) return "";` && |\n| &&
+             `        const appId = encodeURIComponent(appName);` && |\n| &&
+             `        return ``${window.location.origin}/sap/bc/adt/oo/classes/${appId}/source/main``;` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // Open the ABAP class source as a top-level document in a new browser` && |\n| &&
+             `      // tab. The ADT REST endpoint renders it with syntax highlighting and its` && |\n| &&
+             `      // own "Open in ABAP Development Tools" link; opening it top-level is what` && |\n| &&
+             `      // lets that link's adt:// navigation reach the desktop ADT. From inside` && |\n| &&
+             `      // the inline iframe below the jump never worked - browsers suppress a` && |\n| &&
+             `      // custom-scheme navigation started in a subframe, and some systems block` && |\n| &&
+             `      // framing the ADT endpoint entirely (X-Frame-Options), so the preview is` && |\n| &&
+             `      // just blank there. noopener keeps the new tab from reaching back into` && |\n| &&
+             `      // window.opener.` && |\n| &&
+             `      onOpenAbapInAdt() {` && |\n| &&
+             `        const url = this.getAbapSourceUrl();` && |\n| &&
+             `        if (!url) return;` && |\n| &&
+             `        window.open(url, "_blank", "noopener,noreferrer");` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      // Show the ABAP source of the running app inside an iframe.` && |\n| &&
              `      showAbapSource(oModel) {` && |\n| &&
              `        const contentControl = Fragment.byId(FRAGMENT_ID, "sourceHtml");` && |\n| &&
              `        if (!contentControl) return;` && |\n| &&
              `` && |\n| &&
-             `        const sFront = AppState.state.responseData?.S_FRONT;` && |\n| &&
-             `        const appName = sFront?.APP || "";` && |\n| &&
-             `        const appId = encodeURIComponent(appName);` && |\n| &&
-             `        const url = ``${window.location.origin}/sap/bc/adt/oo/classes/${appId}/source/main``;` && |\n| &&
+             `        const url = this.getAbapSourceUrl();` && |\n| &&
              `        // setContent (not a bare setProperty) so an already rendered iframe` && |\n| &&
              `        // is replaced in the live DOM; a plain property set never reached` && |\n| &&
              `        // the DOM once the control had rendered, leaving a stale class` && |\n| &&
              `        // on screen after navigating to another app.` && |\n| &&
              `        contentControl.setContent(` && |\n| &&
-             `          ``<iframe src="${url}" style="width:100%;height:85vh;border:none;" />``,` && |\n| &&
+             `          url` && |\n| &&
+             `            ? ``<iframe src="${url}" style="width:100%;height:85vh;border:none;" />``` && |\n| &&
+             `            : "",` && |\n| &&
              `        );` && |\n| &&
              `` && |\n| &&
              `        if (!oModel) return;` && |\n| &&
              `        const modelData = oModel.getData();` && |\n| &&
              `        modelData.editor_visible = false;` && |\n| &&
              `        modelData.source_visible = true;` && |\n| &&
+             `        // Drives the "Open in ABAP Development Tools" link's visibility.` && |\n| &&
+             `        modelData.hasSource = Boolean(url);` && |\n| &&
              `        oModel.refresh();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -634,6 +659,7 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `            type: "json",` && |\n| &&
              `            source_visible: false,` && |\n| &&
              `            editor_visible: true,` && |\n| &&
+             `            hasSource: false,` && |\n| &&
              `            hasError: Boolean(AppState.state.lastError),` && |\n| &&
              `            hasRetry: typeof AppState.state.lastError?.onRetry === "function",` && |\n| &&
              `            value: value,` && |\n| &&
