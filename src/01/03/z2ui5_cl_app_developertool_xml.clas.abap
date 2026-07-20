@@ -151,12 +151,6 @@ CLASS z2ui5_cl_app_developertool_xml IMPLEMENTATION.
              `                press=".onExport"` &&
              `            />` &&
              `            <Button` &&
-             `                text="Retry"` &&
-             `                type="Emphasized"` &&
-             `                visible="{/hasRetry}"` &&
-             `                press=".onErrorRetry"` &&
-             `            />` &&
-             `            <Button` &&
              `                text="Close"` &&
              `                type="Emphasized"` &&
              `                press=".onClose"` &&

@@ -131,12 +131,6 @@
                 press=".onExport"
             />
             <Button
-                text="Retry"
-                type="Emphasized"
-                visible="{/hasRetry}"
-                press=".onErrorRetry"
-            />
-            <Button
                 text="Close"
                 type="Emphasized"
                 press=".onClose"
