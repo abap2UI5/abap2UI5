@@ -10,7 +10,15 @@ const { loadModule } = require("./loadModule");
 // alias - everything here is a public contract.
 
 function load() {
-  const { module: Formatter } = loadModule("model/formatter.js");
+  const IconPool = {
+    getIconInfo: (uri) =>
+      uri === "sap-icon://unknown"
+        ? null
+        : { fontFamily: "SAP-icons", content: "GLYPH" },
+  };
+  const { module: Formatter } = loadModule("model/formatter.js", {
+    deps: { "sap/ui/core/IconPool": IconPool },
+  });
   const { module: Util } = loadModule("Util.js", {
     deps: { "z2ui5/model/formatter": Formatter },
   });
@@ -83,6 +91,25 @@ test.describe("Formatter module", () => {
     expect(Formatter.deliveryStatusState("Shipped")).toBe("Success");
     expect(Formatter.deliveryStatusState("Failed Shipping")).toBe("Error");
     expect(Formatter.deliveryStatusState("Pending")).toBe("None");
+  });
+
+  test("expandInlineIcons replaces %%icon:...%% with inline-icon markup", () => {
+    const { Formatter } = load();
+    expect(
+      Formatter.expandInlineIcons("A %%icon:sap-icon://sys-enter-2%% B"),
+    ).toBe(
+      'A <span class="sapMMsgStripInlineIcon" style="font-family:\'SAP-icons\'">GLYPH</span> B',
+    );
+  });
+
+  test("expandInlineIcons passes plain text through and drops unknown/empty", () => {
+    const { Formatter } = load();
+    expect(Formatter.expandInlineIcons("just text")).toBe("just text");
+    expect(Formatter.expandInlineIcons("")).toBe("");
+    expect(Formatter.expandInlineIcons(null)).toBe("");
+    expect(Formatter.expandInlineIcons("x %%icon:sap-icon://unknown%% y")).toBe(
+      "x  y",
+    );
   });
 
   test("z2ui5/Util re-exports the date helpers as the legacy alias", () => {

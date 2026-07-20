@@ -106,6 +106,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      setNextStep: ["controlId"],` && |\n| &&
              `      goToStep: ["controlId", "bool"], // Wizard: target step + focus flag` && |\n| &&
              `      openBy: ["domRef"], // DatePicker/TimePicker/Menu... anchored open` && |\n| &&
+             `      toggleBy: ["domRef"], // sap.m.Menu/Popover: open anchored if closed, close if open` && |\n| &&
              `      setActivePage: ["controlId"], // sap.m.Carousel` && |\n| &&
              `      expandToLevel: ["int"], // sap.m.Tree / sap.ui.table.TreeTable: expand to N levels` && |\n| &&
              `      collapseAll: [], // sap.m.Tree / sap.ui.table.TreeTable: collapse every node` && |\n| &&
@@ -193,6 +194,25 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      const control = view` && |\n| &&
              `        ? ViewSlots.byId(view.toUpperCase(), id)` && |\n| &&
              `        : ViewSlots.resolveById(id);` && |\n| &&
+             `      // toggleBy is not a real control method: open the control anchored to` && |\n| &&
+             `      // the domRef if it is closed, close it if it is already open (mirrors` && |\n| &&
+             `      // openBy for a press-to-toggle button). The popup's open state lives` && |\n| &&
+             `      // client-side, so the decision stays here rather than round-tripping.` && |\n| &&
+             `      if (method === "toggleBy") {` && |\n| &&
+             `        if (!control || typeof control.openBy !== "function") {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``CONTROL_BY_ID: 'toggleBy' not callable on control '${id}'``,` && |\n| &&
+             `          );` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        const anchor = castArgs(kinds, args.slice(4), view)[0];` && |\n| &&
+             `        if (control.isOpen?.()) {` && |\n| &&
+             `          control.close();` && |\n| &&
+             `        } else {` && |\n| &&
+             `          control.openBy(anchor);` && |\n| &&
+             `        }` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
              `      if (!control || typeof control[method] !== "function") {` && |\n| &&
              `        Lib.logError(` && |\n| &&
              `          ``CONTROL_BY_ID: '${method}' not callable on control '${id}'``,` && |\n| &&
@@ -397,7 +417,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evCrossAppNavToPrevApp() {` && |\n| &&
-             `      withCrossAppNavigator((nav) => nav.backToPreviousApp());` && |\n| &&
+             `      withCrossAppNavigator((nav) => nav.backToPreviousApp());` && |\n|.
+    result = result &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evSetSizeLimit(oController, args) {` && |\n| &&
@@ -417,8 +438,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      }` && |\n| &&
              `      if (model) {` && |\n| &&
              `        // 100 is the UI5 JSONModel default size limit.` && |\n| &&
-             `        model.setSizeLimit(isValidLimit ? limit : 100);` && |\n|.
-    result = result &&
+             `        model.setSizeLimit(isValidLimit ? limit : 100);` && |\n| &&
              `        model.refresh(true);` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
@@ -798,7 +818,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function evZ2ui5Custom(oController, args) {` && |\n| &&
+             `    function evZ2ui5Custom(oController, args) {` && |\n|.
+    result = result &&
              `      try {` && |\n| &&
              `        // Custom functions are registered by apps on the public z2ui5` && |\n| &&
              `        // global (js_loader popup), so resolve them via the facade.` && |\n| &&
@@ -818,8 +839,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `` && |\n| &&
              `    function evWizardSetNextStep(oController, args) {` && |\n| &&
              `      try {` && |\n| &&
-             `        const wiz = ViewSlots.byId("MAIN", args[1]);` && |\n|.
-    result = result &&
+             `        const wiz = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
              `        const step = ViewSlots.byId("MAIN", args[2]);` && |\n| &&
              `        const nextStep = ViewSlots.byId("MAIN", args[3]);` && |\n| &&
              `        if (wiz && step) wiz.discardProgress(step);` && |\n| &&
