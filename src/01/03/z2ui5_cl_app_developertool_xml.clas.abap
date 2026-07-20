@@ -122,6 +122,18 @@ CLASS z2ui5_cl_app_developertool_xml IMPLEMENTATION.
              `            />` &&
              `        </VBox>` &&
              `        <VBox visible="{/source_visible}">` &&
+             `            <!-- The inline iframe below is only a preview: some systems block` &&
+             `                 framing the ADT endpoint and the ADT jump link inside it never` &&
+             `                 navigates. This top-level Link opens the same source in a new` &&
+             `                 tab, where its "Open in ABAP Development Tools" link works. -->` &&
+             `            <Toolbar>` &&
+             `                <ToolbarSpacer/>` &&
+             `                <Link` &&
+             `                    text="Open in ABAP Development Tools"` &&
+             `                    visible="{/hasSource}"` &&
+             `                    press=".onOpenAbapInAdt"` &&
+             `                />` &&
+             `            </Toolbar>` &&
              `            <!-- preferDOM defaults to true, which restores the preserved` &&
              `                 iframe DOM of a previous open instead of the freshly set` &&
              `                 content - the Source Code tab then kept showing the class` &&
@@ -135,26 +147,20 @@ CLASS z2ui5_cl_app_developertool_xml IMPLEMENTATION.
              `             footer; UI5 lays the buttons out in an overflow toolbar. -->` &&
              `        <buttons>` &&
              `            <Button` &&
-             `                text="Export"` &&
-             `                icon="sap-icon://download"` &&
-             `                press=".onExport"` &&
-             `            />` &&
-             `            <Button` &&
-             `                text="Restart"` &&
-             `                icon="sap-icon://restart"` &&
-             `                press=".onErrorRestart"` &&
-             `            />` &&
-             `            <Button` &&
              `                text="Logout"` &&
-             `                icon="sap-icon://log"` &&
              `                press=".onErrorLogout"` &&
              `            />` &&
              `            <Button` &&
-             `                text="Retry"` &&
-             `                type="Emphasized"` &&
-             `                icon="sap-icon://refresh"` &&
-             `                visible="{/hasRetry}"` &&
-             `                press=".onErrorRetry"` &&
+             `                text="Restart"` &&
+             `                press=".onErrorRestart"` &&
+             `            />` &&
+             `            <Button` &&
+             `                text="ADT"` &&
+             `                press=".onOpenAbapInAdt"` &&
+             `            />` &&
+             `            <Button` &&
+             `                text="Export"` &&
+             `                press=".onExport"` &&
              `            />` &&
              `            <Button` &&
              `                text="Close"` &&

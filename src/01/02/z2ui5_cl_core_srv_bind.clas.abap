@@ -235,9 +235,11 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     mr_attri->custom_filter_back = ms_config-custom_filter_back.
     mr_attri->custom_mapper      = ms_config-custom_mapper.
     mr_attri->custom_mapper_back = ms_config-custom_mapper_back.
-    mr_attri->view               = COND #( WHEN ms_config-view IS INITIAL
-                                           THEN z2ui5_if_client=>cs_view-main
-                                           ELSE ms_config-view ).
+    mr_attri->view               = z2ui5_if_client=>cs_view-main.
+*    COND #(
+*         WHEN ms_config-view IS INITIAL
+*                                           THEN
+*                                           ELSE ms_config-view ).
     mr_attri->name_client        = get_client_name( ).
 
   ENDMETHOD.
