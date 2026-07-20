@@ -163,7 +163,6 @@ src/
 │   ├── z2ui5_if_app.intf.abap          # Main app interface (version constant)
 │   ├── z2ui5_if_client.intf.abap       # Client interaction methods
 │   ├── z2ui5_if_types.intf.abap        # Shared type definitions
-│   ├── z2ui5_if_action.intf.abap       # Generic action interface (gen method)
 │   ├── z2ui5_if_exit.intf.abap         # Customization exit points
 │   ├── z2ui5_cl_http_handler.clas.abap # HTTP entry point
 │   ├── z2ui5_cl_xml_view.clas.abap     # Fluent XML view builder (~850KB)
