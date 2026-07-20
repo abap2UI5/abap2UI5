@@ -234,8 +234,64 @@ sap.ui.define(
     // The backend arg serializer keeps empty args between filled ones as ''
     // placeholders but trims trailing empties, so all optionals sit at the
     // end and may arrive as undefined.
+    // Compound form of the filter payload: ONE param carrying a JSON array
+    // of groups, each group an array of [path, operator, value1, value2?]
+    // rows - OR inside a group, AND across groups (the FacetFilter /
+    // ViewSettingsDialog multi-facet shape). Data only: paths, whitelisted
+    // operators and values - never code. An empty groups array clears.
+    function buildFilterGroups(binding, json) {
+      let groups;
+      try {
+        groups = JSON.parse(json);
+      } catch {
+        Lib.logError("BINDING_CALL: malformed filter groups JSON");
+        return;
+      }
+      if (!Array.isArray(groups)) {
+        Lib.logError("BINDING_CALL: filter groups must be an array");
+        return;
+      }
+      groups = groups.filter((g) => Array.isArray(g) && g.length);
+      if (!groups.length) {
+        binding.filter([]);
+        return;
+      }
+      const outer = [];
+      for (const group of groups) {
+        const inner = [];
+        for (const row of group) {
+          const [path, operator, value1, value2] = Array.isArray(row)
+            ? row
+            : [];
+          if (typeof path !== "string" || !FILTER_OPERATORS.has(operator)) {
+            Lib.logError(
+              `BINDING_CALL: bad filter row (path '${path}' / operator '${operator}')`,
+            );
+            return;
+          }
+          inner.push(
+            new Filter(path, FilterOperator[operator], value1, value2),
+          );
+        }
+        outer.push(new Filter(inner, false)); // OR inside the group
+      }
+      binding.filter([new Filter(outer, true)]); // AND across the groups
+    }
+
     const BINDING_METHODS = {
-      filter(binding, [path, operator, value1, value2]) {
+      filter(binding, params) {
+        const [path, operator, value1, value2] = params;
+        // A single param that starts with '[' is the compound groups JSON -
+        // a model path can never start with '[', so the sniff is
+        // unambiguous and the positional single-filter form stays as-is.
+        if (
+          params.length === 1 &&
+          typeof path === "string" &&
+          path.trimStart().startsWith("[")
+        ) {
+          buildFilterGroups(binding, path);
+          return;
+        }
         // No filter values at all -> clear the filter (the demo kit search
         // pattern: an emptied search field). A one-sided range (empty
         // value1 but a set value2, e.g. BT with only an upper bound) is a
