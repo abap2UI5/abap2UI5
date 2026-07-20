@@ -583,8 +583,6 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `        const modelData = oModel.getData();` && |\n| &&
              `        modelData.editor_visible = false;` && |\n| &&
              `        modelData.source_visible = true;` && |\n| &&
-             `        // Drives the "Open in ABAP Development Tools" link's visibility.` && |\n| &&
-             `        modelData.hasSource = Boolean(url);` && |\n| &&
              `        oModel.refresh();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -659,7 +657,6 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `            type: "json",` && |\n| &&
              `            source_visible: false,` && |\n| &&
              `            editor_visible: true,` && |\n| &&
-             `            hasSource: false,` && |\n| &&
              `            hasError: Boolean(AppState.state.lastError),` && |\n| &&
              `            hasRetry: typeof AppState.state.lastError?.onRetry === "function",` && |\n| &&
              `            value: value,` && |\n| &&
