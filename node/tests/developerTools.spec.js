@@ -418,7 +418,7 @@ test.describe("Source Code tab / ADT jump", () => {
     expect(opened).toEqual([]);
   });
 
-  test("showAbapSource frames the source and flags hasSource for the link", () => {
+  test("showAbapSource frames the source for the inline preview", () => {
     let content = null;
     const fragment = {
       byId: () => ({
@@ -434,7 +434,6 @@ test.describe("Source Code tab / ADT jump", () => {
     expect(content).toContain(`src="${EXPECTED_URL}"`);
     expect(modelData.source_visible).toBe(true);
     expect(modelData.editor_visible).toBe(false);
-    expect(modelData.hasSource).toBe(true);
   });
 });
 

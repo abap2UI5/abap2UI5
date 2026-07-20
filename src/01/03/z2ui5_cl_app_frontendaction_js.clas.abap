@@ -107,6 +107,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      goToStep: ["controlId", "bool"], // Wizard: target step + focus flag` && |\n| &&
              `      openBy: ["domRef"], // DatePicker/TimePicker/Menu... anchored open` && |\n| &&
              `      setActivePage: ["controlId"], // sap.m.Carousel` && |\n| &&
+             `      expandToLevel: ["int"], // sap.m.Tree / sap.ui.table.TreeTable: expand to N levels` && |\n| &&
+             `      collapseAll: [], // sap.m.Tree / sap.ui.table.TreeTable: collapse every node` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    // global object -> lazy getter + its allowed methods (with arg kinds).` && |\n| &&
@@ -415,10 +417,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      }` && |\n| &&
              `      if (model) {` && |\n| &&
              `        // 100 is the UI5 JSONModel default size limit.` && |\n| &&
-             `        model.setSizeLimit(isValidLimit ? limit : 100);` && |\n| &&
-             `        model.refresh(true);` && |\n| &&
-             `      }` && |\n|.
+             `        model.setSizeLimit(isValidLimit ? limit : 100);` && |\n|.
     result = result &&
+             `        model.refresh(true);` && |\n| &&
+             `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evSetODataModel(oController, args) {` && |\n| &&
@@ -816,10 +818,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `` && |\n| &&
              `    function evWizardSetNextStep(oController, args) {` && |\n| &&
              `      try {` && |\n| &&
-             `        const wiz = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
-             `        const step = ViewSlots.byId("MAIN", args[2]);` && |\n| &&
-             `        const nextStep = ViewSlots.byId("MAIN", args[3]);` && |\n|.
+             `        const wiz = ViewSlots.byId("MAIN", args[1]);` && |\n|.
     result = result &&
+             `        const step = ViewSlots.byId("MAIN", args[2]);` && |\n| &&
+             `        const nextStep = ViewSlots.byId("MAIN", args[3]);` && |\n| &&
              `        if (wiz && step) wiz.discardProgress(step);` && |\n| &&
              `        if (step && nextStep) step.setNextStep(nextStep);` && |\n| &&
              `      } catch (e) {` && |\n| &&
