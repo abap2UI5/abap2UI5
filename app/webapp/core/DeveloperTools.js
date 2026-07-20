@@ -562,6 +562,8 @@ sap.ui.define(
         const modelData = oModel.getData();
         modelData.editor_visible = false;
         modelData.source_visible = true;
+        // Drives the "Open in ABAP Development Tools" link's visibility.
+        modelData.hasSource = Boolean(url);
         oModel.refresh();
       },
 
@@ -636,6 +638,7 @@ sap.ui.define(
             type: "json",
             source_visible: false,
             editor_visible: true,
+            hasSource: false,
             hasError: Boolean(AppState.state.lastError),
             hasRetry: typeof AppState.state.lastError?.onRetry === "function",
             value: value,
