@@ -254,8 +254,64 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // The backend arg serializer keeps empty args between filled ones as ''` && |\n| &&
              `    // placeholders but trims trailing empties, so all optionals sit at the` && |\n| &&
              `    // end and may arrive as undefined.` && |\n| &&
+             `    // Compound form of the filter payload: ONE param carrying a JSON array` && |\n| &&
+             `    // of groups, each group an array of [path, operator, value1, value2?]` && |\n| &&
+             `    // rows - OR inside a group, AND across groups (the FacetFilter /` && |\n| &&
+             `    // ViewSettingsDialog multi-facet shape). Data only: paths, whitelisted` && |\n| &&
+             `    // operators and values - never code. An empty groups array clears.` && |\n| &&
+             `    function buildFilterGroups(binding, json) {` && |\n| &&
+             `      let groups;` && |\n| &&
+             `      try {` && |\n| &&
+             `        groups = JSON.parse(json);` && |\n| &&
+             `      } catch {` && |\n| &&
+             `        Lib.logError("BINDING_CALL: malformed filter groups JSON");` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      if (!Array.isArray(groups)) {` && |\n| &&
+             `        Lib.logError("BINDING_CALL: filter groups must be an array");` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      groups = groups.filter((g) => Array.isArray(g) && g.length);` && |\n| &&
+             `      if (!groups.length) {` && |\n| &&
+             `        binding.filter([]);` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      const outer = [];` && |\n| &&
+             `      for (const group of groups) {` && |\n| &&
+             `        const inner = [];` && |\n| &&
+             `        for (const row of group) {` && |\n| &&
+             `          const [path, operator, value1, value2] = Array.isArray(row)` && |\n| &&
+             `            ? row` && |\n| &&
+             `            : [];` && |\n| &&
+             `          if (typeof path !== "string" || !FILTER_OPERATORS.has(operator)) {` && |\n| &&
+             `            Lib.logError(` && |\n| &&
+             `              ``BINDING_CALL: bad filter row (path '${path}' / operator '${operator}')``,` && |\n| &&
+             `            );` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
+             `          inner.push(` && |\n| &&
+             `            new Filter(path, FilterOperator[operator], value1, value2),` && |\n| &&
+             `          );` && |\n| &&
+             `        }` && |\n| &&
+             `        outer.push(new Filter(inner, false)); // OR inside the group` && |\n| &&
+             `      }` && |\n| &&
+             `      binding.filter([new Filter(outer, true)]); // AND across the groups` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    const BINDING_METHODS = {` && |\n| &&
-             `      filter(binding, [path, operator, value1, value2]) {` && |\n| &&
+             `      filter(binding, params) {` && |\n| &&
+             `        const [path, operator, value1, value2] = params;` && |\n| &&
+             `        // A single param that starts with '[' is the compound groups JSON -` && |\n| &&
+             `        // a model path can never start with '[', so the sniff is` && |\n| &&
+             `        // unambiguous and the positional single-filter form stays as-is.` && |\n| &&
+             `        if (` && |\n| &&
+             `          params.length === 1 &&` && |\n| &&
+             `          typeof path === "string" &&` && |\n| &&
+             `          path.trimStart().startsWith("[")` && |\n| &&
+             `        ) {` && |\n| &&
+             `          buildFilterGroups(binding, path);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
              `        // No filter values at all -> clear the filter (the demo kit search` && |\n| &&
              `        // pattern: an emptied search field). A one-sided range (empty` && |\n| &&
              `        // value1 but a set value2, e.g. BT with only an upper bound) is a` && |\n| &&
@@ -361,7 +417,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        // 100 is the UI5 JSONModel default size limit.` && |\n| &&
              `        model.setSizeLimit(isValidLimit ? limit : 100);` && |\n| &&
              `        model.refresh(true);` && |\n| &&
-             `      }` && |\n| &&
+             `      }` && |\n|.
+    result = result &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evSetODataModel(oController, args) {` && |\n| &&
@@ -417,8 +474,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          // consistent with every other redirect handler in this file.` && |\n| &&
              `          const base = window.location.href.split("#")[0];` && |\n| &&
              `          const url = ``${base}${hash}``;` && |\n| &&
-             `          if (!Lib.isValidRedirectURL(url)) {` && |\n|.
-    result = result &&
+             `          if (!Lib.isValidRedirectURL(url)) {` && |\n| &&
              `            Lib.logError(``CrossAppNav EXT: unsafe redirect URL '${url}'``);` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
@@ -762,7 +818,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      try {` && |\n| &&
              `        const wiz = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
              `        const step = ViewSlots.byId("MAIN", args[2]);` && |\n| &&
-             `        const nextStep = ViewSlots.byId("MAIN", args[3]);` && |\n| &&
+             `        const nextStep = ViewSlots.byId("MAIN", args[3]);` && |\n|.
+    result = result &&
              `        if (wiz && step) wiz.discardProgress(step);` && |\n| &&
              `        if (step && nextStep) step.setNextStep(nextStep);` && |\n| &&
              `      } catch (e) {` && |\n| &&
@@ -818,8 +875,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      CONTROL_GLOBAL: evControlCall,` && |\n| &&
              `      BINDING_CALL: evBindingCall,` && |\n| &&
              `    };` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `    // Entry point called by View1.controller's eF().` && |\n| &&
              `    function execute(oController, args) {` && |\n| &&
              `      // runCallbacks isolates each hook in its own try/catch, so a throwing` && |\n| &&

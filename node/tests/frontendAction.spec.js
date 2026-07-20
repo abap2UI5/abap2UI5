@@ -341,6 +341,50 @@ test.describe("BINDING_CALL", () => {
     });
   });
 
+  test("compound groups JSON builds AND-of-ORs (FacetFilter shape)", () => {
+    const { FrontendAction, calls, controls } = load();
+    withListBinding(controls, calls);
+    const json = JSON.stringify([
+      [["CATEGORY", "EQ", "Accessories"], ["CATEGORY", "EQ", "Laptops"]],
+      [["SUPPLIER_NAME", "EQ", "Technocom"]],
+    ]);
+    FrontendAction.execute(null, ["BINDING_CALL", "idList", "items", "filter", json]);
+    expect(calls).toHaveLength(1);
+    const [name, filters] = calls[0];
+    expect(name).toBe("filter");
+    expect(filters).toHaveLength(1);
+    const root = filters[0]; // mock Filter stores (aFilters, bAnd) as (path, operator)
+    expect(root.operator).toBe(true); // AND across groups
+    expect(root.path).toHaveLength(2);
+    expect(root.path[0].operator).toBe(false); // OR inside the group
+    expect(root.path[0].path).toHaveLength(2);
+    expect(root.path[0].path[0]).toMatchObject({ path: "CATEGORY", operator: "EQ", value1: "Accessories" });
+    expect(root.path[1].path[0]).toMatchObject({ path: "SUPPLIER_NAME", operator: "EQ", value1: "Technocom" });
+  });
+
+  test("empty compound groups clear the filter; empty inner groups are skipped", () => {
+    const { FrontendAction, calls, controls } = load();
+    withListBinding(controls, calls);
+    FrontendAction.execute(null, ["BINDING_CALL", "idList", "items", "filter", "[]"]);
+    FrontendAction.execute(null, ["BINDING_CALL", "idList", "items", "filter", "[[],[]]"]);
+    expect(calls).toEqual([
+      ["filter", []],
+      ["filter", []],
+    ]);
+  });
+
+  test("compound groups reject bad operators and malformed JSON", () => {
+    const { FrontendAction, calls, errors, controls } = load();
+    withListBinding(controls, calls);
+    FrontendAction.execute(null, [
+      "BINDING_CALL", "idList", "items", "filter",
+      JSON.stringify([[["NAME", "DROP TABLE", "x"]]]),
+    ]);
+    FrontendAction.execute(null, ["BINDING_CALL", "idList", "items", "filter", "[not json"]);
+    expect(calls).toHaveLength(0);
+    expect(errors).toHaveLength(2);
+  });
+
   test("logs when the control or binding is missing", () => {
     const { FrontendAction, calls, errors } = load();
     FrontendAction.execute(null, [
