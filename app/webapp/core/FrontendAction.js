@@ -87,6 +87,8 @@ sap.ui.define(
       goToStep: ["controlId", "bool"], // Wizard: target step + focus flag
       openBy: ["domRef"], // DatePicker/TimePicker/Menu... anchored open
       setActivePage: ["controlId"], // sap.m.Carousel
+      expandToLevel: ["int"], // sap.m.Tree / sap.ui.table.TreeTable: expand to N levels
+      collapseAll: [], // sap.m.Tree / sap.ui.table.TreeTable: collapse every node
     };
 
     // global object -> lazy getter + its allowed methods (with arg kinds).
