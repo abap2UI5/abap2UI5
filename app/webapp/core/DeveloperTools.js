@@ -518,27 +518,52 @@ sap.ui.define(
         }
       },
 
+      // The ADT REST endpoint that renders the running app's ABAP class
+      // source. Empty when the app class name is unknown (no response yet).
+      getAbapSourceUrl() {
+        const appName = AppState.state.responseData?.S_FRONT?.APP || "";
+        if (!appName) return "";
+        const appId = encodeURIComponent(appName);
+        return `${window.location.origin}/sap/bc/adt/oo/classes/${appId}/source/main`;
+      },
+
+      // Open the ABAP class source as a top-level document in a new browser
+      // tab. The ADT REST endpoint renders it with syntax highlighting and its
+      // own "Open in ABAP Development Tools" link; opening it top-level is what
+      // lets that link's adt:// navigation reach the desktop ADT. From inside
+      // the inline iframe below the jump never worked - browsers suppress a
+      // custom-scheme navigation started in a subframe, and some systems block
+      // framing the ADT endpoint entirely (X-Frame-Options), so the preview is
+      // just blank there. noopener keeps the new tab from reaching back into
+      // window.opener.
+      onOpenAbapInAdt() {
+        const url = this.getAbapSourceUrl();
+        if (!url) return;
+        window.open(url, "_blank", "noopener,noreferrer");
+      },
+
       // Show the ABAP source of the running app inside an iframe.
       showAbapSource(oModel) {
         const contentControl = Fragment.byId(FRAGMENT_ID, "sourceHtml");
         if (!contentControl) return;
 
-        const sFront = AppState.state.responseData?.S_FRONT;
-        const appName = sFront?.APP || "";
-        const appId = encodeURIComponent(appName);
-        const url = `${window.location.origin}/sap/bc/adt/oo/classes/${appId}/source/main`;
+        const url = this.getAbapSourceUrl();
         // setContent (not a bare setProperty) so an already rendered iframe
         // is replaced in the live DOM; a plain property set never reached
         // the DOM once the control had rendered, leaving a stale class
         // on screen after navigating to another app.
         contentControl.setContent(
-          `<iframe src="${url}" style="width:100%;height:85vh;border:none;" />`,
+          url
+            ? `<iframe src="${url}" style="width:100%;height:85vh;border:none;" />`
+            : "",
         );
 
         if (!oModel) return;
         const modelData = oModel.getData();
         modelData.editor_visible = false;
         modelData.source_visible = true;
+        // Drives the "Open in ABAP Development Tools" link's visibility.
+        modelData.hasSource = Boolean(url);
         oModel.refresh();
       },
 
@@ -613,6 +638,7 @@ sap.ui.define(
             type: "json",
             source_visible: false,
             editor_visible: true,
+            hasSource: false,
             hasError: Boolean(AppState.state.lastError),
             hasRetry: typeof AppState.state.lastError?.onRetry === "function",
             value: value,

@@ -26,14 +26,16 @@ function fakeXmlView(viewContent) {
 function loadDeveloperTools({
   views = {},
   oResponse = null,
+  responseData = null,
   errors,
   lastError = null,
   logoutCalls,
   reopenCalls,
   fragment,
+  windowStub,
 } = {}) {
   const AppState = {
-    state: { oResponse, responseData: null, oBody: null, errors, lastError },
+    state: { oResponse, responseData, oBody: null, errors, lastError },
     getGlobal: () => undefined,
   };
   const ViewSlots = { getView: (key) => views[key] };
@@ -71,6 +73,10 @@ function loadDeveloperTools({
         transformToDocument() {
           return null;
         }
+      },
+      window: windowStub || {
+        location: { origin: "https://sap.example.com" },
+        open() {},
       },
     },
   });
@@ -358,6 +364,77 @@ test.describe("Close / Escape returns to the error popup", () => {
     expect(destroyed).toBe(true);
     expect(DeveloperTools.oDialog).toBe(null);
     expect(reopenCalls).toEqual([]);
+  });
+});
+
+test.describe("Source Code tab / ADT jump", () => {
+  const APP = "Z2UI5_CL_MY_APP";
+  const EXPECTED_URL =
+    "https://sap.example.com/sap/bc/adt/oo/classes/Z2UI5_CL_MY_APP/source/main";
+
+  test("getAbapSourceUrl builds the ADT source endpoint for the running app", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      responseData: { S_FRONT: { APP: APP } },
+    });
+    expect(DeveloperTools.getAbapSourceUrl()).toBe(EXPECTED_URL);
+  });
+
+  test("getAbapSourceUrl is empty when the app class name is unknown", () => {
+    const { DeveloperTools } = loadDeveloperTools({
+      responseData: { S_FRONT: {} },
+    });
+    expect(DeveloperTools.getAbapSourceUrl()).toBe("");
+  });
+
+  test("onOpenAbapInAdt opens the source top-level in a new tab", () => {
+    const opened = [];
+    const { DeveloperTools } = loadDeveloperTools({
+      responseData: { S_FRONT: { APP: APP } },
+      windowStub: {
+        location: { origin: "https://sap.example.com" },
+        open: (url, target, features) => opened.push({ url, target, features }),
+      },
+    });
+    DeveloperTools.onOpenAbapInAdt();
+    expect(opened).toEqual([
+      {
+        url: EXPECTED_URL,
+        target: "_blank",
+        features: "noopener,noreferrer",
+      },
+    ]);
+  });
+
+  test("onOpenAbapInAdt does nothing when the app class name is unknown", () => {
+    const opened = [];
+    const { DeveloperTools } = loadDeveloperTools({
+      responseData: { S_FRONT: {} },
+      windowStub: {
+        location: { origin: "https://sap.example.com" },
+        open: (url) => opened.push(url),
+      },
+    });
+    DeveloperTools.onOpenAbapInAdt();
+    expect(opened).toEqual([]);
+  });
+
+  test("showAbapSource frames the source and flags hasSource for the link", () => {
+    let content = null;
+    const fragment = {
+      byId: () => ({
+        setContent: (html) => (content = html),
+      }),
+    };
+    const { DeveloperTools } = loadDeveloperTools({
+      responseData: { S_FRONT: { APP: APP } },
+      fragment,
+    });
+    const modelData = {};
+    DeveloperTools.showAbapSource({ getData: () => modelData, refresh() {} });
+    expect(content).toContain(`src="${EXPECTED_URL}"`);
+    expect(modelData.source_visible).toBe(true);
+    expect(modelData.editor_visible).toBe(false);
+    expect(modelData.hasSource).toBe(true);
   });
 });
 
