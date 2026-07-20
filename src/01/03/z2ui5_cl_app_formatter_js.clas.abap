@@ -43,7 +43,7 @@ CLASS z2ui5_cl_app_formatter_js IMPLEMENTATION.
              `// z2ui5.Util: the implementations live here, Util.js re-exports them as` && |\n| &&
              `// the stable legacy alias. Their names and behavior are a public contract` && |\n| &&
              `// - do not rename or change them.` && |\n| &&
-             `sap.ui.define([], () => {` && |\n| &&
+             `sap.ui.define(["sap/ui/core/IconPool"], (IconPool) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
              `  // Splits an 8-character ABAP date string "YYYYMMDD" into the [year, month,` && |\n| &&
@@ -150,6 +150,25 @@ CLASS z2ui5_cl_app_formatter_js IMPLEMENTATION.
              `      if (status === "Shipped") return "Success";` && |\n| &&
              `      if (status === "Failed Shipping") return "Error";` && |\n| &&
              `      return "None";` && |\n| &&
+             `    },` && |\n| &&
+             `` && |\n| &&
+             `    // Replace %%icon:sap-icon://<name>%% placeholders in a formatted-text` && |\n| &&
+             `    // string with the inline-icon markup MessageStrip formatted text expects` && |\n| &&
+             `    // (mirrors sap.m.MessageStripUtilities.getInlineIcon). The glyph is` && |\n| &&
+             `    // resolved from the icon font via IconPool - CSP-clean, no code` && |\n| &&
+             `    // generation. Plain text passes through unchanged; an unknown icon name` && |\n| &&
+             `    // is dropped. Used as a whole-string formatter on a MessageStrip text` && |\n| &&
+             `    // binding (sap.m.sample.MessageStripWithEnableFormattedText).` && |\n| &&
+             `    expandInlineIcons(text) {` && |\n| &&
+             `      if (!text) return "";` && |\n| &&
+             `      return String(text).replace(` && |\n| &&
+             `        /%%icon:(sap-icon:\/\/[^%]+)%%/g,` && |\n| &&
+             `        (match, uri) => {` && |\n| &&
+             `          const info = IconPool.getIconInfo(uri);` && |\n| &&
+             `          if (!info) return "";` && |\n| &&
+             `          return ``<span class="sapMMsgStripInlineIcon" style="font-family:'${info.fontFamily}'">${info.content}</span>``;` && |\n| &&
+             `        },` && |\n| &&
+             `      );` && |\n| &&
              `    },` && |\n| &&
              `  };` && |\n| &&
              `});` && |\n| &&
