@@ -70,18 +70,23 @@ sap.ui.define(
     // anything"). Scope: imperative methods that have no binding equivalent.
     // ------------------------------------------------------------------
 
-    // control method -> kinds of its positional args.
+    // control method -> kinds of its positional args. Args beyond the
+    // declared kinds are dropped; trailing args the caller did not send are
+    // not passed at all (so `open()` stays a true no-arg call).
     const CONTROL_METHODS = {
-      to: ["controlId"],
+      to: ["controlId", "string"], // target page + optional transitionName
       back: [],
       focus: [],
       scrollToIndex: ["int"],
       scrollTo: ["int", "int"],
-      open: [],
+      open: ["string"], // optional page key (ViewSettingsDialog); PDFViewer/Dialog ignore it
       close: [],
       setExpanded: ["bool"],
       discardProgress: ["controlId"],
       setNextStep: ["controlId"],
+      goToStep: ["controlId", "bool"], // Wizard: target step + focus flag
+      openBy: ["domRef"], // DatePicker/TimePicker/Menu... anchored open
+      setActivePage: ["controlId"], // sap.m.Carousel
     };
 
     // global object -> lazy getter + its allowed methods (with arg kinds).
@@ -127,6 +132,15 @@ sap.ui.define(
             (view && ViewSlots.byId(view.toUpperCase(), raw)) ||
             ViewSlots.resolveById(raw)
           );
+        case "domRef": {
+          // anchor argument for openBy-style methods: resolve the control id
+          // and hand over its DOM element (fallback: the control itself -
+          // every sap.m openBy accepts a control OR a DOM element)
+          const control =
+            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||
+            ViewSlots.resolveById(raw);
+          return control?.getDomRef?.() ?? control;
+        }
         case "object":
           try {
             return JSON.parse(raw);
@@ -139,7 +153,11 @@ sap.ui.define(
     }
 
     function castArgs(kinds, rawArgs, view) {
-      return kinds.map((kind, i) => castArg(kind, rawArgs[i], view));
+      // only cast args the caller actually sent - padding missing trailing
+      // args would turn open() into open(undefined) and ints into NaN
+      return kinds
+        .slice(0, rawArgs.length)
+        .map((kind, i) => castArg(kind, rawArgs[i], view));
     }
 
     // args: [_, id, view, method, ...params]

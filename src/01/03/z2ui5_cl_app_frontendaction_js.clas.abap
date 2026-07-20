@@ -90,18 +90,23 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // anything"). Scope: imperative methods that have no binding equivalent.` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
-             `    // control method -> kinds of its positional args.` && |\n| &&
+             `    // control method -> kinds of its positional args. Args beyond the` && |\n| &&
+             `    // declared kinds are dropped; trailing args the caller did not send are` && |\n| &&
+             `    // not passed at all (so ``open()`` stays a true no-arg call).` && |\n| &&
              `    const CONTROL_METHODS = {` && |\n| &&
-             `      to: ["controlId"],` && |\n| &&
+             `      to: ["controlId", "string"], // target page + optional transitionName` && |\n| &&
              `      back: [],` && |\n| &&
              `      focus: [],` && |\n| &&
              `      scrollToIndex: ["int"],` && |\n| &&
              `      scrollTo: ["int", "int"],` && |\n| &&
-             `      open: [],` && |\n| &&
+             `      open: ["string"], // optional page key (ViewSettingsDialog); PDFViewer/Dialog ignore it` && |\n| &&
              `      close: [],` && |\n| &&
              `      setExpanded: ["bool"],` && |\n| &&
              `      discardProgress: ["controlId"],` && |\n| &&
              `      setNextStep: ["controlId"],` && |\n| &&
+             `      goToStep: ["controlId", "bool"], // Wizard: target step + focus flag` && |\n| &&
+             `      openBy: ["domRef"], // DatePicker/TimePicker/Menu... anchored open` && |\n| &&
+             `      setActivePage: ["controlId"], // sap.m.Carousel` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    // global object -> lazy getter + its allowed methods (with arg kinds).` && |\n| &&
@@ -147,6 +152,15 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||` && |\n| &&
              `            ViewSlots.resolveById(raw)` && |\n| &&
              `          );` && |\n| &&
+             `        case "domRef": {` && |\n| &&
+             `          // anchor argument for openBy-style methods: resolve the control id` && |\n| &&
+             `          // and hand over its DOM element (fallback: the control itself -` && |\n| &&
+             `          // every sap.m openBy accepts a control OR a DOM element)` && |\n| &&
+             `          const control =` && |\n| &&
+             `            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||` && |\n| &&
+             `            ViewSlots.resolveById(raw);` && |\n| &&
+             `          return control?.getDomRef?.() ?? control;` && |\n| &&
+             `        }` && |\n| &&
              `        case "object":` && |\n| &&
              `          try {` && |\n| &&
              `            return JSON.parse(raw);` && |\n| &&
@@ -159,7 +173,11 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function castArgs(kinds, rawArgs, view) {` && |\n| &&
-             `      return kinds.map((kind, i) => castArg(kind, rawArgs[i], view));` && |\n| &&
+             `      // only cast args the caller actually sent - padding missing trailing` && |\n| &&
+             `      // args would turn open() into open(undefined) and ints into NaN` && |\n| &&
+             `      return kinds` && |\n| &&
+             `        .slice(0, rawArgs.length)` && |\n| &&
+             `        .map((kind, i) => castArg(kind, rawArgs[i], view));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // args: [_, id, view, method, ...params]` && |\n| &&
@@ -399,7 +417,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          // consistent with every other redirect handler in this file.` && |\n| &&
              `          const base = window.location.href.split("#")[0];` && |\n| &&
              `          const url = ``${base}${hash}``;` && |\n| &&
-             `          if (!Lib.isValidRedirectURL(url)) {` && |\n| &&
+             `          if (!Lib.isValidRedirectURL(url)) {` && |\n|.
+    result = result &&
              `            Lib.logError(``CrossAppNav EXT: unsafe redirect URL '${url}'``);` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
@@ -417,8 +436,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        MessageBox.error(` && |\n| &&
              `          "Invalid redirect URL. Only relative URLs to the same domain are allowed.",` && |\n| &&
              `        );` && |\n| &&
-             `      }` && |\n|.
-    result = result &&
+             `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // SYSTEM_LOGOUT: prefer the launchpad logout when running inside the` && |\n| &&
@@ -800,7 +818,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      CONTROL_GLOBAL: evControlCall,` && |\n| &&
              `      BINDING_CALL: evBindingCall,` && |\n| &&
              `    };` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `    // Entry point called by View1.controller's eF().` && |\n| &&
              `    function execute(oController, args) {` && |\n| &&
              `      // runCallbacks isolates each hook in its own try/catch, so a throwing` && |\n| &&
@@ -818,8 +837,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    return { execute };` && |\n| &&
-             `  },` && |\n|.
-    result = result &&
+             `  },` && |\n| &&
              `);` && |\n| &&
              `` && |\n| &&
               ``.
