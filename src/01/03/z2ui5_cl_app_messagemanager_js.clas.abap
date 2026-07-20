@@ -32,9 +32,7 @@ CLASS z2ui5_cl_app_messagemanager_js IMPLEMENTATION.
              `    // the same problem (same text, type and target) map to the same key, so` && |\n| &&
              `    // reconciling never adds a duplicate or drops a still-wanted message.` && |\n| &&
              `    const keyOf = (o) =>` && |\n| &&
-             `      [o.MESSAGE ?? o.message, o.TYPE ?? o.type, o.TARGET ?? o.target].join(` && |\n| &&
-             `        "",` && |\n| &&
-             `      );` && |\n| &&
+             `      [o.MESSAGE ?? o.message, o.TYPE ?? o.type, o.TARGET ?? o.target].join("");` && |\n| &&
              `` && |\n| &&
              `    // Invisible companion control that bridges the UI5 message manager to a` && |\n| &&
              `    // two-way bound ABAP table (``items``). The table is the app's OWN messages:` && |\n| &&

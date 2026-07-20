@@ -12,9 +12,7 @@ sap.ui.define(
     // the same problem (same text, type and target) map to the same key, so
     // reconciling never adds a duplicate or drops a still-wanted message.
     const keyOf = (o) =>
-      [o.MESSAGE ?? o.message, o.TYPE ?? o.type, o.TARGET ?? o.target].join(
-        "",
-      );
+      [o.MESSAGE ?? o.message, o.TYPE ?? o.type, o.TARGET ?? o.target].join("");
 
     // Invisible companion control that bridges the UI5 message manager to a
     // two-way bound ABAP table (`items`). The table is the app's OWN messages:
