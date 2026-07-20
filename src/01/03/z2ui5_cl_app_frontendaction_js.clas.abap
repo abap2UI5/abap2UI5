@@ -105,6 +105,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      discardProgress: ["controlId"],` && |\n| &&
              `      setNextStep: ["controlId"],` && |\n| &&
              `      goToStep: ["controlId", "bool"], // Wizard: target step + focus flag` && |\n| &&
+             `      openBy: ["domRef"], // DatePicker/TimePicker/Menu... anchored open` && |\n| &&
+             `      setActivePage: ["controlId"], // sap.m.Carousel` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    // global object -> lazy getter + its allowed methods (with arg kinds).` && |\n| &&
@@ -150,6 +152,15 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||` && |\n| &&
              `            ViewSlots.resolveById(raw)` && |\n| &&
              `          );` && |\n| &&
+             `        case "domRef": {` && |\n| &&
+             `          // anchor argument for openBy-style methods: resolve the control id` && |\n| &&
+             `          // and hand over its DOM element (fallback: the control itself -` && |\n| &&
+             `          // every sap.m openBy accepts a control OR a DOM element)` && |\n| &&
+             `          const control =` && |\n| &&
+             `            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||` && |\n| &&
+             `            ViewSlots.resolveById(raw);` && |\n| &&
+             `          return control?.getDomRef?.() ?? control;` && |\n| &&
+             `        }` && |\n| &&
              `        case "object":` && |\n| &&
              `          try {` && |\n| &&
              `            return JSON.parse(raw);` && |\n| &&
@@ -406,7 +417,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          // consistent with every other redirect handler in this file.` && |\n| &&
              `          const base = window.location.href.split("#")[0];` && |\n| &&
              `          const url = ``${base}${hash}``;` && |\n| &&
-             `          if (!Lib.isValidRedirectURL(url)) {` && |\n| &&
+             `          if (!Lib.isValidRedirectURL(url)) {` && |\n|.
+    result = result &&
              `            Lib.logError(``CrossAppNav EXT: unsafe redirect URL '${url}'``);` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
@@ -417,8 +429,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      });` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function evLocationReload(oController, args) {` && |\n|.
-    result = result &&
+             `    function evLocationReload(oController, args) {` && |\n| &&
              `      if (Lib.isValidRedirectURL(args[1])) {` && |\n| &&
              `        window.location.href = args[1];` && |\n| &&
              `      } else {` && |\n| &&
@@ -807,7 +818,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      CONTROL_GLOBAL: evControlCall,` && |\n| &&
              `      BINDING_CALL: evBindingCall,` && |\n| &&
              `    };` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `    // Entry point called by View1.controller's eF().` && |\n| &&
              `    function execute(oController, args) {` && |\n| &&
              `      // runCallbacks isolates each hook in its own try/catch, so a throwing` && |\n| &&
@@ -818,8 +830,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        const handler = handlers[args[0]];` && |\n| &&
              `        if (handler) handler(oController, args);` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        // Backstop: individual handlers already guard themselves, but a` && |\n|.
-    result = result &&
+             `        // Backstop: individual handlers already guard themselves, but a` && |\n| &&
              `        // malformed payload must never let an error escape into the caller.` && |\n| &&
              `        Lib.logError(``FrontendAction: handler '${args[0]}' failed``, e);` && |\n| &&
              `      }` && |\n| &&

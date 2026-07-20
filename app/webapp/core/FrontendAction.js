@@ -85,6 +85,8 @@ sap.ui.define(
       discardProgress: ["controlId"],
       setNextStep: ["controlId"],
       goToStep: ["controlId", "bool"], // Wizard: target step + focus flag
+      openBy: ["domRef"], // DatePicker/TimePicker/Menu... anchored open
+      setActivePage: ["controlId"], // sap.m.Carousel
     };
 
     // global object -> lazy getter + its allowed methods (with arg kinds).
@@ -130,6 +132,15 @@ sap.ui.define(
             (view && ViewSlots.byId(view.toUpperCase(), raw)) ||
             ViewSlots.resolveById(raw)
           );
+        case "domRef": {
+          // anchor argument for openBy-style methods: resolve the control id
+          // and hand over its DOM element (fallback: the control itself -
+          // every sap.m openBy accepts a control OR a DOM element)
+          const control =
+            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||
+            ViewSlots.resolveById(raw);
+          return control?.getDomRef?.() ?? control;
+        }
         case "object":
           try {
             return JSON.parse(raw);

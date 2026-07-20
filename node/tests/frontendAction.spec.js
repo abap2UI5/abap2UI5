@@ -157,6 +157,33 @@ test.describe("CONTROL_BY_ID", () => {
     expect(calls).toEqual([["goToStep", step2, true]]);
   });
 
+  test("openBy resolves the anchor to its DOM ref (hidden DatePicker)", () => {
+    const { FrontendAction, calls, controls } = load();
+    const dom = { tagName: "BUTTON" };
+    controls.anchorBtn = { getDomRef: () => dom };
+    controls.HiddenDP = { openBy: (ref) => calls.push(["openBy", ref]) };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "HiddenDP", "", "openBy", "anchorBtn"]);
+    expect(calls).toEqual([["openBy", dom]]);
+  });
+
+  test("openBy falls back to the control when no DOM ref is rendered", () => {
+    const { FrontendAction, calls, controls } = load();
+    const anchor = { getDomRef: () => null };
+    controls.anchorBtn = anchor;
+    controls.HiddenDP = { openBy: (ref) => calls.push(["openBy", ref]) };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "HiddenDP", "", "openBy", "anchorBtn"]);
+    expect(calls).toEqual([["openBy", anchor]]);
+  });
+
+  test("setActivePage resolves the page control (Carousel)", () => {
+    const { FrontendAction, calls, controls } = load();
+    const page2 = { id: "carPage2" };
+    controls.carPage2 = page2;
+    controls.carousel = { setActivePage: (p) => calls.push(["setActivePage", p]) };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "carousel", "", "setActivePage", "carPage2"]);
+    expect(calls).toEqual([["setActivePage", page2]]);
+  });
+
   test("discardProgress/setNextStep resolve their controlId arg (wizard)", () => {
     const { FrontendAction, calls, controls } = load();
     const step2 = { id: "STEP2" };
