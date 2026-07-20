@@ -180,7 +180,9 @@ sap.ui.define(
       // client-side, so the decision stays here rather than round-tripping.
       if (method === "toggleBy") {
         if (!control || typeof control.openBy !== "function") {
-          Lib.logError(`CONTROL_BY_ID: 'toggleBy' not callable on control '${id}'`);
+          Lib.logError(
+            `CONTROL_BY_ID: 'toggleBy' not callable on control '${id}'`,
+          );
           return;
         }
         const anchor = castArgs(kinds, args.slice(4), view)[0];

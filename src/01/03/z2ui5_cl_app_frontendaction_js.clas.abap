@@ -200,7 +200,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // client-side, so the decision stays here rather than round-tripping.` && |\n| &&
              `      if (method === "toggleBy") {` && |\n| &&
              `        if (!control || typeof control.openBy !== "function") {` && |\n| &&
-             `          Lib.logError(``CONTROL_BY_ID: 'toggleBy' not callable on control '${id}'``);` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``CONTROL_BY_ID: 'toggleBy' not callable on control '${id}'``,` && |\n| &&
+             `          );` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        const anchor = castArgs(kinds, args.slice(4), view)[0];` && |\n| &&
@@ -415,10 +417,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evCrossAppNavToPrevApp() {` && |\n| &&
-             `      withCrossAppNavigator((nav) => nav.backToPreviousApp());` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n|.
+             `      withCrossAppNavigator((nav) => nav.backToPreviousApp());` && |\n|.
     result = result &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function evSetSizeLimit(oController, args) {` && |\n| &&
              `      // Two call shapes:` && |\n| &&
              `      //   ["SET_SIZE_LIMIT", "<limit>", "<viewKey>"]   -> set the limit` && |\n| &&
@@ -816,10 +818,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function evZ2ui5Custom(oController, args) {` && |\n| &&
-             `      try {` && |\n| &&
-             `        // Custom functions are registered by apps on the public z2ui5` && |\n|.
+             `    function evZ2ui5Custom(oController, args) {` && |\n|.
     result = result &&
+             `      try {` && |\n| &&
+             `        // Custom functions are registered by apps on the public z2ui5` && |\n| &&
              `        // global (js_loader popup), so resolve them via the facade.` && |\n| &&
              `        const fn = AppState.getGlobal(args[1]);` && |\n| &&
              `        if (typeof fn === "function") {` && |\n| &&
