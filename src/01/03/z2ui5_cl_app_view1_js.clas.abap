@@ -31,7 +31,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    "sap/ui/core/BusyIndicator",` && |\n| &&
              `    "sap/m/MessageBox",` && |\n| &&
              `    "sap/ui/core/Fragment",` && |\n| &&
-             `    "sap/m/BusyDialog",` && |\n| &&
              `    "z2ui5/core/Server",` && |\n| &&
              `    "sap/ui/model/odata/v2/ODataModel",` && |\n| &&
              `    "sap/ui/core/routing/HashChanger",` && |\n| &&
@@ -47,7 +46,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `    BusyIndicator,` && |\n| &&
              `    MessageBox,` && |\n| &&
              `    Fragment,` && |\n| &&
-             `    BusyDialog,` && |\n| &&
              `    Server,` && |\n| &&
              `    ODataModel,` && |\n| &&
              `    HashChanger,` && |\n| &&
@@ -60,14 +58,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `    // Helpers reused across calls; kept as module-level singletons.` && |\n| &&
              `    const _hashChanger = HashChanger.getInstance();` && |\n| &&
-             `` && |\n| &&
-             `    // Single reusable BusyDialog flashed when the user clicks while a` && |\n| &&
-             `    // roundtrip is already in flight (created lazily, kept for reuse).` && |\n| &&
-             `    // The timestamp throttles the flash: rapid clicking during a slow` && |\n| &&
-             `    // roundtrip would otherwise run a full open/render/close cycle per` && |\n| &&
-             `    // click without adding any feedback.` && |\n| &&
-             `    let _busyDialog = null;` && |\n| &&
-             `    let _busyFlashUntil = 0;` && |\n| &&
              `` && |\n| &&
              `    function applyStoredSizeLimit(viewKey, oModel) {` && |\n| &&
              `      if (!oModel) return;` && |\n| &&
@@ -380,16 +370,15 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        // If a roundtrip is already in flight, briefly show a BusyDialog so` && |\n| &&
-             `        // the user gets visual feedback instead of a silent click - at most` && |\n| &&
-             `        // once per second, further clicks inside that window are ignored.` && |\n| &&
+             `        // A roundtrip is already in flight and this event's keystroke/click is` && |\n| &&
+             `        // dropped. Surface the global busy indicator right away (0 delay)` && |\n| &&
+             `        // instead of a separate, transient BusyDialog: it is the exact same` && |\n| &&
+             `        // overlay the in-flight roundtrip hides on completion, so the user sees` && |\n| &&
+             `        // one steady indicator until the response lands - not a modal flashing` && |\n| &&
+             `        // in and straight back out over the (1s-delayed) global one. show() is` && |\n| &&
+             `        // idempotent, so repeated drops during the same roundtrip are cheap.` && |\n| &&
              `        if (AppState.state.isBusy && !ignoreBusy) {` && |\n| &&
-             `          if (Date.now() >= _busyFlashUntil) {` && |\n| &&
-             `            _busyFlashUntil = Date.now() + 1000;` && |\n| &&
-             `            if (!_busyDialog) _busyDialog = new BusyDialog();` && |\n| &&
-             `            _busyDialog.open();` && |\n| &&
-             `            queueMicrotask(() => _busyDialog.close());` && |\n| &&
-             `          }` && |\n| &&
+             `          BusyIndicator.show(0);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
@@ -417,8 +406,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        Lib.runCallbacks(AppState.state.onBeforeRoundtrip);` && |\n| &&
              `` && |\n| &&
-             `        // If the user edited /XX/ paths, send only the delta to keep the` && |\n|.
-    result = result &&
+             `        // If the user edited /XX/ paths, send only the delta to keep the` && |\n| &&
              `        // payload small.` && |\n| &&
              `        if (oModel && AppState.state.xxChangedPaths.size > 0) {` && |\n| &&
              `          const data = oModel.getData();` && |\n| &&
@@ -429,7 +417,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `              xx,` && |\n| &&
              `            );` && |\n| &&
              `          }` && |\n| &&
-             `        }` && |\n| &&
+             `        }` && |\n|.
+    result = result &&
              `` && |\n| &&
              `        oBody.ID = AppState.state.oResponse?.ID;` && |\n| &&
              `        // Arguments travel as raw JSON values - the request body is` && |\n| &&
