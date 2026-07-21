@@ -158,6 +158,11 @@ sap.ui.define(
       // newest result is committed and stale ones are dropped.
       _requestSeq: 0,
 
+      // Abort controllers of the requests still in flight. A newly dispatched
+      // request aborts them all - it supersedes them, so there is no point
+      // letting the backend finish work whose response would be dropped anyway.
+      _inflight: new Set(),
+
       endSession() {
         if (!Lib.isValidContextId(AppState.state.contextId)) return;
         // Best-effort notify the backend that the session ends. Errors are
@@ -444,12 +449,41 @@ sap.ui.define(
         };
       },
 
+      // Abort every still-in-flight request. Called when a newer request is
+      // dispatched: the older fetches reject with AbortError, which the
+      // isStale guard in readHttp's catch swallows silently.
+      _abortInflight() {
+        for (const controller of this._inflight) controller.abort();
+        this._inflight.clear();
+      },
+
+      // Merge two abort signals into one for fetch: the fetch is aborted when
+      // either fires (the timeout backstop or a superseding request). Uses
+      // AbortSignal.any where available (2024+) and forwards manually on older
+      // browsers, so the abort works everywhere createTimeoutSignal does.
+      _combineSignals(a, b) {
+        if (AbortSignal.any) return AbortSignal.any([a, b]);
+        const controller = new AbortController();
+        const forward = (sig) => {
+          if (sig.aborted) controller.abort(sig.reason);
+          else {
+            sig.addEventListener("abort", () => controller.abort(sig.reason), {
+              once: true,
+            });
+          }
+        };
+        forward(a);
+        forward(b);
+        return controller.signal;
+      },
+
       async readHttp(oBody) {
         const timeoutMs =
           AppState.getGlobal("requestTimeoutMs") || REQUEST_TIMEOUT_MS;
         // The signal guards the fetch and the response body reads below; the
         // finally releases the fallback timer once the roundtrip settled.
-        const { signal, cancel } = this.createTimeoutSignal(timeoutMs);
+        const { signal: timeoutSignal, cancel } =
+          this.createTimeoutSignal(timeoutMs);
         // A network blip or timeout may mean the request never reached the
         // server, so the error overlay offers a retry that re-sends the
         // exact same request body instead of forcing a full app restart.
@@ -466,6 +500,14 @@ sap.ui.define(
         // newer request the chance to supersede this one mid-parse.
         const seq = ++this._requestSeq;
         const isStale = () => seq !== this._requestSeq;
+
+        // Cancel any request still in flight - this one supersedes them - then
+        // register this request's own controller so a later one can cancel it.
+        // The fetch aborts on either the timeout or a superseding request.
+        this._abortInflight();
+        const superseder = new AbortController();
+        this._inflight.add(superseder);
+        const signal = this._combineSignals(timeoutSignal, superseder.signal);
         try {
           // Step 1: send the request.
           let response;
@@ -557,6 +599,7 @@ sap.ui.define(
             OVIEWMODEL: responseData.MODEL,
           });
         } finally {
+          this._inflight.delete(superseder);
           cancel();
         }
       },

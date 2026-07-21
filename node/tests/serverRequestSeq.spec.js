@@ -26,10 +26,24 @@ function okResponse(id) {
   };
 }
 
+// Fake AbortController that records whether it was aborted, so the specs can
+// assert that a superseded request's fetch is actually cancelled.
+class FakeAbortController {
+  constructor() {
+    this.aborted = false;
+    this.signal = { aborted: false };
+  }
+  abort() {
+    this.aborted = true;
+    this.signal.aborted = true;
+  }
+}
+
 function load() {
   const fetchCalls = [];
   const successes = [];
   const errors = [];
+  const controllers = [];
 
   const { module: Server } = loadModule("core/Server.js", {
     deps: {
@@ -40,9 +54,16 @@ function load() {
       },
     },
     sandbox: {
-      AbortSignal: { timeout: () => ({}) },
-      fetch: () => {
+      AbortSignal: { any: () => ({}), timeout: () => ({}) },
+      AbortController: class extends FakeAbortController {
+        constructor() {
+          super();
+          controllers.push(this);
+        }
+      },
+      fetch: (_url, opts) => {
         const d = defer();
+        d.signal = opts?.signal;
         fetchCalls.push(d);
         return d.promise;
       },
@@ -53,7 +74,7 @@ function load() {
   Server.responseSuccess = (r) => successes.push(r);
   Server.responseError = (m) => errors.push(m);
 
-  return { Server, fetchCalls, successes, errors };
+  return { Server, fetchCalls, successes, errors, controllers };
 }
 
 // Let queued microtasks (the awaits inside readHttp) run.
@@ -103,6 +124,24 @@ test("a superseded request's network error is swallowed (no overlay)", async () 
   expect(errors).toHaveLength(0); // stale failure not surfaced
   expect(successes).toHaveLength(1);
   expect(successes[0].ID).toBe("B");
+});
+
+test("dispatching a newer request aborts the older one still in flight", async () => {
+  const { Server, fetchCalls, controllers } = load();
+
+  const pA = Server.readHttp({}); // seq 1, controller[0]
+  expect(controllers[0].aborted).toBe(false);
+
+  const pB = Server.readHttp({}); // seq 2 -> aborts the older request
+  expect(controllers[0].aborted).toBe(true); // A's fetch cancelled
+  expect(controllers[1].aborted).toBe(false); // B stays live
+
+  // A's fetch rejects with the abort; the stale guard swallows it silently.
+  fetchCalls[0].reject(
+    Object.assign(new Error("aborted"), { name: "AbortError" }),
+  );
+  fetchCalls[1].resolve(okResponse("B"));
+  await Promise.all([pA, pB]);
 });
 
 test("the single response commits in the default (non-parallel) case", async () => {

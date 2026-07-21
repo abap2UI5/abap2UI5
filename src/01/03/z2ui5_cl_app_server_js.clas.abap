@@ -178,6 +178,11 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      // newest result is committed and stale ones are dropped.` && |\n| &&
              `      _requestSeq: 0,` && |\n| &&
              `` && |\n| &&
+             `      // Abort controllers of the requests still in flight. A newly dispatched` && |\n| &&
+             `      // request aborts them all - it supersedes them, so there is no point` && |\n| &&
+             `      // letting the backend finish work whose response would be dropped anyway.` && |\n| &&
+             `      _inflight: new Set(),` && |\n| &&
+             `` && |\n| &&
              `      endSession() {` && |\n| &&
              `        if (!Lib.isValidContextId(AppState.state.contextId)) return;` && |\n| &&
              `        // Best-effort notify the backend that the session ends. Errors are` && |\n| &&
@@ -412,13 +417,13 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `        const oConfig = AppState.getGlobal("oConfig");` && |\n| &&
              `        oBody.S_FRONT = {` && |\n| &&
-             `          CONFIG: {` && |\n| &&
+             `          CONFIG: {` && |\n|.
+    result = result &&
              `            S_UI5: oConfig?.S_UI5,` && |\n| &&
              `            S_DEVICE: this._getDeviceInfo(),` && |\n| &&
              `            S_FOCUS: this._getFocusInfo(),` && |\n| &&
              `            S_SCROLL: this._getScrollInfo(),` && |\n| &&
-             `            ComponentData: oConfig?.ComponentData,` && |\n|.
-    result = result &&
+             `            ComponentData: oConfig?.ComponentData,` && |\n| &&
              `          },` && |\n| &&
              `          ID: oBody.ID,` && |\n| &&
              `          ORIGIN: window.location.origin,` && |\n| &&
@@ -465,12 +470,41 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        };` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      // Abort every still-in-flight request. Called when a newer request is` && |\n| &&
+             `      // dispatched: the older fetches reject with AbortError, which the` && |\n| &&
+             `      // isStale guard in readHttp's catch swallows silently.` && |\n| &&
+             `      _abortInflight() {` && |\n| &&
+             `        for (const controller of this._inflight) controller.abort();` && |\n| &&
+             `        this._inflight.clear();` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // Merge two abort signals into one for fetch: the fetch is aborted when` && |\n| &&
+             `      // either fires (the timeout backstop or a superseding request). Uses` && |\n| &&
+             `      // AbortSignal.any where available (2024+) and forwards manually on older` && |\n| &&
+             `      // browsers, so the abort works everywhere createTimeoutSignal does.` && |\n| &&
+             `      _combineSignals(a, b) {` && |\n| &&
+             `        if (AbortSignal.any) return AbortSignal.any([a, b]);` && |\n| &&
+             `        const controller = new AbortController();` && |\n| &&
+             `        const forward = (sig) => {` && |\n| &&
+             `          if (sig.aborted) controller.abort(sig.reason);` && |\n| &&
+             `          else {` && |\n| &&
+             `            sig.addEventListener("abort", () => controller.abort(sig.reason), {` && |\n| &&
+             `              once: true,` && |\n| &&
+             `            });` && |\n| &&
+             `          }` && |\n| &&
+             `        };` && |\n| &&
+             `        forward(a);` && |\n| &&
+             `        forward(b);` && |\n| &&
+             `        return controller.signal;` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      async readHttp(oBody) {` && |\n| &&
              `        const timeoutMs =` && |\n| &&
              `          AppState.getGlobal("requestTimeoutMs") || REQUEST_TIMEOUT_MS;` && |\n| &&
              `        // The signal guards the fetch and the response body reads below; the` && |\n| &&
              `        // finally releases the fallback timer once the roundtrip settled.` && |\n| &&
-             `        const { signal, cancel } = this.createTimeoutSignal(timeoutMs);` && |\n| &&
+             `        const { signal: timeoutSignal, cancel } =` && |\n| &&
+             `          this.createTimeoutSignal(timeoutMs);` && |\n| &&
              `        // A network blip or timeout may mean the request never reached the` && |\n| &&
              `        // server, so the error overlay offers a retry that re-sends the` && |\n| &&
              `        // exact same request body instead of forcing a full app restart.` && |\n| &&
@@ -487,6 +521,14 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        // newer request the chance to supersede this one mid-parse.` && |\n| &&
              `        const seq = ++this._requestSeq;` && |\n| &&
              `        const isStale = () => seq !== this._requestSeq;` && |\n| &&
+             `` && |\n| &&
+             `        // Cancel any request still in flight - this one supersedes them - then` && |\n| &&
+             `        // register this request's own controller so a later one can cancel it.` && |\n| &&
+             `        // The fetch aborts on either the timeout or a superseding request.` && |\n| &&
+             `        this._abortInflight();` && |\n| &&
+             `        const superseder = new AbortController();` && |\n| &&
+             `        this._inflight.add(superseder);` && |\n| &&
+             `        const signal = this._combineSignals(timeoutSignal, superseder.signal);` && |\n| &&
              `        try {` && |\n| &&
              `          // Step 1: send the request.` && |\n| &&
              `          let response;` && |\n| &&
@@ -578,6 +620,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            OVIEWMODEL: responseData.MODEL,` && |\n| &&
              `          });` && |\n| &&
              `        } finally {` && |\n| &&
+             `          this._inflight.delete(superseder);` && |\n| &&
              `          cancel();` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
