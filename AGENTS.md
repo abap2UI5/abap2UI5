@@ -36,9 +36,9 @@ Browser (UI5 SPA)                          ABAP Backend
        │──── HTTP GET ─────────────────────────→│  Returns HTML + embedded UI5 app
        │←─── HTML page ────────────────────────│
        │                                        │
-       │──── POST {S_FRONT, XX model} ────────→│  1. Parse JSON request
+       │──── POST {S_FRONT, MODEL} ────────────→│  1. Parse JSON request
        │                                        │  2. Load draft (session) from DB
-       │                                        │  3. Apply model changes (XX → ABAP vars)
+       │                                        │  3. Apply model changes (MODEL → ABAP vars)
        │                                        │  4. Call app->main(client)
        │                                        │  5. App builds view / handles events
        │                                        │  6. Save new draft to DB
@@ -48,7 +48,7 @@ Browser (UI5 SPA)                          ABAP Backend
        │──── POST (next event) ───────────────→│  ... repeat
 ```
 
-**Request JSON** contains `S_FRONT` (event name, draft ID, browser state) and `XX` (two-way binding changes as deltas).
+**Request JSON** contains `S_FRONT` (event name, draft ID, browser state) and `MODEL` (view model changes as deltas).
 **Response JSON** contains a new draft ID, view XML strings (if view changed), the full JSON model, messages, and follow-up actions.
 
 #### Launchpad Special Case — Request Body Wrapping
@@ -117,14 +117,20 @@ The framework provides **transparent two-way data binding** between ABAP variabl
 
 | Method | Path Format | Direction | Use Case |
 |---|---|---|---|
-| `client->_bind_edit(var)` | `{/XX/attribute}` | ABAP ↔ UI (two-way) | Input fields, editable data |
-| `client->_bind(var)` | `{/attribute}` | ABAP → UI (read-only) | Display fields, labels |
+| `client->_bind(var)` | `{/attribute}` | ABAP ↔ UI (two-way) | Any bound data — input, display, tables |
+| `client->_bind_edit(var)` | `{/attribute}` | ABAP ↔ UI (two-way) | Obsolete alias of `_bind`, kept for compatibility |
 
 **How it works:**
-1. When you call `_bind_edit(name)`, the framework discovers the ABAP attribute via RTTI and maps it to a UI5 model path `/XX/name`
+1. When you call `_bind(name)`, the framework discovers the ABAP attribute via RTTI and maps it to a UI5 model path `/name`
 2. On outbound (ABAP → browser): all bound attributes are serialized to JSON and sent as `MODEL`
-3. On inbound (browser → ABAP): only `/XX/` prefixed attributes (two-way) are read back from the request and written into the ABAP variables
+3. On inbound (browser → ABAP): the edited model paths are read back from the request `MODEL` container and written into the ABAP variables
 4. Table bindings use **delta updates** — only changed rows/cells are transferred
+
+> **Historical note:** two-way data used to live under a dedicated `XX/` view-model
+> node (`_bind_edit` → `/XX/name`) so the frontend knew which subtree to transport
+> back, while `_bind` wrote read-only data to the root. Delta handling made that
+> separation obsolete: everything is now written to the root model the same way and
+> `_bind`/`_bind_edit` behave identically.
 
 ### Session Persistence (Draft Service)
 

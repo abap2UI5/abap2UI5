@@ -117,7 +117,7 @@ sap.ui.define(
     // Wire format - request (POST body; VIEWNAME/ARGUMENTS are folded into
     // S_FRONT before sending, empty fields are removed):
     //   { "value": {
-    //       "XX": {                        // two-way model delta
+    //       "MODEL": {                     // view model delta
     //         "NAME": "new value",         //   scalar: full attribute
     //         "TAB": { "__delta": { "0": { "COL1": "new cell" } } }
     //       },
@@ -146,7 +146,7 @@ sap.ui.define(
     //         "SET_NAV_BACK": ""           // browser/history follow-ups
     //       }
     //     },
-    //     "MODEL": { "XX": {...}, ... }    // full JSON view model, becomes
+    //     "MODEL": { "NAME": ..., ... }    // full JSON view model, becomes
     //   }                                  // the view's binding model
     //
     // Inspect live payloads via the developer tools (Ctrl+F12): "Previous
@@ -427,7 +427,7 @@ sap.ui.define(
         // and these keys are not present in the JSON sent over the wire.
         if (!sFront.T_EVENT_ARG?.length) delete sFront.T_EVENT_ARG;
         if (sFront.SEARCH === "") delete sFront.SEARCH;
-        if (!oBody.XX) delete oBody.XX;
+        if (!oBody.MODEL) delete oBody.MODEL;
 
         this.readHttp(oBody);
       },
@@ -592,7 +592,7 @@ sap.ui.define(
 
           // Step 4: hand the parsed response to the success handler.
           AppState.state.responseData = responseData;
-          AppState.state.xxChangedPaths = new Set();
+          AppState.state.changedPaths = new Set();
           this.responseSuccess({
             ID: responseData.S_FRONT.ID,
             PARAMS: responseData.S_FRONT.PARAMS,

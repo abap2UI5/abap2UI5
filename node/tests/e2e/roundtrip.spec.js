@@ -71,10 +71,10 @@ test("returns the backend-built view XML on app start", async ({
 
   const xml = body.S_FRONT.PARAMS?.S_VIEW?.XML;
   expect(xml).toContain("<mvc:View");
-  expect(xml).toContain('value="{/XX/NAME}"');
+  expect(xml).toContain('value="{/NAME}"');
   expect(xml).toContain("BUTTON_POST");
   // the two-way bound attribute is seeded in the model
-  expect(body.MODEL.XX).toHaveProperty("NAME");
+  expect(body.MODEL).toHaveProperty("NAME");
 });
 
 test("applies the model delta before on_event and answers the event", async ({
@@ -93,7 +93,7 @@ test("applies the model delta before on_event and answers the event", async ({
     await request.post("/", {
       data: {
         value: {
-          XX: { NAME: "Roundtrip" },
+          MODEL: { NAME: "Roundtrip" },
           S_FRONT: {
             ORIGIN: "http://localhost:3000",
             PATHNAME: "/",

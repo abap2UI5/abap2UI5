@@ -61,7 +61,7 @@
 //                     the developer tools)
 //   contextId         stateful session id, header transport (Server)
 //   isBusy            roundtrip in flight (View1.eB / Server)
-//   xxChangedPaths    Set of edited /XX/ model paths for the delta (View1)
+//   changedPaths      Set of edited model paths for the delta (View1)
 //   checkNestAfter, checkNestAfter2  nested views rebuilt this roundtrip
 //   search            overrides location.search in S_FRONT; never written
 //                     by the framework itself, set externally (custom JS)
@@ -107,7 +107,7 @@ sap.ui.define([], () => {
       responseData: null,
       contextId: null,
       isBusy: false,
-      xxChangedPaths: new Set(),
+      changedPaths: new Set(),
       checkNestAfter: false,
       checkNestAfter2: false,
       search: null,

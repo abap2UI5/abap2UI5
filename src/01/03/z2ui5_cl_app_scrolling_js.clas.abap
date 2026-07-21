@@ -69,7 +69,7 @@ CLASS z2ui5_cl_app_scrolling_js IMPLEMENTATION.
              `        if (!items) return;` && |\n| &&
              `        try {` && |\n| &&
              `          // Resolve the binding path so we can mark only changed entries` && |\n| &&
-             `          // as dirty in xxChangedPaths.` && |\n| &&
+             `          // as dirty in changedPaths.` && |\n| &&
              `          const bindingInfo = this.getBindingInfo("items");` && |\n| &&
              `          const bindingPath =` && |\n| &&
              `            bindingInfo?.parts?.[0]?.path ?? bindingInfo?.path;` && |\n| &&
@@ -78,7 +78,7 @@ CLASS z2ui5_cl_app_scrolling_js IMPLEMENTATION.
              `            if (item.V !== scrollTop) {` && |\n| &&
              `              item.V = scrollTop;` && |\n| &&
              `              if (bindingPath) {` && |\n| &&
-             `                AppState.state.xxChangedPaths.add(``${bindingPath}/${index}/V``);` && |\n| &&
+             `                AppState.state.changedPaths.add(``${bindingPath}/${index}/V``);` && |\n| &&
              `              }` && |\n| &&
              `            }` && |\n| &&
              `          }` && |\n| &&

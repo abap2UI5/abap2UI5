@@ -148,9 +148,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
                       sub  = `>`
                       with = ``
                       occ  = 0 ).
-    result = COND #( WHEN mv_type = z2ui5_if_core_types=>cs_bind_type-two_way
-                     THEN |/{ z2ui5_if_core_types=>cs_ui5-two_way_model }| )
-        && |/{ result }|.
+    result = |/{ result }|.
 
   ENDMETHOD.
 
@@ -193,12 +191,6 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
       update_model_attri( ).
     ENDIF.
     result = mr_attri->name_client.
-
-    IF result = |/{ z2ui5_if_core_types=>cs_ui5-two_way_model }|.
-      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
-        EXPORTING val = `<p>Name of variable not allowed - XX is a reserved word - use another name for your attribute`.
-
-    ENDIF.
 
     IF ms_config-switch_default_model = abap_true.
       result = |http>{ result }|.

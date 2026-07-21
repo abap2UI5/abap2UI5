@@ -49,7 +49,7 @@ CLASS ltcl_test_bind DEFINITION FINAL
 
   PRIVATE SECTION.
     METHODS test_one_way           FOR TESTING RAISING cx_static_check.
-    METHODS test_one_way_w_x_error FOR TESTING RAISING cx_static_check.
+    METHODS test_attri_named_xx    FOR TESTING RAISING cx_static_check.
     METHODS test_error_diff        FOR TESTING RAISING cx_static_check.
     METHODS test_two_way           FOR TESTING RAISING cx_static_check.
 
@@ -57,22 +57,21 @@ ENDCLASS.
 
 
 CLASS ltcl_test_bind IMPLEMENTATION.
-  METHOD test_one_way_w_x_error.
+  METHOD test_attri_named_xx.
 
+    " XX used to be a reserved model-node name; now that the two-way data
+    " lives directly on the root, an attribute named XX binds like any other
     DATA(lo_app_client) = NEW ltcl_test_app( ).
     DATA(lo_app) = NEW z2ui5_cl_core_app( ).
     lo_app->mo_app = lo_app_client.
 
     DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
 
-    TRY.
-        lo_bind->main( val  = REF #( lo_app_client->xx )
-                       type = z2ui5_if_core_types=>cs_bind_type-one_way ).
+    DATA(lv_bind) = lo_bind->main( val  = REF #( lo_app_client->xx )
+                                   type = z2ui5_if_core_types=>cs_bind_type-two_way ).
 
-        cl_abap_unit_assert=>abort( ).
-
-      CATCH cx_root ##NO_HANDLER.
-    ENDTRY.
+    cl_abap_unit_assert=>assert_equals( exp = `{/XX}`
+                                        act = lv_bind ).
 
   ENDMETHOD.
 

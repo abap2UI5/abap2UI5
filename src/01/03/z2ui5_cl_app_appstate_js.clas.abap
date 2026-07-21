@@ -81,7 +81,7 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `//                     the developer tools)` && |\n| &&
              `//   contextId         stateful session id, header transport (Server)` && |\n| &&
              `//   isBusy            roundtrip in flight (View1.eB / Server)` && |\n| &&
-             `//   xxChangedPaths    Set of edited /XX/ model paths for the delta (View1)` && |\n| &&
+             `//   changedPaths      Set of edited model paths for the delta (View1)` && |\n| &&
              `//   checkNestAfter, checkNestAfter2  nested views rebuilt this roundtrip` && |\n| &&
              `//   search            overrides location.search in S_FRONT; never written` && |\n| &&
              `//                     by the framework itself, set externally (custom JS)` && |\n| &&
@@ -127,7 +127,7 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `      responseData: null,` && |\n| &&
              `      contextId: null,` && |\n| &&
              `      isBusy: false,` && |\n| &&
-             `      xxChangedPaths: new Set(),` && |\n| &&
+             `      changedPaths: new Set(),` && |\n| &&
              `      checkNestAfter: false,` && |\n| &&
              `      checkNestAfter2: false,` && |\n| &&
              `      search: null,` && |\n| &&
