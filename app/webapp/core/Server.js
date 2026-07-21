@@ -152,6 +152,12 @@ sap.ui.define(
     // Inspect live payloads via the developer tools (Ctrl+F12): "Previous
     // Request" and "Response".
     return {
+      // Monotonic id stamped on every dispatched request (see readHttp). When
+      // parallel requests are allowed (check_allow_multi_req), it lets a
+      // response tell whether a newer request has since gone out, so only the
+      // newest result is committed and stale ones are dropped.
+      _requestSeq: 0,
+
       endSession() {
         if (!Lib.isValidContextId(AppState.state.contextId)) return;
         // Best-effort notify the backend that the session ends. Errors are
@@ -448,6 +454,18 @@ sap.ui.define(
         // server, so the error overlay offers a retry that re-sends the
         // exact same request body instead of forcing a full app restart.
         const oRetry = { onRetry: () => this.readHttp(oBody) };
+
+        // Stamp this request and treat its response as stale once a newer
+        // request has been dispatched. With parallel requests allowed
+        // (check_allow_multi_req) responses can arrive out of order; only the
+        // newest may commit its result, so a slow older response never
+        // overwrites a newer view, caret or session id. In the default
+        // blocking mode only one request is ever in flight, so this never
+        // fires. The check is repeated before every state mutation because the
+        // body reads below (text/json) each yield the event loop, giving a
+        // newer request the chance to supersede this one mid-parse.
+        const seq = ++this._requestSeq;
+        const isStale = () => seq !== this._requestSeq;
         try {
           // Step 1: send the request.
           let response;
@@ -469,6 +487,9 @@ sap.ui.define(
               signal,
             });
           } catch (e) {
+            // A superseded request that fails is not the user's concern - the
+            // newer request owns the outcome, so swallow it without an overlay.
+            if (isStale()) return;
             if (e.name === "TimeoutError" || e.name === "AbortError") {
               this.responseError(
                 `No backend response within ${timeoutMs / 1000} seconds - request aborted`,
@@ -484,6 +505,9 @@ sap.ui.define(
             }
             return;
           }
+          // A newer request went out while this one was in flight - drop it
+          // whole: no session id adoption, no error overlay, no render.
+          if (isStale()) return;
           // Keep the last valid session id; a response without the header
           // (returns null) must not wipe an established session.
           const contextId = response.headers.get("sap-contextid");
@@ -500,6 +524,7 @@ sap.ui.define(
             } catch {
               text = `HTTP ${response.status}: could not read error body`;
             }
+            if (isStale()) return;
             // An empty error body would render an empty overlay - fall back
             // to the status code so the user sees at least what failed.
             this.responseError(text || `HTTP ${response.status}`);
@@ -511,9 +536,13 @@ sap.ui.define(
           try {
             responseData = await response.json();
           } catch (e) {
+            if (isStale()) return;
             this.responseError(`Invalid JSON response: ${e.message}`);
             return;
           }
+          // Last check before committing: a newer request may have arrived
+          // while the body was being parsed.
+          if (isStale()) return;
           if (!responseData || !responseData.S_FRONT) {
             this.responseError("Invalid response: missing S_FRONT");
             return;

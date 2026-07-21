@@ -1,0 +1,117 @@
+// @ts-check
+const { test, expect } = require("@playwright/test");
+const { loadModule } = require("./loadModule");
+
+// Tests Server.readHttp request sequencing (last-write-wins). When parallel
+// requests are allowed (check_allow_multi_req), responses can arrive out of
+// order. Only the newest dispatched request may commit its result; a slower
+// older response is dropped so it can never overwrite a newer view/caret/
+// session id. In the default blocking mode only one request is in flight, so
+// the single response always commits.
+
+function defer() {
+  let resolve, reject;
+  const promise = new Promise((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
+
+function okResponse(id) {
+  return {
+    ok: true,
+    headers: { get: () => null },
+    json: async () => ({ S_FRONT: { ID: id, PARAMS: {} }, MODEL: {} }),
+  };
+}
+
+function load() {
+  const fetchCalls = [];
+  const successes = [];
+  const errors = [];
+
+  const { module: Server } = loadModule("core/Server.js", {
+    deps: {
+      "z2ui5/core/Lib": { isValidContextId: () => false },
+      "z2ui5/core/AppState": {
+        getGlobal: (k) => (k === "url" ? "/url" : undefined),
+        state: {},
+      },
+    },
+    sandbox: {
+      AbortSignal: { timeout: () => ({}) },
+      fetch: () => {
+        const d = defer();
+        fetchCalls.push(d);
+        return d.promise;
+      },
+    },
+  });
+
+  // Spy on the commit handlers instead of running the real render.
+  Server.responseSuccess = (r) => successes.push(r);
+  Server.responseError = (m) => errors.push(m);
+
+  return { Server, fetchCalls, successes, errors };
+}
+
+// Let queued microtasks (the awaits inside readHttp) run.
+const flush = () => new Promise((r) => setTimeout(r, 0));
+
+test("drops the older response when a newer request went out (older resolves first)", async () => {
+  const { Server, fetchCalls, successes } = load();
+
+  const pA = Server.readHttp({}); // seq 1
+  const pB = Server.readHttp({}); // seq 2 -> newest
+
+  fetchCalls[0].resolve(okResponse("A")); // older resolves first
+  await flush();
+  fetchCalls[1].resolve(okResponse("B"));
+  await Promise.all([pA, pB]);
+
+  expect(successes).toHaveLength(1);
+  expect(successes[0].ID).toBe("B");
+});
+
+test("drops the older response when the newer one resolves first", async () => {
+  const { Server, fetchCalls, successes } = load();
+
+  const pA = Server.readHttp({}); // seq 1
+  const pB = Server.readHttp({}); // seq 2 -> newest
+
+  fetchCalls[1].resolve(okResponse("B")); // newest resolves first
+  await flush();
+  fetchCalls[0].resolve(okResponse("A")); // stale, must be ignored
+  await Promise.all([pA, pB]);
+
+  expect(successes).toHaveLength(1);
+  expect(successes[0].ID).toBe("B");
+});
+
+test("a superseded request's network error is swallowed (no overlay)", async () => {
+  const { Server, fetchCalls, successes, errors } = load();
+
+  const pA = Server.readHttp({}); // seq 1
+  const pB = Server.readHttp({}); // seq 2 -> newest
+
+  fetchCalls[0].reject(new Error("boom")); // stale request fails
+  await flush();
+  fetchCalls[1].resolve(okResponse("B"));
+  await Promise.all([pA, pB]);
+
+  expect(errors).toHaveLength(0); // stale failure not surfaced
+  expect(successes).toHaveLength(1);
+  expect(successes[0].ID).toBe("B");
+});
+
+test("the single response commits in the default (non-parallel) case", async () => {
+  const { Server, fetchCalls, successes } = load();
+
+  const p = Server.readHttp({}); // seq 1, nothing newer
+  fetchCalls[0].resolve(okResponse("only"));
+  await p;
+
+  expect(successes).toHaveLength(1);
+  expect(successes[0].ID).toBe("only");
+});

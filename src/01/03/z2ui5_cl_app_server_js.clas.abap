@@ -172,6 +172,12 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    // Inspect live payloads via the developer tools (Ctrl+F12): "Previous` && |\n| &&
              `    // Request" and "Response".` && |\n| &&
              `    return {` && |\n| &&
+             `      // Monotonic id stamped on every dispatched request (see readHttp). When` && |\n| &&
+             `      // parallel requests are allowed (check_allow_multi_req), it lets a` && |\n| &&
+             `      // response tell whether a newer request has since gone out, so only the` && |\n| &&
+             `      // newest result is committed and stale ones are dropped.` && |\n| &&
+             `      _requestSeq: 0,` && |\n| &&
+             `` && |\n| &&
              `      endSession() {` && |\n| &&
              `        if (!Lib.isValidContextId(AppState.state.contextId)) return;` && |\n| &&
              `        // Best-effort notify the backend that the session ends. Errors are` && |\n| &&
@@ -411,14 +417,14 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            S_DEVICE: this._getDeviceInfo(),` && |\n| &&
              `            S_FOCUS: this._getFocusInfo(),` && |\n| &&
              `            S_SCROLL: this._getScrollInfo(),` && |\n| &&
-             `            ComponentData: oConfig?.ComponentData,` && |\n| &&
+             `            ComponentData: oConfig?.ComponentData,` && |\n|.
+    result = result &&
              `          },` && |\n| &&
              `          ID: oBody.ID,` && |\n| &&
              `          ORIGIN: window.location.origin,` && |\n| &&
              `          PATHNAME: window.location.pathname,` && |\n| &&
              `          SEARCH: state.search || window.location.search,` && |\n| &&
-             `          VIEW: oBody.VIEWNAME,` && |\n|.
-    result = result &&
+             `          VIEW: oBody.VIEWNAME,` && |\n| &&
              `          EVENT: eventName,` && |\n| &&
              `          HASH: window.location.hash,` && |\n| &&
              `        };` && |\n| &&
@@ -469,6 +475,18 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        // server, so the error overlay offers a retry that re-sends the` && |\n| &&
              `        // exact same request body instead of forcing a full app restart.` && |\n| &&
              `        const oRetry = { onRetry: () => this.readHttp(oBody) };` && |\n| &&
+             `` && |\n| &&
+             `        // Stamp this request and treat its response as stale once a newer` && |\n| &&
+             `        // request has been dispatched. With parallel requests allowed` && |\n| &&
+             `        // (check_allow_multi_req) responses can arrive out of order; only the` && |\n| &&
+             `        // newest may commit its result, so a slow older response never` && |\n| &&
+             `        // overwrites a newer view, caret or session id. In the default` && |\n| &&
+             `        // blocking mode only one request is ever in flight, so this never` && |\n| &&
+             `        // fires. The check is repeated before every state mutation because the` && |\n| &&
+             `        // body reads below (text/json) each yield the event loop, giving a` && |\n| &&
+             `        // newer request the chance to supersede this one mid-parse.` && |\n| &&
+             `        const seq = ++this._requestSeq;` && |\n| &&
+             `        const isStale = () => seq !== this._requestSeq;` && |\n| &&
              `        try {` && |\n| &&
              `          // Step 1: send the request.` && |\n| &&
              `          let response;` && |\n| &&
@@ -490,6 +508,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `              signal,` && |\n| &&
              `            });` && |\n| &&
              `          } catch (e) {` && |\n| &&
+             `            // A superseded request that fails is not the user's concern - the` && |\n| &&
+             `            // newer request owns the outcome, so swallow it without an overlay.` && |\n| &&
+             `            if (isStale()) return;` && |\n| &&
              `            if (e.name === "TimeoutError" || e.name === "AbortError") {` && |\n| &&
              `              this.responseError(` && |\n| &&
              `                ``No backend response within ${timeoutMs / 1000} seconds - request aborted``,` && |\n| &&
@@ -505,6 +526,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            }` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
+             `          // A newer request went out while this one was in flight - drop it` && |\n| &&
+             `          // whole: no session id adoption, no error overlay, no render.` && |\n| &&
+             `          if (isStale()) return;` && |\n| &&
              `          // Keep the last valid session id; a response without the header` && |\n| &&
              `          // (returns null) must not wipe an established session.` && |\n| &&
              `          const contextId = response.headers.get("sap-contextid");` && |\n| &&
@@ -521,6 +545,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            } catch {` && |\n| &&
              `              text = ``HTTP ${response.status}: could not read error body``;` && |\n| &&
              `            }` && |\n| &&
+             `            if (isStale()) return;` && |\n| &&
              `            // An empty error body would render an empty overlay - fall back` && |\n| &&
              `            // to the status code so the user sees at least what failed.` && |\n| &&
              `            this.responseError(text || ``HTTP ${response.status}``);` && |\n| &&
@@ -532,9 +557,13 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          try {` && |\n| &&
              `            responseData = await response.json();` && |\n| &&
              `          } catch (e) {` && |\n| &&
+             `            if (isStale()) return;` && |\n| &&
              `            this.responseError(``Invalid JSON response: ${e.message}``);` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
+             `          // Last check before committing: a newer request may have arrived` && |\n| &&
+             `          // while the body was being parsed.` && |\n| &&
+             `          if (isStale()) return;` && |\n| &&
              `          if (!responseData || !responseData.S_FRONT) {` && |\n| &&
              `            this.responseError("Invalid response: missing S_FRONT");` && |\n| &&
              `            return;` && |\n| &&
