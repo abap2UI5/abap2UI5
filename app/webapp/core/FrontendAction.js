@@ -85,8 +85,8 @@ sap.ui.define(
       discardProgress: ["controlId"],
       setNextStep: ["controlId"],
       goToStep: ["controlId", "bool"], // Wizard: target step + focus flag
-      openBy: ["domRef"], // DatePicker/TimePicker/Menu... anchored open
-      toggleBy: ["domRef"], // sap.m.Menu/Popover: open anchored if closed, close if open
+      openBy: ["anchor"], // DatePicker/TimePicker/Menu/MessagePopover... anchored open
+      toggleBy: ["anchor"], // sap.m.Menu/MessagePopover: open anchored if closed, close if open
       setActivePage: ["controlId"], // sap.m.Carousel
       expandToLevel: ["int"], // sap.m.Tree / sap.ui.table.TreeTable: expand to N levels
       collapseAll: [], // sap.m.Tree / sap.ui.table.TreeTable: collapse every node
@@ -135,15 +135,18 @@ sap.ui.define(
             (view && ViewSlots.byId(view.toUpperCase(), raw)) ||
             ViewSlots.resolveById(raw)
           );
-        case "domRef": {
+        case "anchor":
           // anchor argument for openBy-style methods: resolve the control id
-          // and hand over its DOM element (fallback: the control itself -
-          // every sap.m openBy accepts a control OR a DOM element)
-          const control =
+          // and hand over the CONTROL itself, not its DOM element. Every
+          // sap.m openBy accepts a control, and MessagePopover.openBy
+          // dereferences oControl.getParent() on its argument, so a bare DOM
+          // element throws ("getParent is not a function") and the popup never
+          // opens. DatePicker/TimePicker/Menu accept a control just as well,
+          // so a control is the universally-correct anchor.
+          return (
             (view && ViewSlots.byId(view.toUpperCase(), raw)) ||
-            ViewSlots.resolveById(raw);
-          return control?.getDomRef?.() ?? control;
-        }
+            ViewSlots.resolveById(raw)
+          );
         case "object":
           try {
             return JSON.parse(raw);
@@ -163,6 +166,18 @@ sap.ui.define(
         .map((kind, i) => castArg(kind, rawArgs[i], view));
     }
 
+    // Run fn once the openBy/toggleBy anchor is in the DOM. A control anchor
+    // goes through Lib.whenRendered (immediate if already rendered, otherwise
+    // after its next onAfterRendering); anything else (a bare DOM element, or a
+    // missing anchor) runs fn straight away.
+    function whenAnchorRendered(anchor, oController, fn) {
+      if (anchor && typeof anchor.getDomRef === "function") {
+        Lib.whenRendered(anchor, oController, fn);
+      } else {
+        fn();
+      }
+    }
+
     // args: [_, id, view, method, ...params]
     function evControlCallById(oController, args) {
       const [id, view, method] = [args[1], args[2], args[3]];
@@ -175,8 +190,8 @@ sap.ui.define(
         ? ViewSlots.byId(view.toUpperCase(), id)
         : ViewSlots.resolveById(id);
       // toggleBy is not a real control method: open the control anchored to
-      // the domRef if it is closed, close it if it is already open (mirrors
-      // openBy for a press-to-toggle button). The popup's open state lives
+      // the anchor control if it is closed, close it if it is already open
+      // (mirrors openBy for a press-to-toggle button). The popup's open state lives
       // client-side, so the decision stays here rather than round-tripping.
       if (method === "toggleBy") {
         if (!control || typeof control.openBy !== "function") {
@@ -186,17 +201,25 @@ sap.ui.define(
           return;
         }
         const anchor = castArgs(kinds, args.slice(4), view)[0];
-        if (control.isOpen?.()) {
-          control.close();
-        } else {
-          control.openBy(anchor);
-        }
+        // Defer the open until the anchor is rendered: a Save-style roundtrip
+        // can make the anchor (e.g. a button hidden until there are messages)
+        // visible in the same response, so it may not be in the DOM yet.
+        whenAnchorRendered(anchor, oController, () => {
+          if (control.isOpen?.()) control.close();
+          else control.openBy(anchor);
+        });
         return;
       }
       if (!control || typeof control[method] !== "function") {
         Lib.logError(
           `CONTROL_BY_ID: '${method}' not callable on control '${id}'`,
         );
+        return;
+      }
+      if (method === "openBy") {
+        const anchor = castArgs(kinds, args.slice(4), view)[0];
+        // Same reason as toggleBy: wait for the anchor to render.
+        whenAnchorRendered(anchor, oController, () => control.openBy(anchor));
         return;
       }
       control[method](...castArgs(kinds, args.slice(4), view));
@@ -676,7 +699,10 @@ sap.ui.define(
     }
 
     function evSetFocus(oController, args) {
-      const oElement = ViewSlots.byId("MAIN", args[1]);
+      // resolveById (not byId "MAIN") so a fully-qualified control id also
+      // resolves - ids that come from a UI5 Message (getControlIds()) or any
+      // event carry the view prefix and only match via the global registry.
+      const oElement = ViewSlots.resolveById(args[1]);
       if (!oElement) return;
 
       const applyFocus = () => {
@@ -763,7 +789,9 @@ sap.ui.define(
       // Modern declarative scroll: bring a control into the viewport,
       // regardless of where the surrounding scroll container currently is.
       try {
-        const oElement = ViewSlots.byId("MAIN", args[1]);
+        // resolveById so a fully-qualified control id (e.g. from a UI5
+        // Message's getControlIds()) also resolves, not just a MAIN-local id.
+        const oElement = ViewSlots.resolveById(args[1]);
         if (!oElement) return;
         const dom = oElement.getDomRef();
         if (!dom || !dom.scrollIntoView) return;

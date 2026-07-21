@@ -105,8 +105,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      discardProgress: ["controlId"],` && |\n| &&
              `      setNextStep: ["controlId"],` && |\n| &&
              `      goToStep: ["controlId", "bool"], // Wizard: target step + focus flag` && |\n| &&
-             `      openBy: ["domRef"], // DatePicker/TimePicker/Menu... anchored open` && |\n| &&
-             `      toggleBy: ["domRef"], // sap.m.Menu/Popover: open anchored if closed, close if open` && |\n| &&
+             `      openBy: ["anchor"], // DatePicker/TimePicker/Menu/MessagePopover... anchored open` && |\n| &&
+             `      toggleBy: ["anchor"], // sap.m.Menu/MessagePopover: open anchored if closed, close if open` && |\n| &&
              `      setActivePage: ["controlId"], // sap.m.Carousel` && |\n| &&
              `      expandToLevel: ["int"], // sap.m.Tree / sap.ui.table.TreeTable: expand to N levels` && |\n| &&
              `      collapseAll: [], // sap.m.Tree / sap.ui.table.TreeTable: collapse every node` && |\n| &&
@@ -155,15 +155,18 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||` && |\n| &&
              `            ViewSlots.resolveById(raw)` && |\n| &&
              `          );` && |\n| &&
-             `        case "domRef": {` && |\n| &&
+             `        case "anchor":` && |\n| &&
              `          // anchor argument for openBy-style methods: resolve the control id` && |\n| &&
-             `          // and hand over its DOM element (fallback: the control itself -` && |\n| &&
-             `          // every sap.m openBy accepts a control OR a DOM element)` && |\n| &&
-             `          const control =` && |\n| &&
+             `          // and hand over the CONTROL itself, not its DOM element. Every` && |\n| &&
+             `          // sap.m openBy accepts a control, and MessagePopover.openBy` && |\n| &&
+             `          // dereferences oControl.getParent() on its argument, so a bare DOM` && |\n| &&
+             `          // element throws ("getParent is not a function") and the popup never` && |\n| &&
+             `          // opens. DatePicker/TimePicker/Menu accept a control just as well,` && |\n| &&
+             `          // so a control is the universally-correct anchor.` && |\n| &&
+             `          return (` && |\n| &&
              `            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||` && |\n| &&
-             `            ViewSlots.resolveById(raw);` && |\n| &&
-             `          return control?.getDomRef?.() ?? control;` && |\n| &&
-             `        }` && |\n| &&
+             `            ViewSlots.resolveById(raw)` && |\n| &&
+             `          );` && |\n| &&
              `        case "object":` && |\n| &&
              `          try {` && |\n| &&
              `            return JSON.parse(raw);` && |\n| &&
@@ -183,6 +186,18 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        .map((kind, i) => castArg(kind, rawArgs[i], view));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // Run fn once the openBy/toggleBy anchor is in the DOM. A control anchor` && |\n| &&
+             `    // goes through Lib.whenRendered (immediate if already rendered, otherwise` && |\n| &&
+             `    // after its next onAfterRendering); anything else (a bare DOM element, or a` && |\n| &&
+             `    // missing anchor) runs fn straight away.` && |\n| &&
+             `    function whenAnchorRendered(anchor, oController, fn) {` && |\n| &&
+             `      if (anchor && typeof anchor.getDomRef === "function") {` && |\n| &&
+             `        Lib.whenRendered(anchor, oController, fn);` && |\n| &&
+             `      } else {` && |\n| &&
+             `        fn();` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    // args: [_, id, view, method, ...params]` && |\n| &&
              `    function evControlCallById(oController, args) {` && |\n| &&
              `      const [id, view, method] = [args[1], args[2], args[3]];` && |\n| &&
@@ -195,8 +210,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        ? ViewSlots.byId(view.toUpperCase(), id)` && |\n| &&
              `        : ViewSlots.resolveById(id);` && |\n| &&
              `      // toggleBy is not a real control method: open the control anchored to` && |\n| &&
-             `      // the domRef if it is closed, close it if it is already open (mirrors` && |\n| &&
-             `      // openBy for a press-to-toggle button). The popup's open state lives` && |\n| &&
+             `      // the anchor control if it is closed, close it if it is already open` && |\n| &&
+             `      // (mirrors openBy for a press-to-toggle button). The popup's open state lives` && |\n| &&
              `      // client-side, so the decision stays here rather than round-tripping.` && |\n| &&
              `      if (method === "toggleBy") {` && |\n| &&
              `        if (!control || typeof control.openBy !== "function") {` && |\n| &&
@@ -206,17 +221,25 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        const anchor = castArgs(kinds, args.slice(4), view)[0];` && |\n| &&
-             `        if (control.isOpen?.()) {` && |\n| &&
-             `          control.close();` && |\n| &&
-             `        } else {` && |\n| &&
-             `          control.openBy(anchor);` && |\n| &&
-             `        }` && |\n| &&
+             `        // Defer the open until the anchor is rendered: a Save-style roundtrip` && |\n| &&
+             `        // can make the anchor (e.g. a button hidden until there are messages)` && |\n| &&
+             `        // visible in the same response, so it may not be in the DOM yet.` && |\n| &&
+             `        whenAnchorRendered(anchor, oController, () => {` && |\n| &&
+             `          if (control.isOpen?.()) control.close();` && |\n| &&
+             `          else control.openBy(anchor);` && |\n| &&
+             `        });` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      if (!control || typeof control[method] !== "function") {` && |\n| &&
              `        Lib.logError(` && |\n| &&
              `          ``CONTROL_BY_ID: '${method}' not callable on control '${id}'``,` && |\n| &&
              `        );` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      if (method === "openBy") {` && |\n| &&
+             `        const anchor = castArgs(kinds, args.slice(4), view)[0];` && |\n| &&
+             `        // Same reason as toggleBy: wait for the anchor to render.` && |\n| &&
+             `        whenAnchorRendered(anchor, oController, () => control.openBy(anchor));` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      control[method](...castArgs(kinds, args.slice(4), view));` && |\n| &&
@@ -394,7 +417,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // the literal "undefined" as its state id.` && |\n| &&
              `      const id = AppState.state.oResponse?.ID || "";` && |\n| &&
              `      // Strip any existing hash (e.g. an active app-state) so the copied` && |\n| &&
-             `      // link carries only the fresh state id.` && |\n| &&
+             `      // link carries only the fresh state id.` && |\n|.
+    result = result &&
              `      const base = window.location.href.split("#")[0];` && |\n| &&
              `      Lib.copyToClipboard(``${base}#/z2ui5-xapp-state=${id}``);` && |\n| &&
              `    }` && |\n| &&
@@ -417,8 +441,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evCrossAppNavToPrevApp() {` && |\n| &&
-             `      withCrossAppNavigator((nav) => nav.backToPreviousApp());` && |\n|.
-    result = result &&
+             `      withCrossAppNavigator((nav) => nav.backToPreviousApp());` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evSetSizeLimit(oController, args) {` && |\n| &&
@@ -697,7 +720,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evSetFocus(oController, args) {` && |\n| &&
-             `      const oElement = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
+             `      // resolveById (not byId "MAIN") so a fully-qualified control id also` && |\n| &&
+             `      // resolves - ids that come from a UI5 Message (getControlIds()) or any` && |\n| &&
+             `      // event carry the view prefix and only match via the global registry.` && |\n| &&
+             `      const oElement = ViewSlots.resolveById(args[1]);` && |\n| &&
              `      if (!oElement) return;` && |\n| &&
              `` && |\n| &&
              `      const applyFocus = () => {` && |\n| &&
@@ -784,13 +810,16 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // Modern declarative scroll: bring a control into the viewport,` && |\n| &&
              `      // regardless of where the surrounding scroll container currently is.` && |\n| &&
              `      try {` && |\n| &&
-             `        const oElement = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
+             `        // resolveById so a fully-qualified control id (e.g. from a UI5` && |\n| &&
+             `        // Message's getControlIds()) also resolves, not just a MAIN-local id.` && |\n| &&
+             `        const oElement = ViewSlots.resolveById(args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
              `        const dom = oElement.getDomRef();` && |\n| &&
              `        if (!dom || !dom.scrollIntoView) return;` && |\n| &&
              `        dom.scrollIntoView({` && |\n| &&
              `          behavior: args[2] || "smooth",` && |\n| &&
-             `          block: args[3] || "start",` && |\n| &&
+             `          block: args[3] || "start",` && |\n|.
+    result = result &&
              `          inline: args[4] || "nearest",` && |\n| &&
              `        });` && |\n| &&
              `      } catch (e) {` && |\n| &&
@@ -818,8 +847,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `              Lib.logError(` && |\n| &&
              `                "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",` && |\n| &&
              `                e,` && |\n| &&
-             `              ),` && |\n|.
-    result = result &&
+             `              ),` && |\n| &&
              `            );` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
