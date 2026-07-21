@@ -66,11 +66,56 @@ CLASS z2ui5_cl_app_focus_js IMPLEMENTATION.
              `          // Merge the additional selection info into the existing focus info,` && |\n| &&
              `          // then apply both at once.` && |\n| &&
              `          const info = oElement.getFocusInfo();` && |\n| &&
-             `          info.selectionStart = Number(this.getProperty("selectionStart"));` && |\n| &&
-             `          info.selectionEnd = Number(this.getProperty("selectionEnd"));` && |\n| &&
+             `          let start = Number(this.getProperty("selectionStart"));` && |\n| &&
+             `          let end = Number(this.getProperty("selectionEnd"));` && |\n| &&
+             `` && |\n| &&
+             `          const input = this._textInput(oElement);` && |\n| &&
+             `          if (input) {` && |\n| &&
+             `            // The caret position was captured before the roundtrip; the field` && |\n| &&
+             `            // value may have changed since (e.g. it was cleared). Clamp to the` && |\n| &&
+             `            // current length so an out-of-range range does not make the browser` && |\n| &&
+             `            // snap the caret to 0.` && |\n| &&
+             `            const len = (input.value ?? "").length;` && |\n| &&
+             `            start = Math.min(Math.max(start, 0), len);` && |\n| &&
+             `            end = Math.min(Math.max(end, 0), len);` && |\n| &&
+             `` && |\n| &&
+             `            // Race guard: while the roundtrip was in flight the user may have` && |\n| &&
+             `            // kept typing (e.g. clear "X" then Backspace). The field already` && |\n| &&
+             `            // holds text and its live caret sits past the restored position.` && |\n| &&
+             `            // Re-applying the stale, smaller position would yank the caret to` && |\n| &&
+             `            // the left over text the user just entered - keep the live caret` && |\n| &&
+             `            // in that case and only re-assert focus.` && |\n| &&
+             `            if (input === document.activeElement && len > 0) {` && |\n| &&
+             `              const liveStart = input.selectionStart;` && |\n| &&
+             `              const liveEnd = input.selectionEnd;` && |\n| &&
+             `              if (liveStart != null && (liveStart > start || liveEnd > end)) {` && |\n| &&
+             `                input.focus();` && |\n| &&
+             `                return;` && |\n| &&
+             `              }` && |\n| &&
+             `            }` && |\n| &&
+             `          }` && |\n| &&
+             `` && |\n| &&
+             `          info.selectionStart = start;` && |\n| &&
+             `          info.selectionEnd = end;` && |\n| &&
              `          oElement.applyFocusInfo(info);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("Focus.onAfterRendering: applyFocusInfo failed", e);` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // The <input>/<textarea> that carries the caret for the focused control,` && |\n| &&
+             `      // or null for controls without a text field (the selection clamp and` && |\n| &&
+             `      // race guard only apply to real text fields).` && |\n| &&
+             `      _textInput(oElement) {` && |\n| &&
+             `        try {` && |\n| &&
+             `          const ref = oElement.getFocusDomRef?.();` && |\n| &&
+             `          if (ref && (ref.tagName === "INPUT" || ref.tagName === "TEXTAREA")) {` && |\n| &&
+             `            return ref;` && |\n| &&
+             `          }` && |\n| &&
+             `          const root = oElement.getDomRef?.();` && |\n| &&
+             `          return root?.querySelector?.("input, textarea") || null;` && |\n| &&
+             `        } catch {` && |\n| &&
+             `          return null;` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `      renderer: {` && |\n| &&

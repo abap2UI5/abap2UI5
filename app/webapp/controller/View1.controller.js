@@ -11,7 +11,6 @@ sap.ui.define(
     "sap/ui/core/BusyIndicator",
     "sap/m/MessageBox",
     "sap/ui/core/Fragment",
-    "sap/m/BusyDialog",
     "z2ui5/core/Server",
     "sap/ui/model/odata/v2/ODataModel",
     "sap/ui/core/routing/HashChanger",
@@ -27,7 +26,6 @@ sap.ui.define(
     BusyIndicator,
     MessageBox,
     Fragment,
-    BusyDialog,
     Server,
     ODataModel,
     HashChanger,
@@ -40,14 +38,6 @@ sap.ui.define(
 
     // Helpers reused across calls; kept as module-level singletons.
     const _hashChanger = HashChanger.getInstance();
-
-    // Single reusable BusyDialog flashed when the user clicks while a
-    // roundtrip is already in flight (created lazily, kept for reuse).
-    // The timestamp throttles the flash: rapid clicking during a slow
-    // roundtrip would otherwise run a full open/render/close cycle per
-    // click without adding any feedback.
-    let _busyDialog = null;
-    let _busyFlashUntil = 0;
 
     function applyStoredSizeLimit(viewKey, oModel) {
       if (!oModel) return;
@@ -360,16 +350,15 @@ sap.ui.define(
           return;
         }
 
-        // If a roundtrip is already in flight, briefly show a BusyDialog so
-        // the user gets visual feedback instead of a silent click - at most
-        // once per second, further clicks inside that window are ignored.
+        // A roundtrip is already in flight and this event's keystroke/click is
+        // dropped. Surface the global busy indicator right away (0 delay)
+        // instead of a separate, transient BusyDialog: it is the exact same
+        // overlay the in-flight roundtrip hides on completion, so the user sees
+        // one steady indicator until the response lands - not a modal flashing
+        // in and straight back out over the (1s-delayed) global one. show() is
+        // idempotent, so repeated drops during the same roundtrip are cheap.
         if (AppState.state.isBusy && !ignoreBusy) {
-          if (Date.now() >= _busyFlashUntil) {
-            _busyFlashUntil = Date.now() + 1000;
-            if (!_busyDialog) _busyDialog = new BusyDialog();
-            _busyDialog.open();
-            queueMicrotask(() => _busyDialog.close());
-          }
+          BusyIndicator.show(0);
           return;
         }
 

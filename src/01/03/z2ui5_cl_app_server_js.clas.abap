@@ -172,6 +172,17 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    // Inspect live payloads via the developer tools (Ctrl+F12): "Previous` && |\n| &&
              `    // Request" and "Response".` && |\n| &&
              `    return {` && |\n| &&
+             `      // Monotonic id stamped on every dispatched request (see readHttp). When` && |\n| &&
+             `      // parallel requests are allowed (check_allow_multi_req), it lets a` && |\n| &&
+             `      // response tell whether a newer request has since gone out, so only the` && |\n| &&
+             `      // newest result is committed and stale ones are dropped.` && |\n| &&
+             `      _requestSeq: 0,` && |\n| &&
+             `` && |\n| &&
+             `      // Abort controllers of the requests still in flight. A newly dispatched` && |\n| &&
+             `      // request aborts them all - it supersedes them, so there is no point` && |\n| &&
+             `      // letting the backend finish work whose response would be dropped anyway.` && |\n| &&
+             `      _inflight: new Set(),` && |\n| &&
+             `` && |\n| &&
              `      endSession() {` && |\n| &&
              `        if (!Lib.isValidContextId(AppState.state.contextId)) return;` && |\n| &&
              `        // Best-effort notify the backend that the session ends. Errors are` && |\n| &&
@@ -268,14 +279,48 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `              break;` && |\n| &&
              `            }` && |\n| &&
              `          }` && |\n| &&
-             `          return {` && |\n| &&
-             `            ID: id,` && |\n| &&
-             `            SELECTION_START: active.selectionStart || 0,` && |\n| &&
-             `            SELECTION_END: active.selectionEnd || 0,` && |\n| &&
-             `          };` && |\n| &&
+             `          // Read the caret from the actual text field, not from` && |\n| &&
+             `          // document.activeElement directly. Clicking an inner part of a` && |\n| &&
+             `          // control (e.g. a SearchField's clear "X" button) can leave the` && |\n| &&
+             `          // active element a non-text node whose selectionStart is undefined -` && |\n| &&
+             `          // reporting that as 0 would later snap the caret to the far left.` && |\n| &&
+             `          // When no text field owns a selection, omit SELECTION_* entirely so` && |\n| &&
+             `          // the backend restores focus without forcing a caret position.` && |\n| &&
+             `          const info = { ID: id };` && |\n| &&
+             `          const input = this._focusTextInput(active, ui5El);` && |\n| &&
+             `          if (input) {` && |\n| &&
+             `            try {` && |\n| &&
+             `              const start = input.selectionStart;` && |\n| &&
+             `              const end = input.selectionEnd;` && |\n| &&
+             `              if (start != null && end != null) {` && |\n| &&
+             `                info.SELECTION_START = start;` && |\n| &&
+             `                info.SELECTION_END = end;` && |\n| &&
+             `              }` && |\n| &&
+             `            } catch {` && |\n| &&
+             `              // Input types without text selection (number, date, ...) throw` && |\n| &&
+             `              // or return null here - restore focus only, no caret.` && |\n| &&
+             `            }` && |\n| &&
+             `          }` && |\n| &&
+             `          return info;` && |\n| &&
              `        } catch {` && |\n| &&
              `          return undefined;` && |\n| &&
              `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // Resolve the text field that carries the caret for the focused control:` && |\n| &&
+             `      // the active element itself when it is already an <input>/<textarea>,` && |\n| &&
+             `      // otherwise the control's focus DOM ref (or the first inner text field).` && |\n| &&
+             `      // Returns null when the control has no text field (e.g. a button), so the` && |\n| &&
+             `      // caller omits the selection instead of reporting a bogus 0.` && |\n| &&
+             `      _focusTextInput(active, ui5El) {` && |\n| &&
+             `        const isTextInput = (el) =>` && |\n| &&
+             `          !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");` && |\n| &&
+             `        if (isTextInput(active)) return active;` && |\n| &&
+             `        const focusRef = ui5El?.getFocusDomRef?.();` && |\n| &&
+             `        if (isTextInput(focusRef)) return focusRef;` && |\n| &&
+             `        const root = ui5El?.getDomRef?.();` && |\n| &&
+             `        const inner = root?.querySelector?.("input, textarea");` && |\n| &&
+             `        return isTextInput(inner) ? inner : null;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Records which element the user actually scrolled, per view slot.` && |\n| &&
@@ -372,7 +417,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `        const oConfig = AppState.getGlobal("oConfig");` && |\n| &&
              `        oBody.S_FRONT = {` && |\n| &&
-             `          CONFIG: {` && |\n| &&
+             `          CONFIG: {` && |\n|.
+    result = result &&
              `            S_UI5: oConfig?.S_UI5,` && |\n| &&
              `            S_DEVICE: this._getDeviceInfo(),` && |\n| &&
              `            S_FOCUS: this._getFocusInfo(),` && |\n| &&
@@ -417,12 +463,39 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          return { signal: AbortSignal.timeout(ms), cancel: () => {} };` && |\n| &&
              `        }` && |\n| &&
              `        const controller = new AbortController();` && |\n| &&
-             `        const handle = setTimeout(() => controller.abort(), ms);` && |\n|.
-    result = result &&
+             `        const handle = setTimeout(() => controller.abort(), ms);` && |\n| &&
              `        return {` && |\n| &&
              `          signal: controller.signal,` && |\n| &&
              `          cancel: () => clearTimeout(handle),` && |\n| &&
              `        };` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // Abort every still-in-flight request. Called when a newer request is` && |\n| &&
+             `      // dispatched: the older fetches reject with AbortError, which the` && |\n| &&
+             `      // isStale guard in readHttp's catch swallows silently.` && |\n| &&
+             `      _abortInflight() {` && |\n| &&
+             `        for (const controller of this._inflight) controller.abort();` && |\n| &&
+             `        this._inflight.clear();` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // Merge two abort signals into one for fetch: the fetch is aborted when` && |\n| &&
+             `      // either fires (the timeout backstop or a superseding request). Uses` && |\n| &&
+             `      // AbortSignal.any where available (2024+) and forwards manually on older` && |\n| &&
+             `      // browsers, so the abort works everywhere createTimeoutSignal does.` && |\n| &&
+             `      _combineSignals(a, b) {` && |\n| &&
+             `        if (AbortSignal.any) return AbortSignal.any([a, b]);` && |\n| &&
+             `        const controller = new AbortController();` && |\n| &&
+             `        const forward = (sig) => {` && |\n| &&
+             `          if (sig.aborted) controller.abort(sig.reason);` && |\n| &&
+             `          else {` && |\n| &&
+             `            sig.addEventListener("abort", () => controller.abort(sig.reason), {` && |\n| &&
+             `              once: true,` && |\n| &&
+             `            });` && |\n| &&
+             `          }` && |\n| &&
+             `        };` && |\n| &&
+             `        forward(a);` && |\n| &&
+             `        forward(b);` && |\n| &&
+             `        return controller.signal;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      async readHttp(oBody) {` && |\n| &&
@@ -430,11 +503,32 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          AppState.getGlobal("requestTimeoutMs") || REQUEST_TIMEOUT_MS;` && |\n| &&
              `        // The signal guards the fetch and the response body reads below; the` && |\n| &&
              `        // finally releases the fallback timer once the roundtrip settled.` && |\n| &&
-             `        const { signal, cancel } = this.createTimeoutSignal(timeoutMs);` && |\n| &&
+             `        const { signal: timeoutSignal, cancel } =` && |\n| &&
+             `          this.createTimeoutSignal(timeoutMs);` && |\n| &&
              `        // A network blip or timeout may mean the request never reached the` && |\n| &&
              `        // server, so the error overlay offers a retry that re-sends the` && |\n| &&
              `        // exact same request body instead of forcing a full app restart.` && |\n| &&
              `        const oRetry = { onRetry: () => this.readHttp(oBody) };` && |\n| &&
+             `` && |\n| &&
+             `        // Stamp this request and treat its response as stale once a newer` && |\n| &&
+             `        // request has been dispatched. With parallel requests allowed` && |\n| &&
+             `        // (check_allow_multi_req) responses can arrive out of order; only the` && |\n| &&
+             `        // newest may commit its result, so a slow older response never` && |\n| &&
+             `        // overwrites a newer view, caret or session id. In the default` && |\n| &&
+             `        // blocking mode only one request is ever in flight, so this never` && |\n| &&
+             `        // fires. The check is repeated before every state mutation because the` && |\n| &&
+             `        // body reads below (text/json) each yield the event loop, giving a` && |\n| &&
+             `        // newer request the chance to supersede this one mid-parse.` && |\n| &&
+             `        const seq = ++this._requestSeq;` && |\n| &&
+             `        const isStale = () => seq !== this._requestSeq;` && |\n| &&
+             `` && |\n| &&
+             `        // Cancel any request still in flight - this one supersedes them - then` && |\n| &&
+             `        // register this request's own controller so a later one can cancel it.` && |\n| &&
+             `        // The fetch aborts on either the timeout or a superseding request.` && |\n| &&
+             `        this._abortInflight();` && |\n| &&
+             `        const superseder = new AbortController();` && |\n| &&
+             `        this._inflight.add(superseder);` && |\n| &&
+             `        const signal = this._combineSignals(timeoutSignal, superseder.signal);` && |\n| &&
              `        try {` && |\n| &&
              `          // Step 1: send the request.` && |\n| &&
              `          let response;` && |\n| &&
@@ -456,6 +550,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `              signal,` && |\n| &&
              `            });` && |\n| &&
              `          } catch (e) {` && |\n| &&
+             `            // A superseded request that fails is not the user's concern - the` && |\n| &&
+             `            // newer request owns the outcome, so swallow it without an overlay.` && |\n| &&
+             `            if (isStale()) return;` && |\n| &&
              `            if (e.name === "TimeoutError" || e.name === "AbortError") {` && |\n| &&
              `              this.responseError(` && |\n| &&
              `                ``No backend response within ${timeoutMs / 1000} seconds - request aborted``,` && |\n| &&
@@ -471,6 +568,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            }` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
+             `          // A newer request went out while this one was in flight - drop it` && |\n| &&
+             `          // whole: no session id adoption, no error overlay, no render.` && |\n| &&
+             `          if (isStale()) return;` && |\n| &&
              `          // Keep the last valid session id; a response without the header` && |\n| &&
              `          // (returns null) must not wipe an established session.` && |\n| &&
              `          const contextId = response.headers.get("sap-contextid");` && |\n| &&
@@ -487,6 +587,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            } catch {` && |\n| &&
              `              text = ``HTTP ${response.status}: could not read error body``;` && |\n| &&
              `            }` && |\n| &&
+             `            if (isStale()) return;` && |\n| &&
              `            // An empty error body would render an empty overlay - fall back` && |\n| &&
              `            // to the status code so the user sees at least what failed.` && |\n| &&
              `            this.responseError(text || ``HTTP ${response.status}``);` && |\n| &&
@@ -498,9 +599,13 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          try {` && |\n| &&
              `            responseData = await response.json();` && |\n| &&
              `          } catch (e) {` && |\n| &&
+             `            if (isStale()) return;` && |\n| &&
              `            this.responseError(``Invalid JSON response: ${e.message}``);` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
+             `          // Last check before committing: a newer request may have arrived` && |\n| &&
+             `          // while the body was being parsed.` && |\n| &&
+             `          if (isStale()) return;` && |\n| &&
              `          if (!responseData || !responseData.S_FRONT) {` && |\n| &&
              `            this.responseError("Invalid response: missing S_FRONT");` && |\n| &&
              `            return;` && |\n| &&
@@ -515,6 +620,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `            OVIEWMODEL: responseData.MODEL,` && |\n| &&
              `          });` && |\n| &&
              `        } finally {` && |\n| &&
+             `          this._inflight.delete(superseder);` && |\n| &&
              `          cancel();` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&

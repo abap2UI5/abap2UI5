@@ -152,6 +152,17 @@ sap.ui.define(
     // Inspect live payloads via the developer tools (Ctrl+F12): "Previous
     // Request" and "Response".
     return {
+      // Monotonic id stamped on every dispatched request (see readHttp). When
+      // parallel requests are allowed (check_allow_multi_req), it lets a
+      // response tell whether a newer request has since gone out, so only the
+      // newest result is committed and stale ones are dropped.
+      _requestSeq: 0,
+
+      // Abort controllers of the requests still in flight. A newly dispatched
+      // request aborts them all - it supersedes them, so there is no point
+      // letting the backend finish work whose response would be dropped anyway.
+      _inflight: new Set(),
+
       endSession() {
         if (!Lib.isValidContextId(AppState.state.contextId)) return;
         // Best-effort notify the backend that the session ends. Errors are
@@ -248,14 +259,48 @@ sap.ui.define(
               break;
             }
           }
-          return {
-            ID: id,
-            SELECTION_START: active.selectionStart || 0,
-            SELECTION_END: active.selectionEnd || 0,
-          };
+          // Read the caret from the actual text field, not from
+          // document.activeElement directly. Clicking an inner part of a
+          // control (e.g. a SearchField's clear "X" button) can leave the
+          // active element a non-text node whose selectionStart is undefined -
+          // reporting that as 0 would later snap the caret to the far left.
+          // When no text field owns a selection, omit SELECTION_* entirely so
+          // the backend restores focus without forcing a caret position.
+          const info = { ID: id };
+          const input = this._focusTextInput(active, ui5El);
+          if (input) {
+            try {
+              const start = input.selectionStart;
+              const end = input.selectionEnd;
+              if (start != null && end != null) {
+                info.SELECTION_START = start;
+                info.SELECTION_END = end;
+              }
+            } catch {
+              // Input types without text selection (number, date, ...) throw
+              // or return null here - restore focus only, no caret.
+            }
+          }
+          return info;
         } catch {
           return undefined;
         }
+      },
+
+      // Resolve the text field that carries the caret for the focused control:
+      // the active element itself when it is already an <input>/<textarea>,
+      // otherwise the control's focus DOM ref (or the first inner text field).
+      // Returns null when the control has no text field (e.g. a button), so the
+      // caller omits the selection instead of reporting a bogus 0.
+      _focusTextInput(active, ui5El) {
+        const isTextInput = (el) =>
+          !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");
+        if (isTextInput(active)) return active;
+        const focusRef = ui5El?.getFocusDomRef?.();
+        if (isTextInput(focusRef)) return focusRef;
+        const root = ui5El?.getDomRef?.();
+        const inner = root?.querySelector?.("input, textarea");
+        return isTextInput(inner) ? inner : null;
       },
 
       // Records which element the user actually scrolled, per view slot.
@@ -404,16 +449,65 @@ sap.ui.define(
         };
       },
 
+      // Abort every still-in-flight request. Called when a newer request is
+      // dispatched: the older fetches reject with AbortError, which the
+      // isStale guard in readHttp's catch swallows silently.
+      _abortInflight() {
+        for (const controller of this._inflight) controller.abort();
+        this._inflight.clear();
+      },
+
+      // Merge two abort signals into one for fetch: the fetch is aborted when
+      // either fires (the timeout backstop or a superseding request). Uses
+      // AbortSignal.any where available (2024+) and forwards manually on older
+      // browsers, so the abort works everywhere createTimeoutSignal does.
+      _combineSignals(a, b) {
+        if (AbortSignal.any) return AbortSignal.any([a, b]);
+        const controller = new AbortController();
+        const forward = (sig) => {
+          if (sig.aborted) controller.abort(sig.reason);
+          else {
+            sig.addEventListener("abort", () => controller.abort(sig.reason), {
+              once: true,
+            });
+          }
+        };
+        forward(a);
+        forward(b);
+        return controller.signal;
+      },
+
       async readHttp(oBody) {
         const timeoutMs =
           AppState.getGlobal("requestTimeoutMs") || REQUEST_TIMEOUT_MS;
         // The signal guards the fetch and the response body reads below; the
         // finally releases the fallback timer once the roundtrip settled.
-        const { signal, cancel } = this.createTimeoutSignal(timeoutMs);
+        const { signal: timeoutSignal, cancel } =
+          this.createTimeoutSignal(timeoutMs);
         // A network blip or timeout may mean the request never reached the
         // server, so the error overlay offers a retry that re-sends the
         // exact same request body instead of forcing a full app restart.
         const oRetry = { onRetry: () => this.readHttp(oBody) };
+
+        // Stamp this request and treat its response as stale once a newer
+        // request has been dispatched. With parallel requests allowed
+        // (check_allow_multi_req) responses can arrive out of order; only the
+        // newest may commit its result, so a slow older response never
+        // overwrites a newer view, caret or session id. In the default
+        // blocking mode only one request is ever in flight, so this never
+        // fires. The check is repeated before every state mutation because the
+        // body reads below (text/json) each yield the event loop, giving a
+        // newer request the chance to supersede this one mid-parse.
+        const seq = ++this._requestSeq;
+        const isStale = () => seq !== this._requestSeq;
+
+        // Cancel any request still in flight - this one supersedes them - then
+        // register this request's own controller so a later one can cancel it.
+        // The fetch aborts on either the timeout or a superseding request.
+        this._abortInflight();
+        const superseder = new AbortController();
+        this._inflight.add(superseder);
+        const signal = this._combineSignals(timeoutSignal, superseder.signal);
         try {
           // Step 1: send the request.
           let response;
@@ -435,6 +529,9 @@ sap.ui.define(
               signal,
             });
           } catch (e) {
+            // A superseded request that fails is not the user's concern - the
+            // newer request owns the outcome, so swallow it without an overlay.
+            if (isStale()) return;
             if (e.name === "TimeoutError" || e.name === "AbortError") {
               this.responseError(
                 `No backend response within ${timeoutMs / 1000} seconds - request aborted`,
@@ -450,6 +547,9 @@ sap.ui.define(
             }
             return;
           }
+          // A newer request went out while this one was in flight - drop it
+          // whole: no session id adoption, no error overlay, no render.
+          if (isStale()) return;
           // Keep the last valid session id; a response without the header
           // (returns null) must not wipe an established session.
           const contextId = response.headers.get("sap-contextid");
@@ -466,6 +566,7 @@ sap.ui.define(
             } catch {
               text = `HTTP ${response.status}: could not read error body`;
             }
+            if (isStale()) return;
             // An empty error body would render an empty overlay - fall back
             // to the status code so the user sees at least what failed.
             this.responseError(text || `HTTP ${response.status}`);
@@ -477,9 +578,13 @@ sap.ui.define(
           try {
             responseData = await response.json();
           } catch (e) {
+            if (isStale()) return;
             this.responseError(`Invalid JSON response: ${e.message}`);
             return;
           }
+          // Last check before committing: a newer request may have arrived
+          // while the body was being parsed.
+          if (isStale()) return;
           if (!responseData || !responseData.S_FRONT) {
             this.responseError("Invalid response: missing S_FRONT");
             return;
@@ -494,6 +599,7 @@ sap.ui.define(
             OVIEWMODEL: responseData.MODEL,
           });
         } finally {
+          this._inflight.delete(superseder);
           cancel();
         }
       },
