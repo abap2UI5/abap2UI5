@@ -396,13 +396,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // The request body is built locally and handed explicitly through` && |\n| &&
              `        // Server.roundtrip/readHttp. It is mirrored to AppState.state.oBody right` && |\n| &&
              `        // away so onBeforeRoundtrip hooks and the developer tools see it.` && |\n| &&
-             `        const oBody = { VIEWNAME: "MAIN" };` && |\n| &&
+             `        const oBody = {};` && |\n| &&
              `        AppState.state.oBody = oBody;` && |\n| &&
              `` && |\n| &&
              `        // Decide which view's model holds the data we need to send back. The` && |\n| &&
              `        // mapping is: main app controller -> main view, popup controller ->` && |\n| &&
              `        // popup view, etc.` && |\n| &&
-             `        const oModel = this._pickModelForRoundtrip(useMainModel, oBody);` && |\n| &&
+             `        const oModel = this._pickModelForRoundtrip(useMainModel);` && |\n| &&
              `` && |\n| &&
              `        Lib.runCallbacks(AppState.state.onBeforeRoundtrip);` && |\n| &&
              `` && |\n| &&
@@ -431,7 +431,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        Lib.runCallbacks(AppState.state.onAfterRoundtrip);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      _pickModelForRoundtrip(useMainModel, oBody) {` && |\n| &&
+             `      _pickModelForRoundtrip(useMainModel) {` && |\n| &&
              `        // useMainModel forces use of the main view's model even when called` && |\n| &&
              `        // from a popup/popover controller.` && |\n| &&
              `        const slotKey = useMainModel ? "MAIN" : ViewSlots.keyOfController(this);` && |\n| &&
@@ -445,11 +445,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return ViewSlots.getView("MAIN")?.getModel();` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        // Nested views report their slot as VIEW in S_FRONT so the backend` && |\n| &&
-             `        // routes the event to the right app instance.` && |\n| &&
-             `        if (slotKey === "NEST" || slotKey === "NEST2") {` && |\n| &&
-             `          oBody.VIEWNAME = slotKey;` && |\n| &&
-             `        }` && |\n| &&
+             `        // Non-main slots return their own model so the delta is read from the` && |\n| &&
+             `        // view that actually fired the event.` && |\n| &&
              `        return ViewSlots.getView(slotKey)?.getModel();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&

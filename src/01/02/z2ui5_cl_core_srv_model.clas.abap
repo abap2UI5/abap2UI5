@@ -35,7 +35,6 @@ CLASS z2ui5_cl_core_srv_model DEFINITION PUBLIC FINAL.
 
     METHODS main_json_to_attri
       IMPORTING
-        view  TYPE string
         model TYPE REF TO z2ui5_if_ajson.
 
     METHODS main_json_stringify
@@ -129,13 +128,8 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   METHOD main_json_to_attri.
 
-    DATA(lv_view) = COND #( WHEN line_exists( mt_attri->*[ view = view ] ) "#EC CI_SORTSEQ
-                            THEN view
-                            ELSE z2ui5_if_client=>cs_view-main ).
-
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
-         WHERE bind_type = z2ui5_if_core_types=>cs_bind_type-two_way "#EC CI_SORTSEQ
-               AND view      = lv_view.
+         WHERE bind_type = z2ui5_if_core_types=>cs_bind_type-two_way. "#EC CI_SORTSEQ
       TRY.
 
           DATA(lo_val_front) = model->slice( lr_attri->name_client ).
@@ -775,7 +769,6 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
       IF sy-subrc = 0.
         lr_attri->bind_type   = lr_old->bind_type.
         lr_attri->name_client = lr_old->name_client.
-        lr_attri->view        = lr_old->view.
       ENDIF.
     ENDLOOP.
 

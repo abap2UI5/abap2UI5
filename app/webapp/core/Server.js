@@ -114,7 +114,7 @@ sap.ui.define(
     // can inspect it. Only the response side still crosses an async boundary
     // (the rendering) via the globals oResponse and pendingCustomJs.
     //
-    // Wire format - request (POST body; VIEWNAME/ARGUMENTS are folded into
+    // Wire format - request (POST body; ARGUMENTS is folded into
     // S_FRONT before sending, empty fields are removed):
     //   { "value": {
     //       "MODEL": {                     // view model delta
@@ -125,7 +125,6 @@ sap.ui.define(
     //         "ID": "<draft id of the previous response>",
     //         "EVENT": "SAVE",             // event name
     //         "T_EVENT_ARG": ["arg1"],     // further event arguments
-    //         "VIEW": "MAIN",              // which view fired it
     //         "ORIGIN": "https://host", "PATHNAME": "/sap/...",
     //         "SEARCH": "?p=1", "HASH": "#...",
     //         "CONFIG": { "S_UI5": {...}, "S_DEVICE": {...},
@@ -408,7 +407,6 @@ sap.ui.define(
           ORIGIN: window.location.origin,
           PATHNAME: window.location.pathname,
           SEARCH: state.search || window.location.search,
-          VIEW: oBody.VIEWNAME,
           EVENT: eventName,
           HASH: window.location.hash,
         };
@@ -420,7 +418,6 @@ sap.ui.define(
         sFront.T_EVENT_ARG = oBody.ARGUMENTS;
 
         delete oBody.ID;
-        delete oBody.VIEWNAME;
         delete oBody.ARGUMENTS;
 
         // Remove empty / undefined fields so the backend request stays small

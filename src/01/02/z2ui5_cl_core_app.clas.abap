@@ -14,7 +14,6 @@ CLASS z2ui5_cl_core_app DEFINITION PUBLIC FINAL.
 
     METHODS model_json_parse
       IMPORTING
-        iv_view  TYPE clike
         io_model TYPE REF TO z2ui5_if_ajson.
 
     METHODS all_xml_stringify
@@ -162,9 +161,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD model_json_parse.
 
-    create_model( )->main_json_to_attri(
-        view  = iv_view
-        model = io_model ).
+    create_model( )->main_json_to_attri( io_model ).
 
   ENDMETHOD.
 
