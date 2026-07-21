@@ -9,6 +9,19 @@ Legend
 - : removed
 
 
+
+2026-07-20 v1.142.0
+-------------------
++ New frontend action functions: control_by_id, binding_call
++ New frontend events like SYSTEM_LOGOUT, KEYBOARD_SET_MODE
++ Extended DebugTool with error/log tabs and export (renamed to Developer Tools)
++ Speed: Introduced Delta data transfer: only changed fields/rows sent to the backend
+* Compatibility: UI5 1.71 / UI5 2.x compatibility fixes (lazy module loading, lifecycle, aggregation escaping)
+* Security: error message sanitization, security response headers, fatal-error overlay
++ Samples repository fully reworked
+* Various small improvements and bugfixes
+
+
 2025-12-14 v1.141.0
 -------------------
 + Added Image Editor popup for image manipulation
