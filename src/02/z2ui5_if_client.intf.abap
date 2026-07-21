@@ -224,9 +224,9 @@ INTERFACE z2ui5_if_client
       "obsolet - inaktiv, wird intern nicht weitergegeben
       view                 TYPE clike                         DEFAULT cs_view-main
       custom_mapper        TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
-      custom_mapper_back   TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
+*      custom_mapper_back   TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
       custom_filter        TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
-      custom_filter_back   TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
+*      custom_filter_back   TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
       tab                  TYPE data                          OPTIONAL
       tab_index            TYPE i                             OPTIONAL
       switch_default_model TYPE abap_bool                     DEFAULT abap_false
