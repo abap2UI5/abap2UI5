@@ -679,7 +679,10 @@ sap.ui.define(
     }
 
     function evSetFocus(oController, args) {
-      const oElement = ViewSlots.byId("MAIN", args[1]);
+      // resolveById (not byId "MAIN") so a fully-qualified control id also
+      // resolves - ids that come from a UI5 Message (getControlIds()) or any
+      // event carry the view prefix and only match via the global registry.
+      const oElement = ViewSlots.resolveById(args[1]);
       if (!oElement) return;
 
       const applyFocus = () => {
@@ -766,7 +769,9 @@ sap.ui.define(
       // Modern declarative scroll: bring a control into the viewport,
       // regardless of where the surrounding scroll container currently is.
       try {
-        const oElement = ViewSlots.byId("MAIN", args[1]);
+        // resolveById so a fully-qualified control id (e.g. from a UI5
+        // Message's getControlIds()) also resolves, not just a MAIN-local id.
+        const oElement = ViewSlots.resolveById(args[1]);
         if (!oElement) return;
         const dom = oElement.getDomRef();
         if (!dom || !dom.scrollIntoView) return;

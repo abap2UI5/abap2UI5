@@ -700,7 +700,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evSetFocus(oController, args) {` && |\n| &&
-             `      const oElement = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
+             `      // resolveById (not byId "MAIN") so a fully-qualified control id also` && |\n| &&
+             `      // resolves - ids that come from a UI5 Message (getControlIds()) or any` && |\n| &&
+             `      // event carry the view prefix and only match via the global registry.` && |\n| &&
+             `      const oElement = ViewSlots.resolveById(args[1]);` && |\n| &&
              `      if (!oElement) return;` && |\n| &&
              `` && |\n| &&
              `      const applyFocus = () => {` && |\n| &&
@@ -787,7 +790,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // Modern declarative scroll: bring a control into the viewport,` && |\n| &&
              `      // regardless of where the surrounding scroll container currently is.` && |\n| &&
              `      try {` && |\n| &&
-             `        const oElement = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
+             `        // resolveById so a fully-qualified control id (e.g. from a UI5` && |\n| &&
+             `        // Message's getControlIds()) also resolves, not just a MAIN-local id.` && |\n| &&
+             `        const oElement = ViewSlots.resolveById(args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
              `        const dom = oElement.getDomRef();` && |\n| &&
              `        if (!dom || !dom.scrollIntoView) return;` && |\n| &&
@@ -813,13 +818,13 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    function evSetTitleLaunchpad(oController, args) {` && |\n| &&
              `      const title = Lib.toText(args[1]);` && |\n| &&
              `      try {` && |\n| &&
-             `        const shell = AppState.state.oLaunchpad?.ShellUIService;` && |\n| &&
+             `        const shell = AppState.state.oLaunchpad?.ShellUIService;` && |\n|.
+    result = result &&
              `        if (shell?.setTitle) {` && |\n| &&
              `          const result = shell.setTitle(title);` && |\n| &&
              `          if (result?.catch) {` && |\n| &&
              `            result.catch((e) =>` && |\n| &&
-             `              Lib.logError(` && |\n|.
-    result = result &&
+             `              Lib.logError(` && |\n| &&
              `                "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",` && |\n| &&
              `                e,` && |\n| &&
              `              ),` && |\n| &&
