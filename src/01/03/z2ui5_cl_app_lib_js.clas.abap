@@ -453,6 +453,17 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      return max;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // Render the invisible <span> placeholder shared by every marker custom` && |\n| &&
+             `    // control (Focus, Timer, Scrolling, Tree, Info, Geolocation, Storage): the` && |\n| &&
+             `    // real work happens in onAfterRendering (see the module header), so the` && |\n| &&
+             `    // renderer only needs a cheap hidden DOM anchor. apiVersion-2 renderer.` && |\n| &&
+             `    function renderInvisibleSpan(oRm, oControl) {` && |\n| &&
+             `      oRm.openStart("span", oControl);` && |\n| &&
+             `      oRm.style("display", "none");` && |\n| &&
+             `      oRm.openEnd();` && |\n| &&
+             `      oRm.close("span");` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    return {` && |\n| &&
              `      logError,` && |\n| &&
              `      isDestroyed,` && |\n| &&
@@ -477,6 +488,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      hasMessagingModule,` && |\n| &&
              `      isRootModelSlot,` && |\n| &&
              `      effectiveSizeLimit,` && |\n| &&
+             `      renderInvisibleSpan,` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&

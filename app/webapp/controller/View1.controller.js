@@ -424,6 +424,15 @@ sap.ui.define(
         Lib.runCallbacks(AppState.state.onAfterRoundtrip);
       },
 
+      // The framework-owned JSON model on a slot's view: the DEFAULT model
+      // normally, but the NAMED "http" model when SWITCH_DEFAULT_MODEL_PATH put
+      // an OData model in the default slot. Returns undefined when neither model
+      // is ours (marked by _z2ui5Tracked).
+      _resolveTrackedModel(oView) {
+        const isOurs = (m) => (m?._z2ui5Tracked ? m : undefined);
+        return isOurs(oView.getModel()) ?? isOurs(oView.getModel("http"));
+      },
+
       _pickModelForRoundtrip(useMainModel) {
         // useMainModel forces use of the main view's model even when called
         // from a popup/popover controller.
@@ -434,16 +443,12 @@ sap.ui.define(
         if (!oView) return undefined;
 
         // MAIN and its nested views (NEST/NEST2) share one framework-owned
-        // JSON model. It is the DEFAULT model normally, but the NAMED "http"
-        // model when SWITCH_DEFAULT_MODEL_PATH placed an OData model in the
-        // default slot. Resolve whichever one is ours - same logic as
-        // updateModelIfRequired - so a nested-slot event never picks the
-        // propagated OData default (which has no getData()) and silently drops
-        // the edit. The data and the changedPaths delta are shared across the
-        // root slots, so any of them yields the same model.
+        // JSON model, so a nested-slot event must resolve the tracked model
+        // (not the propagated OData default, which has no getData()) or the
+        // edit is silently dropped. The data and changedPaths delta are shared
+        // across the root slots, so any of them yields the same model.
         if (Lib.isRootModelSlot(slotKey)) {
-          const isOurs = (m) => (m?._z2ui5Tracked ? m : undefined);
-          return isOurs(oView.getModel()) ?? isOurs(oView.getModel("http"));
+          return this._resolveTrackedModel(oView);
         }
 
         // Popup/popover are standalone and return their own (default) model.
@@ -466,13 +471,8 @@ sap.ui.define(
         // model + setModel() destroys and recreates every binding - measured
         // ~3x slower with all values changed and ~150x slower when little
         // changed (see node/tests-examples/modelUpdate.bench.spec.js).
-        // The framework-owned JSON model is the DEFAULT model normally, but
-        // the NAMED "http" model when SWITCH_DEFAULT_MODEL_PATH placed an
-        // OData model in the default slot - update whichever one is ours and
-        // never overwrite the OData default with a fresh JSON model.
-        const isOurs = (m) => (m?._z2ui5Tracked ? m : undefined);
-        const tracked =
-          isOurs(oView.getModel()) ?? isOurs(oView.getModel("http"));
+        // Never overwrite an OData default (switch mode) with a fresh JSON model.
+        const tracked = this._resolveTrackedModel(oView);
         if (tracked) {
           applyStoredSizeLimit(slotKey, tracked);
           // MAIN and its nested views resolve to the SAME root model here, and

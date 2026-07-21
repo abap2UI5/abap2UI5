@@ -432,6 +432,17 @@ sap.ui.define(
       return max;
     }
 
+    // Render the invisible <span> placeholder shared by every marker custom
+    // control (Focus, Timer, Scrolling, Tree, Info, Geolocation, Storage): the
+    // real work happens in onAfterRendering (see the module header), so the
+    // renderer only needs a cheap hidden DOM anchor. apiVersion-2 renderer.
+    function renderInvisibleSpan(oRm, oControl) {
+      oRm.openStart("span", oControl);
+      oRm.style("display", "none");
+      oRm.openEnd();
+      oRm.close("span");
+    }
+
     return {
       logError,
       isDestroyed,
@@ -456,6 +467,7 @@ sap.ui.define(
       hasMessagingModule,
       isRootModelSlot,
       effectiveSizeLimit,
+      renderInvisibleSpan,
     };
   },
 );

@@ -445,6 +445,15 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        Lib.runCallbacks(AppState.state.onAfterRoundtrip);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      // The framework-owned JSON model on a slot's view: the DEFAULT model` && |\n| &&
+             `      // normally, but the NAMED "http" model when SWITCH_DEFAULT_MODEL_PATH put` && |\n| &&
+             `      // an OData model in the default slot. Returns undefined when neither model` && |\n| &&
+             `      // is ours (marked by _z2ui5Tracked).` && |\n| &&
+             `      _resolveTrackedModel(oView) {` && |\n| &&
+             `        const isOurs = (m) => (m?._z2ui5Tracked ? m : undefined);` && |\n| &&
+             `        return isOurs(oView.getModel()) ?? isOurs(oView.getModel("http"));` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      _pickModelForRoundtrip(useMainModel) {` && |\n| &&
              `        // useMainModel forces use of the main view's model even when called` && |\n| &&
              `        // from a popup/popover controller.` && |\n| &&
@@ -455,16 +464,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        if (!oView) return undefined;` && |\n| &&
              `` && |\n| &&
              `        // MAIN and its nested views (NEST/NEST2) share one framework-owned` && |\n| &&
-             `        // JSON model. It is the DEFAULT model normally, but the NAMED "http"` && |\n| &&
-             `        // model when SWITCH_DEFAULT_MODEL_PATH placed an OData model in the` && |\n| &&
-             `        // default slot. Resolve whichever one is ours - same logic as` && |\n| &&
-             `        // updateModelIfRequired - so a nested-slot event never picks the` && |\n| &&
-             `        // propagated OData default (which has no getData()) and silently drops` && |\n| &&
-             `        // the edit. The data and the changedPaths delta are shared across the` && |\n| &&
-             `        // root slots, so any of them yields the same model.` && |\n| &&
+             `        // JSON model, so a nested-slot event must resolve the tracked model` && |\n| &&
+             `        // (not the propagated OData default, which has no getData()) or the` && |\n| &&
+             `        // edit is silently dropped. The data and changedPaths delta are shared` && |\n| &&
+             `        // across the root slots, so any of them yields the same model.` && |\n| &&
              `        if (Lib.isRootModelSlot(slotKey)) {` && |\n| &&
-             `          const isOurs = (m) => (m?._z2ui5Tracked ? m : undefined);` && |\n| &&
-             `          return isOurs(oView.getModel()) ?? isOurs(oView.getModel("http"));` && |\n| &&
+             `          return this._resolveTrackedModel(oView);` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
              `        // Popup/popover are standalone and return their own (default) model.` && |\n| &&
@@ -487,13 +492,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // model + setModel() destroys and recreates every binding - measured` && |\n| &&
              `        // ~3x slower with all values changed and ~150x slower when little` && |\n| &&
              `        // changed (see node/tests-examples/modelUpdate.bench.spec.js).` && |\n| &&
-             `        // The framework-owned JSON model is the DEFAULT model normally, but` && |\n| &&
-             `        // the NAMED "http" model when SWITCH_DEFAULT_MODEL_PATH placed an` && |\n| &&
-             `        // OData model in the default slot - update whichever one is ours and` && |\n| &&
-             `        // never overwrite the OData default with a fresh JSON model.` && |\n| &&
-             `        const isOurs = (m) => (m?._z2ui5Tracked ? m : undefined);` && |\n| &&
-             `        const tracked =` && |\n| &&
-             `          isOurs(oView.getModel()) ?? isOurs(oView.getModel("http"));` && |\n| &&
+             `        // Never overwrite an OData default (switch mode) with a fresh JSON model.` && |\n| &&
+             `        const tracked = this._resolveTrackedModel(oView);` && |\n| &&
              `        if (tracked) {` && |\n| &&
              `          applyStoredSizeLimit(slotKey, tracked);` && |\n| &&
              `          // MAIN and its nested views resolve to the SAME root model here, and` && |\n| &&
