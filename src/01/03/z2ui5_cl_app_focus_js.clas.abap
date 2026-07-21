@@ -54,7 +54,36 @@ CLASS z2ui5_cl_app_focus_js IMPLEMENTATION.
              `          Lib.logError("Focus.setFocusId failed", e);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
+             `      onBeforeRendering() {` && |\n| &&
+             `        // Snapshot the caret of whatever text field currently holds focus,` && |\n| &&
+             `        // taken before UI5 replaces or patches the DOM in this render cycle.` && |\n| &&
+             `        // With parallel requests the user keeps typing while a roundtrip is in` && |\n| &&
+             `        // flight; when the response re-renders the view the focused field is` && |\n| &&
+             `        // often re-created, so by the time onAfterRendering runs its live caret` && |\n| &&
+             `        // is already gone and the race guard below could no longer tell that` && |\n| &&
+             `        // the user had typed past the (stale) captured position. Reading it` && |\n| &&
+             `        // here - while the old, still-focused element is in the DOM - keeps the` && |\n| &&
+             `        // guard working across a full view rebuild, not only an in-place patch.` && |\n| &&
+             `        this._liveCaret = null;` && |\n| &&
+             `        try {` && |\n| &&
+             `          const active = document.activeElement;` && |\n| &&
+             `          if (` && |\n| &&
+             `            active &&` && |\n| &&
+             `            (active.tagName === "INPUT" || active.tagName === "TEXTAREA")` && |\n| &&
+             `          ) {` && |\n| &&
+             `            const s = active.selectionStart;` && |\n| &&
+             `            const e = active.selectionEnd;` && |\n| &&
+             `            if (s != null && e != null) {` && |\n| &&
+             `              this._liveCaret = { start: s, end: e };` && |\n| &&
+             `            }` && |\n| &&
+             `          }` && |\n| &&
+             `        } catch {` && |\n| &&
+             `          this._liveCaret = null;` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
              `      onAfterRendering() {` && |\n| &&
+             `        const liveCaret = this._liveCaret;` && |\n| &&
+             `        this._liveCaret = null;` && |\n| &&
              `        if (!this._pendingFocus) return;` && |\n| &&
              `        this._pendingFocus = false;` && |\n| &&
              `        const oElement = ViewSlots.byIdOfOwner(` && |\n| &&
@@ -79,18 +108,30 @@ CLASS z2ui5_cl_app_focus_js IMPLEMENTATION.
              `            start = Math.min(Math.max(start, 0), len);` && |\n| &&
              `            end = Math.min(Math.max(end, 0), len);` && |\n| &&
              `` && |\n| &&
-             `            // Race guard: while the roundtrip was in flight the user may have` && |\n| &&
-             `            // kept typing (e.g. clear "X" then Backspace). The field already` && |\n| &&
-             `            // holds text and its live caret sits past the restored position.` && |\n| &&
+             `            // Race guard: while the roundtrip was in flight the user kept` && |\n| &&
+             `            // typing, so the live caret sits past the restored position.` && |\n| &&
              `            // Re-applying the stale, smaller position would yank the caret to` && |\n| &&
-             `            // the left over text the user just entered - keep the live caret` && |\n| &&
-             `            // in that case and only re-assert focus.` && |\n| &&
-             `            if (input === document.activeElement && len > 0) {` && |\n| &&
-             `              const liveStart = input.selectionStart;` && |\n| &&
-             `              const liveEnd = input.selectionEnd;` && |\n| &&
+             `            // the left over text the user just entered - keep the live caret.` && |\n| &&
+             `            //` && |\n| &&
+             `            // The field is still the active element only when UI5 patched it in` && |\n| &&
+             `            // place; a full view rebuild replaces it, so its live caret is gone` && |\n| &&
+             `            // and we fall back to the pre-render snapshot (same logical field -` && |\n| &&
+             `            // it is the focus target the backend asked to restore).` && |\n| &&
+             `            if (len > 0) {` && |\n| &&
+             `              let liveStart = null;` && |\n| &&
+             `              let liveEnd = null;` && |\n| &&
+             `              if (input === document.activeElement) {` && |\n| &&
+             `                liveStart = input.selectionStart;` && |\n| &&
+             `                liveEnd = input.selectionEnd;` && |\n| &&
+             `              } else if (liveCaret) {` && |\n| &&
+             `                liveStart = liveCaret.start;` && |\n| &&
+             `                liveEnd = liveCaret.end;` && |\n| &&
+             `              }` && |\n| &&
              `              if (liveStart != null && (liveStart > start || liveEnd > end)) {` && |\n| &&
-             `                input.focus();` && |\n| &&
-             `                return;` && |\n| &&
+             `                // Clamp the kept caret too: the re-rendered value may be` && |\n| &&
+             `                // shorter than the snapshot was taken against.` && |\n| &&
+             `                start = Math.min(Math.max(liveStart, 0), len);` && |\n| &&
+             `                end = Math.min(Math.max(liveEnd, 0), len);` && |\n| &&
              `              }` && |\n| &&
              `            }` && |\n| &&
              `          }` && |\n| &&
