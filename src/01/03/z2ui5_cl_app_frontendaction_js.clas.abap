@@ -417,11 +417,11 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      document.body.appendChild(a);` && |\n| &&
              `      a.click();` && |\n| &&
              `      document.body.removeChild(a);` && |\n| &&
-             `    }` && |\n| &&
+             `    }` && |\n|.
+    result = result &&
              `` && |\n| &&
              `    function evCrossAppNavToPrevApp() {` && |\n| &&
-             `      withCrossAppNavigator((nav) => nav.backToPreviousApp());` && |\n|.
-    result = result &&
+             `      withCrossAppNavigator((nav) => nav.backToPreviousApp());` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evSetSizeLimit(oController, args) {` && |\n| &&
@@ -818,11 +818,11 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          const result = shell.setTitle(title);` && |\n| &&
              `          if (result?.catch) {` && |\n| &&
              `            result.catch((e) =>` && |\n| &&
-             `              Lib.logError(` && |\n| &&
+             `              Lib.logError(` && |\n|.
+    result = result &&
              `                "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",` && |\n| &&
              `                e,` && |\n| &&
-             `              ),` && |\n|.
-    result = result &&
+             `              ),` && |\n| &&
              `            );` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
