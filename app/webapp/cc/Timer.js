@@ -5,6 +5,7 @@
 sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
   "use strict";
 
+  // OBSOLETE: replaced by the frontend event cs_event-start_timer - kept for backward compatibility.
   return Control.extend("z2ui5.cc.Timer", {
     metadata: {
       properties: {
@@ -56,10 +57,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
     renderer: {
       apiVersion: 2,
       render(oRm, oControl) {
-        oRm.openStart("span", oControl);
-        oRm.style("display", "none");
-        oRm.openEnd();
-        oRm.close("span");
+        Lib.renderInvisibleSpan(oRm, oControl);
         oControl._pendingTimer = oControl.getProperty("checkActive");
       },
     },

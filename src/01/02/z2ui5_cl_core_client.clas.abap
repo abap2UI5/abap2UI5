@@ -207,7 +207,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     IF app IS NOT BOUND.
       RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
         EXPORTING
-          val = `NAV_APP_LEAVE_TO_INITIAL_APP_ERROR`.
+          val = `NAV_APP_TARGET_NOT_BOUND - the app passed to nav_app_call/nav_app_leave is not bound`.
     ENDIF.
 
     IF app->id_app IS INITIAL.

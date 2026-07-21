@@ -31,6 +31,7 @@ CLASS z2ui5_cl_app_info_js IMPLEMENTATION.
              `    // Invisible control that reports the UI5 version/theme and the device` && |\n| &&
              `    // info (system type, screen size, OS, browser) back to the backend via` && |\n| &&
              `    // its bindable properties, then fires ``finished``.` && |\n| &&
+             `    // OBSOLETE: replaced by client.get().s_device / s_ui5 / s_focus / s_scroll - kept for backward compatibility.` && |\n| &&
              `    return Control.extend("z2ui5.cc.Info", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -127,10 +128,7 @@ CLASS z2ui5_cl_app_info_js IMPLEMENTATION.
              `      renderer: {` && |\n| &&
              `        apiVersion: 2,` && |\n| &&
              `        render(oRm, oControl) {` && |\n| &&
-             `          oRm.openStart("span", oControl);` && |\n| &&
-             `          oRm.style("display", "none");` && |\n| &&
-             `          oRm.openEnd();` && |\n| &&
-             `          oRm.close("span");` && |\n| &&
+             `          Lib.renderInvisibleSpan(oRm, oControl);` && |\n| &&
              `          oControl._pendingInfo = true;` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&

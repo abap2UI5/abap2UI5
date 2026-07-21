@@ -180,7 +180,7 @@ sap.ui.define(
 
     // args: [_, id, view, method, ...params]
     function evControlCallById(oController, args) {
-      const [id, view, method] = [args[1], args[2], args[3]];
+      const [, id, view, method] = args;
       const kinds = CONTROL_METHODS[method];
       if (!kinds) {
         Lib.logError(`CONTROL_BY_ID: method '${method}' not allowed`);
@@ -227,7 +227,7 @@ sap.ui.define(
 
     // args: [_, object, method, ...params]
     function evControlCall(oController, args) {
-      const [name, method] = [args[1], args[2]];
+      const [, name, method] = args;
       const target = GLOBAL_TARGETS[name];
       const kinds = target?.methods[method];
       if (!kinds) {
@@ -362,7 +362,7 @@ sap.ui.define(
 
     // args: [_, id, aggregation, method, ...params]
     function evBindingCall(oController, args) {
-      const [id, aggregation, method] = [args[1], args[2], args[3]];
+      const [, id, aggregation, method] = args;
       const build = BINDING_METHODS[method];
       if (!build) {
         Lib.logError(`BINDING_CALL: method '${method}' not allowed`);

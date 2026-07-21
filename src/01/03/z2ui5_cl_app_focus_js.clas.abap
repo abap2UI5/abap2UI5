@@ -25,6 +25,7 @@ CLASS z2ui5_cl_app_focus_js IMPLEMENTATION.
              `    // Invisible control that restores the keyboard focus (and the cursor` && |\n| &&
              `    // selection range) to the control given by focusId after a rerender -` && |\n| &&
              `    // the backend uses it to keep the focus stable across roundtrips.` && |\n| &&
+             `    // OBSOLETE: replaced by the frontend event cs_event-set_focus - kept for backward compatibility.` && |\n| &&
              `    return Control.extend("z2ui5.cc.Focus", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -162,10 +163,7 @@ CLASS z2ui5_cl_app_focus_js IMPLEMENTATION.
              `      renderer: {` && |\n| &&
              `        apiVersion: 2,` && |\n| &&
              `        render(oRm, oControl) {` && |\n| &&
-             `          oRm.openStart("span", oControl);` && |\n| &&
-             `          oRm.style("display", "none");` && |\n| &&
-             `          oRm.openEnd();` && |\n| &&
-             `          oRm.close("span");` && |\n| &&
+             `          Lib.renderInvisibleSpan(oRm, oControl);` && |\n| &&
              `          if (!oControl.getProperty("setUpdate")) return;` && |\n| &&
              `          oControl.setProperty("setUpdate", false, true);` && |\n| &&
              `          oControl._pendingFocus = true;` && |\n| &&

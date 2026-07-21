@@ -5,6 +5,7 @@ sap.ui.define(
     // Invisible control that restores the keyboard focus (and the cursor
     // selection range) to the control given by focusId after a rerender -
     // the backend uses it to keep the focus stable across roundtrips.
+    // OBSOLETE: replaced by the frontend event cs_event-set_focus - kept for backward compatibility.
     return Control.extend("z2ui5.cc.Focus", {
       metadata: {
         properties: {
@@ -142,10 +143,7 @@ sap.ui.define(
       renderer: {
         apiVersion: 2,
         render(oRm, oControl) {
-          oRm.openStart("span", oControl);
-          oRm.style("display", "none");
-          oRm.openEnd();
-          oRm.close("span");
+          Lib.renderInvisibleSpan(oRm, oControl);
           if (!oControl.getProperty("setUpdate")) return;
           oControl.setProperty("setUpdate", false, true);
           oControl._pendingFocus = true;

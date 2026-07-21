@@ -25,6 +25,7 @@ CLASS z2ui5_cl_app_lptitle_js IMPLEMENTATION.
              `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/AppState"],` && |\n| &&
              `  (Control, Lib, AppState) => {` && |\n| &&
              `    "use strict";` && |\n| &&
+             `    // OBSOLETE: replaced by the frontend event cs_event-set_title_launchpad - kept for backward compatibility.` && |\n| &&
              `    return Control.extend("z2ui5.cc.LPTitle", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&

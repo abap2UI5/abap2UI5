@@ -99,6 +99,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! obsolete - use the frontend event client->follow_up_action( client->cs_event-set_focus ) instead
     METHODS focus
       IMPORTING
         focusid        TYPE clike OPTIONAL
@@ -125,6 +126,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION PUBLIC.
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
+    "! obsolete - read the frontend info from client->get( )-s_device / -s_ui5 / -s_focus / -s_scroll instead
     METHODS info_frontend
       IMPORTING
         finished          TYPE clike OPTIONAL
@@ -184,6 +186,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! obsolete - use the frontend event client->follow_up_action( client->cs_event-set_title ) instead
     METHODS title
       IMPORTING
         title         TYPE clike OPTIONAL
@@ -196,6 +199,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! obsolete - use the frontend event client->follow_up_action( client->cs_event-set_title_launchpad ) instead
     METHODS lp_title
       IMPORTING
         title                TYPE clike OPTIONAL
@@ -214,12 +218,14 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! obsolete - app state in the URL is handled by the framework now (see set_push_state)
     METHODS history
       IMPORTING
         search        TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! obsolete - use the frontend event client->follow_up_action( client->cs_event-scroll_to / cs_event-scroll_into_view ) instead
     METHODS scrolling
       IMPORTING
         setupdate     TYPE clike OPTIONAL
@@ -233,6 +239,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! obsolete - use the frontend event client->follow_up_action( client->cs_event-start_timer ) instead
     METHODS timer
       IMPORTING
         finished      TYPE clike OPTIONAL

@@ -445,25 +445,35 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        Lib.runCallbacks(AppState.state.onAfterRoundtrip);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      // The framework-owned JSON model on a slot's view: the DEFAULT model` && |\n| &&
+             `      // normally, but the NAMED "http" model when SWITCH_DEFAULT_MODEL_PATH put` && |\n| &&
+             `      // an OData model in the default slot. Returns undefined when neither model` && |\n| &&
+             `      // is ours (marked by _z2ui5Tracked).` && |\n| &&
+             `      _resolveTrackedModel(oView) {` && |\n| &&
+             `        const isOurs = (m) => (m?._z2ui5Tracked ? m : undefined);` && |\n| &&
+             `        return isOurs(oView.getModel()) ?? isOurs(oView.getModel("http"));` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      _pickModelForRoundtrip(useMainModel) {` && |\n| &&
              `        // useMainModel forces use of the main view's model even when called` && |\n| &&
              `        // from a popup/popover controller.` && |\n| &&
              `        const slotKey = useMainModel ? "MAIN" : ViewSlots.keyOfController(this);` && |\n| &&
              `        if (!slotKey) return undefined;` && |\n| &&
              `` && |\n| &&
-             `        if (slotKey === "MAIN") {` && |\n| &&
-             `          const sView = AppState.state.oResponse?.PARAMS?.S_VIEW;` && |\n| &&
-             `          if (sView?.SWITCH_DEFAULT_MODEL_PATH) {` && |\n| &&
-             `            return ViewSlots.getView("MAIN")?.getModel("http");` && |\n| &&
-             `          }` && |\n| &&
-             `          return ViewSlots.getView("MAIN")?.getModel();` && |\n| &&
+             `        const oView = ViewSlots.getView(slotKey);` && |\n| &&
+             `        if (!oView) return undefined;` && |\n| &&
+             `` && |\n| &&
+             `        // MAIN and its nested views (NEST/NEST2) share one framework-owned` && |\n| &&
+             `        // JSON model, so a nested-slot event must resolve the tracked model` && |\n| &&
+             `        // (not the propagated OData default, which has no getData()) or the` && |\n| &&
+             `        // edit is silently dropped. The data and changedPaths delta are shared` && |\n| &&
+             `        // across the root slots, so any of them yields the same model.` && |\n| &&
+             `        if (Lib.isRootModelSlot(slotKey)) {` && |\n| &&
+             `          return this._resolveTrackedModel(oView);` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        // Non-main slots return the model of the view that fired the event.` && |\n| &&
-             `        // For the nested slots this resolves - via model propagation - to the` && |\n| &&
-             `        // same root model as MAIN, which is exactly right: the data and the` && |\n| &&
-             `        // changedPaths delta are shared. Popup/popover return their own model.` && |\n| &&
-             `        return ViewSlots.getView(slotKey)?.getModel();` && |\n| &&
+             `        // Popup/popover are standalone and return their own (default) model.` && |\n| &&
+             `        return oView.getModel();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Refresh a slot's model when the response signals an update for it` && |\n| &&
@@ -482,13 +492,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // model + setModel() destroys and recreates every binding - measured` && |\n| &&
              `        // ~3x slower with all values changed and ~150x slower when little` && |\n| &&
              `        // changed (see node/tests-examples/modelUpdate.bench.spec.js).` && |\n| &&
-             `        // The framework-owned JSON model is the DEFAULT model normally, but` && |\n| &&
-             `        // the NAMED "http" model when SWITCH_DEFAULT_MODEL_PATH placed an` && |\n| &&
-             `        // OData model in the default slot - update whichever one is ours and` && |\n| &&
-             `        // never overwrite the OData default with a fresh JSON model.` && |\n| &&
-             `        const isOurs = (m) => (m?._z2ui5Tracked ? m : undefined);` && |\n| &&
-             `        const tracked =` && |\n| &&
-             `          isOurs(oView.getModel()) ?? isOurs(oView.getModel("http"));` && |\n| &&
+             `        // Never overwrite an OData default (switch mode) with a fresh JSON model.` && |\n| &&
+             `        const tracked = this._resolveTrackedModel(oView);` && |\n| &&
              `        if (tracked) {` && |\n| &&
              `          applyStoredSizeLimit(slotKey, tracked);` && |\n| &&
              `          // MAIN and its nested views resolve to the SAME root model here, and` && |\n| &&
@@ -510,7 +515,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Replace the main app view with the XML coming from the backend.` && |\n| &&
-             `      async displayView(xml, viewModel) {` && |\n| &&
+             `      async displayView(xml, viewModel, reqSeq) {` && |\n| &&
              `        const oViewModel = this._trackChanges(new JSONModel(viewModel));` && |\n| &&
              `` && |\n| &&
              `        const sView = AppState.state.oResponse?.PARAMS?.S_VIEW;` && |\n| &&
@@ -539,6 +544,16 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        // Guard against the app being destroyed during the await above.` && |\n| &&
              `        if (!Lib.isAlive(AppState.state.oApp)) {` && |\n| &&
+             `          oView.destroy();` && |\n| &&
+             `          if (switchPath) oModel.destroy();` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        // A newer parallel request (check_allow_multi_req) superseded this one` && |\n| &&
+             `        // while XMLView.create was awaiting - discard this rebuild instead of` && |\n| &&
+             `        // letting an out-of-order resolve overwrite the newer view. Last-write` && |\n| &&
+             `        // wins by request order, not by which create() happened to resolve last.` && |\n| &&
+             `        if (reqSeq !== undefined && reqSeq !== Server._requestSeq) {` && |\n| &&
              `          oView.destroy();` && |\n| &&
              `          if (switchPath) oModel.destroy();` && |\n| &&
              `          return;` && |\n| &&

@@ -11,6 +11,7 @@ sap.ui.define(
     // Invisible control that reports the UI5 version/theme and the device
     // info (system type, screen size, OS, browser) back to the backend via
     // its bindable properties, then fires `finished`.
+    // OBSOLETE: replaced by client.get().s_device / s_ui5 / s_focus / s_scroll - kept for backward compatibility.
     return Control.extend("z2ui5.cc.Info", {
       metadata: {
         properties: {
@@ -107,10 +108,7 @@ sap.ui.define(
       renderer: {
         apiVersion: 2,
         render(oRm, oControl) {
-          oRm.openStart("span", oControl);
-          oRm.style("display", "none");
-          oRm.openEnd();
-          oRm.close("span");
+          Lib.renderInvisibleSpan(oRm, oControl);
           oControl._pendingInfo = true;
         },
       },

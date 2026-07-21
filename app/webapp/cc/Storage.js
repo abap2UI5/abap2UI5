@@ -80,10 +80,7 @@ sap.ui.define(
       renderer: {
         apiVersion: 2,
         render(oRm, oControl) {
-          oRm.openStart("span", oControl);
-          oRm.style("display", "none");
-          oRm.openEnd();
-          oRm.close("span");
+          Lib.renderInvisibleSpan(oRm, oControl);
           oControl._pendingRead = true;
         },
       },

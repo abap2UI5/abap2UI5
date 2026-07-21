@@ -23,6 +23,7 @@ CLASS z2ui5_cl_app_history_js IMPLEMENTATION.
              `// reload, no new history entry.` && |\n| &&
              `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
              `  "use strict";` && |\n| &&
+             `  // OBSOLETE: app state in the URL is handled by the framework now (set_push_state) - kept for backward compatibility.` && |\n| &&
              `  return Control.extend("z2ui5.cc.History", {` && |\n| &&
              `    metadata: {` && |\n| &&
              `      properties: {` && |\n| &&

@@ -200,7 +200,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `` && |\n| &&
              `    // args: [_, id, view, method, ...params]` && |\n| &&
              `    function evControlCallById(oController, args) {` && |\n| &&
-             `      const [id, view, method] = [args[1], args[2], args[3]];` && |\n| &&
+             `      const [, id, view, method] = args;` && |\n| &&
              `      const kinds = CONTROL_METHODS[method];` && |\n| &&
              `      if (!kinds) {` && |\n| &&
              `        Lib.logError(``CONTROL_BY_ID: method '${method}' not allowed``);` && |\n| &&
@@ -247,7 +247,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `` && |\n| &&
              `    // args: [_, object, method, ...params]` && |\n| &&
              `    function evControlCall(oController, args) {` && |\n| &&
-             `      const [name, method] = [args[1], args[2]];` && |\n| &&
+             `      const [, name, method] = args;` && |\n| &&
              `      const target = GLOBAL_TARGETS[name];` && |\n| &&
              `      const kinds = target?.methods[method];` && |\n| &&
              `      if (!kinds) {` && |\n| &&
@@ -382,7 +382,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `` && |\n| &&
              `    // args: [_, id, aggregation, method, ...params]` && |\n| &&
              `    function evBindingCall(oController, args) {` && |\n| &&
-             `      const [id, aggregation, method] = [args[1], args[2], args[3]];` && |\n| &&
+             `      const [, id, aggregation, method] = args;` && |\n| &&
              `      const build = BINDING_METHODS[method];` && |\n| &&
              `      if (!build) {` && |\n| &&
              `        Lib.logError(``BINDING_CALL: method '${method}' not allowed``);` && |\n| &&

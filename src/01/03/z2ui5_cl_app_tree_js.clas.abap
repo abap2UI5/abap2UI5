@@ -117,10 +117,7 @@ CLASS z2ui5_cl_app_tree_js IMPLEMENTATION.
              `      renderer: {` && |\n| &&
              `        apiVersion: 2,` && |\n| &&
              `        render(oRm, oControl) {` && |\n| &&
-             `          oRm.openStart("span", oControl);` && |\n| &&
-             `          oRm.style("display", "none");` && |\n| &&
-             `          oRm.openEnd();` && |\n| &&
-             `          oRm.close("span");` && |\n| &&
+             `          Lib.renderInvisibleSpan(oRm, oControl);` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
              `    });` && |\n| &&

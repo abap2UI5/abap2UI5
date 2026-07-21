@@ -93,7 +93,7 @@ CLASS z2ui5_cl_app_formatter_js IMPLEMENTATION.
              `    weightState(measure, unit) {` && |\n| &&
              `      let adjusted = parseFloat(measure);` && |\n| &&
              `      if (isNaN(adjusted)) return "None";` && |\n| &&
-             `      if (unit === "G") adjusted = measure / 1000;` && |\n| &&
+             `      if (unit === "G") adjusted = adjusted / 1000;` && |\n| &&
              `      if (adjusted < 0) return "None";` && |\n| &&
              `      if (adjusted < 1) return "Success";` && |\n| &&
              `      if (adjusted < 5) return "Warning";` && |\n| &&

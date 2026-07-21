@@ -424,25 +424,35 @@ sap.ui.define(
         Lib.runCallbacks(AppState.state.onAfterRoundtrip);
       },
 
+      // The framework-owned JSON model on a slot's view: the DEFAULT model
+      // normally, but the NAMED "http" model when SWITCH_DEFAULT_MODEL_PATH put
+      // an OData model in the default slot. Returns undefined when neither model
+      // is ours (marked by _z2ui5Tracked).
+      _resolveTrackedModel(oView) {
+        const isOurs = (m) => (m?._z2ui5Tracked ? m : undefined);
+        return isOurs(oView.getModel()) ?? isOurs(oView.getModel("http"));
+      },
+
       _pickModelForRoundtrip(useMainModel) {
         // useMainModel forces use of the main view's model even when called
         // from a popup/popover controller.
         const slotKey = useMainModel ? "MAIN" : ViewSlots.keyOfController(this);
         if (!slotKey) return undefined;
 
-        if (slotKey === "MAIN") {
-          const sView = AppState.state.oResponse?.PARAMS?.S_VIEW;
-          if (sView?.SWITCH_DEFAULT_MODEL_PATH) {
-            return ViewSlots.getView("MAIN")?.getModel("http");
-          }
-          return ViewSlots.getView("MAIN")?.getModel();
+        const oView = ViewSlots.getView(slotKey);
+        if (!oView) return undefined;
+
+        // MAIN and its nested views (NEST/NEST2) share one framework-owned
+        // JSON model, so a nested-slot event must resolve the tracked model
+        // (not the propagated OData default, which has no getData()) or the
+        // edit is silently dropped. The data and changedPaths delta are shared
+        // across the root slots, so any of them yields the same model.
+        if (Lib.isRootModelSlot(slotKey)) {
+          return this._resolveTrackedModel(oView);
         }
 
-        // Non-main slots return the model of the view that fired the event.
-        // For the nested slots this resolves - via model propagation - to the
-        // same root model as MAIN, which is exactly right: the data and the
-        // changedPaths delta are shared. Popup/popover return their own model.
-        return ViewSlots.getView(slotKey)?.getModel();
+        // Popup/popover are standalone and return their own (default) model.
+        return oView.getModel();
       },
 
       // Refresh a slot's model when the response signals an update for it
@@ -461,13 +471,8 @@ sap.ui.define(
         // model + setModel() destroys and recreates every binding - measured
         // ~3x slower with all values changed and ~150x slower when little
         // changed (see node/tests-examples/modelUpdate.bench.spec.js).
-        // The framework-owned JSON model is the DEFAULT model normally, but
-        // the NAMED "http" model when SWITCH_DEFAULT_MODEL_PATH placed an
-        // OData model in the default slot - update whichever one is ours and
-        // never overwrite the OData default with a fresh JSON model.
-        const isOurs = (m) => (m?._z2ui5Tracked ? m : undefined);
-        const tracked =
-          isOurs(oView.getModel()) ?? isOurs(oView.getModel("http"));
+        // Never overwrite an OData default (switch mode) with a fresh JSON model.
+        const tracked = this._resolveTrackedModel(oView);
         if (tracked) {
           applyStoredSizeLimit(slotKey, tracked);
           // MAIN and its nested views resolve to the SAME root model here, and
@@ -489,7 +494,7 @@ sap.ui.define(
       },
 
       // Replace the main app view with the XML coming from the backend.
-      async displayView(xml, viewModel) {
+      async displayView(xml, viewModel, reqSeq) {
         const oViewModel = this._trackChanges(new JSONModel(viewModel));
 
         const sView = AppState.state.oResponse?.PARAMS?.S_VIEW;
@@ -518,6 +523,16 @@ sap.ui.define(
 
         // Guard against the app being destroyed during the await above.
         if (!Lib.isAlive(AppState.state.oApp)) {
+          oView.destroy();
+          if (switchPath) oModel.destroy();
+          return;
+        }
+
+        // A newer parallel request (check_allow_multi_req) superseded this one
+        // while XMLView.create was awaiting - discard this rebuild instead of
+        // letting an out-of-order resolve overwrite the newer view. Last-write
+        // wins by request order, not by which create() happened to resolve last.
+        if (reqSeq !== undefined && reqSeq !== Server._requestSeq) {
           oView.destroy();
           if (switchPath) oModel.destroy();
           return;

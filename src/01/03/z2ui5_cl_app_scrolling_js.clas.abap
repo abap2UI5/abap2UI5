@@ -31,6 +31,7 @@ CLASS z2ui5_cl_app_scrolling_js IMPLEMENTATION.
              `    // Invisible control that saves the scroll positions of the controls` && |\n| &&
              `    // listed in ``items`` into the model before each roundtrip and restores` && |\n| &&
              `    // them after the next rendering.` && |\n| &&
+             `    // OBSOLETE: replaced by cs_event-scroll_to / cs_event-scroll_into_view - kept for backward compatibility.` && |\n| &&
              `    return Control.extend("z2ui5.cc.Scrolling", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `        properties: {` && |\n| &&
@@ -135,10 +136,7 @@ CLASS z2ui5_cl_app_scrolling_js IMPLEMENTATION.
              `      renderer: {` && |\n| &&
              `        apiVersion: 2,` && |\n| &&
              `        render(oRm, oControl) {` && |\n| &&
-             `          oRm.openStart("span", oControl);` && |\n| &&
-             `          oRm.style("display", "none");` && |\n| &&
-             `          oRm.openEnd();` && |\n| &&
-             `          oRm.close("span");` && |\n| &&
+             `          Lib.renderInvisibleSpan(oRm, oControl);` && |\n| &&
              `` && |\n| &&
              `          if (!oControl.getProperty("setUpdate")) return;` && |\n| &&
              `          oControl.setProperty("setUpdate", false, true);` && |\n| &&

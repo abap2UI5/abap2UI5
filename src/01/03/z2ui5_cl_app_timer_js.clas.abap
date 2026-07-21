@@ -25,6 +25,7 @@ CLASS z2ui5_cl_app_timer_js IMPLEMENTATION.
              `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
              `  "use strict";` && |\n| &&
              `` && |\n| &&
+             `  // OBSOLETE: replaced by the frontend event cs_event-start_timer - kept for backward compatibility.` && |\n| &&
              `  return Control.extend("z2ui5.cc.Timer", {` && |\n| &&
              `    metadata: {` && |\n| &&
              `      properties: {` && |\n| &&
@@ -76,10 +77,7 @@ CLASS z2ui5_cl_app_timer_js IMPLEMENTATION.
              `    renderer: {` && |\n| &&
              `      apiVersion: 2,` && |\n| &&
              `      render(oRm, oControl) {` && |\n| &&
-             `        oRm.openStart("span", oControl);` && |\n| &&
-             `        oRm.style("display", "none");` && |\n| &&
-             `        oRm.openEnd();` && |\n| &&
-             `        oRm.close("span");` && |\n| &&
+             `        Lib.renderInvisibleSpan(oRm, oControl);` && |\n| &&
              `        oControl._pendingTimer = oControl.getProperty("checkActive");` && |\n| &&
              `      },` && |\n| &&
              `    },` && |\n| &&
