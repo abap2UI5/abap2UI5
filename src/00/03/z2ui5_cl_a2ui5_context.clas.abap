@@ -696,11 +696,6 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
       result = val.
     ENDIF.
 
-*    result = COND #(
-*      WHEN val = abap_true THEN `true`
-*      WHEN val = abap_false THEN ``
-*      ELSE val ).
-
   ENDMETHOD.
 
   METHOD boolean_check_by_data.
@@ -1323,7 +1318,7 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
 
     DATA(lt_msg) = msg_get_t( val  = val
                               val2 = val2 ).
-    result = lt_msg[ 1 ].
+    result = VALUE #( lt_msg[ 1 ] OPTIONAL ).
 
   ENDMETHOD.
 

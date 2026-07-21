@@ -107,7 +107,9 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
 
   METHOD z2ui5_if_exit~set_config_http_post.
 
-    cs_config-draft_exp_time_in_hours = 4.
+    CONSTANTS lc_default_exp_time_in_hours TYPE i VALUE 4.
+
+    cs_config-draft_exp_time_in_hours = lc_default_exp_time_in_hours.
 
     IF gi_user_exit IS BOUND.
       gi_user_exit->set_config_http_post( EXPORTING is_context = context
@@ -115,7 +117,7 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
     ENDIF.
 
     IF cs_config-draft_exp_time_in_hours <= 0.
-      cs_config-draft_exp_time_in_hours = 4.
+      cs_config-draft_exp_time_in_hours = lc_default_exp_time_in_hours.
     ENDIF.
 
   ENDMETHOD.
