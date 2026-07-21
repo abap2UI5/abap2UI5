@@ -11,6 +11,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS event_empty_arg   FOR TESTING.
     METHODS event_empty_middle_arg FOR TESTING.
     METHODS event_trailing_empty_arg FOR TESTING.
+    METHODS event_view_param FOR TESTING.
     METHODS event_multi_req   FOR TESTING.
     METHODS event_client_args FOR TESTING.
     METHODS event_nav_container FOR TESTING.
@@ -197,14 +198,15 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
     lo_event = NEW #( ).
 
-    " an empty argument BETWEEN filled ones keeps its position - dropping
-    " it would shift every following argument into the wrong slot (a
-    " CONTROL_BY_ID action without a view lost its method name this way,
-    " live find in beta samples 448/449)
+    " for control_by_id the view is injected as the empty slot at position 2
+    " (default cs_view-main), so an empty argument BETWEEN filled ones keeps
+    " its position - dropping it would shift every following argument into the
+    " wrong slot (a CONTROL_BY_ID action without a view lost its method name
+    " this way, live find in beta samples 448/449)
     cl_abap_unit_assert=>assert_equals(
         exp = `.eF('CONTROL_BY_ID', 'demoPanel', '', 'setExpanded', 'X')`
         act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-control_by_id
-                                          t_arg = VALUE #( ( `demoPanel` ) ( `` ) ( `setExpanded` ) ( `X` ) ) ) ).
+                                          t_arg = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `X` ) ) ) ).
 
   ENDMETHOD.
 
@@ -214,11 +216,35 @@ CLASS ltcl_test IMPLEMENTATION.
     lo_event = NEW #( ).
 
     " trailing empties still disappear - an ABAP false boolean param
-    " serializes to `` and simply ends the argument list
+    " serializes to `` and simply ends the argument list, while the injected
+    " main-view empty slot at position 2 stays
     cl_abap_unit_assert=>assert_equals(
         exp = `.eF('CONTROL_BY_ID', 'demoPanel', '', 'setExpanded')`
         act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-control_by_id
-                                          t_arg = VALUE #( ( `demoPanel` ) ( `` ) ( `setExpanded` ) ( `` ) ) ) ).
+                                          t_arg = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `` ) ) ) ).
+
+  ENDMETHOD.
+
+  METHOD event_view_param.
+
+    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    lo_event = NEW #( ).
+
+    " a concrete view is injected as the (filled) slot at position 2, scoping
+    " the id lookup to that view slot on the frontend
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eF('CONTROL_BY_ID', 'demoPanel', 'POPOVER', 'setExpanded', 'X')`
+        act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-control_by_id
+                                          view  = z2ui5_if_client=>cs_view-popover
+                                          t_arg = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `X` ) ) ) ).
+
+    " the default view (cs_view-main) maps to the empty slot, preserving the
+    " unchanged cross-view resolveById default
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eF('CONTROL_BY_ID', 'demoPanel', '', 'setExpanded', 'X')`
+        act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-control_by_id
+                                          view  = z2ui5_if_client=>cs_view-main
+                                          t_arg = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `X` ) ) ) ).
 
   ENDMETHOD.
 

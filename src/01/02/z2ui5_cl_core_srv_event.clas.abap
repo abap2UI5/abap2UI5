@@ -13,6 +13,7 @@ CLASS z2ui5_cl_core_srv_event DEFINITION PUBLIC FINAL.
     METHODS get_event_client
       IMPORTING
         val           TYPE clike
+        view          TYPE clike        DEFAULT z2ui5_if_client=>cs_view-main
         t_arg         TYPE string_table OPTIONAL
       RETURNING
         VALUE(result) TYPE string.
@@ -69,6 +70,16 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
                         ( `to` )
                         ( VALUE #( t_arg[ 2 ] OPTIONAL ) ) ).
       lv_val = z2ui5_if_client=>cs_event-control_by_id.
+    ELSEIF lv_val = z2ui5_if_client=>cs_event-control_by_id.
+      " the view is passed as its own parameter now, not as a positional
+      " t_arg slot; inject it at position 2 so the frontend still reads
+      " args = id, view, method, ... . cs_view-main maps to the empty slot,
+      " keeping the unchanged default where the id resolves across all open
+      " views (resolveById); a concrete view scopes the lookup to that slot.
+      DATA(lv_view_slot) = COND string( WHEN view = z2ui5_if_client=>cs_view-main THEN ``
+                                        ELSE CONV string( view ) ).
+      lt_arg = t_arg.
+      INSERT lv_view_slot INTO lt_arg INDEX 2.
     ENDIF.
 
     result = |{ z2ui5_if_core_types=>cs_ui5-event_frontend_function }('{ lv_val }'{ get_t_arg( lt_arg ) }|.
