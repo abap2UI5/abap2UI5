@@ -747,6 +747,13 @@ CLASS z2ui5_cl_util_ext DEFINITION
       CHANGING
         mt_data TYPE ty_t_data.
 
+    CLASS-METHODS _cloud_create_ref_tab
+      IMPORTING
+        iv_table_type TYPE string
+        iv_line_type  TYPE string
+      RETURNING
+        VALUE(result) TYPE REF TO data.
+
     CLASS-METHODS set_mandt
       IMPORTING
         ir_data TYPE REF TO data.
@@ -1617,6 +1624,142 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
     IF z2ui5_cl_util=>context_check_abap_cloud( ).
 
+      " Cloud: record the table entries on the transport request with the
+      " released Business Configuration transport API (all calls are done
+      " dynamically to keep the source compatible with Standard ABAP):
+      "
+      " cl_a4c_bc_factory=>get_handler( )->add_to_transport_request(
+      "   EXPORTING iv_check_mode         = abap_false
+      "             it_object_tables      = VALUE #( ( objname = iv_tabname
+      "                                                tabkeys = ir_data ) )
+      "             iv_mandant_field_name = 'MANDT'
+      "   IMPORTING rv_success            = lv_success ).
+
+      DATA lo_bc_handler    TYPE REF TO object.
+      DATA lr_object_tables TYPE REF TO data.
+      DATA lt_ptab          TYPE abap_parmbind_tab.
+      DATA lt_methods       TYPE STANDARD TABLE OF string WITH EMPTY KEY.
+      DATA lv_method        TYPE string.
+      DATA lv_check_mode    TYPE abap_bool.
+      DATA lv_success       TYPE abap_bool.
+      DATA lv_mandt_field   TYPE c LENGTH 30.
+      DATA lv_transport     TYPE sxco_transport.
+      DATA lv_done          TYPE abap_bool.
+
+      FIELD-SYMBOLS <tab_cloud>     TYPE STANDARD TABLE.
+      FIELD-SYMBOLS <object_tables> TYPE STANDARD TABLE.
+      FIELD-SYMBOLS <object_table>  TYPE any.
+      FIELD-SYMBOLS <comp>          TYPE any.
+
+      ASSIGN ir_data->* TO <tab_cloud>.
+      IF <tab_cloud> IS NOT ASSIGNED OR <tab_cloud> IS INITIAL.
+        RETURN.
+      ENDIF.
+
+      " We need to set the MANDT if necessary
+      set_mandt( ir_data ).
+
+      " determine the client field of the table (default MANDT)
+      lv_mandt_field = `MANDT`.
+      DATA(lt_dfies_cloud) = rtti_get_t_dfies_by_table_name( iv_tabname ).
+      LOOP AT lt_dfies_cloud INTO DATA(ls_dfies_cloud).
+        IF ls_dfies_cloud-datatype = `CLNT`.
+          lv_mandt_field = ls_dfies_cloud-fieldname.
+          EXIT.
+        ENDIF.
+      ENDLOOP.
+
+      TRY.
+          CREATE DATA lr_object_tables TYPE (`IF_A4C_BC_HANDLER=>TT_OBJECT_TABLES`).
+        CATCH cx_root INTO DATA(lx_create).
+          RAISE EXCEPTION TYPE z2ui5_cx_util_error
+            EXPORTING
+              val = lx_create.
+      ENDTRY.
+
+      ASSIGN lr_object_tables->* TO <object_tables>.
+      APPEND INITIAL LINE TO <object_tables> ASSIGNING <object_table>.
+
+      ASSIGN COMPONENT `OBJNAME` OF STRUCTURE <object_table> TO <comp>.
+      IF <comp> IS NOT ASSIGNED.
+        RETURN.
+      ENDIF.
+      <comp> = iv_tabname.
+      UNASSIGN <comp>.
+
+      ASSIGN COMPONENT `TABKEYS` OF STRUCTURE <object_table> TO <comp>.
+      IF <comp> IS NOT ASSIGNED.
+        RETURN.
+      ENDIF.
+      <comp> = ir_data.
+      UNASSIGN <comp>.
+
+      TRY.
+          CALL METHOD (`CL_A4C_BC_FACTORY`)=>(`GET_HANDLER`)
+            RECEIVING
+              ro_handler = lo_bc_handler.
+        CATCH cx_root INTO DATA(lx_factory).
+          RAISE EXCEPTION TYPE z2ui5_cx_util_error
+            EXPORTING
+              val = lx_factory.
+      ENDTRY.
+
+      lv_check_mode = abap_false.
+      lv_transport  = is_transport-transport.
+
+      INSERT VALUE #( name  = `IV_CHECK_MODE`
+                      kind  = cl_abap_objectdescr=>exporting
+                      value = REF #( lv_check_mode ) ) INTO TABLE lt_ptab.
+      INSERT VALUE #( name  = `IT_OBJECT_TABLES`
+                      kind  = cl_abap_objectdescr=>exporting
+                      value = lr_object_tables ) INTO TABLE lt_ptab.
+      INSERT VALUE #( name  = `IV_MANDANT_FIELD_NAME`
+                      kind  = cl_abap_objectdescr=>exporting
+                      value = REF #( lv_mandt_field ) ) INTO TABLE lt_ptab.
+      INSERT VALUE #( name  = `RV_SUCCESS`
+                      kind  = cl_abap_objectdescr=>importing
+                      value = REF #( lv_success ) ) INTO TABLE lt_ptab.
+      " if the release supports it the entries are recorded on the given
+      " request, otherwise on the default customizing request of the user
+      INSERT VALUE #( name  = `IV_TRANSPORT_REQUEST`
+                      kind  = cl_abap_objectdescr=>exporting
+                      value = REF #( lv_transport ) ) INTO TABLE lt_ptab.
+
+      lt_methods = VALUE #( ( `IF_A4C_BC_HANDLER~ADD_TO_TRANSPORT_REQUEST` )
+                            ( `ADD_TO_TRANSPORT_REQUEST` ) ).
+
+      LOOP AT lt_methods INTO lv_method.
+        DO 2 TIMES.
+          TRY.
+              CALL METHOD lo_bc_handler->(lv_method)
+                PARAMETER-TABLE lt_ptab.
+              lv_done = abap_true.
+            CATCH cx_sy_dyn_call_param_not_found.
+              IF line_exists( lt_ptab[ name = `IV_TRANSPORT_REQUEST` ] ).
+                DELETE lt_ptab WHERE name = `IV_TRANSPORT_REQUEST`.
+                CONTINUE.
+              ENDIF.
+              EXIT.
+            CATCH cx_sy_dyn_call_error.
+              EXIT.
+            CATCH cx_root INTO DATA(lx_add).
+              RAISE EXCEPTION TYPE z2ui5_cx_util_error
+                EXPORTING
+                  val = lx_add.
+          ENDTRY.
+          EXIT.
+        ENDDO.
+        IF lv_done = abap_true.
+          EXIT.
+        ENDIF.
+      ENDLOOP.
+
+      IF lv_done = abap_false OR lv_success = abap_false.
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error.
+      ENDIF.
+
+      COMMIT WORK AND WAIT.
+
     ELSE.
 
       FIELD-SYMBOLS <e071>    TYPE any.
@@ -1915,43 +2058,322 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD _cloud_create_ref_tab.
+
+    DATA lr_line TYPE REF TO data.
+
+    " try the dictionary table type first, otherwise build a standard
+    " table of references to the given interface via RTTS
+    TRY.
+        CREATE DATA result TYPE (iv_table_type).
+      CATCH cx_root.
+        TRY.
+            CREATE DATA lr_line TYPE REF TO (iv_line_type).
+            DATA(lo_line_descr) = CAST cl_abap_datadescr( cl_abap_typedescr=>describe_by_data_ref( lr_line ) ).
+            CREATE DATA result TYPE HANDLE cl_abap_tabledescr=>create( lo_line_descr ).
+          CATCH cx_root ##NO_HANDLER.
+        ENDTRY.
+    ENDTRY.
+
+  ENDMETHOD.
+
   METHOD bus_tr_read.
 
     IF z2ui5_cl_util=>context_check_abap_cloud( ).
 
-*          data(lo_current_user) = xco_cp=>sy->user( ).
-*
-*    DATA(lo_kind_filter) = xco_cp_transport=>filter->kind( xco_cp_transport=>kind->task ).
-*    DATA(lo_owner_filter) = xco_cp_transport=>filter->owner( xco_cp_abap_sql=>constraint->equal( lo_current_user->name ) ).
-*    DATA(lo_status_filter) = xco_cp_transport=>filter->status( xco_cp_transport=>status->modifiable ).
-*    DATA(lo_type_filter) = xco_cp_transport=>filter->type( io_type = xco_cp_transport=>type->customizing_task ).
-*    DATA(lt_transports) = xco_cp_cts=>transports->where( VALUE #( ( lo_kind_filter )
-*                                                                  ( lo_owner_filter )
-*                                                                  ( lo_status_filter )
-*                                                                  ( lo_type_filter ) )
-*    )->resolve( xco_cp_transport=>resolution->request ).
-*
-*    LOOP AT lt_transports INTO DATA(lo_transport).
-*      DATA(lo_transport_request) = lo_transport->get_request( ).
-*
-*      DATA(prop) = lo_transport_request->properties( )->get( ).
-*
-*      DATA(tasks) = lo_transport_request->get_tasks( ).
-*
-*      LOOP AT tasks INTO DATA(task).
-*
-*        IF lo_current_user->name = task->properties( )->get_owner( )->name.
-*
-*          DATA(data) = VALUE ty_s_data( short_description = prop-short_description
-*                                        transport         = lo_transport_request->value
-*                                        task              = task->value ).
-*          APPEND data TO mt_data.
-*
-*        ENDIF.
-*
-*      ENDLOOP.
-*
-*    ENDLOOP.
+      " Cloud: read the modifiable customizing requests & tasks of the
+      " current user with the XCO CTS API (all calls are done dynamically
+      " to keep the source compatible with Standard ABAP):
+      "
+      " DATA(lo_kind_filter)   = xco_cp_transport=>filter->kind( xco_cp_transport=>kind->task ).
+      " DATA(lo_owner_filter)  = xco_cp_transport=>filter->owner( xco_cp_abap_sql=>constraint->equal( sy-uname ) ).
+      " DATA(lo_status_filter) = xco_cp_transport=>filter->status( xco_cp_transport=>status->modifiable ).
+      " DATA(lo_type_filter)   = xco_cp_transport=>filter->type( io_type = xco_cp_transport=>type->customizing_task ).
+      " DATA(lt_transports)    = xco_cp_cts=>transports->where( VALUE #( ( lo_kind_filter )
+      "                                                                  ( lo_owner_filter )
+      "                                                                  ( lo_status_filter )
+      "                                                                  ( lo_type_filter )
+      " ) )->resolve( xco_cp_transport=>resolution->request ).
+
+      DATA lo_filter_factory  TYPE REF TO object.
+      DATA lo_status          TYPE REF TO object.
+      DATA lo_status_filter   TYPE REF TO object.
+      DATA lo_kind            TYPE REF TO object.
+      DATA lo_kind_filter     TYPE REF TO object.
+      DATA lo_constraint_fact TYPE REF TO object.
+      DATA lo_constraint      TYPE REF TO object.
+      DATA lo_owner_filter    TYPE REF TO object.
+      DATA lo_type            TYPE REF TO object.
+      DATA lo_type_filter     TYPE REF TO object.
+      DATA lo_transports      TYPE REF TO object.
+      DATA lo_where           TYPE REF TO object.
+      DATA lo_resolution      TYPE REF TO object.
+      DATA lo_transport       TYPE REF TO object.
+      DATA lo_request         TYPE REF TO object.
+      DATA lo_properties      TYPE REF TO object.
+      DATA lo_task            TYPE REF TO object.
+      DATA lo_task_props      TYPE REF TO object.
+      DATA lo_owner           TYPE REF TO object.
+      DATA lr_filters         TYPE REF TO data.
+      DATA lr_transports      TYPE REF TO data.
+      DATA lr_tasks           TYPE REF TO data.
+      DATA lv_user            TYPE c LENGTH 12.
+      DATA lv_owner_filtered  TYPE abap_bool.
+      DATA lv_owner_ok        TYPE abap_bool.
+      DATA ls_data            TYPE ty_s_transport.
+      DATA lt_requests_done   TYPE STANDARD TABLE OF sxco_transport WITH EMPTY KEY.
+
+      FIELD-SYMBOLS <any>        TYPE any.
+      FIELD-SYMBOLS <filters>    TYPE STANDARD TABLE.
+      FIELD-SYMBOLS <filter>     TYPE any.
+      FIELD-SYMBOLS <transports> TYPE STANDARD TABLE.
+      FIELD-SYMBOLS <transport>  TYPE any.
+      FIELD-SYMBOLS <tasks>      TYPE STANDARD TABLE.
+      FIELD-SYMBOLS <task>       TYPE any.
+      FIELD-SYMBOLS <owner_name> TYPE any.
+
+      TRY.
+
+          lv_user = sy-uname.
+
+          " xco_cp_transport=>filter
+          ASSIGN (`XCO_CP_TRANSPORT=>FILTER`) TO <any>.
+          IF sy-subrc <> 0.
+            RETURN.
+          ENDIF.
+          lo_filter_factory = <any>.
+
+          " it_filters of xco_cp_cts=>transports->where( ... )
+          lr_filters = _cloud_create_ref_tab( iv_table_type = `SXCO_T_CTS_TRANSPORT_FILTERS`
+                                              iv_line_type  = `IF_XCO_CTS_TRANSPORT_FILTER` ).
+          ASSIGN lr_filters->* TO <filters>.
+          IF sy-subrc <> 0.
+            RETURN.
+          ENDIF.
+
+          " xco_cp_transport=>filter->status( xco_cp_transport=>status->modifiable )
+          ASSIGN (`XCO_CP_TRANSPORT=>STATUS->MODIFIABLE`) TO <any>.
+          IF sy-subrc <> 0.
+            RETURN.
+          ENDIF.
+          lo_status = <any>.
+
+          CALL METHOD lo_filter_factory->(`STATUS`)
+            EXPORTING
+              io_status = lo_status
+            RECEIVING
+              ro_filter = lo_status_filter.
+
+          APPEND INITIAL LINE TO <filters> ASSIGNING <filter>.
+          <filter> = lo_status_filter.
+
+          " kind/owner/type filters reduce the result, but are optional -
+          " without them the tasks are filtered by owner further down
+          TRY.
+              ASSIGN (`XCO_CP_TRANSPORT=>KIND->TASK`) TO <any>.
+              IF sy-subrc <> 0.
+                RAISE EXCEPTION TYPE z2ui5_cx_util_error.
+              ENDIF.
+              lo_kind = <any>.
+
+              CALL METHOD lo_filter_factory->(`KIND`)
+                EXPORTING
+                  io_kind   = lo_kind
+                RECEIVING
+                  ro_filter = lo_kind_filter.
+
+              APPEND INITIAL LINE TO <filters> ASSIGNING <filter>.
+              <filter> = lo_kind_filter.
+
+              " xco_cp_abap_sql=>constraint->equal( sy-uname )
+              ASSIGN (`XCO_CP_ABAP_SQL=>CONSTRAINT`) TO <any>.
+              IF sy-subrc <> 0.
+                RAISE EXCEPTION TYPE z2ui5_cx_util_error.
+              ENDIF.
+              lo_constraint_fact = <any>.
+
+              CALL METHOD lo_constraint_fact->(`EQUAL`)
+                EXPORTING
+                  iv_value      = lv_user
+                RECEIVING
+                  ro_constraint = lo_constraint.
+
+              CALL METHOD lo_filter_factory->(`OWNER`)
+                EXPORTING
+                  io_owner  = lo_constraint
+                RECEIVING
+                  ro_filter = lo_owner_filter.
+
+              APPEND INITIAL LINE TO <filters> ASSIGNING <filter>.
+              <filter> = lo_owner_filter.
+              lv_owner_filtered = abap_true.
+
+              ASSIGN (`XCO_CP_TRANSPORT=>TYPE->CUSTOMIZING_TASK`) TO <any>.
+              IF sy-subrc = 0.
+                lo_type = <any>.
+
+                CALL METHOD lo_filter_factory->(`TYPE`)
+                  EXPORTING
+                    io_type   = lo_type
+                  RECEIVING
+                    ro_filter = lo_type_filter.
+
+                APPEND INITIAL LINE TO <filters> ASSIGNING <filter>.
+                <filter> = lo_type_filter.
+              ENDIF.
+
+            CATCH cx_root ##NO_HANDLER.
+          ENDTRY.
+
+          " xco_cp_cts=>transports->where( ... )->resolve( xco_cp_transport=>resolution->request )
+          ASSIGN (`XCO_CP_CTS=>TRANSPORTS`) TO <any>.
+          IF sy-subrc <> 0.
+            RETURN.
+          ENDIF.
+          lo_transports = <any>.
+
+          CALL METHOD lo_transports->(`WHERE`)
+            EXPORTING
+              it_filters    = <filters>
+            RECEIVING
+              ro_transports = lo_where.
+
+          ASSIGN (`XCO_CP_TRANSPORT=>RESOLUTION->REQUEST`) TO <any>.
+          IF sy-subrc <> 0.
+            RETURN.
+          ENDIF.
+          lo_resolution = <any>.
+
+          lr_transports = _cloud_create_ref_tab( iv_table_type = `SXCO_T_CTS_TRANSPORTS`
+                                                 iv_line_type  = `IF_XCO_CTS_TRANSPORT` ).
+          ASSIGN lr_transports->* TO <transports>.
+          IF sy-subrc <> 0.
+            RETURN.
+          ENDIF.
+
+          CALL METHOD lo_where->(`RESOLVE`)
+            EXPORTING
+              io_resolution = lo_resolution
+            RECEIVING
+              rt_transports = <transports>.
+
+          LOOP AT <transports> ASSIGNING <transport>.
+
+            lo_transport = <transport>.
+
+            CLEAR lo_request.
+            TRY.
+                CALL METHOD lo_transport->(`GET_REQUEST`)
+                  RECEIVING
+                    ro_request = lo_request.
+              CATCH cx_root.
+                " already resolved to the request
+                lo_request = lo_transport.
+            ENDTRY.
+
+            CLEAR ls_data.
+
+            ASSIGN lo_request->(`VALUE`) TO <any>.
+            IF sy-subrc = 0.
+              ls_data-transport = <any>.
+            ELSE.
+              TRY.
+                  CALL METHOD lo_request->(`GET_VALUE`)
+                    RECEIVING
+                      rv_value = ls_data-transport.
+                CATCH cx_root ##NO_HANDLER.
+              ENDTRY.
+            ENDIF.
+            IF ls_data-transport IS INITIAL.
+              CONTINUE.
+            ENDIF.
+
+            " process every request only once
+            IF line_exists( lt_requests_done[ table_line = ls_data-transport ] ).
+              CONTINUE.
+            ENDIF.
+            APPEND ls_data-transport TO lt_requests_done.
+
+            TRY.
+                CALL METHOD lo_request->(`PROPERTIES`)
+                  RECEIVING
+                    ro_properties = lo_properties.
+
+                CALL METHOD lo_properties->(`GET_SHORT_DESCRIPTION`)
+                  RECEIVING
+                    rv_short_description = ls_data-short_description.
+              CATCH cx_root ##NO_HANDLER.
+            ENDTRY.
+
+            lr_tasks = _cloud_create_ref_tab( iv_table_type = `SXCO_T_CTS_TRANSPORT_TASKS`
+                                              iv_line_type  = `IF_XCO_CTS_TRANSPORT_TASK` ).
+            ASSIGN lr_tasks->* TO <tasks>.
+            IF sy-subrc <> 0.
+              CONTINUE.
+            ENDIF.
+
+            TRY.
+                CALL METHOD lo_request->(`GET_TASKS`)
+                  RECEIVING
+                    rt_tasks = <tasks>.
+              CATCH cx_root.
+                CONTINUE.
+            ENDTRY.
+
+            LOOP AT <tasks> ASSIGNING <task>.
+
+              lo_task = <task>.
+
+              " only the tasks of the current user
+              lv_owner_ok = lv_owner_filtered.
+              TRY.
+                  CALL METHOD lo_task->(`PROPERTIES`)
+                    RECEIVING
+                      ro_properties = lo_task_props.
+
+                  CALL METHOD lo_task_props->(`GET_OWNER`)
+                    RECEIVING
+                      ro_owner = lo_owner.
+
+                  ASSIGN lo_owner->(`NAME`) TO <owner_name>.
+                  IF sy-subrc <> 0.
+                    ASSIGN lo_owner->(`IF_XCO_USER~NAME`) TO <owner_name>.
+                  ENDIF.
+                  IF sy-subrc = 0.
+                    lv_owner_ok = COND #( WHEN <owner_name> = lv_user
+                                          THEN abap_true
+                                          ELSE abap_false ).
+                  ENDIF.
+                CATCH cx_root ##NO_HANDLER.
+              ENDTRY.
+              IF lv_owner_ok = abap_false.
+                CONTINUE.
+              ENDIF.
+
+              ASSIGN lo_task->(`VALUE`) TO <any>.
+              IF sy-subrc = 0.
+                ls_data-task = <any>.
+              ELSE.
+                CLEAR ls_data-task.
+                TRY.
+                    CALL METHOD lo_task->(`GET_VALUE`)
+                      RECEIVING
+                        rv_value = ls_data-task.
+                  CATCH cx_root ##NO_HANDLER.
+                ENDTRY.
+              ENDIF.
+              IF ls_data-task IS INITIAL.
+                CONTINUE.
+              ENDIF.
+
+              APPEND ls_data TO mt_data.
+
+            ENDLOOP.
+
+          ENDLOOP.
+
+        CATCH cx_root ##NO_HANDLER.
+      ENDTRY.
 
     ELSE.
 
