@@ -4,7 +4,6 @@ CLASS z2ui5_cl_core_srv_bind DEFINITION PUBLIC FINAL.
     DATA mo_app    TYPE REF TO z2ui5_cl_core_app.
     DATA mr_attri  TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
     DATA ms_config TYPE z2ui5_if_core_types=>ty_s_bind_config.
-    DATA mv_type   TYPE string.
 
     METHODS constructor
       IMPORTING
@@ -13,7 +12,6 @@ CLASS z2ui5_cl_core_srv_bind DEFINITION PUBLIC FINAL.
     METHODS main
       IMPORTING
         val           TYPE REF TO data
-        type          TYPE string
         config        TYPE z2ui5_if_core_types=>ty_s_bind_config OPTIONAL
       RETURNING
         VALUE(result) TYPE string.
@@ -21,7 +19,6 @@ CLASS z2ui5_cl_core_srv_bind DEFINITION PUBLIC FINAL.
     METHODS main_cell
       IMPORTING
         val           TYPE data
-        type          TYPE string
         config        TYPE z2ui5_if_core_types=>ty_s_bind_config OPTIONAL
       RETURNING
         VALUE(result) TYPE string.
@@ -92,11 +89,6 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
   METHOD check_raise_existing.
 
-    IF mr_attri->bind_type <> mv_type.
-      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
-        EXPORTING val = |<p>Binding Error - Two different binding types for same attribute used ({ mr_attri->name }).|.
-    ENDIF.
-
     IF mr_attri->custom_mapper IS BOUND AND ms_config-custom_mapper IS BOUND
         AND z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( mr_attri->custom_mapper )
          <> z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( ms_config-custom_mapper ).
@@ -157,14 +149,12 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     IF z2ui5_cl_a2ui5_context=>check_bound_a_not_initial( config-tab ).
 
       result = main_cell( val    = val
-                          type   = type
                           config = config ).
 
       RETURN.
     ENDIF.
 
     ms_config = config.
-    mv_type   = type.
 
     DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = mo_app->mt_attri
                                                   app   = mo_app->mo_app ).
@@ -184,7 +174,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
       mr_attri = lr_ref_attri.
     ENDIF.
 
-    IF mr_attri->bind_type IS NOT INITIAL.
+    IF mr_attri->bind = abap_true.
       check_raise_existing( ).
     ELSE.
       check_raise_new( ).
@@ -208,7 +198,6 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
     DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( mo_app ).
     result = lo_bind->main( val    = config-tab
-                            type   = type
                             config = VALUE #( path_only = abap_true ) ).
 
     result = bind_tab_cell( iv_name = result
@@ -222,7 +211,7 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
   METHOD update_model_attri.
 
-    mr_attri->bind_type          = mv_type.
+    mr_attri->bind               = abap_true.
     mr_attri->custom_filter      = ms_config-custom_filter.
     mr_attri->custom_filter_back = ms_config-custom_filter_back.
     mr_attri->custom_mapper      = ms_config-custom_mapper.

@@ -9,12 +9,6 @@ INTERFACE z2ui5_if_core_types
 
   CONSTANTS cs_event_nav_app_leave TYPE string VALUE `___ZZZ_NAL`.
 
-  CONSTANTS:
-    BEGIN OF cs_bind_type,
-      one_way  TYPE string VALUE `ONE_WAY`,
-      two_way  TYPE string VALUE `TWO_WAY`,
-    END OF cs_bind_type.
-
   " single source of truth for the five view slots in ty_s_next_frontend -
   " consumers SPLIT at the comma and access the components dynamically
   CONSTANTS cs_view_slot_list TYPE string VALUE `S_VIEW,S_VIEW_NEST,S_VIEW_NEST2,S_POPUP,S_POPOVER`.
@@ -49,7 +43,7 @@ INTERFACE z2ui5_if_core_types
       name_client        TYPE string,
       name_parent        TYPE string,
       name_ref           TYPE string,
-      bind_type          TYPE string,
+      bind               TYPE abap_bool,
       srtti_data         TYPE string,
       check_dissolved    TYPE abap_bool,
       custom_filter      TYPE REF TO z2ui5_if_ajson_filter,

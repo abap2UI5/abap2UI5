@@ -48,10 +48,9 @@ CLASS ltcl_test_bind DEFINITION FINAL
   PROTECTED SECTION.
 
   PRIVATE SECTION.
-    METHODS test_one_way           FOR TESTING RAISING cx_static_check.
+    METHODS test_bind_path         FOR TESTING RAISING cx_static_check.
     METHODS test_attri_named_xx    FOR TESTING RAISING cx_static_check.
-    METHODS test_error_diff        FOR TESTING RAISING cx_static_check.
-    METHODS test_two_way           FOR TESTING RAISING cx_static_check.
+    METHODS test_bind_idempotent   FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -67,15 +66,14 @@ CLASS ltcl_test_bind IMPLEMENTATION.
 
     DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
 
-    DATA(lv_bind) = lo_bind->main( val  = REF #( lo_app_client->xx )
-                                   type = z2ui5_if_core_types=>cs_bind_type-two_way ).
+    DATA(lv_bind) = lo_bind->main( REF #( lo_app_client->xx ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `{/XX}`
                                         act = lv_bind ).
 
   ENDMETHOD.
 
-  METHOD test_one_way.
+  METHOD test_bind_path.
 
     IF sy-sysid = `ABC`.
       RETURN.
@@ -87,42 +85,14 @@ CLASS ltcl_test_bind IMPLEMENTATION.
 
     DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( lo_app ).
 
-    DATA(lv_bind) = lo_bind->main( val  = REF #( lo_app_client->mv_value )
-                                   type = z2ui5_if_core_types=>cs_bind_type-one_way ).
+    DATA(lv_bind) = lo_bind->main( REF #( lo_app_client->mv_value ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `{/MV_VALUE}`
                                         act = lv_bind ).
 
   ENDMETHOD.
 
-  METHOD test_error_diff.
-
-    IF sy-sysid = `ABC`.
-      RETURN.
-    ENDIF.
-
-
-    DATA(lo_app_client) = NEW ltcl_test_app( ).
-    DATA(lo_app) = NEW z2ui5_cl_core_app( ).
-    lo_app->mo_app = lo_app_client.
-
-    DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
-
-    lo_bind->main( val  = REF #( lo_app_client->mv_value )
-                   type = z2ui5_if_core_types=>cs_bind_type-one_way ).
-
-    TRY.
-        lo_bind->main( val  = REF #( lo_app_client->mv_value )
-                       type = z2ui5_if_core_types=>cs_bind_type-two_way ).
-
-        cl_abap_unit_assert=>abort( ).
-
-      CATCH cx_root ##NO_HANDLER.
-    ENDTRY.
-
-  ENDMETHOD.
-
-  METHOD test_two_way.
+  METHOD test_bind_idempotent.
 
     IF sy-sysid = `ABC`.
       RETURN.
@@ -134,11 +104,9 @@ CLASS ltcl_test_bind IMPLEMENTATION.
 
     DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
 
-    DATA(lv_bind) = lo_bind->main( val  = REF #( lo_app_client->mv_value )
-                                   type = z2ui5_if_core_types=>cs_bind_type-two_way ).
+    DATA(lv_bind) = lo_bind->main( REF #( lo_app_client->mv_value ) ).
 
-    DATA(lv_bind2) = lo_bind->main( val  = REF #( lo_app_client->mv_value )
-                                    type = z2ui5_if_core_types=>cs_bind_type-two_way ).
+    DATA(lv_bind2) = lo_bind->main( REF #( lo_app_client->mv_value ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = lv_bind2
                                         act = lv_bind ).
@@ -173,16 +141,16 @@ CLASS ltcl_test_main_structure DEFINITION FINAL
 
   PRIVATE SECTION.
 
-    METHODS test_one_way_lev1           FOR TESTING RAISING cx_static_check.
-    METHODS test_one_way_lev2           FOR TESTING RAISING cx_static_check.
-    METHODS test_one_way_lev3           FOR TESTING RAISING cx_static_check.
-    METHODS test_one_way_lev4_long_name FOR TESTING RAISING cx_static_check.
+    METHODS test_bind_lev1           FOR TESTING RAISING cx_static_check.
+    METHODS test_bind_lev2           FOR TESTING RAISING cx_static_check.
+    METHODS test_bind_lev3           FOR TESTING RAISING cx_static_check.
+    METHODS test_bind_lev4_long_name FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
 
 CLASS ltcl_test_main_structure IMPLEMENTATION.
-  METHOD test_one_way_lev1.
+  METHOD test_bind_lev1.
 
     IF sy-sysid = `ABC`.
       RETURN.
@@ -194,22 +162,20 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
     lo_app->mo_app = lo_test_app.
 
     DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
-    DATA(lv_result) = lo_bind->main( val  = REF #( lo_test_app->ms_struc-input )
-                                     type = z2ui5_if_core_types=>cs_bind_type-one_way ).
+    DATA(lv_result) = lo_bind->main( REF #( lo_test_app->ms_struc-input ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `{/MS_STRUC/INPUT}`
                                         act = lv_result ).
 
     lv_result = lo_bind->main( val    = REF #( lo_test_app->ms_struc-input )
-                               config = VALUE #( path_only = abap_true )
-                               type   = z2ui5_if_core_types=>cs_bind_type-one_way ).
+                               config = VALUE #( path_only = abap_true ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `/MS_STRUC/INPUT`
                                         act = lv_result ).
 
   ENDMETHOD.
 
-  METHOD test_one_way_lev2.
+  METHOD test_bind_lev2.
 
     IF sy-sysid = `ABC`.
       RETURN.
@@ -221,15 +187,14 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
     lo_app->mo_app = lo_test_app.
 
     DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
-    DATA(lv_result) = lo_bind->main( val  = REF #( lo_test_app->ms_struc-s_02-input )
-                                     type = z2ui5_if_core_types=>cs_bind_type-one_way ).
+    DATA(lv_result) = lo_bind->main( REF #( lo_test_app->ms_struc-s_02-input ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `{/MS_STRUC/S_02/INPUT}`
                                         act = lv_result ).
 
   ENDMETHOD.
 
-  METHOD test_one_way_lev3.
+  METHOD test_bind_lev3.
 
     IF sy-sysid = `ABC`.
       RETURN.
@@ -240,15 +205,14 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
     lo_app->mo_app = lo_test_app.
 
     DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
-    DATA(lv_result) = lo_bind->main( val  = REF #( lo_test_app->ms_struc-s_02-s_03-input )
-                                     type = z2ui5_if_core_types=>cs_bind_type-one_way ).
+    DATA(lv_result) = lo_bind->main( REF #( lo_test_app->ms_struc-s_02-s_03-input ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `{/MS_STRUC/S_02/S_03/INPUT}`
                                         act = lv_result ).
 
   ENDMETHOD.
 
-  METHOD test_one_way_lev4_long_name.
+  METHOD test_bind_lev4_long_name.
 
     IF sy-sysid = `ABC`.
       RETURN.
@@ -259,8 +223,7 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
     lo_app->mo_app = lo_test_app.
 
     DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
-    DATA(lv_result) = lo_bind->main( val  = REF #( lo_test_app->ms_struc-s_02-s_03-s_04-input )
-                                     type = z2ui5_if_core_types=>cs_bind_type-one_way ).
+    DATA(lv_result) = lo_bind->main( REF #( lo_test_app->ms_struc-s_02-s_03-s_04-input ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `{/MS_STRUC/S_02/S_03/S_04/INPUT}`
                                         act = lv_result ).
@@ -295,15 +258,15 @@ CLASS ltcl_test_main_object DEFINITION FINAL
 
   PRIVATE SECTION.
 
-    METHODS test_one_way_value FOR TESTING RAISING cx_static_check.
-    METHODS test_one_way_struc FOR TESTING RAISING cx_static_check.
+    METHODS test_bind_value FOR TESTING RAISING cx_static_check.
+    METHODS test_bind_struc FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
 
 CLASS ltcl_test_main_object IMPLEMENTATION.
 
-  METHOD test_one_way_value.
+  METHOD test_bind_value.
 
     IF sy-sysid = `ABC`.
       RETURN.
@@ -317,15 +280,14 @@ CLASS ltcl_test_main_object IMPLEMENTATION.
     lo_app->mo_app = lo_test_app.
 
     DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
-    DATA(lv_result) = lo_bind->main( val  = REF #( lo_test_app->mo_obj->mv_value )
-                                     type = z2ui5_if_core_types=>cs_bind_type-one_way ).
+    DATA(lv_result) = lo_bind->main( REF #( lo_test_app->mo_obj->mv_value ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `{/MO_OBJ/MV_VALUE}`
                                         act = lv_result ).
 
   ENDMETHOD.
 
-  METHOD test_one_way_struc.
+  METHOD test_bind_struc.
 
     IF sy-sysid = `ABC`.
       RETURN.
@@ -337,8 +299,7 @@ CLASS ltcl_test_main_object IMPLEMENTATION.
     lo_app->mo_app = lo_test_app.
 
     DATA(lo_bind)  = NEW z2ui5_cl_core_srv_bind( lo_app ).
-    DATA(lv_result) = lo_bind->main( val  = REF #( lo_test_app->mo_obj->ms_struc-input )
-                                     type = z2ui5_if_core_types=>cs_bind_type-one_way ).
+    DATA(lv_result) = lo_bind->main( REF #( lo_test_app->mo_obj->ms_struc-input ) ).
 
     cl_abap_unit_assert=>assert_equals( exp = `{/MO_OBJ/MS_STRUC/INPUT}`
                                         act = lv_result ).

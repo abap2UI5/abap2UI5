@@ -1047,7 +1047,7 @@ CLASS ltcl_test_json_stringify IMPLEMENTATION.
     IF sy-subrc <> 0.
       cl_abap_unit_assert=>abort( ).
     ENDIF.
-    lr_simple->bind_type   = z2ui5_if_core_types=>cs_bind_type-one_way.
+    lr_simple->bind        = abap_true.
     lr_simple->name_client = `/MV_SIMPLE`.
 
     DATA(lv_json) = lo_model->main_json_stringify( ).
@@ -1063,7 +1063,7 @@ CLASS ltcl_test_json_stringify IMPLEMENTATION.
                                                   app   = lo_app ).
     lo_model->dissolve( ).
 
-    " No bind_type set on any attribute - stringify produces empty JSON object
+    " No binding set on any attribute - stringify produces empty JSON object
     DATA(lv_json) = lo_model->main_json_stringify( ).
     cl_abap_unit_assert=>assert_equals( exp = `{}`
                                         act = lv_json ).
@@ -1075,13 +1075,13 @@ ENDCLASS.
 CLASS ltcl_test_json_to_attri DEFINITION FINAL
   FOR TESTING RISK LEVEL HARMLESS DURATION SHORT.
   PRIVATE SECTION.
-    METHODS test_updates_two_way FOR TESTING RAISING cx_static_check.
-    METHODS test_skips_one_way   FOR TESTING RAISING cx_static_check.
+    METHODS test_updates_bound   FOR TESTING RAISING cx_static_check.
+    METHODS test_skips_unbound   FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 CLASS ltcl_test_json_to_attri IMPLEMENTATION.
 
-  METHOD test_updates_two_way.
+  METHOD test_updates_bound.
     DATA(lo_app) = NEW ltcl_app_complex( ).
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
     DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
@@ -1092,7 +1092,7 @@ CLASS ltcl_test_json_to_attri IMPLEMENTATION.
     IF sy-subrc <> 0.
       cl_abap_unit_assert=>abort( ).
     ENDIF.
-    lr->bind_type   = z2ui5_if_core_types=>cs_bind_type-two_way.
+    lr->bind        = abap_true.
     lr->name_client = `/MV_SIMPLE`.
 
     DATA lo_model_json TYPE REF TO z2ui5_if_ajson.
@@ -1106,7 +1106,7 @@ CLASS ltcl_test_json_to_attri IMPLEMENTATION.
                                         act = lo_app->mv_simple ).
   ENDMETHOD.
 
-  METHOD test_skips_one_way.
+  METHOD test_skips_unbound.
     DATA(lo_app) = NEW ltcl_app_complex( ).
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
     DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = REF #( lt_attri )
@@ -1117,7 +1117,7 @@ CLASS ltcl_test_json_to_attri IMPLEMENTATION.
     IF sy-subrc <> 0.
       cl_abap_unit_assert=>abort( ).
     ENDIF.
-    lr->bind_type   = z2ui5_if_core_types=>cs_bind_type-one_way.
+    lr->bind        = abap_false.
     lr->name_client = `/MV_SIMPLE`.
 
     DATA lo_model_json TYPE REF TO z2ui5_if_ajson.
@@ -1127,7 +1127,7 @@ CLASS ltcl_test_json_to_attri IMPLEMENTATION.
 
     lo_model->main_json_to_attri( lo_model_json ).
 
-    " ONE_WAY binding - value must not be written back from frontend
+    " unbound attribute - value must not be written back from frontend
     cl_abap_unit_assert=>assert_equals( exp = ``
                                         act = lo_app->mv_simple ).
   ENDMETHOD.
@@ -1155,15 +1155,15 @@ CLASS ltcl_test_attri_refresh IMPLEMENTATION.
     IF sy-subrc <> 0.
       cl_abap_unit_assert=>abort( ).
     ENDIF.
-    lr->bind_type   = z2ui5_if_core_types=>cs_bind_type-two_way.
+    lr->bind        = abap_true.
     lr->name_client = `/MV_SIMPLE`.
 
     " Refresh clears and re-dissolves but must restore binding info
     lo_model->main_attri_refresh( ).
 
     DATA(ls_after) = VALUE #( lt_attri[ name = `MV_SIMPLE` ] OPTIONAL ).
-    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_core_types=>cs_bind_type-two_way
-                                        act = ls_after-bind_type ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = ls_after-bind ).
     cl_abap_unit_assert=>assert_equals( exp = `/MV_SIMPLE`
                                         act = ls_after-name_client ).
   ENDMETHOD.
@@ -1581,7 +1581,7 @@ CLASS ltcl_test_deep_nesting IMPLEMENTATION.
     IF sy-subrc <> 0.
       cl_abap_unit_assert=>abort( ).
     ENDIF.
-    lr->bind_type   = z2ui5_if_core_types=>cs_bind_type-two_way.
+    lr->bind        = abap_true.
     lr->name_client = `/MS_NESTED-INNER-DEEP1`.
 
     DATA lo_model_json TYPE REF TO z2ui5_if_ajson.
@@ -1613,7 +1613,7 @@ CLASS ltcl_test_deep_nesting IMPLEMENTATION.
     IF sy-subrc <> 0.
       cl_abap_unit_assert=>abort( ).
     ENDIF.
-    lr_inner->bind_type   = z2ui5_if_core_types=>cs_bind_type-two_way.
+    lr_inner->bind        = abap_true.
     lr_inner->name_client = `/MO_MID-MO_INNER-MV_INNER`.
 
     DATA lo_model_json TYPE REF TO z2ui5_if_ajson.
@@ -1653,7 +1653,7 @@ CLASS ltcl_test_refresh_ext IMPLEMENTATION.
     IF sy-subrc <> 0.
       cl_abap_unit_assert=>abort( ).
     ENDIF.
-    lr->bind_type   = z2ui5_if_core_types=>cs_bind_type-two_way.
+    lr->bind        = abap_true.
     lr->name_client = `/MV_SIMPLE`.
 
     " Now instantiate the previously-null oref and refresh
@@ -1666,8 +1666,8 @@ CLASS ltcl_test_refresh_ext IMPLEMENTATION.
 
     " The pre-existing MV_SIMPLE binding must be preserved
     DATA(ls_simple) = VALUE #( lt_attri[ name = `MV_SIMPLE` ] OPTIONAL ).
-    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_core_types=>cs_bind_type-two_way
-                                        act = ls_simple-bind_type ).
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = ls_simple-bind ).
     cl_abap_unit_assert=>assert_equals( exp = `/MV_SIMPLE`
                                         act = ls_simple-name_client ).
   ENDMETHOD.
@@ -1696,7 +1696,7 @@ CLASS ltcl_test_json_types IMPLEMENTATION.
     IF sy-subrc <> 0.
       cl_abap_unit_assert=>abort( ).
     ENDIF.
-    lr->bind_type   = z2ui5_if_core_types=>cs_bind_type-two_way.
+    lr->bind        = abap_true.
     lr->name_client = `/MV_INT`.
 
     DATA lo_model_json TYPE REF TO z2ui5_if_ajson.
@@ -1725,7 +1725,7 @@ CLASS ltcl_test_json_types IMPLEMENTATION.
     IF sy-subrc <> 0.
       cl_abap_unit_assert=>abort( ).
     ENDIF.
-    lr1->bind_type   = z2ui5_if_core_types=>cs_bind_type-two_way.
+    lr1->bind        = abap_true.
     lr1->name_client = `/MV_SIMPLE`.
 
     " Second entry: a copy with a different name_client path, also two-way
