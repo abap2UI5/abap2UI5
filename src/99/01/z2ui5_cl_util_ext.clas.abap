@@ -2070,7 +2070,8 @@ CLASS z2ui5_cl_util_ext IMPLEMENTATION.
         TRY.
             CREATE DATA lr_line TYPE REF TO (iv_line_type).
             DATA(lo_line_descr) = CAST cl_abap_datadescr( cl_abap_typedescr=>describe_by_data_ref( lr_line ) ).
-            CREATE DATA result TYPE HANDLE cl_abap_tabledescr=>create( lo_line_descr ).
+            DATA(lo_tab_descr) = cl_abap_tabledescr=>create( lo_line_descr ).
+            CREATE DATA result TYPE HANDLE lo_tab_descr.
           CATCH cx_root ##NO_HANDLER.
         ENDTRY.
     ENDTRY.
