@@ -50,16 +50,23 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
 
   // Pull just the meaningful message out of a SAP application-server error
   // page: the error header (e.g. "500 Internal Server Error") and the message
-  // paragraphs (e.g. "Division by zero"). Everything else - page title, footer,
-  // copyright, the client-side clock <script> after "Server time:" - is noise
-  // and dropped. Returns "" when the text is not such a page.
+  // paragraphs (e.g. "Division by zero"). The message can arrive either as a
+  // paragraph (<p class="detailText">...) or, on the classic ICF 500 page for
+  // an uncaught exception, as a cell of the detail table (<td class="detailText">
+  // The app 'ZXYZ' does not exist in the system. </td>) - both are captured so
+  // the real exception text is surfaced and not just the generic header/"not
+  // caught" line. Everything else - page title, footer, copyright, the
+  // client-side clock <script> after "Server time:" - is noise and dropped.
+  // Returns "" when the text is not such a page.
   function extractServerError(html) {
     const parts = [];
-    const rx = /class="(?:errorTextHeader|detailText)"[^>]*>([\s\S]*?)<\/p>/gi;
+    const rx =
+      /class="(?:errorTextHeader|detailText)"[^>]*>([\s\S]*?)<\/(?:p|td)>/gi;
     let m;
     while ((m = rx.exec(html))) parts.push(cleanText(m[1]));
-    return parts
-      .filter(Boolean)
+    // De-duplicate: some pages repeat the same line as both a paragraph and a
+    // table cell, which would otherwise show up twice in the joined preview.
+    return [...new Set(parts.filter(Boolean))]
       .filter((t) => !/^server time:/i.test(t))
       .join(" - ");
   }
