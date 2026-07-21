@@ -135,32 +135,6 @@ test.describe("ErrorView friendly dialog", () => {
     expect(message).not.toContain("<");
   });
 
-  test("extracts the exception text from the ICF detail table cell", () => {
-    // The classic SAP ICF 500 page for an uncaught ABAP exception (e.g. a
-    // mistyped app name in the abap2UI5 URL) renders the real message in a
-    // cell of the detail table, next to the generic "not caught" line. It
-    // must be surfaced, not dropped in favour of the generic paragraph.
-    const { ErrorView, created } = load();
-    const htmlDump = [
-      "<!DOCTYPE html><html><head><title>Error</title></head><body>",
-      '<p class="errorTextHeader"><span>500 Internal Server Error</span></p>',
-      '<p class="detailText"><span>An exception has occurred that was not caught.</span></p>',
-      "<table><tr>",
-      '<td class="tableTitleCell">ExceptionText</td>',
-      "<td class=\"detailText\">The app 'Z2UI5_CL_APP_XYZ' does not exist in the system.</td>",
-      "</tr></table>",
-      "</body></html>",
-    ].join("");
-    ErrorView.show(htmlDump);
-    const message = created.dialogs[0].settings.content[0].settings.text;
-    expect(message).toContain(
-      "The app 'Z2UI5_CL_APP_XYZ' does not exist in the system.",
-    );
-    // The generic header/line are still there, the real cause is appended.
-    expect(message).toContain("500 Internal Server Error");
-    expect(message).not.toContain("<");
-  });
-
   test("truncates a long preview but keeps the full text for the Error tab", () => {
     const { ErrorView, state, created } = load();
     const long = "x".repeat(2000);

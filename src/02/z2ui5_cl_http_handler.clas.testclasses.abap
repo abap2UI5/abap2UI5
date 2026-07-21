@@ -7,6 +7,7 @@ CLASS ltcl_test_http_handler DEFINITION FINAL
     METHODS test_http_get_ui5_boot FOR TESTING RAISING cx_static_check.
     METHODS test_http_post_ok      FOR TESTING RAISING cx_static_check.
     METHODS test_http_post_error   FOR TESTING RAISING cx_static_check.
+    METHODS test_main_post_no_app  FOR TESTING RAISING cx_static_check.
     METHODS test_main_get_routing  FOR TESTING RAISING cx_static_check.
     METHODS test_main_post_routing FOR TESTING RAISING cx_static_check.
 ENDCLASS.
@@ -97,8 +98,8 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     ls_req-method = `POST`.
     ls_req-body = `not valid json at all!!!`.
 
-    " uncaught exceptions are no longer swallowed into an HTTP 500 response -
-    " they propagate up so the ICF handler raises a real runtime error
+    " _http_post itself does not catch - the exception propagates to the caller
+    " (the single catch lives one level up in _main, see test_main_post_no_app)
     TRY.
         z2ui5_cl_http_handler=>_http_post( ls_req ).
       CATCH cx_root.
@@ -106,6 +107,29 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
     ENDTRY.
 
     cl_abap_unit_assert=>assert_true( lv_raised ).
+
+  ENDMETHOD.
+
+  METHOD test_main_post_no_app.
+
+    " a wrong/mistyped app name in the URL raises in the framework; the single
+    " top-level catch in _main turns it into a 500 whose body states the reason
+    DATA ls_req TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
+    DATA ls_result TYPE z2ui5_if_core_types=>ty_s_http_res.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    ls_req-method = `POST`.
+    ls_req-body = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_APP_DOES_NOT_EXIST"}}}`.
+
+    ls_result = z2ui5_cl_http_handler=>_main( ls_req ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 500
+                                        act = ls_result-status_code ).
+    cl_abap_unit_assert=>assert_char_cp( act = ls_result-body
+                                         exp = `*Z2UI5_CL_APP_DOES_NOT_EXIST*does not exist*` ).
 
   ENDMETHOD.
 

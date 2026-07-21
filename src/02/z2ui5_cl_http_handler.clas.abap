@@ -210,9 +210,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD _http_post.
 
-    " uncaught exceptions are intentionally NOT caught here - they propagate up
-    " to the ICF handler and trigger a real ABAP runtime error (ST22 short dump)
-    " instead of being turned into an HTTP 500 "abap2UI5 Error" response
+    " exceptions are intentionally not caught here - they bubble up to the
+    " single top-level catch in _main( ), which turns them into a 500 response
     IF so_sticky_handler IS NOT BOUND.
       DATA(lo_post) = NEW z2ui5_cl_core_handler( is_req-body ).
     ELSE.
@@ -237,14 +236,26 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD _main.
 
-    z2ui5_cl_exit=>init_context( is_req ).
+    " Single top-level catch for the whole request. The framework may raise
+    " anywhere (e.g. a wrong app name in the URL -> CREATE OBJECT of an unknown
+    " class in factory_first_start); any unhandled exception is turned into a
+    " 500 whose body carries the exception text, so the frontend shows the real
+    " reason instead of the SAP ICF 500 page, which suppresses that text.
+    TRY.
+        z2ui5_cl_exit=>init_context( is_req ).
 
-    CASE is_req-method.
-      WHEN `GET`.
-        result = _http_get( ).
-      WHEN `POST`.
-        result = _http_post( is_req ).
-    ENDCASE.
+        CASE is_req-method.
+          WHEN `GET`.
+            result = _http_get( ).
+          WHEN `POST`.
+            result = _http_post( is_req ).
+        ENDCASE.
+
+      CATCH cx_root INTO DATA(lx).
+        result = VALUE #( body          = lx->get_text( )
+                          status_code   = 500
+                          status_reason = `Internal Server Error` ).
+    ENDTRY.
 
   ENDMETHOD.
 

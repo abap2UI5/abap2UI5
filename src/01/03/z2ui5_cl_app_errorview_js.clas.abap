@@ -70,23 +70,16 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `` && |\n| &&
              `  // Pull just the meaningful message out of a SAP application-server error` && |\n| &&
              `  // page: the error header (e.g. "500 Internal Server Error") and the message` && |\n| &&
-             `  // paragraphs (e.g. "Division by zero"). The message can arrive either as a` && |\n| &&
-             `  // paragraph (<p class="detailText">...) or, on the classic ICF 500 page for` && |\n| &&
-             `  // an uncaught exception, as a cell of the detail table (<td class="detailText">` && |\n| &&
-             `  // The app 'ZXYZ' does not exist in the system. </td>) - both are captured so` && |\n| &&
-             `  // the real exception text is surfaced and not just the generic header/"not` && |\n| &&
-             `  // caught" line. Everything else - page title, footer, copyright, the` && |\n| &&
-             `  // client-side clock <script> after "Server time:" - is noise and dropped.` && |\n| &&
-             `  // Returns "" when the text is not such a page.` && |\n| &&
+             `  // paragraphs (e.g. "Division by zero"). Everything else - page title, footer,` && |\n| &&
+             `  // copyright, the client-side clock <script> after "Server time:" - is noise` && |\n| &&
+             `  // and dropped. Returns "" when the text is not such a page.` && |\n| &&
              `  function extractServerError(html) {` && |\n| &&
              `    const parts = [];` && |\n| &&
-             `    const rx =` && |\n| &&
-             `      /class="(?:errorTextHeader|detailText)"[^>]*>([\s\S]*?)<\/(?:p|td)>/gi;` && |\n| &&
+             `    const rx = /class="(?:errorTextHeader|detailText)"[^>]*>([\s\S]*?)<\/p>/gi;` && |\n| &&
              `    let m;` && |\n| &&
              `    while ((m = rx.exec(html))) parts.push(cleanText(m[1]));` && |\n| &&
-             `    // De-duplicate: some pages repeat the same line as both a paragraph and a` && |\n| &&
-             `    // table cell, which would otherwise show up twice in the joined preview.` && |\n| &&
-             `    return [...new Set(parts.filter(Boolean))]` && |\n| &&
+             `    return parts` && |\n| &&
+             `      .filter(Boolean)` && |\n| &&
              `      .filter((t) => !/^server time:/i.test(t))` && |\n| &&
              `      .join(" - ");` && |\n| &&
              `  }` && |\n| &&
