@@ -64,11 +64,9 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
     result->mo_app->ms_draft-id      = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
     result->mo_app->ms_draft-id_prev = mo_http_post->ms_request-s_front-id.
-    result->ms_actual-view           = mo_http_post->ms_request-s_front-view.
 
     IF mo_http_post->ms_request-o_model->is_empty( ) = abap_false.
-      result->mo_app->model_json_parse( iv_view  = mo_http_post->ms_request-s_front-view
-                                        io_model = mo_http_post->ms_request-o_model ).
+      result->mo_app->model_json_parse( mo_http_post->ms_request-o_model ).
     ENDIF.
 
     result->ms_actual-event       = mo_http_post->ms_request-s_front-event.

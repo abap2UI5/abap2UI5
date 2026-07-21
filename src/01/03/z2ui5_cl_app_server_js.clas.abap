@@ -134,7 +134,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    // can inspect it. Only the response side still crosses an async boundary` && |\n| &&
              `    // (the rendering) via the globals oResponse and pendingCustomJs.` && |\n| &&
              `    //` && |\n| &&
-             `    // Wire format - request (POST body; VIEWNAME/ARGUMENTS are folded into` && |\n| &&
+             `    // Wire format - request (POST body; ARGUMENTS is folded into` && |\n| &&
              `    // S_FRONT before sending, empty fields are removed):` && |\n| &&
              `    //   { "value": {` && |\n| &&
              `    //       "MODEL": {                     // view model delta` && |\n| &&
@@ -145,7 +145,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    //         "ID": "<draft id of the previous response>",` && |\n| &&
              `    //         "EVENT": "SAVE",             // event name` && |\n| &&
              `    //         "T_EVENT_ARG": ["arg1"],     // further event arguments` && |\n| &&
-             `    //         "VIEW": "MAIN",              // which view fired it` && |\n| &&
              `    //         "ORIGIN": "https://host", "PATHNAME": "/sap/...",` && |\n| &&
              `    //         "SEARCH": "?p=1", "HASH": "#...",` && |\n| &&
              `    //         "CONFIG": { "S_UI5": {...}, "S_DEVICE": {...},` && |\n| &&
@@ -417,9 +416,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `        const oConfig = AppState.getGlobal("oConfig");` && |\n| &&
              `        oBody.S_FRONT = {` && |\n| &&
-             `          CONFIG: {` && |\n|.
+             `          CONFIG: {` && |\n| &&
+             `            S_UI5: oConfig?.S_UI5,` && |\n|.
     result = result &&
-             `            S_UI5: oConfig?.S_UI5,` && |\n| &&
              `            S_DEVICE: this._getDeviceInfo(),` && |\n| &&
              `            S_FOCUS: this._getFocusInfo(),` && |\n| &&
              `            S_SCROLL: this._getScrollInfo(),` && |\n| &&
@@ -429,7 +428,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          ORIGIN: window.location.origin,` && |\n| &&
              `          PATHNAME: window.location.pathname,` && |\n| &&
              `          SEARCH: state.search || window.location.search,` && |\n| &&
-             `          VIEW: oBody.VIEWNAME,` && |\n| &&
              `          EVENT: eventName,` && |\n| &&
              `          HASH: window.location.hash,` && |\n| &&
              `        };` && |\n| &&
@@ -441,7 +439,6 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        sFront.T_EVENT_ARG = oBody.ARGUMENTS;` && |\n| &&
              `` && |\n| &&
              `        delete oBody.ID;` && |\n| &&
-             `        delete oBody.VIEWNAME;` && |\n| &&
              `        delete oBody.ARGUMENTS;` && |\n| &&
              `` && |\n| &&
              `        // Remove empty / undefined fields so the backend request stays small` && |\n| &&

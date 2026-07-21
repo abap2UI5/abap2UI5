@@ -376,13 +376,13 @@ sap.ui.define(
         // The request body is built locally and handed explicitly through
         // Server.roundtrip/readHttp. It is mirrored to AppState.state.oBody right
         // away so onBeforeRoundtrip hooks and the developer tools see it.
-        const oBody = { VIEWNAME: "MAIN" };
+        const oBody = {};
         AppState.state.oBody = oBody;
 
         // Decide which view's model holds the data we need to send back. The
         // mapping is: main app controller -> main view, popup controller ->
         // popup view, etc.
-        const oModel = this._pickModelForRoundtrip(useMainModel, oBody);
+        const oModel = this._pickModelForRoundtrip(useMainModel);
 
         Lib.runCallbacks(AppState.state.onBeforeRoundtrip);
 
@@ -410,7 +410,7 @@ sap.ui.define(
         Lib.runCallbacks(AppState.state.onAfterRoundtrip);
       },
 
-      _pickModelForRoundtrip(useMainModel, oBody) {
+      _pickModelForRoundtrip(useMainModel) {
         // useMainModel forces use of the main view's model even when called
         // from a popup/popover controller.
         const slotKey = useMainModel ? "MAIN" : ViewSlots.keyOfController(this);
@@ -424,11 +424,8 @@ sap.ui.define(
           return ViewSlots.getView("MAIN")?.getModel();
         }
 
-        // Nested views report their slot as VIEW in S_FRONT so the backend
-        // routes the event to the right app instance.
-        if (slotKey === "NEST" || slotKey === "NEST2") {
-          oBody.VIEWNAME = slotKey;
-        }
+        // Non-main slots return their own model so the delta is read from the
+        // view that actually fired the event.
         return ViewSlots.getView(slotKey)?.getModel();
       },
 
