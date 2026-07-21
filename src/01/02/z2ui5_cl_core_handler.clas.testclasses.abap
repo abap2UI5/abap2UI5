@@ -31,6 +31,7 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_parse_body_arg_string FOR TESTING RAISING cx_static_check.
     METHODS test_parse_body_arg_object FOR TESTING RAISING cx_static_check.
     METHODS test_request_app_start FOR TESTING RAISING cx_static_check.
+    METHODS test_app_not_found     FOR TESTING RAISING cx_static_check.
     METHODS test_request_with_id   FOR TESTING RAISING cx_static_check.
     METHODS test_response_json     FOR TESTING RAISING cx_static_check.
     METHODS test_view_update_flag  FOR TESTING RAISING cx_static_check.
@@ -300,6 +301,26 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = `Z2UI5_CL_APP_HELLO_WORLD`
                                         act = ls_request-s_control-app_start ).
+
+  ENDMETHOD.
+
+  METHOD test_app_not_found.
+
+    " a non-existent app name in the URL must not raise or short-dump - main( )
+    " returns a 404 with a readable message the frontend shows in its dialog
+    DATA lv_payload TYPE string.
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA ls_res TYPE z2ui5_if_core_types=>ty_s_http_res.
+
+    lv_payload = `{"value":{"S_FRONT":{"ORIGIN":"O","PATHNAME":"/p","SEARCH":"?app_start=Z2UI5_CL_APP_DOES_NOT_EXIST"}}}`.
+
+    lo_handler = NEW #( val = lv_payload ).
+    ls_res = lo_handler->main( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = 404
+                                        act = ls_res-status_code ).
+    cl_abap_unit_assert=>assert_char_cp( act = ls_res-body
+                                         exp = `*Z2UI5_CL_APP_DOES_NOT_EXIST*does not exist*` ).
 
   ENDMETHOD.
 

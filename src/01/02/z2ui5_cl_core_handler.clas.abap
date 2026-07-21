@@ -45,6 +45,11 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
     " otherwise loop the work process forever
     DATA mv_dispatch_limit TYPE i VALUE 1000.
 
+    " set to the requested app name when the URL points to an app class that
+    " does not exist in the system - main( ) then returns a clear error
+    " response instead of running the roundtrip
+    DATA mv_app_not_found TYPE string.
+
     METHODS check_view_update_needed
       RETURNING
         VALUE(result) TYPE abap_bool.
@@ -273,6 +278,18 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
   METHOD main.
 
     main_begin( ).
+
+    " the URL requested an app class that does not exist - surface a clear
+    " message the frontend can display (see app/webapp/core/Server.js: any
+    " non-2xx response is shown as-is in the error dialog) instead of a
+    " generic "500 Internal Server Error" short dump
+    IF mv_app_not_found IS NOT INITIAL.
+      result = VALUE #( body          = |The app '{ mv_app_not_found }' does not exist in the system.|
+                        status_code   = 404
+                        status_reason = `Not Found` ).
+      RETURN.
+    ENDIF.
+
     main_loop( ).
 
     result = VALUE #( body          = mv_response
@@ -308,6 +325,17 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       mo_action = mo_action->factory_by_frontend( ).
 
     ELSEIF ms_request-s_control-app_start IS NOT INITIAL.
+
+      " a wrong or mistyped app name in the URL is a user error, not a
+      " framework bug - detect the missing class up front so main( ) can
+      " return a clear "app does not exist" message; without this check
+      " CREATE OBJECT in factory_first_start raises an uncaught exception
+      " that reaches the browser as a generic 500 short dump
+      IF z2ui5_cl_a2ui5_context=>rtti_check_class_exists( ms_request-s_control-app_start ) = abap_false.
+        mv_app_not_found = ms_request-s_control-app_start.
+        RETURN.
+      ENDIF.
+
       NEW z2ui5_cl_core_srv_draft( )->cleanup( ).
       mo_action = mo_action->factory_first_start( ).
 
