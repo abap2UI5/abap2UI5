@@ -428,7 +428,6 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      const hasLimit = args[2] !== undefined && args[2] !== "";` && |\n| &&
              `      const viewKey = hasLimit ? args[2] : args[1];` && |\n| &&
              `      const limit = hasLimit ? Number(args[1]) : NaN;` && |\n| &&
-             `      const model = ViewSlots.getView(viewKey)?.getModel();` && |\n| &&
              `` && |\n| &&
              `      const isValidLimit = Number.isFinite(limit) && limit > 0;` && |\n| &&
              `      if (isValidLimit) {` && |\n| &&
@@ -436,9 +435,19 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      } else {` && |\n| &&
              `        delete AppState.state.viewSizeLimits[viewKey];` && |\n| &&
              `      }` && |\n| &&
+             `` && |\n| &&
+             `      // MAIN and the two nested views share one root model via propagation, so` && |\n| &&
+             `      // resolve the model through MAIN for those slots and apply the effective` && |\n| &&
+             `      // (largest) limit across them; popup/popover keep their own model/limit.` && |\n| &&
+             `      const modelKey = Lib.isRootModelSlot(viewKey) ? "MAIN" : viewKey;` && |\n| &&
+             `      const model = ViewSlots.getView(modelKey)?.getModel();` && |\n| &&
              `      if (model) {` && |\n| &&
+             `        const effective = Lib.effectiveSizeLimit(` && |\n| &&
+             `          AppState.state.viewSizeLimits,` && |\n| &&
+             `          viewKey,` && |\n| &&
+             `        );` && |\n| &&
              `        // 100 is the UI5 JSONModel default size limit.` && |\n| &&
-             `        model.setSizeLimit(isValidLimit ? limit : 100);` && |\n| &&
+             `        model.setSizeLimit(effective ?? 100);` && |\n| &&
              `        model.refresh(true);` && |\n| &&
              `      }` && |\n| &&
              `    }` && |\n| &&
@@ -809,7 +818,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `              Lib.logError(` && |\n| &&
              `                "SET_TITLE_LAUNCHPAD: ShellUIService.setTitle failed",` && |\n| &&
              `                e,` && |\n| &&
-             `              ),` && |\n| &&
+             `              ),` && |\n|.
+    result = result &&
              `            );` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
@@ -818,8 +828,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function evZ2ui5Custom(oController, args) {` && |\n|.
-    result = result &&
+             `    function evZ2ui5Custom(oController, args) {` && |\n| &&
              `      try {` && |\n| &&
              `        // Custom functions are registered by apps on the public z2ui5` && |\n| &&
              `        // global (js_loader popup), so resolve them via the facade.` && |\n| &&

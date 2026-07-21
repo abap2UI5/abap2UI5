@@ -41,7 +41,12 @@ sap.ui.define(
 
     function applyStoredSizeLimit(viewKey, oModel) {
       if (!oModel) return;
-      const limit = AppState.state.viewSizeLimits[viewKey];
+      // For the root slots (MAIN/NEST/NEST2) this is the max limit across them,
+      // since they share this one model; popup/popover get their own limit.
+      const limit = Lib.effectiveSizeLimit(
+        AppState.state.viewSizeLimits,
+        viewKey,
+      );
       if (limit !== undefined) oModel.setSizeLimit(limit);
     }
 
@@ -245,19 +250,28 @@ sap.ui.define(
 
       async displayNestedView(xml, slotKey) {
         const paramKey = ViewSlots.paramByKey(slotKey);
-        const oModel = this._createViewModel();
-        applyStoredSizeLimit(slotKey, oModel);
+        // Nested views do NOT create their own model. They are inserted into
+        // the MAIN control tree below and inherit its default JSON model via
+        // UI5 model propagation, so every view binds against the same data with
+        // one change tracker and one refresh per roundtrip - no duplicate
+        // models pointing at the same data. The model passed to the XML
+        // preprocessor here only feeds {template>...} bindings at build time;
+        // it is the MAIN view's JSON model (the named "http" model when
+        // SWITCH_DEFAULT_MODEL_PATH moved OData into the default slot, otherwise
+        // the default model), mirroring displayView's template model.
+        const oMainView = ViewSlots.getView("MAIN");
+        const oTemplateModel =
+          oMainView?.getModel("http") ?? oMainView?.getModel();
         const oView = await XMLView.create({
           definition: xml,
           controller: ViewSlots.getController(slotKey),
-          preprocessors: { xml: { models: { template: oModel } } },
+          preprocessors: { xml: { models: { template: oTemplateModel } } },
         });
 
         if (!Lib.isAlive(AppState.state.oApp)) {
           oView.destroy();
           return;
         }
-        oView.setModel(oModel);
 
         const nestParams = AppState.state.oResponse?.PARAMS?.[paramKey];
         if (!nestParams) {
@@ -424,8 +438,10 @@ sap.ui.define(
           return ViewSlots.getView("MAIN")?.getModel();
         }
 
-        // Non-main slots return their own model so the delta is read from the
-        // view that actually fired the event.
+        // Non-main slots return the model of the view that fired the event.
+        // For the nested slots this resolves - via model propagation - to the
+        // same root model as MAIN, which is exactly right: the data and the
+        // changedPaths delta are shared. Popup/popover return their own model.
         return ViewSlots.getView(slotKey)?.getModel();
       },
 
@@ -454,7 +470,14 @@ sap.ui.define(
           isOurs(oView.getModel()) ?? isOurs(oView.getModel("http"));
         if (tracked) {
           applyStoredSizeLimit(slotKey, tracked);
-          tracked.setData(AppState.state.oResponse?.OVIEWMODEL);
+          // MAIN and its nested views resolve to the SAME root model here, and
+          // the update loop calls this once per slot. setData replaces the
+          // model's data reference with OVIEWMODEL, so once the first root slot
+          // has swapped it in, the others already hold it - skip the redundant
+          // setData (and its full binding refresh) instead of running it once
+          // per shared slot.
+          const data = AppState.state.oResponse?.OVIEWMODEL;
+          if (tracked.getData() !== data) tracked.setData(data);
           return;
         }
 

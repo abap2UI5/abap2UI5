@@ -405,6 +405,33 @@ sap.ui.define(
       return _sanitizeEl.innerHTML;
     }
 
+    // The MAIN view and its two nested views (NEST, NEST2) share ONE JSON
+    // model: the nested views are inserted into the MAIN control tree and
+    // inherit its default model through UI5 model propagation instead of each
+    // creating their own. Popup and popover are opened standalone (outside the
+    // MAIN tree) and keep their own model.
+    const ROOT_MODEL_SLOTS = ["MAIN", "NEST", "NEST2"];
+
+    function isRootModelSlot(slotKey) {
+      return ROOT_MODEL_SLOTS.includes(slotKey);
+    }
+
+    // Effective JSONModel size limit for a slot. Because the root slots share a
+    // single model, a per-view limit collapses onto it - the largest requested
+    // limit across MAIN/NEST/NEST2 wins. Popup/popover keep their own limit.
+    // Returns undefined when nothing is stored, so callers keep the UI5 default.
+    function effectiveSizeLimit(viewSizeLimits, slotKey) {
+      if (!isRootModelSlot(slotKey)) return viewSizeLimits[slotKey];
+      let max;
+      for (const key of ROOT_MODEL_SLOTS) {
+        const limit = viewSizeLimits[key];
+        if (limit !== undefined && (max === undefined || limit > max)) {
+          max = limit;
+        }
+      }
+      return max;
+    }
+
     return {
       logError,
       isDestroyed,
@@ -427,6 +454,8 @@ sap.ui.define(
       getElementById,
       getMessaging,
       hasMessagingModule,
+      isRootModelSlot,
+      effectiveSizeLimit,
     };
   },
 );

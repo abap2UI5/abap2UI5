@@ -407,7 +407,6 @@ sap.ui.define(
       const hasLimit = args[2] !== undefined && args[2] !== "";
       const viewKey = hasLimit ? args[2] : args[1];
       const limit = hasLimit ? Number(args[1]) : NaN;
-      const model = ViewSlots.getView(viewKey)?.getModel();
 
       const isValidLimit = Number.isFinite(limit) && limit > 0;
       if (isValidLimit) {
@@ -415,9 +414,19 @@ sap.ui.define(
       } else {
         delete AppState.state.viewSizeLimits[viewKey];
       }
+
+      // MAIN and the two nested views share one root model via propagation, so
+      // resolve the model through MAIN for those slots and apply the effective
+      // (largest) limit across them; popup/popover keep their own model/limit.
+      const modelKey = Lib.isRootModelSlot(viewKey) ? "MAIN" : viewKey;
+      const model = ViewSlots.getView(modelKey)?.getModel();
       if (model) {
+        const effective = Lib.effectiveSizeLimit(
+          AppState.state.viewSizeLimits,
+          viewKey,
+        );
         // 100 is the UI5 JSONModel default size limit.
-        model.setSizeLimit(isValidLimit ? limit : 100);
+        model.setSizeLimit(effective ?? 100);
         model.refresh(true);
       }
     }
