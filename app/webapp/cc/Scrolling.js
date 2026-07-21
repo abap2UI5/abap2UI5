@@ -11,6 +11,7 @@ sap.ui.define(
     // Invisible control that saves the scroll positions of the controls
     // listed in `items` into the model before each roundtrip and restores
     // them after the next rendering.
+    // OBSOLETE: replaced by cs_event-scroll_to / cs_event-scroll_into_view - kept for backward compatibility.
     return Control.extend("z2ui5.cc.Scrolling", {
       metadata: {
         properties: {

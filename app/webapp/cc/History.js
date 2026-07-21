@@ -3,6 +3,7 @@
 // reload, no new history entry.
 sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
   "use strict";
+  // OBSOLETE: app state in the URL is handled by the framework now (set_push_state) - kept for backward compatibility.
   return Control.extend("z2ui5.cc.History", {
     metadata: {
       properties: {

@@ -590,18 +590,21 @@ sap.ui.define(
           // Step 4: hand the parsed response to the success handler.
           AppState.state.responseData = responseData;
           AppState.state.changedPaths = new Set();
-          this.responseSuccess({
-            ID: responseData.S_FRONT.ID,
-            PARAMS: responseData.S_FRONT.PARAMS,
-            OVIEWMODEL: responseData.MODEL,
-          });
+          this.responseSuccess(
+            {
+              ID: responseData.S_FRONT.ID,
+              PARAMS: responseData.S_FRONT.PARAMS,
+              OVIEWMODEL: responseData.MODEL,
+            },
+            seq,
+          );
         } finally {
           this._inflight.delete(superseder);
           cancel();
         }
       },
 
-      async responseSuccess(response) {
+      async responseSuccess(response, reqSeq) {
         const oController = ViewSlots.getController("MAIN");
         try {
           AppState.state.oResponse = response;
@@ -626,7 +629,11 @@ sap.ui.define(
           // Full view replacement -> destroy & rebuild, nothing more to do.
           if (sView?.XML) {
             ViewSlots.destroy("MAIN");
-            await oController.displayView(sView.XML, response.OVIEWMODEL);
+            await oController.displayView(
+              sView.XML,
+              response.OVIEWMODEL,
+              reqSeq,
+            );
             return;
           }
 

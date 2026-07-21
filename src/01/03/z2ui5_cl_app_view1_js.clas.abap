@@ -451,19 +451,24 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        const slotKey = useMainModel ? "MAIN" : ViewSlots.keyOfController(this);` && |\n| &&
              `        if (!slotKey) return undefined;` && |\n| &&
              `` && |\n| &&
-             `        if (slotKey === "MAIN") {` && |\n| &&
-             `          const sView = AppState.state.oResponse?.PARAMS?.S_VIEW;` && |\n| &&
-             `          if (sView?.SWITCH_DEFAULT_MODEL_PATH) {` && |\n| &&
-             `            return ViewSlots.getView("MAIN")?.getModel("http");` && |\n| &&
-             `          }` && |\n| &&
-             `          return ViewSlots.getView("MAIN")?.getModel();` && |\n| &&
+             `        const oView = ViewSlots.getView(slotKey);` && |\n| &&
+             `        if (!oView) return undefined;` && |\n| &&
+             `` && |\n| &&
+             `        // MAIN and its nested views (NEST/NEST2) share one framework-owned` && |\n| &&
+             `        // JSON model. It is the DEFAULT model normally, but the NAMED "http"` && |\n| &&
+             `        // model when SWITCH_DEFAULT_MODEL_PATH placed an OData model in the` && |\n| &&
+             `        // default slot. Resolve whichever one is ours - same logic as` && |\n| &&
+             `        // updateModelIfRequired - so a nested-slot event never picks the` && |\n| &&
+             `        // propagated OData default (which has no getData()) and silently drops` && |\n| &&
+             `        // the edit. The data and the changedPaths delta are shared across the` && |\n| &&
+             `        // root slots, so any of them yields the same model.` && |\n| &&
+             `        if (Lib.isRootModelSlot(slotKey)) {` && |\n| &&
+             `          const isOurs = (m) => (m?._z2ui5Tracked ? m : undefined);` && |\n| &&
+             `          return isOurs(oView.getModel()) ?? isOurs(oView.getModel("http"));` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        // Non-main slots return the model of the view that fired the event.` && |\n| &&
-             `        // For the nested slots this resolves - via model propagation - to the` && |\n| &&
-             `        // same root model as MAIN, which is exactly right: the data and the` && |\n| &&
-             `        // changedPaths delta are shared. Popup/popover return their own model.` && |\n| &&
-             `        return ViewSlots.getView(slotKey)?.getModel();` && |\n| &&
+             `        // Popup/popover are standalone and return their own (default) model.` && |\n| &&
+             `        return oView.getModel();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Refresh a slot's model when the response signals an update for it` && |\n| &&
@@ -510,7 +515,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Replace the main app view with the XML coming from the backend.` && |\n| &&
-             `      async displayView(xml, viewModel) {` && |\n| &&
+             `      async displayView(xml, viewModel, reqSeq) {` && |\n| &&
              `        const oViewModel = this._trackChanges(new JSONModel(viewModel));` && |\n| &&
              `` && |\n| &&
              `        const sView = AppState.state.oResponse?.PARAMS?.S_VIEW;` && |\n| &&
@@ -539,6 +544,16 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        // Guard against the app being destroyed during the await above.` && |\n| &&
              `        if (!Lib.isAlive(AppState.state.oApp)) {` && |\n| &&
+             `          oView.destroy();` && |\n| &&
+             `          if (switchPath) oModel.destroy();` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        // A newer parallel request (check_allow_multi_req) superseded this one` && |\n| &&
+             `        // while XMLView.create was awaiting - discard this rebuild instead of` && |\n| &&
+             `        // letting an out-of-order resolve overwrite the newer view. Last-write` && |\n| &&
+             `        // wins by request order, not by which create() happened to resolve last.` && |\n| &&
+             `        if (reqSeq !== undefined && reqSeq !== Server._requestSeq) {` && |\n| &&
              `          oView.destroy();` && |\n| &&
              `          if (switchPath) oModel.destroy();` && |\n| &&
              `          return;` && |\n| &&

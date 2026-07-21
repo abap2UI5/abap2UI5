@@ -22,6 +22,7 @@ CLASS z2ui5_cl_app_title_js IMPLEMENTATION.
              `// ``title`` property.` && |\n| &&
              `sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {` && |\n| &&
              `  "use strict";` && |\n| &&
+             `  // OBSOLETE: replaced by the frontend event cs_event-set_title - kept for backward compatibility.` && |\n| &&
              `  return Control.extend("z2ui5.cc.Title", {` && |\n| &&
              `    metadata: {` && |\n| &&
              `      properties: {` && |\n| &&

@@ -611,18 +611,21 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // Step 4: hand the parsed response to the success handler.` && |\n| &&
              `          AppState.state.responseData = responseData;` && |\n| &&
              `          AppState.state.changedPaths = new Set();` && |\n| &&
-             `          this.responseSuccess({` && |\n| &&
-             `            ID: responseData.S_FRONT.ID,` && |\n| &&
-             `            PARAMS: responseData.S_FRONT.PARAMS,` && |\n| &&
-             `            OVIEWMODEL: responseData.MODEL,` && |\n| &&
-             `          });` && |\n| &&
+             `          this.responseSuccess(` && |\n| &&
+             `            {` && |\n| &&
+             `              ID: responseData.S_FRONT.ID,` && |\n| &&
+             `              PARAMS: responseData.S_FRONT.PARAMS,` && |\n| &&
+             `              OVIEWMODEL: responseData.MODEL,` && |\n| &&
+             `            },` && |\n| &&
+             `            seq,` && |\n| &&
+             `          );` && |\n| &&
              `        } finally {` && |\n| &&
              `          this._inflight.delete(superseder);` && |\n| &&
              `          cancel();` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      async responseSuccess(response) {` && |\n| &&
+             `      async responseSuccess(response, reqSeq) {` && |\n| &&
              `        const oController = ViewSlots.getController("MAIN");` && |\n| &&
              `        try {` && |\n| &&
              `          AppState.state.oResponse = response;` && |\n| &&
@@ -647,7 +650,11 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // Full view replacement -> destroy & rebuild, nothing more to do.` && |\n| &&
              `          if (sView?.XML) {` && |\n| &&
              `            ViewSlots.destroy("MAIN");` && |\n| &&
-             `            await oController.displayView(sView.XML, response.OVIEWMODEL);` && |\n| &&
+             `            await oController.displayView(` && |\n| &&
+             `              sView.XML,` && |\n| &&
+             `              response.OVIEWMODEL,` && |\n| &&
+             `              reqSeq,` && |\n| &&
+             `            );` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
