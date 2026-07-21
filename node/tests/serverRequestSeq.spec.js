@@ -44,14 +44,15 @@ function load() {
   const successes = [];
   const errors = [];
   const controllers = [];
+  const appState = {
+    getGlobal: (k) => (k === "url" ? "/url" : undefined),
+    state: { xxChangedPaths: new Set() },
+  };
 
   const { module: Server } = loadModule("core/Server.js", {
     deps: {
       "z2ui5/core/Lib": { isValidContextId: () => false },
-      "z2ui5/core/AppState": {
-        getGlobal: (k) => (k === "url" ? "/url" : undefined),
-        state: {},
-      },
+      "z2ui5/core/AppState": appState,
     },
     sandbox: {
       AbortSignal: { any: () => ({}), timeout: () => ({}) },
@@ -74,7 +75,7 @@ function load() {
   Server.responseSuccess = (r) => successes.push(r);
   Server.responseError = (m) => errors.push(m);
 
-  return { Server, fetchCalls, successes, errors, controllers };
+  return { Server, fetchCalls, successes, errors, controllers, appState };
 }
 
 // Let queued microtasks (the awaits inside readHttp) run.
@@ -142,6 +143,29 @@ test("dispatching a newer request aborts the older one still in flight", async (
   );
   fetchCalls[1].resolve(okResponse("B"));
   await Promise.all([pA, pB]);
+});
+
+test("a superseded response keeps the pending delta paths so the newest request carries them", async () => {
+  const { Server, fetchCalls, successes, appState } = load();
+  // A delta edit is pending (the /XX/ path the first request shipped).
+  appState.state.xxChangedPaths = new Set(["/XX/PRODUCT"]);
+  const pending = appState.state.xxChangedPaths;
+
+  const pA = Server.readHttp({}); // seq 1 - carried /XX/PRODUCT
+  const pB = Server.readHttp({}); // seq 2 - newest (also carried it, rebuilt)
+
+  // The older response arrives but is stale: it must NOT clear the delta,
+  // otherwise the edit would be lost once the newer request wins.
+  fetchCalls[0].resolve(okResponse("A"));
+  await flush();
+  expect(appState.state.xxChangedPaths).toBe(pending); // untouched, still pending
+
+  // Only the newest response commits and clears the accumulated delta.
+  fetchCalls[1].resolve(okResponse("B"));
+  await Promise.all([pA, pB]);
+  expect(successes).toHaveLength(1);
+  expect(appState.state.xxChangedPaths).not.toBe(pending);
+  expect(appState.state.xxChangedPaths.size).toBe(0);
 });
 
 test("the single response commits in the default (non-parallel) case", async () => {
