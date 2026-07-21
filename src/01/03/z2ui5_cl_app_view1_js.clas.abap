@@ -67,7 +67,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `    return Controller.extend("z2ui5.controller.View1", {` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
-             `      // Model change tracking - remembers which /XX/ paths the user edited` && |\n| &&
+             `      // Model change tracking - remembers which model paths the user edited` && |\n| &&
              `      // so the next roundtrip only ships the delta.` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `      _trackChanges(oModel) {` && |\n| &&
@@ -82,8 +82,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          // Resolve relative paths against the binding context.` && |\n| &&
              `          const changedPath =` && |\n| &&
              `            ctx && !raw.startsWith("/") ? ``${ctx.getPath()}/${raw}`` : raw;` && |\n| &&
-             `          if (changedPath.startsWith("/XX/")) {` && |\n| &&
-             `            AppState.state.xxChangedPaths.add(changedPath);` && |\n| &&
+             `          if (changedPath.startsWith("/")) {` && |\n| &&
+             `            AppState.state.changedPaths.add(changedPath);` && |\n| &&
              `          }` && |\n| &&
              `        });` && |\n| &&
              `        return oModel;` && |\n| &&
@@ -406,20 +406,19 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        Lib.runCallbacks(AppState.state.onBeforeRoundtrip);` && |\n| &&
              `` && |\n| &&
-             `        // If the user edited /XX/ paths, send only the delta to keep the` && |\n| &&
+             `        // If the user edited model paths, send only the delta to keep the` && |\n| &&
              `        // payload small.` && |\n| &&
-             `        if (oModel && AppState.state.xxChangedPaths.size > 0) {` && |\n| &&
+             `        if (oModel && AppState.state.changedPaths.size > 0) {` && |\n| &&
              `          const data = oModel.getData();` && |\n| &&
-             `          const xx = data?.XX;` && |\n| &&
-             `          if (xx) {` && |\n| &&
-             `            oBody.XX = Lib.buildDeltaFromPaths(` && |\n| &&
-             `              AppState.state.xxChangedPaths,` && |\n| &&
-             `              xx,` && |\n| &&
+             `          if (data) {` && |\n| &&
+             `            oBody.MODEL = Lib.buildDeltaFromPaths(` && |\n| &&
+             `              AppState.state.changedPaths,` && |\n| &&
+             `              data,` && |\n| &&
              `            );` && |\n| &&
              `          }` && |\n| &&
-             `        }` && |\n|.
+             `        }` && |\n| &&
+             `` && |\n|.
     result = result &&
-             `` && |\n| &&
              `        oBody.ID = AppState.state.oResponse?.ID;` && |\n| &&
              `        // Arguments travel as raw JSON values - the request body is` && |\n| &&
              `        // serialized exactly once in Server.readHttp. Object arguments are` && |\n| &&

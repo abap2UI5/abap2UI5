@@ -46,7 +46,7 @@ function load() {
   const controllers = [];
   const appState = {
     getGlobal: (k) => (k === "url" ? "/url" : undefined),
-    state: { xxChangedPaths: new Set() },
+    state: { changedPaths: new Set() },
   };
 
   const { module: Server } = loadModule("core/Server.js", {
@@ -147,25 +147,25 @@ test("dispatching a newer request aborts the older one still in flight", async (
 
 test("a superseded response keeps the pending delta paths so the newest request carries them", async () => {
   const { Server, fetchCalls, successes, appState } = load();
-  // A delta edit is pending (the /XX/ path the first request shipped).
-  appState.state.xxChangedPaths = new Set(["/XX/PRODUCT"]);
-  const pending = appState.state.xxChangedPaths;
+  // A delta edit is pending (the model path the first request shipped).
+  appState.state.changedPaths = new Set(["/PRODUCT"]);
+  const pending = appState.state.changedPaths;
 
-  const pA = Server.readHttp({}); // seq 1 - carried /XX/PRODUCT
+  const pA = Server.readHttp({}); // seq 1 - carried /PRODUCT
   const pB = Server.readHttp({}); // seq 2 - newest (also carried it, rebuilt)
 
   // The older response arrives but is stale: it must NOT clear the delta,
   // otherwise the edit would be lost once the newer request wins.
   fetchCalls[0].resolve(okResponse("A"));
   await flush();
-  expect(appState.state.xxChangedPaths).toBe(pending); // untouched, still pending
+  expect(appState.state.changedPaths).toBe(pending); // untouched, still pending
 
   // Only the newest response commits and clears the accumulated delta.
   fetchCalls[1].resolve(okResponse("B"));
   await Promise.all([pA, pB]);
   expect(successes).toHaveLength(1);
-  expect(appState.state.xxChangedPaths).not.toBe(pending);
-  expect(appState.state.xxChangedPaths.size).toBe(0);
+  expect(appState.state.changedPaths).not.toBe(pending);
+  expect(appState.state.changedPaths.size).toBe(0);
 });
 
 test("the single response commits in the default (non-parallel) case", async () => {

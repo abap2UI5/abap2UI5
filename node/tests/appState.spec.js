@@ -33,7 +33,7 @@ test.describe("initGlobal", () => {
     expect(ctx.z2ui5.timers).toEqual({});
     expect(ctx.z2ui5.viewSizeLimits).toEqual({});
     expect(ctx.z2ui5.onBeforeRoundtrip).toEqual([]);
-    expect(ctx.z2ui5.xxChangedPaths.size).toBe(0);
+    expect(ctx.z2ui5.changedPaths.size).toBe(0);
   });
 
   test("keeps an existing global object", () => {

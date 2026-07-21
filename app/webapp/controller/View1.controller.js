@@ -47,7 +47,7 @@ sap.ui.define(
 
     return Controller.extend("z2ui5.controller.View1", {
       // ------------------------------------------------------------------
-      // Model change tracking - remembers which /XX/ paths the user edited
+      // Model change tracking - remembers which model paths the user edited
       // so the next roundtrip only ships the delta.
       // ------------------------------------------------------------------
       _trackChanges(oModel) {
@@ -62,8 +62,8 @@ sap.ui.define(
           // Resolve relative paths against the binding context.
           const changedPath =
             ctx && !raw.startsWith("/") ? `${ctx.getPath()}/${raw}` : raw;
-          if (changedPath.startsWith("/XX/")) {
-            AppState.state.xxChangedPaths.add(changedPath);
+          if (changedPath.startsWith("/")) {
+            AppState.state.changedPaths.add(changedPath);
           }
         });
         return oModel;
@@ -386,15 +386,14 @@ sap.ui.define(
 
         Lib.runCallbacks(AppState.state.onBeforeRoundtrip);
 
-        // If the user edited /XX/ paths, send only the delta to keep the
+        // If the user edited model paths, send only the delta to keep the
         // payload small.
-        if (oModel && AppState.state.xxChangedPaths.size > 0) {
+        if (oModel && AppState.state.changedPaths.size > 0) {
           const data = oModel.getData();
-          const xx = data?.XX;
-          if (xx) {
-            oBody.XX = Lib.buildDeltaFromPaths(
-              AppState.state.xxChangedPaths,
-              xx,
+          if (data) {
+            oBody.MODEL = Lib.buildDeltaFromPaths(
+              AppState.state.changedPaths,
+              data,
             );
           }
         }

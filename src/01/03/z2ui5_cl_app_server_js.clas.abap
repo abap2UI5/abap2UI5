@@ -137,7 +137,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    // Wire format - request (POST body; VIEWNAME/ARGUMENTS are folded into` && |\n| &&
              `    // S_FRONT before sending, empty fields are removed):` && |\n| &&
              `    //   { "value": {` && |\n| &&
-             `    //       "XX": {                        // two-way model delta` && |\n| &&
+             `    //       "MODEL": {                     // view model delta` && |\n| &&
              `    //         "NAME": "new value",         //   scalar: full attribute` && |\n| &&
              `    //         "TAB": { "__delta": { "0": { "COL1": "new cell" } } }` && |\n| &&
              `    //       },` && |\n| &&
@@ -166,7 +166,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `    //         "SET_NAV_BACK": ""           // browser/history follow-ups` && |\n| &&
              `    //       }` && |\n| &&
              `    //     },` && |\n| &&
-             `    //     "MODEL": { "XX": {...}, ... }    // full JSON view model, becomes` && |\n| &&
+             `    //     "MODEL": { "NAME": ..., ... }    // full JSON view model, becomes` && |\n| &&
              `    //   }                                  // the view's binding model` && |\n| &&
              `    //` && |\n| &&
              `    // Inspect live payloads via the developer tools (Ctrl+F12): "Previous` && |\n| &&
@@ -448,7 +448,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        // and these keys are not present in the JSON sent over the wire.` && |\n| &&
              `        if (!sFront.T_EVENT_ARG?.length) delete sFront.T_EVENT_ARG;` && |\n| &&
              `        if (sFront.SEARCH === "") delete sFront.SEARCH;` && |\n| &&
-             `        if (!oBody.XX) delete oBody.XX;` && |\n| &&
+             `        if (!oBody.MODEL) delete oBody.MODEL;` && |\n| &&
              `` && |\n| &&
              `        this.readHttp(oBody);` && |\n| &&
              `      },` && |\n| &&
@@ -613,7 +613,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `          // Step 4: hand the parsed response to the success handler.` && |\n| &&
              `          AppState.state.responseData = responseData;` && |\n| &&
-             `          AppState.state.xxChangedPaths = new Set();` && |\n| &&
+             `          AppState.state.changedPaths = new Set();` && |\n| &&
              `          this.responseSuccess({` && |\n| &&
              `            ID: responseData.S_FRONT.ID,` && |\n| &&
              `            PARAMS: responseData.S_FRONT.PARAMS,` && |\n| &&

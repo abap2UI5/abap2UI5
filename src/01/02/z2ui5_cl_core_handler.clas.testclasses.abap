@@ -162,19 +162,19 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_parse_body_model.
-    " the two-way model (XX) is extracted from the request root and has to
-    " stay reachable under /XX/... for main_json_to_attri
+    " the view model is extracted from the request MODEL container and has to
+    " stay reachable under /... for main_json_to_attri
     DATA lv_payload TYPE string.
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
     DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
-    lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":""},"XX":{"NAME":"test-value"}}}`.
+    lv_payload = `{"value":{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":""},"MODEL":{"NAME":"test-value"}}}`.
 
     lo_handler = NEW #( val = lv_payload ).
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
     cl_abap_unit_assert=>assert_bound( ls_request-o_model ).
     cl_abap_unit_assert=>assert_equals( exp = `test-value`
-                                        act = ls_request-o_model->get_string( `/XX/NAME` ) ).
+                                        act = ls_request-o_model->get_string( `/NAME` ) ).
   ENDMETHOD.
 
   METHOD test_parse_body_model_no_wrap.
@@ -183,14 +183,14 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     DATA lv_payload TYPE string.
     DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
     DATA ls_request TYPE z2ui5_if_core_types=>ty_s_request.
-    lv_payload = `{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":""},"XX":{"NAME":"test-value"}}`.
+    lv_payload = `{"S_FRONT":{"ID":"ABC123","ORIGIN":"O","PATHNAME":"/p","SEARCH":""},"MODEL":{"NAME":"test-value"}}`.
 
     lo_handler = NEW #( val = lv_payload ).
     ls_request = lo_handler->request_json_to_abap( lv_payload ).
 
     cl_abap_unit_assert=>assert_bound( ls_request-o_model ).
     cl_abap_unit_assert=>assert_equals( exp = `test-value`
-                                        act = ls_request-o_model->get_string( `/XX/NAME` ) ).
+                                        act = ls_request-o_model->get_string( `/NAME` ) ).
   ENDMETHOD.
 
   METHOD test_parse_body_config.

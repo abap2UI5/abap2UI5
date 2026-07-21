@@ -115,11 +115,12 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     DATA(lv_root) = COND string( WHEN lo_ajson->exists( `/value` ) = abap_true
                                  THEN `/value` ).
 
-    DATA(lv_model_edit_name) = |/{ z2ui5_if_core_types=>cs_ui5-two_way_model }|.
-    result-o_model = z2ui5_cl_ajson=>create_empty( ).
-    DATA(lo_model) = lo_ajson->slice( lv_root && lv_model_edit_name ).
-    result-o_model->set( iv_path = lv_model_edit_name
-                         iv_val  = lo_model ).
+    " the whole view model is transported back under the MODEL container
+    " (symmetric to the response); the frontend ships only the edited delta
+    result-o_model = lo_ajson->slice( lv_root && `/MODEL` ).
+    IF result-o_model IS NOT BOUND.
+      result-o_model = z2ui5_cl_ajson=>create_empty( ).
+    ENDIF.
 
     lo_ajson = lo_ajson->slice( lv_root && `/S_FRONT` ).
 

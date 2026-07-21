@@ -5,7 +5,6 @@ INTERFACE z2ui5_if_core_types
     BEGIN OF cs_ui5,
       event_backend_function  TYPE string VALUE `.eB`,
       event_frontend_function TYPE string VALUE `.eF`,
-      two_way_model           TYPE string VALUE `XX`,
     END OF cs_ui5.
 
   CONSTANTS cs_event_nav_app_leave TYPE string VALUE `___ZZZ_NAL`.

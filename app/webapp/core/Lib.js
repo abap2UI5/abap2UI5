@@ -329,23 +329,23 @@ sap.ui.define(
     }
 
     // Build the delta object sent to the backend. `paths` is the set of
-    // /XX/... paths that the user edited; `xx` is the full XX model data.
+    // model paths that the user edited; `model` is the full view model data.
     // Table edits become (recursively nested) __delta structures, so a cell
     // edit in a nested/tree table ships only the changed cell instead of
     // the whole outer table.
-    function buildDeltaFromPaths(paths, xx) {
+    function buildDeltaFromPaths(paths, modelData) {
       const delta = {};
       for (const path of paths) {
-        // path looks like "/XX/<attr>" or "/XX/<attr>/<row>/<field>" with
+        // path looks like "/<attr>" or "/<attr>/<row>/<field>" with
         // arbitrarily deep <row>/<subtable> repetitions for nested tables
-        const parts = path.slice(4).split("/");
+        const parts = path.slice(1).split("/");
         const attr = parts[0];
         const steps = parseDeltaSteps(parts.slice(1));
         if (!steps) {
           // Scalar or unrecognized shape -> ship the whole attribute. The
           // full value always wins over any queued delta: both read the
           // same current model data, so it is a superset of every delta.
-          delta[attr] = xx[attr];
+          delta[attr] = modelData[attr];
           continue;
         }
         // A full attribute queued by another path already carries every
@@ -354,7 +354,7 @@ sap.ui.define(
         if (attr in delta && !delta[attr]?.__delta) continue;
         if (!delta[attr]?.__delta) delta[attr] = { __delta: {} };
         let node = delta[attr];
-        let model = xx[attr];
+        let model = modelData[attr];
         for (const { row, field, leaf } of steps) {
           const rows = node.__delta;
           if (!rows[row]) rows[row] = {};

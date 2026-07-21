@@ -49,7 +49,7 @@ sap.ui.define(
         if (!items) return;
         try {
           // Resolve the binding path so we can mark only changed entries
-          // as dirty in xxChangedPaths.
+          // as dirty in changedPaths.
           const bindingInfo = this.getBindingInfo("items");
           const bindingPath =
             bindingInfo?.parts?.[0]?.path ?? bindingInfo?.path;
@@ -58,7 +58,7 @@ sap.ui.define(
             if (item.V !== scrollTop) {
               item.V = scrollTop;
               if (bindingPath) {
-                AppState.state.xxChangedPaths.add(`${bindingPath}/${index}/V`);
+                AppState.state.changedPaths.add(`${bindingPath}/${index}/V`);
               }
             }
           }
