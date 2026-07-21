@@ -107,9 +107,13 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
         result->ms_actual-check_on_navigated = abap_true.
 
       CATCH cx_root INTO DATA(x).
+        " a wrong/mistyped app name in the URL lands here (CREATE OBJECT of a
+        " non-existent class). Just raise with a readable text - the single
+        " top-level catch in z2ui5_cl_http_handler=>_main( ) turns it into a
+        " 500 whose body carries this message for the frontend to display
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING
-            val      = |App with name { mo_http_post->ms_request-s_control-app_start } not found...|
+            val      = |The app '{ mo_http_post->ms_request-s_control-app_start }' does not exist in the system.|
             previous = x.
     ENDTRY.
 
