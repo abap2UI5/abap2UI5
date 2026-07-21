@@ -8,9 +8,12 @@ const { loadModule } = require("./loadModule");
 // value changed while the request was in flight (e.g. clear "X" then type):
 //   1. Clamp: the restored range is bounded to the field's current length,
 //      so an out-of-range range can no longer collapse the caret to 0.
-//   2. Race guard: when the field is focused and its live caret already sits
-//      past the restored (stale) position, keep the live caret instead of
-//      yanking it left over text the user just entered.
+//   2. Race guard: when the live caret already sits past the restored (stale)
+//      position, keep the live caret instead of yanking it left over text the
+//      user just entered. The live caret is read from the still-focused field
+//      when UI5 patched it in place, or from the onBeforeRendering snapshot
+//      when a full view rebuild re-created the field (so it is no longer the
+//      active element by the time the caret is restored).
 
 function controlStub() {
   return {
@@ -70,6 +73,10 @@ function run(Focus, target, { selectionStart, selectionEnd }) {
   const props = { focusId: "field", selectionStart, selectionEnd };
   inst.getProperty = (k) => props[k];
   inst._pendingFocus = true;
+  // Mirror the real lifecycle: the live-caret snapshot is taken in
+  // onBeforeRendering (while the old, focused field is still in the DOM),
+  // then consumed in onAfterRendering.
+  inst.onBeforeRendering();
   inst.onAfterRendering();
   return inst;
 }
@@ -90,16 +97,53 @@ test("clamps a captured range beyond the current value length", () => {
 test("keeps the live caret when the user typed past the restored position", () => {
   const dom = inputDom({ value: "22", selectionStart: 2, selectionEnd: 2 });
   const target = targetWithInput(dom);
-  // The field is the active element - user kept typing during the roundtrip.
+  // The field is still the active element - UI5 patched it in place while the
+  // user kept typing during the roundtrip.
   const { Focus } = load({ target, activeElement: dom });
 
   // Stale captured caret is 0 (e.g. from the clear "X" click).
   run(Focus, target, { selectionStart: "0", selectionEnd: "0" });
 
-  // Race guard wins: no applyFocusInfo, focus re-asserted, live caret intact.
-  expect(target.applied).toHaveLength(0);
-  expect(dom.focused).toBe(true);
-  expect(dom.selectionStart).toBe(2);
+  // Race guard wins: the live caret (2) is restored, not the stale captured 0.
+  expect(target.applied).toHaveLength(1);
+  expect(target.applied[0].selectionStart).toBe(2);
+  expect(target.applied[0].selectionEnd).toBe(2);
+});
+
+test("keeps the live caret from the snapshot after a full view rebuild", () => {
+  // The view was rebuilt: the field the user typed in was re-created, so the
+  // restored control's input is a *different* element than the one that held
+  // focus (and the caret) before the render.
+  const newInput = inputDom({ value: "abc", selectionStart: 0, selectionEnd: 0 });
+  const target = targetWithInput(newInput);
+  // Before the render the old input was focused with the caret past the
+  // captured position (user kept typing while the roundtrip was in flight).
+  const oldInput = inputDom({ value: "abc", selectionStart: 3, selectionEnd: 3 });
+  const { Focus } = load({ target, activeElement: oldInput });
+
+  // Captured caret was the stale 1 from when the request was dispatched.
+  run(Focus, target, { selectionStart: "1", selectionEnd: "1" });
+
+  // The pre-render snapshot (3) wins over the stale captured 1, even though the
+  // restored input is no longer the active element.
+  expect(target.applied).toHaveLength(1);
+  expect(target.applied[0].selectionStart).toBe(3);
+  expect(target.applied[0].selectionEnd).toBe(3);
+});
+
+test("clamps the kept snapshot caret to the rebuilt value length", () => {
+  // Same rebuild case, but the committed (intermediate) response shortened the
+  // field value, so the snapshot caret is now out of range and must clamp.
+  const newInput = inputDom({ value: "ab", selectionStart: 0, selectionEnd: 0 });
+  const target = targetWithInput(newInput);
+  const oldInput = inputDom({ value: "abcd", selectionStart: 4, selectionEnd: 4 });
+  const { Focus } = load({ target, activeElement: oldInput });
+
+  run(Focus, target, { selectionStart: "1", selectionEnd: "1" });
+
+  expect(target.applied).toHaveLength(1);
+  expect(target.applied[0].selectionStart).toBe(2);
+  expect(target.applied[0].selectionEnd).toBe(2);
 });
 
 test("restores the clamped caret when the field is not focused", () => {
