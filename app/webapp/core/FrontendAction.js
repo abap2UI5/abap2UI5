@@ -166,6 +166,18 @@ sap.ui.define(
         .map((kind, i) => castArg(kind, rawArgs[i], view));
     }
 
+    // Run fn once the openBy/toggleBy anchor is in the DOM. A control anchor
+    // goes through Lib.whenRendered (immediate if already rendered, otherwise
+    // after its next onAfterRendering); anything else (a bare DOM element, or a
+    // missing anchor) runs fn straight away.
+    function whenAnchorRendered(anchor, oController, fn) {
+      if (anchor && typeof anchor.getDomRef === "function") {
+        Lib.whenRendered(anchor, oController, fn);
+      } else {
+        fn();
+      }
+    }
+
     // args: [_, id, view, method, ...params]
     function evControlCallById(oController, args) {
       const [id, view, method] = [args[1], args[2], args[3]];
@@ -189,17 +201,25 @@ sap.ui.define(
           return;
         }
         const anchor = castArgs(kinds, args.slice(4), view)[0];
-        if (control.isOpen?.()) {
-          control.close();
-        } else {
-          control.openBy(anchor);
-        }
+        // Defer the open until the anchor is rendered: a Save-style roundtrip
+        // can make the anchor (e.g. a button hidden until there are messages)
+        // visible in the same response, so it may not be in the DOM yet.
+        whenAnchorRendered(anchor, oController, () => {
+          if (control.isOpen?.()) control.close();
+          else control.openBy(anchor);
+        });
         return;
       }
       if (!control || typeof control[method] !== "function") {
         Lib.logError(
           `CONTROL_BY_ID: '${method}' not callable on control '${id}'`,
         );
+        return;
+      }
+      if (method === "openBy") {
+        const anchor = castArgs(kinds, args.slice(4), view)[0];
+        // Same reason as toggleBy: wait for the anchor to render.
+        whenAnchorRendered(anchor, oController, () => control.openBy(anchor));
         return;
       }
       control[method](...castArgs(kinds, args.slice(4), view));

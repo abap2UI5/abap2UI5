@@ -186,6 +186,18 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        .map((kind, i) => castArg(kind, rawArgs[i], view));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // Run fn once the openBy/toggleBy anchor is in the DOM. A control anchor` && |\n| &&
+             `    // goes through Lib.whenRendered (immediate if already rendered, otherwise` && |\n| &&
+             `    // after its next onAfterRendering); anything else (a bare DOM element, or a` && |\n| &&
+             `    // missing anchor) runs fn straight away.` && |\n| &&
+             `    function whenAnchorRendered(anchor, oController, fn) {` && |\n| &&
+             `      if (anchor && typeof anchor.getDomRef === "function") {` && |\n| &&
+             `        Lib.whenRendered(anchor, oController, fn);` && |\n| &&
+             `      } else {` && |\n| &&
+             `        fn();` && |\n| &&
+             `      }` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    // args: [_, id, view, method, ...params]` && |\n| &&
              `    function evControlCallById(oController, args) {` && |\n| &&
              `      const [id, view, method] = [args[1], args[2], args[3]];` && |\n| &&
@@ -209,17 +221,25 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        const anchor = castArgs(kinds, args.slice(4), view)[0];` && |\n| &&
-             `        if (control.isOpen?.()) {` && |\n| &&
-             `          control.close();` && |\n| &&
-             `        } else {` && |\n| &&
-             `          control.openBy(anchor);` && |\n| &&
-             `        }` && |\n| &&
+             `        // Defer the open until the anchor is rendered: a Save-style roundtrip` && |\n| &&
+             `        // can make the anchor (e.g. a button hidden until there are messages)` && |\n| &&
+             `        // visible in the same response, so it may not be in the DOM yet.` && |\n| &&
+             `        whenAnchorRendered(anchor, oController, () => {` && |\n| &&
+             `          if (control.isOpen?.()) control.close();` && |\n| &&
+             `          else control.openBy(anchor);` && |\n| &&
+             `        });` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      if (!control || typeof control[method] !== "function") {` && |\n| &&
              `        Lib.logError(` && |\n| &&
              `          ``CONTROL_BY_ID: '${method}' not callable on control '${id}'``,` && |\n| &&
              `        );` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      if (method === "openBy") {` && |\n| &&
+             `        const anchor = castArgs(kinds, args.slice(4), view)[0];` && |\n| &&
+             `        // Same reason as toggleBy: wait for the anchor to render.` && |\n| &&
+             `        whenAnchorRendered(anchor, oController, () => control.openBy(anchor));` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      control[method](...castArgs(kinds, args.slice(4), view));` && |\n| &&
@@ -397,7 +417,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // the literal "undefined" as its state id.` && |\n| &&
              `      const id = AppState.state.oResponse?.ID || "";` && |\n| &&
              `      // Strip any existing hash (e.g. an active app-state) so the copied` && |\n| &&
-             `      // link carries only the fresh state id.` && |\n| &&
+             `      // link carries only the fresh state id.` && |\n|.
+    result = result &&
              `      const base = window.location.href.split("#")[0];` && |\n| &&
              `      Lib.copyToClipboard(``${base}#/z2ui5-xapp-state=${id}``);` && |\n| &&
              `    }` && |\n| &&
@@ -417,8 +438,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      document.body.appendChild(a);` && |\n| &&
              `      a.click();` && |\n| &&
              `      document.body.removeChild(a);` && |\n| &&
-             `    }` && |\n|.
-    result = result &&
+             `    }` && |\n| &&
              `` && |\n| &&
              `    function evCrossAppNavToPrevApp() {` && |\n| &&
              `      withCrossAppNavigator((nav) => nav.backToPreviousApp());` && |\n| &&
@@ -798,7 +818,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        if (!dom || !dom.scrollIntoView) return;` && |\n| &&
              `        dom.scrollIntoView({` && |\n| &&
              `          behavior: args[2] || "smooth",` && |\n| &&
-             `          block: args[3] || "start",` && |\n| &&
+             `          block: args[3] || "start",` && |\n|.
+    result = result &&
              `          inline: args[4] || "nearest",` && |\n| &&
              `        });` && |\n| &&
              `      } catch (e) {` && |\n| &&
@@ -818,8 +839,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    function evSetTitleLaunchpad(oController, args) {` && |\n| &&
              `      const title = Lib.toText(args[1]);` && |\n| &&
              `      try {` && |\n| &&
-             `        const shell = AppState.state.oLaunchpad?.ShellUIService;` && |\n|.
-    result = result &&
+             `        const shell = AppState.state.oLaunchpad?.ShellUIService;` && |\n| &&
              `        if (shell?.setTitle) {` && |\n| &&
              `          const result = shell.setTitle(title);` && |\n| &&
              `          if (result?.catch) {` && |\n| &&
