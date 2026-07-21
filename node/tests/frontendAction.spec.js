@@ -22,7 +22,14 @@ function load() {
     resolveById: (id) => controls[id] || null,
     byId: (_key, id) => controls[id] || null,
   };
-  const Lib = { logError: (m) => errors.push(m), runCallbacks: () => {} };
+  // whenRendered runs its callback once the control is in the DOM; the real
+  // one defers to onAfterRendering when it is not. The stub runs it straight
+  // away (the specs treat the anchor as already rendered).
+  const Lib = {
+    logError: (m) => errors.push(m),
+    runCallbacks: () => {},
+    whenRendered: (_control, _owner, fn) => fn(),
+  };
   const AppState = { state: { onBeforeEventFrontend: [] } };
   function Filter(path, operator, value1, value2) {
     Object.assign(this, { path, operator, value1, value2 });
@@ -157,16 +164,18 @@ test.describe("CONTROL_BY_ID", () => {
     expect(calls).toEqual([["goToStep", step2, true]]);
   });
 
-  test("openBy resolves the anchor to its DOM ref (hidden DatePicker)", () => {
+  test("openBy anchors to the resolved control (not its DOM ref)", () => {
+    // Every sap.m openBy accepts a control, and MessagePopover.openBy needs
+    // one (it dereferences getParent()), so the anchor is the control itself.
     const { FrontendAction, calls, controls } = load();
-    const dom = { tagName: "BUTTON" };
-    controls.anchorBtn = { getDomRef: () => dom };
+    const anchor = { getDomRef: () => ({ tagName: "BUTTON" }) };
+    controls.anchorBtn = anchor;
     controls.HiddenDP = { openBy: (ref) => calls.push(["openBy", ref]) };
     FrontendAction.execute(null, ["CONTROL_BY_ID", "HiddenDP", "", "openBy", "anchorBtn"]);
-    expect(calls).toEqual([["openBy", dom]]);
+    expect(calls).toEqual([["openBy", anchor]]);
   });
 
-  test("openBy falls back to the control when no DOM ref is rendered", () => {
+  test("openBy anchors to the control even when it is not rendered yet", () => {
     const { FrontendAction, calls, controls } = load();
     const anchor = { getDomRef: () => null };
     controls.anchorBtn = anchor;
@@ -175,17 +184,17 @@ test.describe("CONTROL_BY_ID", () => {
     expect(calls).toEqual([["openBy", anchor]]);
   });
 
-  test("toggleBy opens the control anchored to the DOM ref when closed", () => {
+  test("toggleBy opens the control anchored to the control when closed", () => {
     const { FrontendAction, calls, controls } = load();
-    const dom = { tagName: "BUTTON" };
-    controls.anchorBtn = { getDomRef: () => dom };
+    const anchor = { getDomRef: () => ({ tagName: "BUTTON" }) };
+    controls.anchorBtn = anchor;
     controls.theMenu = {
       isOpen: () => false,
       openBy: (ref) => calls.push(["openBy", ref]),
       close: () => calls.push(["close"]),
     };
     FrontendAction.execute(null, ["CONTROL_BY_ID", "theMenu", "", "toggleBy", "anchorBtn"]);
-    expect(calls).toEqual([["openBy", dom]]);
+    expect(calls).toEqual([["openBy", anchor]]);
   });
 
   test("toggleBy closes the control when it is already open", () => {
