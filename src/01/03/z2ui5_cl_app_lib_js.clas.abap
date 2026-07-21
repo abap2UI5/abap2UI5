@@ -426,6 +426,33 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      return _sanitizeEl.innerHTML;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // The MAIN view and its two nested views (NEST, NEST2) share ONE JSON` && |\n| &&
+             `    // model: the nested views are inserted into the MAIN control tree and` && |\n| &&
+             `    // inherit its default model through UI5 model propagation instead of each` && |\n| &&
+             `    // creating their own. Popup and popover are opened standalone (outside the` && |\n| &&
+             `    // MAIN tree) and keep their own model.` && |\n| &&
+             `    const ROOT_MODEL_SLOTS = ["MAIN", "NEST", "NEST2"];` && |\n| &&
+             `` && |\n| &&
+             `    function isRootModelSlot(slotKey) {` && |\n| &&
+             `      return ROOT_MODEL_SLOTS.includes(slotKey);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // Effective JSONModel size limit for a slot. Because the root slots share a` && |\n| &&
+             `    // single model, a per-view limit collapses onto it - the largest requested` && |\n| &&
+             `    // limit across MAIN/NEST/NEST2 wins. Popup/popover keep their own limit.` && |\n| &&
+             `    // Returns undefined when nothing is stored, so callers keep the UI5 default.` && |\n| &&
+             `    function effectiveSizeLimit(viewSizeLimits, slotKey) {` && |\n| &&
+             `      if (!isRootModelSlot(slotKey)) return viewSizeLimits[slotKey];` && |\n| &&
+             `      let max;` && |\n| &&
+             `      for (const key of ROOT_MODEL_SLOTS) {` && |\n| &&
+             `        const limit = viewSizeLimits[key];` && |\n| &&
+             `        if (limit !== undefined && (max === undefined || limit > max)) {` && |\n| &&
+             `          max = limit;` && |\n| &&
+             `        }` && |\n| &&
+             `      }` && |\n| &&
+             `      return max;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    return {` && |\n| &&
              `      logError,` && |\n| &&
              `      isDestroyed,` && |\n| &&
@@ -448,6 +475,8 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      getElementById,` && |\n| &&
              `      getMessaging,` && |\n| &&
              `      hasMessagingModule,` && |\n| &&
+             `      isRootModelSlot,` && |\n| &&
+             `      effectiveSizeLimit,` && |\n| &&
              `    };` && |\n| &&
              `  },` && |\n| &&
              `);` && |\n| &&

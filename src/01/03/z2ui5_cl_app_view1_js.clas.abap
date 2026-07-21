@@ -61,7 +61,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `    function applyStoredSizeLimit(viewKey, oModel) {` && |\n| &&
              `      if (!oModel) return;` && |\n| &&
-             `      const limit = AppState.state.viewSizeLimits[viewKey];` && |\n| &&
+             `      // For the root slots (MAIN/NEST/NEST2) this is the max limit across them,` && |\n| &&
+             `      // since they share this one model; popup/popover get their own limit.` && |\n| &&
+             `      const limit = Lib.effectiveSizeLimit(` && |\n| &&
+             `        AppState.state.viewSizeLimits,` && |\n| &&
+             `        viewKey,` && |\n| &&
+             `      );` && |\n| &&
              `      if (limit !== undefined) oModel.setSizeLimit(limit);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -265,19 +270,28 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `      async displayNestedView(xml, slotKey) {` && |\n| &&
              `        const paramKey = ViewSlots.paramByKey(slotKey);` && |\n| &&
-             `        const oModel = this._createViewModel();` && |\n| &&
-             `        applyStoredSizeLimit(slotKey, oModel);` && |\n| &&
+             `        // Nested views do NOT create their own model. They are inserted into` && |\n| &&
+             `        // the MAIN control tree below and inherit its default JSON model via` && |\n| &&
+             `        // UI5 model propagation, so every view binds against the same data with` && |\n| &&
+             `        // one change tracker and one refresh per roundtrip - no duplicate` && |\n| &&
+             `        // models pointing at the same data. The model passed to the XML` && |\n| &&
+             `        // preprocessor here only feeds {template>...} bindings at build time;` && |\n| &&
+             `        // it is the MAIN view's JSON model (the named "http" model when` && |\n| &&
+             `        // SWITCH_DEFAULT_MODEL_PATH moved OData into the default slot, otherwise` && |\n| &&
+             `        // the default model), mirroring displayView's template model.` && |\n| &&
+             `        const oMainView = ViewSlots.getView("MAIN");` && |\n| &&
+             `        const oTemplateModel =` && |\n| &&
+             `          oMainView?.getModel("http") ?? oMainView?.getModel();` && |\n| &&
              `        const oView = await XMLView.create({` && |\n| &&
              `          definition: xml,` && |\n| &&
              `          controller: ViewSlots.getController(slotKey),` && |\n| &&
-             `          preprocessors: { xml: { models: { template: oModel } } },` && |\n| &&
+             `          preprocessors: { xml: { models: { template: oTemplateModel } } },` && |\n| &&
              `        });` && |\n| &&
              `` && |\n| &&
              `        if (!Lib.isAlive(AppState.state.oApp)) {` && |\n| &&
              `          oView.destroy();` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        oView.setModel(oModel);` && |\n| &&
              `` && |\n| &&
              `        const nestParams = AppState.state.oResponse?.PARAMS?.[paramKey];` && |\n| &&
              `        if (!nestParams) {` && |\n| &&
@@ -403,7 +417,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // mapping is: main app controller -> main view, popup controller ->` && |\n| &&
              `        // popup view, etc.` && |\n| &&
              `        const oModel = this._pickModelForRoundtrip(useMainModel);` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `        Lib.runCallbacks(AppState.state.onBeforeRoundtrip);` && |\n| &&
              `` && |\n| &&
              `        // If the user edited model paths, send only the delta to keep the` && |\n| &&
@@ -417,8 +432,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            );` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `        oBody.ID = AppState.state.oResponse?.ID;` && |\n| &&
              `        // Arguments travel as raw JSON values - the request body is` && |\n| &&
              `        // serialized exactly once in Server.readHttp. Object arguments are` && |\n| &&
@@ -445,8 +459,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return ViewSlots.getView("MAIN")?.getModel();` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        // Non-main slots return their own model so the delta is read from the` && |\n| &&
-             `        // view that actually fired the event.` && |\n| &&
+             `        // Non-main slots return the model of the view that fired the event.` && |\n| &&
+             `        // For the nested slots this resolves - via model propagation - to the` && |\n| &&
+             `        // same root model as MAIN, which is exactly right: the data and the` && |\n| &&
+             `        // changedPaths delta are shared. Popup/popover return their own model.` && |\n| &&
              `        return ViewSlots.getView(slotKey)?.getModel();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -475,7 +491,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          isOurs(oView.getModel()) ?? isOurs(oView.getModel("http"));` && |\n| &&
              `        if (tracked) {` && |\n| &&
              `          applyStoredSizeLimit(slotKey, tracked);` && |\n| &&
-             `          tracked.setData(AppState.state.oResponse?.OVIEWMODEL);` && |\n| &&
+             `          // MAIN and its nested views resolve to the SAME root model here, and` && |\n| &&
+             `          // the update loop calls this once per slot. setData replaces the` && |\n| &&
+             `          // model's data reference with OVIEWMODEL, so once the first root slot` && |\n| &&
+             `          // has swapped it in, the others already hold it - skip the redundant` && |\n| &&
+             `          // setData (and its full binding refresh) instead of running it once` && |\n| &&
+             `          // per shared slot.` && |\n| &&
+             `          const data = AppState.state.oResponse?.OVIEWMODEL;` && |\n| &&
+             `          if (tracked.getData() !== data) tracked.setData(data);` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
