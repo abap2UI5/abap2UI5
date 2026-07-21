@@ -105,8 +105,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      discardProgress: ["controlId"],` && |\n| &&
              `      setNextStep: ["controlId"],` && |\n| &&
              `      goToStep: ["controlId", "bool"], // Wizard: target step + focus flag` && |\n| &&
-             `      openBy: ["domRef"], // DatePicker/TimePicker/Menu... anchored open` && |\n| &&
-             `      toggleBy: ["domRef"], // sap.m.Menu/Popover: open anchored if closed, close if open` && |\n| &&
+             `      openBy: ["anchor"], // DatePicker/TimePicker/Menu/MessagePopover... anchored open` && |\n| &&
+             `      toggleBy: ["anchor"], // sap.m.Menu/MessagePopover: open anchored if closed, close if open` && |\n| &&
              `      setActivePage: ["controlId"], // sap.m.Carousel` && |\n| &&
              `      expandToLevel: ["int"], // sap.m.Tree / sap.ui.table.TreeTable: expand to N levels` && |\n| &&
              `      collapseAll: [], // sap.m.Tree / sap.ui.table.TreeTable: collapse every node` && |\n| &&
@@ -155,15 +155,18 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||` && |\n| &&
              `            ViewSlots.resolveById(raw)` && |\n| &&
              `          );` && |\n| &&
-             `        case "domRef": {` && |\n| &&
+             `        case "anchor":` && |\n| &&
              `          // anchor argument for openBy-style methods: resolve the control id` && |\n| &&
-             `          // and hand over its DOM element (fallback: the control itself -` && |\n| &&
-             `          // every sap.m openBy accepts a control OR a DOM element)` && |\n| &&
-             `          const control =` && |\n| &&
+             `          // and hand over the CONTROL itself, not its DOM element. Every` && |\n| &&
+             `          // sap.m openBy accepts a control, and MessagePopover.openBy` && |\n| &&
+             `          // dereferences oControl.getParent() on its argument, so a bare DOM` && |\n| &&
+             `          // element throws ("getParent is not a function") and the popup never` && |\n| &&
+             `          // opens. DatePicker/TimePicker/Menu accept a control just as well,` && |\n| &&
+             `          // so a control is the universally-correct anchor.` && |\n| &&
+             `          return (` && |\n| &&
              `            (view && ViewSlots.byId(view.toUpperCase(), raw)) ||` && |\n| &&
-             `            ViewSlots.resolveById(raw);` && |\n| &&
-             `          return control?.getDomRef?.() ?? control;` && |\n| &&
-             `        }` && |\n| &&
+             `            ViewSlots.resolveById(raw)` && |\n| &&
+             `          );` && |\n| &&
              `        case "object":` && |\n| &&
              `          try {` && |\n| &&
              `            return JSON.parse(raw);` && |\n| &&
@@ -195,8 +198,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        ? ViewSlots.byId(view.toUpperCase(), id)` && |\n| &&
              `        : ViewSlots.resolveById(id);` && |\n| &&
              `      // toggleBy is not a real control method: open the control anchored to` && |\n| &&
-             `      // the domRef if it is closed, close it if it is already open (mirrors` && |\n| &&
-             `      // openBy for a press-to-toggle button). The popup's open state lives` && |\n| &&
+             `      // the anchor control if it is closed, close it if it is already open` && |\n| &&
+             `      // (mirrors openBy for a press-to-toggle button). The popup's open state lives` && |\n| &&
              `      // client-side, so the decision stays here rather than round-tripping.` && |\n| &&
              `      if (method === "toggleBy") {` && |\n| &&
              `        if (!control || typeof control.openBy !== "function") {` && |\n| &&

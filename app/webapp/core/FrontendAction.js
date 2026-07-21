@@ -85,8 +85,8 @@ sap.ui.define(
       discardProgress: ["controlId"],
       setNextStep: ["controlId"],
       goToStep: ["controlId", "bool"], // Wizard: target step + focus flag
-      openBy: ["domRef"], // DatePicker/TimePicker/Menu... anchored open
-      toggleBy: ["domRef"], // sap.m.Menu/Popover: open anchored if closed, close if open
+      openBy: ["anchor"], // DatePicker/TimePicker/Menu/MessagePopover... anchored open
+      toggleBy: ["anchor"], // sap.m.Menu/MessagePopover: open anchored if closed, close if open
       setActivePage: ["controlId"], // sap.m.Carousel
       expandToLevel: ["int"], // sap.m.Tree / sap.ui.table.TreeTable: expand to N levels
       collapseAll: [], // sap.m.Tree / sap.ui.table.TreeTable: collapse every node
@@ -135,15 +135,18 @@ sap.ui.define(
             (view && ViewSlots.byId(view.toUpperCase(), raw)) ||
             ViewSlots.resolveById(raw)
           );
-        case "domRef": {
+        case "anchor":
           // anchor argument for openBy-style methods: resolve the control id
-          // and hand over its DOM element (fallback: the control itself -
-          // every sap.m openBy accepts a control OR a DOM element)
-          const control =
+          // and hand over the CONTROL itself, not its DOM element. Every
+          // sap.m openBy accepts a control, and MessagePopover.openBy
+          // dereferences oControl.getParent() on its argument, so a bare DOM
+          // element throws ("getParent is not a function") and the popup never
+          // opens. DatePicker/TimePicker/Menu accept a control just as well,
+          // so a control is the universally-correct anchor.
+          return (
             (view && ViewSlots.byId(view.toUpperCase(), raw)) ||
-            ViewSlots.resolveById(raw);
-          return control?.getDomRef?.() ?? control;
-        }
+            ViewSlots.resolveById(raw)
+          );
         case "object":
           try {
             return JSON.parse(raw);
@@ -175,8 +178,8 @@ sap.ui.define(
         ? ViewSlots.byId(view.toUpperCase(), id)
         : ViewSlots.resolveById(id);
       // toggleBy is not a real control method: open the control anchored to
-      // the domRef if it is closed, close it if it is already open (mirrors
-      // openBy for a press-to-toggle button). The popup's open state lives
+      // the anchor control if it is closed, close it if it is already open
+      // (mirrors openBy for a press-to-toggle button). The popup's open state lives
       // client-side, so the decision stays here rather than round-tripping.
       if (method === "toggleBy") {
         if (!control || typeof control.openBy !== "function") {
