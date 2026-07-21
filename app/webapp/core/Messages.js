@@ -39,20 +39,28 @@ sap.ui.define(
     }
 
     function showToast(msg, oController) {
-      MessageToast.show(msg.TEXT, {
+      const mOptions = {
         duration: parseMs(msg.DURATION, 3000),
         width: msg.WIDTH || "15em",
-        my: toDockValue(msg.MY || "center bottom"),
-        at: toDockValue(msg.AT || "center bottom"),
-        offset: msg.OFFSET || "0 0",
-        collision: msg.COLLISION || "fit fit",
-        ...(msg.OF && { of: msg.OF }),
         onClose: msg.ONCLOSE ? () => oController.eB([msg.ONCLOSE]) : null,
         autoClose: Boolean(msg.AUTOCLOSE),
         animationTimingFunction: msg.ANIMATIONTIMINGFUNCTION || "ease",
         animationDuration: parseMs(msg.ANIMATIONDURATION, 1000),
         closeOnBrowserNavigation: Boolean(msg.CLOSEONBROWSERNAVIGATION),
-      });
+      };
+      // Only forward the position options the app actually set. sap.m.MessageToast
+      // owns a default position AND a default vertical lift, but applies that lift
+      // ONLY when none of my/at/of/offset is passed (its hasDefaultPosition check).
+      // Passing any of them - even a value equal to UI5's own default - suppresses
+      // the lift, so a bare toast would sit lower than a native MessageToast.show().
+      // Omitting them lets UI5 own the defaults, so we never mirror (and drift from)
+      // its internal values.
+      if (msg.MY) mOptions.my = toDockValue(msg.MY);
+      if (msg.AT) mOptions.at = toDockValue(msg.AT);
+      if (msg.OF) mOptions.of = msg.OF;
+      if (msg.OFFSET) mOptions.offset = msg.OFFSET;
+      if (msg.COLLISION) mOptions.collision = msg.COLLISION;
+      MessageToast.show(msg.TEXT, mOptions);
       if (msg.CLASS) {
         const classes = msg.CLASS.trim().split(/\s+/).filter(Boolean);
         // Pick the newest toast (several can be open at once). The
@@ -69,19 +77,28 @@ sap.ui.define(
     }
 
     function showBox(msg, oController) {
+      // closeOnNavigation is always sent (ABAP DEFAULT abap_true, = UI5's own
+      // default), so it is always meaningful to pass.
       const oParams = {
-        styleClass: msg.STYLECLASS || "",
-        title: msg.TITLE || "",
-        onClose: msg.ONCLOSE
-          ? (sAction) => oController.eB([msg.ONCLOSE, sAction])
-          : null,
-        actions: msg.ACTIONS || "OK",
-        emphasizedAction: msg.EMPHASIZEDACTION || "OK",
-        initialFocus: msg.INITIALFOCUS || null,
-        textDirection: msg.TEXTDIRECTION || "Inherit",
-        details: msg.DETAILS ? Lib.sanitizeMessageDetails(msg.DETAILS) : "",
         closeOnNavigation: Boolean(msg.CLOSEONNAVIGATION),
       };
+      // Only forward the options the app actually set. Each MessageBox method
+      // (confirm, error, warning, success, ...) has its OWN sensible defaults -
+      // e.g. confirm's [OK, CANCEL] or error's [CLOSE] action set, and the
+      // emphasized action derived from them. Forcing actions/emphasizedAction
+      // (or title/styleClass/textDirection/...) to a fixed value would override
+      // those; omitting them lets UI5 apply its per-method defaults.
+      if (msg.TITLE) oParams.title = msg.TITLE;
+      if (msg.STYLECLASS) oParams.styleClass = msg.STYLECLASS;
+      if (msg.ONCLOSE) {
+        oParams.onClose = (sAction) => oController.eB([msg.ONCLOSE, sAction]);
+      }
+      if (msg.ACTIONS) oParams.actions = msg.ACTIONS;
+      if (msg.EMPHASIZEDACTION) oParams.emphasizedAction = msg.EMPHASIZEDACTION;
+      if (msg.INITIALFOCUS) oParams.initialFocus = msg.INITIALFOCUS;
+      if (msg.TEXTDIRECTION) oParams.textDirection = msg.TEXTDIRECTION;
+      if (msg.DETAILS)
+        oParams.details = Lib.sanitizeMessageDetails(msg.DETAILS);
       if (msg.ICON && msg.ICON !== "NONE") oParams.icon = msg.ICON;
       if (msg.CONTENTWIDTH) oParams.contentWidth = msg.CONTENTWIDTH;
       // dependentOn (UI5 >= 1.124) adds the message box to an element's

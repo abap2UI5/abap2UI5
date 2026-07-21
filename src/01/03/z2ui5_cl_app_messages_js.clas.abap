@@ -59,20 +59,28 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function showToast(msg, oController) {` && |\n| &&
-             `      MessageToast.show(msg.TEXT, {` && |\n| &&
+             `      const mOptions = {` && |\n| &&
              `        duration: parseMs(msg.DURATION, 3000),` && |\n| &&
              `        width: msg.WIDTH || "15em",` && |\n| &&
-             `        my: toDockValue(msg.MY || "center bottom"),` && |\n| &&
-             `        at: toDockValue(msg.AT || "center bottom"),` && |\n| &&
-             `        offset: msg.OFFSET || "0 0",` && |\n| &&
-             `        collision: msg.COLLISION || "fit fit",` && |\n| &&
-             `        ...(msg.OF && { of: msg.OF }),` && |\n| &&
              `        onClose: msg.ONCLOSE ? () => oController.eB([msg.ONCLOSE]) : null,` && |\n| &&
              `        autoClose: Boolean(msg.AUTOCLOSE),` && |\n| &&
              `        animationTimingFunction: msg.ANIMATIONTIMINGFUNCTION || "ease",` && |\n| &&
              `        animationDuration: parseMs(msg.ANIMATIONDURATION, 1000),` && |\n| &&
              `        closeOnBrowserNavigation: Boolean(msg.CLOSEONBROWSERNAVIGATION),` && |\n| &&
-             `      });` && |\n| &&
+             `      };` && |\n| &&
+             `      // Only forward the position options the app actually set. sap.m.MessageToast` && |\n| &&
+             `      // owns a default position AND a default vertical lift, but applies that lift` && |\n| &&
+             `      // ONLY when none of my/at/of/offset is passed (its hasDefaultPosition check).` && |\n| &&
+             `      // Passing any of them - even a value equal to UI5's own default - suppresses` && |\n| &&
+             `      // the lift, so a bare toast would sit lower than a native MessageToast.show().` && |\n| &&
+             `      // Omitting them lets UI5 own the defaults, so we never mirror (and drift from)` && |\n| &&
+             `      // its internal values.` && |\n| &&
+             `      if (msg.MY) mOptions.my = toDockValue(msg.MY);` && |\n| &&
+             `      if (msg.AT) mOptions.at = toDockValue(msg.AT);` && |\n| &&
+             `      if (msg.OF) mOptions.of = msg.OF;` && |\n| &&
+             `      if (msg.OFFSET) mOptions.offset = msg.OFFSET;` && |\n| &&
+             `      if (msg.COLLISION) mOptions.collision = msg.COLLISION;` && |\n| &&
+             `      MessageToast.show(msg.TEXT, mOptions);` && |\n| &&
              `      if (msg.CLASS) {` && |\n| &&
              `        const classes = msg.CLASS.trim().split(/\s+/).filter(Boolean);` && |\n| &&
              `        // Pick the newest toast (several can be open at once). The` && |\n| &&
@@ -89,19 +97,28 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function showBox(msg, oController) {` && |\n| &&
+             `      // closeOnNavigation is always sent (ABAP DEFAULT abap_true, = UI5's own` && |\n| &&
+             `      // default), so it is always meaningful to pass.` && |\n| &&
              `      const oParams = {` && |\n| &&
-             `        styleClass: msg.STYLECLASS || "",` && |\n| &&
-             `        title: msg.TITLE || "",` && |\n| &&
-             `        onClose: msg.ONCLOSE` && |\n| &&
-             `          ? (sAction) => oController.eB([msg.ONCLOSE, sAction])` && |\n| &&
-             `          : null,` && |\n| &&
-             `        actions: msg.ACTIONS || "OK",` && |\n| &&
-             `        emphasizedAction: msg.EMPHASIZEDACTION || "OK",` && |\n| &&
-             `        initialFocus: msg.INITIALFOCUS || null,` && |\n| &&
-             `        textDirection: msg.TEXTDIRECTION || "Inherit",` && |\n| &&
-             `        details: msg.DETAILS ? Lib.sanitizeMessageDetails(msg.DETAILS) : "",` && |\n| &&
              `        closeOnNavigation: Boolean(msg.CLOSEONNAVIGATION),` && |\n| &&
              `      };` && |\n| &&
+             `      // Only forward the options the app actually set. Each MessageBox method` && |\n| &&
+             `      // (confirm, error, warning, success, ...) has its OWN sensible defaults -` && |\n| &&
+             `      // e.g. confirm's [OK, CANCEL] or error's [CLOSE] action set, and the` && |\n| &&
+             `      // emphasized action derived from them. Forcing actions/emphasizedAction` && |\n| &&
+             `      // (or title/styleClass/textDirection/...) to a fixed value would override` && |\n| &&
+             `      // those; omitting them lets UI5 apply its per-method defaults.` && |\n| &&
+             `      if (msg.TITLE) oParams.title = msg.TITLE;` && |\n| &&
+             `      if (msg.STYLECLASS) oParams.styleClass = msg.STYLECLASS;` && |\n| &&
+             `      if (msg.ONCLOSE) {` && |\n| &&
+             `        oParams.onClose = (sAction) => oController.eB([msg.ONCLOSE, sAction]);` && |\n| &&
+             `      }` && |\n| &&
+             `      if (msg.ACTIONS) oParams.actions = msg.ACTIONS;` && |\n| &&
+             `      if (msg.EMPHASIZEDACTION) oParams.emphasizedAction = msg.EMPHASIZEDACTION;` && |\n| &&
+             `      if (msg.INITIALFOCUS) oParams.initialFocus = msg.INITIALFOCUS;` && |\n| &&
+             `      if (msg.TEXTDIRECTION) oParams.textDirection = msg.TEXTDIRECTION;` && |\n| &&
+             `      if (msg.DETAILS)` && |\n| &&
+             `        oParams.details = Lib.sanitizeMessageDetails(msg.DETAILS);` && |\n| &&
              `      if (msg.ICON && msg.ICON !== "NONE") oParams.icon = msg.ICON;` && |\n| &&
              `      if (msg.CONTENTWIDTH) oParams.contentWidth = msg.CONTENTWIDTH;` && |\n| &&
              `      // dependentOn (UI5 >= 1.124) adds the message box to an element's` && |\n| &&
