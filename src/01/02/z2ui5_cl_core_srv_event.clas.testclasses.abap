@@ -26,7 +26,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
     DATA lv_event TYPE string.
-    lo_event = NEW #( ).
+    CREATE OBJECT lo_event.
 
     lv_event = lo_event->get_event( `POST` ).
 
@@ -39,7 +39,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
     DATA lv_event TYPE string.
-    lo_event = NEW #( ).
+    CREATE OBJECT lo_event.
 
     lv_event = lo_event->get_event_client( z2ui5_if_client=>cs_event-popover_close ).
 
@@ -51,21 +51,31 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD event_nav_container.
 
     DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
-    lo_event = NEW #( ).
+    DATA temp1 TYPE string_table.
+    DATA temp3 TYPE string_table.
+    CREATE OBJECT lo_event.
 
     " a *_nav_container_to client event is remapped to the generic
     " CONTROL_BY_ID call (container, slot, `to`, target) - this covers both the
     " follow_up_action and the XML-bound _event_client path, since both format
     " through get_event_client
+
+    CLEAR temp1.
+    INSERT `myContainer` INTO TABLE temp1.
+    INSERT `myPage` INTO TABLE temp1.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eF('CONTROL_BY_ID', 'myContainer', 'MAIN', 'to', 'myPage')`
         act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-nav_container_to
-                                          t_arg = VALUE #( ( `myContainer` ) ( `myPage` ) ) ) ).
+                                          t_arg = temp1 ) ).
 
+
+    CLEAR temp3.
+    INSERT `nestCon` INTO TABLE temp3.
+    INSERT `nestPage` INTO TABLE temp3.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eF('CONTROL_BY_ID', 'nestCon', 'NEST', 'to', 'nestPage')`
         act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-nest_nav_container_to
-                                          t_arg = VALUE #( ( `nestCon` ) ( `nestPage` ) ) ) ).
+                                          t_arg = temp3 ) ).
 
   ENDMETHOD.
 
@@ -76,7 +86,9 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_event TYPE string.
     DATA temp2 TYPE xsdboolean.
     DATA temp3 TYPE xsdboolean.
-    lo_event = NEW #( ).
+    DATA temp4 TYPE xsdboolean.
+    DATA temp5 TYPE xsdboolean.
+    CREATE OBJECT lo_event.
 
     CLEAR temp1.
     INSERT `arg1` INTO TABLE temp1.
@@ -85,10 +97,14 @@ CLASS ltcl_test IMPLEMENTATION.
                                           t_arg = temp1 ).
 
 
-    temp2 = xsdbool( lv_event CS `MY_EVT` ).
+
+    temp4 = boolc( lv_event CS `MY_EVT` ).
+    temp2 = temp4.
     cl_abap_unit_assert=>assert_true( temp2 ).
 
-    temp3 = xsdbool( lv_event CS `'arg1'` ).
+
+    temp5 = boolc( lv_event CS `'arg1'` ).
+    temp3 = temp5.
     cl_abap_unit_assert=>assert_true( temp3 ).
 
   ENDMETHOD.
@@ -101,7 +117,10 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA temp4 TYPE xsdboolean.
     DATA temp5 TYPE xsdboolean.
     DATA temp6 TYPE xsdboolean.
-    lo_event = NEW #( ).
+    DATA temp7 TYPE xsdboolean.
+    DATA temp8 TYPE xsdboolean.
+    DATA temp9 TYPE xsdboolean.
+    CREATE OBJECT lo_event.
 
     CLEAR temp3.
     INSERT `a1` INTO TABLE temp3.
@@ -112,13 +131,19 @@ CLASS ltcl_test IMPLEMENTATION.
                                           t_arg = temp3 ).
 
 
-    temp4 = xsdbool( lv_event CS `'a1'` ).
+
+    temp7 = boolc( lv_event CS `'a1'` ).
+    temp4 = temp7.
     cl_abap_unit_assert=>assert_true( temp4 ).
 
-    temp5 = xsdbool( lv_event CS `'a2'` ).
+
+    temp8 = boolc( lv_event CS `'a2'` ).
+    temp5 = temp8.
     cl_abap_unit_assert=>assert_true( temp5 ).
 
-    temp6 = xsdbool( lv_event CS `'a3'` ).
+
+    temp9 = boolc( lv_event CS `'a3'` ).
+    temp6 = temp9.
     cl_abap_unit_assert=>assert_true( temp6 ).
 
   ENDMETHOD.
@@ -130,7 +155,9 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_event TYPE string.
     DATA temp7 TYPE xsdboolean.
     DATA temp8 TYPE xsdboolean.
-    lo_event = NEW #( ).
+    DATA temp10 TYPE xsdboolean.
+    DATA temp11 TYPE xsdboolean.
+    CREATE OBJECT lo_event.
 
     CLEAR temp5.
     INSERT `$event` INTO TABLE temp5.
@@ -139,10 +166,14 @@ CLASS ltcl_test IMPLEMENTATION.
                                           t_arg = temp5 ).
 
 
-    temp7 = xsdbool( lv_event CS `$event` ).
+
+    temp10 = boolc( lv_event CS `$event` ).
+    temp7 = temp10.
     cl_abap_unit_assert=>assert_true( temp7 ).
 
-    temp8 = xsdbool( lv_event CS `'$event'` ).
+
+    temp11 = boolc( lv_event CS `'$event'` ).
+    temp8 = temp11.
     cl_abap_unit_assert=>assert_false( temp8 ).
 
   ENDMETHOD.
@@ -154,7 +185,9 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_event TYPE string.
     DATA temp9 TYPE xsdboolean.
     DATA temp10 TYPE xsdboolean.
-    lo_event = NEW #( ).
+    DATA temp12 TYPE xsdboolean.
+    DATA temp13 TYPE xsdboolean.
+    CREATE OBJECT lo_event.
 
     CLEAR temp7.
     INSERT `{/MY_PATH}` INTO TABLE temp7.
@@ -163,10 +196,14 @@ CLASS ltcl_test IMPLEMENTATION.
                                           t_arg = temp7 ).
 
 
-    temp9 = xsdbool( lv_event CS `{/MY_PATH}` ).
+
+    temp12 = boolc( lv_event CS `{/MY_PATH}` ).
+    temp9 = temp12.
     cl_abap_unit_assert=>assert_true( temp9 ).
 
-    temp10 = xsdbool( lv_event CS `'{/MY_PATH}'` ).
+
+    temp13 = boolc( lv_event CS `'{/MY_PATH}'` ).
+    temp10 = temp13.
     cl_abap_unit_assert=>assert_false( temp10 ).
 
   ENDMETHOD.
@@ -177,7 +214,8 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA temp9 TYPE string_table.
     DATA lv_event TYPE string.
     DATA temp11 TYPE xsdboolean.
-    lo_event = NEW #( ).
+    DATA temp14 TYPE xsdboolean.
+    CREATE OBJECT lo_event.
 
     CLEAR temp9.
     INSERT `` INTO TABLE temp9.
@@ -187,7 +225,9 @@ CLASS ltcl_test IMPLEMENTATION.
                                           t_arg = temp9 ).
 
 
-    temp11 = xsdbool( lv_event CS `'real'` ).
+
+    temp14 = boolc( lv_event CS `'real'` ).
+    temp11 = temp14.
     cl_abap_unit_assert=>assert_true( temp11 ).
 
   ENDMETHOD.
@@ -195,30 +235,44 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD event_empty_middle_arg.
 
     DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
-    lo_event = NEW #( ).
+    DATA temp5 TYPE string_table.
+    CREATE OBJECT lo_event.
 
     " an empty argument BETWEEN filled ones keeps its position - dropping
     " it would shift every following argument into the wrong slot (a
     " CONTROL_BY_ID action without a view lost its method name this way,
     " live find in beta samples 448/449)
+
+    CLEAR temp5.
+    INSERT `demoPanel` INTO TABLE temp5.
+    INSERT `` INTO TABLE temp5.
+    INSERT `setExpanded` INTO TABLE temp5.
+    INSERT `X` INTO TABLE temp5.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eF('CONTROL_BY_ID', 'demoPanel', '', 'setExpanded', 'X')`
         act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-control_by_id
-                                          t_arg = VALUE #( ( `demoPanel` ) ( `` ) ( `setExpanded` ) ( `X` ) ) ) ).
+                                          t_arg = temp5 ) ).
 
   ENDMETHOD.
 
   METHOD event_trailing_empty_arg.
 
     DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
-    lo_event = NEW #( ).
+    DATA temp7 TYPE string_table.
+    CREATE OBJECT lo_event.
 
     " trailing empties still disappear - an ABAP false boolean param
     " serializes to `` and simply ends the argument list
+
+    CLEAR temp7.
+    INSERT `demoPanel` INTO TABLE temp7.
+    INSERT `` INTO TABLE temp7.
+    INSERT `setExpanded` INTO TABLE temp7.
+    INSERT `` INTO TABLE temp7.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eF('CONTROL_BY_ID', 'demoPanel', '', 'setExpanded')`
         act = lo_event->get_event_client( val   = z2ui5_if_client=>cs_event-control_by_id
-                                          t_arg = VALUE #( ( `demoPanel` ) ( `` ) ( `setExpanded` ) ( `` ) ) ) ).
+                                          t_arg = temp7 ) ).
 
   ENDMETHOD.
 
@@ -228,7 +282,8 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA temp11 TYPE z2ui5_if_types=>ty_s_event_control.
     DATA lv_event TYPE string.
     DATA temp12 TYPE xsdboolean.
-    lo_event = NEW #( ).
+    DATA temp15 TYPE xsdboolean.
+    CREATE OBJECT lo_event.
 
     CLEAR temp11.
     temp11-check_allow_multi_req = abap_true.
@@ -237,7 +292,9 @@ CLASS ltcl_test IMPLEMENTATION.
                                           s_cnt = temp11 ).
 
 
-    temp12 = xsdbool( lv_event CS `false,true` ).
+
+    temp15 = boolc( lv_event CS `false,true` ).
+    temp12 = temp15.
     cl_abap_unit_assert=>assert_true( temp12 ).
 
   ENDMETHOD.
@@ -249,7 +306,9 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lv_event TYPE string.
     DATA temp13 TYPE xsdboolean.
     DATA temp14 TYPE xsdboolean.
-    lo_event = NEW #( ).
+    DATA temp16 TYPE xsdboolean.
+    DATA temp17 TYPE xsdboolean.
+    CREATE OBJECT lo_event.
 
     CLEAR temp12.
     INSERT `param1` INTO TABLE temp12.
@@ -258,10 +317,14 @@ CLASS ltcl_test IMPLEMENTATION.
                                                  t_arg = temp12 ).
 
 
-    temp13 = xsdbool( lv_event CS `CLOSE` ).
+
+    temp16 = boolc( lv_event CS `CLOSE` ).
+    temp13 = temp16.
     cl_abap_unit_assert=>assert_true( temp13 ).
 
-    temp14 = xsdbool( lv_event CS `'param1'` ).
+
+    temp17 = boolc( lv_event CS `'param1'` ).
+    temp14 = temp17.
     cl_abap_unit_assert=>assert_true( temp14 ).
 
   ENDMETHOD.

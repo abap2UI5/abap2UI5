@@ -86,6 +86,7 @@ ENDCLASS.
 CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   METHOD request_json_to_abap.
+        DATA x TYPE REF TO cx_root.
     TRY.
         result = request_parse_body( val ).
 
@@ -99,33 +100,59 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         result-s_control-app_start_draft =
           request_app_start_draft( result-s_front-hash ).
 
-      CATCH cx_root INTO DATA(x).
+
+      CATCH cx_root INTO x.
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING val = x.
     ENDTRY.
   ENDMETHOD.
 
   METHOD request_parse_body.
-    DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( val ) ).
+    DATA temp16 TYPE REF TO z2ui5_if_ajson.
+    DATA lo_ajson LIKE temp16.
+    DATA temp17 TYPE string.
+    DATA lv_root LIKE temp17.
+    DATA lv_model_edit_name TYPE string.
+    DATA lo_model TYPE REF TO z2ui5_if_ajson.
+    DATA lv_check_arg_object TYPE abap_bool.
+    DATA lt_event_arg TYPE string_table.
+    DATA lo_config TYPE REF TO z2ui5_if_ajson.
+      DATA lo_device TYPE REF TO z2ui5_if_ajson.
+      DATA lo_focus TYPE REF TO z2ui5_if_ajson.
+      DATA lo_scroll TYPE REF TO z2ui5_if_ajson.
+    DATA temp1 TYPE xsdboolean.
+    temp16 ?= z2ui5_cl_ajson=>parse( val ).
+
+    lo_ajson = temp16.
 
     " standalone requests arrive wrapped as { "value": <payload> } (see
     " app/webapp/core/Server.js), launchpad/gateway proxies may strip the
     " envelope - a keyed lookup detects it, slicing the whole tree only to
     " unwrap it would walk and copy every node of the request
-    DATA(lv_root) = COND string( WHEN lo_ajson->exists( `/value` ) = abap_true
-                                 THEN `/value` ).
 
-    DATA(lv_model_edit_name) = |/{ z2ui5_if_core_types=>cs_ui5-two_way_model }|.
+    IF lo_ajson->exists( `/value` ) = abap_true.
+      temp17 = `/value`.
+    ELSE.
+      CLEAR temp17.
+    ENDIF.
+
+    lv_root = temp17.
+
+
+    lv_model_edit_name = |/{ z2ui5_if_core_types=>cs_ui5-two_way_model }|.
     result-o_model = z2ui5_cl_ajson=>create_empty( ).
-    DATA(lo_model) = lo_ajson->slice( lv_root && lv_model_edit_name ).
+
+    lo_model = lo_ajson->slice( lv_root && lv_model_edit_name ).
     result-o_model->set( iv_path = lv_model_edit_name
                          iv_val  = lo_model ).
 
     lo_ajson = lo_ajson->slice( lv_root && `/S_FRONT` ).
 
+
+
     request_parse_event_args( EXPORTING io_front          = lo_ajson
-                              IMPORTING ev_check_override = DATA(lv_check_arg_object)
-                                        et_event_arg      = DATA(lt_event_arg) ).
+                              IMPORTING ev_check_override = lv_check_arg_object
+                                        et_event_arg      = lt_event_arg ).
 
     lo_ajson->to_abap( EXPORTING iv_corresponding = abap_true
                        IMPORTING ev_container     = result-s_front ).
@@ -137,22 +164,26 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     " slice the small CONFIG subtree once - every slice walks the whole
     " node table of its tree, so the per-section slices below only pay
     " for the CONFIG nodes instead of the full S_FRONT tree each time
-    DATA(lo_config) = lo_ajson->slice( `/CONFIG` ).
+
+    lo_config = lo_ajson->slice( `/CONFIG` ).
     IF lo_config IS BOUND.
 
       result-s_front-o_comp_data = lo_config->slice( `/ComponentData` ).
 
-      DATA(lo_device) = lo_config->slice( `/S_DEVICE` ).
+
+      lo_device = lo_config->slice( `/S_DEVICE` ).
       IF lo_device IS BOUND.
         lo_device->to_abap( EXPORTING iv_corresponding = abap_true
                             IMPORTING ev_container     = result-s_front-s_device ).
       ENDIF.
-      DATA(lo_focus) = lo_config->slice( `/S_FOCUS` ).
+
+      lo_focus = lo_config->slice( `/S_FOCUS` ).
       IF lo_focus IS BOUND.
         lo_focus->to_abap( EXPORTING iv_corresponding = abap_true
                            IMPORTING ev_container     = result-s_front-s_focus ).
       ENDIF.
-      DATA(lo_scroll) = lo_config->slice( `/S_SCROLL` ).
+
+      lo_scroll = lo_config->slice( `/S_SCROLL` ).
       IF lo_scroll IS BOUND.
         lo_scroll->to_abap( EXPORTING iv_corresponding = abap_true
                             IMPORTING ev_container     = result-s_front-s_scroll ).
@@ -165,13 +196,15 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
     ENDIF.
 
-    result-s_control-check_launchpad = xsdbool(
-        result-s_front-search   CS `scenario=LAUNCHPAD`
-        OR result-s_front-pathname CS `/ui2/flp`
-        OR result-s_front-pathname CS `test/flpSandbox` ).
+
+    temp1 = boolc( result-s_front-search CS `scenario=LAUNCHPAD` OR result-s_front-pathname CS `/ui2/flp` OR result-s_front-pathname CS `test/flpSandbox` ).
+    result-s_control-check_launchpad = temp1.
   ENDMETHOD.
 
   METHOD request_parse_event_args.
+    DATA lv_arg_index TYPE i.
+      DATA lv_arg_path TYPE string.
+          DATA temp18 TYPE string.
 
     " object event arguments arrive as raw JSON - the frontend sends them
     " unserialized so the request body is only encoded once - and to_abap
@@ -180,9 +213,11 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     CLEAR et_event_arg.
     CLEAR ev_check_override.
 
-    DATA(lv_arg_index) = 1.
+
+    lv_arg_index = 1.
     DO.
-      DATA(lv_arg_path) = |/T_EVENT_ARG/{ lv_arg_index }|.
+
+      lv_arg_path = |/T_EVENT_ARG/{ lv_arg_index }|.
       CASE io_front->get_node_type( lv_arg_path ).
         WHEN ``.
           EXIT.
@@ -191,7 +226,9 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
           APPEND io_front->slice( lv_arg_path )->stringify( ) TO et_event_arg.
         WHEN z2ui5_if_ajson_types=>node_type-boolean.
           " same result as the to_abap conversion of a boolean node
-          APPEND CONV string( io_front->get_boolean( lv_arg_path ) ) TO et_event_arg.
+
+          temp18 = io_front->get_boolean( lv_arg_path ).
+          APPEND temp18 TO et_event_arg.
         WHEN OTHERS.
           APPEND io_front->get_string( lv_arg_path ) TO et_event_arg.
       ENDCASE.
@@ -228,8 +265,10 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD request_app_start_draft.
+        DATA lv_hash TYPE string.
     TRY.
-        DATA(lv_hash) = substring_after( val = iv_hash
+
+        lv_hash = substring_after( val = iv_hash
                                          sub = `&/` ).
         IF lv_hash IS INITIAL.
           lv_hash = iv_hash+2.
@@ -242,21 +281,38 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD response_abap_to_json.
+        DATA temp19 TYPE REF TO z2ui5_if_ajson.
+        DATA ajson_result LIKE temp19.
+        DATA lv_frontend TYPE string.
+        DATA temp20 TYPE string.
+        DATA lv_model LIKE temp20.
+        DATA x TYPE REF TO cx_root.
     TRY.
 
-        DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
-                                                      ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
+
+        temp19 ?= z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ).
+
+        ajson_result = temp19.
 
         ajson_result->set( iv_path = `/`
                            iv_val  = val-s_front ).
         ajson_result = ajson_result->filter( z2ui5_cl_a2ui5_json_fltr=>create_no_empty_values( ) ).
-        DATA(lv_frontend) = ajson_result->stringify( ).
 
-        DATA(lv_model) = COND string( WHEN val-model IS NOT INITIAL THEN val-model ELSE `{}` ).
+        lv_frontend = ajson_result->stringify( ).
+
+
+        IF val-model IS NOT INITIAL.
+          temp20 = val-model.
+        ELSE.
+          temp20 = `{}`.
+        ENDIF.
+
+        lv_model = temp20.
 
         result = |\{"S_FRONT":{ lv_frontend },"MODEL":{ lv_model }\}|.
 
-      CATCH cx_root INTO DATA(x).
+
+      CATCH cx_root INTO x.
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING val = x.
     ENDTRY.
@@ -265,7 +321,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
   METHOD constructor.
 
     mv_request_json = val.
-    mo_action = NEW z2ui5_cl_core_action( me ).
+    CREATE OBJECT mo_action TYPE z2ui5_cl_core_action EXPORTING VAL = me.
 
   ENDMETHOD.
 
@@ -274,19 +330,21 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     main_begin( ).
     main_loop( ).
 
-    result = VALUE #( body          = mv_response
-                      s_stateful    = ms_response-s_front-params-s_stateful
-                      status_code   = 200
-                      status_reason = `success` ).
+    CLEAR result.
+    result-body = mv_response.
+    result-s_stateful = ms_response-s_front-params-s_stateful.
+    result-status_code = 200.
+    result-status_reason = `success`.
 
   ENDMETHOD.
 
   METHOD main_loop.
 
-    DATA(lv_dispatch_count) = 0.
+    DATA lv_dispatch_count TYPE i.
+    lv_dispatch_count = 0.
 
     DO.
-      IF main_process( ).
+      IF main_process( ) IS NOT INITIAL.
         RETURN.
       ENDIF.
       lv_dispatch_count = lv_dispatch_count + 1.
@@ -300,6 +358,7 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD main_begin.
+      DATA temp21 TYPE REF TO z2ui5_cl_core_srv_draft.
 
     ms_request = request_json_to_abap( mv_request_json ).
 
@@ -307,7 +366,9 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
       mo_action = mo_action->factory_by_frontend( ).
 
     ELSEIF ms_request-s_control-app_start IS NOT INITIAL.
-      NEW z2ui5_cl_core_srv_draft( )->cleanup( ).
+
+      CREATE OBJECT temp21 TYPE z2ui5_cl_core_srv_draft.
+      temp21->cleanup( ).
       mo_action = mo_action->factory_first_start( ).
 
     ELSE.
@@ -318,19 +379,29 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   METHOD check_view_update_needed.
 
-    SPLIT z2ui5_if_core_types=>cs_view_slot_list AT `,` INTO TABLE DATA(lt_slot).
-    LOOP AT lt_slot INTO DATA(lv_slot).
-      ASSIGN COMPONENT lv_slot OF STRUCTURE ms_response-s_front-params TO FIELD-SYMBOL(<slot>).
+    TYPES temp1 TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+DATA lt_slot TYPE temp1.
+    DATA lv_slot LIKE LINE OF lt_slot.
+      FIELD-SYMBOLS <slot> TYPE any.
+      FIELD-SYMBOLS <check_update_model> TYPE any.
+      FIELD-SYMBOLS <xml> TYPE any.
+    SPLIT z2ui5_if_core_types=>cs_view_slot_list AT `,` INTO TABLE lt_slot.
+
+    LOOP AT lt_slot INTO lv_slot.
+
+      ASSIGN COMPONENT lv_slot OF STRUCTURE ms_response-s_front-params TO <slot>.
       IF sy-subrc <> 0.
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING val = |Internal error - view slot '{ lv_slot }' not found in response params|.
       ENDIF.
-      ASSIGN COMPONENT `CHECK_UPDATE_MODEL` OF STRUCTURE <slot> TO FIELD-SYMBOL(<check_update_model>).
+
+      ASSIGN COMPONENT `CHECK_UPDATE_MODEL` OF STRUCTURE <slot> TO <check_update_model>.
       IF sy-subrc <> 0.
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING val = |Internal error - CHECK_UPDATE_MODEL missing in view slot '{ lv_slot }'|.
       ENDIF.
-      ASSIGN COMPONENT `XML` OF STRUCTURE <slot> TO FIELD-SYMBOL(<xml>).
+
+      ASSIGN COMPONENT `XML` OF STRUCTURE <slot> TO <xml>.
       IF sy-subrc <> 0.
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING val = |Internal error - XML missing in view slot '{ lv_slot }'|.
@@ -344,12 +415,14 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD main_end.
+    DATA temp22 TYPE REF TO z2ui5_if_app.
 
-    ms_response = VALUE #( s_front-params = mo_action->ms_next-s_set
-                           s_front-id     = mo_action->mo_app->ms_draft-id
-                           s_front-app    = z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app ) ).
+    CLEAR ms_response.
+    ms_response-s_front-params = mo_action->ms_next-s_set.
+    ms_response-s_front-id = mo_action->mo_app->ms_draft-id.
+    ms_response-s_front-app = z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app ).
 
-    IF check_view_update_needed( ).
+    IF check_view_update_needed( ) IS NOT INITIAL.
       ms_response-model = mo_action->mo_app->model_json_stringify( ).
     ELSE.
       ms_response-model = `{}`.
@@ -363,7 +436,9 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
     CLEAR mo_action->ms_next.
 
-    IF CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky = abap_false.
+
+    temp22 ?= mo_action->mo_app->mo_app.
+    IF temp22->check_sticky = abap_false.
       mo_action->mo_app->db_save( ).
     ENDIF.
 
@@ -371,8 +446,17 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   METHOD main_process.
 
-    DATA(li_client) = CAST z2ui5_if_client( NEW z2ui5_cl_core_client( mo_action ) ).
-    DATA(li_app)    = CAST z2ui5_if_app( mo_action->mo_app->mo_app ).
+    DATA temp23 TYPE REF TO z2ui5_if_client.
+    DATA li_client LIKE temp23.
+    DATA temp24 TYPE REF TO z2ui5_if_app.
+    DATA li_app LIKE temp24.
+    CREATE OBJECT temp23 TYPE z2ui5_cl_core_client EXPORTING ACTION = mo_action.
+
+    li_client = temp23.
+
+    temp24 ?= mo_action->mo_app->mo_app.
+
+    li_app = temp24.
 
     IF li_app->check_sticky = abap_false.
       z2ui5_cl_a2ui5_context=>db_rollback( ).

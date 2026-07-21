@@ -44,8 +44,21 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
 
   METHOD get_event_client.
 
-    DATA(lv_val) = CONV string( val ).
-    DATA(lt_arg) = t_arg.
+    DATA temp9 TYPE string.
+    DATA lv_val LIKE temp9.
+    DATA lt_arg LIKE t_arg.
+    DATA temp10 TYPE string.
+    DATA lv_slot LIKE temp10.
+      DATA temp11 TYPE string_table.
+      DATA temp1 TYPE string.
+      DATA temp2 TYPE string.
+      DATA temp3 TYPE string.
+      DATA temp4 TYPE string.
+    temp9 = val.
+
+    lv_val = temp9.
+
+    lt_arg = t_arg.
 
     " NavContainer navigation reuses the generic cs_event-control_by_id call
     " so the frontend needs only the one generic dispatcher. Both the backend
@@ -53,21 +66,48 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
     " formatted here, so this is the single place the *_nav_container_to events
     " are remapped to `<container>, <slot>, to, <target>`. The public
     " cs_event-*_nav_container_to constant values stay unchanged.
-    DATA(lv_slot) = SWITCH string( lv_val
-                                   WHEN z2ui5_if_client=>cs_event-nav_container_to         THEN `MAIN`
-                                   WHEN z2ui5_if_client=>cs_event-nest_nav_container_to    THEN `NEST`
-                                   WHEN z2ui5_if_client=>cs_event-nest2_nav_container_to   THEN `NEST2`
-                                   WHEN z2ui5_if_client=>cs_event-popup_nav_container_to   THEN `POPUP`
-                                   WHEN z2ui5_if_client=>cs_event-popover_nav_container_to THEN `POPOVER`
-                                   ELSE `` ).
+
+    CASE lv_val.
+      WHEN z2ui5_if_client=>cs_event-nav_container_to.
+        temp10 = `MAIN`.
+      WHEN z2ui5_if_client=>cs_event-nest_nav_container_to.
+        temp10 = `NEST`.
+      WHEN z2ui5_if_client=>cs_event-nest2_nav_container_to.
+        temp10 = `NEST2`.
+      WHEN z2ui5_if_client=>cs_event-popup_nav_container_to.
+        temp10 = `POPUP`.
+      WHEN z2ui5_if_client=>cs_event-popover_nav_container_to.
+        temp10 = `POPOVER`.
+      WHEN OTHERS.
+        temp10 = ``.
+    ENDCASE.
+
+    lv_slot = temp10.
     IF lv_slot IS NOT INITIAL.
       " read from t_arg (the unchanged importing parameter), never from lt_arg
       " which is the assignment target here - referencing the target inside its
       " own VALUE constructor reads it while it is being rebuilt in place
-      lt_arg = VALUE #( ( VALUE #( t_arg[ 1 ] OPTIONAL ) )
-                        ( lv_slot )
-                        ( `to` )
-                        ( VALUE #( t_arg[ 2 ] OPTIONAL ) ) ).
+
+      CLEAR temp11.
+
+      CLEAR temp1.
+
+      READ TABLE t_arg INTO temp2 INDEX 1.
+      IF sy-subrc = 0.
+        temp1 = temp2.
+      ENDIF.
+      INSERT temp1 INTO TABLE temp11.
+      INSERT lv_slot INTO TABLE temp11.
+      INSERT `to` INTO TABLE temp11.
+
+      CLEAR temp3.
+
+      READ TABLE t_arg INTO temp4 INDEX 2.
+      IF sy-subrc = 0.
+        temp3 = temp4.
+      ENDIF.
+      INSERT temp3 INTO TABLE temp11.
+      lt_arg = temp11.
       lv_val = z2ui5_if_client=>cs_event-control_by_id.
     ENDIF.
 
@@ -79,7 +119,9 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
 
     DATA lv_new TYPE string.
     DATA lv_pending TYPE string.
-    LOOP AT val REFERENCE INTO DATA(lr_arg).
+    DATA temp13 LIKE LINE OF val.
+    DATA lr_arg LIKE REF TO temp13.
+    LOOP AT val REFERENCE INTO lr_arg.
 
       lv_new = lr_arg->*.
       IF lv_new IS INITIAL.

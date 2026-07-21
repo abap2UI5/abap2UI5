@@ -23,10 +23,17 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_save_returns_id.
 
-    DATA(ls_data) = VALUE ty_s_data( name  = `test`
-                                     count = 1 ).
+    DATA temp1 TYPE ty_s_data.
+    DATA ls_data LIKE temp1.
+    DATA lv_id TYPE string.
+    CLEAR temp1.
+    temp1-name = `test`.
+    temp1-count = 1.
 
-    DATA(lv_id) = z2ui5_cl_util_db=>save( uname        = `TESTUSER`
+    ls_data = temp1.
+
+
+    lv_id = z2ui5_cl_util_db=>save( uname        = `TESTUSER`
                                           handle       = `HANDLE_SAVE`
                                           data         = ls_data
                                           check_commit = abap_false ).
@@ -39,10 +46,17 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA ls_loaded TYPE ty_s_data.
 
-    DATA(ls_data) = VALUE ty_s_data( name  = `by id`
-                                     count = 42 ).
+    DATA temp2 TYPE ty_s_data.
+    DATA ls_data LIKE temp2.
+    DATA lv_id TYPE string.
+    CLEAR temp2.
+    temp2-name = `by id`.
+    temp2-count = 42.
 
-    DATA(lv_id) = z2ui5_cl_util_db=>save( uname        = `TESTUSER`
+    ls_data = temp2.
+
+
+    lv_id = z2ui5_cl_util_db=>save( uname        = `TESTUSER`
                                           handle       = `HANDLE_BY_ID`
                                           data         = ls_data
                                           check_commit = abap_false ).
@@ -59,8 +73,13 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA ls_loaded TYPE ty_s_data.
 
-    DATA(ls_data) = VALUE ty_s_data( name  = `by handle`
-                                     count = 7 ).
+    DATA temp3 TYPE ty_s_data.
+    DATA ls_data LIKE temp3.
+    CLEAR temp3.
+    temp3-name = `by handle`.
+    temp3-count = 7.
+
+    ls_data = temp3.
 
     z2ui5_cl_util_db=>save( uname        = `TESTUSER`
                             handle       = `HANDLE_A`
@@ -82,14 +101,25 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA ls_loaded TYPE ty_s_data.
 
-    DATA(lv_id_first) = z2ui5_cl_util_db=>save( uname        = `TESTUSER`
+    DATA temp4 TYPE ty_s_data.
+    DATA lv_id_first TYPE string.
+    DATA temp5 TYPE ty_s_data.
+    DATA lv_id_second TYPE string.
+    CLEAR temp4.
+    temp4-name = `first`.
+
+    lv_id_first = z2ui5_cl_util_db=>save( uname        = `TESTUSER`
                                                 handle       = `HANDLE_UPDATE`
-                                                data         = VALUE ty_s_data( name = `first` )
+                                                data         = temp4
                                                 check_commit = abap_false ).
 
-    DATA(lv_id_second) = z2ui5_cl_util_db=>save( uname        = `TESTUSER`
+
+    CLEAR temp5.
+    temp5-name = `second`.
+
+    lv_id_second = z2ui5_cl_util_db=>save( uname        = `TESTUSER`
                                                  handle       = `HANDLE_UPDATE`
-                                                 data         = VALUE ty_s_data( name = `second` )
+                                                 data         = temp5
                                                  check_commit = abap_false ).
 
     cl_abap_unit_assert=>assert_equals( exp = lv_id_first
@@ -106,19 +136,28 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_load_multi_by_handle.
 
+    DATA temp6 TYPE ty_s_data.
+    DATA temp7 TYPE ty_s_data.
+    DATA lt_result TYPE z2ui5_cl_util_db=>ty_t_db.
+    CLEAR temp6.
+    temp6-name = `one`.
     z2ui5_cl_util_db=>save( uname        = `TESTUSER`
                             handle       = `HANDLE_MULTI`
                             handle2      = `ONE`
-                            data         = VALUE ty_s_data( name = `one` )
+                            data         = temp6
                             check_commit = abap_false ).
 
+
+    CLEAR temp7.
+    temp7-name = `two`.
     z2ui5_cl_util_db=>save( uname        = `TESTUSER`
                             handle       = `HANDLE_MULTI`
                             handle2      = `TWO`
-                            data         = VALUE ty_s_data( name = `two` )
+                            data         = temp7
                             check_commit = abap_false ).
 
-    DATA(lt_result) = z2ui5_cl_util_db=>load_multi_by_handle( uname  = `TESTUSER`
+
+    lt_result = z2ui5_cl_util_db=>load_multi_by_handle( uname  = `TESTUSER`
                                                               handle = `HANDLE_MULTI` ).
 
     cl_abap_unit_assert=>assert_equals( exp = 2
@@ -128,9 +167,13 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_delete_by_handle.
 
+    DATA temp8 TYPE ty_s_data.
+        DATA ls_loaded TYPE ty_s_data.
+    CLEAR temp8.
+    temp8-name = `to delete`.
     z2ui5_cl_util_db=>save( uname        = `TESTUSER`
                             handle       = `HANDLE_DELETE`
-                            data         = VALUE ty_s_data( name = `to delete` )
+                            data         = temp8
                             check_commit = abap_false ).
 
     z2ui5_cl_util_db=>delete_by_handle( uname        = `TESTUSER`
@@ -138,7 +181,7 @@ CLASS ltcl_test IMPLEMENTATION.
                                         check_commit = abap_false ).
 
     TRY.
-        DATA ls_loaded TYPE ty_s_data.
+
         z2ui5_cl_util_db=>load_by_handle( EXPORTING uname  = `TESTUSER`
                                                     handle = `HANDLE_DELETE`
                                           IMPORTING result = ls_loaded ).
@@ -149,9 +192,10 @@ CLASS ltcl_test IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_load_by_id_not_found.
+        DATA ls_loaded TYPE ty_s_data.
 
     TRY.
-        DATA ls_loaded TYPE ty_s_data.
+
         z2ui5_cl_util_db=>load_by_id( EXPORTING id     = `DOES_NOT_EXIST`
                                       IMPORTING result = ls_loaded ).
         cl_abap_unit_assert=>fail( `NO_EXCEPTION_FOR_UNKNOWN_ID` ).
