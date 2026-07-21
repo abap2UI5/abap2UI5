@@ -268,14 +268,48 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `              break;` && |\n| &&
              `            }` && |\n| &&
              `          }` && |\n| &&
-             `          return {` && |\n| &&
-             `            ID: id,` && |\n| &&
-             `            SELECTION_START: active.selectionStart || 0,` && |\n| &&
-             `            SELECTION_END: active.selectionEnd || 0,` && |\n| &&
-             `          };` && |\n| &&
+             `          // Read the caret from the actual text field, not from` && |\n| &&
+             `          // document.activeElement directly. Clicking an inner part of a` && |\n| &&
+             `          // control (e.g. a SearchField's clear "X" button) can leave the` && |\n| &&
+             `          // active element a non-text node whose selectionStart is undefined -` && |\n| &&
+             `          // reporting that as 0 would later snap the caret to the far left.` && |\n| &&
+             `          // When no text field owns a selection, omit SELECTION_* entirely so` && |\n| &&
+             `          // the backend restores focus without forcing a caret position.` && |\n| &&
+             `          const info = { ID: id };` && |\n| &&
+             `          const input = this._focusTextInput(active, ui5El);` && |\n| &&
+             `          if (input) {` && |\n| &&
+             `            try {` && |\n| &&
+             `              const start = input.selectionStart;` && |\n| &&
+             `              const end = input.selectionEnd;` && |\n| &&
+             `              if (start != null && end != null) {` && |\n| &&
+             `                info.SELECTION_START = start;` && |\n| &&
+             `                info.SELECTION_END = end;` && |\n| &&
+             `              }` && |\n| &&
+             `            } catch {` && |\n| &&
+             `              // Input types without text selection (number, date, ...) throw` && |\n| &&
+             `              // or return null here - restore focus only, no caret.` && |\n| &&
+             `            }` && |\n| &&
+             `          }` && |\n| &&
+             `          return info;` && |\n| &&
              `        } catch {` && |\n| &&
              `          return undefined;` && |\n| &&
              `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // Resolve the text field that carries the caret for the focused control:` && |\n| &&
+             `      // the active element itself when it is already an <input>/<textarea>,` && |\n| &&
+             `      // otherwise the control's focus DOM ref (or the first inner text field).` && |\n| &&
+             `      // Returns null when the control has no text field (e.g. a button), so the` && |\n| &&
+             `      // caller omits the selection instead of reporting a bogus 0.` && |\n| &&
+             `      _focusTextInput(active, ui5El) {` && |\n| &&
+             `        const isTextInput = (el) =>` && |\n| &&
+             `          !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA");` && |\n| &&
+             `        if (isTextInput(active)) return active;` && |\n| &&
+             `        const focusRef = ui5El?.getFocusDomRef?.();` && |\n| &&
+             `        if (isTextInput(focusRef)) return focusRef;` && |\n| &&
+             `        const root = ui5El?.getDomRef?.();` && |\n| &&
+             `        const inner = root?.querySelector?.("input, textarea");` && |\n| &&
+             `        return isTextInput(inner) ? inner : null;` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Records which element the user actually scrolled, per view slot.` && |\n| &&
@@ -383,7 +417,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          ORIGIN: window.location.origin,` && |\n| &&
              `          PATHNAME: window.location.pathname,` && |\n| &&
              `          SEARCH: state.search || window.location.search,` && |\n| &&
-             `          VIEW: oBody.VIEWNAME,` && |\n| &&
+             `          VIEW: oBody.VIEWNAME,` && |\n|.
+    result = result &&
              `          EVENT: eventName,` && |\n| &&
              `          HASH: window.location.hash,` && |\n| &&
              `        };` && |\n| &&
@@ -417,8 +452,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          return { signal: AbortSignal.timeout(ms), cancel: () => {} };` && |\n| &&
              `        }` && |\n| &&
              `        const controller = new AbortController();` && |\n| &&
-             `        const handle = setTimeout(() => controller.abort(), ms);` && |\n|.
-    result = result &&
+             `        const handle = setTimeout(() => controller.abort(), ms);` && |\n| &&
              `        return {` && |\n| &&
              `          signal: controller.signal,` && |\n| &&
              `          cancel: () => clearTimeout(handle),` && |\n| &&
