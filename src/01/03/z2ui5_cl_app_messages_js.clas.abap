@@ -64,7 +64,12 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `        width: msg.WIDTH || "15em",` && |\n| &&
              `        my: toDockValue(msg.MY || "center bottom"),` && |\n| &&
              `        at: toDockValue(msg.AT || "center bottom"),` && |\n| &&
-             `        offset: msg.OFFSET || "0 0",` && |\n| &&
+             `        // "0 -64" mirrors sap.m.MessageToast's own default lift: it applies` && |\n| &&
+             `        // that offset only when NO position option is passed, but we always` && |\n| &&
+             `        // pass my/at, which suppresses it - so a bare message_toast_display(` && |\n| &&
+             `        // ) would otherwise sit 64px lower (flush at the bottom) than a native` && |\n| &&
+             `        // MessageToast.show(). Default to the same lift to match.` && |\n| &&
+             `        offset: msg.OFFSET || "0 -64",` && |\n| &&
              `        collision: msg.COLLISION || "fit fit",` && |\n| &&
              `        ...(msg.OF && { of: msg.OF }),` && |\n| &&
              `        onClose: msg.ONCLOSE ? () => oController.eB([msg.ONCLOSE]) : null,` && |\n| &&

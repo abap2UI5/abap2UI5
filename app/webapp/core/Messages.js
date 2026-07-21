@@ -44,7 +44,12 @@ sap.ui.define(
         width: msg.WIDTH || "15em",
         my: toDockValue(msg.MY || "center bottom"),
         at: toDockValue(msg.AT || "center bottom"),
-        offset: msg.OFFSET || "0 0",
+        // "0 -64" mirrors sap.m.MessageToast's own default lift: it applies
+        // that offset only when NO position option is passed, but we always
+        // pass my/at, which suppresses it - so a bare message_toast_display(
+        // ) would otherwise sit 64px lower (flush at the bottom) than a native
+        // MessageToast.show(). Default to the same lift to match.
+        offset: msg.OFFSET || "0 -64",
         collision: msg.COLLISION || "fit fit",
         ...(msg.OF && { of: msg.OF }),
         onClose: msg.ONCLOSE ? () => oController.eB([msg.ONCLOSE]) : null,
