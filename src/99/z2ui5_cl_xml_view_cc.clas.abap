@@ -218,6 +218,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    "! obsolete - app state in the URL is handled by the framework now (see set_push_state)
     METHODS history
       IMPORTING
         search        TYPE clike OPTIONAL
