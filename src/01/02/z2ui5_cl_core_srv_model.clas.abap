@@ -129,7 +129,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
   METHOD main_json_to_attri.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
-         WHERE bind_type = z2ui5_if_core_types=>cs_bind_type-two_way. "#EC CI_SORTSEQ
+         WHERE bind = abap_true.                        "#EC CI_SORTSEQ
       TRY.
 
           DATA(lo_val_front) = model->slice( lr_attri->name_client ).
@@ -185,7 +185,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
         DATA lt_mapper_cache TYPE STANDARD TABLE OF ty_s_mapper_cache WITH EMPTY KEY.
 
         LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
-             WHERE bind_type <> ``
+             WHERE bind = abap_true
                    AND type_kind <> z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_dref
                    AND type_kind <> z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_oref.
 
@@ -759,7 +759,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
   METHOD main_attri_refresh.
 
     DATA(lt_attri) = mt_attri->*.
-    DELETE lt_attri WHERE bind_type IS INITIAL.         "#EC CI_SORTSEQ
+    DELETE lt_attri WHERE bind = abap_false.            "#EC CI_SORTSEQ
     CLEAR mt_attri->*.
 
     dissolve( ).
@@ -767,7 +767,7 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
       READ TABLE lt_attri REFERENCE INTO DATA(lr_old) WITH KEY name = lr_attri->name. "#EC CI_SORTSEQ
       IF sy-subrc = 0.
-        lr_attri->bind_type   = lr_old->bind_type.
+        lr_attri->bind        = lr_old->bind.
         lr_attri->name_client = lr_old->name_client.
       ENDIF.
     ENDLOOP.
