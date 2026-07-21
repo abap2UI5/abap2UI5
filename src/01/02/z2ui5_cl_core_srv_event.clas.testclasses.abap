@@ -3,7 +3,7 @@ CLASS ltcl_test DEFINITION FINAL
 
   PUBLIC SECTION.
     METHODS event             FOR TESTING.
-    METHODS event_backend     FOR TESTING.
+    METHODS event_client     FOR TESTING.
     METHODS event_with_args   FOR TESTING.
     METHODS event_multi_args  FOR TESTING.
     METHODS event_dollar_arg  FOR TESTING.
@@ -35,7 +35,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD event_backend.
+  METHOD event_client.
 
     DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
     DATA lv_event TYPE string.

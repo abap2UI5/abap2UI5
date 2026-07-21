@@ -3,7 +3,7 @@ CLASS ltcl_unit_test DEFINITION FINAL
 
   PRIVATE SECTION.
     METHODS test_factory           FOR TESTING RAISING cx_static_check.
-    METHODS test_factory_popup     FOR TESTING RAISING cx_static_check.
+    METHODS test_fragment_definition     FOR TESTING RAISING cx_static_check.
     METHODS test_shell_page        FOR TESTING RAISING cx_static_check.
     METHODS test_button            FOR TESTING RAISING cx_static_check.
     METHODS test_leaf              FOR TESTING RAISING cx_static_check.
@@ -47,7 +47,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_factory_popup.
+  METHOD test_fragment_definition.
 
     DATA(lo_popup) = z2ui5_cl_util_xml=>factory( )->__( n = `FragmentDefinition` ns = `core`
                        p = VALUE #( ( n = `xmlns` v = `sap.m` )
