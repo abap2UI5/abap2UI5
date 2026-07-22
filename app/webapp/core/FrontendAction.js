@@ -643,7 +643,7 @@ sap.ui.define(
 
     // BIND_ELEMENT: element-bind a whole view slot (popup / popover / main) to
     // a row of a registered table, so the fragment's relative bindings ({Name},
-    // {ProductPicUrl}, …) resolve against that row - the abap2UI5 equivalent of
+    // {ProductPicUrl}, ...) resolve against that row - the abap2UI5 equivalent of
     // oControl.bindElement(oCtx.getPath()). args = [slot, index, path]; the path
     // comes from client->_bind( table ) (braces already stripped server-side and
     // again here defensively), the slot from the follow_up_action view param.

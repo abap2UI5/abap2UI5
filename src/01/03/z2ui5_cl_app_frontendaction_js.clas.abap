@@ -664,7 +664,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `` && |\n| &&
              `    // BIND_ELEMENT: element-bind a whole view slot (popup / popover / main) to` && |\n| &&
              `    // a row of a registered table, so the fragment's relative bindings ({Name},` && |\n| &&
-             `    // {ProductPicUrl}, …) resolve against that row - the abap2UI5 equivalent of` && |\n| &&
+             `    // {ProductPicUrl}, ...) resolve against that row - the abap2UI5 equivalent of` && |\n| &&
              `    // oControl.bindElement(oCtx.getPath()). args = [slot, index, path]; the path` && |\n| &&
              `    // comes from client->_bind( table ) (braces already stripped server-side and` && |\n| &&
              `    // again here defensively), the slot from the follow_up_action view param.` && |\n| &&
