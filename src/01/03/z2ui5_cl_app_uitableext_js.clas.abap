@@ -147,7 +147,16 @@ CLASS z2ui5_cl_app_uitableext_js IMPLEMENTATION.
              `        try {` && |\n| &&
              `          const oTable = this._getTable();` && |\n| &&
              `          if (!oTable) return;` && |\n| &&
-             `          Lib.whenRendered(oTable, this, () => applyFn(oTable));` && |\n| &&
+             `          // whenRendered may defer applyFn to a later onAfterRendering, i.e.` && |\n| &&
+             `          // outside this try/catch. Guard the deferred call itself so a throw` && |\n| &&
+             `          // there is logged too (log, never throw) instead of escaping.` && |\n| &&
+             `          Lib.whenRendered(oTable, this, () => {` && |\n| &&
+             `            try {` && |\n| &&
+             `              applyFn(oTable);` && |\n| &&
+             `            } catch (e) {` && |\n| &&
+             `              Lib.logError(errorMsg, e);` && |\n| &&
+             `            }` && |\n| &&
+             `          });` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError(errorMsg, e);` && |\n| &&
              `        }` && |\n| &&

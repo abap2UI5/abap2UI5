@@ -52,7 +52,9 @@ CLASS z2ui5_cl_app_dirty_js IMPLEMENTATION.
              `        },` && |\n| &&
              `      },` && |\n| &&
              `      setIsDirty(val) {` && |\n| &&
-             `        this.setProperty("isDirty", val);` && |\n| &&
+             `        // Empty renderer -> suppress the no-op invalidation; the dirty state` && |\n| &&
+             `        // is applied explicitly below.` && |\n| &&
+             `        this.setProperty("isDirty", val, true);` && |\n| &&
              `        if (val) {` && |\n| &&
              `          dirtyControls.add(this);` && |\n| &&
              `        } else {` && |\n| &&

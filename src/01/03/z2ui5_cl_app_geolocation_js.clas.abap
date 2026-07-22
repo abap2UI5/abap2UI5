@@ -34,6 +34,10 @@ CLASS z2ui5_cl_app_geolocation_js IMPLEMENTATION.
              `    "heading",` && |\n| &&
              `  ];` && |\n| &&
              `` && |\n| &&
+             `  // Default getCurrentPosition timeout (ms). Shared by the ``timeout`` property` && |\n| &&
+             `  // default and the runtime fallback so the two cannot drift apart.` && |\n| &&
+             `  const _DEFAULT_TIMEOUT_MS = 5000;` && |\n| &&
+             `` && |\n| &&
              `  return Control.extend("z2ui5.cc.Geolocation", {` && |\n| &&
              `    metadata: {` && |\n| &&
              `      properties: {` && |\n| &&
@@ -71,7 +75,7 @@ CLASS z2ui5_cl_app_geolocation_js IMPLEMENTATION.
              `        },` && |\n| &&
              `        timeout: {` && |\n| &&
              `          type: "string",` && |\n| &&
-             `          defaultValue: "5000",` && |\n| &&
+             `          defaultValue: String(_DEFAULT_TIMEOUT_MS),` && |\n| &&
              `        },` && |\n| &&
              `      },` && |\n| &&
              `      events: {` && |\n| &&
@@ -132,7 +136,7 @@ CLASS z2ui5_cl_app_geolocation_js IMPLEMENTATION.
              `            enableHighAccuracy: this.getProperty("enableHighAccuracy"),` && |\n| &&
              `            // Guard against an empty or non-numeric property - NaN or 0` && |\n| &&
              `            // would make getCurrentPosition fail immediately.` && |\n| &&
-             `            timeout: Number(this.getProperty("timeout")) || 5000,` && |\n| &&
+             `            timeout: Number(this.getProperty("timeout")) || _DEFAULT_TIMEOUT_MS,` && |\n| &&
              `          },` && |\n| &&
              `        );` && |\n| &&
              `      } catch (e) {` && |\n| &&

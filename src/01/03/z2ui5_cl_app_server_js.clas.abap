@@ -610,7 +610,14 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `          // Step 4: hand the parsed response to the success handler.` && |\n| &&
              `          AppState.state.responseData = responseData;` && |\n| &&
-             `          AppState.state.changedPaths = new Set();` && |\n| &&
+             `          // This request won (it passed the stale guard above), so the edits` && |\n| &&
+             `          // it carried have reached the backend - clear exactly the model it` && |\n| &&
+             `          // shipped. A stale response returns before this point and clears` && |\n| &&
+             `          // nothing, so a slower older response can never wipe newer edits;` && |\n| &&
+             `          // and edits made in a different model stay pending for their own` && |\n| &&
+             `          // roundtrip.` && |\n| &&
+             `          AppState.state.oSentModel?._z2ui5ChangedPaths?.clear();` && |\n| &&
+             `          AppState.state.oSentModel = null;` && |\n| &&
              `          this.responseSuccess(` && |\n| &&
              `            {` && |\n| &&
              `              ID: responseData.S_FRONT.ID,` && |\n| &&

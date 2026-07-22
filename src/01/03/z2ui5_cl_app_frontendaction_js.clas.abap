@@ -60,6 +60,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `` && |\n| &&
              `    const _URLHelper = mobileLibrary.URLHelper;` && |\n| &&
              `` && |\n| &&
+             `    // Animation duration (ms) mapped to a "smooth" scroll request; 0 means an` && |\n| &&
+             `    // instant jump. Shared by every scroll path in evScrollTo.` && |\n| &&
+             `    const SMOOTH_SCROLL_MS = 300;` && |\n| &&
+             `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `    // Launchpad helpers` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
@@ -413,12 +417,12 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      sort(binding, [path, descending, group]) {` && |\n| &&
              `        binding.sort([` && |\n| &&
              `          new Sorter(path, castArg("bool", descending), castArg("bool", group)),` && |\n| &&
-             `        ]);` && |\n| &&
+             `        ]);` && |\n|.
+    result = result &&
              `      },` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    // args: [_, id, aggregation, method, ...params]` && |\n|.
-    result = result &&
+             `    // args: [_, id, aggregation, method, ...params]` && |\n| &&
              `    function evBindingCall(oController, args) {` && |\n| &&
              `      const [, id, aggregation, method] = args;` && |\n| &&
              `      const build = BINDING_METHODS[method];` && |\n| &&
@@ -814,12 +818,12 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // ScrollContainer etc. expose ScrollEnablement). The delegate knows` && |\n| &&
              `      // the real scroll container, which often is NOT the control's root` && |\n| &&
              `      // DOM element - so native Element.scrollTo on getDomRef() silently` && |\n| &&
-             `      // does nothing on a Page. ScrollEnablement.scrollTo(x, y, time)` && |\n| &&
+             `      // does nothing on a Page. ScrollEnablement.scrollTo(x, y, time)` && |\n|.
+    result = result &&
              `      // animates when time > 0, so "smooth" maps to a 300ms animation.` && |\n| &&
              `      // Native Element.scrollTo is only used as a fallback for controls` && |\n| &&
              `      // without a delegate.` && |\n| &&
-             `      try {` && |\n|.
-    result = result &&
+             `      try {` && |\n| &&
              `        const oElement = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
              `        const y = Number(args[2]) || 0;` && |\n| &&
@@ -832,7 +836,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          const delegate = oElement.getScrollDelegate?.();` && |\n| &&
              `          if (delegate?.scrollTo) {` && |\n| &&
              `            // ScrollEnablement / iScroll delegate: scrollTo(x, y, time)` && |\n| &&
-             `            delegate.scrollTo(x, y, smooth ? 300 : 0);` && |\n| &&
+             `            delegate.scrollTo(x, y, smooth ? SMOOTH_SCROLL_MS : 0);` && |\n| &&
              `            handled = true;` && |\n| &&
              `          }` && |\n| &&
              `        } catch {` && |\n| &&
@@ -845,15 +849,12 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            oElement.getDomRef();` && |\n| &&
              `          if (dom?.scrollTo) {` && |\n| &&
              `            dom.scrollTo({ top: y, left: x, behavior });` && |\n| &&
-             `            handled = true;` && |\n| &&
              `          } else if (dom) {` && |\n| &&
              `            dom.scrollTop = y;` && |\n| &&
              `            dom.scrollLeft = x;` && |\n| &&
-             `            handled = true;` && |\n| &&
              `          } else if (oElement.scrollTo) {` && |\n| &&
              `            // sap.m.Page.scrollTo(y, time) - vertical only` && |\n| &&
-             `            oElement.scrollTo(y, smooth ? 300 : 0);` && |\n| &&
-             `            handled = true;` && |\n| &&
+             `            oElement.scrollTo(y, smooth ? SMOOTH_SCROLL_MS : 0);` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
              `      } catch (e) {` && |\n| &&

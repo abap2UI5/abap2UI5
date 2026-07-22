@@ -19,13 +19,8 @@ CLASS z2ui5_cl_app_scrolling_js IMPLEMENTATION.
   METHOD get.
 
     result = `sap.ui.define(` && |\n| &&
-             `  [` && |\n| &&
-             `    "sap/ui/core/Control",` && |\n| &&
-             `    "z2ui5/core/Lib",` && |\n| &&
-             `    "z2ui5/core/ViewSlots",` && |\n| &&
-             `    "z2ui5/core/AppState",` && |\n| &&
-             `  ],` && |\n| &&
-             `  (Control, Lib, ViewSlots, AppState) => {` && |\n| &&
+             `  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],` && |\n| &&
+             `  (Control, Lib, ViewSlots) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Invisible control that saves the scroll positions of the controls` && |\n| &&
@@ -69,17 +64,19 @@ CLASS z2ui5_cl_app_scrolling_js IMPLEMENTATION.
              `        const items = this.getProperty("items");` && |\n| &&
              `        if (!items) return;` && |\n| &&
              `        try {` && |\n| &&
-             `          // Resolve the binding path so we can mark only changed entries` && |\n| &&
-             `          // as dirty in changedPaths.` && |\n| &&
+             `          // Resolve the binding path so we can mark only changed entries dirty.` && |\n| &&
              `          const bindingInfo = this.getBindingInfo("items");` && |\n| &&
              `          const bindingPath =` && |\n| &&
              `            bindingInfo?.parts?.[0]?.path ?? bindingInfo?.path;` && |\n| &&
+             `          // Mark changed entries dirty on THIS control's own model - the same` && |\n| &&
+             `          // per-model set View1 ships as the delta - not a shared global set.` && |\n| &&
+             `          const changedPaths = this.getModel()?._z2ui5ChangedPaths;` && |\n| &&
              `          for (const [index, item] of items.entries()) {` && |\n| &&
              `            const scrollTop = this._getScrollTop(item);` && |\n| &&
              `            if (item.V !== scrollTop) {` && |\n| &&
              `              item.V = scrollTop;` && |\n| &&
-             `              if (bindingPath) {` && |\n| &&
-             `                AppState.state.changedPaths.add(``${bindingPath}/${index}/V``);` && |\n| &&
+             `              if (bindingPath && changedPaths) {` && |\n| &&
+             `                changedPaths.add(``${bindingPath}/${index}/V``);` && |\n| &&
              `              }` && |\n| &&
              `            }` && |\n| &&
              `          }` && |\n| &&
