@@ -25,11 +25,10 @@ CLASS z2ui5_cl_app_formatter_js IMPLEMENTATION.
              `//` && |\n| &&
              `//   <mvc:View xmlns:core="sap.ui.core"` && |\n| &&
              `//             core:require="{Formatter: 'z2ui5/model/formatter'}">` && |\n| &&
-             `//     ... state="{ parts: [{path: 'WEIGHT'}, {path: 'UNIT'}],` && |\n| &&
-             `//                  formatter: 'Formatter.weightState' }"` && |\n| &&
+             `//     ... src="{ path: 'STATUS', formatter: 'Formatter.stockStatusIcon' }"` && |\n| &&
              `//` && |\n| &&
              `// The module is also published as the z2ui5.Formatter global, so` && |\n| &&
-             `// formatter: 'z2ui5.Formatter.weightState' keeps working on releases` && |\n| &&
+             `// formatter: 'z2ui5.Formatter.stockStatusIcon' keeps working on releases` && |\n| &&
              `// without core:require support.` && |\n| &&
              `//` && |\n| &&
              `// The set is CURATED and grows via framework PRs: every function here is a` && |\n| &&
@@ -85,32 +84,14 @@ CLASS z2ui5_cl_app_formatter_js IMPLEMENTATION.
              `    },` && |\n| &&
              `` && |\n| &&
              `    // --- value formatters ---` && |\n| &&
-             `` && |\n| &&
-             `    // Weight -> sap.ui.core.ValueState, the classic demo-kit formatter` && |\n| &&
-             `    // (sap.m.sample.Table Formatter.js): thresholds in KG (< 1 Success,` && |\n| &&
-             `    // < 5 Warning, else Error), a "G" unit is converted, non-numeric or` && |\n| &&
-             `    // negative weights map to None.` && |\n| &&
-             `    weightState(measure, unit) {` && |\n| &&
-             `      let adjusted = parseFloat(measure);` && |\n| &&
-             `      if (isNaN(adjusted)) return "None";` && |\n| &&
-             `      if (unit === "G") adjusted = adjusted / 1000;` && |\n| &&
-             `      if (adjusted < 0) return "None";` && |\n| &&
-             `      if (adjusted < 1) return "Success";` && |\n| &&
-             `      if (adjusted < 5) return "Warning";` && |\n| &&
-             `      return "Error";` && |\n| &&
-             `    },` && |\n| &&
-             `` && |\n| &&
-             `    // The demo kit's second weightState shape (sap.m.sample.TableEditable` && |\n| &&
-             `    // Formatter.js and five sibling Table samples): a single unit-less` && |\n| &&
-             `    // value, thresholds < 1000 Success, < 2000 Warning, else Error;` && |\n| &&
-             `    // non-numeric or negative values map to None.` && |\n| &&
-             `    weightStateByValue(value) {` && |\n| &&
-             `      const adjusted = parseFloat(value);` && |\n| &&
-             `      if (isNaN(adjusted) || adjusted < 0) return "None";` && |\n| &&
-             `      if (adjusted < 1000) return "Success";` && |\n| &&
-             `      if (adjusted < 2000) return "Warning";` && |\n| &&
-             `      return "Error";` && |\n| &&
-             `    },` && |\n| &&
+             `    //` && |\n| &&
+             `    // Presentation only. Deriving a state from a raw measure (the demo kit's` && |\n| &&
+             `    // weightState: parseFloat + KG conversion + Success/Warning/Error` && |\n| &&
+             `    // thresholds) is BUSINESS LOGIC and does NOT belong here - abap2UI5 is a` && |\n| &&
+             `    // thin frontend, so a port computes that in ABAP and binds the finished` && |\n| &&
+             `    // value (state="{WEIGHT_STATE}"). The status -> ValueState/icon lookups` && |\n| &&
+             `    // below only map an already-classified business status to a visual, which` && |\n| &&
+             `    // is presentation.` && |\n| &&
              `` && |\n| &&
              `    // Product stock status -> sap.ui.core.ValueState.` && |\n| &&
              `    stockStatusState(status) {` && |\n| &&
