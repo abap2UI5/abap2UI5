@@ -161,8 +161,15 @@ sap.ui.define(
             const newUrl = `${window.location.pathname}${window.location.search}#${hash}${PARAMS.SET_PUSH_STATE}`;
             history.pushState(null, "", newUrl);
           }
+          // Keep the leading "/" so the live URL matches the format the copy
+          // link (FrontendAction.evClipboardAppState) writes and the backend
+          // restore path expects: request_app_start_draft reads the state id
+          // via iv_hash+2, i.e. it skips exactly the "#/" prefix. Without the
+          // slash the live hash is "#z2ui5-xapp-state=..." and iv_hash+2 eats
+          // the leading "z", so bookmarking/reloading the live URL never
+          // restores the app state (only the explicitly copied link did).
           const newHash = PARAMS.SET_APP_STATE_ACTIVE
-            ? `z2ui5-xapp-state=${ID || ""}`
+            ? `/z2ui5-xapp-state=${ID || ""}`
             : "";
           _hashChanger.replaceHash(newHash);
         } catch (e) {
