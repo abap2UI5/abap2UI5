@@ -372,6 +372,52 @@ test.describe("CONTROL_BY_ID", () => {
       ["toggle", "myClass"],
     ]);
   });
+
+  test("toDetail/toMaster resolve their page control (SplitApp/SplitContainer)", () => {
+    const { FrontendAction, calls, controls } = load();
+    const detail = { id: "detailDetail" };
+    const master = { id: "master2" };
+    controls.detailDetail = detail;
+    controls.master2 = master;
+    controls.split = {
+      toDetail: (p) => calls.push(["toDetail", p]),
+      toMaster: (p) => calls.push(["toMaster", p]),
+    };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "split", "", "toDetail", "detailDetail"]);
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "split", "", "toMaster", "master2"]);
+    expect(calls).toEqual([
+      ["toDetail", detail],
+      ["toMaster", master],
+    ]);
+  });
+
+  test("backDetail/backMaster stay no-arg calls (SplitApp/SplitContainer)", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.split = {
+      backDetail: (...a) => calls.push(["backDetail", a.length]),
+      backMaster: (...a) => calls.push(["backMaster", a.length]),
+    };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "split", "", "backDetail"]);
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "split", "", "backMaster"]);
+    expect(calls).toEqual([
+      ["backDetail", 0],
+      ["backMaster", 0],
+    ]);
+  });
+
+  test("setMode passes the SplitAppMode string through", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.split = { setMode: (m) => calls.push(["setMode", m]) };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "split", "", "setMode", "StretchCompressMode"]);
+    expect(calls).toEqual([["setMode", "StretchCompressMode"]]);
+  });
+
+  test("navigateBack stays a no-arg call (QuickView/QuickViewCard)", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.qv = { navigateBack: (...a) => calls.push(["navigateBack", a.length]) };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "qv", "", "navigateBack"]);
+    expect(calls).toEqual([["navigateBack", 0]]);
+  });
 });
 
 test.describe("BINDING_CALL", () => {

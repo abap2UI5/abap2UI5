@@ -100,6 +100,12 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    const CONTROL_METHODS = {` && |\n| &&
              `      to: ["controlId", "string"], // target page + optional transitionName` && |\n| &&
              `      back: [],` && |\n| &&
+             `      toDetail: ["controlId"], // sap.m.SplitApp/SplitContainer: show a detail page` && |\n| &&
+             `      toMaster: ["controlId"], // sap.m.SplitApp/SplitContainer: show a master page` && |\n| &&
+             `      backDetail: [], // sap.m.SplitApp/SplitContainer: back in the detail stack` && |\n| &&
+             `      backMaster: [], // sap.m.SplitApp/SplitContainer: back in the master stack` && |\n| &&
+             `      setMode: ["string"], // sap.m.SplitApp/SplitContainer: SplitAppMode` && |\n| &&
+             `      navigateBack: [], // sap.m.QuickView/QuickViewCard: navigate one page back` && |\n| &&
              `      focus: [],` && |\n| &&
              `      scrollToIndex: ["int"],` && |\n| &&
              `      scrollTo: ["int", "int"],` && |\n| &&
