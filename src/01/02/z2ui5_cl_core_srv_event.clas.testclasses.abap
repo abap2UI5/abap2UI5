@@ -300,7 +300,8 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
     DATA(lt_arg) = VALUE string_table( ( `Value changed to '{0}'` ) ).
 
-    DATA(lv_event) = lo_event->get_event( val = `EVT` t_arg = lt_arg ).
+    DATA(lv_event) = lo_event->get_event( val   = `EVT`
+                                          t_arg = lt_arg ).
 
     cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `'Value changed to \'{0}\''` ) ).
 
@@ -312,11 +313,11 @@ CLASS ltcl_test IMPLEMENTATION.
     " ({0?a:b}...) are plain strings, so both are quoted (not emitted raw)
     DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
 
-    DATA(lv_plain) = lo_event->get_event( val = `EVT`
+    DATA(lv_plain) = lo_event->get_event( val   = `EVT`
                                           t_arg = VALUE #( ( `{0} Pressed` ) ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_plain CS `'{0} Pressed'` ) ).
 
-    DATA(lv_cond) = lo_event->get_event( val = `EVT`
+    DATA(lv_cond) = lo_event->get_event( val   = `EVT`
                                          t_arg = VALUE #( ( `{0?Pressed:Unpressed}` ) ) ).
     cl_abap_unit_assert=>assert_true( xsdbool( lv_cond CS `'{0?Pressed:Unpressed}'` ) ).
 

@@ -266,14 +266,17 @@ sap.ui.define(
     //                         trueText/falseText carry no ":" or "}")
     // an out-of-range placeholder is left as-is.
     function formatTemplate(tpl, values) {
-      return tpl.replace(/\{(\d+)(?:\?([^:}]*):([^}]*))?\}/g, (m, i, tText, fText) => {
-        const n = Number(i);
-        if (n >= values.length) return m;
-        const v = String(values[n]);
-        if (tText === undefined) return v;
-        const truthy = v !== "" && !/^(false|0|undefined|null)$/i.test(v);
-        return truthy ? tText : fText;
-      });
+      return tpl.replace(
+        /\{(\d+)(?:\?([^:}]*):([^}]*))?\}/g,
+        (m, i, tText, fText) => {
+          const n = Number(i);
+          if (n >= values.length) return m;
+          const v = String(values[n]);
+          if (tText === undefined) return v;
+          const truthy = v !== "" && !/^(false|0|undefined|null)$/i.test(v);
+          return truthy ? tText : fText;
+        },
+      );
     }
 
     // ------------------------------------------------------------------

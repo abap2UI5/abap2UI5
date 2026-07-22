@@ -286,14 +286,17 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    //                         trueText/falseText carry no ":" or "}")` && |\n| &&
              `    // an out-of-range placeholder is left as-is.` && |\n| &&
              `    function formatTemplate(tpl, values) {` && |\n| &&
-             `      return tpl.replace(/\{(\d+)(?:\?([^:}]*):([^}]*))?\}/g, (m, i, tText, fText) => {` && |\n| &&
-             `        const n = Number(i);` && |\n| &&
-             `        if (n >= values.length) return m;` && |\n| &&
-             `        const v = String(values[n]);` && |\n| &&
-             `        if (tText === undefined) return v;` && |\n| &&
-             `        const truthy = v !== "" && !/^(false|0|undefined|null)$/i.test(v);` && |\n| &&
-             `        return truthy ? tText : fText;` && |\n| &&
-             `      });` && |\n| &&
+             `      return tpl.replace(` && |\n| &&
+             `        /\{(\d+)(?:\?([^:}]*):([^}]*))?\}/g,` && |\n| &&
+             `        (m, i, tText, fText) => {` && |\n| &&
+             `          const n = Number(i);` && |\n| &&
+             `          if (n >= values.length) return m;` && |\n| &&
+             `          const v = String(values[n]);` && |\n| &&
+             `          if (tText === undefined) return v;` && |\n| &&
+             `          const truthy = v !== "" && !/^(false|0|undefined|null)$/i.test(v);` && |\n| &&
+             `          return truthy ? tText : fText;` && |\n| &&
+             `        },` && |\n| &&
+             `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
@@ -414,7 +417,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      },` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    // args: [_, id, aggregation, method, ...params]` && |\n| &&
+             `    // args: [_, id, aggregation, method, ...params]` && |\n|.
+    result = result &&
              `    function evBindingCall(oController, args) {` && |\n| &&
              `      const [, id, aggregation, method] = args;` && |\n| &&
              `      const build = BINDING_METHODS[method];` && |\n| &&
@@ -429,8 +433,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        );` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      build(binding, args.slice(4));` && |\n|.
-    result = result &&
+             `      build(binding, args.slice(4));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
@@ -815,7 +818,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // animates when time > 0, so "smooth" maps to a 300ms animation.` && |\n| &&
              `      // Native Element.scrollTo is only used as a fallback for controls` && |\n| &&
              `      // without a delegate.` && |\n| &&
-             `      try {` && |\n| &&
+             `      try {` && |\n|.
+    result = result &&
              `        const oElement = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
              `        const y = Number(args[2]) || 0;` && |\n| &&
@@ -830,8 +834,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            // ScrollEnablement / iScroll delegate: scrollTo(x, y, time)` && |\n| &&
              `            delegate.scrollTo(x, y, smooth ? 300 : 0);` && |\n| &&
              `            handled = true;` && |\n| &&
-             `          }` && |\n|.
-    result = result &&
+             `          }` && |\n| &&
              `        } catch {` && |\n| &&
              `          // fall through` && |\n| &&
              `        }` && |\n| &&
