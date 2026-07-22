@@ -162,6 +162,7 @@ async function main() {
         // z2ui5_cl_app_foo_js), so duplicate basenames silently overwrite
         // each other. Fail fast instead.
         const seenClassNames = new Map();
+        const classNameByFile = new Map();
         for (const file of files) {
             const cn = generateClassName(file);
             if (seenClassNames.has(cn)) {
@@ -170,13 +171,14 @@ async function main() {
                 );
             }
             seenClassNames.set(cn, file);
+            classNameByFile.set(file, cn);
         }
 
         for (const file of files) {
             let sourceContent = await readFile(file);
             console.log(`Source file content fetched successfully for ${file}.`);
 
-            const className = generateClassName(file);
+            const className = classNameByFile.get(file);
             const isSpecialFile = file.endsWith('.xml') || file.endsWith('.json') || file.endsWith('.html') || file.endsWith('.css');
             const abapClassContent = formatAsAbapClass(sourceContent, className, isSpecialFile);
 

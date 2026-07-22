@@ -53,17 +53,17 @@ Browser (UI5 SPA)                          ABAP Backend
 
 #### Launchpad Special Case — Request Body Wrapping
 
-The frontend always sends the POST body as `{ "value": <payload> }` (see `app/webapp/core/Server.js`). In standalone mode this envelope arrives intact and `request_parse_body` unwraps it via `slice('value')`.
+The frontend always sends the POST body as `{ "value": <payload> }` (see `app/webapp/core/Server.js`). In standalone mode this envelope arrives intact and `request_parse_body` reaches through it via a `/value` path prefix.
 
 When the app runs inside the **SAP Fiori Launchpad** (FLP), requests may be routed through the FLP shell or an SAP Gateway proxy. In certain configurations this infrastructure strips the `value` envelope before the request reaches the ABAP ICF handler, so the payload arrives as a plain object without the `value` key.
 
-`request_parse_body` handles both cases defensively:
+`request_parse_body` handles both cases defensively by computing a root prefix once (a keyed `exists` check instead of slicing/copying the whole tree just to unwrap it), then slicing the sub-containers relative to it:
 ```abap
-DATA(lo_ajson2) = lo_ajson->slice( `value` ).
-IF lo_ajson2 IS BOUND.
-  lo_ajson = lo_ajson2.   " standalone: unwrap the value envelope
-ENDIF.
-" launchpad/gateway: no value key → use lo_ajson as-is
+DATA(lv_root) = COND string( WHEN lo_ajson->exists( `/value` ) = abap_true
+                             THEN `/value` ).
+" standalone: lv_root = `/value`   launchpad/gateway: lv_root = `` (empty)
+result-o_model = lo_ajson->slice( lv_root && `/MODEL` ).
+lo_ajson       = lo_ajson->slice( lv_root && `/S_FRONT` ).
 ```
 
 The Launchpad context is detected afterwards from the parsed request fields:
