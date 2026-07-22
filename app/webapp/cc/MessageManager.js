@@ -93,6 +93,11 @@ sap.ui.define(
             type: r.TYPE ?? "Error",
             target: r.TARGET ?? "",
             additionalText: r.ADDITIONALTEXT ?? "",
+            // a free string column the app fills server-side (e.g. a display
+            // group for MessageItem.groupName - sap.ui.core.message.Message has
+            // no groupName slot, so grouping stays a backend decision bound to
+            // {message>code} rather than a frontend expression)
+            code: r.CODE ?? "",
             processor: this._processor,
           });
           this._messaging.addMessages(oMessage);

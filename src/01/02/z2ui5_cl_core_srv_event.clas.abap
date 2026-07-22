@@ -80,6 +80,18 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
                                         ELSE CONV string( view ) ).
       lt_arg = t_arg.
       INSERT lv_view_slot INTO lt_arg INDEX 2.
+    ELSEIF lv_val = z2ui5_if_client=>cs_event-bind_element.
+      " element-bind a whole view slot to a table row: args = slot, index,
+      " path. The path comes from client->_bind( table ); _bind returns the
+      " binding with braces ({/MT_TAB}), which would be an invalid raw JS
+      " argument, so strip the braces here to a plain path ('/MT_TAB') that
+      " get_t_arg then quotes. The slot is the follow_up_action view parameter.
+      DATA(lv_bind_path) = CONV string( VALUE #( t_arg[ 2 ] OPTIONAL ) ).
+      REPLACE ALL OCCURRENCES OF `{` IN lv_bind_path WITH ``.
+      REPLACE ALL OCCURRENCES OF `}` IN lv_bind_path WITH ``.
+      lt_arg = VALUE #( ( CONV string( view ) )
+                        ( VALUE #( t_arg[ 1 ] OPTIONAL ) )
+                        ( lv_bind_path ) ).
     ENDIF.
 
     result = |{ z2ui5_if_core_types=>cs_ui5-event_frontend_function }('{ lv_val }'{ get_t_arg( lt_arg ) }|.
@@ -102,7 +114,21 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
         lv_pending = |{ lv_pending }, ''|.
         CONTINUE.
       ENDIF.
-      IF lv_new(1) <> `$` AND lv_new(1) <> `{` AND lv_new NP `.eB(*`.
+      " a message template that starts with a bare positional placeholder
+      " ({0}, {1}, ... - either immediately closed {0} or a conditional
+      " {0?a:b}) is a plain string, not a binding or object literal, so it must
+      " still be quoted - the `{`-raw exception below is only for real
+      " bindings/object literals like {/PATH} or {..}. {0/field} (relative
+      " binding) keeps a `/` after the digits and is therefore not matched, so
+      " it stays raw as before.
+      FIND REGEX `^\{[0-9]+[?}]` IN lv_new.
+      DATA(lv_is_placeholder) = xsdbool( sy-subrc = 0 ).
+      IF ( lv_new(1) <> `$` AND lv_new(1) <> `{` AND lv_new NP `.eB(*` ) OR lv_is_placeholder = abap_true.
+        " a quoted arg is JS string source (a backslash escape like \n stays a
+        " newline); escape only an embedded ' so it cannot close the '...'
+        " wrapper - otherwise a template like Value changed to '{0}' emits
+        " broken JS.
+        REPLACE ALL OCCURRENCES OF `'` IN lv_new WITH `\'`.
         lv_new = |'{ lv_new }'|.
       ENDIF.
       result = |{ result }{ lv_pending }, { lv_new }|.

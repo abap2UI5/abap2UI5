@@ -90,6 +90,10 @@ sap.ui.define(
       setActivePage: ["controlId"], // sap.m.Carousel
       expandToLevel: ["int"], // sap.m.Tree / sap.ui.table.TreeTable: expand to N levels
       collapseAll: [], // sap.m.Tree / sap.ui.table.TreeTable: collapse every node
+      setHiddenInPopin: ["object"], // sap.m.Table: hide columns by importance (JSON array of Priority keys)
+      addStyleClass: ["string"], // sap.ui.core.Control: add a CSS style class
+      removeStyleClass: ["string"], // sap.ui.core.Control: remove a CSS style class
+      toggleStyleClass: ["string"], // sap.ui.core.Control: toggle a CSS style class
     };
 
     // global object -> lazy getter + its allowed methods (with arg kinds).
@@ -239,7 +243,40 @@ sap.ui.define(
         Lib.logError(`CONTROL_GLOBAL: '${name}.${method}' not available`);
         return;
       }
-      obj[method](...castArgs(kinds, args.slice(3)));
+      const raw = args.slice(3);
+      // a single-string method (MessageToast.show, MessageBox.*) may receive
+      // extra positional values: the first arg is then a template and its
+      // {0},{1},... placeholders are replaced by the client-resolved extras, so
+      // a "X has been activated" toast can be composed on the frontend without a
+      // server round-trip. A lone string is passed through unchanged.
+      if (kinds.length === 1 && kinds[0] === "string" && raw.length > 1) {
+        obj[method](formatTemplate(String(raw[0]), raw.slice(1)));
+        return;
+      }
+      obj[method](...castArgs(kinds, raw));
+    }
+
+    // replace placeholders in a template with the positional values (as
+    // strings). Two forms:
+    //   {N}                -> the Nth value verbatim
+    //   {N?trueText:falseText} -> trueText when the Nth value is truthy, else
+    //                         falseText (a boolean event param arrives as
+    //                         "true"/"false", so a toggle can toast
+    //                         "Pressed"/"Unpressed" without a server round-trip;
+    //                         trueText/falseText carry no ":" or "}")
+    // an out-of-range placeholder is left as-is.
+    function formatTemplate(tpl, values) {
+      return tpl.replace(
+        /\{(\d+)(?:\?([^:}]*):([^}]*))?\}/g,
+        (m, i, tText, fText) => {
+          const n = Number(i);
+          if (n >= values.length) return m;
+          const v = String(values[n]);
+          if (tText === undefined) return v;
+          const truthy = v !== "" && !/^(false|0|undefined|null)$/i.test(v);
+          return truthy ? tText : fText;
+        },
+      );
     }
 
     // ------------------------------------------------------------------
@@ -619,6 +656,27 @@ sap.ui.define(
       if (newWindow) newWindow.opener = null;
     }
 
+    // BIND_ELEMENT: element-bind a whole view slot (popup / popover / main) to
+    // a row of a registered table, so the fragment's relative bindings ({Name},
+    // {ProductPicUrl}, ...) resolve against that row - the abap2UI5 equivalent of
+    // oControl.bindElement(oCtx.getPath()). args = [slot, index, path]; the path
+    // comes from client->_bind( table ) (braces already stripped server-side and
+    // again here defensively), the slot from the follow_up_action view param.
+    function evBindElement(oController, args) {
+      const slot = args[1] || "MAIN";
+      const view = ViewSlots.getView(slot);
+      if (!view) {
+        Lib.logError(`BIND_ELEMENT: no view for slot '${slot}'`);
+        return;
+      }
+      const path = String(args[3] ?? "").replace(/[{}]/g, "");
+      if (!path) {
+        Lib.logError("BIND_ELEMENT: empty binding path");
+        return;
+      }
+      view.bindElement(`${path}/${args[2]}`);
+    }
+
     function evUrlHelper(oController, args) {
       const params = args[2] ?? {};
       const actions = {
@@ -896,6 +954,7 @@ sap.ui.define(
       OPEN_NEW_TAB: evOpenNewTab,
       POPUP_CLOSE: () => ViewSlots.destroy("POPUP"),
       POPOVER_CLOSE: () => ViewSlots.destroy("POPOVER"),
+      BIND_ELEMENT: evBindElement,
       URLHELPER: evUrlHelper,
       IMAGE_EDITOR_POPUP_CLOSE: evImageEditorPopupClose,
       SET_TITLE: evSetTitle,

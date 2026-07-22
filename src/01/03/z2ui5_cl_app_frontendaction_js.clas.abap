@@ -110,6 +110,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      setActivePage: ["controlId"], // sap.m.Carousel` && |\n| &&
              `      expandToLevel: ["int"], // sap.m.Tree / sap.ui.table.TreeTable: expand to N levels` && |\n| &&
              `      collapseAll: [], // sap.m.Tree / sap.ui.table.TreeTable: collapse every node` && |\n| &&
+             `      setHiddenInPopin: ["object"], // sap.m.Table: hide columns by importance (JSON array of Priority keys)` && |\n| &&
+             `      addStyleClass: ["string"], // sap.ui.core.Control: add a CSS style class` && |\n| &&
+             `      removeStyleClass: ["string"], // sap.ui.core.Control: remove a CSS style class` && |\n| &&
+             `      toggleStyleClass: ["string"], // sap.ui.core.Control: toggle a CSS style class` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    // global object -> lazy getter + its allowed methods (with arg kinds).` && |\n| &&
@@ -259,7 +263,40 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not available``);` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      obj[method](...castArgs(kinds, args.slice(3)));` && |\n| &&
+             `      const raw = args.slice(3);` && |\n| &&
+             `      // a single-string method (MessageToast.show, MessageBox.*) may receive` && |\n| &&
+             `      // extra positional values: the first arg is then a template and its` && |\n| &&
+             `      // {0},{1},... placeholders are replaced by the client-resolved extras, so` && |\n| &&
+             `      // a "X has been activated" toast can be composed on the frontend without a` && |\n| &&
+             `      // server round-trip. A lone string is passed through unchanged.` && |\n| &&
+             `      if (kinds.length === 1 && kinds[0] === "string" && raw.length > 1) {` && |\n| &&
+             `        obj[method](formatTemplate(String(raw[0]), raw.slice(1)));` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      obj[method](...castArgs(kinds, raw));` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // replace placeholders in a template with the positional values (as` && |\n| &&
+             `    // strings). Two forms:` && |\n| &&
+             `    //   {N}                -> the Nth value verbatim` && |\n| &&
+             `    //   {N?trueText:falseText} -> trueText when the Nth value is truthy, else` && |\n| &&
+             `    //                         falseText (a boolean event param arrives as` && |\n| &&
+             `    //                         "true"/"false", so a toggle can toast` && |\n| &&
+             `    //                         "Pressed"/"Unpressed" without a server round-trip;` && |\n| &&
+             `    //                         trueText/falseText carry no ":" or "}")` && |\n| &&
+             `    // an out-of-range placeholder is left as-is.` && |\n| &&
+             `    function formatTemplate(tpl, values) {` && |\n| &&
+             `      return tpl.replace(` && |\n| &&
+             `        /\{(\d+)(?:\?([^:}]*):([^}]*))?\}/g,` && |\n| &&
+             `        (m, i, tText, fText) => {` && |\n| &&
+             `          const n = Number(i);` && |\n| &&
+             `          if (n >= values.length) return m;` && |\n| &&
+             `          const v = String(values[n]);` && |\n| &&
+             `          if (tText === undefined) return v;` && |\n| &&
+             `          const truthy = v !== "" && !/^(false|0|undefined|null)$/i.test(v);` && |\n| &&
+             `          return truthy ? tText : fText;` && |\n| &&
+             `        },` && |\n| &&
+             `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
@@ -380,7 +417,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      },` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    // args: [_, id, aggregation, method, ...params]` && |\n| &&
+             `    // args: [_, id, aggregation, method, ...params]` && |\n|.
+    result = result &&
              `    function evBindingCall(oController, args) {` && |\n| &&
              `      const [, id, aggregation, method] = args;` && |\n| &&
              `      const build = BINDING_METHODS[method];` && |\n| &&
@@ -417,8 +455,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // the literal "undefined" as its state id.` && |\n| &&
              `      const id = AppState.state.oResponse?.ID || "";` && |\n| &&
              `      // Strip any existing hash (e.g. an active app-state) so the copied` && |\n| &&
-             `      // link carries only the fresh state id.` && |\n|.
-    result = result &&
+             `      // link carries only the fresh state id.` && |\n| &&
              `      const base = window.location.href.split("#")[0];` && |\n| &&
              `      Lib.copyToClipboard(``${base}#/z2ui5-xapp-state=${id}``);` && |\n| &&
              `    }` && |\n| &&
@@ -640,6 +677,27 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      if (newWindow) newWindow.opener = null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // BIND_ELEMENT: element-bind a whole view slot (popup / popover / main) to` && |\n| &&
+             `    // a row of a registered table, so the fragment's relative bindings ({Name},` && |\n| &&
+             `    // {ProductPicUrl}, ...) resolve against that row - the abap2UI5 equivalent of` && |\n| &&
+             `    // oControl.bindElement(oCtx.getPath()). args = [slot, index, path]; the path` && |\n| &&
+             `    // comes from client->_bind( table ) (braces already stripped server-side and` && |\n| &&
+             `    // again here defensively), the slot from the follow_up_action view param.` && |\n| &&
+             `    function evBindElement(oController, args) {` && |\n| &&
+             `      const slot = args[1] || "MAIN";` && |\n| &&
+             `      const view = ViewSlots.getView(slot);` && |\n| &&
+             `      if (!view) {` && |\n| &&
+             `        Lib.logError(``BIND_ELEMENT: no view for slot '${slot}'``);` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      const path = String(args[3] ?? "").replace(/[{}]/g, "");` && |\n| &&
+             `      if (!path) {` && |\n| &&
+             `        Lib.logError("BIND_ELEMENT: empty binding path");` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      view.bindElement(``${path}/${args[2]}``);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function evUrlHelper(oController, args) {` && |\n| &&
              `      const params = args[2] ?? {};` && |\n| &&
              `      const actions = {` && |\n| &&
@@ -760,7 +818,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // animates when time > 0, so "smooth" maps to a 300ms animation.` && |\n| &&
              `      // Native Element.scrollTo is only used as a fallback for controls` && |\n| &&
              `      // without a delegate.` && |\n| &&
-             `      try {` && |\n| &&
+             `      try {` && |\n|.
+    result = result &&
              `        const oElement = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
              `        if (!oElement) return;` && |\n| &&
              `        const y = Number(args[2]) || 0;` && |\n| &&
@@ -818,8 +877,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        if (!dom || !dom.scrollIntoView) return;` && |\n| &&
              `        dom.scrollIntoView({` && |\n| &&
              `          behavior: args[2] || "smooth",` && |\n| &&
-             `          block: args[3] || "start",` && |\n|.
-    result = result &&
+             `          block: args[3] || "start",` && |\n| &&
              `          inline: args[4] || "nearest",` && |\n| &&
              `        });` && |\n| &&
              `      } catch (e) {` && |\n| &&
@@ -918,6 +976,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      OPEN_NEW_TAB: evOpenNewTab,` && |\n| &&
              `      POPUP_CLOSE: () => ViewSlots.destroy("POPUP"),` && |\n| &&
              `      POPOVER_CLOSE: () => ViewSlots.destroy("POPOVER"),` && |\n| &&
+             `      BIND_ELEMENT: evBindElement,` && |\n| &&
              `      URLHELPER: evUrlHelper,` && |\n| &&
              `      IMAGE_EDITOR_POPUP_CLOSE: evImageEditorPopupClose,` && |\n| &&
              `      SET_TITLE: evSetTitle,` && |\n| &&
