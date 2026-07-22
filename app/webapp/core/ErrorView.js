@@ -311,18 +311,20 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
     errorContainer.appendChild(headerDiv);
 
     // Keep keyboard focus inside the overlay: Tab cycles through the action
-    // buttons instead of escaping into the broken page behind it.
+    // buttons instead of escaping into the broken page behind it. The button
+    // set is complete here (all appended above), so resolve first/last once
+    // rather than re-querying the DOM on every Tab press.
+    const trapButtons = actionsDiv.querySelectorAll("button");
+    const firstTrap = trapButtons[0];
+    const lastTrap = trapButtons[trapButtons.length - 1];
     errorContainer.addEventListener("keydown", (event) => {
       if (event.key !== "Tab") return;
-      const buttons = actionsDiv.querySelectorAll("button");
-      const first = buttons[0];
-      const last = buttons[buttons.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
+      if (event.shiftKey && document.activeElement === firstTrap) {
         event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
+        lastTrap.focus();
+      } else if (!event.shiftKey && document.activeElement === lastTrap) {
         event.preventDefault();
-        first.focus();
+        firstTrap.focus();
       }
     });
 

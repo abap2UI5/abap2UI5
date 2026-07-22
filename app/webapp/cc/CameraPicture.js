@@ -83,9 +83,9 @@ sap.ui.define(
           return false;
         }
 
-        const thumbH = videoWidth
-          ? Math.round((videoHeight * _THUMB_W) / videoWidth)
-          : _THUMB_W;
+        // videoWidth is guaranteed non-zero here (the guard above returns
+        // early when it is falsy), so no divide-by-zero fallback is needed.
+        const thumbH = Math.round((videoHeight * _THUMB_W) / videoWidth);
         const thumbCanvas = document.createElement("canvas");
         thumbCanvas.width = _THUMB_W;
         thumbCanvas.height = thumbH;

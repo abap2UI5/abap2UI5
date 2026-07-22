@@ -24,9 +24,13 @@ sap.ui.define(
     // hand in the editor.
     const SYSTEM_OPEN_LEVELS = 2;
 
+    // Leading-space matcher, hoisted so the per-line fold loop below does not
+    // recompile it on every row of a large JSON dump.
+    const LEADING_SPACES = /^ */;
+
     // JSON nesting depth of a pretty-printed line, read from its indentation.
     function indentLevel(line, unit) {
-      return Math.floor(/^ */.exec(line)[0].length / unit);
+      return Math.floor(LEADING_SPACES.exec(line)[0].length / unit);
     }
 
     // Fold every foldable block in the ACE edit session that sits at or below
@@ -57,18 +61,29 @@ sap.ui.define(
     // throwing and degrading to a bare "[object Object]".
     function toJson(val) {
       const safe = val === undefined ? null : val;
-      const seen = new WeakSet();
+      // Track the ANCESTOR chain, not every object ever visited: a plain
+      // WeakSet of all seen objects would mislabel a value referenced twice in
+      // sibling branches (common in the live z2ui5 global) as "[Circular]".
+      // `this` inside the replacer is the object the key belongs to, so we can
+      // unwind the stack back to it before testing containment.
+      const ancestors = [];
       try {
         return JSON.stringify(
           safe,
-          (key, value) => {
+          function (key, value) {
             if (typeof value === "object" && value !== null) {
-              if (seen.has(value)) return "[Circular]";
-              seen.add(value);
+              while (
+                ancestors.length > 0 &&
+                ancestors[ancestors.length - 1] !== this
+              ) {
+                ancestors.pop();
+              }
+              if (ancestors.includes(value)) return "[Circular]";
+              ancestors.push(value);
             }
             return value;
           },
-          3,
+          INDENT_UNIT,
         );
       } catch {
         // The developer tools must never crash the host app, so degrade to the
@@ -495,7 +510,7 @@ sap.ui.define(
       // any failure leaves the tab fully expanded rather than breaking the
       // developer tools.
       foldSystemTab(triesLeft = 10) {
-        let editor = null;
+        let editor;
         try {
           editor = this.getEditorInstance();
         } catch (e) {

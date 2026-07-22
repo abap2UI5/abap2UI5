@@ -418,7 +418,10 @@ sap.ui.define(
         // turned into JSON strings by the backend when it fills
         // T_EVENT_ARG, so apps keep receiving them as strings; stringifying
         // them here as well would encode (and escape) the payload twice.
-        oBody.ARGUMENTS = args.slice();
+        // `args` is this call's own rest-parameter array (Server.roundtrip
+        // mutates ARGUMENTS via shift), so it can be handed over directly -
+        // no defensive copy needed.
+        oBody.ARGUMENTS = args;
 
         Server.roundtrip(oBody);
         Lib.runCallbacks(AppState.state.onAfterRoundtrip);

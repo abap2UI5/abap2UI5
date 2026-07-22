@@ -14,6 +14,10 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
     "heading",
   ];
 
+  // Default getCurrentPosition timeout (ms). Shared by the `timeout` property
+  // default and the runtime fallback so the two cannot drift apart.
+  const _DEFAULT_TIMEOUT_MS = 5000;
+
   return Control.extend("z2ui5.cc.Geolocation", {
     metadata: {
       properties: {
@@ -51,7 +55,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
         },
         timeout: {
           type: "string",
-          defaultValue: "5000",
+          defaultValue: String(_DEFAULT_TIMEOUT_MS),
         },
       },
       events: {
@@ -112,7 +116,7 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
             enableHighAccuracy: this.getProperty("enableHighAccuracy"),
             // Guard against an empty or non-numeric property - NaN or 0
             // would make getCurrentPosition fail immediately.
-            timeout: Number(this.getProperty("timeout")) || 5000,
+            timeout: Number(this.getProperty("timeout")) || _DEFAULT_TIMEOUT_MS,
           },
         );
       } catch (e) {
