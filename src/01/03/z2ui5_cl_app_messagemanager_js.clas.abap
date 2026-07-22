@@ -113,6 +113,11 @@ CLASS z2ui5_cl_app_messagemanager_js IMPLEMENTATION.
              `            type: r.TYPE ?? "Error",` && |\n| &&
              `            target: r.TARGET ?? "",` && |\n| &&
              `            additionalText: r.ADDITIONALTEXT ?? "",` && |\n| &&
+             `            // a free string column the app fills server-side (e.g. a display` && |\n| &&
+             `            // group for MessageItem.groupName - sap.ui.core.message.Message has` && |\n| &&
+             `            // no groupName slot, so grouping stays a backend decision bound to` && |\n| &&
+             `            // {message>code} rather than a frontend expression)` && |\n| &&
+             `            code: r.CODE ?? "",` && |\n| &&
              `            processor: this._processor,` && |\n| &&
              `          });` && |\n| &&
              `          this._messaging.addMessages(oMessage);` && |\n| &&
