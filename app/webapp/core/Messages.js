@@ -39,6 +39,11 @@ sap.ui.define(
     }
 
     function showToast(msg, oController) {
+      // autoClose and closeOnBrowserNavigation are always sent (the public
+      // API message_toast_display defaults both to abap_true), so Boolean()
+      // is meaningful here - it never silently defeats UI5's own true default
+      // the way it would for an omitted field. Same rationale as showBox's
+      // closeOnNavigation below.
       const mOptions = {
         duration: parseMs(msg.DURATION, 3000),
         width: msg.WIDTH || "15em",

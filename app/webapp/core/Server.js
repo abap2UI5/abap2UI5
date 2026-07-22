@@ -589,7 +589,14 @@ sap.ui.define(
 
           // Step 4: hand the parsed response to the success handler.
           AppState.state.responseData = responseData;
-          AppState.state.changedPaths = new Set();
+          // This request won (it passed the stale guard above), so the edits
+          // it carried have reached the backend - clear exactly the model it
+          // shipped. A stale response returns before this point and clears
+          // nothing, so a slower older response can never wipe newer edits;
+          // and edits made in a different model stay pending for their own
+          // roundtrip.
+          AppState.state.oSentModel?._z2ui5ChangedPaths?.clear();
+          AppState.state.oSentModel = null;
           this.responseSuccess(
             {
               ID: responseData.S_FRONT.ID,

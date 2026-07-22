@@ -229,7 +229,8 @@ sap.ui.define(
       },
 
       _onUnload() {
-        window.removeEventListener(this._unloadEvent, this._boundUnload);
+        // destroy() runs exit(), which removes the unload listener (and every
+        // other one) - no need to remove it here too.
         this.destroy();
       },
 

@@ -1,11 +1,6 @@
 sap.ui.define(
-  [
-    "sap/ui/core/Control",
-    "z2ui5/core/Lib",
-    "z2ui5/core/ViewSlots",
-    "z2ui5/core/AppState",
-  ],
-  (Control, Lib, ViewSlots, AppState) => {
+  ["sap/ui/core/Control", "z2ui5/core/Lib", "z2ui5/core/ViewSlots"],
+  (Control, Lib, ViewSlots) => {
     "use strict";
 
     // Invisible control that saves the scroll positions of the controls
@@ -49,17 +44,19 @@ sap.ui.define(
         const items = this.getProperty("items");
         if (!items) return;
         try {
-          // Resolve the binding path so we can mark only changed entries
-          // as dirty in changedPaths.
+          // Resolve the binding path so we can mark only changed entries dirty.
           const bindingInfo = this.getBindingInfo("items");
           const bindingPath =
             bindingInfo?.parts?.[0]?.path ?? bindingInfo?.path;
+          // Mark changed entries dirty on THIS control's own model - the same
+          // per-model set View1 ships as the delta - not a shared global set.
+          const changedPaths = this.getModel()?._z2ui5ChangedPaths;
           for (const [index, item] of items.entries()) {
             const scrollTop = this._getScrollTop(item);
             if (item.V !== scrollTop) {
               item.V = scrollTop;
-              if (bindingPath) {
-                AppState.state.changedPaths.add(`${bindingPath}/${index}/V`);
+              if (bindingPath && changedPaths) {
+                changedPaths.add(`${bindingPath}/${index}/V`);
               }
             }
           }

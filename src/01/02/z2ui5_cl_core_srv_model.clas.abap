@@ -39,7 +39,7 @@ CLASS z2ui5_cl_core_srv_model DEFINITION PUBLIC FINAL.
 
     METHODS main_json_stringify
       RETURNING
-        VALUE(result) TYPE string ##NEEDED.
+        VALUE(result) TYPE string.
 
 
 
@@ -341,17 +341,17 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
          WHERE name_ref  IS INITIAL
                AND type_kind  = z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_dref.
 
-      DATA(lv_name5) = |MO_APP->{ lr_attri->name }|.
-      ASSIGN (lv_name5) TO FIELD-SYMBOL(<ref>).
+      DATA(lv_path_ref) = |MO_APP->{ lr_attri->name }|.
+      ASSIGN (lv_path_ref) TO FIELD-SYMBOL(<ref>).
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      DATA(lv_name) = |MO_APP->{ lr_attri->name }->*|.
-      ASSIGN (lv_name) TO FIELD-SYMBOL(<val1>).
+      DATA(lv_path_deref) = |MO_APP->{ lr_attri->name }->*|.
+      ASSIGN (lv_path_deref) TO FIELD-SYMBOL(<val_deref>).
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      DATA(lo_descr) = z2ui5_cl_a2ui5_context=>rtti_get_typedescr_by_data( <val1> ).
+      DATA(lo_descr) = z2ui5_cl_a2ui5_context=>rtti_get_typedescr_by_data( <val_deref> ).
 
       CASE lo_descr->type_kind.
 
@@ -362,20 +362,20 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
                      AND type_kind    = z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_table
                      AND name_parent  = lr_attri->name.
 
-            DATA(lv_name6) = |MO_APP->{ lr_attri_child->name }|.
-            ASSIGN (lv_name6) TO FIELD-SYMBOL(<val_ref>).
+            DATA(lv_path_child) = |MO_APP->{ lr_attri_child->name }|.
+            ASSIGN (lv_path_child) TO FIELD-SYMBOL(<val_ref>).
             IF sy-subrc <> 0.
               CONTINUE.
             ENDIF.
             lr_attri->srtti_data = z2ui5_cl_a2ui5_context=>xml_srtti_stringify( <val_ref> ).
             CLEAR <val_ref>.
-            CLEAR <val1>.
+            CLEAR <val_deref>.
             CLEAR <ref>.
             EXIT.
           ENDLOOP.
 
         WHEN z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_struct1 OR z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_struct2.
-          lr_attri->srtti_data = z2ui5_cl_a2ui5_context=>xml_srtti_stringify( <val1> ).
+          lr_attri->srtti_data = z2ui5_cl_a2ui5_context=>xml_srtti_stringify( <val_deref> ).
 
       ENDCASE.
 
@@ -384,23 +384,23 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri2)  "#EC CI_SORTSEQ
          WHERE type_kind = z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_dref.
 
-      DATA(lv_name8) = |MO_APP->{ lr_attri2->name }|.
-      ASSIGN (lv_name8) TO FIELD-SYMBOL(<ref2>).
+      DATA(lv_path_dref) = |MO_APP->{ lr_attri2->name }|.
+      ASSIGN (lv_path_dref) TO FIELD-SYMBOL(<dref>).
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      CLEAR <ref2>.
+      CLEAR <dref>.
 
       IF lr_attri2->name_ref IS NOT INITIAL.
         CONTINUE.
       ENDIF.
 
-      DATA(lv_name10) = |MO_APP->{ lr_attri2->name }->*|.
-      ASSIGN (lv_name10) TO FIELD-SYMBOL(<val8>).
+      DATA(lv_path_dref_deref) = |MO_APP->{ lr_attri2->name }->*|.
+      ASSIGN (lv_path_dref_deref) TO FIELD-SYMBOL(<dref_deref>).
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      CLEAR <val8>.
+      CLEAR <dref_deref>.
     ENDLOOP.
 
   ENDMETHOD.
@@ -626,6 +626,12 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
   METHOD attri_update_entry_refs.
 
+    " Declared once at method level: both CASE branches below fill and read
+    " these, so an inline DATA(...) in only the first branch would read as if
+    " they belonged to that branch alone.
+    DATA lr_attri_ref     TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
+    DATA lr_attri_ref_ref TYPE REF TO data.
+
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)   "#EC CI_SORTSEQ
          WHERE check_dissolved  = abap_true
                AND name_ref        IS INITIAL.
@@ -640,14 +646,14 @@ CLASS z2ui5_cl_core_srv_model IMPLEMENTATION.
 
         WHEN z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_table.
 
-          LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri_ref) "#EC CI_SORTSEQ
+          LOOP AT mt_attri->* REFERENCE INTO lr_attri_ref "#EC CI_SORTSEQ
                WHERE check_dissolved  = abap_true
                      AND name            <> lr_attri->name
                      AND name_ref        IS INITIAL
                      AND type_kind        = z2ui5_cl_a2ui5_context=>cv_typedescr_typekind_table.
 
             TRY.
-                DATA(lr_attri_ref_ref) = attri_get_val_ref( lr_attri_ref->name ).
+                lr_attri_ref_ref = attri_get_val_ref( lr_attri_ref->name ).
               CATCH cx_root.
                 CONTINUE.
             ENDTRY.

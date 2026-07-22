@@ -127,7 +127,16 @@ sap.ui.define(
         try {
           const oTable = this._getTable();
           if (!oTable) return;
-          Lib.whenRendered(oTable, this, () => applyFn(oTable));
+          // whenRendered may defer applyFn to a later onAfterRendering, i.e.
+          // outside this try/catch. Guard the deferred call itself so a throw
+          // there is logged too (log, never throw) instead of escaping.
+          Lib.whenRendered(oTable, this, () => {
+            try {
+              applyFn(oTable);
+            } catch (e) {
+              Lib.logError(errorMsg, e);
+            }
+          });
         } catch (e) {
           Lib.logError(errorMsg, e);
         }

@@ -53,17 +53,17 @@ Browser (UI5 SPA)                          ABAP Backend
 
 #### Launchpad Special Case — Request Body Wrapping
 
-The frontend always sends the POST body as `{ "value": <payload> }` (see `app/webapp/core/Server.js`). In standalone mode this envelope arrives intact and `request_parse_body` unwraps it via `slice('value')`.
+The frontend always sends the POST body as `{ "value": <payload> }` (see `app/webapp/core/Server.js`). In standalone mode this envelope arrives intact and `request_parse_body` reaches through it via a `/value` path prefix.
 
 When the app runs inside the **SAP Fiori Launchpad** (FLP), requests may be routed through the FLP shell or an SAP Gateway proxy. In certain configurations this infrastructure strips the `value` envelope before the request reaches the ABAP ICF handler, so the payload arrives as a plain object without the `value` key.
 
-`request_parse_body` handles both cases defensively:
+`request_parse_body` handles both cases defensively by computing a root prefix once (a keyed `exists` check instead of slicing/copying the whole tree just to unwrap it), then slicing the sub-containers relative to it:
 ```abap
-DATA(lo_ajson2) = lo_ajson->slice( `value` ).
-IF lo_ajson2 IS BOUND.
-  lo_ajson = lo_ajson2.   " standalone: unwrap the value envelope
-ENDIF.
-" launchpad/gateway: no value key → use lo_ajson as-is
+DATA(lv_root) = COND string( WHEN lo_ajson->exists( `/value` ) = abap_true
+                             THEN `/value` ).
+" standalone: lv_root = `/value`   launchpad/gateway: lv_root = `` (empty)
+result-o_model = lo_ajson->slice( lv_root && `/MODEL` ).
+lo_ajson       = lo_ajson->slice( lv_root && `/S_FRONT` ).
 ```
 
 The Launchpad context is detected afterwards from the parsed request fields:
@@ -426,6 +426,7 @@ These rules apply to AI assistants **modifying the framework** (this repo). For 
 17. **`sap.m.MessageBox` always closes on Escape and gives no way to suppress it.** For a popup that must NOT be Escape-dismissable — the fatal-error overlay (`ErrorView.js`), which would otherwise let the user Escape back into a broken app — build a `sap.m.Dialog` with `escapeHandler: (oPromise) => oPromise.reject()` instead of a MessageBox (keep the raw-DOM overlay as the fallback for a broken core). Only the explicit actions (Details / Restart) may then close it.
 18. **A dialog loaded from a fragment with a fixed `id` must be loaded once and reused across open/close — never destroyed on close and re-loaded on the next open.** On OpenUI5 1.71 the destroy races the dialog's close animation, so a fragment-scoped control id is still registered when the reload runs → `adding element with duplicate id 'z2ui5DeveloperTools--developerToolsEditor'`. Pattern (see `DeveloperTools.js`): `show()` reuses an existing `this.oDialog` and only re-seeds the model; `close()` just closes it (and reuses it next time); `exit()` is the sole place that destroys it.
 19. **Do not declare a physical resource in `manifest.json` that the ABAP deployment does not actually serve.** `sap.ui5/resources.css` made UI5 load `css/style.css` as a real `<link>`, which 404s on the ABAP system — frontend files are served through the module preload (`z2ui5_cl_app_preload`), not as ICF resources at their raw URLs. The placeholder `style.css` was empty, so the entry was removed. If a real stylesheet is ever needed, serve it through the preload / HTTP handler, not a bare manifest `<link>`.
+20. **The frontend is a thin, data-driven executor — grow it through the declarative whitelists, not through new bespoke logic.** The backend drives frontend behaviour by *data* (an event name plus positional args), and `FrontendAction.js` turns that data into UI5 calls through three declarative whitelists: `CONTROL_METHODS` (imperative methods on a control resolved by id — `to`, `open`, `scrollToIndex`, `expandToLevel`, …), `GLOBAL_TARGETS` (whitelisted methods on a global object — `MessageToast`, `MessageBox`, `BusyIndicator`, `Theming`), and `BINDING_METHODS` (aggregation-binding ops — `filter`/`sort`, built from paths + whitelisted `FILTER_OPERATORS`, never from code). **When a new need is "call a UI5 control / global / binding method", add a whitelist entry** (method name + its arg *kinds*, cast via `castArg`) — do **not** add a new hand-written `handlers` entry that re-implements the dispatch. Only add a new `handlers` function for a genuine *browser capability* that has no control-method equivalent (clipboard, history, download, storage, timer, focus/scroll/caret, audio, launchpad nav). Whichever you add, it stays a thin executor: resolve/cast args, guard the DOM, and `Lib.logError` on failure — **never** embed business decisions, thresholds, unit conversions, or app-specific branching (those belong in the backend model; the one curated exception is the reactive value formatters in `model/formatter.js`, which must serve two-way-bound editable data to justify living client-side). This keeps the "delegate, never decide" contract (rule 11) at the action layer and keeps every payload data, not code — CSP-clean without `unsafe-eval` for the dispatch path.
 
 ## Design Decisions & Known Non-Issues
 

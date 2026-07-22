@@ -11,7 +11,9 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
       },
     },
     setFavicon(val) {
-      this.setProperty("favicon", val);
+      // Empty renderer -> suppress the no-op invalidation; the effect below
+      // (updating the <link> tag) is what actually matters.
+      this.setProperty("favicon", val, true);
       const href = Lib.toText(val);
       const existing = document.head.querySelector('link[rel="shortcut icon"]');
       if (existing) {

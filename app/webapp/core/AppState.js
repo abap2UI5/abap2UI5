@@ -61,7 +61,11 @@
 //                     the developer tools)
 //   contextId         stateful session id, header transport (Server)
 //   isBusy            roundtrip in flight (View1.eB / Server)
-//   changedPaths      Set of edited model paths for the delta (View1)
+//   oSentModel        the JSON model whose edited-path set the in-flight
+//                     request carried; its own _z2ui5ChangedPaths is cleared
+//                     once that request wins (Server), so a stale response
+//                     never clears newer edits and edits made in a DIFFERENT
+//                     model (e.g. a popover) are never shipped against this one
 //   checkNestAfter, checkNestAfter2  nested views rebuilt this roundtrip
 //   search            overrides location.search in S_FRONT; never written
 //                     by the framework itself, set externally (custom JS)
@@ -107,7 +111,7 @@ sap.ui.define([], () => {
       responseData: null,
       contextId: null,
       isBusy: false,
-      changedPaths: new Set(),
+      oSentModel: null,
       checkNestAfter: false,
       checkNestAfter2: false,
       search: null,

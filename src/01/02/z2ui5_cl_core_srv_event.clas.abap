@@ -78,7 +78,8 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
       " views (resolveById); a concrete view scopes the lookup to that slot.
       DATA(lv_view_slot) = COND string( WHEN view = z2ui5_if_client=>cs_view-main THEN ``
                                         ELSE CONV string( view ) ).
-      lt_arg = t_arg.
+      " lt_arg already equals t_arg (set at the top); this branch did not
+      " touch it, so inject the view slot directly.
       INSERT lv_view_slot INTO lt_arg INDEX 2.
     ELSEIF lv_val = z2ui5_if_client=>cs_event-bind_element.
       " element-bind a whole view slot to a table row: args = slot, index,

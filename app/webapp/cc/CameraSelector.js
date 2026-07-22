@@ -32,7 +32,7 @@ sap.ui.define(
             );
           }
         } catch (err) {
-          Lib.logError("CameraDeviceList: enumerateDevices failed", err);
+          Lib.logError("CameraSelector: enumerateDevices failed", err);
         }
       },
 

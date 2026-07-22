@@ -13,7 +13,9 @@ sap.ui.define(["sap/ui/core/Control", "z2ui5/core/Lib"], (Control, Lib) => {
       },
     },
     setSearch(val) {
-      this.setProperty("search", val);
+      // Empty renderer -> suppress the no-op invalidation; the URL rewrite
+      // below is the actual effect.
+      this.setProperty("search", val, true);
       try {
         const search = Lib.toText(val);
         // Pass the existing state object along instead of null so we do

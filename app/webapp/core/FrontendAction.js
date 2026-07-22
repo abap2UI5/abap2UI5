@@ -40,6 +40,10 @@ sap.ui.define(
 
     const _URLHelper = mobileLibrary.URLHelper;
 
+    // Animation duration (ms) mapped to a "smooth" scroll request; 0 means an
+    // instant jump. Shared by every scroll path in evScrollTo.
+    const SMOOTH_SCROLL_MS = 300;
+
     // ------------------------------------------------------------------
     // Launchpad helpers
     // ------------------------------------------------------------------
@@ -810,7 +814,7 @@ sap.ui.define(
           const delegate = oElement.getScrollDelegate?.();
           if (delegate?.scrollTo) {
             // ScrollEnablement / iScroll delegate: scrollTo(x, y, time)
-            delegate.scrollTo(x, y, smooth ? 300 : 0);
+            delegate.scrollTo(x, y, smooth ? SMOOTH_SCROLL_MS : 0);
             handled = true;
           }
         } catch {
@@ -823,15 +827,12 @@ sap.ui.define(
             oElement.getDomRef();
           if (dom?.scrollTo) {
             dom.scrollTo({ top: y, left: x, behavior });
-            handled = true;
           } else if (dom) {
             dom.scrollTop = y;
             dom.scrollLeft = x;
-            handled = true;
           } else if (oElement.scrollTo) {
             // sap.m.Page.scrollTo(y, time) - vertical only
-            oElement.scrollTo(y, smooth ? 300 : 0);
-            handled = true;
+            oElement.scrollTo(y, smooth ? SMOOTH_SCROLL_MS : 0);
           }
         }
       } catch (e) {
