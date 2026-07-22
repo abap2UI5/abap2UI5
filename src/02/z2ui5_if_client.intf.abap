@@ -215,6 +215,7 @@ INTERFACE z2ui5_if_client
   METHODS _event_client
     IMPORTING
       val           TYPE clike
+      view          TYPE clike        DEFAULT cs_view-main
       t_arg         TYPE string_table OPTIONAL
     RETURNING
       VALUE(result) TYPE string.
@@ -259,7 +260,9 @@ INTERFACE z2ui5_if_client
   "! The whitelisted control/binding calls are frontend events too; their t_arg
   "! is positional (an empty argument between filled ones keeps its slot as ``):
   "! cs_event-control_by_id - call a whitelisted method on a control resolved
-  "! by id: t_arg = id, view (`` = global lookup), method, params.
+  "! by id: t_arg = id, method, params. The view is passed as the separate
+  "! view parameter (default cs_view-main resolves the id across all open
+  "! views; pass cs_view-popup/popover/... to scope the lookup to that view).
   "! cs_event-control_global - call a whitelisted method on a global object
   "! (MESSAGE_TOAST, MESSAGE_BOX, BUSY_INDICATOR, THEMING):
   "! t_arg = object, method, params.
@@ -270,10 +273,11 @@ INTERFACE z2ui5_if_client
   "! operator, value1, value2 (empty values clear the filter); method `sort`:
   "! params = path, descending, group (abap_bool as `X`/``).
   "! Each of these events also works roundtrip-free when wired in the view via
-  "! _event_client with the same t_arg.
+  "! _event_client with the same t_arg (and view).
   METHODS follow_up_action
     IMPORTING
       val   TYPE string
+      view  TYPE clike        DEFAULT cs_view-main
       t_arg TYPE string_table OPTIONAL.
 
   METHODS check_on_event

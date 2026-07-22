@@ -47,6 +47,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     IF val IS NOT INITIAL
         AND val CO `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_`.
       lv_js = mo_srv_event->get_event_client( val   = val
+                                              view  = view
                                               t_arg = t_arg ).
     ENDIF.
 
@@ -408,8 +409,9 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_event_client.
 
-    result = mo_srv_event->get_event_client( val = val
-                                       t_arg     = t_arg ).
+    result = mo_srv_event->get_event_client( val   = val
+                                             view  = view
+                                             t_arg = t_arg ).
 
   ENDMETHOD.
 

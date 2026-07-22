@@ -412,13 +412,17 @@ CLASS ltcl_test_client IMPLEMENTATION.
 
     " the whitelisted control calls are plain follow-up events - t_arg is
     " positional: control_global = object, method, params; control_by_id =
-    " id, view (`` keeps the slot), method, params
+    " id, method, params (the view is the separate view parameter, default
+    " cs_view-main -> empty slot; a concrete view fills the slot)
     li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_global
                                  t_arg = VALUE #( ( `MESSAGE_TOAST` ) ( `show` ) ( `Hello` ) ) ).
     li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_by_id
-                                 t_arg = VALUE #( ( `demoPanel` ) ( `` ) ( `setExpanded` ) ( `X` ) ) ).
+                                 t_arg = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `X` ) ) ).
+    li_client->follow_up_action( val   = z2ui5_if_client=>cs_event-control_by_id
+                                 view  = z2ui5_if_client=>cs_view-popover
+                                 t_arg = VALUE #( ( `demoPanel` ) ( `setExpanded` ) ( `X` ) ) ).
 
-    cl_abap_unit_assert=>assert_equals( exp = 2
+    cl_abap_unit_assert=>assert_equals( exp = 3
                                         act = lines( mo_action->ms_next-s_set-s_follow_up_action-custom_js ) ).
     cl_abap_unit_assert=>assert_equals(
         exp = `.eF('CONTROL_GLOBAL', 'MESSAGE_TOAST', 'show', 'Hello')`
@@ -426,6 +430,9 @@ CLASS ltcl_test_client IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = `.eF('CONTROL_BY_ID', 'demoPanel', '', 'setExpanded', 'X')`
         act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 2 ] ).
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eF('CONTROL_BY_ID', 'demoPanel', 'POPOVER', 'setExpanded', 'X')`
+        act = mo_action->ms_next-s_set-s_follow_up_action-custom_js[ 3 ] ).
 
   ENDMETHOD.
 
