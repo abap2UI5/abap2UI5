@@ -302,6 +302,15 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   METHOD main_begin.
 
+    " Reset the static app-load buffer at the start of every request. It is a
+    " per-request read cache (repeated db_load of the same draft id within one
+    " roundtrip), keyed by draft id. In stateless ICF the class-data resets on
+    " its own, but in a stateful/long-lived work process it would otherwise
+    " accumulate one dead entry per roundtrip (each roundtrip mints a new draft
+    " id, so earlier entries are never read again). Clearing here keeps the
+    " intra-request cache while preventing cross-request growth.
+    z2ui5_cl_core_app=>db_load_buffer_clear( ).
+
     ms_request = request_json_to_abap( mv_request_json ).
 
     IF ms_request-s_front-id IS NOT INITIAL.
