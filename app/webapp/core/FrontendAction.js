@@ -260,7 +260,7 @@ sap.ui.define(
     // an out-of-range placeholder is left as-is.
     function formatTemplate(tpl, values) {
       return tpl.replace(/\{(\d+)\}/g, (m, i) =>
-        (Number(i) < values.length ? String(values[Number(i)]) : m),
+        Number(i) < values.length ? String(values[Number(i)]) : m,
       );
     }
 

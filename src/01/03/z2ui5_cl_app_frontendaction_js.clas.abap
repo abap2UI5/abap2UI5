@@ -280,7 +280,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // an out-of-range placeholder is left as-is.` && |\n| &&
              `    function formatTemplate(tpl, values) {` && |\n| &&
              `      return tpl.replace(/\{(\d+)\}/g, (m, i) =>` && |\n| &&
-             `        (Number(i) < values.length ? String(values[Number(i)]) : m),` && |\n| &&
+             `        Number(i) < values.length ? String(values[Number(i)]) : m,` && |\n| &&
              `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -417,7 +417,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        );` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      build(binding, args.slice(4));` && |\n| &&
+             `      build(binding, args.slice(4));` && |\n|.
+    result = result &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
@@ -435,8 +436,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evClipboardAppState() {` && |\n| &&
-             `      // Guard against a missing response so the copied link never carries` && |\n|.
-    result = result &&
+             `      // Guard against a missing response so the copied link never carries` && |\n| &&
              `      // the literal "undefined" as its state id.` && |\n| &&
              `      const id = AppState.state.oResponse?.ID || "";` && |\n| &&
              `      // Strip any existing hash (e.g. an active app-state) so the copied` && |\n| &&
@@ -818,7 +818,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            // ScrollEnablement / iScroll delegate: scrollTo(x, y, time)` && |\n| &&
              `            delegate.scrollTo(x, y, smooth ? 300 : 0);` && |\n| &&
              `            handled = true;` && |\n| &&
-             `          }` && |\n| &&
+             `          }` && |\n|.
+    result = result &&
              `        } catch {` && |\n| &&
              `          // fall through` && |\n| &&
              `        }` && |\n| &&
@@ -836,8 +837,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            handled = true;` && |\n| &&
              `          } else if (oElement.scrollTo) {` && |\n| &&
              `            // sap.m.Page.scrollTo(y, time) - vertical only` && |\n| &&
-             `            oElement.scrollTo(y, smooth ? 300 : 0);` && |\n|.
-    result = result &&
+             `            oElement.scrollTo(y, smooth ? 300 : 0);` && |\n| &&
              `            handled = true;` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
