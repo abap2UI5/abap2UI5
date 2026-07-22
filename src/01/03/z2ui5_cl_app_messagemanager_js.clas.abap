@@ -31,8 +31,15 @@ CLASS z2ui5_cl_app_messagemanager_js IMPLEMENTATION.
              `    // A message key that is stable across a round-trip: two rows describing` && |\n| &&
              `    // the same problem (same text, type and target) map to the same key, so` && |\n| &&
              `    // reconciling never adds a duplicate or drops a still-wanted message.` && |\n| &&
+             `    // Joined with a control char (0x01) that cannot occur in message` && |\n| &&
+             `    // text/type/target, so distinct rows never collide into one key. Built` && |\n| &&
+             `    // via fromCharCode so the separator stays visible in the source (a raw` && |\n| &&
+             `    // control-char literal is invisible and easily mangled by tooling).` && |\n| &&
+             `    const KEY_SEP = String.fromCharCode(1);` && |\n| &&
              `    const keyOf = (o) =>` && |\n| &&
-             `      [o.MESSAGE ?? o.message, o.TYPE ?? o.type, o.TARGET ?? o.target].join("");` && |\n| &&
+             `      [o.MESSAGE ?? o.message, o.TYPE ?? o.type, o.TARGET ?? o.target].join(` && |\n| &&
+             `        KEY_SEP,` && |\n| &&
+             `      );` && |\n| &&
              `` && |\n| &&
              `    // Invisible companion control that bridges the UI5 message manager to a` && |\n| &&
              `    // two-way bound ABAP table (``items``). The table is the app's OWN messages:` && |\n| &&

@@ -79,6 +79,13 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // Mark the model as framework-owned: updateModelIfRequired may only` && |\n| &&
              `        // reuse models that carry this change tracker.` && |\n| &&
              `        oModel._z2ui5Tracked = true;` && |\n| &&
+             `        // Edited paths are tracked PER MODEL, not in one shared set: the main` && |\n| &&
+             `        // view and a popup/popover each have their own JSON model, and a` && |\n| &&
+             `        // roundtrip ships only the picked model's own edits. A single shared` && |\n| &&
+             `        // set would build the delta of one model against another's data (a` && |\n| &&
+             `        // path missing there serializes as ``undefined`` and clears the field` && |\n| &&
+             `        // on the backend) and would drop the other model's still-unsent edits.` && |\n| &&
+             `        oModel._z2ui5ChangedPaths = new Set();` && |\n| &&
              `        oModel.attachPropertyChange((e) => {` && |\n| &&
              `          const params = e.getParameters();` && |\n| &&
              `          const raw = params.path;` && |\n| &&
@@ -88,7 +95,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          const changedPath =` && |\n| &&
              `            ctx && !raw.startsWith("/") ? ``${ctx.getPath()}/${raw}`` : raw;` && |\n| &&
              `          if (changedPath.startsWith("/")) {` && |\n| &&
-             `            AppState.state.changedPaths.add(changedPath);` && |\n| &&
+             `            oModel._z2ui5ChangedPaths.add(changedPath);` && |\n| &&
              `          }` && |\n| &&
              `        });` && |\n| &&
              `        return oModel;` && |\n| &&
@@ -181,8 +188,15 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            const newUrl = ``${window.location.pathname}${window.location.search}#${hash}${PARAMS.SET_PUSH_STATE}``;` && |\n| &&
              `            history.pushState(null, "", newUrl);` && |\n| &&
              `          }` && |\n| &&
+             `          // Keep the leading "/" so the live URL matches the format the copy` && |\n| &&
+             `          // link (FrontendAction.evClipboardAppState) writes and the backend` && |\n| &&
+             `          // restore path expects: request_app_start_draft reads the state id` && |\n| &&
+             `          // via iv_hash+2, i.e. it skips exactly the "#/" prefix. Without the` && |\n| &&
+             `          // slash the live hash is "#z2ui5-xapp-state=..." and iv_hash+2 eats` && |\n| &&
+             `          // the leading "z", so bookmarking/reloading the live URL never` && |\n| &&
+             `          // restores the app state (only the explicitly copied link did).` && |\n| &&
              `          const newHash = PARAMS.SET_APP_STATE_ACTIVE` && |\n| &&
-             `            ? ``z2ui5-xapp-state=${ID || ""}``` && |\n| &&
+             `            ? ``/z2ui5-xapp-state=${ID || ""}``` && |\n| &&
              `            : "";` && |\n| &&
              `          _hashChanger.replaceHash(newHash);` && |\n| &&
              `        } catch (e) {` && |\n| &&
@@ -403,7 +417,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          clearTimeout(AppState.state.timers[key]);` && |\n| &&
              `          delete AppState.state.timers[key];` && |\n| &&
              `        }` && |\n| &&
-             `` && |\n| &&
+             `` && |\n|.
+    result = result &&
              `        AppState.state.isBusy = true;` && |\n| &&
              `        BusyIndicator.show();` && |\n| &&
              `` && |\n| &&
@@ -417,21 +432,24 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // mapping is: main app controller -> main view, popup controller ->` && |\n| &&
              `        // popup view, etc.` && |\n| &&
              `        const oModel = this._pickModelForRoundtrip(useMainModel);` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `        Lib.runCallbacks(AppState.state.onBeforeRoundtrip);` && |\n| &&
              `` && |\n| &&
              `        // If the user edited model paths, send only the delta to keep the` && |\n| &&
-             `        // payload small.` && |\n| &&
-             `        if (oModel && AppState.state.changedPaths.size > 0) {` && |\n| &&
+             `        // payload small. The edited paths live on the picked model itself` && |\n| &&
+             `        // (set in _trackChanges), so onBeforeRoundtrip hooks that mark paths` && |\n| &&
+             `        // dirty (e.g. the Scrolling control) must have run above first.` && |\n| &&
+             `        const changedPaths = oModel?._z2ui5ChangedPaths;` && |\n| &&
+             `        if (oModel && changedPaths?.size > 0) {` && |\n| &&
              `          const data = oModel.getData();` && |\n| &&
              `          if (data) {` && |\n| &&
-             `            oBody.MODEL = Lib.buildDeltaFromPaths(` && |\n| &&
-             `              AppState.state.changedPaths,` && |\n| &&
-             `              data,` && |\n| &&
-             `            );` && |\n| &&
+             `            oBody.MODEL = Lib.buildDeltaFromPaths(changedPaths, data);` && |\n| &&
              `          }` && |\n| &&
              `        }` && |\n| &&
+             `        // Remember which model this request carried so the winning response` && |\n| &&
+             `        // clears exactly its edits (Server.readHttp) - a stale response clears` && |\n| &&
+             `        // nothing, and edits in other models stay pending for their own send.` && |\n| &&
+             `        AppState.state.oSentModel = oModel;` && |\n| &&
              `` && |\n| &&
              `        oBody.ID = AppState.state.oResponse?.ID;` && |\n| &&
              `        // Arguments travel as raw JSON values - the request body is` && |\n| &&
@@ -439,7 +457,10 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        // turned into JSON strings by the backend when it fills` && |\n| &&
              `        // T_EVENT_ARG, so apps keep receiving them as strings; stringifying` && |\n| &&
              `        // them here as well would encode (and escape) the payload twice.` && |\n| &&
-             `        oBody.ARGUMENTS = args.slice();` && |\n| &&
+             `        // ``args`` is this call's own rest-parameter array (Server.roundtrip` && |\n| &&
+             `        // mutates ARGUMENTS via shift), so it can be handed over directly -` && |\n| &&
+             `        // no defensive copy needed.` && |\n| &&
+             `        oBody.ARGUMENTS = args;` && |\n| &&
              `` && |\n| &&
              `        Server.roundtrip(oBody);` && |\n| &&
              `        Lib.runCallbacks(AppState.state.onAfterRoundtrip);` && |\n| &&

@@ -31,7 +31,9 @@ CLASS z2ui5_cl_app_favicon_js IMPLEMENTATION.
              `      },` && |\n| &&
              `    },` && |\n| &&
              `    setFavicon(val) {` && |\n| &&
-             `      this.setProperty("favicon", val);` && |\n| &&
+             `      // Empty renderer -> suppress the no-op invalidation; the effect below` && |\n| &&
+             `      // (updating the <link> tag) is what actually matters.` && |\n| &&
+             `      this.setProperty("favicon", val, true);` && |\n| &&
              `      const href = Lib.toText(val);` && |\n| &&
              `      const existing = document.head.querySelector('link[rel="shortcut icon"]');` && |\n| &&
              `      if (existing) {` && |\n| &&

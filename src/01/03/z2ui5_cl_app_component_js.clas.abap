@@ -249,7 +249,8 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      _onUnload() {` && |\n| &&
-             `        window.removeEventListener(this._unloadEvent, this._boundUnload);` && |\n| &&
+             `        // destroy() runs exit(), which removes the unload listener (and every` && |\n| &&
+             `        // other one) - no need to remove it here too.` && |\n| &&
              `        this.destroy();` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&

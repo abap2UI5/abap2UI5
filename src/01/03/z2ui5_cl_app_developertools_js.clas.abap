@@ -44,9 +44,13 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `    // hand in the editor.` && |\n| &&
              `    const SYSTEM_OPEN_LEVELS = 2;` && |\n| &&
              `` && |\n| &&
+             `    // Leading-space matcher, hoisted so the per-line fold loop below does not` && |\n| &&
+             `    // recompile it on every row of a large JSON dump.` && |\n| &&
+             `    const LEADING_SPACES = /^ */;` && |\n| &&
+             `` && |\n| &&
              `    // JSON nesting depth of a pretty-printed line, read from its indentation.` && |\n| &&
              `    function indentLevel(line, unit) {` && |\n| &&
-             `      return Math.floor(/^ */.exec(line)[0].length / unit);` && |\n| &&
+             `      return Math.floor(LEADING_SPACES.exec(line)[0].length / unit);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Fold every foldable block in the ACE edit session that sits at or below` && |\n| &&
@@ -77,18 +81,29 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `    // throwing and degrading to a bare "[object Object]".` && |\n| &&
              `    function toJson(val) {` && |\n| &&
              `      const safe = val === undefined ? null : val;` && |\n| &&
-             `      const seen = new WeakSet();` && |\n| &&
+             `      // Track the ANCESTOR chain, not every object ever visited: a plain` && |\n| &&
+             `      // WeakSet of all seen objects would mislabel a value referenced twice in` && |\n| &&
+             `      // sibling branches (common in the live z2ui5 global) as "[Circular]".` && |\n| &&
+             `      // ``this`` inside the replacer is the object the key belongs to, so we can` && |\n| &&
+             `      // unwind the stack back to it before testing containment.` && |\n| &&
+             `      const ancestors = [];` && |\n| &&
              `      try {` && |\n| &&
              `        return JSON.stringify(` && |\n| &&
              `          safe,` && |\n| &&
-             `          (key, value) => {` && |\n| &&
+             `          function (key, value) {` && |\n| &&
              `            if (typeof value === "object" && value !== null) {` && |\n| &&
-             `              if (seen.has(value)) return "[Circular]";` && |\n| &&
-             `              seen.add(value);` && |\n| &&
+             `              while (` && |\n| &&
+             `                ancestors.length > 0 &&` && |\n| &&
+             `                ancestors[ancestors.length - 1] !== this` && |\n| &&
+             `              ) {` && |\n| &&
+             `                ancestors.pop();` && |\n| &&
+             `              }` && |\n| &&
+             `              if (ancestors.includes(value)) return "[Circular]";` && |\n| &&
+             `              ancestors.push(value);` && |\n| &&
              `            }` && |\n| &&
              `            return value;` && |\n| &&
              `          },` && |\n| &&
-             `          3,` && |\n| &&
+             `          INDENT_UNIT,` && |\n| &&
              `        );` && |\n| &&
              `      } catch {` && |\n| &&
              `        // The developer tools must never crash the host app, so degrade to the` && |\n| &&
@@ -402,7 +417,8 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `            "POPOVER",` && |\n| &&
              `            xml(() => xmlSources.POPOVER().xml),` && |\n| &&
              `          );` && |\n| &&
-             `          push(` && |\n| &&
+             `          push(` && |\n|.
+    result = result &&
              `            "POPOVER MODEL",` && |\n| &&
              `            json(() => jsonSources.POPOVER_MODEL()),` && |\n| &&
              `          );` && |\n| &&
@@ -417,8 +433,7 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `            json(() => jsonSources.NEST1_MODEL()),` && |\n| &&
              `          );` && |\n| &&
              `        }` && |\n| &&
-             `        if (getViewContent(ViewSlots.getView("NEST2"))) {` && |\n|.
-    result = result &&
+             `        if (getViewContent(ViewSlots.getView("NEST2"))) {` && |\n| &&
              `          push(` && |\n| &&
              `            "NEST2",` && |\n| &&
              `            xml(() => xmlSources.NEST2().xml),` && |\n| &&
@@ -516,7 +531,7 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `      // any failure leaves the tab fully expanded rather than breaking the` && |\n| &&
              `      // developer tools.` && |\n| &&
              `      foldSystemTab(triesLeft = 10) {` && |\n| &&
-             `        let editor = null;` && |\n| &&
+             `        let editor;` && |\n| &&
              `        try {` && |\n| &&
              `          editor = this.getEditorInstance();` && |\n| &&
              `        } catch (e) {` && |\n| &&

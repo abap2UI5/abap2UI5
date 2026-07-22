@@ -38,7 +38,9 @@ CLASS z2ui5_cl_app_lptitle_js IMPLEMENTATION.
              `        },` && |\n| &&
              `      },` && |\n| &&
              `      setTitle(val) {` && |\n| &&
-             `        this.setProperty("title", val);` && |\n| &&
+             `        // Empty renderer -> suppress the no-op invalidation; the shell title` && |\n| &&
+             `        // is set explicitly below.` && |\n| &&
+             `        this.setProperty("title", val, true);` && |\n| &&
              `        try {` && |\n| &&
              `          const shell = AppState.state.oLaunchpad?.ShellUIService;` && |\n| &&
              `          if (!shell?.setTitle) return;` && |\n| &&
@@ -57,7 +59,7 @@ CLASS z2ui5_cl_app_lptitle_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      setApplicationFullWidth(val) {` && |\n| &&
-             `        this.setProperty("ApplicationFullWidth", val);` && |\n| &&
+             `        this.setProperty("ApplicationFullWidth", val, true);` && |\n| &&
              `        try {` && |\n| &&
              `          const config = AppState.state.oLaunchpad?.AppConfiguration;` && |\n| &&
              `          if (config?.setApplicationFullWidth) {` && |\n| &&

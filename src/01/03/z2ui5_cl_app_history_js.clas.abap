@@ -33,7 +33,9 @@ CLASS z2ui5_cl_app_history_js IMPLEMENTATION.
              `      },` && |\n| &&
              `    },` && |\n| &&
              `    setSearch(val) {` && |\n| &&
-             `      this.setProperty("search", val);` && |\n| &&
+             `      // Empty renderer -> suppress the no-op invalidation; the URL rewrite` && |\n| &&
+             `      // below is the actual effect.` && |\n| &&
+             `      this.setProperty("search", val, true);` && |\n| &&
              `      try {` && |\n| &&
              `        const search = Lib.toText(val);` && |\n| &&
              `        // Pass the existing state object along instead of null so we do` && |\n| &&

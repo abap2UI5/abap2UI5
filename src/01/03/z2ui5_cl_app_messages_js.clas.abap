@@ -59,6 +59,11 @@ CLASS z2ui5_cl_app_messages_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function showToast(msg, oController) {` && |\n| &&
+             `      // autoClose and closeOnBrowserNavigation are always sent (the public` && |\n| &&
+             `      // API message_toast_display defaults both to abap_true), so Boolean()` && |\n| &&
+             `      // is meaningful here - it never silently defeats UI5's own true default` && |\n| &&
+             `      // the way it would for an omitted field. Same rationale as showBox's` && |\n| &&
+             `      // closeOnNavigation below.` && |\n| &&
              `      const mOptions = {` && |\n| &&
              `        duration: parseMs(msg.DURATION, 3000),` && |\n| &&
              `        width: msg.WIDTH || "15em",` && |\n| &&
