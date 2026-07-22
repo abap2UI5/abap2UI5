@@ -5,11 +5,10 @@
 //
 //   <mvc:View xmlns:core="sap.ui.core"
 //             core:require="{Formatter: 'z2ui5/model/formatter'}">
-//     ... state="{ parts: [{path: 'WEIGHT'}, {path: 'UNIT'}],
-//                  formatter: 'Formatter.weightState' }"
+//     ... src="{ path: 'STATUS', formatter: 'Formatter.stockStatusIcon' }"
 //
 // The module is also published as the z2ui5.Formatter global, so
-// formatter: 'z2ui5.Formatter.weightState' keeps working on releases
+// formatter: 'z2ui5.Formatter.stockStatusIcon' keeps working on releases
 // without core:require support.
 //
 // The set is CURATED and grows via framework PRs: every function here is a
@@ -65,32 +64,14 @@ sap.ui.define(["sap/ui/core/IconPool"], (IconPool) => {
     },
 
     // --- value formatters ---
-
-    // Weight -> sap.ui.core.ValueState, the classic demo-kit formatter
-    // (sap.m.sample.Table Formatter.js): thresholds in KG (< 1 Success,
-    // < 5 Warning, else Error), a "G" unit is converted, non-numeric or
-    // negative weights map to None.
-    weightState(measure, unit) {
-      let adjusted = parseFloat(measure);
-      if (isNaN(adjusted)) return "None";
-      if (unit === "G") adjusted = adjusted / 1000;
-      if (adjusted < 0) return "None";
-      if (adjusted < 1) return "Success";
-      if (adjusted < 5) return "Warning";
-      return "Error";
-    },
-
-    // The demo kit's second weightState shape (sap.m.sample.TableEditable
-    // Formatter.js and five sibling Table samples): a single unit-less
-    // value, thresholds < 1000 Success, < 2000 Warning, else Error;
-    // non-numeric or negative values map to None.
-    weightStateByValue(value) {
-      const adjusted = parseFloat(value);
-      if (isNaN(adjusted) || adjusted < 0) return "None";
-      if (adjusted < 1000) return "Success";
-      if (adjusted < 2000) return "Warning";
-      return "Error";
-    },
+    //
+    // Presentation only. Deriving a state from a raw measure (the demo kit's
+    // weightState: parseFloat + KG conversion + Success/Warning/Error
+    // thresholds) is BUSINESS LOGIC and does NOT belong here - abap2UI5 is a
+    // thin frontend, so a port computes that in ABAP and binds the finished
+    // value (state="{WEIGHT_STATE}"). The status -> ValueState/icon lookups
+    // below only map an already-classified business status to a visual, which
+    // is presentation.
 
     // Product stock status -> sap.ui.core.ValueState.
     stockStatusState(status) {

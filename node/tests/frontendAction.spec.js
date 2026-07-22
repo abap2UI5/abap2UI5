@@ -18,9 +18,11 @@ function load() {
   const BusyIndicator = { show: rec("busy.show"), hide: rec("busy.hide") };
   const Theming = { setTheme: rec("theme.set") };
   const controls = {};
+  const views = {};
   const ViewSlots = {
     resolveById: (id) => controls[id] || null,
     byId: (_key, id) => controls[id] || null,
+    getView: (key) => views[key] || null,
   };
   // whenRendered runs its callback once the control is in the DOM; the real
   // one defers to onAfterRendering when it is not. The stub runs it straight
@@ -55,7 +57,7 @@ function load() {
       "z2ui5/core/AppState": AppState,
     },
   });
-  return { FrontendAction: module, calls, errors, controls };
+  return { FrontendAction: module, calls, errors, controls, views };
 }
 
 test.describe("CONTROL_GLOBAL (global objects)", () => {
@@ -68,6 +70,103 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
       "Saved!",
     ]);
     expect(calls).toEqual([["toast.show", "Saved!"]]);
+  });
+
+  test("composes a toast from a template + client-resolved extras", () => {
+    const { FrontendAction, calls } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_TOAST",
+      "show",
+      "Action triggered on item: {0}",
+      "Franchise Store",
+    ]);
+    expect(calls).toEqual([["toast.show", "Action triggered on item: Franchise Store"]]);
+  });
+
+  test("substitutes a value-first template ({0} ...) and multiple placeholders", () => {
+    const { FrontendAction, calls } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_TOAST",
+      "show",
+      "{0} selected at {1}",
+      "Item A",
+      "10:30",
+    ]);
+    expect(calls).toEqual([["toast.show", "Item A selected at 10:30"]]);
+  });
+
+  test("leaves an out-of-range placeholder untouched", () => {
+    const { FrontendAction, calls } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_TOAST",
+      "show",
+      "{0} and {1}",
+      "only-one",
+    ]);
+    expect(calls).toEqual([["toast.show", "only-one and {1}"]]);
+  });
+
+  test("MessageBox variants also accept a template", () => {
+    const { FrontendAction, calls } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_BOX",
+      "error",
+      "Upload of {0} failed",
+      "report.pdf",
+    ]);
+    expect(calls).toEqual([["box.error", "Upload of report.pdf failed"]]);
+  });
+
+  test("a lone string is passed through unchanged (no template parsing)", () => {
+    const { FrontendAction, calls } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_TOAST",
+      "show",
+      "100% {done}",
+    ]);
+    expect(calls).toEqual([["toast.show", "100% {done}"]]);
+  });
+
+  test("a conditional placeholder {N?a:b} picks by truthiness of the value", () => {
+    const { FrontendAction, calls } = load();
+    // toggle pressed -> "Pressed", not pressed -> "Unpressed" (080 shape)
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_TOAST",
+      "show",
+      "{0} {1?Pressed:Unpressed}",
+      "__button0",
+      "true",
+    ]);
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_TOAST",
+      "show",
+      "{0} {1?Pressed:Unpressed}",
+      "__button0",
+      "false",
+    ]);
+    expect(calls).toEqual([
+      ["toast.show", "__button0 Pressed"],
+      ["toast.show", "__button0 Unpressed"],
+    ]);
+  });
+
+  test("conditional treats empty/0/null as falsy", () => {
+    const { FrontendAction, calls } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_TOAST",
+      "show",
+      "{0?on:off}",
+      "",
+    ]);
+    expect(calls).toEqual([["toast.show", "off"]]);
   });
 
   test("casts int args (BusyIndicator.show(0))", () => {
@@ -256,6 +355,23 @@ test.describe("CONTROL_BY_ID", () => {
       ["expand", false],
     ]);
   });
+
+  test("add/remove/toggleStyleClass pass the class name through", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.dlg = {
+      addStyleClass: (c) => calls.push(["add", c]),
+      removeStyleClass: (c) => calls.push(["remove", c]),
+      toggleStyleClass: (c) => calls.push(["toggle", c]),
+    };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "dlg", "", "addStyleClass", "myClass"]);
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "dlg", "", "removeStyleClass", "myClass"]);
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "dlg", "", "toggleStyleClass", "myClass"]);
+    expect(calls).toEqual([
+      ["add", "myClass"],
+      ["remove", "myClass"],
+      ["toggle", "myClass"],
+    ]);
+  });
 });
 
 test.describe("BINDING_CALL", () => {
@@ -432,5 +548,29 @@ test.describe("BINDING_CALL", () => {
     ]);
     expect(calls).toHaveLength(0);
     expect(errors).toHaveLength(1);
+  });
+});
+
+test.describe("BIND_ELEMENT", () => {
+  test("element-binds the slot view to <path>/<index>", () => {
+    const { FrontendAction, views } = load();
+    const bound = [];
+    views.POPOVER = { bindElement: (p) => bound.push(p) };
+    FrontendAction.execute(null, ["BIND_ELEMENT", "POPOVER", "5", "/T_PRODUCTS"]);
+    expect(bound).toEqual(["/T_PRODUCTS/5"]);
+  });
+
+  test("strips braces from the binding path (client->_bind form)", () => {
+    const { FrontendAction, views } = load();
+    const bound = [];
+    views.POPOVER = { bindElement: (p) => bound.push(p) };
+    FrontendAction.execute(null, ["BIND_ELEMENT", "POPOVER", "2", "{/MT_TAB}"]);
+    expect(bound).toEqual(["/MT_TAB/2"]);
+  });
+
+  test("logs and no-ops when the slot view is missing", () => {
+    const { FrontendAction, errors } = load();
+    FrontendAction.execute(null, ["BIND_ELEMENT", "POPOVER", "5", "/T_PRODUCTS"]);
+    expect(errors.some((e) => String(e).includes("no view for slot"))).toBe(true);
   });
 });

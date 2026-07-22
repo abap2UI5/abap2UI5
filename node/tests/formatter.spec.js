@@ -26,29 +26,10 @@ function load() {
 }
 
 test.describe("Formatter module", () => {
-  test("weightState maps KG weights to the ValueState thresholds", () => {
-    const { Formatter } = load();
-    expect(Formatter.weightState("0.2", "KG")).toBe("Success");
-    expect(Formatter.weightState("4.5", "KG")).toBe("Warning");
-    expect(Formatter.weightState("21", "KG")).toBe("Error");
-  });
-
-  test("weightState converts G and guards NaN/negative", () => {
-    const { Formatter } = load();
-    expect(Formatter.weightState("800", "G")).toBe("Success"); // 0.8 kg
-    expect(Formatter.weightState("4500", "G")).toBe("Warning"); // 4.5 kg
-    expect(Formatter.weightState("abc", "KG")).toBe("None");
-    expect(Formatter.weightState("-1", "KG")).toBe("None");
-  });
-
-  test("weightStateByValue maps unit-less weights to the 1000/2000 thresholds", () => {
-    const { Formatter } = load();
-    expect(Formatter.weightStateByValue("999")).toBe("Success");
-    expect(Formatter.weightStateByValue("1500")).toBe("Warning");
-    expect(Formatter.weightStateByValue("2000")).toBe("Error");
-    expect(Formatter.weightStateByValue("abc")).toBe("None");
-    expect(Formatter.weightStateByValue("-1")).toBe("None");
-  });
+  // Note: deriving a ValueState from a raw weight (the former weightState /
+  // weightStateByValue) is business logic and was removed from the curated
+  // formatter - a port classifies the measure in ABAP and binds the finished
+  // state (abap2UI5 is a thin frontend), so there is nothing to test here.
 
   test("stockStatusState/-Icon map the stock status", () => {
     const { Formatter } = load();
