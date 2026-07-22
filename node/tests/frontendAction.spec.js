@@ -132,6 +132,43 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
     expect(calls).toEqual([["toast.show", "100% {done}"]]);
   });
 
+  test("a conditional placeholder {N?a:b} picks by truthiness of the value", () => {
+    const { FrontendAction, calls } = load();
+    // toggle pressed -> "Pressed", not pressed -> "Unpressed" (080 shape)
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_TOAST",
+      "show",
+      "{0} {1?Pressed:Unpressed}",
+      "__button0",
+      "true",
+    ]);
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_TOAST",
+      "show",
+      "{0} {1?Pressed:Unpressed}",
+      "__button0",
+      "false",
+    ]);
+    expect(calls).toEqual([
+      ["toast.show", "__button0 Pressed"],
+      ["toast.show", "__button0 Unpressed"],
+    ]);
+  });
+
+  test("conditional treats empty/0/null as falsy", () => {
+    const { FrontendAction, calls } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_TOAST",
+      "show",
+      "{0?on:off}",
+      "",
+    ]);
+    expect(calls).toEqual([["toast.show", "off"]]);
+  });
+
   test("casts int args (BusyIndicator.show(0))", () => {
     const { FrontendAction, calls } = load();
     FrontendAction.execute(null, [

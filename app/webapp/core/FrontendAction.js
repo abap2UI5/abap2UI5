@@ -256,12 +256,24 @@ sap.ui.define(
       obj[method](...castArgs(kinds, raw));
     }
 
-    // replace {0},{1},... in a template with the positional values (as strings);
+    // replace placeholders in a template with the positional values (as
+    // strings). Two forms:
+    //   {N}                -> the Nth value verbatim
+    //   {N?trueText:falseText} -> trueText when the Nth value is truthy, else
+    //                         falseText (a boolean event param arrives as
+    //                         "true"/"false", so a toggle can toast
+    //                         "Pressed"/"Unpressed" without a server round-trip;
+    //                         trueText/falseText carry no ":" or "}")
     // an out-of-range placeholder is left as-is.
     function formatTemplate(tpl, values) {
-      return tpl.replace(/\{(\d+)\}/g, (m, i) =>
-        Number(i) < values.length ? String(values[Number(i)]) : m,
-      );
+      return tpl.replace(/\{(\d+)(?:\?([^:}]*):([^}]*))?\}/g, (m, i, tText, fText) => {
+        const n = Number(i);
+        if (n >= values.length) return m;
+        const v = String(values[n]);
+        if (tText === undefined) return v;
+        const truthy = v !== "" && !/^(false|0|undefined|null)$/i.test(v);
+        return truthy ? tText : fText;
+      });
     }
 
     // ------------------------------------------------------------------

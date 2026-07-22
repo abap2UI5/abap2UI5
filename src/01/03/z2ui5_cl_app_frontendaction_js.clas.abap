@@ -276,12 +276,24 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      obj[method](...castArgs(kinds, raw));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    // replace {0},{1},... in a template with the positional values (as strings);` && |\n| &&
+             `    // replace placeholders in a template with the positional values (as` && |\n| &&
+             `    // strings). Two forms:` && |\n| &&
+             `    //   {N}                -> the Nth value verbatim` && |\n| &&
+             `    //   {N?trueText:falseText} -> trueText when the Nth value is truthy, else` && |\n| &&
+             `    //                         falseText (a boolean event param arrives as` && |\n| &&
+             `    //                         "true"/"false", so a toggle can toast` && |\n| &&
+             `    //                         "Pressed"/"Unpressed" without a server round-trip;` && |\n| &&
+             `    //                         trueText/falseText carry no ":" or "}")` && |\n| &&
              `    // an out-of-range placeholder is left as-is.` && |\n| &&
              `    function formatTemplate(tpl, values) {` && |\n| &&
-             `      return tpl.replace(/\{(\d+)\}/g, (m, i) =>` && |\n| &&
-             `        Number(i) < values.length ? String(values[Number(i)]) : m,` && |\n| &&
-             `      );` && |\n| &&
+             `      return tpl.replace(/\{(\d+)(?:\?([^:}]*):([^}]*))?\}/g, (m, i, tText, fText) => {` && |\n| &&
+             `        const n = Number(i);` && |\n| &&
+             `        if (n >= values.length) return m;` && |\n| &&
+             `        const v = String(values[n]);` && |\n| &&
+             `        if (tText === undefined) return v;` && |\n| &&
+             `        const truthy = v !== "" && !/^(false|0|undefined|null)$/i.test(v);` && |\n| &&
+             `        return truthy ? tText : fText;` && |\n| &&
+             `      });` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&

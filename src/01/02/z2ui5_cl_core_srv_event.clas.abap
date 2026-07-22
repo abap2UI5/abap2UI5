@@ -115,14 +115,20 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
         CONTINUE.
       ENDIF.
       " a message template that starts with a bare positional placeholder
-      " ({0}, {1}, ... immediately closed) is a plain string, not a binding
-      " or object literal, so it must still be quoted - the `{`-raw exception
-      " below is only for real bindings/object literals like {/PATH} or {..}.
-      " {0/field} (relative binding) keeps a `/` after the digits and is
-      " therefore not matched, so it stays raw as before.
-      FIND REGEX `^\{[0-9]+\}` IN lv_new.
+      " ({0}, {1}, ... - either immediately closed {0} or a conditional
+      " {0?a:b}) is a plain string, not a binding or object literal, so it must
+      " still be quoted - the `{`-raw exception below is only for real
+      " bindings/object literals like {/PATH} or {..}. {0/field} (relative
+      " binding) keeps a `/` after the digits and is therefore not matched, so
+      " it stays raw as before.
+      FIND REGEX `^\{[0-9]+[?}]` IN lv_new.
       DATA(lv_is_placeholder) = xsdbool( sy-subrc = 0 ).
       IF ( lv_new(1) <> `$` AND lv_new(1) <> `{` AND lv_new NP `.eB(*` ) OR lv_is_placeholder = abap_true.
+        " a quoted arg is JS string source (a backslash escape like \n stays a
+        " newline); escape only an embedded ' so it cannot close the '...'
+        " wrapper - otherwise a template like Value changed to '{0}' emits
+        " broken JS.
+        REPLACE ALL OCCURRENCES OF `'` IN lv_new WITH `\'`.
         lv_new = |'{ lv_new }'|.
       ENDIF.
       result = |{ result }{ lv_pending }, { lv_new }|.
