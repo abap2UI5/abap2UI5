@@ -67,7 +67,7 @@ sap.ui.define(["sap/ui/core/IconPool"], (IconPool) => {
     //
     // Presentation only. Deriving a state from a raw measure (the demo kit's
     // weightState: parseFloat + KG conversion + Success/Warning/Error
-    // thresholds) is BUSINESS LOGIC and does NOT belong here — abap2UI5 is a
+    // thresholds) is BUSINESS LOGIC and does NOT belong here - abap2UI5 is a
     // thin frontend, so a port computes that in ABAP and binds the finished
     // value (state="{WEIGHT_STATE}"). The status -> ValueState/icon lookups
     // below only map an already-classified business status to a visual, which

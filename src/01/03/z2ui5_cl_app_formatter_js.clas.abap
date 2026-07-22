@@ -87,7 +87,7 @@ CLASS z2ui5_cl_app_formatter_js IMPLEMENTATION.
              `    //` && |\n| &&
              `    // Presentation only. Deriving a state from a raw measure (the demo kit's` && |\n| &&
              `    // weightState: parseFloat + KG conversion + Success/Warning/Error` && |\n| &&
-             `    // thresholds) is BUSINESS LOGIC and does NOT belong here — abap2UI5 is a` && |\n| &&
+             `    // thresholds) is BUSINESS LOGIC and does NOT belong here - abap2UI5 is a` && |\n| &&
              `    // thin frontend, so a port computes that in ABAP and binds the finished` && |\n| &&
              `    // value (state="{WEIGHT_STATE}"). The status -> ValueState/icon lookups` && |\n| &&
              `    // below only map an already-classified business status to a visual, which` && |\n| &&
