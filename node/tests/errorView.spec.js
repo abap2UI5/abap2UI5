@@ -58,7 +58,21 @@ function load({ ui5 = true } = {}) {
       return inst;
     };
 
-  const modules = ui5
+  // ui5 === true    -> the controls are already loaded: the synchronous
+  //                    (string) require resolves them, so the friendly dialog
+  //                    renders on the first try.
+  // ui5 === "async" -> the controls are NOT loaded yet: the synchronous require
+  //                    returns undefined (friendly dialog skipped), but the
+  //                    asynchronous (array) require loads them and the retry
+  //                    renders the dialog. This models the first fatal error of
+  //                    a session, e.g. a popover fragment that fails to render
+  //                    before any Dialog was used.
+  // ui5 === false   -> the controls can never be loaded (broken core): both the
+  //                    sync require and the async errback fail, so the raw-DOM
+  //                    overlay is the only display.
+  const haveModules = ui5 !== false;
+  const asyncOnly = ui5 === "async";
+  const modules = haveModules
     ? {
         "sap/m/Dialog": makeCtor("Dialog"),
         "sap/m/Button": makeCtor("Button"),
@@ -66,8 +80,27 @@ function load({ ui5 = true } = {}) {
       }
     : {};
   // Augment the loader-provided sap.ui (which already carries define) with a
-  // require that resolves the lazily-required controls to the stubs above.
-  sandbox.sap.ui.require = (name) => modules[name];
+  // require that resolves the lazily-required controls to the stubs above. It
+  // emulates the two sap.ui.require signatures: the synchronous string form
+  // (returns the module or undefined) and the asynchronous array form (invokes
+  // the callback with the resolved modules, or the errback when unavailable).
+  // Loaded synchronously from the start only when the controls are already
+  // present (ui5 === true). In asyncOnly mode the sync require sees them as
+  // not-yet-loaded until the async (array) require pulls them in - after which
+  // the sync require resolves them, exactly like the real UI5 loader.
+  let loaded = haveModules && !asyncOnly;
+  sandbox.sap.ui.require = (name, callback, errback) => {
+    if (Array.isArray(name)) {
+      if (haveModules) {
+        loaded = true;
+        callback?.(...name.map((n) => modules[n]));
+      } else {
+        errback?.(new Error("module not loaded"));
+      }
+      return undefined;
+    }
+    return loaded ? modules[name] : undefined;
+  };
   return { ErrorView: module, state, reloads, created };
 }
 
@@ -190,10 +223,27 @@ test.describe("ErrorView friendly dialog", () => {
     expect(created.dialogs[1].open_called).toBe(true);
   });
 
+  test("loads the dialog modules asynchronously and still shows the popup", () => {
+    // ui5:"async" -> the synchronous require returns undefined (Dialog not
+    // loaded yet, e.g. a popover fragment that fails to render on the first
+    // roundtrip), but the async require loads the controls and the retry
+    // renders the friendly popup - it must NOT drop to the raw-DOM overlay.
+    const { ErrorView, created } = load({ ui5: "async" });
+    ErrorView.show(
+      "popover dump",
+      "Unexpected Error Occurred - App Terminated",
+    );
+    expect(created.dialogs).toHaveLength(1);
+    expect(created.dialogs[0].open_called).toBe(true);
+    expect(created.dialogs[0].settings.content[0].settings.text).toBe(
+      "popover dump",
+    );
+  });
+
   test("falls back to the raw overlay when UI5 cannot render a dialog", () => {
-    // ui5:false -> sap.ui.require returns undefined for the controls -> the
-    // friendly dialog is skipped and the raw-DOM overlay path runs without
-    // throwing (records lastError either way).
+    // ui5:false -> sap.ui.require returns undefined for the controls (sync) and
+    // the async errback fires -> the friendly dialog is skipped and the raw-DOM
+    // overlay path runs without throwing (records lastError either way).
     const { ErrorView, state, created } = load({ ui5: false });
     expect(() => ErrorView.show("dump", "T")).not.toThrow();
     expect(created.dialogs).toHaveLength(0);
