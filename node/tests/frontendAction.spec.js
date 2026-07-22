@@ -72,6 +72,66 @@ test.describe("CONTROL_GLOBAL (global objects)", () => {
     expect(calls).toEqual([["toast.show", "Saved!"]]);
   });
 
+  test("composes a toast from a template + client-resolved extras", () => {
+    const { FrontendAction, calls } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_TOAST",
+      "show",
+      "Action triggered on item: {0}",
+      "Franchise Store",
+    ]);
+    expect(calls).toEqual([["toast.show", "Action triggered on item: Franchise Store"]]);
+  });
+
+  test("substitutes a value-first template ({0} ...) and multiple placeholders", () => {
+    const { FrontendAction, calls } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_TOAST",
+      "show",
+      "{0} selected at {1}",
+      "Item A",
+      "10:30",
+    ]);
+    expect(calls).toEqual([["toast.show", "Item A selected at 10:30"]]);
+  });
+
+  test("leaves an out-of-range placeholder untouched", () => {
+    const { FrontendAction, calls } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_TOAST",
+      "show",
+      "{0} and {1}",
+      "only-one",
+    ]);
+    expect(calls).toEqual([["toast.show", "only-one and {1}"]]);
+  });
+
+  test("MessageBox variants also accept a template", () => {
+    const { FrontendAction, calls } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_BOX",
+      "error",
+      "Upload of {0} failed",
+      "report.pdf",
+    ]);
+    expect(calls).toEqual([["box.error", "Upload of report.pdf failed"]]);
+  });
+
+  test("a lone string is passed through unchanged (no template parsing)", () => {
+    const { FrontendAction, calls } = load();
+    FrontendAction.execute(null, [
+      "CONTROL_GLOBAL",
+      "MESSAGE_TOAST",
+      "show",
+      "100% {done}",
+    ]);
+    expect(calls).toEqual([["toast.show", "100% {done}"]]);
+  });
+
   test("casts int args (BusyIndicator.show(0))", () => {
     const { FrontendAction, calls } = load();
     FrontendAction.execute(null, [

@@ -263,7 +263,25 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        Lib.logError(``CONTROL_GLOBAL: '${name}.${method}' not available``);` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
-             `      obj[method](...castArgs(kinds, args.slice(3)));` && |\n| &&
+             `      const raw = args.slice(3);` && |\n| &&
+             `      // a single-string method (MessageToast.show, MessageBox.*) may receive` && |\n| &&
+             `      // extra positional values: the first arg is then a template and its` && |\n| &&
+             `      // {0},{1},... placeholders are replaced by the client-resolved extras, so` && |\n| &&
+             `      // a "X has been activated" toast can be composed on the frontend without a` && |\n| &&
+             `      // server round-trip. A lone string is passed through unchanged.` && |\n| &&
+             `      if (kinds.length === 1 && kinds[0] === "string" && raw.length > 1) {` && |\n| &&
+             `        obj[method](formatTemplate(String(raw[0]), raw.slice(1)));` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      obj[method](...castArgs(kinds, raw));` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // replace {0},{1},... in a template with the positional values (as strings);` && |\n| &&
+             `    // an out-of-range placeholder is left as-is.` && |\n| &&
+             `    function formatTemplate(tpl, values) {` && |\n| &&
+             `      return tpl.replace(/\{(\d+)\}/g, (m, i) =>` && |\n| &&
+             `        (Number(i) < values.length ? String(values[Number(i)]) : m),` && |\n| &&
+             `      );` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&

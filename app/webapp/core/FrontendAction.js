@@ -243,7 +243,25 @@ sap.ui.define(
         Lib.logError(`CONTROL_GLOBAL: '${name}.${method}' not available`);
         return;
       }
-      obj[method](...castArgs(kinds, args.slice(3)));
+      const raw = args.slice(3);
+      // a single-string method (MessageToast.show, MessageBox.*) may receive
+      // extra positional values: the first arg is then a template and its
+      // {0},{1},... placeholders are replaced by the client-resolved extras, so
+      // a "X has been activated" toast can be composed on the frontend without a
+      // server round-trip. A lone string is passed through unchanged.
+      if (kinds.length === 1 && kinds[0] === "string" && raw.length > 1) {
+        obj[method](formatTemplate(String(raw[0]), raw.slice(1)));
+        return;
+      }
+      obj[method](...castArgs(kinds, raw));
+    }
+
+    // replace {0},{1},... in a template with the positional values (as strings);
+    // an out-of-range placeholder is left as-is.
+    function formatTemplate(tpl, values) {
+      return tpl.replace(/\{(\d+)\}/g, (m, i) =>
+        (Number(i) < values.length ? String(values[Number(i)]) : m),
+      );
     }
 
     // ------------------------------------------------------------------

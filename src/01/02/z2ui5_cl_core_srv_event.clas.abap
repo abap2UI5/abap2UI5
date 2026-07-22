@@ -114,7 +114,15 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
         lv_pending = |{ lv_pending }, ''|.
         CONTINUE.
       ENDIF.
-      IF lv_new(1) <> `$` AND lv_new(1) <> `{` AND lv_new NP `.eB(*`.
+      " a message template that starts with a bare positional placeholder
+      " ({0}, {1}, ... immediately closed) is a plain string, not a binding
+      " or object literal, so it must still be quoted - the `{`-raw exception
+      " below is only for real bindings/object literals like {/PATH} or {..}.
+      " {0/field} (relative binding) keeps a `/` after the digits and is
+      " therefore not matched, so it stays raw as before.
+      FIND REGEX `^\{[0-9]+\}` IN lv_new.
+      DATA(lv_is_placeholder) = xsdbool( sy-subrc = 0 ).
+      IF ( lv_new(1) <> `$` AND lv_new(1) <> `{` AND lv_new NP `.eB(*` ) OR lv_is_placeholder = abap_true.
         lv_new = |'{ lv_new }'|.
       ENDIF.
       result = |{ result }{ lv_pending }, { lv_new }|.
