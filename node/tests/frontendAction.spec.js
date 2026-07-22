@@ -258,6 +258,23 @@ test.describe("CONTROL_BY_ID", () => {
       ["expand", false],
     ]);
   });
+
+  test("add/remove/toggleStyleClass pass the class name through", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.dlg = {
+      addStyleClass: (c) => calls.push(["add", c]),
+      removeStyleClass: (c) => calls.push(["remove", c]),
+      toggleStyleClass: (c) => calls.push(["toggle", c]),
+    };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "dlg", "", "addStyleClass", "myClass"]);
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "dlg", "", "removeStyleClass", "myClass"]);
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "dlg", "", "toggleStyleClass", "myClass"]);
+    expect(calls).toEqual([
+      ["add", "myClass"],
+      ["remove", "myClass"],
+      ["toggle", "myClass"],
+    ]);
+  });
 });
 
 test.describe("BINDING_CALL", () => {

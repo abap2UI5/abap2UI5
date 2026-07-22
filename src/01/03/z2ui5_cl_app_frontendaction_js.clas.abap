@@ -111,6 +111,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      expandToLevel: ["int"], // sap.m.Tree / sap.ui.table.TreeTable: expand to N levels` && |\n| &&
              `      collapseAll: [], // sap.m.Tree / sap.ui.table.TreeTable: collapse every node` && |\n| &&
              `      setHiddenInPopin: ["object"], // sap.m.Table: hide columns by importance (JSON array of Priority keys)` && |\n| &&
+             `      addStyleClass: ["string"], // sap.ui.core.Control: add a CSS style class` && |\n| &&
+             `      removeStyleClass: ["string"], // sap.ui.core.Control: remove a CSS style class` && |\n| &&
+             `      toggleStyleClass: ["string"], // sap.ui.core.Control: toggle a CSS style class` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    // global object -> lazy getter + its allowed methods (with arg kinds).` && |\n| &&

@@ -91,6 +91,9 @@ sap.ui.define(
       expandToLevel: ["int"], // sap.m.Tree / sap.ui.table.TreeTable: expand to N levels
       collapseAll: [], // sap.m.Tree / sap.ui.table.TreeTable: collapse every node
       setHiddenInPopin: ["object"], // sap.m.Table: hide columns by importance (JSON array of Priority keys)
+      addStyleClass: ["string"], // sap.ui.core.Control: add a CSS style class
+      removeStyleClass: ["string"], // sap.ui.core.Control: remove a CSS style class
+      toggleStyleClass: ["string"], // sap.ui.core.Control: toggle a CSS style class
     };
 
     // global object -> lazy getter + its allowed methods (with arg kinds).
