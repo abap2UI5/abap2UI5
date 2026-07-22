@@ -110,6 +110,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      setActivePage: ["controlId"], // sap.m.Carousel` && |\n| &&
              `      expandToLevel: ["int"], // sap.m.Tree / sap.ui.table.TreeTable: expand to N levels` && |\n| &&
              `      collapseAll: [], // sap.m.Tree / sap.ui.table.TreeTable: collapse every node` && |\n| &&
+             `      setHiddenInPopin: ["object"], // sap.m.Table: hide columns by importance (JSON array of Priority keys)` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
              `    // global object -> lazy getter + its allowed methods (with arg kinds).` && |\n| &&
@@ -640,6 +641,21 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      if (newWindow) newWindow.opener = null;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    function evBindElement(oController, args) {` && |\n| &&
+             `      const slot = args[1] || "MAIN";` && |\n| &&
+             `      const view = ViewSlots.getView(slot);` && |\n| &&
+             `      if (!view) {` && |\n| &&
+             `        Lib.logError(``BIND_ELEMENT: no view for slot '${slot}'``);` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      const path = String(args[3] ?? "").replace(/[{}]/g, "");` && |\n| &&
+             `      if (!path) {` && |\n| &&
+             `        Lib.logError(``BIND_ELEMENT: empty binding path``);` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      view.bindElement(``${ path }/${ args[2] }``);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function evUrlHelper(oController, args) {` && |\n| &&
              `      const params = args[2] ?? {};` && |\n| &&
              `      const actions = {` && |\n| &&
@@ -918,6 +934,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      OPEN_NEW_TAB: evOpenNewTab,` && |\n| &&
              `      POPUP_CLOSE: () => ViewSlots.destroy("POPUP"),` && |\n| &&
              `      POPOVER_CLOSE: () => ViewSlots.destroy("POPOVER"),` && |\n| &&
+             `      BIND_ELEMENT: evBindElement,` && |\n| &&
              `      URLHELPER: evUrlHelper,` && |\n| &&
              `      IMAGE_EDITOR_POPUP_CLOSE: evImageEditorPopupClose,` && |\n| &&
              `      SET_TITLE: evSetTitle,` && |\n| &&

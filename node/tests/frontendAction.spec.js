@@ -18,9 +18,11 @@ function load() {
   const BusyIndicator = { show: rec("busy.show"), hide: rec("busy.hide") };
   const Theming = { setTheme: rec("theme.set") };
   const controls = {};
+  const views = {};
   const ViewSlots = {
     resolveById: (id) => controls[id] || null,
     byId: (_key, id) => controls[id] || null,
+    getView: (key) => views[key] || null,
   };
   // whenRendered runs its callback once the control is in the DOM; the real
   // one defers to onAfterRendering when it is not. The stub runs it straight
@@ -55,7 +57,7 @@ function load() {
       "z2ui5/core/AppState": AppState,
     },
   });
-  return { FrontendAction: module, calls, errors, controls };
+  return { FrontendAction: module, calls, errors, controls, views };
 }
 
 test.describe("CONTROL_GLOBAL (global objects)", () => {
@@ -432,5 +434,29 @@ test.describe("BINDING_CALL", () => {
     ]);
     expect(calls).toHaveLength(0);
     expect(errors).toHaveLength(1);
+  });
+});
+
+test.describe("BIND_ELEMENT", () => {
+  test("element-binds the slot view to <path>/<index>", () => {
+    const { FrontendAction, views } = load();
+    const bound = [];
+    views.POPOVER = { bindElement: (p) => bound.push(p) };
+    FrontendAction.execute(null, ["BIND_ELEMENT", "POPOVER", "5", "/T_PRODUCTS"]);
+    expect(bound).toEqual(["/T_PRODUCTS/5"]);
+  });
+
+  test("strips braces from the binding path (client->_bind form)", () => {
+    const { FrontendAction, views } = load();
+    const bound = [];
+    views.POPOVER = { bindElement: (p) => bound.push(p) };
+    FrontendAction.execute(null, ["BIND_ELEMENT", "POPOVER", "2", "{/MT_TAB}"]);
+    expect(bound).toEqual(["/MT_TAB/2"]);
+  });
+
+  test("logs and no-ops when the slot view is missing", () => {
+    const { FrontendAction, errors } = load();
+    FrontendAction.execute(null, ["BIND_ELEMENT", "POPOVER", "5", "/T_PRODUCTS"]);
+    expect(errors.some((e) => String(e).includes("no view for slot"))).toBe(true);
   });
 });

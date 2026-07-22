@@ -90,6 +90,7 @@ sap.ui.define(
       setActivePage: ["controlId"], // sap.m.Carousel
       expandToLevel: ["int"], // sap.m.Tree / sap.ui.table.TreeTable: expand to N levels
       collapseAll: [], // sap.m.Tree / sap.ui.table.TreeTable: collapse every node
+      setHiddenInPopin: ["object"], // sap.m.Table: hide columns by importance (JSON array of Priority keys)
     };
 
     // global object -> lazy getter + its allowed methods (with arg kinds).
@@ -619,6 +620,27 @@ sap.ui.define(
       if (newWindow) newWindow.opener = null;
     }
 
+    // BIND_ELEMENT: element-bind a whole view slot (popup / popover / main) to
+    // a row of a registered table, so the fragment's relative bindings ({Name},
+    // {ProductPicUrl}, …) resolve against that row - the abap2UI5 equivalent of
+    // oControl.bindElement(oCtx.getPath()). args = [slot, index, path]; the path
+    // comes from client->_bind( table ) (braces already stripped server-side and
+    // again here defensively), the slot from the follow_up_action view param.
+    function evBindElement(oController, args) {
+      const slot = args[1] || "MAIN";
+      const view = ViewSlots.getView(slot);
+      if (!view) {
+        Lib.logError(`BIND_ELEMENT: no view for slot '${slot}'`);
+        return;
+      }
+      const path = String(args[3] ?? "").replace(/[{}]/g, "");
+      if (!path) {
+        Lib.logError("BIND_ELEMENT: empty binding path");
+        return;
+      }
+      view.bindElement(`${path}/${args[2]}`);
+    }
+
     function evUrlHelper(oController, args) {
       const params = args[2] ?? {};
       const actions = {
@@ -896,6 +918,7 @@ sap.ui.define(
       OPEN_NEW_TAB: evOpenNewTab,
       POPUP_CLOSE: () => ViewSlots.destroy("POPUP"),
       POPOVER_CLOSE: () => ViewSlots.destroy("POPOVER"),
+      BIND_ELEMENT: evBindElement,
       URLHELPER: evUrlHelper,
       IMAGE_EDITOR_POPUP_CLOSE: evImageEditorPopupClose,
       SET_TITLE: evSetTitle,

@@ -47,6 +47,7 @@ INTERFACE z2ui5_if_client
       control_by_id             TYPE string VALUE `CONTROL_BY_ID`,
       control_global            TYPE string VALUE `CONTROL_GLOBAL`,
       binding_call              TYPE string VALUE `BINDING_CALL`,
+      bind_element              TYPE string VALUE `BIND_ELEMENT`,
 
       "obsolet?
       image_editor_popup_close  TYPE string VALUE `IMAGE_EDITOR_POPUP_CLOSE`,
