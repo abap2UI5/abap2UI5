@@ -81,7 +81,11 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `//                     the developer tools)` && |\n| &&
              `//   contextId         stateful session id, header transport (Server)` && |\n| &&
              `//   isBusy            roundtrip in flight (View1.eB / Server)` && |\n| &&
-             `//   changedPaths      Set of edited model paths for the delta (View1)` && |\n| &&
+             `//   oSentModel        the JSON model whose edited-path set the in-flight` && |\n| &&
+             `//                     request carried; its own _z2ui5ChangedPaths is cleared` && |\n| &&
+             `//                     once that request wins (Server), so a stale response` && |\n| &&
+             `//                     never clears newer edits and edits made in a DIFFERENT` && |\n| &&
+             `//                     model (e.g. a popover) are never shipped against this one` && |\n| &&
              `//   checkNestAfter, checkNestAfter2  nested views rebuilt this roundtrip` && |\n| &&
              `//   search            overrides location.search in S_FRONT; never written` && |\n| &&
              `//                     by the framework itself, set externally (custom JS)` && |\n| &&
@@ -127,7 +131,7 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `      responseData: null,` && |\n| &&
              `      contextId: null,` && |\n| &&
              `      isBusy: false,` && |\n| &&
-             `      changedPaths: new Set(),` && |\n| &&
+             `      oSentModel: null,` && |\n| &&
              `      checkNestAfter: false,` && |\n| &&
              `      checkNestAfter2: false,` && |\n| &&
              `      search: null,` && |\n| &&

@@ -52,7 +52,7 @@ CLASS z2ui5_cl_app_cameraselector_js IMPLEMENTATION.
              `            );` && |\n| &&
              `          }` && |\n| &&
              `        } catch (err) {` && |\n| &&
-             `          Lib.logError("CameraDeviceList: enumerateDevices failed", err);` && |\n| &&
+             `          Lib.logError("CameraSelector: enumerateDevices failed", err);` && |\n| &&
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&

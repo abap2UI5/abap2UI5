@@ -57,9 +57,9 @@ CLASS z2ui5_cl_app_tree_js IMPLEMENTATION.
              `      // single shared slot would let one companion overwrite another's.` && |\n| &&
              `      setBackend() {` && |\n| &&
              `        try {` && |\n| &&
-             `          const binding = this._getTreeBinding();` && |\n| &&
              `          const id = this.getProperty("tree_id");` && |\n| &&
              `          if (!id) return;` && |\n| &&
+             `          const binding = this._getTreeBinding();` && |\n| &&
              `          // Only overwrite the snapshot when the binding is actually` && |\n| &&
              `          // resolvable - a momentarily missing binding must not wipe a` && |\n| &&
              `          // still-valid snapshot for this id.` && |\n| &&

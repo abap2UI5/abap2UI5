@@ -32,7 +32,9 @@ CLASS z2ui5_cl_app_title_js IMPLEMENTATION.
              `      },` && |\n| &&
              `    },` && |\n| &&
              `    setTitle(val) {` && |\n| &&
-             `      this.setProperty("title", val);` && |\n| &&
+             `      // Suppress invalidation: the renderer is empty, so a re-render would be` && |\n| &&
+             `      // a no-op; the effect happens explicitly below.` && |\n| &&
+             `      this.setProperty("title", val, true);` && |\n| &&
              `      document.title = Lib.toText(val);` && |\n| &&
              `    },` && |\n| &&
              `    renderer: { apiVersion: 2, render() {} },` && |\n| &&

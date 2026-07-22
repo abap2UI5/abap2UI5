@@ -331,18 +331,20 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    errorContainer.appendChild(headerDiv);` && |\n| &&
              `` && |\n| &&
              `    // Keep keyboard focus inside the overlay: Tab cycles through the action` && |\n| &&
-             `    // buttons instead of escaping into the broken page behind it.` && |\n| &&
+             `    // buttons instead of escaping into the broken page behind it. The button` && |\n| &&
+             `    // set is complete here (all appended above), so resolve first/last once` && |\n| &&
+             `    // rather than re-querying the DOM on every Tab press.` && |\n| &&
+             `    const trapButtons = actionsDiv.querySelectorAll("button");` && |\n| &&
+             `    const firstTrap = trapButtons[0];` && |\n| &&
+             `    const lastTrap = trapButtons[trapButtons.length - 1];` && |\n| &&
              `    errorContainer.addEventListener("keydown", (event) => {` && |\n| &&
              `      if (event.key !== "Tab") return;` && |\n| &&
-             `      const buttons = actionsDiv.querySelectorAll("button");` && |\n| &&
-             `      const first = buttons[0];` && |\n| &&
-             `      const last = buttons[buttons.length - 1];` && |\n| &&
-             `      if (event.shiftKey && document.activeElement === first) {` && |\n| &&
+             `      if (event.shiftKey && document.activeElement === firstTrap) {` && |\n| &&
              `        event.preventDefault();` && |\n| &&
-             `        last.focus();` && |\n| &&
-             `      } else if (!event.shiftKey && document.activeElement === last) {` && |\n| &&
+             `        lastTrap.focus();` && |\n| &&
+             `      } else if (!event.shiftKey && document.activeElement === lastTrap) {` && |\n| &&
              `        event.preventDefault();` && |\n| &&
-             `        first.focus();` && |\n| &&
+             `        firstTrap.focus();` && |\n| &&
              `      }` && |\n| &&
              `    });` && |\n| &&
              `` && |\n| &&

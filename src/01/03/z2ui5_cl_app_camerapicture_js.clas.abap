@@ -103,9 +103,9 @@ CLASS z2ui5_cl_app_camerapicture_js IMPLEMENTATION.
              `          return false;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        const thumbH = videoWidth` && |\n| &&
-             `          ? Math.round((videoHeight * _THUMB_W) / videoWidth)` && |\n| &&
-             `          : _THUMB_W;` && |\n| &&
+             `        // videoWidth is guaranteed non-zero here (the guard above returns` && |\n| &&
+             `        // early when it is falsy), so no divide-by-zero fallback is needed.` && |\n| &&
+             `        const thumbH = Math.round((videoHeight * _THUMB_W) / videoWidth);` && |\n| &&
              `        const thumbCanvas = document.createElement("canvas");` && |\n| &&
              `        thumbCanvas.width = _THUMB_W;` && |\n| &&
              `        thumbCanvas.height = thumbH;` && |\n| &&
