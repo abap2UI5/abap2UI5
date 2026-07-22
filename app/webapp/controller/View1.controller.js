@@ -59,6 +59,13 @@ sap.ui.define(
         // Mark the model as framework-owned: updateModelIfRequired may only
         // reuse models that carry this change tracker.
         oModel._z2ui5Tracked = true;
+        // Edited paths are tracked PER MODEL, not in one shared set: the main
+        // view and a popup/popover each have their own JSON model, and a
+        // roundtrip ships only the picked model's own edits. A single shared
+        // set would build the delta of one model against another's data (a
+        // path missing there serializes as `undefined` and clears the field
+        // on the backend) and would drop the other model's still-unsent edits.
+        oModel._z2ui5ChangedPaths = new Set();
         oModel.attachPropertyChange((e) => {
           const params = e.getParameters();
           const raw = params.path;
@@ -68,7 +75,7 @@ sap.ui.define(
           const changedPath =
             ctx && !raw.startsWith("/") ? `${ctx.getPath()}/${raw}` : raw;
           if (changedPath.startsWith("/")) {
-            AppState.state.changedPaths.add(changedPath);
+            oModel._z2ui5ChangedPaths.add(changedPath);
           }
         });
         return oModel;
@@ -408,16 +415,20 @@ sap.ui.define(
         Lib.runCallbacks(AppState.state.onBeforeRoundtrip);
 
         // If the user edited model paths, send only the delta to keep the
-        // payload small.
-        if (oModel && AppState.state.changedPaths.size > 0) {
+        // payload small. The edited paths live on the picked model itself
+        // (set in _trackChanges), so onBeforeRoundtrip hooks that mark paths
+        // dirty (e.g. the Scrolling control) must have run above first.
+        const changedPaths = oModel?._z2ui5ChangedPaths;
+        if (oModel && changedPaths?.size > 0) {
           const data = oModel.getData();
           if (data) {
-            oBody.MODEL = Lib.buildDeltaFromPaths(
-              AppState.state.changedPaths,
-              data,
-            );
+            oBody.MODEL = Lib.buildDeltaFromPaths(changedPaths, data);
           }
         }
+        // Remember which model this request carried so the winning response
+        // clears exactly its edits (Server.readHttp) - a stale response clears
+        // nothing, and edits in other models stay pending for their own send.
+        AppState.state.oSentModel = oModel;
 
         oBody.ID = AppState.state.oResponse?.ID;
         // Arguments travel as raw JSON values - the request body is

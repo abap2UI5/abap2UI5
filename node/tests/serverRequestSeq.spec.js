@@ -46,7 +46,7 @@ function load() {
   const controllers = [];
   const appState = {
     getGlobal: (k) => (k === "url" ? "/url" : undefined),
-    state: { changedPaths: new Set() },
+    state: { oSentModel: null },
   };
 
   const { module: Server } = loadModule("core/Server.js", {
@@ -147,9 +147,10 @@ test("dispatching a newer request aborts the older one still in flight", async (
 
 test("a superseded response keeps the pending delta paths so the newest request carries them", async () => {
   const { Server, fetchCalls, successes, appState } = load();
-  // A delta edit is pending (the model path the first request shipped).
-  appState.state.changedPaths = new Set(["/PRODUCT"]);
-  const pending = appState.state.changedPaths;
+  // The model whose edits the in-flight request carried. Its own path set
+  // must survive a stale response and only be cleared by the winning one.
+  const oModel = { _z2ui5ChangedPaths: new Set(["/PRODUCT"]) };
+  appState.state.oSentModel = oModel;
 
   const pA = Server.readHttp({}); // seq 1 - carried /PRODUCT
   const pB = Server.readHttp({}); // seq 2 - newest (also carried it, rebuilt)
@@ -158,14 +159,15 @@ test("a superseded response keeps the pending delta paths so the newest request 
   // otherwise the edit would be lost once the newer request wins.
   fetchCalls[0].resolve(okResponse("A"));
   await flush();
-  expect(appState.state.changedPaths).toBe(pending); // untouched, still pending
+  expect(oModel._z2ui5ChangedPaths.size).toBe(1); // untouched, still pending
+  expect(appState.state.oSentModel).toBe(oModel);
 
-  // Only the newest response commits and clears the accumulated delta.
+  // Only the newest response commits and clears the sent model's delta.
   fetchCalls[1].resolve(okResponse("B"));
   await Promise.all([pA, pB]);
   expect(successes).toHaveLength(1);
-  expect(appState.state.changedPaths).not.toBe(pending);
-  expect(appState.state.changedPaths.size).toBe(0);
+  expect(oModel._z2ui5ChangedPaths.size).toBe(0);
+  expect(appState.state.oSentModel).toBeNull();
 });
 
 test("the single response commits in the default (non-parallel) case", async () => {
