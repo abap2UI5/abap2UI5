@@ -11401,7 +11401,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     IF mo_parent->mv_name = name.
       result = mo_parent.
-    ELSE.
+    ELSEIF mo_parent <> me.
+      " walk up the tree; stop at the root, whose mo_parent points to itself
+      " (set in factory) - recursing there would loop forever on a name that
+      " matches no ancestor. A name not found leaves result unbound.
       result = mo_parent->get( name ).
     ENDIF.
 
