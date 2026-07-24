@@ -249,6 +249,33 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    }` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  // showFriendlyDialog only succeeds when sap.m.Dialog/Button/Text are already` && |\n| &&
+             `  // loaded, because it resolves them with the synchronous sap.ui.require (which` && |\n| &&
+             `  // returns undefined for a not-yet-loaded module). This kicks off the async` && |\n| &&
+             `  // require for those three controls and retries the friendly popup once they` && |\n| &&
+             `  // arrive, so a fatal error raised before any Dialog was used - most notably a` && |\n| &&
+             `  // popover fragment that fails to render on the first roundtrip - still lands` && |\n| &&
+             `  // in the friendly UI5 popup instead of the raw-DOM overlay. Returns true when` && |\n| &&
+             `  // the async load was started (the caller must then NOT also show the raw` && |\n| &&
+             `  // overlay); false when async loading is unavailable, so the caller falls back` && |\n| &&
+             `  // right away. If the modules cannot be loaded (broken core) or still cannot` && |\n| &&
+             `  // render, the errback / retry paths show the raw overlay so the error is` && |\n| &&
+             `  // never swallowed.` && |\n| &&
+             `  function loadFriendlyDialogAsync(title, details, options) {` && |\n| &&
+             `    try {` && |\n| &&
+             `      const require = sap?.ui?.require;` && |\n| &&
+             `      if (typeof require !== "function") return false;` && |\n| &&
+             `      require(["sap/m/Dialog", "sap/m/Button", "sap/m/Text"], () => {` && |\n| &&
+             `        if (!showFriendlyDialog(title, details)) {` && |\n| &&
+             `          showRawOverlay(title, details, options);` && |\n| &&
+             `        }` && |\n| &&
+             `      }, () => showRawOverlay(title, details, options));` && |\n| &&
+             `      return true;` && |\n| &&
+             `    } catch {` && |\n| &&
+             `      return false;` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  // ``response`` may be a string or an Error object; ``title`` overrides the` && |\n| &&
              `  // default header text; ``options.onRetry`` adds a Retry action that removes` && |\n| &&
              `  // the overlay and re-runs the failed request (offered by Server.readHttp` && |\n| &&
@@ -271,11 +298,21 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `      onRetry: typeof options.onRetry === "function" ? options.onRetry : null,` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
-             `    // Prefer a friendly UI5 dialog ("an unexpected error occurred" + Details` && |\n| &&
-             `    // / Restart). Only when UI5 cannot render it (broken core, missing` && |\n| &&
-             `    // module) do we fall back to the raw-DOM overlay below.` && |\n| &&
+             `    // Prefer a friendly UI5 dialog (the error text + Details / Restart).` && |\n| &&
              `    if (showFriendlyDialog(title, errorMessage)) return;` && |\n| &&
              `` && |\n| &&
+             `    // Its modules were not loaded yet: load them asynchronously and retry, so` && |\n| &&
+             `    // the error still lands in the friendly popup first (see` && |\n| &&
+             `    // loadFriendlyDialogAsync). Only when async loading is unavailable do we` && |\n| &&
+             `    // fall through to the raw-DOM overlay immediately.` && |\n| &&
+             `    if (loadFriendlyDialogAsync(title, errorMessage, options)) return;` && |\n| &&
+             `` && |\n| &&
+             `    showRawOverlay(title, errorMessage, options);` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
+             `  // The raw-DOM fatal overlay - the last-resort error display, built without` && |\n| &&
+             `  // UI5 so it still works when the core cannot render the friendly dialog.` && |\n| &&
+             `  function showRawOverlay(title, errorMessage, options = {}) {` && |\n| &&
              `    const errorContainer = createContainer();` && |\n| &&
              `` && |\n| &&
              `    // Announce the overlay to assistive technology: without a dialog role` && |\n| &&
@@ -380,7 +417,8 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    // the primary action instead of the broken page behind the overlay.` && |\n| &&
              `    const firstButton = actionsDiv.querySelector("button");` && |\n| &&
              `    if (firstButton) firstButton.focus();` && |\n| &&
-             `  }` && |\n| &&
+             `  }` && |\n|.
+    result = result &&
              `` && |\n| &&
              `  return { show, handleLogout, reopenErrorDialog };` && |\n| &&
              `});` && |\n| &&
