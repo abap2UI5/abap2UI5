@@ -14,6 +14,9 @@ function load({ ui5 = true } = {}) {
   const AppState = { state };
   const reloads = [];
   const created = { dialogs: [] };
+  // Records the text passed to the async clipboard fallback so the Copy
+  // button test can assert what would be copied.
+  const clipboardWrites = [];
   // Minimal DOM so the raw-overlay fallback path does not throw when it runs.
   const el = () => ({
     id: "",
@@ -39,6 +42,19 @@ function load({ ui5 = true } = {}) {
     sandbox: {
       document,
       window: { location: { reload: () => reloads.push(true) } },
+      // The stubbed DOM has no execCommand, so copyToClipboard falls back to
+      // the async clipboard API - capture what it would write.
+      navigator: {
+        clipboard: {
+          writeText: (v) => {
+            clipboardWrites.push(v);
+            return Promise.resolve();
+          },
+        },
+      },
+      // The Copy button restores its label on a timer; keep it a no-op so the
+      // "Copied" feedback state stays observable in the test.
+      setTimeout: () => 0,
     },
   });
 
@@ -54,6 +70,9 @@ function load({ ui5 = true } = {}) {
       };
       inst.destroy = () => (inst.destroyed = true);
       inst.focus = () => {};
+      // The Copy button flips its label via setText; mirror it into settings so
+      // tests can observe the "Copied" feedback.
+      inst.setText = (t) => (inst.settings.text = t);
       if (kind === "Dialog") created.dialogs.push(inst);
       return inst;
     };
@@ -101,7 +120,7 @@ function load({ ui5 = true } = {}) {
     }
     return loaded ? modules[name] : undefined;
   };
-  return { ErrorView: module, state, reloads, created };
+  return { ErrorView: module, state, reloads, created, clipboardWrites };
 }
 
 test.describe("ErrorView friendly dialog", () => {
@@ -114,19 +133,35 @@ test.describe("ErrorView friendly dialog", () => {
     expect(state.lastError.onRetry).toBe(onRetry);
   });
 
-  test("shows a dialog with Details + Restart and only the error text", () => {
+  test("shows a dialog with Details + Copy + Restart and only the error text", () => {
     const { ErrorView, created } = load();
     ErrorView.show("some backend dump");
     expect(created.dialogs).toHaveLength(1);
     const dlg = created.dialogs[0].settings;
     // No "An unexpected error occurred" prefix - just the error text.
     expect(dlg.content[0].settings.text).toBe("some backend dump");
-    expect(dlg.beginButton.settings.text).toBe("Details");
-    expect(dlg.endButton.settings.text).toBe("Restart");
+    // The footer uses the `buttons` aggregation: Details / Copy / Restart.
+    const [detailsButton, copyButton, restartButton] = dlg.buttons;
+    expect(detailsButton.settings.text).toBe("Details");
+    expect(copyButton.settings.text).toBe("Copy");
+    expect(restartButton.settings.text).toBe("Restart");
     // Restart is emphasized and gets the initial focus.
-    expect(dlg.endButton.settings.type).toBe("Emphasized");
-    expect(dlg.initialFocus).toBe(dlg.endButton);
+    expect(restartButton.settings.type).toBe("Emphasized");
+    expect(dlg.initialFocus).toBe(restartButton);
     expect(created.dialogs[0].open_called).toBe(true);
+  });
+
+  test("Copy copies the full error text to the clipboard", () => {
+    const { ErrorView, created, clipboardWrites } = load();
+    ErrorView.show("full backend dump");
+    const copyButton = created.dialogs[0].settings.buttons[1];
+    expect(copyButton.settings.text).toBe("Copy");
+    copyButton.settings.press();
+    // execCommand is unavailable in the stubbed DOM, so it falls back to the
+    // async clipboard API with the full (untruncated) error text.
+    expect(clipboardWrites).toEqual(["full backend dump"]);
+    // The label flips to "Copied" as feedback.
+    expect(copyButton.settings.text).toBe("Copied");
   });
 
   test("Escape does not dismiss the fatal-error popup", () => {
@@ -185,7 +220,7 @@ test.describe("ErrorView friendly dialog", () => {
     state.developerTools = { show: (tab) => showCalls.push(tab) };
     ErrorView.show("dump");
     const dialog = created.dialogs[0];
-    dialog.settings.beginButton.settings.press();
+    dialog.settings.buttons[0].settings.press(); // Details
     expect(dialog.open_called).toBe(false); // dialog was closed
     expect(state.developerTools.reopenErrorOnClose).toBe(true);
     expect(showCalls).toEqual(["ERROR"]);
@@ -194,7 +229,7 @@ test.describe("ErrorView friendly dialog", () => {
   test("Restart reloads the page", () => {
     const { ErrorView, reloads, created } = load();
     ErrorView.show("dump");
-    created.dialogs[0].settings.endButton.settings.press();
+    created.dialogs[0].settings.buttons[2].settings.press(); // Restart
     expect(reloads).toEqual([true]);
   });
 

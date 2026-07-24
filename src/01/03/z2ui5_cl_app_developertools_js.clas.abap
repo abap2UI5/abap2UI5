@@ -348,7 +348,9 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `      // skipped. Every source is guarded (a throwing one can never blank the` && |\n| &&
              `      // whole export) and each section is capped, because the SYSTEM global can` && |\n| &&
              `      // serialize to several MB - a value that large blanks a sap.m.TextArea.` && |\n| &&
-             `      buildExport() {` && |\n| &&
+             `      // ``abapSource`` is the running app's ABAP class source, fetched` && |\n| &&
+             `      // asynchronously by onExport (empty when it could not be retrieved).` && |\n| &&
+             `      buildExport(abapSource) {` && |\n| &&
              `        // Max characters per section; long ones (mainly SYSTEM) are truncated` && |\n| &&
              `        // so the popup's TextArea still renders.` && |\n| &&
              `        const MAX_SECTION = 100000;` && |\n| &&
@@ -386,6 +388,10 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `` && |\n| &&
              `        if (AppState.state.lastError) push("ERROR", text(formatLastError));` && |\n| &&
              `        push("LOG", text(formatErrorLog));` && |\n| &&
+             `        // The running app's ABAP class source (fetched by onExport). Placed` && |\n| &&
+             `        // high up because it is usually the most useful context when sharing` && |\n| &&
+             `        // an error - a reader can see the class that produced it.` && |\n| &&
+             `        push("ABAP SOURCE", abapSource);` && |\n| &&
              `        push(` && |\n| &&
              `          "RESPONSE",` && |\n| &&
              `          json(() => jsonSources.PLAIN()),` && |\n| &&
@@ -411,14 +417,14 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `            "POPUP MODEL",` && |\n| &&
              `            json(() => jsonSources.POPUP_MODEL()),` && |\n| &&
              `          );` && |\n| &&
-             `        }` && |\n| &&
+             `        }` && |\n|.
+    result = result &&
              `        if (getResponseXml("S_POPOVER")) {` && |\n| &&
              `          push(` && |\n| &&
              `            "POPOVER",` && |\n| &&
              `            xml(() => xmlSources.POPOVER().xml),` && |\n| &&
              `          );` && |\n| &&
-             `          push(` && |\n|.
-    result = result &&
+             `          push(` && |\n| &&
              `            "POPOVER MODEL",` && |\n| &&
              `            json(() => jsonSources.POPOVER_MODEL()),` && |\n| &&
              `          );` && |\n| &&
@@ -453,12 +459,36 @@ CLASS z2ui5_cl_app_developertools_js IMPLEMENTATION.
              `        return sections.join("\n\n") || "(nothing to export)";` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      // Fetch the running app's ABAP class source via the ADT REST endpoint,` && |\n| &&
+             `      // so the export can include the class that produced the current state.` && |\n| &&
+             `      // Returns the raw source text, or "" when the class name is unknown or` && |\n| &&
+             `      // the request fails (the endpoint needs an authenticated, ADT-enabled` && |\n| &&
+             `      // session, which is not always available - the export must still work` && |\n| &&
+             `      // without it). Never throws: the export must succeed regardless.` && |\n| &&
+             `      async fetchAbapSource() {` && |\n| &&
+             `        const url = this.getAbapSourceUrl();` && |\n| &&
+             `        if (!url) return "";` && |\n| &&
+             `        try {` && |\n| &&
+             `          const response = await fetch(url, {` && |\n| &&
+             `            headers: { Accept: "text/plain" },` && |\n| &&
+             `            credentials: "same-origin",` && |\n| &&
+             `          });` && |\n| &&
+             `          if (!response.ok) return "";` && |\n| &&
+             `          return await response.text();` && |\n| &&
+             `        } catch {` && |\n| &&
+             `          return "";` && |\n| &&
+             `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      // Show the whole export in a stretched popup with a read-through TextArea` && |\n| &&
-             `      // (selectable for manual copy) and a one-click "Copy to Clipboard".` && |\n| &&
-             `      onExport() {` && |\n| &&
+             `      // (selectable for manual copy) and a one-click "Copy to Clipboard". The` && |\n| &&
+             `      // ABAP class source is fetched first (asynchronously) so it can be part` && |\n| &&
+             `      // of the exported / copied blob.` && |\n| &&
+             `      async onExport() {` && |\n| &&
              `        let text;` && |\n| &&
              `        try {` && |\n| &&
-             `          text = this.buildExport();` && |\n| &&
+             `          const abapSource = await this.fetchAbapSource();` && |\n| &&
+             `          text = this.buildExport(abapSource);` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          text = ``(export failed: ${e?.message || e})``;` && |\n| &&
              `        }` && |\n| &&
