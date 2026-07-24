@@ -80,6 +80,12 @@ sap.ui.define(
     const CONTROL_METHODS = {
       to: ["controlId", "string"], // target page + optional transitionName
       back: [],
+      toDetail: ["controlId"], // sap.m.SplitApp/SplitContainer: show a detail page
+      toMaster: ["controlId"], // sap.m.SplitApp/SplitContainer: show a master page
+      backDetail: [], // sap.m.SplitApp/SplitContainer: back in the detail stack
+      backMaster: [], // sap.m.SplitApp/SplitContainer: back in the master stack
+      setMode: ["string"], // sap.m.SplitApp/SplitContainer: SplitAppMode
+      navigateBack: [], // sap.m.QuickView/QuickViewCard: navigate one page back
       focus: [],
       scrollToIndex: ["int"],
       scrollTo: ["int", "int"],
