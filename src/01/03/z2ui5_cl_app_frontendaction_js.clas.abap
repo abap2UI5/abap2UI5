@@ -709,7 +709,26 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // The control may still be missing from the DOM when SET_FOCUS runs` && |\n| &&
              `      // together with a fresh view build. Apply now if it is rendered,` && |\n| &&
              `      // otherwise once it is.` && |\n| &&
-             `      Lib.whenRendered(oElement, oController, applyFocus);` && |\n| &&
+             `      Lib.whenRendered(oElement, oController, () => {` && |\n| &&
+             `        // A binding update in the same roundtrip may have just re-enabled` && |\n| &&
+             `        // the field: the control already reports enabled=true, but the DOM` && |\n| &&
+             `        // still carries the old disabled input (UI5 re-renders` && |\n| &&
+             `        // asynchronously) and the browser silently ignores focus() on a` && |\n| &&
+             `        // disabled element - the cursor position would be lost with the` && |\n| &&
+             `        // re-rendering. Defer to after that re-rendering instead.` && |\n| &&
+             `        const dom = oElement.getFocusDomRef?.();` && |\n| &&
+             `        if (dom?.disabled && oElement.getEnabled?.() !== false) {` && |\n| &&
+             `          const delegate = {` && |\n| &&
+             `            onAfterRendering: () => {` && |\n| &&
+             `              oElement.removeEventDelegate(delegate);` && |\n| &&
+             `              if (!Lib.isDestroyed(oController)) applyFocus();` && |\n| &&
+             `            },` && |\n| &&
+             `          };` && |\n| &&
+             `          oElement.addEventDelegate(delegate);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        applyFocus();` && |\n| &&
+             `      });` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evScrollTo(oController, args) {` && |\n| &&
@@ -799,7 +818,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evSetTitleLaunchpad(oController, args) {` && |\n| &&
-             `      const title = Lib.toText(args[1]);` && |\n| &&
+             `      const title = Lib.toText(args[1]);` && |\n|.
+    result = result &&
              `      try {` && |\n| &&
              `        const shell = AppState.state.oLaunchpad?.ShellUIService;` && |\n| &&
              `        if (shell?.setTitle) {` && |\n| &&
@@ -818,8 +838,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function evZ2ui5Custom(oController, args) {` && |\n|.
-    result = result &&
+             `    function evZ2ui5Custom(oController, args) {` && |\n| &&
              `      try {` && |\n| &&
              `        // Custom functions are registered by apps on the public z2ui5` && |\n| &&
              `        // global (js_loader popup), so resolve them via the facade.` && |\n| &&

@@ -22,7 +22,20 @@ function load() {
     resolveById: (id) => controls[id] || null,
     byId: (_key, id) => controls[id] || null,
   };
-  const Lib = { logError: (m) => errors.push(m), runCallbacks: () => {} };
+  const Lib = {
+    logError: (m) => errors.push(m),
+    runCallbacks: () => {},
+    isDestroyed: () => false,
+    // same contract as the real Lib.whenRendered: run immediately when the
+    // control is rendered, otherwise after its next rendering
+    whenRendered: (control, _owner, fn) => {
+      if (control.getDomRef?.()) {
+        fn();
+      } else {
+        control.addEventDelegate({ onAfterRendering: fn });
+      }
+    },
+  };
   const AppState = { state: { onBeforeEventFrontend: [] } };
   function Filter(path, operator, value1, value2) {
     Object.assign(this, { path, operator, value1, value2 });
@@ -246,6 +259,61 @@ test.describe("CONTROL_BY_ID", () => {
       ["expand", true],
       ["expand", false],
     ]);
+  });
+});
+
+test.describe("SET_FOCUS", () => {
+  // Minimal focusable control: rendered DOM, focus info round-trip and the
+  // event-delegate API evSetFocus uses for its deferrals.
+  function makeInput(controls, calls, { disabled = false, enabled = true } = {}) {
+    const delegates = [];
+    const control = {
+      getDomRef: () => ({}),
+      getFocusDomRef: () => ({ disabled }),
+      getEnabled: () => enabled,
+      getFocusInfo: () => ({ id: "myInput" }),
+      applyFocusInfo: (info) => calls.push(["applyFocusInfo", info]),
+      addEventDelegate: (d) => delegates.push(d),
+      removeEventDelegate: (d) => delegates.splice(delegates.indexOf(d), 1),
+    };
+    controls.myInput = control;
+    return { control, delegates };
+  }
+
+  test("applies focus and cursor position on an enabled rendered control", () => {
+    const { FrontendAction, calls, controls } = load();
+    makeInput(controls, calls);
+    FrontendAction.execute(null, ["SET_FOCUS", "myInput", "2", "5"]);
+    expect(calls).toEqual([
+      ["applyFocusInfo", { id: "myInput", selectionStart: 2, selectionEnd: 5 }],
+    ]);
+  });
+
+  test("defers focus until after re-rendering when the DOM input is still disabled (field re-enabled via binding)", () => {
+    const { FrontendAction, calls, controls } = load();
+    const { delegates } = makeInput(controls, calls, { disabled: true });
+    FrontendAction.execute(null, ["SET_FOCUS", "myInput", "3", "3"]);
+    // stale disabled DOM: nothing applied yet, a rendering delegate waits
+    expect(calls).toHaveLength(0);
+    expect(delegates).toHaveLength(1);
+    // the re-rendering replaces the DOM with the enabled input
+    controls.myInput.getFocusDomRef = () => ({ disabled: false });
+    delegates[0].onAfterRendering();
+    expect(calls).toEqual([
+      ["applyFocusInfo", { id: "myInput", selectionStart: 3, selectionEnd: 3 }],
+    ]);
+    expect(delegates).toHaveLength(0);
+  });
+
+  test("does not wait when the control itself is disabled (no re-rendering coming)", () => {
+    const { FrontendAction, calls, controls } = load();
+    const { delegates } = makeInput(controls, calls, {
+      disabled: true,
+      enabled: false,
+    });
+    FrontendAction.execute(null, ["SET_FOCUS", "myInput"]);
+    expect(delegates).toHaveLength(0);
+    expect(calls).toEqual([["applyFocusInfo", { id: "myInput" }]]);
   });
 });
 

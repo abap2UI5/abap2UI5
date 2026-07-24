@@ -688,7 +688,26 @@ sap.ui.define(
       // The control may still be missing from the DOM when SET_FOCUS runs
       // together with a fresh view build. Apply now if it is rendered,
       // otherwise once it is.
-      Lib.whenRendered(oElement, oController, applyFocus);
+      Lib.whenRendered(oElement, oController, () => {
+        // A binding update in the same roundtrip may have just re-enabled
+        // the field: the control already reports enabled=true, but the DOM
+        // still carries the old disabled input (UI5 re-renders
+        // asynchronously) and the browser silently ignores focus() on a
+        // disabled element - the cursor position would be lost with the
+        // re-rendering. Defer to after that re-rendering instead.
+        const dom = oElement.getFocusDomRef?.();
+        if (dom?.disabled && oElement.getEnabled?.() !== false) {
+          const delegate = {
+            onAfterRendering: () => {
+              oElement.removeEventDelegate(delegate);
+              if (!Lib.isDestroyed(oController)) applyFocus();
+            },
+          };
+          oElement.addEventDelegate(delegate);
+          return;
+        }
+        applyFocus();
+      });
     }
 
     function evScrollTo(oController, args) {
