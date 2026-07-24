@@ -417,14 +417,14 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        binding.filter([` && |\n| &&
-             `          new Filter(path, FilterOperator[operator], value1, value2),` && |\n| &&
+             `          new Filter(path, FilterOperator[operator], value1, value2),` && |\n|.
+    result = result &&
              `        ]);` && |\n| &&
              `      },` && |\n| &&
              `      sort(binding, [path, descending, group]) {` && |\n| &&
              `        binding.sort([` && |\n| &&
              `          new Sorter(path, castArg("bool", descending), castArg("bool", group)),` && |\n| &&
-             `        ]);` && |\n|.
-    result = result &&
+             `        ]);` && |\n| &&
              `      },` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
@@ -818,14 +818,14 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    function evScrollTo(oController, args) {` && |\n| &&
              `      // args[1] = control id` && |\n| &&
              `      // args[2] = scrollTop  (Y, vertical, px)` && |\n| &&
-             `      // args[3] = scrollLeft (X, horizontal, px) - optional, default 0` && |\n| &&
+             `      // args[3] = scrollLeft (X, horizontal, px) - optional, default 0` && |\n|.
+    result = result &&
              `      // args[4] = behavior - "auto" (default) | "smooth" | "instant"` && |\n| &&
              `      // Strategy: prefer the control's scroll delegate (sap.m.Page,` && |\n| &&
              `      // ScrollContainer etc. expose ScrollEnablement). The delegate knows` && |\n| &&
              `      // the real scroll container, which often is NOT the control's root` && |\n| &&
              `      // DOM element - so native Element.scrollTo on getDomRef() silently` && |\n| &&
-             `      // does nothing on a Page. ScrollEnablement.scrollTo(x, y, time)` && |\n|.
-    result = result &&
+             `      // does nothing on a Page. ScrollEnablement.scrollTo(x, y, time)` && |\n| &&
              `      // animates when time > 0, so "smooth" maps to a 300ms animation.` && |\n| &&
              `      // Native Element.scrollTo is only used as a fallback for controls` && |\n| &&
              `      // without a delegate.` && |\n| &&
