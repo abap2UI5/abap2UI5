@@ -52,9 +52,12 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <row> TYPE any.
     FIELD-SYMBOLS <ele> TYPE any.
+    DATA lt_attri TYPE abap_component_tab.
+    FIELD-SYMBOLS <comp> LIKE LINE OF lt_attri.
+        DATA temp12 TYPE string.
 
     ASSIGN ms_config-tab->* TO <tab>.
-    ASSIGN <tab>[ ms_config-tab_index ] TO <row>.
+    READ TABLE <tab> INDEX ms_config-tab_index ASSIGNING <row>.
     " an out-of-range tab_index leaves <row> unassigned; raise the intended
     " binding error instead of dumping GETWA_NOT_ASSIGNED on the ASSIGN
     " COMPONENT below
@@ -64,18 +67,22 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
           val = `BINDING_ERROR_TAB_CELL_LEVEL - Row index out of range`.
     ENDIF.
 
-    DATA(lt_attri) = z2ui5_cl_a2ui5_context=>rtti_get_t_attri_by_any( ms_config-tab ).
-    LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
+
+    lt_attri = z2ui5_cl_a2ui5_context=>rtti_get_t_attri_by_any( ms_config-tab ).
+
+    LOOP AT lt_attri ASSIGNING <comp>.
 
       ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
       IF sy-subrc <> 0.
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING val = |Binding Error - component '{ <comp>-name }' not found in the bound row|.
       ENDIF.
-      lr_ref_in = REF #( <ele> ).
+      GET REFERENCE OF <ele> INTO lr_ref_in.
 
       IF iv_val = lr_ref_in.
-        result = |{ iv_name }/{ shift_right( CONV string( ms_config-tab_index - 1 ) ) }/{ <comp>-name }|.
+
+        temp12 = ms_config-tab_index - 1.
+        result = |{ iv_name }/{ shift_right( temp12 ) }/{ <comp>-name }|.
         RETURN.
       ENDIF.
 
@@ -145,8 +152,11 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD main.
+    DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
+      FIELD-SYMBOLS <temp13> TYPE z2ui5_if_core_types=>ty_s_attri.
+DATA lr_ref_attri LIKE REF TO <temp13>.
 
-    IF z2ui5_cl_a2ui5_context=>check_bound_a_not_initial( config-tab ).
+    IF z2ui5_cl_a2ui5_context=>check_bound_a_not_initial( config-tab ) IS NOT INITIAL.
 
       result = main_cell( val    = val
                           config = config ).
@@ -156,8 +166,8 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
     ms_config = config.
 
-    DATA(lo_model) = NEW z2ui5_cl_core_srv_model( attri = mo_app->mt_attri
-                                                  app   = mo_app->mo_app ).
+
+    CREATE OBJECT lo_model TYPE z2ui5_cl_core_srv_model EXPORTING attri = mo_app->mt_attri app = mo_app->mo_app.
 
     mr_attri = lo_model->main_attri_search( val ).
 
@@ -165,7 +175,13 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
       " name_ref may be a synthetic child name that no longer maps to a row
       " (e.g. dissolve stopped at max depth); raise the binding error rather
       " than dumping CX_SY_ITAB_LINE_NOT_FOUND while rendering the field
-      DATA(lr_ref_attri) = REF #( mo_app->mt_attri->*[ name = mr_attri->name_ref ] OPTIONAL ).
+
+      READ TABLE mo_app->mt_attri->* WITH KEY name = mr_attri->name_ref ASSIGNING <temp13>.
+IF sy-subrc <> 0.
+  ASSERT 1 = 0.
+ENDIF.
+
+GET REFERENCE OF <temp13> INTO lr_ref_attri.
       IF lr_ref_attri IS NOT BOUND.
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING
@@ -193,12 +209,18 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD main_cell.
+    DATA lo_bind TYPE REF TO z2ui5_cl_core_srv_bind.
+    DATA temp14 TYPE z2ui5_if_core_types=>ty_s_bind_config.
 
     ms_config = config.
 
-    DATA(lo_bind) = NEW z2ui5_cl_core_srv_bind( mo_app ).
+
+    CREATE OBJECT lo_bind TYPE z2ui5_cl_core_srv_bind EXPORTING APP = mo_app.
+
+    CLEAR temp14.
+    temp14-path_only = abap_true.
     result = lo_bind->main( val    = config-tab
-                            config = VALUE #( path_only = abap_true ) ).
+                            config = temp14 ).
 
     result = bind_tab_cell( iv_name = result
                             iv_val  = val ).

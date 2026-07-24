@@ -41,10 +41,13 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD keep_node.
 
+    DATA temp1 TYPE z2ui5_if_ajson_types=>ty_node.
+    CLEAR temp1.
+    temp1-type = iv_type.
+    temp1-value = iv_value.
+    temp1-children = iv_children.
     rv_keep = mi_filter->keep_node(
-        is_node  = VALUE #( type     = iv_type
-                            value    = iv_value
-                            children = iv_children )
+        is_node  = temp1
         iv_visit = iv_visit ).
 
   ENDMETHOD.

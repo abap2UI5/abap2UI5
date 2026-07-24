@@ -48,13 +48,13 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
   METHOD constructor.
 
     mo_http_post = val.
-    mo_app = NEW #( ).
+    CREATE OBJECT mo_app.
 
   ENDMETHOD.
 
   METHOD factory_by_frontend.
 
-    result = NEW #( mo_http_post ).
+    CREATE OBJECT result EXPORTING VAL = mo_http_post.
 
     IF mo_http_post->mo_action->mo_app->mo_app IS BOUND.
       result->mo_app = mo_http_post->mo_action->mo_app.
@@ -75,9 +75,11 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD factory_first_start.
+        DATA li_app TYPE REF TO z2ui5_if_app.
+        DATA x TYPE REF TO cx_root.
 
     TRY.
-        result = NEW #( mo_http_post ).
+        CREATE OBJECT result EXPORTING VAL = mo_http_post.
 
         IF mo_http_post->ms_request-s_control-app_start_draft IS NOT INITIAL.
           TRY.
@@ -98,14 +100,15 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
         result->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
 
-        DATA li_app TYPE REF TO z2ui5_if_app.
+
         CREATE OBJECT li_app TYPE (mo_http_post->ms_request-s_control-app_start).
         result->mo_app->mo_app = li_app.
         li_app->id_draft = result->mo_app->ms_draft-id.
 
         result->ms_actual-check_on_navigated = abap_true.
 
-      CATCH cx_root INTO DATA(x).
+
+      CATCH cx_root INTO x.
         " a wrong/mistyped app name in the URL lands here (CREATE OBJECT of a
         " non-existent class). Just raise with a readable text - the single
         " top-level catch in z2ui5_cl_http_handler=>_main( ) turns it into a
@@ -126,10 +129,13 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD factory_stack_leave.
+    DATA lo_draft TYPE REF TO z2ui5_cl_core_srv_draft.
+      DATA ls_draft TYPE z2ui5_if_types=>ty_s_draft.
 
     result = prepare_app_stack( ms_next-o_app_leave ).
 
-    DATA(lo_draft) = NEW z2ui5_cl_core_srv_draft( ).
+
+    CREATE OBJECT lo_draft TYPE z2ui5_cl_core_srv_draft.
 
     " check for new app?
     IF lo_draft->check_exists( ms_next-o_app_leave->id_draft ) = abap_false.
@@ -143,34 +149,45 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     " would raise NO_DRAFT_ENTRY and break back-navigation
     IF mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL
         AND lo_draft->check_exists( mo_app->ms_draft-id_prev_app_stack ) = abap_true.
-      DATA(ls_draft) = lo_draft->read_info( mo_app->ms_draft-id_prev_app_stack ).
+
+      ls_draft = lo_draft->read_info( mo_app->ms_draft-id_prev_app_stack ).
       result->mo_app->ms_draft-id_prev_app_stack = ls_draft-id_prev_app_stack.
     ENDIF.
 
   ENDMETHOD.
 
   METHOD factory_system_startup.
+    DATA temp1 TYPE REF TO z2ui5_if_app.
 
-    result = NEW #( mo_http_post ).
+    CREATE OBJECT result EXPORTING VAL = mo_http_post.
 
     result->mo_app->ms_draft-id          = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
     result->ms_actual-check_on_navigated = abap_true.
     result->mo_app->mo_app               = z2ui5_cl_app_startup=>factory( ).
 
-    CAST z2ui5_if_app( result->mo_app->mo_app )->id_draft = result->mo_app->ms_draft-id.
+
+    temp1 ?= result->mo_app->mo_app.
+    temp1->id_draft = result->mo_app->ms_draft-id.
 
   ENDMETHOD.
 
   METHOD reset_view_update_flags.
 
-    SPLIT z2ui5_if_core_types=>cs_view_slot_list AT `,` INTO TABLE DATA(lt_slot).
-    LOOP AT lt_slot INTO DATA(lv_slot).
-      ASSIGN COMPONENT lv_slot OF STRUCTURE ms_next-s_set TO FIELD-SYMBOL(<slot>).
+    DATA lt_slot TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+    DATA lv_slot LIKE LINE OF lt_slot.
+      FIELD-SYMBOLS <slot> TYPE any.
+      FIELD-SYMBOLS <check_update_model> TYPE any.
+    SPLIT z2ui5_if_core_types=>cs_view_slot_list AT `,` INTO TABLE lt_slot.
+
+    LOOP AT lt_slot INTO lv_slot.
+
+      ASSIGN COMPONENT lv_slot OF STRUCTURE ms_next-s_set TO <slot>.
       IF sy-subrc <> 0.
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING val = |Internal error - view slot '{ lv_slot }' not found in s_set|.
       ENDIF.
-      ASSIGN COMPONENT `CHECK_UPDATE_MODEL` OF STRUCTURE <slot> TO FIELD-SYMBOL(<check_update_model>).
+
+      ASSIGN COMPONENT `CHECK_UPDATE_MODEL` OF STRUCTURE <slot> TO <check_update_model>.
       IF sy-subrc <> 0.
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING val = |Internal error - CHECK_UPDATE_MODEL missing in view slot '{ lv_slot }'|.
@@ -181,6 +198,10 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD prepare_app_stack.
+      DATA lv_action TYPE string.
+      DATA temp1 LIKE LINE OF ms_next-s_set-s_follow_up_action-custom_js.
+      DATA temp2 LIKE sy-tabix.
+      DATA lv_dummy TYPE string.
 
     mo_app->db_save( ).
 
@@ -191,7 +212,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
       val->id_draft = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
     ENDIF.
 
-    result = NEW #( mo_http_post ).
+    CREATE OBJECT result EXPORTING VAL = mo_http_post.
     TRY.
         result->mo_app = z2ui5_cl_core_app=>db_load_by_app( val ).
       CATCH cx_root.
@@ -212,8 +233,18 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     ELSEIF lines( ms_next-s_set-s_follow_up_action-custom_js ) > 0.
       " backward compatibility: derive the next event from a legacy
       " follow_up_action( _event( ) ) snippet ( deprecated mechanism )
-      DATA(lv_action) = ms_next-s_set-s_follow_up_action-custom_js[ 1 ].
-      SPLIT lv_action AT `.eB(['` INTO DATA(lv_dummy)
+
+
+
+      temp2 = sy-tabix.
+      READ TABLE ms_next-s_set-s_follow_up_action-custom_js INDEX 1 INTO temp1.
+      sy-tabix = temp2.
+      IF sy-subrc <> 0.
+        ASSERT 1 = 0.
+      ENDIF.
+      lv_action = temp1.
+
+      SPLIT lv_action AT `.eB(['` INTO lv_dummy
             result->ms_actual-event.
       SPLIT result->ms_actual-event AT `']` INTO result->ms_actual-event lv_dummy.
     ENDIF.
@@ -231,7 +262,8 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     " is navigated to renders a popup itself, its popup_display( ) overwrites
     " this destroy request again ( the frontend processes CHECK_DESTROY before
     " the new popup XML ). Destroying when no popup is open is a no-op.
-    result->ms_next-s_set-s_popup = VALUE #( check_destroy = abap_true ).
+    CLEAR result->ms_next-s_set-s_popup.
+    result->ms_next-s_set-s_popup-check_destroy = abap_true.
 
   ENDMETHOD.
 

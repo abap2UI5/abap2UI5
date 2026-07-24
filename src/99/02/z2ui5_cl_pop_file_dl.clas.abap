@@ -44,8 +44,9 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
   METHOD factory.
 
     DATA lv_size_kb TYPE p LENGTH 8 DECIMALS 2.
+    DATA temp1 TYPE string.
 
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
     r_result->title               = i_title.
 
     r_result->question_text       = i_text.
@@ -57,7 +58,9 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
     " packed target avoids the integer division that displayed 0 for small
     " files, condense drops the trailing sign blank of the conversion
     lv_size_kb                    = strlen( i_file ) / 1000.
-    r_result->mv_size             = condense( CONV string( lv_size_kb ) ).
+
+    temp1 = lv_size_kb.
+    r_result->mv_size             = condense( temp1 ).
 
   ENDMETHOD.
 
@@ -69,17 +72,32 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
+    DATA popup TYPE REF TO z2ui5_cl_xml_view.
+      DATA lv_csv_x TYPE xstring.
+      DATA lv_base64 TYPE string.
+      DATA temp2 TYPE z2ui5_if_types=>ty_t_name_value.
+      DATA temp3 LIKE LINE OF temp2.
+    popup = z2ui5_cl_xml_view=>factory_popup( )->dialog( title      = title
                                                                afterclose = client->_event( `BUTTON_CANCEL` )
               )->content( ).
 
     IF mv_check_download = abap_true.
-      DATA(lv_csv_x) = z2ui5_cl_a2ui5_context=>conv_get_xstring_by_string( mv_value ).
-      DATA(lv_base64) = z2ui5_cl_a2ui5_context=>conv_encode_x_base64( lv_csv_x ).
+
+      lv_csv_x = z2ui5_cl_a2ui5_context=>conv_get_xstring_by_string( mv_value ).
+
+      lv_base64 = z2ui5_cl_a2ui5_context=>conv_encode_x_base64( lv_csv_x ).
+
+      CLEAR temp2.
+
+      temp3-n = `src`.
+      temp3-v = mv_type && lv_base64.
+      INSERT temp3 INTO TABLE temp2.
+      temp3-n = `hidden`.
+      temp3-v = `hidden`.
+      INSERT temp3 INTO TABLE temp2.
       popup->_generic( ns     = `html`
                        name   = `iframe`
-                       t_prop = VALUE #( ( n = `src` v = mv_type && lv_base64 )
-                                         ( n = `hidden` v = `hidden` ) ) ).
+                       t_prop = temp2 ).
 
       popup->_z2ui5( )->timer( client->_event( `CALLBACK_DOWNLOAD` ) ).
 
@@ -111,7 +129,7 @@ CLASS z2ui5_cl_pop_file_dl IMPLEMENTATION.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       view_display( ).
       RETURN.
     ENDIF.

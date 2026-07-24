@@ -14,7 +14,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_factory.
 
-    DATA(lo_pop) = z2ui5_cl_pop_file_dl=>factory( i_file = `test_content`
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_file_dl.
+    lo_pop = z2ui5_cl_pop_file_dl=>factory( i_file = `test_content`
                                                   i_name = `test.csv` ).
     cl_abap_unit_assert=>assert_bound( lo_pop ).
     cl_abap_unit_assert=>assert_equals( exp = `test_content`
@@ -31,7 +32,8 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_result_initial.
 
-    DATA(lo_pop) = z2ui5_cl_pop_file_dl=>factory( `abc` ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_file_dl.
+    lo_pop = z2ui5_cl_pop_file_dl=>factory( `abc` ).
     cl_abap_unit_assert=>assert_false( lo_pop->result( ) ).
 
   ENDMETHOD.
@@ -67,9 +69,11 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
   METHOD client_create.
 
-    mo_action = NEW #( NEW z2ui5_cl_core_handler( `` ) ).
+    DATA temp1 TYPE REF TO z2ui5_cl_core_handler.
+    CREATE OBJECT temp1 TYPE z2ui5_cl_core_handler EXPORTING VAL = ``.
+    CREATE OBJECT mo_action EXPORTING VAL = temp1.
     mo_action->mo_app->mo_app = io_app.
-    mi_client = NEW z2ui5_cl_core_client( mo_action ).
+    CREATE OBJECT mi_client TYPE z2ui5_cl_core_client EXPORTING ACTION = mo_action.
 
   ENDMETHOD.
 
@@ -84,34 +88,50 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
   METHOD test_init_displays_popup.
 
-    DATA(lo_pop) = z2ui5_cl_pop_file_dl=>factory( i_file  = `col1;col2`
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_file_dl.
+    DATA lv_xml LIKE mo_action->ms_next-s_set-s_popup-xml.
+    DATA temp1 TYPE xsdboolean.
+    DATA temp2 TYPE xsdboolean.
+    lo_pop = z2ui5_cl_pop_file_dl=>factory( i_file  = `col1;col2`
                                                   i_title = `Download Title` ).
     client_create( lo_pop ).
 
     lo_pop->z2ui5_if_app~main( mi_client ).
 
-    DATA(lv_xml) = mo_action->ms_next-s_set-s_popup-xml.
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `Download Title` ) ).
-    cl_abap_unit_assert=>assert_false( xsdbool( lv_xml CS `iframe` ) ).
+
+    lv_xml = mo_action->ms_next-s_set-s_popup-xml.
+
+    temp1 = boolc( lv_xml CS `Download Title` ).
+    cl_abap_unit_assert=>assert_true( temp1 ).
+
+    temp2 = boolc( lv_xml CS `iframe` ).
+    cl_abap_unit_assert=>assert_false( temp2 ).
 
   ENDMETHOD.
 
   METHOD test_confirm_starts_dl.
 
-    DATA(lo_pop) = z2ui5_cl_pop_file_dl=>factory( `col1;col2` ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_file_dl.
+    DATA lv_xml LIKE mo_action->ms_next-s_set-s_popup-xml.
+    DATA temp3 TYPE xsdboolean.
+    lo_pop = z2ui5_cl_pop_file_dl=>factory( `col1;col2` ).
     roundtrip_event( io_app   = lo_pop
                      iv_event = `BUTTON_CONFIRM` ).
 
     " confirm re-renders the popup with the hidden download iframe and timer
-    DATA(lv_xml) = mo_action->ms_next-s_set-s_popup-xml.
-    cl_abap_unit_assert=>assert_true( xsdbool( lv_xml CS `iframe` ) ).
+
+    lv_xml = mo_action->ms_next-s_set-s_popup-xml.
+
+    temp3 = boolc( lv_xml CS `iframe` ).
+    cl_abap_unit_assert=>assert_true( temp3 ).
     cl_abap_unit_assert=>assert_false( mo_action->ms_next-s_set-s_popup-check_destroy ).
 
   ENDMETHOD.
 
   METHOD test_callback_closes.
 
-    DATA(lo_pop) = z2ui5_cl_pop_file_dl=>factory( `col1;col2` ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_file_dl.
+    lo_pop = z2ui5_cl_pop_file_dl=>factory( `col1;col2` ).
     roundtrip_event( io_app   = lo_pop
                      iv_event = `CALLBACK_DOWNLOAD` ).
 
@@ -122,7 +142,8 @@ CLASS ltcl_test_roundtrip IMPLEMENTATION.
 
   METHOD test_cancel_closes.
 
-    DATA(lo_pop) = z2ui5_cl_pop_file_dl=>factory( `col1;col2` ).
+    DATA lo_pop TYPE REF TO z2ui5_cl_pop_file_dl.
+    lo_pop = z2ui5_cl_pop_file_dl=>factory( `col1;col2` ).
     roundtrip_event( io_app   = lo_pop
                      iv_event = `BUTTON_CANCEL` ).
 

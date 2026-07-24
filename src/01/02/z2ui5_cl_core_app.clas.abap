@@ -71,7 +71,9 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD all_xml_stringify.
 
-    DATA(lo_model) = create_model( ).
+    DATA lo_model TYPE REF TO z2ui5_cl_core_srv_model.
+        DATA x TYPE REF TO cx_root.
+    lo_model = create_model( ).
 
     TRY.
         lo_model->main_attri_db_save_srtti( ).
@@ -93,7 +95,8 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
         result = z2ui5_cl_a2ui5_context=>xml_stringify( me ).
         lo_model->main_attri_db_load( ).
         RETURN.
-      CATCH cx_root INTO DATA(x) ##NO_HANDLER.
+
+      CATCH cx_root INTO x.
     ENDTRY.
 
     RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
@@ -110,21 +113,36 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD db_load.
 
-    DATA(lv_id) = CONV string( id ).
+    DATA temp1 TYPE string.
+    DATA lv_id LIKE temp1.
+    DATA lr_buf TYPE REF TO z2ui5_cl_core_app=>ty_s_buffer.
+    DATA lo_db TYPE REF TO z2ui5_cl_core_srv_draft.
+    DATA ls_db TYPE z2ui5_t_01.
+    DATA temp2 TYPE z2ui5_cl_core_app=>ty_s_buffer.
+    temp1 = id.
 
-    READ TABLE mt_buffer REFERENCE INTO DATA(lr_buf) WITH KEY id = lv_id.
+    lv_id = temp1.
+
+
+    READ TABLE mt_buffer REFERENCE INTO lr_buf WITH KEY id = lv_id.
     IF sy-subrc = 0.
       result = lr_buf->app.
       RETURN.
     ENDIF.
 
-    DATA(lo_db) = NEW z2ui5_cl_core_srv_draft( ).
-    DATA(ls_db) = lo_db->read_draft( id ).
+
+    CREATE OBJECT lo_db TYPE z2ui5_cl_core_srv_draft.
+
+    ls_db = lo_db->read_draft( id ).
     result = all_xml_parse( ls_db-data ).
 
     result->create_model( )->main_attri_db_load( ).
 
-    INSERT VALUE #( id = lv_id app = result ) INTO TABLE mt_buffer.
+
+    CLEAR temp2.
+    temp2-id = lv_id.
+    temp2-app = result.
+    INSERT temp2 INTO TABLE mt_buffer.
 
   ENDMETHOD.
 
@@ -136,8 +154,11 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD db_load_by_app.
 
-    DATA(lo_db) = NEW z2ui5_cl_core_srv_draft( ).
-    DATA(ls_db) = lo_db->read_draft( app->id_draft ).
+    DATA lo_db TYPE REF TO z2ui5_cl_core_srv_draft.
+    DATA ls_db TYPE z2ui5_t_01.
+    CREATE OBJECT lo_db TYPE z2ui5_cl_core_srv_draft.
+
+    ls_db = lo_db->read_draft( app->id_draft ).
     result = all_xml_parse( ls_db-data ).
 
     result->mo_app = app.
@@ -146,14 +167,21 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD db_save.
+      DATA temp3 TYPE REF TO z2ui5_if_app.
+      DATA li_app LIKE temp3.
+    DATA lo_db TYPE REF TO z2ui5_cl_core_srv_draft.
 
     IF mo_app IS BOUND.
-      DATA(li_app) = CAST z2ui5_if_app( mo_app ).
+
+      temp3 ?= mo_app.
+
+      li_app = temp3.
       li_app->id_draft = ms_draft-id.
       li_app->check_initialized = abap_true.
     ENDIF.
 
-    DATA(lo_db) = NEW z2ui5_cl_core_srv_draft( ).
+
+    CREATE OBJECT lo_db TYPE z2ui5_cl_core_srv_draft.
     lo_db->create( draft     = ms_draft
                    model_xml = all_xml_stringify( ) ).
 
@@ -173,8 +201,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD create_model.
 
-    result = NEW z2ui5_cl_core_srv_model( attri = mt_attri
-                                          app   = mo_app ).
+    CREATE OBJECT result TYPE z2ui5_cl_core_srv_model EXPORTING attri = mt_attri app = mo_app.
 
   ENDMETHOD.
 ENDCLASS.

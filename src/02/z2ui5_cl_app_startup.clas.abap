@@ -74,7 +74,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD factory.
 
-    result = NEW #( ).
+    CREATE OBJECT result.
 
   ENDMETHOD.
 
@@ -82,7 +82,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
     me->client = client.
 
-    IF client->check_on_init( ).
+    IF client->check_on_init( ) IS NOT INITIAL.
       on_init( ).
       render_start( ).
       RETURN.
@@ -93,9 +93,12 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD on_init.
+    DATA temp1 TYPE REF TO z2ui5_cl_app_hello_world.
 
     reset_button_state( ).
-    ms_home-classname = z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( NEW z2ui5_cl_app_hello_world( ) ).
+
+    CREATE OBJECT temp1 TYPE z2ui5_cl_app_hello_world.
+    ms_home-classname = z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( temp1 ).
 
   ENDMETHOD.
 
@@ -133,6 +136,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
   METHOD on_event_check.
 
     DATA li_app_test TYPE REF TO z2ui5_if_app.
+        DATA lx TYPE REF TO cx_root.
 
     TRY.
         ms_home-classname = z2ui5_cl_a2ui5_context=>c_trim_upper( ms_home-classname ).
@@ -146,7 +150,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
         ms_home-class_editable    = abap_false.
         ms_home-url               = get_app_url( ms_home-classname ).
 
-      CATCH cx_root INTO DATA(lx) ##CATCH_ALL.
+
+      CATCH cx_root INTO lx.
         ms_home-class_value_state_text = lx->get_text( ).
         ms_home-class_value_state      = `Warning`.
         client->message_box_display( text = ms_home-class_value_state_text
@@ -166,13 +171,16 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD render_start.
 
-    DATA(page) = z2ui5_cl_xml_view=>factory( )->shell( )->page(
+    DATA page TYPE REF TO z2ui5_cl_xml_view.
+    DATA form TYPE REF TO z2ui5_cl_xml_view.
+    page = z2ui5_cl_xml_view=>factory( )->shell( )->page(
                      title         = `abap2UI5 - Building UI5 Apps Purely in ABAP`
                      shownavbutton = abap_false ).
 
     render_header_toolbar( page ).
 
-    DATA(form) = create_layout_form( page ).
+
+    form = create_layout_form( page ).
     render_quickstart( form ).
     render_whats_next( form ).
     render_contribution( form ).
@@ -184,7 +192,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD render_header_toolbar.
 
-    DATA(toolbar) = page->header_content( ).
+    DATA toolbar TYPE REF TO z2ui5_cl_xml_view.
+    toolbar = page->header_content( ).
     toolbar->toolbar_spacer(
       )->button( text  = `Developer Tools`
                  icon  = `sap-icon://enablement`
@@ -193,7 +202,7 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
                  icon  = `sap-icon://information`
                  press = client->_event( cs_event-open_info ) ).
 
-    IF z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ).
+    IF z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_app_icf_config` ) IS NOT INITIAL.
       toolbar->button( text  = `Config`
                        icon  = `sap-icon://settings`
                        press = client->_event( cs_event-set_config ) ).
@@ -242,17 +251,29 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD render_whats_next.
+    DATA temp2 TYPE string.
+    DATA lv_class_samples LIKE temp2.
+      DATA temp3 TYPE string_table.
 
     form->toolbar( )->title( `What's next?` ).
 
-    DATA(lv_class_samples) = COND string(
-      WHEN z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_demo_app_g00` ) THEN `z2ui5_cl_demo_app_g00` ).
+
+    IF z2ui5_cl_a2ui5_context=>rtti_check_class_exists( `z2ui5_cl_demo_app_g00` ) IS NOT INITIAL.
+      temp2 = `z2ui5_cl_demo_app_g00`.
+    ELSE.
+      CLEAR temp2.
+    ENDIF.
+
+    lv_class_samples = temp2.
 
     IF lv_class_samples IS NOT INITIAL.
       form->label( `Start Developing` ).
+
+      CLEAR temp3.
+      INSERT get_app_url( lv_class_samples ) INTO TABLE temp3.
       form->button( text  = `Explore Code Samples`
                     press = client->_event_client( val   = client->cs_event-open_new_tab
-                                                   t_arg = VALUE #( ( get_app_url( lv_class_samples ) ) ) )
+                                                   t_arg = temp3 )
                     width = `70%` ).
     ELSE.
       form->label( `Install the sample repository` ).
@@ -291,12 +312,19 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD render_system_popup.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup(
+    DATA popup TYPE REF TO z2ui5_cl_xml_view.
+    DATA form TYPE REF TO z2ui5_cl_xml_view.
+    DATA ls_client TYPE z2ui5_if_types=>ty_s_get.
+    DATA temp5 TYPE string.
+    DATA temp1 TYPE REF TO z2ui5_cl_core_srv_draft.
+    popup = z2ui5_cl_xml_view=>factory_popup(
          )->dialog( title      = `abap2UI5 - System Information`
                     afterclose = client->_event( cs_event-close ) ).
 
-    DATA(form) = create_layout_form( popup->content( ) ).
-    DATA(ls_client) = client->get( ).
+
+    form = create_layout_form( popup->content( ) ).
+
+    ls_client = client->get( ).
 
     form->toolbar( )->title( `Frontend` ).
     form->label( `UI5 Version` ).
@@ -316,7 +344,11 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
     form->label( `Version` ).
     form->text( z2ui5_if_app=>version ).
     form->label( `Draft Entries` ).
-    form->text( CONV string( NEW z2ui5_cl_core_srv_draft( )->count_entries( ) ) ).
+
+
+    CREATE OBJECT temp1 TYPE z2ui5_cl_core_srv_draft.
+    temp5 = temp1->count_entries( ).
+    form->text( temp5 ).
 
     popup->end_button( )->button( text  = `Close`
                                   press = client->_event( cs_event-close )
@@ -349,7 +381,8 @@ CLASS z2ui5_cl_app_startup IMPLEMENTATION.
 
   METHOD get_app_url.
 
-    DATA(ls_config) = client->get( )-s_config.
+    DATA ls_config TYPE z2ui5_if_types=>ty_s_config.
+    ls_config = client->get( )-s_config.
     result = z2ui5_cl_a2ui5_context=>app_get_url( classname = classname
                                                   origin    = ls_config-origin
                                                   pathname  = ls_config-pathname
