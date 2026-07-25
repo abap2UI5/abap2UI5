@@ -458,8 +458,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        binding.filter([` && |\n| &&
-             `          new Filter(path, FilterOperator[operator], value1, value2),` && |\n|.
-    result = result &&
+             `          new Filter(path, FilterOperator[operator], value1, value2),` && |\n| &&
              `        ]);` && |\n| &&
              `      },` && |\n| &&
              `      sort(binding, [path, descending, group]) {` && |\n| &&
@@ -860,8 +859,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    function evScrollTo(oController, args) {` && |\n| &&
              `      // args[1] = control id` && |\n| &&
              `      // args[2] = scrollTop  (Y, vertical, px)` && |\n| &&
-             `      // args[3] = scrollLeft (X, horizontal, px) - optional, default 0` && |\n|.
-    result = result &&
+             `      // args[3] = scrollLeft (X, horizontal, px) - optional, default 0` && |\n| &&
              `      // args[4] = behavior - "auto" (default) | "smooth" | "instant"` && |\n| &&
              `      // Strategy: prefer the control's scroll delegate (sap.m.Page,` && |\n| &&
              `      // ScrollContainer etc. expose ScrollEnablement). The delegate knows` && |\n| &&
