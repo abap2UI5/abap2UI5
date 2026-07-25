@@ -126,6 +126,26 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      toggleStyleClass: ["string"], // sap.ui.core.Control: toggle a CSS style class` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
+             `    // A method LISTED above carries explicit arg kinds (and some, like openBy/` && |\n| &&
+             `    // toggleBy, get special handling). A method NOT listed is still callable as` && |\n| &&
+             `    // long as it is a public control method that is not framework-hostile - so` && |\n| &&
+             `    // ordinary setters/toggles (setVisible, enablePostButton, setLayout, ...) work` && |\n| &&
+             `    // without enumerating each one here. The denylist protects abap2UI5's own` && |\n| &&
+             `    // invariants: nothing that frees or reparents a tracked control, swaps the` && |\n| &&
+             `    // model/binding out from under the framework, tampers with event handlers, or` && |\n| &&
+             `    // drives the render lifecycle by hand. (The backend is the trusted driver, so` && |\n| &&
+             `    // this is a footgun guard, not a security boundary - and control[method] is` && |\n| &&
+             `    // still checked to be a function before the call, so a typo just no-ops.)` && |\n| &&
+             `    const CONTROL_METHOD_DENY =` && |\n| &&
+             `      /^(_|destroy|bind|unbind|attach|detach|removeAll|addDependent|placeAt|rerender|invalidate|applySettings|clone|setModel|setBindingContext|setParent|setBinding|setAssociation)/;` && |\n| &&
+             `    function isSafeControlMethod(method) {` && |\n| &&
+             `      return (` && |\n| &&
+             `        typeof method === "string" &&` && |\n| &&
+             `        method.length > 0 &&` && |\n| &&
+             `        !CONTROL_METHOD_DENY.test(method)` && |\n| &&
+             `      );` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    // global object -> lazy getter + its allowed methods (with arg kinds).` && |\n| &&
              `    const GLOBAL_TARGETS = {` && |\n| &&
              `      MESSAGE_TOAST: { get: () => MessageToast, methods: { show: ["string"] } },` && |\n| &&
@@ -192,7 +212,21 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // Infer the type of an argument for a method with no declared kinds (the` && |\n| &&
+             `    // generalized-allowlist path). abap2UI5 sends booleans as the ABAP tokens` && |\n| &&
+             `    // 'X'/space, so recognize those; everything else passes through as a string` && |\n| &&
+             `    // (UI5 coerces numeric strings for index/number setters). A method that needs` && |\n| &&
+             `    // a literal 'X'/'true'/'false' string or a JSON object must be declared in` && |\n| &&
+             `    // CONTROL_METHODS with an explicit kind, which overrides this inference.` && |\n| &&
+             `    function castArgAuto(raw) {` && |\n| &&
+             `      if (raw === "X" || raw === "true") return true;` && |\n| &&
+             `      if (raw === "" || raw === " " || raw === "false") return false;` && |\n| &&
+             `      return raw;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function castArgs(kinds, rawArgs, view) {` && |\n| &&
+             `      // kinds === null: unlisted-but-allowed method, infer each arg's type` && |\n| &&
+             `      if (kinds === null) return rawArgs.map((raw) => castArgAuto(raw));` && |\n| &&
              `      // only cast args the caller actually sent - padding missing trailing` && |\n| &&
              `      // args would turn open() into open(undefined) and ints into NaN` && |\n| &&
              `      return kinds` && |\n| &&
@@ -215,10 +249,15 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // args: [_, id, view, method, ...params]` && |\n| &&
              `    function evControlCallById(oController, args) {` && |\n| &&
              `      const [, id, view, method] = args;` && |\n| &&
-             `      const kinds = CONTROL_METHODS[method];` && |\n| &&
+             `      let kinds = CONTROL_METHODS[method];` && |\n| &&
              `      if (!kinds) {` && |\n| &&
-             `        Lib.logError(``CONTROL_BY_ID: method '${method}' not allowed``);` && |\n| &&
-             `        return;` && |\n| &&
+             `        // not explicitly listed: allow any public, non-hostile control method` && |\n| &&
+             `        // (kinds = null -> arg types are inferred), else fail closed.` && |\n| &&
+             `        if (!isSafeControlMethod(method)) {` && |\n| &&
+             `          Lib.logError(``CONTROL_BY_ID: method '${method}' not allowed``);` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        kinds = null;` && |\n| &&
              `      }` && |\n| &&
              `      const control = view` && |\n| &&
              `        ? ViewSlots.byId(view.toUpperCase(), id)` && |\n| &&
@@ -339,8 +378,9 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    const isEmpty = (v) => v == null || v === "";` && |\n| &&
              `` && |\n| &&
              `    // binding method -> builder that turns the trailing params into the` && |\n| &&
-             `    // aggregation-update call. Same declarative-whitelist shape as` && |\n| &&
-             `    // CONTROL_METHODS: an unlisted method fails closed at the lookup.` && |\n| &&
+             `    // aggregation-update call. A strict whitelist (unlike CONTROL_METHODS,` && |\n| &&
+             `    // which now allows any non-denied public control method): an unlisted` && |\n| &&
+             `    // binding method fails closed at the lookup.` && |\n| &&
              `    //   filter: params = [path, operator, value1, value2?]` && |\n| &&
              `    //   sort:   params = [path, descending?, group?] (ABAP bools "X"/"")` && |\n| &&
              `    // The backend arg serializer keeps empty args between filled ones as ''` && |\n| &&

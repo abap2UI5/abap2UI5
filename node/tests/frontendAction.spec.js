@@ -212,12 +212,58 @@ test.describe("CONTROL_BY_ID", () => {
     expect(calls).toEqual([["to", page2]]);
   });
 
-  test("rejects a non-whitelisted method", () => {
+  test("rejects a framework-hostile method (destroy is on the denylist)", () => {
     const { FrontendAction, calls, errors, controls } = load();
     controls.x = { destroy: () => calls.push(["destroy"]) };
     FrontendAction.execute(null, ["CONTROL_BY_ID", "x", "", "destroy"]);
     expect(calls).toHaveLength(0);
     expect(errors).toHaveLength(1);
+  });
+
+  test("rejects other denied methods (setModel/setParent/bindProperty/attachPress)", () => {
+    const { FrontendAction, calls, errors, controls } = load();
+    controls.x = {
+      setModel: () => calls.push(["setModel"]),
+      setParent: () => calls.push(["setParent"]),
+      bindProperty: () => calls.push(["bindProperty"]),
+      attachPress: () => calls.push(["attachPress"]),
+    };
+    for (const m of ["setModel", "setParent", "bindProperty", "attachPress"]) {
+      FrontendAction.execute(null, ["CONTROL_BY_ID", "x", "", m]);
+    }
+    expect(calls).toHaveLength(0);
+    expect(errors).toHaveLength(4);
+  });
+
+  test("calls an unlisted but safe public method (generalized allowlist)", () => {
+    const { FrontendAction, calls, controls } = load();
+    // enablePostButton is NOT in CONTROL_METHODS, but it is a public, non-denied
+    // setter on a core control -> callable without whitelisting it (app 236).
+    controls.feed = {
+      enablePostButton: (b) => calls.push(["enablePostButton", b]),
+    };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "feed", "", "enablePostButton", "X"]);
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "feed", "", "enablePostButton", " "]);
+    expect(calls).toEqual([
+      ["enablePostButton", true],
+      ["enablePostButton", false],
+    ]);
+  });
+
+  test("infers arg types for an unlisted method (X/space->bool, else string)", () => {
+    const { FrontendAction, calls, controls } = load();
+    controls.c = { setValueState: (...a) => calls.push(["setValueState", ...a]) };
+    // a genuine string arg passes through; only the ABAP bool tokens convert
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "c", "", "setValueState", "Error"]);
+    expect(calls).toEqual([["setValueState", "Error"]]);
+  });
+
+  test("a listed method still wins over inference (explicit kinds)", () => {
+    const { FrontendAction, calls, controls } = load();
+    // setHiddenInPopin is listed as ["object"] -> arg is JSON.parsed, not left a string
+    controls.t = { setHiddenInPopin: (a) => calls.push(["setHiddenInPopin", a]) };
+    FrontendAction.execute(null, ["CONTROL_BY_ID", "t", "", "setHiddenInPopin", '["High"]']);
+    expect(calls).toEqual([["setHiddenInPopin", ["High"]]]);
   });
 
   test("open/close without args stay true no-arg calls (popup-mode PDFViewer, Dialog)", () => {
