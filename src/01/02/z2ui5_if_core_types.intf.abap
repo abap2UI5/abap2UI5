@@ -133,11 +133,16 @@ INTERFACE z2ui5_if_core_types
       set_push_state       TYPE string,
       set_nav_back         TYPE abap_bool,
       " Hash-based app routing (UI5 Router style): when active, the frontend
-      " keeps the URL hash in sync with the running app as a bookmarkable route
-      " '#/app/<CLASS>', and the browser Back/Forward buttons navigate between
-      " apps via that hash (see app/webapp Component.js HashChanger listener).
-      " Opt-in per session via client->set_nav_routing( ).
-      set_nav_routing      TYPE abap_bool,
+      " keeps the URL hash in sync with the running app as a bookmarkable route,
+      " and the browser Back/Forward buttons navigate between apps via that hash
+      " (see app/webapp Component.js HashChanger listener). Opt-in per session
+      " via client->set_nav_routing( ). The value carries the routing MODE (see
+      " z2ui5_if_client=>cs_nav_mode): 'KEEP' syncs the class AND its draft id
+      " '#/app/<CLASS>/<DRAFT>' so Back/Forward restore the exact preserved
+      " state; 'FRESH' syncs the class only '#/app/<CLASS>' so they start the
+      " app fresh; 'DEFAULT' turns routing off again; an empty value means 'no
+      " change' (a session keeps the mode it already has).
+      set_nav_routing      TYPE string,
       " Forward app navigation via a backend nav_app_call: tells the frontend to
       " PUSH a new route history entry ('#/app/<CLASS>' of the called app) so the
       " browser Back button returns to the calling app - the routing equivalent

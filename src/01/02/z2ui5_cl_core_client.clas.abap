@@ -431,7 +431,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~set_nav_routing.
 
-    mo_action->ms_next-s_set-set_nav_routing = val.
+    mo_action->ms_next-s_set-set_nav_routing = mode.
 
   ENDMETHOD.
 

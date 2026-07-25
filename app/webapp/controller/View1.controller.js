@@ -163,18 +163,37 @@ sap.ui.define(
       // hash.
       _updateBrowserHistory(PARAMS, ID) {
         try {
-          // Hash-based app routing (UI5 Router style), opt-in per session.
-          if (PARAMS.SET_NAV_ROUTING) AppState.state.navRouting = true;
+          // Hash-based app routing (UI5 Router style), opt-in per session. The
+          // flag carries the MODE (z2ui5_if_client=>cs_nav_mode): "KEEP" routes
+          // by class + draft id (exact state restored on Back/Forward), "FRESH"
+          // routes by class only (Back/Forward start the app fresh); any other
+          // non-empty value ("DEFAULT") turns routing back OFF (framework
+          // default). An EMPTY value is "no change" so a later roundtrip that
+          // does not re-send the flag keeps routing on with the mode already
+          // chosen (an app that enabled it once in check_on_init stays routed).
+          if (PARAMS.SET_NAV_ROUTING) {
+            const mode = String(PARAMS.SET_NAV_ROUTING).toUpperCase();
+            const on = mode === "KEEP" || mode === "FRESH";
+            AppState.state.navRouting = on;
+            AppState.state.navMode = on ? mode : null;
+          }
           const state = AppState.state;
           if (state.navRouting) {
             const app = state.oResponse?.APP;
             if (app) {
+              // In FRESH mode the route carries the class only, so every history
+              // entry (Back/Forward/reload/bookmark) starts the app fresh; in
+              // KEEP mode it carries the draft id too, so they restore the exact
+              // preserved state. draftForRoute is what the route (and the echo
+              // guard below) uses - null in FRESH, the app-state ID in KEEP.
+              const draftForRoute = state.navMode === "FRESH" ? null : ID;
               // Set current app/draft BEFORE touching the hash: the setHash/
               // replaceHash below re-fires hashChanged, and Server.onHashChange
               // compares the incoming route's draft id against currentDraftId to
-              // ignore our own echo (no navigation loop).
+              // ignore our own echo (no navigation loop). In FRESH mode there is
+              // no draft, so the guard matches on the class instead.
               state.currentApp = app;
-              state.currentDraftId = ID;
+              state.currentDraftId = draftForRoute;
               if (state.navFromHash) {
                 // This render is the result of a browser Back/Forward (or manual
                 // hash edit) routed through Server.onHashChange. The hash already
@@ -183,16 +202,16 @@ sap.ui.define(
                 // entries and break the Forward button. Just adopt the state.
                 state.navFromHash = false;
               } else if (!PARAMS.SET_PUSH_STATE) {
-                // Reflect the running app AND its state in the URL as a
-                // bookmarkable route "/app/<CLASS>/<DRAFTID>". The draft id makes
-                // the browser Back/Forward buttons restore the EXACT preserved
-                // state, not a fresh app. A forward navigation done in the
-                // backend (client->nav_app_call, CHECK_NAV_APP_CALL) pushes a NEW
-                // history entry so Back returns to the calling app - the routing
-                // equivalent of a UI5 navTo. A plain roundtrip only replaces the
-                // current (top) entry, advancing it to the app's latest draft so
-                // a later Forward restores the newest state.
-                const route = Lib.routeForApp(app, ID);
+                // Reflect the running app in the URL as a bookmarkable route
+                // "/app/<CLASS>" (FRESH) or "/app/<CLASS>/<DRAFTID>" (KEEP). In
+                // KEEP the draft id makes Back/Forward restore the EXACT
+                // preserved state, not a fresh app. A forward navigation done in
+                // the backend (client->nav_app_call, CHECK_NAV_APP_CALL) pushes a
+                // NEW history entry so Back returns to the calling app - the
+                // routing equivalent of a UI5 navTo. A plain roundtrip only
+                // replaces the current (top) entry, advancing it to the app's
+                // latest draft so a later Forward restores the newest state.
+                const route = Lib.routeForApp(app, draftForRoute);
                 if (PARAMS.CHECK_NAV_APP_CALL) {
                   _hashChanger.setHash(route);
                 } else if (_hashChanger.getHash() !== route) {

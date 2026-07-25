@@ -2,12 +2,15 @@
 const { test, expect } = require("@playwright/test");
 const { loadModule } = require("./loadModule");
 
-// Tests the hash-based app router (UI5 Router style) with state-preserving
-// routes "#/app/<CLASS>/<DRAFTID>":
+// Tests the hash-based app router (UI5 Router style). It handles both routing
+// modes (z2ui5_if_client=>cs_nav_mode): KEEP routes carry the app state as a
+// draft id "#/app/<CLASS>/<DRAFTID>", FRESH routes carry the class only
+// "#/app/<CLASS>" (a fresh start). The router itself is mode-agnostic - it
+// matches on the draft id when the route has one, otherwise on the class:
 //  - Lib.routeForApp / appOfRoute / draftOfRoute build and parse the route
-//  - Server.onHashChange restores a different app STATE (draft) when the hash
-//    changes, ignores the echo of the current draft, non-routes, and disabled
-//    routing.
+//  - Server.onHashChange restores a different app STATE (KEEP: different draft;
+//    FRESH: different class) when the hash changes, ignores the echo of the
+//    current route, non-routes, and disabled routing.
 
 function loadLib() {
   const { module: Lib } = loadModule("core/Lib.js", {
@@ -89,6 +92,18 @@ test("a draft-less route falls back to the class guard", () => {
   });
   Server.onHashChange("/app/Z2UI5_CL_HOME"); // same class, no draft -> echo
   expect(roundtrips).toEqual([]);
+});
+
+test("FRESH mode: a draft-less route to a different class restarts it", () => {
+  // FRESH routes carry no draft id (currentDraftId is null); Back/Forward
+  // between class-only routes must restart the target class fresh.
+  const { Server, state, roundtrips } = loadServer({
+    currentApp: "Z2UI5_CL_HOME",
+    currentDraftId: null,
+  });
+  Server.onHashChange("/app/Z2UI5_CL_DETAIL"); // different class, no draft
+  expect(roundtrips).toEqual([{}]);
+  expect(state.navFromHash).toBe(true);
 });
 
 test("a non-app hash is ignored", () => {
