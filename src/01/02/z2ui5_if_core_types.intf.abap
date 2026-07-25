@@ -138,6 +138,11 @@ INTERFACE z2ui5_if_core_types
       " apps via that hash (see app/webapp Component.js HashChanger listener).
       " Opt-in per session via client->set_nav_routing( ).
       set_nav_routing      TYPE abap_bool,
+      " Forward app navigation via a backend nav_app_call: tells the frontend to
+      " PUSH a new route history entry ('#/app/<CLASS>' of the called app) so the
+      " browser Back button returns to the calling app - the routing equivalent
+      " of a UI5 navTo. A plain roundtrip only replaces the current route.
+      check_nav_app_call   TYPE abap_bool,
       s_stateful           TYPE ty_s_http_res-s_stateful,
     END OF ty_s_next_frontend.
 

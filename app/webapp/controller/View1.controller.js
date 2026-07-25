@@ -169,16 +169,24 @@ sap.ui.define(
           if (state.navRouting) {
             const app = state.oResponse?.APP;
             if (app) {
+              // Set currentApp BEFORE touching the hash: the setHash/replaceHash
+              // below re-fires hashChanged, and Server.onHashChange compares the
+              // incoming route against currentApp to ignore our own echo (no
+              // navigation loop).
               state.currentApp = app;
-              // Reflect the running app in the URL as a bookmarkable route.
-              // replaceHash (not setHash) so a plain roundtrip adds no history
-              // entry - forward entries are created by the NAV_TO_ROUTE action
-              // (setHash) that navigations use, exactly like a UI5 navTo. An
-              // app that manages its own hash this roundtrip (set_push_state)
-              // keeps it - routing only owns the hash when the app leaves it be.
+              // Reflect the running app in the URL as a bookmarkable route. A
+              // forward navigation done in the backend (client->nav_app_call,
+              // CHECK_NAV_APP_CALL) pushes a NEW history entry so the browser
+              // Back button returns to the calling app - the routing equivalent
+              // of a UI5 navTo. A plain roundtrip only replaces the current
+              // route (no new entry). An app that manages its own hash this
+              // roundtrip (set_push_state) keeps it - routing only owns the hash
+              // when the app leaves it be.
               if (!PARAMS.SET_PUSH_STATE) {
                 const route = Lib.routeForApp(app);
-                if (_hashChanger.getHash() !== route) {
+                if (PARAMS.CHECK_NAV_APP_CALL) {
+                  _hashChanger.setHash(route);
+                } else if (_hashChanger.getHash() !== route) {
                   _hashChanger.replaceHash(route);
                 }
               }

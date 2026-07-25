@@ -189,16 +189,24 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          if (state.navRouting) {` && |\n| &&
              `            const app = state.oResponse?.APP;` && |\n| &&
              `            if (app) {` && |\n| &&
+             `              // Set currentApp BEFORE touching the hash: the setHash/replaceHash` && |\n| &&
+             `              // below re-fires hashChanged, and Server.onHashChange compares the` && |\n| &&
+             `              // incoming route against currentApp to ignore our own echo (no` && |\n| &&
+             `              // navigation loop).` && |\n| &&
              `              state.currentApp = app;` && |\n| &&
-             `              // Reflect the running app in the URL as a bookmarkable route.` && |\n| &&
-             `              // replaceHash (not setHash) so a plain roundtrip adds no history` && |\n| &&
-             `              // entry - forward entries are created by the NAV_TO_ROUTE action` && |\n| &&
-             `              // (setHash) that navigations use, exactly like a UI5 navTo. An` && |\n| &&
-             `              // app that manages its own hash this roundtrip (set_push_state)` && |\n| &&
-             `              // keeps it - routing only owns the hash when the app leaves it be.` && |\n| &&
+             `              // Reflect the running app in the URL as a bookmarkable route. A` && |\n| &&
+             `              // forward navigation done in the backend (client->nav_app_call,` && |\n| &&
+             `              // CHECK_NAV_APP_CALL) pushes a NEW history entry so the browser` && |\n| &&
+             `              // Back button returns to the calling app - the routing equivalent` && |\n| &&
+             `              // of a UI5 navTo. A plain roundtrip only replaces the current` && |\n| &&
+             `              // route (no new entry). An app that manages its own hash this` && |\n| &&
+             `              // roundtrip (set_push_state) keeps it - routing only owns the hash` && |\n| &&
+             `              // when the app leaves it be.` && |\n| &&
              `              if (!PARAMS.SET_PUSH_STATE) {` && |\n| &&
              `                const route = Lib.routeForApp(app);` && |\n| &&
-             `                if (_hashChanger.getHash() !== route) {` && |\n| &&
+             `                if (PARAMS.CHECK_NAV_APP_CALL) {` && |\n| &&
+             `                  _hashChanger.setHash(route);` && |\n| &&
+             `                } else if (_hashChanger.getHash() !== route) {` && |\n| &&
              `                  _hashChanger.replaceHash(route);` && |\n| &&
              `                }` && |\n| &&
              `              }` && |\n| &&
@@ -409,7 +417,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      //   [0] event name` && |\n| &&
              `      //   [2] "ignore busy" flag - background events (e.g. timers) skip the` && |\n| &&
              `      //       busy guard below` && |\n| &&
-             `      //   [3] "use main view model" flag - events fired from a popup or` && |\n| &&
+             `      //   [3] "use main view model" flag - events fired from a popup or` && |\n|.
+    result = result &&
              `      //       popover controller that still target the main app's model` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `      eB(...args) {` && |\n| &&
@@ -417,8 +426,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `` && |\n| &&
              `        if (!navigator.onLine) {` && |\n| &&
              `          MessageBox.alert(` && |\n| &&
-             `            "No internet connection! Please reconnect to the server and try again.",` && |\n|.
-    result = result &&
+             `            "No internet connection! Please reconnect to the server and try again.",` && |\n| &&
              `          );` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
