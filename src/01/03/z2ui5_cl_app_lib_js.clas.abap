@@ -35,13 +35,28 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `  (AppState, Element) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
-             `    // The internal event the backend recognizes as "leave the current app and` && |\n| &&
-             `    // return to the previous one on the stack" (client->_event_nav_app_leave;` && |\n| &&
-             `    // z2ui5_if_core_types=>cs_event_nav_app_leave). Part of the request` && |\n| &&
-             `    // protocol, so it is a fixed string - the native-history popstate handler` && |\n| &&
-             `    // (Component.js) sends it to pop the server-side app stack, exactly like an` && |\n| &&
-             `    // in-app back button does.` && |\n| &&
-             `    const NAV_APP_LEAVE_EVENT = "___ZZZ_NAL";` && |\n| &&
+             `    // Hash-based app routing (UI5 Router style). The URL hash names the running` && |\n| &&
+             `    // app as a bookmarkable route "/app/<CLASS>" - the client-side equivalent` && |\n| &&
+             `    // of a UI5 route pattern "app/{class}". routeForApp builds it; appOfRoute` && |\n| &&
+             `    // parses the class back out (empty string when the hash is not an app` && |\n| &&
+             `    // route, so non-routing hashes - e.g. an app's own set_push_state - are` && |\n| &&
+             `    // ignored by the router).` && |\n| &&
+             `    const APP_ROUTE_PREFIX = "/app/";` && |\n| &&
+             `` && |\n| &&
+             `    function routeForApp(sClass) {` && |\n| &&
+             `      return ``${APP_ROUTE_PREFIX}${sClass}``;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function appOfRoute(sHash) {` && |\n| &&
+             `      if (!sHash) return "";` && |\n| &&
+             `      // Accept an optional leading "#" and "/" so both HashChanger hashes` && |\n| &&
+             `      // (no "#") and raw location.hash values resolve to the same route.` && |\n| &&
+             `      const clean = sHash.replace(/^#/, "").replace(/^\//, "");` && |\n| &&
+             `      const marker = "app/";` && |\n| &&
+             `      if (!clean.startsWith(marker)) return "";` && |\n| &&
+             `      // The class token runs to the end or the next route/query separator.` && |\n| &&
+             `      return clean.slice(marker.length).split(/[/&?]/)[0];` && |\n| &&
+             `    }` && |\n| &&
              `` && |\n| &&
              `    // Resolve a control id to its sap.ui.core.Element via the global registry.` && |\n| &&
              `    // Element.getElementById arrived in UI5 1.119; older bootstraps fall back` && |\n| &&
@@ -402,7 +417,8 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `          node = rowDelta[field];` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
-             `      return delta;` && |\n| &&
+             `      return delta;` && |\n|.
+    result = result &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Turns an HTML "details" snippet from the backend into safe HTML.` && |\n| &&
@@ -417,8 +433,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `        _sanitizeEl = document.createElement("div");` && |\n| &&
              `      }` && |\n| &&
              `      const doc = _msgParser.parseFromString(html, "text/html");` && |\n| &&
-             `      // Only top-level list items: a nested <li>'s text is already part of` && |\n|.
-    result = result &&
+             `      // Only top-level list items: a nested <li>'s text is already part of` && |\n| &&
              `      // its ancestor's textContent, so including it too would duplicate it.` && |\n| &&
              `      const items = Array.from(doc.querySelectorAll("li")).filter(` && |\n| &&
              `        (li) => !li.parentElement?.closest("li"),` && |\n| &&
@@ -473,7 +488,8 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    return {` && |\n| &&
-             `      NAV_APP_LEAVE_EVENT,` && |\n| &&
+             `      routeForApp,` && |\n| &&
+             `      appOfRoute,` && |\n| &&
              `      logError,` && |\n| &&
              `      isDestroyed,` && |\n| &&
              `      isAlive,` && |\n| &&

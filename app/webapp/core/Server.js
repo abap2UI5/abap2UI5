@@ -336,37 +336,33 @@ sap.ui.define(
         }
       },
 
-      // Native browser Back/Forward handler (registered by Component.js). Turns
-      // a Back press into a nav_app_leave roundtrip so the server-side app
-      // stack follows the browser history, mirroring a UI5 router's hash
-      // navigation. Only sessions that actually pushed app-stack entries
-      // (navDepth > 0, set by View1._updateBrowserHistory on nav_app_call)
-      // intercept the button; everything else lets the browser navigate
-      // normally, so apps that never call nav_app_call are unaffected.
-      onPopstate() {
+      // Hash-router handler (registered by Component.js on the HashChanger's
+      // hashChanged event). This is what makes the browser Back/Forward buttons
+      // - and manual URL edits / bookmarks - navigate between apps: a hash of
+      // the form "#/app/<CLASS>" starts that app fresh. It is the abap2UI5
+      // equivalent of a UI5 route's patternMatched handler.
+      onHashChange(sNewHash) {
         const state = AppState.state;
 
-        // A popstate we caused ourselves via history.back() (syncing an in-app
-        // leave) - swallow it once, the stack was already popped.
-        if (state.navIgnorePopstate) {
-          state.navIgnorePopstate = false;
+        // Routing is opt-in per session (client->set_nav_routing); until an app
+        // enabled it, leave the hash entirely to the app (e.g. set_push_state).
+        if (!state.navRouting) return;
+
+        const target = Lib.appOfRoute(sNewHash);
+
+        // Not an app route (empty / some app-owned hash) - ignore.
+        if (!target) return;
+
+        // The hash already names the running app - this event is the echo of
+        // our own replaceHash after rendering, not a user navigation. Skip it
+        // to avoid a reload loop (mirrors a Router ignoring the current route).
+        if (target.toUpperCase() === String(state.currentApp).toUpperCase())
           return;
-        }
 
-        // No app-stack entry of ours on the history - let the browser leave the
-        // app (or move within an app's own set_push_state history) untouched.
-        if (state.navDepth <= 0) return;
-
-        const oController = state.oController;
-        if (!oController || Lib.isDestroyed(oController)) return;
-
-        // The browser already moved back one entry; pop the matching server
-        // stack level. navFromPopstate tells the leave response NOT to step the
-        // history again (see View1._updateBrowserHistory). eB reuses the normal
-        // busy-indicator, in-flight and model-delta handling of a back button.
-        state.navDepth--;
-        state.navFromPopstate = true;
-        oController.eB([Lib.NAV_APP_LEAVE_EVENT]);
+        // A different app route: start it fresh. An empty body (no ID) makes the
+        // backend take the first-start path and read the target class from the
+        // hash it receives (request_app_start_route).
+        this.roundtrip({});
       },
 
       _getScrollInfo() {
@@ -635,6 +631,9 @@ sap.ui.define(
               ID: responseData.S_FRONT.ID,
               PARAMS: responseData.S_FRONT.PARAMS,
               OVIEWMODEL: responseData.MODEL,
+              // Class name of the rendered app - used by the hash router to
+              // keep the URL route "#/app/<CLASS>" in sync (View1).
+              APP: responseData.S_FRONT.APP,
             },
             seq,
           );

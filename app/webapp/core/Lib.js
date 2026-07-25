@@ -15,13 +15,28 @@ sap.ui.define(
   (AppState, Element) => {
     "use strict";
 
-    // The internal event the backend recognizes as "leave the current app and
-    // return to the previous one on the stack" (client->_event_nav_app_leave;
-    // z2ui5_if_core_types=>cs_event_nav_app_leave). Part of the request
-    // protocol, so it is a fixed string - the native-history popstate handler
-    // (Component.js) sends it to pop the server-side app stack, exactly like an
-    // in-app back button does.
-    const NAV_APP_LEAVE_EVENT = "___ZZZ_NAL";
+    // Hash-based app routing (UI5 Router style). The URL hash names the running
+    // app as a bookmarkable route "/app/<CLASS>" - the client-side equivalent
+    // of a UI5 route pattern "app/{class}". routeForApp builds it; appOfRoute
+    // parses the class back out (empty string when the hash is not an app
+    // route, so non-routing hashes - e.g. an app's own set_push_state - are
+    // ignored by the router).
+    const APP_ROUTE_PREFIX = "/app/";
+
+    function routeForApp(sClass) {
+      return `${APP_ROUTE_PREFIX}${sClass}`;
+    }
+
+    function appOfRoute(sHash) {
+      if (!sHash) return "";
+      // Accept an optional leading "#" and "/" so both HashChanger hashes
+      // (no "#") and raw location.hash values resolve to the same route.
+      const clean = sHash.replace(/^#/, "").replace(/^\//, "");
+      const marker = "app/";
+      if (!clean.startsWith(marker)) return "";
+      // The class token runs to the end or the next route/query separator.
+      return clean.slice(marker.length).split(/[/&?]/)[0];
+    }
 
     // Resolve a control id to its sap.ui.core.Element via the global registry.
     // Element.getElementById arrived in UI5 1.119; older bootstraps fall back
@@ -452,7 +467,8 @@ sap.ui.define(
     }
 
     return {
-      NAV_APP_LEAVE_EVENT,
+      routeForApp,
+      appOfRoute,
       logError,
       isDestroyed,
       isAlive,

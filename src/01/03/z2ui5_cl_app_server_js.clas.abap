@@ -356,37 +356,33 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Native browser Back/Forward handler (registered by Component.js). Turns` && |\n| &&
-             `      // a Back press into a nav_app_leave roundtrip so the server-side app` && |\n| &&
-             `      // stack follows the browser history, mirroring a UI5 router's hash` && |\n| &&
-             `      // navigation. Only sessions that actually pushed app-stack entries` && |\n| &&
-             `      // (navDepth > 0, set by View1._updateBrowserHistory on nav_app_call)` && |\n| &&
-             `      // intercept the button; everything else lets the browser navigate` && |\n| &&
-             `      // normally, so apps that never call nav_app_call are unaffected.` && |\n| &&
-             `      onPopstate() {` && |\n| &&
+             `      // Hash-router handler (registered by Component.js on the HashChanger's` && |\n| &&
+             `      // hashChanged event). This is what makes the browser Back/Forward buttons` && |\n| &&
+             `      // - and manual URL edits / bookmarks - navigate between apps: a hash of` && |\n| &&
+             `      // the form "#/app/<CLASS>" starts that app fresh. It is the abap2UI5` && |\n| &&
+             `      // equivalent of a UI5 route's patternMatched handler.` && |\n| &&
+             `      onHashChange(sNewHash) {` && |\n| &&
              `        const state = AppState.state;` && |\n| &&
              `` && |\n| &&
-             `        // A popstate we caused ourselves via history.back() (syncing an in-app` && |\n| &&
-             `        // leave) - swallow it once, the stack was already popped.` && |\n| &&
-             `        if (state.navIgnorePopstate) {` && |\n| &&
-             `          state.navIgnorePopstate = false;` && |\n| &&
+             `        // Routing is opt-in per session (client->set_nav_routing); until an app` && |\n| &&
+             `        // enabled it, leave the hash entirely to the app (e.g. set_push_state).` && |\n| &&
+             `        if (!state.navRouting) return;` && |\n| &&
+             `` && |\n| &&
+             `        const target = Lib.appOfRoute(sNewHash);` && |\n| &&
+             `` && |\n| &&
+             `        // Not an app route (empty / some app-owned hash) - ignore.` && |\n| &&
+             `        if (!target) return;` && |\n| &&
+             `` && |\n| &&
+             `        // The hash already names the running app - this event is the echo of` && |\n| &&
+             `        // our own replaceHash after rendering, not a user navigation. Skip it` && |\n| &&
+             `        // to avoid a reload loop (mirrors a Router ignoring the current route).` && |\n| &&
+             `        if (target.toUpperCase() === String(state.currentApp).toUpperCase())` && |\n| &&
              `          return;` && |\n| &&
-             `        }` && |\n| &&
              `` && |\n| &&
-             `        // No app-stack entry of ours on the history - let the browser leave the` && |\n| &&
-             `        // app (or move within an app's own set_push_state history) untouched.` && |\n| &&
-             `        if (state.navDepth <= 0) return;` && |\n| &&
-             `` && |\n| &&
-             `        const oController = state.oController;` && |\n| &&
-             `        if (!oController || Lib.isDestroyed(oController)) return;` && |\n| &&
-             `` && |\n| &&
-             `        // The browser already moved back one entry; pop the matching server` && |\n| &&
-             `        // stack level. navFromPopstate tells the leave response NOT to step the` && |\n| &&
-             `        // history again (see View1._updateBrowserHistory). eB reuses the normal` && |\n| &&
-             `        // busy-indicator, in-flight and model-delta handling of a back button.` && |\n| &&
-             `        state.navDepth--;` && |\n| &&
-             `        state.navFromPopstate = true;` && |\n| &&
-             `        oController.eB([Lib.NAV_APP_LEAVE_EVENT]);` && |\n| &&
+             `        // A different app route: start it fresh. An empty body (no ID) makes the` && |\n| &&
+             `        // backend take the first-start path and read the target class from the` && |\n| &&
+             `        // hash it receives (request_app_start_route).` && |\n| &&
+             `        this.roundtrip({});` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      _getScrollInfo() {` && |\n| &&
@@ -417,12 +413,12 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // try/catch).` && |\n| &&
              `          if (!entry.dom.isConnected || !Lib.isAlive(entry.control)) {` && |\n| &&
              `            delete store[slot.key];` && |\n| &&
-             `            continue;` && |\n|.
-    result = result &&
+             `            continue;` && |\n| &&
              `          }` && |\n| &&
              `` && |\n| &&
              `          const id = this._stripViewPrefix(` && |\n| &&
-             `            entry.control.getId(),` && |\n| &&
+             `            entry.control.getId(),` && |\n|.
+    result = result &&
              `            ViewSlots.getView(slot.key),` && |\n| &&
              `          );` && |\n| &&
              `          out[slot.key] = {` && |\n| &&
@@ -656,6 +652,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `              ID: responseData.S_FRONT.ID,` && |\n| &&
              `              PARAMS: responseData.S_FRONT.PARAMS,` && |\n| &&
              `              OVIEWMODEL: responseData.MODEL,` && |\n| &&
+             `              // Class name of the rendered app - used by the hash router to` && |\n| &&
+             `              // keep the URL route "#/app/<CLASS>" in sync (View1).` && |\n| &&
+             `              APP: responseData.S_FRONT.APP,` && |\n| &&
              `            },` && |\n| &&
              `            seq,` && |\n| &&
              `          );` && |\n| &&

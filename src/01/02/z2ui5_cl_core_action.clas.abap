@@ -123,20 +123,11 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     result = prepare_app_stack( ms_next-o_app_call ).
     result->mo_app->ms_draft-id_prev_app_stack = mo_app->ms_draft-id.
 
-    " forward app navigation - let the frontend push a browser history entry
-    " so the native Back button can return to the calling app
-    result->ms_next-s_set-check_nav_app_call = abap_true.
-
   ENDMETHOD.
 
   METHOD factory_stack_leave.
 
     result = prepare_app_stack( ms_next-o_app_leave ).
-
-    " backward app navigation - let the frontend keep its browser history
-    " position in sync (steps back itself when the leave was app-triggered,
-    " no-op when it was already triggered by a native Back press)
-    result->ms_next-s_set-check_nav_app_leave = abap_true.
 
     DATA(lo_draft) = NEW z2ui5_cl_core_srv_draft( ).
 

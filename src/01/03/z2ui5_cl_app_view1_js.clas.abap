@@ -126,12 +126,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          // way via isDestroyed).` && |\n| &&
              `          if (Lib.isDestroyed(this)) return;` && |\n| &&
              `          this._updateBrowserHistory(PARAMS, oResponse.ID);` && |\n| &&
-             `          if (PARAMS.SET_NAV_BACK) {` && |\n| &&
-             `            // Explicit app-requested history step - not an app-stack move, so` && |\n| &&
-             `            // tell the popstate handler to ignore the resulting event.` && |\n| &&
-             `            AppState.state.navIgnorePopstate = true;` && |\n| &&
-             `            history.back();` && |\n| &&
-             `          }` && |\n| &&
+             `          if (PARAMS.SET_NAV_BACK) history.back();` && |\n| &&
              `` && |\n| &&
              `          Lib.runCallbacks(AppState.state.onAfterRendering);` && |\n| &&
              `        } catch (e) {` && |\n| &&
@@ -188,6 +183,30 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // hash.` && |\n| &&
              `      _updateBrowserHistory(PARAMS, ID) {` && |\n| &&
              `        try {` && |\n| &&
+             `          // Hash-based app routing (UI5 Router style), opt-in per session.` && |\n| &&
+             `          if (PARAMS.SET_NAV_ROUTING) AppState.state.navRouting = true;` && |\n| &&
+             `          const state = AppState.state;` && |\n| &&
+             `          if (state.navRouting) {` && |\n| &&
+             `            const app = state.oResponse?.APP;` && |\n| &&
+             `            if (app) {` && |\n| &&
+             `              state.currentApp = app;` && |\n| &&
+             `              // Reflect the running app in the URL as a bookmarkable route.` && |\n| &&
+             `              // replaceHash (not setHash) so a plain roundtrip adds no history` && |\n| &&
+             `              // entry - forward entries are created by the NAV_TO_ROUTE action` && |\n| &&
+             `              // (setHash) that navigations use, exactly like a UI5 navTo. An` && |\n| &&
+             `              // app that manages its own hash this roundtrip (set_push_state)` && |\n| &&
+             `              // keeps it - routing only owns the hash when the app leaves it be.` && |\n| &&
+             `              if (!PARAMS.SET_PUSH_STATE) {` && |\n| &&
+             `                const route = Lib.routeForApp(app);` && |\n| &&
+             `                if (_hashChanger.getHash() !== route) {` && |\n| &&
+             `                  _hashChanger.replaceHash(route);` && |\n| &&
+             `                }` && |\n| &&
+             `              }` && |\n| &&
+             `            }` && |\n| &&
+             `            // Routing owns the app-state hash; skip the legacy handling below.` && |\n| &&
+             `            if (!PARAMS.SET_PUSH_STATE) return;` && |\n| &&
+             `          }` && |\n| &&
+             `` && |\n| &&
              `          if (PARAMS.SET_PUSH_STATE) {` && |\n| &&
              `            const hash = _hashChanger.getHash();` && |\n| &&
              `            const newUrl = ``${window.location.pathname}${window.location.search}#${hash}${PARAMS.SET_PUSH_STATE}``;` && |\n| &&
@@ -204,32 +223,6 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            ? ``/z2ui5-xapp-state=${ID || ""}``` && |\n| &&
              `            : "";` && |\n| &&
              `          _hashChanger.replaceHash(newHash);` && |\n| &&
-             `` && |\n| &&
-             `          // Native Back/Forward coupling: mirror the server-side app-stack move` && |\n| &&
-             `          // onto the browser history so the browser buttons drive it (see` && |\n| &&
-             `          // Server.onPopstate). CHECK_NAV_APP_CALL = a forward navigation was` && |\n| &&
-             `          // performed, CHECK_NAV_APP_LEAVE = a backward one.` && |\n| &&
-             `          const state = AppState.state;` && |\n| &&
-             `          if (PARAMS.CHECK_NAV_APP_CALL) {` && |\n| &&
-             `            // Forward: add a history entry the user can Back out of. The URL` && |\n| &&
-             `            // itself does not change - the server draft holds the app state;` && |\n| &&
-             `            // this entry is just the slot popstate pops.` && |\n| &&
-             `            history.pushState(null, "", window.location.href);` && |\n| &&
-             `            state.navDepth++;` && |\n| &&
-             `          } else if (PARAMS.CHECK_NAV_APP_LEAVE) {` && |\n| &&
-             `            if (state.navFromPopstate) {` && |\n| &&
-             `              // The leave was triggered by a Back press - the browser already` && |\n| &&
-             `              // moved, so only clear the marker.` && |\n| &&
-             `              state.navFromPopstate = false;` && |\n| &&
-             `            } else if (state.navDepth > 0) {` && |\n| &&
-             `              // The leave was triggered in-app (back button / backend) while` && |\n| &&
-             `              // the browser stayed put - step it back to stay in sync, and` && |\n| &&
-             `              // swallow the popstate that history.back() will fire.` && |\n| &&
-             `              state.navDepth--;` && |\n| &&
-             `              state.navIgnorePopstate = true;` && |\n| &&
-             `              history.back();` && |\n| &&
-             `            }` && |\n| &&
-             `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("_updateBrowserHistory: history update failed", e);` && |\n| &&
              `        }` && |\n| &&
@@ -417,15 +410,15 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      //   [2] "ignore busy" flag - background events (e.g. timers) skip the` && |\n| &&
              `      //       busy guard below` && |\n| &&
              `      //   [3] "use main view model" flag - events fired from a popup or` && |\n| &&
-             `      //       popover controller that still target the main app's model` && |\n|.
-    result = result &&
+             `      //       popover controller that still target the main app's model` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `      eB(...args) {` && |\n| &&
              `        const [, , ignoreBusy, useMainModel] = args[0];` && |\n| &&
              `` && |\n| &&
              `        if (!navigator.onLine) {` && |\n| &&
              `          MessageBox.alert(` && |\n| &&
-             `            "No internet connection! Please reconnect to the server and try again.",` && |\n| &&
+             `            "No internet connection! Please reconnect to the server and try again.",` && |\n|.
+    result = result &&
              `          );` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&

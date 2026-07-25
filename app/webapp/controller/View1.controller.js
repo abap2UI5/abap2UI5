@@ -106,12 +106,7 @@ sap.ui.define(
           // way via isDestroyed).
           if (Lib.isDestroyed(this)) return;
           this._updateBrowserHistory(PARAMS, oResponse.ID);
-          if (PARAMS.SET_NAV_BACK) {
-            // Explicit app-requested history step - not an app-stack move, so
-            // tell the popstate handler to ignore the resulting event.
-            AppState.state.navIgnorePopstate = true;
-            history.back();
-          }
+          if (PARAMS.SET_NAV_BACK) history.back();
 
           Lib.runCallbacks(AppState.state.onAfterRendering);
         } catch (e) {
@@ -168,6 +163,30 @@ sap.ui.define(
       // hash.
       _updateBrowserHistory(PARAMS, ID) {
         try {
+          // Hash-based app routing (UI5 Router style), opt-in per session.
+          if (PARAMS.SET_NAV_ROUTING) AppState.state.navRouting = true;
+          const state = AppState.state;
+          if (state.navRouting) {
+            const app = state.oResponse?.APP;
+            if (app) {
+              state.currentApp = app;
+              // Reflect the running app in the URL as a bookmarkable route.
+              // replaceHash (not setHash) so a plain roundtrip adds no history
+              // entry - forward entries are created by the NAV_TO_ROUTE action
+              // (setHash) that navigations use, exactly like a UI5 navTo. An
+              // app that manages its own hash this roundtrip (set_push_state)
+              // keeps it - routing only owns the hash when the app leaves it be.
+              if (!PARAMS.SET_PUSH_STATE) {
+                const route = Lib.routeForApp(app);
+                if (_hashChanger.getHash() !== route) {
+                  _hashChanger.replaceHash(route);
+                }
+              }
+            }
+            // Routing owns the app-state hash; skip the legacy handling below.
+            if (!PARAMS.SET_PUSH_STATE) return;
+          }
+
           if (PARAMS.SET_PUSH_STATE) {
             const hash = _hashChanger.getHash();
             const newUrl = `${window.location.pathname}${window.location.search}#${hash}${PARAMS.SET_PUSH_STATE}`;
@@ -184,32 +203,6 @@ sap.ui.define(
             ? `/z2ui5-xapp-state=${ID || ""}`
             : "";
           _hashChanger.replaceHash(newHash);
-
-          // Native Back/Forward coupling: mirror the server-side app-stack move
-          // onto the browser history so the browser buttons drive it (see
-          // Server.onPopstate). CHECK_NAV_APP_CALL = a forward navigation was
-          // performed, CHECK_NAV_APP_LEAVE = a backward one.
-          const state = AppState.state;
-          if (PARAMS.CHECK_NAV_APP_CALL) {
-            // Forward: add a history entry the user can Back out of. The URL
-            // itself does not change - the server draft holds the app state;
-            // this entry is just the slot popstate pops.
-            history.pushState(null, "", window.location.href);
-            state.navDepth++;
-          } else if (PARAMS.CHECK_NAV_APP_LEAVE) {
-            if (state.navFromPopstate) {
-              // The leave was triggered by a Back press - the browser already
-              // moved, so only clear the marker.
-              state.navFromPopstate = false;
-            } else if (state.navDepth > 0) {
-              // The leave was triggered in-app (back button / backend) while
-              // the browser stayed put - step it back to stay in sync, and
-              // swallow the popstate that history.back() will fire.
-              state.navDepth--;
-              state.navIgnorePopstate = true;
-              history.back();
-            }
-          }
         } catch (e) {
           Lib.logError("_updateBrowserHistory: history update failed", e);
         }

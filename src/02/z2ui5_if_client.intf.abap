@@ -26,6 +26,7 @@ INTERFACE z2ui5_if_client
       keyboard_set_mode         TYPE string VALUE `KEYBOARD_SET_MODE`,
       open_new_tab              TYPE string VALUE `OPEN_NEW_TAB`,
       location_reload           TYPE string VALUE `LOCATION_RELOAD`,
+      nav_to_route              TYPE string VALUE `NAV_TO_ROUTE`,
 
       "Actions more
       set_title_launchpad       TYPE string VALUE `SET_TITLE_LAUNCHPAD`,
@@ -92,6 +93,17 @@ INTERFACE z2ui5_if_client
       val TYPE string OPTIONAL.
 
   METHODS set_nav_back
+    IMPORTING
+      val TYPE abap_bool DEFAULT abap_true.
+
+  "! Enable hash-based app routing for this session (UI5 Router style). Once
+  "! enabled, the URL hash mirrors the running app as a bookmarkable route
+  "! '#/app/<CLASS>', and the browser Back/Forward buttons navigate between
+  "! apps via that hash. Navigate to another app by setting the route from the
+  "! view - client->_event_client( cs_event-nav_to_route, t_arg = ( '<CLASS>' ) )
+  "! - which starts that app fresh (like a UI5 navTo). Call once (e.g. in the
+  "! launcher app's check_on_init).
+  METHODS set_nav_routing
     IMPORTING
       val TYPE abap_bool DEFAULT abap_true.
 

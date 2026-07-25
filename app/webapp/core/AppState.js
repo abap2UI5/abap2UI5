@@ -117,19 +117,15 @@ sap.ui.define([], () => {
       search: null,
       pendingCustomJs: null,
 
-      // Native browser Back/Forward <-> server app stack coupling.
-      //  navDepth          how many app-stack levels we pushed onto the
-      //                    browser history (nav_app_call). Only >0 sessions
-      //                    intercept Back; apps that never navigate keep it 0
-      //                    and the browser behaves normally.
-      //  navFromPopstate   the in-flight nav_app_leave was triggered by a Back
-      //                    press (browser already moved), so the leave response
-      //                    must NOT step history again.
-      //  navIgnorePopstate the next popstate is one WE caused via history.back()
-      //                    (syncing an in-app leave) and must be swallowed.
-      navDepth: 0,
-      navFromPopstate: false,
-      navIgnorePopstate: false,
+      // Hash-based app routing (UI5 Router style, opt-in via set_nav_routing).
+      //  navRouting  once the running app enabled routing, the URL hash mirrors
+      //              the current app as a bookmarkable route '#/app/<CLASS>' and
+      //              browser Back/Forward navigate between apps via the hash.
+      //  currentApp  class name of the app currently rendered - the routing
+      //              guard compares an incoming hash route against it so our own
+      //              hash writes do not re-trigger a navigation.
+      navRouting: false,
+      currentApp: null,
 
       // Control / helper state
       errors: [],

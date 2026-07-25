@@ -104,7 +104,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        this._installUnloadListener();` && |\n| &&
              `        this._installDeveloperToolsShortcut();` && |\n| &&
              `        this._installScrollListener();` && |\n| &&
-             `        this._installPopstateListener();` && |\n| &&
+             `        this._installRouterListener();` && |\n| &&
              `` && |\n| &&
              `        // The stopped router removed with the manifest routing section used` && |\n| &&
              `        // to initialize the HashChanger (and its underlying hasher` && |\n| &&
@@ -160,15 +160,21 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        });` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      _installPopstateListener() {` && |\n| &&
-             `        // Couple the native browser Back/Forward buttons to the server-side app` && |\n| &&
-             `        // stack. Every nav_app_call pushes a browser history entry (tracked in` && |\n| &&
-             `        // AppState.navDepth by View1._updateBrowserHistory); a Back press then` && |\n| &&
-             `        // pops one level via a nav_app_leave roundtrip - the same event an` && |\n| &&
-             `        // in-app back button fires - so the previous app is restored without a` && |\n| &&
-             `        // page reload or a new tab.` && |\n| &&
-             `        this._boundPopstate = () => Server.onPopstate();` && |\n| &&
-             `        window.addEventListener("popstate", this._boundPopstate);` && |\n| &&
+             `      _installRouterListener() {` && |\n| &&
+             `        // Hash-based app routing (UI5 Router style). The HashChanger is the` && |\n| &&
+             `        // same engine the sap.ui.core.routing.Router sits on; listening to its` && |\n| &&
+             `        // hashChanged event makes the native browser Back/Forward buttons (and` && |\n| &&
+             `        // manual URL edits / bookmarks) drive navigation - a hash of the form` && |\n| &&
+             `        // "#/app/<CLASS>" starts that app. Only sessions that opted in via` && |\n| &&
+             `        // client->set_nav_routing( ) act on it (Server.onHashChange guards on` && |\n| &&
+             `        // AppState.navRouting), so apps that manage their own hash are` && |\n| &&
+             `        // unaffected.` && |\n| &&
+             `        this._boundHashChanged = (oEvent) =>` && |\n| &&
+             `          Server.onHashChange(oEvent.getParameter("newHash"));` && |\n| &&
+             `        HashChanger.getInstance().attachEvent(` && |\n| &&
+             `          "hashChanged",` && |\n| &&
+             `          this._boundHashChanged,` && |\n| &&
+             `        );` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
@@ -276,7 +282,10 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        document.removeEventListener("scroll", this._boundScroll, {` && |\n| &&
              `          capture: true,` && |\n| &&
              `        });` && |\n| &&
-             `        window.removeEventListener("popstate", this._boundPopstate);` && |\n| &&
+             `        HashChanger.getInstance().detachEvent(` && |\n| &&
+             `          "hashChanged",` && |\n| &&
+             `          this._boundHashChanged,` && |\n| &&
+             `        );` && |\n| &&
              `` && |\n| &&
              `        // The developer tools control is created lazily by the Ctrl+F12` && |\n| &&
              `        // shortcut - destroy it (which also closes its dialog) so a re-launch` && |\n| &&

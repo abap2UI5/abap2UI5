@@ -84,7 +84,7 @@ sap.ui.define(
         this._installUnloadListener();
         this._installDeveloperToolsShortcut();
         this._installScrollListener();
-        this._installPopstateListener();
+        this._installRouterListener();
 
         // The stopped router removed with the manifest routing section used
         // to initialize the HashChanger (and its underlying hasher
@@ -140,15 +140,21 @@ sap.ui.define(
         });
       },
 
-      _installPopstateListener() {
-        // Couple the native browser Back/Forward buttons to the server-side app
-        // stack. Every nav_app_call pushes a browser history entry (tracked in
-        // AppState.navDepth by View1._updateBrowserHistory); a Back press then
-        // pops one level via a nav_app_leave roundtrip - the same event an
-        // in-app back button fires - so the previous app is restored without a
-        // page reload or a new tab.
-        this._boundPopstate = () => Server.onPopstate();
-        window.addEventListener("popstate", this._boundPopstate);
+      _installRouterListener() {
+        // Hash-based app routing (UI5 Router style). The HashChanger is the
+        // same engine the sap.ui.core.routing.Router sits on; listening to its
+        // hashChanged event makes the native browser Back/Forward buttons (and
+        // manual URL edits / bookmarks) drive navigation - a hash of the form
+        // "#/app/<CLASS>" starts that app. Only sessions that opted in via
+        // client->set_nav_routing( ) act on it (Server.onHashChange guards on
+        // AppState.navRouting), so apps that manage their own hash are
+        // unaffected.
+        this._boundHashChanged = (oEvent) =>
+          Server.onHashChange(oEvent.getParameter("newHash"));
+        HashChanger.getInstance().attachEvent(
+          "hashChanged",
+          this._boundHashChanged,
+        );
       },
 
       // ------------------------------------------------------------------
@@ -256,7 +262,10 @@ sap.ui.define(
         document.removeEventListener("scroll", this._boundScroll, {
           capture: true,
         });
-        window.removeEventListener("popstate", this._boundPopstate);
+        HashChanger.getInstance().detachEvent(
+          "hashChanged",
+          this._boundHashChanged,
+        );
 
         // The developer tools control is created lazily by the Ctrl+F12
         // shortcut - destroy it (which also closes its dialog) so a re-launch
