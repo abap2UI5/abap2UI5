@@ -417,7 +417,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            : [];` && |\n| &&
              `          if (typeof path !== "string" || !FILTER_OPERATORS.has(operator)) {` && |\n| &&
              `            Lib.logError(` && |\n| &&
-             `              ``BINDING_CALL: bad filter row (path '${path}' / operator '${operator}')``,` && |\n| &&
+             `              ``BINDING_CALL: bad filter row (path '${path}' / operator '${operator}')``,` && |\n|.
+    result = result &&
              `            );` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
@@ -463,8 +464,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      sort(binding, [path, descending, group]) {` && |\n| &&
              `        binding.sort([` && |\n| &&
              `          new Sorter(path, castArg("bool", descending), castArg("bool", group)),` && |\n| &&
-             `        ]);` && |\n|.
-    result = result &&
+             `        ]);` && |\n| &&
              `      },` && |\n| &&
              `    };` && |\n| &&
              `` && |\n| &&
@@ -818,7 +818,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          ? dom` && |\n| &&
              `          : dom.querySelector("input, textarea");` && |\n| &&
              `        if (!input) return;` && |\n| &&
-             `        input.setAttribute("inputmode", args[2] || "text");` && |\n| &&
+             `        input.setAttribute("inputmode", args[2] || "text");` && |\n|.
+    result = result &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError(` && |\n| &&
              `          ``KEYBOARD_SET_MODE: setAttribute failed for '${args[1]}'``,` && |\n| &&
@@ -864,8 +865,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // ScrollContainer etc. expose ScrollEnablement). The delegate knows` && |\n| &&
              `      // the real scroll container, which often is NOT the control's root` && |\n| &&
              `      // DOM element - so native Element.scrollTo on getDomRef() silently` && |\n| &&
-             `      // does nothing on a Page. ScrollEnablement.scrollTo(x, y, time)` && |\n|.
-    result = result &&
+             `      // does nothing on a Page. ScrollEnablement.scrollTo(x, y, time)` && |\n| &&
              `      // animates when time > 0, so "smooth" maps to a 300ms animation.` && |\n| &&
              `      // Native Element.scrollTo is only used as a fallback for controls` && |\n| &&
              `      // without a delegate.` && |\n| &&
