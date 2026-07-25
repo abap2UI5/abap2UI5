@@ -104,6 +104,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        this._installUnloadListener();` && |\n| &&
              `        this._installDeveloperToolsShortcut();` && |\n| &&
              `        this._installScrollListener();` && |\n| &&
+             `        this._installPopstateListener();` && |\n| &&
              `` && |\n| &&
              `        // The stopped router removed with the manifest routing section used` && |\n| &&
              `        // to initialize the HashChanger (and its underlying hasher` && |\n| &&
@@ -157,6 +158,17 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `          capture: true,` && |\n| &&
              `          passive: true,` && |\n| &&
              `        });` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      _installPopstateListener() {` && |\n| &&
+             `        // Couple the native browser Back/Forward buttons to the server-side app` && |\n| &&
+             `        // stack. Every nav_app_call pushes a browser history entry (tracked in` && |\n| &&
+             `        // AppState.navDepth by View1._updateBrowserHistory); a Back press then` && |\n| &&
+             `        // pops one level via a nav_app_leave roundtrip - the same event an` && |\n| &&
+             `        // in-app back button fires - so the previous app is restored without a` && |\n| &&
+             `        // page reload or a new tab.` && |\n| &&
+             `        this._boundPopstate = () => Server.onPopstate();` && |\n| &&
+             `        window.addEventListener("popstate", this._boundPopstate);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
@@ -264,6 +276,7 @@ CLASS z2ui5_cl_app_component_js IMPLEMENTATION.
              `        document.removeEventListener("scroll", this._boundScroll, {` && |\n| &&
              `          capture: true,` && |\n| &&
              `        });` && |\n| &&
+             `        window.removeEventListener("popstate", this._boundPopstate);` && |\n| &&
              `` && |\n| &&
              `        // The developer tools control is created lazily by the Ctrl+F12` && |\n| &&
              `        // shortcut - destroy it (which also closes its dialog) so a re-launch` && |\n| &&

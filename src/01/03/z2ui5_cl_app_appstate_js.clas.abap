@@ -137,6 +137,20 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `      search: null,` && |\n| &&
              `      pendingCustomJs: null,` && |\n| &&
              `` && |\n| &&
+             `      // Native browser Back/Forward <-> server app stack coupling.` && |\n| &&
+             `      //  navDepth          how many app-stack levels we pushed onto the` && |\n| &&
+             `      //                    browser history (nav_app_call). Only >0 sessions` && |\n| &&
+             `      //                    intercept Back; apps that never navigate keep it 0` && |\n| &&
+             `      //                    and the browser behaves normally.` && |\n| &&
+             `      //  navFromPopstate   the in-flight nav_app_leave was triggered by a Back` && |\n| &&
+             `      //                    press (browser already moved), so the leave response` && |\n| &&
+             `      //                    must NOT step history again.` && |\n| &&
+             `      //  navIgnorePopstate the next popstate is one WE caused via history.back()` && |\n| &&
+             `      //                    (syncing an in-app leave) and must be swallowed.` && |\n| &&
+             `      navDepth: 0,` && |\n| &&
+             `      navFromPopstate: false,` && |\n| &&
+             `      navIgnorePopstate: false,` && |\n| &&
+             `` && |\n| &&
              `      // Control / helper state` && |\n| &&
              `      errors: [],` && |\n| &&
              `      timers: {},` && |\n| &&

@@ -15,6 +15,14 @@ sap.ui.define(
   (AppState, Element) => {
     "use strict";
 
+    // The internal event the backend recognizes as "leave the current app and
+    // return to the previous one on the stack" (client->_event_nav_app_leave;
+    // z2ui5_if_core_types=>cs_event_nav_app_leave). Part of the request
+    // protocol, so it is a fixed string - the native-history popstate handler
+    // (Component.js) sends it to pop the server-side app stack, exactly like an
+    // in-app back button does.
+    const NAV_APP_LEAVE_EVENT = "___ZZZ_NAL";
+
     // Resolve a control id to its sap.ui.core.Element via the global registry.
     // Element.getElementById arrived in UI5 1.119; older bootstraps fall back
     // to the deprecated sap.ui.getCore().byId. Returns null when the id is
@@ -444,6 +452,7 @@ sap.ui.define(
     }
 
     return {
+      NAV_APP_LEAVE_EVENT,
       logError,
       isDestroyed,
       isAlive,

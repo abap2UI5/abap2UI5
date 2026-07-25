@@ -126,7 +126,12 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          // way via isDestroyed).` && |\n| &&
              `          if (Lib.isDestroyed(this)) return;` && |\n| &&
              `          this._updateBrowserHistory(PARAMS, oResponse.ID);` && |\n| &&
-             `          if (PARAMS.SET_NAV_BACK) history.back();` && |\n| &&
+             `          if (PARAMS.SET_NAV_BACK) {` && |\n| &&
+             `            // Explicit app-requested history step - not an app-stack move, so` && |\n| &&
+             `            // tell the popstate handler to ignore the resulting event.` && |\n| &&
+             `            AppState.state.navIgnorePopstate = true;` && |\n| &&
+             `            history.back();` && |\n| &&
+             `          }` && |\n| &&
              `` && |\n| &&
              `          Lib.runCallbacks(AppState.state.onAfterRendering);` && |\n| &&
              `        } catch (e) {` && |\n| &&
@@ -199,6 +204,32 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `            ? ``/z2ui5-xapp-state=${ID || ""}``` && |\n| &&
              `            : "";` && |\n| &&
              `          _hashChanger.replaceHash(newHash);` && |\n| &&
+             `` && |\n| &&
+             `          // Native Back/Forward coupling: mirror the server-side app-stack move` && |\n| &&
+             `          // onto the browser history so the browser buttons drive it (see` && |\n| &&
+             `          // Server.onPopstate). CHECK_NAV_APP_CALL = a forward navigation was` && |\n| &&
+             `          // performed, CHECK_NAV_APP_LEAVE = a backward one.` && |\n| &&
+             `          const state = AppState.state;` && |\n| &&
+             `          if (PARAMS.CHECK_NAV_APP_CALL) {` && |\n| &&
+             `            // Forward: add a history entry the user can Back out of. The URL` && |\n| &&
+             `            // itself does not change - the server draft holds the app state;` && |\n| &&
+             `            // this entry is just the slot popstate pops.` && |\n| &&
+             `            history.pushState(null, "", window.location.href);` && |\n| &&
+             `            state.navDepth++;` && |\n| &&
+             `          } else if (PARAMS.CHECK_NAV_APP_LEAVE) {` && |\n| &&
+             `            if (state.navFromPopstate) {` && |\n| &&
+             `              // The leave was triggered by a Back press - the browser already` && |\n| &&
+             `              // moved, so only clear the marker.` && |\n| &&
+             `              state.navFromPopstate = false;` && |\n| &&
+             `            } else if (state.navDepth > 0) {` && |\n| &&
+             `              // The leave was triggered in-app (back button / backend) while` && |\n| &&
+             `              // the browser stayed put - step it back to stay in sync, and` && |\n| &&
+             `              // swallow the popstate that history.back() will fire.` && |\n| &&
+             `              state.navDepth--;` && |\n| &&
+             `              state.navIgnorePopstate = true;` && |\n| &&
+             `              history.back();` && |\n| &&
+             `            }` && |\n| &&
+             `          }` && |\n| &&
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("_updateBrowserHistory: history update failed", e);` && |\n| &&
              `        }` && |\n| &&
@@ -386,7 +417,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      //   [2] "ignore busy" flag - background events (e.g. timers) skip the` && |\n| &&
              `      //       busy guard below` && |\n| &&
              `      //   [3] "use main view model" flag - events fired from a popup or` && |\n| &&
-             `      //       popover controller that still target the main app's model` && |\n| &&
+             `      //       popover controller that still target the main app's model` && |\n|.
+    result = result &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `      eB(...args) {` && |\n| &&
              `        const [, , ignoreBusy, useMainModel] = args[0];` && |\n| &&
@@ -417,8 +449,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          clearTimeout(AppState.state.timers[key]);` && |\n| &&
              `          delete AppState.state.timers[key];` && |\n| &&
              `        }` && |\n| &&
-             `` && |\n|.
-    result = result &&
+             `` && |\n| &&
              `        AppState.state.isBusy = true;` && |\n| &&
              `        BusyIndicator.show();` && |\n| &&
              `` && |\n| &&

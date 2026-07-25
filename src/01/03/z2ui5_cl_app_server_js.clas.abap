@@ -356,6 +356,39 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      // Native browser Back/Forward handler (registered by Component.js). Turns` && |\n| &&
+             `      // a Back press into a nav_app_leave roundtrip so the server-side app` && |\n| &&
+             `      // stack follows the browser history, mirroring a UI5 router's hash` && |\n| &&
+             `      // navigation. Only sessions that actually pushed app-stack entries` && |\n| &&
+             `      // (navDepth > 0, set by View1._updateBrowserHistory on nav_app_call)` && |\n| &&
+             `      // intercept the button; everything else lets the browser navigate` && |\n| &&
+             `      // normally, so apps that never call nav_app_call are unaffected.` && |\n| &&
+             `      onPopstate() {` && |\n| &&
+             `        const state = AppState.state;` && |\n| &&
+             `` && |\n| &&
+             `        // A popstate we caused ourselves via history.back() (syncing an in-app` && |\n| &&
+             `        // leave) - swallow it once, the stack was already popped.` && |\n| &&
+             `        if (state.navIgnorePopstate) {` && |\n| &&
+             `          state.navIgnorePopstate = false;` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        // No app-stack entry of ours on the history - let the browser leave the` && |\n| &&
+             `        // app (or move within an app's own set_push_state history) untouched.` && |\n| &&
+             `        if (state.navDepth <= 0) return;` && |\n| &&
+             `` && |\n| &&
+             `        const oController = state.oController;` && |\n| &&
+             `        if (!oController || Lib.isDestroyed(oController)) return;` && |\n| &&
+             `` && |\n| &&
+             `        // The browser already moved back one entry; pop the matching server` && |\n| &&
+             `        // stack level. navFromPopstate tells the leave response NOT to step the` && |\n| &&
+             `        // history again (see View1._updateBrowserHistory). eB reuses the normal` && |\n| &&
+             `        // busy-indicator, in-flight and model-delta handling of a back button.` && |\n| &&
+             `        state.navDepth--;` && |\n| &&
+             `        state.navFromPopstate = true;` && |\n| &&
+             `        oController.eB([Lib.NAV_APP_LEAVE_EVENT]);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      _getScrollInfo() {` && |\n| &&
              `        // Release the per-element resolution cache of onScrollCapture once` && |\n| &&
              `        // its DOM node left the document (view replaced/destroyed) - the` && |\n| &&
@@ -384,7 +417,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          // try/catch).` && |\n| &&
              `          if (!entry.dom.isConnected || !Lib.isAlive(entry.control)) {` && |\n| &&
              `            delete store[slot.key];` && |\n| &&
-             `            continue;` && |\n| &&
+             `            continue;` && |\n|.
+    result = result &&
              `          }` && |\n| &&
              `` && |\n| &&
              `          const id = this._stripViewPrefix(` && |\n| &&
@@ -417,8 +451,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        const oConfig = AppState.getGlobal("oConfig");` && |\n| &&
              `        oBody.S_FRONT = {` && |\n| &&
              `          CONFIG: {` && |\n| &&
-             `            S_UI5: oConfig?.S_UI5,` && |\n|.
-    result = result &&
+             `            S_UI5: oConfig?.S_UI5,` && |\n| &&
              `            S_DEVICE: this._getDeviceInfo(),` && |\n| &&
              `            S_FOCUS: this._getFocusInfo(),` && |\n| &&
              `            S_SCROLL: this._getScrollInfo(),` && |\n| &&

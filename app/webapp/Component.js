@@ -84,6 +84,7 @@ sap.ui.define(
         this._installUnloadListener();
         this._installDeveloperToolsShortcut();
         this._installScrollListener();
+        this._installPopstateListener();
 
         // The stopped router removed with the manifest routing section used
         // to initialize the HashChanger (and its underlying hasher
@@ -137,6 +138,17 @@ sap.ui.define(
           capture: true,
           passive: true,
         });
+      },
+
+      _installPopstateListener() {
+        // Couple the native browser Back/Forward buttons to the server-side app
+        // stack. Every nav_app_call pushes a browser history entry (tracked in
+        // AppState.navDepth by View1._updateBrowserHistory); a Back press then
+        // pops one level via a nav_app_leave roundtrip - the same event an
+        // in-app back button fires - so the previous app is restored without a
+        // page reload or a new tab.
+        this._boundPopstate = () => Server.onPopstate();
+        window.addEventListener("popstate", this._boundPopstate);
       },
 
       // ------------------------------------------------------------------
@@ -244,6 +256,7 @@ sap.ui.define(
         document.removeEventListener("scroll", this._boundScroll, {
           capture: true,
         });
+        window.removeEventListener("popstate", this._boundPopstate);
 
         // The developer tools control is created lazily by the Ctrl+F12
         // shortcut - destroy it (which also closes its dialog) so a re-launch

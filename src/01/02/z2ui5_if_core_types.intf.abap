@@ -132,6 +132,14 @@ INTERFACE z2ui5_if_core_types
       set_app_state_active TYPE abap_bool,
       set_push_state       TYPE string,
       set_nav_back         TYPE abap_bool,
+      " App-stack <-> browser-history coupling: check_nav_app_call marks a
+      " forward app navigation (nav_app_call) so the frontend pushes a browser
+      " history entry; check_nav_app_leave marks a backward navigation
+      " (nav_app_leave) so the frontend keeps its history position in sync.
+      " Together they let the native browser Back/Forward buttons drive the
+      " server-side app stack (see app/webapp Component.js popstate handler).
+      check_nav_app_call   TYPE abap_bool,
+      check_nav_app_leave  TYPE abap_bool,
       s_stateful           TYPE ty_s_http_res-s_stateful,
     END OF ty_s_next_frontend.
 

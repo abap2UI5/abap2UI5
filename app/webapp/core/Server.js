@@ -336,6 +336,39 @@ sap.ui.define(
         }
       },
 
+      // Native browser Back/Forward handler (registered by Component.js). Turns
+      // a Back press into a nav_app_leave roundtrip so the server-side app
+      // stack follows the browser history, mirroring a UI5 router's hash
+      // navigation. Only sessions that actually pushed app-stack entries
+      // (navDepth > 0, set by View1._updateBrowserHistory on nav_app_call)
+      // intercept the button; everything else lets the browser navigate
+      // normally, so apps that never call nav_app_call are unaffected.
+      onPopstate() {
+        const state = AppState.state;
+
+        // A popstate we caused ourselves via history.back() (syncing an in-app
+        // leave) - swallow it once, the stack was already popped.
+        if (state.navIgnorePopstate) {
+          state.navIgnorePopstate = false;
+          return;
+        }
+
+        // No app-stack entry of ours on the history - let the browser leave the
+        // app (or move within an app's own set_push_state history) untouched.
+        if (state.navDepth <= 0) return;
+
+        const oController = state.oController;
+        if (!oController || Lib.isDestroyed(oController)) return;
+
+        // The browser already moved back one entry; pop the matching server
+        // stack level. navFromPopstate tells the leave response NOT to step the
+        // history again (see View1._updateBrowserHistory). eB reuses the normal
+        // busy-indicator, in-flight and model-delta handling of a back button.
+        state.navDepth--;
+        state.navFromPopstate = true;
+        oController.eB([Lib.NAV_APP_LEAVE_EVENT]);
+      },
+
       _getScrollInfo() {
         // Release the per-element resolution cache of onScrollCapture once
         // its DOM node left the document (view replaced/destroyed) - the

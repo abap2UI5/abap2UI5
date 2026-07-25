@@ -117,6 +117,20 @@ sap.ui.define([], () => {
       search: null,
       pendingCustomJs: null,
 
+      // Native browser Back/Forward <-> server app stack coupling.
+      //  navDepth          how many app-stack levels we pushed onto the
+      //                    browser history (nav_app_call). Only >0 sessions
+      //                    intercept Back; apps that never navigate keep it 0
+      //                    and the browser behaves normally.
+      //  navFromPopstate   the in-flight nav_app_leave was triggered by a Back
+      //                    press (browser already moved), so the leave response
+      //                    must NOT step history again.
+      //  navIgnorePopstate the next popstate is one WE caused via history.back()
+      //                    (syncing an in-app leave) and must be swallowed.
+      navDepth: 0,
+      navFromPopstate: false,
+      navIgnorePopstate: false,
+
       // Control / helper state
       errors: [],
       timers: {},

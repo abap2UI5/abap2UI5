@@ -35,6 +35,14 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `  (AppState, Element) => {` && |\n| &&
              `    "use strict";` && |\n| &&
              `` && |\n| &&
+             `    // The internal event the backend recognizes as "leave the current app and` && |\n| &&
+             `    // return to the previous one on the stack" (client->_event_nav_app_leave;` && |\n| &&
+             `    // z2ui5_if_core_types=>cs_event_nav_app_leave). Part of the request` && |\n| &&
+             `    // protocol, so it is a fixed string - the native-history popstate handler` && |\n| &&
+             `    // (Component.js) sends it to pop the server-side app stack, exactly like an` && |\n| &&
+             `    // in-app back button does.` && |\n| &&
+             `    const NAV_APP_LEAVE_EVENT = "___ZZZ_NAL";` && |\n| &&
+             `` && |\n| &&
              `    // Resolve a control id to its sap.ui.core.Element via the global registry.` && |\n| &&
              `    // Element.getElementById arrived in UI5 1.119; older bootstraps fall back` && |\n| &&
              `    // to the deprecated sap.ui.getCore().byId. Returns null when the id is` && |\n| &&
@@ -409,7 +417,8 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `        _sanitizeEl = document.createElement("div");` && |\n| &&
              `      }` && |\n| &&
              `      const doc = _msgParser.parseFromString(html, "text/html");` && |\n| &&
-             `      // Only top-level list items: a nested <li>'s text is already part of` && |\n| &&
+             `      // Only top-level list items: a nested <li>'s text is already part of` && |\n|.
+    result = result &&
              `      // its ancestor's textContent, so including it too would duplicate it.` && |\n| &&
              `      const items = Array.from(doc.querySelectorAll("li")).filter(` && |\n| &&
              `        (li) => !li.parentElement?.closest("li"),` && |\n| &&
@@ -417,8 +426,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      if (items.length > 0) {` && |\n| &&
              `        const safeItems = items.map((li) => {` && |\n| &&
              `          _sanitizeEl.textContent = li.textContent;` && |\n| &&
-             `          return ``<li>${_sanitizeEl.innerHTML}</li>``;` && |\n|.
-    result = result &&
+             `          return ``<li>${_sanitizeEl.innerHTML}</li>``;` && |\n| &&
              `        });` && |\n| &&
              `        return ``<ul>${safeItems.join("")}</ul>``;` && |\n| &&
              `      }` && |\n| &&
@@ -465,6 +473,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    return {` && |\n| &&
+             `      NAV_APP_LEAVE_EVENT,` && |\n| &&
              `      logError,` && |\n| &&
              `      isDestroyed,` && |\n| &&
              `      isAlive,` && |\n| &&

@@ -106,7 +106,12 @@ sap.ui.define(
           // way via isDestroyed).
           if (Lib.isDestroyed(this)) return;
           this._updateBrowserHistory(PARAMS, oResponse.ID);
-          if (PARAMS.SET_NAV_BACK) history.back();
+          if (PARAMS.SET_NAV_BACK) {
+            // Explicit app-requested history step - not an app-stack move, so
+            // tell the popstate handler to ignore the resulting event.
+            AppState.state.navIgnorePopstate = true;
+            history.back();
+          }
 
           Lib.runCallbacks(AppState.state.onAfterRendering);
         } catch (e) {
@@ -179,6 +184,32 @@ sap.ui.define(
             ? `/z2ui5-xapp-state=${ID || ""}`
             : "";
           _hashChanger.replaceHash(newHash);
+
+          // Native Back/Forward coupling: mirror the server-side app-stack move
+          // onto the browser history so the browser buttons drive it (see
+          // Server.onPopstate). CHECK_NAV_APP_CALL = a forward navigation was
+          // performed, CHECK_NAV_APP_LEAVE = a backward one.
+          const state = AppState.state;
+          if (PARAMS.CHECK_NAV_APP_CALL) {
+            // Forward: add a history entry the user can Back out of. The URL
+            // itself does not change - the server draft holds the app state;
+            // this entry is just the slot popstate pops.
+            history.pushState(null, "", window.location.href);
+            state.navDepth++;
+          } else if (PARAMS.CHECK_NAV_APP_LEAVE) {
+            if (state.navFromPopstate) {
+              // The leave was triggered by a Back press - the browser already
+              // moved, so only clear the marker.
+              state.navFromPopstate = false;
+            } else if (state.navDepth > 0) {
+              // The leave was triggered in-app (back button / backend) while
+              // the browser stayed put - step it back to stay in sync, and
+              // swallow the popstate that history.back() will fire.
+              state.navDepth--;
+              state.navIgnorePopstate = true;
+              history.back();
+            }
+          }
         } catch (e) {
           Lib.logError("_updateBrowserHistory: history update failed", e);
         }
