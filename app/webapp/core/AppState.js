@@ -126,9 +126,15 @@ sap.ui.define([], () => {
       //                 guard compares an incoming hash route's draft id against
       //                 it so our own hash writes do not re-trigger a navigation,
       //                 and browser Back/Forward restore the exact draft (state).
+      //  navFromHash    the pending roundtrip was triggered by a browser
+      //                 Back/Forward (or manual hash edit) via onHashChange, so
+      //                 the resulting render must NOT rewrite the hash: the
+      //                 browser is at a non-top history position and rewriting
+      //                 there drops the forward entries (Forward would break).
       navRouting: false,
       currentApp: null,
       currentDraftId: null,
+      navFromHash: false,
 
       // Control / helper state
       errors: [],

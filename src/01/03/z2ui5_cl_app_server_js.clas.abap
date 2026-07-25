@@ -390,7 +390,11 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `        // A different app state: restore it. An empty body (no ID) makes the` && |\n| &&
              `        // backend take the first-start path and read the target class + draft` && |\n| &&
-             `        // from the hash it receives (request_app_start_route[_draft]).` && |\n| &&
+             `        // from the hash it receives (request_app_start_route[_draft]). Mark the` && |\n| &&
+             `        // roundtrip as browser-initiated so the render does NOT rewrite the hash` && |\n| &&
+             `        // (the browser is at a non-top history position - rewriting there would` && |\n| &&
+             `        // drop the forward entries and break the Forward button).` && |\n| &&
+             `        state.navFromHash = true;` && |\n| &&
              `        this.roundtrip({});` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -413,12 +417,12 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        const out = {};` && |\n| &&
              `        for (const slot of ViewSlots.slots) {` && |\n| &&
              `          const entry = store[slot.key];` && |\n| &&
-             `          if (!entry) continue;` && |\n| &&
+             `          if (!entry) continue;` && |\n|.
+    result = result &&
              `` && |\n| &&
              `          // Drop stale references, e.g. after the view was replaced. Also` && |\n| &&
              `          // drop a destroyed control whose DOM is still transiently` && |\n| &&
-             `          // connected: entry.control.getId() below would throw and abort the` && |\n|.
-    result = result &&
+             `          // connected: entry.control.getId() below would throw and abort the` && |\n| &&
              `          // whole roundtrip (this method, unlike _getFocusInfo, has no outer` && |\n| &&
              `          // try/catch).` && |\n| &&
              `          if (!entry.dom.isConnected || !Lib.isAlive(entry.control)) {` && |\n| &&

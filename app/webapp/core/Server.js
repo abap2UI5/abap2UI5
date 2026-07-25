@@ -370,7 +370,11 @@ sap.ui.define(
 
         // A different app state: restore it. An empty body (no ID) makes the
         // backend take the first-start path and read the target class + draft
-        // from the hash it receives (request_app_start_route[_draft]).
+        // from the hash it receives (request_app_start_route[_draft]). Mark the
+        // roundtrip as browser-initiated so the render does NOT rewrite the hash
+        // (the browser is at a non-top history position - rewriting there would
+        // drop the forward entries and break the Forward button).
+        state.navFromHash = true;
         this.roundtrip({});
       },
 

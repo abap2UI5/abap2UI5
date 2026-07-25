@@ -175,17 +175,23 @@ sap.ui.define(
               // ignore our own echo (no navigation loop).
               state.currentApp = app;
               state.currentDraftId = ID;
-              // Reflect the running app AND its state in the URL as a
-              // bookmarkable route "/app/<CLASS>/<DRAFTID>". The draft id makes
-              // the browser Back/Forward buttons restore the EXACT preserved
-              // state, not a fresh app. A forward navigation done in the backend
-              // (client->nav_app_call, CHECK_NAV_APP_CALL) pushes a NEW history
-              // entry so Back returns to the calling app - the routing
-              // equivalent of a UI5 navTo. A plain roundtrip only replaces the
-              // current entry, advancing it to the app's latest draft so a later
-              // Forward restores the newest state. An app that manages its own
-              // hash this roundtrip (set_push_state) keeps it.
-              if (!PARAMS.SET_PUSH_STATE) {
+              if (state.navFromHash) {
+                // This render is the result of a browser Back/Forward (or manual
+                // hash edit) routed through Server.onHashChange. The hash already
+                // matches this history entry and the browser sits at a non-top
+                // position - rewriting the hash here would drop the forward
+                // entries and break the Forward button. Just adopt the state.
+                state.navFromHash = false;
+              } else if (!PARAMS.SET_PUSH_STATE) {
+                // Reflect the running app AND its state in the URL as a
+                // bookmarkable route "/app/<CLASS>/<DRAFTID>". The draft id makes
+                // the browser Back/Forward buttons restore the EXACT preserved
+                // state, not a fresh app. A forward navigation done in the
+                // backend (client->nav_app_call, CHECK_NAV_APP_CALL) pushes a NEW
+                // history entry so Back returns to the calling app - the routing
+                // equivalent of a UI5 navTo. A plain roundtrip only replaces the
+                // current (top) entry, advancing it to the app's latest draft so
+                // a later Forward restores the newest state.
                 const route = Lib.routeForApp(app, ID);
                 if (PARAMS.CHECK_NAV_APP_CALL) {
                   _hashChanger.setHash(route);

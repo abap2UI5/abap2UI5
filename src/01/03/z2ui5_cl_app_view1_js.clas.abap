@@ -195,17 +195,23 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `              // ignore our own echo (no navigation loop).` && |\n| &&
              `              state.currentApp = app;` && |\n| &&
              `              state.currentDraftId = ID;` && |\n| &&
-             `              // Reflect the running app AND its state in the URL as a` && |\n| &&
-             `              // bookmarkable route "/app/<CLASS>/<DRAFTID>". The draft id makes` && |\n| &&
-             `              // the browser Back/Forward buttons restore the EXACT preserved` && |\n| &&
-             `              // state, not a fresh app. A forward navigation done in the backend` && |\n| &&
-             `              // (client->nav_app_call, CHECK_NAV_APP_CALL) pushes a NEW history` && |\n| &&
-             `              // entry so Back returns to the calling app - the routing` && |\n| &&
-             `              // equivalent of a UI5 navTo. A plain roundtrip only replaces the` && |\n| &&
-             `              // current entry, advancing it to the app's latest draft so a later` && |\n| &&
-             `              // Forward restores the newest state. An app that manages its own` && |\n| &&
-             `              // hash this roundtrip (set_push_state) keeps it.` && |\n| &&
-             `              if (!PARAMS.SET_PUSH_STATE) {` && |\n| &&
+             `              if (state.navFromHash) {` && |\n| &&
+             `                // This render is the result of a browser Back/Forward (or manual` && |\n| &&
+             `                // hash edit) routed through Server.onHashChange. The hash already` && |\n| &&
+             `                // matches this history entry and the browser sits at a non-top` && |\n| &&
+             `                // position - rewriting the hash here would drop the forward` && |\n| &&
+             `                // entries and break the Forward button. Just adopt the state.` && |\n| &&
+             `                state.navFromHash = false;` && |\n| &&
+             `              } else if (!PARAMS.SET_PUSH_STATE) {` && |\n| &&
+             `                // Reflect the running app AND its state in the URL as a` && |\n| &&
+             `                // bookmarkable route "/app/<CLASS>/<DRAFTID>". The draft id makes` && |\n| &&
+             `                // the browser Back/Forward buttons restore the EXACT preserved` && |\n| &&
+             `                // state, not a fresh app. A forward navigation done in the` && |\n| &&
+             `                // backend (client->nav_app_call, CHECK_NAV_APP_CALL) pushes a NEW` && |\n| &&
+             `                // history entry so Back returns to the calling app - the routing` && |\n| &&
+             `                // equivalent of a UI5 navTo. A plain roundtrip only replaces the` && |\n| &&
+             `                // current (top) entry, advancing it to the app's latest draft so` && |\n| &&
+             `                // a later Forward restores the newest state.` && |\n| &&
              `                const route = Lib.routeForApp(app, ID);` && |\n| &&
              `                if (PARAMS.CHECK_NAV_APP_CALL) {` && |\n| &&
              `                  _hashChanger.setHash(route);` && |\n| &&
@@ -411,14 +417,14 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        FrontendAction.execute(this, args);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // ------------------------------------------------------------------` && |\n| &&
+             `      // ------------------------------------------------------------------` && |\n|.
+    result = result &&
              `      // eB = "event backend": triggers a backend roundtrip with arguments.` && |\n| &&
              `      // The name is part of the protocol - backend-generated view XML binds` && |\n| &&
              `      // events to eB/eF - and must not be renamed.` && |\n| &&
              `      //` && |\n| &&
              `      // args[0] is the event array built by the backend:` && |\n| &&
-             `      //   [0] event name` && |\n|.
-    result = result &&
+             `      //   [0] event name` && |\n| &&
              `      //   [2] "ignore busy" flag - background events (e.g. timers) skip the` && |\n| &&
              `      //       busy guard below` && |\n| &&
              `      //   [3] "use main view model" flag - events fired from a popup or` && |\n| &&

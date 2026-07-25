@@ -146,9 +146,15 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `      //                 guard compares an incoming hash route's draft id against` && |\n| &&
              `      //                 it so our own hash writes do not re-trigger a navigation,` && |\n| &&
              `      //                 and browser Back/Forward restore the exact draft (state).` && |\n| &&
+             `      //  navFromHash    the pending roundtrip was triggered by a browser` && |\n| &&
+             `      //                 Back/Forward (or manual hash edit) via onHashChange, so` && |\n| &&
+             `      //                 the resulting render must NOT rewrite the hash: the` && |\n| &&
+             `      //                 browser is at a non-top history position and rewriting` && |\n| &&
+             `      //                 there drops the forward entries (Forward would break).` && |\n| &&
              `      navRouting: false,` && |\n| &&
              `      currentApp: null,` && |\n| &&
              `      currentDraftId: null,` && |\n| &&
+             `      navFromHash: false,` && |\n| &&
              `` && |\n| &&
              `      // Control / helper state` && |\n| &&
              `      errors: [],` && |\n| &&

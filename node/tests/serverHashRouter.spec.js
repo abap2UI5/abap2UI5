@@ -40,6 +40,7 @@ function loadServer(stateOverrides = {}) {
     navRouting: true,
     currentApp: "Z2UI5_CL_HOME",
     currentDraftId: "HOME1",
+    navFromHash: false,
     ...stateOverrides,
   };
   const { module: Server } = loadModule("core/Server.js", {
@@ -55,10 +56,12 @@ function loadServer(stateOverrides = {}) {
   return { Server, state, roundtrips };
 }
 
-test("a different draft (state) triggers a restore roundtrip", () => {
-  const { Server, roundtrips } = loadServer();
+test("a different draft (state) triggers a restore roundtrip and marks it browser-initiated", () => {
+  const { Server, state, roundtrips } = loadServer();
   Server.onHashChange("/app/Z2UI5_CL_DETAIL/DRAFT2");
   expect(roundtrips).toEqual([{}]);
+  // so the render skips the hash rewrite (keeps the forward history entries)
+  expect(state.navFromHash).toBe(true);
 });
 
 test("the echo of the current draft is ignored (no loop)", () => {
