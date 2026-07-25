@@ -290,6 +290,19 @@ test.describe("Export", () => {
     expect(out).not.toContain("===== ERROR =====");
     expect(out).toContain("===== LOG =====");
   });
+
+  test("includes the ABAP SOURCE section when a class source is passed", () => {
+    const { DeveloperTools } = loadDeveloperTools();
+    const out = DeveloperTools.buildExport("CLASS zcl_demo DEFINITION.");
+    expect(out).toContain("===== ABAP SOURCE =====");
+    expect(out).toContain("CLASS zcl_demo DEFINITION.");
+  });
+
+  test("omits the ABAP SOURCE section when the source could not be fetched", () => {
+    const { DeveloperTools } = loadDeveloperTools();
+    const out = DeveloperTools.buildExport("");
+    expect(out).not.toContain("===== ABAP SOURCE =====");
+  });
 });
 
 test.describe("Close / Escape returns to the error popup", () => {

@@ -85,6 +85,36 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
       : preview;
   }
 
+  // Copy text to the clipboard, working both in a secure (HTTPS) context and
+  // over plain HTTP - the latter is common for on-premise ABAP systems, where
+  // the async navigator.clipboard API is unavailable. A hidden <textarea> plus
+  // the classic execCommand("copy") works everywhere, so try it first and only
+  // fall back to the async API when it did not copy. Returns nothing - copying
+  // is best-effort and must never throw out of a fatal-error dialog.
+  function copyToClipboard(text) {
+    const value = String(text == null ? "" : text);
+    let copied;
+    const textarea = document.createElement("textarea");
+    textarea.value = value;
+    // Keep it out of view and out of the layout flow while it is selected.
+    textarea.style.cssText =
+      "position:fixed;top:-9999px;left:-9999px;opacity:0;";
+    textarea.setAttribute("readonly", "");
+    document.body.appendChild(textarea);
+    try {
+      textarea.focus();
+      textarea.select();
+      textarea.setSelectionRange(0, value.length);
+      copied = document.execCommand("copy");
+    } catch {
+      copied = false;
+    }
+    textarea.remove();
+    if (!copied && navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(value).catch(() => {});
+    }
+  }
+
   function createContainer() {
     // Always start from a fresh element: reusing a previous overlay would
     // keep its keydown focus-trap listener alive and stack a duplicate on
@@ -174,6 +204,22 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
         type: "Emphasized",
         press: () => window.location.reload(),
       });
+      // Copy the full error text (not just the shown preview) to the clipboard
+      // so the user can paste it into a ticket or chat. Briefly flip the label
+      // to "Copied" as feedback, then restore it (guarding against a dialog
+      // that was closed in the meantime).
+      const copyButton = new Button({
+        text: "Copy",
+        press: () => {
+          copyToClipboard(details);
+          copyButton.setText("Copied");
+          setTimeout(() => {
+            if (!copyButton.bIsDestroyed) copyButton.setText("Copy");
+          }, 1500);
+        },
+      });
+      // sap.m.Dialog does not allow more than one begin/end button, so use the
+      // `buttons` aggregation to line up Details / Copy / Restart in the footer.
       const dialog = new Dialog({
         title: title || "Application Error",
         type: "Message",
@@ -181,17 +227,20 @@ sap.ui.define(["z2ui5/core/AppState"], (AppState) => {
         icon: "sap-icon://message-error",
         // Escape must not dismiss the fatal-error popup: rejecting the escape
         // promise keeps it open, so the only ways out are the explicit
-        // Details / Restart actions below.
+        // Details / Copy / Restart actions below.
         escapeHandler: (oPromise) => oPromise.reject(),
         content: [new Text({ text: message })],
-        beginButton: new Button({
-          text: "Details",
-          press: () => {
-            dialog.close();
-            openDeveloperTools();
-          },
-        }),
-        endButton: restartButton,
+        buttons: [
+          new Button({
+            text: "Details",
+            press: () => {
+              dialog.close();
+              openDeveloperTools();
+            },
+          }),
+          copyButton,
+          restartButton,
+        ],
         initialFocus: restartButton,
         afterClose: () => {
           if (friendlyDialog === dialog) friendlyDialog = null;

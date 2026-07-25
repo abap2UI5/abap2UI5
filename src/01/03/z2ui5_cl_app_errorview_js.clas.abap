@@ -105,6 +105,36 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `      : preview;` && |\n| &&
              `  }` && |\n| &&
              `` && |\n| &&
+             `  // Copy text to the clipboard, working both in a secure (HTTPS) context and` && |\n| &&
+             `  // over plain HTTP - the latter is common for on-premise ABAP systems, where` && |\n| &&
+             `  // the async navigator.clipboard API is unavailable. A hidden <textarea> plus` && |\n| &&
+             `  // the classic execCommand("copy") works everywhere, so try it first and only` && |\n| &&
+             `  // fall back to the async API when it did not copy. Returns nothing - copying` && |\n| &&
+             `  // is best-effort and must never throw out of a fatal-error dialog.` && |\n| &&
+             `  function copyToClipboard(text) {` && |\n| &&
+             `    const value = String(text == null ? "" : text);` && |\n| &&
+             `    let copied;` && |\n| &&
+             `    const textarea = document.createElement("textarea");` && |\n| &&
+             `    textarea.value = value;` && |\n| &&
+             `    // Keep it out of view and out of the layout flow while it is selected.` && |\n| &&
+             `    textarea.style.cssText =` && |\n| &&
+             `      "position:fixed;top:-9999px;left:-9999px;opacity:0;";` && |\n| &&
+             `    textarea.setAttribute("readonly", "");` && |\n| &&
+             `    document.body.appendChild(textarea);` && |\n| &&
+             `    try {` && |\n| &&
+             `      textarea.focus();` && |\n| &&
+             `      textarea.select();` && |\n| &&
+             `      textarea.setSelectionRange(0, value.length);` && |\n| &&
+             `      copied = document.execCommand("copy");` && |\n| &&
+             `    } catch {` && |\n| &&
+             `      copied = false;` && |\n| &&
+             `    }` && |\n| &&
+             `    textarea.remove();` && |\n| &&
+             `    if (!copied && navigator.clipboard?.writeText) {` && |\n| &&
+             `      navigator.clipboard.writeText(value).catch(() => {});` && |\n| &&
+             `    }` && |\n| &&
+             `  }` && |\n| &&
+             `` && |\n| &&
              `  function createContainer() {` && |\n| &&
              `    // Always start from a fresh element: reusing a previous overlay would` && |\n| &&
              `    // keep its keydown focus-trap listener alive and stack a duplicate on` && |\n| &&
@@ -194,6 +224,22 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `        type: "Emphasized",` && |\n| &&
              `        press: () => window.location.reload(),` && |\n| &&
              `      });` && |\n| &&
+             `      // Copy the full error text (not just the shown preview) to the clipboard` && |\n| &&
+             `      // so the user can paste it into a ticket or chat. Briefly flip the label` && |\n| &&
+             `      // to "Copied" as feedback, then restore it (guarding against a dialog` && |\n| &&
+             `      // that was closed in the meantime).` && |\n| &&
+             `      const copyButton = new Button({` && |\n| &&
+             `        text: "Copy",` && |\n| &&
+             `        press: () => {` && |\n| &&
+             `          copyToClipboard(details);` && |\n| &&
+             `          copyButton.setText("Copied");` && |\n| &&
+             `          setTimeout(() => {` && |\n| &&
+             `            if (!copyButton.bIsDestroyed) copyButton.setText("Copy");` && |\n| &&
+             `          }, 1500);` && |\n| &&
+             `        },` && |\n| &&
+             `      });` && |\n| &&
+             `      // sap.m.Dialog does not allow more than one begin/end button, so use the` && |\n| &&
+             `      // ``buttons`` aggregation to line up Details / Copy / Restart in the footer.` && |\n| &&
              `      const dialog = new Dialog({` && |\n| &&
              `        title: title || "Application Error",` && |\n| &&
              `        type: "Message",` && |\n| &&
@@ -201,17 +247,20 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `        icon: "sap-icon://message-error",` && |\n| &&
              `        // Escape must not dismiss the fatal-error popup: rejecting the escape` && |\n| &&
              `        // promise keeps it open, so the only ways out are the explicit` && |\n| &&
-             `        // Details / Restart actions below.` && |\n| &&
+             `        // Details / Copy / Restart actions below.` && |\n| &&
              `        escapeHandler: (oPromise) => oPromise.reject(),` && |\n| &&
              `        content: [new Text({ text: message })],` && |\n| &&
-             `        beginButton: new Button({` && |\n| &&
-             `          text: "Details",` && |\n| &&
-             `          press: () => {` && |\n| &&
-             `            dialog.close();` && |\n| &&
-             `            openDeveloperTools();` && |\n| &&
-             `          },` && |\n| &&
-             `        }),` && |\n| &&
-             `        endButton: restartButton,` && |\n| &&
+             `        buttons: [` && |\n| &&
+             `          new Button({` && |\n| &&
+             `            text: "Details",` && |\n| &&
+             `            press: () => {` && |\n| &&
+             `              dialog.close();` && |\n| &&
+             `              openDeveloperTools();` && |\n| &&
+             `            },` && |\n| &&
+             `          }),` && |\n| &&
+             `          copyButton,` && |\n| &&
+             `          restartButton,` && |\n| &&
+             `        ],` && |\n| &&
              `        initialFocus: restartButton,` && |\n| &&
              `        afterClose: () => {` && |\n| &&
              `          if (friendlyDialog === dialog) friendlyDialog = null;` && |\n| &&
@@ -368,7 +417,8 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    errorContainer.appendChild(headerDiv);` && |\n| &&
              `` && |\n| &&
              `    // Keep keyboard focus inside the overlay: Tab cycles through the action` && |\n| &&
-             `    // buttons instead of escaping into the broken page behind it. The button` && |\n| &&
+             `    // buttons instead of escaping into the broken page behind it. The button` && |\n|.
+    result = result &&
              `    // set is complete here (all appended above), so resolve first/last once` && |\n| &&
              `    // rather than re-querying the DOM on every Tab press.` && |\n| &&
              `    const trapButtons = actionsDiv.querySelectorAll("button");` && |\n| &&
@@ -417,8 +467,7 @@ CLASS z2ui5_cl_app_errorview_js IMPLEMENTATION.
              `    // the primary action instead of the broken page behind the overlay.` && |\n| &&
              `    const firstButton = actionsDiv.querySelector("button");` && |\n| &&
              `    if (firstButton) firstButton.focus();` && |\n| &&
-             `  }` && |\n|.
-    result = result &&
+             `  }` && |\n| &&
              `` && |\n| &&
              `  return { show, handleLogout, reopenErrorDialog };` && |\n| &&
              `});` && |\n| &&
