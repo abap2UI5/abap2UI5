@@ -141,11 +141,14 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `      //  navRouting  once the running app enabled routing, the URL hash mirrors` && |\n| &&
              `      //              the current app as a bookmarkable route '#/app/<CLASS>' and` && |\n| &&
              `      //              browser Back/Forward navigate between apps via the hash.` && |\n| &&
-             `      //  currentApp  class name of the app currently rendered - the routing` && |\n| &&
-             `      //              guard compares an incoming hash route against it so our own` && |\n| &&
-             `      //              hash writes do not re-trigger a navigation.` && |\n| &&
+             `      //  currentApp     class name of the app currently rendered.` && |\n| &&
+             `      //  currentDraftId server draft id of the current app state. The routing` && |\n| &&
+             `      //                 guard compares an incoming hash route's draft id against` && |\n| &&
+             `      //                 it so our own hash writes do not re-trigger a navigation,` && |\n| &&
+             `      //                 and browser Back/Forward restore the exact draft (state).` && |\n| &&
              `      navRouting: false,` && |\n| &&
              `      currentApp: null,` && |\n| &&
+             `      currentDraftId: null,` && |\n| &&
              `` && |\n| &&
              `      // Control / helper state` && |\n| &&
              `      errors: [],` && |\n| &&

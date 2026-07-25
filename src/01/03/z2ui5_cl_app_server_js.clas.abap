@@ -359,8 +359,10 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `      // Hash-router handler (registered by Component.js on the HashChanger's` && |\n| &&
              `      // hashChanged event). This is what makes the browser Back/Forward buttons` && |\n| &&
              `      // - and manual URL edits / bookmarks - navigate between apps: a hash of` && |\n| &&
-             `      // the form "#/app/<CLASS>" starts that app fresh. It is the abap2UI5` && |\n| &&
-             `      // equivalent of a UI5 route's patternMatched handler.` && |\n| &&
+             `      // the form "#/app/<CLASS>/<DRAFTID>" restores that app's draft (its` && |\n| &&
+             `      // preserved state), falling back to a fresh start of <CLASS> when the` && |\n| &&
+             `      // draft has expired. It is the abap2UI5 equivalent of a UI5 route's` && |\n| &&
+             `      // patternMatched handler.` && |\n| &&
              `      onHashChange(sNewHash) {` && |\n| &&
              `        const state = AppState.state;` && |\n| &&
              `` && |\n| &&
@@ -373,15 +375,22 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        // Not an app route (empty / some app-owned hash) - ignore.` && |\n| &&
              `        if (!target) return;` && |\n| &&
              `` && |\n| &&
-             `        // The hash already names the running app - this event is the echo of` && |\n| &&
-             `        // our own replaceHash after rendering, not a user navigation. Skip it` && |\n| &&
-             `        // to avoid a reload loop (mirrors a Router ignoring the current route).` && |\n| &&
-             `        if (target.toUpperCase() === String(state.currentApp).toUpperCase())` && |\n| &&
-             `          return;` && |\n| &&
+             `        const targetDraft = Lib.draftOfRoute(sNewHash);` && |\n| &&
              `` && |\n| &&
-             `        // A different app route: start it fresh. An empty body (no ID) makes the` && |\n| &&
-             `        // backend take the first-start path and read the target class from the` && |\n| &&
-             `        // hash it receives (request_app_start_route).` && |\n| &&
+             `        // Ignore the echo of our own hash write after rendering (not a user` && |\n| &&
+             `        // navigation), so we do not loop. Match on the draft id when the route` && |\n| &&
+             `        // carries one - that is the precise app state - otherwise on the class.` && |\n| &&
+             `        if (targetDraft) {` && |\n| &&
+             `          if (targetDraft === state.currentDraftId) return;` && |\n| &&
+             `        } else if (` && |\n| &&
+             `          target.toUpperCase() === String(state.currentApp).toUpperCase()` && |\n| &&
+             `        ) {` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        // A different app state: restore it. An empty body (no ID) makes the` && |\n| &&
+             `        // backend take the first-start path and read the target class + draft` && |\n| &&
+             `        // from the hash it receives (request_app_start_route[_draft]).` && |\n| &&
              `        this.roundtrip({});` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -408,7 +417,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `` && |\n| &&
              `          // Drop stale references, e.g. after the view was replaced. Also` && |\n| &&
              `          // drop a destroyed control whose DOM is still transiently` && |\n| &&
-             `          // connected: entry.control.getId() below would throw and abort the` && |\n| &&
+             `          // connected: entry.control.getId() below would throw and abort the` && |\n|.
+    result = result &&
              `          // whole roundtrip (this method, unlike _getFocusInfo, has no outer` && |\n| &&
              `          // try/catch).` && |\n| &&
              `          if (!entry.dom.isConnected || !Lib.isAlive(entry.control)) {` && |\n| &&
@@ -417,8 +427,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `          }` && |\n| &&
              `` && |\n| &&
              `          const id = this._stripViewPrefix(` && |\n| &&
-             `            entry.control.getId(),` && |\n|.
-    result = result &&
+             `            entry.control.getId(),` && |\n| &&
              `            ViewSlots.getView(slot.key),` && |\n| &&
              `          );` && |\n| &&
              `          out[slot.key] = {` && |\n| &&

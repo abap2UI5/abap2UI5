@@ -189,21 +189,24 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          if (state.navRouting) {` && |\n| &&
              `            const app = state.oResponse?.APP;` && |\n| &&
              `            if (app) {` && |\n| &&
-             `              // Set currentApp BEFORE touching the hash: the setHash/replaceHash` && |\n| &&
-             `              // below re-fires hashChanged, and Server.onHashChange compares the` && |\n| &&
-             `              // incoming route against currentApp to ignore our own echo (no` && |\n| &&
-             `              // navigation loop).` && |\n| &&
+             `              // Set current app/draft BEFORE touching the hash: the setHash/` && |\n| &&
+             `              // replaceHash below re-fires hashChanged, and Server.onHashChange` && |\n| &&
+             `              // compares the incoming route's draft id against currentDraftId to` && |\n| &&
+             `              // ignore our own echo (no navigation loop).` && |\n| &&
              `              state.currentApp = app;` && |\n| &&
-             `              // Reflect the running app in the URL as a bookmarkable route. A` && |\n| &&
-             `              // forward navigation done in the backend (client->nav_app_call,` && |\n| &&
-             `              // CHECK_NAV_APP_CALL) pushes a NEW history entry so the browser` && |\n| &&
-             `              // Back button returns to the calling app - the routing equivalent` && |\n| &&
-             `              // of a UI5 navTo. A plain roundtrip only replaces the current` && |\n| &&
-             `              // route (no new entry). An app that manages its own hash this` && |\n| &&
-             `              // roundtrip (set_push_state) keeps it - routing only owns the hash` && |\n| &&
-             `              // when the app leaves it be.` && |\n| &&
+             `              state.currentDraftId = ID;` && |\n| &&
+             `              // Reflect the running app AND its state in the URL as a` && |\n| &&
+             `              // bookmarkable route "/app/<CLASS>/<DRAFTID>". The draft id makes` && |\n| &&
+             `              // the browser Back/Forward buttons restore the EXACT preserved` && |\n| &&
+             `              // state, not a fresh app. A forward navigation done in the backend` && |\n| &&
+             `              // (client->nav_app_call, CHECK_NAV_APP_CALL) pushes a NEW history` && |\n| &&
+             `              // entry so Back returns to the calling app - the routing` && |\n| &&
+             `              // equivalent of a UI5 navTo. A plain roundtrip only replaces the` && |\n| &&
+             `              // current entry, advancing it to the app's latest draft so a later` && |\n| &&
+             `              // Forward restores the newest state. An app that manages its own` && |\n| &&
+             `              // hash this roundtrip (set_push_state) keeps it.` && |\n| &&
              `              if (!PARAMS.SET_PUSH_STATE) {` && |\n| &&
-             `                const route = Lib.routeForApp(app);` && |\n| &&
+             `                const route = Lib.routeForApp(app, ID);` && |\n| &&
              `                if (PARAMS.CHECK_NAV_APP_CALL) {` && |\n| &&
              `                  _hashChanger.setHash(route);` && |\n| &&
              `                } else if (_hashChanger.getHash() !== route) {` && |\n| &&
@@ -414,11 +417,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      // events to eB/eF - and must not be renamed.` && |\n| &&
              `      //` && |\n| &&
              `      // args[0] is the event array built by the backend:` && |\n| &&
-             `      //   [0] event name` && |\n| &&
+             `      //   [0] event name` && |\n|.
+    result = result &&
              `      //   [2] "ignore busy" flag - background events (e.g. timers) skip the` && |\n| &&
              `      //       busy guard below` && |\n| &&
-             `      //   [3] "use main view model" flag - events fired from a popup or` && |\n|.
-    result = result &&
+             `      //   [3] "use main view model" flag - events fired from a popup or` && |\n| &&
              `      //       popover controller that still target the main app's model` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
              `      eB(...args) {` && |\n| &&

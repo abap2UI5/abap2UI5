@@ -121,11 +121,14 @@ sap.ui.define([], () => {
       //  navRouting  once the running app enabled routing, the URL hash mirrors
       //              the current app as a bookmarkable route '#/app/<CLASS>' and
       //              browser Back/Forward navigate between apps via the hash.
-      //  currentApp  class name of the app currently rendered - the routing
-      //              guard compares an incoming hash route against it so our own
-      //              hash writes do not re-trigger a navigation.
+      //  currentApp     class name of the app currently rendered.
+      //  currentDraftId server draft id of the current app state. The routing
+      //                 guard compares an incoming hash route's draft id against
+      //                 it so our own hash writes do not re-trigger a navigation,
+      //                 and browser Back/Forward restore the exact draft (state).
       navRouting: false,
       currentApp: null,
+      currentDraftId: null,
 
       // Control / helper state
       errors: [],

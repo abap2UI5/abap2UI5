@@ -339,8 +339,10 @@ sap.ui.define(
       // Hash-router handler (registered by Component.js on the HashChanger's
       // hashChanged event). This is what makes the browser Back/Forward buttons
       // - and manual URL edits / bookmarks - navigate between apps: a hash of
-      // the form "#/app/<CLASS>" starts that app fresh. It is the abap2UI5
-      // equivalent of a UI5 route's patternMatched handler.
+      // the form "#/app/<CLASS>/<DRAFTID>" restores that app's draft (its
+      // preserved state), falling back to a fresh start of <CLASS> when the
+      // draft has expired. It is the abap2UI5 equivalent of a UI5 route's
+      // patternMatched handler.
       onHashChange(sNewHash) {
         const state = AppState.state;
 
@@ -353,15 +355,22 @@ sap.ui.define(
         // Not an app route (empty / some app-owned hash) - ignore.
         if (!target) return;
 
-        // The hash already names the running app - this event is the echo of
-        // our own replaceHash after rendering, not a user navigation. Skip it
-        // to avoid a reload loop (mirrors a Router ignoring the current route).
-        if (target.toUpperCase() === String(state.currentApp).toUpperCase())
-          return;
+        const targetDraft = Lib.draftOfRoute(sNewHash);
 
-        // A different app route: start it fresh. An empty body (no ID) makes the
-        // backend take the first-start path and read the target class from the
-        // hash it receives (request_app_start_route).
+        // Ignore the echo of our own hash write after rendering (not a user
+        // navigation), so we do not loop. Match on the draft id when the route
+        // carries one - that is the precise app state - otherwise on the class.
+        if (targetDraft) {
+          if (targetDraft === state.currentDraftId) return;
+        } else if (
+          target.toUpperCase() === String(state.currentApp).toUpperCase()
+        ) {
+          return;
+        }
+
+        // A different app state: restore it. An empty body (no ID) makes the
+        // backend take the first-start path and read the target class + draft
+        // from the hash it receives (request_app_start_route[_draft]).
         this.roundtrip({});
       },
 

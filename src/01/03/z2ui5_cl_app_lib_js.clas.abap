@@ -36,26 +36,41 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `    "use strict";` && |\n| &&
              `` && |\n| &&
              `    // Hash-based app routing (UI5 Router style). The URL hash names the running` && |\n| &&
-             `    // app as a bookmarkable route "/app/<CLASS>" - the client-side equivalent` && |\n| &&
-             `    // of a UI5 route pattern "app/{class}". routeForApp builds it; appOfRoute` && |\n| &&
-             `    // parses the class back out (empty string when the hash is not an app` && |\n| &&
-             `    // route, so non-routing hashes - e.g. an app's own set_push_state - are` && |\n| &&
-             `    // ignored by the router).` && |\n| &&
+             `    // app AND its state as a bookmarkable route "/app/<CLASS>/<DRAFTID>" - the` && |\n| &&
+             `    // client-side equivalent of a UI5 route pattern "app/{class}/{state}". The` && |\n| &&
+             `    // <CLASS> segment is human-readable; the <DRAFTID> segment is the server` && |\n| &&
+             `    // draft that holds the app's state, so the browser Back/Forward buttons` && |\n| &&
+             `    // restore the EXACT preserved state (and a reload/bookmark restores it too,` && |\n| &&
+             `    // falling back to a fresh start of <CLASS> once the draft has expired).` && |\n| &&
+             `    // routeForApp builds it; appOfRoute / draftOfRoute parse the two segments` && |\n| &&
+             `    // back out (empty when the hash is not an app route, so non-routing hashes` && |\n| &&
+             `    // - e.g. an app's own set_push_state - are ignored by the router).` && |\n| &&
              `    const APP_ROUTE_PREFIX = "/app/";` && |\n| &&
              `` && |\n| &&
-             `    function routeForApp(sClass) {` && |\n| &&
-             `      return ``${APP_ROUTE_PREFIX}${sClass}``;` && |\n| &&
+             `    function routeForApp(sClass, sDraftId) {` && |\n| &&
+             `      const base = ``${APP_ROUTE_PREFIX}${sClass}``;` && |\n| &&
+             `      return sDraftId ? ``${base}/${sDraftId}`` : base;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
-             `    function appOfRoute(sHash) {` && |\n| &&
-             `      if (!sHash) return "";` && |\n| &&
+             `    function segmentsOfRoute(sHash) {` && |\n| &&
+             `      if (!sHash) return null;` && |\n| &&
              `      // Accept an optional leading "#" and "/" so both HashChanger hashes` && |\n| &&
              `      // (no "#") and raw location.hash values resolve to the same route.` && |\n| &&
              `      const clean = sHash.replace(/^#/, "").replace(/^\//, "");` && |\n| &&
              `      const marker = "app/";` && |\n| &&
-             `      if (!clean.startsWith(marker)) return "";` && |\n| &&
-             `      // The class token runs to the end or the next route/query separator.` && |\n| &&
-             `      return clean.slice(marker.length).split(/[/&?]/)[0];` && |\n| &&
+             `      if (!clean.startsWith(marker)) return null;` && |\n| &&
+             `      // Stop at any route/query separator, then split class / draft id.` && |\n| &&
+             `      return clean.slice(marker.length).split(/[&?]/)[0].split("/");` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function appOfRoute(sHash) {` && |\n| &&
+             `      const parts = segmentsOfRoute(sHash);` && |\n| &&
+             `      return parts ? parts[0] : "";` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function draftOfRoute(sHash) {` && |\n| &&
+             `      const parts = segmentsOfRoute(sHash);` && |\n| &&
+             `      return parts && parts.length > 1 ? parts[1] : "";` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Resolve a control id to its sap.ui.core.Element via the global registry.` && |\n| &&
@@ -402,7 +417,8 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `          const rows = node.__delta;` && |\n| &&
              `          if (!rows[row]) rows[row] = {};` && |\n| &&
              `          const rowDelta = rows[row];` && |\n| &&
-             `          model = model?.[Number(row)]?.[field];` && |\n| &&
+             `          model = model?.[Number(row)]?.[field];` && |\n|.
+    result = result &&
              `          if (leaf) {` && |\n| &&
              `            // The leaf value (cell, struct or whole sub-table) replaces any` && |\n| &&
              `            // nested delta queued for the same field - it reads the same` && |\n| &&
@@ -417,8 +433,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `          node = rowDelta[field];` && |\n| &&
              `        }` && |\n| &&
              `      }` && |\n| &&
-             `      return delta;` && |\n|.
-    result = result &&
+             `      return delta;` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    // Turns an HTML "details" snippet from the backend into safe HTML.` && |\n| &&
@@ -490,6 +505,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `    return {` && |\n| &&
              `      routeForApp,` && |\n| &&
              `      appOfRoute,` && |\n| &&
+             `      draftOfRoute,` && |\n| &&
              `      logError,` && |\n| &&
              `      isDestroyed,` && |\n| &&
              `      isAlive,` && |\n| &&
