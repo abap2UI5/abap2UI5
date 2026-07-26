@@ -108,6 +108,26 @@ sap.ui.define(
       toggleStyleClass: ["string"], // sap.ui.core.Control: toggle a CSS style class
     };
 
+    // A method LISTED above carries explicit arg kinds (and some, like openBy/
+    // toggleBy, get special handling). A method NOT listed is still callable as
+    // long as it is a public control method that is not framework-hostile - so
+    // ordinary setters/toggles (setVisible, enablePostButton, setLayout, ...) work
+    // without enumerating each one here. The denylist protects abap2UI5's own
+    // invariants: nothing that frees or reparents a tracked control, swaps the
+    // model/binding out from under the framework, tampers with event handlers, or
+    // drives the render lifecycle by hand. (The backend is the trusted driver, so
+    // this is a footgun guard, not a security boundary - and control[method] is
+    // still checked to be a function before the call, so a typo just no-ops.)
+    const CONTROL_METHOD_DENY =
+      /^(_|destroy|bind|unbind|attach|detach|removeAll|addDependent|placeAt|rerender|invalidate|applySettings|clone|setModel|setBindingContext|setParent|setBinding|setAssociation)/;
+    function isSafeControlMethod(method) {
+      return (
+        typeof method === "string" &&
+        method.length > 0 &&
+        !CONTROL_METHOD_DENY.test(method)
+      );
+    }
+
     // global object -> lazy getter + its allowed methods (with arg kinds).
     const GLOBAL_TARGETS = {
       MESSAGE_TOAST: { get: () => MessageToast, methods: { show: ["string"] } },
@@ -174,7 +194,21 @@ sap.ui.define(
       }
     }
 
+    // Infer the type of an argument for a method with no declared kinds (the
+    // generalized-allowlist path). abap2UI5 sends booleans as the ABAP tokens
+    // 'X'/space, so recognize those; everything else passes through as a string
+    // (UI5 coerces numeric strings for index/number setters). A method that needs
+    // a literal 'X'/'true'/'false' string or a JSON object must be declared in
+    // CONTROL_METHODS with an explicit kind, which overrides this inference.
+    function castArgAuto(raw) {
+      if (raw === "X" || raw === "true") return true;
+      if (raw === "" || raw === " " || raw === "false") return false;
+      return raw;
+    }
+
     function castArgs(kinds, rawArgs, view) {
+      // kinds === null: unlisted-but-allowed method, infer each arg's type
+      if (kinds === null) return rawArgs.map((raw) => castArgAuto(raw));
       // only cast args the caller actually sent - padding missing trailing
       // args would turn open() into open(undefined) and ints into NaN
       return kinds
@@ -197,10 +231,15 @@ sap.ui.define(
     // args: [_, id, view, method, ...params]
     function evControlCallById(oController, args) {
       const [, id, view, method] = args;
-      const kinds = CONTROL_METHODS[method];
+      let kinds = CONTROL_METHODS[method];
       if (!kinds) {
-        Lib.logError(`CONTROL_BY_ID: method '${method}' not allowed`);
-        return;
+        // not explicitly listed: allow any public, non-hostile control method
+        // (kinds = null -> arg types are inferred), else fail closed.
+        if (!isSafeControlMethod(method)) {
+          Lib.logError(`CONTROL_BY_ID: method '${method}' not allowed`);
+          return;
+        }
+        kinds = null;
       }
       const control = view
         ? ViewSlots.byId(view.toUpperCase(), id)
@@ -321,8 +360,9 @@ sap.ui.define(
     const isEmpty = (v) => v == null || v === "";
 
     // binding method -> builder that turns the trailing params into the
-    // aggregation-update call. Same declarative-whitelist shape as
-    // CONTROL_METHODS: an unlisted method fails closed at the lookup.
+    // aggregation-update call. A strict whitelist (unlike CONTROL_METHODS,
+    // which now allows any non-denied public control method): an unlisted
+    // binding method fails closed at the lookup.
     //   filter: params = [path, operator, value1, value2?]
     //   sort:   params = [path, descending?, group?] (ABAP bools "X"/"")
     // The backend arg serializer keeps empty args between filled ones as ''
