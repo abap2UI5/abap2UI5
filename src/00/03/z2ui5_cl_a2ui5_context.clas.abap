@@ -610,6 +610,13 @@ CLASS z2ui5_cl_a2ui5_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    CLASS-METHODS get_comp_str
+      IMPORTING
+        val           TYPE any
+        iv_comp       TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS msg_get_rap_state_area
       IMPORTING
         val           TYPE any
@@ -2223,12 +2230,19 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD get_comp_str.
+
+    ASSIGN COMPONENT iv_comp OF STRUCTURE val TO FIELD-SYMBOL(<comp>).
+    IF sy-subrc = 0.
+      result = <comp>.
+    ENDIF.
+
+  ENDMETHOD.
+
   METHOD msg_get_rap_state_area.
 
-    ASSIGN COMPONENT `%STATE_AREA` OF STRUCTURE val TO FIELD-SYMBOL(<sa>).
-    IF sy-subrc = 0.
-      result = <sa>.
-    ENDIF.
+    result = get_comp_str( val     = val
+                           iv_comp = `%STATE_AREA` ).
 
   ENDMETHOD.
 
@@ -2249,19 +2263,15 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
 
   METHOD msg_get_rap_pid.
 
-    ASSIGN COMPONENT `%PID` OF STRUCTURE val TO FIELD-SYMBOL(<pid>).
-    IF sy-subrc = 0.
-      result = <pid>.
-    ENDIF.
+    result = get_comp_str( val     = val
+                           iv_comp = `%PID` ).
 
   ENDMETHOD.
 
   METHOD msg_get_rap_cid.
 
-    ASSIGN COMPONENT `%CID` OF STRUCTURE val TO FIELD-SYMBOL(<cid>).
-    IF sy-subrc = 0.
-      result = <cid>.
-    ENDIF.
+    result = get_comp_str( val     = val
+                           iv_comp = `%CID` ).
 
   ENDMETHOD.
 
