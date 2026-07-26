@@ -223,8 +223,8 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     " unserialized so the request body is only encoded once - and to_abap
     " cannot place them in a string table, so they are serialized here and
     " apps keep receiving every argument as a string
-    CLEAR et_event_arg.
-    CLEAR ev_check_override.
+    CLEAR: et_event_arg,
+           ev_check_override.
 
     DATA(lv_arg_index) = 1.
     DO.

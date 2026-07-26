@@ -47,6 +47,13 @@ CLASS z2ui5_cl_core_srv_bind DEFINITION PUBLIC FINAL.
         ir_existing TYPE REF TO object
         ir_new      TYPE REF TO object
         iv_label    TYPE string.
+
+    " Raise when a mapper/filter used for a new binding is not serializable.
+    " iv_label names the kind for the error text.
+    METHODS check_serializable
+      IMPORTING
+        ir_ref   TYPE REF TO object
+        iv_label TYPE string.
 ENDCLASS.
 
 
@@ -127,16 +134,22 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD check_serializable.
+
+    IF z2ui5_cl_a2ui5_context=>rtti_check_serializable( ir_ref ) = abap_false.
+      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+        EXPORTING val = |<p>{ iv_label } used but it is not serializable - please use if_serializable_object|.
+    ENDIF.
+
+  ENDMETHOD.
+
   METHOD check_raise_new.
 
-    IF z2ui5_cl_a2ui5_context=>rtti_check_serializable( mr_attri->custom_filter_back ) = abap_false.
-      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
-        EXPORTING val = `<p>custom_filter_back used but it is not serializable - please use if_serializable_object`.
-    ENDIF.
-    IF z2ui5_cl_a2ui5_context=>rtti_check_serializable( mr_attri->custom_mapper_back ) = abap_false.
-      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
-        EXPORTING val = `<p>custom_mapper_back used but it is not serializable - please use if_serializable_object`.
-    ENDIF.
+    check_serializable( ir_ref   = mr_attri->custom_filter_back
+                        iv_label = `custom_filter_back` ).
+
+    check_serializable( ir_ref   = mr_attri->custom_mapper_back
+                        iv_label = `custom_mapper_back` ).
 
   ENDMETHOD.
 
