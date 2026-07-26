@@ -272,6 +272,7 @@ This project follows the [SAP Clean ABAP styleguide](https://github.com/SAP/styl
   ```abap
   z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
   ```
+- **Prefer simple, transpile- and downport-friendly ABAP over clever constructs.** Every framework ABAP file is both **downported to 7.02** (`npm run auto_downport`) and **transpiled to JS** (`npm run auto_transpile`, for the Node unit and browser tests), so the plainest expression that does the job is the safest one — readability and pipeline-robustness win over brevity, and a little duplication is preferable to a hard-to-follow abstraction. In particular, avoid ref/deref gymnastics such as a helper that hands back `REF TO data` pointing into the caller's own structure (`REF #( <field-symbol> )` returned and dereferenced with `<ref>->*`): it compiles on every target but is hard to read and to reason about through the downport/transpile pipeline — prefer two straightforward `SPLIT` / `LOOP AT` / `ASSIGN COMPONENT` loops even if they overlap slightly. Rule of thumb: if `abaplint` and the transpiler pass but a reviewer would call the construct "clever", pick the plainer form.
 
 ### Naming (enforced by abaplint)
 
