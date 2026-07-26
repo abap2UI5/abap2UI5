@@ -3,8 +3,6 @@ CLASS z2ui5_cl_core_srv_draft DEFINITION PUBLIC FINAL.
   PUBLIC SECTION.
     CONSTANTS c_seconds_per_hour TYPE i VALUE 3600.
     CONSTANTS c_min_exp_time_in_hours TYPE i VALUE 1.
-    " minimum spacing between two expiry sweeps in one work process (see cleanup)
-    CONSTANTS c_cleanup_throttle_seconds TYPE i VALUE 60.
 
     TYPES ty_s_db TYPE z2ui5_t_01.
 
@@ -46,29 +44,12 @@ CLASS z2ui5_cl_core_srv_draft DEFINITION PUBLIC FINAL.
         VALUE(result)  TYPE ty_s_db.
 
   PRIVATE SECTION.
-    " timestamp of the last expiry sweep in this work process (see cleanup)
-    CLASS-DATA gv_last_cleanup TYPE timestampl.
 ENDCLASS.
 
 
 CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
 
   METHOD cleanup.
-
-    " The expiry sweep runs on every app cold-start (factory_first_start). In a
-    " long-lived / stateful work process a burst of cold-starts would each fire
-    " a full DELETE; skip it when the previous sweep in this work process ran
-    " less than c_cleanup_throttle_seconds ago. In stateless ICF the static
-    " resets between requests, so cleanup still runs every cold-start as before -
-    " the throttle only ever removes redundant sweeps, never a needed one.
-    DATA(lv_now) = z2ui5_cl_a2ui5_context=>time_get_timestampl( ).
-    IF gv_last_cleanup IS NOT INITIAL
-        AND z2ui5_cl_a2ui5_context=>time_subtract_seconds(
-                time    = lv_now
-                seconds = c_cleanup_throttle_seconds ) < gv_last_cleanup.
-      RETURN.
-    ENDIF.
-    gv_last_cleanup = lv_now.
 
     DATA(ls_config) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
     z2ui5_cl_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config ).
