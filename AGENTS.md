@@ -82,14 +82,14 @@ Both scenarios are covered by unit tests in `z2ui5_cl_core_handler.clas.testclas
 src/
 ├── 00/   Layer 0: Utilities (AJSON, S-RTTI, framework context/HTTP abstractions)
 ├── 01/   Layer 1: Core engine (handler, action, binding, model, events, draft service, embedded frontend)
-├── 02/   Layer 2: Public API (interfaces, XML view builder, HTTP handler, exit framework)
-└── 99/   Obsolete package — retired z2ui5_cl_util* classes (99/01) and built-in popups (99/02), kept for downstream compatibility only
+├── 02/   Layer 2: Public API (interfaces, HTTP handler, exit framework)
+└── 99/   Public XML view builder (z2ui5_cl_xml_view / _cc, package top level) + obsolete subpackages: retired z2ui5_cl_util* classes (99/01) and built-in popups (99/02), kept for downstream compatibility only
 ```
 
 - **Layer 0 (`src/00/`)** — Self-contained utility libraries. AJSON (`src/00/01/`) handles JSON; S-RTTI (`src/00/02/`) provides runtime type reflection — both are mirrored from external projects, DO NOT MODIFY. `src/00/03/` holds the context/HTTP abstractions (`z2ui5_cl_a2ui5_context`, `z2ui5_cl_a2ui5_http`, `z2ui5_cl_a2ui5_json_fltr`, `z2ui5_cx_a2ui5_error`) — `z2ui5_cl_a2ui5_context`, `z2ui5_cl_a2ui5_http` and `z2ui5_cx_a2ui5_error` are **vendored copies** from the [abap-util](https://github.com/abap-util/abap-util) master catalog (see "Vendored utility classes" below). The `noIssues` flag in `abaplint.jsonc` suppresses lint warnings for all of `src/00`.
 - **Layer 1 (`src/01/`)** — Core engine. Session drafts (`src/01/01/`), request processing, event routing, data binding, model management, app lifecycle (`src/01/02/`). Embedded UI5 frontend resources as ABAP string constants (`src/01/03/` — auto-generated, never manually edit).
 - **Layer 2 (`src/02/`)** — Public API. The stable contract for app developers. Includes the exit/customization framework.
-- **Obsolete package (`src/99/`)** — Two subpackages: `src/99/01/` holds the retired utility classes (`z2ui5_cl_util`, `z2ui5_cl_util_db`, `_ext`, `_http`, `_log`, `_msg`, `_range`, `_xml`, `z2ui5_cx_util_error`, table `z2ui5_t_91`) — the framework no longer uses any of them (replaced by the `z2ui5_cl_a2ui5_*` classes in `src/00/03/`); `src/99/02/` holds the built-in popup/dialog apps (`z2ui5_cl_pop_*`, formerly `src/02/01/`). Everything here remains only so existing downstream apps keep compiling; the contents are removal candidates. Do not add new consumers and do not extend them. Also covered by the `noIssues` lint exemption.
+- **Package `src/99/`** — Mixed content. The **package top level** holds the still-public **fluent XML view builder** (`z2ui5_cl_xml_view` and `z2ui5_cl_xml_view_cc`) — active public API used by every app (it physically lives here, moved out of `src/02/`, but remains a stable contract: additive changes only, see the size note under "Design Decisions"). The two **subpackages are obsolete**: `src/99/01/` holds the retired utility classes (`z2ui5_cl_util`, `z2ui5_cl_util_db`, `_ext`, `_http`, `_log`, `_msg`, `_range`, `_xml`, `z2ui5_cx_util_error`, table `z2ui5_t_91`) — the framework no longer uses any of them (replaced by the `z2ui5_cl_a2ui5_*` classes in `src/00/03/`); `src/99/02/` holds the built-in popup/dialog apps (`z2ui5_cl_pop_*`, formerly `src/02/01/`). The subpackage contents remain only so existing downstream apps keep compiling and are removal candidates — do not add new consumers and do not extend them. All of `src/99` is covered by the `noIssues` lint exemption.
 
 ### Vendored Utility Classes (`src/00/03/` ← abap-util)
 
@@ -171,14 +171,14 @@ src/
 │   ├── z2ui5_if_types.intf.abap        # Shared type definitions
 │   ├── z2ui5_if_exit.intf.abap         # Customization exit points
 │   ├── z2ui5_cl_http_handler.clas.abap # HTTP entry point
-│   ├── z2ui5_cl_xml_view.clas.abap     # Fluent XML view builder (~850KB)
-│   ├── z2ui5_cl_xml_view_cc.clas.abap  # Custom controls builder
 │   ├── z2ui5_cl_exit.clas.abap         # Default exit implementation
 │   ├── z2ui5_cl_app_startup.clas.abap  # Default startup app
 │   └── z2ui5_cl_app_hello_world.clas.abap # Hello world example app
-└── 99/                        # Obsolete package (kept for downstream compatibility, removal candidates, no new consumers)
-    ├── 01/                    #   Retired z2ui5_cl_util* classes + z2ui5_t_91
-    └── 02/                    #   Built-in popups (z2ui5_cl_pop_*, formerly src/02/01/)
+└── 99/                        # Public view builder (top level) + obsolete subpackages
+    ├── z2ui5_cl_xml_view.clas.abap     # Fluent XML view builder (~16K lines) - public API
+    ├── z2ui5_cl_xml_view_cc.clas.abap  # Custom controls builder - public API
+    ├── 01/                    #   Retired z2ui5_cl_util* classes + z2ui5_t_91 (obsolete)
+    └── 02/                    #   Built-in popups (z2ui5_cl_pop_*, formerly src/02/01/) (obsolete)
                                #   to_confirm, to_inform, to_select, file_dl, file_ul, table, textedit,
                                #   pdf, html, messages, error, input_val, data, demo_output,
                                #   image_editor, js_loader, get_range, get_range_m
@@ -346,7 +346,7 @@ Config files: `eslint.config.mjs`, `.prettierrc`, `.editorconfig`, `ui5.yaml`, `
 |---|---|
 | `src/02/z2ui5_if_app.intf.abap` | Main app interface + version constant |
 | `src/02/z2ui5_if_client.intf.abap` | All client methods (view, events, binding, navigation) |
-| `src/02/z2ui5_cl_xml_view.clas.abap` | Fluent view builder (~850KB) — read only sections you need |
+| `src/99/z2ui5_cl_xml_view.clas.abap` | Fluent view builder (~16K lines, public API despite the src/99 location) — read only sections you need |
 | `src/01/02/z2ui5_cl_core_handler.clas.abap` | Central request processor + main loop |
 | `src/01/02/z2ui5_cl_core_client.clas.abap` | Implements z2ui5_if_client |
 | `abaplint.jsonc` | Linter rules — source of truth for code standards |
