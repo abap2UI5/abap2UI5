@@ -40,6 +40,13 @@ CLASS z2ui5_cl_core_srv_bind DEFINITION PUBLIC FINAL.
     METHODS check_raise_new.
 
   PRIVATE SECTION.
+    " Raise when the same attribute is rebound with a different mapper/filter
+    " implementation. iv_label names the kind for the error text.
+    METHODS check_same_impl
+      IMPORTING
+        ir_existing TYPE REF TO object
+        ir_new      TYPE REF TO object
+        iv_label    TYPE string.
 ENDCLASS.
 
 
@@ -87,28 +94,36 @@ CLASS z2ui5_cl_core_srv_bind IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD check_same_impl.
+
+    IF ir_existing IS BOUND AND ir_new IS BOUND
+        AND z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( ir_existing )
+         <> z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( ir_new ).
+      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+        EXPORTING val = |<p>Binding Error - Two different { iv_label } used for the same attribute ({ mr_attri->name }).|.
+    ENDIF.
+
+  ENDMETHOD.
+
   METHOD check_raise_existing.
 
-    IF mr_attri->custom_mapper IS BOUND AND ms_config-custom_mapper IS BOUND
-        AND z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( mr_attri->custom_mapper )
-         <> z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( ms_config-custom_mapper ).
-      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
-        EXPORTING val = |<p>Binding Error - Two different mappers used for the same attribute ({ mr_attri->name }).|.
-    ENDIF.
+    check_same_impl( ir_existing = mr_attri->custom_mapper
+                     ir_new      = ms_config-custom_mapper
+                     iv_label    = `mappers` ).
 
-    IF mr_attri->custom_mapper_back IS BOUND AND ms_config-custom_mapper_back IS BOUND
-        AND z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( mr_attri->custom_mapper_back )
-         <> z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( ms_config-custom_mapper_back ).
-      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
-        EXPORTING val = |<p>Binding Error - Two different mappers back used for the same attribute ({ mr_attri->name }).|.
-    ENDIF.
+    check_same_impl( ir_existing = mr_attri->custom_mapper_back
+                     ir_new      = ms_config-custom_mapper_back
+                     iv_label    = `mappers back` ).
 
-    IF mr_attri->custom_filter IS BOUND AND ms_config-custom_filter IS BOUND
-        AND z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( mr_attri->custom_filter )
-         <> z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( ms_config-custom_filter ).
-      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
-        EXPORTING val = |<p>Binding Error - Two different filters used for the same attribute ({ mr_attri->name }).|.
-    ENDIF.
+    check_same_impl( ir_existing = mr_attri->custom_filter
+                     ir_new      = ms_config-custom_filter
+                     iv_label    = `filters` ).
+
+    " custom_filter_back was previously unchecked (the fourth, missing guard) -
+    " close the gap so a conflicting filter-back is rejected like the others
+    check_same_impl( ir_existing = mr_attri->custom_filter_back
+                     ir_new      = ms_config-custom_filter_back
+                     iv_label    = `filters back` ).
 
   ENDMETHOD.
 
