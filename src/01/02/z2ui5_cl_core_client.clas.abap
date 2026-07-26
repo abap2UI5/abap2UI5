@@ -429,6 +429,13 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_if_client~set_nav_routing.
+
+    mo_action->ms_next-s_set-set_nav_routing = mode.
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_client~set_app_state_active.
 
     mo_action->ms_next-s_set-set_app_state_active = val.

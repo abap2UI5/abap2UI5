@@ -123,6 +123,11 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     result = prepare_app_stack( ms_next-o_app_call ).
     result->mo_app->ms_draft-id_prev_app_stack = mo_app->ms_draft-id.
 
+    " forward app navigation - when hash routing is active the frontend pushes a
+    " new route history entry for the called app, so the browser Back button
+    " returns to the calling app (see View1._updateBrowserHistory)
+    result->ms_next-s_set-check_nav_app_call = abap_true.
+
   ENDMETHOD.
 
   METHOD factory_stack_leave.

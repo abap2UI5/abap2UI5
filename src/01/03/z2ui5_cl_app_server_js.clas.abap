@@ -356,6 +356,48 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
+             `      // Hash-router handler (registered by Component.js on the HashChanger's` && |\n| &&
+             `      // hashChanged event). This is what makes the browser Back/Forward buttons` && |\n| &&
+             `      // - and manual URL edits / bookmarks - navigate between apps: a hash of` && |\n| &&
+             `      // the form "#/app/<CLASS>/<DRAFTID>" restores that app's draft (its` && |\n| &&
+             `      // preserved state), falling back to a fresh start of <CLASS> when the` && |\n| &&
+             `      // draft has expired. It is the abap2UI5 equivalent of a UI5 route's` && |\n| &&
+             `      // patternMatched handler.` && |\n| &&
+             `      onHashChange(sNewHash) {` && |\n| &&
+             `        const state = AppState.state;` && |\n| &&
+             `` && |\n| &&
+             `        // Routing is opt-in per session (client->set_nav_routing); until an app` && |\n| &&
+             `        // enabled it, leave the hash entirely to the app (e.g. set_push_state).` && |\n| &&
+             `        if (!state.navRouting) return;` && |\n| &&
+             `` && |\n| &&
+             `        const target = Lib.appOfRoute(sNewHash);` && |\n| &&
+             `` && |\n| &&
+             `        // Not an app route (empty / some app-owned hash) - ignore.` && |\n| &&
+             `        if (!target) return;` && |\n| &&
+             `` && |\n| &&
+             `        const targetDraft = Lib.draftOfRoute(sNewHash);` && |\n| &&
+             `` && |\n| &&
+             `        // Ignore the echo of our own hash write after rendering (not a user` && |\n| &&
+             `        // navigation), so we do not loop. Match on the draft id when the route` && |\n| &&
+             `        // carries one - that is the precise app state - otherwise on the class.` && |\n| &&
+             `        if (targetDraft) {` && |\n| &&
+             `          if (targetDraft === state.currentDraftId) return;` && |\n| &&
+             `        } else if (` && |\n| &&
+             `          target.toUpperCase() === String(state.currentApp).toUpperCase()` && |\n| &&
+             `        ) {` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `` && |\n| &&
+             `        // A different app state: restore it. An empty body (no ID) makes the` && |\n| &&
+             `        // backend take the first-start path and read the target class + draft` && |\n| &&
+             `        // from the hash it receives (request_app_start_route[_draft]). Mark the` && |\n| &&
+             `        // roundtrip as browser-initiated so the render does NOT rewrite the hash` && |\n| &&
+             `        // (the browser is at a non-top history position - rewriting there would` && |\n| &&
+             `        // drop the forward entries and break the Forward button).` && |\n| &&
+             `        state.navFromHash = true;` && |\n| &&
+             `        this.roundtrip({});` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
              `      _getScrollInfo() {` && |\n| &&
              `        // Release the per-element resolution cache of onScrollCapture once` && |\n| &&
              `        // its DOM node left the document (view replaced/destroyed) - the` && |\n| &&
@@ -375,7 +417,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        const out = {};` && |\n| &&
              `        for (const slot of ViewSlots.slots) {` && |\n| &&
              `          const entry = store[slot.key];` && |\n| &&
-             `          if (!entry) continue;` && |\n| &&
+             `          if (!entry) continue;` && |\n|.
+    result = result &&
              `` && |\n| &&
              `          // Drop stale references, e.g. after the view was replaced. Also` && |\n| &&
              `          // drop a destroyed control whose DOM is still transiently` && |\n| &&
@@ -417,8 +460,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        const oConfig = AppState.getGlobal("oConfig");` && |\n| &&
              `        oBody.S_FRONT = {` && |\n| &&
              `          CONFIG: {` && |\n| &&
-             `            S_UI5: oConfig?.S_UI5,` && |\n|.
-    result = result &&
+             `            S_UI5: oConfig?.S_UI5,` && |\n| &&
              `            S_DEVICE: this._getDeviceInfo(),` && |\n| &&
              `            S_FOCUS: this._getFocusInfo(),` && |\n| &&
              `            S_SCROLL: this._getScrollInfo(),` && |\n| &&
@@ -623,6 +665,9 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `              ID: responseData.S_FRONT.ID,` && |\n| &&
              `              PARAMS: responseData.S_FRONT.PARAMS,` && |\n| &&
              `              OVIEWMODEL: responseData.MODEL,` && |\n| &&
+             `              // Class name of the rendered app - used by the hash router to` && |\n| &&
+             `              // keep the URL route "#/app/<CLASS>" in sync (View1).` && |\n| &&
+             `              APP: responseData.S_FRONT.APP,` && |\n| &&
              `            },` && |\n| &&
              `            seq,` && |\n| &&
              `          );` && |\n| &&

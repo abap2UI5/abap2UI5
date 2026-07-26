@@ -84,6 +84,7 @@ sap.ui.define(
         this._installUnloadListener();
         this._installDeveloperToolsShortcut();
         this._installScrollListener();
+        this._installRouterListener();
 
         // The stopped router removed with the manifest routing section used
         // to initialize the HashChanger (and its underlying hasher
@@ -137,6 +138,23 @@ sap.ui.define(
           capture: true,
           passive: true,
         });
+      },
+
+      _installRouterListener() {
+        // Hash-based app routing (UI5 Router style). The HashChanger is the
+        // same engine the sap.ui.core.routing.Router sits on; listening to its
+        // hashChanged event makes the native browser Back/Forward buttons (and
+        // manual URL edits / bookmarks) drive navigation - a hash of the form
+        // "#/app/<CLASS>" starts that app. Only sessions that opted in via
+        // client->set_nav_routing( ) act on it (Server.onHashChange guards on
+        // AppState.navRouting), so apps that manage their own hash are
+        // unaffected.
+        this._boundHashChanged = (oEvent) =>
+          Server.onHashChange(oEvent.getParameter("newHash"));
+        HashChanger.getInstance().attachEvent(
+          "hashChanged",
+          this._boundHashChanged,
+        );
       },
 
       // ------------------------------------------------------------------
@@ -244,6 +262,10 @@ sap.ui.define(
         document.removeEventListener("scroll", this._boundScroll, {
           capture: true,
         });
+        HashChanger.getInstance().detachEvent(
+          "hashChanged",
+          this._boundHashChanged,
+        );
 
         // The developer tools control is created lazily by the Ctrl+F12
         // shortcut - destroy it (which also closes its dialog) so a re-launch

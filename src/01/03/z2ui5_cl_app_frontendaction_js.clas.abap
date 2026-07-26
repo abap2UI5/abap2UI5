@@ -29,6 +29,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    "sap/ui/model/Sorter",` && |\n| &&
              `    "sap/m/library",` && |\n| &&
              `    "sap/ui/util/Storage",` && |\n| &&
+             `    "sap/ui/core/routing/HashChanger",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
@@ -43,6 +44,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    Sorter,` && |\n| &&
              `    mobileLibrary,` && |\n| &&
              `    Storage,` && |\n| &&
+             `    HashChanger,` && |\n| &&
              `    Lib,` && |\n| &&
              `    ViewSlots,` && |\n| &&
              `    AppState,` && |\n| &&
@@ -415,10 +417,10 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          const [path, operator, value1, value2] = Array.isArray(row)` && |\n| &&
              `            ? row` && |\n| &&
              `            : [];` && |\n| &&
-             `          if (typeof path !== "string" || !FILTER_OPERATORS.has(operator)) {` && |\n| &&
-             `            Lib.logError(` && |\n| &&
-             `              ``BINDING_CALL: bad filter row (path '${path}' / operator '${operator}')``,` && |\n|.
+             `          if (typeof path !== "string" || !FILTER_OPERATORS.has(operator)) {` && |\n|.
     result = result &&
+             `            Lib.logError(` && |\n| &&
+             `              ``BINDING_CALL: bad filter row (path '${path}' / operator '${operator}')``,` && |\n| &&
              `            );` && |\n| &&
              `            return;` && |\n| &&
              `          }` && |\n| &&
@@ -494,6 +496,18 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `` && |\n| &&
              `    function evHistoryBack() {` && |\n| &&
              `      history.back();` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    function evNavToRoute(oController, args) {` && |\n| &&
+             `      // Navigate to another app by setting the hash route - the UI5 navTo` && |\n| &&
+             `      // equivalent. args[1] is the target app class (or a full "app/<CLASS>"` && |\n| &&
+             `      // route). setHash adds a browser history entry, so Back returns to the` && |\n| &&
+             `      // current app; the HashChanger listener (Server.onHashChange) then starts` && |\n| &&
+             `      // the target app. No-op unless the session enabled routing.` && |\n| &&
+             `      const raw = Lib.toText(args[1]);` && |\n| &&
+             `      if (!raw) return;` && |\n| &&
+             `      const cls = Lib.appOfRoute(raw) || raw;` && |\n| &&
+             `      HashChanger.getInstance().setHash(Lib.routeForApp(cls));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evClipboardCopy(oController, args) {` && |\n| &&
@@ -804,7 +818,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      clearTimeout(timers[timerKey]);` && |\n| &&
              `      timers[timerKey] = setTimeout(() => {` && |\n| &&
              `        delete timers[timerKey];` && |\n| &&
-             `        oController.eB([callbackEvent]);` && |\n| &&
+             `        oController.eB([callbackEvent]);` && |\n|.
+    result = result &&
              `      }, delay);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -818,8 +833,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          ? dom` && |\n| &&
              `          : dom.querySelector("input, textarea");` && |\n| &&
              `        if (!input) return;` && |\n| &&
-             `        input.setAttribute("inputmode", args[2] || "text");` && |\n|.
-    result = result &&
+             `        input.setAttribute("inputmode", args[2] || "text");` && |\n| &&
              `      } catch (e) {` && |\n| &&
              `        Lib.logError(` && |\n| &&
              `          ``KEYBOARD_SET_MODE: setAttribute failed for '${args[1]}'``,` && |\n| &&
@@ -1011,6 +1025,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    const handlers = {` && |\n| &&
              `      SET_SIZE_LIMIT: evSetSizeLimit,` && |\n| &&
              `      HISTORY_BACK: evHistoryBack,` && |\n| &&
+             `      NAV_TO_ROUTE: evNavToRoute,` && |\n| &&
              `      CLIPBOARD_COPY: evClipboardCopy,` && |\n| &&
              `      CLIPBOARD_APP_STATE: evClipboardAppState,` && |\n| &&
              `      SET_ODATA_MODEL: evSetODataModel,` && |\n| &&

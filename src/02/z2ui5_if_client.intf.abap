@@ -26,6 +26,7 @@ INTERFACE z2ui5_if_client
       keyboard_set_mode         TYPE string VALUE `KEYBOARD_SET_MODE`,
       open_new_tab              TYPE string VALUE `OPEN_NEW_TAB`,
       location_reload           TYPE string VALUE `LOCATION_RELOAD`,
+      nav_to_route              TYPE string VALUE `NAV_TO_ROUTE`,
 
       "Actions more
       set_title_launchpad       TYPE string VALUE `SET_TITLE_LAUNCHPAD`,
@@ -69,6 +70,23 @@ INTERFACE z2ui5_if_client
       popover TYPE string VALUE `POPOVER`,
     END OF cs_view.
 
+  "! Hash-based app routing modes (see set_nav_routing). The mode decides how
+  "! much of the running app the URL hash carries, and therefore what the
+  "! browser Back/Forward buttons (and a reload / bookmark) restore:
+  "!  default - no routing: the hash is left untouched, exactly as before this
+  "!            feature. Back/Forward leave the abap2UI5 page (framework default).
+  "!  fresh   - route '#/app/<CLASS>' (class only): Back/Forward/reload/bookmark
+  "!            start the app FRESH (a clean instance, no preserved input).
+  "!  keep    - route '#/app/<CLASS>/<DRAFT>' (class + server draft): the exact
+  "!            preserved state is restored (all user input), falling back to a
+  "!            fresh start once the draft has expired.
+  CONSTANTS:
+    BEGIN OF cs_nav_mode,
+      default TYPE string VALUE `DEFAULT`,
+      fresh   TYPE string VALUE `FRESH`,
+      keep    TYPE string VALUE `KEEP`,
+    END OF cs_nav_mode.
+
   METHODS view_destroy.
 
   METHODS view_display
@@ -94,6 +112,23 @@ INTERFACE z2ui5_if_client
   METHODS set_nav_back
     IMPORTING
       val TYPE abap_bool DEFAULT abap_true.
+
+  "! Enable hash-based app routing for this session (UI5 Router style). Once
+  "! enabled, the URL hash mirrors the running app as a bookmarkable route, and
+  "! the browser Back/Forward buttons navigate between apps via that hash. A
+  "! forward navigation to another app (client->nav_app_call) pushes a new route
+  "! history entry, so the browser Back button returns to the calling app - the
+  "! routing equivalent of a UI5 navTo. Call once (e.g. in the launcher app's
+  "! check_on_init).
+  "!
+  "! The mode (see cs_nav_mode) decides what Back/Forward/reload/bookmark
+  "! restore: keep (default) restores the exact preserved state via a draft id
+  "! in the route '#/app/<CLASS>/<DRAFT>'; fresh routes by class only
+  "! '#/app/<CLASS>' and always starts the app fresh; default disables routing
+  "! (framework behaviour as before this feature).
+  METHODS set_nav_routing
+    IMPORTING
+      mode TYPE string DEFAULT cs_nav_mode-keep.
 
   METHODS nest_view_display
     IMPORTING

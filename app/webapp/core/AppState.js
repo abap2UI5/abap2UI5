@@ -117,6 +117,31 @@ sap.ui.define([], () => {
       search: null,
       pendingCustomJs: null,
 
+      // Hash-based app routing (UI5 Router style, opt-in via set_nav_routing).
+      //  navRouting  once the running app enabled routing, the URL hash mirrors
+      //              the current app as a bookmarkable route and browser
+      //              Back/Forward navigate between apps via the hash.
+      //  navMode        routing mode (z2ui5_if_client=>cs_nav_mode): 'KEEP' keeps
+      //                 the app state (draft id in the route '#/app/<CLASS>/
+      //                 <DRAFT>', restored on Back/Forward), 'FRESH' routes by
+      //                 class only ('#/app/<CLASS>', always a fresh start).
+      //  currentApp     class name of the app currently rendered.
+      //  currentDraftId server draft id reflected in the current route - the
+      //                 app-state id in KEEP, null in FRESH. The routing guard
+      //                 compares an incoming hash route's draft id against it so
+      //                 our own hash writes do not re-trigger a navigation, and
+      //                 (KEEP) browser Back/Forward restore the exact draft.
+      //  navFromHash    the pending roundtrip was triggered by a browser
+      //                 Back/Forward (or manual hash edit) via onHashChange, so
+      //                 the resulting render must NOT rewrite the hash: the
+      //                 browser is at a non-top history position and rewriting
+      //                 there drops the forward entries (Forward would break).
+      navRouting: false,
+      navMode: null,
+      currentApp: null,
+      currentDraftId: null,
+      navFromHash: false,
+
       // Control / helper state
       errors: [],
       timers: {},

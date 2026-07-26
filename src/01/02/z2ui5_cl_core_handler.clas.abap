@@ -80,6 +80,18 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
         iv_hash       TYPE string
       RETURNING
         VALUE(result) TYPE string.
+
+    METHODS request_app_start_route
+      IMPORTING
+        iv_hash       TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS request_app_start_route_draft
+      IMPORTING
+        iv_hash       TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
 ENDCLASS.
 
 
@@ -93,11 +105,24 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
           RETURN.
         ENDIF.
 
-        result-s_control-app_start =
-          request_app_start( iv_search    = result-s_front-search
-                             io_comp_data = result-s_front-o_comp_data ).
-        result-s_control-app_start_draft =
-          request_app_start_draft( result-s_front-hash ).
+        " Hash-based app routing (UI5 Router style) takes precedence: once a
+        " session runs with routing on, the live hash '#/app/<CLASS>/<DRAFTID>'
+        " is the navigation state (browser Back/Forward, bookmark, reload),
+        " while the '?app_start=' query is only the initial boot value and would
+        " otherwise always win over it. The route's <DRAFTID> segment restores
+        " the exact preserved app state; when it is absent or expired the app
+        " starts fresh from <CLASS>. Fall back to the query / legacy app-state
+        " hash when the hash carries no app route (normal boot / non-routing).
+        DATA(lv_route_class) = request_app_start_route( result-s_front-hash ).
+        IF lv_route_class IS NOT INITIAL.
+          result-s_control-app_start       = lv_route_class.
+          result-s_control-app_start_draft = request_app_start_route_draft( result-s_front-hash ).
+        ELSE.
+          result-s_control-app_start       =
+            request_app_start( iv_search    = result-s_front-search
+                               io_comp_data = result-s_front-o_comp_data ).
+          result-s_control-app_start_draft = request_app_start_draft( result-s_front-hash ).
+        ENDIF.
 
       CATCH cx_root INTO DATA(x).
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
@@ -238,6 +263,69 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         result = z2ui5_cl_a2ui5_context=>c_trim_upper(
             z2ui5_cl_a2ui5_context=>url_param_get( val = `z2ui5-xapp-state`
                                           url          = lv_hash ) ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD request_app_start_route.
+    " Parse the app class from a hash route '#/app/<CLASS>' (UI5 Router style).
+    " Returns empty when the hash carries no app route, so a normal boot or an
+    " app that manages its own hash falls through to the '?app_start=' query.
+    TRY.
+        DATA(lv_off) = find( val = iv_hash
+                             sub = `app/` ).
+        IF lv_off < 0.
+          RETURN.
+        ENDIF.
+        " only accept 'app/' as the route start - everything before it must be
+        " just the hash markers '#' and '/', not a mid-hash occurrence
+        DATA(lv_prefix) = substring( val = iv_hash
+                                     len = lv_off ).
+        REPLACE ALL OCCURRENCES OF `#` IN lv_prefix WITH ``.
+        REPLACE ALL OCCURRENCES OF `/` IN lv_prefix WITH ``.
+        IF lv_prefix IS NOT INITIAL.
+          RETURN.
+        ENDIF.
+        DATA(lv_rest) = substring( val = iv_hash
+                                   off = lv_off + 4 ).
+        " the class token ends at the next route / query separator
+        SPLIT lv_rest AT `/` INTO lv_rest DATA(lv_dummy).
+        SPLIT lv_rest AT `&` INTO lv_rest lv_dummy.
+        SPLIT lv_rest AT `?` INTO lv_rest lv_dummy.
+        result = z2ui5_cl_a2ui5_context=>c_trim_upper( lv_rest ).
+      CATCH cx_root ##NO_HANDLER.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD request_app_start_route_draft.
+    " Parse the draft id (app state) from a hash route
+    " '#/app/<CLASS>/<DRAFTID>'. Returns empty when the route carries no draft
+    " segment (fresh navigation / bookmark without state), so the app starts
+    " fresh from <CLASS>.
+    TRY.
+        DATA(lv_off) = find( val = iv_hash
+                             sub = `app/` ).
+        IF lv_off < 0.
+          RETURN.
+        ENDIF.
+        " only accept 'app/' as the route start (see request_app_start_route)
+        DATA(lv_prefix) = substring( val = iv_hash
+                                     len = lv_off ).
+        REPLACE ALL OCCURRENCES OF `#` IN lv_prefix WITH ``.
+        REPLACE ALL OCCURRENCES OF `/` IN lv_prefix WITH ``.
+        IF lv_prefix IS NOT INITIAL.
+          RETURN.
+        ENDIF.
+        DATA(lv_rest) = substring( val = iv_hash
+                                   off = lv_off + 4 ).
+        " cut off a trailing query / fragment, then take the 2nd path segment
+        " (the 1st is the class, discarded into lv_dummy)
+        SPLIT lv_rest AT `&` INTO lv_rest DATA(lv_dummy).
+        SPLIT lv_rest AT `?` INTO lv_rest lv_dummy.
+        SPLIT lv_rest AT `/` INTO lv_dummy DATA(lv_draft).
+        " a draft id has no further separators; guard against a stray tail
+        SPLIT lv_draft AT `/` INTO lv_draft lv_dummy.
+        result = z2ui5_cl_a2ui5_context=>c_trim_upper( lv_draft ).
       CATCH cx_root ##NO_HANDLER.
     ENDTRY.
   ENDMETHOD.

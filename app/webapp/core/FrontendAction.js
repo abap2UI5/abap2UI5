@@ -9,6 +9,7 @@ sap.ui.define(
     "sap/ui/model/Sorter",
     "sap/m/library",
     "sap/ui/util/Storage",
+    "sap/ui/core/routing/HashChanger",
     "z2ui5/core/Lib",
     "z2ui5/core/ViewSlots",
     "z2ui5/core/AppState",
@@ -23,6 +24,7 @@ sap.ui.define(
     Sorter,
     mobileLibrary,
     Storage,
+    HashChanger,
     Lib,
     ViewSlots,
     AppState,
@@ -473,6 +475,18 @@ sap.ui.define(
 
     function evHistoryBack() {
       history.back();
+    }
+
+    function evNavToRoute(oController, args) {
+      // Navigate to another app by setting the hash route - the UI5 navTo
+      // equivalent. args[1] is the target app class (or a full "app/<CLASS>"
+      // route). setHash adds a browser history entry, so Back returns to the
+      // current app; the HashChanger listener (Server.onHashChange) then starts
+      // the target app. No-op unless the session enabled routing.
+      const raw = Lib.toText(args[1]);
+      if (!raw) return;
+      const cls = Lib.appOfRoute(raw) || raw;
+      HashChanger.getInstance().setHash(Lib.routeForApp(cls));
     }
 
     function evClipboardCopy(oController, args) {
@@ -989,6 +1003,7 @@ sap.ui.define(
     const handlers = {
       SET_SIZE_LIMIT: evSetSizeLimit,
       HISTORY_BACK: evHistoryBack,
+      NAV_TO_ROUTE: evNavToRoute,
       CLIPBOARD_COPY: evClipboardCopy,
       CLIPBOARD_APP_STATE: evClipboardAppState,
       SET_ODATA_MODEL: evSetODataModel,
