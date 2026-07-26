@@ -7,6 +7,26 @@ CLASS z2ui5_cl_core_action DEFINITION PUBLIC FINAL.
     DATA ms_actual    TYPE z2ui5_if_core_types=>ty_s_actual.
     DATA ms_next      TYPE z2ui5_if_core_types=>ty_s_next.
 
+    TYPES:
+      BEGIN OF ty_s_view_slot_ref,
+        name               TYPE string,
+        check_update_model TYPE REF TO data,
+        xml                TYPE REF TO data,
+      END OF ty_s_view_slot_ref.
+    TYPES ty_t_view_slot_ref TYPE STANDARD TABLE OF ty_s_view_slot_ref WITH EMPTY KEY.
+
+    " Resolve the five view slots (cs_view_slot_list) of a ty_s_next_frontend
+    " structure to data references, shared by z2ui5_cl_core_handler's read pass
+    " (check_view_update_needed) and the write pass (reset_view_update_flags)
+    " so the SPLIT + ASSIGN COMPONENT walk lives in one place. ir_struct is a
+    " reference to the caller's own structure, so the returned refs stay
+    " writable.
+    CLASS-METHODS get_view_slot_refs
+      IMPORTING
+        ir_struct     TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE ty_t_view_slot_ref.
+
     METHODS factory_system_startup
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_core_action.
@@ -166,20 +186,39 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD reset_view_update_flags.
+  METHOD get_view_slot_refs.
+
+    ASSIGN ir_struct->* TO FIELD-SYMBOL(<struct>).
 
     SPLIT z2ui5_if_core_types=>cs_view_slot_list AT `,` INTO TABLE DATA(lt_slot).
     LOOP AT lt_slot INTO DATA(lv_slot).
-      ASSIGN COMPONENT lv_slot OF STRUCTURE ms_next-s_set TO FIELD-SYMBOL(<slot>).
+      ASSIGN COMPONENT lv_slot OF STRUCTURE <struct> TO FIELD-SYMBOL(<slot>).
       IF sy-subrc <> 0.
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
-          EXPORTING val = |Internal error - view slot '{ lv_slot }' not found in s_set|.
+          EXPORTING val = |Internal error - view slot '{ lv_slot }' not found|.
       ENDIF.
       ASSIGN COMPONENT `CHECK_UPDATE_MODEL` OF STRUCTURE <slot> TO FIELD-SYMBOL(<check_update_model>).
       IF sy-subrc <> 0.
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING val = |Internal error - CHECK_UPDATE_MODEL missing in view slot '{ lv_slot }'|.
       ENDIF.
+      ASSIGN COMPONENT `XML` OF STRUCTURE <slot> TO FIELD-SYMBOL(<xml>).
+      IF sy-subrc <> 0.
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+          EXPORTING val = |Internal error - XML missing in view slot '{ lv_slot }'|.
+      ENDIF.
+      APPEND VALUE #( name               = lv_slot
+                      check_update_model = REF #( <check_update_model> )
+                      xml                = REF #( <xml> ) ) TO result.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD reset_view_update_flags.
+
+    DATA(lt_slot_ref) = get_view_slot_refs( REF #( ms_next-s_set ) ).
+    LOOP AT lt_slot_ref INTO DATA(ls_slot).
+      ASSIGN ls_slot-check_update_model->* TO FIELD-SYMBOL(<check_update_model>).
       <check_update_model> = abap_false.
     ENDLOOP.
 

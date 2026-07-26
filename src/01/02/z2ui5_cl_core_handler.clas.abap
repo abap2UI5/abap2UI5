@@ -57,6 +57,15 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
       RAISING
         z2ui5_cx_ajson_error.
 
+    METHODS slice_to_abap
+      IMPORTING
+        io_json TYPE REF TO z2ui5_if_ajson
+        iv_path TYPE string
+      CHANGING
+        cs_data TYPE any
+      RAISING
+        z2ui5_cx_ajson_error.
+
     METHODS request_parse_event_args
       IMPORTING
         io_front          TYPE REF TO z2ui5_if_ajson
@@ -88,6 +97,12 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
         VALUE(result) TYPE string.
 
     METHODS request_app_start_route_draft
+      IMPORTING
+        iv_hash       TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS parse_app_route_rest
       IMPORTING
         iv_hash       TYPE string
       RETURNING
@@ -168,21 +183,15 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
       result-s_front-o_comp_data = lo_config->slice( `/ComponentData` ).
 
-      DATA(lo_device) = lo_config->slice( `/S_DEVICE` ).
-      IF lo_device IS BOUND.
-        lo_device->to_abap( EXPORTING iv_corresponding = abap_true
-                            IMPORTING ev_container     = result-s_front-s_device ).
-      ENDIF.
-      DATA(lo_focus) = lo_config->slice( `/S_FOCUS` ).
-      IF lo_focus IS BOUND.
-        lo_focus->to_abap( EXPORTING iv_corresponding = abap_true
-                           IMPORTING ev_container     = result-s_front-s_focus ).
-      ENDIF.
-      DATA(lo_scroll) = lo_config->slice( `/S_SCROLL` ).
-      IF lo_scroll IS BOUND.
-        lo_scroll->to_abap( EXPORTING iv_corresponding = abap_true
-                            IMPORTING ev_container     = result-s_front-s_scroll ).
-      ENDIF.
+      slice_to_abap( EXPORTING io_json = lo_config
+                               iv_path = `/S_DEVICE`
+                     CHANGING  cs_data = result-s_front-s_device ).
+      slice_to_abap( EXPORTING io_json = lo_config
+                               iv_path = `/S_FOCUS`
+                     CHANGING  cs_data = result-s_front-s_focus ).
+      slice_to_abap( EXPORTING io_json = lo_config
+                               iv_path = `/S_SCROLL`
+                     CHANGING  cs_data = result-s_front-s_scroll ).
 
       result-s_front-s_ui5-version         = lo_config->get_string( `/S_UI5/VERSION` ).
       result-s_front-s_ui5-build_timestamp = lo_config->get_string( `/S_UI5/BUILDTIMESTAMP` ).
@@ -195,6 +204,17 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
         result-s_front-search   CS `scenario=LAUNCHPAD`
         OR result-s_front-pathname CS `/ui2/flp`
         OR result-s_front-pathname CS `test/flpSandbox` ).
+  ENDMETHOD.
+
+  METHOD slice_to_abap.
+    " Slice one optional sub-container out of a parsed JSON node and write it
+    " into the ABAP target. A missing node leaves the target untouched. Shared
+    " by request_parse_body for the S_DEVICE / S_FOCUS / S_SCROLL sub-structures.
+    DATA(lo_slice) = io_json->slice( iv_path ).
+    IF lo_slice IS BOUND.
+      lo_slice->to_abap( EXPORTING iv_corresponding = abap_true
+                         IMPORTING ev_container     = cs_data ).
+    ENDIF.
   ENDMETHOD.
 
   METHOD request_parse_event_args.
@@ -267,27 +287,37 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     ENDTRY.
   ENDMETHOD.
 
+  METHOD parse_app_route_rest.
+    " Shared prologue for request_app_start_route / _route_draft: return the
+    " hash remainder after 'app/' when the hash is a real app route
+    " ('#/app/...'), or empty when it carries no route (normal boot, or an
+    " 'app/' occurring mid-hash). Only accept 'app/' as the route start -
+    " everything before it must be just the hash markers '#' and '/'.
+    DATA(lv_off) = find( val = iv_hash
+                         sub = `app/` ).
+    IF lv_off < 0.
+      RETURN.
+    ENDIF.
+    DATA(lv_prefix) = substring( val = iv_hash
+                                 len = lv_off ).
+    REPLACE ALL OCCURRENCES OF `#` IN lv_prefix WITH ``.
+    REPLACE ALL OCCURRENCES OF `/` IN lv_prefix WITH ``.
+    IF lv_prefix IS NOT INITIAL.
+      RETURN.
+    ENDIF.
+    result = substring( val = iv_hash
+                        off = lv_off + 4 ).
+  ENDMETHOD.
+
   METHOD request_app_start_route.
     " Parse the app class from a hash route '#/app/<CLASS>' (UI5 Router style).
     " Returns empty when the hash carries no app route, so a normal boot or an
     " app that manages its own hash falls through to the '?app_start=' query.
     TRY.
-        DATA(lv_off) = find( val = iv_hash
-                             sub = `app/` ).
-        IF lv_off < 0.
+        DATA(lv_rest) = parse_app_route_rest( iv_hash ).
+        IF lv_rest IS INITIAL.
           RETURN.
         ENDIF.
-        " only accept 'app/' as the route start - everything before it must be
-        " just the hash markers '#' and '/', not a mid-hash occurrence
-        DATA(lv_prefix) = substring( val = iv_hash
-                                     len = lv_off ).
-        REPLACE ALL OCCURRENCES OF `#` IN lv_prefix WITH ``.
-        REPLACE ALL OCCURRENCES OF `/` IN lv_prefix WITH ``.
-        IF lv_prefix IS NOT INITIAL.
-          RETURN.
-        ENDIF.
-        DATA(lv_rest) = substring( val = iv_hash
-                                   off = lv_off + 4 ).
         " the class token ends at the next route / query separator
         SPLIT lv_rest AT `/` INTO lv_rest DATA(lv_dummy).
         SPLIT lv_rest AT `&` INTO lv_rest lv_dummy.
@@ -303,21 +333,10 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
     " segment (fresh navigation / bookmark without state), so the app starts
     " fresh from <CLASS>.
     TRY.
-        DATA(lv_off) = find( val = iv_hash
-                             sub = `app/` ).
-        IF lv_off < 0.
+        DATA(lv_rest) = parse_app_route_rest( iv_hash ).
+        IF lv_rest IS INITIAL.
           RETURN.
         ENDIF.
-        " only accept 'app/' as the route start (see request_app_start_route)
-        DATA(lv_prefix) = substring( val = iv_hash
-                                     len = lv_off ).
-        REPLACE ALL OCCURRENCES OF `#` IN lv_prefix WITH ``.
-        REPLACE ALL OCCURRENCES OF `/` IN lv_prefix WITH ``.
-        IF lv_prefix IS NOT INITIAL.
-          RETURN.
-        ENDIF.
-        DATA(lv_rest) = substring( val = iv_hash
-                                   off = lv_off + 4 ).
         " cut off a trailing query / fragment, then take the 2nd path segment
         " (the 1st is the class, discarded into lv_dummy)
         SPLIT lv_rest AT `&` INTO lv_rest DATA(lv_dummy).
@@ -416,23 +435,10 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   METHOD check_view_update_needed.
 
-    SPLIT z2ui5_if_core_types=>cs_view_slot_list AT `,` INTO TABLE DATA(lt_slot).
-    LOOP AT lt_slot INTO DATA(lv_slot).
-      ASSIGN COMPONENT lv_slot OF STRUCTURE ms_response-s_front-params TO FIELD-SYMBOL(<slot>).
-      IF sy-subrc <> 0.
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
-          EXPORTING val = |Internal error - view slot '{ lv_slot }' not found in response params|.
-      ENDIF.
-      ASSIGN COMPONENT `CHECK_UPDATE_MODEL` OF STRUCTURE <slot> TO FIELD-SYMBOL(<check_update_model>).
-      IF sy-subrc <> 0.
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
-          EXPORTING val = |Internal error - CHECK_UPDATE_MODEL missing in view slot '{ lv_slot }'|.
-      ENDIF.
-      ASSIGN COMPONENT `XML` OF STRUCTURE <slot> TO FIELD-SYMBOL(<xml>).
-      IF sy-subrc <> 0.
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
-          EXPORTING val = |Internal error - XML missing in view slot '{ lv_slot }'|.
-      ENDIF.
+    DATA(lt_slot_ref) = z2ui5_cl_core_action=>get_view_slot_refs( REF #( ms_response-s_front-params ) ).
+    LOOP AT lt_slot_ref INTO DATA(ls_slot).
+      ASSIGN ls_slot-check_update_model->* TO FIELD-SYMBOL(<check_update_model>).
+      ASSIGN ls_slot-xml->* TO FIELD-SYMBOL(<xml>).
       IF <check_update_model> = abap_true OR <xml> IS NOT INITIAL.
         result = abap_true.
         RETURN.
