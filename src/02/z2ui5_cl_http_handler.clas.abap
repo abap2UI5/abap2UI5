@@ -61,6 +61,16 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
     METHODS set_response.
 
   PRIVATE SECTION.
+    " Per-request cache of the HTTP-GET exit config. Both _http_get (page body)
+    " and set_response (security headers) need it; without the cache the user
+    " exit set_config_http_get( ) would run twice on every GET. Reset in _main( )
+    " after init_context( ), so the exit always sees the current request context.
+    CLASS-DATA ss_config_http_get     TYPE z2ui5_if_types=>ty_s_http_config.
+    CLASS-DATA sv_config_http_get_set TYPE abap_bool.
+
+    CLASS-METHODS config_http_get
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_types=>ty_s_http_config.
 
 ENDCLASS.
 
@@ -106,10 +116,19 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD config_http_get.
+
+    IF sv_config_http_get_set = abap_false.
+      z2ui5_cl_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ss_config_http_get ).
+      sv_config_http_get_set = abap_true.
+    ENDIF.
+    result = ss_config_http_get.
+
+  ENDMETHOD.
+
   METHOD _http_get.
 
-    DATA(ls_config) = VALUE z2ui5_if_types=>ty_s_http_config( ).
-    z2ui5_cl_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
+    DATA(ls_config) = config_http_get( ).
 
     IF ls_config-styles_css IS INITIAL.
       DATA(lv_style_css) = z2ui5_cl_app_style_css=>get( ).
@@ -175,8 +194,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     mo_server->set_cdata( ms_res-body ).
 
-    DATA(ls_config) = VALUE z2ui5_if_types=>ty_s_http_config( ).
-    z2ui5_cl_exit=>get_instance( )->set_config_http_get( CHANGING cs_config = ls_config ).
+    DATA(ls_config) = config_http_get( ).
 
     LOOP AT ls_config-t_security_header INTO DATA(ls_header).
       mo_server->set_header_field( n = ls_header-n
@@ -243,6 +261,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     " reason instead of the SAP ICF 500 page, which suppresses that text.
     TRY.
         z2ui5_cl_exit=>init_context( is_req ).
+        CLEAR: ss_config_http_get, sv_config_http_get_set.
 
         CASE is_req-method.
           WHEN `GET`.
