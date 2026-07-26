@@ -211,6 +211,12 @@ CLASS z2ui5_cl_a2ui5_context DEFINITION
       RETURNING
         VALUE(result) TYPE abap_component_tab.
 
+    CLASS-METHODS expand_components
+      IMPORTING
+        it_comps      TYPE abap_component_tab
+      RETURNING
+        VALUE(result) TYPE abap_component_tab.
+
     CLASS-METHODS check_bound_a_not_initial
       IMPORTING
         val           TYPE REF TO data
@@ -617,6 +623,13 @@ CLASS z2ui5_cl_a2ui5_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    CLASS-METHODS scan_flag_prefix
+      IMPORTING
+        val           TYPE any
+        iv_prefix     TYPE clike
+      RETURNING
+        VALUE(result) TYPE string_table.
+
     CLASS-METHODS msg_get_rap_state_area
       IMPORTING
         val           TYPE any
@@ -1001,23 +1014,19 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
     ENDTRY.
     DATA(sdescr) = CAST cl_abap_structdescr( type_desc ).
     DATA(comps) = sdescr->get_components( ).
+    result = expand_components( comps ).
 
-    LOOP AT comps REFERENCE INTO DATA(lr_comp).
+  ENDMETHOD.
 
+  METHOD expand_components.
+
+    LOOP AT it_comps REFERENCE INTO DATA(lr_comp).
       IF lr_comp->as_include = abap_true.
-
-        DATA(incl_comps) = rtti_get_t_attri_by_include( lr_comp->type ).
-
-        LOOP AT incl_comps REFERENCE INTO DATA(lr_incl_comp).
-          APPEND lr_incl_comp->* TO result.
-        ENDLOOP.
-
+        DATA(lt_incl) = rtti_get_t_attri_by_include( lr_comp->type ).
+        APPEND LINES OF lt_incl TO result.
       ELSE.
-
         APPEND lr_comp->* TO result.
-
       ENDIF.
-
     ENDLOOP.
 
   ENDMETHOD.
@@ -1067,16 +1076,7 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
     ENDIF.
 
     DATA(comps) = lo_struct->get_components( ).
-
-    LOOP AT comps REFERENCE INTO DATA(lr_comp).
-
-      IF lr_comp->as_include = abap_false.
-        APPEND lr_comp->* TO result.
-      ELSE.
-        DATA(lt_attri) = rtti_get_t_attri_by_include( lr_comp->type ).
-        APPEND LINES OF lt_attri TO result.
-      ENDIF.
-    ENDLOOP.
+    result = expand_components( comps ).
 
     IF lr_cache IS BOUND.
       lr_cache->o_struct = lo_struct.
@@ -2213,20 +2213,10 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
 
   METHOD msg_get_rap_element.
 
-    DATA(lt_attri) = rtti_get_t_attri_by_any( val ).
-    LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
-      CHECK strlen( ls_attri->name ) > 9.
-      CHECK ls_attri->name(9) = `%ELEMENT-`.
-      ASSIGN COMPONENT ls_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<flag>).
-      CHECK sy-subrc = 0.
-      CHECK <flag> IS NOT INITIAL.
-
-      IF result IS INITIAL.
-        result = ls_attri->name+9.
-      ELSE.
-        result = |{ result }, { ls_attri->name+9 }|.
-      ENDIF.
-    ENDLOOP.
+    DATA(lt_suffix) = scan_flag_prefix( val       = val
+                                        iv_prefix = `%ELEMENT-` ).
+    result = concat_lines_of( table = lt_suffix
+                              sep   = `, ` ).
 
   ENDMETHOD.
 
@@ -2239,6 +2229,21 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD scan_flag_prefix.
+
+    DATA(lv_len) = strlen( iv_prefix ).
+    DATA(lt_attri) = rtti_get_t_attri_by_any( val ).
+    LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
+      CHECK strlen( ls_attri->name ) > lv_len.
+      CHECK ls_attri->name(lv_len) = iv_prefix.
+      ASSIGN COMPONENT ls_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<flag>).
+      CHECK sy-subrc = 0.
+      CHECK <flag> IS NOT INITIAL.
+      APPEND ls_attri->name+lv_len TO result.
+    ENDLOOP.
+
+  ENDMETHOD.
+
   METHOD msg_get_rap_state_area.
 
     result = get_comp_str( val     = val
@@ -2248,16 +2253,9 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
 
   METHOD msg_get_rap_action.
 
-    DATA(lt_attri) = rtti_get_t_attri_by_any( val ).
-    LOOP AT lt_attri REFERENCE INTO DATA(ls_attri).
-      CHECK strlen( ls_attri->name ) > 12.
-      CHECK ls_attri->name(12) = `%OP-%ACTION-`.
-      ASSIGN COMPONENT ls_attri->name OF STRUCTURE val TO FIELD-SYMBOL(<flag>).
-      CHECK sy-subrc = 0.
-      CHECK <flag> IS NOT INITIAL.
-      result = ls_attri->name+12.
-      RETURN.
-    ENDLOOP.
+    DATA(lt_suffix) = scan_flag_prefix( val       = val
+                                        iv_prefix = `%OP-%ACTION-` ).
+    result = VALUE #( lt_suffix[ 1 ] OPTIONAL ).
 
   ENDMETHOD.
 
