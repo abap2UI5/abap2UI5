@@ -56,6 +56,17 @@ INTERFACE z2ui5_if_core_types
     END OF ty_s_attri.
   TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
 
+  " the two nested-view slots share the exact same shape
+  TYPES:
+    BEGIN OF ty_s_view_nest,
+      xml                TYPE string,
+      id                 TYPE string,
+      method_insert      TYPE string,
+      method_destroy     TYPE string,
+      check_destroy      TYPE abap_bool,
+      check_update_model TYPE abap_bool,
+    END OF ty_s_view_nest.
+
   TYPES:
     BEGIN OF ty_s_next_frontend,
       BEGIN OF s_view,
@@ -65,22 +76,8 @@ INTERFACE z2ui5_if_core_types
         check_destroy             TYPE abap_bool,
         check_update_model        TYPE abap_bool,
       END OF s_view,
-      BEGIN OF s_view_nest,
-        xml                TYPE string,
-        id                 TYPE string,
-        method_insert      TYPE string,
-        method_destroy     TYPE string,
-        check_destroy      TYPE abap_bool,
-        check_update_model TYPE abap_bool,
-      END OF s_view_nest,
-      BEGIN OF s_view_nest2,
-        xml                TYPE string,
-        id                 TYPE string,
-        method_insert      TYPE string,
-        method_destroy     TYPE string,
-        check_destroy      TYPE abap_bool,
-        check_update_model TYPE abap_bool,
-      END OF s_view_nest2,
+      s_view_nest          TYPE ty_s_view_nest,
+      s_view_nest2         TYPE ty_s_view_nest,
       BEGIN OF s_popup,
         xml                TYPE string,
         id                 TYPE string,
@@ -171,6 +168,14 @@ INTERFACE z2ui5_if_core_types
       model TYPE string,
     END OF ty_s_response.
 
+  " one scroll position per view slot (main / nest / nest2 / popup / popover)
+  TYPES:
+    BEGIN OF ty_s_scroll_pos,
+      id TYPE string,
+      x  TYPE i,
+      y  TYPE i,
+    END OF ty_s_scroll_pos.
+
   TYPES:
     BEGIN OF ty_s_request,
       o_model TYPE REF TO z2ui5_if_ajson,
@@ -210,31 +215,11 @@ INTERFACE z2ui5_if_core_types
           selection_end   TYPE i,
         END OF s_focus,
         BEGIN OF s_scroll,
-          BEGIN OF main,
-            id TYPE string,
-            x  TYPE i,
-            y  TYPE i,
-          END OF main,
-          BEGIN OF nest,
-            id TYPE string,
-            x  TYPE i,
-            y  TYPE i,
-          END OF nest,
-          BEGIN OF nest2,
-            id TYPE string,
-            x  TYPE i,
-            y  TYPE i,
-          END OF nest2,
-          BEGIN OF popup,
-            id TYPE string,
-            x  TYPE i,
-            y  TYPE i,
-          END OF popup,
-          BEGIN OF popover,
-            id TYPE string,
-            x  TYPE i,
-            y  TYPE i,
-          END OF popover,
+          main    TYPE ty_s_scroll_pos,
+          nest    TYPE ty_s_scroll_pos,
+          nest2   TYPE ty_s_scroll_pos,
+          popup   TYPE ty_s_scroll_pos,
+          popover TYPE ty_s_scroll_pos,
         END OF s_scroll,
         BEGIN OF s_ui5,
           version         TYPE string,

@@ -87,7 +87,11 @@ CLASS z2ui5_cl_exit IMPLEMENTATION.
       |  sdk.openui5.org *.sdk.openui5.org | &&
       |  cdn.jsdelivr.net *.cdn.jsdelivr.net | &&
       |  cdnjs.cloudflare.com *.cdnjs.cloudflare.com; | &&
-      |worker-src 'self' blob:; "/>|.
+      |worker-src 'self' blob:; | &&
+      " hardening directives (no runtime cost for a UI5 app): block plugin
+      " content, pin <base> to the app origin, and forbid cross-origin framing
+      " (the modern equivalent of the X-Frame-Options: SAMEORIGIN header set below)
+      |object-src 'none'; base-uri 'self'; frame-ancestors 'self'; "/>|.
 
     cs_config-t_security_header = VALUE #(
         ( n = `cache-control`          v = `no-cache, no-store, must-revalidate` )
