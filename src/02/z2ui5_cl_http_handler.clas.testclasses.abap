@@ -10,6 +10,11 @@ CLASS ltcl_test_http_handler DEFINITION FINAL
     METHODS test_main_post_no_app  FOR TESTING RAISING cx_static_check.
     METHODS test_main_get_routing  FOR TESTING RAISING cx_static_check.
     METHODS test_main_post_routing FOR TESTING RAISING cx_static_check.
+    METHODS test_csrf_inactive     FOR TESTING RAISING cx_static_check.
+    METHODS test_csrf_same_origin  FOR TESTING RAISING cx_static_check.
+    METHODS test_csrf_cross_origin FOR TESTING RAISING cx_static_check.
+    METHODS test_csrf_no_headers   FOR TESTING RAISING cx_static_check.
+    METHODS test_csrf_referer      FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -167,6 +172,71 @@ CLASS ltcl_test_http_handler IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = 200
                                         act = ls_result-status_code ).
+
+  ENDMETHOD.
+
+  METHOD test_csrf_inactive.
+
+    " opt-in: with csrf disabled even a cross-origin request is allowed
+    DATA(lv_rejected) = z2ui5_cl_http_handler=>_check_csrf_rejected(
+                            active  = abap_false
+                            origin  = `https://evil.example.com`
+                            referer = ``
+                            host    = `app.corp:44300` ).
+
+    cl_abap_unit_assert=>assert_false( lv_rejected ).
+
+  ENDMETHOD.
+
+  METHOD test_csrf_same_origin.
+
+    " same host authority (scheme/case ignored) -> allowed
+    DATA(lv_rejected) = z2ui5_cl_http_handler=>_check_csrf_rejected(
+                            active  = abap_true
+                            origin  = `https://App.Corp:44300`
+                            referer = ``
+                            host    = `app.corp:44300` ).
+
+    cl_abap_unit_assert=>assert_false( lv_rejected ).
+
+  ENDMETHOD.
+
+  METHOD test_csrf_cross_origin.
+
+    " different host authority -> rejected
+    DATA(lv_rejected) = z2ui5_cl_http_handler=>_check_csrf_rejected(
+                            active  = abap_true
+                            origin  = `https://evil.example.com`
+                            referer = ``
+                            host    = `app.corp:44300` ).
+
+    cl_abap_unit_assert=>assert_true( lv_rejected ).
+
+  ENDMETHOD.
+
+  METHOD test_csrf_no_headers.
+
+    " lenient: no Origin and no Referer -> allowed (proxies / old clients)
+    DATA(lv_rejected) = z2ui5_cl_http_handler=>_check_csrf_rejected(
+                            active  = abap_true
+                            origin  = ``
+                            referer = ``
+                            host    = `app.corp:44300` ).
+
+    cl_abap_unit_assert=>assert_false( lv_rejected ).
+
+  ENDMETHOD.
+
+  METHOD test_csrf_referer.
+
+    " Origin absent -> fall back to Referer (with a path), cross-site -> rejected
+    DATA(lv_rejected) = z2ui5_cl_http_handler=>_check_csrf_rejected(
+                            active  = abap_true
+                            origin  = ``
+                            referer = `https://evil.example.com/attack?x=1`
+                            host    = `app.corp:44300` ).
+
+    cl_abap_unit_assert=>assert_true( lv_rejected ).
 
   ENDMETHOD.
 
