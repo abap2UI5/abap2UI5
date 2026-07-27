@@ -128,6 +128,21 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     " returns to the calling app (see View1._updateBrowserHistory)
     result->ms_next-s_set-check_nav_app_call = abap_true.
 
+    " prepare_app_stack( ) just saved the calling app under a NEW draft id -
+    " one that includes everything the user changed on the client since the
+    " caller last rendered (two-way bound switches, checkboxes, input; they
+    " arrive with the event that triggered this navigation). The caller's
+    " history entry, however, still carries the draft of that last render, so
+    " Back would restore it WITHOUT those changes. Hand the fresh draft to the
+    " frontend, which repoints the caller's entry at it before pushing the
+    " called app's route. Only the first hop of a request sets this: in a chain
+    " A -> B -> C the entry to repoint is A's, the app the user came from.
+    IF result->ms_next-s_set-nav_app_call_prev_id IS INITIAL.
+      result->ms_next-s_set-nav_app_call_prev_app =
+          z2ui5_cl_a2ui5_context=>rtti_get_classname_by_ref( mo_app->mo_app ).
+      result->ms_next-s_set-nav_app_call_prev_id  = mo_app->ms_draft-id.
+    ENDIF.
+
   ENDMETHOD.
 
   METHOD factory_stack_leave.

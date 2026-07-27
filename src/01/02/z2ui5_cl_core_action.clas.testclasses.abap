@@ -222,6 +222,7 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lo_action TYPE REF TO z2ui5_cl_core_action.
     DATA lo_new_app TYPE REF TO ltcl_test_app.
     DATA lo_result TYPE REF TO z2ui5_cl_core_action.
+    DATA lo_chained TYPE REF TO z2ui5_cl_core_action.
 
     IF sy-sysid = `ABC`.
       RETURN.
@@ -265,6 +266,26 @@ CLASS ltcl_test IMPLEMENTATION.
     " popovers are carried across the app stack
     cl_abap_unit_assert=>assert_equals( exp = `<popover/>`
                                         act = lo_result->ms_next-s_set-s_popover-xml ).
+
+    " the frontend is told to push a route entry for the called app, and where
+    " the CALLING app was just saved - it repoints the caller's history entry at
+    " that draft, so Back restores the state the user left it in, not the one it
+    " was last rendered with
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = lo_result->ms_next-s_set-check_nav_app_call ).
+    cl_abap_unit_assert=>assert_equals( exp = `CURRENT_DRAFT`
+                                        act = lo_result->ms_next-s_set-nav_app_call_prev_id ).
+    cl_abap_unit_assert=>assert_not_initial( lo_result->ms_next-s_set-nav_app_call_prev_app ).
+
+    " a chained call ( A -> B -> C ) keeps the FIRST caller - that is the entry
+    " the browser is standing on, i.e. the app the user navigated away from
+    lo_result->ms_next-o_app_call  = NEW ltcl_test_app( ).
+    lo_result->mo_app->ms_draft-id = `SECOND_DRAFT`.
+
+    lo_chained = lo_result->factory_stack_call( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = `CURRENT_DRAFT`
+                                        act = lo_chained->ms_next-s_set-nav_app_call_prev_id ).
 
   ENDMETHOD.
 

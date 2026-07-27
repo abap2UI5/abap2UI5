@@ -233,6 +233,11 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `                // latest draft so a later Forward restores the newest state.` && |\n| &&
              `                const route = Lib.routeForApp(app, draftForRoute);` && |\n| &&
              `                if (PARAMS.CHECK_NAV_APP_CALL) {` && |\n| &&
+             `                  // repoint the caller's entry first - it borrows the echo` && |\n| &&
+             `                  // guard, so restore it to this app before pushing the route` && |\n| &&
+             `                  this._repointCallerEntry(PARAMS, draftForRoute);` && |\n| &&
+             `                  state.currentApp = app;` && |\n| &&
+             `                  state.currentDraftId = draftForRoute;` && |\n| &&
              `                  _hashChanger.setHash(route);` && |\n| &&
              `                } else if (_hashChanger.getHash() !== route) {` && |\n| &&
              `                  _hashChanger.replaceHash(route);` && |\n| &&
@@ -262,6 +267,34 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `        } catch (e) {` && |\n| &&
              `          Lib.logError("_updateBrowserHistory: history update failed", e);` && |\n| &&
              `        }` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // Point the CALLING app's history entry at the draft the backend saved` && |\n| &&
+             `      // for it during this very nav_app_call (PARAMS.NAV_APP_CALL_PREV_*).` && |\n| &&
+             `      // That draft carries every client-side change the user made since the` && |\n| &&
+             `      // caller last rendered - two-way bound switches, checkboxes, input - all` && |\n| &&
+             `      // of which travelled to the backend with the event that triggered the` && |\n| &&
+             `      // navigation. The entry itself still carries the older draft of that` && |\n| &&
+             `      // last render, so without this Back restores the caller as it was` && |\n| &&
+             `      // RENDERED and silently drops those changes. The entry is still the top` && |\n| &&
+             `      // one here (the called app's route is pushed right after), so a` && |\n| &&
+             `      // replaceHash updates it in place and leaves the history depth alone.` && |\n| &&
+             `      // KEEP mode only - a FRESH route carries no draft and always restarts` && |\n| &&
+             `      // the app anyway.` && |\n| &&
+             `      _repointCallerEntry(PARAMS, draftForRoute) {` && |\n| &&
+             `        const state = AppState.state;` && |\n| &&
+             `        const prevApp = PARAMS.NAV_APP_CALL_PREV_APP;` && |\n| &&
+             `        const prevDraft = PARAMS.NAV_APP_CALL_PREV_ID;` && |\n| &&
+             `        if (!draftForRoute || !prevApp || !prevDraft) return;` && |\n| &&
+             `        const prevRoute = Lib.routeForApp(prevApp, prevDraft);` && |\n| &&
+             `        if (_hashChanger.getHash() === prevRoute) return;` && |\n| &&
+             `        // Server.onHashChange ignores the echo of our own hash writes by` && |\n| &&
+             `        // comparing the route's draft id against currentDraftId - adopt the` && |\n| &&
+             `        // caller's fresh draft BEFORE replacing, or the write reads as a user` && |\n| &&
+             `        // navigation and fires a restore roundtrip. The caller of this method` && |\n| &&
+             `        // sets the state back to the called app right afterwards.` && |\n| &&
+             `        state.currentDraftId = prevDraft;` && |\n| &&
+             `        _hashChanger.replaceHash(prevRoute);` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
              `      // Execute the follow-up JS snippets stashed by Server.responseSuccess.` && |\n| &&
@@ -384,7 +417,8 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `` && |\n| &&
-             `        // METHOD_DESTROY is optional: only call it when the app asked for a` && |\n| &&
+             `        // METHOD_DESTROY is optional: only call it when the app asked for a` && |\n|.
+    result = result &&
              `        // parent teardown method. An empty value used to reach oParent[""]()` && |\n| &&
              `        // and throw on every render (e.g. app 065 passes only method_insert).` && |\n| &&
              `        if (METHOD_DESTROY) {` && |\n| &&
@@ -417,8 +451,7 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `      destroyNestView() {` && |\n| &&
              `        ViewSlots.destroy("NEST");` && |\n| &&
-             `      },` && |\n|.
-    result = result &&
+             `      },` && |\n| &&
              `      destroyNestView2() {` && |\n| &&
              `        ViewSlots.destroy("NEST2");` && |\n| &&
              `      },` && |\n| &&
