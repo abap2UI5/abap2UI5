@@ -51,6 +51,21 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
 
+    " CSRF defense (opt-in via z2ui5_if_exit~set_config_http_post ->
+    " check_csrf_active). Pure and side-effect free so it is unit-testable
+    " without a server mock: the caller reads the header values off the
+    " request and passes them in. Returns abap_true only when the request is
+    " to be rejected, i.e. csrf is active AND an Origin/Referer is present
+    " AND its host authority differs from the app's own Host header.
+    CLASS-METHODS _check_csrf_rejected
+      IMPORTING
+        active        TYPE abap_bool
+        origin        TYPE clike
+        referer       TYPE clike
+        host          TYPE clike
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
   PROTECTED SECTION.
     CLASS-DATA so_sticky_handler TYPE REF TO z2ui5_cl_core_handler.
 
@@ -72,6 +87,15 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE z2ui5_if_types=>ty_s_http_config.
 
+    " reduce an Origin/Referer/Host value to its bare host[:port] authority
+    " (lower-cased, scheme and path/query/fragment stripped) for same-origin
+    " comparison in _check_csrf_rejected
+    CLASS-METHODS _csrf_host_authority
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
 ENDCLASS.
 
 
@@ -85,11 +109,71 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
       WHEN `HEAD`.
         mo_server->set_session_stateful( 0 ).
         RETURN.
+      WHEN `POST`.
+        " CSRF gate: only a POST can change state, so the check lives here.
+        " Reading the config every POST is cheap (get_instance is cached);
+        " with the default check_csrf_active = abap_false nothing is rejected.
+        DATA(ls_config_post) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
+        z2ui5_cl_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
+
+        IF _check_csrf_rejected( active  = ls_config_post-check_csrf_active
+                                 origin  = mo_server->get_header_field( `origin` )
+                                 referer = mo_server->get_header_field( `referer` )
+                                 host    = mo_server->get_header_field( `host` ) ) = abap_true.
+          ms_res = VALUE #( body          = `CSRF validation failed - cross-origin POST rejected`
+                            status_code   = 403
+                            status_reason = `Forbidden` ).
+        ELSE.
+          ms_res = _main( ms_req ).
+        ENDIF.
       WHEN OTHERS.
         ms_res = _main( ms_req ).
     ENDCASE.
 
     set_response( ).
+
+  ENDMETHOD.
+
+  METHOD _check_csrf_rejected.
+
+    IF active = abap_false.
+      RETURN.
+    ENDIF.
+
+    " prefer Origin (sent on every cross-origin POST and on same-origin
+    " fetch), fall back to Referer when Origin is absent
+    DATA(lv_source) = COND string( WHEN origin IS NOT INITIAL
+                                   THEN origin
+                                   ELSE referer ).
+
+    " lenient: nothing to compare -> allow (do not lock out proxies/old
+    " clients that strip these headers); only an explicit mismatch is blocked
+    IF lv_source IS INITIAL OR host IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    result = xsdbool( _csrf_host_authority( lv_source ) <> _csrf_host_authority( host ) ).
+
+  ENDMETHOD.
+
+  METHOD _csrf_host_authority.
+
+    DATA(lv_val) = to_lower( val ).
+
+    " drop the scheme (e.g. `https://`)
+    DATA(lv_pos) = find( val = lv_val
+                         sub = `://` ).
+    IF lv_pos >= 0.
+      lv_val = substring( val = lv_val
+                          off = lv_pos + 3 ).
+    ENDIF.
+
+    " the authority ends at the first path / query / fragment separator
+    SPLIT lv_val AT `/` INTO lv_val DATA(lv_rest).
+    SPLIT lv_val AT `?` INTO lv_val lv_rest.
+    SPLIT lv_val AT `#` INTO lv_val lv_rest.
+
+    result = lv_val.
 
   ENDMETHOD.
 
@@ -271,7 +355,16 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
         ENDCASE.
 
       CATCH cx_root INTO DATA(lx).
-        result = VALUE #( body          = lx->get_text( )
+        " In hardened installations the exit sets check_hide_error_details, so
+        " the raw exception text (RTTI/class/DDIC names, dynamic-call failures)
+        " is replaced by a generic message instead of leaking to the client.
+        " Default is abap_false -> the real reason is returned as before.
+        DATA(ls_config_post) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
+        z2ui5_cl_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
+
+        result = VALUE #( body          = COND #( WHEN ls_config_post-check_hide_error_details = abap_true
+                                                  THEN `Internal Server Error - see the application log for details`
+                                                  ELSE lx->get_text( ) )
                           status_code   = 500
                           status_reason = `Internal Server Error` ).
     ENDTRY.
