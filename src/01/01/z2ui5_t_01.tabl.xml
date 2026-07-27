@@ -81,29 +81,6 @@
      <MASK>  STRG</MASK>
     </DD03P>
    </DD03P_TABLE>
-   <DD12V>
-    <DD12V>
-     <SQLTAB>Z2UI5_T_01</SQLTAB>
-     <INDEXNAME>TS</INDEXNAME>
-     <DDLANGUAGE>E</DDLANGUAGE>
-     <DBINDEX>Z2UI5_T_01~TS</DBINDEX>
-     <DDTEXT>abap2UI5 - cleanup by expiry timestamp</DDTEXT>
-    </DD12V>
-   </DD12V>
-   <DD17V_TABLE>
-    <DD17V>
-     <SQLTAB>Z2UI5_T_01</SQLTAB>
-     <INDEXNAME>TS</INDEXNAME>
-     <POSITION>0001</POSITION>
-     <FIELDNAME>MANDT</FIELDNAME>
-    </DD17V>
-    <DD17V>
-     <SQLTAB>Z2UI5_T_01</SQLTAB>
-     <INDEXNAME>TS</INDEXNAME>
-     <POSITION>0002</POSITION>
-     <FIELDNAME>TIMESTAMPL</FIELDNAME>
-    </DD17V>
-   </DD17V_TABLE>
   </asx:values>
  </asx:abap>
 </abapGit>
