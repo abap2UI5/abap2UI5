@@ -123,6 +123,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      expandToLevel: ["int"], // sap.m.Tree / sap.ui.table.TreeTable: expand to N levels` && |\n| &&
              `      collapseAll: [], // sap.m.Tree / sap.ui.table.TreeTable: collapse every node` && |\n| &&
              `      setHiddenInPopin: ["object"], // sap.m.Table: hide columns by importance (JSON array of Priority keys)` && |\n| &&
+             `      enablePostButton: ["bool"], // sap.m.FeedInput: toggle the Post button independent of ``enabled``` && |\n| &&
              `      addStyleClass: ["string"], // sap.ui.core.Control: add a CSS style class` && |\n| &&
              `      removeStyleClass: ["string"], // sap.ui.core.Control: remove a CSS style class` && |\n| &&
              `      toggleStyleClass: ["string"], // sap.ui.core.Control: toggle a CSS style class` && |\n| &&
@@ -285,16 +286,33 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        });` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
+             `      // openBy is handled BEFORE the generic callable check: a control` && |\n| &&
+             `      // without an own openBy (sap.ui.unified.Menu) still supports the` && |\n| &&
+             `      // anchored open via its open(bWithKeyboard, opener, my, at, of)` && |\n| &&
+             `      // signature - the anchor doubles as opener and dock reference.` && |\n| &&
+             `      if (method === "openBy") {` && |\n| &&
+             `        if (` && |\n| &&
+             `          !control ||` && |\n| &&
+             `          (typeof control.openBy !== "function" &&` && |\n| &&
+             `            typeof control.open !== "function")` && |\n| &&
+             `        ) {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``CONTROL_BY_ID: 'openBy' not callable on control '${id}'``,` && |\n| &&
+             `          );` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        const anchor = castArgs(kinds, args.slice(4), view)[0];` && |\n| &&
+             `        // Same reason as toggleBy: wait for the anchor to render.` && |\n| &&
+             `        whenAnchorRendered(anchor, oController, () => {` && |\n| &&
+             `          if (typeof control.openBy === "function") control.openBy(anchor);` && |\n| &&
+             `          else control.open(false, anchor, "begin top", "begin bottom", anchor);` && |\n| &&
+             `        });` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
              `      if (!control || typeof control[method] !== "function") {` && |\n| &&
              `        Lib.logError(` && |\n| &&
              `          ``CONTROL_BY_ID: '${method}' not callable on control '${id}'``,` && |\n| &&
              `        );` && |\n| &&
-             `        return;` && |\n| &&
-             `      }` && |\n| &&
-             `      if (method === "openBy") {` && |\n| &&
-             `        const anchor = castArgs(kinds, args.slice(4), view)[0];` && |\n| &&
-             `        // Same reason as toggleBy: wait for the anchor to render.` && |\n| &&
-             `        whenAnchorRendered(anchor, oController, () => control.openBy(anchor));` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
              `      control[method](...castArgs(kinds, args.slice(4), view));` && |\n| &&
@@ -399,7 +417,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        groups = JSON.parse(json);` && |\n| &&
              `      } catch {` && |\n| &&
              `        Lib.logError("BINDING_CALL: malformed filter groups JSON");` && |\n| &&
-             `        return;` && |\n| &&
+             `        return;` && |\n|.
+    result = result &&
              `      }` && |\n| &&
              `      if (!Array.isArray(groups)) {` && |\n| &&
              `        Lib.logError("BINDING_CALL: filter groups must be an array");` && |\n| &&
@@ -417,8 +436,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          const [path, operator, value1, value2] = Array.isArray(row)` && |\n| &&
              `            ? row` && |\n| &&
              `            : [];` && |\n| &&
-             `          if (typeof path !== "string" || !FILTER_OPERATORS.has(operator)) {` && |\n|.
-    result = result &&
+             `          if (typeof path !== "string" || !FILTER_OPERATORS.has(operator)) {` && |\n| &&
              `            Lib.logError(` && |\n| &&
              `              ``BINDING_CALL: bad filter row (path '${path}' / operator '${operator}')``,` && |\n| &&
              `            );` && |\n| &&
@@ -800,7 +818,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        const editor = ViewSlots.byId("POPUP", "imageEditor");` && |\n| &&
              `        if (editor) image = editor.getImagePngDataURL();` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        Lib.logError("IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed", e);` && |\n| &&
+             `        Lib.logError("IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed", e);` && |\n|.
+    result = result &&
              `      }` && |\n| &&
              `      ViewSlots.destroy("POPUP");` && |\n| &&
              `      oController.eB(["SAVE"], image);` && |\n| &&
@@ -818,8 +837,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      clearTimeout(timers[timerKey]);` && |\n| &&
              `      timers[timerKey] = setTimeout(() => {` && |\n| &&
              `        delete timers[timerKey];` && |\n| &&
-             `        oController.eB([callbackEvent]);` && |\n|.
-    result = result &&
+             `        oController.eB([callbackEvent]);` && |\n| &&
              `      }, delay);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&

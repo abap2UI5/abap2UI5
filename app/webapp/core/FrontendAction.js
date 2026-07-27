@@ -103,6 +103,7 @@ sap.ui.define(
       expandToLevel: ["int"], // sap.m.Tree / sap.ui.table.TreeTable: expand to N levels
       collapseAll: [], // sap.m.Tree / sap.ui.table.TreeTable: collapse every node
       setHiddenInPopin: ["object"], // sap.m.Table: hide columns by importance (JSON array of Priority keys)
+      enablePostButton: ["bool"], // sap.m.FeedInput: toggle the Post button independent of `enabled`
       addStyleClass: ["string"], // sap.ui.core.Control: add a CSS style class
       removeStyleClass: ["string"], // sap.ui.core.Control: remove a CSS style class
       toggleStyleClass: ["string"], // sap.ui.core.Control: toggle a CSS style class
@@ -265,16 +266,33 @@ sap.ui.define(
         });
         return;
       }
+      // openBy is handled BEFORE the generic callable check: a control
+      // without an own openBy (sap.ui.unified.Menu) still supports the
+      // anchored open via its open(bWithKeyboard, opener, my, at, of)
+      // signature - the anchor doubles as opener and dock reference.
+      if (method === "openBy") {
+        if (
+          !control ||
+          (typeof control.openBy !== "function" &&
+            typeof control.open !== "function")
+        ) {
+          Lib.logError(
+            `CONTROL_BY_ID: 'openBy' not callable on control '${id}'`,
+          );
+          return;
+        }
+        const anchor = castArgs(kinds, args.slice(4), view)[0];
+        // Same reason as toggleBy: wait for the anchor to render.
+        whenAnchorRendered(anchor, oController, () => {
+          if (typeof control.openBy === "function") control.openBy(anchor);
+          else control.open(false, anchor, "begin top", "begin bottom", anchor);
+        });
+        return;
+      }
       if (!control || typeof control[method] !== "function") {
         Lib.logError(
           `CONTROL_BY_ID: '${method}' not callable on control '${id}'`,
         );
-        return;
-      }
-      if (method === "openBy") {
-        const anchor = castArgs(kinds, args.slice(4), view)[0];
-        // Same reason as toggleBy: wait for the anchor to render.
-        whenAnchorRendered(anchor, oController, () => control.openBy(anchor));
         return;
       }
       control[method](...castArgs(kinds, args.slice(4), view));
