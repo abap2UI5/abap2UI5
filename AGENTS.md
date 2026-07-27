@@ -140,6 +140,7 @@ App state is persisted between roundtrips via the draft service (`z2ui5_cl_core_
 - Each roundtrip: load draft → restore app → call `main()` → save new draft with new UUID
 - Draft IDs chain via `id_prev` for back-navigation through the app stack
 - In-memory buffer cache avoids repeated DB reads within one request
+- **Owner binding:** each draft stores its creator's `sy-uname` (column `UNAME`); `read`/`check_exists` only return a draft to that same user, so a leaked or guessed draft id (bookmark URLs carry it) cannot restore another user's serialized state. A mismatch fails closed with the same `NO_DRAFT_ENTRY...` exception as "not found", so a shared bookmark degrades to a fresh app start. Legacy rows written before the column existed carry a blank owner and stay readable during the upgrade transition (they expire within a few hours), so no active session breaks on upgrade.
 
 ### Key Design Patterns
 

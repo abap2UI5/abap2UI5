@@ -79,6 +79,7 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
                                  id_prev           = draft-id_prev
                                  id_prev_app       = draft-id_prev_app
                                  id_prev_app_stack = draft-id_prev_app_stack
+                                 uname             = sy-uname
                                  timestampl        = z2ui5_cl_a2ui5_context=>time_get_timestampl( )
                                  data              = model_xml ).
 
@@ -102,7 +103,7 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
 
     ELSE.
 
-      SELECT SINGLE id, id_prev, id_prev_app, id_prev_app_stack
+      SELECT SINGLE id, id_prev, id_prev_app, id_prev_app_stack, uname
         FROM z2ui5_t_01
         WHERE id = @id
         INTO CORRESPONDING FIELDS OF @result ##SUBRC_OK.
@@ -110,6 +111,18 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
     ENDIF.
 
     IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+        EXPORTING val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
+    ENDIF.
+
+    " Owner binding: a draft belongs to the user that created it and may only
+    " be restored by that same user, so a leaked or guessed draft id cannot
+    " load another user's serialized app state. Fail closed with the same
+    " exception as 'not found', so callers degrade identically - a shared
+    " bookmark id falls through to a fresh app start instead of erroring.
+    " Legacy rows written before the UNAME column existed carry a blank owner
+    " and stay readable during the upgrade transition (they expire in hours).
+    IF result-uname IS NOT INITIAL AND result-uname <> sy-uname.
       RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
         EXPORTING val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
     ENDIF.
@@ -133,11 +146,15 @@ CLASS z2ui5_cl_core_srv_draft IMPLEMENTATION.
 
   METHOD check_exists.
 
-    SELECT SINGLE id FROM z2ui5_t_01
+    SELECT SINGLE id, uname FROM z2ui5_t_01
       WHERE id = @id
-      INTO @DATA(lv_id) ##NEEDED.
+      INTO @DATA(ls_row) ##NEEDED.
 
-    result = xsdbool( sy-subrc = 0 ).
+    " existence is owner-scoped (see read( )): a draft owned by another user
+    " counts as non-existent here. Legacy blank-owner rows stay visible during
+    " the upgrade transition.
+    result = xsdbool( sy-subrc = 0
+                      AND ( ls_row-uname IS INITIAL OR ls_row-uname = sy-uname ) ).
 
   ENDMETHOD.
 

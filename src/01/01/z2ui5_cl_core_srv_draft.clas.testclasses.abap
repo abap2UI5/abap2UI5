@@ -9,6 +9,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS test_read_info        FOR TESTING.
     METHODS test_buffer           FOR TESTING.
     METHODS test_overwrite        FOR TESTING.
+    METHODS test_owner_binding    FOR TESTING.
 
   PROTECTED SECTION.
 
@@ -141,6 +142,34 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals( exp = `updated`
                                         act = ls_db-data ).
+
+  ENDMETHOD.
+
+  METHOD test_owner_binding.
+
+    " a draft owned by a different user must not be readable (owner binding):
+    " write a row with a foreign owner directly, then assert both read_draft
+    " and check_exists refuse it for the current user
+    DATA ls_db TYPE z2ui5_t_01.
+    ls_db-id    = `TEST_OWNER`.
+    ls_db-uname = |{ sy-uname }_OTHER|.
+    ls_db-data  = `secret state`.
+    MODIFY z2ui5_t_01 FROM @ls_db ##SUBRC_OK.
+    COMMIT WORK.
+
+    DATA lo_draft TYPE REF TO z2ui5_cl_core_srv_draft.
+    lo_draft = NEW #( ).
+
+    DATA lv_raised TYPE abap_bool.
+    TRY.
+        lo_draft->read_draft( `TEST_OWNER` ).
+      CATCH z2ui5_cx_a2ui5_error.
+        lv_raised = abap_true.
+    ENDTRY.
+
+    cl_abap_unit_assert=>assert_true( lv_raised ).
+
+    cl_abap_unit_assert=>assert_false( lo_draft->check_exists( `TEST_OWNER` ) ).
 
   ENDMETHOD.
 
