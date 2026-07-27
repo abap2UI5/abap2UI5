@@ -76,8 +76,8 @@ INTERFACE z2ui5_if_core_types
         check_destroy             TYPE abap_bool,
         check_update_model        TYPE abap_bool,
       END OF s_view,
-      s_view_nest          TYPE ty_s_view_nest,
-      s_view_nest2         TYPE ty_s_view_nest,
+      s_view_nest           TYPE ty_s_view_nest,
+      s_view_nest2          TYPE ty_s_view_nest,
       BEGIN OF s_popup,
         xml                TYPE string,
         id                 TYPE string,
@@ -126,9 +126,9 @@ INTERFACE z2ui5_if_core_types
       BEGIN OF s_follow_up_action,
         custom_js TYPE string_table,
       END OF s_follow_up_action,
-      set_app_state_active TYPE abap_bool,
-      set_push_state       TYPE string,
-      set_nav_back         TYPE abap_bool,
+      set_app_state_active  TYPE abap_bool,
+      set_push_state        TYPE string,
+      set_nav_back          TYPE abap_bool,
       " Hash-based app routing (UI5 Router style): when active, the frontend
       " keeps the URL hash in sync with the running app as a bookmarkable route,
       " and the browser Back/Forward buttons navigate between apps via that hash
@@ -139,13 +139,25 @@ INTERFACE z2ui5_if_core_types
       " state; 'FRESH' syncs the class only '#/app/<CLASS>' so they start the
       " app fresh; 'DEFAULT' turns routing off again; an empty value means 'no
       " change' (a session keeps the mode it already has).
-      set_nav_routing      TYPE string,
+      set_nav_routing       TYPE string,
       " Forward app navigation via a backend nav_app_call: tells the frontend to
       " PUSH a new route history entry ('#/app/<CLASS>' of the called app) so the
       " browser Back button returns to the calling app - the routing equivalent
       " of a UI5 navTo. A plain roundtrip only replaces the current route.
-      check_nav_app_call   TYPE abap_bool,
-      s_stateful           TYPE ty_s_http_res-s_stateful,
+      check_nav_app_call    TYPE abap_bool,
+      " The CALLING app of that nav_app_call, as class + the draft id it was
+      " saved under right before the navigation. That draft carries every
+      " client-side model change the user made since the caller last rendered
+      " (switches, checkboxes, input) - its history entry, however, still points
+      " at the older draft of that last render. The frontend therefore repoints
+      " the caller's entry at this draft before pushing the called app's route,
+      " so browser Back restores the caller exactly as the user left it (KEEP
+      " mode only - a FRESH route carries no draft). Set for the FIRST hop of a
+      " request only, so a chain of nav_app_calls keeps the entry of the app the
+      " user actually navigated away from.
+      nav_app_call_prev_app TYPE string,
+      nav_app_call_prev_id  TYPE string,
+      s_stateful            TYPE ty_s_http_res-s_stateful,
     END OF ty_s_next_frontend.
 
   TYPES:
