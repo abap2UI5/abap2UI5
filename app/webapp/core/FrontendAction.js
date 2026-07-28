@@ -812,14 +812,16 @@ sap.ui.define(
           );
           return;
         }
-        oSVM.initialise(() => {}, control);
-        // The documented call is the one above - but measured against SAPUI5
-        // 1.150 it leaves the control's own _oPersoControl untouched (the layer
-        // moved behind a SmartVariantManagementMediator), and that field is
-        // exactly what _newVariant hands to sap.ui.fl when a view is saved.
-        // Assigning it is the only path that makes saving work; it is guarded,
-        // so a version whose initialise() does set it is left alone.
+        // Anchor FIRST, then run the documented init flow. Measured against
+        // SAPUI5 1.150: initialise() does not set the control's own
+        // _oPersoControl (the work moved behind a SmartVariantManagementMediator),
+        // yet that field is what _newVariant hands to sap.ui.fl on save AND what
+        // the load flow needs to turn stored variants into view entries - so
+        // calling initialise() first meant loading with a null anchor and an
+        // empty variant list after every restart. The assignment is guarded, so
+        // a version whose initialise() does set it is left alone.
         if (!oSVM._oPersoControl) oSVM._oPersoControl = control;
+        oSVM.initialise(() => {}, control);
       };
       run();
     }

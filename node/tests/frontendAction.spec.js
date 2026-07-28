@@ -729,6 +729,23 @@ test.describe("SMART_VARIANT_INIT (sap.ui.comp variant management)", () => {
     expect(oSVM._oPersoControl).toEqual({ id: "smartFilterBar" });
   });
 
+  test("anchors the perso control before running the init flow", () => {
+    const { FrontendAction, controls } = load();
+    const oSVM = svm(["smartFilterBar"]);
+    const seen = [];
+    controls.pageVariantId = oSVM;
+    controls.smartFilterBar = { id: "smartFilterBar" };
+    oSVM.initialise = () => seen.push(String(oSVM._oPersoControl?.id));
+    FrontendAction.execute(null, [
+      "SMART_VARIANT_INIT",
+      "pageVariantId",
+      "smartFilterBar",
+    ]);
+    // the load flow behind initialise() needs the anchor already in place -
+    // running it first left the variant list empty after every restart
+    expect(seen).toEqual(["smartFilterBar"]);
+  });
+
   test("leaves a perso control the control set itself untouched", () => {
     const { FrontendAction, controls } = load();
     const oSVM = svm(["smartFilterBar"]);
