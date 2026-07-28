@@ -66,6 +66,13 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // instant jump. Shared by every scroll path in evScrollTo.` && |\n| &&
              `    const SMOOTH_SCROLL_MS = 300;` && |\n| &&
              `` && |\n| &&
+             `    // SMART_VARIANT_INIT waits for the smart controls to register themselves at` && |\n| &&
+             `    // the SmartVariantManagement - that happens once their OData metadata has` && |\n| &&
+             `    // loaded, so the wait has to survive a slow service (5s) but must not run` && |\n| &&
+             `    // forever when no smart control is there at all.` && |\n| &&
+             `    const SMART_VARIANT_INIT_TRIES = 50;` && |\n| &&
+             `    const SMART_VARIANT_INIT_DELAY = 100;` && |\n| &&
+             `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `    // Launchpad helpers` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
@@ -410,15 +417,15 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // of groups, each group an array of [path, operator, value1, value2?]` && |\n| &&
              `    // rows - OR inside a group, AND across groups (the FacetFilter /` && |\n| &&
              `    // ViewSettingsDialog multi-facet shape). Data only: paths, whitelisted` && |\n| &&
-             `    // operators and values - never code. An empty groups array clears.` && |\n| &&
+             `    // operators and values - never code. An empty groups array clears.` && |\n|.
+    result = result &&
              `    function buildFilterGroups(binding, json) {` && |\n| &&
              `      let groups;` && |\n| &&
              `      try {` && |\n| &&
              `        groups = JSON.parse(json);` && |\n| &&
              `      } catch {` && |\n| &&
              `        Lib.logError("BINDING_CALL: malformed filter groups JSON");` && |\n| &&
-             `        return;` && |\n|.
-    result = result &&
+             `        return;` && |\n| &&
              `      }` && |\n| &&
              `      if (!Array.isArray(groups)) {` && |\n| &&
              `        Lib.logError("BINDING_CALL: filter groups must be an array");` && |\n| &&
@@ -780,6 +787,58 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      view.bindElement(``${path}/${args[2]}``);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // SMART_VARIANT_INIT: run the handshake a controller would do for` && |\n| &&
+             `    // sap.ui.comp variant management - oSVM.initialise(fnCallback, oPersoControl).` && |\n| &&
+             `    // Without it the control keeps _oPersoControl null, which makes saving a view` && |\n| &&
+             `    // throw inside sap.ui.fl (getAppComponentForControl(null).getId()) and stops` && |\n| &&
+             `    // stored variants from being loaded at all.` && |\n| &&
+             `    // args = [_, svmId, controlId?]: the SmartVariantManagement's id and,` && |\n| &&
+             `    // optionally, the personalizable control to anchor it to (default: the first` && |\n| &&
+             `    // control that registered itself). Both are resolved through the slot lookup,` && |\n| &&
+             `    // and the callback is a no-op - nothing app-supplied is evaluated.` && |\n| &&
+             `    // The smart controls register at the SmartVariantManagement asynchronously,` && |\n| &&
+             `    // once their OData metadata has arrived, so the call waits for a registration` && |\n| &&
+             `    // instead of firing into an empty list ("initialise on an unknown control").` && |\n| &&
+             `    function evSmartVariantInit(oController, args) {` && |\n| &&
+             `      const [, svmId, controlId] = args;` && |\n| &&
+             `      const oSVM = ViewSlots.resolveById(svmId);` && |\n| &&
+             `      if (!oSVM || typeof oSVM.initialise !== "function") {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``SMART_VARIANT_INIT: no SmartVariantManagement for id '${svmId}'``,` && |\n| &&
+             `        );` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      let tries = 0;` && |\n| &&
+             `      const run = () => {` && |\n| &&
+             `        if (Lib.isDestroyed(oSVM)) return;` && |\n| &&
+             `        const registered = oSVM.getPersonalizableControls` && |\n| &&
+             `          ? oSVM.getPersonalizableControls()` && |\n| &&
+             `          : [];` && |\n| &&
+             `        if (!registered.length) {` && |\n| &&
+             `          if (tries++ < SMART_VARIANT_INIT_TRIES) {` && |\n| &&
+             `            setTimeout(run, SMART_VARIANT_INIT_DELAY);` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n|.
+    result = result &&
+             `          Lib.logError(` && |\n| &&
+             `            ``SMART_VARIANT_INIT: no personalizable control registered at '${svmId}'``,` && |\n| &&
+             `          );` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        const control = controlId` && |\n| &&
+             `          ? ViewSlots.resolveById(controlId)` && |\n| &&
+             `          : ViewSlots.resolveById(registered[0].getControl());` && |\n| &&
+             `        if (!control) {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``SMART_VARIANT_INIT: personalizable control '${controlId}' not found``,` && |\n| &&
+             `          );` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        oSVM.initialise(() => {}, control);` && |\n| &&
+             `      };` && |\n| &&
+             `      run();` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function evUrlHelper(oController, args) {` && |\n| &&
              `      const params = args[2] ?? {};` && |\n| &&
              `      const actions = {` && |\n| &&
@@ -818,8 +877,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        const editor = ViewSlots.byId("POPUP", "imageEditor");` && |\n| &&
              `        if (editor) image = editor.getImagePngDataURL();` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        Lib.logError("IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed", e);` && |\n|.
-    result = result &&
+             `        Lib.logError("IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed", e);` && |\n| &&
              `      }` && |\n| &&
              `      ViewSlots.destroy("POPUP");` && |\n| &&
              `      oController.eB(["SAVE"], image);` && |\n| &&
@@ -1069,6 +1127,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      Z2UI5: evZ2ui5Custom,` && |\n| &&
              `      WIZARD_SET_NEXT_STEP: evWizardSetNextStep,` && |\n| &&
              `      PLAY_AUDIO: evPlayAudio,` && |\n| &&
+             `      SMART_VARIANT_INIT: evSmartVariantInit,` && |\n| &&
              `      CONTROL_BY_ID: evControlCallById,` && |\n| &&
              `      CONTROL_GLOBAL: evControlCall,` && |\n| &&
              `      BINDING_CALL: evBindingCall,` && |\n| &&

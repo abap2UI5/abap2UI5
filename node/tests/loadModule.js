@@ -28,6 +28,13 @@ function loadModule(relPath, { deps = {}, sandbox = {} } = {}) {
       },
     },
     URL,
+    // Timers are browser globals the modules legitimately use (deferred
+    // retries, START_TIMER); a vm context has none of its own, so hand the
+    // host's in - otherwise those paths die with "setTimeout is not defined".
+    setTimeout,
+    clearTimeout,
+    setInterval,
+    clearInterval,
     ...sandbox,
   };
   if (!("window" in context)) context.window = context;

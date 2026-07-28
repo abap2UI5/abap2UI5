@@ -46,6 +46,13 @@ sap.ui.define(
     // instant jump. Shared by every scroll path in evScrollTo.
     const SMOOTH_SCROLL_MS = 300;
 
+    // SMART_VARIANT_INIT waits for the smart controls to register themselves at
+    // the SmartVariantManagement - that happens once their OData metadata has
+    // loaded, so the wait has to survive a slow service (5s) but must not run
+    // forever when no smart control is there at all.
+    const SMART_VARIANT_INIT_TRIES = 50;
+    const SMART_VARIANT_INIT_DELAY = 100;
+
     // ------------------------------------------------------------------
     // Launchpad helpers
     // ------------------------------------------------------------------
@@ -759,6 +766,57 @@ sap.ui.define(
       view.bindElement(`${path}/${args[2]}`);
     }
 
+    // SMART_VARIANT_INIT: run the handshake a controller would do for
+    // sap.ui.comp variant management - oSVM.initialise(fnCallback, oPersoControl).
+    // Without it the control keeps _oPersoControl null, which makes saving a view
+    // throw inside sap.ui.fl (getAppComponentForControl(null).getId()) and stops
+    // stored variants from being loaded at all.
+    // args = [_, svmId, controlId?]: the SmartVariantManagement's id and,
+    // optionally, the personalizable control to anchor it to (default: the first
+    // control that registered itself). Both are resolved through the slot lookup,
+    // and the callback is a no-op - nothing app-supplied is evaluated.
+    // The smart controls register at the SmartVariantManagement asynchronously,
+    // once their OData metadata has arrived, so the call waits for a registration
+    // instead of firing into an empty list ("initialise on an unknown control").
+    function evSmartVariantInit(oController, args) {
+      const [, svmId, controlId] = args;
+      const oSVM = ViewSlots.resolveById(svmId);
+      if (!oSVM || typeof oSVM.initialise !== "function") {
+        Lib.logError(
+          `SMART_VARIANT_INIT: no SmartVariantManagement for id '${svmId}'`,
+        );
+        return;
+      }
+      let tries = 0;
+      const run = () => {
+        if (Lib.isDestroyed(oSVM)) return;
+        const registered = oSVM.getPersonalizableControls
+          ? oSVM.getPersonalizableControls()
+          : [];
+        if (!registered.length) {
+          if (tries++ < SMART_VARIANT_INIT_TRIES) {
+            setTimeout(run, SMART_VARIANT_INIT_DELAY);
+            return;
+          }
+          Lib.logError(
+            `SMART_VARIANT_INIT: no personalizable control registered at '${svmId}'`,
+          );
+          return;
+        }
+        const control = controlId
+          ? ViewSlots.resolveById(controlId)
+          : ViewSlots.resolveById(registered[0].getControl());
+        if (!control) {
+          Lib.logError(
+            `SMART_VARIANT_INIT: personalizable control '${controlId}' not found`,
+          );
+          return;
+        }
+        oSVM.initialise(() => {}, control);
+      };
+      run();
+    }
+
     function evUrlHelper(oController, args) {
       const params = args[2] ?? {};
       const actions = {
@@ -1047,6 +1105,7 @@ sap.ui.define(
       Z2UI5: evZ2ui5Custom,
       WIZARD_SET_NEXT_STEP: evWizardSetNextStep,
       PLAY_AUDIO: evPlayAudio,
+      SMART_VARIANT_INIT: evSmartVariantInit,
       CONTROL_BY_ID: evControlCallById,
       CONTROL_GLOBAL: evControlCall,
       BINDING_CALL: evBindingCall,

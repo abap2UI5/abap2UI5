@@ -49,6 +49,7 @@ INTERFACE z2ui5_if_client
       control_global            TYPE string VALUE `CONTROL_GLOBAL`,
       binding_call              TYPE string VALUE `BINDING_CALL`,
       bind_element              TYPE string VALUE `BIND_ELEMENT`,
+      smart_variant_init        TYPE string VALUE `SMART_VARIANT_INIT`,
 
       "obsolet?
       image_editor_popup_close  TYPE string VALUE `IMAGE_EDITOR_POPUP_CLOSE`,
@@ -302,6 +303,15 @@ INTERFACE z2ui5_if_client
   "! cs_event-control_global - call a whitelisted method on a global object
   "! (MESSAGE_TOAST, MESSAGE_BOX, BUSY_INDICATOR, THEMING):
   "! t_arg = object, method, params.
+  "! cs_event-smart_variant_init - run the initialise( ) handshake sap.ui.comp
+  "! variant management needs (a controller would call
+  "! oSmartVariantManagement.initialise( fnCallback, oPersonalizableControl )).
+  "! Without it the control keeps no personalizable control, saving a view fails
+  "! inside sap.ui.fl and stored variants are never loaded:
+  "! t_arg = SmartVariantManagement id, personalizable control id (optional,
+  "! default: the first control that registered itself). The action waits for
+  "! that registration, which the smart controls do once their OData metadata
+  "! has loaded.
   "! cs_event-binding_call - apply a declarative filter/sorter to an
   "! aggregation binding, the client-side equivalent of the UI5 controller
   "! pattern getBinding('items').filter(...); the model data stays untouched:

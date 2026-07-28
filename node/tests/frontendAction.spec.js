@@ -31,6 +31,7 @@ function load() {
     logError: (m) => errors.push(m),
     runCallbacks: () => {},
     whenRendered: (_control, _owner, fn) => fn(),
+    isDestroyed: (o) => Boolean(o?.isDestroyed && o.isDestroyed()),
   };
   const AppState = { state: { onBeforeEventFrontend: [] } };
   function Filter(path, operator, value1, value2) {
@@ -664,5 +665,59 @@ test.describe("BIND_ELEMENT", () => {
     const { FrontendAction, errors } = load();
     FrontendAction.execute(null, ["BIND_ELEMENT", "POPOVER", "5", "/T_PRODUCTS"]);
     expect(errors.some((e) => String(e).includes("no view for slot"))).toBe(true);
+  });
+});
+
+test.describe("SMART_VARIANT_INIT (sap.ui.comp variant management)", () => {
+  // A SmartVariantManagement stub: records the initialise() handshake and
+  // reports the controls that have registered themselves so far.
+  function svm(registeredIds) {
+    const initialised = [];
+    return {
+      initialised,
+      getPersonalizableControls: () =>
+        registeredIds.map((id) => ({ getControl: () => id })),
+      initialise: (fn, control) => initialised.push(control),
+    };
+  }
+
+  test("initialises the page variant with the given personalizable control", () => {
+    const { FrontendAction, controls } = load();
+    const oSVM = svm(["smartFilterBar", "smartTable"]);
+    controls.pageVariantId = oSVM;
+    controls.smartFilterBar = { id: "smartFilterBar" };
+    FrontendAction.execute(null, [
+      "SMART_VARIANT_INIT",
+      "pageVariantId",
+      "smartFilterBar",
+    ]);
+    expect(oSVM.initialised).toEqual([{ id: "smartFilterBar" }]);
+  });
+
+  test("falls back to the first control that registered itself", () => {
+    const { FrontendAction, controls } = load();
+    const oSVM = svm(["smartTable"]);
+    controls.pageVariantId = oSVM;
+    controls.smartTable = { id: "smartTable" };
+    FrontendAction.execute(null, ["SMART_VARIANT_INIT", "pageVariantId"]);
+    expect(oSVM.initialised).toEqual([{ id: "smartTable" }]);
+  });
+
+  test("waits instead of initialising on an empty registration list", () => {
+    const { FrontendAction, controls, errors } = load();
+    const oSVM = svm([]);
+    controls.pageVariantId = oSVM;
+    FrontendAction.execute(null, ["SMART_VARIANT_INIT", "pageVariantId"]);
+    // still pending: nothing initialised, nothing logged as an error yet
+    expect(oSVM.initialised).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+
+  test("logs an error when the id is not a SmartVariantManagement", () => {
+    const { FrontendAction, controls, errors } = load();
+    controls.pageVariantId = { id: "not-a-variant-control" };
+    FrontendAction.execute(null, ["SMART_VARIANT_INIT", "pageVariantId"]);
+    expect(errors.length).toBe(1);
+    expect(errors[0]).toContain("no SmartVariantManagement");
   });
 });
