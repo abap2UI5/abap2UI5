@@ -2372,8 +2372,10 @@ CLASS z2ui5_cl_xml_view DEFINITION PUBLIC.
     "! @parameter afterclose        | (event) Fired after the popover closes.
     "! @parameter beforeclose       | (event) Fired before the popover closes.
     "! @parameter initiallyexpanded | (boolean) Show the details view initially when there is exactly one message. Default: true.
+    "! @parameter id                | (sap.ui.core.ID) Control id, needed to address the popover from the backend (openBy, setAsyncURLHandler).
     METHODS message_popover
       IMPORTING
+        id                TYPE clike OPTIONAL
         items             TYPE clike OPTIONAL
         groupitems        TYPE clike OPTIONAL
         listselect        TYPE clike OPTIONAL
@@ -12424,7 +12426,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD message_popover.
     result = _generic(
         name   = `MessagePopover`
-        t_prop = VALUE #( ( n = `items`             v = items )
+        t_prop = VALUE #( ( n = `id`                v = id )
+                          ( n = `items`             v = items )
                           ( n = `activeTitlePress`  v = activetitlepress )
                           ( n = `placement`         v = placement )
                           ( n = `listSelect`        v = listselect )
