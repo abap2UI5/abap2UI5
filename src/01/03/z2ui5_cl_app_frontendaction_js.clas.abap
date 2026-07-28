@@ -66,6 +66,13 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // instant jump. Shared by every scroll path in evScrollTo.` && |\n| &&
              `    const SMOOTH_SCROLL_MS = 300;` && |\n| &&
              `` && |\n| &&
+             `    // SMART_VARIANT_INIT waits for the smart controls to register themselves at` && |\n| &&
+             `    // the SmartVariantManagement - that happens once their OData metadata has` && |\n| &&
+             `    // loaded, so the wait has to survive a slow service (5s) but must not run` && |\n| &&
+             `    // forever when no smart control is there at all.` && |\n| &&
+             `    const SMART_VARIANT_INIT_TRIES = 50;` && |\n| &&
+             `    const SMART_VARIANT_INIT_DELAY = 100;` && |\n| &&
+             `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `    // Launchpad helpers` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
@@ -410,15 +417,15 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // of groups, each group an array of [path, operator, value1, value2?]` && |\n| &&
              `    // rows - OR inside a group, AND across groups (the FacetFilter /` && |\n| &&
              `    // ViewSettingsDialog multi-facet shape). Data only: paths, whitelisted` && |\n| &&
-             `    // operators and values - never code. An empty groups array clears.` && |\n| &&
+             `    // operators and values - never code. An empty groups array clears.` && |\n|.
+    result = result &&
              `    function buildFilterGroups(binding, json) {` && |\n| &&
              `      let groups;` && |\n| &&
              `      try {` && |\n| &&
              `        groups = JSON.parse(json);` && |\n| &&
              `      } catch {` && |\n| &&
              `        Lib.logError("BINDING_CALL: malformed filter groups JSON");` && |\n| &&
-             `        return;` && |\n|.
-    result = result &&
+             `        return;` && |\n| &&
              `      }` && |\n| &&
              `      if (!Array.isArray(groups)) {` && |\n| &&
              `        Lib.logError("BINDING_CALL: filter groups must be an array");` && |\n| &&
@@ -780,6 +787,110 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      view.bindElement(``${path}/${args[2]}``);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // SMART_VARIANT_INIT: place the anchor sap.ui.comp variant management needs` && |\n| &&
+             `    // and that only an app controller would otherwise set - the personalizable` && |\n| &&
+             `    // control the SmartVariantManagement works against (_oPersoControl).` && |\n| &&
+             `    // args = [_, svmId, controlId?].` && |\n| &&
+             `    //` && |\n| &&
+             `    // Why an anchor and not a call: SmartVariantManagement.initialise(fn, control)` && |\n| &&
+             `    // aborts its load flow when ``_oPersoControl`` is missing ("no personalizable` && |\n| &&
+             `    // component available") and marks that control's wrapper as done - a second` && |\n| &&
+             `    // call answers "already executed". The smart controls call initialise on` && |\n| &&
+             `    // themselves as soon as their metadata arrives, so an anchor set too late` && |\n| &&
+             `    // buys nothing: saving works (it only reads the field) but stored variants` && |\n| &&
+             `    // are never loaded. Hence: set the field as EARLY as the control exists, and` && |\n| &&
+             `    // leave the initialise call to the smart control, which then finds the` && |\n| &&
+             `    // anchor in place. Only when no control id was given does this wait for the` && |\n| &&
+             `    // registration list and call initialise itself (nobody else will).` && |\n| &&
+             `    function evSmartVariantInit(oController, args) {` && |\n| &&
+             `      const [, svmId, controlId] = args;` && |\n| &&
+             `      let tries = 0;` && |\n| &&
+             `      const run = () => {` && |\n| &&
+             `        const oSVM = ViewSlots.resolveById(svmId);` && |\n| &&
+             `        const control = controlId ? ViewSlots.resolveById(controlId) : null;` && |\n| &&
+             `        if (!oSVM || (controlId && !control)) {` && |\n| &&
+             `          // the view may still be building - wait for both controls to exist` && |\n| &&
+             `          if (tries++ < SMART_VARIANT_INIT_TRIES) {` && |\n| &&
+             `            setTimeout(run, SMART_VARIANT_INIT_DELAY);` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``SMART_VARIANT_INIT: '${controlId ? ``${svmId}' / '${controlId}`` : svmId}' not found``,` && |\n| &&
+             `          );` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n|.
+    result = result &&
+             `        if (Lib.isDestroyed(oSVM) || typeof oSVM.initialise !== "function") {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``SMART_VARIANT_INIT: no SmartVariantManagement for id '${svmId}'``,` && |\n| &&
+             `          );` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        let target = control;` && |\n| &&
+             `        if (!target) {` && |\n| &&
+             `          // no control named: fall back to the first one that registered, which` && |\n| &&
+             `          // means waiting for that registration (it follows the metadata load)` && |\n| &&
+             `          const registered = oSVM.getPersonalizableControls` && |\n| &&
+             `            ? oSVM.getPersonalizableControls()` && |\n| &&
+             `            : [];` && |\n| &&
+             `          if (!registered.length) {` && |\n| &&
+             `            if (tries++ < SMART_VARIANT_INIT_TRIES) {` && |\n| &&
+             `              setTimeout(run, SMART_VARIANT_INIT_DELAY);` && |\n| &&
+             `              return;` && |\n| &&
+             `            }` && |\n| &&
+             `            Lib.logError(` && |\n| &&
+             `              ``SMART_VARIANT_INIT: no personalizable control registered at '${svmId}'``,` && |\n| &&
+             `            );` && |\n| &&
+             `            return;` && |\n| &&
+             `          }` && |\n| &&
+             `          target = ViewSlots.resolveById(registered[0].getControl());` && |\n| &&
+             `          if (!target) return;` && |\n| &&
+             `        }` && |\n| &&
+             `        // The anchor. setPersControler() is sap.ui.comp's own setter and does` && |\n| &&
+             `        // more than assign the field: it also creates the control promise that` && |\n| &&
+             `        // initialise() insists on. A page variant never gets that call -` && |\n| &&
+             `        // addPersonalizableControl() returns early for isPageVariant() and only` && |\n| &&
+             `        // the single-control case reaches setPersControler() - which is exactly` && |\n| &&
+             `        // why a controller-less app ends up with no anchor and no promise.` && |\n| &&
+             `        if (oSVM._oPersoControl) {` && |\n| &&
+             `          // a runtime that anchors the control itself is left alone` && |\n| &&
+             `        } else if (typeof oSVM.setPersControler === "function") {` && |\n| &&
+             `          oSVM.setPersControler(target);` && |\n| &&
+             `        } else {` && |\n| &&
+             `          // older runtimes without the setter: the field alone still carries` && |\n| &&
+             `          // the write path (saving), which is better than nothing` && |\n| &&
+             `          oSVM._oPersoControl = target;` && |\n| &&
+             `        }` && |\n| &&
+             `        ensureInitialised(oSVM, target, 0);` && |\n| &&
+             `      };` && |\n| &&
+             `` && |\n| &&
+             `      // With the anchor in place the load flow still has to be started once.` && |\n| &&
+             `      // The smart control does that itself when it registers - but only then,` && |\n| &&
+             `      // and it may already have tried (and aborted) before the anchor existed.` && |\n| &&
+             `      // So wait for the control's wrapper and initialise it if nobody has:` && |\n| &&
+             `      // a wrapper is required (initialise answers "unknown control" without` && |\n| &&
+             `      // one) and an initialised wrapper must be left alone ("already executed").` && |\n| &&
+             `      function ensureInitialised(oSVM, target, attempt) {` && |\n| &&
+             `        if (Lib.isDestroyed(oSVM)) return;` && |\n| &&
+             `        const wrapper = oSVM._getControlWrapper` && |\n| &&
+             `          ? oSVM._getControlWrapper(target)` && |\n| &&
+             `          : null;` && |\n| &&
+             `        if (!wrapper) {` && |\n| &&
+             `          if (attempt < SMART_VARIANT_INIT_TRIES) {` && |\n| &&
+             `            setTimeout(` && |\n| &&
+             `              () => ensureInitialised(oSVM, target, attempt + 1),` && |\n| &&
+             `              SMART_VARIANT_INIT_DELAY,` && |\n| &&
+             `            );` && |\n| &&
+             `          }` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        if (wrapper.bInitialized) return;` && |\n| &&
+             `        oSVM.initialise(() => {}, target);` && |\n| &&
+             `      }` && |\n| &&
+             `` && |\n| &&
+             `      run();` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function evUrlHelper(oController, args) {` && |\n| &&
              `      const params = args[2] ?? {};` && |\n| &&
              `      const actions = {` && |\n| &&
@@ -818,8 +929,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        const editor = ViewSlots.byId("POPUP", "imageEditor");` && |\n| &&
              `        if (editor) image = editor.getImagePngDataURL();` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        Lib.logError("IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed", e);` && |\n|.
-    result = result &&
+             `        Lib.logError("IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed", e);` && |\n| &&
              `      }` && |\n| &&
              `      ViewSlots.destroy("POPUP");` && |\n| &&
              `      oController.eB(["SAVE"], image);` && |\n| &&
@@ -1069,6 +1179,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      Z2UI5: evZ2ui5Custom,` && |\n| &&
              `      WIZARD_SET_NEXT_STEP: evWizardSetNextStep,` && |\n| &&
              `      PLAY_AUDIO: evPlayAudio,` && |\n| &&
+             `      SMART_VARIANT_INIT: evSmartVariantInit,` && |\n| &&
              `      CONTROL_BY_ID: evControlCallById,` && |\n| &&
              `      CONTROL_GLOBAL: evControlCall,` && |\n| &&
              `      BINDING_CALL: evBindingCall,` && |\n| &&

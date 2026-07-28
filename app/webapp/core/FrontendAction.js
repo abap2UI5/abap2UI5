@@ -46,6 +46,13 @@ sap.ui.define(
     // instant jump. Shared by every scroll path in evScrollTo.
     const SMOOTH_SCROLL_MS = 300;
 
+    // SMART_VARIANT_INIT waits for the smart controls to register themselves at
+    // the SmartVariantManagement - that happens once their OData metadata has
+    // loaded, so the wait has to survive a slow service (5s) but must not run
+    // forever when no smart control is there at all.
+    const SMART_VARIANT_INIT_TRIES = 50;
+    const SMART_VARIANT_INIT_DELAY = 100;
+
     // ------------------------------------------------------------------
     // Launchpad helpers
     // ------------------------------------------------------------------
@@ -759,6 +766,109 @@ sap.ui.define(
       view.bindElement(`${path}/${args[2]}`);
     }
 
+    // SMART_VARIANT_INIT: place the anchor sap.ui.comp variant management needs
+    // and that only an app controller would otherwise set - the personalizable
+    // control the SmartVariantManagement works against (_oPersoControl).
+    // args = [_, svmId, controlId?].
+    //
+    // Why an anchor and not a call: SmartVariantManagement.initialise(fn, control)
+    // aborts its load flow when `_oPersoControl` is missing ("no personalizable
+    // component available") and marks that control's wrapper as done - a second
+    // call answers "already executed". The smart controls call initialise on
+    // themselves as soon as their metadata arrives, so an anchor set too late
+    // buys nothing: saving works (it only reads the field) but stored variants
+    // are never loaded. Hence: set the field as EARLY as the control exists, and
+    // leave the initialise call to the smart control, which then finds the
+    // anchor in place. Only when no control id was given does this wait for the
+    // registration list and call initialise itself (nobody else will).
+    function evSmartVariantInit(oController, args) {
+      const [, svmId, controlId] = args;
+      let tries = 0;
+      const run = () => {
+        const oSVM = ViewSlots.resolveById(svmId);
+        const control = controlId ? ViewSlots.resolveById(controlId) : null;
+        if (!oSVM || (controlId && !control)) {
+          // the view may still be building - wait for both controls to exist
+          if (tries++ < SMART_VARIANT_INIT_TRIES) {
+            setTimeout(run, SMART_VARIANT_INIT_DELAY);
+            return;
+          }
+          Lib.logError(
+            `SMART_VARIANT_INIT: '${controlId ? `${svmId}' / '${controlId}` : svmId}' not found`,
+          );
+          return;
+        }
+        if (Lib.isDestroyed(oSVM) || typeof oSVM.initialise !== "function") {
+          Lib.logError(
+            `SMART_VARIANT_INIT: no SmartVariantManagement for id '${svmId}'`,
+          );
+          return;
+        }
+        let target = control;
+        if (!target) {
+          // no control named: fall back to the first one that registered, which
+          // means waiting for that registration (it follows the metadata load)
+          const registered = oSVM.getPersonalizableControls
+            ? oSVM.getPersonalizableControls()
+            : [];
+          if (!registered.length) {
+            if (tries++ < SMART_VARIANT_INIT_TRIES) {
+              setTimeout(run, SMART_VARIANT_INIT_DELAY);
+              return;
+            }
+            Lib.logError(
+              `SMART_VARIANT_INIT: no personalizable control registered at '${svmId}'`,
+            );
+            return;
+          }
+          target = ViewSlots.resolveById(registered[0].getControl());
+          if (!target) return;
+        }
+        // The anchor. setPersControler() is sap.ui.comp's own setter and does
+        // more than assign the field: it also creates the control promise that
+        // initialise() insists on. A page variant never gets that call -
+        // addPersonalizableControl() returns early for isPageVariant() and only
+        // the single-control case reaches setPersControler() - which is exactly
+        // why a controller-less app ends up with no anchor and no promise.
+        if (oSVM._oPersoControl) {
+          // a runtime that anchors the control itself is left alone
+        } else if (typeof oSVM.setPersControler === "function") {
+          oSVM.setPersControler(target);
+        } else {
+          // older runtimes without the setter: the field alone still carries
+          // the write path (saving), which is better than nothing
+          oSVM._oPersoControl = target;
+        }
+        ensureInitialised(oSVM, target, 0);
+      };
+
+      // With the anchor in place the load flow still has to be started once.
+      // The smart control does that itself when it registers - but only then,
+      // and it may already have tried (and aborted) before the anchor existed.
+      // So wait for the control's wrapper and initialise it if nobody has:
+      // a wrapper is required (initialise answers "unknown control" without
+      // one) and an initialised wrapper must be left alone ("already executed").
+      function ensureInitialised(oSVM, target, attempt) {
+        if (Lib.isDestroyed(oSVM)) return;
+        const wrapper = oSVM._getControlWrapper
+          ? oSVM._getControlWrapper(target)
+          : null;
+        if (!wrapper) {
+          if (attempt < SMART_VARIANT_INIT_TRIES) {
+            setTimeout(
+              () => ensureInitialised(oSVM, target, attempt + 1),
+              SMART_VARIANT_INIT_DELAY,
+            );
+          }
+          return;
+        }
+        if (wrapper.bInitialized) return;
+        oSVM.initialise(() => {}, target);
+      }
+
+      run();
+    }
+
     function evUrlHelper(oController, args) {
       const params = args[2] ?? {};
       const actions = {
@@ -1047,6 +1157,7 @@ sap.ui.define(
       Z2UI5: evZ2ui5Custom,
       WIZARD_SET_NEXT_STEP: evWizardSetNextStep,
       PLAY_AUDIO: evPlayAudio,
+      SMART_VARIANT_INIT: evSmartVariantInit,
       CONTROL_BY_ID: evControlCallById,
       CONTROL_GLOBAL: evControlCall,
       BINDING_CALL: evBindingCall,

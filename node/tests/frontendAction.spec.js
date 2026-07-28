@@ -31,6 +31,7 @@ function load() {
     logError: (m) => errors.push(m),
     runCallbacks: () => {},
     whenRendered: (_control, _owner, fn) => fn(),
+    isDestroyed: (o) => Boolean(o?.isDestroyed && o.isDestroyed()),
   };
   const AppState = { state: { onBeforeEventFrontend: [] } };
   function Filter(path, operator, value1, value2) {
@@ -664,5 +665,147 @@ test.describe("BIND_ELEMENT", () => {
     const { FrontendAction, errors } = load();
     FrontendAction.execute(null, ["BIND_ELEMENT", "POPOVER", "5", "/T_PRODUCTS"]);
     expect(errors.some((e) => String(e).includes("no view for slot"))).toBe(true);
+  });
+});
+
+test.describe("SMART_VARIANT_INIT (sap.ui.comp variant management)", () => {
+  // A SmartVariantManagement stub: records initialise() calls, reports the
+  // controls that registered so far and their wrappers' initialised state.
+  function svm(registeredIds, initialisedIds = []) {
+    const initialised = [];
+    return {
+      _oPersoControl: null,
+      initialised,
+      // sap.ui.comp's own setter: anchors the control AND creates the control
+      // promise initialise() checks - a page variant never gets this call
+      setPersControler(control) {
+        this._oPersoControl = control;
+        this._oControlPromise = {};
+      },
+      getPersonalizableControls: () =>
+        registeredIds.map((id) => ({ getControl: () => id })),
+      _getControlWrapper: (control) =>
+        registeredIds.includes(control?.id)
+          ? { bInitialized: initialisedIds.includes(control.id) }
+          : null,
+      initialise: (fn, control) => initialised.push(control),
+    };
+  }
+
+  test("anchors the perso control the app named", () => {
+    const { FrontendAction, controls } = load();
+    const oSVM = svm(["smartFilterBar"]);
+    controls.pageVariantId = oSVM;
+    controls.smartFilterBar = { id: "smartFilterBar" };
+    FrontendAction.execute(null, [
+      "SMART_VARIANT_INIT",
+      "pageVariantId",
+      "smartFilterBar",
+    ]);
+    expect(oSVM._oPersoControl).toEqual({ id: "smartFilterBar" });
+    // the setter, not the field: it also creates the control promise
+    expect(oSVM._oControlPromise).toBeTruthy();
+  });
+
+  test("falls back to the field when the runtime has no setter", () => {
+    const { FrontendAction, controls } = load();
+    const oSVM = svm(["smartFilterBar"]);
+    delete oSVM.setPersControler;
+    controls.pageVariantId = oSVM;
+    controls.smartFilterBar = { id: "smartFilterBar" };
+    FrontendAction.execute(null, [
+      "SMART_VARIANT_INIT",
+      "pageVariantId",
+      "smartFilterBar",
+    ]);
+    expect(oSVM._oPersoControl).toEqual({ id: "smartFilterBar" });
+  });
+
+  test("initialises a registered control that nobody initialised yet", () => {
+    const { FrontendAction, controls } = load();
+    const oSVM = svm(["smartFilterBar"]);
+    controls.pageVariantId = oSVM;
+    controls.smartFilterBar = { id: "smartFilterBar" };
+    FrontendAction.execute(null, [
+      "SMART_VARIANT_INIT",
+      "pageVariantId",
+      "smartFilterBar",
+    ]);
+    expect(oSVM.initialised).toEqual([{ id: "smartFilterBar" }]);
+  });
+
+  test("does not re-initialise a control that already ran", () => {
+    const { FrontendAction, controls } = load();
+    // wrapper already initialised: sap.ui.comp answers a second call with
+    // "initialise on ... already executed" - the anchor is all that is left to do
+    const oSVM = svm(["smartFilterBar"], ["smartFilterBar"]);
+    controls.pageVariantId = oSVM;
+    controls.smartFilterBar = { id: "smartFilterBar" };
+    FrontendAction.execute(null, [
+      "SMART_VARIANT_INIT",
+      "pageVariantId",
+      "smartFilterBar",
+    ]);
+    expect(oSVM.initialised).toEqual([]);
+    expect(oSVM._oPersoControl).toEqual({ id: "smartFilterBar" });
+  });
+
+  test("anchors before the control has registered, initialises after", async () => {
+    const { FrontendAction, controls } = load();
+    // nothing registered yet - the anchor still has to be placed, because the
+    // control's own initialise() aborts without it and marks itself as done
+    const registered = [];
+    const oSVM = svm(registered);
+    controls.pageVariantId = oSVM;
+    controls.smartFilterBar = { id: "smartFilterBar" };
+    FrontendAction.execute(null, [
+      "SMART_VARIANT_INIT",
+      "pageVariantId",
+      "smartFilterBar",
+    ]);
+    expect(oSVM._oPersoControl).toEqual({ id: "smartFilterBar" });
+    expect(oSVM.initialised).toEqual([]);
+    // the control registers a moment later (its metadata arrived) - the
+    // pending wait picks that up and starts the load flow nobody else would
+    registered.push("smartFilterBar");
+    await new Promise((r) => setTimeout(r, 250));
+    expect(oSVM.initialised).toEqual([{ id: "smartFilterBar" }]);
+  });
+
+  test("leaves a perso control the runtime set itself untouched", () => {
+    const { FrontendAction, controls } = load();
+    const oSVM = svm(["smartFilterBar"]);
+    const own = { id: "set-by-runtime" };
+    oSVM._oPersoControl = own;
+    controls.pageVariantId = oSVM;
+    controls.smartFilterBar = { id: "smartFilterBar" };
+    FrontendAction.execute(null, [
+      "SMART_VARIANT_INIT",
+      "pageVariantId",
+      "smartFilterBar",
+    ]);
+    expect(oSVM._oPersoControl).toBe(own);
+  });
+
+  test("falls back to the first registered control when none is named", () => {
+    const { FrontendAction, controls } = load();
+    const oSVM = svm(["smartTable"]);
+    controls.pageVariantId = oSVM;
+    controls.smartTable = { id: "smartTable" };
+    FrontendAction.execute(null, ["SMART_VARIANT_INIT", "pageVariantId"]);
+    expect(oSVM._oPersoControl).toEqual({ id: "smartTable" });
+  });
+
+  test("logs an error when the id is not a SmartVariantManagement", () => {
+    const { FrontendAction, controls, errors } = load();
+    controls.pageVariantId = { id: "not-a-variant-control" };
+    controls.smartFilterBar = { id: "smartFilterBar" };
+    FrontendAction.execute(null, [
+      "SMART_VARIANT_INIT",
+      "pageVariantId",
+      "smartFilterBar",
+    ]);
+    expect(errors.length).toBe(1);
+    expect(errors[0]).toContain("no SmartVariantManagement");
   });
 });
