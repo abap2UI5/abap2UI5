@@ -766,62 +766,74 @@ sap.ui.define(
       view.bindElement(`${path}/${args[2]}`);
     }
 
-    // SMART_VARIANT_INIT: run the handshake a controller would do for
-    // sap.ui.comp variant management - oSVM.initialise(fnCallback, oPersoControl).
-    // Without it the control keeps _oPersoControl null, which makes saving a view
-    // throw inside sap.ui.fl (getAppComponentForControl(null).getId()) and stops
-    // stored variants from being loaded at all.
-    // args = [_, svmId, controlId?]: the SmartVariantManagement's id and,
-    // optionally, the personalizable control to anchor it to (default: the first
-    // control that registered itself). Both are resolved through the slot lookup,
-    // and the callback is a no-op - nothing app-supplied is evaluated.
-    // The smart controls register at the SmartVariantManagement asynchronously,
-    // once their OData metadata has arrived, so the call waits for a registration
-    // instead of firing into an empty list ("initialise on an unknown control").
+    // SMART_VARIANT_INIT: place the anchor sap.ui.comp variant management needs
+    // and that only an app controller would otherwise set - the personalizable
+    // control the SmartVariantManagement works against (_oPersoControl).
+    // args = [_, svmId, controlId?].
+    //
+    // Why an anchor and not a call: SmartVariantManagement.initialise(fn, control)
+    // aborts its load flow when `_oPersoControl` is missing ("no personalizable
+    // component available") and marks that control's wrapper as done - a second
+    // call answers "already executed". The smart controls call initialise on
+    // themselves as soon as their metadata arrives, so an anchor set too late
+    // buys nothing: saving works (it only reads the field) but stored variants
+    // are never loaded. Hence: set the field as EARLY as the control exists, and
+    // leave the initialise call to the smart control, which then finds the
+    // anchor in place. Only when no control id was given does this wait for the
+    // registration list and call initialise itself (nobody else will).
     function evSmartVariantInit(oController, args) {
       const [, svmId, controlId] = args;
-      const oSVM = ViewSlots.resolveById(svmId);
-      if (!oSVM || typeof oSVM.initialise !== "function") {
-        Lib.logError(
-          `SMART_VARIANT_INIT: no SmartVariantManagement for id '${svmId}'`,
-        );
-        return;
-      }
       let tries = 0;
       const run = () => {
-        if (Lib.isDestroyed(oSVM)) return;
-        const registered = oSVM.getPersonalizableControls
-          ? oSVM.getPersonalizableControls()
-          : [];
-        if (!registered.length) {
+        const oSVM = ViewSlots.resolveById(svmId);
+        const control = controlId ? ViewSlots.resolveById(controlId) : null;
+        if (!oSVM || (controlId && !control)) {
+          // the view may still be building - wait for both controls to exist
           if (tries++ < SMART_VARIANT_INIT_TRIES) {
             setTimeout(run, SMART_VARIANT_INIT_DELAY);
             return;
           }
           Lib.logError(
-            `SMART_VARIANT_INIT: no personalizable control registered at '${svmId}'`,
+            `SMART_VARIANT_INIT: '${controlId ? `${svmId}' / '${controlId}` : svmId}' not found`,
           );
           return;
         }
-        const control = controlId
-          ? ViewSlots.resolveById(controlId)
-          : ViewSlots.resolveById(registered[0].getControl());
-        if (!control) {
+        if (Lib.isDestroyed(oSVM) || typeof oSVM.initialise !== "function") {
           Lib.logError(
-            `SMART_VARIANT_INIT: personalizable control '${controlId}' not found`,
+            `SMART_VARIANT_INIT: no SmartVariantManagement for id '${svmId}'`,
           );
           return;
         }
-        // Anchor FIRST, then run the documented init flow. Measured against
-        // SAPUI5 1.150: initialise() does not set the control's own
-        // _oPersoControl (the work moved behind a SmartVariantManagementMediator),
-        // yet that field is what _newVariant hands to sap.ui.fl on save AND what
-        // the load flow needs to turn stored variants into view entries - so
-        // calling initialise() first meant loading with a null anchor and an
-        // empty variant list after every restart. The assignment is guarded, so
-        // a version whose initialise() does set it is left alone.
-        if (!oSVM._oPersoControl) oSVM._oPersoControl = control;
-        oSVM.initialise(() => {}, control);
+        let target = control;
+        if (!target) {
+          // no control named: fall back to the first one that registered, which
+          // means waiting for that registration (it follows the metadata load)
+          const registered = oSVM.getPersonalizableControls
+            ? oSVM.getPersonalizableControls()
+            : [];
+          if (!registered.length) {
+            if (tries++ < SMART_VARIANT_INIT_TRIES) {
+              setTimeout(run, SMART_VARIANT_INIT_DELAY);
+              return;
+            }
+            Lib.logError(
+              `SMART_VARIANT_INIT: no personalizable control registered at '${svmId}'`,
+            );
+            return;
+          }
+          target = ViewSlots.resolveById(registered[0].getControl());
+          if (!target) return;
+        }
+        // The anchor - guarded, so a runtime that sets it itself is left alone.
+        if (!oSVM._oPersoControl) oSVM._oPersoControl = target;
+        // Only initialise what nobody has initialised yet: the smart control
+        // does it for itself once registered, and a second call is an error.
+        const wrapper = oSVM._getControlWrapper
+          ? oSVM._getControlWrapper(target)
+          : null;
+        if (wrapper && !wrapper.bInitialized) {
+          oSVM.initialise(() => {}, target);
+        }
       };
       run();
     }

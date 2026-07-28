@@ -669,21 +669,39 @@ test.describe("BIND_ELEMENT", () => {
 });
 
 test.describe("SMART_VARIANT_INIT (sap.ui.comp variant management)", () => {
-  // A SmartVariantManagement stub: records the initialise() handshake and
-  // reports the controls that have registered themselves so far.
-  function svm(registeredIds) {
+  // A SmartVariantManagement stub: records initialise() calls, reports the
+  // controls that registered so far and their wrappers' initialised state.
+  function svm(registeredIds, initialisedIds = []) {
     const initialised = [];
     return {
+      _oPersoControl: null,
       initialised,
       getPersonalizableControls: () =>
         registeredIds.map((id) => ({ getControl: () => id })),
+      _getControlWrapper: (control) =>
+        registeredIds.includes(control?.id)
+          ? { bInitialized: initialisedIds.includes(control.id) }
+          : null,
       initialise: (fn, control) => initialised.push(control),
     };
   }
 
-  test("initialises the page variant with the given personalizable control", () => {
+  test("anchors the perso control the app named", () => {
     const { FrontendAction, controls } = load();
-    const oSVM = svm(["smartFilterBar", "smartTable"]);
+    const oSVM = svm(["smartFilterBar"]);
+    controls.pageVariantId = oSVM;
+    controls.smartFilterBar = { id: "smartFilterBar" };
+    FrontendAction.execute(null, [
+      "SMART_VARIANT_INIT",
+      "pageVariantId",
+      "smartFilterBar",
+    ]);
+    expect(oSVM._oPersoControl).toEqual({ id: "smartFilterBar" });
+  });
+
+  test("initialises a registered control that nobody initialised yet", () => {
+    const { FrontendAction, controls } = load();
+    const oSVM = svm(["smartFilterBar"]);
     controls.pageVariantId = oSVM;
     controls.smartFilterBar = { id: "smartFilterBar" };
     FrontendAction.execute(null, [
@@ -694,29 +712,11 @@ test.describe("SMART_VARIANT_INIT (sap.ui.comp variant management)", () => {
     expect(oSVM.initialised).toEqual([{ id: "smartFilterBar" }]);
   });
 
-  test("falls back to the first control that registered itself", () => {
+  test("does not re-initialise a control that already ran", () => {
     const { FrontendAction, controls } = load();
-    const oSVM = svm(["smartTable"]);
-    controls.pageVariantId = oSVM;
-    controls.smartTable = { id: "smartTable" };
-    FrontendAction.execute(null, ["SMART_VARIANT_INIT", "pageVariantId"]);
-    expect(oSVM.initialised).toEqual([{ id: "smartTable" }]);
-  });
-
-  test("waits instead of initialising on an empty registration list", () => {
-    const { FrontendAction, controls, errors } = load();
-    const oSVM = svm([]);
-    controls.pageVariantId = oSVM;
-    FrontendAction.execute(null, ["SMART_VARIANT_INIT", "pageVariantId"]);
-    // still pending: nothing initialised, nothing logged as an error yet
-    expect(oSVM.initialised).toEqual([]);
-    expect(errors).toEqual([]);
-  });
-
-  test("assigns the perso control when initialise() leaves it unset", () => {
-    const { FrontendAction, controls } = load();
-    const oSVM = svm(["smartFilterBar"]);
-    oSVM._oPersoControl = null;
+    // wrapper already initialised: sap.ui.comp answers a second call with
+    // "initialise on ... already executed" - the anchor is all that is left to do
+    const oSVM = svm(["smartFilterBar"], ["smartFilterBar"]);
     controls.pageVariantId = oSVM;
     controls.smartFilterBar = { id: "smartFilterBar" };
     FrontendAction.execute(null, [
@@ -724,37 +724,33 @@ test.describe("SMART_VARIANT_INIT (sap.ui.comp variant management)", () => {
       "pageVariantId",
       "smartFilterBar",
     ]);
-    // SAPUI5 1.150: initialise() is called but does not set the field, and
-    // _newVariant reads exactly that field when a view is saved
+    expect(oSVM.initialised).toEqual([]);
     expect(oSVM._oPersoControl).toEqual({ id: "smartFilterBar" });
   });
 
-  test("anchors the perso control before running the init flow", () => {
+  test("anchors before the control has registered", () => {
     const { FrontendAction, controls } = load();
-    const oSVM = svm(["smartFilterBar"]);
-    const seen = [];
+    // nothing registered yet - the anchor still has to be placed, because the
+    // control's own initialise() aborts without it and marks itself as done
+    const oSVM = svm([]);
     controls.pageVariantId = oSVM;
     controls.smartFilterBar = { id: "smartFilterBar" };
-    oSVM.initialise = () => seen.push(String(oSVM._oPersoControl?.id));
     FrontendAction.execute(null, [
       "SMART_VARIANT_INIT",
       "pageVariantId",
       "smartFilterBar",
     ]);
-    // the load flow behind initialise() needs the anchor already in place -
-    // running it first left the variant list empty after every restart
-    expect(seen).toEqual(["smartFilterBar"]);
+    expect(oSVM._oPersoControl).toEqual({ id: "smartFilterBar" });
+    expect(oSVM.initialised).toEqual([]);
   });
 
-  test("leaves a perso control the control set itself untouched", () => {
+  test("leaves a perso control the runtime set itself untouched", () => {
     const { FrontendAction, controls } = load();
     const oSVM = svm(["smartFilterBar"]);
-    const own = { id: "set-by-initialise" };
+    const own = { id: "set-by-runtime" };
+    oSVM._oPersoControl = own;
     controls.pageVariantId = oSVM;
     controls.smartFilterBar = { id: "smartFilterBar" };
-    oSVM.initialise = () => {
-      oSVM._oPersoControl = own;
-    };
     FrontendAction.execute(null, [
       "SMART_VARIANT_INIT",
       "pageVariantId",
@@ -763,10 +759,24 @@ test.describe("SMART_VARIANT_INIT (sap.ui.comp variant management)", () => {
     expect(oSVM._oPersoControl).toBe(own);
   });
 
+  test("falls back to the first registered control when none is named", () => {
+    const { FrontendAction, controls } = load();
+    const oSVM = svm(["smartTable"]);
+    controls.pageVariantId = oSVM;
+    controls.smartTable = { id: "smartTable" };
+    FrontendAction.execute(null, ["SMART_VARIANT_INIT", "pageVariantId"]);
+    expect(oSVM._oPersoControl).toEqual({ id: "smartTable" });
+  });
+
   test("logs an error when the id is not a SmartVariantManagement", () => {
     const { FrontendAction, controls, errors } = load();
     controls.pageVariantId = { id: "not-a-variant-control" };
-    FrontendAction.execute(null, ["SMART_VARIANT_INIT", "pageVariantId"]);
+    controls.smartFilterBar = { id: "smartFilterBar" };
+    FrontendAction.execute(null, [
+      "SMART_VARIANT_INIT",
+      "pageVariantId",
+      "smartFilterBar",
+    ]);
     expect(errors.length).toBe(1);
     expect(errors[0]).toContain("no SmartVariantManagement");
   });
