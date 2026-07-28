@@ -713,6 +713,39 @@ test.describe("SMART_VARIANT_INIT (sap.ui.comp variant management)", () => {
     expect(errors).toEqual([]);
   });
 
+  test("assigns the perso control when initialise() leaves it unset", () => {
+    const { FrontendAction, controls } = load();
+    const oSVM = svm(["smartFilterBar"]);
+    oSVM._oPersoControl = null;
+    controls.pageVariantId = oSVM;
+    controls.smartFilterBar = { id: "smartFilterBar" };
+    FrontendAction.execute(null, [
+      "SMART_VARIANT_INIT",
+      "pageVariantId",
+      "smartFilterBar",
+    ]);
+    // SAPUI5 1.150: initialise() is called but does not set the field, and
+    // _newVariant reads exactly that field when a view is saved
+    expect(oSVM._oPersoControl).toEqual({ id: "smartFilterBar" });
+  });
+
+  test("leaves a perso control the control set itself untouched", () => {
+    const { FrontendAction, controls } = load();
+    const oSVM = svm(["smartFilterBar"]);
+    const own = { id: "set-by-initialise" };
+    controls.pageVariantId = oSVM;
+    controls.smartFilterBar = { id: "smartFilterBar" };
+    oSVM.initialise = () => {
+      oSVM._oPersoControl = own;
+    };
+    FrontendAction.execute(null, [
+      "SMART_VARIANT_INIT",
+      "pageVariantId",
+      "smartFilterBar",
+    ]);
+    expect(oSVM._oPersoControl).toBe(own);
+  });
+
   test("logs an error when the id is not a SmartVariantManagement", () => {
     const { FrontendAction, controls, errors } = load();
     controls.pageVariantId = { id: "not-a-variant-control" };

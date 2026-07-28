@@ -835,6 +835,13 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          return;` && |\n| &&
              `        }` && |\n| &&
              `        oSVM.initialise(() => {}, control);` && |\n| &&
+             `        // The documented call is the one above - but measured against SAPUI5` && |\n| &&
+             `        // 1.150 it leaves the control's own _oPersoControl untouched (the layer` && |\n| &&
+             `        // moved behind a SmartVariantManagementMediator), and that field is` && |\n| &&
+             `        // exactly what _newVariant hands to sap.ui.fl when a view is saved.` && |\n| &&
+             `        // Assigning it is the only path that makes saving work; it is guarded,` && |\n| &&
+             `        // so a version whose initialise() does set it is left alone.` && |\n| &&
+             `        if (!oSVM._oPersoControl) oSVM._oPersoControl = control;` && |\n| &&
              `      };` && |\n| &&
              `      run();` && |\n| &&
              `    }` && |\n| &&
