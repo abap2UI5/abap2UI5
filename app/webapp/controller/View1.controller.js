@@ -450,6 +450,34 @@ sap.ui.define(
       },
 
       // ------------------------------------------------------------------
+      // eBP = "event backend, prevent default": cancels the control's
+      // built-in default for this event and then round-trips exactly like
+      // eB. The backend emits it (instead of eB) for an event registered
+      // with s_ctrl-check_prevent_default, passing $event as the first
+      // argument - preventDefault() only works synchronously inside the
+      // handler, so it cannot be a follow-up action from the response.
+      // Example: sap.tnt NavigationListItem.press, where cancelling the
+      // default suppresses the item selection and leaves the decision to
+      // the backend. The name is part of the protocol - do not rename it.
+      // ------------------------------------------------------------------
+      eBP(oEvent, ...args) {
+        // guard the call: a malformed wire (no $event) must still round-trip
+        if (typeof oEvent?.preventDefault === "function") {
+          oEvent.preventDefault();
+        }
+        this.eB(...args);
+      },
+
+      // Ancestor-text breadcrumb of a control resolved in an event argument,
+      // e.g. `$controller.textPath(${$parameters>/item})` on a menu's
+      // itemSelected -> "Create New Site > Official Store". The parent-chain
+      // walk happens on the live control tree, so no binding path can express
+      // it; the separator defaults to " > ".
+      textPath(oControl, sSeparator) {
+        return Lib.getTextPath(oControl, sSeparator);
+      },
+
+      // ------------------------------------------------------------------
       // eB = "event backend": triggers a backend roundtrip with arguments.
       // The name is part of the protocol - backend-generated view XML binds
       // events to eB/eF - and must not be renamed.

@@ -243,3 +243,43 @@ test.describe("getMessaging (version-independent messaging facade)", () => {
     expect(Lib.getMessaging()).toBeNull();
   });
 });
+
+test.describe("getTextPath (ancestor-text breadcrumb of a control)", () => {
+  const { Lib } = loadLib();
+
+  // a menu item chain: Menu > "Create New Site" > "Official Store". The Menu
+  // itself has no getText, which is exactly where the walk has to stop.
+  function item(text, parent) {
+    return { getText: () => text, getParent: () => parent };
+  }
+
+  test("joins the item's own text with its ancestors', outermost first", () => {
+    const root = { getParent: () => null }; // sap.m.Menu - no getText
+    const level1 = item("Create New Site", root);
+    expect(Lib.getTextPath(item("Official Store", level1))).toBe(
+      "Create New Site > Official Store",
+    );
+  });
+
+  test("a leaf without ancestors is just its own text", () => {
+    expect(Lib.getTextPath(item("Save", { getParent: () => null }))).toBe(
+      "Save",
+    );
+  });
+
+  test("takes a custom separator and skips empty texts", () => {
+    const top = item("A", { getParent: () => null });
+    const middle = item("", top);
+    expect(Lib.getTextPath(item("C", middle), " / ")).toBe("A / C");
+  });
+
+  test("returns an empty string for a control without getText", () => {
+    expect(Lib.getTextPath({ getParent: () => null })).toBe("");
+    expect(Lib.getTextPath(null)).toBe("");
+  });
+
+  test("survives a cyclic parent chain", () => {
+    const node = { getText: () => "X", getParent: () => node };
+    expect(Lib.getTextPath(node).split(" > ").length).toBe(100);
+  });
+});

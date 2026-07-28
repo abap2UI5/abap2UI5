@@ -24,6 +24,7 @@ INTERFACE z2ui5_if_client
       start_timer               TYPE string VALUE `START_TIMER`,
       system_logout             TYPE string VALUE `SYSTEM_LOGOUT`,
       keyboard_set_mode         TYPE string VALUE `KEYBOARD_SET_MODE`,
+      keyboard_shortcut         TYPE string VALUE `KEYBOARD_SHORTCUT`,
       open_new_tab              TYPE string VALUE `OPEN_NEW_TAB`,
       location_reload           TYPE string VALUE `LOCATION_RELOAD`,
       nav_to_route              TYPE string VALUE `NAV_TO_ROUTE`,
@@ -244,6 +245,14 @@ INTERFACE z2ui5_if_client
       closeonbrowsernavigation TYPE abap_bool DEFAULT abap_true
       class                    TYPE clike     OPTIONAL.
 
+  "! Register a backend event and return the handler expression for a view
+  "! attribute (press = client->_event( `SAVE` )). s_ctrl carries the optional
+  "! event flags: check_allow_multi_req sends the event while another
+  "! roundtrip is still running, check_prevent_default cancels the control's
+  "! built-in default for this event (oEvent.preventDefault(), e.g. a
+  "! sap.tnt NavigationListItem press that must not select the item) before
+  "! the roundtrip - the event is still sent, so the backend stays in charge
+  "! of what happens instead.
   METHODS _event
     IMPORTING
       val           TYPE clike                              OPTIONAL
@@ -317,6 +326,15 @@ INTERFACE z2ui5_if_client
   "! default: the first control that registered itself). The action waits for
   "! that registration, which the smart controls do once their OData metadata
   "! has loaded.
+  "! cs_event-keyboard_shortcut - bind a key combination to a named backend
+  "! event, the declarative equivalent of a sap.ui.core.CommandExecution
+  "! shortcut: t_arg = combination, event name. The combination is spelled
+  "! like the UI5 one (`Ctrl+S`, `Ctrl+Shift+D`, `F2`; ctrl/shift/alt/meta in
+  "! any order, cmd/command/option/control accepted as aliases). Pressing it
+  "! fires the event exactly like a button press and suppresses the browser's
+  "! own default for the combination. Registering the same combination again
+  "! rebinds it; an empty event name removes it. The registrations belong to
+  "! the running app and are dropped when another app takes over.
   "! cs_event-binding_call - apply a declarative filter/sorter to an
   "! aggregation binding, the client-side equivalent of the UI5 controller
   "! pattern getBinding('items').filter(...); the model data stays untouched:

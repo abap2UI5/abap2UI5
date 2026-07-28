@@ -74,6 +74,9 @@
 // Control / helper state
 //   errors            capped error log, see Lib.logError
 //   timers            single pending backend timer (FrontendAction)
+//   shortcuts         registered keyboard shortcuts, normalized combo ->
+//                     { event, controller } (FrontendAction.KEYBOARD_SHORTCUT);
+//                     an app switch resets it, the document listener stays
 //   lastScrolled      last scrolled element per slot (Server.onScrollCapture)
 //   viewSizeLimits    per-slot model size limits (FrontendAction)
 //   treeStates        tree binding state per tree_id across rebuilds (Tree control)
@@ -145,6 +148,7 @@ sap.ui.define([], () => {
       // Control / helper state
       errors: [],
       timers: {},
+      shortcuts: {},
       lastScrolled: {},
       viewSizeLimits: {},
       treeStates: {},

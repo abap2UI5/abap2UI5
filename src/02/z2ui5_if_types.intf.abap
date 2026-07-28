@@ -165,6 +165,11 @@ INTERFACE z2ui5_if_types
   TYPES:
     BEGIN OF ty_s_event_control,
       check_allow_multi_req TYPE abap_bool,
+      " cancel the control's built-in default for this event before the
+      " roundtrip (oEvent.preventDefault(), e.g. sap.tnt NavigationListItem
+      " press without the automatic item selection); the event itself is
+      " still sent, so the backend decides what happens instead
+      check_prevent_default TYPE abap_bool,
     END OF ty_s_event_control.
 
 ENDINTERFACE.
