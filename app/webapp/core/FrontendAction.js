@@ -826,15 +826,32 @@ sap.ui.define(
         }
         // The anchor - guarded, so a runtime that sets it itself is left alone.
         if (!oSVM._oPersoControl) oSVM._oPersoControl = target;
-        // Only initialise what nobody has initialised yet: the smart control
-        // does it for itself once registered, and a second call is an error.
+        ensureInitialised(oSVM, target, 0);
+      };
+
+      // With the anchor in place the load flow still has to be started once.
+      // The smart control does that itself when it registers - but only then,
+      // and it may already have tried (and aborted) before the anchor existed.
+      // So wait for the control's wrapper and initialise it if nobody has:
+      // a wrapper is required (initialise answers "unknown control" without
+      // one) and an initialised wrapper must be left alone ("already executed").
+      function ensureInitialised(oSVM, target, attempt) {
+        if (Lib.isDestroyed(oSVM)) return;
         const wrapper = oSVM._getControlWrapper
           ? oSVM._getControlWrapper(target)
           : null;
-        if (wrapper && !wrapper.bInitialized) {
-          oSVM.initialise(() => {}, target);
+        if (!wrapper) {
+          if (attempt < SMART_VARIANT_INIT_TRIES) {
+            setTimeout(
+              () => ensureInitialised(oSVM, target, attempt + 1),
+              SMART_VARIANT_INIT_DELAY,
+            );
+          }
+          return;
         }
-      };
+        if (!wrapper.bInitialized) oSVM.initialise(() => {}, target);
+      }
+
       run();
     }
 

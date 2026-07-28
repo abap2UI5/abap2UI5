@@ -728,11 +728,12 @@ test.describe("SMART_VARIANT_INIT (sap.ui.comp variant management)", () => {
     expect(oSVM._oPersoControl).toEqual({ id: "smartFilterBar" });
   });
 
-  test("anchors before the control has registered", () => {
+  test("anchors before the control has registered, initialises after", async () => {
     const { FrontendAction, controls } = load();
     // nothing registered yet - the anchor still has to be placed, because the
     // control's own initialise() aborts without it and marks itself as done
-    const oSVM = svm([]);
+    const registered = [];
+    const oSVM = svm(registered);
     controls.pageVariantId = oSVM;
     controls.smartFilterBar = { id: "smartFilterBar" };
     FrontendAction.execute(null, [
@@ -742,6 +743,11 @@ test.describe("SMART_VARIANT_INIT (sap.ui.comp variant management)", () => {
     ]);
     expect(oSVM._oPersoControl).toEqual({ id: "smartFilterBar" });
     expect(oSVM.initialised).toEqual([]);
+    // the control registers a moment later (its metadata arrived) - the
+    // pending wait picks that up and starts the load flow nobody else would
+    registered.push("smartFilterBar");
+    await new Promise((r) => setTimeout(r, 250));
+    expect(oSVM.initialised).toEqual([{ id: "smartFilterBar" }]);
   });
 
   test("leaves a perso control the runtime set itself untouched", () => {

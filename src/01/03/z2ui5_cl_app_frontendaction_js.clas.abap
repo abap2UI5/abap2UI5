@@ -848,15 +848,32 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        }` && |\n| &&
              `        // The anchor - guarded, so a runtime that sets it itself is left alone.` && |\n| &&
              `        if (!oSVM._oPersoControl) oSVM._oPersoControl = target;` && |\n| &&
-             `        // Only initialise what nobody has initialised yet: the smart control` && |\n| &&
-             `        // does it for itself once registered, and a second call is an error.` && |\n| &&
+             `        ensureInitialised(oSVM, target, 0);` && |\n| &&
+             `      };` && |\n| &&
+             `` && |\n| &&
+             `      // With the anchor in place the load flow still has to be started once.` && |\n| &&
+             `      // The smart control does that itself when it registers - but only then,` && |\n| &&
+             `      // and it may already have tried (and aborted) before the anchor existed.` && |\n| &&
+             `      // So wait for the control's wrapper and initialise it if nobody has:` && |\n| &&
+             `      // a wrapper is required (initialise answers "unknown control" without` && |\n| &&
+             `      // one) and an initialised wrapper must be left alone ("already executed").` && |\n| &&
+             `      function ensureInitialised(oSVM, target, attempt) {` && |\n| &&
+             `        if (Lib.isDestroyed(oSVM)) return;` && |\n| &&
              `        const wrapper = oSVM._getControlWrapper` && |\n| &&
              `          ? oSVM._getControlWrapper(target)` && |\n| &&
              `          : null;` && |\n| &&
-             `        if (wrapper && !wrapper.bInitialized) {` && |\n| &&
-             `          oSVM.initialise(() => {}, target);` && |\n| &&
+             `        if (!wrapper) {` && |\n| &&
+             `          if (attempt < SMART_VARIANT_INIT_TRIES) {` && |\n| &&
+             `            setTimeout(` && |\n| &&
+             `              () => ensureInitialised(oSVM, target, attempt + 1),` && |\n| &&
+             `              SMART_VARIANT_INIT_DELAY,` && |\n| &&
+             `            );` && |\n| &&
+             `          }` && |\n| &&
+             `          return;` && |\n| &&
              `        }` && |\n| &&
-             `      };` && |\n| &&
+             `        if (!wrapper.bInitialized) oSVM.initialise(() => {}, target);` && |\n| &&
+             `      }` && |\n| &&
+             `` && |\n| &&
              `      run();` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
