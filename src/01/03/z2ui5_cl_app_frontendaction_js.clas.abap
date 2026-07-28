@@ -145,7 +145,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // a thin, data-driven executor").` && |\n| &&
              `    const URL_POLICIES = {` && |\n| &&
              `      ALLOW_ALL: () => true,` && |\n| &&
-             `      // the sap.m MessagePopover demo case: in-app links (#/…, /path, ?q=) may` && |\n| &&
+             `      // the sap.m MessagePopover demo case: in-app links (#/x, /path, ?q=) may` && |\n| &&
              `      // be followed, anything that leaves the app (http:, mailto:, //host) is` && |\n| &&
              `      // disabled in the popover.` && |\n| &&
              `      RELATIVE_ONLY: (url) => !isAbsoluteUrl(url),` && |\n| &&

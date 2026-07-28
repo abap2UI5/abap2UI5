@@ -125,7 +125,7 @@ sap.ui.define(
     // a thin, data-driven executor").
     const URL_POLICIES = {
       ALLOW_ALL: () => true,
-      // the sap.m MessagePopover demo case: in-app links (#/…, /path, ?q=) may
+      // the sap.m MessagePopover demo case: in-app links (#/x, /path, ?q=) may
       // be followed, anything that leaves the app (http:, mailto:, //host) is
       // disabled in the popover.
       RELATIVE_ONLY: (url) => !isAbsoluteUrl(url),
