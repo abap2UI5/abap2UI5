@@ -67,14 +67,26 @@ CLASS z2ui5_cl_app_formatter_js IMPLEMENTATION.
              `` && |\n| &&
              `  return {` && |\n| &&
              `    // --- date helpers (the z2ui5.Util legacy contract) ---` && |\n| &&
+             `    //` && |\n| &&
+             `    // An EMPTY input yields null, never an Invalid Date. A bound row with an` && |\n| &&
+             `    // optional date field (one template, so the attribute cannot be omitted` && |\n| &&
+             `    // per row) would otherwise hand ``new Date("")`` to the control: an Invalid` && |\n| &&
+             `    // Date is TRUTHY, so a consumer that only checks for presence accepts it` && |\n| &&
+             `    // and blows up much later - sap.ui.unified Month._checkDateEnabled ->` && |\n| &&
+             `    // CalendarDate.fromLocalJSDate throws for every rendered day and takes` && |\n| &&
+             `    // the whole view down. null is what "no date" means to a UI5 date` && |\n| &&
+             `    // property, so the missing value stays a missing value.` && |\n| &&
              `    DateCreateObject(s) {` && |\n| &&
+             `      if (!s) return null;` && |\n| &&
              `      return new Date(s);` && |\n| &&
              `    },` && |\n| &&
              `    DateAbapDateToDateObject(d) {` && |\n| &&
+             `      if (!d) return null;` && |\n| &&
              `      return new Date(...parseYmd(d));` && |\n| &&
              `    },` && |\n| &&
              `    // t is an ABAP time string "HHMMSS"; if omitted we default to midnight.` && |\n| &&
              `    DateAbapDateTimeToDateObject(d, t = "000000") {` && |\n| &&
+             `      if (!d) return null;` && |\n| &&
              `      return new Date(` && |\n| &&
              `        ...parseYmd(d),` && |\n| &&
              `        Number(t.slice(0, 2)),` && |\n| &&

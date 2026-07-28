@@ -47,14 +47,26 @@ sap.ui.define(["sap/ui/core/IconPool"], (IconPool) => {
 
   return {
     // --- date helpers (the z2ui5.Util legacy contract) ---
+    //
+    // An EMPTY input yields null, never an Invalid Date. A bound row with an
+    // optional date field (one template, so the attribute cannot be omitted
+    // per row) would otherwise hand `new Date("")` to the control: an Invalid
+    // Date is TRUTHY, so a consumer that only checks for presence accepts it
+    // and blows up much later - sap.ui.unified Month._checkDateEnabled ->
+    // CalendarDate.fromLocalJSDate throws for every rendered day and takes
+    // the whole view down. null is what "no date" means to a UI5 date
+    // property, so the missing value stays a missing value.
     DateCreateObject(s) {
+      if (!s) return null;
       return new Date(s);
     },
     DateAbapDateToDateObject(d) {
+      if (!d) return null;
       return new Date(...parseYmd(d));
     },
     // t is an ABAP time string "HHMMSS"; if omitted we default to midnight.
     DateAbapDateTimeToDateObject(d, t = "000000") {
+      if (!d) return null;
       return new Date(
         ...parseYmd(d),
         Number(t.slice(0, 2)),

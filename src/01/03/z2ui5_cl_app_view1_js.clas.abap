@@ -471,6 +471,34 @@ CLASS z2ui5_cl_app_view1_js IMPLEMENTATION.
              `      },` && |\n| &&
              `` && |\n| &&
              `      // ------------------------------------------------------------------` && |\n| &&
+             `      // eBP = "event backend, prevent default": cancels the control's` && |\n| &&
+             `      // built-in default for this event and then round-trips exactly like` && |\n| &&
+             `      // eB. The backend emits it (instead of eB) for an event registered` && |\n| &&
+             `      // with s_ctrl-check_prevent_default, passing $event as the first` && |\n| &&
+             `      // argument - preventDefault() only works synchronously inside the` && |\n| &&
+             `      // handler, so it cannot be a follow-up action from the response.` && |\n| &&
+             `      // Example: sap.tnt NavigationListItem.press, where cancelling the` && |\n| &&
+             `      // default suppresses the item selection and leaves the decision to` && |\n| &&
+             `      // the backend. The name is part of the protocol - do not rename it.` && |\n| &&
+             `      // ------------------------------------------------------------------` && |\n| &&
+             `      eBP(oEvent, ...args) {` && |\n| &&
+             `        // guard the call: a malformed wire (no $event) must still round-trip` && |\n| &&
+             `        if (typeof oEvent?.preventDefault === "function") {` && |\n| &&
+             `          oEvent.preventDefault();` && |\n| &&
+             `        }` && |\n| &&
+             `        this.eB(...args);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // Ancestor-text breadcrumb of a control resolved in an event argument,` && |\n| &&
+             `      // e.g. ``$controller.textPath(${$parameters>/item})`` on a menu's` && |\n| &&
+             `      // itemSelected -> "Create New Site > Official Store". The parent-chain` && |\n| &&
+             `      // walk happens on the live control tree, so no binding path can express` && |\n| &&
+             `      // it; the separator defaults to " > ".` && |\n| &&
+             `      textPath(oControl, sSeparator) {` && |\n| &&
+             `        return Lib.getTextPath(oControl, sSeparator);` && |\n| &&
+             `      },` && |\n| &&
+             `` && |\n| &&
+             `      // ------------------------------------------------------------------` && |\n| &&
              `      // eB = "event backend": triggers a backend roundtrip with arguments.` && |\n| &&
              `      // The name is part of the protocol - backend-generated view XML binds` && |\n| &&
              `      // events to eB/eF - and must not be renamed.` && |\n| &&

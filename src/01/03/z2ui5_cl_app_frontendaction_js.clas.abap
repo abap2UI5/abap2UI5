@@ -134,7 +134,30 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      addStyleClass: ["string"], // sap.ui.core.Control: add a CSS style class` && |\n| &&
              `      removeStyleClass: ["string"], // sap.ui.core.Control: remove a CSS style class` && |\n| &&
              `      toggleStyleClass: ["string"], // sap.ui.core.Control: toggle a CSS style class` && |\n| &&
+             `      setAsyncURLHandler: ["string"], // sap.m.MessagePopover: name of a URL_POLICY below` && |\n| &&
              `    };` && |\n| &&
+             `` && |\n| &&
+             `    // sap.m.MessagePopover.setAsyncURLHandler expects a live JS callback that` && |\n| &&
+             `    // resolves a promise per message link - a shape no backend payload can` && |\n| &&
+             `    // carry, and one round-trip per link would be the wrong ergonomics anyway.` && |\n| &&
+             `    // The backend names one of these built-in policies instead, so the` && |\n| &&
+             `    // link-gating stays declarative data on the wire (see rule "the frontend is` && |\n| &&
+             `    // a thin, data-driven executor").` && |\n| &&
+             `    const URL_POLICIES = {` && |\n| &&
+             `      ALLOW_ALL: () => true,` && |\n| &&
+             `      // the sap.m MessagePopover demo case: in-app links (#/x, /path, ?q=) may` && |\n| &&
+             `      // be followed, anything that leaves the app (http:, mailto:, //host) is` && |\n| &&
+             `      // disabled in the popover.` && |\n| &&
+             `      RELATIVE_ONLY: (url) => !isAbsoluteUrl(url),` && |\n| &&
+             `      DENY_ALL: () => false,` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
+             `    function isAbsoluteUrl(url) {` && |\n| &&
+             `      const s = String(url ?? "").trim();` && |\n| &&
+             `      // a scheme ("http:", "mailto:", "javascript:") or a protocol-relative` && |\n| &&
+             `      // "//host" - everything else resolves against the app's own origin` && |\n| &&
+             `      return /^[a-z][a-z0-9+.-]*:/i.test(s) || s.startsWith("//");` && |\n| &&
+             `    }` && |\n| &&
              `` && |\n| &&
              `    // A method LISTED above carries explicit arg kinds (and some, like openBy/` && |\n| &&
              `    // toggleBy, get special handling). A method NOT listed is still callable as` && |\n| &&
@@ -293,6 +316,34 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        });` && |\n| &&
              `        return;` && |\n| &&
              `      }` && |\n| &&
+             `      // setAsyncURLHandler takes a FUNCTION, so the argument names a policy` && |\n| &&
+             `      // (see URL_POLICIES) and the client installs the matching built-in` && |\n| &&
+             `      // validator - the wire still carries data, never code.` && |\n| &&
+             `      if (method === "setAsyncURLHandler") {` && |\n| &&
+             `        const policy = String(args[4] ?? "").toUpperCase();` && |\n| &&
+             `        const isAllowed = URL_POLICIES[policy];` && |\n| &&
+             `        if (!isAllowed) {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``CONTROL_BY_ID: unknown URL policy '${args[4]}' (allowed: ${Object.keys(URL_POLICIES).join(", ")})``,` && |\n| &&
+             `          );` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        if (!control || typeof control.setAsyncURLHandler !== "function") {` && |\n| &&
+             `          Lib.logError(` && |\n| &&
+             `            ``CONTROL_BY_ID: 'setAsyncURLHandler' not callable on control '${id}'``,` && |\n| &&
+             `          );` && |\n| &&
+             `          return;` && |\n| &&
+             `        }` && |\n| &&
+             `        control.setAsyncURLHandler((config) => {` && |\n| &&
+             `          // the control hands over { url, id, promise }; the promise's` && |\n| &&
+             `          // resolve() decides whether the link stays clickable` && |\n| &&
+             `          config?.promise?.resolve({` && |\n| &&
+             `            allowed: isAllowed(config.url),` && |\n| &&
+             `            id: config.id,` && |\n| &&
+             `          });` && |\n| &&
+             `        });` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
              `      // openBy is handled BEFORE the generic callable check: a control` && |\n| &&
              `      // without an own openBy (sap.ui.unified.Menu) still supports the` && |\n| &&
              `      // anchored open via its open(bWithKeyboard, opener, my, at, of)` && |\n| &&
@@ -366,7 +417,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        /\{(\d+)(?:\?([^:}]*):([^}]*))?\}/g,` && |\n| &&
              `        (m, i, tText, fText) => {` && |\n| &&
              `          const n = Number(i);` && |\n| &&
-             `          if (n >= values.length) return m;` && |\n| &&
+             `          if (n >= values.length) return m;` && |\n|.
+    result = result &&
              `          const v = String(values[n]);` && |\n| &&
              `          if (tText === undefined) return v;` && |\n| &&
              `          const truthy = v !== "" && !/^(false|0|undefined|null)$/i.test(v);` && |\n| &&
@@ -417,8 +469,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // of groups, each group an array of [path, operator, value1, value2?]` && |\n| &&
              `    // rows - OR inside a group, AND across groups (the FacetFilter /` && |\n| &&
              `    // ViewSettingsDialog multi-facet shape). Data only: paths, whitelisted` && |\n| &&
-             `    // operators and values - never code. An empty groups array clears.` && |\n|.
-    result = result &&
+             `    // operators and values - never code. An empty groups array clears.` && |\n| &&
              `    function buildFilterGroups(binding, json) {` && |\n| &&
              `      let groups;` && |\n| &&
              `      try {` && |\n| &&
@@ -767,7 +818,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    }` && |\n| &&
              `` && |\n| &&
              `    // BIND_ELEMENT: element-bind a whole view slot (popup / popover / main) to` && |\n| &&
-             `    // a row of a registered table, so the fragment's relative bindings ({Name},` && |\n| &&
+             `    // a row of a registered table, so the fragment's relative bindings ({Name},` && |\n|.
+    result = result &&
              `    // {ProductPicUrl}, ...) resolve against that row - the abap2UI5 equivalent of` && |\n| &&
              `    // oControl.bindElement(oCtx.getPath()). args = [slot, index, path]; the path` && |\n| &&
              `    // comes from client->_bind( table ) (braces already stripped server-side and` && |\n| &&
@@ -818,8 +870,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            ``SMART_VARIANT_INIT: '${controlId ? ``${svmId}' / '${controlId}`` : svmId}' not found``,` && |\n| &&
              `          );` && |\n| &&
              `          return;` && |\n| &&
-             `        }` && |\n|.
-    result = result &&
+             `        }` && |\n| &&
              `        if (Lib.isDestroyed(oSVM) || typeof oSVM.initialise !== "function") {` && |\n| &&
              `          Lib.logError(` && |\n| &&
              `            ``SMART_VARIANT_INIT: no SmartVariantManagement for id '${svmId}'``,` && |\n| &&
@@ -951,6 +1002,104 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      }, delay);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // ------------------------------------------------------------------` && |\n| &&
+             `    // KEYBOARD_SHORTCUT: bind a key combination to a NAMED BACKEND EVENT -` && |\n| &&
+             `    // the declarative equivalent of a sap.ui.core.CommandExecution shortcut` && |\n| &&
+             `    // (which needs a controller method and therefore has no place in a` && |\n| &&
+             `    // controller-less app). The backend registers "combo -> event" pairs as` && |\n| &&
+             `    // data; the document listener below is installed once and always reads` && |\n| &&
+             `    // the CURRENT registry, so an app switch (which resets AppState) starts` && |\n| &&
+             `    // from an empty set without touching the listener.` && |\n| &&
+             `    // ------------------------------------------------------------------` && |\n| &&
+             `` && |\n| &&
+             `    // in the order they are emitted into a normalized combo, so registration` && |\n| &&
+             `    // and keydown produce the same string for any spelling` && |\n| &&
+             `    const SHORTCUT_MODIFIERS = ["ctrl", "shift", "alt", "meta"];` && |\n| &&
+             `` && |\n| &&
+             `    // spellings apps/UI5 use for the same modifier or key` && |\n| &&
+             `    const SHORTCUT_ALIASES = {` && |\n| &&
+             `      control: "ctrl",` && |\n| &&
+             `      cmd: "meta",` && |\n| &&
+             `      command: "meta",` && |\n| &&
+             `      option: "alt",` && |\n| &&
+             `      esc: "escape",` && |\n| &&
+             `      del: "delete",` && |\n| &&
+             `      ins: "insert",` && |\n| &&
+             `      return: "enter",` && |\n| &&
+             `      space: " ",` && |\n| &&
+             `    };` && |\n| &&
+             `` && |\n| &&
+             `    function shortcutToken(part) {` && |\n| &&
+             `      const t = part.trim().toLowerCase();` && |\n| &&
+             `      return SHORTCUT_ALIASES[t] ?? t;` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // "Ctrl+Shift+S" / "shift + CTRL + s" -> "ctrl+shift+s". Returns an empty` && |\n| &&
+             `    // string when no actual key (only modifiers) is named.` && |\n| &&
+             `    function normalizeShortcut(combo) {` && |\n| &&
+             `      const parts = String(combo ?? "")` && |\n| &&
+             `        .split("+")` && |\n| &&
+             `        .map(shortcutToken)` && |\n| &&
+             `        .filter((p) => p !== "");` && |\n| &&
+             `      const mods = SHORTCUT_MODIFIERS.filter((m) => parts.includes(m));` && |\n| &&
+             `      const keys = parts.filter((p) => !SHORTCUT_MODIFIERS.includes(p));` && |\n| &&
+             `      if (keys.length === 0) return "";` && |\n| &&
+             `      return [...mods, keys[keys.length - 1]].join("+");` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // the same normalized form for an actual keydown event` && |\n| &&
+             `    function shortcutFromEvent(oEvent) {` && |\n| &&
+             `      const key = String(oEvent.key ?? "").toLowerCase();` && |\n| &&
+             `      // a bare modifier press is not a shortcut` && |\n| &&
+             `      if (key === "" || SHORTCUT_MODIFIERS.includes(shortcutToken(key)))` && |\n| &&
+             `        return "";` && |\n| &&
+             `      const mods = [];` && |\n| &&
+             `      if (oEvent.ctrlKey) mods.push("ctrl");` && |\n| &&
+             `      if (oEvent.shiftKey) mods.push("shift");` && |\n| &&
+             `      if (oEvent.altKey) mods.push("alt");` && |\n| &&
+             `      if (oEvent.metaKey) mods.push("meta");` && |\n| &&
+             `      return [...mods, key].join("+");` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    let shortcutListener = null;` && |\n| &&
+             `` && |\n| &&
+             `    function installShortcutListener() {` && |\n| &&
+             `      if (shortcutListener || typeof document === "undefined") return;` && |\n| &&
+             `      shortcutListener = (oEvent) => {` && |\n| &&
+             `        try {` && |\n| &&
+             `          const entry = AppState.state.shortcuts[shortcutFromEvent(oEvent)];` && |\n| &&
+             `          if (!entry) return;` && |\n| &&
+             `          // the browser's own default for the combo (Ctrl+S saves the page,` && |\n| &&
+             `          // Ctrl+D bookmarks it) must not fire alongside the app command` && |\n| &&
+             `          oEvent.preventDefault();` && |\n| &&
+             `          entry.controller.eB([entry.event]);` && |\n| &&
+             `        } catch (e) {` && |\n| &&
+             `          Lib.logError("KEYBOARD_SHORTCUT: dispatch failed", e);` && |\n| &&
+             `        }` && |\n| &&
+             `      };` && |\n| &&
+             `      document.addEventListener("keydown", shortcutListener);` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
+             `    // args: [_, combo, eventName] - an empty event name unregisters the combo` && |\n| &&
+             `    function evKeyboardShortcut(oController, args) {` && |\n| &&
+             `      const combo = normalizeShortcut(args[1]);` && |\n| &&
+             `      if (!combo) {` && |\n| &&
+             `        Lib.logError(` && |\n| &&
+             `          ``KEYBOARD_SHORTCUT: '${args[1]}' names no key to bind (modifiers only?)``,` && |\n| &&
+             `        );` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      const shortcuts = AppState.state.shortcuts;` && |\n| &&
+             `      if (!args[2]) {` && |\n| &&
+             `        delete shortcuts[combo];` && |\n| &&
+             `        return;` && |\n| &&
+             `      }` && |\n| &&
+             `      // re-registering a combo replaces it, so the backend can rebind a` && |\n| &&
+             `      // shortcut without unregistering it first` && |\n| &&
+             `      shortcuts[combo] = { event: args[2], controller: oController };` && |\n| &&
+             `      installShortcutListener();` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    function evSetInputMode(oController, args) {` && |\n| &&
              `      try {` && |\n| &&
              `        const oElement = ViewSlots.byId("MAIN", args[1]);` && |\n| &&
@@ -1070,7 +1219,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          inline: args[4] || "nearest",` && |\n| &&
              `        });` && |\n| &&
              `      } catch (e) {` && |\n| &&
-             `        Lib.logError(``SCROLL_INTO_VIEW: failed for '${args[1]}'``, e);` && |\n| &&
+             `        Lib.logError(``SCROLL_INTO_VIEW: failed for '${args[1]}'``, e);` && |\n|.
+    result = result &&
              `      }` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
@@ -1176,6 +1326,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      SCROLL_INTO_VIEW: evScrollIntoView,` && |\n| &&
              `      START_TIMER: evStartTimer,` && |\n| &&
              `      KEYBOARD_SET_MODE: evSetInputMode,` && |\n| &&
+             `      KEYBOARD_SHORTCUT: evKeyboardShortcut,` && |\n| &&
              `      Z2UI5: evZ2ui5Custom,` && |\n| &&
              `      WIZARD_SET_NEXT_STEP: evWizardSetNextStep,` && |\n| &&
              `      PLAY_AUDIO: evPlayAudio,` && |\n| &&

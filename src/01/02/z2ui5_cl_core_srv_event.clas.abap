@@ -33,7 +33,21 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
 
   METHOD get_event.
 
-    result = |{ z2ui5_if_core_types=>cs_ui5-event_backend_function }(['{ val }'|.
+    " preventDefault() only has an effect while the control's own handler is
+    " running, so it cannot be a follow-up action from the response: the
+    " event is bound to .eBP instead, which cancels the default and then
+    " roundtrips like .eB. It needs the UI5 event object, which UI5 resolves
+    " for the reserved $event argument in the handler expression.
+    DATA lv_func TYPE string.
+    DATA lv_event_arg TYPE string.
+    IF s_cnt-check_prevent_default = abap_true.
+      lv_func = z2ui5_if_core_types=>cs_ui5-event_backend_prevent.
+      lv_event_arg = `$event,`.
+    ELSE.
+      lv_func = z2ui5_if_core_types=>cs_ui5-event_backend_function.
+    ENDIF.
+
+    result = |{ lv_func }({ lv_event_arg }['{ val }'|.
 
     IF s_cnt-check_allow_multi_req = abap_true.
       result = |{ result },false,true|.

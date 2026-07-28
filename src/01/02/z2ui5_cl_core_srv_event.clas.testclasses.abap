@@ -13,6 +13,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS event_trailing_empty_arg FOR TESTING.
     METHODS event_view_param FOR TESTING.
     METHODS event_multi_req   FOR TESTING.
+    METHODS event_prevent_default FOR TESTING.
     METHODS event_client_args FOR TESTING.
     METHODS event_nav_container FOR TESTING.
     METHODS event_quote_escaped FOR TESTING.
@@ -267,6 +268,45 @@ CLASS ltcl_test IMPLEMENTATION.
 
     temp12 = xsdbool( lv_event CS `false,true` ).
     cl_abap_unit_assert=>assert_true( temp12 ).
+
+  ENDMETHOD.
+
+  METHOD event_prevent_default.
+
+    DATA lo_event TYPE REF TO z2ui5_cl_core_srv_event.
+    DATA ls_ctrl TYPE z2ui5_if_types=>ty_s_event_control.
+    lo_event = NEW #( ).
+
+    CLEAR ls_ctrl.
+    ls_ctrl-check_prevent_default = abap_true.
+
+    " the event is bound to .eBP and receives the UI5 event object, which the
+    " frontend needs to cancel the control's built-in default before the
+    " roundtrip - everything after it is the unchanged .eB payload
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eBP($event,['ITEM_PRESS'])`
+        act = lo_event->get_event( val   = `ITEM_PRESS`
+                                   s_cnt = ls_ctrl ) ).
+
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eBP($event,['ITEM_PRESS'], $event.oSource.sId)`
+        act = lo_event->get_event( val   = `ITEM_PRESS`
+                                   t_arg = VALUE #( ( `$event.oSource.sId` ) )
+                                   s_cnt = ls_ctrl ) ).
+
+    " both flags together stay independent
+    ls_ctrl-check_allow_multi_req = abap_true.
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eBP($event,['ITEM_PRESS',false,true])`
+        act = lo_event->get_event( val   = `ITEM_PRESS`
+                                   s_cnt = ls_ctrl ) ).
+
+    " unchanged without the flag
+    CLEAR ls_ctrl.
+    cl_abap_unit_assert=>assert_equals(
+        exp = `.eB(['ITEM_PRESS'])`
+        act = lo_event->get_event( val   = `ITEM_PRESS`
+                                   s_cnt = ls_ctrl ) ).
 
   ENDMETHOD.
 

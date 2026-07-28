@@ -5,6 +5,9 @@ INTERFACE z2ui5_if_core_types
     BEGIN OF cs_ui5,
       event_backend_function  TYPE string VALUE `.eB`,
       event_frontend_function TYPE string VALUE `.eF`,
+      " same roundtrip as .eB, but cancels the control's built-in default
+      " first - it takes the UI5 event object ($event) as first argument
+      event_backend_prevent   TYPE string VALUE `.eBP`,
     END OF cs_ui5.
 
   CONSTANTS cs_event_nav_app_leave TYPE string VALUE `___ZZZ_NAL`.

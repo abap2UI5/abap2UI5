@@ -114,7 +114,30 @@ sap.ui.define(
       addStyleClass: ["string"], // sap.ui.core.Control: add a CSS style class
       removeStyleClass: ["string"], // sap.ui.core.Control: remove a CSS style class
       toggleStyleClass: ["string"], // sap.ui.core.Control: toggle a CSS style class
+      setAsyncURLHandler: ["string"], // sap.m.MessagePopover: name of a URL_POLICY below
     };
+
+    // sap.m.MessagePopover.setAsyncURLHandler expects a live JS callback that
+    // resolves a promise per message link - a shape no backend payload can
+    // carry, and one round-trip per link would be the wrong ergonomics anyway.
+    // The backend names one of these built-in policies instead, so the
+    // link-gating stays declarative data on the wire (see rule "the frontend is
+    // a thin, data-driven executor").
+    const URL_POLICIES = {
+      ALLOW_ALL: () => true,
+      // the sap.m MessagePopover demo case: in-app links (#/x, /path, ?q=) may
+      // be followed, anything that leaves the app (http:, mailto:, //host) is
+      // disabled in the popover.
+      RELATIVE_ONLY: (url) => !isAbsoluteUrl(url),
+      DENY_ALL: () => false,
+    };
+
+    function isAbsoluteUrl(url) {
+      const s = String(url ?? "").trim();
+      // a scheme ("http:", "mailto:", "javascript:") or a protocol-relative
+      // "//host" - everything else resolves against the app's own origin
+      return /^[a-z][a-z0-9+.-]*:/i.test(s) || s.startsWith("//");
+    }
 
     // A method LISTED above carries explicit arg kinds (and some, like openBy/
     // toggleBy, get special handling). A method NOT listed is still callable as
@@ -270,6 +293,34 @@ sap.ui.define(
         whenAnchorRendered(anchor, oController, () => {
           if (control.isOpen?.()) control.close();
           else control.openBy(anchor);
+        });
+        return;
+      }
+      // setAsyncURLHandler takes a FUNCTION, so the argument names a policy
+      // (see URL_POLICIES) and the client installs the matching built-in
+      // validator - the wire still carries data, never code.
+      if (method === "setAsyncURLHandler") {
+        const policy = String(args[4] ?? "").toUpperCase();
+        const isAllowed = URL_POLICIES[policy];
+        if (!isAllowed) {
+          Lib.logError(
+            `CONTROL_BY_ID: unknown URL policy '${args[4]}' (allowed: ${Object.keys(URL_POLICIES).join(", ")})`,
+          );
+          return;
+        }
+        if (!control || typeof control.setAsyncURLHandler !== "function") {
+          Lib.logError(
+            `CONTROL_BY_ID: 'setAsyncURLHandler' not callable on control '${id}'`,
+          );
+          return;
+        }
+        control.setAsyncURLHandler((config) => {
+          // the control hands over { url, id, promise }; the promise's
+          // resolve() decides whether the link stays clickable
+          config?.promise?.resolve({
+            allowed: isAllowed(config.url),
+            id: config.id,
+          });
         });
         return;
       }
@@ -929,6 +980,104 @@ sap.ui.define(
       }, delay);
     }
 
+    // ------------------------------------------------------------------
+    // KEYBOARD_SHORTCUT: bind a key combination to a NAMED BACKEND EVENT -
+    // the declarative equivalent of a sap.ui.core.CommandExecution shortcut
+    // (which needs a controller method and therefore has no place in a
+    // controller-less app). The backend registers "combo -> event" pairs as
+    // data; the document listener below is installed once and always reads
+    // the CURRENT registry, so an app switch (which resets AppState) starts
+    // from an empty set without touching the listener.
+    // ------------------------------------------------------------------
+
+    // in the order they are emitted into a normalized combo, so registration
+    // and keydown produce the same string for any spelling
+    const SHORTCUT_MODIFIERS = ["ctrl", "shift", "alt", "meta"];
+
+    // spellings apps/UI5 use for the same modifier or key
+    const SHORTCUT_ALIASES = {
+      control: "ctrl",
+      cmd: "meta",
+      command: "meta",
+      option: "alt",
+      esc: "escape",
+      del: "delete",
+      ins: "insert",
+      return: "enter",
+      space: " ",
+    };
+
+    function shortcutToken(part) {
+      const t = part.trim().toLowerCase();
+      return SHORTCUT_ALIASES[t] ?? t;
+    }
+
+    // "Ctrl+Shift+S" / "shift + CTRL + s" -> "ctrl+shift+s". Returns an empty
+    // string when no actual key (only modifiers) is named.
+    function normalizeShortcut(combo) {
+      const parts = String(combo ?? "")
+        .split("+")
+        .map(shortcutToken)
+        .filter((p) => p !== "");
+      const mods = SHORTCUT_MODIFIERS.filter((m) => parts.includes(m));
+      const keys = parts.filter((p) => !SHORTCUT_MODIFIERS.includes(p));
+      if (keys.length === 0) return "";
+      return [...mods, keys[keys.length - 1]].join("+");
+    }
+
+    // the same normalized form for an actual keydown event
+    function shortcutFromEvent(oEvent) {
+      const key = String(oEvent.key ?? "").toLowerCase();
+      // a bare modifier press is not a shortcut
+      if (key === "" || SHORTCUT_MODIFIERS.includes(shortcutToken(key)))
+        return "";
+      const mods = [];
+      if (oEvent.ctrlKey) mods.push("ctrl");
+      if (oEvent.shiftKey) mods.push("shift");
+      if (oEvent.altKey) mods.push("alt");
+      if (oEvent.metaKey) mods.push("meta");
+      return [...mods, key].join("+");
+    }
+
+    let shortcutListener = null;
+
+    function installShortcutListener() {
+      if (shortcutListener || typeof document === "undefined") return;
+      shortcutListener = (oEvent) => {
+        try {
+          const entry = AppState.state.shortcuts[shortcutFromEvent(oEvent)];
+          if (!entry) return;
+          // the browser's own default for the combo (Ctrl+S saves the page,
+          // Ctrl+D bookmarks it) must not fire alongside the app command
+          oEvent.preventDefault();
+          entry.controller.eB([entry.event]);
+        } catch (e) {
+          Lib.logError("KEYBOARD_SHORTCUT: dispatch failed", e);
+        }
+      };
+      document.addEventListener("keydown", shortcutListener);
+    }
+
+    // args: [_, combo, eventName] - an empty event name unregisters the combo
+    function evKeyboardShortcut(oController, args) {
+      const combo = normalizeShortcut(args[1]);
+      if (!combo) {
+        Lib.logError(
+          `KEYBOARD_SHORTCUT: '${args[1]}' names no key to bind (modifiers only?)`,
+        );
+        return;
+      }
+      const shortcuts = AppState.state.shortcuts;
+      if (!args[2]) {
+        delete shortcuts[combo];
+        return;
+      }
+      // re-registering a combo replaces it, so the backend can rebind a
+      // shortcut without unregistering it first
+      shortcuts[combo] = { event: args[2], controller: oController };
+      installShortcutListener();
+    }
+
     function evSetInputMode(oController, args) {
       try {
         const oElement = ViewSlots.byId("MAIN", args[1]);
@@ -1154,6 +1303,7 @@ sap.ui.define(
       SCROLL_INTO_VIEW: evScrollIntoView,
       START_TIMER: evStartTimer,
       KEYBOARD_SET_MODE: evSetInputMode,
+      KEYBOARD_SHORTCUT: evKeyboardShortcut,
       Z2UI5: evZ2ui5Custom,
       WIZARD_SET_NEXT_STEP: evWizardSetNextStep,
       PLAY_AUDIO: evPlayAudio,

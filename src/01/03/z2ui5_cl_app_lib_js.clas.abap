@@ -234,6 +234,28 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      control.addEventDelegate(delegate);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
+             `    // Join a control's own text with its ancestors' texts, outermost first` && |\n| &&
+             `    // ("Create New Site > Official Store"). The walk climbs getParent() and` && |\n| &&
+             `    // stops at the first ancestor that has no getText - for a menu item that` && |\n| &&
+             `    // is the Menu itself, so the result is exactly the item's breadcrumb` && |\n| &&
+             `    // (the ``while (oItem instanceof MenuItem)`` loop UI5 samples write in a` && |\n| &&
+             `    // controller). A control-tree walk cannot be expressed as a binding path,` && |\n| &&
+             `    // which is why it lives here and is reachable from an event argument via` && |\n| &&
+             `    // the controller's textPath().` && |\n| &&
+             `    function getTextPath(control, separator) {` && |\n| &&
+             `      const texts = [];` && |\n| &&
+             `      let node = control;` && |\n| &&
+             `      // the control tree is finite, but never loop forever on a cyclic or` && |\n| &&
+             `      // self-referencing parent` && |\n| &&
+             `      for (let i = 0; node && i < 100; i++) {` && |\n| &&
+             `        if (typeof node.getText !== "function") break;` && |\n| &&
+             `        const text = node.getText();` && |\n| &&
+             `        if (text) texts.unshift(text);` && |\n| &&
+             `        node = typeof node.getParent === "function" ? node.getParent() : null;` && |\n| &&
+             `      }` && |\n| &&
+             `      return texts.join(separator || " > ");` && |\n| &&
+             `    }` && |\n| &&
+             `` && |\n| &&
              `    // Copy text to the clipboard, preferring the async clipboard API with a` && |\n| &&
              `    // fallback to the legacy textarea + execCommand approach.` && |\n| &&
              `    function copyToClipboard(textToCopy) {` && |\n| &&
@@ -395,7 +417,8 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      const delta = {};` && |\n| &&
              `      for (const path of paths) {` && |\n| &&
              `        // path looks like "/<attr>" or "/<attr>/<row>/<field>" with` && |\n| &&
-             `        // arbitrarily deep <row>/<subtable> repetitions for nested tables` && |\n| &&
+             `        // arbitrarily deep <row>/<subtable> repetitions for nested tables` && |\n|.
+    result = result &&
              `        const parts = path.slice(1).split("/");` && |\n| &&
              `        const attr = parts[0];` && |\n| &&
              `        const steps = parseDeltaSteps(parts.slice(1));` && |\n| &&
@@ -417,8 +440,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `          const rows = node.__delta;` && |\n| &&
              `          if (!rows[row]) rows[row] = {};` && |\n| &&
              `          const rowDelta = rows[row];` && |\n| &&
-             `          model = model?.[Number(row)]?.[field];` && |\n|.
-    result = result &&
+             `          model = model?.[Number(row)]?.[field];` && |\n| &&
              `          if (leaf) {` && |\n| &&
              `            // The leaf value (cell, struct or whole sub-table) replaces any` && |\n| &&
              `            // nested delta queued for the same field - it reads the same` && |\n| &&
@@ -515,6 +537,7 @@ CLASS z2ui5_cl_app_lib_js IMPLEMENTATION.
              `      applyTokenUpdate,` && |\n| &&
              `      runCallbacks,` && |\n| &&
              `      whenRendered,` && |\n| &&
+             `      getTextPath,` && |\n| &&
              `      copyToClipboard,` && |\n| &&
              `      toText,` && |\n| &&
              `      deriveSystemType,` && |\n| &&

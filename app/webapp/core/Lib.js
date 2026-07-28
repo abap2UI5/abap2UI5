@@ -214,6 +214,28 @@ sap.ui.define(
       control.addEventDelegate(delegate);
     }
 
+    // Join a control's own text with its ancestors' texts, outermost first
+    // ("Create New Site > Official Store"). The walk climbs getParent() and
+    // stops at the first ancestor that has no getText - for a menu item that
+    // is the Menu itself, so the result is exactly the item's breadcrumb
+    // (the `while (oItem instanceof MenuItem)` loop UI5 samples write in a
+    // controller). A control-tree walk cannot be expressed as a binding path,
+    // which is why it lives here and is reachable from an event argument via
+    // the controller's textPath().
+    function getTextPath(control, separator) {
+      const texts = [];
+      let node = control;
+      // the control tree is finite, but never loop forever on a cyclic or
+      // self-referencing parent
+      for (let i = 0; node && i < 100; i++) {
+        if (typeof node.getText !== "function") break;
+        const text = node.getText();
+        if (text) texts.unshift(text);
+        node = typeof node.getParent === "function" ? node.getParent() : null;
+      }
+      return texts.join(separator || " > ");
+    }
+
     // Copy text to the clipboard, preferring the async clipboard API with a
     // fallback to the legacy textarea + execCommand approach.
     function copyToClipboard(textToCopy) {
@@ -494,6 +516,7 @@ sap.ui.define(
       applyTokenUpdate,
       runCallbacks,
       whenRendered,
+      getTextPath,
       copyToClipboard,
       toText,
       deriveSystemType,

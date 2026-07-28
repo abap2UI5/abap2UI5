@@ -94,6 +94,9 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `// Control / helper state` && |\n| &&
              `//   errors            capped error log, see Lib.logError` && |\n| &&
              `//   timers            single pending backend timer (FrontendAction)` && |\n| &&
+             `//   shortcuts         registered keyboard shortcuts, normalized combo ->` && |\n| &&
+             `//                     { event, controller } (FrontendAction.KEYBOARD_SHORTCUT);` && |\n| &&
+             `//                     an app switch resets it, the document listener stays` && |\n| &&
              `//   lastScrolled      last scrolled element per slot (Server.onScrollCapture)` && |\n| &&
              `//   viewSizeLimits    per-slot model size limits (FrontendAction)` && |\n| &&
              `//   treeStates        tree binding state per tree_id across rebuilds (Tree control)` && |\n| &&
@@ -165,6 +168,7 @@ CLASS z2ui5_cl_app_appstate_js IMPLEMENTATION.
              `      // Control / helper state` && |\n| &&
              `      errors: [],` && |\n| &&
              `      timers: {},` && |\n| &&
+             `      shortcuts: {},` && |\n| &&
              `      lastScrolled: {},` && |\n| &&
              `      viewSizeLimits: {},` && |\n| &&
              `      treeStates: {},` && |\n| &&

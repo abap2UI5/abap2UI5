@@ -93,6 +93,30 @@ test.describe("Formatter module", () => {
     );
   });
 
+  test("the date helpers map an empty value to null, not to an Invalid Date", () => {
+    const { Formatter } = load();
+    // an Invalid Date is truthy, so a control that only checks for presence
+    // would accept it and throw much later (sap.ui.unified Month) - a missing
+    // optional date has to stay missing
+    expect(Formatter.DateCreateObject("")).toBeNull();
+    expect(Formatter.DateCreateObject(null)).toBeNull();
+    expect(Formatter.DateCreateObject(undefined)).toBeNull();
+    expect(Formatter.DateAbapDateToDateObject("")).toBeNull();
+    expect(Formatter.DateAbapDateTimeToDateObject("")).toBeNull();
+    expect(Formatter.DateAbapDateTimeToDateObject("", "134501")).toBeNull();
+  });
+
+  test("the date helpers still convert a filled value", () => {
+    const { Formatter } = load();
+    const d = Formatter.DateCreateObject("2026-07-02T13:45:01Z");
+    expect(isNaN(d.getTime())).toBe(false);
+    expect(d.toISOString()).toBe("2026-07-02T13:45:01.000Z");
+    expect(Formatter.DateAbapDateToDateObject("20260702").getDate()).toBe(2);
+    expect(
+      Formatter.DateAbapDateTimeToDateObject("20260702", "134501").getHours(),
+    ).toBe(13);
+  });
+
   test("z2ui5/Util re-exports the date helpers as the legacy alias", () => {
     const { Formatter, Util } = load();
     expect(Util.DateCreateObject).toBe(Formatter.DateCreateObject);

@@ -6,7 +6,7 @@ const { loadModule } = require("./loadModule");
 // app/webapp/core/FrontendAction.js (loaded via a stubbed sap.ui.define).
 // The focus is the whitelist boundary and the argument casting.
 
-function load() {
+function load({ sandbox } = {}) {
   const calls = [];
   const errors = [];
   const rec =
@@ -33,7 +33,7 @@ function load() {
     whenRendered: (_control, _owner, fn) => fn(),
     isDestroyed: (o) => Boolean(o?.isDestroyed && o.isDestroyed()),
   };
-  const AppState = { state: { onBeforeEventFrontend: [] } };
+  const AppState = { state: { onBeforeEventFrontend: [], shortcuts: {} } };
   function Filter(path, operator, value1, value2) {
     Object.assign(this, { path, operator, value1, value2 });
   }
@@ -57,8 +57,9 @@ function load() {
       "z2ui5/core/ViewSlots": ViewSlots,
       "z2ui5/core/AppState": AppState,
     },
+    sandbox,
   });
-  return { FrontendAction: module, calls, errors, controls, views };
+  return { FrontendAction: module, calls, errors, controls, views, AppState };
 }
 
 test.describe("CONTROL_GLOBAL (global objects)", () => {
@@ -807,5 +808,199 @@ test.describe("SMART_VARIANT_INIT (sap.ui.comp variant management)", () => {
     ]);
     expect(errors.length).toBe(1);
     expect(errors[0]).toContain("no SmartVariantManagement");
+  });
+});
+
+test.describe("CONTROL_BY_ID setAsyncURLHandler (MessagePopover URL policy)", () => {
+  // the control takes a live callback, so the wire carries a POLICY NAME and
+  // the client installs the matching built-in validator
+  function popover() {
+    let handler = null;
+    return {
+      setAsyncURLHandler: (fn) => (handler = fn),
+      ask: (url) => {
+        let result = null;
+        handler({ url, id: "msg1", promise: { resolve: (r) => (result = r) } });
+        return result;
+      },
+    };
+  }
+
+  test("RELATIVE_ONLY allows in-app links and blocks absolute ones", () => {
+    const { FrontendAction, controls } = load();
+    const oPopover = popover();
+    controls.messagePopover = oPopover;
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "messagePopover",
+      "",
+      "setAsyncURLHandler",
+      "RELATIVE_ONLY",
+    ]);
+    expect(oPopover.ask("#/details")).toEqual({ allowed: true, id: "msg1" });
+    expect(oPopover.ask("/sap/opu/x")).toEqual({ allowed: true, id: "msg1" });
+    expect(oPopover.ask("http://example.com")).toEqual({
+      allowed: false,
+      id: "msg1",
+    });
+    expect(oPopover.ask("//example.com")).toEqual({
+      allowed: false,
+      id: "msg1",
+    });
+    expect(oPopover.ask("mailto:a@b.c")).toEqual({
+      allowed: false,
+      id: "msg1",
+    });
+  });
+
+  test("ALLOW_ALL and DENY_ALL are unconditional", () => {
+    const { FrontendAction, controls } = load();
+    const oAll = popover();
+    const oNone = popover();
+    controls.allPopover = oAll;
+    controls.nonePopover = oNone;
+    const call = (id, policy) =>
+      FrontendAction.execute(null, [
+        "CONTROL_BY_ID",
+        id,
+        "",
+        "setAsyncURLHandler",
+        policy,
+      ]);
+    call("allPopover", "ALLOW_ALL");
+    call("nonePopover", "DENY_ALL");
+    expect(oAll.ask("http://example.com").allowed).toBe(true);
+    expect(oNone.ask("#/details").allowed).toBe(false);
+  });
+
+  test("rejects an unknown policy and leaves the control untouched", () => {
+    const { FrontendAction, controls, errors } = load();
+    let installed = false;
+    controls.messagePopover = {
+      setAsyncURLHandler: () => (installed = true),
+    };
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "messagePopover",
+      "",
+      "setAsyncURLHandler",
+      "TRUST_EVERYTHING",
+    ]);
+    expect(installed).toBe(false);
+    expect(errors[0]).toContain("unknown URL policy");
+  });
+
+  test("logs an error when the control has no setAsyncURLHandler", () => {
+    const { FrontendAction, controls, errors } = load();
+    controls.notAPopover = {};
+    FrontendAction.execute(null, [
+      "CONTROL_BY_ID",
+      "notAPopover",
+      "",
+      "setAsyncURLHandler",
+      "ALLOW_ALL",
+    ]);
+    expect(errors[0]).toContain("not callable");
+  });
+});
+
+test.describe("KEYBOARD_SHORTCUT (key combination -> backend event)", () => {
+  // a minimal document that records the keydown listener the action installs
+  function docStub() {
+    const listeners = [];
+    return {
+      document: {
+        addEventListener: (type, fn) => {
+          if (type === "keydown") listeners.push(fn);
+        },
+      },
+      press: (key, mods = {}) => {
+        let prevented = false;
+        const oEvent = {
+          key,
+          ctrlKey: false,
+          shiftKey: false,
+          altKey: false,
+          metaKey: false,
+          ...mods,
+          preventDefault: () => (prevented = true),
+        };
+        for (const fn of listeners) fn(oEvent);
+        return prevented;
+      },
+      count: () => listeners.length,
+    };
+  }
+
+  function loadWithDoc() {
+    const doc = docStub();
+    const ctx = load({ sandbox: { document: doc.document } });
+    const fired = [];
+    const oController = { eB: (args) => fired.push(args) };
+    return { ...ctx, doc, fired, oController };
+  }
+
+  test("fires the registered event and swallows the browser default", () => {
+    const { FrontendAction, doc, fired, oController } = loadWithDoc();
+    FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+    expect(doc.press("s", { ctrlKey: true })).toBe(true);
+    expect(fired).toEqual([["SAVE"]]);
+  });
+
+  test("ignores a combination that was not registered", () => {
+    const { FrontendAction, doc, fired, oController } = loadWithDoc();
+    FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+    expect(doc.press("s")).toBe(false);
+    expect(doc.press("d", { ctrlKey: true })).toBe(false);
+    expect(doc.press("s", { ctrlKey: true, shiftKey: true })).toBe(false);
+    expect(fired).toEqual([]);
+  });
+
+  test("normalizes modifier order, case and aliases", () => {
+    const { FrontendAction, doc, fired, oController } = loadWithDoc();
+    FrontendAction.execute(oController, [
+      "KEYBOARD_SHORTCUT",
+      "shift + CONTROL + D",
+      "DELETE",
+    ]);
+    expect(doc.press("d", { ctrlKey: true, shiftKey: true })).toBe(true);
+    expect(fired).toEqual([["DELETE"]]);
+  });
+
+  test("binds a function key without modifiers", () => {
+    const { FrontendAction, doc, fired, oController } = loadWithDoc();
+    FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "F2", "EDIT"]);
+    expect(doc.press("F2")).toBe(true);
+    expect(fired).toEqual([["EDIT"]]);
+  });
+
+  test("re-registering rebinds, an empty event name removes", () => {
+    const { FrontendAction, doc, fired, oController } = loadWithDoc();
+    FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+    FrontendAction.execute(oController, [
+      "KEYBOARD_SHORTCUT",
+      "Ctrl+S",
+      "SAVE_AS",
+    ]);
+    expect(doc.press("s", { ctrlKey: true })).toBe(true);
+    expect(fired).toEqual([["SAVE_AS"]]);
+    FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", ""]);
+    expect(doc.press("s", { ctrlKey: true })).toBe(false);
+    expect(fired).toEqual([["SAVE_AS"]]);
+    // one listener for any number of registrations
+    expect(doc.count()).toBe(1);
+  });
+
+  test("a bare modifier press is no shortcut", () => {
+    const { FrontendAction, doc, fired, oController } = loadWithDoc();
+    FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+S", "SAVE"]);
+    expect(doc.press("Control", { ctrlKey: true })).toBe(false);
+    expect(fired).toEqual([]);
+  });
+
+  test("rejects a combination that names no key", () => {
+    const { FrontendAction, errors, oController } = loadWithDoc();
+    FrontendAction.execute(oController, ["KEYBOARD_SHORTCUT", "Ctrl+", "SAVE"]);
+    expect(errors[0]).toContain("names no key");
   });
 });
