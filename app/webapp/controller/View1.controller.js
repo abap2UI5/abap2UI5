@@ -213,6 +213,11 @@ sap.ui.define(
                 // latest draft so a later Forward restores the newest state.
                 const route = Lib.routeForApp(app, draftForRoute);
                 if (PARAMS.CHECK_NAV_APP_CALL) {
+                  // repoint the caller's entry first - it borrows the echo
+                  // guard, so restore it to this app before pushing the route
+                  this._repointCallerEntry(PARAMS, draftForRoute);
+                  state.currentApp = app;
+                  state.currentDraftId = draftForRoute;
                   _hashChanger.setHash(route);
                 } else if (_hashChanger.getHash() !== route) {
                   _hashChanger.replaceHash(route);
@@ -242,6 +247,34 @@ sap.ui.define(
         } catch (e) {
           Lib.logError("_updateBrowserHistory: history update failed", e);
         }
+      },
+
+      // Point the CALLING app's history entry at the draft the backend saved
+      // for it during this very nav_app_call (PARAMS.NAV_APP_CALL_PREV_*).
+      // That draft carries every client-side change the user made since the
+      // caller last rendered - two-way bound switches, checkboxes, input - all
+      // of which travelled to the backend with the event that triggered the
+      // navigation. The entry itself still carries the older draft of that
+      // last render, so without this Back restores the caller as it was
+      // RENDERED and silently drops those changes. The entry is still the top
+      // one here (the called app's route is pushed right after), so a
+      // replaceHash updates it in place and leaves the history depth alone.
+      // KEEP mode only - a FRESH route carries no draft and always restarts
+      // the app anyway.
+      _repointCallerEntry(PARAMS, draftForRoute) {
+        const state = AppState.state;
+        const prevApp = PARAMS.NAV_APP_CALL_PREV_APP;
+        const prevDraft = PARAMS.NAV_APP_CALL_PREV_ID;
+        if (!draftForRoute || !prevApp || !prevDraft) return;
+        const prevRoute = Lib.routeForApp(prevApp, prevDraft);
+        if (_hashChanger.getHash() === prevRoute) return;
+        // Server.onHashChange ignores the echo of our own hash writes by
+        // comparing the route's draft id against currentDraftId - adopt the
+        // caller's fresh draft BEFORE replacing, or the write reads as a user
+        // navigation and fires a restore roundtrip. The caller of this method
+        // sets the state back to the called app right afterwards.
+        state.currentDraftId = prevDraft;
+        _hashChanger.replaceHash(prevRoute);
       },
 
       // Execute the follow-up JS snippets stashed by Server.responseSuccess.

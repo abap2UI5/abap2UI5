@@ -127,6 +127,11 @@ INTERFACE z2ui5_if_client
   "! in the route '#/app/<CLASS>/<DRAFT>'; fresh routes by class only
   "! '#/app/<CLASS>' and always starts the app fresh; default disables routing
   "! (framework behaviour as before this feature).
+  "!
+  "! In keep mode the calling app's route entry is advanced to the draft saved
+  "! for it during the nav_app_call, so Back restores it as the user LEFT it -
+  "! including everything two-way bound that changed on the client since it
+  "! last rendered and travelled to the backend with the triggering event.
   METHODS set_nav_routing
     IMPORTING
       mode TYPE string DEFAULT cs_nav_mode-keep.
