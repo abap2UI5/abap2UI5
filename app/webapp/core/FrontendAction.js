@@ -866,13 +866,26 @@ sap.ui.define(
           target = ViewSlots.resolveById(registered[0].getControl());
           if (!target) return;
         }
-        // The anchor - guarded, so a runtime that sets it itself is left alone.
+        // The anchor. setPersControler() is sap.ui.comp's own setter and does
+        // more than assign the field: it also creates the control promise that
+        // initialise() insists on. A page variant never gets that call -
+        // addPersonalizableControl() returns early for isPageVariant() and only
+        // the single-control case reaches setPersControler() - which is exactly
+        // why a controller-less app ends up with no anchor and no promise.
         sviState(oSVM, "before anchor");
-        if (!oSVM._oPersoControl) {
-          oSVM._oPersoControl = target;
-          sviLog("anchor set to", target.getId ? target.getId() : target);
-        } else {
+        if (oSVM._oPersoControl) {
           sviLog("anchor already set by the runtime");
+        } else if (typeof oSVM.setPersControler === "function") {
+          oSVM.setPersControler(target);
+          sviLog(
+            "setPersControler called with",
+            target.getId ? target.getId() : target,
+          );
+        } else {
+          // older runtimes without the setter: the field alone still carries
+          // the write path (saving), which is better than nothing
+          oSVM._oPersoControl = target;
+          sviLog("no setPersControler - assigned the field instead");
         }
         ensureInitialised(oSVM, target, 0);
         // snapshots after the handshake, to see what the load flow produced

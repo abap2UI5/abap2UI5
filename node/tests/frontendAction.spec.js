@@ -676,6 +676,12 @@ test.describe("SMART_VARIANT_INIT (sap.ui.comp variant management)", () => {
     return {
       _oPersoControl: null,
       initialised,
+      // sap.ui.comp's own setter: anchors the control AND creates the control
+      // promise initialise() checks - a page variant never gets this call
+      setPersControler(control) {
+        this._oPersoControl = control;
+        this._oControlPromise = {};
+      },
       getPersonalizableControls: () =>
         registeredIds.map((id) => ({ getControl: () => id })),
       _getControlWrapper: (control) =>
@@ -689,6 +695,22 @@ test.describe("SMART_VARIANT_INIT (sap.ui.comp variant management)", () => {
   test("anchors the perso control the app named", () => {
     const { FrontendAction, controls } = load();
     const oSVM = svm(["smartFilterBar"]);
+    controls.pageVariantId = oSVM;
+    controls.smartFilterBar = { id: "smartFilterBar" };
+    FrontendAction.execute(null, [
+      "SMART_VARIANT_INIT",
+      "pageVariantId",
+      "smartFilterBar",
+    ]);
+    expect(oSVM._oPersoControl).toEqual({ id: "smartFilterBar" });
+    // the setter, not the field: it also creates the control promise
+    expect(oSVM._oControlPromise).toBeTruthy();
+  });
+
+  test("falls back to the field when the runtime has no setter", () => {
+    const { FrontendAction, controls } = load();
+    const oSVM = svm(["smartFilterBar"]);
+    delete oSVM.setPersControler;
     controls.pageVariantId = oSVM;
     controls.smartFilterBar = { id: "smartFilterBar" };
     FrontendAction.execute(null, [

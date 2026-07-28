@@ -888,13 +888,26 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          target = ViewSlots.resolveById(registered[0].getControl());` && |\n| &&
              `          if (!target) return;` && |\n| &&
              `        }` && |\n| &&
-             `        // The anchor - guarded, so a runtime that sets it itself is left alone.` && |\n| &&
+             `        // The anchor. setPersControler() is sap.ui.comp's own setter and does` && |\n| &&
+             `        // more than assign the field: it also creates the control promise that` && |\n| &&
+             `        // initialise() insists on. A page variant never gets that call -` && |\n| &&
+             `        // addPersonalizableControl() returns early for isPageVariant() and only` && |\n| &&
+             `        // the single-control case reaches setPersControler() - which is exactly` && |\n| &&
+             `        // why a controller-less app ends up with no anchor and no promise.` && |\n| &&
              `        sviState(oSVM, "before anchor");` && |\n| &&
-             `        if (!oSVM._oPersoControl) {` && |\n| &&
-             `          oSVM._oPersoControl = target;` && |\n| &&
-             `          sviLog("anchor set to", target.getId ? target.getId() : target);` && |\n| &&
-             `        } else {` && |\n| &&
+             `        if (oSVM._oPersoControl) {` && |\n| &&
              `          sviLog("anchor already set by the runtime");` && |\n| &&
+             `        } else if (typeof oSVM.setPersControler === "function") {` && |\n| &&
+             `          oSVM.setPersControler(target);` && |\n| &&
+             `          sviLog(` && |\n| &&
+             `            "setPersControler called with",` && |\n| &&
+             `            target.getId ? target.getId() : target,` && |\n| &&
+             `          );` && |\n| &&
+             `        } else {` && |\n| &&
+             `          // older runtimes without the setter: the field alone still carries` && |\n| &&
+             `          // the write path (saving), which is better than nothing` && |\n| &&
+             `          oSVM._oPersoControl = target;` && |\n| &&
+             `          sviLog("no setPersControler - assigned the field instead");` && |\n| &&
              `        }` && |\n| &&
              `        ensureInitialised(oSVM, target, 0);` && |\n| &&
              `        // snapshots after the handshake, to see what the load flow produced` && |\n| &&
@@ -1206,7 +1219,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      SET_SIZE_LIMIT: evSetSizeLimit,` && |\n| &&
              `      HISTORY_BACK: evHistoryBack,` && |\n| &&
              `      NAV_TO_ROUTE: evNavToRoute,` && |\n| &&
-             `      CLIPBOARD_COPY: evClipboardCopy,` && |\n| &&
+             `      CLIPBOARD_COPY: evClipboardCopy,` && |\n|.
+    result = result &&
              `      CLIPBOARD_APP_STATE: evClipboardAppState,` && |\n| &&
              `      SET_ODATA_MODEL: evSetODataModel,` && |\n| &&
              `      STORE_DATA: evStoreData,` && |\n| &&
@@ -1219,8 +1233,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      POPUP_CLOSE: () => ViewSlots.destroy("POPUP"),` && |\n| &&
              `      POPOVER_CLOSE: () => ViewSlots.destroy("POPOVER"),` && |\n| &&
              `      BIND_ELEMENT: evBindElement,` && |\n| &&
-             `      URLHELPER: evUrlHelper,` && |\n|.
-    result = result &&
+             `      URLHELPER: evUrlHelper,` && |\n| &&
              `      IMAGE_EDITOR_POPUP_CLOSE: evImageEditorPopupClose,` && |\n| &&
              `      SET_TITLE: evSetTitle,` && |\n| &&
              `      SET_TITLE_LAUNCHPAD: evSetTitleLaunchpad,` && |\n| &&
