@@ -817,6 +817,48 @@ sap.ui.define(
       view.bindElement(`${path}/${args[2]}`);
     }
 
+    // The anchor. setPersControler() is sap.ui.comp's own setter and does
+    // more than assign the field: it also creates the control promise that
+    // initialise() insists on. A page variant never gets that call -
+    // addPersonalizableControl() returns early for isPageVariant() and only
+    // the single-control case reaches setPersControler() - which is exactly
+    // why a controller-less app ends up with no anchor and no promise.
+    function anchorPersoControl(oSVM, target) {
+      if (oSVM._oPersoControl) {
+        // a runtime that anchors the control itself is left alone
+      } else if (typeof oSVM.setPersControler === "function") {
+        oSVM.setPersControler(target);
+      } else {
+        // older runtimes without the setter: the field alone still carries
+        // the write path (saving), which is better than nothing
+        oSVM._oPersoControl = target;
+      }
+    }
+
+    // With the anchor in place the load flow still has to be started once.
+    // A smart control does that itself when it registers - but only then,
+    // and it may already have tried (and aborted) before the anchor existed.
+    // So wait for the control's wrapper and initialise it if nobody has:
+    // a wrapper is required (initialise answers "unknown control" without
+    // one) and an initialised wrapper must be left alone ("already executed").
+    function ensureInitialised(oSVM, target, attempt, fnCallback) {
+      if (Lib.isDestroyed(oSVM)) return;
+      const wrapper = oSVM._getControlWrapper
+        ? oSVM._getControlWrapper(target)
+        : null;
+      if (!wrapper) {
+        if (attempt < SMART_VARIANT_INIT_TRIES) {
+          setTimeout(
+            () => ensureInitialised(oSVM, target, attempt + 1, fnCallback),
+            SMART_VARIANT_INIT_DELAY,
+          );
+        }
+        return;
+      }
+      if (wrapper.bInitialized) return;
+      oSVM.initialise(fnCallback || (() => {}), target);
+    }
+
     // SMART_VARIANT_INIT: place the anchor sap.ui.comp variant management needs
     // and that only an app controller would otherwise set - the personalizable
     // control the SmartVariantManagement works against (_oPersoControl).
@@ -875,47 +917,175 @@ sap.ui.define(
           target = ViewSlots.resolveById(registered[0].getControl());
           if (!target) return;
         }
-        // The anchor. setPersControler() is sap.ui.comp's own setter and does
-        // more than assign the field: it also creates the control promise that
-        // initialise() insists on. A page variant never gets that call -
-        // addPersonalizableControl() returns early for isPageVariant() and only
-        // the single-control case reaches setPersControler() - which is exactly
-        // why a controller-less app ends up with no anchor and no promise.
-        if (oSVM._oPersoControl) {
-          // a runtime that anchors the control itself is left alone
-        } else if (typeof oSVM.setPersControler === "function") {
-          oSVM.setPersControler(target);
-        } else {
-          // older runtimes without the setter: the field alone still carries
-          // the write path (saving), which is better than nothing
-          oSVM._oPersoControl = target;
-        }
+        anchorPersoControl(oSVM, target);
         ensureInitialised(oSVM, target, 0);
       };
 
-      // With the anchor in place the load flow still has to be started once.
-      // The smart control does that itself when it registers - but only then,
-      // and it may already have tried (and aborted) before the anchor existed.
-      // So wait for the control's wrapper and initialise it if nobody has:
-      // a wrapper is required (initialise answers "unknown control" without
-      // one) and an initialised wrapper must be left alone ("already executed").
-      function ensureInitialised(oSVM, target, attempt) {
-        if (Lib.isDestroyed(oSVM)) return;
-        const wrapper = oSVM._getControlWrapper
-          ? oSVM._getControlWrapper(target)
-          : null;
-        if (!wrapper) {
-          if (attempt < SMART_VARIANT_INIT_TRIES) {
-            setTimeout(
-              () => ensureInitialised(oSVM, target, attempt + 1),
-              SMART_VARIANT_INIT_DELAY,
-            );
+      run();
+    }
+
+    // ------------------------------------------------------------------
+    // FILTER_BAR_VARIANT_INIT: wire a CLASSIC sap.ui.comp.filterbar.FilterBar
+    // to a SmartVariantManagement. args = [_, svmId, filterBarId].
+    //
+    // A SmartFilterBar registers itself at the variant management (it knows its
+    // fields from the OData metadata), so SMART_VARIANT_INIT above only has to
+    // place the anchor. A classic FilterBar knows nothing about variants: every
+    // list-report controller hand-writes the same three callbacks
+    // (registerFetchData / registerApplyData / registerGetFiltersWithValues),
+    // adds a PersonalizableInfo and marks the variant dirty on each filter
+    // change. That is boilerplate over the bar's own filter items - data, not
+    // app logic - so the framework owns it and the app needs no JavaScript.
+    // ------------------------------------------------------------------
+
+    // marker so a re-sent action cannot stack a second set of callbacks and
+    // change handlers on the same bar (a rebuilt view reuses the ids, but it
+    // builds NEW control instances, which arrive here unmarked)
+    const FILTER_BAR_WIRED = "_z2ui5FilterBarVariantWired";
+
+    function filterItemControl(item) {
+      return item && typeof item.getControl === "function"
+        ? item.getControl()
+        : null;
+    }
+
+    function filterItemValue(item) {
+      const control = filterItemControl(item);
+      return control && typeof control.getValue === "function"
+        ? control.getValue()
+        : "";
+    }
+
+    // what a variant stores, how it is put back, and which filters count as
+    // "assigned" for the bar's own summary text
+    function registerFilterBarCallbacks(oFilterBar) {
+      oFilterBar.registerFetchData(() =>
+        oFilterBar.getAllFilterItems().map((item) => ({
+          groupName: item.getGroupName(),
+          fieldName: item.getName(),
+          fieldData: filterItemValue(item),
+        })),
+      );
+      oFilterBar.registerApplyData((data) => {
+        (data || []).forEach((entry) => {
+          const control = oFilterBar.determineControlByName(
+            entry.fieldName,
+            entry.groupName,
+          );
+          // setValue, not a model write: the two-way binding abap2UI5 put on
+          // the property carries the restored value back to the backend on the
+          // next roundtrip, so selecting a variant needs none of its own
+          if (control && typeof control.setValue === "function") {
+            control.setValue(entry.fieldData);
           }
+        });
+      });
+      oFilterBar.registerGetFiltersWithValues(() =>
+        oFilterBar
+          .getFilterGroupItems()
+          .filter((item) => String(filterItemValue(item)).length > 0),
+      );
+    }
+
+    // every filter change makes the current variant dirty (the "*" next to the
+    // variant title) and refreshes the bar's assigned-filters summary
+    function attachFilterBarChange(oSVM, oFilterBar) {
+      oFilterBar.getAllFilterItems().forEach((item) => {
+        const control = filterItemControl(item);
+        if (!control || typeof control.attachChange !== "function") return;
+        control.attachChange((oEvent) => {
+          if (typeof oSVM.currentVariantSetModified === "function") {
+            oSVM.currentVariantSetModified(true);
+          }
+          if (typeof oFilterBar.fireFilterChange === "function") {
+            oFilterBar.fireFilterChange(oEvent);
+          }
+        });
+      });
+    }
+
+    // sap.ui.comp is SAPUI5-only, so PersonalizableInfo must never be a hard
+    // dependency of this file (it 404s on OpenUI5 and would kill the component
+    // load). Resolve it at call time: synchronously when the SmartVariant-
+    // Management already pulled it in, asynchronously otherwise.
+    function withPersonalizableInfo(callback) {
+      const name = "sap/ui/comp/smartvariants/PersonalizableInfo";
+      if (
+        typeof sap === "undefined" ||
+        !sap.ui ||
+        typeof sap.ui.require !== "function"
+      ) {
+        Lib.logError("FILTER_BAR_VARIANT_INIT: sap.ui.require not available");
+        return;
+      }
+      const loaded = sap.ui.require(name);
+      if (loaded) {
+        callback(loaded);
+        return;
+      }
+      sap.ui.require([name], callback, () =>
+        Lib.logError(
+          "FILTER_BAR_VARIANT_INIT: sap.ui.comp.smartvariants not available",
+        ),
+      );
+    }
+
+    function evFilterBarVariantInit(oController, args) {
+      const [, svmId, filterBarId] = args;
+      let tries = 0;
+      const run = () => {
+        const oSVM = ViewSlots.resolveById(svmId);
+        const oFilterBar = ViewSlots.resolveById(filterBarId);
+        if (!oSVM || !oFilterBar) {
+          // the view may still be building - wait for both controls to exist
+          if (tries++ < SMART_VARIANT_INIT_TRIES) {
+            setTimeout(run, SMART_VARIANT_INIT_DELAY);
+            return;
+          }
+          Lib.logError(
+            `FILTER_BAR_VARIANT_INIT: '${svmId}' / '${filterBarId}' not found`,
+          );
           return;
         }
-        if (wrapper.bInitialized) return;
-        oSVM.initialise(() => {}, target);
-      }
+        if (
+          Lib.isDestroyed(oSVM) ||
+          typeof oSVM.addPersonalizableControl !== "function"
+        ) {
+          Lib.logError(
+            `FILTER_BAR_VARIANT_INIT: no SmartVariantManagement for id '${svmId}'`,
+          );
+          return;
+        }
+        if (typeof oFilterBar.registerFetchData !== "function") {
+          Lib.logError(
+            `FILTER_BAR_VARIANT_INIT: no FilterBar for id '${filterBarId}'`,
+          );
+          return;
+        }
+        if (oFilterBar[FILTER_BAR_WIRED]) return;
+        oFilterBar[FILTER_BAR_WIRED] = true;
+
+        registerFilterBarCallbacks(oFilterBar);
+        attachFilterBarChange(oSVM, oFilterBar);
+        withPersonalizableInfo((PersonalizableInfo) => {
+          oSVM.addPersonalizableControl(
+            new PersonalizableInfo({
+              type: "filterBar",
+              keyName: "persistencyKey",
+              dataSource: "",
+              control: oFilterBar,
+            }),
+          );
+          anchorPersoControl(oSVM, oFilterBar);
+          // the load flow ends in registerApplyData, so the bar is clean again
+          // right after it - drop the "*" the restored values would leave
+          ensureInitialised(oSVM, oFilterBar, 0, () => {
+            if (typeof oSVM.currentVariantSetModified === "function") {
+              oSVM.currentVariantSetModified(false);
+            }
+          });
+        });
+      };
 
       run();
     }
@@ -1308,6 +1478,7 @@ sap.ui.define(
       WIZARD_SET_NEXT_STEP: evWizardSetNextStep,
       PLAY_AUDIO: evPlayAudio,
       SMART_VARIANT_INIT: evSmartVariantInit,
+      FILTER_BAR_VARIANT_INIT: evFilterBarVariantInit,
       CONTROL_BY_ID: evControlCallById,
       CONTROL_GLOBAL: evControlCall,
       BINDING_CALL: evBindingCall,

@@ -51,6 +51,7 @@ INTERFACE z2ui5_if_client
       binding_call              TYPE string VALUE `BINDING_CALL`,
       bind_element              TYPE string VALUE `BIND_ELEMENT`,
       smart_variant_init        TYPE string VALUE `SMART_VARIANT_INIT`,
+      filter_bar_variant_init   TYPE string VALUE `FILTER_BAR_VARIANT_INIT`,
 
       "obsolet?
       image_editor_popup_close  TYPE string VALUE `IMAGE_EDITOR_POPUP_CLOSE`,
@@ -326,6 +327,18 @@ INTERFACE z2ui5_if_client
   "! default: the first control that registered itself). The action waits for
   "! that registration, which the smart controls do once their OData metadata
   "! has loaded.
+  "! cs_event-filter_bar_variant_init - wire a classic
+  "! sap.ui.comp.filterbar.FilterBar to a SmartVariantManagement:
+  "! t_arg = SmartVariantManagement id, FilterBar id. A SmartFilterBar knows
+  "! its own fields and registers itself (see smart_variant_init above); a
+  "! classic FilterBar does not, so a list report normally hand-writes the
+  "! same controller boilerplate - registerFetchData / registerApplyData /
+  "! registerGetFiltersWithValues, addPersonalizableControl( ) with a
+  "! PersonalizableInfo, and a change handler per filter field that marks the
+  "! variant as modified. This action does all of it, so saving, selecting and
+  "! restoring a variant works without a single line of JavaScript. The
+  "! restored values reach the backend through the two-way binding of the
+  "! filter fields, no extra roundtrip needed.
   "! cs_event-keyboard_shortcut - bind a key combination to a named backend
   "! event, the declarative equivalent of a sap.ui.core.CommandExecution
   "! shortcut: t_arg = combination, event name. The combination is spelled
