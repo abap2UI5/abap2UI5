@@ -53,42 +53,6 @@ sap.ui.define(
     const SMART_VARIANT_INIT_TRIES = 50;
     const SMART_VARIANT_INIT_DELAY = 100;
 
-    // TEMPORARY diagnostic logging for the smart-variant handshake. Set back to
-    // false (or drop the sviLog calls) before this branch is merged - it is here
-    // to trace one live run in a system that has sap.ui.comp, which no test can
-    // reproduce offline.
-    const SMART_VARIANT_INIT_DEBUG = true;
-    function sviLog(...args) {
-      if (SMART_VARIANT_INIT_DEBUG) console.log("[SVI]", ...args);
-    }
-    function sviState(oSVM, when) {
-      if (!SMART_VARIANT_INIT_DEBUG) return;
-      try {
-        sviLog(when, {
-          perso: String(oSVM._oPersoControl),
-          isInitialized: oSVM._bIsInitialized,
-          isPageVariant: oSVM.isPageVariant ? oSVM.isPageVariant() : "n/a",
-          variants: Object.keys(oSVM._mVariants || {}).length,
-          items: oSVM.getVariantItems ? oSVM.getVariantItems().length : "n/a",
-          persistencyPromise: !!(
-            oSVM.oModel &&
-            oSVM.oModel.getPersistencyPromise &&
-            oSVM.oModel.getPersistencyPromise()
-          ),
-          controlPromise: !!oSVM._oControlPromise,
-          metadataPromise: !!oSVM._oMetadataPromise,
-          wrappers: (oSVM._aPersonalizableControls || []).map((w) => [
-            w.control &&
-              (w.control.getId ? w.control.getId() : String(w.control)),
-            w.type,
-            !!w.bInitialized,
-          ]),
-        });
-      } catch (e) {
-        sviLog(when, "state dump failed", e && e.message);
-      }
-    }
-
     // ------------------------------------------------------------------
     // Launchpad helpers
     // ------------------------------------------------------------------
@@ -820,17 +784,11 @@ sap.ui.define(
     function evSmartVariantInit(oController, args) {
       const [, svmId, controlId] = args;
       let tries = 0;
-      sviLog("action called", { svmId, controlId });
       const run = () => {
         const oSVM = ViewSlots.resolveById(svmId);
         const control = controlId ? ViewSlots.resolveById(controlId) : null;
         if (!oSVM || (controlId && !control)) {
           // the view may still be building - wait for both controls to exist
-          sviLog("waiting for controls", {
-            attempt: tries,
-            svm: !!oSVM,
-            control: !!control,
-          });
           if (tries++ < SMART_VARIANT_INIT_TRIES) {
             setTimeout(run, SMART_VARIANT_INIT_DELAY);
             return;
@@ -872,26 +830,16 @@ sap.ui.define(
         // addPersonalizableControl() returns early for isPageVariant() and only
         // the single-control case reaches setPersControler() - which is exactly
         // why a controller-less app ends up with no anchor and no promise.
-        sviState(oSVM, "before anchor");
         if (oSVM._oPersoControl) {
-          sviLog("anchor already set by the runtime");
+          // a runtime that anchors the control itself is left alone
         } else if (typeof oSVM.setPersControler === "function") {
           oSVM.setPersControler(target);
-          sviLog(
-            "setPersControler called with",
-            target.getId ? target.getId() : target,
-          );
         } else {
           // older runtimes without the setter: the field alone still carries
           // the write path (saving), which is better than nothing
           oSVM._oPersoControl = target;
-          sviLog("no setPersControler - assigned the field instead");
         }
         ensureInitialised(oSVM, target, 0);
-        // snapshots after the handshake, to see what the load flow produced
-        setTimeout(() => sviState(oSVM, "t+1s"), 1000);
-        setTimeout(() => sviState(oSVM, "t+3s"), 3000);
-        setTimeout(() => sviState(oSVM, "t+8s"), 8000);
       };
 
       // With the anchor in place the load flow still has to be started once.
@@ -906,7 +854,6 @@ sap.ui.define(
           ? oSVM._getControlWrapper(target)
           : null;
         if (!wrapper) {
-          sviLog("no wrapper yet", { attempt });
           if (attempt < SMART_VARIANT_INIT_TRIES) {
             setTimeout(
               () => ensureInitialised(oSVM, target, attempt + 1),
@@ -915,20 +862,8 @@ sap.ui.define(
           }
           return;
         }
-        if (wrapper.bInitialized) {
-          sviLog("wrapper already initialised - not calling initialise again");
-          return;
-        }
-        sviLog("calling initialise", {
-          attempt,
-          control: target.getId ? target.getId() : target,
-        });
-        try {
-          oSVM.initialise(() => sviLog("initialise callback fired"), target);
-        } catch (e) {
-          sviLog("initialise threw", e && e.message);
-        }
-        sviState(oSVM, "right after initialise");
+        if (wrapper.bInitialized) return;
+        oSVM.initialise(() => {}, target);
       }
 
       run();

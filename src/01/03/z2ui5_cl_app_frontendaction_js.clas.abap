@@ -73,42 +73,6 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    const SMART_VARIANT_INIT_TRIES = 50;` && |\n| &&
              `    const SMART_VARIANT_INIT_DELAY = 100;` && |\n| &&
              `` && |\n| &&
-             `    // TEMPORARY diagnostic logging for the smart-variant handshake. Set back to` && |\n| &&
-             `    // false (or drop the sviLog calls) before this branch is merged - it is here` && |\n| &&
-             `    // to trace one live run in a system that has sap.ui.comp, which no test can` && |\n| &&
-             `    // reproduce offline.` && |\n| &&
-             `    const SMART_VARIANT_INIT_DEBUG = true;` && |\n| &&
-             `    function sviLog(...args) {` && |\n| &&
-             `      if (SMART_VARIANT_INIT_DEBUG) console.log("[SVI]", ...args);` && |\n| &&
-             `    }` && |\n| &&
-             `    function sviState(oSVM, when) {` && |\n| &&
-             `      if (!SMART_VARIANT_INIT_DEBUG) return;` && |\n| &&
-             `      try {` && |\n| &&
-             `        sviLog(when, {` && |\n| &&
-             `          perso: String(oSVM._oPersoControl),` && |\n| &&
-             `          isInitialized: oSVM._bIsInitialized,` && |\n| &&
-             `          isPageVariant: oSVM.isPageVariant ? oSVM.isPageVariant() : "n/a",` && |\n| &&
-             `          variants: Object.keys(oSVM._mVariants || {}).length,` && |\n| &&
-             `          items: oSVM.getVariantItems ? oSVM.getVariantItems().length : "n/a",` && |\n| &&
-             `          persistencyPromise: !!(` && |\n| &&
-             `            oSVM.oModel &&` && |\n| &&
-             `            oSVM.oModel.getPersistencyPromise &&` && |\n| &&
-             `            oSVM.oModel.getPersistencyPromise()` && |\n| &&
-             `          ),` && |\n| &&
-             `          controlPromise: !!oSVM._oControlPromise,` && |\n| &&
-             `          metadataPromise: !!oSVM._oMetadataPromise,` && |\n| &&
-             `          wrappers: (oSVM._aPersonalizableControls || []).map((w) => [` && |\n| &&
-             `            w.control &&` && |\n| &&
-             `              (w.control.getId ? w.control.getId() : String(w.control)),` && |\n| &&
-             `            w.type,` && |\n| &&
-             `            !!w.bInitialized,` && |\n| &&
-             `          ]),` && |\n| &&
-             `        });` && |\n| &&
-             `      } catch (e) {` && |\n| &&
-             `        sviLog(when, "state dump failed", e && e.message);` && |\n| &&
-             `      }` && |\n| &&
-             `    }` && |\n| &&
-             `` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `    // Launchpad helpers` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
@@ -417,8 +381,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // the classic demo kit controller pattern` && |\n| &&
              `    // oList.getBinding("items").filter([new Filter(...)]). Same safety` && |\n| &&
              `    // boundary as CONTROL_BY_ID: only whitelisted binding methods,` && |\n| &&
-             `    // only whitelisted filter operators, everything built from data` && |\n|.
-    result = result &&
+             `    // only whitelisted filter operators, everything built from data` && |\n| &&
              `    // (path/operator/values), never from code strings.` && |\n| &&
              `    // ------------------------------------------------------------------` && |\n| &&
              `` && |\n| &&
@@ -454,7 +417,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // of groups, each group an array of [path, operator, value1, value2?]` && |\n| &&
              `    // rows - OR inside a group, AND across groups (the FacetFilter /` && |\n| &&
              `    // ViewSettingsDialog multi-facet shape). Data only: paths, whitelisted` && |\n| &&
-             `    // operators and values - never code. An empty groups array clears.` && |\n| &&
+             `    // operators and values - never code. An empty groups array clears.` && |\n|.
+    result = result &&
              `    function buildFilterGroups(binding, json) {` && |\n| &&
              `      let groups;` && |\n| &&
              `      try {` && |\n| &&
@@ -818,8 +782,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      const path = String(args[3] ?? "").replace(/[{}]/g, "");` && |\n| &&
              `      if (!path) {` && |\n| &&
              `        Lib.logError("BIND_ELEMENT: empty binding path");` && |\n| &&
-             `        return;` && |\n|.
-    result = result &&
+             `        return;` && |\n| &&
              `      }` && |\n| &&
              `      view.bindElement(``${path}/${args[2]}``);` && |\n| &&
              `    }` && |\n| &&
@@ -842,17 +805,11 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    function evSmartVariantInit(oController, args) {` && |\n| &&
              `      const [, svmId, controlId] = args;` && |\n| &&
              `      let tries = 0;` && |\n| &&
-             `      sviLog("action called", { svmId, controlId });` && |\n| &&
              `      const run = () => {` && |\n| &&
              `        const oSVM = ViewSlots.resolveById(svmId);` && |\n| &&
              `        const control = controlId ? ViewSlots.resolveById(controlId) : null;` && |\n| &&
              `        if (!oSVM || (controlId && !control)) {` && |\n| &&
              `          // the view may still be building - wait for both controls to exist` && |\n| &&
-             `          sviLog("waiting for controls", {` && |\n| &&
-             `            attempt: tries,` && |\n| &&
-             `            svm: !!oSVM,` && |\n| &&
-             `            control: !!control,` && |\n| &&
-             `          });` && |\n| &&
              `          if (tries++ < SMART_VARIANT_INIT_TRIES) {` && |\n| &&
              `            setTimeout(run, SMART_VARIANT_INIT_DELAY);` && |\n| &&
              `            return;` && |\n| &&
@@ -861,7 +818,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `            ``SMART_VARIANT_INIT: '${controlId ? ``${svmId}' / '${controlId}`` : svmId}' not found``,` && |\n| &&
              `          );` && |\n| &&
              `          return;` && |\n| &&
-             `        }` && |\n| &&
+             `        }` && |\n|.
+    result = result &&
              `        if (Lib.isDestroyed(oSVM) || typeof oSVM.initialise !== "function") {` && |\n| &&
              `          Lib.logError(` && |\n| &&
              `            ``SMART_VARIANT_INIT: no SmartVariantManagement for id '${svmId}'``,` && |\n| &&
@@ -894,26 +852,16 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        // addPersonalizableControl() returns early for isPageVariant() and only` && |\n| &&
              `        // the single-control case reaches setPersControler() - which is exactly` && |\n| &&
              `        // why a controller-less app ends up with no anchor and no promise.` && |\n| &&
-             `        sviState(oSVM, "before anchor");` && |\n| &&
              `        if (oSVM._oPersoControl) {` && |\n| &&
-             `          sviLog("anchor already set by the runtime");` && |\n| &&
+             `          // a runtime that anchors the control itself is left alone` && |\n| &&
              `        } else if (typeof oSVM.setPersControler === "function") {` && |\n| &&
              `          oSVM.setPersControler(target);` && |\n| &&
-             `          sviLog(` && |\n| &&
-             `            "setPersControler called with",` && |\n| &&
-             `            target.getId ? target.getId() : target,` && |\n| &&
-             `          );` && |\n| &&
              `        } else {` && |\n| &&
              `          // older runtimes without the setter: the field alone still carries` && |\n| &&
              `          // the write path (saving), which is better than nothing` && |\n| &&
              `          oSVM._oPersoControl = target;` && |\n| &&
-             `          sviLog("no setPersControler - assigned the field instead");` && |\n| &&
              `        }` && |\n| &&
              `        ensureInitialised(oSVM, target, 0);` && |\n| &&
-             `        // snapshots after the handshake, to see what the load flow produced` && |\n| &&
-             `        setTimeout(() => sviState(oSVM, "t+1s"), 1000);` && |\n| &&
-             `        setTimeout(() => sviState(oSVM, "t+3s"), 3000);` && |\n| &&
-             `        setTimeout(() => sviState(oSVM, "t+8s"), 8000);` && |\n| &&
              `      };` && |\n| &&
              `` && |\n| &&
              `      // With the anchor in place the load flow still has to be started once.` && |\n| &&
@@ -928,7 +876,6 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          ? oSVM._getControlWrapper(target)` && |\n| &&
              `          : null;` && |\n| &&
              `        if (!wrapper) {` && |\n| &&
-             `          sviLog("no wrapper yet", { attempt });` && |\n| &&
              `          if (attempt < SMART_VARIANT_INIT_TRIES) {` && |\n| &&
              `            setTimeout(` && |\n| &&
              `              () => ensureInitialised(oSVM, target, attempt + 1),` && |\n| &&
@@ -937,20 +884,8 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          }` && |\n| &&
              `          return;` && |\n| &&
              `        }` && |\n| &&
-             `        if (wrapper.bInitialized) {` && |\n| &&
-             `          sviLog("wrapper already initialised - not calling initialise again");` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `        sviLog("calling initialise", {` && |\n| &&
-             `          attempt,` && |\n| &&
-             `          control: target.getId ? target.getId() : target,` && |\n| &&
-             `        });` && |\n| &&
-             `        try {` && |\n| &&
-             `          oSVM.initialise(() => sviLog("initialise callback fired"), target);` && |\n| &&
-             `        } catch (e) {` && |\n| &&
-             `          sviLog("initialise threw", e && e.message);` && |\n| &&
-             `        }` && |\n| &&
-             `        sviState(oSVM, "right after initialise");` && |\n| &&
+             `        if (wrapper.bInitialized) return;` && |\n| &&
+             `        oSVM.initialise(() => {}, target);` && |\n| &&
              `      }` && |\n| &&
              `` && |\n| &&
              `      run();` && |\n| &&
@@ -1219,8 +1154,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      SET_SIZE_LIMIT: evSetSizeLimit,` && |\n| &&
              `      HISTORY_BACK: evHistoryBack,` && |\n| &&
              `      NAV_TO_ROUTE: evNavToRoute,` && |\n| &&
-             `      CLIPBOARD_COPY: evClipboardCopy,` && |\n|.
-    result = result &&
+             `      CLIPBOARD_COPY: evClipboardCopy,` && |\n| &&
              `      CLIPBOARD_APP_STATE: evClipboardAppState,` && |\n| &&
              `      SET_ODATA_MODEL: evSetODataModel,` && |\n| &&
              `      STORE_DATA: evStoreData,` && |\n| &&
