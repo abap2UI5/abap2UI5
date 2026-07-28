@@ -41,7 +41,7 @@ function load({ sandbox } = {}) {
     Object.assign(this, { path, descending, group });
   }
   const FilterOperator = new Proxy({}, { get: (_t, op) => op });
-  const { module } = loadModule("core/FrontendAction.js", {
+  const { module, sandbox: ctx } = loadModule("core/FrontendAction.js", {
     deps: {
       "sap/m/MessageBox": MessageBox,
       "sap/m/MessageToast": MessageToast,
@@ -59,7 +59,15 @@ function load({ sandbox } = {}) {
     },
     sandbox,
   });
-  return { FrontendAction: module, calls, errors, controls, views, AppState };
+  return {
+    FrontendAction: module,
+    calls,
+    errors,
+    controls,
+    views,
+    AppState,
+    ctx,
+  };
 }
 
 test.describe("CONTROL_GLOBAL (global objects)", () => {
@@ -810,6 +818,196 @@ test.describe("SMART_VARIANT_INIT (sap.ui.comp variant management)", () => {
     expect(errors[0]).toContain("no SmartVariantManagement");
   });
 });
+
+test.describe("FILTER_BAR_VARIANT_INIT (classic FilterBar + variant management)", () => {
+  const MODULE = "sap/ui/comp/smartvariants/PersonalizableInfo";
+
+  function PersonalizableInfo(settings) {
+    Object.assign(this, settings);
+  }
+
+  // one filter field: the FilterGroupItem and the input it wraps
+  function field(name, value) {
+    let changeHandler = null;
+    const control = {
+      getValue: () => value,
+      setValue: (v) => (value = v),
+      attachChange: (fn) => (changeHandler = fn),
+      fireChange: (oEvent) => changeHandler && changeHandler(oEvent),
+    };
+    return {
+      getName: () => name,
+      getGroupName: () => "group1",
+      getControl: () => control,
+      control,
+    };
+  }
+
+  function filterBar(fields) {
+    return {
+      registered: {},
+      fired: [],
+      getAllFilterItems: () => fields,
+      getFilterGroupItems: () => fields,
+      determineControlByName: (fieldName) =>
+        fields.find((f) => f.getName() === fieldName)?.getControl() || null,
+      registerFetchData(fn) {
+        this.registered.fetch = fn;
+      },
+      registerApplyData(fn) {
+        this.registered.apply = fn;
+      },
+      registerGetFiltersWithValues(fn) {
+        this.registered.withValues = fn;
+      },
+      fireFilterChange(oEvent) {
+        this.fired.push(oEvent);
+      },
+    };
+  }
+
+  function svm() {
+    return {
+      _oPersoControl: null,
+      added: [],
+      modified: [],
+      initialised: [],
+      addPersonalizableControl(info) {
+        this.added.push(info);
+      },
+      setPersControler(control) {
+        this._oPersoControl = control;
+      },
+      currentVariantSetModified(flag) {
+        this.modified.push(flag);
+      },
+      _getControlWrapper: () => ({ bInitialized: false }),
+      initialise(fn, control) {
+        this.initialised.push(control);
+        fn();
+      },
+    };
+  }
+
+  // wires a SmartVariantManagement and a FilterBar with PersonalizableInfo
+  // already loaded (the synchronous sap.ui.require path)
+  function wire(fields) {
+    const ctxLoad = load();
+    ctxLoad.ctx.sap.ui.require = (name) =>
+      name === MODULE ? PersonalizableInfo : null;
+    const oSVM = svm();
+    const oFilterBar = filterBar(fields);
+    ctxLoad.controls.svm = oSVM;
+    ctxLoad.controls.fbar = oFilterBar;
+    ctxLoad.FrontendAction.execute(null, [
+      "FILTER_BAR_VARIANT_INIT",
+      "svm",
+      "fbar",
+    ]);
+    return { ...ctxLoad, oSVM, oFilterBar };
+  }
+
+  test("adds the PersonalizableInfo the variant management needs", () => {
+    const { oSVM, oFilterBar } = wire([field("PRODUCT", "table")]);
+    expect(oSVM.added.length).toBe(1);
+    expect(oSVM.added[0]).toMatchObject({
+      type: "filterBar",
+      keyName: "persistencyKey",
+      control: oFilterBar,
+    });
+    // and anchors the bar, so saving a variant reaches sap.ui.fl
+    expect(oSVM._oPersoControl).toBe(oFilterBar);
+    expect(oSVM.initialised).toEqual([oFilterBar]);
+    // the load flow's callback drops the "*" the restored values would leave
+    expect(oSVM.modified).toEqual([false]);
+  });
+
+  test("fetchData collects group, field and value of every filter", () => {
+    const { oFilterBar } = wire([
+      field("PRODUCT", "table"),
+      field("QUANTITY", ""),
+    ]);
+    expect(oFilterBar.registered.fetch()).toEqual([
+      { groupName: "group1", fieldName: "PRODUCT", fieldData: "table" },
+      { groupName: "group1", fieldName: "QUANTITY", fieldData: "" },
+    ]);
+  });
+
+  test("applyData writes a stored variant back into the filter controls", () => {
+    const fields = [field("PRODUCT", ""), field("QUANTITY", "")];
+    const { oFilterBar } = wire(fields);
+    oFilterBar.registered.apply([
+      { groupName: "group1", fieldName: "PRODUCT", fieldData: "chair" },
+      { groupName: "group1", fieldName: "QUANTITY", fieldData: "123" },
+    ]);
+    expect(fields.map((f) => f.getControl().getValue())).toEqual([
+      "chair",
+      "123",
+    ]);
+  });
+
+  test("getFiltersWithValues reports only the filled filters", () => {
+    const fields = [field("PRODUCT", "table"), field("QUANTITY", "")];
+    const { oFilterBar } = wire(fields);
+    expect(oFilterBar.registered.withValues()).toEqual([fields[0]]);
+  });
+
+  test("a filter change marks the variant modified and refreshes the bar", () => {
+    const fields = [field("PRODUCT", "table")];
+    const { oSVM, oFilterBar } = wire(fields);
+    const oEvent = { id: "change" };
+    fields[0].control.fireChange(oEvent);
+    expect(oSVM.modified).toEqual([false, true]);
+    expect(oFilterBar.fired).toEqual([oEvent]);
+  });
+
+  test("does not wire the same bar a second time", () => {
+    const { FrontendAction, oSVM } = wire([field("PRODUCT", "table")]);
+    FrontendAction.execute(null, ["FILTER_BAR_VARIANT_INIT", "svm", "fbar"]);
+    expect(oSVM.added.length).toBe(1);
+  });
+
+  test("waits for sap.ui.comp when PersonalizableInfo is not loaded yet", () => {
+    const { FrontendAction, controls, ctx } = load();
+    let pending = null;
+    ctx.sap.ui.require = (name, callback) => {
+      if (Array.isArray(name)) {
+        pending = callback;
+        return undefined;
+      }
+      return null;
+    };
+    const oSVM = svm();
+    const oFilterBar = filterBar([field("PRODUCT", "table")]);
+    controls.svm = oSVM;
+    controls.fbar = oFilterBar;
+    FrontendAction.execute(null, ["FILTER_BAR_VARIANT_INIT", "svm", "fbar"]);
+    // the callbacks are in place immediately, only the variant control waits
+    expect(typeof oFilterBar.registered.fetch).toBe("function");
+    expect(oSVM.added.length).toBe(0);
+    pending(PersonalizableInfo);
+    expect(oSVM.added.length).toBe(1);
+  });
+
+  test("logs when the named control is not a FilterBar", () => {
+    const { FrontendAction, controls, errors } = load();
+    controls.svm = svm();
+    controls.fbar = { id: "not-a-filter-bar" };
+    FrontendAction.execute(null, ["FILTER_BAR_VARIANT_INIT", "svm", "fbar"]);
+    expect(errors.length).toBe(1);
+    expect(errors[0]).toContain("no FilterBar");
+  });
+
+  test("logs when the named id is not a SmartVariantManagement", () => {
+    const { FrontendAction, controls, errors } = load();
+    controls.svm = { id: "not-a-variant-control" };
+    controls.fbar = filterBar([field("PRODUCT", "table")]);
+    FrontendAction.execute(null, ["FILTER_BAR_VARIANT_INIT", "svm", "fbar"]);
+    expect(errors.length).toBe(1);
+    expect(errors[0]).toContain("no SmartVariantManagement");
+  });
+});
+
 
 test.describe("CONTROL_BY_ID setAsyncURLHandler (MessagePopover URL policy)", () => {
   // the control takes a live callback, so the wire carries a POLICY NAME and
