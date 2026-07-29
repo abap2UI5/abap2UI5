@@ -309,10 +309,12 @@ INTERFACE z2ui5_if_client
   "! Two ways to call it: pass a frontend event as val (e.g. cs_event-set_title)
   "! with its arguments in t_arg and the framework builds the event call; or pass
   "! a raw JavaScript expression as val (without t_arg) to run it as-is.
-  "! The whitelisted control/binding calls are frontend events too; their t_arg
+  "! The control/binding calls are frontend events too; their t_arg
   "! is positional (an empty argument between filled ones keeps its slot as ``):
-  "! cs_event-control_by_id - call a whitelisted method on a control resolved
-  "! by id: t_arg = id, method, params. The view is passed as the separate
+  "! cs_event-control_by_id - call a method on a control resolved by id:
+  "! t_arg = id, method, params. Any public control method works unless it is
+  "! on the frontend denylist (methods that would break framework invariants).
+  "! The view is passed as the separate
   "! view parameter (default cs_view-main resolves the id across all open
   "! views; pass cs_view-popup/popover/... to scope the lookup to that view).
   "! cs_event-control_global - call a whitelisted method on a global object

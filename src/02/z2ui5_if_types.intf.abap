@@ -69,12 +69,14 @@ INTERFACE z2ui5_if_types
       " message instead of the raw exception text (avoids leaking internal
       " details to the client in hardened installations)
       check_hide_error_details TYPE abap_bool,
-      " when set via the exit, a state-changing POST whose Origin/Referer
-      " header names a different site than the app's own host is rejected
-      " with 403 (CSRF defense). Opt-in and lenient: a request without an
-      " Origin/Referer header (older clients, some proxies) is allowed, so
-      " only an explicit cross-origin marker is blocked - the app's own
-      " roundtrips are always same-origin (the SPA fetches its own backend).
+      " when active, a state-changing POST whose Origin/Referer header names
+      " a different site than the app's own host is rejected with 403 (CSRF
+      " defense). On by default (seeded in z2ui5_cl_exit before the user exit
+      " runs); an app that must accept cross-origin POSTs can opt out in its
+      " own set_config_http_post. Lenient: a request without an Origin/Referer
+      " header (older clients, some proxies) is allowed, so only an explicit
+      " cross-origin marker is blocked - the app's own roundtrips are always
+      " same-origin (the SPA fetches its own backend).
       check_csrf_active        TYPE abap_bool,
     END OF ty_s_http_config_post.
 
