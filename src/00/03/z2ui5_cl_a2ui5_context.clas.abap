@@ -542,6 +542,10 @@ CLASS z2ui5_cl_a2ui5_context DEFINITION
 
     CLASS-DATA gv_check_cloud_cached TYPE abap_bool.
 
+    " Guards the cycle z2ui5_cx_a2ui5_error=>constructor -> uuid_get_c32 ->
+    " RAISE z2ui5_cx_a2ui5_error -> ... see uuid_get_c32.
+    CLASS-DATA gv_uuid_failed TYPE abap_bool.
+
     CLASS-METHODS rtti_get_classes_intf_cloud
       IMPORTING
         val           TYPE clike
@@ -1900,8 +1904,21 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
         " single top-level catch in the HTTP handler turns it into a 500.
         " ASSERT would raise the uncatchable ASSERTION_FAILED and bypass that
         " catch (short dump instead of a handled error response).
-        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
-          EXPORTING val = lx_uuid.
+        " z2ui5_cx_a2ui5_error=>constructor itself calls uuid_get_c32, so the
+        " raise below re-enters this method. gv_uuid_failed makes that nested
+        " call return an empty UUID instead of raising again (endless recursion
+        " until the stack overflows, which would defeat the handled 500 above).
+        IF gv_uuid_failed = abap_true.
+          RETURN.
+        ENDIF.
+        gv_uuid_failed = abap_true.
+        TRY.
+            RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+              EXPORTING
+                val = lx_uuid.
+          CLEANUP.
+            CLEAR gv_uuid_failed.
+        ENDTRY.
     ENDTRY.
   ENDMETHOD.
 
