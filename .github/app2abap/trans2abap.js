@@ -35,8 +35,34 @@ function formatAsAbapClass(content, className, isSpecialFile) {
     const lines = content.split('\n');
     const formattedLines = lines.map((line, index) => {
         line = line.replace(/\s+$/, ''); // Remove trailing spaces
+
+        // Guard 1: the frontend source is embedded verbatim into an ABAP string
+        // constant, which abaplint checks with the 7bit_ascii rule. A non-ASCII
+        // byte (smart quote, ellipsis, arrow, ...) breaks generation/lint
+        // downstream with a confusing error, so fail here at the exact source
+        // line instead. Runtime non-ASCII must be built via String.fromCharCode
+        // / entity decoding (see AGENTS.md rule 15).
+        const nonAscii = line.match(/[^\x00-\x7F]/);
+        if (nonAscii) {
+            throw new Error(
+                `${className} line ${index + 1}: non-ASCII character ${JSON.stringify(nonAscii[0])} ` +
+                `(code ${nonAscii[0].codePointAt(0)}) - frontend source must be 7-bit ASCII: ${line.trim()}`,
+            );
+        }
+
         let formattedLine = `             \`${line.replace(/`/g, '``')}\` && ${isSpecialFile ? '' : '|\\n|  &&'}`;
         formattedLine = formattedLine.replace(/&&\s+$/, '&&'); // Remove trailing spaces after &&
+
+        // Guard 2: an ABAP source line is capped at 255 characters. A generated
+        // line over the limit breaks the ABAP compile/lint downstream with an
+        // opaque error; surface it here against the source line so it is obvious
+        // which frontend line to shorten.
+        if (formattedLine.length > 255) {
+            throw new Error(
+                `${className} line ${index + 1}: generated ABAP line is ${formattedLine.length} chars ` +
+                `(max 255) - shorten this frontend source line: ${line.trim()}`,
+            );
+        }
         if ((index + 1) % 400 === 0) {
             // ABAP caps the length of a chained expression, so the result is
             // split into several statements every 400 lines. This line

@@ -17,6 +17,7 @@ CLASS ltcl_test DEFINITION FINAL
     METHODS event_client_args FOR TESTING.
     METHODS event_nav_container FOR TESTING.
     METHODS event_quote_escaped FOR TESTING.
+    METHODS event_backslash_escaped FOR TESTING.
     METHODS event_placeholder_quoted FOR TESTING.
 
   PROTECTED SECTION.
@@ -344,6 +345,25 @@ CLASS ltcl_test IMPLEMENTATION.
                                           t_arg = lt_arg ).
 
     cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `'Value changed to \'{0}\''` ) ).
+
+  ENDMETHOD.
+
+  METHOD event_backslash_escaped.
+
+    " a backslash must be escaped to \\ FIRST, so a value ending in '\' or
+    " containing "\'" cannot break out of the '...' wrapper and inject JS.
+    " Regression for: arg `\',alert(1),'` used to emit `'\\',alert(1),\''`,
+    " closing the string early and evaluating alert(1) as an argument.
+    DATA(lo_event) = NEW z2ui5_cl_core_srv_event( ).
+    DATA(lt_arg) = VALUE string_table( ( `\',alert(1),'` ) ).
+
+    DATA(lv_event) = lo_event->get_event( val   = `EVT`
+                                          t_arg = lt_arg ).
+
+    " the backslash is doubled and the quotes escaped, so the whole payload
+    " stays inside one string literal - no bare alert(1) leaks out
+    cl_abap_unit_assert=>assert_true( xsdbool( lv_event CS `'\\\',alert(1),\''` ) ).
+    cl_abap_unit_assert=>assert_false( xsdbool( lv_event CS `',alert(1),'` ) ).
 
   ENDMETHOD.
 

@@ -109,10 +109,16 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
         " a wrong/mistyped app name in the URL lands here (CREATE OBJECT of a
         " non-existent class). Just raise with a readable text - the single
         " top-level catch in z2ui5_cl_http_handler=>_main( ) turns it into a
-        " 500 whose body carries this message for the frontend to display
+        " 500 whose body carries this message for the frontend to display.
+        " app_start is client-controlled, so strip it down to class-name-safe
+        " characters before reflecting it into the error text - a real typo
+        " still shows for diagnostics, but a crafted value cannot smuggle
+        " markup/script into the response body.
+        DATA(lv_app_name) = CONV string( mo_http_post->ms_request-s_control-app_start ).
+        REPLACE ALL OCCURRENCES OF REGEX `[^A-Za-z0-9_/]` IN lv_app_name WITH ``.
         RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
           EXPORTING
-            val      = |The app '{ mo_http_post->ms_request-s_control-app_start }' does not exist in the system.|
+            val      = |The app '{ lv_app_name }' does not exist in the system.|
             previous = x.
     ENDTRY.
 
