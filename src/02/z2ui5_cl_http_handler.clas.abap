@@ -51,8 +51,9 @@ CLASS z2ui5_cl_http_handler DEFINITION PUBLIC.
       RETURNING
         VALUE(result) TYPE z2ui5_cl_a2ui5_http=>ty_s_http_req.
 
-    " CSRF defense (opt-in via z2ui5_if_exit~set_config_http_post ->
-    " check_csrf_active). Pure and side-effect free so it is unit-testable
+    " CSRF defense (on by default; an app can opt out via z2ui5_if_exit~
+    " set_config_http_post -> check_csrf_active = abap_false). Pure and
+    " side-effect free so it is unit-testable
     " without a server mock: the caller reads the header values off the
     " request and passes them in. Returns abap_true only when the request is
     " to be rejected, i.e. csrf is active AND an Origin/Referer is present
@@ -112,7 +113,9 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
       WHEN `POST`.
         " CSRF gate: only a POST can change state, so the check lives here.
         " Reading the config every POST is cheap (get_instance is cached);
-        " with the default check_csrf_active = abap_false nothing is rejected.
+        " check_csrf_active defaults to abap_true (seeded in z2ui5_cl_exit=>
+        " set_config_http_post), so a cross-origin POST is rejected unless an
+        " app opts out via its own exit.
         DATA(ls_config_post) = VALUE z2ui5_if_types=>ty_s_http_config_post( ).
         z2ui5_cl_exit=>get_instance( )->set_config_http_post( CHANGING cs_config = ls_config_post ).
 
@@ -277,6 +280,19 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
   METHOD set_response.
 
     mo_server->set_cdata( ms_res-body ).
+
+    " Always send an explicit Content-Type. Error bodies (403/500) are plain
+    " text - serving them as text/plain, together with the X-Content-Type-
+    " Options: nosniff header below, stops a container that defaults to
+    " text/html from rendering a reflected app name / exception text as markup
+    " (reflected-XSS). Success bodies are HTML for the GET shell and JSON for
+    " the POST roundtrip.
+    DATA(lv_content_type) = COND string(
+        WHEN ms_res-status_code >= 400 THEN `text/plain; charset=UTF-8`
+        WHEN ms_req-method = `GET`     THEN `text/html; charset=UTF-8`
+        ELSE `application/json; charset=UTF-8` ).
+    mo_server->set_header_field( n = `content-type`
+                                 v = lv_content_type ).
 
     DATA(ls_config) = config_http_get( ).
 

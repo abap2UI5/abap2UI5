@@ -57,6 +57,11 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = 4
                                         act = ls_config-draft_exp_time_in_hours ).
 
+    " CSRF protection must default to ON so a fresh install rejects
+    " cross-origin POSTs without any app configuration
+    cl_abap_unit_assert=>assert_equals( exp = abap_true
+                                        act = ls_config-check_csrf_active ).
+
   ENDMETHOD.
 
   METHOD test_post_default_exp_time.
