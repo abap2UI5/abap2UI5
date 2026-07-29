@@ -17,7 +17,11 @@ CLASS zcl_tst_nav_detail IMPLEMENTATION.
 
     me->client = client.
 
-    IF client->check_on_init( ) IS NOT INITIAL.
+    " check_on_navigated also fires when browser Forward / reload restores
+    " this app from its KEEP-route draft - the view must be rendered again
+    " there (the app contract; see docs life_cycle.md)
+    IF client->check_on_init( ) IS NOT INITIAL
+        OR client->check_on_navigated( ) IS NOT INITIAL.
       view = z2ui5_cl_xml_view=>factory( ).
       page = view->shell( )->page( title = `NAV DETAIL` ).
       page->label( `detail-marker` ).

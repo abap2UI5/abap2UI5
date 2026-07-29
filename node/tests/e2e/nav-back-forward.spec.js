@@ -30,23 +30,26 @@ if (process.env.PW_CHROMIUM_PATH) {
   });
 }
 
+async function mirrorCdn(page) {
+  if (!MIRROR) return;
+  await page.route("https://sdk.openui5.org/**", async (route) => {
+    const url = new URL(route.request().url());
+    const path = url.pathname
+      .replace(/\/sap-ui-cachebuster/g, "")
+      .replace(/\/~[^/]*~[a-zA-Z0-9]*/g, "");
+    try {
+      const resp = await route.fetch({ url: `${MIRROR}${path}` });
+      await route.fulfill({ response: resp });
+    } catch (e) {
+      await route.abort();
+    }
+  });
+}
+
 test("browser Back then Forward across a FRESH-mode nav_app_call", async ({
   page,
 }) => {
-  if (MIRROR) {
-    await page.route("https://sdk.openui5.org/**", async (route) => {
-      const url = new URL(route.request().url());
-      const path = url.pathname
-        .replace(/\/sap-ui-cachebuster/g, "")
-        .replace(/\/~[^/]*~[a-zA-Z0-9]*/g, "");
-      try {
-        const resp = await route.fetch({ url: `${MIRROR}${path}` });
-        await route.fulfill({ response: resp });
-      } catch (e) {
-        await route.abort();
-      }
-    });
-  }
+  await mirrorCdn(page);
 
   await page.goto("/?app_start=zcl_tst_nav_hub");
   await expect(page.getByText("hub-marker")).toBeVisible({ timeout: 30000 });
@@ -65,6 +68,36 @@ test("browser Back then Forward across a FRESH-mode nav_app_call", async ({
   await expect(page.getByText("hub-marker")).toBeVisible();
 
   // browser Forward -> the detail app must be restored from its route
+  await page.goForward();
+  await expect(page.getByText("detail-marker")).toBeVisible();
+});
+
+test("browser Back then Forward across a KEEP-mode nav_app_call", async ({
+  page,
+}) => {
+  await mirrorCdn(page);
+
+  await page.goto("/?app_start=zcl_tst_nav_hub_keep");
+  await expect(page.getByText("hubkeep-marker")).toBeVisible({
+    timeout: 30000,
+  });
+  // KEEP routes carry the app-state draft: /app/<CLASS>/<DRAFT>
+  expect(page.url()).toMatch(/#\/app\/ZCL_TST_NAV_HUB_KEEP\/[0-9A-F]{32}/);
+
+  // put some state in, so Back has something to restore
+  await page.getByRole("button", { name: /increment/ }).click();
+  await expect(page.getByRole("button", { name: "increment (1)" })).toBeVisible();
+
+  await page.getByRole("button", { name: "go-detail" }).click();
+  await expect(page.getByText("detail-marker")).toBeVisible();
+  expect(page.url()).toMatch(/#\/app\/ZCL_TST_NAV_DETAIL\/[0-9A-F]{32}/);
+
+  // browser Back -> the hub comes back EXACTLY as the user left it
+  await page.goBack();
+  await expect(page.getByText("hubkeep-marker")).toBeVisible();
+  await expect(page.getByRole("button", { name: "increment (1)" })).toBeVisible();
+
+  // browser Forward -> the detail app must be restored from its draft route
   await page.goForward();
   await expect(page.getByText("detail-marker")).toBeVisible();
 });
