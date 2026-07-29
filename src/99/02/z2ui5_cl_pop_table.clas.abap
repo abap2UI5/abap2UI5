@@ -7,6 +7,8 @@ CLASS z2ui5_cl_pop_table DEFINITION PUBLIC.
       IMPORTING
         i_tab           TYPE STANDARD TABLE
         i_title         TYPE clike OPTIONAL
+        i_growing          TYPE abap_bool DEFAULT abap_false
+        i_growingthreshold TYPE clike DEFAULT '20'
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_pop_table.
 
@@ -27,6 +29,8 @@ CLASS z2ui5_cl_pop_table DEFINITION PUBLIC.
   PROTECTED SECTION.
     DATA title  TYPE string VALUE `Table View`.
     DATA client TYPE REF TO z2ui5_if_client.
+    DATA growing TYPE abap_bool.
+    DATA growingthreshold TYPE string.
 
     METHODS on_event.
     METHODS display.
@@ -49,7 +53,9 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
                                                                title      = title
           )->content( ).
 
-    DATA(tab) = popup->table( client->_bind( <tab_out> ) ).
+    DATA(tab) = popup->table( items = client->_bind( <tab_out> ) 
+                              growing = growing
+                              growingthreshold = growingthreshold ).
 
     DATA(lt_comp) = z2ui5_cl_a2ui5_context=>rtti_get_t_attri_by_any( <tab_out> ).
 
@@ -97,6 +103,8 @@ CLASS z2ui5_cl_pop_table IMPLEMENTATION.
     r_result->mr_tab = z2ui5_cl_a2ui5_context=>conv_copy_ref_data( i_tab ).
     CREATE DATA r_result->ms_result-row LIKE LINE OF i_tab.
 
+    r_result->growing           = i_growing.
+    r_result->growingthreshold  = i_growingthreshold.
   ENDMETHOD.
 
   METHOD on_event.
