@@ -1895,8 +1895,13 @@ CLASS z2ui5_cl_a2ui5_context IMPLEMENTATION.
 
         result = lv_uuid.
 
-      CATCH cx_root.
-        ASSERT 1 = 0.
+      CATCH cx_root INTO DATA(lx_uuid).
+        " both UUID mechanisms failed - raise the framework exception so the
+        " single top-level catch in the HTTP handler turns it into a 500.
+        " ASSERT would raise the uncatchable ASSERTION_FAILED and bypass that
+        " catch (short dump instead of a handled error response).
+        RAISE EXCEPTION TYPE z2ui5_cx_a2ui5_error
+          EXPORTING val = lx_uuid.
     ENDTRY.
   ENDMETHOD.
 

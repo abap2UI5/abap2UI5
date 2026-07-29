@@ -26,6 +26,17 @@ CLASS z2ui5_cl_core_srv_event DEFINITION PUBLIC FINAL.
         VALUE(result) TYPE string.
 
   PRIVATE SECTION.
+    " Escape a value so it is safe as the body of a single-quoted JS string
+    " literal emitted into the view XML. Backslash MUST be escaped first (so
+    " the escapes added afterwards are not themselves re-escaped); without it a
+    " value ending in '\' or containing "\'" breaks out of the '...' wrapper
+    " and the trailing text is evaluated as JS. CR/LF are escaped too - a raw
+    " newline is a syntax error inside a single-quoted JS literal.
+    CLASS-METHODS escape_js_string
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
 ENDCLASS.
 
 
@@ -47,7 +58,7 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
       lv_func = z2ui5_if_core_types=>cs_ui5-event_backend_function.
     ENDIF.
 
-    result = |{ lv_func }({ lv_event_arg }['{ val }'|.
+    result = |{ lv_func }({ lv_event_arg }['{ escape_js_string( CONV string( val ) ) }'|.
 
     IF s_cnt-check_allow_multi_req = abap_true.
       result = |{ result },false,true|.
@@ -109,7 +120,20 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
                         ( lv_bind_path ) ).
     ENDIF.
 
-    result = |{ z2ui5_if_core_types=>cs_ui5-event_frontend_function }('{ lv_val }'{ get_t_arg( lt_arg ) }|.
+    result = |{ z2ui5_if_core_types=>cs_ui5-event_frontend_function }('{ escape_js_string( lv_val ) }'{ get_t_arg( lt_arg ) }|.
+
+  ENDMETHOD.
+
+  METHOD escape_js_string.
+
+    result = val.
+    REPLACE ALL OCCURRENCES OF `\` IN result WITH `\\`.
+    REPLACE ALL OCCURRENCES OF `'` IN result WITH `\'`.
+    " read the newline constants from the context class, not cl_abap_char_
+    " utilities directly (the SAP-standard dependency is abstracted there for
+    " non-ABAP runtimes - see z2ui5_cl_a2ui5_context)
+    REPLACE ALL OCCURRENCES OF z2ui5_cl_a2ui5_context=>cv_char_util_cr_lf IN result WITH `\n`.
+    REPLACE ALL OCCURRENCES OF z2ui5_cl_a2ui5_context=>cv_char_util_newline IN result WITH `\n`.
 
   ENDMETHOD.
 
@@ -139,12 +163,13 @@ CLASS z2ui5_cl_core_srv_event IMPLEMENTATION.
       FIND REGEX `^\{[0-9]+[?}]` IN lv_new.
       DATA(lv_is_placeholder) = xsdbool( sy-subrc = 0 ).
       IF ( lv_new(1) <> `$` AND lv_new(1) <> `{` AND lv_new NP `.eB(*` ) OR lv_is_placeholder = abap_true.
-        " a quoted arg is JS string source (a backslash escape like \n stays a
-        " newline); escape only an embedded ' so it cannot close the '...'
-        " wrapper - otherwise a template like Value changed to '{0}' emits
-        " broken JS.
-        REPLACE ALL OCCURRENCES OF `'` IN lv_new WITH `\'`.
-        lv_new = |'{ lv_new }'|.
+        " a quoted arg becomes a single-quoted JS string literal; escape it in
+        " full (backslash, quote, CR/LF) so no value - including one carrying a
+        " literal backslash or ending in '\' - can close the '...' wrapper and
+        " inject JS. The raw-binding branch above (values starting with { $ or
+        " .eB) stays unescaped by design, since those are real bindings/
+        " expressions, not string data.
+        lv_new = |'{ escape_js_string( lv_new ) }'|.
       ENDIF.
       result = |{ result }{ lv_pending }, { lv_new }|.
       lv_pending = ``.
