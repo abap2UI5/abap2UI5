@@ -1,0 +1,45 @@
+name: check_app2abap
+
+# Drift gate: a PR that changes app/webapp but forgets to regenerate the
+# embedded ABAP under src/01/03 (or leaves app/webapp un-prettier'd) would make
+# main briefly inconsistent until the post-merge create_app2abap bot PR lands.
+# Run the exact regeneration pipeline here and fail if anything it owns differs
+# from what was committed, so the drift is caught on the PR instead.
+
+on:
+  pull_request:
+    paths:
+      - 'app/webapp/**'
+      - 'src/01/03/**'
+      - '.github/app2abap/**'
+      - '.github/workflows/check_app2abap.yaml'
+
+permissions:
+  contents: read
+
+jobs:
+  check_app2abap:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Regenerate embedded frontend
+        run: |
+          npm ci
+          npm --prefix app ci
+          npm run app2abap
+
+      - name: Fail on drift
+        run: |
+          if ! git diff --exit-code -- app/webapp src/01/03; then
+            echo "::error::app/webapp and src/01/03 are out of sync."
+            echo "Run 'npm run app2abap' locally and commit the regenerated src/01/03 (and any prettier changes)."
+            exit 1
+          fi
