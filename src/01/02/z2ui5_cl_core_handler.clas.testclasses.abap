@@ -42,6 +42,7 @@ CLASS ltcl_test_handler_post DEFINITION FINAL
     METHODS test_route_launchpad   FOR TESTING RAISING cx_static_check.
     METHODS test_route_no_route    FOR TESTING RAISING cx_static_check.
     METHODS test_app_state_hash    FOR TESTING RAISING cx_static_check.
+    METHODS test_nav_mode_resent   FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 CLASS z2ui5_cl_core_handler DEFINITION LOCAL FRIENDS ltcl_test_handler_post.
@@ -521,6 +522,40 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         exp = `ABC123`
         act = lo_handler->request_app_start_draft( `#Z2UI5-display&/z2ui5-xapp-state=ABC123` ) ).
+
+  ENDMETHOD.
+
+  METHOD test_nav_mode_resent.
+
+    DATA lo_handler TYPE REF TO z2ui5_cl_core_handler.
+    DATA lo_app TYPE REF TO ltcl_app_nav_loop.
+
+    IF sy-sysid = `ABC`.
+      RETURN.
+    ENDIF.
+
+    " An app configures routing ONCE. main_end therefore re-sends the mode the
+    " app carries whenever the roundtrip did not set one itself, so a later
+    " render of the same app stays routed without calling set_nav_routing( )
+    " again - and an app that never opted in keeps sending nothing.
+    lo_handler = NEW #( val = `` ).
+    lo_app = NEW #( ).
+    lo_handler->mo_action->mo_app->mo_app      = lo_app.
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
+    lo_handler->mo_action->mo_app->mv_nav_mode = z2ui5_if_client=>cs_nav_mode-keep.
+
+    lo_handler->main_end( ).
+
+    cl_abap_unit_assert=>assert_equals( exp = z2ui5_if_client=>cs_nav_mode-keep
+                                        act = lo_handler->ms_response-s_front-params-set_nav_routing ).
+
+    lo_handler = NEW #( val = `` ).
+    lo_handler->mo_action->mo_app->mo_app      = NEW ltcl_app_nav_loop( ).
+    lo_handler->mo_action->mo_app->ms_draft-id = z2ui5_cl_a2ui5_context=>uuid_get_c32( ).
+
+    lo_handler->main_end( ).
+
+    cl_abap_unit_assert=>assert_initial( lo_handler->ms_response-s_front-params-set_nav_routing ).
 
   ENDMETHOD.
 
