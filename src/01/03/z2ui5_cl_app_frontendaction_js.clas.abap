@@ -29,7 +29,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    "sap/ui/model/Sorter",` && |\n| &&
              `    "sap/m/library",` && |\n| &&
              `    "sap/ui/util/Storage",` && |\n| &&
-             `    "sap/ui/core/routing/HashChanger",` && |\n| &&
+             `    "z2ui5/core/Router",` && |\n| &&
              `    "z2ui5/core/Lib",` && |\n| &&
              `    "z2ui5/core/ViewSlots",` && |\n| &&
              `    "z2ui5/core/AppState",` && |\n| &&
@@ -44,7 +44,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    Sorter,` && |\n| &&
              `    mobileLibrary,` && |\n| &&
              `    Storage,` && |\n| &&
-             `    HashChanger,` && |\n| &&
+             `    Router,` && |\n| &&
              `    Lib,` && |\n| &&
              `    ViewSlots,` && |\n| &&
              `    AppState,` && |\n| &&
@@ -616,13 +616,12 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    function evNavToRoute(oController, args) {` && |\n| &&
              `      // Navigate to another app by setting the hash route - the UI5 navTo` && |\n| &&
              `      // equivalent. args[1] is the target app class (or a full "app/<CLASS>"` && |\n| &&
-             `      // route). setHash adds a browser history entry, so Back returns to the` && |\n| &&
-             `      // current app; the HashChanger listener (Server.onHashChange) then starts` && |\n| &&
-             `      // the target app. No-op unless the session enabled routing.` && |\n| &&
+             `      // route). The push adds a browser history entry, so Back returns to the` && |\n| &&
+             `      // current app; the router's hashChanged handler then starts the target` && |\n| &&
+             `      // app. No-op unless the app enabled routing.` && |\n| &&
              `      const raw = Lib.toText(args[1]);` && |\n| &&
              `      if (!raw) return;` && |\n| &&
-             `      const cls = Lib.appOfRoute(raw) || raw;` && |\n| &&
-             `      HashChanger.getInstance().setHash(Lib.routeForApp(cls));` && |\n| &&
+             `      Router.navToApp(raw);` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evClipboardCopy(oController, args) {` && |\n| &&
@@ -633,10 +632,11 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `      // Guard against a missing response so the copied link never carries` && |\n| &&
              `      // the literal "undefined" as its state id.` && |\n| &&
              `      const id = AppState.state.oResponse?.ID || "";` && |\n| &&
-             `      // Strip any existing hash (e.g. an active app-state) so the copied` && |\n| &&
-             `      // link carries only the fresh state id.` && |\n| &&
-             `      const base = window.location.href.split("#")[0];` && |\n| &&
-             `      Lib.copyToClipboard(``${base}#/z2ui5-xapp-state=${id}``);` && |\n| &&
+             `      // Router.hrefFor drops the current app hash (e.g. an active app-state)` && |\n| &&
+             `      // so the link carries only the fresh state id, but KEEPS the FLP shell` && |\n| &&
+             `      // hash - without it the recipient lands on the launchpad home page` && |\n| &&
+             `      // instead of this app.` && |\n| &&
+             `      Lib.copyToClipboard(Router.hrefFor(``/z2ui5-xapp-state=${id}``));` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evDownloadB64File(oController, args) {` && |\n| &&

@@ -9,7 +9,7 @@ sap.ui.define(
     "z2ui5/core/AppState",
     "z2ui5/Util",
     "z2ui5/model/formatter",
-    "sap/ui/core/routing/HashChanger",
+    "z2ui5/core/Router",
   ],
   (
     UIComponent,
@@ -21,7 +21,7 @@ sap.ui.define(
     AppState,
     DateUtil,
     Formatter,
-    HashChanger,
+    Router,
   ) => {
     "use strict";
 
@@ -85,17 +85,6 @@ sap.ui.define(
         this._installDeveloperToolsShortcut();
         this._installScrollListener();
         this._installRouterListener();
-
-        // The stopped router removed with the manifest routing section used
-        // to initialize the HashChanger (and its underlying hasher
-        // singleton) as a side effect. Without that init hasher never
-        // learns the URL's current hash, so the app-state cleanup after
-        // every roundtrip (View1._updateBrowserHistory calling
-        // replaceHash("")) is treated as a change and rewrites the URL to
-        // "...#" - every app start ended with a dangling "#". Initialize it
-        // explicitly; inside the FLP the shell has already done this and
-        // init() is a guarded no-op.
-        HashChanger.getInstance().init();
       },
 
       // ------------------------------------------------------------------
@@ -141,20 +130,15 @@ sap.ui.define(
       },
 
       _installRouterListener() {
-        // Hash-based app routing (UI5 Router style). The HashChanger is the
-        // same engine the sap.ui.core.routing.Router sits on; listening to its
-        // hashChanged event makes the native browser Back/Forward buttons (and
-        // manual URL edits / bookmarks) drive navigation - a hash of the form
-        // "#/app/<CLASS>" starts that app. Only sessions that opted in via
-        // client->set_nav_routing( ) act on it (Server.onHashChange guards on
-        // AppState.navRouting), so apps that manage their own hash are
-        // unaffected.
-        this._boundHashChanged = (oEvent) =>
-          Server.onHashChange(oEvent.getParameter("newHash"));
-        HashChanger.getInstance().attachEvent(
-          "hashChanged",
-          this._boundHashChanged,
-        );
+        // Hash-based app routing (UI5 Router style), owned by core/Router.js.
+        // It sits on the HashChanger - the same engine
+        // sap.ui.core.routing.Router uses, and inside the FLP the shell's own
+        // one - so the native browser Back/Forward buttons and the launchpad
+        // back button drive navigation. Only apps that opted in via
+        // client->set_nav_routing( ) act on it, so apps that manage their own
+        // hash are unaffected. Server does the actual restore roundtrip; it is
+        // injected here so the router stays free of a Server dependency.
+        Router.init(() => Server.restoreFromRoute());
       },
 
       // ------------------------------------------------------------------
@@ -262,10 +246,7 @@ sap.ui.define(
         document.removeEventListener("scroll", this._boundScroll, {
           capture: true,
         });
-        HashChanger.getInstance().detachEvent(
-          "hashChanged",
-          this._boundHashChanged,
-        );
+        Router.exit();
 
         // The developer tools control is created lazily by the Ctrl+F12
         // shortcut - destroy it (which also closes its dialog) so a re-launch

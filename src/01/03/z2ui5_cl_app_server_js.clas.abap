@@ -356,45 +356,13 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        }` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
-             `      // Hash-router handler (registered by Component.js on the HashChanger's` && |\n| &&
-             `      // hashChanged event). This is what makes the browser Back/Forward buttons` && |\n| &&
-             `      // - and manual URL edits / bookmarks - navigate between apps: a hash of` && |\n| &&
-             `      // the form "#/app/<CLASS>/<DRAFTID>" restores that app's draft (its` && |\n| &&
-             `      // preserved state), falling back to a fresh start of <CLASS> when the` && |\n| &&
-             `      // draft has expired. It is the abap2UI5 equivalent of a UI5 route's` && |\n| &&
-             `      // patternMatched handler.` && |\n| &&
-             `      onHashChange(sNewHash) {` && |\n| &&
-             `        const state = AppState.state;` && |\n| &&
-             `` && |\n| &&
-             `        // Routing is opt-in per session (client->set_nav_routing); until an app` && |\n| &&
-             `        // enabled it, leave the hash entirely to the app (e.g. set_push_state).` && |\n| &&
-             `        if (!state.navRouting) return;` && |\n| &&
-             `` && |\n| &&
-             `        const target = Lib.appOfRoute(sNewHash);` && |\n| &&
-             `` && |\n| &&
-             `        // Not an app route (empty / some app-owned hash) - ignore.` && |\n| &&
-             `        if (!target) return;` && |\n| &&
-             `` && |\n| &&
-             `        const targetDraft = Lib.draftOfRoute(sNewHash);` && |\n| &&
-             `` && |\n| &&
-             `        // Ignore the echo of our own hash write after rendering (not a user` && |\n| &&
-             `        // navigation), so we do not loop. Match on the draft id when the route` && |\n| &&
-             `        // carries one - that is the precise app state - otherwise on the class.` && |\n| &&
-             `        if (targetDraft) {` && |\n| &&
-             `          if (targetDraft === state.currentDraftId) return;` && |\n| &&
-             `        } else if (` && |\n| &&
-             `          target.toUpperCase() === String(state.currentApp).toUpperCase()` && |\n| &&
-             `        ) {` && |\n| &&
-             `          return;` && |\n| &&
-             `        }` && |\n| &&
-             `` && |\n| &&
-             `        // A different app state: restore it. An empty body (no ID) makes the` && |\n| &&
-             `        // backend take the first-start path and read the target class + draft` && |\n| &&
-             `        // from the hash it receives (request_app_start_route[_draft]). Mark the` && |\n| &&
-             `        // roundtrip as browser-initiated so the render does NOT rewrite the hash` && |\n| &&
-             `        // (the browser is at a non-top history position - rewriting there would` && |\n| &&
-             `        // drop the forward entries and break the Forward button).` && |\n| &&
-             `        state.navFromHash = true;` && |\n| &&
+             `      // Restore the app state a matched hash route points at. Wired into` && |\n| &&
+             `      // core/Router by Component.js and called when the browser Back/Forward` && |\n| &&
+             `      // buttons (or a manual URL edit / bookmark) select a different route.` && |\n| &&
+             `      // An empty body (no ID) makes the backend take the first-start path and` && |\n| &&
+             `      // read the target class + draft from the hash it receives` && |\n| &&
+             `      // (request_app_start_route[_draft]).` && |\n| &&
+             `      restoreFromRoute() {` && |\n| &&
              `        this.roundtrip({});` && |\n| &&
              `      },` && |\n| &&
              `` && |\n| &&
@@ -417,8 +385,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        const out = {};` && |\n| &&
              `        for (const slot of ViewSlots.slots) {` && |\n| &&
              `          const entry = store[slot.key];` && |\n| &&
-             `          if (!entry) continue;` && |\n|.
-    result = result &&
+             `          if (!entry) continue;` && |\n| &&
              `` && |\n| &&
              `          // Drop stale references, e.g. after the view was replaced. Also` && |\n| &&
              `          // drop a destroyed control whose DOM is still transiently` && |\n| &&
@@ -450,7 +417,8 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
              `        state.checkNestAfter2 = false;` && |\n| &&
              `` && |\n| &&
              `        // Keep the shared record in sync (developer tools "Previous Request",` && |\n| &&
-             `        // app hooks); the parameter stays the working object. Calls without` && |\n| &&
+             `        // app hooks); the parameter stays the working object. Calls without` && |\n|.
+    result = result &&
              `        // a body (initial roundtrip, route changes) start from scratch.` && |\n| &&
              `        state.oBody = oBody;` && |\n| &&
              `` && |\n| &&

@@ -13,7 +13,7 @@ sap.ui.define(
     "sap/ui/core/Fragment",
     "z2ui5/core/Server",
     "sap/ui/model/odata/v2/ODataModel",
-    "sap/ui/core/routing/HashChanger",
+    "z2ui5/core/Router",
     "z2ui5/core/Lib",
     "z2ui5/core/FrontendAction",
     "z2ui5/core/ViewSlots",
@@ -28,16 +28,13 @@ sap.ui.define(
     Fragment,
     Server,
     ODataModel,
-    HashChanger,
+    Router,
     Lib,
     FrontendAction,
     ViewSlots,
     AppState,
   ) => {
     "use strict";
-
-    // Helpers reused across calls; kept as module-level singletons.
-    const _hashChanger = HashChanger.getInstance();
 
     function applyStoredSizeLimit(viewKey, oModel) {
       if (!oModel) return;
@@ -159,122 +156,11 @@ sap.ui.define(
         }
       },
 
-      // Phase 2: push the backend-requested URL and update the app-state
-      // hash.
+      // Phase 2: keep the URL in sync with what was rendered - the hash
+      // route of the running app, plus the legacy push-state / app-state
+      // hashes. core/Router owns all of it (and the FLP shell-hash rules).
       _updateBrowserHistory(PARAMS, ID) {
-        try {
-          // Hash-based app routing (UI5 Router style), opt-in per session. The
-          // flag carries the MODE (z2ui5_if_client=>cs_nav_mode): "KEEP" routes
-          // by class + draft id (exact state restored on Back/Forward), "FRESH"
-          // routes by class only (Back/Forward start the app fresh); any other
-          // non-empty value ("DEFAULT") turns routing back OFF (framework
-          // default). An EMPTY value is "no change" so a later roundtrip that
-          // does not re-send the flag keeps routing on with the mode already
-          // chosen (an app that enabled it once in check_on_init stays routed).
-          if (PARAMS.SET_NAV_ROUTING) {
-            const mode = String(PARAMS.SET_NAV_ROUTING).toUpperCase();
-            const on = mode === "KEEP" || mode === "FRESH";
-            AppState.state.navRouting = on;
-            AppState.state.navMode = on ? mode : null;
-          }
-          const state = AppState.state;
-          if (state.navRouting) {
-            const app = state.oResponse?.APP;
-            if (app) {
-              // In FRESH mode the route carries the class only, so every history
-              // entry (Back/Forward/reload/bookmark) starts the app fresh; in
-              // KEEP mode it carries the draft id too, so they restore the exact
-              // preserved state. draftForRoute is what the route (and the echo
-              // guard below) uses - null in FRESH, the app-state ID in KEEP.
-              const draftForRoute = state.navMode === "FRESH" ? null : ID;
-              // Set current app/draft BEFORE touching the hash: the setHash/
-              // replaceHash below re-fires hashChanged, and Server.onHashChange
-              // compares the incoming route's draft id against currentDraftId to
-              // ignore our own echo (no navigation loop). In FRESH mode there is
-              // no draft, so the guard matches on the class instead.
-              state.currentApp = app;
-              state.currentDraftId = draftForRoute;
-              if (state.navFromHash) {
-                // This render is the result of a browser Back/Forward (or manual
-                // hash edit) routed through Server.onHashChange. The hash already
-                // matches this history entry and the browser sits at a non-top
-                // position - rewriting the hash here would drop the forward
-                // entries and break the Forward button. Just adopt the state.
-                state.navFromHash = false;
-              } else if (!PARAMS.SET_PUSH_STATE) {
-                // Reflect the running app in the URL as a bookmarkable route
-                // "/app/<CLASS>" (FRESH) or "/app/<CLASS>/<DRAFTID>" (KEEP). In
-                // KEEP the draft id makes Back/Forward restore the EXACT
-                // preserved state, not a fresh app. A forward navigation done in
-                // the backend (client->nav_app_call, CHECK_NAV_APP_CALL) pushes a
-                // NEW history entry so Back returns to the calling app - the
-                // routing equivalent of a UI5 navTo. A plain roundtrip only
-                // replaces the current (top) entry, advancing it to the app's
-                // latest draft so a later Forward restores the newest state.
-                const route = Lib.routeForApp(app, draftForRoute);
-                if (PARAMS.CHECK_NAV_APP_CALL) {
-                  // repoint the caller's entry first - it borrows the echo
-                  // guard, so restore it to this app before pushing the route
-                  this._repointCallerEntry(PARAMS, draftForRoute);
-                  state.currentApp = app;
-                  state.currentDraftId = draftForRoute;
-                  _hashChanger.setHash(route);
-                } else if (_hashChanger.getHash() !== route) {
-                  _hashChanger.replaceHash(route);
-                }
-              }
-            }
-            // Routing owns the app-state hash; skip the legacy handling below.
-            if (!PARAMS.SET_PUSH_STATE) return;
-          }
-
-          if (PARAMS.SET_PUSH_STATE) {
-            const hash = _hashChanger.getHash();
-            const newUrl = `${window.location.pathname}${window.location.search}#${hash}${PARAMS.SET_PUSH_STATE}`;
-            history.pushState(null, "", newUrl);
-          }
-          // Keep the leading "/" so the live URL matches the format the copy
-          // link (FrontendAction.evClipboardAppState) writes and the backend
-          // restore path expects: request_app_start_draft reads the state id
-          // via iv_hash+2, i.e. it skips exactly the "#/" prefix. Without the
-          // slash the live hash is "#z2ui5-xapp-state=..." and iv_hash+2 eats
-          // the leading "z", so bookmarking/reloading the live URL never
-          // restores the app state (only the explicitly copied link did).
-          const newHash = PARAMS.SET_APP_STATE_ACTIVE
-            ? `/z2ui5-xapp-state=${ID || ""}`
-            : "";
-          _hashChanger.replaceHash(newHash);
-        } catch (e) {
-          Lib.logError("_updateBrowserHistory: history update failed", e);
-        }
-      },
-
-      // Point the CALLING app's history entry at the draft the backend saved
-      // for it during this very nav_app_call (PARAMS.NAV_APP_CALL_PREV_*).
-      // That draft carries every client-side change the user made since the
-      // caller last rendered - two-way bound switches, checkboxes, input - all
-      // of which travelled to the backend with the event that triggered the
-      // navigation. The entry itself still carries the older draft of that
-      // last render, so without this Back restores the caller as it was
-      // RENDERED and silently drops those changes. The entry is still the top
-      // one here (the called app's route is pushed right after), so a
-      // replaceHash updates it in place and leaves the history depth alone.
-      // KEEP mode only - a FRESH route carries no draft and always restarts
-      // the app anyway.
-      _repointCallerEntry(PARAMS, draftForRoute) {
-        const state = AppState.state;
-        const prevApp = PARAMS.NAV_APP_CALL_PREV_APP;
-        const prevDraft = PARAMS.NAV_APP_CALL_PREV_ID;
-        if (!draftForRoute || !prevApp || !prevDraft) return;
-        const prevRoute = Lib.routeForApp(prevApp, prevDraft);
-        if (_hashChanger.getHash() === prevRoute) return;
-        // Server.onHashChange ignores the echo of our own hash writes by
-        // comparing the route's draft id against currentDraftId - adopt the
-        // caller's fresh draft BEFORE replacing, or the write reads as a user
-        // navigation and fires a restore roundtrip. The caller of this method
-        // sets the state back to the called app right afterwards.
-        state.currentDraftId = prevDraft;
-        _hashChanger.replaceHash(prevRoute);
+        Router.sync(PARAMS, ID);
       },
 
       // Execute the follow-up JS snippets stashed by Server.responseSuccess.

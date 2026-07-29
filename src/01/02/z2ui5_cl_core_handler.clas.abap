@@ -107,6 +107,12 @@ CLASS z2ui5_cl_core_handler DEFINITION PUBLIC FINAL.
         iv_hash       TYPE string
       RETURNING
         VALUE(result) TYPE string.
+
+    METHODS hash_get_app_part
+      IMPORTING
+        iv_hash       TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
 ENDCLASS.
 
 
@@ -273,12 +279,54 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
                                       url          = iv_search ) ).
   ENDMETHOD.
 
+  METHOD hash_get_app_part.
+    " Reduce a browser hash to the part that belongs to the running app - the
+    " "app hash". Inside the SAP Fiori Launchpad the shell owns everything
+    " before '&/' ('#<SemanticObject>-<action>&/<app hash>'), standalone the
+    " whole hash is the app hash. This mirrors Router.splitHash in the
+    " frontend and is the single place the backend knows about the shell hash;
+    " without it every launchpad hash looks like "no route" and Back / reload /
+    " a bookmark fall back to the '?app_start=' query.
+    result = iv_hash.
+
+    IF strlen( result ) = 0.
+      RETURN.
+    ENDIF.
+
+    IF result(1) = `#`.
+      result = substring( val = result
+                          off = 1 ).
+    ENDIF.
+
+    IF strlen( result ) = 0.
+      RETURN.
+    ENDIF.
+
+    " An app hash starts with '/', a shell hash never does. Checking this
+    " first matters: an app hash may itself contain '&/' in a parameter, and
+    " splitting on that would truncate it.
+    IF result(1) = `/`.
+      RETURN.
+    ENDIF.
+
+    DATA(lv_off) = find( val = result
+                         sub = `&/` ).
+    IF lv_off < 0.
+      RETURN.
+    ENDIF.
+
+    result = substring( val = result
+                        off = lv_off + 2 ).
+  ENDMETHOD.
+
   METHOD request_app_start_draft.
     TRY.
-        DATA(lv_hash) = substring_after( val = iv_hash
-                                         sub = `&/` ).
-        IF lv_hash IS INITIAL.
-          lv_hash = iv_hash+2.
+        DATA(lv_hash) = hash_get_app_part( iv_hash ).
+        " the app hash may carry a leading '/' ('#/z2ui5-xapp-state=...');
+        " url_param_get matches parameter names verbatim, so strip it
+        IF strlen( lv_hash ) > 0 AND lv_hash(1) = `/`.
+          lv_hash = substring( val = lv_hash
+                               off = 1 ).
         ENDIF.
         result = z2ui5_cl_a2ui5_context=>c_trim_upper(
             z2ui5_cl_a2ui5_context=>url_param_get( val = `z2ui5-xapp-state`
@@ -289,24 +337,26 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
 
   METHOD parse_app_route_rest.
     " Shared prologue for request_app_start_route / _route_draft: return the
-    " hash remainder after 'app/' when the hash is a real app route
-    " ('#/app/...'), or empty when it carries no route (normal boot, or an
-    " 'app/' occurring mid-hash). Only accept 'app/' as the route start -
-    " everything before it must be just the hash markers '#' and '/'.
-    DATA(lv_off) = find( val = iv_hash
-                         sub = `app/` ).
-    IF lv_off < 0.
+    " route remainder after 'app/' when the hash carries a real app route, or
+    " empty when it does not (normal boot, an app-owned hash, an 'app/'
+    " occurring mid-hash). The route must be the START of the APP hash - the
+    " launchpad shell hash in front of it is stripped by hash_get_app_part, so
+    " '#/app/X' and '#Z2UI5-display&/app/X' resolve identically.
+    DATA(lv_hash) = hash_get_app_part( iv_hash ).
+
+    " the leading '/' is optional: the launchpad convention writes the app
+    " hash without it ('&/app/X'), our own routes carry it ('#/app/X')
+    IF strlen( lv_hash ) > 0 AND lv_hash(1) = `/`.
+      lv_hash = substring( val = lv_hash
+                           off = 1 ).
+    ENDIF.
+
+    IF strlen( lv_hash ) < 4 OR lv_hash(4) <> `app/`.
       RETURN.
     ENDIF.
-    DATA(lv_prefix) = substring( val = iv_hash
-                                 len = lv_off ).
-    REPLACE ALL OCCURRENCES OF `#` IN lv_prefix WITH ``.
-    REPLACE ALL OCCURRENCES OF `/` IN lv_prefix WITH ``.
-    IF lv_prefix IS NOT INITIAL.
-      RETURN.
-    ENDIF.
-    result = substring( val = iv_hash
-                        off = lv_off + 4 ).
+
+    result = substring( val = lv_hash
+                        off = 4 ).
   ENDMETHOD.
 
   METHOD request_app_start_route.
@@ -461,6 +511,15 @@ CLASS z2ui5_cl_core_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD main_end.
+
+    " Hash routing is configured once and then belongs to the app, not to the
+    " session: re-send the app's own mode whenever this roundtrip did not set
+    " one itself, so an app that called set_nav_routing( ) in check_on_init
+    " stays routed in its chosen mode - even after the user visited another
+    " app that runs with a different one (see z2ui5_cl_core_app=>mv_nav_mode).
+    IF mo_action->ms_next-s_set-set_nav_routing IS INITIAL.
+      mo_action->ms_next-s_set-set_nav_routing = mo_action->mo_app->mv_nav_mode.
+    ENDIF.
 
     ms_response = VALUE #( s_front-params = mo_action->ms_next-s_set
                            s_front-id     = mo_action->mo_app->ms_draft-id
