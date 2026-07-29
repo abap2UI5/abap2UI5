@@ -53,7 +53,7 @@ INTERFACE z2ui5_if_client
       smart_variant_init        TYPE string VALUE `SMART_VARIANT_INIT`,
       filter_bar_variant_init   TYPE string VALUE `FILTER_BAR_VARIANT_INIT`,
 
-      "obsolet?
+      "obsolete?
       image_editor_popup_close  TYPE string VALUE `IMAGE_EDITOR_POPUP_CLOSE`,
       nav_container_to          TYPE string VALUE `NAV_CONTAINER_TO`,
       nest_nav_container_to     TYPE string VALUE `NEST_NAV_CONTAINER_TO`,
@@ -276,7 +276,7 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val                  TYPE data
       path                 TYPE abap_bool                     DEFAULT abap_false
-      "obsolet - inaktiv, wird intern nicht weitergegeben
+      "obsolete - inactive, not passed on internally
       view                 TYPE clike                         DEFAULT cs_view-main
       custom_mapper        TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
 *      custom_mapper_back   TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
@@ -288,12 +288,12 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result)        TYPE string.
 
-  "! obsolet - identisch zu _bind (beide two-way), bitte _bind verwenden
+  "! obsolete - identical to _bind (both two-way), please use _bind
   METHODS _bind_edit
     IMPORTING
       val                  TYPE data
       path                 TYPE abap_bool                     DEFAULT abap_false
-      "obsolet - inaktiv, wird intern nicht weitergegeben
+      "obsolete - inactive, not passed on internally
       view                 TYPE clike                         DEFAULT cs_view-main
       custom_mapper        TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
       custom_mapper_back   TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
