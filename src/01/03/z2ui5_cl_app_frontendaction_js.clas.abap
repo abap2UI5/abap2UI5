@@ -1084,6 +1084,11 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `    // Management already pulled it in, asynchronously otherwise.` && |\n| &&
              `    function withPersonalizableInfo(callback) {` && |\n| &&
              `      const name = "sap/ui/comp/smartvariants/PersonalizableInfo";` && |\n| &&
+             `      /* ui5lint-disable no-globals --` && |\n| &&
+             `       the guard has to read the global sap.ui itself: the point of this` && |\n| &&
+             `       function is to load a module that must NOT be a declared dependency` && |\n| &&
+             `       (sap.ui.comp is SAPUI5-only and 404s on OpenUI5), so sap.ui.require is` && |\n| &&
+             `       the only entry point and there is no injected equivalent to probe. */` && |\n| &&
              `      if (` && |\n| &&
              `        typeof sap === "undefined" ||` && |\n| &&
              `        !sap.ui ||` && |\n| &&
@@ -1102,6 +1107,7 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `          "FILTER_BAR_VARIANT_INIT: sap.ui.comp.smartvariants not available",` && |\n| &&
              `        ),` && |\n| &&
              `      );` && |\n| &&
+             `      /* ui5lint-enable no-globals */` && |\n| &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evFilterBarVariantInit(oController, args) {` && |\n| &&
@@ -1213,14 +1219,14 @@ CLASS z2ui5_cl_app_frontendaction_js IMPLEMENTATION.
              `        Lib.logError("IMAGE_EDITOR_POPUP_CLOSE: getImagePngDataURL failed", e);` && |\n| &&
              `      }` && |\n| &&
              `      ViewSlots.destroy("POPUP");` && |\n| &&
-             `      oController.eB(["SAVE"], image);` && |\n| &&
+             `      oController.eB(["SAVE"], image);` && |\n|.
+    result = result &&
              `    }` && |\n| &&
              `` && |\n| &&
              `    function evStartTimer(oController, args) {` && |\n| &&
              `      // Intentionally a single timer slot: args[0] is always the event` && |\n| &&
              `      // name "START_TIMER", so a new START_TIMER replaces the previous` && |\n| &&
-             `      // one. At most one backend timer is pending at any time - this is` && |\n|.
-    result = result &&
+             `      // one. At most one backend timer is pending at any time - this is` && |\n| &&
              `      // by design, not a bug.` && |\n| &&
              `      const timerKey = args[0];` && |\n| &&
              `      const callbackEvent = args[1];` && |\n| &&
